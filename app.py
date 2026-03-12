@@ -149,40 +149,129 @@ code {
     color: var(--amber) !important;
 }
 
-/* Company list */
-.company-list {
-    max-height: 70vh;
+/* --- Top 10 card grid --- */
+.top-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 8px;
+}
+@media (max-width: 900px) {
+    .top-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 500px) {
+    .top-grid { grid-template-columns: 1fr; }
+}
+.top-card {
+    display: block;
+    text-decoration: none !important;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 14px 14px 12px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    position: relative;
+    overflow: hidden;
+}
+.top-card:hover {
+    border-color: var(--green-dim);
+    box-shadow: 0 0 12px rgba(51, 255, 51, 0.15);
+}
+.top-card .card-rank {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--green);
+    line-height: 1;
+    margin-bottom: 6px;
+    text-shadow: 0 0 10px rgba(51, 255, 51, 0.3);
+}
+.top-card .card-code {
+    font-size: 0.82rem;
+    color: var(--green-dim);
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+}
+.top-card .card-name {
+    font-size: 0.78rem;
+    color: var(--amber);
+    line-height: 1.3;
+    margin-bottom: 6px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.top-card .card-sector {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* --- Section dividers --- */
+.tier-label {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+    margin: 20px 0 12px;
+    position: relative;
+}
+.tier-label::before,
+.tier-label::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 30%;
+    height: 1px;
+    background: var(--border);
+}
+.tier-label::before { left: 0; }
+.tier-label::after { right: 0; }
+
+/* --- Rest list (multi-column) --- */
+.rest-list {
+    column-count: 3;
+    column-gap: 16px;
+    max-height: 55vh;
     overflow-y: auto;
     border: 1px solid var(--border);
-    padding: 0;
+    padding: 6px 0;
 }
-.company-link {
+@media (max-width: 900px) {
+    .rest-list { column-count: 2; }
+}
+@media (max-width: 500px) {
+    .rest-list { column-count: 1; }
+}
+.rest-list a {
     display: block;
-    padding: 8px 16px;
+    padding: 5px 14px;
     color: var(--amber) !important;
     text-decoration: none !important;
-    border-bottom: 1px solid #1a1a1a;
-    font-size: 0.88rem;
-    transition: background 0.1s, color 0.1s;
+    font-size: 0.8rem;
+    break-inside: avoid;
+    transition: color 0.1s, background 0.1s;
+    border-bottom: 1px solid #131313;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-.company-link:hover {
+.rest-list a:hover {
     background: var(--bg-card);
     color: var(--green) !important;
     text-shadow: 0 0 6px rgba(51, 255, 51, 0.3);
 }
-.company-link .rank {
+.rest-list a .rk {
     color: var(--text-muted);
+    display: inline-block;
+    width: 36px;
+    text-align: right;
     margin-right: 8px;
 }
-.company-list::-webkit-scrollbar {
-    width: 6px;
-}
-.company-list::-webkit-scrollbar-track {
-    background: var(--bg-dark);
-}
-.company-list::-webkit-scrollbar-thumb {
-    background: var(--border);
-}
+.rest-list::-webkit-scrollbar { width: 6px; }
+.rest-list::-webkit-scrollbar-track { background: var(--bg-dark); }
+.rest-list::-webkit-scrollbar-thumb { background: var(--border); }
 
 /* Scanline overlay for CRT feel */
 .stApp::after {
@@ -381,17 +470,17 @@ def _retro_fig(fig):
 def render_homepage():
     st.markdown("## dseX // Dhaka Stock Exchange")
 
-    companies = load_companies()
+    companies_raw = load_companies()
     scores = compute_composite_scores()
 
     rows = []
-    for c in companies:
+    for c in companies_raw:
         code = c["trading_code"]
-        score = scores.get(code)
         rows.append({
             "trading_code": code,
             "name": c.get("company_name", "") or code,
-            "score": score,
+            "sector": c.get("sector", ""),
+            "score": scores.get(code),
         })
 
     df = pd.DataFrame(rows)
@@ -408,18 +497,43 @@ def render_homepage():
 
     st.caption(f"{len(df)} companies ranked")
 
-    lines = []
-    for i, row in df.iterrows():
-        code = row["trading_code"]
-        name = row["name"]
-        rank = i + 1
-        lines.append(
-            f'<a class="company-link" href="?code={code}" target="_self">'
-            f'<span class="rank">{rank:>3}.</span> {name}</a>'
-        )
+    # --- Tier 1: Top 10 featured cards ---
+    top_n = min(10, len(df))
+    if top_n > 0:
+        st.markdown('<div class="tier-label">// top 10 //</div>', unsafe_allow_html=True)
+        cards = []
+        for i in range(top_n):
+            row = df.iloc[i]
+            code = row["trading_code"]
+            name = row["name"]
+            sector = row["sector"] or ""
+            rank = i + 1
+            cards.append(
+                f'<a class="top-card" href="?code={code}" target="_self">'
+                f'<div class="card-rank">#{rank}</div>'
+                f'<div class="card-code">{code}</div>'
+                f'<div class="card-name">{name}</div>'
+                f'<div class="card-sector">{sector}</div>'
+                f'</a>'
+            )
+        grid_html = '<div class="top-grid">' + "\n".join(cards) + "</div>"
+        st.markdown(grid_html, unsafe_allow_html=True)
 
-    list_html = '<div class="company-list">' + "\n".join(lines) + "</div>"
-    st.markdown(list_html, unsafe_allow_html=True)
+    # --- Tier 2: Remaining companies ---
+    rest_df = df.iloc[top_n:]
+    if len(rest_df) > 0:
+        st.markdown('<div class="tier-label">// all companies //</div>', unsafe_allow_html=True)
+        links = []
+        for i, row in rest_df.iterrows():
+            code = row["trading_code"]
+            name = row["name"]
+            rank = i + 1
+            links.append(
+                f'<a href="?code={code}" target="_self">'
+                f'<span class="rk">{rank}.</span>{name}</a>'
+            )
+        rest_html = '<div class="rest-list">' + "\n".join(links) + "</div>"
+        st.markdown(rest_html, unsafe_allow_html=True)
 
 
 # ---------------------------------------------------------------------------
@@ -449,22 +563,17 @@ def render_detail_page(trading_code):
         header += f"  `{sector}`"
     st.markdown(f"## {header}")
 
-    # --- Price metrics ---
+    # --- Price metric ---
     if latest:
-        m1, m2, m3, m4 = st.columns(4)
+        ltp = latest.get("ltp")
         change_val = latest.get("change")
         change_delta = f"{change_val:+.2f}" if change_val is not None else None
-        m1.metric("Last Trading Price", f"{latest.get('ltp', 'N/A')}", delta=change_delta)
-        m2.metric("Day's Range", f"{latest.get('low', '—')} – {latest.get('high', '—')}")
-        m3.metric("Volume", f"{latest.get('volume', 0):,}")
-        m4.metric("Value (mn)", f"{latest.get('value_mn', 0):.2f}")
+        st.metric("Last Trading Price", f"{ltp:,.2f}" if ltp else "N/A", delta=change_delta)
     else:
         st.info("No price data available for this company.")
 
     # --- Basic info ---
     info_fields = [
-        ("Face Value", "face_value"),
-        ("Market Lot", "market_lot"),
         ("Paid-up Capital (mn)", "paid_up_capital_mn"),
         ("Listing Year", "listing_year"),
         ("Category", "market_category"),
@@ -474,31 +583,13 @@ def render_detail_page(trading_code):
     ]
     available = [(label, company[key]) for label, key in info_fields if key in company]
     if available:
-        cols = st.columns(len(available))
-        for col, (label, value) in zip(cols, available):
-            if isinstance(value, (int, float)) and value > 10000:
-                col.metric(label, f"{value:,.0f}")
+        cols = st.columns(min(len(available), 4))
+        for idx, (label, value) in enumerate(available):
+            col = cols[idx % len(cols)]
+            if isinstance(value, (int, float)):
+                col.metric(label, f"{value:,.2f}" if isinstance(value, float) else f"{value:,}")
             else:
                 col.metric(label, value)
-
-    st.divider()
-
-    # --- Price history chart ---
-    st.subheader("Stock Price History")
-    price_df = load_price_history(trading_code)
-    if not price_df.empty and "close_price" in price_df.columns:
-        fig = px.line(
-            price_df,
-            x="date",
-            y="close_price",
-            labels={"date": "Date", "close_price": "Close Price (BDT)"},
-        )
-        _retro_fig(fig)
-        fig.update_layout(hovermode="x unified", height=350, margin=dict(l=0, r=0, t=10, b=0))
-        fig.update_traces(line=dict(color="#33ff33", width=2))
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.caption("Price history will appear here as more daily data is scraped.")
 
     st.divider()
 
