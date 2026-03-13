@@ -1,0 +1,26 @@
+name: Daily DSE Scrape
+
+on:
+  schedule:
+    # Sun-Thu at 12:30 UTC = 6:30 PM BD time (after DSE market close)
+    - cron: "30 12 * * 0-4"
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    env:
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      MONGODB_DB_NAME: ${{ secrets.MONGODB_DB_NAME }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run all scrapers
+        run: python main.py scrape-all

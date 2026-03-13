@@ -370,13 +370,35 @@ def load_shareholdings(trading_code):
 # Composite scoring
 # ---------------------------------------------------------------------------
 
+
+def _trend_slope(years, values):
+    """Normalized linear-regression slope for a year-sorted series.
+    Returns NaN when fewer than 2 non-null data points exist."""
+    mask = pd.notna(values)
+    y = np.asarray(years[mask], dtype=float)
+    v = np.asarray(values[mask], dtype=float)
+    if len(v) < 2:
+        return np.nan
+    mean_abs = np.mean(np.abs(v))
+    if mean_abs == 0:
+        return 0.0
+    slope = np.polyfit(y, v, 1)[0]
+    return slope / mean_abs
+
+
 @st.cache_data(ttl=300)
 def compute_composite_scores():
     """
-    dseX Score (0-100) based on 3 value factors:
-      50% P/E Ratio (lower = better)
-      25% Reserve per Share (higher = better)
-      25% Loan-to-Reserve Ratio (lower = better)
+    dseX Score (0-100) based on 6 factors in 3 pairs:
+      EPS Pair (30%):
+        15 %  P/E Ratio           (lower = better value)
+        15 %  EPS Growth Trend    (steeper positive slope = better)
+      Balance-Sheet Pair (30%):
+        15 %  Reserve per Share   (higher = better)
+        15 %  Loan per Share      (lower = better)
+      Dividend Pair (40%):
+        20 %  Dividend Yield      (higher = better)
+        20 %  Dividend Growth     (steeper positive slope = better)
     Each factor is percentile-ranked before weighting.
     """
     db = get_mongo_db()
@@ -386,59 +408,105 @@ def compute_composite_scores():
         return {}
     fin_df = pd.DataFrame(fin_docs).sort_values(["trading_code", "year"])
     fin_df["eps"] = fin_df["eps_cont_basic"].combine_first(fin_df.get("eps_basic"))
+
     latest_eps = fin_df.groupby("trading_code")["eps"].last()
+
+    eps_slopes: dict[str, float] = {}
+    div_slopes: dict[str, float] = {}
+    latest_div_pct: dict[str, float] = {}
+    for code, grp in fin_df.groupby("trading_code"):
+        eps_slopes[code] = _trend_slope(grp["year"].values, grp["eps"].values)
+        div_slopes[code] = _trend_slope(
+            grp["year"].values, grp["cash_dividend_pct"].values
+        )
+        div_valid = grp["cash_dividend_pct"].dropna()
+        if not div_valid.empty:
+            latest_div_pct[code] = div_valid.iloc[-1]
 
     companies = {
         d["trading_code"]: d
         for d in db.companies.find({}, {
             "trading_code": 1, "reserve_surplus_mn": 1,
-            "total_shares": 1, "total_loan_mn": 1, "_id": 0,
+            "total_shares": 1, "total_loan_mn": 1,
+            "face_value": 1, "_id": 0,
         })
     }
 
     prices = load_latest_prices()
 
+    all_codes = set(latest_eps.index) | set(companies.keys())
     metrics = []
-    for code, eps in latest_eps.items():
+    for code in all_codes:
         comp = companies.get(code, {})
         ltp = (prices.get(code) or {}).get("ltp")
         reserve = comp.get("reserve_surplus_mn")
         shares = comp.get("total_shares")
         loan = comp.get("total_loan_mn")
+        face = comp.get("face_value")
 
-        pe = ltp / eps if ltp and eps and eps > 0 else None
+        eps_val = latest_eps.get(code)
+        eps_growth = eps_slopes.get(code)
+
+        pe = ltp / eps_val if ltp and eps_val and eps_val > 0 else None
+
         rps = (reserve * 1_000_000 / shares) if reserve and shares and shares > 0 else None
+        lps = (((loan or 0) * 1_000_000) / shares) if shares and shares > 0 else None
 
-        if reserve and reserve > 0:
-            ltr = (loan or 0) / reserve
-        elif loan and loan > 0:
-            ltr = float("inf")
+        div_pct = latest_div_pct.get(code)
+        if div_pct and face and ltp and ltp > 0:
+            div_yield = (face * div_pct / 100) / ltp * 100
         else:
-            ltr = None
+            div_yield = None
+
+        div_growth = div_slopes.get(code)
 
         metrics.append({
-            "trading_code": code, "pe": pe, "rps": rps, "ltr": ltr,
+            "trading_code": code,
+            "pe": pe,
+            "eps_growth": eps_growth,
+            "rps": rps,
+            "lps": lps,
+            "div_yield": div_yield,
+            "div_growth": div_growth,
         })
 
     mdf = pd.DataFrame(metrics)
     if mdf.empty:
         return {}
 
-    pe_raw = mdf["pe"].rank(pct=True, ascending=True)
-    mdf["pe_rank"] = (1 - pe_raw).fillna(0)  # invert: lowest P/E -> highest rank; NaN -> 0
-
+    # Higher is better
+    mdf["eps_growth_rank"] = mdf["eps_growth"].rank(pct=True).fillna(0)
     mdf["rps_rank"] = mdf["rps"].rank(pct=True).fillna(0)
+    mdf["div_yield_rank"] = mdf["div_yield"].rank(pct=True).fillna(0)
+    mdf["div_growth_rank"] = mdf["div_growth"].rank(pct=True).fillna(0)
 
-    ltr_finite = mdf["ltr"].replace(float("inf"), np.nan)
-    ltr_raw = ltr_finite.rank(pct=True, ascending=True)
-    mdf["ltr_rank"] = (1 - ltr_raw).fillna(0)  # invert: lowest ratio -> highest rank; NaN -> 0
-    mdf.loc[mdf["ltr"] == float("inf"), "ltr_rank"] = 0
+    # Lower is better
+    pe_raw = mdf["pe"].rank(pct=True, ascending=True)
+    mdf["pe_rank"] = (1 - pe_raw).fillna(0)
+
+    lps_raw = mdf["lps"].rank(pct=True, ascending=True)
+    mdf["lps_rank"] = (1 - lps_raw).fillna(0)
 
     mdf["score"] = np.round(
-        (0.50 * mdf["pe_rank"] + 0.25 * mdf["rps_rank"] + 0.25 * mdf["ltr_rank"]) * 100, 1
+        (
+            0.15 * mdf["pe_rank"]
+            + 0.15 * mdf["eps_growth_rank"]
+            + 0.15 * mdf["rps_rank"]
+            + 0.15 * mdf["lps_rank"]
+            + 0.20 * mdf["div_yield_rank"]
+            + 0.20 * mdf["div_growth_rank"]
+        ) * 100,
+        1,
     )
 
-    has_any = mdf["pe"].notna() | mdf["rps"].notna() | mdf["ltr"].notna()
+    has_any = (
+        mdf["pe"].notna()
+        | mdf["eps_growth"].notna()
+        | mdf["rps"].notna()
+        | mdf["lps"].notna()
+        | mdf["div_yield"].notna()
+        | mdf["div_growth"].notna()
+    )
     mdf.loc[~has_any, "score"] = np.nan
 
     return dict(zip(mdf["trading_code"], mdf["score"]))
