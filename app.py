@@ -473,12 +473,12 @@ code {
 }
 .sector-row {
     display: grid;
-    grid-template-columns: 26px 1fr 60px 46px;
+    grid-template-columns: 26px 220px 1fr 52px;
     align-items: center;
-    gap: 8px;
-    padding: 7px 12px;
+    gap: 10px;
+    padding: 7px 16px;
     border-bottom: 1px solid #161616;
-    font-size: 0.73rem;
+    font-size: 0.75rem;
 }
 .sector-row:last-child { border-bottom: none; }
 .sector-row .sr-rank { color: var(--text-muted); }
@@ -490,39 +490,54 @@ code {
 /* --- Rest list (multi-column) --- */
 .rest-list {
     column-count: 3;
-    column-gap: 16px;
-    max-height: 50vh;
+    column-gap: 0;
+    max-height: 60vh;
     overflow-y: auto;
     border: 1px solid var(--border);
-    padding: 6px 0;
 }
 @media (max-width: 900px) { .rest-list { column-count: 2; } }
 @media (max-width: 500px) { .rest-list { column-count: 1; } }
 .rest-list a {
-    display: block;
-    padding: 5px 14px;
+    display: grid;
+    grid-template-columns: 32px 58px 1fr 40px;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
     color: var(--amber) !important;
     text-decoration: none !important;
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     break-inside: avoid;
-    transition: color 0.1s, background 0.1s;
-    border-bottom: 1px solid #131313;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    transition: background 0.1s;
+    border-bottom: 1px solid #161616;
 }
-.rest-list a:hover {
-    background: var(--bg-card);
-    color: var(--green) !important;
-}
+.rest-list a:hover { background: var(--bg-card); }
+.rest-list a:hover .rn { color: var(--green) !important; }
 .rest-list a .rk {
     color: var(--text-muted);
-    display: inline-block;
-    width: 36px;
+    font-size: 0.62rem;
     text-align: right;
-    margin-right: 8px;
 }
-.rest-list a .rs { color: var(--green-dim); margin-left: 6px; font-size: 0.7rem; }
+.rest-list a .rc {
+    color: var(--green-dim);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.rest-list a .rn {
+    color: var(--amber);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.rest-list a .rs {
+    color: var(--green);
+    font-weight: 700;
+    font-size: 0.72rem;
+    text-align: right;
+}
 .rest-list::-webkit-scrollbar { width: 6px; }
 .rest-list::-webkit-scrollbar-track { background: var(--bg-dark); }
 .rest-list::-webkit-scrollbar-thumb { background: var(--border); }
@@ -1194,6 +1209,33 @@ def render_homepage():
 
     st.caption(f"{len(scored)} companies ranked")
 
+    # --- Sector Leaderboard ---
+    if not search and not sector_avg.empty:
+        max_avg = sector_avg.max()
+
+        def _sector_rows(items):
+            rows = []
+            for rank_i, (sec_name, avg_sc) in items:
+                bar_w = int(avg_sc / max_avg * 100) if max_avg > 0 else 0
+                rows.append(
+                    f'<div class="sector-row">'
+                    f'  <span class="sr-rank">{rank_i}</span>'
+                    f'  <span class="sr-name">{sec_name}</span>'
+                    f'  <div class="sr-bar-wrap"><div class="sr-bar-fill" style="width:{bar_w}%"></div></div>'
+                    f'  <span class="sr-score">{avg_sc:.1f}</span>'
+                    f'</div>'
+                )
+            return rows
+
+        st.markdown('<div class="tier-label" style="margin-top:16px">// sector leaderboard //</div>', unsafe_allow_html=True)
+        top5 = list(enumerate(sector_avg.head(5).items(), 1))
+        st.markdown('<div class="sector-board">' + "".join(_sector_rows(top5)) + "</div>", unsafe_allow_html=True)
+
+        if len(sector_avg) > 5:
+            with st.expander(f">> show all {len(sector_avg)} sectors"):
+                rest = list(enumerate(sector_avg.iloc[5:].items(), 6))
+                st.markdown('<div class="sector-board">' + "".join(_sector_rows(rest)) + "</div>", unsafe_allow_html=True)
+
     # --- Top 10 rich cards ---
     top_n = min(10, len(scored))
     if top_n > 0:
@@ -1239,43 +1281,6 @@ def render_homepage():
             )
         st.markdown('<div class="top10-grid">' + "\n".join(cards) + "</div>", unsafe_allow_html=True)
 
-    # --- Score Distribution + Sector Leaderboard ---
-    if not search:
-        col_chart, col_sector = st.columns([3, 2])
-
-        with col_chart:
-            st.markdown('<div class="tier-label" style="margin-top:16px">// score distribution //</div>', unsafe_allow_html=True)
-            bins = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-            labels = [f"{b}–{b+10}" for b in bins[:-1]]
-            counts = pd.cut(scored["score"], bins=bins, labels=labels, right=True).value_counts().sort_index()
-            fig_dist = px.bar(
-                x=counts.index.astype(str),
-                y=counts.values,
-                labels={"x": "Score Range", "y": "Companies"},
-                title="How scores are distributed across the market",
-            )
-            _retro_fig(fig_dist)
-            fig_dist.update_layout(height=280, margin=dict(l=0, r=0, t=36, b=0), showlegend=False)
-            fig_dist.update_traces(marker_color="#33ff33", selector=dict(type="bar"))
-            st.plotly_chart(fig_dist, use_container_width=True)
-
-        with col_sector:
-            st.markdown('<div class="tier-label" style="margin-top:16px">// sector leaderboard //</div>', unsafe_allow_html=True)
-            if not sector_avg.empty:
-                max_avg = sector_avg.max()
-                rows_html = []
-                for rank_i, (sec_name, avg_sc) in enumerate(sector_avg.head(12).items(), 1):
-                    bar_w = int(avg_sc / max_avg * 100) if max_avg > 0 else 0
-                    rows_html.append(
-                        f'<div class="sector-row">'
-                        f'  <span class="sr-rank">{rank_i}</span>'
-                        f'  <span class="sr-name">{sec_name}</span>'
-                        f'  <div class="sr-bar-wrap"><div class="sr-bar-fill" style="width:{bar_w}%"></div></div>'
-                        f'  <span class="sr-score">{avg_sc:.1f}</span>'
-                        f'</div>'
-                    )
-                st.markdown('<div class="sector-board">' + "".join(rows_html) + "</div>", unsafe_allow_html=True)
-
     # --- Mid-tier 11–30 ---
     mid_start = top_n
     mid_end = min(mid_start + 20, len(scored))
@@ -1318,7 +1323,9 @@ def render_homepage():
             rank = i + 1
             links.append(
                 f'<a href="?code={code}" target="_self">'
-                f'<span class="rk">{rank}.</span>{name}'
+                f'<span class="rk">{rank}</span>'
+                f'<span class="rc">{code}</span>'
+                f'<span class="rn">{name}</span>'
                 f'<span class="rs">{score:.1f}</span></a>'
             )
         st.markdown('<div class="rest-list">' + "\n".join(links) + "</div>", unsafe_allow_html=True)
