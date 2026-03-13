@@ -190,6 +190,71 @@ code {
     .hero-slogan { font-size: 0.85rem; letter-spacing: 1px; }
 }
 
+/* --- Breaking News Ticker --- */
+.news-ticker-wrap {
+    display: flex;
+    align-items: center;
+    background: #0d0d0d;
+    border: 1px solid var(--green-dim);
+    border-left: 4px solid var(--green);
+    margin-bottom: 14px;
+    overflow: hidden;
+    height: 32px;
+}
+.news-ticker-label {
+    flex-shrink: 0;
+    background: var(--green);
+    color: var(--bg-dark);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 0 10px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+.news-ticker-track {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    height: 100%;
+}
+.news-ticker-inner {
+    display: inline-flex;
+    align-items: center;
+    height: 100%;
+    white-space: nowrap;
+    animation: ticker-scroll 28s linear infinite;
+}
+.news-ticker-inner:hover { animation-play-state: paused; }
+@keyframes ticker-scroll {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+.ticker-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    padding: 0 22px;
+    color: var(--amber);
+}
+.ticker-item .ti-rank {
+    color: var(--green);
+    font-weight: 700;
+}
+.ticker-item .ti-code {
+    color: var(--green-dim);
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+.ticker-item .ti-sep {
+    color: var(--border);
+    font-size: 0.5rem;
+}
+
 /* --- Market Intelligence Bar --- */
 .market-bar {
     display: flex;
@@ -1128,6 +1193,29 @@ def render_homepage():
 
     scored = score_df[score_df["score"].notna()].sort_values("score", ascending=False).reset_index(drop=True)
     total = len(scored)
+
+    # --- Breaking News Ticker (Top 10) ---
+    top10_ticker = scored.head(10)
+    ticker_items = "".join(
+        f'<span class="ticker-item">'
+        f'  <span class="ti-rank">#{i+1}</span>'
+        f'  <span class="ti-code">{row["trading_code"]}</span>'
+        f'  <span>{row["name"]}</span>'
+        f'  <span class="ti-sep">&#9632;</span>'
+        f'</span>'
+        for i, row in top10_ticker.iterrows()
+    )
+    # Duplicate for seamless loop
+    ticker_inner = ticker_items * 2
+    st.markdown(
+        f'<div class="news-ticker-wrap">'
+        f'  <div class="news-ticker-label">&#9733; Top 10</div>'
+        f'  <div class="news-ticker-track">'
+        f'    <div class="news-ticker-inner">{ticker_inner}</div>'
+        f'  </div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
 
     # --- Market Intelligence Bar ---
     strong_n = int((scored["score"] >= 70).sum())
