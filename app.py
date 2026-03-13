@@ -25,6 +25,10 @@ _RETRO_CSS = """
     --amber-dim: #cc8d00;
     --green: #33ff33;
     --green-dim: #20c020;
+    --cyan: #00d4ff;
+    --cyan-dim: #0099cc;
+    --slate: #7a8fa6;
+    --slate-dim: #4a5f72;
     --bg-dark: #0a0a0a;
     --bg-card: #111111;
     --bg-input: #1a1a1a;
@@ -317,15 +321,17 @@ code {
 .top-card {
     display: block;
     text-decoration: none !important;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: #0b110b;
+    border: 1px solid #1a2e1a;
+    border-left: 3px solid var(--green);
     padding: 14px 16px 12px;
     transition: border-color 0.15s, box-shadow 0.15s;
     overflow: hidden;
 }
 .top-card:hover {
-    border-color: var(--green-dim);
-    box-shadow: 0 0 14px rgba(51, 255, 51, 0.12);
+    border-color: var(--green);
+    border-left-color: var(--green);
+    box-shadow: 0 0 18px rgba(51, 255, 51, 0.14);
 }
 .top-card .card-head {
     display: flex;
@@ -396,6 +402,10 @@ code {
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
+.mid-card .tag {
+    border-color: var(--amber-dim);
+    color: var(--amber);
+}
 .top-card .card-verdict {
     font-size: 0.68rem;
     color: var(--amber-dim);
@@ -431,12 +441,30 @@ code {
     letter-spacing: 3px;
     text-shadow: 0 0 10px rgba(51,255,51,0.3);
 }
+.tier-label.top10::before, .tier-label.top10::after { background: var(--green-dim); opacity: 0.4; }
 .tier-label.mid20 {
     font-size: 0.85rem;
     font-weight: 700;
     color: var(--amber);
     letter-spacing: 3px;
 }
+.tier-label.mid20::before, .tier-label.mid20::after { background: var(--amber-dim); opacity: 0.4; }
+.tier-label.sector {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 3px;
+    text-shadow: 0 0 10px rgba(0,212,255,0.25);
+    margin-top: 16px;
+}
+.tier-label.sector::before, .tier-label.sector::after { background: var(--cyan-dim); opacity: 0.3; }
+.tier-label.allco {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--slate);
+    letter-spacing: 3px;
+}
+.tier-label.allco::before, .tier-label.allco::after { background: var(--slate-dim); opacity: 0.4; }
 .tier-label.danger {
     font-size: 0.85rem;
     font-weight: 700;
@@ -457,25 +485,26 @@ code {
 .mid-card {
     display: block;
     text-decoration: none !important;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: #100f08;
+    border: 1px solid #2a2210;
+    border-left: 3px solid var(--amber-dim);
     padding: 10px 13px 9px;
     transition: border-color 0.15s;
     overflow: hidden;
 }
-.mid-card:hover { border-color: var(--green-dim); }
+.mid-card:hover { border-color: var(--amber); border-left-color: var(--amber); box-shadow: 0 0 14px rgba(255,176,0,0.10); }
 .mid-card .mc-head {
     display: flex;
     align-items: baseline;
     gap: 7px;
     margin-bottom: 3px;
 }
-.mid-card .mc-rank { font-size: 0.85rem; font-weight: 700; color: var(--green); }
-.mid-card .mc-code { font-size: 0.75rem; font-weight: 600; color: var(--green-dim); letter-spacing: 1px; }
-.mid-card .mc-score { margin-left: auto; font-size: 0.82rem; font-weight: 700; color: var(--green); }
+.mid-card .mc-rank { font-size: 0.85rem; font-weight: 700; color: var(--amber); }
+.mid-card .mc-code { font-size: 0.75rem; font-weight: 600; color: var(--amber-dim); letter-spacing: 1px; }
+.mid-card .mc-score { margin-left: auto; font-size: 0.82rem; font-weight: 700; color: var(--amber); }
 .mid-card .mc-name {
     font-size: 0.67rem;
-    color: var(--amber);
+    color: #d4a855;
     margin-bottom: 3px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -533,7 +562,9 @@ code {
 
 /* --- Sector leaderboard --- */
 .sector-board {
-    border: 1px solid var(--border);
+    border: 1px solid #0d2a33;
+    border-left: 3px solid var(--cyan-dim);
+    background: #080d10;
     margin-bottom: 8px;
 }
 .sector-row {
@@ -542,15 +573,15 @@ code {
     align-items: center;
     gap: 10px;
     padding: 7px 16px;
-    border-bottom: 1px solid #161616;
+    border-bottom: 1px solid #0d1a20;
     font-size: 0.75rem;
 }
 .sector-row:last-child { border-bottom: none; }
-.sector-row .sr-rank { color: var(--text-muted); }
-.sector-row .sr-name { color: var(--amber); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sector-row .sr-bar-wrap { height: 4px; background: #1a1a1a; }
-.sector-row .sr-bar-fill { height: 4px; background: var(--green-dim); }
-.sector-row .sr-score { color: var(--green); font-weight: 700; text-align: right; }
+.sector-row .sr-rank { color: var(--slate-dim); }
+.sector-row .sr-name { color: var(--cyan); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sector-row .sr-bar-wrap { height: 4px; background: #0d1a20; }
+.sector-row .sr-bar-fill { height: 4px; background: var(--cyan-dim); }
+.sector-row .sr-score { color: var(--cyan); font-weight: 700; text-align: right; }
 
 /* --- Rest list (multi-column) --- */
 .rest-list {
@@ -558,7 +589,8 @@ code {
     column-gap: 0;
     max-height: 60vh;
     overflow-y: auto;
-    border: 1px solid var(--border);
+    border: 1px solid #1a2230;
+    background: #08090d;
 }
 @media (max-width: 900px) { .rest-list { column-count: 2; } }
 @media (max-width: 500px) { .rest-list { column-count: 1; } }
@@ -568,22 +600,22 @@ code {
     align-items: center;
     gap: 6px;
     padding: 6px 10px;
-    color: var(--amber) !important;
+    color: var(--slate) !important;
     text-decoration: none !important;
     font-size: 0.72rem;
     break-inside: avoid;
     transition: background 0.1s;
-    border-bottom: 1px solid #161616;
+    border-bottom: 1px solid #111520;
 }
-.rest-list a:hover { background: var(--bg-card); }
-.rest-list a:hover .rn { color: var(--green) !important; }
+.rest-list a:hover { background: #0d1018; }
+.rest-list a:hover .rn { color: var(--slate) !important; }
 .rest-list a .rk {
-    color: var(--text-muted);
+    color: var(--slate-dim);
     font-size: 0.62rem;
     text-align: right;
 }
 .rest-list a .rc {
-    color: var(--green-dim);
+    color: var(--slate);
     font-size: 0.7rem;
     font-weight: 600;
     letter-spacing: 0.5px;
@@ -592,13 +624,13 @@ code {
     white-space: nowrap;
 }
 .rest-list a .rn {
-    color: var(--amber);
+    color: #5a6d82;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 .rest-list a .rs {
-    color: var(--green);
+    color: var(--slate);
     font-weight: 700;
     font-size: 0.72rem;
     text-align: right;
@@ -1315,7 +1347,7 @@ def render_homepage():
                 )
             return rows
 
-        st.markdown('<div class="tier-label" style="margin-top:16px">// sector leaderboard //</div>', unsafe_allow_html=True)
+        st.markdown('<div class="tier-label sector">// sector leaderboard //</div>', unsafe_allow_html=True)
         top5 = list(enumerate(sector_avg.head(5).items(), 1))
         st.markdown('<div class="sector-board">' + "".join(_sector_rows(top5)) + "</div>", unsafe_allow_html=True)
 
@@ -1402,7 +1434,7 @@ def render_homepage():
     rest_end = max(mid_end, total - 30)
     rest_df = scored.iloc[mid_end:rest_end]
     if len(rest_df) > 0:
-        st.markdown('<div class="tier-label">// all companies //</div>', unsafe_allow_html=True)
+        st.markdown('<div class="tier-label allco">// all companies //</div>', unsafe_allow_html=True)
         links = []
         for i, row in rest_df.iterrows():
             code = row["trading_code"]
