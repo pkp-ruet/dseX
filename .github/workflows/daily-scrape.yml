@@ -4,7 +4,14 @@ on:
   schedule:
     # Sun-Thu at 12:30 UTC = 6:30 PM BD time (after DSE market close)
     - cron: "30 12 * * 0-4"
+    # Weekly full scrape on Wednesday at 13:00 UTC (catches new listings)
+    - cron: "0 13 * * 3"
   workflow_dispatch:
+    inputs:
+      full:
+        description: "Run full scrape (all companies including unscored)"
+        type: boolean
+        default: false
 
 jobs:
   scrape:
@@ -22,5 +29,12 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run all scrapers
-        run: python main.py scrape-all
+      - name: Run scrapers
+        run: |
+          if [ "${{ github.event.schedule }}" = "0 13 * * 3" ] || [ "${{ github.event.inputs.full }}" = "true" ]; then
+            echo "Running FULL scrape (all companies)..."
+            python main.py scrape-all --full
+          else
+            echo "Running daily scrape (scored companies only)..."
+            python main.py scrape-all
+          fi

@@ -29,28 +29,37 @@ def cmd_scrape_prices(_args):
     print(f"Done. Prices scraped for {len(prices)} companies.")
 
 
+def _get_scored_codes(db):
+    """Return trading codes that have at least one financials record."""
+    return db.financials.distinct("trading_code")
+
+
 def cmd_scrape_details(args):
     from db.connection import get_db
 
     db = get_db()
     if args.code:
         codes = [args.code]
-    else:
+    elif getattr(args, "full", False):
         codes = [
             doc["trading_code"]
             for doc in db.companies.find({}, {"trading_code": 1, "_id": 0})
         ]
-        if not codes:
-            print("No companies in database. Run 'scrape-companies' first.")
-            return
+    else:
+        codes = _get_scored_codes(db)
 
-    print(f"Scraping details for {len(codes)} companies...")
+    if not codes:
+        print("No companies found. Run 'scrape-companies' first, or use --full.")
+        return
+
+    mode = "ALL" if getattr(args, "full", False) else "scored-only"
+    print(f"Scraping details for {len(codes)} companies ({mode})...")
     scraper = CompanyDetailsScraper()
     scraper.run(codes)
     print("Done.")
 
 
-def cmd_scrape_all(_args):
+def cmd_scrape_all(args):
     print("=== Step 1/3: Scraping company list ===")
     cl = CompanyListScraper()
     companies = cl.run()
@@ -62,7 +71,14 @@ def cmd_scrape_all(_args):
     print(f"  Prices for {len(prices)} companies.\n")
 
     print("=== Step 3/3: Scraping company details ===")
-    codes = [c["trading_code"] for c in companies]
+    full = getattr(args, "full", False)
+    if full:
+        codes = [c["trading_code"] for c in companies]
+    else:
+        from db.connection import get_db
+        codes = _get_scored_codes(get_db())
+    mode = "ALL" if full else "scored-only"
+    print(f"  Scraping details for {len(codes)} companies ({mode})...")
     cd = CompanyDetailsScraper()
     cd.run(codes)
     print("  Company details complete.\n")
@@ -90,8 +106,18 @@ def main():
         default=None,
         help="Scrape a single company by trading code (e.g. GP)",
     )
+    details_parser.add_argument(
+        "--full",
+        action="store_true",
+        help="Scrape all companies (default: only companies with financial data)",
+    )
 
-    sub.add_parser("scrape-all", help="Run all scrapers sequentially")
+    all_parser = sub.add_parser("scrape-all", help="Run all scrapers sequentially")
+    all_parser.add_argument(
+        "--full",
+        action="store_true",
+        help="Scrape details for all companies (default: only scored companies)",
+    )
 
     args = parser.parse_args()
     if not args.command:
