@@ -43,7 +43,7 @@ def cmd_scrape_details(args):
     elif getattr(args, "full", False):
         codes = [
             doc["trading_code"]
-            for doc in db.companies.find({}, {"trading_code": 1, "_id": 0})
+            for doc in db.companies.find({"excluded": {"$ne": True}}, {"trading_code": 1, "_id": 0})
         ]
     else:
         codes = _get_scored_codes(db)
@@ -71,11 +71,14 @@ def cmd_scrape_all(args):
     print(f"  Prices for {len(prices)} companies.\n")
 
     print("=== Step 3/3: Scraping company details ===")
+    from db.connection import get_db
     full = getattr(args, "full", False)
     if full:
-        codes = [c["trading_code"] for c in companies]
+        codes = [
+            doc["trading_code"]
+            for doc in get_db().companies.find({"excluded": {"$ne": True}}, {"trading_code": 1, "_id": 0})
+        ]
     else:
-        from db.connection import get_db
         codes = _get_scored_codes(get_db())
     mode = "ALL" if full else "scored-only"
     print(f"  Scraping details for {len(codes)} companies ({mode})...")

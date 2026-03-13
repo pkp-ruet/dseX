@@ -301,10 +301,50 @@ class CompanyDetailsScraper(BaseScraper):
     # Save to MongoDB
     # ------------------------------------------------------------------
 
+    # Keywords matched against instrument_type OR company_name to detect non-equity instruments
+    _EXCLUDED_KEYWORDS = ("bond", "debenture", "sukuk", "mutual fund", "etf", "t-bond", "treasury")
+
+    def _is_excluded_instrument(self, instrument_type: str) -> bool:
+        if not instrument_type:
+            return False
+        it_lower = instrument_type.lower()
+        return any(kw in it_lower for kw in self._EXCLUDED_KEYWORDS)
+
+    def _is_excluded_by_name(self, company_name: str) -> bool:
+        if not company_name:
+            return False
+        name_lower = company_name.lower()
+        return any(kw in name_lower for kw in self._EXCLUDED_KEYWORDS)
+
+    def _exclude_company(self, db, trading_code: str) -> None:
+        """Mark company as excluded and purge all its data from every collection."""
+        db.companies.update_one(
+            {"trading_code": trading_code},
+            {"$set": {"excluded": True}},
+        )
+        db.financials.delete_many({"trading_code": trading_code})
+        db.shareholdings.delete_many({"trading_code": trading_code})
+        db.stock_prices.delete_many({"trading_code": trading_code})
+        logger.info("Excluded and purged data for %s", trading_code)
+
     def save(self, data, trading_code):
         db = get_db()
 
         basic = data["basic_info"]
+        instrument_type = basic.get("instrument_type") or ""
+
+        # Exclude corporate bonds, debentures, mutual funds, ETFs, etc.
+        if self._is_excluded_instrument(instrument_type):
+            logger.info("Skipping %s — non-equity instrument: %s", trading_code, instrument_type)
+            self._exclude_company(db, trading_code)
+            return
+
+        # Exclude companies with no financial data (cannot be scored)
+        if not data["financials"]:
+            logger.info("Skipping %s — no financial data found", trading_code)
+            self._exclude_company(db, trading_code)
+            return
+
         db.companies.update_one(
             {"trading_code": trading_code},
             {"$set": basic},
@@ -326,9 +366,32 @@ class CompanyDetailsScraper(BaseScraper):
             )
 
     def run(self, trading_codes):
-        """Scrape details for all given trading codes."""
-        total = len(trading_codes)
-        for i, code in enumerate(trading_codes, 1):
+        """Scrape details for all given trading codes, skipping already-excluded companies."""
+        db = get_db()
+
+        # Auto-exclude companies whose name already signals a non-equity instrument
+        name_map = {
+            d["trading_code"]: d.get("company_name", "")
+            for d in db.companies.find(
+                {"trading_code": {"$in": list(trading_codes)}},
+                {"trading_code": 1, "company_name": 1, "_id": 0},
+            )
+        }
+        for code, name in name_map.items():
+            if self._is_excluded_by_name(name):
+                logger.info("Auto-excluding %s by name: %s", code, name)
+                self._exclude_company(db, code)
+
+        excluded = {
+            d["trading_code"]
+            for d in db.companies.find({"excluded": True}, {"trading_code": 1, "_id": 0})
+        }
+        codes = [c for c in trading_codes if c not in excluded]
+        if len(excluded) > 0:
+            logger.info("Skipping %d already-excluded companies", len(excluded))
+
+        total = len(codes)
+        for i, code in enumerate(codes, 1):
             logger.info("[%d/%d] Scraping details for %s", i, total, code)
             try:
                 data = self.scrape_company(code)

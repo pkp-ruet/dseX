@@ -68,10 +68,16 @@ class StockPriceScraper(BaseScraper):
 
     def save(self, prices):
         db = get_db()
+        excluded = {
+            d["trading_code"]
+            for d in db.companies.find({"excluded": True}, {"trading_code": 1, "_id": 0})
+        }
         inserted = 0
         updated = 0
 
         for p in prices:
+            if p["trading_code"] in excluded:
+                continue
             result = db.stock_prices.update_one(
                 {"trading_code": p["trading_code"], "date": p["date"]},
                 {"$set": p},

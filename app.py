@@ -667,7 +667,7 @@ def get_mongo_db():
 @st.cache_data(ttl=300)
 def load_companies():
     db = get_mongo_db()
-    return list(db.companies.find({}, {"_id": 0}))
+    return list(db.companies.find({"excluded": {"$ne": True}}, {"_id": 0}))
 
 
 @st.cache_data(ttl=300)
@@ -731,138 +731,243 @@ def load_shareholdings(trading_code):
 # ---------------------------------------------------------------------------
 
 
-def _trend_slope(years, values):
-    """Normalized linear-regression slope for a year-sorted series.
-    Returns NaN when fewer than 2 non-null data points exist."""
-    mask = pd.notna(values)
-    y = np.asarray(years[mask], dtype=float)
-    v = np.asarray(values[mask], dtype=float)
-    if len(v) < 2:
-        return np.nan
-    mean_abs = np.mean(np.abs(v))
-    if mean_abs == 0:
-        return 0.0
-    slope = np.polyfit(y, v, 1)[0]
-    return slope / mean_abs
+# Sectors where debt is a core business product — skip Debt/Equity factor
+_FINANCIAL_SECTORS = {"bank", "insurance", "financial institution", "nbfi",
+                      "non-bank financial institution", "leasing"}
+
+def _is_financial_sector(sector: str) -> bool:
+    return any(k in sector.lower() for k in _FINANCIAL_SECTORS) if sector else False
 
 
 @st.cache_data(ttl=300)
 def _build_scores_df():
     """
-    Returns full DataFrame with trading_code, score, and all 6 factor ranks.
-    dseX Score (0-100) based on 6 factors in 3 pairs:
-      EPS Pair (30%):  P/E (15%) + EPS Growth (15%)
-      Balance-Sheet (30%): Reserve/Share (15%) + Loan/Share (15%)
-      Dividend (40%): Div Yield (20%) + Div Growth (20%)
+    dseX Score (0-100) — 8 factors, 4 groups, multi-year averages.
+
+    Group 1 — Valuation (35%):
+      20%  Earnings Yield    — 3yr avg EPS / current LTP
+      15%  Price-to-NAV inv  — latest NAV/share ÷ LTP (higher = trading below book)
+
+    Group 2 — Profitability Quality (25%):
+      15%  ROE               — 3yr avg (EPS / NAV per share per year)
+      10%  EPS Stability     — inverse of coefficient of variation across all years
+
+    Group 3 — Dividend Quality (25%):
+      15%  Dividend Yield    — 3yr avg cash dividend / face value / LTP
+      10%  Dividend Streak   — consecutive years with cash dividend > 0
+
+    Group 4 — Balance Sheet Safety (15%):
+      10%  Reserve / MCap    — reserve_surplus_mn / market_cap_mn
+       5%  Debt Safety       — (reserve + paid_up) / total_loan; skipped for financial sector
+
+    Post-score multiplier by market category: A=1.00 B=0.92 N=0.88 Z=0.30
+    Missing factors are excluded and weights re-normalised per company.
     """
     db = get_mongo_db()
 
-    fin_docs = list(db.financials.find({}, {"_id": 0}))
+    excluded_codes = {
+        d["trading_code"]
+        for d in db.companies.find({"excluded": True}, {"trading_code": 1, "_id": 0})
+    }
+    fin_docs = list(db.financials.find({"trading_code": {"$nin": list(excluded_codes)}}, {"_id": 0}))
     if not fin_docs:
         return pd.DataFrame()
+
     fin_df = pd.DataFrame(fin_docs).sort_values(["trading_code", "year"])
-    fin_df["eps"] = fin_df["eps_cont_basic"].combine_first(fin_df.get("eps_basic"))
+    fin_df["eps"] = (
+        fin_df["eps_cont_basic"].combine_first(fin_df.get("eps_basic"))
+        if "eps_cont_basic" in fin_df.columns
+        else fin_df.get("eps_basic", pd.Series(dtype=float))
+    )
 
-    latest_eps = fin_df.groupby("trading_code")["eps"].last()
-
-    eps_slopes: dict[str, float] = {}
-    div_slopes: dict[str, float] = {}
-    latest_div_pct: dict[str, float] = {}
+    # ---- Per-company multi-year metric extraction ----
+    per_company: dict[str, dict] = {}
     for code, grp in fin_df.groupby("trading_code"):
-        eps_slopes[code] = _trend_slope(grp["year"].values, grp["eps"].values)
-        div_slopes[code] = _trend_slope(
-            grp["year"].values, grp["cash_dividend_pct"].values
-        )
-        div_valid = grp["cash_dividend_pct"].dropna()
-        if not div_valid.empty:
-            latest_div_pct[code] = div_valid.iloc[-1]
+        grp = grp.sort_values("year")
 
+        eps_s = grp["eps"].dropna()
+        nav_s = grp["nav_per_share"].dropna() if "nav_per_share" in grp.columns else pd.Series(dtype=float)
+        div_s = grp["cash_dividend_pct"].dropna() if "cash_dividend_pct" in grp.columns else pd.Series(dtype=float)
+
+        # 3yr average EPS (positive-only; loss years excluded so yield stays meaningful)
+        eps_pos = eps_s[eps_s > 0]
+        eps_3yr = float(eps_pos.tail(3).mean()) if not eps_pos.empty else None
+
+        # Latest NAV per share
+        nav_latest = float(nav_s.iloc[-1]) if not nav_s.empty else None
+
+        # 3yr average ROE = avg(EPS/NAV) computed year-by-year
+        roe_3yr = None
+        if "nav_per_share" in grp.columns:
+            roe_df = grp[["eps", "nav_per_share"]].dropna()
+            roe_df = roe_df[roe_df["nav_per_share"] > 0]
+            if not roe_df.empty:
+                roe_vals = (roe_df["eps"] / roe_df["nav_per_share"]).tail(3)
+                roe_3yr = float(roe_vals.mean())
+
+        # EPS Stability: 1/(1+CV) across all years; needs >= 3 years
+        eps_stab = None
+        if len(eps_s) >= 3:
+            mean_abs = abs(float(eps_s.mean()))
+            if mean_abs > 0:
+                cv = float(eps_s.std()) / mean_abs
+                eps_stab = 1.0 / (1.0 + cv)  # 0–1; higher = more stable
+
+        # 3yr average dividend % (includes zero years in average)
+        div_3yr = float(grp["cash_dividend_pct"].fillna(0).tail(3).mean()) if "cash_dividend_pct" in grp.columns else None
+        if div_3yr == 0:
+            div_3yr = None
+
+        # Dividend streak: consecutive years with cash div > 0, counting back
+        streak = 0
+        for val in grp["cash_dividend_pct"].fillna(0).values[::-1]:
+            if val > 0:
+                streak += 1
+            else:
+                break
+        div_streak = streak if streak > 0 else None
+
+        per_company[code] = {
+            "eps_3yr":    eps_3yr,
+            "nav_latest": nav_latest,
+            "roe_3yr":    roe_3yr,
+            "eps_stab":   eps_stab,
+            "div_3yr":    div_3yr,
+            "div_streak": div_streak,
+        }
+
+    # ---- Company metadata ----
     companies = {
         d["trading_code"]: d
-        for d in db.companies.find({}, {
-            "trading_code": 1, "reserve_surplus_mn": 1,
-            "total_shares": 1, "total_loan_mn": 1,
-            "face_value": 1, "_id": 0,
+        for d in db.companies.find({"excluded": {"$ne": True}}, {
+            "trading_code": 1, "reserve_surplus_mn": 1, "paid_up_capital_mn": 1,
+            "total_shares": 1, "total_loan_mn": 1, "face_value": 1,
+            "market_category": 1, "sector": 1, "_id": 0,
         })
     }
 
     prices = load_latest_prices()
 
-    all_codes = set(latest_eps.index) | set(companies.keys())
-    metrics = []
+    all_codes = set(per_company.keys()) | set(companies.keys())
+    rows = []
     for code in all_codes:
-        comp = companies.get(code, {})
-        ltp = (prices.get(code) or {}).get("ltp")
-        reserve = comp.get("reserve_surplus_mn")
-        shares = comp.get("total_shares")
-        loan = comp.get("total_loan_mn")
-        face = comp.get("face_value")
+        comp  = companies.get(code, {})
+        fm    = per_company.get(code, {})
+        ltp   = (prices.get(code) or {}).get("ltp")
+        reserve  = comp.get("reserve_surplus_mn")
+        paid_up  = comp.get("paid_up_capital_mn")
+        shares   = comp.get("total_shares")
+        loan     = comp.get("total_loan_mn")
+        face     = comp.get("face_value")
+        sector   = comp.get("sector", "") or ""
+        cat      = (comp.get("market_category") or "").strip().upper()
 
-        eps_val = latest_eps.get(code)
-        eps_growth = eps_slopes.get(code)
+        eps_3yr    = fm.get("eps_3yr")
+        nav_latest = fm.get("nav_latest")
+        roe_3yr    = fm.get("roe_3yr")
+        eps_stab   = fm.get("eps_stab")
+        div_3yr    = fm.get("div_3yr")
+        div_streak = fm.get("div_streak")
 
-        pe = ltp / eps_val if ltp and eps_val and eps_val > 0 else None
+        mcap_mn = (ltp * shares / 1e6) if ltp and shares and shares > 0 else None
 
-        rps = (reserve * 1_000_000 / shares) if reserve and shares and shares > 0 else None
-        lps = (((loan or 0) * 1_000_000) / shares) if shares and shares > 0 else None
+        # Factor 1 — Earnings Yield (3yr avg EPS / LTP)
+        earn_yield = None
+        if eps_3yr and ltp and ltp > 0:
+            earn_yield = eps_3yr / ltp * 100
 
-        div_pct = latest_div_pct.get(code)
-        if div_pct and face and ltp and ltp > 0:
-            div_yield = (face * div_pct / 100) / ltp * 100
-        else:
-            div_yield = None
+        # Factor 2 — Price-to-NAV inverse (NAV / LTP)
+        nav_to_price = None
+        if nav_latest and nav_latest > 0 and ltp and ltp > 0:
+            nav_to_price = nav_latest / ltp
 
-        div_growth = div_slopes.get(code)
+        # Factor 3 — ROE (already computed per year above)
+        # positive ROE only; negative means loss-making
+        roe_val = roe_3yr if roe_3yr and roe_3yr > 0 else None
 
-        metrics.append({
+        # Factor 4 — EPS Stability (already computed)
+
+        # Factor 5 — Dividend Yield (3yr avg div)
+        div_yield = None
+        if div_3yr and face and ltp and ltp > 0:
+            div_yield = (face * div_3yr / 100) / ltp * 100
+
+        # Factor 6 — Dividend Streak (already computed)
+
+        # Factor 7 — Reserve / MCap
+        res_mcap = None
+        if reserve is not None and mcap_mn and mcap_mn > 0:
+            res_mcap = reserve / mcap_mn
+
+        # Factor 8 — Debt Safety: (equity / loan) — skip for financial sector
+        debt_safety = None
+        if not _is_financial_sector(sector):
+            equity = (reserve or 0) + (paid_up or 0)
+            if loan and loan > 0 and equity > 0:
+                debt_safety = equity / loan  # higher = safer
+            elif equity > 0 and (loan is None or loan == 0):
+                debt_safety = equity  # no debt = very safe; will rank high
+
+        rows.append({
             "trading_code": code,
-            "ltp": ltp,
-            "pe": pe,
-            "eps_growth": eps_growth,
-            "rps": rps,
-            "lps": lps,
-            "div_yield": div_yield,
-            "div_growth": div_growth,
+            "sector":       sector,
+            "market_cat":   cat,
+            "ltp":          ltp,
+            "mcap_mn":      mcap_mn,
+            "eps_3yr":      eps_3yr,
+            "nav_latest":   nav_latest,
+            "roe_3yr":      roe_val,
+            "eps_stab":     eps_stab,
+            "earn_yield":   earn_yield,
+            "nav_to_price": nav_to_price,
+            "div_yield":    div_yield,
+            "div_streak":   div_streak,
+            "res_mcap":     res_mcap,
+            "debt_safety":  debt_safety,
         })
 
-    mdf = pd.DataFrame(metrics)
+    mdf = pd.DataFrame(rows)
     if mdf.empty:
         return mdf
 
-    # Higher is better
-    mdf["eps_growth_rank"] = mdf["eps_growth"].rank(pct=True).fillna(0)
-    mdf["rps_rank"] = mdf["rps"].rank(pct=True).fillna(0)
-    mdf["div_yield_rank"] = mdf["div_yield"].rank(pct=True).fillna(0)
-    mdf["div_growth_rank"] = mdf["div_growth"].rank(pct=True).fillna(0)
+    # Percentile ranks — all higher = better; NaN stays NaN
+    mdf["ey_rank"]     = mdf["earn_yield"].rank(pct=True)
+    mdf["np_rank"]     = mdf["nav_to_price"].rank(pct=True)
+    mdf["roe_rank"]    = mdf["roe_3yr"].rank(pct=True)
+    mdf["stab_rank"]   = mdf["eps_stab"].rank(pct=True)
+    mdf["dy_rank"]     = mdf["div_yield"].rank(pct=True)
+    mdf["streak_rank"] = mdf["div_streak"].rank(pct=True)
+    mdf["rm_rank"]     = mdf["res_mcap"].rank(pct=True)
+    mdf["de_rank"]     = mdf["debt_safety"].rank(pct=True)
 
-    # Lower is better
-    pe_raw = mdf["pe"].rank(pct=True, ascending=True)
-    mdf["pe_rank"] = (1 - pe_raw).fillna(0)
+    # Weights
+    _W = {
+        "ey_rank":     0.20,
+        "np_rank":     0.15,
+        "roe_rank":    0.15,
+        "stab_rank":   0.10,
+        "dy_rank":     0.15,
+        "streak_rank": 0.10,
+        "rm_rank":     0.10,
+        "de_rank":     0.05,
+    }
+    rank_cols = list(_W.keys())
+    w_series  = pd.Series(_W)
+    rank_mat  = mdf[rank_cols]
 
-    lps_raw = mdf["lps"].rank(pct=True, ascending=True)
-    mdf["lps_rank"] = (1 - lps_raw).fillna(0)
+    # Re-normalise weights per row — missing factors are excluded, not penalised
+    w_avail     = rank_mat.notna().astype(float).multiply(w_series)
+    w_sum       = w_avail.sum(axis=1)
+    weighted    = rank_mat.fillna(0).multiply(w_series).sum(axis=1)
+    raw_score   = np.where(w_sum > 0, weighted / w_sum * 100, np.nan)
 
-    mdf["score"] = np.round(
-        (
-            0.15 * mdf["pe_rank"]
-            + 0.15 * mdf["eps_growth_rank"]
-            + 0.15 * mdf["rps_rank"]
-            + 0.15 * mdf["lps_rank"]
-            + 0.20 * mdf["div_yield_rank"]
-            + 0.20 * mdf["div_growth_rank"]
-        ) * 100,
-        1,
-    )
+    # Market category multiplier
+    _CAT = {"A": 1.00, "B": 0.92, "N": 0.88, "Z": 0.30}
+    cat_mult = mdf["market_cat"].map(lambda c: _CAT.get(c, 0.88))
+    mdf["score"] = np.round(raw_score * cat_mult, 1)
 
-    has_any = (
-        mdf["pe"].notna()
-        | mdf["eps_growth"].notna()
-        | mdf["rps"].notna()
-        | mdf["lps"].notna()
-        | mdf["div_yield"].notna()
-        | mdf["div_growth"].notna()
-    )
-    mdf.loc[~has_any, "score"] = np.nan
+    # Companies with no factor data at all → NaN
+    mdf.loc[~rank_mat.notna().any(axis=1), "score"] = np.nan
 
     return mdf
 
@@ -899,12 +1004,14 @@ def _retro_fig(fig):
 # ---------------------------------------------------------------------------
 
 _FACTOR_LABELS = {
-    "pe_rank":         "value (low P/E)",
-    "eps_growth_rank": "EPS growth",
-    "rps_rank":        "reserve/share",
-    "lps_rank":        "low debt",
-    "div_yield_rank":  "div. yield",
-    "div_growth_rank": "div. growth",
+    "ey_rank":     "earnings yield",
+    "np_rank":     "price-to-book",
+    "roe_rank":    "ROE",
+    "stab_rank":   "EPS stability",
+    "dy_rank":     "div. yield",
+    "streak_rank": "div. streak",
+    "rm_rank":     "reserve/mkt cap",
+    "de_rank":     "low debt",
 }
 
 
@@ -1249,7 +1356,7 @@ def render_homepage():
 def render_detail_page(trading_code):
     db = get_mongo_db()
     company = db.companies.find_one({"trading_code": trading_code}, {"_id": 0})
-    if not company:
+    if not company or company.get("excluded"):
         st.error(f"Company '{trading_code}' not found.")
         return
 
@@ -1299,23 +1406,28 @@ def render_detail_page(trading_code):
         )
 
         _DETAIL_FACTORS = [
-            ("pe_rank",         "P/E (Value)",     score_row.get("pe"),
-             lambda v: f"{v:.1f}x"),
-            ("eps_growth_rank", "EPS Growth",      score_row.get("eps_growth"),
-             lambda v: f"{v:+.3f} slope"),
-            ("rps_rank",        "Reserve / Share", score_row.get("rps"),
-             lambda v: f"\u09f3{v:,.0f}"),
-            ("lps_rank",        "Loan / Share",    score_row.get("lps"),
-             lambda v: f"\u09f3{v:,.0f}"),
-            ("div_yield_rank",  "Dividend Yield",  score_row.get("div_yield"),
+            ("ey_rank",     "Earnings Yield",    score_row.get("earn_yield"),
              lambda v: f"{v:.2f}%"),
-            ("div_growth_rank", "Div. Growth",     score_row.get("div_growth"),
-             lambda v: f"{v:+.3f} slope"),
+            ("np_rank",     "NAV / Price",       score_row.get("nav_to_price"),
+             lambda v: f"{v:.2f}x"),
+            ("roe_rank",    "ROE (3yr avg)",     score_row.get("roe_3yr"),
+             lambda v: f"{v*100:.1f}%"),
+            ("stab_rank",   "EPS Stability",     score_row.get("eps_stab"),
+             lambda v: f"{v:.2f}"),
+            ("dy_rank",     "Dividend Yield",    score_row.get("div_yield"),
+             lambda v: f"{v:.2f}%"),
+            ("streak_rank", "Div. Streak",       score_row.get("div_streak"),
+             lambda v: f"{int(v)} yrs"),
+            ("rm_rank",     "Reserve / MCap",    score_row.get("res_mcap"),
+             lambda v: f"{v:.2f}x"),
+            ("de_rank",     "Equity / Loan",     score_row.get("debt_safety"),
+             lambda v: f"{v:.2f}x"),
         ]
 
         factor_rows_html = []
         for rank_key, label, raw_val, fmt_fn in _DETAIL_FACTORS:
-            pct = float(score_row.get(rank_key) or 0)
+            _raw_pct = score_row.get(rank_key)
+            pct = 0.0 if _raw_pct is None or (isinstance(_raw_pct, float) and pd.isna(_raw_pct)) else float(_raw_pct)
             bar_w = int(pct * 100)
             bar_color = (
                 "var(--green)" if pct >= 0.70
@@ -1400,28 +1512,20 @@ def render_detail_page(trading_code):
     # Key Ratios                                                           #
     # ------------------------------------------------------------------ #
     shares = company.get("total_shares")
-    reserve = company.get("reserve_surplus_mn")
-    loan = company.get("total_loan_mn")
+    mcap_mn = (ltp * shares / 1e6) if ltp and shares else None
 
     # Pull computed values from score row if available
-    pe_val       = score_row.get("pe")        if score_row else None
-    div_yield_v  = score_row.get("div_yield") if score_row else None
-    rps_val      = score_row.get("rps")       if score_row else None
-    lps_val      = score_row.get("lps")       if score_row else None
-    mcap_mn      = (ltp * shares / 1e6) if ltp and shares else None
+    earn_yield_v  = score_row.get("earn_yield")   if score_row else None
+    nav_to_price_v = score_row.get("nav_to_price") if score_row else None
+    roe_3yr_v     = score_row.get("roe_3yr")       if score_row else None
+    div_yield_v   = score_row.get("div_yield")     if score_row else None
+    div_streak_v  = score_row.get("div_streak")    if score_row else None
+    eps_3yr_v     = score_row.get("eps_3yr")       if score_row else None
 
     # Latest EPS from financials
     fin_df = load_financials(trading_code)
-    eps_val = None
     if not fin_df.empty:
         fin_df["year"] = fin_df["year"].astype(str)
-        eps_col = (
-            fin_df["eps_cont_basic"].combine_first(fin_df.get("eps_basic"))
-            if "eps_cont_basic" in fin_df.columns
-            else fin_df.get("eps_basic", pd.Series(dtype=float))
-        )
-        eps_series = eps_col.dropna()
-        eps_val = float(eps_series.iloc[-1]) if not eps_series.empty else None
 
     def _rv(v, fmt=".2f", prefix="", suffix=""):
         if v is None or (isinstance(v, float) and pd.isna(v)):
@@ -1441,12 +1545,12 @@ def render_detail_page(trading_code):
     st.markdown(
         '<div class="section-label"><span>//</span> KEY RATIOS</div>'
         '<div class="ratio-grid">'
-        + _rc("P/E Ratio",       _rv(pe_val, ".1f"),         "price / EPS")
-        + _rc("EPS (BDT)",       _rv(eps_val, ".2f", "\u09f3"), "latest year")
+        + _rc("Earnings Yield",  _rv(earn_yield_v, ".2f", suffix="%"), "3yr avg EPS / price")
+        + _rc("NAV / Price",     _rv(nav_to_price_v, ".2f", suffix="x"), "book-to-market")
+        + _rc("ROE (3yr avg)",   _rv(roe_3yr_v * 100 if roe_3yr_v else None, ".1f", suffix="%"), "return on equity")
+        + _rc("EPS (3yr avg)",   _rv(eps_3yr_v, ".2f", "\u09f3"), "BDT")
         + _rc("Div. Yield",      _rv(div_yield_v, ".2f", suffix="%"), "cash div.")
-        + _rc("Reserve / Share", _rv(rps_val, ",.0f", "\u09f3"), "BDT")
-        + _rc("Loan / Share",    _rv(lps_val, ",.0f", "\u09f3"), "BDT")
-        + _rc("Mkt Cap (mn)",    _rv(mcap_mn, ",.0f", "\u09f3"), "BDT")
+        + _rc("Div. Streak",     (f"{int(div_streak_v)} yrs" if div_streak_v and not (isinstance(div_streak_v, float) and pd.isna(div_streak_v)) else "--"), "consecutive yrs")
         + '</div>',
         unsafe_allow_html=True,
     )
