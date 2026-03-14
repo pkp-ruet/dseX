@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 
+
 load_dotenv()
 
 MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
@@ -14,6 +15,10 @@ DSE_BASE_URL = "https://www.dsebd.org"
 DSE_COMPANY_LIST_URL = f"{DSE_BASE_URL}/company_listing.php"
 DSE_LATEST_PRICE_URL = f"{DSE_BASE_URL}/latest_share_price_scroll_l.php"
 DSE_COMPANY_DETAILS_URL = f"{DSE_BASE_URL}/displayCompany.php"
+DSE_NEWS_URL = f"{DSE_BASE_URL}/old_news.php"
+
+NEWS_LOOKBACK_DAYS = int(os.getenv("NEWS_LOOKBACK_DAYS", "365"))
+NEWS_TOP_N = int(os.getenv("NEWS_TOP_N", "50"))
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",

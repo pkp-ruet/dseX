@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Primary SEO -->
+  <title>dseX — DSE Stock Screener &amp; Fundamental Analysis Terminal</title>
+  <meta name="description" content="Free DSE stock screener for Dhaka Stock Exchange. Ranks all listed companies by fundamental analysis — P/E ratio, dividend yield, ROE, NAV/price, EPS stability, and balance sheet safety. Find undervalued Bangladesh stocks instantly." />
+  <meta name="keywords" content="DSE stock screener, Dhaka Stock Exchange analysis, DSE PE ratio, DSE undervalued stocks, Bangladesh stock market, DSE company financials, DSE dividend yield, DSE fundamental analysis, DSE EPS, DSE NAV, Bangladesh investor tools" />
+  <link rel="canonical" href="https://pkp-ruet.github.io/dseX/" />
+
+  <!-- Open Graph (for Facebook/WhatsApp sharing) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://pkp-ruet.github.io/dseX/" />
+  <meta property="og:title" content="dseX — DSE Stock Screener &amp; Fundamental Analysis" />
+  <meta property="og:description" content="Ranks every Dhaka Stock Exchange company by 8 fundamental factors. Free tool for Bangladesh investors to find undervalued DSE stocks." />
+  <meta property="og:site_name" content="dseX" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="dseX — DSE Stock Screener" />
+  <meta name="twitter:description" content="Free fundamental analysis terminal for Dhaka Stock Exchange. Find undervalued DSE stocks using earnings yield, ROE, dividend streak, and more." />
+
+  <!-- Schema.org structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "dseX",
+    "description": "DSE stock screener and fundamental analysis terminal for Dhaka Stock Exchange. Ranks all listed companies by 8 fundamental factors including earnings yield, ROE, dividend yield, NAV/price ratio, EPS stability, dividend streak, reserve-to-market-cap, and debt safety.",
+    "url": "https://dsexanalysis.streamlit.app",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "BDT"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "pkp-ruet"
+    }
+  }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+
+    :root {
+      --green: #33ff33;
+      --green-dim: #20c020;
+      --amber: #ffb000;
+      --amber-dim: #cc8d00;
+      --cyan: #00d4ff;
+      --bg: #0a0a0a;
+      --card: #111111;
+      --border: #2a2a2a;
+      --muted: #555555;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      background: var(--bg);
+      color: var(--amber);
+      line-height: 1.6;
+    }
+
+    /* ── Scanlines ── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0,0,0,0.04) 0px, rgba(0,0,0,0.04) 1px,
+        transparent 1px, transparent 3px
+      );
+    }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* ── Header ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 18px 0 14px;
+      text-align: center;
+    }
+    .site-label {
+      font-size: 0.62rem;
+      color: var(--muted);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .site-title {
+      font-size: clamp(1.4rem, 5vw, 2.4rem);
+      font-weight: 700;
+      color: var(--green);
+      letter-spacing: 3px;
+      text-shadow: 0 0 20px rgba(51,255,51,0.35);
+    }
+    .site-tagline {
+      font-size: clamp(0.7rem, 2vw, 0.88rem);
+      color: var(--amber-dim);
+      margin-top: 6px;
+      letter-spacing: 1px;
+    }
+
+    /* ── CTA Button ── */
+    .cta-wrap {
+      text-align: center;
+      padding: 32px 0 24px;
+    }
+    .cta-btn {
+      display: inline-block;
+      background: transparent;
+      color: var(--green);
+      border: 2px solid var(--green-dim);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 14px 36px;
+      transition: background 0.15s, box-shadow 0.15s, color 0.15s;
+    }
+    .cta-btn:hover {
+      background: var(--green-dim);
+      color: var(--bg);
+      box-shadow: 0 0 24px rgba(51,255,51,0.3);
+    }
+    .cta-sub {
+      font-size: 0.62rem;
+      color: var(--muted);
+      margin-top: 10px;
+      letter-spacing: 1px;
+    }
+
+    /* ── Section label ── */
+    .sec-label {
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-align: center;
+      padding: 28px 0 16px;
+      border-top: 1px solid var(--border);
+    }
+    .sec-label span { color: var(--green-dim); }
+
+    /* ── Market stats bar ── */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    @media (max-width: 600px) { .stats-bar { grid-template-columns: repeat(2, 1fr); } }
+    .stat-cell {
+      background: var(--card);
+      padding: 14px 16px;
+      text-align: center;
+    }
+    .stat-label {
+      font-size: 0.58rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 5px;
+    }
+    .stat-value {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--green);
+    }
+    .stat-sub {
+      font-size: 0.6rem;
+      color: var(--amber-dim);
+      margin-top: 3px;
+    }
+
+    /* ── Methodology grid ── */
+    .method-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    @media (max-width: 700px) { .method-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 400px) { .method-grid { grid-template-columns: 1fr; } }
+    .method-cell {
+      background: #0d0d0d;
+      padding: 14px 16px;
+    }
+    .method-cell h3 {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--green-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: flex;
+      justify-content: space-between;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #1a1a1a;
+      margin-bottom: 8px;
+    }
+    .method-cell h3 span { color: var(--green); }
+    .method-factor {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      color: var(--amber-dim);
+      padding: 4px 0;
+    }
+    .method-factor span { color: var(--amber); font-size: 0.6rem; }
+
+    /* ── Feature list ── */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 700px) { .features { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 400px) { .features { grid-template-columns: 1fr; } }
+    .feature-card {
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--green-dim);
+      background: var(--card);
+      padding: 14px 16px;
+    }
+    .feature-card h4 {
+      font-size: 0.72rem;
+      color: var(--green);
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+    .feature-card p {
+      font-size: 0.63rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── Data pipeline ── */
+    .pipeline {
+      border: 1px solid #0d2a1a;
+      border-left: 3px solid var(--green-dim);
+      background: #080d0a;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+    }
+    .pipeline-label {
+      font-size: 0.58rem;
+      color: var(--muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .pipeline-nodes {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .pipe-node {
+      font-size: 0.68rem;
+      color: var(--green-dim);
+      border: 1px solid #1a2e1a;
+      background: #0a120a;
+      padding: 4px 10px;
+    }
+    .pipe-node.hi { color: var(--green); border-color: var(--green-dim); background: #0d1a0d; }
+    .pipe-arrow { font-size: 0.65rem; color: var(--border); }
+    .collections {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .coll-tag {
+      font-size: 0.62rem;
+      color: var(--cyan);
+      background: #080d10;
+      padding: 2px 8px;
+      border: 1px solid #0d2233;
+    }
+
+    /* ── FAQ ── */
+    .faq { margin-bottom: 24px; }
+    details {
+      border: 1px solid var(--border);
+      background: var(--card);
+      margin-bottom: 4px;
+    }
+    summary {
+      font-size: 0.75rem;
+      color: var(--amber);
+      padding: 12px 16px;
+      cursor: pointer;
+      list-style: none;
+      letter-spacing: 0.5px;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::before { content: '>> '; color: var(--green-dim); }
+    details[open] summary { color: var(--green); border-bottom: 1px solid var(--border); }
+    .faq-body {
+      font-size: 0.7rem;
+      color: var(--muted);
+      line-height: 1.8;
+      padding: 12px 16px;
+    }
+    .faq-body strong { color: var(--amber-dim); }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 20px 0 28px;
+    }
+    footer p {
+      font-size: 0.62rem;
+      color: var(--muted);
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    footer a { color: var(--green-dim); text-decoration: none; }
+    footer a:hover { color: var(--green); }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ── Header ── -->
+  <header>
+    <div class="site-label">Dhaka Stock Exchange &mdash; Analysis Terminal</div>
+    <div class="site-title">dseX</div>
+    <div class="site-tagline">Algorithmic Fundamental Analysis &middot; Powered by Data &middot; Driven by Logic</div>
+  </header>
+
+  <!-- ── CTA ── -->
+  <div class="cta-wrap">
+    <a class="cta-btn" href="https://dsexanalysis.streamlit.app" target="_blank" rel="noopener">
+      &#9654; Open Terminal
+    </a>
+    <div class="cta-sub">Free &middot; No login required &middot; Updated daily</div>
+  </div>
+
+  <!-- ── Stats ── -->
+  <div class="sec-label"><span>//</span> By The Numbers</div>
+  <div class="stats-bar">
+    <div class="stat-cell">
+      <div class="stat-label">Companies Tracked</div>
+      <div class="stat-value">350+</div>
+      <div class="stat-sub">all DSE-listed</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Scoring Factors</div>
+      <div class="stat-value">8</div>
+      <div class="stat-sub">fundamental metrics</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Data Points</div>
+      <div class="stat-value">5</div>
+      <div class="stat-sub">MongoDB collections</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Score Range</div>
+      <div class="stat-value">0–100</div>
+      <div class="stat-sub">percentile-based</div>
+    </div>
+  </div>
+
+  <!-- ── Methodology ── -->
+  <div class="sec-label"><span>//</span> Scoring Methodology</div>
+  <div class="method-grid">
+    <div class="method-cell">
+      <h3>Valuation <span>35%</span></h3>
+      <div class="method-factor">Earnings Yield <span>20%</span></div>
+      <div class="method-factor">NAV / Price <span>15%</span></div>
+    </div>
+    <div class="method-cell">
+      <h3>Profitability <span>25%</span></h3>
+      <div class="method-factor">ROE (3yr avg) <span>15%</span></div>
+      <div class="method-factor">EPS Stability <span>10%</span></div>
+    </div>
+    <div class="method-cell">
+      <h3>Dividend Quality <span>25%</span></h3>
+      <div class="method-factor">Dividend Yield <span>15%</span></div>
+      <div class="method-factor">Div. Streak <span>10%</span></div>
+    </div>
+    <div class="method-cell">
+      <h3>Balance Sheet <span>15%</span></h3>
+      <div class="method-factor">Reserve / MCap <span>10%</span></div>
+      <div class="method-factor">Equity / Loan <span>5%</span></div>
+    </div>
+  </div>
+  <p style="font-size:0.62rem;color:var(--muted);text-align:center;margin-bottom:28px;line-height:1.7">
+    Each factor is <strong style="color:var(--amber-dim)">percentile-ranked</strong> across all companies, weighted, and combined into a single score.
+    A score of <strong style="color:var(--amber-dim)">80</strong> means the company beats 80% of the DSE market on fundamentals.
+    Market category multiplier applied: A&times;1.0 &middot; B&times;0.92 &middot; N&times;0.88 &middot; Z&times;0.30.
+  </p>
+
+  <!-- ── Features ── -->
+  <div class="sec-label"><span>//</span> What You Get</div>
+  <div class="features">
+    <div class="feature-card">
+      <h4>Full Market Ranking</h4>
+      <p>Every DSE-listed company ranked by composite dseX Score. Filter, search, and compare across all sectors instantly.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Sector Leaderboard</h4>
+      <p>See which sectors — pharma, bank, textile, cement — lead on fundamentals. Average scores per sector updated daily.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Company Detail Page</h4>
+      <p>Click any company to see price history, EPS trend, profit chart, dividend history, and shareholding breakdown.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Key Financial Ratios</h4>
+      <p>Earnings yield, NAV/price, ROE (3yr avg), dividend yield, dividend streak — all computed from scraped DSE data.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Shareholding Pattern</h4>
+      <p>Sponsor/director, government, institutional, foreign, and public holding percentages for every company.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Company News Feed</h4>
+      <p>Latest official disclosures and announcements from DSE, stored and displayed per company.</p>
+    </div>
+  </div>
+
+  <!-- ── Data Pipeline ── -->
+  <div class="sec-label"><span>//</span> Data Infrastructure</div>
+  <div class="pipeline">
+    <div class="pipeline-label">// How data flows</div>
+    <div class="pipeline-nodes">
+      <span class="pipe-node">DSE Website</span>
+      <span class="pipe-arrow">&#8594;</span>
+      <span class="pipe-node">Python Scrapers</span>
+      <span class="pipe-arrow">&#8594;</span>
+      <span class="pipe-node hi">MongoDB Atlas</span>
+      <span class="pipe-arrow">&#8594;</span>
+      <span class="pipe-node">Scoring Engine</span>
+      <span class="pipe-arrow">&#8594;</span>
+      <span class="pipe-node">Terminal UI</span>
+    </div>
+    <div class="collections">
+      <span class="coll-tag">companies</span>
+      <span class="coll-tag">stock_prices</span>
+      <span class="coll-tag">financials</span>
+      <span class="coll-tag">shareholdings</span>
+      <span class="coll-tag">company_news</span>
+    </div>
+  </div>
+
+  <!-- ── FAQ ── -->
+  <div class="sec-label"><span>//</span> FAQ</div>
+  <div class="faq">
+    <details>
+      <summary>What is the dseX Score?</summary>
+      <div class="faq-body">
+        The <strong>dseX Score (0–100)</strong> ranks every Dhaka Stock Exchange company on 8 fundamental factors across 4 groups: Valuation (35%), Profitability (25%), Dividend Quality (25%), and Balance Sheet Safety (15%). Each factor is percentile-ranked — a score of 80 means that company beats 80% of the market on these fundamentals.
+      </div>
+    </details>
+    <details>
+      <summary>Is this a buy/sell recommendation?</summary>
+      <div class="faq-body">
+        No. dseX is a <strong>screening and research tool</strong>, not financial advice. The score reflects historical fundamental data scraped from DSE. Always do your own research before investing.
+      </div>
+    </details>
+    <details>
+      <summary>How often is the data updated?</summary>
+      <div class="faq-body">
+        The scrapers run periodically to fetch new prices, financials, dividends, and shareholding data from the DSE website. The Streamlit app caches data for 5 minutes. Financial data (annual reports) is updated when DSE publishes new figures.
+      </div>
+    </details>
+    <details>
+      <summary>Which companies are included?</summary>
+      <div class="faq-body">
+        All non-excluded companies listed on the Dhaka Stock Exchange (DSE), across all sectors — bank, insurance, pharma, textile, cement, food, telecom, engineering, and more. Category Z companies receive a score multiplier of 0.30 to reflect higher risk.
+      </div>
+    </details>
+    <details>
+      <summary>How is the data collected?</summary>
+      <div class="faq-body">
+        Custom Python scrapers pull data directly from the DSE website and store it in <strong>MongoDB Atlas</strong> across 5 collections: companies, stock_prices, financials, shareholdings, and company_news. The scoring engine then processes this data to generate the dseX Score for each company.
+      </div>
+    </details>
+    <details>
+      <summary>Is the source code available?</summary>
+      <div class="faq-body">
+        Yes. The full source code is open on GitHub at <a href="https://github.com/pkp-ruet/dseX" target="_blank" rel="noopener">github.com/pkp-ruet/dseX</a>.
+      </div>
+    </details>
+  </div>
+
+  <!-- ── Bottom CTA ── -->
+  <div class="cta-wrap" style="border-top:1px solid var(--border);padding-top:28px">
+    <a class="cta-btn" href="https://dsexanalysis.streamlit.app" target="_blank" rel="noopener">
+      &#9654; Open Terminal
+    </a>
+    <div class="cta-sub">Free &middot; No login required &middot; Updated daily</div>
+  </div>
+
+  <!-- ── Footer ── -->
+  <footer>
+    <p>dseX &mdash; Dhaka Stock Exchange Fundamental Analysis Terminal</p>
+    <p>
+      <a href="https://dsexanalysis.streamlit.app" target="_blank" rel="noopener">Live App</a>
+      &nbsp;&middot;&nbsp;
+      <a href="https://github.com/pkp-ruet/dseX" target="_blank" rel="noopener">GitHub</a>
+    </p>
+    <p style="margin-top:10px">Not financial advice. For research and educational purposes only.</p>
+  </footer>
+
+</div>
+
+</body>
+</html>

@@ -24,3 +24,12 @@ def ensure_indexes():
         [("trading_code", ASCENDING), ("as_of_date", ASCENDING)],
         unique=True,
     )
+
+    db.company_news.create_index(
+        [("trading_code", ASCENDING), ("post_date", ASCENDING), ("title", ASCENDING)],
+        unique=True,
+    )
+
+    db.company_news.create_index(
+        [("trading_code", ASCENDING), ("post_date", ASCENDING)],
+    )

@@ -745,6 +745,121 @@ code {
 }
 .section-label span { color: var(--green-dim); margin-right: 6px; }
 
+/* --- Methodology Panel --- */
+.method-panel {
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    padding: 16px 20px 14px;
+    margin-bottom: 12px;
+}
+.method-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+.method-title {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--green-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+.method-sub {
+    font-size: 0.62rem;
+    color: var(--text-muted);
+}
+.method-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    margin-bottom: 10px;
+}
+@media (max-width: 800px) { .method-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 500px) { .method-grid { grid-template-columns: 1fr; } }
+.method-group {
+    background: #0d0d0d;
+    padding: 10px 12px;
+}
+.mg-header {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--green-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 7px;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #1a1a1a;
+    padding-bottom: 5px;
+}
+.mg-w { color: var(--green); font-size: 0.7rem; }
+.mg-f {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.62rem;
+    color: var(--amber-dim);
+    padding: 3px 0;
+}
+.mg-fw { color: var(--amber); font-size: 0.6rem; }
+.method-note {
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    padding-top: 8px;
+    border-top: 1px solid #141414;
+}
+.method-note strong { color: var(--amber-dim); }
+
+/* --- Data Stack --- */
+.data-stack {
+    border: 1px solid #0d2a1a;
+    border-left: 3px solid var(--green-dim);
+    background: #080d0a;
+    padding: 12px 18px;
+    margin-bottom: 16px;
+}
+.ds-label {
+    font-size: 0.55rem;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+.ds-pipeline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+.ds-node {
+    font-size: 0.65rem;
+    color: var(--green-dim);
+    border: 1px solid #1a2e1a;
+    padding: 3px 8px;
+    background: #0a120a;
+}
+.ds-node.ds-hi { color: var(--green); border-color: var(--green-dim); background: #0d1a0d; }
+.ds-arrow { font-size: 0.6rem; color: var(--border); }
+.ds-collections {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+.ds-col {
+    font-size: 0.6rem;
+    color: var(--cyan-dim);
+    background: #080d10;
+    padding: 2px 7px;
+    border: 1px solid #0d2233;
+    font-family: 'IBM Plex Mono', monospace;
+}
+.ds-sep { font-size: 0.5rem; color: var(--border); }
+
 /* Scanline overlay for CRT feel */
 .stApp::after {
     content: '';
@@ -834,6 +949,18 @@ def load_shareholdings(trading_code):
         db.shareholdings.find(
             {"trading_code": trading_code}, {"_id": 0}
         ).sort("as_of_date", -1)
+    )
+    return docs
+
+
+@st.cache_data(ttl=300)
+def load_company_news(trading_code, limit=40):
+    db = get_mongo_db()
+    docs = list(
+        db.company_news.find(
+            {"trading_code": trading_code},
+            {"_id": 0, "title": 1, "body": 1, "post_date": 1},
+        ).sort("post_date", -1).limit(limit)
     )
     return docs
 
@@ -1301,21 +1428,74 @@ def render_homepage():
         unsafe_allow_html=True,
     )
 
-    # --- Explainer ---
-    with st.expander(">> what is the dseX score?"):
-        st.markdown(
-            '<div class="explainer">'
-            'The <strong>dseX Score (0–100)</strong> ranks every DSE-listed company on '
-            '<strong>6 fundamental factors</strong> across 3 pairs:<br>'
-            '&nbsp;&nbsp;· <strong>EPS Pair (30%)</strong> — P/E ratio (lower = cheaper) + EPS growth trend<br>'
-            '&nbsp;&nbsp;· <strong>Balance-Sheet Pair (30%)</strong> — Reserve per share (higher = better) + Loan per share (lower = better)<br>'
-            '&nbsp;&nbsp;· <strong>Dividend Pair (40%)</strong> — Dividend yield + Dividend growth trend<br><br>'
-            'Each factor is <strong>percentile-ranked</strong> across all companies, then weighted and combined. '
-            'A score of <strong>80</strong> means the company beats 80% of the market on these fundamentals. '
-            'This is a <strong>relative</strong> score — it compares companies against each other, not against absolute thresholds.'
-            '</div>',
-            unsafe_allow_html=True,
-        )
+    # --- Methodology Panel ---
+    st.markdown(
+        '<div class="method-panel">'
+        '  <div class="method-header">'
+        '    <span class="method-title">// dseX Score Methodology</span>'
+        '    <span class="method-sub">8 fundamental factors &middot; 4 groups &middot; multi-year averages &middot; percentile ranking</span>'
+        '  </div>'
+        '  <div class="method-grid">'
+        '    <div class="method-group">'
+        '      <div class="mg-header">Valuation <span class="mg-w">35%</span></div>'
+        '      <div class="mg-f"><span>Earnings Yield</span><span class="mg-fw">20%</span></div>'
+        '      <div class="mg-f"><span>NAV / Price</span><span class="mg-fw">15%</span></div>'
+        '    </div>'
+        '    <div class="method-group">'
+        '      <div class="mg-header">Profitability <span class="mg-w">25%</span></div>'
+        '      <div class="mg-f"><span>ROE (3yr avg)</span><span class="mg-fw">15%</span></div>'
+        '      <div class="mg-f"><span>EPS Stability</span><span class="mg-fw">10%</span></div>'
+        '    </div>'
+        '    <div class="method-group">'
+        '      <div class="mg-header">Dividend Quality <span class="mg-w">25%</span></div>'
+        '      <div class="mg-f"><span>Dividend Yield</span><span class="mg-fw">15%</span></div>'
+        '      <div class="mg-f"><span>Div. Streak</span><span class="mg-fw">10%</span></div>'
+        '    </div>'
+        '    <div class="method-group">'
+        '      <div class="mg-header">Balance Sheet <span class="mg-w">15%</span></div>'
+        '      <div class="mg-f"><span>Reserve / MCap</span><span class="mg-fw">10%</span></div>'
+        '      <div class="mg-f"><span>Equity / Loan</span><span class="mg-fw">5%</span></div>'
+        '    </div>'
+        '  </div>'
+        '  <div class="method-note">'
+        '    Each factor is <strong>percentile-ranked</strong> across all companies, then weighted and combined. '
+        '    A score of <strong>80</strong> means the company beats 80% of the market on these fundamentals. '
+        '    Market category multiplier applied: A&times;1.0, B&times;0.92, N&times;0.88, Z&times;0.30. '
+        '    Missing factors are excluded and weights re-normalised per company.'
+        '  </div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    # --- Data Stack ---
+    st.markdown(
+        '<div class="data-stack">'
+        '  <div class="ds-label">// Data Infrastructure</div>'
+        '  <div class="ds-pipeline">'
+        '    <span class="ds-node">DSE Website</span>'
+        '    <span class="ds-arrow">&#8594;</span>'
+        '    <span class="ds-node">Python Scrapers</span>'
+        '    <span class="ds-arrow">&#8594;</span>'
+        '    <span class="ds-node ds-hi">MongoDB Atlas</span>'
+        '    <span class="ds-arrow">&#8594;</span>'
+        '    <span class="ds-node">Scoring Engine</span>'
+        '    <span class="ds-arrow">&#8594;</span>'
+        '    <span class="ds-node">Terminal UI</span>'
+        '  </div>'
+        '  <div class="ds-collections">'
+        '    <span class="ds-col">companies</span>'
+        '    <span class="ds-sep">&middot;</span>'
+        '    <span class="ds-col">stock_prices</span>'
+        '    <span class="ds-sep">&middot;</span>'
+        '    <span class="ds-col">financials</span>'
+        '    <span class="ds-sep">&middot;</span>'
+        '    <span class="ds-col">shareholdings</span>'
+        '    <span class="ds-sep">&middot;</span>'
+        '    <span class="ds-col">company_news</span>'
+        '  </div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
     # --- Search ---
     search = st.text_input(">> search", key="search", placeholder="type company name or code...")
@@ -1833,6 +2013,31 @@ def render_detail_page(trading_code):
         ("Reserve & Surplus", f"\u09f3{company['reserve_surplus_mn']:,.2f} mn" if company.get("reserve_surplus_mn") else None),
         ("Total Loan",        f"\u09f3{company['total_loan_mn']:,.2f} mn" if company.get("total_loan_mn") else None),
     ]
+    # ------------------------------------------------------------------ #
+    # News Feed                                                           #
+    # ------------------------------------------------------------------ #
+    st.markdown('<div class="section-label"><span>//</span> NEWS FEED</div>', unsafe_allow_html=True)
+    news_items = load_company_news(trading_code)
+    if news_items:
+        for item in news_items:
+            post_date = item.get("post_date", "")
+            if hasattr(post_date, "strftime"):
+                post_date = post_date.strftime("%Y-%m-%d")
+            title = item.get("title", "—")
+            body = item.get("body", "").strip()
+            with st.expander(f"{post_date}  ·  {title}"):
+                if body:
+                    st.markdown(
+                        f'<div style="font-size:0.78rem;color:var(--amber-dim);'
+                        f'line-height:1.75;white-space:pre-wrap;font-family:\'IBM Plex Mono\',monospace">'
+                        f'{body}</div>',
+                        unsafe_allow_html=True,
+                    )
+                else:
+                    st.caption("No body text available.")
+    else:
+        st.caption("No news stored yet. Run: python main.py scrape-news --code " + trading_code)
+
     avail = [(k, v) for k, v in info_pairs if v]
     if avail:
         st.markdown('<div class="section-label"><span>//</span> COMPANY INFO</div>', unsafe_allow_html=True)
