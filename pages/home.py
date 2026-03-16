@@ -113,62 +113,60 @@ def render_homepage():
         unsafe_allow_html=True,
     )
 
-    # --- Upcoming Dividend Boxes ---
+    # --- Upcoming Dividend Info (expandable) ---
     all_decls = load_dividend_declarations()
     if all_decls:
-        from datetime import date as _date
         today = _date.today()
 
-        box_left, box_right = st.columns(2)
+        with st.expander("Upcoming Declarations & Record Dates"):
+            box_left, box_right = st.columns(2)
 
-        # Box A: Upcoming Declarations (predicted from last year's date)
-        with box_left:
-            st.markdown('<div class="section-label"><span>//</span> UPCOMING DECLARATIONS</div>', unsafe_allow_html=True)
-            st.caption("Expected dates based on prior year pattern")
-            upcoming_decls = []
-            for d in all_decls:
-                dd = d.get("declaration_date")
-                if not dd:
-                    continue
-                projected = dd.replace(year=today.year)
-                if projected.date() < today:
-                    projected = projected.replace(year=today.year + 1)
-                upcoming_decls.append((projected, d))
-            upcoming_decls.sort(key=lambda x: x[0])
-            for proj_dt, d in upcoming_decls[:10]:
-                code_link = d["trading_code"]
-                pct = d.get("dividend_pct", 0)
-                st.markdown(
-                    f'<a href="?code={code_link}" style="color:#1A6B5A;text-decoration:none">'
-                    f'<b>{proj_dt.strftime("%d %b")}</b> &mdash; {code_link}'
-                    f' <span style="color:#636E72">(last: {pct:.0f}%)</span></a>',
-                    unsafe_allow_html=True,
-                )
-            if not upcoming_decls:
-                st.write("No data yet")
+            with box_left:
+                st.markdown("**Upcoming Declarations**", unsafe_allow_html=True)
+                st.caption("Expected dates based on prior year pattern")
+                upcoming_decls = []
+                for d in all_decls:
+                    dd = d.get("declaration_date")
+                    if not dd:
+                        continue
+                    projected = dd.replace(year=today.year)
+                    if projected.date() < today:
+                        projected = projected.replace(year=today.year + 1)
+                    upcoming_decls.append((projected, d))
+                upcoming_decls.sort(key=lambda x: x[0])
+                for proj_dt, d in upcoming_decls[:10]:
+                    code_link = d["trading_code"]
+                    pct = d.get("dividend_pct", 0)
+                    st.markdown(
+                        f'<a href="?code={code_link}" style="color:#1A6B5A;text-decoration:none">'
+                        f'<b>{proj_dt.strftime("%d %b")}</b> &mdash; {code_link}'
+                        f' <span style="color:#636E72">(last: {pct:.0f}%)</span></a>',
+                        unsafe_allow_html=True,
+                    )
+                if not upcoming_decls:
+                    st.write("No data yet")
 
-        # Box B: Upcoming Record Dates
-        with box_right:
-            st.markdown('<div class="section-label"><span>//</span> UPCOMING RECORD DATES</div>', unsafe_allow_html=True)
-            upcoming_recs = []
-            for d in all_decls:
-                rd = d.get("record_date")
-                if not rd or rd.date() < today:
-                    continue
-                upcoming_recs.append((rd, d))
-            upcoming_recs.sort(key=lambda x: x[0])
-            for rec_dt, d in upcoming_recs[:10]:
-                code_link = d["trading_code"]
-                pct = d.get("dividend_pct", 0)
-                dtype = d.get("dividend_type", "")
-                st.markdown(
-                    f'<a href="?code={code_link}" style="color:#E07A5F;text-decoration:none">'
-                    f'<b>{rec_dt.strftime("%d %b %Y")}</b> &mdash; {code_link}'
-                    f' <span style="color:#636E72">({pct:.0f}% {dtype})</span></a>',
-                    unsafe_allow_html=True,
-                )
-            if not upcoming_recs:
-                st.write("No upcoming record dates")
+            with box_right:
+                st.markdown("**Upcoming Record Dates**", unsafe_allow_html=True)
+                upcoming_recs = []
+                for d in all_decls:
+                    rd = d.get("record_date")
+                    if not rd or rd.date() < today:
+                        continue
+                    upcoming_recs.append((rd, d))
+                upcoming_recs.sort(key=lambda x: x[0])
+                for rec_dt, d in upcoming_recs[:10]:
+                    code_link = d["trading_code"]
+                    pct = d.get("dividend_pct", 0)
+                    dtype = d.get("dividend_type", "")
+                    st.markdown(
+                        f'<a href="?code={code_link}" style="color:#E07A5F;text-decoration:none">'
+                        f'<b>{rec_dt.strftime("%d %b %Y")}</b> &mdash; {code_link}'
+                        f' <span style="color:#636E72">({pct:.0f}% {dtype})</span></a>',
+                        unsafe_allow_html=True,
+                    )
+                if not upcoming_recs:
+                    st.write("No upcoming record dates")
 
     # --- Search ---
     search = st.text_input(">> search", key="search", placeholder="type company name or code...")
