@@ -121,23 +121,6 @@ def render_homepage():
             )
         st.markdown('<div class="chip-grid">' + "".join(chips) + "</div>", unsafe_allow_html=True)
 
-    # --- All companies (scrollable) ---
-    rest_end = max(mid_end, total - 30)
-    rest_df = scored.iloc[mid_end:rest_end]
-    if len(rest_df) > 0:
-        st.markdown('<div class="tier-label allco">// all companies //</div>', unsafe_allow_html=True)
-        chips = []
-        for i, row in rest_df.iterrows():
-            code = row["trading_code"]
-            rank = i + 1
-            chips.append(
-                f'<a class="chip chip-rest" href="?code={code}" target="_self">'
-                f'  <span class="chip-rank">#{rank}</span>'
-                f'  <span class="chip-code">{code}</span>'
-                f'</a>'
-            )
-        st.markdown('<div class="rest-scroll"><div class="chip-grid">' + "".join(chips) + "</div></div>", unsafe_allow_html=True)
-
     # --- Bottom feature cards ---
     st.markdown('<div style="margin-top:36px"></div>', unsafe_allow_html=True)
 
