@@ -298,12 +298,12 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
     box-shadow: var(--shadow-md);
 }
 .chip-top {
-    background: var(--primary);
+    background: linear-gradient(135deg, #2D8B76, #4CAF7D);
     color: #fff !important;
     font-size: 0.88rem;
     padding: 12px 20px;
     border-radius: 32px;
-    box-shadow: 0 2px 8px rgba(26,107,90,0.25);
+    box-shadow: 0 2px 8px rgba(76,175,125,0.3);
 }
 .chip-top .chip-rank {
     font-weight: 800;
@@ -322,21 +322,21 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
     font-weight: 700;
 }
 .chip-mid {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    color: var(--text) !important;
+    background: linear-gradient(135deg, #E8F5F1, #F0F7F5);
+    border: 1px solid var(--primary-dim);
+    color: var(--primary) !important;
     font-size: 0.78rem;
-    box-shadow: var(--shadow);
+    box-shadow: 0 2px 6px rgba(26,107,90,0.1);
 }
 .chip-mid .chip-code {
-    color: var(--text);
+    color: var(--primary);
     font-weight: 600;
 }
-.chip-mid .chip-score {
-    color: var(--primary);
-    font-weight: 700;
-    font-size: 0.72rem;
+.chip-mid:hover {
+    background: var(--primary);
+    color: #fff !important;
 }
+.chip-mid:hover .chip-code { color: #fff; }
 
 /* --- Section tier labels --- */
 .tier-label {
@@ -527,8 +527,8 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
 .rest-scroll::-webkit-scrollbar-track { background: transparent; }
 .rest-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 .chip-rest {
-    background: var(--bg-input);
-    border: 1px solid var(--border-light);
+    background: linear-gradient(135deg, #F0F0EC, #F5F5F3);
+    border: 1px solid var(--border);
     color: var(--text-secondary) !important;
     font-size: 0.72rem;
     padding: 6px 12px;
@@ -543,12 +543,13 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
     color: var(--text-secondary);
 }
 .chip-rest:hover {
-    background: var(--primary-light);
-    border-color: var(--primary);
-    color: var(--primary) !important;
+    background: linear-gradient(135deg, #5B8DEF, #4CAF7D);
+    border-color: transparent;
+    color: #fff !important;
+    box-shadow: 0 2px 8px rgba(91,141,239,0.2);
 }
-.chip-rest:hover .chip-code { color: var(--primary); }
-.chip-rest:hover .chip-rank { color: var(--primary); }
+.chip-rest:hover .chip-code { color: #fff; }
+.chip-rest:hover .chip-rank { color: rgba(255,255,255,0.7); }
 .chip-danger {
     background: var(--negative-light);
     border: 1px solid var(--negative);
