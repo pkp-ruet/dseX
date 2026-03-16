@@ -281,6 +281,8 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
 }
 @media (max-width: 700px) { .chip-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 500px) { .chip-grid { grid-template-columns: repeat(2, 1fr); } }
+.chip-grid-3 { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 500px) { .chip-grid-3 { grid-template-columns: repeat(2, 1fr); } }
 .chip {
     display: flex;
     align-items: center;

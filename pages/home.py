@@ -76,18 +76,34 @@ def render_homepage():
     top_n = min(10, len(scored))
     if top_n > 0:
         st.markdown('<div class="tier-label top10">// top 10 //</div>', unsafe_allow_html=True)
-        chips = []
-        for i in range(top_n):
-            r = scored.iloc[i].to_dict()
-            code = r["trading_code"]
-            score = r["score"]
-            chips.append(
-                f'<a class="chip chip-top" href="?code={code}" target="_self">'
-                f'  <span class="chip-rank">#{i+1}</span>'
-                f'  <span class="chip-code">{code}</span>'
-                f'</a>'
-            )
-        st.markdown('<div class="chip-grid">' + "".join(chips) + "</div>", unsafe_allow_html=True)
+
+        # Champion — #1 (single row)
+        champ_code = scored.iloc[0]["trading_code"]
+        st.markdown(
+            f'<div style="display:flex;justify-content:center;margin-bottom:12px">'
+            f'<a class="chip chip-top" href="?code={champ_code}" target="_self"'
+            f' style="font-size:1rem;padding:14px 28px">'
+            f'  <span class="chip-rank">#1</span>'
+            f'  <span class="chip-code">{champ_code}</span>'
+            f'  <span style="font-size:0.65rem;background:rgba(255,215,0,0.9);color:#1a1a00;'
+            f'padding:2px 8px;border-radius:10px;font-weight:700">CHAMPION</span>'
+            f'</a></div>',
+            unsafe_allow_html=True,
+        )
+
+        # Remaining 9 in 3x3 grid
+        if top_n > 1:
+            chips = []
+            for i in range(1, top_n):
+                r = scored.iloc[i].to_dict()
+                code = r["trading_code"]
+                chips.append(
+                    f'<a class="chip chip-top" href="?code={code}" target="_self">'
+                    f'  <span class="chip-rank">#{i+1}</span>'
+                    f'  <span class="chip-code">{code}</span>'
+                    f'</a>'
+                )
+            st.markdown('<div class="chip-grid chip-grid-3">' + "".join(chips) + "</div>", unsafe_allow_html=True)
 
     # --- Next 20 ---
     mid_start = top_n
