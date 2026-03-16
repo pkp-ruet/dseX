@@ -138,110 +138,103 @@ def render_homepage():
             )
         st.markdown('<div class="rest-scroll"><div class="chip-grid">' + "".join(chips) + "</div></div>", unsafe_allow_html=True)
 
-    st.markdown('<div style="margin-top:32px"></div>', unsafe_allow_html=True)
+    # --- Bottom feature cards ---
+    st.markdown('<div style="margin-top:36px"></div>', unsafe_allow_html=True)
 
-    # --- Expandable sections at bottom ---
-    col1, col2 = st.columns(2)
+    all_decls = load_dividend_declarations()
+    today = _date.today()
 
-    with col1:
-        all_decls = load_dividend_declarations()
-        if all_decls:
-            today = _date.today()
-            with st.expander("Upcoming Declarations"):
-                st.caption("Expected dates based on prior year")
-                upcoming_decls = []
-                for d in all_decls:
-                    dd = d.get("declaration_date")
-                    if not dd:
-                        continue
-                    projected = dd.replace(year=today.year)
-                    if projected.date() < today:
-                        projected = projected.replace(year=today.year + 1)
-                    upcoming_decls.append((projected, d))
-                upcoming_decls.sort(key=lambda x: x[0])
-                for proj_dt, d in upcoming_decls[:10]:
-                    code_link = d["trading_code"]
-                    pct = d.get("dividend_pct", 0)
-                    st.markdown(
-                        f'<a href="?code={code_link}" style="color:#1A6B5A;text-decoration:none">'
-                        f'<b>{proj_dt.strftime("%d %b")}</b> &mdash; {code_link}'
-                        f' <span style="color:#636E72">(last: {pct:.0f}%)</span></a>',
-                        unsafe_allow_html=True,
-                    )
-                if not upcoming_decls:
-                    st.write("No data yet")
-
-            with st.expander("Upcoming Record Dates"):
-                upcoming_recs = []
-                for d in all_decls:
-                    rd = d.get("record_date")
-                    if not rd or rd.date() < today:
-                        continue
-                    upcoming_recs.append((rd, d))
-                upcoming_recs.sort(key=lambda x: x[0])
-                for rec_dt, d in upcoming_recs[:10]:
-                    code_link = d["trading_code"]
-                    pct = d.get("dividend_pct", 0)
-                    dtype = d.get("dividend_type", "")
-                    st.markdown(
-                        f'<a href="?code={code_link}" style="color:#E07A5F;text-decoration:none">'
-                        f'<b>{rec_dt.strftime("%d %b %Y")}</b> &mdash; {code_link}'
-                        f' <span style="color:#636E72">({pct:.0f}% {dtype})</span></a>',
-                        unsafe_allow_html=True,
-                    )
-                if not upcoming_recs:
-                    st.write("No upcoming record dates")
-
-    with col2:
-        if not search and not sector_avg.empty:
-            max_avg = sector_avg.max()
-            def _sector_rows(items):
-                rows = []
-                for rank_i, (sec_name, avg_sc) in items:
-                    bar_w = int(avg_sc / max_avg * 100) if max_avg > 0 else 0
-                    rows.append(
-                        f'<div class="sector-row">'
-                        f'  <span class="sr-rank">{rank_i}</span>'
-                        f'  <span class="sr-name">{sec_name}</span>'
-                        f'  <div class="sr-bar-wrap"><div class="sr-bar-fill" style="width:{bar_w}%"></div></div>'
-                        f'  <span class="sr-score">{avg_sc:.1f}</span>'
-                        f'</div>'
-                    )
-                return rows
-
-            with st.expander("Sector Leaderboard"):
-                all_sectors = list(enumerate(sector_avg.items(), 1))
-                st.markdown('<div class="sector-board">' + "".join(_sector_rows(all_sectors)) + "</div>", unsafe_allow_html=True)
-
-        with st.expander("Score Methodology"):
-            st.markdown(
-                '<div class="method-panel">'
-                '  <div class="method-grid">'
-                '    <div class="method-group">'
-                '      <div class="mg-header">Valuation <span class="mg-w">35%</span></div>'
-                '      <div class="mg-f"><span>Earnings Yield</span><span class="mg-fw">20%</span></div>'
-                '      <div class="mg-f"><span>NAV / Price</span><span class="mg-fw">15%</span></div>'
-                '    </div>'
-                '    <div class="method-group">'
-                '      <div class="mg-header">Profitability <span class="mg-w">25%</span></div>'
-                '      <div class="mg-f"><span>ROE (3yr avg)</span><span class="mg-fw">15%</span></div>'
-                '      <div class="mg-f"><span>EPS Stability</span><span class="mg-fw">10%</span></div>'
-                '    </div>'
-                '    <div class="method-group">'
-                '      <div class="mg-header">Dividend Quality <span class="mg-w">25%</span></div>'
-                '      <div class="mg-f"><span>Dividend Yield</span><span class="mg-fw">15%</span></div>'
-                '      <div class="mg-f"><span>Div. Streak</span><span class="mg-fw">10%</span></div>'
-                '    </div>'
-                '    <div class="method-group">'
-                '      <div class="mg-header">Balance Sheet <span class="mg-w">15%</span></div>'
-                '      <div class="mg-f"><span>Reserve / MCap</span><span class="mg-fw">10%</span></div>'
-                '      <div class="mg-f"><span>Equity / Loan</span><span class="mg-fw">5%</span></div>'
-                '    </div>'
-                '  </div>'
-                '  <div class="method-note">'
-                '    Each factor is <strong>percentile-ranked</strong> across all companies, then weighted and combined. '
-                '    Market category multiplier: A&times;1.0, B&times;0.92, N&times;0.88, Z&times;0.30.'
-                '  </div>'
-                '</div>',
-                unsafe_allow_html=True,
+    # Build data for cards
+    upcoming_decls_html = ""
+    upcoming_recs_html = ""
+    if all_decls:
+        upcoming_decls = []
+        for d in all_decls:
+            dd = d.get("declaration_date")
+            if not dd:
+                continue
+            projected = dd.replace(year=today.year)
+            if projected.date() < today:
+                projected = projected.replace(year=today.year + 1)
+            upcoming_decls.append((projected, d))
+        upcoming_decls.sort(key=lambda x: x[0])
+        for proj_dt, d in upcoming_decls[:6]:
+            code_link = d["trading_code"]
+            pct = d.get("dividend_pct", 0)
+            upcoming_decls_html += (
+                f'<a href="?code={code_link}" style="color:#fff;text-decoration:none;display:block;padding:3px 0;font-size:0.75rem">'
+                f'<b>{proj_dt.strftime("%d %b")}</b> {code_link}'
+                f' <span style="opacity:0.6">({pct:.0f}%)</span></a>'
             )
+
+        upcoming_recs = []
+        for d in all_decls:
+            rd = d.get("record_date")
+            if not rd or rd.date() < today:
+                continue
+            upcoming_recs.append((rd, d))
+        upcoming_recs.sort(key=lambda x: x[0])
+        for rec_dt, d in upcoming_recs[:6]:
+            code_link = d["trading_code"]
+            pct = d.get("dividend_pct", 0)
+            upcoming_recs_html += (
+                f'<a href="?code={code_link}" style="color:#fff;text-decoration:none;display:block;padding:3px 0;font-size:0.75rem">'
+                f'<b>{rec_dt.strftime("%d %b")}</b> {code_link}'
+                f' <span style="opacity:0.6">({pct:.0f}%)</span></a>'
+            )
+
+    # Sector top 5
+    sector_html = ""
+    if not sector_avg.empty:
+        for i, (sec_name, avg_sc) in enumerate(sector_avg.head(5).items(), 1):
+            sector_html += (
+                f'<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:0.75rem">'
+                f'  <span>{i}. {sec_name}</span>'
+                f'  <span style="font-weight:700">{avg_sc:.1f}</span>'
+                f'</div>'
+            )
+
+    def _card(emoji, title, body_html, bg, border_clr):
+        return (
+            f'<div style="background:{bg};border:2px solid {border_clr};border-radius:14px;'
+            f'padding:18px 16px;height:100%">'
+            f'  <div style="font-size:1.5rem;margin-bottom:6px">{emoji}</div>'
+            f'  <div style="font-size:0.82rem;font-weight:700;color:#fff;margin-bottom:10px">{title}</div>'
+            f'  <div>{body_html or "<span style=\"color:rgba(255,255,255,0.5);font-size:0.75rem\">No data yet</span>"}</div>'
+            f'</div>'
+        )
+
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        st.markdown(
+            _card("📅", "Upcoming Declarations", upcoming_decls_html,
+                  "linear-gradient(135deg,#1A6B5A,#2D8B76)", "#4CAF7D"),
+            unsafe_allow_html=True,
+        )
+    with c2:
+        st.markdown(
+            _card("📋", "Record Dates", upcoming_recs_html,
+                  "linear-gradient(135deg,#E07A5F,#E8915E)", "#F0A88C"),
+            unsafe_allow_html=True,
+        )
+    with c3:
+        st.markdown(
+            _card("🏆", "Top Sectors", sector_html,
+                  "linear-gradient(135deg,#5B8DEF,#7BA4F5)", "#9BB8F7"),
+            unsafe_allow_html=True,
+        )
+    with c4:
+        method_html = (
+            '<div style="font-size:0.72rem;line-height:1.6">'
+            '<div><b>Valuation</b> 35%</div>'
+            '<div><b>Profitability</b> 25%</div>'
+            '<div><b>Dividends</b> 25%</div>'
+            '<div><b>Balance Sheet</b> 15%</div>'
+            '<div style="margin-top:6px;opacity:0.6;font-size:0.65rem">8 factors, percentile-ranked</div>'
+            '</div>'
+        )
+        st.markdown(
+            _card("🧠", "Score Method", method_html,
+                  "linear-gradient(135deg,#9B6DD7,#B48AE0)", "#CBA8EB"),
+            unsafe_allow_html=True,
+        )
