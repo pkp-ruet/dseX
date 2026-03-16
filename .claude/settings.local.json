@@ -11,7 +11,8 @@
       "WebFetch(domain:apiv2.amarstock.com)",
       "Bash(python -c \":*)",
       "Bash(python main.py scrape-news --code MARICO)",
-      "Bash(python main.py scrape-news --code ABBANK)"
+      "Bash(python main.py scrape-news --code ABBANK)",
+      "Bash(python -c \"from scoring import _build_scores_df; print\\(''''OK''''\\)\")"
     ]
   }
 }
