@@ -3,7 +3,15 @@
     "allow": [
       "Bash(cd \"D:/Cursor Projects/dseX\" && python -c \"import ast; ast.parse\\(open\\('app.py'\\).read\\(\\)\\); print\\('syntax OK'\\)\")",
       "WebSearch",
-      "WebFetch(domain:www.dsebd.org)"
+      "WebFetch(domain:www.dsebd.org)",
+      "Bash(curl -s \"https://www.dsebd.org/news_archive.php\")",
+      "Bash(curl -s \"https://www.dsebd.org/news_archive.php?inst=GP&criteria=3\")",
+      "Bash(curl -s \"https://www.dsebd.org/old_news.php?inst=GP&criteria=3&archive=news\")",
+      "WebFetch(domain:www.amarstock.com)",
+      "WebFetch(domain:apiv2.amarstock.com)",
+      "Bash(python -c \":*)",
+      "Bash(python main.py scrape-news --code MARICO)",
+      "Bash(python main.py scrape-news --code ABBANK)"
     ]
   }
 }

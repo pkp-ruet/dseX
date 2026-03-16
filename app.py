@@ -965,6 +965,12 @@ def load_company_news(trading_code, limit=40):
     return docs
 
 
+@st.cache_data(ttl=300)
+def load_dividend_declarations():
+    db = get_mongo_db()
+    return list(db.dividend_declarations.find({}, {"_id": 0}))
+
+
 # ---------------------------------------------------------------------------
 # Composite scoring
 # ---------------------------------------------------------------------------
@@ -1497,6 +1503,63 @@ def render_homepage():
         unsafe_allow_html=True,
     )
 
+    # --- Upcoming Dividend Boxes ---
+    all_decls = load_dividend_declarations()
+    if all_decls:
+        from datetime import date as _date
+        today = _date.today()
+
+        box_left, box_right = st.columns(2)
+
+        # Box A: Upcoming Declarations (predicted from last year's date)
+        with box_left:
+            st.markdown('<div class="section-label"><span>//</span> UPCOMING DECLARATIONS</div>', unsafe_allow_html=True)
+            st.caption("Expected dates based on prior year pattern")
+            upcoming_decls = []
+            for d in all_decls:
+                dd = d.get("declaration_date")
+                if not dd:
+                    continue
+                projected = dd.replace(year=today.year)
+                if projected.date() < today:
+                    projected = projected.replace(year=today.year + 1)
+                upcoming_decls.append((projected, d))
+            upcoming_decls.sort(key=lambda x: x[0])
+            for proj_dt, d in upcoming_decls[:10]:
+                code_link = d["trading_code"]
+                pct = d.get("dividend_pct", 0)
+                st.markdown(
+                    f'<a href="?code={code_link}" style="color:#33ff33;text-decoration:none">'
+                    f'<b>{proj_dt.strftime("%d %b")}</b> &mdash; {code_link}'
+                    f' <span style="color:#888">(last: {pct:.0f}%)</span></a>',
+                    unsafe_allow_html=True,
+                )
+            if not upcoming_decls:
+                st.write("No data yet")
+
+        # Box B: Upcoming Record Dates
+        with box_right:
+            st.markdown('<div class="section-label"><span>//</span> UPCOMING RECORD DATES</div>', unsafe_allow_html=True)
+            upcoming_recs = []
+            for d in all_decls:
+                rd = d.get("record_date")
+                if not rd or rd.date() < today:
+                    continue
+                upcoming_recs.append((rd, d))
+            upcoming_recs.sort(key=lambda x: x[0])
+            for rec_dt, d in upcoming_recs[:10]:
+                code_link = d["trading_code"]
+                pct = d.get("dividend_pct", 0)
+                dtype = d.get("dividend_type", "")
+                st.markdown(
+                    f'<a href="?code={code_link}" style="color:#00e5ff;text-decoration:none">'
+                    f'<b>{rec_dt.strftime("%d %b %Y")}</b> &mdash; {code_link}'
+                    f' <span style="color:#888">({pct:.0f}% {dtype})</span></a>',
+                    unsafe_allow_html=True,
+                )
+            if not upcoming_recs:
+                st.write("No upcoming record dates")
+
     # --- Search ---
     search = st.text_input(">> search", key="search", placeholder="type company name or code...")
 
@@ -1861,6 +1924,22 @@ def render_detail_page(trading_code):
         + '</div>',
         unsafe_allow_html=True,
     )
+
+    # ------------------------------------------------------------------ #
+    # Latest Dividend Declaration                                          #
+    # ------------------------------------------------------------------ #
+    all_decls = load_dividend_declarations()
+    decl = next((d for d in all_decls if d.get("trading_code") == trading_code), None)
+    if decl:
+        decl_date = decl.get("declaration_date")
+        rec_date = decl.get("record_date")
+        dpct = decl.get("dividend_pct", 0)
+        dtype = decl.get("dividend_type", "")
+        st.markdown('<div class="section-label"><span>//</span> LATEST DIVIDEND DECLARATION</div>', unsafe_allow_html=True)
+        d_cols = st.columns(3)
+        d_cols[0].metric("Declaration Date", decl_date.strftime("%d %b %Y") if decl_date else "--")
+        d_cols[1].metric("Record Date", rec_date.strftime("%d %b %Y") if rec_date else "--")
+        d_cols[2].metric("Dividend", f"{dpct:.0f}% {dtype}" if dpct else f"No Dividend ({dtype})")
 
     # ------------------------------------------------------------------ #
     # Price History Chart                                                  #

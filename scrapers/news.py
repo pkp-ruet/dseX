@@ -1,9 +1,14 @@
+import re
 import logging
 from datetime import datetime, timedelta, timezone
 
 from scrapers.base_scraper import BaseScraper
 from db.connection import get_db
 from config import DSE_NEWS_URL, NEWS_LOOKBACK_DAYS
+
+_PCT_RE = re.compile(r"(\d+(?:\.\d+)?)%")
+_RECORD_DATE_RE = re.compile(r"Record\s+Date\s*:\s*(.+?)(?:\.(?:\s|$)|;|\n|$)", re.IGNORECASE)
+_DATE_FORMATS = ["%d.%m.%Y", "%B %d, %Y", "%d/%m/%Y", "%Y-%m-%d"]
 
 logger = logging.getLogger(__name__)
 
@@ -28,13 +33,8 @@ class NewsScraper(BaseScraper):
         now = datetime.now(tz=timezone.utc)
 
         tables = soup.find_all("table", class_="table-news")
-
-        # Fallback: if class-based search finds nothing, try any table with a
-        # "News Title" header (guards against minor HTML changes on the site)
         if not tables:
-            logger.warning(
-                "%s: no table.table-news found — trying fallback parser", trading_code
-            )
+            logger.warning("%s: no table.table-news found", trading_code)
             tables = [
                 t for t in soup.find_all("table")
                 if t.find(string=lambda s: s and "News Title" in s)
@@ -55,10 +55,21 @@ class NewsScraper(BaseScraper):
                 header = th.get_text(strip=True)
 
                 if "News Title" in header:
+                    # Flush previous item before starting a new one
+                    if title and post_date and post_date >= cutoff:
+                        items.append({
+                            "trading_code": trading_code,
+                            "title": title,
+                            "body": body or "",
+                            "post_date": post_date,
+                            "scraped_at": now,
+                        })
                     title = td.get_text(separator=" ", strip=True)
-                elif header == "News":
+                    body = None
+                    post_date = None
+                elif "News" in header and "Title" not in header:
                     body = td.get_text(separator="\n", strip=True)
-                elif "Post Date" in header:
+                elif "Post Date" in header or "Date" in header:
                     raw = td.get_text(strip=True)
                     try:
                         post_date = datetime.strptime(raw, "%Y-%m-%d").replace(
@@ -66,23 +77,19 @@ class NewsScraper(BaseScraper):
                         )
                     except ValueError:
                         logger.warning(
-                            "%s: could not parse post_date %r — skipping item", trading_code, raw
+                            "%s: could not parse date %r", trading_code, raw
                         )
                         post_date = None
 
-            if not title or not post_date:
-                continue
-
-            if post_date < cutoff:
-                continue
-
-            items.append({
-                "trading_code": trading_code,
-                "title": title,
-                "body": body or "",
-                "post_date": post_date,
-                "scraped_at": now,
-            })
+            # Flush the last item
+            if title and post_date and post_date >= cutoff:
+                items.append({
+                    "trading_code": trading_code,
+                    "title": title,
+                    "body": body or "",
+                    "post_date": post_date,
+                    "scraped_at": now,
+                })
 
         return items
 
@@ -114,7 +121,76 @@ class NewsScraper(BaseScraper):
             "post_date": {"$lt": cutoff},
         })
 
+        # Extract dividend declarations into separate collection
+        self._save_dividend_declarations(db, news_items)
+
         return upserted
+
+    @staticmethod
+    def _parse_record_date(text: str):
+        """Try multiple date formats to parse record date from news body."""
+        m = _RECORD_DATE_RE.search(text)
+        if not m:
+            return None
+        raw = m.group(1).strip().rstrip(".")
+        for fmt in _DATE_FORMATS:
+            try:
+                return datetime.strptime(raw, fmt).replace(tzinfo=timezone.utc)
+            except ValueError:
+                continue
+        return None
+
+    @staticmethod
+    def _parse_dividend_pct(body: str) -> float:
+        """Extract dividend percentage from body text. Returns 0 for 'No Dividend'."""
+        if "no dividend" in body.lower():
+            return 0.0
+        m = _PCT_RE.search(body)
+        return float(m.group(1)) if m else 0.0
+
+    def _save_dividend_declarations(self, db, news_items: list[dict]):
+        """Upsert dividend declarations — one doc per company, latest only."""
+        declarations = [
+            item for item in news_items
+            if "Dividend Declaration" in item.get("title", "")
+        ]
+        if not declarations:
+            return
+
+        for item in declarations:
+            title = item["title"]
+            body = item["body"]
+
+            dividend_type = "Interim" if "Interim" in title else "Final"
+            dividend_pct = self._parse_dividend_pct(body)
+            record_date = self._parse_record_date(body)
+
+            doc = {
+                "trading_code": item["trading_code"],
+                "declaration_date": item["post_date"],
+                "dividend_pct": dividend_pct,
+                "record_date": record_date,
+                "dividend_type": dividend_type,
+                "title": title,
+                "scraped_at": item["scraped_at"],
+            }
+
+            # Only replace if this declaration is newer than what's stored
+            existing = db.dividend_declarations.find_one(
+                {"trading_code": item["trading_code"]}
+            )
+            if existing and existing["declaration_date"].replace(tzinfo=timezone.utc) > item["post_date"]:
+                continue  # skip older declaration
+
+            db.dividend_declarations.update_one(
+                {"trading_code": item["trading_code"]},
+                {"$set": doc},
+                upsert=True,
+            )
+            logger.info(
+                "%s: saved dividend declaration (%s, %s%%)",
+                item["trading_code"], dividend_type, dividend_pct,
+            )
 
     def run(self, trading_codes: list[str]) -> int:
         """Scrape and save news for all given trading codes."""

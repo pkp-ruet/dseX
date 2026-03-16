@@ -33,3 +33,8 @@ def ensure_indexes():
     db.company_news.create_index(
         [("trading_code", ASCENDING), ("post_date", ASCENDING)],
     )
+
+    db.dividend_declarations.create_index(
+        [("trading_code", ASCENDING)],
+        unique=True,
+    )
