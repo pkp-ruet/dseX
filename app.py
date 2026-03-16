@@ -1473,36 +1473,6 @@ def render_homepage():
         unsafe_allow_html=True,
     )
 
-    # --- Data Stack ---
-    st.markdown(
-        '<div class="data-stack">'
-        '  <div class="ds-label">// Data Infrastructure</div>'
-        '  <div class="ds-pipeline">'
-        '    <span class="ds-node">DSE Website</span>'
-        '    <span class="ds-arrow">&#8594;</span>'
-        '    <span class="ds-node">Python Scrapers</span>'
-        '    <span class="ds-arrow">&#8594;</span>'
-        '    <span class="ds-node ds-hi">MongoDB Atlas</span>'
-        '    <span class="ds-arrow">&#8594;</span>'
-        '    <span class="ds-node">Scoring Engine</span>'
-        '    <span class="ds-arrow">&#8594;</span>'
-        '    <span class="ds-node">Terminal UI</span>'
-        '  </div>'
-        '  <div class="ds-collections">'
-        '    <span class="ds-col">companies</span>'
-        '    <span class="ds-sep">&middot;</span>'
-        '    <span class="ds-col">stock_prices</span>'
-        '    <span class="ds-sep">&middot;</span>'
-        '    <span class="ds-col">financials</span>'
-        '    <span class="ds-sep">&middot;</span>'
-        '    <span class="ds-col">shareholdings</span>'
-        '    <span class="ds-sep">&middot;</span>'
-        '    <span class="ds-col">company_news</span>'
-        '  </div>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
     # --- Upcoming Dividend Boxes ---
     all_decls = load_dividend_declarations()
     if all_decls:
@@ -1834,22 +1804,7 @@ def render_detail_page(trading_code):
     # ------------------------------------------------------------------ #
     ltp = latest.get("ltp")
     if ltp:
-        change_val = latest.get("change") or 0
-        change_pct_val = latest.get("change_pct") or 0
-        high = latest.get("high")
-        low = latest.get("low")
-        ycp = latest.get("ycp")
-        volume = latest.get("volume")
-        value_mn = latest.get("value_mn")
-        trade_count = latest.get("trade_count")
         price_date = latest.get("date", "")
-
-        change_class = (
-            "price-change-pos" if change_val > 0
-            else "price-change-neg" if change_val < 0
-            else "price-change-neu"
-        )
-        sign = "+" if change_val > 0 else ""
 
         def _p(v, fmt=",.2f"):
             return f"{v:{fmt}}" if v is not None else "--"
@@ -1860,15 +1815,8 @@ def render_detail_page(trading_code):
             f'text-transform:uppercase;margin-bottom:8px">Last Trading Price &mdash; {price_date}</div>'
             f'  <div class="price-ltp-row">'
             f'    <span class="price-ltp">\u09f3{_p(ltp)}</span>'
-            f'    <span class="{change_class}">{sign}{_p(change_val)} &nbsp;({sign}{_p(change_pct_val, ".2f")}%)</span>'
             f'  </div>'
             f'  <div class="price-grid">'
-            f'    <div class="price-cell"><div class="pc-label">Day High</div><div class="pc-val">{_p(high)}</div></div>'
-            f'    <div class="price-cell"><div class="pc-label">Day Low</div><div class="pc-val">{_p(low)}</div></div>'
-            f'    <div class="price-cell"><div class="pc-label">Prev. Close (YCP)</div><div class="pc-val">{_p(ycp)}</div></div>'
-            f'    <div class="price-cell"><div class="pc-label">Volume</div><div class="pc-val">{_p(volume, ",.0f") if volume else "--"}</div></div>'
-            f'    <div class="price-cell"><div class="pc-label">Value Traded (mn)</div><div class="pc-val">{_p(value_mn) if value_mn else "--"}</div></div>'
-            f'    <div class="price-cell"><div class="pc-label">Trade Count</div><div class="pc-val">{_p(trade_count, ",.0f") if trade_count else "--"}</div></div>'
             f'    <div class="price-cell"><div class="pc-label">Listing Year</div><div class="pc-val">{company.get("listing_year", "--")}</div></div>'
             f'    <div class="price-cell"><div class="pc-label">Category</div><div class="pc-val">{company.get("market_category", "--")}</div></div>'
             f'  </div>'
@@ -1942,19 +1890,6 @@ def render_detail_page(trading_code):
         d_cols[2].metric("Dividend", f"{dpct:.0f}% {dtype}" if dpct else f"No Dividend ({dtype})")
 
     # ------------------------------------------------------------------ #
-    # Price History Chart                                                  #
-    # ------------------------------------------------------------------ #
-    ph_df = load_price_history(trading_code)
-    if not ph_df.empty and "date" in ph_df.columns and "ltp" in ph_df.columns:
-        ph_df = ph_df.dropna(subset=["ltp"]).sort_values("date")
-        st.markdown('<div class="section-label"><span>//</span> PRICE HISTORY</div>', unsafe_allow_html=True)
-        fig_price = px.line(ph_df, x="date", y="ltp", labels={"date": "", "ltp": "Price (BDT)"})
-        _retro_fig(fig_price)
-        fig_price.update_traces(line=dict(color="#33ff33", width=1.5))
-        fig_price.update_layout(height=250, margin=dict(l=0, r=0, t=8, b=0))
-        st.plotly_chart(fig_price, use_container_width=True)
-
-    # ------------------------------------------------------------------ #
     # Financial Performance                                                #
     # ------------------------------------------------------------------ #
     st.markdown('<div class="section-label"><span>//</span> FINANCIAL PERFORMANCE</div>', unsafe_allow_html=True)
@@ -1975,7 +1910,7 @@ def render_detail_page(trading_code):
                     title="Earnings Per Share", text_auto=".2f")
                 _retro_fig(fig_eps)
                 fig_eps.update_layout(height=300, margin=dict(l=0, r=0, t=40, b=0))
-                st.plotly_chart(fig_eps, use_container_width=True)
+                st.plotly_chart(fig_eps, use_container_width=True, config={"staticPlot": True})
 
         with c2:
             if "profit_mn" in fin_df.columns and fin_df["profit_mn"].notna().any():
@@ -1984,7 +1919,7 @@ def render_detail_page(trading_code):
                     title="Net Profit", text_auto=",.0f")
                 _retro_fig(fig_profit)
                 fig_profit.update_layout(height=300, margin=dict(l=0, r=0, t=40, b=0))
-                st.plotly_chart(fig_profit, use_container_width=True)
+                st.plotly_chart(fig_profit, use_container_width=True, config={"staticPlot": True})
 
         # NAV per share (if scraped)
         if "nav_ps" in fin_df.columns and fin_df["nav_ps"].notna().any():
@@ -1995,7 +1930,7 @@ def render_detail_page(trading_code):
                     title="Net Asset Value per Share", text_auto=".2f")
                 _retro_fig(fig_nav)
                 fig_nav.update_layout(height=300, margin=dict(l=0, r=0, t=40, b=0))
-                st.plotly_chart(fig_nav, use_container_width=True)
+                st.plotly_chart(fig_nav, use_container_width=True, config={"staticPlot": True})
 
         # Dividend chart
         div_cols = [c for c in ["cash_dividend_pct", "stock_dividend_pct"] if c in fin_df.columns]
@@ -2014,7 +1949,7 @@ def render_detail_page(trading_code):
                 title="Dividend History (%)", text_auto=".0f")
             _retro_fig(fig_div)
             fig_div.update_layout(height=300, margin=dict(l=0, r=0, t=40, b=0))
-            st.plotly_chart(fig_div, use_container_width=True)
+            st.plotly_chart(fig_div, use_container_width=True, config={"staticPlot": True})
     else:
         st.caption("No financial data yet. Run `python main.py scrape-details` to populate.")
 
@@ -2055,7 +1990,7 @@ def render_detail_page(trading_code):
                 )
                 _retro_fig(fig_pie)
                 fig_pie.update_layout(height=360, margin=dict(l=0, r=0, t=36, b=0))
-                st.plotly_chart(fig_pie, use_container_width=True)
+                st.plotly_chart(fig_pie, use_container_width=True, config={"staticPlot": True})
 
             with col_table:
                 st.markdown("<br>", unsafe_allow_html=True)
