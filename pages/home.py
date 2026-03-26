@@ -92,7 +92,7 @@ def render_homepage():
     )
 
     # --- Rank table builder ---
-    def rank_rows_html(subset, score_cls):
+    def rank_rows_html(subset, score_cls, table_cls=""):
         rows = []
         for i, (_, r) in enumerate(subset.iterrows(), 1):
             rows.append(
@@ -105,49 +105,46 @@ def render_homepage():
                 f'<span class="rr-score {score_cls}">{r["score"]:.1f}</span>'
                 f'</a>'
             )
-        return '<div class="rank-table">' + "".join(rows) + '</div>'
+        cls = f"rank-table {table_cls}".strip()
+        return f'<div class="{cls}">' + "".join(rows) + '</div>'
 
     strong_df = scored[scored["score"] >= 75]
     safe_df   = scored[(scored["score"] >= 55) & (scored["score"] < 75)]
     watch_df  = scored[(scored["score"] >= 35) & (scored["score"] < 55)]
     avoid_df  = scored[scored["score"] < 35]
 
-    # Strong Buy | Safe Buy — two-column newspaper grid
-    col_strong, col_safe = st.columns(2)
-    def render_tier_col(df, header_html, score_cls, state_key):
+    def render_tier_col(df, header_html, score_cls, state_key, table_cls=""):
         st.markdown(header_html, unsafe_allow_html=True)
         if df.empty:
             st.markdown('<p style="font-size:0.75rem;color:var(--ink-muted);padding:12px 6px">None at this time.</p>', unsafe_allow_html=True)
             return
         expanded = st.session_state.get(state_key, False)
         visible = df if expanded else df.iloc[:10]
-        st.markdown(rank_rows_html(visible, score_cls), unsafe_allow_html=True)
+        st.markdown(rank_rows_html(visible, score_cls, table_cls), unsafe_allow_html=True)
         if len(df) > 10:
             rest = len(df) - 10
-            label = f"▴ Show less" if expanded else f"▾ Show {rest} more"
+            label = "▴ Show less" if expanded else f"▾ Show {rest} more"
             if st.button(label, key=state_key + "_btn", use_container_width=True):
                 st.session_state[state_key] = not expanded
                 st.rerun()
 
-    with col_strong:
-        render_tier_col(
-            strong_df,
-            '<div class="np-col-header np-col-strong">'
-            '<span class="np-col-label">Strong Buy</span>'
-            '<span class="np-col-score-label">Score &ge; 75</span>'
-            '</div>',
-            "rr-score-top", "strong_more",
-        )
+    render_tier_col(
+        strong_df,
+        '<div class="np-col-header np-col-strong">'
+        '<span class="np-col-label">Strong Buy</span>'
+        '<span class="np-col-score-label">Score &ge; 75</span>'
+        '</div>',
+        "rr-score-top", "strong_more", "rank-table-strong",
+    )
 
-    with col_safe:
-        render_tier_col(
-            safe_df,
-            '<div class="np-col-header np-col-safe">'
-            '<span class="np-col-label">Safe Buy</span>'
-            '<span class="np-col-score-label">Score 55–74</span>'
-            '</div>',
-            "rr-score-mid", "safe_more",
-        )
+    render_tier_col(
+        safe_df,
+        '<div class="np-col-header np-col-safe">'
+        '<span class="np-col-label">Safe Buy</span>'
+        '<span class="np-col-score-label">Score 55–74</span>'
+        '</div>',
+        "rr-score-mid", "safe_more",
+    )
 
     # Watch & Avoid — collapsible
     if not watch_df.empty or not avoid_df.empty:

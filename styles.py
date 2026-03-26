@@ -11,24 +11,24 @@ THEME_CSS = """
     --positive: #4CAF7D;
     --negative: #D45B5B;
     --negative-light: #FDF0F0;
-    --text: #1A1208;
-    --text-secondary: #4A3F35;
-    --text-muted: #9A8E83;
+    --text: #0D0A04;
+    --text-secondary: #2C2418;
+    --text-muted: #5A5048;
     --bg: #FEFDF7;
     --bg-card: #FFFFFF;
     --bg-input: #FAF7EE;
-    --border: #E8DFC8;
-    --border-light: #F0EAD8;
+    --border: #D8CEB4;
+    --border-light: #E8DFC8;
     --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
     --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
     --radius: 10px;
     --radius-sm: 6px;
     /* Newspaper palette */
-    --gold: #C9A227;
+    --gold: #9A7610;
     --gold-light: #F0E4B8;
-    --ink: #1A1208;
-    --ink-2: #4A3F35;
-    --ink-muted: #9A8E83;
+    --ink: #0D0A04;
+    --ink-2: #2C2418;
+    --ink-muted: #5A5048;
     --rule: #D4B483;
     --rule-dark: #1A1208;
     --np-strong: #2D6A3F;
@@ -957,8 +957,8 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
 .np-col-header {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
-    padding-bottom: 7px;
+    align-items: center;
+    padding: 8px 12px;
     border-bottom: 2px solid var(--ink);
     margin-bottom: 0;
 }
@@ -968,7 +968,19 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
     font-weight: 700;
     letter-spacing: 0.3px;
 }
-.np-col-header.np-col-strong .np-col-label { color: var(--np-strong); }
+/* Strong Buy — full bleed green header */
+.np-col-header.np-col-strong {
+    background: var(--np-strong);
+    border-bottom: 2px solid var(--np-strong);
+    padding: 10px 12px;
+}
+.np-col-header.np-col-strong .np-col-label {
+    color: #fff;
+    font-size: 1.2rem;
+}
+.np-col-header.np-col-strong .np-col-score-label { color: rgba(255,255,255,0.65); }
+
+/* Safe Buy and others */
 .np-col-header.np-col-safe   .np-col-label { color: var(--np-safe);   }
 .np-col-header.np-col-watch  .np-col-label { color: var(--np-watch);  }
 .np-col-header.np-col-danger .np-col-label { color: var(--np-danger); }
@@ -994,8 +1006,12 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
     font-family: 'Inter', sans-serif;
     transition: background 0.1s;
 }
-.rank-row:nth-child(even) { background: rgba(201,162,39,0.05); }
-.rank-row:hover           { background: var(--gold-light); }
+.rank-row:nth-child(even)          { background: rgba(201,162,39,0.05); }
+.rank-row:hover                    { background: var(--gold-light); }
+/* Strong Buy rows get a subtle green tint */
+.rank-table-strong .rank-row:nth-child(even) { background: rgba(45,106,63,0.05); }
+.rank-table-strong .rank-row:hover           { background: rgba(45,106,63,0.10); }
+.rank-table-strong .rr-code                  { font-size: 0.88rem; }
 .rr-rank, .rr-code, .rr-company, .rr-score {
     display: table-cell;
     vertical-align: middle;
@@ -1007,8 +1023,8 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
 .rr-company { width: 100%; padding-left: 8px; border-left: 1px solid #EDE3D0; }
 .rr-sector  { font-size: 0.57rem; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
 .rr-score   { font-size: 0.8rem; font-weight: 700; text-align: right; white-space: nowrap; width: 1%; padding-left: 12px; }
-.rr-score-top    { color: var(--np-strong); }
-.rr-score-mid    { color: var(--np-safe);   }
+.rr-score-top    { color: var(--np-strong); font-size: 0.92rem; }
+.rr-score-mid    { color: var(--np-safe); font-size: 0.8rem; }
 .rr-score-watch  { color: var(--np-watch);  }
 .rr-score-danger { color: var(--np-danger); }
 
