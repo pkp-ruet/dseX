@@ -1,6 +1,6 @@
 THEME_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
 
 :root {
     --primary: #1A6B5A;
@@ -11,18 +11,30 @@ THEME_CSS = """
     --positive: #4CAF7D;
     --negative: #D45B5B;
     --negative-light: #FDF0F0;
-    --text: #2D3436;
-    --text-secondary: #636E72;
-    --text-muted: #B2BEC3;
-    --bg: #FAFAF8;
+    --text: #1A1208;
+    --text-secondary: #4A3F35;
+    --text-muted: #9A8E83;
+    --bg: #FEFDF7;
     --bg-card: #FFFFFF;
-    --bg-input: #F5F5F3;
-    --border: #E8E8E4;
-    --border-light: #F0F0EC;
+    --bg-input: #FAF7EE;
+    --border: #E8DFC8;
+    --border-light: #F0EAD8;
     --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
     --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
     --radius: 10px;
     --radius-sm: 6px;
+    /* Newspaper palette */
+    --gold: #C9A227;
+    --gold-light: #F0E4B8;
+    --ink: #1A1208;
+    --ink-2: #4A3F35;
+    --ink-muted: #9A8E83;
+    --rule: #D4B483;
+    --rule-dark: #1A1208;
+    --np-strong: #2D6A3F;
+    --np-safe: #1A4D6B;
+    --np-watch: #7A5C00;
+    --np-danger: #8B2020;
 }
 
 html, body, [class*="css"] {
@@ -852,6 +864,279 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
     border-top: 1px solid var(--border-light);
 }
 .method-note strong { color: var(--text-secondary); }
+
+/* ===== Newspaper Homepage ===== */
+
+/* Masthead */
+.masthead {
+    text-align: center;
+    padding: 8px 0 0;
+}
+.masthead-eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.58rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 10px;
+}
+.masthead-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 4.2rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: 6px;
+    line-height: 1;
+    margin-bottom: 10px;
+}
+.masthead-tagline {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-size: 0.88rem;
+    color: var(--ink-2);
+    margin-bottom: 18px;
+}
+.masthead-rule-double {
+    border-top: 3px solid var(--rule-dark);
+    border-bottom: 1px solid var(--rule-dark);
+    padding-top: 3px;
+    margin-bottom: 10px;
+}
+.masthead-subbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.65rem;
+    color: var(--ink-muted);
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.3px;
+    padding: 2px 2px;
+}
+.masthead-rule-single {
+    height: 1px;
+    background: var(--rule);
+    margin-top: 10px;
+    margin-bottom: 4px;
+}
+
+/* Hero band */
+.hero-band {
+    text-align: center;
+    padding: 22px 10% 18px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 28px;
+}
+.hero-headline {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-size: 1.45rem;
+    color: var(--ink);
+    line-height: 1.6;
+    margin-bottom: 18px;
+}
+.hero-pills {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.score-pill {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 5px 16px;
+    border-radius: 2px;
+    letter-spacing: 0.4px;
+}
+.score-pill-top    { background: #EAF3EC; color: var(--np-strong); border: 1px solid #2D6A3F; }
+.score-pill-mid    { background: #E6EEF4; color: var(--np-safe);   border: 1px solid #1A4D6B; }
+.score-pill-watch  { background: #FBF5DF; color: var(--np-watch);  border: 1px solid #7A5C00; }
+.score-pill-danger { background: #F5E8E8; color: var(--np-danger); border: 1px solid #8B2020; }
+
+/* Newspaper column header */
+.np-col-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 7px;
+    border-bottom: 2px solid var(--ink);
+    margin-bottom: 0;
+}
+.np-col-label {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+.np-col-header.np-col-strong .np-col-label { color: var(--np-strong); }
+.np-col-header.np-col-safe   .np-col-label { color: var(--np-safe);   }
+.np-col-header.np-col-watch  .np-col-label { color: var(--np-watch);  }
+.np-col-header.np-col-danger .np-col-label { color: var(--np-danger); }
+.np-col-score-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+}
+
+/* Rank table rows */
+.rank-table {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 24px;
+}
+.rank-row {
+    display: table-row;
+    text-decoration: none !important;
+    color: var(--ink) !important;
+    font-family: 'Inter', sans-serif;
+    transition: background 0.1s;
+}
+.rank-row:nth-child(even) { background: rgba(201,162,39,0.05); }
+.rank-row:hover           { background: var(--gold-light); }
+.rr-rank, .rr-code, .rr-company, .rr-score {
+    display: table-cell;
+    vertical-align: middle;
+    padding: 7px 6px;
+    border-bottom: 1px solid #EDE3D0;
+}
+.rr-rank    { font-size: 0.62rem; color: var(--ink-muted); text-align: right; white-space: nowrap; width: 1%; }
+.rr-code    { font-size: 0.8rem; font-weight: 700; color: var(--ink); letter-spacing: 0.5px; white-space: nowrap; width: 1%; padding-right: 12px; }
+.rr-company { width: 100%; padding-left: 8px; border-left: 1px solid #EDE3D0; }
+.rr-sector  { font-size: 0.57rem; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+.rr-score   { font-size: 0.8rem; font-weight: 700; text-align: right; white-space: nowrap; width: 1%; padding-left: 12px; }
+.rr-score-top    { color: var(--np-strong); }
+.rr-score-mid    { color: var(--np-safe);   }
+.rr-score-watch  { color: var(--np-watch);  }
+.rr-score-danger { color: var(--np-danger); }
+
+/* Section rule (newspaper section break) */
+.section-rule {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 32px 0 24px;
+}
+.section-rule::before, .section-rule::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+}
+.section-rule-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.58rem;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    white-space: nowrap;
+}
+
+/* Info strip (4-col bottom section) */
+.info-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border-top: 2px solid var(--ink);
+    border-bottom: 1px solid var(--rule);
+    padding: 18px 0 20px;
+    margin-bottom: 20px;
+}
+@media (max-width: 700px) { .info-strip { grid-template-columns: repeat(2, 1fr); } }
+.info-col {
+    padding: 0 18px;
+    border-right: 1px solid var(--rule);
+}
+.info-col:first-child { padding-left: 2px; }
+.info-col:last-child  { border-right: none; padding-right: 2px; }
+.info-col-header {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--ink);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 6px;
+    margin-bottom: 9px;
+}
+.info-col-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 4px 0;
+    font-size: 0.7rem;
+    font-family: 'Inter', sans-serif;
+    color: var(--ink-2);
+    border-bottom: 1px solid #EDE3D0;
+    text-decoration: none !important;
+    gap: 6px;
+}
+.info-col-row:last-child { border-bottom: none; }
+.info-col-row:hover { color: var(--ink); }
+.icr-key { color: var(--ink); font-weight: 600; flex-shrink: 0; }
+.icr-sub { color: var(--ink-muted); font-size: 0.62rem; flex: 1; text-align: center; }
+.icr-val { color: var(--gold); font-weight: 700; flex-shrink: 0; }
+
+/* Footer */
+.np-footer {
+    border-top: 2px solid var(--ink);
+    padding-top: 10px;
+    margin-top: 12px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.np-footer-brand {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 0.82rem;
+    color: var(--ink);
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+.np-footer-tagline {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6rem;
+    color: var(--ink-muted);
+    letter-spacing: 0.3px;
+    margin-top: 2px;
+}
+.np-footer-audit {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.65rem;
+    color: var(--ink-2);
+    text-decoration: none !important;
+    letter-spacing: 1px;
+    border: 1px solid var(--rule);
+    padding: 5px 14px;
+    transition: background 0.15s;
+}
+.np-footer-audit:hover { background: var(--gold-light); border-color: var(--gold); }
+
+/* Show more / less toggle button */
+div[data-testid="stButton"] button[kind="secondary"] {
+    background: transparent !important;
+    border: none !important;
+    border-top: 1px solid #EDE3D0 !important;
+    border-radius: 0 !important;
+    color: var(--ink-muted) !important;
+    font-size: 0.65rem !important;
+    letter-spacing: 1px !important;
+    font-weight: 500 !important;
+    padding: 6px 0 !important;
+    width: 100% !important;
+    box-shadow: none !important;
+}
+div[data-testid="stButton"] button[kind="secondary"]:hover {
+    background: var(--gold-light) !important;
+    color: var(--ink) !important;
+    border-top-color: var(--rule) !important;
+}
 </style>
 """
 
@@ -859,15 +1144,15 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
 def style_fig(fig):
     """Apply clean minimal styling to any Plotly figure."""
     fig.update_layout(
-        paper_bgcolor="#FAFAF8",
+        paper_bgcolor="#FEFDF7",
         plot_bgcolor="#FFFFFF",
-        font=dict(family="Inter, -apple-system, sans-serif", color="#2D3436", size=12),
-        colorway=["#1A6B5A", "#E07A5F", "#4CAF7D", "#636E72", "#D45B5B"],
-        legend=dict(font=dict(color="#636E72")),
+        font=dict(family="Inter, -apple-system, sans-serif", color="#1A1208", size=12),
+        colorway=["#1A6B5A", "#C9A227", "#2D6A3F", "#4A3F35", "#8B2020"],
+        legend=dict(font=dict(color="#4A3F35")),
         margin=dict(l=0, r=0, t=36, b=0),
     )
-    fig.update_xaxes(gridcolor="#E8E8E4", zerolinecolor="#E8E8E4", tickfont=dict(color="#636E72"))
-    fig.update_yaxes(gridcolor="#E8E8E4", zerolinecolor="#E8E8E4", tickfont=dict(color="#636E72"))
+    fig.update_xaxes(gridcolor="#E8DFC8", zerolinecolor="#E8DFC8", tickfont=dict(color="#9A8E83"))
+    fig.update_yaxes(gridcolor="#E8DFC8", zerolinecolor="#E8DFC8", tickfont=dict(color="#9A8E83"))
     fig.update_traces(
         textfont=dict(color="#2D3436"),
         marker=dict(line=dict(width=0)),

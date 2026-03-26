@@ -17,46 +17,41 @@ def render_homepage():
             "sector": c.get("sector", "") or "",
         }
 
-    # --- Header row: title left, audit link middle, search right ---
-    head_left, head_mid, head_right = st.columns([3, 1, 2])
-    with head_left:
-        st.markdown(
-            '<span style="font-size:1.4rem;font-weight:800;color:var(--primary);letter-spacing:1px">dseX</span>'
-            '<span style="font-size:0.78rem;color:var(--text-secondary);margin-left:10px">'
-            'Smart Stock Insights</span>',
-            unsafe_allow_html=True,
-        )
-    with head_mid:
-        st.markdown(
-            '<a href="?view=audit" style="font-size:0.7rem;color:#4CAF7D;text-decoration:none;'
-            'letter-spacing:1px;font-weight:600;border:1px solid #4CAF7D;'
-            'padding:5px 10px;border-radius:6px;white-space:nowrap">🔍 Audit</a>',
-            unsafe_allow_html=True,
-        )
-    with head_right:
-        search = st.text_input(
-            "Search", key="search",
-            placeholder="Search company...",
+    # Algorithm selector (hidden if only one option)
+    if len(ALGO_NAMES) > 1:
+        algo = st.radio(
+            "Algorithm", ALGO_NAMES,
+            horizontal=True,
             label_visibility="collapsed",
+            key="algo_selector",
         )
+    else:
+        algo = ALGO_NAMES[0]
 
-    algo = st.radio(
-        "Algorithm", ALGO_NAMES,
-        horizontal=True,
-        label_visibility="collapsed",
-        key="algo_selector",
-    )
     score_df = build_scores_df(algo)
 
     if score_df.empty:
         st.warning("No scored companies found. Run the scrapers first.")
         return
 
-    score_df["name"] = score_df["trading_code"].map(lambda c: comp_map.get(c, {}).get("name", c))
-    score_df["sector"] = score_df["trading_code"].map(lambda c: comp_map.get(c, {}).get("sector", ""))
+    score_df["name"] = score_df["trading_code"].map(
+        lambda c: comp_map.get(c, {}).get("name", c)
+    )
+    score_df["sector"] = score_df["trading_code"].map(
+        lambda c: comp_map.get(c, {}).get("sector", "")
+    )
 
-    scored = score_df[score_df["score"].notna()].sort_values("score", ascending=False).reset_index(drop=True)
+    scored = (
+        score_df[score_df["score"].notna()]
+        .sort_values("score", ascending=False)
+        .reset_index(drop=True)
+    )
     total = len(scored)
+
+    n_strong = int((scored["score"] >= 75).sum())
+    n_safe   = int(((scored["score"] >= 55) & (scored["score"] < 75)).sum())
+    n_watch  = int(((scored["score"] >= 35) & (scored["score"] < 55)).sum())
+    n_avoid  = int((scored["score"] < 35).sum())
 
     sector_avg = (
         scored[scored["sector"] != ""]
@@ -65,56 +60,132 @@ def render_homepage():
         .sort_values(ascending=False)
     )
 
-    if search:
-        mask = (
-            scored["trading_code"].str.contains(search, case=False, na=False)
-            | scored["name"].str.contains(search, case=False, na=False)
-        )
-        scored = scored[mask].reset_index(drop=True)
-        # If exact match, navigate to detail page
-        if len(scored) == 1:
-            st.query_params["code"] = scored.iloc[0]["trading_code"]
-            st.rerun()
+    today_str = datetime.now().strftime("%A, %d %B %Y")
 
+    # --- Masthead ---
     st.markdown(
-        '<div style="text-align:center;margin:8px 0 4px">'
-        '  <span style="background:linear-gradient(135deg,var(--primary),var(--accent));'
-        '-webkit-background-clip:text;-webkit-text-fill-color:transparent;'
-        'font-size:0.82rem;font-weight:700;letter-spacing:0.5px">'
-        'AI-Powered Fundamental Analysis</span>'
+        f'<div class="masthead">'
+        f'  <div class="masthead-eyebrow">Dhaka Stock Exchange &nbsp;&middot;&nbsp; Fundamental Intelligence</div>'
+        f'  <div class="masthead-title">dseX</div>'
+        f'  <div class="masthead-tagline">We pick, You buy</div>'
+        f'  <div class="masthead-rule-double"></div>'
+        f'  <div class="masthead-subbar">'
+        f'    <span>{today_str}</span>'
+        f'    <span>{total} companies scored</span>'
+        f'  </div>'
+        f'  <div class="masthead-rule-single"></div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+# --- Hero insight band ---
+    st.markdown(
+        f'<div class="hero-band">'
+        f'  <div class="hero-pills">'
+        f'    <span class="score-pill score-pill-top">{n_strong} Strong Buy</span>'
+        f'    <span class="score-pill score-pill-mid">{n_safe} Safe Buy</span>'
+        f'    <span class="score-pill score-pill-watch">{n_watch} Watch</span>'
+        f'    <span class="score-pill score-pill-danger">{n_avoid} Avoid</span>'
+        f'  </div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    # --- Rank table builder ---
+    def rank_rows_html(subset, score_cls):
+        rows = []
+        for i, (_, r) in enumerate(subset.iterrows(), 1):
+            rows.append(
+                f'<a class="rank-row" href="?code={r["trading_code"]}" target="_self">'
+                f'<span class="rr-rank">{i}</span>'
+                f'<span class="rr-code">{r["trading_code"]}</span>'
+                f'<div class="rr-company">'
+                f'<span class="rr-sector">{r["sector"]}</span>'
+                f'</div>'
+                f'<span class="rr-score {score_cls}">{r["score"]:.1f}</span>'
+                f'</a>'
+            )
+        return '<div class="rank-table">' + "".join(rows) + '</div>'
+
+    strong_df = scored[scored["score"] >= 75]
+    safe_df   = scored[(scored["score"] >= 55) & (scored["score"] < 75)]
+    watch_df  = scored[(scored["score"] >= 35) & (scored["score"] < 55)]
+    avoid_df  = scored[scored["score"] < 35]
+
+    # Strong Buy | Safe Buy — two-column newspaper grid
+    col_strong, col_safe = st.columns(2)
+    def render_tier_col(df, header_html, score_cls, state_key):
+        st.markdown(header_html, unsafe_allow_html=True)
+        if df.empty:
+            st.markdown('<p style="font-size:0.75rem;color:var(--ink-muted);padding:12px 6px">None at this time.</p>', unsafe_allow_html=True)
+            return
+        expanded = st.session_state.get(state_key, False)
+        visible = df if expanded else df.iloc[:10]
+        st.markdown(rank_rows_html(visible, score_cls), unsafe_allow_html=True)
+        if len(df) > 10:
+            rest = len(df) - 10
+            label = f"▴ Show less" if expanded else f"▾ Show {rest} more"
+            if st.button(label, key=state_key + "_btn", use_container_width=True):
+                st.session_state[state_key] = not expanded
+                st.rerun()
+
+    with col_strong:
+        render_tier_col(
+            strong_df,
+            '<div class="np-col-header np-col-strong">'
+            '<span class="np-col-label">Strong Buy</span>'
+            '<span class="np-col-score-label">Score &ge; 75</span>'
+            '</div>',
+            "rr-score-top", "strong_more",
+        )
+
+    with col_safe:
+        render_tier_col(
+            safe_df,
+            '<div class="np-col-header np-col-safe">'
+            '<span class="np-col-label">Safe Buy</span>'
+            '<span class="np-col-score-label">Score 55–74</span>'
+            '</div>',
+            "rr-score-mid", "safe_more",
+        )
+
+    # Watch & Avoid — collapsible
+    if not watch_df.empty or not avoid_df.empty:
+        with st.expander(f"Watch ({len(watch_df)}) & Avoid ({len(avoid_df)})", expanded=False):
+            col_w, col_a = st.columns(2)
+            with col_w:
+                st.markdown(
+                    '<div class="np-col-header np-col-watch">'
+                    '<span class="np-col-label">Watch</span>'
+                    '<span class="np-col-score-label">Score 35–54</span>'
+                    '</div>',
+                    unsafe_allow_html=True,
+                )
+                st.markdown(rank_rows_html(watch_df, "rr-score-watch"), unsafe_allow_html=True)
+            with col_a:
+                st.markdown(
+                    '<div class="np-col-header np-col-danger">'
+                    '<span class="np-col-label">Avoid</span>'
+                    '<span class="np-col-score-label">Score &lt; 35</span>'
+                    '</div>',
+                    unsafe_allow_html=True,
+                )
+                st.markdown(rank_rows_html(avoid_df, "rr-score-danger"), unsafe_allow_html=True)
+
+    # --- Section rule ---
+    st.markdown(
+        '<div class="section-rule">'
+        '<span class="section-rule-text">Market Intelligence</span>'
         '</div>',
         unsafe_allow_html=True,
     )
 
-    CATEGORIES = [
-        ("strong-buy", "// strong buy //",        lambda s: s >= 75,        "chip-top"),
-        ("safe-buy",   "// safe buy //",           lambda s: 55 <= s < 75,   "chip-mid"),
-        ("watch",      "// watch before buy //",   lambda s: 35 <= s < 55,   "chip-watch"),
-        ("dont-buy",   "// don't buy //",          lambda s: s < 35,         "chip-danger"),
-    ]
-
-    for cat_id, label, predicate, chip_class in CATEGORIES:
-        subset = scored[scored["score"].apply(predicate)]
-        if subset.empty:
-            continue
-        st.markdown(f'<div class="tier-label {cat_id}">{label}</div>', unsafe_allow_html=True)
-        chips = [
-            f'<a class="chip {chip_class}" href="?code={r["trading_code"]}" target="_self">'
-            f'  <span class="chip-code">{r["trading_code"]}</span>'
-            f'</a>'
-            for _, r in subset.iterrows()
-        ]
-        st.markdown('<div class="chip-grid">' + "".join(chips) + "</div>", unsafe_allow_html=True)
-
-    # --- Bottom feature cards ---
-    st.markdown('<div style="margin-top:36px"></div>', unsafe_allow_html=True)
-
+    # --- Bottom info strip ---
     all_decls = load_dividend_declarations()
     today = _date.today()
 
-    # Build data for cards
-    upcoming_decls_html = ""
-    upcoming_recs_html = ""
+    decl_rows = ""
+    rec_rows = ""
     if all_decls:
         upcoming_decls = []
         for d in all_decls:
@@ -129,10 +200,12 @@ def render_homepage():
         for proj_dt, d in upcoming_decls[:6]:
             code_link = d["trading_code"]
             pct = d.get("dividend_pct", 0)
-            upcoming_decls_html += (
-                f'<a href="?code={code_link}" style="color:#fff;text-decoration:none;display:block;padding:3px 0;font-size:0.75rem">'
-                f'<b>{proj_dt.strftime("%d %b")}</b> {code_link}'
-                f' <span style="opacity:0.6">({pct:.0f}%)</span></a>'
+            decl_rows += (
+                f'<a class="info-col-row" href="?code={code_link}">'
+                f'<span class="icr-key">{code_link}</span>'
+                f'<span class="icr-sub">{proj_dt.strftime("%d %b")}</span>'
+                f'<span class="icr-val">{pct:.0f}%</span>'
+                f'</a>'
             )
 
         upcoming_recs = []
@@ -145,75 +218,69 @@ def render_homepage():
         for rec_dt, d in upcoming_recs[:6]:
             code_link = d["trading_code"]
             pct = d.get("dividend_pct", 0)
-            upcoming_recs_html += (
-                f'<a href="?code={code_link}" style="color:#fff;text-decoration:none;display:block;padding:3px 0;font-size:0.75rem">'
-                f'<b>{rec_dt.strftime("%d %b")}</b> {code_link}'
-                f' <span style="opacity:0.6">({pct:.0f}%)</span></a>'
+            rec_rows += (
+                f'<a class="info-col-row" href="?code={code_link}">'
+                f'<span class="icr-key">{code_link}</span>'
+                f'<span class="icr-sub">{rec_dt.strftime("%d %b")}</span>'
+                f'<span class="icr-val">{pct:.0f}%</span>'
+                f'</a>'
             )
 
-    # Sector top 5
-    sector_html = ""
-    if not sector_avg.empty:
-        for i, (sec_name, avg_sc) in enumerate(sector_avg.head(5).items(), 1):
-            sector_html += (
-                f'<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:0.75rem">'
-                f'  <span>{i}. {sec_name}</span>'
-                f'  <span style="font-weight:700">{avg_sc:.1f}</span>'
-                f'</div>'
-            )
+    no_data = '<span style="font-size:0.68rem;color:var(--ink-muted)">No data yet</span>'
+    if not decl_rows:
+        decl_rows = no_data
+    if not rec_rows:
+        rec_rows = no_data
 
-    def _card(emoji, title, body_html, bg, border_clr):
-        return (
-            f'<div style="background:{bg};border:2px solid {border_clr};border-radius:14px;'
-            f'padding:18px 16px;height:100%">'
-            f'  <div style="font-size:1.5rem;margin-bottom:6px">{emoji}</div>'
-            f'  <div style="font-size:0.82rem;font-weight:700;color:#fff;margin-bottom:10px">{title}</div>'
-            f'  <div>{body_html or "<span style=\"color:rgba(255,255,255,0.5);font-size:0.75rem\">No data yet</span>"}</div>'
+    sector_rows = ""
+    for sec_name, avg_sc in sector_avg.head(6).items():
+        sector_rows += (
+            f'<div class="info-col-row">'
+            f'<span class="icr-key">{sec_name}</span>'
+            f'<span class="icr-val">{avg_sc:.1f}</span>'
             f'</div>'
         )
+    if not sector_rows:
+        sector_rows = no_data
 
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        st.markdown(
-            _card("📅", "Upcoming Declarations", upcoming_decls_html,
-                  "linear-gradient(135deg,#1A6B5A,#2D8B76)", "#4CAF7D"),
-            unsafe_allow_html=True,
-        )
-    with c2:
-        st.markdown(
-            _card("📋", "Record Dates", upcoming_recs_html,
-                  "linear-gradient(135deg,#E07A5F,#E8915E)", "#F0A88C"),
-            unsafe_allow_html=True,
-        )
-    with c3:
-        st.markdown(
-            _card("🏆", "Top Sectors", sector_html,
-                  "linear-gradient(135deg,#5B8DEF,#7BA4F5)", "#9BB8F7"),
-            unsafe_allow_html=True,
-        )
-    with c4:
-        method_html = (
-            '<div style="font-size:0.72rem;line-height:1.6">'
-            '<div><b>Cash Flow Quality</b> 38%</div>'
-            '<div><b>Profitability</b> 27%</div>'
-            '<div><b>Valuation</b> 12%</div>'
-            '<div><b>Growth &amp; Dividends</b> 15%</div>'
-            '<div><b>Governance</b> 8%</div>'
-            '<div style="margin-top:6px;opacity:0.6;font-size:0.65rem">10 factors, DSE-calibrated 1–10</div>'
-            '</div>'
-        )
-        st.markdown(
-            _card("🧠", "Score Method", method_html,
-                  "linear-gradient(135deg,#9B6DD7,#B48AE0)", "#CBA8EB"),
-            unsafe_allow_html=True,
-        )
+    method_rows = (
+        '<div class="info-col-row"><span class="icr-key">Cash Flow</span><span class="icr-val">38%</span></div>'
+        '<div class="info-col-row"><span class="icr-key">Profitability</span><span class="icr-val">27%</span></div>'
+        '<div class="info-col-row"><span class="icr-key">Growth &amp; Dividends</span><span class="icr-val">15%</span></div>'
+        '<div class="info-col-row"><span class="icr-key">Valuation</span><span class="icr-val">12%</span></div>'
+        '<div class="info-col-row"><span class="icr-key">Governance</span><span class="icr-val">8%</span></div>'
+    )
 
     st.markdown(
-        '<div style="text-align:center;margin-top:28px">'
-        '<a href="?view=audit" style="font-size:0.72rem;color:#4CAF7D;'
-        'text-decoration:none;letter-spacing:1.5px;font-weight:600;'
-        'border:1px solid #4CAF7D;padding:6px 16px;border-radius:6px">'
-        '🔍 Data Audit</a>'
+        f'<div class="info-strip">'
+        f'  <div class="info-col">'
+        f'    <div class="info-col-header">Upcoming Declarations</div>'
+        f'    {decl_rows}'
+        f'  </div>'
+        f'  <div class="info-col">'
+        f'    <div class="info-col-header">Record Dates</div>'
+        f'    {rec_rows}'
+        f'  </div>'
+        f'  <div class="info-col">'
+        f'    <div class="info-col-header">Top Sectors</div>'
+        f'    {sector_rows}'
+        f'  </div>'
+        f'  <div class="info-col">'
+        f'    <div class="info-col-header">How We Score</div>'
+        f'    {method_rows}'
+        f'  </div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    # --- Footer ---
+    st.markdown(
+        '<div class="np-footer">'
+        '  <div>'
+        '    <div class="np-footer-brand">dseX</div>'
+        '    <div class="np-footer-tagline">Fundamental scoring for Dhaka\'s market</div>'
+        '  </div>'
+        '  <a href="?view=audit" class="np-footer-audit">&#128269; Data Audit</a>'
         '</div>',
         unsafe_allow_html=True,
     )
