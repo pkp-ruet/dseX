@@ -4,11 +4,10 @@ from datetime import datetime, date as _date
 
 def render_homepage():
     from app import load_companies, load_latest_prices, load_dividend_declarations
-    from scoring import _build_scores_df, _top_strengths, _worst_factor, _generate_verdict
+    from scoring import build_scores_df, ALGO_NAMES
 
     companies_raw = load_companies()
     prices_map = load_latest_prices()
-    score_df = _build_scores_df()
 
     comp_map: dict[str, dict] = {}
     for c in companies_raw:
@@ -17,6 +16,37 @@ def render_homepage():
             "name": c.get("company_name", "") or code,
             "sector": c.get("sector", "") or "",
         }
+
+    # --- Header row: title left, audit link middle, search right ---
+    head_left, head_mid, head_right = st.columns([3, 1, 2])
+    with head_left:
+        st.markdown(
+            '<span style="font-size:1.4rem;font-weight:800;color:var(--primary);letter-spacing:1px">dseX</span>'
+            '<span style="font-size:0.78rem;color:var(--text-secondary);margin-left:10px">'
+            'Smart Stock Insights</span>',
+            unsafe_allow_html=True,
+        )
+    with head_mid:
+        st.markdown(
+            '<a href="?view=audit" style="font-size:0.7rem;color:#4CAF7D;text-decoration:none;'
+            'letter-spacing:1px;font-weight:600;border:1px solid #4CAF7D;'
+            'padding:5px 10px;border-radius:6px;white-space:nowrap">🔍 Audit</a>',
+            unsafe_allow_html=True,
+        )
+    with head_right:
+        search = st.text_input(
+            "Search", key="search",
+            placeholder="Search company...",
+            label_visibility="collapsed",
+        )
+
+    algo = st.radio(
+        "Algorithm", ALGO_NAMES,
+        horizontal=True,
+        label_visibility="collapsed",
+        key="algo_selector",
+    )
+    score_df = build_scores_df(algo)
 
     if score_df.empty:
         st.warning("No scored companies found. Run the scrapers first.")
@@ -34,22 +64,6 @@ def render_homepage():
         .mean()
         .sort_values(ascending=False)
     )
-
-    # --- Header row: title left, search right ---
-    head_left, head_right = st.columns([3, 2])
-    with head_left:
-        st.markdown(
-            '<span style="font-size:1.4rem;font-weight:800;color:var(--primary);letter-spacing:1px">dseX</span>'
-            '<span style="font-size:0.78rem;color:var(--text-secondary);margin-left:10px">'
-            'Smart Stock Insights</span>',
-            unsafe_allow_html=True,
-        )
-    with head_right:
-        search = st.text_input(
-            "Search", key="search",
-            placeholder="Search company...",
-            label_visibility="collapsed",
-        )
 
     if search:
         mask = (
@@ -72,69 +86,24 @@ def render_homepage():
         unsafe_allow_html=True,
     )
 
-    # --- Top 10 ---
-    top_n = min(10, len(scored))
-    if top_n > 0:
-        st.markdown('<div class="tier-label top10">// top 10 //</div>', unsafe_allow_html=True)
+    CATEGORIES = [
+        ("strong-buy", "// strong buy //",        lambda s: s >= 75,        "chip-top"),
+        ("safe-buy",   "// safe buy //",           lambda s: 55 <= s < 75,   "chip-mid"),
+        ("watch",      "// watch before buy //",   lambda s: 35 <= s < 55,   "chip-watch"),
+        ("dont-buy",   "// don't buy //",          lambda s: s < 35,         "chip-danger"),
+    ]
 
-        # Champion — #1 (single row)
-        champ_code = scored.iloc[0]["trading_code"]
-        st.markdown(
-            f'<div style="display:flex;justify-content:center;margin-bottom:12px">'
-            f'<a class="chip chip-top" href="?code={champ_code}" target="_self"'
-            f' style="font-size:1rem;padding:14px 28px">'
-            f'  <span class="chip-rank">#1</span>'
-            f'  <span class="chip-code">{champ_code}</span>'
-            f'  <span style="font-size:0.65rem;background:rgba(255,215,0,0.9);color:#1a1a00;'
-            f'padding:2px 8px;border-radius:10px;font-weight:700">CHAMPION</span>'
-            f'</a></div>',
-            unsafe_allow_html=True,
-        )
-
-        # Remaining 9 in 3x3 grid
-        if top_n > 1:
-            chips = []
-            for i in range(1, top_n):
-                r = scored.iloc[i].to_dict()
-                code = r["trading_code"]
-                chips.append(
-                    f'<a class="chip chip-top" href="?code={code}" target="_self">'
-                    f'  <span class="chip-rank">#{i+1}</span>'
-                    f'  <span class="chip-code">{code}</span>'
-                    f'</a>'
-                )
-            st.markdown('<div class="chip-grid chip-grid-3">' + "".join(chips) + "</div>", unsafe_allow_html=True)
-
-    # --- Next 20 ---
-    mid_start = top_n
-    mid_end = min(mid_start + 20, len(scored))
-    if mid_end > mid_start:
-        st.markdown('<div class="tier-label mid20">// next 20 //</div>', unsafe_allow_html=True)
-        chips = []
-        for i in range(mid_start, mid_end):
-            r = scored.iloc[i].to_dict()
-            code = r["trading_code"]
-            score = r["score"]
-            chips.append(
-                f'<a class="chip chip-mid" href="?code={code}" target="_self">'
-                f'  <span class="chip-code">{code}</span>'
-                f'</a>'
-            )
-        st.markdown('<div class="chip-grid">' + "".join(chips) + "</div>", unsafe_allow_html=True)
-
-    # --- Danger zone (red chips) ---
-    danger_n = min(30, total)
-    danger_df = scored.iloc[max(0, total - danger_n):]
-    if len(danger_df) > 0 and not search:
-        st.markdown('<div class="tier-label danger">// danger zone — lowest 30 //</div>', unsafe_allow_html=True)
-        chips = []
-        for i, row in danger_df.iterrows():
-            code = row["trading_code"]
-            chips.append(
-                f'<a class="chip chip-danger" href="?code={code}" target="_self">'
-                f'  <span class="chip-code">{code}</span>'
-                f'</a>'
-            )
+    for cat_id, label, predicate, chip_class in CATEGORIES:
+        subset = scored[scored["score"].apply(predicate)]
+        if subset.empty:
+            continue
+        st.markdown(f'<div class="tier-label {cat_id}">{label}</div>', unsafe_allow_html=True)
+        chips = [
+            f'<a class="chip {chip_class}" href="?code={r["trading_code"]}" target="_self">'
+            f'  <span class="chip-code">{r["trading_code"]}</span>'
+            f'</a>'
+            for _, r in subset.iterrows()
+        ]
         st.markdown('<div class="chip-grid">' + "".join(chips) + "</div>", unsafe_allow_html=True)
 
     # --- Bottom feature cards ---
@@ -225,11 +194,12 @@ def render_homepage():
     with c4:
         method_html = (
             '<div style="font-size:0.72rem;line-height:1.6">'
-            '<div><b>Valuation</b> 35%</div>'
-            '<div><b>Profitability</b> 25%</div>'
-            '<div><b>Dividends</b> 25%</div>'
-            '<div><b>Balance Sheet</b> 15%</div>'
-            '<div style="margin-top:6px;opacity:0.6;font-size:0.65rem">8 factors, percentile-ranked</div>'
+            '<div><b>Cash Flow Quality</b> 38%</div>'
+            '<div><b>Profitability</b> 27%</div>'
+            '<div><b>Valuation</b> 12%</div>'
+            '<div><b>Growth &amp; Dividends</b> 15%</div>'
+            '<div><b>Governance</b> 8%</div>'
+            '<div style="margin-top:6px;opacity:0.6;font-size:0.65rem">10 factors, DSE-calibrated 1–10</div>'
             '</div>'
         )
         st.markdown(
@@ -237,3 +207,13 @@ def render_homepage():
                   "linear-gradient(135deg,#9B6DD7,#B48AE0)", "#CBA8EB"),
             unsafe_allow_html=True,
         )
+
+    st.markdown(
+        '<div style="text-align:center;margin-top:28px">'
+        '<a href="?view=audit" style="font-size:0.72rem;color:#4CAF7D;'
+        'text-decoration:none;letter-spacing:1.5px;font-weight:600;'
+        'border:1px solid #4CAF7D;padding:6px 16px;border-radius:6px">'
+        '🔍 Data Audit</a>'
+        '</div>',
+        unsafe_allow_html=True,
+    )

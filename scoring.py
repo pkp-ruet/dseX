@@ -1,49 +1,440 @@
+import math
 import numpy as np
 import pandas as pd
 import streamlit as st
 
-# Lazy imports to avoid circular dependency with app.py
+# Lazy import to avoid circular dependency with app.py
 def _get_app():
     import app
     return app
 
 
 # ---------------------------------------------------------------------------
-# Composite scoring
+# Scoring helper — absolute 1–10 scale with linear interpolation
 # ---------------------------------------------------------------------------
 
+def _score(value, anchors):
+    """
+    Score a value on a 1–10 scale using linear interpolation between anchors.
 
-# Sectors where debt is a core business product — skip Debt/Equity factor
-_FINANCIAL_SECTORS = {"bank", "insurance", "financial institution", "nbfi",
-                      "non-bank financial institution", "leasing"}
+    anchors: list of (threshold, score) tuples, sorted ascending by threshold.
+    Values outside the range are clamped to the min/max anchor score.
 
-def _is_financial_sector(sector: str) -> bool:
-    return any(k in sector.lower() for k in _FINANCIAL_SECTORS) if sector else False
+    Example (higher=better):  [(0.5, 1), (0.9, 5), (1.2, 10)]
+    Example (lower=better):   [(1, 10), (2, 5), (4, 1)]
+    """
+    if value is None or (isinstance(value, float) and math.isnan(value)):
+        return None
+    if value <= anchors[0][0]:
+        return float(anchors[0][1])
+    if value >= anchors[-1][0]:
+        return float(anchors[-1][1])
+    for i in range(len(anchors) - 1):
+        v0, s0 = anchors[i]
+        v1, s1 = anchors[i + 1]
+        if v0 <= value <= v1:
+            t = (value - v0) / (v1 - v0)
+            return s0 + t * (s1 - s0)
+    return float(anchors[-1][1])
+
+
+# ---------------------------------------------------------------------------
+# Algorithm 2 — DSE Fundamental Stock Scoring (5-pillar, sector-aware)
+# ---------------------------------------------------------------------------
+
+def _a2_classify_sector(sector: str) -> str:
+    s = (sector or "").lower()
+    if "bank" in s:
+        return "BANK"
+    if any(x in s for x in ["nbfi", "non-bank", "leasing", "finance"]):
+        return "NBFI"
+    return "GENERAL"
+
+
+def _a2_is_insurance(sector: str) -> bool:
+    return "insurance" in (sector or "").lower()
+
+
+def _a2_eps_cagr_score(cagr_pct: float) -> float:
+    if cagr_pct > 15:   return 10.0
+    if cagr_pct >= 10:  return 8.0
+    if cagr_pct >= 7:   return 6.0
+    if cagr_pct >= 3:   return 4.0
+    if cagr_pct >= 0:   return 2.0
+    return 0.0
+
+
+def _a2_roe_score(roe_pct: float) -> float:
+    if roe_pct > 20:   return 10.0
+    if roe_pct >= 15:  return 8.0
+    if roe_pct >= 10:  return 6.0
+    if roe_pct >= 5:   return 3.0
+    return 0.0
+
+
+def _a2_de_score(de: float) -> float:
+    if de < 0.3:   return 10.0
+    if de < 0.6:   return 8.0
+    if de < 1.0:   return 6.0
+    if de < 1.5:   return 3.0
+    return 0.0
+
+
+def _a2_ic_score(ic: float) -> float:
+    if ic > 10:    return 10.0
+    if ic >= 5:    return 8.0
+    if ic >= 3:    return 5.0
+    if ic >= 1.5:  return 2.0
+    return 0.0
+
+
+def _a2_cash_assets_score(pct: float) -> float:
+    if pct > 15:   return 10.0
+    if pct >= 10:  return 7.0
+    if pct >= 5:   return 5.0
+    return 2.0
+
+
+def _a2_gm_score(avg_gm: float, trend: float) -> float:
+    # trend and avg_gm in percentage points; stable = |trend| ≤ 1pp
+    stable = abs(trend) <= 1.0
+    if avg_gm > 30 and trend > 0:   return 10.0
+    if avg_gm > 30 and stable:      return 8.0
+    if avg_gm >= 15 and trend > 0:  return 7.0
+    if avg_gm >= 15 and stable:     return 5.0
+    return 2.0
+
+
+def _a2_nim_score(avg_nim: float, trend: float) -> float:
+    # trend and avg_nim in percentage points; stable = |trend| ≤ 0.5pp
+    stable = abs(trend) <= 0.5
+    if avg_nim > 4 and trend > 0:    return 10.0
+    if avg_nim > 4 and stable:       return 8.0
+    if avg_nim >= 2.5 and trend > 0: return 7.0
+    if avg_nim >= 2.5 and stable:    return 5.0
+    return 2.0
+
+
+def _a2_rev_vol_score(cv: float) -> float:
+    if cv < 5:    return 10.0
+    if cv < 10:   return 7.0
+    if cv < 20:   return 4.0
+    return 1.0
+
+
+def _a2_pe_pb_ratio_score(ratio: float) -> float:
+    """Score current vs 5yr-avg ratio: <0.70 → 10, >1.20 → 1."""
+    if ratio < 0.70:   return 10.0
+    if ratio < 0.85:   return 8.0
+    if ratio < 1.00:   return 6.0
+    if ratio < 1.20:   return 4.0
+    return 1.0
+
+
+def _a2_dps_cagr_score(cagr_pct: float) -> float:
+    if cagr_pct > 15:  return 10.0
+    if cagr_pct >= 10: return 8.0
+    if cagr_pct >= 5:  return 6.0
+    if cagr_pct >= 0:  return 3.0
+    return 0.0
+
+
+def _a2_div_yield_score(yield_pct: float) -> float:
+    if yield_pct > 5:   return 10.0
+    if yield_pct >= 3:  return 7.0
+    if yield_pct >= 1:  return 4.0
+    return 1.0
+
+
+def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict]) -> tuple[float, dict]:
+    """Business Quality: EPS consistency, EPS CAGR, avg ROE, NPM trend. Returns (score, sub_scores)."""
+    eps_vals = [r.get("eps") for r in fin_last5]
+
+    # M1: EPS Consistency
+    consistent = sum(1 for e in eps_vals if e is not None and e > 0)
+    total_years = sum(1 for e in eps_vals if e is not None)
+    if total_years == 0:
+        m1 = 0.0
+    elif consistent >= 5: m1 = 10.0
+    elif consistent >= 4: m1 = 8.0
+    elif consistent >= 3: m1 = 5.0
+    else:                 m1 = 0.0
+
+    # M2: EPS CAGR (5yr) with negative EPS rules
+    valid_eps = [(i, e) for i, e in enumerate(eps_vals) if e is not None]
+    if len(valid_eps) < 2:
+        m2 = 0.0
+    else:
+        start_e = valid_eps[0][1]
+        end_e   = valid_eps[-1][1]
+        n       = valid_eps[-1][0] - valid_eps[0][0] or 1
+        if end_e <= 0:
+            m2 = 0.0  # current negative
+        elif start_e <= 0:
+            # historical neg, current positive — use abs, cap at 4
+            try:
+                abs_cagr = (end_e / abs(start_e)) ** (1.0 / n) - 1.0
+                m2 = min(_a2_eps_cagr_score(abs_cagr * 100), 4.0)
+            except (ZeroDivisionError, ValueError):
+                m2 = 0.0
+        else:
+            try:
+                cagr = (end_e / start_e) ** (1.0 / n) - 1.0
+                m2 = _a2_eps_cagr_score(cagr * 100)
+            except (ZeroDivisionError, ValueError):
+                m2 = 0.0
+
+    # M3: Avg ROE (5yr)
+    roe_vals = []
+    for er in ext_last5:
+        np_v = er.get("net_profit")
+        eq_v = er.get("total_equity")
+        if np_v is not None and eq_v and eq_v > 0:
+            roe_vals.append(np_v / eq_v * 100)
+    m3 = _a2_roe_score(sum(roe_vals) / len(roe_vals)) if roe_vals else 0.0
+
+    # M4: Net Profit Margin Trend
+    npm_vals = []
+    for er in ext_last5:
+        np_v  = er.get("net_profit")
+        rev_v = er.get("revenue")
+        if np_v is not None and rev_v and rev_v > 0:
+            npm_vals.append(np_v / rev_v * 100)
+    if len(npm_vals) < 2:
+        m4 = 0.0
+    else:
+        delta = npm_vals[-1] - npm_vals[0]
+        if delta > 3:        m4 = 10.0
+        elif delta > 0:      m4 = 7.0
+        elif abs(delta) <= 1: m4 = 5.0
+        else:                m4 = 2.0
+
+    score = (m1 + m2 + m3 + m4) / 4
+    return score, {"p1_eps_consist": m1, "p1_eps_cagr": m2, "p1_roe": m3, "p1_npm_trend": m4}
+
+
+def _a2_pillar2(sec_type: str, ext_last5: list[dict]) -> tuple[float, dict]:
+    """Financial Health: D/E, interest coverage, CFO, cash/assets."""
+    latest = ext_last5[-1] if ext_last5 else {}
+
+    # M1: Debt-to-Equity
+    if sec_type in ("BANK", "NBFI"):
+        m1 = 5.0
+    else:
+        debt = latest.get("total_debt")
+        eq   = latest.get("total_equity")
+        if debt is not None and eq and eq > 0:
+            m1 = _a2_de_score(float(debt) / float(eq))
+        else:
+            m1 = 0.0
+
+    # M2: Interest Coverage Ratio
+    if sec_type in ("BANK", "NBFI"):
+        m2 = 5.0
+    else:
+        ebit     = latest.get("ebit")
+        int_exp  = latest.get("interest_expense")
+        if ebit is not None and int_exp and int_exp > 0:
+            m2 = _a2_ic_score(ebit / int_exp)
+        elif ebit is not None and ebit > 0:
+            m2 = 10.0  # profitable with no interest → debt-free bonus
+        else:
+            m2 = 0.0
+
+    # M3: Cash Flow from Operations
+    cfo_vals = [er.get("operating_cf") for er in ext_last5]
+    np_vals  = [er.get("net_profit")  for er in ext_last5]
+    valid_cfos = [c for c in cfo_vals if c is not None]
+    if not valid_cfos:
+        m3 = 0.0
+    else:
+        all_pos = len(valid_cfos) == 5 and all(c > 0 for c in valid_cfos)
+        mostly_pos = sum(1 for c in valid_cfos if c > 0) >= 3
+        if all_pos:
+            valid_nps = [n for n in np_vals if n is not None]
+            np_avg  = sum(valid_nps) / len(valid_nps) if valid_nps else None
+            cfo_avg = sum(valid_cfos) / len(valid_cfos)
+            m3 = 10.0 if (np_avg is not None and cfo_avg > np_avg) else 7.0
+        elif mostly_pos:
+            m3 = 4.0
+        else:
+            m3 = 0.0
+
+    # M4: Cash & Cash Equivalents / Total Assets
+    cash = latest.get("cash_and_equivalents")
+    ta   = latest.get("total_assets")
+    if cash is not None and ta and ta > 0:
+        m4 = _a2_cash_assets_score(float(cash) / float(ta) * 100)
+    else:
+        m4 = 0.0
+
+    score = (m1 + m2 + m3 + m4) / 4
+    return score, {"p2_de": m1, "p2_ic": m2, "p2_cfo": m3, "p2_cash": m4}
+
+
+def _a2_pillar3(sec_type: str, code: str, ext_last5: list[dict],
+                sector_rank_score: dict[str, float]) -> tuple[float, dict]:
+    """Competitive Moat: gross margin/NIM, revenue volatility, sector rank."""
+
+    def _trend(vals: list[float]) -> float:
+        """Avg(last 2) - Avg(first 2); falls back to last-minus-first for < 4 points."""
+        if len(vals) >= 4:
+            return (vals[-2] + vals[-1]) / 2 - (vals[0] + vals[1]) / 2
+        if len(vals) >= 2:
+            return vals[-1] - vals[0]
+        return 0.0
+
+    # M1: Gross Margin (GENERAL) or NIM (BANK/NBFI)
+    if sec_type in ("BANK", "NBFI"):
+        nim_vals = []
+        for er in ext_last5:
+            nii = er.get("net_interest_income")
+            ea  = er.get("earning_assets")
+            if nii is not None and ea is not None and float(ea) > 0:
+                nim_vals.append(float(nii) / float(ea) * 100)
+        if nim_vals:
+            m1 = _a2_nim_score(sum(nim_vals) / len(nim_vals), _trend(nim_vals))
+        else:
+            m1 = 0.0
+    else:
+        gm_vals = []
+        for er in ext_last5:
+            gp  = er.get("gross_profit")
+            rev = er.get("revenue")
+            if gp is not None and rev is not None and float(rev) > 0:
+                gm_vals.append(float(gp) / float(rev) * 100)
+        if gm_vals:
+            m1 = _a2_gm_score(sum(gm_vals) / len(gm_vals), _trend(gm_vals))
+        else:
+            m1 = 0.0
+
+    # M2: Revenue Volatility — std dev of YoY growth rates (%)
+    rev_vals = [float(er["revenue"]) for er in ext_last5
+                if er.get("revenue") is not None and float(er["revenue"]) > 0]
+    if len(rev_vals) >= 3:
+        growth_rates = [
+            (rev_vals[i] - rev_vals[i - 1]) / rev_vals[i - 1] * 100
+            for i in range(1, len(rev_vals))
+        ]
+        mean_g = sum(growth_rates) / len(growth_rates)
+        std_g  = (sum((g - mean_g) ** 2 for g in growth_rates) / len(growth_rates)) ** 0.5
+        m2 = _a2_rev_vol_score(std_g)
+    else:
+        m2 = 0.0
+
+    # M3: Sector Revenue Rank
+    m3 = sector_rank_score.get(code, 2.0)
+
+    score = (m1 + m2 + m3) / 3
+    return score, {"p3_margin": m1, "p3_rev_vol": m2, "p3_sector_rank": m3}
+
+
+def _a2_pillar4(fin_last5: list[dict], ltp: float | None) -> tuple[float, dict]:
+    """Valuation: current P/E vs 5yr avg P/E, current P/B vs 5yr avg P/B."""
+    if ltp is None or ltp <= 0:
+        return 0.0, {"p4_pe": 0.0, "p4_pb": 0.0}
+
+    # P/E Score — use stored DSE P/E ratios (year-end price ÷ EPS)
+    curr_eps = next((r["eps"] for r in reversed(fin_last5)
+                     if r.get("eps") is not None and r["eps"] > 0), None)
+    if curr_eps is None:
+        pe_score = 0.0
+    else:
+        current_pe = ltp / curr_eps
+        hist_pes = [
+            float(pe)
+            for r in fin_last5
+            for pe in [r.get("pe_ratio_cont_basic") or r.get("pe_ratio_basic")]
+            if pe and float(pe) > 0
+        ]
+        if len(hist_pes) >= 2:
+            avg_hist_pe = sum(hist_pes) / len(hist_pes)
+            pe_score = _a2_pe_pb_ratio_score(current_pe / avg_hist_pe) if avg_hist_pe > 0 else 0.0
+        else:
+            pe_score = 0.0
+
+    # P/B Score — derive year-end price = pe_ratio × eps, then P/B = price / nav
+    curr_nav = next((r["nav_per_share"] for r in reversed(fin_last5)
+                     if r.get("nav_per_share") is not None and r["nav_per_share"] > 0), None)
+    if curr_nav is None:
+        pb_score = 0.0
+    else:
+        current_pb = ltp / curr_nav
+        hist_pbs = []
+        for r in fin_last5:
+            pe  = r.get("pe_ratio_cont_basic") or r.get("pe_ratio_basic")
+            eps = r.get("eps")
+            nav = r.get("nav_per_share")
+            if pe and float(pe) > 0 and eps and float(eps) > 0 and nav and float(nav) > 0:
+                year_end_price = float(pe) * float(eps)
+                hist_pbs.append(year_end_price / float(nav))
+        if len(hist_pbs) >= 2:
+            avg_hist_pb = sum(hist_pbs) / len(hist_pbs)
+            pb_score = _a2_pe_pb_ratio_score(current_pb / avg_hist_pb) if avg_hist_pb > 0 else 0.0
+        else:
+            pb_score = 0.0
+
+    score = pe_score * 0.6 + pb_score * 0.4
+    return score, {"p4_pe": round(pe_score, 2), "p4_pb": round(pb_score, 2)}
+
+
+def _a2_pillar5(fin_last5: list[dict], ltp: float | None,
+                face: float | None) -> tuple[float, dict]:
+    """Dividend Quality: DPS CAGR, consistency, yield."""
+    face_val = float(face) if face and face > 0 else 10.0
+
+    dps_vals = [
+        float(r.get("cash_dividend_pct") or 0) * face_val / 100.0
+        for r in fin_last5
+    ]
+
+    # M1: DPS CAGR
+    start_d, end_d = dps_vals[0] if dps_vals else 0, dps_vals[-1] if dps_vals else 0
+    n = max(len(dps_vals) - 1, 1)
+    nonzero = [d for d in dps_vals if d > 0]
+    if len(nonzero) >= 2 and start_d > 0 and end_d > 0:
+        try:
+            cagr = (end_d / start_d) ** (1.0 / n) - 1.0
+            m1 = _a2_dps_cagr_score(cagr * 100)
+        except (ZeroDivisionError, ValueError):
+            m1 = 0.0
+    else:
+        m1 = 0.0
+
+    # M2: Dividend Consistency
+    paid = sum(1 for d in dps_vals if d > 0)
+    if paid >= 5:   m2 = 10.0
+    elif paid == 4: m2 = 7.0
+    elif paid == 3: m2 = 4.0
+    else:           m2 = 0.0
+
+    # M3: Dividend Yield
+    latest_dps = dps_vals[-1] if dps_vals else 0.0
+    if ltp and ltp > 0 and latest_dps > 0:
+        m3 = _a2_div_yield_score(latest_dps / ltp * 100)
+    else:
+        m3 = 0.0
+
+    score = m1 * 0.50 + m2 * 0.35 + m3 * 0.15
+    return score, {"p5_dps_cagr": m1, "p5_consist": m2, "p5_yield": m3}
 
 
 @st.cache_data(ttl=300)
-def _build_scores_df():
+def _algo2_scores() -> pd.DataFrame:
     """
-    dseX Score (0-100) — 8 factors, 4 groups, multi-year averages.
+    dseX Fundamental Score (0–100) — 5-pillar sector-aware scoring.
 
-    Group 1 — Valuation (35%):
-      20%  Earnings Yield    — 3yr avg EPS / current LTP
-      15%  Price-to-NAV inv  — latest NAV/share ÷ LTP (higher = trading below book)
+    Pillar                   Weight  Metrics
+    ─────────────────────────────────────────────────────────────────────────
+    1. Business Quality       30%    EPS consistency, EPS CAGR, avg ROE, NPM trend
+    2. Financial Health       20%    D/E, interest coverage, CFO quality, cash ratio
+    3. Competitive Moat       20%    Gross margin/NIM, revenue volatility, sector rank
+    4. Valuation              15%    P/E vs 5yr avg, P/B vs 5yr avg
+    5. Dividend Quality       15%    DPS CAGR, consistency, yield
 
-    Group 2 — Profitability Quality (25%):
-      15%  ROE               — 3yr avg (EPS / NAV per share per year)
-      10%  EPS Stability     — inverse of coefficient of variation across all years
-
-    Group 3 — Dividend Quality (25%):
-      15%  Dividend Yield    — 3yr avg cash dividend / face value / LTP
-      10%  Dividend Streak   — consecutive years with cash dividend > 0
-
-    Group 4 — Balance Sheet Safety (15%):
-      10%  Reserve / MCap    — reserve_surplus_mn / market_cap_mn
-       5%  Debt Safety       — (reserve + paid_up) / total_loan; skipped for financial sector
-
-    Post-score multiplier by market category: A=1.00 B=0.92 N=0.88 Z=0.30
-    Missing factors are excluded and weights re-normalised per company.
+    Insurance companies: excluded.
+    Missing data → score 0 (no exceptions).
+    Lookback: 5 years for all metrics.
     """
     db = _get_app().get_mongo_db()
 
@@ -51,281 +442,157 @@ def _build_scores_df():
         d["trading_code"]
         for d in db.companies.find({"excluded": True}, {"trading_code": 1, "_id": 0})
     }
-    fin_docs = list(db.financials.find({"trading_code": {"$nin": list(excluded_codes)}}, {"_id": 0}))
-    if not fin_docs:
-        return pd.DataFrame()
-
-    fin_df = pd.DataFrame(fin_docs).sort_values(["trading_code", "year"])
-    fin_df["eps"] = (
-        fin_df["eps_cont_basic"].combine_first(fin_df.get("eps_basic"))
-        if "eps_cont_basic" in fin_df.columns
-        else fin_df.get("eps_basic", pd.Series(dtype=float))
-    )
-
-    # ---- Per-company multi-year metric extraction ----
-    per_company: dict[str, dict] = {}
-    for code, grp in fin_df.groupby("trading_code"):
-        grp = grp.sort_values("year")
-
-        eps_s = grp["eps"].dropna()
-        nav_s = grp["nav_per_share"].dropna() if "nav_per_share" in grp.columns else pd.Series(dtype=float)
-        div_s = grp["cash_dividend_pct"].dropna() if "cash_dividend_pct" in grp.columns else pd.Series(dtype=float)
-
-        # 3yr average EPS (positive-only; loss years excluded so yield stays meaningful)
-        eps_pos = eps_s[eps_s > 0]
-        eps_3yr = float(eps_pos.tail(3).mean()) if not eps_pos.empty else None
-
-        # Latest NAV per share
-        nav_latest = float(nav_s.iloc[-1]) if not nav_s.empty else None
-
-        # 3yr average ROE = avg(EPS/NAV) computed year-by-year
-        roe_3yr = None
-        if "nav_per_share" in grp.columns:
-            roe_df = grp[["eps", "nav_per_share"]].dropna()
-            roe_df = roe_df[roe_df["nav_per_share"] > 0]
-            if not roe_df.empty:
-                roe_vals = (roe_df["eps"] / roe_df["nav_per_share"]).tail(3)
-                roe_3yr = float(roe_vals.mean())
-
-        # EPS Stability: 1/(1+CV) across all years; needs >= 3 years
-        eps_stab = None
-        if len(eps_s) >= 3:
-            mean_abs = abs(float(eps_s.mean()))
-            if mean_abs > 0:
-                cv = float(eps_s.std()) / mean_abs
-                eps_stab = 1.0 / (1.0 + cv)  # 0–1; higher = more stable
-
-        # 3yr average dividend % (includes zero years in average)
-        div_3yr = float(grp["cash_dividend_pct"].fillna(0).tail(3).mean()) if "cash_dividend_pct" in grp.columns else None
-        if div_3yr == 0:
-            div_3yr = None
-
-        # Dividend streak: consecutive years with cash div > 0, counting back
-        streak = 0
-        for val in grp["cash_dividend_pct"].fillna(0).values[::-1]:
-            if val > 0:
-                streak += 1
-            else:
-                break
-        div_streak = streak if streak > 0 else None
-
-        per_company[code] = {
-            "eps_3yr":    eps_3yr,
-            "nav_latest": nav_latest,
-            "roe_3yr":    roe_3yr,
-            "eps_stab":   eps_stab,
-            "div_3yr":    div_3yr,
-            "div_streak": div_streak,
-        }
 
     # ---- Company metadata ----
     companies = {
         d["trading_code"]: d
         for d in db.companies.find({"excluded": {"$ne": True}}, {
-            "trading_code": 1, "reserve_surplus_mn": 1, "paid_up_capital_mn": 1,
-            "total_shares": 1, "total_loan_mn": 1, "face_value": 1,
+            "trading_code": 1, "total_shares": 1, "face_value": 1,
             "market_category": 1, "sector": 1, "_id": 0,
         })
     }
 
+    # ---- Financials (EPS, NAV, dividend per year) ----
+    fin_docs = list(db.financials.find(
+        {"trading_code": {"$nin": list(excluded_codes)}}, {"_id": 0}
+    ))
+    if not fin_docs:
+        return pd.DataFrame()
+
+    fin_df = pd.DataFrame(fin_docs).sort_values(["trading_code", "year"])
+    if "eps_cont_basic" in fin_df.columns:
+        fin_df["eps"] = fin_df["eps_cont_basic"].combine_first(fin_df.get("eps_basic"))
+    elif "eps_basic" in fin_df.columns:
+        fin_df["eps"] = fin_df["eps_basic"]
+    else:
+        fin_df["eps"] = float("nan")
+
+    # ---- Extended financials ----
+    ext_docs = list(db.company_financials_ext.find(
+        {"trading_code": {"$nin": list(excluded_codes)}}, {"_id": 0}
+    ))
+    ext_by_code: dict[str, list] = {}
+    for doc in ext_docs:
+        ext_by_code.setdefault(doc["trading_code"], []).append(doc)
+    for code in ext_by_code:
+        ext_by_code[code].sort(key=lambda x: x["year"])
+
+    # ---- Sector revenue rank (latest revenue per company within sector type) ----
+    latest_rev_by_code: dict[str, float] = {}
+    for code, rows in ext_by_code.items():
+        for row in reversed(rows):
+            rev = row.get("revenue")
+            if rev and rev > 0:
+                latest_rev_by_code[code] = float(rev)
+                break
+
+    sector_type_of_code: dict[str, str] = {
+        code: _a2_classify_sector(comp.get("sector", ""))
+        for code, comp in companies.items()
+    }
+    sector_buckets: dict[str, list] = {}
+    for code, rev in latest_rev_by_code.items():
+        st_type = sector_type_of_code.get(code, "GENERAL")
+        sector_buckets.setdefault(st_type, []).append((code, rev))
+
+    sector_rank_score: dict[str, float] = {}
+    for st_type, items in sector_buckets.items():
+        items_sorted = sorted(items, key=lambda x: x[1], reverse=True)
+        n = len(items_sorted)
+        for rank_idx, (code, _) in enumerate(items_sorted):
+            pct = (rank_idx + 1) / n
+            if rank_idx == 0:       sr = 10.0
+            elif pct <= 0.25:       sr = 7.0
+            elif pct <= 0.50:       sr = 5.0
+            else:                   sr = 2.0
+            sector_rank_score[code] = sr
+
     prices = _get_app().load_latest_prices()
 
-    all_codes = set(per_company.keys()) | set(companies.keys())
+    # ---- Per-company scoring ----
     rows = []
-    for code in all_codes:
-        comp  = companies.get(code, {})
-        fm    = per_company.get(code, {})
-        ltp   = (prices.get(code) or {}).get("ltp")
-        reserve  = comp.get("reserve_surplus_mn")
-        paid_up  = comp.get("paid_up_capital_mn")
-        shares   = comp.get("total_shares")
-        loan     = comp.get("total_loan_mn")
-        face     = comp.get("face_value")
-        sector   = comp.get("sector", "") or ""
-        cat      = (comp.get("market_category") or "").strip().upper()
-
-        eps_3yr    = fm.get("eps_3yr")
-        nav_latest = fm.get("nav_latest")
-        roe_3yr    = fm.get("roe_3yr")
-        eps_stab   = fm.get("eps_stab")
-        div_3yr    = fm.get("div_3yr")
-        div_streak = fm.get("div_streak")
-
+    for code, comp in companies.items():
+        ltp     = (prices.get(code) or {}).get("ltp")
+        shares  = comp.get("total_shares")
+        face    = comp.get("face_value")
+        cat     = (comp.get("market_category") or "").strip().upper()
+        sector  = comp.get("sector", "") or ""
+        sec_type = _a2_classify_sector(sector)
         mcap_mn = (ltp * shares / 1e6) if ltp and shares and shares > 0 else None
 
-        # Factor 1 — Earnings Yield (3yr avg EPS / LTP)
-        earn_yield = None
-        if eps_3yr and ltp and ltp > 0:
-            earn_yield = eps_3yr / ltp * 100
+        # Insurance: excluded
+        if _a2_is_insurance(sector):
+            rows.append({
+                "trading_code": code, "sector": sector, "market_cat": cat,
+                "ltp": ltp, "mcap_mn": mcap_mn, "score": float("nan"),
+            })
+            continue
 
-        # Factor 2 — Price-to-NAV inverse (NAV / LTP)
-        nav_to_price = None
-        if nav_latest and nav_latest > 0 and ltp and ltp > 0:
-            nav_to_price = nav_latest / ltp
+        # Prepare per-company data slices (last 5 years)
+        fin_rows = (
+            fin_df[fin_df["trading_code"] == code]
+            .sort_values("year")
+            .tail(5)
+            .to_dict("records")
+        )
+        ext_rows_all  = ext_by_code.get(code, [])
+        ext_last5     = ext_rows_all[-5:]
 
-        # Factor 3 — ROE (already computed per year above)
-        # positive ROE only; negative means loss-making
-        roe_val = roe_3yr if roe_3yr and roe_3yr > 0 else None
+        p1, sub1 = _a2_pillar1(fin_rows, ext_last5)
+        p2, sub2 = _a2_pillar2(sec_type, ext_last5)
+        p3, sub3 = _a2_pillar3(sec_type, code, ext_last5, sector_rank_score)
+        p4, sub4 = _a2_pillar4(fin_rows, ltp)
+        p5, sub5 = _a2_pillar5(fin_rows, ltp, face)
 
-        # Factor 4 — EPS Stability (already computed)
+        final = p1 * 0.30 + p2 * 0.20 + p3 * 0.20 + p4 * 0.15 + p5 * 0.15
 
-        # Factor 5 — Dividend Yield (3yr avg div)
-        div_yield = None
-        if div_3yr and face and ltp and ltp > 0:
-            div_yield = (face * div_3yr / 100) / ltp * 100
-
-        # Factor 6 — Dividend Streak (already computed)
-
-        # Factor 7 — Reserve / MCap
-        res_mcap = None
-        if reserve is not None and mcap_mn and mcap_mn > 0:
-            res_mcap = reserve / mcap_mn
-
-        # Factor 8 — Debt Safety: (equity / loan) — skip for financial sector
-        debt_safety = None
-        if not _is_financial_sector(sector):
-            equity = (reserve or 0) + (paid_up or 0)
-            if loan and loan > 0 and equity > 0:
-                debt_safety = equity / loan  # higher = safer
-            elif equity > 0 and (loan is None or loan == 0):
-                debt_safety = equity  # no debt = very safe; will rank high
-
-        rows.append({
+        row = {
             "trading_code": code,
             "sector":       sector,
             "market_cat":   cat,
             "ltp":          ltp,
             "mcap_mn":      mcap_mn,
-            "eps_3yr":      eps_3yr,
-            "nav_latest":   nav_latest,
-            "roe_3yr":      roe_val,
-            "eps_stab":     eps_stab,
-            "earn_yield":   earn_yield,
-            "nav_to_price": nav_to_price,
-            "div_yield":    div_yield,
-            "div_streak":   div_streak,
-            "res_mcap":     res_mcap,
-            "debt_safety":  debt_safety,
-        })
+            "score":        round(final * 10, 1),  # 0–10 → 0–100
+            "p1_biz":       round(p1, 2),
+            "p2_health":    round(p2, 2),
+            "p3_moat":      round(p3, 2),
+            "p4_val":       round(p4, 2),
+            "p5_div":       round(p5, 2),
+        }
+        row.update(sub1)
+        row.update(sub2)
+        row.update(sub3)
+        row.update(sub4)
+        row.update(sub5)
+        rows.append(row)
 
-    mdf = pd.DataFrame(rows)
-    if mdf.empty:
-        return mdf
+    return pd.DataFrame(rows)
 
-    # Percentile ranks — all higher = better; NaN stays NaN
-    mdf["ey_rank"]     = mdf["earn_yield"].rank(pct=True)
-    mdf["np_rank"]     = mdf["nav_to_price"].rank(pct=True)
-    mdf["roe_rank"]    = mdf["roe_3yr"].rank(pct=True)
-    mdf["stab_rank"]   = mdf["eps_stab"].rank(pct=True)
-    mdf["dy_rank"]     = mdf["div_yield"].rank(pct=True)
-    mdf["streak_rank"] = mdf["div_streak"].rank(pct=True)
-    mdf["rm_rank"]     = mdf["res_mcap"].rank(pct=True)
-    mdf["de_rank"]     = mdf["debt_safety"].rank(pct=True)
 
-    # Weights
-    _W = {
-        "ey_rank":     0.20,
-        "np_rank":     0.15,
-        "roe_rank":    0.15,
-        "stab_rank":   0.10,
-        "dy_rank":     0.15,
-        "streak_rank": 0.10,
-        "rm_rank":     0.10,
-        "de_rank":     0.05,
-    }
-    rank_cols = list(_W.keys())
-    w_series  = pd.Series(_W)
-    rank_mat  = mdf[rank_cols]
+from typing import Callable
 
-    # Re-normalise weights per row — missing factors are excluded, not penalised
-    w_avail     = rank_mat.notna().astype(float).multiply(w_series)
-    w_sum       = w_avail.sum(axis=1)
-    weighted    = rank_mat.fillna(0).multiply(w_series).sum(axis=1)
-    raw_score   = np.where(w_sum > 0, weighted / w_sum * 100, np.nan)
+ALGO_REGISTRY: dict[str, Callable[[], "pd.DataFrame"]] = {
+    "DSEF": _algo2_scores,
+}
+ALGO_NAMES = list(ALGO_REGISTRY.keys())
 
-    # Market category multiplier
-    _CAT = {"A": 1.00, "B": 0.92, "N": 0.88, "Z": 0.30}
-    cat_mult = mdf["market_cat"].map(lambda c: _CAT.get(c, 0.88))
-    mdf["score"] = np.round(raw_score * cat_mult, 1)
 
-    # Companies with no factor data at all → NaN
-    mdf.loc[~rank_mat.notna().any(axis=1), "score"] = np.nan
-
-    return mdf
+@st.cache_data(ttl=300)
+def build_scores_df(algorithm: str = "DSEF") -> "pd.DataFrame":
+    fn = ALGO_REGISTRY.get(algorithm, _algo2_scores)
+    return fn()
 
 
 @st.cache_data(ttl=300)
 def compute_composite_scores():
-    mdf = _build_scores_df()
+    mdf = build_scores_df("DSEF")
     if mdf.empty:
         return {}
     return dict(zip(mdf["trading_code"], mdf["score"]))
 
 
-# ---------------------------------------------------------------------------
-# Homepage helpers
-# ---------------------------------------------------------------------------
-
-_FACTOR_LABELS = {
-    "ey_rank":     "earnings yield",
-    "np_rank":     "price-to-book",
-    "roe_rank":    "ROE",
-    "stab_rank":   "EPS stability",
-    "dy_rank":     "div. yield",
-    "streak_rank": "div. streak",
-    "rm_rank":     "reserve/mkt cap",
-    "de_rank":     "low debt",
-}
-
-
-def _top_strengths(row_dict: dict, n: int = 2) -> list[str]:
-    """Return labels of the top-n highest-ranked factors."""
-    ranked = []
-    for key, label in _FACTOR_LABELS.items():
-        v = row_dict.get(key)
-        if v is not None and not (isinstance(v, float) and pd.isna(v)):
-            ranked.append((v, label))
-    ranked.sort(reverse=True)
-    return [label for _, label in ranked[:n]]
-
-
-def _worst_factor(row_dict: dict) -> str | None:
-    """Return the label of the single worst-ranked factor."""
-    ranked = []
-    for key, label in _FACTOR_LABELS.items():
-        v = row_dict.get(key)
-        if v is not None and not (isinstance(v, float) and pd.isna(v)):
-            ranked.append((v, label))
-    if not ranked:
-        return None
-    ranked.sort()
-    return ranked[0][1]
-
-
-def _generate_verdict(row_dict: dict) -> str:
-    """Return a 1-sentence plain-language summary of strengths and weaknesses."""
-    strengths = _top_strengths(row_dict, n=2)
-    ranked = []
-    for key, label in _FACTOR_LABELS.items():
-        v = row_dict.get(key)
-        if v is not None and not (isinstance(v, float) and pd.isna(v)):
-            ranked.append((v, label))
-    ranked.sort()
-    weak = [label for _, label in ranked[:1] if ranked and ranked[0][0] < 0.30]
-    parts = []
-    if strengths:
-        parts.append("Strong " + " & ".join(strengths))
-    if weak:
-        parts.append("weak " + weak[0])
-    if not parts:
-        return "Moderate across all factors."
-    sentence = ", but ".join(parts) + "."
-    return sentence[0].upper() + sentence[1:]
-
-
 def _get_company_score_row(trading_code: str) -> dict | None:
-    """Return the full score row dict for one company including overall rank."""
-    mdf = _build_scores_df()
+    mdf = build_scores_df("DSEF")
     if mdf.empty:
         return None
     row = mdf[mdf["trading_code"] == trading_code]

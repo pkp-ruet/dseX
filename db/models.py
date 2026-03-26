@@ -38,3 +38,8 @@ def ensure_indexes():
         [("trading_code", ASCENDING)],
         unique=True,
     )
+
+    db.company_financials_ext.create_index(
+        [("trading_code", ASCENDING), ("year", ASCENDING)],
+        unique=True,
+    )

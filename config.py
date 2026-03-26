@@ -17,6 +17,14 @@ DSE_LATEST_PRICE_URL = f"{DSE_BASE_URL}/latest_share_price_scroll_l.php"
 DSE_COMPANY_DETAILS_URL = f"{DSE_BASE_URL}/displayCompany.php"
 DSE_NEWS_URL = f"{DSE_BASE_URL}/old_news.php"
 
+# Amarstock — cash flow & financial statement data
+AMARSTOCK_BASE_URL = "https://www.amarstock.com/company/2b5e8cfdd75f/"
+
+# Valuation model constants
+DISCOUNT_RATE = 0.12          # cost of equity: ~8% BD risk-free + 4% equity risk premium
+TERMINAL_GROWTH_RATE = 0.05   # conservative long-run GDP growth proxy
+DCF_YEARS = 5                 # forecast horizon for DCF
+
 NEWS_LOOKBACK_DAYS = int(os.getenv("NEWS_LOOKBACK_DAYS", "365"))
 NEWS_TOP_N = int(os.getenv("NEWS_TOP_N", "50"))
 

@@ -8,6 +8,7 @@ from scrapers.company_list import CompanyListScraper
 from scrapers.stock_price import StockPriceScraper
 from scrapers.company_details import CompanyDetailsScraper
 from scrapers.news import NewsScraper
+from scrapers.cash_flow_scraper import CashFlowScraper
 from utils.scoring import get_top_n_codes
 from config import NEWS_TOP_N
 
@@ -62,6 +63,28 @@ def cmd_scrape_details(args):
     print("Done.")
 
 
+def cmd_scrape_cashflow(args):
+    from db.connection import get_db
+
+    db = get_db()
+    if args.code:
+        codes = [args.code]
+    else:
+        codes = [
+            d["trading_code"]
+            for d in db.companies.find({"excluded": {"$ne": True}}, {"trading_code": 1, "_id": 0})
+        ]
+
+    if not codes:
+        print("No companies found. Run 'scrape-companies' first.")
+        return
+
+    print(f"Scraping cash flow data for {len(codes)} companies...")
+    scraper = CashFlowScraper()
+    total = scraper.run(codes)
+    print(f"Done. {total} year-records saved.")
+
+
 def cmd_scrape_news(args):
     from db.connection import get_db
 
@@ -110,7 +133,16 @@ def cmd_scrape_all(args):
     cd.run(codes)
     print("  Company details complete.\n")
 
-    print(f"=== Step 4/4: Scraping news for top {NEWS_TOP_N} companies ===")
+    print("=== Step 4/5: Scraping cash flow data (amarstock) ===")
+    cf_codes = [
+        d["trading_code"]
+        for d in get_db().companies.find({"excluded": {"$ne": True}}, {"trading_code": 1, "_id": 0})
+    ]
+    cf = CashFlowScraper()
+    cf_total = cf.run(cf_codes)
+    print(f"  {cf_total} year-records saved.\n")
+
+    print(f"=== Step 5/5: Scraping news for top {NEWS_TOP_N} companies ===")
     news_codes = get_top_n_codes(get_db(), n=NEWS_TOP_N)
     if news_codes:
         ns = NewsScraper()
@@ -132,6 +164,16 @@ def main():
 
     sub.add_parser("scrape-companies", help="Scrape the list of all DSE companies")
     sub.add_parser("scrape-prices", help="Scrape latest stock prices for all companies")
+
+    cashflow_parser = sub.add_parser(
+        "scrape-cashflow",
+        help="Scrape cash flow & financial statement data from amarstock.com",
+    )
+    cashflow_parser.add_argument(
+        "--code",
+        default=None,
+        help="Scrape a single company by trading code (e.g. GP)",
+    )
 
     details_parser = sub.add_parser(
         "scrape-details",
@@ -173,11 +215,12 @@ def main():
     ensure_indexes()
 
     commands = {
-        "scrape-companies": cmd_scrape_companies,
-        "scrape-prices": cmd_scrape_prices,
-        "scrape-details": cmd_scrape_details,
-        "scrape-news": cmd_scrape_news,
-        "scrape-all": cmd_scrape_all,
+        "scrape-companies":  cmd_scrape_companies,
+        "scrape-prices":     cmd_scrape_prices,
+        "scrape-details":    cmd_scrape_details,
+        "scrape-cashflow":   cmd_scrape_cashflow,
+        "scrape-news":       cmd_scrape_news,
+        "scrape-all":        cmd_scrape_all,
     }
 
     try:

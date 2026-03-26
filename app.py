@@ -106,15 +106,30 @@ def load_dividend_declarations():
     return list(db.dividend_declarations.find({}, {"_id": 0}))
 
 
+@st.cache_data(ttl=300)
+def load_extended_financials(trading_code):
+    db = get_mongo_db()
+    docs = list(
+        db.company_financials_ext.find(
+            {"trading_code": trading_code}, {"_id": 0}
+        ).sort("year", 1)
+    )
+    return pd.DataFrame(docs) if docs else pd.DataFrame()
+
+
 # ---------------------------------------------------------------------------
 # Router
 # ---------------------------------------------------------------------------
 
 def main():
     code = st.query_params.get("code")
+    view = st.query_params.get("view")
     if code:
         from pages.detail import render_detail_page
         render_detail_page(code)
+    elif view == "audit":
+        from pages.audit import render_audit_page
+        render_audit_page()
     else:
         from pages.home import render_homepage
         render_homepage()

@@ -4,6 +4,7 @@ from scrapers.base_scraper import BaseScraper
 from db.connection import get_db
 from config import DSE_COMPANY_DETAILS_URL
 from utils.parser_helpers import clean_numeric, clean_text, parse_dividend_string, parse_dividend_cell
+from utils.sector import normalize_sector
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +68,9 @@ class CompanyDetailsScraper(BaseScraper):
         st = info.get("short_term_loan_mn") or 0
         lt = info.get("long_term_loan_mn") or 0
         info["total_loan_mn"] = st + lt
+
+        # Normalized sector classification
+        info["sector_class"] = normalize_sector(info.get("sector") or "")
 
         # Dividends from the dedicated row
         cash_div, stock_div = self._parse_dividend_rows(soup)
@@ -351,7 +355,12 @@ class CompanyDetailsScraper(BaseScraper):
             upsert=True,
         )
 
+        face_value = basic.get("face_value") or 0
         for fin in data["financials"]:
+            # Compute DPS from cash dividend % and face value
+            cash_div_pct = fin.get("cash_dividend_pct")
+            if cash_div_pct is not None and face_value:
+                fin["dps"] = round(cash_div_pct / 100 * face_value, 4)
             db.financials.update_one(
                 {"trading_code": fin["trading_code"], "year": fin["year"]},
                 {"$set": fin},
