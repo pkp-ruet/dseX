@@ -1050,10 +1050,10 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
     white-space: nowrap;
 }
 
-/* Info strip (4-col bottom section) */
+/* Info strip (Market Intelligence: declarations + record dates) */
 .info-strip {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 0;
     border-top: 2px solid var(--ink);
     border-bottom: 1px solid var(--rule);
@@ -1090,11 +1090,51 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
     text-decoration: none !important;
     gap: 6px;
 }
+/* Same grid on every row so dates stack vertically (max-content per row broke alignment) */
+.info-col-row--intel {
+    display: grid;
+    grid-template-columns: 8.25rem 4.75rem 2.5rem;
+    align-items: baseline;
+    column-gap: 6px;
+    justify-content: start;
+}
+.info-col-row--intel .icr-key {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.info-col-row--intel .icr-sub {
+    flex: unset;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    justify-self: stretch;
+}
+.info-col-row--intel .icr-val { justify-self: end; }
 .info-col-row:last-child { border-bottom: none; }
 .info-col-row:hover { color: var(--ink); }
 .icr-key { color: var(--ink); font-weight: 600; flex-shrink: 0; }
 .icr-sub { color: var(--ink-muted); font-size: 0.62rem; flex: 1; text-align: center; }
 .icr-val { color: var(--gold); font-weight: 700; flex-shrink: 0; }
+
+/* How We Score (below Market Intelligence) */
+.how-we-score-box {
+    border: 1px solid var(--ink);
+    padding: 14px 16px 16px;
+    margin-bottom: 20px;
+    background: var(--bg-input);
+}
+.how-we-score-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--ink);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+}
 
 /* Footer */
 .np-footer {

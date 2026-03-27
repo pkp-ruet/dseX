@@ -53,13 +53,6 @@ def render_homepage():
     n_watch  = int(((scored["score"] >= 35) & (scored["score"] < 55)).sum())
     n_avoid  = int((scored["score"] < 35).sum())
 
-    sector_avg = (
-        scored[scored["sector"] != ""]
-        .groupby("sector")["score"]
-        .mean()
-        .sort_values(ascending=False)
-    )
-
     today_str = datetime.now().strftime("%A, %d %B %Y")
 
     # --- Masthead ---
@@ -198,7 +191,7 @@ def render_homepage():
             code_link = d["trading_code"]
             pct = d.get("dividend_pct", 0)
             decl_rows += (
-                f'<a class="info-col-row" href="?code={code_link}">'
+                f'<a class="info-col-row info-col-row--intel" href="?code={code_link}">'
                 f'<span class="icr-key">{code_link}</span>'
                 f'<span class="icr-sub">{proj_dt.strftime("%d %b")}</span>'
                 f'<span class="icr-val">{pct:.0f}%</span>'
@@ -216,7 +209,7 @@ def render_homepage():
             code_link = d["trading_code"]
             pct = d.get("dividend_pct", 0)
             rec_rows += (
-                f'<a class="info-col-row" href="?code={code_link}">'
+                f'<a class="info-col-row info-col-row--intel" href="?code={code_link}">'
                 f'<span class="icr-key">{code_link}</span>'
                 f'<span class="icr-sub">{rec_dt.strftime("%d %b")}</span>'
                 f'<span class="icr-val">{pct:.0f}%</span>'
@@ -228,17 +221,6 @@ def render_homepage():
         decl_rows = no_data
     if not rec_rows:
         rec_rows = no_data
-
-    sector_rows = ""
-    for sec_name, avg_sc in sector_avg.head(6).items():
-        sector_rows += (
-            f'<div class="info-col-row">'
-            f'<span class="icr-key">{sec_name}</span>'
-            f'<span class="icr-val">{avg_sc:.1f}</span>'
-            f'</div>'
-        )
-    if not sector_rows:
-        sector_rows = no_data
 
     method_rows = (
         '<div class="info-col-row"><span class="icr-key">Cash Flow</span><span class="icr-val">38%</span></div>'
@@ -258,14 +240,14 @@ def render_homepage():
         f'    <div class="info-col-header">Record Dates</div>'
         f'    {rec_rows}'
         f'  </div>'
-        f'  <div class="info-col">'
-        f'    <div class="info-col-header">Top Sectors</div>'
-        f'    {sector_rows}'
-        f'  </div>'
-        f'  <div class="info-col">'
-        f'    <div class="info-col-header">How We Score</div>'
-        f'    {method_rows}'
-        f'  </div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        f'<div class="how-we-score-box">'
+        f'  <div class="how-we-score-title">How We Score</div>'
+        f'  {method_rows}'
         f'</div>',
         unsafe_allow_html=True,
     )
