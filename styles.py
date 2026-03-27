@@ -1589,14 +1589,38 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
         0 0 0 1px rgba(26, 107, 90, 0.11);
 }
 .how-we-score-modern .how-we-score-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.28rem;
+    font-weight: 600;
+    font-style: italic;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    color: #1a3d28;
+    border-bottom-color: rgba(45, 106, 63, 0.28);
+    padding-bottom: 14px;
+    margin-bottom: 16px;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+.how-we-score-modern .hws-row {
+    gap: 7px;
+    padding: 12px 2px 14px;
+    border-bottom-color: rgba(45, 106, 63, 0.14);
+}
+.how-we-score-modern .hws-label {
     font-family: 'Inter', sans-serif;
-    font-size: 0.72rem;
+    font-size: 0.84rem;
     font-weight: 800;
-    letter-spacing: 0.2em;
+    letter-spacing: -0.02em;
+    text-transform: none;
     color: var(--np-strong);
-    border-bottom-color: rgba(45, 106, 63, 0.22);
-    padding-bottom: 12px;
-    margin-bottom: 14px;
+    line-height: 1.25;
+}
+.how-we-score-modern .hws-desc {
+    font-size: 0.78rem;
+    font-weight: 500;
+    line-height: 1.58;
+    color: var(--ink-2);
+    letter-spacing: 0.01em;
 }
 .how-we-score-modern .info-col-row {
     border: none;
@@ -1608,6 +1632,12 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
     box-shadow: 0 1px 3px rgba(26, 18, 8, 0.04);
 }
 .how-we-score-modern .info-col-row:last-child { margin-bottom: 0; }
+
+/* How We Score — pillar rows */
+.hws-row        { display: flex; flex-direction: column; gap: 2px; padding: 7px 0; border-bottom: 1px solid #EDE3D0; }
+.hws-row:last-child { border-bottom: none; }
+.hws-label      { font-size: 0.68rem; font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: 0.4px; }
+.hws-desc       { font-size: 0.62rem; color: var(--ink-muted); line-height: 1.45; }
 
 /* Footer */
 .np-footer {

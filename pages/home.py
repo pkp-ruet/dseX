@@ -281,12 +281,27 @@ def render_homepage():
     if not rec_rows:
         rec_rows = no_data
 
-    method_rows = (
-        '<div class="info-col-row"><span class="icr-key">Cash Flow</span><span class="icr-val">38%</span></div>'
-        '<div class="info-col-row"><span class="icr-key">Profitability</span><span class="icr-val">27%</span></div>'
-        '<div class="info-col-row"><span class="icr-key">Growth &amp; Dividends</span><span class="icr-val">15%</span></div>'
-        '<div class="info-col-row"><span class="icr-key">Valuation</span><span class="icr-val">12%</span></div>'
-        '<div class="info-col-row"><span class="icr-key">Governance</span><span class="icr-val">8%</span></div>'
+    how_we_score_html = (
+        '<div class="hws-row">'
+        '<span class="hws-label">EPS &amp; Profitability</span>'
+        '<div class="hws-desc">Is the company consistently earning? Looks at EPS growth track record, earnings history across 5 years, and return on equity.</div>'
+        '</div>'
+        '<div class="hws-row">'
+        '<span class="hws-label">Financial Health</span>'
+        '<div class="hws-desc">Is the balance sheet solid? Checks debt levels, whether operations generate real cash, and available liquidity.</div>'
+        '</div>'
+        '<div class="hws-row">'
+        '<span class="hws-label">Competitive Strength</span>'
+        '<div class="hws-desc">Does it hold its ground? Measures profit margins, revenue stability year-over-year, and scale within its sector.</div>'
+        '</div>'
+        '<div class="hws-row">'
+        '<span class="hws-label">Valuation</span>'
+        '<div class="hws-desc">Is the price reasonable? Compares current P/E and P/B against the company\'s own 5-year historical averages.</div>'
+        '</div>'
+        '<div class="hws-row">'
+        '<span class="hws-label">Dividend Quality</span>'
+        '<div class="hws-desc">Does it reward shareholders? Tracks dividend growth, how consistently it pays, and the current yield.</div>'
+        '</div>'
     )
 
     st.markdown(
@@ -306,7 +321,7 @@ def render_homepage():
     st.markdown(
         f'<div class="how-we-score-box how-we-score-modern">'
         f'  <div class="how-we-score-title">How We Score</div>'
-        f'  {method_rows}'
+        f'  {how_we_score_html}'
         f'</div>',
         unsafe_allow_html=True,
     )
