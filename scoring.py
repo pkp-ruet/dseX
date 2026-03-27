@@ -209,8 +209,16 @@ def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict]) -> tuple[float, di
         elif abs(delta) <= 1: m4 = 5.0
         else:                m4 = 2.0
 
+    # EPS YoY % (last 2 valid years)
+    eps_yoy = None
+    if len(valid_eps) >= 2:
+        prev, curr = valid_eps[-2][1], valid_eps[-1][1]
+        if prev and prev != 0:
+            eps_yoy = round((curr - prev) / abs(prev) * 100, 1)
+
     score = (m1 + m2 + m3 + m4) / 4
-    return score, {"p1_eps_consist": m1, "p1_eps_cagr": m2, "p1_roe": m3, "p1_npm_trend": m4}
+    return score, {"p1_eps_consist": m1, "p1_eps_cagr": m2, "p1_roe": m3, "p1_npm_trend": m4,
+                   "eps_yoy_pct": eps_yoy}
 
 
 def _a2_pillar2(sec_type: str, ext_last5: list[dict]) -> tuple[float, dict]:
@@ -415,8 +423,14 @@ def _a2_pillar5(fin_last5: list[dict], ltp: float | None,
     else:
         m3 = 0.0
 
+    # Raw div yield % for display
+    div_yield_pct = None
+    if ltp and ltp > 0 and latest_dps > 0:
+        div_yield_pct = round(latest_dps / ltp * 100, 1)
+
     score = m1 * 0.50 + m2 * 0.35 + m3 * 0.15
-    return score, {"p5_dps_cagr": m1, "p5_consist": m2, "p5_yield": m3}
+    return score, {"p5_dps_cagr": m1, "p5_consist": m2, "p5_yield": m3,
+                   "div_yield_pct": div_yield_pct}
 
 
 @st.cache_data(ttl=300)

@@ -968,20 +968,67 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
     font-weight: 700;
     letter-spacing: 0.3px;
 }
-/* Strong Buy — full bleed green header */
+/* Strong Buy & Safe Buy — gradient card headers */
+.np-col-header.np-col-strong,
+.np-col-header.np-col-safe {
+    position: relative;
+    overflow: hidden;
+    gap: 14px;
+    padding: 16px 18px;
+    border: none;
+    border-radius: 14px 14px 0 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+.np-col-header.np-col-strong::before,
+.np-col-header.np-col-safe::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 58%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, transparent 100%);
+    pointer-events: none;
+}
 .np-col-header.np-col-strong {
-    background: var(--np-strong);
-    border-bottom: 2px solid var(--np-strong);
-    padding: 10px 12px;
+    background: linear-gradient(125deg, #153d24 0%, var(--np-strong) 42%, #3d9160 100%);
+    box-shadow: 0 6px 24px rgba(45, 106, 63, 0.28);
 }
-.np-col-header.np-col-strong .np-col-label {
+.np-col-header.np-col-safe {
+    background: linear-gradient(125deg, #0c3048 0%, var(--np-safe) 45%, #2a7aa3 100%);
+    box-shadow: 0 6px 24px rgba(26, 77, 107, 0.26);
+}
+.np-col-header.np-col-strong .np-col-label,
+.np-col-header.np-col-safe .np-col-label {
+    position: relative;
+    z-index: 1;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.08rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
     color: #fff;
-    font-size: 1.2rem;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
 }
-.np-col-header.np-col-strong .np-col-score-label { color: rgba(255,255,255,0.65); }
+.np-col-header.np-col-strong .np-col-score-label,
+.np-col-header.np-col-safe .np-col-score-label {
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset;
+}
 
-/* Safe Buy and others */
-.np-col-header.np-col-safe   .np-col-label { color: var(--np-safe);   }
+/* Watch / Avoid — unchanged newspaper style */
 .np-col-header.np-col-watch  .np-col-label { color: var(--np-watch);  }
 .np-col-header.np-col-danger .np-col-label { color: var(--np-danger); }
 .np-col-score-label {
@@ -1008,23 +1055,104 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
 }
 .rank-row:nth-child(even)          { background: rgba(201,162,39,0.05); }
 .rank-row:hover                    { background: var(--gold-light); }
-/* Strong Buy rows get a subtle green tint */
+/* Tier-tinted row bands */
 .rank-table-strong .rank-row:nth-child(even) { background: rgba(45,106,63,0.05); }
-.rank-table-strong .rank-row:hover           { background: rgba(45,106,63,0.10); }
-.rank-table-strong .rr-code                  { font-size: 0.88rem; }
+.rank-table-strong .rank-row:hover           { background: rgba(45,106,63,0.11); }
+.rank-table-safe .rank-row:nth-child(even)   { background: rgba(26,77,107,0.05); }
+.rank-table-safe .rank-row:hover             { background: rgba(26,77,107,0.10); }
+.rank-table-watch .rank-row:nth-child(even) { background: rgba(122,92,0,0.06); }
+.rank-table-watch .rank-row:hover            { background: rgba(122,92,0,0.12); }
+.rank-table-avoid .rank-row:nth-child(even) { background: rgba(139,32,32,0.05); }
+.rank-table-avoid .rank-row:hover            { background: rgba(139,32,32,0.10); }
 .rr-rank, .rr-code, .rr-company, .rr-score {
     display: table-cell;
     vertical-align: middle;
-    padding: 7px 6px;
+    padding: 9px 8px;
     border-bottom: 1px solid #EDE3D0;
 }
-.rr-rank    { font-size: 0.62rem; color: var(--ink-muted); text-align: right; white-space: nowrap; width: 1%; }
-.rr-code    { font-size: 0.8rem; font-weight: 700; color: var(--ink); letter-spacing: 0.5px; white-space: nowrap; width: 1%; padding-right: 12px; }
-.rr-company { width: 100%; padding-left: 8px; border-left: 1px solid #EDE3D0; }
-.rr-sector  { font-size: 0.57rem; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
-.rr-score   { font-size: 0.8rem; font-weight: 700; text-align: right; white-space: nowrap; width: 1%; padding-left: 12px; }
-.rr-score-top    { color: var(--np-strong); font-size: 0.92rem; }
-.rr-score-mid    { color: var(--np-safe); font-size: 0.8rem; }
+.rr-rank    { font-size: 0.74rem; color: var(--ink-muted); text-align: right; white-space: nowrap; width: 1%; padding-right: 4px; }
+.rr-code    { width: 1%; white-space: nowrap; padding-right: 14px; vertical-align: middle; }
+/* Trading code pill — shared shape; color system per tier */
+.rr-ticker-pill {
+    display: inline-block;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 4px;
+    line-height: 1.2;
+}
+.rank-table-strong .rr-ticker-pill {
+    color: var(--np-strong);
+    background: linear-gradient(165deg, rgba(45,106,63,0.14) 0%, rgba(45,106,63,0.26) 100%);
+    border: 1px solid rgba(45,106,63,0.5);
+    box-shadow: 0 1px 2px rgba(45,106,63,0.12);
+}
+.rank-table-safe .rr-ticker-pill {
+    color: var(--np-safe);
+    background: linear-gradient(165deg, rgba(26,77,107,0.1) 0%, rgba(26,77,107,0.2) 100%);
+    border: 1px solid rgba(26,77,107,0.45);
+    box-shadow: 0 1px 2px rgba(26,77,107,0.08);
+}
+.rank-table-watch .rr-ticker-pill {
+    color: var(--np-watch);
+    background: linear-gradient(165deg, rgba(122,92,0,0.12) 0%, rgba(122,92,0,0.22) 100%);
+    border: 1px dashed rgba(122,92,0,0.55);
+    border-radius: 6px;
+}
+.rank-table-avoid .rr-ticker-pill {
+    color: var(--np-danger);
+    background: rgba(139,32,32,0.09);
+    border: 1px solid rgba(139,32,32,0.4);
+    border-left: 3px solid var(--np-danger);
+    border-radius: 2px 5px 5px 2px;
+}
+/* Middle cell: fill row; indicators centered as a group */
+.rr-company    {
+    width: 100%;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-left: 1px solid #EDE3D0;
+    text-align: center;
+}
+.rr-indicators {
+    display: grid;
+    grid-template-columns: 1fr min-content 1fr min-content 1fr;
+    align-items: center;
+    justify-items: center;
+    column-gap: 20px;
+    row-gap: 4px;
+    width: 100%;
+    line-height: 1.35;
+}
+.rr-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 6px;
+    min-width: 0;
+    width: 100%;
+}
+.rr-ltp        { font-size: 0.76rem; color: var(--ink-muted); }
+.rr-sep        {
+    font-size: 0.68rem;
+    color: var(--ink-muted);
+    opacity: 0.85;
+    line-height: 1;
+    align-self: center;
+}
+.rr-chg        { font-size: 0.74rem; font-weight: 600; white-space: nowrap; }
+.rr-chg-up     { color: #4CAF7D; }
+.rr-chg-dn     { color: #D45B5B; }
+.rr-chg-flat   { color: var(--ink-muted); }
+.rr-eps        { font-size: 0.74rem; font-weight: 600; white-space: nowrap; }
+.rr-div        { font-size: 0.74rem; color: var(--ink-muted); white-space: nowrap; }
+.rr-score   { font-size: 0.92rem; font-weight: 700; text-align: right; white-space: nowrap; width: 1%; padding-left: 14px; }
+.rr-score-top    { color: var(--np-strong); font-size: 1.05rem; }
+.rr-score-mid    { color: var(--np-safe); font-size: 0.92rem; }
 .rr-score-watch  { color: var(--np-watch);  }
 .rr-score-danger { color: var(--np-danger); }
 

@@ -1,3 +1,4 @@
+import html
 import streamlit as st
 from datetime import datetime, date as _date
 
@@ -88,12 +89,66 @@ def render_homepage():
     def rank_rows_html(subset, score_cls, table_cls=""):
         rows = []
         for i, (_, r) in enumerate(subset.iterrows(), 1):
+            code = r["trading_code"]
+            price_info = prices_map.get(code) or {}
+
+            # Price + day change
+            ltp = r.get("ltp") or price_info.get("ltp")
+            chg = price_info.get("change_pct")
+
+            # EPS YoY
+            eps_yoy = r.get("eps_yoy_pct")
+            if isinstance(eps_yoy, float) and (eps_yoy != eps_yoy):  # NaN check
+                eps_yoy = None
+
+            # Div yield
+            div_yield = r.get("div_yield_pct")
+            if isinstance(div_yield, float) and (div_yield != div_yield):
+                div_yield = None
+
+            # Three fixed columns + separators so dots line up across rows
+            price_inner = ""
+            if ltp is not None:
+                price_inner = f'<span class="rr-ltp">৳{ltp:,.1f}</span>'
+                if chg is not None:
+                    if chg > 0:
+                        price_inner += f'<span class="rr-chg rr-chg-up">&#9650;{chg:.1f}%</span>'
+                    elif chg < 0:
+                        price_inner += f'<span class="rr-chg rr-chg-dn">&#9660;{abs(chg):.1f}%</span>'
+                    else:
+                        price_inner += '<span class="rr-chg rr-chg-flat">0.0%</span>'
+
+            eps_inner = ""
+            if eps_yoy is not None:
+                capped = min(abs(eps_yoy), 999)
+                if eps_yoy > 0:
+                    eps_inner = f'<span class="rr-eps rr-chg-up">EPS &#9650;{capped:.0f}%</span>'
+                elif eps_yoy < 0:
+                    eps_inner = f'<span class="rr-eps rr-chg-dn">EPS &#9660;{capped:.0f}%</span>'
+                else:
+                    eps_inner = '<span class="rr-eps rr-chg-flat">EPS 0%</span>'
+
+            div_inner = ""
+            if div_yield is not None:
+                div_inner = f'<span class="rr-div">Dividend yield {div_yield:.1f}%</span>'
+
+            sep = '<span class="rr-sep" aria-hidden="true">&middot;</span>'
+            indicators_html = (
+                f'<div class="rr-slot rr-slot-price">{price_inner}</div>'
+                f"{sep}"
+                f'<div class="rr-slot rr-slot-eps">{eps_inner}</div>'
+                f"{sep}"
+                f'<div class="rr-slot rr-slot-div">{div_inner}</div>'
+            )
+
+            code_esc = html.escape(str(code))
+
             rows.append(
-                f'<a class="rank-row" href="?code={r["trading_code"]}" target="_self">'
+                f'<a class="rank-row" href="?code={code}" target="_self">'
                 f'<span class="rr-rank">{i}</span>'
-                f'<span class="rr-code">{r["trading_code"]}</span>'
+                f'<span class="rr-code"><span class="rr-ticker-pill">{code_esc}</span></span>'
                 f'<div class="rr-company">'
-                f'<span class="rr-sector">{r["sector"]}</span>'
+                f'<div class="rr-indicators">{indicators_html}</div>'
                 f'</div>'
                 f'<span class="rr-score {score_cls}">{r["score"]:.1f}</span>'
                 f'</a>'
@@ -136,31 +191,38 @@ def render_homepage():
         '<span class="np-col-label">Safe Buy</span>'
         '<span class="np-col-score-label">Score 55–74</span>'
         '</div>',
-        "rr-score-mid", "safe_more",
+        "rr-score-mid", "safe_more", "rank-table-safe",
     )
 
-    # Watch & Avoid — collapsible
-    if not watch_df.empty or not avoid_df.empty:
-        with st.expander(f"Watch ({len(watch_df)}) & Avoid ({len(avoid_df)})", expanded=False):
-            col_w, col_a = st.columns(2)
-            with col_w:
-                st.markdown(
-                    '<div class="np-col-header np-col-watch">'
-                    '<span class="np-col-label">Watch</span>'
-                    '<span class="np-col-score-label">Score 35–54</span>'
-                    '</div>',
-                    unsafe_allow_html=True,
-                )
-                st.markdown(rank_rows_html(watch_df, "rr-score-watch"), unsafe_allow_html=True)
-            with col_a:
-                st.markdown(
-                    '<div class="np-col-header np-col-danger">'
-                    '<span class="np-col-label">Avoid</span>'
-                    '<span class="np-col-score-label">Score &lt; 35</span>'
-                    '</div>',
-                    unsafe_allow_html=True,
-                )
-                st.markdown(rank_rows_html(avoid_df, "rr-score-danger"), unsafe_allow_html=True)
+    # Watch — own expander
+    if not watch_df.empty:
+        with st.expander(f"Watch ({len(watch_df)})", expanded=False):
+            st.markdown(
+                '<div class="np-col-header np-col-watch">'
+                '<span class="np-col-label">Watch</span>'
+                '<span class="np-col-score-label">Score 35–54</span>'
+                '</div>',
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                rank_rows_html(watch_df, "rr-score-watch", "rank-table-watch"),
+                unsafe_allow_html=True,
+            )
+
+    # Avoid — separate expander
+    if not avoid_df.empty:
+        with st.expander(f"Avoid ({len(avoid_df)})", expanded=False):
+            st.markdown(
+                '<div class="np-col-header np-col-danger">'
+                '<span class="np-col-label">Avoid</span>'
+                '<span class="np-col-score-label">Score &lt; 35</span>'
+                '</div>',
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                rank_rows_html(avoid_df, "rr-score-danger", "rank-table-avoid"),
+                unsafe_allow_html=True,
+            )
 
     # --- Section rule ---
     st.markdown(
