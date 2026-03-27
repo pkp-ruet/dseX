@@ -114,7 +114,7 @@ def render_detail_page(trading_code):
         return f"{prefix}{v:{fmt}}{suffix}"
 
     # ── BACK button ─────────────────────────────────────────────────────── #
-    if st.button("<< BACK"):
+    if st.button("<< BACK", type="primary"):
         st.query_params.clear()
         st.rerun()
 

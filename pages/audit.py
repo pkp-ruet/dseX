@@ -8,7 +8,7 @@ def render_audit_page():
 
     db = get_mongo_db()
 
-    if st.button("<< BACK"):
+    if st.button("<< BACK", type="primary"):
         st.query_params.clear()
         st.rerun()
 

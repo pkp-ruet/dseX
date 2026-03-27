@@ -172,6 +172,142 @@ code {
     color: var(--np-strong) !important;
 }
 
+/* Watch / Avoid — HTML <details>; same vibe as np-col Strong/Safe/Watch/Avoid (gradient + glass) */
+details.dsex-exp {
+    margin: 0 0 14px 0;
+    border-radius: 14px;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+    border: none;
+}
+details.dsex-exp-watch {
+    box-shadow: 0 6px 24px rgba(122, 92, 0, 0.24);
+    background: linear-gradient(180deg, #ffffff 0%, #faf8f3 100%);
+}
+details.dsex-exp-avoid {
+    box-shadow: 0 6px 24px rgba(139, 32, 32, 0.24);
+    background: linear-gradient(180deg, #ffffff 0%, #faf6f6 100%);
+}
+details.dsex-exp > summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    padding: 16px 18px;
+    cursor: pointer;
+    list-style: none;
+    font-family: 'Inter', sans-serif;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    transition: filter 0.15s ease;
+}
+details.dsex-exp > summary::-webkit-details-marker {
+    display: none;
+}
+details.dsex-exp > summary::marker {
+    display: none;
+    content: '';
+}
+/* Shine overlay (matches .np-col-header::before) */
+details.dsex-exp-watch > summary::before,
+details.dsex-exp-avoid > summary::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 58%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+}
+details.dsex-exp-watch > summary {
+    background: linear-gradient(125deg, #4a3a06 0%, var(--np-watch) 46%, #c9a227 100%);
+}
+details.dsex-exp-watch > summary:hover {
+    filter: brightness(1.05);
+}
+details.dsex-exp-avoid > summary {
+    background: linear-gradient(125deg, #3d1214 0%, var(--np-danger) 46%, #c04044 100%);
+}
+details.dsex-exp-avoid > summary:hover {
+    filter: brightness(1.05);
+}
+details.dsex-exp > summary > span {
+    position: relative;
+    z-index: 1;
+}
+details.dsex-exp .dsex-exp-title {
+    font-size: 1.08rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+details.dsex-exp .dsex-exp-sep {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.55);
+    user-select: none;
+}
+/* Glass chip — same as .np-col-score-label */
+details.dsex-exp .dsex-exp-pill {
+    display: inline-block;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 7px 14px;
+    border-radius: 999px;
+    color: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset;
+}
+details.dsex-exp .dsex-exp-count {
+    font-size: 0.72rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.06em;
+    margin-left: auto;
+    color: rgba(255, 255, 255, 0.92);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+details.dsex-exp > summary::after {
+    content: '▸';
+    position: relative;
+    z-index: 1;
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-left: 4px;
+    color: rgba(255, 255, 255, 0.88);
+    transition: transform 0.2s ease;
+}
+details.dsex-exp[open] > summary::after {
+    transform: rotate(90deg);
+}
+details.dsex-exp:not([open]) > summary {
+    border-radius: 14px;
+    border-bottom: none !important;
+}
+details.dsex-exp[open] > summary {
+    border-radius: 14px 14px 0 0;
+}
+details.dsex-exp-watch .dsex-exp-body {
+    background: linear-gradient(180deg, #ffffff 0%, #faf8f3 100%);
+    border-top: 1px solid rgba(202, 165, 60, 0.25);
+}
+details.dsex-exp-avoid .dsex-exp-body {
+    background: linear-gradient(180deg, #ffffff 0%, #faf6f6 100%);
+    border-top: 1px solid rgba(248, 113, 113, 0.25);
+}
+details.dsex-exp .dsex-exp-body .rank-table {
+    margin-bottom: 0;
+}
+
 /* --- Reduce Streamlit top padding --- */
 .block-container { padding-top: 2rem !important; }
 header[data-testid="stHeader"] { height: 0; min-height: 0; }
@@ -1559,27 +1695,60 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
 .rank-table-watch { box-shadow: 0 8px 26px rgba(122, 92, 0, 0.09); }
 .rank-table-avoid { box-shadow: 0 8px 26px rgba(139, 32, 32, 0.09); }
 
-/* Show more / less toggle button */
+/* Show more / less — default warm yellow (all secondary pills) */
 div[data-testid="stButton"] button[kind="secondary"] {
-    background: rgba(255, 255, 255, 0.7) !important;
-    border: 1px solid rgba(212, 180, 131, 0.35) !important;
+    background: #fffbeb !important;
+    border: 1px solid #fde68a !important;
     border-radius: 999px !important;
-    color: var(--ink-2) !important;
+    color: #713f12 !important;
     font-size: 0.68rem !important;
     letter-spacing: 0.08em !important;
     font-weight: 600 !important;
     padding: 10px 18px !important;
     width: 100% !important;
-    box-shadow: 0 2px 10px rgba(26, 18, 8, 0.05) !important;
+    box-shadow: 0 2px 10px rgba(251, 191, 36, 0.18) !important;
     margin-top: 6px !important;
-    transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease !important;
 }
 div[data-testid="stButton"] button[kind="secondary"]:hover {
-    background: var(--gold-light) !important;
-    color: var(--ink) !important;
-    border-color: var(--gold) !important;
-    box-shadow: 0 4px 16px rgba(154, 118, 16, 0.15) !important;
+    background: #fef3c7 !important;
+    color: #422006 !important;
+    border-color: #fbbf24 !important;
+    box-shadow: 0 4px 16px rgba(251, 191, 36, 0.22) !important;
 }
+
+/* Tier overrides — distinct yellow shades after each rank table */
+div[data-testid="element-container"]:has(.rank-table-strong)
+    + div[data-testid="element-container"]
+    button[kind="secondary"] {
+    background: #fffbeb !important;
+    border-color: #fcd34d !important;
+    color: #713f12 !important;
+    box-shadow: 0 2px 10px rgba(251, 191, 36, 0.22) !important;
+}
+div[data-testid="element-container"]:has(.rank-table-strong)
+    + div[data-testid="element-container"]
+    button[kind="secondary"]:hover {
+    background: #fef3c7 !important;
+    border-color: #f59e0b !important;
+}
+
+div[data-testid="element-container"]:has(.rank-table-safe)
+    + div[data-testid="element-container"]
+    button[kind="secondary"] {
+    background: #fefce8 !important;
+    border-color: #fde047 !important;
+    color: #713f12 !important;
+    box-shadow: 0 2px 10px rgba(250, 204, 21, 0.2) !important;
+}
+div[data-testid="element-container"]:has(.rank-table-safe)
+    + div[data-testid="element-container"]
+    button[kind="secondary"]:hover {
+    background: #fef9c3 !important;
+    border-color: #facc15 !important;
+    color: #422006 !important;
+}
+
 </style>
 """
 

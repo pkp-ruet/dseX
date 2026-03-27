@@ -151,7 +151,8 @@ def render_homepage():
     avoid_df  = scored[scored["score"] < 35]
 
     def render_tier_col(df, header_html, score_cls, state_key, table_cls=""):
-        st.markdown(header_html, unsafe_allow_html=True)
+        if header_html:
+            st.markdown(header_html, unsafe_allow_html=True)
         if df.empty:
             st.markdown('<p style="font-size:0.75rem;color:var(--ink-muted);padding:12px 6px">None at this time.</p>', unsafe_allow_html=True)
             return
@@ -183,35 +184,42 @@ def render_homepage():
         "rr-score-mid", "safe_more", "rank-table-safe",
     )
 
-    # Watch — own expander
+    # Watch / Avoid — native <details> (reliable yellow/red styling; full list, no extra expander)
     if not watch_df.empty:
-        with st.expander(f"Watch ({len(watch_df)})", expanded=False):
-            st.markdown(
-                '<div class="np-col-header np-col-watch">'
-                '<span class="np-col-label">Watch</span>'
-                '<span class="np-col-score-label">Score 35–54</span>'
-                '</div>',
-                unsafe_allow_html=True,
-            )
-            st.markdown(
-                rank_rows_html(watch_df, "rr-score-watch", "rank-table-watch"),
-                unsafe_allow_html=True,
-            )
+        nw = len(watch_df)
+        w_co = "company" if nw == 1 else "companies"
+        w_tbl = rank_rows_html(watch_df, "rr-score-watch", "rank-table-watch")
+        st.markdown(
+            f'<details class="dsex-exp dsex-exp-watch">'
+            f'<summary>'
+            f'<span class="dsex-exp-title">Watch</span>'
+            f'<span class="dsex-exp-sep">·</span>'
+            f'<span class="dsex-exp-pill">Score 35–54</span>'
+            f'<span class="dsex-exp-sep">·</span>'
+            f'<span class="dsex-exp-count">{nw} {w_co}</span>'
+            f"</summary>"
+            f'<div class="dsex-exp-body">{w_tbl}</div>'
+            f"</details>",
+            unsafe_allow_html=True,
+        )
 
-    # Avoid — separate expander
     if not avoid_df.empty:
-        with st.expander(f"Avoid ({len(avoid_df)})", expanded=False):
-            st.markdown(
-                '<div class="np-col-header np-col-danger">'
-                '<span class="np-col-label">Avoid</span>'
-                '<span class="np-col-score-label">Score &lt; 35</span>'
-                '</div>',
-                unsafe_allow_html=True,
-            )
-            st.markdown(
-                rank_rows_html(avoid_df, "rr-score-danger", "rank-table-avoid"),
-                unsafe_allow_html=True,
-            )
+        na = len(avoid_df)
+        a_co = "company" if na == 1 else "companies"
+        a_tbl = rank_rows_html(avoid_df, "rr-score-danger", "rank-table-avoid")
+        st.markdown(
+            f'<details class="dsex-exp dsex-exp-avoid">'
+            f'<summary>'
+            f'<span class="dsex-exp-title">Avoid</span>'
+            f'<span class="dsex-exp-sep">·</span>'
+            f'<span class="dsex-exp-pill">Score &lt; 35</span>'
+            f'<span class="dsex-exp-sep">·</span>'
+            f'<span class="dsex-exp-count">{na} {a_co}</span>'
+            f"</summary>"
+            f'<div class="dsex-exp-body">{a_tbl}</div>'
+            f"</details>",
+            unsafe_allow_html=True,
+        )
 
     # --- Section rule ---
     st.markdown(
