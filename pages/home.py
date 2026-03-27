@@ -1,6 +1,6 @@
 import html
 import streamlit as st
-from datetime import datetime, date as _date
+from datetime import date as _date
 
 
 def render_homepage():
@@ -47,34 +47,23 @@ def render_homepage():
         .sort_values("score", ascending=False)
         .reset_index(drop=True)
     )
-    total = len(scored)
-
     n_strong = int((scored["score"] >= 75).sum())
     n_safe   = int(((scored["score"] >= 55) & (scored["score"] < 75)).sum())
     n_watch  = int(((scored["score"] >= 35) & (scored["score"] < 55)).sum())
     n_avoid  = int((scored["score"] < 35).sum())
 
-    today_str = datetime.now().strftime("%A, %d %B %Y")
-
     # --- Masthead ---
     st.markdown(
-        f'<div class="masthead">'
+        f'<div class="masthead masthead-modern">'
         f'  <div class="masthead-eyebrow">Dhaka Stock Exchange &nbsp;&middot;&nbsp; Fundamental Intelligence</div>'
         f'  <div class="masthead-title">dseX</div>'
-        f'  <div class="masthead-tagline">We pick, You buy</div>'
-        f'  <div class="masthead-rule-double"></div>'
-        f'  <div class="masthead-subbar">'
-        f'    <span>{today_str}</span>'
-        f'    <span>{total} companies scored</span>'
-        f'  </div>'
-        f'  <div class="masthead-rule-single"></div>'
         f'</div>',
         unsafe_allow_html=True,
     )
 
 # --- Hero insight band ---
     st.markdown(
-        f'<div class="hero-band">'
+        f'<div class="hero-band hero-modern">'
         f'  <div class="hero-pills">'
         f'    <span class="score-pill score-pill-top">{n_strong} Strong Buy</span>'
         f'    <span class="score-pill score-pill-mid">{n_safe} Safe Buy</span>'
@@ -226,7 +215,7 @@ def render_homepage():
 
     # --- Section rule ---
     st.markdown(
-        '<div class="section-rule">'
+        '<div class="section-rule section-rule-modern">'
         '<span class="section-rule-text">Market Intelligence</span>'
         '</div>',
         unsafe_allow_html=True,
@@ -293,7 +282,7 @@ def render_homepage():
     )
 
     st.markdown(
-        f'<div class="info-strip">'
+        f'<div class="info-strip info-strip-modern">'
         f'  <div class="info-col">'
         f'    <div class="info-col-header">Upcoming Declarations</div>'
         f'    {decl_rows}'
@@ -307,7 +296,7 @@ def render_homepage():
     )
 
     st.markdown(
-        f'<div class="how-we-score-box">'
+        f'<div class="how-we-score-box how-we-score-modern">'
         f'  <div class="how-we-score-title">How We Score</div>'
         f'  {method_rows}'
         f'</div>',
@@ -316,7 +305,7 @@ def render_homepage():
 
     # --- Footer ---
     st.markdown(
-        '<div class="np-footer">'
+        '<div class="np-footer np-footer-modern">'
         '  <div>'
         '    <div class="np-footer-brand">dseX</div>'
         '    <div class="np-footer-tagline">Fundamental scoring for Dhaka\'s market</div>'
