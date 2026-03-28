@@ -1412,6 +1412,104 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
 .rr-score-watch  { color: var(--np-watch);  }
 .rr-score-danger { color: var(--np-danger); }
 
+/* Homepage rank rows — stack on narrow viewports (avoid table/grid overlap) */
+@media (max-width: 640px) {
+    .rank-table {
+        display: block;
+        width: 100%;
+    }
+    .rank-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        row-gap: 8px;
+        column-gap: 8px;
+        padding: 10px 10px 12px;
+        border-bottom: 1px solid #EDE3D0;
+        box-sizing: border-box;
+    }
+    .rr-rank,
+    .rr-code,
+    .rr-company,
+    .rr-score {
+        display: block;
+        vertical-align: unset;
+        padding: 0;
+        border-bottom: none;
+    }
+    .rr-rank {
+        order: 1;
+        flex: 0 0 auto;
+        text-align: left;
+        width: auto;
+    }
+    .rr-code {
+        order: 2;
+        flex: 0 1 auto;
+        min-width: 0;
+        padding-right: 0;
+    }
+    .rr-score {
+        order: 3;
+        margin-left: auto;
+        text-align: right;
+        width: auto;
+        padding-left: 8px;
+    }
+    .rr-company {
+        order: 4;
+        flex: 0 0 100%;
+        width: 100%;
+        max-width: 100%;
+        padding-left: 0;
+        padding-right: 0;
+        border-left: none;
+        text-align: left;
+    }
+    .rr-indicators {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 6px 10px;
+        width: 100%;
+        grid-template-columns: unset;
+    }
+    .rr-sep {
+        display: none;
+    }
+    .rr-slot {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        width: auto;
+        min-width: 0;
+    }
+    .rr-chg,
+    .rr-eps,
+    .rr-div {
+        white-space: normal;
+        font-size: 0.7rem;
+    }
+    .rr-ltp {
+        font-size: 0.72rem;
+    }
+    .np-col-header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .np-col-header.np-col-strong,
+    .np-col-header.np-col-safe {
+        gap: 10px;
+    }
+    .hero-modern {
+        padding: 18px 12px 20px;
+    }
+    .hero-modern .score-pill {
+        padding: 7px 14px;
+        font-size: 0.68rem;
+    }
+}
+
 /* Section rule (newspaper section break) */
 .section-rule {
     display: flex;

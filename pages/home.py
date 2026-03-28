@@ -119,7 +119,7 @@ def render_homepage():
 
             div_inner = ""
             if div_yield is not None:
-                div_inner = f'<span class="rr-div">Dividend yield {div_yield:.1f}%</span>'
+                div_inner = f'<span class="rr-div">Div {div_yield:.1f}%</span>'
 
             sep = '<span class="rr-sep" aria-hidden="true">&middot;</span>'
             indicators_html = (
