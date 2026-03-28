@@ -7,6 +7,20 @@ from config import AMARSTOCK_BASE_URL
 logger = logging.getLogger(__name__)
 
 
+def _find_sum(items, report_type, *component_groups):
+    """
+    Sum multiple balance-sheet line items. Each element of component_groups
+    is a tuple of label substrings for one component (passed to _find).
+    Returns the sum of all found components, or None if none are found.
+    """
+    total = None
+    for substrings in component_groups:
+        val = _find(items, report_type, *substrings)
+        if val is not None:
+            total = (total or 0.0) + val
+    return total
+
+
 def _find(items, report_type, *substrings):
     """
     Return the value (l) of the first item in report_type whose k contains
@@ -23,6 +37,46 @@ def _find(items, report_type, *substrings):
             if val is not None:
                 return float(val)
     return None
+
+
+def _find_total_debt(yr, report_type="balance-sheet"):
+    """
+    Interest-bearing debt for D/E: prefer one aggregate line; otherwise sum
+    typical split lines (long/short term, lease, bonds). Omits trade payables.
+    """
+    agg = _find(yr, report_type,
+                "total borrowings",
+                "loans and borrowings",
+                "loans & borrowings",
+                "total debt",
+                "total interest-bearing",
+                "interest bearing borrowings",
+                "interest-bearing borrowings",
+                "borrowings (net)",
+                "net borrowings",
+                "total loans",
+                # DSE issuers often label ST borrowings / overdraft lines this way
+                # (e.g. JAMUNAOIL: "Other Financial Facility")
+                "financial facility",
+                "credit facility",
+                "borrowings")
+    if agg is not None:
+        return agg
+
+    return _find_sum(yr, report_type,
+                     ("long term borrowings", "long-term borrowings",
+                      "long term loan", "long-term loan",
+                      "non-current borrowings", "non current borrowings",
+                      "term loan", "term loans"),
+                     ("short term borrowings", "short-term borrowings",
+                      "short term loan", "short-term loan",
+                      "current borrowings", "current portion of borrowings",
+                      "financial facility", "credit facility",
+                      "bank overdraft", "overdraft"),
+                     ("current portion of long", "current maturity of long",
+                      "maturity of long-term", "portion of long-term debt"),
+                     ("lease liabilit", "lease liability", "right-of-use lease"),
+                     ("sukuk", "bonds payable", "debenture", "medium term note"))
 
 
 class CashFlowScraper(BaseScraper):
@@ -149,16 +203,31 @@ class CashFlowScraper(BaseScraper):
                 "cash in hand",
                 "cash at bank")
 
-            total_debt = _find(yr, "balance-sheet",
-                "total borrowings",
-                "total debt",
-                "total interest-bearing",
-                "borrowings")
+            total_debt = _find_total_debt(yr)
 
-            earning_assets = _find(yr, "balance-sheet",
-                "total earning assets",
-                "interest earning assets",
-                "earning assets")
+            # Loans total is reported as three sub-rows; sum them to avoid
+            # matching the ambiguous "Total" label that also appears for
+            # total assets, total deposits, etc.
+            earning_assets = _find_sum(yr, "balance-sheet",
+                # Loans & Advances — main/corporate book
+                ("loans, cash credits", "loans and advances", "loans & advances",
+                 "general investments"),
+                # Loans & Advances — SME book
+                ("small and medium enterprise",),
+                # Loans & Advances — bills
+                ("bills discounted", "bills purchased"),
+                # Government Securities (Amarstock label: "Government")
+                ("government securities", "govt. securities", "investment in government",
+                 "government"),
+                # Other Securities (Amarstock label: "Others" under investments)
+                ("other securities", "other investments", "investment in other securities",
+                 "others"),
+                # Money at call and short notice
+                ("money at call", "call money"),
+                # Balance with other banks & FIs
+                ("balance with other banks", "balance with banks and",
+                 "balance with other banks & fi", "balance with other banks and fi"),
+            )
 
             # Use income statement interest expense if available, else cash flow proxy
             interest_expense = interest_expense_is or interest_paid

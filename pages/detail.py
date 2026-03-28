@@ -331,24 +331,33 @@ def render_detail_page(trading_code):
                 )
                 sub_vals = [(k, n, score_row.get(k)) for k, n in subs
                             if score_row.get(k) is not None]
-                weakest = min(sub_vals, key=lambda x: x[2]) if sub_vals else None
-                weak_html = (
-                    f'&nbsp;<span style="font-size:0.6rem;color:var(--negative)">'
-                    f'weak: {weakest[1]} {weakest[2]:.1f}/10</span>'
-                    if weakest and weakest[2] < 5 else ""
-                )
                 score_str = f"{fs:.1f}"
+                chips = []
+                for _sk, sn, sv in sub_vals:
+                    chip_color = (
+                        "var(--primary)" if sv >= 7
+                        else "var(--accent)" if sv >= 4
+                        else "var(--negative)"
+                    )
+                    chips.append(
+                        f'<span class="sub-chip" style="border-color:{chip_color};color:{chip_color}">'
+                        f'{sn} <strong>{sv:.1f}</strong></span>'
+                    )
+                sub_chips = f'<div class="sub-chips-row">{"".join(chips)}</div>' if chips else ""
             else:
-                bar_w, bar_color, weak_html, score_str = 0, "var(--border)", "", "--"
+                bar_w, bar_color, score_str, sub_chips = 0, "var(--border)", "--", ""
 
             rows_html.append(
-                f'<div class="factor-row">'
-                f'  <span class="fr-name">{label}{weak_html}</span>'
-                f'  <span class="fr-val" title="{desc}">{score_str}</span>'
-                f'  <div class="fr-bar-wrap">'
-                f'    <div class="fr-bar-fill" style="width:{bar_w}%;background:{bar_color}"></div>'
+                f'<div class="pillar-block">'
+                f'  <div class="factor-row">'
+                f'    <span class="fr-name">{label}</span>'
+                f'    <span class="fr-val" title="{desc}">{score_str}</span>'
+                f'    <div class="fr-bar-wrap">'
+                f'      <div class="fr-bar-fill" style="width:{bar_w}%;background:{bar_color}"></div>'
+                f'    </div>'
+                f'    <span class="fr-pct">{bar_w if has_fs else "--"}</span>'
                 f'  </div>'
-                f'  <span class="fr-pct">{bar_w if has_fs else "--"}</span>'
+                f'  {sub_chips}'
                 f'</div>'
             )
 

@@ -782,6 +782,11 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
 .factor-row .fr-bar-wrap { height: 5px; background: var(--border-light); border-radius: 3px; }
 .factor-row .fr-bar-fill { height: 5px; border-radius: 3px; }
 .factor-row .fr-pct  { color: var(--primary); font-size: 0.7rem; text-align: right; font-weight: 600; }
+.pillar-block { border-bottom: 1px solid var(--border-light); }
+.pillar-block:last-of-type { border-bottom: none; }
+.pillar-block .factor-row { border-bottom: none; padding-bottom: 2px; }
+.sub-chips-row { display: flex; flex-wrap: wrap; gap: 4px; padding: 2px 0 6px 4px; }
+.sub-chip { font-size: 0.6rem; padding: 1px 6px; border: 1px solid; border-radius: 3px; letter-spacing: 0.2px; white-space: nowrap; }
 .score-verdict-text {
     margin-top: 14px;
     padding-top: 12px;

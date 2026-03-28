@@ -95,6 +95,14 @@ def _a2_cash_assets_score(pct: float) -> float:
     return 2.0
 
 
+def _a2_cash_assets_score_bank(pct: float) -> float:
+    """Bank/NBFI-specific thresholds: banks naturally hold 1–4% cash."""
+    if pct > 5:   return 10.0
+    if pct >= 3:  return 7.0
+    if pct >= 1:  return 5.0
+    return 2.0
+
+
 def _a2_gm_score(avg_gm: float, trend: float) -> float:
     # trend and avg_gm in percentage points; stable = |trend| ≤ 1pp
     stable = abs(trend) <= 1.0
@@ -119,6 +127,14 @@ def _a2_rev_vol_score(cv: float) -> float:
     if cv < 5:    return 10.0
     if cv < 10:   return 7.0
     if cv < 20:   return 4.0
+    return 1.0
+
+
+def _a2_rev_vol_score_bank(cv: float) -> float:
+    """Bank/NBFI-specific thresholds: interest-rate cycles cause higher revenue swings."""
+    if cv < 10:   return 10.0
+    if cv < 20:   return 7.0
+    if cv < 35:   return 4.0
     return 1.0
 
 
@@ -249,30 +265,60 @@ def _a2_pillar2(sec_type: str, ext_last5: list[dict]) -> tuple[float, dict]:
         else:
             m2 = 0.0
 
-    # M3: Cash Flow from Operations
-    cfo_vals = [er.get("operating_cf") for er in ext_last5]
-    np_vals  = [er.get("net_profit")  for er in ext_last5]
-    valid_cfos = [c for c in cfo_vals if c is not None]
-    if not valid_cfos:
-        m3 = 0.0
-    else:
-        all_pos = len(valid_cfos) == 5 and all(c > 0 for c in valid_cfos)
-        mostly_pos = sum(1 for c in valid_cfos if c > 0) >= 3
-        if all_pos:
-            valid_nps = [n for n in np_vals if n is not None]
-            np_avg  = sum(valid_nps) / len(valid_nps) if valid_nps else None
-            cfo_avg = sum(valid_cfos) / len(valid_cfos)
-            m3 = 10.0 if (np_avg is not None and cfo_avg > np_avg) else 7.0
-        elif mostly_pos:
+    # M3: CFO quality (GENERAL) or Net Profit trend (BANK/NBFI)
+    # Last 4 fiscal years (extended data often lacks a 5th year on Amarstock).
+    ext_m3 = ext_last5[-4:]
+    np_vals = [er.get("net_profit") for er in ext_m3]
+    if sec_type in ("BANK", "NBFI"):
+        # Replace volatile CFO check with Net Profit earnings-quality proxy
+        valid_nps = [n for n in np_vals if n is not None]
+        pos_count = sum(1 for n in valid_nps if n > 0)
+        if pos_count >= 4:
+            # All four years positive — YoY growth count (max 3 steps)
+            growing = sum(
+                1 for i in range(1, len(valid_nps)) if valid_nps[i] > valid_nps[i - 1]
+            )
+            if growing >= 3:
+                m3 = 10.0
+            elif growing >= 2:
+                m3 = 7.0
+            else:
+                m3 = 4.0
+        elif pos_count >= 3:
             m3 = 4.0
         else:
             m3 = 0.0
+    else:
+        cfo_vals = [er.get("operating_cf") for er in ext_m3]
+        valid_cfos = [c for c in cfo_vals if c is not None]
+        if not valid_cfos:
+            m3 = 0.0
+        else:
+            all_pos = (
+                len(ext_m3) == 4
+                and len(valid_cfos) == 4
+                and all(c > 0 for c in valid_cfos)
+            )
+            mostly_pos = sum(1 for c in valid_cfos if c > 0) >= 3
+            if all_pos:
+                valid_nps_g = [n for n in np_vals if n is not None]
+                np_avg = sum(valid_nps_g) / len(valid_nps_g) if valid_nps_g else None
+                cfo_avg = sum(valid_cfos) / len(valid_cfos)
+                m3 = 10.0 if (np_avg is not None and cfo_avg > np_avg) else 7.0
+            elif mostly_pos:
+                m3 = 4.0
+            else:
+                m3 = 0.0
 
     # M4: Cash & Cash Equivalents / Total Assets
     cash = latest.get("cash_and_equivalents")
     ta   = latest.get("total_assets")
     if cash is not None and ta and ta > 0:
-        m4 = _a2_cash_assets_score(float(cash) / float(ta) * 100)
+        cash_pct = float(cash) / float(ta) * 100
+        if sec_type in ("BANK", "NBFI"):
+            m4 = _a2_cash_assets_score_bank(cash_pct)
+        else:
+            m4 = _a2_cash_assets_score(cash_pct)
     else:
         m4 = 0.0
 
@@ -326,7 +372,10 @@ def _a2_pillar3(sec_type: str, code: str, ext_last5: list[dict],
         ]
         mean_g = sum(growth_rates) / len(growth_rates)
         std_g  = (sum((g - mean_g) ** 2 for g in growth_rates) / len(growth_rates)) ** 0.5
-        m2 = _a2_rev_vol_score(std_g)
+        if sec_type in ("BANK", "NBFI"):
+            m2 = _a2_rev_vol_score_bank(std_g)
+        else:
+            m2 = _a2_rev_vol_score(std_g)
     else:
         m2 = 0.0
 
@@ -441,14 +490,14 @@ def _algo2_scores() -> pd.DataFrame:
     Pillar                   Weight  Metrics
     ─────────────────────────────────────────────────────────────────────────
     1. Business Quality       30%    EPS consistency, EPS CAGR, avg ROE, NPM trend
-    2. Financial Health       20%    D/E, interest coverage, CFO quality, cash ratio
+    2. Financial Health       20%    D/E, interest coverage, CFO quality (4yr), cash ratio
     3. Competitive Moat       20%    Gross margin/NIM, revenue volatility, sector rank
     4. Valuation              15%    P/E vs 5yr avg, P/B vs 5yr avg
     5. Dividend Quality       15%    DPS CAGR, consistency, yield
 
     Insurance companies: excluded.
     Missing data → score 0 (no exceptions).
-    Lookback: 5 years for all metrics.
+    Lookback: 5 years for most metrics; Financial Health CFO / bank NP proxy uses 4 years.
     """
     db = _get_app().get_mongo_db()
 
