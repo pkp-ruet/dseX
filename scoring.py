@@ -39,17 +39,8 @@ def _score(value, anchors):
 
 
 # ---------------------------------------------------------------------------
-# Algorithm 2 — DSE Fundamental Stock Scoring (5-pillar, sector-aware)
+# Algorithm 2 — DSE Fundamental Stock Scoring (5-pillar, unified)
 # ---------------------------------------------------------------------------
-
-def _a2_classify_sector(sector: str) -> str:
-    s = (sector or "").lower()
-    if "bank" in s:
-        return "BANK"
-    if any(x in s for x in ["nbfi", "non-bank", "leasing", "finance"]):
-        return "NBFI"
-    return "GENERAL"
-
 
 def _a2_is_insurance(sector: str) -> bool:
     return "insurance" in (sector or "").lower()
@@ -95,14 +86,6 @@ def _a2_cash_assets_score(pct: float) -> float:
     return 2.0
 
 
-def _a2_cash_assets_score_bank(pct: float) -> float:
-    """Bank/NBFI-specific thresholds: banks naturally hold 1–4% cash."""
-    if pct > 5:   return 10.0
-    if pct >= 3:  return 7.0
-    if pct >= 1:  return 5.0
-    return 2.0
-
-
 def _a2_gm_score(avg_gm: float, trend: float) -> float:
     # trend and avg_gm in percentage points; stable = |trend| ≤ 1pp
     stable = abs(trend) <= 1.0
@@ -113,28 +96,10 @@ def _a2_gm_score(avg_gm: float, trend: float) -> float:
     return 2.0
 
 
-def _a2_nim_score(avg_nim: float, trend: float) -> float:
-    # trend and avg_nim in percentage points; stable = |trend| ≤ 0.5pp
-    stable = abs(trend) <= 0.5
-    if avg_nim > 4 and trend > 0:    return 10.0
-    if avg_nim > 4 and stable:       return 8.0
-    if avg_nim >= 2.5 and trend > 0: return 7.0
-    if avg_nim >= 2.5 and stable:    return 5.0
-    return 2.0
-
-
 def _a2_rev_vol_score(cv: float) -> float:
     if cv < 5:    return 10.0
     if cv < 10:   return 7.0
     if cv < 20:   return 4.0
-    return 1.0
-
-
-def _a2_rev_vol_score_bank(cv: float) -> float:
-    """Bank/NBFI-specific thresholds: interest-rate cycles cause higher revenue swings."""
-    if cv < 10:   return 10.0
-    if cv < 20:   return 7.0
-    if cv < 35:   return 4.0
     return 1.0
 
 
@@ -237,88 +202,58 @@ def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict]) -> tuple[float, di
                    "eps_yoy_pct": eps_yoy}
 
 
-def _a2_pillar2(sec_type: str, ext_last5: list[dict]) -> tuple[float, dict]:
-    """Financial Health: D/E, interest coverage, CFO, cash/assets."""
+def _a2_pillar2(ext_last5: list[dict]) -> tuple[float, dict]:
+    """Financial Health: D/E, interest coverage, CFO (4yr), cash/assets."""
     latest = ext_last5[-1] if ext_last5 else {}
 
     # M1: Debt-to-Equity
-    if sec_type in ("BANK", "NBFI"):
-        m1 = 5.0
+    debt = latest.get("total_debt")
+    eq   = latest.get("total_equity")
+    if debt is not None and eq and eq > 0:
+        m1 = _a2_de_score(float(debt) / float(eq))
     else:
-        debt = latest.get("total_debt")
-        eq   = latest.get("total_equity")
-        if debt is not None and eq and eq > 0:
-            m1 = _a2_de_score(float(debt) / float(eq))
-        else:
-            m1 = 0.0
+        m1 = 0.0
 
     # M2: Interest Coverage Ratio
-    if sec_type in ("BANK", "NBFI"):
-        m2 = 5.0
+    ebit     = latest.get("ebit")
+    int_exp  = latest.get("interest_expense")
+    if ebit is not None and int_exp and int_exp > 0:
+        m2 = _a2_ic_score(ebit / int_exp)
+    elif ebit is not None and ebit > 0:
+        m2 = 10.0  # profitable with no interest → debt-free bonus
     else:
-        ebit     = latest.get("ebit")
-        int_exp  = latest.get("interest_expense")
-        if ebit is not None and int_exp and int_exp > 0:
-            m2 = _a2_ic_score(ebit / int_exp)
-        elif ebit is not None and ebit > 0:
-            m2 = 10.0  # profitable with no interest → debt-free bonus
-        else:
-            m2 = 0.0
+        m2 = 0.0
 
-    # M3: CFO quality (GENERAL) or Net Profit trend (BANK/NBFI)
-    # Last 4 fiscal years (extended data often lacks a 5th year on Amarstock).
+    # M3: CFO quality — last 4 fiscal years (extended data often lacks a 5th year on Amarstock).
     ext_m3 = ext_last5[-4:]
     np_vals = [er.get("net_profit") for er in ext_m3]
-    if sec_type in ("BANK", "NBFI"):
-        # Replace volatile CFO check with Net Profit earnings-quality proxy
-        valid_nps = [n for n in np_vals if n is not None]
-        pos_count = sum(1 for n in valid_nps if n > 0)
-        if pos_count >= 4:
-            # All four years positive — YoY growth count (max 3 steps)
-            growing = sum(
-                1 for i in range(1, len(valid_nps)) if valid_nps[i] > valid_nps[i - 1]
-            )
-            if growing >= 3:
-                m3 = 10.0
-            elif growing >= 2:
-                m3 = 7.0
-            else:
-                m3 = 4.0
-        elif pos_count >= 3:
+    cfo_vals = [er.get("operating_cf") for er in ext_m3]
+    valid_cfos = [c for c in cfo_vals if c is not None]
+    if not valid_cfos:
+        m3 = 0.0
+    else:
+        all_pos = (
+            len(ext_m3) == 4
+            and len(valid_cfos) == 4
+            and all(c > 0 for c in valid_cfos)
+        )
+        mostly_pos = sum(1 for c in valid_cfos if c > 0) >= 3
+        if all_pos:
+            valid_nps_g = [n for n in np_vals if n is not None]
+            np_avg = sum(valid_nps_g) / len(valid_nps_g) if valid_nps_g else None
+            cfo_avg = sum(valid_cfos) / len(valid_cfos)
+            m3 = 10.0 if (np_avg is not None and cfo_avg > np_avg) else 7.0
+        elif mostly_pos:
             m3 = 4.0
         else:
             m3 = 0.0
-    else:
-        cfo_vals = [er.get("operating_cf") for er in ext_m3]
-        valid_cfos = [c for c in cfo_vals if c is not None]
-        if not valid_cfos:
-            m3 = 0.0
-        else:
-            all_pos = (
-                len(ext_m3) == 4
-                and len(valid_cfos) == 4
-                and all(c > 0 for c in valid_cfos)
-            )
-            mostly_pos = sum(1 for c in valid_cfos if c > 0) >= 3
-            if all_pos:
-                valid_nps_g = [n for n in np_vals if n is not None]
-                np_avg = sum(valid_nps_g) / len(valid_nps_g) if valid_nps_g else None
-                cfo_avg = sum(valid_cfos) / len(valid_cfos)
-                m3 = 10.0 if (np_avg is not None and cfo_avg > np_avg) else 7.0
-            elif mostly_pos:
-                m3 = 4.0
-            else:
-                m3 = 0.0
 
     # M4: Cash & Cash Equivalents / Total Assets
     cash = latest.get("cash_and_equivalents")
     ta   = latest.get("total_assets")
     if cash is not None and ta and ta > 0:
         cash_pct = float(cash) / float(ta) * 100
-        if sec_type in ("BANK", "NBFI"):
-            m4 = _a2_cash_assets_score_bank(cash_pct)
-        else:
-            m4 = _a2_cash_assets_score(cash_pct)
+        m4 = _a2_cash_assets_score(cash_pct)
     else:
         m4 = 0.0
 
@@ -326,9 +261,9 @@ def _a2_pillar2(sec_type: str, ext_last5: list[dict]) -> tuple[float, dict]:
     return score, {"p2_de": m1, "p2_ic": m2, "p2_cfo": m3, "p2_cash": m4}
 
 
-def _a2_pillar3(sec_type: str, code: str, ext_last5: list[dict],
+def _a2_pillar3(code: str, ext_last5: list[dict],
                 sector_rank_score: dict[str, float]) -> tuple[float, dict]:
-    """Competitive Moat: gross margin/NIM, revenue volatility, sector rank."""
+    """Competitive Moat: gross margin, revenue volatility, revenue rank (market-wide)."""
 
     def _trend(vals: list[float]) -> float:
         """Avg(last 2) - Avg(first 2); falls back to last-minus-first for < 4 points."""
@@ -338,29 +273,17 @@ def _a2_pillar3(sec_type: str, code: str, ext_last5: list[dict],
             return vals[-1] - vals[0]
         return 0.0
 
-    # M1: Gross Margin (GENERAL) or NIM (BANK/NBFI)
-    if sec_type in ("BANK", "NBFI"):
-        nim_vals = []
-        for er in ext_last5:
-            nii = er.get("net_interest_income")
-            ea  = er.get("earning_assets")
-            if nii is not None and ea is not None and float(ea) > 0:
-                nim_vals.append(float(nii) / float(ea) * 100)
-        if nim_vals:
-            m1 = _a2_nim_score(sum(nim_vals) / len(nim_vals), _trend(nim_vals))
-        else:
-            m1 = 0.0
+    # M1: Gross Margin
+    gm_vals = []
+    for er in ext_last5:
+        gp  = er.get("gross_profit")
+        rev = er.get("revenue")
+        if gp is not None and rev is not None and float(rev) > 0:
+            gm_vals.append(float(gp) / float(rev) * 100)
+    if gm_vals:
+        m1 = _a2_gm_score(sum(gm_vals) / len(gm_vals), _trend(gm_vals))
     else:
-        gm_vals = []
-        for er in ext_last5:
-            gp  = er.get("gross_profit")
-            rev = er.get("revenue")
-            if gp is not None and rev is not None and float(rev) > 0:
-                gm_vals.append(float(gp) / float(rev) * 100)
-        if gm_vals:
-            m1 = _a2_gm_score(sum(gm_vals) / len(gm_vals), _trend(gm_vals))
-        else:
-            m1 = 0.0
+        m1 = 0.0
 
     # M2: Revenue Volatility — std dev of YoY growth rates (%)
     rev_vals = [float(er["revenue"]) for er in ext_last5
@@ -372,14 +295,11 @@ def _a2_pillar3(sec_type: str, code: str, ext_last5: list[dict],
         ]
         mean_g = sum(growth_rates) / len(growth_rates)
         std_g  = (sum((g - mean_g) ** 2 for g in growth_rates) / len(growth_rates)) ** 0.5
-        if sec_type in ("BANK", "NBFI"):
-            m2 = _a2_rev_vol_score_bank(std_g)
-        else:
-            m2 = _a2_rev_vol_score(std_g)
+        m2 = _a2_rev_vol_score(std_g)
     else:
         m2 = 0.0
 
-    # M3: Sector Revenue Rank
+    # M3: Revenue rank (all companies with revenue data, single bucket)
     m3 = sector_rank_score.get(code, 2.0)
 
     score = (m1 + m2 + m3) / 3
@@ -485,19 +405,19 @@ def _a2_pillar5(fin_last5: list[dict], ltp: float | None,
 @st.cache_data(ttl=300)
 def _algo2_scores() -> pd.DataFrame:
     """
-    dseX Fundamental Score (0–100) — 5-pillar sector-aware scoring.
+    dseX Fundamental Score (0–100) — 5-pillar unified scoring (same logic for all sectors).
 
     Pillar                   Weight  Metrics
     ─────────────────────────────────────────────────────────────────────────
     1. Business Quality       30%    EPS consistency, EPS CAGR, avg ROE, NPM trend
     2. Financial Health       20%    D/E, interest coverage, CFO quality (4yr), cash ratio
-    3. Competitive Moat       20%    Gross margin/NIM, revenue volatility, sector rank
+    3. Competitive Moat       20%    Gross margin, revenue volatility, revenue rank
     4. Valuation              15%    P/E vs 5yr avg, P/B vs 5yr avg
     5. Dividend Quality       15%    DPS CAGR, consistency, yield
 
     Insurance companies: excluded.
     Missing data → score 0 (no exceptions).
-    Lookback: 5 years for most metrics; Financial Health CFO / bank NP proxy uses 4 years.
+    Lookback: 5 years for most metrics; Financial Health CFO uses 4 years.
     """
     db = _get_app().get_mongo_db()
 
@@ -540,35 +460,29 @@ def _algo2_scores() -> pd.DataFrame:
     for code in ext_by_code:
         ext_by_code[code].sort(key=lambda x: x["year"])
 
-    # ---- Sector revenue rank (latest revenue per company within sector type) ----
-    latest_rev_by_code: dict[str, float] = {}
+    # ---- Revenue rank (latest revenue per company; single market-wide bucket) ----
+    rev_rank_items: list[tuple[str, float]] = []
     for code, rows in ext_by_code.items():
         for row in reversed(rows):
             rev = row.get("revenue")
             if rev and rev > 0:
-                latest_rev_by_code[code] = float(rev)
+                rev_rank_items.append((code, float(rev)))
                 break
 
-    sector_type_of_code: dict[str, str] = {
-        code: _a2_classify_sector(comp.get("sector", ""))
-        for code, comp in companies.items()
-    }
-    sector_buckets: dict[str, list] = {}
-    for code, rev in latest_rev_by_code.items():
-        st_type = sector_type_of_code.get(code, "GENERAL")
-        sector_buckets.setdefault(st_type, []).append((code, rev))
-
     sector_rank_score: dict[str, float] = {}
-    for st_type, items in sector_buckets.items():
-        items_sorted = sorted(items, key=lambda x: x[1], reverse=True)
-        n = len(items_sorted)
-        for rank_idx, (code, _) in enumerate(items_sorted):
-            pct = (rank_idx + 1) / n
-            if rank_idx == 0:       sr = 10.0
-            elif pct <= 0.25:       sr = 7.0
-            elif pct <= 0.50:       sr = 5.0
-            else:                   sr = 2.0
-            sector_rank_score[code] = sr
+    items_sorted = sorted(rev_rank_items, key=lambda x: x[1], reverse=True)
+    n = len(items_sorted)
+    for rank_idx, (code, _) in enumerate(items_sorted):
+        pct = (rank_idx + 1) / n
+        if rank_idx == 0:
+            sr = 10.0
+        elif pct <= 0.25:
+            sr = 7.0
+        elif pct <= 0.50:
+            sr = 5.0
+        else:
+            sr = 2.0
+        sector_rank_score[code] = sr
 
     prices = _get_app().load_latest_prices()
 
@@ -580,7 +494,6 @@ def _algo2_scores() -> pd.DataFrame:
         face    = comp.get("face_value")
         cat     = (comp.get("market_category") or "").strip().upper()
         sector  = comp.get("sector", "") or ""
-        sec_type = _a2_classify_sector(sector)
         mcap_mn = (ltp * shares / 1e6) if ltp and shares and shares > 0 else None
 
         # Insurance: excluded
@@ -602,8 +515,8 @@ def _algo2_scores() -> pd.DataFrame:
         ext_last5     = ext_rows_all[-5:]
 
         p1, sub1 = _a2_pillar1(fin_rows, ext_last5)
-        p2, sub2 = _a2_pillar2(sec_type, ext_last5)
-        p3, sub3 = _a2_pillar3(sec_type, code, ext_last5, sector_rank_score)
+        p2, sub2 = _a2_pillar2(ext_last5)
+        p3, sub3 = _a2_pillar3(code, ext_last5, sector_rank_score)
         p4, sub4 = _a2_pillar4(fin_rows, ltp)
         p5, sub5 = _a2_pillar5(fin_rows, ltp, face)
 

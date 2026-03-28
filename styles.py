@@ -1086,13 +1086,31 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
     border-radius: 999px;
     box-shadow: none;
 }
-.masthead-modern .masthead-title {
-    font-size: 2.35rem !important;
-    line-height: 1.05;
-    color: var(--ink) !important;
-    letter-spacing: 3px;
-    text-shadow: none;
-    margin-bottom: 0;
+.masthead-modern .masthead-headline {
+    margin-top: 8px;
+    padding: 0 10px;
+    text-align: center;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.masthead-modern .masthead-headline::-webkit-scrollbar {
+    display: none;
+}
+.masthead-modern .masthead-tagline {
+    display: inline-block;
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(0.72rem, 2.05vw, 0.9rem);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #78350f;
+    line-height: 1.45;
+    white-space: nowrap;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.42);
+}
+.masthead-modern .masthead-tagline-sep {
+    opacity: 0.45;
+    font-weight: 600;
 }
 
 /* Hero band */
@@ -1507,6 +1525,10 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
     .hero-modern .score-pill {
         padding: 7px 14px;
         font-size: 0.68rem;
+    }
+    .masthead-modern .masthead-headline {
+        padding-left: 6px;
+        padding-right: 6px;
     }
 }
 

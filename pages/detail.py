@@ -307,7 +307,7 @@ def render_detail_page(trading_code):
             ("p2_health", "Financial Health",  "D/E, interest coverage, CFO quality",
              [("p2_de", "D/E"), ("p2_ic", "Int. Cov."),
               ("p2_cfo", "CFO"), ("p2_cash", "Cash/Assets")]),
-            ("p3_moat",   "Competitive Moat",  "Gross margin/NIM, revenue volatility, sector rank",
+            ("p3_moat",   "Competitive Moat",  "Gross margin, revenue volatility, revenue rank",
              [("p3_margin", "Margin"), ("p3_rev_vol", "Rev. Vol."),
               ("p3_sector_rank", "Sector Rank")]),
             ("p4_val",    "Valuation",         "P/E & P/B vs 5yr avg",

@@ -54,10 +54,15 @@ def render_homepage():
 
     # --- Masthead ---
     st.markdown(
-        f'<div class="masthead masthead-modern">'
-        f'  <div class="masthead-eyebrow">Dhaka Stock Exchange &nbsp;&middot;&nbsp; Fundamental Intelligence</div>'
-        f'  <div class="masthead-title">dseX</div>'
-        f'</div>',
+        '<div class="masthead masthead-modern">'
+        '  <div class="masthead-eyebrow">Dhaka Stock Exchange &nbsp;&middot;&nbsp; Fundamental Intelligence</div>'
+        '  <div class="masthead-headline" role="heading" aria-level="1">'
+        '    <span class="masthead-tagline">'
+        '      Driven by fundamentals<span class="masthead-tagline-sep" aria-hidden="true">&nbsp;&middot;&nbsp;</span>'
+        '      Designed for long-term winners.'
+        '    </span>'
+        '  </div>'
+        '</div>',
         unsafe_allow_html=True,
     )
 
