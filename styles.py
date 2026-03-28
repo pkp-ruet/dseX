@@ -1564,7 +1564,6 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
     padding: 18px 0 20px;
     margin-bottom: 20px;
 }
-@media (max-width: 700px) { .info-strip { grid-template-columns: repeat(2, 1fr); } }
 .info-col {
     padding: 0 18px;
     border-right: 1px solid var(--rule);
@@ -1661,6 +1660,36 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; }
 }
 .info-strip-modern .info-col-row--intel:hover {
     background: rgba(240, 228, 184, 0.35);
+}
+
+/* Stack Market Intelligence; flexible intel row grid (must follow base .info-col rules) */
+@media (max-width: 700px) {
+    .info-strip {
+        grid-template-columns: 1fr;
+    }
+    .info-col {
+        border-right: none;
+        padding-left: 4px;
+        padding-right: 4px;
+    }
+    .info-col:first-child {
+        padding-left: 4px;
+    }
+    .info-col:last-child {
+        padding-right: 4px;
+    }
+    .info-col:not(:last-child) {
+        border-bottom: 1px solid var(--rule);
+        padding-bottom: 18px;
+        margin-bottom: 16px;
+    }
+    .info-strip-modern .info-col:not(:last-child) {
+        border-bottom-color: rgba(212, 180, 131, 0.45);
+    }
+    .info-col-row--intel,
+    .info-strip-modern .info-col-row--intel {
+        grid-template-columns: minmax(0, 1fr) auto auto;
+    }
 }
 
 /* How We Score (below Market Intelligence) */
