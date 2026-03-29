@@ -11,9 +11,6 @@ export default function Navbar() {
           <Link href="/" className="text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">
             Rankings
           </Link>
-          <Link href="/audit" className="text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">
-            Audit
-          </Link>
         </nav>
       </div>
     </header>

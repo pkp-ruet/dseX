@@ -87,26 +87,6 @@ export interface DividendsUpcoming {
   upcoming_record_dates: UpcomingDividend[];
 }
 
-export interface AuditCompanyRow {
-  trading_code: string;
-  company_name: string | null;
-  eps_years: number;
-  profit_years: number;
-  dividend_years: number;
-  nav_years: number;
-  cf_years: number;
-  ebit_years: number;
-  revenue_years: number;
-  news_count: number;
-  has_price: boolean;
-  has_shareholding: boolean;
-}
-
-export interface AuditResponse {
-  summary: { total: number; has_financials: number; has_cf: number; missing_price: number };
-  companies: AuditCompanyRow[];
-}
-
 export interface PricePoint {
   date: string;
   ltp: number | null;
@@ -138,10 +118,6 @@ export async function getCompanyDetail(code: string): Promise<CompanyDetail> {
 
 export async function getDividendsUpcoming(): Promise<DividendsUpcoming> {
   return apiFetch<DividendsUpcoming>("/api/dividends/upcoming", 3600);
-}
-
-export async function getAudit(): Promise<AuditResponse> {
-  return apiFetch<AuditResponse>("/api/audit", 0);
 }
 
 /** Client-side price history fetch (no Next.js cache) */

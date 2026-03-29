@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { getScores, getDividendsUpcoming } from "@/lib/api";
+import Masthead from "@/components/home/Masthead";
 import HeroBand from "@/components/home/HeroBand";
-import TierSection from "@/components/home/TierSection";
+import TierTableSection from "@/components/home/TierTableSection";
+import TierDetailsSection from "@/components/home/TierDetailsSection";
 import MarketIntelStrip from "@/components/home/MarketIntelStrip";
 import HowWeScoreBox from "@/components/home/HowWeScoreBox";
-import SectionLabel from "@/components/ui/SectionLabel";
 
-export const revalidate = 3600; // ISR: rebuild at most once per hour
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "dseX — DSE Stock Rankings & DSEF Scores | Dhaka Stock Exchange",
@@ -52,35 +53,21 @@ export default async function HomePage() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
 
-      {/* Masthead */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-[var(--text)] tracking-tight">dseX</h1>
-        <p className="text-sm text-[var(--text-muted)] mt-1">
-          Driven by fundamentals · Designed for long-term winners
-        </p>
+      <div className="max-w-full min-w-0">
+        <Masthead />
+        <HeroBand counts={counts} />
+
+        <TierTableSection tier="strong_buy" items={tiers.strong_buy} />
+        <TierTableSection tier="safe_buy" items={tiers.safe_buy} />
+
+        <TierDetailsSection tier="watch" items={tiers.watch} />
+        <TierDetailsSection tier="avoid" items={tiers.avoid} />
+
+        {dividends && <MarketIntelStrip data={dividends} />}
+        <HowWeScoreBox />
       </div>
-
-      <HeroBand counts={counts} />
-
-      <SectionLabel>Strong Buy</SectionLabel>
-      <TierSection tier="strong_buy" items={tiers.strong_buy} initialVisible={10} defaultOpen={true} />
-
-      <SectionLabel>Safe Buy</SectionLabel>
-      <TierSection tier="safe_buy" items={tiers.safe_buy} initialVisible={10} defaultOpen={true} />
-
-      <SectionLabel>Watch</SectionLabel>
-      <TierSection tier="watch" items={tiers.watch} initialVisible={5} />
-
-      <SectionLabel>Avoid</SectionLabel>
-      <TierSection tier="avoid" items={tiers.avoid} initialVisible={5} />
-
-      {dividends && <MarketIntelStrip data={dividends} />}
-      <HowWeScoreBox />
     </>
   );
 }
