@@ -125,13 +125,13 @@ def main():
     code = st.query_params.get("code")
     view = st.query_params.get("view")
     if code:
-        from pages.detail import render_detail_page
+        from views.detail import render_detail_page
         render_detail_page(code)
     elif view == "audit":
-        from pages.audit import render_audit_page
+        from views.audit import render_audit_page
         render_audit_page()
     else:
-        from pages.home import render_homepage
+        from views.home import render_homepage
         render_homepage()
 
 
