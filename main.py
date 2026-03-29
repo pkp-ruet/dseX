@@ -153,6 +153,17 @@ def cmd_scrape_all(args):
 
     print("All done.")
 
+    # Trigger Vercel rebuild so the Next.js site reflects fresh data
+    import os
+    hook = os.getenv("VERCEL_DEPLOY_HOOK_URL")
+    if hook:
+        try:
+            import urllib.request
+            urllib.request.urlopen(urllib.request.Request(hook, method="POST"), timeout=10)
+            print("Vercel deploy hook triggered.")
+        except Exception as e:
+            print(f"Warning: Vercel deploy hook failed: {e}")
+
 
 def main():
     setup_logging()
