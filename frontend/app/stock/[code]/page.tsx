@@ -23,8 +23,10 @@ interface PageProps {
 }
 
 export async function generateStaticParams() {
-  const codes = await getAllCodes().catch(() => [] as string[]);
-  return codes.map((code) => ({ code }));
+  // Skip build-time pre-rendering — pages are served via ISR on first request.
+  // Pre-generating 360+ pages during build causes ECONNRESET failures when the
+  // backend (Render free tier) cold-starts under concurrent load.
+  return [] as { code: string }[];
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
