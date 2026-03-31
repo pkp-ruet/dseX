@@ -13,7 +13,12 @@
       "Bash(python main.py scrape-news --code MARICO)",
       "Bash(python main.py scrape-news --code ABBANK)",
       "Bash(python -c \"from scoring import _build_scores_df; print\\(''''OK''''\\)\")",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(npm view:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:vercel.link)",
+      "WebFetch(domain:vercel.com)",
+      "Bash(find:*)"
     ]
   }
 }
