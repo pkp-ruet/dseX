@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getScores, getDividendsUpcoming } from "@/lib/api";
 import Masthead from "@/components/home/Masthead";
+import SearchBar from "@/components/home/SearchBar";
 import HeroBand from "@/components/home/HeroBand";
 import TierTableSection from "@/components/home/TierTableSection";
 import TierDetailsSection from "@/components/home/TierDetailsSection";
@@ -51,12 +52,20 @@ export default async function HomePage() {
 
   const { tiers, counts } = scores;
 
+  const allCompanies = [
+    ...tiers.strong_buy,
+    ...tiers.safe_buy,
+    ...tiers.watch,
+    ...tiers.avoid,
+  ].map((c) => ({ trading_code: c.trading_code, company_name: c.company_name }));
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
 
       <div className="max-w-full min-w-0">
         <Masthead />
+        <SearchBar companies={allCompanies} />
         <HeroBand counts={counts} />
 
         <TierTableSection tier="strong_buy" items={tiers.strong_buy} />

@@ -145,6 +145,7 @@ class CashFlowScraper(BaseScraper):
                 "operating profit",
                 "profit from operations",
                 "operating profit/(loss)",
+                "income from operation",
                 "ebit")
 
             revenue = _find(yr, "income-statement",

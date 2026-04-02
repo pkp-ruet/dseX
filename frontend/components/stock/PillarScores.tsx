@@ -19,22 +19,24 @@ const PILLARS = [
   {
     key: "p2_health",
     label: "Financial Health",
-    desc: "D/E, interest coverage, CFO quality, cash ratio",
+    desc: "D/E, interest coverage, CFO quality, cash ratio, ownership",
     subs: [
       { key: "p2_de", label: "D/E" },
       { key: "p2_ic", label: "Int. Coverage" },
       { key: "p2_cfo", label: "CFO Quality" },
       { key: "p2_cash", label: "Cash/Assets" },
+      { key: "p2_own", label: "Ownership" },
     ],
   },
   {
     key: "p3_moat",
     label: "Competitive Moat",
-    desc: "Gross margin, revenue volatility, revenue rank",
+    desc: "Gross margin, revenue stability, sector rank, reinvestment",
     subs: [
       { key: "p3_margin", label: "Gross Margin" },
       { key: "p3_rev_vol", label: "Rev. Stability" },
-      { key: "p3_sector_rank", label: "Revenue Rank" },
+      { key: "p3_sector_rank", label: "Sector Rank" },
+      { key: "p3_capex", label: "CapEx" },
     ],
   },
   {

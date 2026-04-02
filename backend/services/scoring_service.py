@@ -11,6 +11,7 @@ from typing import Optional
 from backend.services.db_service import (
     get_db, load_latest_prices, load_all_company_codes,
 )
+from utils.sector import normalize_sector
 
 
 
@@ -43,43 +44,52 @@ def _a2_is_insurance(sector: str) -> bool:
 
 
 def _a2_eps_cagr_score(cagr_pct: float) -> float:
-    if cagr_pct > 15:   return 10.0
-    if cagr_pct >= 10:  return 8.0
-    if cagr_pct >= 7:   return 6.0
-    if cagr_pct >= 3:   return 4.0
-    if cagr_pct >= 0:   return 2.0
-    return 0.0
+    return _score(cagr_pct, [(-5, 0), (0, 2), (3, 4), (7, 6), (10, 8), (15, 10)])
 
 
 def _a2_roe_score(roe_pct: float) -> float:
-    if roe_pct > 20:   return 10.0
-    if roe_pct >= 15:  return 8.0
-    if roe_pct >= 10:  return 6.0
-    if roe_pct >= 5:   return 3.0
-    return 0.0
+    return _score(roe_pct, [(0, 0), (5, 3), (10, 6), (15, 8), (20, 10)])
 
 
-def _a2_de_score(de: float) -> float:
-    if de < 0.3:   return 10.0
-    if de < 0.6:   return 8.0
-    if de < 1.0:   return 6.0
-    if de < 1.5:   return 3.0
-    return 0.0
+def _a2_de_score(de: float, is_financial: bool = False) -> float:
+    if is_financial:
+        return _score(de, [(0, 10), (5, 10), (8, 7), (12, 4), (16, 0)])
+    return _score(de, [(0, 10), (0.3, 10), (0.6, 8), (1.0, 6), (1.5, 3), (2.0, 0)])
 
 
 def _a2_ic_score(ic: float) -> float:
-    if ic > 10:    return 10.0
-    if ic >= 5:    return 8.0
-    if ic >= 3:    return 5.0
-    if ic >= 1.5:  return 2.0
-    return 0.0
+    return _score(ic, [(0, 0), (1.5, 2), (3, 5), (5, 8), (10, 10)])
 
 
 def _a2_cash_assets_score(pct: float) -> float:
-    if pct > 15:   return 10.0
-    if pct >= 10:  return 7.0
-    if pct >= 5:   return 5.0
-    return 2.0
+    return _score(pct, [(0, 2), (5, 5), (10, 7), (15, 10)])
+
+
+def _a2_ownership_score(sponsor_pct: float, institute_pct: float, foreign_pct: float) -> float:
+    """Score ownership quality: balanced sponsor + institutional/foreign presence."""
+    score = 0.0
+    # Sponsor: sweet spot 30-60%, penalize <15% (weak) or >75% (entrenched)
+    if 30 <= sponsor_pct <= 60:
+        score += 5.0
+    elif 20 <= sponsor_pct < 30 or 60 < sponsor_pct <= 75:
+        score += 3.0
+    else:
+        score += 1.0
+    # Institutional: higher is better (smart money confidence)
+    if institute_pct >= 20:
+        score += 3.0
+    elif institute_pct >= 10:
+        score += 2.0
+    else:
+        score += 0.5
+    # Foreign: any meaningful presence is a positive signal
+    if foreign_pct >= 10:
+        score += 2.0
+    elif foreign_pct >= 3:
+        score += 1.0
+    else:
+        score += 0.5
+    return min(score, 10.0)
 
 
 def _a2_gm_score(avg_gm: float, trend: float) -> float:
@@ -91,34 +101,35 @@ def _a2_gm_score(avg_gm: float, trend: float) -> float:
     return 2.0
 
 
-def _a2_rev_vol_score(cv: float) -> float:
-    if cv < 5:    return 10.0
-    if cv < 10:   return 7.0
-    if cv < 20:   return 4.0
+def _a2_rev_vol_score(std_g: float, mean_g: float) -> float:
+    # Penalize declining revenue regardless of stability
+    if mean_g < 0:
+        return 1.0
+    if std_g < 5:    return 10.0
+    if std_g < 10:   return 7.0
+    if std_g < 20:   return 4.0
     return 1.0
+
+
+def _a2_capex_score(capex_rev_pct: float) -> float:
+    """Score CapEx/Revenue ratio — sweet spot is 5-15% reinvestment."""
+    if 5 <= capex_rev_pct <= 15:   return 10.0
+    if 3 <= capex_rev_pct < 5:     return 7.0
+    if 15 < capex_rev_pct <= 25:   return 6.0
+    if capex_rev_pct < 3:          return 3.0
+    return 2.0  # >25% — very capital intensive
 
 
 def _a2_pe_pb_ratio_score(ratio: float) -> float:
-    if ratio < 0.70:   return 10.0
-    if ratio < 0.85:   return 8.0
-    if ratio < 1.00:   return 6.0
-    if ratio < 1.20:   return 4.0
-    return 1.0
+    return _score(ratio, [(0.5, 10), (0.70, 10), (0.85, 8), (1.00, 6), (1.20, 4), (1.50, 1)])
 
 
 def _a2_dps_cagr_score(cagr_pct: float) -> float:
-    if cagr_pct > 15:  return 10.0
-    if cagr_pct >= 10: return 8.0
-    if cagr_pct >= 5:  return 6.0
-    if cagr_pct >= 0:  return 3.0
-    return 0.0
+    return _score(cagr_pct, [(-5, 0), (0, 3), (5, 6), (10, 8), (15, 10)])
 
 
 def _a2_div_yield_score(yield_pct: float) -> float:
-    if yield_pct > 5:   return 10.0
-    if yield_pct >= 3:  return 7.0
-    if yield_pct >= 1:  return 4.0
-    return 1.0
+    return _score(yield_pct, [(0, 1), (1, 4), (3, 7), (5, 10)])
 
 
 def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict]) -> tuple[float, dict]:
@@ -161,7 +172,17 @@ def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict]) -> tuple[float, di
         eq_v = er.get("total_equity")
         if np_v is not None and eq_v and eq_v > 0:
             roe_vals.append(np_v / eq_v * 100)
-    m3 = _a2_roe_score(sum(roe_vals) / len(roe_vals)) if roe_vals else 0.0
+    if roe_vals:
+        m3 = _a2_roe_score(sum(roe_vals) / len(roe_vals))
+        if len(roe_vals) >= 4:
+            first_half = sum(roe_vals[:2]) / 2
+            last_half  = sum(roe_vals[-2:]) / 2
+            if last_half > first_half:
+                m3 = min(m3 + 1.0, 10.0)
+            elif last_half < first_half:
+                m3 = max(m3 - 1.0, 0.0)
+    else:
+        m3 = 0.0
 
     npm_vals = []
     for er in ext_last5:
@@ -172,10 +193,13 @@ def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict]) -> tuple[float, di
     if len(npm_vals) < 2:
         m4 = 0.0
     else:
-        delta = npm_vals[-1] - npm_vals[0]
-        if delta > 3:        m4 = 10.0
-        elif delta > 0:      m4 = 7.0
-        elif abs(delta) <= 1: m4 = 5.0
+        # Linear regression slope: captures true trend across all points
+        x = np.arange(len(npm_vals), dtype=float)
+        y = np.array(npm_vals)
+        slope = float(np.polyfit(x, y, 1)[0])
+        if slope > 2:        m4 = 10.0
+        elif slope > 0.5:    m4 = 7.0
+        elif slope >= -0.5:  m4 = 5.0
         else:                m4 = 2.0
 
     eps_yoy = None
@@ -184,18 +208,19 @@ def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict]) -> tuple[float, di
         if prev and prev != 0:
             eps_yoy = round((curr - prev) / abs(prev) * 100, 1)
 
-    score = (m1 + m2 + m3 + m4) / 4
+    score = m1 * 0.20 + m2 * 0.30 + m3 * 0.30 + m4 * 0.20
     return score, {"p1_eps_consist": m1, "p1_eps_cagr": m2, "p1_roe": m3, "p1_npm_trend": m4,
                    "eps_yoy_pct": eps_yoy}
 
 
-def _a2_pillar2(ext_last5: list[dict]) -> tuple[float, dict]:
+def _a2_pillar2(ext_last5: list[dict], is_financial: bool = False,
+                holding: Optional[dict] = None) -> tuple[float, dict]:
     latest = ext_last5[-1] if ext_last5 else {}
 
     debt = latest.get("total_debt")
     eq   = latest.get("total_equity")
     if debt is not None and eq and eq > 0:
-        m1 = _a2_de_score(float(debt) / float(eq))
+        m1 = _a2_de_score(float(debt) / float(eq), is_financial)
     else:
         m1 = 0.0
 
@@ -211,22 +236,33 @@ def _a2_pillar2(ext_last5: list[dict]) -> tuple[float, dict]:
     ext_m3   = ext_last5[-4:]
     np_vals  = [er.get("net_profit") for er in ext_m3]
     cfo_vals = [er.get("operating_cf") for er in ext_m3]
+    # Pair valid CFO/NP for ratio calculation
+    cfo_np_ratios = []
+    for cfo, np_v in zip(cfo_vals, np_vals):
+        if cfo is not None and np_v is not None and np_v > 0:
+            cfo_np_ratios.append(cfo / np_v)
     valid_cfos = [c for c in cfo_vals if c is not None]
     if not valid_cfos:
         m3 = 0.0
+    elif cfo_np_ratios:
+        cfo_np_ratios.sort()
+        median_ratio = cfo_np_ratios[len(cfo_np_ratios) // 2]
+        pos_count = sum(1 for c in valid_cfos if c > 0)
+        # Base score from median CFO/NP ratio
+        if median_ratio > 1.2:     m3 = 10.0
+        elif median_ratio >= 1.0:  m3 = 8.0
+        elif median_ratio >= 0.7:  m3 = 5.0
+        elif median_ratio >= 0.3:  m3 = 3.0
+        else:                      m3 = 0.0
+        # Penalty if CFO is frequently negative
+        if pos_count < len(valid_cfos) * 0.5:
+            m3 = min(m3, 2.0)
     else:
-        all_pos = (
-            len(ext_m3) == 4
-            and len(valid_cfos) == 4
-            and all(c > 0 for c in valid_cfos)
-        )
-        mostly_pos = sum(1 for c in valid_cfos if c > 0) >= 3
-        if all_pos:
-            valid_nps_g = [n for n in np_vals if n is not None]
-            np_avg  = sum(valid_nps_g) / len(valid_nps_g) if valid_nps_g else None
-            cfo_avg = sum(valid_cfos) / len(valid_cfos)
-            m3 = 10.0 if (np_avg is not None and cfo_avg > np_avg) else 7.0
-        elif mostly_pos:
+        # Have CFO data but no valid NP to compute ratio — fallback to positivity
+        pos_count = sum(1 for c in valid_cfos if c > 0)
+        if pos_count == len(valid_cfos):
+            m3 = 6.0
+        elif pos_count >= len(valid_cfos) * 0.75:
             m3 = 4.0
         else:
             m3 = 0.0
@@ -239,8 +275,17 @@ def _a2_pillar2(ext_last5: list[dict]) -> tuple[float, dict]:
     else:
         m4 = 0.0
 
-    score = (m1 + m2 + m3 + m4) / 4
-    return score, {"p2_de": m1, "p2_ic": m2, "p2_cfo": m3, "p2_cash": m4}
+    # Ownership quality
+    if holding:
+        sp = float(holding.get("sponsor_director_pct") or 0)
+        ip = float(holding.get("institute_pct") or 0)
+        fp = float(holding.get("foreign_pct") or 0)
+        m5 = _a2_ownership_score(sp, ip, fp)
+    else:
+        m5 = 0.0
+
+    score = m1 * 0.25 + m2 * 0.20 + m3 * 0.25 + m4 * 0.10 + m5 * 0.20
+    return score, {"p2_de": m1, "p2_ic": m2, "p2_cfo": m3, "p2_cash": m4, "p2_own": m5}
 
 
 def _a2_pillar3(code: str, ext_last5: list[dict],
@@ -265,24 +310,35 @@ def _a2_pillar3(code: str, ext_last5: list[dict],
 
     rev_vals = [float(er["revenue"]) for er in ext_last5
                 if er.get("revenue") is not None and float(er["revenue"]) > 0]
-    if len(rev_vals) >= 3:
+    if len(rev_vals) >= 4:
         growth_rates = [
             (rev_vals[i] - rev_vals[i - 1]) / rev_vals[i - 1] * 100
             for i in range(1, len(rev_vals))
         ]
         mean_g = sum(growth_rates) / len(growth_rates)
         std_g  = (sum((g - mean_g) ** 2 for g in growth_rates) / len(growth_rates)) ** 0.5
-        m2 = _a2_rev_vol_score(std_g)
+        m2 = _a2_rev_vol_score(std_g, mean_g)
     else:
         m2 = 0.0
 
     m3 = sector_rank_score.get(code, 2.0)
 
-    score = (m1 + m2 + m3) / 3
-    return score, {"p3_margin": m1, "p3_rev_vol": m2, "p3_sector_rank": m3}
+    # CapEx reinvestment intensity (avg CapEx / avg Revenue)
+    capex_vals = []
+    for er in ext_last5:
+        cx = er.get("capex")
+        rv = er.get("revenue")
+        if cx is not None and rv and float(rv) > 0:
+            capex_vals.append(abs(float(cx)) / float(rv) * 100)
+    m4 = _a2_capex_score(sum(capex_vals) / len(capex_vals)) if capex_vals else 0.0
+
+    score = m1 * 0.35 + m2 * 0.30 + m3 * 0.20 + m4 * 0.15
+    return score, {"p3_margin": m1, "p3_rev_vol": m2, "p3_sector_rank": m3, "p3_capex": m4}
 
 
-def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float]) -> tuple[float, dict]:
+def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
+                sector_median_pe: Optional[float] = None,
+                sector_median_pb: Optional[float] = None) -> tuple[float, dict]:
     if ltp is None or ltp <= 0:
         return 0.0, {"p4_pe": 0.0, "p4_pb": 0.0}
 
@@ -298,11 +354,18 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float]) -> tuple[float, dic
             for pe in [r.get("pe_ratio_cont_basic") or r.get("pe_ratio_basic")]
             if pe and float(pe) > 0
         ]
+        # Self-historical P/E score
         if len(hist_pes) >= 2:
             avg_hist_pe = sum(hist_pes) / len(hist_pes)
-            pe_score = _a2_pe_pb_ratio_score(current_pe / avg_hist_pe) if avg_hist_pe > 0 else 0.0
+            self_pe = _a2_pe_pb_ratio_score(current_pe / avg_hist_pe) if avg_hist_pe > 0 else 0.0
         else:
-            pe_score = 0.0
+            self_pe = 0.0
+        # Sector-relative P/E score
+        if sector_median_pe and sector_median_pe > 0:
+            sect_pe = _a2_pe_pb_ratio_score(current_pe / sector_median_pe)
+            pe_score = self_pe * 0.6 + sect_pe * 0.4
+        else:
+            pe_score = self_pe
 
     curr_nav = next((r["nav_per_share"] for r in reversed(fin_last5)
                      if r.get("nav_per_share") is not None and r["nav_per_share"] > 0), None)
@@ -318,11 +381,18 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float]) -> tuple[float, dic
             if pe and float(pe) > 0 and eps and float(eps) > 0 and nav and float(nav) > 0:
                 year_end_price = float(pe) * float(eps)
                 hist_pbs.append(year_end_price / float(nav))
+        # Self-historical P/B score
         if len(hist_pbs) >= 2:
             avg_hist_pb = sum(hist_pbs) / len(hist_pbs)
-            pb_score = _a2_pe_pb_ratio_score(current_pb / avg_hist_pb) if avg_hist_pb > 0 else 0.0
+            self_pb = _a2_pe_pb_ratio_score(current_pb / avg_hist_pb) if avg_hist_pb > 0 else 0.0
         else:
-            pb_score = 0.0
+            self_pb = 0.0
+        # Sector-relative P/B score
+        if sector_median_pb and sector_median_pb > 0:
+            sect_pb = _a2_pe_pb_ratio_score(current_pb / sector_median_pb)
+            pb_score = self_pb * 0.6 + sect_pb * 0.4
+        else:
+            pb_score = self_pb
 
     score = pe_score * 0.6 + pb_score * 0.4
     return score, {"p4_pe": round(pe_score, 2), "p4_pb": round(pb_score, 2)}
@@ -422,30 +492,78 @@ def _algo2_scores() -> pd.DataFrame:
     for code in ext_by_code:
         ext_by_code[code].sort(key=lambda x: x["year"])
 
-    rev_rank_items: list[tuple[str, float]] = []
+    # Load latest shareholding per company (sorted desc, take first)
+    holding_by_code: dict[str, dict] = {}
+    for doc in db.shareholdings.find(
+        {"trading_code": {"$nin": list(excluded_codes)}},
+        {"_id": 0, "trading_code": 1, "sponsor_director_pct": 1,
+         "institute_pct": 1, "foreign_pct": 1}
+    ).sort("as_of_date", -1):
+        code = doc.get("trading_code")
+        if code and code not in holding_by_code:
+            holding_by_code[code] = doc
+
+    # Group latest revenue by sector for within-sector ranking
+    rev_by_sector: dict[str, list[tuple[str, float]]] = {}
     for code, rows in ext_by_code.items():
+        sector = (companies.get(code, {}).get("sector") or "").strip()
         for row in reversed(rows):
             rev = row.get("revenue")
             if rev and rev > 0:
-                rev_rank_items.append((code, float(rev)))
+                rev_by_sector.setdefault(sector, []).append((code, float(rev)))
                 break
 
     sector_rank_score: dict[str, float] = {}
-    items_sorted = sorted(rev_rank_items, key=lambda x: x[1], reverse=True)
-    n = len(items_sorted)
-    for rank_idx, (code, _) in enumerate(items_sorted):
-        pct = (rank_idx + 1) / n
-        if rank_idx == 0:
-            sr = 10.0
-        elif pct <= 0.25:
-            sr = 7.0
-        elif pct <= 0.50:
-            sr = 5.0
-        else:
-            sr = 2.0
-        sector_rank_score[code] = sr
+    for sector, items in rev_by_sector.items():
+        items_sorted = sorted(items, key=lambda x: x[1], reverse=True)
+        n = len(items_sorted)
+        for rank_idx, (code, _) in enumerate(items_sorted):
+            if n == 1:
+                sr = 10.0
+            else:
+                pct = (rank_idx + 1) / n
+                if rank_idx == 0:
+                    sr = 10.0
+                elif pct <= 0.25:
+                    sr = 7.0
+                elif pct <= 0.50:
+                    sr = 5.0
+                else:
+                    sr = 2.0
+            sector_rank_score[code] = sr
 
     prices = load_latest_prices()
+
+    # Pre-compute sector median P/E and P/B for sector-relative valuation
+    sector_pes: dict[str, list[float]] = {}
+    sector_pbs: dict[str, list[float]] = {}
+    for code, comp in companies.items():
+        sector = comp.get("sector", "") or ""
+        p = (prices.get(code) or {}).get("ltp")
+        if not p or p <= 0:
+            continue
+        fin_rows_tmp = (
+            fin_df[fin_df["trading_code"] == code]
+            .sort_values("year")
+            .tail(5)
+            .to_dict("records")
+        )
+        eps_v = next((r["eps"] for r in reversed(fin_rows_tmp)
+                      if r.get("eps") is not None and r["eps"] > 0), None)
+        nav_v = next((r["nav_per_share"] for r in reversed(fin_rows_tmp)
+                      if r.get("nav_per_share") is not None and r["nav_per_share"] > 0), None)
+        if eps_v:
+            sector_pes.setdefault(sector, []).append(p / eps_v)
+        if nav_v:
+            sector_pbs.setdefault(sector, []).append(p / nav_v)
+    sector_median_pe: dict[str, float] = {}
+    sector_median_pb: dict[str, float] = {}
+    for s, vals in sector_pes.items():
+        vals.sort()
+        sector_median_pe[s] = vals[len(vals) // 2]
+    for s, vals in sector_pbs.items():
+        vals.sort()
+        sector_median_pb[s] = vals[len(vals) // 2]
 
     rows = []
     for code, comp in companies.items():
@@ -472,10 +590,14 @@ def _algo2_scores() -> pd.DataFrame:
         ext_rows_all = ext_by_code.get(code, [])
         ext_last5    = ext_rows_all[-5:]
 
+        is_financial = normalize_sector(sector) in ("BANK", "NBFI")
+        holding = holding_by_code.get(code)
         p1, sub1 = _a2_pillar1(fin_rows, ext_last5)
-        p2, sub2 = _a2_pillar2(ext_last5)
+        p2, sub2 = _a2_pillar2(ext_last5, is_financial, holding)
         p3, sub3 = _a2_pillar3(code, ext_last5, sector_rank_score)
-        p4, sub4 = _a2_pillar4(fin_rows, ltp)
+        p4, sub4 = _a2_pillar4(fin_rows, ltp,
+                               sector_median_pe.get(sector),
+                               sector_median_pb.get(sector))
         p5, sub5 = _a2_pillar5(fin_rows, ltp, face)
 
         final = p1 * 0.30 + p2 * 0.20 + p3 * 0.20 + p4 * 0.15 + p5 * 0.15
