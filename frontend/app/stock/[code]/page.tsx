@@ -50,6 +50,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: "website",
       url: `${BASE}/stock/${code}`,
     },
+    twitter: {
+      card: "summary_large_image",
+      title: `${code} — DSEF Score: ${score ?? "--"}/100 | dseX`,
+      description: `${name} · ${tierLabel} · Score ${score ?? "--"}/100 on dseX`,
+    },
   };
 }
 

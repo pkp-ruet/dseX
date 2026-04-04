@@ -43,6 +43,7 @@ def get_scores():
                 trading_code=code,
                 company_name=comp.get("company_name"),
                 sector=row.get("sector"),
+                market_category=comp.get("market_category"),
                 score=_json_float(score),
                 ltp=_json_float(row.get("ltp")),
                 change_pct=None,

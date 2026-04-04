@@ -6,6 +6,7 @@ class ScoreItem(BaseModel):
     trading_code: str
     company_name: Optional[str] = None
     sector: Optional[str] = None
+    market_category: Optional[str] = None
     score: Optional[float] = None
     ltp: Optional[float] = None
     change_pct: Optional[float] = None
@@ -87,6 +88,23 @@ class UpcomingDividend(BaseModel):
 class DividendsUpcomingResponse(BaseModel):
     upcoming_declarations: list[UpcomingDividend]
     upcoming_record_dates: list[UpcomingDividend]
+
+
+class MarketMoverItem(BaseModel):
+    trading_code: str
+    company_name: Optional[str] = None
+    ltp: Optional[float] = None
+    change: Optional[float] = None
+    change_pct: Optional[float] = None
+    volume: Optional[float] = None
+    value_mn: Optional[float] = None
+
+
+class MarketMoversResponse(BaseModel):
+    date: Optional[str] = None
+    gainers: list[MarketMoverItem]
+    losers: list[MarketMoverItem]
+    most_traded: list[MarketMoverItem]
 
 
 class AuditCompanyRow(BaseModel):

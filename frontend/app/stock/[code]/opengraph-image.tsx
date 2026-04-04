@@ -12,11 +12,19 @@ export default async function OgImage({ params }: { params: Promise<{ code: stri
   const detail = await getCompanyDetail(code).catch(() => null);
 
   const name = detail?.profile.company_name ?? code;
+  const sector = detail?.profile.sector ?? null;
   const score = detail?.score_row?.score as number | null ?? null;
   const ltp = detail?.latest_price.ltp ?? null;
+  const changePct = detail?.latest_price.change_pct as number | null ?? null;
+  const epsYoy = detail?.score_row?.eps_yoy_pct as number | null ?? null;
+  const divYield = detail?.score_row?.div_yield_pct as number | null ?? null;
   const tier = getTier(score);
   const tierLabel = TIER_LABELS[tier];
   const tierColor = TIER_COLORS[tier];
+
+  const positive = "#4CAF7D";
+  const negative = "#D45B5B";
+  const changeColor = changePct != null ? (changePct >= 0 ? positive : negative) : "#6B7280";
 
   return new ImageResponse(
     (
@@ -33,7 +41,7 @@ export default async function OgImage({ params }: { params: Promise<{ code: stri
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <div>
+          <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ fontSize: 20, color: "#1A6B5A", fontWeight: 700, marginBottom: 8 }}>
               dseX
             </div>
@@ -43,6 +51,19 @@ export default async function OgImage({ params }: { params: Promise<{ code: stri
             <div style={{ fontSize: 24, color: "#6B7280", marginTop: 8 }}>
               {name}
             </div>
+            {sector && (
+              <div style={{
+                fontSize: 14,
+                color: "#6B7280",
+                marginTop: 8,
+                background: "#F3F0E8",
+                padding: "4px 12px",
+                borderRadius: 999,
+                alignSelf: "flex-start",
+              }}>
+                {sector}
+              </div>
+            )}
           </div>
           <div
             style={{
@@ -64,17 +85,34 @@ export default async function OgImage({ params }: { params: Promise<{ code: stri
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 40, marginTop: 48 }}>
+        <div style={{ display: "flex", gap: 32, marginTop: 48, flexWrap: "wrap" }}>
           {ltp != null && (
-            <div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
               <div style={{ fontSize: 14, color: "#6B7280" }}>Last Price</div>
-              <div style={{ fontSize: 28, fontWeight: 700 }}>৳{ltp.toFixed(2)}</div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                <span style={{ fontSize: 28, fontWeight: 700 }}>৳{ltp.toFixed(2)}</span>
+                {changePct != null && (
+                  <span style={{ fontSize: 18, fontWeight: 600, color: changeColor }}>
+                    {changePct >= 0 ? "▲" : "▼"}{Math.abs(changePct).toFixed(1)}%
+                  </span>
+                )}
+              </div>
             </div>
           )}
-          <div>
-            <div style={{ fontSize: 14, color: "#6B7280" }}>DSEF Score</div>
-            <div style={{ fontSize: 28, fontWeight: 700 }}>{score ?? "--"} / 100</div>
-          </div>
+          {epsYoy != null && (
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <div style={{ fontSize: 14, color: "#6B7280" }}>EPS YoY</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: epsYoy >= 0 ? positive : negative }}>
+                {epsYoy >= 0 ? "+" : ""}{epsYoy.toFixed(1)}%
+              </div>
+            </div>
+          )}
+          {divYield != null && (
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <div style={{ fontSize: 14, color: "#6B7280" }}>Div Yield</div>
+              <div style={{ fontSize: 28, fontWeight: 700 }}>{divYield.toFixed(1)}%</div>
+            </div>
+          )}
         </div>
 
         <div style={{ marginTop: "auto", fontSize: 14, color: "#6B7280" }}>

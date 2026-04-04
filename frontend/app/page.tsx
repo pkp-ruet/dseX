@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { getScores, getDividendsUpcoming } from "@/lib/api";
+import { Suspense } from "react";
+import { getScores, getDividendsUpcoming, getMarketMovers } from "@/lib/api";
 import Masthead from "@/components/home/Masthead";
 import SearchBar from "@/components/home/SearchBar";
 import HeroBand from "@/components/home/HeroBand";
-import TierTableSection from "@/components/home/TierTableSection";
-import TierDetailsSection from "@/components/home/TierDetailsSection";
+import FilterableRankings from "@/components/home/FilterableRankings";
 import MarketIntelStrip from "@/components/home/MarketIntelStrip";
 import HowWeScoreBox from "@/components/home/HowWeScoreBox";
+import MarketMovers from "@/components/home/MarketMovers";
 
 export const revalidate = 3600;
 
@@ -37,9 +38,10 @@ const JSON_LD = {
 };
 
 export default async function HomePage() {
-  const [scores, dividends] = await Promise.all([
+  const [scores, dividends, movers] = await Promise.all([
     getScores().catch(() => null),
     getDividendsUpcoming().catch(() => null),
+    getMarketMovers().catch(() => null),
   ]);
 
   if (!scores) {
@@ -68,11 +70,11 @@ export default async function HomePage() {
         <SearchBar companies={allCompanies} />
         <HeroBand counts={counts} />
 
-        <TierTableSection tier="strong_buy" items={tiers.strong_buy} />
-        <TierTableSection tier="safe_buy" items={tiers.safe_buy} />
+        {movers && <MarketMovers data={movers} />}
 
-        <TierDetailsSection tier="watch" items={tiers.watch} />
-        <TierDetailsSection tier="avoid" items={tiers.avoid} />
+        <Suspense>
+          <FilterableRankings tiers={tiers} counts={counts} />
+        </Suspense>
 
         {dividends && <MarketIntelStrip data={dividends} />}
         <HowWeScoreBox />

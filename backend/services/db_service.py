@@ -165,6 +165,44 @@ def load_dividend_declarations() -> list[dict]:
     return docs
 
 
+@_ttl_cache(300)
+def load_market_movers() -> dict:
+    """Top 5 gainers, losers, and most-traded for the latest trading day."""
+    db = get_db()
+    latest = db.stock_prices.find_one(sort=[("date", -1)])
+    if not latest:
+        return {"date": None, "gainers": [], "losers": [], "most_traded": []}
+
+    latest_date = latest["date"]
+    docs = list(db.stock_prices.find(
+        {"date": latest_date},
+        {"_id": 0, "trading_code": 1, "ltp": 1, "change": 1,
+         "change_pct": 1, "volume": 1, "value_mn": 1},
+    ))
+
+    # Join company names
+    companies = {c["trading_code"]: c.get("company_name") for c in load_companies()}
+    for d in docs:
+        d["company_name"] = companies.get(d["trading_code"])
+
+    # Filter out entries with missing change_pct / value_mn
+    with_change = [d for d in docs if d.get("change_pct") is not None]
+    with_value = [d for d in docs if d.get("value_mn") is not None]
+
+    gainers = sorted(with_change, key=lambda x: x["change_pct"], reverse=True)[:5]
+    losers = sorted(with_change, key=lambda x: x["change_pct"])[:5]
+    most_traded = sorted(with_value, key=lambda x: x["value_mn"], reverse=True)[:5]
+
+    date_str = latest_date.isoformat() if hasattr(latest_date, "isoformat") else str(latest_date)
+
+    return {
+        "date": date_str,
+        "gainers": gainers,
+        "losers": losers,
+        "most_traded": most_traded,
+    }
+
+
 def get_company(trading_code: str) -> Optional[dict]:
     db = get_db()
     return db.companies.find_one(

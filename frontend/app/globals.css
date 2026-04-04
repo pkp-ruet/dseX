@@ -910,6 +910,125 @@ details.dsex-exp[open] > summary {
   }
 }
 
+/* Filter bar */
+.filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 0;
+  margin-bottom: 4px;
+}
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.filter-sector-select {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 5px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: white;
+  color: var(--ink);
+  cursor: pointer;
+  min-width: 140px;
+}
+.filter-sector-select:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+.filter-cat-group {
+  display: flex;
+  gap: 4px;
+}
+.filter-cat-pill {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+.filter-cat-pill:hover {
+  background: rgba(212, 180, 131, 0.25);
+}
+.filter-cat-pill-active {
+  background: var(--ink);
+  color: white;
+  border-color: var(--ink);
+}
+.filter-cat-pill-active:hover {
+  background: var(--ink);
+}
+.filter-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.filter-sort-btn {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+.filter-sort-btn:hover {
+  background: rgba(212, 180, 131, 0.25);
+}
+.filter-sort-btn-active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+.filter-sort-btn-active:hover {
+  background: var(--primary);
+}
+.filtered-summary {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  padding: 6px 2px;
+  margin-bottom: 4px;
+}
+
+/* Market movers strip */
+.movers-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border-top: 2px solid var(--ink);
+  border-bottom: 1px solid var(--rule);
+  padding: 18px 0 20px;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 700px) {
+  .movers-strip {
+    grid-template-columns: 1fr;
+  }
+  .movers-strip .info-col {
+    border-right: none;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  .movers-strip .info-col:not(:last-child) {
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 18px;
+    margin-bottom: 16px;
+  }
+}
+
 /* How we score */
 .how-we-score-modern {
   border: none;

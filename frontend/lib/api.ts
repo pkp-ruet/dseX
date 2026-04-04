@@ -4,6 +4,7 @@ export interface ScoreItem {
   trading_code: string;
   company_name: string | null;
   sector: string | null;
+  market_category: string | null;
   score: number | null;
   ltp: number | null;
   change_pct: number | null;
@@ -94,6 +95,23 @@ export interface PricePoint {
   change_pct: number | null;
 }
 
+export interface MarketMoverItem {
+  trading_code: string;
+  company_name: string | null;
+  ltp: number | null;
+  change: number | null;
+  change_pct: number | null;
+  volume: number | null;
+  value_mn: number | null;
+}
+
+export interface MarketMoversData {
+  date: string | null;
+  gainers: MarketMoverItem[];
+  losers: MarketMoverItem[];
+  most_traded: MarketMoverItem[];
+}
+
 // ---- Fetch helpers ----
 
 async function apiFetch<T>(path: string, revalidate?: number): Promise<T> {
@@ -114,6 +132,10 @@ export async function getAllCodes(): Promise<string[]> {
 
 export async function getCompanyDetail(code: string): Promise<CompanyDetail> {
   return apiFetch<CompanyDetail>(`/api/company/${code.toUpperCase()}`, 3600);
+}
+
+export async function getMarketMovers(): Promise<MarketMoversData> {
+  return apiFetch<MarketMoversData>("/api/market-movers", 3600);
 }
 
 export async function getDividendsUpcoming(): Promise<DividendsUpcoming> {
