@@ -101,6 +101,32 @@ def _a2_gm_score(avg_gm: float, trend: float) -> float:
     return 2.0
 
 
+def _a2_nim_score(avg_nim: float, trend: float) -> float:
+    """Score Net Interest Margin for banks/NBFIs (2–5% is typical range)."""
+    stable = abs(trend) <= 0.3
+    if avg_nim > 4 and trend > 0:    return 10.0
+    if avg_nim > 4 and stable:       return 8.0
+    if avg_nim >= 2.5 and trend > 0: return 7.0
+    if avg_nim >= 2.5 and stable:    return 5.0
+    return 2.0
+
+
+def _effective_revenue(er: dict, is_financial: bool = False) -> Optional[float]:
+    """Return usable revenue for a year-record.
+
+    For banks/NBFIs, net_interest_income is the revenue equivalent when the
+    standard 'revenue' line is absent from the income statement.
+    """
+    rev = er.get("revenue")
+    if rev is not None and float(rev) > 0:
+        return float(rev)
+    if is_financial:
+        nii = er.get("net_interest_income")
+        if nii is not None and float(nii) > 0:
+            return float(nii)
+    return None
+
+
 def _a2_rev_vol_score(std_g: float, mean_g: float) -> float:
     # Penalize declining revenue regardless of stability
     if mean_g < 0:
@@ -132,7 +158,8 @@ def _a2_div_yield_score(yield_pct: float) -> float:
     return _score(yield_pct, [(0, 1), (1, 4), (3, 7), (5, 10)])
 
 
-def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict]) -> tuple[float, dict]:
+def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict],
+                is_financial: bool = False) -> tuple[float, dict]:
     eps_vals = [r.get("eps") for r in fin_last5]
 
     consistent = sum(1 for e in eps_vals if e is not None and e > 0)
@@ -187,8 +214,8 @@ def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict]) -> tuple[float, di
     npm_vals = []
     for er in ext_last5:
         np_v  = er.get("net_profit")
-        rev_v = er.get("revenue")
-        if np_v is not None and rev_v and rev_v > 0:
+        rev_v = _effective_revenue(er, is_financial)
+        if np_v is not None and rev_v is not None:
             npm_vals.append(np_v / rev_v * 100)
     if len(npm_vals) < 2:
         m4 = 0.0
@@ -213,8 +240,7 @@ def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict]) -> tuple[float, di
                    "eps_yoy_pct": eps_yoy}
 
 
-def _a2_pillar2(ext_last5: list[dict], is_financial: bool = False,
-                holding: Optional[dict] = None) -> tuple[float, dict]:
+def _a2_pillar2(ext_last5: list[dict], is_financial: bool = False) -> tuple[float, dict]:
     latest = ext_last5[-1] if ext_last5 else {}
 
     debt = latest.get("total_debt")
@@ -244,6 +270,23 @@ def _a2_pillar2(ext_last5: list[dict], is_financial: bool = False,
     valid_cfos = [c for c in cfo_vals if c is not None]
     if not valid_cfos:
         m3 = 0.0
+    elif is_financial:
+        # For banks/NBFIs: CFO/NP ratio is structurally low (growing loan book
+        # consumes operating cash). Score on positivity + trend instead.
+        pos_count = sum(1 for c in valid_cfos if c > 0)
+        pos_frac = pos_count / len(valid_cfos)
+        sorted_cfos = sorted(valid_cfos)
+        cfo_growth = (
+            valid_cfos[-1] > valid_cfos[0] if len(valid_cfos) >= 2 else False
+        )
+        if pos_frac == 1.0 and cfo_growth:
+            m3 = 8.0
+        elif pos_frac == 1.0:
+            m3 = 6.0
+        elif pos_frac >= 0.75:
+            m3 = 4.0
+        else:
+            m3 = 1.0
     elif cfo_np_ratios:
         cfo_np_ratios.sort()
         median_ratio = cfo_np_ratios[len(cfo_np_ratios) // 2]
@@ -267,29 +310,30 @@ def _a2_pillar2(ext_last5: list[dict], is_financial: bool = False,
         else:
             m3 = 0.0
 
-    cash = latest.get("cash_and_equivalents")
-    ta   = latest.get("total_assets")
-    if cash is not None and ta and ta > 0:
-        cash_pct = float(cash) / float(ta) * 100
-        m4 = _a2_cash_assets_score(cash_pct)
+    # Cash/Assets: not meaningful for banks (most assets are loans by design).
+    # Skip the metric and redistribute its 10% weight to the remaining four.
+    if is_financial:
+        m4 = None
     else:
-        m4 = 0.0
+        cash = latest.get("cash_and_equivalents")
+        ta   = latest.get("total_assets")
+        if cash is not None and ta and ta > 0:
+            cash_pct = float(cash) / float(ta) * 100
+            m4 = _a2_cash_assets_score(cash_pct)
+        else:
+            m4 = 0.0
 
-    # Ownership quality
-    if holding:
-        sp = float(holding.get("sponsor_director_pct") or 0)
-        ip = float(holding.get("institute_pct") or 0)
-        fp = float(holding.get("foreign_pct") or 0)
-        m5 = _a2_ownership_score(sp, ip, fp)
+    if m4 is None:
+        # Banks: redistribute cash/assets weight proportionally across D/E, IC, CFO
+        score = m1 * 0.357 + m2 * 0.286 + m3 * 0.357
     else:
-        m5 = 0.0
-
-    score = m1 * 0.25 + m2 * 0.20 + m3 * 0.25 + m4 * 0.10 + m5 * 0.20
-    return score, {"p2_de": m1, "p2_ic": m2, "p2_cfo": m3, "p2_cash": m4, "p2_own": m5}
+        score = m1 * 0.313 + m2 * 0.250 + m3 * 0.313 + m4 * 0.125
+    return score, {"p2_de": m1, "p2_ic": m2, "p2_cfo": m3, "p2_cash": m4}
 
 
 def _a2_pillar3(code: str, ext_last5: list[dict],
-                sector_rank_score: dict[str, float]) -> tuple[float, dict]:
+                sector_rank_score: dict[str, float],
+                is_financial: bool = False) -> tuple[float, dict]:
     def _trend(vals: list[float]) -> float:
         if len(vals) >= 4:
             return (vals[-2] + vals[-1]) / 2 - (vals[0] + vals[1]) / 2
@@ -297,19 +341,32 @@ def _a2_pillar3(code: str, ext_last5: list[dict],
             return vals[-1] - vals[0]
         return 0.0
 
-    gm_vals = []
-    for er in ext_last5:
-        gp  = er.get("gross_profit")
-        rev = er.get("revenue")
-        if gp is not None and rev is not None and float(rev) > 0:
-            gm_vals.append(float(gp) / float(rev) * 100)
-    if gm_vals:
-        m1 = _a2_gm_score(sum(gm_vals) / len(gm_vals), _trend(gm_vals))
+    if is_financial:
+        # For banks/NBFIs: use Net Interest Margin (NII / earning_assets) as the margin metric
+        nim_vals = []
+        for er in ext_last5:
+            nii = er.get("net_interest_income")
+            ea  = er.get("earning_assets")
+            if nii is not None and ea and float(ea) > 0:
+                nim_vals.append(float(nii) / float(ea) * 100)
+        if nim_vals:
+            m1 = _a2_nim_score(sum(nim_vals) / len(nim_vals), _trend(nim_vals))
+        else:
+            m1 = 0.0
     else:
-        m1 = 0.0
+        gm_vals = []
+        for er in ext_last5:
+            gp  = er.get("gross_profit")
+            rev = er.get("revenue")
+            if gp is not None and rev is not None and float(rev) > 0:
+                gm_vals.append(float(gp) / float(rev) * 100)
+        if gm_vals:
+            m1 = _a2_gm_score(sum(gm_vals) / len(gm_vals), _trend(gm_vals))
+        else:
+            m1 = 0.0
 
-    rev_vals = [float(er["revenue"]) for er in ext_last5
-                if er.get("revenue") is not None and float(er["revenue"]) > 0]
+    rev_vals = [rv for er in ext_last5
+                for rv in [_effective_revenue(er, is_financial)] if rv is not None]
     if len(rev_vals) >= 4:
         growth_rates = [
             (rev_vals[i] - rev_vals[i - 1]) / rev_vals[i - 1] * 100
@@ -327,9 +384,9 @@ def _a2_pillar3(code: str, ext_last5: list[dict],
     capex_vals = []
     for er in ext_last5:
         cx = er.get("capex")
-        rv = er.get("revenue")
-        if cx is not None and rv and float(rv) > 0:
-            capex_vals.append(abs(float(cx)) / float(rv) * 100)
+        rv = _effective_revenue(er, is_financial)
+        if cx is not None and rv is not None:
+            capex_vals.append(abs(float(cx)) / rv * 100)
     m4 = _a2_capex_score(sum(capex_vals) / len(capex_vals)) if capex_vals else 0.0
 
     score = m1 * 0.35 + m2 * 0.30 + m3 * 0.20 + m4 * 0.15
@@ -449,6 +506,12 @@ _scores_cache: dict = {"df": None, "at": 0.0}
 _SCORES_TTL = 300  # seconds
 
 
+def invalidate_scores_cache() -> None:
+    """Force the next call to _algo2_scores() to recompute from DB."""
+    global _scores_cache
+    _scores_cache = {"df": None, "at": 0.0}
+
+
 def _algo2_scores() -> pd.DataFrame:
     global _scores_cache
     if _scores_cache["df"] is not None and time.time() - _scores_cache["at"] < _SCORES_TTL:
@@ -492,25 +555,16 @@ def _algo2_scores() -> pd.DataFrame:
     for code in ext_by_code:
         ext_by_code[code].sort(key=lambda x: x["year"])
 
-    # Load latest shareholding per company (sorted desc, take first)
-    holding_by_code: dict[str, dict] = {}
-    for doc in db.shareholdings.find(
-        {"trading_code": {"$nin": list(excluded_codes)}},
-        {"_id": 0, "trading_code": 1, "sponsor_director_pct": 1,
-         "institute_pct": 1, "foreign_pct": 1}
-    ).sort("as_of_date", -1):
-        code = doc.get("trading_code")
-        if code and code not in holding_by_code:
-            holding_by_code[code] = doc
-
-    # Group latest revenue by sector for within-sector ranking
+    # Group latest revenue by sector for within-sector ranking.
+    # For banks/NBFIs, fall back to net_interest_income when revenue is absent.
     rev_by_sector: dict[str, list[tuple[str, float]]] = {}
     for code, rows in ext_by_code.items():
         sector = (companies.get(code, {}).get("sector") or "").strip()
+        is_fin = normalize_sector(sector) in ("BANK", "NBFI")
         for row in reversed(rows):
-            rev = row.get("revenue")
-            if rev and rev > 0:
-                rev_by_sector.setdefault(sector, []).append((code, float(rev)))
+            rv = _effective_revenue(row, is_fin)
+            if rv:
+                rev_by_sector.setdefault(sector, []).append((code, rv))
                 break
 
     sector_rank_score: dict[str, float] = {}
@@ -591,10 +645,9 @@ def _algo2_scores() -> pd.DataFrame:
         ext_last5    = ext_rows_all[-5:]
 
         is_financial = normalize_sector(sector) in ("BANK", "NBFI")
-        holding = holding_by_code.get(code)
-        p1, sub1 = _a2_pillar1(fin_rows, ext_last5)
-        p2, sub2 = _a2_pillar2(ext_last5, is_financial, holding)
-        p3, sub3 = _a2_pillar3(code, ext_last5, sector_rank_score)
+        p1, sub1 = _a2_pillar1(fin_rows, ext_last5, is_financial)
+        p2, sub2 = _a2_pillar2(ext_last5, is_financial)
+        p3, sub3 = _a2_pillar3(code, ext_last5, sector_rank_score, is_financial)
         p4, sub4 = _a2_pillar4(fin_rows, ltp,
                                sector_median_pe.get(sector),
                                sector_median_pb.get(sector))

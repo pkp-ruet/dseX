@@ -1,7 +1,7 @@
 import math
 from datetime import datetime, timezone
 from fastapi import APIRouter
-from backend.services.scoring_service import build_scores_df
+from backend.services.scoring_service import build_scores_df, invalidate_scores_cache
 from backend.services.db_service import load_companies
 from backend.models.responses import ScoresResponse, ScoreItem, ScoreTiers
 
@@ -15,6 +15,13 @@ def _json_float(v):
     if isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
         return None
     return v
+
+
+@router.post("/api/scores/refresh")
+def refresh_scores():
+    """Invalidate the scores cache so the next request recomputes from DB."""
+    invalidate_scores_cache()
+    return {"status": "cache cleared"}
 
 
 @router.get("/api/scores", response_model=ScoresResponse)
