@@ -1392,6 +1392,13 @@ details.dsex-exp[open] > summary {
 .home-main > .section-rule-modern:first-child {
   margin-top: 0;
 }
+/* No gap between section rule header and the movers strip below it */
+.section-rule-modern + .movers-strip {
+  margin-top: 0;
+}
+.section-rule-modern:has(+ .movers-strip) {
+  margin-bottom: 0;
+}
 .section-rule-modern::before,
 .section-rule-modern::after {
   content: "";
