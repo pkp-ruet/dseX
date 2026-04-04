@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { getScores, getDividendsUpcoming, getMarketMovers } from "@/lib/api";
 import Masthead from "@/components/home/Masthead";
 import SearchBar from "@/components/home/SearchBar";
+import TickerBand from "@/components/home/TickerBand";
 import FilterableRankings from "@/components/home/FilterableRankings";
 import HowWeScoreBox from "@/components/home/HowWeScoreBox";
 import MarketMovers from "@/components/home/MarketMovers";
@@ -53,6 +54,13 @@ export default async function HomePage() {
 
   const { tiers, counts } = scores;
 
+  const top20 = [
+    ...tiers.strong_buy,
+    ...tiers.safe_buy,
+    ...tiers.watch,
+    ...tiers.avoid,
+  ].slice(0, 20);
+
   const allCompanies = [
     ...tiers.strong_buy,
     ...tiers.safe_buy,
@@ -64,8 +72,9 @@ export default async function HomePage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
 
-      {/* Full-width masthead */}
+      {/* Full-width masthead + ticker */}
       <Masthead />
+      <TickerBand items={top20} />
 
       {/* Two-column layout: main rankings (left) + sidebar (right) */}
       <div className="home-layout">
