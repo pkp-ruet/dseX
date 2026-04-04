@@ -19,6 +19,15 @@ export interface ScoreTiers {
   avoid: ScoreItem[];
 }
 
+export interface FrontendTiers {
+  strong_buy:    ScoreItem[];
+  good_buy:      ScoreItem[];
+  safe_buy:      ScoreItem[];
+  cautious_buy:  ScoreItem[];
+  keep_watching: ScoreItem[];
+  avoid:         ScoreItem[];
+}
+
 export interface ScoresResponse {
   algorithm: string;
   computed_at: string;

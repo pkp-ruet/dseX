@@ -4,24 +4,29 @@ import RankRow from "./RankRow";
 import type { ScoreItem } from "@/lib/api";
 import { TIER_LABELS, TIER_SCORE_LABELS } from "@/lib/constants";
 
+type DetailsTier = "cautious_buy" | "keep_watching" | "avoid";
+
 interface Props {
-  tier: "watch" | "avoid";
+  tier: DetailsTier;
   items: ScoreItem[];
 }
 
-const DETAILS_CLASS: Record<Props["tier"], string> = {
-  watch: "dsex-exp dsex-exp-watch",
-  avoid: "dsex-exp dsex-exp-avoid",
+const DETAILS_CLASS: Record<DetailsTier, string> = {
+  cautious_buy:  "dsex-exp dsex-exp-cautious",
+  keep_watching: "dsex-exp dsex-exp-keep-watching",
+  avoid:         "dsex-exp dsex-exp-avoid",
 };
 
-const TABLE_CLASS: Record<Props["tier"], string> = {
-  watch: "rank-table rank-table-watch",
-  avoid: "rank-table rank-table-avoid",
+const TABLE_CLASS: Record<DetailsTier, string> = {
+  cautious_buy:  "rank-table rank-table-cautious",
+  keep_watching: "rank-table rank-table-keep-watching",
+  avoid:         "rank-table rank-table-avoid",
 };
 
-const BODY_CLASS: Record<Props["tier"], string> = {
-  watch: "dsex-exp-body-watch",
-  avoid: "dsex-exp-body-avoid",
+const BODY_CLASS: Record<DetailsTier, string> = {
+  cautious_buy:  "dsex-exp-body-cautious",
+  keep_watching: "dsex-exp-body-keep-watching",
+  avoid:         "dsex-exp-body-avoid",
 };
 
 export default function TierDetailsSection({ tier, items }: Props) {

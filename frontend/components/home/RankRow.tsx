@@ -10,10 +10,12 @@ interface Props {
 }
 
 const SCORE_CLASS: Record<TierKey, string> = {
-  strong_buy: "rr-score-top",
-  safe_buy: "rr-score-mid",
-  watch: "rr-score-watch",
-  avoid: "rr-score-danger",
+  strong_buy:    "rr-score-top",
+  good_buy:      "rr-score-good",
+  safe_buy:      "rr-score-mid",
+  cautious_buy:  "rr-score-cautious",
+  keep_watching: "rr-score-watch",
+  avoid:         "rr-score-danger",
 };
 
 function epsMarkup(eps_yoy: number | null | undefined) {

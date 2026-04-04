@@ -1,12 +1,15 @@
 import { TIER_LABELS, TIER_SCORE_LABELS } from "@/lib/constants";
 
-const HEADER_CLASS: Record<"strong_buy" | "safe_buy", string> = {
+type TableTier = "strong_buy" | "good_buy" | "safe_buy";
+
+const HEADER_CLASS: Record<TableTier, string> = {
   strong_buy: "np-col-header np-col-strong",
-  safe_buy: "np-col-header np-col-safe",
+  good_buy:   "np-col-header np-col-good",
+  safe_buy:   "np-col-header np-col-safe",
 };
 
 interface Props {
-  tier: "strong_buy" | "safe_buy";
+  tier: TableTier;
 }
 
 export default function TierHeader({ tier }: Props) {

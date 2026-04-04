@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { getScores, getDividendsUpcoming, getMarketMovers } from "@/lib/api";
+import type { FrontendTiers } from "@/lib/api";
+import { getTier } from "@/lib/constants";
 import Masthead from "@/components/home/Masthead";
 import SearchBar from "@/components/home/SearchBar";
 import TickerBand from "@/components/home/TickerBand";
@@ -54,19 +56,28 @@ export default async function HomePage() {
 
   const { tiers, counts } = scores;
 
-  const top20 = [
+  const allItems = [
     ...tiers.strong_buy,
     ...tiers.safe_buy,
     ...tiers.watch,
     ...tiers.avoid,
-  ].slice(0, 20);
+  ];
 
-  const allCompanies = [
-    ...tiers.strong_buy,
-    ...tiers.safe_buy,
-    ...tiers.watch,
-    ...tiers.avoid,
-  ].map((c) => ({ trading_code: c.trading_code, company_name: c.company_name }));
+  // Re-classify from 4 API tiers into 6 frontend tiers
+  const frontendTiers: FrontendTiers = {
+    strong_buy: [], good_buy: [], safe_buy: [],
+    cautious_buy: [], keep_watching: [], avoid: [],
+  };
+  for (const item of allItems) {
+    frontendTiers[getTier(item.score)].push(item);
+  }
+
+  const top20 = allItems.slice(0, 20);
+
+  const allCompanies = allItems.map((c) => ({
+    trading_code: c.trading_code,
+    company_name: c.company_name,
+  }));
 
   return (
     <>
@@ -82,7 +93,7 @@ export default async function HomePage() {
         <div className="home-main min-w-0">
           {movers && <MarketMovers data={movers} />}
           <Suspense>
-            <FilterableRankings tiers={tiers} counts={counts} />
+            <FilterableRankings tiers={frontendTiers} />
           </Suspense>
           <HowWeScoreBox />
         </div>

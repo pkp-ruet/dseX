@@ -1,4 +1,5 @@
 import type { ScoresResponse, DividendsUpcoming, ScoreItem } from "@/lib/api";
+import { getTier } from "@/lib/constants";
 import ScoreOverview from "./sidebar/ScoreOverview";
 import TopDividends from "./sidebar/TopDividends";
 import TopEPS from "./sidebar/TopEPS";
@@ -11,7 +12,7 @@ interface Props {
 }
 
 export default function HomeSidebar({ scores, dividends }: Props) {
-  const { tiers, counts, computed_at } = scores;
+  const { tiers, computed_at } = scores;
 
   const allItems: ScoreItem[] = [
     ...tiers.strong_buy,
@@ -20,6 +21,13 @@ export default function HomeSidebar({ scores, dividends }: Props) {
     ...tiers.avoid,
   ];
   const total = allItems.length;
+
+  // Re-compute counts for the 6 frontend tiers
+  const counts: Record<string, number> = {};
+  for (const item of allItems) {
+    const tier = getTier(item.score);
+    counts[tier] = (counts[tier] ?? 0) + 1;
+  }
 
   // Widget: Top Dividend Yield
   const topDividends = allItems

@@ -4,13 +4,15 @@ interface Props {
   counts: Record<string, number>;
 }
 
-const TIERS: TierKey[] = ["strong_buy", "safe_buy", "watch", "avoid"];
+const TIERS: TierKey[] = ["strong_buy", "good_buy", "safe_buy", "cautious_buy", "keep_watching", "avoid"];
 
 const PILL_CLASS: Record<TierKey, string> = {
-  strong_buy: "hero-score-pill hero-pill-top",
-  safe_buy: "hero-score-pill hero-pill-mid",
-  watch: "hero-score-pill hero-pill-watch",
-  avoid: "hero-score-pill hero-pill-danger",
+  strong_buy:    "hero-score-pill hero-pill-top",
+  good_buy:      "hero-score-pill hero-pill-good",
+  safe_buy:      "hero-score-pill hero-pill-mid",
+  cautious_buy:  "hero-score-pill hero-pill-cautious",
+  keep_watching: "hero-score-pill hero-pill-watch",
+  avoid:         "hero-score-pill hero-pill-danger",
 };
 
 export default function HeroBand({ counts }: Props) {
