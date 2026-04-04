@@ -19,8 +19,8 @@ interface Props {
 
 // Tier visual config
 const TIER_PILL_STYLE: Record<TierKey, { bg: string; color: string; border: string }> = {
-  strong_buy:    { bg: "rgba(6,95,70,0.10)",    color: "#065F46", border: "1px solid rgba(6,95,70,0.38)"    },
-  good_buy:      { bg: "rgba(13,148,136,0.10)",  color: "#0F766E", border: "1px solid rgba(13,148,136,0.38)" },
+  strong_buy:    { bg: "rgba(20,83,45,0.10)",    color: "#14532D", border: "1px solid rgba(20,83,45,0.42)"    },
+  good_buy:      { bg: "rgba(34,197,94,0.10)",   color: "#166534", border: "1px solid rgba(34,197,94,0.55)"  },
   safe_buy:      { bg: "rgba(30,64,175,0.09)",   color: "#1E40AF", border: "1px solid rgba(30,64,175,0.38)"  },
   cautious_buy:  { bg: "rgba(91,33,182,0.09)",   color: "#5B21B6", border: "1px solid rgba(91,33,182,0.38)"  },
   keep_watching: { bg: "rgba(146,64,14,0.10)",   color: "#92400E", border: "1px solid rgba(146,64,14,0.42)"  },
@@ -28,8 +28,8 @@ const TIER_PILL_STYLE: Record<TierKey, { bg: string; color: string; border: stri
 };
 
 const TIER_SEP_GRADIENT: Record<TierKey, string> = {
-  strong_buy:    "linear-gradient(125deg, #022c22 0%, #065F46 50%, #059669 100%)",
-  good_buy:      "linear-gradient(125deg, #042f2e 0%, #0F766E 50%, #0D9488 100%)",
+  strong_buy:    "linear-gradient(125deg, #052e16 0%, #14532D 50%, #15803D 100%)",
+  good_buy:      "linear-gradient(125deg, #052e16 0%, #166534 50%, #22C55E 100%)",
   safe_buy:      "linear-gradient(125deg, #0c1f6e 0%, #1E40AF 50%, #3B82F6 100%)",
   cautious_buy:  "linear-gradient(125deg, #2e1065 0%, #5B21B6 50%, #7C3AED 100%)",
   keep_watching: "linear-gradient(125deg, #451a03 0%, #92400E 50%, #D97706 100%)",
@@ -37,8 +37,8 @@ const TIER_SEP_GRADIENT: Record<TierKey, string> = {
 };
 
 const TIER_BAR_COLOR: Record<TierKey, string> = {
-  strong_buy:    "#059669",
-  good_buy:      "#0D9488",
+  strong_buy:    "#15803D",
+  good_buy:      "#22C55E",
   safe_buy:      "#3B82F6",
   cautious_buy:  "#7C3AED",
   keep_watching: "#D97706",

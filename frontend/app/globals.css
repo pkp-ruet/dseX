@@ -28,8 +28,8 @@
   --rule-dark: #1E1B4B;
   --gold: #7C3AED;
   --gold-light: #EDE9FE;
-  --np-strong:   #065F46;
-  --np-good:     #0F766E;
+  --np-strong:   #14532D;
+  --np-good:     #166534;
   --np-safe:     #1E40AF;
   --np-cautious: #5B21B6;
   --np-watch:    #92400E;
@@ -160,8 +160,8 @@ body::before {
   flex-direction: column;
   gap: 3px;
 }
-.tier-stat-card--strong       { border-left-color: #059669; }
-.tier-stat-card--good         { border-left-color: #0D9488; }
+.tier-stat-card--strong       { border-left-color: #15803D; }
+.tier-stat-card--good         { border-left-color: #22C55E; }
 .tier-stat-card--safe         { border-left-color: #3B82F6; }
 .tier-stat-card--cautious     { border-left-color: #7C3AED; }
 .tier-stat-card--keep-watching { border-left-color: #D97706; }
@@ -802,21 +802,66 @@ body::before {
   padding: 3px 10px;
   border-radius: 999px;
 }
-.np-col-strong {
-  background: #F0FDF4;
-  border-bottom-color: #BBF7D0;
-  border-left: 4px solid #059669;
+/* Crown icon — gold, glowing */
+.np-col-crown-icon {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 6px;
+  margin-bottom: 2px;
+  color: #FBBF24;
+  filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.85)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45));
 }
-.np-col-strong .np-col-label      { color: #065F46; }
-.np-col-strong .np-col-score-label { background: #D1FAE5; color: #065F46; }
+/* Header right slot (badge + score label) */
+.np-col-header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.np-col-best-badge {
+  font-size: 0.57rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #FBBF24;
+  background: rgba(251, 191, 36, 0.14);
+  border: 1px solid rgba(251, 191, 36, 0.40);
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
 
-.np-col-good {
-  background: #F0FDFA;
-  border-bottom-color: #99F6E4;
-  border-left: 4px solid #0D9488;
+/* Forest Green — Strong Buy (dark inverted, premium) */
+.np-col-strong {
+  background: linear-gradient(135deg, #052E16 0%, #14532D 55%, #166534 100%);
+  border-bottom-color: #15803D;
+  border-left: 5px solid #4ADE80;
+  position: relative;
+  overflow: hidden;
 }
-.np-col-good .np-col-label       { color: #0F766E; }
-.np-col-good .np-col-score-label { background: #CCFBF1; color: #0F766E; }
+/* Shimmer accent line across the top */
+.np-col-strong::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #4ADE80 35%, #FBBF24 65%, transparent 100%);
+}
+.np-col-strong .np-col-label       { color: #ECFDF5; }
+.np-col-strong .np-col-score-label {
+  background: rgba(74, 222, 128, 0.15);
+  color: #86EFAC;
+  border: 1px solid rgba(74, 222, 128, 0.35);
+}
+
+/* Bright Green — Good Buy (vivid, light — clearly ≠ dark Strong Buy) */
+.np-col-good {
+  background: #F0FDF4;
+  border-bottom-color: #86EFAC;
+  border-left: 4px solid #22C55E;
+}
+.np-col-good .np-col-label       { color: #166534; }
+.np-col-good .np-col-score-label { background: #BBFAD9; color: #166534; }
 
 .np-col-safe {
   background: #EFF6FF;
@@ -849,10 +894,10 @@ body::before {
   overflow: hidden;
 }
 .rank-table-strong {
-  box-shadow: 0 10px 32px rgba(6, 95, 70, 0.10);
+  box-shadow: 0 10px 32px rgba(20, 83, 45, 0.14);
 }
 .rank-table-good {
-  box-shadow: 0 10px 32px rgba(13, 148, 136, 0.10);
+  box-shadow: 0 10px 32px rgba(34, 197, 94, 0.12);
 }
 .rank-table-safe {
   box-shadow: 0 10px 32px rgba(30, 64, 175, 0.10);
@@ -881,16 +926,16 @@ body::before {
   transition: background 0.1s;
 }
 .rank-table-strong .rank-row:nth-child(even) {
-  background: rgba(6, 95, 70, 0.04);
+  background: rgba(20, 83, 45, 0.05);
 }
 .rank-table-strong .rank-row:hover {
-  background: rgba(6, 95, 70, 0.10);
+  background: rgba(20, 83, 45, 0.11);
 }
 .rank-table-good .rank-row:nth-child(even) {
-  background: rgba(13, 148, 136, 0.04);
+  background: rgba(34, 197, 94, 0.04);
 }
 .rank-table-good .rank-row:hover {
-  background: rgba(13, 148, 136, 0.10);
+  background: rgba(34, 197, 94, 0.09);
 }
 .rank-table-safe .rank-row:nth-child(even) {
   background: rgba(30, 64, 175, 0.04);
@@ -951,15 +996,15 @@ body::before {
 }
 .rank-table-strong .rr-ticker-pill {
   color: var(--np-strong);
-  background: linear-gradient(165deg, rgba(6, 95, 70, 0.10) 0%, rgba(6, 95, 70, 0.20) 100%);
-  border: 1px solid rgba(6, 95, 70, 0.42);
-  box-shadow: 0 1px 3px rgba(6, 95, 70, 0.12);
+  background: linear-gradient(165deg, rgba(20, 83, 45, 0.10) 0%, rgba(20, 83, 45, 0.22) 100%);
+  border: 1px solid rgba(20, 83, 45, 0.45);
+  box-shadow: 0 1px 4px rgba(20, 83, 45, 0.18);
 }
 .rank-table-good .rr-ticker-pill {
   color: var(--np-good);
-  background: linear-gradient(165deg, rgba(13, 148, 136, 0.10) 0%, rgba(13, 148, 136, 0.20) 100%);
-  border: 1px solid rgba(13, 148, 136, 0.42);
-  box-shadow: 0 1px 3px rgba(13, 148, 136, 0.12);
+  background: linear-gradient(165deg, rgba(34, 197, 94, 0.10) 0%, rgba(34, 197, 94, 0.22) 100%);
+  border: 1px solid rgba(34, 197, 94, 0.55);
+  box-shadow: 0 1px 4px rgba(34, 197, 94, 0.15);
 }
 .rank-table-safe .rr-ticker-pill {
   color: var(--np-safe);
@@ -1804,8 +1849,8 @@ details.dsex-exp[open] > summary {
   transition: width 0.3s ease;
 }
 
-.score-bar-fill-strong        { background: #059669; }
-.score-bar-fill-good          { background: #0D9488; }
+.score-bar-fill-strong        { background: #15803D; }
+.score-bar-fill-good          { background: #22C55E; }
 .score-bar-fill-safe          { background: #3B82F6; }
 .score-bar-fill-cautious      { background: #7C3AED; }
 .score-bar-fill-keep-watching { background: #D97706; }

@@ -6,8 +6,8 @@ interface Props {
 }
 
 const CARD_META: Record<TierKey, { colorClass: string; countColor: string }> = {
-  strong_buy:    { colorClass: "tier-stat-card--strong",       countColor: "#059669" },
-  good_buy:      { colorClass: "tier-stat-card--good",         countColor: "#0D9488" },
+  strong_buy:    { colorClass: "tier-stat-card--strong",       countColor: "#15803D" },
+  good_buy:      { colorClass: "tier-stat-card--good",         countColor: "#22C55E" },
   safe_buy:      { colorClass: "tier-stat-card--safe",         countColor: "#3B82F6" },
   cautious_buy:  { colorClass: "tier-stat-card--cautious",     countColor: "#7C3AED" },
   keep_watching: { colorClass: "tier-stat-card--keep-watching", countColor: "#D97706" },
