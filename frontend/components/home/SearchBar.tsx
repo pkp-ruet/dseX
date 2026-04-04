@@ -10,9 +10,10 @@ interface Company {
 
 interface Props {
   companies: Company[];
+  variant?: "default" | "sidebar";
 }
 
-export default function SearchBar({ companies }: Props) {
+export default function SearchBar({ companies, variant = "default" }: Props) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Company[]>([]);
@@ -83,8 +84,12 @@ export default function SearchBar({ companies }: Props) {
 
   const open = suggestions.length > 0;
 
+  const wrapClass = variant === "sidebar"
+    ? "search-bar-wrap search-bar-wrap--sidebar"
+    : "search-bar-wrap";
+
   return (
-    <div className="search-bar-wrap" ref={containerRef}>
+    <div className={wrapClass} ref={containerRef}>
       <div className={`search-bar-box${open ? " search-bar-open" : ""}`}>
         <svg className="search-bar-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.6" />

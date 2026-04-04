@@ -64,13 +64,12 @@ export default async function HomePage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
 
-      {/* Full-width header — above the two-column split */}
+      {/* Full-width masthead */}
       <Masthead />
-      <SearchBar companies={allCompanies} />
 
       {/* Two-column layout: main rankings (left) + sidebar (right) */}
       <div className="home-layout">
-        {/* Left: main content */}
+        {/* Left: market movers now leads, then rankings */}
         <div className="home-main min-w-0">
           {movers && <MarketMovers data={movers} />}
           <Suspense>
@@ -79,8 +78,9 @@ export default async function HomePage() {
           <HowWeScoreBox />
         </div>
 
-        {/* Right: at-a-glance sidebar */}
+        {/* Right: search sits above score overview, then rest of sidebar */}
         <aside className="home-sidebar">
+          <SearchBar companies={allCompanies} variant="sidebar" />
           <HomeSidebar scores={scores} dividends={dividends} />
         </aside>
       </div>
