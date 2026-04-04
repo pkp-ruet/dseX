@@ -3,11 +3,10 @@ import { Suspense } from "react";
 import { getScores, getDividendsUpcoming, getMarketMovers } from "@/lib/api";
 import Masthead from "@/components/home/Masthead";
 import SearchBar from "@/components/home/SearchBar";
-import HeroBand from "@/components/home/HeroBand";
 import FilterableRankings from "@/components/home/FilterableRankings";
-import MarketIntelStrip from "@/components/home/MarketIntelStrip";
 import HowWeScoreBox from "@/components/home/HowWeScoreBox";
 import MarketMovers from "@/components/home/MarketMovers";
+import HomeSidebar from "@/components/home/HomeSidebar";
 
 export const revalidate = 3600;
 
@@ -65,19 +64,25 @@ export default async function HomePage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
 
-      <div className="max-w-full min-w-0">
-        <Masthead />
-        <SearchBar companies={allCompanies} />
-        <HeroBand counts={counts} />
+      {/* Full-width header — above the two-column split */}
+      <Masthead />
+      <SearchBar companies={allCompanies} />
 
-        {movers && <MarketMovers data={movers} />}
+      {/* Two-column layout: main rankings (left) + sidebar (right) */}
+      <div className="home-layout">
+        {/* Left: main content */}
+        <div className="home-main min-w-0">
+          {movers && <MarketMovers data={movers} />}
+          <Suspense>
+            <FilterableRankings tiers={tiers} counts={counts} />
+          </Suspense>
+          <HowWeScoreBox />
+        </div>
 
-        <Suspense>
-          <FilterableRankings tiers={tiers} counts={counts} />
-        </Suspense>
-
-        {dividends && <MarketIntelStrip data={dividends} />}
-        <HowWeScoreBox />
+        {/* Right: at-a-glance sidebar */}
+        <aside className="home-sidebar">
+          <HomeSidebar scores={scores} dividends={dividends} />
+        </aside>
       </div>
     </>
   );
