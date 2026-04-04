@@ -1405,21 +1405,21 @@ details.dsex-exp[open] > summary {
   flex: 1;
   height: 2px;
   border-radius: 2px;
-  background: linear-gradient(90deg, transparent 0%, var(--gold) 35%, var(--rule) 65%, transparent 100%);
-  opacity: 0.8;
+  background: linear-gradient(90deg, transparent 0%, #4B4B4B 30%, #1A1A1A 60%, transparent 100%);
+  opacity: 0.7;
 }
 .section-rule-modern .section-rule-text {
   font-size: 0.64rem;
   font-weight: 800;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: var(--ink);
   white-space: nowrap;
-  padding: 9px 18px;
-  background: linear-gradient(180deg, #fff 0%, #F5F3FF 100%);
-  border: 1px solid rgba(99, 102, 241, 0.22);
+  padding: 8px 20px;
+  background: linear-gradient(135deg, #2A2A2A 0%, #111111 100%);
+  color: #E5E5E5;
+  border: none;
   border-radius: 999px;
-  box-shadow: 0 3px 14px rgba(79, 70, 229, 0.08);
+  box-shadow: 0 3px 16px rgba(0, 0, 0, 0.28), 0 1px 4px rgba(0, 0, 0, 0.18);
 }
 
 /* Info strip */
