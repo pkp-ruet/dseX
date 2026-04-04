@@ -17,9 +17,15 @@ function TickerItem({ item }: { item: ScoreItem }) {
     cp == null ? "—"
     : `${cp > 0 ? "+" : ""}${pct(cp)}`;
 
+  const arrow =
+    cp == null ? null
+    : cp > 0   ? <span className="ticker-arrow ticker-arrow-up">▲</span>
+    : cp < 0   ? <span className="ticker-arrow ticker-arrow-dn">▼</span>
+    : null;
+
   return (
     <span className="ticker-item">
-      <span className="ticker-code">{item.trading_code}</span>
+      {arrow}<span className="ticker-code">{item.trading_code}</span>
       <span className="ticker-ltp">{item.ltp != null ? taka(item.ltp) : "—"}</span>
       <span className={`ticker-chg ${chgClass}`}>{chgLabel}</span>
       <span className="ticker-sep" aria-hidden="true">◆</span>

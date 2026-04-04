@@ -542,6 +542,14 @@ body::before {
 .ticker-up   { color: #059669; }
 .ticker-dn   { color: #DC2626; }
 .ticker-flat { color: #9CA3AF; }
+.ticker-arrow {
+  font-size: 0.58rem;
+  margin-right: 3px;
+  vertical-align: middle;
+  line-height: 1;
+}
+.ticker-arrow-up { color: #059669; }
+.ticker-arrow-dn { color: #DC2626; }
 .ticker-sep {
   font-size: 0.38rem;
   color: rgba(99, 102, 241, 0.30);
