@@ -65,19 +65,19 @@ export default function MarketMovers({ data }: { data: MarketMoversData }) {
       </div>
 
       <div className="movers-strip">
-        <div className="info-col">
+        <div className="info-col info-col--gainers">
           <div className="info-col-header">Top Gainers</div>
           {data.gainers.map((item) => (
             <MoverRow key={item.trading_code} item={item} metric="change" />
           ))}
         </div>
-        <div className="info-col">
+        <div className="info-col info-col--losers">
           <div className="info-col-header">Top Losers</div>
           {data.losers.map((item) => (
             <MoverRow key={item.trading_code} item={item} metric="change" />
           ))}
         </div>
-        <div className="info-col">
+        <div className="info-col info-col--traded">
           <div className="info-col-header">Most Traded</div>
           {data.most_traded.map((item) => (
             <MoverRow key={item.trading_code} item={item} metric="value" />

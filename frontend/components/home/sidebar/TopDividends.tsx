@@ -10,7 +10,7 @@ export default function TopDividends({ items }: Props) {
   if (items.length === 0) return null;
 
   return (
-    <div className="sidebar-widget">
+    <div className="sidebar-widget sidebar-widget--dividend">
       <div className="sidebar-widget-title">Top Dividend Yield</div>
       {items.map((item) => (
         <Link

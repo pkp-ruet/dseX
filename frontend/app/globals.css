@@ -952,6 +952,11 @@ details.dsex-exp[open] > summary {
   gap: 18px;
   margin: 36px 0 26px;
 }
+
+/* First section rule in the main column aligns with the sidebar search bar */
+.home-main > .section-rule-modern:first-child {
+  margin-top: 0;
+}
 .section-rule-modern::before,
 .section-rule-modern::after {
   content: "";
@@ -1029,6 +1034,14 @@ details.dsex-exp[open] > summary {
   font-weight: 700;
   color: var(--primary);
 }
+
+/* Per-section ticker colors */
+.info-col--gainers .icr-key { color: #059669; }   /* emerald — gains */
+.info-col--losers  .icr-key { color: #E11D48; }   /* rose    — losses */
+.info-col--traded  .icr-key { color: #0891B2; }   /* cyan    — volume */
+
+.sidebar-widget--dividend .sidebar-row-key { color: #D97706; }  /* amber  — yield */
+.sidebar-widget--eps      .sidebar-row-key { color: #7C3AED; }  /* violet — growth */
 .icr-sub {
   color: var(--ink-muted);
   min-width: 0;

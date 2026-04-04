@@ -9,7 +9,7 @@ export default function TopEPS({ items }: Props) {
   if (items.length === 0) return null;
 
   return (
-    <div className="sidebar-widget">
+    <div className="sidebar-widget sidebar-widget--eps">
       <div className="sidebar-widget-title">EPS Growth Leaders</div>
       {items.map((item) => {
         const eps = item.eps_yoy_pct ?? 0;
