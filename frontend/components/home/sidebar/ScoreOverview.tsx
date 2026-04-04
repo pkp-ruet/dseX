@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { formatDate } from "@/lib/formatters";
 
 interface Props {
@@ -39,6 +40,9 @@ export default function ScoreOverview({ counts, total, computedAt }: Props) {
         );
       })}
       <div className="sidebar-widget-footer">Updated {formatDate(computedAt)}</div>
+      <Link href="/dsestockranking" className="score-overview-rank-btn">
+        View Full Rankings →
+      </Link>
     </div>
   );
 }

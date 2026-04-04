@@ -22,7 +22,7 @@ export default function Navbar() {
             href="/dsestockranking"
             className={`navbar-rank-btn${isRanking ? " navbar-rank-btn-active" : ""}`}
           >
-            Rank by Fundamentals
+            Score Leaderboard
           </Link>
         </nav>
       </div>
