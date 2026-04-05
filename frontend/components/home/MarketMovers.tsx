@@ -48,7 +48,7 @@ function MoverRow({
   );
 }
 
-export default function MarketMovers({ data }: { data: MarketMoversData }) {
+export default function MarketMovers({ data, compact }: { data: MarketMoversData; compact?: boolean }) {
   const hasData =
     data.gainers.length > 0 ||
     data.losers.length > 0 ||
@@ -64,7 +64,7 @@ export default function MarketMovers({ data }: { data: MarketMoversData }) {
         <span className="section-rule-text">Market Movers — {dateLabel}</span>
       </div>
 
-      <div className="movers-strip">
+      <div className={compact ? "movers-strip movers-strip--compact" : "movers-strip"}>
         <div className="info-col info-col--gainers">
           <div className="info-col-header">Top Gainers</div>
           {data.gainers.map((item) => (

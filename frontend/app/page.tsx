@@ -89,18 +89,18 @@ export default async function HomePage() {
 
       {/* Two-column layout: main rankings (left) + sidebar (right) */}
       <div className="home-layout">
-        {/* Left: market movers now leads, then rankings */}
+        {/* Left: rankings */}
         <div className="home-main min-w-0">
-          {movers && <MarketMovers data={movers} />}
           <Suspense>
             <FilterableRankings tiers={frontendTiers} />
           </Suspense>
           <HowWeScoreBox />
         </div>
 
-        {/* Right: search sits above score overview, then rest of sidebar */}
+        {/* Right: search, market movers, then rest of sidebar */}
         <aside className="home-sidebar">
           <SearchBar companies={allCompanies} variant="sidebar" />
+          {movers && <MarketMovers data={movers} compact />}
           <HomeSidebar scores={scores} dividends={dividends} />
         </aside>
       </div>

@@ -1614,6 +1614,40 @@ details.dsex-exp[open] > summary {
   margin-bottom: 8px;
 }
 
+/* Sidebar market movers section rule — smaller, tighter, shifted left */
+.home-sidebar .section-rule-modern:has(+ .movers-strip),
+.home-sidebar .section-rule-modern + .movers-strip ~ .section-rule-modern {
+  margin: 14px 0 0;
+  gap: 10px;
+  justify-content: flex-start;
+}
+.home-sidebar .section-rule-modern:has(+ .movers-strip)::before {
+  display: none;
+}
+.home-sidebar .section-rule-modern:has(+ .movers-strip)::after {
+  flex: 0 1 40px;
+}
+.home-sidebar .section-rule-modern:has(+ .movers-strip) .section-rule-text {
+  font-size: 0.56rem;
+  letter-spacing: 2px;
+  padding: 5px 12px;
+}
+
+/* Compact (sidebar) variant — stack columns vertically */
+.movers-strip--compact {
+  grid-template-columns: 1fr;
+}
+.movers-strip--compact .info-col {
+  border-right: none;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+.movers-strip--compact .info-col:not(:last-child) {
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 14px;
+  margin-bottom: 12px;
+}
+
 @media (max-width: 700px) {
   .movers-strip {
     grid-template-columns: 1fr;
