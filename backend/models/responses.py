@@ -107,6 +107,53 @@ class MarketMoversResponse(BaseModel):
     most_traded: list[MarketMoverItem]
 
 
+class MarketSignalItem(BaseModel):
+    trading_code: str
+    company_name: Optional[str] = None
+    sector: Optional[str] = None
+    ltp: Optional[float] = None
+    change_pct: Optional[float] = None
+    volume: Optional[float] = None
+    value_mn: Optional[float] = None
+    avg_volume_7d: Optional[float] = None
+    volume_ratio: Optional[float] = None
+    score: Optional[float] = None
+
+
+class SectorStrengthItem(BaseModel):
+    sector: str
+    avg_change_pct: float
+    count: int
+
+
+class MarketSummary(BaseModel):
+    date: Optional[str] = None
+    avg_change_pct: Optional[float] = None
+    gainers: int = 0
+    losers: int = 0
+    flat: int = 0
+    total: int = 0
+
+
+class MarketIntelSignals(BaseModel):
+    accumulation_radar: Optional[list[MarketSignalItem]] = None
+    resilience_leaders: Optional[list[MarketSignalItem]] = None
+    floor_watch: Optional[list[MarketSignalItem]] = None
+    volume_breakouts: Optional[list[MarketSignalItem]] = None
+    momentum_leaders: Optional[list[MarketSignalItem]] = None
+    quality_laggards: Optional[list[MarketSignalItem]] = None
+    volume_divergence: Optional[list[MarketSignalItem]] = None
+    dividend_capture: Optional[list[MarketSignalItem]] = None
+    hidden_gems: Optional[list[MarketSignalItem]] = None
+    sector_strength: Optional[list[SectorStrengthItem]] = None
+
+
+class MarketIntelligenceResponse(BaseModel):
+    market_condition: str
+    market_summary: MarketSummary
+    signals: MarketIntelSignals
+
+
 class AuditCompanyRow(BaseModel):
     trading_code: str
     company_name: Optional[str] = None

@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.routers import scores, companies, dividends, audit, prices, market_movers
+from backend.routers import scores, companies, dividends, audit, prices, market_movers, market_intelligence
 
 app = FastAPI(title="dseX API", version="1.0.0")
 
@@ -31,6 +31,7 @@ app.include_router(dividends.router)
 app.include_router(audit.router)
 app.include_router(prices.router)
 app.include_router(market_movers.router)
+app.include_router(market_intelligence.router)
 
 
 @app.get("/health")

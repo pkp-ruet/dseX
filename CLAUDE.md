@@ -47,13 +47,15 @@ python report_scores.py
 
 ## Architecture
 
-This is a DSE (Dhaka Stock Exchange) stock data pipeline with two output surfaces:
+This is a DSE (Dhaka Stock Exchange) stock data pipeline with three output surfaces:
 
 1. **Data collection (`main.py`)** — CLI entrypoint that orchestrates five scrapers in sequence. All scrapers inherit from `scrapers/base_scraper.py:BaseScraper`, which handles HTTP retries, rate limiting (`REQUEST_DELAY`), and user-agent rotation.
 
-2. **Streamlit UI (`app.py`)** — Multi-page dashboard. `app.py` acts as the router: `?code=` loads the detail page, `?view=audit` loads the audit page, and the default loads the homepage. Pages live in `pages/` (`home.py`, `detail.py`, `audit.py`). All DB reads are `@st.cache_data` with 5-min TTL.
+2. **Streamlit UI (`app.py`)** — Legacy multi-page dashboard. `app.py` acts as the router: `?code=` loads the detail page, `?view=audit` loads the audit page, and the default loads the homepage. Pages live in `pages/` (`home.py`, `detail.py`, `audit.py`). All DB reads are `@st.cache_data` with 5-min TTL.
 
-3. **Scoring (`report_scores.py` and `utils/scoring.py`)** — The dseX Score (0–100) uses the 5-pillar DSEF algorithm with percentile ranking: Value (30%), Quality (20%), Growth (20%), Income (15%), Safety (15%). NaN values fill as 0 in all rank columns.
+3. **Next.js + FastAPI app** — Production web app. FastAPI backend (`backend/`) serves REST API. Next.js frontend (`frontend/`) renders pages with ISR caching.
+
+4. **Scoring (`report_scores.py` and `utils/scoring.py`)** — The dseX Score (0–100) uses the 5-pillar DSEF algorithm with percentile ranking: Value (30%), Quality (20%), Growth (20%), Income (15%), Safety (15%). NaN values fill as 0 in all rank columns.
 
 ### Scrapers
 
@@ -81,13 +83,124 @@ Connection is a module-level singleton in `db/connection.py` (call `get_db()` / 
 
 Scrapers should use upsert logic to avoid duplicates.
 
-### Pages
+### Pages (Legacy Streamlit)
 
 | File | Route | Purpose |
 |---|---|---|
 | `pages/home.py` | default (`/`) | Homepage ranking all companies by DSEF composite score |
 | `pages/detail.py` | `?code=<TICKER>` | Detail page: price history, financials, dividends, shareholding, DCF |
 | `pages/audit.py` | `?view=audit` | Data audit view for inspecting scraper coverage and data quality |
+
+### Next.js Frontend (`frontend/`)
+
+**Framework:** Next.js 15 App Router · React 19 · Tailwind CSS · Recharts · TypeScript
+
+**Routes:**
+
+| Route | File | Purpose |
+|---|---|---|
+| `/` | `app/page.tsx` | Homepage: ticker band, market movers, filterable DSEF rankings, sidebar |
+| `/dsestockranking` | `app/dsestockranking/page.tsx` | Full leaderboard: all companies ranked by DSEF score with tier stat cards |
+| `/market-intelligence` | `app/market-intelligence/page.tsx` | Market Intelligence: auto-detects falling/rising/sideways, shows signal tables |
+| `/stock/[code]` | `app/stock/[code]/page.tsx` | Stock detail: price chart, financials, cash flow, dividends, shareholding, signals, news |
+
+**Navigation (`frontend/components/layout/Navbar.tsx`):**
+- Logo → `/`
+- "Market Intelligence" button (outlined) → `/market-intelligence`
+- "Score Leaderboard" button (filled) → `/dsestockranking`
+
+**Component tree:**
+
+```
+components/
+├── layout/
+│   ├── Navbar.tsx          — fixed header with two nav buttons
+│   └── Footer.tsx
+├── home/
+│   ├── Masthead.tsx
+│   ├── SearchBar.tsx
+│   ├── TickerBand.tsx      — top 20 ticker scroll band
+│   ├── MarketMovers.tsx    — gainers / losers / most-traded strip
+│   ├── MarketIntelStrip.tsx — upcoming dividend declarations sidebar strip
+│   ├── FilterableRankings.tsx
+│   ├── FilterBar.tsx
+│   ├── HowWeScoreBox.tsx
+│   ├── HomeSidebar.tsx
+│   ├── RankRow.tsx
+│   ├── TierTableSection.tsx
+│   ├── TierDetailsSection.tsx
+│   ├── TierHeader.tsx
+│   ├── HeroBand.tsx
+│   └── sidebar/
+│       ├── ScoreOverview.tsx
+│       ├── SectorLeaderboard.tsx
+│       ├── TopEPS.tsx
+│       ├── TopDividends.tsx
+│       └── UpcomingEvents.tsx
+├── ranking/
+│   ├── FullRankTable.tsx
+│   └── TierStatCards.tsx
+├── market-intelligence/
+│   ├── ConditionBanner.tsx — colored banner: falling (red) / rising (green) / sideways (amber)
+│   ├── SignalTable.tsx     — reusable 4-col table (code · LTP · chg% · metric)
+│   └── SectorMap.tsx      — horizontal bar chart of sector avg change%
+├── stock/
+│   ├── PriceChart.tsx
+│   ├── FinancialCharts.tsx
+│   ├── CashFlowPanel.tsx
+│   ├── DividendSection.tsx
+│   ├── NewsSection.tsx
+│   ├── ShareholdingPie.tsx
+│   ├── PillarScores.tsx
+│   ├── SignalFlags.tsx
+│   ├── ValuationCard.tsx
+│   └── VerdictBar.tsx
+└── ui/
+    ├── ScoreBadge.tsx
+    ├── TierPill.tsx
+    └── SectionLabel.tsx
+```
+
+**Market Intelligence page layout by condition:**
+
+| Condition | Row 1 | Row 2 |
+|---|---|---|
+| Falling 🔴 | Accumulation Radar · Sector Fortress | Resilience Leaders · Floor Watch |
+| Rising 🟢 | Volume Breakouts (full width) | Momentum Leaders · Quality Laggards |
+| Sideways ➡️ | Volume Divergence (full width) | Hidden Gems · Dividend Capture |
+| All | — | Sector Map (full width, bottom) — except falling |
+
+**API client (`frontend/lib/api.ts`):**
+- `getScores()` → `/api/scores` (3600s)
+- `getMarketMovers()` → `/api/market-movers` (3600s)
+- `getDividendsUpcoming()` → `/api/dividends/upcoming` (3600s)
+- `getMarketIntelligence()` → `/api/market-intelligence` (900s)
+- `getCompanyDetail(code)` → `/api/company/:code` (3600s)
+- `getPriceHistory(code, range)` → client-side fetch, no cache
+
+### FastAPI Backend (`backend/`)
+
+**Routers:**
+
+| Router file | Endpoint | Purpose |
+|---|---|---|
+| `routers/scores.py` | `GET /api/scores` | DSEF scored tiers; `POST /api/scores/refresh` clears cache |
+| `routers/companies.py` | `GET /api/companies/codes`, `GET /api/company/:code` | Company list and detail |
+| `routers/prices.py` | `GET /api/company/:code/prices?range=` | Price history |
+| `routers/market_movers.py` | `GET /api/market-movers` | Top 5 gainers/losers/most-traded |
+| `routers/market_intelligence.py` | `GET /api/market-intelligence` | Market condition + signal tables |
+| `routers/dividends.py` | `GET /api/dividends/upcoming` | Upcoming declarations & record dates |
+| `routers/audit.py` | `GET /api/audit` | Data coverage report |
+
+**Service layer (`backend/services/db_service.py`):**
+All query helpers use `@_ttl_cache(300)` (5-min in-memory TTL).
+Key functions: `load_companies()`, `load_latest_prices()`, `load_price_history(code)`,
+`load_market_movers()`, `compute_market_intelligence()`, `compute_signal_flags()`.
+
+**Market intelligence logic (`compute_market_intelligence`):**
+- Detects condition from latest day: avg_change < -0.3% or loser_ratio > 60% → falling; > +0.3% or gainer_ratio > 60% → rising; else sideways
+- Computes 7-day avg volume per stock from the 7 trading days before the latest date
+- Falls back to "unknown" (with date populated) when change_pct is missing for all stocks
 
 ### Utils
 

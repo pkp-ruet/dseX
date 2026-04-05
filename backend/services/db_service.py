@@ -203,6 +203,246 @@ def load_market_movers() -> dict:
     }
 
 
+@_ttl_cache(300)
+def compute_market_intelligence() -> dict:
+    """
+    Auto-detect market condition and compute intelligence signals.
+    Returns signals tailored to falling / rising / sideways market state.
+    """
+    import math
+    from datetime import datetime
+
+    db = get_db()
+
+    # --- Latest trading date ---
+    latest_doc = db.stock_prices.find_one(sort=[("date", -1)])
+    if not latest_doc:
+        return {"market_condition": "unknown", "market_summary": {}, "signals": {}}
+
+    latest_date = latest_doc["date"]
+    latest_date_str = latest_date.isoformat() if hasattr(latest_date, "isoformat") else str(latest_date)
+
+    # --- Last 10 distinct trading dates ---
+    all_dates = sorted(db.stock_prices.distinct("date"), reverse=True)
+    recent_dates = all_dates[:10]
+
+    # --- Today's prices ---
+    today_docs = list(db.stock_prices.find(
+        {"date": latest_date},
+        {"_id": 0, "trading_code": 1, "ltp": 1, "change_pct": 1,
+         "volume": 1, "value_mn": 1}
+    ))
+
+    # --- Historical (last 7 trading days, excluding today) for volume avg ---
+    hist_dates = recent_dates[1:8]
+    hist_docs = list(db.stock_prices.find(
+        {"date": {"$in": hist_dates}},
+        {"_id": 0, "trading_code": 1, "volume": 1}
+    )) if hist_dates else []
+
+    vol_sums: dict = {}
+    vol_counts: dict = {}
+    for d in hist_docs:
+        code = d["trading_code"]
+        if d.get("volume") and d["volume"] > 0:
+            vol_sums[code] = vol_sums.get(code, 0) + d["volume"]
+            vol_counts[code] = vol_counts.get(code, 0) + 1
+
+    avg_volumes = {
+        code: vol_sums[code] / vol_counts[code]
+        for code in vol_sums
+        if vol_counts[code] >= 2
+    }
+
+    # --- Company metadata ---
+    companies = {c["trading_code"]: c for c in load_companies()}
+
+    # --- DSEF scores ---
+    scores: dict = {}
+    try:
+        from backend.services.scoring_service import build_scores_df
+        df = build_scores_df()
+        if not df.empty:
+            for _, row in df.iterrows():
+                v = row.get("score")
+                if v is not None and not (isinstance(v, float) and math.isnan(v)):
+                    scores[row["trading_code"]] = float(v)
+    except Exception:
+        pass
+
+    # --- Upcoming dividend record dates within 14 days ---
+    today = datetime.now().date()
+    upcoming_record_codes: set = set()
+    try:
+        for d in load_dividend_declarations():
+            rd = d.get("record_date")
+            if rd:
+                try:
+                    record_date = datetime.fromisoformat(str(rd)).date()
+                    if 0 <= (record_date - today).days <= 14:
+                        upcoming_record_codes.add(d["trading_code"])
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+    # --- Market condition ---
+    valid_today = [d for d in today_docs if d.get("change_pct") is not None]
+    if not valid_today:
+        # Data exists but no change_pct values — return date info without signals
+        return {
+            "market_condition": "unknown",
+            "market_summary": {
+                "date": latest_date_str,
+                "avg_change_pct": None,
+                "gainers": 0,
+                "losers": 0,
+                "flat": len(today_docs),
+                "total": len(today_docs),
+            },
+            "signals": {},
+        }
+
+    avg_change = sum(d["change_pct"] for d in valid_today) / len(valid_today)
+    gainers = sum(1 for d in valid_today if d["change_pct"] > 0)
+    losers = sum(1 for d in valid_today if d["change_pct"] < 0)
+    flat_count = len(valid_today) - gainers - losers
+    total = len(valid_today)
+    gainer_ratio = gainers / total if total > 0 else 0
+    loser_ratio = losers / total if total > 0 else 0
+
+    if avg_change < -0.3 or loser_ratio > 0.60:
+        condition = "falling"
+    elif avg_change > 0.3 or gainer_ratio > 0.60:
+        condition = "rising"
+    else:
+        condition = "sideways"
+
+    # --- Enrich today's docs ---
+    def enrich(d: dict) -> dict:
+        code = d["trading_code"]
+        comp = companies.get(code, {})
+        avg_vol = avg_volumes.get(code)
+        vol = d.get("volume")
+        vol_ratio = None
+        if vol and avg_vol and avg_vol > 0:
+            vol_ratio = round(vol / avg_vol, 2)
+        score = scores.get(code)
+        return {
+            "trading_code": code,
+            "company_name": comp.get("company_name"),
+            "sector": comp.get("sector"),
+            "ltp": d.get("ltp"),
+            "change_pct": d.get("change_pct"),
+            "volume": vol,
+            "value_mn": d.get("value_mn"),
+            "avg_volume_7d": round(avg_vol) if avg_vol else None,
+            "volume_ratio": vol_ratio,
+            "score": score if score is not None and not (isinstance(score, float) and math.isnan(score)) else None,
+        }
+
+    enriched = [
+        enrich(d) for d in today_docs
+        if d.get("change_pct") is not None and d.get("volume")
+    ]
+
+    def _sk(x, field, default=0):
+        v = x.get(field)
+        if v is None or (isinstance(v, float) and math.isnan(v)):
+            return default
+        return v
+
+    signals: dict = {}
+
+    if condition == "falling":
+        accum = [
+            e for e in enriched
+            if e["change_pct"] > avg_change and (e.get("volume_ratio") or 0) >= 1.5
+        ]
+        accum.sort(key=lambda x: _sk(x, "volume_ratio"), reverse=True)
+        signals["accumulation_radar"] = accum[:15]
+
+        signals["resilience_leaders"] = sorted(
+            enriched, key=lambda x: _sk(x, "change_pct", -999), reverse=True
+        )[:10]
+
+        floor_watch = [
+            e for e in enriched
+            if e["change_pct"] < 0 and (e.get("volume_ratio") or 0) >= 1.3
+        ]
+        floor_watch.sort(key=lambda x: _sk(x, "volume_ratio"), reverse=True)
+        signals["floor_watch"] = floor_watch[:10]
+
+    elif condition == "rising":
+        breakouts = [
+            e for e in enriched
+            if e["change_pct"] > avg_change and (e.get("volume_ratio") or 0) >= 2.0
+        ]
+        breakouts.sort(key=lambda x: _sk(x, "volume_ratio"), reverse=True)
+        signals["volume_breakouts"] = breakouts[:15]
+
+        signals["momentum_leaders"] = sorted(
+            [e for e in enriched if e["change_pct"] > 0],
+            key=lambda x: _sk(x, "change_pct", -999),
+            reverse=True
+        )[:10]
+
+        quality_laggards = [
+            e for e in enriched
+            if _sk(e, "score", 0) >= 55 and e["change_pct"] <= 0.2
+        ]
+        quality_laggards.sort(key=lambda x: _sk(x, "score", 0), reverse=True)
+        signals["quality_laggards"] = quality_laggards[:10]
+
+    else:  # sideways
+        vol_div = [
+            e for e in enriched
+            if abs(e["change_pct"]) <= 0.5 and (e.get("volume_ratio") or 0) >= 1.5
+        ]
+        vol_div.sort(key=lambda x: _sk(x, "volume_ratio"), reverse=True)
+        signals["volume_divergence"] = vol_div[:15]
+
+        div_capture = [e for e in enriched if e["trading_code"] in upcoming_record_codes]
+        div_capture.sort(key=lambda x: _sk(x, "score", 0), reverse=True)
+        signals["dividend_capture"] = div_capture[:10]
+
+        hidden_gems = [
+            e for e in enriched
+            if _sk(e, "score", 0) >= 55 and abs(e["change_pct"]) <= 0.3
+        ]
+        hidden_gems.sort(key=lambda x: _sk(x, "score", 0), reverse=True)
+        signals["hidden_gems"] = hidden_gems[:10]
+
+    # --- Sector strength (all conditions) ---
+    sector_data: dict = {}
+    for e in enriched:
+        sec = e.get("sector") or "Other"
+        sector_data.setdefault(sec, []).append(e["change_pct"])
+
+    signals["sector_strength"] = sorted(
+        [
+            {"sector": sec, "avg_change_pct": round(sum(v) / len(v), 2), "count": len(v)}
+            for sec, v in sector_data.items()
+            if len(v) >= 2
+        ],
+        key=lambda x: x["avg_change_pct"],
+        reverse=True,
+    )
+
+    return {
+        "market_condition": condition,
+        "market_summary": {
+            "date": latest_date_str,
+            "avg_change_pct": round(avg_change, 2),
+            "gainers": gainers,
+            "losers": losers,
+            "flat": flat_count,
+            "total": total,
+        },
+        "signals": signals,
+    }
+
+
 def get_company(trading_code: str) -> Optional[dict]:
     db = get_db()
     return db.companies.find_one(

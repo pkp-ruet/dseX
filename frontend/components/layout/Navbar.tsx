@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 export default function Navbar() {
   const pathname = usePathname();
   const isRanking = pathname === "/dsestockranking";
+  const isIntel = pathname === "/market-intelligence";
 
   return (
     <header className="fixed top-1 left-0 right-0 z-50 bg-[var(--bg)] border-b border-[var(--border)] shadow-sm">
@@ -17,7 +18,13 @@ export default function Navbar() {
           <span className="navbar-brand-dse">dse</span>
           <span className="navbar-brand-score">Score</span>
         </Link>
-        <nav>
+        <nav className="navbar-nav">
+          <Link
+            href="/market-intelligence"
+            className={`navbar-intel-btn${isIntel ? " navbar-intel-btn-active" : ""}`}
+          >
+            Market Intelligence
+          </Link>
           <Link
             href="/dsestockranking"
             className={`navbar-rank-btn${isRanking ? " navbar-rank-btn-active" : ""}`}

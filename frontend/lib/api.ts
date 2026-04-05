@@ -151,6 +151,59 @@ export async function getDividendsUpcoming(): Promise<DividendsUpcoming> {
   return apiFetch<DividendsUpcoming>("/api/dividends/upcoming", 3600);
 }
 
+// ---- Market Intelligence ----
+
+export interface MarketSignalItem {
+  trading_code: string;
+  company_name: string | null;
+  sector: string | null;
+  ltp: number | null;
+  change_pct: number | null;
+  volume: number | null;
+  value_mn: number | null;
+  avg_volume_7d: number | null;
+  volume_ratio: number | null;
+  score: number | null;
+}
+
+export interface SectorStrengthItem {
+  sector: string;
+  avg_change_pct: number;
+  count: number;
+}
+
+export interface MarketSummary {
+  date: string | null;
+  avg_change_pct: number | null;
+  gainers: number;
+  losers: number;
+  flat: number;
+  total: number;
+}
+
+export interface MarketIntelSignals {
+  accumulation_radar?: MarketSignalItem[];
+  resilience_leaders?: MarketSignalItem[];
+  floor_watch?: MarketSignalItem[];
+  volume_breakouts?: MarketSignalItem[];
+  momentum_leaders?: MarketSignalItem[];
+  quality_laggards?: MarketSignalItem[];
+  volume_divergence?: MarketSignalItem[];
+  dividend_capture?: MarketSignalItem[];
+  hidden_gems?: MarketSignalItem[];
+  sector_strength?: SectorStrengthItem[];
+}
+
+export interface MarketIntelligenceData {
+  market_condition: "falling" | "rising" | "sideways" | "unknown";
+  market_summary: MarketSummary;
+  signals: MarketIntelSignals;
+}
+
+export async function getMarketIntelligence(): Promise<MarketIntelligenceData> {
+  return apiFetch<MarketIntelligenceData>("/api/market-intelligence", 900);
+}
+
 /** Client-side price history fetch (no Next.js cache) */
 export async function getPriceHistory(code: string, range: "1y" | "2y" | "all" = "1y"): Promise<PricePoint[]> {
   const res = await fetch(`${API_URL}/api/company/${code.toUpperCase()}/prices?range=${range}`);
