@@ -223,7 +223,11 @@ def compute_market_intelligence() -> dict:
     latest_date_str = latest_date.isoformat() if hasattr(latest_date, "isoformat") else str(latest_date)
 
     # --- Last 10 distinct trading dates ---
-    all_dates = sorted(db.stock_prices.distinct("date"), reverse=True)
+    all_dates = sorted(
+        db.stock_prices.distinct("date"),
+        key=lambda d: d.isoformat() if hasattr(d, "isoformat") else str(d),
+        reverse=True,
+    )
     recent_dates = all_dates[:10]
 
     # --- Today's prices ---
