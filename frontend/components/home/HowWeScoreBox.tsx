@@ -27,7 +27,7 @@ export default function HowWeScoreBox() {
     <div className="how-we-score-modern">
       <div className="hws-title-modern">How We Score</div>
       <p className="text-[0.78rem] text-[var(--ink-muted)] mb-4 leading-relaxed">
-        The dseX DSEF Score (0–100) is a fundamentals-based ranking built on five pillars. Insurance companies are
+        The DSEF Score (0–100) is a fundamentals-based ranking built on five pillars. Insurance companies are
         excluded. Missing data scores as 0.
       </p>
       <div>

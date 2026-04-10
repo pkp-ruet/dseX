@@ -11,6 +11,17 @@ export const metadata: Metadata = {
   title: "Market Intelligence — DSE Stock Analysis",
   description:
     "Real-time market condition detection for the Dhaka Stock Exchange. Find accumulation signals, momentum breakouts, and hidden setups based on price and volume analysis.",
+  alternates: { canonical: "/market-intelligence" },
+  openGraph: {
+    title: "Market Intelligence — DSE Stock Analysis",
+    description: "Real-time market condition detection for the Dhaka Stock Exchange. Find accumulation signals, momentum breakouts, and hidden setups.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Market Intelligence — DSE Stock Analysis",
+    description: "Real-time market condition detection for the Dhaka Stock Exchange. Accumulation signals, momentum breakouts, and hidden setups.",
+  },
 };
 
 export default async function MarketIntelligencePage() {

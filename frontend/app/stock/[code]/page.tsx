@@ -32,28 +32,29 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { code } = await params;
   const detail = await getCompanyDetail(code).catch(() => null);
-  if (!detail) return { title: `${code} — dseX` };
+  if (!detail) return { title: `${code} — TopStockBD` };
 
   const name = detail.profile.company_name ?? code;
   const score = detail.score_row?.score as number | null;
   const tier = getTier(score);
   const tierLabel = TIER_LABELS[tier];
 
-  const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://dsex.app";
+  const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
   return {
-    title: `${code} (${name}) Stock Analysis — dseX DSEF Score | DSE`,
-    description: `dseX DSEF score for ${name} (${code}): ${score ?? "--"}/100 (${tierLabel}). Business Quality, Financial Health, Valuation, Dividend Quality. DSE stock analysis, price history, financials.`,
+    title: `${code} (${name}) Stock Analysis — DSEF Score | DSE`,
+    description: `DSEF score for ${name} (${code}): ${score ?? "--"}/100 (${tierLabel}). Business Quality, Financial Health, Valuation, Dividend Quality. DSE stock analysis, price history, financials.`,
+    alternates: { canonical: `/stock/${code}` },
     openGraph: {
-      title: `${code} — DSEF Score: ${score ?? "--"}/100 | dseX`,
-      description: `${name} · ${tierLabel} · Score ${score ?? "--"}/100 on dseX`,
+      title: `${code} — DSEF Score: ${score ?? "--"}/100 | TopStockBD`,
+      description: `${name} · ${tierLabel} · Score ${score ?? "--"}/100 on TopStockBD`,
       type: "website",
       url: `${BASE}/stock/${code}`,
     },
     twitter: {
       card: "summary_large_image",
-      title: `${code} — DSEF Score: ${score ?? "--"}/100 | dseX`,
-      description: `${name} · ${tierLabel} · Score ${score ?? "--"}/100 on dseX`,
+      title: `${code} — DSEF Score: ${score ?? "--"}/100 | TopStockBD`,
+      description: `${name} · ${tierLabel} · Score ${score ?? "--"}/100 on TopStockBD`,
     },
   };
 }
@@ -70,14 +71,24 @@ export default async function StockDetailPage({ params }: PageProps) {
   const tier = getTier(score);
 
   // JSON-LD
-  const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://dsex.app";
+  const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "FinancialProduct",
     name: `${profile.company_name ?? code} (${profile.trading_code})`,
-    description: `DSE listed equity. dseX DSEF score: ${score ?? "--"}/100 (${TIER_LABELS[tier]}).`,
+    description: `DSE listed equity. DSEF score: ${score ?? "--"}/100 (${TIER_LABELS[tier]}).`,
     provider: { "@type": "Organization", name: "Dhaka Stock Exchange" },
     url: `${BASE}/stock/${code}`,
+  };
+
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: BASE },
+      { "@type": "ListItem", position: 2, name: "Stock Rankings", item: `${BASE}/dsestockranking` },
+      { "@type": "ListItem", position: 3, name: code, item: `${BASE}/stock/${code}` },
+    ],
   };
 
   return (
@@ -86,16 +97,25 @@ export default async function StockDetailPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
 
-      {/* Back nav */}
-      <div className="mb-4">
-        <Link
-          href="/"
-          className="text-xs text-[var(--primary)] hover:underline font-medium"
-        >
-          ← Back to Rankings
-        </Link>
-      </div>
+      {/* Breadcrumb nav */}
+      <nav aria-label="Breadcrumb" className="mb-4">
+        <ol className="flex items-center gap-1 text-xs text-[var(--text-muted)]">
+          <li>
+            <Link href="/" className="text-[var(--primary)] hover:underline font-medium">Home</Link>
+          </li>
+          <li aria-hidden="true" className="mx-1">›</li>
+          <li>
+            <Link href="/dsestockranking" className="text-[var(--primary)] hover:underline font-medium">Rankings</Link>
+          </li>
+          <li aria-hidden="true" className="mx-1">›</li>
+          <li aria-current="page" className="font-semibold text-[var(--text)]">{code}</li>
+        </ol>
+      </nav>
 
       {/* Company header */}
       <div className="mb-3">

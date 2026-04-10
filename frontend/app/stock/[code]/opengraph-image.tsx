@@ -3,7 +3,7 @@ import { getCompanyDetail } from "@/lib/api";
 import { getTier, TIER_LABELS, TIER_COLORS } from "@/lib/constants";
 
 export const runtime = "edge";
-export const alt = "dseX Stock Score";
+export const alt = "TopStockBD DSEF Score";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -43,7 +43,7 @@ export default async function OgImage({ params }: { params: Promise<{ code: stri
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ fontSize: 20, color: "#1A6B5A", fontWeight: 700, marginBottom: 8 }}>
-              dseX
+              TopStockBD
             </div>
             <div style={{ fontSize: 56, fontWeight: 800, color: "#0D0A04", lineHeight: 1.1 }}>
               {code}
@@ -116,7 +116,7 @@ export default async function OgImage({ params }: { params: Promise<{ code: stri
         </div>
 
         <div style={{ marginTop: "auto", fontSize: 14, color: "#6B7280" }}>
-          Driven by fundamentals · Dhaka Stock Exchange
+          topstockbd.com · Driven by fundamentals · Dhaka Stock Exchange
         </div>
       </div>
     ),

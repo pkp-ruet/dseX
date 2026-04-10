@@ -14,26 +14,33 @@ import HomeSidebar from "@/components/home/HomeSidebar";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "dseX — DSE Stock Rankings & DSEF Scores | Dhaka Stock Exchange",
+  title: "TopStockBD — DSE Stock Rankings & DSEF Scores | Dhaka Stock Exchange",
   description:
     "Free fundamental analysis and DSEF scores for all Dhaka Stock Exchange (DSE) listed companies. Find Strong Buy, Safe Buy, Watch, and Avoid tier rankings driven by fundamentals.",
+  alternates: { canonical: "/" },
   openGraph: {
-    title: "dseX — DSE Stock Rankings & DSEF Scores",
+    title: "TopStockBD — DSE Stock Rankings & DSEF Scores",
     description: "Fundamental analysis rankings for all DSE listed companies.",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TopStockBD — DSE Stock Rankings & DSEF Scores",
+    description: "Free fundamental analysis and DSEF scores for all Dhaka Stock Exchange listed companies.",
   },
 };
 
 const JSON_LD = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  name: "dseX",
+  name: "TopStockBD",
+  url: process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com",
   description: "DSEF-powered fundamental rankings for Dhaka Stock Exchange listed companies",
   potentialAction: {
     "@type": "SearchAction",
     target: {
       "@type": "EntryPoint",
-      urlTemplate: `${process.env.NEXT_PUBLIC_BASE_URL || "https://dsex.app"}/stock/{search_term}`,
+      urlTemplate: `${process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com"}/stock/{search_term}`,
     },
     "query-input": "required name=search_term",
   },

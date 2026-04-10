@@ -13,10 +13,16 @@ export const metadata: Metadata = {
   title: "DSE Stock Rankings by Fundamental Score",
   description:
     "All Dhaka Stock Exchange (DSE) listed companies ranked 1–N by DSEF fundamental score. View Strong Buy, Good Buy, Safe Buy, Cautious Buy, Keep Watching, and Avoid tiers with price, EPS growth, and dividend yield.",
+  alternates: { canonical: "/dsestockranking" },
   openGraph: {
     title: "DSE Stock Rankings by Fundamental Score",
     description: "All DSE companies ranked by DSEF fundamental score.",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "DSE Stock Rankings by Fundamental Score",
+    description: "All DSE listed companies ranked 1–N by DSEF fundamental score with price, EPS growth, and dividend yield.",
   },
 };
 

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getAllCodes } from "@/lib/api";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://dsex.app";
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const codes = await getAllCodes().catch(() => [] as string[]);
@@ -19,6 +19,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: "hourly",
       priority: 1.0,
+    },
+    {
+      url: `${BASE_URL}/dsestockranking`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.9,
+    },
+    {
+      url: `${BASE_URL}/market-intelligence`,
+      lastModified: new Date(),
+      changeFrequency: "hourly",
+      priority: 0.7,
     },
     ...stockPages,
   ];
