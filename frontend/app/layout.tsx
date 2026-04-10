@@ -20,6 +20,9 @@ export const metadata: Metadata = {
     siteName: "TopStockBD",
     type: "website",
   },
+  verification: {
+    google: "IEdSLL4EJwfqeGpnYWMoAS3v7Kgx05grQIapfE9f0CQ",
+  },
 };
 
 const ORG_JSON_LD = {
