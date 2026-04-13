@@ -179,3 +179,17 @@ class AuditSummary(BaseModel):
 class AuditResponse(BaseModel):
     summary: AuditSummary
     companies: list[AuditCompanyRow]
+
+
+class MarketIndexResponse(BaseModel):
+    date: Optional[str] = None
+    dsex: Optional[float] = None
+    dsex_change: Optional[float] = None
+    dsex_change_pct: Optional[float] = None
+    dses: Optional[float] = None
+    dses_change: Optional[float] = None
+    ds30: Optional[float] = None
+    ds30_change: Optional[float] = None
+    total_volume: Optional[float] = None
+    total_value_mn: Optional[float] = None
+    total_trades: Optional[float] = None

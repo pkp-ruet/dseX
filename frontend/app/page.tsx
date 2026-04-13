@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { getScores, getDividendsUpcoming, getMarketMovers } from "@/lib/api";
+import { getScores, getDividendsUpcoming, getMarketMovers, getMarketIndex } from "@/lib/api";
 import type { FrontendTiers } from "@/lib/api";
 import { getTier } from "@/lib/constants";
-import Masthead from "@/components/home/Masthead";
 import SearchBar from "@/components/home/SearchBar";
 import TickerBand from "@/components/home/TickerBand";
 import FilterableRankings from "@/components/home/FilterableRankings";
 import HowWeScoreBox from "@/components/home/HowWeScoreBox";
 import MarketMovers from "@/components/home/MarketMovers";
 import HomeSidebar from "@/components/home/HomeSidebar";
+import MarketIndexBanner from "@/components/home/MarketIndexBanner";
 
 export const revalidate = 3600;
 
@@ -47,10 +47,11 @@ const JSON_LD = {
 };
 
 export default async function HomePage() {
-  const [scores, dividends, movers] = await Promise.all([
+  const [scores, dividends, movers, marketIndex] = await Promise.all([
     getScores().catch(() => null),
     getDividendsUpcoming().catch(() => null),
     getMarketMovers().catch(() => null),
+    getMarketIndex().catch(() => null),
   ]);
 
   if (!scores) {
@@ -91,8 +92,8 @@ export default async function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
 
       {/* Full-width masthead + ticker */}
-      <Masthead />
       <TickerBand items={top20} />
+      {marketIndex && <MarketIndexBanner data={marketIndex} />}
 
       {/* Two-column layout: main rankings (left) + sidebar (right) */}
       <div className="home-layout">

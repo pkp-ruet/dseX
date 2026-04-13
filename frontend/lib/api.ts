@@ -121,6 +121,20 @@ export interface MarketMoversData {
   most_traded: MarketMoverItem[];
 }
 
+export interface MarketIndexData {
+  date: string | null;
+  dsex: number | null;
+  dsex_change: number | null;
+  dsex_change_pct: number | null;
+  dses: number | null;
+  dses_change: number | null;
+  ds30: number | null;
+  ds30_change: number | null;
+  total_volume: number | null;
+  total_value_mn: number | null;
+  total_trades: number | null;
+}
+
 // ---- Fetch helpers ----
 
 async function apiFetch<T>(path: string, revalidate?: number): Promise<T> {
@@ -145,6 +159,10 @@ export async function getCompanyDetail(code: string): Promise<CompanyDetail> {
 
 export async function getMarketMovers(): Promise<MarketMoversData> {
   return apiFetch<MarketMoversData>("/api/market-movers", 3600);
+}
+
+export async function getMarketIndex(): Promise<MarketIndexData> {
+  return apiFetch<MarketIndexData>("/api/market-index", 900);
 }
 
 export async function getDividendsUpcoming(): Promise<DividendsUpcoming> {

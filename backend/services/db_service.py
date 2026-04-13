@@ -204,6 +204,60 @@ def load_market_movers() -> dict:
 
 
 @_ttl_cache(300)
+def load_market_index() -> dict:
+    """
+    Returns the latest DSE index snapshot (DSEX/DSES/DS30 + market totals).
+    Falls back to stock_prices aggregation for volume/value if not in the scraped doc.
+    """
+    db = get_db()
+    doc = db.dse_market_summary.find_one(sort=[("date", -1)])
+
+    if not doc:
+        return {
+            "date": None,
+            "dsex": None, "dsex_change": None, "dsex_change_pct": None,
+            "dses": None, "dses_change": None,
+            "ds30": None, "ds30_change": None,
+            "total_volume": None, "total_value_mn": None, "total_trades": None,
+        }
+
+    date_str = doc["date"].isoformat() if hasattr(doc["date"], "isoformat") else str(doc["date"])
+
+    total_volume = doc.get("total_volume")
+    total_value_mn = doc.get("total_value_mn")
+
+    # Fallback: aggregate volume/value from stock_prices if not scraped
+    if total_volume is None or total_value_mn is None:
+        agg = list(db.stock_prices.aggregate([
+            {"$match": {"date": doc["date"]}},
+            {"$group": {
+                "_id": None,
+                "vol": {"$sum": "$volume"},
+                "val": {"$sum": "$value_mn"},
+            }},
+        ]))
+        if agg:
+            if total_volume is None:
+                total_volume = agg[0].get("vol")
+            if total_value_mn is None:
+                total_value_mn = agg[0].get("val")
+
+    return {
+        "date": date_str,
+        "dsex": doc.get("dsex"),
+        "dsex_change": doc.get("dsex_change"),
+        "dsex_change_pct": doc.get("dsex_change_pct"),
+        "dses": doc.get("dses"),
+        "dses_change": doc.get("dses_change"),
+        "ds30": doc.get("ds30"),
+        "ds30_change": doc.get("ds30_change"),
+        "total_volume": total_volume,
+        "total_value_mn": total_value_mn,
+        "total_trades": doc.get("total_trades"),
+    }
+
+
+@_ttl_cache(300)
 def compute_market_intelligence() -> dict:
     """
     Auto-detect market condition and compute intelligence signals.

@@ -9,6 +9,7 @@ from scrapers.stock_price import StockPriceScraper
 from scrapers.company_details import CompanyDetailsScraper
 from scrapers.news import NewsScraper
 from scrapers.cash_flow_scraper import CashFlowScraper
+from scrapers.market_summary import MarketSummaryScraper
 from utils.scoring import get_top_n_codes
 from config import NEWS_TOP_N
 
@@ -105,18 +106,35 @@ def cmd_scrape_news(args):
     print(f"Done. {new_items} new news items saved.")
 
 
+def cmd_scrape_market_summary(_args):
+    scraper = MarketSummaryScraper()
+    doc = scraper.run()
+    if doc:
+        print(f"Done. DSEX={doc.get('dsex')}, DSES={doc.get('dses')}, DS30={doc.get('ds30')}")
+    else:
+        print("Failed to scrape market summary.")
+
+
 def cmd_scrape_all(args):
-    print("=== Step 1/4: Scraping company list ===")
+    print("=== Step 1/6: Scraping company list ===")
     cl = CompanyListScraper()
     companies = cl.run()
     print(f"  {len(companies)} companies found.\n")
 
-    print("=== Step 2/4: Scraping latest prices ===")
+    print("=== Step 2/5: Scraping latest prices ===")
     sp = StockPriceScraper()
     prices = sp.run()
     print(f"  Prices for {len(prices)} companies.\n")
 
-    print("=== Step 3/4: Scraping company details ===")
+    print("=== Step 3/6: Scraping DSE market summary (index values) ===")
+    ms = MarketSummaryScraper()
+    ms_doc = ms.run()
+    if ms_doc:
+        print(f"  DSEX={ms_doc.get('dsex')}, DSES={ms_doc.get('dses')}, DS30={ms_doc.get('ds30')}\n")
+    else:
+        print("  Warning: market summary scrape failed.\n")
+
+    print("=== Step 4/6: Scraping company details ===")
     from db.connection import get_db
     full = getattr(args, "full", False)
     db = get_db()
@@ -133,7 +151,7 @@ def cmd_scrape_all(args):
     cd.run(codes)
     print("  Company details complete.\n")
 
-    print("=== Step 4/5: Scraping cash flow data (amarstock) ===")
+    print("=== Step 5/6: Scraping cash flow data (amarstock) ===")
     cf_codes = [
         d["trading_code"]
         for d in get_db().companies.find({"excluded": {"$ne": True}}, {"trading_code": 1, "_id": 0})
@@ -142,7 +160,7 @@ def cmd_scrape_all(args):
     cf_total = cf.run(cf_codes)
     print(f"  {cf_total} year-records saved.\n")
 
-    print(f"=== Step 5/5: Scraping news for top {NEWS_TOP_N} companies ===")
+    print(f"=== Step 6/6: Scraping news for top {NEWS_TOP_N} companies ===")
     news_codes = get_top_n_codes(get_db(), n=NEWS_TOP_N)
     if news_codes:
         ns = NewsScraper()
@@ -211,6 +229,8 @@ def main():
         help="Scrape news for a single company by trading code (e.g. GP)",
     )
 
+    sub.add_parser("scrape-market-summary", help="Scrape DSE index values and daily market totals")
+
     all_parser = sub.add_parser("scrape-all", help="Run all scrapers sequentially")
     all_parser.add_argument(
         "--full",
@@ -226,12 +246,13 @@ def main():
     ensure_indexes()
 
     commands = {
-        "scrape-companies":  cmd_scrape_companies,
-        "scrape-prices":     cmd_scrape_prices,
-        "scrape-details":    cmd_scrape_details,
-        "scrape-cashflow":   cmd_scrape_cashflow,
-        "scrape-news":       cmd_scrape_news,
-        "scrape-all":        cmd_scrape_all,
+        "scrape-companies":      cmd_scrape_companies,
+        "scrape-prices":         cmd_scrape_prices,
+        "scrape-details":        cmd_scrape_details,
+        "scrape-cashflow":       cmd_scrape_cashflow,
+        "scrape-news":           cmd_scrape_news,
+        "scrape-market-summary": cmd_scrape_market_summary,
+        "scrape-all":            cmd_scrape_all,
     }
 
     try:

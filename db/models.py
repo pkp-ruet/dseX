@@ -43,3 +43,8 @@ def ensure_indexes():
         [("trading_code", ASCENDING), ("year", ASCENDING)],
         unique=True,
     )
+
+    db.dse_market_summary.create_index(
+        [("date", ASCENDING)],
+        unique=True,
+    )

@@ -471,13 +471,13 @@ body::before {
 .ticker-band {
   position: relative;
   overflow: hidden;
-  background: #EEF2FF;
+  background: #042d3d;
   border-radius: 10px;
   margin: 0 0 12px;
   height: 36px;
   display: flex;
   align-items: center;
-  box-shadow: 0 1px 6px rgba(79, 70, 229, 0.10);
+  box-shadow: 0 2px 14px rgba(6, 182, 212, 0.40);
 }
 .ticker-band::before,
 .ticker-band::after {
@@ -491,11 +491,11 @@ body::before {
 }
 .ticker-band::before {
   left: 0;
-  background: linear-gradient(90deg, #EEF2FF 0%, transparent 100%);
+  background: linear-gradient(90deg, #042d3d 0%, transparent 100%);
 }
 .ticker-band::after {
   right: 0;
-  background: linear-gradient(270deg, #EEF2FF 0%, transparent 100%);
+  background: linear-gradient(270deg, #042d3d 0%, transparent 100%);
 }
 .ticker-inner {
   display: flex;
@@ -534,7 +534,7 @@ body::before {
 }
 .ticker-ltp {
   font-weight: 600;
-  color: #374151;
+  color: #e2e8f0;
 }
 .ticker-chg {
   font-weight: 700;
@@ -552,8 +552,204 @@ body::before {
 .ticker-arrow-dn { color: #DC2626; }
 .ticker-sep {
   font-size: 0.38rem;
-  color: rgba(99, 102, 241, 0.30);
+  color: rgba(139, 92, 246, 0.55);
   margin: 0 2px;
+}
+
+/* ---- Market Index Banner ---- */
+
+.market-index-banner {
+  position: relative;
+  overflow: hidden;
+  background: #071428;
+  border: 1px solid rgba(14,165,233,0.15);
+  border-radius: 14px;
+  margin: 0 0 14px;
+  box-shadow: 0 4px 20px rgba(14,165,233,0.30), 0 1px 4px rgba(0,0,0,0.30);
+}
+
+.mib-accent-bar {
+  height: 4px;
+  width: 100%;
+}
+
+.mib-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  padding: 12px 20px 14px;
+}
+
+/* ---- Index blocks (left) ---- */
+.mib-indices {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  flex-wrap: wrap;
+}
+
+.mib-vsep {
+  width: 1px;
+  background: linear-gradient(180deg, transparent, rgba(56,189,248,0.25) 30%, rgba(56,189,248,0.25) 70%, transparent);
+  margin: 4px 18px;
+  align-self: stretch;
+  flex-shrink: 0;
+}
+
+.mib-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 110px;
+}
+
+.mib-block-label {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border-left: 3px solid;
+  padding: 3px 8px 3px 7px;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.10);
+  border-radius: 0 5px 5px 0;
+  filter: brightness(1.5);
+}
+
+.mib-block-value {
+  font-size: 1.15rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #E0F2FE;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+.mib-block-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.67rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 7px;
+  border-radius: 20px;
+  width: fit-content;
+  line-height: 1.5;
+}
+
+/* ---- Right side ---- */
+.mib-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.mib-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.mib-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(14,165,233,0.08);
+  border: 1px solid rgba(14,165,233,0.20);
+  border-radius: 10px;
+  padding: 5px 10px 5px 7px;
+  min-width: 90px;
+}
+
+.mib-chip-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.mib-chip-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.mib-chip-label {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #94A3B8;
+  line-height: 1.2;
+}
+
+.mib-chip-value {
+  font-size: 0.8rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #E0F2FE;
+  line-height: 1.2;
+}
+
+.mib-date-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #7DD3FC;
+  letter-spacing: 0.04em;
+}
+
+.mib-date-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #38BDF8;
+  flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+  .mib-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px 14px;
+  }
+  .mib-right {
+    align-items: flex-start;
+    width: 100%;
+  }
+  .mib-chips {
+    justify-content: flex-start;
+  }
+  .mib-date-badge {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .mib-vsep {
+    display: none;
+  }
+  .mib-indices {
+    gap: 12px;
+  }
+  .mib-chip {
+    min-width: 80px;
+  }
 }
 
 /* ---- Homepage (parity with views/home.py + styles.py) ---- */
