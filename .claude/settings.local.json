@@ -24,7 +24,9 @@
       "Bash(python -c \"from backend.services.scoring_service import build_scores_df; df = build_scores_df\\(\\); print\\(f''Rows: {len\\(df\\)}''\\); print\\(df[[''trading_code'',''score'',''p1_biz'',''p2_health'',''p3_moat'',''p4_val'',''p5_div'']].head\\(10\\).to_string\\(\\)\\)\")",
       "Bash(npx next:*)",
       "Bash(npx tsc:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "WebFetch(domain:www.topstockbd.com)",
+      "mcp__Claude_Preview__preview_start"
     ]
   }
 }

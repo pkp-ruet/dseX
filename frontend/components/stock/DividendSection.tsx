@@ -53,28 +53,40 @@ export default function DividendSection({ financials, declaration, faceValue }: 
       <SectionLabel>Dividends</SectionLabel>
 
       {/* Declaration info */}
-      {declaration && (
-        <div className="flex gap-4 text-xs mb-3 mt-2 flex-wrap">
-          <div>
-            <span className="text-[var(--text-muted)]">Declaration: </span>
-            <span className="font-medium">{formatDate(declaration.declaration_date)}</span>
+      {/* Declaration info card */}
+      {(declaration || streak > 0) && (
+        <div
+          className="rounded-[var(--radius)] border border-[var(--border)] bg-white p-3 mt-2 mb-3"
+          style={{ borderLeft: "4px solid var(--positive)" }}
+        >
+          <div className="flex flex-wrap items-center gap-4 text-xs">
+            {streak > 0 && (
+              <div className="flex items-center gap-1.5">
+                <span className="text-base">&#x1F525;</span>
+                <span className="font-bold text-[var(--positive)] text-sm">
+                  {streak} Year Streak
+                </span>
+              </div>
+            )}
+            {declaration && (
+              <>
+                <div>
+                  <span className="text-[var(--text-muted)]">Declaration: </span>
+                  <span className="font-medium">{formatDate(declaration.declaration_date)}</span>
+                </div>
+                <div>
+                  <span className="text-[var(--text-muted)]">Record Date: </span>
+                  <span className="font-medium">{formatDate(declaration.record_date)}</span>
+                </div>
+                {declaration.dividend_pct != null && (
+                  <div>
+                    <span className="text-[var(--text-muted)]">Dividend: </span>
+                    <span className="font-bold text-[var(--positive)]">{pct(declaration.dividend_pct, 0)}</span>
+                  </div>
+                )}
+              </>
+            )}
           </div>
-          <div>
-            <span className="text-[var(--text-muted)]">Record Date: </span>
-            <span className="font-medium">{formatDate(declaration.record_date)}</span>
-          </div>
-          {declaration.dividend_pct != null && (
-            <div>
-              <span className="text-[var(--text-muted)]">Dividend: </span>
-              <span className="font-medium text-[var(--positive)]">{pct(declaration.dividend_pct, 0)}</span>
-            </div>
-          )}
-          {streak > 0 && (
-            <div>
-              <span className="text-[var(--text-muted)]">Streak: </span>
-              <span className="font-medium text-[var(--positive)]">{streak} consecutive year{streak !== 1 ? "s" : ""}</span>
-            </div>
-          )}
         </div>
       )}
 
@@ -82,7 +94,7 @@ export default function DividendSection({ financials, declaration, faceValue }: 
         {/* Dividend history */}
         <div className="rounded-[var(--radius)] border border-[var(--border)] bg-white p-3">
           <p className="text-xs font-semibold text-[var(--text-muted)] mb-2">Dividend History (%)</p>
-          <ResponsiveContainer width="100%" height={180}>
+          <ResponsiveContainer width="100%" height={240}>
             <BarChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis dataKey="year" tick={tickStyle} />
@@ -98,7 +110,7 @@ export default function DividendSection({ financials, declaration, faceValue }: 
         {/* Payout ratio */}
         <div className="rounded-[var(--radius)] border border-[var(--border)] bg-white p-3">
           <p className="text-xs font-semibold text-[var(--text-muted)] mb-2">Payout Ratio (%)</p>
-          <ResponsiveContainer width="100%" height={180}>
+          <ResponsiveContainer width="100%" height={240}>
             <LineChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis dataKey="year" tick={tickStyle} />

@@ -2,7 +2,7 @@ import { getTier, TIER_COLORS } from "@/lib/constants";
 
 interface Props {
   score: number | null | undefined;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
 }
 
 export default function ScoreBadge({ score, size = "md" }: Props) {
@@ -12,6 +12,7 @@ export default function ScoreBadge({ score, size = "md" }: Props) {
     sm: "text-xs px-2 py-0.5",
     md: "text-sm px-2.5 py-1",
     lg: "text-lg px-3 py-1.5",
+    xl: "text-2xl px-4 py-2.5",
   }[size];
 
   return (

@@ -2,8 +2,8 @@ name: Daily DSE Scrape
 
 on:
   schedule:
-    # Sun-Thu at 12:30 UTC = 6:30 PM BD time (after DSE market close)
-    - cron: "30 12 * * 0-4"
+    # Sun-Thu at 10:00 UTC = 4:00 PM BD time (after DSE market close)
+    - cron: "0 10 * * 0-4"
     # Weekly full scrape on Wednesday at 13:00 UTC (catches new listings)
     - cron: "0 13 * * 3"
   workflow_dispatch:

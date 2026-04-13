@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAllCodes, getCompanyDetail } from "@/lib/api";
 import { getTier, TIER_LABELS } from "@/lib/constants";
-import VerdictBar from "@/components/stock/VerdictBar";
-import SignalFlags from "@/components/stock/SignalFlags";
+import HeroSection from "@/components/stock/HeroSection";
+import QuickSummary from "@/components/stock/QuickSummary";
+import MetricStrip from "@/components/stock/MetricStrip";
+import SectionNav from "@/components/stock/SectionNav";
 import PillarScores from "@/components/stock/PillarScores";
 import ValuationCard from "@/components/stock/ValuationCard";
-import PriceChart from "@/components/stock/PriceChart";
 import FinancialCharts from "@/components/stock/FinancialCharts";
 import CashFlowPanel from "@/components/stock/CashFlowPanel";
 import DividendSection from "@/components/stock/DividendSection";
 import ShareholdingPie from "@/components/stock/ShareholdingPie";
+import CompanyFundamentals from "@/components/stock/CompanyFundamentals";
 import NewsSection from "@/components/stock/NewsSection";
 import SectionLabel from "@/components/ui/SectionLabel";
-import { taka, millions } from "@/lib/formatters";
 
 export const revalidate = 3600;
 
@@ -23,9 +23,6 @@ interface PageProps {
 }
 
 export async function generateStaticParams() {
-  // Skip build-time pre-rendering — pages are served via ISR on first request.
-  // Pre-generating 360+ pages during build causes ECONNRESET failures when the
-  // backend (Render free tier) cold-starts under concurrent load.
   return [] as { code: string }[];
 }
 
@@ -68,7 +65,6 @@ export default async function StockDetailPage({ params }: PageProps) {
           shareholding, dividend_declaration, news } = detail;
 
   const score = score_row?.score as number | null;
-  const tier = getTier(score);
 
   // JSON-LD
   const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
@@ -76,7 +72,7 @@ export default async function StockDetailPage({ params }: PageProps) {
     "@context": "https://schema.org",
     "@type": "FinancialProduct",
     name: `${profile.company_name ?? code} (${profile.trading_code})`,
-    description: `DSE listed equity. DSEF score: ${score ?? "--"}/100 (${TIER_LABELS[tier]}).`,
+    description: `DSE listed equity. DSEF score: ${score ?? "--"}/100 (${TIER_LABELS[getTier(score)]}).`,
     provider: { "@type": "Organization", name: "Dhaka Stock Exchange" },
     url: `${BASE}/stock/${code}`,
   };
@@ -102,97 +98,61 @@ export default async function StockDetailPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
 
-      {/* Breadcrumb nav */}
-      <nav aria-label="Breadcrumb" className="mb-4">
-        <ol className="flex items-center gap-1 text-xs text-[var(--text-muted)]">
-          <li>
-            <Link href="/" className="text-[var(--primary)] hover:underline font-medium">Home</Link>
-          </li>
-          <li aria-hidden="true" className="mx-1">›</li>
-          <li>
-            <Link href="/dsestockranking" className="text-[var(--primary)] hover:underline font-medium">Rankings</Link>
-          </li>
-          <li aria-hidden="true" className="mx-1">›</li>
-          <li aria-current="page" className="font-semibold text-[var(--text)]">{code}</li>
-        </ol>
-      </nav>
+      {/* ZONE 1: Hero */}
+      <HeroSection detail={detail} />
 
-      {/* Company header */}
-      <div className="mb-3">
-        <div className="flex flex-wrap items-baseline gap-3">
-          <h1 className="text-2xl font-bold">{code}</h1>
-          {profile.company_name && (
-            <span className="text-base text-[var(--text-muted)]">{profile.company_name}</span>
-          )}
-          {profile.sector && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--border)] text-[var(--text-muted)] font-medium">
-              {profile.sector}
-            </span>
-          )}
-        </div>
+      {/* ZONE 2: Quick Summary */}
+      <QuickSummary detail={detail} />
+
+      {/* ZONE 3: Metric Strip */}
+      <MetricStrip detail={detail} />
+
+      {/* ZONE 4: Section Navigation */}
+      <SectionNav />
+
+      {/* ZONE 5: Content Sections */}
+
+      {/* Performance */}
+      <div id="section-performance" className="scroll-mt-14">
+        <SectionLabel>Performance</SectionLabel>
+        {(financials.length > 0 || extended_financials.length > 0) && (
+          <FinancialCharts financials={financials} extFinancials={extended_financials} />
+        )}
       </div>
 
-      {/* Verdict bar */}
-      <VerdictBar detail={detail} />
-
-      {/* Signal flags */}
-      <SignalFlags flags={signal_flags} />
-
-      {/* Pillar scores */}
-      {score_row && <PillarScores scoreRow={score_row} />}
-
-      {/* Price chart + valuation side-by-side */}
-      <div className="grid sm:grid-cols-3 gap-4 mb-4">
-        <div className="sm:col-span-2">
-          <PriceChart code={code} />
-        </div>
+      {/* Valuation & Quality */}
+      <div id="section-valuation" className="scroll-mt-14">
+        <SectionLabel>Valuation & Quality</SectionLabel>
+        {score_row && <PillarScores scoreRow={score_row} />}
         <ValuationCard detail={detail} />
+        {extended_financials.length > 0 && (
+          <CashFlowPanel extFinancials={extended_financials} />
+        )}
       </div>
-
-      {/* Financial charts */}
-      {(financials.length > 0 || extended_financials.length > 0) && (
-        <FinancialCharts financials={financials} extFinancials={extended_financials} />
-      )}
-
-      {/* Cash flow */}
-      {extended_financials.length > 0 && (
-        <CashFlowPanel extFinancials={extended_financials} />
-      )}
 
       {/* Dividends */}
-      {financials.length > 0 && (
-        <DividendSection
-          financials={financials}
-          declaration={dividend_declaration}
-          faceValue={profile.face_value}
-        />
-      )}
+      <div id="section-dividends" className="scroll-mt-14">
+        {financials.length > 0 && (
+          <DividendSection
+            financials={financials}
+            declaration={dividend_declaration}
+            faceValue={profile.face_value}
+          />
+        )}
+      </div>
 
-      {/* Shareholding */}
-      <ShareholdingPie shareholding={shareholding} />
-
-      {/* Company fundamentals */}
-      <div className="mb-4">
-        <SectionLabel>Company Fundamentals</SectionLabel>
-        <div className="rounded-[var(--radius)] border border-[var(--border)] bg-white p-4 mt-2 grid sm:grid-cols-2 gap-2">
-          {[
-            ["Face Value", profile.face_value ? taka(profile.face_value) : "--"],
-            ["Total Shares", profile.total_shares ? millions(profile.total_shares) : "--"],
-            ["Reserve & Surplus", profile.reserve_surplus_mn ? millions(profile.reserve_surplus_mn) + " (mn)" : "--"],
-            ["Total Loan", profile.total_loan_mn ? millions(profile.total_loan_mn) + " (mn)" : "--"],
-            ["Paid-up Capital", profile.paid_up_capital_mn ? millions(profile.paid_up_capital_mn) + " (mn)" : "--"],
-            ["Market Category", profile.market_category ?? "--"],
-          ].map(([label, value]) => (
-            <div key={label} className="flex justify-between text-sm border-b border-[var(--border)] pb-1">
-              <span className="text-[var(--text-muted)]">{label}</span>
-              <span className="font-medium">{value}</span>
-            </div>
-          ))}
-        </div>
+      {/* Ownership & Fundamentals */}
+      <div id="section-ownership" className="scroll-mt-14">
+        <SectionLabel>Ownership & Fundamentals</SectionLabel>
+        <ShareholdingPie shareholding={shareholding} />
+        <CompanyFundamentals profile={profile} />
       </div>
 
       {/* News */}
-      <NewsSection news={news} />
+      <div id="section-news" className="scroll-mt-14">
+        <SectionLabel>News</SectionLabel>
+        <NewsSection news={news} />
+      </div>
     </>
   );
 }

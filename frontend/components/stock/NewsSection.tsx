@@ -1,33 +1,42 @@
+"use client";
+import { useState } from "react";
 import SectionLabel from "@/components/ui/SectionLabel";
-import { formatDate } from "@/lib/formatters";
+import NewsCard from "./NewsCard";
 
 interface Props {
   news: { title: string; post_date: string; body: string }[];
 }
 
+const INITIAL_COUNT = 5;
+
 export default function NewsSection({ news }: Props) {
+  const [showAll, setShowAll] = useState(false);
+
   if (!news.length) return null;
+
+  const visible = showAll ? news : news.slice(0, INITIAL_COUNT);
+  const hasMore = news.length > INITIAL_COUNT;
 
   return (
     <div className="mb-4">
-      <SectionLabel>News Feed</SectionLabel>
-      <div className="space-y-2 mt-2">
-        {news.map((item, i) => (
-          <details key={i} className="rounded-[var(--radius)] border border-[var(--border)] bg-white">
-            <summary className="flex items-center justify-between cursor-pointer p-3 list-none">
-              <span className="text-sm font-medium">{item.title}</span>
-              <span className="text-xs text-[var(--text-muted)] shrink-0 ml-2">
-                {formatDate(item.post_date)}
-              </span>
-            </summary>
-            {item.body && (
-              <div className="px-3 pb-3 text-xs font-mono text-[var(--text-muted)] whitespace-pre-wrap border-t border-[var(--border)] pt-2">
-                {item.body}
-              </div>
-            )}
-          </details>
+      <div className="space-y-2">
+        {visible.map((item, i) => (
+          <NewsCard
+            key={i}
+            title={item.title}
+            body={item.body}
+            postDate={item.post_date}
+          />
         ))}
       </div>
+      {hasMore && !showAll && (
+        <button
+          onClick={() => setShowAll(true)}
+          className="mt-3 text-sm font-medium text-[var(--primary)] hover:underline"
+        >
+          Show all {news.length} news items
+        </button>
+      )}
     </div>
   );
 }

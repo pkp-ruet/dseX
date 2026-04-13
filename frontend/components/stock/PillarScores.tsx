@@ -1,4 +1,5 @@
 import SectionLabel from "@/components/ui/SectionLabel";
+import { pillarInterpretation, SUB_METRIC_TOOLTIPS } from "@/lib/verdict";
 
 interface Props {
   scoreRow: Record<string, number | string | null>;
@@ -65,6 +66,13 @@ function subColor(v: number): string {
   return "var(--negative)";
 }
 
+function pillarBorderColor(score: number | null): string {
+  if (score == null) return "var(--border)";
+  if (score >= 7) return "var(--positive)";
+  if (score >= 4) return "#E0A040";
+  return "var(--negative)";
+}
+
 export default function PillarScores({ scoreRow }: Props) {
   return (
     <div className="mb-4">
@@ -72,10 +80,16 @@ export default function PillarScores({ scoreRow }: Props) {
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
         {PILLARS.map((p) => {
           const raw = scoreRow[p.key] as number | null;
-          const score10 = raw != null ? raw * 10 : 0; // pillar score is 0-10, bar = 0-100%
+          const score10 = raw != null ? raw * 10 : 0;
           const displayScore = raw != null ? (raw * 10).toFixed(1) : "--";
+          const interpretation = pillarInterpretation(p.key, raw);
+
           return (
-            <div key={p.key} className="rounded-[var(--radius)] border border-[var(--border)] bg-white p-3">
+            <div
+              key={p.key}
+              className="rounded-[var(--radius)] border border-[var(--border)] bg-white p-3"
+              style={{ borderLeft: `4px solid ${pillarBorderColor(raw)}` }}
+            >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-bold">{p.label}</span>
                 <span className="text-xs font-bold text-[var(--primary)]">{displayScore}</span>
@@ -87,15 +101,20 @@ export default function PillarScores({ scoreRow }: Props) {
                   style={{ width: `${Math.min(score10, 100)}%` }}
                 />
               </div>
-              <p className="text-xs text-[var(--text-muted)] mb-2">{p.desc}</p>
+              {/* Interpretation */}
+              <p className="text-xs font-medium mb-2" style={{ color: pillarBorderColor(raw) }}>
+                {interpretation}
+              </p>
               {/* Sub metrics */}
               <div className="flex flex-wrap gap-1">
                 {p.subs.map((s) => {
                   const sv = scoreRow[s.key] as number | null;
+                  const tooltip = SUB_METRIC_TOOLTIPS[s.key] ?? "";
                   return (
                     <span
                       key={s.key}
-                      className="text-xs px-1.5 py-0.5 rounded font-medium"
+                      className="text-xs px-1.5 py-0.5 rounded font-medium cursor-help"
+                      title={tooltip}
                       style={{
                         background: sv != null ? `${subColor(sv)}22` : "#eee",
                         color: sv != null ? subColor(sv) : "#999",

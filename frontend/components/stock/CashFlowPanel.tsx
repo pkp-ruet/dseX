@@ -58,7 +58,7 @@ export default function CashFlowPanel({ extFinancials }: Props) {
           <p className="text-xs font-semibold text-[var(--text-muted)] mb-2">
             Operating CF vs Net Profit (৳M)
           </p>
-          <ResponsiveContainer width="100%" height={180}>
+          <ResponsiveContainer width="100%" height={240}>
             <BarChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis dataKey="year" tick={tickStyle} />
