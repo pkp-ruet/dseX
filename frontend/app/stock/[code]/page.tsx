@@ -17,13 +17,15 @@ import NewsSection from "@/components/stock/NewsSection";
 import SectionLabel from "@/components/ui/SectionLabel";
 
 export const revalidate = 3600;
+export const dynamicParams = false;
 
 interface PageProps {
   params: Promise<{ code: string }>;
 }
 
 export async function generateStaticParams() {
-  return [] as { code: string }[];
+  const codes = await getAllCodes().catch(() => [] as string[]);
+  return codes.map((code) => ({ code }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
