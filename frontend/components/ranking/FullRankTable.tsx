@@ -5,6 +5,7 @@ import Link from "next/link";
 import { taka, pct } from "@/lib/formatters";
 import { TIER_LABELS, type TierKey } from "@/lib/constants";
 import FilterBar from "@/components/home/FilterBar";
+import StarButton from "@/components/ui/StarButton";
 import type { ScoreItem } from "@/lib/api";
 
 type SortKey = "score" | "change_pct" | "div_yield_pct";
@@ -133,6 +134,7 @@ export default function FullRankTable({ items }: Props) {
           <thead className="fr-thead">
             <tr>
               <th className="fr-th fr-th-rank">#</th>
+              <th className="fr-th fr-th-star" aria-label="Watchlist"></th>
               <th className="fr-th fr-th-code">Code</th>
               <th className="fr-th fr-th-company">Company</th>
               <th className="fr-th fr-th-sector">Sector</th>
@@ -149,7 +151,7 @@ export default function FullRankTable({ items }: Props) {
               if (entry.type === "sep") {
                 return (
                   <tr key={`sep-${entry.tier}`} className="fr-tier-sep-row">
-                    <td colSpan={10}>
+                    <td colSpan={11}>
                       <div
                         className="fr-tier-sep"
                         style={{ background: TIER_SEP_GRADIENT[entry.tier] }}
@@ -170,6 +172,10 @@ export default function FullRankTable({ items }: Props) {
               return (
                 <tr key={item.trading_code + idx} className="fr-row">
                   <td className="fr-td fr-td-rank">{rank}</td>
+
+                  <td className="fr-td fr-td-star">
+                    <StarButton code={item.trading_code} />
+                  </td>
 
                   <td className="fr-td fr-td-code">
                     <Link

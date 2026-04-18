@@ -2,6 +2,7 @@ import Link from "next/link";
 import { taka, pct } from "@/lib/formatters";
 import type { ScoreItem } from "@/lib/api";
 import type { TierKey } from "@/lib/constants";
+import StarButton from "@/components/ui/StarButton";
 
 interface Props {
   item: ScoreItem;
@@ -71,6 +72,7 @@ export default function RankRow({ item, rank, tier }: Props) {
   return (
     <Link href={`/stock/${item.trading_code}`} className="rank-row">
       <span className="rr-rank">{rank}</span>
+      <span className="rr-star"><StarButton code={item.trading_code} /></span>
       <span className="rr-code">
         <span className="rr-ticker-pill">{item.trading_code}</span>
       </span>

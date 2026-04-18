@@ -1,6 +1,6 @@
 """
-DSEF 5-pillar scoring algorithm — ported from scoring.py without Streamlit.
-All @st.cache_data decorators replaced with module-level TTL caches.
+DSEF 5-pillar scoring algorithm.
+Uses module-level TTL caches for query memoization.
 """
 import math
 import time

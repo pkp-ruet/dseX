@@ -29,7 +29,7 @@
     "@type": "WebApplication",
     "name": "dseX",
     "description": "DSE stock screener and fundamental analysis terminal for Dhaka Stock Exchange. Ranks all listed companies by 8 fundamental factors including earnings yield, ROE, dividend yield, NAV/price ratio, EPS stability, dividend streak, reserve-to-market-cap, and debt safety.",
-    "url": "https://dsexanalysis.streamlit.app",
+    "url": "https://dse-x.vercel.app",
     "applicationCategory": "FinanceApplication",
     "operatingSystem": "Web",
     "offers": {
@@ -357,7 +357,7 @@
 
   <!-- ── CTA ── -->
   <div class="cta-wrap">
-    <a class="cta-btn" href="https://dsexanalysis.streamlit.app" target="_blank" rel="noopener">
+    <a class="cta-btn" href="https://dse-x.vercel.app" target="_blank" rel="noopener">
       &#9654; Open Terminal
     </a>
     <div class="cta-sub">Free &middot; No login required &middot; Updated daily</div>
@@ -489,7 +489,7 @@
     <details>
       <summary>How often is the data updated?</summary>
       <div class="faq-body">
-        The scrapers run periodically to fetch new prices, financials, dividends, and shareholding data from the DSE website. The Streamlit app caches data for 5 minutes. Financial data (annual reports) is updated when DSE publishes new figures.
+        The scrapers run periodically to fetch new prices, financials, dividends, and shareholding data from the DSE website. The backend caches API responses for 5 minutes; the Next.js frontend uses ISR with 1-hour revalidation. Financial data (annual reports) is updated when DSE publishes new figures.
       </div>
     </details>
     <details>
@@ -514,7 +514,7 @@
 
   <!-- ── Bottom CTA ── -->
   <div class="cta-wrap" style="border-top:1px solid var(--border);padding-top:28px">
-    <a class="cta-btn" href="https://dsexanalysis.streamlit.app" target="_blank" rel="noopener">
+    <a class="cta-btn" href="https://dse-x.vercel.app" target="_blank" rel="noopener">
       &#9654; Open Terminal
     </a>
     <div class="cta-sub">Free &middot; No login required &middot; Updated daily</div>
@@ -524,7 +524,7 @@
   <footer>
     <p>dseX &mdash; Dhaka Stock Exchange Fundamental Analysis Terminal</p>
     <p>
-      <a href="https://dsexanalysis.streamlit.app" target="_blank" rel="noopener">Live App</a>
+      <a href="https://dse-x.vercel.app" target="_blank" rel="noopener">Live App</a>
       &nbsp;&middot;&nbsp;
       <a href="https://github.com/pkp-ruet/dseX" target="_blank" rel="noopener">GitHub</a>
     </p>

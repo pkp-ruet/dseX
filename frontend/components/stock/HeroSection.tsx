@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ScoreBadge from "@/components/ui/ScoreBadge";
+import StarButton from "@/components/ui/StarButton";
 import TierPill from "@/components/ui/TierPill";
 import { getTier, TIER_COLORS } from "@/lib/constants";
 import { taka, signed, abbrev } from "@/lib/formatters";
@@ -86,6 +87,7 @@ export default function HeroSection({ detail }: Props) {
           <div className="flex-1 flex flex-col justify-center min-w-0">
             <div className="flex flex-wrap items-baseline gap-2 mb-1">
               <h1 className="text-2xl font-bold tracking-tight">{code}</h1>
+              <span className="hero-star"><StarButton code={code} size="lg" /></span>
               {profile.company_name && (
                 <span className="text-base text-[var(--text-muted)] truncate">{profile.company_name}</span>
               )}

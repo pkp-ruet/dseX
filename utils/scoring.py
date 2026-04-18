@@ -1,7 +1,7 @@
 """
-Shared scoring utility — usable from main.py without importing Streamlit.
+Shared scoring utility — usable from main.py and CLI tools.
 
-get_top_n_codes() replicates _build_scores_df() from app.py exactly:
+get_top_n_codes() builds a scored DataFrame using:
   8 factors, 4 groups, multi-year averages, per-row weight re-normalisation,
   and market category multipliers.
 """

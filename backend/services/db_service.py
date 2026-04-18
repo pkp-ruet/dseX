@@ -1,5 +1,5 @@
 """
-MongoDB query helpers — mirrors app.py cached loaders, without Streamlit.
+MongoDB query helpers — cached loaders for FastAPI routes.
 All functions return plain Python dicts/lists (JSON-serialisable).
 """
 import time
@@ -25,7 +25,7 @@ def get_db():
 
 
 # ---------------------------------------------------------------------------
-# Simple TTL cache decorator (replaces @st.cache_data)
+# Simple TTL cache decorator
 # ---------------------------------------------------------------------------
 
 def _ttl_cache(ttl_seconds: int = 300):
