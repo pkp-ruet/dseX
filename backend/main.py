@@ -11,7 +11,7 @@ app = FastAPI(title="dseX API", version="1.0.0")
 # ---------------------------------------------------------------------------
 ALLOWED_ORIGINS = os.getenv(
     "ALLOWED_ORIGINS",
-    "http://localhost:3000,https://dsex.vercel.app,https://dsex.app"
+    "http://localhost:3000,https://dsex.vercel.app,https://dsex.app,https://topstockbd.com,https://www.topstockbd.com"
 ).split(",")
 
 app.add_middleware(

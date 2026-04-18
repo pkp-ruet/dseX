@@ -1,4 +1,7 @@
-const API_URL = process.env.API_URL || "https://dsex.onrender.com";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.API_URL ||
+  "https://dsex.onrender.com";
 
 export interface ScoreItem {
   trading_code: string;
