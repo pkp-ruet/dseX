@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.routers import scores, companies, dividends, audit, prices, market_movers, market_intelligence, market_index
@@ -18,7 +18,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in ALLOWED_ORIGINS],
     allow_origin_regex=r"https://.*\.vercel\.app",
-    allow_methods=["GET"],
+    allow_methods=["GET", "HEAD"],
     allow_headers=["*"],
 )
 
@@ -44,3 +44,9 @@ def health():
     except Exception:
         db_status = "error"
     return {"status": "ok", "db": db_status}
+
+
+@app.head("/health")
+def health_head():
+    # HEAD for uptime monitors (GET still runs DB ping + JSON body).
+    return Response(status_code=200)
