@@ -9,6 +9,7 @@ import FilterableRankings from "@/components/home/FilterableRankings";
 import MarketMovers from "@/components/home/MarketMovers";
 import HomeSidebar from "@/components/home/HomeSidebar";
 import MarketIndexBanner from "@/components/home/MarketIndexBanner";
+import NavHighlights from "@/components/home/NavHighlights";
 
 export const revalidate = 3600;
 
@@ -101,6 +102,7 @@ export default async function HomePage() {
           <Suspense>
             <FilterableRankings tiers={frontendTiers} />
           </Suspense>
+          <NavHighlights />
         </div>
 
         {/* Right: search, market movers, then rest of sidebar */}
