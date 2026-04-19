@@ -46,8 +46,9 @@ export default function Navbar() {
       <header className="fixed top-1 left-0 right-0 z-50 bg-[var(--bg)] border-b border-[var(--border)] shadow-sm">
         <div className="max-w-5xl mx-auto px-4 h-12 flex items-center justify-between">
           <Link href="/" className="navbar-brand" onClick={() => setMenuOpen(false)}>
-            <svg className="navbar-brand-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7A1 1 0 003 11h1v6a1 1 0 001 1h4v-4h2v4h4a1 1 0 001-1v-6h1a1 1 0 00.707-1.707l-7-7z" />
+            <svg className="navbar-brand-icon" viewBox="0 0 24 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M2 6c2.5-3 5-3 7.5 0s5 3 7.5 0 3-2 5-2" opacity="0.55" />
+              <path d="M2 12c2.5-3 5-3 7.5 0s5 3 7.5 0 3-2 5-2" />
             </svg>
             <span className="navbar-brand-dse">TopStock</span>
             <span className="navbar-brand-score">BD</span>
