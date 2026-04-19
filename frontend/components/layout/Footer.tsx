@@ -11,6 +11,7 @@ export default function Footer() {
             <Link href="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
             <Link href="/dsestockranking" className="hover:text-[var(--primary)] transition-colors">Stock Rankings</Link>
             <Link href="/market-intelligence" className="hover:text-[var(--primary)] transition-colors">Market Intelligence</Link>
+            <Link href="/about" className="hover:text-[var(--primary)] transition-colors">About</Link>
           </nav>
         </div>
       </div>

@@ -11,6 +11,7 @@ export default function Navbar() {
   const isRanking = pathname === "/dsestockranking";
   const isIntel = pathname === "/market-intelligence";
   const isWatchlist = pathname === "/watchlist";
+  const isAbout = pathname === "/about";
 
   const [watchCount, setWatchCount] = useState(0);
   const [mounted, setMounted] = useState(false);
@@ -76,6 +77,12 @@ export default function Navbar() {
               className={`navbar-rank-btn${isRanking ? " navbar-rank-btn-active" : ""}`}
             >
               Score Leaderboard
+            </Link>
+            <Link
+              href="/about"
+              className={`navbar-intel-btn${isAbout ? " navbar-intel-btn-active" : ""}`}
+            >
+              About
             </Link>
             <ThemeToggle />
           </nav>
@@ -158,6 +165,16 @@ export default function Navbar() {
               <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z" />
             </svg>
             Score Leaderboard
+          </Link>
+          <Link
+            href="/about"
+            className={`navbar-drawer-link${isAbout ? " active" : ""}`}
+            onClick={() => setMenuOpen(false)}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+            </svg>
+            About
           </Link>
         </nav>
       </div>

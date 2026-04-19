@@ -6,7 +6,6 @@ import { getTier } from "@/lib/constants";
 import SearchBar from "@/components/home/SearchBar";
 import TickerBand from "@/components/home/TickerBand";
 import FilterableRankings from "@/components/home/FilterableRankings";
-import HowWeScoreBox from "@/components/home/HowWeScoreBox";
 import MarketMovers from "@/components/home/MarketMovers";
 import HomeSidebar from "@/components/home/HomeSidebar";
 import MarketIndexBanner from "@/components/home/MarketIndexBanner";
@@ -102,7 +101,6 @@ export default async function HomePage() {
           <Suspense>
             <FilterableRankings tiers={frontendTiers} />
           </Suspense>
-          <HowWeScoreBox />
         </div>
 
         {/* Right: search, market movers, then rest of sidebar */}
