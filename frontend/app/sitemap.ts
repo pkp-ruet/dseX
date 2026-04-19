@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getAllCodes } from "@/lib/api";
+import { GUIDES } from "@/lib/guides";
+import { STOCK_LISTS } from "@/lib/stock-lists";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
@@ -8,6 +10,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const stockPages = codes.map((code) => ({
     url: `${BASE_URL}/stock/${code}`,
+    lastModified: new Date(),
+    changeFrequency: "daily" as const,
+    priority: 0.8,
+  }));
+
+  const guidePages = GUIDES.map((g) => ({
+    url: `${BASE_URL}/learn/${g.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
+
+  const stockListPages = STOCK_LISTS.map((l) => ({
+    url: `${BASE_URL}/stock-lists/${l.slug}`,
     lastModified: new Date(),
     changeFrequency: "daily" as const,
     priority: 0.8,
@@ -32,6 +48,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "hourly",
       priority: 0.7,
     },
+    {
+      url: `${BASE_URL}/learn`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${BASE_URL}/stock-lists`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.85,
+    },
+    ...stockListPages,
+    ...guidePages,
     ...stockPages,
   ];
 }

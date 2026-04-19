@@ -12,6 +12,8 @@ export default function Navbar() {
   const isIntel = pathname === "/market-intelligence";
   const isWatchlist = pathname === "/watchlist";
   const isAbout = pathname === "/about";
+  const isLearn = pathname === "/learn" || pathname.startsWith("/learn/");
+  const isStockLists = pathname === "/stock-lists" || pathname.startsWith("/stock-lists/");
 
   const [watchCount, setWatchCount] = useState(0);
   const [mounted, setMounted] = useState(false);
@@ -67,6 +69,18 @@ export default function Navbar() {
               )}
             </Link>
             <Link
+              href="/learn"
+              className={`navbar-intel-btn${isLearn ? " navbar-intel-btn-active" : ""}`}
+            >
+              Beginner&apos;s Guide
+            </Link>
+            <Link
+              href="/stock-lists"
+              className={`navbar-intel-btn${isStockLists ? " navbar-intel-btn-active" : ""}`}
+            >
+              Stock Lists
+            </Link>
+            <Link
               href="/market-intelligence"
               className={`navbar-intel-btn${isIntel ? " navbar-intel-btn-active" : ""}`}
             >
@@ -82,7 +96,7 @@ export default function Navbar() {
               href="/about"
               className={`navbar-intel-btn${isAbout ? " navbar-intel-btn-active" : ""}`}
             >
-              About
+              Behind the Score
             </Link>
             <ThemeToggle />
           </nav>
@@ -147,6 +161,26 @@ export default function Navbar() {
             )}
           </Link>
           <Link
+            href="/learn"
+            className={`navbar-drawer-link${isLearn ? " active" : ""}`}
+            onClick={() => setMenuOpen(false)}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" />
+            </svg>
+            Beginner&apos;s Guide
+          </Link>
+          <Link
+            href="/stock-lists"
+            className={`navbar-drawer-link${isStockLists ? " active" : ""}`}
+            onClick={() => setMenuOpen(false)}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
+            </svg>
+            Stock Lists
+          </Link>
+          <Link
             href="/market-intelligence"
             className={`navbar-drawer-link${isIntel ? " active" : ""}`}
             onClick={() => setMenuOpen(false)}
@@ -174,7 +208,7 @@ export default function Navbar() {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
             </svg>
-            About
+            Behind the Score
           </Link>
         </nav>
       </div>

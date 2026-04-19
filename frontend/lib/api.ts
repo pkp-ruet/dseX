@@ -225,6 +225,10 @@ export async function getMarketIntelligence(): Promise<MarketIntelligenceData> {
   return apiFetch<MarketIntelligenceData>("/api/market-intelligence", 900);
 }
 
+export async function getStockLists(): Promise<import("@/lib/stock-lists").StockListsResponse> {
+  return apiFetch("/api/stock-lists", 3600);
+}
+
 /** Client-side price history fetch (no Next.js cache) */
 export async function getPriceHistory(code: string, range: "1y" | "2y" | "all" = "1y"): Promise<PricePoint[]> {
   const res = await fetch(`${API_URL}/api/company/${code.toUpperCase()}/prices?range=${range}`);

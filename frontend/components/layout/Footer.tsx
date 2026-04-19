@@ -10,8 +10,10 @@ export default function Footer() {
           <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-3 text-xs text-[var(--text-muted)]">
             <Link href="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
             <Link href="/dsestockranking" className="hover:text-[var(--primary)] transition-colors">Stock Rankings</Link>
+            <Link href="/learn" className="hover:text-[var(--primary)] transition-colors">Beginner&apos;s Guide</Link>
+            <Link href="/stock-lists" className="hover:text-[var(--primary)] transition-colors">Stock Lists</Link>
             <Link href="/market-intelligence" className="hover:text-[var(--primary)] transition-colors">Market Intelligence</Link>
-            <Link href="/about" className="hover:text-[var(--primary)] transition-colors">About</Link>
+            <Link href="/about" className="hover:text-[var(--primary)] transition-colors">Behind the Score</Link>
           </nav>
         </div>
       </div>

@@ -28,7 +28,9 @@
       "WebFetch(domain:www.topstockbd.com)",
       "mcp__Claude_Preview__preview_start",
       "Bash(python main.py scrape-market-summary)",
-      "Bash(node -e ':*)"
+      "Bash(node -e ':*)",
+      "Skill(update-config)",
+      "Skill(update-config:*)"
     ]
   }
 }

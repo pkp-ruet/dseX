@@ -11,6 +11,24 @@ Guidance for Claude Code when working in this repository.
 
 No Streamlit. The app is Next.js + Python only.
 
+## SEO Rules (mandatory for every new page/route/section)
+
+Every new page must include all of the following — no exceptions, no reminders needed:
+
+1. **`metadata` export** — `title`, `description`, `keywords` (Bangladesh/DSE-relevant terms), `alternates: { canonical }`, `openGraph` (title, description, url, type)
+2. **JSON-LD structured data** — `Article` + `BreadcrumbList` for content pages; `WebPage` or `Organization` for hub/listing pages. Injected via `<script type="application/ld+json">` in the component.
+3. **`sitemap.ts` entry** — add the new route(s) with appropriate `changeFrequency` and `priority`. Dynamic routes (like `/learn/[slug]`) must be expanded from their data source, not hardcoded.
+
+Pattern for content pages (articles, guides):
+- OG type: `"article"`
+- JSON-LD types: `Article` + `BreadcrumbList`
+
+Pattern for listing/hub pages:
+- OG type: `"website"`
+- JSON-LD type: `BreadcrumbList` (if nested) or omit if top-level
+
+This applies to: new app routes, new dynamic route segments, new standalone sections.
+
 ## Commands
 
 ```bash
