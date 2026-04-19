@@ -7,6 +7,7 @@ import { getTier, TIER_LABELS, TIER_COLORS, type TierKey } from "@/lib/constants
 import { taka } from "@/lib/formatters";
 import { getWatchlist, subscribeWatchlist } from "@/lib/watchlist";
 import StarButton from "@/components/ui/StarButton";
+import WatchlistNews from "./WatchlistNews";
 
 function flatten(scores: ScoresResponse | null): ScoreItem[] {
   if (!scores) return [];
@@ -78,8 +79,8 @@ export default function WatchlistTable() {
             <th>Company</th>
             <th className="num">LTP</th>
             <th className="num">Chg %</th>
-            <th className="num">Score</th>
-            <th>Tier</th>
+            <th className="num watchlist-th-score">Score</th>
+            <th className="watchlist-th-tier">Tier</th>
           </tr>
         </thead>
         <tbody>
@@ -100,10 +101,10 @@ export default function WatchlistTable() {
                 <td className={`num watchlist-chg ${chgCls}`}>
                   {chg == null ? "—" : `${chg > 0 ? "+" : ""}${chg.toFixed(1)}%`}
                 </td>
-                <td className="num watchlist-score">
+                <td className="num watchlist-score watchlist-td-score">
                   {it.score != null ? it.score.toFixed(1) : "—"}
                 </td>
-                <td>
+                <td className="watchlist-td-tier">
                   <span
                     className="watchlist-tier"
                     style={{ background: TIER_COLORS[tier] }}
@@ -121,6 +122,7 @@ export default function WatchlistTable() {
           {missing} ticker{missing > 1 ? "s" : ""} not found in current scores (may be delisted or unscored).
         </p>
       )}
+      <WatchlistNews codes={codes} />
     </div>
   );
 }

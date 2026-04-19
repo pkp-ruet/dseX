@@ -229,6 +229,20 @@ export async function getStockLists(): Promise<import("@/lib/stock-lists").Stock
   return apiFetch("/api/stock-lists", 3600);
 }
 
+export interface WatchlistNewsItem {
+  trading_code: string;
+  title: string;
+  post_date: string;
+  body: string;
+}
+
+export async function getWatchlistNews(codes: string[]): Promise<WatchlistNewsItem[]> {
+  if (!codes.length) return [];
+  const res = await fetch(`${API_URL}/api/news/multi?codes=${encodeURIComponent(codes.join(","))}`);
+  if (!res.ok) return [];
+  return res.json() as Promise<WatchlistNewsItem[]>;
+}
+
 /** Client-side price history fetch (no Next.js cache) */
 export async function getPriceHistory(code: string, range: "1y" | "2y" | "all" = "1y"): Promise<PricePoint[]> {
   const res = await fetch(`${API_URL}/api/company/${code.toUpperCase()}/prices?range=${range}`);

@@ -155,6 +155,22 @@ def load_company_news(trading_code: str, limit: int = 20) -> list[dict]:
 
 
 @_ttl_cache(300)
+def load_news_for_codes(codes: tuple, days: int = 30) -> list[dict]:
+    db = get_db()
+    cutoff = datetime.utcnow() - timedelta(days=days)
+    docs = list(
+        db.company_news.find(
+            {"trading_code": {"$in": list(codes)}, "post_date": {"$gte": cutoff}},
+            {"_id": 0, "trading_code": 1, "title": 1, "body": 1, "post_date": 1},
+        ).sort("post_date", -1).limit(100)
+    )
+    for d in docs:
+        if "post_date" in d and hasattr(d["post_date"], "isoformat"):
+            d["post_date"] = d["post_date"].isoformat()
+    return docs
+
+
+@_ttl_cache(300)
 def load_dividend_declarations() -> list[dict]:
     db = get_db()
     docs = list(db.dividend_declarations.find({}, {"_id": 0}))

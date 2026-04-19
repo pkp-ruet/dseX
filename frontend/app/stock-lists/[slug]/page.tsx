@@ -118,15 +118,15 @@ export default async function StockListPage({ params }: Props) {
             Data unavailable — check back shortly.
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+          <div className="rounded-xl border border-[var(--border)] overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-[var(--surface)] border-b border-[var(--border)]">
-                  <th className="text-left px-3 py-3 text-[var(--ink-muted)] font-medium w-10">#</th>
-                  <th className="text-left px-3 py-3 text-[var(--ink-muted)] font-medium">Code</th>
-                  <th className="text-left px-3 py-3 text-[var(--ink-muted)] font-medium">Company</th>
-                  <th className="text-right px-3 py-3 text-[var(--ink-muted)] font-medium">LTP (৳)</th>
-                  <th className="text-right px-3 py-3 text-[var(--ink-muted)] font-medium font-semibold">
+                  <th className="text-left px-2 py-2 sm:px-3 sm:py-3 text-[var(--ink-muted)] font-medium w-8 sm:w-10">#</th>
+                  <th className="text-left px-2 py-2 sm:px-3 sm:py-3 text-[var(--ink-muted)] font-medium">Code</th>
+                  <th className="text-left px-2 py-2 sm:px-3 sm:py-3 text-[var(--ink-muted)] font-medium">Company</th>
+                  <th className="text-right px-2 py-2 sm:px-3 sm:py-3 text-[var(--ink-muted)] font-medium">LTP (৳)</th>
+                  <th className="text-right px-2 py-2 sm:px-3 sm:py-3 text-[var(--ink-muted)] font-medium font-semibold">
                     {def.metricLabel}
                   </th>
                 </tr>
@@ -137,8 +137,8 @@ export default async function StockListPage({ params }: Props) {
                     key={item.trading_code}
                     className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface)] transition-colors"
                   >
-                    <td className="px-3 py-3 text-[var(--ink-muted)] tabular-nums">{i + 1}</td>
-                    <td className="px-3 py-3">
+                    <td className="px-2 py-2 sm:px-3 sm:py-3 text-[var(--ink-muted)] tabular-nums">{i + 1}</td>
+                    <td className="px-2 py-2 sm:px-3 sm:py-3">
                       <Link
                         href={`/stock/${item.trading_code}`}
                         className="font-mono font-semibold text-[var(--primary)] hover:underline"
@@ -146,18 +146,18 @@ export default async function StockListPage({ params }: Props) {
                         {item.trading_code}
                       </Link>
                     </td>
-                    <td className="px-3 py-3 text-[var(--ink)] max-w-[200px]">
+                    <td className="px-2 py-2 sm:px-3 sm:py-3 text-[var(--ink)] max-w-[90px] sm:max-w-[200px]">
                       <span className="truncate block" title={item.company_name ?? ""}>
                         {item.company_name ?? "—"}
                       </span>
                       {item.sector && (
-                        <span className="text-xs text-[var(--ink-muted)]">{item.sector}</span>
+                        <span className="hidden sm:block text-xs text-[var(--ink-muted)]">{item.sector}</span>
                       )}
                     </td>
-                    <td className="px-3 py-3 text-right text-[var(--ink)] tabular-nums">
+                    <td className="px-2 py-2 sm:px-3 sm:py-3 text-right text-[var(--ink)] tabular-nums">
                       {item.ltp != null ? item.ltp.toFixed(1) : "—"}
                     </td>
-                    <td className="px-3 py-3 text-right font-semibold text-[var(--primary)] tabular-nums">
+                    <td className="px-2 py-2 sm:px-3 sm:py-3 text-right font-semibold text-[var(--primary)] tabular-nums">
                       {formatMetric(item.metric_value, def.metricFormat)}
                     </td>
                   </tr>

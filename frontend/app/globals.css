@@ -73,22 +73,39 @@ body::before {
   z-index: 1000;
 }
 
-/* Section labels like "// RANKINGS" */
+/* Section labels */
 .section-label {
-  font-size: 0.68rem;
-  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 0.35rem;
-  margin: 1.75rem 0 0.5rem;
+  color: var(--text);
+  margin: 1.75rem 0 0.75rem;
   clear: both;
 }
 
+.section-label::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 1em;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%);
+  flex-shrink: 0;
+}
+
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border) 0%, transparent 100%);
+}
+
 .section-label span {
-  color: var(--accent);
-  margin-right: 0.4rem;
+  display: none;
 }
 
 /* Score pill */
@@ -107,7 +124,7 @@ body::before {
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  padding: 6px 14px;
+  padding: 5px 10px;
   border-radius: 999px;
   background: var(--primary);
   color: #fff;
@@ -1288,7 +1305,8 @@ body::before {
 }
 .rr-ltp {
   font-size: 0.76rem;
-  color: var(--ink-muted);
+  font-weight: 600;
+  color: #3B82F6;
 }
 .rr-sep {
   font-size: 0.68rem;
@@ -1318,7 +1336,8 @@ body::before {
 }
 .rr-div {
   font-size: 0.74rem;
-  color: var(--ink-muted);
+  font-weight: 600;
+  color: #D97706;
   white-space: nowrap;
 }
 .rr-score {
@@ -1367,6 +1386,7 @@ body::before {
     box-sizing: border-box;
   }
   .rr-rank,
+  .rr-star,
   .rr-code,
   .rr-company,
   .rr-score {
@@ -1381,21 +1401,26 @@ body::before {
     text-align: left;
     width: auto;
   }
-  .rr-code {
+  .rr-star {
     order: 2;
+    flex: 0 0 auto;
+    width: auto;
+  }
+  .rr-code {
+    order: 3;
     flex: 0 1 auto;
     min-width: 0;
     padding-right: 0;
   }
   .rr-score {
-    order: 3;
+    order: 4;
     margin-left: auto;
     text-align: right;
     width: auto;
     padding-left: 8px;
   }
   .rr-company {
-    order: 4;
+    order: 5;
     flex: 0 0 100%;
     width: 100%;
     max-width: 100%;
@@ -1580,24 +1605,33 @@ details.dsex-exp[open] > summary {
 }
 
 .tier-show-more-btn {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   width: 100%;
   margin-top: 0;
-  padding: 9px 18px;
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  /* flat top so it sits flush against the table bottom */
+  padding: 11px 18px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   border-radius: 0 0 14px 14px;
   border: none;
-  border-top: 1px solid #C7D2FE;
-  background: #EEF2FF;
-  color: #3730A3;
-  transition: background 0.15s ease;
+  border-top: 2px solid #38BDF8;
+  background: linear-gradient(135deg, #E0F2FE 0%, #EEF2FF 100%);
+  color: #0369A1;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.1s ease;
   cursor: pointer;
+  box-shadow: none;
 }
 .tier-show-more-btn:hover {
-  background: #E0E7FF;
+  background: linear-gradient(135deg, #BAE6FD 0%, #E0E7FF 100%);
+  color: #075985;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(56,189,248,0.2);
+}
+.tier-show-more-btn:active {
+  transform: translateY(0);
 }
 
 /* Section rule */
@@ -2028,6 +2062,23 @@ details.dsex-exp[open] > summary {
   }
 }
 
+/* Search bar visibility: mobile-top vs sidebar */
+.search-mobile-top {
+  display: none;
+  padding: 0 16px 12px;
+}
+.search-desktop-only {
+  display: block;
+}
+@media (max-width: 900px) {
+  .search-mobile-top {
+    display: block;
+  }
+  .search-desktop-only {
+    display: none;
+  }
+}
+
 /* Sidebar widget card */
 .sidebar-widget {
   border: 1px solid #DDE5FF;
@@ -2229,9 +2280,9 @@ details.dsex-exp[open] > summary {
 .navbar-nav {
   display: none;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
-@media (min-width: 768px) {
+@media (min-width: 900px) {
   .navbar-nav {
     display: flex;
   }
@@ -2243,7 +2294,7 @@ details.dsex-exp[open] > summary {
   align-items: center;
   gap: 8px;
 }
-@media (min-width: 768px) {
+@media (min-width: 900px) {
   .navbar-mobile-controls {
     display: none;
   }
@@ -2255,7 +2306,7 @@ details.dsex-exp[open] > summary {
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  padding: 6px 14px;
+  padding: 5px 10px;
   border-radius: 999px;
   background: transparent;
   color: var(--primary);
@@ -2657,7 +2708,8 @@ details.dsex-exp[open] > summary {
   border: 1px solid var(--rule);
   border-radius: 14px;
   box-shadow: 0 4px 20px rgba(79, 70, 229, 0.06);
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .watchlist-table {
   width: 100%;
@@ -2738,6 +2790,18 @@ details.dsex-exp[open] > summary {
   margin: 0;
   border-top: 1px solid var(--cell-rule);
   background: var(--bg);
+}
+@media (max-width: 640px) {
+  .watchlist-table th,
+  .watchlist-table td { padding: 8px 6px; }
+  .watchlist-th-score,
+  .watchlist-td-score { display: none; }
+  .watchlist-company { max-width: 120px; }
+}
+@media (max-width: 400px) {
+  .watchlist-th-tier,
+  .watchlist-td-tier { display: none; }
+  .watchlist-company { max-width: 90px; }
 }
 
 /* ======================================

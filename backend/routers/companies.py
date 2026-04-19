@@ -4,7 +4,7 @@ from backend.services.db_service import (
     get_company, load_latest_prices, load_price_history,
     load_financials, load_extended_financials, load_shareholdings,
     load_company_news, load_dividend_declarations, load_all_company_codes,
-    compute_52w_range, compute_signal_flags,
+    compute_52w_range, compute_signal_flags, load_news_for_codes,
 )
 from backend.services.scoring_service import get_company_score_row
 from backend.models.responses import (
@@ -18,6 +18,14 @@ router = APIRouter()
 @router.get("/api/companies/codes")
 def get_all_codes() -> list[str]:
     return load_all_company_codes()
+
+
+@router.get("/api/news/multi")
+def get_multi_news(codes: str):
+    code_list = tuple(c.strip().upper() for c in codes.split(",") if c.strip())
+    if not code_list:
+        return []
+    return load_news_for_codes(code_list)
 
 
 @router.get("/api/company/{code}", response_model=CompanyDetailResponse)

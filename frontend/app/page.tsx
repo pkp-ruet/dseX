@@ -95,6 +95,11 @@ export default async function HomePage() {
       <TickerBand items={top20} />
       {marketIndex && <MarketIndexBanner data={marketIndex} />}
 
+      {/* Mobile-only search bar — above rankings on narrow screens */}
+      <div className="search-mobile-top">
+        <SearchBar companies={allCompanies} variant="sidebar" />
+      </div>
+
       {/* Two-column layout: main rankings (left) + sidebar (right) */}
       <div className="home-layout">
         {/* Left: rankings */}
@@ -107,7 +112,9 @@ export default async function HomePage() {
 
         {/* Right: search, market movers, then rest of sidebar */}
         <aside className="home-sidebar">
-          <SearchBar companies={allCompanies} variant="sidebar" />
+          <div className="search-desktop-only">
+            <SearchBar companies={allCompanies} variant="sidebar" />
+          </div>
           {movers && <MarketMovers data={movers} compact />}
           <HomeSidebar scores={scores} dividends={dividends} />
         </aside>

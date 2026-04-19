@@ -72,7 +72,7 @@ export default function Navbar() {
               href="/learn"
               className={`navbar-intel-btn${isLearn ? " navbar-intel-btn-active" : ""}`}
             >
-              Beginner&apos;s Guide
+              Learn
             </Link>
             <Link
               href="/stock-lists"
@@ -84,19 +84,19 @@ export default function Navbar() {
               href="/market-intelligence"
               className={`navbar-intel-btn${isIntel ? " navbar-intel-btn-active" : ""}`}
             >
-              Market Intelligence
+              Intelligence
             </Link>
             <Link
               href="/dsestockranking"
               className={`navbar-rank-btn${isRanking ? " navbar-rank-btn-active" : ""}`}
             >
-              Score Leaderboard
+              Leaderboard
             </Link>
             <Link
               href="/about"
               className={`navbar-intel-btn${isAbout ? " navbar-intel-btn-active" : ""}`}
             >
-              Behind the Score
+              About
             </Link>
             <ThemeToggle />
           </nav>
