@@ -9,6 +9,8 @@ import type { RankedItem } from "@/components/ranking/FullRankTable";
 
 export const revalidate = 3600;
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
+
 export const metadata: Metadata = {
   title: "DSE Stock Rankings by Fundamental Score",
   description:
@@ -55,8 +57,35 @@ export default async function DseStockRankingPage() {
 
   const dateLabel = computed_at ? formatDate(computed_at.slice(0, 10)) : null;
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${BASE_URL}/dsestockranking`,
+        url: `${BASE_URL}/dsestockranking`,
+        name: "DSE Stock Rankings by Fundamental Score",
+        description:
+          "All Dhaka Stock Exchange (DSE) listed companies ranked by DSEF fundamental score with price, EPS growth, and dividend yield.",
+        inLanguage: "en",
+        isPartOf: { "@id": BASE_URL },
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
+          { "@type": "ListItem", position: 2, name: "DSE Stock Rankings", item: `${BASE_URL}/dsestockranking` },
+        ],
+      },
+    ],
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Page header */}
       <div className="rank-page-header">
         <div className="rank-page-eyebrow">DSEF Fundamental Rankings</div>

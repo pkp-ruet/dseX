@@ -7,7 +7,7 @@ import MobileBottomBar from "@/components/layout/MobileBottomBar";
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com"),
   title: {
-    default: "TopStockBD — DSE Stock Rankings & DSEF Scores",
+    default: "TopStockBD | DSE Stock Analysis, Rankings & Share Price",
     template: "%s | TopStockBD",
   },
   description:

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { GUIDES } from "@/lib/guides";
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
+
 export const metadata: Metadata = {
   title: "Beginner's Guide to Stock Market — TopStockBD",
   description:
@@ -26,7 +28,35 @@ export const metadata: Metadata = {
 };
 
 export default function LearnPage() {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": `${BASE_URL}/learn`,
+        url: `${BASE_URL}/learn`,
+        name: "Beginner's Guide to Stock Market — TopStockBD",
+        description:
+          "Everything you need to start investing in the Dhaka Stock Exchange — from opening a BO account to understanding fundamental analysis.",
+        inLanguage: "en",
+        isPartOf: { "@id": BASE_URL },
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
+          { "@type": "ListItem", position: 2, name: "Learn", item: `${BASE_URL}/learn` },
+        ],
+      },
+    ],
+  };
+
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
     <main className="max-w-3xl mx-auto px-4 py-12 space-y-12">
 
       {/* Hero */}
@@ -91,5 +121,6 @@ export default function LearnPage() {
       </section>
 
     </main>
+    </>
   );
 }

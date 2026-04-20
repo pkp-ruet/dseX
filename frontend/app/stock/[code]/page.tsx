@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: `${code} (${name}) Stock Analysis — DSEF Score | DSE`,
-    description: `DSEF score for ${name} (${code}): ${score ?? "--"}/100 (${tierLabel}). Business Quality, Financial Health, Valuation, Dividend Quality. DSE stock analysis, price history, financials.`,
+    description: `${code} (${name}) scores ${score ?? "--"}/100 on DSEF — rated ${tierLabel}. View fundamentals, EPS, dividend yield, and valuation on TopStockBD.`,
     alternates: { canonical: `/stock/${code}` },
     openGraph: {
       title: `${code} — DSEF Score: ${score ?? "--"}/100 | TopStockBD`,

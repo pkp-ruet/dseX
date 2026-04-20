@@ -12,18 +12,18 @@ import NavHighlights from "@/components/home/NavHighlights";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "TopStockBD — DSE Stock Rankings & DSEF Scores | Dhaka Stock Exchange",
+  title: "TopStockBD | DSE Stock Analysis, Rankings & Share Price",
   description:
-    "Free fundamental analysis and DSEF scores for all Dhaka Stock Exchange (DSE) listed companies. Find Strong Buy, Safe Buy, Watch, and Avoid tier rankings driven by fundamentals.",
+    "TopStockBD ranks all DSE-listed companies by fundamental strength using the DSEF scoring system. Find the best stocks on Dhaka Stock Exchange.",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "TopStockBD — DSE Stock Rankings & DSEF Scores",
+    title: "TopStockBD | DSE Stock Analysis, Rankings & Share Price",
     description: "Fundamental analysis rankings for all DSE listed companies.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "TopStockBD — DSE Stock Rankings & DSEF Scores",
+    title: "TopStockBD | DSE Stock Analysis, Rankings & Share Price",
     description: "Free fundamental analysis and DSEF scores for all Dhaka Stock Exchange listed companies.",
   },
 };

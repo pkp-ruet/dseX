@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { getMarketIntelligence } from "@/lib/api";
+
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 import { formatDate } from "@/lib/formatters";
 import ConditionBanner from "@/components/market-intelligence/ConditionBanner";
 import SignalTable from "@/components/market-intelligence/SignalTable";
@@ -42,8 +44,35 @@ export default async function MarketIntelligencePage() {
   const { market_condition, market_summary, signals } = data;
   const dateLabel = market_summary.date ? formatDate(market_summary.date) : null;
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${BASE_URL}/market-intelligence`,
+        url: `${BASE_URL}/market-intelligence`,
+        name: "Market Intelligence — DSE Stock Analysis",
+        description:
+          "Real-time market condition detection for the Dhaka Stock Exchange. Find accumulation signals, momentum breakouts, and hidden setups.",
+        inLanguage: "en",
+        isPartOf: { "@id": BASE_URL },
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
+          { "@type": "ListItem", position: 2, name: "Market Intelligence", item: `${BASE_URL}/market-intelligence` },
+        ],
+      },
+    ],
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Page header */}
       <div className="rank-page-header">
         <div className="rank-page-eyebrow">Market Intelligence</div>
