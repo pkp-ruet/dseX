@@ -49,12 +49,12 @@ export default function VerdictBar({ detail }: Props) {
 
   const changeColor =
     latest_price.change_pct == null
-      ? "text-gray-400"
+      ? "text-[var(--text-muted)]"
       : latest_price.change_pct > 0
       ? "text-[var(--positive)]"
       : latest_price.change_pct < 0
       ? "text-[var(--negative)]"
-      : "text-gray-500";
+      : "text-[var(--text-muted)]";
 
   return (
     <div className="rounded-[var(--radius)] border border-[var(--border)] bg-white p-4 mb-4">

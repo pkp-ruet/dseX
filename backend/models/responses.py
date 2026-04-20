@@ -193,3 +193,8 @@ class MarketIndexResponse(BaseModel):
     total_volume: Optional[float] = None
     total_value_mn: Optional[float] = None
     total_trades: Optional[float] = None
+    volume_change_pct: Optional[float] = None
+    turnover_change_pct: Optional[float] = None
+    up_count: Optional[int] = None
+    down_count: Optional[int] = None
+    neutral_count: Optional[int] = None

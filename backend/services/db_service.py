@@ -258,6 +258,42 @@ def load_market_index() -> dict:
             if total_value_mn is None:
                 total_value_mn = agg[0].get("val")
 
+    # Previous day for change % calculation
+    prev_doc = db.dse_market_summary.find_one(
+        {"date": {"$lt": doc["date"]}},
+        sort=[("date", -1)],
+    )
+    prev_volume = prev_doc.get("total_volume") if prev_doc else None
+    prev_value_mn = prev_doc.get("total_value_mn") if prev_doc else None
+
+    if prev_doc and (prev_volume is None or prev_value_mn is None):
+        prev_agg = list(db.stock_prices.aggregate([
+            {"$match": {"date": prev_doc["date"]}},
+            {"$group": {"_id": None, "vol": {"$sum": "$volume"}, "val": {"$sum": "$value_mn"}}},
+        ]))
+        if prev_agg:
+            if prev_volume is None:
+                prev_volume = prev_agg[0].get("vol")
+            if prev_value_mn is None:
+                prev_value_mn = prev_agg[0].get("val")
+
+    def safe_pct(curr, prev):
+        if curr and prev and prev != 0:
+            return round((curr - prev) / prev * 100, 2)
+        return None
+
+    volume_change_pct = safe_pct(total_volume, prev_volume)
+    turnover_change_pct = safe_pct(total_value_mn, prev_value_mn)
+
+    # Up / down / neutral company counts for the latest date
+    price_changes = list(db.stock_prices.find(
+        {"date": doc["date"]},
+        {"_id": 0, "change_pct": 1},
+    ))
+    up_count = sum(1 for p in price_changes if (p.get("change_pct") or 0) > 0)
+    down_count = sum(1 for p in price_changes if (p.get("change_pct") or 0) < 0)
+    neutral_count = len(price_changes) - up_count - down_count
+
     return {
         "date": date_str,
         "dsex": doc.get("dsex"),
@@ -270,6 +306,11 @@ def load_market_index() -> dict:
         "total_volume": total_volume,
         "total_value_mn": total_value_mn,
         "total_trades": doc.get("total_trades"),
+        "volume_change_pct": volume_change_pct,
+        "turnover_change_pct": turnover_change_pct,
+        "up_count": up_count,
+        "down_count": down_count,
+        "neutral_count": neutral_count,
     }
 
 

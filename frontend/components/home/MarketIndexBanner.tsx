@@ -20,18 +20,9 @@ function fmtVolCr(vol: number | null): string {
   return `${cr.toFixed(2)} Cr`;
 }
 
-/** Raw trade count → compact string  e.g. 222205 → "2.2L" */
-function fmtTrades(n: number | null): string {
-  if (n == null) return "—";
-  if (n >= 1e7) return `${(n / 1e7).toFixed(1)} Cr`;
-  if (n >= 1e5) return `${(n / 1e5).toFixed(1)}L`;
-  if (n >= 1e3) return `${(n / 1e3).toFixed(1)}K`;
-  return String(n);
-}
-
 interface IndexBlockProps {
   label: string;
-  accent: string;          // CSS color for accent
+  accent: string;
   value: number | null;
   change: number | null;
   changePct?: number | null;
@@ -69,15 +60,57 @@ interface StatChipProps {
   value: string;
   icon: string;
   accent: string;
+  changePct?: number | null;
 }
 
-function StatChip({ label, value, icon, accent }: StatChipProps) {
+function StatChip({ label, value, icon, accent, changePct }: StatChipProps) {
+  const hasChange = changePct != null;
+  const isUp = (changePct ?? 0) >= 0;
+  const chgColor = isUp ? "#059669" : "#DC2626";
+  const arrow = isUp ? "▲" : "▼";
+
   return (
     <div className="mib-chip">
       <span className="mib-chip-icon" style={{ background: accent + "1A", color: accent }}>{icon}</span>
       <div className="mib-chip-body">
         <span className="mib-chip-label">{label}</span>
         <span className="mib-chip-value">{value}</span>
+        {hasChange && (
+          <span className="mib-chip-change" style={{ color: chgColor }}>
+            {arrow} {Math.abs(changePct!).toFixed(1)}% vs prev
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+interface BreadcrumbProps {
+  up: number | null;
+  down: number | null;
+  neutral: number | null;
+}
+
+function BreadthStrip({ up, down, neutral }: BreadcrumbProps) {
+  const total = (up ?? 0) + (down ?? 0) + (neutral ?? 0);
+  if (total === 0) return null;
+
+  return (
+    <div className="mib-breadth">
+      <div className="mib-breadth-item">
+        <span className="mib-breadth-dot" style={{ background: "#059669" }} />
+        <span className="mib-breadth-count" style={{ color: "#34D399" }}>{up ?? 0}</span>
+        <span className="mib-breadth-lbl">Up</span>
+      </div>
+      <div className="mib-breadth-item">
+        <span className="mib-breadth-dot" style={{ background: "#DC2626" }} />
+        <span className="mib-breadth-count" style={{ color: "#F87171" }}>{down ?? 0}</span>
+        <span className="mib-breadth-lbl">Down</span>
+      </div>
+      <div className="mib-breadth-item">
+        <span className="mib-breadth-dot" style={{ background: "#94A3B8" }} />
+        <span className="mib-breadth-count" style={{ color: "#94A3B8" }}>{neutral ?? 0}</span>
+        <span className="mib-breadth-lbl">No Change</span>
       </div>
     </div>
   );
@@ -106,7 +139,6 @@ export default function MarketIndexBanner({ data }: Props) {
 
   return (
     <div className="market-index-banner" role="region" aria-label="DSE Market Indices">
-      {/* Top accent bar */}
       <div className="mib-accent-bar" style={{ background: accentBar }} />
 
       <div className="mib-inner">
@@ -125,6 +157,13 @@ export default function MarketIndexBanner({ data }: Props) {
           <IndexBlock label="DS30" accent="#0EA5E9" value={data.ds30}  change={data.ds30_change} />
         </div>
 
+        {/* Middle — breadth */}
+        <BreadthStrip
+          up={data.up_count}
+          down={data.down_count}
+          neutral={data.neutral_count}
+        />
+
         {/* Right — stat chips + date */}
         <div className="mib-right">
           <div className="mib-chips">
@@ -133,18 +172,14 @@ export default function MarketIndexBanner({ data }: Props) {
               value={`৳ ${fmtCr(data.total_value_mn)}`}
               icon="💰"
               accent="#059669"
+              changePct={data.turnover_change_pct}
             />
             <StatChip
               label="Volume"
               value={fmtVolCr(data.total_volume)}
               icon="📊"
               accent="#0EA5E9"
-            />
-            <StatChip
-              label="Trades"
-              value={fmtTrades(data.total_trades)}
-              icon="🔄"
-              accent="#7C3AED"
+              changePct={data.volume_change_pct}
             />
           </div>
           {data.date && (

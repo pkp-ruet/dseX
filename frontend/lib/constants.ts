@@ -16,12 +16,12 @@ export const TIER_LABELS = {
 } as const;
 
 export const TIER_COLORS = {
-  strong_buy:    "#065F46",
-  good_buy:      "#0F766E",
-  safe_buy:      "#1E40AF",
-  cautious_buy:  "#5B21B6",
-  keep_watching: "#92400E",
-  avoid:         "#991B1B",
+  strong_buy:    "#4ADE80",
+  good_buy:      "#34D399",
+  safe_buy:      "#60A5FA",
+  cautious_buy:  "#A78BFA",
+  keep_watching: "#FBBF24",
+  avoid:         "#F87171",
 } as const;
 
 export type TierKey = keyof typeof TIER_LABELS;

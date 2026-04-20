@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { getScores, getDividendsUpcoming, getMarketMovers, getMarketIndex } from "@/lib/api";
-import type { FrontendTiers } from "@/lib/api";
-import { getTier } from "@/lib/constants";
 import SearchBar from "@/components/home/SearchBar";
 import TickerBand from "@/components/home/TickerBand";
-import FilterableRankings from "@/components/home/FilterableRankings";
+import TopRankings from "@/components/home/TopRankings";
 import MarketMovers from "@/components/home/MarketMovers";
 import HomeSidebar from "@/components/home/HomeSidebar";
 import MarketIndexBanner from "@/components/home/MarketIndexBanner";
@@ -62,7 +60,7 @@ export default async function HomePage() {
     );
   }
 
-  const { tiers, counts } = scores;
+  const { tiers } = scores;
 
   const allItems = [
     ...tiers.strong_buy,
@@ -70,15 +68,6 @@ export default async function HomePage() {
     ...tiers.watch,
     ...tiers.avoid,
   ];
-
-  // Re-classify from 4 API tiers into 6 frontend tiers
-  const frontendTiers: FrontendTiers = {
-    strong_buy: [], good_buy: [], safe_buy: [],
-    cautious_buy: [], keep_watching: [], avoid: [],
-  };
-  for (const item of allItems) {
-    frontendTiers[getTier(item.score)].push(item);
-  }
 
   const top20 = allItems.slice(0, 20);
 
@@ -105,7 +94,7 @@ export default async function HomePage() {
         {/* Left: rankings */}
         <div className="home-main min-w-0">
           <Suspense>
-            <FilterableRankings tiers={frontendTiers} />
+            <TopRankings scores={allItems} />
           </Suspense>
           <NavHighlights />
         </div>

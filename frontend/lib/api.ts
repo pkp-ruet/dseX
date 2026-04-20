@@ -136,6 +136,11 @@ export interface MarketIndexData {
   total_volume: number | null;
   total_value_mn: number | null;
   total_trades: number | null;
+  volume_change_pct: number | null;
+  turnover_change_pct: number | null;
+  up_count: number | null;
+  down_count: number | null;
+  neutral_count: number | null;
 }
 
 // ---- Fetch helpers ----
