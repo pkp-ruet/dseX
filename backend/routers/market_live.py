@@ -9,6 +9,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from backend.services.market_hours import is_market_open, market_session_info
+from backend.services.db_service import load_latest_prices, load_market_index, load_market_movers, load_companies
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -179,6 +180,93 @@ def _parse_news(df) -> list[dict]:
     return out[:30]
 
 
+def _build_closed_response(session: dict) -> dict:
+    """Build response using last-known MongoDB data when market is closed."""
+    base = {
+        "is_open": False,
+        "is_trading_day": session["is_trading_day"],
+        "opens_in_seconds": session["opens_in_seconds"],
+        "server_time_bst": session["server_time_bst"],
+    }
+
+    try:
+        raw_prices = load_latest_prices()
+        company_names = {c["trading_code"]: c.get("company_name") for c in load_companies()}
+        prices = []
+        as_of_date = None
+        for code, p in raw_prices.items():
+            date_val = p.get("date")
+            if date_val and as_of_date is None:
+                as_of_date = str(date_val)
+            change_pct = p.get("change_pct")
+            prices.append({
+                "code": code,
+                "company_name": company_names.get(code),
+                "ltp": p.get("ltp"),
+                "high": p.get("high"),
+                "low": p.get("low"),
+                "close": p.get("close_price"),
+                "ycp": p.get("ycp"),
+                "change": p.get("change"),
+                "change_pct": change_pct,
+                "volume": p.get("volume"),
+                "value_mn": p.get("value_mn"),
+                "trade_count": p.get("trade_count"),
+            })
+
+        base["as_of"] = as_of_date
+        base["prices"] = prices
+
+        # Gainers / losers from prices
+        valid = [p for p in prices if p.get("change_pct") is not None]
+        base["top_gainers"] = sorted(valid, key=lambda x: x["change_pct"] or 0, reverse=True)[:10]
+        base["top_losers"] = sorted(valid, key=lambda x: x["change_pct"] or 0)[:10]
+
+        # Volume leaders
+        base["volume_leaders"] = sorted(
+            [p for p in prices if p.get("volume") is not None],
+            key=lambda x: x["volume"] or 0, reverse=True
+        )[:10]
+
+        # Breadth
+        advances = sum(1 for p in prices if (p.get("change_pct") or 0) > 0)
+        declines = sum(1 for p in prices if (p.get("change_pct") or 0) < 0)
+        base["breadth"] = {
+            "advances": advances,
+            "declines": declines,
+            "unchanged": len(prices) - advances - declines,
+            "total": len(prices),
+        }
+
+        # Whats hot from last session
+        base["whats_hot"] = sorted(
+            [p for p in prices if p.get("volume") and p.get("change_pct") and p["change_pct"] > 0],
+            key=lambda x: (x["volume"] or 0) * abs(x["change_pct"] or 0),
+            reverse=True,
+        )[:8]
+    except Exception as e:
+        logger.warning("closed response: prices load failed: %s", e)
+        base["prices"] = []
+
+    try:
+        idx = load_market_index()
+        base["index"] = {
+            "dsex": idx.get("dsex"),
+            "dsex_change": idx.get("dsex_change"),
+            "dsex_change_pct": idx.get("dsex_change_pct"),
+            "ds30": idx.get("ds30"),
+            "ds30_change": idx.get("ds30_change"),
+            "dses": idx.get("dses"),
+            "dses_change": idx.get("dses_change"),
+        }
+        if not base.get("as_of"):
+            base["as_of"] = idx.get("date")
+    except Exception as e:
+        logger.warning("closed response: index load failed: %s", e)
+
+    return base
+
+
 @router.get("/api/market-live")
 def get_market_live():
     session = market_session_info()
@@ -190,13 +278,7 @@ def get_market_live():
 
     if not session["is_open"]:
         return JSONResponse(
-            content={
-                "is_open": False,
-                "is_trading_day": session["is_trading_day"],
-                "opens_in_seconds": session["opens_in_seconds"],
-                "server_time_bst": session["server_time_bst"],
-                "message": "Market closed",
-            },
+            content=_build_closed_response(session),
             headers=headers,
         )
 
@@ -237,6 +319,13 @@ def get_market_live():
         logger.warning("bdshare get_news failed: %s", e)
 
     prices = _parse_prices(prices_df)
+    # Join company names from MongoDB
+    try:
+        company_names = {c["trading_code"]: c.get("company_name") for c in load_companies()}
+        for p in prices:
+            p["company_name"] = company_names.get(p["code"])
+    except Exception:
+        pass
     index_data = _parse_index(index_df)
 
     # Use movers_df if available, else compute from prices

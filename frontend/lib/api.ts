@@ -259,6 +259,7 @@ export async function getPriceHistory(code: string, range: "1y" | "2y" | "all" =
 
 export interface LivePriceItem {
   code: string;
+  company_name?: string | null;
   ltp: number | null;
   high: number | null;
   low: number | null;

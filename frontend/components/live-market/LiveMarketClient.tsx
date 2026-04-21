@@ -43,19 +43,26 @@ export default function LiveMarketClient() {
         <PSNTicker news={data.psn_news} />
       )}
 
+      {/* As-of date strip (when market closed) */}
+      {!isOpen && data?.as_of && (
+        <div className="text-xs text-[var(--text-muted)] mb-4 px-1">
+          Showing last close data · {data.as_of}
+        </div>
+      )}
+
       {/* Index strip */}
       <IndexStrip index={data?.index} />
 
       {/* Breadth bar */}
-      {data?.breadth && <BreadthBar breadth={data.breadth} />}
+      {data?.breadth && data.breadth.total > 0 && <BreadthBar breadth={data.breadth} />}
 
       {/* Gainers / Losers */}
-      {data && (
+      {data && (data.top_gainers?.length || data.top_losers?.length) ? (
         <GainersLosers
           gainers={data.top_gainers ?? []}
           losers={data.top_losers ?? []}
         />
-      )}
+      ) : null}
 
       {/* What's hot */}
       {data?.whats_hot && data.whats_hot.length > 0 && (
@@ -71,25 +78,19 @@ export default function LiveMarketClient() {
       )}
 
       {/* All prices table */}
-      {data?.prices && data.prices.length > 0 ? (
+      {data?.prices && data.prices.length > 0 && (
         <LivePricesTable
           prices={data.prices}
           sectors={data.sector_performance}
         />
-      ) : !loading && isOpen ? (
-        <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl p-8 text-center text-sm text-[var(--text-muted)] mb-6">
-          Loading live prices…
-        </div>
-      ) : null}
+      )}
 
-      {/* Closed state — show placeholder content */}
-      {!isOpen && !loading && (
-        <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl p-8 text-center mb-6">
-          <div className="text-4xl mb-3">📊</div>
-          <h2 className="text-base font-semibold text-[var(--text)] mb-1">Market is closed</h2>
-          <p className="text-sm text-[var(--text-muted)]">
-            Live prices will appear here during trading hours (Sun–Thu, 10:00–14:30 BST).
-          </p>
+      {/* Loading skeleton on first load only when no data at all */}
+      {loading && !data && (
+        <div className="space-y-3 mb-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-16 bg-[var(--bg-secondary)] rounded-xl animate-pulse" />
+          ))}
         </div>
       )}
 

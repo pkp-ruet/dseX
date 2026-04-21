@@ -8,29 +8,34 @@ interface Props {
 }
 
 function MoverCard({ item, isGainer }: { item: LivePriceItem; isGainer: boolean }) {
-  const color = isGainer
+  const pctColor = isGainer
     ? "text-green-600 dark:text-green-400"
     : "text-red-500 dark:text-red-400";
-  const bg = isGainer
-    ? "bg-green-50 dark:bg-[#052e16]"
-    : "bg-red-50 dark:bg-[#2a0a0a]";
+  const border = isGainer ? "border-l-green-500" : "border-l-red-500";
   const sign = isGainer ? "+" : "";
 
   return (
     <Link
       href={`/stock/${item.code}`}
-      className={`flex items-center justify-between px-3 py-2 rounded-lg ${bg} hover:opacity-80 transition-opacity`}
+      className={`flex items-center justify-between px-3 py-2 rounded-lg bg-[var(--bg)] border border-[var(--border)] border-l-4 ${border} hover:bg-[var(--bg-secondary)] transition-colors`}
     >
-      <div>
-        <span className="font-semibold text-[var(--text)] text-sm">{item.code}</span>
-        {item.ltp != null && (
-          <span className="ml-2 text-xs text-[var(--text-muted)] tabular-nums">
-            ৳{item.ltp.toFixed(1)}
-          </span>
+      <div className="min-w-0 flex-1 mr-2">
+        <div className="flex items-baseline gap-2">
+          <span className="font-bold text-[var(--text)] text-sm">{item.code}</span>
+          {item.ltp != null && (
+            <span className="text-xs text-[var(--text-muted)] tabular-nums">
+              ৳{item.ltp.toFixed(1)}
+            </span>
+          )}
+        </div>
+        {item.company_name && (
+          <div className="text-xs text-[var(--text-muted)] truncate mt-0.5 leading-tight">
+            {item.company_name}
+          </div>
         )}
       </div>
       {item.change_pct != null && (
-        <span className={`text-sm font-bold tabular-nums ${color}`}>
+        <span className={`text-sm font-bold tabular-nums shrink-0 ${pctColor}`}>
           {sign}{item.change_pct.toFixed(2)}%
         </span>
       )}
