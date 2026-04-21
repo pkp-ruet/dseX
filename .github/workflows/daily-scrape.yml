@@ -2,10 +2,10 @@ name: Daily DSE Scrape
 
 on:
   schedule:
-    # Sun-Thu at 10:00 UTC = 4:00 PM BD time (after DSE market close)
-    - cron: "0 10 * * 0-4"
-    # Weekly full scrape on Wednesday at 13:00 UTC (catches new listings)
-    - cron: "0 13 * * 3"
+    # Sun-Thu at 08:30 UTC = 2:30 PM BD time (after DSE market close)
+    - cron: "30 8 * * 0-4"
+    # Weekly full scrape on Wednesday at 08:30 UTC
+    - cron: "30 8 * * 3"
   workflow_dispatch:
     inputs:
       full:
@@ -31,7 +31,7 @@ jobs:
 
       - name: Run scrapers
         run: |
-          if [ "${{ github.event.schedule }}" = "0 13 * * 3" ] || [ "${{ github.event.inputs.full }}" = "true" ]; then
+          if [ "${{ github.event.schedule }}" = "30 8 * * 3" ] || [ "${{ github.event.inputs.full }}" = "true" ]; then
             echo "Running FULL scrape (all companies)..."
             python main.py scrape-all --full
           else
