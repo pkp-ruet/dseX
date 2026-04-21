@@ -254,3 +254,74 @@ export async function getPriceHistory(code: string, range: "1y" | "2y" | "all" =
   if (!res.ok) throw new Error(`Price history fetch failed: ${res.status}`);
   return res.json() as Promise<PricePoint[]>;
 }
+
+// ---- Live Market ----
+
+export interface LivePriceItem {
+  code: string;
+  ltp: number | null;
+  high: number | null;
+  low: number | null;
+  close: number | null;
+  ycp: number | null;
+  change: number | null;
+  change_pct: number | null;
+  volume: number | null;
+  value_mn: number | null;
+  trade_count: number | null;
+}
+
+export interface LiveIndexData {
+  dsex: number | null;
+  dsex_change: number | null;
+  dsex_change_pct: number | null;
+  ds30: number | null;
+  ds30_change: number | null;
+  dses: number | null;
+  dses_change: number | null;
+}
+
+export interface LiveBreadth {
+  advances: number;
+  declines: number;
+  unchanged: number;
+  total: number;
+}
+
+export interface LiveSectorItem {
+  sector: string;
+  avg_change_pct: number | null;
+  count: number | null;
+}
+
+export interface LiveNewsItem {
+  title: string;
+  code: string | null;
+  date: string | null;
+}
+
+export interface MarketLiveData {
+  is_open: boolean;
+  as_of?: string;
+  closes_in_seconds?: number | null;
+  opens_in_seconds?: number | null;
+  is_trading_day?: boolean;
+  server_time_bst?: string;
+  message?: string;
+  index?: LiveIndexData | null;
+  prices?: LivePriceItem[];
+  top_gainers?: LivePriceItem[];
+  top_losers?: LivePriceItem[];
+  volume_leaders?: LivePriceItem[];
+  whats_hot?: LivePriceItem[];
+  sector_performance?: LiveSectorItem[];
+  breadth?: LiveBreadth;
+  psn_news?: LiveNewsItem[];
+}
+
+/** Client-side live market fetch — always bypasses cache */
+export async function getMarketLive(): Promise<MarketLiveData> {
+  const res = await fetch(`${API_URL}/api/market-live`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`market-live returned ${res.status}`);
+  return res.json() as Promise<MarketLiveData>;
+}
