@@ -46,12 +46,13 @@ export default function Navbar() {
       <header className="fixed top-1 left-0 right-0 z-50 bg-[var(--bg)] border-b border-[var(--border)] shadow-sm">
         <div className="max-w-5xl mx-auto px-4 h-12 flex items-center justify-between">
           <Link href="/" className="navbar-brand" onClick={() => setMenuOpen(false)}>
-            <svg className="navbar-brand-icon" viewBox="0 0 24 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M2 6c2.5-3 5-3 7.5 0s5 3 7.5 0 3-2 5-2" opacity="0.55" />
-              <path d="M2 12c2.5-3 5-3 7.5 0s5 3 7.5 0 3-2 5-2" />
+            <svg className="navbar-brand-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fillRule="evenodd" d="M10,1.5 L17.37,5.75 L17.37,14.25 L10,18.5 L2.63,14.25 L2.63,5.75 Z M10,4 L15.2,7 L15.2,13 L10,16 L4.8,13 L4.8,7 Z" />
+              <path fillRule="evenodd" d="M10,5 L14.33,7.5 L14.33,12.5 L10,15 L5.67,12.5 L5.67,7.5 Z M10,6.5 L13.03,8.25 L13.03,11.75 L10,13.5 L6.97,11.75 L6.97,8.25 Z" />
+              <polygon points="10,8 11.73,9 11.73,11 10,12 8.27,11 8.27,9" />
             </svg>
-            <span className="navbar-brand-dse">TopStock</span>
-            <span className="navbar-brand-score">BD</span>
+            <span className="navbar-brand-dse">topstock</span>
+            <span className="navbar-brand-score">bd</span>
           </Link>
 
           {/* Desktop nav — hidden on mobile via CSS */}

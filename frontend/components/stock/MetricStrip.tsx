@@ -15,11 +15,8 @@ export default function MetricStrip({ detail }: Props) {
   const { latest_price, financials, extended_financials, score_row } = detail;
   const ltp = latest_price.ltp;
 
-  // P/E
   const fins = financials as Record<string, number | null>[];
-  const latestEps = fins.length
-    ? (fins[fins.length - 1]?.eps ?? null)
-    : null;
+  const latestEps = fins.length ? (fins[fins.length - 1]?.eps ?? null) : null;
   const peNow = ltp && latestEps && latestEps > 0 ? ltp / latestEps : null;
   const avgPe5yr = (() => {
     const pes = fins
@@ -33,15 +30,12 @@ export default function MetricStrip({ detail }: Props) {
       : null;
   const peHealth = peContext === "CHEAP" ? "good" : peContext === "EXPENSIVE" ? "bad" : "neutral";
 
-  // Dividend yield
   const divYield = score_row?.div_yield_pct as number | null;
   const divHealth = divYield != null ? (divYield >= 4 ? "good" : divYield >= 2 ? "neutral" : "bad") : "neutral";
 
-  // EPS YoY
   const epsYoy = score_row?.eps_yoy_pct as number | null;
   const epsHealth = epsYoy != null ? (epsYoy > 10 ? "good" : epsYoy >= 0 ? "neutral" : "bad") : "neutral";
 
-  // ROE
   const latestExt = extended_financials.length
     ? extended_financials[extended_financials.length - 1] as Record<string, unknown>
     : null;
@@ -50,93 +44,113 @@ export default function MetricStrip({ detail }: Props) {
   const roe = np != null && eq && eq > 0 ? (np / eq) * 100 : null;
   const roeHealth = roe != null ? (roe >= 15 ? "good" : roe >= 8 ? "neutral" : "bad") : "neutral";
 
-  // Market cap
   const mcap = score_row?.mcap_mn as number | null;
 
-  // D/E
   const debt = latestExt ? toNum(latestExt.total_debt) : null;
   const de = debt != null && eq && eq > 0 ? debt / eq : null;
   const deHealth = de != null ? (de < 0.5 ? "good" : de < 1.0 ? "neutral" : "bad") : "neutral";
+
+  // Fixed vivid color per metric (used when health is neutral)
+  const METRIC_COLORS = ["#38BDF8", "#4ADE80", "#FB923C", "#FB923C", "#818CF8", "#F472B6"];
 
   const metrics = [
     {
       label: "P/E Ratio",
       value: peNow ? peNow.toFixed(1) + "x" : "--",
-      context: avgPe5yr ? `vs ${avgPe5yr.toFixed(1)}x avg` : null,
+      sub: avgPe5yr ? `vs ${avgPe5yr.toFixed(1)}x avg` : null,
       tag: peContext,
       health: peHealth,
     },
     {
       label: "Div Yield",
       value: divYield != null ? pct(divYield) : "--",
-      context: null,
+      sub: null,
       tag: null,
       health: divHealth,
     },
     {
       label: "EPS YoY",
       value: epsYoy != null ? signed(epsYoy, 1) + "%" : "--",
-      context: null,
-      tag: epsYoy != null ? (epsYoy > 0 ? "\u25B2" : epsYoy < 0 ? "\u25BC" : "\u2014") : null,
+      sub: null,
+      tag: epsYoy != null ? (epsYoy > 0 ? "▲ Growing" : epsYoy < 0 ? "▼ Declining" : "— Flat") : null,
       health: epsHealth,
     },
     {
       label: "ROE",
       value: roe != null ? pct(roe) : "--",
-      context: null,
+      sub: null,
       tag: null,
       health: roeHealth,
     },
     {
       label: "Market Cap",
       value: mcap ? millions(mcap) : "--",
-      context: null,
+      sub: null,
       tag: null,
       health: "neutral" as const,
     },
     {
       label: "Debt/Equity",
       value: de != null ? de.toFixed(2) : "--",
-      context: null,
+      sub: null,
       tag: de != null ? (de < 0.5 ? "LOW" : de < 1.0 ? "MOD" : "HIGH") : null,
       health: deHealth,
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-4">
-      {metrics.map((m) => (
-        <div
-          key={m.label}
-          className="metric-card rounded-[var(--radius)] border border-[var(--border)] bg-white p-3"
-          style={{ borderTop: `2px solid ${healthColor(m.health)}` }}
-        >
-          <p className="text-xs text-[var(--text-muted)] font-medium mb-1">{m.label}</p>
-          <p className="text-lg font-bold leading-tight">{m.value}</p>
-          {m.context && (
-            <p className="text-xs text-[var(--text-muted)] mt-0.5">{m.context}</p>
-          )}
-          {m.tag && (
-            <span
-              className="inline-block text-xs font-semibold mt-1 px-1.5 py-0.5 rounded"
-              style={{ color: healthColor(m.health), background: hexWithAlpha(healthColor(m.health), 0.1) }}
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 mb-5">
+      {metrics.map((m, idx) => {
+        const healthC = healthAccent(m.health);
+        const accent = m.health === "neutral" ? METRIC_COLORS[idx] : healthC;
+        return (
+          <div
+            key={m.label}
+            className="relative rounded-xl overflow-hidden p-3.5"
+            style={{
+              background: `linear-gradient(135deg, #0D1A2E 0%, #0A1525 100%)`,
+              border: `1px solid ${accent}35`,
+              boxShadow: `0 2px 12px rgba(0,0,0,0.3), inset 0 1px 0 ${accent}15`,
+            }}
+          >
+            {/* Color accent line at top */}
+            <div
+              className="absolute top-0 left-0 right-0 h-[2px]"
+              style={{ background: `linear-gradient(90deg, ${accent} 0%, ${accent}44 100%)` }}
+            />
+
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "#94A3B8" }}>
+              {m.label}
+            </p>
+
+            <p
+              className="text-2xl font-black tabular-nums leading-none mb-1"
+              style={{ color: accent }}
             >
-              {m.tag}
-            </span>
-          )}
-        </div>
-      ))}
+              {m.value}
+            </p>
+
+            {m.sub && (
+              <p className="text-[10px] mt-1" style={{ color: "#94A3B8" }}>{m.sub}</p>
+            )}
+
+            {m.tag && (
+              <span
+                className="inline-block text-[10px] font-bold mt-1.5 px-2 py-0.5 rounded-full"
+                style={{ color: accent, background: `${accent}18`, border: `1px solid ${accent}35` }}
+              >
+                {m.tag}
+              </span>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-function healthColor(health: string): string {
-  if (health === "good") return "#10B981";
-  if (health === "bad") return "#EF4444";
-  return "#94A3B8"; // neutral slate
-}
-
-function hexWithAlpha(hex: string, alpha: number): string {
-  const a = Math.round(alpha * 255).toString(16).padStart(2, "0");
-  return `${hex}${a}`;
+function healthAccent(health: string): string {
+  if (health === "good") return "#34D399";
+  if (health === "bad") return "#F87171";
+  return "#64748B";
 }

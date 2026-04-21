@@ -1,7 +1,7 @@
 "use client";
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer,
-  LineChart, Line, ReferenceLine, Legend,
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  LineChart, Line, ReferenceLine, CartesianGrid,
 } from "recharts";
 import SectionLabel from "@/components/ui/SectionLabel";
 import { formatDate, pct } from "@/lib/formatters";
@@ -19,6 +19,15 @@ function toNum(v: unknown): number | null {
   return isNaN(n) ? null : n;
 }
 
+const TICK = { fontSize: 10, fill: "#94A3B8" };
+const TIP_STYLE = {
+  fontSize: 11,
+  borderRadius: "8px",
+  border: "1px solid #1E3A5F",
+  background: "#0A1525",
+  color: "#CBD5E1",
+};
+
 export default function DividendSection({ financials, declaration, faceValue }: Props) {
   const face = faceValue ?? 10;
 
@@ -29,61 +38,51 @@ export default function DividendSection({ financials, declaration, faceValue }: 
     const eps = toNum(rec.eps);
     const dps = cashPct * face / 100;
     const payout = eps && eps > 0 ? (dps / eps) * 100 : null;
-    return {
-      year: String(rec.year),
-      cash: cashPct,
-      stock: stockPct,
-      payout,
-    };
+    return { year: String(rec.year), cash: cashPct, stock: stockPct, payout };
   });
 
-  // Dividend streak
   const reversed = [...data].reverse();
   let streak = 0;
-  for (const d of reversed) {
-    if (d.cash > 0) streak++;
-    else break;
-  }
-
-  const tickStyle = { fontSize: 10, fill: "var(--text-muted)" };
-  const tooltipStyle = { fontSize: 11, borderRadius: "6px", border: "1px solid var(--border)" };
+  for (const d of reversed) { if (d.cash > 0) streak++; else break; }
 
   return (
-    <div className="mb-4">
+    <div className="mb-5">
       <SectionLabel>Dividends</SectionLabel>
 
-      {/* Declaration info */}
-      {/* Declaration info card */}
       {(declaration || streak > 0) && (
         <div
-          className="rounded-[var(--radius)] border border-[var(--border)] bg-white p-3 mt-2 mb-3"
-          style={{ borderLeft: "4px solid var(--positive)" }}
+          className="rounded-xl p-4 mt-3 mb-4"
+          style={{
+            background: "linear-gradient(135deg, rgba(52,211,153,0.08) 0%, rgba(10,21,37,0.9) 100%)",
+            border: "1px solid rgba(52,211,153,0.25)",
+          }}
         >
-          <div className="flex flex-wrap items-center gap-4 text-xs">
+          <div className="flex flex-wrap items-center gap-5">
             {streak > 0 && (
-              <div className="flex items-center gap-1.5">
-                <span className="text-base">&#x1F525;</span>
-                <span className="font-bold text-[var(--positive)] text-sm">
-                  {streak} Year Streak
-                </span>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🔥</span>
+                <div>
+                  <p className="text-xl font-black tabular-nums leading-none" style={{ color: "#34D399" }}>{streak}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#94A3B8" }}>Year Streak</p>
+                </div>
               </div>
             )}
             {declaration && (
               <>
-                <div>
-                  <span className="text-[var(--text-muted)]">Declaration: </span>
-                  <span className="font-medium">{formatDate(declaration.declaration_date)}</span>
-                </div>
-                <div>
-                  <span className="text-[var(--text-muted)]">Record Date: </span>
-                  <span className="font-medium">{formatDate(declaration.record_date)}</span>
-                </div>
                 {declaration.dividend_pct != null && (
                   <div>
-                    <span className="text-[var(--text-muted)]">Dividend: </span>
-                    <span className="font-bold text-[var(--positive)]">{pct(declaration.dividend_pct, 0)}</span>
+                    <p className="text-xl font-black" style={{ color: "#34D399" }}>{pct(declaration.dividend_pct, 0)}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#94A3B8" }}>Declared</p>
                   </div>
                 )}
+                <div>
+                  <p className="text-sm font-semibold" style={{ color: "#E2E8F0" }}>{formatDate(declaration.declaration_date)}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#94A3B8" }}>Declaration Date</p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold" style={{ color: "#E2E8F0" }}>{formatDate(declaration.record_date)}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#94A3B8" }}>Record Date</p>
+                </div>
               </>
             )}
           </div>
@@ -91,33 +90,54 @@ export default function DividendSection({ financials, declaration, faceValue }: 
       )}
 
       <div className="grid sm:grid-cols-2 gap-4">
-        {/* Dividend history */}
-        <div className="rounded-[var(--radius)] border border-[var(--border)] bg-white p-3">
-          <p className="text-xs font-semibold text-[var(--text-muted)] mb-2">Dividend History (%)</p>
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="year" tick={tickStyle} />
-              <YAxis tick={tickStyle} width={35} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => `${v}%`} />
-              <Legend wrapperStyle={{ fontSize: 10 }} />
-              <Bar dataKey="cash" name="Cash Div %" fill="var(--positive)" stackId="a" />
-              <Bar dataKey="stock" name="Bonus Div %" fill="var(--accent)" stackId="a" />
+        <div
+          className="rounded-xl p-4"
+          style={{ background: "linear-gradient(135deg, #0D1A2E 0%, #0A1525 100%)", border: "1px solid #1E3A5F" }}
+        >
+          <p className="text-xs font-bold mb-3" style={{ color: "#94A3B8" }}>Dividend History (%)</p>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={data} margin={{ top: 8, right: 8, left: -8, bottom: 0 }} barCategoryGap="30%">
+              <CartesianGrid vertical={false} stroke="#1E3A5F" strokeOpacity={0.5} />
+              <XAxis dataKey="year" tick={TICK} axisLine={false} tickLine={false} />
+              <YAxis tick={TICK} axisLine={false} tickLine={false} width={36} />
+              <Tooltip contentStyle={TIP_STYLE} cursor={{ fill: "rgba(255,255,255,0.04)" }} formatter={(v: number) => `${v}%`} />
+              <Bar dataKey="cash" name="Cash Div" fill="#34D399" stackId="a" radius={[0, 0, 0, 0]} />
+              <Bar dataKey="stock" name="Bonus Div" fill="#818CF8" stackId="a" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
+          <div className="flex gap-4 mt-3">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-sm" style={{ background: "#34D399" }} />
+              <span className="text-[10px] font-medium" style={{ color: "#94A3B8" }}>Cash Dividend</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-sm" style={{ background: "#818CF8" }} />
+              <span className="text-[10px] font-medium" style={{ color: "#94A3B8" }}>Bonus Shares</span>
+            </div>
+          </div>
         </div>
 
-        {/* Payout ratio */}
-        <div className="rounded-[var(--radius)] border border-[var(--border)] bg-white p-3">
-          <p className="text-xs font-semibold text-[var(--text-muted)] mb-2">Payout Ratio (%)</p>
-          <ResponsiveContainer width="100%" height={240}>
-            <LineChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="year" tick={tickStyle} />
-              <YAxis tick={tickStyle} width={35} tickFormatter={(v: number) => `${v}%`} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => `${v.toFixed(1)}%`} />
-              <ReferenceLine y={90} stroke="var(--negative)" strokeDasharray="4 2" label={{ value: "90%", fontSize: 9 }} />
-              <Line type="monotone" dataKey="payout" name="Payout %" stroke="var(--primary)" strokeWidth={2} dot />
+        <div
+          className="rounded-xl p-4"
+          style={{ background: "linear-gradient(135deg, #0D1A2E 0%, #0A1525 100%)", border: "1px solid #1E3A5F" }}
+        >
+          <p className="text-xs font-bold mb-3" style={{ color: "#94A3B8" }}>Payout Ratio (%)</p>
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={data} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
+              <CartesianGrid vertical={false} stroke="#1E3A5F" strokeOpacity={0.5} />
+              <XAxis dataKey="year" tick={TICK} axisLine={false} tickLine={false} />
+              <YAxis tick={TICK} axisLine={false} tickLine={false} width={36} tickFormatter={(v: number) => `${v}%`} />
+              <Tooltip contentStyle={TIP_STYLE} cursor={{ stroke: "#1E3A5F" }} formatter={(v: number) => `${v.toFixed(1)}%`} />
+              <ReferenceLine y={90} stroke="#F87171" strokeDasharray="4 2" strokeOpacity={0.6} label={{ value: "90%", fontSize: 9, fill: "#F87171" }} />
+              <Line
+                type="monotone"
+                dataKey="payout"
+                name="Payout"
+                stroke="#FB923C"
+                strokeWidth={2.5}
+                dot={{ fill: "#FB923C", r: 4, strokeWidth: 0 }}
+                activeDot={{ r: 6, fill: "#FB923C" }}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>

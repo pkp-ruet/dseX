@@ -25,75 +25,73 @@ export default function HeroSection({ detail }: Props) {
   const isPositive = chg != null && chg > 0;
   const isNegative = chg != null && chg < 0;
 
-  const changeBadgeColor = chg == null ? "var(--text-muted)" : isPositive ? "var(--positive)" : isNegative ? "var(--negative)" : "var(--text-muted)";
-  const changeBadgeBg    = chg == null ? "var(--border)"    : isPositive ? "#10B98122"         : isNegative ? "#EF444422"         : "var(--border)";
-  const changeBadgeBorder= chg == null ? "var(--border)"    : isPositive ? "#10B98155"         : isNegative ? "#EF444455"         : "var(--border)";
+  const changeColor = chg == null ? "#94A3B8" : isPositive ? "#34D399" : isNegative ? "#F87171" : "#94A3B8";
+  const changeBg    = chg == null ? "rgba(148,163,184,0.1)" : isPositive ? "rgba(52,211,153,0.12)" : isNegative ? "rgba(248,113,113,0.12)" : "rgba(148,163,184,0.1)";
+  const changeBorder= chg == null ? "rgba(148,163,184,0.2)" : isPositive ? "rgba(52,211,153,0.3)" : isNegative ? "rgba(248,113,113,0.3)" : "rgba(148,163,184,0.2)";
 
   return (
     <>
       {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="mb-3">
+      <nav aria-label="Breadcrumb" className="mb-4">
         <ol className="flex items-center gap-1 text-xs text-[var(--text-muted)]">
-          <li><Link href="/" className="text-[var(--primary)] hover:underline font-medium">Home</Link></li>
-          <li aria-hidden="true" className="mx-1">&rsaquo;</li>
-          <li><Link href="/dsestockranking" className="text-[var(--primary)] hover:underline font-medium">Rankings</Link></li>
-          <li aria-hidden="true" className="mx-1">&rsaquo;</li>
-          <li aria-current="page" className="font-semibold text-[var(--text)]">{code}</li>
+          <li><Link href="/" className="hover:text-[var(--primary)] transition-colors">Home</Link></li>
+          <li aria-hidden="true" className="opacity-40">/</li>
+          <li><Link href="/dsestockranking" className="hover:text-[var(--primary)] transition-colors">Rankings</Link></li>
+          <li aria-hidden="true" className="opacity-40">/</li>
+          <li aria-current="page" className="text-[var(--primary)] font-semibold">{code}</li>
         </ol>
       </nav>
 
       {/* Hero card */}
       <div
-        className="relative rounded-[var(--radius)] border border-[var(--border)] overflow-hidden mb-4"
-        style={{ background: "var(--surface)" }}
+        className="relative rounded-2xl overflow-hidden mb-5"
+        style={{
+          background: `linear-gradient(135deg, #0A1628 0%, #0D1F3C 40%, ${tierColor}18 100%)`,
+          border: `1px solid ${tierColor}30`,
+          boxShadow: `0 0 40px ${tierColor}15, 0 4px 24px rgba(0,0,0,0.4)`,
+        }}
       >
-        {/* 4px gradient top bar */}
+        {/* Top glow bar */}
         <div
           style={{
-            height: "4px",
-            background: `linear-gradient(90deg, ${tierColor} 0%, ${tierColor}99 60%, ${tierColor}33 100%)`,
+            height: "2px",
+            background: `linear-gradient(90deg, transparent 0%, ${tierColor} 30%, ${tierColor}cc 70%, transparent 100%)`,
           }}
         />
 
-        {/* Card body with left border accent + gradient wash */}
-        <div
-          className="p-4 sm:p-5"
-          style={{
-            borderLeft: `4px solid ${tierColor}`,
-            background: `linear-gradient(135deg, ${tierColor}0d 0%, transparent 55%)`,
-          }}
-        >
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5">
 
             {/* Left: identity */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <h1
-                  className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-none"
-                  style={{ color: "var(--text)" }}
-                >
-                  {code}
-                </h1>
-                <span className="hero-star mt-0.5"><StarButton code={code} size="lg" /></span>
+              <div className="flex items-start gap-3 mb-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h1
+                      className="text-3xl sm:text-4xl font-black tracking-tight leading-none"
+                      style={{ color: "#F1F5F9" }}
+                    >
+                      {code}
+                    </h1>
+                    <span className="mt-0.5"><StarButton code={code} size="lg" /></span>
+                  </div>
+
+                  {profile.company_name && (
+                    <p className="text-sm sm:text-base font-medium leading-snug mt-1.5 line-clamp-2" style={{ color: "#94A3B8" }}>
+                      {profile.company_name}
+                    </p>
+                  )}
+                </div>
               </div>
 
-              {profile.company_name && (
-                <p
-                  className="text-base sm:text-lg font-semibold leading-snug mb-3 line-clamp-2"
-                  style={{ color: "var(--text)" }}
-                >
-                  {profile.company_name}
-                </p>
-              )}
-
-              <div className="flex flex-wrap gap-1.5 mb-3">
+              <div className="flex flex-wrap gap-2 mb-4">
                 {profile.sector && (
                   <span
-                    className="text-xs font-semibold px-2.5 py-1 rounded-full leading-none"
+                    className="text-xs font-semibold px-3 py-1 rounded-full"
                     style={{
-                      color: "var(--primary)",
-                      background: "rgba(79,70,229,0.10)",
-                      border: "1px solid rgba(79,70,229,0.25)",
+                      color: "#38BDF8",
+                      background: "rgba(56,189,248,0.1)",
+                      border: "1px solid rgba(56,189,248,0.25)",
                     }}
                   >
                     {profile.sector}
@@ -101,11 +99,11 @@ export default function HeroSection({ detail }: Props) {
                 )}
                 {profile.market_category && (
                   <span
-                    className="text-xs font-semibold px-2.5 py-1 rounded-full leading-none"
+                    className="text-xs font-semibold px-3 py-1 rounded-full"
                     style={{
-                      color: "var(--accent)",
-                      background: "rgba(236,72,153,0.10)",
-                      border: "1px solid rgba(236,72,153,0.25)",
+                      color: "#A78BFA",
+                      background: "rgba(167,139,250,0.1)",
+                      border: "1px solid rgba(167,139,250,0.25)",
                     }}
                   >
                     Cat {profile.market_category}
@@ -113,68 +111,76 @@ export default function HeroSection({ detail }: Props) {
                 )}
               </div>
 
-              {(latest_price.volume != null || (rank && topPct)) && (
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                  {latest_price.volume != null && (
-                    <span className="flex items-center gap-1 text-sm font-medium" style={{ color: "var(--text-muted)" }}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="shrink-0">
-                        <rect x="3" y="12" width="4" height="9" rx="1"/>
-                        <rect x="10" y="7" width="4" height="14" rx="1"/>
-                        <rect x="17" y="3" width="4" height="18" rx="1"/>
-                      </svg>
-                      Vol {abbrev(latest_price.volume)}
-                    </span>
-                  )}
-                  {rank && topPct && (
-                    <span className="flex items-center gap-1 text-sm font-semibold" style={{ color: tierColor }}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="shrink-0">
-                        <circle cx="12" cy="8" r="6"/>
-                        <path d="M8 14l-4 7h16l-4-7"/>
-                      </svg>
+              <div className="flex flex-wrap items-center gap-4">
+                {latest_price.volume != null && (
+                  <div className="flex items-center gap-1.5">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2.5">
+                      <rect x="3" y="12" width="4" height="9" rx="1"/>
+                      <rect x="10" y="7" width="4" height="14" rx="1"/>
+                      <rect x="17" y="3" width="4" height="18" rx="1"/>
+                    </svg>
+                    <span className="text-xs font-medium text-[var(--text-muted)]">Vol {abbrev(latest_price.volume)}</span>
+                  </div>
+                )}
+                {rank && topPct && (
+                  <div className="flex items-center gap-1.5">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={tierColor} strokeWidth="2.5">
+                      <circle cx="12" cy="8" r="6"/><path d="M8 14l-4 7h16l-4-7"/>
+                    </svg>
+                    <span className="text-xs font-bold" style={{ color: tierColor }}>
                       #{rank} · Top {topPct}%
                     </span>
-                  )}
-                </div>
-              )}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Right: price + score */}
-            <div className="flex flex-row sm:flex-col items-end justify-between sm:justify-start gap-3 shrink-0">
+            <div className="flex flex-row sm:flex-col items-end justify-between sm:justify-start sm:items-end gap-4 shrink-0">
+
+              {/* Price block */}
               <div className="text-right">
+                <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "#94A3B8" }}>
+                  Last Price
+                </p>
                 <p
-                  className="text-4xl sm:text-5xl font-extrabold tabular-nums leading-none tracking-tight"
-                  style={{ color: "var(--text)" }}
+                  className="text-4xl sm:text-5xl font-black tabular-nums leading-none tracking-tight"
+                  style={{ color: "#F1F5F9" }}
                 >
                   {taka(ltp)}
                 </p>
                 {chg != null && (
                   <span
-                    className="inline-flex items-center gap-1 mt-2 text-sm font-bold px-3 py-1 rounded-full"
-                    style={{
-                      color: changeBadgeColor,
-                      background: changeBadgeBg,
-                      border: `1px solid ${changeBadgeBorder}`,
-                    }}
+                    className="inline-flex items-center gap-1 mt-2 text-sm font-bold px-3 py-1.5 rounded-full"
+                    style={{ color: changeColor, background: changeBg, border: `1px solid ${changeBorder}` }}
                   >
                     {isPositive ? "▲" : isNegative ? "▼" : "—"} {signed(chg)}%
                   </span>
                 )}
               </div>
 
+              {/* DSEF Score box */}
               <div
-                className="flex flex-col items-center px-3 py-2 rounded-[var(--radius)]"
-                style={{ background: `${tierColor}12`, border: `1.5px solid ${tierColor}40` }}
+                className="flex flex-col items-center px-4 py-3 rounded-xl"
+                style={{
+                  background: `${tierColor}15`,
+                  border: `1.5px solid ${tierColor}40`,
+                  boxShadow: `0 0 20px ${tierColor}20`,
+                  minWidth: "80px",
+                }}
               >
-                <span className="text-[9px] font-bold uppercase tracking-widest mb-0.5" style={{ color: tierColor }}>DSEF Score</span>
-                <span className="text-3xl font-extrabold tabular-nums leading-none" style={{ color: tierColor }}>
+                <span className="text-[9px] font-bold uppercase tracking-widest mb-0.5" style={{ color: `${tierColor}bb` }}>
+                  DSEF
+                </span>
+                <span className="text-4xl font-black tabular-nums leading-none" style={{ color: tierColor }}>
                   {score != null ? score.toFixed(1) : "--"}
                 </span>
-                <span className="text-[10px] font-semibold mt-1 leading-none" style={{ color: tierColor }}>
+                <span className="text-[10px] font-semibold mt-1.5 text-center leading-tight" style={{ color: `${tierColor}cc` }}>
                   {TIER_LABELS[tier]}
                 </span>
               </div>
-            </div>
 
+            </div>
           </div>
         </div>
       </div>
