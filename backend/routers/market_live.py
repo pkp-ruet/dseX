@@ -28,7 +28,40 @@ def _get_bd():
             _bd = BDShare()
         except Exception as e:
             logger.error("bdshare init failed: %s", e)
+            return None  # don't cache failure — retry on next request
     return _bd
+
+
+def _scrape_live_prices() -> list[dict]:
+    """Tier 2: direct DSE HTML scrape via existing StockPriceScraper (no DB write)."""
+    try:
+        from scrapers.stock_price import StockPriceScraper
+        return StockPriceScraper().scrape()
+    except Exception as e:
+        logger.warning("Tier 2 DSE scrape failed: %s", e)
+        return []
+
+
+def _prices_from_raw(raw: list[dict], company_names: dict) -> list[dict]:
+    """Convert StockPriceScraper dicts to LivePriceItem shape."""
+    return [
+        {
+            "code": p["trading_code"],
+            "company_name": company_names.get(p["trading_code"]),
+            "ltp": p.get("ltp"),
+            "high": p.get("high"),
+            "low": p.get("low"),
+            "close": p.get("close_price"),
+            "ycp": p.get("ycp"),
+            "change": p.get("change"),
+            "change_pct": p.get("change_pct"),
+            "volume": p.get("volume"),
+            "value_mn": p.get("value_mn"),
+            "trade_count": p.get("trade_count"),
+        }
+        for p in raw
+        if p.get("trading_code")
+    ]
 
 
 def _safe_float(val) -> float | None:
@@ -283,92 +316,119 @@ def get_market_live():
         )
 
     bd = _get_bd()
-    if bd is None:
-        return JSONResponse(
-            content={"is_open": True, "error": "data_source_unavailable"},
-            status_code=503,
-            headers=headers,
-        )
-
     as_of = datetime.now(BST).isoformat(timespec="seconds")
-    prices_df = index_df = movers_df = sectors_df = news_df = None
+    prices: list[dict] = []
+    index_data = None
+    sectors_df = news_df = movers_df = None
+    data_source = "live"
 
-    try:
-        prices_df = bd.get_current_trades()
-    except Exception as e:
-        logger.warning("bdshare get_current_trades failed: %s", e)
+    # ── Tier 1: bdshare ────────────────────────────────────────────────────
+    if bd is not None:
+        prices_df = None
+        try:
+            prices_df = bd.get_current_trades()
+        except Exception as e:
+            logger.warning("bdshare get_current_trades failed: %s", e)
 
-    try:
-        index_df = bd.get_dsex_index()
-    except Exception as e:
-        logger.warning("bdshare get_dsex_index failed: %s", e)
+        try:
+            index_data = _parse_index(bd.get_dsex_index())
+        except Exception as e:
+            logger.warning("bdshare get_dsex_index failed: %s", e)
 
-    try:
-        movers_df = bd.get_top_movers(limit=20)
-    except Exception as e:
-        logger.warning("bdshare get_top_movers failed: %s", e)
+        try:
+            movers_df = bd.get_top_movers(limit=20)
+        except Exception as e:
+            logger.warning("bdshare get_top_movers failed: %s", e)
 
-    try:
-        sectors_df = bd.get_sector_performance()
-    except Exception as e:
-        logger.warning("bdshare get_sector_performance failed: %s", e)
+        try:
+            sectors_df = bd.get_sector_performance()
+        except Exception as e:
+            logger.warning("bdshare get_sector_performance failed: %s", e)
 
-    try:
-        news_df = bd.get_news(news_type="psn")
-    except Exception as e:
-        logger.warning("bdshare get_news failed: %s", e)
+        try:
+            news_df = bd.get_news(news_type="psn")
+        except Exception as e:
+            logger.warning("bdshare get_news failed: %s", e)
 
-    prices = _parse_prices(prices_df)
-    # Join company names from MongoDB
-    try:
-        company_names = {c["trading_code"]: c.get("company_name") for c in load_companies()}
-        for p in prices:
-            p["company_name"] = company_names.get(p["code"])
-    except Exception:
-        pass
-    index_data = _parse_index(index_df)
+        prices = _parse_prices(prices_df)
+        try:
+            company_names = {c["trading_code"]: c.get("company_name") for c in load_companies()}
+            for p in prices:
+                p["company_name"] = company_names.get(p["code"])
+        except Exception:
+            pass
 
-    # Use movers_df if available, else compute from prices
-    if movers_df is not None and not movers_df.empty:
-        gainers, losers = _parse_movers(movers_df, top_n=10)
-    else:
-        gainers, losers = _parse_movers(prices_df, top_n=10)
+    # ── Tier 2: direct DSE scrape (bdshare unavailable or returned nothing) ─
+    if not prices:
+        logger.info("Tier 1 empty — trying Tier 2 direct DSE scrape")
+        try:
+            company_names = {c["trading_code"]: c.get("company_name") for c in load_companies()}
+        except Exception:
+            company_names = {}
+        raw = _scrape_live_prices()
+        if raw:
+            prices = _prices_from_raw(raw, company_names)
+            logger.info("Tier 2 DSE scrape: %d prices", len(prices))
 
-    # Breadth from prices
+    # ── Tier 3: MongoDB last-known (both live sources failed) ───────────────
+    if not prices:
+        logger.warning("Tiers 1+2 failed — falling back to MongoDB cache")
+        fallback = _build_closed_response(session)
+        fallback["is_open"] = True
+        fallback["as_of"] = as_of
+        fallback["data_source"] = "cache"
+        return JSONResponse(content=fallback, headers=headers)
+
+    # ── Index fallback to MongoDB if bdshare index failed ──────────────────
+    if index_data is None:
+        try:
+            idx = load_market_index()
+            index_data = {
+                "dsex": idx.get("dsex"), "dsex_change": idx.get("dsex_change"),
+                "dsex_change_pct": idx.get("dsex_change_pct"),
+                "ds30": idx.get("ds30"), "ds30_change": idx.get("ds30_change"),
+                "dses": idx.get("dses"), "dses_change": idx.get("dses_change"),
+            }
+        except Exception:
+            pass
+
+    # ── Compute derived fields ──────────────────────────────────────────────
+    gainers, losers = _parse_movers(movers_df, top_n=10) if movers_df is not None else ([], [])
+    if not gainers and not losers:
+        valid = [p for p in prices if p.get("change_pct") is not None]
+        gainers = sorted(valid, key=lambda x: x["change_pct"] or 0, reverse=True)[:10]
+        losers = sorted(valid, key=lambda x: x["change_pct"] or 0)[:10]
+
     advances = sum(1 for p in prices if (p.get("change_pct") or 0) > 0)
     declines = sum(1 for p in prices if (p.get("change_pct") or 0) < 0)
-    unchanged = len(prices) - advances - declines
 
-    # Volume leaders
     volume_leaders = sorted(
         [p for p in prices if p.get("volume") is not None],
-        key=lambda x: x["volume"] or 0,
-        reverse=True,
+        key=lambda x: x["volume"] or 0, reverse=True,
     )[:10]
 
-    # Whats hot: volume × |change_pct| momentum score
     whats_hot = sorted(
         [p for p in prices if p.get("volume") and p.get("change_pct") and p["change_pct"] > 0],
-        key=lambda x: (x["volume"] or 0) * abs(x["change_pct"] or 0),
-        reverse=True,
+        key=lambda x: (x["volume"] or 0) * abs(x["change_pct"] or 0), reverse=True,
     )[:8]
 
     return JSONResponse(
         content={
             "is_open": True,
+            "data_source": data_source,
             "as_of": as_of,
             "closes_in_seconds": session["closes_in_seconds"],
             "index": index_data,
             "prices": prices,
-            "top_gainers": gainers[:10],
-            "top_losers": losers[:10],
+            "top_gainers": gainers,
+            "top_losers": losers,
             "volume_leaders": volume_leaders,
             "whats_hot": whats_hot,
             "sector_performance": _parse_sectors(sectors_df),
             "breadth": {
                 "advances": advances,
                 "declines": declines,
-                "unchanged": unchanged,
+                "unchanged": len(prices) - advances - declines,
                 "total": len(prices),
             },
             "psn_news": _parse_news(news_df),

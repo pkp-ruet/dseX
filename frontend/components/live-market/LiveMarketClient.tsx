@@ -43,6 +43,13 @@ export default function LiveMarketClient() {
         <PSNTicker news={data.psn_news} />
       )}
 
+      {/* Staleness notice — market open but live feed unavailable */}
+      {isOpen && data?.data_source === "cache" && (
+        <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2 mb-4">
+          ⚠ Live feed unavailable — showing last cached data
+        </div>
+      )}
+
       {/* As-of date strip (when market closed) */}
       {!isOpen && data?.as_of && (
         <div className="text-xs text-[var(--text-muted)] mb-4 px-1">

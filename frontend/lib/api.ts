@@ -303,6 +303,7 @@ export interface LiveNewsItem {
 
 export interface MarketLiveData {
   is_open: boolean;
+  data_source?: "live" | "cache";
   as_of?: string;
   closes_in_seconds?: number | null;
   opens_in_seconds?: number | null;
