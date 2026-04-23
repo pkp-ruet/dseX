@@ -602,7 +602,6 @@ body::before {
 .mib-inner {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 12px 24px;
   padding: 12px 20px 14px;
 }
@@ -612,7 +611,6 @@ body::before {
   display: flex;
   align-items: stretch;
   gap: 0;
-  flex-wrap: wrap;
 }
 
 .mib-vsep {
@@ -670,17 +668,16 @@ body::before {
 /* ---- Right side ---- */
 .mib-right {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
   margin-left: auto;
 }
 
 .mib-chips {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
 }
 
 .mib-chip {
@@ -777,23 +774,37 @@ body::before {
   letter-spacing: 0.06em;
 }
 
-.mib-date-badge {
+.mib-cal-icon {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 5px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: #7DD3FC;
-  letter-spacing: 0.04em;
-  align-self: flex-end;
+  border-radius: 7px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.15);
+  min-width: 38px;
+  flex-shrink: 0;
 }
 
-.mib-date-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #38BDF8;
-  flex-shrink: 0;
+.mib-cal-month {
+  background: #6366F1;
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.10em;
+  padding: 3px 8px;
+  width: 100%;
+  text-align: center;
+}
+
+.mib-cal-day {
+  background: #1E293B;
+  color: #E0F2FE;
+  font-size: 1.1rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  padding: 3px 8px 4px;
+  text-align: center;
+  width: 100%;
 }
 
 @media (max-width: 720px) {

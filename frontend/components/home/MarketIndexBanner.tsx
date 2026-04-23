@@ -1,4 +1,3 @@
-import { formatDate } from "@/lib/formatters";
 import type { MarketIndexData } from "@/lib/api";
 
 /** Convert million BDT → crore string  e.g. 7934.264 mn → "793 Cr" */
@@ -77,7 +76,7 @@ function StatChip({ label, value, icon, accent, changePct }: StatChipProps) {
         <span className="mib-chip-value">{value}</span>
         {hasChange && (
           <span className="mib-chip-change" style={{ color: chgColor }}>
-            {arrow} {Math.abs(changePct!).toFixed(1)}% vs prev
+            {arrow} {Math.abs(changePct!).toFixed(1)}%
           </span>
         )}
       </div>
@@ -112,6 +111,18 @@ function BreadthStrip({ up, down, neutral }: BreadcrumbProps) {
         <span className="mib-breadth-count" style={{ color: "#94A3B8" }}>{neutral ?? 0}</span>
         <span className="mib-breadth-lbl">No Change</span>
       </div>
+    </div>
+  );
+}
+
+function CalIcon({ dateStr }: { dateStr: string }) {
+  const d = new Date(dateStr);
+  const day = d.toLocaleDateString("en-GB", { day: "2-digit" });
+  const month = d.toLocaleDateString("en-GB", { month: "short" }).toUpperCase();
+  return (
+    <div className="mib-cal-icon">
+      <div className="mib-cal-month">{month}</div>
+      <div className="mib-cal-day">{day}</div>
     </div>
   );
 }
@@ -182,12 +193,7 @@ export default function MarketIndexBanner({ data }: Props) {
               changePct={data.volume_change_pct}
             />
           </div>
-          {data.date && (
-            <div className="mib-date-badge">
-              <span className="mib-date-dot" />
-              {formatDate(data.date)}
-            </div>
-          )}
+          {data.date && <CalIcon dateStr={data.date} />}
         </div>
       </div>
     </div>
