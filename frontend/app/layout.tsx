@@ -13,9 +13,20 @@ export const metadata: Metadata = {
   description:
     "Free fundamental analysis and DSEF scores for all Dhaka Stock Exchange (DSE) listed companies. Find Strong Buy, Safe Buy, Watch, and Avoid tier rankings.",
   keywords: [
-    "DSE", "Dhaka Stock Exchange", "Bangladesh stock market", "DSEF score",
-    "stock analysis", "DSE stock screener", "Bangladesh stock analysis",
-    "DSE undervalued stocks", "top stocks Bangladesh",
+    "DSE", "Dhaka Stock Exchange", "DSEX", "Bangladesh stock market",
+    "share market Bangladesh", "BD stock market", "DSE share price",
+    "DSE share price list", "DSE today", "DSE live", "DSE news",
+    "DSEF score", "stock analysis", "DSE stock screener",
+    "Bangladesh stock analysis", "DSE undervalued stocks", "top stocks Bangladesh",
+    "how to invest in DSE", "how to invest in stock market Bangladesh",
+    "how to buy shares in Bangladesh", "how to open BO account Bangladesh",
+    "fundamental analysis Bangladesh", "DSE fundamental analysis",
+    "PE ratio Bangladesh", "DSE PE ratio",
+    "best stocks in Bangladesh", "top stocks DSE",
+    "dividend stocks Bangladesh", "high dividend DSE",
+    "blue chip stocks Bangladesh", "undervalued stocks DSE",
+    "DSE top gainers", "DSE top losers today",
+    "Bangladesh stock market guide",
   ],
   openGraph: {
     siteName: "TopStockBD",
@@ -32,7 +43,7 @@ const ORG_JSON_LD = {
   name: "TopStockBD",
   url: "https://www.topstockbd.com",
   description:
-    "Free fundamental analysis and DSEF scores for all Dhaka Stock Exchange (DSE) listed companies. Rankings, market intelligence, and stock signals for Bangladesh investors.",
+    "Free DSE share price live data, Dhaka Stock Exchange (DSEX) rankings, Bangladesh stock market news, DSE share price list, BD stock market signals, and DSE news — fundamental analysis for every DSE-listed company.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

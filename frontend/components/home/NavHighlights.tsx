@@ -11,31 +11,31 @@ const items: NavItem[] = [
   {
     href: "/dsestockranking",
     title: "Score Leaderboard",
-    desc: "Full sortable rankings for all DSE companies",
+    desc: "Best stocks in Bangladesh ranked by fundamentals — top stocks DSE, blue chip stocks, undervalued stocks",
     iconPath: "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z",
   },
   {
     href: "/market-intelligence",
     title: "Market Intelligence",
-    desc: "Market condition signals: falling, rising, sideways",
+    desc: "DSE top gainers and top losers today — live Bangladesh stock market signals and condition",
     iconPath: "M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z",
   },
   {
     href: "/stock-lists",
     title: "Stock Lists",
-    desc: "Curated screener lists for every strategy",
+    desc: "Curated screener lists: dividend stocks Bangladesh, high dividend DSE, undervalued stocks DSE",
     iconPath: "M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z",
   },
   {
     href: "/learn",
     title: "Beginner's Guide",
-    desc: "How to read DSE fundamentals and DSEF scores",
+    desc: "How to invest in DSE, how to buy shares in Bangladesh, how to open BO account — Bangladesh stock market guide",
     iconPath: "M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z",
   },
   {
     href: "/about",
     title: "Behind the Score",
-    desc: "How the 5-pillar DSEF score is calculated",
+    desc: "DSE fundamental analysis explained — P/E ratio Bangladesh, DSEF 5-pillar scoring methodology",
     iconPath: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z",
   },
 ];

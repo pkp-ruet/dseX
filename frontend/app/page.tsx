@@ -12,19 +12,19 @@ import NavHighlights from "@/components/home/NavHighlights";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "TopStockBD | DSE Stock Analysis, Rankings & Share Price",
+  title: "DSE Share Price Today | Dhaka Stock Exchange Rankings — TopStockBD",
   description:
-    "TopStockBD ranks all DSE-listed companies by fundamental strength using the DSEF scoring system. Find the best stocks on Dhaka Stock Exchange.",
+    "Track DSE share price live, view Dhaka Stock Exchange (DSEX) rankings, Bangladesh stock market news, DSE share price list, and BD stock market signals. Free fundamental analysis for every DSE-listed stock.",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "TopStockBD | DSE Stock Analysis, Rankings & Share Price",
-    description: "Fundamental analysis rankings for all DSE listed companies.",
+    title: "DSE Share Price Today | Dhaka Stock Exchange Rankings — TopStockBD",
+    description: "Track DSE share price live, DSEX rankings, Bangladesh stock market news, and BD stock market signals — free.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "TopStockBD | DSE Stock Analysis, Rankings & Share Price",
-    description: "Free fundamental analysis and DSEF scores for all Dhaka Stock Exchange listed companies.",
+    title: "DSE Share Price Today | Dhaka Stock Exchange Rankings — TopStockBD",
+    description: "Track DSE share price live, view Dhaka Stock Exchange (DSEX) rankings, Bangladesh stock market news, and DSE share price list — free.",
   },
 };
 
@@ -33,7 +33,8 @@ const JSON_LD = {
   "@type": "WebSite",
   name: "TopStockBD",
   url: process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com",
-  description: "DSEF-powered fundamental rankings for Dhaka Stock Exchange listed companies",
+  description: "Track DSE share price today, Dhaka Stock Exchange (DSEX) live rankings, Bangladesh stock market news, DSE share price list, BD stock market signals, and DSE news — free fundamental analysis.",
+  keywords: "DSE, DSEX, Dhaka Stock Exchange, DSE share price, DSE share price list, DSE today, DSE live, DSE news, Bangladesh stock market, share market Bangladesh, BD stock market",
   potentialAction: {
     "@type": "SearchAction",
     target: {
@@ -82,6 +83,10 @@ export default async function HomePage() {
 
       {/* Full-width masthead + ticker */}
       <TickerBand items={top20} />
+      <p className="text-[11px] text-[var(--text-muted)] text-center px-2 pb-1 leading-relaxed">
+        Track <strong>DSE share price</strong> live &middot; <strong>Dhaka Stock Exchange</strong> (DSEX) rankings &middot;{" "}
+        <strong>Bangladesh stock market</strong> news &middot; <strong>DSE today</strong> signals
+      </p>
       {marketIndex && <MarketIndexBanner data={marketIndex} />}
 
       {/* Mobile-only search bar — above rankings on narrow screens */}
