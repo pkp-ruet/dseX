@@ -34,26 +34,45 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!detail) return { title: `${code} — TopStockBD` };
 
   const name = detail.profile.company_name ?? code;
-  const score = detail.score_row?.score as number | null;
-  const tier = getTier(score);
-  const tierLabel = TIER_LABELS[tier];
+
+  const ltp = detail.latest_price?.ltp ?? null;
+  const changePct = detail.latest_price?.change_pct ?? null;
+  const latestFin = [...(detail.financials ?? [])].sort((a, b) => (b.year ?? 0) - (a.year ?? 0))[0];
+  const eps = latestFin?.eps ?? null;
+  const divPct = latestFin?.cash_dividend_pct ?? null;
+
+  const ltpFmt = ltp != null ? (ltp >= 100 ? Math.round(ltp).toLocaleString() : ltp.toFixed(1)) : "--";
+  const chgFmt = changePct != null ? `${changePct >= 0 ? "+" : ""}${changePct.toFixed(1)}` : null;
+  const epsFmt = eps != null ? eps.toFixed(1) : null;
+  const divFmt = divPct != null ? Math.round(divPct) : null;
+
+  const descParts = [`৳${ltpFmt}`];
+  if (chgFmt) descParts.push(`${chgFmt}% today`);
+  const lead = descParts.join(" · ");
+  const details: string[] = [];
+  if (epsFmt) details.push(`EPS ৳${epsFmt}`);
+  if (divFmt != null) details.push(`last dividend ${divFmt}%`);
+  const detailStr = details.length ? ` — ${details.join(", ")}` : "";
+  const description = `${lead}. ${name}${detailStr}. Full stock analysis with buy/sell signals & fundamentals. Free on TopStockBD.`;
+
+  const ogDesc = `${name} · ৳${ltpFmt} today${epsFmt ? ` · EPS ৳${epsFmt}` : ""}${divFmt != null ? ` · Dividend ${divFmt}%` : ""}. Free DSE stock analysis on TopStockBD.`;
 
   const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
   return {
-    title: `${code} (${name}) Stock Analysis — DSEF Score | DSE`,
-    description: `${code} (${name}) scores ${score ?? "--"}/100 on DSEF — rated ${tierLabel}. View fundamentals, EPS, dividend yield, and valuation on TopStockBD.`,
+    title: `${code} Stock Price & Analysis — ৳${ltpFmt} | TopStockBD`,
+    description,
     alternates: { canonical: `/stock/${code}` },
     openGraph: {
-      title: `${code} — DSEF Score: ${score ?? "--"}/100 | TopStockBD`,
-      description: `${name} · ${tierLabel} · Score ${score ?? "--"}/100 on TopStockBD`,
+      title: `${code} — ৳${ltpFmt}${chgFmt ? ` (${chgFmt}%)` : ""} | ${name} | TopStockBD`,
+      description: ogDesc,
       type: "website",
       url: `${BASE}/stock/${code}`,
     },
     twitter: {
       card: "summary_large_image",
-      title: `${code} — DSEF Score: ${score ?? "--"}/100 | TopStockBD`,
-      description: `${name} · ${tierLabel} · Score ${score ?? "--"}/100 on TopStockBD`,
+      title: `${code} — ৳${ltpFmt}${chgFmt ? ` (${chgFmt}%)` : ""} | ${name} | TopStockBD`,
+      description: ogDesc,
     },
   };
 }
