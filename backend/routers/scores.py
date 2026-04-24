@@ -48,6 +48,7 @@ def get_scores():
                 ltp=_json_float(row.get("ltp")),
                 change_pct=None,
                 eps_yoy_pct=_json_float(row.get("eps_yoy_pct")),
+                eps=_json_float(row.get("eps")),
                 div_yield_pct=_json_float(row.get("div_yield_pct")),
             )
             if score >= 75:

@@ -11,6 +11,7 @@ class ScoreItem(BaseModel):
     ltp: Optional[float] = None
     change_pct: Optional[float] = None
     eps_yoy_pct: Optional[float] = None
+    eps: Optional[float] = None
     div_yield_pct: Optional[float] = None
 
 

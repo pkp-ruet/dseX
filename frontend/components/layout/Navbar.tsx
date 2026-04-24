@@ -15,6 +15,7 @@ export default function Navbar() {
   const isLearn = pathname === "/learn" || pathname.startsWith("/learn/");
   const isStockLists = pathname === "/stock-lists" || pathname.startsWith("/stock-lists/");
   const isLiveMarket = pathname === "/live-market";
+  const isStocks = pathname === "/stocks";
 
   const [watchCount, setWatchCount] = useState(0);
   const [mounted, setMounted] = useState(false);
@@ -72,16 +73,25 @@ export default function Navbar() {
               )}
             </Link>
             <Link
-              href="/learn"
-              className={`navbar-intel-btn${isLearn ? " navbar-intel-btn-active" : ""}`}
+              href="/dsestockranking"
+              className={`navbar-rank-btn${isRanking ? " navbar-rank-btn-active" : ""}`}
             >
-              Learn
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0011 15.9V18H9v2h6v-2h-2v-2.1a5.01 5.01 0 003.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z" />
+              </svg>
+              Rankings
+            </Link>
+            <Link
+              href="/stocks"
+              className={`navbar-intel-btn${isStocks ? " navbar-intel-btn-active" : ""}`}
+            >
+              All Stocks
             </Link>
             <Link
               href="/stock-lists"
               className={`navbar-intel-btn${isStockLists ? " navbar-intel-btn-active" : ""}`}
             >
-              Stock Lists
+              Top Stocks
             </Link>
             <Link
               href="/live-market"
@@ -90,16 +100,10 @@ export default function Navbar() {
               Live Market
             </Link>
             <Link
-              href="/market-intelligence"
-              className={`navbar-intel-btn${isIntel ? " navbar-intel-btn-active" : ""}`}
+              href="/learn"
+              className={`navbar-intel-btn${isLearn ? " navbar-intel-btn-active" : ""}`}
             >
-              Intelligence
-            </Link>
-            <Link
-              href="/dsestockranking"
-              className={`navbar-rank-btn${isRanking ? " navbar-rank-btn-active" : ""}`}
-            >
-              Leaderboard
+              Blogs
             </Link>
             <Link
               href="/about"
@@ -170,14 +174,14 @@ export default function Navbar() {
             )}
           </Link>
           <Link
-            href="/learn"
-            className={`navbar-drawer-link${isLearn ? " active" : ""}`}
+            href="/stocks"
+            className={`navbar-drawer-link${isStocks ? " active" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" />
+              <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
             </svg>
-            Beginner&apos;s Guide
+            All Stocks
           </Link>
           <Link
             href="/stock-lists"
@@ -187,7 +191,7 @@ export default function Navbar() {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
             </svg>
-            Stock Lists
+            Top Stocks
           </Link>
           <Link
             href="/live-market"
@@ -201,16 +205,6 @@ export default function Navbar() {
             Live Market
           </Link>
           <Link
-            href="/market-intelligence"
-            className={`navbar-drawer-link${isIntel ? " active" : ""}`}
-            onClick={() => setMenuOpen(false)}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z" />
-            </svg>
-            Market Intelligence
-          </Link>
-          <Link
             href="/dsestockranking"
             className={`navbar-drawer-link${isRanking ? " active" : ""}`}
             onClick={() => setMenuOpen(false)}
@@ -218,7 +212,17 @@ export default function Navbar() {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z" />
             </svg>
-            Score Leaderboard
+            Rankings
+          </Link>
+          <Link
+            href="/learn"
+            className={`navbar-drawer-link${isLearn ? " active" : ""}`}
+            onClick={() => setMenuOpen(false)}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" />
+            </svg>
+            Blogs
           </Link>
           <Link
             href="/about"

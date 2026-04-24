@@ -1,20 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { taka, pct } from "@/lib/formatters";
 import type { ScoreItem } from "@/lib/api";
 import { getTier } from "@/lib/constants";
 import StarButton from "@/components/ui/StarButton";
-
-type Tab = "score" | "dividend" | "momentum" | "rising";
-
-const TABS: { key: Tab; label: string; hint: string }[] = [
-  { key: "score",    label: "Top Picks", hint: "Ranked by DSEF score" },
-  { key: "dividend", label: "Dividend",  hint: "Ranked by dividend yield" },
-  { key: "momentum", label: "Momentum",  hint: "Ranked by EPS growth YoY" },
-  { key: "rising",   label: "Rising",    hint: "Ranked by today's price change" },
-];
 
 const SCORE_CLASS: Record<string, string> = {
   strong_buy:    "rr-score-top",
@@ -25,29 +15,11 @@ const SCORE_CLASS: Record<string, string> = {
   avoid:         "rr-score-danger",
 };
 
-function sortedTop(scores: ScoreItem[], tab: Tab): ScoreItem[] {
-  switch (tab) {
-    case "score":
-      return [...scores]
-        .filter(s => s.score != null)
-        .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
-        .slice(0, 20);
-    case "dividend":
-      return [...scores]
-        .filter(s => (s.div_yield_pct ?? 0) > 0)
-        .sort((a, b) => (b.div_yield_pct ?? 0) - (a.div_yield_pct ?? 0))
-        .slice(0, 20);
-    case "momentum":
-      return [...scores]
-        .filter(s => s.eps_yoy_pct != null)
-        .sort((a, b) => (b.eps_yoy_pct ?? 0) - (a.eps_yoy_pct ?? 0))
-        .slice(0, 20);
-    case "rising":
-      return [...scores]
-        .filter(s => s.change_pct != null)
-        .sort((a, b) => (b.change_pct ?? 0) - (a.change_pct ?? 0))
-        .slice(0, 20);
-  }
+function sortedTop(scores: ScoreItem[]): ScoreItem[] {
+  return [...scores]
+    .filter(s => s.score != null)
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+    .slice(0, 20);
 }
 
 function ChgBadge({ v }: { v: number | null | undefined }) {
@@ -70,26 +42,14 @@ interface Props {
 }
 
 export default function TopRankings({ scores }: Props) {
-  const [tab, setTab] = useState<Tab>("score");
-  const rows = sortedTop(scores, tab);
+  const rows = sortedTop(scores);
 
   return (
     <section className="tr-wrap">
       <div className="tr-header">
-        <div className="section-label">Rankings</div>
-        <div className="tr-tabs" role="tablist">
-          {TABS.map(t => (
-            <button
-              key={t.key}
-              role="tab"
-              aria-selected={tab === t.key}
-              onClick={() => setTab(t.key)}
-              title={t.hint}
-              className={`tr-tab${tab === t.key ? " tr-tab--active" : ""}`}
-            >
-              {t.label}
-            </button>
-          ))}
+        <div>
+          <div className="section-label">TopStockBD Ranking</div>
+          <div className="tr-subtitle">Based on Deep Fundamental Analysis</div>
         </div>
       </div>
 
@@ -144,7 +104,7 @@ export default function TopRankings({ scores }: Props) {
 
       <div className="tr-footer">
         <Link href="/dsestockranking" className="tr-see-all">
-          View full leaderboard →
+          View full ranking →
         </Link>
       </div>
     </section>

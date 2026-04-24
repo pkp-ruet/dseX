@@ -12,6 +12,7 @@ export interface ScoreItem {
   ltp: number | null;
   change_pct: number | null;
   eps_yoy_pct: number | null;
+  eps: number | null;
   div_yield_pct: number | null;
 }
 

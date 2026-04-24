@@ -655,6 +655,8 @@ def _algo2_scores() -> pd.DataFrame:
 
         final = p1 * 0.30 + p2 * 0.20 + p3 * 0.20 + p4 * 0.15 + p5 * 0.15
 
+        curr_eps = next((r["eps"] for r in reversed(fin_rows)
+                         if r.get("eps") is not None), None)
         row = {
             "trading_code": code,
             "sector":       sector,
@@ -662,6 +664,7 @@ def _algo2_scores() -> pd.DataFrame:
             "ltp":          ltp,
             "mcap_mn":      mcap_mn,
             "score":        round(final * 10, 1),
+            "eps":          curr_eps,
             "p1_biz":       round(p1, 2),
             "p2_health":    round(p2, 2),
             "p3_moat":      round(p3, 2),
