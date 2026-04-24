@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const ltp = detail.latest_price?.ltp ?? null;
   const changePct = detail.latest_price?.change_pct ?? null;
-  const latestFin = [...(detail.financials ?? [])].sort((a, b) => (b.year ?? 0) - (a.year ?? 0))[0];
+  const latestFin = [...(detail.financials ?? [])].sort((a, b) => (Number(b.year) || 0) - (Number(a.year) || 0))[0];
   const eps = latestFin?.eps ?? null;
   const divPct = latestFin?.cash_dividend_pct ?? null;
 
