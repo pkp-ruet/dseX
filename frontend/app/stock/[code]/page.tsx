@@ -35,11 +35,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const name = detail.profile.company_name ?? code;
 
-  const ltp = detail.latest_price?.ltp ?? null;
-  const changePct = detail.latest_price?.change_pct ?? null;
+  const ltp = detail.latest_price?.ltp != null ? Number(detail.latest_price.ltp) : null;
+  const changePct = detail.latest_price?.change_pct != null ? Number(detail.latest_price.change_pct) : null;
   const latestFin = [...(detail.financials ?? [])].sort((a, b) => (Number(b.year) || 0) - (Number(a.year) || 0))[0];
-  const eps = latestFin?.eps ?? null;
-  const divPct = latestFin?.cash_dividend_pct ?? null;
+  const eps = latestFin?.eps != null ? Number(latestFin.eps) : null;
+  const divPct = latestFin?.cash_dividend_pct != null ? Number(latestFin.cash_dividend_pct) : null;
 
   const ltpFmt = ltp != null ? (ltp >= 100 ? Math.round(ltp).toLocaleString() : ltp.toFixed(1)) : "--";
   const chgFmt = changePct != null ? `${changePct >= 0 ? "+" : ""}${changePct.toFixed(1)}` : null;
