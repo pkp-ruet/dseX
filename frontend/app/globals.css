@@ -3454,9 +3454,6 @@ details.dsex-exp[open] > summary {
 }
 
 .sl-thead {
-  position: sticky;
-  top: 48px;
-  z-index: 10;
   background: var(--surface);
 }
 
@@ -3564,4 +3561,6 @@ details.dsex-exp[open] > summary {
   .sl-th, .sl-td { padding: 7px 6px; }
   .sl-table { font-size: 0.78rem; }
   .sl-ticker-pill { padding: 2px 6px; font-size: 0.68rem; }
+  .sl-sector-select { max-width: 140px; flex-shrink: 1; }
+  .sl-search { min-width: 120px; }
 }
