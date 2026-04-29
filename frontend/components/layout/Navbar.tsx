@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getWatchlist, subscribeWatchlist } from "@/lib/watchlist";
-import ThemeToggle from "@/components/ui/ThemeToggle";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -110,12 +109,23 @@ export default function Navbar() {
             >
               About
             </Link>
-            <ThemeToggle />
           </nav>
 
           {/* Mobile right controls — hidden on desktop via CSS */}
           <div className="navbar-mobile-controls">
-            <ThemeToggle />
+            <Link
+              href="/watchlist"
+              className={`navbar-watch-btn${isWatchlist ? " navbar-watch-btn-active" : ""}`}
+              aria-label="My Watchlist"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
+              <span className="navbar-watch-label">Watchlist</span>
+              {mounted && watchCount > 0 && (
+                <span className="navbar-watch-badge">{watchCount}</span>
+              )}
+            </Link>
             <button
               className="navbar-hamburger"
               aria-label={menuOpen ? "Close menu" : "Open menu"}
@@ -159,19 +169,6 @@ export default function Navbar() {
           </button>
         </div>
         <nav className="navbar-drawer-nav">
-          <Link
-            href="/watchlist"
-            className={`navbar-drawer-link${isWatchlist ? " active" : ""}`}
-            onClick={() => setMenuOpen(false)}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-            </svg>
-            Watchlist
-            {mounted && watchCount > 0 && (
-              <span className="navbar-watch-badge">{watchCount}</span>
-            )}
-          </Link>
           <Link
             href="/market-intelligence"
             className={`navbar-drawer-link${isIntel ? " active" : ""}`}
