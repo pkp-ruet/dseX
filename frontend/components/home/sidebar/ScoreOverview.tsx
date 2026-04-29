@@ -11,8 +11,7 @@ const TIERS = [
   { key: "strong_buy",    label: "Strong Buy",    fillClass: "score-bar-fill-strong"        },
   { key: "good_buy",      label: "Good Buy",      fillClass: "score-bar-fill-good"          },
   { key: "safe_buy",      label: "Safe Buy",      fillClass: "score-bar-fill-safe"          },
-  { key: "cautious_buy",  label: "Cautious Buy",  fillClass: "score-bar-fill-cautious"      },
-  { key: "keep_watching", label: "Keep Watching", fillClass: "score-bar-fill-keep-watching" },
+  { key: "keep_watching", label: "Hold",          fillClass: "score-bar-fill-keep-watching" },
   { key: "avoid",         label: "Avoid",         fillClass: "score-bar-fill-avoid"         },
 ] as const;
 

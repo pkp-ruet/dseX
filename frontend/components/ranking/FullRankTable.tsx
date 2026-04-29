@@ -20,12 +20,11 @@ const TIER_COLOR: Record<TierKey, string> = {
   strong_buy:    "#4ADE80",
   good_buy:      "#34D399",
   safe_buy:      "#60A5FA",
-  cautious_buy:  "#A78BFA",
   keep_watching: "#FBBF24",
   avoid:         "#F87171",
 };
 
-const TIERS_ORDER: TierKey[] = ["strong_buy", "good_buy", "safe_buy", "cautious_buy", "keep_watching", "avoid"];
+const TIERS_ORDER: TierKey[] = ["strong_buy", "good_buy", "safe_buy", "keep_watching", "avoid"];
 
 function chgColor(val: number | null) {
   if (val == null) return "var(--ink-muted)";
