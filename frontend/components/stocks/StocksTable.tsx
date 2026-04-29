@@ -164,6 +164,7 @@ export default function StocksTable({ items }: Props) {
               <SortHeader col="sector"         label="Sector"    active={sortCol} dir={sortDir} onSort={handleSort} className="sl-th-hide-md" />
               <SortHeader col="market_category" label="Cat"      active={sortCol} dir={sortDir} onSort={handleSort} className="sl-th-hide-lg" />
               <SortHeader col="ltp"            label="LTP"       active={sortCol} dir={sortDir} onSort={handleSort} className="sl-th-num" />
+              <SortHeader col="change_pct"     label="Chg%"      active={sortCol} dir={sortDir} onSort={handleSort} className="sl-th-num" />
               <SortHeader col="eps"            label="EPS"       active={sortCol} dir={sortDir} onSort={handleSort} className="sl-th-num sl-th-hide-sm" />
               <SortHeader col="div_yield_pct"  label="Div Yield" active={sortCol} dir={sortDir} onSort={handleSort} className="sl-th-num sl-th-hide-md" />
             </tr>
@@ -210,6 +211,10 @@ export default function StocksTable({ items }: Props) {
 
                   <td className="sl-td sl-td-num">
                     {item.ltp != null ? taka(item.ltp) : "—"}
+                  </td>
+
+                  <td className="sl-td sl-td-num" style={{ color: chgColor(item.change_pct) }}>
+                    {fmtChg(item.change_pct)}
                   </td>
 
                   <td className="sl-td sl-td-num sl-td-hide-sm">
