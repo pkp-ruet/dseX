@@ -427,18 +427,19 @@ body::before {
 }
 @media (max-width: 640px) {
   .fr-th-hide-sm, .fr-td-hide-sm { display: none; }
-  .full-rank-table { table-layout: fixed; width: 100%; }
-  .fr-th, .fr-td { padding: 10px 5px; font-size: 0.82rem; }
-  .fr-th { font-size: 0.62rem; letter-spacing: 0.08em; }
-  .fr-th-rank, .fr-td-rank { width: 26px; padding-left: 6px; padding-right: 3px; font-size: 0.7rem; }
-  .fr-th-code, .fr-td-code { width: auto; overflow: hidden; white-space: normal; }
-  .fr-code-link { font-size: 0.85rem; letter-spacing: 0.02em; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .fr-code-sub { display: block; max-width: 100%; }
+  .full-rank-wrap { overflow-x: hidden; }
+  .full-rank-table { table-layout: fixed; width: 100%; font-size: 0.82rem; }
+  .fr-th { position: static; font-size: 0.62rem; letter-spacing: 0.08em; }
+  .fr-th, .fr-td { padding: 10px 6px; }
+  .fr-th-rank, .fr-td-rank { width: 22px; padding-left: 8px; padding-right: 4px; font-size: 0.7rem; }
+  .fr-th-code, .fr-td-code { width: auto; }
+  .fr-code-link { display: block; font-size: 0.86rem; letter-spacing: 0.02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fr-code-sub { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
   .fr-th-score, .fr-td-score { width: 44px; }
   .fr-score-bar { gap: 0; flex-direction: column; align-items: flex-end; }
-  .fr-score-num { min-width: 0; font-size: 0.85rem; }
+  .fr-score-num { min-width: 0; font-size: 0.86rem; }
   .fr-score-track { display: none; }
-  .fr-th-num, .fr-td-num { width: 58px; padding-right: 5px; font-size: 0.75rem; }
+  .fr-th-num, .fr-td-num { width: 70px; padding-right: 6px; font-size: 0.78rem; }
   .fr-tier-sep { padding: 12px 10px 8px; }
   .fr-tier-sep-label { font-size: 0.78rem; }
 }

@@ -70,7 +70,7 @@ export default function FullRankTable({ items }: Props) {
               <th className="fr-th fr-th-code">Code</th>
               <th className="fr-th fr-th-sector fr-th-hide-sm">Sector</th>
               <th className="fr-th fr-th-score">Score</th>
-              <th className="fr-th fr-th-num">LTP</th>
+              <th className="fr-th fr-th-num fr-th-hide-sm">LTP</th>
               <th className="fr-th fr-th-num">Chg%</th>
               <th className="fr-th fr-th-num fr-th-hide-sm">EPS YoY</th>
               <th className="fr-th fr-th-num fr-th-hide-md">Div Yield</th>
@@ -131,7 +131,7 @@ export default function FullRankTable({ items }: Props) {
                     </span>
                   </td>
 
-                  <td className="fr-td fr-td-num">
+                  <td className="fr-td fr-td-num fr-td-hide-sm">
                     {item.ltp != null ? taka(item.ltp) : "—"}
                   </td>
 
