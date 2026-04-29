@@ -14,7 +14,6 @@ export default function Navbar() {
   const isAbout = pathname === "/about";
   const isLearn = pathname === "/learn" || pathname.startsWith("/learn/");
   const isStockLists = pathname === "/stock-lists" || pathname.startsWith("/stock-lists/");
-  const isLiveMarket = pathname === "/live-market";
   const isStocks = pathname === "/stocks";
 
   const [watchCount, setWatchCount] = useState(0);
@@ -82,22 +81,22 @@ export default function Navbar() {
               Rankings
             </Link>
             <Link
+              href="/market-intelligence"
+              className={`navbar-intel-btn${isIntel ? " navbar-intel-btn-active" : ""}`}
+            >
+              Market Intel
+            </Link>
+            <Link
               href="/stocks"
               className={`navbar-intel-btn${isStocks ? " navbar-intel-btn-active" : ""}`}
             >
-              All Stocks
+              Browse Stocks
             </Link>
             <Link
               href="/stock-lists"
               className={`navbar-intel-btn${isStockLists ? " navbar-intel-btn-active" : ""}`}
             >
-              Top Stocks
-            </Link>
-            <Link
-              href="/live-market"
-              className={`navbar-intel-btn${isLiveMarket ? " navbar-intel-btn-active" : ""}`}
-            >
-              Live Market
+              Screeners
             </Link>
             <Link
               href="/learn"
@@ -174,6 +173,16 @@ export default function Navbar() {
             )}
           </Link>
           <Link
+            href="/market-intelligence"
+            className={`navbar-drawer-link${isIntel ? " active" : ""}`}
+            onClick={() => setMenuOpen(false)}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z" />
+            </svg>
+            Market Intel
+          </Link>
+          <Link
             href="/stocks"
             className={`navbar-drawer-link${isStocks ? " active" : ""}`}
             onClick={() => setMenuOpen(false)}
@@ -181,7 +190,7 @@ export default function Navbar() {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
             </svg>
-            All Stocks
+            Browse Stocks
           </Link>
           <Link
             href="/stock-lists"
@@ -191,18 +200,7 @@ export default function Navbar() {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
             </svg>
-            Top Stocks
-          </Link>
-          <Link
-            href="/live-market"
-            className={`navbar-drawer-link${isLiveMarket ? " active" : ""}`}
-            onClick={() => setMenuOpen(false)}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <circle cx="12" cy="12" r="3" />
-              <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round"/>
-            </svg>
-            Live Market
+            Screeners
           </Link>
           <Link
             href="/dsestockranking"

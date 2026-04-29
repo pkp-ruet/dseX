@@ -17,18 +17,18 @@ type SortCol =
   | "eps"
   | "div_yield_pct";
 
-const TIER_PILL: Record<string, { bg: string; color: string; border: string }> = {
-  strong_buy:    { bg: "rgba(20,83,45,0.10)",    color: "#14532D", border: "1px solid rgba(20,83,45,0.42)"   },
-  good_buy:      { bg: "rgba(34,197,94,0.10)",   color: "#166534", border: "1px solid rgba(34,197,94,0.55)" },
-  safe_buy:      { bg: "rgba(30,64,175,0.09)",   color: "#1E40AF", border: "1px solid rgba(30,64,175,0.38)" },
-  cautious_buy:  { bg: "rgba(91,33,182,0.09)",   color: "#5B21B6", border: "1px solid rgba(91,33,182,0.38)" },
-  keep_watching: { bg: "rgba(146,64,14,0.10)",   color: "#92400E", border: "1px solid rgba(146,64,14,0.42)" },
-  avoid:         { bg: "rgba(153,27,27,0.08)",   color: "#991B1B", border: "1px solid rgba(153,27,27,0.38)" },
+const TIER_COLOR: Record<string, string> = {
+  strong_buy:    "#4ADE80",
+  good_buy:      "#34D399",
+  safe_buy:      "#60A5FA",
+  cautious_buy:  "#A78BFA",
+  keep_watching: "#FBBF24",
+  avoid:         "#F87171",
 };
 
 function chgColor(v: number | null) {
   if (v == null) return "var(--ink-muted)";
-  return v > 0 ? "#059669" : v < 0 ? "#DC2626" : "var(--ink-muted)";
+  return v > 0 ? "#34D399" : v < 0 ? "#F87171" : "var(--ink-muted)";
 }
 function fmtChg(v: number | null) {
   if (v == null) return "—";
@@ -172,7 +172,7 @@ export default function StocksTable({ items }: Props) {
           <tbody>
             {filtered.map((item, idx) => {
               const tier = getTier(item.score);
-              const pill = TIER_PILL[tier];
+              const tierColor = TIER_COLOR[tier];
               return (
                 <tr key={item.trading_code} className="sl-row">
                   <td className="sl-td sl-td-rank">{idx + 1}</td>
@@ -184,11 +184,12 @@ export default function StocksTable({ items }: Props) {
                   <td className="sl-td sl-td-code">
                     <Link
                       href={`/stock/${item.trading_code}`}
-                      className="sl-ticker-pill"
-                      style={{ background: pill.bg, color: pill.color, border: pill.border }}
+                      className="sl-code-link"
+                      style={{ color: tierColor }}
                     >
                       {item.trading_code}
                     </Link>
+                    <span className="sl-code-sub">{item.company_name ?? ""}</span>
                   </td>
 
                   <td className="sl-td sl-td-company sl-td-hide-sm">

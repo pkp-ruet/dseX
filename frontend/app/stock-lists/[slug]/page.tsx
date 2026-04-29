@@ -88,76 +88,54 @@ export default async function StockListPage({ params }: Props) {
         <span className="text-[var(--ink)]">{def.shortName}</span>
       </nav>
 
-      {/* Hero */}
-      <section className="space-y-3">
+      {/* Hero — compact title only */}
+      <section className="space-y-2">
         <div className="flex items-center gap-3">
-          <span className="text-3xl" aria-hidden="true">{def.icon}</span>
-          <span className="text-xs text-[var(--ink-muted)] border border-[var(--border)] rounded-full px-2.5 py-0.5">
+          <span className="text-2xl sm:text-3xl" aria-hidden="true">{def.icon}</span>
+          <span className="text-[0.65rem] sm:text-xs text-[var(--ink-muted)] border border-[var(--border)] rounded-full px-2.5 py-0.5 uppercase tracking-wider">
             Top 20 · {def.metricLabel}
           </span>
         </div>
-        <h1 className="text-2xl font-bold text-[var(--ink)] leading-snug">
+        <h1 className="text-xl sm:text-2xl font-bold text-[var(--ink)] leading-snug">
           {def.displayName}
         </h1>
-        <p className="text-[var(--ink-muted)] leading-relaxed text-sm">
-          {def.description}
-        </p>
       </section>
 
-      {/* Intro paragraph */}
-      <p className="text-sm text-[var(--ink-muted)] leading-relaxed border-l-2 border-[var(--primary)] pl-4">
-        {def.intro}
-      </p>
-
-      <hr className="border-[var(--border)]" />
-
-      {/* Table */}
-      <section>
+      {/* Table — minimal classic */}
+      <section className="sl-wrap">
         {items.length === 0 ? (
           <p className="text-sm text-[var(--ink-muted)] text-center py-8">
             Data unavailable — check back shortly.
           </p>
         ) : (
-          <div className="rounded-xl border border-[var(--border)] overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-[var(--surface)] border-b border-[var(--border)]">
-                  <th className="text-left px-2 py-2 sm:px-3 sm:py-3 text-[var(--ink-muted)] font-medium w-8 sm:w-10">#</th>
-                  <th className="text-left px-2 py-2 sm:px-3 sm:py-3 text-[var(--ink-muted)] font-medium">Code</th>
-                  <th className="text-left px-2 py-2 sm:px-3 sm:py-3 text-[var(--ink-muted)] font-medium">Company</th>
-                  <th className="text-right px-2 py-2 sm:px-3 sm:py-3 text-[var(--ink-muted)] font-medium">LTP (৳)</th>
-                  <th className="text-right px-2 py-2 sm:px-3 sm:py-3 text-[var(--ink-muted)] font-medium font-semibold">
-                    {def.metricLabel}
-                  </th>
+          <div className="sl-table-wrap">
+            <table className="sl-table">
+              <thead className="sl-thead">
+                <tr>
+                  <th className="sl-th sl-th-rank">#</th>
+                  <th className="sl-th">Code</th>
+                  <th className="sl-th sl-th-num">LTP</th>
+                  <th className="sl-th sl-th-num">{def.metricLabel}</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((item, i) => (
-                  <tr
-                    key={item.trading_code}
-                    className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface)] transition-colors"
-                  >
-                    <td className="px-2 py-2 sm:px-3 sm:py-3 text-[var(--ink-muted)] tabular-nums">{i + 1}</td>
-                    <td className="px-2 py-2 sm:px-3 sm:py-3">
+                  <tr key={item.trading_code} className="sl-row">
+                    <td className="sl-td sl-td-rank">{i + 1}</td>
+                    <td className="sl-td sl-td-code">
                       <Link
                         href={`/stock/${item.trading_code}`}
-                        className="font-mono font-semibold text-[var(--primary)] hover:underline"
+                        className="sl-code-link"
+                        style={{ color: "#60A5FA" }}
                       >
                         {item.trading_code}
                       </Link>
+                      <span className="sl-code-sub">{item.company_name ?? ""}</span>
                     </td>
-                    <td className="px-2 py-2 sm:px-3 sm:py-3 text-[var(--ink)] max-w-[90px] sm:max-w-[200px]">
-                      <span className="truncate block" title={item.company_name ?? ""}>
-                        {item.company_name ?? "—"}
-                      </span>
-                      {item.sector && (
-                        <span className="hidden sm:block text-xs text-[var(--ink-muted)]">{item.sector}</span>
-                      )}
+                    <td className="sl-td sl-td-num">
+                      {item.ltp != null ? item.ltp.toFixed(2) : "—"}
                     </td>
-                    <td className="px-2 py-2 sm:px-3 sm:py-3 text-right text-[var(--ink)] tabular-nums">
-                      {item.ltp != null ? item.ltp.toFixed(1) : "—"}
-                    </td>
-                    <td className="px-2 py-2 sm:px-3 sm:py-3 text-right font-semibold text-[var(--primary)] tabular-nums">
+                    <td className="sl-td sl-td-num" style={{ color: "#60A5FA", fontWeight: 600 }}>
                       {formatMetric(item.metric_value, def.metricFormat)}
                     </td>
                   </tr>
@@ -166,6 +144,18 @@ export default async function StockListPage({ params }: Props) {
             </table>
           </div>
         )}
+      </section>
+
+      <hr className="border-[var(--border)]" />
+
+      {/* Description + intro paragraphs (moved to bottom) */}
+      <section className="space-y-5">
+        <p className="text-[var(--ink-muted)] leading-relaxed text-sm">
+          {def.description}
+        </p>
+        <p className="text-sm text-[var(--ink-muted)] leading-relaxed border-l-2 border-[var(--primary)] pl-4">
+          {def.intro}
+        </p>
       </section>
 
       <hr className="border-[var(--border)]" />
