@@ -3270,8 +3270,8 @@ details.dsex-exp[open] > summary {
 }
 
 .tr-table-wrap {
-  background: var(--surface);
-  border: 1px solid var(--rule);
+  background: linear-gradient(180deg, #0D1A2E 0%, #0A1525 100%);
+  border: 1px solid #1E3A5F;
   border-radius: 12px;
   overflow: hidden;
 }
@@ -3279,25 +3279,26 @@ details.dsex-exp[open] > summary {
 .tr-col-header,
 .tr-row {
   display: grid;
-  grid-template-columns: 28px 20px 90px 76px 56px 54px 62px 68px;
+  grid-template-columns: 28px 20px 1fr 82px 62px 62px 68px 72px;
   align-items: center;
-  gap: 0 4px;
-  padding: 0 12px;
+  gap: 0 16px;
+  padding: 0 16px;
+  width: 100%;
 }
 
 .tr-col-header {
-  padding-top: 7px;
-  padding-bottom: 7px;
-  background: var(--rule-dark);
-  border-bottom: 1px solid var(--rule);
+  padding-top: 9px;
+  padding-bottom: 9px;
+  background: rgba(0, 0, 0, 0.35);
+  border-bottom: 1px solid #1E3A5F;
 }
 
 .tr-col-header span {
-  font-size: 0.64rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: 0.67rem;
+  font-weight: 800;
+  letter-spacing: 0.10em;
   text-transform: uppercase;
-  color: var(--ink-muted);
+  color: #64748B;
 }
 
 .tr-ch-rank { text-align: right; }
@@ -3306,26 +3307,27 @@ details.dsex-exp[open] > summary {
 .tr-row {
   text-decoration: none !important;
   color: var(--ink) !important;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--cell-rule);
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(30, 58, 95, 0.6);
   transition: background 0.12s;
 }
 
 .tr-row:last-child { border-bottom: none; }
 
 .tr-row:nth-child(even) {
-  background: rgba(255, 255, 255, 0.014);
+  background: rgba(255, 255, 255, 0.018);
 }
 
 .tr-row:hover,
 .tr-row:nth-child(even):hover {
-  background: rgba(14, 165, 233, 0.07);
+  background: rgba(14, 165, 233, 0.09);
 }
 
 .tr-rank {
-  font-size: 0.70rem;
-  color: var(--ink-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #475569;
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
@@ -3338,49 +3340,40 @@ details.dsex-exp[open] > summary {
 
 .tr-ticker-pill {
   display: inline-block;
-  font-size: 0.69rem;
-  font-weight: 700;
-  letter-spacing: 0.07em;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 2px 7px;
-  border-radius: 4px;
   white-space: nowrap;
 }
 
-.tr-ticker-pill--strong_buy {
-  color: var(--np-strong);
-  background: rgba(74, 222, 128, 0.11);
-  border: 1px solid rgba(74, 222, 128, 0.38);
-}
-.tr-ticker-pill--good_buy {
-  color: var(--np-good);
-  background: rgba(52, 211, 153, 0.11);
-  border: 1px solid rgba(52, 211, 153, 0.38);
-}
-.tr-ticker-pill--safe_buy {
-  color: var(--np-safe);
-  background: rgba(96, 165, 250, 0.11);
-  border: 1px solid rgba(96, 165, 250, 0.38);
-}
-.tr-ticker-pill--cautious_buy {
-  color: var(--np-cautious);
-  background: rgba(167, 139, 250, 0.10);
-  border: 1px solid rgba(167, 139, 250, 0.35);
-}
-.tr-ticker-pill--keep_watching {
-  color: var(--np-watch);
-  background: rgba(251, 191, 36, 0.09);
-  border: 1px dashed rgba(251, 191, 36, 0.40);
-}
-.tr-ticker-pill--avoid {
-  color: var(--np-danger);
-  background: rgba(248, 113, 113, 0.08);
-  border: 1px solid rgba(248, 113, 113, 0.32);
+.tr-code-sub {
+  display: block;
+  font-size: 0.65rem;
+  color: #475569;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 96px;
+  margin-top: 1px;
 }
 
+.tr-code {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.tr-ticker-pill--strong_buy    { color: var(--np-strong); }
+.tr-ticker-pill--good_buy      { color: var(--np-good); }
+.tr-ticker-pill--safe_buy      { color: var(--np-safe); }
+.tr-ticker-pill--cautious_buy  { color: var(--np-cautious); }
+.tr-ticker-pill--keep_watching { color: var(--np-watch); }
+.tr-ticker-pill--avoid         { color: var(--np-danger); }
+
 .tr-price {
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.88rem;
+  font-weight: 800;
   color: #60A5FA;
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -3388,18 +3381,18 @@ details.dsex-exp[open] > summary {
 }
 
 .tr-chg { text-align: right; }
-.tr-chg .rr-chg { font-size: 0.73rem; }
+.tr-chg .rr-chg { font-size: 0.78rem; }
 
 .tr-score {
-  font-size: 0.90rem;
-  font-weight: 700;
+  font-size: 1.05rem;
+  font-weight: 900;
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
 .tr-div {
-  font-size: 0.74rem;
-  font-weight: 600;
+  font-size: 0.80rem;
+  font-weight: 700;
   color: #FBBF24;
   text-align: right;
   white-space: nowrap;
@@ -3408,8 +3401,8 @@ details.dsex-exp[open] > summary {
 .tr-eps { text-align: right; }
 
 .tr-metric {
-  font-size: 0.73rem;
-  font-weight: 600;
+  font-size: 0.78rem;
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -3435,7 +3428,7 @@ details.dsex-exp[open] > summary {
 
   .tr-col-header,
   .tr-row {
-    grid-template-columns: 24px 20px 80px 1fr 52px;
+    grid-template-columns: 24px 20px 90px 1fr 56px;
   }
 
   .tr-tabs { flex-wrap: wrap; }

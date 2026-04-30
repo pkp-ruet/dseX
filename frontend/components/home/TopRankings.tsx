@@ -80,6 +80,9 @@ export default function TopRankings({ scores }: Props) {
                 <span className={`tr-ticker-pill tr-ticker-pill--${tier}`}>
                   {item.trading_code}
                 </span>
+                {item.company_name && (
+                  <span className="tr-code-sub">{item.company_name}</span>
+                )}
               </span>
               <span className="tr-price">
                 {item.ltp != null ? taka(item.ltp, 1) : "—"}
