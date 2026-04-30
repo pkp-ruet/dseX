@@ -422,3 +422,55 @@ export async function apiRemoveFromWatchlist(codes: string[]): Promise<{ codes: 
     body: JSON.stringify({ codes }),
   });
 }
+
+// ---------------------------------------------------------------------------
+// Portfolio
+// ---------------------------------------------------------------------------
+
+export interface PortfolioHolding {
+  id: string;
+  trading_code: string;
+  buy_price: number;
+  qty: number;
+  added_at: string;
+}
+
+export async function apiGetPortfolio(): Promise<{ holdings: PortfolioHolding[] }> {
+  return apiAuthFetch<{ holdings: PortfolioHolding[] }>("/api/user/portfolio");
+}
+
+export async function apiAddHolding(data: {
+  trading_code: string;
+  buy_price: number;
+  qty: number;
+}): Promise<{ holding: PortfolioHolding }> {
+  return apiAuthFetch<{ holding: PortfolioHolding }>("/api/user/portfolio/holdings", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function apiUpdateHolding(
+  id: string,
+  data: { buy_price?: number; qty?: number },
+): Promise<{ holding: PortfolioHolding }> {
+  return apiAuthFetch<{ holding: PortfolioHolding }>(`/api/user/portfolio/holdings/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function apiDeleteHolding(id: string): Promise<void> {
+  const token = getToken();
+  const res = await fetch(`${API_URL}/api/user/portfolio/holdings/${id}`, {
+    method: "DELETE",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (res.status === 401) {
+    logout();
+    throw new Error("AUTH_EXPIRED");
+  }
+  if (!res.ok && res.status !== 204) {
+    throw new Error(`Delete failed: ${res.status}`);
+  }
+}

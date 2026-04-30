@@ -15,6 +15,7 @@ export default function Navbar() {
   const isLearn = pathname === "/learn" || pathname.startsWith("/learn/");
   const isStockLists = pathname === "/stock-lists" || pathname.startsWith("/stock-lists/");
   const isStocks = pathname === "/stocks";
+  const isPortfolio = pathname === "/portfolio";
 
   const { user, isLoggedIn } = useAuth();
 
@@ -111,6 +112,12 @@ export default function Navbar() {
               className={`navbar-intel-btn${isAbout ? " navbar-intel-btn-active" : ""}`}
             >
               About
+            </Link>
+            <Link
+              href="/portfolio"
+              className={`navbar-intel-btn${isPortfolio ? " navbar-intel-btn-active" : ""}`}
+            >
+              Portfolio
             </Link>
             {mounted && (
               isLoggedIn ? (
@@ -251,18 +258,30 @@ export default function Navbar() {
             </svg>
             Behind the Score
           </Link>
+          <Link
+            href="/portfolio"
+            className={`navbar-drawer-link${isPortfolio ? " active" : ""}`}
+            onClick={() => setMenuOpen(false)}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 3a3 3 0 110 6 3 3 0 010-6zm6 13H6v-.6c0-2 4-3.1 6-3.1s6 1.1 6 3.1V19z" />
+            </svg>
+            Portfolio
+          </Link>
           {mounted && (
             isLoggedIn ? (
-              <Link
-                href="/profile"
-                className={`navbar-drawer-link${pathname === "/profile" ? " active" : ""}`}
-                onClick={() => setMenuOpen(false)}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
-                </svg>
-                {user?.display_name ?? "My Profile"}
-              </Link>
+              <>
+                <Link
+                  href="/profile"
+                  className={`navbar-drawer-link${pathname === "/profile" ? " active" : ""}`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
+                  </svg>
+                  {user?.display_name ?? "My Profile"}
+                </Link>
+              </>
             ) : (
               <>
                 <Link

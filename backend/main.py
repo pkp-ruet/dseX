@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.routers import scores, companies, dividends, audit, prices, market_movers, market_intelligence, market_index, stock_lists, market_live, auth, user
+from backend.routers import scores, companies, dividends, audit, prices, market_movers, market_intelligence, market_index, stock_lists, market_live, auth, user, portfolio
 
 app = FastAPI(title="dseX API", version="1.0.0")
 
@@ -18,7 +18,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in ALLOWED_ORIGINS],
     allow_origin_regex=r"https://.*\.vercel\.app",
-    allow_methods=["GET", "HEAD", "POST", "PUT", "PATCH", "OPTIONS"],
+    allow_methods=["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -37,6 +37,7 @@ app.include_router(stock_lists.router)
 app.include_router(market_live.router)
 app.include_router(auth.router)
 app.include_router(user.router)
+app.include_router(portfolio.router)
 
 
 @app.on_event("startup")
