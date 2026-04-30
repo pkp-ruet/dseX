@@ -23,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const stockListPages = STOCK_LISTS.map((l) => ({
-    url: `${BASE_URL}/stock-lists/${l.slug}`,
+    url: `${BASE_URL}/stock-insights/${l.slug}`,
     lastModified: new Date(),
     changeFrequency: "daily" as const,
     priority: 0.8,
@@ -67,7 +67,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
-      url: `${BASE_URL}/stock-lists`,
+      url: `${BASE_URL}/stock-insights`,
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.85,

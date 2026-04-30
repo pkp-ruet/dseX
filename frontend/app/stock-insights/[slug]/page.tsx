@@ -23,11 +23,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${def.displayName} | TopStockBD`,
     description: def.description,
     keywords: def.keywords,
-    alternates: { canonical: `${BASE_URL}/stock-lists/${slug}` },
+    alternates: { canonical: `${BASE_URL}/stock-insights/${slug}` },
     openGraph: {
       title: `${def.displayName} | TopStockBD`,
       description: def.description,
-      url: `${BASE_URL}/stock-lists/${slug}`,
+      url: `${BASE_URL}/stock-insights/${slug}`,
       type: "website",
     },
   };
@@ -40,7 +40,7 @@ function buildJsonLd(slug: string, displayName: string, description: string, ite
       "@type": "ItemList",
       name: displayName,
       description,
-      url: `${BASE_URL}/stock-lists/${slug}`,
+      url: `${BASE_URL}/stock-insights/${slug}`,
       numberOfItems: items.length,
       itemListElement: items.map((item, i) => ({
         "@type": "ListItem",
@@ -54,14 +54,14 @@ function buildJsonLd(slug: string, displayName: string, description: string, ite
       "@type": "BreadcrumbList",
       itemListElement: [
         { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-        { "@type": "ListItem", position: 2, name: "Stock Lists", item: `${BASE_URL}/stock-lists` },
-        { "@type": "ListItem", position: 3, name: displayName, item: `${BASE_URL}/stock-lists/${slug}` },
+        { "@type": "ListItem", position: 2, name: "Stock Insights", item: `${BASE_URL}/stock-insights` },
+        { "@type": "ListItem", position: 3, name: displayName, item: `${BASE_URL}/stock-insights/${slug}` },
       ],
     },
   ];
 }
 
-export default async function StockListPage({ params }: Props) {
+export default async function StockInsightPage({ params }: Props) {
   const { slug } = await params;
   const def = getStockList(slug);
   if (!def) notFound();
@@ -83,7 +83,7 @@ export default async function StockListPage({ params }: Props) {
       <nav aria-label="breadcrumb" className="flex items-center gap-2 text-xs text-[var(--ink-muted)]">
         <Link href="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
         <span aria-hidden="true">/</span>
-        <Link href="/stock-lists" className="hover:text-[var(--primary)] transition-colors">Stock Lists</Link>
+        <Link href="/stock-insights" className="hover:text-[var(--primary)] transition-colors">Stock Insights</Link>
         <span aria-hidden="true">/</span>
         <span className="text-[var(--ink)]">{def.shortName}</span>
       </nav>
@@ -178,10 +178,10 @@ export default async function StockListPage({ params }: Props) {
       {/* Navigation */}
       <div className="flex flex-wrap gap-3">
         <Link
-          href="/stock-lists"
+          href="/stock-insights"
           className="px-5 py-2.5 rounded-lg border border-[var(--border)] text-[var(--ink)] text-sm font-medium hover:bg-[var(--surface)] transition-colors"
         >
-          ← All Stock Lists
+          ← All Stock Insights
         </Link>
         <Link
           href="/dsestockranking"

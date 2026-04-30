@@ -13,7 +13,7 @@ export default function Navbar() {
   const isWatchlist = pathname === "/watchlist";
   const isAbout = pathname === "/about";
   const isLearn = pathname === "/learn" || pathname.startsWith("/learn/");
-  const isStockLists = pathname === "/stock-lists" || pathname.startsWith("/stock-lists/");
+  const isStockLists = pathname === "/stock-insights" || pathname.startsWith("/stock-insights/");
   const isStocks = pathname === "/stocks";
   const isPortfolio = pathname === "/portfolio";
 
@@ -96,10 +96,10 @@ export default function Navbar() {
               Browse Stocks
             </Link>
             <Link
-              href="/stock-lists"
+              href="/stock-insights"
               className={`navbar-intel-btn${isStockLists ? " navbar-intel-btn-active" : ""}`}
             >
-              Screeners
+              Stock Insights
             </Link>
             <Link
               href="/learn"
@@ -219,14 +219,14 @@ export default function Navbar() {
             Browse Stocks
           </Link>
           <Link
-            href="/stock-lists"
+            href="/stock-insights"
             className={`navbar-drawer-link${isStockLists ? " active" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
             </svg>
-            Screeners
+            Stock Insights
           </Link>
           <Link
             href="/dsestockranking"

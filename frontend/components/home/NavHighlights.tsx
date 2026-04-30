@@ -21,9 +21,9 @@ const items: NavItem[] = [
     iconPath: "M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z",
   },
   {
-    href: "/stock-lists",
-    title: "Stock Lists",
-    desc: "Curated screener lists: dividend stocks Bangladesh, high dividend DSE, undervalued stocks DSE",
+    href: "/stock-insights",
+    title: "Stock Insights",
+    desc: "Top-20 curated insights: dividend stocks Bangladesh, high dividend DSE, undervalued stocks DSE",
     iconPath: "M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z",
   },
   {

@@ -32,7 +32,8 @@
       "Skill(update-config)",
       "Skill(update-config:*)",
       "Bash(python -c ' *)",
-      "Bash(powershell -Command \"Test-NetConnection ac-1ye3hs0-shard-00-00.byxf0yo.mongodb.net -Port 27017 -InformationLevel Quiet\")"
+      "Bash(powershell -Command \"Test-NetConnection ac-1ye3hs0-shard-00-00.byxf0yo.mongodb.net -Port 27017 -InformationLevel Quiet\")",
+      "PowerShell(Rename-Item \"D:\\\\Cursor Projects\\\\dseX\\\\frontend\\\\app\\\\stock-lists\" \"stock-insights\")"
     ]
   }
 }

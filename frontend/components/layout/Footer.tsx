@@ -20,7 +20,7 @@ export default function Footer() {
             <Link href="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
             <Link href="/dsestockranking" className="hover:text-[var(--primary)] transition-colors">Stock Rankings</Link>
             <Link href="/learn" className="hover:text-[var(--primary)] transition-colors">Beginner&apos;s Guide</Link>
-            <Link href="/stock-lists" className="hover:text-[var(--primary)] transition-colors">Stock Lists</Link>
+            <Link href="/stock-insights" className="hover:text-[var(--primary)] transition-colors">Stock Insights</Link>
             <Link href="/market-intelligence" className="hover:text-[var(--primary)] transition-colors">Market Intelligence</Link>
             <Link href="/about" className="hover:text-[var(--primary)] transition-colors">Behind the Score</Link>
           </nav>

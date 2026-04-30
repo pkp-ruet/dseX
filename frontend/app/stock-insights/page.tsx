@@ -5,11 +5,11 @@ import { STOCK_LISTS } from "@/lib/stock-lists";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 export const metadata: Metadata = {
-  title: "DSE Stock Lists — Top Stocks Bangladesh | TopStockBD",
+  title: "DSE Stock Insights — Top Stocks Bangladesh | TopStockBD",
   description:
-    "Curated top-20 stock lists for the Dhaka Stock Exchange — best dividend stocks, highest EPS, most profitable companies, largest by market cap, and more. Updated daily from DSE financial data.",
+    "Curated top-20 stock insights for the Dhaka Stock Exchange — best dividend stocks, highest EPS, most profitable companies, largest by market cap, and more. Updated daily from DSE financial data.",
   keywords: [
-    "DSE stock lists",
+    "DSE stock insights",
     "top stocks Bangladesh",
     "best shares DSE",
     "Dhaka Stock Exchange lists",
@@ -18,12 +18,12 @@ export const metadata: Metadata = {
     "best EPS stocks Bangladesh",
     "largest companies Bangladesh stock market",
   ],
-  alternates: { canonical: `${BASE_URL}/stock-lists` },
+  alternates: { canonical: `${BASE_URL}/stock-insights` },
   openGraph: {
-    title: "DSE Stock Lists — Top Stocks Bangladesh | TopStockBD",
+    title: "DSE Stock Insights — Top Stocks Bangladesh | TopStockBD",
     description:
-      "Curated top-20 stock lists for the Dhaka Stock Exchange — best dividend stocks, highest EPS, most profitable companies, and more.",
-    url: `${BASE_URL}/stock-lists`,
+      "Curated top-20 stock insights for the Dhaka Stock Exchange — best dividend stocks, highest EPS, most profitable companies, and more.",
+    url: `${BASE_URL}/stock-insights`,
     type: "website",
   },
 };
@@ -32,22 +32,22 @@ const jsonLd = [
   {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: "DSE Stock Lists — Top Stocks Bangladesh",
+    name: "DSE Stock Insights — Top Stocks Bangladesh",
     description:
-      "Curated top-20 stock lists for the Dhaka Stock Exchange based on actual financial metrics.",
-    url: `${BASE_URL}/stock-lists`,
+      "Curated top-20 stock insights for the Dhaka Stock Exchange based on actual financial metrics.",
+    url: `${BASE_URL}/stock-insights`,
   },
   {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-      { "@type": "ListItem", position: 2, name: "Stock Lists", item: `${BASE_URL}/stock-lists` },
+      { "@type": "ListItem", position: 2, name: "Stock Insights", item: `${BASE_URL}/stock-insights` },
     ],
   },
 ];
 
-export default function StockListsPage() {
+export default function StockInsightsPage() {
   return (
     <main className="max-w-3xl mx-auto px-4 py-12 space-y-12">
       <script
@@ -58,7 +58,7 @@ export default function StockListsPage() {
       {/* Hero */}
       <section className="text-center space-y-4">
         <h1 className="text-3xl font-bold text-[var(--ink)]">
-          DSE Stock Lists
+          DSE Stock Insights
         </h1>
         <p className="text-[var(--ink-muted)] text-base leading-relaxed max-w-xl mx-auto">
           Curated top-20 rankings based on actual financial data from the Dhaka Stock Exchange —
@@ -72,7 +72,7 @@ export default function StockListsPage() {
           {STOCK_LISTS.map((list) => (
             <Link
               key={list.slug}
-              href={`/stock-lists/${list.slug}`}
+              href={`/stock-insights/${list.slug}`}
               className="group flex flex-col gap-3 p-5 rounded-xl border border-[var(--border)] bg-[var(--surface)] hover:border-[var(--primary)] transition-colors"
             >
               <div className="flex items-center gap-3">
