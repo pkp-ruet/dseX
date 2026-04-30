@@ -24,6 +24,12 @@ export default function Footer() {
             <Link href="/market-intelligence" className="hover:text-[var(--primary)] transition-colors">Market Intelligence</Link>
             <Link href="/about" className="hover:text-[var(--primary)] transition-colors">Behind the Score</Link>
           </nav>
+          <nav className="flex flex-wrap justify-center gap-x-5 gap-y-1.5 mt-2 text-[11px] text-[var(--text-muted)] opacity-70">
+            <Link href="/about" className="hover:text-[var(--primary)] transition-colors">About Us</Link>
+            <Link href="/contact" className="hover:text-[var(--primary)] transition-colors">Contact</Link>
+            <Link href="/privacy-policy" className="hover:text-[var(--primary)] transition-colors">Privacy Policy</Link>
+            <Link href="/disclaimer" className="hover:text-[var(--primary)] transition-colors">Disclaimer</Link>
+          </nav>
         </div>
       </div>
     </footer>
