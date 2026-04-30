@@ -37,7 +37,7 @@ export default function TickerBand({ items }: Props) {
   if (!items.length) return null;
 
   return (
-    <div className="ticker-band" aria-label="Top company price ticker">
+    <div className="ticker-band" aria-hidden="true">
       {/* Render list twice for seamless CSS loop */}
       <div className="ticker-inner" aria-hidden="true">
         {items.map((item) => (

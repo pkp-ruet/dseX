@@ -105,9 +105,12 @@ export default function SearchBar({ companies, variant = "default" }: Props) {
           onKeyDown={handleKeyDown}
           autoComplete="off"
           spellCheck={false}
+          role="combobox"
           aria-label="Search companies"
           aria-autocomplete="list"
           aria-expanded={open}
+          aria-controls="search-listbox"
+          aria-activedescendant={activeIndex >= 0 ? `search-option-${activeIndex}` : undefined}
         />
         {query && (
           <button
@@ -122,10 +125,11 @@ export default function SearchBar({ companies, variant = "default" }: Props) {
       </div>
 
       {open && (
-        <ul className="search-suggestions" role="listbox">
+        <ul id="search-listbox" className="search-suggestions" role="listbox">
           {suggestions.map((c, i) => (
             <li
               key={c.trading_code}
+              id={`search-option-${i}`}
               role="option"
               aria-selected={i === activeIndex}
               className={`search-suggestion-item${i === activeIndex ? " search-suggestion-active" : ""}`}

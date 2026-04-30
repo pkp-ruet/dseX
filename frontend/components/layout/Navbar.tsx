@@ -168,6 +168,7 @@ export default function Navbar() {
       <div
         className={`navbar-drawer${menuOpen ? " open" : ""}`}
         aria-hidden={!menuOpen}
+        inert={!menuOpen}
       >
         <div className="navbar-drawer-header">
           <span className="navbar-drawer-title">Menu</span>
