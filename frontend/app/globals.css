@@ -868,7 +868,7 @@ body::before {
 .mib-breadth-lbl {
   font-size: 0.65rem;
   font-weight: 600;
-  color: #64748B;
+  color: #94A3B8;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -885,7 +885,7 @@ body::before {
 }
 
 .mib-cal-month {
-  background: #6366F1;
+  background: #4F46E5;
   color: #fff;
   font-size: 0.58rem;
   font-weight: 800;

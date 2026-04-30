@@ -30,7 +30,7 @@ interface IndexBlockProps {
 function IndexBlock({ label, accent, value, change, changePct }: IndexBlockProps) {
   const isUp   = (change ?? 0) >= 0;
   const isNull = change == null;
-  const chgColor = isNull ? "#94A3B8" : isUp ? "#059669" : "#DC2626";
+  const chgColor = isNull ? "#94A3B8" : isUp ? "#059669" : "#B91C1C";
   const chgBg    = isNull ? "#F1F5F9" : isUp ? "#ECFDF5" : "#FEF2F2";
   const arrow    = isNull ? null : isUp ? "▲" : "▼";
 
@@ -65,7 +65,7 @@ interface StatChipProps {
 function StatChip({ label, value, icon, accent, changePct }: StatChipProps) {
   const hasChange = changePct != null;
   const isUp = (changePct ?? 0) >= 0;
-  const chgColor = isUp ? "#059669" : "#DC2626";
+  const chgColor = isUp ? "#059669" : "#F87171";
   const arrow = isUp ? "▲" : "▼";
 
   return (
@@ -163,7 +163,7 @@ export default function MarketIndexBanner({ data }: Props) {
             changePct={data.dsex_change_pct}
           />
           <div className="mib-vsep" />
-          <IndexBlock label="DSES" accent="#7C3AED" value={data.dses} change={data.dses_change} />
+          <IndexBlock label="DSES" accent="#A78BFA" value={data.dses} change={data.dses_change} />
           <div className="mib-vsep" />
           <IndexBlock label="DS30" accent="#0EA5E9" value={data.ds30}  change={data.ds30_change} />
         </div>
