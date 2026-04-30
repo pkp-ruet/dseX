@@ -4,6 +4,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import MobileBottomBar from "@/components/layout/MobileBottomBar";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com"),
@@ -59,12 +60,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSON_LD) }}
         />
-        <Navbar />
-        <main className="flex-1 max-w-5xl mx-auto w-full min-w-0 px-4 sm:px-6 py-6 sm:py-8 pt-14 sm:pt-14 pb-20 md:pb-10">
-          {children}
-        </main>
-        <Footer />
-        <MobileBottomBar />
+        <AuthProvider>
+          <Navbar />
+          <main className="flex-1 max-w-5xl mx-auto w-full min-w-0 px-4 sm:px-6 py-6 sm:py-8 pt-14 sm:pt-14 pb-20 md:pb-10">
+            {children}
+          </main>
+          <Footer />
+          <MobileBottomBar />
+        </AuthProvider>
         {process.env.NEXT_PUBLIC_GA_ID && (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
         )}

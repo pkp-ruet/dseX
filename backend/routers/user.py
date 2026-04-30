@@ -1,0 +1,79 @@
+from datetime import datetime, timezone
+from typing import Optional
+
+from fastapi import APIRouter, Depends
+from pydantic import BaseModel
+
+from backend.routers.auth import get_current_user
+from backend.services.auth_service import (
+    get_user_watchlist,
+    update_user_watchlist,
+    get_db,
+    sanitize_user,
+)
+
+router = APIRouter(prefix="/api/user", tags=["user"])
+
+
+class WatchlistBody(BaseModel):
+    codes: list[str]
+
+
+class ProfileUpdateBody(BaseModel):
+    display_name: Optional[str] = None
+
+
+# ---------------------------------------------------------------------------
+# Watchlist
+# ---------------------------------------------------------------------------
+
+@router.get("/watchlist")
+def get_watchlist(current_user: dict = Depends(get_current_user)):
+    codes = get_user_watchlist(current_user["user_id"])
+    return {"codes": codes}
+
+
+@router.put("/watchlist")
+def set_watchlist(body: WatchlistBody, current_user: dict = Depends(get_current_user)):
+    codes = update_user_watchlist(current_user["user_id"], body.codes)
+    return {"codes": codes}
+
+
+@router.patch("/watchlist/add")
+def add_to_watchlist(body: WatchlistBody, current_user: dict = Depends(get_current_user)):
+    existing = get_user_watchlist(current_user["user_id"])
+    merged = list(dict.fromkeys(existing + [c.upper() for c in body.codes]))
+    get_db()["users"].update_one(
+        {"user_id": current_user["user_id"]},
+        {"$set": {"watchlist": merged, "updated_at": datetime.now(timezone.utc)}},
+    )
+    return {"codes": merged}
+
+
+@router.patch("/watchlist/remove")
+def remove_from_watchlist(body: WatchlistBody, current_user: dict = Depends(get_current_user)):
+    to_remove = {c.upper() for c in body.codes}
+    existing = get_user_watchlist(current_user["user_id"])
+    updated = [c for c in existing if c not in to_remove]
+    get_db()["users"].update_one(
+        {"user_id": current_user["user_id"]},
+        {"$set": {"watchlist": updated, "updated_at": datetime.now(timezone.utc)}},
+    )
+    return {"codes": updated}
+
+
+# ---------------------------------------------------------------------------
+# Profile
+# ---------------------------------------------------------------------------
+
+@router.patch("/profile")
+def update_profile(body: ProfileUpdateBody, current_user: dict = Depends(get_current_user)):
+    updates: dict = {"updated_at": datetime.now(timezone.utc)}
+    if body.display_name is not None:
+        updates["display_name"] = body.display_name.strip()
+    doc = get_db()["users"].find_one_and_update(
+        {"user_id": current_user["user_id"]},
+        {"$set": updates},
+        return_document=True,
+    )
+    return {"user": sanitize_user(doc)}

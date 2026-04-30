@@ -96,6 +96,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "yearly" as const,
       priority: 0.3,
     },
+    {
+      url: `${BASE_URL}/login`,
+      lastModified: new Date(),
+      changeFrequency: "yearly" as const,
+      priority: 0.2,
+    },
+    {
+      url: `${BASE_URL}/register`,
+      lastModified: new Date(),
+      changeFrequency: "yearly" as const,
+      priority: 0.2,
+    },
     ...stockListPages,
     ...guidePages,
     ...stockPages,

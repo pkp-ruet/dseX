@@ -57,3 +57,55 @@ export function subscribeWatchlist(cb: () => void): () => void {
     window.removeEventListener("storage", handler);
   };
 }
+
+// ---------------------------------------------------------------------------
+// DB-synced helpers (used when user is logged in)
+// ---------------------------------------------------------------------------
+
+import { isLoggedIn } from "@/lib/auth";
+import {
+  apiAddToWatchlist,
+  apiRemoveFromWatchlist,
+  apiSetWatchlist,
+} from "@/lib/api";
+
+export async function addToWatchlistSynced(code: string): Promise<void> {
+  addToWatchlist(code); // optimistic local update
+  if (isLoggedIn()) {
+    await apiAddToWatchlist([code]).catch(() => {});
+  }
+}
+
+export async function removeFromWatchlistSynced(code: string): Promise<void> {
+  removeFromWatchlist(code);
+  if (isLoggedIn()) {
+    await apiRemoveFromWatchlist([code]).catch(() => {});
+  }
+}
+
+export async function toggleWatchlistSynced(code: string): Promise<boolean> {
+  if (isWatched(code)) {
+    await removeFromWatchlistSynced(code);
+    return false;
+  }
+  await addToWatchlistSynced(code);
+  return true;
+}
+
+export async function mergeWatchlistOnLogin(serverCodes: string[]): Promise<void> {
+  const localCodes = getWatchlist();
+  const merged = Array.from(
+    new Set([
+      ...localCodes.map((c) => c.toUpperCase()),
+      ...serverCodes.map((c) => c.toUpperCase()),
+    ])
+  );
+  write(merged);
+
+  const needsSync =
+    merged.length !== serverCodes.length ||
+    merged.some((c) => !serverCodes.includes(c));
+  if (needsSync) {
+    await apiSetWatchlist(merged).catch(() => {});
+  }
+}

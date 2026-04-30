@@ -13,9 +13,6 @@ export default function WatchlistPage() {
       <div className="rank-page-header">
         <p className="rank-page-eyebrow">// PERSONAL</p>
         <h1 className="rank-page-title">My Watchlist</h1>
-        <p className="rank-page-meta">
-          Saved locally in your browser — no account needed.
-        </p>
       </div>
       <WatchlistTable />
     </main>

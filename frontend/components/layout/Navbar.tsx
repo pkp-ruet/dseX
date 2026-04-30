@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getWatchlist, subscribeWatchlist } from "@/lib/watchlist";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -14,6 +15,8 @@ export default function Navbar() {
   const isLearn = pathname === "/learn" || pathname.startsWith("/learn/");
   const isStockLists = pathname === "/stock-lists" || pathname.startsWith("/stock-lists/");
   const isStocks = pathname === "/stocks";
+
+  const { user, isLoggedIn } = useAuth();
 
   const [watchCount, setWatchCount] = useState(0);
   const [mounted, setMounted] = useState(false);
@@ -109,6 +112,25 @@ export default function Navbar() {
             >
               About
             </Link>
+            {mounted && (
+              isLoggedIn ? (
+                <Link
+                  href="/profile"
+                  className={`navbar-intel-btn${pathname === "/profile" ? " navbar-intel-btn-active" : ""}`}
+                >
+                  {user?.display_name ?? "Profile"}
+                </Link>
+              ) : (
+                <>
+                  <Link href="/login" className="navbar-intel-btn">
+                    Sign In
+                  </Link>
+                  <Link href="/register" className="navbar-rank-btn">
+                    Sign Up
+                  </Link>
+                </>
+              )
+            )}
           </nav>
 
           {/* Mobile right controls — hidden on desktop via CSS */}
@@ -229,6 +251,43 @@ export default function Navbar() {
             </svg>
             Behind the Score
           </Link>
+          {mounted && (
+            isLoggedIn ? (
+              <Link
+                href="/profile"
+                className={`navbar-drawer-link${pathname === "/profile" ? " active" : ""}`}
+                onClick={() => setMenuOpen(false)}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
+                </svg>
+                {user?.display_name ?? "My Profile"}
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className={`navbar-drawer-link${pathname === "/login" ? " active" : ""}`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z" />
+                  </svg>
+                  Sign In
+                </Link>
+                <Link
+                  href="/register"
+                  className={`navbar-drawer-link${pathname === "/register" ? " active" : ""}`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M15 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z" />
+                  </svg>
+                  Create Account
+                </Link>
+              </>
+            )
+          )}
         </nav>
       </div>
     </>

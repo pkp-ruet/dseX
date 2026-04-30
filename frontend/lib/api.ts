@@ -327,3 +327,98 @@ export async function getMarketLive(): Promise<MarketLiveData> {
   if (!res.ok) throw new Error(`market-live returned ${res.status}`);
   return res.json() as Promise<MarketLiveData>;
 }
+
+// ---------------------------------------------------------------------------
+// Auth types & helpers (client-side only)
+// ---------------------------------------------------------------------------
+
+import { type AuthUser, getToken, logout } from "@/lib/auth";
+
+export interface RegisterPayload {
+  email?: string;
+  phone?: string;
+  password: string;
+  display_name?: string;
+}
+
+export interface LoginPayload {
+  email?: string;
+  phone?: string;
+  password: string;
+}
+
+export interface AuthApiResponse {
+  access_token: string;
+  token_type: string;
+  user: AuthUser;
+}
+
+async function apiAuthFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const token = getToken();
+  const res = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers ?? {}),
+    },
+  });
+  if (res.status === 401) {
+    logout();
+    throw new Error("AUTH_EXPIRED");
+  }
+  if (!res.ok) {
+    let detail = `API ${path} returned ${res.status}`;
+    try {
+      const body = await res.json();
+      if (body?.detail) detail = body.detail;
+    } catch {}
+    const err = new Error(detail) as Error & { status: number };
+    err.status = res.status;
+    throw err;
+  }
+  return res.json() as Promise<T>;
+}
+
+export async function apiRegister(payload: RegisterPayload): Promise<AuthApiResponse> {
+  return apiAuthFetch<AuthApiResponse>("/api/auth/register", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function apiLogin(payload: LoginPayload): Promise<AuthApiResponse> {
+  return apiAuthFetch<AuthApiResponse>("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function apiGetMe(): Promise<{ user: AuthUser }> {
+  return apiAuthFetch<{ user: AuthUser }>("/api/auth/me");
+}
+
+export async function apiGetWatchlist(): Promise<{ codes: string[] }> {
+  return apiAuthFetch<{ codes: string[] }>("/api/user/watchlist");
+}
+
+export async function apiSetWatchlist(codes: string[]): Promise<{ codes: string[] }> {
+  return apiAuthFetch<{ codes: string[] }>("/api/user/watchlist", {
+    method: "PUT",
+    body: JSON.stringify({ codes }),
+  });
+}
+
+export async function apiAddToWatchlist(codes: string[]): Promise<{ codes: string[] }> {
+  return apiAuthFetch<{ codes: string[] }>("/api/user/watchlist/add", {
+    method: "PATCH",
+    body: JSON.stringify({ codes }),
+  });
+}
+
+export async function apiRemoveFromWatchlist(codes: string[]): Promise<{ codes: string[] }> {
+  return apiAuthFetch<{ codes: string[] }>("/api/user/watchlist/remove", {
+    method: "PATCH",
+    body: JSON.stringify({ codes }),
+  });
+}
