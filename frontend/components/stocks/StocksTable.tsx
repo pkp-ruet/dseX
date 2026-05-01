@@ -157,7 +157,7 @@ export default function StocksTable({ items }: Props) {
           <thead className="sl-thead">
             <tr>
               <th className="sl-th sl-th-rank">#</th>
-              <th className="sl-th sl-th-star sl-th-hide-sm" aria-label="Watchlist"></th>
+              <th className="sl-th sl-th-star" aria-label="Watchlist"></th>
               <SortHeader col="trading_code"   label="Code"      active={sortCol} dir={sortDir} onSort={handleSort} />
               <SortHeader col="company_name"   label="Company"   active={sortCol} dir={sortDir} onSort={handleSort} className="sl-th-hide-sm" />
               <SortHeader col="sector"         label="Sector"    active={sortCol} dir={sortDir} onSort={handleSort} className="sl-th-hide-md" />
@@ -176,7 +176,7 @@ export default function StocksTable({ items }: Props) {
                 <tr key={item.trading_code} className="sl-row">
                   <td className="sl-td sl-td-rank">{idx + 1}</td>
 
-                  <td className="sl-td sl-td-star sl-td-hide-sm">
+                  <td className="sl-td sl-td-star">
                     <StarButton code={item.trading_code} />
                   </td>
 

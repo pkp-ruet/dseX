@@ -506,7 +506,7 @@ body::before {
   .fr-th { position: static; font-size: 0.62rem; letter-spacing: 0.08em; }
   .fr-th, .fr-td { padding: 10px 6px; }
   .fr-th-rank, .fr-td-rank { width: 12%; padding-left: 8px; padding-right: 4px; font-size: 0.7rem; }
-  .fr-th-code, .fr-td-code { width: 48%; }
+  .fr-th-code, .fr-td-code { width: 40%; }
   .fr-code-link { display: block; font-size: 0.86rem; letter-spacing: 0.02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .fr-code-sub { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
   .fr-th-score, .fr-td-score { width: 20%; }
@@ -2841,6 +2841,9 @@ details.dsex-exp[open] > summary {
   width: 1%;
   text-align: center;
   padding: 9px 4px;
+}
+@media (max-width: 640px) {
+  .fr-th-star, .fr-td-star { width: 8%; padding: 10px 2px; }
 }
 
 /* Watchlist page */
