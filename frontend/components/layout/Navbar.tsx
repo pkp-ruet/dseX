@@ -15,6 +15,7 @@ export default function Navbar() {
   const isStockLists = pathname === "/stock-insights" || pathname.startsWith("/stock-insights/");
   const isStocks = pathname === "/stocks";
   const isPortfolio = pathname === "/portfolio";
+  const isToday = pathname === "/dse-today";
 
   const { user, isLoggedIn } = useAuth();
 
@@ -70,6 +71,12 @@ export default function Navbar() {
               className={`navbar-intel-btn${isIntel ? " navbar-intel-btn-active" : ""}`}
             >
               Market Signal
+            </Link>
+            <Link
+              href="/dse-today"
+              className={`navbar-intel-btn${isToday ? " navbar-intel-btn-active" : ""}`}
+            >
+              DSE Today
             </Link>
             <Link
               href="/stocks"
@@ -182,6 +189,13 @@ export default function Navbar() {
             onClick={() => setMenuOpen(false)}
           >
             Market Signal
+          </Link>
+          <Link
+            href="/dse-today"
+            className={`navbar-drawer-link${isToday ? " active" : ""}`}
+            onClick={() => setMenuOpen(false)}
+          >
+            DSE Today
           </Link>
           <Link
             href="/stocks"

@@ -15,6 +15,12 @@ const items: NavItem[] = [
     iconPath: "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z",
   },
   {
+    href: "/dse-today",
+    title: "DSE Today",
+    desc: "Last trading day at a glance — DSEX index, market breadth, top movers, sector heatmap, and the day's news",
+    iconPath: "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z",
+  },
+  {
     href: "/market-intelligence",
     title: "Market Intelligence",
     desc: "DSE top gainers and top losers today — live Bangladesh stock market signals and condition",

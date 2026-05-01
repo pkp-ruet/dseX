@@ -182,6 +182,67 @@ def load_dividend_declarations() -> list[dict]:
 
 
 @_ttl_cache(300)
+def load_dse_today_table() -> list[dict]:
+    """Flat per-stock list for the latest trading day: code, name, sector, ltp, chg%, vol, val."""
+    prices = load_latest_prices()
+    companies_idx = {c["trading_code"]: c for c in load_companies()}
+    rows: list[dict] = []
+    for code, p in prices.items():
+        if p.get("ltp") is None:
+            continue
+        comp = companies_idx.get(code, {})
+        rows.append({
+            "trading_code": code,
+            "company_name": comp.get("company_name"),
+            "sector": comp.get("sector"),
+            "ltp": p.get("ltp"),
+            "change_pct": p.get("change_pct"),
+            "volume": p.get("volume"),
+            "value_mn": p.get("value_mn"),
+        })
+    return rows
+
+
+@_ttl_cache(300)
+def load_market_news(limit: int = 50) -> list[dict]:
+    """Latest market-wide news. Anchors to the newest post_date in company_news; falls back to last 7 days."""
+    db = get_db()
+    latest = db.company_news.find_one({}, sort=[("post_date", -1)])
+    if not latest or not latest.get("post_date"):
+        return []
+
+    latest_dt = latest["post_date"]
+    # Floor to start of that day (UTC)
+    if hasattr(latest_dt, "year"):
+        start = datetime(latest_dt.year, latest_dt.month, latest_dt.day)
+    else:
+        try:
+            parsed = datetime.fromisoformat(str(latest_dt))
+            start = datetime(parsed.year, parsed.month, parsed.day)
+        except Exception:
+            start = datetime.utcnow() - timedelta(days=1)
+
+    def _fetch(start_dt: datetime) -> list[dict]:
+        return list(
+            db.company_news.find(
+                {"post_date": {"$gte": start_dt}},
+                {"_id": 0, "trading_code": 1, "title": 1, "body": 1, "post_date": 1},
+            ).sort("post_date", -1).limit(limit)
+        )
+
+    docs = _fetch(start)
+    if not docs:
+        docs = _fetch(datetime.utcnow() - timedelta(days=7))
+
+    companies_idx = {c["trading_code"]: c.get("company_name") for c in load_companies()}
+    for d in docs:
+        d["company_name"] = companies_idx.get(d.get("trading_code"))
+        if "post_date" in d and hasattr(d["post_date"], "isoformat"):
+            d["post_date"] = d["post_date"].isoformat()
+    return docs
+
+
+@_ttl_cache(300)
 def load_market_movers() -> dict:
     """Top 5 gainers, losers, and most-traded for the latest trading day."""
     db = get_db()

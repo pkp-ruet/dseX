@@ -235,6 +235,43 @@ export async function getMarketIntelligence(): Promise<MarketIntelligenceData> {
   return apiFetch<MarketIntelligenceData>("/api/market-intelligence", 900);
 }
 
+// ---- DSE Today ----
+
+export interface DseTodayTableItem {
+  trading_code: string;
+  company_name: string | null;
+  sector: string | null;
+  ltp: number | null;
+  change_pct: number | null;
+  volume: number | null;
+  value_mn: number | null;
+}
+
+export interface DseTodayNewsItem {
+  trading_code: string;
+  company_name: string | null;
+  title: string;
+  body: string | null;
+  post_date: string | null;
+}
+
+export interface DseTodayIntelligence {
+  market_condition: "falling" | "rising" | "sideways" | "unknown";
+  sector_strength: SectorStrengthItem[];
+}
+
+export interface DseTodayData {
+  header: MarketIndexData;
+  movers: MarketMoversData;
+  intelligence: DseTodayIntelligence;
+  table: DseTodayTableItem[];
+  news: DseTodayNewsItem[];
+}
+
+export async function getDseToday(): Promise<DseTodayData> {
+  return apiFetch<DseTodayData>("/api/dse-today", 900);
+}
+
 export async function getStockLists(): Promise<import("@/lib/stock-lists").StockListsResponse> {
   return apiFetch("/api/stock-lists", 3600);
 }

@@ -169,6 +169,9 @@ body::before {
 .rank-page-header {
   margin-bottom: 20px;
 }
+.rank-page-header--center {
+  text-align: center;
+}
 .rank-page-eyebrow {
   font-size: 0.62rem;
   font-weight: 700;

@@ -204,3 +204,34 @@ class MarketIndexResponse(BaseModel):
     up_count: Optional[int] = None
     down_count: Optional[int] = None
     neutral_count: Optional[int] = None
+
+
+class DseTodayTableItem(BaseModel):
+    trading_code: str
+    company_name: Optional[str] = None
+    sector: Optional[str] = None
+    ltp: Optional[float] = None
+    change_pct: Optional[float] = None
+    volume: Optional[float] = None
+    value_mn: Optional[float] = None
+
+
+class DseTodayNewsItem(BaseModel):
+    trading_code: str
+    company_name: Optional[str] = None
+    title: str
+    body: Optional[str] = None
+    post_date: Optional[str] = None
+
+
+class DseTodayIntelligence(BaseModel):
+    market_condition: str
+    sector_strength: list[SectorStrengthItem]
+
+
+class DseTodayResponse(BaseModel):
+    header: MarketIndexResponse
+    movers: MarketMoversResponse
+    intelligence: DseTodayIntelligence
+    table: list[DseTodayTableItem]
+    news: list[DseTodayNewsItem]
