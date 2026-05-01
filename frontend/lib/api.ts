@@ -14,6 +14,11 @@ export interface ScoreItem {
   eps_yoy_pct: number | null;
   eps: number | null;
   div_yield_pct: number | null;
+  p1_biz?: number | null;
+  p2_health?: number | null;
+  p3_moat?: number | null;
+  p4_val?: number | null;
+  p5_div?: number | null;
 }
 
 export interface ScoreTiers {
@@ -232,6 +237,17 @@ export async function getMarketIntelligence(): Promise<MarketIntelligenceData> {
 
 export async function getStockLists(): Promise<import("@/lib/stock-lists").StockListsResponse> {
   return apiFetch("/api/stock-lists", 3600);
+}
+
+/** Flatten all tiers into a single array, including pillar scores. Used by insight pages. */
+export async function getInsightScores(): Promise<ScoreItem[]> {
+  const res = await apiFetch<ScoresResponse>("/api/scores", 3600);
+  return [
+    ...res.tiers.strong_buy,
+    ...res.tiers.safe_buy,
+    ...res.tiers.watch,
+    ...res.tiers.avoid,
+  ];
 }
 
 export interface WatchlistNewsItem {

@@ -50,6 +50,11 @@ def get_scores():
                 eps_yoy_pct=_json_float(row.get("eps_yoy_pct")),
                 eps=_json_float(row.get("eps")),
                 div_yield_pct=_json_float(row.get("div_yield_pct")),
+                p1_biz=_json_float(row.get("p1_biz")),
+                p2_health=_json_float(row.get("p2_health")),
+                p3_moat=_json_float(row.get("p3_moat")),
+                p4_val=_json_float(row.get("p4_val")),
+                p5_div=_json_float(row.get("p5_div")),
             )
             if score >= 75:
                 tiers["strong_buy"].append(item)

@@ -13,6 +13,11 @@ class ScoreItem(BaseModel):
     eps_yoy_pct: Optional[float] = None
     eps: Optional[float] = None
     div_yield_pct: Optional[float] = None
+    p1_biz: Optional[float] = None
+    p2_health: Optional[float] = None
+    p3_moat: Optional[float] = None
+    p4_val: Optional[float] = None
+    p5_div: Optional[float] = None
 
 
 class ScoreTiers(BaseModel):
