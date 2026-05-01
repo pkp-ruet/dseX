@@ -33,6 +33,12 @@ def get_dse_today():
         "sector_strength": sector_strength,
     }
 
+    for n in news:
+        tc = (n.get("trading_code") or "").strip()
+        n["trading_code"] = tc or "—"
+        title = n.get("title")
+        n["title"] = (title.strip() if isinstance(title, str) and title.strip() else "Untitled")
+
     return {
         "header": header,
         "movers": movers,

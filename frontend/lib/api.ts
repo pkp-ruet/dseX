@@ -1,7 +1,16 @@
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  process.env.API_URL ||
-  "https://dsex.onrender.com";
+/**
+ * Backend base URL (no trailing slash).
+ * On Vercel, set **`API_URL`** for server-side fetching (recommended for prod).
+ * **`NEXT_PUBLIC_API_URL`** is used in the browser and as a server fallback.
+ */
+export function getApiUrl(): string {
+  const raw =
+    typeof window === "undefined"
+      ? process.env.API_URL || process.env.NEXT_PUBLIC_API_URL
+      : process.env.NEXT_PUBLIC_API_URL;
+  const trimmed = raw?.trim() || "https://dsex.onrender.com";
+  return trimmed.replace(/\/+$/, "");
+}
 
 export interface ScoreItem {
   trading_code: string;
@@ -150,8 +159,16 @@ export interface MarketIndexData {
 
 // ---- Fetch helpers ----
 
+function apiFetchSignal(): AbortSignal | undefined {
+  if (typeof AbortSignal === "undefined") return undefined;
+  const ctor = AbortSignal as unknown as { timeout?: (ms: number) => AbortSignal };
+  return typeof ctor.timeout === "function" ? ctor.timeout(30_000) : undefined;
+}
+
 async function apiFetch<T>(path: string, revalidate?: number): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
+  const url = `${getApiUrl()}${path}`;
+  const res = await fetch(url, {
+    signal: apiFetchSignal(),
     next: revalidate !== undefined ? { revalidate } : { revalidate: 3600 },
   });
   if (!res.ok) throw new Error(`API ${path} returned ${res.status}`);
@@ -296,14 +313,14 @@ export interface WatchlistNewsItem {
 
 export async function getWatchlistNews(codes: string[]): Promise<WatchlistNewsItem[]> {
   if (!codes.length) return [];
-  const res = await fetch(`${API_URL}/api/news/multi?codes=${encodeURIComponent(codes.join(","))}`);
+  const res = await fetch(`${getApiUrl()}/api/news/multi?codes=${encodeURIComponent(codes.join(","))}`);
   if (!res.ok) return [];
   return res.json() as Promise<WatchlistNewsItem[]>;
 }
 
 /** Client-side price history fetch (no Next.js cache) */
 export async function getPriceHistory(code: string, range: "1y" | "2y" | "all" = "1y"): Promise<PricePoint[]> {
-  const res = await fetch(`${API_URL}/api/company/${code.toUpperCase()}/prices?range=${range}`);
+  const res = await fetch(`${getApiUrl()}/api/company/${code.toUpperCase()}/prices?range=${range}`);
   if (!res.ok) throw new Error(`Price history fetch failed: ${res.status}`);
   return res.json() as Promise<PricePoint[]>;
 }
@@ -376,7 +393,7 @@ export interface MarketLiveData {
 
 /** Client-side live market fetch — always bypasses cache */
 export async function getMarketLive(): Promise<MarketLiveData> {
-  const res = await fetch(`${API_URL}/api/market-live`, { cache: "no-store" });
+  const res = await fetch(`${getApiUrl()}/api/market-live`, { cache: "no-store" });
   if (!res.ok) throw new Error(`market-live returned ${res.status}`);
   return res.json() as Promise<MarketLiveData>;
 }
@@ -408,7 +425,7 @@ export interface AuthApiResponse {
 
 async function apiAuthFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(`${getApiUrl()}${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -515,7 +532,7 @@ export async function apiUpdateHolding(
 
 export async function apiDeleteHolding(id: string): Promise<void> {
   const token = getToken();
-  const res = await fetch(`${API_URL}/api/user/portfolio/holdings/${id}`, {
+  const res = await fetch(`${getApiUrl()}/api/user/portfolio/holdings/${id}`, {
     method: "DELETE",
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
