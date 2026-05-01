@@ -18,7 +18,7 @@ function sortedTop(scores: ScoreItem[]): ScoreItem[] {
   return [...scores]
     .filter(s => s.score != null)
     .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
-    .slice(0, 20);
+    .slice(0, 10);
 }
 
 function ChgBadge({ v }: { v: number | null | undefined }) {
@@ -46,8 +46,8 @@ export default function TopRankings({ scores }: Props) {
   return (
     <section className="tr-wrap">
       <div className="tr-header">
-        <div>
-          <div className="section-label">TopStockBD Ranking</div>
+        <div className="tr-heading">
+          <div className="section-label tr-section-label">TopStockBD Ranking</div>
           <div className="tr-subtitle">Based on Deep Fundamental Analysis</div>
         </div>
       </div>

@@ -2036,24 +2036,6 @@ details.dsex-exp[open] > summary {
   margin-bottom: 8px;
 }
 
-/* Sidebar market movers section rule — smaller, tighter, shifted left */
-.home-sidebar .section-rule-modern:has(+ .movers-strip),
-.home-sidebar .section-rule-modern + .movers-strip ~ .section-rule-modern {
-  margin: 14px 0 0;
-  gap: 10px;
-  justify-content: flex-start;
-}
-.home-sidebar .section-rule-modern:has(+ .movers-strip)::before {
-  display: none;
-}
-.home-sidebar .section-rule-modern:has(+ .movers-strip)::after {
-  flex: 0 1 40px;
-}
-.home-sidebar .section-rule-modern:has(+ .movers-strip) .section-rule-text {
-  font-size: 0.56rem;
-  letter-spacing: 2px;
-  padding: 5px 12px;
-}
 
 /* Compact (sidebar) variant — stack columns vertically */
 .movers-strip--compact {
@@ -2204,7 +2186,7 @@ details.dsex-exp[open] > summary {
 
 .home-layout {
   display: grid;
-  grid-template-columns: 1fr 280px;
+  grid-template-columns: 1fr;
   gap: 32px;
   align-items: start;
 }
@@ -2213,41 +2195,6 @@ details.dsex-exp[open] > summary {
   min-width: 0;
 }
 
-/* Sidebar container — sticky so widgets stay in view while rankings scroll */
-.home-sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  position: sticky;
-  top: 72px; /* clears fixed navbar (48px) + pt-14 offset */
-}
-
-/* Stack to single column on narrow viewports */
-@media (max-width: 900px) {
-  .home-layout {
-    grid-template-columns: 1fr;
-  }
-  .home-sidebar {
-    position: static;
-  }
-}
-
-/* Search bar visibility: mobile-top vs sidebar */
-.search-mobile-top {
-  display: none;
-  padding: 0 16px 12px;
-}
-.search-desktop-only {
-  display: block;
-}
-@media (max-width: 900px) {
-  .search-mobile-top {
-    display: block;
-  }
-  .search-desktop-only {
-    display: none;
-  }
-}
 
 /* Sidebar widget card */
 .sidebar-widget {
@@ -3390,10 +3337,37 @@ details.dsex-exp[open] > summary {
   margin: 0;
 }
 
+.tr-heading {
+  width: 100%;
+  text-align: center;
+}
+
+.tr-section-label {
+  justify-content: center;
+  font-size: clamp(0.95rem, 2.2vw, 1.2rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #e2e8f0 0%, #7dd3fc 45%, #22d3ee 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 6px 20px rgba(34, 211, 238, 0.18);
+}
+
+.tr-section-label::before,
+.tr-section-label::after {
+  display: none;
+}
+
 .tr-subtitle {
-  font-size: 0.72rem;
-  color: var(--muted);
-  margin-top: 2px;
+  font-size: clamp(0.75rem, 1.8vw, 0.9rem);
+  color: #cbd5e1;
+  margin-top: 6px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-align: center;
 }
 
 .tr-tabs {
@@ -3567,20 +3541,34 @@ details.dsex-exp[open] > summary {
 
 .tr-footer {
   display: flex;
-  justify-content: flex-end;
-  padding: 10px 4px 2px;
+  justify-content: center;
+  padding: 14px 4px 4px;
 }
 
 .tr-see-all {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #f8fafc;
   text-decoration: none;
-  letter-spacing: 0.02em;
-  transition: color 0.15s;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(34, 211, 238, 0.5);
+  background: linear-gradient(135deg, #0284c7 0%, #06b6d4 100%);
+  box-shadow: 0 10px 24px rgba(6, 182, 212, 0.24);
+  transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
 }
 
-.tr-see-all:hover { color: var(--accent); }
+.tr-see-all:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+  box-shadow: 0 12px 28px rgba(6, 182, 212, 0.32);
+}
 
 @media (max-width: 640px) {
   .tr-hide-mobile { display: none; }

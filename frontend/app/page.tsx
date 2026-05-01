@@ -2,21 +2,16 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import {
   getScores,
-  getDividendsUpcoming,
-  getMarketMovers,
   getMarketIndex,
   type ScoresResponse,
   type MarketIndexData,
-  type MarketMoversData,
-  type DividendsUpcoming,
 } from "@/lib/api";
 import SearchBar from "@/components/home/SearchBar";
 import TickerBand from "@/components/home/TickerBand";
 import TopRankings from "@/components/home/TopRankings";
-import MarketMovers from "@/components/home/MarketMovers";
-import HomeSidebar from "@/components/home/HomeSidebar";
 import MarketIndexBanner from "@/components/home/MarketIndexBanner";
 import NavHighlights from "@/components/home/NavHighlights";
+import InsightsTeaserStrip from "@/components/home/InsightsTeaserStrip";
 
 export const revalidate = 3600;
 
@@ -77,18 +72,10 @@ async function MarketIndexSection({ promise }: { promise: Promise<MarketIndexDat
 
 async function MainContentSection({
   scoresPromise,
-  moversPromise,
-  dividendsPromise,
 }: {
   scoresPromise: Promise<ScoresResponse | null>;
-  moversPromise: Promise<MarketMoversData | null>;
-  dividendsPromise: Promise<DividendsUpcoming | null>;
 }) {
-  const [scores, movers, dividends] = await Promise.all([
-    scoresPromise,
-    moversPromise,
-    dividendsPromise,
-  ]);
+  const scores = await scoresPromise;
 
   if (!scores) {
     return (
@@ -106,23 +93,14 @@ async function MainContentSection({
 
   return (
     <>
-      <div className="search-mobile-top">
-        <SearchBar companies={allCompanies} variant="sidebar" />
-      </div>
-      <div className="home-layout">
+      <SearchBar companies={allCompanies} variant="sidebar" />
+      <div className="home-layout mt-4 md:mt-6">
         <div className="home-main min-w-0">
           <Suspense>
             <TopRankings scores={allItems} />
           </Suspense>
           <NavHighlights />
         </div>
-        <aside className="home-sidebar">
-          <div className="search-desktop-only">
-            <SearchBar companies={allCompanies} variant="sidebar" />
-          </div>
-          {movers && <MarketMovers data={movers} compact />}
-          <HomeSidebar scores={scores} dividends={dividends} />
-        </aside>
       </div>
     </>
   );
@@ -130,8 +108,6 @@ async function MainContentSection({
 
 export default function HomePage() {
   const scoresPromise = getScores().catch(() => null);
-  const dividendsPromise = getDividendsUpcoming().catch(() => null);
-  const moversPromise = getMarketMovers().catch(() => null);
   const marketIndexPromise = getMarketIndex().catch(() => null);
 
   return (
@@ -155,14 +131,14 @@ export default function HomePage() {
         <MarketIndexSection promise={marketIndexPromise} />
       </Suspense>
 
-      {/* Rankings + sidebar — streams once all data ready */}
+      {/* Rankings — streams once data ready */}
       <Suspense fallback={<div className="py-16 text-center text-[var(--text-muted)] text-sm">Loading rankings…</div>}>
         <MainContentSection
           scoresPromise={scoresPromise}
-          moversPromise={moversPromise}
-          dividendsPromise={dividendsPromise}
         />
       </Suspense>
+
+      <InsightsTeaserStrip />
     </>
   );
 }
