@@ -2846,6 +2846,127 @@ details.dsex-exp[open] > summary {
   .fr-th-star, .fr-td-star { width: 8%; padding: 10px 2px; }
 }
 
+/* Watchlist add bar */
+.watchlist-add-bar {
+  position: relative;
+  margin-bottom: 16px;
+}
+.watchlist-add-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.watchlist-add-icon {
+  position: absolute;
+  left: 14px;
+  width: 16px;
+  height: 16px;
+  color: var(--ink-muted);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+.watchlist-add-input {
+  width: 100%;
+  padding: 11px 40px 11px 40px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.watchlist-add-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
+}
+.watchlist-add-input::placeholder { color: var(--ink-muted); }
+.watchlist-add-clear {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--ink-muted);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.watchlist-add-clear:hover { color: var(--ink); }
+.watchlist-add-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  z-index: 100;
+  overflow: hidden;
+}
+.watchlist-add-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.watchlist-add-item:hover {
+  background: rgba(14, 165, 233, 0.07);
+}
+.watchlist-add-item.watched {
+  opacity: 0.7;
+  cursor: default;
+}
+.watchlist-add-code {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--primary);
+  min-width: 56px;
+}
+.watchlist-add-name {
+  flex: 1;
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.watchlist-add-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+.watchlist-add-badge.add {
+  background: rgba(14, 165, 233, 0.15);
+  color: var(--primary);
+}
+.watchlist-add-badge.done {
+  background: rgba(52, 211, 153, 0.15);
+  color: #34D399;
+}
+.watchlist-add-empty {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+  z-index: 100;
+}
+
 /* Watchlist page */
 .watchlist-empty {
   background: var(--surface);
