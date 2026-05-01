@@ -1,6 +1,15 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { getScores, getDividendsUpcoming, getMarketMovers, getMarketIndex } from "@/lib/api";
+import {
+  getScores,
+  getDividendsUpcoming,
+  getMarketMovers,
+  getMarketIndex,
+  type ScoresResponse,
+  type MarketIndexData,
+  type MarketMoversData,
+  type DividendsUpcoming,
+} from "@/lib/api";
 import SearchBar from "@/components/home/SearchBar";
 import TickerBand from "@/components/home/TickerBand";
 import TopRankings from "@/components/home/TopRankings";
@@ -45,12 +54,40 @@ const JSON_LD = {
   },
 };
 
-export default async function HomePage() {
-  const [scores, dividends, movers, marketIndex] = await Promise.all([
-    getScores().catch(() => null),
-    getDividendsUpcoming().catch(() => null),
-    getMarketMovers().catch(() => null),
-    getMarketIndex().catch(() => null),
+function allItemsFromScores(scores: ScoresResponse) {
+  return [
+    ...scores.tiers.strong_buy,
+    ...scores.tiers.safe_buy,
+    ...scores.tiers.watch,
+    ...scores.tiers.avoid,
+  ];
+}
+
+async function TickerBandSection({ promise }: { promise: Promise<ScoresResponse | null> }) {
+  const scores = await promise;
+  if (!scores) return null;
+  return <TickerBand items={allItemsFromScores(scores).slice(0, 20)} />;
+}
+
+async function MarketIndexSection({ promise }: { promise: Promise<MarketIndexData | null> }) {
+  const data = await promise;
+  if (!data) return null;
+  return <MarketIndexBanner data={data} />;
+}
+
+async function MainContentSection({
+  scoresPromise,
+  moversPromise,
+  dividendsPromise,
+}: {
+  scoresPromise: Promise<ScoresResponse | null>;
+  moversPromise: Promise<MarketMoversData | null>;
+  dividendsPromise: Promise<DividendsUpcoming | null>;
+}) {
+  const [scores, movers, dividends] = await Promise.all([
+    scoresPromise,
+    moversPromise,
+    dividendsPromise,
   ]);
 
   if (!scores) {
@@ -61,17 +98,7 @@ export default async function HomePage() {
     );
   }
 
-  const { tiers } = scores;
-
-  const allItems = [
-    ...tiers.strong_buy,
-    ...tiers.safe_buy,
-    ...tiers.watch,
-    ...tiers.avoid,
-  ];
-
-  const top20 = allItems.slice(0, 20);
-
+  const allItems = allItemsFromScores(scores);
   const allCompanies = allItems.map((c) => ({
     trading_code: c.trading_code,
     company_name: c.company_name,
@@ -79,32 +106,16 @@ export default async function HomePage() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
-
-      {/* Full-width masthead + ticker */}
-      <TickerBand items={top20} />
-      <p className="text-[11px] text-[var(--text-muted)] text-center px-2 pb-1 leading-relaxed">
-        Track <strong>DSE share price</strong> live &middot; <strong>Dhaka Stock Exchange</strong> (DSEX) rankings &middot;{" "}
-        <strong>Bangladesh stock market</strong> news &middot; <strong>DSE today</strong> signals
-      </p>
-      {marketIndex && <MarketIndexBanner data={marketIndex} />}
-
-      {/* Mobile-only search bar — above rankings on narrow screens */}
       <div className="search-mobile-top">
         <SearchBar companies={allCompanies} variant="sidebar" />
       </div>
-
-      {/* Two-column layout: main rankings (left) + sidebar (right) */}
       <div className="home-layout">
-        {/* Left: rankings */}
         <div className="home-main min-w-0">
           <Suspense>
             <TopRankings scores={allItems} />
           </Suspense>
           <NavHighlights />
         </div>
-
-        {/* Right: search, market movers, then rest of sidebar */}
         <aside className="home-sidebar">
           <div className="search-desktop-only">
             <SearchBar companies={allCompanies} variant="sidebar" />
@@ -113,6 +124,45 @@ export default async function HomePage() {
           <HomeSidebar scores={scores} dividends={dividends} />
         </aside>
       </div>
+    </>
+  );
+}
+
+export default function HomePage() {
+  const scoresPromise = getScores().catch(() => null);
+  const dividendsPromise = getDividendsUpcoming().catch(() => null);
+  const moversPromise = getMarketMovers().catch(() => null);
+  const marketIndexPromise = getMarketIndex().catch(() => null);
+
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
+
+      {/* Ticker — streams after scores; skeleton reserves exact 36px height */}
+      <Suspense fallback={<div className="rounded-[10px] bg-[#0A1628] mb-3 h-9" />}>
+        <TickerBandSection promise={scoresPromise} />
+      </Suspense>
+
+      {/* LCP candidate — static, in shell HTML immediately, no data dependency */}
+      <h1 className="sr-only">DSE Share Price Today — Dhaka Stock Exchange Rankings</h1>
+      <p className="text-[11px] text-[var(--text-muted)] text-center px-2 pb-1 leading-relaxed">
+        Track <strong>DSE share price</strong> live &middot; <strong>Dhaka Stock Exchange</strong> (DSEX) rankings &middot;{" "}
+        <strong>Bangladesh stock market</strong> news &middot; <strong>DSE today</strong> signals
+      </p>
+
+      {/* Market index banner — streams independently */}
+      <Suspense fallback={null}>
+        <MarketIndexSection promise={marketIndexPromise} />
+      </Suspense>
+
+      {/* Rankings + sidebar — streams once all data ready */}
+      <Suspense fallback={<div className="py-16 text-center text-[var(--text-muted)] text-sm">Loading rankings…</div>}>
+        <MainContentSection
+          scoresPromise={scoresPromise}
+          moversPromise={moversPromise}
+          dividendsPromise={dividendsPromise}
+        />
+      </Suspense>
     </>
   );
 }

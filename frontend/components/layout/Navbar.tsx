@@ -18,12 +18,7 @@ export default function Navbar() {
 
   const { user, isLoggedIn } = useAuth();
 
-  const [mounted, setMounted] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Close drawer on route change
   useEffect(() => {
@@ -106,24 +101,22 @@ export default function Navbar() {
             >
               Portfolio
             </Link>
-            {mounted && (
-              isLoggedIn ? (
-                <Link
-                  href="/profile"
-                  className={`navbar-intel-btn${pathname === "/profile" ? " navbar-intel-btn-active" : ""}`}
-                >
-                  {user?.display_name ?? "Profile"}
+            {isLoggedIn ? (
+              <Link
+                href="/profile"
+                className={`navbar-intel-btn${pathname === "/profile" ? " navbar-intel-btn-active" : ""}`}
+              >
+                {user?.display_name ?? "Profile"}
+              </Link>
+            ) : (
+              <>
+                <Link href="/login" className="navbar-intel-btn">
+                  Sign In
                 </Link>
-              ) : (
-                <>
-                  <Link href="/login" className="navbar-intel-btn">
-                    Sign In
-                  </Link>
-                  <Link href="/register" className="navbar-rank-btn">
-                    Sign Up
-                  </Link>
-                </>
-              )
+                <Link href="/register" className="navbar-rank-btn">
+                  Sign Up
+                </Link>
+              </>
             )}
           </nav>
 
@@ -232,35 +225,33 @@ export default function Navbar() {
           >
             Portfolio
           </Link>
-          {mounted && (
-            isLoggedIn ? (
-              <>
-                <Link
-                  href="/profile"
-                  className={`navbar-drawer-link${pathname === "/profile" ? " active" : ""}`}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {user?.display_name ?? "My Profile"}
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className={`navbar-drawer-link${pathname === "/login" ? " active" : ""}`}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/register"
-                  className={`navbar-drawer-link${pathname === "/register" ? " active" : ""}`}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Create Account
-                </Link>
-              </>
-            )
+          {isLoggedIn ? (
+            <>
+              <Link
+                href="/profile"
+                className={`navbar-drawer-link${pathname === "/profile" ? " active" : ""}`}
+                onClick={() => setMenuOpen(false)}
+              >
+                {user?.display_name ?? "My Profile"}
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className={`navbar-drawer-link${pathname === "/login" ? " active" : ""}`}
+                onClick={() => setMenuOpen(false)}
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/register"
+                className={`navbar-drawer-link${pathname === "/register" ? " active" : ""}`}
+                onClick={() => setMenuOpen(false)}
+              >
+                Create Account
+              </Link>
+            </>
           )}
         </nav>
       </div>

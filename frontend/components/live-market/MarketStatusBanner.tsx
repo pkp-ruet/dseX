@@ -27,7 +27,7 @@ export default function MarketStatusBanner({ serverTimeoutSeconds }: Props) {
     return () => clearInterval(id);
   }, []);
 
-  if (!mounted) return null;
+  if (!mounted) return <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] mb-6 h-[60px]" />;
 
   return (
     <div
