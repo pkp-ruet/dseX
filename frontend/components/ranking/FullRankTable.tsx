@@ -66,7 +66,7 @@ export default function FullRankTable({ items }: Props) {
           <thead className="fr-thead">
             <tr>
               <th className="fr-th fr-th-rank">#</th>
-              <th className="fr-th fr-th-star fr-th-hide-sm" aria-label="Watchlist"></th>
+              <th className="fr-th fr-th-star" aria-label="Watchlist"></th>
               <th className="fr-th fr-th-code">Code</th>
               <th className="fr-th fr-th-sector fr-th-hide-sm">Sector</th>
               <th className="fr-th fr-th-score">Score</th>
@@ -106,7 +106,7 @@ export default function FullRankTable({ items }: Props) {
                 <tr key={item.trading_code + idx} className="fr-row">
                   <td className="fr-td fr-td-rank">{rank}</td>
 
-                  <td className="fr-td fr-td-star fr-td-hide-sm">
+                  <td className="fr-td fr-td-star">
                     <StarButton code={item.trading_code} />
                   </td>
 

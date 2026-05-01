@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { isWatched, toggleWatchlistSynced, subscribeWatchlist } from "@/lib/watchlist";
-import { isLoggedIn } from "@/lib/auth";
 
 interface Props {
   code: string;
@@ -12,7 +10,6 @@ interface Props {
 }
 
 export default function StarButton({ code, size = "sm", className = "" }: Props) {
-  const router = useRouter();
   const [watched, setWatched] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -25,10 +22,6 @@ export default function StarButton({ code, size = "sm", className = "" }: Props)
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isLoggedIn()) {
-      router.push("/login");
-      return;
-    }
     toggleWatchlistSynced(code).then((nowWatched) => setWatched(nowWatched));
   };
 
