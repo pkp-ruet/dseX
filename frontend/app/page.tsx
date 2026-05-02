@@ -12,6 +12,7 @@ import TopRankings from "@/components/home/TopRankings";
 import MarketIndexBanner from "@/components/home/MarketIndexBanner";
 import NavHighlights from "@/components/home/NavHighlights";
 import InsightsTeaserStrip from "@/components/home/InsightsTeaserStrip";
+import PortfolioTeaserCTA from "@/components/home/PortfolioTeaserCTA";
 
 export const revalidate = 3600;
 
@@ -139,6 +140,7 @@ export default function HomePage() {
       </Suspense>
 
       <InsightsTeaserStrip />
+      <PortfolioTeaserCTA />
     </>
   );
 }
