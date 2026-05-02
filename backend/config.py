@@ -11,3 +11,9 @@ MONGODB_DB_NAME = os.getenv("MONGODB_DB_NAME", "dsex")
 JWT_SECRET = os.getenv("JWT_SECRET", secrets.token_hex(32))
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "10080"))  # 7 days
+
+ADMIN_EMAILS: set[str] = {
+    e.strip().lower()
+    for e in os.getenv("ADMIN_EMAILS", "").split(",")
+    if e.strip()
+}

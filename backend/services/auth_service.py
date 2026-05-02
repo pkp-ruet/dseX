@@ -74,7 +74,7 @@ def sanitize_user(doc: dict) -> dict:
     # Ensure email/phone always present as null if missing (sparse index omits them)
     doc.setdefault("email", None)
     doc.setdefault("phone", None)
-    for key in ("created_at", "updated_at", "last_login_at"):
+    for key in ("created_at", "updated_at", "last_login_at", "last_seen_at"):
         if key in doc and isinstance(doc[key], datetime):
             doc[key] = doc[key].isoformat()
     return doc

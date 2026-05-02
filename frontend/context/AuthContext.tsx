@@ -22,6 +22,7 @@ interface AuthContextValue {
   user: AuthUser | null;
   isLoading: boolean;
   isLoggedIn: boolean;
+  isAdmin: boolean;
   login: (token: string, user: AuthUser) => void;
   logout: () => void;
   refreshUser: () => Promise<void>;
@@ -80,9 +81,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const isAdmin = user?.is_admin === true;
+
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, isLoggedIn: !!user, login, logout, refreshUser }}
+      value={{ user, isLoading, isLoggedIn: !!user, isAdmin, login, logout, refreshUser }}
     >
       {children}
     </AuthContext.Provider>

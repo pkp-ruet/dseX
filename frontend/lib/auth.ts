@@ -10,7 +10,10 @@ export interface AuthUser {
   created_at: string;
   updated_at: string;
   last_login_at: string | null;
+  last_seen_at: string | null;
+  total_visits: number;
   is_active: boolean;
+  is_admin: boolean;
 }
 
 // ---------------------------------------------------------------------------

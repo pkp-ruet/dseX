@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.routers import scores, companies, dividends, audit, prices, market_movers, market_intelligence, market_index, stock_lists, market_live, auth, user, portfolio, dse_today
+from backend.routers import scores, companies, dividends, audit, prices, market_movers, market_intelligence, market_index, stock_lists, market_live, auth, user, portfolio, dse_today, admin
 
 app = FastAPI(title="dseX API", version="1.0.0")
 
@@ -39,6 +39,7 @@ app.include_router(auth.router)
 app.include_router(user.router)
 app.include_router(portfolio.router)
 app.include_router(dse_today.router)
+app.include_router(admin.router)
 
 
 @app.on_event("startup")

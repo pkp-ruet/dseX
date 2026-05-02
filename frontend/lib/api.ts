@@ -544,3 +544,53 @@ export async function apiDeleteHolding(id: string): Promise<void> {
     throw new Error(`Delete failed: ${res.status}`);
   }
 }
+
+// ---------------------------------------------------------------------------
+// Visit tracking
+// ---------------------------------------------------------------------------
+
+export async function apiAuthPing(): Promise<void> {
+  const token = getToken();
+  if (!token) return;
+  try {
+    await fetch(`${getApiUrl()}/api/auth/ping`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch {
+    // fire-and-forget
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Admin analytics
+// ---------------------------------------------------------------------------
+
+export interface AdminUserRow {
+  user_id: string;
+  email: string | null;
+  phone: string | null;
+  display_name: string | null;
+  is_active: boolean;
+  created_at: string;
+  last_login_at: string | null;
+  last_seen_at: string | null;
+  total_visits: number;
+}
+
+export interface AdminAnalyticsStats {
+  total_users: number;
+  new_today: number;
+  new_this_week: number;
+  new_this_month: number;
+  active_last_7d: number;
+}
+
+export interface AdminAnalyticsResponse {
+  stats: AdminAnalyticsStats;
+  users: AdminUserRow[];
+}
+
+export async function apiGetAdminAnalytics(): Promise<AdminAnalyticsResponse> {
+  return apiAuthFetch<AdminAnalyticsResponse>("/api/admin/analytics");
+}
