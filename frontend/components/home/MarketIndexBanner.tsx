@@ -154,8 +154,8 @@ export default function MarketIndexBanner({ data }: Props) {
       <div className="mib-accent-bar" style={{ background: accentBar }} />
 
       <div className="mib-title-row">
-        <Link href="/dse-today" className="mib-dse-today-btn">
-          DSE Today
+        <Link href="/market-analysis" className="mib-dse-today-btn">
+          Market Analysis
         </Link>
       </div>
 
