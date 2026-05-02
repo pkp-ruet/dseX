@@ -138,6 +138,63 @@ body::before {
   border-color: var(--accent);
 }
 
+/* ---- Navbar profile button ---- */
+.navbar-profile-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+}
+.navbar-profile-btn:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.navbar-profile-btn-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  color: var(--accent);
+}
+.navbar-profile-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  flex-shrink: 0;
+}
+.navbar-profile-name {
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.navbar-drawer-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.navbar-drawer-profile .navbar-profile-avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 0.75rem;
+}
+
 /* ---- Navbar rank button ---- */
 .navbar-rank-btn {
   display: inline-flex;

@@ -318,6 +318,29 @@ export async function getWatchlistNews(codes: string[]): Promise<WatchlistNewsIt
   return res.json() as Promise<WatchlistNewsItem[]>;
 }
 
+// ---- Market Analysis ----
+
+export interface NearExtremeItem {
+  trading_code: string;
+  company_name: string | null;
+  sector: string | null;
+  ltp: number | null;
+  w52_high: number | null;
+  w52_low: number | null;
+  gap_pct: number | null;
+  change_pct: number | null;
+}
+
+export interface NearExtremesData {
+  near_high: NearExtremeItem[];
+  near_low: NearExtremeItem[];
+  date: string | null;
+}
+
+export async function getNearExtremes(): Promise<NearExtremesData> {
+  return apiFetch<NearExtremesData>("/api/market/near-extremes", 900);
+}
+
 /** Client-side price history fetch (no Next.js cache) */
 export async function getPriceHistory(code: string, range: "1y" | "2y" | "all" = "1y"): Promise<PricePoint[]> {
   const res = await fetch(`${getApiUrl()}/api/company/${code.toUpperCase()}/prices?range=${range}`);

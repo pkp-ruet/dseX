@@ -2,6 +2,10 @@
 
 Guidance for Claude Code when working in this repository.
 
+## TESTING — HARD RULE
+
+**NEVER use preview tools.** No `preview_start`, `preview_screenshot`, `preview_snapshot`, `preview_eval`, `preview_console_logs`, or any `preview_*` tool. No browser/Chrome MCP tools for testing. User tests manually in their own browser. After edits: report what changed, stop.
+
 ## Stack
 
 - **Backend**: Python 3.11 · FastAPI · MongoDB (Atlas) · pymongo

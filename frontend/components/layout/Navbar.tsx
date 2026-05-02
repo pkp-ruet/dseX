@@ -8,7 +8,8 @@ import { useAuth } from "@/context/AuthContext";
 export default function Navbar() {
   const pathname = usePathname();
   const isRanking = pathname === "/dsestockranking";
-  const isIntel = pathname === "/market-intelligence";
+
+  const isAnalysis = pathname === "/market-analysis";
   const isWatchlist = pathname === "/watchlist";
   const isAbout = pathname === "/about";
   const isLearn = pathname === "/learn" || pathname.startsWith("/learn/");
@@ -67,10 +68,10 @@ export default function Navbar() {
               Rankings
             </Link>
             <Link
-              href="/market-intelligence"
-              className={`navbar-intel-btn${isIntel ? " navbar-intel-btn-active" : ""}`}
+              href="/market-analysis"
+              className={`navbar-intel-btn${isAnalysis ? " navbar-intel-btn-active" : ""}`}
             >
-              Market Signal
+              Market Analysis
             </Link>
             <Link
               href="/dse-today"
@@ -111,9 +112,13 @@ export default function Navbar() {
             {isLoggedIn ? (
               <Link
                 href="/profile"
-                className={`navbar-intel-btn${pathname === "/profile" ? " navbar-intel-btn-active" : ""}`}
+                className={`navbar-profile-btn${pathname === "/profile" ? " navbar-profile-btn-active" : ""}`}
+                aria-label="My Profile"
               >
-                {user?.display_name ?? "Profile"}
+                <span className="navbar-profile-avatar">
+                  {(user?.display_name ?? "U")[0].toUpperCase()}
+                </span>
+                <span className="navbar-profile-name">{user?.display_name ?? "Profile"}</span>
               </Link>
             ) : (
               <>
@@ -130,14 +135,14 @@ export default function Navbar() {
           {/* Mobile right controls — hidden on desktop via CSS */}
           <div className="navbar-mobile-controls">
             <Link
-              href="/watchlist"
-              className={`navbar-watch-btn${isWatchlist ? " navbar-watch-btn-active" : ""}`}
-              aria-label="My Watchlist"
+              href="/portfolio"
+              className={`navbar-watch-btn${isPortfolio ? " navbar-watch-btn-active" : ""}`}
+              aria-label="Portfolio"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" className="text-violet-500" aria-hidden="true">
+                <path d="M20 7h-4V5l-2-2h-4L8 5v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm-8-2h4v2h-4V5zm8 14H4V9h16v10z" />
               </svg>
-              <span className="navbar-watch-label">Watchlist</span>
+              <span className="navbar-watch-label">Portfolio</span>
             </Link>
             <button
               className="navbar-hamburger"
@@ -184,11 +189,11 @@ export default function Navbar() {
         </div>
         <nav className="navbar-drawer-nav">
           <Link
-            href="/market-intelligence"
-            className={`navbar-drawer-link${isIntel ? " active" : ""}`}
+            href="/market-analysis"
+            className={`navbar-drawer-link${isAnalysis ? " active" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
-            Market Signal
+            Market Analysis
           </Link>
           <Link
             href="/dse-today"
@@ -243,9 +248,12 @@ export default function Navbar() {
             <>
               <Link
                 href="/profile"
-                className={`navbar-drawer-link${pathname === "/profile" ? " active" : ""}`}
+                className={`navbar-drawer-link navbar-drawer-profile${pathname === "/profile" ? " active" : ""}`}
                 onClick={() => setMenuOpen(false)}
               >
+                <span className="navbar-profile-avatar">
+                  {(user?.display_name ?? "U")[0].toUpperCase()}
+                </span>
                 {user?.display_name ?? "My Profile"}
               </Link>
             </>

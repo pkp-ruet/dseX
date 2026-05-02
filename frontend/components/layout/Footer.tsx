@@ -21,7 +21,7 @@ export default function Footer() {
             <Link href="/dsestockranking" className="hover:text-[var(--primary)] transition-colors">Stock Rankings</Link>
             <Link href="/learn" className="hover:text-[var(--primary)] transition-colors">Beginner&apos;s Guide</Link>
             <Link href="/stock-insights" className="hover:text-[var(--primary)] transition-colors">Stock Insights</Link>
-            <Link href="/market-intelligence" className="hover:text-[var(--primary)] transition-colors">Market Intelligence</Link>
+            <Link href="/market-analysis" className="hover:text-[var(--primary)] transition-colors">Market Analysis</Link>
             <Link href="/about" className="hover:text-[var(--primary)] transition-colors">Behind the Score</Link>
           </nav>
           <nav className="flex flex-wrap justify-center gap-x-5 gap-y-1.5 mt-2 text-[11px] text-[var(--text-muted)] opacity-70">

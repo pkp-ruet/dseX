@@ -55,10 +55,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
-      url: `${BASE_URL}/market-intelligence`,
+      url: `${BASE_URL}/market-analysis`,
       lastModified: new Date(),
-      changeFrequency: "hourly",
-      priority: 0.7,
+      changeFrequency: "hourly" as const,
+      priority: 0.85,
     },
     {
       url: `${BASE_URL}/dse-today`,
