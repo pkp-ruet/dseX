@@ -36,14 +36,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const token = getToken();
-    if (token && !isTokenExpired(token)) {
-      const cached = getStoredUser();
-      if (cached) setUser(cached);
-    } else if (token) {
-      // expired — clear silently
-      authLogout();
+    if (!token || isTokenExpired(token)) {
+      if (token) authLogout();
+      setIsLoading(false);
+      return;
     }
-    setIsLoading(false);
+    // Show cached user immediately for fast render, but keep isLoading true
+    const cached = getStoredUser();
+    if (cached) setUser(cached);
+
+    // Refresh from server so is_admin and other server-computed fields are current
+    const API_URL =
+      process.env.NEXT_PUBLIC_API_URL || "https://dsex.onrender.com";
+    fetch(`${API_URL}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => {
+        if (res.ok) return res.json() as Promise<{ user: AuthUser }>;
+        if (res.status === 401) { authLogout(); setUser(null); }
+        return null;
+      })
+      .then((data) => {
+        if (data?.user) { setStoredUser(data.user); setUser(data.user); }
+      })
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
   }, []);
 
   const login = useCallback((token: string, u: AuthUser) => {
