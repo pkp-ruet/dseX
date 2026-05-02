@@ -17,7 +17,7 @@ import NewsSection from "@/components/stock/NewsSection";
 import SectionLabel from "@/components/ui/SectionLabel";
 
 export const revalidate = 3600;
-export const dynamicParams = false;
+export const dynamicParams = true;
 
 interface PageProps {
   params: Promise<{ code: string }>;
