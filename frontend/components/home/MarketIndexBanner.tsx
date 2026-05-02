@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { MarketIndexData } from "@/lib/api";
 
 /** Convert million BDT → crore string  e.g. 7934.264 mn → "793 Cr" */
@@ -151,6 +152,12 @@ export default function MarketIndexBanner({ data }: Props) {
   return (
     <div className="market-index-banner" role="region" aria-label="DSE Market Indices">
       <div className="mib-accent-bar" style={{ background: accentBar }} />
+
+      <div className="mib-title-row">
+        <Link href="/dse-today" className="mib-dse-today-btn">
+          DSE Today
+        </Link>
+      </div>
 
       <div className="mib-inner">
         {/* Left — index blocks */}
