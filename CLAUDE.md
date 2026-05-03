@@ -11,6 +11,8 @@ Guidance for Claude Code when working in this repository.
 - **Backend**: Python 3.11 · FastAPI · MongoDB (Atlas) · pymongo
 - **Frontend**: Next.js 15 App Router · React 19 · TypeScript · Tailwind CSS · Recharts
 - **Scrapers**: Python (requests + BeautifulSoup + lxml)
+- **Auth**: JWT (HS256) via `python-jose` · `bcrypt` for password hashing
+- **Live data**: `bdshare` (intraday DSE feed) for `/api/market-live`
 - **Deployment**: Frontend on Vercel, Backend on Render, DB on MongoDB Atlas
 
 No Streamlit. The app is Next.js + Python only.
@@ -56,26 +58,27 @@ cd frontend && npm run dev
 make dev
 
 # Scrapers
-python main.py scrape-companies      # company list
-python main.py scrape-prices         # latest stock prices
-python main.py scrape-details        # financials, dividends, shareholding
+python main.py scrape-companies        # company list
+python main.py scrape-prices           # latest stock prices
+python main.py scrape-details          # financials, dividends, shareholding
 python main.py scrape-details --code GP
-python main.py scrape-cashflow       # extended financials from Amarstock
+python main.py scrape-cashflow         # extended financials from Amarstock
 python main.py scrape-cashflow --code GP
-python main.py scrape-news           # news for top N companies
+python main.py scrape-news             # news for top N companies
 python main.py scrape-news --code GP
-python main.py scrape-all            # run all 5 scrapers sequentially
+python main.py scrape-market-summary   # DSE index values + daily totals
+python main.py scrape-all              # run all 6 scrapers sequentially (POSTs to VERCEL_DEPLOY_HOOK_URL on success if set)
 ```
 
 ## Architecture
 
-DSE (Dhaka Stock Exchange) stock data pipeline with three components:
+DSE (Dhaka Stock Exchange) stock data pipeline with four components:
 
-1. **Scrapers (`scrapers/` + `main.py`)** — CLI entrypoint orchestrating five scrapers in sequence. All scrapers inherit from `scrapers/base_scraper.py:BaseScraper` (HTTP retries, rate limiting via `REQUEST_DELAY`, user-agent rotation).
+1. **Scrapers (`scrapers/` + `main.py`)** — CLI entrypoint orchestrating six scrapers in sequence. All scrapers inherit from `scrapers/base_scraper.py:BaseScraper` (HTTP retries, rate limiting via `REQUEST_DELAY`, user-agent rotation).
 
-2. **FastAPI Backend (`backend/`)** — REST API serving the frontend. Cached query layer over MongoDB.
+2. **FastAPI Backend (`backend/`)** — REST API serving the frontend. Cached query layer over MongoDB. Exposes a JWT-authenticated user surface (`/api/auth/*`, `/api/user/*`, `/api/admin/*`) and a live intraday endpoint (`/api/market-live`) that proxies `bdshare` during market hours and falls back to the latest cached snapshot otherwise.
 
-3. **Next.js Frontend (`frontend/`)** — Production web app. ISR caching, server components for data fetching.
+3. **Next.js Frontend (`frontend/`)** — Production web app. ISR caching, server components for data fetching, client components for auth-gated views (portfolio, profile, admin).
 
 4. **Scoring (`utils/scoring.py` + `backend/services/scoring_service.py`)** — DSEF 5-pillar score (0–100) with percentile ranking: Earnings Quality (35%), Financial Health (30%), Operational Efficiency (20%), Valuation (15%), Dividend Sustainability (10%) — bank/financial sector uses adjusted weights. NaN values fill as 0.
 
@@ -88,6 +91,7 @@ DSE (Dhaka Stock Exchange) stock data pipeline with three components:
 | `scrapers/company_details.py` | Financials, dividends, shareholding → `financials`, `shareholdings`; updates `reserve_surplus_mn`, `total_loan_mn`, `total_shares` on `companies`; auto-excludes bonds, debentures, mutual funds, ETFs |
 | `scrapers/cash_flow_scraper.py` | Extended financials from Amarstock → `company_financials_ext` |
 | `scrapers/news.py` | News & dividend declarations → `company_news`, `dividend_declarations` |
+| `scrapers/market_summary.py` | DSE index values (DSEX/DSES/DS30) + daily totals → `dse_market_summary` (consumed by `/api/market-index` and `/api/dse-today`) |
 
 ### MongoDB
 
@@ -102,6 +106,8 @@ Connection is a module-level singleton in `db/connection.py` (`get_db()` / `clos
 | `company_financials_ext` | `(trading_code, year)` |
 | `company_news` | `(trading_code, post_date, title)` |
 | `dividend_declarations` | `trading_code` |
+| `dse_market_summary` | `(date)` |
+| `users` | `(user_id)`, `(email)`, `(phone)` — created at backend startup by `auth_service.ensure_users_indexes()` |
 
 Scrapers must use upsert logic to avoid duplicates.
 
@@ -111,45 +117,71 @@ Scrapers must use upsert logic to avoid duplicates.
 
 | Route | File | Purpose |
 |---|---|---|
-| `/` | `app/page.tsx` | Homepage: ticker band, market index, filterable DSEF rankings, sidebar |
-| `/dsestockranking` | `app/dsestockranking/page.tsx` | Full leaderboard with tier stat cards |
-| `/market-intelligence` | `app/market-intelligence/page.tsx` | Auto-detects falling/rising/sideways, shows signal tables |
+| `/` | `app/page.tsx` | Homepage: ticker band, market index banner, top rankings, sidebar, insight + portfolio teasers |
+| `/dsestockranking` | `app/dsestockranking/page.tsx` | Full DSEF leaderboard with tier stat cards |
+| `/stocks` | `app/stocks/page.tsx` | Full A–Z stock table |
 | `/stock/[code]` | `app/stock/[code]/page.tsx` | Stock detail: chart, financials, cash flow, dividends, shareholding, signals, news |
-| `/watchlist` | `app/watchlist/page.tsx` | User's saved tickers (localStorage, no auth) |
+| `/market-intelligence` | `app/market-intelligence/page.tsx` | Auto-detects falling/rising/sideways, shows signal tables |
+| `/market-analysis` | `app/market-analysis/page.tsx` | Pulse, sentiment, near-extremes, trending, top picks |
+| `/live-market` | `app/live-market/page.tsx` | Intraday tape (bdshare proxy via `/api/market-live`) |
+| `/dse-today` | `app/dse-today/page.tsx` | Today's market header + table + news (single-bundle endpoint) |
+| `/stock-insights`, `/stock-insights/[slug]` | `app/stock-insights/...` | Curated insight cards (SEO content) |
+| `/learn`, `/learn/[slug]` | `app/learn/...` | Educational guides (SEO content, data from `lib/guides.ts`) |
+| `/watchlist` | `app/watchlist/page.tsx` | Saved tickers + watchlist news |
+| `/portfolio` | `app/portfolio/page.tsx` | Holdings tracker (auth-gated) |
+| `/login`, `/register`, `/profile` | `app/{login,register,profile}/page.tsx` | Auth flow |
+| `/admin/analytics` | `app/admin/analytics/page.tsx` | Admin user analytics (admin-only, gated by `ADMIN_EMAILS`) |
+| `/about`, `/contact`, `/disclaimer`, `/privacy-policy` | static legal/info pages |
 
 **Navigation (`components/layout/Navbar.tsx`):**
-- Logo → `/`
-- Watchlist (star icon, badge with count) → `/watchlist`
-- "Market Intelligence" (outlined) → `/market-intelligence`
-- "Score Leaderboard" (filled) → `/dsestockranking`
+- Brand → `/` (TopStockBD)
+- Watchlist (star icon) → `/watchlist`
+- Rankings → `/dsestockranking`
+- Market Analysis → `/market-analysis`
+- DSE Today → `/dse-today`
+- Browse Stocks → `/stocks`
+- Stock Insights → `/stock-insights`
+- Blogs → `/learn`
+- About → `/about`
+- Portfolio → `/portfolio`
+- When logged in: Profile pill (avatar + display name) → `/profile`
+- When logged out: Sign In → `/login`, Sign Up → `/register`
+- Mobile: hamburger drawer + portfolio shortcut; standalone `MobileBottomBar.tsx` is also rendered on small screens
 
 **Component tree:**
 
 ```
 components/
 ├── layout/
-│   ├── Navbar.tsx
-│   └── Footer.tsx
+│   ├── Navbar.tsx, Footer.tsx, MobileBottomBar.tsx
 ├── home/
-│   ├── Masthead.tsx, SearchBar.tsx
-│   ├── TickerBand.tsx          — top-20 ticker scroll
-│   ├── MarketMovers.tsx        — gainers / losers / most-traded strip
-│   ├── MarketIntelStrip.tsx    — upcoming dividend declarations
-│   ├── FilterableRankings.tsx, FilterBar.tsx
+│   ├── Masthead.tsx, SearchBar.tsx, HeroBand.tsx, NavHighlights.tsx
+│   ├── TickerBand.tsx, MarketIndexBanner.tsx
+│   ├── MarketMovers.tsx, MarketIntelStrip.tsx
+│   ├── TopRankings.tsx, FilterBar.tsx
 │   ├── HowWeScoreBox.tsx, HomeSidebar.tsx
-│   ├── RankRow.tsx             — single ranked row (with star button)
-│   ├── TierTableSection.tsx, TierDetailsSection.tsx, TierHeader.tsx
-│   ├── HeroBand.tsx
+│   ├── InsightsTeaserStrip.tsx, PortfolioTeaserCTA.tsx
 │   └── sidebar/
 │       ├── ScoreOverview.tsx, SectorLeaderboard.tsx
 │       ├── TopEPS.tsx, TopDividends.tsx, UpcomingEvents.tsx
 ├── ranking/
-│   ├── FullRankTable.tsx       — full sortable rank table (with star column)
-│   └── TierStatCards.tsx
+│   ├── FullRankTable.tsx, TierStatCards.tsx
 ├── market-intelligence/
-│   ├── ConditionBanner.tsx     — falling (red) / rising (green) / sideways (amber)
-│   ├── SignalTable.tsx         — 4-col table (code · LTP · chg% · metric)
-│   └── SectorMap.tsx           — horizontal bar chart of sector avg change%
+│   ├── ConditionBanner.tsx, SignalTable.tsx, SectorMap.tsx
+├── market-analysis/
+│   ├── MarketPulseStrip.tsx, SentimentGauge.tsx, CatalystStrip.tsx
+│   ├── NearExtremesPanel.tsx, TrendingStocksGrid.tsx
+│   ├── TopPicksTabs.tsx, VolumeSurgeList.tsx
+├── live-market/
+│   ├── LiveMarketClient.tsx, MarketStatusBanner.tsx, LiveRefreshBadge.tsx
+│   ├── IndexStrip.tsx, BreadthBar.tsx, SectorHeatmap.tsx
+│   ├── GainersLosers.tsx, WhatsHot.tsx, LivePricesTable.tsx, PSNTicker.tsx
+├── dse-today/
+│   ├── DseTodayHeader.tsx, DseTodayTable.tsx, DseTodayNews.tsx
+├── stocks/
+│   └── StocksTable.tsx
+├── stock-insights/
+│   └── InsightCard.tsx
 ├── stock/
 │   ├── HeroSection.tsx, QuickSummary.tsx, MetricStrip.tsx, SectionNav.tsx
 │   ├── PriceChart.tsx, FinancialCharts.tsx, CashFlowPanel.tsx
@@ -157,17 +189,23 @@ components/
 │   ├── ShareholdingPie.tsx, CompanyFundamentals.tsx
 │   ├── PillarScores.tsx, ValuationCard.tsx, SignalFlags.tsx, VerdictBar.tsx
 ├── watchlist/
-│   └── WatchlistTable.tsx
+│   ├── WatchlistTable.tsx, WatchlistNews.tsx
+├── portfolio/
+│   └── PortfolioClient.tsx
+├── admin/
+│   └── AdminAnalyticsClient.tsx
+├── analytics/
+│   └── PingTracker.tsx          — fires apiAuthPing on page transitions
 └── ui/
     ├── ScoreBadge.tsx, TierPill.tsx, SectionLabel.tsx
-    └── StarButton.tsx          — toggleable watchlist star
+    ├── StarButton.tsx, ThemeToggle.tsx
 ```
 
 **Watchlist (`lib/watchlist.ts`):**
 - localStorage key: `dsex.watchlist` (string[] of trading codes, uppercase)
 - API: `getWatchlist()`, `isWatched(code)`, `addToWatchlist(code)`, `removeFromWatchlist(code)`, `toggleWatchlist(code)`, `subscribeWatchlist(cb)`
 - Custom event `dsex:watchlist-change` fires on every mutation; navbar badge + StarButton state listen to it
-- No auth, no backend storage
+- When the user is logged in, the same set is also synced to the server via `apiGetWatchlist` / `apiSetWatchlist` / `apiAddToWatchlist` / `apiRemoveFromWatchlist`. localStorage remains the source of truth for unauthenticated users.
 
 **Market Intelligence layout by condition:**
 
@@ -179,6 +217,8 @@ components/
 | All | — | Sector Map (full width, bottom) — except falling |
 
 **API client (`frontend/lib/api.ts`):**
+
+Public / cached (Next ISR):
 - `getScores()` → `/api/scores` (3600s)
 - `getMarketMovers()` → `/api/market-movers` (3600s)
 - `getMarketIndex()` → `/api/market-index` (900s)
@@ -186,26 +226,71 @@ components/
 - `getMarketIntelligence()` → `/api/market-intelligence` (900s)
 - `getCompanyDetail(code)` → `/api/company/:code` (3600s)
 - `getAllCodes()` → `/api/companies/codes` (3600s)
-- `getPriceHistory(code, range)` → client-side, no cache
+- `getDseToday()` → `/api/dse-today` (900s)
+- `getStockLists()` → `/api/stock-lists` (3600s)
+- `getNearExtremes()` → `/api/market/near-extremes` (900s)
+- `getInsightScores()` — flattens all tiers from `/api/scores`
+
+Client-side, no cache:
+- `getPriceHistory(code, range)` → `/api/company/:code/prices?range=`
+- `getMarketLive()` → `/api/market-live` (`cache: "no-store"`)
+- `getWatchlistNews(codes)` → `/api/news/multi?codes=...`
+- `apiAuthPing()` → `/api/auth/ping` (fire-and-forget visit tracking)
+
+Auth (Bearer token via `lib/auth.ts`):
+- `apiRegister`, `apiLogin`, `apiGetMe` → `/api/auth/{register,login,me}`
+- `apiGetWatchlist`, `apiSetWatchlist`, `apiAddToWatchlist`, `apiRemoveFromWatchlist` → `/api/user/watchlist*`
+- `apiGetPortfolio`, `apiAddHolding`, `apiUpdateHolding`, `apiDeleteHolding` → `/api/user/portfolio*`
+- `apiGetAdminAnalytics` → `/api/admin/analytics`
+
+A 401 response from `apiAuthFetch` triggers `logout()` and throws `AUTH_EXPIRED`.
+
+**Other lib utilities (`frontend/lib/`):**
+- `auth.ts` — `AuthUser` type, `getToken()`, `logout()`; token persisted in localStorage
+- `stock-lists.ts` — curated list definitions consumed by `/stock-insights` (large file, ~34 KB)
+- `guides.ts` — learn-page content (~14 KB)
+- `insight-utils.ts`, `verdict.ts` — shared insight / verdict helpers
+- `formatters.ts`, `constants.ts`, `market-hours.ts` — formatting + market-open utilities
+
+**Frontend env vars:**
+- `API_URL` (server-side fetching, recommended for prod) and `NEXT_PUBLIC_API_URL` (browser + server fallback) — both default to `https://dsex.onrender.com`
 
 ### FastAPI Backend (`backend/`)
 
-**Routers:**
+**Routers** (all registered in `backend/main.py`):
 
-| File | Endpoint | Purpose |
+| File | Endpoint(s) | Purpose |
 |---|---|---|
 | `routers/scores.py` | `GET /api/scores`, `POST /api/scores/refresh` | DSEF tiers; refresh clears cache |
-| `routers/companies.py` | `GET /api/companies/codes`, `GET /api/company/:code` | Company list + detail |
+| `routers/companies.py` | `GET /api/companies/codes`, `GET /api/company/:code`, `GET /api/news/multi?codes=` | Company list + detail + multi-code news |
 | `routers/prices.py` | `GET /api/company/:code/prices?range=` | Price history |
 | `routers/market_movers.py` | `GET /api/market-movers` | Top 5 gainers / losers / most-traded |
 | `routers/market_index.py` | `GET /api/market-index` | DSEX / DSES / DS30 + totals |
 | `routers/market_intelligence.py` | `GET /api/market-intelligence` | Market condition + signal tables |
+| `routers/market_analysis.py` | `GET /api/market/near-extremes` | Stocks within 5% of 52-week high/low |
 | `routers/dividends.py` | `GET /api/dividends/upcoming` | Upcoming declarations + record dates |
 | `routers/audit.py` | `GET /api/audit` | Data coverage report |
+| `routers/stock_lists.py` | `GET /api/stock-lists` | Pre-computed top-20 lists (dividend, EPS, profit, market cap, growth, volume, 52w return, sector slices) |
+| `routers/market_live.py` | `GET /api/market-live` | Intraday snapshot via `bdshare` (with DSE HTML scrape fallback); returns prices, index, breadth, sectors, PSN news |
+| `routers/dse_today.py` | `GET /api/dse-today` | Bundle: header + movers + intelligence + table + news |
+| `routers/auth.py` | `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/ping` | Account creation, login, current user, visit ping |
+| `routers/user.py` | `GET/PUT /api/user/watchlist`, `PATCH /api/user/watchlist/add`, `PATCH /api/user/watchlist/remove`, `PATCH /api/user/profile` | User watchlist + profile updates |
+| `routers/portfolio.py` | `GET /api/user/portfolio`, `POST /api/user/portfolio/holdings`, `PUT/DELETE /api/user/portfolio/holdings/:id` | Portfolio CRUD |
+| `routers/admin.py` | `GET /api/admin/analytics` | User analytics (admin-only via `ADMIN_EMAILS`) |
 
-**Service layer (`backend/services/db_service.py`):**
-All query helpers use `@_ttl_cache(300)` (5-min in-memory TTL).
-Key functions: `load_companies()`, `load_latest_prices()`, `load_price_history(code)`, `load_market_movers()`, `compute_market_intelligence()`, `compute_signal_flags()`.
+App-level: `GET /health` (DB ping + JSON), `HEAD /health` (uptime monitor short-circuit), CORS allowlist via `ALLOWED_ORIGINS` plus a regex for `*.vercel.app`.
+
+**Auth dependency chain:** `routers/auth.py` exports `get_current_user` (Bearer → JWT decode → `users` lookup) and `get_current_admin_user` (additional `ADMIN_EMAILS` check). All `/api/user/*`, `/api/admin/*` endpoints depend on these.
+
+**Service layer (`backend/services/`):**
+
+- `db_service.py` — cached query layer (`@_ttl_cache(300)`, 5-min in-memory TTL).
+  Key functions: `load_companies`, `load_latest_prices`, `load_price_history`, `load_financials`, `load_extended_financials`, `load_shareholdings`, `load_company_news`, `load_dividend_declarations`, `load_market_movers`, `load_market_index`, `load_dse_today_table`, `load_market_news`, `load_news_for_codes`, `load_all_company_codes`, `compute_market_intelligence`, `compute_signal_flags`, `compute_52w_range`.
+- `scoring_service.py` — DSEF scoring pipeline (`build_scores_df`), used by `scores.py` and `stock_lists.py`.
+- `auth_service.py` — bcrypt password hashing, JWT issue/verify, `create_user`, `authenticate_user`, `get_user_by_id`, `get_user_watchlist`, `update_user_watchlist`, `sanitize_user`, `ensure_users_indexes()` (called at FastAPI startup).
+- `market_hours.py` — `is_market_open()`, `market_session_info()` for `/api/market-live` gating (DSE hours in Bangladesh Standard Time, UTC+6).
+
+**Models (`backend/models/responses.py`):** Pydantic response schemas — `ScoreItem`, `ScoreTiers`, `ScoresResponse`, `LatestPrice`, `CompanyProfile`, `CompanyDetailResponse`, `MarketMoversResponse`, `DseTodayResponse`, etc. Used as `response_model=` on the relevant router endpoints.
 
 **Market intelligence logic (`compute_market_intelligence`):**
 - Latest day: `avg_change < -0.3%` or `loser_ratio > 60%` → falling; `> +0.3%` or `gainer_ratio > 60%` → rising; else sideways
@@ -226,13 +311,18 @@ Key functions: `load_companies()`, `load_latest_prices()`, `load_price_history(c
 
 ### Configuration
 
-Tunables live in `config.py`, sourced from `.env` via `python-dotenv`.
+Two `config.py` files exist:
+
+- `config.py` (root) — scrapers, MongoDB, DSE URLs, news + request tunables, DCF rates.
+- `backend/config.py` — JWT settings, admin emails. Loads `.env` from the project root.
+
+Both are sourced from `.env` via `python-dotenv`.
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `MONGODB_URI` | — | MongoDB connection string |
-| `MONGODB_DB_NAME` | — | Database name |
-| `REQUEST_DELAY` | 1.5s | HTTP request delay |
+| `MONGODB_URI` | `mongodb://localhost:27017` | MongoDB connection string |
+| `MONGODB_DB_NAME` | `dsex` | Database name |
+| `REQUEST_DELAY` | 1.5s | HTTP request delay (scrapers) |
 | `REQUEST_TIMEOUT` | — | HTTP timeout |
 | `MAX_RETRIES` | — | Retry attempts |
 | `NEWS_LOOKBACK_DAYS` | 365 | News lookback window |
@@ -240,5 +330,19 @@ Tunables live in `config.py`, sourced from `.env` via `python-dotenv`.
 | `AMARSTOCK_BASE_URL` | — | Amarstock base URL |
 | `DISCOUNT_RATE` | — | DCF discount rate |
 | `TERMINAL_GROWTH_RATE` | — | DCF terminal growth |
+| `ALLOWED_ORIGINS` | localhost:3000, vercel, dsex.app, topstockbd.com (CSV) | Backend CORS allowlist |
+| `JWT_SECRET` | random per process restart | JWT signing secret — **set explicitly on Render**, otherwise tokens invalidate on every redeploy |
+| `JWT_ALGORITHM` | `HS256` | JWT algorithm |
+| `JWT_EXPIRE_MINUTES` | 10080 (7 days) | Token lifetime |
+| `ADMIN_EMAILS` | empty | CSV of emails granted access to `/api/admin/*` |
+| `VERCEL_DEPLOY_HOOK_URL` | unset | Optional — `scrape-all` POSTs here on success to trigger a Vercel rebuild |
+| `API_URL` / `NEXT_PUBLIC_API_URL` | `https://dsex.onrender.com` | Frontend → backend base URL (server-side / browser) |
 
-DSE URL constants also live in `config.py`.
+DSE URL constants also live in the root `config.py`.
+
+### Backend dependencies
+
+`backend/requirements.txt` adds three deps beyond the scraper baseline:
+- `bdshare>=1.2.1` — intraday DSE feed for `/api/market-live`
+- `python-jose[cryptography]==3.3.0` — JWT issue/verify
+- `bcrypt==4.0.1` — password hashing
