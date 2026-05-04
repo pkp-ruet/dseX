@@ -6,6 +6,7 @@ from db.models import ensure_indexes
 from db.connection import close_connection
 from scrapers.company_list import CompanyListScraper
 from scrapers.stock_price import StockPriceScraper
+from scrapers.historical_prices import HistoricalPriceScraper
 from scrapers.company_details import CompanyDetailsScraper
 from scrapers.news import NewsScraper
 from scrapers.cash_flow_scraper import CashFlowScraper
@@ -32,6 +33,28 @@ def cmd_scrape_prices(_args):
     scraper = StockPriceScraper()
     prices = scraper.run()
     print(f"Done. Prices scraped for {len(prices)} companies.")
+
+
+def cmd_scrape_historical_prices(args):
+    from db.connection import get_db
+
+    db = get_db()
+    if args.code:
+        codes = [args.code]
+    else:
+        codes = [
+            doc["trading_code"]
+            for doc in db.companies.find({"excluded": {"$ne": True}}, {"trading_code": 1, "_id": 0})
+        ]
+
+    if not codes:
+        print("No companies found. Run 'scrape-companies' first.")
+        return
+
+    print(f"Backfilling {args.years} year(s) of historical prices for {len(codes)} companies...")
+    scraper = HistoricalPriceScraper(years=args.years)
+    inserted, modified = scraper.run(codes)
+    print(f"Done. {inserted} new rows, {modified} updated.")
 
 
 def _get_scored_codes(db):
@@ -194,6 +217,22 @@ def main():
     sub.add_parser("scrape-companies", help="Scrape the list of all DSE companies")
     sub.add_parser("scrape-prices", help="Scrape latest stock prices for all companies")
 
+    hist_parser = sub.add_parser(
+        "scrape-historical-prices",
+        help="Backfill multi-year daily OHLCV history into stock_prices (one-shot)",
+    )
+    hist_parser.add_argument(
+        "--code",
+        default=None,
+        help="Backfill a single company by trading code (e.g. GP)",
+    )
+    hist_parser.add_argument(
+        "--years",
+        type=int,
+        default=4,
+        help="Number of years of history to backfill (default: 4)",
+    )
+
     cashflow_parser = sub.add_parser(
         "scrape-cashflow",
         help="Scrape cash flow & financial statement data from amarstock.com",
@@ -248,6 +287,7 @@ def main():
     commands = {
         "scrape-companies":      cmd_scrape_companies,
         "scrape-prices":         cmd_scrape_prices,
+        "scrape-historical-prices": cmd_scrape_historical_prices,
         "scrape-details":        cmd_scrape_details,
         "scrape-cashflow":       cmd_scrape_cashflow,
         "scrape-news":           cmd_scrape_news,

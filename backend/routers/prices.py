@@ -17,6 +17,10 @@ def get_price_history(code: str, range: str = "1y") -> list[dict]:
         cutoff = (datetime.now() - timedelta(days=365)).isoformat()
     elif range == "2y":
         cutoff = (datetime.now() - timedelta(days=730)).isoformat()
+    elif range == "3y":
+        cutoff = (datetime.now() - timedelta(days=3 * 365)).isoformat()
+    elif range == "5y":
+        cutoff = (datetime.now() - timedelta(days=5 * 365)).isoformat()
     else:
         cutoff = None
 

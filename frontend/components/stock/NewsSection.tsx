@@ -1,13 +1,12 @@
 "use client";
 import { useState } from "react";
-import SectionLabel from "@/components/ui/SectionLabel";
 import NewsCard from "./NewsCard";
 
 interface Props {
   news: { title: string; post_date: string; body: string }[];
 }
 
-const INITIAL_COUNT = 5;
+const INITIAL_COUNT = 3;
 
 export default function NewsSection({ news }: Props) {
   const [showAll, setShowAll] = useState(false);
@@ -18,7 +17,14 @@ export default function NewsSection({ news }: Props) {
   const hasMore = news.length > INITIAL_COUNT;
 
   return (
-    <div className="mb-4">
+    <section className="mb-8">
+      <h2 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: "#F1F5F9" }}>
+        What's New
+      </h2>
+      <p className="text-sm mb-5" style={{ color: "#CBD5E1" }}>
+        Recent news and announcements about this company.
+      </p>
+
       <div className="space-y-2">
         {visible.map((item, i) => (
           <NewsCard
@@ -32,11 +38,16 @@ export default function NewsSection({ news }: Props) {
       {hasMore && !showAll && (
         <button
           onClick={() => setShowAll(true)}
-          className="mt-3 text-sm font-medium text-[var(--primary)] hover:underline"
+          className="mt-4 text-sm font-semibold px-4 py-2 rounded-full transition-colors"
+          style={{
+            color: "#38BDF8",
+            background: "rgba(56,189,248,0.08)",
+            border: "1px solid rgba(56,189,248,0.25)",
+          }}
         >
-          Show all {news.length} news items
+          Show all {news.length} news items →
         </button>
       )}
-    </div>
+    </section>
   );
 }

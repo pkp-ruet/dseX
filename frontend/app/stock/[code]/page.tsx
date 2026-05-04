@@ -3,18 +3,13 @@ import { notFound } from "next/navigation";
 import { getAllCodes, getCompanyDetail } from "@/lib/api";
 import { getTier, TIER_LABELS } from "@/lib/constants";
 import HeroSection from "@/components/stock/HeroSection";
-import QuickSummary from "@/components/stock/QuickSummary";
-import MetricStrip from "@/components/stock/MetricStrip";
-import SectionNav from "@/components/stock/SectionNav";
-import PillarScores from "@/components/stock/PillarScores";
-import ValuationCard from "@/components/stock/ValuationCard";
-import FinancialCharts from "@/components/stock/FinancialCharts";
-import CashFlowPanel from "@/components/stock/CashFlowPanel";
-import DividendSection from "@/components/stock/DividendSection";
+import PriceChart from "@/components/stock/PriceChart";
+import VerdictHero from "@/components/stock/VerdictHero";
+import HealthCheck from "@/components/stock/HealthCheck";
+import KeyNumbers from "@/components/stock/KeyNumbers";
+import ProfitsAndDividends from "@/components/stock/ProfitsAndDividends";
 import ShareholdingPie from "@/components/stock/ShareholdingPie";
-import CompanyFundamentals from "@/components/stock/CompanyFundamentals";
 import NewsSection from "@/components/stock/NewsSection";
-import SectionLabel from "@/components/ui/SectionLabel";
 
 export const revalidate = 3600;
 export const dynamicParams = true;
@@ -82,12 +77,11 @@ export default async function StockDetailPage({ params }: PageProps) {
   const detail = await getCompanyDetail(code).catch(() => null);
   if (!detail) notFound();
 
-  const { profile, score_row, signal_flags, financials, extended_financials,
+  const { profile, score_row, financials, extended_financials,
           shareholding, dividend_declaration, news } = detail;
 
   const score = score_row?.score as number | null;
 
-  // JSON-LD
   const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
   const jsonLd = {
     "@context": "https://schema.org",
@@ -119,61 +113,33 @@ export default async function StockDetailPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
 
-      {/* ZONE 1: Hero */}
+      {/* Chapter 1 — The Stock at a Glance */}
       <HeroSection detail={detail} />
 
-      {/* ZONE 2: Quick Summary */}
-      <QuickSummary detail={detail} />
+      {/* Chapter 2 — The Price Story */}
+      <PriceChart code={profile.trading_code} />
 
-      {/* ZONE 3: Metric Strip */}
-      <MetricStrip detail={detail} />
+      {/* Chapter 3 — Our Verdict */}
+      <VerdictHero detail={detail} />
 
-      {/* ZONE 4: Section Navigation */}
-      <SectionNav />
+      {/* Chapter 4 — The Health Check */}
+      {score_row && <HealthCheck scoreRow={score_row} />}
 
-      {/* ZONE 5: Content Sections */}
+      {/* Key Numbers — raw metrics reference */}
+      <KeyNumbers detail={detail} />
 
-      {/* Performance */}
-      <div id="section-performance" className="scroll-mt-14">
-        <SectionLabel>Performance</SectionLabel>
-        {(financials.length > 0 || extended_financials.length > 0) && (
-          <FinancialCharts financials={financials} extFinancials={extended_financials} />
-        )}
-      </div>
+      {/* Chapter 5 — Profits & Dividends */}
+      {(financials.length > 0) && (
+        <ProfitsAndDividends
+          financials={financials}
+          extFinancials={extended_financials}
+          declaration={dividend_declaration}
+        />
+      )}
 
-      {/* Valuation & Quality */}
-      <div id="section-valuation" className="scroll-mt-14">
-        <SectionLabel>Valuation & Quality</SectionLabel>
-        {score_row && <PillarScores scoreRow={score_row} />}
-        <ValuationCard detail={detail} />
-        {extended_financials.length > 0 && (
-          <CashFlowPanel extFinancials={extended_financials} />
-        )}
-      </div>
-
-      {/* Dividends */}
-      <div id="section-dividends" className="scroll-mt-14">
-        {financials.length > 0 && (
-          <DividendSection
-            financials={financials}
-            declaration={dividend_declaration}
-            faceValue={profile.face_value}
-          />
-        )}
-      </div>
-
-      {/* Ownership & Fundamentals */}
-      <div id="section-ownership" className="scroll-mt-14">
-        <SectionLabel>Ownership & Fundamentals</SectionLabel>
-        <ShareholdingPie shareholding={shareholding} />
-        <CompanyFundamentals profile={profile} />
-      </div>
-
-      {/* News */}
-      <div id="section-news" className="scroll-mt-14">
-        <SectionLabel>News</SectionLabel>
-        <NewsSection news={news} />
-      </div>
+      {/* Chapter 6 — Who Owns It & What's New */}
+      <ShareholdingPie shareholding={shareholding} />
+      <NewsSection news={news} />
     </>
   );
 }

@@ -342,7 +342,7 @@ export async function getNearExtremes(): Promise<NearExtremesData> {
 }
 
 /** Client-side price history fetch (no Next.js cache) */
-export async function getPriceHistory(code: string, range: "1y" | "2y" | "all" = "1y"): Promise<PricePoint[]> {
+export async function getPriceHistory(code: string, range: "1y" | "2y" | "3y" | "all" = "1y"): Promise<PricePoint[]> {
   const res = await fetch(`${getApiUrl()}/api/company/${code.toUpperCase()}/prices?range=${range}`);
   if (!res.ok) throw new Error(`Price history fetch failed: ${res.status}`);
   return res.json() as Promise<PricePoint[]>;

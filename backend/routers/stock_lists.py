@@ -72,7 +72,7 @@ def _compute_stock_lists() -> dict:
     # --- 52-week high/low for return calculation ---
     one_year_ago = datetime.now(timezone.utc) - timedelta(days=365)
     pipeline_52w = [
-        {"$match": {"date": {"$gte": one_year_ago}}},
+        {"$match": {"date": {"$gte": one_year_ago}, "ltp": {"$gt": 0}}},
         {"$group": {
             "_id": "$trading_code",
             "w52_low": {"$min": "$ltp"},

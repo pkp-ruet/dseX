@@ -45,7 +45,7 @@ def _compute_near_extremes() -> dict:
     one_year_ago = datetime.now(timezone.utc) - timedelta(days=365)
 
     pipeline = [
-        {"$match": {"date": {"$gte": one_year_ago}, "ltp": {"$ne": None}}},
+        {"$match": {"date": {"$gte": one_year_ago}, "ltp": {"$gt": 0}}},
         {"$group": {
             "_id": "$trading_code",
             "w52_high": {"$max": "$ltp"},

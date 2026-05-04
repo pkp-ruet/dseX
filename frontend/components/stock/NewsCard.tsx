@@ -37,8 +37,8 @@ export default function NewsCard({ title, body, postDate }: Props) {
       </button>
       {body && (
         <div
-          className={`px-4 pb-3 text-xs leading-relaxed transition-all ${expanded ? "" : "line-clamp-2"}`}
-          style={{ color: "#94A3B8" }}
+          className={`px-4 pb-3 text-sm leading-relaxed transition-all ${expanded ? "" : "line-clamp-2"}`}
+          style={{ color: "#CBD5E1" }}
         >
           {body}
         </div>

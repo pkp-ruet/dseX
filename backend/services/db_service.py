@@ -647,7 +647,7 @@ def compute_52w_range(price_history: list[dict]) -> tuple[Optional[float], Optio
     vals = [
         d["ltp"]
         for d in price_history
-        if "ltp" in d and d.get("date", "") >= cutoff and d["ltp"] is not None
+        if "ltp" in d and d.get("date", "") >= cutoff and d["ltp"] is not None and d["ltp"] > 0
     ]
     if not vals:
         return None, None

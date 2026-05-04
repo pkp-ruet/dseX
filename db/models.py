@@ -15,6 +15,11 @@ def ensure_indexes():
         unique=True,
     )
 
+    # Supports sort=[("date", -1)] used by load_market_movers,
+    # load_dse_today_table, compute_market_intelligence — without it,
+    # Atlas free-tier hits the 32MB in-memory sort cap once stock_prices grows.
+    db.stock_prices.create_index([("date", ASCENDING)])
+
     db.financials.create_index(
         [("trading_code", ASCENDING), ("year", ASCENDING)],
         unique=True,
