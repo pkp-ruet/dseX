@@ -71,6 +71,15 @@ class DividendDeclaration(BaseModel):
     dividend_type: Optional[str] = None
 
 
+class RelatedStock(BaseModel):
+    trading_code: str
+    company_name: Optional[str] = None
+    sector: Optional[str] = None
+    score: Optional[float] = None
+    ltp: Optional[float] = None
+    change_pct: Optional[float] = None
+
+
 class CompanyDetailResponse(BaseModel):
     profile: CompanyProfile
     latest_price: LatestPrice
@@ -81,6 +90,7 @@ class CompanyDetailResponse(BaseModel):
     shareholding: Optional[dict[str, Any]] = None
     dividend_declaration: Optional[DividendDeclaration] = None
     news: list[dict[str, Any]]
+    related_stocks: list[RelatedStock] = []
 
 
 class UpcomingDividend(BaseModel):

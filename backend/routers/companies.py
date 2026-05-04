@@ -6,10 +6,10 @@ from backend.services.db_service import (
     load_company_news, load_dividend_declarations, load_all_company_codes,
     compute_52w_range, compute_signal_flags, load_news_for_codes,
 )
-from backend.services.scoring_service import get_company_score_row
+from backend.services.scoring_service import get_company_score_row, build_scores_df
 from backend.models.responses import (
     CompanyDetailResponse, CompanyProfile, LatestPrice,
-    SignalFlags, DividendDeclaration,
+    SignalFlags, DividendDeclaration, RelatedStock,
 )
 
 router = APIRouter()
@@ -74,6 +74,38 @@ def get_company_detail(code: str):
             for k, v in score_row.items()
         }
 
+    # Related stocks: same sector, ranked by DSEF score, top 5 (excluding self)
+    related: list[RelatedStock] = []
+    sector = company.get("sector")
+    if sector:
+        scores_df = build_scores_df()
+        if not scores_df.empty:
+            same_sector = scores_df[
+                (scores_df["sector"] == sector)
+                & (scores_df["trading_code"] != trading_code)
+            ].sort_values("score", ascending=False, na_position="last").head(5)
+
+            def _clean(v):
+                if isinstance(v, float) and math.isnan(v):
+                    return None
+                return v
+
+            from backend.services.db_service import load_companies
+            companies_by_code = {c["trading_code"]: c for c in load_companies()}
+
+            for _, r in same_sector.iterrows():
+                rc = r["trading_code"]
+                comp = companies_by_code.get(rc, {})
+                px = prices.get(rc, {})
+                related.append(RelatedStock(
+                    trading_code=rc,
+                    company_name=comp.get("company_name"),
+                    sector=_clean(r.get("sector")),
+                    score=_clean(r.get("score")),
+                    ltp=_clean(r.get("ltp")),
+                    change_pct=_clean(px.get("change_pct")),
+                ))
+
     return CompanyDetailResponse(
         profile=CompanyProfile(
             trading_code=trading_code,
@@ -105,4 +137,5 @@ def get_company_detail(code: str):
         shareholding=shareholding,
         dividend_declaration=div_decl_model,
         news=news,
+        related_stocks=related,
     )

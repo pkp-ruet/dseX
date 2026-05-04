@@ -2,14 +2,29 @@
  * Backend base URL (no trailing slash).
  * On Vercel, set **`API_URL`** for server-side fetching (recommended for prod).
  * **`NEXT_PUBLIC_API_URL`** is used in the browser and as a server fallback.
+ *
+ * If neither env var is set, this auto-detects localhost (browser hostname or
+ * `NODE_ENV=development` on the server) and points to `http://localhost:8000`.
+ * Falls back to the production Render backend otherwise.
  */
 export function getApiUrl(): string {
   const raw =
     typeof window === "undefined"
       ? process.env.API_URL || process.env.NEXT_PUBLIC_API_URL
       : process.env.NEXT_PUBLIC_API_URL;
-  const trimmed = raw?.trim() || "https://dsex.onrender.com";
-  return trimmed.replace(/\/+$/, "");
+  const explicit = raw?.trim();
+  if (explicit) return explicit.replace(/\/+$/, "");
+
+  // No env var set — pick a sensible default.
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host === "localhost" || host === "127.0.0.1") {
+      return "http://localhost:8000";
+    }
+  } else if (process.env.NODE_ENV === "development") {
+    return "http://localhost:8000";
+  }
+  return "https://dsex.onrender.com";
 }
 
 export interface ScoreItem {
@@ -89,6 +104,15 @@ export interface DividendDeclaration {
   dividend_type: string | null;
 }
 
+export interface RelatedStock {
+  trading_code: string;
+  company_name: string | null;
+  sector: string | null;
+  score: number | null;
+  ltp: number | null;
+  change_pct: number | null;
+}
+
 export interface CompanyDetail {
   profile: CompanyProfile;
   latest_price: LatestPrice;
@@ -99,6 +123,7 @@ export interface CompanyDetail {
   shareholding: Record<string, unknown> | null;
   dividend_declaration: DividendDeclaration | null;
   news: { title: string; post_date: string; body: string }[];
+  related_stocks: RelatedStock[];
 }
 
 export interface UpcomingDividend {

@@ -10,6 +10,7 @@ import KeyNumbers from "@/components/stock/KeyNumbers";
 import ProfitsAndDividends from "@/components/stock/ProfitsAndDividends";
 import ShareholdingPie from "@/components/stock/ShareholdingPie";
 import NewsSection from "@/components/stock/NewsSection";
+import RelatedStocks from "@/components/stock/RelatedStocks";
 
 export const revalidate = 3600;
 export const dynamicParams = true;
@@ -140,6 +141,12 @@ export default async function StockDetailPage({ params }: PageProps) {
       {/* Chapter 6 — Who Owns It & What's New */}
       <ShareholdingPie shareholding={shareholding} />
       <NewsSection news={news} />
+
+      {/* Chapter 7 — Related Stocks */}
+      <RelatedStocks
+        stocks={detail.related_stocks ?? []}
+        currentSector={profile.sector}
+      />
     </>
   );
 }
