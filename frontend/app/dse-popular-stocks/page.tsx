@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getPopularStocks } from "@/lib/api";
-import PopularStocksTable from "@/components/popular/PopularStocksTable";
+import PopularStocksDeck from "@/components/popular/PopularStocksDeck";
 
 export const revalidate = 600;
 
@@ -89,7 +89,7 @@ export default async function PopularStocksPage() {
       </div>
 
       {data ? (
-        <PopularStocksTable items={data.items} />
+        <PopularStocksDeck items={data.items} />
       ) : (
         <div className="text-center py-20 text-[var(--text-muted)]">
           Unable to load popular stocks. Please try again shortly.

@@ -3918,3 +3918,221 @@ details.dsex-exp[open] > summary {
   .sl-search { min-width: 120px; flex: 1 1 100%; max-width: none; }
   .sl-count { width: 100%; margin-left: 0; }
 }
+
+/* ================================================================
+   Popular stocks leaderboard — /dse-popular-stocks
+   ================================================================ */
+
+.ps-leaderboard {
+  margin: 28px auto 56px;
+  max-width: 920px;
+  padding: 22px 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface, transparent);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02) inset, 0 6px 24px rgba(0, 0, 0, 0.06);
+}
+
+.ps-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.popular-empty {
+  padding: 64px 16px;
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: 0.95rem;
+}
+
+/* ---------- Row pill ---------- */
+
+.ps-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(148, 163, 184, 0.10) 0%,
+    rgba(148, 163, 184, 0.04) 100%
+  );
+  border: 1px solid var(--border);
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.ps-row:hover {
+  background: linear-gradient(
+    90deg,
+    rgba(148, 163, 184, 0.16) 0%,
+    rgba(148, 163, 184, 0.06) 100%
+  );
+  border-color: var(--border-strong, var(--border));
+  transform: translateX(2px);
+}
+
+/* Top-3 tinted pills */
+.ps-row-rank-1 {
+  background: linear-gradient(90deg, rgba(245, 209, 105, 0.22) 0%, rgba(245, 209, 105, 0.06) 100%);
+  border-color: rgba(184, 134, 11, 0.4);
+}
+.ps-row-rank-1:hover {
+  background: linear-gradient(90deg, rgba(245, 209, 105, 0.32) 0%, rgba(245, 209, 105, 0.10) 100%);
+}
+
+.ps-row-rank-2 {
+  background: linear-gradient(90deg, rgba(224, 224, 224, 0.20) 0%, rgba(224, 224, 224, 0.05) 100%);
+  border-color: rgba(154, 154, 154, 0.4);
+}
+.ps-row-rank-2:hover {
+  background: linear-gradient(90deg, rgba(224, 224, 224, 0.30) 0%, rgba(224, 224, 224, 0.10) 100%);
+}
+
+.ps-row-rank-3 {
+  background: linear-gradient(90deg, rgba(224, 152, 106, 0.22) 0%, rgba(224, 152, 106, 0.06) 100%);
+  border-color: rgba(140, 74, 31, 0.4);
+}
+.ps-row-rank-3:hover {
+  background: linear-gradient(90deg, rgba(224, 152, 106, 0.32) 0%, rgba(224, 152, 106, 0.10) 100%);
+}
+
+.ps-row-link {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 70px 84px 74px;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  padding: 8px 14px 8px 8px;
+  text-decoration: none;
+  color: var(--ink);
+  min-width: 0;
+}
+
+/* ---------- Rank cell ---------- */
+
+.ps-rank-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+}
+
+.ps-rank-plain {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--ink-muted);
+  font-weight: 700;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.ps-medal-svg {
+  display: block;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.18));
+}
+
+/* ---------- Identity ---------- */
+
+.ps-id {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.ps-ticker {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ink);
+}
+
+.ps-name {
+  font-size: 0.76rem;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Delta ---------- */
+
+.ps-delta-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.ps-delta {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ps-delta-up    { color: #34D399; }
+.ps-delta-down  { color: #F87171; }
+.ps-delta-flat  { color: var(--ink-muted); }
+.ps-delta-new {
+  color: #052E16;
+  background: #86EFAC;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+/* ---------- Numeric cells ---------- */
+
+.ps-ltp,
+.ps-chg {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+/* ---------- Star ---------- */
+
+.ps-star {
+  padding-right: 14px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ---------- Mobile ---------- */
+
+@media (max-width: 640px) {
+  .ps-leaderboard {
+    margin: 18px 12px 40px;
+    padding: 14px 10px;
+    border-radius: 14px;
+  }
+  .ps-list { gap: 8px; }
+  .ps-row-link {
+    grid-template-columns: 44px minmax(0, 1fr) 56px 64px 60px;
+    gap: 8px;
+    padding: 6px 10px 6px 6px;
+  }
+  .ps-rank-cell { width: 38px; }
+  .ps-rank-plain { width: 30px; height: 30px; font-size: 0.85rem; }
+  .ps-medal-svg { width: 32px; height: 38px; }
+  .ps-ticker { font-size: 0.92rem; }
+  .ps-name { font-size: 0.7rem; }
+  .ps-ltp, .ps-chg { font-size: 0.84rem; }
+  .ps-delta { font-size: 0.74rem; }
+}
