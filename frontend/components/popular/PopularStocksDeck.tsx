@@ -103,10 +103,7 @@ export default function PopularStocksDeck({ items }: Props) {
                   )}
                 </span>
 
-                <div className="ps-id">
-                  <span className="ps-ticker">{item.trading_code}</span>
-                  <span className="ps-name">{item.company_name ?? ""}</span>
-                </div>
+                <span className="ps-ticker">{item.trading_code}</span>
 
                 <div className="ps-delta-wrap">
                   <Delta delta={item.delta} />

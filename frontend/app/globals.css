@@ -4043,15 +4043,8 @@ details.dsex-exp[open] > summary {
 
 /* ---------- Identity ---------- */
 
-.ps-id {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  gap: 2px;
-}
-
 .ps-ticker {
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -4059,14 +4052,7 @@ details.dsex-exp[open] > summary {
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--ink);
-}
-
-.ps-name {
-  font-size: 0.76rem;
-  color: var(--ink-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 /* ---------- Delta ---------- */
@@ -4118,23 +4104,28 @@ details.dsex-exp[open] > summary {
 
 @media (max-width: 640px) {
   .ps-leaderboard {
-    margin: 18px 12px 40px;
-    padding: 14px 10px;
+    margin: 18px 8px 40px;
+    padding: 12px 8px;
     border-radius: 14px;
   }
   .ps-list { gap: 8px; }
   .ps-row-link {
-    grid-template-columns: 44px minmax(0, 1fr) 56px 64px 60px;
-    gap: 8px;
-    padding: 6px 10px 6px 6px;
+    grid-template-columns: 36px minmax(72px, 1fr) 50px 56px 56px;
+    gap: 6px;
+    padding: 6px 4px 6px 4px;
   }
-  .ps-rank-cell { width: 38px; }
-  .ps-rank-plain { width: 30px; height: 30px; font-size: 0.85rem; }
-  .ps-medal-svg { width: 32px; height: 38px; }
-  .ps-ticker { font-size: 0.92rem; }
-  .ps-name { font-size: 0.7rem; }
-  .ps-ltp, .ps-chg { font-size: 0.84rem; }
+  .ps-rank-cell { width: 36px; }
+  .ps-rank-plain { width: 28px; height: 28px; font-size: 0.82rem; }
+  .ps-medal-svg { width: 30px; height: 36px; }
+  .ps-ticker { font-size: 0.92rem; letter-spacing: 0.02em; }
+  .ps-ltp, .ps-chg { font-size: 0.82rem; }
   .ps-delta { font-size: 0.74rem; }
+  .ps-star { padding-right: 6px; }
+  .ps-delta-new {
+    padding: 1px 5px;
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+  }
 }
 
 /* ================================================================
