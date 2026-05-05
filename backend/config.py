@@ -17,3 +17,7 @@ ADMIN_EMAILS: set[str] = {
     for e in os.getenv("ADMIN_EMAILS", "").split(",")
     if e.strip()
 }
+
+# Google OAuth — Web Client ID from Google Cloud Console.
+# Public per Google's design (also exposed to the browser as NEXT_PUBLIC_GOOGLE_CLIENT_ID).
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")

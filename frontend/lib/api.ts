@@ -538,6 +538,13 @@ export async function apiLogin(payload: LoginPayload): Promise<AuthApiResponse> 
   });
 }
 
+export async function apiGoogleSignIn(idToken: string): Promise<AuthApiResponse> {
+  return apiAuthFetch<AuthApiResponse>("/api/auth/google", {
+    method: "POST",
+    body: JSON.stringify({ id_token: idToken }),
+  });
+}
+
 export async function apiGetMe(): Promise<{ user: AuthUser }> {
   return apiAuthFetch<{ user: AuthUser }>("/api/auth/me");
 }

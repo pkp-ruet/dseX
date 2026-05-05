@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { apiLogin } from "@/lib/api";
+import { apiLogin, type AuthApiResponse } from "@/lib/api";
 import { mergeWatchlistOnLogin } from "@/lib/watchlist";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 
 type Mode = "email" | "phone";
 
@@ -32,13 +33,19 @@ export default function LoginForm() {
       const data = await apiLogin(payload);
       login(data.access_token, data.user);
       await mergeWatchlistOnLogin(data.user.watchlist);
-      router.push("/watchlist");
+      router.push("/");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Login failed.";
       setError(msg === "AUTH_EXPIRED" ? "Session expired. Please log in again." : msg);
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleGoogleSuccess(data: AuthApiResponse) {
+    login(data.access_token, data.user);
+    await mergeWatchlistOnLogin(data.user.watchlist);
+    router.push("/");
   }
 
   return (
@@ -48,6 +55,9 @@ export default function LoginForm() {
         <p className="text-sm text-[var(--text-muted)] mb-6">
           Welcome back to TopStockBD
         </p>
+
+        <GoogleSignInButton onSuccess={handleGoogleSuccess} onError={setError} />
+        <div className="auth-divider my-5">or</div>
 
         {/* Mode toggle */}
         <div className="flex gap-1 mb-5 p-1 rounded-lg bg-[var(--surface)] border border-[var(--border)]">

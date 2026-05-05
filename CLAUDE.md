@@ -11,7 +11,7 @@ Guidance for Claude Code when working in this repository.
 - **Backend**: Python 3.11 · FastAPI · MongoDB (Atlas) · pymongo
 - **Frontend**: Next.js 15 App Router · React 19 · TypeScript · Tailwind CSS · Recharts
 - **Scrapers**: Python (requests + BeautifulSoup + lxml)
-- **Auth**: JWT (HS256) via `python-jose` · `bcrypt` for password hashing
+- **Auth**: JWT (HS256) via `python-jose` · `bcrypt` for password hashing · Google Sign-In via `google-auth` (backend ID-token verification) and `@react-oauth/google` (frontend)
 - **Live data**: `bdshare` (intraday DSE feed) for `/api/market-live`
 - **Deployment**: Frontend on Vercel, Backend on Render, DB on MongoDB Atlas
 
@@ -273,7 +273,7 @@ A 401 response from `apiAuthFetch` triggers `logout()` and throws `AUTH_EXPIRED`
 | `routers/stock_lists.py` | `GET /api/stock-lists` | Pre-computed top-20 lists (dividend, EPS, profit, market cap, growth, volume, 52w return, sector slices) |
 | `routers/market_live.py` | `GET /api/market-live` | Intraday snapshot via `bdshare` (with DSE HTML scrape fallback); returns prices, index, breadth, sectors, PSN news |
 | `routers/dse_today.py` | `GET /api/dse-today` | Bundle: header + movers + intelligence + table + news |
-| `routers/auth.py` | `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/ping` | Account creation, login, current user, visit ping |
+| `routers/auth.py` | `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/google`, `GET /api/auth/me`, `POST /api/auth/ping` | Account creation, login, Google sign-in, current user, visit ping |
 | `routers/user.py` | `GET/PUT /api/user/watchlist`, `PATCH /api/user/watchlist/add`, `PATCH /api/user/watchlist/remove`, `PATCH /api/user/profile` | User watchlist + profile updates |
 | `routers/portfolio.py` | `GET /api/user/portfolio`, `POST /api/user/portfolio/holdings`, `PUT/DELETE /api/user/portfolio/holdings/:id` | Portfolio CRUD |
 | `routers/admin.py` | `GET /api/admin/analytics` | User analytics (admin-only via `ADMIN_EMAILS`) |
@@ -281,6 +281,14 @@ A 401 response from `apiAuthFetch` triggers `logout()` and throws `AUTH_EXPIRED`
 App-level: `GET /health` (DB ping + JSON), `HEAD /health` (uptime monitor short-circuit), CORS allowlist via `ALLOWED_ORIGINS` plus a regex for `*.vercel.app`.
 
 **Auth dependency chain:** `routers/auth.py` exports `get_current_user` (Bearer → JWT decode → `users` lookup) and `get_current_admin_user` (additional `ADMIN_EMAILS` check). All `/api/user/*`, `/api/admin/*` endpoints depend on these.
+
+**Google sign-in:** `POST /api/auth/google` accepts `{id_token}` from `@react-oauth/google`'s `<GoogleLogin>` button, verifies it server-side with `google.oauth2.id_token.verify_oauth2_token` (validates `aud=GOOGLE_CLIENT_ID`, `iss`, `exp`, signature), then resolves the user via `auth_service.create_or_link_google_user`:
+- Match by `google_id` → return existing user.
+- Else match by email → silently link (sets `google_id`, `oauth_provider="google"`, `email_verified=true`); the existing `password_hash` is preserved so the user can still log in either way.
+- Else create a new user with no `password_hash` (Google email is treated as verified).
+- Conflict (email already linked to a different `google_id`) → 409.
+
+Returns the same `{access_token, token_type, user}` envelope as `/login`, so frontend `useAuth().login(token, user)` works unchanged. **All successful logins (Google or password) redirect to `/`.** The `users` collection has new optional fields: `google_id` (sparse-unique index), `oauth_provider`, `email_verified`, `picture_url`. Phone-only users (no email) cannot be merged with a Google account by email match — a separate Google-only account will be created; merging those is out of scope.
 
 **Service layer (`backend/services/`):**
 
@@ -335,6 +343,8 @@ Both are sourced from `.env` via `python-dotenv`.
 | `JWT_ALGORITHM` | `HS256` | JWT algorithm |
 | `JWT_EXPIRE_MINUTES` | 10080 (7 days) | Token lifetime |
 | `ADMIN_EMAILS` | empty | CSV of emails granted access to `/api/admin/*` |
+| `GOOGLE_CLIENT_ID` | empty | Google OAuth Web Client ID. Required for `/api/auth/google`; backend uses it to verify the `aud` claim of incoming Google ID tokens. |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | empty | Same value as `GOOGLE_CLIENT_ID`, exposed to the browser so `@react-oauth/google` can request the ID token. Public per Google's design. |
 | `VERCEL_DEPLOY_HOOK_URL` | unset | Optional — `scrape-all` POSTs here on success to trigger a Vercel rebuild |
 | `API_URL` / `NEXT_PUBLIC_API_URL` | `https://dsex.onrender.com` | Frontend → backend base URL (server-side / browser) |
 

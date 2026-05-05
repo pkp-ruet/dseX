@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, field_validator
 
-from backend.config import ADMIN_EMAILS
+from backend.config import ADMIN_EMAILS, GOOGLE_CLIENT_ID
 from backend.services.auth_service import (
     create_user,
     authenticate_user,
@@ -14,6 +14,8 @@ from backend.services.auth_service import (
     get_user_by_id,
     normalize_email,
     normalize_phone,
+    create_or_link_google_user,
+    sanitize_user,
 )
 from backend.services.db_service import get_db
 
@@ -70,6 +72,10 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class GoogleAuthRequest(BaseModel):
+    id_token: str
+
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
@@ -110,6 +116,52 @@ def login(body: LoginRequest):
     if not user:
         raise HTTPException(status_code=401, detail="Incorrect credentials.")
 
+    token = create_access_token(user["user_id"])
+    return {"access_token": token, "token_type": "bearer", "user": user}
+
+
+@router.post("/google")
+def google_sign_in(body: GoogleAuthRequest):
+    if not GOOGLE_CLIENT_ID:
+        raise HTTPException(status_code=500, detail="Google sign-in is not configured.")
+
+    # Imported lazily so the dep is only required if the endpoint is hit.
+    from google.oauth2 import id_token as g_id_token
+    from google.auth.transport import requests as g_requests
+
+    try:
+        claims = g_id_token.verify_oauth2_token(
+            body.id_token,
+            g_requests.Request(),
+            GOOGLE_CLIENT_ID,
+        )
+    except ValueError:
+        raise HTTPException(status_code=401, detail="Invalid Google token.")
+
+    if not claims.get("email_verified"):
+        raise HTTPException(status_code=401, detail="Your Google email is not verified.")
+
+    sub = claims.get("sub")
+    email = claims.get("email")
+    if not sub or not email:
+        raise HTTPException(status_code=401, detail="Google token missing required claims.")
+
+    try:
+        user_doc = create_or_link_google_user(
+            google_sub=sub,
+            email=email,
+            display_name=claims.get("name"),
+            picture=claims.get("picture"),
+        )
+    except ValueError as exc:
+        if str(exc) == "google_conflict":
+            raise HTTPException(
+                status_code=409,
+                detail="This email is already linked to a different Google account.",
+            )
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    user = sanitize_user(user_doc)
     token = create_access_token(user["user_id"])
     return {"access_token": token, "token_type": "bearer", "user": user}
 

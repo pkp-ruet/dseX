@@ -95,6 +95,14 @@ def get_user_by_phone(phone: str) -> Optional[dict]:
     return doc  # raw — caller may need password_hash
 
 
+def find_user_by_email(email: str) -> Optional[dict]:
+    return _users().find_one({"email": normalize_email(email)})
+
+
+def find_user_by_google_id(google_id: str) -> Optional[dict]:
+    return _users().find_one({"google_id": google_id})
+
+
 def create_user(
     password_plain: str,
     email: Optional[str] = None,
@@ -132,6 +140,80 @@ def create_user(
         doc["phone"] = norm_phone
     _users().insert_one(doc)
     return sanitize_user(doc)
+
+
+def create_oauth_user(
+    google_sub: str,
+    email: str,
+    display_name: Optional[str] = None,
+    picture: Optional[str] = None,
+) -> dict:
+    norm_email = normalize_email(email)
+    now = datetime.now(timezone.utc)
+    doc: dict = {
+        "user_id": str(uuid.uuid4()),
+        "email": norm_email,
+        "display_name": display_name.strip() if display_name else None,
+        "watchlist": [],
+        "created_at": now,
+        "updated_at": now,
+        "last_login_at": now,
+        "is_active": True,
+        "google_id": google_sub,
+        "oauth_provider": "google",
+        "email_verified": True,
+        "picture_url": picture or None,
+    }
+    _users().insert_one(doc)
+    return doc
+
+
+def link_google_to_user(
+    user_id: str,
+    google_sub: str,
+    picture: Optional[str] = None,
+) -> dict:
+    now = datetime.now(timezone.utc)
+    update = {
+        "google_id": google_sub,
+        "oauth_provider": "google",
+        "email_verified": True,
+        "updated_at": now,
+        "last_login_at": now,
+    }
+    if picture:
+        update["picture_url"] = picture
+    _users().update_one({"user_id": user_id}, {"$set": update})
+    return _users().find_one({"user_id": user_id})
+
+
+def create_or_link_google_user(
+    google_sub: str,
+    email: str,
+    display_name: Optional[str] = None,
+    picture: Optional[str] = None,
+) -> dict:
+    """Find by google_id, else find by email and link, else create new.
+
+    Returns the raw user document. Raises ValueError("google_conflict") if the
+    email is already linked to a different Google account.
+    """
+    existing = find_user_by_google_id(google_sub)
+    if existing:
+        _users().update_one(
+            {"user_id": existing["user_id"]},
+            {"$set": {"last_login_at": datetime.now(timezone.utc)}},
+        )
+        return existing
+
+    by_email = find_user_by_email(email)
+    if by_email:
+        current_gid = by_email.get("google_id")
+        if current_gid and current_gid != google_sub:
+            raise ValueError("google_conflict")
+        return link_google_to_user(by_email["user_id"], google_sub, picture)
+
+    return create_oauth_user(google_sub, email, display_name, picture)
 
 
 def authenticate_user(
@@ -180,4 +262,5 @@ def ensure_users_indexes() -> None:
     col.create_index("user_id", unique=True)
     col.create_index("email", unique=True, sparse=True)
     col.create_index("phone", unique=True, sparse=True)
+    col.create_index("google_id", unique=True, sparse=True, name="google_id_unique")
     col.create_index([("created_at", -1)])

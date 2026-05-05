@@ -4328,3 +4328,24 @@ details.dsex-exp[open] > summary {
   .pt-ticker { font-size: 1.15rem; }
   .pt-ltp { font-size: 0.88rem; }
 }
+
+/* =========================================================
+   Auth — "or" divider between Google button and email/phone form
+   ========================================================= */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}

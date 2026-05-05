@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { apiRegister } from "@/lib/api";
+import { apiRegister, type AuthApiResponse } from "@/lib/api";
 import { mergeWatchlistOnLogin } from "@/lib/watchlist";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 
 type Mode = "email" | "phone";
 
@@ -53,13 +54,19 @@ export default function RegisterForm() {
       const data = await apiRegister(payload);
       login(data.access_token, data.user);
       await mergeWatchlistOnLogin(data.user.watchlist);
-      router.push("/profile");
+      router.push("/");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Registration failed.";
       setError(msg);
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleGoogleSuccess(data: AuthApiResponse) {
+    login(data.access_token, data.user);
+    await mergeWatchlistOnLogin(data.user.watchlist);
+    router.push("/");
   }
 
   return (
@@ -69,6 +76,9 @@ export default function RegisterForm() {
         <p className="text-sm text-[var(--text-muted)] mb-6">
           Free forever. Sync your watchlist across devices.
         </p>
+
+        <GoogleSignInButton onSuccess={handleGoogleSuccess} onError={setError} />
+        <div className="auth-divider my-5">or</div>
 
         {/* Mode toggle */}
         <div className="flex gap-1 mb-5 p-1 rounded-lg bg-[var(--surface)] border border-[var(--border)]">
