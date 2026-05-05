@@ -3,8 +3,10 @@ import { Suspense } from "react";
 import {
   getScores,
   getMarketIndex,
+  getPopularStocks,
   type ScoresResponse,
   type MarketIndexData,
+  type PopularStocksResponse,
 } from "@/lib/api";
 import SearchBar from "@/components/home/SearchBar";
 import TickerBand from "@/components/home/TickerBand";
@@ -13,6 +15,7 @@ import MarketIndexBanner from "@/components/home/MarketIndexBanner";
 import NavHighlights from "@/components/home/NavHighlights";
 import InsightsTeaserStrip from "@/components/home/InsightsTeaserStrip";
 import PortfolioTeaserCTA from "@/components/home/PortfolioTeaserCTA";
+import PopularTeaser from "@/components/home/PopularTeaser";
 
 export const revalidate = 3600;
 
@@ -71,10 +74,22 @@ async function MarketIndexSection({ promise }: { promise: Promise<MarketIndexDat
   return <MarketIndexBanner data={data} />;
 }
 
+async function PopularTeaserSection({
+  promise,
+}: {
+  promise: Promise<PopularStocksResponse | null>;
+}) {
+  const data = await promise;
+  if (!data || data.items.length === 0) return null;
+  return <PopularTeaser items={data.items} />;
+}
+
 async function MainContentSection({
   scoresPromise,
+  popularPromise,
 }: {
   scoresPromise: Promise<ScoresResponse | null>;
+  popularPromise: Promise<PopularStocksResponse | null>;
 }) {
   const scores = await scoresPromise;
 
@@ -100,6 +115,9 @@ async function MainContentSection({
           <Suspense>
             <TopRankings scores={allItems} />
           </Suspense>
+          <Suspense fallback={null}>
+            <PopularTeaserSection promise={popularPromise} />
+          </Suspense>
           <NavHighlights />
         </div>
       </div>
@@ -110,6 +128,7 @@ async function MainContentSection({
 export default function HomePage() {
   const scoresPromise = getScores().catch(() => null);
   const marketIndexPromise = getMarketIndex().catch(() => null);
+  const popularPromise = getPopularStocks().catch(() => null);
 
   return (
     <>
@@ -136,6 +155,7 @@ export default function HomePage() {
       <Suspense fallback={<div className="py-16 text-center text-[var(--text-muted)] text-sm">Loading rankings…</div>}>
         <MainContentSection
           scoresPromise={scoresPromise}
+          popularPromise={popularPromise}
         />
       </Suspense>
 

@@ -4136,3 +4136,257 @@ details.dsex-exp[open] > summary {
   .ps-ltp, .ps-chg { font-size: 0.84rem; }
   .ps-delta { font-size: 0.74rem; }
 }
+
+/* ================================================================
+   Homepage popular teaser — between rankings and "Explore" cards
+   ================================================================ */
+
+.pt-section {
+  margin: 36px 0 24px;
+  padding: 22px 22px 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(245, 209, 105, 0.28);
+  background:
+    radial-gradient(120% 100% at 0% 0%, rgba(245, 110, 76, 0.10) 0%, transparent 55%),
+    radial-gradient(110% 90% at 100% 100%, rgba(245, 209, 105, 0.10) 0%, transparent 55%),
+    var(--surface, rgba(15, 23, 42, 0.4));
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.10);
+}
+
+.pt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.pt-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.pt-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pt-fire {
+  font-size: 1.5rem;
+  display: inline-block;
+  filter: drop-shadow(0 1px 4px rgba(255, 138, 76, 0.45));
+}
+
+.pt-heading {
+  font-size: 1.45rem;
+  font-weight: 900;
+  letter-spacing: 0.005em;
+  margin: 0;
+  background: linear-gradient(90deg, #F5D169 0%, #FF8A4C 60%, #FF6B6B 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  line-height: 1.15;
+}
+
+.pt-subtitle {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ink-muted, #94a3b8);
+  margin: 0;
+  padding-left: 34px;
+}
+
+.pt-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #F5D169 0%, #FF8A4C 100%);
+  color: #1A1A1A;
+  font-weight: 800;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+  box-shadow: 0 4px 16px rgba(245, 138, 76, 0.32);
+}
+
+.pt-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(245, 138, 76, 0.45);
+  filter: brightness(1.05);
+}
+
+.pt-cards {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+/* ---------- Card ---------- */
+
+.pt-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(148, 163, 184, 0.06);
+  text-decoration: none;
+  color: var(--ink);
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+  min-height: 138px;
+}
+
+.pt-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-strong, var(--border));
+  background: rgba(148, 163, 184, 0.12);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+}
+
+.pt-card-1 {
+  background: linear-gradient(135deg, rgba(245, 209, 105, 0.22) 0%, rgba(245, 209, 105, 0.05) 100%);
+  border-color: rgba(184, 134, 11, 0.5);
+}
+.pt-card-1:hover {
+  background: linear-gradient(135deg, rgba(245, 209, 105, 0.32) 0%, rgba(245, 209, 105, 0.10) 100%);
+}
+
+.pt-card-2 {
+  background: linear-gradient(135deg, rgba(224, 224, 224, 0.20) 0%, rgba(224, 224, 224, 0.05) 100%);
+  border-color: rgba(154, 154, 154, 0.45);
+}
+.pt-card-2:hover {
+  background: linear-gradient(135deg, rgba(224, 224, 224, 0.30) 0%, rgba(224, 224, 224, 0.10) 100%);
+}
+
+.pt-card-3 {
+  background: linear-gradient(135deg, rgba(224, 152, 106, 0.22) 0%, rgba(224, 152, 106, 0.05) 100%);
+  border-color: rgba(140, 74, 31, 0.45);
+}
+.pt-card-3:hover {
+  background: linear-gradient(135deg, rgba(224, 152, 106, 0.32) 0%, rgba(224, 152, 106, 0.10) 100%);
+}
+
+.pt-rank-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-height: 32px;
+}
+
+.pt-medal {
+  display: block;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.18));
+}
+
+.pt-rank-plain {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.16);
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.pt-delta {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.pt-delta-up    { color: #34D399; }
+.pt-delta-down  { color: #F87171; }
+.pt-delta-flat  { color: var(--ink-muted); }
+.pt-delta-new {
+  background: #86EFAC;
+  color: #052E16;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.pt-ticker {
+  font-size: 1.32rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ink);
+  line-height: 1.1;
+  margin-top: 2px;
+}
+
+.pt-name {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pt-stats {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.pt-ltp {
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.pt-chg {
+  font-size: 0.85rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1024px) {
+  .pt-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .pt-section { padding: 18px 14px; border-radius: 16px; margin: 24px 0 18px; }
+  .pt-header { gap: 10px; margin-bottom: 14px; }
+  .pt-heading { font-size: 1.2rem; }
+  .pt-fire { font-size: 1.3rem; }
+  .pt-subtitle { font-size: 0.78rem; padding-left: 30px; }
+  .pt-cta { padding: 8px 14px; font-size: 0.74rem; }
+  .pt-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .pt-card { padding: 12px 10px; min-height: 124px; }
+  .pt-ticker { font-size: 1.15rem; }
+  .pt-ltp { font-size: 0.88rem; }
+}
