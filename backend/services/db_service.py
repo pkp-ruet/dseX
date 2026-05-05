@@ -724,3 +724,111 @@ def compute_signal_flags(
         red_flags.append(f"Market category: {market_cat} (not 'A')")
 
     return {"green": green_flags, "red": red_flags}
+
+
+# ---------------------------------------------------------------------------
+# Popular stocks — top 20 by /stock/[code] visits in the last 7 days
+# with FIFA-style rank-change vs the prior 7 days.
+# ---------------------------------------------------------------------------
+
+def _tier_for_score(score: Optional[float]) -> Optional[str]:
+    if score is None:
+        return None
+    if score >= 75:
+        return "strong_buy"
+    if score >= 55:
+        return "safe_buy"
+    if score >= 35:
+        return "watch"
+    return "avoid"
+
+
+@_ttl_cache(300)
+def load_popular_stocks(limit: int = 20) -> dict:
+    import math
+    from datetime import datetime, timedelta, timezone
+
+    db = get_db()
+    today = datetime.now(timezone.utc).replace(
+        hour=0, minute=0, second=0, microsecond=0, tzinfo=None
+    )
+    cur_start = today - timedelta(days=6)               # last 7 days incl. today
+    cur_end   = today + timedelta(days=1)
+    prev_start = today - timedelta(days=13)
+    prev_end   = cur_start
+
+    def _agg(start, end):
+        return list(db.stock_visits.aggregate([
+            {"$match": {"date": {"$gte": start, "$lt": end}}},
+            {"$group": {"_id": "$trading_code", "total": {"$sum": "$count"}}},
+            {"$sort": {"total": -1}},
+        ]))
+
+    current = _agg(cur_start, cur_end)
+    previous = _agg(prev_start, prev_end)
+
+    prev_rank = {row["_id"]: i + 1 for i, row in enumerate(previous)}
+    prev_count = {row["_id"]: row["total"] for row in previous}
+
+    top = current[:limit]
+
+    companies = {c["trading_code"]: c for c in load_companies()}
+    prices = load_latest_prices()
+
+    score_map: dict = {}
+    try:
+        from backend.services.scoring_service import build_scores_df
+        df = build_scores_df()
+        if not df.empty:
+            for _, row in df.iterrows():
+                v = row.get("score")
+                if v is not None and not (isinstance(v, float) and math.isnan(v)):
+                    score_map[row["trading_code"]] = float(v)
+    except Exception:
+        pass
+
+    items: list[dict] = []
+    for i, row in enumerate(top):
+        code = row["_id"]
+        rank = i + 1
+        prev = prev_rank.get(code)
+        delta = (prev - rank) if prev is not None else None
+
+        comp = companies.get(code, {})
+        p = prices.get(code, {})
+        score = score_map.get(code)
+
+        items.append({
+            "rank": rank,
+            "previous_rank": prev,
+            "delta": delta,
+            "trading_code": code,
+            "company_name": comp.get("company_name"),
+            "sector": comp.get("sector"),
+            "visits_7d": int(row["total"]),
+            "visits_prev_7d": int(prev_count.get(code, 0)),
+            "ltp": p.get("ltp"),
+            "change_pct": p.get("change_pct"),
+            "score": round(score, 1) if score is not None else None,
+            "tier": _tier_for_score(score),
+        })
+
+    return {
+        "as_of": datetime.utcnow().isoformat() + "Z",
+        "window_days": 7,
+        "items": items,
+    }
+
+
+def increment_stock_visit(trading_code: str) -> None:
+    """Daily-bucketed upsert. Caller must validate trading_code first."""
+    from datetime import datetime, timezone
+    db = get_db()
+    today = datetime.now(timezone.utc).replace(
+        hour=0, minute=0, second=0, microsecond=0, tzinfo=None
+    )
+    db.stock_visits.update_one(
+        {"trading_code": trading_code, "date": today},
+        {"$inc": {"count": 1}},
+        upsert=True,
+    )

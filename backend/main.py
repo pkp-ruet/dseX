@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.routers import scores, companies, dividends, audit, prices, market_movers, market_intelligence, market_index, stock_lists, market_live, auth, user, portfolio, dse_today, admin, market_analysis
+from backend.routers import scores, companies, dividends, audit, prices, market_movers, market_intelligence, market_index, stock_lists, market_live, auth, user, portfolio, dse_today, admin, market_analysis, stock_visits
 
 app = FastAPI(title="dseX API", version="1.0.0")
 
@@ -41,12 +41,22 @@ app.include_router(portfolio.router)
 app.include_router(dse_today.router)
 app.include_router(admin.router)
 app.include_router(market_analysis.router)
+app.include_router(stock_visits.router)
 
 
 @app.on_event("startup")
 def startup():
     from backend.services.auth_service import ensure_users_indexes
     ensure_users_indexes()
+
+    from backend.services.db_service import get_db
+    from pymongo import ASCENDING
+    db = get_db()
+    db.stock_visits.create_index(
+        [("trading_code", ASCENDING), ("date", ASCENDING)],
+        unique=True,
+    )
+    db.stock_visits.create_index([("date", ASCENDING)])
 
 
 @app.get("/health")

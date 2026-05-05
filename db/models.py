@@ -53,3 +53,9 @@ def ensure_indexes():
         [("date", ASCENDING)],
         unique=True,
     )
+
+    db.stock_visits.create_index(
+        [("trading_code", ASCENDING), ("date", ASCENDING)],
+        unique=True,
+    )
+    db.stock_visits.create_index([("date", ASCENDING)])

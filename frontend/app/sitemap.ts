@@ -67,6 +67,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.85,
     },
     {
+      url: `${BASE_URL}/dse-popular-stocks`,
+      lastModified: new Date(),
+      changeFrequency: "hourly",
+      priority: 0.85,
+    },
+    {
       url: `${BASE_URL}/learn`,
       lastModified: new Date(),
       changeFrequency: "monthly",

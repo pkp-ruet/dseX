@@ -33,7 +33,14 @@
       "Skill(update-config:*)",
       "Bash(python -c ' *)",
       "Bash(powershell -Command \"Test-NetConnection ac-1ye3hs0-shard-00-00.byxf0yo.mongodb.net -Port 27017 -InformationLevel Quiet\")",
-      "PowerShell(Rename-Item \"D:\\\\Cursor Projects\\\\dseX\\\\frontend\\\\app\\\\stock-lists\" \"stock-insights\")"
+      "PowerShell(Rename-Item \"D:\\\\Cursor Projects\\\\dseX\\\\frontend\\\\app\\\\stock-lists\" \"stock-insights\")",
+      "Bash(python -c \"from backend.routers import stock_visits; from backend.services.db_service import load_popular_stocks, increment_stock_visit; print\\('imports ok'\\); print\\(load_popular_stocks.__module__\\)\")",
+      "Bash(python -c \"from main import app; print\\('app routes containing stock-visit / popular:'\\); [print\\(' ', r.path\\) for r in app.routes if 'stock-visit' in r.path or 'popular' in r.path]\")",
+      "Bash(python -c \"from backend.main import app; print\\('routes:'\\); [print\\(' ', m, r.path\\) for r in app.routes if hasattr\\(r, 'path'\\) and \\('stock-visit' in r.path or 'popular' in r.path\\) for m in \\(sorted\\(r.methods\\) if hasattr\\(r, 'methods'\\) else ['?']\\)]\")",
+      "Bash(uvicorn backend.main:app --port 8765 --no-access-log)",
+      "Bash(curl -sf -o /dev/null http://127.0.0.1:8765/health)",
+      "Bash(curl -s http://127.0.0.1:8765/health)",
+      "Bash(curl -s http://127.0.0.1:8765/api/popular-stocks)"
     ]
   }
 }

@@ -11,6 +11,7 @@ import ProfitsAndDividends from "@/components/stock/ProfitsAndDividends";
 import ShareholdingPie from "@/components/stock/ShareholdingPie";
 import NewsSection from "@/components/stock/NewsSection";
 import RelatedStocks from "@/components/stock/RelatedStocks";
+import StockVisitTracker from "@/components/analytics/StockVisitTracker";
 
 export const revalidate = 3600;
 export const dynamicParams = true;
@@ -127,6 +128,8 @@ export default async function StockDetailPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
+
+      <StockVisitTracker code={profile.trading_code} />
 
       {/* Chapter 1 — The Stock at a Glance */}
       <HeroSection detail={detail} />

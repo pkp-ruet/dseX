@@ -636,6 +636,47 @@ export async function apiAuthPing(): Promise<void> {
   }
 }
 
+export async function apiTrackStockVisit(code: string): Promise<void> {
+  if (!code) return;
+  try {
+    await fetch(`${getApiUrl()}/api/stock-visit/${code.toUpperCase()}`, {
+      method: "POST",
+      keepalive: true,
+    });
+  } catch {
+    // fire-and-forget
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Popular stocks
+// ---------------------------------------------------------------------------
+
+export interface PopularStockItem {
+  rank: number;
+  previous_rank: number | null;
+  delta: number | null;
+  trading_code: string;
+  company_name: string | null;
+  sector: string | null;
+  visits_7d: number;
+  visits_prev_7d: number;
+  ltp: number | null;
+  change_pct: number | null;
+  score: number | null;
+  tier: string | null;
+}
+
+export interface PopularStocksResponse {
+  as_of: string;
+  window_days: number;
+  items: PopularStockItem[];
+}
+
+export async function getPopularStocks(): Promise<PopularStocksResponse> {
+  return apiFetch<PopularStocksResponse>("/api/popular-stocks", 600);
+}
+
 // ---------------------------------------------------------------------------
 // Admin analytics
 // ---------------------------------------------------------------------------
