@@ -184,20 +184,46 @@ export interface MarketIndexData {
 
 // ---- Fetch helpers ----
 
+export class ApiNotFoundError extends Error {
+  readonly path: string;
+  constructor(path: string) {
+    super(`API ${path} returned 404`);
+    this.name = "ApiNotFoundError";
+    this.path = path;
+  }
+}
+
 function apiFetchSignal(): AbortSignal | undefined {
   if (typeof AbortSignal === "undefined") return undefined;
   const ctor = AbortSignal as unknown as { timeout?: (ms: number) => AbortSignal };
-  return typeof ctor.timeout === "function" ? ctor.timeout(30_000) : undefined;
+  return typeof ctor.timeout === "function" ? ctor.timeout(60_000) : undefined;
 }
 
 async function apiFetch<T>(path: string, revalidate?: number): Promise<T> {
   const url = `${getApiUrl()}${path}`;
-  const res = await fetch(url, {
-    signal: apiFetchSignal(),
-    next: revalidate !== undefined ? { revalidate } : { revalidate: 3600 },
-  });
-  if (!res.ok) throw new Error(`API ${path} returned ${res.status}`);
-  return res.json() as Promise<T>;
+  const nextOpts = revalidate !== undefined ? { revalidate } : { revalidate: 3600 };
+
+  let lastErr: unknown;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch(url, { signal: apiFetchSignal(), next: nextOpts });
+      if (res.status === 404) throw new ApiNotFoundError(path);
+      if (!res.ok) {
+        // 5xx and other non-ok statuses are transient — eligible for retry
+        throw new Error(`API ${path} returned ${res.status}`);
+      }
+      return res.json() as Promise<T>;
+    } catch (err) {
+      // Real 404s are terminal — never retry, never mask
+      if (err instanceof ApiNotFoundError) throw err;
+      lastErr = err;
+      if (attempt === 0) {
+        await new Promise((r) => setTimeout(r, 1000));
+        continue;
+      }
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new Error(`API ${path} failed`);
 }
 
 export async function getScores(): Promise<ScoresResponse> {

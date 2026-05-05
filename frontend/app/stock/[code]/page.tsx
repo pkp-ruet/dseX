@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getAllCodes, getCompanyDetail } from "@/lib/api";
+import { ApiNotFoundError, getCompanyDetail } from "@/lib/api";
 import { getTier, TIER_LABELS } from "@/lib/constants";
 import HeroSection from "@/components/stock/HeroSection";
 import PriceChart from "@/components/stock/PriceChart";
@@ -20,13 +20,20 @@ interface PageProps {
 }
 
 export async function generateStaticParams() {
-  const codes = await getAllCodes().catch(() => [] as string[]);
-  return codes.map((code) => ({ code }));
+  // All stock pages render on-demand (dynamicParams = true) and are ISR-cached.
+  // Returning [] avoids fanning out 360 backend fetches at build time, which
+  // can intermittently bake static 404s when Render's free tier is cold-starting.
+  return [];
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { code } = await params;
-  const detail = await getCompanyDetail(code).catch(() => null);
+  let detail: Awaited<ReturnType<typeof getCompanyDetail>> | null = null;
+  try {
+    detail = await getCompanyDetail(code);
+  } catch {
+    // 404 or transient — fall through to a minimal title so metadata never blocks the page
+  }
   if (!detail) return { title: `${code} — TopStockBD` };
 
   const name = detail.profile.company_name ?? code;
@@ -75,8 +82,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function StockDetailPage({ params }: PageProps) {
   const { code } = await params;
-  const detail = await getCompanyDetail(code).catch(() => null);
-  if (!detail) notFound();
+  let detail: Awaited<ReturnType<typeof getCompanyDetail>>;
+  try {
+    detail = await getCompanyDetail(code);
+  } catch (err) {
+    if (err instanceof ApiNotFoundError) notFound();
+    // Transient error (timeout, 5xx, network) — re-throw so error.tsx renders
+    // and Next.js does NOT bake a static 404 into the ISR cache.
+    throw err;
+  }
 
   const { profile, score_row, financials, extended_financials,
           shareholding, dividend_declaration, news } = detail;
