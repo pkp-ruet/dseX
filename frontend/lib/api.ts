@@ -654,13 +654,10 @@ export async function apiTrackStockVisit(code: string): Promise<void> {
 
 export interface PopularStockItem {
   rank: number;
-  previous_rank: number | null;
-  delta: number | null;
   trading_code: string;
   company_name: string | null;
   sector: string | null;
-  visits_7d: number;
-  visits_prev_7d: number;
+  visits_total: number;
   ltp: number | null;
   change_pct: number | null;
   score: number | null;
@@ -669,7 +666,6 @@ export interface PopularStockItem {
 
 export interface PopularStocksResponse {
   as_of: string;
-  window_days: number;
   items: PopularStockItem[];
 }
 

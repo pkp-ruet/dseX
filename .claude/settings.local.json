@@ -40,7 +40,17 @@
       "Bash(uvicorn backend.main:app --port 8765 --no-access-log)",
       "Bash(curl -sf -o /dev/null http://127.0.0.1:8765/health)",
       "Bash(curl -s http://127.0.0.1:8765/health)",
-      "Bash(curl -s http://127.0.0.1:8765/api/popular-stocks)"
+      "Bash(curl -s http://127.0.0.1:8765/api/popular-stocks)",
+      "Bash(curl -s -o /dev/null -X POST http://127.0.0.1:8765/api/popular-stocks/refresh -w \"%{http_code}\\\\n\")",
+      "Bash(curl -s \"http://127.0.0.1:8765/api/popular-stocks\")",
+      "Bash(awk '{print $1, $2}')",
+      "Bash(powershell -Command 'Get-Process | Where-Object { $_.ProcessName -eq '\\\\''python'\\\\'' } | Select-Object Id, Path | Format-Table')",
+      "Bash(netstat -ano)",
+      "Bash(taskkill /PID 7256 /F)",
+      "PowerShell(Stop-Process -Id 7256 -Force)",
+      "PowerShell(\"killed\")",
+      "Bash(curl -sf http://127.0.0.1:8765/health)",
+      "Bash(awk '{print $5}')"
     ]
   }
 }

@@ -745,32 +745,17 @@ def _tier_for_score(score: Optional[float]) -> Optional[str]:
 
 @_ttl_cache(300)
 def load_popular_stocks(limit: int = 20) -> dict:
+    """All-time visit ranking — top N by cumulative `stock_visits.count`."""
     import math
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime
 
     db = get_db()
-    today = datetime.now(timezone.utc).replace(
-        hour=0, minute=0, second=0, microsecond=0, tzinfo=None
-    )
-    cur_start = today - timedelta(days=6)               # last 7 days incl. today
-    cur_end   = today + timedelta(days=1)
-    prev_start = today - timedelta(days=13)
-    prev_end   = cur_start
 
-    def _agg(start, end):
-        return list(db.stock_visits.aggregate([
-            {"$match": {"date": {"$gte": start, "$lt": end}}},
-            {"$group": {"_id": "$trading_code", "total": {"$sum": "$count"}}},
-            {"$sort": {"total": -1}},
-        ]))
-
-    current = _agg(cur_start, cur_end)
-    previous = _agg(prev_start, prev_end)
-
-    prev_rank = {row["_id"]: i + 1 for i, row in enumerate(previous)}
-    prev_count = {row["_id"]: row["total"] for row in previous}
-
-    top = current[:limit]
+    all_visits = list(db.stock_visits.aggregate([
+        {"$group": {"_id": "$trading_code", "total": {"$sum": "$count"}}},
+        {"$sort": {"total": -1}},
+        {"$limit": limit},
+    ]))
 
     companies = {c["trading_code"]: c for c in load_companies()}
     prices = load_latest_prices()
@@ -788,25 +773,18 @@ def load_popular_stocks(limit: int = 20) -> dict:
         pass
 
     items: list[dict] = []
-    for i, row in enumerate(top):
+    for i, row in enumerate(all_visits):
         code = row["_id"]
-        rank = i + 1
-        prev = prev_rank.get(code)
-        delta = (prev - rank) if prev is not None else None
-
         comp = companies.get(code, {})
         p = prices.get(code, {})
         score = score_map.get(code)
 
         items.append({
-            "rank": rank,
-            "previous_rank": prev,
-            "delta": delta,
+            "rank": i + 1,
             "trading_code": code,
             "company_name": comp.get("company_name"),
             "sector": comp.get("sector"),
-            "visits_7d": int(row["total"]),
-            "visits_prev_7d": int(prev_count.get(code, 0)),
+            "visits_total": int(row["total"]),
             "ltp": p.get("ltp"),
             "change_pct": p.get("change_pct"),
             "score": round(score, 1) if score is not None else None,
@@ -815,7 +793,6 @@ def load_popular_stocks(limit: int = 20) -> dict:
 
     return {
         "as_of": datetime.utcnow().isoformat() + "Z",
-        "window_days": 7,
         "items": items,
     }
 

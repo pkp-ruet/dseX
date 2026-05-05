@@ -4002,7 +4002,7 @@ details.dsex-exp[open] > summary {
 
 .ps-row-link {
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) 70px 84px 74px;
+  grid-template-columns: 52px minmax(0, 1fr) 84px 74px;
   align-items: center;
   gap: 12px;
   flex: 1;
@@ -4055,33 +4055,6 @@ details.dsex-exp[open] > summary {
   min-width: 0;
 }
 
-/* ---------- Delta ---------- */
-
-.ps-delta-wrap {
-  display: flex;
-  justify-content: center;
-}
-
-.ps-delta {
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  font-variant-numeric: tabular-nums;
-}
-
-.ps-delta-up    { color: #34D399; }
-.ps-delta-down  { color: #F87171; }
-.ps-delta-flat  { color: var(--ink-muted); }
-.ps-delta-new {
-  color: #052E16;
-  background: #86EFAC;
-  padding: 2px 9px;
-  border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
-
 /* ---------- Numeric cells ---------- */
 
 .ps-ltp,
@@ -4110,22 +4083,16 @@ details.dsex-exp[open] > summary {
   }
   .ps-list { gap: 8px; }
   .ps-row-link {
-    grid-template-columns: 36px minmax(72px, 1fr) 50px 56px 56px;
-    gap: 6px;
+    grid-template-columns: 36px minmax(80px, 1fr) 64px 60px;
+    gap: 8px;
     padding: 6px 4px 6px 4px;
   }
   .ps-rank-cell { width: 36px; }
   .ps-rank-plain { width: 28px; height: 28px; font-size: 0.82rem; }
   .ps-medal-svg { width: 30px; height: 36px; }
-  .ps-ticker { font-size: 0.92rem; letter-spacing: 0.02em; }
-  .ps-ltp, .ps-chg { font-size: 0.82rem; }
-  .ps-delta { font-size: 0.74rem; }
+  .ps-ticker { font-size: 0.95rem; letter-spacing: 0.02em; }
+  .ps-ltp, .ps-chg { font-size: 0.84rem; }
   .ps-star { padding-right: 6px; }
-  .ps-delta-new {
-    padding: 1px 5px;
-    font-size: 0.62rem;
-    letter-spacing: 0.04em;
-  }
 }
 
 /* ================================================================
@@ -4298,26 +4265,6 @@ details.dsex-exp[open] > summary {
   font-size: 0.8rem;
   letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
-}
-
-.pt-delta {
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  font-variant-numeric: tabular-nums;
-}
-
-.pt-delta-up    { color: #34D399; }
-.pt-delta-down  { color: #F87171; }
-.pt-delta-flat  { color: var(--ink-muted); }
-.pt-delta-new {
-  background: #86EFAC;
-  color: #052E16;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 0.68rem;
-  font-weight: 900;
-  letter-spacing: 0.1em;
 }
 
 .pt-ticker {

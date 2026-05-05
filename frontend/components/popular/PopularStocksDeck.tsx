@@ -62,19 +62,6 @@ function fmtChg(val: number | null) {
   return `${val > 0 ? "+" : ""}${pct(val)}`;
 }
 
-function Delta({ delta }: { delta: number | null }) {
-  if (delta === null || delta === undefined) {
-    return <span className="ps-delta ps-delta-new">NEW</span>;
-  }
-  if (delta === 0) {
-    return <span className="ps-delta ps-delta-flat">—</span>;
-  }
-  if (delta > 0) {
-    return <span className="ps-delta ps-delta-up">▲ {delta}</span>;
-  }
-  return <span className="ps-delta ps-delta-down">▼ {Math.abs(delta)}</span>;
-}
-
 export default function PopularStocksDeck({ items }: Props) {
   if (items.length === 0) {
     return (
@@ -104,10 +91,6 @@ export default function PopularStocksDeck({ items }: Props) {
                 </span>
 
                 <span className="ps-ticker">{item.trading_code}</span>
-
-                <div className="ps-delta-wrap">
-                  <Delta delta={item.delta} />
-                </div>
 
                 <span className="ps-ltp">
                   {item.ltp != null ? taka(item.ltp, 1) : "—"}

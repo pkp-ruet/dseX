@@ -61,19 +61,6 @@ function fmtChg(val: number | null) {
   return `${val > 0 ? "+" : ""}${pct(val)}`;
 }
 
-function Delta({ delta }: { delta: number | null }) {
-  if (delta === null || delta === undefined) {
-    return <span className="pt-delta pt-delta-new">NEW</span>;
-  }
-  if (delta === 0) {
-    return <span className="pt-delta pt-delta-flat">—</span>;
-  }
-  if (delta > 0) {
-    return <span className="pt-delta pt-delta-up">▲ {delta}</span>;
-  }
-  return <span className="pt-delta pt-delta-down">▼ {Math.abs(delta)}</span>;
-}
-
 export default function PopularTeaser({ items }: Props) {
   if (items.length === 0) return null;
   const top5 = items.slice(0, 5);
@@ -84,7 +71,7 @@ export default function PopularTeaser({ items }: Props) {
         <div className="pt-title-block">
           <div className="pt-title">
             <span className="pt-fire" aria-hidden="true">🔥</span>
-            <h2 className="pt-heading">Most Popular This Week</h2>
+            <h2 className="pt-heading">Most Popular</h2>
           </div>
           <p className="pt-subtitle">Top 5 stocks DSE readers are watching right now</p>
         </div>
@@ -112,13 +99,9 @@ export default function PopularTeaser({ items }: Props) {
                 ) : (
                   <span className="pt-rank-plain">#{item.rank}</span>
                 )}
-                <Delta delta={item.delta} />
               </div>
 
               <div className="pt-ticker">{item.trading_code}</div>
-              <div className="pt-name" title={item.company_name ?? ""}>
-                {item.company_name ?? " "}
-              </div>
 
               <div className="pt-stats">
                 <span className="pt-ltp">

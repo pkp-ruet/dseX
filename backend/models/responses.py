@@ -249,13 +249,10 @@ class DseTodayResponse(BaseModel):
 
 class PopularStockItem(BaseModel):
     rank: int
-    previous_rank: Optional[int] = None
-    delta: Optional[int] = None
     trading_code: str
     company_name: Optional[str] = None
     sector: Optional[str] = None
-    visits_7d: int
-    visits_prev_7d: int
+    visits_total: int
     ltp: Optional[float] = None
     change_pct: Optional[float] = None
     score: Optional[float] = None
@@ -264,5 +261,4 @@ class PopularStockItem(BaseModel):
 
 class PopularStocksResponse(BaseModel):
     as_of: str
-    window_days: int
     items: list[PopularStockItem]
