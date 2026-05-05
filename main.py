@@ -12,6 +12,7 @@ from scrapers.news import NewsScraper
 from scrapers.cash_flow_scraper import CashFlowScraper
 from scrapers.market_summary import MarketSummaryScraper
 from utils.scoring import get_top_n_codes
+from utils.market_hours import is_market_open, market_session_info
 from config import NEWS_TOP_N
 
 
@@ -136,6 +137,30 @@ def cmd_scrape_market_summary(_args):
         print(f"Done. DSEX={doc.get('dsex')}, DSES={doc.get('dses')}, DS30={doc.get('ds30')}")
     else:
         print("Failed to scrape market summary.")
+
+
+def cmd_scrape_intraday(args):
+    """Light intraday refresh — prices + market summary only. Skips when market is closed."""
+    if not getattr(args, "force", False) and not is_market_open():
+        info = market_session_info()
+        print(
+            f"Market closed (BST {info['server_time_bst']}, "
+            f"trading_day={info['is_trading_day']}). Skipping."
+        )
+        return
+
+    print("=== Intraday step 1/2: Latest prices ===")
+    sp = StockPriceScraper()
+    prices = sp.run()
+    print(f"  Prices for {len(prices)} companies.\n")
+
+    print("=== Intraday step 2/2: DSE market summary ===")
+    ms = MarketSummaryScraper()
+    ms_doc = ms.run()
+    if ms_doc:
+        print(f"  DSEX={ms_doc.get('dsex')}, DSES={ms_doc.get('dses')}, DS30={ms_doc.get('ds30')}")
+    else:
+        print("  Warning: market summary scrape failed.")
 
 
 def cmd_scrape_all(args):
@@ -270,6 +295,16 @@ def main():
 
     sub.add_parser("scrape-market-summary", help="Scrape DSE index values and daily market totals")
 
+    intraday_parser = sub.add_parser(
+        "scrape-intraday",
+        help="Light intraday refresh (prices + market summary). Auto-skips when market is closed.",
+    )
+    intraday_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Run even if the market is closed (testing)",
+    )
+
     all_parser = sub.add_parser("scrape-all", help="Run all scrapers sequentially")
     all_parser.add_argument(
         "--full",
@@ -292,6 +327,7 @@ def main():
         "scrape-cashflow":       cmd_scrape_cashflow,
         "scrape-news":           cmd_scrape_news,
         "scrape-market-summary": cmd_scrape_market_summary,
+        "scrape-intraday":       cmd_scrape_intraday,
         "scrape-all":            cmd_scrape_all,
     }
 

@@ -243,7 +243,7 @@ export async function getMarketMovers(): Promise<MarketMoversData> {
 }
 
 export async function getMarketIndex(): Promise<MarketIndexData> {
-  return apiFetch<MarketIndexData>("/api/market-index", 900);
+  return apiFetch<MarketIndexData>("/api/market-index", 60);
 }
 
 export async function getDividendsUpcoming(): Promise<DividendsUpcoming> {

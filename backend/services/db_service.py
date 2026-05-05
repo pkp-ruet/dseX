@@ -57,7 +57,7 @@ def load_companies() -> list[dict]:
     return list(db.companies.find({"excluded": {"$ne": True}}, {"_id": 0}))
 
 
-@_ttl_cache(300)
+@_ttl_cache(60)
 def load_latest_prices() -> dict[str, dict]:
     """Returns {trading_code: {ltp, change, change_pct, date, high, low, volume, ycp, ...}}"""
     db = get_db()
@@ -280,7 +280,7 @@ def load_market_movers() -> dict:
     }
 
 
-@_ttl_cache(300)
+@_ttl_cache(60)
 def load_market_index() -> dict:
     """
     Returns the latest DSE index snapshot (DSEX/DSES/DS30 + market totals).
