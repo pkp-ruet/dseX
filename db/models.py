@@ -54,8 +54,5 @@ def ensure_indexes():
         unique=True,
     )
 
-    db.stock_visits.create_index(
-        [("trading_code", ASCENDING), ("date", ASCENDING)],
-        unique=True,
-    )
-    db.stock_visits.create_index([("date", ASCENDING)])
+    db.stock_visits.create_index([("trading_code", ASCENDING)], unique=True)
+    db.stock_visits.create_index([("count", -1)])

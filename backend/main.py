@@ -53,11 +53,45 @@ def startup():
     from backend.services.db_service import get_db
     from pymongo import ASCENDING
     db = get_db()
-    db.stock_visits.create_index(
-        [("trading_code", ASCENDING), ("date", ASCENDING)],
-        unique=True,
-    )
-    db.stock_visits.create_index([("date", ASCENDING)])
+    _migrate_stock_visits_to_single_row(db)
+    db.stock_visits.create_index([("trading_code", ASCENDING)], unique=True)
+    db.stock_visits.create_index([("count", -1)])
+
+
+def _migrate_stock_visits_to_single_row(db) -> None:
+    """One-shot: collapse daily-bucketed stock_visits rows into one row per company.
+    Idempotent — safe to run on every startup."""
+    from datetime import datetime, timezone
+
+    existing = {ix["name"]: ix for ix in db.stock_visits.list_indexes()}
+    if "trading_code_1_date_1" in existing:
+        db.stock_visits.drop_index("trading_code_1_date_1")
+    if "date_1" in existing:
+        db.stock_visits.drop_index("date_1")
+
+    sample = db.stock_visits.find_one({"date": {"$exists": True}}, {"_id": 1})
+    if not sample:
+        return
+
+    totals = db.stock_visits.aggregate([
+        {"$group": {
+            "_id": "$trading_code",
+            "total": {"$sum": "$count"},
+            "last": {"$max": "$date"},
+        }},
+    ])
+    rollups = list(totals)
+    db.stock_visits.delete_many({})
+    if rollups:
+        now = datetime.now(timezone.utc)
+        db.stock_visits.insert_many([
+            {
+                "trading_code": r["_id"],
+                "count": int(r["total"]),
+                "last_visited_at": r["last"] or now,
+            }
+            for r in rollups if r["_id"]
+        ])
 
 
 @app.get("/health")

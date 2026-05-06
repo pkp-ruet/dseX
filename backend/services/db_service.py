@@ -745,17 +745,16 @@ def _tier_for_score(score: Optional[float]) -> Optional[str]:
 
 @_ttl_cache(300)
 def load_popular_stocks(limit: int = 20) -> dict:
-    """All-time visit ranking — top N by cumulative `stock_visits.count`."""
+    """All-time visit ranking — top N by `stock_visits.count` (one row per company)."""
     import math
     from datetime import datetime
 
     db = get_db()
 
-    all_visits = list(db.stock_visits.aggregate([
-        {"$group": {"_id": "$trading_code", "total": {"$sum": "$count"}}},
-        {"$sort": {"total": -1}},
-        {"$limit": limit},
-    ]))
+    all_visits = list(db.stock_visits.find(
+        {},
+        {"trading_code": 1, "count": 1, "_id": 0},
+    ).sort("count", -1).limit(limit))
 
     companies = {c["trading_code"]: c for c in load_companies()}
     prices = load_latest_prices()
@@ -774,7 +773,7 @@ def load_popular_stocks(limit: int = 20) -> dict:
 
     items: list[dict] = []
     for i, row in enumerate(all_visits):
-        code = row["_id"]
+        code = row["trading_code"]
         comp = companies.get(code, {})
         p = prices.get(code, {})
         score = score_map.get(code)
@@ -784,7 +783,7 @@ def load_popular_stocks(limit: int = 20) -> dict:
             "trading_code": code,
             "company_name": comp.get("company_name"),
             "sector": comp.get("sector"),
-            "visits_total": int(row["total"]),
+            "visits_total": int(row["count"]),
             "ltp": p.get("ltp"),
             "change_pct": p.get("change_pct"),
             "score": round(score, 1) if score is not None else None,
@@ -798,14 +797,14 @@ def load_popular_stocks(limit: int = 20) -> dict:
 
 
 def increment_stock_visit(trading_code: str) -> None:
-    """Daily-bucketed upsert. Caller must validate trading_code first."""
+    """One row per company — all-time counter. Caller must validate trading_code first."""
     from datetime import datetime, timezone
     db = get_db()
-    today = datetime.now(timezone.utc).replace(
-        hour=0, minute=0, second=0, microsecond=0, tzinfo=None
-    )
     db.stock_visits.update_one(
-        {"trading_code": trading_code, "date": today},
-        {"$inc": {"count": 1}},
+        {"trading_code": trading_code},
+        {
+            "$inc": {"count": 1},
+            "$set": {"last_visited_at": datetime.now(timezone.utc)},
+        },
         upsert=True,
     )
