@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type CSSProperties } from "react";
 import Link from "next/link";
 import { taka, pct } from "@/lib/formatters";
 import { TIER_LABELS, type TierKey } from "@/lib/constants";
@@ -22,6 +22,12 @@ const TIER_COLOR: Record<TierKey, string> = {
   safe_buy:      "#60A5FA",
   keep_watching: "#FBBF24",
   avoid:         "#F87171",
+};
+
+const MEDAL_COLORS: Record<1 | 2 | 3, { bg: string; ring: string; text: string }> = {
+  1: { bg: "#F5D169", ring: "#B8860B", text: "#3B2A00" },
+  2: { bg: "#E0E0E0", ring: "#9A9A9A", text: "#2A2A2A" },
+  3: { bg: "#E0986A", ring: "#8C4A1F", text: "#3B1F00" },
 };
 
 const TIERS_ORDER: TierKey[] = ["strong_buy", "good_buy", "safe_buy", "keep_watching", "avoid"];
@@ -69,8 +75,8 @@ export default function FullRankTable({ items }: Props) {
               <th className="fr-th fr-th-star" aria-label="Watchlist"></th>
               <th className="fr-th fr-th-code">Code</th>
               <th className="fr-th fr-th-sector fr-th-hide-sm">Sector</th>
-              <th className="fr-th fr-th-score">Score</th>
-              <th className="fr-th fr-th-num fr-th-hide-sm">LTP</th>
+              <th className="fr-th fr-th-score fr-th-hide-sm">Score</th>
+              <th className="fr-th fr-th-num">LTP</th>
               <th className="fr-th fr-th-num">Chg%</th>
               <th className="fr-th fr-th-num fr-th-hide-sm">EPS YoY</th>
               <th className="fr-th fr-th-num fr-th-hide-md">Div Yield</th>
@@ -86,7 +92,7 @@ export default function FullRankTable({ items }: Props) {
                     <td colSpan={10}>
                       <div
                         className="fr-tier-sep"
-                        style={{ borderLeftColor: tierColor }}
+                        style={{ ["--tier-color" as string]: tierColor }}
                       >
                         <span className="fr-tier-sep-dot" style={{ background: tierColor }} />
                         <span className="fr-tier-sep-label" style={{ color: tierColor }}>
@@ -101,10 +107,16 @@ export default function FullRankTable({ items }: Props) {
 
               const { item, rank } = entry;
               const tierColor = TIER_COLOR[item.tier];
+              const medal = rank <= 3 ? MEDAL_COLORS[rank as 1 | 2 | 3] : null;
+              const rankPillStyle: CSSProperties = medal
+                ? { background: medal.bg, borderColor: medal.ring, color: medal.text }
+                : {};
 
               return (
                 <tr key={item.trading_code + idx} className="fr-row">
-                  <td className="fr-td fr-td-rank">{rank}</td>
+                  <td className="fr-td fr-td-rank">
+                    <span className="fr-rank-pill" style={rankPillStyle}>{rank}</span>
+                  </td>
 
                   <td className="fr-td fr-td-star">
                     <StarButton code={item.trading_code} />
@@ -125,13 +137,16 @@ export default function FullRankTable({ items }: Props) {
                     {item.sector ?? "—"}
                   </td>
 
-                  <td className="fr-td fr-td-score">
-                    <span className="fr-score-num" style={{ color: tierColor }}>
-                      {item.score != null ? item.score.toFixed(1) : "—"}
+                  <td className="fr-td fr-td-score fr-td-hide-sm">
+                    <span className="fr-score-wrap">
+                      <span className="fr-score-dot" style={{ background: tierColor, color: tierColor }} />
+                      <span className="fr-score-num" style={{ color: tierColor }}>
+                        {item.score != null ? item.score.toFixed(1) : "—"}
+                      </span>
                     </span>
                   </td>
 
-                  <td className="fr-td fr-td-num fr-td-hide-sm">
+                  <td className="fr-td fr-td-num">
                     {item.ltp != null ? taka(item.ltp) : "—"}
                   </td>
 
@@ -147,8 +162,10 @@ export default function FullRankTable({ items }: Props) {
                     {item.div_yield_pct != null ? pct(item.div_yield_pct, 1) : "—"}
                   </td>
 
-                  <td className="fr-td fr-td-tier fr-td-hide-sm" style={{ color: tierColor }}>
-                    {TIER_LABELS[item.tier]}
+                  <td className="fr-td fr-td-tier fr-td-hide-sm">
+                    <span className="fr-tier-pill" style={{ color: tierColor }}>
+                      {TIER_LABELS[item.tier]}
+                    </span>
                   </td>
                 </tr>
               );

@@ -89,7 +89,9 @@ export default async function DseStockRankingPage() {
       />
       {/* Page header */}
       <div className="rank-page-header">
-        <div className="rank-page-eyebrow">DSEF Fundamental Rankings</div>
+        <div className="rank-page-eyebrow">
+          <span className="rank-page-bolt">⚡</span> DSEF Fundamental Rankings
+        </div>
         <h1 className="rank-page-title">DSE Stock Rankings</h1>
         <p className="rank-page-meta">
           {allRanked.length} companies scored

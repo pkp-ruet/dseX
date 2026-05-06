@@ -47,6 +47,9 @@ export default function TopRankings({ scores }: Props) {
     <section className="tr-wrap">
       <div className="tr-header">
         <div className="tr-heading">
+          <div className="tr-eyebrow">
+            <span className="tr-bolt">⚡</span> DSEF Rankings
+          </div>
           <div className="section-label tr-section-label">TopStockBD Ranking</div>
           <div className="tr-subtitle">Based on Deep Fundamental Analysis</div>
         </div>
@@ -66,15 +69,20 @@ export default function TopRankings({ scores }: Props) {
 
         {rows.map((item, i) => {
           const tier = getTier(item.score);
+          const rankClass =
+            i === 0 ? "tr-rank tr-rank--gold"
+            : i === 1 ? "tr-rank tr-rank--silver"
+            : i === 2 ? "tr-rank tr-rank--bronze"
+            : "tr-rank";
           return (
             <Link
               key={item.trading_code}
               href={`/stock/${item.trading_code}`}
               className="tr-row"
             >
-              <span className="tr-rank">{i + 1}</span>
+              <span className={rankClass}>{i + 1}</span>
               <span className="tr-star">
-                <StarButton code={item.trading_code} />
+                <StarButton code={item.trading_code} size="md" />
               </span>
               <span className="tr-code">
                 <span className={`tr-ticker-pill tr-ticker-pill--${tier}`}>
