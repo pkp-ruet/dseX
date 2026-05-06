@@ -685,10 +685,29 @@ body::before {
   gap: 1px;
   text-decoration: none;
   letter-spacing: -0.01em;
-  padding: 2px 0;
+  padding: 4px 8px;
+  margin-left: -8px;
+  border-radius: 8px;
+  transition: background 0.15s ease;
 }
 .navbar-brand:hover {
-  opacity: 0.9;
+  background: rgba(127, 127, 127, 0.08);
+}
+.navbar-brand:hover .navbar-brand-home {
+  color: var(--accent, #2563eb);
+  transform: translateY(-1px);
+}
+.navbar-brand-home {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-right: 7px;
+  border-radius: 6px;
+  color: var(--ink-muted);
+  background: rgba(127, 127, 127, 0.10);
+  transition: color 0.15s ease, transform 0.15s ease;
 }
 .navbar-brand-icon {
   width: 22px;
@@ -4318,10 +4337,10 @@ details.dsex-exp[open] > summary {
   margin: 36px 0 24px;
   padding: 22px 22px 20px;
   border-radius: 18px;
-  border: 1px solid rgba(245, 209, 105, 0.28);
+  border: 1px solid rgba(16, 185, 129, 0.28);
   background:
-    radial-gradient(120% 100% at 0% 0%, rgba(245, 110, 76, 0.10) 0%, transparent 55%),
-    radial-gradient(110% 90% at 100% 100%, rgba(245, 209, 105, 0.10) 0%, transparent 55%),
+    radial-gradient(120% 100% at 0% 0%, rgba(34, 211, 238, 0.10) 0%, transparent 55%),
+    radial-gradient(110% 90% at 100% 100%, rgba(16, 185, 129, 0.10) 0%, transparent 55%),
     var(--surface, rgba(15, 23, 42, 0.4));
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.10);
 }
@@ -4351,7 +4370,7 @@ details.dsex-exp[open] > summary {
 .pt-fire {
   font-size: 1.5rem;
   display: inline-block;
-  filter: drop-shadow(0 1px 4px rgba(255, 138, 76, 0.45));
+  filter: drop-shadow(0 1px 4px rgba(34, 211, 238, 0.55));
 }
 
 .pt-heading {
@@ -4359,7 +4378,7 @@ details.dsex-exp[open] > summary {
   font-weight: 900;
   letter-spacing: 0.005em;
   margin: 0;
-  background: linear-gradient(90deg, #F5D169 0%, #FF8A4C 60%, #FF6B6B 100%);
+  background: linear-gradient(90deg, #22D3EE 0%, #10B981 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -4381,8 +4400,8 @@ details.dsex-exp[open] > summary {
   gap: 6px;
   padding: 10px 18px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #F5D169 0%, #FF8A4C 100%);
-  color: #1A1A1A;
+  background: linear-gradient(135deg, #22D3EE 0%, #10B981 100%);
+  color: #0A1628;
   font-weight: 800;
   font-size: 0.82rem;
   letter-spacing: 0.06em;
@@ -4390,12 +4409,12 @@ details.dsex-exp[open] > summary {
   text-decoration: none;
   white-space: nowrap;
   transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
-  box-shadow: 0 4px 16px rgba(245, 138, 76, 0.32);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.32);
 }
 
 .pt-cta:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 22px rgba(245, 138, 76, 0.45);
+  box-shadow: 0 6px 22px rgba(16, 185, 129, 0.45);
   filter: brightness(1.05);
 }
 
@@ -4552,9 +4571,9 @@ details.dsex-exp[open] > summary {
     font-size: 1.05rem;
     font-weight: 900;
     line-height: 1;
-    color: rgba(245, 209, 105, 0.95);
+    color: rgba(34, 211, 238, 0.95);
     background: rgba(15, 23, 42, 0.7);
-    border: 1px solid rgba(245, 209, 105, 0.45);
+    border: 1px solid rgba(34, 211, 238, 0.45);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
     pointer-events: none;
     animation: pt-swipe-hint 1.4s ease-in-out infinite;

@@ -43,7 +43,19 @@ export default function Navbar() {
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg)] border-b border-[var(--border)] shadow-sm">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link href="/" className="navbar-brand" onClick={() => setMenuOpen(false)}>
+          <Link
+            href="/"
+            className="navbar-brand"
+            onClick={() => setMenuOpen(false)}
+            aria-label="TopStockBD — Home"
+            title="Home"
+          >
+            <span className="navbar-brand-home" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 11.5L12 4l9 7.5" />
+                <path d="M5 10v9a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1v-9" />
+              </svg>
+            </span>
             <span className="navbar-brand-dse">TopStock</span>
             <span className="navbar-brand-score">BD</span>
           </Link>

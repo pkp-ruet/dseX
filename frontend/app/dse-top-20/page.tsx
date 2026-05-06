@@ -195,7 +195,7 @@ export default async function DseTop20Page() {
         <div className="rank-page-header">
           <div className="rank-page-eyebrow">7-Day Market Pulse</div>
           <h1 className="rank-page-title">
-            DSE Top 20 Stocks{dateLabel ? ` — Week of ${dateLabel}` : ""}
+            DSE Top 20 Stocks — This Week
           </h1>
           <p
             style={{
@@ -208,31 +208,7 @@ export default async function DseTop20Page() {
           >
             The 20 strongest Dhaka Stock Exchange (DSE) stocks based on the last 7 trading days of
             market data — price momentum, relative strength against DSEX, and turnover conviction.
-            No fundamental DSEF score is used. Updated daily after the market close.
           </p>
-        </div>
-
-        {/* Condition strip */}
-        <div
-          className="mt-5 rounded-xl border px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
-          style={{
-            borderColor: `${conditionColor}55`,
-            background: `${conditionColor}14`,
-          }}
-        >
-          <div>
-            <div className="text-xs uppercase tracking-wider font-semibold" style={{ color: conditionColor }}>
-              {copy.eyebrow}
-            </div>
-            <div className="text-sm text-[var(--ink)] mt-1">{copy.line}</div>
-          </div>
-          <div className="text-xs text-[var(--ink-muted)] sm:text-right shrink-0">
-            {dsexLine && <div>{dsexLine}</div>}
-            <div>
-              Filtered from {data.universe_size.toLocaleString()} liquid DSE stocks
-              {data.as_of_date ? ` · As of ${dateLabel}` : ""}
-            </div>
-          </div>
         </div>
 
         {/* The deck */}

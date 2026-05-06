@@ -47,9 +47,6 @@ export default function TopRankings({ scores }: Props) {
     <section className="tr-wrap">
       <div className="tr-header">
         <div className="tr-heading">
-          <div className="tr-eyebrow">
-            <span className="tr-bolt">⚡</span> DSEF Rankings
-          </div>
           <div className="section-label tr-section-label">TopStockBD Ranking</div>
           <div className="tr-subtitle">Based on Deep Fundamental Analysis</div>
         </div>
