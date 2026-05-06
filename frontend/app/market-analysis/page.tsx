@@ -7,6 +7,7 @@ import {
   getDividendsUpcoming,
   getNearExtremes,
 } from "@/lib/api";
+import Link from "next/link";
 import type { LiveSectorItem } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 
@@ -132,6 +133,12 @@ export default async function MarketAnalysisPage() {
         <h1 className="rank-page-title">DSE Market Analysis</h1>
         <p className="rank-page-meta">
           Raw data insights{dateLabel ? ` · ${dateLabel}` : ""} · No scoring, just market facts
+        </p>
+        <p className="rank-page-meta" style={{ marginTop: 4 }}>
+          See also:{" "}
+          <Link href="/dse-top-20" style={{ textDecoration: "underline" }}>
+            DSE Top 20 — 7-day momentum picks
+          </Link>
         </p>
       </div>
 

@@ -18,6 +18,7 @@ export default function Navbar() {
   const isPortfolio = pathname === "/portfolio";
   const isToday = pathname === "/dse-today";
   const isPopular = pathname === "/dse-popular-stocks";
+  const isTop20 = pathname === "/dse-top-20";
 
   const { user, isLoggedIn } = useAuth();
 
@@ -67,6 +68,12 @@ export default function Navbar() {
                 <path d="M4 20h16v-2H4v2zm2-4h3V9H6v7zm5 0h3V5h-3v11zm5 0h3v-7h-3v7z" />
               </svg>
               Rankings
+            </Link>
+            <Link
+              href="/dse-top-20"
+              className={`navbar-intel-btn${isTop20 ? " navbar-intel-btn-active" : ""}`}
+            >
+              Top 20
             </Link>
             <Link
               href="/dse-popular-stocks"
@@ -229,6 +236,13 @@ export default function Navbar() {
             onClick={() => setMenuOpen(false)}
           >
             Rankings
+          </Link>
+          <Link
+            href="/dse-top-20"
+            className={`navbar-drawer-link${isTop20 ? " active" : ""}`}
+            onClick={() => setMenuOpen(false)}
+          >
+            Top 20
           </Link>
           <Link
             href="/dse-popular-stocks"

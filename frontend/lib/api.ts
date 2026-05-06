@@ -681,6 +681,40 @@ export async function getPopularStocks(): Promise<PopularStocksResponse> {
 }
 
 // ---------------------------------------------------------------------------
+// DSE Top 20 (7-day momentum composite)
+// ---------------------------------------------------------------------------
+
+export interface Top20Item {
+  rank: number;
+  trading_code: string;
+  company_name: string | null;
+  sector: string | null;
+  ltp: number | null;
+  return_7d_pct: number | null;
+  rs_vs_dsex_pct: number | null;
+  volume_ratio: number | null;
+  avg_turnover_7d_mn: number | null;
+  up_days_7d: number;
+  days_counted: number;
+  pct_in_52w_range: number | null;
+  composite_score: number;
+  rationale: string;
+}
+
+export interface Top20Response {
+  generated_at: string;
+  as_of_date: string | null;
+  market_condition: "rising" | "falling" | "sideways" | "unknown" | string;
+  dsex_7d_change_pct: number | null;
+  universe_size: number;
+  items: Top20Item[];
+}
+
+export async function getTop20(): Promise<Top20Response> {
+  return apiFetch<Top20Response>("/api/top-20", 1800);
+}
+
+// ---------------------------------------------------------------------------
 // Admin analytics
 // ---------------------------------------------------------------------------
 

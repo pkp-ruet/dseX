@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { getScores } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
@@ -93,6 +94,12 @@ export default async function DseStockRankingPage() {
         <p className="rank-page-meta">
           {allRanked.length} companies scored
           {dateLabel ? ` · Updated ${dateLabel}` : ""}
+        </p>
+        <p className="rank-page-meta" style={{ marginTop: 4 }}>
+          See also:{" "}
+          <Link href="/dse-top-20" style={{ textDecoration: "underline" }}>
+            DSE Top 20 — 7-day momentum picks
+          </Link>
         </p>
       </div>
 

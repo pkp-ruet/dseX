@@ -4,9 +4,11 @@ import {
   getScores,
   getMarketIndex,
   getPopularStocks,
+  getTop20,
   type ScoresResponse,
   type MarketIndexData,
   type PopularStocksResponse,
+  type Top20Response,
 } from "@/lib/api";
 import SearchBar from "@/components/home/SearchBar";
 import TickerBand from "@/components/home/TickerBand";
@@ -16,6 +18,7 @@ import NavHighlights from "@/components/home/NavHighlights";
 import InsightsTeaserStrip from "@/components/home/InsightsTeaserStrip";
 import PortfolioTeaserCTA from "@/components/home/PortfolioTeaserCTA";
 import PopularTeaser from "@/components/home/PopularTeaser";
+import Top20MomentumTeaser from "@/components/home/Top20MomentumTeaser";
 
 export const revalidate = 3600;
 
@@ -84,12 +87,24 @@ async function PopularTeaserSection({
   return <PopularTeaser items={data.items} />;
 }
 
+async function Top20TeaserSection({
+  promise,
+}: {
+  promise: Promise<Top20Response | null>;
+}) {
+  const data = await promise;
+  if (!data || data.items.length === 0) return null;
+  return <Top20MomentumTeaser items={data.items} />;
+}
+
 async function MainContentSection({
   scoresPromise,
   popularPromise,
+  top20Promise,
 }: {
   scoresPromise: Promise<ScoresResponse | null>;
   popularPromise: Promise<PopularStocksResponse | null>;
+  top20Promise: Promise<Top20Response | null>;
 }) {
   const scores = await scoresPromise;
 
@@ -116,6 +131,9 @@ async function MainContentSection({
             <TopRankings scores={allItems} />
           </Suspense>
           <Suspense fallback={null}>
+            <Top20TeaserSection promise={top20Promise} />
+          </Suspense>
+          <Suspense fallback={null}>
             <PopularTeaserSection promise={popularPromise} />
           </Suspense>
           <NavHighlights />
@@ -129,6 +147,7 @@ export default function HomePage() {
   const scoresPromise = getScores().catch(() => null);
   const marketIndexPromise = getMarketIndex().catch(() => null);
   const popularPromise = getPopularStocks().catch(() => null);
+  const top20Promise = getTop20().catch(() => null);
 
   return (
     <>
@@ -156,6 +175,7 @@ export default function HomePage() {
         <MainContentSection
           scoresPromise={scoresPromise}
           popularPromise={popularPromise}
+          top20Promise={top20Promise}
         />
       </Suspense>
 

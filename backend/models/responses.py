@@ -262,3 +262,29 @@ class PopularStockItem(BaseModel):
 class PopularStocksResponse(BaseModel):
     as_of: str
     items: list[PopularStockItem]
+
+
+class Top20Item(BaseModel):
+    rank: int
+    trading_code: str
+    company_name: Optional[str] = None
+    sector: Optional[str] = None
+    ltp: Optional[float] = None
+    return_7d_pct: Optional[float] = None
+    rs_vs_dsex_pct: Optional[float] = None
+    volume_ratio: Optional[float] = None
+    avg_turnover_7d_mn: Optional[float] = None
+    up_days_7d: int = 0
+    days_counted: int = 0
+    pct_in_52w_range: Optional[float] = None
+    composite_score: float = 0.0
+    rationale: str = ""
+
+
+class Top20Response(BaseModel):
+    generated_at: str
+    as_of_date: Optional[str] = None
+    market_condition: str
+    dsex_7d_change_pct: Optional[float] = None
+    universe_size: int = 0
+    items: list[Top20Item]
