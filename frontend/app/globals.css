@@ -3877,6 +3877,16 @@ details.dsex-exp[open] > summary {
     padding: 0 10px;
   }
 
+  .tr-row {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .tr-col-header {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
   .tr-col-header span {
     font-size: 0.62rem;
     letter-spacing: 0.08em;
@@ -4546,6 +4556,8 @@ details.dsex-exp[open] > summary {
   font-variant-numeric: tabular-nums;
 }
 
+.pt-scroll-hint { display: none; }
+
 @media (max-width: 1024px) {
   .pt-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
@@ -4557,13 +4569,12 @@ details.dsex-exp[open] > summary {
     margin: 24px 0 18px;
     position: relative;
   }
-  .pt-section::after {
-    content: "›";
+  .pt-scroll-hint {
     position: absolute;
     right: 6px;
     bottom: 18px;
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4575,9 +4586,12 @@ details.dsex-exp[open] > summary {
     background: rgba(15, 23, 42, 0.7);
     border: 1px solid rgba(34, 211, 238, 0.45);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-    pointer-events: none;
+    cursor: pointer;
+    z-index: 2;
+    padding: 0;
     animation: pt-swipe-hint 1.4s ease-in-out infinite;
   }
+  .pt-scroll-hint:active { transform: scale(0.92); }
   .pt-header { gap: 10px; margin-bottom: 14px; }
   .pt-heading { font-size: 1.2rem; }
   .pt-fire { font-size: 1.3rem; }
@@ -4834,6 +4848,8 @@ details.dsex-exp[open] > summary {
   color: var(--ink);
 }
 
+.t20t-scroll-hint { display: none; }
+
 @media (max-width: 1024px) {
   .t20t-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
@@ -4845,13 +4861,12 @@ details.dsex-exp[open] > summary {
     margin: 22px 0 16px;
     position: relative;
   }
-  .t20t-section::after {
-    content: "›";
+  .t20t-scroll-hint {
     position: absolute;
     right: 6px;
     bottom: 18px;
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4863,9 +4878,12 @@ details.dsex-exp[open] > summary {
     background: rgba(15, 23, 42, 0.7);
     border: 1px solid rgba(34, 211, 238, 0.45);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-    pointer-events: none;
+    cursor: pointer;
+    z-index: 2;
+    padding: 0;
     animation: pt-swipe-hint 1.4s ease-in-out infinite;
   }
+  .t20t-scroll-hint:active { transform: scale(0.92); }
   .t20t-header { gap: 10px; margin-bottom: 14px; }
   .t20t-heading { font-size: 1.1rem; }
   .t20t-subtitle { font-size: 0.74rem; }

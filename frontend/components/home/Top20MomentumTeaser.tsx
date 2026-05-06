@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRef } from "react";
 import { taka } from "@/lib/formatters";
 import type { Top20Item } from "@/lib/api";
 
@@ -22,8 +23,19 @@ function fmtSigned(val: number | null) {
 }
 
 export default function Top20MomentumTeaser({ items }: Props) {
+  const cardsRef = useRef<HTMLDivElement>(null);
   if (items.length === 0) return null;
   const top5 = items.slice(0, 5);
+
+  const handleScrollNext = () => {
+    const el = cardsRef.current;
+    if (!el) return;
+    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
+    el.scrollTo({
+      left: atEnd ? 0 : el.scrollLeft + el.clientWidth,
+      behavior: "smooth",
+    });
+  };
 
   return (
     <section className="t20t-section">
@@ -46,7 +58,16 @@ export default function Top20MomentumTeaser({ items }: Props) {
         </Link>
       </div>
 
-      <div className="t20t-cards">
+      <button
+        type="button"
+        className="t20t-scroll-hint"
+        aria-label="Scroll to next stocks"
+        onClick={handleScrollNext}
+      >
+        ›
+      </button>
+
+      <div className="t20t-cards" ref={cardsRef}>
         {top5.map((item) => {
           const days = item.days_counted || 7;
           const upBars =

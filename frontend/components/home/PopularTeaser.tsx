@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRef } from "react";
 import { taka, pct } from "@/lib/formatters";
 import type { PopularStockItem } from "@/lib/api";
 
@@ -62,8 +63,19 @@ function fmtChg(val: number | null) {
 }
 
 export default function PopularTeaser({ items }: Props) {
+  const cardsRef = useRef<HTMLDivElement>(null);
   if (items.length === 0) return null;
   const top5 = items.slice(0, 5);
+
+  const handleScrollNext = () => {
+    const el = cardsRef.current;
+    if (!el) return;
+    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
+    el.scrollTo({
+      left: atEnd ? 0 : el.scrollLeft + el.clientWidth,
+      behavior: "smooth",
+    });
+  };
 
   return (
     <section className="pt-section">
@@ -83,7 +95,16 @@ export default function PopularTeaser({ items }: Props) {
         </Link>
       </div>
 
-      <div className="pt-cards">
+      <button
+        type="button"
+        className="pt-scroll-hint"
+        aria-label="Scroll to next stocks"
+        onClick={handleScrollNext}
+      >
+        ›
+      </button>
+
+      <div className="pt-cards" ref={cardsRef}>
         {top5.map((item) => {
           const isTop3 = item.rank >= 1 && item.rank <= 3;
           const cls = "pt-card" + (isTop3 ? ` pt-card-${item.rank}` : "");
