@@ -199,9 +199,24 @@ function apiFetchSignal(): AbortSignal | undefined {
   return typeof ctor.timeout === "function" ? ctor.timeout(60_000) : undefined;
 }
 
-async function apiFetch<T>(path: string, revalidate?: number): Promise<T> {
+/**
+ * Tag every cached fetch that depends on scraped market data so we can purge
+ * them all together via `revalidateTag('market-data')` after a scrape run.
+ * Endpoints that aren't market-data dependent (none currently) should pass
+ * `tags: []` explicitly.
+ */
+const MARKET_DATA_TAG = "market-data";
+
+async function apiFetch<T>(
+  path: string,
+  revalidate?: number,
+  tags: string[] = [MARKET_DATA_TAG],
+): Promise<T> {
   const url = `${getApiUrl()}${path}`;
-  const nextOpts = revalidate !== undefined ? { revalidate } : { revalidate: 3600 };
+  const nextOpts: { revalidate: number; tags?: string[] } = {
+    revalidate: revalidate !== undefined ? revalidate : 3600,
+  };
+  if (tags.length) nextOpts.tags = tags;
 
   let lastErr: unknown;
   for (let attempt = 0; attempt < 2; attempt++) {

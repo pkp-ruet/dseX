@@ -346,6 +346,8 @@ Both are sourced from `.env` via `python-dotenv`.
 | `GOOGLE_CLIENT_ID` | empty | Google OAuth Web Client ID. Required for `/api/auth/google`; backend uses it to verify the `aud` claim of incoming Google ID tokens. |
 | `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | empty | Same value as `GOOGLE_CLIENT_ID`, exposed to the browser so `@react-oauth/google` can request the ID token. Public per Google's design. |
 | `VERCEL_DEPLOY_HOOK_URL` | unset | Optional — `scrape-all` POSTs here on success to trigger a Vercel rebuild |
+| `FRONTEND_REVALIDATE_URL` | unset | Frontend `/api/revalidate` URL (e.g. `https://www.topstockbd.com/api/revalidate`). When set with `REVALIDATE_SECRET`, `scrape-all` purges the Next.js `market-data` tag so ISR pages (rankings + stock detail) refetch on the next request. Preferred over the deploy hook because Vercel's data cache survives rebuilds. |
+| `REVALIDATE_SECRET` | unset | Shared secret for `/api/revalidate`. Set the same value on the Next.js host and on whatever runs `scrape-all`. |
 | `API_URL` / `NEXT_PUBLIC_API_URL` | `https://dsex.onrender.com` | Frontend → backend base URL (server-side / browser) |
 
 DSE URL constants also live in the root `config.py`.

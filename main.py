@@ -139,6 +139,39 @@ def cmd_scrape_market_summary(_args):
         print("Failed to scrape market summary.")
 
 
+def _trigger_post_scrape_hooks(*, fire_deploy_hook: bool = False):
+    """Purge the Next.js market-data tag (and optionally fire the Vercel deploy hook).
+
+    `fire_deploy_hook` defaults to False — intraday scrapes should only revalidate
+    the cache, not trigger a full rebuild every 5 minutes.
+    """
+    import os
+    import urllib.request
+
+    revalidate_url = os.getenv("FRONTEND_REVALIDATE_URL")
+    revalidate_secret = os.getenv("REVALIDATE_SECRET")
+    if revalidate_url and revalidate_secret:
+        try:
+            req = urllib.request.Request(
+                f"{revalidate_url.rstrip('/')}?tag=market-data",
+                method="POST",
+                headers={"x-revalidate-secret": revalidate_secret},
+            )
+            urllib.request.urlopen(req, timeout=10)
+            print("Frontend revalidate triggered (tag=market-data).")
+        except Exception as e:
+            print(f"Warning: frontend revalidate failed: {e}")
+
+    if fire_deploy_hook:
+        hook = os.getenv("VERCEL_DEPLOY_HOOK_URL")
+        if hook:
+            try:
+                urllib.request.urlopen(urllib.request.Request(hook, method="POST"), timeout=10)
+                print("Vercel deploy hook triggered.")
+            except Exception as e:
+                print(f"Warning: Vercel deploy hook failed: {e}")
+
+
 def cmd_scrape_intraday(args):
     """Light intraday refresh — prices + market summary only. Skips when market is closed."""
     if not getattr(args, "force", False) and not is_intraday_scrape_window():
@@ -161,6 +194,8 @@ def cmd_scrape_intraday(args):
         print(f"  DSEX={ms_doc.get('dsex')}, DSES={ms_doc.get('dses')}, DS30={ms_doc.get('ds30')}")
     else:
         print("  Warning: market summary scrape failed.")
+
+    _trigger_post_scrape_hooks(fire_deploy_hook=False)
 
 
 def cmd_scrape_all(args):
@@ -219,16 +254,7 @@ def cmd_scrape_all(args):
 
     print("All done.")
 
-    # Trigger Vercel rebuild so the Next.js site reflects fresh data
-    import os
-    hook = os.getenv("VERCEL_DEPLOY_HOOK_URL")
-    if hook:
-        try:
-            import urllib.request
-            urllib.request.urlopen(urllib.request.Request(hook, method="POST"), timeout=10)
-            print("Vercel deploy hook triggered.")
-        except Exception as e:
-            print(f"Warning: Vercel deploy hook failed: {e}")
+    _trigger_post_scrape_hooks(fire_deploy_hook=True)
 
 
 def main():

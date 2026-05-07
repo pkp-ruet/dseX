@@ -24,6 +24,8 @@ jobs:
     env:
       MONGODB_URI: ${{ secrets.MONGODB_URI }}
       MONGODB_DB_NAME: ${{ secrets.MONGODB_DB_NAME }}
+      FRONTEND_REVALIDATE_URL: ${{ secrets.FRONTEND_REVALIDATE_URL }}
+      REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
     steps:
       - uses: actions/checkout@v4
 
