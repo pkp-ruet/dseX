@@ -18,6 +18,20 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: "/stock-lists/:slug*",
+        destination: "/stock-insights/:slug*",
+        permanent: true,
+      },
+      {
+        source: "/stock-lists",
+        destination: "/stock-insights",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
