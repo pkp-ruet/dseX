@@ -61,8 +61,8 @@ export default function PortfolioAnalyzerHero() {
     : "Is your DSE portfolio well-built — or risky?";
 
   const subCopy = isEmptyLoggedIn
-    ? "Add your DSE holdings, click Analyze, and get a free plain-English report on concentration, sector spread, company strength, and entry prices."
-    : "Free plain-English analysis of your holdings: concentration, sector spread, company strength, and whether you paid the right price — all in 60 seconds.";
+    ? "Add your stocks and get a free, easy-to-read report — how spread out they are, how strong the companies are, and whether you paid fair prices."
+    : "A free, easy-to-read report on your stocks — how spread out they are, how strong the companies are, and whether you paid fair prices. Done in 60 seconds.";
 
   const primaryCta = isEmptyLoggedIn
     ? { href: "/portfolio", label: "Create your first portfolio" }
@@ -94,19 +94,13 @@ export default function PortfolioAnalyzerHero() {
               <span className="text-green-500 mt-0.5 shrink-0" aria-hidden>
                 ✓
               </span>
-              <span>Spot concentration risk before it hurts you</span>
+              <span>See if too much of your money is in one stock or sector</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-green-500 mt-0.5 shrink-0" aria-hidden>
                 ✓
               </span>
               <span>Know if you paid a fair price for every holding</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-green-500 mt-0.5 shrink-0" aria-hidden>
-                ✓
-              </span>
-              <span>Plain English — no jargon, no spreadsheets</span>
             </li>
           </ul>
 

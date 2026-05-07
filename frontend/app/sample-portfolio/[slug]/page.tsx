@@ -184,7 +184,7 @@ export default async function SamplePortfolioPage({ params }: Props) {
               Want this analysis for your real portfolio?
             </p>
             <p className="text-xs text-[var(--text-muted)] mt-0.5">
-              Add your holdings, click Analyze, get the same plain-English report — free.
+              Add your holdings and get the same plain-English report — free.
             </p>
           </div>
           <div className="flex gap-2 shrink-0">
