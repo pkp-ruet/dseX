@@ -15,6 +15,7 @@ import {
   apiDeleteHolding,
 } from "@/lib/api";
 import { taka } from "@/lib/formatters";
+import PortfolioAnalysis from "./PortfolioAnalysis";
 
 function flattenScores(scores: ScoresResponse | null): Map<string, ScoreItem> {
   if (!scores) return new Map();
@@ -349,256 +350,125 @@ export default function PortfolioClient() {
           </p>
         </div>
       ) : (
-        <>
-          {/* Mobile cards */}
-          <div className="flex flex-col gap-3 sm:hidden">
-            {rows.map((row) => {
-              const isEditing = editId === row.holding.id;
-              return (
-                <div
-                  key={row.holding.id}
-                  className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
+        <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+          <table className="w-full text-xs sm:text-sm">
+            <thead>
+              <tr className="bg-[var(--surface)] border-b border-[var(--border)]">
+                <th className="text-left px-2 sm:px-3 py-2.5 text-[10px] sm:text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium">Code</th>
+                <th className="text-left px-2 sm:px-3 py-2.5 text-[10px] sm:text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium hidden sm:table-cell">Company</th>
+                <th className="text-right px-2 sm:px-3 py-2.5 text-[10px] sm:text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium">Qty</th>
+                <th className="text-right px-2 sm:px-3 py-2.5 text-[10px] sm:text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium">Buy</th>
+                <th className="text-right px-2 sm:px-3 py-2.5 text-[10px] sm:text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium">LTP</th>
+                <th className="text-right px-2 sm:px-3 py-2.5 text-[10px] sm:text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium hidden md:table-cell">Cur. Value</th>
+                <th className="text-right px-2 sm:px-3 py-2.5 text-[10px] sm:text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium">P&amp;L</th>
+                <th className="px-2 sm:px-3 py-2.5"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => {
+                const isEditing = editId === row.holding.id;
+                return (
+                  <tr
+                    key={row.holding.id}
+                    className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface)] transition-colors"
+                  >
+                    <td className="px-2 sm:px-3 py-3 font-medium">
                       <Link
                         href={`/stock/${row.holding.trading_code}`}
-                        className="font-mono font-bold text-[var(--primary)] hover:underline text-base"
+                        className="text-[var(--primary)] hover:underline font-mono"
                       >
                         {row.holding.trading_code}
                       </Link>
-                      {row.company_name && (
-                        <p className="text-xs text-[var(--text-muted)] mt-0.5 leading-tight">
-                          {row.company_name}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex gap-1.5 ml-2 shrink-0">
+                    </td>
+                    <td className="px-2 sm:px-3 py-3 text-[var(--text-muted)] max-w-[160px] truncate hidden sm:table-cell">
+                      {row.company_name ?? "—"}
+                    </td>
+                    <td className="px-2 sm:px-3 py-3 text-right text-[var(--text)]">
                       {isEditing ? (
-                        <>
+                        <input
+                          type="number"
+                          min="1"
+                          value={editForm.qty}
+                          onChange={(e) => setEditForm((f) => ({ ...f, qty: e.target.value }))}
+                          className="input-field text-right w-14 sm:w-20 text-xs sm:text-sm py-1"
+                        />
+                      ) : (
+                        row.holding.qty.toLocaleString()
+                      )}
+                    </td>
+                    <td className="px-2 sm:px-3 py-3 text-right text-[var(--text)]">
+                      {isEditing ? (
+                        <input
+                          type="number"
+                          min="0.01"
+                          step="0.01"
+                          value={editForm.buy_price}
+                          onChange={(e) => setEditForm((f) => ({ ...f, buy_price: e.target.value }))}
+                          className="input-field text-right w-16 sm:w-24 text-xs sm:text-sm py-1"
+                        />
+                      ) : (
+                        taka(row.holding.buy_price, 2)
+                      )}
+                    </td>
+                    <td className="px-2 sm:px-3 py-3 text-right text-[var(--text)]">
+                      {row.ltp != null ? taka(row.ltp, 1) : "—"}
+                    </td>
+                    <td className="px-2 sm:px-3 py-3 text-right text-[var(--text)] hidden md:table-cell">
+                      {row.current_value != null ? taka(row.current_value, 0) : "—"}
+                    </td>
+                    <td className="px-2 sm:px-3 py-3 text-right">
+                      <PnlCell value={row.pnl} pct={row.pnl_pct} />
+                    </td>
+                    <td className="px-2 sm:px-3 py-3">
+                      {isEditing ? (
+                        <div className="flex items-center gap-1 sm:gap-1.5">
                           <button
                             onClick={handleEditSave}
                             disabled={editSaving}
-                            className="navbar-rank-btn text-xs py-1 px-2.5 disabled:opacity-60"
+                            className="navbar-rank-btn text-[10px] sm:text-xs py-1 px-1.5 sm:px-2 disabled:opacity-60"
                           >
                             {editSaving ? "…" : "Save"}
                           </button>
                           <button
                             onClick={() => setEditId(null)}
-                            className="navbar-intel-btn text-xs py-1 px-2.5"
+                            className="navbar-intel-btn text-[10px] sm:text-xs py-1 px-1.5 sm:px-2"
                           >
                             ✕
                           </button>
-                        </>
+                          {editError && (
+                            <span className="text-[10px] sm:text-xs text-red-500 ml-1">{editError}</span>
+                          )}
+                        </div>
                       ) : (
-                        <>
+                        <div className="flex items-center gap-1 sm:gap-1.5">
                           <button
                             onClick={() => startEdit(row)}
-                            className="text-[var(--text-muted)] hover:text-[var(--text)] transition-colors p-1.5"
+                            className="text-[var(--text-muted)] hover:text-[var(--text)] transition-colors p-1"
                             aria-label="Edit"
                           >
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                               <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
                             </svg>
                           </button>
                           <button
                             onClick={() => handleDelete(row.holding.id)}
                             disabled={deletingId === row.holding.id}
-                            className="text-[var(--text-muted)] hover:text-red-500 transition-colors p-1.5 disabled:opacity-40"
+                            className="text-[var(--text-muted)] hover:text-red-500 transition-colors p-1 disabled:opacity-40"
                             aria-label="Delete"
                           >
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                               <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
                             </svg>
                           </button>
-                        </>
+                        </div>
                       )}
-                    </div>
-                  </div>
-
-                  {isEditing ? (
-                    <div className="flex flex-col gap-2">
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="flex flex-col gap-1">
-                          <label className="text-xs text-[var(--text-muted)]">Buy Price (৳)</label>
-                          <input
-                            type="number"
-                            min="0.01"
-                            step="0.01"
-                            value={editForm.buy_price}
-                            onChange={(e) => setEditForm((f) => ({ ...f, buy_price: e.target.value }))}
-                            className="input-field text-sm"
-                          />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <label className="text-xs text-[var(--text-muted)]">Quantity</label>
-                          <input
-                            type="number"
-                            min="1"
-                            value={editForm.qty}
-                            onChange={(e) => setEditForm((f) => ({ ...f, qty: e.target.value }))}
-                            className="input-field text-sm"
-                          />
-                        </div>
-                      </div>
-                      {editError && <p className="text-xs text-red-500">{editError}</p>}
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm">
-                      <div>
-                        <p className="text-xs text-[var(--text-muted)] mb-0.5">Qty</p>
-                        <p className="font-medium text-[var(--text)]">{row.holding.qty.toLocaleString()}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-[var(--text-muted)] mb-0.5">Buy Price</p>
-                        <p className="font-medium text-[var(--text)]">{taka(row.holding.buy_price, 2)}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-[var(--text-muted)] mb-0.5">LTP</p>
-                        <p className="font-medium text-[var(--text)]">
-                          {row.ltp != null ? taka(row.ltp, 1) : "—"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-[var(--text-muted)] mb-0.5">Cur. Value</p>
-                        <p className="font-medium text-[var(--text)]">
-                          {row.current_value != null ? taka(row.current_value, 0) : "—"}
-                        </p>
-                      </div>
-                      <div className="col-span-2 pt-2 border-t border-[var(--border)]">
-                        <p className="text-xs text-[var(--text-muted)] mb-0.5">P&amp;L</p>
-                        <p className="font-semibold">
-                          <PnlCell value={row.pnl} pct={row.pnl_pct} />
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Desktop table */}
-          <div className="hidden sm:block overflow-x-auto rounded-xl border border-[var(--border)]">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-[var(--surface)] border-b border-[var(--border)]">
-                  <th className="text-left px-3 py-2.5 text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium">Code</th>
-                  <th className="text-left px-3 py-2.5 text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium">Company</th>
-                  <th className="text-right px-3 py-2.5 text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium">Qty</th>
-                  <th className="text-right px-3 py-2.5 text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium">Buy Price</th>
-                  <th className="text-right px-3 py-2.5 text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium">LTP</th>
-                  <th className="text-right px-3 py-2.5 text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium hidden md:table-cell">Cur. Value</th>
-                  <th className="text-right px-3 py-2.5 text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium">P&amp;L</th>
-                  <th className="px-3 py-2.5"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => {
-                  const isEditing = editId === row.holding.id;
-                  return (
-                    <tr
-                      key={row.holding.id}
-                      className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface)] transition-colors"
-                    >
-                      <td className="px-3 py-3 font-medium">
-                        <Link
-                          href={`/stock/${row.holding.trading_code}`}
-                          className="text-[var(--primary)] hover:underline font-mono"
-                        >
-                          {row.holding.trading_code}
-                        </Link>
-                      </td>
-                      <td className="px-3 py-3 text-[var(--text-muted)] max-w-[160px] truncate">
-                        {row.company_name ?? "—"}
-                      </td>
-                      <td className="px-3 py-3 text-right text-[var(--text)]">
-                        {isEditing ? (
-                          <input
-                            type="number"
-                            min="1"
-                            value={editForm.qty}
-                            onChange={(e) => setEditForm((f) => ({ ...f, qty: e.target.value }))}
-                            className="input-field text-right w-20 text-sm py-1"
-                          />
-                        ) : (
-                          row.holding.qty.toLocaleString()
-                        )}
-                      </td>
-                      <td className="px-3 py-3 text-right text-[var(--text)]">
-                        {isEditing ? (
-                          <input
-                            type="number"
-                            min="0.01"
-                            step="0.01"
-                            value={editForm.buy_price}
-                            onChange={(e) => setEditForm((f) => ({ ...f, buy_price: e.target.value }))}
-                            className="input-field text-right w-24 text-sm py-1"
-                          />
-                        ) : (
-                          taka(row.holding.buy_price, 2)
-                        )}
-                      </td>
-                      <td className="px-3 py-3 text-right text-[var(--text)]">
-                        {row.ltp != null ? taka(row.ltp, 1) : "—"}
-                      </td>
-                      <td className="px-3 py-3 text-right text-[var(--text)] hidden md:table-cell">
-                        {row.current_value != null ? taka(row.current_value, 0) : "—"}
-                      </td>
-                      <td className="px-3 py-3 text-right">
-                        <PnlCell value={row.pnl} pct={row.pnl_pct} />
-                      </td>
-                      <td className="px-3 py-3">
-                        {isEditing ? (
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              onClick={handleEditSave}
-                              disabled={editSaving}
-                              className="navbar-rank-btn text-xs py-1 px-2 disabled:opacity-60"
-                            >
-                              {editSaving ? "…" : "Save"}
-                            </button>
-                            <button
-                              onClick={() => setEditId(null)}
-                              className="navbar-intel-btn text-xs py-1 px-2"
-                            >
-                              ✕
-                            </button>
-                            {editError && (
-                              <span className="text-xs text-red-500 ml-1">{editError}</span>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              onClick={() => startEdit(row)}
-                              className="text-[var(--text-muted)] hover:text-[var(--text)] transition-colors p-1"
-                              aria-label="Edit"
-                            >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
-                              </svg>
-                            </button>
-                            <button
-                              onClick={() => handleDelete(row.holding.id)}
-                              disabled={deletingId === row.holding.id}
-                              className="text-[var(--text-muted)] hover:text-red-500 transition-colors p-1 disabled:opacity-40"
-                              aria-label="Delete"
-                            >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
-                              </svg>
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {/* Add holding form */}
@@ -684,6 +554,10 @@ export default function PortfolioClient() {
         </form>
         {formError && <p className="text-xs text-red-500 mt-2">{formError}</p>}
       </div>
+
+      {holdings.length > 0 && (
+        <PortfolioAnalysis rows={rows} priceMap={priceMap} />
+      )}
     </div>
   );
 }

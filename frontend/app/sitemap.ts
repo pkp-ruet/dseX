@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { getAllCodes } from "@/lib/api";
 import { GUIDES } from "@/lib/guides";
 import { STOCK_LISTS } from "@/lib/stock-lists";
+import { SAMPLE_SLUGS } from "@/lib/sample-portfolios";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
@@ -27,6 +28,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(),
     changeFrequency: "daily" as const,
     priority: 0.8,
+  }));
+
+  const samplePortfolioPages = SAMPLE_SLUGS.map((slug) => ({
+    url: `${BASE_URL}/sample-portfolio/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
   }));
 
   return [
@@ -126,6 +134,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "yearly" as const,
       priority: 0.2,
     },
+    ...samplePortfolioPages,
     ...stockListPages,
     ...guidePages,
     ...stockPages,

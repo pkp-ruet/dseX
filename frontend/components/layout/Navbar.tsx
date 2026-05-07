@@ -162,13 +162,13 @@ export default function Navbar() {
           <div className="navbar-mobile-controls">
             <Link
               href="/portfolio"
-              className={`navbar-watch-btn${isPortfolio ? " navbar-watch-btn-active" : ""}`}
-              aria-label="Portfolio"
+              className={`navbar-portfolio-mobile-btn${isPortfolio ? " navbar-portfolio-mobile-btn-active" : ""}`}
+              aria-label={isLoggedIn ? "My Portfolio" : "Portfolio"}
             >
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" className="text-violet-500" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M20 7h-4V5l-2-2h-4L8 5v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm-8-2h4v2h-4V5zm8 14H4V9h16v10z" />
               </svg>
-              <span className="navbar-watch-label">Portfolio</span>
+              <span>{isLoggedIn ? "My Portfolio" : "Portfolio"}</span>
             </Link>
             <button
               className="navbar-hamburger"

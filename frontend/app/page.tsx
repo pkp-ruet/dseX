@@ -19,6 +19,7 @@ import InsightsTeaserStrip from "@/components/home/InsightsTeaserStrip";
 import PortfolioTeaserCTA from "@/components/home/PortfolioTeaserCTA";
 import PopularTeaser from "@/components/home/PopularTeaser";
 import Top20MomentumTeaser from "@/components/home/Top20MomentumTeaser";
+import PortfolioAnalyzerHero from "@/components/home/PortfolioAnalyzerHero";
 
 export const revalidate = 3600;
 
@@ -130,6 +131,7 @@ async function MainContentSection({
           <Suspense>
             <TopRankings scores={allItems} />
           </Suspense>
+          <PortfolioAnalyzerHero />
           <Suspense fallback={null}>
             <Top20TeaserSection promise={top20Promise} />
           </Suspense>

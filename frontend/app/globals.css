@@ -3126,6 +3126,40 @@ details.dsex-exp[open] > summary {
   }
 }
 
+/* Mobile portfolio button — eye-catching, label always visible */
+.navbar-portfolio-mobile-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 7px 12px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  color: #fff;
+  text-decoration: none;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  box-shadow: 0 0 14px rgba(139, 92, 246, 0.4);
+  transition: filter 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+.navbar-portfolio-mobile-btn:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 0 18px rgba(139, 92, 246, 0.55);
+}
+.navbar-portfolio-mobile-btn-active {
+  background: linear-gradient(135deg, #4338ca 0%, #7e22ce 100%);
+  box-shadow: 0 0 14px rgba(139, 92, 246, 0.55);
+}
+@media (max-width: 380px) {
+  .navbar-portfolio-mobile-btn {
+    padding: 6px 10px;
+    font-size: 0.74rem;
+  }
+}
+
 /* Full rank table star column */
 .fr-th-star {
   width: 1%;
