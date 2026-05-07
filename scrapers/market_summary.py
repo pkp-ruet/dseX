@@ -60,6 +60,11 @@ class MarketSummaryScraper(BaseScraper):
                 c = clean_numeric(chg_el.get_text(strip=True)) if chg_el else None
                 p = clean_numeric(pct_el.get_text(strip=True)) if pct_el else None
 
+                # DSE indices are never legitimately 0 — treat 0 as missing
+                # (the homepage shows 0.00 transiently in pre-market state)
+                if v == 0:
+                    v = None
+
                 if "DSEX" in label and doc["dsex"] is None:
                     doc["dsex"], doc["dsex_change"], doc["dsex_change_pct"] = v, c, p
 

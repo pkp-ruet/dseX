@@ -20,64 +20,41 @@ function fmtVolCr(vol: number | null): string {
   return `${cr.toFixed(2)} Cr`;
 }
 
-interface IndexBlockProps {
-  label: string;
-  accent: string;
+function fmtDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return dateStr;
+  const day = d.toLocaleDateString("en-GB", { day: "numeric" });
+  const month = d.toLocaleDateString("en-GB", { month: "short" });
+  return `${day} ${month}`;
+}
+
+interface HeroProps {
   value: number | null;
   change: number | null;
-  changePct?: number | null;
+  changePct: number | null;
 }
 
-function IndexBlock({ label, accent, value, change, changePct }: IndexBlockProps) {
-  const isUp   = (change ?? 0) >= 0;
+function HeroDsex({ value, change, changePct }: HeroProps) {
+  const isUp = (change ?? 0) >= 0;
   const isNull = change == null;
-  const chgColor = isNull ? "#94A3B8" : isUp ? "#059669" : "#B91C1C";
-  const chgBg    = isNull ? "#F1F5F9" : isUp ? "#ECFDF5" : "#FEF2F2";
-  const arrow    = isNull ? null : isUp ? "▲" : "▼";
+  const chgColor = isNull ? "#94A3B8" : isUp ? "#34D399" : "#F87171";
+  const arrow = isNull ? null : isUp ? "▲" : "▼";
 
   return (
-    <div className="mib-block">
-      <span className="mib-block-label" style={{ color: accent, borderColor: accent }}>
-        {label}
-      </span>
-      <span className="mib-block-value">
-        {value != null
-          ? value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-          : "—"}
-      </span>
-      {change != null && (
-        <span className="mib-block-badge" style={{ color: chgColor, background: chgBg }}>
-          {arrow} {Math.abs(change).toFixed(2)}
-          {changePct != null && ` (${Math.abs(changePct).toFixed(2)}%)`}
+    <div className="mib-hero">
+      <span className="mib-hero-label">DSEX</span>
+      <div className="mib-hero-row">
+        <span className="mib-hero-value">
+          {value != null
+            ? value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            : "—"}
         </span>
-      )}
-    </div>
-  );
-}
-
-interface StatChipProps {
-  label: string;
-  value: string;
-  icon: string;
-  accent: string;
-  changePct?: number | null;
-}
-
-function StatChip({ label, value, icon, accent, changePct }: StatChipProps) {
-  const hasChange = changePct != null;
-  const isUp = (changePct ?? 0) >= 0;
-  const chgColor = isUp ? "#059669" : "#F87171";
-  const arrow = isUp ? "▲" : "▼";
-
-  return (
-    <div className="mib-chip">
-      <span className="mib-chip-icon" style={{ background: accent + "1A", color: accent }}>{icon}</span>
-      <div className="mib-chip-body">
-        <span className="mib-chip-label">{label}</span>
-        <span className="mib-chip-value">{value}</span>
-        {hasChange && (
-          <span className="mib-chip-change" style={{ color: chgColor }}>
-            {arrow} {Math.abs(changePct!).toFixed(1)}%
+        {change != null && (
+          <span className="mib-hero-badge" style={{ color: chgColor }}>
+            {arrow} {Math.abs(change).toFixed(2)}
+            {changePct != null && (
+              <span className="mib-hero-badge-pct">({Math.abs(changePct).toFixed(2)}%)</span>
+            )}
           </span>
         )}
       </div>
@@ -85,45 +62,99 @@ function StatChip({ label, value, icon, accent, changePct }: StatChipProps) {
   );
 }
 
-interface BreadcrumbProps {
+interface MiniProps {
+  label: string;
+  value: number | null;
+  change: number | null;
+}
+
+function MiniIndex({ label, value, change }: MiniProps) {
+  const isUp = (change ?? 0) >= 0;
+  const isNull = change == null;
+  const chgColor = isNull ? "#94A3B8" : isUp ? "#34D399" : "#F87171";
+  const arrow = isNull ? "" : isUp ? "▲" : "▼";
+
+  return (
+    <div className="mib-mini">
+      <span className="mib-mini-label">{label}</span>
+      <span className="mib-mini-value">
+        {value != null
+          ? value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+          : "—"}
+      </span>
+      {change != null && (
+        <span className="mib-mini-chg" style={{ color: chgColor }}>
+          {arrow}{Math.abs(change).toFixed(2)}
+        </span>
+      )}
+    </div>
+  );
+}
+
+interface BreadthProps {
   up: number | null;
   down: number | null;
   neutral: number | null;
 }
 
-function BreadthStrip({ up, down, neutral }: BreadcrumbProps) {
-  const total = (up ?? 0) + (down ?? 0) + (neutral ?? 0);
+function BreadthBar({ up, down, neutral }: BreadthProps) {
+  const u = up ?? 0;
+  const d = down ?? 0;
+  const n = neutral ?? 0;
+  const total = u + d + n;
   if (total === 0) return null;
+
+  const upPct = (u / total) * 100;
+  const dnPct = (d / total) * 100;
+  const ntPct = (n / total) * 100;
 
   return (
     <div className="mib-breadth">
-      <div className="mib-breadth-item">
-        <span className="mib-breadth-dot" style={{ background: "#059669" }} />
-        <span className="mib-breadth-count" style={{ color: "#34D399" }}>{up ?? 0}</span>
-        <span className="mib-breadth-lbl">Up</span>
+      <div
+        className="mib-breadth-bar"
+        role="img"
+        aria-label={`${u} advancing, ${d} declining, ${n} unchanged`}
+      >
+        <span className="mib-breadth-seg mib-breadth-seg-up"   style={{ width: `${upPct}%` }} />
+        <span className="mib-breadth-seg mib-breadth-seg-dn"   style={{ width: `${dnPct}%` }} />
+        <span className="mib-breadth-seg mib-breadth-seg-flat" style={{ width: `${ntPct}%` }} />
       </div>
-      <div className="mib-breadth-item">
-        <span className="mib-breadth-dot" style={{ background: "#DC2626" }} />
-        <span className="mib-breadth-count" style={{ color: "#F87171" }}>{down ?? 0}</span>
-        <span className="mib-breadth-lbl">Down</span>
-      </div>
-      <div className="mib-breadth-item">
-        <span className="mib-breadth-dot" style={{ background: "#94A3B8" }} />
-        <span className="mib-breadth-count" style={{ color: "#94A3B8" }}>{neutral ?? 0}</span>
-        <span className="mib-breadth-lbl">No Change</span>
+      <div className="mib-breadth-counts">
+        <span className="mib-breadth-count mib-breadth-up">▲ {u}</span>
+        <span className="mib-breadth-count mib-breadth-dn">▼ {d}</span>
+        <span className="mib-breadth-count mib-breadth-flat">– {n}</span>
       </div>
     </div>
   );
 }
 
-function CalIcon({ dateStr }: { dateStr: string }) {
-  const d = new Date(dateStr);
-  const day = d.toLocaleDateString("en-GB", { day: "2-digit" });
-  const month = d.toLocaleDateString("en-GB", { month: "short" }).toUpperCase();
+interface ChipProps {
+  icon: string;
+  label: string;
+  value: string;
+  changePct?: number | null;
+}
+
+function StatChip({ icon, label, value, changePct }: ChipProps) {
+  const hasChange = changePct != null;
+  const isUp = (changePct ?? 0) >= 0;
+  const chgColor = isUp ? "#34D399" : "#F87171";
+  const arrow = isUp ? "▲" : "▼";
+
   return (
-    <div className="mib-cal-icon">
-      <div className="mib-cal-month">{month}</div>
-      <div className="mib-cal-day">{day}</div>
+    <div className="mib-chip">
+      <span className="mib-chip-icon">{icon}</span>
+      <div className="mib-chip-body">
+        <span className="mib-chip-label">{label}</span>
+        <div className="mib-chip-row">
+          <span className="mib-chip-value">{value}</span>
+          {hasChange && (
+            <span className="mib-chip-change" style={{ color: chgColor }}>
+              {arrow} {Math.abs(changePct!).toFixed(1)}%
+            </span>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -146,63 +177,50 @@ export default function MarketIndexBanner({ data }: Props) {
   const accentBar = overallDown
     ? "linear-gradient(90deg,#DC2626,#F97316,#EF4444)"
     : overallUp
-    ? "linear-gradient(90deg,#059669,#10B981,#34D399)"
-    : "linear-gradient(90deg,#4F46E5,#7C3AED,#EC4899)";
+    ? "linear-gradient(90deg,#10B981,#22D3EE,#34D399)"
+    : "linear-gradient(90deg,#22D3EE,#10B981,#A78BFA)";
 
   return (
-    <div className="market-index-banner" role="region" aria-label="DSE Market Indices">
+    <section className="market-index-banner" aria-label="DSE Market Indices">
       <div className="mib-accent-bar" style={{ background: accentBar }} />
 
-      <div className="mib-title-row">
-        <Link href="/market-analysis" className="mib-dse-today-btn">
-          Market Analysis
-        </Link>
-      </div>
-
-      <div className="mib-inner">
-        {/* Left — index blocks */}
-        <div className="mib-indices">
-          <IndexBlock
-            label="DSEX"
-            accent="#818CF8"
-            value={data.dsex}
-            change={data.dsex_change}
-            changePct={data.dsex_change_pct}
-          />
-          <div className="mib-vsep" />
-          <IndexBlock label="DSES" accent="#A78BFA" value={data.dses} change={data.dses_change} />
-          <div className="mib-vsep" />
-          <IndexBlock label="DS30" accent="#0EA5E9" value={data.ds30}  change={data.ds30_change} />
-        </div>
-
-        {/* Middle — breadth */}
-        <BreadthStrip
-          up={data.up_count}
-          down={data.down_count}
-          neutral={data.neutral_count}
-        />
-
-        {/* Right — stat chips + date */}
-        <div className="mib-right">
-          <div className="mib-chips">
-            <StatChip
-              label="Turnover"
-              value={`৳ ${fmtCr(data.total_value_mn)}`}
-              icon="💰"
-              accent="#059669"
-              changePct={data.turnover_change_pct}
-            />
-            <StatChip
-              label="Volume"
-              value={fmtVolCr(data.total_volume)}
-              icon="📊"
-              accent="#0EA5E9"
-              changePct={data.volume_change_pct}
-            />
+      <div className="mib-grid">
+        <div className="mib-topstrip">
+          <div className="mib-live">
+            <span className="mib-live-dot" aria-hidden="true" />
+            <span className="mib-live-text">LIVE</span>
+            {data.date && <span className="mib-live-date">{fmtDate(data.date)}</span>}
           </div>
-          {data.date && <CalIcon dateStr={data.date} />}
+          <Link href="/market-analysis" className="mib-cta">
+            Market Analysis <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+
+        <HeroDsex value={data.dsex} change={data.dsex_change} changePct={data.dsex_change_pct} />
+
+        <div className="mib-minis">
+          <MiniIndex label="DSES" value={data.dses} change={data.dses_change} />
+          <div className="mib-mini-sep" aria-hidden="true" />
+          <MiniIndex label="DS30" value={data.ds30} change={data.ds30_change} />
+        </div>
+
+        <BreadthBar up={data.up_count} down={data.down_count} neutral={data.neutral_count} />
+
+        <div className="mib-chips">
+          <StatChip
+            icon="💰"
+            label="Turnover"
+            value={`৳ ${fmtCr(data.total_value_mn)}`}
+            changePct={data.turnover_change_pct}
+          />
+          <StatChip
+            icon="📊"
+            label="Volume"
+            value={fmtVolCr(data.total_volume)}
+            changePct={data.volume_change_pct}
+          />
         </div>
       </div>
-    </div>
+    </section>
   );
 }

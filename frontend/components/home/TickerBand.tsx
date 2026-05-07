@@ -28,7 +28,6 @@ function TickerItem({ item }: { item: ScoreItem }) {
       {arrow}<span className="ticker-code">{item.trading_code}</span>
       <span className="ticker-ltp">{item.ltp != null ? taka(item.ltp) : "—"}</span>
       <span className={`ticker-chg ${chgClass}`}>{chgLabel}</span>
-      <span className="ticker-sep" aria-hidden="true">◆</span>
     </span>
   );
 }
@@ -37,15 +36,20 @@ export default function TickerBand({ items }: Props) {
   if (!items.length) return null;
 
   return (
-    <div className="ticker-band" aria-hidden="true">
-      {/* Render list twice for seamless CSS loop */}
-      <div className="ticker-inner" aria-hidden="true">
-        {items.map((item) => (
-          <TickerItem key={`a-${item.trading_code}`} item={item} />
-        ))}
-        {items.map((item) => (
-          <TickerItem key={`b-${item.trading_code}`} item={item} />
-        ))}
+    <div className="ticker-band" aria-label="Live stock ticker">
+      <div className="ticker-live" aria-hidden="true">
+        <span className="ticker-live-dot" />
+        <span className="ticker-live-text">LIVE</span>
+      </div>
+      <div className="ticker-track">
+        <div className="ticker-inner" aria-hidden="true">
+          {items.map((item) => (
+            <TickerItem key={`a-${item.trading_code}`} item={item} />
+          ))}
+          {items.map((item) => (
+            <TickerItem key={`b-${item.trading_code}`} item={item} />
+          ))}
+        </div>
       </div>
     </div>
   );

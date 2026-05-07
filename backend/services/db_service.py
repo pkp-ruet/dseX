@@ -285,9 +285,16 @@ def load_market_index() -> dict:
     """
     Returns the latest DSE index snapshot (DSEX/DSES/DS30 + market totals).
     Falls back to stock_prices aggregation for volume/value if not in the scraped doc.
+    Skips docs with zero/null DSEX (transient pre-market scrapes show 0.00 on the DSE homepage).
     """
     db = get_db()
-    doc = db.dse_market_summary.find_one(sort=[("date", -1)])
+    doc = db.dse_market_summary.find_one(
+        {"dsex": {"$nin": [None, 0, 0.0]}},
+        sort=[("date", -1)],
+    )
+    if not doc:
+        # No valid index data anywhere — fall back to the latest doc, if any
+        doc = db.dse_market_summary.find_one(sort=[("date", -1)])
 
     if not doc:
         return {
@@ -319,9 +326,9 @@ def load_market_index() -> dict:
             if total_value_mn is None:
                 total_value_mn = agg[0].get("val")
 
-    # Previous day for change % calculation
+    # Previous day for change % calculation — skip docs with zero/null indices
     prev_doc = db.dse_market_summary.find_one(
-        {"date": {"$lt": doc["date"]}},
+        {"date": {"$lt": doc["date"]}, "dsex": {"$nin": [None, 0, 0.0]}},
         sort=[("date", -1)],
     )
     prev_volume = prev_doc.get("total_volume") if prev_doc else None
