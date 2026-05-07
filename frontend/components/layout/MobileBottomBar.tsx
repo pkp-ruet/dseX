@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getWatchlist, subscribeWatchlist } from "@/lib/watchlist";
+import { openGlobalSearch } from "@/components/layout/GlobalSearch";
 
 export default function MobileBottomBar() {
   const pathname = usePathname();
@@ -92,6 +93,20 @@ export default function MobileBottomBar() {
           <span className="mobile-bottom-bar-label">{item.label}</span>
         </Link>
       ))}
+      <button
+        type="button"
+        onClick={openGlobalSearch}
+        className="mobile-bottom-bar-item mobile-bottom-bar-search"
+        aria-label="Search stocks"
+      >
+        <span className="mobile-bottom-bar-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.8" />
+            <path d="M13.5 13.5L17 17" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+        </span>
+        <span className="mobile-bottom-bar-label">Search</span>
+      </button>
     </nav>
   );
 }

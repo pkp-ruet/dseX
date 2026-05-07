@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { openGlobalSearch } from "@/components/layout/GlobalSearch";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -62,6 +63,19 @@ export default function Navbar() {
 
           {/* Desktop nav — hidden on mobile via CSS */}
           <nav className="navbar-nav">
+            <button
+              type="button"
+              onClick={openGlobalSearch}
+              className="navbar-search-btn"
+              aria-label="Search stocks"
+              title="Search (any code or company name)"
+            >
+              <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.7" />
+                <path d="M13.5 13.5L17 17" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+              </svg>
+              <span className="navbar-search-label">Search</span>
+            </button>
             <Link
               href="/watchlist"
               className={`navbar-watch-btn${isWatchlist ? " navbar-watch-btn-active" : ""}`}
@@ -160,6 +174,17 @@ export default function Navbar() {
 
           {/* Mobile right controls — hidden on desktop via CSS */}
           <div className="navbar-mobile-controls">
+            <button
+              type="button"
+              onClick={openGlobalSearch}
+              className="navbar-search-mobile-btn"
+              aria-label="Search stocks"
+            >
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.8" />
+                <path d="M13.5 13.5L17 17" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
+            </button>
             <Link
               href="/portfolio"
               className={`navbar-portfolio-mobile-btn${isPortfolio ? " navbar-portfolio-mobile-btn-active" : ""}`}

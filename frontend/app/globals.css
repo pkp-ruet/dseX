@@ -3160,6 +3160,149 @@ details.dsex-exp[open] > summary {
   }
 }
 
+/* Navbar search button (desktop) — matches watchlist button styling */
+.navbar-search-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-muted);
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.navbar-search-btn:hover {
+  background: var(--surface);
+  border-color: var(--border);
+  color: #22D3EE;
+}
+@media (max-width: 540px) {
+  .navbar-search-label {
+    display: none;
+  }
+}
+
+/* Navbar search button (mobile controls) — icon only */
+.navbar-search-mobile-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink-muted);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  padding: 0;
+}
+.navbar-search-mobile-btn:hover {
+  background: var(--surface);
+  color: #22D3EE;
+  border-color: rgba(34, 211, 238, 0.4);
+}
+
+/* Global search modal — overlay + panel */
+.global-search-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(7, 14, 28, 0.62);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 12vh 16px 16px;
+  animation: gs-fade 0.15s ease-out;
+}
+@keyframes gs-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@media (max-width: 540px) {
+  .global-search-overlay {
+    padding: 7vh 12px 12px;
+  }
+}
+
+.global-search-panel {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+}
+
+.global-search-panel .search-bar-box {
+  max-width: none;
+  border-radius: 16px;
+}
+.global-search-panel .search-bar-box.search-bar-open {
+  border-radius: 16px 16px 0 0;
+}
+
+.global-search-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+.global-search-close:hover {
+  color: #22D3EE;
+  background: rgba(34, 211, 238, 0.1);
+}
+
+.global-search-suggestions {
+  max-width: none;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.global-search-empty,
+.global-search-hint {
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    linear-gradient(135deg, #22D3EE, #A78BFA) border-box;
+  border: 2px solid transparent;
+  border-top: none;
+  border-radius: 0 0 16px 16px;
+  padding: 14px 16px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+.global-search-hint strong {
+  color: #22D3EE;
+  font-weight: 700;
+}
+
+/* Mobile bottom bar — search trigger button reset */
+.mobile-bottom-bar-search {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
 /* Full rank table star column */
 .fr-th-star {
   width: 1%;
@@ -3699,6 +3842,19 @@ details.dsex-exp[open] > summary {
 }
 .mobile-bottom-bar-label {
   text-transform: uppercase;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mobile-bottom-bar-item {
+  min-width: 0;
+}
+@media (max-width: 380px) {
+  .mobile-bottom-bar-label {
+    font-size: 0.54rem;
+    letter-spacing: 0.02em;
+  }
 }
 
 /* ─── TopRankings ───────────────────────────────────────────── */

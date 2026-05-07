@@ -19,6 +19,7 @@ const playfair = Playfair_Display({
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import MobileBottomBar from "@/components/layout/MobileBottomBar";
+import GlobalSearch from "@/components/layout/GlobalSearch";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { AuthProvider } from "@/context/AuthContext";
 import GoogleAuthProvider from "@/components/auth/GoogleAuthProvider";
@@ -87,6 +88,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </main>
             <Footer />
             <MobileBottomBar />
+            <GlobalSearch />
           </GoogleAuthProvider>
         </AuthProvider>
         {process.env.NEXT_PUBLIC_GA_ID && (
