@@ -22,6 +22,16 @@ def is_market_open() -> bool:
     return (10, 0) <= t < (14, 31)
 
 
+def is_intraday_scrape_window() -> bool:
+    """Wider window than is_market_open() — extends 60 min past close so
+    the final closing prints (published by DSE shortly after 14:30 BST) are captured."""
+    now = _now_bst()
+    if now.weekday() not in _TRADING_DAYS:
+        return False
+    t = (now.hour, now.minute)
+    return (10, 0) <= t < (15, 31)
+
+
 def market_session_info() -> dict:
     now = _now_bst()
     open_ = is_market_open()

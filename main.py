@@ -12,7 +12,7 @@ from scrapers.news import NewsScraper
 from scrapers.cash_flow_scraper import CashFlowScraper
 from scrapers.market_summary import MarketSummaryScraper
 from utils.scoring import get_top_n_codes
-from utils.market_hours import is_market_open, market_session_info
+from utils.market_hours import is_market_open, is_intraday_scrape_window, market_session_info
 from config import NEWS_TOP_N
 
 
@@ -141,10 +141,10 @@ def cmd_scrape_market_summary(_args):
 
 def cmd_scrape_intraday(args):
     """Light intraday refresh — prices + market summary only. Skips when market is closed."""
-    if not getattr(args, "force", False) and not is_market_open():
+    if not getattr(args, "force", False) and not is_intraday_scrape_window():
         info = market_session_info()
         print(
-            f"Market closed (BST {info['server_time_bst']}, "
+            f"Outside intraday scrape window (BST {info['server_time_bst']}, "
             f"trading_day={info['is_trading_day']}). Skipping."
         )
         return
