@@ -100,7 +100,7 @@ export default function HeroSection({ detail }: Props) {
                       fontSize: "clamp(3rem, 9vw, 4.5rem)",
                     }}
                   >
-                    {ltp != null ? ltp.toFixed(ltp >= 100 ? 0 : 1) : "--"}
+                    {ltp != null ? ltp.toFixed(1) : "--"}
                   </span>
                   <span className="text-xl sm:text-2xl font-semibold" style={{ color: "#94A3B8" }}>৳</span>
                 </div>
