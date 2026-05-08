@@ -860,7 +860,7 @@ body::before {
   align-items: center;
   white-space: nowrap;
   width: max-content;
-  animation: ticker-scroll 55s linear infinite;
+  animation: ticker-scroll 275s linear infinite;
 }
 .ticker-band:hover .ticker-inner {
   animation-play-state: paused;

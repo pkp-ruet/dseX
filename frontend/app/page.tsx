@@ -73,7 +73,7 @@ function allItemsFromScores(scores: ScoresResponse) {
 async function TickerBandSection({ promise }: { promise: Promise<ScoresResponse | null> }) {
   const scores = await promise;
   if (!scores) return null;
-  return <TickerBand items={allItemsFromScores(scores).slice(0, 20)} />;
+  return <TickerBand items={allItemsFromScores(scores).slice(0, 100)} />;
 }
 
 async function MarketIndexSection({ promise }: { promise: Promise<MarketIndexData | null> }) {
