@@ -1,5 +1,6 @@
 import re
 import logging
+from datetime import datetime
 from scrapers.base_scraper import BaseScraper
 from db.connection import get_db
 from config import DSE_COMPANY_DETAILS_URL
@@ -7,6 +8,36 @@ from utils.parser_helpers import clean_numeric, clean_text, parse_dividend_strin
 from utils.sector import normalize_sector
 
 logger = logging.getLogger(__name__)
+
+# DSE shareholding "as on" dates have shown up in several formats over time.
+# Always normalize to ISO (YYYY-MM-DD) before writing — the unique index on
+# (trading_code, as_of_date) treats different string formats as different keys.
+_AS_OF_DATE_FORMATS = [
+    "%b %d, %Y",      # "Dec 31, 2024"
+    "%B %d, %Y",      # "December 31, 2024"
+    "%d %b, %Y",      # "31 Dec, 2024"
+    "%d %B, %Y",      # "31 December, 2024"
+    "%d %b %Y",       # "31 Dec 2024"
+    "%d %B %Y",       # "31 December 2024"
+    "%d-%b-%Y",       # "31-Dec-2024"
+    "%d-%B-%Y",       # "31-December-2024"
+    "%d/%m/%Y",
+    "%Y-%m-%d",
+]
+
+
+def _normalize_as_of_date(raw: str | None) -> str | None:
+    """Parse a DSE 'as on' date string and return canonical ISO (YYYY-MM-DD)."""
+    if not raw:
+        return None
+    cleaned = re.sub(r"\s+", " ", raw).strip().rstrip(".")
+    for fmt in _AS_OF_DATE_FORMATS:
+        try:
+            return datetime.strptime(cleaned, fmt).date().isoformat()
+        except ValueError:
+            continue
+    logger.warning("Could not parse shareholding as-of-date %r", raw)
+    return None
 
 
 class CompanyDetailsScraper(BaseScraper):
@@ -254,7 +285,12 @@ class CompanyDetailsScraper(BaseScraper):
                 date_match = re.search(
                     r"as on\s+(.+?)(?:\s*\(|])", header_text
                 )
-                as_of_date = date_match.group(1).strip() if date_match else None
+                raw_as_of = date_match.group(1).strip() if date_match else None
+                as_of_date = _normalize_as_of_date(raw_as_of)
+                if raw_as_of and not as_of_date:
+                    # Skip rows we can't key — better to lose one row than
+                    # corrupt the unique index with junk strings.
+                    continue
 
                 reporting_period = None
                 period_match = re.search(r"\(([^)]+)\)", header_text)

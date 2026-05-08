@@ -8,9 +8,21 @@ from config import DSE_NEWS_URL, NEWS_LOOKBACK_DAYS
 
 _PCT_RE = re.compile(r"(\d+(?:\.\d+)?)%")
 _RECORD_DATE_RE = re.compile(r"Record\s+Date\s*:\s*(.+?)(?:\.(?:\s|$)|;|\n|$)", re.IGNORECASE)
-_DATE_FORMATS = ["%d.%m.%Y", "%B %d, %Y", "%d/%m/%Y", "%Y-%m-%d"]
+_DATE_FORMATS = ["%Y-%m-%d", "%d.%m.%Y", "%B %d, %Y", "%d/%m/%Y", "%d-%b-%Y", "%d %b %Y", "%d %B %Y"]
 
 logger = logging.getLogger(__name__)
+
+
+def _parse_post_date(raw: str):
+    """Parse a DSE news post-date cell. Tries multiple formats; returns None on failure."""
+    if not raw:
+        return None
+    for fmt in _DATE_FORMATS:
+        try:
+            return datetime.strptime(raw, fmt).replace(tzinfo=timezone.utc)
+        except ValueError:
+            continue
+    return None
 
 
 class NewsScraper(BaseScraper):
@@ -64,22 +76,22 @@ class NewsScraper(BaseScraper):
                             "post_date": post_date,
                             "scraped_at": now,
                         })
-                    title = td.get_text(separator=" ", strip=True)
+                    raw_title = td.get_text(separator=" ", strip=True)
+                    # Collapse internal whitespace so the unique index
+                    # (trading_code, post_date, title) doesn't dup on
+                    # cosmetic HTML changes.
+                    title = " ".join(raw_title.split()) if raw_title else None
                     body = None
                     post_date = None
                 elif "News" in header and "Title" not in header:
                     body = td.get_text(separator="\n", strip=True)
                 elif "Post Date" in header or "Date" in header:
                     raw = td.get_text(strip=True)
-                    try:
-                        post_date = datetime.strptime(raw, "%Y-%m-%d").replace(
-                            tzinfo=timezone.utc
-                        )
-                    except ValueError:
+                    post_date = _parse_post_date(raw)
+                    if post_date is None:
                         logger.warning(
                             "%s: could not parse date %r", trading_code, raw
                         )
-                        post_date = None
 
             # Flush the last item
             if title and post_date and post_date >= cutoff:

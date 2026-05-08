@@ -1,9 +1,9 @@
 import logging
-from datetime import date
 from scrapers.base_scraper import BaseScraper
 from db.connection import get_db
 from config import DSE_LATEST_PRICE_URL
 from utils.parser_helpers import clean_numeric
+from utils.market_hours import bst_today_iso
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ class StockPriceScraper(BaseScraper):
             return []
 
         prices = []
-        today = date.today().isoformat()
+        today = bst_today_iso()
 
         for row in table.find_all("tr"):
             cells = row.find_all("td")

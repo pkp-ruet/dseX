@@ -64,7 +64,7 @@ python main.py scrape-details          # financials, dividends, shareholding
 python main.py scrape-details --code GP
 python main.py scrape-cashflow         # extended financials from Amarstock
 python main.py scrape-cashflow --code GP
-python main.py scrape-news             # news for top N companies
+python main.py scrape-news             # news for all non-excluded companies
 python main.py scrape-news --code GP
 python main.py scrape-market-summary   # DSE index values + daily totals
 python main.py scrape-all              # run all 6 scrapers sequentially (POSTs to VERCEL_DEPLOY_HOOK_URL on success if set)
@@ -80,7 +80,7 @@ DSE (Dhaka Stock Exchange) stock data pipeline with four components:
 
 3. **Next.js Frontend (`frontend/`)** — Production web app. ISR caching, server components for data fetching, client components for auth-gated views (portfolio, profile, admin).
 
-4. **Scoring (`backend/services/scoring_service.py`)** — DSEF 5-pillar score (0–100): Earnings Quality (30%), Financial Health (20%), Operational Efficiency / Moat (20%), Valuation (15%), Dividend Sustainability (15%). Bank/NBFI sector uses adjusted Pillar 2 weights (cash/assets dropped, redistributed). Sector medians for valuation exclude the company being scored. CAGR / trend computations are year-aware (handle missing-year gaps correctly). `utils/scoring.py:get_top_n_codes` is a thin shim that re-uses `build_scores_df` so the news-scraper top-N matches the leaderboard exactly. NaN values fill as 0.
+4. **Scoring (`backend/services/scoring_service.py`)** — DSEF 5-pillar score (0–100): Earnings Quality (30%), Financial Health (20%), Operational Efficiency / Moat (20%), Valuation (15%), Dividend Sustainability (15%). Bank/NBFI sector uses adjusted Pillar 2 weights (cash/assets dropped, redistributed). Sector medians for valuation exclude the company being scored. CAGR / trend computations are year-aware (handle missing-year gaps correctly). NaN values fill as 0.
 
 ### Scrapers
 
@@ -334,7 +334,6 @@ Both are sourced from `.env` via `python-dotenv`.
 | `REQUEST_TIMEOUT` | — | HTTP timeout |
 | `MAX_RETRIES` | — | Retry attempts |
 | `NEWS_LOOKBACK_DAYS` | 365 | News lookback window |
-| `NEWS_TOP_N` | 50 | Companies to scrape news for |
 | `AMARSTOCK_BASE_URL` | — | Amarstock base URL |
 | `DISCOUNT_RATE` | — | DCF discount rate |
 | `TERMINAL_GROWTH_RATE` | — | DCF terminal growth |

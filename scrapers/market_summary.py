@@ -1,10 +1,11 @@
 import logging
-from datetime import date, datetime
+from datetime import datetime
 
 from config import DSE_BASE_URL
 from db.connection import get_db
 from scrapers.base_scraper import BaseScraper
 from utils.parser_helpers import clean_numeric
+from utils.market_hours import bst_today_iso
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,7 @@ class MarketSummaryScraper(BaseScraper):
             return None
 
         doc = {
-            "date": date.today().isoformat(),
+            "date": bst_today_iso(),
             "dsex": None,
             "dsex_change": None,
             "dsex_change_pct": None,

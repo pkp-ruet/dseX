@@ -11,9 +11,7 @@ from scrapers.company_details import CompanyDetailsScraper
 from scrapers.news import NewsScraper
 from scrapers.cash_flow_scraper import CashFlowScraper
 from scrapers.market_summary import MarketSummaryScraper
-from utils.scoring import get_top_n_codes
 from utils.market_hours import is_market_open, is_intraday_scrape_window, market_session_info
-from config import NEWS_TOP_N
 
 
 def setup_logging():
@@ -117,13 +115,18 @@ def cmd_scrape_news(args):
     if args.code:
         codes = [args.code]
     else:
-        codes = get_top_n_codes(db, n=NEWS_TOP_N)
+        codes = [
+            d["trading_code"]
+            for d in db.companies.find(
+                {"excluded": {"$ne": True}}, {"trading_code": 1, "_id": 0}
+            )
+        ]
 
     if not codes:
-        print("No scored companies found. Run 'scrape-details' first.")
+        print("No companies found. Run 'scrape-companies' first.")
         return
 
-    label = args.code if args.code else f"top {NEWS_TOP_N}"
+    label = args.code if args.code else "all non-excluded"
     print(f"Scraping news for {len(codes)} companies ({label})...")
     scraper = NewsScraper()
     new_items = scraper.run(codes)
@@ -199,12 +202,16 @@ def cmd_scrape_intraday(args):
 
 
 def cmd_scrape_all(args):
+    # Track per-step outcomes so the deploy hook only fires when the upstream
+    # scrape actually produced data. Without this, a parser break that
+    # silently returns 0 rows would still purge the Vercel cache and
+    # publish stale data.
     print("=== Step 1/6: Scraping company list ===")
     cl = CompanyListScraper()
     companies = cl.run()
     print(f"  {len(companies)} companies found.\n")
 
-    print("=== Step 2/5: Scraping latest prices ===")
+    print("=== Step 2/6: Scraping latest prices ===")
     sp = StockPriceScraper()
     prices = sp.run()
     print(f"  Prices for {len(prices)} companies.\n")
@@ -243,17 +250,36 @@ def cmd_scrape_all(args):
     cf_total = cf.run(cf_codes)
     print(f"  {cf_total} year-records saved.\n")
 
-    print(f"=== Step 6/6: Scraping news for top {NEWS_TOP_N} companies ===")
-    news_codes = get_top_n_codes(get_db(), n=NEWS_TOP_N)
+    print("=== Step 6/6: Scraping news for all non-excluded companies ===")
+    news_codes = [
+        d["trading_code"]
+        for d in get_db().companies.find(
+            {"excluded": {"$ne": True}}, {"trading_code": 1, "_id": 0}
+        )
+    ]
+    news_saved = 0
     if news_codes:
         ns = NewsScraper()
-        new_items = ns.run(news_codes)
-        print(f"  {new_items} new news items saved.\n")
+        news_saved = ns.run(news_codes)
+        print(f"  {news_saved} new news items saved.\n")
     else:
-        print("  Skipped — no scored companies found.\n")
+        print("  Skipped — no companies found.\n")
+
+    # Gate the deploy hook on the two scrapes most visible to users:
+    # company list (drives the universe) and prices (drives every chart/table).
+    # If either looks empty, a parser broke — keep yesterday's cache rather
+    # than purging it and serving stale-but-fresh data.
+    healthy = len(companies) >= 200 and len(prices) >= 200
+    if not healthy:
+        print(
+            f"WARNING: scrape-all looks unhealthy (companies={len(companies)}, "
+            f"prices={len(prices)}). Skipping deploy/revalidate hooks — "
+            f"investigate parser before re-running."
+        )
+        print("All done.")
+        return
 
     print("All done.")
-
     _trigger_post_scrape_hooks(fire_deploy_hook=True)
 
 
@@ -311,7 +337,7 @@ def main():
 
     news_parser = sub.add_parser(
         "scrape-news",
-        help=f"Scrape last 1-year news for top {NEWS_TOP_N} companies",
+        help="Scrape last 1-year news for all non-excluded companies",
     )
     news_parser.add_argument(
         "--code",

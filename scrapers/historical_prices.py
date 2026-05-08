@@ -7,9 +7,10 @@ unique index on (trading_code, date) makes re-runs idempotent.
 """
 import logging
 import math
-from datetime import date, timedelta
+from datetime import timedelta
 
 from db.connection import get_db
+from utils.market_hours import _now_bst
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,7 @@ def _safe_int(val) -> int | None:
 class HistoricalPriceScraper:
     def __init__(self, years: int = 4):
         self.years = years
-        self.end_date = date.today()
+        self.end_date = _now_bst().date()
         self.start_date = self.end_date - timedelta(days=years * 365)
 
     def _fetch(self, code: str):

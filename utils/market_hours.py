@@ -10,6 +10,17 @@ def _now_bst() -> datetime:
     return datetime.now(BST)
 
 
+def bst_today_iso() -> str:
+    """Today's date in DSE timezone, as ISO string (YYYY-MM-DD).
+
+    Always use this — never date.today() — when stamping rows in collections
+    keyed by trading day. date.today() uses the host's local timezone, which
+    on UTC hosts (Render, GitHub Actions) flips a day at 18:00 UTC, causing
+    every row scraped after that to be written under tomorrow's BST date.
+    """
+    return _now_bst().date().isoformat()
+
+
 def is_trading_day() -> bool:
     return _now_bst().weekday() in _TRADING_DAYS
 

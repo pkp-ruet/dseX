@@ -2,19 +2,42 @@ import re
 
 
 def clean_numeric(text):
-    """Parse a numeric string from DSE pages, handling commas and dashes."""
+    """Parse a numeric string from DSE pages.
+
+    Handles: commas, accounting parens for negatives ('(1,234)' → -1234),
+    trailing footnote markers ('123*'), and the usual dash/N-A placeholders.
+    Does NOT auto-convert unit suffixes (Cr / Mn / Lac) — those mean different
+    things in different columns; let callers do the unit normalization.
+    Returns None for empty/dash/unparseable input.
+    """
     if text is None:
         return None
     text = text.strip()
     if text in ("", "-", "--", "N/A", "n/a"):
         return None
+
+    # Accounting negative: "(1,234.56)" → "-1234.56"
+    negative = False
+    if text.startswith("(") and text.endswith(")"):
+        text = text[1:-1].strip()
+        negative = True
+
+    # Strip thousands separators and trailing footnote markers
     text = text.replace(",", "")
+    text = re.sub(r"[\*†‡#]+$", "", text).strip()
+
+    if text in ("", "-", "--"):
+        return None
+
     try:
         if "." in text:
-            return float(text)
-        return int(text)
+            val = float(text)
+        else:
+            val = int(text)
     except ValueError:
         return None
+
+    return -val if negative else val
 
 
 def clean_text(text):
