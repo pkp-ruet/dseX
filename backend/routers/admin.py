@@ -1,14 +1,11 @@
 from datetime import datetime, timezone, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 
 from backend.routers.auth import get_current_admin_user
 from backend.services.db_service import get_db
-from backend.services.daily_pick_service import (
-    get_today_pick,
-    shuffle_today_pick,
-    get_today_skips,
-)
+from backend.services.daily_pick_service import admin_get_state, refresh_slot
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -67,30 +64,31 @@ def get_analytics(_: dict = Depends(get_current_admin_user)):
 
 
 # ---------------------------------------------------------------------------
-# Daily Pick — admin shuffle controls
+# Daily Picks — admin controls (3 picks per day; refresh any individually)
 # ---------------------------------------------------------------------------
+
+class RefreshSlotRequest(BaseModel):
+    slot: int = Field(..., ge=1, le=3)
+
 
 @router.get("/daily-pick")
 def admin_get_daily_pick(_: dict = Depends(get_current_admin_user)):
-    """Current daily pick + today's skip history, for the admin shuffle UI."""
-    pick = get_today_pick()
-    return {
-        "pick": pick,
-        "skips_today": get_today_skips(),
-    }
+    """Today's picks (in slot order, NOT randomized) + skip log + yesterday."""
+    return admin_get_state()
 
 
-@router.post("/daily-pick/shuffle")
-def admin_shuffle_daily_pick(user: dict = Depends(get_current_admin_user)):
-    """Skip today's pick and pick a fresh one. Idempotent per code (each code
-    can only be skipped once per day)."""
+@router.post("/daily-pick/refresh")
+def admin_refresh_slot(
+    payload: RefreshSlotRequest,
+    user: dict = Depends(get_current_admin_user),
+):
+    """Skip the current stock at `slot` and select a new candidate from the
+    same source pool. Adds the rejected code to today's skip list so it can't
+    come back today."""
     try:
-        result = shuffle_today_pick(skipped_by_user_id=user.get("user_id"))
+        result = refresh_slot(payload.slot, refreshed_by_user_id=user.get("user_id"))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except RuntimeError as e:
         raise HTTPException(status_code=409, detail=str(e))
-    skips = get_today_skips()
-    return {
-        "pick": {"today": result.get("today"), "yesterday": result.get("yesterday")},
-        "skipped": result.get("skipped"),
-        "skips_today": skips,
-    }
+    return result

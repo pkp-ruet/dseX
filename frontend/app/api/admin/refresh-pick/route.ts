@@ -14,9 +14,10 @@ function getApiUrl(): string {
 
 /**
  * Admin proxy: forwards the user's JWT to the backend's
- * `POST /api/admin/daily-pick/shuffle`, then purges the homepage's
+ * `POST /api/admin/daily-pick/refresh`, then purges the homepage's
  * `market-data` ISR cache so the new pick appears immediately.
  *
+ * Body: { slot: 1 | 2 | 3 }
  * Auth is enforced server-side by the backend (admin email allowlist).
  */
 export async function POST(req: NextRequest) {
@@ -25,20 +26,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "missing bearer token" }, { status: 401 });
   }
 
-  const upstream = await fetch(`${getApiUrl()}/api/admin/daily-pick/shuffle`, {
+  const body = await req.text();
+
+  const upstream = await fetch(`${getApiUrl()}/api/admin/daily-pick/refresh`, {
     method: "POST",
     headers: { Authorization: auth, "Content-Type": "application/json" },
+    body,
     cache: "no-store",
   }).catch((e) => {
     return new Response(JSON.stringify({ error: String(e) }), { status: 502 });
   });
 
-  const body = await upstream.text();
+  const text = await upstream.text();
   let parsed: unknown = null;
   try {
-    parsed = body ? JSON.parse(body) : null;
+    parsed = text ? JSON.parse(text) : null;
   } catch {
-    parsed = { raw: body };
+    parsed = { raw: text };
   }
 
   if (upstream.ok) {

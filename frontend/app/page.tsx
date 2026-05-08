@@ -23,7 +23,7 @@ import PopularTeaser from "@/components/home/PopularTeaser";
 import Top20MomentumTeaser from "@/components/home/Top20MomentumTeaser";
 import PortfolioAnalyzerHero from "@/components/home/PortfolioAnalyzerHero";
 import GradeAnyStockHero from "@/components/home/GradeAnyStockHero";
-import TodaysTopStock from "@/components/home/TodaysTopStock";
+import TodaysTopPicks from "@/components/home/TodaysTopPicks";
 
 export const revalidate = 3600;
 
@@ -114,13 +114,13 @@ async function HeroBlock({
   const allItems = scores ? allItemsFromScores(scores) : [];
 
   return (
-    <section className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4">
+    <section className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mt-4 sm:mt-5">
       <GradeAnyStockHero items={allItems} />
       {pick ? (
-        <TodaysTopStock data={pick} />
+        <TodaysTopPicks data={pick} />
       ) : (
-        <div className="rounded-[14px] border border-dashed border-[var(--border)] bg-[var(--surface)]/60 p-5 flex items-center justify-center text-center text-sm text-[var(--text-muted)] min-h-[200px]">
-          Today&apos;s top stock is being prepared — check back in a moment.
+        <div className="rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface)]/60 p-5 flex items-center justify-center text-center text-sm text-[var(--text-muted)] min-h-[400px] sm:min-h-[440px]">
+          Today&apos;s top picks are being prepared — check back in a moment.
         </div>
       )}
     </section>
@@ -192,15 +192,18 @@ export default function HomePage() {
 
       {/* LCP candidate — static, in shell HTML immediately, no data dependency */}
       <h1 className="sr-only">DSE Share Price Today — Dhaka Stock Exchange Rankings</h1>
-      <p className="text-[11px] text-[var(--text-muted)] text-center px-2 pb-1 leading-relaxed">
-        Track <strong>DSE share price</strong> live &middot; <strong>Dhaka Stock Exchange</strong> (DSEX) rankings &middot;{" "}
-        <strong>Bangladesh stock market</strong> news &middot; <strong>DSE today</strong> signals
+      <p className="text-sm sm:text-base font-medium text-[var(--text)] text-center px-3 py-2 leading-relaxed">
+        Find the best DSE stocks to buy — free{" "}
+        <strong className="text-[var(--primary)] font-bold">Dhaka Stock Exchange</strong> (DSEX) rankings,
+        live <strong className="text-[var(--primary)] font-bold">DSE share price</strong> updates,{" "}
+        <strong className="text-[var(--primary)] font-bold">DSE today</strong> picks, and{" "}
+        <strong className="text-[var(--primary)] font-bold">Bangladesh stock market</strong> signals.
       </p>
 
       {/* Hero block — Grade-any-stock demo + Today's Top Stock */}
       <Suspense
         fallback={
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mt-4 sm:mt-5">
             <div className="rounded-[14px] border border-[var(--border)] bg-[var(--surface)] min-h-[260px] animate-pulse" />
             <div className="rounded-[14px] border border-[var(--border)] bg-[var(--surface)] min-h-[260px] animate-pulse" />
           </div>

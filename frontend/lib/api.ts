@@ -730,38 +730,40 @@ export async function getTop20(): Promise<Top20Response> {
 }
 
 // ---------------------------------------------------------------------------
-// Daily Pick — "Today's Top Stock"
+// Daily Picks — "Today's Top Picks" (3 per day)
 // ---------------------------------------------------------------------------
 
-export interface DailyPickPillars {
-  profits: number | null;
-  balance: number | null;
-  business: number | null;
-  fair_price: number | null;
-  dividend: number | null;
-}
+export type DailyPickSource = "dsef" | "dse_top20";
 
-export interface DailyPickToday {
-  date: string;
+export interface DailyPickItem {
+  slot: number;                // 1, 2, or 3
+  source: DailyPickSource;
+  source_label: string;        // plain-English: "Trending" or "Top Quality"
   trading_code: string;
   company_name: string | null;
   sector: string | null;
   score: number | null;
   ltp: number | null;
   change_pct: number | null;
-  pillars: DailyPickPillars;
+  return_7d_pct: number | null;
   reasons: string[];
 }
 
-export interface DailyPickYesterday {
-  date: string;
+export interface DailyPickYesterdayItem {
+  slot: number;
   trading_code: string;
   company_name: string | null;
   next_day_return_pct: number | null;
 }
 
+export interface DailyPickYesterday {
+  date: string;
+  picks: DailyPickYesterdayItem[];
+}
+
 export interface DailyPickResponse {
-  today: DailyPickToday;
+  date: string;
+  picks: DailyPickItem[];
   yesterday: DailyPickYesterday | null;
 }
 
@@ -769,23 +771,31 @@ export async function getDailyPick(): Promise<DailyPickResponse> {
   return apiFetch<DailyPickResponse>("/api/daily-pick", 3600);
 }
 
-export interface DailyPickHistoryItem {
-  date: string;
+export interface DailyPickHistoryDayItem {
+  slot: number;
+  source: DailyPickSource;
+  source_label: string;
   trading_code: string;
   company_name: string | null;
   sector: string | null;
   score: number | null;
   ltp_at_pick: number | null;
+  return_7d_pct: number | null;
   next_day_return_pct: number | null;
   reasons: string[];
 }
 
-export interface DailyPickHistoryResponse {
-  items: DailyPickHistoryItem[];
+export interface DailyPickHistoryDay {
+  date: string;
+  picks: DailyPickHistoryDayItem[];
 }
 
-export async function getDailyPickHistory(limit = 30): Promise<DailyPickHistoryResponse> {
-  return apiFetch<DailyPickHistoryResponse>(`/api/daily-pick/history?limit=${limit}`, 3600);
+export interface DailyPickHistoryResponse {
+  days: DailyPickHistoryDay[];
+}
+
+export async function getDailyPickHistory(days = 30): Promise<DailyPickHistoryResponse> {
+  return apiFetch<DailyPickHistoryResponse>(`/api/daily-pick/history?days=${days}`, 3600);
 }
 
 // ---------------------------------------------------------------------------
@@ -825,41 +835,53 @@ export async function apiGetAdminAnalytics(): Promise<AdminAnalyticsResponse> {
 }
 
 // ---------------------------------------------------------------------------
-// Admin — Daily Pick controls
+// Admin — Daily Picks controls
 // ---------------------------------------------------------------------------
 
 export interface AdminDailyPickSkip {
   trading_code: string;
   company_name: string | null;
   score_when_skipped: number | null;
+  from_slot: number | null;
   skipped_at: string | null;
   skipped_by: string | null;
 }
 
-export interface AdminDailyPickResponse {
-  pick: DailyPickResponse | null;
+export interface AdminDailyPickItem extends DailyPickItem {
+  picked_at: string | null;
+}
+
+export interface AdminDailyPickState {
+  date: string;
+  picks: AdminDailyPickItem[];        // ordered by slot (1, 2, 3) — NOT randomized
   skips_today: AdminDailyPickSkip[];
+  yesterday: DailyPickYesterday | null;
 }
 
-export async function apiAdminGetDailyPick(): Promise<AdminDailyPickResponse> {
-  return apiAuthFetch<AdminDailyPickResponse>("/api/admin/daily-pick");
+export async function apiAdminGetDailyPick(): Promise<AdminDailyPickState> {
+  return apiAuthFetch<AdminDailyPickState>("/api/admin/daily-pick");
 }
 
-export interface AdminShuffleResponse {
-  pick: DailyPickResponse;
+export interface AdminRefreshSlotResponse {
   skipped: string | null;
-  skips_today: AdminDailyPickSkip[];
+  new_code: string | null;
+  slot: number;
+  state: AdminDailyPickState;
 }
 
-/** Calls the Next.js proxy route which forwards to the backend and then
- *  revalidates the homepage's `market-data` ISR cache so the new pick is
- *  visible immediately on /. */
-export async function apiAdminShuffleDailyPick(): Promise<AdminShuffleResponse> {
+/** Refresh a single slot. Calls the Next.js proxy route which forwards to the
+ *  backend and revalidates the homepage's `market-data` ISR cache so the new
+ *  pick is visible to all visitors immediately. */
+export async function apiAdminRefreshDailyPickSlot(slot: number): Promise<AdminRefreshSlotResponse> {
   const token = getToken();
   if (!token) throw new Error("AUTH_EXPIRED");
-  const res = await fetch("/api/admin/shuffle-pick", {
+  const res = await fetch("/api/admin/refresh-pick", {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ slot }),
   });
   if (res.status === 401) {
     logout();
@@ -867,11 +889,11 @@ export async function apiAdminShuffleDailyPick(): Promise<AdminShuffleResponse> 
   }
   if (res.status === 409) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body?.detail || "No more candidates to shuffle to");
+    throw new Error(body?.detail || "No remaining candidates for that slot today");
   }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body?.detail || body?.error || `Shuffle failed: ${res.status}`);
+    throw new Error(body?.detail || body?.error || `Refresh failed: ${res.status}`);
   }
-  return res.json() as Promise<AdminShuffleResponse>;
+  return res.json() as Promise<AdminRefreshSlotResponse>;
 }

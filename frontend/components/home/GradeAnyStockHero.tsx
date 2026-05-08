@@ -88,12 +88,12 @@ function PillarBar({ label, value, delay, visible }: BarProps) {
   const color = v >= 7 ? "#34D399" : v >= 4 ? "#FBBF24" : "#F87171";
   const word = v >= 7 ? "Strong" : v >= 4 ? "Fair" : "Weak";
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-center justify-between text-[11px] sm:text-xs">
-        <span className="text-[var(--text)] font-medium">{label}</span>
-        <span className="text-[var(--text-muted)] font-semibold" style={{ color }}>{word}</span>
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-[var(--text)] font-semibold">{label}</span>
+        <span className="font-bold" style={{ color }}>{word}</span>
       </div>
-      <div className="h-2 rounded-full bg-[var(--border)]/40 overflow-hidden">
+      <div className="h-2.5 rounded-full bg-[var(--border)]/40 overflow-hidden">
         <div
           className="h-full rounded-full"
           style={{
@@ -233,115 +233,112 @@ export default function GradeAnyStockHero({ items }: Props) {
   return (
     <section
       aria-label="Grade any stock"
-      className="rounded-[14px] border border-[var(--border)] bg-[var(--surface)] relative h-full flex flex-col"
+      className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] relative h-full flex flex-col min-h-[400px] sm:min-h-[440px]"
     >
-      <div className="overflow-hidden rounded-t-[14px]">
+      <div className="overflow-hidden rounded-t-2xl">
         <div
-          className="h-1 w-full"
+          className="h-1.5 w-full"
           style={{ background: "linear-gradient(90deg, var(--primary), var(--accent))" }}
         />
       </div>
 
-      <div className="p-4 sm:p-5 md:p-6">
-        {/* Heading */}
-        <div className="mb-3 sm:mb-4">
-          <p className="text-[10px] uppercase tracking-widest font-bold text-[var(--primary)] mb-1.5">
-            // Free Stock Check
-          </p>
-          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--text)] leading-snug">
-            Check any DSE stock in 5 seconds.
-          </h2>
-          <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-1.5 leading-relaxed">
-            Get a simple grade — A to F. We look at 5 things, then tell you if the stock looks good or risky.
-          </p>
-        </div>
-
-        {/* Idle state — search */}
+      <div className="p-5 sm:p-7 md:p-8 flex-1 flex flex-col">
+        {/* Idle state — poster-style centered headline + search */}
         {mode === "idle" && (
-          <div ref={containerRef} className="relative">
-            <div className="flex items-center gap-2 rounded-xl border-2 border-[var(--border)] bg-[var(--bg,#0c1117)] focus-within:border-[var(--primary)] transition-colors px-3 py-2.5 sm:py-3">
-              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true" className="text-[var(--text-muted)] shrink-0">
-                <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.6" />
-                <path d="M13.5 13.5L17 17" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-              </svg>
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={handleKey}
-                placeholder={placeholder}
-                className="flex-1 bg-transparent outline-none text-sm sm:text-base text-[var(--text)] placeholder:text-[var(--text-muted)] min-w-0"
-                autoComplete="off"
-                spellCheck={false}
-                aria-label="Search any DSE stock"
-              />
-              <button
-                type="button"
-                onClick={() => suggestions[0] ? runCheck(suggestions[0].trading_code) : query.trim() && runCheck(query.trim())}
-                className="px-3 sm:px-4 py-1.5 rounded-lg bg-[var(--primary)] text-white text-xs sm:text-sm font-semibold whitespace-nowrap hover:opacity-90 transition-opacity"
-                aria-label="Check stock"
-              >
-                Check →
-              </button>
+          <div ref={containerRef} className="flex-1 flex flex-col justify-center">
+            <div className="text-center mb-5 sm:mb-7">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[var(--text)] leading-[1.05] tracking-tight">
+                Check Any Stock
+              </h2>
+              <p className="mt-1.5 text-base sm:text-lg md:text-xl font-semibold text-[var(--primary)] leading-tight">
+                in 5 seconds.
+              </p>
             </div>
 
-            {showSuggestions && (
-              <ul
-                role="listbox"
-                className="absolute left-0 right-0 mt-1 z-30 rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-lg overflow-hidden"
-              >
-                {suggestions.map((c, i) => (
-                  <li
-                    key={c.trading_code}
-                    role="option"
-                    aria-selected={i === activeIndex}
-                    onMouseDown={(e) => { e.preventDefault(); runCheck(c.trading_code); }}
-                    onMouseEnter={() => setActiveIndex(i)}
-                    className={`flex items-center gap-2 px-3 py-2 text-sm cursor-pointer ${
-                      i === activeIndex ? "bg-[var(--primary)]/10" : "hover:bg-[var(--border)]/30"
-                    }`}
-                  >
-                    <span className="font-bold text-[var(--text)] min-w-[80px]">{c.trading_code}</span>
-                    {c.company_name && (
-                      <span className="text-[var(--text-muted)] text-xs truncate">{c.company_name}</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
+            <div className="relative">
+              <div className="flex items-center gap-2 rounded-2xl border-2 border-[var(--border)] bg-[var(--bg,#0c1117)] focus-within:border-[var(--primary)] transition-colors px-4 py-3 sm:py-3.5">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" className="text-[var(--text-muted)] shrink-0">
+                  <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.6" />
+                  <path d="M13.5 13.5L17 17" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                </svg>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={handleKey}
+                  placeholder={placeholder}
+                  className="flex-1 bg-transparent outline-none text-base sm:text-lg text-[var(--text)] placeholder:text-[var(--text-muted)] min-w-0"
+                  autoComplete="off"
+                  spellCheck={false}
+                  aria-label="Search any DSE stock"
+                />
+                <button
+                  type="button"
+                  onClick={() => suggestions[0] ? runCheck(suggestions[0].trading_code) : query.trim() && runCheck(query.trim())}
+                  className="px-4 sm:px-5 py-2 rounded-xl bg-[var(--primary)] text-white text-sm sm:text-base font-bold whitespace-nowrap hover:opacity-90 transition-opacity"
+                  aria-label="Check stock"
+                >
+                  Check →
+                </button>
+              </div>
 
-            {/* Demo chips */}
-            <div className="flex flex-wrap items-center gap-1.5 mt-3">
-              <span className="text-[11px] text-[var(--text-muted)] mr-0.5">Quick try:</span>
+              {showSuggestions && (
+                <ul
+                  role="listbox"
+                  className="absolute left-0 right-0 top-full mt-1 z-30 rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-lg overflow-hidden"
+                >
+                  {suggestions.map((c, i) => (
+                    <li
+                      key={c.trading_code}
+                      role="option"
+                      aria-selected={i === activeIndex}
+                      onMouseDown={(e) => { e.preventDefault(); runCheck(c.trading_code); }}
+                      onMouseEnter={() => setActiveIndex(i)}
+                      className={`flex items-center gap-2 px-3 py-2.5 text-sm cursor-pointer ${
+                        i === activeIndex ? "bg-[var(--primary)]/10" : "hover:bg-[var(--border)]/30"
+                      }`}
+                    >
+                      <span className="font-bold text-[var(--text)] min-w-[80px]">{c.trading_code}</span>
+                      {c.company_name && (
+                        <span className="text-[var(--text-muted)] text-xs truncate">{c.company_name}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* Demo chips — centered */}
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
               {DEMO_CHIPS.map((code) => (
                 <button
                   key={code}
                   type="button"
                   onClick={() => runCheck(code)}
-                  className="px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold border border-[var(--border)] text-[var(--text)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors"
+                  className="px-3.5 py-1.5 rounded-full text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors"
                 >
                   {code}
                 </button>
               ))}
             </div>
 
-            <p className="text-[10px] sm:text-[11px] text-[var(--text-muted)] mt-3">
+            <p className="text-center text-xs text-[var(--text-muted)] mt-4">
               {isLoggedIn
                 ? "Free for you — check as many as you like."
-                : `Free preview · ${Math.max(0, FREE_LIMIT_PER_DAY - usedCount)} check left today`}
+                : `Free · ${Math.max(0, FREE_LIMIT_PER_DAY - usedCount)} check left today`}
             </p>
           </div>
         )}
 
-        {/* Checking state — animated spinner line */}
+        {/* Checking state — animated spinner */}
         {mode === "checking" && picked && (
-          <div className="flex items-center justify-center gap-3 py-10 sm:py-12">
+          <div className="flex-1 flex flex-col items-center justify-center gap-3 py-12 sm:py-16">
             <span
-              className="inline-block w-5 h-5 rounded-full border-2 border-[var(--primary)] border-t-transparent animate-spin"
+              className="inline-block w-8 h-8 rounded-full border-[3px] border-[var(--primary)] border-t-transparent animate-spin"
               aria-hidden="true"
             />
-            <span className="text-sm sm:text-base text-[var(--text-muted)]">
+            <span className="text-base sm:text-lg text-[var(--text-muted)]">
               Checking <span className="font-bold text-[var(--text)]">{picked.trading_code}</span>…
             </span>
           </div>
@@ -349,39 +346,41 @@ export default function GradeAnyStockHero({ items }: Props) {
 
         {/* Result */}
         {mode === "result" && picked && grade && (
-          <div className="animate-[fadeIn_300ms_ease-out]">
-            <div className="flex items-start gap-3 sm:gap-4 mb-4">
+          <div className="animate-[fadeIn_300ms_ease-out] flex-1 flex flex-col">
+            <div className="flex items-start gap-4 mb-5">
               <div
-                className="flex flex-col items-center justify-center min-w-[64px] sm:min-w-[80px] aspect-square rounded-2xl border-2 shrink-0"
+                className="flex flex-col items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-2xl border-2 shrink-0"
                 style={{
                   borderColor: grade.color,
                   background: `${grade.color}1f`,
                   color: grade.color,
                 }}
               >
-                <span className="text-3xl sm:text-4xl font-extrabold leading-none">{grade.letter}</span>
-                <span className="text-[8px] sm:text-[9px] uppercase tracking-wider mt-0.5 font-bold">{grade.word}</span>
+                <span className="text-4xl sm:text-5xl font-extrabold leading-none">{grade.letter}</span>
+                <span className="text-[9px] sm:text-[10px] uppercase tracking-wider mt-1 font-bold">{grade.word}</span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold mb-0.5">
-                  {picked.sector || "Stock"}
-                </p>
-                <p className="text-base sm:text-lg font-extrabold text-[var(--text)] leading-tight truncate">
+                {picked.sector && (
+                  <p className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold mb-0.5">
+                    {picked.sector}
+                  </p>
+                )}
+                <p className="text-xl sm:text-2xl font-extrabold text-[var(--text)] leading-tight truncate">
                   {picked.trading_code}
                 </p>
                 {picked.company_name && (
-                  <p className="text-xs sm:text-sm text-[var(--text-muted)] truncate">
+                  <p className="text-sm text-[var(--text-muted)] truncate">
                     {picked.company_name}
                   </p>
                 )}
-                <p className="text-sm font-bold mt-1.5" style={{ color: grade.color }}>
-                  {Math.round(picked.score ?? 0)} out of 100 — {grade.word}
+                <p className="text-base sm:text-lg font-bold mt-1.5" style={{ color: grade.color }}>
+                  {Math.round(picked.score ?? 0)}/100 · {grade.word}
                 </p>
               </div>
             </div>
 
             {/* Pillar bars */}
-            <div className="flex flex-col gap-2.5 mb-4">
+            <div className="flex flex-col gap-3 mb-5">
               {PILLAR_BARS.map((p, idx) => (
                 <PillarBar
                   key={p.key}
@@ -395,33 +394,33 @@ export default function GradeAnyStockHero({ items }: Props) {
 
             {/* Plain summary */}
             <div
-              className="rounded-lg border px-3 py-2.5 mb-4 text-xs sm:text-sm leading-relaxed"
+              className="rounded-xl border-2 px-4 py-3 mb-5 text-sm sm:text-base leading-relaxed"
               style={{
                 borderColor: `${grade.color}66`,
                 background: `${grade.color}10`,
                 color: "var(--text)",
               }}
             >
-              <span className="font-semibold" style={{ color: grade.color }}>In one line: </span>
+              <span className="font-bold block mb-0.5" style={{ color: grade.color }}>In one line</span>
               {plainSummary(picked)}
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 mt-auto">
               <Link
                 href={`/stock/${picked.trading_code}`}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold bg-[var(--primary)] text-white hover:opacity-90 transition-opacity"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl text-base font-bold bg-[var(--primary)] text-white hover:opacity-90 transition-opacity"
               >
                 See full report
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z" />
                 </svg>
               </Link>
               <button
                 type="button"
                 onClick={reset}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl text-base font-bold border-2 border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors"
               >
-                Check another stock
+                Check another
               </button>
             </div>
           </div>
@@ -429,26 +428,26 @@ export default function GradeAnyStockHero({ items }: Props) {
 
         {/* Limit reached — signup gate */}
         {mode === "limit" && (
-          <div className="rounded-xl border-2 border-dashed border-[var(--primary)]/50 bg-[var(--primary)]/5 p-4 sm:p-5 text-center">
-            <div className="text-3xl mb-2" aria-hidden="true">🔒</div>
-            <p className="text-sm sm:text-base font-bold text-[var(--text)] mb-1.5">
-              You&apos;ve used your free check today.
+          <div className="flex-1 flex flex-col items-center justify-center text-center px-2">
+            <div className="text-5xl sm:text-6xl mb-3" aria-hidden="true">🔒</div>
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-[var(--text)] mb-2 leading-tight">
+              That&apos;s your free check.
+            </h3>
+            <p className="text-sm sm:text-base text-[var(--text-muted)] leading-relaxed mb-5 max-w-sm">
+              Sign up free to check any stock, save your favorites, and get tomorrow&apos;s top pick.
             </p>
-            <p className="text-xs sm:text-sm text-[var(--text-muted)] leading-relaxed mb-4 max-w-sm mx-auto">
-              Sign up free to check any stock, save your favorites, and get tomorrow&apos;s top stock pick.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-2 justify-center">
+            <div className="flex flex-col sm:flex-row gap-2 w-full max-w-sm">
               <Link
                 href="/register"
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold bg-[var(--primary)] text-white hover:opacity-90 transition-opacity"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl text-base font-bold bg-[var(--primary)] text-white hover:opacity-90 transition-opacity"
               >
                 Sign up free
               </Link>
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl text-base font-bold border-2 border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors"
               >
-                I already have an account
+                Sign in
               </Link>
             </div>
           </div>

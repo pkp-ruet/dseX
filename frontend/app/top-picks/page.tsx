@@ -1,40 +1,35 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getDailyPickHistory, type DailyPickHistoryItem } from "@/lib/api";
+import {
+  getDailyPickHistory,
+  type DailyPickHistoryDay,
+  type DailyPickHistoryDayItem,
+} from "@/lib/api";
 
 export const revalidate = 3600;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 export const metadata: Metadata = {
-  title: "Daily Top Stock — DSE Picks History | TopStockBD",
+  title: "Daily Top 3 Stocks — DSE Picks History | TopStockBD",
   description:
-    "Every day we pick one DSE stock that scores well and looks promising. See the full history of past picks and how each one performed the next trading day.",
+    "Every day we pick 3 DSE stocks: 2 trending, 1 top quality. See the full history and how each pick performed the next trading day.",
   keywords:
-    "DSE top pick, daily stock pick Bangladesh, Dhaka Stock Exchange best stock, DSE pick history, BD stock recommendation",
+    "DSE top picks, daily stock picks Bangladesh, Dhaka Stock Exchange best stocks, DSE pick history, BD stock recommendation",
   alternates: { canonical: `${BASE_URL}/top-picks` },
   openGraph: {
-    title: "Daily Top Stock — DSE Picks History | TopStockBD",
+    title: "Daily Top 3 Stocks — DSE Picks History | TopStockBD",
     description:
-      "One stock pick a day from the Dhaka Stock Exchange — see the history and how each pick performed.",
+      "Three stock picks a day from the Dhaka Stock Exchange — see the history and how each pick performed.",
     url: `${BASE_URL}/top-picks`,
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Daily Top Stock — DSE Picks History",
-    description: "See every daily DSE stock pick and its next-day performance.",
+    title: "Daily Top 3 Stocks — DSE Picks History",
+    description: "See every day's three DSE stock picks and their next-day performance.",
   },
 };
-
-function gradeOf(score: number | null): { letter: string; color: string } {
-  if (score == null) return { letter: "?", color: "#94A3B8" };
-  if (score >= 80) return { letter: "A", color: "#34D399" };
-  if (score >= 70) return { letter: "B", color: "#4ADE80" };
-  if (score >= 60) return { letter: "C", color: "#60A5FA" };
-  if (score >= 50) return { letter: "D", color: "#FBBF24" };
-  return { letter: "F", color: "#F87171" };
-}
 
 function fmtPct(v: number | null): string {
   if (v == null) return "—";
@@ -59,25 +54,74 @@ function fmtDate(iso: string): string {
   }
 }
 
-function summarize(items: DailyPickHistoryItem[]) {
-  const tracked = items.filter((i) => i.next_day_return_pct != null);
+function summarize(days: DailyPickHistoryDay[]) {
+  const all: DailyPickHistoryDayItem[] = [];
+  for (const day of days) all.push(...day.picks);
+  const tracked = all.filter((i) => i.next_day_return_pct != null);
   const wins = tracked.filter((i) => (i.next_day_return_pct ?? 0) > 0).length;
   const total = tracked.length;
   const avg = total ? tracked.reduce((s, i) => s + (i.next_day_return_pct ?? 0), 0) / total : 0;
   return { wins, total, avg };
 }
 
+function PickItemCard({ item }: { item: DailyPickHistoryDayItem }) {
+  const sourceColor = item.source === "dsef" ? "#4ADE80" : "#60A5FA";
+  const sourceBg = item.source === "dsef" ? "rgba(74,222,128,0.12)" : "rgba(96,165,250,0.12)";
+
+  return (
+    <Link
+      href={`/stock/${item.trading_code}`}
+      className="block p-3 rounded-xl border border-[var(--border)] bg-[var(--bg,#0c1117)] hover:border-[var(--primary)]/50 transition-colors relative overflow-hidden"
+    >
+      <span
+        aria-hidden="true"
+        className="absolute left-0 top-0 bottom-0 w-1"
+        style={{ background: sourceColor }}
+      />
+      <div className="pl-1.5">
+        <div className="flex items-baseline justify-between gap-2 mb-0.5">
+          <p className="text-base sm:text-lg font-extrabold text-[var(--text)] leading-tight truncate">
+            {item.trading_code}
+          </p>
+          <span
+            className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider whitespace-nowrap px-1.5 py-0.5 rounded-full"
+            style={{ background: sourceBg, color: sourceColor }}
+          >
+            {item.source_label}
+          </span>
+        </div>
+        {item.company_name && (
+          <p className="text-xs text-[var(--text-muted)] truncate mb-1.5">
+            {item.company_name}
+          </p>
+        )}
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-[11px] sm:text-xs">
+          {item.sector && (
+            <span className="text-[var(--text-muted)]">{item.sector}</span>
+          )}
+          {item.ltp_at_pick != null && (
+            <span className="text-[var(--text-muted)]">৳{item.ltp_at_pick.toFixed(2)}</span>
+          )}
+          <span className="font-bold" style={{ color: chgColor(item.next_day_return_pct) }}>
+            Next day: {fmtPct(item.next_day_return_pct)}
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 export default async function TopPicksPage() {
-  const data = await getDailyPickHistory(60).catch(() => ({ items: [] as DailyPickHistoryItem[] }));
-  const items = data.items;
-  const { wins, total, avg } = summarize(items);
+  const data = await getDailyPickHistory(60).catch(() => ({ days: [] as DailyPickHistoryDay[] }));
+  const days = data.days;
+  const { wins, total, avg } = summarize(days);
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-      { "@type": "ListItem", position: 2, name: "Daily Top Stock", item: `${BASE_URL}/top-picks` },
+      { "@type": "ListItem", position: 2, name: "Daily Top Picks", item: `${BASE_URL}/top-picks` },
     ],
   };
 
@@ -88,19 +132,20 @@ export default async function TopPicksPage() {
       <div className="max-w-4xl mx-auto px-3 sm:px-4 py-6 sm:py-10">
         <header className="mb-6 sm:mb-8">
           <p className="text-[10px] sm:text-xs uppercase tracking-widest font-bold mb-2" style={{ color: "#F97316" }}>
-            ★ Daily Top Stock
+            ★ Daily Top Picks
           </p>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[var(--text)] leading-tight mb-2">
-            Every day, one stock pick from the DSE.
+            Three stock picks every day, from the DSE.
           </h1>
           <p className="text-sm sm:text-base text-[var(--text-muted)] leading-relaxed max-w-2xl">
-            We look at every Dhaka Stock Exchange company, score them on profits, debt, business
-            strength, fair price, and dividends — then pick one that stands out today. Here&apos;s
-            the full history and how each pick did on the next trading day.
+            Each day we pick 3 stocks: 2 from the most active recent movers
+            (<span className="font-semibold text-[var(--text)]">Trending</span>),
+            and 1 from the strongest companies overall
+            (<span className="font-semibold text-[var(--text)]">Top Quality</span>).
+            Here&apos;s the history with how each pick did the next trading day.
           </p>
         </header>
 
-        {/* Summary stats */}
         {total > 0 && (
           <section className="grid grid-cols-3 gap-2 sm:gap-3 mb-6 sm:mb-8">
             <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 sm:p-4">
@@ -128,8 +173,7 @@ export default async function TopPicksPage() {
           </section>
         )}
 
-        {/* History list */}
-        {items.length === 0 ? (
+        {days.length === 0 ? (
           <div className="rounded-xl border border-dashed border-[var(--border)] p-8 text-center">
             <p className="text-sm text-[var(--text-muted)] mb-2">
               No picks tracked yet — we&apos;ll start showing them here from tomorrow onwards.
@@ -139,71 +183,19 @@ export default async function TopPicksPage() {
             </Link>
           </div>
         ) : (
-          <ul className="flex flex-col gap-2.5 sm:gap-3">
-            {items.map((item) => {
-              const grade = gradeOf(item.score);
-              return (
-                <li
-                  key={`${item.date}-${item.trading_code}`}
-                  className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 sm:p-4"
-                >
-                  <Link
-                    href={`/stock/${item.trading_code}`}
-                    className="flex items-start gap-3 sm:gap-4"
-                  >
-                    <div
-                      className="flex flex-col items-center justify-center min-w-[48px] sm:min-w-[56px] aspect-square rounded-xl border-2 shrink-0"
-                      style={{
-                        borderColor: grade.color,
-                        background: `${grade.color}1f`,
-                        color: grade.color,
-                      }}
-                    >
-                      <span className="text-2xl sm:text-3xl font-extrabold leading-none">{grade.letter}</span>
-                      <span className="text-[8px] uppercase tracking-wider mt-0.5 font-bold">
-                        {Math.round(item.score ?? 0)}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline justify-between gap-2 mb-0.5">
-                        <p className="text-sm sm:text-base font-extrabold text-[var(--text)] leading-tight truncate">
-                          {item.trading_code}
-                        </p>
-                        <span className="text-[10px] sm:text-xs text-[var(--text-muted)] whitespace-nowrap">
-                          {fmtDate(item.date)}
-                        </span>
-                      </div>
-                      {item.company_name && (
-                        <p className="text-xs sm:text-sm text-[var(--text-muted)] truncate mb-1">
-                          {item.company_name}
-                        </p>
-                      )}
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] sm:text-xs">
-                        {item.sector && (
-                          <span className="text-[var(--text-muted)]">{item.sector}</span>
-                        )}
-                        {item.ltp_at_pick != null && (
-                          <span className="text-[var(--text-muted)]">
-                            Picked at ৳{item.ltp_at_pick.toFixed(2)}
-                          </span>
-                        )}
-                        <span
-                          className="font-bold"
-                          style={{ color: chgColor(item.next_day_return_pct) }}
-                        >
-                          Next day: {fmtPct(item.next_day_return_pct)}
-                        </span>
-                      </div>
-                      {item.reasons.length > 0 && (
-                        <p className="text-[11px] sm:text-xs text-[var(--text)] leading-relaxed mt-1.5 line-clamp-2">
-                          {item.reasons[0]}
-                        </p>
-                      )}
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
+          <ul className="flex flex-col gap-5 sm:gap-6">
+            {days.map((day) => (
+              <li key={day.date}>
+                <h2 className="text-sm sm:text-base font-bold text-[var(--text)] mb-2 sm:mb-3 px-1">
+                  {fmtDate(day.date)}
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+                  {day.picks.map((p) => (
+                    <PickItemCard key={`${day.date}-${p.slot}-${p.trading_code}`} item={p} />
+                  ))}
+                </div>
+              </li>
+            ))}
           </ul>
         )}
 
