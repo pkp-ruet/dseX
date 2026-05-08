@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { getScores, type ScoreItem, type ScoresResponse } from "@/lib/api";
-import { getTier, TIER_LABELS, TIER_COLORS, type TierKey } from "@/lib/constants";
 import { taka } from "@/lib/formatters";
 import { getWatchlist, subscribeWatchlist, addToWatchlist } from "@/lib/watchlist";
 import StarButton from "@/components/ui/StarButton";
@@ -144,7 +143,8 @@ export default function WatchlistTable() {
     const map = new Map(all.map((it) => [it.trading_code.toUpperCase(), it]));
     return codes
       .map((c) => map.get(c.toUpperCase()))
-      .filter((it): it is ScoreItem => Boolean(it));
+      .filter((it): it is ScoreItem => Boolean(it))
+      .sort((a, b) => a.trading_code.localeCompare(b.trading_code));
   }, [scores, codes]);
 
   return (
@@ -171,16 +171,12 @@ export default function WatchlistTable() {
               <tr>
                 <th></th>
                 <th>Code</th>
-                <th>Company</th>
                 <th className="num">LTP</th>
                 <th className="num">Chg %</th>
-                <th className="num watchlist-th-score">Score</th>
-                <th className="watchlist-th-tier">Tier</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((it) => {
-                const tier: TierKey = getTier(it.score);
                 const chg = it.change_pct;
                 const chgCls = chg == null ? "" : chg > 0 ? "up" : chg < 0 ? "dn" : "flat";
                 return (
@@ -191,21 +187,9 @@ export default function WatchlistTable() {
                         {it.trading_code}
                       </Link>
                     </td>
-                    <td className="watchlist-company">{it.company_name ?? "—"}</td>
                     <td className="num">{it.ltp != null ? taka(it.ltp, 1) : "—"}</td>
                     <td className={`num watchlist-chg ${chgCls}`}>
                       {chg == null ? "—" : `${chg > 0 ? "+" : ""}${chg.toFixed(1)}%`}
-                    </td>
-                    <td className="num watchlist-score watchlist-td-score">
-                      {it.score != null ? it.score.toFixed(1) : "—"}
-                    </td>
-                    <td className="watchlist-td-tier">
-                      <span
-                        className="watchlist-tier"
-                        style={{ background: TIER_COLORS[tier] }}
-                      >
-                        {TIER_LABELS[tier]}
-                      </span>
                     </td>
                   </tr>
                 );

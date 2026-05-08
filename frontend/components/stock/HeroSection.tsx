@@ -1,5 +1,6 @@
 import Link from "next/link";
 import StarButton from "@/components/ui/StarButton";
+import AddToPortfolioButton from "@/components/stock/AddToPortfolioButton";
 import { taka, signed } from "@/lib/formatters";
 import { range52wInfo } from "@/lib/plain-language";
 import type { CompanyDetail } from "@/lib/api";
@@ -85,6 +86,7 @@ export default function HeroSection({ detail }: Props) {
                     </span>
                   )}
                   <span className="ml-1"><StarButton code={code} size="lg" /></span>
+                  <AddToPortfolioButton code={code} ltp={ltp} />
                 </div>
               </div>
 

@@ -3566,35 +3566,24 @@ details.dsex-exp[open] > summary {
 
   .watchlist-table tbody tr {
     display: grid;
-    grid-template-columns: 24px auto 1fr auto;
-    grid-template-rows: auto auto;
-    column-gap: 8px;
-    row-gap: 3px;
-    padding: 10px 12px;
+    grid-template-columns: 24px 1fr auto auto;
+    column-gap: 10px;
+    padding: 12px 12px;
     border-bottom: 1px solid var(--cell-rule);
     align-items: center;
   }
   .watchlist-table tbody tr:last-child { border-bottom: none; }
   .watchlist-table tbody tr:hover { background: rgba(14, 165, 233, 0.06); }
 
-  .watchlist-table td { padding: 0; border: none; font-size: 0.8rem; }
+  .watchlist-table td { padding: 0; border: none; font-size: 0.85rem; }
 
-  /* Row 1: star | code | company | chg% */
-  .watchlist-table td:nth-child(1) { grid-row: 1; grid-column: 1; }
-  .watchlist-table td:nth-child(2) { grid-row: 1; grid-column: 2; }
-  .watchlist-table td:nth-child(3) { grid-row: 1; grid-column: 3; }
-  .watchlist-table td:nth-child(5) { grid-row: 1; grid-column: 4; text-align: right; }
+  /* star | code | LTP | chg% */
+  .watchlist-table td:nth-child(1) { grid-column: 1; }
+  .watchlist-table td:nth-child(2) { grid-column: 2; }
+  .watchlist-table td:nth-child(3) { grid-column: 3; text-align: right; font-variant-numeric: tabular-nums; }
+  .watchlist-table td:nth-child(4) { grid-column: 4; text-align: right; min-width: 56px; font-variant-numeric: tabular-nums; }
 
-  /* Row 2: — | LTP | score | tier */
-  .watchlist-table td:nth-child(4) { grid-row: 2; grid-column: 2; text-align: left; color: var(--ink-muted); font-size: 0.75rem; }
-  .watchlist-table td:nth-child(6) { grid-row: 2; grid-column: 3; text-align: left; font-size: 0.75rem; }
-  .watchlist-table td:nth-child(7) { grid-row: 2; grid-column: 4; text-align: right; }
-
-  /* Row 2 inline labels */
-  .watchlist-table td:nth-child(4)::before { content: "LTP "; color: var(--ink-muted); font-size: 0.65rem; font-weight: 400; }
-  .watchlist-table td:nth-child(6)::before { content: "Score "; color: var(--ink-muted); font-size: 0.65rem; font-weight: 400; }
-
-  .watchlist-company { max-width: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .watchlist-ticker { font-size: 0.9rem; }
 }
 
 /* ======================================
@@ -5221,4 +5210,146 @@ details.dsex-exp[open] > summary {
   .t20t-card { padding: 12px 10px; min-height: 130px; scroll-snap-align: start; }
   .t20t-return { font-size: 1.35rem; }
   .t20t-ticker { font-size: 0.95rem; }
+}
+
+/* ======================================
+   ADD TO PORTFOLIO (stock hero)
+   ====================================== */
+
+.add-portfolio-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #34D399;
+  background: rgba(52, 211, 153, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  letter-spacing: 0.01em;
+}
+.add-portfolio-btn:hover {
+  background: rgba(52, 211, 153, 0.22);
+  border-color: rgba(52, 211, 153, 0.55);
+}
+.add-portfolio-btn:active { transform: scale(0.97); }
+
+.atp-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 8, 18, 0.72);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: atp-fade-in 0.15s ease-out;
+}
+@keyframes atp-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+.atp-modal {
+  width: 100%;
+  max-width: 380px;
+  background: linear-gradient(180deg, #0D1F3C 0%, #0A1628 100%);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.atp-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.atp-modal-header h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #F1F5F9;
+  margin: 0;
+}
+.atp-close {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: #94A3B8;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  line-height: 1;
+}
+.atp-close:hover { color: #F1F5F9; background: rgba(255, 255, 255, 0.06); }
+.atp-close:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.atp-form { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 14px; }
+.atp-field { display: flex; flex-direction: column; gap: 6px; }
+.atp-field span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #CBD5E1;
+}
+.atp-field input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #F1F5F9;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  outline: none;
+  font-variant-numeric: tabular-nums;
+}
+.atp-field input:focus {
+  border-color: rgba(56, 189, 248, 0.6);
+  background: rgba(56, 189, 248, 0.06);
+}
+
+.atp-error {
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  color: #FCA5A5;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  border-radius: 6px;
+}
+
+.atp-actions { display: flex; gap: 8px; margin-top: 4px; }
+.atp-btn {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+.atp-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.atp-btn-secondary {
+  color: #CBD5E1;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.atp-btn-secondary:hover:not(:disabled) { background: rgba(255, 255, 255, 0.1); }
+.atp-btn-primary {
+  color: #03261C;
+  background: linear-gradient(180deg, #34D399 0%, #10B981 100%);
+  border-color: rgba(52, 211, 153, 0.5);
+}
+.atp-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #4ADE80 0%, #22C55E 100%);
 }
