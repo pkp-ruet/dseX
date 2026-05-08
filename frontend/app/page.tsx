@@ -114,7 +114,7 @@ async function HeroBlock({
   const allItems = scores ? allItemsFromScores(scores) : [];
 
   return (
-    <section className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mt-4 sm:mt-5">
+    <section className="flex flex-col gap-4 sm:gap-5 mt-4 sm:mt-5">
       <GradeAnyStockHero items={allItems} />
       {pick ? (
         <TodaysTopPicks data={pick} />
@@ -203,9 +203,9 @@ export default function HomePage() {
       {/* Hero block — Grade-any-stock demo + Today's Top Stock */}
       <Suspense
         fallback={
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mt-4 sm:mt-5">
-            <div className="rounded-[14px] border border-[var(--border)] bg-[var(--surface)] min-h-[260px] animate-pulse" />
-            <div className="rounded-[14px] border border-[var(--border)] bg-[var(--surface)] min-h-[260px] animate-pulse" />
+          <div className="flex flex-col gap-4 sm:gap-5 mt-4 sm:mt-5">
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] min-h-[280px] animate-pulse" />
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] min-h-[260px] animate-pulse" />
           </div>
         }
       >

@@ -233,7 +233,7 @@ export default function GradeAnyStockHero({ items }: Props) {
   return (
     <section
       aria-label="Grade any stock"
-      className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] relative h-full flex flex-col min-h-[400px] sm:min-h-[440px]"
+      className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] relative h-full flex flex-col min-h-[400px] sm:min-h-[440px] md:min-h-0"
     >
       <div className="overflow-hidden rounded-t-2xl">
         <div
@@ -242,15 +242,15 @@ export default function GradeAnyStockHero({ items }: Props) {
         />
       </div>
 
-      <div className="p-5 sm:p-7 md:p-8 flex-1 flex flex-col">
+      <div className="p-5 sm:p-6 md:p-5 flex-1 flex flex-col">
         {/* Idle state — poster-style centered headline + search */}
         {mode === "idle" && (
           <div ref={containerRef} className="flex-1 flex flex-col justify-center">
-            <div className="text-center mb-5 sm:mb-7">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[var(--text)] leading-[1.05] tracking-tight">
+            <div className="text-center mb-5 sm:mb-6">
+              <h2 className="text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-extrabold text-[var(--text)] leading-[1.05] tracking-tight">
                 Check Any Stock
               </h2>
-              <p className="mt-1.5 text-base sm:text-lg md:text-xl font-semibold text-[var(--primary)] leading-tight">
+              <p className="mt-1.5 text-base sm:text-lg md:text-lg lg:text-xl font-semibold text-[var(--primary)] leading-tight">
                 in 5 seconds.
               </p>
             </div>

@@ -39,7 +39,7 @@ function PickRow({ pick }: { pick: DailyPickItem }) {
   return (
     <Link
       href={`/stock/${pick.trading_code}`}
-      className="flex items-start gap-3 p-3.5 sm:p-4 rounded-xl border border-[var(--border)] bg-[var(--bg,#0c1117)] hover:border-[var(--primary)]/50 transition-colors group relative overflow-hidden"
+      className="flex items-start gap-3 p-3.5 sm:p-4 md:p-3 rounded-xl border border-[var(--border)] bg-[var(--bg,#0c1117)] hover:border-[var(--primary)]/50 transition-colors group relative overflow-hidden"
     >
       <span
         aria-hidden="true"
@@ -48,18 +48,19 @@ function PickRow({ pick }: { pick: DailyPickItem }) {
       />
 
       <div className="flex-1 min-w-0 pl-1">
+        {/* Row 1: company code on its own line */}
+        <p className="text-lg sm:text-xl md:text-base lg:text-lg font-extrabold text-[var(--text)] leading-tight truncate mb-1">
+          {pick.trading_code}
+        </p>
+
+        {/* Row 2: tag + price change */}
         <div className="flex items-center justify-between gap-2 mb-1">
-          <div className="flex items-center gap-2 min-w-0">
-            <p className="text-lg sm:text-xl font-extrabold text-[var(--text)] leading-tight truncate">
-              {pick.trading_code}
-            </p>
-            <span
-              className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider whitespace-nowrap px-2 py-0.5 rounded-full shrink-0"
-              style={{ background: sourceBg, color: sourceColor }}
-            >
-              {pick.source_label}
-            </span>
-          </div>
+          <span
+            className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider whitespace-nowrap px-2 py-0.5 rounded-full shrink-0"
+            style={{ background: sourceBg, color: sourceColor }}
+          >
+            {pick.source_label}
+          </span>
           {pick.change_pct != null && (
             <span className="text-sm sm:text-base font-bold whitespace-nowrap" style={{ color: chgColor(pick.change_pct) }}>
               {fmtPct(pick.change_pct)}
@@ -114,17 +115,17 @@ export default function TodaysTopPicks({ data }: Props) {
   return (
     <section
       aria-label="Today's top stock picks"
-      className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden h-full flex flex-col min-h-[400px] sm:min-h-[440px]"
+      className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden h-full flex flex-col min-h-[400px] sm:min-h-[440px] md:min-h-0"
     >
       <div
         className="h-1.5 w-full"
         style={{ background: "linear-gradient(90deg, #FBBF24, #F97316)" }}
       />
 
-      <div className="p-5 sm:p-7 md:p-8 flex flex-col flex-1">
+      <div className="p-5 sm:p-6 md:p-5 flex flex-col flex-1">
         {/* Big centered title */}
         <div className="text-center mb-4 sm:mb-5">
-          <p className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-[1.05] tracking-tight" style={{ color: "#F97316" }}>
+          <p className="text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-extrabold leading-[1.05] tracking-tight" style={{ color: "#F97316" }}>
             <span aria-hidden="true">★</span> Today&apos;s Top Picks
           </p>
           <p className="mt-1.5 text-xs sm:text-sm text-[var(--text-muted)]">
@@ -132,8 +133,8 @@ export default function TodaysTopPicks({ data }: Props) {
           </p>
         </div>
 
-        {/* 3 stacked picks */}
-        <div className="flex flex-col gap-2.5 sm:gap-3 mb-4">
+        {/* 3 picks — stacked on mobile, 3-column row on desktop */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-3 mb-4">
           {picks.map((p) => (
             <PickRow key={`${p.slot}-${p.trading_code}`} pick={p} />
           ))}
