@@ -80,7 +80,7 @@ DSE (Dhaka Stock Exchange) stock data pipeline with four components:
 
 3. **Next.js Frontend (`frontend/`)** — Production web app. ISR caching, server components for data fetching, client components for auth-gated views (portfolio, profile, admin).
 
-4. **Scoring (`utils/scoring.py` + `backend/services/scoring_service.py`)** — DSEF 5-pillar score (0–100) with percentile ranking: Earnings Quality (35%), Financial Health (30%), Operational Efficiency (20%), Valuation (15%), Dividend Sustainability (10%) — bank/financial sector uses adjusted weights. NaN values fill as 0.
+4. **Scoring (`backend/services/scoring_service.py`)** — DSEF 5-pillar score (0–100): Earnings Quality (30%), Financial Health (20%), Operational Efficiency / Moat (20%), Valuation (15%), Dividend Sustainability (15%). Bank/NBFI sector uses adjusted Pillar 2 weights (cash/assets dropped, redistributed). Sector medians for valuation exclude the company being scored. CAGR / trend computations are year-aware (handle missing-year gaps correctly). `utils/scoring.py:get_top_n_codes` is a thin shim that re-uses `build_scores_df` so the news-scraper top-N matches the leaderboard exactly. NaN values fill as 0.
 
 ### Scrapers
 
