@@ -306,7 +306,7 @@ class CompanyDetailsScraper(BaseScraper):
     # ------------------------------------------------------------------
 
     # Keywords matched against instrument_type OR company_name to detect non-equity instruments
-    _EXCLUDED_KEYWORDS = ("bond", "debenture", "sukuk", "mutual fund", "etf", "t-bond", "treasury")
+    _EXCLUDED_KEYWORDS = ("bond", "debenture", "sukuk", "etf", "t-bond", "treasury")
 
     def _is_excluded_instrument(self, instrument_type: str) -> bool:
         if not instrument_type:
@@ -319,6 +319,9 @@ class CompanyDetailsScraper(BaseScraper):
             return False
         name_lower = company_name.lower()
         return any(kw in name_lower for kw in self._EXCLUDED_KEYWORDS)
+
+    def _is_mutual_fund(self, instrument_type: str, company_name: str) -> bool:
+        return any("mutual fund" in (s or "").lower() for s in (instrument_type, company_name))
 
     def _exclude_company(self, db, trading_code: str) -> None:
         """Mark company as excluded and purge all its data from every collection."""
@@ -337,17 +340,19 @@ class CompanyDetailsScraper(BaseScraper):
         basic = data["basic_info"]
         instrument_type = basic.get("instrument_type") or ""
 
-        # Exclude corporate bonds, debentures, mutual funds, ETFs, etc.
+        # Exclude corporate bonds, debentures, ETFs, etc. (mutual funds are kept for browse, filtered from scoring)
         if self._is_excluded_instrument(instrument_type):
             logger.info("Skipping %s — non-equity instrument: %s", trading_code, instrument_type)
             self._exclude_company(db, trading_code)
             return
 
-        # Exclude companies with no financial data (cannot be scored)
-        if not data["financials"]:
-            logger.info("Skipping %s — no financial data found", trading_code)
-            self._exclude_company(db, trading_code)
-            return
+        # Flag mutual funds so the scoring pipeline can filter them out (they report NAV, not EPS/ROE).
+        # Preserve an existing True flag — some BD funds ("Growth Fund", "Shariah Fund") don't have
+        # "mutual fund" literally in name and rely on a one-time migration to be marked.
+        existing = db.companies.find_one({"trading_code": trading_code}, {"is_mutual_fund": 1, "_id": 0}) or {}
+        basic["is_mutual_fund"] = bool(existing.get("is_mutual_fund")) or self._is_mutual_fund(
+            instrument_type, basic.get("company_name", "")
+        )
 
         db.companies.update_one(
             {"trading_code": trading_code},

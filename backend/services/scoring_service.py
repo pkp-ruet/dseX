@@ -519,17 +519,25 @@ def _algo2_scores() -> pd.DataFrame:
 
     db = get_db()
 
+    # Build set of codes to exclude from DSEF scoring: hard-excluded (bonds/debentures/etc.)
+    # plus mutual funds (they report NAV, not EPS/ROE, so the formula doesn't apply).
     excluded_codes = {
         d["trading_code"]
-        for d in db.companies.find({"excluded": True}, {"trading_code": 1, "_id": 0})
+        for d in db.companies.find(
+            {"$or": [{"excluded": True}, {"is_mutual_fund": True}]},
+            {"trading_code": 1, "_id": 0},
+        )
     }
 
     companies = {
         d["trading_code"]: d
-        for d in db.companies.find({"excluded": {"$ne": True}}, {
-            "trading_code": 1, "total_shares": 1, "face_value": 1,
-            "market_category": 1, "sector": 1, "_id": 0,
-        })
+        for d in db.companies.find(
+            {"excluded": {"$ne": True}, "is_mutual_fund": {"$ne": True}},
+            {
+                "trading_code": 1, "total_shares": 1, "face_value": 1,
+                "market_category": 1, "sector": 1, "_id": 0,
+            },
+        )
     }
 
     fin_docs = list(db.financials.find(

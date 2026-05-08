@@ -53,9 +53,13 @@ def build_scores_df(db) -> pd.DataFrame:
     Mirrors app.py:_build_scores_df() exactly so ranking is identical.
     Returns a DataFrame with columns: trading_code, score (and factor columns).
     """
+    # Hard-excluded (bonds/debentures/etc.) plus mutual funds (NAV-reporting, formula doesn't apply).
     excluded_codes = {
         d["trading_code"]
-        for d in db.companies.find({"excluded": True}, {"trading_code": 1, "_id": 0})
+        for d in db.companies.find(
+            {"$or": [{"excluded": True}, {"is_mutual_fund": True}]},
+            {"trading_code": 1, "_id": 0},
+        )
     }
 
     fin_docs = list(db.financials.find(
@@ -121,11 +125,14 @@ def build_scores_df(db) -> pd.DataFrame:
 
     companies = {
         d["trading_code"]: d
-        for d in db.companies.find({"excluded": {"$ne": True}}, {
-            "trading_code": 1, "reserve_surplus_mn": 1, "paid_up_capital_mn": 1,
-            "total_shares": 1, "total_loan_mn": 1, "face_value": 1,
-            "market_category": 1, "sector": 1, "_id": 0,
-        })
+        for d in db.companies.find(
+            {"excluded": {"$ne": True}, "is_mutual_fund": {"$ne": True}},
+            {
+                "trading_code": 1, "reserve_surplus_mn": 1, "paid_up_capital_mn": 1,
+                "total_shares": 1, "total_loan_mn": 1, "face_value": 1,
+                "market_category": 1, "sector": 1, "_id": 0,
+            },
+        )
     }
 
     prices = _latest_prices(db)
