@@ -5,10 +5,12 @@ import {
   getMarketIndex,
   getPopularStocks,
   getTop20,
+  getDailyPick,
   type ScoresResponse,
   type MarketIndexData,
   type PopularStocksResponse,
   type Top20Response,
+  type DailyPickResponse,
 } from "@/lib/api";
 import SearchBar from "@/components/home/SearchBar";
 import TickerBand from "@/components/home/TickerBand";
@@ -20,6 +22,8 @@ import PortfolioTeaserCTA from "@/components/home/PortfolioTeaserCTA";
 import PopularTeaser from "@/components/home/PopularTeaser";
 import Top20MomentumTeaser from "@/components/home/Top20MomentumTeaser";
 import PortfolioAnalyzerHero from "@/components/home/PortfolioAnalyzerHero";
+import GradeAnyStockHero from "@/components/home/GradeAnyStockHero";
+import TodaysTopStock from "@/components/home/TodaysTopStock";
 
 export const revalidate = 3600;
 
@@ -98,6 +102,31 @@ async function Top20TeaserSection({
   return <Top20MomentumTeaser items={data.items} />;
 }
 
+/** New hero block: "Check any stock" + "Today's Top Stock" — 2 columns on desktop, stacked on mobile */
+async function HeroBlock({
+  scoresPromise,
+  pickPromise,
+}: {
+  scoresPromise: Promise<ScoresResponse | null>;
+  pickPromise: Promise<DailyPickResponse | null>;
+}) {
+  const [scores, pick] = await Promise.all([scoresPromise, pickPromise]);
+  const allItems = scores ? allItemsFromScores(scores) : [];
+
+  return (
+    <section className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4">
+      <GradeAnyStockHero items={allItems} />
+      {pick ? (
+        <TodaysTopStock data={pick} />
+      ) : (
+        <div className="rounded-[14px] border border-dashed border-[var(--border)] bg-[var(--surface)]/60 p-5 flex items-center justify-center text-center text-sm text-[var(--text-muted)] min-h-[200px]">
+          Today&apos;s top stock is being prepared — check back in a moment.
+        </div>
+      )}
+    </section>
+  );
+}
+
 async function MainContentSection({
   scoresPromise,
   popularPromise,
@@ -150,6 +179,7 @@ export default function HomePage() {
   const marketIndexPromise = getMarketIndex().catch(() => null);
   const popularPromise = getPopularStocks().catch(() => null);
   const top20Promise = getTop20().catch(() => null);
+  const pickPromise = getDailyPick().catch(() => null);
 
   return (
     <>
@@ -167,10 +197,24 @@ export default function HomePage() {
         <strong>Bangladesh stock market</strong> news &middot; <strong>DSE today</strong> signals
       </p>
 
-      {/* Market index banner — streams independently */}
-      <Suspense fallback={null}>
-        <MarketIndexSection promise={marketIndexPromise} />
+      {/* Hero block — Grade-any-stock demo + Today's Top Stock */}
+      <Suspense
+        fallback={
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4">
+            <div className="rounded-[14px] border border-[var(--border)] bg-[var(--surface)] min-h-[260px] animate-pulse" />
+            <div className="rounded-[14px] border border-[var(--border)] bg-[var(--surface)] min-h-[260px] animate-pulse" />
+          </div>
+        }
+      >
+        <HeroBlock scoresPromise={scoresPromise} pickPromise={pickPromise} />
       </Suspense>
+
+      {/* Market index banner — moved below the hero */}
+      <div className="mt-3 sm:mt-4">
+        <Suspense fallback={null}>
+          <MarketIndexSection promise={marketIndexPromise} />
+        </Suspense>
+      </div>
 
       {/* Rankings — streams once data ready */}
       <Suspense fallback={<div className="py-16 text-center text-[var(--text-muted)] text-sm">Loading rankings…</div>}>

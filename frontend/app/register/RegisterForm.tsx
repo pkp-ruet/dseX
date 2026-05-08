@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { apiRegister, type AuthApiResponse } from "@/lib/api";
-import { mergeWatchlistOnLogin } from "@/lib/watchlist";
+import { addToWatchlistSynced, mergeWatchlistOnLogin } from "@/lib/watchlist";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 
 type Mode = "email" | "phone";
@@ -17,6 +17,8 @@ function validatePhone(phone: string): boolean {
 
 export default function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const saveCode = (searchParams.get("save") || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
   const { login } = useAuth();
 
   const [mode, setMode] = useState<Mode>("email");
@@ -54,6 +56,9 @@ export default function RegisterForm() {
       const data = await apiRegister(payload);
       login(data.access_token, data.user);
       await mergeWatchlistOnLogin(data.user.watchlist);
+      if (saveCode) {
+        await addToWatchlistSynced(saveCode).catch(() => {});
+      }
       router.push("/");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Registration failed.";
@@ -66,6 +71,9 @@ export default function RegisterForm() {
   async function handleGoogleSuccess(data: AuthApiResponse) {
     login(data.access_token, data.user);
     await mergeWatchlistOnLogin(data.user.watchlist);
+    if (saveCode) {
+      await addToWatchlistSynced(saveCode).catch(() => {});
+    }
     router.push("/");
   }
 
@@ -76,6 +84,13 @@ export default function RegisterForm() {
         <p className="text-sm text-[var(--text-muted)] mb-6">
           Free forever. Sync your watchlist across devices.
         </p>
+
+        {saveCode && (
+          <div className="mb-5 rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-3 py-2.5 text-xs sm:text-sm text-[var(--text)]">
+            <span className="text-[var(--accent)] font-bold">★</span>{" "}
+            We&apos;ll save <span className="font-bold">{saveCode}</span> to your list right after sign-up.
+          </div>
+        )}
 
         <GoogleSignInButton onSuccess={handleGoogleSuccess} onError={setError} />
         <div className="auth-divider my-5">or</div>

@@ -730,6 +730,65 @@ export async function getTop20(): Promise<Top20Response> {
 }
 
 // ---------------------------------------------------------------------------
+// Daily Pick — "Today's Top Stock"
+// ---------------------------------------------------------------------------
+
+export interface DailyPickPillars {
+  profits: number | null;
+  balance: number | null;
+  business: number | null;
+  fair_price: number | null;
+  dividend: number | null;
+}
+
+export interface DailyPickToday {
+  date: string;
+  trading_code: string;
+  company_name: string | null;
+  sector: string | null;
+  score: number | null;
+  ltp: number | null;
+  change_pct: number | null;
+  pillars: DailyPickPillars;
+  reasons: string[];
+}
+
+export interface DailyPickYesterday {
+  date: string;
+  trading_code: string;
+  company_name: string | null;
+  next_day_return_pct: number | null;
+}
+
+export interface DailyPickResponse {
+  today: DailyPickToday;
+  yesterday: DailyPickYesterday | null;
+}
+
+export async function getDailyPick(): Promise<DailyPickResponse> {
+  return apiFetch<DailyPickResponse>("/api/daily-pick", 3600);
+}
+
+export interface DailyPickHistoryItem {
+  date: string;
+  trading_code: string;
+  company_name: string | null;
+  sector: string | null;
+  score: number | null;
+  ltp_at_pick: number | null;
+  next_day_return_pct: number | null;
+  reasons: string[];
+}
+
+export interface DailyPickHistoryResponse {
+  items: DailyPickHistoryItem[];
+}
+
+export async function getDailyPickHistory(limit = 30): Promise<DailyPickHistoryResponse> {
+  return apiFetch<DailyPickHistoryResponse>(`/api/daily-pick/history?limit=${limit}`, 3600);
+}
+
+// ---------------------------------------------------------------------------
 // Admin analytics
 // ---------------------------------------------------------------------------
 
