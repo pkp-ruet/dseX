@@ -823,3 +823,55 @@ export interface AdminAnalyticsResponse {
 export async function apiGetAdminAnalytics(): Promise<AdminAnalyticsResponse> {
   return apiAuthFetch<AdminAnalyticsResponse>("/api/admin/analytics");
 }
+
+// ---------------------------------------------------------------------------
+// Admin — Daily Pick controls
+// ---------------------------------------------------------------------------
+
+export interface AdminDailyPickSkip {
+  trading_code: string;
+  company_name: string | null;
+  score_when_skipped: number | null;
+  skipped_at: string | null;
+  skipped_by: string | null;
+}
+
+export interface AdminDailyPickResponse {
+  pick: DailyPickResponse | null;
+  skips_today: AdminDailyPickSkip[];
+}
+
+export async function apiAdminGetDailyPick(): Promise<AdminDailyPickResponse> {
+  return apiAuthFetch<AdminDailyPickResponse>("/api/admin/daily-pick");
+}
+
+export interface AdminShuffleResponse {
+  pick: DailyPickResponse;
+  skipped: string | null;
+  skips_today: AdminDailyPickSkip[];
+}
+
+/** Calls the Next.js proxy route which forwards to the backend and then
+ *  revalidates the homepage's `market-data` ISR cache so the new pick is
+ *  visible immediately on /. */
+export async function apiAdminShuffleDailyPick(): Promise<AdminShuffleResponse> {
+  const token = getToken();
+  if (!token) throw new Error("AUTH_EXPIRED");
+  const res = await fetch("/api/admin/shuffle-pick", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (res.status === 401) {
+    logout();
+    throw new Error("AUTH_EXPIRED");
+  }
+  if (res.status === 409) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body?.detail || "No more candidates to shuffle to");
+  }
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body?.detail || body?.error || `Shuffle failed: ${res.status}`);
+  }
+  return res.json() as Promise<AdminShuffleResponse>;
+}

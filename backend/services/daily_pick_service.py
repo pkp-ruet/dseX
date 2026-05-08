@@ -33,6 +33,8 @@ def ensure_daily_picks_indexes() -> None:
     db = get_db()
     db.daily_picks.create_index([("date", ASCENDING)], unique=True)
     db.daily_picks.create_index([("date", DESCENDING)])
+    db.daily_pick_skips.create_index([("date", ASCENDING), ("trading_code", ASCENDING)], unique=True)
+    db.daily_pick_skips.create_index([("date", DESCENDING)])
 
 
 def _five_day_return_pct(trading_code: str) -> Optional[float]:
@@ -114,8 +116,13 @@ def _build_reasons(row: dict) -> list[str]:
     return reasons[:3]
 
 
-def _select_pick_row() -> Optional[dict]:
-    """Return the best candidate row from today's scoring run, or None."""
+def _select_pick_row(extra_excluded: Optional[set[str]] = None) -> Optional[dict]:
+    """Return the best candidate row from today's scoring run, or None.
+
+    `extra_excluded` is an optional set of trading codes to exclude beyond the
+    standard 14-day rotation — used by the admin shuffle to skip rejected picks
+    within the same day.
+    """
     df = build_scores_df()
     if df.empty:
         return None
@@ -128,6 +135,8 @@ def _select_pick_row() -> Optional[dict]:
             {"picked_at": {"$gte": cutoff}}, {"trading_code": 1, "_id": 0}
         )
     }
+    if extra_excluded:
+        recent_codes |= {c.upper() for c in extra_excluded}
 
     scored = df[df["score"].notna() & (df["score"] >= 75)].sort_values(
         "score", ascending=False
@@ -163,12 +172,18 @@ def _select_pick_row() -> Optional[dict]:
                 break
 
     if not candidates:
-        # Ultimate fallback: rotate from the top regardless of recency
-        top = scored.iloc[0].to_dict()
-        top["return_5d_pct"] = _five_day_return_pct(top["trading_code"])
-        candidates = [top]
+        # Ultimate fallback: rotate from the top regardless of recency,
+        # but never re-pick something we just skipped today.
+        for _, row in scored.iterrows():
+            code = row["trading_code"]
+            if extra_excluded and code in {c.upper() for c in extra_excluded}:
+                continue
+            top = row.to_dict()
+            top["return_5d_pct"] = _five_day_return_pct(code)
+            candidates = [top]
+            break
 
-    return candidates[0]
+    return candidates[0] if candidates else None
 
 
 def _materialize_pick(row: dict) -> dict:
@@ -202,6 +217,15 @@ def _materialize_pick(row: dict) -> dict:
     return doc
 
 
+def _today_skipped_codes() -> set[str]:
+    db = get_db()
+    today = _today_iso()
+    return {
+        d["trading_code"]
+        for d in db.daily_pick_skips.find({"date": today}, {"trading_code": 1, "_id": 0})
+    }
+
+
 def _ensure_today_pick() -> Optional[dict]:
     """Read today's pick, or select & persist one if missing."""
     db = get_db()
@@ -210,7 +234,7 @@ def _ensure_today_pick() -> Optional[dict]:
     if existing:
         return existing
 
-    row = _select_pick_row()
+    row = _select_pick_row(extra_excluded=_today_skipped_codes())
     if not row:
         return None
 
@@ -225,6 +249,78 @@ def _ensure_today_pick() -> Optional[dict]:
         raise
     # Re-read so we don't return mutated dict (no _id)
     return db.daily_picks.find_one({"date": today}, {"_id": 0})
+
+
+def shuffle_today_pick(skipped_by_user_id: Optional[str] = None) -> dict:
+    """Admin action: skip today's current pick and select a fresh one.
+
+    Returns {"today": <new pick payload>, "skipped": <code that was rejected>,
+             "skip_count_today": <total skips for today after this action>}.
+    """
+    db = get_db()
+    today = _today_iso()
+
+    current = db.daily_picks.find_one({"date": today}, {"_id": 0})
+    skipped_code: Optional[str] = None
+    if current:
+        skipped_code = current.get("trading_code")
+        # Record the skip (idempotent via unique index)
+        try:
+            db.daily_pick_skips.insert_one({
+                "date": today,
+                "trading_code": skipped_code,
+                "company_name": current.get("company_name"),
+                "score_when_skipped": current.get("score"),
+                "skipped_at": datetime.now(timezone.utc),
+                "skipped_by": skipped_by_user_id,
+            })
+        except Exception:
+            pass  # already recorded
+        # Remove the current pick so _ensure_today_pick re-selects
+        db.daily_picks.delete_one({"date": today})
+
+    # Select with all of today's skipped codes excluded
+    skipped_today = _today_skipped_codes()
+    row = _select_pick_row(extra_excluded=skipped_today)
+    if not row:
+        # No candidate — rollback by re-inserting the original pick if we had one
+        if current:
+            db.daily_picks.insert_one(dict(current))
+        raise RuntimeError("No remaining candidates to shuffle to")
+
+    new_doc = _materialize_pick(row)
+    db.daily_picks.insert_one(dict(new_doc))
+
+    skip_count = db.daily_pick_skips.count_documents({"date": today})
+    fresh = get_today_pick()  # builds the public payload
+    return {
+        "today": fresh.get("today") if fresh else None,
+        "yesterday": fresh.get("yesterday") if fresh else None,
+        "skipped": skipped_code,
+        "skip_count_today": skip_count,
+    }
+
+
+def get_today_skips() -> list[dict]:
+    """Admin view: list of codes skipped today, newest first."""
+    db = get_db()
+    today = _today_iso()
+    docs = list(
+        db.daily_pick_skips.find({"date": today}, {"_id": 0}).sort("skipped_at", DESCENDING)
+    )
+    out: list[dict] = []
+    for d in docs:
+        skipped_at = d.get("skipped_at")
+        if isinstance(skipped_at, datetime):
+            skipped_at = skipped_at.isoformat()
+        out.append({
+            "trading_code": d.get("trading_code"),
+            "company_name": d.get("company_name"),
+            "score_when_skipped": d.get("score_when_skipped"),
+            "skipped_at": skipped_at,
+            "skipped_by": d.get("skipped_by"),
+        })
+    return out
 
 
 def get_today_pick() -> Optional[dict]:

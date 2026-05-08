@@ -1,9 +1,14 @@
 from datetime import datetime, timezone, timedelta
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from backend.routers.auth import get_current_admin_user
 from backend.services.db_service import get_db
+from backend.services.daily_pick_service import (
+    get_today_pick,
+    shuffle_today_pick,
+    get_today_skips,
+)
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -58,4 +63,34 @@ def get_analytics(_: dict = Depends(get_current_admin_user)):
             "with_portfolio": col.count_documents({"portfolio.0": {"$exists": True}}),
         },
         "users": [_serialize_user(d) for d in docs],
+    }
+
+
+# ---------------------------------------------------------------------------
+# Daily Pick — admin shuffle controls
+# ---------------------------------------------------------------------------
+
+@router.get("/daily-pick")
+def admin_get_daily_pick(_: dict = Depends(get_current_admin_user)):
+    """Current daily pick + today's skip history, for the admin shuffle UI."""
+    pick = get_today_pick()
+    return {
+        "pick": pick,
+        "skips_today": get_today_skips(),
+    }
+
+
+@router.post("/daily-pick/shuffle")
+def admin_shuffle_daily_pick(user: dict = Depends(get_current_admin_user)):
+    """Skip today's pick and pick a fresh one. Idempotent per code (each code
+    can only be skipped once per day)."""
+    try:
+        result = shuffle_today_pick(skipped_by_user_id=user.get("user_id"))
+    except RuntimeError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    skips = get_today_skips()
+    return {
+        "pick": {"today": result.get("today"), "yesterday": result.get("yesterday")},
+        "skipped": result.get("skipped"),
+        "skips_today": skips,
     }

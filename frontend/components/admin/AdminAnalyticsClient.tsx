@@ -80,9 +80,17 @@ export default function AdminAnalyticsClient() {
 
   return (
     <div className="max-w-5xl mx-auto py-8">
-      <div className="rank-page-header mb-6">
-        <p className="rank-page-eyebrow">// ADMIN</p>
-        <h1 className="rank-page-title">User Analytics</h1>
+      <div className="rank-page-header mb-3 flex items-end justify-between gap-3 flex-wrap">
+        <div>
+          <p className="rank-page-eyebrow">// ADMIN</p>
+          <h1 className="rank-page-title">User Analytics</h1>
+        </div>
+        <a
+          href="/admin/daily-pick"
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors whitespace-nowrap"
+        >
+          <span aria-hidden="true">★</span> Today&apos;s Top Stock
+        </a>
       </div>
 
       {/* Stats cards */}
