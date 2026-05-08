@@ -23,6 +23,8 @@ def _serialize_user(doc: dict) -> dict:
     out.setdefault("last_seen_at", None)
     out.setdefault("email", None)
     out.setdefault("phone", None)
+    portfolio = doc.get("portfolio") or []
+    out["has_portfolio"] = bool(portfolio)
     return out
 
 
@@ -30,15 +32,18 @@ def _serialize_user(doc: dict) -> dict:
 def get_analytics(_: dict = Depends(get_current_admin_user)):
     col = get_db()["users"]
     now = datetime.now(timezone.utc)
-    today = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    week_start = today - timedelta(days=now.weekday())
-    month_start = today.replace(day=1)
+    bdt = timezone(timedelta(hours=6))
+    now_bdt = now.astimezone(bdt)
+    today_bdt = now_bdt.replace(hour=0, minute=0, second=0, microsecond=0)
+    today = today_bdt.astimezone(timezone.utc)
+    week_start = today - timedelta(days=now_bdt.weekday())
+    month_start = today_bdt.replace(day=1).astimezone(timezone.utc)
     seven_ago = now - timedelta(days=7)
 
     docs = list(
         col.find(
             {},
-            {"password_hash": 0, "_id": 0, "watchlist": 0, "portfolio": 0},
+            {"password_hash": 0, "_id": 0, "watchlist": 0},
         ).sort("created_at", -1)
     )
 
@@ -48,7 +53,9 @@ def get_analytics(_: dict = Depends(get_current_admin_user)):
             "new_today": col.count_documents({"created_at": {"$gte": today}}),
             "new_this_week": col.count_documents({"created_at": {"$gte": week_start}}),
             "new_this_month": col.count_documents({"created_at": {"$gte": month_start}}),
+            "active_today": col.count_documents({"last_seen_at": {"$gte": today}}),
             "active_last_7d": col.count_documents({"last_seen_at": {"$gte": seven_ago}}),
+            "with_portfolio": col.count_documents({"portfolio.0": {"$exists": True}}),
         },
         "users": [_serialize_user(d) for d in docs],
     }

@@ -743,6 +743,7 @@ export interface AdminUserRow {
   last_login_at: string | null;
   last_seen_at: string | null;
   total_visits: number;
+  has_portfolio: boolean;
 }
 
 export interface AdminAnalyticsStats {
@@ -750,7 +751,9 @@ export interface AdminAnalyticsStats {
   new_today: number;
   new_this_week: number;
   new_this_month: number;
+  active_today: number;
   active_last_7d: number;
+  with_portfolio: number;
 }
 
 export interface AdminAnalyticsResponse {
