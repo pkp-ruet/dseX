@@ -55,11 +55,11 @@ function PnlCell({ value, pct }: { value: number | null; pct: number | null }) {
   if (value == null) return <span className="text-[var(--text-muted)]">—</span>;
   const cls = value > 0 ? "text-green-500" : value < 0 ? "text-red-500" : "text-[var(--text-muted)]";
   return (
-    <span className={cls}>
+    <span className={`${cls} font-semibold tabular-nums`}>
       {value > 0 ? "+" : ""}
       {taka(value, 0)}
       {pct != null && (
-        <span className="ml-1 text-xs opacity-80">
+        <span className="ml-1 text-xs sm:text-sm opacity-90 font-medium">
           ({pct > 0 ? "+" : ""}
           {pct.toFixed(1)}%)
         </span>
@@ -351,52 +351,54 @@ export default function PortfolioClient() {
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
-          <table className="w-full text-xs sm:text-sm">
+          <table className="w-full text-sm sm:text-base">
             <thead>
-              <tr className="bg-[var(--surface)] border-b border-[var(--border)]">
-                <th className="text-left px-2 sm:px-3 py-2.5 text-[10px] sm:text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium">Code</th>
-                <th className="text-left px-2 sm:px-3 py-2.5 text-[10px] sm:text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium hidden sm:table-cell">Company</th>
-                <th className="text-right px-2 sm:px-3 py-2.5 text-[10px] sm:text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium">Qty</th>
-                <th className="text-right px-2 sm:px-3 py-2.5 text-[10px] sm:text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium">Buy</th>
-                <th className="text-right px-2 sm:px-3 py-2.5 text-[10px] sm:text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium">LTP</th>
-                <th className="text-right px-2 sm:px-3 py-2.5 text-[10px] sm:text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium hidden md:table-cell">Cur. Value</th>
-                <th className="text-right px-2 sm:px-3 py-2.5 text-[10px] sm:text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium">P&amp;L</th>
-                <th className="px-2 sm:px-3 py-2.5"></th>
+              <tr className="bg-[var(--surface)] border-b-2 border-[var(--border)]">
+                <th className="text-left px-3 sm:px-4 py-3 text-xs sm:text-sm text-[var(--text)] uppercase tracking-wider font-semibold">Code</th>
+                <th className="text-left px-3 sm:px-4 py-3 text-xs sm:text-sm text-[var(--text)] uppercase tracking-wider font-semibold hidden sm:table-cell">Company</th>
+                <th className="text-right px-3 sm:px-4 py-3 text-xs sm:text-sm text-[var(--text)] uppercase tracking-wider font-semibold">Qty</th>
+                <th className="text-right px-3 sm:px-4 py-3 text-xs sm:text-sm text-[var(--text)] uppercase tracking-wider font-semibold">Buy</th>
+                <th className="text-right px-3 sm:px-4 py-3 text-xs sm:text-sm text-[var(--text)] uppercase tracking-wider font-semibold">LTP</th>
+                <th className="text-right px-3 sm:px-4 py-3 text-xs sm:text-sm text-[var(--text)] uppercase tracking-wider font-semibold hidden md:table-cell">Cur. Value</th>
+                <th className="text-right px-3 sm:px-4 py-3 text-xs sm:text-sm text-[var(--text)] uppercase tracking-wider font-semibold">P&amp;L</th>
+                <th className="px-3 sm:px-4 py-3"></th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => {
+              {rows.map((row, idx) => {
                 const isEditing = editId === row.holding.id;
                 return (
                   <tr
                     key={row.holding.id}
-                    className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface)] transition-colors"
+                    className={`border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface)]/60 transition-colors ${
+                      idx % 2 === 1 ? "bg-[var(--surface)]/30" : ""
+                    }`}
                   >
-                    <td className="px-2 sm:px-3 py-3 font-medium">
+                    <td className="px-3 sm:px-4 py-4">
                       <Link
                         href={`/stock/${row.holding.trading_code}`}
-                        className="text-[var(--primary)] hover:underline font-mono"
+                        className="text-[var(--primary)] hover:underline font-mono font-bold text-base sm:text-lg"
                       >
                         {row.holding.trading_code}
                       </Link>
                     </td>
-                    <td className="px-2 sm:px-3 py-3 text-[var(--text-muted)] max-w-[160px] truncate hidden sm:table-cell">
+                    <td className="px-3 sm:px-4 py-4 text-[var(--text)] max-w-[200px] truncate hidden sm:table-cell">
                       {row.company_name ?? "—"}
                     </td>
-                    <td className="px-2 sm:px-3 py-3 text-right text-[var(--text)]">
+                    <td className="px-3 sm:px-4 py-4 text-right text-[var(--text)] tabular-nums font-medium">
                       {isEditing ? (
                         <input
                           type="number"
                           min="1"
                           value={editForm.qty}
                           onChange={(e) => setEditForm((f) => ({ ...f, qty: e.target.value }))}
-                          className="input-field text-right w-14 sm:w-20 text-xs sm:text-sm py-1"
+                          className="input-field text-right w-16 sm:w-24 text-sm sm:text-base py-1.5"
                         />
                       ) : (
                         row.holding.qty.toLocaleString()
                       )}
                     </td>
-                    <td className="px-2 sm:px-3 py-3 text-right text-[var(--text)]">
+                    <td className="px-3 sm:px-4 py-4 text-right text-[var(--text)] tabular-nums font-medium">
                       {isEditing ? (
                         <input
                           type="number"
@@ -404,59 +406,59 @@ export default function PortfolioClient() {
                           step="0.01"
                           value={editForm.buy_price}
                           onChange={(e) => setEditForm((f) => ({ ...f, buy_price: e.target.value }))}
-                          className="input-field text-right w-16 sm:w-24 text-xs sm:text-sm py-1"
+                          className="input-field text-right w-20 sm:w-28 text-sm sm:text-base py-1.5"
                         />
                       ) : (
                         taka(row.holding.buy_price, 2)
                       )}
                     </td>
-                    <td className="px-2 sm:px-3 py-3 text-right text-[var(--text)]">
+                    <td className="px-3 sm:px-4 py-4 text-right text-[var(--text)] tabular-nums font-medium">
                       {row.ltp != null ? taka(row.ltp, 1) : "—"}
                     </td>
-                    <td className="px-2 sm:px-3 py-3 text-right text-[var(--text)] hidden md:table-cell">
+                    <td className="px-3 sm:px-4 py-4 text-right text-[var(--text)] tabular-nums font-medium hidden md:table-cell">
                       {row.current_value != null ? taka(row.current_value, 0) : "—"}
                     </td>
-                    <td className="px-2 sm:px-3 py-3 text-right">
+                    <td className="px-3 sm:px-4 py-4 text-right">
                       <PnlCell value={row.pnl} pct={row.pnl_pct} />
                     </td>
-                    <td className="px-2 sm:px-3 py-3">
+                    <td className="px-3 sm:px-4 py-4">
                       {isEditing ? (
-                        <div className="flex items-center gap-1 sm:gap-1.5">
+                        <div className="flex items-center gap-1.5">
                           <button
                             onClick={handleEditSave}
                             disabled={editSaving}
-                            className="navbar-rank-btn text-[10px] sm:text-xs py-1 px-1.5 sm:px-2 disabled:opacity-60"
+                            className="navbar-rank-btn text-xs sm:text-sm py-1.5 px-2 sm:px-3 disabled:opacity-60"
                           >
                             {editSaving ? "…" : "Save"}
                           </button>
                           <button
                             onClick={() => setEditId(null)}
-                            className="navbar-intel-btn text-[10px] sm:text-xs py-1 px-1.5 sm:px-2"
+                            className="navbar-intel-btn text-xs sm:text-sm py-1.5 px-2 sm:px-3"
                           >
                             ✕
                           </button>
                           {editError && (
-                            <span className="text-[10px] sm:text-xs text-red-500 ml-1">{editError}</span>
+                            <span className="text-xs sm:text-sm text-red-500 ml-1">{editError}</span>
                           )}
                         </div>
                       ) : (
-                        <div className="flex items-center gap-1 sm:gap-1.5">
+                        <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => startEdit(row)}
-                            className="text-[var(--text-muted)] hover:text-[var(--text)] transition-colors p-1"
+                            className="text-[var(--text-muted)] hover:text-[var(--text)] transition-colors p-1.5"
                             aria-label="Edit"
                           >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                               <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
                             </svg>
                           </button>
                           <button
                             onClick={() => handleDelete(row.holding.id)}
                             disabled={deletingId === row.holding.id}
-                            className="text-[var(--text-muted)] hover:text-red-500 transition-colors p-1 disabled:opacity-40"
+                            className="text-[var(--text-muted)] hover:text-red-500 transition-colors p-1.5 disabled:opacity-40"
                             aria-label="Delete"
                           >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                               <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
                             </svg>
                           </button>
@@ -472,14 +474,14 @@ export default function PortfolioClient() {
       )}
 
       {/* Add holding form */}
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5">
-        <h2 className="text-sm font-semibold text-[var(--text)] mb-4 uppercase tracking-wider">
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 sm:p-6">
+        <h2 className="text-base sm:text-lg font-semibold text-[var(--text)] mb-5 uppercase tracking-wider">
           Add Holding
         </h2>
-        <form onSubmit={handleAdd} className="flex flex-col gap-3">
+        <form onSubmit={handleAdd} className="flex flex-col gap-4">
           {/* Stock code — full width with autocomplete */}
-          <div className="flex flex-col gap-1 relative">
-            <label className="text-xs text-[var(--text-muted)]">Stock Code</label>
+          <div className="flex flex-col gap-1.5 relative">
+            <label className="text-sm font-medium text-[var(--text)]">Stock Code</label>
             <input
               type="text"
               placeholder="e.g. GP"
@@ -487,7 +489,7 @@ export default function PortfolioClient() {
               onChange={(e) => handleCodeInput(e.target.value)}
               onKeyDown={handleCodeKeyDown}
               onBlur={() => setTimeout(() => setSuggestions([]), 150)}
-              className="input-field text-sm uppercase"
+              className="input-field text-base sm:text-lg uppercase font-mono py-2.5"
               maxLength={20}
               autoComplete="off"
               required
@@ -501,7 +503,7 @@ export default function PortfolioClient() {
                   <li
                     key={code}
                     onMouseDown={() => selectSuggestion(code)}
-                    className={`px-3 py-2.5 text-sm cursor-pointer font-mono transition-colors ${
+                    className={`px-4 py-3 text-base cursor-pointer font-mono font-semibold transition-colors ${
                       i === activeSuggestion
                         ? "bg-[var(--primary)] text-white"
                         : "text-[var(--text)] hover:bg-[var(--border)]"
@@ -515,9 +517,9 @@ export default function PortfolioClient() {
           </div>
 
           {/* Price + Qty side by side on all screens */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-[var(--text-muted)]">Buy Price (৳)</label>
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-[var(--text)]">Buy Price (৳)</label>
               <input
                 type="number"
                 placeholder="295.50"
@@ -525,12 +527,12 @@ export default function PortfolioClient() {
                 step="0.01"
                 value={form.buy_price}
                 onChange={(e) => setForm((f) => ({ ...f, buy_price: e.target.value }))}
-                className="input-field text-sm w-full"
+                className="input-field text-base sm:text-lg w-full tabular-nums py-2.5"
                 required
               />
             </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-[var(--text-muted)]">Quantity</label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-[var(--text)]">Quantity</label>
               <input
                 type="number"
                 placeholder="100"
@@ -538,7 +540,7 @@ export default function PortfolioClient() {
                 step="1"
                 value={form.qty}
                 onChange={(e) => setForm((f) => ({ ...f, qty: e.target.value }))}
-                className="input-field text-sm w-full"
+                className="input-field text-base sm:text-lg w-full tabular-nums py-2.5"
                 required
               />
             </div>
@@ -547,12 +549,12 @@ export default function PortfolioClient() {
           <button
             type="submit"
             disabled={adding}
-            className="navbar-rank-btn text-sm py-2.5 w-full sm:w-auto sm:self-start px-8 disabled:opacity-60"
+            className="navbar-rank-btn text-base sm:text-lg py-3 w-full sm:w-auto sm:self-start px-10 font-semibold disabled:opacity-60"
           >
             {adding ? "Adding…" : "Add Holding"}
           </button>
         </form>
-        {formError && <p className="text-xs text-red-500 mt-2">{formError}</p>}
+        {formError && <p className="text-sm text-red-500 mt-3 font-medium">{formError}</p>}
       </div>
 
       {holdings.length > 0 && (
