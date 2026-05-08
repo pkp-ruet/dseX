@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import PortfolioClient from "@/components/portfolio/PortfolioClient";
+import ViewAnalysisButton from "@/components/portfolio/ViewAnalysisButton";
 
 export const metadata: Metadata = {
   title: "My Portfolio — TopStockBD",
@@ -12,7 +13,10 @@ export default function PortfolioPage() {
     <main className="max-w-5xl mx-auto px-4 py-6">
       <div className="rank-page-header">
         <p className="rank-page-eyebrow">// PERSONAL</p>
-        <h1 className="rank-page-title">My Portfolio</h1>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <h1 className="rank-page-title">My Portfolio</h1>
+          <ViewAnalysisButton />
+        </div>
       </div>
       <PortfolioClient />
     </main>

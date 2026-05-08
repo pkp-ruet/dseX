@@ -5353,3 +5353,24 @@ details.dsex-exp[open] > summary {
 .atp-btn-primary:hover:not(:disabled) {
   background: linear-gradient(180deg, #4ADE80 0%, #22C55E 100%);
 }
+
+.view-analysis-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: rgba(14, 165, 233, 0.1);
+  border: 1px solid rgba(14, 165, 233, 0.35);
+  border-radius: 999px;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+.view-analysis-btn:hover {
+  background: rgba(14, 165, 233, 0.2);
+  border-color: rgba(14, 165, 233, 0.55);
+}
+.view-analysis-btn:active { transform: scale(0.97); }

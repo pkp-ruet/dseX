@@ -27,7 +27,7 @@ export default function PortfolioAnalysisView({
   showDisclaimer = true,
 }: Props) {
   return (
-    <div className="flex flex-col gap-4">
+    <div id="portfolio-analysis" className="flex flex-col gap-4 scroll-mt-20">
       {/* Verdict header */}
       <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5">
         <div className="flex items-start gap-4">
