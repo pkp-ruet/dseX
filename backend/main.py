@@ -54,6 +54,9 @@ def startup():
     from backend.services.daily_pick_service import ensure_daily_picks_indexes
     ensure_daily_picks_indexes()
 
+    from backend.services.score_adjustments_service import ensure_indexes as ensure_score_adj_indexes
+    ensure_score_adj_indexes()
+
     from backend.services.db_service import get_db
     from pymongo import ASCENDING
     db = get_db()

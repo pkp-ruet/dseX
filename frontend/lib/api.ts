@@ -835,6 +835,78 @@ export async function apiGetAdminAnalytics(): Promise<AdminAnalyticsResponse> {
 }
 
 // ---------------------------------------------------------------------------
+// Admin — Score Adjustments
+// ---------------------------------------------------------------------------
+
+export interface ScoreAdjustment {
+  trading_code: string;
+  pct: number;
+  reason: string | null;
+  updated_by: string | null;
+  updated_at: string | null;
+}
+
+export async function apiAdminListScoreAdjustments(): Promise<{ adjustments: ScoreAdjustment[] }> {
+  return apiAuthFetch<{ adjustments: ScoreAdjustment[] }>("/api/admin/score-adjustments");
+}
+
+export interface AdminScoreRow {
+  trading_code: string;
+  company_name: string | null;
+  sector: string | null;
+  score: number | null;
+  base_score: number | null;
+  adjustment_pct: number;
+  reason: string | null;
+  updated_by: string | null;
+  updated_at: string | null;
+}
+
+export async function apiAdminListScores(): Promise<{ items: AdminScoreRow[] }> {
+  return apiAuthFetch<{ items: AdminScoreRow[] }>("/api/admin/scores");
+}
+
+async function adminMutate<T>(path: string, init: RequestInit): Promise<T> {
+  const token = getToken();
+  if (!token) throw new Error("AUTH_EXPIRED");
+  const res = await fetch(path, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      ...(init.headers ?? {}),
+    },
+  });
+  if (res.status === 401) {
+    logout();
+    throw new Error("AUTH_EXPIRED");
+  }
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body?.detail || body?.error || `Request failed: ${res.status}`);
+  }
+  return res.json() as Promise<T>;
+}
+
+export async function apiAdminUpsertScoreAdjustment(payload: {
+  trading_code: string;
+  pct: number;
+  reason?: string | null;
+}): Promise<{ adjustment: ScoreAdjustment }> {
+  return adminMutate<{ adjustment: ScoreAdjustment }>("/api/admin/score-adjustment", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function apiAdminDeleteScoreAdjustment(trading_code: string): Promise<{ deleted: boolean }> {
+  return adminMutate<{ deleted: boolean }>(
+    `/api/admin/score-adjustment?trading_code=${encodeURIComponent(trading_code)}`,
+    { method: "DELETE" },
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Admin — Daily Picks controls
 // ---------------------------------------------------------------------------
 

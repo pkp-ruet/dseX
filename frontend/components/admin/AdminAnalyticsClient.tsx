@@ -85,12 +85,20 @@ export default function AdminAnalyticsClient() {
           <p className="rank-page-eyebrow">// ADMIN</p>
           <h1 className="rank-page-title">User Analytics</h1>
         </div>
-        <a
-          href="/admin/daily-pick"
-          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors whitespace-nowrap"
-        >
-          <span aria-hidden="true">★</span> Today&apos;s Top Stock
-        </a>
+        <div className="flex gap-2 flex-wrap">
+          <a
+            href="/admin/scores"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors whitespace-nowrap"
+          >
+            Score Adjustments
+          </a>
+          <a
+            href="/admin/daily-pick"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors whitespace-nowrap"
+          >
+            <span aria-hidden="true">★</span> Today&apos;s Top Stock
+          </a>
+        </div>
       </div>
 
       {/* Stats cards */}

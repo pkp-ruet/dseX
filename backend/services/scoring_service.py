@@ -659,6 +659,16 @@ def _algo2_scores() -> pd.DataFrame:
 
     prices = load_latest_prices()
 
+    # Admin manual score adjustments (percentage). Loaded once per scoring rebuild;
+    # cache is invalidated by score_adjustments_service on every write.
+    try:
+        adjustments_map = {
+            d["trading_code"]: float(d.get("pct", 0))
+            for d in db.score_adjustments.find({}, {"trading_code": 1, "pct": 1, "_id": 0})
+        }
+    except Exception:
+        adjustments_map = {}
+
     # Pre-compute sector P/E and P/B values keyed by code so the per-company median
     # can exclude the company itself (otherwise a small sector's median is biased toward self).
     sector_pes: dict[str, list[tuple[str, float]]] = {}
@@ -719,6 +729,12 @@ def _algo2_scores() -> pd.DataFrame:
 
         final = p1 * 0.30 + p2 * 0.20 + p3 * 0.20 + p4 * 0.15 + p5 * 0.15
 
+        base_score_100 = final * 10
+        adj_pct = adjustments_map.get(code, 0.0)
+        adjusted_score_100 = base_score_100 * (1 + adj_pct / 100.0)
+        # Clamp to [0, 100] — UI and tier thresholds assume this range.
+        adjusted_score_100 = max(0.0, min(100.0, adjusted_score_100))
+
         curr_eps = next((r["eps"] for r in reversed(fin_rows)
                          if r.get("eps") is not None), None)
         row = {
@@ -727,7 +743,9 @@ def _algo2_scores() -> pd.DataFrame:
             "market_cat":   cat,
             "ltp":          ltp,
             "mcap_mn":      mcap_mn,
-            "score":        round(final * 10, 1),
+            "score":          round(adjusted_score_100, 1),
+            "base_score":     round(base_score_100, 1),
+            "adjustment_pct": adj_pct if adj_pct else 0.0,
             "eps":          curr_eps,
             "p1_biz":       round(p1, 2),
             "p2_health":    round(p2, 2),

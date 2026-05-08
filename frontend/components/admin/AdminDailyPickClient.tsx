@@ -243,6 +243,12 @@ export default function AdminDailyPickClient() {
             ⟳ Reload
           </button>
           <Link
+            href="/admin/scores"
+            className="text-xs sm:text-sm text-[var(--accent)] hover:underline whitespace-nowrap"
+          >
+            Scores
+          </Link>
+          <Link
             href="/admin/analytics"
             className="text-xs sm:text-sm text-[var(--accent)] hover:underline whitespace-nowrap"
           >
