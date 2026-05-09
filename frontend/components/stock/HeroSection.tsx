@@ -10,8 +10,11 @@ interface Props {
 }
 
 export default function HeroSection({ detail }: Props) {
-  const { profile, latest_price } = detail;
+  const { profile, latest_price, score_row } = detail;
   const code = profile.trading_code;
+  const staleData = score_row?.stale_data === true || score_row?.stale_data === "true";
+  const lastReportedYear = score_row?.last_reported_year as number | null | undefined;
+  const dataAgeYears = score_row?.data_age_years as number | null | undefined;
 
   const ltp = latest_price.ltp;
   const chg = latest_price.change_pct;
@@ -83,6 +86,21 @@ export default function HeroSection({ detail }: Props) {
                       style={{ color: "#A78BFA", background: "rgba(167,139,250,0.1)", border: "1px solid rgba(167,139,250,0.25)" }}
                     >
                       {profile.sector}
+                    </span>
+                  )}
+                  {staleData && lastReportedYear != null && (
+                    <span
+                      title="Score penalized — financials haven't been updated in 2+ years"
+                      className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full"
+                      style={{
+                        color: "#FBBF24",
+                        background: "rgba(251,191,36,0.1)",
+                        border: "1px solid rgba(251,191,36,0.35)",
+                      }}
+                    >
+                      <span aria-hidden="true">⚠️</span>
+                      Last reported: {lastReportedYear}
+                      {dataAgeYears != null && dataAgeYears >= 2 ? ` — ${dataAgeYears}y stale` : ""}
                     </span>
                   )}
                   <span className="ml-1"><StarButton code={code} size="lg" /></span>

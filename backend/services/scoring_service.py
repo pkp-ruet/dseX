@@ -624,6 +624,26 @@ def _algo2_scores() -> pd.DataFrame:
     for code in ext_by_code:
         ext_by_code[code].sort(key=lambda x: x["year"])
 
+    # Reference year = freshest report across all companies. Companies whose
+    # latest report lags this by 2+ years get a staleness multiplier on score.
+    _candidate_years: list[int] = []
+    try:
+        if "year" in fin_df.columns:
+            _yser = fin_df["year"].dropna()
+            if not _yser.empty:
+                _candidate_years.append(int(_yser.max()))
+    except Exception:
+        pass
+    for _rows in ext_by_code.values():
+        if _rows:
+            _y = _rows[-1].get("year")
+            if _y is not None:
+                try:
+                    _candidate_years.append(int(_y))
+                except Exception:
+                    pass
+    latest_market_year: Optional[int] = max(_candidate_years) if _candidate_years else None
+
     # Group latest revenue by sector for within-sector ranking.
     # For banks/NBFIs, fall back to net_interest_income when revenue is absent.
     rev_by_sector: dict[str, list[tuple[str, float]]] = {}
@@ -729,9 +749,40 @@ def _algo2_scores() -> pd.DataFrame:
 
         final = p1 * 0.30 + p2 * 0.20 + p3 * 0.20 + p4 * 0.15 + p5 * 0.15
 
+        # Staleness — penalize companies that haven't filed financials in 2+ years.
+        # Year source: max(financials.year, ext_financials.year). Reference year is
+        # the freshest report seen across the whole market (latest_market_year).
+        fin_last_year = fin_rows[-1].get("year") if fin_rows else None
+        ext_last_year = ext_last5[-1].get("year") if ext_last5 else None
+        _years_for_self: list[int] = []
+        for _y in (fin_last_year, ext_last_year):
+            if _y is None:
+                continue
+            if isinstance(_y, float) and math.isnan(_y):
+                continue
+            try:
+                _years_for_self.append(int(_y))
+            except (TypeError, ValueError):
+                pass
+        last_reported_year: Optional[int] = max(_years_for_self) if _years_for_self else None
+        data_age_years: Optional[int] = (
+            (latest_market_year - last_reported_year)
+            if (latest_market_year is not None and last_reported_year is not None)
+            else None
+        )
+        if data_age_years is None or data_age_years <= 1:
+            stale_mult = 1.0
+        elif data_age_years == 2:
+            stale_mult = 0.80
+        elif data_age_years == 3:
+            stale_mult = 0.50
+        else:
+            stale_mult = 0.25
+        stale_data = stale_mult < 1.0
+
         base_score_100 = final * 10
         adj_pct = adjustments_map.get(code, 0.0)
-        adjusted_score_100 = base_score_100 * (1 + adj_pct / 100.0)
+        adjusted_score_100 = base_score_100 * (1 + adj_pct / 100.0) * stale_mult
         # Clamp to [0, 100] — UI and tier thresholds assume this range.
         adjusted_score_100 = max(0.0, min(100.0, adjusted_score_100))
 
@@ -752,6 +803,9 @@ def _algo2_scores() -> pd.DataFrame:
             "p3_moat":      round(p3, 2),
             "p4_val":       round(p4, 2),
             "p5_div":       round(p5, 2),
+            "last_reported_year": last_reported_year,
+            "data_age_years":     data_age_years,
+            "stale_data":         stale_data,
         }
         row.update(sub1)
         row.update(sub2)

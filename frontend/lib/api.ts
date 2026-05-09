@@ -43,6 +43,9 @@ export interface ScoreItem {
   p3_moat?: number | null;
   p4_val?: number | null;
   p5_div?: number | null;
+  last_reported_year?: number | null;
+  data_age_years?: number | null;
+  stale_data?: boolean | null;
 }
 
 export interface ScoreTiers {
@@ -116,7 +119,7 @@ export interface RelatedStock {
 export interface CompanyDetail {
   profile: CompanyProfile;
   latest_price: LatestPrice;
-  score_row: Record<string, number | string | null> | null;
+  score_row: Record<string, number | string | boolean | null> | null;
   signal_flags: SignalFlags;
   financials: Record<string, unknown>[];
   extended_financials: Record<string, unknown>[];

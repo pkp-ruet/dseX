@@ -85,6 +85,17 @@ export default function TopRankings({ scores }: Props) {
                 <span className={`tr-ticker-pill tr-ticker-pill--${tier}`}>
                   {item.trading_code}
                 </span>
+                {item.stale_data && (
+                  <span
+                    title={`Last reported: ${item.last_reported_year ?? "?"}${
+                      item.data_age_years != null ? ` (${item.data_age_years}y old)` : ""
+                    }`}
+                    aria-label="Stale financial data"
+                    style={{ marginLeft: 4, fontSize: "0.85em", color: "#FBBF24" }}
+                  >
+                    ⚠️
+                  </span>
+                )}
                 {item.company_name && (
                   <span className="tr-code-sub">{item.company_name}</span>
                 )}

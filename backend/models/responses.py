@@ -18,6 +18,9 @@ class ScoreItem(BaseModel):
     p3_moat: Optional[float] = None
     p4_val: Optional[float] = None
     p5_div: Optional[float] = None
+    last_reported_year: Optional[int] = None
+    data_age_years: Optional[int] = None
+    stale_data: Optional[bool] = None
 
 
 class ScoreTiers(BaseModel):

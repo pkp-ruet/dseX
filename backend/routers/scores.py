@@ -39,6 +39,9 @@ def get_scores():
             code  = row["trading_code"]
             score = row["score"]
             comp  = companies.get(code, {})
+            _lry = row.get("last_reported_year")
+            _day = row.get("data_age_years")
+            _stale = row.get("stale_data")
             item = ScoreItem(
                 trading_code=code,
                 company_name=comp.get("company_name"),
@@ -55,6 +58,9 @@ def get_scores():
                 p3_moat=_json_float(row.get("p3_moat")),
                 p4_val=_json_float(row.get("p4_val")),
                 p5_div=_json_float(row.get("p5_div")),
+                last_reported_year=int(_lry) if _lry is not None and not (isinstance(_lry, float) and math.isnan(_lry)) else None,
+                data_age_years=int(_day) if _day is not None and not (isinstance(_day, float) and math.isnan(_day)) else None,
+                stale_data=bool(_stale) if _stale is not None and not (isinstance(_stale, float) and math.isnan(_stale)) else None,
             )
             if score >= 75:
                 tiers["strong_buy"].append(item)
