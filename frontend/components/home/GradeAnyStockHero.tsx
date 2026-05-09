@@ -56,7 +56,7 @@ function gradeOf(score: number | null): { letter: string; word: string; color: s
   if (score >= 70) return { letter: "B", word: "Good",      color: "#4ADE80" };
   if (score >= 60) return { letter: "C", word: "Fair",      color: "#60A5FA" };
   if (score >= 50) return { letter: "D", word: "Watch",     color: "#FBBF24" };
-  return { letter: "F", word: "Avoid",                       color: "#F87171" };
+  return { letter: "F", word: "Risky",                       color: "#F87171" };
 }
 
 function plainSummary(item: ScoreItem): string {

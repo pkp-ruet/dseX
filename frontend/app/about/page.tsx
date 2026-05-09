@@ -81,8 +81,8 @@ export default function AboutPage() {
         <p className="text-[var(--ink-muted)] leading-relaxed">
           The score gives you a single number that reflects how strong a company looks across five
           key dimensions of fundamental analysis. Higher is better. Companies are then grouped into
-          tiers — <strong className="text-[var(--ink)]">Strong Buy, Good Buy, Safe Buy, Hold,</strong> and{" "}
-          <strong className="text-[var(--ink)]">Avoid</strong> — so you can filter quickly.
+          tiers — <strong className="text-[var(--ink)]">Strong Buy, Buy, Wait & Watch,</strong> and{" "}
+          <strong className="text-[var(--ink)]">Risky</strong> — so you can filter quickly.
         </p>
         <p className="text-[var(--ink-muted)] leading-relaxed">
           No predictions. No price targets. Just a clear, structured view of what the numbers say.

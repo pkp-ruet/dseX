@@ -7,16 +7,14 @@ import { getTier, type TierKey } from "@/lib/constants";
 
 const VERDICT_WORDS: Record<TierKey, string> = {
   strong_buy:    "Strong Buy",
-  good_buy:      "Good Buy",
-  safe_buy:      "Safe Buy",
+  buy:           "Buy",
   keep_watching: "Watch",
-  avoid:         "Avoid",
+  avoid:         "Risky",
 };
 
 const VERDICT_TONES: Record<TierKey, { color: string; bg: string; border: string; soft: string }> = {
   strong_buy:    { color: "#34D399", bg: "rgba(52,211,153,0.12)",  border: "rgba(52,211,153,0.45)",  soft: "rgba(52,211,153,0.06)"  },
-  good_buy:      { color: "#4ADE80", bg: "rgba(74,222,128,0.12)",  border: "rgba(74,222,128,0.45)",  soft: "rgba(74,222,128,0.06)"  },
-  safe_buy:      { color: "#60A5FA", bg: "rgba(96,165,250,0.12)",  border: "rgba(96,165,250,0.45)",  soft: "rgba(96,165,250,0.06)"  },
+  buy:           { color: "#4ADE80", bg: "rgba(74,222,128,0.12)",  border: "rgba(74,222,128,0.45)",  soft: "rgba(74,222,128,0.06)"  },
   keep_watching: { color: "#FBBF24", bg: "rgba(251,191,36,0.12)",  border: "rgba(251,191,36,0.45)",  soft: "rgba(251,191,36,0.06)"  },
   avoid:         { color: "#F87171", bg: "rgba(248,113,113,0.12)", border: "rgba(248,113,113,0.45)", soft: "rgba(248,113,113,0.06)" },
 };

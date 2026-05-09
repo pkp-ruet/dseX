@@ -9,10 +9,9 @@ interface Props {
 
 const TIERS = [
   { key: "strong_buy",    label: "Strong Buy",    fillClass: "score-bar-fill-strong"        },
-  { key: "good_buy",      label: "Good Buy",      fillClass: "score-bar-fill-good"          },
-  { key: "safe_buy",      label: "Safe Buy",      fillClass: "score-bar-fill-safe"          },
-  { key: "keep_watching", label: "Hold",          fillClass: "score-bar-fill-keep-watching" },
-  { key: "avoid",         label: "Avoid",         fillClass: "score-bar-fill-avoid"         },
+  { key: "buy",           label: "Buy",           fillClass: "score-bar-fill-good"          },
+  { key: "keep_watching", label: "Wait & Watch",  fillClass: "score-bar-fill-keep-watching" },
+  { key: "avoid",         label: "Risky",         fillClass: "score-bar-fill-avoid"         },
 ] as const;
 
 export default function ScoreOverview({ counts, total, computedAt }: Props) {

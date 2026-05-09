@@ -57,8 +57,7 @@ export interface ScoreTiers {
 
 export interface FrontendTiers {
   strong_buy:    ScoreItem[];
-  good_buy:      ScoreItem[];
-  safe_buy:      ScoreItem[];
+  buy:           ScoreItem[];
   keep_watching: ScoreItem[];
   avoid:         ScoreItem[];
 }

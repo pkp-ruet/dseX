@@ -8,8 +8,7 @@ import StarButton from "@/components/ui/StarButton";
 
 const SCORE_CLASS: Record<string, string> = {
   strong_buy:    "rr-score-top",
-  good_buy:      "rr-score-good",
-  safe_buy:      "rr-score-mid",
+  buy:           "rr-score-good",
   keep_watching: "rr-score-watch",
   avoid:         "rr-score-danger",
 };

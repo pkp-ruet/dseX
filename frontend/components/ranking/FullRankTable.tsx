@@ -18,8 +18,7 @@ interface Props {
 // Tier text colors — bright shades for strong visibility on dark bg
 const TIER_COLOR: Record<TierKey, string> = {
   strong_buy:    "#4ADE80",
-  good_buy:      "#34D399",
-  safe_buy:      "#60A5FA",
+  buy:           "#34D399",
   keep_watching: "#FBBF24",
   avoid:         "#F87171",
 };
@@ -30,7 +29,7 @@ const MEDAL_COLORS: Record<1 | 2 | 3, { bg: string; ring: string; text: string }
   3: { bg: "#E0986A", ring: "#8C4A1F", text: "#3B1F00" },
 };
 
-const TIERS_ORDER: TierKey[] = ["strong_buy", "good_buy", "safe_buy", "keep_watching", "avoid"];
+const TIERS_ORDER: TierKey[] = ["strong_buy", "buy", "keep_watching", "avoid"];
 
 function chgColor(val: number | null) {
   if (val == null) return "var(--ink-muted)";

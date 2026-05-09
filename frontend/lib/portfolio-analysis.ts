@@ -91,8 +91,7 @@ function tierBucket(score: number | null | undefined): TierBucket {
 
 const QUALITY_WORD: Record<TierBucket, QualityWord> = {
   strong_buy: "Strong",
-  good_buy: "Strong",
-  safe_buy: "Solid",
+  buy: "Solid",
   keep_watching: "Average",
   avoid: "Weak",
   unscored: "Unrated",

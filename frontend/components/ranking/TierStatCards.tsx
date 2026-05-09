@@ -7,13 +7,12 @@ interface Props {
 
 const CARD_META: Record<TierKey, { colorClass: string; countColor: string }> = {
   strong_buy:    { colorClass: "tier-stat-card--strong",        countColor: "#4ADE80" },
-  good_buy:      { colorClass: "tier-stat-card--good",          countColor: "#34D399" },
-  safe_buy:      { colorClass: "tier-stat-card--safe",          countColor: "#60A5FA" },
+  buy:           { colorClass: "tier-stat-card--good",          countColor: "#34D399" },
   keep_watching: { colorClass: "tier-stat-card--keep-watching", countColor: "#FBBF24" },
   avoid:         { colorClass: "tier-stat-card--avoid",         countColor: "#F87171" },
 };
 
-const TIERS: TierKey[] = ["strong_buy", "good_buy", "safe_buy", "keep_watching", "avoid"];
+const TIERS: TierKey[] = ["strong_buy", "buy", "keep_watching", "avoid"];
 
 export default function TierStatCards({ counts, total }: Props) {
   return (

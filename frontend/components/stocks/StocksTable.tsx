@@ -19,8 +19,7 @@ type SortCol =
 
 const TIER_COLOR: Record<string, string> = {
   strong_buy:    "#4ADE80",
-  good_buy:      "#34D399",
-  safe_buy:      "#60A5FA",
+  buy:           "#34D399",
   keep_watching: "#FBBF24",
   avoid:         "#F87171",
 };
