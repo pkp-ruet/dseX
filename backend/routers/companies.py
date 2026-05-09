@@ -7,9 +7,12 @@ from backend.services.db_service import (
     compute_52w_range, compute_signal_flags, load_news_for_codes,
 )
 from backend.services.scoring_service import get_company_score_row, build_scores_df
+from backend.services.top20_service import compute_momentum_for_code
+from backend.services.verdict_service import build_verdict
 from backend.models.responses import (
     CompanyDetailResponse, CompanyProfile, LatestPrice,
     SignalFlags, DividendDeclaration, RelatedStock,
+    MomentumSnapshot, StockVerdict,
 )
 
 router = APIRouter()
@@ -106,6 +109,21 @@ def get_company_detail(code: str):
                     change_pct=_clean(px.get("change_pct")),
                 ))
 
+    # Momentum snapshot + hybrid verdict
+    momentum_dict = None
+    verdict_dict = None
+    try:
+        momentum_dict = compute_momentum_for_code(trading_code)
+    except Exception:
+        momentum_dict = None
+    try:
+        verdict_dict = build_verdict(score_row, momentum_dict, flags, latest, financials)
+    except Exception:
+        verdict_dict = None
+
+    momentum_model = MomentumSnapshot(**momentum_dict) if momentum_dict else None
+    verdict_model = StockVerdict(**verdict_dict) if verdict_dict else None
+
     return CompanyDetailResponse(
         profile=CompanyProfile(
             trading_code=trading_code,
@@ -138,4 +156,6 @@ def get_company_detail(code: str):
         dividend_declaration=div_decl_model,
         news=news,
         related_stocks=related,
+        momentum=momentum_model,
+        verdict=verdict_model,
     )

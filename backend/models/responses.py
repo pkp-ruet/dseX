@@ -83,6 +83,25 @@ class RelatedStock(BaseModel):
     change_pct: Optional[float] = None
 
 
+class MomentumSnapshot(BaseModel):
+    return_7d_pct: Optional[float] = None
+    rs_vs_dsex_pct: Optional[float] = None
+    volume_ratio: Optional[float] = None
+    avg_turnover_7d_mn: Optional[float] = None
+    up_days_7d: Optional[int] = None
+    days_counted: Optional[int] = None
+    pct_in_52w_range: Optional[float] = None
+    momentum_grade: str  # hot|warm|flat|cold|weak_liquidity|unknown
+
+
+class StockVerdict(BaseModel):
+    headline: str
+    tagline: str
+    sentences: list[str]
+    stance: str       # long_term_hold | short_term_trade | wait | avoid
+    horizon_hint: str # display label
+
+
 class CompanyDetailResponse(BaseModel):
     profile: CompanyProfile
     latest_price: LatestPrice
@@ -94,6 +113,8 @@ class CompanyDetailResponse(BaseModel):
     dividend_declaration: Optional[DividendDeclaration] = None
     news: list[dict[str, Any]]
     related_stocks: list[RelatedStock] = []
+    momentum: Optional[MomentumSnapshot] = None
+    verdict: Optional[StockVerdict] = None
 
 
 class UpcomingDividend(BaseModel):

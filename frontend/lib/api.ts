@@ -115,6 +115,25 @@ export interface RelatedStock {
   change_pct: number | null;
 }
 
+export interface MomentumSnapshot {
+  return_7d_pct: number | null;
+  rs_vs_dsex_pct: number | null;
+  volume_ratio: number | null;
+  avg_turnover_7d_mn: number | null;
+  up_days_7d: number | null;
+  days_counted: number | null;
+  pct_in_52w_range: number | null;
+  momentum_grade: string;
+}
+
+export interface StockVerdict {
+  headline: string;
+  tagline: string;
+  sentences: string[];
+  stance: string;
+  horizon_hint: string;
+}
+
 export interface CompanyDetail {
   profile: CompanyProfile;
   latest_price: LatestPrice;
@@ -126,6 +145,8 @@ export interface CompanyDetail {
   dividend_declaration: DividendDeclaration | null;
   news: { title: string; post_date: string; body: string }[];
   related_stocks: RelatedStock[];
+  momentum: MomentumSnapshot | null;
+  verdict: StockVerdict | null;
 }
 
 export interface UpcomingDividend {
