@@ -3,7 +3,7 @@ import { useState } from "react";
 import { pillarHealthCheck, HEALTH_PILLAR_ORDER, type HealthCheckRow, type HealthStatus } from "@/lib/plain-language";
 
 interface Props {
-  scoreRow: Record<string, number | string | null>;
+  scoreRow: Record<string, number | string | boolean | null>;
 }
 
 const STATUS_TONE: Record<HealthStatus, { color: string; bg: string; border: string; icon: string }> = {
