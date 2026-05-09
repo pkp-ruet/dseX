@@ -52,6 +52,27 @@ const jsonLd = [
 const insightLists = STOCK_LISTS.filter((l) => l.insightMode);
 const classicLists = STOCK_LISTS.filter((l) => !l.insightMode);
 
+const featuredLists = [
+  {
+    href: "/dse-top-20",
+    icon: "🚀",
+    badge: "7-Day Momentum",
+    displayName: "DSE Top 20 Stocks This Week",
+    description:
+      "20 best-performing Dhaka Stock Exchange stocks ranked by 7-day price momentum, relative strength vs DSEX, and volume conviction. Updated daily.",
+    cta: "View Top 20 →",
+  },
+  {
+    href: "/dse-popular-stocks",
+    icon: "🔥",
+    badge: "Reader Interest",
+    displayName: "DSE Popular Stocks",
+    description:
+      "Top 20 most-viewed DSE stocks on TopStockBD over the last 7 days, with FIFA-style rank changes vs the previous week.",
+    cta: "View Popular →",
+  },
+];
+
 export default function StockInsightsPage() {
   return (
     <main className="max-w-3xl mx-auto px-4 py-12 space-y-12">
@@ -67,6 +88,41 @@ export default function StockInsightsPage() {
           Curated rankings and editorial picks from the Dhaka Stock Exchange — powered by real financial data
           and the DSEF 5-pillar scoring system. Updated daily.
         </p>
+      </section>
+
+      {/* Featured Lists — DSE Top 20 + Popular */}
+      <section className="space-y-5">
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-bold text-[var(--ink)]">Featured Lists</h2>
+          <span className="text-xs border border-[var(--primary)] text-[var(--primary)] rounded-full px-2.5 py-0.5 uppercase tracking-wider font-semibold">
+            Updated Daily
+          </span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {featuredLists.map((list) => (
+            <Link
+              key={list.href}
+              href={list.href}
+              className="group flex flex-col gap-4 p-5 rounded-xl border border-[var(--border)] bg-[var(--surface)] hover:border-[var(--primary)] transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-3xl" aria-hidden="true">{list.icon}</span>
+                <span className="text-sm text-[var(--ink-muted)] font-medium">{list.badge}</span>
+              </div>
+              <div>
+                <h3 className="font-bold text-[var(--ink)] text-lg leading-snug group-hover:text-[var(--primary)] transition-colors">
+                  {list.displayName}
+                </h3>
+                <p className="mt-2 text-sm text-[var(--ink-muted)] leading-relaxed line-clamp-2">
+                  {list.description}
+                </p>
+              </div>
+              <span className="mt-auto text-sm font-semibold text-[var(--primary)] group-hover:underline">
+                {list.cta}
+              </span>
+            </Link>
+          ))}
+        </div>
       </section>
 
       {/* Editorial Picks — insight mode */}

@@ -66,6 +66,8 @@ export interface PortfolioAnalysis {
   grade: Grade;
   gradeLabel: GradeLabel;
   headline: string;
+  /** Plain-language explanation of what the grade means and how it's calculated. */
+  gradeExplanation: string;
   good: string[];
   bad: string[];
   consider: string[];
@@ -102,24 +104,74 @@ function classifyEntry(
   p4: number | null | undefined,
 ): { tag: EntryTag; label: string } {
   if (pnlPct == null) {
-    return { tag: "no_price", label: "Live price unavailable — can't judge the entry yet." };
+    return {
+      tag: "no_price",
+      label:
+        "We don't have a live price for this stock right now, so we can't tell yet whether you bought at a good price. Check back when the market reopens.",
+    };
   }
   if (p4 == null) {
-    return { tag: "no_data", label: "Not enough data to judge the price you paid." };
+    return {
+      tag: "no_data",
+      label:
+        "We don't have enough financial data on this company to judge whether the price you paid was fair. Be a bit more careful with this one until more numbers are available.",
+    };
   }
   if (pnlPct >= 5) {
-    if (p4 >= 7) return { tag: "great", label: "You bought at a great price — and it's still a good deal today." };
-    if (p4 >= 4) return { tag: "good", label: "You got a good price — current price is fair." };
-    return { tag: "up_expensive", label: "You're up, but the stock now looks expensive — consider booking some profit." };
+    if (p4 >= 7)
+      return {
+        tag: "great",
+        label:
+          "You bought at a great price, and the stock is still cheap compared to what the company earns. Hold on to this one — you got real value for your money.",
+      };
+    if (p4 >= 4)
+      return {
+        tag: "good",
+        label:
+          "You got a good price, and today's price is still fair. Nothing to do here — let the company keep working for you.",
+      };
+    return {
+      tag: "up_expensive",
+      label:
+        "You're up nicely, but the stock now looks expensive — meaning the price has run far ahead of the company's earnings. Booking some profit now locks in your gains in case the price comes back down.",
+    };
   }
   if (pnlPct >= -5) {
-    if (p4 >= 7) return { tag: "fair_attractive", label: "Your entry was fair — the stock is still attractively priced." };
-    if (p4 >= 4) return { tag: "fair_fair", label: "Fair price, fair entry." };
-    return { tag: "full_price", label: "You paid full price — there's not much room for the stock to go higher." };
+    if (p4 >= 7)
+      return {
+        tag: "fair_attractive",
+        label:
+          "You paid a fair price, and the stock is still cheap today. If you have spare money, this is the kind of stock to add a little more of.",
+      };
+    if (p4 >= 4)
+      return {
+        tag: "fair_fair",
+        label:
+          "Fair price when you bought, fair price today. No urgent action — just hold and let the business grow.",
+      };
+    return {
+      tag: "full_price",
+      label:
+        "You paid full price for this stock, and it still looks fully priced. There isn't much room for the price to go higher from here, so keep your expectations modest.",
+    };
   }
-  if (p4 >= 7) return { tag: "down_strong", label: "Stock is down, but it's still a strong buy at today's price — could be a chance to average down." };
-  if (p4 >= 4) return { tag: "down_fair", label: "You're down — wait it out, the price is fair now." };
-  return { tag: "expensive_expensive", label: "You bought when it was expensive — and it still looks expensive. Reconsider holding." };
+  if (p4 >= 7)
+    return {
+      tag: "down_strong",
+      label:
+        "The stock is down, but the company is still strong and the price is now cheaper than when you bought. If you believe in the business, buying a little more here lowers your average cost.",
+    };
+  if (p4 >= 4)
+    return {
+      tag: "down_fair",
+      label:
+        "You're sitting on a loss, but the price is fair now and the company is okay. Don't panic-sell — give it time to recover.",
+    };
+  return {
+    tag: "expensive_expensive",
+    label:
+      "You bought when the price was already too high, and even after falling, it's still expensive compared to the company's earnings. Think hard about whether to keep holding or take the loss and move on.",
+  };
 }
 
 const ENTRY_SHORT: Record<EntryTag, string> = {
@@ -210,20 +262,55 @@ function composeHeadline(args: {
   }
 
   if (args.grade === "A") {
-    return "Your portfolio is well-built — good spread, strong companies, and fair entry prices.";
+    return "Your portfolio is well-built — your money is spread across strong companies that you bought at fair prices. Keep doing what you're doing and check back every few months.";
   }
   if (args.grade === "B") {
-    if (issues.length === 0) return "Your portfolio is in good shape, with minor things to watch.";
-    return `Your portfolio is in good shape — but watch out for ${issues.slice(0, 2).join(" and ")}.`;
+    if (issues.length === 0)
+      return "Your portfolio is in good shape, with just a few small things to watch. No urgent changes needed — keep an eye on the points below.";
+    return `Your portfolio is in good shape, but watch out for ${issues.slice(0, 2).join(" and ")}. Fix these small issues and you're on solid ground.`;
   }
   if (args.grade === "C") {
-    if (issues.length === 0) return "Your portfolio is okay but has a few weak spots.";
-    return `Your portfolio is okay, but ${issues.slice(0, 2).join(" and ")} are dragging it down.`;
+    if (issues.length === 0)
+      return "Your portfolio is okay but has a few weak spots. Read the points below — small adjustments now can save you from bigger losses later.";
+    return `Your portfolio is okay, but ${issues.slice(0, 2).join(" and ")} are pulling your returns down. Spreading the risk a bit more will make your money safer.`;
   }
   if (args.grade === "D") {
-    return `Your portfolio is shaky — ${issues.slice(0, 2).join(" and ") || "concentrated and uneven"}.`;
+    return `Your portfolio is shaky — ${issues.slice(0, 2).join(" and ") || "your money is too concentrated and the mix is uneven"}. Without a rebalance, one bad stretch in the market could hurt you a lot.`;
   }
-  return `Your portfolio is very risky — ${issues.slice(0, 2).join(" and ") || "needs a serious rebalance"}.`;
+  return `Your portfolio is very risky — ${issues.slice(0, 2).join(" and ") || "it needs a serious rebalance"}. Step back, follow the actions below, and rebuild on a stronger base before adding any more money.`;
+}
+
+function composeGradeExplanation(grade: Grade): string {
+  const intro =
+    "We grade your portfolio on three simple things: how well you've spread your money so one bad stock doesn't sink everything, how strong the companies you own actually are, and whether you bought at a fair price. ";
+  switch (grade) {
+    case "A":
+      return (
+        intro +
+        "An 'A' means all three are in good shape — this is what a healthy long-term portfolio looks like."
+      );
+    case "B":
+      return (
+        intro +
+        "A 'B' means most things are working, with a few small things to watch — nothing urgent."
+      );
+    case "C":
+      return (
+        intro +
+        "A 'C' means at least one of these three is weak. Fix it now while the issue is still small."
+      );
+    case "D":
+      return (
+        intro +
+        "A 'D' means two of these three are weak. Don't add more money until you sort out the issues below."
+      );
+    case "F":
+    default:
+      return (
+        intro +
+        "An 'F' means all three are weak. This is a high-risk setup — read the action points below before doing anything else."
+      );
+  }
 }
 
 // ── main ───────────────────────────────────────────────────────────────────
@@ -346,88 +433,91 @@ export function analyzePortfolio(
   // Good
   if (holdingCount >= 5 && distinctSectors >= 3) {
     good.push(
-      `You own ${holdingCount} different stocks across ${distinctSectors} sectors — that's a healthy spread.`,
+      `You own ${holdingCount} different stocks across ${distinctSectors} sectors — that's a healthy spread. If one sector goes through a rough patch, the others can still hold your portfolio up. This is exactly the safety net long-term investors aim for.`,
     );
   }
   if (scored.length >= 2) {
     const strongCount = scored.filter((i) => (i.score as number) >= 70).length;
     if (strongCount / scored.length >= 0.6) {
       good.push(
-        `Most of the companies you own are strong picks (${strongCount} out of ${scored.length}).`,
+        `Most of the companies you own are strong picks (${strongCount} out of ${scored.length}). These are businesses with solid earnings and healthy finances — the kind of stocks that hold up better when the market gets rough.`,
       );
     }
   }
   if (best && (best.pnlPct as number) >= 20) {
     good.push(
-      `${best.code} was a great pick — up ${(best.pnlPct as number).toFixed(1)}% since you bought it.`,
+      `${best.code} has been a great pick — it's up ${(best.pnlPct as number).toFixed(1)}% since you bought it. Don't sell just because it's up; check whether the company is still strong, and only book profit if the price has run far ahead of the business.`,
     );
   }
   if (judgeableEntryCount > 0 && goodEntryCount / judgeableEntryCount >= 0.6) {
     good.push(
-      `You paid a fair price for most of your stocks (${goodEntryCount} out of ${judgeableEntryCount}).`,
+      `You paid a fair price for most of your stocks (${goodEntryCount} out of ${judgeableEntryCount}). Buying at a fair price is half the battle in the stock market — you've avoided overpaying, which means a lot less stress later.`,
     );
   }
   if (reliableDividend.length >= 2) {
     good.push(
-      `You earn reliable dividends from ${reliableDividend.length} of your companies.`,
+      `You earn reliable dividends from ${reliableDividend.length} of your companies. That means cash returning to you every year on top of any price gains — like rent from a property you own. Reinvesting these dividends quietly grows your portfolio over time.`,
     );
   }
   if (winRatePct != null && winRatePct >= 70 && performersWithPnl.length >= 3) {
     good.push(
-      `Most of your stocks are in profit (${winners.length} out of ${performersWithPnl.length}).`,
+      `Most of your stocks are currently in profit (${winners.length} out of ${performersWithPnl.length}). That's a sign your stock-picking is working — keep your process the same and resist the urge to sell winners too quickly.`,
     );
   }
 
   // Bad
   if (holdingCount === 1) {
-    bad.push("You only own 1 stock — putting everything in one company is very risky.");
+    bad.push(
+      "You only own 1 stock, which means your entire money is tied to a single company. If that one company has a bad year — weak results, a scandal, anything — your whole portfolio falls with it. Add 4–7 more stocks from different sectors as soon as you can.",
+    );
   } else if (holdingCount === 2) {
     bad.push(
-      "You only own 2 stocks — that's too concentrated. A bad day for either one hits your portfolio hard.",
+      "You only own 2 stocks — that's still too concentrated. A bad day for either one hits your portfolio hard, because half your money moves with each stock. Aim for at least 5 stocks across 3 different sectors.",
     );
   }
   if (maxSectorPct > 50 && distinctSectors > 1) {
     bad.push(
-      `${maxSectorPct.toFixed(0)}% of your money is in ${maxSectorName} — if that sector struggles, your whole portfolio takes a hit.`,
+      `${maxSectorPct.toFixed(0)}% of your money is sitting in ${maxSectorName} stocks. If that sector has a bad quarter — interest-rate changes, regulation, weak earnings — most of your portfolio falls together. Try moving some money into a different sector to spread the risk.`,
     );
   } else if (distinctSectors === 1 && holdingCount >= 2) {
     bad.push(
-      `All your stocks are in one sector (${maxSectorName}) — your portfolio rises and falls with that one industry.`,
+      `All your stocks are in one sector (${maxSectorName}), so your portfolio rises and falls with that single industry. When that sector is in trouble, you have nothing else to balance the loss. Add stocks from at least 2 other sectors to fix this.`,
     );
   }
   if (largestPos && largestPos.weightPct > 40 && holdingCount > 1) {
     bad.push(
-      `${largestPos.code} alone is ${largestPos.weightPct.toFixed(0)}% of your portfolio — if it drops, your portfolio takes a big hit.`,
+      `${largestPos.code} alone is ${largestPos.weightPct.toFixed(0)}% of your portfolio. If that one stock drops 20%, your whole portfolio drops nearly ${(largestPos.weightPct * 0.2).toFixed(0)}% — that's a big hit from a single company. Trim it down or grow your other positions so no one stock dominates.`,
     );
   }
   if (strugglingNames.length === 1) {
     bad.push(
-      `${strugglingNames[0]}'s finances look weak — heavy debt or weak cash flow. Watch closely.`,
+      `${strugglingNames[0]}'s finances look weak — likely heavy debt or weak cash flow. Companies in this shape can struggle to pay dividends or even survive a downturn. Watch the next quarterly result closely and be ready to step out if things don't improve.`,
     );
   } else if (strugglingNames.length > 1) {
     bad.push(
-      `${nameList(strugglingNames)} have weak finances — heavy debt or weak cash flow. Watch closely.`,
+      `${nameList(strugglingNames)} have weak finances — likely heavy debt or weak cash flow. Companies in this shape can struggle to pay dividends or even survive a downturn. Watch their next quarterly results closely.`,
     );
   }
   if (avoidNames.length === 1) {
     bad.push(
-      `${avoidNames[0]} is rated low on overall quality — consider whether you still want to hold it.`,
+      `${avoidNames[0]} is rated low on overall quality, meaning weak fundamentals across the board. Holding weak companies usually leads to disappointing returns over time. Honestly ask yourself why you're holding it — and if there's no strong reason, consider switching to a better-rated stock.`,
     );
   } else if (avoidNames.length > 1) {
     bad.push(
-      `${nameList(avoidNames)} are rated low on overall quality — consider whether you still want to hold them.`,
+      `${nameList(avoidNames)} are rated low on overall quality, meaning weak fundamentals across the board. Holding weak companies usually leads to disappointing returns over time. Replace them with better-rated stocks when you get the chance.`,
     );
   }
   if (shrinkingItems.length === 1) {
-    const drop = shrinkingItems[0].epsYoy != null
-      ? `${Math.abs(shrinkingItems[0].epsYoy as number).toFixed(0)}% drop`
-      : "double-digit drops";
+    const drop =
+      shrinkingItems[0].epsYoy != null
+        ? `${Math.abs(shrinkingItems[0].epsYoy as number).toFixed(0)}%`
+        : "double digits";
     bad.push(
-      `${shrinkingItems[0].code}'s earnings have been falling (${drop}) — the business is shrinking.`,
+      `${shrinkingItems[0].code}'s earnings have dropped ${drop} from last year — the business is shrinking. When a company's profit shrinks, the share price usually follows. Watch the next quarterly result; if earnings keep falling, it may be time to step out.`,
     );
   } else if (shrinkingItems.length > 1) {
     bad.push(
-      `${nameList(shrinkingItems.map((s) => s.code))} have all seen falling earnings — these businesses are shrinking.`,
+      `${nameList(shrinkingItems.map((s) => s.code))} have all seen falling earnings — these businesses are shrinking. Share prices usually follow profits down over time, so don't ignore this. Watch their next quarterly results carefully and be ready to act.`,
     );
   }
   if (expensiveItems.length > 0) {
@@ -437,7 +527,7 @@ export function analyzePortfolio(
       .join(", ");
     const more = expensiveItems.length > 2 ? ` and ${expensiveItems.length - 2} more` : "";
     bad.push(
-      `You paid a high price for ${head}${more} — and ${expensiveItems.length === 1 ? "it" : "they"} still ${expensiveItems.length === 1 ? "looks" : "look"} expensive today.`,
+      `You paid a high price for ${head}${more} — and ${expensiveItems.length === 1 ? "it" : "they"} still ${expensiveItems.length === 1 ? "looks" : "look"} expensive today. That means even after the fall, the price hasn't yet caught up to what the company actually earns. Either accept it may take a long time to recover, or take the loss and put the money into better-priced stocks.`,
     );
   }
 
@@ -445,19 +535,19 @@ export function analyzePortfolio(
   if (holdingCount < 5) {
     const need = Math.max(5 - holdingCount, 1);
     consider.push(
-      `Add ${need} more stock${need === 1 ? "" : "s"} from different sectors to spread your risk.`,
+      `Add ${need} more stock${need === 1 ? "" : "s"} from different sectors. Owning just a couple of stocks is like putting all your savings into one shop — if that shop has a bad year, you have nothing else to fall back on. Aim for 5–8 stocks across at least 3 sectors so no single company or industry can hurt you too much.`,
     );
   }
   if (maxSectorPct > 50 && holdingCount > 1) {
     consider.push(
-      `Trim your ${maxSectorName} exposure — currently ${maxSectorPct.toFixed(0)}% of your portfolio.`,
+      `Trim your ${maxSectorName} exposure — it's currently ${maxSectorPct.toFixed(0)}% of your portfolio. The simplest fix is to stop adding to it and direct your next investments into a different sector. Over time the balance will even out without you having to sell anything.`,
     );
   }
   const averageDownCandidates = insights.filter((i) => i.entryTag === "down_strong");
   if (averageDownCandidates.length > 0) {
     const c = averageDownCandidates[0];
     consider.push(
-      `${c.code} is down but the company is still strong — could be a chance to buy more at a lower price.`,
+      `${c.code} is down, but the company is still strong and the price is now cheaper than when you bought. If you have spare money and still believe in the business, buying a little more here lowers your average cost — so when it recovers, you make back the loss faster.`,
     );
   }
   const sellCandidates = insights.filter(
@@ -465,23 +555,23 @@ export function analyzePortfolio(
   );
   if (sellCandidates.length > 0) {
     consider.push(
-      `Consider selling or reducing ${nameList(sellCandidates.map((s) => s.code))} — both the price and the company quality are weak.`,
+      `Consider selling or reducing ${nameList(sellCandidates.map((s) => s.code))} — both the company quality and the price look weak. Holding a weak company at an expensive price is the worst combination, because you may keep waiting for a recovery that never comes. Take the loss, learn from it, and move the money into a better stock.`,
     );
   }
   if (upExpensiveItems.length > 0) {
     const c = upExpensiveItems[0];
     consider.push(
-      `${c.code} has run up — the stock now looks expensive, so consider booking some profit.`,
+      `${c.code} has run up sharply — the stock now looks expensive compared to what the company actually earns. Booking some profit (selling part of your position) lets you lock in your gains while still keeping some shares for further upside. You don't have to sell all of it.`,
     );
   }
   if (reliableDividend.length === 0 && holdingCount >= 3) {
     consider.push(
-      "Look at strong dividend-paying stocks if you want regular income alongside growth.",
+      "None of your stocks pay a strong, reliable dividend. Adding 1–2 good dividend stocks gives you cash returning to you every year, which feels like rent on top of any price gains. This is especially useful if you want steady income alongside long-term growth.",
     );
   }
   if (good.length === 0 && bad.length === 0 && consider.length === 0) {
     consider.push(
-      "Your portfolio looks healthy. Check back once a quarter — no urgent action needed.",
+      "Your portfolio looks healthy and there's nothing urgent to fix. Check back once a quarter when company results come out — that's the natural time to review your holdings.",
     );
   }
 
@@ -514,11 +604,13 @@ export function analyzePortfolio(
     avoidCount: avoidNames.length,
     expensiveCount: expensiveItems.length,
   });
+  const gradeExplanation = composeGradeExplanation(grade);
 
   return {
     grade,
     gradeLabel,
     headline,
+    gradeExplanation,
     good: good.slice(0, 5),
     bad: bad.slice(0, 5),
     consider: consider.slice(0, 5),

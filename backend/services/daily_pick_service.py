@@ -1,7 +1,7 @@
 """
 Daily picks service — three stocks chosen per day:
-  - 2 from the DSE Top 20 momentum list (recent price action)
-  - 1 from the DSEF fundamental scoring (top-quality companies)
+  - 1 from the DSE Top 20 momentum list (recent price action)
+  - 2 from the DSEF fundamental scoring (score >= 65, top-quality companies)
 
 Persistence: `daily_picks` collection with one row per (date, slot).
 Display order in the public payload is randomized so no slot looks "first" by default.
@@ -22,10 +22,10 @@ from backend.services.top20_service import compute_top20
 SOURCE_DSEF = "dsef"
 SOURCE_TOP20 = "dse_top20"
 
-# Slot 1, 2 → momentum (top20). Slot 3 → fundamental (DSEF).
+# Slot 1 → momentum (top20). Slot 2, 3 → fundamental (DSEF, score >= 65).
 SLOTS = [
     {"slot": 1, "source": SOURCE_TOP20},
-    {"slot": 2, "source": SOURCE_TOP20},
+    {"slot": 2, "source": SOURCE_DSEF},
     {"slot": 3, "source": SOURCE_DSEF},
 ]
 
@@ -164,7 +164,7 @@ def _reasons_for_momentum(item: dict) -> list[str]:
 # Candidate pools
 # ---------------------------------------------------------------------------
 
-def _dsef_candidates(min_score: float = 70.0) -> list[dict]:
+def _dsef_candidates(min_score: float = 65.0) -> list[dict]:
     """Return DSEF-scored rows sorted by score descending. Top 20 by score."""
     df = build_scores_df()
     if df.empty:
