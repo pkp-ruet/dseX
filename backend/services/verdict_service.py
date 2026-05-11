@@ -32,137 +32,137 @@ _TIER_WORD = {
 # (tier, momentum_grade) -> (tagline, lead_sentence, stance, horizon)
 _MATRIX = {
     ("strong_buy", "hot"): (
-        "Quality + momentum lining up",
-        "Fundamentals are strong and the market is bidding the stock up — both signals agree.",
+        "Strong company, price already rising",
+        "The company's profits and balance sheet are strong, and buyers are actively pushing the price up. Both signals agree — this looks like a good long-term hold.",
         "long_term_hold", "Long-term hold",
     ),
     ("strong_buy", "warm"): (
-        "Quality with steady tape",
-        "Fundamentally strong with the price quietly trending higher — a clean long-term hold.",
+        "Strong company, price slowly rising",
+        "The company is doing well financially, and the share price has been slowly climbing. A safe choice for people who want to hold for the long term.",
         "long_term_hold", "Long-term hold",
     ),
     ("strong_buy", "flat"): (
-        "Fundamentally strong, market asleep",
-        "Fundamentals are strong but the market hasn't noticed — flat trading for weeks. Good for patient long-term holders willing to wait for the re-rating.",
+        "Strong company, but market hasn't noticed yet",
+        "The company has strong profits and a healthy balance sheet, but the share price has not moved for weeks. Patient long-term investors may benefit if the market wakes up to it later.",
         "long_term_hold", "Long-term hold",
     ),
     ("strong_buy", "cold"): (
-        "Strong fundamentals, price drifting down",
-        "Fundamentally strong but the share price has weakened recently. A possible accumulation window for long-term holders willing to average in.",
+        "Strong company, share price falling lately",
+        "The company is financially strong, but the share price has dropped recently. This may be a chance to buy slowly, a little at a time, if you plan to hold for years.",
         "long_term_hold", "Long-term hold",
     ),
     ("strong_buy", "weak_liquidity"): (
-        "Strong but illiquid",
-        "Fundamentally strong but trades thinly — fine to hold long term, but exiting a large position may be slow.",
+        "Strong company, but very few shares trade daily",
+        "The company is financially strong, but very few shares are bought and sold each day. Fine to hold for the long term, but selling a big amount quickly will be difficult.",
         "long_term_hold", "Long-term hold",
     ),
     ("strong_buy", "unknown"): (
-        "Fundamentally strong",
-        "Fundamentally strong; market signal is unclear due to limited recent trading data.",
+        "Strong company, recent trading data unclear",
+        "The company's numbers are strong, but there is not enough recent trading data to judge the share price trend.",
         "long_term_hold", "Long-term hold",
     ),
 
     ("buy", "hot"): (
-        "Solid + market agreeing",
-        "Solid fundamentals with the market actively bidding it up — momentum confirms the quality call.",
+        "Good company, market is buying actively",
+        "The company's numbers are good, and people are buying the share and pushing the price up. The market agrees with the quality — looks like a reasonable long-term hold.",
         "long_term_hold", "Long-term hold",
     ),
     ("buy", "warm"): (
-        "Solid and steady",
-        "Solid fundamentals and a steady price trend — a reasonable long-term hold.",
+        "Good company, price moving up steadily",
+        "The company is in good financial shape, and the share price is steadily rising. A reasonable choice if you want to hold for the long term.",
         "long_term_hold", "Long-term hold",
     ),
     ("buy", "flat"): (
-        "Solid but quiet",
-        "Solid fundamentals but the stock has been quiet — fine for long-term holders, no near-term catalyst.",
+        "Good company, but share is quiet",
+        "The company's numbers are good, but the share has been quiet — the price is not moving much. Fine for long-term holders; do not expect quick gains.",
         "long_term_hold", "Long-term hold",
     ),
     ("buy", "cold"): (
-        "Solid fundamentals, recent weakness",
-        "Solid fundamentals but the price has been falling — wait for the slide to settle, or accumulate gradually.",
+        "Good company, but price is falling lately",
+        "The company's numbers are good, but the share price has been falling. Better to wait for the fall to stop, or buy slowly in small amounts.",
         "wait", "Watch list",
     ),
     ("buy", "weak_liquidity"): (
-        "Solid but illiquid",
-        "Solid fundamentals but very low daily turnover — long-term holders only.",
+        "Good company, but very few shares trade daily",
+        "The company is in good financial shape, but very few shares are bought and sold each day. Only for people who want to hold long term and do not need to sell quickly.",
         "long_term_hold", "Long-term hold",
     ),
     ("buy", "unknown"): (
-        "Solid fundamentals",
-        "Solid fundamentals; market signal is unclear due to limited recent trading data.",
+        "Good company, recent trading data unclear",
+        "The company's numbers are good, but there is not enough recent trading data to judge how the share is moving.",
         "long_term_hold", "Long-term hold",
     ),
 
     ("keep_watching", "hot"): (
-        "Mixed financials, momentum running",
-        "Financials are mixed but the stock is running on short-term momentum. Speculative short-term trade only — not a long-term hold.",
+        "Average company, but share is running hot",
+        "The company's numbers are average — not strong, not weak. But people are buying the share heavily right now and pushing the price up fast. This is a short-term trade for people who accept risk — not a long-term hold.",
         "short_term_trade", "Short-term only",
     ),
     ("keep_watching", "warm"): (
-        "Mixed, modest interest",
-        "Financials are mixed and the price is drifting up gently — no clear long-term edge; wait for stronger evidence.",
+        "Average company, mild buying interest",
+        "The company's numbers are average, and the share price is slowly going up. There is no strong reason to buy for the long term — better to wait for clearer signals.",
         "wait", "Watch list",
     ),
     ("keep_watching", "flat"): (
-        "Mixed and quiet",
-        "Financials are mixed and trading is quiet — no clear edge either way.",
+        "Average company, very little trading",
+        "The company's profits and balance sheet are average — not strong, not weak. The share price is also quiet, not moving much in either direction. There is no clear reason to buy or sell — better to wait and watch.",
         "wait", "Watch list",
     ),
     ("keep_watching", "cold"): (
-        "Mixed and weakening",
-        "Financials are mixed and the price is sliding — better to wait or pass.",
+        "Average company, share price falling",
+        "The company's numbers are average, and the share price is slowly going down. Better to wait or look at other stocks.",
         "wait", "Watch list",
     ),
     ("keep_watching", "weak_liquidity"): (
-        "Mixed and illiquid",
-        "Financials are mixed and the stock barely trades — better avoided.",
+        "Average company, very few shares trade daily",
+        "The company's numbers are average, and very few shares are bought and sold each day. Better to avoid — you may get stuck if you need to sell.",
         "avoid", "Avoid",
     ),
     ("keep_watching", "unknown"): (
-        "Mixed and unclear",
-        "Financials are mixed and recent market signal is unclear.",
+        "Average company, recent trading data unclear",
+        "The company's numbers are average, and there is not enough recent trading data to judge the share price.",
         "wait", "Watch list",
     ),
 
     ("avoid", "hot"): (
-        "Weak fundamentals, hot run",
-        "Financials are weak but the stock is running hot — possible short-term gain for risk-tolerant traders, but not a long-term hold.",
+        "Weak company, but share is running hot",
+        "The company's profits and balance sheet are weak, but the share price is rising fast right now. Risk-takers may make a quick gain, but this is not safe to hold for the long term.",
         "short_term_trade", "Short-term only",
     ),
     ("avoid", "warm"): (
-        "Weak fundamentals, mild bid",
-        "Financials are weak with a mild bid — risky for long term, only for careful short-term trades.",
+        "Weak company, slow price rise",
+        "The company's numbers are weak, and the share price is slowly going up. Risky for long-term holding — only consider careful short-term trades.",
         "short_term_trade", "Short-term only",
     ),
     ("avoid", "flat"): (
-        "Weak and quiet",
-        "Weak financials and quiet trading — better avoided.",
+        "Weak company, quiet trading",
+        "The company's numbers are weak and the share price is barely moving. Better to avoid — there is no real reason to put your money here.",
         "avoid", "Avoid",
     ),
     ("avoid", "cold"): (
-        "Weak and falling",
-        "Weak financials and a falling price — avoid.",
+        "Weak company, price falling",
+        "The company's numbers are weak, and the share price keeps falling. Best to avoid.",
         "avoid", "Avoid",
     ),
     ("avoid", "weak_liquidity"): (
-        "Weak and illiquid",
-        "Weak financials and barely trades — avoid.",
+        "Weak company, very few shares trade daily",
+        "The company's numbers are weak, and very few shares are bought and sold each day. Avoid — you may not be able to sell when you want to.",
         "avoid", "Avoid",
     ),
     ("avoid", "unknown"): (
-        "Weak fundamentals",
-        "Weak financials; market signal is unclear.",
+        "Weak company, recent trading data unclear",
+        "The company's numbers are weak, and there is not enough recent trading data to judge the share price.",
         "avoid", "Avoid",
     ),
 
-    ("unknown", "hot"): ("Unrated, momentum running",
-        "Fundamentals are not rated; the stock is running on short-term momentum only.",
+    ("unknown", "hot"): ("No rating, share is running hot",
+        "We do not have enough data to rate the company. The share price is rising fast right now, but without checking the business numbers, this is only a short-term gamble.",
         "short_term_trade", "Short-term only"),
-    ("unknown", "warm"): ("Unrated", "Fundamentals are not rated.", "wait", "Watch list"),
-    ("unknown", "flat"): ("Unrated", "Fundamentals are not rated.", "wait", "Watch list"),
-    ("unknown", "cold"): ("Unrated", "Fundamentals are not rated and price is weak.", "avoid", "Avoid"),
-    ("unknown", "weak_liquidity"): ("Unrated, illiquid", "Unrated and barely trades — avoid.", "avoid", "Avoid"),
-    ("unknown", "unknown"): ("Unrated", "Not enough data to form a verdict.", "wait", "Watch list"),
+    ("unknown", "warm"): ("No rating available", "We do not have enough data to rate this company's business.", "wait", "Watch list"),
+    ("unknown", "flat"): ("No rating available", "We do not have enough data to rate this company's business.", "wait", "Watch list"),
+    ("unknown", "cold"): ("No rating, price is falling", "We do not have enough data to rate the company, and the share price is falling lately.", "avoid", "Avoid"),
+    ("unknown", "weak_liquidity"): ("No rating, very few shares trade daily", "We do not have enough data to rate the company, and very few shares are bought and sold each day. Better to avoid.", "avoid", "Avoid"),
+    ("unknown", "unknown"): ("No rating available", "We do not have enough data to give a clear opinion on this stock.", "wait", "Watch list"),
 }
 
 
@@ -180,22 +180,22 @@ def _supporting_clauses(tier: str,
     p5 = sr.get("p5_div")
     div_y = sr.get("div_yield_pct")
     if (p5 is not None and p5 >= 7) or (div_y is not None and div_y >= 5):
-        out.append("Pays dividend reliably.")
+        out.append("Has paid dividends regularly in past years.")
 
     # Valuation clause
     p4_pe = sr.get("p4_pe")
     if p4_pe is not None and p4_pe >= 8:
-        out.append("Currently priced cheaper than its own history.")
+        out.append("The share price looks cheaper now than its average over the past few years.")
     elif p4_pe is not None and p4_pe <= 1:
-        out.append("Priced richer than its 5-year average.")
+        out.append("The share price looks more expensive now than its 5-year average.")
 
     # 52w range clause
     pct = (momentum or {}).get("pct_in_52w_range")
     if pct is not None:
         if pct >= 85 and tier in ("strong_buy", "buy"):
-            out.append("Near its 1-year high — limited bargain at this level.")
+            out.append("Price is close to the highest level of the past year — not much room left for a cheap entry.")
         elif pct <= 15 and tier in ("strong_buy", "buy"):
-            out.append("Near its 1-year low — possible value entry.")
+            out.append("Price is close to the lowest level of the past year — may be a good time to buy slowly.")
 
     # Risk clause (latest EPS negative)
     if financials:
@@ -203,7 +203,7 @@ def _supporting_clauses(tier: str,
         if latest:
             eps = latest.get("eps")
             if isinstance(eps, (int, float)) and eps < 0:
-                out.append("Lost money in the most recent year — fragile.")
+                out.append("The company lost money in its most recent year — be careful.")
 
     # Cap to 2 supporting clauses to keep output to 2-3 sentences total
     return out[:2]

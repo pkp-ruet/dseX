@@ -29,23 +29,23 @@ export function generateVerdictSentence(detail: CompanyDetail): string {
   const p5 = score_row?.p5_div as number | null;
 
   if (p1 != null) {
-    if (p1 >= 7) positives.push("earns consistently");
-    else if (p1 < 4) concerns.push("earnings are weak or inconsistent");
+    if (p1 >= 7) positives.push("makes profit year after year");
+    else if (p1 < 4) concerns.push("profits are weak or uneven");
   }
 
   if (p2 != null) {
-    if (p2 >= 7) positives.push("has healthy finances");
-    else if (p2 < 4) concerns.push("financial health needs attention");
+    if (p2 >= 7) positives.push("has a healthy balance sheet");
+    else if (p2 < 4) concerns.push("the balance sheet has some weak spots");
   }
 
   if (p3 != null) {
-    if (p3 >= 7) positives.push("holds a strong competitive position");
-    else if (p3 < 4) concerns.push("competitive moat is narrow");
+    if (p3 >= 7) positives.push("has a strong position over its competitors");
+    else if (p3 < 4) concerns.push("has little advantage over competitors");
   }
 
   if (p5 != null) {
-    if (p5 >= 7) positives.push("pays steady dividends");
-    else if (p5 < 4) concerns.push("dividend track record is weak");
+    if (p5 >= 7) positives.push("pays dividends regularly");
+    else if (p5 < 4) concerns.push("has not paid dividends regularly");
   }
 
   if (positives.length > 0) {
@@ -57,8 +57,8 @@ export function generateVerdictSentence(detail: CompanyDetail): string {
 
   // Valuation context
   if (p4 != null) {
-    if (p4 >= 7) parts.push("Currently trading at an attractive valuation.");
-    else if (p4 < 4) parts.push("Valuation appears stretched relative to historical levels.");
+    if (p4 >= 7) parts.push("The share price looks cheap right now.");
+    else if (p4 < 4) parts.push("The share price looks expensive compared to past years.");
   }
 
   return parts.join(" ");
@@ -80,29 +80,29 @@ export function pillarInterpretation(pillarKey: string, score: number | null): s
   const s = score; // 0-10 scale
   const map: Record<string, [string, string, string]> = {
     p1_biz: [
-      "Excellent earnings track record",
-      "Decent but mixed earnings history",
-      "Weak or declining earnings",
+      "Makes strong profits every year",
+      "Profits are okay but uneven from year to year",
+      "Profits are weak or falling",
     ],
     p2_health: [
-      "Strong balance sheet and cash flow",
-      "Acceptable financial position",
-      "Financial leverage is concerning",
+      "Healthy balance sheet, plenty of cash",
+      "Balance sheet is acceptable",
+      "Too much debt — financial health is a worry",
     ],
     p3_moat: [
-      "Strong competitive advantages",
-      "Moderate competitive position",
-      "Narrow moat with limited pricing power",
+      "Has strong advantages over competitors",
+      "Has some advantage over competitors",
+      "Has little advantage over competitors — hard to raise prices",
     ],
     p4_val: [
-      "Attractively valued vs history",
-      "Fairly valued at current price",
-      "Appears expensive vs historical norms",
+      "Cheaper than its own past price",
+      "Priced fairly at the current level",
+      "Looks expensive compared to its own past",
     ],
     p5_div: [
-      "Reliable and growing dividends",
-      "Moderate dividend consistency",
-      "Weak or no dividend track record",
+      "Pays growing dividends every year",
+      "Pays dividends sometimes, not every year",
+      "Rarely or never pays dividends",
     ],
   };
 
