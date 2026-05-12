@@ -7,6 +7,7 @@ import { taka } from "@/lib/formatters";
 import { getWatchlist, subscribeWatchlist, addToWatchlist } from "@/lib/watchlist";
 import StarButton from "@/components/ui/StarButton";
 import WatchlistNews from "./WatchlistNews";
+import WatchlistAnalysis from "./WatchlistAnalysis";
 
 function flatten(scores: ScoresResponse | null): ScoreItem[] {
   if (!scores) return [];
@@ -201,8 +202,13 @@ export default function WatchlistTable() {
               {codes.length - rows.length} ticker{codes.length - rows.length > 1 ? "s" : ""} not found in current scores (may be delisted or unscored).
             </p>
           )}
-          <WatchlistNews codes={codes} />
         </div>
+      )}
+      {codes.length > 0 && !loading && !error && (
+        <WatchlistAnalysis codes={codes} />
+      )}
+      {codes.length > 0 && !loading && !error && (
+        <WatchlistNews codes={codes} />
       )}
     </>
   );
