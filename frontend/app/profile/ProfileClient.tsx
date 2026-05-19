@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { getWatchlist } from "@/lib/watchlist";
+import { getCachedWatchlist, loadWatchlist, subscribeWatchlist } from "@/lib/watchlist";
 import { getToken } from "@/lib/auth";
 
 const API_URL =
@@ -42,8 +42,13 @@ export default function ProfileClient() {
 
   useEffect(() => {
     if (user) setNameInput(user.display_name ?? "");
-    setWatchCount(getWatchlist().length);
   }, [user]);
+
+  useEffect(() => {
+    const update = () => setWatchCount(getCachedWatchlist().length);
+    loadWatchlist().then(update);
+    return subscribeWatchlist(update);
+  }, []);
 
   async function handleSaveName() {
     setSaveError("");

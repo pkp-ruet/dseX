@@ -2,7 +2,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getWatchlist, subscribeWatchlist } from "@/lib/watchlist";
+import { getCachedWatchlist, subscribeWatchlist, loadWatchlist } from "@/lib/watchlist";
+import { isLoggedIn } from "@/lib/auth";
 import { openGlobalSearch } from "@/components/layout/GlobalSearch";
 
 export default function MobileBottomBar() {
@@ -12,8 +13,12 @@ export default function MobileBottomBar() {
 
   useEffect(() => {
     setMounted(true);
-    const update = () => setWatchCount(getWatchlist().length);
-    update();
+    const update = () => setWatchCount(getCachedWatchlist().length);
+    if (isLoggedIn()) {
+      loadWatchlist().then(update);
+    } else {
+      update();
+    }
     return subscribeWatchlist(update);
   }, []);
 

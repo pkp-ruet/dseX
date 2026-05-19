@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { openGlobalSearch } from "@/components/layout/GlobalSearch";
+import WatchlistDot from "@/components/watchlist/WatchlistDot";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -24,11 +25,40 @@ export default function Navbar() {
   const { user, isLoggedIn } = useAuth();
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [marketsOpen, setMarketsOpen] = useState(false);
+  const marketsRef = useRef<HTMLDivElement | null>(null);
+  const marketsTriggerRef = useRef<HTMLButtonElement | null>(null);
 
-  // Close drawer on route change
+  const isMarketsChild = isToday || isTop20 || isPopular || isStocks;
+
+  // Close drawer + markets dropdown on route change
   useEffect(() => {
     setMenuOpen(false);
+    setMarketsOpen(false);
   }, [pathname]);
+
+  // Close Markets dropdown on outside click / Escape
+  useEffect(() => {
+    if (!marketsOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (!marketsRef.current) return;
+      if (!marketsRef.current.contains(e.target as Node)) {
+        setMarketsOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMarketsOpen(false);
+        marketsTriggerRef.current?.focus();
+      }
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [marketsOpen]);
 
   // Lock body scroll when drawer open
   useEffect(() => {
@@ -78,34 +108,20 @@ export default function Navbar() {
             </button>
             <Link
               href="/watchlist"
-              className={`navbar-watch-btn${isWatchlist ? " navbar-watch-btn-active" : ""}`}
+              className={`navbar-watch-btn${isWatchlist ? " navbar-watch-btn-active" : ""} relative`}
               aria-label="My Watchlist"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
               </svg>
               <span className="navbar-watch-label">Watchlist</span>
+              <WatchlistDot />
             </Link>
             <Link
               href="/dsestockranking"
-              className={`navbar-rank-btn${isRanking ? " navbar-rank-btn-active" : ""}`}
+              className={`navbar-intel-btn${isRanking ? " navbar-intel-btn-active" : ""}`}
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M4 20h16v-2H4v2zm2-4h3V9H6v7zm5 0h3V5h-3v11zm5 0h3v-7h-3v7z" />
-              </svg>
               Rankings
-            </Link>
-            <Link
-              href="/dse-top-20"
-              className={`navbar-intel-btn${isTop20 ? " navbar-intel-btn-active" : ""}`}
-            >
-              Top 20
-            </Link>
-            <Link
-              href="/dse-popular-stocks"
-              className={`navbar-intel-btn${isPopular ? " navbar-intel-btn-active" : ""}`}
-            >
-              Popular
             </Link>
             <Link
               href="/market-analysis"
@@ -113,35 +129,62 @@ export default function Navbar() {
             >
               Market Analysis
             </Link>
-            <Link
-              href="/dse-today"
-              className={`navbar-intel-btn${isToday ? " navbar-intel-btn-active" : ""}`}
-            >
-              DSE Today
-            </Link>
-            <Link
-              href="/stocks"
-              className={`navbar-intel-btn${isStocks ? " navbar-intel-btn-active" : ""}`}
-            >
-              Browse Stocks
-            </Link>
+            <div className="navbar-dropdown" ref={marketsRef}>
+              <button
+                type="button"
+                ref={marketsTriggerRef}
+                className={`navbar-dropdown-trigger navbar-intel-btn${isMarketsChild ? " navbar-intel-btn-active" : ""}`}
+                aria-haspopup="menu"
+                aria-expanded={marketsOpen}
+                onClick={() => setMarketsOpen((v) => !v)}
+              >
+                Markets
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true" style={{ marginLeft: 4 }}>
+                  <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              {marketsOpen && (
+                <div className="navbar-dropdown-panel" role="menu">
+                  <Link
+                    href="/dse-today"
+                    className={`navbar-dropdown-item${isToday ? " navbar-intel-btn-active" : ""}`}
+                    role="menuitem"
+                    onClick={() => setMarketsOpen(false)}
+                  >
+                    DSE Today
+                  </Link>
+                  <Link
+                    href="/dse-top-20"
+                    className={`navbar-dropdown-item${isTop20 ? " navbar-intel-btn-active" : ""}`}
+                    role="menuitem"
+                    onClick={() => setMarketsOpen(false)}
+                  >
+                    DSE Top 20
+                  </Link>
+                  <Link
+                    href="/dse-popular-stocks"
+                    className={`navbar-dropdown-item${isPopular ? " navbar-intel-btn-active" : ""}`}
+                    role="menuitem"
+                    onClick={() => setMarketsOpen(false)}
+                  >
+                    Popular Stocks
+                  </Link>
+                  <Link
+                    href="/stocks"
+                    className={`navbar-dropdown-item${isStocks ? " navbar-intel-btn-active" : ""}`}
+                    role="menuitem"
+                    onClick={() => setMarketsOpen(false)}
+                  >
+                    Stock List
+                  </Link>
+                </div>
+              )}
+            </div>
             <Link
               href="/stock-insights"
               className={`navbar-intel-btn${isStockLists ? " navbar-intel-btn-active" : ""}`}
             >
               Stock Insights
-            </Link>
-            <Link
-              href="/learn"
-              className={`navbar-intel-btn${isLearn ? " navbar-intel-btn-active" : ""}`}
-            >
-              Blogs
-            </Link>
-            <Link
-              href="/about"
-              className={`navbar-intel-btn${isAbout ? " navbar-intel-btn-active" : ""}`}
-            >
-              About
             </Link>
             <Link
               href="/portfolio"
@@ -258,7 +301,7 @@ export default function Navbar() {
             className={`navbar-drawer-link${isStocks ? " active" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
-            Browse Stocks
+            Stock List
           </Link>
           <Link
             href="/stock-insights"
@@ -279,14 +322,14 @@ export default function Navbar() {
             className={`navbar-drawer-link${isTop20 ? " active" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
-            Top 20
+            DSE Top 20
           </Link>
           <Link
             href="/dse-popular-stocks"
             className={`navbar-drawer-link${isPopular ? " active" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
-            Popular
+            Popular Stocks
           </Link>
           <Link
             href="/learn"

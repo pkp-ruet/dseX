@@ -24,6 +24,7 @@ import Top20MomentumTeaser from "@/components/home/Top20MomentumTeaser";
 import PortfolioAnalyzerHero from "@/components/home/PortfolioAnalyzerHero";
 import GradeAnyStockHero from "@/components/home/GradeAnyStockHero";
 import TodaysTopPicks from "@/components/home/TodaysTopPicks";
+import HeroTeaserLine from "@/components/home/HeroTeaserLine";
 
 export const revalidate = 3600;
 
@@ -192,13 +193,7 @@ export default function HomePage() {
 
       {/* LCP candidate — static, in shell HTML immediately, no data dependency */}
       <h1 className="sr-only">DSE Share Price Today — Dhaka Stock Exchange Rankings</h1>
-      <p className="text-sm sm:text-base font-medium text-[var(--text)] text-center px-3 py-2 leading-relaxed">
-        Find the best DSE stocks to buy — free{" "}
-        <strong className="text-[var(--primary)] font-bold">Dhaka Stock Exchange</strong> (DSEX) rankings,
-        live <strong className="text-[var(--primary)] font-bold">DSE share price</strong> updates,{" "}
-        <strong className="text-[var(--primary)] font-bold">DSE today</strong> picks, and{" "}
-        <strong className="text-[var(--primary)] font-bold">Bangladesh stock market</strong> signals.
-      </p>
+      <HeroTeaserLine />
 
       {/* Hero block — Grade-any-stock demo + Today's Top Stock */}
       <Suspense

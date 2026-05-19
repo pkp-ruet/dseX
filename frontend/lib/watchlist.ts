@@ -1,111 +1,208 @@
-const KEY = "dsex.watchlist";
+/**
+ * Watchlist client — server-of-truth (no localStorage).
+ *
+ * Only logged-in users have a watchlist; unauthenticated callers get an empty
+ * list and any mutation is a no-op (the StarButton / AddBar UI gates auth and
+ * prompts sign-up before reaching this module).
+ *
+ * In-memory cache lets us render synchronously after the first `loadWatchlist()`
+ * fetch. The `dsex:watchlist-change` custom event is dispatched after every
+ * successful mutation so subscribers re-render.
+ */
+
+import { isLoggedIn } from "@/lib/auth";
+import {
+  apiGetWatchlist,
+  apiAddToWatchlist,
+  apiRemoveFromWatchlist,
+  apiSetWatchlist,
+  apiGetWatchlistNotes,
+  apiSetWatchlistNote,
+} from "@/lib/api";
+
 const EVENT = "dsex:watchlist-change";
+const NOTES_EVENT = "dsex:watchlist-notes-change";
 
-function read(): string[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(KEY);
-    if (!raw) return [];
-    const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr.filter((x) => typeof x === "string") : [];
-  } catch {
-    return [];
-  }
-}
+let _cache: string[] | null = null;
+let _loadPromise: Promise<string[]> | null = null;
 
-function write(codes: string[]) {
+let _notes: Record<string, string> | null = null;
+let _notesLoadPromise: Promise<Record<string, string>> | null = null;
+
+function emit() {
   if (typeof window === "undefined") return;
-  const unique = Array.from(new Set(codes.map((c) => c.toUpperCase())));
-  window.localStorage.setItem(KEY, JSON.stringify(unique));
   window.dispatchEvent(new CustomEvent(EVENT));
 }
 
-export function getWatchlist(): string[] {
-  return read();
+function emitNotes() {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(NOTES_EVENT));
+}
+
+function normalize(codes: string[] | undefined | null): string[] {
+  if (!codes) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const c of codes) {
+    if (typeof c !== "string") continue;
+    const u = c.toUpperCase();
+    if (!seen.has(u)) {
+      seen.add(u);
+      out.push(u);
+    }
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// Watchlist
+// ---------------------------------------------------------------------------
+
+export function getCachedWatchlist(): string[] {
+  return _cache ?? [];
 }
 
 export function isWatched(code: string): boolean {
-  return read().includes(code.toUpperCase());
+  if (!_cache) return false;
+  return _cache.includes(code.toUpperCase());
 }
 
-export function addToWatchlist(code: string) {
-  const list = read();
+/** Fetch from server and fill cache. Returns [] for logged-out users. */
+export async function loadWatchlist(): Promise<string[]> {
+  if (!isLoggedIn()) {
+    _cache = [];
+    return _cache;
+  }
+  if (_loadPromise) return _loadPromise;
+  _loadPromise = (async () => {
+    try {
+      const res = await apiGetWatchlist();
+      _cache = normalize(res.codes);
+    } catch {
+      _cache = [];
+    } finally {
+      _loadPromise = null;
+    }
+    emit();
+    return _cache ?? [];
+  })();
+  return _loadPromise;
+}
+
+export async function addToWatchlist(code: string): Promise<void> {
+  if (!isLoggedIn()) return;
   const upper = code.toUpperCase();
-  if (!list.includes(upper)) write([...list, upper]);
+  if (_cache?.includes(upper)) return;
+  try {
+    const res = await apiAddToWatchlist([upper]);
+    _cache = normalize(res.codes);
+    emit();
+  } catch {
+    // swallow — UI keeps prior state
+  }
 }
 
-export function removeFromWatchlist(code: string) {
-  write(read().filter((c) => c !== code.toUpperCase()));
+export async function removeFromWatchlist(code: string): Promise<void> {
+  if (!isLoggedIn()) return;
+  const upper = code.toUpperCase();
+  try {
+    const res = await apiRemoveFromWatchlist([upper]);
+    _cache = normalize(res.codes);
+    emit();
+  } catch {
+    // swallow
+  }
 }
 
-export function toggleWatchlist(code: string): boolean {
+export async function toggleWatchlist(code: string): Promise<boolean> {
   if (isWatched(code)) {
-    removeFromWatchlist(code);
+    await removeFromWatchlist(code);
     return false;
   }
-  addToWatchlist(code);
-  return true;
+  await addToWatchlist(code);
+  return _cache?.includes(code.toUpperCase()) ?? false;
+}
+
+export async function setWatchlist(codes: string[]): Promise<string[]> {
+  if (!isLoggedIn()) return [];
+  try {
+    const res = await apiSetWatchlist(normalize(codes));
+    _cache = normalize(res.codes);
+    emit();
+    return _cache;
+  } catch {
+    return _cache ?? [];
+  }
 }
 
 export function subscribeWatchlist(cb: () => void): () => void {
   if (typeof window === "undefined") return () => {};
   const handler = () => cb();
   window.addEventListener(EVENT, handler);
-  window.addEventListener("storage", handler);
-  return () => {
-    window.removeEventListener(EVENT, handler);
-    window.removeEventListener("storage", handler);
-  };
+  return () => window.removeEventListener(EVENT, handler);
 }
 
 // ---------------------------------------------------------------------------
-// DB-synced helpers (used when user is logged in)
+// Notes
 // ---------------------------------------------------------------------------
 
-import { isLoggedIn } from "@/lib/auth";
-import {
-  apiAddToWatchlist,
-  apiRemoveFromWatchlist,
-  apiSetWatchlist,
-} from "@/lib/api";
+export function getCachedNotes(): Record<string, string> {
+  return _notes ?? {};
+}
 
-export async function addToWatchlistSynced(code: string): Promise<void> {
-  addToWatchlist(code); // optimistic local update
-  if (isLoggedIn()) {
-    await apiAddToWatchlist([code]).catch(() => {});
+export function getNote(code: string): string {
+  if (!_notes) return "";
+  return _notes[code.toUpperCase()] ?? "";
+}
+
+export async function loadNotes(): Promise<Record<string, string>> {
+  if (!isLoggedIn()) {
+    _notes = {};
+    return _notes;
+  }
+  if (_notesLoadPromise) return _notesLoadPromise;
+  _notesLoadPromise = (async () => {
+    try {
+      const res = await apiGetWatchlistNotes();
+      _notes = res.notes ?? {};
+    } catch {
+      _notes = {};
+    } finally {
+      _notesLoadPromise = null;
+    }
+    emitNotes();
+    return _notes ?? {};
+  })();
+  return _notesLoadPromise;
+}
+
+export async function setNote(code: string, text: string): Promise<void> {
+  if (!isLoggedIn()) return;
+  try {
+    const res = await apiSetWatchlistNote(code, text);
+    _notes = res.notes ?? {};
+    emitNotes();
+  } catch {
+    // swallow
   }
 }
 
-export async function removeFromWatchlistSynced(code: string): Promise<void> {
-  removeFromWatchlist(code);
-  if (isLoggedIn()) {
-    await apiRemoveFromWatchlist([code]).catch(() => {});
-  }
+export function subscribeNotes(cb: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  const handler = () => cb();
+  window.addEventListener(NOTES_EVENT, handler);
+  return () => window.removeEventListener(NOTES_EVENT, handler);
 }
 
-export async function toggleWatchlistSynced(code: string): Promise<boolean> {
-  if (isWatched(code)) {
-    await removeFromWatchlistSynced(code);
-    return false;
-  }
-  await addToWatchlistSynced(code);
-  return true;
-}
+// ---------------------------------------------------------------------------
+// Cache invalidation on logout
+// ---------------------------------------------------------------------------
 
-export async function mergeWatchlistOnLogin(serverCodes: string[]): Promise<void> {
-  const localCodes = getWatchlist();
-  const merged = Array.from(
-    new Set([
-      ...localCodes.map((c) => c.toUpperCase()),
-      ...serverCodes.map((c) => c.toUpperCase()),
-    ])
-  );
-  write(merged);
-
-  const needsSync =
-    merged.length !== serverCodes.length ||
-    merged.some((c) => !serverCodes.includes(c));
-  if (needsSync) {
-    await apiSetWatchlist(merged).catch(() => {});
-  }
+if (typeof window !== "undefined") {
+  window.addEventListener("dsex:auth-logout", () => {
+    _cache = [];
+    _notes = {};
+    emit();
+    emitNotes();
+  });
 }

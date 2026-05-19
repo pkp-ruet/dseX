@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { apiLogin, type AuthApiResponse } from "@/lib/api";
-import { mergeWatchlistOnLogin } from "@/lib/watchlist";
+import { loadWatchlist } from "@/lib/watchlist";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 
 type Mode = "email" | "phone";
@@ -32,7 +32,7 @@ export default function LoginForm() {
           : { phone: identifier, password };
       const data = await apiLogin(payload);
       login(data.access_token, data.user);
-      await mergeWatchlistOnLogin(data.user.watchlist);
+      await loadWatchlist();
       router.push("/");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Login failed.";
@@ -44,7 +44,7 @@ export default function LoginForm() {
 
   async function handleGoogleSuccess(data: AuthApiResponse) {
     login(data.access_token, data.user);
-    await mergeWatchlistOnLogin(data.user.watchlist);
+    await loadWatchlist();
     router.push("/");
   }
 

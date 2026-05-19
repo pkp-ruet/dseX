@@ -70,7 +70,9 @@ export function isLoggedIn(): boolean {
 export function logout(): void {
   clearToken();
   clearStoredUser();
-  // intentionally do NOT clear dsex.watchlist — user keeps local data post-logout
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("dsex:auth-logout"));
+  }
 }
 
 export function isTokenExpired(token: string): boolean {

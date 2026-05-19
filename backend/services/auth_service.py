@@ -74,7 +74,13 @@ def sanitize_user(doc: dict) -> dict:
     # Ensure email/phone always present as null if missing (sparse index omits them)
     doc.setdefault("email", None)
     doc.setdefault("phone", None)
-    for key in ("created_at", "updated_at", "last_login_at", "last_seen_at"):
+    for key in (
+        "created_at",
+        "updated_at",
+        "last_login_at",
+        "last_seen_at",
+        "watchlist_last_visit_at",
+    ):
         if key in doc and isinstance(doc[key], datetime):
             doc[key] = doc[key].isoformat()
     return doc
@@ -255,6 +261,53 @@ def update_user_watchlist(user_id: str, codes: list[str]) -> list[str]:
         {"$set": {"watchlist": deduped, "updated_at": datetime.now(timezone.utc)}},
     )
     return deduped
+
+
+def touch_watchlist_visit(user_id: str) -> Optional[str]:
+    """Record a visit to /watchlist. Returns the PREVIOUS visit timestamp (ISO
+    string) so the frontend can compute "since last visit" deltas. Returns None
+    on first visit."""
+    now = datetime.now(timezone.utc)
+    doc = _users().find_one_and_update(
+        {"user_id": user_id},
+        {"$set": {"watchlist_last_visit_at": now, "updated_at": now}},
+        projection={"watchlist_last_visit_at": 1},
+        return_document=False,  # pymongo: ReturnDocument.BEFORE
+    )
+    if not doc:
+        return None
+    prev = doc.get("watchlist_last_visit_at")
+    if isinstance(prev, datetime):
+        return prev.isoformat()
+    return None
+
+
+def get_watchlist_notes(user_id: str) -> dict[str, str]:
+    doc = _users().find_one({"user_id": user_id}, {"watchlist_notes": 1})
+    notes = (doc or {}).get("watchlist_notes") or {}
+    return {str(k).upper(): str(v) for k, v in notes.items() if isinstance(v, str) and v.strip()}
+
+
+def set_watchlist_note(user_id: str, code: str, text: str) -> dict[str, str]:
+    code = code.strip().upper()
+    if not code:
+        raise ValueError("code_required")
+    text = (text or "").strip()
+    if len(text) > 500:
+        text = text[:500]
+    field = f"watchlist_notes.{code}"
+    now = datetime.now(timezone.utc)
+    if text:
+        _users().update_one(
+            {"user_id": user_id},
+            {"$set": {field: text, "updated_at": now}},
+        )
+    else:
+        _users().update_one(
+            {"user_id": user_id},
+            {"$unset": {field: ""}, "$set": {"updated_at": now}},
+        )
+    return get_watchlist_notes(user_id)
 
 
 def ensure_users_indexes() -> None:

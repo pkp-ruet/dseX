@@ -10,6 +10,9 @@ from backend.services.auth_service import (
     update_user_watchlist,
     get_db,
     sanitize_user,
+    touch_watchlist_visit,
+    get_watchlist_notes,
+    set_watchlist_note,
 )
 
 router = APIRouter(prefix="/api/user", tags=["user"])
@@ -21,6 +24,11 @@ class WatchlistBody(BaseModel):
 
 class ProfileUpdateBody(BaseModel):
     display_name: Optional[str] = None
+
+
+class WatchlistNoteBody(BaseModel):
+    code: str
+    text: str = ""
 
 
 # ---------------------------------------------------------------------------
@@ -60,6 +68,26 @@ def remove_from_watchlist(body: WatchlistBody, current_user: dict = Depends(get_
         {"$set": {"watchlist": updated, "updated_at": datetime.now(timezone.utc)}},
     )
     return {"codes": updated}
+
+
+@router.post("/watchlist/visit")
+def visit_watchlist(current_user: dict = Depends(get_current_user)):
+    prev = touch_watchlist_visit(current_user["user_id"])
+    return {"previous_visit_at": prev}
+
+
+@router.get("/watchlist/notes")
+def list_watchlist_notes(current_user: dict = Depends(get_current_user)):
+    return {"notes": get_watchlist_notes(current_user["user_id"])}
+
+
+@router.put("/watchlist/notes")
+def upsert_watchlist_note(
+    body: WatchlistNoteBody,
+    current_user: dict = Depends(get_current_user),
+):
+    notes = set_watchlist_note(current_user["user_id"], body.code, body.text)
+    return {"notes": notes}
 
 
 # ---------------------------------------------------------------------------

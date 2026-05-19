@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { apiRegister, type AuthApiResponse } from "@/lib/api";
-import { addToWatchlistSynced, mergeWatchlistOnLogin } from "@/lib/watchlist";
+import { addToWatchlist, loadWatchlist } from "@/lib/watchlist";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 
 type Mode = "email" | "phone";
@@ -55,11 +55,12 @@ export default function RegisterForm() {
           : { phone: identifier, password, display_name: displayName || undefined };
       const data = await apiRegister(payload);
       login(data.access_token, data.user);
-      await mergeWatchlistOnLogin(data.user.watchlist);
+      await loadWatchlist();
       if (saveCode) {
-        await addToWatchlistSynced(saveCode).catch(() => {});
+        await addToWatchlist(saveCode).catch(() => {});
       }
-      router.push("/");
+      const next = searchParams.get("next");
+      router.push(next && next.startsWith("/") ? next : "/");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Registration failed.";
       setError(msg);
@@ -70,11 +71,12 @@ export default function RegisterForm() {
 
   async function handleGoogleSuccess(data: AuthApiResponse) {
     login(data.access_token, data.user);
-    await mergeWatchlistOnLogin(data.user.watchlist);
+    await loadWatchlist();
     if (saveCode) {
-      await addToWatchlistSynced(saveCode).catch(() => {});
+      await addToWatchlist(saveCode).catch(() => {});
     }
-    router.push("/");
+    const next = searchParams.get("next");
+    router.push(next && next.startsWith("/") ? next : "/");
   }
 
   return (

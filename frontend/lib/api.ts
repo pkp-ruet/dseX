@@ -612,6 +612,23 @@ export async function apiRemoveFromWatchlist(codes: string[]): Promise<{ codes: 
   });
 }
 
+export async function apiVisitWatchlist(): Promise<{ previous_visit_at: string | null }> {
+  return apiAuthFetch<{ previous_visit_at: string | null }>("/api/user/watchlist/visit", {
+    method: "POST",
+  });
+}
+
+export async function apiGetWatchlistNotes(): Promise<{ notes: Record<string, string> }> {
+  return apiAuthFetch<{ notes: Record<string, string> }>("/api/user/watchlist/notes");
+}
+
+export async function apiSetWatchlistNote(code: string, text: string): Promise<{ notes: Record<string, string> }> {
+  return apiAuthFetch<{ notes: Record<string, string> }>("/api/user/watchlist/notes", {
+    method: "PUT",
+    body: JSON.stringify({ code, text }),
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Portfolio
 // ---------------------------------------------------------------------------

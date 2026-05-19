@@ -2791,6 +2791,59 @@ details.dsex-exp[open] > summary {
   color: var(--ink);
 }
 
+/* ---- Navbar Markets dropdown ---- */
+.navbar-dropdown {
+  position: relative;
+  display: inline-flex;
+}
+.navbar-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  font-family: inherit;
+}
+.navbar-dropdown-trigger[aria-expanded="true"] {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--ink);
+}
+.navbar-dropdown-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 200px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 60;
+}
+.navbar-dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-muted);
+  border: 1px solid transparent;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.navbar-dropdown-item:hover {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--ink);
+}
+
 /* ======================================
    MARKET INTELLIGENCE PAGE
    ====================================== */
@@ -3564,11 +3617,20 @@ details.dsex-exp[open] > summary {
   .watchlist-table thead { display: none; }
   .watchlist-table tbody { display: block; }
 
+  /* Enriched row: star · code · tier · LTP · chg · eps · 52w-bar · signals · note
+     Mobile layout (per ticker):
+       row1: star  code     LTP   chg%
+       row2: star  tier     eps   note
+     52w bar + signals hidden on mobile (kept on desktop / stock detail). */
   .watchlist-table tbody tr {
     display: grid;
-    grid-template-columns: 24px 1fr auto auto;
+    grid-template-columns: 26px minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      "star code ltp chg"
+      "star tier eps note";
     column-gap: 10px;
-    padding: 12px 12px;
+    row-gap: 4px;
+    padding: 10px 12px;
     border-bottom: 1px solid var(--cell-rule);
     align-items: center;
   }
@@ -3577,11 +3639,26 @@ details.dsex-exp[open] > summary {
 
   .watchlist-table td { padding: 0; border: none; font-size: 0.85rem; }
 
-  /* star | code | LTP | chg% */
-  .watchlist-table td:nth-child(1) { grid-column: 1; }
-  .watchlist-table td:nth-child(2) { grid-column: 2; }
-  .watchlist-table td:nth-child(3) { grid-column: 3; text-align: right; font-variant-numeric: tabular-nums; }
-  .watchlist-table td:nth-child(4) { grid-column: 4; text-align: right; min-width: 56px; font-variant-numeric: tabular-nums; }
+  .watchlist-table td:nth-child(1) { grid-area: star; align-self: center; }
+  .watchlist-table td:nth-child(2) { grid-area: code; }
+  .watchlist-table td:nth-child(3) { grid-area: tier; justify-self: start; }
+  .watchlist-table td:nth-child(4) { grid-area: ltp; text-align: right; font-variant-numeric: tabular-nums; }
+  .watchlist-table td:nth-child(5) { grid-area: chg; text-align: right; min-width: 56px; font-variant-numeric: tabular-nums; }
+  .watchlist-table td:nth-child(6) { grid-area: eps; justify-self: center; }
+  /* 52w-range bar + signal pills: hidden on mobile */
+  .watchlist-table td:nth-child(7),
+  .watchlist-table td:nth-child(8) { display: none; }
+  .watchlist-table td:nth-child(9) { grid-area: note; justify-self: end; }
+
+  /* Note editor row (colspan=9) — break out of grid and span full width. */
+  .watchlist-table tbody tr:has(> td[colspan]) {
+    display: block;
+    padding: 0;
+  }
+  .watchlist-table tbody tr > td[colspan] {
+    display: block;
+    width: 100%;
+  }
 
   .watchlist-ticker { font-size: 0.9rem; }
 }

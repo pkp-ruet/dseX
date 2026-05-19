@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { isWatched, toggleWatchlistSynced, subscribeWatchlist } from "@/lib/watchlist";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  isWatched,
+  toggleWatchlist,
+  subscribeWatchlist,
+  loadWatchlist,
+} from "@/lib/watchlist";
+import { isLoggedIn } from "@/lib/auth";
 
 interface Props {
   code: string;
@@ -10,19 +17,28 @@ interface Props {
 }
 
 export default function StarButton({ code, size = "sm", className = "" }: Props) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [watched, setWatched] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    setWatched(isWatched(code));
+    if (isLoggedIn()) {
+      loadWatchlist().then(() => setWatched(isWatched(code)));
+    }
     return subscribeWatchlist(() => setWatched(isWatched(code)));
   }, [code]);
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleWatchlistSynced(code).then((nowWatched) => setWatched(nowWatched));
+    if (!isLoggedIn()) {
+      const next = encodeURIComponent(pathname || "/");
+      router.push(`/register?save=${code.toUpperCase()}&next=${next}`);
+      return;
+    }
+    toggleWatchlist(code).then((nowWatched) => setWatched(nowWatched));
   };
 
   const dim = size === "lg" ? 22 : size === "md" ? 18 : 14;
@@ -32,7 +48,7 @@ export default function StarButton({ code, size = "sm", className = "" }: Props)
       type="button"
       onClick={handleClick}
       aria-label={watched ? `Remove ${code} from watchlist` : `Add ${code} to watchlist`}
-      title={watched ? "Remove from watchlist" : "Add to watchlist"}
+      title={watched ? "Remove from watchlist" : isLoggedIn() ? "Add to watchlist" : "Sign in to save"}
       className={`star-btn ${watched ? "star-btn--on" : ""} ${className}`}
       style={{ visibility: mounted ? "visible" : "hidden" }}
     >

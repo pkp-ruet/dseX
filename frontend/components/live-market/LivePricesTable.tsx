@@ -1,8 +1,16 @@
 "use client";
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import type { LivePriceItem, LiveSectorItem } from "@/lib/api";
-import { isWatched, toggleWatchlist, subscribeWatchlist, getWatchlist } from "@/lib/watchlist";
+import {
+  isWatched,
+  toggleWatchlist,
+  subscribeWatchlist,
+  getCachedWatchlist,
+  loadWatchlist,
+} from "@/lib/watchlist";
+import { isLoggedIn } from "@/lib/auth";
 import { useEffect } from "react";
 
 interface Props {
@@ -13,6 +21,8 @@ interface Props {
 type SortKey = "code" | "ltp" | "change_pct" | "volume" | "value_mn";
 
 function StarBtn({ code }: { code: string }) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [watched, setWatched] = useState(false);
   useEffect(() => {
     setWatched(isWatched(code));
@@ -20,10 +30,18 @@ function StarBtn({ code }: { code: string }) {
   }, [code]);
   return (
     <button
-      onClick={(e) => { e.preventDefault(); toggleWatchlist(code); }}
+      onClick={(e) => {
+        e.preventDefault();
+        if (!isLoggedIn()) {
+          const next = encodeURIComponent(pathname || "/live-market");
+          router.push(`/register?save=${code.toUpperCase()}&next=${next}`);
+          return;
+        }
+        toggleWatchlist(code);
+      }}
       className={`text-base leading-none transition-colors ${watched ? "text-yellow-400" : "text-[var(--text-muted)] hover:text-yellow-400"}`}
       aria-label={watched ? "Remove from watchlist" : "Add to watchlist"}
-      title={watched ? "Remove from watchlist" : "Add to watchlist"}
+      title={watched ? "Remove from watchlist" : isLoggedIn() ? "Add to watchlist" : "Sign in to save"}
     >
       {watched ? "★" : "☆"}
     </button>
@@ -49,8 +67,12 @@ export default function LivePricesTable({ prices, sectors }: Props) {
   const [page, setPage] = useState(0);
 
   useEffect(() => {
-    const update = () => setWatchedCodes(new Set(getWatchlist()));
-    update();
+    const update = () => setWatchedCodes(new Set(getCachedWatchlist()));
+    if (isLoggedIn()) {
+      loadWatchlist().then(update);
+    } else {
+      update();
+    }
     return subscribeWatchlist(update);
   }, []);
 
