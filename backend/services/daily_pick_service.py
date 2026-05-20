@@ -10,7 +10,7 @@ Admin can refresh any individual slot: the current pick at that slot is added
 to today's skip list, and a new candidate is drawn from the same source pool.
 """
 import random
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from typing import Optional
 from pymongo import ASCENDING, DESCENDING
 
@@ -165,13 +165,14 @@ def _reasons_for_momentum(item: dict) -> list[str]:
 # ---------------------------------------------------------------------------
 
 def _dsef_candidates(min_score: float = 65.0) -> list[dict]:
-    """Return DSEF-scored rows sorted by score descending. Top 20 by score."""
+    """All DSEF rows with score >= min_score, sorted by score descending.
+    Selector picks the first eligible row after applying the exclusion filter."""
     df = build_scores_df()
     if df.empty:
         return []
     scored = df[df["score"].notna() & (df["score"] >= min_score)].sort_values(
         "score", ascending=False
-    ).head(20)
+    )
     return scored.to_dict("records")
 
 
@@ -179,17 +180,6 @@ def _top20_candidates() -> list[dict]:
     """DSE Top 20 momentum list."""
     payload = compute_top20()
     return payload.get("items", []) or []
-
-
-def _recent_picked_codes(window_days: int = 14) -> set[str]:
-    db = get_db()
-    cutoff = datetime.now(timezone.utc) - timedelta(days=window_days)
-    return {
-        d["trading_code"]
-        for d in db.daily_picks.find(
-            {"picked_at": {"$gte": cutoff}}, {"trading_code": 1, "_id": 0}
-        )
-    }
 
 
 def _today_skipped_codes() -> set[str]:
@@ -315,7 +305,7 @@ def _ensure_today_picks() -> list[dict]:
         for d in db.daily_picks.find({"date": today}, {"_id": 0})
     }
 
-    base_exclude = _recent_picked_codes() | _today_skipped_codes()
+    base_exclude = _today_skipped_codes()
 
     for slot_def in SLOTS:
         slot = slot_def["slot"]
@@ -507,11 +497,7 @@ def refresh_slot(slot: int, refreshed_by_user_id: Optional[str] = None) -> dict:
         db.daily_picks.delete_one({"date": today, "slot": slot})
 
     # Build exclusion set
-    exclude = (
-        _recent_picked_codes()
-        | _today_skipped_codes()
-        | _picked_today_codes(exclude_slot=slot)
-    )
+    exclude = _today_skipped_codes() | _picked_today_codes(exclude_slot=slot)
 
     new_pick = _select_for_slot(slot, slot_def["source"], exclude)
     if not new_pick:
