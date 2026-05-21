@@ -24,8 +24,7 @@ export default function VerdictHero({ detail }: Props) {
 
   const animName = `vh_ring_${profile.trading_code.toLowerCase()}`;
 
-  // Combine tagline + sentences into one flowing analysis paragraph
-  const analysisParagraph = [tagline, ...sentences].filter(Boolean).join(" ");
+  const bullets = sentences.filter(Boolean);
 
   return (
     <section
@@ -115,15 +114,25 @@ export default function VerdictHero({ detail }: Props) {
                 </span>
               )}
             </div>
-            {analysisParagraph ? (
-              <p className="text-[15px] sm:text-base mt-4 leading-relaxed" style={{ color: "#E2E8F0" }}>
-                {analysisParagraph}
+            {tagline && (
+              <p className="text-[15px] sm:text-base font-semibold mt-4 leading-snug" style={{ color: "#F1F5F9" }}>
+                {tagline}
               </p>
-            ) : (
+            )}
+            {bullets.length > 0 ? (
+              <ul className="mt-3 space-y-2">
+                {bullets.map((line, i) => (
+                  <li key={i} className="flex gap-2.5 text-[14px] sm:text-[15px] leading-relaxed" style={{ color: "#E2E8F0" }}>
+                    <span aria-hidden className="mt-[7px] h-1.5 w-1.5 rounded-full shrink-0" style={{ background: tone.color }} />
+                    <span>{line}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : !tagline ? (
               <p className="text-[15px] sm:text-base mt-4 leading-relaxed" style={{ color: "#CBD5E1" }}>
                 Our take on this stock — combining its financial health with how the market is treating it right now.
               </p>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
