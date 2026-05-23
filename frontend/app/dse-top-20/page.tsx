@@ -192,22 +192,34 @@ export default async function DseTop20Page() {
 
       <div className="max-w-6xl mx-auto px-4 py-8 md:py-10">
         {/* Page header */}
-        <div className="rank-page-header">
-          <div className="rank-page-eyebrow">7-Day Market Pulse</div>
+        <div className="rank-page-header rank-page-header--center">
+          <div className="rank-page-eyebrow">TopStockBD · This Week on DSE</div>
           <h1 className="rank-page-title">
-            DSE Top 20 Stocks — This Week
+            DSE Top 20 — This Week
           </h1>
           <p
             style={{
-              fontSize: "1.05rem",
-              lineHeight: 1.65,
-              maxWidth: "780px",
-              margin: "12px auto 0",
+              fontSize: "1rem",
+              lineHeight: 1.55,
+              maxWidth: "620px",
+              margin: "10px auto 0",
               color: "var(--ink)",
+              textAlign: "center",
             }}
           >
-            The 20 strongest Dhaka Stock Exchange (DSE) stocks based on the last 7 trading days of
-            market data — price momentum, relative strength against DSEX, and turnover conviction.
+            Strongest DSE stocks of the last 7 trading days — ranked by momentum, strength vs DSEX, and turnover. Powered by{" "}
+            <span
+              style={{
+                fontWeight: 800,
+                background: "linear-gradient(90deg, #38BDF8 0%, #22D3EE 50%, #A78BFA 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              TopStockBD
+            </span>
+            .
           </p>
         </div>
 

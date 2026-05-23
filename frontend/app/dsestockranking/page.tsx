@@ -87,22 +87,65 @@ export default async function DseStockRankingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <div className="max-w-6xl mx-auto px-4 py-8 md:py-10">
       {/* Page header */}
-      <div className="rank-page-header">
+      <div className="rank-page-header rank-page-header--center">
         <div className="rank-page-eyebrow">
-          <span className="rank-page-bolt">⚡</span> DSEF Fundamental Rankings
+          <span className="rank-page-bolt">⚡</span> TopStockBD · Fundamental Rankings
         </div>
         <h1 className="rank-page-title">DSE Stock Rankings</h1>
-        <p className="rank-page-meta">
-          {allRanked.length} companies scored
-          {dateLabel ? ` · Updated ${dateLabel}` : ""}
+        <p
+          style={{
+            fontSize: "1rem",
+            lineHeight: 1.55,
+            maxWidth: "620px",
+            margin: "10px auto 0",
+            color: "var(--ink)",
+            textAlign: "center",
+          }}
+        >
+          Every DSE-listed company ranked by fundamental score — strongest to riskiest. Powered by{" "}
+          <span
+            style={{
+              fontWeight: 800,
+              background: "linear-gradient(90deg, #38BDF8 0%, #22D3EE 50%, #A78BFA 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            TopStockBD
+          </span>
+          .
         </p>
-        <p className="rank-page-meta" style={{ marginTop: 4 }}>
-          See also:{" "}
-          <Link href="/dse-top-20" style={{ textDecoration: "underline" }}>
-            DSE Top 20 — 7-day momentum picks
+        <div style={{ marginTop: 10, display: "flex", justifyContent: "center" }}>
+          <Link
+            href="/dse-top-20"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: "0.8rem",
+              fontWeight: 500,
+              color: "var(--ink-muted)",
+              textDecoration: "none",
+            }}
+          >
+            <span>You may also like:</span>
+            <span
+              style={{
+                color: "#22D3EE",
+                fontWeight: 600,
+                textDecoration: "underline",
+                textDecorationColor: "rgba(34,211,238,0.4)",
+                textUnderlineOffset: "3px",
+              }}
+            >
+              DSE Top 20 This Week
+            </span>
+            <span aria-hidden style={{ color: "#22D3EE", fontSize: "0.9rem" }}>→</span>
           </Link>
-        </p>
+        </div>
       </div>
 
       {/* Tier stat cards */}
@@ -112,6 +155,7 @@ export default async function DseStockRankingPage() {
       <Suspense>
         <FullRankTable items={allRanked} />
       </Suspense>
+      </div>
     </>
   );
 }

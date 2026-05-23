@@ -164,15 +164,14 @@ def _reasons_for_momentum(item: dict) -> list[str]:
 # Candidate pools
 # ---------------------------------------------------------------------------
 
-def _dsef_candidates(min_score: float = 65.0) -> list[dict]:
-    """All DSEF rows with score >= min_score, sorted by score descending.
-    Selector picks the first eligible row after applying the exclusion filter."""
+def _dsef_candidates(top_n: int = 40) -> list[dict]:
+    """Top-N DSEF-ranked rows by score (descending).
+    Pool is the top fundamentally-ranked stocks; selector then samples from it
+    with date-seeded randomness so quality picks vary daily within the top tier."""
     df = build_scores_df()
     if df.empty:
         return []
-    scored = df[df["score"].notna() & (df["score"] >= min_score)].sort_values(
-        "score", ascending=False
-    )
+    scored = df[df["score"].notna()].sort_values("score", ascending=False).head(top_n)
     return scored.to_dict("records")
 
 
@@ -213,7 +212,12 @@ def _select_for_slot(slot: int, source: str, exclude: set[str]) -> Optional[dict
     Excludes codes in `exclude`. Returns a dict with a normalised shape."""
     if source == SOURCE_DSEF:
         candidates = _dsef_candidates()
-        for row in candidates:
+        # Date-seeded shuffle so picks rotate across the top-40 daily
+        seed = abs(hash(f"{_today_iso()}|dsef|{slot}")) % (2**31)
+        rng = random.Random(seed)
+        shuffled = list(candidates)
+        rng.shuffle(shuffled)
+        for row in shuffled:
             code = row.get("trading_code")
             if not code or code in exclude:
                 continue
