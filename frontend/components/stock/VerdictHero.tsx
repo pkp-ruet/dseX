@@ -6,7 +6,8 @@ interface Props {
 }
 
 export default function VerdictHero({ detail }: Props) {
-  const { score_row, profile, verdict } = detail;
+  const { score_row, profile, verdict, latest_price } = detail;
+  const ltp = latest_price?.ltp;
   const score = (score_row?.score as number | null) ?? null;
   const word = verdict?.headline ?? verdictHeadline(score);
   const tone = verdictTone(score);
@@ -15,24 +16,24 @@ export default function VerdictHero({ detail }: Props) {
   const horizonHint = verdict?.horizon_hint ?? null;
 
   // Ring geometry
-  const size = 168;
-  const stroke = 12;
+  const size = 140;
+  const stroke = 11;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const fillPct = score != null ? Math.max(0, Math.min(100, score)) / 100 : 0;
   const targetOffset = circumference * (1 - fillPct);
 
   const animName = `vh_ring_${profile.trading_code.toLowerCase()}`;
-
   const bullets = sentences.filter(Boolean);
+  const companyName = profile.company_name || profile.trading_code;
 
   return (
     <section
       className="relative rounded-3xl overflow-hidden mb-8"
       style={{
-        background: `linear-gradient(135deg, #0D1A2E 0%, #0A1525 60%, ${tone.soft} 100%)`,
+        background: `radial-gradient(120% 90% at 0% 0%, ${tone.soft} 0%, transparent 55%), radial-gradient(110% 80% at 100% 100%, ${tone.soft} 0%, transparent 50%), linear-gradient(160deg, #0B1626 0%, #08111F 50%, #0A1A2C 100%)`,
         border: `1px solid ${tone.border}`,
-        boxShadow: `0 4px 24px rgba(0,0,0,0.25), 0 0 60px ${tone.soft}`,
+        boxShadow: `0 12px 48px rgba(0,0,0,0.45), 0 0 80px ${tone.soft}`,
       }}
     >
       <style>{`
@@ -42,15 +43,116 @@ export default function VerdictHero({ detail }: Props) {
         }
       `}</style>
 
-      <div className="p-6 sm:p-8">
-        <p className="text-[10px] font-bold uppercase tracking-[0.25em] mb-5" style={{ color: "#CBD5E1" }}>
-          Our Take on {profile.trading_code}
-        </p>
+      {/* Top accent line */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute", top: 0, left: 0, right: 0, height: "2px",
+          background: `linear-gradient(90deg, transparent 0%, ${tone.color} 50%, transparent 100%)`,
+          opacity: 0.85,
+        }}
+      />
+      {/* Decorative corner glyphs */}
+      <div
+        aria-hidden
+        className="absolute -top-16 -right-16 rounded-full opacity-30 blur-3xl"
+        style={{ width: 240, height: 240, background: tone.color }}
+      />
+      <div
+        aria-hidden
+        className="absolute -bottom-20 -left-20 rounded-full opacity-20 blur-3xl"
+        style={{ width: 260, height: 260, background: tone.color }}
+      />
 
-        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8">
+      <div className="relative p-5 sm:p-7">
+        {/* Brand strip */}
+        <div className="flex items-center gap-2 mb-4">
+          <span
+            className="inline-block w-2 h-2 rounded-full"
+            style={{ background: tone.color, boxShadow: `0 0 10px ${tone.color}` }}
+          />
+          <span className="text-[11px] font-bold uppercase tracking-[0.22em] flex items-center gap-1.5">
+            <span
+              style={{
+                background: "linear-gradient(90deg, #38BDF8 0%, #22D3EE 50%, #A78BFA 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              TopStockBD
+            </span>
+            <span style={{ color: "#E2E8F0" }}>Analysis on —</span>
+          </span>
+        </div>
+
+        {/* Company name — hero */}
+        <div className="mb-4">
+          <h2
+            className="font-black tracking-tight leading-[1.05]"
+            style={{
+              color: "#FFFFFF",
+              fontSize: "clamp(1.5rem, 4vw, 2.25rem)",
+              textShadow: "0 2px 16px rgba(0,0,0,0.5)",
+            }}
+          >
+            {companyName}
+          </h2>
+          <div className="flex flex-wrap items-center gap-2 mt-2">
+            <span
+              className="inline-flex items-center text-xs font-bold px-2.5 py-0.5 rounded-full tabular-nums"
+              style={{
+                color: tone.color,
+                background: tone.bg,
+                border: `1px solid ${tone.border}`,
+              }}
+            >
+              {profile.trading_code}
+            </span>
+            {profile.sector && (
+              <span
+                className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full"
+                style={{
+                  color: "#C4B5FD",
+                  background: "rgba(167,139,250,0.12)",
+                  border: "1px solid rgba(167,139,250,0.3)",
+                }}
+              >
+                {profile.sector}
+              </span>
+            )}
+            {ltp != null && (
+              <span
+                className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full tabular-nums"
+                style={{
+                  color: "#FDE68A",
+                  background: "rgba(253,224,71,0.1)",
+                  border: "1px solid rgba(253,224,71,0.3)",
+                }}
+              >
+                Latest Price: ৳{ltp.toFixed(1)}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Score + Verdict */}
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-7">
           <div className="flex flex-col items-center shrink-0">
+            <span
+              className="text-[10px] font-bold uppercase tracking-[0.22em] mb-2"
+              style={{ color: "#CBD5E1" }}
+            >
+              Fundamental Score
+            </span>
             <div className="relative" style={{ width: size, height: size }}>
               <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+                <defs>
+                  <linearGradient id={`grad_${animName}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor={tone.color} stopOpacity="1" />
+                    <stop offset="100%" stopColor={tone.color} stopOpacity="0.6" />
+                  </linearGradient>
+                </defs>
                 <circle
                   cx={size / 2}
                   cy={size / 2}
@@ -64,46 +166,54 @@ export default function VerdictHero({ detail }: Props) {
                   cy={size / 2}
                   r={radius}
                   fill="none"
-                  stroke={tone.color}
+                  stroke={`url(#grad_${animName})`}
                   strokeWidth={stroke}
                   strokeLinecap="round"
                   strokeDasharray={circumference}
                   strokeDashoffset={targetOffset}
                   transform={`rotate(-90 ${size / 2} ${size / 2})`}
                   style={{
-                    filter: `drop-shadow(0 0 8px ${tone.color}80)`,
-                    animation: `${animName} 1s ease-out`,
+                    filter: `drop-shadow(0 0 12px ${tone.color}AA)`,
+                    animation: `${animName} 1.2s cubic-bezier(0.4, 0, 0.2, 1)`,
                   }}
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span
                   className="font-black tabular-nums leading-none"
-                  style={{ color: tone.color, fontSize: "2.75rem" }}
+                  style={{
+                    color: tone.color,
+                    fontSize: "2.5rem",
+                    textShadow: `0 0 20px ${tone.color}80`,
+                  }}
                 >
                   {score != null ? score.toFixed(0) : "--"}
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-widest mt-1" style={{ color: "#CBD5E1" }}>
-                  Our Score
+                <span
+                  className="text-[10px] font-bold uppercase tracking-[0.2em] mt-0.5"
+                  style={{ color: "#CBD5E1" }}
+                >
+                  / 100
                 </span>
               </div>
             </div>
-            <p className="text-[11px] mt-3 text-center leading-snug max-w-[180px]" style={{ color: "#94A3B8" }}>
-              Our rating from 0–100, based on our own analysis of the company.
-            </p>
           </div>
 
           <div className="text-left flex-1 w-full">
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <p
                 className="font-black leading-none tracking-tight"
-                style={{ color: tone.color, fontSize: "clamp(2rem, 6vw, 3.5rem)" }}
+                style={{
+                  color: tone.color,
+                  fontSize: "clamp(1.75rem, 5vw, 2.75rem)",
+                  textShadow: `0 0 28px ${tone.color}50`,
+                }}
               >
                 {word}
               </p>
               {horizonHint && (
                 <span
-                  className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full whitespace-nowrap"
+                  className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full whitespace-nowrap"
                   style={{
                     color: tone.color,
                     background: tone.bg,
@@ -115,15 +225,29 @@ export default function VerdictHero({ detail }: Props) {
               )}
             </div>
             {tagline && (
-              <p className="text-[15px] sm:text-base font-semibold mt-4 leading-snug" style={{ color: "#F1F5F9" }}>
+              <p
+                className="text-sm sm:text-base font-semibold mt-3 leading-snug"
+                style={{ color: "#FFFFFF" }}
+              >
                 {tagline}
               </p>
             )}
             {bullets.length > 0 ? (
-              <ul className="mt-3 space-y-2">
+              <ul className="mt-2.5 space-y-1.5">
                 {bullets.map((line, i) => (
-                  <li key={i} className="flex gap-2.5 text-[14px] sm:text-[15px] leading-relaxed" style={{ color: "#E2E8F0" }}>
-                    <span aria-hidden className="mt-[7px] h-1.5 w-1.5 rounded-full shrink-0" style={{ background: tone.color }} />
+                  <li
+                    key={i}
+                    className="flex gap-2.5 text-[13px] sm:text-sm leading-snug"
+                    style={{ color: "#F1F5F9" }}
+                  >
+                    <span
+                      aria-hidden
+                      className="mt-[6px] h-1.5 w-1.5 rounded-full shrink-0"
+                      style={{
+                        background: tone.color,
+                        boxShadow: `0 0 6px ${tone.color}`,
+                      }}
+                    />
                     <span>{line}</span>
                   </li>
                 ))}
@@ -134,6 +258,24 @@ export default function VerdictHero({ detail }: Props) {
               </p>
             ) : null}
           </div>
+        </div>
+
+        {/* Footer watermark — for shared screenshots */}
+        <div
+          className="mt-5 pt-3 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.2em]"
+          style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
+        >
+          <span
+            style={{
+              background: "linear-gradient(90deg, #38BDF8 0%, #22D3EE 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            topstockbd.com
+          </span>
+          <span style={{ color: "#CBD5E1" }}>DSE Stock Analysis</span>
         </div>
       </div>
     </section>
