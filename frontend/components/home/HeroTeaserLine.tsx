@@ -5,11 +5,11 @@ import { useAuth } from "@/context/AuthContext";
 
 const SEO_LINE = (
   <p className="text-sm sm:text-base font-medium text-[var(--text)] text-center px-3 py-2 leading-relaxed">
-    Find the best DSE stocks to buy — free{" "}
-    <strong className="text-[var(--primary)] font-bold">Dhaka Stock Exchange</strong> (DSEX) rankings,
-    live <strong className="text-[var(--primary)] font-bold">DSE share price</strong> updates,{" "}
-    <strong className="text-[var(--primary)] font-bold">DSE today</strong> picks, and{" "}
-    <strong className="text-[var(--primary)] font-bold">Bangladesh stock market</strong> signals.
+    Free <strong className="text-[var(--primary)] font-bold">Dhaka Stock Exchange</strong> rankings,
+    live <strong className="text-[var(--primary)] font-bold">DSE share prices</strong>, and daily{" "}
+    <strong className="text-[var(--primary)] font-bold">Bangladesh stock market</strong> picks.
+    <br />
+    Know what to buy. Know why.
   </p>
 );
 
