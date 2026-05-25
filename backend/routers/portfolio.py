@@ -7,6 +7,7 @@ from pydantic import BaseModel, field_validator
 
 from backend.routers.auth import get_current_user
 from backend.services.auth_service import get_db
+from backend.services import user_cache
 
 router = APIRouter(prefix="/api/user/portfolio", tags=["portfolio"])
 
@@ -56,8 +57,13 @@ class UpdateHoldingBody(BaseModel):
 
 
 def _get_portfolio(user_id: str) -> list[dict]:
+    cached = user_cache.get(user_cache.NS_PORTFOLIO, user_id)
+    if cached is not None:
+        return cached
     doc = get_db()["users"].find_one({"user_id": user_id}, {"portfolio": 1})
-    return doc.get("portfolio", []) if doc else []
+    holdings = doc.get("portfolio", []) if doc else []
+    user_cache.set(user_cache.NS_PORTFOLIO, user_id, holdings)
+    return holdings
 
 
 @router.get("")
@@ -68,6 +74,7 @@ def get_portfolio(current_user: dict = Depends(get_current_user)):
 
 @router.post("/holdings", status_code=201)
 def add_holding(body: AddHoldingBody, current_user: dict = Depends(get_current_user)):
+    user_id = current_user["user_id"]
     holding = {
         "id": str(uuid.uuid4()),
         "trading_code": body.trading_code,
@@ -76,12 +83,13 @@ def add_holding(body: AddHoldingBody, current_user: dict = Depends(get_current_u
         "added_at": datetime.now(timezone.utc).isoformat(),
     }
     get_db()["users"].update_one(
-        {"user_id": current_user["user_id"]},
+        {"user_id": user_id},
         {
             "$push": {"portfolio": holding},
             "$set": {"updated_at": datetime.now(timezone.utc)},
         },
     )
+    user_cache.invalidate(user_cache.NS_PORTFOLIO, user_id)
     return {"holding": holding}
 
 
@@ -91,7 +99,11 @@ def update_holding(
     body: UpdateHoldingBody,
     current_user: dict = Depends(get_current_user),
 ):
-    holdings = _get_portfolio(current_user["user_id"])
+    user_id = current_user["user_id"]
+    # Read straight from DB — cached copy may be stale relative to a concurrent
+    # write, and we're about to overwrite the whole array.
+    doc = get_db()["users"].find_one({"user_id": user_id}, {"portfolio": 1})
+    holdings = doc.get("portfolio", []) if doc else []
     idx = next((i for i, h in enumerate(holdings) if h["id"] == holding_id), None)
     if idx is None:
         raise HTTPException(status_code=404, detail="Holding not found")
@@ -102,7 +114,7 @@ def update_holding(
         holdings[idx]["qty"] = body.qty
 
     get_db()["users"].update_one(
-        {"user_id": current_user["user_id"]},
+        {"user_id": user_id},
         {
             "$set": {
                 "portfolio": holdings,
@@ -110,6 +122,7 @@ def update_holding(
             }
         },
     )
+    user_cache.set(user_cache.NS_PORTFOLIO, user_id, holdings)
     return {"holding": holdings[idx]}
 
 
@@ -118,13 +131,15 @@ def delete_holding(
     holding_id: str,
     current_user: dict = Depends(get_current_user),
 ):
-    holdings = _get_portfolio(current_user["user_id"])
+    user_id = current_user["user_id"]
+    doc = get_db()["users"].find_one({"user_id": user_id}, {"portfolio": 1})
+    holdings = doc.get("portfolio", []) if doc else []
     updated = [h for h in holdings if h["id"] != holding_id]
     if len(updated) == len(holdings):
         raise HTTPException(status_code=404, detail="Holding not found")
 
     get_db()["users"].update_one(
-        {"user_id": current_user["user_id"]},
+        {"user_id": user_id},
         {
             "$set": {
                 "portfolio": updated,
@@ -132,3 +147,4 @@ def delete_holding(
             }
         },
     )
+    user_cache.set(user_cache.NS_PORTFOLIO, user_id, updated)

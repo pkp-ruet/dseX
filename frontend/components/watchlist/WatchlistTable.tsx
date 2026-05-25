@@ -7,11 +7,15 @@ import {
   getScores,
   getNearExtremes,
   getDividendsUpcoming,
+  getWatchlistNews,
   type ScoreItem,
   type ScoresResponse,
   type NearExtremeItem,
   type DividendsUpcoming,
+  type NearExtremesData,
+  type WatchlistNewsItem,
 } from "@/lib/api";
+import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
 import { taka } from "@/lib/formatters";
 import {
   getCachedWatchlist,
@@ -388,27 +392,73 @@ function EnrichedRow({ item, extreme, hasDividendSoon, note, onOpenNote }: RowPr
 // Main client component
 // ---------------------------------------------------------------------------
 
+function extremesToMap(data: NearExtremesData): Map<string, NearExtremeItem> {
+  const map = new Map<string, NearExtremeItem>();
+  for (const it of data.near_high) map.set(it.trading_code.toUpperCase(), it);
+  for (const it of data.near_low) map.set(it.trading_code.toUpperCase(), it);
+  return map;
+}
+
+function dividendsToSet(data: DividendsUpcoming): Set<string> {
+  const set = new Set<string>();
+  const horizon = Date.now() + 14 * 24 * 3600 * 1000;
+  const soon = (date: string | null) => {
+    if (!date) return false;
+    const t = Date.parse(date);
+    return t >= Date.now() && t <= horizon;
+  };
+  for (const item of data.upcoming_declarations) {
+    if (soon(item.projected_date)) set.add(item.trading_code.toUpperCase());
+  }
+  for (const item of data.upcoming_record_dates) {
+    if (soon(item.record_date)) set.add(item.trading_code.toUpperCase());
+  }
+  return set;
+}
+
 function WatchlistTableInner() {
   const { isLoggedIn, isLoading } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
   const sharedCodes = useMemo(() => parseCodesParam(searchParams.get("codes")), [searchParams]);
 
-  const [scores, setScores] = useState<ScoresResponse | null>(null);
-  const [extremes, setExtremes] = useState<Map<string, NearExtremeItem>>(new Map());
-  const [dividends, setDividends] = useState<Set<string>>(new Set());
+  // Hydrate from localStorage SWR cache on mount for an instant first paint.
+  const [scores, setScores] = useState<ScoresResponse | null>(
+    () => readCache<ScoresResponse>(cacheKeys.scores),
+  );
+  const [extremes, setExtremes] = useState<Map<string, NearExtremeItem>>(() => {
+    const cached = readCache<NearExtremesData>(cacheKeys.extremes);
+    return cached ? extremesToMap(cached) : new Map();
+  });
+  const [dividends, setDividends] = useState<Set<string>>(() => {
+    const cached = readCache<DividendsUpcoming>(cacheKeys.dividends);
+    return cached ? dividendsToSet(cached) : new Set();
+  });
   const [codes, setCodes] = useState<string[]>([]);
   const [notesMap, setNotesMap] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(
+    () => readCache<ScoresResponse>(cacheKeys.scores) === null,
+  );
   const [error, setError] = useState<string | null>(null);
   const [editingNote, setEditingNote] = useState<string | null>(null);
   const [importPrompt, setImportPrompt] = useState(false);
 
-  // Load watchlist + notes when logged in
+  // News fetched in parallel with public data — keyed on the sorted code list.
+  const [news, setNews] = useState<WatchlistNewsItem[]>([]);
+  const [newsLoading, setNewsLoading] = useState(false);
+
+  // Load watchlist + notes when logged in.
+  // loadWatchlist/loadNotes synchronously hydrate their module-level caches
+  // from localStorage if available, so the snapshot right after the call gives
+  // us instant codes/notes even before the network round-trip resolves.
   useEffect(() => {
     if (!isLoggedIn) return;
-    loadWatchlist().then(() => setCodes(getCachedWatchlist()));
-    loadNotes().then(() => setNotesMap(getCachedNotes()));
+    const wPromise = loadWatchlist();
+    const nPromise = loadNotes();
+    setCodes(getCachedWatchlist());
+    setNotesMap(getCachedNotes());
+    wPromise.then(() => setCodes(getCachedWatchlist()));
+    nPromise.then(() => setNotesMap(getCachedNotes()));
     const offW = subscribeWatchlist(() => setCodes(getCachedWatchlist()));
     const offN = subscribeNotes(() => setNotesMap(getCachedNotes()));
     return () => {
@@ -417,38 +467,32 @@ function WatchlistTableInner() {
     };
   }, [isLoggedIn]);
 
-  // Public data
+  // Public data — SWR refresh in background. State already hydrated from cache.
   useEffect(() => {
     let cancelled = false;
     Promise.allSettled([getScores(), getNearExtremes(), getDividendsUpcoming()])
       .then(([s, e, d]) => {
         if (cancelled) return;
-        if (s.status === "fulfilled") setScores(s.value);
+        if (s.status === "fulfilled") {
+          setScores(s.value);
+          writeCache(cacheKeys.scores, s.value);
+        }
         if (e.status === "fulfilled") {
-          const map = new Map<string, NearExtremeItem>();
-          for (const it of e.value.near_high) map.set(it.trading_code.toUpperCase(), it);
-          for (const it of e.value.near_low) map.set(it.trading_code.toUpperCase(), it);
-          setExtremes(map);
+          setExtremes(extremesToMap(e.value));
+          writeCache(cacheKeys.extremes, e.value);
         }
         if (d.status === "fulfilled") {
-          const set = new Set<string>();
-          const horizon = Date.now() + 14 * 24 * 3600 * 1000;
-          const soon = (date: string | null) => {
-            if (!date) return false;
-            const t = Date.parse(date);
-            return t >= Date.now() && t <= horizon;
-          };
-          for (const item of (d.value as DividendsUpcoming).upcoming_declarations) {
-            if (soon(item.projected_date)) set.add(item.trading_code.toUpperCase());
-          }
-          for (const item of (d.value as DividendsUpcoming).upcoming_record_dates) {
-            if (soon(item.record_date)) set.add(item.trading_code.toUpperCase());
-          }
-          setDividends(set);
+          setDividends(dividendsToSet(d.value));
+          writeCache(cacheKeys.dividends, d.value);
         }
-      })
-      .catch((err) => {
-        if (!cancelled) setError(String(err));
+        // Only surface an error when no cache served the first paint.
+        if (
+          s.status === "rejected" &&
+          e.status === "rejected" &&
+          d.status === "rejected"
+        ) {
+          setError(String(s.reason));
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -457,6 +501,32 @@ function WatchlistTableInner() {
       cancelled = true;
     };
   }, []);
+
+  // News — fires as soon as codes are known, parallel to scores/extremes/dividends.
+  useEffect(() => {
+    if (!codes.length) {
+      setNews([]);
+      setNewsLoading(false);
+      return;
+    }
+    const key = cacheKeys.watchlistNews(codes);
+    const cached = readCache<WatchlistNewsItem[]>(key);
+    if (cached) setNews(cached);
+    setNewsLoading(!cached);
+    let cancelled = false;
+    getWatchlistNews(codes)
+      .then((fresh) => {
+        if (cancelled) return;
+        setNews(fresh);
+        writeCache(key, fresh);
+      })
+      .finally(() => {
+        if (!cancelled) setNewsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [codes.join(",")]);
 
   // Shared-link import prompt
   useEffect(() => {
@@ -601,7 +671,9 @@ function WatchlistTableInner() {
       )}
 
       {codes.length > 0 && !loading && !error && <WatchlistAnalysis codes={codes} />}
-      {codes.length > 0 && !loading && !error && <WatchlistNews codes={codes} />}
+      {codes.length > 0 && !error && (
+        <WatchlistNews codes={codes} news={news} loading={newsLoading} />
+      )}
     </>
   );
 }

@@ -14,6 +14,7 @@ from backend.services.auth_service import (
     get_watchlist_notes,
     set_watchlist_note,
 )
+from backend.services import user_cache
 
 router = APIRouter(prefix="/api/user", tags=["user"])
 
@@ -49,24 +50,28 @@ def set_watchlist(body: WatchlistBody, current_user: dict = Depends(get_current_
 
 @router.patch("/watchlist/add")
 def add_to_watchlist(body: WatchlistBody, current_user: dict = Depends(get_current_user)):
-    existing = get_user_watchlist(current_user["user_id"])
+    user_id = current_user["user_id"]
+    existing = get_user_watchlist(user_id)
     merged = list(dict.fromkeys(existing + [c.upper() for c in body.codes]))
     get_db()["users"].update_one(
-        {"user_id": current_user["user_id"]},
+        {"user_id": user_id},
         {"$set": {"watchlist": merged, "updated_at": datetime.now(timezone.utc)}},
     )
+    user_cache.set(user_cache.NS_WATCHLIST, user_id, merged)
     return {"codes": merged}
 
 
 @router.patch("/watchlist/remove")
 def remove_from_watchlist(body: WatchlistBody, current_user: dict = Depends(get_current_user)):
+    user_id = current_user["user_id"]
     to_remove = {c.upper() for c in body.codes}
-    existing = get_user_watchlist(current_user["user_id"])
+    existing = get_user_watchlist(user_id)
     updated = [c for c in existing if c not in to_remove]
     get_db()["users"].update_one(
-        {"user_id": current_user["user_id"]},
+        {"user_id": user_id},
         {"$set": {"watchlist": updated, "updated_at": datetime.now(timezone.utc)}},
     )
+    user_cache.set(user_cache.NS_WATCHLIST, user_id, updated)
     return {"codes": updated}
 
 

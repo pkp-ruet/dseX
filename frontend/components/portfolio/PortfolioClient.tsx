@@ -15,6 +15,8 @@ import {
   apiDeleteHolding,
 } from "@/lib/api";
 import { taka } from "@/lib/formatters";
+import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
+import { getStoredUser } from "@/lib/auth";
 import PortfolioAnalysis from "./PortfolioAnalysis";
 
 function flattenScores(scores: ScoresResponse | null): Map<string, ScoreItem> {
@@ -73,11 +75,29 @@ const EMPTY_FORM = { trading_code: "", buy_price: "", qty: "" };
 export default function PortfolioClient() {
   const { isLoading, isLoggedIn } = useAuth();
 
-  const [holdings, setHoldings] = useState<PortfolioHolding[]>([]);
-  const [priceMap, setPriceMap] = useState<Map<string, ScoreItem>>(new Map());
-  const [allCodes, setAllCodes] = useState<string[]>([]);
-  const [dataLoading, setDataLoading] = useState(true);
+  // SWR hydrate. holdings is per-user; scores + codes are shared.
+  const userId = getStoredUser()?.user_id ?? null;
+  const [holdings, setHoldings] = useState<PortfolioHolding[]>(() => {
+    if (!userId) return [];
+    return readCache<PortfolioHolding[]>(cacheKeys.portfolio(userId)) ?? [];
+  });
+  const [priceMap, setPriceMap] = useState<Map<string, ScoreItem>>(() => {
+    const cached = readCache<ScoresResponse>(cacheKeys.scores);
+    return flattenScores(cached);
+  });
+  const [allCodes, setAllCodes] = useState<string[]>(
+    () => readCache<string[]>(cacheKeys.allCodes) ?? [],
+  );
+  const [dataLoading, setDataLoading] = useState(() => {
+    if (!userId) return true;
+    return readCache<PortfolioHolding[]>(cacheKeys.portfolio(userId)) === null;
+  });
   const [error, setError] = useState<string | null>(null);
+
+  function persistHoldings(next: PortfolioHolding[]): void {
+    if (!userId) return;
+    writeCache(cacheKeys.portfolio(userId), next);
+  }
 
   // Add form
   const [form, setForm] = useState(EMPTY_FORM);
@@ -100,15 +120,30 @@ export default function PortfolioClient() {
   useEffect(() => {
     if (!isLoggedIn) return;
     let cancelled = false;
-    Promise.all([apiGetPortfolio(), getScores(), getAllCodes()])
-      .then(([portfolio, scores, codes]) => {
+    Promise.allSettled([apiGetPortfolio(), getScores(), getAllCodes()])
+      .then(([p, s, c]) => {
         if (cancelled) return;
-        setHoldings(portfolio.holdings);
-        setPriceMap(flattenScores(scores));
-        setAllCodes(codes.map((c) => c.toUpperCase()));
-      })
-      .catch((e) => {
-        if (!cancelled) setError(String(e));
+        if (p.status === "fulfilled") {
+          setHoldings(p.value.holdings);
+          persistHoldings(p.value.holdings);
+        }
+        if (s.status === "fulfilled") {
+          setPriceMap(flattenScores(s.value));
+          writeCache(cacheKeys.scores, s.value);
+        }
+        if (c.status === "fulfilled") {
+          const upper = c.value.map((x) => x.toUpperCase());
+          setAllCodes(upper);
+          writeCache(cacheKeys.allCodes, upper);
+        }
+        // Only surface error when nothing succeeded and no cache served first paint.
+        if (
+          p.status === "rejected" &&
+          s.status === "rejected" &&
+          c.status === "rejected"
+        ) {
+          setError(String(p.reason));
+        }
       })
       .finally(() => {
         if (!cancelled) setDataLoading(false);
@@ -198,10 +233,18 @@ export default function PortfolioClient() {
         const avgPrice =
           Math.round(((existing.qty * existing.buy_price + qty * price) / totalQty) * 100) / 100;
         const { holding } = await apiUpdateHolding(existing.id, { buy_price: avgPrice, qty: totalQty });
-        setHoldings((prev) => prev.map((h) => (h.id === existing.id ? holding : h)));
+        setHoldings((prev) => {
+          const next = prev.map((h) => (h.id === existing.id ? holding : h));
+          persistHoldings(next);
+          return next;
+        });
       } else {
         const { holding } = await apiAddHolding({ trading_code: code, buy_price: price, qty });
-        setHoldings((prev) => [...prev, holding]);
+        setHoldings((prev) => {
+          const next = [...prev, holding];
+          persistHoldings(next);
+          return next;
+        });
       }
       setForm(EMPTY_FORM);
     } catch (e: unknown) {
@@ -230,7 +273,11 @@ export default function PortfolioClient() {
     setEditSaving(true);
     try {
       const { holding } = await apiUpdateHolding(editId, { buy_price: price, qty });
-      setHoldings((prev) => prev.map((h) => (h.id === editId ? holding : h)));
+      setHoldings((prev) => {
+        const next = prev.map((h) => (h.id === editId ? holding : h));
+        persistHoldings(next);
+        return next;
+      });
       setEditId(null);
     } catch (e: unknown) {
       setEditError(e instanceof Error ? e.message : "Failed to save.");
@@ -244,7 +291,11 @@ export default function PortfolioClient() {
     setDeleteError(null);
     try {
       await apiDeleteHolding(id);
-      setHoldings((prev) => prev.filter((h) => h.id !== id));
+      setHoldings((prev) => {
+        const next = prev.filter((h) => h.id !== id);
+        persistHoldings(next);
+        return next;
+      });
     } catch (e: unknown) {
       setDeleteError(e instanceof Error ? e.message : "Failed to delete.");
     } finally {

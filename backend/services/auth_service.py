@@ -7,6 +7,7 @@ from jose import jwt, JWTError
 
 from backend.config import JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRE_MINUTES
 from backend.services.db_service import get_db
+from backend.services import user_cache
 
 
 # ---------------------------------------------------------------------------
@@ -250,8 +251,13 @@ def authenticate_user(
 # ---------------------------------------------------------------------------
 
 def get_user_watchlist(user_id: str) -> list[str]:
+    cached = user_cache.get(user_cache.NS_WATCHLIST, user_id)
+    if cached is not None:
+        return cached
     doc = _users().find_one({"user_id": user_id}, {"watchlist": 1})
-    return doc.get("watchlist", []) if doc else []
+    codes = doc.get("watchlist", []) if doc else []
+    user_cache.set(user_cache.NS_WATCHLIST, user_id, codes)
+    return codes
 
 
 def update_user_watchlist(user_id: str, codes: list[str]) -> list[str]:
@@ -260,6 +266,7 @@ def update_user_watchlist(user_id: str, codes: list[str]) -> list[str]:
         {"user_id": user_id},
         {"$set": {"watchlist": deduped, "updated_at": datetime.now(timezone.utc)}},
     )
+    user_cache.set(user_cache.NS_WATCHLIST, user_id, deduped)
     return deduped
 
 
@@ -283,9 +290,14 @@ def touch_watchlist_visit(user_id: str) -> Optional[str]:
 
 
 def get_watchlist_notes(user_id: str) -> dict[str, str]:
+    cached = user_cache.get(user_cache.NS_NOTES, user_id)
+    if cached is not None:
+        return cached
     doc = _users().find_one({"user_id": user_id}, {"watchlist_notes": 1})
     notes = (doc or {}).get("watchlist_notes") or {}
-    return {str(k).upper(): str(v) for k, v in notes.items() if isinstance(v, str) and v.strip()}
+    cleaned = {str(k).upper(): str(v) for k, v in notes.items() if isinstance(v, str) and v.strip()}
+    user_cache.set(user_cache.NS_NOTES, user_id, cleaned)
+    return cleaned
 
 
 def set_watchlist_note(user_id: str, code: str, text: str) -> dict[str, str]:
@@ -307,6 +319,7 @@ def set_watchlist_note(user_id: str, code: str, text: str) -> dict[str, str]:
             {"user_id": user_id},
             {"$unset": {field: ""}, "$set": {"updated_at": now}},
         )
+    user_cache.invalidate(user_cache.NS_NOTES, user_id)
     return get_watchlist_notes(user_id)
 
 

@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { getWatchlistNews, type WatchlistNewsItem } from "@/lib/api";
+import { type WatchlistNewsItem } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 
 interface Props {
   codes: string[];
+  news: WatchlistNewsItem[];
+  loading: boolean;
 }
 
 function NewsItem({ item }: { item: WatchlistNewsItem }) {
@@ -66,19 +68,13 @@ function SkeletonCard() {
   );
 }
 
-export default function WatchlistNews({ codes }: Props) {
-  const [news, setNews] = useState<WatchlistNewsItem[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!codes.length) { setNews([]); return; }
-    setLoading(true);
-    getWatchlistNews(codes)
-      .then(setNews)
-      .finally(() => setLoading(false));
-  }, [codes.join(",")]);
-
+export default function WatchlistNews({ codes, news, loading }: Props) {
   if (!codes.length) return null;
+
+  // Show cached/fresh news whenever we have any; only fall back to skeleton
+  // when we genuinely have nothing yet.
+  const showSkeleton = loading && news.length === 0;
+  const showEmpty = !loading && news.length === 0;
 
   return (
     <section className="mt-12 mx-auto max-w-3xl">
@@ -95,22 +91,19 @@ export default function WatchlistNews({ codes }: Props) {
         </div>
       </div>
 
-      {/* Loading */}
-      {loading && (
+      {showSkeleton && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
         </div>
       )}
 
-      {/* Empty */}
-      {!loading && news.length === 0 && (
+      {showEmpty && (
         <div className="text-center py-10">
           <p className="text-sm text-[var(--ink-muted)]">No news in the last 30 days.</p>
         </div>
       )}
 
-      {/* Cards grid */}
-      {!loading && news.length > 0 && (
+      {news.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {news.map((item, i) => (
             <NewsItem key={i} item={item} />
