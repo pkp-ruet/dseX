@@ -6,7 +6,7 @@ import {
   type DailyPickHistoryDayItem,
 } from "@/lib/api";
 
-export const revalidate = 3600;
+export const revalidate = 86400;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 

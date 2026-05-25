@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getPopularStocks } from "@/lib/api";
 import PopularStocksDeck from "@/components/popular/PopularStocksDeck";
 
-export const revalidate = 600;
+export const revalidate = 86400;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 

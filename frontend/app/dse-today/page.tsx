@@ -5,11 +5,11 @@ import DseTodayHeader from "@/components/dse-today/DseTodayHeader";
 import DseTodayTable from "@/components/dse-today/DseTodayTable";
 import DseTodayNews from "@/components/dse-today/DseTodayNews";
 import MarketMovers from "@/components/home/MarketMovers";
-import SectorHeatmap from "@/components/live-market/SectorHeatmap";
+import SectorHeatmap from "@/components/market/SectorHeatmap";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
-export const revalidate = 900;
+export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: "DSE Today — Dhaka Stock Exchange Last Trading Day",

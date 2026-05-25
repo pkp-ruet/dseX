@@ -8,7 +8,6 @@ import {
   getNearExtremes,
 } from "@/lib/api";
 import Link from "next/link";
-import type { LiveSectorItem } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 
 import MarketPulseStrip from "@/components/market-analysis/MarketPulseStrip";
@@ -18,9 +17,9 @@ import TopPicksTabs from "@/components/market-analysis/TopPicksTabs";
 import VolumeSurgeList from "@/components/market-analysis/VolumeSurgeList";
 import CatalystStrip from "@/components/market-analysis/CatalystStrip";
 import NearExtremesPanel from "@/components/market-analysis/NearExtremesPanel";
-import SectorHeatmap from "@/components/live-market/SectorHeatmap";
+import SectorHeatmap, { type SectorHeatmapItem } from "@/components/market/SectorHeatmap";
 
-export const revalidate = 900;
+export const revalidate = 86400;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
@@ -95,7 +94,7 @@ export default async function MarketAnalysisPage() {
       )
     : 50;
 
-  const sectorData = (intelData?.signals?.sector_strength ?? []) as LiveSectorItem[];
+  const sectorData = (intelData?.signals?.sector_strength ?? []) as SectorHeatmapItem[];
 
   const jsonLd = {
     "@context": "https://schema.org",

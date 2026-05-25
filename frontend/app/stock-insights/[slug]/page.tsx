@@ -14,7 +14,7 @@ import {
 } from "@/lib/insight-utils";
 import { getTier, TIER_LABELS, TIER_COLORS } from "@/lib/constants";
 
-export const revalidate = 3600;
+export const revalidate = 86400;
 export const dynamicParams = false;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";

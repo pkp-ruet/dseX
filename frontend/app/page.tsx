@@ -26,7 +26,7 @@ import GradeAnyStockHero from "@/components/home/GradeAnyStockHero";
 import TodaysTopPicks from "@/components/home/TodaysTopPicks";
 import HeroTeaserLine from "@/components/home/HeroTeaserLine";
 
-export const revalidate = 3600;
+export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: "DSE Share Price Today | Dhaka Stock Exchange Rankings — TopStockBD",

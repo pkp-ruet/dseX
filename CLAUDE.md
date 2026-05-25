@@ -12,7 +12,6 @@ Guidance for Claude Code when working in this repository.
 - **Frontend**: Next.js 15 App Router · React 19 · TypeScript · Tailwind CSS · Recharts
 - **Scrapers**: Python (requests + BeautifulSoup + lxml)
 - **Auth**: JWT (HS256) via `python-jose` · `bcrypt` for password hashing · Google Sign-In via `google-auth` (backend ID-token verification) and `@react-oauth/google` (frontend)
-- **Live data**: `bdshare` (intraday DSE feed) for `/api/market-live`
 - **Deployment**: Frontend on Vercel, Backend on Render, DB on MongoDB Atlas
 
 No Streamlit. The app is Next.js + Python only.
@@ -76,7 +75,7 @@ DSE (Dhaka Stock Exchange) stock data pipeline with four components:
 
 1. **Scrapers (`scrapers/` + `main.py`)** — CLI entrypoint orchestrating six scrapers in sequence. All scrapers inherit from `scrapers/base_scraper.py:BaseScraper` (HTTP retries, rate limiting via `REQUEST_DELAY`, user-agent rotation).
 
-2. **FastAPI Backend (`backend/`)** — REST API serving the frontend. Cached query layer over MongoDB. Exposes a JWT-authenticated user surface (`/api/auth/*`, `/api/user/*`, `/api/admin/*`) and a live intraday endpoint (`/api/market-live`) that proxies `bdshare` during market hours and falls back to the latest cached snapshot otherwise.
+2. **FastAPI Backend (`backend/`)** — REST API serving the frontend. Cached query layer over MongoDB. Exposes a JWT-authenticated user surface (`/api/auth/*`, `/api/user/*`, `/api/admin/*`).
 
 3. **Next.js Frontend (`frontend/`)** — Production web app. ISR caching, server components for data fetching, client components for auth-gated views (portfolio, profile, admin).
 
@@ -123,7 +122,6 @@ Scrapers must use upsert logic to avoid duplicates.
 | `/stock/[code]` | `app/stock/[code]/page.tsx` | Stock detail: chart, financials, cash flow, dividends, shareholding, signals, news |
 | `/market-intelligence` | `app/market-intelligence/page.tsx` | Auto-detects falling/rising/sideways, shows signal tables |
 | `/market-analysis` | `app/market-analysis/page.tsx` | Pulse, sentiment, near-extremes, trending, top picks |
-| `/live-market` | `app/live-market/page.tsx` | Intraday tape (bdshare proxy via `/api/market-live`) |
 | `/dse-today` | `app/dse-today/page.tsx` | Today's market header + table + news (single-bundle endpoint) |
 | `/stock-insights`, `/stock-insights/[slug]` | `app/stock-insights/...` | Curated insight cards (SEO content) |
 | `/learn`, `/learn/[slug]` | `app/learn/...` | Educational guides (SEO content, data from `lib/guides.ts`) |
@@ -172,10 +170,8 @@ components/
 │   ├── MarketPulseStrip.tsx, SentimentGauge.tsx, CatalystStrip.tsx
 │   ├── NearExtremesPanel.tsx, TrendingStocksGrid.tsx
 │   ├── TopPicksTabs.tsx, VolumeSurgeList.tsx
-├── live-market/
-│   ├── LiveMarketClient.tsx, MarketStatusBanner.tsx, LiveRefreshBadge.tsx
-│   ├── IndexStrip.tsx, BreadthBar.tsx, SectorHeatmap.tsx
-│   ├── GainersLosers.tsx, WhatsHot.tsx, LivePricesTable.tsx, PSNTicker.tsx
+├── market/
+│   ├── SectorHeatmap.tsx (shared treemap, consumed by dse-today + market-analysis)
 ├── dse-today/
 │   ├── DseTodayHeader.tsx, DseTodayTable.tsx, DseTodayNews.tsx
 ├── stocks/
@@ -233,7 +229,6 @@ Public / cached (Next ISR):
 
 Client-side, no cache:
 - `getPriceHistory(code, range)` → `/api/company/:code/prices?range=`
-- `getMarketLive()` → `/api/market-live` (`cache: "no-store"`)
 - `getWatchlistNews(codes)` → `/api/news/multi?codes=...`
 - `apiAuthPing()` → `/api/auth/ping` (fire-and-forget visit tracking)
 
@@ -271,7 +266,6 @@ A 401 response from `apiAuthFetch` triggers `logout()` and throws `AUTH_EXPIRED`
 | `routers/dividends.py` | `GET /api/dividends/upcoming` | Upcoming declarations + record dates |
 | `routers/audit.py` | `GET /api/audit` | Data coverage report |
 | `routers/stock_lists.py` | `GET /api/stock-lists` | Pre-computed top-20 lists (dividend, EPS, profit, market cap, growth, volume, 52w return, sector slices) |
-| `routers/market_live.py` | `GET /api/market-live` | Intraday snapshot via `bdshare` (with DSE HTML scrape fallback); returns prices, index, breadth, sectors, PSN news |
 | `routers/dse_today.py` | `GET /api/dse-today` | Bundle: header + movers + intelligence + table + news |
 | `routers/auth.py` | `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/google`, `GET /api/auth/me`, `POST /api/auth/ping` | Account creation, login, Google sign-in, current user, visit ping |
 | `routers/user.py` | `GET/PUT /api/user/watchlist`, `PATCH /api/user/watchlist/add`, `PATCH /api/user/watchlist/remove`, `PATCH /api/user/profile` | User watchlist + profile updates |
@@ -296,7 +290,6 @@ Returns the same `{access_token, token_type, user}` envelope as `/login`, so fro
   Key functions: `load_companies`, `load_latest_prices`, `load_price_history`, `load_financials`, `load_extended_financials`, `load_shareholdings`, `load_company_news`, `load_dividend_declarations`, `load_market_movers`, `load_market_index`, `load_dse_today_table`, `load_market_news`, `load_news_for_codes`, `load_all_company_codes`, `compute_market_intelligence`, `compute_signal_flags`, `compute_52w_range`.
 - `scoring_service.py` — DSEF scoring pipeline (`build_scores_df`), used by `scores.py` and `stock_lists.py`.
 - `auth_service.py` — bcrypt password hashing, JWT issue/verify, `create_user`, `authenticate_user`, `get_user_by_id`, `get_user_watchlist`, `update_user_watchlist`, `sanitize_user`, `ensure_users_indexes()` (called at FastAPI startup).
-- `market_hours.py` — `is_market_open()`, `market_session_info()` for `/api/market-live` gating (DSE hours in Bangladesh Standard Time, UTC+6).
 
 **Models (`backend/models/responses.py`):** Pydantic response schemas — `ScoreItem`, `ScoreTiers`, `ScoresResponse`, `LatestPrice`, `CompanyProfile`, `CompanyDetailResponse`, `MarketMoversResponse`, `DseTodayResponse`, etc. Used as `response_model=` on the relevant router endpoints.
 
@@ -353,7 +346,6 @@ DSE URL constants also live in the root `config.py`.
 
 ### Backend dependencies
 
-`backend/requirements.txt` adds three deps beyond the scraper baseline:
-- `bdshare>=1.2.1` — intraday DSE feed for `/api/market-live`
+`backend/requirements.txt` adds two deps beyond the scraper baseline:
 - `python-jose[cryptography]==3.3.0` — JWT issue/verify
 - `bcrypt==4.0.1` — password hashing

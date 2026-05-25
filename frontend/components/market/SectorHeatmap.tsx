@@ -1,9 +1,14 @@
 "use client";
 import { Treemap, ResponsiveContainer, Tooltip } from "recharts";
-import type { LiveSectorItem } from "@/lib/api";
+
+export interface SectorHeatmapItem {
+  sector: string;
+  avg_change_pct: number | null;
+  count: number | null;
+}
 
 interface Props {
-  sectors: LiveSectorItem[];
+  sectors: SectorHeatmapItem[];
   onSectorClick?: (sector: string) => void;
 }
 

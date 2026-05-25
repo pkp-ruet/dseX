@@ -265,27 +265,27 @@ async function apiFetch<T>(
 }
 
 export async function getScores(): Promise<ScoresResponse> {
-  return apiFetch<ScoresResponse>("/api/scores", 3600);
+  return apiFetch<ScoresResponse>("/api/scores", 86400);
 }
 
 export async function getAllCodes(): Promise<string[]> {
-  return apiFetch<string[]>("/api/companies/codes", 3600);
+  return apiFetch<string[]>("/api/companies/codes", 86400);
 }
 
 export async function getCompanyDetail(code: string): Promise<CompanyDetail> {
-  return apiFetch<CompanyDetail>(`/api/company/${code.toUpperCase()}`, 3600);
+  return apiFetch<CompanyDetail>(`/api/company/${code.toUpperCase()}`, 86400);
 }
 
 export async function getMarketMovers(): Promise<MarketMoversData> {
-  return apiFetch<MarketMoversData>("/api/market-movers", 3600);
+  return apiFetch<MarketMoversData>("/api/market-movers", 86400);
 }
 
 export async function getMarketIndex(): Promise<MarketIndexData> {
-  return apiFetch<MarketIndexData>("/api/market-index", 60);
+  return apiFetch<MarketIndexData>("/api/market-index", 86400);
 }
 
 export async function getDividendsUpcoming(): Promise<DividendsUpcoming> {
-  return apiFetch<DividendsUpcoming>("/api/dividends/upcoming", 3600);
+  return apiFetch<DividendsUpcoming>("/api/dividends/upcoming", 86400);
 }
 
 // ---- Market Intelligence ----
@@ -338,7 +338,7 @@ export interface MarketIntelligenceData {
 }
 
 export async function getMarketIntelligence(): Promise<MarketIntelligenceData> {
-  return apiFetch<MarketIntelligenceData>("/api/market-intelligence", 900);
+  return apiFetch<MarketIntelligenceData>("/api/market-intelligence", 86400);
 }
 
 // ---- DSE Today ----
@@ -375,16 +375,16 @@ export interface DseTodayData {
 }
 
 export async function getDseToday(): Promise<DseTodayData> {
-  return apiFetch<DseTodayData>("/api/dse-today", 900);
+  return apiFetch<DseTodayData>("/api/dse-today", 86400);
 }
 
 export async function getStockLists(): Promise<import("@/lib/stock-lists").StockListsResponse> {
-  return apiFetch("/api/stock-lists", 3600);
+  return apiFetch("/api/stock-lists", 86400);
 }
 
 /** Flatten all tiers into a single array, including pillar scores. Used by insight pages. */
 export async function getInsightScores(): Promise<ScoreItem[]> {
-  const res = await apiFetch<ScoresResponse>("/api/scores", 3600);
+  const res = await apiFetch<ScoresResponse>("/api/scores", 86400);
   return [
     ...res.tiers.strong_buy,
     ...res.tiers.safe_buy,
@@ -427,7 +427,7 @@ export interface NearExtremesData {
 }
 
 export async function getNearExtremes(): Promise<NearExtremesData> {
-  return apiFetch<NearExtremesData>("/api/market/near-extremes", 900);
+  return apiFetch<NearExtremesData>("/api/market/near-extremes", 86400);
 }
 
 /** Client-side price history fetch (no Next.js cache) */
@@ -435,79 +435,6 @@ export async function getPriceHistory(code: string, range: "1y" | "2y" | "3y" | 
   const res = await fetch(`${getApiUrl()}/api/company/${code.toUpperCase()}/prices?range=${range}`);
   if (!res.ok) throw new Error(`Price history fetch failed: ${res.status}`);
   return res.json() as Promise<PricePoint[]>;
-}
-
-// ---- Live Market ----
-
-export interface LivePriceItem {
-  code: string;
-  company_name?: string | null;
-  ltp: number | null;
-  high: number | null;
-  low: number | null;
-  close: number | null;
-  ycp: number | null;
-  change: number | null;
-  change_pct: number | null;
-  volume: number | null;
-  value_mn: number | null;
-  trade_count: number | null;
-}
-
-export interface LiveIndexData {
-  dsex: number | null;
-  dsex_change: number | null;
-  dsex_change_pct: number | null;
-  ds30: number | null;
-  ds30_change: number | null;
-  dses: number | null;
-  dses_change: number | null;
-}
-
-export interface LiveBreadth {
-  advances: number;
-  declines: number;
-  unchanged: number;
-  total: number;
-}
-
-export interface LiveSectorItem {
-  sector: string;
-  avg_change_pct: number | null;
-  count: number | null;
-}
-
-export interface LiveNewsItem {
-  title: string;
-  code: string | null;
-  date: string | null;
-}
-
-export interface MarketLiveData {
-  is_open: boolean;
-  data_source?: "live" | "cache";
-  as_of?: string;
-  closes_in_seconds?: number | null;
-  opens_in_seconds?: number | null;
-  is_trading_day?: boolean;
-  server_time_bst?: string;
-  message?: string;
-  index?: LiveIndexData | null;
-  prices?: LivePriceItem[];
-  top_gainers?: LivePriceItem[];
-  top_losers?: LivePriceItem[];
-  volume_leaders?: LivePriceItem[];
-  whats_hot?: LivePriceItem[];
-  sector_performance?: LiveSectorItem[];
-  breadth?: LiveBreadth;
-  psn_news?: LiveNewsItem[];
-}
-
-/** Client-side live market fetch — always bypasses cache */
-export async function getMarketLive(): Promise<MarketLiveData> {
-  const res = await fetch(`${getApiUrl()}/api/market-live`, { cache: "no-store" });
-  if (!res.ok) throw new Error(`market-live returned ${res.status}`);
-  return res.json() as Promise<MarketLiveData>;
 }
 
 // ---------------------------------------------------------------------------
@@ -732,7 +659,7 @@ export interface PopularStocksResponse {
 }
 
 export async function getPopularStocks(): Promise<PopularStocksResponse> {
-  return apiFetch<PopularStocksResponse>("/api/popular-stocks", 600);
+  return apiFetch<PopularStocksResponse>("/api/popular-stocks", 86400);
 }
 
 // ---------------------------------------------------------------------------
@@ -766,7 +693,7 @@ export interface Top20Response {
 }
 
 export async function getTop20(): Promise<Top20Response> {
-  return apiFetch<Top20Response>("/api/top-20", 1800);
+  return apiFetch<Top20Response>("/api/top-20", 86400);
 }
 
 // ---------------------------------------------------------------------------
@@ -808,7 +735,7 @@ export interface DailyPickResponse {
 }
 
 export async function getDailyPick(): Promise<DailyPickResponse> {
-  return apiFetch<DailyPickResponse>("/api/daily-pick", 3600);
+  return apiFetch<DailyPickResponse>("/api/daily-pick", 86400);
 }
 
 export interface DailyPickHistoryDayItem {
@@ -835,7 +762,7 @@ export interface DailyPickHistoryResponse {
 }
 
 export async function getDailyPickHistory(days = 30): Promise<DailyPickHistoryResponse> {
-  return apiFetch<DailyPickHistoryResponse>(`/api/daily-pick/history?days=${days}`, 3600);
+  return apiFetch<DailyPickHistoryResponse>(`/api/daily-pick/history?days=${days}`, 86400);
 }
 
 // ---------------------------------------------------------------------------

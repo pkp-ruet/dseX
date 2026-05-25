@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ApiNotFoundError, getCompanyDetail } from "@/lib/api";
+import { ApiNotFoundError, getCompanyDetail, getAllCodes } from "@/lib/api";
 import { getTier, TIER_LABELS } from "@/lib/constants";
 import HeroSection from "@/components/stock/HeroSection";
 import PriceChart from "@/components/stock/PriceChart";
@@ -13,7 +13,7 @@ import NewsSection from "@/components/stock/NewsSection";
 import RelatedStocks from "@/components/stock/RelatedStocks";
 import StockVisitTracker from "@/components/analytics/StockVisitTracker";
 
-export const revalidate = 3600;
+export const revalidate = 86400;
 export const dynamicParams = true;
 
 interface PageProps {
@@ -21,10 +21,17 @@ interface PageProps {
 }
 
 export async function generateStaticParams() {
-  // All stock pages render on-demand (dynamicParams = true) and are ISR-cached.
-  // Returning [] avoids fanning out 360 backend fetches at build time, which
-  // can intermittently bake static 404s when Render's free tier is cold-starting.
-  return [];
+  // Bake the top-50 codes at build time to cut Fast Origin Transfer.
+  // Tail-end codes still render on-demand (dynamicParams = true).
+  // If the backend is cold (Render free tier), fall back to [] — never
+  // bake 404s for codes we couldn't verify.
+  try {
+    const codes = await getAllCodes();
+    if (!Array.isArray(codes) || codes.length === 0) return [];
+    return codes.slice(0, 50).map((code) => ({ code }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

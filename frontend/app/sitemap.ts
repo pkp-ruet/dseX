@@ -6,6 +6,8 @@ import { SAMPLE_SLUGS } from "@/lib/sample-portfolios";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
+export const revalidate = 86400;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const codes = await getAllCodes().catch(() => [] as string[]);
 
@@ -55,12 +57,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 0.85,
-    },
-    {
-      url: `${BASE_URL}/live-market`,
-      lastModified: new Date(),
-      changeFrequency: "always",
-      priority: 0.8,
     },
     {
       url: `${BASE_URL}/market-analysis`,

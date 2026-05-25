@@ -2,11 +2,14 @@ name: Intraday DSE Scrape
 
 on:
   schedule:
-    # Every 5 min, Sun-Thu, 04:00-09:30 UTC = 10:00-15:30 BST
-    # In-script is_intraday_scrape_window() guard handles boundary minutes
-    # (window extends 60 min past 14:30 close to capture final prints).
-    - cron: "*/5 4-8 * * 0-4"
-    - cron: "0,5,10,15,20,25,30 9 * * 0-4"
+    # 8 ticks/trading-day at 10:30, 11, 11:30, 12, 12:30, 13, 13:30, 14:00 BST
+    # BST = UTC+6, Sun-Thu (cron weekday 0-4). All ticks fall inside the
+    # is_intraday_scrape_window() guard at main.py:180.
+    - cron: "30 4 * * 0-4"          # 10:30 BST
+    - cron: "0,30 5 * * 0-4"        # 11:00, 11:30 BST
+    - cron: "0,30 6 * * 0-4"        # 12:00, 12:30 BST
+    - cron: "0,30 7 * * 0-4"        # 13:00, 13:30 BST
+    - cron: "0 8 * * 0-4"           # 14:00 BST
   workflow_dispatch:
     inputs:
       force:

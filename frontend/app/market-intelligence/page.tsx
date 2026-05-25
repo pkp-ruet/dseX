@@ -7,7 +7,7 @@ import ConditionBanner from "@/components/market-intelligence/ConditionBanner";
 import SignalTable from "@/components/market-intelligence/SignalTable";
 import SectorMap from "@/components/market-intelligence/SectorMap";
 
-export const revalidate = 900;
+export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: "Market Intelligence — DSE Stock Analysis",

@@ -4,7 +4,7 @@ import { getTop20 } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 import Top20Deck from "@/components/top20/Top20Deck";
 
-export const revalidate = 1800;
+export const revalidate = 86400;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 const PAGE_URL = `${BASE_URL}/dse-top-20`;
