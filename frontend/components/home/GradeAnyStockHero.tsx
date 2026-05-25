@@ -24,7 +24,6 @@ const PILLAR_BARS: { key: keyof ScoreItem; label: string }[] = [
 ];
 
 const PLACEHOLDERS = ["Try GP", "Try Beximco", "Try Square Pharma"];
-const DEMO_CHIPS = ["GP", "BEXIMCO", "SQURPHARMA"];
 
 function todayKey(): string {
   return new Date().toISOString().slice(0, 10);
@@ -233,7 +232,7 @@ export default function GradeAnyStockHero({ items }: Props) {
   return (
     <section
       aria-label="Grade any stock"
-      className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] relative h-full flex flex-col min-h-[400px] sm:min-h-[440px] md:min-h-0"
+      className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] relative h-full flex flex-col min-h-0 md:min-h-0"
     >
       <div className="overflow-hidden rounded-t-2xl">
         <div
@@ -242,11 +241,11 @@ export default function GradeAnyStockHero({ items }: Props) {
         />
       </div>
 
-      <div className="p-5 sm:p-6 md:p-5 flex-1 flex flex-col">
+      <div className="p-4 sm:p-6 md:p-5 flex-1 flex flex-col">
         {/* Idle state — poster-style centered headline + search */}
         {mode === "idle" && (
           <div ref={containerRef} className="flex-1 flex flex-col justify-center">
-            <div className="text-center mb-5 sm:mb-6">
+            <div className="text-center mb-3 sm:mb-6">
               <h2 className="text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-extrabold text-[var(--text)] leading-[1.05] tracking-tight">
                 Check Any Stock
               </h2>
@@ -307,20 +306,6 @@ export default function GradeAnyStockHero({ items }: Props) {
                   ))}
                 </ul>
               )}
-            </div>
-
-            {/* Demo chips — centered */}
-            <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
-              {DEMO_CHIPS.map((code) => (
-                <button
-                  key={code}
-                  type="button"
-                  onClick={() => runCheck(code)}
-                  className="px-3.5 py-1.5 rounded-full text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors"
-                >
-                  {code}
-                </button>
-              ))}
             </div>
 
             <p className="text-center text-xs text-[var(--text-muted)] mt-4">

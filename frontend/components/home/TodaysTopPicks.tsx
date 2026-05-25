@@ -68,16 +68,7 @@ function PickRow({ pick }: { pick: DailyPickItem }) {
           )}
         </div>
 
-        {pick.company_name && (
-          <p className="text-xs sm:text-sm text-[var(--text-muted)] truncate mb-1">
-            {pick.company_name}
-          </p>
-        )}
-
         <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5 text-xs sm:text-sm mb-1.5">
-          {pick.sector && (
-            <span className="text-[var(--text-muted)]">{pick.sector}</span>
-          )}
           {pick.ltp != null && (
             <span className="text-[var(--text)] font-semibold">৳{pick.ltp.toFixed(2)}</span>
           )}
@@ -125,11 +116,8 @@ export default function TodaysTopPicks({ data }: Props) {
       <div className="p-5 sm:p-6 md:p-5 flex flex-col flex-1">
         {/* Big centered title */}
         <div className="text-center mb-4 sm:mb-5">
-          <p className="text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-extrabold leading-[1.05] tracking-tight" style={{ color: "#F97316" }}>
+          <p className="text-xl sm:text-2xl md:text-2xl lg:text-3xl font-extrabold leading-[1.05] tracking-tight" style={{ color: "#F97316" }}>
             <span aria-hidden="true">★</span> Today&apos;s Top Picks
-          </p>
-          <p className="mt-1.5 text-xs sm:text-sm text-[var(--text-muted)]">
-            {fmtPickDate(data.date)}
           </p>
         </div>
 
