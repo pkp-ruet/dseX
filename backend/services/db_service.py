@@ -3,6 +3,7 @@ MongoDB query helpers — cached loaders for FastAPI routes.
 All functions return plain Python dicts/lists (JSON-serialisable).
 """
 import time
+from collections import OrderedDict
 from datetime import datetime, timedelta
 from typing import Optional
 from pymongo import MongoClient
@@ -28,18 +29,34 @@ def get_db():
 # Simple TTL cache decorator
 # ---------------------------------------------------------------------------
 
-def _ttl_cache(ttl_seconds: int = 300):
-    """Module-level TTL cache keyed by function + args."""
+def _ttl_cache(ttl_seconds: int = 300, max_entries: int = 50):
+    """Module-level TTL cache keyed by function + args.
+
+    Bounded LRU: when the store exceeds ``max_entries``, the least-recently-used
+    key is evicted on the next write. Single-arg loaders (e.g. per-company)
+    would otherwise accumulate one entry per distinct argument across the full
+    TTL window — on Render free tier this is the difference between a steady
+    ~5 MB cache and unbounded growth toward OOM.
+
+    Behaviour is identical to the previous unbounded cache for any caller that
+    stays within ``max_entries`` distinct argument tuples, which covers every
+    no-arg function. Eviction only kicks in for fan-out callers like
+    ``load_financials(trading_code)``.
+    """
     def decorator(fn):
-        _store: dict = {}
+        _store: "OrderedDict[tuple, dict]" = OrderedDict()
 
         def wrapper(*args, **kwargs):
             key = (args, tuple(sorted(kwargs.items())))
             cached = _store.get(key)
             if cached and time.time() - cached["at"] < ttl_seconds:
+                _store.move_to_end(key)
                 return cached["val"]
             val = fn(*args, **kwargs)
             _store[key] = {"val": val, "at": time.time()}
+            _store.move_to_end(key)
+            while len(_store) > max_entries:
+                _store.popitem(last=False)
             return val
 
         wrapper.cache_clear = lambda: _store.clear()
