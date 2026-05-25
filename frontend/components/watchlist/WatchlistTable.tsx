@@ -33,7 +33,6 @@ import { useAuth } from "@/context/AuthContext";
 import { getTier, TIER_LABELS, type TierKey } from "@/lib/constants";
 import WatchlistNews from "./WatchlistNews";
 import WatchlistAnalysis from "./WatchlistAnalysis";
-import SinceLastVisit from "./SinceLastVisit";
 import NoteEditor from "./NoteEditor";
 import EmptyStateActions from "./EmptyStateActions";
 import ShareWatchlistButton from "./ShareWatchlistButton";
@@ -213,11 +212,11 @@ interface RowProps {
 
 const TIER_CHIP_CLS: Record<TierKey, string> = {
   strong_buy:
-    "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20",
-  buy: "bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20",
+    "bg-emerald-500 text-white dark:bg-emerald-400 dark:text-emerald-950 border border-emerald-600 dark:border-emerald-300",
+  buy: "bg-sky-500 text-white dark:bg-sky-400 dark:text-sky-950 border border-sky-600 dark:border-sky-300",
   keep_watching:
-    "bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20",
-  avoid: "bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20",
+    "bg-amber-500 text-white dark:bg-amber-400 dark:text-amber-950 border border-amber-600 dark:border-amber-300",
+  avoid: "bg-rose-500 text-white dark:bg-rose-400 dark:text-rose-950 border border-rose-600 dark:border-rose-300",
 };
 
 function TierBadge({ tier }: { tier: TierKey }) {
@@ -309,10 +308,10 @@ function EpsPill({ value }: { value: number | null | undefined }) {
   }
   const tone =
     value > 10
-      ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
+      ? "bg-emerald-500 text-white dark:bg-emerald-400 dark:text-emerald-950 border-emerald-600 dark:border-emerald-300"
       : value < -10
-        ? "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20"
-        : "bg-[var(--border)]/40 text-[var(--ink-muted)] border-[var(--border)]";
+        ? "bg-rose-500 text-white dark:bg-rose-400 dark:text-rose-950 border-rose-600 dark:border-rose-300"
+        : "bg-slate-500 text-white dark:bg-slate-300 dark:text-slate-900 border-slate-600 dark:border-slate-200";
   const sign = value > 0 ? "+" : "";
   return (
     <span
@@ -594,10 +593,6 @@ function WatchlistTableInner() {
             </button>
           </div>
         </div>
-      )}
-
-      {codes.length > 0 && (
-        <SinceLastVisit codes={codes} rows={rows} />
       )}
 
       <div className="flex items-center justify-between gap-2 mb-3">

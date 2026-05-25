@@ -3538,12 +3538,12 @@ details.dsex-exp[open] > summary {
   border-collapse: collapse;
 }
 .watchlist-table th {
-  font-size: 0.6rem;
+  font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--ink-muted);
-  padding: 11px 10px;
+  color: var(--ink-2);
+  padding: 12px 10px;
   background: var(--bg);
   border-bottom: 2px solid var(--rule);
   text-align: left;
@@ -3554,24 +3554,30 @@ details.dsex-exp[open] > summary {
   font-variant-numeric: tabular-nums;
 }
 .watchlist-table td {
-  padding: 10px;
-  font-size: 0.82rem;
+  padding: 12px 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ink);
   border-bottom: 1px solid var(--cell-rule);
   vertical-align: middle;
+}
+.watchlist-table td.num {
+  font-weight: 600;
+  color: var(--ink);
 }
 .watchlist-table tbody tr:last-child td {
   border-bottom: none;
 }
 .watchlist-table tbody tr:hover {
-  background: rgba(14, 165, 233, 0.06);
+  background: rgba(14, 165, 233, 0.08);
 }
 .watchlist-ticker {
   display: inline-block;
-  font-size: 0.7rem;
+  font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 3px 9px;
+  padding: 4px 10px;
   border-radius: 5px;
   background: var(--gold-light);
   color: var(--gold);
@@ -3587,9 +3593,9 @@ details.dsex-exp[open] > summary {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.watchlist-chg.up   { color: #34D399; font-weight: 600; }
-.watchlist-chg.dn   { color: #F87171; font-weight: 600; }
-.watchlist-chg.flat { color: var(--ink-muted); }
+.watchlist-chg.up   { color: #4ADE80; font-weight: 700; }
+.watchlist-chg.dn   { color: #FB7185; font-weight: 700; }
+.watchlist-chg.flat { color: var(--ink-2); font-weight: 600; }
 .watchlist-score {
   font-weight: 700;
   color: var(--ink);

@@ -11,7 +11,6 @@ export default function WatchlistPage() {
   return (
     <main className="max-w-5xl mx-auto px-4 py-6">
       <div className="rank-page-header">
-        <p className="rank-page-eyebrow">// PERSONAL</p>
         <h1 className="rank-page-title">My Watchlist</h1>
       </div>
       <WatchlistTable />
