@@ -9,27 +9,27 @@ const QUALITY_THEME: Record<
 > = {
   Strong: {
     dot: "bg-green-400",
-    chip: "bg-green-500/15 text-green-400 border-green-500/30",
+    chip: "bg-green-500/15 text-[var(--positive)] border-green-500/30",
     label: "Strong company",
   },
   Solid: {
     dot: "bg-blue-400",
-    chip: "bg-blue-500/15 text-blue-400 border-blue-500/30",
+    chip: "bg-blue-500/15 text-[var(--safe-buy)] border-blue-500/30",
     label: "Solid company",
   },
   Average: {
     dot: "bg-amber-400",
-    chip: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+    chip: "bg-amber-500/15 text-[var(--watch)] border-amber-500/30",
     label: "Average company",
   },
   Weak: {
     dot: "bg-red-400",
-    chip: "bg-red-500/15 text-red-400 border-red-500/30",
+    chip: "bg-red-500/15 text-[var(--negative)] border-red-500/30",
     label: "Weak company",
   },
   Unrated: {
     dot: "bg-gray-400",
-    chip: "bg-gray-500/15 text-gray-400 border-gray-500/30",
+    chip: "bg-gray-500/15 text-[var(--text-muted)] border-gray-500/30",
     label: "Unrated",
   },
 };
@@ -79,7 +79,7 @@ export default function HoldingsDetailed({ analysis }: Props) {
         const pnlIsUp = pnlAmount != null && pnlAmount > 0;
         const pnlIsDown = pnlAmount != null && pnlAmount < 0;
         const pnlColor =
-          pnlIsUp ? "text-green-400" : pnlIsDown ? "text-red-400" : "text-[var(--text)]";
+          pnlIsUp ? "text-[var(--positive)]" : pnlIsDown ? "text-[var(--negative)]" : "text-[var(--text)]";
         const qt = QUALITY_THEME[h.qualityWord];
 
         return (

@@ -69,11 +69,7 @@ const ORG_JSON_LD = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable}`} suppressHydrationWarning>
-      <head>
-        {/* Anti-flash: set data-theme before first paint */}
-        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('dsex.theme');if(t==='dark'){document.documentElement.dataset.theme='dark';}}catch(e){}})()` }} />
-      </head>
+    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body className="min-h-screen flex flex-col">
         <script
           type="application/ld+json"

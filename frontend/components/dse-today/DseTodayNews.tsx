@@ -31,7 +31,7 @@ export default function DseTodayNews({ items }: { items: DseTodayNewsItem[] }) {
                 className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md"
                 style={{
                   background: "rgba(14,165,233,0.1)",
-                  color: "#38BDF8",
+                  color: "var(--primary)",
                   border: "1px solid rgba(14,165,233,0.25)",
                 }}
               >

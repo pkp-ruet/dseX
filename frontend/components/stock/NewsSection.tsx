@@ -18,10 +18,10 @@ export default function NewsSection({ news }: Props) {
 
   return (
     <section className="mb-8">
-      <h2 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: "#F1F5F9" }}>
+      <h2 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: "var(--text)" }}>
         What's New
       </h2>
-      <p className="text-sm mb-5" style={{ color: "#CBD5E1" }}>
+      <p className="text-sm mb-5" style={{ color: "var(--text-muted)" }}>
         Recent news and announcements about this company.
       </p>
 
@@ -40,9 +40,9 @@ export default function NewsSection({ news }: Props) {
           onClick={() => setShowAll(true)}
           className="mt-4 text-sm font-semibold px-4 py-2 rounded-full transition-colors"
           style={{
-            color: "#38BDF8",
-            background: "rgba(56,189,248,0.08)",
-            border: "1px solid rgba(56,189,248,0.25)",
+            color: "var(--primary)",
+            background: "rgba(37,99,235,0.08)",
+            border: "1px solid rgba(37,99,235,0.25)",
           }}
         >
           Show all {news.length} news items →

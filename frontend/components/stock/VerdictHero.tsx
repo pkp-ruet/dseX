@@ -31,9 +31,9 @@ export default function VerdictHero({ detail }: Props) {
     <section
       className="relative rounded-3xl overflow-hidden mb-8"
       style={{
-        background: `radial-gradient(120% 90% at 0% 0%, ${tone.soft} 0%, transparent 55%), radial-gradient(110% 80% at 100% 100%, ${tone.soft} 0%, transparent 50%), linear-gradient(160deg, #0B1626 0%, #08111F 50%, #0A1A2C 100%)`,
+        background: `radial-gradient(120% 90% at 0% 0%, ${tone.soft} 0%, transparent 55%), radial-gradient(110% 80% at 100% 100%, ${tone.soft} 0%, transparent 50%), var(--surface)`,
         border: `1px solid ${tone.border}`,
-        boxShadow: `0 12px 48px rgba(0,0,0,0.45), 0 0 80px ${tone.soft}`,
+        boxShadow: `0 12px 48px rgba(15,23,42,0.1), 0 0 80px ${tone.soft}`,
       }}
     >
       <style>{`
@@ -74,7 +74,7 @@ export default function VerdictHero({ detail }: Props) {
           <span className="text-[11px] font-bold uppercase tracking-[0.22em] flex items-center gap-1.5">
             <span
               style={{
-                background: "linear-gradient(90deg, #38BDF8 0%, #22D3EE 50%, #A78BFA 100%)",
+                background: "linear-gradient(90deg, var(--primary) 0%, var(--accent) 50%, var(--np-cautious) 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -82,7 +82,7 @@ export default function VerdictHero({ detail }: Props) {
             >
               TopStockBD
             </span>
-            <span style={{ color: "#E2E8F0" }}>Analysis on —</span>
+            <span style={{ color: "var(--text-muted)" }}>Analysis on —</span>
           </span>
         </div>
 
@@ -91,9 +91,8 @@ export default function VerdictHero({ detail }: Props) {
           <h2
             className="font-black tracking-tight leading-[1.05]"
             style={{
-              color: "#FFFFFF",
+              color: "var(--text)",
               fontSize: "clamp(1.5rem, 4vw, 2.25rem)",
-              textShadow: "0 2px 16px rgba(0,0,0,0.5)",
             }}
           >
             {companyName}
@@ -113,9 +112,9 @@ export default function VerdictHero({ detail }: Props) {
               <span
                 className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full"
                 style={{
-                  color: "#C4B5FD",
-                  background: "rgba(167,139,250,0.12)",
-                  border: "1px solid rgba(167,139,250,0.3)",
+                  color: "var(--np-cautious)",
+                  background: "rgba(124,58,237,0.1)",
+                  border: "1px solid rgba(124,58,237,0.3)",
                 }}
               >
                 {profile.sector}
@@ -125,9 +124,9 @@ export default function VerdictHero({ detail }: Props) {
               <span
                 className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full tabular-nums"
                 style={{
-                  color: "#FDE68A",
-                  background: "rgba(253,224,71,0.1)",
-                  border: "1px solid rgba(253,224,71,0.3)",
+                  color: "var(--watch)",
+                  background: "rgba(180,83,9,0.1)",
+                  border: "1px solid rgba(180,83,9,0.3)",
                 }}
               >
                 Latest Price: ৳{ltp.toFixed(1)}
@@ -141,7 +140,7 @@ export default function VerdictHero({ detail }: Props) {
           <div className="flex flex-col items-center shrink-0">
             <span
               className="text-[10px] font-bold uppercase tracking-[0.22em] mb-2"
-              style={{ color: "#CBD5E1" }}
+              style={{ color: "var(--text-muted)" }}
             >
               Fundamental Score
             </span>
@@ -158,7 +157,7 @@ export default function VerdictHero({ detail }: Props) {
                   cy={size / 2}
                   r={radius}
                   fill="none"
-                  stroke="rgba(255,255,255,0.06)"
+                  stroke="var(--surface-2)"
                   strokeWidth={stroke}
                 />
                 <circle
@@ -191,7 +190,7 @@ export default function VerdictHero({ detail }: Props) {
                 </span>
                 <span
                   className="text-[10px] font-bold uppercase tracking-[0.2em] mt-0.5"
-                  style={{ color: "#CBD5E1" }}
+                  style={{ color: "var(--text-muted)" }}
                 >
                   / 100
                 </span>
@@ -227,7 +226,7 @@ export default function VerdictHero({ detail }: Props) {
             {tagline && (
               <p
                 className="text-sm sm:text-base font-semibold mt-3 leading-snug"
-                style={{ color: "#FFFFFF" }}
+                style={{ color: "var(--text)" }}
               >
                 {tagline}
               </p>
@@ -238,7 +237,7 @@ export default function VerdictHero({ detail }: Props) {
                   <li
                     key={i}
                     className="flex gap-2.5 text-[13px] sm:text-sm leading-snug"
-                    style={{ color: "#F1F5F9" }}
+                    style={{ color: "var(--text)" }}
                   >
                     <span
                       aria-hidden
@@ -253,7 +252,7 @@ export default function VerdictHero({ detail }: Props) {
                 ))}
               </ul>
             ) : !tagline ? (
-              <p className="text-[15px] sm:text-base mt-4 leading-relaxed" style={{ color: "#CBD5E1" }}>
+              <p className="text-[15px] sm:text-base mt-4 leading-relaxed" style={{ color: "var(--text-muted)" }}>
                 Our take on this stock — combining its financial health with how the market is treating it right now.
               </p>
             ) : null}
@@ -263,11 +262,11 @@ export default function VerdictHero({ detail }: Props) {
         {/* Footer watermark — for shared screenshots */}
         <div
           className="mt-5 pt-3 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.2em]"
-          style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
+          style={{ borderTop: "1px solid var(--border)" }}
         >
           <span
             style={{
-              background: "linear-gradient(90deg, #38BDF8 0%, #22D3EE 100%)",
+              background: "linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -275,7 +274,7 @@ export default function VerdictHero({ detail }: Props) {
           >
             topstockbd.com
           </span>
-          <span style={{ color: "#CBD5E1" }}>DSE Stock Analysis</span>
+          <span style={{ color: "var(--text-muted)" }}>DSE Stock Analysis</span>
         </div>
       </div>
     </section>

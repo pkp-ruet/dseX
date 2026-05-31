@@ -69,22 +69,22 @@ export default function PriceChart({ code }: Props) {
   const caption = useMemo(() => priceTrendCaption(data, range), [data, range]);
 
   const trend = data.length >= 2 ? data[data.length - 1].ltp - data[0].ltp : 0;
-  const lineColor = trend >= 0 ? "#34D399" : "#F87171";
-  const fillTop   = trend >= 0 ? "rgba(52,211,153,0.35)" : "rgba(248,113,113,0.35)";
-  const fillBottom= trend >= 0 ? "rgba(52,211,153,0.0)"  : "rgba(248,113,113,0.0)";
+  const lineColor = trend >= 0 ? "var(--positive)" : "var(--negative)";
+  const fillTop   = trend >= 0 ? "rgba(21,128,61,0.18)" : "rgba(220,38,38,0.18)";
+  const fillBottom= trend >= 0 ? "rgba(21,128,61,0.0)"  : "rgba(220,38,38,0.0)";
 
   return (
     <section
       className="rounded-3xl mb-8 p-5 sm:p-7"
       style={{
-        background: "linear-gradient(135deg, #0D1A2E 0%, #0A1525 100%)",
-        border: "1px solid #1E3A5F",
-        boxShadow: "0 4px 24px rgba(0,0,0,0.25)",
+        background: "var(--surface)",
+        border: "1px solid var(--border)",
+        boxShadow: "0 4px 24px rgba(15,23,42,0.06)",
       }}
     >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold" style={{ color: "#F1F5F9" }}>
+          <h2 className="text-xl sm:text-2xl font-bold" style={{ color: "var(--text)" }}>
             The Price Story
           </h2>
           {caption && (
@@ -95,7 +95,7 @@ export default function PriceChart({ code }: Props) {
         </div>
         <div
           className="inline-flex rounded-full p-1 self-start"
-          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
+          style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
         >
           {RANGES.map((r) => (
             <button
@@ -103,8 +103,8 @@ export default function PriceChart({ code }: Props) {
               onClick={() => setRange(r)}
               className="px-3 py-1.5 text-xs font-bold rounded-full transition-all tabular-nums"
               style={{
-                color: range === r ? "#0A1525" : "#94A3B8",
-                background: range === r ? "#F1F5F9" : "transparent",
+                color: range === r ? "#FFFFFF" : "var(--text-muted)",
+                background: range === r ? "var(--primary)" : "transparent",
               }}
             >
               {r}
@@ -113,21 +113,21 @@ export default function PriceChart({ code }: Props) {
         </div>
       </div>
 
-      <div className="rounded-2xl" style={{ background: "rgba(0,0,0,0.15)" }}>
+      <div className="rounded-2xl" style={{ background: "var(--surface-2)" }}>
         {loading ? (
-          <div className="h-[320px] flex items-center justify-center text-sm" style={{ color: "#94A3B8" }}>
+          <div className="h-[320px] flex items-center justify-center text-sm" style={{ color: "var(--text-muted)" }}>
             Loading chart...
           </div>
         ) : error ? (
           <div className="h-[320px] flex flex-col items-center justify-center gap-2 text-sm px-6 text-center">
-            <span style={{ color: "#F87171" }}>Couldn't load price chart.</span>
-            <span className="text-xs" style={{ color: "#94A3B8" }}>{error}</span>
-            <span className="text-[11px] mt-1" style={{ color: "#64748B" }}>
+            <span style={{ color: "var(--negative)" }}>Couldn't load price chart.</span>
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>{error}</span>
+            <span className="text-[11px] mt-1" style={{ color: "var(--text-muted)" }}>
               Check the browser console for details.
             </span>
           </div>
         ) : data.length === 0 ? (
-          <div className="h-[320px] flex items-center justify-center text-sm" style={{ color: "#94A3B8" }}>
+          <div className="h-[320px] flex items-center justify-center text-sm" style={{ color: "var(--text-muted)" }}>
             No price data available for this stock.
           </div>
         ) : (
@@ -139,17 +139,17 @@ export default function PriceChart({ code }: Props) {
                   <stop offset="100%" stopColor={fillBottom} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="2 4" stroke="#1E3A5F" strokeOpacity={0.4} vertical={false} />
+              <CartesianGrid strokeDasharray="2 4" stroke="var(--border)" strokeOpacity={0.8} vertical={false} />
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 11, fill: "#94A3B8" }}
+                tick={{ fontSize: 11, fill: "#64748B" }}
                 tickFormatter={formatDateTick}
                 interval="preserveStartEnd"
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fontSize: 11, fill: "#94A3B8" }}
+                tick={{ fontSize: 11, fill: "#64748B" }}
                 tickFormatter={(v: number) => `৳${v}`}
                 width={56}
                 axisLine={false}
@@ -161,9 +161,9 @@ export default function PriceChart({ code }: Props) {
                 contentStyle={{
                   fontSize: 12,
                   borderRadius: "8px",
-                  border: "1px solid #1E3A5F",
-                  background: "#0A1525",
-                  color: "#F1F5F9",
+                  border: "1px solid var(--border)",
+                  background: "var(--surface)",
+                  color: "var(--text)",
                 }}
               />
               <Area

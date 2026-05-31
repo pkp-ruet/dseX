@@ -7,11 +7,11 @@ interface Props {
 }
 
 const CATEGORIES = [
-  { key: "sponsor_director_pct", label: "Owners (Sponsors / Directors)", color: "#0EA5E9" },
-  { key: "govt_pct",             label: "Government",                    color: "#34D399" },
-  { key: "institute_pct",        label: "Institutions",                  color: "#818CF8" },
-  { key: "foreign_pct",          label: "Foreign Investors",             color: "#FB923C" },
-  { key: "public_pct",           label: "General Public",                color: "#F472B6" },
+  { key: "sponsor_director_pct", label: "Owners (Sponsors / Directors)", color: "#2563EB" },
+  { key: "govt_pct",             label: "Government",                    color: "#15803D" },
+  { key: "institute_pct",        label: "Institutions",                  color: "#6366F1" },
+  { key: "foreign_pct",          label: "Foreign Investors",             color: "#EA580C" },
+  { key: "public_pct",           label: "General Public",                color: "#DB2777" },
 ];
 
 export default function ShareholdingPie({ shareholding }: Props) {
@@ -28,18 +28,18 @@ export default function ShareholdingPie({ shareholding }: Props) {
 
   return (
     <section className="mb-8">
-      <h2 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: "#F1F5F9" }}>
+      <h2 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: "var(--text)" }}>
         Who Owns It
       </h2>
-      <p className="text-sm mb-5" style={{ color: "#CBD5E1" }}>
+      <p className="text-sm mb-5" style={{ color: "var(--text-muted)" }}>
         Who's behind this company — and how committed are they?
       </p>
 
       <div
         className="rounded-2xl p-5 sm:p-6"
         style={{
-          background: "linear-gradient(135deg, #0D1A2E 0%, #0A1525 100%)",
-          border: "1px solid #1E3A5F",
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
         }}
       >
         <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start">
@@ -65,9 +65,9 @@ export default function ShareholdingPie({ shareholding }: Props) {
                   contentStyle={{
                     fontSize: 12,
                     borderRadius: "8px",
-                    border: "1px solid #1E3A5F",
-                    background: "#0A1525",
-                    color: "#F1F5F9",
+                    border: "1px solid var(--border)",
+                    background: "var(--surface)",
+                    color: "var(--text)",
                   }}
                   formatter={(v: number) => [`${v.toFixed(1)}%`, ""]}
                 />
@@ -82,7 +82,7 @@ export default function ShareholdingPie({ shareholding }: Props) {
               return (
                 <div key={c.key} className="flex items-center gap-3">
                   <span className="w-3 h-3 rounded-full shrink-0" style={{ background: c.color }} />
-                  <span className="text-sm flex-1 min-w-0" style={{ color: "#CBD5E1" }}>{c.label}</span>
+                  <span className="text-sm flex-1 min-w-0" style={{ color: "var(--text-muted)" }}>{c.label}</span>
                   <span className="text-sm font-bold tabular-nums w-14 text-right" style={{ color: c.color }}>
                     {val.toFixed(1)}%
                   </span>
@@ -93,7 +93,7 @@ export default function ShareholdingPie({ shareholding }: Props) {
         </div>
 
         {caption && (
-          <p className="text-sm mt-5 leading-snug" style={{ color: "#CBD5E1" }}>
+          <p className="text-sm mt-5 leading-snug" style={{ color: "var(--text-muted)" }}>
             {caption}
           </p>
         )}

@@ -37,7 +37,7 @@ interface HeroProps {
 function HeroDsex({ value, change, changePct }: HeroProps) {
   const isUp = (change ?? 0) >= 0;
   const isNull = change == null;
-  const chgColor = isNull ? "#94A3B8" : isUp ? "#34D399" : "#F87171";
+  const chgColor = isNull ? "var(--text-muted)" : isUp ? "var(--positive)" : "var(--negative)";
   const arrow = isNull ? null : isUp ? "▲" : "▼";
 
   return (
@@ -71,7 +71,7 @@ interface MiniProps {
 function MiniIndex({ label, value, change }: MiniProps) {
   const isUp = (change ?? 0) >= 0;
   const isNull = change == null;
-  const chgColor = isNull ? "#94A3B8" : isUp ? "#34D399" : "#F87171";
+  const chgColor = isNull ? "var(--text-muted)" : isUp ? "var(--positive)" : "var(--negative)";
   const arrow = isNull ? "" : isUp ? "▲" : "▼";
 
   return (
@@ -138,7 +138,7 @@ interface ChipProps {
 function StatChip({ icon, label, value, changePct }: ChipProps) {
   const hasChange = changePct != null;
   const isUp = (changePct ?? 0) >= 0;
-  const chgColor = isUp ? "#34D399" : "#F87171";
+  const chgColor = isUp ? "var(--positive)" : "var(--negative)";
   const arrow = isUp ? "▲" : "▼";
 
   return (
@@ -175,10 +175,10 @@ export default function MarketIndexBanner({ data }: Props) {
     (data.dses_change ?? 0) > 0 &&
     (data.ds30_change ?? 0) > 0;
   const accentBar = overallDown
-    ? "linear-gradient(90deg,#DC2626,#F97316,#EF4444)"
+    ? "linear-gradient(90deg,var(--negative),#F97316,#EF4444)"
     : overallUp
-    ? "linear-gradient(90deg,#10B981,#22D3EE,#34D399)"
-    : "linear-gradient(90deg,#22D3EE,#10B981,#A78BFA)";
+    ? "linear-gradient(90deg,var(--positive),var(--accent),#34D399)"
+    : "linear-gradient(90deg,var(--primary),var(--accent),var(--np-cautious))";
 
   return (
     <section className="market-index-banner" aria-label="DSE Market Indices">

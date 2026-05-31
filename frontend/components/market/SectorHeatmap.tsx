@@ -37,7 +37,7 @@ function CustomContent(props: any) {
             x={x + width / 2}
             y={y + height / 2 - 6}
             textAnchor="middle"
-            fill="#fff"
+            fill="var(--text)"
             fontSize={Math.min(12, width / 8)}
             fontWeight="600"
           >
@@ -48,7 +48,7 @@ function CustomContent(props: any) {
               x={x + width / 2}
               y={y + height / 2 + 10}
               textAnchor="middle"
-              fill="#fff"
+              fill="var(--text)"
               fontSize={Math.min(11, width / 9)}
               opacity={0.85}
             >
@@ -96,7 +96,7 @@ export default function SectorHeatmap({ sectors, onSectorClick }: Props) {
                   <div className="bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-xs shadow">
                     <div className="font-semibold text-[var(--text)]">{d.name}</div>
                     {d.avg_change_pct != null && (
-                      <div className={d.avg_change_pct >= 0 ? "text-green-500" : "text-red-500"}>
+                      <div style={{ color: d.avg_change_pct >= 0 ? "var(--positive)" : "var(--negative)" }}>
                         {sign}{d.avg_change_pct.toFixed(2)}% avg
                       </div>
                     )}

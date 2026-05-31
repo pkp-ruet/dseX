@@ -49,7 +49,7 @@ export default function KeyNumbers({ detail }: Props) {
       label: "EPS",
       value: eps != null ? `৳${eps.toFixed(2)}` : "--",
       desc: "Earnings per share (latest year)",
-      tone: eps != null && eps < 0 ? "#F87171" : undefined,
+      tone: eps != null && eps < 0 ? "var(--negative)" : undefined,
     },
     {
       label: "P/E Ratio",
@@ -70,16 +70,16 @@ export default function KeyNumbers({ detail }: Props) {
       label: "Total Loan",
       value: fmtMn(loan),
       desc: "Outstanding debt the company carries",
-      tone: reserve != null && loan != null && reserve > 0 && loan > 2 * reserve ? "#FBBF24" : undefined,
+      tone: reserve != null && loan != null && reserve > 0 && loan > 2 * reserve ? "var(--watch)" : undefined,
     },
   ];
 
   return (
     <section className="mb-8">
-      <h2 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: "#F1F5F9" }}>
+      <h2 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: "var(--text)" }}>
         Key Numbers
       </h2>
-      <p className="text-sm mb-5" style={{ color: "#CBD5E1" }}>
+      <p className="text-sm mb-5" style={{ color: "var(--text-muted)" }}>
         The raw figures behind the verdict — for the curious.
       </p>
 
@@ -89,23 +89,23 @@ export default function KeyNumbers({ detail }: Props) {
             key={item.label}
             className="rounded-2xl p-4"
             style={{
-              background: "linear-gradient(135deg, #0D1A2E 0%, #0A1525 100%)",
-              border: "1px solid #1E3A5F",
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
             }}
           >
             <p
               className="text-[10px] font-bold uppercase tracking-[0.15em] mb-2"
-              style={{ color: "#CBD5E1" }}
+              style={{ color: "var(--text-muted)" }}
             >
               {item.label}
             </p>
             <p
               className="text-2xl font-bold tabular-nums leading-none"
-              style={{ color: item.tone ?? "#F1F5F9" }}
+              style={{ color: item.tone ?? "var(--text)" }}
             >
               {item.value}
             </p>
-            <p className="text-xs mt-2 leading-snug" style={{ color: "#CBD5E1" }}>
+            <p className="text-xs mt-2 leading-snug" style={{ color: "var(--text-muted)" }}>
               {item.desc}
             </p>
           </div>

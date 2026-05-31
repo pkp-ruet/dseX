@@ -39,7 +39,7 @@ function PickRow({ pick }: { pick: DailyPickItem }) {
   return (
     <Link
       href={`/stock/${pick.trading_code}`}
-      className="flex items-start gap-3 p-3.5 sm:p-4 md:p-3 rounded-xl border border-[var(--border)] bg-[var(--bg,#0c1117)] hover:border-[var(--primary)]/50 transition-colors group relative overflow-hidden"
+      className="flex items-start gap-3 p-3.5 sm:p-4 md:p-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] hover:border-[var(--primary)]/50 transition-colors group relative overflow-hidden"
     >
       <span
         aria-hidden="true"

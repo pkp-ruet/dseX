@@ -255,7 +255,7 @@ export default function GradeAnyStockHero({ items }: Props) {
             </div>
 
             <div className="relative">
-              <div className="flex items-center gap-2 rounded-2xl border-2 border-[var(--border)] bg-[var(--bg,#0c1117)] focus-within:border-[var(--primary)] transition-colors px-4 py-3 sm:py-3.5">
+              <div className="flex items-center gap-2 rounded-2xl border-2 border-[var(--border)] bg-[var(--bg)] focus-within:border-[var(--primary)] transition-colors px-4 py-3 sm:py-3.5">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" className="text-[var(--text-muted)] shrink-0">
                   <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.6" />
                   <path d="M13.5 13.5L17 17" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />

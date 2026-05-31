@@ -21,14 +21,14 @@ export default function HeroSection({ detail }: Props) {
   const isPositive = chg != null && chg > 0;
   const isNegative = chg != null && chg < 0;
 
-  const changeColor = chg == null ? "#94A3B8" : isPositive ? "#34D399" : isNegative ? "#F87171" : "#94A3B8";
-  const changeBg     = chg == null ? "rgba(148,163,184,0.1)" : isPositive ? "rgba(52,211,153,0.14)" : isNegative ? "rgba(248,113,113,0.14)" : "rgba(148,163,184,0.1)";
-  const changeBorder = chg == null ? "rgba(148,163,184,0.2)" : isPositive ? "rgba(52,211,153,0.4)"  : isNegative ? "rgba(248,113,113,0.4)"  : "rgba(148,163,184,0.2)";
+  const changeColor = chg == null ? "var(--text-muted)" : isPositive ? "var(--positive)" : isNegative ? "var(--negative)" : "var(--text-muted)";
+  const changeBg     = chg == null ? "rgba(100,116,139,0.1)" : isPositive ? "rgba(21,128,61,0.1)" : isNegative ? "rgba(220,38,38,0.1)" : "rgba(100,116,139,0.1)";
+  const changeBorder = chg == null ? "rgba(100,116,139,0.25)" : isPositive ? "rgba(21,128,61,0.35)"  : isNegative ? "rgba(220,38,38,0.35)"  : "rgba(100,116,139,0.25)";
 
   const range = range52wInfo(ltp, latest_price.w52_high, latest_price.w52_low);
   const rangeColor =
-    range?.tone === "high" ? "#34D399" :
-    range?.tone === "low"  ? "#F87171" : "#60A5FA";
+    range?.tone === "high" ? "var(--positive)" :
+    range?.tone === "low"  ? "var(--negative)" : "var(--safe-buy)";
 
   return (
     <>
@@ -45,16 +45,16 @@ export default function HeroSection({ detail }: Props) {
       <div
         className="relative rounded-3xl overflow-hidden mb-8"
         style={{
-          background: "linear-gradient(135deg, #0A1628 0%, #0D1F3C 50%, #102749 100%)",
-          border: "1px solid rgba(56,189,248,0.18)",
-          boxShadow: "0 8px 40px rgba(0,0,0,0.4), 0 0 60px rgba(14,165,233,0.05)",
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          boxShadow: "0 8px 40px rgba(15,23,42,0.08), 0 0 60px rgba(37,99,235,0.04)",
         }}
       >
         <div
           aria-hidden="true"
           style={{
             position: "absolute", top: 0, left: 0, right: 0, height: "1px",
-            background: "linear-gradient(90deg, transparent 0%, rgba(56,189,248,0.6) 50%, transparent 100%)",
+            background: "linear-gradient(90deg, transparent 0%, rgba(37,99,235,0.4) 50%, transparent 100%)",
           }}
         />
 
@@ -67,7 +67,7 @@ export default function HeroSection({ detail }: Props) {
                 {profile.company_name && (
                   <h1
                     className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-[1.05] mb-3"
-                    style={{ color: "#F1F5F9" }}
+                    style={{ color: "var(--text)" }}
                   >
                     {profile.company_name}
                   </h1>
@@ -76,14 +76,14 @@ export default function HeroSection({ detail }: Props) {
                 <div className="flex flex-wrap items-center gap-2">
                   <span
                     className="inline-flex items-center gap-1.5 text-sm font-bold px-3 py-1 rounded-full"
-                    style={{ background: "rgba(56,189,248,0.12)", color: "#38BDF8", border: "1px solid rgba(56,189,248,0.3)" }}
+                    style={{ background: "rgba(37,99,235,0.1)", color: "var(--primary)", border: "1px solid rgba(37,99,235,0.3)" }}
                   >
                     {code}
                   </span>
                   {profile.sector && (
                     <span
                       className="text-xs font-semibold px-3 py-1 rounded-full"
-                      style={{ color: "#A78BFA", background: "rgba(167,139,250,0.1)", border: "1px solid rgba(167,139,250,0.25)" }}
+                      style={{ color: "var(--np-cautious)", background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.25)" }}
                     >
                       {profile.sector}
                     </span>
@@ -93,9 +93,9 @@ export default function HeroSection({ detail }: Props) {
                       title="Score penalized — financials haven't been updated in 2+ years"
                       className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full"
                       style={{
-                        color: "#FBBF24",
-                        background: "rgba(251,191,36,0.1)",
-                        border: "1px solid rgba(251,191,36,0.35)",
+                        color: "var(--watch)",
+                        background: "rgba(180,83,9,0.1)",
+                        border: "1px solid rgba(180,83,9,0.35)",
                       }}
                     >
                       <span aria-hidden="true">⚠️</span>
@@ -109,20 +109,20 @@ export default function HeroSection({ detail }: Props) {
               </div>
 
               <div className="text-left sm:text-right shrink-0">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color: "#CBD5E1" }}>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color: "var(--text-muted)" }}>
                   Last Price
                 </p>
                 <div className="flex items-baseline gap-3 sm:justify-end">
                   <span
                     className="font-black tabular-nums leading-none tracking-tight"
                     style={{
-                      color: "#F8FAFC",
+                      color: "var(--text)",
                       fontSize: "clamp(3rem, 9vw, 4.5rem)",
                     }}
                   >
                     {ltp != null ? ltp.toFixed(1) : "--"}
                   </span>
-                  <span className="text-xl sm:text-2xl font-semibold" style={{ color: "#94A3B8" }}>৳</span>
+                  <span className="text-xl sm:text-2xl font-semibold" style={{ color: "var(--text-muted)" }}>৳</span>
                 </div>
                 {chg != null && (
                   <span
@@ -138,14 +138,14 @@ export default function HeroSection({ detail }: Props) {
 
             {range && latest_price.w52_high != null && latest_price.w52_low != null && (
               <div className="pt-2">
-                <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 mb-2 text-xs font-medium" style={{ color: "#CBD5E1" }}>
+                <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 mb-2 text-xs font-medium" style={{ color: "var(--text-muted)" }}>
                   <span className="tabular-nums">Low {taka(latest_price.w52_low, 1)}</span>
                   <span className="text-center" style={{ color: rangeColor, fontWeight: 700 }}>{range.caption}</span>
                   <span className="tabular-nums">High {taka(latest_price.w52_high, 1)}</span>
                 </div>
                 <div
                   className="relative h-2 rounded-full"
-                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.04)" }}
+                  style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
                 >
                   <div
                     className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full"
@@ -154,11 +154,11 @@ export default function HeroSection({ detail }: Props) {
                       width: "14px",
                       height: "14px",
                       background: rangeColor,
-                      boxShadow: `0 0 0 3px rgba(8,14,26,1), 0 0 12px ${rangeColor}`,
+                      boxShadow: `0 0 0 3px var(--surface), 0 0 12px ${rangeColor}`,
                     }}
                   />
                 </div>
-                <p className="text-xs mt-2 text-center sm:text-left" style={{ color: "#CBD5E1" }}>
+                <p className="text-xs mt-2 text-center sm:text-left" style={{ color: "var(--text-muted)" }}>
                   Where today's price sits in its 52-week range
                 </p>
               </div>

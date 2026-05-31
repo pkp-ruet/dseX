@@ -1,7 +1,4 @@
-"use client";
-
 import Link from "next/link";
-import { useRef } from "react";
 import { taka } from "@/lib/formatters";
 import type { Top20Item } from "@/lib/api";
 
@@ -10,10 +7,10 @@ interface Props {
 }
 
 function chgColor(val: number | null) {
-  if (val == null) return "var(--ink-muted)";
-  if (val > 0) return "#10B981";
-  if (val < 0) return "#F87171";
-  return "var(--ink-muted)";
+  if (val == null) return "var(--text-muted)";
+  if (val > 0) return "var(--positive)";
+  if (val < 0) return "var(--negative)";
+  return "var(--text-muted)";
 }
 
 function fmtSigned(val: number | null) {
@@ -23,85 +20,57 @@ function fmtSigned(val: number | null) {
 }
 
 export default function Top20MomentumTeaser({ items }: Props) {
-  const cardsRef = useRef<HTMLDivElement>(null);
   if (items.length === 0) return null;
   const top5 = items.slice(0, 5);
 
-  const handleScrollNext = () => {
-    const el = cardsRef.current;
-    if (!el) return;
-    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
-    el.scrollTo({
-      left: atEnd ? 0 : el.scrollLeft + el.clientWidth,
-      behavior: "smooth",
-    });
-  };
-
   return (
-    <section className="t20t-section">
-      <div className="t20t-header">
-        <div className="t20t-title-block">
-          <div className="t20t-eyebrow">
-            <span className="t20t-bolt" aria-hidden="true">⚡</span>
-            <span>DSE Top 20</span>
-          </div>
-          <h2 className="t20t-heading">This week&apos;s biggest movers on DSE</h2>
-          <p className="t20t-subtitle">
-            Ranked by 7-day return, relative strength vs DSEX, and trend quality
-          </p>
+    <section aria-label="DSE Top 20">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-baseline gap-2 min-w-0">
+          <span className="w-1 h-4 rounded-full bg-[var(--positive)] shrink-0 self-center" />
+          <span className="text-sm font-extrabold text-[var(--text)]">DSE Top 20</span>
+          <span className="text-xs text-[var(--text-muted)] truncate">· this week&apos;s movers</span>
         </div>
-        <Link href="/dse-top-20" className="t20t-cta">
-          See full Top 20
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z" />
-          </svg>
+        <Link href="/dse-top-20" className="text-xs font-semibold text-[var(--primary)] hover:underline shrink-0">
+          View all →
         </Link>
       </div>
 
-      <button
-        type="button"
-        className="t20t-scroll-hint"
-        aria-label="Scroll to next stocks"
-        onClick={handleScrollNext}
-      >
-        ›
-      </button>
-
-      <div className="t20t-cards" ref={cardsRef}>
+      <div className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {top5.map((item) => {
           const days = item.days_counted || 7;
-          const upBars =
-            "▰".repeat(item.up_days_7d) + "▱".repeat(Math.max(0, days - item.up_days_7d));
+          const color = chgColor(item.return_7d_pct);
           return (
             <Link
               key={item.trading_code}
               href={`/stock/${item.trading_code}`}
-              className="t20t-card"
+              className="snap-start shrink-0 w-[158px] rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 flex flex-col gap-2.5 hover:border-[var(--primary)] hover:shadow-md transition-all"
             >
-              <div className="t20t-rank-row">
-                <span className="t20t-rank">#{item.rank}</span>
-                <span className="t20t-ticker">{item.trading_code}</span>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center justify-center w-6 h-5 rounded-md bg-[var(--surface-2)] text-[0.62rem] font-extrabold tabular-nums text-[var(--text-muted)]">
+                  {item.rank}
+                </span>
+                <span className="font-mono font-bold text-sm text-[var(--text)] tracking-wide truncate">
+                  {item.trading_code}
+                </span>
               </div>
 
-              <div
-                className="t20t-return"
-                style={{ color: chgColor(item.return_7d_pct) }}
+              <span
+                className="self-start inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-lg font-extrabold tabular-nums leading-none"
+                style={{ color, background: `color-mix(in srgb, ${color} 12%, transparent)` }}
               >
+                {item.return_7d_pct != null && item.return_7d_pct > 0 ? "▲" : item.return_7d_pct != null && item.return_7d_pct < 0 ? "▼" : ""}
                 {fmtSigned(item.return_7d_pct)}
-              </div>
+              </span>
+              <span className="text-[0.62rem] font-semibold text-[var(--text-muted)] -mt-1">
+                {item.up_days_7d}/{days} days up · 7d
+              </span>
 
-              <div className="t20t-bar-row">
-                <span className="t20t-bar" style={{ color: chgColor(item.return_7d_pct) }}>
-                  {upBars}
+              <div className="flex items-baseline justify-between border-t border-[var(--cell-rule)] pt-2 mt-auto">
+                <span className="text-[0.58rem] font-bold uppercase tracking-wide text-[var(--text-muted)]">LTP</span>
+                <span className="text-sm font-bold tabular-nums text-[var(--text)]">
+                  {item.ltp != null ? taka(item.ltp, 1) : "—"}
                 </span>
-                <span className="t20t-bar-label">
-                  {item.up_days_7d}/{days}
-                </span>
-              </div>
-
-              <div className="t20t-ltp-row">
-                <span className="t20t-ltp-label">LTP</span>
-                <span className="t20t-ltp">{item.ltp != null ? taka(item.ltp, 1) : "—"}</span>
               </div>
             </Link>
           );

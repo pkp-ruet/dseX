@@ -108,7 +108,7 @@ export default async function DseStockRankingPage() {
           <span
             style={{
               fontWeight: 800,
-              background: "linear-gradient(90deg, #38BDF8 0%, #22D3EE 50%, #A78BFA 100%)",
+              background: "linear-gradient(90deg, var(--primary) 0%, var(--accent) 50%, var(--np-cautious) 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -134,16 +134,16 @@ export default async function DseStockRankingPage() {
             <span>You may also like:</span>
             <span
               style={{
-                color: "#22D3EE",
+                color: "var(--primary)",
                 fontWeight: 600,
                 textDecoration: "underline",
-                textDecorationColor: "rgba(34,211,238,0.4)",
+                textDecorationColor: "rgba(37,99,235,0.4)",
                 textUnderlineOffset: "3px",
               }}
             >
               DSE Top 20 This Week
             </span>
-            <span aria-hidden style={{ color: "#22D3EE", fontSize: "0.9rem" }}>→</span>
+            <span aria-hidden style={{ color: "var(--primary)", fontSize: "0.9rem" }}>→</span>
           </Link>
         </div>
       </div>

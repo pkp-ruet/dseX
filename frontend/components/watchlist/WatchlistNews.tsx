@@ -9,6 +9,10 @@ interface Props {
   codes: string[];
   news: WatchlistNewsItem[];
   loading: boolean;
+  /** Cap how many items render (data is already newest-first). */
+  limit?: number;
+  /** Drop the centered "Last 30 Days" header + wide wrapper (for embedding e.g. on the homepage). */
+  compact?: boolean;
 }
 
 function NewsItem({ item }: { item: WatchlistNewsItem }) {
@@ -68,44 +72,48 @@ function SkeletonCard() {
   );
 }
 
-export default function WatchlistNews({ codes, news, loading }: Props) {
+export default function WatchlistNews({ codes, news, loading, limit, compact = false }: Props) {
   if (!codes.length) return null;
 
   // Show cached/fresh news whenever we have any; only fall back to skeleton
   // when we genuinely have nothing yet.
   const showSkeleton = loading && news.length === 0;
   const showEmpty = !loading && news.length === 0;
+  const items = limit != null ? news.slice(0, limit) : news;
+  const skeletonCount = Math.min(limit ?? 4, 4);
 
   return (
-    <section className="mt-12 mx-auto max-w-3xl">
+    <section className={compact ? "" : "mt-12 mx-auto max-w-3xl"}>
       {/* Header */}
-      <div className="flex flex-col items-center text-center mb-6">
-        <span className="text-[10px] font-bold tracking-[0.15em] uppercase text-[var(--primary)] mb-1">
-          Watchlist News
-        </span>
-        <h2 className="text-xl font-bold text-[var(--ink)]">Last 30 Days</h2>
-        <div className="mt-3 flex items-center gap-3 w-full max-w-xs">
-          <div className="h-px flex-1 bg-[var(--border)]" />
-          <div className="h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
-          <div className="h-px flex-1 bg-[var(--border)]" />
+      {!compact && (
+        <div className="flex flex-col items-center text-center mb-6">
+          <span className="text-[10px] font-bold tracking-[0.15em] uppercase text-[var(--primary)] mb-1">
+            Watchlist News
+          </span>
+          <h2 className="text-xl font-bold text-[var(--ink)]">Last 30 Days</h2>
+          <div className="mt-3 flex items-center gap-3 w-full max-w-xs">
+            <div className="h-px flex-1 bg-[var(--border)]" />
+            <div className="h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
+            <div className="h-px flex-1 bg-[var(--border)]" />
+          </div>
         </div>
-      </div>
+      )}
 
       {showSkeleton && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
+          {[...Array(skeletonCount)].map((_, i) => <SkeletonCard key={i} />)}
         </div>
       )}
 
       {showEmpty && (
         <div className="text-center py-10">
-          <p className="text-sm text-[var(--ink-muted)]">No news in the last 30 days.</p>
+          <p className="text-sm text-[var(--ink-muted)]">No recent news.</p>
         </div>
       )}
 
-      {news.length > 0 && (
+      {items.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {news.map((item, i) => (
+          {items.map((item, i) => (
             <NewsItem key={i} item={item} />
           ))}
         </div>

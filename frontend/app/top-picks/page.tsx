@@ -71,7 +71,7 @@ function PickItemCard({ item }: { item: DailyPickHistoryDayItem }) {
   return (
     <Link
       href={`/stock/${item.trading_code}`}
-      className="block p-3 rounded-xl border border-[var(--border)] bg-[var(--bg,#0c1117)] hover:border-[var(--primary)]/50 transition-colors relative overflow-hidden"
+      className="block p-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] hover:border-[var(--primary)]/50 transition-colors relative overflow-hidden"
     >
       <span
         aria-hidden="true"

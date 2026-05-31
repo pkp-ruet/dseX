@@ -15,12 +15,12 @@ interface Props {
   items: RankedItem[];
 }
 
-// Tier text colors — bright shades for strong visibility on dark bg
+// Tier text colors — tokenized for readability on light bg
 const TIER_COLOR: Record<TierKey, string> = {
-  strong_buy:    "#4ADE80",
-  buy:           "#34D399",
-  keep_watching: "#FBBF24",
-  avoid:         "#F87171",
+  strong_buy:    "var(--strong-buy)",
+  buy:           "var(--positive)",
+  keep_watching: "var(--watch)",
+  avoid:         "var(--negative)",
 };
 
 const MEDAL_COLORS: Record<1 | 2 | 3, { bg: string; ring: string; text: string }> = {
@@ -33,7 +33,7 @@ const TIERS_ORDER: TierKey[] = ["strong_buy", "buy", "keep_watching", "avoid"];
 
 function chgColor(val: number | null) {
   if (val == null) return "var(--ink-muted)";
-  return val > 0 ? "#34D399" : val < 0 ? "#F87171" : "var(--ink-muted)";
+  return val > 0 ? "var(--positive)" : val < 0 ? "var(--negative)" : "var(--ink-muted)";
 }
 function fmtChg(val: number | null) {
   if (val == null) return "—";
@@ -138,7 +138,7 @@ export default function FullRankTable({ items }: Props) {
                         style={{
                           marginLeft: 6,
                           fontSize: "0.85em",
-                          color: "#FBBF24",
+                          color: "var(--watch)",
                           cursor: "help",
                         }}
                       >

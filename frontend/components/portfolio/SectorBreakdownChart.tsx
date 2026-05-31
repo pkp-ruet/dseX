@@ -81,7 +81,7 @@ export default function SectorBreakdownChart({ analysis }: Props) {
                   />
                   <span className="font-semibold text-[var(--text)] truncate">{s.name}</span>
                   {isOver40 && (
-                    <span className="shrink-0 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                    <span className="shrink-0 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/15 text-[var(--watch)] border border-amber-500/30">
                       Heavy
                     </span>
                   )}

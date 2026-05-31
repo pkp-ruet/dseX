@@ -12,39 +12,39 @@ const GRADE_THEME: Record<
   }
 > = {
   A: {
-    badge: "bg-green-500/20 text-green-400 border-green-500/50",
+    badge: "bg-green-500/20 text-[var(--positive)] border-green-500/50",
     glow: "shadow-[0_0_30px_-8px_rgba(34,197,94,0.6)]",
     cardGradient:
       "bg-gradient-to-br from-green-500/10 via-emerald-500/5 to-transparent border-green-500/30",
-    accent: "text-green-400",
+    accent: "text-[var(--positive)]",
   },
   B: {
-    badge: "bg-emerald-500/20 text-emerald-400 border-emerald-500/50",
+    badge: "bg-emerald-500/20 text-[var(--positive)] border-emerald-500/50",
     glow: "shadow-[0_0_30px_-8px_rgba(16,185,129,0.55)]",
     cardGradient:
       "bg-gradient-to-br from-emerald-500/10 via-cyan-500/5 to-transparent border-emerald-500/30",
-    accent: "text-emerald-400",
+    accent: "text-[var(--positive)]",
   },
   C: {
-    badge: "bg-amber-500/20 text-amber-400 border-amber-500/50",
+    badge: "bg-amber-500/20 text-[var(--watch)] border-amber-500/50",
     glow: "shadow-[0_0_30px_-8px_rgba(245,158,11,0.55)]",
     cardGradient:
       "bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-transparent border-amber-500/30",
-    accent: "text-amber-400",
+    accent: "text-[var(--watch)]",
   },
   D: {
-    badge: "bg-orange-500/20 text-orange-400 border-orange-500/50",
+    badge: "bg-orange-500/20 text-[var(--watch)] border-orange-500/50",
     glow: "shadow-[0_0_30px_-8px_rgba(249,115,22,0.55)]",
     cardGradient:
       "bg-gradient-to-br from-orange-500/10 via-red-500/5 to-transparent border-orange-500/30",
-    accent: "text-orange-400",
+    accent: "text-[var(--watch)]",
   },
   F: {
-    badge: "bg-red-500/20 text-red-400 border-red-500/50",
+    badge: "bg-red-500/20 text-[var(--negative)] border-red-500/50",
     glow: "shadow-[0_0_30px_-8px_rgba(239,68,68,0.6)]",
     cardGradient:
       "bg-gradient-to-br from-red-500/10 via-rose-500/5 to-transparent border-red-500/30",
-    accent: "text-red-400",
+    accent: "text-[var(--negative)]",
   },
 };
 
@@ -170,12 +170,12 @@ function SubScore({ label, value, hint }: { label: string; value: number; hint: 
   const pct = Math.max(0, Math.min(100, (value / 10) * 100));
   const color =
     value >= 7
-      ? "text-green-400"
+      ? "text-[var(--positive)]"
       : value >= 5
-        ? "text-amber-400"
+        ? "text-[var(--watch)]"
         : value >= 3.5
-          ? "text-orange-400"
-          : "text-red-400";
+          ? "text-[var(--watch)]"
+          : "text-[var(--negative)]";
   const barColor =
     value >= 7
       ? "bg-green-500"
@@ -232,10 +232,10 @@ const TONE_THEME: Record<
 > = {
   good: {
     wrap: "border-green-500/30 bg-gradient-to-br from-green-500/[0.07] to-transparent",
-    title: "text-green-400",
-    bullet: "text-green-400",
+    title: "text-[var(--positive)]",
+    bullet: "text-[var(--positive)]",
     bulletBg: "bg-green-500/15",
-    badge: "bg-green-500/15 text-green-400 border-green-500/30",
+    badge: "bg-green-500/15 text-[var(--positive)] border-green-500/30",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M20 6L9 17l-5-5" />
@@ -244,10 +244,10 @@ const TONE_THEME: Record<
   },
   bad: {
     wrap: "border-red-500/30 bg-gradient-to-br from-red-500/[0.07] to-transparent",
-    title: "text-red-400",
-    bullet: "text-red-400",
+    title: "text-[var(--negative)]",
+    bullet: "text-[var(--negative)]",
     bulletBg: "bg-red-500/15",
-    badge: "bg-red-500/15 text-red-400 border-red-500/30",
+    badge: "bg-red-500/15 text-[var(--negative)] border-red-500/30",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M12 9v4M12 17h.01" />
@@ -257,10 +257,10 @@ const TONE_THEME: Record<
   },
   consider: {
     wrap: "border-amber-500/30 bg-gradient-to-br from-amber-500/[0.07] to-transparent",
-    title: "text-amber-400",
-    bullet: "text-amber-400",
+    title: "text-[var(--watch)]",
+    bullet: "text-[var(--watch)]",
     bulletBg: "bg-amber-500/15",
-    badge: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+    badge: "bg-amber-500/15 text-[var(--watch)] border-amber-500/30",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M9 18h6M10 22h4" />

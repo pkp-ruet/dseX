@@ -15,22 +15,22 @@ export default function NewsCard({ title, body, postDate }: Props) {
     <div
       className="rounded-xl overflow-hidden transition-all"
       style={{
-        background: "linear-gradient(135deg, #0D1A2E 0%, #0A1525 100%)",
-        border: "1px solid #1E3A5F",
-        borderLeft: "3px solid #0EA5E9",
+        background: "var(--surface)",
+        border: "1px solid var(--border)",
+        borderLeft: "3px solid var(--accent)",
       }}
     >
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full text-left px-4 py-3 flex items-start justify-between gap-3 transition-colors"
-        style={{ background: expanded ? "rgba(14,165,233,0.04)" : "transparent" }}
+        style={{ background: expanded ? "rgba(14,165,233,0.06)" : "transparent" }}
       >
-        <span className="text-sm font-semibold leading-snug" style={{ color: "#E2E8F0" }}>
+        <span className="text-sm font-semibold leading-snug" style={{ color: "var(--text)" }}>
           {title}
         </span>
         <span
           className="text-[10px] font-bold shrink-0 mt-0.5 px-2.5 py-1 rounded-full whitespace-nowrap"
-          style={{ background: "rgba(14,165,233,0.1)", color: "#38BDF8", border: "1px solid rgba(14,165,233,0.2)" }}
+          style={{ background: "rgba(14,165,233,0.1)", color: "var(--primary)", border: "1px solid rgba(14,165,233,0.25)" }}
         >
           {formatDate(postDate)}
         </span>
@@ -38,7 +38,7 @@ export default function NewsCard({ title, body, postDate }: Props) {
       {body && (
         <div
           className={`px-4 pb-3 text-sm leading-relaxed transition-all ${expanded ? "" : "line-clamp-2"}`}
-          style={{ color: "#CBD5E1" }}
+          style={{ color: "var(--text-muted)" }}
         >
           {body}
         </div>
@@ -47,7 +47,7 @@ export default function NewsCard({ title, body, postDate }: Props) {
         <button
           onClick={() => setExpanded(true)}
           className="w-full text-xs font-semibold px-4 pb-3 text-left transition-colors"
-          style={{ color: "#0EA5E9" }}
+          style={{ color: "var(--primary)" }}
         >
           Read more →
         </button>
