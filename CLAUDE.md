@@ -359,6 +359,8 @@ DSE URL constants also live in the root `config.py`.
 
 ### Backend dependencies
 
-`backend/requirements.txt` adds two deps beyond the scraper baseline:
+`backend/requirements.txt` adds these beyond the scraper baseline:
 - `python-jose[cryptography]==3.3.0` — JWT issue/verify
 - `bcrypt==4.0.1` — password hashing
+- `google-auth==2.35.0` — Google ID-token verification (`/api/auth/google`)
+- `requests>=2.31.0` — **required** by `google.auth.transport.requests` for token verification. The backend has its own requirements file, so scraper deps don't carry over — google-auth's transport will `ImportError` without `requests`.
