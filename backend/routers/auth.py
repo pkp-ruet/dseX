@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -125,11 +126,11 @@ def google_sign_in(body: GoogleAuthRequest):
     if not GOOGLE_CLIENT_ID:
         raise HTTPException(status_code=500, detail="Google sign-in is not configured.")
 
-    # Imported lazily so the dep is only required if the endpoint is hit.
-    from google.oauth2 import id_token as g_id_token
-    from google.auth.transport import requests as g_requests
-
     try:
+        # Imported lazily so the dep is only required if the endpoint is hit.
+        from google.oauth2 import id_token as g_id_token
+        from google.auth.transport import requests as g_requests
+
         claims = g_id_token.verify_oauth2_token(
             body.id_token,
             g_requests.Request(),
@@ -137,6 +138,11 @@ def google_sign_in(body: GoogleAuthRequest):
         )
     except ValueError:
         raise HTTPException(status_code=401, detail="Invalid Google token.")
+    except Exception:
+        # Transport/cert-fetch/import errors etc. — never let this become a bare
+        # 500 (those skip CORS headers and surface as "Failed to fetch" in the browser).
+        logging.getLogger("auth").exception("Google token verification failed")
+        raise HTTPException(status_code=503, detail="Could not verify Google sign-in right now. Please try again.")
 
     if not claims.get("email_verified"):
         raise HTTPException(status_code=401, detail="Your Google email is not verified.")
@@ -160,6 +166,11 @@ def google_sign_in(body: GoogleAuthRequest):
                 detail="This email is already linked to a different Google account.",
             )
         raise HTTPException(status_code=400, detail=str(exc))
+    except HTTPException:
+        raise
+    except Exception:
+        logging.getLogger("auth").exception("create_or_link_google_user failed")
+        raise HTTPException(status_code=500, detail="Could not complete Google sign-in. Please try again.")
 
     user = sanitize_user(user_doc)
     token = create_access_token(user["user_id"])

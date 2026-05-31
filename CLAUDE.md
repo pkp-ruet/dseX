@@ -12,6 +12,7 @@ Guidance for Claude Code when working in this repository.
 - **Frontend**: Next.js 15 App Router · React 19 · TypeScript · Tailwind CSS · Recharts
 - **Scrapers**: Python (requests + BeautifulSoup + lxml)
 - **Auth**: JWT (HS256) via `python-jose` · `bcrypt` for password hashing · Google Sign-In via `google-auth` (backend ID-token verification) and `@react-oauth/google` (frontend)
+- **Theme**: **light-only, mobile-first** (no dark mode). All colors are CSS custom properties in `app/globals.css :root` (`--bg`, `--surface`, `--surface-2`, `--text`, `--text-muted`, `--border`, `--primary` #2563EB, `--accent`, `--positive` #15803D, `--negative` #DC2626, tier vars `--strong-buy`/`--safe-buy`/`--watch`/`--avoid` + `--np-*`). Dark mode + `ThemeToggle` were removed. Use tokens (never hardcoded dark hex); components target ~360px first, enhance with `sm:`/`md:`.
 - **Deployment**: Frontend on Vercel, Backend on Render, DB on MongoDB Atlas
 
 No Streamlit. The app is Next.js + Python only.
@@ -116,7 +117,7 @@ Scrapers must use upsert logic to avoid duplicates.
 
 | Route | File | Purpose |
 |---|---|---|
-| `/` | `app/page.tsx` | Homepage: ticker band, market index banner, top rankings, sidebar, insight + portfolio teasers |
+| `/` | `app/page.tsx` | Two-mode homepage (see **Homepage** below). Logged-out = light marketing landing; logged-in = personalized dashboard |
 | `/dsestockranking` | `app/dsestockranking/page.tsx` | Full DSEF leaderboard with tier stat cards |
 | `/stocks` | `app/stocks/page.tsx` | Full A–Z stock table |
 | `/stock/[code]` | `app/stock/[code]/page.tsx` | Stock detail: chart, financials, cash flow, dividends, shareholding, signals, news |
@@ -146,22 +147,33 @@ Scrapers must use upsert logic to avoid duplicates.
 - When logged out: Sign In → `/login`, Sign Up → `/register`
 - Mobile: hamburger drawer + portfolio shortcut; standalone `MobileBottomBar.tsx` is also rendered on small screens
 
+**Homepage (`app/page.tsx`) — two modes, one SSR page:**
+
+`app/page.tsx` is a server component that renders the **light marketing landing** (SSR for SEO) wrapped in `<HomePersonalizationGate>` (client). The gate reads `useAuth()`: logged-out (and crawlers / first paint) see the marketing children; logged-in users get `<PersonalizedHome>` instead (client, no SEO need) — no hydration mismatch since the server always renders the marketing markup.
+
+- **Marketing landing** (logged-out): `HomeHero` (headline + dual CTA via `SignupCtas` — Google block only renders when `NEXT_PUBLIC_GOOGLE_CLIENT_ID` set — + live fundamental-score ranking preview) → `SearchSection` (reuses `SearchBar` → `/stock/[code]`) → `LiveMarketBand` → `FeatureShowcase` (4 pillars: Stock Analysis w/ `SampleAnalysisCard` + global-search CTA, Rankings w/ `LiveRankingPreview`, Watchlist w/ `WatchlistMockup`, Portfolio w/ `PortfolioMockup`) → `DataScaleStats` → discovery (`Top20MomentumTeaser`, `PopularTeaser`, `StockListPreview` A–Z, `InsightsTeaserStrip`) → `FinalCTA`.
+- **Personalized dashboard** (`PersonalizedHome`, logged-in): `WelcomeHeader` → `SearchBar` (any stock → analysis) → personal blocks: `PortfolioSummaryCard` (value/P&L + A–F grade via `analyzePortfolio`) or `SetupCard` "Add holdings"; `WatchlistMoversCard` (sorted by move + 52w/dividend alerts) + `WatchlistNews` (`limit`/`compact`), or `SetupCard` "Build watchlist" embedding `WatchlistQuickAdd` (search→add) → Discover section (`LiveMarketBand`, `LiveRankingPreview`, `StockListPreview`, `Top20MomentumTeaser`, `PopularTeaser`, `InsightsTeaserStrip`). Empty watchlist+portfolio → both setup cards (welcome-dashboard).
+
 **Component tree:**
 
 ```
 components/
 ├── layout/
 │   ├── Navbar.tsx, Footer.tsx, MobileBottomBar.tsx
-├── home/
-│   ├── Masthead.tsx, SearchBar.tsx, HeroBand.tsx, NavHighlights.tsx
-│   ├── TickerBand.tsx, MarketIndexBanner.tsx
-│   ├── MarketMovers.tsx, MarketIntelStrip.tsx
-│   ├── TopRankings.tsx, FilterBar.tsx
-│   ├── HowWeScoreBox.tsx, HomeSidebar.tsx
-│   ├── InsightsTeaserStrip.tsx, PortfolioTeaserCTA.tsx
-│   └── sidebar/
-│       ├── ScoreOverview.tsx, SectorLeaderboard.tsx
-│       ├── TopEPS.tsx, TopDividends.tsx, UpcomingEvents.tsx
+├── home/                          — current (light) homepage
+│   ├── HomePersonalizationGate.tsx, PersonalizedHome.tsx
+│   ├── HomeHero.tsx, SignupCtas.tsx, SearchBar.tsx, LiveMarketBand.tsx
+│   ├── FeatureShowcase.tsx, SampleAnalysisCard.tsx, LiveRankingPreview.tsx
+│   ├── WatchlistMockup.tsx, PortfolioMockup.tsx, DataScaleStats.tsx, FinalCTA.tsx
+│   ├── StockListPreview.tsx, InsightsTeaserStrip.tsx
+│   ├── Top20MomentumTeaser.tsx, PopularTeaser.tsx
+│   ├── personalized/
+│   │   ├── WelcomeHeader.tsx, SetupCard.tsx
+│   │   ├── PortfolioSummaryCard.tsx, WatchlistMoversCard.tsx
+│   └── (legacy, unused on `/`: Masthead, HeroBand, NavHighlights, TickerBand,
+│        MarketIndexBanner [still used by market-analysis + dse-today], MarketMovers,
+│        MarketIntelStrip, TopRankings, FilterBar, HowWeScoreBox, HomeSidebar,
+│        PortfolioTeaserCTA, GradeAnyStockHero, TodaysTopPicks, sidebar/*)
 ├── ranking/
 │   ├── FullRankTable.tsx, TierStatCards.tsx
 ├── market-intelligence/
@@ -185,7 +197,8 @@ components/
 │   ├── ShareholdingPie.tsx, CompanyFundamentals.tsx
 │   ├── PillarScores.tsx, ValuationCard.tsx, SignalFlags.tsx, VerdictBar.tsx
 ├── watchlist/
-│   ├── WatchlistTable.tsx, WatchlistNews.tsx
+│   ├── WatchlistTable.tsx, WatchlistNews.tsx (accepts `limit`/`compact`)
+│   ├── WatchlistQuickAdd.tsx (search any stock → add), EmptyStateActions.tsx
 ├── portfolio/
 │   └── PortfolioClient.tsx
 ├── admin/
@@ -194,7 +207,7 @@ components/
 │   └── PingTracker.tsx          — fires apiAuthPing on page transitions
 └── ui/
     ├── ScoreBadge.tsx, TierPill.tsx, SectionLabel.tsx
-    ├── StarButton.tsx, ThemeToggle.tsx
+    ├── StarButton.tsx          (ThemeToggle removed — light-only)
 ```
 
 **Watchlist (`lib/watchlist.ts`):**
