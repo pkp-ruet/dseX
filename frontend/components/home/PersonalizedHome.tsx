@@ -24,6 +24,8 @@ import {
   type PopularStockItem,
 } from "@/lib/api";
 import { loadWatchlist, getCachedWatchlist, subscribeWatchlist } from "@/lib/watchlist";
+import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
+import { getStoredUser } from "@/lib/auth";
 
 import WelcomeHeader from "@/components/home/personalized/WelcomeHeader";
 import SetupCard from "@/components/home/personalized/SetupCard";
@@ -39,7 +41,8 @@ import Top20MomentumTeaser from "@/components/home/Top20MomentumTeaser";
 import PopularTeaser from "@/components/home/PopularTeaser";
 import InsightsTeaserStrip from "@/components/home/InsightsTeaserStrip";
 
-function flatten(scores: ScoresResponse): Map<string, ScoreItem> {
+function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
+  if (!scores) return new Map();
   const all = Object.values(scores.tiers).flat();
   return new Map(all.map((s) => [s.trading_code.toUpperCase(), s]));
 }
@@ -64,13 +67,26 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 export default function PersonalizedHome() {
   const { user } = useAuth();
 
+  // SWR hydrate from localStorage for an instant first paint (matches the
+  // /watchlist + /portfolio pages). Background fetches below refresh + rewrite.
+  const userId = getStoredUser()?.user_id ?? null;
+
   const [codes, setCodes] = useState<string[]>(() => getCachedWatchlist());
-  const [holdings, setHoldings] = useState<PortfolioHolding[] | null>(null);
-  const [priceMap, setPriceMap] = useState<Map<string, ScoreItem>>(new Map());
+  const [holdings, setHoldings] = useState<PortfolioHolding[] | null>(() => {
+    if (!userId) return null;
+    return readCache<PortfolioHolding[]>(cacheKeys.portfolio(userId));
+  });
+  const [priceMap, setPriceMap] = useState<Map<string, ScoreItem>>(() =>
+    flatten(readCache<ScoresResponse>(cacheKeys.scores)),
+  );
   const [news, setNews] = useState<WatchlistNewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(false);
-  const [extremes, setExtremes] = useState<NearExtremesData | null>(null);
-  const [dividends, setDividends] = useState<DividendsUpcoming | null>(null);
+  const [extremes, setExtremes] = useState<NearExtremesData | null>(
+    () => readCache<NearExtremesData>(cacheKeys.extremes),
+  );
+  const [dividends, setDividends] = useState<DividendsUpcoming | null>(
+    () => readCache<DividendsUpcoming>(cacheKeys.dividends),
+  );
   const [marketIndex, setMarketIndex] = useState<MarketIndexData | null>(null);
   const [gainers, setGainers] = useState<MarketMoverItem[]>([]);
   const [top20, setTop20] = useState<Top20Item[]>([]);
@@ -80,10 +96,36 @@ export default function PersonalizedHome() {
   useEffect(() => {
     let alive = true;
     loadWatchlist().then((c) => alive && setCodes(c)).catch(() => {});
-    apiGetPortfolio().then((r) => alive && setHoldings(r.holdings)).catch(() => alive && setHoldings([]));
-    getScores().then((s) => alive && setPriceMap(flatten(s))).catch(() => {});
-    getNearExtremes().then((d) => alive && setExtremes(d)).catch(() => {});
-    getDividendsUpcoming().then((d) => alive && setDividends(d)).catch(() => {});
+    apiGetPortfolio()
+      .then((r) => {
+        if (!alive) return;
+        setHoldings(r.holdings);
+        if (userId) writeCache(cacheKeys.portfolio(userId), r.holdings);
+      })
+      // Keep the cache-hydrated value on failure; only fall back to empty
+      // (→ setup card) when nothing was cached.
+      .catch(() => alive && setHoldings((h) => h ?? []));
+    getScores()
+      .then((s) => {
+        if (!alive) return;
+        setPriceMap(flatten(s));
+        writeCache(cacheKeys.scores, s);
+      })
+      .catch(() => {});
+    getNearExtremes()
+      .then((d) => {
+        if (!alive) return;
+        setExtremes(d);
+        writeCache(cacheKeys.extremes, d);
+      })
+      .catch(() => {});
+    getDividendsUpcoming()
+      .then((d) => {
+        if (!alive) return;
+        setDividends(d);
+        writeCache(cacheKeys.dividends, d);
+      })
+      .catch(() => {});
     getMarketIndex().then((d) => alive && setMarketIndex(d)).catch(() => {});
     getMarketMovers().then((d) => alive && setGainers(d.gainers ?? [])).catch(() => {});
     getTop20().then((d) => alive && setTop20(d.items ?? [])).catch(() => {});
@@ -99,13 +141,22 @@ export default function PersonalizedHome() {
   useEffect(() => {
     if (codes.length === 0) {
       setNews([]);
+      setNewsLoading(false);
       return;
     }
+    const key = cacheKeys.watchlistNews(codes);
+    const cached = readCache<WatchlistNewsItem[]>(key);
+    if (cached) setNews(cached);
+    setNewsLoading(!cached);
     let alive = true;
-    setNewsLoading(true);
     getWatchlistNews(codes)
-      .then((n) => alive && setNews(n))
-      .catch(() => alive && setNews([]))
+      .then((n) => {
+        if (!alive) return;
+        setNews(n);
+        writeCache(key, n);
+      })
+      // Keep cached news on failure rather than blanking the strip.
+      .catch(() => {})
       .finally(() => alive && setNewsLoading(false));
     return () => {
       alive = false;
