@@ -35,7 +35,7 @@ export default function LiveMarketBand({
   const topGainers = gainers.slice(0, 3);
 
   return (
-    <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[0_4px_16px_rgba(15,23,42,0.05)] overflow-hidden">
+    <section className="soft-card overflow-hidden">
       <div className="flex items-center gap-2 px-4 sm:px-5 pt-3.5">
         <span className="w-2 h-2 rounded-full bg-[var(--positive)] animate-pulse" />
         <span className="text-[0.66rem] font-bold uppercase tracking-[0.16em] text-[var(--text)]">
@@ -79,7 +79,7 @@ export default function LiveMarketBand({
                 href={`/stock/${g.trading_code}`}
                 className="flex items-center justify-between gap-2 text-sm hover:text-[var(--primary)] transition-colors"
               >
-                <span className="font-mono font-bold text-[var(--text)] truncate">{g.trading_code}</span>
+                <span className="ticker-tag text-[0.8rem]">{g.trading_code}</span>
                 <span className="font-semibold tabular-nums text-[var(--positive)]">
                   {g.change_pct == null ? "--" : `+${g.change_pct.toFixed(2)}%`}
                 </span>

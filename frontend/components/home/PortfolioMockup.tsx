@@ -13,7 +13,7 @@ const INSIGHTS: { tone: "good" | "warn"; text: string }[] = [
 /** Static, illustrative mockup of the portfolio ANALYSIS (grade + sub-scores + insights). */
 export default function PortfolioMockup() {
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[0_8px_30px_rgba(15,23,42,0.06)] overflow-hidden">
+    <div className="soft-card overflow-hidden">
       {/* Verdict header: grade + value/PL */}
       <div className="flex items-center gap-3 px-4 sm:px-5 py-4 border-b border-[var(--border)]">
         <div className="flex flex-col items-center justify-center w-14 h-14 rounded-xl border-2 shrink-0" style={{ background: "rgba(21,128,61,0.10)", borderColor: "rgba(21,128,61,0.45)", color: "var(--positive)" }}>

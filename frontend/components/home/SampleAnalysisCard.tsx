@@ -40,7 +40,7 @@ export default function SampleAnalysisCard({ detail }: { detail: CompanyDetail }
   ];
 
   return (
-    <div className="rounded-2xl border bg-[var(--surface)] shadow-[0_8px_30px_rgba(15,23,42,0.06)] overflow-hidden" style={{ borderColor: tone.border }}>
+    <div className="rounded-[var(--radius-lg)] border bg-[var(--surface)] shadow-[var(--shadow-soft)] overflow-hidden" style={{ borderColor: tone.border }}>
       {/* Header: identity + score */}
       <div className="flex items-start justify-between gap-3 px-4 sm:px-5 py-4 border-b border-[var(--border)]">
         <div className="min-w-0">

@@ -9,23 +9,30 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: "#2563EB",
-        accent: "#0EA5E9",
+        primary: "#4F6BD8",
+        accent: "#4F6BD8",
         positive: "#15803D",
         negative: "#DC2626",
-        bg: "#F7F8FA",
-        border: "#E3E8EF",
-        "text-main": "#0F172A",
+        bg: "#F5F7FB",
+        border: "#E2E8F0",
+        "text-main": "#1E293B",
         "strong-buy": "#15803D",
-        "safe-buy": "#2563EB",
+        "safe-buy": "#4F6BD8",
         watch: "#B45309",
         avoid: "#DC2626",
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
+        display: ["var(--font-grotesk)", "Inter", "system-ui", "sans-serif"],
       },
       borderRadius: {
         DEFAULT: "10px",
+        lg: "18px",
+        xl: "24px",
+      },
+      boxShadow: {
+        soft: "var(--shadow-soft)",
+        lift: "var(--shadow-lift)",
       },
     },
   },

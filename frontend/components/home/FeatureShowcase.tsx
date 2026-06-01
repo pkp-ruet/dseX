@@ -34,10 +34,10 @@ function FeatureRow({ pillar, index }: { pillar: Pillar; index: number }) {
       <div className={odd ? "md:order-2" : "md:order-1"}>{pillar.visual}</div>
 
       <div className={`flex flex-col ${odd ? "md:order-1" : "md:order-2"}`}>
-        <span className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-[var(--primary)]">
+        <span className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-[var(--primary-ink)]">
           {pillar.eyebrow}
         </span>
-        <h3 className="mt-2 text-2xl sm:text-[1.7rem] font-extrabold tracking-tight text-[var(--text)] leading-tight">
+        <h3 className="font-display mt-2 text-2xl sm:text-[1.75rem] font-bold tracking-tight text-[var(--text)] leading-tight">
           {pillar.title}
         </h3>
         <p className="mt-3 text-[0.95rem] leading-relaxed text-[var(--text-muted)]">{pillar.desc}</p>
@@ -135,7 +135,7 @@ export default function FeatureShowcase({
   return (
     <section className="flex flex-col gap-14 sm:gap-20 py-4">
       <div className="text-center max-w-2xl mx-auto">
-        <h2 className="text-[clamp(1.6rem,5vw,2.3rem)] font-extrabold tracking-tight text-[var(--text)] leading-tight">
+        <h2 className="font-display text-[clamp(1.7rem,5vw,2.4rem)] font-bold tracking-tight text-[var(--text)] leading-tight">
           Everything you need to invest in DSE with confidence
         </h2>
         <p className="mt-3 text-[var(--text-muted)]">
@@ -152,7 +152,7 @@ export default function FeatureShowcase({
 
 function RankingFallback() {
   return (
-    <div className="rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface)] p-8 text-center text-sm text-[var(--text-muted)]">
+    <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--border)] bg-[var(--surface)] p-8 text-center text-sm text-[var(--text-muted)]">
       Live analysis is loading — check back in a moment.
     </div>
   );

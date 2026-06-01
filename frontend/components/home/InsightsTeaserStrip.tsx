@@ -22,7 +22,7 @@ export default function InsightsTeaserStrip() {
           <Link
             key={list.slug}
             href={`/stock-insights/${list.slug}`}
-            className="group flex flex-col gap-2 p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] hover:border-[var(--primary)] transition-colors"
+            className="group soft-card hover-lift flex flex-col gap-2 p-4"
           >
             <span className="text-2xl leading-none" aria-hidden="true">
               {list.icon}

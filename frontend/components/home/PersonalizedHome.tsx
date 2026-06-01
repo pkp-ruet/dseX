@@ -30,6 +30,7 @@ import { getStoredUser } from "@/lib/auth";
 import WelcomeHeader from "@/components/home/personalized/WelcomeHeader";
 import SetupCard from "@/components/home/personalized/SetupCard";
 import PortfolioSummaryCard from "@/components/home/personalized/PortfolioSummaryCard";
+import WatchlistSummaryCard from "@/components/home/personalized/WatchlistSummaryCard";
 import WatchlistMoversCard from "@/components/home/personalized/WatchlistMoversCard";
 import WatchlistNews from "@/components/watchlist/WatchlistNews";
 import WatchlistQuickAdd from "@/components/watchlist/WatchlistQuickAdd";
@@ -205,6 +206,7 @@ export default function PersonalizedHome() {
 
         {hasWatchlist ? (
           <>
+            <WatchlistSummaryCard codes={codes} priceMap={priceMap} dividends={dividends} />
             <WatchlistMoversCard codes={codes} priceMap={priceMap} extremes={extremes} dividends={dividends} />
             {(newsLoading || news.length > 0) && (
               <div>

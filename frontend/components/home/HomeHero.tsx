@@ -22,9 +22,7 @@ function PreviewRow({ item, rank }: { item: ScoreItem; rank: number }) {
       className="flex items-center gap-3 px-3 sm:px-4 py-2.5 hover:bg-[var(--surface-2)] transition-colors"
     >
       <span className="w-5 text-right text-xs font-bold tabular-nums text-[var(--text-muted)]">{rank}</span>
-      <span className="font-mono font-bold text-[0.9rem] text-[var(--text)] tracking-wide shrink-0">
-        {item.trading_code}
-      </span>
+      <span className="ticker-tag text-[0.82rem] shrink-0">{item.trading_code}</span>
       <span className="flex-1 min-w-0 truncate text-xs text-[var(--text-muted)]">
         {item.company_name}
       </span>
@@ -45,21 +43,27 @@ export default function HomeHero({ topItems }: { topItems: ScoreItem[] }) {
   const topTier = preview[0] ? getTier(preview[0].score) : "strong_buy";
 
   return (
-    <section className="relative pt-6 sm:pt-10 pb-2">
+    <section className="relative pt-8 sm:pt-14 pb-2">
+      {/* Soft ambient glow behind the hero */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 -top-16 -z-10 h-[460px]"
+        style={{ background: "var(--ambient)" }}
+      />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 items-center">
         {/* Left: pitch + CTA */}
         <div className="flex flex-col">
-          <span className="inline-flex self-start items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[var(--primary)]">
+          <span className="inline-flex self-start items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[var(--primary-ink)] shadow-[var(--shadow-soft)]">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--positive)]" />
             Dhaka Stock Exchange · Fundamental Analysis
           </span>
 
-          <h1 className="mt-4 font-extrabold tracking-tight text-[var(--text)] leading-[1.08] text-[clamp(1.9rem,7vw,3.1rem)]">
+          <h1 className="font-display mt-5 font-bold tracking-tight text-[var(--text)] leading-[1.06] text-[clamp(2rem,7vw,3.25rem)]">
             Know what every DSE stock is{" "}
             <span className="text-[var(--primary)]">really worth.</span>
           </h1>
 
-          <p className="mt-4 text-[0.98rem] sm:text-base leading-relaxed text-[var(--text-muted)] max-w-prose">
+          <p className="mt-5 text-[0.98rem] sm:text-base leading-relaxed text-[var(--text-muted)] max-w-prose">
             Free fundamental scores, rankings, watchlists, and portfolio tracking for all
             300+ Dhaka Stock Exchange companies — so you find what&apos;s worth owning in seconds.
           </p>
@@ -99,7 +103,7 @@ export default function HomeHero({ topItems }: { topItems: ScoreItem[] }) {
 
         {/* Right (below on mobile): live ranking preview */}
         <div className="w-full">
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[0_8px_30px_rgba(15,23,42,0.06)] overflow-hidden">
+          <div className="soft-card overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] bg-[var(--surface-2)]">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[var(--positive)] animate-pulse" />

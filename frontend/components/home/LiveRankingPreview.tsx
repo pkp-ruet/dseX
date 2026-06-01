@@ -19,7 +19,7 @@ export default function LiveRankingPreview({
 }) {
   const rows = items.slice(0, 8);
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[0_8px_30px_rgba(15,23,42,0.06)] overflow-hidden">
+    <div className="soft-card overflow-hidden">
       <div className="grid grid-cols-[2rem_1fr_auto_auto] gap-3 px-4 py-2.5 border-b border-[var(--border)] bg-[var(--surface-2)] text-[0.6rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)]">
         <span className="text-right">#</span>
         <span>Stock</span>
@@ -38,8 +38,8 @@ export default function LiveRankingPreview({
             >
               <span className="text-right text-xs font-bold tabular-nums text-[var(--text-muted)]">{i + 1}</span>
               <span className="min-w-0">
-                <span className="font-mono font-bold text-sm text-[var(--text)] tracking-wide">{item.trading_code}</span>
-                <span className="block text-[0.68rem] text-[var(--text-muted)] truncate">{item.company_name}</span>
+                <span className="ticker-tag text-[0.8rem]">{item.trading_code}</span>
+                <span className="block mt-1 text-[0.68rem] text-[var(--text-muted)] truncate">{item.company_name}</span>
               </span>
               <span className="text-right text-xs font-semibold tabular-nums text-[var(--text)]">
                 {item.ltp != null ? taka(item.ltp, 2) : "--"}

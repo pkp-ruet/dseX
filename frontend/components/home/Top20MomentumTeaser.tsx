@@ -44,15 +44,13 @@ export default function Top20MomentumTeaser({ items }: Props) {
             <Link
               key={item.trading_code}
               href={`/stock/${item.trading_code}`}
-              className="snap-start shrink-0 w-[158px] rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 flex flex-col gap-2.5 hover:border-[var(--primary)] hover:shadow-md transition-all"
+              className="soft-card hover-lift snap-start shrink-0 w-[158px] p-3 flex flex-col gap-2.5"
             >
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center justify-center w-6 h-5 rounded-md bg-[var(--surface-2)] text-[0.62rem] font-extrabold tabular-nums text-[var(--text-muted)]">
                   {item.rank}
                 </span>
-                <span className="font-mono font-bold text-sm text-[var(--text)] tracking-wide truncate">
-                  {item.trading_code}
-                </span>
+                <span className="ticker-tag text-[0.8rem]">{item.trading_code}</span>
               </div>
 
               <span

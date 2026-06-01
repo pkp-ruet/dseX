@@ -8,8 +8,8 @@ export default function FinalCTA() {
   const { isLoggedIn } = useAuth();
 
   return (
-    <section className="rounded-3xl border border-[var(--border)] bg-gradient-to-b from-[var(--surface)] to-[var(--surface-2)] px-5 sm:px-10 py-10 sm:py-14 text-center">
-      <h2 className="text-[clamp(1.6rem,5vw,2.4rem)] font-extrabold tracking-tight text-[var(--text)] leading-tight max-w-2xl mx-auto">
+    <section className="ambient-panel rounded-[var(--radius-xl)] border border-[var(--border)] shadow-[var(--shadow-soft)] px-5 sm:px-10 py-12 sm:py-16 text-center">
+      <h2 className="font-display text-[clamp(1.7rem,5vw,2.5rem)] font-bold tracking-tight text-[var(--text)] leading-tight max-w-2xl mx-auto">
         Start making confident DSE decisions today
       </h2>
       <p className="mt-3 text-[var(--text-muted)] max-w-xl mx-auto">

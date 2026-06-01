@@ -127,9 +127,9 @@ async function SearchSection({ promise }: { promise: Promise<ScoresResponse | nu
   }));
   if (companies.length === 0) return null;
   return (
-    <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[0_4px_16px_rgba(15,23,42,0.05)] px-4 sm:px-5 py-5">
-      <p className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-[var(--primary)]">Explore · Free</p>
-      <h2 className="mt-1 mb-3 text-lg sm:text-xl font-extrabold tracking-tight text-[var(--text)]">
+    <section className="soft-card px-5 sm:px-7 py-6 sm:py-7">
+      <p className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-[var(--primary-ink)]">Explore · Free</p>
+      <h2 className="font-display mt-1.5 mb-4 text-xl sm:text-2xl font-bold tracking-tight text-[var(--text)]">
         Look up any DSE stock
       </h2>
       <SearchBar companies={companies} variant="sidebar" />
@@ -211,7 +211,7 @@ export default function HomePage() {
           </Suspense>
         </div>
 
-        <div className="mt-12 sm:mt-20 flex flex-col gap-12 sm:gap-20">
+        <div className="mt-16 sm:mt-24 flex flex-col gap-16 sm:gap-24">
           <Suspense fallback={<div className="py-16 text-center text-[var(--text-muted)] text-sm">Loading…</div>}>
             <ShowcaseSection promise={scoresPromise} />
           </Suspense>

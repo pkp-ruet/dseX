@@ -12,11 +12,11 @@ export default function DataScaleStats({ totalCount, sectorCount }: { totalCount
   ];
 
   return (
-    <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[0_4px_16px_rgba(15,23,42,0.05)] px-4 sm:px-6 py-6">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+    <section className="soft-card px-5 sm:px-7 py-7 sm:py-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         {stats.map((s) => (
           <div key={s.label} className="text-center">
-            <div className="text-2xl sm:text-3xl font-extrabold tabular-nums text-[var(--primary)] leading-none">
+            <div className="font-display text-3xl sm:text-4xl font-bold tabular-nums text-[var(--primary)] leading-none">
               {s.value}
             </div>
             <div className="mt-1.5 text-[0.7rem] sm:text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">

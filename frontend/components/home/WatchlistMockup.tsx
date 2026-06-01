@@ -8,7 +8,7 @@ const ROWS = [
 /** Static, illustrative mockup of the saved-stocks watchlist with news. */
 export default function WatchlistMockup() {
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[0_8px_30px_rgba(15,23,42,0.06)] overflow-hidden">
+    <div className="soft-card overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] bg-[var(--surface-2)]">
         <span className="text-[0.7rem] font-bold uppercase tracking-[0.12em] text-[var(--text)]">★ My Watchlist</span>
         <span className="text-[0.62rem] text-[var(--text-muted)]">4 stocks · 2 news today</span>
@@ -20,7 +20,7 @@ export default function WatchlistMockup() {
             <div key={r.code} className="flex items-center gap-3 px-4 py-3">
               <span className="text-[var(--watch)]" aria-hidden="true">★</span>
               <span className="min-w-0 flex-1">
-                <span className="font-mono font-bold text-sm text-[var(--text)] tracking-wide">{r.code}</span>
+                <span className="ticker-tag ticker-tag--static text-[0.8rem]">{r.code}</span>
                 <span className="block text-[0.68rem] text-[var(--text-muted)] truncate">{r.note}</span>
               </span>
               <span

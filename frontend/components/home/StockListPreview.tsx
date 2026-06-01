@@ -15,7 +15,7 @@ export default function StockListPreview({
     .slice(0, 7);
 
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[0_8px_30px_rgba(15,23,42,0.06)] overflow-hidden">
+    <div className="soft-card overflow-hidden">
       <div className="grid grid-cols-[1fr_auto] gap-3 px-4 py-2.5 border-b border-[var(--border)] bg-[var(--surface-2)] text-[0.6rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)]">
         <span>Stock</span>
         <span className="text-right">Price · Change</span>
@@ -33,7 +33,7 @@ export default function StockListPreview({
             >
               <span className="min-w-0">
                 <span className="flex items-center gap-2">
-                  <span className="font-mono font-bold text-sm text-[var(--text)] tracking-wide">{item.trading_code}</span>
+                  <span className="ticker-tag text-[0.8rem]">{item.trading_code}</span>
                   {item.market_category && (
                     <span className="text-[0.55rem] font-bold uppercase px-1.5 py-0.5 rounded bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text-muted)]">
                       {item.market_category}

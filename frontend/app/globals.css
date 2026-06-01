@@ -3,39 +3,52 @@
 @tailwind utilities;
 
 :root {
-  --primary: #2563EB;
+  /* Soft dusty-blue accent (desaturated indigo) on cool slate neutrals */
+  --primary: #4F6BD8;
+  --primary-ink: #3A52B0;   /* darker — for accent text/links on light */
+  --primary-soft: #7C93E6;  /* lighter — gradients, hover tints */
   --accent: var(--primary);
   --positive: #15803D;
   --negative: #DC2626;
-  --bg: #F7F8FA;
-  --bg-gradient: linear-gradient(180deg, #FFFFFF 0%, #F7F8FA 40%, #F4F6F9 100%);
-  --border: #E3E8EF;
-  --text: #0F172A;
-  --text-muted: var(--text-muted);
+  --bg: #F5F7FB;
+  --bg-gradient: linear-gradient(180deg, #FFFFFF 0%, #F5F7FB 45%, #EEF2F8 100%);
+  --border: #E2E8F0;
+  --text: #1E293B;          /* slate-800 — softer than near-black */
+  --text-muted: #64748B;    /* slate-500 (was self-referential / invalid) */
   --radius: 10px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+
+  /* Soft, layered depth */
+  --shadow-soft: 0 1px 2px rgba(30, 41, 59, 0.04), 0 12px 32px -12px rgba(30, 41, 59, 0.12);
+  --shadow-lift: 0 1px 2px rgba(30, 41, 59, 0.05), 0 22px 48px -16px rgba(79, 107, 216, 0.22);
+  /* Gentle ambient gradient for hero / closing panels */
+  --ambient:
+    radial-gradient(120% 90% at 0% 0%, rgba(79, 107, 216, 0.08) 0%, transparent 55%),
+    radial-gradient(110% 90% at 100% 0%, rgba(124, 147, 230, 0.07) 0%, transparent 55%);
 
   --strong-buy: #15803D;
-  --safe-buy: #2563EB;
+  --safe-buy: #4F6BD8;
   --watch: #B45309;
   --avoid: #DC2626;
 
   /* Design palette — light */
-  --ink: #0F172A;
+  --ink: #1E293B;
   --ink-2: #334155;
-  --ink-muted: var(--text-muted);
-  --rule: #E3E8EF;
+  --ink-muted: #64748B;
+  --rule: #E2E8F0;
   --rule-dark: var(--ink-2);
-  --gold: #2563EB;
-  --gold-light: #EFF6FF;
+  --gold: #4F6BD8;
+  --gold-light: #EEF2FB;
   --np-strong:   #15803D;
   --np-good:     #16A34A;
-  --np-safe:     #2563EB;
+  --np-safe:     #4F6BD8;
   --np-cautious: #7C3AED;
   --np-watch:    #B45309;
   --np-danger:   #DC2626;
   --cell-rule: #EEF1F5;
   --surface: #FFFFFF;
-  --surface-2: #F1F3F6;
+  --surface-2: #EEF2F8;
 }
 
 body {
@@ -54,8 +67,63 @@ body::before {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+  background: linear-gradient(90deg, var(--primary) 0%, var(--primary-soft) 100%);
   z-index: 1000;
+}
+
+/* ---- Homepage refresh helpers (soft dusty-blue + slate) ---- */
+.font-display {
+  font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+.soft-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+.ambient-panel {
+  background: var(--ambient), var(--surface);
+}
+.hover-lift {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lift);
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+}
+
+/* Clickable stock-code chip — reads as a button, font-size inherits from context */
+.ticker-tag {
+  display: inline-flex;
+  align-items: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  color: var(--primary-ink);
+  background: color-mix(in srgb, var(--primary) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
+  border-radius: 7px;
+  padding: 2px 7px;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease,
+    box-shadow 0.15s ease, transform 0.15s ease;
+}
+/* Light up when its row/card link is hovered (or the chip itself) */
+a:hover .ticker-tag,
+.group:hover .ticker-tag,
+.ticker-tag:hover {
+  background: color-mix(in srgb, var(--primary) 16%, transparent);
+  border-color: color-mix(in srgb, var(--primary) 48%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 10%, transparent);
+}
+/* Static variant for non-clickable mockups */
+.ticker-tag--static {
+  color: var(--text);
+  background: var(--surface-2);
+  border-color: var(--border);
 }
 
 /* Section labels */
