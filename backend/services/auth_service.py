@@ -330,3 +330,9 @@ def ensure_users_indexes() -> None:
     col.create_index("phone", unique=True, sparse=True)
     col.create_index("google_id", unique=True, sparse=True, name="google_id_unique")
     col.create_index([("created_at", -1)])
+
+    # Per-user page-view events (route-level). Raw paths stored; grouped at
+    # read time. TTL auto-purges after 90 days so the collection stays bounded.
+    events = get_db()["user_events"]
+    events.create_index("ts", expireAfterSeconds=7_776_000, name="ts_ttl_90d")
+    events.create_index([("user_id", 1), ("ts", -1)], name="user_recent_events")

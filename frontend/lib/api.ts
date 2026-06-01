@@ -612,13 +612,17 @@ export async function apiDeleteHolding(id: string): Promise<void> {
 // Visit tracking
 // ---------------------------------------------------------------------------
 
-export async function apiAuthPing(): Promise<void> {
+export async function apiAuthPing(path?: string): Promise<void> {
   const token = getToken();
   if (!token) return;
   try {
     await fetch(`${getApiUrl()}/api/auth/ping`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...(path ? { "Content-Type": "application/json" } : {}),
+      },
+      ...(path ? { body: JSON.stringify({ path }) } : {}),
     });
   } catch {
     // fire-and-forget
@@ -769,6 +773,9 @@ export async function getDailyPickHistory(days = 30): Promise<DailyPickHistoryRe
 // Admin analytics
 // ---------------------------------------------------------------------------
 
+export type EngagementSegment = "new" | "active" | "at_risk" | "dormant";
+export type SignupSource = "google" | "password";
+
 export interface AdminUserRow {
   user_id: string;
   email: string | null;
@@ -780,6 +787,14 @@ export interface AdminUserRow {
   last_seen_at: string | null;
   total_visits: number;
   has_portfolio: boolean;
+  // enriched
+  signup_source: SignupSource;
+  email_verified: boolean;
+  watchlist_count: number;
+  portfolio_count: number;
+  watchlist_last_visit_at: string | null;
+  updated_at: string | null;
+  segment: EngagementSegment;
 }
 
 export interface AdminAnalyticsStats {
@@ -792,13 +807,91 @@ export interface AdminAnalyticsStats {
   with_portfolio: number;
 }
 
+export interface AdminSegments {
+  new: number;
+  active: number;
+  at_risk: number;
+  dormant: number;
+}
+
+export interface AdminAdoption {
+  watchlist_only: number;
+  portfolio_only: number;
+  both: number;
+  neither: number;
+}
+
+export interface AdminSignupSource {
+  google: number;
+  password: number;
+}
+
+export interface AdminGrowthPoint {
+  date: string;     // YYYY-MM-DD
+  signups: number;
+  active: number;
+}
+
+export interface AdminPopularStock {
+  code: string;
+  count: number;
+  total_qty?: number;
+}
+
+export interface AdminPopularStocks {
+  most_watched: AdminPopularStock[];
+  most_held: AdminPopularStock[];
+}
+
 export interface AdminAnalyticsResponse {
   stats: AdminAnalyticsStats;
+  segments: AdminSegments;
+  adoption: AdminAdoption;
+  signup_source: AdminSignupSource;
+  popular_stocks: AdminPopularStocks;
+  growth: AdminGrowthPoint[];
   users: AdminUserRow[];
+}
+
+export interface AdminUserEvent {
+  path: string;
+  ts: string;
+  count: number;
+}
+
+export interface AdminPortfolioHolding {
+  id: string;
+  trading_code: string;
+  buy_price: number;
+  qty: number;
+  added_at: string | null;
+}
+
+export interface AdminUserDetail {
+  user_id: string;
+  display_name: string | null;
+  email: string | null;
+  phone: string | null;
+  signup_source: SignupSource;
+  email_verified: boolean;
+  created_at: string | null;
+  last_login_at: string | null;
+  last_seen_at: string | null;
+  watchlist_last_visit_at: string | null;
+  total_visits: number;
+  segment: EngagementSegment;
+  watchlist: string[];
+  watchlist_notes: Record<string, string>;
+  portfolio: AdminPortfolioHolding[];
+  recent_events: AdminUserEvent[];
 }
 
 export async function apiGetAdminAnalytics(): Promise<AdminAnalyticsResponse> {
   return apiAuthFetch<AdminAnalyticsResponse>("/api/admin/analytics");
+}
+
+export async function apiGetAdminUser(userId: string): Promise<AdminUserDetail> {
+  return apiAuthFetch<AdminUserDetail>(`/api/admin/users/${encodeURIComponent(userId)}`);
 }
 
 // ---------------------------------------------------------------------------

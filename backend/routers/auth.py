@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Body
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, field_validator
 
@@ -75,6 +75,10 @@ class LoginRequest(BaseModel):
 
 class GoogleAuthRequest(BaseModel):
     id_token: str
+
+
+class PingBody(BaseModel):
+    path: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------
@@ -184,9 +188,28 @@ def get_me(current_user: dict = Depends(get_current_user)):
 
 
 @router.post("/ping", status_code=204)
-def ping(current_user: dict = Depends(get_current_user)):
+def ping(
+    current_user: dict = Depends(get_current_user),
+    body: Optional[PingBody] = Body(default=None),
+):
     now = datetime.now(timezone.utc)
-    get_db()["users"].update_one(
-        {"user_id": current_user["user_id"]},
+    uid = current_user["user_id"]
+    db = get_db()
+    # Critical path first: liveness counter + last-seen timestamp.
+    db["users"].update_one(
+        {"user_id": uid},
         {"$set": {"last_seen_at": now}, "$inc": {"total_visits": 1}},
     )
+    # Best-effort page-view event. Collapses repeats of the same path within a
+    # minute into one row (count++) to bound write volume. Never break the ping.
+    if body and body.path:
+        path = body.path[:200]
+        bucket = now.replace(second=0, microsecond=0)
+        try:
+            db["user_events"].update_one(
+                {"user_id": uid, "path": path, "ts_bucket": bucket},
+                {"$set": {"ts": now}, "$inc": {"count": 1}},
+                upsert=True,
+            )
+        except Exception:  # noqa: BLE001 — analytics write must never fail the request
+            logging.getLogger("auth").warning("user_events write failed", exc_info=True)

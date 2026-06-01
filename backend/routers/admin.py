@@ -1,3 +1,4 @@
+from collections import Counter
 from datetime import datetime, timezone, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -12,29 +13,62 @@ from backend.services.scoring_service import build_scores_df
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 
-def _serialize_user(doc: dict) -> dict:
+def _iso(v):
+    return v.isoformat() if isinstance(v, datetime) else v
+
+
+def _naive(dt):
+    """Coerce a datetime to naive UTC for safe comparison with pymongo reads
+    (the client is not tz_aware, so reads come back naive)."""
+    if isinstance(dt, datetime) and dt.tzinfo is not None:
+        return dt.astimezone(timezone.utc).replace(tzinfo=None)
+    return dt
+
+
+def _engagement_segment(doc: dict, now: datetime) -> str:
+    """new > active > at_risk > dormant (null last_seen → dormant unless new)."""
+    now_n = _naive(now)
+    created = _naive(doc.get("created_at"))
+    seen = _naive(doc.get("last_seen_at"))
+    if isinstance(created, datetime) and created >= now_n - timedelta(days=7):
+        return "new"
+    if isinstance(seen, datetime):
+        age = now_n - seen
+        if age < timedelta(days=7):
+            return "active"
+        if age < timedelta(days=30):
+            return "at_risk"
+    return "dormant"
+
+
+def _serialize_user(doc: dict, now: datetime) -> dict:
     out = {}
     for field in (
         "user_id", "email", "phone", "display_name",
         "is_active", "created_at", "last_login_at",
-        "last_seen_at", "total_visits",
+        "last_seen_at", "total_visits", "watchlist_last_visit_at",
+        "updated_at",
     ):
-        val = doc.get(field)
-        if isinstance(val, datetime):
-            val = val.isoformat()
-        out[field] = val
+        out[field] = _iso(doc.get(field))
     out.setdefault("total_visits", 0)
     out.setdefault("last_seen_at", None)
     out.setdefault("email", None)
     out.setdefault("phone", None)
+    watchlist = doc.get("watchlist") or []
     portfolio = doc.get("portfolio") or []
+    out["watchlist_count"] = len(watchlist)
+    out["portfolio_count"] = len(portfolio)
     out["has_portfolio"] = bool(portfolio)
+    out["signup_source"] = "google" if doc.get("oauth_provider") == "google" else "password"
+    out["email_verified"] = bool(doc.get("email_verified"))
+    out["segment"] = _engagement_segment(doc, now)
     return out
 
 
 @router.get("/analytics")
 def get_analytics(_: dict = Depends(get_current_admin_user)):
-    col = get_db()["users"]
+    db = get_db()
+    col = db["users"]
     now = datetime.now(timezone.utc)
     bdt = timezone(timedelta(hours=6))
     now_bdt = now.astimezone(bdt)
@@ -43,13 +77,98 @@ def get_analytics(_: dict = Depends(get_current_admin_user)):
     week_start = today - timedelta(days=now_bdt.weekday())
     month_start = today_bdt.replace(day=1).astimezone(timezone.utc)
     seven_ago = now - timedelta(days=7)
+    ninety_ago = now - timedelta(days=90)
 
     docs = list(
         col.find(
             {},
-            {"password_hash": 0, "_id": 0, "watchlist": 0},
+            {"password_hash": 0, "_id": 0},
         ).sort("created_at", -1)
     )
+    rows = [_serialize_user(d, now) for d in docs]
+
+    # --- Engagement segments (sum == total_users) ---
+    seg = Counter(r["segment"] for r in rows)
+    segments = {k: seg.get(k, 0) for k in ("new", "active", "at_risk", "dormant")}
+
+    # --- Signup source split ---
+    src = Counter(r["signup_source"] for r in rows)
+    signup_source = {"google": src.get("google", 0), "password": src.get("password", 0)}
+
+    # --- Feature adoption (sum == total_users) ---
+    wl_only = pf_only = both = neither = 0
+    watched: Counter = Counter()
+    held_count: Counter = Counter()
+    held_qty: Counter = Counter()
+    for d in docs:
+        wl = d.get("watchlist") or []
+        pf = d.get("portfolio") or []
+        if wl and pf:
+            both += 1
+        elif wl:
+            wl_only += 1
+        elif pf:
+            pf_only += 1
+        else:
+            neither += 1
+        for code in wl:
+            if isinstance(code, str) and code:
+                watched[code.upper()] += 1
+        for h in pf:
+            code = (h.get("trading_code") or "").upper()
+            if not code:
+                continue
+            held_count[code] += 1
+            try:
+                held_qty[code] += float(h.get("qty") or 0)
+            except (TypeError, ValueError):
+                pass
+    adoption = {
+        "watchlist_only": wl_only,
+        "portfolio_only": pf_only,
+        "both": both,
+        "neither": neither,
+    }
+    popular_stocks = {
+        "most_watched": [{"code": c, "count": n} for c, n in watched.most_common(15)],
+        "most_held": [
+            {"code": c, "count": n, "total_qty": held_qty.get(c, 0)}
+            for c, n in held_count.most_common(15)
+        ],
+    }
+
+    # --- Growth time-series (last 90 calendar days, ascending) ---
+    now_n = _naive(now)
+    today_date = now_n.date()
+    date_keys = [today_date - timedelta(days=i) for i in range(89, -1, -1)]
+    earliest = date_keys[0]
+    signup_counts: Counter = Counter()
+    for d in docs:
+        c = _naive(d.get("created_at"))
+        if isinstance(c, datetime) and c.date() >= earliest:
+            signup_counts[c.date()] += 1
+    # Accurate active-per-day from the page-view events (distinct users/day).
+    active_counts: dict = {}
+    try:
+        agg = db["user_events"].aggregate([
+            {"$match": {"ts": {"$gte": ninety_ago}}},
+            {"$group": {"_id": {
+                "date": {"$dateToString": {"format": "%Y-%m-%d", "date": "$ts"}},
+                "user": "$user_id",
+            }}},
+            {"$group": {"_id": "$_id.date", "users": {"$sum": 1}}},
+        ])
+        active_counts = {row["_id"]: row["users"] for row in agg}
+    except Exception:  # noqa: BLE001 — events curve is best-effort
+        active_counts = {}
+    growth = [
+        {
+            "date": dk.isoformat(),
+            "signups": signup_counts.get(dk, 0),
+            "active": active_counts.get(dk.isoformat(), 0),
+        }
+        for dk in date_keys
+    ]
 
     return {
         "stats": {
@@ -61,7 +180,61 @@ def get_analytics(_: dict = Depends(get_current_admin_user)):
             "active_last_7d": col.count_documents({"last_seen_at": {"$gte": seven_ago}}),
             "with_portfolio": col.count_documents({"portfolio.0": {"$exists": True}}),
         },
-        "users": [_serialize_user(d) for d in docs],
+        "segments": segments,
+        "adoption": adoption,
+        "signup_source": signup_source,
+        "popular_stocks": popular_stocks,
+        "growth": growth,
+        "users": rows,
+    }
+
+
+@router.get("/users/{user_id}")
+def admin_get_user(user_id: str, _: dict = Depends(get_current_admin_user)):
+    """Full per-user drill-down: watchlist, portfolio, notes, recent page views."""
+    db = get_db()
+    doc = db["users"].find_one({"user_id": user_id}, {"password_hash": 0, "_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="User not found")
+    now = datetime.now(timezone.utc)
+
+    events = list(
+        db["user_events"]
+        .find({"user_id": user_id}, {"_id": 0, "user_id": 0, "ts_bucket": 0})
+        .sort("ts", -1)
+        .limit(50)
+    )
+    for e in events:
+        e["ts"] = _iso(e.get("ts"))
+
+    portfolio = [
+        {
+            "id": h.get("id"),
+            "trading_code": h.get("trading_code"),
+            "buy_price": h.get("buy_price"),
+            "qty": h.get("qty"),
+            "added_at": _iso(h.get("added_at")),
+        }
+        for h in (doc.get("portfolio") or [])
+    ]
+
+    return {
+        "user_id": doc.get("user_id"),
+        "display_name": doc.get("display_name"),
+        "email": doc.get("email"),
+        "phone": doc.get("phone"),
+        "signup_source": "google" if doc.get("oauth_provider") == "google" else "password",
+        "email_verified": bool(doc.get("email_verified")),
+        "created_at": _iso(doc.get("created_at")),
+        "last_login_at": _iso(doc.get("last_login_at")),
+        "last_seen_at": _iso(doc.get("last_seen_at")),
+        "watchlist_last_visit_at": _iso(doc.get("watchlist_last_visit_at")),
+        "total_visits": doc.get("total_visits", 0),
+        "segment": _engagement_segment(doc, now),
+        "watchlist": doc.get("watchlist") or [],
+        "watchlist_notes": doc.get("watchlist_notes") or {},
+        "portfolio": portfolio,
+        "recent_events": events,
     }
 
 
