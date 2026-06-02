@@ -37,6 +37,11 @@ export default function StreakBadge() {
   const current = streak?.current_streak ?? user?.current_streak ?? 0;
   if (current < 1) return null;
 
+  const longest = streak?.longest_streak ?? current;
+  // Day 1 with no prior streak = brand-new user; day 1 after a break = returning.
+  const firstEver = current === 1 && longest <= 1;
+  const dayOneCopy = firstEver ? "Your journey starts today" : "Back on track — day 1 🔄";
+
   const milestone = streak?.milestone_hit ?? 0;
 
   const dismiss = () => {
@@ -53,7 +58,7 @@ export default function StreakBadge() {
         title={`Longest streak: ${streak?.longest_streak ?? current} days`}
       >
         <span aria-hidden="true">🔥</span>
-        {current} day{current === 1 ? "" : "s"} in a row
+        {current === 1 ? dayOneCopy : `${current} days in a row`}
       </span>
 
       {showMilestone && milestone > 0 && (
