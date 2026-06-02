@@ -41,7 +41,7 @@ def _compute_stock_lists() -> dict:
     scores_df = build_scores_df()
     scores_map: dict[str, dict] = {}
     if not scores_df.empty:
-        for _, row in scores_df.iterrows():
+        for row in scores_df.to_dict("records"):
             code = row["trading_code"]
             scores_map[code] = {
                 "div_yield_pct": _safe(row.get("div_yield_pct")),

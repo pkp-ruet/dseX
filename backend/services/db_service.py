@@ -16,13 +16,33 @@ from backend.config import MONGODB_URI, MONGODB_DB_NAME
 _client: Optional[MongoClient] = None
 _db = None
 
+# Conservative pool for Render Starter (512 MB / 0.5 vCPU) + Atlas M0's small
+# connection cap: keep sockets few, let idle ones drop, and fail fast rather
+# than pile up waiting connections during a DB blip.
+_POOL_KWARGS = dict(
+    maxPoolSize=10,
+    minPoolSize=0,
+    maxIdleTimeMS=60_000,
+    serverSelectionTimeoutMS=5_000,
+    connectTimeoutMS=5_000,
+)
+
 
 def get_db():
     global _client, _db
     if _db is None:
-        _client = MongoClient(MONGODB_URI)
+        _client = MongoClient(MONGODB_URI, **_POOL_KWARGS)
         _db = _client[MONGODB_DB_NAME]
     return _db
+
+
+def close_db() -> None:
+    """Close the shared client and reset the singleton (FastAPI shutdown)."""
+    global _client, _db
+    if _client is not None:
+        _client.close()
+    _client = None
+    _db = None
 
 
 # ---------------------------------------------------------------------------

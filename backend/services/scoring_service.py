@@ -2,16 +2,22 @@
 DSEF 5-pillar scoring algorithm.
 Uses module-level TTL caches for query memoization.
 """
+import logging
 import math
+import threading
 import time
+from datetime import datetime, timezone
 import numpy as np
 import pandas as pd
+from pymongo import ASCENDING, UpdateOne
 from typing import Optional
 
 from backend.services.db_service import (
     get_db, load_latest_prices, load_all_company_codes,
 )
 from utils.sector import normalize_sector
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -560,24 +566,117 @@ def _a2_pillar5(fin_last5: list[dict], ltp: Optional[float],
 
 
 # ---------------------------------------------------------------------------
-# Main scoring function (TTL cached)
+# Scores: precomputed snapshot in MongoDB, read behind a locked in-process cache
 # ---------------------------------------------------------------------------
+#
+# The five-pillar score for ~600 companies is expensive to compute (full table
+# scans + per-company pandas). It is now computed once by a daily job
+# (`python main.py compute-scores`, hooked into `scrape-all`) and persisted to
+# the `scores_snapshot` collection. API requests only READ that snapshot.
+#
+# `build_scores_df()` keeps a short in-process cache of the loaded snapshot and
+# guards the (re)load with a lock so a burst of concurrent requests after TTL
+# expiry triggers exactly ONE reload instead of N simultaneous rebuilds — the
+# original cause of the stepwise memory climb to OOM.
 
+_SNAPSHOT_COLLECTION = "scores_snapshot"
 _scores_cache: dict = {"df": None, "at": 0.0}
-_SCORES_TTL = 300  # seconds
+_SCORES_TTL = 300  # seconds — in-process cache of the snapshot read
+_scores_lock = threading.RLock()
+
+
+def _records_for_storage(df: pd.DataFrame) -> list[dict]:
+    """Convert a scores DataFrame to BSON-safe dicts (numpy -> native, NaN -> None)."""
+    out: list[dict] = []
+    for raw in df.to_dict("records"):
+        rec: dict = {}
+        for k, v in raw.items():
+            if isinstance(v, np.generic):
+                v = v.item()
+            if isinstance(v, float) and math.isnan(v):
+                v = None
+            rec[k] = v
+        out.append(rec)
+    return out
+
+
+def _store_snapshot(df: pd.DataFrame) -> None:
+    """Persist scored rows to MongoDB so API requests only READ them."""
+    if df.empty:
+        return
+    col = get_db()[_SNAPSHOT_COLLECTION]
+    existing = {ix["name"] for ix in col.list_indexes()}
+    if "trading_code_1" not in existing:
+        col.create_index([("trading_code", ASCENDING)], unique=True, name="trading_code_1")
+
+    now = datetime.now(timezone.utc)
+    records = _records_for_storage(df)
+    ops = [
+        UpdateOne(
+            {"trading_code": r["trading_code"]},
+            {"$set": {**r, "computed_at": now}},
+            upsert=True,
+        )
+        for r in records if r.get("trading_code")
+    ]
+    if ops:
+        col.bulk_write(ops, ordered=False)
+    # Drop any company that is no longer in the scored universe.
+    live_codes = [r["trading_code"] for r in records if r.get("trading_code")]
+    col.delete_many({"trading_code": {"$nin": live_codes}})
+
+
+def _load_snapshot_df() -> pd.DataFrame:
+    """Read the precomputed scores snapshot back into a DataFrame."""
+    docs = list(get_db()[_SNAPSHOT_COLLECTION].find({}, {"_id": 0, "computed_at": 0}))
+    return pd.DataFrame(docs) if docs else pd.DataFrame()
+
+
+def compute_and_store_scores() -> pd.DataFrame:
+    """Run the full pipeline from raw collections and persist to scores_snapshot.
+
+    The ONLY place the heavy pandas computation runs: the daily `compute-scores`
+    CLI job and the self-healing fallback below. Returns the computed frame."""
+    df = _compute_scores_df()
+    try:
+        _store_snapshot(df)
+    except Exception as e:  # storing is best-effort; never break the caller
+        logger.warning("scores snapshot store failed: %s", e)
+    return df
 
 
 def invalidate_scores_cache() -> None:
-    """Force the next call to _algo2_scores() to recompute from DB."""
+    """Recompute scores so a DB change (admin adjustment / manual refresh) is
+    immediately visible, then refresh the in-process cache. Single-flighted."""
     global _scores_cache
-    _scores_cache = {"df": None, "at": 0.0}
+    with _scores_lock:
+        df = compute_and_store_scores()
+        _scores_cache = {"df": df, "at": time.time()}
 
 
-def _algo2_scores() -> pd.DataFrame:
+def build_scores_df() -> pd.DataFrame:
+    """Return the scored DataFrame for all companies (reads the precomputed snapshot).
+
+    Cheap snapshot read behind a short in-process TTL cache; the reload is
+    single-flighted with a lock so concurrent post-expiry requests cause one
+    reload, not N. Self-heals by computing + persisting once if no snapshot
+    exists yet (fresh deploy or before the first daily job)."""
     global _scores_cache
-    if _scores_cache["df"] is not None and time.time() - _scores_cache["at"] < _SCORES_TTL:
-        return _scores_cache["df"]
+    cached = _scores_cache["df"]
+    if cached is not None and time.time() - _scores_cache["at"] < _SCORES_TTL:
+        return cached
+    with _scores_lock:
+        cached = _scores_cache["df"]
+        if cached is not None and time.time() - _scores_cache["at"] < _SCORES_TTL:
+            return cached
+        df = _load_snapshot_df()
+        if df.empty:
+            df = compute_and_store_scores()
+        _scores_cache = {"df": df, "at": time.time()}
+        return df
 
+
+def _compute_scores_df() -> pd.DataFrame:
     db = get_db()
 
     # Build set of codes to exclude from DSEF scoring: hard-excluded (bonds/debentures/etc.)
@@ -614,6 +713,15 @@ def _algo2_scores() -> pd.DataFrame:
         fin_df["eps"] = fin_df["eps_basic"]
     else:
         fin_df["eps"] = float("nan")
+
+    # Group financials by code once. fin_df is already sorted by
+    # [trading_code, year], so each group is year-ascending and tail(5) is the
+    # last 5 years — identical to the old per-company filter+sort, but O(n)
+    # total instead of an O(n) boolean scan repeated for each of ~600 companies.
+    fin_by_code: dict[str, list[dict]] = {
+        code: g.tail(5).to_dict("records")
+        for code, g in fin_df.groupby("trading_code", sort=False)
+    }
 
     ext_docs = list(db.company_financials_ext.find(
         {"trading_code": {"$nin": list(excluded_codes)}}, {"_id": 0}
@@ -698,12 +806,7 @@ def _algo2_scores() -> pd.DataFrame:
         p = (prices.get(code) or {}).get("ltp")
         if not p or p <= 0:
             continue
-        fin_rows_tmp = (
-            fin_df[fin_df["trading_code"] == code]
-            .sort_values("year")
-            .tail(5)
-            .to_dict("records")
-        )
+        fin_rows_tmp = fin_by_code.get(code, [])
         eps_v = next((r["eps"] for r in reversed(fin_rows_tmp)
                       if r.get("eps") is not None and r["eps"] > 0), None)
         nav_v = next((r["nav_per_share"] for r in reversed(fin_rows_tmp)
@@ -726,12 +829,7 @@ def _algo2_scores() -> pd.DataFrame:
         sector = comp.get("sector", "") or ""
         mcap_mn = (ltp * shares / 1e6) if ltp and shares and shares > 0 else None
 
-        fin_rows = (
-            fin_df[fin_df["trading_code"] == code]
-            .sort_values("year")
-            .tail(5)
-            .to_dict("records")
-        )
+        fin_rows = fin_by_code.get(code, [])
         ext_rows_all = ext_by_code.get(code, [])
         ext_last5    = ext_rows_all[-5:]
 
@@ -815,12 +913,7 @@ def _algo2_scores() -> pd.DataFrame:
         rows.append(row)
 
     df = pd.DataFrame(rows)
-    _scores_cache = {"df": df, "at": time.time()}
     return df
-
-
-def build_scores_df() -> pd.DataFrame:
-    return _algo2_scores()
 
 
 def get_company_score_row(trading_code: str) -> Optional[dict]:

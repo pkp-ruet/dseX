@@ -142,6 +142,18 @@ def cmd_scrape_market_summary(_args):
         print("Failed to scrape market summary.")
 
 
+def cmd_compute_scores(_args):
+    """Recompute the DSEF 5-pillar scores and persist them to `scores_snapshot`.
+
+    Heavy (full table scans + per-company pandas). Run once daily so the API
+    only READS the snapshot instead of recomputing per request."""
+    from backend.services.scoring_service import compute_and_store_scores
+
+    df = compute_and_store_scores()
+    n = 0 if df is None or df.empty else len(df)
+    print(f"Done. Scored {n} companies into scores_snapshot.")
+
+
 def _trigger_post_scrape_hooks(*, fire_deploy_hook: bool = False):
     """Purge the Next.js market-data tag (and optionally fire the Vercel deploy hook).
 
@@ -265,6 +277,18 @@ def cmd_scrape_all(args):
     else:
         print("  Skipped — no companies found.\n")
 
+    # Recompute the DSEF scores snapshot now that financials/prices are fresh,
+    # so API requests read up-to-date precomputed scores. Runs regardless of the
+    # deploy-hook health gate below (scores mostly depend on financials, which
+    # persist across runs even if today's price scrape hiccupped).
+    print("=== Post-scrape: Recomputing DSEF scores snapshot ===")
+    try:
+        from backend.services.scoring_service import compute_and_store_scores
+        sdf = compute_and_store_scores()
+        print(f"  Scored {0 if sdf is None or sdf.empty else len(sdf)} companies.\n")
+    except Exception as e:
+        print(f"  Warning: score recompute failed: {e}\n")
+
     # Gate the deploy hook on the two scrapes most visible to users:
     # company list (drives the universe) and prices (drives every chart/table).
     # If either looks empty, a parser broke — keep yesterday's cache rather
@@ -357,6 +381,11 @@ def main():
         help="Run even if the market is closed (testing)",
     )
 
+    sub.add_parser(
+        "compute-scores",
+        help="Recompute DSEF 5-pillar scores and store them in scores_snapshot",
+    )
+
     all_parser = sub.add_parser("scrape-all", help="Run all scrapers sequentially")
     all_parser.add_argument(
         "--full",
@@ -380,6 +409,7 @@ def main():
         "scrape-news":           cmd_scrape_news,
         "scrape-market-summary": cmd_scrape_market_summary,
         "scrape-intraday":       cmd_scrape_intraday,
+        "compute-scores":        cmd_compute_scores,
         "scrape-all":            cmd_scrape_all,
     }
 

@@ -13,12 +13,17 @@ replace with Redis or accept eventual consistency within the TTL window.
 from __future__ import annotations
 
 import time
+from collections import OrderedDict
 from threading import Lock
 from typing import Any, Optional
 
 _DEFAULT_TTL_SECONDS = 30
+# Hard ceiling on cached users. Expired entries are only purged when their own
+# key is read again, so without this bound `_store` would grow once per distinct
+# (namespace, user_id) and never shrink as users churn. LRU-evict the oldest.
+_MAX_ENTRIES = 5000
 
-_store: dict[tuple[str, str], dict[str, Any]] = {}
+_store: "OrderedDict[tuple[str, str], dict[str, Any]]" = OrderedDict()
 _lock = Lock()
 
 
@@ -32,6 +37,7 @@ def get(namespace: str, user_id: str, ttl_seconds: int = _DEFAULT_TTL_SECONDS) -
         if time.time() - entry["at"] > ttl_seconds:
             _store.pop(key, None)
             return None
+        _store.move_to_end(key)
         return entry["val"]
 
 
@@ -39,6 +45,9 @@ def set(namespace: str, user_id: str, value: Any) -> None:
     key = (namespace, user_id)
     with _lock:
         _store[key] = {"val": value, "at": time.time()}
+        _store.move_to_end(key)
+        while len(_store) > _MAX_ENTRIES:
+            _store.popitem(last=False)
 
 
 def invalidate(namespace: str, user_id: str) -> None:

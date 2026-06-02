@@ -35,7 +35,7 @@ def get_scores():
 
     if not df.empty:
         scored = df[df["score"].notna()].sort_values("score", ascending=False)
-        for _, row in scored.iterrows():
+        for row in scored.to_dict("records"):
             code  = row["trading_code"]
             score = row["score"]
             comp  = companies.get(code, {})

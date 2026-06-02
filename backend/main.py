@@ -64,6 +64,12 @@ def startup():
     db.stock_visits.create_index([("count", -1)])
 
 
+@app.on_event("shutdown")
+def shutdown():
+    from backend.services.db_service import close_db
+    close_db()
+
+
 def _migrate_stock_visits_to_single_row(db) -> None:
     """One-shot: collapse daily-bucketed stock_visits rows into one row per company.
     Idempotent — safe to run on every startup."""
