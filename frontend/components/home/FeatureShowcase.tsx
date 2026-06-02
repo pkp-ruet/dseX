@@ -23,6 +23,126 @@ interface Pillar {
   visual: ReactNode;
 }
 
+// Per-pillar eyebrow badge — distinct color, icon and shape for each feature.
+const EYEBROW: Record<
+  string,
+  { color: string; kind: "solid" | "tab" | "outline" | "glass" | "soft"; icon: ReactNode }
+> = {
+  "Stock Analysis": {
+    color: "var(--primary)",
+    kind: "solid",
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
+      </svg>
+    ),
+  },
+  Rankings: {
+    color: "var(--watch)",
+    kind: "tab",
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M5 21V10M12 21V4M19 21v-7" />
+      </svg>
+    ),
+  },
+  Watchlist: {
+    color: "var(--positive)",
+    kind: "outline",
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+        <path d="M12 2l2.9 6.3 6.9.6-5.2 4.6 1.6 6.8L12 17.3 5.8 20.9l1.6-6.8L2.2 8.9l6.9-.6L12 2z" />
+      </svg>
+    ),
+  },
+  "Portfolio Analysis": {
+    color: "var(--np-cautious)",
+    kind: "glass",
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 12A9 9 0 1 1 12 3v9z" /><path d="M12 3a9 9 0 0 1 9 9h-9z" />
+      </svg>
+    ),
+  },
+  "Daily Tips": {
+    color: "var(--negative)",
+    kind: "soft",
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z" />
+      </svg>
+    ),
+  },
+};
+
+function EyebrowBadge({ label }: { label: string }) {
+  const cfg = EYEBROW[label] ?? { color: "var(--primary)", kind: "soft" as const, icon: null };
+  const c = cfg.color;
+
+  if (cfg.kind === "solid") {
+    return (
+      <span
+        className="inline-flex self-start items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-[0.14em] text-white shadow-sm"
+        style={{ background: `linear-gradient(90deg, ${c}, color-mix(in srgb, ${c} 60%, #fff))` }}
+      >
+        {cfg.icon}
+        {label}
+      </span>
+    );
+  }
+
+  if (cfg.kind === "tab") {
+    return (
+      <span
+        className="inline-flex self-start items-center gap-1.5 pl-2.5 pr-3 py-1 text-xs font-extrabold uppercase tracking-[0.14em]"
+        style={{ color: c, borderLeft: `3px solid ${c}`, background: `color-mix(in srgb, ${c} 8%, transparent)` }}
+      >
+        {cfg.icon}
+        {label}
+      </span>
+    );
+  }
+
+  if (cfg.kind === "outline") {
+    return (
+      <span
+        className="inline-flex self-start items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-[0.14em]"
+        style={{ color: c, border: `1.5px solid color-mix(in srgb, ${c} 45%, transparent)` }}
+      >
+        {cfg.icon}
+        {label}
+      </span>
+    );
+  }
+
+  if (cfg.kind === "glass") {
+    return (
+      <span
+        className="inline-flex self-start items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-[0.14em] shadow-sm"
+        style={{
+          color: c,
+          background: `linear-gradient(var(--surface), var(--surface)) padding-box, linear-gradient(90deg, ${c}, color-mix(in srgb, ${c} 40%, #fff)) border-box`,
+          border: "1.5px solid transparent",
+        }}
+      >
+        {cfg.icon}
+        {label}
+      </span>
+    );
+  }
+
+  // soft
+  return (
+    <span
+      className="inline-flex self-start items-center gap-1.5 px-3 py-1 rounded-md text-xs font-extrabold uppercase tracking-[0.14em]"
+      style={{ color: c, background: `color-mix(in srgb, ${c} 14%, transparent)` }}
+    >
+      {cfg.icon}
+      {label}
+    </span>
+  );
+}
+
 function FeatureRow({ pillar, index }: { pillar: Pillar; index: number }) {
   const { isLoggedIn } = useAuth();
   const cta = isLoggedIn ? pillar.auth : pillar.anon;
@@ -35,9 +155,7 @@ function FeatureRow({ pillar, index }: { pillar: Pillar; index: number }) {
       <div className={odd ? "md:order-2" : "md:order-1"}>{pillar.visual}</div>
 
       <div className={`flex flex-col ${odd ? "md:order-1" : "md:order-2"}`}>
-        <span className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-[var(--primary-ink)]">
-          {pillar.eyebrow}
-        </span>
+        <EyebrowBadge label={pillar.eyebrow} />
         <h3 className="font-display mt-2 text-2xl sm:text-[1.75rem] font-bold tracking-tight text-[var(--text)] leading-tight">
           {pillar.title}
         </h3>
@@ -153,9 +271,27 @@ export default function FeatureShowcase({
   }
 
   return (
-    <section className="flex flex-col gap-14 sm:gap-20 py-4">
+    <section className="flex flex-col gap-10 sm:gap-14 py-4">
       <div className="text-center max-w-2xl mx-auto">
-        <h2 className="font-display text-[clamp(1.7rem,5vw,2.4rem)] font-bold tracking-tight text-[var(--text)] leading-tight">
+        <span
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-extrabold uppercase tracking-[0.18em] shadow-sm"
+          style={{
+            background:
+              "linear-gradient(var(--surface), var(--surface)) padding-box, linear-gradient(90deg, var(--primary), var(--np-cautious)) border-box",
+            border: "1.5px solid transparent",
+          }}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--np-cautious)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 3l1.9 5.8L19.5 9l-4.6 3.4L16.5 18 12 14.6 7.5 18l1.6-5.6L4.5 9l5.6-.2L12 3z" />
+          </svg>
+          <span
+            className="bg-clip-text text-transparent"
+            style={{ backgroundImage: "linear-gradient(90deg, var(--primary), var(--np-cautious))" }}
+          >
+            Why TopStockBD
+          </span>
+        </span>
+        <h2 className="font-display mt-3 text-[clamp(1.7rem,5vw,2.4rem)] font-bold tracking-tight text-[var(--text)] leading-tight">
           Everything you need to invest in DSE with confidence
         </h2>
         <p className="mt-3 text-[var(--text-muted)]">

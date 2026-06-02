@@ -220,7 +220,7 @@ export default function HomePage() {
           </Suspense>
         </div>
 
-        <div className="mt-16 sm:mt-24 flex flex-col gap-16 sm:gap-24">
+        <div className="mt-10 sm:mt-12 flex flex-col gap-16 sm:gap-24">
           <Suspense fallback={<div className="py-16 text-center text-[var(--text-muted)] text-sm">Loading…</div>}>
             <ShowcaseSection promise={scoresPromise} tipsPromise={tipsPromise} />
           </Suspense>
