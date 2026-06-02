@@ -4,11 +4,12 @@ import Link from "next/link";
 import { type ReactNode } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { openGlobalSearch } from "@/components/layout/GlobalSearch";
-import { type ScoreItem, type CompanyDetail } from "@/lib/api";
+import { type ScoreItem, type CompanyDetail, type DailyTip } from "@/lib/api";
 import SampleAnalysisCard from "@/components/home/SampleAnalysisCard";
 import LiveRankingPreview from "@/components/home/LiveRankingPreview";
 import WatchlistMockup from "@/components/home/WatchlistMockup";
 import PortfolioMockup from "@/components/home/PortfolioMockup";
+import DailyTipsCard from "@/components/home/DailyTipsCard";
 
 interface Pillar {
   eyebrow: string;
@@ -71,11 +72,14 @@ export default function FeatureShowcase({
   sampleDetail,
   rankingItems,
   totalCount,
+  tips = [],
 }: {
   sampleDetail: CompanyDetail | null;
   rankingItems: ScoreItem[];
   totalCount: number;
+  tips?: DailyTip[];
 }) {
+  const hasTips = tips.length > 0;
   const pillars: Pillar[] = [
     {
       eyebrow: "Stock Analysis",
@@ -102,7 +106,7 @@ export default function FeatureShowcase({
       ],
       anon: { label: "Browse rankings", href: "/dsestockranking" },
       auth: { label: "Browse rankings", href: "/dsestockranking" },
-      visual: <LiveRankingPreview items={rankingItems} totalCount={totalCount} />,
+      visual: <LiveRankingPreview items={rankingItems.slice(0, 3)} totalCount={totalCount} />,
     },
     {
       eyebrow: "Watchlist",
@@ -132,6 +136,22 @@ export default function FeatureShowcase({
     },
   ];
 
+  if (hasTips) {
+    pillars.push({
+      eyebrow: "Daily Tips",
+      title: "Fresh stock ideas, every single day",
+      desc: "Wake up to a hand-picked list of fundamental tips — which companies grew profit, who pays the fattest sustainable dividend, what's trading cheap. Refreshed daily after market close so you always know where to look.",
+      bullets: [
+        "10 plain-English tips, rebuilt every day",
+        "Profit growth, dividends, value & quality signals",
+        "Only solid, non-risky stocks make the cut",
+      ],
+      anon: { label: "Sign up for daily tips", href: "/register" },
+      auth: { label: "See today's tips", href: "/" },
+      visual: <DailyTipsCard tips={tips.slice(0, 3)} />,
+    });
+  }
+
   return (
     <section className="flex flex-col gap-14 sm:gap-20 py-4">
       <div className="text-center max-w-2xl mx-auto">
@@ -139,7 +159,9 @@ export default function FeatureShowcase({
           Everything you need to invest in DSE with confidence
         </h2>
         <p className="mt-3 text-[var(--text-muted)]">
-          Four tools, one free account — analysis, rankings, watchlists and portfolio tracking.
+          {hasTips
+            ? "Five tools, one free account — analysis, rankings, watchlists, portfolio tracking and daily tips."
+            : "Four tools, one free account — analysis, rankings, watchlists and portfolio tracking."}
         </p>
       </div>
 

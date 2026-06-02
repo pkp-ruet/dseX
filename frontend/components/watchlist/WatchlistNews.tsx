@@ -118,6 +118,15 @@ export default function WatchlistNews({ codes, news, loading, limit, compact = f
           ))}
         </div>
       )}
+
+      {compact && items.length > 0 && (
+        <Link
+          href="/watchlist"
+          className="mt-3 flex items-center justify-center gap-1 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 text-xs font-bold text-[var(--primary)] hover:bg-[color-mix(in_srgb,var(--primary)_12%,var(--surface-2))] transition-colors"
+        >
+          View all news →
+        </Link>
+      )}
     </section>
   );
 }

@@ -5,8 +5,17 @@ interface Props {
   tips: DailyTip[];
 }
 
-// Categories where the metric chip reads as a positive signal (green).
-const POSITIVE_METRIC = new Set(["profit_growth", "dividend"]);
+// Per-category visual identity: accent color + icon + chip label.
+const CAT_META: Record<
+  string,
+  { color: string; icon: string; tag: string; positive: boolean }
+> = {
+  top_overall: { color: "var(--primary)", icon: "🏆", tag: "Top Rated", positive: false },
+  profit_growth: { color: "var(--positive)", icon: "📈", tag: "Growth", positive: true },
+  dividend: { color: "var(--watch)", icon: "💰", tag: "Dividend", positive: true },
+  high_eps: { color: "var(--np-cautious)", icon: "⚡", tag: "Earnings", positive: false },
+};
+const FALLBACK = { color: "var(--text-muted)", icon: "⭐", tag: "Pick", positive: false };
 
 function fmtMetric(tip: DailyTip): string | null {
   if (tip.metric_value == null || !tip.metric_label) return null;
@@ -29,39 +38,67 @@ export default function DailyTipsCard({ tips }: Props) {
 
   return (
     <section aria-label="TopStockBD Tips">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-baseline gap-2 min-w-0">
-          <span className="w-1 h-4 rounded-full bg-[var(--primary)] shrink-0 self-center" />
-          <span className="text-sm font-extrabold text-[var(--text)]">Daily TopStockBD Tips</span>
-        </div>
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-base">💡</span>
+        <span className="text-sm font-extrabold text-[var(--text)]">Daily TopStockBD Tips</span>
+        <span className="ml-1 h-px flex-1 bg-gradient-to-r from-[var(--border)] to-transparent" />
       </div>
 
-      <div className="soft-card overflow-hidden divide-y divide-[var(--cell-rule)]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {tips.map((tip) => {
+          const meta = CAT_META[tip.category] ?? FALLBACK;
           const metric = fmtMetric(tip);
-          const positive = POSITIVE_METRIC.has(tip.category);
           return (
             <Link
               key={`${tip.category}-${tip.trading_code}`}
               href={`/stock/${tip.trading_code}`}
-              className="hover-lift flex items-center gap-3 px-4 py-3"
+              className="hover-lift group relative flex items-start gap-3 rounded-2xl p-4 overflow-hidden"
+              style={{
+                background: `linear-gradient(135deg, color-mix(in srgb, ${meta.color} 9%, var(--surface)) 0%, var(--surface) 70%)`,
+                border: `1px solid color-mix(in srgb, ${meta.color} 28%, var(--border))`,
+              }}
             >
-              <span className="ticker-tag text-[0.72rem] shrink-0">{tip.trading_code}</span>
-              <span className="flex-1 min-w-0 text-[0.82rem] leading-snug text-[var(--text)]">
-                {tip.text}
+              {/* colored spine */}
+              <span
+                className="absolute left-0 top-0 bottom-0 w-1"
+                style={{ background: meta.color }}
+              />
+              {/* icon medallion */}
+              <span
+                className="shrink-0 grid place-items-center w-9 h-9 rounded-xl text-base"
+                style={{
+                  background: `color-mix(in srgb, ${meta.color} 16%, transparent)`,
+                  border: `1px solid color-mix(in srgb, ${meta.color} 30%, transparent)`,
+                }}
+              >
+                {meta.icon}
               </span>
-              {metric && (
-                <span
-                  className="shrink-0 px-2 py-0.5 rounded-md text-[0.7rem] font-bold tabular-nums"
-                  style={
-                    positive
-                      ? { color: "var(--positive)", background: "color-mix(in srgb, var(--positive) 12%, transparent)" }
-                      : { color: "var(--text-muted)", background: "var(--surface-2)" }
-                  }
-                >
-                  {metric}
+
+              <span className="flex-1 min-w-0">
+                <span className="flex items-center gap-2 mb-1">
+                  <span className="ticker-tag text-[0.72rem]">{tip.trading_code}</span>
+                  <span
+                    className="text-[0.58rem] font-extrabold uppercase tracking-[0.08em]"
+                    style={{ color: meta.color }}
+                  >
+                    {meta.tag}
+                  </span>
                 </span>
-              )}
+                <span className="block text-[0.82rem] leading-snug text-[var(--text)]">
+                  {tip.text}
+                </span>
+                {metric && (
+                  <span
+                    className="inline-block mt-2 px-2 py-0.5 rounded-md text-[0.7rem] font-extrabold tabular-nums"
+                    style={{
+                      color: meta.color,
+                      background: `color-mix(in srgb, ${meta.color} 14%, transparent)`,
+                    }}
+                  >
+                    {metric}
+                  </span>
+                )}
+              </span>
             </Link>
           );
         })}

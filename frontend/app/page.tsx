@@ -25,7 +25,6 @@ import FinalCTA from "@/components/home/FinalCTA";
 import HomePersonalizationGate from "@/components/home/HomePersonalizationGate";
 import Top20MomentumTeaser from "@/components/home/Top20MomentumTeaser";
 import PopularTeaser from "@/components/home/PopularTeaser";
-import DailyTipsCard from "@/components/home/DailyTipsCard";
 import InsightsTeaserStrip from "@/components/home/InsightsTeaserStrip";
 import SearchBar from "@/components/home/SearchBar";
 import StockListPreview from "@/components/home/StockListPreview";
@@ -100,8 +99,14 @@ async function MarketSection({
   return <LiveMarketBand index={index} gainers={movers?.gainers ?? []} />;
 }
 
-async function ShowcaseSection({ promise }: { promise: Promise<ScoresResponse | null> }) {
-  const scores = await promise;
+async function ShowcaseSection({
+  promise,
+  tipsPromise,
+}: {
+  promise: Promise<ScoresResponse | null>;
+  tipsPromise: Promise<DailyTipsResponse | null>;
+}) {
+  const [scores, tips] = await Promise.all([promise, tipsPromise]);
   if (!scores) return null;
   const all = sortedByScore(allItemsFromScores(scores));
   const total = all.length;
@@ -115,7 +120,7 @@ async function ShowcaseSection({ promise }: { promise: Promise<ScoresResponse | 
 
   return (
     <>
-      <FeatureShowcase sampleDetail={sampleDetail} rankingItems={all} totalCount={total} />
+      <FeatureShowcase sampleDetail={sampleDetail} rankingItems={all} totalCount={total} tips={tips?.tips ?? []} />
       <DataScaleStats totalCount={total} sectorCount={sectorCount} />
     </>
   );
@@ -144,21 +149,17 @@ async function DiscoverSection({
   scoresPromise,
   top20Promise,
   popularPromise,
-  tipsPromise,
 }: {
   scoresPromise: Promise<ScoresResponse | null>;
   top20Promise: Promise<Top20Response | null>;
   popularPromise: Promise<PopularStocksResponse | null>;
-  tipsPromise: Promise<DailyTipsResponse | null>;
 }) {
-  const [scores, top20, popular, tips] = await Promise.all([scoresPromise, top20Promise, popularPromise, tipsPromise]);
+  const [scores, top20, popular] = await Promise.all([scoresPromise, top20Promise, popularPromise]);
   const allStocks = scores ? allItemsFromScores(scores) : [];
   const top20Items = top20?.items ?? [];
   const popularItems = popular?.items ?? [];
-  const tipItems = tips?.tips ?? [];
   return (
     <div className="flex flex-col gap-10">
-      {tipItems.length > 0 && <DailyTipsCard tips={tipItems} />}
       {top20Items.length > 0 && <Top20MomentumTeaser items={top20Items} />}
       {popularItems.length > 0 && <PopularTeaser items={popularItems} />}
       {allStocks.length > 0 && (
@@ -221,11 +222,11 @@ export default function HomePage() {
 
         <div className="mt-16 sm:mt-24 flex flex-col gap-16 sm:gap-24">
           <Suspense fallback={<div className="py-16 text-center text-[var(--text-muted)] text-sm">Loading…</div>}>
-            <ShowcaseSection promise={scoresPromise} />
+            <ShowcaseSection promise={scoresPromise} tipsPromise={tipsPromise} />
           </Suspense>
 
           <Suspense fallback={null}>
-            <DiscoverSection scoresPromise={scoresPromise} top20Promise={top20Promise} popularPromise={popularPromise} tipsPromise={tipsPromise} />
+            <DiscoverSection scoresPromise={scoresPromise} top20Promise={top20Promise} popularPromise={popularPromise} />
           </Suspense>
 
           <FinalCTA />

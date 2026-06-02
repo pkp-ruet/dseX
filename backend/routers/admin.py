@@ -8,6 +8,7 @@ from backend.routers.auth import get_current_admin_user
 from backend.services.db_service import get_db, load_companies
 from backend.services.daily_pick_service import admin_get_state, refresh_slot
 from backend.services import score_adjustments_service
+from backend.services import daily_tips_service
 from backend.services.scoring_service import build_scores_df
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -347,3 +348,44 @@ def admin_delete_score_adjustment(
     if not removed:
         raise HTTPException(status_code=404, detail="No adjustment for that code")
     return {"deleted": True, "trading_code": trading_code.upper()}
+
+
+# ---------------------------------------------------------------------------
+# Daily Tips — admin can remove a tip's stock (and restore it later)
+# ---------------------------------------------------------------------------
+
+class ExcludeTipRequest(BaseModel):
+    trading_code: str = Field(..., min_length=1, max_length=20)
+    reason: str | None = Field(None, max_length=500)
+
+
+@router.get("/daily-tips")
+def admin_get_daily_tips(_: dict = Depends(get_current_admin_user)):
+    """Current live tips + the exclusion list."""
+    return daily_tips_service.admin_get_tips_state()
+
+
+@router.post("/daily-tips/exclude")
+def admin_exclude_tip(
+    payload: ExcludeTipRequest,
+    user: dict = Depends(get_current_admin_user),
+):
+    """Remove a stock from tips: blacklist it and regenerate today's list."""
+    try:
+        state = daily_tips_service.exclude_tip(
+            trading_code=payload.trading_code,
+            reason=payload.reason,
+            updated_by=user.get("email") or user.get("user_id"),
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return state
+
+
+@router.delete("/daily-tips/exclude/{trading_code}")
+def admin_restore_tip(
+    trading_code: str,
+    _: dict = Depends(get_current_admin_user),
+):
+    """Un-blacklist a stock so it can appear in tips again."""
+    return daily_tips_service.restore_tip(trading_code)

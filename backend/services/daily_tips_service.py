@@ -21,12 +21,21 @@ import math
 import random
 from datetime import datetime, timedelta, timezone
 
-from pymongo import DESCENDING, UpdateOne
+from typing import Optional
+
+from pymongo import ASCENDING, DESCENDING, UpdateOne
 
 from backend.services.db_service import get_db, load_companies, load_latest_prices
 from backend.services.scoring_service import build_scores_df
 
 MAX_TIPS = 10
+
+# Tier cutoffs mirror routers/scores.py: avoid (risky) tier = score < 35.
+# Never surface a risky-tier stock in a "good stock" tip.
+AVOID_TIER_MAX = 35
+
+# Admin-curated blacklist: stocks here never appear in any tip.
+EXCLUDES_COLLECTION = "daily_tips_excludes"
 
 
 def _today_iso() -> str:
@@ -44,6 +53,27 @@ def _safe(v):
 def ensure_daily_tips_indexes() -> None:
     db = get_db()
     db.daily_tips.create_index([("date", DESCENDING)], unique=True)
+    db[EXCLUDES_COLLECTION].create_index([("trading_code", ASCENDING)], unique=True)
+
+
+# ---------------------------------------------------------------------------
+# Admin exclusion list — curated blacklist of stocks barred from tips
+# ---------------------------------------------------------------------------
+
+def load_excluded_codes() -> set[str]:
+    col = get_db()[EXCLUDES_COLLECTION]
+    return {d["trading_code"] for d in col.find({}, {"trading_code": 1, "_id": 0})}
+
+
+def list_excludes() -> list[dict]:
+    col = get_db()[EXCLUDES_COLLECTION]
+    out = []
+    for d in col.find({}, {"_id": 0}).sort("updated_at", DESCENDING):
+        ua = d.get("updated_at")
+        if isinstance(ua, datetime):
+            d["updated_at"] = ua.isoformat()
+        out.append(d)
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -59,6 +89,7 @@ def _build_rows() -> list[dict]:
 
     companies = {c["trading_code"]: c for c in load_companies()}
     prices = load_latest_prices()
+    excluded = load_excluded_codes()
 
     # Latest-year NAV per company (book value per share) for the below-book tip.
     nav_pipeline = [
@@ -84,14 +115,25 @@ def _build_rows() -> list[dict]:
         code = rec.get("trading_code")
         if not code:
             continue
+        # Skip admin-excluded stocks.
+        if code in excluded:
+            continue
         comp = companies.get(code, {})
         ltp = _safe(rec.get("ltp")) or _safe(prices.get(code, {}).get("ltp"))
+        # Skip suspended / no-trade stocks (zero or missing price) — bad data,
+        # and most tips are price-relative.
+        if not ltp or ltp <= 0:
+            continue
+        # Skip risky-tier (avoid) and unscored stocks — tips are for good picks.
+        score = _safe(rec.get("score"))
+        if score is None or score < AVOID_TIER_MAX:
+            continue
         rows.append({
             "trading_code": code,
             "company_name": comp.get("company_name") or code,
             "sector": rec.get("sector") or comp.get("sector"),
             "ltp": ltp,
-            "score": _safe(rec.get("score")),
+            "score": score,
             "eps": _safe(rec.get("eps")),
             "eps_yoy_pct": _safe(rec.get("eps_yoy_pct")),
             "div_yield_pct": _safe(rec.get("div_yield_pct")),
@@ -269,3 +311,50 @@ def get_daily_tips() -> dict:
     if not doc or not doc.get("tips"):
         doc = compute_and_store_daily_tips()
     return {"date": doc.get("date"), "tips": doc.get("tips") or []}
+
+
+# ---------------------------------------------------------------------------
+# Admin controls — curate the live tip list
+# ---------------------------------------------------------------------------
+
+def admin_get_tips_state() -> dict:
+    """Current live tips + the admin exclusion list."""
+    state = get_daily_tips()
+    return {
+        "date": state.get("date"),
+        "tips": state.get("tips") or [],
+        "excludes": list_excludes(),
+    }
+
+
+def exclude_tip(trading_code: str, reason: Optional[str], updated_by: Optional[str]) -> dict:
+    """Blacklist a stock from all tips, then regenerate today's list so it
+    disappears immediately and a fresh tip fills its place."""
+    code = (trading_code or "").strip().upper()
+    if not code:
+        raise ValueError("trading_code is required")
+
+    db = get_db()
+    comp = db.companies.find_one({"trading_code": code}, {"company_name": 1, "_id": 0})
+    db[EXCLUDES_COLLECTION].update_one(
+        {"trading_code": code},
+        {"$set": {
+            "trading_code": code,
+            "company_name": (comp or {}).get("company_name"),
+            "reason": (reason or "").strip() or None,
+            "updated_by": updated_by,
+            "updated_at": datetime.now(timezone.utc),
+        }},
+        upsert=True,
+    )
+    compute_and_store_daily_tips()
+    return admin_get_tips_state()
+
+
+def restore_tip(trading_code: str) -> dict:
+    """Remove a stock from the exclusion list and regenerate today's tips."""
+    code = (trading_code or "").strip().upper()
+    res = get_db()[EXCLUDES_COLLECTION].delete_one({"trading_code": code})
+    if res.deleted_count:
+        compute_and_store_daily_tips()
+    return admin_get_tips_state()

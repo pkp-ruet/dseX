@@ -1062,3 +1062,61 @@ export async function apiAdminRefreshDailyPickSlot(slot: number): Promise<AdminR
   }
   return res.json() as Promise<AdminRefreshSlotResponse>;
 }
+
+// ---------------------------------------------------------------------------
+// Admin — Daily Tips curation (remove / restore a stock from the tip list)
+// ---------------------------------------------------------------------------
+
+export interface AdminTipExclude {
+  trading_code: string;
+  company_name: string | null;
+  reason: string | null;
+  updated_by: string | null;
+  updated_at: string | null;
+}
+
+export interface AdminDailyTipsState {
+  date: string | null;
+  tips: DailyTip[];
+  excludes: AdminTipExclude[];
+}
+
+export async function apiAdminGetDailyTips(): Promise<AdminDailyTipsState> {
+  return apiAuthFetch<AdminDailyTipsState>("/api/admin/daily-tips");
+}
+
+async function adminEditTips(
+  method: "POST" | "DELETE",
+  path: string,
+  body?: unknown,
+): Promise<AdminDailyTipsState> {
+  const token = getToken();
+  if (!token) throw new Error("AUTH_EXPIRED");
+  const res = await fetch(path, {
+    method,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...(body ? { "Content-Type": "application/json" } : {}),
+    },
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+  if (res.status === 401) {
+    logout();
+    throw new Error("AUTH_EXPIRED");
+  }
+  if (!res.ok) {
+    const b = await res.json().catch(() => ({}));
+    throw new Error(b?.detail || b?.error || `Request failed: ${res.status}`);
+  }
+  return res.json() as Promise<AdminDailyTipsState>;
+}
+
+/** Remove a stock from the tips (blacklist + regenerate). Revalidates homepage. */
+export async function apiAdminExcludeTip(trading_code: string, reason?: string): Promise<AdminDailyTipsState> {
+  return adminEditTips("POST", "/api/admin/edit-tips", { trading_code, reason: reason || null });
+}
+
+/** Restore a previously-excluded stock. Revalidates homepage. */
+export async function apiAdminRestoreTip(trading_code: string): Promise<AdminDailyTipsState> {
+  return adminEditTips("DELETE", `/api/admin/edit-tips?trading_code=${encodeURIComponent(trading_code)}`);
+}

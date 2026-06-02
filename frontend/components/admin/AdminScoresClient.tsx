@@ -178,6 +178,12 @@ export default function AdminScoresClient() {
           >
             ★ Daily Pick
           </a>
+          <a
+            href="/admin/tips"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors whitespace-nowrap"
+          >
+            💡 Edit Tips
+          </a>
         </div>
       </div>
 
