@@ -612,11 +612,17 @@ export async function apiDeleteHolding(id: string): Promise<void> {
 // Visit tracking
 // ---------------------------------------------------------------------------
 
-export async function apiAuthPing(path?: string): Promise<void> {
+export interface StreakInfo {
+  current_streak: number;
+  longest_streak: number;
+  milestone_hit: number | null; // 7 / 30 / 100 when a milestone is reached this check-in
+}
+
+export async function apiAuthPing(path?: string): Promise<{ streak: StreakInfo | null } | null> {
   const token = getToken();
-  if (!token) return;
+  if (!token) return null;
   try {
-    await fetch(`${getApiUrl()}/api/auth/ping`, {
+    const res = await fetch(`${getApiUrl()}/api/auth/ping`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -624,8 +630,11 @@ export async function apiAuthPing(path?: string): Promise<void> {
       },
       ...(path ? { body: JSON.stringify({ path }) } : {}),
     });
+    if (!res.ok) return null;
+    return (await res.json()) as { streak: StreakInfo | null };
   } catch {
     // fire-and-forget
+    return null;
   }
 }
 
@@ -767,6 +776,30 @@ export interface DailyPickHistoryResponse {
 
 export async function getDailyPickHistory(days = 30): Promise<DailyPickHistoryResponse> {
   return apiFetch<DailyPickHistoryResponse>(`/api/daily-pick/history?days=${days}`, 86400);
+}
+
+// ---------------------------------------------------------------------------
+// TopStockBD Tips — ~10 plain-English fundamental tips, refreshed daily
+// ---------------------------------------------------------------------------
+
+export interface DailyTip {
+  category: string;
+  text: string;
+  trading_code: string;
+  company_name: string | null;
+  sector: string | null;
+  metric_label: string | null;
+  metric_value: number | null;
+  ltp: number | null;
+}
+
+export interface DailyTipsResponse {
+  date: string | null;
+  tips: DailyTip[];
+}
+
+export async function getDailyTips(): Promise<DailyTipsResponse> {
+  return apiFetch<DailyTipsResponse>("/api/daily-tips", 86400);
 }
 
 // ---------------------------------------------------------------------------

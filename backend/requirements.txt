@@ -9,3 +9,4 @@ python-jose[cryptography]==3.3.0
 bcrypt==4.0.1
 google-auth==2.35.0
 requests>=2.31.0
+tzdata>=2024.1  # zoneinfo tz database (Asia/Dhaka for login streak) — Windows/slim images lack the system tz db

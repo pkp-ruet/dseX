@@ -289,6 +289,15 @@ def cmd_scrape_all(args):
     except Exception as e:
         print(f"  Warning: score recompute failed: {e}\n")
 
+    # Regenerate the "TopStockBD Tips" homepage bullets from the fresh snapshot.
+    print("=== Post-scrape: Regenerating TopStockBD Tips ===")
+    try:
+        from backend.services.daily_tips_service import compute_and_store_daily_tips
+        tdoc = compute_and_store_daily_tips()
+        print(f"  Generated {len(tdoc.get('tips') or [])} tips.\n")
+    except Exception as e:
+        print(f"  Warning: daily tips regen failed: {e}\n")
+
     # Gate the deploy hook on the two scrapes most visible to users:
     # company list (drives the universe) and prices (drives every chart/table).
     # If either looks empty, a parser broke — keep yesterday's cache rather

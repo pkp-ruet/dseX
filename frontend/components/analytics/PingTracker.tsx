@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { apiAuthPing } from "@/lib/api";
+import { publishStreak } from "@/lib/streak";
 
 export default function PingTracker() {
   const { isLoggedIn } = useAuth();
@@ -19,7 +20,9 @@ export default function PingTracker() {
     // distinct route fires exactly one ping.
     if (lastPinged.current === pathname) return;
     lastPinged.current = pathname;
-    apiAuthPing(pathname);
+    apiAuthPing(pathname).then((r) => {
+      if (r?.streak) publishStreak(r.streak);
+    });
   }, [isLoggedIn, pathname]);
 
   return null;

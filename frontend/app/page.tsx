@@ -7,6 +7,7 @@ import {
   getCompanyDetail,
   getTop20,
   getPopularStocks,
+  getDailyTips,
   type ScoresResponse,
   type ScoreItem,
   type MarketIndexData,
@@ -14,6 +15,7 @@ import {
   type CompanyDetail,
   type Top20Response,
   type PopularStocksResponse,
+  type DailyTipsResponse,
 } from "@/lib/api";
 import HomeHero from "@/components/home/HomeHero";
 import LiveMarketBand from "@/components/home/LiveMarketBand";
@@ -23,6 +25,7 @@ import FinalCTA from "@/components/home/FinalCTA";
 import HomePersonalizationGate from "@/components/home/HomePersonalizationGate";
 import Top20MomentumTeaser from "@/components/home/Top20MomentumTeaser";
 import PopularTeaser from "@/components/home/PopularTeaser";
+import DailyTipsCard from "@/components/home/DailyTipsCard";
 import InsightsTeaserStrip from "@/components/home/InsightsTeaserStrip";
 import SearchBar from "@/components/home/SearchBar";
 import StockListPreview from "@/components/home/StockListPreview";
@@ -141,17 +144,21 @@ async function DiscoverSection({
   scoresPromise,
   top20Promise,
   popularPromise,
+  tipsPromise,
 }: {
   scoresPromise: Promise<ScoresResponse | null>;
   top20Promise: Promise<Top20Response | null>;
   popularPromise: Promise<PopularStocksResponse | null>;
+  tipsPromise: Promise<DailyTipsResponse | null>;
 }) {
-  const [scores, top20, popular] = await Promise.all([scoresPromise, top20Promise, popularPromise]);
+  const [scores, top20, popular, tips] = await Promise.all([scoresPromise, top20Promise, popularPromise, tipsPromise]);
   const allStocks = scores ? allItemsFromScores(scores) : [];
   const top20Items = top20?.items ?? [];
   const popularItems = popular?.items ?? [];
+  const tipItems = tips?.tips ?? [];
   return (
     <div className="flex flex-col gap-10">
+      {tipItems.length > 0 && <DailyTipsCard tips={tipItems} />}
       {top20Items.length > 0 && <Top20MomentumTeaser items={top20Items} />}
       {popularItems.length > 0 && <PopularTeaser items={popularItems} />}
       {allStocks.length > 0 && (
@@ -189,6 +196,7 @@ export default function HomePage() {
   const moversPromise = getMarketMovers().catch(() => null);
   const top20Promise = getTop20().catch(() => null);
   const popularPromise = getPopularStocks().catch(() => null);
+  const tipsPromise = getDailyTips().catch(() => null);
 
   return (
     <>
@@ -217,7 +225,7 @@ export default function HomePage() {
           </Suspense>
 
           <Suspense fallback={null}>
-            <DiscoverSection scoresPromise={scoresPromise} top20Promise={top20Promise} popularPromise={popularPromise} />
+            <DiscoverSection scoresPromise={scoresPromise} top20Promise={top20Promise} popularPromise={popularPromise} tipsPromise={tipsPromise} />
           </Suspense>
 
           <FinalCTA />

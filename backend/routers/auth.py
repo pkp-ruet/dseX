@@ -17,6 +17,7 @@ from backend.services.auth_service import (
     normalize_phone,
     create_or_link_google_user,
     sanitize_user,
+    record_streak_checkin,
 )
 from backend.services.db_service import get_db
 
@@ -187,7 +188,7 @@ def get_me(current_user: dict = Depends(get_current_user)):
     return {"user": {**current_user, "is_admin": email in ADMIN_EMAILS}}
 
 
-@router.post("/ping", status_code=204)
+@router.post("/ping")
 def ping(
     current_user: dict = Depends(get_current_user),
     body: Optional[PingBody] = Body(default=None),
@@ -200,6 +201,13 @@ def ping(
         {"user_id": uid},
         {"$set": {"last_seen_at": now}, "$inc": {"total_visits": 1}},
     )
+    # Daily check-in streak (any app visit counts). Best-effort: a streak write
+    # failure must never break the ping.
+    streak = None
+    try:
+        streak = record_streak_checkin(uid)
+    except Exception:  # noqa: BLE001 — streak must never fail the request
+        logging.getLogger("auth").warning("streak update failed", exc_info=True)
     # Best-effort page-view event. Collapses repeats of the same path within a
     # minute into one row (count++) to bound write volume. Never break the ping.
     if body and body.path:
@@ -213,3 +221,4 @@ def ping(
             )
         except Exception:  # noqa: BLE001 — analytics write must never fail the request
             logging.getLogger("auth").warning("user_events write failed", exc_info=True)
+    return {"streak": streak}

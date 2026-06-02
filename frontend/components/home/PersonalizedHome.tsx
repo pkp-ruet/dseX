@@ -12,6 +12,7 @@ import {
   getMarketMovers,
   getTop20,
   getPopularStocks,
+  getDailyTips,
   type ScoreItem,
   type ScoresResponse,
   type PortfolioHolding,
@@ -22,6 +23,7 @@ import {
   type MarketMoverItem,
   type Top20Item,
   type PopularStockItem,
+  type DailyTip,
 } from "@/lib/api";
 import { loadWatchlist, getCachedWatchlist, subscribeWatchlist } from "@/lib/watchlist";
 import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
@@ -40,6 +42,7 @@ import LiveRankingPreview from "@/components/home/LiveRankingPreview";
 import StockListPreview from "@/components/home/StockListPreview";
 import Top20MomentumTeaser from "@/components/home/Top20MomentumTeaser";
 import PopularTeaser from "@/components/home/PopularTeaser";
+import DailyTipsCard from "@/components/home/DailyTipsCard";
 import InsightsTeaserStrip from "@/components/home/InsightsTeaserStrip";
 
 function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
@@ -92,6 +95,7 @@ export default function PersonalizedHome() {
   const [gainers, setGainers] = useState<MarketMoverItem[]>([]);
   const [top20, setTop20] = useState<Top20Item[]>([]);
   const [popular, setPopular] = useState<PopularStockItem[]>([]);
+  const [tips, setTips] = useState<DailyTip[]>([]);
 
   // Core + discovery fetch on mount
   useEffect(() => {
@@ -131,6 +135,7 @@ export default function PersonalizedHome() {
     getMarketMovers().then((d) => alive && setGainers(d.gainers ?? [])).catch(() => {});
     getTop20().then((d) => alive && setTop20(d.items ?? [])).catch(() => {});
     getPopularStocks().then((d) => alive && setPopular(d.items ?? [])).catch(() => {});
+    getDailyTips().then((d) => alive && setTips(d.tips ?? [])).catch(() => {});
     const unsub = subscribeWatchlist(() => setCodes(getCachedWatchlist()));
     return () => {
       alive = false;
@@ -237,6 +242,8 @@ export default function PersonalizedHome() {
         </p>
 
         {marketIndex && <LiveMarketBand index={marketIndex} gainers={gainers} />}
+
+        {tips.length > 0 && <DailyTipsCard tips={tips} />}
 
         {rankingItems.length > 0 && (
           <div>

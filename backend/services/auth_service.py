@@ -1,6 +1,10 @@
 from datetime import datetime, timezone, timedelta
 from typing import Optional
+from zoneinfo import ZoneInfo
 import uuid
+
+_DHAKA_TZ = ZoneInfo("Asia/Dhaka")  # DSE timezone, fixed UTC+6 (no DST)
+_STREAK_MILESTONES = (7, 30, 100)
 
 import bcrypt as _bcrypt
 from jose import jwt, JWTError
@@ -138,6 +142,9 @@ def create_user(
         "updated_at": now,
         "last_login_at": None,
         "is_active": True,
+        "current_streak": 0,
+        "longest_streak": 0,
+        "last_checkin_date": None,
     }
     # Only set email/phone if present — sparse index skips missing fields,
     # but treats explicit null as a value (causing dup key on second null).
@@ -170,6 +177,9 @@ def create_oauth_user(
         "oauth_provider": "google",
         "email_verified": True,
         "picture_url": picture or None,
+        "current_streak": 0,
+        "longest_streak": 0,
+        "last_checkin_date": None,
     }
     _users().insert_one(doc)
     return doc
@@ -287,6 +297,67 @@ def touch_watchlist_visit(user_id: str) -> Optional[str]:
     if isinstance(prev, datetime):
         return prev.isoformat()
     return None
+
+
+# ---------------------------------------------------------------------------
+# Login streak
+# ---------------------------------------------------------------------------
+
+def _dhaka_day(dt: datetime) -> str:
+    """Calendar day in Asia/Dhaka (UTC+6) as YYYY-MM-DD. Streak day boundary
+    must follow DSE local time, not UTC, or a late-night Dhaka login lands in
+    the wrong day."""
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(_DHAKA_TZ).strftime("%Y-%m-%d")
+
+
+def record_streak_checkin(user_id: str) -> dict:
+    """Update the user's daily check-in streak. Any app visit (one per Dhaka
+    day) counts. Returns {current_streak, longest_streak, last_checkin_date,
+    milestone_hit}. Same-day re-visit is a no-op."""
+    now = datetime.now(timezone.utc)
+    today = _dhaka_day(now)
+    yesterday = _dhaka_day(now - timedelta(days=1))
+
+    doc = _users().find_one(
+        {"user_id": user_id},
+        {"current_streak": 1, "longest_streak": 1, "last_checkin_date": 1},
+    )
+    if not doc:
+        return {"current_streak": 0, "longest_streak": 0, "last_checkin_date": None, "milestone_hit": None}
+
+    current = int(doc.get("current_streak") or 0)
+    longest = int(doc.get("longest_streak") or 0)
+    last_day = doc.get("last_checkin_date")
+
+    if last_day == today:
+        # Already counted today — no change, no milestone re-fire.
+        return {
+            "current_streak": current,
+            "longest_streak": max(longest, current),
+            "last_checkin_date": today,
+            "milestone_hit": None,
+        }
+
+    current = current + 1 if last_day == yesterday else 1
+    longest = max(longest, current)
+    milestone_hit = current if current in _STREAK_MILESTONES else None
+
+    _users().update_one(
+        {"user_id": user_id},
+        {"$set": {
+            "current_streak": current,
+            "longest_streak": longest,
+            "last_checkin_date": today,
+        }},
+    )
+    return {
+        "current_streak": current,
+        "longest_streak": longest,
+        "last_checkin_date": today,
+        "milestone_hit": milestone_hit,
+    }
 
 
 def get_watchlist_notes(user_id: str) -> dict[str, str]:

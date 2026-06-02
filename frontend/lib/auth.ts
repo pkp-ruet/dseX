@@ -14,6 +14,8 @@ export interface AuthUser {
   total_visits: number;
   is_active: boolean;
   is_admin: boolean;
+  current_streak?: number;
+  longest_streak?: number;
 }
 
 // ---------------------------------------------------------------------------
