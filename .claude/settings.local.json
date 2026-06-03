@@ -60,7 +60,10 @@
       "Bash(Select-Object -First 20)",
       "Bash(cd /c/dseX/frontend && grep -n \"full-rank\\\\|fr-\\\\|rank-page\\\\|tier-stat\" app/globals.css | head -80)",
       "Bash(cd /c/dseX/frontend && rm components/ranking/TierStatCards.tsx && echo \"deleted\")",
-      "Bash(echo \"EXIT:$?\")"
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\pritom.kumar\\\\.claude\\\\plans\")",
+      "Read(//c/Users/pritom.kumar/.claude/plans/**)"
     ]
   }
 }

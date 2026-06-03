@@ -43,6 +43,22 @@ def get_current_user(
     return user
 
 
+def get_current_user_optional(
+    creds: Optional[HTTPAuthorizationCredentials] = Depends(_bearer),
+) -> Optional[dict]:
+    """Like get_current_user but returns None instead of raising 401 when there
+    is no/invalid token — lets an endpoint work both logged-in and logged-out."""
+    if not creds:
+        return None
+    user_id = decode_access_token(creds.credentials)
+    if not user_id:
+        return None
+    user = get_user_by_id(user_id)
+    if not user or not user.get("is_active"):
+        return None
+    return user
+
+
 def get_current_admin_user(current_user: dict = Depends(get_current_user)) -> dict:
     email = (current_user.get("email") or "").lower()
     if email not in ADMIN_EMAILS:

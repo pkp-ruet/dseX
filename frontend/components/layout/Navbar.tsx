@@ -10,6 +10,7 @@ import WatchlistDot from "@/components/watchlist/WatchlistDot";
 export default function Navbar() {
   const pathname = usePathname();
   const isRanking = pathname === "/dsestockranking";
+  const isRecommend = pathname === "/stock-recommendation";
 
   const isAnalysis = pathname === "/market-analysis";
   const isWatchlist = pathname === "/watchlist";
@@ -122,6 +123,12 @@ export default function Navbar() {
               className={`navbar-intel-btn${isRanking ? " navbar-intel-btn-active" : ""}`}
             >
               Rankings
+            </Link>
+            <Link
+              href="/stock-recommendation"
+              className={`navbar-intel-btn${isRecommend ? " navbar-intel-btn-active" : ""}`}
+            >
+              Find My Stocks
             </Link>
             <Link
               href="/market-analysis"
@@ -316,6 +323,13 @@ export default function Navbar() {
             onClick={() => setMenuOpen(false)}
           >
             Rankings
+          </Link>
+          <Link
+            href="/stock-recommendation"
+            className={`navbar-drawer-link${isRecommend ? " active" : ""}`}
+            onClick={() => setMenuOpen(false)}
+          >
+            Find My Stocks
           </Link>
           <Link
             href="/dse-top-20"

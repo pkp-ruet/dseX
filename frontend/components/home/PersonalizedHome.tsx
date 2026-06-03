@@ -14,6 +14,8 @@ import {
   getTop20,
   getPopularStocks,
   getDailyTips,
+  apiGetLastRecommendation,
+  type RecommendedStock,
   type ScoreItem,
   type ScoresResponse,
   type PortfolioHolding,
@@ -62,6 +64,13 @@ const BAG_ICON = (
     <path d="M20 7h-4V5l-2-2h-4L8 5v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm-8-2h4v2h-4V5z" />
   </svg>
 );
+const TARGET_ICON = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="9" />
+    <circle cx="12" cy="12" r="5" />
+    <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+  </svg>
+);
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -97,6 +106,8 @@ export default function PersonalizedHome() {
   const [top20, setTop20] = useState<Top20Item[]>([]);
   const [popular, setPopular] = useState<PopularStockItem[]>([]);
   const [tips, setTips] = useState<DailyTip[]>([]);
+  const [recPicks, setRecPicks] = useState<RecommendedStock[] | null>(null);
+  const [recLoaded, setRecLoaded] = useState(false);
 
   // Core + discovery fetch on mount
   useEffect(() => {
@@ -137,6 +148,13 @@ export default function PersonalizedHome() {
     getTop20().then((d) => alive && setTop20(d.items ?? [])).catch(() => {});
     getPopularStocks().then((d) => alive && setPopular(d.items ?? [])).catch(() => {});
     getDailyTips().then((d) => alive && setTips(d.tips ?? [])).catch(() => {});
+    apiGetLastRecommendation()
+      .then((r) => {
+        if (!alive) return;
+        setRecPicks(r.recommendation?.picks?.length ? r.recommendation.picks : null);
+      })
+      .catch(() => {})
+      .finally(() => alive && setRecLoaded(true));
     const unsub = subscribeWatchlist(() => setCodes(getCachedWatchlist()));
     return () => {
       alive = false;
@@ -234,6 +252,74 @@ export default function PersonalizedHome() {
             </div>
           </SetupCard>
         )}
+
+        {/* Stock recommendation — compact teaser linking to the full results */}
+        {recPicks && recPicks.length > 0 ? (
+          <Link
+            href="/stock-recommendation"
+            className="group soft-card block p-4 hover:border-[var(--primary)] transition-colors"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span
+                  className="inline-flex items-center justify-center w-9 h-9 rounded-xl shrink-0 text-[var(--primary)]"
+                  style={{
+                    background: "color-mix(in srgb, var(--primary) 12%, transparent)",
+                    border: "1px solid color-mix(in srgb, var(--primary) 24%, var(--border))",
+                  }}
+                  aria-hidden
+                >
+                  {TARGET_ICON}
+                </span>
+                <div className="min-w-0">
+                  <h3 className="font-extrabold text-[var(--text)] leading-tight">Your stock matches</h3>
+                  <p className="text-[0.72rem] text-[var(--text-muted)]">Picked for your goals</p>
+                </div>
+              </div>
+              <span className="shrink-0 text-xs font-semibold text-[var(--primary)] group-hover:underline">
+                View →
+              </span>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {recPicks.slice(0, 3).map((p, i) => (
+                <span
+                  key={p.trading_code}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--surface-2)] text-[var(--text)] text-[0.78rem] font-mono font-bold"
+                >
+                  <span className="text-sm leading-none">{["🥇", "🥈", "🥉"][i] ?? "⭐"}</span>
+                  {p.trading_code}
+                </span>
+              ))}
+            </div>
+          </Link>
+        ) : recLoaded ? (
+          <Link
+            href="/stock-recommendation"
+            className="group soft-card block p-4 hover:border-[var(--primary)] transition-colors"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span
+                  className="inline-flex items-center justify-center w-9 h-9 rounded-xl shrink-0 text-[var(--primary)]"
+                  style={{
+                    background: "color-mix(in srgb, var(--primary) 12%, transparent)",
+                    border: "1px solid color-mix(in srgb, var(--primary) 24%, var(--border))",
+                  }}
+                  aria-hidden
+                >
+                  {TARGET_ICON}
+                </span>
+                <div className="min-w-0">
+                  <h3 className="font-extrabold text-[var(--text)] leading-tight">Find stocks that fit you</h3>
+                  <p className="text-[0.72rem] text-[var(--text-muted)]">Answer 6 quick questions → get 3 picks</p>
+                </div>
+              </div>
+              <span className="shrink-0 text-xs font-semibold text-[var(--primary)] group-hover:underline">
+                Start →
+              </span>
+            </div>
+          </Link>
+        ) : null}
       </div>
 
       {/* Discovery */}

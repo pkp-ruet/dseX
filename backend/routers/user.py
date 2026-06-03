@@ -13,6 +13,8 @@ from backend.services.auth_service import (
     touch_watchlist_visit,
     get_watchlist_notes,
     set_watchlist_note,
+    get_last_recommendation,
+    clear_last_recommendation,
 )
 from backend.services import user_cache
 
@@ -79,6 +81,21 @@ def remove_from_watchlist(body: WatchlistBody, current_user: dict = Depends(get_
 def visit_watchlist(current_user: dict = Depends(get_current_user)):
     prev = touch_watchlist_visit(current_user["user_id"])
     return {"previous_visit_at": prev}
+
+
+# ---------------------------------------------------------------------------
+# Stock recommendation
+# ---------------------------------------------------------------------------
+
+@router.get("/last-recommendation")
+def last_recommendation(current_user: dict = Depends(get_current_user)):
+    return {"recommendation": get_last_recommendation(current_user["user_id"])}
+
+
+@router.delete("/last-recommendation")
+def delete_last_recommendation(current_user: dict = Depends(get_current_user)):
+    clear_last_recommendation(current_user["user_id"])
+    return {"ok": True}
 
 
 @router.get("/watchlist/notes")

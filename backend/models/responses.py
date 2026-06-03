@@ -23,6 +23,32 @@ class ScoreItem(BaseModel):
     stale_data: Optional[bool] = None
 
 
+class RecommendedStock(BaseModel):
+    trading_code: str
+    company_name: Optional[str] = None
+    sector: Optional[str] = None
+    score: Optional[float] = None
+    tier: Optional[str] = None          # strong_buy|safe_buy|watch (derived from score)
+    ltp: Optional[float] = None
+    change_pct: Optional[float] = None
+    div_yield_pct: Optional[float] = None
+    eps_yoy_pct: Optional[float] = None
+    p1_biz: Optional[float] = None
+    p3_moat: Optional[float] = None
+    p4_val: Optional[float] = None
+    p5_div: Optional[float] = None
+    match_score: float = 0.0            # internal 0-100 ranking score
+    reasons: list[str] = []            # 1-2 plain-language sentences
+
+
+class RecommendationResponse(BaseModel):
+    generated_at: str
+    answers_echo: dict[str, Any]
+    relaxations: list[str] = []         # filters dropped to find enough matches
+    saved: bool = False                 # true if persisted for a logged-in user
+    picks: list[RecommendedStock]
+
+
 class ScoreTiers(BaseModel):
     strong_buy: list[ScoreItem]
     safe_buy: list[ScoreItem]

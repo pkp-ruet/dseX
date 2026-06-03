@@ -300,6 +300,45 @@ def touch_watchlist_visit(user_id: str) -> Optional[str]:
 
 
 # ---------------------------------------------------------------------------
+# Stock recommendation (last quiz result)
+# ---------------------------------------------------------------------------
+
+def save_last_recommendation(user_id: str, answers: dict, result: dict) -> bool:
+    """Persist a user's most recent recommendation result on their user doc.
+    Small subdoc, inline — no separate collection/index needed."""
+    now = datetime.now(timezone.utc)
+    doc = {
+        "answers": answers,
+        "picks": result.get("picks", []),          # already JSON-safe (no NaN)
+        "relaxations": result.get("relaxations", []),
+        "generated_at": result.get("generated_at"),
+        "saved_at": now,
+    }
+    _users().update_one(
+        {"user_id": user_id},
+        {"$set": {"last_recommendation": doc, "updated_at": now}},
+    )
+    return True
+
+
+def get_last_recommendation(user_id: str) -> Optional[dict]:
+    d = _users().find_one({"user_id": user_id}, {"last_recommendation": 1, "_id": 0})
+    rec = (d or {}).get("last_recommendation")
+    if rec and isinstance(rec.get("saved_at"), datetime):
+        rec = {**rec, "saved_at": rec["saved_at"].isoformat()}
+    return rec
+
+
+def clear_last_recommendation(user_id: str) -> bool:
+    """Remove the saved recommendation entirely (used by 'Start over')."""
+    _users().update_one(
+        {"user_id": user_id},
+        {"$unset": {"last_recommendation": ""}, "$set": {"updated_at": datetime.now(timezone.utc)}},
+    )
+    return True
+
+
+# ---------------------------------------------------------------------------
 # Login streak
 # ---------------------------------------------------------------------------
 

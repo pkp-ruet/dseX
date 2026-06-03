@@ -557,6 +557,71 @@ export async function apiSetWatchlistNote(code: string, text: string): Promise<{
 }
 
 // ---------------------------------------------------------------------------
+// Stock recommendation
+// ---------------------------------------------------------------------------
+
+export interface RecommendationAnswers {
+  timeline: "short" | "long";
+  strategy: "fundamental_strong" | "market_trending";
+  sectors: string[];
+  dividend: "income_focused" | "doesnt_matter";
+  valuation: "value" | "growth" | "any";
+  budget: "under_50" | "50_to_200" | "any";
+}
+
+export interface RecommendedStock {
+  trading_code: string;
+  company_name: string | null;
+  sector: string | null;
+  score: number | null;
+  tier: string | null;
+  ltp: number | null;
+  change_pct: number | null;
+  div_yield_pct: number | null;
+  eps_yoy_pct: number | null;
+  p1_biz?: number | null;
+  p3_moat?: number | null;
+  p4_val?: number | null;
+  p5_div?: number | null;
+  match_score: number;
+  reasons: string[];
+}
+
+export interface RecommendationResponse {
+  generated_at: string;
+  answers_echo: Record<string, unknown>;
+  relaxations: string[];
+  saved: boolean;
+  picks: RecommendedStock[];
+}
+
+/** Public POST — works logged-out or logged-in. When a token is present the
+ *  backend also saves the result to the user. */
+export async function getStockRecommendations(
+  answers: RecommendationAnswers,
+): Promise<RecommendationResponse> {
+  return apiAuthFetch<RecommendationResponse>("/api/recommendations", {
+    method: "POST",
+    body: JSON.stringify(answers),
+  });
+}
+
+export async function apiGetLastRecommendation(): Promise<{
+  recommendation:
+    | (Omit<RecommendationResponse, "answers_echo" | "saved"> & {
+        answers: RecommendationAnswers;
+        saved_at?: string;
+      })
+    | null;
+}> {
+  return apiAuthFetch("/api/user/last-recommendation");
+}
+
+export async function apiDeleteLastRecommendation(): Promise<{ ok: boolean }> {
+  return apiAuthFetch("/api/user/last-recommendation", { method: "DELETE" });
+}
+
+// ---------------------------------------------------------------------------
 // Portfolio
 // ---------------------------------------------------------------------------
 

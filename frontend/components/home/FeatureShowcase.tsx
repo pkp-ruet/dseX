@@ -10,6 +10,7 @@ import LiveRankingPreview from "@/components/home/LiveRankingPreview";
 import WatchlistMockup from "@/components/home/WatchlistMockup";
 import PortfolioMockup from "@/components/home/PortfolioMockup";
 import DailyTipsCard from "@/components/home/DailyTipsCard";
+import RecommendationMockup from "@/components/home/RecommendationMockup";
 
 interface Pillar {
   eyebrow: string;
@@ -28,6 +29,15 @@ const EYEBROW: Record<
   string,
   { color: string; kind: "solid" | "tab" | "outline" | "glass" | "soft"; icon: ReactNode }
 > = {
+  "Stock Recommendation": {
+    color: "var(--np-cautious)",
+    kind: "solid",
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1.5" fill="currentColor" />
+      </svg>
+    ),
+  },
   "Stock Analysis": {
     color: "var(--primary)",
     kind: "solid",
@@ -200,6 +210,19 @@ export default function FeatureShowcase({
   const hasTips = tips.length > 0;
   const pillars: Pillar[] = [
     {
+      eyebrow: "Stock Recommendation",
+      title: "Not sure what to buy? Answer 6 questions.",
+      desc: "Tell us how long you want to hold, what style you like, your sector and budget — and we hand you 3 DSE stocks that fit, each with a plain-English reason why. No charts to read, no jargon.",
+      bullets: [
+        "A 60-second quiz — holding time, dividends, value & budget",
+        "3 matched stocks, each with a clear reason it fits you",
+        "Save your picks and revisit them any time",
+      ],
+      anon: { label: "Find my stocks", href: "/stock-recommendation" },
+      auth: { label: "Find my stocks", href: "/stock-recommendation" },
+      visual: <RecommendationMockup />,
+    },
+    {
       eyebrow: "Stock Analysis",
       title: "Every stock, scored on fundamentals",
       desc: "Search any DSE stock and get one plain-English 0–100 score and verdict — built from its earnings, financial health, competitive strength, valuation and dividends, backed by real price and key numbers. No jargon, no guesswork.",
@@ -296,8 +319,8 @@ export default function FeatureShowcase({
         </h2>
         <p className="mt-3 text-[var(--text-muted)]">
           {hasTips
-            ? "Five tools, one free account — analysis, rankings, watchlists, portfolio tracking and daily tips."
-            : "Four tools, one free account — analysis, rankings, watchlists and portfolio tracking."}
+            ? "Six tools, one free account — recommendations, analysis, rankings, watchlists, portfolio tracking and daily tips."
+            : "Five tools, one free account — recommendations, analysis, rankings, watchlists and portfolio tracking."}
         </p>
       </div>
 
