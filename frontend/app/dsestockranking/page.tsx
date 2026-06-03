@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 import { getScores } from "@/lib/api";
-import { formatDate } from "@/lib/formatters";
 import { getTier } from "@/lib/constants";
 import RankingExplorer from "@/components/ranking/RankingExplorer";
 import type { RankedItem } from "@/components/ranking/FullRankTable";
@@ -39,7 +37,7 @@ export default async function DseStockRankingPage() {
     );
   }
 
-  const { tiers, computed_at } = scores;
+  const { tiers } = scores;
 
   // Flatten all API tiers and re-classify into 6 frontend tiers
   const allRanked: RankedItem[] = [
@@ -59,8 +57,6 @@ export default async function DseStockRankingPage() {
   const sectors = Array.from(
     new Set(allRanked.map((i) => i.sector).filter((s): s is string => Boolean(s)))
   ).sort((a, b) => a.localeCompare(b));
-
-  const dateLabel = computed_at ? formatDate(computed_at.slice(0, 10)) : null;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -96,24 +92,11 @@ export default async function DseStockRankingPage() {
       <header className="rank-page-header">
         <div className="rank-page-eyebrow">
           <span className="rank-page-eyebrow-ico" aria-hidden>🏆</span>
-          Fundamental Rankings
+          Powered by TopStockBD
         </div>
         <h1 className="rank-page-title font-display">
           DSE Stock <span className="rank-title-accent">Rankings</span>
         </h1>
-        <p className="rank-page-lead">
-          Every Dhaka Stock Exchange company ranked by fundamental score — strongest to
-          riskiest, grouped into clear tiers.
-        </p>
-        <div className="rank-page-meta-row">
-          {dateLabel && (
-            <span className="rank-page-meta">Updated {dateLabel}</span>
-          )}
-          <Link href="/dse-top-20" className="rank-page-aside">
-            You may also like: <strong>DSE Top 20 This Week</strong>
-            <span aria-hidden> →</span>
-          </Link>
-        </div>
       </header>
 
       {/* Filters + ranked table */}
