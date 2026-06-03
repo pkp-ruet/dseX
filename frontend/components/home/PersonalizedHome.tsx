@@ -253,38 +253,41 @@ export default function PersonalizedHome() {
           </SetupCard>
         )}
 
-        {/* Stock recommendation — compact teaser linking to the full results */}
+        {/* Stock recommendation — vibrant gradient card so it stands out from
+            the news / watchlist sections around it. */}
         {recPicks && recPicks.length > 0 ? (
           <Link
             href="/stock-recommendation"
-            className="group soft-card block p-4 hover:border-[var(--primary)] transition-colors"
+            className="group relative block overflow-hidden rounded-2xl p-5 text-white transition hover:brightness-[1.04]"
+            style={{
+              background: "linear-gradient(135deg, var(--primary) 0%, var(--np-cautious) 100%)",
+              boxShadow: "0 12px 32px -10px color-mix(in srgb, var(--np-cautious) 60%, transparent)",
+            }}
           >
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <span
-                  className="inline-flex items-center justify-center w-9 h-9 rounded-xl shrink-0 text-[var(--primary)]"
-                  style={{
-                    background: "color-mix(in srgb, var(--primary) 12%, transparent)",
-                    border: "1px solid color-mix(in srgb, var(--primary) 24%, var(--border))",
-                  }}
-                  aria-hidden
-                >
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -right-8 -top-10 w-32 h-32 rounded-full opacity-25"
+              style={{ background: "radial-gradient(circle, #fff, transparent 70%)" }}
+            />
+            <div className="relative flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-white/15 shrink-0 text-white" aria-hidden>
                   {TARGET_ICON}
                 </span>
                 <div className="min-w-0">
-                  <h3 className="font-extrabold text-[var(--text)] leading-tight">Your stock matches</h3>
-                  <p className="text-[0.72rem] text-[var(--text-muted)]">Picked for your goals</p>
+                  <h3 className="font-extrabold text-[1.05rem] leading-tight">Your stock matches</h3>
+                  <p className="text-[0.76rem] text-white/85">3 picks chosen for your goals</p>
                 </div>
               </div>
-              <span className="shrink-0 text-xs font-semibold text-[var(--primary)] group-hover:underline">
+              <span className="shrink-0 inline-flex items-center gap-1 text-xs font-bold bg-white/20 px-3 py-1.5 rounded-full group-hover:bg-white/30 transition">
                 View →
               </span>
             </div>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="relative mt-4 flex flex-wrap gap-2">
               {recPicks.slice(0, 3).map((p, i) => (
                 <span
                   key={p.trading_code}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--surface-2)] text-[var(--text)] text-[0.78rem] font-mono font-bold"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 text-white text-[0.82rem] font-mono font-bold"
                 >
                   <span className="text-sm leading-none">{["🥇", "🥈", "🥉"][i] ?? "⭐"}</span>
                   {p.trading_code}
@@ -295,26 +298,31 @@ export default function PersonalizedHome() {
         ) : recLoaded ? (
           <Link
             href="/stock-recommendation"
-            className="group soft-card block p-4 hover:border-[var(--primary)] transition-colors"
+            className="group relative block overflow-hidden rounded-2xl p-5 sm:p-6 text-white transition hover:brightness-[1.04]"
+            style={{
+              background: "linear-gradient(135deg, var(--primary) 0%, var(--np-cautious) 100%)",
+              boxShadow: "0 12px 32px -10px color-mix(in srgb, var(--np-cautious) 60%, transparent)",
+            }}
           >
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <span
-                  className="inline-flex items-center justify-center w-9 h-9 rounded-xl shrink-0 text-[var(--primary)]"
-                  style={{
-                    background: "color-mix(in srgb, var(--primary) 12%, transparent)",
-                    border: "1px solid color-mix(in srgb, var(--primary) 24%, var(--border))",
-                  }}
-                  aria-hidden
-                >
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -right-8 -top-12 w-36 h-36 rounded-full opacity-25"
+              style={{ background: "radial-gradient(circle, #fff, transparent 70%)" }}
+            />
+            <div className="relative flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/15 shrink-0 text-white" aria-hidden>
                   {TARGET_ICON}
                 </span>
                 <div className="min-w-0">
-                  <h3 className="font-extrabold text-[var(--text)] leading-tight">Find stocks that fit you</h3>
-                  <p className="text-[0.72rem] text-[var(--text-muted)]">Answer 6 quick questions → get 3 picks</p>
+                  <span className="inline-block text-[0.6rem] font-bold uppercase tracking-[0.12em] text-white/75">
+                    Stock recommendation
+                  </span>
+                  <h3 className="font-extrabold text-[1.15rem] leading-tight">Find stocks that fit you</h3>
+                  <p className="mt-0.5 text-[0.8rem] text-white/85">Answer 6 quick questions → get 3 matched picks</p>
                 </div>
               </div>
-              <span className="shrink-0 text-xs font-semibold text-[var(--primary)] group-hover:underline">
+              <span className="shrink-0 inline-flex items-center gap-1 text-sm font-bold bg-white text-[var(--np-cautious)] px-4 py-2 rounded-xl shadow-sm group-hover:gap-1.5 transition-all">
                 Start →
               </span>
             </div>
