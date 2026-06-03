@@ -44,7 +44,7 @@ export default function DailyTipsCard({ tips }: Props) {
         <span className="ml-1 h-px flex-1 bg-gradient-to-r from-[var(--border)] to-transparent" />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="flex flex-col gap-2.5">
         {tips.map((tip) => {
           const meta = CAT_META[tip.category] ?? FALLBACK;
           const metric = fmtMetric(tip);
@@ -52,20 +52,17 @@ export default function DailyTipsCard({ tips }: Props) {
             <Link
               key={`${tip.category}-${tip.trading_code}`}
               href={`/stock/${tip.trading_code}`}
-              className="hover-lift group relative flex items-start gap-3 rounded-2xl p-4 overflow-hidden"
+              className="hover-lift group relative flex items-center gap-3 rounded-xl p-3 pl-4 overflow-hidden"
               style={{
-                background: `linear-gradient(135deg, color-mix(in srgb, ${meta.color} 9%, var(--surface)) 0%, var(--surface) 70%)`,
-                border: `1px solid color-mix(in srgb, ${meta.color} 28%, var(--border))`,
+                background: `linear-gradient(135deg, color-mix(in srgb, ${meta.color} 8%, var(--surface)) 0%, var(--surface) 75%)`,
+                border: `1px solid color-mix(in srgb, ${meta.color} 26%, var(--border))`,
               }}
             >
               {/* colored spine */}
-              <span
-                className="absolute left-0 top-0 bottom-0 w-1"
-                style={{ background: meta.color }}
-              />
+              <span className="absolute left-0 top-0 bottom-0 w-1" style={{ background: meta.color }} />
               {/* icon medallion */}
               <span
-                className="shrink-0 grid place-items-center w-9 h-9 rounded-xl text-base"
+                className="shrink-0 grid place-items-center w-8 h-8 rounded-lg text-sm"
                 style={{
                   background: `color-mix(in srgb, ${meta.color} 16%, transparent)`,
                   border: `1px solid color-mix(in srgb, ${meta.color} 30%, transparent)`,
@@ -75,30 +72,31 @@ export default function DailyTipsCard({ tips }: Props) {
               </span>
 
               <span className="flex-1 min-w-0">
-                <span className="flex items-center gap-2 mb-1">
+                <span className="flex items-center gap-2">
                   <span className="ticker-tag text-[0.72rem]">{tip.trading_code}</span>
                   <span
-                    className="text-[0.58rem] font-extrabold uppercase tracking-[0.08em]"
+                    className="text-[0.56rem] font-extrabold uppercase tracking-[0.08em]"
                     style={{ color: meta.color }}
                   >
                     {meta.tag}
                   </span>
                 </span>
-                <span className="block text-[0.82rem] leading-snug text-[var(--text)]">
+                <span className="mt-0.5 block text-[0.78rem] leading-snug text-[var(--text-muted)] line-clamp-1">
                   {tip.text}
                 </span>
-                {metric && (
-                  <span
-                    className="inline-block mt-2 px-2 py-0.5 rounded-md text-[0.7rem] font-extrabold tabular-nums"
-                    style={{
-                      color: meta.color,
-                      background: `color-mix(in srgb, ${meta.color} 14%, transparent)`,
-                    }}
-                  >
-                    {metric}
-                  </span>
-                )}
               </span>
+
+              {metric && (
+                <span
+                  className="shrink-0 px-2 py-1 rounded-md text-[0.72rem] font-extrabold tabular-nums"
+                  style={{
+                    color: meta.color,
+                    background: `color-mix(in srgb, ${meta.color} 14%, transparent)`,
+                  }}
+                >
+                  {metric}
+                </span>
+              )}
             </Link>
           );
         })}

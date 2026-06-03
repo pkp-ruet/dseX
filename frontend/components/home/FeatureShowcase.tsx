@@ -16,7 +16,6 @@ interface Pillar {
   eyebrow: string;
   title: string;
   desc: string;
-  bullets: string[];
   anon: { label: string; href: string };
   auth: { label: string; href: string };
   /** When true, the CTA opens the global stock search instead of navigating. */
@@ -158,29 +157,20 @@ function FeatureRow({ pillar, index }: { pillar: Pillar; index: number }) {
   const cta = isLoggedIn ? pillar.auth : pillar.anon;
   const odd = index % 2 === 1;
   const ctaClass =
-    "mt-6 inline-flex self-start items-center gap-1.5 min-h-[44px] px-5 rounded-xl font-semibold text-sm text-white bg-[var(--primary)] hover:brightness-110 transition";
+    "mt-4 inline-flex self-start items-center gap-1.5 min-h-[40px] px-4 rounded-lg font-semibold text-sm text-white bg-[var(--primary)] hover:brightness-110 transition";
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 items-center rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-7 md:p-9 shadow-sm transition hover:shadow-md hover:border-[color-mix(in_srgb,var(--primary)_35%,var(--border))]">
-      <div className={odd ? "md:order-2" : "md:order-1"}>{pillar.visual}</div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-10 items-center rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5 md:p-6 shadow-sm transition hover:shadow-md hover:border-[color-mix(in_srgb,var(--primary)_35%,var(--border))]">
+      <div className={`order-2 w-full md:max-w-[380px] mx-auto ${odd ? "md:order-2 md:ml-auto" : "md:order-1 md:mr-auto"}`}>
+        {pillar.visual}
+      </div>
 
-      <div className={`flex flex-col ${odd ? "md:order-1" : "md:order-2"}`}>
+      <div className={`order-1 flex flex-col ${odd ? "md:order-1" : "md:order-2"}`}>
         <EyebrowBadge label={pillar.eyebrow} />
-        <h3 className="font-display mt-2 text-2xl sm:text-[1.75rem] font-bold tracking-tight text-[var(--text)] leading-tight">
+        <h3 className="font-display mt-2 text-[1.45rem] sm:text-2xl font-extrabold tracking-tight text-[var(--text)] leading-[1.15]">
           {pillar.title}
         </h3>
-        <p className="mt-3 text-[0.95rem] leading-relaxed text-[var(--text-muted)]">{pillar.desc}</p>
-
-        <ul className="mt-4 flex flex-col gap-2">
-          {pillar.bullets.map((b) => (
-            <li key={b} className="flex items-start gap-2.5 text-sm text-[var(--text)]">
-              <svg className="mt-0.5 shrink-0 text-[var(--positive)]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 6L9 17l-5-5" />
-              </svg>
-              <span>{b}</span>
-            </li>
-          ))}
-        </ul>
+        <p className="mt-1.5 text-sm leading-snug text-[var(--text-muted)]">{pillar.desc}</p>
 
         {pillar.search ? (
           <button type="button" onClick={openGlobalSearch} className={ctaClass}>
@@ -211,26 +201,16 @@ export default function FeatureShowcase({
   const pillars: Pillar[] = [
     {
       eyebrow: "Stock Recommendation",
-      title: "Not sure what to buy? Answer 6 questions.",
-      desc: "Tell us how long you want to hold, what style you like, your sector and budget — and we hand you 3 DSE stocks that fit, each with a plain-English reason why. No charts to read, no jargon.",
-      bullets: [
-        "A 60-second quiz — holding time, dividends, value & budget",
-        "3 matched stocks, each with a clear reason it fits you",
-        "Save your picks and revisit them any time",
-      ],
+      title: "Not sure what to buy?",
+      desc: "60-second quiz → 3 matched DSE stocks.",
       anon: { label: "Find my stocks", href: "/stock-recommendation" },
       auth: { label: "Find my stocks", href: "/stock-recommendation" },
       visual: <RecommendationMockup />,
     },
     {
       eyebrow: "Stock Analysis",
-      title: "Every stock, scored on fundamentals",
-      desc: "Search any DSE stock and get one plain-English 0–100 score and verdict — built from its earnings, financial health, competitive strength, valuation and dividends, backed by real price and key numbers. No jargon, no guesswork.",
-      bullets: [
-        "Search any of 300+ listed companies",
-        "Plain-English verdict, not just a number",
-        "Price, EPS, P/E, dividends, signals & news in one place",
-      ],
+      title: "Every stock, scored 0–100",
+      desc: "Plain-English verdict on any DSE stock.",
       anon: { label: "Search any stock", href: "/stocks" },
       auth: { label: "Search any stock", href: "/stocks" },
       search: true,
@@ -238,39 +218,24 @@ export default function FeatureShowcase({
     },
     {
       eyebrow: "Rankings",
-      title: "See the best-scored stocks instantly",
-      desc: "Skip the noise. Our leaderboard ranks all DSE companies by fundamental score, updated daily — so the strongest names rise to the top.",
-      bullets: [
-        "Full leaderboard of 300+ scored companies",
-        "Filter by sector, tier and category",
-        "Updated every day after market close",
-      ],
+      title: "Best DSE stocks, ranked",
+      desc: "Top fundamentals first. Updated daily.",
       anon: { label: "Browse rankings", href: "/dsestockranking" },
       auth: { label: "Browse rankings", href: "/dsestockranking" },
       visual: <LiveRankingPreview items={rankingItems.slice(0, 3)} totalCount={totalCount} />,
     },
     {
       eyebrow: "Watchlist",
-      title: "Track the stocks you care about",
-      desc: "Star any stock to build a personal watchlist that syncs across all your devices — and get the latest company news for everything you follow, in one feed.",
-      bullets: [
-        "One-tap save, synced to your account",
-        "News & dividend alerts for your stocks",
-        "Free forever — no credit card",
-      ],
+      title: "Track what you care about",
+      desc: "Save stocks + news, synced free.",
       anon: { label: "Sign up to save stocks", href: "/register" },
       auth: { label: "Open your watchlist", href: "/watchlist" },
       visual: <WatchlistMockup />,
     },
     {
       eyebrow: "Portfolio Analysis",
-      title: "Get your portfolio graded, not just tracked",
-      desc: "Add your holdings and we grade the whole portfolio A–F — scoring how well your money is spread, how strong your companies are, and whether you bought at fair prices — then tell you exactly what to fix.",
-      bullets: [
-        "A–F grade with spread, quality & entry sub-scores",
-        "What's working vs. what needs your attention",
-        "Live P/L plus the fundamental health of every holding",
-      ],
+      title: "Get your portfolio graded",
+      desc: "A–F grade + live P/L + what to fix.",
       anon: { label: "Sign up to track holdings", href: "/register" },
       auth: { label: "Open your portfolio", href: "/portfolio" },
       visual: <PortfolioMockup />,
@@ -280,13 +245,8 @@ export default function FeatureShowcase({
   if (hasTips) {
     pillars.push({
       eyebrow: "Daily Tips",
-      title: "Fresh stock ideas, every single day",
-      desc: "Wake up to a hand-picked list of fundamental tips — which companies grew profit, who pays the fattest sustainable dividend, what's trading cheap. Refreshed daily after market close so you always know where to look.",
-      bullets: [
-        "10 plain-English tips, rebuilt every day",
-        "Profit growth, dividends, value & quality signals",
-        "Only solid, non-risky stocks make the cut",
-      ],
+      title: "Fresh stock ideas, daily",
+      desc: "10 hand-picked tips, every day.",
       anon: { label: "Sign up for daily tips", href: "/register" },
       auth: { label: "See today's tips", href: "/" },
       visual: <DailyTipsCard tips={tips.slice(0, 3)} />,
@@ -294,7 +254,7 @@ export default function FeatureShowcase({
   }
 
   return (
-    <section className="flex flex-col gap-10 sm:gap-14 py-4">
+    <section className="flex flex-col gap-5 sm:gap-7 py-2">
       <div className="flex flex-col items-center text-center">
         <div className="flex items-center gap-3 mb-5">
           <span className="h-px w-8 sm:w-14" style={{ background: "linear-gradient(90deg, transparent, var(--primary))" }} />
