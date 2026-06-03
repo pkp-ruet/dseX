@@ -161,7 +161,7 @@ function FeatureRow({ pillar, index }: { pillar: Pillar; index: number }) {
     "mt-6 inline-flex self-start items-center gap-1.5 min-h-[44px] px-5 rounded-xl font-semibold text-sm text-white bg-[var(--primary)] hover:brightness-110 transition";
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 items-center">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 items-center rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-7 md:p-9 shadow-sm transition hover:shadow-md hover:border-[color-mix(in_srgb,var(--primary)_35%,var(--border))]">
       <div className={odd ? "md:order-2" : "md:order-1"}>{pillar.visual}</div>
 
       <div className={`flex flex-col ${odd ? "md:order-1" : "md:order-2"}`}>
@@ -295,33 +295,59 @@ export default function FeatureShowcase({
 
   return (
     <section className="flex flex-col gap-10 sm:gap-14 py-4">
-      <div className="text-center max-w-2xl mx-auto">
-        <span
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-extrabold uppercase tracking-[0.18em] shadow-sm"
-          style={{
-            background:
-              "linear-gradient(var(--surface), var(--surface)) padding-box, linear-gradient(90deg, var(--primary), var(--np-cautious)) border-box",
-            border: "1.5px solid transparent",
-          }}
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--np-cautious)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 3l1.9 5.8L19.5 9l-4.6 3.4L16.5 18 12 14.6 7.5 18l1.6-5.6L4.5 9l5.6-.2L12 3z" />
-          </svg>
+      <div className="flex flex-col items-center text-center">
+        <div className="flex items-center gap-3 mb-5">
+          <span className="h-px w-8 sm:w-14" style={{ background: "linear-gradient(90deg, transparent, var(--primary))" }} />
           <span
-            className="bg-clip-text text-transparent"
-            style={{ backgroundImage: "linear-gradient(90deg, var(--primary), var(--np-cautious))" }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-extrabold uppercase tracking-[0.2em] text-white shadow-md"
+            style={{
+              background: "linear-gradient(100deg, var(--primary), var(--np-cautious))",
+              boxShadow: "0 6px 20px -6px color-mix(in srgb, var(--primary) 60%, transparent)",
+            }}
           >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2l2.9 6.3 6.9.6-5.2 4.6 1.6 6.8L12 17.3 5.8 20.9l1.6-6.8L2.2 8.9l6.9-.6L12 2z" />
+            </svg>
             Why TopStockBD
           </span>
-        </span>
-        <h2 className="font-display mt-3 text-[clamp(1.7rem,5vw,2.4rem)] font-bold tracking-tight text-[var(--text)] leading-tight">
-          Everything you need to invest in DSE with confidence
+          <span className="h-px w-8 sm:w-14" style={{ background: "linear-gradient(90deg, var(--np-cautious), transparent)" }} />
+        </div>
+
+        <h2 className="font-display text-[clamp(2rem,6vw,3.25rem)] font-extrabold tracking-tight text-[var(--text)] leading-[1.05] max-w-3xl">
+          One free account.
+          <br className="hidden sm:block" />{" "}
+          <span
+            className="bg-clip-text text-transparent"
+            style={{ backgroundImage: "linear-gradient(100deg, var(--primary), var(--np-cautious) 70%, var(--positive))" }}
+          >
+            Every DSE tool
+          </span>{" "}
+          you need.
         </h2>
-        <p className="mt-3 text-[var(--text-muted)]">
-          {hasTips
-            ? "Six tools, one free account — recommendations, analysis, rankings, watchlists, portfolio tracking and daily tips."
-            : "Five tools, one free account — recommendations, analysis, rankings, watchlists and portfolio tracking."}
-        </p>
+
+        <div className="mt-7 flex flex-wrap justify-center gap-2.5">
+          {[
+            ["Recommendations", "var(--np-cautious)"],
+            ["Analysis", "var(--primary)"],
+            ["Rankings", "var(--watch)"],
+            ["Watchlist", "var(--positive)"],
+            ["Portfolio", "var(--np-cautious)"],
+            ...(hasTips ? [["Daily Tips", "var(--negative)"] as const] : []),
+          ].map(([word, color]) => (
+            <span
+              key={word as string}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-semibold"
+              style={{
+                color: color as string,
+                background: `color-mix(in srgb, ${color as string} 10%, transparent)`,
+                border: `1px solid color-mix(in srgb, ${color as string} 28%, transparent)`,
+              }}
+            >
+              <span className="h-1.5 w-1.5 rounded-full" style={{ background: color as string }} />
+              {word}
+            </span>
+          ))}
+        </div>
       </div>
 
       {pillars.map((p, i) => (

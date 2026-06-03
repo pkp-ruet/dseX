@@ -58,19 +58,33 @@ export default function HomeHero({ topItems }: { topItems: ScoreItem[] }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 items-center">
         {/* Left: pitch + CTA */}
         <div className="flex flex-col">
-          <span className="inline-flex self-start items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[var(--primary-ink)] shadow-[var(--shadow-soft)]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--positive)]" />
-            Dhaka Stock Exchange · Fundamental Analysis
+          <span
+            className="inline-flex self-start items-center gap-2.5 rounded-full px-4 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.16em] shadow-sm"
+            style={{
+              background:
+                "linear-gradient(var(--surface), var(--surface)) padding-box, linear-gradient(100deg, var(--primary), var(--positive)) border-box",
+              border: "1.5px solid transparent",
+            }}
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--positive)] opacity-75 animate-ping" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--positive)]" />
+            </span>
+            <span
+              className="bg-clip-text text-transparent"
+              style={{ backgroundImage: "linear-gradient(100deg, var(--primary), var(--positive))" }}
+            >
+              DSE Intelligence, Simplified
+            </span>
           </span>
 
           <h1 className="font-display mt-5 font-bold tracking-tight text-[var(--text)] leading-[1.06] text-[clamp(2rem,7vw,3.25rem)]">
-            Know what every DSE stock is{" "}
-            <span className="text-[var(--primary)]">really worth.</span>
+            Make smarter{" "}
+            <span className="text-[var(--primary)]">DSE decisions.</span>
           </h1>
 
           <p className="mt-5 text-[0.98rem] sm:text-base leading-relaxed text-[var(--text-muted)] max-w-prose">
-            Free fundamental scores, rankings, watchlists, and portfolio tracking for all
-            300+ Dhaka Stock Exchange companies — so you find what&apos;s worth owning in seconds.
+            One free platform that does it all — find strong stocks, follow them, and manage your portfolio.
           </p>
 
           <div className="mt-7">

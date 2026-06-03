@@ -6,7 +6,6 @@ import {
   getMarketMovers,
   getCompanyDetail,
   getTop20,
-  getPopularStocks,
   getDailyTips,
   type ScoresResponse,
   type ScoreItem,
@@ -14,20 +13,15 @@ import {
   type MarketMoversData,
   type CompanyDetail,
   type Top20Response,
-  type PopularStocksResponse,
   type DailyTipsResponse,
 } from "@/lib/api";
 import HomeHero from "@/components/home/HomeHero";
 import LiveMarketBand from "@/components/home/LiveMarketBand";
 import FeatureShowcase from "@/components/home/FeatureShowcase";
-import DataScaleStats from "@/components/home/DataScaleStats";
 import FinalCTA from "@/components/home/FinalCTA";
 import HomePersonalizationGate from "@/components/home/HomePersonalizationGate";
-import Top20MomentumTeaser from "@/components/home/Top20MomentumTeaser";
-import PopularTeaser from "@/components/home/PopularTeaser";
-import InsightsTeaserStrip from "@/components/home/InsightsTeaserStrip";
+import ExploreMore from "@/components/home/ExploreMore";
 import SearchBar from "@/components/home/SearchBar";
-import StockListPreview from "@/components/home/StockListPreview";
 
 export const revalidate = 86400;
 
@@ -110,7 +104,6 @@ async function ShowcaseSection({
   if (!scores) return null;
   const all = sortedByScore(allItemsFromScores(scores));
   const total = all.length;
-  const sectorCount = new Set(all.map((s) => s.sector).filter(Boolean)).size;
 
   // Pick a strong, well-known top stock and pull its full detail (verdict + key numbers)
   const sampleCode = (all.find((s) => s.score != null) ?? all[0])?.trading_code;
@@ -121,7 +114,6 @@ async function ShowcaseSection({
   return (
     <>
       <FeatureShowcase sampleDetail={sampleDetail} rankingItems={all} totalCount={total} tips={tips?.tips ?? []} />
-      <DataScaleStats totalCount={total} sectorCount={sectorCount} />
     </>
   );
 }
@@ -148,30 +140,29 @@ async function SearchSection({ promise }: { promise: Promise<ScoresResponse | nu
 async function DiscoverSection({
   scoresPromise,
   top20Promise,
-  popularPromise,
+  indexPromise,
+  moversPromise,
 }: {
   scoresPromise: Promise<ScoresResponse | null>;
   top20Promise: Promise<Top20Response | null>;
-  popularPromise: Promise<PopularStocksResponse | null>;
+  indexPromise: Promise<MarketIndexData | null>;
+  moversPromise: Promise<MarketMoversData | null>;
 }) {
-  const [scores, top20, popular] = await Promise.all([scoresPromise, top20Promise, popularPromise]);
-  const allStocks = scores ? allItemsFromScores(scores) : [];
+  const [scores, top20, index, movers] = await Promise.all([
+    scoresPromise,
+    top20Promise,
+    indexPromise,
+    moversPromise,
+  ]);
+  const allStocks = scores ? sortedByScore(allItemsFromScores(scores)) : [];
   const top20Items = top20?.items ?? [];
-  const popularItems = popular?.items ?? [];
   return (
-    <div className="flex flex-col gap-10">
-      {top20Items.length > 0 && <Top20MomentumTeaser items={top20Items} />}
-      {popularItems.length > 0 && <PopularTeaser items={popularItems} />}
-      {allStocks.length > 0 && (
-        <div>
-          <p className="text-xs uppercase tracking-widest text-[var(--text-muted)] font-medium mb-3">
-            Browse stocks (A–Z)
-          </p>
-          <StockListPreview items={allStocks} totalCount={allStocks.length} />
-        </div>
-      )}
-      <InsightsTeaserStrip />
-    </div>
+    <ExploreMore
+      top20={top20Items}
+      totalStocks={allStocks.length}
+      index={index}
+      movers={movers}
+    />
   );
 }
 
@@ -196,7 +187,6 @@ export default function HomePage() {
   const marketIndexPromise = getMarketIndex().catch(() => null);
   const moversPromise = getMarketMovers().catch(() => null);
   const top20Promise = getTop20().catch(() => null);
-  const popularPromise = getPopularStocks().catch(() => null);
   const tipsPromise = getDailyTips().catch(() => null);
 
   return (
@@ -226,7 +216,12 @@ export default function HomePage() {
           </Suspense>
 
           <Suspense fallback={null}>
-            <DiscoverSection scoresPromise={scoresPromise} top20Promise={top20Promise} popularPromise={popularPromise} />
+            <DiscoverSection
+              scoresPromise={scoresPromise}
+              top20Promise={top20Promise}
+              indexPromise={marketIndexPromise}
+              moversPromise={moversPromise}
+            />
           </Suspense>
 
           <FinalCTA />
