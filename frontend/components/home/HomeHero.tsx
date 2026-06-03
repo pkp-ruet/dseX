@@ -7,8 +7,8 @@ import { getTier, TIER_LABELS, type TierKey } from "@/lib/constants";
 import SignupCtas from "@/components/home/SignupCtas";
 
 const TIER_VAR: Record<TierKey, string> = {
-  strong_buy: "var(--strong-buy)",
-  buy: "var(--np-good)",
+  strong_buy: "#059669", // vibrant emerald — most impactful
+  buy: "#15803D", // deep green — calmer, sits below strong buy
   keep_watching: "var(--watch)",
   avoid: "var(--avoid)",
 };
@@ -19,16 +19,21 @@ function PreviewRow({ item, rank }: { item: ScoreItem; rank: number }) {
   return (
     <Link
       href={`/stock/${item.trading_code}`}
-      className="flex items-center gap-3 px-3 sm:px-4 py-2.5 hover:bg-[var(--surface-2)] transition-colors"
+      className="flex items-center gap-3 px-3 sm:px-4 py-2.5 border-l-[3px] hover:bg-[var(--surface-2)] transition-colors"
+      style={{ borderLeftColor: `color-mix(in srgb, ${color} 26%, transparent)` }}
     >
       <span className="w-5 text-right text-xs font-bold tabular-nums text-[var(--text-muted)]">{rank}</span>
-      <span className="ticker-tag text-[0.82rem] shrink-0">{item.trading_code}</span>
+      <span className="font-mono text-[0.82rem] font-bold tracking-[0.02em] shrink-0" style={{ color }}>
+        {item.trading_code}
+      </span>
       <span className="flex-1 min-w-0 truncate text-xs text-[var(--text-muted)]">
         {item.company_name}
       </span>
       <span
         className="inline-flex items-center justify-center min-w-[2.4rem] px-2 py-1 rounded-lg text-sm font-extrabold tabular-nums text-white"
-        style={{ background: color }}
+        style={{
+          background: `linear-gradient(135deg, ${color} 0%, color-mix(in srgb, ${color} 78%, #000) 100%)`,
+        }}
         title="Fundamental score (0–100)"
       >
         {item.score == null ? "--" : Math.round(item.score)}

@@ -4,8 +4,7 @@ import { Suspense } from "react";
 import { getScores } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 import { getTier } from "@/lib/constants";
-import TierStatCards from "@/components/ranking/TierStatCards";
-import FullRankTable from "@/components/ranking/FullRankTable";
+import RankingExplorer from "@/components/ranking/RankingExplorer";
 import type { RankedItem } from "@/components/ranking/FullRankTable";
 
 export const revalidate = 86400;
@@ -56,6 +55,11 @@ export default async function DseStockRankingPage() {
     counts[item.tier] = (counts[item.tier] ?? 0) + 1;
   }
 
+  // Unique sector list for the sector filter
+  const sectors = Array.from(
+    new Set(allRanked.map((i) => i.sector).filter((s): s is string => Boolean(s)))
+  ).sort((a, b) => a.localeCompare(b));
+
   const dateLabel = computed_at ? formatDate(computed_at.slice(0, 10)) : null;
 
   const jsonLd = {
@@ -88,72 +92,38 @@ export default async function DseStockRankingPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className="max-w-6xl mx-auto px-4 py-8 md:py-10">
-      {/* Page header */}
-      <div className="rank-page-header rank-page-header--center">
+      {/* Page header — editorial */}
+      <header className="rank-page-header">
         <div className="rank-page-eyebrow">
-          <span className="rank-page-bolt">⚡</span> TopStockBD · Fundamental Rankings
+          <span className="rank-page-eyebrow-ico" aria-hidden>🏆</span>
+          Fundamental Rankings
         </div>
-        <h1 className="rank-page-title">DSE Stock Rankings</h1>
-        <p
-          style={{
-            fontSize: "1rem",
-            lineHeight: 1.55,
-            maxWidth: "620px",
-            margin: "10px auto 0",
-            color: "var(--ink)",
-            textAlign: "center",
-          }}
-        >
-          Every DSE-listed company ranked by fundamental score — strongest to riskiest. Powered by{" "}
-          <span
-            style={{
-              fontWeight: 800,
-              background: "linear-gradient(90deg, var(--primary) 0%, var(--accent) 50%, var(--np-cautious) 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
-            TopStockBD
-          </span>
-          .
+        <h1 className="rank-page-title font-display">
+          DSE Stock <span className="rank-title-accent">Rankings</span>
+        </h1>
+        <p className="rank-page-lead">
+          Every Dhaka Stock Exchange company ranked by fundamental score — strongest to
+          riskiest, grouped into clear tiers.
         </p>
-        <div style={{ marginTop: 10, display: "flex", justifyContent: "center" }}>
-          <Link
-            href="/dse-top-20"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              fontSize: "0.8rem",
-              fontWeight: 500,
-              color: "var(--ink-muted)",
-              textDecoration: "none",
-            }}
-          >
-            <span>You may also like:</span>
-            <span
-              style={{
-                color: "var(--primary)",
-                fontWeight: 600,
-                textDecoration: "underline",
-                textDecorationColor: "rgba(37,99,235,0.4)",
-                textUnderlineOffset: "3px",
-              }}
-            >
-              DSE Top 20 This Week
-            </span>
-            <span aria-hidden style={{ color: "var(--primary)", fontSize: "0.9rem" }}>→</span>
+        <div className="rank-page-meta-row">
+          {dateLabel && (
+            <span className="rank-page-meta">Updated {dateLabel}</span>
+          )}
+          <Link href="/dse-top-20" className="rank-page-aside">
+            You may also like: <strong>DSE Top 20 This Week</strong>
+            <span aria-hidden> →</span>
           </Link>
         </div>
-      </div>
+      </header>
 
-      {/* Tier stat cards */}
-      <TierStatCards counts={counts} total={allRanked.length} />
-
-      {/* Full ranked table */}
+      {/* Filters + ranked table */}
       <Suspense>
-        <FullRankTable items={allRanked} />
+        <RankingExplorer
+          items={allRanked}
+          counts={counts}
+          total={allRanked.length}
+          sectors={sectors}
+        />
       </Suspense>
       </div>
     </>

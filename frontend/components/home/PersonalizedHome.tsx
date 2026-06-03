@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import {
   getScores,
@@ -247,8 +248,33 @@ export default function PersonalizedHome() {
 
         {rankingItems.length > 0 && (
           <div>
-            <SectionLabel>Top ranked stocks</SectionLabel>
-            <LiveRankingPreview items={rankingItems} totalCount={rankingItems.length} />
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-lg shrink-0"
+                  style={{
+                    color: "#059669",
+                    background: "color-mix(in srgb, #059669 12%, transparent)",
+                    border: "1px solid color-mix(in srgb, #059669 24%, var(--border))",
+                  }}
+                  aria-hidden
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 20V10M12 20V4M19 20v-6" />
+                  </svg>
+                </span>
+                <h3 className="font-display text-[clamp(1.1rem,4vw,1.4rem)] font-extrabold tracking-tight text-[var(--text)] truncate">
+                  Top Ranked <span className="rank-title-accent">Stocks</span>
+                </h3>
+              </div>
+              <Link
+                href="/dsestockranking"
+                className="shrink-0 text-xs font-semibold text-[var(--primary)] hover:underline"
+              >
+                See all →
+              </Link>
+            </div>
+            <LiveRankingPreview items={rankingItems} totalCount={rankingItems.length} showScore={false} />
           </div>
         )}
 

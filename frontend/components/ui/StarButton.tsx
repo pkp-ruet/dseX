@@ -48,7 +48,15 @@ export default function StarButton({ code, size = "sm", className = "" }: Props)
       type="button"
       onClick={handleClick}
       aria-label={watched ? `Remove ${code} from watchlist` : `Add ${code} to watchlist`}
-      title={watched ? "Remove from watchlist" : isLoggedIn() ? "Add to watchlist" : "Sign in to save"}
+      title={
+        mounted
+          ? watched
+            ? "Remove from watchlist"
+            : isLoggedIn()
+              ? "Add to watchlist"
+              : "Sign in to save"
+          : undefined
+      }
       className={`star-btn ${watched ? "star-btn--on" : ""} ${className}`}
       style={{ visibility: mounted ? "visible" : "hidden" }}
     >

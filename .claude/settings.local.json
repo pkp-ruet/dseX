@@ -57,7 +57,10 @@
       "Bash(curl -s \"https://dsex.onrender.com/api/companies/codes\")",
       "Bash(powershell -Command \"\\(Get-Content 'C:\\\\dseX\\\\frontend\\\\app\\\\globals.css'\\).Length\")",
       "Bash(Get-ChildItem -Path \"C:\\\\dseX\" -Recurse -Directory)",
-      "Bash(Select-Object -First 20)"
+      "Bash(Select-Object -First 20)",
+      "Bash(cd /c/dseX/frontend && grep -n \"full-rank\\\\|fr-\\\\|rank-page\\\\|tier-stat\" app/globals.css | head -80)",
+      "Bash(cd /c/dseX/frontend && rm components/ranking/TierStatCards.tsx && echo \"deleted\")",
+      "Bash(echo \"EXIT:$?\")"
     ]
   }
 }
