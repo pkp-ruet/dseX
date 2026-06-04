@@ -852,3 +852,16 @@ def increment_stock_visit(trading_code: str) -> None:
         },
         upsert=True,
     )
+
+
+@_ttl_cache(300)
+def load_stock_visit_counts() -> dict:
+    """Global all-time visit count per trading_code: {code: count}. Powers the
+    popularity boost in daily personalized picks."""
+    db = get_db()
+    out: dict = {}
+    for row in db.stock_visits.find({}, {"trading_code": 1, "count": 1, "_id": 0}):
+        code = row.get("trading_code")
+        if code:
+            out[code] = int(row.get("count") or 0)
+    return out

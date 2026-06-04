@@ -96,4 +96,5 @@ export const cacheKeys = {
   watchlistNews: (codes: string[]) =>
     `${CACHE_PREFIX}watchlistNews.${[...codes].map((c) => c.toUpperCase()).sort().join(",")}`,
   portfolio: (userId: string) => `${CACHE_PREFIX}portfolio.${userId}`,
+  dailyPicks: (userId: string) => `${CACHE_PREFIX}dailyPicks.${userId}`,
 };

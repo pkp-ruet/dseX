@@ -17,6 +17,7 @@ from backend.services.auth_service import (
     clear_last_recommendation,
 )
 from backend.services import user_cache
+from backend.services.daily_picks_service import get_or_compute_daily_picks
 
 router = APIRouter(prefix="/api/user", tags=["user"])
 
@@ -96,6 +97,15 @@ def last_recommendation(current_user: dict = Depends(get_current_user)):
 def delete_last_recommendation(current_user: dict = Depends(get_current_user)):
     clear_last_recommendation(current_user["user_id"])
     return {"ok": True}
+
+
+# ---------------------------------------------------------------------------
+# Daily personalized picks ("Picked for you today")
+# ---------------------------------------------------------------------------
+
+@router.get("/daily-picks")
+def daily_picks(current_user: dict = Depends(get_current_user)):
+    return get_or_compute_daily_picks(current_user)
 
 
 @router.get("/watchlist/notes")

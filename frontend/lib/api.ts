@@ -622,6 +622,22 @@ export async function apiDeleteLastRecommendation(): Promise<{ ok: boolean }> {
 }
 
 // ---------------------------------------------------------------------------
+// Daily personalized picks ("Picked for you today")
+// ---------------------------------------------------------------------------
+
+export interface DailyPicksResponse {
+  date: string;
+  generated_at: string;
+  personalized: boolean;
+  picks: RecommendedStock[];
+}
+
+/** Auth-only. Returns 5 daily-rotating picks tuned to the user's taste. */
+export async function getDailyPicks(): Promise<DailyPicksResponse> {
+  return apiAuthFetch<DailyPicksResponse>("/api/user/daily-picks");
+}
+
+// ---------------------------------------------------------------------------
 // Portfolio
 // ---------------------------------------------------------------------------
 

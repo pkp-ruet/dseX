@@ -14,7 +14,9 @@ import {
   getTop20,
   getPopularStocks,
   getDailyTips,
+  getDailyPicks,
   apiGetLastRecommendation,
+  type DailyPicksResponse,
   type RecommendedStock,
   type ScoreItem,
   type ScoresResponse,
@@ -37,6 +39,7 @@ import SetupCard from "@/components/home/personalized/SetupCard";
 import PortfolioSummaryCard from "@/components/home/personalized/PortfolioSummaryCard";
 import WatchlistSummaryCard from "@/components/home/personalized/WatchlistSummaryCard";
 import WatchlistMoversCard from "@/components/home/personalized/WatchlistMoversCard";
+import DailyPicksCard from "@/components/home/personalized/DailyPicksCard";
 import WatchlistNews from "@/components/watchlist/WatchlistNews";
 import WatchlistQuickAdd from "@/components/watchlist/WatchlistQuickAdd";
 import SearchBar from "@/components/home/SearchBar";
@@ -108,6 +111,10 @@ export default function PersonalizedHome() {
   const [tips, setTips] = useState<DailyTip[]>([]);
   const [recPicks, setRecPicks] = useState<RecommendedStock[] | null>(null);
   const [recLoaded, setRecLoaded] = useState(false);
+  const [dailyPicks, setDailyPicks] = useState<DailyPicksResponse | null>(() => {
+    if (!userId) return null;
+    return readCache<DailyPicksResponse>(cacheKeys.dailyPicks(userId));
+  });
 
   // Core + discovery fetch on mount
   useEffect(() => {
@@ -148,6 +155,13 @@ export default function PersonalizedHome() {
     getTop20().then((d) => alive && setTop20(d.items ?? [])).catch(() => {});
     getPopularStocks().then((d) => alive && setPopular(d.items ?? [])).catch(() => {});
     getDailyTips().then((d) => alive && setTips(d.tips ?? [])).catch(() => {});
+    getDailyPicks()
+      .then((d) => {
+        if (!alive) return;
+        setDailyPicks(d);
+        if (userId) writeCache(cacheKeys.dailyPicks(userId), d);
+      })
+      .catch(() => {});
     apiGetLastRecommendation()
       .then((r) => {
         if (!alive) return;
@@ -252,6 +266,11 @@ export default function PersonalizedHome() {
             </div>
           </SetupCard>
         )}
+
+        {/* Daily personalized picks — fresh detail-page hooks every day. */}
+        {dailyPicks?.picks?.length ? (
+          <DailyPicksCard picks={dailyPicks.picks} />
+        ) : null}
 
         {/* Stock recommendation — vibrant gradient card so it stands out from
             the news / watchlist sections around it. */}

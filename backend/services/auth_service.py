@@ -339,6 +339,25 @@ def clear_last_recommendation(user_id: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Daily personalized picks (per-day cache on the user doc)
+# ---------------------------------------------------------------------------
+
+def save_daily_picks(user_id: str, doc: dict) -> bool:
+    """Cache today's personalized picks on the user doc. `doc` is JSON-safe and
+    carries a `date` key (Dhaka day) used to decide staleness on read."""
+    _users().update_one(
+        {"user_id": user_id},
+        {"$set": {"daily_picks": doc, "updated_at": datetime.now(timezone.utc)}},
+    )
+    return True
+
+
+def get_daily_picks(user_id: str) -> Optional[dict]:
+    d = _users().find_one({"user_id": user_id}, {"daily_picks": 1, "_id": 0})
+    return (d or {}).get("daily_picks")
+
+
+# ---------------------------------------------------------------------------
 # Login streak
 # ---------------------------------------------------------------------------
 
