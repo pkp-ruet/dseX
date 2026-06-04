@@ -26,7 +26,7 @@ export default function LiveRankingPreview({
   return (
     <div className="soft-card overflow-hidden">
       <div
-        className={`grid ${cols} gap-3 px-4 py-2.5 border-b border-[var(--border)] bg-[var(--surface-2)] text-[0.6rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)]`}
+        className={`grid ${cols} gap-3 px-4 py-3 border-b-2 border-[var(--border)] bg-[var(--surface-2)] text-[0.72rem] font-extrabold uppercase tracking-[0.14em] text-[var(--text)]`}
       >
         <span className="text-right">#</span>
         <span>Stock</span>

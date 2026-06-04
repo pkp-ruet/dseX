@@ -1,5 +1,12 @@
 import Link from "next/link";
 import type { DailyTip } from "@/lib/api";
+import RecommendCard from "@/components/home/personalized/RecommendCard";
+
+const BULB = (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <path d="M9 21h6v-1H9v1zm3-20a7 7 0 0 0-4 12.7V17h8v-3.3A7 7 0 0 0 12 1z" />
+  </svg>
+);
 
 interface Props {
   tips: DailyTip[];
@@ -37,13 +44,7 @@ export default function DailyTipsCard({ tips }: Props) {
   if (!tips || tips.length === 0) return null;
 
   return (
-    <section aria-label="TopStockBD Tips">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-base">💡</span>
-        <span className="text-sm font-extrabold text-[var(--text)]">Daily TopStockBD Tips</span>
-        <span className="ml-1 h-px flex-1 bg-gradient-to-r from-[var(--border)] to-transparent" />
-      </div>
-
+    <RecommendCard accent="#0D9488" icon={BULB} title="Daily Tips" subtitle="Fresh every day">
       <div className="flex flex-col gap-2.5">
         {tips.map((tip) => {
           const meta = CAT_META[tip.category] ?? FALLBACK;
@@ -101,6 +102,6 @@ export default function DailyTipsCard({ tips }: Props) {
           );
         })}
       </div>
-    </section>
+    </RecommendCard>
   );
 }

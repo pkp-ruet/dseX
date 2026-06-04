@@ -11,6 +11,33 @@ export interface ComputedRow {
   pnl_pct: number | null;
 }
 
+/**
+ * Today's change in the portfolio's market value (delta + %), derived from each
+ * holding's `change_pct`. `prevClose = ltp / (1 + pct/100)`, so today's value
+ * change for a holding is `qty * (ltp - prevClose)`. Returns null when no
+ * holding has both a live price and a change figure.
+ */
+export function portfolioTodayMove(
+  holdings: PortfolioHolding[],
+  priceMap: Map<string, ScoreItem>,
+): { delta: number; pct: number } | null {
+  let delta = 0;
+  let prevValue = 0;
+  let any = false;
+  for (const h of holdings) {
+    const item = priceMap.get(h.trading_code.toUpperCase());
+    const ltp = item?.ltp;
+    const pct = item?.change_pct;
+    if (ltp == null || pct == null) continue;
+    const prevClose = ltp / (1 + pct / 100);
+    delta += h.qty * (ltp - prevClose);
+    prevValue += h.qty * prevClose;
+    any = true;
+  }
+  if (!any || prevValue <= 0) return null;
+  return { delta, pct: (delta / prevValue) * 100 };
+}
+
 export type SectorBucket = "BANK" | "NBFI" | "GENERAL" | "OTHER";
 export type TierBucket = TierKey | "unscored";
 export type QualityWord = "Strong" | "Solid" | "Average" | "Weak" | "Unrated";

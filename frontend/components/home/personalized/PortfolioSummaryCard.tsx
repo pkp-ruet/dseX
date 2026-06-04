@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { type PortfolioHolding, type ScoreItem } from "@/lib/api";
-import { analyzePortfolio, type ComputedRow, type Grade } from "@/lib/portfolio-analysis";
+import { analyzePortfolio, portfolioTodayMove, type ComputedRow, type Grade } from "@/lib/portfolio-analysis";
 
 function compute(holding: PortfolioHolding, priceMap: Map<string, ScoreItem>): ComputedRow {
   const item = priceMap.get(holding.trading_code.toUpperCase());
@@ -42,6 +42,9 @@ export default function PortfolioSummaryCard({
   const pnlPct = pnl != null && invested > 0 ? (pnl / invested) * 100 : null;
   const up = (pnl ?? 0) >= 0;
 
+  const today = portfolioTodayMove(holdings, priceMap);
+  const todayUp = (today?.delta ?? 0) >= 0;
+
   const analysis = analyzePortfolio(rows, priceMap);
   const gradeColor = GRADE_COLOR[analysis.grade];
 
@@ -64,10 +67,20 @@ export default function PortfolioSummaryCard({
           <div className="text-[clamp(1.25rem,6vw,1.6rem)] font-extrabold tabular-nums text-[var(--text)] leading-tight">
             {hasPrice ? `৳${value.toLocaleString("en-US", { maximumFractionDigits: 0 })}` : "—"}
           </div>
-          <div className="mt-0.5 text-[0.8rem] sm:text-sm font-bold tabular-nums leading-tight break-words" style={{ color: pnl == null ? "var(--text-muted)" : up ? "var(--positive)" : "var(--negative)" }}>
+          {today && (
+            <div
+              className="mt-0.5 text-[0.8rem] sm:text-sm font-bold tabular-nums leading-tight"
+              style={{ color: todayUp ? "var(--positive)" : "var(--negative)" }}
+            >
+              {todayUp ? "▲" : "▼"} {todayUp ? "+" : "−"}৳
+              {Math.abs(today.delta).toLocaleString("en-US", { maximumFractionDigits: 0 })} ({todayUp ? "+" : ""}
+              {today.pct.toFixed(2)}%) today
+            </div>
+          )}
+          <div className="mt-0.5 text-[0.72rem] sm:text-[0.8rem] font-semibold tabular-nums leading-tight break-words text-[var(--text-muted)]">
             {pnl == null
-              ? "P/L —"
-              : `${up ? "+" : "-"}৳${Math.abs(pnl).toLocaleString("en-US", { maximumFractionDigits: 0 })} (${up ? "+" : ""}${pnlPct!.toFixed(1)}%)`}
+              ? "Total P/L —"
+              : `Total ${up ? "+" : "-"}৳${Math.abs(pnl).toLocaleString("en-US", { maximumFractionDigits: 0 })} (${up ? "+" : ""}${pnlPct!.toFixed(1)}%)`}
           </div>
         </div>
       </div>

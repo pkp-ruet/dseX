@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { type RecommendedStock } from "@/lib/api";
+import RecommendCard from "@/components/home/personalized/RecommendCard";
 
 const SPARKLE = (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
     <path d="M12 2l1.9 5.6L19.5 9l-5.1 2.7L12 17l-2.4-5.3L4.5 9l5.6-1.4L12 2z" />
     <path d="M19 14l.9 2.6L22.5 18l-2.6 1.1L19 22l-.9-2.9L15.5 18l2.6-1.4L19 14z" opacity="0.6" />
   </svg>
@@ -12,29 +13,8 @@ export default function DailyPicksCard({ picks }: { picks: RecommendedStock[] })
   if (!picks || picks.length === 0) return null;
 
   return (
-    <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[0_8px_30px_-12px_rgba(15,23,42,0.14)] overflow-hidden">
-      <div
-        className="flex items-center gap-2.5 px-4 sm:px-5 py-3.5 border-b border-[var(--border)]"
-        style={{ background: "linear-gradient(180deg, color-mix(in srgb, var(--primary) 6%, var(--surface)) 0%, var(--surface) 100%)" }}
-      >
-        <span
-          className="inline-flex items-center justify-center w-9 h-9 rounded-xl text-[var(--primary)] shrink-0"
-          style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)" }}
-          aria-hidden
-        >
-          {SPARKLE}
-        </span>
-        <div className="min-w-0">
-          <h2 className="text-[0.95rem] font-extrabold tracking-tight text-[var(--text)] leading-tight">
-            Picked for you today
-          </h2>
-          <p className="text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
-            Refreshes daily
-          </p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 p-3 sm:p-4">
+    <RecommendCard accent="var(--primary)" icon={SPARKLE} title="Picked for you today" subtitle="Refreshes daily">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
         {picks.map((p) => {
           return (
             <Link
@@ -100,6 +80,6 @@ export default function DailyPicksCard({ picks }: { picks: RecommendedStock[] })
           );
         })}
       </div>
-    </section>
+    </RecommendCard>
   );
 }

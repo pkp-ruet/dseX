@@ -390,6 +390,26 @@ def load_market_index() -> dict:
     volume_change_pct = safe_pct(total_volume, prev_volume)
     turnover_change_pct = safe_pct(total_value_mn, prev_value_mn)
 
+    # Index changes: scraped doc sometimes lacks *_change (e.g. non-trading-day
+    # snapshots). Fall back to computing the delta vs the previous valid day.
+    def index_change(curr, stored_change, prev_key):
+        if stored_change is not None:
+            return stored_change
+        prev = prev_doc.get(prev_key) if prev_doc else None
+        if curr is not None and prev:
+            return round(curr - prev, 2)
+        return None
+
+    dsex_val = doc.get("dsex")
+    dsex_change = index_change(dsex_val, doc.get("dsex_change"), "dsex")
+    dsex_change_pct = doc.get("dsex_change_pct")
+    if dsex_change_pct is None and dsex_change is not None:
+        prev_dsex = prev_doc.get("dsex") if prev_doc else None
+        if prev_dsex:
+            dsex_change_pct = round(dsex_change / prev_dsex * 100, 2)
+    dses_change = index_change(doc.get("dses"), doc.get("dses_change"), "dses")
+    ds30_change = index_change(doc.get("ds30"), doc.get("ds30_change"), "ds30")
+
     # Up / down / neutral company counts for the latest date
     price_changes = list(db.stock_prices.find(
         {"date": doc["date"]},
@@ -401,13 +421,13 @@ def load_market_index() -> dict:
 
     return {
         "date": date_str,
-        "dsex": doc.get("dsex"),
-        "dsex_change": doc.get("dsex_change"),
-        "dsex_change_pct": doc.get("dsex_change_pct"),
+        "dsex": dsex_val,
+        "dsex_change": dsex_change,
+        "dsex_change_pct": dsex_change_pct,
         "dses": doc.get("dses"),
-        "dses_change": doc.get("dses_change"),
+        "dses_change": dses_change,
         "ds30": doc.get("ds30"),
-        "ds30_change": doc.get("ds30_change"),
+        "ds30_change": ds30_change,
         "total_volume": total_volume,
         "total_value_mn": total_value_mn,
         "total_trades": doc.get("total_trades"),

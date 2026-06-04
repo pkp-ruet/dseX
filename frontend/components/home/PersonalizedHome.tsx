@@ -12,7 +12,6 @@ import {
   getMarketIndex,
   getMarketMovers,
   getTop20,
-  getPopularStocks,
   getDailyTips,
   getDailyPicks,
   apiGetLastRecommendation,
@@ -27,29 +26,30 @@ import {
   type MarketIndexData,
   type MarketMoverItem,
   type Top20Item,
-  type PopularStockItem,
   type DailyTip,
 } from "@/lib/api";
 import { loadWatchlist, getCachedWatchlist, subscribeWatchlist } from "@/lib/watchlist";
 import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
 import { getStoredUser } from "@/lib/auth";
+import { portfolioTodayMove } from "@/lib/portfolio-analysis";
 
 import WelcomeHeader from "@/components/home/personalized/WelcomeHeader";
+import DailyBriefing from "@/components/home/personalized/DailyBriefing";
 import SetupCard from "@/components/home/personalized/SetupCard";
 import PortfolioSummaryCard from "@/components/home/personalized/PortfolioSummaryCard";
 import WatchlistSummaryCard from "@/components/home/personalized/WatchlistSummaryCard";
 import WatchlistMoversCard from "@/components/home/personalized/WatchlistMoversCard";
 import DailyPicksCard from "@/components/home/personalized/DailyPicksCard";
+import RecommendCard from "@/components/home/personalized/RecommendCard";
+import CoreFeatureTiles from "@/components/home/personalized/CoreFeatureTiles";
+import InsightsPreview from "@/components/home/personalized/InsightsPreview";
+import Top20Preview from "@/components/home/personalized/Top20Preview";
 import WatchlistNews from "@/components/watchlist/WatchlistNews";
 import WatchlistQuickAdd from "@/components/watchlist/WatchlistQuickAdd";
 import SearchBar from "@/components/home/SearchBar";
 import LiveMarketBand from "@/components/home/LiveMarketBand";
 import LiveRankingPreview from "@/components/home/LiveRankingPreview";
-import StockListPreview from "@/components/home/StockListPreview";
-import Top20MomentumTeaser from "@/components/home/Top20MomentumTeaser";
-import PopularTeaser from "@/components/home/PopularTeaser";
 import DailyTipsCard from "@/components/home/DailyTipsCard";
-import InsightsTeaserStrip from "@/components/home/InsightsTeaserStrip";
 
 function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
   if (!scores) return new Map();
@@ -74,10 +74,62 @@ const TARGET_ICON = (
     <circle cx="12" cy="12" r="1.5" fill="currentColor" />
   </svg>
 );
+const SPARK_ICON = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M12 2l1.9 5.6L19.5 9l-5.1 2.7L12 17l-2.4-5.3L4.5 9l5.6-1.4L12 2z" />
+  </svg>
+);
+const COMPASS_ICON = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="9" />
+    <polygon points="16 8 13 13 8 16 11 11 16 8" fill="currentColor" stroke="none" />
+  </svg>
+);
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <p className="text-xs uppercase tracking-widest text-[var(--text-muted)] font-semibold mt-2 mb-3">{children}</p>
+  );
+}
+
+function SectionHeader({
+  eyebrow,
+  title,
+  accent,
+  icon,
+}: {
+  eyebrow: string;
+  title: string;
+  accent: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="mb-4 flex items-center gap-3">
+      <span
+        className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl shadow-sm"
+        style={{
+          color: "#fff",
+          background: `linear-gradient(135deg, ${accent} 0%, color-mix(in srgb, ${accent} 72%, #000) 100%)`,
+          boxShadow: `0 8px 20px -8px color-mix(in srgb, ${accent} 70%, transparent)`,
+        }}
+        aria-hidden
+      >
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <p className="text-[0.62rem] font-extrabold uppercase tracking-[0.18em]" style={{ color: accent }}>
+          {eyebrow}
+        </p>
+        <h2 className="font-display text-[clamp(1.3rem,5vw,1.7rem)] font-extrabold tracking-tight text-[var(--text)] leading-tight">
+          {title}
+        </h2>
+      </div>
+      <span
+        className="ml-1 hidden h-1 flex-1 rounded-full sm:block"
+        style={{ background: `linear-gradient(90deg, color-mix(in srgb, ${accent} 45%, transparent), transparent)` }}
+        aria-hidden
+      />
+    </div>
   );
 }
 
@@ -107,7 +159,6 @@ export default function PersonalizedHome() {
   const [marketIndex, setMarketIndex] = useState<MarketIndexData | null>(null);
   const [gainers, setGainers] = useState<MarketMoverItem[]>([]);
   const [top20, setTop20] = useState<Top20Item[]>([]);
-  const [popular, setPopular] = useState<PopularStockItem[]>([]);
   const [tips, setTips] = useState<DailyTip[]>([]);
   const [recPicks, setRecPicks] = useState<RecommendedStock[] | null>(null);
   const [recLoaded, setRecLoaded] = useState(false);
@@ -153,7 +204,6 @@ export default function PersonalizedHome() {
     getMarketIndex().then((d) => alive && setMarketIndex(d)).catch(() => {});
     getMarketMovers().then((d) => alive && setGainers(d.gainers ?? [])).catch(() => {});
     getTop20().then((d) => alive && setTop20(d.items ?? [])).catch(() => {});
-    getPopularStocks().then((d) => alive && setPopular(d.items ?? [])).catch(() => {});
     getDailyTips().then((d) => alive && setTips(d.tips ?? [])).catch(() => {});
     getDailyPicks()
       .then((d) => {
@@ -217,9 +267,51 @@ export default function PersonalizedHome() {
     .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
   const companies = allStocks.map((s) => ({ trading_code: s.trading_code, company_name: s.company_name }));
 
+  // ── Daily Check-In inputs ──────────────────────────────────────────────────
+  const todayMove = hasPortfolio ? portfolioTodayMove(holdings!, priceMap) : null;
+
+  // Watchlist alert count: near 52w high/low + dividend soon (mirrors WatchlistMoversCard).
+  const nearHigh = new Set((extremes?.near_high ?? []).map((e) => e.trading_code.toUpperCase()));
+  const nearLow = new Set((extremes?.near_low ?? []).map((e) => e.trading_code.toUpperCase()));
+  const divSoon = new Set(
+    [...(dividends?.upcoming_declarations ?? []), ...(dividends?.upcoming_record_dates ?? [])].map((d) =>
+      d.trading_code.toUpperCase(),
+    ),
+  );
+  let alertCount = 0;
+  for (const c of codes) {
+    const u = c.toUpperCase();
+    if (nearHigh.has(u)) alertCount++;
+    if (nearLow.has(u)) alertCount++;
+    if (divSoon.has(u)) alertCount++;
+  }
+
+  // Homepage shows only the most-recent day's watchlist news (the /watchlist
+  // page keeps the full 30-day list).
+  const dayKey = (s: string) => new Date(s).toDateString();
+  const recentNews = news.length
+    ? (() => {
+        const latestKey = dayKey(
+          news.reduce((a, b) => (new Date(b.post_date) > new Date(a.post_date) ? b : a)).post_date,
+        );
+        return news.filter((n) => dayKey(n.post_date) === latestKey);
+      })()
+    : news;
+
+  const showRecommended =
+    !!dailyPicks?.picks?.length || (!!recPicks && recPicks.length > 0) || recLoaded || tips.length > 0;
+
   return (
     <div className="pb-4">
-      <WelcomeHeader name={user?.display_name} dateStr={dateStr} />
+      <WelcomeHeader name={user?.display_name} dateStr={dateStr} marketIndex={marketIndex} />
+
+      <DailyBriefing
+        todayMove={todayMove}
+        alertCount={alertCount}
+        newsCount={recentNews.length}
+        hasPortfolio={hasPortfolio}
+        hasWatchlist={hasWatchlist}
+      />
 
       {/* Search any stock → its analysis page */}
       {companies.length > 0 && (
@@ -228,138 +320,138 @@ export default function PersonalizedHome() {
         </div>
       )}
 
-      {/* Personal blocks */}
-      <div className="mt-4 flex flex-col gap-4">
-        {hasPortfolio ? (
-          <PortfolioSummaryCard holdings={holdings!} priceMap={priceMap} />
-        ) : (
-          <SetupCard
-            icon={BAG_ICON}
-            title="Track your portfolio"
-            blurb="Add the stocks you own to see live profit & loss and get your portfolio graded A–F on diversification, quality and entry."
-            ctaLabel="Add your holdings"
-            ctaHref="/portfolio"
+      {/* ── Section 1: Personal — your portfolio, watchlist & news ── */}
+      <section className="mt-8">
+        <SectionHeader
+          eyebrow="Your money today"
+          title="Portfolio & Watchlist"
+          accent="var(--primary)"
+          icon={BAG_ICON}
+        />
+        <div className="mt-3 flex flex-col gap-4">
+          {hasPortfolio ? (
+            <PortfolioSummaryCard holdings={holdings!} priceMap={priceMap} />
+          ) : (
+            <SetupCard
+              icon={BAG_ICON}
+              title="Track your portfolio"
+              blurb="Add the stocks you own to see live profit & loss and get your portfolio graded A–F on diversification, quality and entry."
+              ctaLabel="Add your holdings"
+              ctaHref="/portfolio"
+            />
+          )}
+
+          {hasWatchlist ? (
+            <>
+              <WatchlistSummaryCard codes={codes} priceMap={priceMap} dividends={dividends} />
+              <WatchlistMoversCard codes={codes} priceMap={priceMap} extremes={extremes} dividends={dividends} />
+              {(newsLoading || recentNews.length > 0) && (
+                <div>
+                  <SectionLabel>Latest watchlist news</SectionLabel>
+                  <WatchlistNews codes={codes} news={recentNews} loading={newsLoading} limit={4} compact />
+                </div>
+              )}
+            </>
+          ) : (
+            <SetupCard
+              icon={STAR_ICON}
+              title="Build your watchlist"
+              blurb="Search any DSE stock and add it — then follow its price, score and news here, synced across your devices."
+              ctaLabel="Open watchlist"
+              ctaHref="/watchlist"
+            >
+              <div className="mt-4">
+                <WatchlistQuickAdd />
+              </div>
+            </SetupCard>
+          )}
+        </div>
+      </section>
+
+      {/* ── Section 2: Recommended for you — curated, refreshes daily ── */}
+      {showRecommended && (
+        <section className="mt-8">
+          <SectionHeader
+            eyebrow="Picked for you · refreshes daily"
+            title="Recommended for You"
+            accent="var(--np-cautious)"
+            icon={SPARK_ICON}
           />
-        )}
+          <div className="mt-3 flex flex-col gap-3.5">
+            {/* Daily personalized picks — fresh detail-page hooks every day. */}
+            {dailyPicks?.picks?.length ? <DailyPicksCard picks={dailyPicks.picks} /> : null}
 
-        {hasWatchlist ? (
-          <>
-            <WatchlistSummaryCard codes={codes} priceMap={priceMap} dividends={dividends} />
-            <WatchlistMoversCard codes={codes} priceMap={priceMap} extremes={extremes} dividends={dividends} />
-            {(newsLoading || news.length > 0) && (
-              <div>
-                <SectionLabel>Latest watchlist news</SectionLabel>
-                <WatchlistNews codes={codes} news={news} loading={newsLoading} limit={4} compact />
-              </div>
-            )}
-          </>
-        ) : (
-          <SetupCard
-            icon={STAR_ICON}
-            title="Build your watchlist"
-            blurb="Search any DSE stock and add it — then follow its price, score and news here, synced across your devices."
-            ctaLabel="Open watchlist"
-            ctaHref="/watchlist"
-          >
-            <div className="mt-4">
-              <WatchlistQuickAdd />
-            </div>
-          </SetupCard>
-        )}
-
-        {/* Daily personalized picks — fresh detail-page hooks every day. */}
-        {dailyPicks?.picks?.length ? (
-          <DailyPicksCard picks={dailyPicks.picks} />
-        ) : null}
-
-        {/* Stock recommendation — vibrant gradient card so it stands out from
-            the news / watchlist sections around it. */}
-        {recPicks && recPicks.length > 0 ? (
-          <Link
-            href="/stock-recommendation"
-            className="group relative block overflow-hidden rounded-2xl p-5 text-white transition hover:brightness-[1.04]"
-            style={{
-              background: "linear-gradient(135deg, var(--primary) 0%, var(--np-cautious) 100%)",
-              boxShadow: "0 12px 32px -10px color-mix(in srgb, var(--np-cautious) 60%, transparent)",
-            }}
-          >
-            <span
-              aria-hidden
-              className="pointer-events-none absolute -right-8 -top-10 w-32 h-32 rounded-full opacity-25"
-              style={{ background: "radial-gradient(circle, #fff, transparent 70%)" }}
-            />
-            <div className="relative flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-white/15 shrink-0 text-white" aria-hidden>
-                  {TARGET_ICON}
-                </span>
-                <div className="min-w-0">
-                  <h3 className="font-extrabold text-[1.05rem] leading-tight">Your stock matches</h3>
-                  <p className="text-[0.76rem] text-white/85">3 picks chosen for your goals</p>
-                </div>
-              </div>
-              <span className="shrink-0 inline-flex items-center gap-1 text-xs font-bold bg-white/20 px-3 py-1.5 rounded-full group-hover:bg-white/30 transition">
-                View →
-              </span>
-            </div>
-            <div className="relative mt-4 flex flex-wrap gap-2">
-              {recPicks.slice(0, 3).map((p, i) => (
-                <span
-                  key={p.trading_code}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 text-white text-[0.82rem] font-mono font-bold"
-                >
-                  <span className="text-sm leading-none">{["🥇", "🥈", "🥉"][i] ?? "⭐"}</span>
-                  {p.trading_code}
-                </span>
-              ))}
-            </div>
-          </Link>
-        ) : recLoaded ? (
-          <Link
-            href="/stock-recommendation"
-            className="group relative block overflow-hidden rounded-2xl p-5 sm:p-6 text-white transition hover:brightness-[1.04]"
-            style={{
-              background: "linear-gradient(135deg, var(--primary) 0%, var(--np-cautious) 100%)",
-              boxShadow: "0 12px 32px -10px color-mix(in srgb, var(--np-cautious) 60%, transparent)",
-            }}
-          >
-            <span
-              aria-hidden
-              className="pointer-events-none absolute -right-8 -top-12 w-36 h-36 rounded-full opacity-25"
-              style={{ background: "radial-gradient(circle, #fff, transparent 70%)" }}
-            />
-            <div className="relative flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/15 shrink-0 text-white" aria-hidden>
-                  {TARGET_ICON}
-                </span>
-                <div className="min-w-0">
-                  <span className="inline-block text-[0.6rem] font-bold uppercase tracking-[0.12em] text-white/75">
-                    Stock recommendation
+            {/* Stock recommendation — elevated action card in the shared family chrome. */}
+            {recPicks && recPicks.length > 0 ? (
+              <RecommendCard
+                accent="var(--np-cautious)"
+                icon={TARGET_ICON}
+                title="Your stock matches"
+                subtitle="3 picks chosen for your goals"
+                elevated
+                href="/stock-recommendation"
+                headerRight={
+                  <span
+                    className="shrink-0 inline-flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full text-white transition-transform group-hover:translate-x-0.5"
+                    style={{ background: "var(--np-cautious)" }}
+                  >
+                    View →
                   </span>
-                  <h3 className="font-extrabold text-[1.15rem] leading-tight">Find stocks that fit you</h3>
-                  <p className="mt-0.5 text-[0.8rem] text-white/85">Answer 6 quick questions → get 3 matched picks</p>
+                }
+              >
+                <div className="flex flex-wrap gap-2">
+                  {recPicks.slice(0, 3).map((p, i) => (
+                    <span
+                      key={p.trading_code}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[0.82rem] font-mono font-bold text-[var(--text)]"
+                      style={{ background: "color-mix(in srgb, var(--np-cautious) 14%, var(--surface))" }}
+                    >
+                      <span className="text-sm leading-none">{["🥇", "🥈", "🥉"][i] ?? "⭐"}</span>
+                      {p.trading_code}
+                    </span>
+                  ))}
                 </div>
-              </div>
-              <span className="shrink-0 inline-flex items-center gap-1 text-sm font-bold bg-white text-[var(--np-cautious)] px-4 py-2 rounded-xl shadow-sm group-hover:gap-1.5 transition-all">
-                Start →
-              </span>
-            </div>
-          </Link>
-        ) : null}
-      </div>
+              </RecommendCard>
+            ) : recLoaded ? (
+              <RecommendCard
+                accent="var(--np-cautious)"
+                icon={TARGET_ICON}
+                title="Find stocks that fit you"
+                subtitle="Stock recommendation"
+                elevated
+                href="/stock-recommendation"
+                headerRight={
+                  <span
+                    className="shrink-0 inline-flex items-center gap-1 text-sm font-bold px-4 py-2 rounded-xl text-white shadow-sm transition-all group-hover:gap-1.5"
+                    style={{ background: "var(--np-cautious)" }}
+                  >
+                    Start →
+                  </span>
+                }
+              >
+                <p className="text-[0.82rem] text-[var(--text-muted)]">
+                  Answer 6 quick questions → get 3 matched picks
+                </p>
+              </RecommendCard>
+            ) : null}
 
-      {/* Discovery */}
-      <div className="mt-10 flex flex-col gap-8">
-        <p className="text-[clamp(1.15rem,4vw,1.5rem)] font-extrabold tracking-tight text-[var(--text)]">
-          Discover more
-        </p>
+            {tips.length > 0 && <DailyTipsCard tips={tips} />}
+          </div>
+        </section>
+      )}
 
-        {marketIndex && <LiveMarketBand index={marketIndex} gainers={gainers} />}
+      {/* ── Section 3: More on TopStockBD — explore core features ── */}
+      <section className="mt-10">
+        <SectionHeader
+          eyebrow="Explore"
+          title="More on TopStockBD"
+          accent="var(--positive)"
+          icon={COMPASS_ICON}
+        />
+        <div className="mt-3 flex flex-col gap-6">
+          {marketIndex && <LiveMarketBand index={marketIndex} gainers={gainers} />}
 
-        {tips.length > 0 && <DailyTipsCard tips={tips} />}
-
-        {rankingItems.length > 0 && (
+          {rankingItems.length > 0 && (
           <div>
             <div className="flex items-center justify-between gap-3 mb-3">
               <div className="flex items-center gap-2.5 min-w-0">
@@ -391,17 +483,70 @@ export default function PersonalizedHome() {
           </div>
         )}
 
-        {allStocks.length > 0 && (
           <div>
-            <SectionLabel>Browse stocks (A–Z)</SectionLabel>
-            <StockListPreview items={allStocks} totalCount={allStocks.length} />
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-lg shrink-0 text-[var(--primary)]"
+                  style={{
+                    background: "color-mix(in srgb, var(--primary) 12%, transparent)",
+                    border: "1px solid color-mix(in srgb, var(--primary) 24%, var(--border))",
+                  }}
+                  aria-hidden
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2l1.9 5.6L19.5 9l-5.1 2.7L12 17l-2.4-5.3L4.5 9l5.6-1.4L12 2z" />
+                  </svg>
+                </span>
+                <h3 className="font-display text-[clamp(1.1rem,4vw,1.4rem)] font-extrabold tracking-tight text-[var(--text)] truncate">
+                  Stock <span className="rank-title-accent">Insights</span>
+                </h3>
+              </div>
+              <Link
+                href="/stock-insights"
+                className="shrink-0 text-xs font-semibold text-[var(--primary)] hover:underline"
+              >
+                See all →
+              </Link>
+            </div>
+            <InsightsPreview />
           </div>
-        )}
 
-        {top20.length > 0 && <Top20MomentumTeaser items={top20} />}
-        {popular.length > 0 && <PopularTeaser items={popular} />}
-        <InsightsTeaserStrip />
-      </div>
+          {top20.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span
+                    className="inline-flex items-center justify-center w-8 h-8 rounded-lg shrink-0"
+                    style={{
+                      color: "var(--positive)",
+                      background: "color-mix(in srgb, var(--positive) 12%, transparent)",
+                      border: "1px solid color-mix(in srgb, var(--positive) 24%, var(--border))",
+                    }}
+                    aria-hidden
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 20V10M12 20V4M19 20v-6" />
+                    </svg>
+                  </span>
+                  <h3 className="font-display text-[clamp(1.1rem,4vw,1.4rem)] font-extrabold tracking-tight text-[var(--text)] truncate">
+                    DSE <span className="rank-title-accent">Top 20</span>
+                  </h3>
+                </div>
+                <Link
+                  href="/dse-top-20"
+                  className="shrink-0 text-xs font-semibold text-[var(--primary)] hover:underline"
+                >
+                  See all →
+                </Link>
+              </div>
+              <Top20Preview items={top20} />
+            </div>
+          )}
+
+          <CoreFeatureTiles marketIndex={marketIndex} />
+        </div>
+      </section>
     </div>
   );
 }
