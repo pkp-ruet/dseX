@@ -1,4 +1,4 @@
-import type { SignalFlags } from "@/lib/api";
+import type { SignalFlags, MomentumSnapshot } from "@/lib/api";
 import { getTier, type TierKey } from "@/lib/constants";
 
 // ---------------------------------------------------------------------------
@@ -285,4 +285,97 @@ export function ownershipCaption(sponsorPct: number | null): string | null {
   if (sponsorPct >= 30) return `Owners (sponsors) hold ${r}% — a strong sign of commitment.`;
   if (sponsorPct >= 20) return `Owners (sponsors) hold ${r}% — modest skin in the game.`;
   return `Owners (sponsors) hold only ${r}% — limited alignment with shareholders.`;
+}
+
+// ---------------------------------------------------------------------------
+// Momentum (7-day) — plain-English summary for the Momentum strip
+// ---------------------------------------------------------------------------
+
+export type MomentumTone = "positive" | "watch" | "negative" | "neutral";
+
+export interface MomentumSummary {
+  word: string;
+  tone: MomentumTone;
+  line: string;
+}
+
+/** Turn a momentum snapshot into a plain word + one supporting sentence. "Overall market", not "DSEX". */
+export function momentumSummary(m: MomentumSnapshot): MomentumSummary | null {
+  const grade = m.momentum_grade;
+  if (!grade || grade === "unknown") return null;
+
+  const WORDS: Record<string, { word: string; tone: MomentumTone }> = {
+    hot:            { word: "Running hot",   tone: "positive" },
+    warm:           { word: "Warming up",    tone: "positive" },
+    flat:           { word: "Flat",          tone: "neutral" },
+    cold:           { word: "Cooling off",   tone: "negative" },
+    weak_liquidity: { word: "Thinly traded", tone: "watch" },
+  };
+  const meta = WORDS[grade] ?? { word: "Flat", tone: "neutral" as MomentumTone };
+
+  const bits: string[] = [];
+  const r7 = m.return_7d_pct;
+  if (r7 != null) {
+    bits.push(`${r7 >= 0 ? "up" : "down"} ${Math.abs(r7).toFixed(1)}% in the past week`);
+  }
+  const rs = m.rs_vs_dsex_pct;
+  if (rs != null && Math.abs(rs) >= 0.5) {
+    bits.push(rs > 0 ? "beating the overall market" : "lagging the overall market");
+  }
+  const vr = m.volume_ratio;
+  if (vr != null && vr >= 1.3) bits.push("on heavier-than-usual trading");
+  else if (vr != null && vr <= 0.7) bits.push("on lighter-than-usual trading");
+
+  if (grade === "weak_liquidity") {
+    return { ...meta, line: "Trades too little to read momentum reliably — moves can be sharp." };
+  }
+
+  const line = bits.length
+    ? `${bits[0].charAt(0).toUpperCase()}${bits.slice(0, 3).join(", ").slice(1)}.`
+    : "No clear short-term trend right now.";
+  return { ...meta, line };
+}
+
+// ---------------------------------------------------------------------------
+// Verdict stance → plain label
+// ---------------------------------------------------------------------------
+
+export function stanceLabel(stance: string | null | undefined): string | null {
+  if (!stance) return null;
+  const map: Record<string, string> = {
+    long_term_hold: "Hold for the long run",
+    short_term_trade: "Short-term trade",
+    wait: "Wait for now",
+    avoid: "Best avoided",
+  };
+  return map[stance] ?? null;
+}
+
+// ---------------------------------------------------------------------------
+// Valuation caption (peer-relative, plain English)
+// ---------------------------------------------------------------------------
+
+export function valuationCaption(p4Score: number | null): string | null {
+  if (p4Score == null) return null;
+  if (p4Score >= 7) return "Looks cheap right now — priced below its usual level.";
+  if (p4Score >= 4) return "Priced about fairly — neither a bargain nor expensive.";
+  return "Looks pricey right now — costs more than usual for what you get.";
+}
+
+// ---------------------------------------------------------------------------
+// Peer standing
+// ---------------------------------------------------------------------------
+
+export function peerStandingCaption(
+  code: string,
+  currentScore: number | null,
+  peerScores: (number | null)[],
+): string | null {
+  if (currentScore == null) return null;
+  const peers = peerScores.filter((s): s is number => s != null);
+  if (!peers.length) return null;
+  const beaten = peers.filter((s) => currentScore >= s).length;
+  if (beaten === peers.length) return `${code} scores higher than every other strong name in its sector below.`;
+  if (beaten === 0) return `${code} scores below the other strong names in its sector shown here.`;
+  return `${code} scores higher than ${beaten} of ${peers.length} top sector peers shown below.`;
 }

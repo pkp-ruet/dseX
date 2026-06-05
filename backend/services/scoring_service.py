@@ -443,6 +443,12 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
                      if r.get("eps") is not None and r["eps"] > 0), None)
     has_sector_pe = sector_median_pe is not None and sector_median_pe > 0
 
+    # Raw ratios surfaced for the stock-detail valuation panel (not used in scoring).
+    current_pe: Optional[float] = None
+    own_avg_pe: Optional[float] = None
+    current_pb: Optional[float] = None
+    own_avg_pb: Optional[float] = None
+
     if curr_eps is None:
         pe_score = 0.0
     else:
@@ -456,6 +462,7 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
         has_self_pe = len(hist_pes) >= 2
         if has_self_pe:
             avg_hist_pe = sum(hist_pes) / len(hist_pes)
+            own_avg_pe = avg_hist_pe
             self_pe = _a2_pe_pb_ratio_score(current_pe / avg_hist_pe) if avg_hist_pe > 0 else 0.0
         else:
             self_pe = 0.0
@@ -492,6 +499,7 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
         has_self_pb = len(hist_pbs) >= 2
         if has_self_pb:
             avg_hist_pb = sum(hist_pbs) / len(hist_pbs)
+            own_avg_pb = avg_hist_pb
             self_pb = _a2_pe_pb_ratio_score(current_pb / avg_hist_pb) if avg_hist_pb > 0 else 0.0
         else:
             self_pb = 0.0
@@ -509,7 +517,13 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
             pb_score = 0.0
 
     score = pe_score * 0.6 + pb_score * 0.4
-    return score, {"p4_pe": round(pe_score, 2), "p4_pb": round(pb_score, 2)}
+    return score, {
+        "p4_pe": round(pe_score, 2), "p4_pb": round(pb_score, 2),
+        "current_pe": round(current_pe, 2) if current_pe is not None else None,
+        "current_pb": round(current_pb, 2) if current_pb is not None else None,
+        "own_avg_pe": round(own_avg_pe, 2) if own_avg_pe is not None else None,
+        "own_avg_pb": round(own_avg_pb, 2) if own_avg_pb is not None else None,
+    }
 
 
 def _a2_pillar5(fin_last5: list[dict], ltp: Optional[float],
@@ -886,6 +900,16 @@ def _compute_scores_df() -> pd.DataFrame:
 
         curr_eps = next((r["eps"] for r in reversed(fin_rows)
                          if r.get("eps") is not None), None)
+
+        # Point-in-time ROE (%) from the latest extended-financials year — surfaced for
+        # the stock-detail peer table, not used in scoring.
+        roe_pct: Optional[float] = None
+        if ext_last5:
+            _np = ext_last5[-1].get("net_profit")
+            _eq = ext_last5[-1].get("total_equity")
+            if _np is not None and _eq and not _is_nanish(_np) and not _is_nanish(_eq) and float(_eq) > 0:
+                roe_pct = round(float(_np) / float(_eq) * 100, 1)
+
         row = {
             "trading_code": code,
             "sector":       sector,
@@ -896,6 +920,9 @@ def _compute_scores_df() -> pd.DataFrame:
             "base_score":     round(base_score_100, 1),
             "adjustment_pct": adj_pct if adj_pct else 0.0,
             "eps":          curr_eps,
+            "roe_pct":      roe_pct,
+            "sector_median_pe": round(sect_pe_for_self, 2) if sect_pe_for_self is not None else None,
+            "sector_median_pb": round(sect_pb_for_self, 2) if sect_pb_for_self is not None else None,
             "p1_biz":       round(p1, 2),
             "p2_health":    round(p2, 2),
             "p3_moat":      round(p3, 2),

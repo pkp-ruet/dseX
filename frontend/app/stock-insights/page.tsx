@@ -44,7 +44,7 @@ const jsonLd = [
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-      { "@type": "ListItem", position: 2, name: "Stock Insights", item: `${BASE_URL}/stock-insights` },
+      { "@type": "ListItem", position: 2, name: "Stock Picks", item: `${BASE_URL}/stock-insights` },
     ],
   },
 ];
@@ -78,7 +78,7 @@ export default function StockInsightsPage() {
       <header>
         <div className="ed-kicker">
           <span className="dot" aria-hidden="true" />
-          Stock Insights
+          Stock Picks
         </div>
         <h1 className="ed-headline">Best Stocks on the DSE</h1>
         <p className="ed-dek">Simple, clear stock picks from the Dhaka Stock Exchange — updated daily.</p>

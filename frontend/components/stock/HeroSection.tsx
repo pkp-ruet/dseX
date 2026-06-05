@@ -1,5 +1,5 @@
 import Link from "next/link";
-import StarButton from "@/components/ui/StarButton";
+import WatchlistButton from "@/components/stock/WatchlistButton";
 import AddToPortfolioButton from "@/components/stock/AddToPortfolioButton";
 import { taka, signed } from "@/lib/formatters";
 import { range52wInfo } from "@/lib/plain-language";
@@ -103,7 +103,7 @@ export default function HeroSection({ detail }: Props) {
                       {dataAgeYears != null && dataAgeYears >= 2 ? ` — ${dataAgeYears}y stale` : ""}
                     </span>
                   )}
-                  <span className="ml-1"><StarButton code={code} size="lg" /></span>
+                  <WatchlistButton code={code} className="ml-1" />
                   <AddToPortfolioButton code={code} ltp={ltp} />
                 </div>
               </div>

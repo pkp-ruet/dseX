@@ -86,7 +86,7 @@ function buildJsonLd(
       "@type": "BreadcrumbList",
       itemListElement: [
         { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-        { "@type": "ListItem", position: 2, name: "Stock Insights", item: `${BASE_URL}/stock-insights` },
+        { "@type": "ListItem", position: 2, name: "Stock Picks", item: `${BASE_URL}/stock-insights` },
         { "@type": "ListItem", position: 3, name: displayName, item: `${BASE_URL}/stock-insights/${slug}` },
       ],
     },
@@ -217,7 +217,7 @@ function Crumbs({ here }: { here: string }) {
     <nav aria-label="breadcrumb" className="ed-crumbs">
       <Link href="/">Home</Link>
       <span className="sep" aria-hidden="true">/</span>
-      <Link href="/stock-insights">Stock Insights</Link>
+      <Link href="/stock-insights">Stock Picks</Link>
       <span className="sep" aria-hidden="true">/</span>
       <span className="here">{here}</span>
     </nav>

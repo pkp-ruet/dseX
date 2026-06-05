@@ -191,7 +191,7 @@ export default function Navbar() {
               href="/stock-insights"
               className={`navbar-intel-btn${isStockLists ? " navbar-intel-btn-active" : ""}`}
             >
-              Stock Insights
+              Stock Picks
             </Link>
             <Link
               href="/portfolio"
@@ -315,7 +315,7 @@ export default function Navbar() {
             className={`navbar-drawer-link${isStockLists ? " active" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
-            Stock Insights
+            Stock Picks
           </Link>
           <Link
             href="/dsestockranking"

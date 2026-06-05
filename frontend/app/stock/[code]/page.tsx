@@ -1,16 +1,23 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ApiNotFoundError, getCompanyDetail, getAllCodes } from "@/lib/api";
+import { ApiNotFoundError, getCompanyDetail, getAllCodes, getInsightScores, getStockLists } from "@/lib/api";
 import { getTier, TIER_LABELS } from "@/lib/constants";
+import { computeFeaturedIn } from "@/lib/featured-lists";
+import FeaturedInStrip from "@/components/stock/FeaturedInStrip";
 import HeroSection from "@/components/stock/HeroSection";
 import PriceChart from "@/components/stock/PriceChart";
 import VerdictHero from "@/components/stock/VerdictHero";
 import HealthCheck from "@/components/stock/HealthCheck";
-import KeyNumbers from "@/components/stock/KeyNumbers";
+import ValuationPanel from "@/components/stock/ValuationPanel";
+import FinancialTrends from "@/components/stock/FinancialTrends";
+import MomentumStrip from "@/components/stock/MomentumStrip";
+import SignalBoard from "@/components/stock/SignalBoard";
+import PeerComparison from "@/components/stock/PeerComparison";
 import ProfitsAndDividends from "@/components/stock/ProfitsAndDividends";
 import ShareholdingPie from "@/components/stock/ShareholdingPie";
 import NewsSection from "@/components/stock/NewsSection";
-import RelatedStocks from "@/components/stock/RelatedStocks";
+import StickySummaryBar from "@/components/stock/StickySummaryBar";
+import StockSectionNav, { type NavSection } from "@/components/stock/StockSectionNav";
 import StockVisitTracker from "@/components/analytics/StockVisitTracker";
 
 export const revalidate = 86400;
@@ -101,16 +108,30 @@ export default async function StockDetailPage({ params }: PageProps) {
   }
 
   const { profile, score_row, financials, extended_financials,
-          shareholding, dividend_declaration, news } = detail;
+          shareholding, dividend_declaration, news, signal_flags,
+          related_stocks, momentum, verdict, valuation } = detail;
 
   const score = score_row?.score as number | null;
+
+  // Which curated pick lists does this stock appear in? Reuses the same
+  // selection logic the list pages use; both sources are cached (ISR 24h).
+  let featuredIn: ReturnType<typeof computeFeaturedIn> = [];
+  try {
+    const [scores, stockLists] = await Promise.all([
+      getInsightScores().catch(() => []),
+      getStockLists().catch(() => null),
+    ]);
+    featuredIn = computeFeaturedIn(profile.trading_code, scores, stockLists);
+  } catch {
+    featuredIn = [];
+  }
 
   const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "FinancialProduct",
     name: `${profile.company_name ?? code} (${profile.trading_code})`,
-    description: `DSE listed equity. DSEF score: ${score ?? "--"}/100 (${TIER_LABELS[getTier(score)]}).`,
+    description: `DSE listed equity. Fundamental analysis score: ${score ?? "--"}/100 (${TIER_LABELS[getTier(score)]}).`,
     provider: { "@type": "Organization", name: "Dhaka Stock Exchange" },
     url: `${BASE}/stock/${code}`,
   };
@@ -123,6 +144,45 @@ export default async function StockDetailPage({ params }: PageProps) {
       { "@type": "ListItem", position: 2, name: "Stock Rankings", item: `${BASE}/dsestockranking` },
       { "@type": "ListItem", position: 3, name: code, item: `${BASE}/stock/${code}` },
     ],
+  };
+
+  // --- Decide which sections render, then build the jump-nav from that ---------
+  const num = (v: unknown): number | null => {
+    if (v == null) return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const hasHealth = !!score_row;
+  const hasValuation = financials.length > 0;
+  const hasFinancials = financials.length > 0;
+  const hasMomentum = !!momentum && momentum.momentum_grade !== "unknown";
+  const hasSignals = (signal_flags?.green?.length ?? 0) + (signal_flags?.red?.length ?? 0) > 0;
+  const hasPeers = (related_stocks?.length ?? 0) > 0;
+
+  const sections: NavSection[] = [
+    { id: "verdict", label: "Verdict" },
+    ...(hasHealth ? [{ id: "health", label: "Health" }] : []),
+    ...(hasValuation ? [{ id: "valuation", label: "Value" }] : []),
+    ...(hasFinancials ? [{ id: "financials", label: "Financials" }] : []),
+    ...(hasMomentum ? [{ id: "momentum", label: "Momentum" }] : []),
+    ...(hasSignals ? [{ id: "signals", label: "Signals" }] : []),
+    ...(hasPeers ? [{ id: "peers", label: "Peers" }] : []),
+    { id: "ownership", label: "Owners" },
+    { id: "news", label: "News" },
+  ];
+
+  // Current stock as the highlighted first row of the peer comparison.
+  const currentPeerRow = {
+    trading_code: profile.trading_code,
+    company_name: profile.company_name,
+    score: num(score_row?.score),
+    ltp: num(detail.latest_price.ltp),
+    change_pct: num(detail.latest_price.change_pct),
+    pe: valuation?.current_pe ?? num(score_row?.current_pe),
+    div_yield_pct: num(score_row?.div_yield_pct),
+    roe_pct: num(score_row?.roe_pct),
+    isCurrent: true,
   };
 
   return (
@@ -138,39 +198,84 @@ export default async function StockDetailPage({ params }: PageProps) {
 
       <StockVisitTracker code={profile.trading_code} />
 
-      {/* Chapter 1 — The Stock at a Glance */}
+      {/* The Stock at a Glance */}
       <HeroSection detail={detail} />
 
-      {/* Chapter 2 — The Price Story */}
+      {/* The Price Story */}
       <PriceChart code={profile.trading_code} />
 
-      {/* Chapter 3 — Our Verdict */}
-      <VerdictHero detail={detail} />
+      {/* Sticky stack: summary bar (on scroll) + section jump-nav */}
+      <div className="sticky top-14 z-40 -mx-4 sm:-mx-6">
+        <StickySummaryBar
+          code={profile.trading_code}
+          score={score}
+          rank={num(score_row?.overall_rank)}
+          total={num(score_row?.total_scored)}
+          stance={verdict?.stance ?? null}
+          horizon={verdict?.horizon_hint ?? null}
+          ltp={num(detail.latest_price.ltp)}
+          changePct={num(detail.latest_price.change_pct)}
+        />
+        <StockSectionNav sections={sections} />
+      </div>
 
-      {/* Chapter 4 — The Health Check */}
-      {score_row && <HealthCheck scoreRow={score_row} />}
+      {/* Our Verdict */}
+      <div id="verdict" className="scroll-mt-[112px]">
+        <VerdictHero detail={detail} />
+      </div>
 
-      {/* Key Numbers — raw metrics reference */}
-      <KeyNumbers detail={detail} />
+      {/* Featured in our curated pick lists */}
+      <FeaturedInStrip entries={featuredIn} />
 
-      {/* Chapter 5 — Profits & Dividends */}
-      {(financials.length > 0) && (
-        <ProfitsAndDividends
+      {/* The Health Check */}
+      {hasHealth && score_row && <HealthCheck scoreRow={score_row} detail={detail} />}
+
+      {/* Is the Price Right? */}
+      {hasValuation && (
+        <ValuationPanel
           financials={financials}
-          extFinancials={extended_financials}
-          declaration={dividend_declaration}
+          latestPrice={detail.latest_price}
+          scoreRow={score_row}
+          valuation={valuation}
         />
       )}
 
-      {/* Chapter 6 — Who Owns It & What's New */}
-      <ShareholdingPie shareholding={shareholding} />
-      <NewsSection news={news} />
+      {/* Profits & Dividends + Financial Trends */}
+      {hasFinancials && (
+        <div id="financials" className="scroll-mt-[112px]">
+          <ProfitsAndDividends
+            financials={financials}
+            extFinancials={extended_financials}
+            declaration={dividend_declaration}
+          />
+          <FinancialTrends extFinancials={extended_financials} />
+        </div>
+      )}
 
-      {/* Chapter 7 — Related Stocks */}
-      <RelatedStocks
-        stocks={detail.related_stocks ?? []}
-        currentSector={profile.sector}
-      />
+      {/* Recent Momentum */}
+      {hasMomentum && <MomentumStrip momentum={momentum} />}
+
+      {/* Signals at a Glance */}
+      {hasSignals && <SignalBoard flags={signal_flags} />}
+
+      {/* How It Stacks Up */}
+      {hasPeers && (
+        <PeerComparison
+          current={currentPeerRow}
+          peers={related_stocks}
+          sector={profile.sector}
+        />
+      )}
+
+      {/* Who Owns It */}
+      <div id="ownership" className="scroll-mt-[112px]">
+        <ShareholdingPie shareholding={shareholding} />
+      </div>
+
+      {/* What's New */}
+      <div id="news" className="scroll-mt-[112px]">
+        <NewsSection news={news} />
+      </div>
     </>
   );
 }

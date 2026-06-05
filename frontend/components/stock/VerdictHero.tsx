@@ -31,9 +31,9 @@ export default function VerdictHero({ detail }: Props) {
     <section
       className="relative rounded-3xl overflow-hidden mb-8"
       style={{
-        background: `radial-gradient(120% 90% at 0% 0%, ${tone.soft} 0%, transparent 55%), radial-gradient(110% 80% at 100% 100%, ${tone.soft} 0%, transparent 50%), var(--surface)`,
-        border: `1px solid ${tone.border}`,
-        boxShadow: `0 12px 48px rgba(15,23,42,0.1), 0 0 80px ${tone.soft}`,
+        background: "var(--surface)",
+        border: "1px solid var(--border)",
+        boxShadow: "0 1px 3px rgba(15,23,42,0.05)",
       }}
     >
       <style>{`
@@ -43,25 +43,13 @@ export default function VerdictHero({ detail }: Props) {
         }
       `}</style>
 
-      {/* Top accent line */}
+      {/* Thin tone accent on the left edge */}
       <div
         aria-hidden
         style={{
-          position: "absolute", top: 0, left: 0, right: 0, height: "2px",
-          background: `linear-gradient(90deg, transparent 0%, ${tone.color} 50%, transparent 100%)`,
-          opacity: 0.85,
+          position: "absolute", top: 0, bottom: 0, left: 0, width: "3px",
+          background: tone.color,
         }}
-      />
-      {/* Decorative corner glyphs */}
-      <div
-        aria-hidden
-        className="absolute -top-16 -right-16 rounded-full opacity-30 blur-3xl"
-        style={{ width: 240, height: 240, background: tone.color }}
-      />
-      <div
-        aria-hidden
-        className="absolute -bottom-20 -left-20 rounded-full opacity-20 blur-3xl"
-        style={{ width: 260, height: 260, background: tone.color }}
       />
 
       <div className="relative p-5 sm:p-7">
@@ -69,20 +57,11 @@ export default function VerdictHero({ detail }: Props) {
         <div className="flex items-center gap-2 mb-4">
           <span
             className="inline-block w-2 h-2 rounded-full"
-            style={{ background: tone.color, boxShadow: `0 0 10px ${tone.color}` }}
+            style={{ background: tone.color }}
           />
           <span className="text-[11px] font-bold uppercase tracking-[0.22em] flex items-center gap-1.5">
-            <span
-              style={{
-                background: "linear-gradient(90deg, var(--primary) 0%, var(--accent) 50%, var(--np-cautious) 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
-            >
-              TopStockBD
-            </span>
-            <span style={{ color: "var(--text-muted)" }}>Analysis on —</span>
+            <span style={{ color: "var(--text)" }}>TopStockBD</span>
+            <span style={{ color: "var(--text-muted)" }}>Analysis</span>
           </span>
         </div>
 
@@ -146,12 +125,6 @@ export default function VerdictHero({ detail }: Props) {
             </span>
             <div className="relative" style={{ width: size, height: size }}>
               <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-                <defs>
-                  <linearGradient id={`grad_${animName}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor={tone.color} stopOpacity="1" />
-                    <stop offset="100%" stopColor={tone.color} stopOpacity="0.6" />
-                  </linearGradient>
-                </defs>
                 <circle
                   cx={size / 2}
                   cy={size / 2}
@@ -165,14 +138,13 @@ export default function VerdictHero({ detail }: Props) {
                   cy={size / 2}
                   r={radius}
                   fill="none"
-                  stroke={`url(#grad_${animName})`}
+                  stroke={tone.color}
                   strokeWidth={stroke}
                   strokeLinecap="round"
                   strokeDasharray={circumference}
                   strokeDashoffset={targetOffset}
                   transform={`rotate(-90 ${size / 2} ${size / 2})`}
                   style={{
-                    filter: `drop-shadow(0 0 12px ${tone.color}AA)`,
                     animation: `${animName} 1.2s cubic-bezier(0.4, 0, 0.2, 1)`,
                   }}
                 />
@@ -183,7 +155,6 @@ export default function VerdictHero({ detail }: Props) {
                   style={{
                     color: tone.color,
                     fontSize: "2.5rem",
-                    textShadow: `0 0 20px ${tone.color}80`,
                   }}
                 >
                   {score != null ? score.toFixed(0) : "--"}
@@ -205,7 +176,6 @@ export default function VerdictHero({ detail }: Props) {
                 style={{
                   color: tone.color,
                   fontSize: "clamp(1.75rem, 5vw, 2.75rem)",
-                  textShadow: `0 0 28px ${tone.color}50`,
                 }}
               >
                 {word}
@@ -242,10 +212,7 @@ export default function VerdictHero({ detail }: Props) {
                     <span
                       aria-hidden
                       className="mt-[6px] h-1.5 w-1.5 rounded-full shrink-0"
-                      style={{
-                        background: tone.color,
-                        boxShadow: `0 0 6px ${tone.color}`,
-                      }}
+                      style={{ background: tone.color }}
                     />
                     <span>{line}</span>
                   </li>
@@ -264,16 +231,7 @@ export default function VerdictHero({ detail }: Props) {
           className="mt-5 pt-3 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.2em]"
           style={{ borderTop: "1px solid var(--border)" }}
         >
-          <span
-            style={{
-              background: "linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
-            topstockbd.com
-          </span>
+          <span style={{ color: "var(--text-muted)" }}>topstockbd.com</span>
           <span style={{ color: "var(--text-muted)" }}>DSE Stock Analysis</span>
         </div>
       </div>

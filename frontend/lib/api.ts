@@ -113,6 +113,30 @@ export interface RelatedStock {
   score: number | null;
   ltp: number | null;
   change_pct: number | null;
+  pe?: number | null;
+  pb?: number | null;
+  div_yield_pct?: number | null;
+  roe_pct?: number | null;
+  eps_yoy_pct?: number | null;
+}
+
+export interface ValuationContext {
+  current_pe: number | null;
+  current_pb: number | null;
+  own_avg_pe: number | null;
+  own_avg_pb: number | null;
+  sector_median_pe: number | null;
+  sector_median_pb: number | null;
+  eps: number | null;
+  sector_implied_price: number | null;
+}
+
+export interface SectorContext {
+  sector: string | null;
+  peer_count: number | null;
+  rank_in_sector: number | null;
+  sector_avg_score: number | null;
+  sector_median_pe: number | null;
 }
 
 export interface MomentumSnapshot {
@@ -147,6 +171,8 @@ export interface CompanyDetail {
   related_stocks: RelatedStock[];
   momentum: MomentumSnapshot | null;
   verdict: StockVerdict | null;
+  valuation?: ValuationContext | null;
+  sector_context?: SectorContext | null;
 }
 
 export interface UpcomingDividend {

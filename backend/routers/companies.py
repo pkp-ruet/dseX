@@ -12,7 +12,7 @@ from backend.services.verdict_service import build_verdict
 from backend.models.responses import (
     CompanyDetailResponse, CompanyProfile, LatestPrice,
     SignalFlags, DividendDeclaration, RelatedStock,
-    MomentumSnapshot, StockVerdict,
+    MomentumSnapshot, StockVerdict, ValuationContext, SectorContext,
 )
 
 router = APIRouter()
@@ -77,21 +77,39 @@ def get_company_detail(code: str):
             for k, v in score_row.items()
         }
 
-    # Related stocks: same sector, ranked by DSEF score, top 5 (excluding self)
+    def _clean(v):
+        if isinstance(v, float) and math.isnan(v):
+            return None
+        return v
+
+    # Related stocks (same sector, top 5 by score excluding self) + sector context.
+    # Both reuse the single scores_df build below — no extra DB work.
     related: list[RelatedStock] = []
+    sector_context_model = None
     sector = company.get("sector")
     if sector:
         scores_df = build_scores_df()
         if not scores_df.empty:
-            same_sector = scores_df[
-                (scores_df["sector"] == sector)
-                & (scores_df["trading_code"] != trading_code)
-            ].sort_values("score", ascending=False, na_position="last").head(5)
+            sector_slice = scores_df[scores_df["sector"] == sector]
 
-            def _clean(v):
-                if isinstance(v, float) and math.isnan(v):
-                    return None
-                return v
+            # --- Sector context (includes self) -------------------------------
+            ranked_sector = sector_slice[sector_slice["score"].notna()].sort_values(
+                "score", ascending=False
+            ).reset_index(drop=True)
+            rank_pos = ranked_sector[ranked_sector["trading_code"] == trading_code].index
+            avg_score = ranked_sector["score"].mean() if not ranked_sector.empty else None
+            sector_context_model = SectorContext(
+                sector=sector,
+                peer_count=int(len(sector_slice)),
+                rank_in_sector=(int(rank_pos[0]) + 1 if len(rank_pos) else None),
+                sector_avg_score=(round(float(avg_score), 1) if avg_score is not None and not math.isnan(avg_score) else None),
+                sector_median_pe=_clean(score_row.get("sector_median_pe")) if score_row else None,
+            )
+
+            # --- Related stocks (excludes self) -------------------------------
+            same_sector = sector_slice[
+                sector_slice["trading_code"] != trading_code
+            ].sort_values("score", ascending=False, na_position="last").head(5)
 
             from backend.services.db_service import load_companies
             companies_by_code = {c["trading_code"]: c for c in load_companies()}
@@ -107,6 +125,11 @@ def get_company_detail(code: str):
                     score=_clean(r.get("score")),
                     ltp=_clean(r.get("ltp")),
                     change_pct=_clean(px.get("change_pct")),
+                    pe=_clean(r.get("current_pe")),
+                    pb=_clean(r.get("current_pb")),
+                    div_yield_pct=_clean(r.get("div_yield_pct")),
+                    roe_pct=_clean(r.get("roe_pct")),
+                    eps_yoy_pct=_clean(r.get("eps_yoy_pct")),
                 ))
 
     # Momentum snapshot + hybrid verdict
@@ -123,6 +146,30 @@ def get_company_detail(code: str):
 
     momentum_model = MomentumSnapshot(**momentum_dict) if momentum_dict else None
     verdict_model = StockVerdict(**verdict_dict) if verdict_dict else None
+
+    # Valuation context — raw P/E & P/B vs own history vs sector median.
+    # sector_implied_price = sector_median_pe × EPS (peer-relative, NOT intrinsic value).
+    valuation_model = None
+    if score_row:
+        v_pe = _clean(score_row.get("current_pe"))
+        v_eps = _clean(score_row.get("eps"))
+        v_sector_pe = _clean(score_row.get("sector_median_pe"))
+        implied = (
+            round(v_sector_pe * v_eps, 2)
+            if isinstance(v_sector_pe, (int, float)) and isinstance(v_eps, (int, float))
+            and v_sector_pe > 0 and v_eps > 0
+            else None
+        )
+        valuation_model = ValuationContext(
+            current_pe=v_pe,
+            current_pb=_clean(score_row.get("current_pb")),
+            own_avg_pe=_clean(score_row.get("own_avg_pe")),
+            own_avg_pb=_clean(score_row.get("own_avg_pb")),
+            sector_median_pe=v_sector_pe,
+            sector_median_pb=_clean(score_row.get("sector_median_pb")),
+            eps=v_eps,
+            sector_implied_price=implied,
+        )
 
     return CompanyDetailResponse(
         profile=CompanyProfile(
@@ -158,4 +205,6 @@ def get_company_detail(code: str):
         related_stocks=related,
         momentum=momentum_model,
         verdict=verdict_model,
+        valuation=valuation_model,
+        sector_context=sector_context_model,
     )

@@ -92,7 +92,7 @@ export default function ExploreMore({
           className={`${CARD} md:col-span-2 md:row-span-2 hover:border-[color-mix(in_srgb,var(--np-cautious)_40%,var(--border))]`}
         >
           <div className="flex items-center justify-between gap-2 mb-4">
-            <CardEyebrow label="Stock Insights" color="var(--np-cautious)" />
+            <CardEyebrow label="Stock Picks" color="var(--np-cautious)" />
             <span className="text-xs font-semibold text-[var(--np-cautious)] opacity-0 group-hover:opacity-100 transition-opacity">
               View all →
             </span>

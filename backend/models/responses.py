@@ -107,6 +107,30 @@ class RelatedStock(BaseModel):
     score: Optional[float] = None
     ltp: Optional[float] = None
     change_pct: Optional[float] = None
+    pe: Optional[float] = None
+    pb: Optional[float] = None
+    div_yield_pct: Optional[float] = None
+    roe_pct: Optional[float] = None
+    eps_yoy_pct: Optional[float] = None
+
+
+class ValuationContext(BaseModel):
+    current_pe: Optional[float] = None
+    current_pb: Optional[float] = None
+    own_avg_pe: Optional[float] = None
+    own_avg_pb: Optional[float] = None
+    sector_median_pe: Optional[float] = None
+    sector_median_pb: Optional[float] = None
+    eps: Optional[float] = None
+    sector_implied_price: Optional[float] = None
+
+
+class SectorContext(BaseModel):
+    sector: Optional[str] = None
+    peer_count: Optional[int] = None
+    rank_in_sector: Optional[int] = None
+    sector_avg_score: Optional[float] = None
+    sector_median_pe: Optional[float] = None
 
 
 class MomentumSnapshot(BaseModel):
@@ -141,6 +165,8 @@ class CompanyDetailResponse(BaseModel):
     related_stocks: list[RelatedStock] = []
     momentum: Optional[MomentumSnapshot] = None
     verdict: Optional[StockVerdict] = None
+    valuation: Optional[ValuationContext] = None
+    sector_context: Optional[SectorContext] = None
 
 
 class UpcomingDividend(BaseModel):

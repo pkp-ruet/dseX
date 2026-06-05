@@ -12,7 +12,7 @@ export function generateVerdictSentence(detail: CompanyDetail): string {
   const tierLabel = TIER_LABELS[tier];
 
   if (score == null) {
-    return `${name} does not have enough data to generate a DSEF score.`;
+    return `${name} does not have enough data for a full analysis score yet.`;
   }
 
   const parts: string[] = [];
