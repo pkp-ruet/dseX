@@ -71,3 +71,4 @@ def clear() -> None:
 NS_WATCHLIST = "watchlist"
 NS_NOTES = "watchlist_notes"
 NS_PORTFOLIO = "portfolio"
+NS_TRANSACTIONS = "transactions"

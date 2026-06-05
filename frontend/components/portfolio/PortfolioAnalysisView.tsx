@@ -1,4 +1,5 @@
 import type { Grade, PortfolioAnalysis } from "@/lib/portfolio-analysis";
+import AllocationChart from "./AllocationChart";
 import SectorBreakdownChart from "./SectorBreakdownChart";
 import HoldingsDetailed from "./HoldingsDetailed";
 
@@ -149,6 +150,9 @@ export default function PortfolioAnalysisView({
           emptyText="Nothing pressing right now."
         />
       </div>
+
+      {/* Allocation per company */}
+      {showSectorSpread && <AllocationChart analysis={analysis} />}
 
       {/* Sector breakdown */}
       {showSectorSpread && <SectorBreakdownChart analysis={analysis} />}

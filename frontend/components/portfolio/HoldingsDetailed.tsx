@@ -1,7 +1,5 @@
 import Link from "next/link";
 import type { PortfolioAnalysis, QualityWord } from "@/lib/portfolio-analysis";
-import { PILLAR_META, pillarColor } from "@/lib/insight-utils";
-import { taka } from "@/lib/formatters";
 
 const QUALITY_THEME: Record<
   QualityWord,
@@ -64,22 +62,15 @@ export default function HoldingsDetailed({ analysis }: Props) {
         </span>
         <div className="min-w-0 flex-1">
           <h3 className="text-sm sm:text-[15px] uppercase tracking-wider font-bold text-[var(--text)]">
-            Holdings Breakdown
+            Your Stocks
           </h3>
           <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-0.5 leading-relaxed">
-            Each stock scored on five fundamentals: business quality, financial health,
-            competitive moat, valuation, and dividend.
+            How each one scores and how it&apos;s doing.
           </p>
         </div>
       </div>
 
       {sorted.map((h) => {
-        const pnlAmount = h.pnlPct != null && h.ltp != null ? (h.ltp - h.buyPrice) * h.qty : null;
-        const currentValue = h.ltp != null ? h.ltp * h.qty : null;
-        const pnlIsUp = pnlAmount != null && pnlAmount > 0;
-        const pnlIsDown = pnlAmount != null && pnlAmount < 0;
-        const pnlColor =
-          pnlIsUp ? "text-[var(--positive)]" : pnlIsDown ? "text-[var(--negative)]" : "text-[var(--text)]";
         const qt = QUALITY_THEME[h.qualityWord];
 
         return (
@@ -133,85 +124,19 @@ export default function HoldingsDetailed({ analysis }: Props) {
               )}
             </div>
 
-            {/* Numbers row */}
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4 p-4 sm:p-5 border-b border-[var(--border)] bg-[var(--bg)]/30">
-              <Cell label="Buy Price" value={taka(h.buyPrice, 2)} />
-              <Cell label="Qty" value={h.qty.toLocaleString()} />
-              <Cell label="LTP" value={h.ltp != null ? taka(h.ltp, 2) : "—"} />
-              <Cell
-                label="Current Value"
-                value={currentValue != null ? taka(currentValue, 0) : "—"}
-              />
-              <Cell
-                label="P&L"
-                value={
-                  pnlAmount == null
-                    ? "—"
-                    : `${pnlAmount > 0 ? "+" : ""}${taka(pnlAmount, 0)}${
-                        h.pnlPct != null
-                          ? ` (${h.pnlPct > 0 ? "+" : ""}${h.pnlPct.toFixed(1)}%)`
-                          : ""
-                      }`
-                }
-                valueClass={pnlColor}
-              />
-            </div>
-
-            {/* Pillar bars */}
-            {h.score != null && (
-              <div className="p-4 sm:p-5 border-b border-[var(--border)]">
-                <p className="text-[11px] sm:text-xs uppercase tracking-wider text-[var(--text-muted)] font-bold mb-3.5">
-                  Strength Across Five Pillars
-                </p>
-                <div className="flex flex-col gap-2.5">
-                  {PILLAR_META.map((p) => {
-                    const v = h.pillars[p.key];
-                    return (
-                      <div key={p.key} className="flex items-center gap-3 text-sm">
-                        <span className="text-xs sm:text-[13px] text-[var(--text)] w-32 sm:w-40 shrink-0 font-medium">
-                          {p.label}
-                        </span>
-                        <div className="h-2.5 flex-1 rounded-full bg-[var(--border)]/40 overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{
-                              width: `${v != null ? (v / 10) * 100 : 0}%`,
-                              backgroundColor: pillarColor(v),
-                            }}
-                            aria-hidden
-                          />
-                        </div>
-                        <span
-                          className="text-sm font-black tabular-nums w-10 text-right shrink-0"
-                          style={{ color: pillarColor(v) }}
-                        >
-                          {v != null ? `${v.toFixed(1)}` : "—"}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Entry label + link */}
+            {/* Finding + link */}
             <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-              <div className="flex items-start gap-2.5 flex-1 min-w-0">
-                <svg
-                  className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 shrink-0 text-[var(--primary)]"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  aria-hidden
-                >
-                  <path d="M9.983 3v7.391c0 5.704-3.731 9.57-8.983 10.609l-.995-2.151c2.432-.917 3.995-3.638 3.995-5.849h-4v-10h9.983zm14.017 0v7.391c0 5.704-3.748 9.571-9 10.609l-.996-2.151c2.433-.917 3.996-3.638 3.996-5.849h-3.983v-10h9.983z" />
-                </svg>
-                <p className="text-sm sm:text-[15px] text-[var(--text)] leading-[1.65] flex-1 italic">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm sm:text-[15px] text-[var(--text)] font-semibold leading-snug">
+                  {h.descriptor}
+                </p>
+                <p className="text-sm text-[var(--text-muted)] mt-1.5 leading-[1.6]">
                   {h.entryLabel}
                 </p>
               </div>
               <Link
                 href={`/stock/${h.code}`}
-                className="inline-flex items-center justify-center gap-1 text-sm font-bold text-[var(--primary)] hover:underline shrink-0 px-3 py-1.5 rounded-lg border border-[var(--primary)]/30 bg-[var(--primary)]/5 hover:bg-[var(--primary)]/10 transition-colors"
+                className="inline-flex items-center justify-center gap-1 text-sm font-bold text-[var(--primary)] hover:underline shrink-0 px-3 py-1.5 rounded-lg border border-[var(--primary)]/30 bg-[var(--primary)]/5 hover:bg-[var(--primary)]/10 transition-colors self-start"
               >
                 Full analysis
                 <svg
@@ -229,26 +154,5 @@ export default function HoldingsDetailed({ analysis }: Props) {
         );
       })}
     </section>
-  );
-}
-
-function Cell({
-  label,
-  value,
-  valueClass,
-}: {
-  label: string;
-  value: string;
-  valueClass?: string;
-}) {
-  return (
-    <div>
-      <p className="text-[10px] sm:text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-bold mb-1">
-        {label}
-      </p>
-      <p className={`text-sm sm:text-base font-bold tabular-nums ${valueClass ?? "text-[var(--text)]"}`}>
-        {value}
-      </p>
-    </div>
   );
 }
