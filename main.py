@@ -156,9 +156,9 @@ def cmd_compute_scores(_args):
 def _trigger_post_scrape_hooks(*, fire_deploy_hook: bool = False):
     """Purge the Next.js market-data tag (and optionally fire the Vercel deploy hook).
 
-    Called once per day by `scrape-all` after a successful run, so each ISR page is
-    rewritten at most once daily on the next request. `fire_deploy_hook=True` also
-    triggers a full Vercel rebuild.
+    Called by `scrape-all` (full daily refresh) and `scrape-quick` (fast price/index
+    refresh at market close), so each ISR page is rewritten at most twice daily on the
+    next request. `fire_deploy_hook=True` also triggers a full Vercel rebuild.
     """
     import os
     import urllib.request
@@ -185,6 +185,35 @@ def _trigger_post_scrape_hooks(*, fire_deploy_hook: bool = False):
                 print("Vercel deploy hook triggered.")
             except Exception as e:
                 print(f"Warning: Vercel deploy hook failed: {e}")
+
+
+def cmd_scrape_quick(_args):
+    """Fast market-close refresh — latest prices + DSE market summary only.
+
+    Skips the heavy details/news/cashflow steps so it finishes in well under a
+    minute. Updates the data behind every price/index/movers/market-analysis view,
+    then purges the Next.js `market-data` tag so those pages refetch. Scores are NOT
+    recomputed (fundamentals don't change intraday) — `scrape-all` handles those.
+    """
+    print("=== Quick step 1/2: Latest prices ===")
+    sp = StockPriceScraper()
+    prices = sp.run()
+    print(f"  Prices for {len(prices)} companies.\n")
+
+    print("=== Quick step 2/2: DSE market summary ===")
+    ms = MarketSummaryScraper()
+    ms_doc = ms.run()
+    if ms_doc:
+        print(f"  DSEX={ms_doc.get('dsex')}, DSES={ms_doc.get('dses')}, DS30={ms_doc.get('ds30')}")
+    else:
+        print("  Warning: market summary scrape failed.")
+
+    # Only purge the cache when the price scrape actually produced data — a parser
+    # break that silently returns 0 rows must not invalidate every ISR page.
+    if len(prices) >= 200:
+        _trigger_post_scrape_hooks(fire_deploy_hook=False)
+    else:
+        print(f"Skipping revalidate — only {len(prices)} prices scraped (expected >=200).")
 
 
 def cmd_scrape_all(args):
@@ -355,6 +384,11 @@ def main():
     sub.add_parser("scrape-market-summary", help="Scrape DSE index values and daily market totals")
 
     sub.add_parser(
+        "scrape-quick",
+        help="Fast market-close refresh: latest prices + market summary, then purge ISR cache",
+    )
+
+    sub.add_parser(
         "compute-scores",
         help="Recompute DSEF 5-pillar scores and store them in scores_snapshot",
     )
@@ -381,6 +415,7 @@ def main():
         "scrape-cashflow":       cmd_scrape_cashflow,
         "scrape-news":           cmd_scrape_news,
         "scrape-market-summary": cmd_scrape_market_summary,
+        "scrape-quick":          cmd_scrape_quick,
         "compute-scores":        cmd_compute_scores,
         "scrape-all":            cmd_scrape_all,
     }

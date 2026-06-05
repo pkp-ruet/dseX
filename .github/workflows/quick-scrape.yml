@@ -1,0 +1,35 @@
+name: Quick DSE Close Update
+
+on:
+  schedule:
+    # Sun-Thu at 08:00 UTC = 2:00 PM Dhaka (market close).
+    # Fast refresh: latest prices + market summary only, then purge the ISR cache
+    # so price/index/market-analysis views update everywhere. Heavy fundamentals
+    # stay on the daily scrape-all (daily-scrape.yml).
+    - cron: "0 8 * * 0-4"
+  workflow_dispatch:
+
+concurrency:
+  group: quick-scrape
+  cancel-in-progress: true
+
+jobs:
+  quick:
+    runs-on: ubuntu-latest
+    env:
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      MONGODB_DB_NAME: ${{ secrets.MONGODB_DB_NAME }}
+      FRONTEND_REVALIDATE_URL: ${{ secrets.FRONTEND_REVALIDATE_URL }}
+      REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run quick close update
+        run: python main.py scrape-quick
