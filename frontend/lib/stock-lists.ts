@@ -411,7 +411,7 @@ export const STOCK_LISTS: StockListDef[] = [
     displayName: "Best DSE Stocks to Buy in 2026",
     shortName: "Best DSE Stocks 2026",
     description:
-      "The top 20 highest-rated stocks on the Dhaka Stock Exchange in 2026, ranked by DSEF composite score. Each stock is analysed across 5 pillars: business quality, financial health, competitive moat, valuation, and dividend sustainability.",
+      "The strongest stocks on the Dhaka Stock Exchange for 2026 — companies that combine steady earnings, healthy finances, a fair price, and dependable dividends. Plain-English picks, updated daily from real company filings.",
     keywords: [
       "best DSE stocks 2026",
       "top stocks to buy Bangladesh 2026",
@@ -421,23 +421,23 @@ export const STOCK_LISTS: StockListDef[] = [
       "best stocks Dhaka Stock Exchange 2026",
     ],
     icon: "🏆",
-    metricLabel: "DSEF Score",
+    metricLabel: "Overall strength",
     metricFormat: "score",
     insightMode: true,
     intro:
-      "This list ranks every DSE-listed stock using the DSEF 5-pillar composite score — a proprietary metric covering earnings quality, financial health, competitive positioning, valuation, and dividend reliability. Only stocks scoring 55+ (Safe Buy or above) are included. Data is sourced directly from DSE financial disclosures and updated daily.",
+      "To build this list, we look at five things that matter for any company: are profits growing, is the balance sheet healthy, does it hold a strong position in its market, is the price fair, and does it pay a reliable dividend. Only the companies that score well across the board make the cut. Everything comes straight from official company filings and is refreshed every day.",
     faqs: [
       {
-        q: "What makes a stock the 'best' on the DSE in 2026?",
-        a: "Our DSEF score evaluates 5 fundamental pillars: business quality (EPS growth, ROE), financial health (debt, cash flow), competitive moat (margins, sector rank), valuation (P/E vs history), and dividends. Stocks scoring above 75 are Strong Buy — the highest tier.",
+        q: "What makes a stock one of the 'best' on the DSE in 2026?",
+        a: "We weigh five things together: growing profits, a healthy balance sheet, a strong market position, a fair share price, and dependable dividends. A company has to do well on most of these — not just one — to land near the top.",
       },
       {
         q: "How often does this list update?",
-        a: "The rankings update daily as new price data and financial disclosures are processed. During quarterly reporting seasons, scores may shift significantly as new EPS and dividend data flows in.",
+        a: "It refreshes daily as new prices and company filings come in. During earnings season the order can shift noticeably as fresh profit and dividend figures land.",
       },
       {
         q: "Are these stocks safe to buy?",
-        a: "These are fundamentally strong stocks by the DSEF criteria, but no stock is without risk. Always do your own research, diversify across sectors, and consider your personal risk tolerance before investing.",
+        a: "These are fundamentally strong companies, but no stock is risk-free. Always do your own research, spread your money across sectors, and consider how much risk you're comfortable with before investing.",
       },
     ],
   },
@@ -447,7 +447,7 @@ export const STOCK_LISTS: StockListDef[] = [
     displayName: "Best Bank Stocks in Bangladesh 2026",
     shortName: "Best Bank Stocks 2026",
     description:
-      "Top 15 banking and NBFI stocks on the DSE ranked by DSEF score in 2026. Evaluated on bank-adjusted pillars: net interest margin, capital adequacy, NPL quality, and dividend reliability.",
+      "The strongest banks and lenders on the Dhaka Stock Exchange for 2026 — judged on the things that actually matter for a bank: steady earnings, sound finances, loan quality, and reliable dividends.",
     keywords: [
       "best bank stocks Bangladesh 2026",
       "top banking stocks DSE 2026",
@@ -457,15 +457,15 @@ export const STOCK_LISTS: StockListDef[] = [
       "which bank stock to invest Bangladesh 2026",
     ],
     icon: "🏛️",
-    metricLabel: "DSEF Score",
+    metricLabel: "Overall strength",
     metricFormat: "score",
     insightMode: true,
     intro:
-      "Bangladesh's banking sector is the largest on the DSE by company count. The DSEF scoring model applies bank-adjusted weights — giving greater importance to net interest margin stability, capital adequacy, and non-performing loan ratios. The stocks here represent the most fundamentally sound banks and NBFIs on the exchange.",
+      "Banks are the biggest group of companies on the Dhaka Stock Exchange — but they're not all built the same. A bank doesn't make money the way a factory does, so we judge them differently: how steady their earnings are, how strong their capital cushion is, how clean their loan book is, and how reliably they pay dividends. The names here are the soundest banks and lenders on the exchange.",
     faqs: [
       {
-        q: "How are bank stocks scored differently in DSEF?",
-        a: "Banks use adjusted pillar weights: financial health emphasises capital ratios and NPL quality over traditional debt metrics; moat scoring focuses on net interest margin rather than gross margin. This gives a more accurate picture of a bank's competitive strength.",
+        q: "Why are bank stocks judged differently?",
+        a: "A bank earns from lending, not from selling products — so the usual yardsticks don't fit. We lean more on its capital strength and the quality of its loans (how many are going bad) than on ordinary debt or margin measures. That gives a truer read on how solid the bank really is.",
       },
       {
         q: "What are the risks of investing in DSE bank stocks?",
@@ -473,7 +473,7 @@ export const STOCK_LISTS: StockListDef[] = [
       },
       {
         q: "Which DSE bank stocks have the best fundamentals?",
-        a: "The table above ranks all banks by DSEF score. Generally, private commercial banks with lower NPL ratios, consistent ROE above 12%, and a history of paying dividends score the highest.",
+        a: "The list above ranks them for you. As a rule, the strongest are private banks with fewer bad loans, consistent returns, and a steady habit of paying dividends.",
       },
     ],
   },
@@ -483,7 +483,7 @@ export const STOCK_LISTS: StockListDef[] = [
     displayName: "Best Stocks to Buy This Month",
     shortName: "Best Stocks This Month",
     description:
-      "Monthly top picks from the DSE — stocks ranked by a composite of DSEF fundamental score and recent earnings momentum. This list updates continuously to reflect the current market environment.",
+      "This month's top picks from the Dhaka Stock Exchange — companies that are both fundamentally strong and showing fresh earnings momentum right now. Updated continuously to reflect today's market.",
     keywords: [
       "best stocks to buy this month Bangladesh",
       "top DSE stocks this month",
@@ -492,19 +492,19 @@ export const STOCK_LISTS: StockListDef[] = [
       "top performing stocks Bangladesh monthly",
     ],
     icon: "📅",
-    metricLabel: "DSEF Score",
+    metricLabel: "Overall strength",
     metricFormat: "score",
     insightMode: true,
     intro:
-      "Monthly picks combine long-term DSEF fundamental score (60% weight) with short-term EPS momentum (40% weight) — identifying stocks that are both fundamentally strong and showing improving earnings trends right now. This creates a blend of quality and timing that a pure score or a pure momentum screen misses.",
+      "This month's picks blend two things: lasting quality (does the company have strong, steady fundamentals?) and fresh momentum (are its earnings improving right now?). A company that's both solid and on the up rises to the top — a mix that a pure quality screen or a pure momentum screen would each miss on its own.",
     faqs: [
       {
-        q: "How are monthly picks different from the annual best stocks list?",
-        a: "Annual picks focus purely on DSEF fundamental score. Monthly picks add an EPS momentum layer — rewarding stocks with improving earnings this period. A stock can rank higher this month if its recent EPS growth accelerated, even if its long-term score is similar to others.",
+        q: "How is this different from the 'best stocks 2026' list?",
+        a: "The annual list is about lasting quality. This monthly one adds a timing layer — it rewards companies whose earnings are picking up right now, so a stock can rank higher this month if its recent results just got stronger.",
       },
       {
         q: "How often does this list update?",
-        a: "The underlying data updates hourly during trading days. The DSEF scores and EPS data update as new financial disclosures are published, typically during quarterly earnings season.",
+        a: "The prices update through every trading day, and the earnings figures update as companies publish new results — usually during quarterly reporting season.",
       },
       {
         q: "Should I buy all the stocks on this list?",
@@ -518,7 +518,7 @@ export const STOCK_LISTS: StockListDef[] = [
     displayName: "Best Sectors on DSE This Month",
     shortName: "Best Sectors This Month",
     description:
-      "Sector-level ranking of the Dhaka Stock Exchange — showing which sectors have the strongest average DSEF scores, most Strong Buy stocks, and best EPS growth momentum this month.",
+      "Which corners of the Dhaka Stock Exchange are healthiest right now — ranked by the overall strength of the companies inside each sector, plus where earnings growth is strongest this month.",
     keywords: [
       "best sector DSE this month",
       "top sectors Bangladesh stock market",
@@ -527,24 +527,24 @@ export const STOCK_LISTS: StockListDef[] = [
       "best performing sectors Bangladesh",
     ],
     icon: "🗺️",
-    metricLabel: "Avg DSEF Score",
+    metricLabel: "Sector strength",
     metricFormat: "score",
     insightMode: true,
     isSectorPage: true,
     intro:
-      "Sector analysis helps investors identify which areas of the economy are producing the strongest fundamentals on the DSE. A sector with a high average DSEF score has more companies with consistent earnings, healthy balance sheets, and fair valuations — making it a more target-rich environment for stock selection.",
+      "Looking at sectors helps you spot where the good companies are clustered. When a whole sector is healthy — full of firms with steady earnings, sound finances, and fair prices — there are simply more good options to choose from. This page shows where those tailwinds are strongest right now.",
     faqs: [
       {
-        q: "Why does sector matter for DSE investing?",
-        a: "Stocks within the same sector share macro drivers — interest rates affect banks, API prices affect pharma, global demand affects textiles. Understanding which sectors have the strongest fundamentals helps you allocate capital where tailwinds are strongest.",
+        q: "Why does the sector matter when picking stocks?",
+        a: "Companies in the same sector rise and fall together on the big forces — interest rates move banks, raw-material prices move pharma, global demand moves textiles. Knowing which sectors are strongest tells you where to look first.",
       },
       {
-        q: "How is the sector score calculated?",
-        a: "It is the simple average of DSEF scores across all scored companies in that sector. Sectors with more Strong Buy and Good Buy tier companies rank higher. At least 2 companies must be present for a sector to appear.",
+        q: "How is a sector ranked here?",
+        a: "We take the overall strength of every company in the sector and average it. Sectors with more top-rated names rank higher. A sector needs at least two companies to appear.",
       },
       {
-        q: "Does a top-ranked sector mean all its stocks are good?",
-        a: "No. A high-ranking sector has a better average, but individual stocks still vary widely. Use the sector ranking to focus your research, then screen individual stocks using the DSEF score leaderboard.",
+        q: "Does a top sector mean every stock in it is good?",
+        a: "No. A strong sector just has a better average — individual companies still vary a lot. Use it to decide where to look, then check each stock on its own.",
       },
     ],
   },
@@ -554,7 +554,7 @@ export const STOCK_LISTS: StockListDef[] = [
     displayName: "Undervalued DSE Stocks 2026",
     shortName: "Undervalued Stocks 2026",
     description:
-      "Top 15 undervalued stocks on the Dhaka Stock Exchange in 2026 — identified by high DSEF valuation pillar scores. These stocks trade at a discount to their historical P/E and P/B relative to sector peers.",
+      "Solid Dhaka Stock Exchange companies that look cheap right now in 2026 — trading below what their earnings and assets suggest they're worth, both versus their own history and versus their peers.",
     keywords: [
       "undervalued stocks Bangladesh 2026",
       "cheap stocks DSE 2026",
@@ -564,19 +564,19 @@ export const STOCK_LISTS: StockListDef[] = [
       "discounted stocks Bangladesh stock market",
     ],
     icon: "🔍",
-    metricLabel: "DSEF Score",
+    metricLabel: "Overall strength",
     metricFormat: "score",
     insightMode: true,
     intro:
-      "Valuation matters — even strong businesses can be poor investments if bought at the wrong price. The DSEF valuation pillar (P4) scores stocks on their P/E and P/B ratios relative to both their own 5-year history and their sector peers. A high P4 score means the stock is trading cheap by both measures — a classic value investing signal.",
+      "Price matters — even a great company is a poor buy if you overpay. A stock lands on this list when it looks cheap on two counts at once: cheaper than its own track record, and cheaper than similar companies. When both line up, the discount is more believable. We also screen out genuinely broken businesses, so what's left is good companies on sale rather than cheap-for-a-reason traps.",
     faqs: [
       {
-        q: "How does DSEF define 'undervalued'?",
-        a: "A stock is considered undervalued when its current P/E and P/B ratios are below its own 5-year historical average AND below the median for its sector. Both conditions together give high confidence in the discount — avoiding the trap of a structurally declining business that looks cheap for a reason.",
+        q: "What counts as 'undervalued' here?",
+        a: "A company makes the list when its share price looks low both against its own history and against its peers. Needing both keeps out businesses that only look cheap because they're quietly falling apart.",
       },
       {
         q: "Are undervalued stocks always a good buy?",
-        a: "Not automatically. A stock can be cheap because of genuine value — or because the business is deteriorating. That is why this list filters for stocks with an overall DSEF score of at least 35, ensuring the business fundamentals are not broken.",
+        a: "Not automatically. A stock can be cheap for a good reason — a fading business. That's why we only include companies whose fundamentals are still sound, so you're looking at genuine bargains, not value traps.",
       },
       {
         q: "How often do valuations change on the DSE?",
@@ -590,7 +590,7 @@ export const STOCK_LISTS: StockListDef[] = [
     displayName: "High Growth Stocks Bangladesh 2026",
     shortName: "High Growth Stocks 2026",
     description:
-      "Top 15 high-growth stocks on the DSE in 2026 — ranked by DSEF business quality pillar score. These companies show the strongest combination of EPS growth, ROE, and earnings consistency on the exchange.",
+      "The fastest-compounding companies on the Dhaka Stock Exchange in 2026 — names with the most reliable, year-after-year earnings growth, not just one lucky year.",
     keywords: [
       "high growth stocks Bangladesh 2026",
       "best growth stocks DSE 2026",
@@ -599,19 +599,19 @@ export const STOCK_LISTS: StockListDef[] = [
       "best growth shares Dhaka Stock Exchange 2026",
     ],
     icon: "🚀",
-    metricLabel: "DSEF Score",
+    metricLabel: "Overall strength",
     metricFormat: "score",
     insightMode: true,
     intro:
-      "Growth investing on the DSE requires identifying businesses with durable earnings power — not just a single good year. The DSEF business quality pillar (P1) scores companies on 4-5 years of EPS consistency, compound EPS growth rate, return on equity, and net profit margin trend. Stocks at the top of this list are the real compounders of Bangladesh's stock market.",
+      "Real growth investing is about finding businesses that keep getting bigger — not ones that had a single good year. We look for companies with several years of steady profit growth, strong returns on the money they put to work, and improving margins. The names at the top are the genuine compounders of Bangladesh's market.",
     faqs: [
       {
-        q: "What makes a stock a 'high-growth' stock on the DSE?",
-        a: "Our business quality pillar rewards consistent positive EPS (not just one good year), strong CAGR of EPS over 5 years, ROE above 15%, and an improving net profit margin trend. All four together signal a genuine growth business.",
+        q: "What makes a stock a 'high-growth' name here?",
+        a: "We look for profits that have grown consistently over several years (not one fluke year), strong returns on capital, and margins that are widening rather than shrinking. Those together point to a real growth business.",
       },
       {
-        q: "How does growth investing differ from value investing on the DSE?",
-        a: "Value investing focuses on buying cheap — low P/E and P/B. Growth investing focuses on buying quality businesses with rising earnings power, even at a fair price. This list ranks the quality of the business, not its current valuation.",
+        q: "How is growth investing different from value investing?",
+        a: "Value investing is about buying cheap. Growth investing is about buying quality businesses whose earnings keep rising, even at a fair price. This list is about the quality of the business, not how cheap it is today.",
       },
       {
         q: "Do growth stocks pay dividends on the DSE?",
