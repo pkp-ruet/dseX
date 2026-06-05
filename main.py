@@ -11,7 +11,6 @@ from scrapers.company_details import CompanyDetailsScraper
 from scrapers.news import NewsScraper
 from scrapers.cash_flow_scraper import CashFlowScraper
 from scrapers.market_summary import MarketSummaryScraper
-from utils.market_hours import is_market_open, is_intraday_scrape_window, market_session_info
 
 
 def setup_logging():
@@ -157,8 +156,9 @@ def cmd_compute_scores(_args):
 def _trigger_post_scrape_hooks(*, fire_deploy_hook: bool = False):
     """Purge the Next.js market-data tag (and optionally fire the Vercel deploy hook).
 
-    `fire_deploy_hook` defaults to False — intraday scrapes should only revalidate
-    the cache, not trigger a full rebuild every 5 minutes.
+    Called once per day by `scrape-all` after a successful run, so each ISR page is
+    rewritten at most once daily on the next request. `fire_deploy_hook=True` also
+    triggers a full Vercel rebuild.
     """
     import os
     import urllib.request
@@ -185,32 +185,6 @@ def _trigger_post_scrape_hooks(*, fire_deploy_hook: bool = False):
                 print("Vercel deploy hook triggered.")
             except Exception as e:
                 print(f"Warning: Vercel deploy hook failed: {e}")
-
-
-def cmd_scrape_intraday(args):
-    """Light intraday refresh — prices + market summary only. Skips when market is closed."""
-    if not getattr(args, "force", False) and not is_intraday_scrape_window():
-        info = market_session_info()
-        print(
-            f"Outside intraday scrape window (BST {info['server_time_bst']}, "
-            f"trading_day={info['is_trading_day']}). Skipping."
-        )
-        return
-
-    print("=== Intraday step 1/2: Latest prices ===")
-    sp = StockPriceScraper()
-    prices = sp.run()
-    print(f"  Prices for {len(prices)} companies.\n")
-
-    print("=== Intraday step 2/2: DSE market summary ===")
-    ms = MarketSummaryScraper()
-    ms_doc = ms.run()
-    if ms_doc:
-        print(f"  DSEX={ms_doc.get('dsex')}, DSES={ms_doc.get('dses')}, DS30={ms_doc.get('ds30')}")
-    else:
-        print("  Warning: market summary scrape failed.")
-
-    _trigger_post_scrape_hooks(fire_deploy_hook=False)
 
 
 def cmd_scrape_all(args):
@@ -380,16 +354,6 @@ def main():
 
     sub.add_parser("scrape-market-summary", help="Scrape DSE index values and daily market totals")
 
-    intraday_parser = sub.add_parser(
-        "scrape-intraday",
-        help="Light intraday refresh (prices + market summary). Auto-skips when market is closed.",
-    )
-    intraday_parser.add_argument(
-        "--force",
-        action="store_true",
-        help="Run even if the market is closed (testing)",
-    )
-
     sub.add_parser(
         "compute-scores",
         help="Recompute DSEF 5-pillar scores and store them in scores_snapshot",
@@ -417,7 +381,6 @@ def main():
         "scrape-cashflow":       cmd_scrape_cashflow,
         "scrape-news":           cmd_scrape_news,
         "scrape-market-summary": cmd_scrape_market_summary,
-        "scrape-intraday":       cmd_scrape_intraday,
         "compute-scores":        cmd_compute_scores,
         "scrape-all":            cmd_scrape_all,
     }
