@@ -16,7 +16,6 @@ import {
   type DailyTipsResponse,
 } from "@/lib/api";
 import HomeHero from "@/components/home/HomeHero";
-import LiveMarketBand from "@/components/home/LiveMarketBand";
 import FeatureShowcase from "@/components/home/FeatureShowcase";
 import FinalCTA from "@/components/home/FinalCTA";
 import HomePersonalizationGate from "@/components/home/HomePersonalizationGate";
@@ -79,18 +78,6 @@ async function HeroSection({ promise }: { promise: Promise<ScoresResponse | null
   if (!scores) return <HeroFallback />;
   const top = sortedByScore(allItemsFromScores(scores));
   return <HomeHero topItems={top} />;
-}
-
-async function MarketSection({
-  indexPromise,
-  moversPromise,
-}: {
-  indexPromise: Promise<MarketIndexData | null>;
-  moversPromise: Promise<MarketMoversData | null>;
-}) {
-  const [index, movers] = await Promise.all([indexPromise, moversPromise]);
-  if (!index) return null;
-  return <LiveMarketBand index={index} gainers={movers?.gainers ?? []} />;
 }
 
 async function ShowcaseSection({
@@ -201,12 +188,6 @@ export default function HomePage() {
         <div className="mt-6 sm:mt-8">
           <Suspense fallback={null}>
             <SearchSection promise={scoresPromise} />
-          </Suspense>
-        </div>
-
-        <div className="mt-4 sm:mt-5">
-          <Suspense fallback={<div className="h-40 rounded-2xl bg-[var(--surface-2)] animate-pulse" />}>
-            <MarketSection indexPromise={marketIndexPromise} moversPromise={moversPromise} />
           </Suspense>
         </div>
 
