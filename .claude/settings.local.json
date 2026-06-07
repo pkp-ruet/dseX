@@ -63,7 +63,13 @@
       "Bash(echo \"EXIT:$?\")",
       "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
       "Bash(mkdir -p \"C:\\\\Users\\\\pritom.kumar\\\\.claude\\\\plans\")",
-      "Read(//c/Users/pritom.kumar/.claude/plans/**)"
+      "Read(//c/Users/pritom.kumar/.claude/plans/**)",
+      "Bash(pip --version)",
+      "Bash(python -m uvicorn --version)",
+      "Bash(curl -s -m 10 http://localhost:8000/health)",
+      "Bash(curl -s -m 10 http://localhost:8000/api/scores)",
+      "Bash(sed 's/:\\\\/\\\\/.*@/:\\\\/\\\\/***@/')",
+      "Bash(curl -s -m 10 http://localhost:8000/api/audit)"
     ]
   }
 }

@@ -1,6 +1,6 @@
 @echo off
 echo Starting DSE backend (FastAPI on port 8000)...
-start "DSE Backend" cmd /k "cd /d ""%~dp0"" && uvicorn backend.main:app --reload"
+start "DSE Backend" cmd /k "cd /d ""%~dp0"" && python -m uvicorn backend.main:app --reload"
 
 echo Starting DSE frontend (Next.js on port 3000)...
 start "DSE Frontend" cmd /k "cd /d ""%~dp0frontend"" && set NEXT_PUBLIC_API_URL=http://localhost:8000&& set API_URL=http://localhost:8000&& npm run dev"

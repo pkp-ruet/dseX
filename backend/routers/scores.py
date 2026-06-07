@@ -78,6 +78,8 @@ def get_scores():
         for item in tier_list:
             p = prices.get(item.trading_code, {})
             item.change_pct = _json_float(p.get("change_pct"))
+            if p.get("ltp") is not None:
+                item.ltp = _json_float(p.get("ltp"))
 
     return ScoresResponse(
         algorithm="DSEF",
