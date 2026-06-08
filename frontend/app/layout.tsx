@@ -27,10 +27,12 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import MobileBottomBar from "@/components/layout/MobileBottomBar";
 import GlobalSearch from "@/components/layout/GlobalSearch";
+import MarketDataBanner from "@/components/layout/MarketDataBanner";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { AuthProvider } from "@/context/AuthContext";
 import GoogleAuthProvider from "@/components/auth/GoogleAuthProvider";
 import PingTracker from "@/components/analytics/PingTracker";
+import { getMarketIndex } from "@/lib/api";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com"),
@@ -74,7 +76,16 @@ const ORG_JSON_LD = {
     "Free DSE share price live data, Dhaka Stock Exchange (DSEX) rankings, Bangladesh stock market news, DSE share price list, BD stock market signals, and DSE news — fundamental analysis for every DSE-listed company.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Latest scraped trading date — used by the banner to tell whether today's
+  // post-close prices have loaded yet. Never let a backend hiccup crash the app.
+  let marketDate: string | null = null;
+  try {
+    marketDate = (await getMarketIndex()).date;
+  } catch {
+    marketDate = null;
+  }
+
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable} ${spaceGrotesk.variable}`}>
       <body className="min-h-screen flex flex-col">
@@ -86,7 +97,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <GoogleAuthProvider>
             <PingTracker />
             <Navbar />
-            <main className="flex-1 max-w-5xl mx-auto w-full min-w-0 px-4 sm:px-6 py-6 sm:py-8 pt-14 sm:pt-14 pb-20 md:pb-10">
+            {/* Spacer occupies the fixed navbar's 56px so the banner sits just below it */}
+            <div aria-hidden="true" className="h-14 shrink-0" />
+            <MarketDataBanner marketDate={marketDate} />
+            <main className="flex-1 max-w-5xl mx-auto w-full min-w-0 px-4 sm:px-6 pb-20 md:pb-10">
               {children}
             </main>
             <Footer />

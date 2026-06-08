@@ -56,3 +56,17 @@ export function formatCountdown(seconds: number): string {
   if (m > 0) return `${m}m ${s}s`;
   return `${s}s`;
 }
+
+/** True once the BST clock has reached the 10:00 market open (stays true the rest of the day). */
+export function isAfterOpen(): boolean {
+  return nowBST().getUTCHours() >= 10;
+}
+
+/** Today's date in BST as `YYYY-MM-DD` — matches the `date` strings on scraped market data. */
+export function bstDateStr(): string {
+  const b = nowBST();
+  const y = b.getUTCFullYear();
+  const m = String(b.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(b.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
