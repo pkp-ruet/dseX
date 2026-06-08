@@ -1,48 +1,88 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { isTradingDay, isAfterOpen, isMarketOpen, bstDateStr } from "@/lib/market-hours";
+import { getApiUrl } from "@/lib/api";
+import { isTradingDay, isMarketOpen, isAfterOpen, bstDateStr } from "@/lib/market-hours";
 
-const DISMISS_KEY = "dsex.market-banner-dismissed";
+// Date string ("YYYY-MM-DD") for which the banner is suppressed — set when the
+// user dismisses it OR when the post-close check confirms today's scrape has run.
+// Date-keyed so it resets by itself the next day.
+const HIDE_KEY = "dsex.market-banner-hidden";
 
 /**
- * Prices are only refreshed after market close, so during a live trading day the
- * site shows the previous session's close. Decide whether to surface that.
- *
- * - With a known `marketDate`: show from open until today's prices have loaded
- *   (i.e. the latest scraped date is still behind today). Auto-hides once the
- *   post-close scrape lands today's data.
- * - Without it (API hiccup): fall back to the live-session clock only, where the
- *   data is unambiguously a previous close.
+ * Daily lifecycle:
+ *  - Market hours (10:00–2:30): always show — during the live session the site is
+ *    always serving the previous session's close. No API call needed.
+ *  - After the 2:30 close: check whether the scraper has loaded today's data. Once
+ *    it has, hide for the rest of the day and stop checking. Until then, keep showing.
+ *  - Before open / non-trading days: hidden.
+ *  - Next trading day: resets automatically and the banner reappears at the open.
  */
-function shouldShow(marketDate: string | null): boolean {
-  if (!isTradingDay()) return false;
-  if (marketDate) return isAfterOpen() && marketDate !== bstDateStr();
-  return isMarketOpen();
-}
-
-export default function MarketDataBanner({ marketDate }: { marketDate: string | null }) {
-  // Start hidden so the server render and first client render match; reveal after
-  // mount once the clock + dismissal state (localStorage) are known.
+export default function MarketDataBanner() {
+  // Start hidden so SSR and the first client render match; the effect decides.
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (!shouldShow(marketDate)) return;
-    let dismissedToday = false;
+    if (!isTradingDay()) return;
+
+    const today = bstDateStr();
+
+    // Suppressed for today (dismissed, or post-close check already confirmed the
+    // scrape ran). No API call.
     try {
-      dismissedToday = localStorage.getItem(DISMISS_KEY) === bstDateStr();
+      if (localStorage.getItem(HIDE_KEY) === today) return;
     } catch {
-      /* localStorage unavailable — show anyway */
+      /* localStorage unavailable — continue */
     }
-    if (!dismissedToday) setVisible(true);
-  }, [marketDate]);
+
+    // During the live session: always show, no network call.
+    if (isMarketOpen()) {
+      setVisible(true);
+      return;
+    }
+
+    // Before the open: nothing yet — the banner appears when the market opens.
+    if (!isAfterOpen()) return;
+
+    // After the close: has the scraper loaded today's data yet?
+    let cancelled = false;
+    (async () => {
+      let marketDate: string | null = null;
+      try {
+        const res = await fetch(`${getApiUrl()}/api/market-index`, { cache: "no-store" });
+        if (res.ok) {
+          const data = (await res.json()) as { date?: string | null };
+          marketDate = data?.date ?? null;
+        }
+      } catch {
+        marketDate = null;
+      }
+      if (cancelled) return;
+
+      if (marketDate === today) {
+        // Scrape has run → hide for the rest of the day and stop checking.
+        try {
+          localStorage.setItem(HIDE_KEY, today);
+        } catch {
+          /* ignore */
+        }
+      } else {
+        // Not scraped yet → still showing the previous close.
+        setVisible(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (!visible) return null;
 
   const dismiss = () => {
     setVisible(false);
     try {
-      localStorage.setItem(DISMISS_KEY, bstDateStr());
+      localStorage.setItem(HIDE_KEY, bstDateStr());
     } catch {
       /* ignore */
     }
