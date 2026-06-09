@@ -61,8 +61,16 @@ def _median(vals: list[float]) -> float:
 # Algorithm 2 — DSE Fundamental Stock Scoring (5-pillar)
 # ---------------------------------------------------------------------------
 
+# Growth-curve anchors (annualized % change -> 0..10 score). Shared by the legacy
+# point scorers and the trajectory engine so there's a single source of truth.
+# Note: 0% growth maps to a low score by design — these reward growth, not mere
+# survival (steady profitability is rewarded by the consistency/ROE metrics instead).
+_EPS_GROWTH_ANCHORS = [(-5, 0), (0, 2), (3, 4), (7, 6), (10, 8), (15, 10)]
+_DPS_GROWTH_ANCHORS = [(-5, 0), (0, 3), (5, 6), (10, 8), (15, 10)]
+
+
 def _a2_eps_cagr_score(cagr_pct: float) -> float:
-    return _score(cagr_pct, [(-5, 0), (0, 2), (3, 4), (7, 6), (10, 8), (15, 10)])
+    return _score(cagr_pct, _EPS_GROWTH_ANCHORS)
 
 
 def _a2_roe_score(roe_pct: float) -> float:
@@ -169,11 +177,98 @@ def _a2_pe_pb_ratio_score(ratio: float) -> float:
 
 
 def _a2_dps_cagr_score(cagr_pct: float) -> float:
-    return _score(cagr_pct, [(-5, 0), (0, 3), (5, 6), (10, 8), (15, 10)])
+    return _score(cagr_pct, _DPS_GROWTH_ANCHORS)
 
 
 def _a2_div_yield_score(yield_pct: float) -> float:
     return _score(yield_pct, [(0, 1), (1, 4), (3, 7), (5, 10)])
+
+
+# ---------------------------------------------------------------------------
+# Trajectory quality — distinguish genuine *sustained* growth from a volatile
+# "round-trip" (fell hard, then recovered to roughly the old level). Endpoint-to-
+# endpoint CAGR rewarded both equally; this does not. See _trajectory_score.
+# ---------------------------------------------------------------------------
+
+def _earnings_stability(values: list, is_financial: bool = False) -> float:
+    """Path smoothness of a metric series in [0, 1] (1.0 = steady, 0.0 = violent).
+
+    Driven by the worst single-year drawdown — the 'big downfall' signal. Drawdown
+    (not a coefficient of variation) is used deliberately: it flags a fall-and-recover
+    round-trip while leaving a healthy one-time *step up* alone (a step up has no
+    drawdown). Banks/NBFIs get a wider tolerance band — their earnings swing on
+    loan-loss provisioning, so a moderate dip is normal rather than alarming.
+    """
+    vals = [float(v) for v in values if not _is_nanish(v)]
+    if len(vals) < 3:
+        return 1.0  # too short to judge volatility — don't penalize
+    max_dd = 0.0
+    for prev, curr in zip(vals[:-1], vals[1:]):
+        if prev > 0 and curr < prev:
+            max_dd = max(max_dd, (prev - curr) / prev)
+    dd_tol  = 0.40 if is_financial else 0.25   # drawdown still considered "normal"
+    dd_span = 0.40 if is_financial else 0.35   # extra drawdown beyond tol => fully unstable
+    instability = min(max(0.0, max_dd - dd_tol) / dd_span, 1.0)
+    return max(0.0, 1.0 - instability)
+
+
+def _trajectory_score(pairs: list, anchors: list,
+                      is_financial: bool = False,
+                      turnaround_ok: bool = True,
+                      penalize_volatility: bool = True) -> tuple:
+    """Growth score that rewards a *sustained* rise and penalizes a volatile path.
+    Replaces fragile endpoint-to-endpoint CAGR. Returns (score 0..10, stability 0..1).
+
+    Logic:
+      - A higher current level earns growth credit only when it is *held above the early
+        baseline*: the lower of the last two years must stay above where the series started.
+        A single recovered or one-off spiked year earns none (scored as flat) — this is what
+        catches the "100 -> 20 -> 100" round-trip, whose recent trough fell back to baseline.
+      - The level score is then scaled down by earnings instability, so a down-and-back-up
+        path lands *below* a flat-but-steady one. A genuine "20 -> 100 held" breakout keeps
+        its high level score (a clean step up has no drawdown, so stability stays ~1).
+
+    penalize_volatility=False skips the instability scaling (used for dividends, where a
+    lumpy-but-generous payout is a feature, not a risk — see the DPS call site).
+    """
+    pts = [(int(y), float(v)) for (y, v) in pairs
+           if y is not None and not _is_nanish(v)]
+    stability = _earnings_stability([v for _, v in pts], is_financial)
+    if len(pts) < 2:
+        return 0.0, stability
+
+    vals = [v for _, v in pts]
+    yrs  = [y for y, _ in pts]
+    early = vals[:2] if len(vals) >= 4 else vals[:1]
+    base  = sum(early) / len(early)
+    last2 = vals[-2:]
+    neutral = _score(0.0, anchors)  # the "no growth" mark for this metric
+
+    if base <= 0:
+        # Recovery from a loss/zero base — credit a modest neutral-positive only if
+        # currently profitable (don't fabricate a CAGR off a non-positive base).
+        level = 5.0 if (turnaround_ok and vals[-1] > 0) else neutral
+    elif min(last2) <= base:
+        # The higher level isn't *held above the early baseline*: the lower of the last
+        # two years has fallen back to (or below) where it started. That's a one-year
+        # recovery or a one-off spike, not sustained growth — no growth credit (a true
+        # round-trip is then pushed below flat by the volatility penalty). Genuine
+        # compounders, whose recent trough stays above their early base, are unaffected
+        # even if a single recent year wobbles below the all-time peak.
+        level = neutral
+    else:
+        current = sum(last2) / len(last2)
+        span = max(yrs[-1] - yrs[0], 1)
+        try:
+            cagr = (current / base) ** (1.0 / span) - 1.0
+            level = _score(cagr * 100, anchors)
+        except (ValueError, OverflowError, ZeroDivisionError):
+            level = neutral
+
+    # Volatility penalty pushes a round-trip below flat. When exempt (dividends), only the
+    # sustainability gate applies — lumpiness isn't punished, just denied growth credit.
+    score = level * (0.4 + 0.6 * stability) if penalize_volatility else level
+    return round(score, 4), round(stability, 4)
 
 
 def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict],
@@ -207,25 +302,10 @@ def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict],
         else:
             m1 = 0.0
 
-    # m2: EPS CAGR over actual year span (handles missing years), with explicit turnaround logic
-    if len(eps_pairs) < 2:
-        m2 = 0.0
-    else:
-        (start_year, start_e) = eps_pairs[0]
-        (end_year,   end_e)   = eps_pairs[-1]
-        n = max(end_year - start_year, 1)
-        if start_e > 0 and end_e > 0:
-            try:
-                cagr = (end_e / start_e) ** (1.0 / n) - 1.0
-                m2 = _a2_eps_cagr_score(cagr * 100)
-            except (ZeroDivisionError, ValueError, OverflowError):
-                m2 = 0.0
-        elif start_e <= 0 < end_e:
-            # Turnaround: loss → profit. Award a fixed neutral-positive (don't pretend it's a CAGR)
-            m2 = 5.0
-        else:
-            # End <= 0 → currently unprofitable
-            m2 = 0.0
+    # m2: EPS trajectory — rewards a *sustained* rise, penalizes a volatile "round-trip".
+    # Replaces endpoint-to-endpoint CAGR, which rewarded "fell then recovered to the old
+    # level" identically to genuine growth. eps_stability is reused for the valuation pillar.
+    m2, eps_stability = _trajectory_score(eps_pairs, _EPS_GROWTH_ANCHORS, is_financial)
 
     # m3: ROE 3yr avg with trend bonus/penalty
     roe_vals = []
@@ -244,6 +324,10 @@ def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict],
                 m3 = min(m3 + 1.0, 10.0)
             elif last_half < first_half:
                 m3 = max(m3 - 1.0, 0.0)
+        # Gentle volatility haircut: erratic ROE shouldn't earn full marks even when its
+        # average is high. ROE is a level/quality metric (and lumpy for high-payout names
+        # where equity swings), so the penalty is light — capped at 25%.
+        m3 = round(m3 * (0.75 + 0.25 * _earnings_stability(roe_vals, is_financial)), 4)
     else:
         m3 = 0.0
 
@@ -275,7 +359,7 @@ def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict],
 
     score = m1 * 0.20 + m2 * 0.30 + m3 * 0.30 + m4 * 0.20
     return score, {"p1_eps_consist": m1, "p1_eps_cagr": m2, "p1_roe": m3, "p1_npm_trend": m4,
-                   "eps_yoy_pct": eps_yoy}
+                   "eps_yoy_pct": eps_yoy, "eps_stability": round(eps_stability, 4)}
 
 
 def _a2_pillar2(ext_last5: list[dict], is_financial: bool = False) -> tuple[float, dict]:
@@ -377,27 +461,24 @@ def _a2_pillar3(code: str, ext_last5: list[dict],
 
     if is_financial:
         # For banks/NBFIs: use Net Interest Margin (NII / earning_assets) as the margin metric
-        nim_vals = []
+        margin_vals = []
         for er in ext_last5:
             nii = er.get("net_interest_income")
             ea  = er.get("earning_assets")
             if not _is_nanish(nii) and not _is_nanish(ea) and float(ea) > 0:
-                nim_vals.append(float(nii) / float(ea) * 100)
-        if nim_vals:
-            m1 = _a2_nim_score(sum(nim_vals) / len(nim_vals), _trend(nim_vals))
-        else:
-            m1 = 0.0
+                margin_vals.append(float(nii) / float(ea) * 100)
+        m1 = _a2_nim_score(sum(margin_vals) / len(margin_vals), _trend(margin_vals)) if margin_vals else 0.0
     else:
-        gm_vals = []
+        margin_vals = []
         for er in ext_last5:
             gp  = er.get("gross_profit")
             rev = er.get("revenue")
             if not _is_nanish(gp) and not _is_nanish(rev) and float(rev) > 0:
-                gm_vals.append(float(gp) / float(rev) * 100)
-        if gm_vals:
-            m1 = _a2_gm_score(sum(gm_vals) / len(gm_vals), _trend(gm_vals))
-        else:
-            m1 = 0.0
+                margin_vals.append(float(gp) / float(rev) * 100)
+        m1 = _a2_gm_score(sum(margin_vals) / len(margin_vals), _trend(margin_vals)) if margin_vals else 0.0
+    # Gentle volatility haircut so a violently swinging margin can't max out on its average.
+    if margin_vals:
+        m1 = round(m1 * (0.75 + 0.25 * _earnings_stability(margin_vals, is_financial)), 4)
 
     rev_vals = [rv for er in ext_last5
                 for rv in [_effective_revenue(er, is_financial)] if rv is not None]
@@ -433,9 +514,14 @@ def _a2_pillar3(code: str, ext_last5: list[dict],
 
 def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
                 sector_median_pe: Optional[float] = None,
-                sector_median_pb: Optional[float] = None) -> tuple[float, dict]:
+                sector_median_pb: Optional[float] = None,
+                vol_damp: float = 1.0) -> tuple[float, dict]:
     """Valuation pillar. Sector medians passed in are already self-excluded by the caller.
-    When self-historical data is missing, sector-relative is used at full weight (no 0.4 cap)."""
+    When self-historical data is missing, sector-relative is used at full weight (no 0.4 cap).
+
+    vol_damp (<=1.0) mildly discounts the cheapness reward when earnings are volatile —
+    a stock that's cheap *because* its earnings are erratic shouldn't get full credit for
+    looking cheap ('cheap for a reason'). Derived from EPS stability by the caller."""
     if ltp is None or ltp <= 0:
         return 0.0, {"p4_pe": 0.0, "p4_pb": 0.0}
 
@@ -516,9 +602,10 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
         else:
             pb_score = 0.0
 
-    score = pe_score * 0.6 + pb_score * 0.4
+    score = (pe_score * 0.6 + pb_score * 0.4) * vol_damp
     return score, {
         "p4_pe": round(pe_score, 2), "p4_pb": round(pb_score, 2),
+        "p4_vol_damp": round(vol_damp, 4),
         "current_pe": round(current_pe, 2) if current_pe is not None else None,
         "current_pb": round(current_pb, 2) if current_pb is not None else None,
         "own_avg_pe": round(own_avg_pe, 2) if own_avg_pe is not None else None,
@@ -527,7 +614,7 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
 
 
 def _a2_pillar5(fin_last5: list[dict], ltp: Optional[float],
-                face: Optional[float]) -> tuple[float, dict]:
+                face: Optional[float], is_financial: bool = False) -> tuple[float, dict]:
     # Face value is required to convert "cash_dividend_pct" (% of face) into actual DPS.
     # Default of 10 silently understates DPS by 10× for face-100 stocks — bail out instead.
     if _is_nanish(face) or float(face) <= 0:
@@ -543,18 +630,15 @@ def _a2_pillar5(fin_last5: list[dict], ltp: Optional[float],
     ]
     dps_vals = [d for _, d in dps_pairs]
 
-    # m1: DPS CAGR from first non-zero to last non-zero dividend year, over actual year gap.
-    # Treats "[0, 5, 8, 10, 12]" (skipped year 1) consistently with "[5, 0, 0, 10, 12]".
+    # m1: DPS trajectory — same sustained-growth gate as EPS, but volatility is NOT
+    # penalized: lumpy-but-generous payouts (big special dividends some years) are a feature,
+    # rewarded via yield/consistency, not a risk. So a dividend that dipped and recovered to
+    # (or below) its old level simply earns no *growth* credit (neutral), without being
+    # pushed below flat. Operates on non-zero years so a skipped year doesn't distort the base.
     nonzero_pairs = [(y, d) for y, d in dps_pairs if d > 0]
     if len(nonzero_pairs) >= 2:
-        (start_year, start_d) = nonzero_pairs[0]
-        (end_year,   end_d)   = nonzero_pairs[-1]
-        n = max(end_year - start_year, 1)
-        try:
-            cagr = (end_d / start_d) ** (1.0 / n) - 1.0
-            m1 = _a2_dps_cagr_score(cagr * 100)
-        except (ZeroDivisionError, ValueError, OverflowError):
-            m1 = 0.0
+        m1, _ = _trajectory_score(nonzero_pairs, _DPS_GROWTH_ANCHORS, is_financial,
+                                  penalize_volatility=False)
     else:
         m1 = 0.0
 
@@ -856,8 +940,11 @@ def _compute_scores_df() -> pd.DataFrame:
         p1, sub1 = _a2_pillar1(fin_rows, ext_last5, is_financial)
         p2, sub2 = _a2_pillar2(ext_last5, is_financial)
         p3, sub3 = _a2_pillar3(code, ext_last5, sector_rank_score, is_financial)
-        p4, sub4 = _a2_pillar4(fin_rows, ltp, sect_pe_for_self, sect_pb_for_self)
-        p5, sub5 = _a2_pillar5(fin_rows, ltp, face)
+        # Cheap-for-a-reason: mildly discount the valuation reward when EPS is volatile.
+        eps_stability = sub1.get("eps_stability", 1.0)
+        p4_vol_damp = 1.0 - 0.5 * (1.0 - eps_stability)
+        p4, sub4 = _a2_pillar4(fin_rows, ltp, sect_pe_for_self, sect_pb_for_self, vol_damp=p4_vol_damp)
+        p5, sub5 = _a2_pillar5(fin_rows, ltp, face, is_financial)
 
         final = p1 * 0.30 + p2 * 0.20 + p3 * 0.20 + p4 * 0.15 + p5 * 0.15
 

@@ -117,7 +117,7 @@ export function pillarInterpretation(pillarKey: string, score: number | null): s
 /** Tooltip explanations for sub-metrics */
 export const SUB_METRIC_TOOLTIPS: Record<string, string> = {
   p1_eps_consist: "How many of the last 5 years had positive EPS",
-  p1_eps_cagr: "Compound annual growth rate of EPS over 5 years",
+  p1_eps_cagr: "Sustained EPS growth — a fall-then-recover round-trip scores below steady growth, and a one-off spike isn't counted until it's held two years",
   p1_roe: "Average return on equity over 3 years",
   p1_npm_trend: "Net profit margin trend direction",
   p2_de: "Debt-to-equity ratio (lower is better)",
@@ -130,7 +130,7 @@ export const SUB_METRIC_TOOLTIPS: Record<string, string> = {
   p3_capex: "Capital expenditure relative to revenue",
   p4_pe: "P/E ratio vs own history and sector peers",
   p4_pb: "P/B ratio vs own history and sector peers",
-  p5_dps_cagr: "Dividend per share growth rate",
+  p5_dps_cagr: "Sustained dividend growth — a cut-then-restore round-trip back to the old payout isn't counted as growth",
   p5_consist: "Number of years dividends were paid",
   p5_yield: "Current dividend yield score",
 };

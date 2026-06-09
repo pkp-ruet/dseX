@@ -4,16 +4,31 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
-type TemplateKey = "rankings" | "stock" | "market" | "portfolio";
+type TemplateKey = "top-ranked" | "top-20" | "rankings" | "stock" | "market" | "portfolio";
 
 type Template = {
   key: TemplateKey;
   title: string;
   description: string;
   needsCode?: boolean;
+  aspect?: "square" | "portrait";
 };
 
 const TEMPLATES: Template[] = [
+  {
+    key: "top-ranked",
+    title: "Top 10 Ranked (Portrait)",
+    description:
+      "Top 10 ranked DSE stocks, price only. 4:5 portrait (1080×1350) — best footprint in the Facebook feed.",
+    aspect: "portrait",
+  },
+  {
+    key: "top-20",
+    title: "DSE Top 20 (Portrait)",
+    description:
+      "Top 5 of the DSE Top 20 — this week's 7-day momentum movers with returns. 4:5 portrait.",
+    aspect: "portrait",
+  },
   {
     key: "rankings",
     title: "Top Rankings",
@@ -66,6 +81,8 @@ export default function AdminImagesClient() {
   const [stockCode, setStockCode] = useState("GP");
   const [stockCodeDraft, setStockCodeDraft] = useState("GP");
   const [versions, setVersions] = useState<Record<TemplateKey, number>>({
+    "top-ranked": 1,
+    "top-20": 1,
     rankings: 1,
     stock: 1,
     market: 1,
@@ -82,6 +99,8 @@ export default function AdminImagesClient() {
 
   const urls = useMemo(() => {
     return {
+      "top-ranked": buildUrl("top-ranked", stockCode, versions["top-ranked"]),
+      "top-20": buildUrl("top-20", stockCode, versions["top-20"]),
       rankings:  buildUrl("rankings",  stockCode, versions.rankings),
       stock:     buildUrl("stock",     stockCode, versions.stock),
       market:    buildUrl("market",    stockCode, versions.market),
@@ -128,9 +147,9 @@ export default function AdminImagesClient() {
         <p className="rank-page-eyebrow">// ADMIN</p>
         <h1 className="rank-page-title">Promo Images</h1>
         <p className="text-sm text-[var(--text-muted)] mt-2">
-          Square 1080×1080 cards for Facebook posts. Each image bakes in
-          <span className="font-semibold"> topstockbd.com</span> so the URL
-          travels with the share.
+          Portrait 1080×1350 and square 1080×1080 cards for Facebook. Each image
+          bakes in <span className="font-semibold">topstockbd.com</span> so the
+          URL travels with the share.
         </p>
       </div>
 
@@ -184,7 +203,7 @@ export default function AdminImagesClient() {
               </div>
             )}
 
-            <div className="bg-white border border-[var(--border)] rounded-xl overflow-hidden aspect-square flex items-center justify-center">
+            <div className={`bg-white border border-[var(--border)] rounded-xl overflow-hidden ${t.aspect === "portrait" ? "aspect-[4/5]" : "aspect-square"} flex items-center justify-center`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 key={urls[t.key]}
