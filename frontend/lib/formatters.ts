@@ -17,6 +17,35 @@ export function millions(value: number | null | undefined): string {
   return `${value.toFixed(1)}M`;
 }
 
+/**
+ * Format a money amount given in MILLIONS of BDT as crore (the standard
+ * Bangladeshi unit). 1 crore = 10 million, so cr = mn / 10.
+ *   26616.69 → "৳2,662 Cr" · 825.5 → "৳82.6 Cr" · 5 → "৳0.50 Cr"
+ */
+export function crore(valueMn: number | null | undefined): string {
+  if (valueMn == null || isNaN(valueMn)) return "--";
+  const cr = valueMn / 10;
+  const abs = Math.abs(cr);
+  const sign = cr < 0 ? "-" : "";
+  if (abs >= 100) return `${sign}৳${Math.round(abs).toLocaleString("en-US")} Cr`;
+  if (abs >= 1)   return `${sign}৳${abs.toFixed(1)} Cr`;
+  return `${sign}৳${abs.toFixed(2)} Cr`;
+}
+
+/**
+ * Format a raw share/unit count as crore. 1 crore = 10,000,000 (1e7).
+ *   279_933_066 → "28.0 Cr" · 5_000_000 → "0.50 Cr"
+ */
+export function croreShares(value: number | null | undefined): string {
+  if (value == null || isNaN(value)) return "--";
+  const cr = value / 1e7;
+  const abs = Math.abs(cr);
+  const sign = cr < 0 ? "-" : "";
+  if (abs >= 100) return `${sign}${Math.round(abs).toLocaleString("en-US")} Cr`;
+  if (abs >= 10)  return `${sign}${abs.toFixed(1)} Cr`;
+  return `${sign}${abs.toFixed(2)} Cr`;
+}
+
 /** Return +/- prefix string for change values */
 export function signed(value: number | null | undefined, decimals = 2): string {
   if (value == null) return "--";

@@ -1,4 +1,5 @@
 import type { CompanyDetail } from "@/lib/api";
+import { crore } from "@/lib/formatters";
 
 interface Props {
   detail: CompanyDetail;
@@ -8,18 +9,6 @@ function toNum(v: unknown): number | null {
   if (v == null) return null;
   const n = Number(v);
   return isNaN(n) ? null : n;
-}
-
-/** Format a value already in millions of BDT → "৳500M" or "৳1.2B". */
-function fmtMn(v: number | null): string {
-  if (v == null) return "--";
-  const abs = Math.abs(v);
-  const sign = v < 0 ? "-" : "";
-  if (abs >= 1000) {
-    const b = abs / 1000;
-    return `${sign}৳${b >= 10 ? b.toFixed(0) : b.toFixed(1)}B`;
-  }
-  return `${sign}৳${Math.round(abs)}M`;
 }
 
 export default function KeyNumbers({ detail }: Props) {
@@ -63,12 +52,12 @@ export default function KeyNumbers({ detail }: Props) {
     },
     {
       label: "Reserve & Surplus",
-      value: fmtMn(reserve),
+      value: crore(reserve),
       desc: "Company's accumulated savings",
     },
     {
       label: "Total Loan",
-      value: fmtMn(loan),
+      value: crore(loan),
       desc: "Outstanding debt the company carries",
       tone: reserve != null && loan != null && reserve > 0 && loan > 2 * reserve ? "var(--watch)" : undefined,
     },

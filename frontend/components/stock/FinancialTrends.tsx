@@ -7,6 +7,7 @@ import ChartCard from "@/components/stock/ChartCard";
 import {
   normalizeExtFinancials, revenueSeries, marginSeries, debtEquitySeries, cashQualitySeries,
 } from "@/lib/stock-metrics";
+import { crore } from "@/lib/formatters";
 
 interface Props {
   extFinancials: Record<string, unknown>[];
@@ -20,14 +21,6 @@ const TIP_STYLE = {
   background: "var(--surface)",
   color: "var(--text)",
 };
-
-function fmtMn(v: number | null | undefined): string {
-  if (v == null) return "--";
-  const abs = Math.abs(v);
-  const sign = v < 0 ? "-" : "";
-  if (abs >= 1000) return `${sign}৳${(abs / 1000).toFixed(1)}B`;
-  return `${sign}৳${Math.round(abs)}M`;
-}
 
 export default function FinancialTrends({ extFinancials }: Props) {
   const [open, setOpen] = useState(false);
@@ -102,7 +95,7 @@ export default function FinancialTrends({ extFinancials }: Props) {
                   <CartesianGrid vertical={false} stroke="var(--border)" strokeOpacity={0.8} />
                   <XAxis dataKey="year" tick={TICK} axisLine={false} tickLine={false} />
                   <YAxis hide />
-                  <Tooltip contentStyle={TIP_STYLE} formatter={(v: number) => [fmtMn(v), "Revenue"]} />
+                  <Tooltip contentStyle={TIP_STYLE} formatter={(v: number) => [crore(v), "Revenue"]} />
                   <Bar dataKey="value" radius={[6, 6, 0, 0]} fill="var(--primary)" />
                 </BarChart>
               </ResponsiveContainer>
@@ -132,7 +125,7 @@ export default function FinancialTrends({ extFinancials }: Props) {
                   <CartesianGrid vertical={false} stroke="var(--border)" strokeOpacity={0.8} />
                   <XAxis dataKey="year" tick={TICK} axisLine={false} tickLine={false} />
                   <YAxis hide />
-                  <Tooltip contentStyle={TIP_STYLE} formatter={(v: number, n: string) => [fmtMn(v), n === "debt" ? "Debt" : "Equity"]} />
+                  <Tooltip contentStyle={TIP_STYLE} formatter={(v: number, n: string) => [crore(v), n === "debt" ? "Debt" : "Equity"]} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                   <Bar dataKey="equity" radius={[6, 6, 0, 0]} fill="#15803D" />
                   <Bar dataKey="debt" radius={[6, 6, 0, 0]} fill="#DC2626" />

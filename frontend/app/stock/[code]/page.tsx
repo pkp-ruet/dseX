@@ -9,6 +9,7 @@ import PriceChart from "@/components/stock/PriceChart";
 import VerdictHero from "@/components/stock/VerdictHero";
 import HealthCheck from "@/components/stock/HealthCheck";
 import ValuationPanel from "@/components/stock/ValuationPanel";
+import KeyNumbers from "@/components/stock/KeyNumbers";
 import FinancialTrends from "@/components/stock/FinancialTrends";
 import MomentumStrip from "@/components/stock/MomentumStrip";
 import SignalBoard from "@/components/stock/SignalBoard";
@@ -164,6 +165,7 @@ export default async function StockDetailPage({ params }: PageProps) {
     { id: "verdict", label: "Verdict" },
     ...(hasHealth ? [{ id: "health", label: "Health" }] : []),
     ...(hasValuation ? [{ id: "valuation", label: "Value" }] : []),
+    ...(hasFinancials ? [{ id: "numbers", label: "Numbers" }] : []),
     ...(hasFinancials ? [{ id: "financials", label: "Financials" }] : []),
     ...(hasMomentum ? [{ id: "momentum", label: "Momentum" }] : []),
     ...(hasSignals ? [{ id: "signals", label: "Signals" }] : []),
@@ -238,6 +240,13 @@ export default async function StockDetailPage({ params }: PageProps) {
           scoreRow={score_row}
           valuation={valuation}
         />
+      )}
+
+      {/* Key Numbers — the raw figures behind the verdict (EPS, P/E, yield, reserve, loan) */}
+      {hasFinancials && (
+        <div id="numbers" className="scroll-mt-[112px]">
+          <KeyNumbers detail={detail} />
+        </div>
       )}
 
       {/* Profits & Dividends + Financial Trends */}

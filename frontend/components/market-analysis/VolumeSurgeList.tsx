@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { StockListItem } from "@/lib/stock-lists";
-import { taka, abbrev } from "@/lib/formatters";
+import { taka, croreShares } from "@/lib/formatters";
 
 interface Props {
   items: StockListItem[];
@@ -36,7 +36,7 @@ export default function VolumeSurgeList({ items }: Props) {
               </span>
               <span className="intel-ltp">{taka(item.ltp)}</span>
               <span className="intel-metric" style={{ color: "#7C3AED", textAlign: "right" }}>
-                {item.metric_value != null ? abbrev(item.metric_value) : "—"}
+                {item.metric_value != null ? croreShares(item.metric_value) : "—"}
               </span>
             </Link>
           ))}

@@ -1511,7 +1511,7 @@ async function RenderTopRanked() {
               alignItems: "center",
               background: "white",
               borderRadius: 20,
-              padding: "13px 22px",
+              padding: "11px 24px",
               border: "1px solid #EEF2F6",
               boxShadow: "0 6px 18px rgba(2,6,23,0.05)",
             }}
@@ -1521,12 +1521,12 @@ async function RenderTopRanked() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                width: 52,
-                height: 52,
-                borderRadius: 14,
+                width: 56,
+                height: 56,
+                borderRadius: 15,
                 backgroundImage: rankStyle(i).bg,
                 color: rankStyle(i).fg,
-                fontSize: 26,
+                fontSize: 28,
                 fontWeight: 800,
               }}
             >
@@ -1544,10 +1544,11 @@ async function RenderTopRanked() {
               <div
                 style={{
                   display: "flex",
-                  fontSize: 30,
+                  fontSize: 34,
                   fontWeight: 800,
                   color: "#0F172A",
                   lineHeight: 1.05,
+                  letterSpacing: -0.3,
                 }}
               >
                 {s.trading_code}
@@ -1555,9 +1556,10 @@ async function RenderTopRanked() {
               <div
                 style={{
                   display: "flex",
-                  fontSize: 16,
-                  color: "#64748B",
-                  marginTop: 2,
+                  fontSize: 18,
+                  fontWeight: 500,
+                  color: "#475569",
+                  marginTop: 4,
                   maxWidth: 520,
                   whiteSpace: "nowrap",
                   overflow: "hidden",
@@ -1570,11 +1572,11 @@ async function RenderTopRanked() {
             <div
               style={{
                 display: "flex",
-                background: "#F0FDFA",
-                border: "1px solid #CCFBF1",
+                background: "#ECFDF5",
+                border: "1px solid #A7F3D0",
                 borderRadius: 12,
                 padding: "9px 16px",
-                fontSize: 26,
+                fontSize: 32,
                 fontWeight: 800,
                 color: "#0F766E",
               }}

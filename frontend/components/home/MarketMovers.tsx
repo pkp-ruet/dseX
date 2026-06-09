@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { taka, pct, formatDate, abbrev } from "@/lib/formatters";
+import { taka, pct, formatDate, crore } from "@/lib/formatters";
 
 export interface MarketMoverItem {
   trading_code: string;
@@ -41,7 +41,7 @@ function MoverRow({
             ? `${changePct >= 0 ? "+" : ""}${pct(changePct)}`
             : "—"
           : item.value_mn != null
-            ? `৳${abbrev(item.value_mn)}M`
+            ? crore(item.value_mn)
             : "—"}
       </span>
     </Link>

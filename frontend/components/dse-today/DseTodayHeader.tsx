@@ -1,4 +1,4 @@
-import { abbrev, formatDate, pct, signed } from "@/lib/formatters";
+import { abbrev, crore, croreShares, formatDate, pct, signed } from "@/lib/formatters";
 import type { MarketIndexData } from "@/lib/api";
 
 type Condition = "falling" | "rising" | "sideways" | "unknown";
@@ -104,13 +104,13 @@ export default function DseTodayHeader({ header, condition }: Props) {
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
         <StatTile
           label="Total Volume"
-          value={header.total_volume != null ? abbrev(header.total_volume) : "—"}
+          value={header.total_volume != null ? croreShares(header.total_volume) : "—"}
           sub={header.volume_change_pct != null ? `${signed(header.volume_change_pct, 2)}% DoD` : undefined}
           subColor={volSubColor}
         />
         <StatTile
-          label="Turnover (৳M)"
-          value={header.total_value_mn != null ? abbrev(header.total_value_mn * 1_000_000).replace(/\.0$/, "") : "—"}
+          label="Turnover"
+          value={header.total_value_mn != null ? crore(header.total_value_mn) : "—"}
           sub={header.turnover_change_pct != null ? `${signed(header.turnover_change_pct, 2)}% DoD` : undefined}
           subColor={turnSubColor}
         />

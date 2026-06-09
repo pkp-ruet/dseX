@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { abbrev, signed, taka } from "@/lib/formatters";
+import { crore, croreShares, signed, taka } from "@/lib/formatters";
 import type { DseTodayTableItem } from "@/lib/api";
 
 type Axis = "volume" | "value" | "price" | "change";
@@ -77,7 +77,7 @@ export default function DseTodayTable({ rows }: { rows: DseTodayTableItem[] }) {
               <th className="px-3 py-2 text-right">LTP</th>
               <th className="px-3 py-2 text-right">Chg %</th>
               <th className="px-3 py-2 text-right">Volume</th>
-              <th className="px-3 py-2 text-right">Value (M)</th>
+              <th className="px-3 py-2 text-right">Value (Cr)</th>
             </tr>
           </thead>
           <tbody>
@@ -110,10 +110,10 @@ export default function DseTodayTable({ rows }: { rows: DseTodayTableItem[] }) {
                     {r.change_pct != null ? `${signed(r.change_pct, 2)}%` : "—"}
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums text-[var(--text)]">
-                    {r.volume != null ? abbrev(r.volume) : "—"}
+                    {r.volume != null ? croreShares(r.volume) : "—"}
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums text-[var(--text)]">
-                    {r.value_mn != null ? abbrev(r.value_mn) : "—"}
+                    {r.value_mn != null ? crore(r.value_mn) : "—"}
                   </td>
                 </tr>
               );

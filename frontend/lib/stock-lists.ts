@@ -1,3 +1,5 @@
+import { crore, croreShares } from "@/lib/formatters";
+
 export interface StockListItem {
   trading_code: string;
   company_name: string | null;
@@ -47,15 +49,11 @@ export function formatMetric(value: number | null, format: StockListDef["metricF
     case "percent":
       return `${value.toFixed(2)}%`;
     case "currency":
-      return value >= 1000
-        ? `৳${(value / 1000).toFixed(1)}B`
-        : `৳${value.toFixed(0)}M`;
+      // value is in millions of BDT (e.g. market cap, net profit) → crore
+      return crore(value);
     case "volume":
-      return value >= 1_000_000
-        ? `${(value / 1_000_000).toFixed(2)}M`
-        : value >= 1_000
-        ? `${(value / 1_000).toFixed(1)}K`
-        : value.toFixed(0);
+      // raw share count → crore
+      return croreShares(value);
     case "number":
     default:
       return value.toFixed(2);
@@ -145,7 +143,7 @@ export const STOCK_LISTS: StockListDef[] = [
       "largest profit DSE stocks",
     ],
     icon: "🏆",
-    metricLabel: "Net Profit (Mn)",
+    metricLabel: "Net Profit (Cr)",
     metricFormat: "currency",
     apiKey: "top_profitable",
     intro:
@@ -179,7 +177,7 @@ export const STOCK_LISTS: StockListDef[] = [
       "top DSE stocks 2025",
     ],
     icon: "🇧🇩",
-    metricLabel: "Market Cap (Mn)",
+    metricLabel: "Market Cap (Cr)",
     metricFormat: "currency",
     apiKey: "top_market_cap",
     intro:
@@ -213,7 +211,7 @@ export const STOCK_LISTS: StockListDef[] = [
       "Bangladesh blue chip stocks",
     ],
     icon: "🏦",
-    metricLabel: "Market Cap (Mn)",
+    metricLabel: "Market Cap (Cr)",
     metricFormat: "currency",
     apiKey: "top_market_cap",
     intro:

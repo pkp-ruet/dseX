@@ -1,5 +1,5 @@
 import type { MarketIndexData } from "@/lib/api";
-import { taka, pct, millions, signed } from "@/lib/formatters";
+import { taka, pct, crore, croreShares, signed } from "@/lib/formatters";
 
 interface Props {
   data: MarketIndexData;
@@ -88,7 +88,7 @@ export default function MarketPulseStrip({ data }: Props) {
               <span className="text-xs text-[var(--text-muted)]">Volume</span>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold text-[var(--text)]">
-                  {data.total_volume != null ? (data.total_volume / 1e6).toFixed(1) + "M" : "—"}
+                  {data.total_volume != null ? croreShares(data.total_volume) : "—"}
                 </span>
                 <ChangeChip value={data.volume_change_pct ?? null} />
               </div>
@@ -97,7 +97,7 @@ export default function MarketPulseStrip({ data }: Props) {
               <span className="text-xs text-[var(--text-muted)]">Turnover</span>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold text-[var(--text)]">
-                  {data.total_value_mn != null ? millions(data.total_value_mn) : "—"}
+                  {data.total_value_mn != null ? crore(data.total_value_mn) : "—"}
                 </span>
                 <ChangeChip value={data.turnover_change_pct ?? null} />
               </div>

@@ -3,7 +3,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid, LabelList,
 } from "recharts";
 import { profitTrendCaption, epsCaption, dividendStreakCaption } from "@/lib/plain-language";
-import { formatDate } from "@/lib/formatters";
+import { formatDate, crore } from "@/lib/formatters";
 import type { DividendDeclaration } from "@/lib/api";
 import ChartCard from "@/components/stock/ChartCard";
 
@@ -20,18 +20,6 @@ function toNum(v: unknown): number | null {
 }
 
 /** Format profit (input in millions of BDT) → "৳500M" or "৳1.2B". */
-function fmtProfit(v: number | null | undefined): string {
-  if (v == null) return "--";
-  const abs = Math.abs(v);
-  const sign = v < 0 ? "-" : "";
-  if (abs >= 1000) {
-    const b = abs / 1000;
-    return `${sign}৳${b >= 10 ? b.toFixed(0) : b.toFixed(1)}B`;
-  }
-  if (abs >= 1) return `${sign}৳${Math.round(abs)}M`;
-  return `${sign}৳${abs.toFixed(2)}M`;
-}
-
 /** Format EPS (BDT per share) → "৳21.9" or "৳150". */
 function fmtEps(v: number | null | undefined): string {
   if (v == null) return "--";
@@ -119,13 +107,13 @@ export default function ProfitsAndDividends({ financials, extFinancials, declara
                 <Tooltip
                   contentStyle={TIP_STYLE}
                   cursor={{ fill: "rgba(15,23,42,0.05)" }}
-                  formatter={(v: number) => [fmtProfit(v), "Profit"]}
+                  formatter={(v: number) => [crore(v), "Profit"]}
                 />
                 <Bar dataKey="profit" radius={[6, 6, 0, 0]}>
                   <LabelList
                     dataKey="profit"
                     position="top"
-                    formatter={(v: number) => fmtProfit(v)}
+                    formatter={(v: number) => crore(v)}
                     style={{ fontSize: 11, fontWeight: 700, fill: "#0F172A" }}
                   />
                   {profitData.map((d, i) => (

@@ -1,5 +1,6 @@
 import type { MomentumSnapshot } from "@/lib/api";
 import { momentumSummary, type MomentumTone } from "@/lib/plain-language";
+import { crore } from "@/lib/formatters";
 
 interface Props {
   momentum: MomentumSnapshot | null;
@@ -135,7 +136,7 @@ export default function MomentumStrip({ momentum }: Props) {
 
       {turnover != null && (
         <p className="text-xs mt-3" style={{ color: "var(--text-muted)" }}>
-          Trades around ৳{turnover.toFixed(1)}M a day on average over the past week.
+          Trades around {crore(turnover)} a day on average over the past week.
         </p>
       )}
     </section>
