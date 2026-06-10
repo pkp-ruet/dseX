@@ -675,80 +675,20 @@ export interface PortfolioHolding {
   added_at: string;
 }
 
-export interface PortfolioTransaction {
-  id: string;
-  trading_code: string;
-  side: "buy" | "sell";
-  price: number;
-  qty: number;
-  fee: number;
-  date: string; // YYYY-MM-DD
-  created_at?: string;
-}
-
-export interface RealizedEntry {
-  trading_code: string;
-  realized_pnl: number;
-  sold_qty: number;
-  first_buy_date: string | null;
-  last_sell_date: string | null;
-}
-
-export interface RealizedSummary {
-  total: number;
-  by_code: RealizedEntry[];
-}
-
 export interface PortfolioResponse {
   holdings: PortfolioHolding[];
-  transactions: PortfolioTransaction[];
-  realized: RealizedSummary;
 }
 
 export async function apiGetPortfolio(): Promise<PortfolioResponse> {
   return apiAuthFetch<PortfolioResponse>("/api/user/portfolio");
 }
 
-export interface TransactionInput {
-  trading_code: string;
-  side: "buy" | "sell";
-  price: number;
-  qty: number;
-  fee?: number;
-  date?: string;
-}
-
-export async function apiAddTransaction(
-  data: TransactionInput,
-): Promise<PortfolioResponse & { transaction: PortfolioTransaction }> {
-  return apiAuthFetch("/api/user/portfolio/transactions", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-}
-
-export async function apiUpdateTransaction(
-  id: string,
-  data: Partial<Omit<TransactionInput, "trading_code">>,
-): Promise<PortfolioResponse & { transaction: PortfolioTransaction }> {
-  return apiAuthFetch(`/api/user/portfolio/transactions/${id}`, {
-    method: "PUT",
-    body: JSON.stringify(data),
-  });
-}
-
-export async function apiDeleteTransaction(id: string): Promise<PortfolioResponse> {
-  return apiAuthFetch(`/api/user/portfolio/transactions/${id}`, {
-    method: "DELETE",
-  });
-}
-
 export async function apiAddHolding(data: {
   trading_code: string;
   buy_price: number;
   qty: number;
-}): Promise<{ holding: PortfolioHolding }> {
-  return apiAuthFetch<{ holding: PortfolioHolding }>("/api/user/portfolio/holdings", {
+}): Promise<{ holding: PortfolioHolding; holdings: PortfolioHolding[] }> {
+  return apiAuthFetch("/api/user/portfolio/holdings", {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -757,26 +697,17 @@ export async function apiAddHolding(data: {
 export async function apiUpdateHolding(
   id: string,
   data: { buy_price?: number; qty?: number },
-): Promise<{ holding: PortfolioHolding }> {
-  return apiAuthFetch<{ holding: PortfolioHolding }>(`/api/user/portfolio/holdings/${id}`, {
+): Promise<{ holding: PortfolioHolding; holdings: PortfolioHolding[] }> {
+  return apiAuthFetch(`/api/user/portfolio/holdings/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
   });
 }
 
-export async function apiDeleteHolding(id: string): Promise<void> {
-  const token = getToken();
-  const res = await fetch(`${getApiUrl()}/api/user/portfolio/holdings/${id}`, {
+export async function apiDeleteHolding(id: string): Promise<{ holdings: PortfolioHolding[] }> {
+  return apiAuthFetch(`/api/user/portfolio/holdings/${id}`, {
     method: "DELETE",
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
-  if (res.status === 401) {
-    logout();
-    throw new Error("AUTH_EXPIRED");
-  }
-  if (!res.ok && res.status !== 204) {
-    throw new Error(`Delete failed: ${res.status}`);
-  }
 }
 
 // ---------------------------------------------------------------------------
