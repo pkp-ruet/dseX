@@ -19,7 +19,7 @@ export default function DailyPicksCard({ picks }: { picks: RecommendedStock[] })
           return (
             <Link
               key={p.trading_code}
-              href={`/stock/${p.trading_code}`}
+              prefetch={false} href={`/stock/${p.trading_code}`}
               className="group relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-[var(--border)] p-3.5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[var(--primary)] hover:shadow-xl"
               style={{
                 background: "linear-gradient(160deg, var(--surface) 0%, var(--surface-2) 100%)",

@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
     API_URL: process.env.API_URL || "https://dsex.onrender.com",
   },
   async headers() {
+    // Deterministic, non-personalized machine routes — identical for every
+    // visitor and change at most once/day. Let CDNs (Cloudflare/Vercel) cache
+    // them so crawler/bot hits don't keep reaching the origin.
+    const CDN_DAILY = "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800";
     return [
       {
         source: "/(.*)",
@@ -15,6 +19,14 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
         ],
+      },
+      {
+        source: "/sitemap.xml",
+        headers: [{ key: "Cache-Control", value: CDN_DAILY }],
+      },
+      {
+        source: "/robots.txt",
+        headers: [{ key: "Cache-Control", value: CDN_DAILY }],
       },
     ];
   },

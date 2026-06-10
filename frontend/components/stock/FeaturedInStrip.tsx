@@ -29,6 +29,7 @@ export default function FeaturedInStrip({ entries, max = 5 }: Props) {
           {shown.map(({ def, rank }) => (
             <Link
               key={def.slug}
+              prefetch={false}
               href={`/stock-insights/${def.slug}`}
               className="inline-flex items-center gap-2 text-sm font-semibold px-3 py-1.5 rounded-full transition-colors"
               style={{

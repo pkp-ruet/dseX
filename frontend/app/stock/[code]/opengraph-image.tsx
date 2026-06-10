@@ -120,6 +120,14 @@ export default async function OgImage({ params }: { params: Promise<{ code: stri
         </div>
       </div>
     ),
-    size
+    {
+      ...size,
+      // Deterministic per code, refreshes ~daily — let CDNs cache so social/
+      // crawler unfurls don't re-invoke the edge function on every hit.
+      headers: {
+        "Cache-Control":
+          "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
+      },
+    }
   );
 }

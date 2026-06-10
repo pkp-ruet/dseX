@@ -43,7 +43,7 @@ function RelatedCard({ stock }: { stock: RelatedStock }) {
 
   return (
     <Link
-      href={`/stock/${stock.trading_code}`}
+      prefetch={false} href={`/stock/${stock.trading_code}`}
       className="block rounded-2xl p-4 transition-transform hover:-translate-y-0.5"
       style={{
         background: "var(--surface)",

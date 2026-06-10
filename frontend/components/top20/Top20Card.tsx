@@ -67,7 +67,7 @@ export default function Top20Card({ item }: Props) {
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <Link
-              href={`/stock/${item.trading_code}`}
+              prefetch={false} href={`/stock/${item.trading_code}`}
               className="text-base font-bold hover:opacity-80 transition-opacity"
               style={{ color: "#60A5FA" }}
             >
@@ -151,7 +151,7 @@ export default function Top20Card({ item }: Props) {
 
       {/* CTA */}
       <Link
-        href={`/stock/${item.trading_code}`}
+        prefetch={false} href={`/stock/${item.trading_code}`}
         className="inline-block text-sm font-semibold text-[var(--primary)] hover:underline"
       >
         View full analysis →

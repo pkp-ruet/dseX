@@ -60,7 +60,7 @@ export default function RecommendedStockCard({
         </span>
 
         {/* Identity */}
-        <Link href={`/stock/${stock.trading_code}`} className="block group mt-2.5">
+        <Link prefetch={false} href={`/stock/${stock.trading_code}`} className="block group mt-2.5">
           <span className="font-mono text-lg font-extrabold tracking-[0.02em] text-[var(--text)] group-hover:text-[var(--primary)] transition-colors">
             {stock.trading_code}
           </span>
@@ -127,7 +127,7 @@ export default function RecommendedStockCard({
           <div className="flex items-center gap-2">
             <StarButton code={stock.trading_code} size="md" />
             <Link
-              href={`/stock/${stock.trading_code}`}
+              prefetch={false} href={`/stock/${stock.trading_code}`}
               className="inline-flex items-center min-h-[36px] px-3.5 rounded-lg text-[0.74rem] font-bold text-white transition hover:brightness-110"
               style={{ background: "var(--primary)" }}
             >

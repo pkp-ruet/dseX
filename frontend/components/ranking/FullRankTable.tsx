@@ -121,7 +121,7 @@ export default function FullRankTable({ rows }: Props) {
 
                 <td className="fr-td fr-td-code">
                   <Link
-                    href={`/stock/${item.trading_code}`}
+                    prefetch={false} href={`/stock/${item.trading_code}`}
                     className="fr-stock-btn"
                     aria-label={`View ${item.trading_code} details`}
                   >

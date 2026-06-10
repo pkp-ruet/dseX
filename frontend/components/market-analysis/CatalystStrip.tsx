@@ -66,7 +66,7 @@ export default function CatalystStrip({ data }: Props) {
           {all.map((ev, i) => (
             <Link
               key={`${ev.trading_code}-${ev.type}-${i}`}
-              href={`/stock/${ev.trading_code}`}
+              prefetch={false} href={`/stock/${ev.trading_code}`}
               className="flex-shrink-0 rounded-xl px-3 py-2.5 border border-[var(--border)] bg-[var(--bg-secondary)] hover:border-[var(--primary)] transition-colors"
               style={{ minWidth: 130 }}
             >

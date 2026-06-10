@@ -450,7 +450,7 @@ export default function PortfolioClient() {
                 >
                   <td className="px-3 sm:px-4 py-4">
                     <Link
-                      href={`/stock/${row.holding.trading_code}`}
+                      prefetch={false} href={`/stock/${row.holding.trading_code}`}
                       className="text-[var(--primary)] hover:underline font-mono font-bold text-base sm:text-lg"
                     >
                       {row.holding.trading_code}
@@ -711,7 +711,7 @@ export default function PortfolioClient() {
                       {t.side}
                     </span>
                     <div className="min-w-0">
-                      <Link href={`/stock/${t.trading_code}`} className="font-mono font-bold text-[var(--text)] hover:underline">
+                      <Link prefetch={false} href={`/stock/${t.trading_code}`} className="font-mono font-bold text-[var(--text)] hover:underline">
                         {t.trading_code}
                       </Link>
                       <span className="text-[var(--text)] ml-2 tabular-nums">

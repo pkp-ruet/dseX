@@ -42,7 +42,7 @@ function ExtremeTable({
             return (
               <Link
                 key={item.trading_code}
-                href={`/stock/${item.trading_code}`}
+                prefetch={false} href={`/stock/${item.trading_code}`}
                 className="intel-row"
                 style={{ gridTemplateColumns: "2fr 2fr 2fr 2fr" }}
               >

@@ -76,7 +76,7 @@ export default function LiveMarketBand({
             {topGainers.map((g) => (
               <Link
                 key={g.trading_code}
-                href={`/stock/${g.trading_code}`}
+                prefetch={false} href={`/stock/${g.trading_code}`}
                 className="flex items-center justify-between gap-2 text-sm hover:text-[var(--primary)] transition-colors"
               >
                 <span className="ticker-tag text-[0.8rem]">{g.trading_code}</span>

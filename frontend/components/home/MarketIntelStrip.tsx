@@ -8,7 +8,7 @@ interface Props {
 
 function IntelRow({ code, date, divPct }: { code: string; date: string | null; divPct: number | null }) {
   return (
-    <Link href={`/stock/${code}`} className="info-col-row--intel">
+    <Link prefetch={false} href={`/stock/${code}`} className="info-col-row--intel">
       <span className="icr-key">{code}</span>
       <span className="icr-sub min-w-0 truncate">{formatDate(date)}</span>
       <span className="icr-val">{divPct != null ? pct(divPct, 0) : "—"}</span>

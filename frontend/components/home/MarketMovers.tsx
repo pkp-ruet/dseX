@@ -30,7 +30,7 @@ function MoverRow({
   const changeColor = isPositive ? "var(--positive)" : "var(--negative)";
 
   return (
-    <Link href={`/stock/${item.trading_code}`} className="info-col-row--intel">
+    <Link prefetch={false} href={`/stock/${item.trading_code}`} className="info-col-row--intel">
       <span className="icr-key">{item.trading_code}</span>
       <span className="icr-sub min-w-0 truncate">
         {item.ltp != null ? taka(item.ltp) : "—"}

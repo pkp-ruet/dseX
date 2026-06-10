@@ -65,7 +65,7 @@ export default function WatchlistMoversCard({
           return (
             <Link
               key={item.trading_code}
-              href={`/stock/${item.trading_code}`}
+              prefetch={false} href={`/stock/${item.trading_code}`}
               className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--surface-2)] transition-colors"
             >
               <span className="min-w-0 flex-1">

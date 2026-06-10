@@ -82,7 +82,7 @@ export default function HoldingsDetailed({ analysis }: Props) {
             <div className="flex items-start justify-between gap-3 p-4 sm:p-5 border-b border-[var(--border)]">
               <div className="min-w-0 flex-1">
                 <Link
-                  href={`/stock/${h.code}`}
+                  prefetch={false} href={`/stock/${h.code}`}
                   className="font-mono font-black text-lg sm:text-xl text-[var(--primary)] hover:underline tracking-tight"
                 >
                   {h.code}
@@ -135,7 +135,7 @@ export default function HoldingsDetailed({ analysis }: Props) {
                 </p>
               </div>
               <Link
-                href={`/stock/${h.code}`}
+                prefetch={false} href={`/stock/${h.code}`}
                 className="inline-flex items-center justify-center gap-1 text-sm font-bold text-[var(--primary)] hover:underline shrink-0 px-3 py-1.5 rounded-lg border border-[var(--primary)]/30 bg-[var(--primary)]/5 hover:bg-[var(--primary)]/10 transition-colors self-start"
               >
                 Full analysis

@@ -181,7 +181,7 @@ export default function StocksTable({ items }: Props) {
 
                   <td className="sl-td sl-td-code">
                     <Link
-                      href={`/stock/${item.trading_code}`}
+                      prefetch={false} href={`/stock/${item.trading_code}`}
                       className="sl-code-link"
                       style={{ color: tierColor }}
                     >
@@ -192,7 +192,7 @@ export default function StocksTable({ items }: Props) {
 
                   <td className="sl-td sl-td-company sl-td-hide-sm">
                     <div className="sl-cell-trunc">
-                      <Link href={`/stock/${item.trading_code}`} className="sl-company-link">
+                      <Link prefetch={false} href={`/stock/${item.trading_code}`} className="sl-company-link">
                         {item.company_name ?? item.trading_code}
                       </Link>
                     </div>

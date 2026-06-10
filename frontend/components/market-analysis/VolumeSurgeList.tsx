@@ -27,7 +27,7 @@ export default function VolumeSurgeList({ items }: Props) {
           {items.slice(0, 15).map((item) => (
             <Link
               key={item.trading_code}
-              href={`/stock/${item.trading_code}`}
+              prefetch={false} href={`/stock/${item.trading_code}`}
               className="intel-row"
             >
               <span className="intel-code">{item.trading_code}</span>

@@ -76,6 +76,7 @@ export default function LearnPage() {
           {GUIDES.map((guide) => (
             <Link
               key={guide.slug}
+              prefetch={false}
               href={`/learn/${guide.slug}`}
               className="group flex flex-col gap-3 p-5 rounded-xl border border-[var(--border)] bg-[var(--surface)] hover:border-[var(--primary)] transition-colors"
             >

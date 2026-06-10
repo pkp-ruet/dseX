@@ -140,7 +140,7 @@ export default function UserDrillDown({
                         {holdings.map((h) => (
                           <tr key={h.id} className="border-b border-[var(--cell-rule)] last:border-0">
                             <td className="px-3 py-2">
-                              <Link href={`/stock/${h.trading_code}`} className="font-mono font-bold text-[var(--primary)] hover:underline">
+                              <Link prefetch={false} href={`/stock/${h.trading_code}`} className="font-mono font-bold text-[var(--primary)] hover:underline">
                                 {h.trading_code}
                               </Link>
                             </td>
@@ -170,7 +170,7 @@ export default function UserDrillDown({
                       return (
                         <Link
                           key={c}
-                          href={`/stock/${c}`}
+                          prefetch={false} href={`/stock/${c}`}
                           title={note || undefined}
                           className="text-xs font-mono font-semibold px-2 py-1 rounded-lg border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)]"
                         >

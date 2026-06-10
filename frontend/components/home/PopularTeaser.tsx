@@ -48,7 +48,7 @@ export default function PopularTeaser({ items }: Props) {
           return (
             <Link
               key={item.trading_code}
-              href={`/stock/${item.trading_code}`}
+              prefetch={false} href={`/stock/${item.trading_code}`}
               className="soft-card hover-lift snap-start shrink-0 w-[150px] p-3 flex flex-col gap-2.5"
             >
               <div className="flex items-center gap-2">

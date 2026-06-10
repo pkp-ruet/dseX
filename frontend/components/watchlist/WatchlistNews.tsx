@@ -22,7 +22,7 @@ function NewsItem({ item }: { item: WatchlistNewsItem }) {
     <div className="group relative flex flex-col gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-sm hover:shadow-md hover:border-[var(--primary)] transition-all duration-200">
       <div className="flex items-center justify-between gap-2">
         <Link
-          href={`/stock/${item.trading_code}`}
+          prefetch={false} href={`/stock/${item.trading_code}`}
           className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-[var(--primary)] text-white hover:opacity-80 transition-opacity"
         >
           {item.trading_code}

@@ -27,7 +27,7 @@ export default function DseTodayNews({ items }: { items: DseTodayNewsItem[] }) {
           <div key={`${n.trading_code}-${n.post_date ?? i}-${i}`} className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2">
               <Link
-                href={`/stock/${n.trading_code}`}
+                prefetch={false} href={`/stock/${n.trading_code}`}
                 className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md"
                 style={{
                   background: "rgba(14,165,233,0.1)",

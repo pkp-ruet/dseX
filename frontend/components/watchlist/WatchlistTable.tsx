@@ -344,7 +344,7 @@ function EnrichedRow({ item, extreme, hasDividendSoon, note, onOpenNote }: RowPr
         </button>
       </td>
       <td>
-        <Link href={`/stock/${item.trading_code}`} className="watchlist-ticker">
+        <Link prefetch={false} href={`/stock/${item.trading_code}`} className="watchlist-ticker">
           {item.trading_code}
         </Link>
       </td>

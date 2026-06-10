@@ -76,7 +76,7 @@ function PickCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline justify-between gap-2 mb-0.5">
             <Link
-              href={`/stock/${pick.trading_code}`}
+              prefetch={false} href={`/stock/${pick.trading_code}`}
               className="text-base sm:text-lg font-extrabold text-[var(--text)] hover:underline truncate"
             >
               {pick.trading_code}
@@ -340,7 +340,7 @@ export default function AdminDailyPickClient() {
               >
                 <div className="min-w-0">
                   <Link
-                    href={`/stock/${s.trading_code}`}
+                    prefetch={false} href={`/stock/${s.trading_code}`}
                     className="text-sm font-bold text-[var(--text)] hover:underline"
                   >
                     {s.trading_code}

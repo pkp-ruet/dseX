@@ -14,6 +14,7 @@ export default function InsightsPreview() {
         {PICKS.map((list, i) => (
           <Link
             key={list.slug}
+            prefetch={false}
             href={`/stock-insights/${list.slug}`}
             className="grid grid-cols-[2rem_auto_1fr_auto] gap-3 items-center px-4 py-3 border-l-[3px] hover:bg-[var(--surface-2)] transition-colors"
             style={{ borderLeftColor: "color-mix(in srgb, var(--primary) 26%, transparent)" }}

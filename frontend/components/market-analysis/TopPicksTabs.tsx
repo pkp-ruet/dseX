@@ -87,7 +87,7 @@ export default function TopPicksTabs({ epsGrowth, returnW52, dividend }: Props) 
         items.slice(0, 10).map((item) => (
           <Link
             key={item.trading_code}
-            href={`/stock/${item.trading_code}`}
+            prefetch={false} href={`/stock/${item.trading_code}`}
             className="intel-row"
             style={{ gridTemplateColumns: "2fr 4fr 2fr 2fr" }}
           >

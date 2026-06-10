@@ -33,7 +33,7 @@ function tierOf(scores: ScoresResponse | null, code: string): Tier | null {
 function CodeChip({ code }: { code: string }) {
   return (
     <Link
-      href={`/stock/${code}`}
+      prefetch={false} href={`/stock/${code}`}
       className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider bg-[var(--primary)]/15 text-[var(--primary)] hover:bg-[var(--primary)]/25 transition-colors mx-0.5"
     >
       {code}

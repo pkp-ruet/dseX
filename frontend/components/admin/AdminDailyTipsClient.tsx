@@ -173,7 +173,7 @@ export default function AdminDailyTipsClient() {
                 >
                   <div className="min-w-0">
                     <Link
-                      href={`/stock/${tip.trading_code}`}
+                      prefetch={false} href={`/stock/${tip.trading_code}`}
                       className="text-sm font-bold text-[var(--text)] hover:underline"
                     >
                       {tip.trading_code}
@@ -219,7 +219,7 @@ export default function AdminDailyTipsClient() {
                 className="flex items-start justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2"
               >
                 <div className="min-w-0">
-                  <Link href={`/stock/${ex.trading_code}`} className="text-sm font-bold text-[var(--text)] hover:underline">
+                  <Link prefetch={false} href={`/stock/${ex.trading_code}`} className="text-sm font-bold text-[var(--text)] hover:underline">
                     {ex.trading_code}
                   </Link>
                   {ex.company_name && (

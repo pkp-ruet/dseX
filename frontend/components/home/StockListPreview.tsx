@@ -32,7 +32,7 @@ export default function StockListPreview({
           return (
             <Link
               key={item.trading_code}
-              href={`/stock/${item.trading_code}`}
+              prefetch={false} href={`/stock/${item.trading_code}`}
               className="hover-lift group flex flex-col gap-2 rounded-xl p-3 bg-[var(--surface)] border border-[var(--border)]"
             >
               <div className="flex items-center justify-between gap-2">

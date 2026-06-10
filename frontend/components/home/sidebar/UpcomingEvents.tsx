@@ -22,7 +22,7 @@ export default function UpcomingEvents({ data }: Props) {
           {data.upcoming_declarations.map((d) => (
             <Link
               key={d.trading_code}
-              href={`/stock/${d.trading_code}`}
+              prefetch={false} href={`/stock/${d.trading_code}`}
               className="sidebar-row"
             >
               <span className="sidebar-row-key">{d.trading_code}</span>
@@ -45,7 +45,7 @@ export default function UpcomingEvents({ data }: Props) {
           {data.upcoming_record_dates.map((d) => (
             <Link
               key={`${d.trading_code}-${d.record_date ?? ""}`}
-              href={`/stock/${d.trading_code}`}
+              prefetch={false} href={`/stock/${d.trading_code}`}
               className="sidebar-row"
             >
               <span className="sidebar-row-key">{d.trading_code}</span>

@@ -27,7 +27,7 @@ export default function Top20Preview({ items }: { items: Top20Item[] }) {
           return (
             <Link
               key={item.trading_code}
-              href={`/stock/${item.trading_code}`}
+              prefetch={false} href={`/stock/${item.trading_code}`}
               className="grid grid-cols-[2rem_1fr_auto_auto] gap-3 items-center px-4 py-3 border-l-[3px] hover:bg-[var(--surface-2)] transition-colors"
               style={{ borderLeftColor: `color-mix(in srgb, ${color} 26%, transparent)` }}
             >

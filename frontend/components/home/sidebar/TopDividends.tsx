@@ -15,7 +15,7 @@ export default function TopDividends({ items }: Props) {
       {items.map((item) => (
         <Link
           key={item.trading_code}
-          href={`/stock/${item.trading_code}`}
+          prefetch={false} href={`/stock/${item.trading_code}`}
           className="sidebar-row"
         >
           <span className="sidebar-row-key">{item.trading_code}</span>

@@ -73,7 +73,7 @@ export default function TopRankings({ scores }: Props) {
           return (
             <Link
               key={item.trading_code}
-              href={`/stock/${item.trading_code}`}
+              prefetch={false} href={`/stock/${item.trading_code}`}
               className="tr-row"
             >
               <span className={rankClass}>{i + 1}</span>

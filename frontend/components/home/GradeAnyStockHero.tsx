@@ -392,7 +392,7 @@ export default function GradeAnyStockHero({ items }: Props) {
 
             <div className="flex flex-col sm:flex-row gap-2 mt-auto">
               <Link
-                href={`/stock/${picked.trading_code}`}
+                prefetch={false} href={`/stock/${picked.trading_code}`}
                 className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl text-base font-bold bg-[var(--primary)] text-white hover:opacity-90 transition-opacity"
               >
                 See full report

@@ -101,7 +101,7 @@ export default function StockInsightsPage() {
       <div className="ed-section-label">The shortlists</div>
       <div className="ed-hub-grid">
         {insightLists.map((list) => (
-          <Link key={list.slug} href={`/stock-insights/${list.slug}`} className="ed-hub-card">
+          <Link key={list.slug} prefetch={false} href={`/stock-insights/${list.slug}`} className="ed-hub-card">
             <div className="ed-hub-eyebrow">{list.shortName}</div>
             <h2 className="ed-hub-title">{list.displayName}</h2>
             <p className="ed-hub-desc">{list.description}</p>
@@ -114,7 +114,7 @@ export default function StockInsightsPage() {
       <div className="ed-section-label">The rankings</div>
       <div className="ed-hub-grid">
         {classicLists.map((list) => (
-          <Link key={list.slug} href={`/stock-insights/${list.slug}`} className="ed-hub-card">
+          <Link key={list.slug} prefetch={false} href={`/stock-insights/${list.slug}`} className="ed-hub-card">
             <div className="ed-hub-eyebrow">{list.metricLabel}</div>
             <h2 className="ed-hub-title">{list.displayName}</h2>
             <p className="ed-hub-desc">{list.description}</p>

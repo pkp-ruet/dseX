@@ -18,7 +18,7 @@ function PreviewRow({ item, rank }: { item: ScoreItem; rank: number }) {
   const color = TIER_VAR[tier];
   return (
     <Link
-      href={`/stock/${item.trading_code}`}
+      prefetch={false} href={`/stock/${item.trading_code}`}
       className="flex items-center gap-3 px-3 sm:px-4 py-2.5 border-l-[3px] hover:bg-[var(--surface-2)] transition-colors"
       style={{ borderLeftColor: `color-mix(in srgb, ${color} 26%, transparent)` }}
     >

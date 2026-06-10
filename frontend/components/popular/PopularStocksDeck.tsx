@@ -81,7 +81,7 @@ export default function PopularStocksDeck({ items }: Props) {
 
           return (
             <li key={item.trading_code} className={rowClass}>
-              <Link href={`/stock/${item.trading_code}`} className="ps-row-link">
+              <Link prefetch={false} href={`/stock/${item.trading_code}`} className="ps-row-link">
                 <span className="ps-rank-cell">
                   {isTop3 ? (
                     <Medal rank={item.rank as 1 | 2 | 3} />

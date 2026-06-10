@@ -106,7 +106,7 @@ export default function SampleAnalysisCard({ detail }: { detail: CompanyDetail }
       </div>
 
       <Link
-        href={`/stock/${profile.trading_code}`}
+        prefetch={false} href={`/stock/${profile.trading_code}`}
         className="block text-center px-4 py-3 text-xs font-semibold text-[var(--primary)] hover:bg-[var(--surface-2)] border-t border-[var(--border)] transition-colors"
       >
         See full analysis for {profile.trading_code} →

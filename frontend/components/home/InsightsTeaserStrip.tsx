@@ -21,6 +21,7 @@ export default function InsightsTeaserStrip() {
         {PICKS.map((list) => (
           <Link
             key={list.slug}
+            prefetch={false}
             href={`/stock-insights/${list.slug}`}
             className="group soft-card hover-lift flex flex-col gap-2 p-4"
           >

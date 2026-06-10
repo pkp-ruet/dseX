@@ -52,7 +52,7 @@ export default function DailyTipsCard({ tips }: Props) {
           return (
             <Link
               key={`${tip.category}-${tip.trading_code}`}
-              href={`/stock/${tip.trading_code}`}
+              prefetch={false} href={`/stock/${tip.trading_code}`}
               className="hover-lift group relative flex items-center gap-3 rounded-xl p-3 pl-4 overflow-hidden"
               style={{
                 background: `linear-gradient(135deg, color-mix(in srgb, ${meta.color} 8%, var(--surface)) 0%, var(--surface) 75%)`,

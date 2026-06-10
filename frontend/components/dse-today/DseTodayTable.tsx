@@ -91,7 +91,7 @@ export default function DseTodayTable({ rows }: { rows: DseTodayTableItem[] }) {
                   <td className="px-3 py-2 text-[var(--text-muted)] tabular-nums">{i + 1}</td>
                   <td className="px-3 py-2">
                     <Link
-                      href={`/stock/${r.trading_code}`}
+                      prefetch={false} href={`/stock/${r.trading_code}`}
                       className="font-semibold text-[var(--text)] hover:text-[var(--accent)]"
                     >
                       {r.trading_code}

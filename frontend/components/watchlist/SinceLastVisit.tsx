@@ -133,7 +133,7 @@ export default function SinceLastVisit({ codes, rows }: Props) {
             <div className="text-xs text-[var(--ink-muted)]">Biggest mover today</div>
             {delta.biggestMover ? (
               <Link
-                href={`/stock/${delta.biggestMover.code}`}
+                prefetch={false} href={`/stock/${delta.biggestMover.code}`}
                 className="mt-1 block"
               >
                 <div className="text-lg font-bold text-[var(--ink)]">

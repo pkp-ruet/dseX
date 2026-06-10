@@ -170,7 +170,7 @@ export default function PeerComparison({ current, peers, sector }: Props) {
                           <span className="font-bold" style={{ color: "var(--text)" }}>{r.trading_code}</span>
                         ) : (
                           <Link
-                            href={`/stock/${r.trading_code}`}
+                            prefetch={false} href={`/stock/${r.trading_code}`}
                             className="font-semibold hover:underline"
                             style={{ color: "var(--primary)" }}
                           >

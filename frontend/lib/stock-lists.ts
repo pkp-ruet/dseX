@@ -29,7 +29,7 @@ export interface StockListDef {
   keywords: string[];
   icon: string;
   metricLabel: string;
-  metricFormat: "percent" | "number" | "currency" | "volume" | "score";
+  metricFormat: "percent" | "number" | "currency" | "currency_raw" | "volume" | "score";
   apiKey?: keyof StockListsResponse;
   /** If true, page fetches from /api/scores and renders InsightCards */
   insightMode?: boolean;
@@ -49,8 +49,11 @@ export function formatMetric(value: number | null, format: StockListDef["metricF
     case "percent":
       return `${value.toFixed(2)}%`;
     case "currency":
-      // value is in millions of BDT (e.g. market cap, net profit) → crore
+      // value is in millions of BDT (e.g. net profit) → crore
       return crore(value);
+    case "currency_raw":
+      // value is in raw BDT (e.g. market cap = shares × price) → crore (÷1e6 → millions first)
+      return crore(value / 1e6);
     case "volume":
       // raw share count → crore
       return croreShares(value);
@@ -178,7 +181,7 @@ export const STOCK_LISTS: StockListDef[] = [
     ],
     icon: "🇧🇩",
     metricLabel: "Market Cap (Cr)",
-    metricFormat: "currency",
+    metricFormat: "currency_raw",
     apiKey: "top_market_cap",
     intro:
       "Market capitalisation (market cap) = current share price × total shares outstanding. It represents the total market value of a company. Large-cap stocks on the DSE are generally more liquid, more stable, and more widely covered by analysts. This list shows the 20 largest publicly listed companies in Bangladesh by market cap as of 2025.",
@@ -212,7 +215,7 @@ export const STOCK_LISTS: StockListDef[] = [
     ],
     icon: "🏦",
     metricLabel: "Market Cap (Cr)",
-    metricFormat: "currency",
+    metricFormat: "currency_raw",
     apiKey: "top_market_cap",
     intro:
       "The largest companies on the DSE by market cap represent the backbone of Bangladesh's stock market. These blue-chip companies span banking, telecom, pharmaceutical, and manufacturing sectors — and are the most heavily traded and widely held stocks in the country. Institutional investors, mutual funds, and index trackers typically concentrate their exposure here.",

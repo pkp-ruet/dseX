@@ -35,7 +35,7 @@ function RankedList({
           return (
             <Link
               key={it.code}
-              href={`/stock/${it.code}`}
+              prefetch={false} href={`/stock/${it.code}`}
               className="flex items-center gap-3 px-4 py-2.5 hover:bg-[var(--surface-2)] transition-colors"
             >
               <span className="text-[11px] font-bold text-[var(--text-muted)] w-5 tabular-nums shrink-0">

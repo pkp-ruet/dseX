@@ -17,7 +17,7 @@ export default function TopEPS({ items }: Props) {
         return (
           <Link
             key={item.trading_code}
-            href={`/stock/${item.trading_code}`}
+            prefetch={false} href={`/stock/${item.trading_code}`}
             className="sidebar-row"
           >
             <span className="sidebar-row-key">{item.trading_code}</span>

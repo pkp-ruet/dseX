@@ -19,7 +19,6 @@ function toNum(v: unknown): number | null {
   return isNaN(n) ? null : n;
 }
 
-/** Format profit (input in millions of BDT) → "৳500M" or "৳1.2B". */
 /** Format EPS (BDT per share) → "৳21.9" or "৳150". */
 function fmtEps(v: number | null | undefined): string {
   if (v == null) return "--";
