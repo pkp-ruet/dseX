@@ -53,6 +53,40 @@ function compute(holding: PortfolioHolding, priceMap: Map<string, ScoreItem>): C
   };
 }
 
+type SortKey = "code" | "company" | "qty" | "avgcost" | "invested" | "ltp" | "curvalue" | "pnl";
+
+const COLUMNS: { key: SortKey; label: string; align: "left" | "right" }[] = [
+  { key: "code", label: "Code", align: "left" },
+  { key: "company", label: "Company", align: "left" },
+  { key: "qty", label: "Qty", align: "right" },
+  { key: "avgcost", label: "Avg Cost", align: "right" },
+  { key: "invested", label: "Invested", align: "right" },
+  { key: "ltp", label: "LTP", align: "right" },
+  { key: "curvalue", label: "Cur. Value", align: "right" },
+  { key: "pnl", label: "P&L", align: "right" },
+];
+
+function sortValue(row: ComputedRow, key: SortKey): string | number | null {
+  switch (key) {
+    case "code":
+      return row.holding.trading_code;
+    case "company":
+      return row.company_name;
+    case "qty":
+      return row.holding.qty;
+    case "avgcost":
+      return row.holding.buy_price;
+    case "invested":
+      return row.cost_basis;
+    case "ltp":
+      return row.ltp;
+    case "curvalue":
+      return row.current_value;
+    case "pnl":
+      return row.pnl;
+  }
+}
+
 function PnlCell({ value, pct }: { value: number | null; pct: number | null }) {
   if (value == null) return <span className="text-[var(--text-muted)]">—</span>;
   const cls = value > 0 ? "text-green-500" : value < 0 ? "text-red-500" : "text-[var(--text-muted)]";
@@ -185,6 +219,31 @@ export default function PortfolioClient() {
   }
 
   const rows = useMemo(() => holdings.map((h) => compute(h, priceMap)), [holdings, priceMap]);
+
+  const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" } | null>(null);
+
+  function toggleSort(key: SortKey) {
+    setSort((s) =>
+      s && s.key === key
+        ? { key, dir: s.dir === "asc" ? "desc" : "asc" }
+        : { key, dir: "asc" },
+    );
+  }
+
+  const sortedRows = useMemo(() => {
+    if (!sort) return rows;
+    const dir = sort.dir === "asc" ? 1 : -1;
+    return [...rows].sort((a, b) => {
+      const va = sortValue(a, sort.key);
+      const vb = sortValue(b, sort.key);
+      // Nulls always sink to the bottom regardless of direction.
+      if (va == null && vb == null) return 0;
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      if (typeof va === "string" && typeof vb === "string") return va.localeCompare(vb) * dir;
+      return ((va as number) - (vb as number)) * dir;
+    });
+  }, [rows, sort]);
 
   const summary = useMemo(() => {
     let totalInvested = 0;
@@ -364,18 +423,42 @@ export default function PortfolioClient() {
           <table className="w-full text-sm sm:text-base">
             <thead>
               <tr className="bg-[var(--surface)] border-b-2 border-[var(--border)]">
-                <th className="text-left px-3 sm:px-4 py-3 text-xs sm:text-sm text-[var(--text)] uppercase tracking-wider font-semibold">Code</th>
-                <th className="text-left px-3 sm:px-4 py-3 text-xs sm:text-sm text-[var(--text)] uppercase tracking-wider font-semibold hidden sm:table-cell">Company</th>
-                <th className="text-right px-3 sm:px-4 py-3 text-xs sm:text-sm text-[var(--text)] uppercase tracking-wider font-semibold">Qty</th>
-                <th className="text-right px-3 sm:px-4 py-3 text-xs sm:text-sm text-[var(--text)] uppercase tracking-wider font-semibold">Avg Cost</th>
-                <th className="text-right px-3 sm:px-4 py-3 text-xs sm:text-sm text-[var(--text)] uppercase tracking-wider font-semibold">LTP</th>
-                <th className="text-right px-3 sm:px-4 py-3 text-xs sm:text-sm text-[var(--text)] uppercase tracking-wider font-semibold hidden md:table-cell">Cur. Value</th>
-                <th className="text-right px-3 sm:px-4 py-3 text-xs sm:text-sm text-[var(--text)] uppercase tracking-wider font-semibold">P&amp;L</th>
+                {COLUMNS.map((col) => {
+                  const active = sort?.key === col.key;
+                  return (
+                    <th
+                      key={col.key}
+                      className={`px-3 sm:px-4 py-3 text-xs sm:text-sm text-[var(--text)] uppercase tracking-wider font-semibold ${
+                        col.align === "left" ? "text-left" : "text-right"
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => toggleSort(col.key)}
+                        className={`group inline-flex items-center gap-1 cursor-pointer uppercase tracking-wider font-semibold hover:text-[var(--primary)] transition-colors ${
+                          col.align === "right" ? "flex-row-reverse" : ""
+                        } ${active ? "text-[var(--primary)]" : ""}`}
+                        aria-label={`Sort by ${col.label}`}
+                      >
+                        {col.label === "P&L" ? <>P&amp;L</> : col.label}
+                        <span
+                          className={`text-[10px] leading-none ${
+                            active
+                              ? "text-[var(--primary)]"
+                              : "text-[var(--text-muted)] opacity-50 group-hover:opacity-100"
+                          }`}
+                        >
+                          {active ? (sort!.dir === "asc" ? "▲" : "▼") : "⇅"}
+                        </span>
+                      </button>
+                    </th>
+                  );
+                })}
                 <th className="text-right px-3 sm:px-4 py-3 text-xs sm:text-sm text-[var(--text)] uppercase tracking-wider font-semibold">Edit</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((row, idx) => {
+              {sortedRows.map((row, idx) => {
                 return (
                   <tr
                     key={row.holding.id}
@@ -391,7 +474,7 @@ export default function PortfolioClient() {
                         {row.holding.trading_code}
                       </Link>
                     </td>
-                    <td className="px-3 sm:px-4 py-4 text-[var(--text)] max-w-[200px] truncate hidden sm:table-cell">
+                    <td className="px-3 sm:px-4 py-4 text-[var(--text)] max-w-[200px] truncate">
                       {row.company_name ?? "—"}
                     </td>
                     <td className="px-3 sm:px-4 py-4 text-right text-[var(--text)] tabular-nums font-medium">
@@ -401,9 +484,12 @@ export default function PortfolioClient() {
                       {taka(row.holding.buy_price, 2)}
                     </td>
                     <td className="px-3 sm:px-4 py-4 text-right text-[var(--text)] tabular-nums font-medium">
+                      {taka(row.cost_basis, 0)}
+                    </td>
+                    <td className="px-3 sm:px-4 py-4 text-right text-[var(--text)] tabular-nums font-medium">
                       {row.ltp != null ? taka(row.ltp, 1) : "—"}
                     </td>
-                    <td className="px-3 sm:px-4 py-4 text-right text-[var(--text)] tabular-nums font-medium hidden md:table-cell">
+                    <td className="px-3 sm:px-4 py-4 text-right text-[var(--text)] tabular-nums font-medium">
                       {row.current_value != null ? taka(row.current_value, 0) : "—"}
                     </td>
                     <td className="px-3 sm:px-4 py-4 text-right">
