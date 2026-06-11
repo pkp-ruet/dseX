@@ -9,6 +9,17 @@ import StarRating from "@/components/feedback/StarRating";
 // Hold off a few seconds after load so the popup doesn't feel jarring.
 const SHOW_DELAY_MS = 6000;
 
+// Don't ask brand-new users for feedback — give them time to actually use the
+// app and form an opinion first. Only prompt once the account is this old.
+const MIN_ACCOUNT_AGE_DAYS = 3;
+
+function accountAgeDays(createdAt?: string | null): number | null {
+  if (!createdAt) return null;
+  const created = new Date(createdAt).getTime();
+  if (Number.isNaN(created)) return null;
+  return (Date.now() - created) / (24 * 60 * 60 * 1000);
+}
+
 export default function FeedbackPrompt() {
   const { isLoading, isLoggedIn, user } = useAuth();
   const userId = user?.user_id;
@@ -22,9 +33,12 @@ export default function FeedbackPrompt() {
   useEffect(() => {
     if (isLoading || !isLoggedIn || !userId) return;
     if (isFeedbackDismissed(userId)) return;
+    // New users get a grace period — don't ask before they've had time to use it.
+    const age = accountAgeDays(user?.created_at);
+    if (age == null || age < MIN_ACCOUNT_AGE_DAYS) return;
     const t = setTimeout(() => setVisible(true), SHOW_DELAY_MS);
     return () => clearTimeout(t);
-  }, [isLoading, isLoggedIn, userId]);
+  }, [isLoading, isLoggedIn, userId, user?.created_at]);
 
   function close() {
     setVisible(false);
