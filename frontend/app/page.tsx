@@ -21,6 +21,7 @@ import FinalCTA from "@/components/home/FinalCTA";
 import HomePersonalizationGate from "@/components/home/HomePersonalizationGate";
 import ExploreMore from "@/components/home/ExploreMore";
 import SearchBar from "@/components/home/SearchBar";
+import FeedbackSection from "@/components/feedback/FeedbackSection";
 
 export const revalidate = 86400;
 
@@ -208,6 +209,11 @@ export default function HomePage() {
           <FinalCTA />
         </div>
       </HomePersonalizationGate>
+
+      {/* Feedback band — shown to everyone (logged-in or out), just before the footer */}
+      <div className="mt-16 sm:mt-24">
+        <FeedbackSection />
+      </div>
     </>
   );
 }

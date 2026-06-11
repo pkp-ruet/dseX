@@ -905,6 +905,70 @@ export async function getDailyTips(): Promise<DailyTipsResponse> {
 }
 
 // ---------------------------------------------------------------------------
+// Feedback (reviews)
+// ---------------------------------------------------------------------------
+
+export interface FeedbackSubmit {
+  rating: number; // 1-5
+  comment?: string;
+  source?: "homepage" | "popup";
+  page?: string;
+}
+
+/** Public — works logged-in or logged-out. Sends the bearer token when present
+ *  so the admin view can attribute the review to a user. */
+export async function apiSubmitFeedback(
+  payload: FeedbackSubmit,
+): Promise<{ ok: boolean; id?: string }> {
+  const token = getToken();
+  const res = await fetch(`${getApiUrl()}/api/feedback`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    let detail = `Feedback failed: ${res.status}`;
+    try {
+      const b = await res.json();
+      if (typeof b?.detail === "string") detail = b.detail;
+    } catch {}
+    throw new Error(detail);
+  }
+  return res.json() as Promise<{ ok: boolean; id?: string }>;
+}
+
+export interface AdminFeedbackItem {
+  id: string;
+  rating: number;
+  comment: string | null;
+  source: string;
+  page: string | null;
+  user_id: string | null;
+  user_email: string | null;
+  user_name: string | null;
+  created_at: string;
+}
+
+export interface AdminFeedbackStats {
+  total: number;
+  average: number | null;
+  distribution: Record<string, number>; // "1".."5" -> count
+  with_comment: number;
+}
+
+export interface AdminFeedbackResponse {
+  stats: AdminFeedbackStats;
+  items: AdminFeedbackItem[];
+}
+
+export async function apiGetAdminFeedback(): Promise<AdminFeedbackResponse> {
+  return apiAuthFetch<AdminFeedbackResponse>("/api/admin/feedback");
+}
+
+// ---------------------------------------------------------------------------
 // Admin analytics
 // ---------------------------------------------------------------------------
 

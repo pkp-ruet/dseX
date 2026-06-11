@@ -389,3 +389,14 @@ def admin_restore_tip(
 ):
     """Un-blacklist a stock so it can appear in tips again."""
     return daily_tips_service.restore_tip(trading_code)
+
+
+# ---------------------------------------------------------------------------
+# Feedback — user reviews (star rating + comment) from the homepage band + popup
+# ---------------------------------------------------------------------------
+
+@router.get("/feedback")
+def admin_list_feedback(_: dict = Depends(get_current_admin_user)):
+    """All feedback (newest first) + summary stats."""
+    from backend.services.feedback_service import list_feedback, feedback_stats
+    return {"stats": feedback_stats(), "items": list_feedback()}

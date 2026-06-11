@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
-type TemplateKey = "top-ranked" | "top-20" | "rankings" | "stock" | "market" | "portfolio";
+type TemplateKey = "showcase" | "top-ranked" | "top-20" | "rankings" | "stock" | "market" | "portfolio";
 
 type Template = {
   key: TemplateKey;
@@ -15,6 +15,13 @@ type Template = {
 };
 
 const TEMPLATES: Template[] = [
+  {
+    key: "showcase",
+    title: "All-in-One Showcase (Portrait)",
+    description:
+      "Whole-product promo: scores, rankings, watchlist & portfolio in one card. Mostly-live data. 4:5 portrait (1080×1350) — the brand showcase image.",
+    aspect: "portrait",
+  },
   {
     key: "top-ranked",
     title: "Top 10 Ranked (Portrait)",
@@ -81,6 +88,7 @@ export default function AdminImagesClient() {
   const [stockCode, setStockCode] = useState("GP");
   const [stockCodeDraft, setStockCodeDraft] = useState("GP");
   const [versions, setVersions] = useState<Record<TemplateKey, number>>({
+    showcase: 1,
     "top-ranked": 1,
     "top-20": 1,
     rankings: 1,
@@ -99,6 +107,7 @@ export default function AdminImagesClient() {
 
   const urls = useMemo(() => {
     return {
+      showcase: buildUrl("showcase", stockCode, versions.showcase),
       "top-ranked": buildUrl("top-ranked", stockCode, versions["top-ranked"]),
       "top-20": buildUrl("top-20", stockCode, versions["top-20"]),
       rankings:  buildUrl("rankings",  stockCode, versions.rankings),

@@ -85,6 +85,12 @@ export default function AdminAnalyticsClient() {
           >
             <span aria-hidden="true">💡</span> Edit Tips
           </a>
+          <a
+            href="/admin/feedback"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors whitespace-nowrap"
+          >
+            <span aria-hidden="true">💬</span> Feedback
+          </a>
         </div>
       </div>
 

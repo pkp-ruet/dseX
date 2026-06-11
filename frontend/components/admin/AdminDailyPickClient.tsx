@@ -255,6 +255,12 @@ export default function AdminDailyPickClient() {
             Tips
           </Link>
           <Link
+            href="/admin/feedback"
+            className="text-xs sm:text-sm text-[var(--accent)] hover:underline whitespace-nowrap"
+          >
+            Feedback
+          </Link>
+          <Link
             href="/admin/analytics"
             className="text-xs sm:text-sm text-[var(--accent)] hover:underline whitespace-nowrap"
           >

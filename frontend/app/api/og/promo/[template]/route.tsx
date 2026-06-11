@@ -1944,6 +1944,584 @@ async function RenderTop20() {
   );
 }
 
+// Impactful numbered title block shared by all four showcase tiles.
+function TileCaption({
+  index,
+  accent,
+  title,
+}: {
+  index: string;
+  accent: string;
+  title: string;
+}) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: 52,
+          height: 52,
+          borderRadius: 15,
+          background: accent,
+          color: "white",
+          fontSize: 25,
+          fontWeight: 800,
+          boxShadow: `0 6px 14px ${accent}40`,
+        }}
+      >
+        {index}
+      </div>
+      <div
+        style={{
+          display: "flex",
+          fontSize: 35,
+          fontWeight: 800,
+          color: "#0F172A",
+          letterSpacing: -0.8,
+          lineHeight: 1.05,
+        }}
+      >
+        {title}
+      </div>
+    </div>
+  );
+}
+
+// ---- Template: showcase (portrait, whole-product all-in-one card) ----
+async function RenderShowcase() {
+  // One getScores() call feeds three tiles live: top score, top-3 podium,
+  // and the biggest daily mover. The portfolio tile is a fixed sample.
+  let ranked: ScoreItem[] = [];
+  try {
+    const data = await getScores();
+    ranked = [
+      ...data.tiers.strong_buy,
+      ...data.tiers.safe_buy,
+      ...data.tiers.watch,
+      ...data.tiers.avoid,
+    ].filter((s) => s.score != null);
+  } catch {
+    ranked = [];
+  }
+
+  const byScore = [...ranked].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+  const top = byScore[0] ?? null;
+
+  const withChg = ranked.filter((s) => s.change_pct != null);
+  const sortedByChg = [...withChg].sort(
+    (a, b) => (b.change_pct ?? 0) - (a.change_pct ?? 0)
+  );
+
+  // Live values with graceful representative fallbacks (never looks broken).
+  const topCode = top?.trading_code ?? "GP";
+  const topScore = top?.score ?? 84.6;
+  const tier = getTier(topScore);
+  const tierColor = TIER_COLORS[tier];
+  const tierLabel = TIER_LABELS[tier];
+
+  // Watchlist sample: two top gainers + the biggest loser → mixed up/down rows.
+  const watchRows =
+    sortedByChg.length >= 3
+      ? [sortedByChg[0], sortedByChg[1], sortedByChg[sortedByChg.length - 1]].map(
+          (s) => ({ code: s.trading_code, pct: s.change_pct ?? 0 })
+        )
+      : [
+          { code: "BXPHARMA", pct: 9.8 },
+          { code: "GP", pct: 2.1 },
+          { code: "LHBL", pct: -6.4 },
+        ];
+
+  const chip = (n: number): { bg: string; fg: string } =>
+    n >= 0
+      ? { bg: "#DCFCE7", fg: "#15803D" }
+      : { bg: "#FEE2E2", fg: "#DC2626" };
+
+  const tileStyle: React.CSSProperties = {
+    display: "flex",
+    flexDirection: "column",
+    flex: 1,
+    justifyContent: "space-between",
+    background: "white",
+    borderRadius: 28,
+    border: "1px solid #E3F2EF",
+    boxShadow: "0 4px 16px rgba(13,148,136,0.07)",
+    padding: "36px 36px",
+  };
+  const analysisChips = [
+    "5-pillar score",
+    "Financials",
+    "Cash flow",
+    "Dividends",
+    "Shareholding",
+    "Signals & news",
+  ];
+  const portfolioChips = [
+    "Diversification",
+    "Company quality",
+    "Fair value",
+    "Sector spread",
+    "Action points",
+  ];
+
+  // 5-row ranked table — live top 5 by DSEF score, representative fallback.
+  const rankTable =
+    byScore.length >= 5
+      ? byScore.slice(0, 5).map((s) => ({ code: s.trading_code, score: s.score ?? 0 }))
+      : [
+          { code: "GP", score: 84.6 },
+          { code: "SQURPHARMA", score: 81.2 },
+          { code: "BATBC", score: 79.5 },
+          { code: "RENATA", score: 77.1 },
+          { code: "BERGERPBL", score: 75.8 },
+        ];
+
+  const pill = (bg: string, fg: string): React.CSSProperties => ({
+    display: "flex",
+    background: bg,
+    color: fg,
+    fontSize: 19,
+    fontWeight: 700,
+    padding: "8px 15px",
+    borderRadius: 11,
+  });
+
+  const watchChips = [
+    "52-week highs",
+    "Dividend alerts",
+    "Breaking news",
+    "Price moves",
+  ];
+
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        backgroundImage: "linear-gradient(180deg,#ECFEFF 0%,#FFFFFF 38%)",
+        fontFamily: "sans-serif",
+      }}
+    >
+      {/* Hero (compact) */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          position: "relative",
+          overflow: "hidden",
+          padding: "26px 52px 22px 52px",
+          backgroundImage:
+            "linear-gradient(135deg,#0F766E 0%,#14B8A6 52%,#22D3EE 100%)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            position: "absolute",
+            top: -130,
+            right: -70,
+            width: 280,
+            height: 280,
+            borderRadius: 999,
+            background: "rgba(255,255,255,0.13)",
+          }}
+        />
+        <div
+          style={{
+            display: "flex",
+            fontSize: 58,
+            fontWeight: 800,
+            color: "white",
+            lineHeight: 1.0,
+            letterSpacing: -1.5,
+          }}
+        >
+          Make smarter DSE decisions
+        </div>
+        <div
+          style={{
+            display: "flex",
+            fontSize: 22,
+            color: "rgba(255,255,255,0.85)",
+            marginTop: 9,
+          }}
+        >
+          Fundamentals, rankings, watchlist &amp; portfolio — one place
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", marginTop: 13 }}>
+          <div
+            style={{
+              display: "flex",
+              fontSize: 21,
+              color: "rgba(255,255,255,0.8)",
+              marginRight: 12,
+            }}
+          >
+            by
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              background: "white",
+              borderRadius: 999,
+              padding: "8px 22px",
+              fontSize: 32,
+              fontWeight: 800,
+              color: "#0F766E",
+              boxShadow: "0 6px 18px rgba(0,0,0,0.16)",
+            }}
+          >
+            topstockbd.com
+          </div>
+        </div>
+      </div>
+
+      {/* 2x2 feature grid */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          padding: "32px 44px 16px 44px",
+        }}
+      >
+        <div style={{ display: "flex", flex: 1, gap: 24 }}>
+          {/* Tile 1 — Stock analysis */}
+          <div style={tileStyle}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 22 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 120,
+                    height: 120,
+                    borderRadius: 28,
+                    background: `${tierColor}22`,
+                    border: `4px solid ${tierColor}`,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      fontSize: 56,
+                      fontWeight: 800,
+                      color: "#0F172A",
+                      lineHeight: 1,
+                    }}
+                  >
+                    {topScore.toFixed(0)}
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      fontSize: 15,
+                      fontWeight: 700,
+                      color: "#475569",
+                      marginTop: 2,
+                      letterSpacing: 1,
+                    }}
+                  >
+                    / 100
+                  </div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      fontSize: 44,
+                      fontWeight: 800,
+                      color: "#0F172A",
+                      lineHeight: 1,
+                    }}
+                  >
+                    {topCode}
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      background: `${tierColor}22`,
+                      border: `2px solid ${tierColor}`,
+                      borderRadius: 10,
+                      padding: "6px 14px",
+                      fontSize: 20,
+                      fontWeight: 800,
+                      color: "#0F172A",
+                      marginTop: 10,
+                    }}
+                  >
+                    {tierLabel}
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                {analysisChips.map((c) => (
+                  <div key={c} style={pill("#E1F5EE", "#0F6E56")}>
+                    {c}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <TileCaption index="01" accent="#0F766E" title="Stock analysis" />
+          </div>
+
+          {/* Tile 2 — Smart rankings */}
+          <div style={tileStyle}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                flex: 1,
+                justifyContent: "center",
+              }}
+            >
+              {rankTable.map((r, i) => (
+                <div
+                  key={r.code}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "11px 2px",
+                    borderBottom:
+                      i < rankTable.length - 1 ? "1px solid #EEF2F6" : "none",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: 32,
+                        height: 32,
+                        borderRadius: 9,
+                        background: "#334155",
+                        color: "white",
+                        fontSize: 17,
+                        fontWeight: 800,
+                      }}
+                    >
+                      {i + 1}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        fontSize: 26,
+                        fontWeight: 800,
+                        color: "#0F172A",
+                        maxWidth: 250,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {r.code}
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      fontSize: 24,
+                      fontWeight: 800,
+                      color: TIER_COLORS[getTier(r.score)],
+                    }}
+                  >
+                    {r.score.toFixed(1)}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <TileCaption index="02" accent="#B45309" title="Smart rankings" />
+          </div>
+        </div>
+
+        <div style={{ display: "flex", flex: 1, gap: 24, marginTop: 24 }}>
+          {/* Tile 3 — Watchlist & alerts */}
+          <div style={tileStyle}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                {watchRows.map((a, i) => {
+                  const c = chip(a.pct);
+                  return (
+                    <div
+                      key={a.code}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "11px 2px",
+                        borderBottom:
+                          i < watchRows.length - 1 ? "1px solid #EEF2F6" : "none",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            width: 14,
+                            height: 14,
+                            borderRadius: 999,
+                            background: c.fg,
+                          }}
+                        />
+                        <div
+                          style={{
+                            display: "flex",
+                            fontSize: 26,
+                            fontWeight: 800,
+                            color: "#0F172A",
+                            maxWidth: 230,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {a.code}
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          background: c.bg,
+                          color: c.fg,
+                          borderRadius: 10,
+                          padding: "6px 14px",
+                          fontSize: 24,
+                          fontWeight: 800,
+                        }}
+                      >
+                        {fmtChangePct(a.pct)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                {watchChips.map((c) => (
+                  <div key={c} style={pill("#E0E7FF", "#4338CA")}>
+                    {c}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <TileCaption index="03" accent="#4338CA" title="Watchlist & alerts" />
+          </div>
+
+          {/* Tile 4 — Portfolio analysis */}
+          <div style={tileStyle}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 22 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 120,
+                    height: 120,
+                    borderRadius: 28,
+                    background: "#DCFCE7",
+                    border: "4px solid #15803D",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      fontSize: 60,
+                      fontWeight: 800,
+                      color: "#15803D",
+                      lineHeight: 1,
+                    }}
+                  >
+                    A
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      fontSize: 15,
+                      fontWeight: 700,
+                      color: "#15803D",
+                      marginTop: 2,
+                      letterSpacing: 1,
+                    }}
+                  >
+                    GRADE
+                  </div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      fontSize: 34,
+                      fontWeight: 800,
+                      color: "#15803D",
+                      lineHeight: 1,
+                    }}
+                  >
+                    Excellent
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      fontSize: 19,
+                      color: "#64748B",
+                      marginTop: 8,
+                    }}
+                  >
+                    Well diversified
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                {portfolioChips.map((c) => (
+                  <div key={c} style={pill("#DCFCE7", "#15803D")}>
+                    {c}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <TileCaption index="04" accent="#15803D" title="Portfolio analysis" />
+          </div>
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          padding: "10px 44px 36px 44px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundImage: "linear-gradient(135deg,#0F766E,#14B8A6)",
+            borderRadius: 999,
+            padding: "18px",
+            fontSize: 28,
+            fontWeight: 800,
+            color: "white",
+            boxShadow: "0 8px 22px rgba(13,148,136,0.32)",
+          }}
+        >
+          Start free at topstockbd.com  →
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ---- Route handler ----
 export async function GET(
   req: Request,
@@ -1964,6 +2542,9 @@ export async function GET(
     case "top-20":
       element = await RenderTop20();
       break;
+    case "showcase":
+      element = await RenderShowcase();
+      break;
     case "stock":
       element = await RenderStock(code);
       break;
@@ -1978,6 +2559,8 @@ export async function GET(
   }
 
   const size =
-    template === "top-ranked" || template === "top-20" ? PORTRAIT : SIZE;
+    template === "top-ranked" || template === "top-20" || template === "showcase"
+      ? PORTRAIT
+      : SIZE;
   return new ImageResponse(element, size);
 }

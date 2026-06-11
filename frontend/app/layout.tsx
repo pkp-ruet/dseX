@@ -32,6 +32,7 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import { AuthProvider } from "@/context/AuthContext";
 import GoogleAuthProvider from "@/components/auth/GoogleAuthProvider";
 import PingTracker from "@/components/analytics/PingTracker";
+import FeedbackPrompt from "@/components/feedback/FeedbackPrompt";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com"),
@@ -96,6 +97,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Footer />
             <MobileBottomBar />
             <GlobalSearch />
+            <FeedbackPrompt />
           </GoogleAuthProvider>
         </AuthProvider>
         {process.env.NEXT_PUBLIC_GA_ID && (
