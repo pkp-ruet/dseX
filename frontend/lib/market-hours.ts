@@ -1,7 +1,7 @@
 /** Client-side BST (UTC+6) market hours helpers — no API calls. */
 
 const BST_OFFSET_MS = 6 * 60 * 60 * 1000;
-const TRADING_DAYS = new Set([0, 1, 2, 3, 6]); // Sun=0,Mon=1,...,Thu=4,Sat=5 in UTC+6
+const TRADING_DAYS = new Set([0, 1, 2, 3, 4]); // Sun=0 … Thu=4 (DSE week, UTC+6)
 
 function nowBST(): Date {
   return new Date(Date.now() + BST_OFFSET_MS);
