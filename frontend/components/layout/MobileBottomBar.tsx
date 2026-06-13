@@ -4,7 +4,12 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getCachedWatchlist, subscribeWatchlist, loadWatchlist } from "@/lib/watchlist";
 import { isLoggedIn } from "@/lib/auth";
-import { openGlobalSearch } from "@/components/layout/GlobalSearch";
+import { openMobileDrawer } from "@/components/layout/Navbar";
+
+const MARKETS_PATHS = ["/dse-today", "/dse-top-20", "/dse-popular-stocks", "/market-analysis"];
+const DISCOVER_PATHS = ["/dsestockranking", "/stock-recommendation", "/stock-insights", "/stocks"];
+const matches = (pathname: string, paths: string[]) =>
+  paths.some((p) => pathname === p || pathname.startsWith(p + "/"));
 
 export default function MobileBottomBar() {
   const pathname = usePathname();
@@ -35,14 +40,24 @@ export default function MobileBottomBar() {
       ),
     },
     {
-      href: "/dsestockranking",
-      label: "Rankings",
-      active: pathname === "/dsestockranking",
+      href: "/dse-today",
+      label: "Markets",
+      active: matches(pathname, MARKETS_PATHS),
       badge: null as number | null,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M7 14l5-5 5 5H7z" />
-          <path d="M3 3h18v2H3zm0 16h18v2H3zm0-8h18v2H3z" />
+          <path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z" />
+        </svg>
+      ),
+    },
+    {
+      href: "/dsestockranking",
+      label: "Discover",
+      active: matches(pathname, DISCOVER_PATHS),
+      badge: null as number | null,
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16zm4.24-12.24L10 10l-2.24 6.24L14 14l2.24-6.24z" />
         </svg>
       ),
     },
@@ -54,28 +69,6 @@ export default function MobileBottomBar() {
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-        </svg>
-      ),
-    },
-    {
-      href: "/market-analysis",
-      label: "Market",
-      active: pathname === "/market-analysis",
-      badge: null as number | null,
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z" />
-        </svg>
-      ),
-    },
-    {
-      href: "/stock-insights",
-      label: "Insights",
-      active: pathname === "/stock-insights" || pathname.startsWith("/stock-insights/"),
-      badge: null as number | null,
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
         </svg>
       ),
     },
@@ -100,17 +93,16 @@ export default function MobileBottomBar() {
       ))}
       <button
         type="button"
-        onClick={openGlobalSearch}
-        className="mobile-bottom-bar-item mobile-bottom-bar-search"
-        aria-label="Search stocks"
+        onClick={openMobileDrawer}
+        className="mobile-bottom-bar-item"
+        aria-label="Open menu"
       >
         <span className="mobile-bottom-bar-icon">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-            <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.8" />
-            <path d="M13.5 13.5L17 17" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z" />
           </svg>
         </span>
-        <span className="mobile-bottom-bar-label">Search</span>
+        <span className="mobile-bottom-bar-label">Menu</span>
       </button>
     </nav>
   );

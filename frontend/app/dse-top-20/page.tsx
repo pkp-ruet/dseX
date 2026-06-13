@@ -191,36 +191,97 @@ export default async function DseTop20Page() {
       />
 
       <div className="max-w-6xl mx-auto px-4 py-8 md:py-10">
-        {/* Page header */}
-        <div className="rank-page-header rank-page-header--center">
-          <div className="rank-page-eyebrow">TopStockBD · This Week on DSE</div>
-          <h1 className="rank-page-title">
-            DSE Top 20 — This Week
-          </h1>
-          <p
+        {/* Page header — colorful, centered */}
+        <div
+          style={{
+            position: "relative",
+            overflow: "hidden",
+            borderRadius: "20px",
+            padding: "clamp(28px, 5vw, 48px) 20px",
+            textAlign: "center",
+            background:
+              "radial-gradient(120% 140% at 50% 0%, color-mix(in srgb, #38BDF8 22%, transparent) 0%, transparent 55%), linear-gradient(135deg, color-mix(in srgb, var(--primary) 14%, var(--surface)) 0%, var(--surface) 45%, color-mix(in srgb, #A78BFA 14%, var(--surface)) 100%)",
+            border: "1px solid color-mix(in srgb, var(--primary) 22%, var(--border))",
+            boxShadow: "0 18px 40px -24px color-mix(in srgb, var(--primary) 60%, transparent)",
+          }}
+        >
+          {/* glow accents */}
+          <span
+            aria-hidden="true"
             style={{
-              fontSize: "1rem",
-              lineHeight: 1.55,
-              maxWidth: "620px",
-              margin: "10px auto 0",
-              color: "var(--ink)",
-              textAlign: "center",
+              position: "absolute",
+              top: "-40px",
+              left: "-30px",
+              width: "180px",
+              height: "180px",
+              borderRadius: "999px",
+              background: "radial-gradient(circle, color-mix(in srgb, #22D3EE 30%, transparent) 0%, transparent 70%)",
+              filter: "blur(8px)",
             }}
-          >
-            Strongest DSE stocks of the last 7 trading days — ranked by momentum, strength vs DSEX, and turnover. Powered by{" "}
+          />
+          <span
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              bottom: "-50px",
+              right: "-20px",
+              width: "200px",
+              height: "200px",
+              borderRadius: "999px",
+              background: "radial-gradient(circle, color-mix(in srgb, #A78BFA 28%, transparent) 0%, transparent 70%)",
+              filter: "blur(8px)",
+            }}
+          />
+
+          <div style={{ position: "relative" }}>
             <span
               style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "7px",
+                fontSize: "0.68rem",
                 fontWeight: 800,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                color: "#fff",
                 background: "linear-gradient(90deg, #38BDF8 0%, #22D3EE 50%, #A78BFA 100%)",
+                padding: "6px 14px",
+                borderRadius: "999px",
+                marginBottom: "16px",
+                boxShadow: "0 6px 16px -6px color-mix(in srgb, var(--primary) 70%, transparent)",
+              }}
+            >
+              🔥 TopStockBD · DSE Momentum
+            </span>
+
+            <h1
+              style={{
+                fontSize: "clamp(2.4rem, 7vw, 4rem)",
+                fontWeight: 900,
+                letterSpacing: "-0.03em",
+                lineHeight: 1.02,
+                margin: "0 auto",
+                background: "linear-gradient(100deg, #0EA5E9 0%, #2563EB 40%, #7C3AED 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
               }}
             >
-              TopStockBD
-            </span>
-            .
-          </p>
+              DSE Top 20
+            </h1>
+
+            <p
+              style={{
+                fontSize: "1rem",
+                lineHeight: 1.55,
+                maxWidth: "620px",
+                margin: "14px auto 0",
+                color: "var(--ink)",
+              }}
+            >
+              Strongest DSE stocks of the last 7 trading days — ranked by momentum, strength vs DSEX, and turnover.
+            </p>
+          </div>
         </div>
 
         {/* The deck */}

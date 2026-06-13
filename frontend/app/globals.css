@@ -3079,6 +3079,14 @@ details.dsex-exp[open] > summary {
     display: none;
   }
 }
+/* Below 768px the bottom-bar "Menu" tab is the drawer trigger, so the top
+   hamburger is redundant — hide it. It stays in the 768–899 tablet band
+   where the bottom bar is hidden. */
+@media (max-width: 767px) {
+  .navbar-hamburger {
+    display: none;
+  }
+}
 
 /* ---- Navbar Market Intelligence button ---- */
 .navbar-intel-btn {
@@ -3126,24 +3134,31 @@ details.dsex-exp[open] > summary {
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
-  min-width: 200px;
+  min-width: 230px;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 10px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   padding: 6px;
-  display: flex;
+  display: none;
   flex-direction: column;
   gap: 2px;
   z-index: 60;
 }
+.navbar-dropdown-panel.open {
+  display: flex;
+}
+/* Left-anchored for the primary nav groups (which sit on the left) */
+.navbar-dropdown-panel-left {
+  right: auto;
+  left: 0;
+}
 .navbar-dropdown-item {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
   width: 100%;
   text-align: left;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
   padding: 8px 10px;
   border-radius: 8px;
   background: transparent;
@@ -3155,6 +3170,125 @@ details.dsex-exp[open] > summary {
 }
 .navbar-dropdown-item:hover {
   background: var(--surface);
+  border-color: var(--border);
+  color: var(--ink);
+}
+.navbar-dropdown-item-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+.navbar-dropdown-item-sub {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+}
+/* Divider between primary groups and the utility/personal cluster */
+.navbar-nav-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 6px;
+}
+
+/* ======================================
+   COLORED NAVBAR BAR (indigo) — contrast vs ivory page
+   Scoped overrides flip the bar's items to light text;
+   the dropdown popover is re-asserted light further down.
+   ====================================== */
+.navbar-header {
+  background: linear-gradient(100deg, var(--primary) 0%, var(--primary-ink) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 2px 14px rgba(55, 48, 163, 0.28);
+}
+
+/* Brand */
+.navbar-header .navbar-brand-dse { color: #fff; }
+.navbar-header .navbar-brand-score { color: rgba(255, 255, 255, 0.64); }
+.navbar-header .navbar-brand-home {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+}
+.navbar-header .navbar-brand:hover { background: rgba(255, 255, 255, 0.12); }
+.navbar-header .navbar-brand:hover .navbar-brand-home {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.24);
+}
+
+/* Primary nav items, dropdown triggers, search + watch buttons */
+.navbar-header .navbar-intel-btn,
+.navbar-header .navbar-search-btn,
+.navbar-header .navbar-watch-btn {
+  color: rgba(255, 255, 255, 0.82);
+}
+.navbar-header .navbar-intel-btn:hover,
+.navbar-header .navbar-search-btn:hover,
+.navbar-header .navbar-watch-btn:hover,
+.navbar-header .navbar-intel-btn-active,
+.navbar-header .navbar-watch-btn-active,
+.navbar-header .navbar-dropdown-trigger[aria-expanded="true"] {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.24);
+  color: #fff;
+}
+.navbar-header .navbar-nav-divider { background: rgba(255, 255, 255, 0.24); }
+
+/* Sign Up — invert to a white pill for max CTA pop on indigo */
+.navbar-header .navbar-rank-btn {
+  background: #fff;
+  color: var(--primary);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+}
+.navbar-header .navbar-rank-btn:hover {
+  background: #fff;
+  color: var(--primary-ink);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.26);
+  transform: translateY(-1px);
+}
+
+/* Profile pill */
+.navbar-header .navbar-profile-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.30);
+  color: #fff;
+}
+.navbar-header .navbar-profile-btn:hover {
+  background: rgba(255, 255, 255, 0.20);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12);
+}
+.navbar-header .navbar-profile-btn-active {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.55);
+  color: #fff;
+}
+
+/* Watch count badge — readable on dark */
+.navbar-header .navbar-watch-badge {
+  background: #fff;
+  color: var(--primary);
+}
+
+/* Mobile controls */
+.navbar-header .navbar-search-mobile-btn,
+.navbar-header .navbar-hamburger {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.30);
+}
+.navbar-header .navbar-search-mobile-btn:hover,
+.navbar-header .navbar-hamburger:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Keep the dropdown popover light (it lives inside the dark bar) */
+.navbar-header .navbar-dropdown-panel { color: var(--ink); }
+.navbar-header .navbar-dropdown-item { color: var(--ink-muted); }
+.navbar-header .navbar-dropdown-panel .navbar-intel-btn-active,
+.navbar-header .navbar-dropdown-item:hover {
+  background: var(--surface-2);
   border-color: var(--border);
   color: var(--ink);
 }
@@ -4341,6 +4475,24 @@ details.dsex-exp[open] > summary {
   gap: 2px;
   padding: 12px;
 }
+.navbar-drawer-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.navbar-drawer-group + .navbar-drawer-group {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.navbar-drawer-group-label {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  padding: 2px 12px 4px;
+}
 .navbar-drawer-link {
   display: flex;
   align-items: center;
@@ -4454,6 +4606,61 @@ details.dsex-exp[open] > summary {
     font-size: 0.54rem;
     letter-spacing: 0.02em;
   }
+}
+
+/* ======================================
+   COLORED MOBILE CHROME — match the indigo navbar
+   (bottom bar = indigo; drawer = indigo header + light body w/ indigo accents)
+   Placed last so it wins source-order over the base rules above.
+   ====================================== */
+
+/* ---- Bottom bar → indigo, mirrors the top bar ---- */
+.mobile-bottom-bar {
+  background: linear-gradient(100deg, var(--primary) 0%, var(--primary-ink) 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 -2px 14px rgba(55, 48, 163, 0.30);
+}
+.mobile-bottom-bar-item {
+  color: rgba(255, 255, 255, 0.74);
+}
+.mobile-bottom-bar-item:hover,
+.mobile-bottom-bar-item.active {
+  color: #fff;
+}
+.mobile-bottom-bar-item.active::after {
+  background: #fff;
+}
+/* amber badge already pops on indigo — keep, just sharpen the ring */
+.mobile-bottom-bar-badge {
+  box-shadow: 0 0 0 2px var(--primary-ink);
+}
+
+/* ---- Drawer: indigo header, light scannable body w/ indigo accents ---- */
+.navbar-drawer-header {
+  background: linear-gradient(100deg, var(--primary) 0%, var(--primary-ink) 100%);
+  border-bottom: none;
+}
+.navbar-drawer-title {
+  color: rgba(255, 255, 255, 0.85);
+}
+.navbar-drawer-close {
+  color: #fff;
+}
+.navbar-drawer-close:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+/* group labels → indigo for color + hierarchy */
+.navbar-drawer-group-label {
+  color: var(--primary-ink);
+}
+/* active link → indigo tint + left accent bar */
+.navbar-drawer-link.active {
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  border-color: color-mix(in srgb, var(--primary) 22%, transparent);
+  color: var(--primary-ink);
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--primary);
 }
 
 /* ─── TopRankings ───────────────────────────────────────────── */
