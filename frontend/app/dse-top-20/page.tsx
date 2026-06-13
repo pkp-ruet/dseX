@@ -181,7 +181,7 @@ export default async function DseTop20Page() {
   });
 
   const conditionColor =
-    condition === "rising" ? "#34D399" : condition === "falling" ? "#F87171" : "#9CA3AF";
+    condition === "rising" ? "var(--positive)" : condition === "falling" ? "var(--negative)" : "var(--text-muted)";
 
   return (
     <>

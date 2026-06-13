@@ -7,6 +7,7 @@ import {
   cashFlowQuality, grossMargin, netMargin, toNum,
 } from "@/lib/stock-metrics";
 import type { CompanyDetail } from "@/lib/api";
+import Card from "@/components/ui/Card";
 
 type ScoreRow = Record<string, number | string | boolean | null>;
 
@@ -178,16 +179,12 @@ function HealthRow({ row, scoreRow, detail }: { row: HealthCheckRow; scoreRow: S
           {numbers.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               {numbers.map((n) => (
-                <div
-                  key={n.label}
-                  className="rounded-xl p-3"
-                  style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-                >
+                <Card key={n.label} padding="none" className="rounded-xl p-3">
                   <p className="text-[10px] font-bold uppercase tracking-[0.12em] mb-1" style={{ color: "var(--text-muted)" }}>
                     {n.label}
                   </p>
-                  <p className="text-lg font-bold tabular-nums" style={{ color: "var(--text)" }}>{n.value}</p>
-                </div>
+                  <p className="text-lg font-bold tabular-nums nums" style={{ color: "var(--text)" }}>{n.value}</p>
+                </Card>
               ))}
             </div>
           )}

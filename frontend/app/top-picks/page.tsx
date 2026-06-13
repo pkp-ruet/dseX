@@ -39,8 +39,8 @@ function fmtPct(v: number | null): string {
 
 function chgColor(v: number | null): string {
   if (v == null) return "var(--text-muted)";
-  if (v > 0) return "#34D399";
-  if (v < 0) return "#F87171";
+  if (v > 0) return "var(--positive)";
+  if (v < 0) return "var(--negative)";
   return "var(--text-muted)";
 }
 
@@ -65,8 +65,10 @@ function summarize(days: DailyPickHistoryDay[]) {
 }
 
 function PickItemCard({ item }: { item: DailyPickHistoryDayItem }) {
-  const sourceColor = item.source === "dsef" ? "#4ADE80" : "#60A5FA";
-  const sourceBg = item.source === "dsef" ? "rgba(74,222,128,0.12)" : "rgba(96,165,250,0.12)";
+  const sourceColor = item.source === "dsef" ? "var(--positive)" : "var(--primary)";
+  const sourceBg = item.source === "dsef"
+    ? "color-mix(in srgb, var(--positive) 12%, transparent)"
+    : "color-mix(in srgb, var(--primary) 12%, transparent)";
 
   return (
     <Link
@@ -158,7 +160,7 @@ export default async function TopPicksPage() {
               <p className="text-[10px] sm:text-xs uppercase tracking-wider text-[var(--text-muted)] font-semibold mb-1">
                 Went up next day
               </p>
-              <p className="text-xl sm:text-2xl font-extrabold" style={{ color: "#34D399" }}>
+              <p className="text-xl sm:text-2xl font-extrabold" style={{ color: "var(--positive)" }}>
                 {wins} <span className="text-sm sm:text-base text-[var(--text-muted)] font-semibold">/ {total}</span>
               </p>
             </div>

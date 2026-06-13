@@ -5,6 +5,9 @@ import {
 } from "recharts";
 import { getPriceHistory } from "@/lib/api";
 import { priceTrendCaption } from "@/lib/plain-language";
+import Card from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
+import Skeleton from "@/components/ui/Skeleton";
 
 interface Props {
   code: string;
@@ -74,14 +77,7 @@ export default function PriceChart({ code }: Props) {
   const fillBottom= trend >= 0 ? "rgba(21,128,61,0.0)"  : "rgba(220,38,38,0.0)";
 
   return (
-    <section
-      className="rounded-3xl mb-8 p-5 sm:p-7"
-      style={{
-        background: "var(--surface)",
-        border: "1px solid var(--border)",
-        boxShadow: "0 4px 24px rgba(15,23,42,0.06)",
-      }}
-    >
+    <Card as="section" padding="none" className="rounded-3xl mb-8 p-5 sm:p-7">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold" style={{ color: "var(--text)" }}>
@@ -98,25 +94,24 @@ export default function PriceChart({ code }: Props) {
           style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
         >
           {RANGES.map((r) => (
-            <button
+            <Button
               key={r}
+              variant="tab"
+              size="sm"
+              active={range === r}
               onClick={() => setRange(r)}
-              className="px-3 py-1.5 text-xs font-bold rounded-full transition-all tabular-nums"
-              style={{
-                color: range === r ? "#FFFFFF" : "var(--text-muted)",
-                background: range === r ? "var(--primary)" : "transparent",
-              }}
+              className="tabular-nums nums"
             >
               {r}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
 
       <div className="rounded-2xl" style={{ background: "var(--surface-2)" }}>
         {loading ? (
-          <div className="h-[320px] flex items-center justify-center text-sm" style={{ color: "var(--text-muted)" }}>
-            Loading chart...
+          <div className="p-4">
+            <Skeleton height={288} rounded="12px" />
           </div>
         ) : error ? (
           <div className="h-[320px] flex flex-col items-center justify-center gap-2 text-sm px-6 text-center">
@@ -142,14 +137,14 @@ export default function PriceChart({ code }: Props) {
               <CartesianGrid strokeDasharray="2 4" stroke="var(--border)" strokeOpacity={0.8} vertical={false} />
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 11, fill: "#64748B" }}
+                tick={{ fontSize: 11, fill: "var(--text-muted)" }}
                 tickFormatter={formatDateTick}
                 interval="preserveStartEnd"
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fontSize: 11, fill: "#64748B" }}
+                tick={{ fontSize: 11, fill: "var(--text-muted)" }}
                 tickFormatter={(v: number) => `৳${v}`}
                 width={56}
                 axisLine={false}
@@ -160,10 +155,11 @@ export default function PriceChart({ code }: Props) {
                 labelFormatter={(label: string) => formatTooltipDate(label)}
                 contentStyle={{
                   fontSize: 12,
-                  borderRadius: "8px",
+                  borderRadius: "12px",
                   border: "1px solid var(--border)",
                   background: "var(--surface)",
                   color: "var(--text)",
+                  boxShadow: "var(--shadow-soft)",
                 }}
               />
               <Area
@@ -180,6 +176,6 @@ export default function PriceChart({ code }: Props) {
           </ResponsiveContainer>
         )}
       </div>
-    </section>
+    </Card>
   );
 }

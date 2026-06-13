@@ -5,79 +5,63 @@ interface Props {
   icon: React.ReactNode;
   title: string;
   subtitle?: string;
-  /** Bolder border + accent shadow (used for the action/quiz card). */
+  /** Kept for API compatibility — chrome is now uniform (soft-card). */
   elevated?: boolean;
   /** When set, the whole card is a link (body must have no nested links). */
   href?: string;
-  /** Optional element on the right of the header (e.g. a CTA pill). */
+  /** Optional element on the right of the header (e.g. a "View all →" link). */
   headerRight?: React.ReactNode;
   children: React.ReactNode;
 }
 
 /**
- * Shared chrome for the three "Recommended for you" cards so they read as one
- * family: same radius/border/shadow/header, each with a soft tint of its own
- * accent colour. Bodies stay distinct (pick grid / chips / tip rows).
+ * Shared chrome for the "Recommended for you" cards. Matches the clean
+ * `soft-card` family used elsewhere on the dashboard: neutral border, soft
+ * shadow, bordered header with a small uppercase label. The accent only tints
+ * a small header icon; bodies stay distinct (pick grid / chips / tip rows).
  */
 export default function RecommendCard({
   accent,
   icon,
   title,
   subtitle,
-  elevated = false,
   href,
   headerRight,
   children,
 }: Props) {
-  const cardStyle: React.CSSProperties = {
-    background: "var(--surface)",
-    borderColor: `color-mix(in srgb, ${accent} ${elevated ? 34 : 18}%, var(--border))`,
-    boxShadow: elevated
-      ? `0 10px 26px -16px color-mix(in srgb, ${accent} 45%, transparent)`
-      : "0 4px 16px rgba(15,23,42,0.05)",
-  };
-
   const inner = (
     <>
-      <header className="flex items-center gap-3 px-4 sm:px-5 pt-4 pb-3">
+      <header className="flex items-center gap-2.5 px-4 sm:px-5 py-3 border-b border-[var(--border)]">
         <span
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-xl"
-          style={{ color: accent, background: `color-mix(in srgb, ${accent} 14%, transparent)` }}
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-lg"
+          style={{ color: accent, background: `color-mix(in srgb, ${accent} 12%, transparent)` }}
           aria-hidden
         >
           {icon}
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="text-[0.98rem] font-extrabold tracking-tight text-[var(--text)] leading-tight truncate">
+          <h3 className="text-[0.72rem] font-bold uppercase tracking-[0.12em] text-[var(--text)] leading-tight truncate">
             {title}
           </h3>
           {subtitle && (
-            <p className="text-[0.6rem] font-bold uppercase tracking-[0.14em]" style={{ color: accent }}>
+            <p className="text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-[var(--text-muted)]">
               {subtitle}
             </p>
           )}
         </div>
         {headerRight}
       </header>
-      <div className="px-3 sm:px-4 pb-4">{children}</div>
+      <div className="px-4 sm:px-5 py-4">{children}</div>
     </>
   );
 
   if (href) {
     return (
-      <Link
-        href={href}
-        className="group block overflow-hidden rounded-2xl border transition-all hover:-translate-y-0.5 hover:shadow-lg"
-        style={cardStyle}
-      >
+      <Link href={href} className="group soft-card hover-lift block overflow-hidden">
         {inner}
       </Link>
     );
   }
 
-  return (
-    <section className="overflow-hidden rounded-2xl border" style={cardStyle}>
-      {inner}
-    </section>
-  );
+  return <section className="soft-card overflow-hidden">{inner}</section>;
 }

@@ -2,6 +2,7 @@
 
 import type { AdminAnalyticsResponse, AdminUserRow } from "@/lib/api";
 import { SEGMENT_META, SEGMENT_ORDER, fmtDate, timeAgo } from "./shared";
+import Card from "@/components/ui/Card";
 
 export default function SegmentsTab({
   data,
@@ -15,7 +16,7 @@ export default function SegmentsTab({
   return (
     <div className="flex flex-col gap-6">
       {/* Proportion bars */}
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
+      <Card padding="none" className="rounded-2xl p-4 sm:p-5 flex flex-col gap-3">
         {SEGMENT_ORDER.map((seg) => {
           const m = SEGMENT_META[seg];
           const count = data.segments[seg];
@@ -34,7 +35,7 @@ export default function SegmentsTab({
             </div>
           );
         })}
-      </div>
+      </Card>
 
       {/* Per-segment user columns */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -42,7 +43,7 @@ export default function SegmentsTab({
           const m = SEGMENT_META[seg];
           const users = data.users.filter((u) => u.segment === seg);
           return (
-            <div key={seg} className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl overflow-hidden">
+            <div key={seg} className="soft-card rounded-2xl overflow-hidden">
               <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)]" style={{ borderTop: `3px solid ${m.color}` }}>
                 <h3 className="text-sm font-bold text-[var(--text)]">{m.label}</h3>
                 <span className="text-xs font-semibold tabular-nums" style={{ color: m.color }}>{users.length}</span>

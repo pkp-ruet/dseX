@@ -62,7 +62,7 @@ export default function SampleAnalysisCard({ detail }: { detail: CompanyDetail }
         <div className="flex items-center gap-2.5 shrink-0">
           <div className="text-right">
             <div className="text-[0.58rem] font-bold uppercase tracking-wider text-[var(--text-muted)]">Score</div>
-            <div className="text-3xl font-extrabold tabular-nums leading-none" style={{ color: tone.color }}>
+            <div className="text-3xl font-extrabold tabular-nums nums leading-none" style={{ color: tone.color }}>
               {score != null ? Math.round(score) : "--"}
             </div>
           </div>
@@ -75,11 +75,11 @@ export default function SampleAnalysisCard({ detail }: { detail: CompanyDetail }
       {/* Price */}
       <div className="flex items-baseline justify-between gap-3 px-4 sm:px-5 pt-4">
         <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-extrabold tabular-nums text-[var(--text)]">
+          <span className="text-2xl font-extrabold tabular-nums nums text-[var(--text)]">
             {ltp != null ? `৳${ltp.toFixed(2)}` : "--"}
           </span>
           {chg != null && (
-            <span className="text-sm font-bold tabular-nums" style={{ color: chgUp ? "var(--positive)" : "var(--negative)" }}>
+            <span className="text-sm font-bold tabular-nums nums" style={{ color: chgUp ? "var(--positive)" : "var(--negative)" }}>
               {chgUp ? "▲" : "▼"} {chgUp ? "+" : ""}{chg.toFixed(2)}%
             </span>
           )}
@@ -100,7 +100,7 @@ export default function SampleAnalysisCard({ detail }: { detail: CompanyDetail }
         {stats.map((s) => (
           <div key={s.label} className="bg-[var(--surface)] px-3 py-3 text-center">
             <div className="text-[0.58rem] font-bold uppercase tracking-wider text-[var(--text-muted)]">{s.label}</div>
-            <div className="mt-1 text-base font-extrabold tabular-nums text-[var(--text)]">{s.value}</div>
+            <div className="mt-1 text-base font-extrabold tabular-nums nums text-[var(--text)]">{s.value}</div>
           </div>
         ))}
       </div>

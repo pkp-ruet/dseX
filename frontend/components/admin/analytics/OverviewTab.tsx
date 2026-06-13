@@ -48,10 +48,10 @@ export default function OverviewTab({ data }: { data: AdminAnalyticsResponse }) 
           return (
             <div
               key={seg}
-              className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4"
+              className="soft-card rounded-xl p-4"
               style={{ borderTop: `3px solid ${m.color}` }}
             >
-              <p className="text-2xl font-bold tabular-nums" style={{ color: m.color }}>
+              <p className="text-2xl font-bold tabular-nums nums" style={{ color: m.color }}>
                 {data.segments[seg]}
               </p>
               <p className="text-xs font-semibold text-[var(--text)] mt-1">{m.label}</p>

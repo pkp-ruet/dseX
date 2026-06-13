@@ -388,13 +388,9 @@ export default function PersonalizedHome() {
                 icon={TARGET_ICON}
                 title="Your stock matches"
                 subtitle="3 picks chosen for your goals"
-                elevated
                 href="/stock-recommendation"
                 headerRight={
-                  <span
-                    className="shrink-0 inline-flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full text-white transition-transform group-hover:translate-x-0.5"
-                    style={{ background: "var(--np-cautious)" }}
-                  >
+                  <span className="shrink-0 text-xs font-semibold text-[var(--primary)] group-hover:underline">
                     View →
                   </span>
                 }
@@ -418,13 +414,9 @@ export default function PersonalizedHome() {
                 icon={TARGET_ICON}
                 title="Find stocks that fit you"
                 subtitle="Stock recommendation"
-                elevated
                 href="/stock-recommendation"
                 headerRight={
-                  <span
-                    className="shrink-0 inline-flex items-center gap-1 text-sm font-bold px-4 py-2 rounded-xl text-white shadow-sm transition-all group-hover:gap-1.5"
-                    style={{ background: "var(--np-cautious)" }}
-                  >
+                  <span className="shrink-0 text-xs font-semibold text-[var(--primary)] group-hover:underline">
                     Start →
                   </span>
                 }

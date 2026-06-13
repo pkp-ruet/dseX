@@ -2,6 +2,7 @@
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { TOOLTIP_STYLE } from "./shared";
+import Card from "@/components/ui/Card";
 
 export interface DonutSlice {
   name: string;
@@ -21,7 +22,7 @@ export default function DonutCard({
   const total = data.reduce((a, s) => a + s.value, 0);
 
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 sm:p-5">
+    <Card padding="none" className="rounded-2xl p-4 sm:p-5">
       <h3 className="text-sm font-bold text-[var(--text)] mb-4">{title}</h3>
       {data.length === 0 ? (
         <p className="text-sm text-[var(--text-muted)] py-8 text-center">No data yet.</p>
@@ -65,6 +66,6 @@ export default function DonutCard({
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }

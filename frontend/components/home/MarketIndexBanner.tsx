@@ -177,7 +177,7 @@ export default function MarketIndexBanner({ data }: Props) {
   const accentBar = overallDown
     ? "linear-gradient(90deg,var(--negative),#F97316,#EF4444)"
     : overallUp
-    ? "linear-gradient(90deg,var(--positive),var(--accent),#34D399)"
+    ? "linear-gradient(90deg,var(--positive),var(--accent),var(--np-good))"
     : "linear-gradient(90deg,var(--primary),var(--accent),var(--np-cautious))";
 
   return (

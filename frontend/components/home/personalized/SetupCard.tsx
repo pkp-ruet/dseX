@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { type ReactNode } from "react";
+import Button from "@/components/ui/Button";
 
 interface Props {
   icon: ReactNode;
@@ -20,12 +20,9 @@ export default function SetupCard({ icon, title, blurb, ctaLabel, ctaHref, child
       <h3 className="mt-3 text-lg font-extrabold text-[var(--text)] leading-tight">{title}</h3>
       <p className="mt-1.5 text-sm text-[var(--text-muted)] leading-relaxed">{blurb}</p>
       {children}
-      <Link
-        href={ctaHref}
-        className="mt-4 inline-flex self-start items-center gap-1.5 min-h-[44px] px-5 rounded-xl font-semibold text-sm text-white bg-[var(--primary)] hover:brightness-110 transition"
-      >
+      <Button href={ctaHref} variant="primary" size="sm" className="mt-4 self-start">
         {ctaLabel} →
-      </Link>
+      </Button>
     </div>
   );
 }

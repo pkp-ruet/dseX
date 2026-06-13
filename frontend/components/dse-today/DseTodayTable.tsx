@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { crore, croreShares, signed, taka } from "@/lib/formatters";
+import Card from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
 import type { DseTodayTableItem } from "@/lib/api";
 
 type Axis = "volume" | "value" | "price" | "change";
@@ -46,27 +48,21 @@ export default function DseTodayTable({ rows }: { rows: DseTodayTableItem[] }) {
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-1.5 mb-3">
-        {AXES.map((a) => {
-          const active = a.key === axis;
-          return (
-            <button
-              key={a.key}
-              onClick={() => setAxis(a.key)}
-              className="text-xs font-semibold px-3 py-1.5 rounded-full transition-colors"
-              style={{
-                background: active ? "var(--accent)" : "var(--bg-secondary)",
-                color: active ? "#fff" : "var(--text)",
-                border: `1px solid ${active ? "var(--accent)" : "var(--border)"}`,
-              }}
-            >
-              {a.label}
-            </button>
-          );
-        })}
+        {AXES.map((a) => (
+          <Button
+            key={a.key}
+            variant="tab"
+            size="sm"
+            active={a.key === axis}
+            onClick={() => setAxis(a.key)}
+          >
+            {a.label}
+          </Button>
+        ))}
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)]">
+      <Card padding="none" className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
             <tr className="text-left text-[10px] uppercase tracking-wider text-[var(--text-muted)] border-b border-[var(--border)]">
@@ -120,7 +116,7 @@ export default function DseTodayTable({ rows }: { rows: DseTodayTableItem[] }) {
             })}
           </tbody>
         </table>
-      </div>
+      </Card>
 
       <div className="mt-2 text-[10px] text-[var(--text-muted)]">
         Showing top {Math.min(TOP_N, sorted.length)} of {rows.length} traded stocks · click a code to view the stock page.

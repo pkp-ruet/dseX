@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { RelatedStock } from "@/lib/api";
-import { getTier, TIER_COLORS, TIER_LABELS } from "@/lib/constants";
+import { getTier, TIER_VAR, TIER_LABELS } from "@/lib/constants";
 import { signed } from "@/lib/formatters";
 
 interface Props {
@@ -33,7 +33,7 @@ export default function RelatedStocks({ stocks, currentSector }: Props) {
 
 function RelatedCard({ stock }: { stock: RelatedStock }) {
   const tier = getTier(stock.score);
-  const tierColor = TIER_COLORS[tier];
+  const tierColor = TIER_VAR[tier];
   const tierLabel = TIER_LABELS[tier];
 
   const chg = stock.change_pct;
@@ -44,11 +44,7 @@ function RelatedCard({ stock }: { stock: RelatedStock }) {
   return (
     <Link
       prefetch={false} href={`/stock/${stock.trading_code}`}
-      className="block rounded-2xl p-4 transition-transform hover:-translate-y-0.5"
-      style={{
-        background: "var(--surface)",
-        border: "1px solid var(--border)",
-      }}
+      className="soft-card hover-lift block rounded-2xl p-4"
     >
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="min-w-0 flex-1">

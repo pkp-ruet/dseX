@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Top20Item } from "@/lib/api";
 import { taka } from "@/lib/formatters";
 import StarButton from "@/components/ui/StarButton";
+import Card from "@/components/ui/Card";
 
 interface Props {
   item: Top20Item;
@@ -21,8 +22,8 @@ function fmtSigned(val: number | null, decimals = 1): string {
 
 function chgColor(val: number | null) {
   if (val == null) return "var(--ink-muted)";
-  if (val > 0) return "#34D399";
-  if (val < 0) return "#F87171";
+  if (val > 0) return "var(--positive)";
+  if (val < 0) return "var(--negative)";
   return "var(--ink-muted)";
 }
 
@@ -38,7 +39,7 @@ export default function Top20Card({ item }: Props) {
   const volPct = item.volume_ratio != null ? Math.round((item.volume_ratio - 1) * 100) : null;
 
   return (
-    <article className="flex flex-col gap-4 p-4 sm:p-5 rounded-xl border border-[var(--border)] bg-[var(--surface)]">
+    <Card as="article" padding="none" className="flex flex-col gap-4 p-4 sm:p-5">
       {/* Header: rank + ticker + sector + star */}
       <div className="flex items-start gap-3">
         {medal ? (
@@ -69,7 +70,7 @@ export default function Top20Card({ item }: Props) {
             <Link
               prefetch={false} href={`/stock/${item.trading_code}`}
               className="text-base font-bold hover:opacity-80 transition-opacity"
-              style={{ color: "#60A5FA" }}
+              style={{ color: "var(--primary)" }}
             >
               {item.trading_code}
             </Link>
@@ -81,7 +82,7 @@ export default function Top20Card({ item }: Props) {
             {sweetSpot && (
               <span
                 className="text-[11px] font-semibold rounded-full px-2 py-0.5"
-                style={{ color: "#34D399", border: "1px solid #34D39955", background: "#34D39918" }}
+                style={{ color: "var(--positive)", border: "1px solid color-mix(in srgb, var(--positive) 33%, transparent)", background: "color-mix(in srgb, var(--positive) 9%, transparent)" }}
                 title="Trading in the 60–90% range of its 52-week high — momentum sweet spot"
               >
                 Sweet spot
@@ -90,7 +91,7 @@ export default function Top20Card({ item }: Props) {
             {extended && (
               <span
                 className="text-[11px] font-semibold rounded-full px-2 py-0.5"
-                style={{ color: "#FBBF24", border: "1px solid #FBBF2455", background: "#FBBF2418" }}
+                style={{ color: "var(--watch)", border: "1px solid color-mix(in srgb, var(--watch) 33%, transparent)", background: "color-mix(in srgb, var(--watch) 9%, transparent)" }}
                 title="Within 5% of 52-week high — extension risk"
               >
                 Extended
@@ -111,23 +112,23 @@ export default function Top20Card({ item }: Props) {
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div>
           <div className="text-xs text-[var(--ink-muted)] uppercase tracking-wide">LTP</div>
-          <div className="font-bold text-[var(--ink)]">{taka(item.ltp ?? null, 1)}</div>
+          <div className="font-bold text-[var(--ink)] nums">{taka(item.ltp ?? null, 1)}</div>
         </div>
         <div>
           <div className="text-xs text-[var(--ink-muted)] uppercase tracking-wide">7d Return</div>
-          <div className="font-bold" style={{ color: chgColor(item.return_7d_pct ?? null) }}>
+          <div className="font-bold nums" style={{ color: chgColor(item.return_7d_pct ?? null) }}>
             {fmtSigned(item.return_7d_pct ?? null, 2)}
           </div>
         </div>
         <div>
           <div className="text-xs text-[var(--ink-muted)] uppercase tracking-wide">vs DSEX</div>
-          <div className="font-semibold" style={{ color: chgColor(item.rs_vs_dsex_pct ?? null) }}>
+          <div className="font-semibold nums" style={{ color: chgColor(item.rs_vs_dsex_pct ?? null) }}>
             {fmtSigned(item.rs_vs_dsex_pct ?? null, 2)}
           </div>
         </div>
         <div>
           <div className="text-xs text-[var(--ink-muted)] uppercase tracking-wide">Turnover</div>
-          <div className="font-semibold text-[var(--ink)]">
+          <div className="font-semibold text-[var(--ink)] nums">
             {volPct != null ? (volPct >= 0 ? `+${volPct}%` : `${volPct}%`) : "—"}{" "}
             <span className="text-xs text-[var(--ink-muted)]">vs 30d</span>
           </div>
@@ -136,7 +137,7 @@ export default function Top20Card({ item }: Props) {
 
       {/* Up/down day bar */}
       <div className="flex items-center gap-2 text-xs text-[var(--ink-muted)]">
-        <span className="font-mono tracking-tighter" style={{ color: "#34D399" }}>
+        <span className="font-mono tracking-tighter" style={{ color: "var(--positive)" }}>
           {upBars}
         </span>
         <span>
@@ -156,6 +157,6 @@ export default function Top20Card({ item }: Props) {
       >
         View full analysis →
       </Link>
-    </article>
+    </Card>
   );
 }

@@ -117,7 +117,7 @@ export default function UserDrillDown({
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-bold text-[var(--text)]">Portfolio ({holdings.length})</h3>
                   {pnl != null && (
-                    <span className="text-sm font-bold tabular-nums" style={{ color: pnl >= 0 ? "var(--positive)" : "var(--negative)" }}>
+                    <span className="text-sm font-bold tabular-nums nums" style={{ color: pnl >= 0 ? "var(--positive)" : "var(--negative)" }}>
                       {pnl >= 0 ? "+" : ""}{taka(pnl, 0)} {pnlPct != null && `(${pnlPct >= 0 ? "+" : ""}${pnlPct.toFixed(1)}%)`}
                     </span>
                   )}
@@ -144,10 +144,10 @@ export default function UserDrillDown({
                                 {h.trading_code}
                               </Link>
                             </td>
-                            <td className="px-3 py-2 text-right tabular-nums">{h.qty.toLocaleString()}</td>
-                            <td className="px-3 py-2 text-right tabular-nums">{taka(h.buy_price, 1)}</td>
-                            <td className="px-3 py-2 text-right tabular-nums">{h.ltp != null ? taka(h.ltp, 1) : "—"}</td>
-                            <td className="px-3 py-2 text-right tabular-nums font-semibold" style={{ color: h.pnl == null ? "var(--text-muted)" : h.pnl >= 0 ? "var(--positive)" : "var(--negative)" }}>
+                            <td className="px-3 py-2 text-right tabular-nums nums">{h.qty.toLocaleString()}</td>
+                            <td className="px-3 py-2 text-right tabular-nums nums">{taka(h.buy_price, 1)}</td>
+                            <td className="px-3 py-2 text-right tabular-nums nums">{h.ltp != null ? taka(h.ltp, 1) : "—"}</td>
+                            <td className="px-3 py-2 text-right tabular-nums nums font-semibold" style={{ color: h.pnl == null ? "var(--text-muted)" : h.pnl >= 0 ? "var(--positive)" : "var(--negative)" }}>
                               {h.pnl == null ? "—" : `${h.pnl >= 0 ? "+" : ""}${taka(h.pnl, 0)}`}
                             </td>
                           </tr>

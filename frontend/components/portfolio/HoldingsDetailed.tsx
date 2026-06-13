@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Card from "@/components/ui/Card";
 import type { PortfolioAnalysis, QualityWord } from "@/lib/portfolio-analysis";
 
 const QUALITY_THEME: Record<
@@ -6,28 +7,28 @@ const QUALITY_THEME: Record<
   { dot: string; chip: string; label: string }
 > = {
   Strong: {
-    dot: "bg-green-400",
-    chip: "bg-green-500/15 text-[var(--positive)] border-green-500/30",
+    dot: "bg-[var(--positive)]",
+    chip: "bg-[color-mix(in_srgb,var(--positive)_15%,transparent)] text-[var(--positive)] border-[color-mix(in_srgb,var(--positive)_30%,transparent)]",
     label: "Strong company",
   },
   Solid: {
-    dot: "bg-blue-400",
-    chip: "bg-blue-500/15 text-[var(--safe-buy)] border-blue-500/30",
+    dot: "bg-[var(--safe-buy)]",
+    chip: "bg-[color-mix(in_srgb,var(--safe-buy)_15%,transparent)] text-[var(--safe-buy)] border-[color-mix(in_srgb,var(--safe-buy)_30%,transparent)]",
     label: "Solid company",
   },
   Average: {
-    dot: "bg-amber-400",
-    chip: "bg-amber-500/15 text-[var(--watch)] border-amber-500/30",
+    dot: "bg-[var(--watch)]",
+    chip: "bg-[color-mix(in_srgb,var(--watch)_15%,transparent)] text-[var(--watch)] border-[color-mix(in_srgb,var(--watch)_30%,transparent)]",
     label: "Average company",
   },
   Weak: {
-    dot: "bg-red-400",
-    chip: "bg-red-500/15 text-[var(--negative)] border-red-500/30",
+    dot: "bg-[var(--negative)]",
+    chip: "bg-[color-mix(in_srgb,var(--negative)_15%,transparent)] text-[var(--negative)] border-[color-mix(in_srgb,var(--negative)_30%,transparent)]",
     label: "Weak company",
   },
   Unrated: {
-    dot: "bg-gray-400",
-    chip: "bg-gray-500/15 text-[var(--text-muted)] border-gray-500/30",
+    dot: "bg-[var(--text-muted)]",
+    chip: "bg-[color-mix(in_srgb,var(--text-muted)_15%,transparent)] text-[var(--text-muted)] border-[color-mix(in_srgb,var(--text-muted)_30%,transparent)]",
     label: "Unrated",
   },
 };
@@ -74,9 +75,11 @@ export default function HoldingsDetailed({ analysis }: Props) {
         const qt = QUALITY_THEME[h.qualityWord];
 
         return (
-          <article
+          <Card
+            as="article"
             key={h.code}
-            className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl overflow-hidden hover:border-[var(--primary)]/40 transition-colors"
+            padding="none"
+            className="rounded-2xl overflow-hidden hover:border-[var(--primary)]/40 transition-colors"
           >
             {/* Header */}
             <div className="flex items-start justify-between gap-3 p-4 sm:p-5 border-b border-[var(--border)]">
@@ -114,7 +117,7 @@ export default function HoldingsDetailed({ analysis }: Props) {
                   <p className="text-[10px] sm:text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-bold">
                     Overall
                   </p>
-                  <p className="text-2xl sm:text-3xl font-black text-[var(--text)] leading-none mt-1 tabular-nums">
+                  <p className="text-2xl sm:text-3xl font-black text-[var(--text)] leading-none mt-1 tabular-nums nums">
                     {h.score.toFixed(0)}
                     <span className="text-xs sm:text-sm text-[var(--text-muted)] font-semibold">
                       /100
@@ -150,7 +153,7 @@ export default function HoldingsDetailed({ analysis }: Props) {
                 </svg>
               </Link>
             </div>
-          </article>
+          </Card>
         );
       })}
     </section>

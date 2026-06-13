@@ -2,8 +2,9 @@
 
 import { useMemo, type CSSProperties } from "react";
 import Link from "next/link";
-import { TIER_LABELS, type TierKey } from "@/lib/constants";
+import { TIER_LABELS, TIER_VAR, type TierKey } from "@/lib/constants";
 import StarButton from "@/components/ui/StarButton";
+import ScoreBadge from "@/components/ui/ScoreBadge";
 import type { ScoreItem } from "@/lib/api";
 
 export interface RankedItem extends ScoreItem {
@@ -20,13 +21,8 @@ interface Props {
   rows: RankedRow[];
 }
 
-// Tier accent colors — tokenized, used as restrained accents (not fills)
-const TIER_COLOR: Record<TierKey, string> = {
-  strong_buy:    "#059669",             // vibrant emerald — most impactful
-  buy:           "#15803D",             // deep green — calmer, sits below strong buy
-  keep_watching: "var(--watch)",        // amber
-  avoid:         "var(--negative)",     // red
-};
+// Tier accent colors — canonical token map (shared with ScoreBadge / TierPill)
+const TIER_COLOR = TIER_VAR;
 
 // Matte medals for the top 3 — soft, editorial (no gloss/glow)
 const MEDAL_COLORS: Record<1 | 2 | 3, { bg: string; ring: string; text: string }> = {
@@ -103,7 +99,6 @@ export default function FullRankTable({ rows }: Props) {
             const rankPillStyle: CSSProperties = medal
               ? { background: medal.bg, borderColor: medal.ring, color: medal.text }
               : {};
-            const scorePct = item.score != null ? Math.max(0, Math.min(100, item.score)) : 0;
 
             return (
               <tr
@@ -163,17 +158,7 @@ export default function FullRankTable({ rows }: Props) {
                 </td>
 
                 <td className="fr-td fr-td-score fr-td-hide-sm">
-                  <div className="fr-score">
-                    <span className="fr-score-meter">
-                      <span
-                        className="fr-score-meter-fill"
-                        style={{ width: `${scorePct}%`, background: tierColor }}
-                      />
-                    </span>
-                    <span className="fr-score-num" style={{ color: tierColor }}>
-                      {item.score != null ? item.score.toFixed(1) : "—"}
-                    </span>
-                  </div>
+                  <ScoreBadge score={item.score} tier={item.tier} size="sm" />
                 </td>
 
                 <td className="fr-td fr-td-num">

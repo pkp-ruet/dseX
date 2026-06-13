@@ -3,52 +3,70 @@
 @tailwind utilities;
 
 :root {
-  /* Soft dusty-blue accent (desaturated indigo) on cool slate neutrals */
-  --primary: #4F6BD8;
-  --primary-ink: #3A52B0;   /* darker — for accent text/links on light */
-  --primary-soft: #7C93E6;  /* lighter — gradients, hover tints */
-  --accent: var(--primary);
-  --positive: #15803D;
+  /* Palette B — confident indigo + warm amber accent on warm ivory/stone neutrals */
+  --primary: #4338CA;       /* indigo-700 — trust / primary actions */
+  --primary-ink: #3730A3;   /* darker — accent text/links on light */
+  --primary-soft: #818CF8;  /* lighter — gradients, hover tints */
+  --accent: var(--primary); /* accent tracks primary (cool) — never amber */
+
+  /* Warm amber accent — DELIBERATE use only (premium badges, secondary CTA,
+     chart accent, star). NEVER focus rings / borders / default accent. */
+  --warm: #D97706;
+  --warm-soft: #FBBF24;
+  --warm-ink: #B45309;
+
+  --positive: #047857;      /* richer emerald */
   --negative: #DC2626;
-  --bg: #F5F7FB;
-  --bg-gradient: linear-gradient(180deg, #FFFFFF 0%, #F5F7FB 45%, #EEF2F8 100%);
-  --border: #E2E8F0;
-  --text: #1E293B;          /* slate-800 — softer than near-black */
-  --text-muted: #64748B;    /* slate-500 (was self-referential / invalid) */
+  --bg: #FBFAF8;            /* warm ivory */
+  --bg-gradient: linear-gradient(180deg, #FFFFFF 0%, #FBFAF8 45%, #F5F1EA 100%);
+  --border: #E9E3D8;        /* warm hairline */
+  --text: #1C1917;          /* warm near-black */
+  --text-muted: #79716B;    /* warm stone-500 */
   --radius: 10px;
   --radius-lg: 18px;
   --radius-xl: 24px;
 
-  /* Soft, layered depth */
-  --shadow-soft: 0 1px 2px rgba(30, 41, 59, 0.04), 0 12px 32px -12px rgba(30, 41, 59, 0.12);
-  --shadow-lift: 0 1px 2px rgba(30, 41, 59, 0.05), 0 22px 48px -16px rgba(79, 107, 216, 0.22);
-  /* Gentle ambient gradient for hero / closing panels */
-  --ambient:
-    radial-gradient(120% 90% at 0% 0%, rgba(79, 107, 216, 0.08) 0%, transparent 55%),
-    radial-gradient(110% 90% at 100% 0%, rgba(124, 147, 230, 0.07) 0%, transparent 55%);
+  /* Type scale — vars consumed by components (Tailwind exposes display/2xs) */
+  --fs-2xs: 0.6875rem;   /* 11px */
+  --fs-xs: 0.75rem;      /* 12px */
+  --fs-sm: 0.8125rem;    /* 13px */
+  --fs-base: 0.9375rem;  /* 15px */
+  --fs-md: 1rem;         /* 16px */
+  --fs-lg: 1.25rem;      /* 20px */
+  --fs-xl: 1.5rem;       /* 24px */
+  --fs-2xl: 2rem;        /* 32px */
+  --fs-display: 2.75rem; /* 44px */
 
-  --strong-buy: #15803D;
-  --safe-buy: #4F6BD8;
+  /* Soft, layered depth — warm-tinted shadow base, indigo lift */
+  --shadow-soft: 0 1px 2px rgba(28, 25, 23, 0.04), 0 12px 32px -12px rgba(28, 25, 23, 0.12);
+  --shadow-lift: 0 1px 2px rgba(28, 25, 23, 0.05), 0 22px 48px -16px rgba(67, 56, 202, 0.20);
+  /* Gentle ambient gradient for hero / closing panels — indigo + faint warm */
+  --ambient:
+    radial-gradient(120% 90% at 0% 0%, rgba(67, 56, 202, 0.07) 0%, transparent 55%),
+    radial-gradient(110% 90% at 100% 0%, rgba(217, 119, 6, 0.05) 0%, transparent 55%);
+
+  --strong-buy: #047857;
+  --safe-buy: #4338CA;
   --watch: #B45309;
   --avoid: #DC2626;
 
   /* Design palette — light */
-  --ink: #1E293B;
-  --ink-2: #334155;
-  --ink-muted: #64748B;
-  --rule: #E2E8F0;
+  --ink: #1C1917;
+  --ink-2: #44403C;
+  --ink-muted: #79716B;
+  --rule: #E9E3D8;
   --rule-dark: var(--ink-2);
-  --gold: #4F6BD8;
-  --gold-light: #EEF2FB;
-  --np-strong:   #15803D;
-  --np-good:     #16A34A;
-  --np-safe:     #4F6BD8;
+  --gold: var(--primary);   /* legacy alias — tracks primary, not amber */
+  --gold-light: #EEF0FB;
+  --np-strong:   #047857;
+  --np-good:     #059669;
+  --np-safe:     #4338CA;
   --np-cautious: #7C3AED;
   --np-watch:    #B45309;
   --np-danger:   #DC2626;
-  --cell-rule: #EEF1F5;
+  --cell-rule: #F0EDE6;
   --surface: #FFFFFF;
-  --surface-2: #EEF2F8;
+  --surface-2: #F5F1EA;
 }
 
 body {
@@ -76,6 +94,61 @@ body::before {
   font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
   letter-spacing: -0.02em;
 }
+/* Tabular figures — align digits in columns (prices, scores, tables) */
+.nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* ---- Button primitive (components/ui/Button.tsx) ---- */
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 600;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease, transform .15s ease, box-shadow .15s ease;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  line-height: 1.2;
+}
+.ui-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
+}
+.ui-btn:active { transform: scale(0.98); }
+.ui-btn:disabled { opacity: .5; cursor: not-allowed; }
+.ui-btn-sm { font-size: var(--fs-sm); padding: 7px 14px; }
+.ui-btn-md { font-size: var(--fs-base); padding: 9px 18px; }
+.ui-btn-primary { background: var(--primary); color: #fff; }
+.ui-btn-primary:hover { background: var(--primary-ink); }
+.ui-btn-warm { background: var(--warm); color: #fff; }
+.ui-btn-warm:hover { background: var(--warm-ink); }
+.ui-btn-ghost { background: var(--surface); color: var(--text); border-color: var(--border); }
+.ui-btn-ghost:hover { background: var(--surface-2); border-color: color-mix(in srgb, var(--primary) 30%, var(--border)); }
+.ui-btn-tab { background: transparent; color: var(--text-muted); border-radius: 999px; }
+.ui-btn-tab:hover { color: var(--text); background: var(--surface-2); }
+.ui-btn-tab.is-active { background: var(--primary); color: #fff; }
+
+/* ---- Skeleton primitive (components/ui/Skeleton.tsx) ---- */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, #fff 60%, transparent), transparent);
+  animation: skeleton-shimmer 1.4s infinite;
+}
+@keyframes skeleton-shimmer { 100% { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .skeleton::after { animation: none; } }
 .soft-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -224,7 +297,7 @@ a:hover .ticker-tag,
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-soft) 100%);
   color: #fff;
   font-size: 0.65rem;
   font-weight: 700;
@@ -258,8 +331,8 @@ a:hover .ticker-tag,
   letter-spacing: 0.04em;
   padding: 5px 12px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-  box-shadow: 0 0 10px rgba(139, 92, 246, 0.45);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-soft) 100%);
+  box-shadow: 0 0 10px rgba(67, 56, 202,0.45);
   color: #fff;
   text-decoration: none;
   transition: box-shadow 0.15s, transform 0.12s, background 0.15s;
@@ -267,12 +340,12 @@ a:hover .ticker-tag,
 }
 .navbar-rank-btn:hover {
   background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
-  box-shadow: 0 0 18px rgba(139, 92, 246, 0.65);
+  box-shadow: 0 0 18px rgba(67, 56, 202,0.65);
   transform: translateY(-1px);
 }
 .navbar-rank-btn-active {
   background: linear-gradient(135deg, #4338ca 0%, #7e22ce 100%);
-  box-shadow: 0 0 14px rgba(139, 92, 246, 0.55);
+  box-shadow: 0 0 14px rgba(67, 56, 202,0.55);
 }
 
 /* ---- Ranking page header ---- */
@@ -1830,7 +1903,7 @@ a:hover .ticker-tag,
 /* Forest Green — Strong Buy (dark inverted, premium) */
 .np-col-strong {
   background: linear-gradient(135deg, #052E16 0%, #14532D 55%, #166534 100%);
-  border-bottom-color: #15803D;
+  border-bottom-color: var(--positive);
   border-left: 5px solid var(--strong-buy);
   position: relative;
   overflow: hidden;
@@ -3431,22 +3504,22 @@ details.dsex-exp[open] > summary {
   letter-spacing: 0.01em;
   padding: 7px 12px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-soft) 100%);
   color: #fff;
   text-decoration: none;
   border: 1px solid transparent;
   white-space: nowrap;
-  box-shadow: 0 0 14px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 0 14px rgba(67, 56, 202,0.4);
   transition: filter 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 .navbar-portfolio-mobile-btn:hover {
   filter: brightness(1.08);
   transform: translateY(-1px);
-  box-shadow: 0 0 18px rgba(139, 92, 246, 0.55);
+  box-shadow: 0 0 18px rgba(67, 56, 202,0.55);
 }
 .navbar-portfolio-mobile-btn-active {
   background: linear-gradient(135deg, #4338ca 0%, #7e22ce 100%);
-  box-shadow: 0 0 14px rgba(139, 92, 246, 0.55);
+  box-shadow: 0 0 14px rgba(67, 56, 202,0.55);
 }
 @media (max-width: 380px) {
   .navbar-portfolio-mobile-btn {

@@ -13,13 +13,14 @@ interface Props {
   extFinancials: Record<string, unknown>[];
 }
 
-const TICK = { fontSize: 11, fill: "#64748B" };
+const TICK = { fontSize: 11, fill: "var(--text-muted)" };
 const TIP_STYLE = {
   fontSize: 12,
-  borderRadius: "8px",
+  borderRadius: "12px",
   border: "1px solid var(--border)",
   background: "var(--surface)",
   color: "var(--text)",
+  boxShadow: "var(--shadow-soft)",
 };
 
 export default function FinancialTrends({ extFinancials }: Props) {
@@ -111,7 +112,7 @@ export default function FinancialTrends({ extFinancials }: Props) {
                   <YAxis tick={TICK} axisLine={false} tickLine={false} width={32} unit="%" />
                   <Tooltip contentStyle={TIP_STYLE} formatter={(v: number, n: string) => [`${v.toFixed(1)}%`, n === "gross" ? "Gross" : "Net"]} />
                   <Legend wrapperStyle={{ fontSize: 11 }} formatter={(v) => (v === "gross" ? "Gross margin" : "Net margin")} />
-                  <Line type="monotone" dataKey="gross" stroke="#15803D" strokeWidth={2.5} dot={{ r: 2.5 }} connectNulls />
+                  <Line type="monotone" dataKey="gross" stroke="var(--positive)" strokeWidth={2.5} dot={{ r: 2.5 }} connectNulls />
                   <Line type="monotone" dataKey="net" stroke="var(--primary)" strokeWidth={2.5} dot={{ r: 2.5 }} connectNulls />
                 </LineChart>
               </ResponsiveContainer>
@@ -127,8 +128,8 @@ export default function FinancialTrends({ extFinancials }: Props) {
                   <YAxis hide />
                   <Tooltip contentStyle={TIP_STYLE} formatter={(v: number, n: string) => [crore(v), n === "debt" ? "Debt" : "Equity"]} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <Bar dataKey="equity" radius={[6, 6, 0, 0]} fill="#15803D" />
-                  <Bar dataKey="debt" radius={[6, 6, 0, 0]} fill="#DC2626" />
+                  <Bar dataKey="equity" radius={[6, 6, 0, 0]} fill="var(--positive)" />
+                  <Bar dataKey="debt" radius={[6, 6, 0, 0]} fill="var(--negative)" />
                 </BarChart>
               </ResponsiveContainer>
             </ChartCard>
@@ -144,7 +145,7 @@ export default function FinancialTrends({ extFinancials }: Props) {
                   <Tooltip contentStyle={TIP_STYLE} formatter={(v: number) => [`${v.toFixed(2)}×`, "CF / profit"]} />
                   <Bar dataKey="value" radius={[6, 6, 0, 0]}>
                     {cashQ.map((d, i) => (
-                      <Cell key={i} fill={(d.value ?? 0) >= 0.8 ? "#15803D" : "#B45309"} />
+                      <Cell key={i} fill={(d.value ?? 0) >= 0.8 ? "var(--positive)" : "var(--watch)"} />
                     ))}
                   </Bar>
                 </BarChart>

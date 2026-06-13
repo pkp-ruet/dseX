@@ -12,13 +12,22 @@ export const TIER_LABELS = {
 } as const;
 
 export const TIER_COLORS = {
-  strong_buy:    "#4ADE80",
-  buy:           "#34D399",
-  keep_watching: "#FBBF24",
-  avoid:         "#F87171",
+  strong_buy:    "#047857",
+  buy:           "#059669",
+  keep_watching: "#B45309",
+  avoid:         "#DC2626",
 } as const;
 
 export type TierKey = keyof typeof TIER_LABELS;
+
+/** Canonical tier → CSS-token color. Use this everywhere (badges, pills,
+ *  tables, charts) so tier coloring stays consistent with the palette. */
+export const TIER_VAR: Record<TierKey, string> = {
+  strong_buy:    "var(--strong-buy)",
+  buy:           "var(--np-good)",
+  keep_watching: "var(--watch)",
+  avoid:         "var(--negative)",
+};
 
 export const TIER_SCORE_LABELS: Record<TierKey, string> = {
   strong_buy:    "Score 75–100",

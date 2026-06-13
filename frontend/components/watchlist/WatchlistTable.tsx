@@ -30,7 +30,11 @@ import {
   getNote,
 } from "@/lib/watchlist";
 import { useAuth } from "@/context/AuthContext";
-import { getTier, TIER_LABELS, type TierKey } from "@/lib/constants";
+import { getTier } from "@/lib/constants";
+import TierPill from "@/components/ui/TierPill";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
+import Skeleton from "@/components/ui/Skeleton";
 import WatchlistNews from "./WatchlistNews";
 import WatchlistAnalysis from "./WatchlistAnalysis";
 import NoteEditor from "./NoteEditor";
@@ -71,18 +75,12 @@ function SignInCTA({ pendingCodes }: { pendingCodes: string[] }) {
         dividend events on your list.
       </p>
       <div className="mt-4 flex gap-2 justify-center">
-        <Link
-          href={`/login?next=${encNext}`}
-          className="navbar-rank-btn text-sm px-4 py-2"
-        >
+        <Button href={`/login?next=${encNext}`} variant="primary" size="sm">
           Sign In
-        </Link>
-        <Link
-          href={`/register?next=${encNext}`}
-          className="navbar-intel-btn text-sm px-4 py-2"
-        >
+        </Button>
+        <Button href={`/register?next=${encNext}`} variant="ghost" size="sm">
           Create Account
-        </Link>
+        </Button>
       </div>
       {pendingCodes.length > 0 && (
         <p className="mt-4 text-xs text-[var(--ink-muted)]">
@@ -210,26 +208,6 @@ interface RowProps {
   onOpenNote: () => void;
 }
 
-const TIER_CHIP_CLS: Record<TierKey, string> = {
-  strong_buy:
-    "bg-emerald-500 text-white dark:bg-emerald-400 dark:text-emerald-950 border border-emerald-600 dark:border-emerald-300",
-  buy: "bg-sky-500 text-white dark:bg-sky-400 dark:text-sky-950 border border-sky-600 dark:border-sky-300",
-  keep_watching:
-    "bg-amber-500 text-white dark:bg-amber-400 dark:text-amber-950 border border-amber-600 dark:border-amber-300",
-  avoid: "bg-rose-500 text-white dark:bg-rose-400 dark:text-rose-950 border border-rose-600 dark:border-rose-300",
-};
-
-function TierBadge({ tier }: { tier: TierKey }) {
-  return (
-    <span
-      className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold whitespace-nowrap ${TIER_CHIP_CLS[tier]}`}
-      title={`Tier: ${TIER_LABELS[tier]}`}
-    >
-      {TIER_LABELS[tier]}
-    </span>
-  );
-}
-
 function RangeBar({ ltp, high, low }: { ltp: number | null; high: number | null; low: number | null }) {
   if (ltp == null || high == null || low == null || high <= low) {
     return <span className="text-[var(--ink-muted)] text-xs">—</span>;
@@ -280,10 +258,10 @@ function SignalPills({
       {pills.map((p) => {
         const cls =
           p.tone === "up"
-            ? "bg-green-500/15 text-green-700 dark:text-green-300"
+            ? "bg-[color-mix(in_srgb,var(--positive)_15%,transparent)] text-[var(--positive)]"
             : p.tone === "dn"
-              ? "bg-red-500/15 text-red-700 dark:text-red-300"
-              : "bg-amber-500/15 text-amber-700 dark:text-amber-300";
+              ? "bg-[color-mix(in_srgb,var(--negative)_15%,transparent)] text-[var(--negative)]"
+              : "bg-[color-mix(in_srgb,var(--watch)_15%,transparent)] text-[var(--watch)]";
         return (
           <span
             key={p.label}
@@ -308,14 +286,14 @@ function EpsPill({ value }: { value: number | null | undefined }) {
   }
   const tone =
     value > 10
-      ? "bg-emerald-500 text-white dark:bg-emerald-400 dark:text-emerald-950 border-emerald-600 dark:border-emerald-300"
+      ? "bg-[var(--positive)] text-white border-[var(--positive)]"
       : value < -10
-        ? "bg-rose-500 text-white dark:bg-rose-400 dark:text-rose-950 border-rose-600 dark:border-rose-300"
-        : "bg-slate-500 text-white dark:bg-slate-300 dark:text-slate-900 border-slate-600 dark:border-slate-200";
+        ? "bg-[var(--negative)] text-white border-[var(--negative)]"
+        : "bg-[var(--ink-muted)] text-white border-[var(--ink-muted)]";
   const sign = value > 0 ? "+" : "";
   return (
     <span
-      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold tabular-nums whitespace-nowrap border ${tone}`}
+      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold tabular-nums whitespace-nowrap border nums ${tone}`}
       title={`EPS year-on-year change: ${sign}${value.toFixed(1)}%`}
     >
       <span className="opacity-70 font-bold tracking-wider">EPS</span>
@@ -349,7 +327,7 @@ function EnrichedRow({ item, extreme, hasDividendSoon, note, onOpenNote }: RowPr
         </Link>
       </td>
       <td>
-        <TierBadge tier={tier} />
+        <TierPill tier={tier} />
       </td>
       <td className="num">{item.ltp != null ? taka(item.ltp, 1) : "—"}</td>
       <td className={`num watchlist-chg ${chgCls}`}>
@@ -577,20 +555,12 @@ function WatchlistTableInner() {
             </span>
           </p>
           <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={handleImportShared}
-              className="navbar-rank-btn text-xs px-3 py-1.5"
-            >
+            <Button type="button" onClick={handleImportShared} variant="primary" size="sm">
               Import
-            </button>
-            <button
-              type="button"
-              onClick={handleDismissImport}
-              className="navbar-intel-btn text-xs px-3 py-1.5"
-            >
+            </Button>
+            <Button type="button" onClick={handleDismissImport} variant="ghost" size="sm">
               Dismiss
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -609,7 +579,17 @@ function WatchlistTableInner() {
           <EmptyStateActions />
         </div>
       ) : loading ? (
-        <div className="watchlist-loading">Loading watchlist…</div>
+        <Card padding="md" aria-busy="true" aria-label="Loading watchlist">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="flex items-center gap-3 py-2.5">
+              <Skeleton width={18} height={18} rounded="999px" />
+              <Skeleton width={56} height={16} rounded="999px" />
+              <Skeleton width="30%" height={14} />
+              <Skeleton width={52} height={14} className="ml-auto" />
+              <Skeleton width={44} height={14} />
+            </div>
+          ))}
+        </Card>
       ) : error ? (
         <div className="watchlist-error">Failed to load: {error}</div>
       ) : (

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Card from "@/components/ui/Card";
 
 /** Shared chart wrapper card — title/subtitle header, optional pill, chart, optional caption. */
 export default function ChartCard({
@@ -11,13 +12,7 @@ export default function ChartCard({
   children: ReactNode;
 }) {
   return (
-    <div
-      className="rounded-2xl p-5"
-      style={{
-        background: "var(--surface)",
-        border: "1px solid var(--border)",
-      }}
-    >
+    <Card padding="none" className="rounded-2xl p-5">
       <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-0.5 sm:gap-3 mb-1">
         <p className="text-base font-bold" style={{ color: "var(--text)" }}>{title}</p>
         {subtitle && (
@@ -28,9 +23,9 @@ export default function ChartCard({
         <p
           className="inline-block text-[11px] font-bold px-2.5 py-1 rounded-full mt-2 mb-1"
           style={{
-            background: "rgba(21,128,61,0.1)",
+            background: "color-mix(in srgb, var(--positive) 10%, transparent)",
             color: "var(--positive)",
-            border: "1px solid rgba(21,128,61,0.3)",
+            border: "1px solid color-mix(in srgb, var(--positive) 30%, transparent)",
           }}
         >
           📢 {pill}
@@ -42,6 +37,6 @@ export default function ChartCard({
           {caption}
         </p>
       )}
-    </div>
+    </Card>
   );
 }

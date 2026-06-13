@@ -6,6 +6,8 @@ import {
 import type { LatestPrice, ValuationContext } from "@/lib/api";
 import { valuationCaption } from "@/lib/plain-language";
 import { peHistory, peRatio, pbRatio, toNum, avgIgnoringNulls } from "@/lib/stock-metrics";
+import Card from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
 
 interface Props {
   financials: Record<string, unknown>[];
@@ -14,32 +16,29 @@ interface Props {
   valuation?: ValuationContext | null;
 }
 
-const TICK = { fontSize: 11, fill: "#64748B" };
+const TICK = { fontSize: 11, fill: "var(--text-muted)" };
 const TIP_STYLE = {
   fontSize: 12,
-  borderRadius: "8px",
+  borderRadius: "12px",
   border: "1px solid var(--border)",
   background: "var(--surface)",
   color: "var(--text)",
+  boxShadow: "var(--shadow-soft)",
 };
 
 type Tab = "pe" | "pb" | "sector";
 
 function tile(label: string, value: string, sub: string, color?: string) {
   return (
-    <div
-      key={label}
-      className="rounded-2xl p-4 flex-1"
-      style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-    >
+    <Card key={label} padding="none" className="flex-1 rounded-2xl p-4">
       <p className="text-[10px] font-bold uppercase tracking-[0.15em] mb-2" style={{ color: "var(--text-muted)" }}>
         {label}
       </p>
-      <p className="text-2xl font-bold tabular-nums leading-none" style={{ color: color ?? "var(--text)" }}>
+      <p className="text-2xl font-bold tabular-nums nums leading-none" style={{ color: color ?? "var(--text)" }}>
         {value}
       </p>
       <p className="text-xs mt-2 leading-snug" style={{ color: "var(--text-muted)" }}>{sub}</p>
-    </div>
+    </Card>
   );
 }
 
@@ -115,28 +114,23 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
       </div>
 
       {tabs.length > 0 && activeTab && (
-        <div
-          className="rounded-2xl p-5"
-          style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-        >
+        <Card padding="none" className="rounded-2xl p-5">
           {/* Tab pills */}
           <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar">
             {tabs.map((t) => {
               const isActive = activeTab === t.key;
               return (
-                <button
+                <Button
                   key={t.key}
+                  variant="tab"
+                  size="sm"
+                  active={isActive}
                   type="button"
                   onClick={() => setTab(t.key)}
-                  className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full whitespace-nowrap"
-                  style={{
-                    color: isActive ? "#fff" : "var(--text-muted)",
-                    background: isActive ? "var(--primary)" : "var(--surface-2)",
-                    border: "1px solid var(--border)",
-                  }}
+                  className="shrink-0 whitespace-nowrap"
                 >
                   {t.label}
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -152,9 +146,9 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
                   {ownAvgPe != null && (
                     <ReferenceLine
                       y={ownAvgPe}
-                      stroke="#94A3B8"
+                      stroke="var(--text-muted)"
                       strokeDasharray="4 4"
-                      label={{ value: `5y avg ${ownAvgPe.toFixed(1)}`, position: "insideTopRight", fontSize: 10, fill: "#64748B" }}
+                      label={{ value: `5y avg ${ownAvgPe.toFixed(1)}`, position: "insideTopRight", fontSize: 10, fill: "var(--text-muted)" }}
                     />
                   )}
                   <Line type="monotone" dataKey="pe" stroke="var(--primary)" strokeWidth={2.5} dot={{ r: 3 }} />
@@ -214,7 +208,7 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
               )}
             </div>
           )}
-        </div>
+        </Card>
       )}
     </section>
   );

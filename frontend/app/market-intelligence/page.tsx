@@ -126,7 +126,7 @@ export default async function MarketIntelligencePage() {
                 items={signals.resilience_leaders}
                 metricCol="change_pct"
                 metricLabel="Change"
-                titleColor="#2563EB"
+                titleColor="var(--primary)"
               />
             )}
             {signals.floor_watch && (

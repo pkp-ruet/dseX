@@ -4,6 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { type WatchlistNewsItem } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
+import Card from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
+import Skeleton from "@/components/ui/Skeleton";
 
 interface Props {
   codes: string[];
@@ -19,7 +22,7 @@ function NewsItem({ item }: { item: WatchlistNewsItem }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="group relative flex flex-col gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-sm hover:shadow-md hover:border-[var(--primary)] transition-all duration-200">
+    <Card padding="none" className="group relative flex flex-col gap-2 p-4 hover:shadow-md hover:border-[var(--primary)] transition-all duration-200">
       <div className="flex items-center justify-between gap-2">
         <Link
           prefetch={false} href={`/stock/${item.trading_code}`}
@@ -55,20 +58,20 @@ function NewsItem({ item }: { item: WatchlistNewsItem }) {
           )}
         </>
       )}
-    </div>
+    </Card>
   );
 }
 
 function SkeletonCard() {
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 animate-pulse">
+    <Card padding="none" className="p-4">
       <div className="flex items-center justify-between mb-3">
-        <div className="h-4 w-12 rounded-full bg-[var(--border)]" />
-        <div className="h-3 w-16 rounded bg-[var(--border)]" />
+        <Skeleton width={48} height={16} rounded="999px" />
+        <Skeleton width={64} height={12} />
       </div>
-      <div className="h-3.5 w-full rounded bg-[var(--border)] mb-2" />
-      <div className="h-3.5 w-3/4 rounded bg-[var(--border)]" />
-    </div>
+      <Skeleton height={14} className="mb-2" />
+      <Skeleton width="75%" height={14} />
+    </Card>
   );
 }
 
@@ -120,12 +123,9 @@ export default function WatchlistNews({ codes, news, loading, limit, compact = f
       )}
 
       {compact && items.length > 0 && (
-        <Link
-          href="/watchlist"
-          className="mt-3 flex items-center justify-center gap-1 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 text-xs font-bold text-[var(--primary)] hover:bg-[color-mix(in_srgb,var(--primary)_12%,var(--surface-2))] transition-colors"
-        >
+        <Button href="/watchlist" variant="ghost" size="sm" className="mt-3 w-full">
           View all news →
-        </Link>
+        </Button>
       )}
     </section>
   );

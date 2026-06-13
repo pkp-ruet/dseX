@@ -10,6 +10,7 @@ import {
 } from "@/lib/api";
 import { isLoggedIn } from "@/lib/auth";
 import RecommendedStockCard from "./RecommendedStockCard";
+import Button from "@/components/ui/Button";
 
 type Answers = Partial<RecommendationAnswers> & { sectors: string[] };
 
@@ -267,13 +268,9 @@ export default function RecommendationQuiz({ sectors }: { sectors: string[] }) {
         )}
 
         <div className="text-center pt-1">
-          <button
-            type="button"
-            onClick={restart}
-            className="min-h-[44px] px-6 rounded-xl border border-[var(--border)] font-semibold text-sm text-[var(--text)] hover:bg-[var(--surface-2)] transition"
-          >
+          <Button type="button" variant="ghost" onClick={restart} className="min-h-[44px] px-6">
             {fromSaved ? "Start over →" : "Start over"}
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -385,23 +382,25 @@ export default function RecommendationQuiz({ sectors }: { sectors: string[] }) {
       {/* Nav */}
       <div className="flex items-center gap-3 pt-1">
         {step > 0 && (
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => setStep((s) => s - 1)}
             disabled={loading}
-            className="min-h-[48px] px-5 rounded-xl border border-[var(--border)] font-semibold text-sm text-[var(--text)] hover:bg-[var(--surface-2)] transition disabled:opacity-50"
+            className="min-h-[48px] px-5"
           >
             Back
-          </button>
+          </Button>
         )}
-        <button
+        <Button
           type="button"
+          variant="primary"
           onClick={() => (isLast ? submit() : setStep((s) => s + 1))}
           disabled={!answered || loading}
-          className="flex-1 min-h-[48px] px-5 rounded-xl font-semibold text-sm text-white bg-[var(--primary)] hover:brightness-110 transition disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex-1 min-h-[48px] px-5"
         >
           {loading ? "Finding stocks…" : isLast ? "Get my 3 stocks" : "Next"}
-        </button>
+        </Button>
       </div>
     </div>
   );

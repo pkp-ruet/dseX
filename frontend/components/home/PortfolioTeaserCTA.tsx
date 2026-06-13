@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import Button from "@/components/ui/Button";
 
 export default function PortfolioTeaserCTA() {
   const { isLoggedIn, isLoading } = useAuth();
@@ -89,9 +89,10 @@ export default function PortfolioTeaserCTA() {
           </div>
         </div>
 
-        <Link
+        <Button
           href={ctaHref}
-          className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm sm:text-[15px] font-bold bg-[var(--primary)] text-white hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all shrink-0 shadow-[0_0_24px_-6px_rgba(14,165,233,0.6)] self-start sm:self-auto"
+          variant="primary"
+          className="shrink-0 self-start sm:self-auto"
         >
           {ctaLabel}
           <svg
@@ -103,7 +104,7 @@ export default function PortfolioTeaserCTA() {
           >
             <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z" />
           </svg>
-        </Link>
+        </Button>
       </div>
     </section>
   );

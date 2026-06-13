@@ -1,4 +1,5 @@
 import type { PortfolioAnalysis } from "@/lib/portfolio-analysis";
+import Card from "@/components/ui/Card";
 
 interface Props {
   analysis: PortfolioAnalysis;
@@ -33,7 +34,7 @@ export default function SectorBreakdownChart({ analysis }: Props) {
   const totalStocks = analysis.sectorSpread.reduce((acc, s) => acc + s.count, 0);
 
   return (
-    <section className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 sm:p-6">
+    <Card as="section" padding="none" className="rounded-2xl p-5 sm:p-6">
       {/* Header */}
       <div className="flex items-center gap-2.5 mb-3">
         <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--primary)]/15 border border-[var(--primary)]/30 text-[var(--primary)]">
@@ -87,7 +88,7 @@ export default function SectorBreakdownChart({ analysis }: Props) {
                   )}
                 </div>
                 <div className="flex items-baseline gap-2 shrink-0">
-                  <span className="text-base sm:text-lg font-black text-[var(--text)] tabular-nums">
+                  <span className="text-base sm:text-lg font-black text-[var(--text)] tabular-nums nums">
                     {s.weightPct.toFixed(0)}%
                   </span>
                   <span className="text-xs sm:text-sm text-[var(--text-muted)]">
@@ -106,6 +107,6 @@ export default function SectorBreakdownChart({ analysis }: Props) {
           );
         })}
       </ul>
-    </section>
+    </Card>
   );
 }

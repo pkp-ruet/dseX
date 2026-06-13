@@ -75,9 +75,9 @@ export default function SignalTable({
                 className="intel-row"
               >
                 <span className="intel-code">{item.trading_code}</span>
-                <span className="intel-ltp">{item.ltp != null ? taka(item.ltp) : "—"}</span>
+                <span className="intel-ltp nums">{item.ltp != null ? taka(item.ltp) : "—"}</span>
                 <span
-                  className="intel-change"
+                  className="intel-change nums"
                   style={{ color: chgPos ? "var(--positive)" : "var(--negative)" }}
                 >
                   {item.change_pct != null
@@ -85,7 +85,7 @@ export default function SignalTable({
                     : "—"}
                 </span>
                 <span
-                  className="intel-metric"
+                  className="intel-metric nums"
                   style={{ color: metricColor(item, metricCol), textAlign: "right" }}
                 >
                   {metricValue(item, metricCol)}

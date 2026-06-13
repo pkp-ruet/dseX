@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { RelatedStock } from "@/lib/api";
 import { getTier, TIER_COLORS } from "@/lib/constants";
 import { peerStandingCaption } from "@/lib/plain-language";
+import Card from "@/components/ui/Card";
 
 export interface PeerRow {
   trading_code: string;
@@ -107,10 +108,7 @@ export default function PeerComparison({ current, peers, sector }: Props) {
         {caption ?? `${current.trading_code} versus the strongest names in ${sector ?? "its sector"}.`}
       </p>
 
-      <div
-        className="rounded-2xl overflow-hidden"
-        style={{ border: "1px solid var(--border)", background: "var(--surface)" }}
-      >
+      <Card padding="none" className="rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <thead>
@@ -188,7 +186,7 @@ export default function PeerComparison({ current, peers, sector }: Props) {
                       return (
                         <td
                           key={c.key}
-                          className="px-3 py-2.5 text-right tabular-nums whitespace-nowrap"
+                          className="px-3 py-2.5 text-right tabular-nums nums whitespace-nowrap"
                           style={{ color }}
                         >
                           {fmt(val, c.kind)}
@@ -201,7 +199,7 @@ export default function PeerComparison({ current, peers, sector }: Props) {
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
     </section>
   );
 }

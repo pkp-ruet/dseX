@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import Link from "next/link";
 import type { ScoreItem } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import Button from "@/components/ui/Button";
 
 type Mode = "idle" | "checking" | "result" | "limit";
 
@@ -50,12 +50,12 @@ function bumpUsed() {
 }
 
 function gradeOf(score: number | null): { letter: string; word: string; color: string } {
-  if (score == null) return { letter: "?", word: "Unknown", color: "#94A3B8" };
-  if (score >= 80) return { letter: "A", word: "Excellent", color: "#34D399" };
-  if (score >= 70) return { letter: "B", word: "Good",      color: "#4ADE80" };
-  if (score >= 60) return { letter: "C", word: "Fair",      color: "#60A5FA" };
-  if (score >= 50) return { letter: "D", word: "Watch",     color: "#FBBF24" };
-  return { letter: "F", word: "Risky",                       color: "#F87171" };
+  if (score == null) return { letter: "?", word: "Unknown", color: "#79716B" };
+  if (score >= 80) return { letter: "A", word: "Excellent", color: "#047857" };
+  if (score >= 70) return { letter: "B", word: "Good",      color: "#059669" };
+  if (score >= 60) return { letter: "C", word: "Fair",      color: "#4338CA" };
+  if (score >= 50) return { letter: "D", word: "Watch",     color: "#B45309" };
+  return { letter: "F", word: "Risky",                       color: "#DC2626" };
 }
 
 function plainSummary(item: ScoreItem): string {
@@ -84,7 +84,7 @@ interface BarProps {
 function PillarBar({ label, value, delay, visible }: BarProps) {
   const v = value ?? 0;
   const pct = Math.max(0, Math.min(100, v * 10));
-  const color = v >= 7 ? "#34D399" : v >= 4 ? "#FBBF24" : "#F87171";
+  const color = v >= 7 ? "var(--positive)" : v >= 4 ? "var(--watch)" : "var(--negative)";
   const word = v >= 7 ? "Strong" : v >= 4 ? "Fair" : "Weak";
   return (
     <div className="flex flex-col gap-1.5">
@@ -358,7 +358,7 @@ export default function GradeAnyStockHero({ items }: Props) {
                     {picked.company_name}
                   </p>
                 )}
-                <p className="text-base sm:text-lg font-bold mt-1.5" style={{ color: grade.color }}>
+                <p className="text-base sm:text-lg font-bold mt-1.5 nums" style={{ color: grade.color }}>
                   {Math.round(picked.score ?? 0)}/100 · {grade.word}
                 </p>
               </div>
@@ -391,22 +391,15 @@ export default function GradeAnyStockHero({ items }: Props) {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-2 mt-auto">
-              <Link
-                prefetch={false} href={`/stock/${picked.trading_code}`}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl text-base font-bold bg-[var(--primary)] text-white hover:opacity-90 transition-opacity"
-              >
+              <Button href={`/stock/${picked.trading_code}`} variant="primary" className="flex-1">
                 See full report
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z" />
                 </svg>
-              </Link>
-              <button
-                type="button"
-                onClick={reset}
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl text-base font-bold border-2 border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors"
-              >
+              </Button>
+              <Button type="button" onClick={reset} variant="ghost">
                 Check another
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -422,18 +415,12 @@ export default function GradeAnyStockHero({ items }: Props) {
               Sign up free to check any stock, save your favorites, and get tomorrow&apos;s top pick.
             </p>
             <div className="flex flex-col sm:flex-row gap-2 w-full max-w-sm">
-              <Link
-                href="/register"
-                className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl text-base font-bold bg-[var(--primary)] text-white hover:opacity-90 transition-opacity"
-              >
+              <Button href="/register" variant="primary" className="flex-1">
                 Sign up free
-              </Link>
-              <Link
-                href="/login"
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl text-base font-bold border-2 border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors"
-              >
+              </Button>
+              <Button href="/login" variant="ghost">
                 Sign in
-              </Link>
+              </Button>
             </div>
           </div>
         )}

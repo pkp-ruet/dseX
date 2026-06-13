@@ -1,6 +1,7 @@
 import type { MomentumSnapshot } from "@/lib/api";
 import { momentumSummary, type MomentumTone } from "@/lib/plain-language";
 import { crore } from "@/lib/formatters";
+import Card from "@/components/ui/Card";
 
 interface Props {
   momentum: MomentumSnapshot | null;
@@ -72,10 +73,7 @@ export default function MomentumStrip({ momentum }: Props) {
         What the share price has been doing over the last week.
       </p>
 
-      <div
-        className="rounded-2xl p-5 mb-4"
-        style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-      >
+      <Card padding="none" className="rounded-2xl p-5 mb-4">
         <div className="flex items-center gap-3">
           <span
             className="inline-flex items-center text-sm font-bold px-3 py-1.5 rounded-full"
@@ -91,15 +89,11 @@ export default function MomentumStrip({ momentum }: Props) {
         <p className="text-sm leading-snug mt-3" style={{ color: "var(--text-muted)" }}>
           {summary.line}
         </p>
-      </div>
+      </Card>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {tiles.map((t) => (
-          <div
-            key={t.label}
-            className="rounded-2xl p-4"
-            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-          >
+          <Card key={t.label} padding="none" className="rounded-2xl p-4">
             <p
               className="text-[10px] font-bold uppercase tracking-[0.15em] mb-2"
               style={{ color: "var(--text-muted)" }}
@@ -107,7 +101,7 @@ export default function MomentumStrip({ momentum }: Props) {
               {t.label}
             </p>
             <p
-              className="text-2xl font-bold tabular-nums leading-none"
+              className="text-2xl font-bold tabular-nums nums leading-none"
               style={{ color: t.color ?? "var(--text)" }}
             >
               {t.value}
@@ -130,7 +124,7 @@ export default function MomentumStrip({ momentum }: Props) {
             <p className="text-xs mt-2 leading-snug" style={{ color: "var(--text-muted)" }}>
               {t.sub}
             </p>
-          </div>
+          </Card>
         ))}
       </div>
 

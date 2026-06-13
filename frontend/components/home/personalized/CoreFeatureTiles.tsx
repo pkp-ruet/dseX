@@ -73,7 +73,7 @@ export default function CoreFeatureTiles({ marketIndex }: Props) {
             </span>
             <span className="text-[0.84rem] font-bold leading-tight text-[var(--text)]">{t.label}</span>
           </span>
-          <span className="text-[0.78rem] font-semibold tabular-nums text-[var(--text)]">{t.stat}</span>
+          <span className="text-[0.78rem] font-semibold tabular-nums nums text-[var(--text)]">{t.stat}</span>
         </Link>
       ))}
     </div>

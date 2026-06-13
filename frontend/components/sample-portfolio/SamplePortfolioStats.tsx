@@ -1,5 +1,6 @@
 import type { ComputedRow, PortfolioAnalysis } from "@/lib/portfolio-analysis";
 import { taka } from "@/lib/formatters";
+import Card from "@/components/ui/Card";
 
 interface Props {
   rows: ComputedRow[];
@@ -25,9 +26,9 @@ export default function SamplePortfolioStats({ rows, analysis }: Props) {
     pnl == null
       ? "text-[var(--text)]"
       : pnl > 0
-        ? "text-green-500"
+        ? "text-[var(--positive)]"
         : pnl < 0
-          ? "text-red-500"
+          ? "text-[var(--negative)]"
           : "text-[var(--text)]";
 
   return (
@@ -60,11 +61,11 @@ function Stat({
   valueClass?: string;
 }) {
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4">
+    <Card padding="none" className="p-4">
       <p className="text-xs text-[var(--text-muted)] uppercase tracking-wider mb-1">{label}</p>
-      <p className={`text-base sm:text-lg font-bold ${valueClass ?? "text-[var(--text)]"}`}>
+      <p className={`text-base sm:text-lg font-bold nums ${valueClass ?? "text-[var(--text)]"}`}>
         {value}
       </p>
-    </div>
+    </Card>
   );
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Card from "@/components/ui/Card";
 
 interface Props {
   todayMove: { delta: number; pct: number } | null;
@@ -32,7 +33,7 @@ export default function DailyBriefing({
       { done: hasWatchlist, label: "Build your watchlist", href: "/watchlist" },
     ];
     return (
-      <div className="mt-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[0_4px_16px_rgba(15,23,42,0.05)]">
+      <Card padding="none" className="mt-3 p-4">
         <p className="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
           Get started
         </p>
@@ -65,7 +66,7 @@ export default function DailyBriefing({
             </li>
           ))}
         </ul>
-      </div>
+      </Card>
     );
   }
 
@@ -78,7 +79,7 @@ export default function DailyBriefing({
     chips.push(
       <span
         key="pf"
-        className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.8rem] font-bold tabular-nums"
+        className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.8rem] font-bold tabular-nums nums"
         style={{
           color: up ? "var(--positive)" : "var(--negative)",
           borderColor: `color-mix(in srgb, ${up ? "var(--positive)" : "var(--negative)"} 30%, var(--border))`,

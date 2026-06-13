@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { setNote } from "@/lib/watchlist";
+import Button from "@/components/ui/Button";
 
 interface Props {
   code: string;
@@ -49,27 +50,23 @@ export default function NoteEditor({ code, initial, onClose }: Props) {
               type="button"
               onClick={handleClear}
               disabled={saving}
-              className="px-2 py-1 rounded text-red-500 hover:bg-red-500/10 disabled:opacity-50"
+              className="px-2 py-1 rounded text-[var(--negative)] hover:bg-[color-mix(in_srgb,var(--negative)_10%,transparent)] disabled:opacity-50"
             >
               Delete
             </button>
           )}
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={saving}
-            className="px-2 py-1 rounded text-[var(--ink-muted)] hover:text-[var(--ink)] disabled:opacity-50"
-          >
+          <Button type="button" onClick={onClose} disabled={saving} variant="ghost" size="sm">
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={handleSave}
             disabled={saving || text === initial}
-            className="px-3 py-1 rounded bg-[var(--primary)] text-white font-semibold disabled:opacity-50"
+            variant="primary"
+            size="sm"
           >
             {saving ? "Saving…" : "Save"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

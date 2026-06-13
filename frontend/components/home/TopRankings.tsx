@@ -90,7 +90,7 @@ export default function TopRankings({ scores }: Props) {
                       item.data_age_years != null ? ` (${item.data_age_years}y old)` : ""
                     }`}
                     aria-label="Stale financial data"
-                    style={{ marginLeft: 4, fontSize: "0.85em", color: "#FBBF24" }}
+                    style={{ marginLeft: 4, fontSize: "0.85em", color: "var(--watch)" }}
                   >
                     ⚠️
                   </span>

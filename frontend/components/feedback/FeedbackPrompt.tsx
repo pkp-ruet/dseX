@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { apiSubmitFeedback } from "@/lib/api";
 import { isFeedbackDismissed, dismissFeedback } from "@/lib/feedback";
 import StarRating from "@/components/feedback/StarRating";
+import Button from "@/components/ui/Button";
 
 // Hold off a few seconds after load so the popup doesn't feel jarring.
 const SHOW_DELAY_MS = 6000;
@@ -126,14 +127,14 @@ export default function FeedbackPrompt() {
               >
                 No thanks
               </button>
-              <button
+              <Button
                 type="button"
+                variant="primary"
                 onClick={submit}
                 disabled={rating < 1 || status === "sending"}
-                className="inline-flex items-center justify-center rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {status === "sending" ? "Sending…" : "Share feedback"}
-              </button>
+              </Button>
             </div>
           </>
         )}

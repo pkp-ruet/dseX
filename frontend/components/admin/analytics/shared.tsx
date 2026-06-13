@@ -4,11 +4,11 @@ import type { EngagementSegment, SignupSource } from "@/lib/api";
 
 /** Token-aligned hex palette (Recharts needs concrete colors for fills). */
 export const COLORS = {
-  primary: "#2563EB",
-  positive: "#15803D",
-  negative: "#DC2626",
-  watch: "#B45309",
-  muted: "#64748B",
+  primary: "var(--primary)",
+  positive: "var(--positive)",
+  negative: "var(--negative)",
+  watch: "var(--watch)",
+  muted: "var(--text-muted)",
   indigo: "#6366F1",
   orange: "#EA580C",
   pink: "#DB2777",
@@ -33,10 +33,11 @@ export const SIGNUP_META: Record<SignupSource, { label: string; color: string }>
 
 export const TOOLTIP_STYLE = {
   fontSize: 12,
-  borderRadius: "8px",
+  borderRadius: "12px",
   border: "1px solid var(--border)",
   background: "var(--surface)",
   color: "var(--text)",
+  boxShadow: "var(--shadow-soft)",
 } as const;
 
 /** "01 Jun 14:30" in Dhaka time. */

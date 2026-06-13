@@ -9,6 +9,8 @@ import {
   type AdminFeedbackResponse,
   type AdminFeedbackItem,
 } from "@/lib/api";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
 
 function fmtTime(iso: string | null): string {
   if (!iso) return "—";
@@ -35,8 +37,8 @@ function Stars({ n }: { n: number }) {
           width="15"
           height="15"
           viewBox="0 0 24 24"
-          fill={i <= n ? "#F59E0B" : "none"}
-          stroke={i <= n ? "#F59E0B" : "var(--border)"}
+          fill={i <= n ? "var(--warm)" : "none"}
+          stroke={i <= n ? "var(--warm)" : "var(--border)"}
           strokeWidth="1.6"
         >
           <path
@@ -110,14 +112,9 @@ export default function AdminFeedbackClient() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={refetch}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors"
-            aria-label="Reload"
-          >
+          <Button type="button" variant="ghost" size="sm" onClick={refetch} aria-label="Reload">
             ⟳ Reload
-          </button>
+          </Button>
           <Link href="/admin/tips" className="text-xs sm:text-sm text-[var(--accent)] hover:underline whitespace-nowrap">
             Tips
           </Link>
@@ -131,17 +128,17 @@ export default function AdminFeedbackClient() {
       </div>
 
       {loadError && (
-        <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2.5 text-sm text-red-400">
+        <div className="mb-4 rounded-lg border px-3 py-2.5 text-sm text-[var(--negative)]" style={{ borderColor: "color-mix(in srgb, var(--negative) 40%, transparent)", background: "color-mix(in srgb, var(--negative) 10%, transparent)" }}>
           {loadError}
         </div>
       )}
 
       {/* Summary */}
       {stats && (
-        <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5 mb-5">
+        <Card as="section" padding="none" className="rounded-2xl p-4 sm:p-5 mb-5">
           <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
             <div className="shrink-0">
-              <p className="text-3xl font-extrabold text-[var(--text)]">{stats.average ?? "—"}</p>
+              <p className="text-3xl font-extrabold text-[var(--text)] nums">{stats.average ?? "—"}</p>
               <p className="text-xs text-[var(--text-muted)] mt-0.5">
                 avg · {stats.total} review{stats.total === 1 ? "" : "s"}
               </p>
@@ -155,16 +152,16 @@ export default function AdminFeedbackClient() {
                     <div className="flex-1 h-2 rounded-full bg-[var(--surface-2)] overflow-hidden">
                       <div
                         className="h-full rounded-full"
-                        style={{ width: `${(c / maxDist) * 100}%`, background: "#F59E0B" }}
+                        style={{ width: `${(c / maxDist) * 100}%`, background: "var(--warm)" }}
                       />
                     </div>
-                    <span className="w-8 text-right text-[var(--text-muted)]">{c}</span>
+                    <span className="w-8 text-right text-[var(--text-muted)] nums">{c}</span>
                   </div>
                 );
               })}
             </div>
           </div>
-        </section>
+        </Card>
       )}
 
       {/* Reviews */}
@@ -173,7 +170,7 @@ export default function AdminFeedbackClient() {
           <p className="text-sm text-[var(--text-muted)] py-10 text-center">No feedback yet.</p>
         ) : (
           items.map((f) => (
-            <div key={f.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3">
+            <Card key={f.id} padding="none" className="rounded-xl px-4 py-3">
               <div className="flex items-center justify-between gap-3">
                 <Stars n={f.rating} />
                 <span className="text-[11px] text-[var(--text-muted)]">{fmtTime(f.created_at)}</span>
@@ -191,7 +188,7 @@ export default function AdminFeedbackClient() {
                 {f.user_email && f.user_name && <span>· {f.user_email}</span>}
                 {f.page && f.page !== "/" && <span>· {f.page}</span>}
               </div>
-            </div>
+            </Card>
           ))
         )}
       </section>

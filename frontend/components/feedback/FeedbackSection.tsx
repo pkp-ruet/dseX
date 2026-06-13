@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { apiSubmitFeedback } from "@/lib/api";
 import { dismissFeedback } from "@/lib/feedback";
 import StarRating from "@/components/feedback/StarRating";
+import Button from "@/components/ui/Button";
 
 export default function FeedbackSection() {
   const { user } = useAuth();
@@ -69,14 +70,14 @@ export default function FeedbackSection() {
             />
             {error && <p className="text-sm text-[var(--negative)]">{error}</p>}
             <div className="flex items-center gap-3">
-              <button
+              <Button
                 type="button"
+                variant="primary"
                 onClick={submit}
                 disabled={rating < 1 || status === "sending"}
-                className="inline-flex items-center justify-center rounded-xl bg-[var(--primary)] px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {status === "sending" ? "Sending…" : "Send feedback"}
-              </button>
+              </Button>
               {rating < 1 && <span className="text-xs text-[var(--text-muted)]">Tap a star to rate</span>}
             </div>
           </div>

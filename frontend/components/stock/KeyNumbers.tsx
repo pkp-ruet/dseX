@@ -1,5 +1,6 @@
 import type { CompanyDetail } from "@/lib/api";
 import { crore } from "@/lib/formatters";
+import Card from "@/components/ui/Card";
 
 interface Props {
   detail: CompanyDetail;
@@ -74,14 +75,7 @@ export default function KeyNumbers({ detail }: Props) {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {items.map((item) => (
-          <div
-            key={item.label}
-            className="rounded-2xl p-4"
-            style={{
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-            }}
-          >
+          <Card key={item.label} padding="none" className="rounded-2xl p-4">
             <p
               className="text-[10px] font-bold uppercase tracking-[0.15em] mb-2"
               style={{ color: "var(--text-muted)" }}
@@ -89,7 +83,7 @@ export default function KeyNumbers({ detail }: Props) {
               {item.label}
             </p>
             <p
-              className="text-2xl font-bold tabular-nums leading-none"
+              className="text-2xl font-bold tabular-nums nums leading-none"
               style={{ color: item.tone ?? "var(--text)" }}
             >
               {item.value}
@@ -97,7 +91,7 @@ export default function KeyNumbers({ detail }: Props) {
             <p className="text-xs mt-2 leading-snug" style={{ color: "var(--text-muted)" }}>
               {item.desc}
             </p>
-          </div>
+          </Card>
         ))}
       </div>
     </section>

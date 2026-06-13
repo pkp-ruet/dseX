@@ -4,16 +4,17 @@ import { useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import type { PortfolioAnalysis } from "@/lib/portfolio-analysis";
 import { taka } from "@/lib/formatters";
+import Card from "@/components/ui/Card";
 
 interface Props {
   analysis: PortfolioAnalysis;
 }
 
 const COLORS = [
-  "#2563EB", "#15803D", "#EA580C", "#6366F1", "#DB2777",
+  "var(--primary)", "var(--positive)", "#EA580C", "#6366F1", "#DB2777",
   "#0891B2", "#CA8A04", "#9333EA", "#DC2626", "#0D9488",
 ];
-const OTHERS_COLOR = "#94A3B8";
+const OTHERS_COLOR = "var(--text-muted)";
 
 type Basis = "invested" | "market";
 
@@ -56,7 +57,7 @@ export default function AllocationChart({ analysis }: Props) {
       : `Your largest position is ${top.code} at ${topShare.toFixed(0)}% — a balanced split, no single stock dominates.`;
 
   return (
-    <section className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 sm:p-6">
+    <Card as="section" padding="none" className="rounded-2xl p-5 sm:p-6">
       {/* Header + toggle */}
       <div className="flex items-center gap-2.5 mb-1 flex-wrap">
         <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--primary)]/15 border border-[var(--primary)]/30 text-[var(--primary)]">
@@ -112,10 +113,11 @@ export default function AllocationChart({ analysis }: Props) {
               <Tooltip
                 contentStyle={{
                   fontSize: 12,
-                  borderRadius: "8px",
+                  borderRadius: "12px",
                   border: "1px solid var(--border)",
                   background: "var(--surface)",
                   color: "var(--text)",
+                  boxShadow: "var(--shadow-soft)",
                 }}
                 formatter={(v: number) => [`${taka(v, 0)} (${((v / total) * 100).toFixed(1)}%)`, ""]}
               />
@@ -149,6 +151,6 @@ export default function AllocationChart({ analysis }: Props) {
       </div>
 
       <p className="text-sm text-[var(--text-muted)] mt-5 leading-relaxed">{note}</p>
-    </section>
+    </Card>
   );
 }

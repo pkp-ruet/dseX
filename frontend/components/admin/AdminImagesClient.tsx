@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
 
 type TemplateKey = "showcase" | "top-ranked" | "top-20" | "rankings" | "stock" | "market" | "portfolio";
 
@@ -163,14 +165,15 @@ export default function AdminImagesClient() {
       </div>
 
       {error && (
-        <p className="text-red-500 mb-4 text-sm">{error}</p>
+        <p className="text-[var(--negative)] mb-4 text-sm">{error}</p>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {TEMPLATES.map((t) => (
-          <div
+          <Card
             key={t.key}
-            className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 flex flex-col"
+            padding="none"
+            className="rounded-2xl p-4 flex flex-col"
           >
             <div className="flex items-start justify-between gap-3 mb-3">
               <div className="min-w-0">
@@ -181,14 +184,15 @@ export default function AdminImagesClient() {
                   {t.description}
                 </p>
               </div>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => reload(t.key)}
-                className="text-xs px-3 py-1.5 rounded-full border border-[var(--border)] hover:bg-[var(--bg)] text-[var(--text-muted)]"
                 title="Re-render with latest data"
               >
                 Refresh
-              </button>
+              </Button>
             </div>
 
             {t.needsCode && (
@@ -201,14 +205,9 @@ export default function AdminImagesClient() {
                   placeholder="Trading code (e.g. GP)"
                   className="input-field flex-1 text-sm uppercase"
                 />
-                <button
-                  type="button"
-                  onClick={applyCode}
-                  className="text-sm px-4 rounded-md bg-[var(--primary,#1A6B5A)] text-white font-semibold hover:opacity-90"
-                  style={{ background: "#1A6B5A" }}
-                >
+                <Button type="button" variant="primary" size="sm" onClick={applyCode}>
                   Render
-                </button>
+                </Button>
               </div>
             )}
 
@@ -233,17 +232,17 @@ export default function AdminImagesClient() {
               >
                 Open full size ↗
               </a>
-              <button
+              <Button
                 type="button"
+                variant="primary"
+                size="sm"
                 onClick={() => handleDownload(t.key)}
                 disabled={downloading === t.key}
-                className="text-sm px-4 py-2 rounded-md text-white font-semibold disabled:opacity-60"
-                style={{ background: "#1A6B5A" }}
               >
                 {downloading === t.key ? "Downloading…" : "Download PNG"}
-              </button>
+              </Button>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
 

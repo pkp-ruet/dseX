@@ -52,8 +52,8 @@ function Medal({ rank }: { rank: 1 | 2 | 3 }) {
 
 function chgColor(val: number | null) {
   if (val == null) return "var(--ink-muted)";
-  if (val > 0) return "#34D399";
-  if (val < 0) return "#F87171";
+  if (val > 0) return "var(--positive)";
+  if (val < 0) return "var(--negative)";
   return "var(--ink-muted)";
 }
 

@@ -11,14 +11,16 @@ import {
   type AdminDailyPickItem,
   type AdminDailyPickSkip,
 } from "@/lib/api";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
 
 function gradeOf(score: number | null | undefined): { letter: string; word: string; color: string } {
-  if (score == null) return { letter: "?", word: "Unknown", color: "#94A3B8" };
-  if (score >= 80) return { letter: "A", word: "Excellent", color: "#34D399" };
-  if (score >= 70) return { letter: "B", word: "Good",      color: "#4ADE80" };
-  if (score >= 60) return { letter: "C", word: "Fair",      color: "#60A5FA" };
-  if (score >= 50) return { letter: "D", word: "Watch",     color: "#FBBF24" };
-  return { letter: "F", word: "Risky", color: "#F87171" };
+  if (score == null) return { letter: "?", word: "Unknown", color: "var(--ink-muted)" };
+  if (score >= 80) return { letter: "A", word: "Excellent", color: "var(--positive)" };
+  if (score >= 70) return { letter: "B", word: "Good",      color: "var(--np-good)" };
+  if (score >= 60) return { letter: "C", word: "Fair",      color: "var(--primary)" };
+  if (score >= 50) return { letter: "D", word: "Watch",     color: "var(--watch)" };
+  return { letter: "F", word: "Risky", color: "var(--negative)" };
 }
 
 function fmtTime(iso: string | null): string {
@@ -42,8 +44,8 @@ function fmtPct(v: number | null | undefined): string {
 
 function chgColor(v: number | null | undefined): string {
   if (v == null) return "var(--text-muted)";
-  if (v > 0) return "#34D399";
-  if (v < 0) return "#F87171";
+  if (v > 0) return "var(--positive)";
+  if (v < 0) return "var(--negative)";
   return "var(--text-muted)";
 }
 
@@ -64,12 +66,12 @@ function PickCard({
           className="flex flex-col items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-xl border-2 shrink-0"
           style={{
             borderColor: grade.color,
-            background: `${grade.color}1f`,
+            background: `color-mix(in srgb, ${grade.color} 12%, transparent)`,
             color: grade.color,
           }}
         >
           <span className="text-2xl sm:text-3xl font-extrabold leading-none">{grade.letter}</span>
-          <span className="text-[8px] sm:text-[9px] uppercase tracking-wider mt-0.5 font-bold">
+          <span className="text-[8px] sm:text-[9px] uppercase tracking-wider mt-0.5 font-bold nums">
             {pick.score != null ? Math.round(pick.score) : "—"}
           </span>
         </div>
@@ -84,8 +86,8 @@ function PickCard({
             <span
               className="text-[10px] font-bold uppercase tracking-wider whitespace-nowrap px-1.5 py-0.5 rounded-full"
               style={{
-                background: pick.source === "dsef" ? "rgba(74,222,128,0.12)" : "rgba(96,165,250,0.12)",
-                color: pick.source === "dsef" ? "#4ADE80" : "#60A5FA",
+                background: pick.source === "dsef" ? "color-mix(in srgb, var(--positive) 12%, transparent)" : "color-mix(in srgb, var(--primary) 12%, transparent)",
+                color: pick.source === "dsef" ? "var(--positive)" : "var(--primary)",
               }}
             >
               Slot {pick.slot} · {pick.source_label}
@@ -101,17 +103,17 @@ function PickCard({
               <span className="text-[var(--text-muted)]">{pick.sector}</span>
             )}
             {pick.ltp != null && (
-              <span className="text-[var(--text)] font-semibold">৳{pick.ltp.toFixed(2)}</span>
+              <span className="text-[var(--text)] font-semibold nums">৳{pick.ltp.toFixed(2)}</span>
             )}
             {pick.change_pct != null && (
-              <span className="font-bold" style={{ color: chgColor(pick.change_pct) }}>
+              <span className="font-bold nums" style={{ color: chgColor(pick.change_pct) }}>
                 {fmtPct(pick.change_pct)}
               </span>
             )}
             {pick.return_7d_pct != null && (
               <span className="text-[10px] text-[var(--text-muted)]">
                 7d:{" "}
-                <span className="font-semibold" style={{ color: chgColor(pick.return_7d_pct) }}>
+                <span className="font-semibold nums" style={{ color: chgColor(pick.return_7d_pct) }}>
                   {fmtPct(pick.return_7d_pct)}
                 </span>
               </span>
@@ -124,18 +126,19 @@ function PickCard({
         <ul className="flex flex-col gap-1 text-xs sm:text-sm text-[var(--text)] mb-3">
           {pick.reasons.map((r, i) => (
             <li key={i} className="flex items-start gap-1.5 leading-relaxed">
-              <span className="text-green-500 mt-0.5 shrink-0 font-bold" aria-hidden="true">✓</span>
+              <span className="text-[var(--positive)] mt-0.5 shrink-0 font-bold" aria-hidden="true">✓</span>
               <span>{r}</span>
             </li>
           ))}
         </ul>
       )}
 
-      <button
+      <Button
         type="button"
+        variant="ghost"
         onClick={onRefresh}
         disabled={refreshing}
-        className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold border-2 border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+        className="w-full gap-2"
       >
         {refreshing ? (
           <>
@@ -150,7 +153,7 @@ function PickCard({
             <span aria-hidden="true">🔄</span> Refresh this pick
           </>
         )}
-      </button>
+      </Button>
     </div>
   );
 }
@@ -233,15 +236,16 @@ export default function AdminDailyPickClient() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={refetch}
             disabled={refreshingSlot != null}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors disabled:opacity-60"
             aria-label="Reload state"
           >
             ⟳ Reload
-          </button>
+          </Button>
           <Link
             href="/admin/scores"
             className="text-xs sm:text-sm text-[var(--accent)] hover:underline whitespace-nowrap"
@@ -270,30 +274,30 @@ export default function AdminDailyPickClient() {
       </div>
 
       {loadError && (
-        <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2.5 text-sm text-red-400">
+        <div className="mb-4 rounded-lg border px-3 py-2.5 text-sm text-[var(--negative)]" style={{ borderColor: "color-mix(in srgb, var(--negative) 40%, transparent)", background: "color-mix(in srgb, var(--negative) 10%, transparent)" }}>
           {loadError}
         </div>
       )}
 
       {actionNote && (
-        <div className="mb-4 rounded-lg border border-green-500/40 bg-green-500/10 px-3 py-2.5 text-sm text-green-400">
+        <div className="mb-4 rounded-lg border px-3 py-2.5 text-sm text-[var(--positive)]" style={{ borderColor: "color-mix(in srgb, var(--positive) 40%, transparent)", background: "color-mix(in srgb, var(--positive) 10%, transparent)" }}>
           {actionNote}
         </div>
       )}
       {actionError && (
-        <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2.5 text-sm text-red-400">
+        <div className="mb-4 rounded-lg border px-3 py-2.5 text-sm text-[var(--negative)]" style={{ borderColor: "color-mix(in srgb, var(--negative) 40%, transparent)", background: "color-mix(in srgb, var(--negative) 10%, transparent)" }}>
           {actionError}
         </div>
       )}
 
       {/* Picks */}
-      <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden mb-5">
+      <Card as="section" padding="none" className="rounded-2xl overflow-hidden mb-5">
         <div
           className="h-1.5 w-full"
-          style={{ background: "linear-gradient(90deg, #FBBF24, #F97316)" }}
+          style={{ background: "linear-gradient(90deg, var(--warm-soft), var(--warm))" }}
         />
         <div className="p-4 sm:p-5">
-          <p className="text-[10px] uppercase tracking-widest font-bold mb-3" style={{ color: "#F97316" }}>
+          <p className="text-[10px] uppercase tracking-widest font-bold mb-3" style={{ color: "var(--warm)" }}>
             ★ Currently live on homepage
           </p>
 
@@ -320,10 +324,10 @@ export default function AdminDailyPickClient() {
             homepage cache so all visitors see the change immediately.
           </p>
         </div>
-      </section>
+      </Card>
 
       {/* Skip history for today */}
-      <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5">
+      <Card as="section" padding="none" className="rounded-2xl p-4 sm:p-5">
         <div className="flex items-center justify-between mb-3 gap-2">
           <h2 className="text-sm sm:text-base font-bold text-[var(--text)]">
             Skipped today
@@ -364,7 +368,7 @@ export default function AdminDailyPickClient() {
                     </p>
                   )}
                   {s.score_when_skipped != null && (
-                    <p className="text-xs font-semibold text-[var(--text)]">
+                    <p className="text-xs font-semibold text-[var(--text)] nums">
                       {Math.round(s.score_when_skipped)}/100
                     </p>
                   )}
@@ -381,7 +385,7 @@ export default function AdminDailyPickClient() {
           Skips reset at 00:00 UTC — tomorrow these stocks are eligible again
           (subject to the 14-day rotation rule).
         </p>
-      </section>
+      </Card>
     </div>
   );
 }

@@ -76,7 +76,7 @@ export default function CatalystStrip({ data }: Props) {
                   className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
                   style={
                     ev.type === "record"
-                      ? { background: "rgba(37,99,235,0.12)", color: "#2563EB" }
+                      ? { background: "color-mix(in srgb, var(--primary) 12%, transparent)", color: "var(--primary)" }
                       : { background: "rgba(217,119,6,0.12)", color: "#D97706" }
                   }
                 >

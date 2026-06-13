@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import type { AdminGrowthPoint } from "@/lib/api";
 import { COLORS, TOOLTIP_STYLE } from "./shared";
+import Card from "@/components/ui/Card";
 
 function tickDate(d: string): string {
   // d = YYYY-MM-DD
@@ -25,7 +26,7 @@ export default function GrowthChart({ growth }: { growth: AdminGrowthPoint[] }) 
   const data = growth.slice(-range);
 
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 sm:p-5">
+    <Card padding="none" className="rounded-2xl p-4 sm:p-5">
       <div className="flex items-center justify-between gap-3 mb-4">
         <h3 className="text-sm font-bold text-[var(--text)]">Signups &amp; active users</h3>
         <div className="flex gap-1 rounded-lg border border-[var(--border)] p-0.5">
@@ -96,6 +97,6 @@ export default function GrowthChart({ growth }: { growth: AdminGrowthPoint[] }) 
       <p className="text-[11px] text-[var(--text-muted)] mt-2">
         Active = distinct users with tracked page views that day. Fills in over time as activity is recorded.
       </p>
-    </div>
+    </Card>
   );
 }

@@ -15,8 +15,8 @@ function fmtPct(v: number | null | undefined): string {
 
 function chgColor(v: number | null | undefined): string {
   if (v == null) return "var(--text-muted)";
-  if (v > 0) return "#34D399";
-  if (v < 0) return "#F87171";
+  if (v > 0) return "var(--positive)";
+  if (v < 0) return "var(--negative)";
   return "var(--text-muted)";
 }
 
@@ -33,8 +33,10 @@ function fmtPickDate(iso: string): string {
 }
 
 function PickRow({ pick }: { pick: DailyPickItem }) {
-  const sourceColor = pick.source === "dsef" ? "#4ADE80" : "#60A5FA";
-  const sourceBg = pick.source === "dsef" ? "rgba(74,222,128,0.12)" : "rgba(96,165,250,0.12)";
+  const sourceColor = pick.source === "dsef" ? "var(--positive)" : "var(--primary)";
+  const sourceBg = pick.source === "dsef"
+    ? "color-mix(in srgb, var(--positive) 12%, transparent)"
+    : "color-mix(in srgb, var(--primary) 12%, transparent)";
 
   return (
     <Link
@@ -62,7 +64,7 @@ function PickRow({ pick }: { pick: DailyPickItem }) {
             {pick.source_label}
           </span>
           {pick.change_pct != null && (
-            <span className="text-sm sm:text-base font-bold whitespace-nowrap" style={{ color: chgColor(pick.change_pct) }}>
+            <span className="text-sm sm:text-base font-bold whitespace-nowrap nums" style={{ color: chgColor(pick.change_pct) }}>
               {fmtPct(pick.change_pct)}
             </span>
           )}
@@ -70,7 +72,7 @@ function PickRow({ pick }: { pick: DailyPickItem }) {
 
         <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5 text-xs sm:text-sm mb-1.5">
           {pick.ltp != null && (
-            <span className="text-[var(--text)] font-semibold">৳{pick.ltp.toFixed(2)}</span>
+            <span className="text-[var(--text)] font-semibold nums">৳{pick.ltp.toFixed(2)}</span>
           )}
           {pick.return_7d_pct != null && (
             <span className="text-[11px] sm:text-xs text-[var(--text-muted)]">
@@ -84,7 +86,7 @@ function PickRow({ pick }: { pick: DailyPickItem }) {
 
         {pick.reasons.length > 0 && (
           <p className="text-sm sm:text-base text-[var(--text)] leading-relaxed line-clamp-2">
-            <span className="text-green-500 font-bold mr-1" aria-hidden="true">✓</span>
+            <span className="font-bold mr-1" style={{ color: "var(--positive)" }} aria-hidden="true">✓</span>
             {pick.reasons[0]}
           </p>
         )}

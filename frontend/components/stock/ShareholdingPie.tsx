@@ -1,13 +1,14 @@
 "use client";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { ownershipCaption } from "@/lib/plain-language";
+import Card from "@/components/ui/Card";
 
 interface Props {
   shareholding: Record<string, unknown> | null;
 }
 
 const CATEGORIES = [
-  { key: "sponsor_director_pct", label: "Owners (Sponsors / Directors)", color: "#2563EB" },
+  { key: "sponsor_director_pct", label: "Owners (Sponsors / Directors)", color: "var(--primary)" },
   { key: "govt_pct",             label: "Government",                    color: "#15803D" },
   { key: "institute_pct",        label: "Institutions",                  color: "#6366F1" },
   { key: "foreign_pct",          label: "Foreign Investors",             color: "#EA580C" },
@@ -35,13 +36,7 @@ export default function ShareholdingPie({ shareholding }: Props) {
         Who's behind this company — and how committed are they?
       </p>
 
-      <div
-        className="rounded-2xl p-5 sm:p-6"
-        style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-        }}
-      >
+      <Card padding="none" className="rounded-2xl p-5 sm:p-6">
         <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start">
           <div className="shrink-0">
             <ResponsiveContainer width={200} height={200}>
@@ -64,10 +59,11 @@ export default function ShareholdingPie({ shareholding }: Props) {
                 <Tooltip
                   contentStyle={{
                     fontSize: 12,
-                    borderRadius: "8px",
+                    borderRadius: "12px",
                     border: "1px solid var(--border)",
                     background: "var(--surface)",
                     color: "var(--text)",
+                    boxShadow: "var(--shadow-soft)",
                   }}
                   formatter={(v: number) => [`${v.toFixed(1)}%`, ""]}
                 />
@@ -83,7 +79,7 @@ export default function ShareholdingPie({ shareholding }: Props) {
                 <div key={c.key} className="flex items-center gap-3">
                   <span className="w-3 h-3 rounded-full shrink-0" style={{ background: c.color }} />
                   <span className="text-sm flex-1 min-w-0" style={{ color: "var(--text-muted)" }}>{c.label}</span>
-                  <span className="text-sm font-bold tabular-nums w-14 text-right" style={{ color: c.color }}>
+                  <span className="text-sm font-bold tabular-nums nums w-14 text-right" style={{ color: c.color }}>
                     {val.toFixed(1)}%
                   </span>
                 </div>
@@ -97,7 +93,7 @@ export default function ShareholdingPie({ shareholding }: Props) {
             {caption}
           </p>
         )}
-      </div>
+      </Card>
     </section>
   );
 }

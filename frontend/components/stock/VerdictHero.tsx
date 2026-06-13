@@ -33,7 +33,7 @@ export default function VerdictHero({ detail }: Props) {
       style={{
         background: "var(--surface)",
         border: "1px solid var(--border)",
-        boxShadow: "0 1px 3px rgba(15,23,42,0.05)",
+        boxShadow: "var(--shadow-soft)",
       }}
     >
       <style>{`

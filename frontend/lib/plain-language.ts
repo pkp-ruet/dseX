@@ -13,10 +13,10 @@ const VERDICT_WORDS: Record<TierKey, string> = {
 };
 
 const VERDICT_TONES: Record<TierKey, { color: string; bg: string; border: string; soft: string }> = {
-  strong_buy:    { color: "#34D399", bg: "rgba(52,211,153,0.12)",  border: "rgba(52,211,153,0.45)",  soft: "rgba(52,211,153,0.06)"  },
-  buy:           { color: "#4ADE80", bg: "rgba(74,222,128,0.12)",  border: "rgba(74,222,128,0.45)",  soft: "rgba(74,222,128,0.06)"  },
-  keep_watching: { color: "#FBBF24", bg: "rgba(251,191,36,0.12)",  border: "rgba(251,191,36,0.45)",  soft: "rgba(251,191,36,0.06)"  },
-  avoid:         { color: "#F87171", bg: "rgba(248,113,113,0.12)", border: "rgba(248,113,113,0.45)", soft: "rgba(248,113,113,0.06)" },
+  strong_buy:    { color: "var(--strong-buy)", bg: "color-mix(in srgb, var(--strong-buy) 12%, transparent)", border: "color-mix(in srgb, var(--strong-buy) 40%, transparent)", soft: "color-mix(in srgb, var(--strong-buy) 6%, transparent)" },
+  buy:           { color: "var(--np-good)",    bg: "color-mix(in srgb, var(--np-good) 12%, transparent)",    border: "color-mix(in srgb, var(--np-good) 40%, transparent)",    soft: "color-mix(in srgb, var(--np-good) 6%, transparent)" },
+  keep_watching: { color: "var(--watch)",      bg: "color-mix(in srgb, var(--watch) 12%, transparent)",      border: "color-mix(in srgb, var(--watch) 40%, transparent)",      soft: "color-mix(in srgb, var(--watch) 6%, transparent)" },
+  avoid:         { color: "var(--negative)",   bg: "color-mix(in srgb, var(--negative) 12%, transparent)",   border: "color-mix(in srgb, var(--negative) 40%, transparent)",   soft: "color-mix(in srgb, var(--negative) 6%, transparent)" },
 };
 
 export function verdictHeadline(score: number | null): string {

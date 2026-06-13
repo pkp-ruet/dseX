@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Card from "@/components/ui/Card";
 import {
   apiVisitWatchlist,
   getWatchlistNews,
@@ -95,14 +96,14 @@ export default function SinceLastVisit({ codes, rows }: Props) {
 
   if (delta.firstVisit) {
     return (
-      <div className="mb-6 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+      <Card padding="none" className="mb-6 p-4">
         <div className="text-xs font-semibold uppercase tracking-wider text-[var(--primary)] mb-1">
           Welcome to your watchlist
         </div>
         <p className="text-sm text-[var(--ink)]">
           Come back tomorrow — we&apos;ll show news, price moves, and dividend events on your stocks since your last visit.
         </p>
-      </div>
+      </Card>
     );
   }
 
@@ -110,7 +111,7 @@ export default function SinceLastVisit({ codes, rows }: Props) {
     delta.newsCount === 0 && delta.biggestMover == null && delta.dividendsSoon === 0;
 
   return (
-    <div className="mb-6 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+    <Card padding="none" className="mb-6 p-4">
       <div className="flex items-baseline justify-between mb-3">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--primary)]">
           Since your last visit
@@ -123,7 +124,7 @@ export default function SinceLastVisit({ codes, rows }: Props) {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="rounded-lg border border-[var(--border)] bg-[var(--bg)] p-3">
             <div className="text-xs text-[var(--ink-muted)]">Fresh news</div>
-            <div className="mt-1 text-2xl font-bold text-[var(--ink)]">{delta.newsCount}</div>
+            <div className="mt-1 text-2xl font-bold text-[var(--ink)] nums">{delta.newsCount}</div>
             <div className="text-[11px] text-[var(--ink-muted)] mt-0.5">
               {delta.newsCount === 1 ? "item posted" : "items posted"}
             </div>
@@ -140,10 +141,10 @@ export default function SinceLastVisit({ codes, rows }: Props) {
                   {delta.biggestMover.code}
                 </div>
                 <div
-                  className={`text-sm font-semibold ${
+                  className={`text-sm font-semibold nums ${
                     delta.biggestMover.pct > 0
-                      ? "text-green-600 dark:text-green-400"
-                      : "text-red-500 dark:text-red-400"
+                      ? "text-[var(--positive)]"
+                      : "text-[var(--negative)]"
                   }`}
                 >
                   {delta.biggestMover.pct > 0 ? "+" : ""}
@@ -157,13 +158,13 @@ export default function SinceLastVisit({ codes, rows }: Props) {
 
           <div className="rounded-lg border border-[var(--border)] bg-[var(--bg)] p-3">
             <div className="text-xs text-[var(--ink-muted)]">Dividends ahead</div>
-            <div className="mt-1 text-2xl font-bold text-[var(--ink)]">
+            <div className="mt-1 text-2xl font-bold text-[var(--ink)] nums">
               {delta.dividendsSoon}
             </div>
             <div className="text-[11px] text-[var(--ink-muted)] mt-0.5">in next 14 days</div>
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }

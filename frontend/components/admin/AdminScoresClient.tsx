@@ -9,6 +9,8 @@ import {
   apiAdminDeleteScoreAdjustment,
   type AdminScoreRow,
 } from "@/lib/api";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
 
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
@@ -166,46 +168,34 @@ export default function AdminScoresClient() {
           </p>
         </div>
         <div className="flex gap-2">
-          <a
-            href="/admin/analytics"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors whitespace-nowrap"
-          >
+          <Button href="/admin/analytics" variant="ghost" size="sm" className="whitespace-nowrap">
             Users
-          </a>
-          <a
-            href="/admin/daily-pick"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors whitespace-nowrap"
-          >
+          </Button>
+          <Button href="/admin/daily-pick" variant="ghost" size="sm" className="whitespace-nowrap">
             ★ Daily Pick
-          </a>
-          <a
-            href="/admin/tips"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors whitespace-nowrap"
-          >
+          </Button>
+          <Button href="/admin/tips" variant="ghost" size="sm" className="whitespace-nowrap">
             💡 Edit Tips
-          </a>
-          <a
-            href="/admin/feedback"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors whitespace-nowrap"
-          >
+          </Button>
+          <Button href="/admin/feedback" variant="ghost" size="sm" className="whitespace-nowrap">
             💬 Feedback
-          </a>
+          </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
-        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 text-center">
-          <p className="text-2xl font-bold text-[var(--text)]">{rows.length}</p>
+        <Card padding="none" className="rounded-xl p-4 text-center">
+          <p className="text-2xl font-bold text-[var(--text)] nums">{rows.length}</p>
           <p className="text-xs text-[var(--text-muted)] mt-1">Total Companies</p>
-        </div>
-        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 text-center">
-          <p className="text-2xl font-bold text-[var(--text)]">{adjustedCount}</p>
+        </Card>
+        <Card padding="none" className="rounded-xl p-4 text-center">
+          <p className="text-2xl font-bold text-[var(--text)] nums">{adjustedCount}</p>
           <p className="text-xs text-[var(--text-muted)] mt-1">With Active Adjustment</p>
-        </div>
-        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 text-center col-span-2 sm:col-span-1">
-          <p className="text-2xl font-bold text-[var(--text)]">{rows.length - adjustedCount}</p>
+        </Card>
+        <Card padding="none" className="rounded-xl p-4 text-center col-span-2 sm:col-span-1">
+          <p className="text-2xl font-bold text-[var(--text)] nums">{rows.length - adjustedCount}</p>
           <p className="text-xs text-[var(--text-muted)] mt-1">Unmodified</p>
-        </div>
+        </Card>
       </div>
 
       <div className="mb-4 flex items-center gap-3 flex-wrap">
@@ -224,15 +214,12 @@ export default function AdminScoresClient() {
           />
           Show only adjusted
         </label>
-        <button
-          onClick={reload}
-          className="ml-auto px-3 py-1.5 rounded-lg text-xs font-semibold border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30"
-        >
+        <Button onClick={reload} variant="ghost" size="sm" className="ml-auto">
           Reload
-        </button>
+        </Button>
       </div>
 
-      {err && <p className="text-red-500 mb-4 text-sm">{err}</p>}
+      {err && <p className="text-[var(--negative)] mb-4 text-sm">{err}</p>}
       {loading && rows.length === 0 && (
         <p className="text-[var(--text-muted)] text-sm mb-4">Loading scores…</p>
       )}
@@ -282,15 +269,15 @@ export default function AdminScoresClient() {
                   <td className="px-3 py-2 hidden lg:table-cell text-[var(--text-muted)] text-xs">
                     {r.sector ?? "—"}
                   </td>
-                  <td className="px-3 py-2 text-right tabular-nums text-[var(--text-muted)]">
+                  <td className="px-3 py-2 text-right tabular-nums nums text-[var(--text-muted)]">
                     {baseScore != null ? baseScore.toFixed(1) : "—"}
                   </td>
-                  <td className="px-3 py-2 text-right tabular-nums">
+                  <td className="px-3 py-2 text-right tabular-nums nums">
                     <span className="font-semibold text-[var(--text)]">
                       {finalScore != null ? finalScore.toFixed(1) : "—"}
                     </span>
                     {delta != null && Math.abs(delta) >= 0.05 && (
-                      <span className={`ml-1 text-[10px] ${delta > 0 ? "text-green-500" : "text-red-500"}`}>
+                      <span className="ml-1 text-[10px] nums" style={{ color: delta > 0 ? "var(--positive)" : "var(--negative)" }}>
                         ({delta > 0 ? "+" : ""}{delta.toFixed(1)})
                       </span>
                     )}
@@ -319,13 +306,14 @@ export default function AdminScoresClient() {
                   </td>
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-1.5">
-                      <button
+                      <Button
+                        variant="primary"
+                        size="sm"
                         disabled={!dirty || isSaving}
                         onClick={() => handleSave(code)}
-                        className="px-2.5 py-1 rounded text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed"
                       >
                         {isSaving ? "…" : "Save"}
-                      </button>
+                      </Button>
                       {currentPct !== 0 && (
                         <button
                           disabled={isSaving}

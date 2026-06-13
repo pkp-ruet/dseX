@@ -15,21 +15,21 @@ const TABS = [
   {
     key: "eps",
     label: "EPS Growth",
-    color: "#059669",
+    color: "var(--np-good)",
     metricLabel: "EPS Grw%",
     format: (v: number | null) => v != null ? `+${pct(v)}` : "—",
   },
   {
     key: "w52",
     label: "52W Return",
-    color: "#2563EB",
+    color: "var(--primary)",
     metricLabel: "52W Ret%",
     format: (v: number | null) => v != null ? `+${pct(v)}` : "—",
   },
   {
     key: "div",
     label: "Dividend Yield",
-    color: "#D97706",
+    color: "var(--warm)",
     metricLabel: "Yield%",
     format: (v: number | null) => v != null ? pct(v) : "—",
   },
@@ -95,9 +95,9 @@ export default function TopPicksTabs({ epsGrowth, returnW52, dividend }: Props) 
             <span className="intel-ltp text-[var(--text-muted)] text-xs truncate">
               {item.company_name ? item.company_name.split(" ").slice(0, 2).join(" ") : "—"}
             </span>
-            <span className="intel-ltp">{taka(item.ltp)}</span>
+            <span className="intel-ltp nums">{taka(item.ltp)}</span>
             <span
-              className="intel-metric"
+              className="intel-metric nums"
               style={{ color: tab.color, textAlign: "right" }}
             >
               {tab.format(item.metric_value)}

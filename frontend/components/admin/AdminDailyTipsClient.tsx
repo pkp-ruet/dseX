@@ -12,6 +12,8 @@ import {
   type DailyTip,
   type AdminTipExclude,
 } from "@/lib/api";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
 
 function fmtTime(iso: string | null): string {
   if (!iso) return "—";
@@ -115,15 +117,16 @@ export default function AdminDailyTipsClient() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={refetch}
             disabled={busyCode != null}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors disabled:opacity-60"
             aria-label="Reload"
           >
             ⟳ Reload
-          </button>
+          </Button>
           <Link href="/admin/daily-pick" className="text-xs sm:text-sm text-[var(--accent)] hover:underline whitespace-nowrap">
             Picks
           </Link>
@@ -140,24 +143,24 @@ export default function AdminDailyTipsClient() {
       </div>
 
       {loadError && (
-        <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2.5 text-sm text-red-400">
+        <div className="mb-4 rounded-lg border px-3 py-2.5 text-sm text-[var(--negative)]" style={{ borderColor: "color-mix(in srgb, var(--negative) 40%, transparent)", background: "color-mix(in srgb, var(--negative) 10%, transparent)" }}>
           {loadError}
         </div>
       )}
       {actionNote && (
-        <div className="mb-4 rounded-lg border border-green-500/40 bg-green-500/10 px-3 py-2.5 text-sm text-green-500">
+        <div className="mb-4 rounded-lg border px-3 py-2.5 text-sm text-[var(--positive)]" style={{ borderColor: "color-mix(in srgb, var(--positive) 40%, transparent)", background: "color-mix(in srgb, var(--positive) 10%, transparent)" }}>
           {actionNote}
         </div>
       )}
       {actionError && (
-        <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2.5 text-sm text-red-400">
+        <div className="mb-4 rounded-lg border px-3 py-2.5 text-sm text-[var(--negative)]" style={{ borderColor: "color-mix(in srgb, var(--negative) 40%, transparent)", background: "color-mix(in srgb, var(--negative) 10%, transparent)" }}>
           {actionError}
         </div>
       )}
 
       {/* Live tips */}
-      <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden mb-5">
-        <div className="h-1.5 w-full" style={{ background: "linear-gradient(90deg, #4F6BD8, #60A5FA)" }} />
+      <Card as="section" padding="none" className="rounded-2xl overflow-hidden mb-5">
+        <div className="h-1.5 w-full" style={{ background: "linear-gradient(90deg, var(--primary-ink), var(--primary))" }} />
         <div className="p-4 sm:p-5">
           <p className="text-[10px] uppercase tracking-widest font-bold mb-3 text-[var(--primary)]">
             ★ Currently live on homepage · {tips.length} tips
@@ -187,7 +190,8 @@ export default function AdminDailyTipsClient() {
                     type="button"
                     onClick={() => handleExclude(tip)}
                     disabled={busyCode != null}
-                    className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold border-2 border-red-500/40 text-red-500 hover:bg-red-500/10 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                    className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold border-2 text-[var(--negative)] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                    style={{ borderColor: "color-mix(in srgb, var(--negative) 40%, transparent)" }}
                   >
                     {busyCode === tip.trading_code ? "…" : "✕ Remove"}
                   </button>
@@ -201,10 +205,10 @@ export default function AdminDailyTipsClient() {
             clears the homepage cache so visitors see the change immediately.
           </p>
         </div>
-      </section>
+      </Card>
 
       {/* Excluded stocks */}
-      <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5">
+      <Card as="section" padding="none" className="rounded-2xl p-4 sm:p-5">
         <div className="flex items-center justify-between mb-3 gap-2">
           <h2 className="text-sm sm:text-base font-bold text-[var(--text)]">Excluded from tips</h2>
           <span className="text-[11px] sm:text-xs text-[var(--text-muted)]">
@@ -232,19 +236,21 @@ export default function AdminDailyTipsClient() {
                     {ex.updated_by ? `by ${ex.updated_by} · ` : ""}{fmtTime(ex.updated_at)}
                   </p>
                 </div>
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => handleRestore(ex.trading_code)}
                   disabled={busyCode != null}
-                  className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold border-2 border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                  className="shrink-0"
                 >
                   {busyCode === ex.trading_code ? "…" : "↩ Restore"}
-                </button>
+                </Button>
               </li>
             ))}
           </ul>
         )}
-      </section>
+      </Card>
     </div>
   );
 }

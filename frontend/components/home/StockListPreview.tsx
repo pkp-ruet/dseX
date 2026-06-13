@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { type ScoreItem } from "@/lib/api";
 import { taka, signed } from "@/lib/formatters";
+import Card from "@/components/ui/Card";
 
 /** Compact A–Z slice of the full stock universe as colorful tiles → /stocks. */
 export default function StockListPreview({
@@ -15,7 +16,7 @@ export default function StockListPreview({
     .slice(0, 8);
 
   return (
-    <div className="soft-card overflow-hidden p-3">
+    <Card padding="sm" className="overflow-hidden">
       <div className="flex items-center gap-2 px-1 pt-1 pb-3">
         <span className="text-sm">🔤</span>
         <span className="text-[0.78rem] font-extrabold text-[var(--text)]">Browse Stocks A–Z</span>
@@ -49,11 +50,11 @@ export default function StockListPreview({
               </span>
 
               <div className="flex items-end justify-between gap-2 mt-auto">
-                <span className="text-sm font-extrabold tabular-nums text-[var(--text)]">
+                <span className="text-sm font-extrabold tabular-nums nums text-[var(--text)]">
                   {item.ltp != null ? taka(item.ltp, 2) : "--"}
                 </span>
                 <span
-                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[0.66rem] font-extrabold tabular-nums text-white"
+                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[0.66rem] font-extrabold tabular-nums nums text-white"
                   style={{ background: chgColor }}
                 >
                   {chg != null && (up ? "▲" : "▼")}
@@ -71,6 +72,6 @@ export default function StockListPreview({
       >
         Browse all {totalCount}+ stocks →
       </Link>
-    </div>
+    </Card>
   );
 }

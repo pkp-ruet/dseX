@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { type PortfolioHolding, type ScoreItem } from "@/lib/api";
 import { analyzePortfolio, portfolioTodayMove, type ComputedRow, type Grade } from "@/lib/portfolio-analysis";
+import Card from "@/components/ui/Card";
 
 function compute(holding: PortfolioHolding, priceMap: Map<string, ScoreItem>): ComputedRow {
   const item = priceMap.get(holding.trading_code.toUpperCase());
@@ -49,7 +50,7 @@ export default function PortfolioSummaryCard({
   const gradeColor = GRADE_COLOR[analysis.grade];
 
   return (
-    <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[0_4px_16px_rgba(15,23,42,0.05)] overflow-hidden">
+    <Card as="section" padding="none" className="overflow-hidden">
       <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-[var(--border)]">
         <h2 className="text-[0.72rem] font-bold uppercase tracking-[0.12em] text-[var(--text)]">Your Portfolio</h2>
         <Link href="/portfolio" className="text-xs font-semibold text-[var(--primary)] hover:underline">Manage →</Link>
@@ -64,12 +65,12 @@ export default function PortfolioSummaryCard({
         {/* Value + P/L */}
         <div className="min-w-0 flex-1">
           <div className="text-[0.58rem] font-bold uppercase tracking-wider text-[var(--text-muted)]">Current value</div>
-          <div className="text-[clamp(1.25rem,6vw,1.6rem)] font-extrabold tabular-nums text-[var(--text)] leading-tight">
+          <div className="text-[clamp(1.25rem,6vw,1.6rem)] font-extrabold tabular-nums nums text-[var(--text)] leading-tight">
             {hasPrice ? `৳${value.toLocaleString("en-US", { maximumFractionDigits: 0 })}` : "—"}
           </div>
           {today && (
             <div
-              className="mt-0.5 text-[0.8rem] sm:text-sm font-bold tabular-nums leading-tight"
+              className="mt-0.5 text-[0.8rem] sm:text-sm font-bold tabular-nums nums leading-tight"
               style={{ color: todayUp ? "var(--positive)" : "var(--negative)" }}
             >
               {todayUp ? "▲" : "▼"} {todayUp ? "+" : "−"}৳
@@ -77,7 +78,7 @@ export default function PortfolioSummaryCard({
               {today.pct.toFixed(2)}%) today
             </div>
           )}
-          <div className="mt-0.5 text-[0.72rem] sm:text-[0.8rem] font-semibold tabular-nums leading-tight break-words text-[var(--text-muted)]">
+          <div className="mt-0.5 text-[0.72rem] sm:text-[0.8rem] font-semibold tabular-nums nums leading-tight break-words text-[var(--text-muted)]">
             {pnl == null
               ? "Total P/L —"
               : `Total ${up ? "+" : "-"}৳${Math.abs(pnl).toLocaleString("en-US", { maximumFractionDigits: 0 })} (${up ? "+" : ""}${pnlPct!.toFixed(1)}%)`}
@@ -96,6 +97,6 @@ export default function PortfolioSummaryCard({
       >
         See full portfolio analysis →
       </Link>
-    </section>
+    </Card>
   );
 }

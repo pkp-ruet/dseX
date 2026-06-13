@@ -103,9 +103,9 @@ export default function UsersTable({
                 <td className="px-4 py-3"><SourcePill source={u.signup_source} /></td>
                 <td className="px-4 py-3 text-[var(--text-muted)] whitespace-nowrap">{fmtDateTime(u.created_at)}</td>
                 <td className="px-4 py-3 text-[var(--text-muted)] whitespace-nowrap">{timeAgo(u.last_seen_at)}</td>
-                <td className="px-4 py-3 text-right tabular-nums text-[var(--text)]">{u.total_visits ?? 0}</td>
-                <td className="px-4 py-3 text-right tabular-nums text-[var(--text-muted)]">{u.watchlist_count}</td>
-                <td className="px-4 py-3 text-right tabular-nums text-[var(--text-muted)]">{u.portfolio_count}</td>
+                <td className="px-4 py-3 text-right tabular-nums nums text-[var(--text)]">{u.total_visits ?? 0}</td>
+                <td className="px-4 py-3 text-right tabular-nums nums text-[var(--text-muted)]">{u.watchlist_count}</td>
+                <td className="px-4 py-3 text-right tabular-nums nums text-[var(--text-muted)]">{u.portfolio_count}</td>
               </tr>
             ))}
             {rows.length === 0 && (
@@ -123,7 +123,7 @@ export default function UsersTable({
           <button
             key={u.user_id}
             onClick={() => onSelect(u)}
-            className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 text-sm text-left"
+            className="soft-card rounded-xl p-4 text-sm text-left"
           >
             <div className="flex items-start justify-between gap-3 mb-2">
               <div className="min-w-0">
@@ -142,7 +142,7 @@ export default function UsersTable({
           </button>
         ))}
         {rows.length === 0 && (
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-6 text-center text-[var(--text-muted)] text-sm">
+          <div className="soft-card rounded-xl p-6 text-center text-[var(--text-muted)] text-sm">
             No users found.
           </div>
         )}

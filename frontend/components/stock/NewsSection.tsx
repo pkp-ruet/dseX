@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import NewsCard from "./NewsCard";
+import Button from "@/components/ui/Button";
 
 interface Props {
   news: { title: string; post_date: string; body: string }[];
@@ -36,17 +37,14 @@ export default function NewsSection({ news }: Props) {
         ))}
       </div>
       {hasMore && !showAll && (
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setShowAll(true)}
-          className="mt-4 text-sm font-semibold px-4 py-2 rounded-full transition-colors"
-          style={{
-            color: "var(--primary)",
-            background: "rgba(37,99,235,0.08)",
-            border: "1px solid rgba(37,99,235,0.25)",
-          }}
+          className="mt-4 rounded-full"
         >
           Show all {news.length} news items →
-        </button>
+        </Button>
       )}
     </section>
   );

@@ -1,17 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { TIER_LABELS, TIER_SCORE_LABELS, type TierKey } from "@/lib/constants";
+import { TIER_LABELS, TIER_SCORE_LABELS, TIER_VAR, type TierKey } from "@/lib/constants";
 import FullRankTable, { type RankedItem, type RankedRow } from "@/components/ranking/FullRankTable";
 
 const TIERS_ORDER: TierKey[] = ["strong_buy", "buy", "keep_watching", "avoid"];
 
-const TIER_COLOR: Record<TierKey, string> = {
-  strong_buy:    "#059669",             // vibrant emerald — most impactful
-  buy:           "#15803D",             // deep green — calmer, sits below strong buy
-  keep_watching: "var(--watch)",        // amber
-  avoid:         "var(--negative)",     // red
-};
+// Canonical token tier colors — shared with FullRankTable / ScoreBadge.
+const TIER_COLOR = TIER_VAR;
 
 interface Props {
   items: RankedItem[];

@@ -47,22 +47,14 @@ export default function DailyTipsCard({ tips }: Props) {
               key={`${tip.category}-${tip.trading_code}`}
               prefetch={false}
               href={`/stock/${tip.trading_code}`}
-              className="hover-lift group relative flex flex-col gap-2 rounded-xl p-3 pl-4 overflow-hidden"
-              style={{
-                background: `linear-gradient(135deg, color-mix(in srgb, ${meta.color} 8%, var(--surface)) 0%, var(--surface) 75%)`,
-                border: `1px solid color-mix(in srgb, ${meta.color} 26%, var(--border))`,
-              }}
+              className="hover-lift group flex flex-col gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3"
             >
-              {/* colored spine */}
-              <span className="absolute left-0 top-0 bottom-0 w-1" style={{ background: meta.color }} />
-
               <span className="flex items-start gap-3">
                 {/* icon medallion */}
                 <span
                   className="shrink-0 grid place-items-center w-8 h-8 rounded-lg text-sm"
                   style={{
-                    background: `color-mix(in srgb, ${meta.color} 16%, transparent)`,
-                    border: `1px solid color-mix(in srgb, ${meta.color} 30%, transparent)`,
+                    background: `color-mix(in srgb, ${meta.color} 14%, transparent)`,
                   }}
                 >
                   {meta.icon}

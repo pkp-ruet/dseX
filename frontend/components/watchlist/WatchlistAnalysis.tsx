@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import Card from "@/components/ui/Card";
 import {
   getScores,
   getNearExtremes,
@@ -68,7 +69,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5">
+    <Card padding="none" className="p-4 sm:p-5">
       {(eyebrow || title) && (
         <div className="mb-3">
           {eyebrow && (
@@ -84,7 +85,7 @@ function Section({
         </div>
       )}
       {children}
-    </div>
+    </Card>
   );
 }
 
@@ -95,18 +96,28 @@ function MoodGauge({ value }: { value: number | null }) {
   const clamp = Math.max(-3, Math.min(3, value));
   const pos = ((clamp + 3) / 6) * 100;
   const tone =
-    value > 0.5 ? "text-green-500" : value < -0.5 ? "text-red-500" : "text-amber-500";
+    value > 0.5
+      ? "text-[var(--positive)]"
+      : value < -0.5
+        ? "text-[var(--negative)]"
+        : "text-[var(--watch)]";
   const mood =
     value > 0.5 ? "Bullish" : value < -0.5 ? "Bearish" : "Mixed";
   return (
     <div className="flex items-center gap-3">
-      <div className="relative flex-1 h-2 rounded-full bg-gradient-to-r from-red-500/40 via-amber-400/40 to-green-500/40">
+      <div
+        className="relative flex-1 h-2 rounded-full"
+        style={{
+          background:
+            "linear-gradient(to right, color-mix(in srgb, var(--negative) 40%, transparent), color-mix(in srgb, var(--watch) 40%, transparent), color-mix(in srgb, var(--positive) 40%, transparent))",
+        }}
+      >
         <div
           className="absolute top-1/2 -translate-y-1/2 h-3 w-3 rounded-full bg-[var(--ink)] border-2 border-[var(--bg)]"
           style={{ left: `calc(${pos}% - 6px)` }}
         />
       </div>
-      <div className={`text-sm font-bold ${tone}`}>
+      <div className={`text-sm font-bold nums ${tone}`}>
         {mood} {value > 0 ? "+" : ""}{value.toFixed(2)}%
       </div>
     </div>
@@ -315,9 +326,9 @@ export default function WatchlistAnalysis({ codes }: { codes: string[] }) {
         <h2 className="text-xs font-bold uppercase tracking-[0.15em] text-[var(--primary)] mb-3">
           Watchlist Story
         </h2>
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 text-sm text-[var(--ink-muted)]">
+        <Card padding="none" className="p-5 text-sm text-[var(--ink-muted)]">
           Reading the tape…
-        </div>
+        </Card>
       </section>
     );
   }
@@ -328,9 +339,9 @@ export default function WatchlistAnalysis({ codes }: { codes: string[] }) {
         <h2 className="text-xs font-bold uppercase tracking-[0.15em] text-[var(--primary)] mb-3">
           Watchlist Story
         </h2>
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 text-sm text-[var(--ink-muted)]">
+        <Card padding="none" className="p-5 text-sm text-[var(--ink-muted)]">
           No scored stocks in your watchlist yet.
-        </div>
+        </Card>
       </section>
     );
   }
@@ -356,13 +367,13 @@ export default function WatchlistAnalysis({ codes }: { codes: string[] }) {
         </div>
         <div className="mt-3 flex flex-wrap gap-3 text-xs text-[var(--ink-muted)]">
           <span>
-            <span className="font-semibold text-green-500">{story.upToday.length}</span> up
+            <span className="font-semibold text-[var(--positive)] nums">{story.upToday.length}</span> up
           </span>
           <span>
-            <span className="font-semibold text-[var(--ink-muted)]">{story.flatToday}</span> flat
+            <span className="font-semibold text-[var(--ink-muted)] nums">{story.flatToday}</span> flat
           </span>
           <span>
-            <span className="font-semibold text-red-500">{story.downToday.length}</span> down
+            <span className="font-semibold text-[var(--negative)] nums">{story.downToday.length}</span> down
           </span>
         </div>
       </Section>
@@ -449,9 +460,9 @@ export default function WatchlistAnalysis({ codes }: { codes: string[] }) {
           <div className="flex flex-col gap-2 text-sm text-[var(--ink)] leading-relaxed">
             {story.topGainer && (
               <p>
-                <span className="text-green-500 font-bold">▲ Best:</span>{" "}
+                <span className="text-[var(--positive)] font-bold">▲ Best:</span>{" "}
                 <CodeChip code={story.topGainer.trading_code} /> led the gainers, up{" "}
-                <span className="font-bold text-green-500">
+                <span className="font-bold text-[var(--positive)] nums">
                   +{story.topGainer.change_pct!.toFixed(2)}%
                 </span>
                 .
@@ -459,9 +470,9 @@ export default function WatchlistAnalysis({ codes }: { codes: string[] }) {
             )}
             {story.topLoser && (
               <p>
-                <span className="text-red-500 font-bold">▼ Worst:</span>{" "}
+                <span className="text-[var(--negative)] font-bold">▼ Worst:</span>{" "}
                 <CodeChip code={story.topLoser.trading_code} /> dragged, off{" "}
-                <span className="font-bold text-red-500">
+                <span className="font-bold text-[var(--negative)] nums">
                   {story.topLoser.change_pct!.toFixed(2)}%
                 </span>
                 .
@@ -534,35 +545,35 @@ export default function WatchlistAnalysis({ codes }: { codes: string[] }) {
           <div className="flex flex-col gap-2 text-sm text-[var(--ink)] leading-relaxed">
             {story.avoidCodes.length > 0 && (
               <p>
-                <span className="font-bold text-red-500">Avoid-tier:</span>{" "}
+                <span className="font-bold text-[var(--negative)]">Avoid-tier:</span>{" "}
                 {inlineList(story.avoidCodes)} score below 45 — review the
                 thesis or consider trimming.
               </p>
             )}
             {story.weakBalance.length > 0 && (
               <p>
-                <span className="font-bold text-amber-500">Weak balance sheet:</span>{" "}
+                <span className="font-bold text-[var(--watch)]">Weak balance sheet:</span>{" "}
                 {inlineList(story.weakBalance.map((r) => r.trading_code))} score low on
                 Financial Health — debt or cash position is a worry.
               </p>
             )}
             {story.overValued.length > 0 && (
               <p>
-                <span className="font-bold text-amber-500">Looks expensive:</span>{" "}
+                <span className="font-bold text-[var(--watch)]">Looks expensive:</span>{" "}
                 {inlineList(story.overValued.map((r) => r.trading_code))} score low on
                 Valuation — price stretched vs own history.
               </p>
             )}
             {story.epsShrinkers.length > 0 && (
               <p>
-                <span className="font-bold text-amber-500">Earnings shrinking:</span>{" "}
+                <span className="font-bold text-[var(--watch)]">Earnings shrinking:</span>{" "}
                 {inlineList(story.epsShrinkers.map((r) => r.trading_code))} posted EPS
                 drops &gt; 10% YoY.
               </p>
             )}
             {story.isConcentrated && (
               <p>
-                <span className="font-bold text-amber-500">Concentration risk:</span>{" "}
+                <span className="font-bold text-[var(--watch)]">Concentration risk:</span>{" "}
                 {Math.round(story.sectorConcentrationPct)}% of your list sits in{" "}
                 <span className="font-bold">{story.dominantSector?.[0]}</span>. One
                 sector shock would hurt the whole portfolio.

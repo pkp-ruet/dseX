@@ -23,14 +23,14 @@ export default function NewsCard({ title, body, postDate }: Props) {
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full text-left px-4 py-3 flex items-start justify-between gap-3 transition-colors"
-        style={{ background: expanded ? "rgba(14,165,233,0.06)" : "transparent" }}
+        style={{ background: expanded ? "color-mix(in srgb, var(--accent) 6%, transparent)" : "transparent" }}
       >
         <span className="text-sm font-semibold leading-snug" style={{ color: "var(--text)" }}>
           {title}
         </span>
         <span
           className="text-[10px] font-bold shrink-0 mt-0.5 px-2.5 py-1 rounded-full whitespace-nowrap"
-          style={{ background: "rgba(14,165,233,0.1)", color: "var(--primary)", border: "1px solid rgba(14,165,233,0.25)" }}
+          style={{ background: "color-mix(in srgb, var(--accent) 10%, transparent)", color: "var(--primary)", border: "1px solid color-mix(in srgb, var(--accent) 25%, transparent)" }}
         >
           {formatDate(postDate)}
         </span>

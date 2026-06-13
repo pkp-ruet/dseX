@@ -3,15 +3,10 @@
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { type ScoreItem } from "@/lib/api";
-import { getTier, TIER_LABELS, type TierKey } from "@/lib/constants";
+import { getTier, TIER_LABELS, TIER_VAR } from "@/lib/constants";
 import SignupCtas from "@/components/home/SignupCtas";
-
-const TIER_VAR: Record<TierKey, string> = {
-  strong_buy: "#059669", // vibrant emerald — most impactful
-  buy: "#15803D", // deep green — calmer, sits below strong buy
-  keep_watching: "var(--watch)",
-  avoid: "var(--avoid)",
-};
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
 
 function PreviewRow({ item, rank }: { item: ScoreItem; rank: number }) {
   const tier = getTier(item.score);
@@ -22,7 +17,7 @@ function PreviewRow({ item, rank }: { item: ScoreItem; rank: number }) {
       className="flex items-center gap-3 px-3 sm:px-4 py-2.5 border-l-[3px] hover:bg-[var(--surface-2)] transition-colors"
       style={{ borderLeftColor: `color-mix(in srgb, ${color} 26%, transparent)` }}
     >
-      <span className="w-5 text-right text-xs font-bold tabular-nums text-[var(--text-muted)]">{rank}</span>
+      <span className="w-5 text-right text-xs font-bold tabular-nums nums text-[var(--text-muted)]">{rank}</span>
       <span className="font-mono text-[0.82rem] font-bold tracking-[0.02em] shrink-0" style={{ color }}>
         {item.trading_code}
       </span>
@@ -30,7 +25,7 @@ function PreviewRow({ item, rank }: { item: ScoreItem; rank: number }) {
         {item.company_name}
       </span>
       <span
-        className="inline-flex items-center justify-center min-w-[2.4rem] px-2 py-1 rounded-lg text-sm font-extrabold tabular-nums text-white"
+        className="inline-flex items-center justify-center min-w-[2.4rem] px-2 py-1 rounded-lg text-sm font-extrabold tabular-nums nums text-white"
         style={{
           background: `linear-gradient(135deg, ${color} 0%, color-mix(in srgb, ${color} 78%, #000) 100%)`,
         }}
@@ -94,24 +89,15 @@ export default function HomeHero({ topItems }: { topItems: ScoreItem[] }) {
                   Welcome back{user?.display_name ? `, ${user.display_name}` : ""} 👋
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <Link
-                    href="/watchlist"
-                    className="inline-flex items-center justify-center min-h-[48px] px-6 rounded-xl font-semibold text-white bg-[var(--primary)] hover:brightness-110 transition"
-                  >
+                  <Button href="/watchlist" variant="primary">
                     My Watchlist
-                  </Link>
-                  <Link
-                    href="/portfolio"
-                    className="inline-flex items-center justify-center min-h-[48px] px-6 rounded-xl font-semibold text-[var(--text)] bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--primary)] transition"
-                  >
+                  </Button>
+                  <Button href="/portfolio" variant="ghost">
                     My Portfolio
-                  </Link>
-                  <Link
-                    href="/dsestockranking"
-                    className="inline-flex items-center justify-center min-h-[48px] px-6 rounded-xl font-semibold text-[var(--text)] bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--primary)] transition"
-                  >
+                  </Button>
+                  <Button href="/dsestockranking" variant="ghost">
                     Rankings
-                  </Link>
+                  </Button>
                 </div>
               </div>
             ) : (
@@ -122,7 +108,7 @@ export default function HomeHero({ topItems }: { topItems: ScoreItem[] }) {
 
         {/* Right (below on mobile): live ranking preview */}
         <div className="w-full">
-          <div className="soft-card overflow-hidden">
+          <Card padding="none" className="overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] bg-[var(--surface-2)]">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[var(--positive)] animate-pulse" />
@@ -153,7 +139,7 @@ export default function HomeHero({ topItems }: { topItems: ScoreItem[] }) {
             >
               View full rankings →
             </Link>
-          </div>
+          </Card>
           <p className="mt-2 text-center text-[0.7rem] text-[var(--text-muted)]">
             Fundamental score · 0–100 scale · updated daily
           </p>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { AdminAnalyticsResponse, AdminPopularStock, ScoreItem } from "@/lib/api";
 import { COLORS } from "./shared";
+import Card from "@/components/ui/Card";
 
 function RankedList({
   title,
@@ -21,7 +22,7 @@ function RankedList({
 }) {
   const max = items.reduce((a, i) => Math.max(a, i.count), 0) || 1;
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl overflow-hidden">
+    <Card padding="none" className="rounded-2xl overflow-hidden">
       <div className="px-4 py-3 border-b border-[var(--border)]">
         <h3 className="text-sm font-bold text-[var(--text)]">{title}</h3>
         <p className="text-[11px] text-[var(--text-muted)]">{subtitle}</p>
@@ -55,14 +56,14 @@ function RankedList({
                   <span className="block h-full rounded-full" style={{ width: `${(it.count / max) * 100}%`, background: barColor }} />
                 </span>
               </span>
-              <span className="text-sm font-bold tabular-nums shrink-0" style={{ color: barColor }}>
+              <span className="text-sm font-bold tabular-nums nums shrink-0" style={{ color: barColor }}>
                 {it.count}
               </span>
             </Link>
           );
         })}
       </div>
-    </div>
+    </Card>
   );
 }
 

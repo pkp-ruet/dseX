@@ -27,13 +27,14 @@ function fmtEps(v: number | null | undefined): string {
   return `${sign}৳${abs >= 100 ? abs.toFixed(0) : abs.toFixed(1)}`;
 }
 
-const TICK = { fontSize: 11, fill: "#64748B" };
+const TICK = { fontSize: 11, fill: "var(--text-muted)" };
 const TIP_STYLE = {
   fontSize: 12,
-  borderRadius: "8px",
+  borderRadius: "12px",
   border: "1px solid var(--border)",
   background: "var(--surface)",
   color: "var(--text)",
+  boxShadow: "var(--shadow-soft)",
 };
 
 export default function ProfitsAndDividends({ financials, extFinancials, declaration }: Props) {
@@ -113,12 +114,12 @@ export default function ProfitsAndDividends({ financials, extFinancials, declara
                     dataKey="profit"
                     position="top"
                     formatter={(v: number) => crore(v)}
-                    style={{ fontSize: 11, fontWeight: 700, fill: "#0F172A" }}
+                    style={{ fontSize: 11, fontWeight: 700, fill: "var(--text)" }}
                   />
                   {profitData.map((d, i) => (
                     <Cell
                       key={i}
-                      fill={(d.profit ?? 0) >= 0 ? "#15803D" : "#DC2626"}
+                      fill={(d.profit ?? 0) >= 0 ? "var(--positive)" : "var(--negative)"}
                     />
                   ))}
                 </Bar>
@@ -148,12 +149,12 @@ export default function ProfitsAndDividends({ financials, extFinancials, declara
                     dataKey="eps"
                     position="top"
                     formatter={(v: number) => fmtEps(v)}
-                    style={{ fontSize: 11, fontWeight: 700, fill: "#0F172A" }}
+                    style={{ fontSize: 11, fontWeight: 700, fill: "var(--text)" }}
                   />
                   {epsData.map((d, i) => (
                     <Cell
                       key={i}
-                      fill={(d.eps ?? 0) >= 0 ? "#2563EB" : "#DC2626"}
+                      fill={(d.eps ?? 0) >= 0 ? "var(--primary)" : "var(--negative)"}
                     />
                   ))}
                 </Bar>
@@ -186,12 +187,12 @@ export default function ProfitsAndDividends({ financials, extFinancials, declara
                     cursor={{ fill: "rgba(15,23,42,0.05)" }}
                     formatter={(v: number) => [`${v}%`, "Cash Dividend"]}
                   />
-                  <Bar dataKey="cash" fill="#15803D" radius={[6, 6, 0, 0]}>
+                  <Bar dataKey="cash" fill="var(--positive)" radius={[6, 6, 0, 0]}>
                     <LabelList
                       dataKey="cash"
                       position="top"
                       formatter={(v: number) => v > 0 ? `${v}%` : ""}
-                      style={{ fontSize: 11, fontWeight: 700, fill: "#0F172A" }}
+                      style={{ fontSize: 11, fontWeight: 700, fill: "var(--text)" }}
                     />
                   </Bar>
                 </BarChart>

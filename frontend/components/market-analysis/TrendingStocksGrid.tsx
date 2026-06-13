@@ -38,7 +38,7 @@ export default function TrendingStocksGrid({ gainers, mostTraded }: Props) {
         items={mostTraded.map(moverToSignal)}
         metricCol="change_pct"
         metricLabel="Chg%"
-        titleColor="#2563EB"
+        titleColor="var(--primary)"
       />
     </div>
   );

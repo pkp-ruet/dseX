@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { taka, pct } from "@/lib/formatters";
-import { getTier, TIER_LABELS } from "@/lib/constants";
+import { getTier, TIER_VAR } from "@/lib/constants";
 import StarButton from "@/components/ui/StarButton";
 import type { ScoreItem } from "@/lib/api";
 
@@ -17,16 +17,11 @@ type SortCol =
   | "eps"
   | "div_yield_pct";
 
-const TIER_COLOR: Record<string, string> = {
-  strong_buy:    "#4ADE80",
-  buy:           "#34D399",
-  keep_watching: "#FBBF24",
-  avoid:         "#F87171",
-};
+const TIER_COLOR = TIER_VAR;
 
 function chgColor(v: number | null) {
   if (v == null) return "var(--ink-muted)";
-  return v > 0 ? "#34D399" : v < 0 ? "#F87171" : "var(--ink-muted)";
+  return v > 0 ? "var(--positive)" : v < 0 ? "var(--negative)" : "var(--ink-muted)";
 }
 function fmtChg(v: number | null) {
   if (v == null) return "—";
@@ -173,7 +168,7 @@ export default function StocksTable({ items }: Props) {
               const tierColor = TIER_COLOR[tier];
               return (
                 <tr key={item.trading_code} className="sl-row">
-                  <td className="sl-td sl-td-rank">{idx + 1}</td>
+                  <td className="sl-td sl-td-rank nums">{idx + 1}</td>
 
                   <td className="sl-td sl-td-star">
                     <StarButton code={item.trading_code} />
@@ -208,19 +203,19 @@ export default function StocksTable({ items }: Props) {
                     {item.market_category ?? "—"}
                   </td>
 
-                  <td className="sl-td sl-td-num">
+                  <td className="sl-td sl-td-num nums">
                     {item.ltp != null ? taka(item.ltp) : "—"}
                   </td>
 
-                  <td className="sl-td sl-td-num" style={{ color: chgColor(item.change_pct) }}>
+                  <td className="sl-td sl-td-num nums" style={{ color: chgColor(item.change_pct) }}>
                     {fmtChg(item.change_pct)}
                   </td>
 
-                  <td className="sl-td sl-td-num sl-td-hide-sm">
+                  <td className="sl-td sl-td-num nums sl-td-hide-sm">
                     {item.eps != null ? item.eps.toFixed(2) : "—"}
                   </td>
 
-                  <td className="sl-td sl-td-num sl-td-hide-md">
+                  <td className="sl-td sl-td-num nums sl-td-hide-md">
                     {item.div_yield_pct != null ? pct(item.div_yield_pct, 1) : "—"}
                   </td>
                 </tr>

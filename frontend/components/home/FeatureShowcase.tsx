@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { type ReactNode } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { openGlobalSearch } from "@/components/layout/GlobalSearch";
@@ -11,6 +10,8 @@ import WatchlistMockup from "@/components/home/WatchlistMockup";
 import PortfolioMockup from "@/components/home/PortfolioMockup";
 import DailyTipsCard from "@/components/home/DailyTipsCard";
 import RecommendationMockup from "@/components/home/RecommendationMockup";
+import Card from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
 
 interface Pillar {
   eyebrow: string;
@@ -156,11 +157,9 @@ function FeatureRow({ pillar, index }: { pillar: Pillar; index: number }) {
   const { isLoggedIn } = useAuth();
   const cta = isLoggedIn ? pillar.auth : pillar.anon;
   const odd = index % 2 === 1;
-  const ctaClass =
-    "mt-4 inline-flex self-start items-center gap-1.5 min-h-[40px] px-4 rounded-lg font-semibold text-sm text-white bg-[var(--primary)] hover:brightness-110 transition";
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-10 items-center rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5 md:p-6 shadow-sm transition hover:shadow-md hover:border-[color-mix(in_srgb,var(--primary)_35%,var(--border))]">
+    <Card padding="none" hover className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-10 items-center p-4 sm:p-5 md:p-6 hover:border-[color-mix(in_srgb,var(--primary)_35%,var(--border))]">
       <div className={`order-2 w-full md:max-w-[380px] mx-auto ${odd ? "md:order-2 md:ml-auto" : "md:order-1 md:mr-auto"}`}>
         {pillar.visual}
       </div>
@@ -173,16 +172,16 @@ function FeatureRow({ pillar, index }: { pillar: Pillar; index: number }) {
         <p className="mt-1.5 text-sm leading-snug text-[var(--text-muted)]">{pillar.desc}</p>
 
         {pillar.search ? (
-          <button type="button" onClick={openGlobalSearch} className={ctaClass}>
+          <Button type="button" onClick={openGlobalSearch} variant="primary" size="sm" className="mt-4 self-start">
             {cta.label} →
-          </button>
+          </Button>
         ) : (
-          <Link href={cta.href} className={ctaClass}>
+          <Button href={cta.href} variant="primary" size="sm" className="mt-4 self-start">
             {cta.label} →
-          </Link>
+          </Button>
         )}
       </div>
-    </div>
+    </Card>
   );
 }
 

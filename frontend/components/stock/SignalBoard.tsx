@@ -2,6 +2,7 @@
 import { useState } from "react";
 import type { SignalFlags } from "@/lib/api";
 import { friendlyFlag } from "@/lib/plain-language";
+import Card from "@/components/ui/Card";
 
 interface Props {
   flags: SignalFlags;
@@ -24,10 +25,7 @@ function Column({
   const shown = showAll ? items : items.slice(0, INITIAL);
 
   return (
-    <div
-      className="rounded-2xl p-5"
-      style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-    >
+    <Card padding="none" className="rounded-2xl p-5">
       <p className="text-sm font-bold mb-3" style={{ color }}>
         {title}
       </p>
@@ -61,7 +59,7 @@ function Column({
           {showAll ? "Show less" : `Show all ${items.length}`}
         </button>
       )}
-    </div>
+    </Card>
   );
 }
 

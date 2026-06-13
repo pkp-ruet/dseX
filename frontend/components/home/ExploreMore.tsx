@@ -141,16 +141,16 @@ export default function ExploreMore({
             <div className="flex flex-col">
               <span className="text-[0.65rem] font-bold uppercase tracking-wide text-[var(--text-muted)]">DSEX Index</span>
               <div className="flex items-baseline gap-2">
-                <span className="font-display text-2xl sm:text-[1.7rem] font-extrabold tabular-nums text-[var(--text)] leading-none">
+                <span className="font-display text-2xl sm:text-[1.7rem] font-extrabold tabular-nums nums text-[var(--text)] leading-none">
                   {index?.dsex != null ? Math.round(index.dsex).toLocaleString() : "—"}
                 </span>
-                <span className="text-sm font-bold tabular-nums" style={{ color: chgColor(index?.dsex_change_pct) }}>
+                <span className="text-sm font-bold tabular-nums nums" style={{ color: chgColor(index?.dsex_change_pct) }}>
                   {fmtSigned(index?.dsex_change_pct, 2)}
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 text-sm font-bold tabular-nums">
+            <div className="flex items-center gap-3 text-sm font-bold tabular-nums nums">
               <span className="inline-flex items-center gap-1 text-[var(--positive)]">
                 ▲ {index?.up_count ?? "—"}
               </span>
@@ -183,9 +183,9 @@ export default function ExploreMore({
               const color = chgColor(item.return_7d_pct);
               return (
                 <div key={item.trading_code} className="flex items-center gap-2 py-1.5">
-                  <span className="text-[0.62rem] font-extrabold tabular-nums text-[var(--text-muted)] w-3 shrink-0">{item.rank}</span>
+                  <span className="text-[0.62rem] font-extrabold tabular-nums nums text-[var(--text-muted)] w-3 shrink-0">{item.rank}</span>
                   <span className="ticker-tag text-[0.74rem]">{item.trading_code}</span>
-                  <span className="ml-auto text-sm font-extrabold tabular-nums" style={{ color }}>
+                  <span className="ml-auto text-sm font-extrabold tabular-nums nums" style={{ color }}>
                     {item.return_7d_pct != null && item.return_7d_pct > 0 ? "▲ " : item.return_7d_pct != null && item.return_7d_pct < 0 ? "▼ " : ""}
                     {fmtSigned(item.return_7d_pct)}
                   </span>
@@ -205,7 +205,7 @@ export default function ExploreMore({
         >
           <CardEyebrow label="Browse Stocks" color="var(--watch)" />
           <div className="mt-3 flex items-baseline gap-1.5">
-            <span className="font-display text-3xl font-extrabold tabular-nums text-[var(--text)] leading-none">
+            <span className="font-display text-3xl font-extrabold tabular-nums nums text-[var(--text)] leading-none">
               {totalStocks}
             </span>
             <span className="text-sm font-semibold text-[var(--text-muted)]">stocks, A–Z</span>

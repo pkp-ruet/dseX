@@ -8,6 +8,7 @@ import {
   type MarketMoversData,
 } from "@/lib/api";
 import { setWatchlist, getCachedWatchlist } from "@/lib/watchlist";
+import Button from "@/components/ui/Button";
 
 export default function EmptyStateActions() {
   const [scores, setScores] = useState<ScoresResponse | null>(null);
@@ -120,14 +121,16 @@ export default function EmptyStateActions() {
             </option>
           ))}
         </select>
-        <button
+        <Button
           type="button"
           onClick={handleSector}
           disabled={!sector || busy === "sc"}
-          className="text-xs px-3 py-1 rounded bg-[var(--primary)] text-white font-semibold disabled:opacity-50"
+          variant="primary"
+          size="sm"
+          className="self-start"
         >
           {busy === "sc" ? "Adding…" : "Add"}
-        </button>
+        </Button>
       </div>
     </div>
   );
