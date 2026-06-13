@@ -35,16 +35,23 @@ export default function LiveRankingPreview({
             <Link
               key={item.trading_code}
               prefetch={false} href={`/stock/${item.trading_code}`}
-              className={`grid ${cols} gap-3 items-center px-4 py-3 border-l-[3px] hover:bg-[var(--surface-2)] transition-colors`}
+              className={`group grid ${cols} gap-3 items-center px-4 py-3 border-l-[3px] hover:bg-[var(--surface-2)] transition-colors`}
               style={{ borderLeftColor: `color-mix(in srgb, ${color} 26%, transparent)` }}
             >
               <span className="text-right text-xs font-bold tabular-nums nums text-[var(--text-muted)]">{i + 1}</span>
               <span className="min-w-0">
-                <span className="font-mono text-[0.82rem] font-bold tracking-[0.02em]" style={{ color }}>
+                <span
+                  className="inline-flex items-center font-mono text-[0.8rem] font-extrabold tracking-[0.03em] px-2 py-0.5 rounded-md border group-hover:brightness-95 transition-all"
+                  style={{
+                    color,
+                    background: `color-mix(in srgb, ${color} 11%, transparent)`,
+                    borderColor: `color-mix(in srgb, ${color} 32%, transparent)`,
+                  }}
+                >
                   {item.trading_code}
                 </span>
                 <span
-                  className="block mt-0.5 text-[0.66rem] truncate"
+                  className="block mt-0.5 text-[0.66rem] truncate group-hover:underline underline-offset-2 decoration-dotted"
                   style={{ color: `color-mix(in srgb, ${color} 38%, var(--text-muted))` }}
                 >
                   {item.company_name}

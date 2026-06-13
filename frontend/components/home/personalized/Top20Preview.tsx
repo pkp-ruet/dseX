@@ -12,12 +12,14 @@ export default function Top20Preview({ items }: { items: Top20Item[] }) {
   const rows = items.slice(0, 5);
   if (rows.length === 0) return null;
 
+  const cols = "grid-cols-[1.75rem_1fr_5.5rem_4.75rem]";
+
   return (
     <div className="soft-card overflow-hidden">
-      <div className="grid grid-cols-[2rem_1fr_auto_auto] gap-3 px-4 py-3 border-b-2 border-[var(--border)] bg-[var(--surface-2)] text-[0.72rem] font-extrabold uppercase tracking-[0.14em] text-[var(--text)]">
+      <div className={`grid ${cols} gap-3 px-4 py-3 border-b-2 border-[var(--border)] bg-[var(--surface-2)] text-[0.72rem] font-extrabold uppercase tracking-[0.14em] text-[var(--text)]`}>
         <span className="text-right">#</span>
         <span>Stock</span>
-        <span className="text-right">7d</span>
+        <span className="text-right leading-tight">7-Day Return</span>
         <span className="text-right">LTP</span>
       </div>
       <div className="divide-y divide-[var(--cell-rule)]">
@@ -28,14 +30,12 @@ export default function Top20Preview({ items }: { items: Top20Item[] }) {
             <Link
               key={item.trading_code}
               prefetch={false} href={`/stock/${item.trading_code}`}
-              className="grid grid-cols-[2rem_1fr_auto_auto] gap-3 items-center px-4 py-3 border-l-[3px] hover:bg-[var(--surface-2)] transition-colors"
+              className={`group grid ${cols} gap-3 items-center px-4 py-3 border-l-[3px] hover:bg-[var(--surface-2)] transition-colors`}
               style={{ borderLeftColor: `color-mix(in srgb, ${color} 26%, transparent)` }}
             >
               <span className="text-right text-xs font-bold tabular-nums text-[var(--text-muted)]">{item.rank}</span>
               <span className="min-w-0">
-                <span className="font-mono text-[0.82rem] font-bold tracking-[0.02em] text-[var(--text)]">
-                  {item.trading_code}
-                </span>
+                <span className="ticker-tag text-[0.8rem]">{item.trading_code}</span>
                 {item.company_name && (
                   <span className="block mt-0.5 text-[0.66rem] text-[var(--text-muted)] truncate">
                     {item.company_name}
