@@ -199,14 +199,6 @@ export default function FeatureShowcase({
   const hasTips = tips.length > 0;
   const pillars: Pillar[] = [
     {
-      eyebrow: "Stock Recommendation",
-      title: "Not sure what to buy?",
-      desc: "60-second quiz → 3 matched DSE stocks.",
-      anon: { label: "Find my stocks", href: "/stock-recommendation" },
-      auth: { label: "Find my stocks", href: "/stock-recommendation" },
-      visual: <RecommendationMockup />,
-    },
-    {
       eyebrow: "Stock Analysis",
       title: "Every stock, scored 0–100",
       desc: "Plain-English verdict on any DSE stock.",
@@ -214,6 +206,14 @@ export default function FeatureShowcase({
       auth: { label: "Search any stock", href: "/stocks" },
       search: true,
       visual: sampleDetail ? <SampleAnalysisCard detail={sampleDetail} /> : <RankingFallback />,
+    },
+    {
+      eyebrow: "Portfolio Analysis",
+      title: "See if your stocks are good",
+      desc: "Simple A–F grade, live profit/loss, and what to fix.",
+      anon: { label: "Sign up to track holdings", href: "/register" },
+      auth: { label: "Open your portfolio", href: "/portfolio" },
+      visual: <PortfolioMockup />,
     },
     {
       eyebrow: "Rankings",
@@ -232,12 +232,12 @@ export default function FeatureShowcase({
       visual: <WatchlistMockup />,
     },
     {
-      eyebrow: "Portfolio Analysis",
-      title: "Get your portfolio graded",
-      desc: "A–F grade + live P/L + what to fix.",
-      anon: { label: "Sign up to track holdings", href: "/register" },
-      auth: { label: "Open your portfolio", href: "/portfolio" },
-      visual: <PortfolioMockup />,
+      eyebrow: "Stock Recommendation",
+      title: "Not sure what to buy?",
+      desc: "60-second quiz → 3 matched DSE stocks.",
+      anon: { label: "Find my stocks", href: "/stock-recommendation" },
+      auth: { label: "Find my stocks", href: "/stock-recommendation" },
+      visual: <RecommendationMockup />,
     },
   ];
 
@@ -286,11 +286,11 @@ export default function FeatureShowcase({
 
         <div className="mt-7 flex flex-wrap justify-center gap-2.5">
           {[
-            ["Recommendations", "var(--np-cautious)"],
             ["Analysis", "var(--primary)"],
+            ["Portfolio", "var(--np-cautious)"],
             ["Rankings", "var(--watch)"],
             ["Watchlist", "var(--positive)"],
-            ["Portfolio", "var(--np-cautious)"],
+            ["Recommendations", "var(--np-cautious)"],
             ...(hasTips ? [["Daily Tips", "var(--negative)"] as const] : []),
           ].map(([word, color]) => (
             <span
