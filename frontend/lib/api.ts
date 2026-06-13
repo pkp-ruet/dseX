@@ -884,9 +884,17 @@ export async function getDailyPickHistory(days = 30): Promise<DailyPickHistoryRe
 // TopStockBD Tips — ~10 plain-English fundamental tips, refreshed daily
 // ---------------------------------------------------------------------------
 
+export interface DailyTipFact {
+  label: string;
+  value: string;
+}
+
 export interface DailyTip {
   category: string;
   text: string;
+  facts?: DailyTipFact[];
+  why?: string | null;
+  conviction?: number;
   trading_code: string;
   company_name: string | null;
   sector: string | null;
