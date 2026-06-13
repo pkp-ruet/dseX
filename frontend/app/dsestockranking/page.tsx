@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import Link from "next/link";
 import { getScores } from "@/lib/api";
 import { getTier } from "@/lib/constants";
 import RankingExplorer from "@/components/ranking/RankingExplorer";
@@ -38,6 +39,14 @@ export default async function DseStockRankingPage() {
   }
 
   const { tiers } = scores;
+
+  const updated = scores.computed_at
+    ? new Date(scores.computed_at).toLocaleDateString("en-US", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : null;
 
   // Flatten all API tiers and re-classify into 6 frontend tiers
   const allRanked: RankedItem[] = [
@@ -97,6 +106,16 @@ export default async function DseStockRankingPage() {
         <h1 className="rank-page-title font-display">
           DSE Stock <span className="rank-title-accent">Rankings</span>
         </h1>
+        <p className="rank-page-lead">
+          All DSE stocks, ranked from strongest to weakest.
+        </p>
+        <div className="rank-page-meta-row">
+          <span className="rank-page-meta">{allRanked.length} companies ranked</span>
+          {updated && <span className="rank-page-meta">Updated {updated}</span>}
+          <Link prefetch={false} href="/stocks" className="rank-page-aside">
+            Browse the full <strong>A–Z list</strong> →
+          </Link>
+        </div>
       </header>
 
       {/* Filters + ranked table */}

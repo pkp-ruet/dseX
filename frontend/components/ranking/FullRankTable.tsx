@@ -69,7 +69,7 @@ export default function FullRankTable({ rows }: Props) {
             <th className="fr-th fr-th-star" aria-label="Watchlist"></th>
             <th className="fr-th fr-th-code">Code</th>
             <th className="fr-th fr-th-sector fr-th-hide-sm">Sector</th>
-            <th className="fr-th fr-th-score fr-th-hide-sm">Score</th>
+            <th className="fr-th fr-th-score">Score</th>
             <th className="fr-th fr-th-num">LTP</th>
           </tr>
         </thead>
@@ -157,7 +157,7 @@ export default function FullRankTable({ rows }: Props) {
                   {item.sector ?? "—"}
                 </td>
 
-                <td className="fr-td fr-td-score fr-td-hide-sm">
+                <td className="fr-td fr-td-score">
                   <ScoreBadge score={item.score} tier={item.tier} size="sm" />
                 </td>
 
