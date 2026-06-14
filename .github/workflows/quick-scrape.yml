@@ -1,12 +1,13 @@
 name: Quick DSE Close Update
 
 on:
-  schedule:
-    # Sun-Thu at 08:00 UTC = 2:00 PM Dhaka (market close).
-    # Fast refresh: latest prices + market summary only, then purge the ISR cache
-    # so price/index/market-analysis views update everywhere. Heavy fundamentals
-    # stay on the daily scrape-all (daily-scrape.yml).
-    - cron: "0 8 * * 0-4"
+  # Scheduling is owned by cron-job.org, which calls GitHub's workflow_dispatch
+  # API on time. The native `schedule:` trigger was chronically delayed because it
+  # fired at the top of the hour (GitHub's busiest, best-effort window).
+  # Target: Sun-Thu 08:00 UTC = 2:00 PM Dhaka (market close) — latest prices +
+  # market summary, then purge the ISR cache so price/index/market-analysis views
+  # update everywhere. Heavy fundamentals stay on daily-scrape.yml.
+  # Revert to native cron with:  schedule: [{ cron: "0 8 * * 0-4" }]
   workflow_dispatch:
 
 concurrency:
