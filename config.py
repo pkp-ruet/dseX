@@ -11,6 +11,14 @@ REQUEST_DELAY = float(os.getenv("REQUEST_DELAY", "1.5"))
 REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "30"))
 MAX_RETRIES = int(os.getenv("MAX_RETRIES", "3"))
 
+# dsebd.org serves an incomplete TLS chain (missing intermediate) that some trust
+# stores — notably Windows — can't verify, so a manual local scrape dies with
+# CERTIFICATE_VERIFY_FAILED and writes nothing. When True, the scraper retries that
+# request without verification so the run still updates the DB. Hosts with a complete
+# trust store (e.g. GitHub Actions' Ubuntu runners) verify fine and never fall back.
+# Set DSE_SSL_FALLBACK=false to fail hard on a bad cert instead.
+DSE_SSL_FALLBACK = os.getenv("DSE_SSL_FALLBACK", "true").lower() in ("1", "true", "yes")
+
 DSE_BASE_URL = "https://www.dsebd.org"
 DSE_COMPANY_LIST_URL = f"{DSE_BASE_URL}/company_listing.php"
 DSE_LATEST_PRICE_URL = f"{DSE_BASE_URL}/latest_share_price_scroll_l.php"
