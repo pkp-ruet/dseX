@@ -378,9 +378,6 @@ export default function PersonalizedHome() {
             icon={SPARK_ICON}
           />
           <div className="mt-3 flex flex-col gap-3.5">
-            {/* Daily personalized picks — fresh detail-page hooks every day. */}
-            {dailyPicks?.picks?.length ? <DailyPicksCard picks={dailyPicks.picks} /> : null}
-
             {/* Stock recommendation — elevated action card in the shared family chrome. */}
             {recPicks && recPicks.length > 0 ? (
               <RecommendCard
@@ -426,6 +423,9 @@ export default function PersonalizedHome() {
                 </p>
               </RecommendCard>
             ) : null}
+
+            {/* Daily personalized picks — fresh detail-page hooks every day. */}
+            {dailyPicks?.picks?.length ? <DailyPicksCard picks={dailyPicks.picks} /> : null}
 
             {tips.length > 0 && <DailyTipsCard tips={tips} />}
           </div>

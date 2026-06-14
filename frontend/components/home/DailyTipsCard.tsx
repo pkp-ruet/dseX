@@ -33,7 +33,7 @@ export default function DailyTipsCard({ tips }: Props) {
 
   return (
     <RecommendCard accent="#0D9488" icon={BULB} title="Daily Tips" subtitle="Fresh every day">
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-3.5">
         {tips.map((tip) => {
           const meta = CAT_META[tip.category] ?? FALLBACK;
           const facts = tip.facts ?? [];
@@ -47,12 +47,12 @@ export default function DailyTipsCard({ tips }: Props) {
               key={`${tip.category}-${tip.trading_code}`}
               prefetch={false}
               href={`/stock/${tip.trading_code}`}
-              className="hover-lift group flex flex-col gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3"
+              className="hover-lift group flex flex-col gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4"
             >
-              <span className="flex items-start gap-3">
+              <span className="flex items-start gap-3.5">
                 {/* icon medallion */}
                 <span
-                  className="shrink-0 grid place-items-center w-8 h-8 rounded-lg text-sm"
+                  className="shrink-0 grid place-items-center w-10 h-10 rounded-lg text-lg"
                   style={{
                     background: `color-mix(in srgb, ${meta.color} 14%, transparent)`,
                   }}
@@ -62,20 +62,20 @@ export default function DailyTipsCard({ tips }: Props) {
 
                 <span className="flex-1 min-w-0">
                   <span className="flex items-center gap-2 flex-wrap">
-                    <span className="ticker-tag text-[0.72rem]">{tip.trading_code}</span>
+                    <span className="ticker-tag text-[0.85rem]">{tip.trading_code}</span>
                     <span
-                      className="text-[0.56rem] font-extrabold uppercase tracking-[0.08em]"
+                      className="text-[0.7rem] font-extrabold uppercase tracking-[0.08em]"
                       style={{ color: meta.color }}
                     >
                       {meta.tag}
                     </span>
                     {typeof tip.conviction === "number" && tip.conviction >= 3 && (
-                      <span className="text-[0.56rem] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+                      <span className="text-[0.7rem] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">
                         {tip.conviction} signals
                       </span>
                     )}
                   </span>
-                  <span className="mt-0.5 block text-[0.78rem] leading-snug text-[var(--text)] line-clamp-2">
+                  <span className="mt-1 block text-[0.95rem] leading-relaxed text-[var(--text)]">
                     {summary}
                   </span>
                 </span>
@@ -83,11 +83,11 @@ export default function DailyTipsCard({ tips }: Props) {
 
               {/* stacked fact chips */}
               {facts.length > 0 && (
-                <span className="flex flex-wrap gap-1.5 pl-11">
+                <span className="flex flex-wrap gap-2 pl-[3.25rem]">
                   {facts.map((f, i) => (
                     <span
                       key={`${f.label}-${i}`}
-                      className="px-2 py-0.5 rounded-md text-[0.68rem] font-bold tabular-nums"
+                      className="px-2.5 py-1 rounded-md text-[0.82rem] font-bold tabular-nums"
                       style={{
                         color: meta.color,
                         background: `color-mix(in srgb, ${meta.color} 14%, transparent)`,
@@ -101,7 +101,7 @@ export default function DailyTipsCard({ tips }: Props) {
 
               {/* why-it-matters explainer */}
               {tip.why && (
-                <span className="block pl-11 text-[0.68rem] leading-snug text-[var(--text-muted)] italic">
+                <span className="block pl-[3.25rem] text-[0.82rem] leading-relaxed text-[var(--text-muted)] italic">
                   {tip.why}
                 </span>
               )}
