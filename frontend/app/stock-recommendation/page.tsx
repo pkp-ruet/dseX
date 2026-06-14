@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getInsightScores } from "@/lib/api";
-import RecommendationQuiz from "@/components/stock-recommendation/RecommendationQuiz";
+import FindStocksClient from "@/components/stock-recommendation/FindStocksClient";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 export const metadata: Metadata = {
   title: "Stock Recommendation — Find DSE Stocks That Fit You | TopStockBD",
   description:
-    "Answer a few quick questions and get 3 Dhaka Stock Exchange (DSE) stocks matched to your goals — holding time, dividends, value or growth, sector and budget.",
+    "Answer a few quick questions and get Dhaka Stock Exchange (DSE) stocks matched to your goals — holding time, risk, company size, dividends, value or growth, sector and budget. Refreshed daily.",
   keywords: [
     "best DSE stock for me",
     "stock recommendation Bangladesh",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Stock Recommendation — Find DSE Stocks That Fit You",
     description:
-      "Answer a few quick questions and get 3 Dhaka Stock Exchange stocks matched to your goals.",
+      "Answer a few quick questions and get Dhaka Stock Exchange stocks matched to your goals, refreshed daily.",
     url: "/stock-recommendation",
     type: "website",
   },
@@ -45,7 +45,7 @@ export default async function StockRecommendationPage() {
         url: `${BASE_URL}/stock-recommendation`,
         name: "Stock Recommendation — Find DSE Stocks That Fit You",
         description:
-          "Answer a few quick questions and get 3 Dhaka Stock Exchange stocks matched to your goals.",
+          "Answer a few quick questions and get Dhaka Stock Exchange stocks matched to your goals, refreshed daily.",
         inLanguage: "en",
         isPartOf: { "@id": BASE_URL },
       },
@@ -76,13 +76,13 @@ export default async function StockRecommendationPage() {
             Find stocks that fit you
           </h1>
           <p className="text-[var(--text-muted)] text-sm sm:text-base leading-relaxed">
-            Answer 6 quick questions and we&apos;ll suggest 3 Dhaka Stock Exchange stocks that match
-            your goals — with a plain-language reason for each.
+            Tell us your goals once and get Dhaka Stock Exchange stock picks matched to you — fresh
+            every day, with a plain-language reason for each.
           </p>
         </header>
 
         <section className="soft-card p-5 sm:p-6">
-          <RecommendationQuiz sectors={sectors} />
+          <FindStocksClient sectors={sectors} />
         </section>
 
         <p className="text-center text-[0.72rem] text-[var(--text-muted)] leading-relaxed">

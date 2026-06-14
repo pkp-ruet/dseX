@@ -22,10 +22,14 @@ from backend.services.recommendation_service import (
 )
 from backend.services.db_service import load_stock_visit_counts
 
-N_PICKS = 6
+N_PICKS = 5           # unified with recommendation_service.N_RECOMMEND
 POOL_SIZE = 25
 POP_WEIGHT = 8.0      # max popularity bonus added to the 0..100 match score
 SECTOR_BONUS = 6.0    # bonus when a candidate sits in a sector the user favours
+
+# Bump whenever the pick shape or scoring logic changes — a cached doc with a
+# different version is treated as stale and recomputed (no waiting for tomorrow).
+PICKS_VERSION = 2
 
 
 # ---------------------------------------------------------------------------
@@ -38,15 +42,20 @@ def _owned_codes(user: dict) -> set[str]:
     return {c for c in (wl + pf) if c}
 
 
-def build_taste_profile(user: dict, rows_by_code: dict) -> dict:
-    """Derive pseudo quiz-answers from the user's owned stocks. Saved quiz
-    answers (last_recommendation.answers) take precedence where present."""
+def build_taste_profile(user: dict, rows_by_code: dict,
+                        mcap_terc: tuple[float, float] = (0.0, 0.0),
+                        liked_codes: set[str] | None = None) -> dict:
+    """Derive pseudo quiz-answers from the user's owned (and liked) stocks. Saved
+    quiz answers (last_recommendation.answers) take precedence where present."""
     owned = _owned_codes(user)
+    # Liked stocks count toward taste even if not owned ("up = boost only").
+    taste_codes = owned | {c for c in (liked_codes or set())}
     owned_rows = [rows_by_code[c] for c in owned if c in rows_by_code]
+    taste_rows = [rows_by_code[c] for c in taste_codes if c in rows_by_code]
 
     sectors_count: dict[str, int] = {}
-    dys, vals, growths, scores = [], [], [], []
-    for r in owned_rows:
+    dys, vals, growths, scores, healths, mcaps = [], [], [], [], [], []
+    for r in taste_rows:
         sec = (r.get("sector") or "").strip()
         if sec:
             sectors_count[sec] = sectors_count.get(sec, 0) + 1
@@ -58,6 +67,10 @@ def build_taste_profile(user: dict, rows_by_code: dict) -> dict:
             growths.append(r["eps_yoy_pct"])
         if r.get("score") is not None:
             scores.append(r["score"])
+        if r.get("p2_health") is not None:
+            healths.append(r["p2_health"])
+        if r.get("mcap_mn"):
+            mcaps.append(r["mcap_mn"])
 
     # Defaults: leave sectors/budget unconstrained (sector affinity is a soft
     # bonus, not a hard filter), lean long/fundamental.
@@ -68,6 +81,8 @@ def build_taste_profile(user: dict, rows_by_code: dict) -> dict:
         "dividend": "doesnt_matter",
         "valuation": "any",
         "budget": "any",
+        "risk": "balanced",
+        "size": "any",
     }
 
     if dys and statistics.mean(dys) >= 4.0:
@@ -78,12 +93,29 @@ def build_taste_profile(user: dict, rows_by_code: dict) -> dict:
     elif growths and statistics.mean(growths) >= 12.0:
         answers["valuation"] = "growth"
 
-    if owned_rows and scores and statistics.mean(scores) < 55:
+    if taste_rows and scores and statistics.mean(scores) < 55:
         answers["timeline"] = "short"
         answers["strategy"] = "market_trending"
 
+    # Risk: solid + decent score → steady; weak quality → aggressive.
+    if scores and healths:
+        avg_score, avg_health = statistics.mean(scores), statistics.mean(healths)
+        if avg_score >= 65 and avg_health >= 7.0:
+            answers["risk"] = "steady"
+        elif avg_score < 50:
+            answers["risk"] = "aggressive"
+
+    # Size: average owned/liked mcap vs market terciles.
+    p33, p66 = mcap_terc
+    if mcaps and p66 > 0:
+        avg_mcap = statistics.mean(mcaps)
+        if avg_mcap >= p66:
+            answers["size"] = "large"
+        elif p33 and avg_mcap <= p33:
+            answers["size"] = "small"
+
     saved = (user.get("last_recommendation") or {}).get("answers") or {}
-    for k in ("timeline", "strategy", "dividend", "valuation", "budget"):
+    for k in ("timeline", "strategy", "dividend", "valuation", "budget", "risk", "size"):
         if saved.get(k):
             answers[k] = saved[k]
     if saved.get("sectors"):
@@ -107,9 +139,10 @@ def _today() -> str:
     return _dhaka_day(datetime.now(timezone.utc))
 
 
-def _pick_dict(row: dict, answers: dict, match: float, personal_reason: str | None = None) -> dict:
+def _pick_dict(row: dict, answers: dict, match: float, personal_reason: str | None = None,
+               ctx: dict | None = None) -> dict:
     score = row.get("score")
-    reasons = _reasons_for_pick(row, answers)
+    reasons = _reasons_for_pick(row, answers, ctx)
     if personal_reason:
         reasons = [personal_reason] + [r for r in reasons if r != personal_reason]
     return {
@@ -131,91 +164,166 @@ def _pick_dict(row: dict, answers: dict, match: float, personal_reason: str | No
     }
 
 
-def compute_daily_picks(user: dict) -> dict:
-    """Build today's picks for `user`. Pure — caller persists the result."""
+# ---------------------------------------------------------------------------
+# Shared scoring context (used by the daily feed and by skip-backfill)
+# ---------------------------------------------------------------------------
+
+def _prepare(user: dict) -> dict:
+    """Assemble everything needed to score candidates for `user`: universe,
+    taste profile (incorporating liked stocks), popularity boost, feedback."""
+    from backend.services.auth_service import get_pick_feedback
+
     user_id = user.get("user_id")
     universe = _build_universe()
     rows = universe["rows"]
-    vol_median = universe["vol_median"]
+    mcap_terc = (universe["mcap_p33"], universe["mcap_p66"])
+    ctx = {"mcap_p33": universe["mcap_p33"], "mcap_p66": universe["mcap_p66"]}
     rows_by_code = {r["trading_code"]: r for r in rows}
 
     visits = load_stock_visit_counts()
     max_visits = max(visits.values()) if visits else 0
 
-    profile = build_taste_profile(user, rows_by_code)
-    owned = profile["owned"]
-    answers = profile["answers"]
-    affinity = profile["sector_affinity"]
-    has_signal = bool(owned) or bool((user.get("last_recommendation") or {}).get("answers"))
+    fb = get_pick_feedback(user_id) if user_id else {"liked": [], "disliked": []}
+    liked = {c.upper() for c in fb["liked"]}
+    disliked = {c.upper() for c in fb["disliked"]}
 
-    today = _today()
-    now_iso = datetime.now(timezone.utc).isoformat()
+    profile = build_taste_profile(user, rows_by_code, mcap_terc, liked)
+    has_signal = (
+        bool(profile["owned"]) or bool(liked)
+        or bool((user.get("last_recommendation") or {}).get("answers"))
+    )
 
     def pop_boost(code: str) -> float:
         if max_visits <= 0:
             return 0.0
         return (visits.get(code, 0) / max_visits) * POP_WEIGHT
 
-    seed = abs(hash(f"{today}|{user_id}")) % (2 ** 31)
-    rng = random.Random(seed)
+    return {
+        "user_id": user_id,
+        "rows": rows,
+        "vol_median": universe["vol_median"],
+        "mcap_terc": mcap_terc,
+        "ctx": ctx,
+        "profile": profile,
+        "owned": profile["owned"],
+        "answers": profile["answers"],
+        "affinity": profile["sector_affinity"],
+        "disliked": disliked,
+        "has_signal": has_signal,
+        "pop_boost": pop_boost,
+    }
 
-    # ---- Cold start: top-rated + trending blend ----
-    if not has_signal:
-        cands = [r for r in rows if (r.get("score") or 0) >= 55 and not r.get("stale_data")]
 
-        def cold_rank(r: dict) -> float:
-            chg = r.get("change_pct") or 0
-            return (r.get("score") or 0) + max(0.0, chg) * 1.5 + pop_boost(r["trading_code"])
+def _exclude_set(prep: dict, extra: set[str] | None = None) -> set[str]:
+    ex = set(prep["owned"]) | set(prep["disliked"])
+    if extra:
+        ex |= {c.upper() for c in extra}
+    return ex
 
-        cands.sort(key=cold_rank, reverse=True)
-        pool = cands[:POOL_SIZE]
-        rng.shuffle(pool)
-        picks = []
-        for r in pool[:N_PICKS]:
-            chg = r.get("change_pct")
-            reason = (
-                f"Trending — up {chg:.1f}% today."
-                if chg and chg > 0
-                else f"Top-rated stock (grade {round(r.get('score') or 0)}/100)."
-            )
-            picks.append(_pick_dict(r, answers, r.get("score") or 0, personal_reason=reason))
-        return {"date": today, "generated_at": now_iso, "personalized": False, "picks": picks}
 
-    # ---- Personalized ----
+def _personalized_scored(prep: dict, exclude: set[str]) -> list[tuple]:
+    rows, answers, affinity = prep["rows"], prep["answers"], prep["affinity"]
+    vol_median, mcap_terc, pop_boost = prep["vol_median"], prep["mcap_terc"], prep["pop_boost"]
     scored = []
     for r in rows:
         code = r["trading_code"]
-        if code in owned:
+        if code in exclude:
             continue
         score = r.get("score")
         if score is None or r.get("stale_data") or score < 35:
             continue
-        base = _match_score(r, answers, vol_median)
+        base = _match_score(r, answers, vol_median, mcap_terc)
         sec = (r.get("sector") or "").strip().lower()
         bonus = SECTOR_BONUS if sec and sec in affinity else 0.0
         final = base + bonus + pop_boost(code)
         scored.append((final, base, r))
-
     scored.sort(key=lambda t: (-t[0], -(t[2].get("score") or 0), t[2]["trading_code"]))
-    pool = scored[:POOL_SIZE]
-    rng.shuffle(pool)
+    return scored
 
-    # Name an owned stock per favoured sector for the personal reason line.
-    owned_by_sector: dict[str, str] = {}
-    for orow in profile["owned_rows"]:
+
+def _cold_scored(prep: dict, exclude: set[str]) -> list[dict]:
+    rows, pop_boost = prep["rows"], prep["pop_boost"]
+    cands = [
+        r for r in rows
+        if (r.get("score") or 0) >= 55 and not r.get("stale_data")
+        and r["trading_code"] not in exclude
+    ]
+
+    def cold_rank(r: dict) -> float:
+        chg = r.get("change_pct") or 0
+        return (r.get("score") or 0) + max(0.0, chg) * 1.5 + pop_boost(r["trading_code"])
+
+    cands.sort(key=cold_rank, reverse=True)
+    return cands
+
+
+def _owned_by_sector(prep: dict) -> dict[str, str]:
+    out: dict[str, str] = {}
+    for orow in prep["profile"]["owned_rows"]:
         sec = (orow.get("sector") or "").strip().lower()
-        if sec and sec not in owned_by_sector:
-            owned_by_sector[sec] = orow["trading_code"]
+        if sec and sec not in out:
+            out[sec] = orow["trading_code"]
+    return out
 
-    picks = []
-    for _final, base, r in pool[:N_PICKS]:
-        sec = (r.get("sector") or "").strip().lower()
-        personal = None
-        if sec and sec in owned_by_sector:
-            personal = f"{r.get('sector')} — like {owned_by_sector[sec]} you follow."
-        picks.append(_pick_dict(r, answers, base, personal_reason=personal))
 
-    return {"date": today, "generated_at": now_iso, "personalized": True, "picks": picks}
+def _cold_pick(r: dict, prep: dict) -> dict:
+    chg = r.get("change_pct")
+    reason = (
+        f"Trending — up {chg:.1f}% today."
+        if chg and chg > 0
+        else f"Top-rated stock (grade {round(r.get('score') or 0)}/100)."
+    )
+    return _pick_dict(r, prep["answers"], r.get("score") or 0, personal_reason=reason, ctx=prep["ctx"])
+
+
+def _personal_pick(base: float, r: dict, prep: dict, owned_by_sector: dict[str, str]) -> dict:
+    sec = (r.get("sector") or "").strip().lower()
+    personal = None
+    if sec and sec in owned_by_sector:
+        personal = f"{r.get('sector')} — like {owned_by_sector[sec]} you follow."
+    return _pick_dict(r, prep["answers"], base, personal_reason=personal, ctx=prep["ctx"])
+
+
+# ---------------------------------------------------------------------------
+# Daily feed
+# ---------------------------------------------------------------------------
+
+def compute_daily_picks(user: dict) -> dict:
+    """Build today's picks for `user`. Pure — caller persists the result."""
+    prep = _prepare(user)
+    today = _today()
+    now_iso = datetime.now(timezone.utc).isoformat()
+    exclude = _exclude_set(prep)
+
+    # "tuned" = the user actually took the quiz. Watchlist/portfolio signal makes
+    # picks personalized but is NOT tuning — keep nudging them to the quiz.
+    tuned = bool((user.get("last_recommendation") or {}).get("answers"))
+
+    def _meta(personalized: bool, picks: list) -> dict:
+        return {
+            "date": today,
+            "generated_at": now_iso,
+            "v": PICKS_VERSION,
+            "personalized": personalized,
+            "tuned": tuned,
+            "picks": picks,
+        }
+
+    seed = abs(hash(f"{today}|{prep['user_id']}")) % (2 ** 31)
+    rng = random.Random(seed)
+
+    # ---- Cold start: top-rated + trending blend ----
+    if not prep["has_signal"]:
+        pool = _cold_scored(prep, exclude)[:POOL_SIZE]
+        rng.shuffle(pool)
+        return _meta(False, [_cold_pick(r, prep) for r in pool[:N_PICKS]])
+
+    # ---- Personalized ----
+    pool = _personalized_scored(prep, exclude)[:POOL_SIZE]
+    rng.shuffle(pool)
+    owned_by_sector = _owned_by_sector(prep)
+    picks = [_personal_pick(base, r, prep, owned_by_sector) for _final, base, r in pool[:N_PICKS]]
+    return _meta(True, picks)
 
 
 def get_or_compute_daily_picks(user: dict) -> dict:
@@ -225,9 +333,57 @@ def get_or_compute_daily_picks(user: dict) -> dict:
     user_id = user.get("user_id")
     today = _today()
     cached = get_daily_picks(user_id) if user_id else None
-    if cached and cached.get("date") == today and cached.get("picks"):
+    if (
+        cached
+        and cached.get("date") == today
+        and cached.get("v") == PICKS_VERSION
+        and cached.get("picks")
+    ):
         return cached
     fresh = compute_daily_picks(user)
     if user_id:
         save_daily_picks(user_id, fresh)
     return fresh
+
+
+# ---------------------------------------------------------------------------
+# Feedback (like / skip) — skip drops the card and backfills the next best one
+# ---------------------------------------------------------------------------
+
+def apply_pick_feedback(user: dict, code: str, vote: str) -> dict:
+    """Record a like/skip/clear and, on skip, drop the stock from today's cached
+    feed and append the next-best replacement so the feed stays full. Like/clear
+    only record the signal — it tunes the next recompute (boost only)."""
+    from backend.services.auth_service import (
+        set_pick_feedback, get_daily_picks, save_daily_picks,
+    )
+
+    user_id = user.get("user_id")
+    code_u = (code or "").upper().strip()
+    fb = set_pick_feedback(user_id, code_u, vote) if user_id else {"liked": [], "disliked": []}
+    replacement = None
+
+    if vote == "down" and user_id:
+        cached = get_daily_picks(user_id)
+        if cached and cached.get("date") == _today() and cached.get("picks"):
+            picks = [p for p in cached["picks"] if (p.get("trading_code") or "").upper() != code_u]
+            # _prepare re-reads feedback from the DB, so `disliked` already
+            # excludes code_u; also exclude codes still on screen to avoid dupes.
+            prep = _prepare(user)
+            shown = {(p.get("trading_code") or "").upper() for p in picks}
+            exclude = _exclude_set(prep, shown | {code_u})
+            if prep["has_signal"]:
+                scored = _personalized_scored(prep, exclude)
+                if scored:
+                    _final, base, r = scored[0]
+                    replacement = _personal_pick(base, r, prep, _owned_by_sector(prep))
+            else:
+                cands = _cold_scored(prep, exclude)
+                if cands:
+                    replacement = _cold_pick(cands[0], prep)
+            if replacement:
+                picks.append(replacement)
+            cached["picks"] = picks
+            save_daily_picks(user_id, cached)
+
+    return {"feedback": fb, "replacement": replacement}

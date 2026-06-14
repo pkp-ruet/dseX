@@ -1,9 +1,12 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import type { DailyTip } from "@/lib/api";
 import RecommendCard from "@/components/home/personalized/RecommendCard";
 
 const BULB = (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
     <path d="M9 21h6v-1H9v1zm3-20a7 7 0 0 0-4 12.7V17h8v-3.3A7 7 0 0 0 12 1z" />
   </svg>
 );
@@ -11,6 +14,8 @@ const BULB = (
 interface Props {
   tips: DailyTip[];
 }
+
+const TEASER_COUNT = 3;
 
 // Per-signal visual identity: accent color + icon + chip label. Keyed by the
 // tip's lead signal (`category`).
@@ -29,12 +34,16 @@ const CAT_META: Record<string, { color: string; icon: string; tag: string }> = {
 const FALLBACK = { color: "var(--text-muted)", icon: "⭐", tag: "Pick" };
 
 export default function DailyTipsCard({ tips }: Props) {
+  const [expanded, setExpanded] = useState(false);
+
   if (!tips || tips.length === 0) return null;
 
+  const visible = expanded ? tips : tips.slice(0, TEASER_COUNT);
+
   return (
-    <RecommendCard accent="#0D9488" icon={BULB} title="Daily Tips" subtitle="Fresh every day">
+    <RecommendCard accent="#0D9488" icon={BULB} title="Daily Tips" subtitle="Fresh signals every day" prominent>
       <div className="flex flex-col gap-3.5">
-        {tips.map((tip) => {
+        {visible.map((tip) => {
           const meta = CAT_META[tip.category] ?? FALLBACK;
           const facts = tip.facts ?? [];
           // Strip the leading "Name — " from the headline so the body reads as
@@ -109,6 +118,31 @@ export default function DailyTipsCard({ tips }: Props) {
           );
         })}
       </div>
+
+      {tips.length > TEASER_COUNT && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded}
+          className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--surface)] py-2.5 text-[0.8rem] font-bold text-[#0D9488] transition hover:bg-[color-mix(in_srgb,#0D9488_8%,var(--surface))]"
+        >
+          {expanded ? "Show less" : `View all ${tips.length} tips`}
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+            style={{ transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}
+          >
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </button>
+      )}
     </RecommendCard>
   );
 }

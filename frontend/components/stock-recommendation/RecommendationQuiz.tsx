@@ -1,15 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  getStockRecommendations,
-  apiGetLastRecommendation,
-  apiDeleteLastRecommendation,
-  type RecommendationAnswers,
-  type RecommendationResponse,
-} from "@/lib/api";
-import { isLoggedIn } from "@/lib/auth";
-import RecommendedStockCard from "./RecommendedStockCard";
+import { useState } from "react";
+import { type RecommendationAnswers } from "@/lib/api";
 import Button from "@/components/ui/Button";
 
 type Answers = Partial<RecommendationAnswers> & { sectors: string[] };
@@ -21,7 +13,7 @@ interface Option {
 }
 
 interface SingleStep {
-  key: "timeline" | "strategy" | "dividend" | "valuation" | "budget";
+  key: "timeline" | "strategy" | "risk" | "size" | "dividend" | "valuation" | "budget";
   kind: "single";
   title: string;
   subtitle: string;
@@ -42,7 +34,7 @@ const STEPS: Step[] = [
     key: "timeline",
     kind: "single",
     title: "How long do you plan to hold?",
-    subtitle: "This helps us balance stability against quick moves.",
+    subtitle: "Your time horizon — it shapes how much we weigh durability vs quick moves.",
     options: [
       { value: "long", label: "A year or more", desc: "Long-term investing" },
       { value: "short", label: "Weeks to a few months", desc: "Short-term trading" },
@@ -51,11 +43,33 @@ const STEPS: Step[] = [
   {
     key: "strategy",
     kind: "single",
-    title: "What matters more to you?",
-    subtitle: "Pick the approach that feels right.",
+    title: "How do you like to pick winners?",
+    subtitle: "Your overall approach to choosing stocks.",
     options: [
-      { value: "fundamental_strong", label: "Strong, stable companies", desc: "Good business, healthy finances" },
-      { value: "market_trending", label: "Stocks moving right now", desc: "Recent price momentum" },
+      { value: "fundamental_strong", label: "Strong businesses", desc: "Quality companies, healthy finances" },
+      { value: "market_trending", label: "What's moving now", desc: "Follow recent price momentum" },
+    ],
+  },
+  {
+    key: "risk",
+    kind: "single",
+    title: "How do you feel about price swings?",
+    subtitle: "How much ups and downs you're comfortable with.",
+    options: [
+      { value: "steady", label: "Keep it steady", desc: "Prefer stable, financially solid names" },
+      { value: "balanced", label: "A balanced mix", desc: "Some swings are fine" },
+      { value: "aggressive", label: "Go for bigger gains", desc: "Okay with more risk for upside" },
+    ],
+  },
+  {
+    key: "size",
+    kind: "single",
+    title: "Big names or smaller companies?",
+    subtitle: "Larger companies tend to be steadier; smaller ones can grow faster.",
+    options: [
+      { value: "large", label: "Big, established names", desc: "Blue-chip companies" },
+      { value: "any", label: "No preference", desc: "Show me a mix" },
+      { value: "small", label: "Smaller, growing companies", desc: "More room to grow" },
     ],
   },
   {
@@ -98,57 +112,44 @@ const STEPS: Step[] = [
   },
 ];
 
-const RELAX_LABEL: Record<string, string> = {
-  budget: "price range",
-  dividend: "dividend preference",
-  sector: "sector choice",
+// Neutral defaults so single-choice steps start pre-selected (the user can still
+// change them); sectors stay empty (truly optional).
+const DEFAULTS: Answers = {
+  timeline: "long",
+  strategy: "fundamental_strong",
+  risk: "balanced",
+  size: "any",
+  sectors: [],
+  dividend: "doesnt_matter",
+  valuation: "any",
+  budget: "any",
 };
 
-export default function RecommendationQuiz({ sectors }: { sectors: string[] }) {
+export default function RecommendationQuiz({
+  sectors,
+  initialAnswers,
+  onSubmit,
+  onCancel,
+  submitting = false,
+}: {
+  sectors: string[];
+  initialAnswers?: Partial<RecommendationAnswers>;
+  onSubmit: (answers: RecommendationAnswers) => void;
+  onCancel?: () => void;
+  submitting?: boolean;
+}) {
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<Answers>({ sectors: [] });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<RecommendationResponse | null>(null);
-  const [fromSaved, setFromSaved] = useState(false);
-  const [initializing, setInitializing] = useState(true);
-
-  // On mount, surface the user's previously generated picks (if any) instead of
-  // forcing a fresh quiz. Logged-out users go straight to the quiz.
-  useEffect(() => {
-    let alive = true;
-    if (!isLoggedIn()) {
-      setInitializing(false);
-      return;
-    }
-    apiGetLastRecommendation()
-      .then((r) => {
-        if (!alive) return;
-        const rec = r.recommendation;
-        if (rec && rec.picks?.length) {
-          setResult({
-            generated_at: rec.generated_at,
-            answers_echo: (rec.answers ?? {}) as unknown as Record<string, unknown>,
-            relaxations: rec.relaxations ?? [],
-            saved: true,
-            picks: rec.picks,
-          });
-          setFromSaved(true);
-        }
-      })
-      .catch(() => {})
-      .finally(() => alive && setInitializing(false));
-    return () => {
-      alive = false;
-    };
-  }, []);
+  const [answers, setAnswers] = useState<Answers>(() => ({
+    ...DEFAULTS,
+    ...initialAnswers,
+    sectors: initialAnswers?.sectors ?? [],
+  }));
 
   const current = STEPS[step];
   const isLast = step === STEPS.length - 1;
   const total = STEPS.length;
 
-  const answered =
-    current.kind === "sectors" ? true : Boolean(answers[current.key]);
+  const answered = current.kind === "sectors" ? true : Boolean(answers[current.key]);
 
   function pickSingle(key: SingleStep["key"], value: string) {
     setAnswers((a) => ({ ...a, [key]: value }));
@@ -161,122 +162,12 @@ export default function RecommendationQuiz({ sectors }: { sectors: string[] }) {
     });
   }
 
-  async function submit() {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await getStockRecommendations(answers as RecommendationAnswers);
-      setResult(res);
-    } catch (e) {
-      setError(
-        e instanceof Error && e.message !== "AUTH_EXPIRED"
-          ? "Something went wrong. Please try again."
-          : "Something went wrong. Please try again.",
-      );
-    } finally {
-      setLoading(false);
-    }
+  const allSectorsSelected = sectors.length > 0 && answers.sectors.length === sectors.length;
+
+  function toggleAllSectors() {
+    setAnswers((a) => ({ ...a, sectors: allSectorsSelected ? [] : [...sectors] }));
   }
 
-  function restart() {
-    // Start over wipes the saved picks from memory entirely.
-    if (isLoggedIn()) apiDeleteLastRecommendation().catch(() => {});
-    setResult(null);
-    setFromSaved(false);
-    setAnswers({ sectors: [] });
-    setStep(0);
-    setError(null);
-  }
-
-  // ---- Initial load (checking for saved picks) ----
-  if (initializing) {
-    return (
-      <div className="py-10 flex justify-center">
-        <span className="w-8 h-8 rounded-full border-[3px] border-[var(--surface-2)] border-t-[var(--primary)] animate-spin" />
-      </div>
-    );
-  }
-
-  // ---- Analyzing view (while the request is in flight) ----
-  if (loading && !result) {
-    return (
-      <div className="py-10 flex flex-col items-center text-center">
-        <div className="relative w-20 h-20">
-          <span className="absolute inset-0 rounded-full border-4 border-[var(--surface-2)]" />
-          <span className="absolute inset-0 rounded-full border-4 border-transparent border-t-[var(--primary)] animate-spin" />
-          <span className="absolute inset-0 flex items-center justify-center text-2xl rec-pop">🔍</span>
-        </div>
-        <p className="mt-5 text-lg font-extrabold text-[var(--text)]">Matching you with stocks…</p>
-        <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Scanning the market against your answers.
-        </p>
-        <div className="mt-4 flex gap-1.5">
-          {[0, 1, 2].map((i) => (
-            <span
-              key={i}
-              className="w-2 h-2 rounded-full bg-[var(--primary)] animate-bounce"
-              style={{ animationDelay: `${i * 160}ms` }}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  // ---- Results view ----
-  if (result) {
-    const relax = result.relaxations.filter((r) => RELAX_LABEL[r]);
-    return (
-      <div className="space-y-4">
-        <div className="rec-pop text-center">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.66rem] font-bold uppercase tracking-[0.08em] bg-[color-mix(in_srgb,var(--primary)_12%,transparent)] text-[var(--primary)]">
-            {fromSaved ? "⭐ Your saved picks" : "🎯 Matched to your answers"}
-          </span>
-          <h2 className="mt-2.5 text-[1.5rem] font-extrabold leading-tight bg-gradient-to-r from-[var(--primary)] to-[var(--positive)] bg-clip-text text-transparent">
-            {result.picks.length === 3
-              ? "Your stock matches"
-              : `We found ${result.picks.length} match${result.picks.length === 1 ? "" : "es"} for you`}
-          </h2>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">
-            {fromSaved
-              ? "From your last answers — start over any time to get fresh picks."
-              : "Each one comes with a clear reason. Always do your own research before investing."}
-          </p>
-        </div>
-
-        {relax.length > 0 && (
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-[0.8rem] text-[var(--text-muted)]">
-            We widened your {relax.map((r) => RELAX_LABEL[r]).join(" and ")} to find good matches.
-          </div>
-        )}
-
-        <div className="space-y-3">
-          {result.picks.map((p, i) => (
-            <RecommendedStockCard key={p.trading_code} stock={p} rank={i} />
-          ))}
-        </div>
-
-        {result.saved && !fromSaved && (
-          <p className="text-center text-[0.72rem] text-[var(--text-muted)]">
-            ✓ Saved to your profile — find it on your home dashboard.
-          </p>
-        )}
-        {!isLoggedIn() && (
-          <p className="text-center text-[0.72rem] text-[var(--text-muted)]">
-            Sign in to save your results and track these stocks.
-          </p>
-        )}
-
-        <div className="text-center pt-1">
-          <Button type="button" variant="ghost" onClick={restart} className="min-h-[44px] px-6">
-            {fromSaved ? "Start over →" : "Start over"}
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // ---- Quiz view ----
   return (
     <div className="space-y-5">
       {/* Progress */}
@@ -350,10 +241,25 @@ export default function RecommendationQuiz({ sectors }: { sectors: string[] }) {
           })}
         </div>
       ) : (
-        <div className="flex flex-wrap gap-2">
+        <div>
           {sectors.length === 0 && (
             <p className="text-sm text-[var(--text-muted)]">No sectors available — you can skip this.</p>
           )}
+          {sectors.length > 0 && (
+            <div className="mb-2.5 flex items-center justify-between">
+              <span className="text-[0.72rem] font-semibold text-[var(--text-muted)]">
+                {answers.sectors.length} selected
+              </span>
+              <button
+                type="button"
+                onClick={toggleAllSectors}
+                className="text-[0.78rem] font-bold text-[var(--primary)] hover:underline"
+              >
+                {allSectorsSelected ? "Clear all" : "Select all"}
+              </button>
+            </div>
+          )}
+          <div className="flex flex-wrap gap-2">
           {sectors.map((s) => {
             const selected = answers.sectors.includes(s);
             return (
@@ -374,32 +280,41 @@ export default function RecommendationQuiz({ sectors }: { sectors: string[] }) {
               </button>
             );
           })}
+          </div>
         </div>
       )}
 
-      {error && <p className="text-sm text-[var(--negative)]">{error}</p>}
-
       {/* Nav */}
       <div className="flex items-center gap-3 pt-1">
-        {step > 0 && (
+        {step > 0 ? (
           <Button
             type="button"
             variant="ghost"
             onClick={() => setStep((s) => s - 1)}
-            disabled={loading}
+            disabled={submitting}
             className="min-h-[48px] px-5"
           >
             Back
           </Button>
-        )}
+        ) : onCancel ? (
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onCancel}
+            disabled={submitting}
+            className="min-h-[48px] px-5"
+          >
+            Cancel
+          </Button>
+        ) : null}
         <Button
           type="button"
           variant="primary"
-          onClick={() => (isLast ? submit() : setStep((s) => s + 1))}
-          disabled={!answered || loading}
+          onClick={() => (isLast ? onSubmit({ ...DEFAULTS, ...answers } as RecommendationAnswers) : setStep((s) => s + 1))}
+          disabled={!answered || submitting}
           className="flex-1 min-h-[48px] px-5"
         >
-          {loading ? "Finding stocks…" : isLast ? "Get my 3 stocks" : "Next"}
+          {submitting ? "Finding stocks…" : isLast ? "Get my picks" : "Next"}
         </Button>
       </div>
     </div>

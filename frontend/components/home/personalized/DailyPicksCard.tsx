@@ -1,6 +1,13 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { type RecommendedStock } from "@/lib/api";
 import RecommendCard from "@/components/home/personalized/RecommendCard";
+import TuneModal from "@/components/stock-recommendation/TuneModal";
+import DailyPickList from "@/components/stock-recommendation/DailyPickList";
+
+const TEASER_COUNT = 3;
 
 const SPARKLE = (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -9,58 +16,95 @@ const SPARKLE = (
   </svg>
 );
 
-export default function DailyPicksCard({ picks }: { picks: RecommendedStock[] }) {
+export default function DailyPicksCard({
+  picks,
+  tuned = false,
+  sectors,
+  onTuned,
+}: {
+  picks: RecommendedStock[];
+  /** True only when the user took the quiz — drives the personalize nudge. */
+  tuned?: boolean;
+  sectors: string[];
+  /** Called after the user finishes tuning so the parent can refetch picks. */
+  onTuned: () => void | Promise<void>;
+}) {
+  const [tuneOpen, setTuneOpen] = useState(false);
+
   if (!picks || picks.length === 0) return null;
 
   return (
-    <RecommendCard accent="var(--primary)" icon={SPARKLE} title="Picked for you today" subtitle="Refreshes daily">
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-        {picks.map((p) => {
-          return (
-            <Link
-              key={p.trading_code}
-              prefetch={false} href={`/stock/${p.trading_code}`}
-              className="hover-lift group flex flex-col gap-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3.5"
+    <>
+      <RecommendCard
+        accent="var(--primary)"
+        icon={SPARKLE}
+        title="Picked for you today"
+        headerRight={
+          tuned ? (
+            <button
+              type="button"
+              onClick={() => setTuneOpen(true)}
+              className="shrink-0 text-xs font-semibold text-[var(--primary)] hover:underline"
             >
-              <span className="flex items-center gap-1.5">
-                <span className="text-[0.78rem] font-bold tabular-nums text-[var(--text)]">
-                  {p.ltp != null ? `৳${p.ltp.toFixed(2)}` : "—"}
-                </span>
-                {p.change_pct != null && (
-                  <span
-                    className="text-[0.68rem] font-bold tabular-nums"
-                    style={{ color: p.change_pct >= 0 ? "var(--positive)" : "var(--negative)" }}
-                  >
-                    {p.change_pct >= 0 ? "+" : ""}
-                    {p.change_pct.toFixed(2)}%
-                  </span>
-                )}
+              Tune →
+            </button>
+          ) : undefined
+        }
+      >
+        {!tuned && (
+          <button
+            type="button"
+            onClick={() => setTuneOpen(true)}
+            className="hover-lift mb-3 flex w-full items-center gap-3 rounded-xl border border-[color-mix(in_srgb,var(--primary)_35%,var(--border))] bg-[color-mix(in_srgb,var(--primary)_8%,var(--surface))] p-3.5 text-left"
+          >
+            <span
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-white"
+              style={{ background: "var(--primary)" }}
+              aria-hidden
+            >
+              {SPARKLE}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[0.86rem] font-bold text-[var(--text)] leading-tight">
+                Make these picks yours
               </span>
+              <span className="block text-[0.75rem] text-[var(--text-muted)] leading-snug">
+                Answer 8 quick questions → get stocks matched to your goals, fresh every day.
+              </span>
+            </span>
+            <span
+              className="shrink-0 inline-flex items-center gap-1 rounded-lg px-3 py-2 text-[0.74rem] font-bold text-white"
+              style={{ background: "var(--primary)" }}
+            >
+              Personalize →
+            </span>
+          </button>
+        )}
 
-              <span className="font-mono font-extrabold text-[1.2rem] leading-none tracking-tight text-[var(--text)] truncate">
-                {p.trading_code}
-              </span>
+        <DailyPickList
+          key={picks.map((p) => p.trading_code).join(",")}
+          initialPicks={picks}
+          feedback={false}
+          limit={TEASER_COUNT}
+        />
 
-              <span className="inline-flex items-center gap-1 self-start text-[0.7rem] font-semibold text-[var(--primary)] transition-all group-hover:gap-1.5">
-                Analyze
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden
-                >
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-              </span>
-            </Link>
-          );
-        })}
-      </div>
-    </RecommendCard>
+        <Link
+          href="/stock-recommendation"
+          className="mt-3 flex items-center justify-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--surface)] py-2.5 text-[0.8rem] font-bold text-[var(--primary)] transition hover:bg-[color-mix(in_srgb,var(--primary)_8%,var(--surface))]"
+        >
+          {picks.length > TEASER_COUNT ? `See all ${picks.length} picks` : "Open full picks"}
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </Link>
+      </RecommendCard>
+
+      <TuneModal
+        open={tuneOpen}
+        sectors={sectors}
+        onClose={() => setTuneOpen(false)}
+        onComplete={onTuned}
+      />
+    </>
   );
 }

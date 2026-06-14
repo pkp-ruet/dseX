@@ -27,6 +27,12 @@ STRATEGIES = {"fundamental_strong", "market_trending"}
 DIVIDENDS = {"income_focused", "doesnt_matter"}
 VALUATIONS = {"value", "growth", "any"}
 BUDGETS = {"under_50", "50_to_200", "any"}
+RISKS = {"steady", "balanced", "aggressive"}
+SIZES = {"large", "any", "small"}
+
+# How many picks the quiz returns. Kept in sync with the daily-picks feed so the
+# two surfaces feel like one feature.
+N_RECOMMEND = 5
 
 
 def _safe(v):
@@ -89,7 +95,23 @@ def _build_universe() -> dict:
 
     vols = [r["volume"] for r in rows if r["volume"] and r["volume"] > 0]
     vol_median = sorted(vols)[len(vols) // 2] if vols else 0.0
-    return {"rows": rows, "vol_median": vol_median}
+
+    # Market-cap terciles drive the "company size" preference (blue chip vs
+    # smaller). Computed once over the universe so size is relative to the
+    # market, not an absolute taka cutoff.
+    mcaps = sorted(r["mcap_mn"] for r in rows if r.get("mcap_mn") and r["mcap_mn"] > 0)
+
+    def _pct(p: float) -> float:
+        if not mcaps:
+            return 0.0
+        return mcaps[min(len(mcaps) - 1, int(len(mcaps) * p))]
+
+    return {
+        "rows": rows,
+        "vol_median": vol_median,
+        "mcap_p33": _pct(0.33),
+        "mcap_p66": _pct(0.66),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -105,7 +127,13 @@ def _eligible(row: dict, answers: dict, drop: set[str]) -> bool:
     # Always: usable score, not stale, not bottom "avoid" tier.
     if score is None or row.get("stale_data"):
         return False
-    if score < 35:
+
+    # "Steady" risk-takers should not be shown weak names — lift the score floor
+    # from the baseline avoid-tier cutoff. Relaxable if too few stocks qualify.
+    floor = 35.0
+    if "risk" not in drop and answers.get("risk") == "steady":
+        floor = 55.0
+    if score < floor:
         return False
 
     if "sector" not in drop:
@@ -139,7 +167,7 @@ def _clamp(v: float, lo: float = 0.0, hi: float = 1.0) -> float:
     return max(lo, min(hi, v))
 
 
-def _normalized(row: dict, vol_median: float) -> dict:
+def _normalized(row: dict, vol_median: float, mcap_terc: tuple[float, float] = (0.0, 0.0)) -> dict:
     """Each contributing metric mapped to 0..1."""
     def num(key):
         v = row.get(key)
@@ -147,9 +175,21 @@ def _normalized(row: dict, vol_median: float) -> dict:
 
     change = num("change_pct")
     vol = num("volume")
+
+    # Company size, relative to the market's mcap terciles.
+    mcap = num("mcap_mn")
+    p33, p66 = mcap_terc
+    if p66 > p33 > 0:
+        mcap_large = _clamp((mcap - p33) / (p66 - p33))
+    elif p66 > 0:
+        mcap_large = _clamp(mcap / p66)
+    else:
+        mcap_large = 0.0
+
     return {
         "score": _clamp(num("score") / 100.0),
         "p1_biz": _clamp(num("p1_biz") / 10.0),
+        "p2_health": _clamp(num("p2_health") / 10.0),
         "p3_moat": _clamp(num("p3_moat") / 10.0),
         "p4_val": _clamp(num("p4_val") / 10.0),
         "p5_div": _clamp(num("p5_div") / 10.0),
@@ -157,28 +197,59 @@ def _normalized(row: dict, vol_median: float) -> dict:
         "eps_yoy_pct": _clamp(num("eps_yoy_pct") / 50.0),          # +50% YoY = full marks
         "change_pct": _clamp((change + 10.0) / 20.0),              # -10%..+10% -> 0..1
         "volume": _clamp(vol / (vol_median * 3.0)) if vol_median > 0 else 0.0,
+        "low_volatility": _clamp(1.0 - abs(change) / 10.0),        # calm day = high
+        "mcap_large": mcap_large,
+        "mcap_small": 1.0 - mcap_large,
     }
 
 
 def _weights(answers: dict) -> dict:
-    """Metric -> weight, accumulated from the answers. timeline is always set so
-    one of the first two branches always fires (weights never empty)."""
+    """Metric -> weight, accumulated from the answers. timeline and strategy are
+    always set, so weights are never empty.
+
+    timeline and strategy are deliberately given *distinct* weights (not the same
+    fundamental/momentum switch) so mixed answers — e.g. long horizon but
+    trend-driven — produce a nuanced blend rather than collapsing to one of two
+    profiles."""
     w: dict[str, float] = {}
 
     def add(metric, amount):
         w[metric] = w.get(metric, 0.0) + amount
 
-    long_or_fundamental = answers.get("timeline") == "long" or answers.get("strategy") == "fundamental_strong"
-    short_or_trending = answers.get("timeline") == "short" or answers.get("strategy") == "market_trending"
+    # Timeline = how long they hold (horizon emphasis).
+    if answers.get("timeline") == "long":
+        add("p3_moat", 0.20)   # durable advantage matters over years
+        add("p5_div", 0.10)    # compounding income
+        add("score", 0.10)
+    elif answers.get("timeline") == "short":
+        add("change_pct", 0.25)
+        add("volume", 0.15)
 
-    if long_or_fundamental:
-        add("score", 0.30)
+    # Strategy = quality vs trending (distinct dial from timeline).
+    if answers.get("strategy") == "fundamental_strong":
+        add("score", 0.20)
         add("p1_biz", 0.15)
-        add("p3_moat", 0.15)
-        add("p4_val", 0.10)
-    if short_or_trending:
-        add("change_pct", 0.40)
-        add("volume", 0.20)
+        add("p2_health", 0.10)
+    elif answers.get("strategy") == "market_trending":
+        add("change_pct", 0.20)
+        add("volume", 0.15)
+
+    # Risk comfort.
+    risk = answers.get("risk")
+    if risk == "steady":
+        add("p2_health", 0.15)
+        add("score", 0.10)
+        add("low_volatility", 0.10)
+    elif risk == "aggressive":
+        add("change_pct", 0.15)
+        add("volume", 0.10)
+
+    # Company size.
+    size = answers.get("size")
+    if size == "large":
+        add("mcap_large", 0.15)
+    elif size == "small":
+        add("mcap_small", 0.15)
 
     if answers.get("dividend") == "income_focused":
         add("p5_div", 0.20)
@@ -192,9 +263,10 @@ def _weights(answers: dict) -> dict:
     return w
 
 
-def _match_score(row: dict, answers: dict, vol_median: float) -> float:
+def _match_score(row: dict, answers: dict, vol_median: float,
+                 mcap_terc: tuple[float, float] = (0.0, 0.0)) -> float:
     weights = _weights(answers)
-    norm = _normalized(row, vol_median)
+    norm = _normalized(row, vol_median, mcap_terc)
     total = sum(weights.values()) or 1.0
     raw = sum(weights[m] * norm.get(m, 0.0) for m in weights)
     return round(raw / total * 100.0, 1)
@@ -204,7 +276,7 @@ def _match_score(row: dict, answers: dict, vol_median: float) -> float:
 # Reasons — plain language, never "DSEF"
 # ---------------------------------------------------------------------------
 
-def _reasons_for_pick(row: dict, answers: dict) -> list[str]:
+def _reasons_for_pick(row: dict, answers: dict, ctx: dict | None = None) -> list[str]:
     reasons: list[str] = []
     score = row.get("score") or 0
     sectors = _selected_sectors(answers)
@@ -234,6 +306,19 @@ def _reasons_for_pick(row: dict, answers: dict) -> list[str]:
     if short_or_trending and change and change > 0 and len(reasons) < 2:
         reasons.append(f"Positive recent momentum — up {change:.1f}% today.")
 
+    risk = answers.get("risk")
+    p2 = row.get("p2_health") or 0
+    if risk == "steady" and p2 >= 7 and len(reasons) < 2:
+        reasons.append("Financially solid — built to ride out rough patches.")
+
+    size = answers.get("size")
+    mcap = row.get("mcap_mn")
+    if ctx and size and mcap is not None and len(reasons) < 2:
+        if size == "large" and ctx.get("mcap_p66") and mcap >= ctx["mcap_p66"]:
+            reasons.append("A large, established company.")
+        elif size == "small" and ctx.get("mcap_p33") and mcap <= ctx["mcap_p33"]:
+            reasons.append("A smaller company with room to grow.")
+
     if not reasons:
         reasons.append(f"One of the best overall matches for your answers (grade {round(score)}/100).")
 
@@ -244,13 +329,14 @@ def _reasons_for_pick(row: dict, answers: dict) -> list[str]:
 # Stage C — selection with progressive relaxation
 # ---------------------------------------------------------------------------
 
-# Drop order: keep the user's explicit dividend ask longer than budget; sector
-# is the last thing we relax.
+# Drop order: budget first, then the steady-risk score floor, then the dividend
+# ask; sector preference is the last thing we relax.
 _RELAXATION_STEPS: list[set[str]] = [
     set(),
     {"budget"},
-    {"budget", "dividend"},
-    {"budget", "dividend", "sector"},
+    {"budget", "risk"},
+    {"budget", "risk", "dividend"},
+    {"budget", "risk", "dividend", "sector"},
 ]
 
 
@@ -259,20 +345,22 @@ def build_recommendation(answers: dict) -> dict:
     universe = _build_universe()
     rows = universe["rows"]
     vol_median = universe["vol_median"]
+    mcap_terc = (universe["mcap_p33"], universe["mcap_p66"])
+    ctx = {"mcap_p33": universe["mcap_p33"], "mcap_p66": universe["mcap_p66"]}
 
     eligible: list[dict] = []
     chosen_drop: set[str] = set()
     for drop in _RELAXATION_STEPS:
         eligible = [r for r in rows if _eligible(r, answers, drop)]
         chosen_drop = drop
-        if len(eligible) >= 3:
+        if len(eligible) >= N_RECOMMEND:
             break
 
     # Score each eligible stock once (don't mutate the cached rows), then rank:
     # match desc, raw score desc, code asc for deterministic tie-breaks.
-    scored = [(_match_score(r, answers, vol_median), r) for r in eligible]
+    scored = [(_match_score(r, answers, vol_median, mcap_terc), r) for r in eligible]
     scored.sort(key=lambda t: (-t[0], -(t[1].get("score") or 0), t[1]["trading_code"]))
-    top = scored[:3]
+    top = scored[:N_RECOMMEND]
 
     picks = []
     for match, r in top:
@@ -292,7 +380,7 @@ def build_recommendation(answers: dict) -> dict:
             "p4_val": r.get("p4_val"),
             "p5_div": r.get("p5_div"),
             "match_score": match,
-            "reasons": _reasons_for_pick(r, answers),
+            "reasons": _reasons_for_pick(r, answers, ctx),
         })
 
     return {

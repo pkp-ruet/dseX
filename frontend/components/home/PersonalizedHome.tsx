@@ -14,9 +14,7 @@ import {
   getTop20,
   getDailyTips,
   getDailyPicks,
-  apiGetLastRecommendation,
   type DailyPicksResponse,
-  type RecommendedStock,
   type ScoreItem,
   type ScoresResponse,
   type PortfolioHolding,
@@ -40,7 +38,6 @@ import PortfolioSummaryCard from "@/components/home/personalized/PortfolioSummar
 import WatchlistSummaryCard from "@/components/home/personalized/WatchlistSummaryCard";
 import WatchlistMoversCard from "@/components/home/personalized/WatchlistMoversCard";
 import DailyPicksCard from "@/components/home/personalized/DailyPicksCard";
-import RecommendCard from "@/components/home/personalized/RecommendCard";
 import CoreFeatureTiles from "@/components/home/personalized/CoreFeatureTiles";
 import InsightsPreview from "@/components/home/personalized/InsightsPreview";
 import Top20Preview from "@/components/home/personalized/Top20Preview";
@@ -67,22 +64,16 @@ const BAG_ICON = (
     <path d="M20 7h-4V5l-2-2h-4L8 5v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm-8-2h4v2h-4V5z" />
   </svg>
 );
-const TARGET_ICON = (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <circle cx="12" cy="12" r="9" />
-    <circle cx="12" cy="12" r="5" />
-    <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-  </svg>
-);
-const SPARK_ICON = (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M12 2l1.9 5.6L19.5 9l-5.1 2.7L12 17l-2.4-5.3L4.5 9l5.6-1.4L12 2z" />
-  </svg>
-);
 const COMPASS_ICON = (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <circle cx="12" cy="12" r="9" />
     <polygon points="16 8 13 13 8 16 11 11 16 8" fill="currentColor" stroke="none" />
+  </svg>
+);
+const INTEL_ICON = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M12 3a5 5 0 0 0-5 5c0 1.6.8 3 2 4v2h6v-2c1.2-1 2-2.4 2-4a5 5 0 0 0-5-5z" />
+    <path d="M9 19h6M10 21h4" />
   </svg>
 );
 
@@ -160,8 +151,6 @@ export default function PersonalizedHome() {
   const [gainers, setGainers] = useState<MarketMoverItem[]>([]);
   const [top20, setTop20] = useState<Top20Item[]>([]);
   const [tips, setTips] = useState<DailyTip[]>([]);
-  const [recPicks, setRecPicks] = useState<RecommendedStock[] | null>(null);
-  const [recLoaded, setRecLoaded] = useState(false);
   const [dailyPicks, setDailyPicks] = useState<DailyPicksResponse | null>(() => {
     if (!userId) return null;
     return readCache<DailyPicksResponse>(cacheKeys.dailyPicks(userId));
@@ -212,13 +201,6 @@ export default function PersonalizedHome() {
         if (userId) writeCache(cacheKeys.dailyPicks(userId), d);
       })
       .catch(() => {});
-    apiGetLastRecommendation()
-      .then((r) => {
-        if (!alive) return;
-        setRecPicks(r.recommendation?.picks?.length ? r.recommendation.picks : null);
-      })
-      .catch(() => {})
-      .finally(() => alive && setRecLoaded(true));
     const unsub = subscribeWatchlist(() => setCodes(getCachedWatchlist()));
     return () => {
       alive = false;
@@ -266,6 +248,18 @@ export default function PersonalizedHome() {
     .filter((s) => s.score != null)
     .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
   const companies = allStocks.map((s) => ({ trading_code: s.trading_code, company_name: s.company_name }));
+  const sectors = Array.from(
+    new Set(allStocks.map((s) => s.sector).filter((x): x is string => Boolean(x))),
+  ).sort();
+
+  function refreshDailyPicks() {
+    return getDailyPicks()
+      .then((d) => {
+        setDailyPicks(d);
+        if (userId) writeCache(cacheKeys.dailyPicks(userId), d);
+      })
+      .catch(() => {});
+  }
 
   // ── Daily Check-In inputs ──────────────────────────────────────────────────
   const todayMove = hasPortfolio ? portfolioTodayMove(holdings!, priceMap) : null;
@@ -298,8 +292,7 @@ export default function PersonalizedHome() {
       })()
     : news;
 
-  const showRecommended =
-    !!dailyPicks?.picks?.length || (!!recPicks && recPicks.length > 0) || recLoaded || tips.length > 0;
+  const showRecommended = !!dailyPicks?.picks?.length || tips.length > 0;
 
   return (
     <div className="pb-4">
@@ -368,64 +361,26 @@ export default function PersonalizedHome() {
         </div>
       </section>
 
-      {/* ── Section 2: Recommended for you — curated, refreshes daily ── */}
+      {/* ── Section 2: TopStockBD Intelligence — personalized picks + daily tips.
+          Umbrella title is distinct from the cards' own "Picked for you today". ── */}
       {showRecommended && (
         <section className="mt-8">
           <SectionHeader
-            eyebrow="Picked for you · refreshes daily"
-            title="Recommended for You"
+            eyebrow="Made for you · refreshed daily"
+            title="TopStockBD Intelligence"
             accent="var(--np-cautious)"
-            icon={SPARK_ICON}
+            icon={INTEL_ICON}
           />
-          <div className="mt-3 flex flex-col gap-3.5">
-            {/* Stock recommendation — elevated action card in the shared family chrome. */}
-            {recPicks && recPicks.length > 0 ? (
-              <RecommendCard
-                accent="var(--np-cautious)"
-                icon={TARGET_ICON}
-                title="Your stock matches"
-                subtitle="3 picks chosen for your goals"
-                href="/stock-recommendation"
-                headerRight={
-                  <span className="shrink-0 text-xs font-semibold text-[var(--primary)] group-hover:underline">
-                    View →
-                  </span>
-                }
-              >
-                <div className="flex flex-wrap gap-2">
-                  {recPicks.slice(0, 3).map((p, i) => (
-                    <span
-                      key={p.trading_code}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[0.82rem] font-mono font-bold text-[var(--text)]"
-                      style={{ background: "color-mix(in srgb, var(--np-cautious) 14%, var(--surface))" }}
-                    >
-                      <span className="text-sm leading-none">{["🥇", "🥈", "🥉"][i] ?? "⭐"}</span>
-                      {p.trading_code}
-                    </span>
-                  ))}
-                </div>
-              </RecommendCard>
-            ) : recLoaded ? (
-              <RecommendCard
-                accent="var(--np-cautious)"
-                icon={TARGET_ICON}
-                title="Find stocks that fit you"
-                subtitle="Stock recommendation"
-                href="/stock-recommendation"
-                headerRight={
-                  <span className="shrink-0 text-xs font-semibold text-[var(--primary)] group-hover:underline">
-                    Start →
-                  </span>
-                }
-              >
-                <p className="text-[0.82rem] text-[var(--text-muted)]">
-                  Answer 6 quick questions → get 3 matched picks
-                </p>
-              </RecommendCard>
+          <div className="mt-3 flex flex-col gap-7">
+            {/* Daily personalized picks — the merged "find stocks" feed, fresh daily. */}
+            {dailyPicks?.picks?.length ? (
+              <DailyPicksCard
+                picks={dailyPicks.picks}
+                tuned={dailyPicks.tuned ?? false}
+                sectors={sectors}
+                onTuned={refreshDailyPicks}
+              />
             ) : null}
-
-            {/* Daily personalized picks — fresh detail-page hooks every day. */}
-            {dailyPicks?.picks?.length ? <DailyPicksCard picks={dailyPicks.picks} /> : null}
 
             {tips.length > 0 && <DailyTipsCard tips={tips} />}
           </div>
