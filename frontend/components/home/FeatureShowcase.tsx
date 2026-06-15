@@ -8,7 +8,7 @@ import SampleAnalysisCard from "@/components/home/SampleAnalysisCard";
 import LiveRankingPreview from "@/components/home/LiveRankingPreview";
 import WatchlistMockup from "@/components/home/WatchlistMockup";
 import PortfolioMockup from "@/components/home/PortfolioMockup";
-import DailyTipsCard from "@/components/home/DailyTipsCard";
+import DailyTipsMockup from "@/components/home/DailyTipsMockup";
 import RecommendationMockup from "@/components/home/RecommendationMockup";
 import MarketAnalysisMockup from "@/components/home/MarketAnalysisMockup";
 import Card from "@/components/ui/Card";
@@ -266,7 +266,7 @@ export default function FeatureShowcase({
       desc: "10 hand-picked tips, every day.",
       anon: { label: "Sign up for daily tips", href: "/register" },
       auth: { label: "See today's tips", href: "/" },
-      visual: <DailyTipsCard tips={tips.slice(0, 3)} />,
+      visual: <DailyTipsMockup tips={tips.slice(0, 3)} />,
     });
   }
 
