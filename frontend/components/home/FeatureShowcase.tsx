@@ -10,6 +10,7 @@ import WatchlistMockup from "@/components/home/WatchlistMockup";
 import PortfolioMockup from "@/components/home/PortfolioMockup";
 import DailyTipsCard from "@/components/home/DailyTipsCard";
 import RecommendationMockup from "@/components/home/RecommendationMockup";
+import MarketAnalysisMockup from "@/components/home/MarketAnalysisMockup";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 
@@ -44,6 +45,15 @@ const EYEBROW: Record<
     icon: (
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
+      </svg>
+    ),
+  },
+  "Market Analysis": {
+    color: "var(--warm)",
+    kind: "glass",
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 12h4l2-7 4 14 2-7h6" />
       </svg>
     ),
   },
@@ -208,6 +218,14 @@ export default function FeatureShowcase({
       visual: sampleDetail ? <SampleAnalysisCard detail={sampleDetail} /> : <RankingFallback />,
     },
     {
+      eyebrow: "Market Analysis",
+      title: "The whole market, in plain words",
+      desc: "We read the whole market for you — what's strong, what's cheap, and which stocks to watch.",
+      anon: { label: "Open market analysis", href: "/market-analysis" },
+      auth: { label: "Open market analysis", href: "/market-analysis" },
+      visual: <MarketAnalysisMockup />,
+    },
+    {
       eyebrow: "Portfolio Analysis",
       title: "See if your stocks are good",
       desc: "Simple A–F grade, live profit/loss, and what to fix.",
@@ -287,6 +305,7 @@ export default function FeatureShowcase({
         <div className="mt-7 flex flex-wrap justify-center gap-2.5">
           {[
             ["Analysis", "var(--primary)"],
+            ["Market", "var(--warm)"],
             ["Portfolio", "var(--np-cautious)"],
             ["Rankings", "var(--watch)"],
             ["Watchlist", "var(--positive)"],

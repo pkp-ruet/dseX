@@ -39,6 +39,7 @@ import WatchlistSummaryCard from "@/components/home/personalized/WatchlistSummar
 import WatchlistMoversCard from "@/components/home/personalized/WatchlistMoversCard";
 import DailyPicksCard from "@/components/home/personalized/DailyPicksCard";
 import CoreFeatureTiles from "@/components/home/personalized/CoreFeatureTiles";
+import MarketAnalysisCard from "@/components/home/personalized/MarketAnalysisCard";
 import InsightsPreview from "@/components/home/personalized/InsightsPreview";
 import Top20Preview from "@/components/home/personalized/Top20Preview";
 import WatchlistNews from "@/components/watchlist/WatchlistNews";
@@ -398,6 +399,8 @@ export default function PersonalizedHome() {
         <div className="mt-3 flex flex-col gap-6">
           {marketIndex && <LiveMarketBand index={marketIndex} gainers={gainers} />}
 
+          <MarketAnalysisCard index={marketIndex} />
+
           {rankingItems.length > 0 && (
           <div>
             <div className="flex items-center justify-between gap-3 mb-3">
@@ -491,7 +494,7 @@ export default function PersonalizedHome() {
             </div>
           )}
 
-          <CoreFeatureTiles marketIndex={marketIndex} />
+          <CoreFeatureTiles />
         </div>
       </section>
     </div>
