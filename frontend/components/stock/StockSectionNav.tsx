@@ -35,11 +35,24 @@ export default function StockSectionNav({ sections }: Props) {
     return () => observer.disconnect();
   }, [sections]);
 
-  // Keep the active chip scrolled into view within the nav strip.
+  // Keep the active chip scrolled into view *horizontally within the nav strip*.
+  // Must NOT use chip.scrollIntoView — its block:"nearest" scrolls the whole
+  // page vertically too. The nav sits below the hero+chart, so on mobile it's
+  // off-screen on first paint and scrollIntoView yanks the page down on mount
+  // (opening the stock at "The Price Story" instead of the top). Adjust only
+  // the nav's own horizontal scroll, which never touches the page scroll.
   useEffect(() => {
-    if (!active || !navRef.current) return;
-    const chip = navRef.current.querySelector<HTMLElement>(`[data-chip="${active}"]`);
-    chip?.scrollIntoView({ inline: "nearest", block: "nearest" });
+    const nav = navRef.current;
+    if (!active || !nav) return;
+    const chip = nav.querySelector<HTMLElement>(`[data-chip="${active}"]`);
+    if (!chip) return;
+    const navRect = nav.getBoundingClientRect();
+    const chipRect = chip.getBoundingClientRect();
+    if (chipRect.left < navRect.left) {
+      nav.scrollLeft -= navRect.left - chipRect.left + 12;
+    } else if (chipRect.right > navRect.right) {
+      nav.scrollLeft += chipRect.right - navRect.right + 12;
+    }
   }, [active]);
 
   if (!sections.length) return null;
