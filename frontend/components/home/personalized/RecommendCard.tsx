@@ -11,6 +11,8 @@ interface Props {
   href?: string;
   /** Optional element on the right of the header (e.g. a "View all →" link). */
   headerRight?: React.ReactNode;
+  /** Larger, bolder header: gradient icon chip + non-uppercase title. */
+  prominent?: boolean;
   children: React.ReactNode;
 }
 
@@ -27,31 +29,52 @@ export default function RecommendCard({
   subtitle,
   href,
   headerRight,
+  prominent = false,
   children,
 }: Props) {
   const inner = (
     <>
-      <header className="flex items-center gap-2.5 px-4 sm:px-5 py-3 border-b border-[var(--border)]">
+      {/* Slim gradient top-line — the premium accent that also tells the cards
+          apart (blue picks / teal tips) without a heavy color band. */}
+      <div
+        className="h-[3px] w-full"
+        style={{ background: `linear-gradient(90deg, ${accent}, color-mix(in srgb, ${accent} 35%, transparent))` }}
+        aria-hidden
+      />
+      <header
+        className={`flex items-center border-b border-[var(--border)] bg-[var(--surface)] px-4 sm:px-5 ${
+          prominent ? "gap-3.5 py-4" : "gap-3 py-3.5"
+        }`}
+      >
         <span
-          className="grid h-8 w-8 shrink-0 place-items-center rounded-lg"
-          style={{ color: accent, background: `color-mix(in srgb, ${accent} 12%, transparent)` }}
+          className={`grid shrink-0 place-items-center text-white ${
+            prominent ? "h-11 w-11 rounded-2xl" : "h-9 w-9 rounded-xl"
+          }`}
+          style={{
+            background: `linear-gradient(135deg, ${accent}, color-mix(in srgb, ${accent} 62%, #000))`,
+            boxShadow: `0 6px 16px -8px color-mix(in srgb, ${accent} 80%, transparent)`,
+          }}
           aria-hidden
         >
           {icon}
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="text-[0.72rem] font-bold uppercase tracking-[0.12em] text-[var(--text)] leading-tight truncate">
+          <h3
+            className={`font-extrabold tracking-tight text-[var(--text)] leading-tight truncate ${
+              prominent ? "text-[1.18rem]" : "text-[0.98rem]"
+            }`}
+          >
             {title}
           </h3>
           {subtitle && (
-            <p className="text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-[var(--text-muted)]">
+            <p className={`text-[var(--text-muted)] ${prominent ? "text-[0.76rem]" : "text-[0.72rem]"}`}>
               {subtitle}
             </p>
           )}
         </div>
         {headerRight}
       </header>
-      <div className="px-4 sm:px-5 py-4">{children}</div>
+      <div className="px-4 sm:px-5 py-4 bg-[var(--surface-2)]">{children}</div>
     </>
   );
 

@@ -593,6 +593,8 @@ export interface RecommendationAnswers {
   dividend: "income_focused" | "doesnt_matter";
   valuation: "value" | "growth" | "any";
   budget: "under_50" | "50_to_200" | "any";
+  risk: "steady" | "balanced" | "aggressive";
+  size: "large" | "any" | "small";
 }
 
 export interface RecommendedStock {
@@ -655,12 +657,31 @@ export interface DailyPicksResponse {
   date: string;
   generated_at: string;
   personalized: boolean;
+  /** True only when the user actually took the quiz (vs watchlist-inferred). */
+  tuned?: boolean;
   picks: RecommendedStock[];
 }
 
 /** Auth-only. Returns 5 daily-rotating picks tuned to the user's taste. */
 export async function getDailyPicks(): Promise<DailyPicksResponse> {
   return apiAuthFetch<DailyPicksResponse>("/api/user/daily-picks");
+}
+
+export interface PickFeedbackResponse {
+  feedback: { liked: string[]; disliked: string[] };
+  /** Present on a "down" (skip) vote: the next-best pick to backfill the slot. */
+  replacement: RecommendedStock | null;
+}
+
+/** Like (up = boost only) / skip (down = drop + backfill) / clear a daily pick. */
+export async function apiPickFeedback(
+  code: string,
+  vote: "up" | "down" | "clear",
+): Promise<PickFeedbackResponse> {
+  return apiAuthFetch<PickFeedbackResponse>("/api/user/picks/feedback", {
+    method: "POST",
+    body: JSON.stringify({ code, vote }),
+  });
 }
 
 // ---------------------------------------------------------------------------

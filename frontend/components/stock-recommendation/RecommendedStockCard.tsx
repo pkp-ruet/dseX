@@ -14,9 +14,16 @@ const RANK = [
 export default function RecommendedStockCard({
   stock,
   rank,
+  onLike,
+  onSkip,
+  liked = false,
 }: {
   stock: RecommendedStock;
   rank: number;
+  /** When provided, renders "More like this" / "Skip" feedback controls. */
+  onLike?: () => void;
+  onSkip?: () => void;
+  liked?: boolean;
 }) {
   const r = RANK[rank] ?? { medal: "⭐", label: `Match ${rank + 1}`, color: "var(--primary)" };
   const color = r.color;
@@ -111,6 +118,37 @@ export default function RecommendedStockCard({
               </li>
             ))}
           </ul>
+        )}
+
+        {/* Feedback — only on the daily feed (boost-only like + skip) */}
+        {(onLike || onSkip) && (
+          <div className="mt-3.5 flex items-center gap-2">
+            {onLike && (
+              <button
+                type="button"
+                onClick={onLike}
+                aria-pressed={liked}
+                className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.72rem] font-semibold transition active:scale-95"
+                style={{
+                  borderColor: liked ? "var(--positive)" : "var(--border)",
+                  background: liked ? "color-mix(in srgb, var(--positive) 12%, var(--surface))" : "var(--surface)",
+                  color: liked ? "var(--positive)" : "var(--text-muted)",
+                }}
+              >
+                <span>{liked ? "👍" : "👍"}</span>
+                {liked ? "More like this ✓" : "More like this"}
+              </button>
+            )}
+            {onSkip && (
+              <button
+                type="button"
+                onClick={onSkip}
+                className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-[0.72rem] font-semibold text-[var(--text-muted)] transition hover:border-[var(--negative)] hover:text-[var(--negative)] active:scale-95"
+              >
+                ✕ Skip
+              </button>
+            )}
+          </div>
         )}
 
         {/* Footer */}
