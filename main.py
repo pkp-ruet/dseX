@@ -170,7 +170,21 @@ def _trigger_post_scrape_hooks(*, fire_deploy_hook: bool = False):
             req = urllib.request.Request(
                 f"{revalidate_url.rstrip('/')}?tag=market-data",
                 method="POST",
-                headers={"x-revalidate-secret": revalidate_secret},
+                headers={
+                    "x-revalidate-secret": revalidate_secret,
+                    # The frontend is fronted by Cloudflare, whose Bot Fight Mode
+                    # 403s the default `Python-urllib/x.y` User-Agent *before* the
+                    # request reaches the Next.js /api/revalidate route — so the
+                    # purge silently fails and ISR pages serve stale prices until
+                    # the 24h passive expiry. Send a browser-like UA so the POST
+                    # gets through. The principled fix is a Cloudflare WAF skip
+                    # rule for /api/revalidate; this keeps it working without one.
+                    "User-Agent": (
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                        "AppleWebKit/537.36 (KHTML, like Gecko) "
+                        "Chrome/120.0 Safari/537.36"
+                    ),
+                },
             )
             urllib.request.urlopen(req, timeout=10)
             print("Frontend revalidate triggered (tag=market-data).")
