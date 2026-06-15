@@ -456,6 +456,127 @@ export async function getNearExtremes(): Promise<NearExtremesData> {
   return apiFetch<NearExtremesData>("/api/market/near-extremes", 86400);
 }
 
+// ---- Market State (the "complete picture of the market right now" page) ----
+
+export type MoodTone = "up" | "down" | "weak" | "steady";
+export type CellTone = "pos" | "neg" | "neutral";
+
+export interface MarketMoodChip {
+  label: string;
+  value: string;
+}
+
+export interface MarketMood {
+  label: string;
+  tone: MoodTone;
+  sentence: string;
+  sentence2: string;
+  best_lens: string;
+  chips: MarketMoodChip[];
+}
+
+export interface MarketQuestion {
+  q: string;
+  a: string;
+  extra?: string | null;
+  tone: CellTone;
+}
+
+export interface MarketSectorRow {
+  name: string;
+  status: string;
+  tone: CellTone;
+  ret_1w: number;
+  ret_1m: number | null;
+  count: number;
+}
+
+export interface MarketQuality {
+  total: number;
+  strong: number;
+  good: number;
+  soso: number;
+  risky: number;
+  median_score: number | null;
+}
+
+export interface MarketTrendPoint {
+  date: string | null;
+  cheap_pct: number | null;
+  median_pe: number | null;
+}
+
+export interface MarketTurningStock {
+  trading_code: string;
+  company_name: string | null;
+  gap_pct: number;
+}
+
+export interface MarketDividendEvent {
+  trading_code: string;
+  company_name: string | null;
+  date: string;
+  dividend_pct: number | null;
+  kind: "record" | "declared";
+}
+
+export interface MarketUnusualStock {
+  trading_code: string;
+  company_name: string | null;
+  volume_ratio: number;
+  change_pct: number | null;
+}
+
+export interface MarketChanceStock {
+  trading_code: string;
+  company_name: string | null;
+  sector: string;
+  score?: number;
+  pe?: number;
+  div_yield_pct?: number;
+  ret_1w?: number;
+  ret_1m?: number | null;
+}
+
+export interface MarketStateData {
+  date: string | null;
+  mood: MarketMood;
+  now: {
+    questions: MarketQuestion[];
+    sectors: MarketSectorRow[];
+    quality: MarketQuality;
+  };
+  trend: {
+    points: MarketTrendPoint[];
+    has_history: boolean;
+  };
+  next: {
+    unusual: MarketUnusualStock[];
+    near_high: MarketTurningStock[];
+    near_low: MarketTurningStock[];
+    dividends: MarketDividendEvent[];
+  };
+  chances: {
+    best: string;
+    on_sale: MarketChanceStock[];
+    income: MarketChanceStock[];
+    rising: MarketChanceStock[];
+    fallen: MarketChanceStock[];
+  };
+  stats: {
+    advancing_pct: number | null;
+    price_pos_pct: number | null;
+    cheap_pct: number | null;
+    median_pe: number | null;
+    week_change_pct: number | null;
+    feeling_score: number;
+  };
+}
+
+export async function getMarketState(): Promise<MarketStateData> {
+  return apiFetch<MarketStateData>("/api/market/state", 900);
+}
+
 /** Client-side price history fetch (no Next.js cache) */
 export async function getPriceHistory(code: string, range: "1y" | "2y" | "3y" | "all" = "1y"): Promise<PricePoint[]> {
   const res = await fetch(`${getApiUrl()}/api/company/${code.toUpperCase()}/prices?range=${range}`);

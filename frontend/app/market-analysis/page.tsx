@@ -1,100 +1,66 @@
 import type { Metadata } from "next";
-import {
-  getMarketIndex,
-  getMarketMovers,
-  getMarketIntelligence,
-  getStockLists,
-  getDividendsUpcoming,
-  getNearExtremes,
-} from "@/lib/api";
 import Link from "next/link";
+import { getMarketState } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 
-import MarketPulseStrip from "@/components/market-analysis/MarketPulseStrip";
-import SentimentGauge from "@/components/market-analysis/SentimentGauge";
-import TrendingStocksGrid from "@/components/market-analysis/TrendingStocksGrid";
-import TopPicksTabs from "@/components/market-analysis/TopPicksTabs";
-import VolumeSurgeList from "@/components/market-analysis/VolumeSurgeList";
-import CatalystStrip from "@/components/market-analysis/CatalystStrip";
-import NearExtremesPanel from "@/components/market-analysis/NearExtremesPanel";
-import SectorHeatmap, { type SectorHeatmapItem } from "@/components/market/SectorHeatmap";
+import BigPicture from "@/components/market-analysis/BigPicture";
+import WhatsHappeningNow from "@/components/market-analysis/WhatsHappeningNow";
+import CheaperThanBefore from "@/components/market-analysis/CheaperThanBefore";
+import WhatCouldHappenNext from "@/components/market-analysis/WhatCouldHappenNext";
+import WhereToLook from "@/components/market-analysis/WhereToLook";
 
-export const revalidate = 86400;
+export const revalidate = 900;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 export const metadata: Metadata = {
-  title: "Market Analysis — DSE Dhaka Stock Exchange",
+  title: "DSE Market Analysis — Up or Down, Cheap or Expensive?",
   description:
-    "Comprehensive DSE market analysis: sentiment meter, sector heatmap, volume leaders, top EPS growth picks, 52-week extreme screener, and upcoming dividend catalysts.",
+    "A simple, plain-English look at the Dhaka Stock Exchange right now: is the market up or down, are shares cheap or expensive, which businesses are doing well, and where to look for good shares today.",
   keywords: [
-    "DSE market analysis",
+    "DSE market today",
     "Dhaka Stock Exchange",
-    "Bangladesh stocks",
-    "volume leaders",
-    "sector heatmap",
-    "52 week high low",
-    "market sentiment",
-    "stock picks Bangladesh",
+    "Bangladesh share market",
+    "is the market up or down",
+    "cheap shares Bangladesh",
+    "best shares to buy DSE",
+    "DSE dividend dates",
+    "stock market in simple words",
   ],
   alternates: { canonical: "/market-analysis" },
   openGraph: {
-    title: "Market Analysis — DSE Dhaka Stock Exchange",
+    title: "DSE Market Analysis — Up or Down, Cheap or Expensive?",
     description:
-      "DSE market analysis: sentiment meter, sector heatmap, volume leaders, top EPS growth picks, 52-week extreme screener, and upcoming dividend catalysts.",
+      "The whole Dhaka Stock Exchange in plain words: today's mood, cheap or expensive shares, which businesses are doing well, and where to look for good shares.",
     url: "/market-analysis",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Market Analysis — DSE Dhaka Stock Exchange",
+    title: "DSE Market Analysis — Up or Down, Cheap or Expensive?",
     description:
-      "DSE market analysis: sentiment meter, sector heatmap, volume leaders, top picks, 52-week extremes, and upcoming dividend catalysts.",
+      "The whole Dhaka Stock Exchange in plain words: today's mood, cheap or expensive shares, and where to look for good shares.",
   },
 };
 
-function clamp(val: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, val));
+function SectionHead({ n, title, sub }: { n: number; title: string; sub: string }) {
+  return (
+    <div className="ms-section-head">
+      <span className="ms-section-num" aria-hidden="true">{n}</span>
+      <div>
+        <h2 className="ms-section-title">{title}</h2>
+        <p className="ms-section-sub">{sub}</p>
+      </div>
+    </div>
+  );
 }
 
-function computeSentiment(
-  upCount: number | null,
-  downCount: number | null,
-  neutralCount: number | null,
-  volumeChangePct: number | null,
-  dsexChangePct: number | null,
-): number {
-  const total = (upCount ?? 0) + (downCount ?? 0) + (neutralCount ?? 0) || 1;
-  const breadthScore = ((upCount ?? 0) / total) * 40;
-  const volumeScore = clamp(((volumeChangePct ?? 0) + 20) / 40, 0, 1) * 30;
-  const indexScore = clamp(((dsexChangePct ?? 0) + 2) / 4, 0, 1) * 30;
-  return Math.round(breadthScore + volumeScore + indexScore);
-}
+const EMPTY_QUALITY = { total: 0, strong: 0, good: 0, soso: 0, risky: 0, median_score: null };
+const EMPTY_CHANCES = { best: "", on_sale: [], income: [], rising: [], fallen: [] };
 
 export default async function MarketAnalysisPage() {
-  const [indexData, moversData, intelData, stockListsData, dividendsData, nearExtremesData] =
-    await Promise.all([
-      getMarketIndex().catch(() => null),
-      getMarketMovers().catch(() => null),
-      getMarketIntelligence().catch(() => null),
-      getStockLists().catch(() => null),
-      getDividendsUpcoming().catch(() => null),
-      getNearExtremes().catch(() => null),
-    ]);
-
-  const dateLabel = indexData?.date ? formatDate(indexData.date) : null;
-
-  const sentimentScore = indexData
-    ? computeSentiment(
-        indexData.up_count,
-        indexData.down_count,
-        indexData.neutral_count,
-        indexData.volume_change_pct,
-        indexData.dsex_change_pct,
-      )
-    : 50;
-
-  const sectorData = (intelData?.signals?.sector_strength ?? []) as SectorHeatmapItem[];
+  const data = await getMarketState().catch(() => null);
+  const dateLabel = data?.date ? formatDate(data.date) : null;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -103,9 +69,9 @@ export default async function MarketAnalysisPage() {
         "@type": "WebPage",
         "@id": `${BASE_URL}/market-analysis`,
         url: `${BASE_URL}/market-analysis`,
-        name: "Market Analysis — DSE Dhaka Stock Exchange",
+        name: "DSE Market Analysis — Up or Down, Cheap or Expensive?",
         description:
-          "Comprehensive DSE market analysis: sentiment meter, sector heatmap, volume leaders, top EPS growth picks, 52-week extreme screener, and upcoming dividend catalysts.",
+          "A simple, plain-English look at the Dhaka Stock Exchange right now: market mood, cheap or expensive shares, which businesses are doing well, and where to look for good shares.",
         inLanguage: "en",
         isPartOf: { "@id": BASE_URL },
       },
@@ -126,79 +92,63 @@ export default async function MarketAnalysisPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* Page header */}
-      <div className="rank-page-header">
-        <div className="rank-page-eyebrow">Market Analysis</div>
-        <h1 className="rank-page-title">DSE Market Analysis</h1>
-        <p className="rank-page-meta">
-          Raw data insights{dateLabel ? ` · ${dateLabel}` : ""} · No scoring, just market facts
-        </p>
-        <p className="rank-page-meta" style={{ marginTop: 4 }}>
-          See also:{" "}
-          <Link href="/dse-top-20" style={{ textDecoration: "underline" }}>
-            DSE Top 20 — 7-day momentum picks
-          </Link>
-        </p>
-      </div>
+      <header className="ms-pagehead">
+        <h1 className="ms-page-h1">
+          <span className="ms-page-kicker">Dhaka Stock Exchange</span>
+          <span className="ms-page-h1-main">Market Analysis</span>
+        </h1>
+        {dateLabel && <span className="ms-page-date">{dateLabel}</span>}
+      </header>
 
-      {/* 1. Market Pulse */}
-      {indexData && <MarketPulseStrip data={indexData} />}
-
-      {/* 2. Sentiment Gauge */}
-      <SentimentGauge score={sentimentScore} />
-
-      {/* 3. Trending Stocks — gainers + most_traded, always available */}
-      {moversData && (
+      {!data ? (
+        <div className="ms-card">
+          <p className="ms-empty">
+            We couldn&apos;t load the market right now. Please refresh in a moment, or{" "}
+            <Link href="/dse-today" style={{ textDecoration: "underline" }}>
+              see today&apos;s market
+            </Link>
+            .
+          </p>
+        </div>
+      ) : (
         <>
-          <div className="section-label">Trending Stocks</div>
-          <TrendingStocksGrid
-            gainers={moversData.gainers ?? []}
-            mostTraded={moversData.most_traded ?? []}
+          {data.mood && <BigPicture mood={data.mood} />}
+
+          <SectionHead
+            n={1}
+            title="The Market Right Now"
+            sub="Up or down, cheap or expensive — at a glance."
           />
-        </>
-      )}
-
-      {/* 4. Sector Heatmap */}
-      {sectorData.length > 0 && (
-        <>
-          <div className="section-label">Sector Heatmap</div>
-          <SectorHeatmap sectors={sectorData} />
-        </>
-      )}
-
-      {/* 5. Top Picks */}
-      {stockListsData && (
-        <>
-          <div className="section-label">Top Raw Picks</div>
-          <TopPicksTabs
-            epsGrowth={stockListsData.top_eps_growth ?? []}
-            returnW52={stockListsData.top_52w_return ?? []}
-            dividend={stockListsData.top_dividend ?? []}
+          <WhatsHappeningNow
+            questions={data.now?.questions ?? []}
+            sectors={data.now?.sectors ?? []}
+            quality={data.now?.quality ?? EMPTY_QUALITY}
           />
-        </>
-      )}
+          <div style={{ marginTop: 16 }}>
+            <CheaperThanBefore
+              points={data.trend?.points ?? []}
+              hasHistory={data.trend?.has_history ?? false}
+            />
+          </div>
 
-      {/* 6. Volume Leaders — top_volume from stock-lists, always populated */}
-      {stockListsData && (
-        <>
-          <div className="section-label">Volume Leaders</div>
-          <VolumeSurgeList items={stockListsData.top_volume ?? []} />
-        </>
-      )}
+          <SectionHead
+            n={2}
+            title="Where to Invest Today"
+            sub="Four simple places to start looking for good shares."
+          />
+          <WhereToLook chances={data.chances ?? EMPTY_CHANCES} />
 
-      {/* 7. Upcoming Catalysts */}
-      {dividendsData && (
-        <>
-          <div className="section-label">Upcoming Catalysts</div>
-          <CatalystStrip data={dividendsData} />
-        </>
-      )}
-
-      {/* 8. Near Extremes */}
-      {nearExtremesData && (
-        <>
-          <div className="section-label">52-Week Extremes</div>
-          <NearExtremesPanel data={nearExtremesData} />
+          <SectionHead
+            n={3}
+            title="Stocks to Watch Next"
+            sub="Big moves building up, and cash payouts on the way."
+          />
+          <WhatCouldHappenNext
+            unusual={data.next?.unusual ?? []}
+            nearHigh={data.next?.near_high ?? []}
+            nearLow={data.next?.near_low ?? []}
+            dividends={data.next?.dividends ?? []}
+          />
         </>
       )}
     </>

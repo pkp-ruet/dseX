@@ -152,6 +152,15 @@ def cmd_compute_scores(_args):
     n = 0 if df is None or df.empty else len(df)
     print(f"Done. Scored {n} companies into scores_snapshot.")
 
+    # Append today's market-wide snapshot (powers the "cheaper than before" trend).
+    try:
+        from backend.services.market_state_service import compute_and_store_market_snapshot
+        snap = compute_and_store_market_snapshot(df)
+        if snap:
+            print(f"Stored market snapshot for {snap['date']}.")
+    except Exception as e:
+        print(f"Warning: market snapshot store failed: {e}")
+
 
 def _trigger_post_scrape_hooks(*, fire_deploy_hook: bool = False):
     """Purge the Next.js market-data tag (and optionally fire the Vercel deploy hook).
@@ -303,6 +312,10 @@ def cmd_scrape_all(args):
         from backend.services.scoring_service import compute_and_store_scores
         sdf = compute_and_store_scores()
         print(f"  Scored {0 if sdf is None or sdf.empty else len(sdf)} companies.\n")
+        from backend.services.market_state_service import compute_and_store_market_snapshot
+        snap = compute_and_store_market_snapshot(sdf)
+        if snap:
+            print(f"  Stored market snapshot for {snap['date']}.\n")
     except Exception as e:
         print(f"  Warning: score recompute failed: {e}\n")
 
