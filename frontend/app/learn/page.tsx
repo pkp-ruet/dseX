@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { GUIDES } from "@/lib/guides";
+import { GUIDES, GUIDE_CATEGORY_ORDER, GUIDE_CATEGORY_BLURB } from "@/lib/guides";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
@@ -51,71 +51,97 @@ export default function LearnPage() {
     ],
   };
 
+  const totalGuides = GUIDES.length;
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-    <main className="max-w-3xl mx-auto px-4 py-12 space-y-12">
+    <main className="max-w-3xl mx-auto px-4 py-10 sm:py-12 space-y-12">
 
       {/* Hero */}
-      <section className="text-center space-y-4">
-        <h1 className="text-3xl font-bold text-[var(--ink)]">
-          Beginner&apos;s Guide to Stock Market
+      <section className="soft-card ambient-panel p-6 sm:p-8 text-center space-y-4">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-[color-mix(in_srgb,var(--primary)_22%,var(--border))] bg-[color-mix(in_srgb,var(--primary)_9%,var(--surface))] px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-[var(--primary-ink)]">
+          📚 Learn · {totalGuides} guides
+        </span>
+        <h1 className="text-[1.85rem] sm:text-[2.4rem] font-bold leading-[1.1] tracking-tight text-[var(--ink)]">
+          Beginner&apos;s Guide to the Stock Market
         </h1>
-        <p className="text-[var(--ink-muted)] text-base leading-relaxed max-w-xl mx-auto">
-          New to investing in Bangladesh? Start here. These guides cover everything from
-          opening your first account to reading financial statements.
+        <p className="text-[1.0625rem] leading-[1.7] text-[var(--ink-2)] max-w-xl mx-auto">
+          New to investing in Bangladesh? Start here.
         </p>
       </section>
 
-      {/* Guide cards grid */}
-      <section>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {GUIDES.map((guide) => (
-            <Link
-              key={guide.slug}
-              prefetch={false}
-              href={`/learn/${guide.slug}`}
-              className="group flex flex-col gap-3 p-5 rounded-xl border border-[var(--border)] bg-[var(--surface)] hover:border-[var(--primary)] transition-colors"
-            >
+      {/* Guide sections, grouped by category */}
+      {GUIDE_CATEGORY_ORDER.map((category) => {
+        const guidesInCategory = GUIDES.filter((g) => g.category === category);
+        if (guidesInCategory.length === 0) return null;
+        return (
+          <section key={category} className="space-y-5">
+            <div className="space-y-1.5">
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{guide.icon}</span>
-                <span className="text-xs text-[var(--ink-muted)]">{guide.readTime}</span>
-              </div>
-              <div>
-                <h2 className="font-semibold text-[var(--ink)] text-base leading-snug group-hover:text-[var(--primary)] transition-colors">
-                  {guide.title}
+                <span
+                  aria-hidden="true"
+                  className="h-5 w-1 rounded-full bg-gradient-to-b from-[var(--primary)] to-[var(--primary-soft)]"
+                />
+                <h2 className="text-[1.35rem] font-bold tracking-tight text-[var(--ink)]">
+                  {category}
                 </h2>
-                <p className="mt-1.5 text-sm text-[var(--ink-muted)] leading-relaxed">
-                  {guide.description}
-                </p>
+                <span className="rounded-full bg-[var(--surface-2)] px-2.5 py-0.5 text-[0.7rem] font-bold text-[var(--ink-muted)]">
+                  {guidesInCategory.length}
+                </span>
               </div>
-              <span className="mt-auto text-xs font-medium text-[var(--primary)] group-hover:underline">
-                Read guide →
-              </span>
-            </Link>
-          ))}
-        </div>
-      </section>
+              <p className="text-[0.95rem] leading-relaxed text-[var(--ink-2)] pl-4">
+                {GUIDE_CATEGORY_BLURB[category]}
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {guidesInCategory.map((guide) => (
+                <Link
+                  key={guide.slug}
+                  prefetch={false}
+                  href={`/learn/${guide.slug}`}
+                  className="soft-card hover-lift group flex flex-col gap-3 p-5"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[color-mix(in_srgb,var(--primary)_8%,var(--surface-2))] text-2xl">
+                      {guide.icon}
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] px-2.5 py-0.5 text-[0.7rem] font-medium text-[var(--ink-muted)]">
+                      {guide.readTime}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-[var(--ink)] text-[1.05rem] leading-snug group-hover:text-[var(--primary)] transition-colors">
+                      {guide.title}
+                    </h3>
+                    <p className="mt-1.5 text-[0.9rem] text-[var(--ink-2)] leading-relaxed">
+                      {guide.description}
+                    </p>
+                  </div>
+                  <span className="mt-auto inline-flex items-center gap-1 text-[0.82rem] font-semibold text-[var(--primary)]">
+                    Read guide
+                    <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">→</span>
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        );
+      })}
 
-      {/* Footer note */}
-      <section className="text-center space-y-4 pt-2">
-        <p className="text-[var(--ink-muted)] text-sm">
+      {/* Footer CTA */}
+      <section className="soft-card ambient-panel p-6 sm:p-7 text-center space-y-4">
+        <p className="text-[1.0625rem] font-semibold text-[var(--ink)]">
           Ready to put your knowledge to work?
         </p>
         <div className="flex flex-wrap justify-center gap-3">
-          <Link
-            href="/dsestockranking"
-            className="px-5 py-2.5 rounded-lg bg-[var(--primary)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
-          >
+          <Link href="/dsestockranking" className="ui-btn ui-btn-md ui-btn-primary">
             View Score Leaderboard
           </Link>
-          <Link
-            href="/"
-            className="px-5 py-2.5 rounded-lg border border-[var(--border)] text-[var(--ink)] text-sm font-medium hover:bg-[var(--surface)] transition-colors"
-          >
+          <Link href="/" className="ui-btn ui-btn-md ui-btn-ghost">
             Back to Home
           </Link>
         </div>

@@ -71,8 +71,12 @@ export default async function GuidePage({ params }: Props) {
   const guide = getGuide(slug);
   if (!guide) notFound();
 
+  const related = GUIDES.filter(
+    (g) => g.category === guide.category && g.slug !== guide.slug,
+  ).slice(0, 4);
+
   return (
-    <main className="max-w-2xl mx-auto px-4 py-12 space-y-10">
+    <main className="max-w-[44rem] mx-auto px-4 py-10 sm:py-12 space-y-10">
 
       <script
         type="application/ld+json"
@@ -84,74 +88,117 @@ export default async function GuidePage({ params }: Props) {
       {/* Breadcrumb */}
       <nav
         aria-label="breadcrumb"
-        className="flex items-center gap-2 text-xs text-[var(--ink-muted)]"
+        className="flex flex-wrap items-center gap-2 text-xs font-medium text-[var(--ink-muted)]"
       >
         <Link href="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
-        <span aria-hidden="true">/</span>
-        <Link href="/learn" className="hover:text-[var(--primary)] transition-colors">Beginner&apos;s Guide</Link>
-        <span aria-hidden="true">/</span>
-        <span className="text-[var(--ink)]">{guide.title}</span>
+        <span aria-hidden="true" className="opacity-50">/</span>
+        <Link href="/learn" className="hover:text-[var(--primary)] transition-colors">Learn</Link>
+        <span aria-hidden="true" className="opacity-50">/</span>
+        <span className="text-[var(--ink-2)]">{guide.title}</span>
       </nav>
 
       {/* Hero */}
-      <section className="space-y-3">
-        <div className="flex items-center gap-3">
-          <span className="text-3xl" aria-hidden="true">{guide.icon}</span>
-          <span className="text-xs text-[var(--ink-muted)] border border-[var(--border)] rounded-full px-2.5 py-0.5">
+      <header className="soft-card ambient-panel p-6 sm:p-8 space-y-4">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Link
+            href="/learn"
+            className="inline-flex items-center gap-1.5 rounded-full border border-[color-mix(in_srgb,var(--primary)_22%,var(--border))] bg-[color-mix(in_srgb,var(--primary)_9%,var(--surface))] px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[var(--primary-ink)] transition-colors hover:bg-[color-mix(in_srgb,var(--primary)_16%,var(--surface))]"
+          >
+            {guide.category}
+          </Link>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] px-3 py-1 text-[0.72rem] font-medium text-[var(--ink-muted)]">
+            <span aria-hidden="true">🕑</span>
             {guide.readTime}
           </span>
         </div>
-        <h1 className="text-2xl font-bold text-[var(--ink)] leading-snug">
-          {guide.title}
-        </h1>
-        <p className="text-[var(--ink-muted)] leading-relaxed">
+        <div className="flex items-start gap-4">
+          <span className="text-4xl sm:text-5xl leading-none shrink-0" aria-hidden="true">
+            {guide.icon}
+          </span>
+          <h1 className="text-[1.75rem] sm:text-[2.25rem] font-bold leading-[1.12] tracking-tight text-[var(--ink)]">
+            {guide.title}
+          </h1>
+        </div>
+        <p className="text-[1.0625rem] leading-[1.7] text-[var(--ink-2)]">
           {guide.description}
         </p>
-      </section>
+      </header>
 
-      {/* Divider */}
-      <hr className="border-[var(--border)]" />
-
-      {/* Sections */}
-      <div className="space-y-8">
+      {/* Article body */}
+      <article className="space-y-9">
         {guide.sections.map((section) => (
-          <section key={section.heading} className="space-y-3">
-            <h2 className="text-lg font-semibold text-[var(--ink)]">
+          <section key={section.heading} className="space-y-3.5">
+            <h2 className="text-[1.3rem] sm:text-[1.45rem] font-bold leading-snug tracking-tight text-[var(--ink)]">
               {section.heading}
             </h2>
             {Array.isArray(section.body) ? (
-              <ul className="space-y-2 text-[var(--ink-muted)] text-sm leading-relaxed list-disc list-inside">
+              <ul className="space-y-3">
                 {section.body.map((item, i) => (
-                  <li key={i}>{item}</li>
+                  <li
+                    key={i}
+                    className="flex gap-3 text-[1.0625rem] leading-[1.7] text-[var(--ink-2)]"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="mt-[0.62em] h-[7px] w-[7px] shrink-0 rounded-full bg-[var(--primary)]"
+                    />
+                    <span>{item}</span>
+                  </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-[var(--ink-muted)] leading-relaxed text-sm">
+              <p className="text-[1.0625rem] leading-[1.78] text-[var(--ink-2)]">
                 {section.body}
               </p>
             )}
           </section>
         ))}
-      </div>
+      </article>
 
-      {/* Divider */}
-      <hr className="border-[var(--border)]" />
+      {/* More in this category */}
+      {related.length > 0 && (
+        <section className="space-y-4 pt-2">
+          <h2 className="text-base font-bold uppercase tracking-[0.08em] text-[var(--ink)]">
+            More in {guide.category}
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            {related.map((g) => (
+              <Link
+                key={g.slug}
+                prefetch={false}
+                href={`/learn/${g.slug}`}
+                className="soft-card hover-lift group flex items-center gap-3.5 p-4"
+              >
+                <span className="text-2xl shrink-0" aria-hidden="true">{g.icon}</span>
+                <span className="min-w-0">
+                  <span className="block font-semibold text-[var(--ink)] leading-snug group-hover:text-[var(--primary)] transition-colors">
+                    {g.title}
+                  </span>
+                  <span className="mt-0.5 block text-xs text-[var(--ink-muted)]">{g.readTime}</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
-      {/* Navigation */}
-      <div className="flex flex-wrap gap-3">
-        <Link
-          href="/learn"
-          className="px-5 py-2.5 rounded-lg border border-[var(--border)] text-[var(--ink)] text-sm font-medium hover:bg-[var(--surface)] transition-colors"
-        >
-          ← All Guides
-        </Link>
-        <Link
-          href="/dsestockranking"
-          className="px-5 py-2.5 rounded-lg bg-[var(--primary)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
-        >
-          View Score Leaderboard
-        </Link>
-      </div>
+      {/* Closing CTA */}
+      <section className="soft-card ambient-panel p-6 sm:p-7 text-center space-y-4">
+        <p className="text-[1.0625rem] font-semibold text-[var(--ink)]">
+          Ready to put this into practice?
+        </p>
+        <p className="text-sm leading-relaxed text-[var(--ink-2)] max-w-md mx-auto">
+          See which DSE companies score highest on real fundamentals — no spreadsheets, no annual reports.
+        </p>
+        <div className="flex flex-wrap justify-center gap-3 pt-1">
+          <Link href="/dsestockranking" className="ui-btn ui-btn-md ui-btn-primary">
+            View Score Leaderboard
+          </Link>
+          <Link href="/learn" className="ui-btn ui-btn-md ui-btn-ghost">
+            ← All Guides
+          </Link>
+        </div>
+      </section>
 
     </main>
   );
