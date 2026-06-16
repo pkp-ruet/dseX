@@ -99,6 +99,9 @@ def load_latest_prices() -> dict[str, dict]:
     """Returns {trading_code: {ltp, change, change_pct, date, high, low, volume, ycp, ...}}"""
     db = get_db()
     pipeline = [
+        # Skip suspended / no-trade days (DSE reports 0 on dividend record dates)
+        # so the latest snapshot is the most recent day with a real price.
+        {"$match": {"ltp": {"$gt": 0}}},
         {"$sort": {"date": -1}},
         {"$group": {
             "_id": "$trading_code",
@@ -123,7 +126,8 @@ def load_price_history(trading_code: str) -> list[dict]:
     db = get_db()
     docs = list(
         db.stock_prices.find(
-            {"trading_code": trading_code},
+            # ltp > 0 drops suspended / no-trade days so the chart never dips to 0
+            {"trading_code": trading_code, "ltp": {"$gt": 0}},
             {"_id": 0, "date": 1, "ltp": 1, "volume": 1, "change_pct": 1,
              "high": 1, "low": 1, "close_price": 1}
         ).sort("date", 1)
@@ -299,9 +303,10 @@ def load_market_movers() -> dict:
     for d in docs:
         d["company_name"] = companies.get(d["trading_code"])
 
-    # Filter out entries with missing change_pct / value_mn
-    with_change = [d for d in docs if d.get("change_pct") is not None]
-    with_value = [d for d in docs if d.get("value_mn") is not None]
+    # Filter out entries with missing change_pct / value_mn, and suspended /
+    # no-trade days (ltp 0) so they can't masquerade as a -100% loser.
+    with_change = [d for d in docs if d.get("change_pct") is not None and (d.get("ltp") or 0) > 0]
+    with_value = [d for d in docs if d.get("value_mn") is not None and (d.get("ltp") or 0) > 0]
 
     gainers = sorted(with_change, key=lambda x: x["change_pct"], reverse=True)[:5]
     losers = sorted(with_change, key=lambda x: x["change_pct"])[:5]
@@ -527,7 +532,10 @@ def compute_market_intelligence() -> dict:
         pass
 
     # --- Market condition ---
-    valid_today = [d for d in today_docs if d.get("change_pct") is not None]
+    valid_today = [
+        d for d in today_docs
+        if d.get("change_pct") is not None and (d.get("ltp") or 0) > 0
+    ]
     if not valid_today:
         # Data exists but no change_pct values — return date info without signals
         return {

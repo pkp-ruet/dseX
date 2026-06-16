@@ -44,9 +44,18 @@ class StockPriceScraper(BaseScraper):
             value_mn = clean_numeric(cells[9].get_text(strip=True))
             volume = clean_numeric(cells[10].get_text(strip=True))
 
-            change_pct = None
-            if change is not None and ycp and ycp != 0:
-                change_pct = round(change / ycp * 100, 2)
+            # Trading suspended / no trade (e.g. on a dividend record date):
+            # DSE reports 0.00 across the price columns. Treat this as "no price
+            # today" rather than a real 0 — null the price fields so the app
+            # keeps showing the last valid close instead of a sudden 0.
+            suspended = ltp is None or ltp <= 0
+            if suspended:
+                ltp = high = low = close_price = None
+                change = change_pct = None
+            else:
+                change_pct = None
+                if change is not None and ycp and ycp != 0:
+                    change_pct = round(change / ycp * 100, 2)
 
             prices.append({
                 "trading_code": trading_code,
