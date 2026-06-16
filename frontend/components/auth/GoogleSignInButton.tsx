@@ -39,8 +39,10 @@ export default function GoogleSignInButton({ onSuccess, onError }: Props) {
         onSuccess={handleCredential}
         onError={() => onError?.("Google sign-in failed, please try again.")}
         text="continue_with"
-        shape="rectangular"
+        theme="outline"
+        shape="pill"
         size="large"
+        logo_alignment="left"
         width="320"
       />
     </div>

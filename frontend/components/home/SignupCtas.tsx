@@ -37,27 +37,23 @@ export default function SignupCtas({
     router.refresh();
   }
 
-  const alignCls = align === "center" ? "items-center text-center" : "items-stretch sm:items-start";
+  const alignCls = align === "center" ? "items-center text-center mx-auto" : "items-stretch mx-auto sm:mx-0";
   const hasGoogle = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
   return (
-    <div className={`flex flex-col gap-3 w-full ${alignCls}`}>
+    <div className={`flex flex-col gap-3 w-full max-w-[320px] ${alignCls}`}>
       <Link
         href={registerHref}
-        className="inline-flex items-center justify-center w-full sm:w-auto min-h-[48px] px-7 rounded-xl font-semibold text-[0.95rem] text-white bg-[var(--primary)] shadow-sm hover:brightness-110 active:brightness-95 transition"
+        className="inline-flex items-center justify-center w-full min-h-[48px] px-7 rounded-xl font-semibold text-[0.95rem] text-white bg-[var(--primary)] shadow-sm hover:brightness-110 active:brightness-95 transition"
       >
         Get Started — Free
       </Link>
 
       {hasGoogle && (
         <>
-          <div className="flex items-center gap-3 w-full sm:w-auto my-0.5">
-            <span className="h-px flex-1 bg-[var(--border)] sm:hidden" />
-            <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide">or</span>
-            <span className="h-px flex-1 bg-[var(--border)] sm:hidden" />
-          </div>
+          <div className="auth-divider w-full my-0.5">or</div>
 
-          <div className="w-full flex justify-center sm:justify-start [color-scheme:light]">
+          <div className="w-full flex justify-center [color-scheme:light]">
             <GoogleSignInButton onSuccess={handleGoogleSuccess} onError={setError} />
           </div>
         </>
