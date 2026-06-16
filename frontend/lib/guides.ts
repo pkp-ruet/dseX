@@ -950,7 +950,7 @@ export const GUIDES: Guide[] = [
     slug: "read-a-price-chart",
     title: "How to Read a Stock Price Chart for the First Time",
     description:
-      "Those wiggly lines and coloured bars are simpler than they look. Here's how to make sense of a price chart without the jargon.",
+      "Those wiggly lines and coloured bars are simpler than they look. Here's how to make sense of a price chart in plain words.",
     readTime: "6 min read",
     icon: "📈",
     category: "Understanding Companies",

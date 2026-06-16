@@ -29,7 +29,7 @@ SLOTS = [
     {"slot": 3, "source": SOURCE_DSEF},
 ]
 
-# Plain English labels for the source — never use "DSEF" / "Top 20" jargon.
+# Plain English labels for the source — never use "DSEF" / "Top 20" wording.
 SOURCE_LABEL = {
     SOURCE_TOP20: "Trending",
     SOURCE_DSEF:  "Top Quality",

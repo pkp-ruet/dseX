@@ -11,7 +11,7 @@ One cached bundle that answers, in plain words:
   5. Where to look for chances — four plain opportunity lists
 
 All wording lives on the frontend; this service returns plain numbers + short
-status strings. No finance jargon leaks into the values we expose.
+status strings. No finance terms leak into the values we expose.
 """
 import math
 from datetime import datetime, timedelta, timezone
@@ -76,7 +76,7 @@ def _recent_dates(db, n: int) -> list:
     return dates[:n]
 
 
-# Plain, everyday names for DSE sectors — no industry jargon.
+# Plain, everyday names for DSE sectors — no industry terms.
 _PLAIN_SECTOR = {
     "bank": "Banks",
     "banks": "Banks",

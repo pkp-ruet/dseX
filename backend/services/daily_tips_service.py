@@ -7,7 +7,7 @@ book, near 52-week low, dividend just declared, etc.) plus a one-line "why it
 matters" explainer that teaches the concept.
 
 Design (rewritten):
-  * NO composite score / pillar jargon is used for selection — tips stand on raw
+  * NO composite score / pillar terms are used for selection — tips stand on raw
     facts only ("pure data basis").
   * A DSE-specific quality gate keeps junk out: Z-category excluded, profitable
     only, minimum market cap + liquidity, recent financials.

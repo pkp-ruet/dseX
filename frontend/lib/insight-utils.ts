@@ -27,7 +27,7 @@ export function getCurrentMonthKeywords(): string[] {
   ];
 }
 
-// ── Plain-language verdict (replaces tier jargon) ────────────────────────────
+// ── Plain-language verdict (replaces tier labels) ────────────────────────────
 
 export interface Verdict {
   label: string;
@@ -107,7 +107,7 @@ export function filterInsightItems(items: ScoreItem[], slug: string): ScoreItem[
   }
 }
 
-// ── Plain-language trait clauses (no scores, no pillar jargon) ────────────────
+// ── Plain-language trait clauses (no scores, no pillar labels) ────────────────
 
 type PillarKey = "p1_biz" | "p2_health" | "p3_moat" | "p4_val" | "p5_div";
 

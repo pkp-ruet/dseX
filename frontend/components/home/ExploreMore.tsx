@@ -1,8 +1,16 @@
 import Link from "next/link";
 import { STOCK_LISTS } from "@/lib/stock-lists";
+import { getGuide, type Guide } from "@/lib/guides";
+import { crore } from "@/lib/formatters";
 import type { Top20Item, MarketIndexData, MarketMoversData } from "@/lib/api";
 
 const INSIGHT_PICKS = STOCK_LISTS.filter((l) => l.insightMode === true).slice(0, 6);
+
+// Featured guides for the homepage blog preview — diverse, high-appeal entry points.
+const FEATURED_GUIDE_SLUGS = ["how-to-start-investing", "apply-for-ipo", "fundamental-analysis"];
+const FEATURED_GUIDES: Guide[] = FEATURED_GUIDE_SLUGS
+  .map((slug) => getGuide(slug))
+  .filter((g): g is Guide => g !== undefined);
 
 function chgColor(val: number | null | undefined) {
   if (val == null) return "var(--text-muted)";
@@ -40,7 +48,6 @@ export default function ExploreMore({
   top20,
   totalStocks,
   index,
-  movers,
 }: {
   top20: Top20Item[];
   totalStocks: number;
@@ -48,7 +55,6 @@ export default function ExploreMore({
   movers: MarketMoversData | null;
 }) {
   const top3 = top20.slice(0, 3);
-  const topGainer = movers?.gainers?.[0] ?? null;
 
   return (
     <section aria-label="Explore more of TopStockBD" className="flex flex-col">
@@ -80,7 +86,7 @@ export default function ExploreMore({
           </span>
         </h2>
         <p className="mt-3 text-[var(--text-muted)] max-w-md">
-          Top movers, every listed stock, market analysis and curated insights — all in one place.
+          Top movers, every listed stock, market analysis, curated insights and free guides — all in one place.
         </p>
       </div>
 
@@ -125,21 +131,22 @@ export default function ExploreMore({
           </span>
         </Link>
 
-        {/* Market Analysis — wide card */}
+        {/* DSE Today — live market snapshot teaser */}
         <Link
-          href="/market-analysis"
+          href="/dse-today"
           className={`${CARD} md:col-span-2 hover:border-[color-mix(in_srgb,var(--primary)_40%,var(--border))]`}
         >
           <div className="flex items-center justify-between gap-2 mb-3">
-            <CardEyebrow label="Market Analysis" color="var(--primary)" />
+            <CardEyebrow label="DSE Today" color="var(--primary)" />
             <span className="text-xs font-semibold text-[var(--primary)] opacity-0 group-hover:opacity-100 transition-opacity">
               Open →
             </span>
           </div>
 
-          <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
+          <div className="flex flex-wrap items-end gap-x-8 gap-y-3">
+            {/* DSEX */}
             <div className="flex flex-col">
-              <span className="text-[0.65rem] font-bold uppercase tracking-wide text-[var(--text-muted)]">DSEX Index</span>
+              <span className="text-[0.65rem] font-bold uppercase tracking-wide text-[var(--text-muted)]">DSEX</span>
               <div className="flex items-baseline gap-2">
                 <span className="font-display text-2xl sm:text-[1.7rem] font-extrabold tabular-nums nums text-[var(--text)] leading-none">
                   {index?.dsex != null ? Math.round(index.dsex).toLocaleString() : "—"}
@@ -150,24 +157,26 @@ export default function ExploreMore({
               </div>
             </div>
 
-            <div className="flex items-center gap-3 text-sm font-bold tabular-nums nums">
-              <span className="inline-flex items-center gap-1 text-[var(--positive)]">
-                ▲ {index?.up_count ?? "—"}
-              </span>
-              <span className="inline-flex items-center gap-1 text-[var(--negative)]">
-                ▼ {index?.down_count ?? "—"}
-              </span>
-              <span className="text-[0.65rem] font-semibold uppercase tracking-wide text-[var(--text-muted)]">advancing / declining</span>
+            {/* Traded today (turnover) */}
+            <div className="flex flex-col">
+              <span className="text-[0.65rem] font-bold uppercase tracking-wide text-[var(--text-muted)]">Traded today</span>
+              <div className="flex items-baseline gap-2">
+                <span className="font-display text-2xl sm:text-[1.7rem] font-extrabold tabular-nums nums text-[var(--text)] leading-none">
+                  {index?.total_value_mn != null ? crore(index.total_value_mn) : "—"}
+                </span>
+                <span className="text-sm font-bold tabular-nums nums" style={{ color: chgColor(index?.turnover_change_pct) }}>
+                  {fmtSigned(index?.turnover_change_pct, 1)}
+                </span>
+              </div>
             </div>
           </div>
 
           <p className="mt-3 text-sm text-[var(--text-muted)] leading-relaxed">
-            Live pulse, sentiment, near-extremes and today&apos;s top picks
-            {topGainer ? <> — top gainer <span className="font-semibold text-[var(--text)]">{topGainer.trading_code}</span> {fmtSigned(topGainer.change_pct, 1)}</> : null}.
+            Today&apos;s market at a glance — plus all the latest news and top movers, refreshed every trading day.
           </p>
 
           <span className="mt-auto pt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--primary)]">
-            Open market analysis →
+            See DSE Today →
           </span>
         </Link>
 
@@ -224,6 +233,47 @@ export default function ExploreMore({
             Browse all →
           </span>
         </Link>
+
+        {/* Learn / Guides — full-width blog preview */}
+        <div className="flex flex-col rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-6 shadow-sm md:col-span-4">
+          <div className="flex items-center justify-between gap-2 mb-4">
+            <CardEyebrow label="Free Guides" color="var(--primary)" />
+            <Link
+              href="/learn"
+              className="text-xs font-semibold text-[var(--primary)] hover:underline"
+            >
+              Browse all guides →
+            </Link>
+          </div>
+
+          <h3 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-[var(--text)] leading-tight">
+            New to investing? Start with the basics
+          </h3>
+          <p className="mt-1.5 text-sm text-[var(--text-muted)]">
+            Simple guides in plain words — from opening your first account to reading a company&apos;s numbers.
+          </p>
+
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {FEATURED_GUIDES.map((g) => (
+              <Link
+                key={g.slug}
+                href={`/learn/${g.slug}`}
+                prefetch={false}
+                className="group/guide flex items-start gap-3 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] p-3 transition hover:border-[color-mix(in_srgb,var(--primary)_40%,var(--border))] hover:bg-[var(--surface)]"
+              >
+                <span className="text-xl leading-none mt-0.5 shrink-0" aria-hidden="true">{g.icon}</span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold text-[var(--text)] leading-snug line-clamp-2 transition-colors group-hover/guide:text-[var(--primary)]">
+                    {g.title}
+                  </span>
+                  <span className="mt-1 block text-[0.7rem] font-medium text-[var(--text-muted)]">
+                    {g.readTime}
+                  </span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );

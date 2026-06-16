@@ -2,7 +2,7 @@
 Market State — single bundle for the "complete picture of the market" page.
 
 Returns plain numbers + short status strings; all user-facing wording is built
-on the frontend (simple, everyday language — no finance jargon).
+on the frontend (simple, everyday language — no finance terms).
 """
 from fastapi import APIRouter
 
