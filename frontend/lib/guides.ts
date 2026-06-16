@@ -40,6 +40,35 @@ export const GUIDE_CATEGORY_BLURB: Record<GuideCategory, string> = {
   "Understanding Companies": "How to tell a strong company from a weak one before you buy.",
 };
 
+// Emoji used in the category index cards + sticky jump bar.
+export const GUIDE_CATEGORY_ICON: Record<GuideCategory, string> = {
+  "Getting Started": "🚀",
+  "Understanding Companies": "📊",
+  IPOs: "🎫",
+  Dividends: "💰",
+  "Market Rules & Categories": "🏷️",
+  "Tax & Money Rules": "🧾",
+};
+
+// Short labels for the compact sticky category bar (full names are too long there).
+export const GUIDE_CATEGORY_SHORT: Record<GuideCategory, string> = {
+  "Getting Started": "Getting Started",
+  "Understanding Companies": "Companies",
+  IPOs: "IPOs",
+  Dividends: "Dividends",
+  "Market Rules & Categories": "Market Rules",
+  "Tax & Money Rules": "Tax",
+};
+
+// Stable anchor id for a category section.
+// "Market Rules & Categories" -> "market-rules-categories"
+export function categoryAnchor(category: GuideCategory): string {
+  return category
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
 export const GUIDES: Guide[] = [
   {
     slug: "how-to-start-investing",

@@ -1,6 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { GUIDES, GUIDE_CATEGORY_ORDER, GUIDE_CATEGORY_BLURB } from "@/lib/guides";
+import {
+  GUIDES,
+  GUIDE_CATEGORY_ORDER,
+  GUIDE_CATEGORY_BLURB,
+  GUIDE_CATEGORY_ICON,
+  GUIDE_CATEGORY_SHORT,
+  categoryAnchor,
+} from "@/lib/guides";
+import CategoryNav from "@/components/learn/CategoryNav";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
@@ -53,12 +61,26 @@ export default function LearnPage() {
 
   const totalGuides = GUIDES.length;
 
+  const categories = GUIDE_CATEGORY_ORDER.map((category) => ({
+    key: category,
+    label: category,
+    short: GUIDE_CATEGORY_SHORT[category],
+    blurb: GUIDE_CATEGORY_BLURB[category],
+    anchor: categoryAnchor(category),
+    icon: GUIDE_CATEGORY_ICON[category],
+    count: GUIDES.filter((g) => g.category === category).length,
+  })).filter((c) => c.count > 0);
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+
+      {/* Sticky jump bar — appears once you scroll past the index */}
+      <CategoryNav categories={categories} />
+
     <main className="max-w-3xl mx-auto px-4 py-10 sm:py-12 space-y-12">
 
       {/* Hero */}
@@ -74,12 +96,43 @@ export default function LearnPage() {
         </p>
       </section>
 
+      {/* Category index — tap to jump to a section */}
+      <section aria-label="Browse by topic" className="space-y-3">
+        <h2 className="text-center text-[0.72rem] font-bold uppercase tracking-[0.14em] text-[var(--ink-muted)]">
+          Browse by topic
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {categories.map((c) => (
+            <a
+              key={c.anchor}
+              href={`#${c.anchor}`}
+              className="soft-card hover-lift group flex flex-col gap-1.5 p-4"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[color-mix(in_srgb,var(--primary)_8%,var(--surface-2))] text-lg">
+                  {c.icon}
+                </span>
+                <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5 text-[0.68rem] font-bold text-[var(--ink-muted)]">
+                  {c.count}
+                </span>
+              </div>
+              <span className="font-bold text-[var(--ink)] text-[0.92rem] leading-snug group-hover:text-[var(--primary)] transition-colors">
+                {c.label}
+              </span>
+              <span className="text-[0.78rem] leading-snug text-[var(--ink-2)] line-clamp-2">
+                {c.blurb}
+              </span>
+            </a>
+          ))}
+        </div>
+      </section>
+
       {/* Guide sections, grouped by category */}
       {GUIDE_CATEGORY_ORDER.map((category) => {
         const guidesInCategory = GUIDES.filter((g) => g.category === category);
         if (guidesInCategory.length === 0) return null;
         return (
-          <section key={category} className="space-y-5">
+          <section key={category} id={categoryAnchor(category)} className="scroll-mt-28 space-y-5">
             <div className="space-y-1.5">
               <div className="flex items-center gap-3">
                 <span

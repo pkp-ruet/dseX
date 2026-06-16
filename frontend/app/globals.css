@@ -76,6 +76,13 @@ body {
   font-family: var(--font-inter), system-ui, sans-serif;
 }
 
+/* Smooth anchor jumps (e.g. /learn category index) — respect reduced motion */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 /* Top accent bar */
 body::before {
   content: "";
