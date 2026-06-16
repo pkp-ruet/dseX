@@ -6512,8 +6512,8 @@ details.dsex-exp[open] > summary {
 .ms-answer--neg .ms-answer-a { color: var(--negative); }
 
 /* ---- Sector strength bars (diverging from centre) ---- */
-.ms-sector { display: grid; grid-template-columns: 96px 1fr 52px; align-items: center; gap: 10px; padding: 8px 0; }
-.ms-sector-name { font-size: var(--fs-sm); font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ms-sector { display: grid; grid-template-columns: 112px 1fr 52px; align-items: center; gap: 10px; padding: 8px 0; }
+.ms-sector-name { font-size: var(--fs-sm); font-weight: 700; color: var(--text); line-height: 1.25; white-space: normal; overflow-wrap: anywhere; }
 .ms-sector-track { position: relative; height: 12px; border-radius: 999px; background: var(--surface-2); }
 .ms-sector-track::before { content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--border); }
 .ms-sector-fill { position: absolute; top: 0; bottom: 0; border-radius: 999px; }
@@ -6527,14 +6527,52 @@ details.dsex-exp[open] > summary {
 .ms-tier-legend { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 11px; font-size: var(--fs-xs); color: var(--text-muted); font-weight: 700; }
 .ms-tier-legend span { display: inline-flex; align-items: center; gap: 6px; }
 
-/* ---- Stock rows ---- */
-.ms-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--cell-rule); text-decoration: none; color: inherit; transition: padding-left 0.15s ease; }
-.ms-row:first-of-type { border-top: none; }
-.ms-row:hover { padding-left: 5px; }
-.ms-row:hover .ms-code { color: var(--primary); }
-.ms-code { font-weight: 800; font-size: var(--fs-sm); color: var(--text); }
-.ms-name { font-size: var(--fs-xs); color: var(--text-muted); display: block; margin-top: 1px; }
-.ms-row-meta { font-size: var(--fs-xs); color: var(--text-muted); text-align: right; white-space: nowrap; font-weight: 700; }
+/* ---- Stock rows (impactful: monogram + bold code + last price + meta pill) ---- */
+.ms-srow-list { margin-top: 10px; display: flex; flex-direction: column; }
+.ms-srow {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 10px; margin: 0 -10px; border-radius: 12px;
+  text-decoration: none; color: inherit;
+  transition: background 0.16s ease, transform 0.16s ease;
+}
+.ms-srow + .ms-srow { border-top: 1px solid var(--cell-rule); }
+.ms-srow:hover {
+  background: color-mix(in srgb, var(--row-accent, var(--primary)) 7%, var(--surface));
+  border-top-color: transparent; transform: translateX(2px);
+}
+.ms-srow:hover + .ms-srow { border-top-color: transparent; }
+.ms-srow-tkr {
+  width: 42px; height: 42px; flex-shrink: 0; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-grotesk), system-ui, sans-serif;
+  font-weight: 800; font-size: 1.15rem; line-height: 1; letter-spacing: -0.02em;
+  color: var(--row-accent, var(--primary));
+  background: color-mix(in srgb, var(--row-accent, var(--primary)) 12%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--row-accent, var(--primary)) 22%, transparent);
+}
+.ms-srow-tkr--icon { font-size: 1.25rem; }
+.ms-srow-id { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.ms-srow-code {
+  font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
+  font-weight: 800; font-size: var(--fs-md); letter-spacing: -0.01em;
+  color: var(--ink); line-height: 1.15; transition: color 0.16s ease;
+}
+.ms-srow:hover .ms-srow-code { color: var(--row-accent, var(--primary)); }
+.ms-srow-name {
+  font-size: var(--fs-xs); color: var(--text-muted); font-weight: 500; margin-top: 1px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ms-srow-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; text-align: right; }
+.ms-srow-price {
+  font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
+  font-weight: 800; font-size: var(--fs-sm); color: var(--ink);
+  letter-spacing: -0.01em; font-variant-numeric: tabular-nums; line-height: 1.1;
+}
+.ms-srow-meta { font-size: var(--fs-2xs); font-weight: 800; white-space: nowrap; padding: 2px 9px; border-radius: 999px; line-height: 1.5; }
+.ms-srow-meta--pos { color: var(--positive); background: color-mix(in srgb, var(--positive) 12%, var(--surface)); }
+.ms-srow-meta--neg { color: var(--negative); background: color-mix(in srgb, var(--negative) 11%, var(--surface)); }
+.ms-srow-meta--accent { color: var(--row-accent, var(--primary)); background: color-mix(in srgb, var(--row-accent, var(--primary)) 12%, var(--surface)); }
+.ms-srow-meta--neutral { color: var(--text-muted); background: var(--surface-2); }
 
 /* ---- Turning-point card heads ---- */
 .ms-edge-head { display: flex; align-items: center; gap: 11px; margin-bottom: 4px; }
@@ -6544,23 +6582,76 @@ details.dsex-exp[open] > summary {
 .ms-edge-title { font-size: var(--fs-base); font-weight: 800; margin: 0; line-height: 1.15; }
 
 /* ---- Dividends ---- */
-.ms-divgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
-.ms-divcard { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; background: var(--surface); box-shadow: var(--shadow-soft); display: block; text-decoration: none; color: inherit; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.ms-divgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.ms-divcard {
+  position: relative; overflow: hidden;
+  border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 12px 12px 15px;
+  background: var(--surface); box-shadow: var(--shadow-soft);
+  display: block; text-decoration: none; color: inherit;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.ms-divcard::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, var(--positive), color-mix(in srgb, var(--positive) 55%, transparent)); }
 .ms-divcard:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
 .ms-divkind { display: inline-block; font-size: var(--fs-2xs); font-weight: 800; padding: 3px 9px; border-radius: 999px; letter-spacing: 0.02em; }
 .ms-divkind--record { background: color-mix(in srgb, var(--primary) 13%, var(--surface)); color: var(--primary-ink); }
 .ms-divkind--declared { background: color-mix(in srgb, var(--warm) 16%, var(--surface)); color: var(--warm-ink); }
+.ms-divcard-id { display: flex; align-items: center; gap: 9px; margin-top: 10px; }
+.ms-divcard-tkr {
+  width: 32px; height: 32px; flex-shrink: 0; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-grotesk), system-ui, sans-serif; font-weight: 800; font-size: 1rem; line-height: 1; letter-spacing: -0.02em;
+  color: var(--positive); background: color-mix(in srgb, var(--positive) 13%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--positive) 22%, transparent);
+}
+.ms-divcard-code { font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif; font-weight: 800; font-size: var(--fs-md); letter-spacing: -0.01em; color: var(--ink); line-height: 1.1; }
+.ms-divcard-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 9px; font-size: var(--fs-xs); color: var(--text-muted); font-weight: 600; }
+.ms-divcard-price { font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
 .ms-divcash { font-size: var(--fs-md); font-weight: 800; color: var(--positive); margin-top: 8px; }
 
-/* ---- Opportunity lenses ---- */
-.ms-lens-card { position: relative; overflow: hidden; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; box-shadow: var(--shadow-soft); transition: transform 0.15s ease, box-shadow 0.15s ease; }
+/* ---- Opportunity lenses (each card carries its own --lens accent colour) ---- */
+.ms-lens-card {
+  position: relative; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 18px 16px 14px;
+  box-shadow: var(--shadow-soft); transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.ms-lens-card > * { position: relative; z-index: 1; }
+.ms-lens-card::after {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; z-index: 0;
+  background: linear-gradient(90deg, var(--lens, var(--primary)), color-mix(in srgb, var(--lens, var(--primary)) 35%, transparent));
+}
+.ms-lens-card::before {
+  content: ""; position: absolute; top: -50px; right: -50px; width: 150px; height: 150px;
+  border-radius: 50%; z-index: 0; pointer-events: none;
+  background: radial-gradient(circle, color-mix(in srgb, var(--lens, var(--primary)) 15%, transparent), transparent 70%);
+}
 .ms-lens-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lift); }
 .ms-lens-card--best { border: 2px solid transparent; background: linear-gradient(var(--surface), var(--surface)) padding-box, linear-gradient(135deg, var(--primary), #6D28D9) border-box; }
 .ms-lens-head { display: flex; align-items: center; gap: 11px; margin-bottom: 4px; }
-.ms-lens-ico { width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; flex-shrink: 0; }
-.ms-lens-title { font-size: var(--fs-base); font-weight: 800; color: var(--text); margin: 0; line-height: 1.15; }
+.ms-lens-ico {
+  width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1.15rem;
+  color: var(--lens, var(--primary));
+  background: color-mix(in srgb, var(--lens, var(--primary)) 14%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lens, var(--primary)) 24%, transparent);
+}
+.ms-lens-title { font-size: var(--fs-base); font-weight: 800; color: var(--ink); margin: 0; line-height: 1.15; letter-spacing: -0.01em; }
 .ms-lens-best { position: absolute; top: 0; right: 0; background: linear-gradient(135deg, var(--primary), #6D28D9); color: #fff; font-size: var(--fs-2xs); font-weight: 800; padding: 4px 12px; border-bottom-left-radius: var(--radius); letter-spacing: 0.04em; }
-.ms-lens-desc { font-size: var(--fs-xs); color: var(--text-muted); margin: 10px 0 4px; }
+.ms-lens-desc { font-size: var(--fs-xs); color: var(--text-muted); margin: 10px 0 2px; }
+
+/* ---- Accent-tinted card (top accent bar + soft corner glow, keyed off --card-accent) ---- */
+.ms-card--tint { position: relative; overflow: hidden; }
+.ms-card--tint > * { position: relative; z-index: 1; }
+.ms-card--tint::after {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; z-index: 0;
+  background: linear-gradient(90deg, var(--card-accent, var(--primary)), color-mix(in srgb, var(--card-accent, var(--primary)) 35%, transparent));
+}
+.ms-card--tint::before {
+  content: ""; position: absolute; top: -50px; right: -50px; width: 150px; height: 150px;
+  border-radius: 50%; z-index: 0; pointer-events: none;
+  background: radial-gradient(circle, color-mix(in srgb, var(--card-accent, var(--primary)) 13%, transparent), transparent 70%);
+}
 .ms-empty { font-size: var(--fs-sm); color: var(--text-muted); padding: 10px 0; }
 
 /* ---- Trend chart empty state ---- */

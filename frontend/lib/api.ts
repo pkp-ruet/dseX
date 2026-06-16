@@ -509,22 +509,28 @@ export interface MarketTrendPoint {
 export interface MarketTurningStock {
   trading_code: string;
   company_name: string | null;
+  sector?: string | null;
   gap_pct: number;
+  last_price?: number | null;
 }
 
 export interface MarketDividendEvent {
   trading_code: string;
   company_name: string | null;
+  sector?: string | null;
   date: string;
   dividend_pct: number | null;
   kind: "record" | "declared";
+  last_price?: number | null;
 }
 
 export interface MarketUnusualStock {
   trading_code: string;
   company_name: string | null;
+  sector?: string | null;
   volume_ratio: number;
   change_pct: number | null;
+  last_price?: number | null;
 }
 
 export interface MarketChanceStock {
@@ -536,6 +542,7 @@ export interface MarketChanceStock {
   div_yield_pct?: number;
   ret_1w?: number;
   ret_1m?: number | null;
+  last_price?: number | null;
 }
 
 export interface MarketStateData {

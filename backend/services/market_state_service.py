@@ -216,15 +216,17 @@ def _near_extremes(db, companies: dict, prices: dict) -> tuple[list, list]:
         hi, lo = _num(e.get("hi")), _num(e.get("lo"))
         if not hi or not lo or hi <= lo:
             continue
-        name = (companies.get(code) or {}).get("company_name")
+        comp = companies.get(code) or {}
+        name = comp.get("company_name")
+        sec = _plain_sector(comp.get("sector"))
         gap_hi = (hi - ltp) / hi
         gap_lo = (ltp - lo) / lo
         if 0 <= gap_hi <= 0.05:
-            near_high.append({"trading_code": code, "company_name": name,
-                              "gap_pct": round(gap_hi * 100, 1)})
+            near_high.append({"trading_code": code, "company_name": name, "sector": sec,
+                              "gap_pct": round(gap_hi * 100, 1), "last_price": round(ltp, 2)})
         if 0 <= gap_lo <= 0.05:
-            near_low.append({"trading_code": code, "company_name": name,
-                             "gap_pct": round(gap_lo * 100, 1)})
+            near_low.append({"trading_code": code, "company_name": name, "sector": sec,
+                             "gap_pct": round(gap_lo * 100, 1), "last_price": round(ltp, 2)})
     near_high.sort(key=lambda x: x["gap_pct"])
     near_low.sort(key=lambda x: x["gap_pct"])
     return near_high, near_low
@@ -262,17 +264,21 @@ def _unusual_buying(db, companies: dict, prices: dict) -> list[dict]:
             continue
         ratio = vol / avg
         if ratio >= 2.0 and (chg or 0) >= 0:
+            lp = _num(p.get("ltp"))
+            comp = companies.get(code) or {}
             out.append({
                 "trading_code": code,
-                "company_name": (companies.get(code) or {}).get("company_name"),
+                "company_name": comp.get("company_name"),
+                "sector": _plain_sector(comp.get("sector")),
                 "volume_ratio": round(ratio, 1),
                 "change_pct": round(chg, 2) if chg is not None else None,
+                "last_price": round(lp, 2) if lp is not None else None,
             })
     out.sort(key=lambda x: x["volume_ratio"], reverse=True)
     return out[:6]
 
 
-def _upcoming_dividends(companies: dict) -> list[dict]:
+def _upcoming_dividends(companies: dict, prices: dict) -> list[dict]:
     """Next dividends/record dates that are still in the future, soonest first."""
     today = datetime.now().date().isoformat()
     events: list[dict] = []
@@ -280,17 +286,21 @@ def _upcoming_dividends(companies: dict) -> list[dict]:
         code = d.get("trading_code")
         if not code:
             continue
-        name = (companies.get(code) or {}).get("company_name")
+        comp = companies.get(code) or {}
+        name = comp.get("company_name")
+        sec = _plain_sector(comp.get("sector"))
         pct = _num(d.get("dividend_pct"))
+        lp = _num((prices.get(code) or {}).get("ltp"))
+        last_price = round(lp, 2) if lp is not None else None
         rec = d.get("record_date")
         decl = d.get("declaration_date")
         rec_s = rec if isinstance(rec, str) else (rec.isoformat() if hasattr(rec, "isoformat") else None)
         decl_s = decl if isinstance(decl, str) else (decl.isoformat() if hasattr(decl, "isoformat") else None)
         if rec_s and rec_s[:10] >= today:
-            events.append({"trading_code": code, "company_name": name,
+            events.append({"trading_code": code, "company_name": name, "sector": sec, "last_price": last_price,
                            "date": rec_s[:10], "dividend_pct": pct, "kind": "record"})
         elif decl_s and decl_s[:10] >= today:
-            events.append({"trading_code": code, "company_name": name,
+            events.append({"trading_code": code, "company_name": name, "sector": sec, "last_price": last_price,
                            "date": decl_s[:10], "dividend_pct": pct, "kind": "declared"})
     events.sort(key=lambda x: x["date"])
     return events[:10]
@@ -565,12 +575,16 @@ def compute_market_state() -> dict:
     # --- Turning points + dividends ---
     near_high, near_low = _near_extremes(db, companies, prices)
     near_low_codes = {x["trading_code"] for x in near_low}
-    dividends = _upcoming_dividends(companies)
+    dividends = _upcoming_dividends(companies, prices)
     unusual = _unusual_buying(db, companies, prices)
 
     # --- Opportunity lists ---
     def _name(code):
         return (companies.get(code) or {}).get("company_name")
+
+    def _last_price(code):
+        lp = _num((prices.get(code) or {}).get("ltp"))
+        return round(lp, 2) if lp is not None else None
 
     on_sale = []
     income = []
@@ -586,13 +600,13 @@ def compute_market_state() -> dict:
         if sc is not None and sc >= 60 and pe is not None and 0 < pe < 150 and (
             (own is not None and pe < own) or (sect_pe is not None and pe < sect_pe)
         ):
-            on_sale.append({"trading_code": code, "company_name": _name(code),
+            on_sale.append({"trading_code": code, "company_name": _name(code), "last_price": _last_price(code),
                             "sector": sec, "score": round(sc), "pe": round(pe, 1)})
         if dy is not None and 0 < dy < 30 and (sc is None or sc >= 45):
-            income.append({"trading_code": code, "company_name": _name(code),
+            income.append({"trading_code": code, "company_name": _name(code), "last_price": _last_price(code),
                            "sector": sec, "div_yield_pct": round(dy, 1)})
         if code in near_low_codes and sc is not None and sc >= 45:
-            fallen.append({"trading_code": code, "company_name": _name(code),
+            fallen.append({"trading_code": code, "company_name": _name(code), "last_price": _last_price(code),
                            "sector": sec, "score": round(sc), "ret_1m": ret_1m.get(code)})
 
     on_sale.sort(key=lambda x: x["score"], reverse=True)
@@ -607,7 +621,7 @@ def compute_market_state() -> dict:
         p = prices.get(code) or {}
         if (_num(p.get("value_mn")) or 0) < 1:  # skip near-untraded names
             continue
-        rising.append({"trading_code": code, "company_name": _name(code),
+        rising.append({"trading_code": code, "company_name": _name(code), "last_price": _last_price(code),
                        "sector": _plain_sector(code_to_sector.get(code)), "ret_1w": r})
         if len(rising) >= 8:
             break

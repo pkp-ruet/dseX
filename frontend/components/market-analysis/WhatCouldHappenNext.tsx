@@ -1,5 +1,9 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
+import { taka } from "@/lib/formatters";
+import { sectorIcon } from "@/lib/sector-icons";
 import type { MarketTurningStock, MarketDividendEvent, MarketUnusualStock } from "@/lib/api";
+import MarketRow from "./MarketRow";
 
 function shortDate(d: string): string {
   try {
@@ -7,25 +11,6 @@ function shortDate(d: string): string {
   } catch {
     return d;
   }
-}
-
-function StockLink({ code, name, meta }: { code: string; name: string | null; meta: string }) {
-  return (
-    <Link className="ms-row" href={`/stock/${code}`}>
-      <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-        <span className="ms-code">{code}</span>
-        {name && (
-          <span
-            className="ms-name"
-            style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-          >
-            {name}
-          </span>
-        )}
-      </span>
-      <span className="ms-row-meta">{meta}</span>
-    </Link>
-  );
 }
 
 function TurningList({
@@ -39,8 +24,9 @@ function TurningList({
   items: MarketTurningStock[];
   edge: "high" | "low";
 }) {
+  const accent = edge === "high" ? "var(--positive)" : "var(--warm)";
   return (
-    <div className="ms-card">
+    <div className="ms-card ms-card--tint" style={{ "--card-accent": accent } as CSSProperties}>
       <div className="ms-edge-head">
         <span className={`ms-edge-ico ms-edge-ico--${edge === "high" ? "up" : "down"}`} aria-hidden="true">
           {edge === "high" ? "▲" : "▼"}
@@ -51,14 +37,20 @@ function TurningList({
       {items.length === 0 ? (
         <p className="ms-empty">Nothing close right now.</p>
       ) : (
-        items.map((it) => (
-          <StockLink
-            key={it.trading_code}
-            code={it.trading_code}
-            name={it.company_name}
-            meta={`${it.gap_pct.toFixed(1)}% from its ${edge === "high" ? "high" : "low"}`}
-          />
-        ))
+        <div className="ms-srow-list">
+          {items.map((it) => (
+            <MarketRow
+              key={it.trading_code}
+              code={it.trading_code}
+              name={it.company_name}
+              sector={it.sector}
+              price={it.last_price}
+              meta={`${it.gap_pct.toFixed(1)}% from its ${edge === "high" ? "high" : "low"}`}
+              tone={edge === "high" ? "pos" : "neutral"}
+              accent={accent}
+            />
+          ))}
+        </div>
       )}
     </div>
   );
@@ -66,7 +58,7 @@ function TurningList({
 
 function UnusualBuying({ items }: { items: MarketUnusualStock[] }) {
   return (
-    <div className="ms-card">
+    <div className="ms-card ms-card--tint" style={{ "--card-accent": "var(--warm)" } as CSSProperties}>
       <div className="ms-edge-head">
         <span
           className="ms-edge-ico"
@@ -83,25 +75,20 @@ function UnusualBuying({ items }: { items: MarketUnusualStock[] }) {
       {items.length === 0 ? (
         <p className="ms-empty">Nothing unusual today — trading looks normal.</p>
       ) : (
-        items.map((it) => (
-          <Link className="ms-row" href={`/stock/${it.trading_code}`} key={it.trading_code}>
-            <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-              <span className="ms-code">{it.trading_code}</span>
-              {it.company_name && (
-                <span
-                  className="ms-name"
-                  style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-                >
-                  {it.company_name}
-                </span>
-              )}
-            </span>
-            <span className="ms-row-meta ms-pos">
-              {it.volume_ratio}× usual
-              {it.change_pct != null ? ` · up ${it.change_pct.toFixed(1)}%` : ""}
-            </span>
-          </Link>
-        ))
+        <div className="ms-srow-list">
+          {items.map((it) => (
+            <MarketRow
+              key={it.trading_code}
+              code={it.trading_code}
+              name={it.company_name}
+              sector={it.sector}
+              price={it.last_price}
+              meta={`${it.volume_ratio}× usual${it.change_pct != null ? ` · up ${it.change_pct.toFixed(1)}%` : ""}`}
+              tone="pos"
+              accent="var(--warm)"
+            />
+          ))}
+        </div>
       )}
     </div>
   );
@@ -139,7 +126,10 @@ export default function WhatCouldHappenNext({
         />
       </div>
 
-      <div className="ms-card" style={{ marginTop: 16 }}>
+      <div
+        className="ms-card ms-card--tint"
+        style={{ marginTop: 16, "--card-accent": "var(--positive)" } as CSSProperties}
+      >
         <p className="ms-card-title">Cash coming your way soon</p>
         <p className="ms-card-note">
           A dividend is cash a company gives to the people who own its shares.
@@ -157,8 +147,16 @@ export default function WhatCouldHappenNext({
                 <span className={`ms-divkind ms-divkind--${d.kind}`}>
                   {d.kind === "record" ? "Cash date" : "Just announced"}
                 </span>
-                <div className="ms-code" style={{ marginTop: 9 }}>{d.trading_code}</div>
-                <div className="ms-name">{shortDate(d.date)}</div>
+                <div className="ms-divcard-id">
+                  <span className="ms-divcard-tkr" aria-hidden="true">
+                    {sectorIcon(d.sector) ?? d.trading_code.charAt(0)}
+                  </span>
+                  <span className="ms-divcard-code">{d.trading_code}</span>
+                </div>
+                <div className="ms-divcard-meta">
+                  <span>{shortDate(d.date)}</span>
+                  {d.last_price != null && <span className="ms-divcard-price">{taka(d.last_price)}</span>}
+                </div>
                 {d.dividend_pct != null && (
                   <div className="ms-divcash">৳ Pays {Math.round(d.dividend_pct)}%</div>
                 )}

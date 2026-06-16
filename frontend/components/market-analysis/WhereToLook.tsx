@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
-import Link from "next/link";
 import type { MarketChanceStock } from "@/lib/api";
+import MarketRow, { type RowTone } from "./MarketRow";
 
 function strengthWord(score?: number): string {
   if (score == null) return "Decent";
@@ -9,32 +9,13 @@ function strengthWord(score?: number): string {
   return "Decent";
 }
 
-function Row({ s, meta, metaClass }: { s: MarketChanceStock; meta: string; metaClass?: string }) {
-  return (
-    <Link className="ms-row" href={`/stock/${s.trading_code}`}>
-      <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-        <span className="ms-code">{s.trading_code}</span>
-        {s.company_name && (
-          <span
-            className="ms-name"
-            style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-          >
-            {s.company_name}
-          </span>
-        )}
-      </span>
-      <span className={`ms-row-meta ${metaClass ?? ""}`}>{meta}</span>
-    </Link>
-  );
-}
-
 interface Lens {
   key: string;
   title: string;
   desc: string;
   ico: string;
   color: string;
-  render: (s: MarketChanceStock) => { meta: string; metaClass?: string };
+  render: (s: MarketChanceStock) => { meta: string; tone?: RowTone };
 }
 
 const LENSES: Lens[] = [
@@ -44,7 +25,7 @@ const LENSES: Lens[] = [
     desc: "Strong companies that cost less than usual.",
     ico: "%",
     color: "var(--primary)",
-    render: (s) => ({ meta: `${strengthWord(s.score)} · cheap` }),
+    render: (s) => ({ meta: `${strengthWord(s.score)} · cheap`, tone: "accent" }),
   },
   {
     key: "income",
@@ -54,6 +35,7 @@ const LENSES: Lens[] = [
     color: "var(--warm)",
     render: (s) => ({
       meta: s.div_yield_pct != null ? `pays ~${s.div_yield_pct.toFixed(1)}% a year` : "pays well",
+      tone: "accent",
     }),
   },
   {
@@ -64,7 +46,7 @@ const LENSES: Lens[] = [
     color: "var(--positive)",
     render: (s) => ({
       meta: s.ret_1w != null ? `up ${s.ret_1w.toFixed(1)}% this week` : "rising",
-      metaClass: "ms-pos",
+      tone: "pos",
     }),
   },
   {
@@ -73,7 +55,7 @@ const LENSES: Lens[] = [
     desc: "Dropped a lot, but still a decent company.",
     ico: "↻",
     color: "#6D28D9",
-    render: (s) => ({ meta: `${strengthWord(s.score)} · fell hard` }),
+    render: (s) => ({ meta: `${strengthWord(s.score)} · fell hard`, tone: "accent" }),
   },
 ];
 
@@ -94,19 +76,14 @@ export default function WhereToLook({
         const items = (chances[lens.key as keyof typeof chances] as MarketChanceStock[]) ?? [];
         const isBest = chances.best === lens.key;
         return (
-          <div key={lens.key} className={`ms-lens-card${isBest ? " ms-lens-card--best" : ""}`}>
+          <div
+            key={lens.key}
+            className={`ms-lens-card${isBest ? " ms-lens-card--best" : ""}`}
+            style={{ "--lens": lens.color } as CSSProperties}
+          >
             {isBest && <span className="ms-lens-best">★ Best now</span>}
             <div className="ms-lens-head">
-              <span
-                className="ms-lens-ico"
-                aria-hidden="true"
-                style={
-                  {
-                    background: `color-mix(in srgb, ${lens.color} 14%, var(--surface))`,
-                    color: lens.color,
-                  } as CSSProperties
-                }
-              >
+              <span className="ms-lens-ico" aria-hidden="true">
                 {lens.ico}
               </span>
               <p className="ms-lens-title">{lens.title}</p>
@@ -115,10 +92,23 @@ export default function WhereToLook({
             {items.length === 0 ? (
               <p className="ms-empty">Nothing fits right now.</p>
             ) : (
-              items.map((s) => {
-                const { meta, metaClass } = lens.render(s);
-                return <Row key={s.trading_code} s={s} meta={meta} metaClass={metaClass} />;
-              })
+              <div className="ms-srow-list">
+                {items.map((s) => {
+                  const { meta, tone } = lens.render(s);
+                  return (
+                    <MarketRow
+                      key={s.trading_code}
+                      code={s.trading_code}
+                      name={s.company_name}
+                      sector={s.sector}
+                      price={s.last_price}
+                      meta={meta}
+                      tone={tone}
+                      accent={lens.color}
+                    />
+                  );
+                })}
+              </div>
             )}
           </div>
         );
