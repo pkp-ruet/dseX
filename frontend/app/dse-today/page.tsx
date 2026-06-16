@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getDseToday } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 import DseTodayHeader from "@/components/dse-today/DseTodayHeader";
+import DseTodayPromo from "@/components/dse-today/DseTodayPromo";
 import DseTodayTable from "@/components/dse-today/DseTodayTable";
 import DseTodayNews from "@/components/dse-today/DseTodayNews";
 import MarketMovers from "@/components/home/MarketMovers";
@@ -39,11 +40,19 @@ export default async function DseTodayPage() {
 
   if (!data) {
     return (
-      <div className="rank-page-header rank-page-header--center">
-        <div className="rank-page-eyebrow">DSE Today</div>
-        <h1 className="rank-page-title">No Data Available</h1>
-        <p className="rank-page-meta">Could not reach the API. Please try again shortly.</p>
-      </div>
+      <>
+        <header className="ms-pagehead">
+          <h1 className="ms-page-h1">
+            <span className="ms-page-kicker">Dhaka Stock Exchange</span>
+            <span className="ms-page-h1-main">DSE Today</span>
+          </h1>
+        </header>
+        <div className="ms-card">
+          <p className="ms-empty">
+            We couldn&apos;t reach the market data right now. Please refresh in a moment.
+          </p>
+        </div>
+      </>
     );
   }
 
@@ -79,17 +88,19 @@ export default async function DseTodayPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <div className="rank-page-header rank-page-header--center">
-        <div className="rank-page-eyebrow">DSE Today</div>
-        <h1 className="rank-page-title">DSE Today</h1>
-        <p className="rank-page-meta">
-          Raw market snapshot{dateLabel ? ` · ${dateLabel}` : ""}
-        </p>
-      </div>
+      <header className="ms-pagehead">
+        <h1 className="ms-page-h1">
+          <span className="ms-page-kicker">Dhaka Stock Exchange</span>
+          <span className="ms-page-h1-main">DSE Today</span>
+        </h1>
+        {dateLabel && <span className="ms-page-date">Last trading day · {dateLabel}</span>}
+      </header>
 
       <DseTodayHeader header={data.header} condition={data.intelligence.market_condition} />
 
-      <MarketMovers data={data.movers} compact />
+      <MarketMovers data={data.movers} />
+
+      <DseTodayPromo />
 
       {data.intelligence.sector_strength.length > 0 && (
         <SectorHeatmap sectors={data.intelligence.sector_strength} />
