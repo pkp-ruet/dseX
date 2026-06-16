@@ -40,8 +40,8 @@ export default function MobileBottomBar() {
       ),
     },
     {
-      href: "/dse-today",
-      label: "Markets",
+      href: "/market-analysis",
+      label: "DSE",
       active: matches(pathname, MARKETS_PATHS),
       badge: null as number | null,
       icon: (
