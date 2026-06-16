@@ -2,82 +2,86 @@
 
 import { useEffect, useState } from "react";
 import { getApiUrl } from "@/lib/api";
-import { isTradingDay, isMarketOpen, isAfterOpen, bstDateStr } from "@/lib/market-hours";
+import {
+  isMarketOpen,
+  bstDateStr,
+  formatBstDateLabel,
+  formatBstTimeLabel,
+} from "@/lib/market-hours";
 
-// Date string ("YYYY-MM-DD") for which the banner is suppressed — set when the
-// user dismisses it OR when the post-close check confirms today's scrape has run.
-// Date-keyed so it resets by itself the next day.
+// Date string ("YYYY-MM-DD") for which the banner is suppressed after a manual
+// dismiss. Date-keyed so it resets by itself the next day.
 const HIDE_KEY = "dsex.market-banner-hidden";
 
 /**
- * Daily lifecycle:
- *  - Market hours (10:00–2:30): always show — during the live session the site is
- *    always serving the previous session's close. No API call needed.
- *  - After the 2:30 close: check whether the scraper has loaded today's data. Once
- *    it has, hide for the rest of the day and stop checking. Until then, keep showing.
- *  - Before open / non-trading days: hidden.
- *  - Next trading day: resets automatically and the banner reappears at the open.
+ * "Last updated" banner — only lives during the open session (10:00–2:30 BST):
+ *  - At the open the site is still serving the previous session, so it reads
+ *    "last updated <previous trading day> at 2:30 PM".
+ *  - When the quick scrape lands today's data it flips to that actual run time
+ *    ("last updated today at 2:05 PM"). Polled every minute, no reload needed.
+ *  - Gone after the 2:30 close, before the open, and on non-trading days.
  */
 export default function MarketDataBanner() {
   // Start hidden so SSR and the first client render match; the effect decides.
   const [visible, setVisible] = useState(false);
+  const [label, setLabel] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isTradingDay()) return;
-
-    const today = bstDateStr();
-
-    // Suppressed for today (dismissed, or post-close check already confirmed the
-    // scrape ran). No API call.
-    try {
-      if (localStorage.getItem(HIDE_KEY) === today) return;
-    } catch {
-      /* localStorage unavailable — continue */
-    }
-
-    // During the live session: always show, no network call.
-    if (isMarketOpen()) {
-      setVisible(true);
-      return;
-    }
-
-    // Before the open: nothing yet — the banner appears when the market opens.
-    if (!isAfterOpen()) return;
-
-    // After the close: has the scraper loaded today's data yet?
     let cancelled = false;
-    (async () => {
+
+    const isDismissed = () => {
+      try {
+        return localStorage.getItem(HIDE_KEY) === bstDateStr();
+      } catch {
+        return false;
+      }
+    };
+
+    const refresh = async () => {
+      // Banner lives only during the open session; gone after the 2:30 close.
+      if (!isMarketOpen() || isDismissed()) {
+        if (!cancelled) setVisible(false);
+        return;
+      }
+
+      const today = bstDateStr();
       let marketDate: string | null = null;
+      let scrapedAt: string | null = null;
       try {
         const res = await fetch(`${getApiUrl()}/api/market-index`, { cache: "no-store" });
         if (res.ok) {
-          const data = (await res.json()) as { date?: string | null };
+          const data = (await res.json()) as { date?: string | null; scraped_at?: string | null };
           marketDate = data?.date ?? null;
+          scrapedAt = data?.scraped_at ?? null;
         }
       } catch {
-        marketDate = null;
+        /* network error — fall back to the generic prev-close label below */
       }
       if (cancelled) return;
 
-      if (marketDate === today) {
-        // Scrape has run → hide for the rest of the day and stop checking.
-        try {
-          localStorage.setItem(HIDE_KEY, today);
-        } catch {
-          /* ignore */
-        }
+      let when: string;
+      if (marketDate && marketDate === today && scrapedAt) {
+        const t = formatBstTimeLabel(scrapedAt);
+        when = t ? `today at ${t}` : "today";
+      } else if (marketDate) {
+        // Still serving the previous session — present it as that day's 2:30 close.
+        when = `${formatBstDateLabel(marketDate)} at 2:30 PM`;
       } else {
-        // Not scraped yet → still showing the previous close.
-        setVisible(true);
+        when = "at the last market close";
       }
-    })();
+      setLabel(when);
+      setVisible(true);
+    };
 
+    refresh();
+    const id = setInterval(refresh, 60_000);
     return () => {
       cancelled = true;
+      clearInterval(id);
     };
   }, []);
 
-  if (!visible) return null;
+  if (!visible || !label) return null;
 
   const dismiss = () => {
     setVisible(false);
@@ -116,8 +120,8 @@ export default function MarketDataBanner() {
           <path d="M12 7v5l3 2" />
         </svg>
         <p className="flex-1 text-xs sm:text-sm leading-snug" style={{ color: "var(--text)" }}>
-          Live prices update after market close. You&apos;re seeing the last closing price — today&apos;s
-          close appears after 2:30 PM.
+          Prices last updated <strong style={{ fontWeight: 600 }}>{label}</strong>. Price will be
+          updated soon.
         </p>
         <button
           type="button"

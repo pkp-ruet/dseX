@@ -424,8 +424,21 @@ def load_market_index() -> dict:
     down_count = sum(1 for p in price_changes if (p.get("change_pct") or 0) < 0)
     neutral_count = len(price_changes) - up_count - down_count
 
+    # When the latest snapshot was scraped (the quick-scrape run time). Stored as
+    # naive UTC via datetime.utcnow() — emit with a 'Z' so the browser parses it as UTC.
+    scraped_at = doc.get("scraped_at")
+    scraped_at_iso = None
+    if scraped_at is not None:
+        if hasattr(scraped_at, "isoformat"):
+            scraped_at_iso = scraped_at.isoformat()
+            if "Z" not in scraped_at_iso and "+" not in scraped_at_iso:
+                scraped_at_iso += "Z"
+        else:
+            scraped_at_iso = str(scraped_at)
+
     return {
         "date": date_str,
+        "scraped_at": scraped_at_iso,
         "dsex": dsex_val,
         "dsex_change": dsex_change,
         "dsex_change_pct": dsex_change_pct,

@@ -275,6 +275,7 @@ class AuditResponse(BaseModel):
 
 class MarketIndexResponse(BaseModel):
     date: Optional[str] = None
+    scraped_at: Optional[str] = None
     dsex: Optional[float] = None
     dsex_change: Optional[float] = None
     dsex_change_pct: Optional[float] = None

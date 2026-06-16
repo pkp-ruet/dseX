@@ -70,3 +70,26 @@ export function bstDateStr(): string {
   const d = String(b.getUTCDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
 }
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/** "2026-06-15" → "Sun, 15 Jun" (timezone-independent — parses the parts directly). */
+export function formatBstDateLabel(dateStr: string): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  if (!y || !m || !d) return dateStr;
+  const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  return `${WEEKDAYS[wd]}, ${d} ${MONTHS[m - 1]}`;
+}
+
+/** UTC ISO timestamp → BST wall-clock "2:05 PM". Returns "" on an unparseable input. */
+export function formatBstTimeLabel(utcIso: string): string {
+  const t = new Date(utcIso).getTime();
+  if (Number.isNaN(t)) return "";
+  const bst = new Date(t + BST_OFFSET_MS);
+  const min = bst.getUTCMinutes();
+  const h24 = bst.getUTCHours();
+  const ampm = h24 >= 12 ? "PM" : "AM";
+  const h12 = h24 % 12 || 12;
+  return `${h12}:${String(min).padStart(2, "0")} ${ampm}`;
+}
