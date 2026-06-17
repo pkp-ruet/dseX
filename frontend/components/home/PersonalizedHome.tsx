@@ -48,6 +48,7 @@ import SearchBar from "@/components/home/SearchBar";
 import LiveMarketBand from "@/components/home/LiveMarketBand";
 import LiveRankingPreview from "@/components/home/LiveRankingPreview";
 import DailyTipsCard from "@/components/home/DailyTipsCard";
+import PromoPill from "@/components/home/PromoPill";
 
 function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
   if (!scores) return new Map();
@@ -75,6 +76,12 @@ const INTEL_ICON = (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <path d="M12 3a5 5 0 0 0-5 5c0 1.6.8 3 2 4v2h6v-2c1.2-1 2-2.4 2-4a5 5 0 0 0-5-5z" />
     <path d="M9 19h6M10 21h4" />
+  </svg>
+);
+const BOOK_ICON = (
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
   </svg>
 );
 
@@ -397,6 +404,15 @@ export default function PersonalizedHome() {
           icon={COMPASS_ICON}
         />
         <div className="mt-3 flex flex-col gap-6">
+          {/* Bengali "keep learning" nudge → blog */}
+          <PromoPill
+            href="/blog"
+            ariaLabel="বাংলা ব্লগ — সহজ ভাষায় শেয়ার বাজার শিখুন"
+            icon={BOOK_ICON}
+            text="শেয়ার বাজার আরও ভালো বুঝুন — বাংলা ব্লগ পড়ুন"
+            accentVar="var(--positive)"
+          />
+
           {marketIndex && <LiveMarketBand index={marketIndex} gainers={gainers} />}
 
           <MarketAnalysisCard index={marketIndex} />
