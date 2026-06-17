@@ -10,6 +10,7 @@ const exploreLinks = [
 
 const learnLinks = [
   { href: "/learn", label: "Beginner's Guide" },
+  { href: "/blog", label: "বাংলা ব্লগ" },
   { href: "/watchlist", label: "Watchlist" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/about", label: "Behind the Score" },

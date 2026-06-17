@@ -101,6 +101,14 @@ body::before {
   font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
   letter-spacing: -0.02em;
 }
+/* Bengali (বাংলা) — opt-in font + comfortable line-height for the /blog section.
+   Cascades to all descendants, so wrap a Bengali page/region in `.font-bn`. */
+.font-bn,
+.font-bn h1,
+.font-bn h2,
+.font-bn h3 {
+  font-family: var(--font-bengali), "Noto Sans Bengali", "Hind Siliguri", system-ui, sans-serif;
+}
 /* Tabular figures — align digits in columns (prices, scores, tables) */
 .nums {
   font-variant-numeric: tabular-nums;

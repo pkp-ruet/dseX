@@ -1,11 +1,20 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display, Space_Grotesk } from "next/font/google";
+import { Inter, Playfair_Display, Space_Grotesk, Hind_Siliguri } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
   variable: "--font-inter",
+  display: "swap",
+});
+
+// Bengali web font for the বাংলা ব্লগ (/blog). Latin-only fonts above carry no
+// Bengali glyphs, so Bengali text is opted into this via the `.font-bn` utility.
+const hindSiliguri = Hind_Siliguri({
+  subsets: ["bengali"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-bengali",
   display: "swap",
 });
 
@@ -78,7 +87,7 @@ const ORG_JSON_LD = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable} ${spaceGrotesk.variable}`}>
+    <html lang="en" className={`${inter.variable} ${playfair.variable} ${spaceGrotesk.variable} ${hindSiliguri.variable}`}>
       <body className="min-h-screen flex flex-col">
         <script
           type="application/ld+json"

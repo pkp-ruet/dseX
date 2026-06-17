@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getAllCodes } from "@/lib/api";
 import { GUIDES } from "@/lib/guides";
+import { BLOG_POSTS } from "@/lib/blog-bn";
 import { STOCK_LISTS } from "@/lib/stock-lists";
 import { SAMPLE_SLUGS } from "@/lib/sample-portfolios";
 
@@ -20,6 +21,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const guidePages = GUIDES.map((g) => ({
     url: `${BASE_URL}/learn/${g.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
+
+  const blogPages = BLOG_POSTS.map((p) => ({
+    url: `${BASE_URL}/blog/${p.slug}`,
     lastModified: new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.7,
@@ -101,6 +109,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
+      url: `${BASE_URL}/blog`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
       url: `${BASE_URL}/stock-insights`,
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
@@ -145,6 +159,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...samplePortfolioPages,
     ...stockListPages,
     ...guidePages,
+    ...blogPages,
     ...stockPages,
   ];
 }

@@ -13,6 +13,7 @@ Guidance for Claude Code when working in this repository.
 - **Scrapers**: Python (requests + BeautifulSoup + lxml)
 - **Auth**: JWT (HS256) via `python-jose` · `bcrypt` for password hashing · Google Sign-In via `google-auth` (backend ID-token verification) and `@react-oauth/google` (frontend)
 - **Theme**: **light-only, mobile-first** (no dark mode). All colors are CSS custom properties in `app/globals.css :root` (`--bg`, `--surface`, `--surface-2`, `--text`, `--text-muted`, `--border`, `--primary` #2563EB, `--accent`, `--positive` #15803D, `--negative` #DC2626, tier vars `--strong-buy`/`--safe-buy`/`--watch`/`--avoid` + `--np-*`). Dark mode + `ThemeToggle` were removed. Use tokens (never hardcoded dark hex); components target ~360px first, enhance with `sm:`/`md:`.
+- **Fonts**: Latin UI fonts (Inter / Playfair / Space Grotesk) are loaded in `app/layout.tsx` with the `latin` subset only — they carry **no Bengali glyphs**. Bengali (বাংলা) content uses **Hind Siliguri** (`--font-bengali`), opted into via the `.font-bn` utility class (sets the font + comfortable line-height). Wrap any Bengali page/region in `.font-bn` and set `lang="bn"` (see `/blog`).
 - **Deployment**: Frontend on Vercel, Backend on Render, DB on MongoDB Atlas
 
 No Streamlit. The app is Next.js + Python only.
@@ -125,7 +126,8 @@ Scrapers must use upsert logic to avoid duplicates.
 | `/market-analysis` | `app/market-analysis/page.tsx` | Pulse, sentiment, near-extremes, trending, top picks |
 | `/dse-today` | `app/dse-today/page.tsx` | Today's market header + table + news (single-bundle endpoint) |
 | `/stock-insights`, `/stock-insights/[slug]` | `app/stock-insights/...` | Curated insight cards (SEO content) |
-| `/learn`, `/learn/[slug]` | `app/learn/...` | Educational guides (SEO content, data from `lib/guides.ts`) |
+| `/learn`, `/learn/[slug]` | `app/learn/...` | Educational guides (SEO content, English, data from `lib/guides.ts`) |
+| `/blog`, `/blog/[slug]` | `app/blog/...` | Bengali (বাংলা) blog — beginner guides in everyday Bengali (SEO content, data from `lib/blog-bn.ts`). Reuses `components/learn/CategoryNav.tsx`. Content opts into the Bengali webfont via the `.font-bn` utility + `lang="bn"` |
 | `/watchlist` | `app/watchlist/page.tsx` | Saved tickers + watchlist news |
 | `/portfolio` | `app/portfolio/page.tsx` | Holdings tracker (auth-gated) |
 | `/login`, `/register`, `/profile` | `app/{login,register,profile}/page.tsx` | Auth flow |

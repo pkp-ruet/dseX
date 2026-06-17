@@ -43,7 +43,8 @@ const NAV_GROUPS: NavGroup[] = [
     id: "learn",
     label: "Learn",
     items: [
-      { href: "/learn", label: "Blogs", sub: "Guides & education" },
+      { href: "/learn", label: "Blogs", sub: "English guides" },
+      { href: "/blog", label: "বাংলা ব্লগ", sub: "Bangla guides" },
       { href: "/about", label: "Behind the Score", sub: "How we rank stocks" },
     ],
   },
