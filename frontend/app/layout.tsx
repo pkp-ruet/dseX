@@ -37,7 +37,7 @@ import Footer from "@/components/layout/Footer";
 import MobileBottomBar from "@/components/layout/MobileBottomBar";
 import GlobalSearch from "@/components/layout/GlobalSearch";
 import MarketDataBanner from "@/components/layout/MarketDataBanner";
-import { GoogleAnalytics } from "@next/third-parties/google";
+import ConditionalAnalytics from "@/components/analytics/ConditionalAnalytics";
 import { AuthProvider } from "@/context/AuthContext";
 import GoogleAuthProvider from "@/components/auth/GoogleAuthProvider";
 import PingTracker from "@/components/analytics/PingTracker";
@@ -110,7 +110,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </GoogleAuthProvider>
         </AuthProvider>
         {process.env.NEXT_PUBLIC_GA_ID && (
-          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+          <ConditionalAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
         )}
       </body>
     </html>
