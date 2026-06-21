@@ -1251,6 +1251,75 @@ export async function apiGetAdminUser(userId: string): Promise<AdminUserDetail> 
 }
 
 // ---------------------------------------------------------------------------
+// Admin — Email campaigns (re-engagement)
+// ---------------------------------------------------------------------------
+
+export type CampaignSegment = "portfolio" | "watchlist" | "cold";
+
+export interface CampaignAudience {
+  inactive_days: number;
+  eligible: number;
+  by_segment: Record<CampaignSegment, number>;
+  opted_out: number;
+  no_email: number;
+}
+
+export async function apiGetCampaignAudience(inactiveDays: number): Promise<CampaignAudience> {
+  return apiAuthFetch<CampaignAudience>(`/api/admin/campaigns/audience?inactive_days=${inactiveDays}`);
+}
+
+/** Returns the rendered email HTML (text) for an in-iframe preview. */
+export async function apiPreviewCampaign(segment: CampaignSegment): Promise<string> {
+  const token = getToken();
+  const res = await fetch(
+    `${getApiUrl()}/api/admin/campaigns/preview?segment=${encodeURIComponent(segment)}`,
+    { headers: token ? { Authorization: `Bearer ${token}` } : {} },
+  );
+  if (res.status === 401) { logout(); throw new Error("AUTH_EXPIRED"); }
+  if (!res.ok) throw new Error(`Preview failed: ${res.status}`);
+  return res.text();
+}
+
+export interface CampaignTestResult { ok: boolean; to: string; message_id: string; }
+
+export async function apiSendTestEmail(
+  segment: CampaignSegment,
+  toEmail?: string,
+): Promise<CampaignTestResult> {
+  return apiAuthFetch<CampaignTestResult>("/api/admin/campaigns/test", {
+    method: "POST",
+    body: JSON.stringify({ segment, to_email: toEmail || undefined }),
+  });
+}
+
+export interface CampaignSendResult { campaign_id: string; eligible: number; started: boolean; }
+
+export async function apiSendCampaign(payload: {
+  name?: string;
+  segments?: CampaignSegment[];
+  inactive_days: number;
+  limit?: number;
+}): Promise<CampaignSendResult> {
+  return apiAuthFetch<CampaignSendResult>("/api/admin/campaigns/send", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export interface CampaignStats {
+  campaign_id: string;
+  status: string;
+  eligible: number | null;
+  sent: number;
+  failed: number;
+  opened: number;
+}
+
+export async function apiGetCampaignStats(campaignId: string): Promise<CampaignStats> {
+  return apiAuthFetch<CampaignStats>(`/api/admin/campaigns/${encodeURIComponent(campaignId)}/stats`);
+}
+
+// ---------------------------------------------------------------------------
 // Admin — Score Adjustments
 // ---------------------------------------------------------------------------
 

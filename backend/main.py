@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.routers import scores, companies, dividends, audit, prices, market_movers, market_intelligence, market_index, stock_lists, auth, user, portfolio, dse_today, admin, market_analysis, market_state, stock_visits, top20, daily_pick, daily_tips, recommendations, feedback
+from backend.routers import scores, companies, dividends, audit, prices, market_movers, market_intelligence, market_index, stock_lists, auth, user, portfolio, dse_today, admin, market_analysis, market_state, stock_visits, top20, daily_pick, daily_tips, recommendations, feedback, campaigns, email
 
 app = FastAPI(title="dseX API", version="1.0.0")
 
@@ -47,6 +47,8 @@ app.include_router(daily_pick.router)
 app.include_router(daily_tips.router)
 app.include_router(recommendations.router)
 app.include_router(feedback.router)
+app.include_router(campaigns.router)
+app.include_router(email.router)
 
 
 @app.on_event("startup")
@@ -65,6 +67,9 @@ def startup():
 
     from backend.services.score_adjustments_service import ensure_indexes as ensure_score_adj_indexes
     ensure_score_adj_indexes()
+
+    from backend.services.email_service import ensure_email_indexes
+    ensure_email_indexes()
 
     from backend.services.db_service import get_db
     from pymongo import ASCENDING
