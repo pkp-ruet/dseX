@@ -1,17 +1,5 @@
 import Link from "next/link";
-import type { MarketIndexData } from "@/lib/api";
-
-function fmtSigned(v: number | null | undefined, d = 2): string {
-  if (v == null) return "—";
-  return `${v > 0 ? "+" : ""}${v.toFixed(d)}%`;
-}
-
-function chgColor(v: number | null | undefined): string {
-  if (v == null) return "var(--text-muted)";
-  if (v > 0) return "var(--positive)";
-  if (v < 0) return "var(--negative)";
-  return "var(--text-muted)";
-}
+import type { MarketIndexData, DividendsUpcoming, MarketQuality, MarketQuestion } from "@/lib/api";
 
 const CHART_ICON = (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -20,25 +8,93 @@ const CHART_ICON = (
   </svg>
 );
 
-/** Feature card on the logged-in home — the whole-market view, in plain words.
- *  Styled to sit alongside the live-market band, just before the ranking table. */
-export default function MarketAnalysisCard({ index }: { index: MarketIndexData | null }) {
-  const up = index?.up_count ?? null;
-  const down = index?.down_count ?? null;
-  const mood =
-    up != null && down != null
-      ? down > up
-        ? "More shares are falling than rising today."
-        : up > down
-          ? "More shares are rising than falling today."
-          : "The market is fairly even today."
-      : "See how the whole market is doing today.";
+/** Plain-English read on the day's breadth (no jargon). */
+function readMood(up: number | null, down: number | null): { text: string; color: string } {
+  if (up == null || down == null || up + down === 0) {
+    return { text: "See how the whole market is doing today.", color: "var(--text)" };
+  }
+  const ratio = up / (up + down);
+  if (ratio >= 0.58) return { text: "Buyers are in control today.", color: "var(--positive)" };
+  if (ratio <= 0.42) return { text: "Sellers are in control today.", color: "var(--negative)" };
+  return { text: "An even, mixed market today.", color: "var(--text)" };
+}
 
+function Tile({
+  href,
+  value,
+  emoji,
+  valueColor,
+  label,
+}: {
+  href: string;
+  value: string;
+  emoji?: string;
+  valueColor: string;
+  label: string;
+}) {
   return (
     <Link
-      href="/market-analysis"
-      className="group block soft-card overflow-hidden transition hover:shadow-md hover:border-[color-mix(in_srgb,var(--primary)_40%,var(--border))]"
+      href={href}
+      className="flex flex-col rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 transition hover:border-[color-mix(in_srgb,var(--primary)_40%,var(--border))] hover:shadow-sm"
     >
+      <span className="flex items-center gap-1.5 leading-none">
+        <span className="font-display text-xl font-extrabold tabular-nums nums" style={{ color: valueColor }}>
+          {value}
+        </span>
+        {emoji && <span className="text-sm">{emoji}</span>}
+      </span>
+      <span className="mt-1 text-[0.7rem] font-semibold text-[var(--text-muted)] leading-tight">{label}</span>
+    </Link>
+  );
+}
+
+/** Feature card on the logged-in home — a quick "what's the whole market doing"
+ *  snapshot that links into the full analysis. Deliberately avoids repeating the
+ *  index/value shown by the live-market band directly above it; instead it
+ *  surfaces breadth-driven mood + four at-a-glance, deep-linked stats. */
+export default function MarketAnalysisCard({
+  index,
+  dividends,
+  quality,
+  cheap,
+}: {
+  index: MarketIndexData | null;
+  dividends?: DividendsUpcoming | null;
+  /** Strong/good/total company-quality buckets (from /api/market/state). */
+  quality?: MarketQuality | null;
+  /** The "Are shares cheap or expensive?" Q&A row (from /api/market/state). */
+  cheap?: MarketQuestion | null;
+}) {
+  const mood = readMood(index?.up_count ?? null, index?.down_count ?? null);
+
+  // Are shares cheap? Reuse the market-analysis page's own answer + phrasing.
+  const cheapColor =
+    cheap?.tone === "pos" ? "var(--positive)" : cheap?.tone === "neg" ? "var(--negative)" : "var(--text)";
+  const cheapValue = cheap ? (cheap.a === "About normal" ? "Normal" : cheap.a) : "—";
+  const cheapLabel = cheap?.extra || "share prices vs usual";
+
+  // How many companies look healthy = strong + good, of those scored.
+  const total = quality?.total ?? 0;
+  const healthy = total > 0 ? (quality!.strong + quality!.good) : null;
+  // Always a positive (green) number — it's a count of *healthy* companies, so
+  // never show it in red even when the share is low.
+  const healthyColor = healthy == null ? "var(--text)" : "var(--positive)";
+
+  // Unique companies with a dividend declaration or record date coming up.
+  const divCount = new Set(
+    [
+      ...(dividends?.upcoming_declarations ?? []),
+      ...(dividends?.upcoming_record_dates ?? []),
+    ].map((d) => d.trading_code.toUpperCase()),
+  ).size;
+
+  const turn = index?.turnover_change_pct ?? null;
+  const turnStr = turn == null ? "—" : `${turn >= 0 ? "↑" : "↓"} ${Math.abs(turn).toFixed(0)}%`;
+  const turnColor =
+    turn == null ? "var(--text)" : turn >= 0 ? "var(--positive)" : "var(--negative)";
+
+  return (
+    <section className="soft-card overflow-hidden">
       <div className="flex items-center justify-between gap-2 px-4 sm:px-5 pt-3.5">
         <span className="flex items-center gap-2">
           <span
@@ -52,44 +108,65 @@ export default function MarketAnalysisCard({ index }: { index: MarketIndexData |
             Market Analysis
           </span>
         </span>
-        <span className="text-xs font-semibold text-[var(--primary)] opacity-0 group-hover:opacity-100 transition-opacity">
-          Open →
-        </span>
+        <Link
+          href="/market-analysis"
+          className="inline-flex items-center gap-1 rounded-full border border-[color-mix(in_srgb,var(--primary)_30%,var(--border))] bg-[color-mix(in_srgb,var(--primary)_8%,var(--surface))] px-2.5 py-1 text-[0.68rem] font-bold text-[var(--primary)] transition hover:bg-[color-mix(in_srgb,var(--primary)_16%,var(--surface))] active:scale-95"
+        >
+          Open
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </Link>
       </div>
 
       <div className="px-4 sm:px-5 py-4">
-        <h3 className="font-display text-lg sm:text-xl font-extrabold tracking-tight text-[var(--text)] leading-tight">
-          The whole market, in plain words
+        <h3 className="font-display text-lg sm:text-xl font-extrabold tracking-tight leading-tight" style={{ color: mood.color }}>
+          {mood.text}
         </h3>
         <p className="mt-1 text-sm text-[var(--text-muted)] leading-snug">
-          {mood} See what&apos;s strong, what&apos;s cheap, and where to look.
+          What&apos;s strong, what&apos;s cheap, and where to look right now.
         </p>
 
-        <div className="mt-3.5 flex flex-wrap items-end gap-x-6 gap-y-2">
-          <div className="flex flex-col">
-            <span className="text-[0.62rem] font-bold uppercase tracking-wide text-[var(--text-muted)]">DSEX</span>
-            <div className="flex items-baseline gap-2">
-              <span className="font-display text-2xl font-extrabold tabular-nums nums text-[var(--text)] leading-none">
-                {index?.dsex != null ? Math.round(index.dsex).toLocaleString() : "—"}
-              </span>
-              <span className="text-sm font-bold tabular-nums nums" style={{ color: chgColor(index?.dsex_change_pct) }}>
-                {fmtSigned(index?.dsex_change_pct)}
-              </span>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 text-sm font-bold tabular-nums nums">
-            <span className="text-[var(--positive)]">▲ {index?.up_count ?? "—"}</span>
-            <span className="text-[var(--negative)]">▼ {index?.down_count ?? "—"}</span>
-            <span className="text-[0.62rem] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
-              up / down
-            </span>
-          </div>
+        <div className="mt-3.5 grid grid-cols-2 gap-2.5">
+          <Tile
+            href="/market-analysis"
+            value={cheapValue}
+            emoji="🏷️"
+            valueColor={cheapColor}
+            label={cheapLabel}
+          />
+          <Tile
+            href="/market-analysis"
+            value={healthy != null ? String(healthy) : "—"}
+            emoji="💚"
+            valueColor={healthyColor}
+            label={total > 0 ? `of ${total} look healthy` : "companies healthy"}
+          />
+          <Tile
+            href="/market-analysis"
+            value={String(divCount)}
+            emoji="💰"
+            valueColor="var(--watch)"
+            label="dividends coming up"
+          />
+          <Tile
+            href="/dse-today"
+            value={turnStr}
+            valueColor={turnColor}
+            label="turnover vs last day"
+          />
         </div>
 
-        <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--primary)]">
-          Open market analysis →
-        </span>
+        <Link
+          href="/market-analysis"
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--primary)_35%,var(--border))] bg-[color-mix(in_srgb,var(--primary)_9%,var(--surface))] py-2.5 text-[0.82rem] font-bold text-[var(--primary)] shadow-sm transition hover:bg-[color-mix(in_srgb,var(--primary)_16%,var(--surface))] hover:shadow active:scale-[0.99]"
+        >
+          Open market analysis
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </Link>
       </div>
-    </Link>
+    </section>
   );
 }

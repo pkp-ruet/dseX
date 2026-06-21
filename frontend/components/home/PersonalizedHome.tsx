@@ -10,7 +10,7 @@ import {
   getNearExtremes,
   getDividendsUpcoming,
   getMarketIndex,
-  getMarketMovers,
+  getMarketState,
   getTop20,
   getDailyTips,
   getDailyPicks,
@@ -22,7 +22,7 @@ import {
   type NearExtremesData,
   type DividendsUpcoming,
   type MarketIndexData,
-  type MarketMoverItem,
+  type MarketStateData,
   type Top20Item,
   type DailyTip,
 } from "@/lib/api";
@@ -156,7 +156,7 @@ export default function PersonalizedHome() {
     () => readCache<DividendsUpcoming>(cacheKeys.dividends),
   );
   const [marketIndex, setMarketIndex] = useState<MarketIndexData | null>(null);
-  const [gainers, setGainers] = useState<MarketMoverItem[]>([]);
+  const [marketState, setMarketState] = useState<MarketStateData | null>(null);
   const [top20, setTop20] = useState<Top20Item[]>([]);
   const [tips, setTips] = useState<DailyTip[]>([]);
   const [dailyPicks, setDailyPicks] = useState<DailyPicksResponse | null>(() => {
@@ -199,7 +199,7 @@ export default function PersonalizedHome() {
       })
       .catch(() => {});
     getMarketIndex().then((d) => alive && setMarketIndex(d)).catch(() => {});
-    getMarketMovers().then((d) => alive && setGainers(d.gainers ?? [])).catch(() => {});
+    getMarketState().then((d) => alive && setMarketState(d)).catch(() => {});
     getTop20().then((d) => alive && setTop20(d.items ?? [])).catch(() => {});
     getDailyTips().then((d) => alive && setTips(d.tips ?? [])).catch(() => {});
     getDailyPicks()
@@ -413,9 +413,18 @@ export default function PersonalizedHome() {
             accentVar="var(--positive)"
           />
 
-          {marketIndex && <LiveMarketBand index={marketIndex} gainers={gainers} />}
+          {marketIndex && <LiveMarketBand index={marketIndex} />}
 
-          <MarketAnalysisCard index={marketIndex} />
+          <MarketAnalysisCard
+            index={marketIndex}
+            dividends={dividends}
+            quality={marketState?.now?.quality ?? null}
+            cheap={
+              marketState?.now?.questions?.find((q) =>
+                q.q.toLowerCase().startsWith("are shares cheap"),
+              ) ?? null
+            }
+          />
 
           {rankingItems.length > 0 && (
           <div>

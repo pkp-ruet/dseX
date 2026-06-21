@@ -17,6 +17,7 @@ export default function RecommendedStockCard({
   onLike,
   onSkip,
   liked = false,
+  compact = false,
 }: {
   stock: RecommendedStock;
   rank: number;
@@ -24,6 +25,8 @@ export default function RecommendedStockCard({
   onLike?: () => void;
   onSkip?: () => void;
   liked?: boolean;
+  /** Tight, space-saving layout for the homepage teaser. */
+  compact?: boolean;
 }) {
   const r = RANK[rank] ?? { medal: "⭐", label: `Match ${rank + 1}`, color: "var(--primary)" };
   const color = r.color;
@@ -39,6 +42,92 @@ export default function RecommendedStockCard({
     const t = setTimeout(() => setGrown(true), 300 + revealDelay);
     return () => clearTimeout(t);
   }, [revealDelay]);
+
+  if (compact) {
+    const topReason = stock.reasons[0];
+    return (
+      <div
+        className="rec-rise soft-card relative overflow-hidden"
+        style={{ animationDelay: `${revealDelay}ms` }}
+      >
+        <span
+          className="absolute left-0 top-0 bottom-0 w-[4px]"
+          style={{ background: `linear-gradient(180deg, ${color}, color-mix(in srgb, ${color} 50%, transparent))` }}
+        />
+
+        <div className="p-3 pl-4">
+          {/* Header: identity + price */}
+          <div className="flex items-center gap-2">
+            <span className="text-base leading-none shrink-0">{r.medal}</span>
+            <Link prefetch={false} href={`/stock/${stock.trading_code}`} className="group min-w-0 flex-1">
+              <span className="flex items-baseline gap-1.5">
+                <span className="font-mono text-base font-extrabold tracking-[0.02em] text-[var(--text)] group-hover:text-[var(--primary)] transition-colors">
+                  {stock.trading_code}
+                </span>
+                <span className="tabular-nums text-[0.66rem] font-bold" style={{ color }}>
+                  {match}% match
+                </span>
+              </span>
+              {stock.company_name && (
+                <span className="block text-[0.72rem] text-[var(--text-muted)] truncate leading-tight">
+                  {stock.company_name}
+                </span>
+              )}
+            </Link>
+            <span className="shrink-0 text-right">
+              <span className="block text-[0.92rem] font-bold tabular-nums text-[var(--text)]">
+                ৳{stock.ltp != null ? stock.ltp.toFixed(2) : "--"}
+              </span>
+              {change != null && (
+                <span className="block text-[0.72rem] tabular-nums font-semibold" style={{ color: changeColor }}>
+                  {change >= 0 ? "▲" : "▼"} {Math.abs(change).toFixed(2)}%
+                </span>
+              )}
+            </span>
+          </div>
+
+          {/* Match bar */}
+          <div className="mt-2 h-1.5 rounded-full bg-[var(--surface-2)] overflow-hidden">
+            <div
+              className="h-full rounded-full transition-[width] duration-700 ease-out"
+              style={{
+                width: grown ? `${match}%` : "0%",
+                background: `linear-gradient(90deg, ${color}, color-mix(in srgb, ${color} 65%, #fff))`,
+              }}
+            />
+          </div>
+
+          {/* Top reason + actions */}
+          <div className="mt-2 flex items-center justify-between gap-2">
+            {topReason ? (
+              <span className="flex min-w-0 items-center gap-1.5 text-[0.74rem] leading-snug text-[var(--text-muted)]">
+                <span
+                  className="shrink-0 inline-flex h-3.5 w-3.5 items-center justify-center rounded-full text-[0.55rem] text-white"
+                  style={{ background: color }}
+                >
+                  ✓
+                </span>
+                <span className="truncate">{topReason}</span>
+              </span>
+            ) : (
+              <span />
+            )}
+            <div className="flex shrink-0 items-center gap-1.5">
+              <StarButton code={stock.trading_code} size="sm" />
+              <Link
+                prefetch={false}
+                href={`/stock/${stock.trading_code}`}
+                className="inline-flex items-center min-h-[32px] px-3 rounded-lg text-[0.72rem] font-bold text-white transition hover:brightness-110"
+                style={{ background: "var(--primary)" }}
+              >
+                Analysis →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

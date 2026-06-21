@@ -1,9 +1,7 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
 import type { DailyTip } from "@/lib/api";
 import RecommendCard from "@/components/home/personalized/RecommendCard";
+import DailyTipItem from "@/components/daily-tips/DailyTipItem";
 
 const BULB = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -17,132 +15,28 @@ interface Props {
 
 const TEASER_COUNT = 3;
 
-// Per-signal visual identity: accent color + icon + chip label. Keyed by the
-// tip's lead signal (`category`).
-const CAT_META: Record<string, { color: string; icon: string; tag: string }> = {
-  profit_growth: { color: "var(--positive)", icon: "📈", tag: "Growth" },
-  profit_streak: { color: "var(--positive)", icon: "✅", tag: "Consistent" },
-  dividend_yield: { color: "var(--watch)", icon: "💰", tag: "Dividend" },
-  dividend_streak: { color: "var(--watch)", icon: "🔁", tag: "Payout Streak" },
-  cheap_pe: { color: "var(--primary)", icon: "🏷️", tag: "Cheap vs Peers" },
-  below_book: { color: "var(--primary)", icon: "📘", tag: "Below Book" },
-  high_roe: { color: "var(--np-cautious)", icon: "⚙️", tag: "High Returns" },
-  near_52w_low: { color: "var(--accent)", icon: "📉", tag: "Near Low" },
-  rel_strength: { color: "var(--positive)", icon: "🚀", tag: "Outperforming" },
-  div_catalyst: { color: "var(--strong-buy)", icon: "🔔", tag: "Just Declared" },
-};
-const FALLBACK = { color: "var(--text-muted)", icon: "⭐", tag: "Pick" };
-
 export default function DailyTipsCard({ tips }: Props) {
-  const [expanded, setExpanded] = useState(false);
-
   if (!tips || tips.length === 0) return null;
 
-  const visible = expanded ? tips : tips.slice(0, TEASER_COUNT);
+  const visible = tips.slice(0, TEASER_COUNT);
 
   return (
     <RecommendCard accent="#0D9488" icon={BULB} title="Daily Tips" subtitle="Fresh signals every day" prominent>
-      <div className="flex flex-col gap-3.5">
-        {visible.map((tip) => {
-          const meta = CAT_META[tip.category] ?? FALLBACK;
-          const facts = tip.facts ?? [];
-          // Strip the leading "Name — " from the headline so the body reads as
-          // the stacked facts; fall back to the full text when facts are absent.
-          const summary = tip.text.includes(" — ")
-            ? tip.text.slice(tip.text.indexOf(" — ") + 3)
-            : tip.text;
-          return (
-            <Link
-              key={`${tip.category}-${tip.trading_code}`}
-              prefetch={false}
-              href={`/stock/${tip.trading_code}`}
-              className="hover-lift group flex flex-col gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4"
-            >
-              <span className="flex items-start gap-3.5">
-                {/* icon medallion */}
-                <span
-                  className="shrink-0 grid place-items-center w-10 h-10 rounded-lg text-lg"
-                  style={{
-                    background: `color-mix(in srgb, ${meta.color} 14%, transparent)`,
-                  }}
-                >
-                  {meta.icon}
-                </span>
-
-                <span className="flex-1 min-w-0">
-                  <span className="flex items-center gap-2 flex-wrap">
-                    <span className="ticker-tag text-[0.85rem]">{tip.trading_code}</span>
-                    <span
-                      className="text-[0.7rem] font-extrabold uppercase tracking-[0.08em]"
-                      style={{ color: meta.color }}
-                    >
-                      {meta.tag}
-                    </span>
-                    {typeof tip.conviction === "number" && tip.conviction >= 3 && (
-                      <span className="text-[0.7rem] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">
-                        {tip.conviction} signals
-                      </span>
-                    )}
-                  </span>
-                  <span className="mt-1 block text-[0.95rem] leading-relaxed text-[var(--text)]">
-                    {summary}
-                  </span>
-                </span>
-              </span>
-
-              {/* stacked fact chips */}
-              {facts.length > 0 && (
-                <span className="flex flex-wrap gap-2 pl-[3.25rem]">
-                  {facts.map((f, i) => (
-                    <span
-                      key={`${f.label}-${i}`}
-                      className="px-2.5 py-1 rounded-md text-[0.82rem] font-bold tabular-nums"
-                      style={{
-                        color: meta.color,
-                        background: `color-mix(in srgb, ${meta.color} 14%, transparent)`,
-                      }}
-                    >
-                      {f.value}
-                    </span>
-                  ))}
-                </span>
-              )}
-
-              {/* why-it-matters explainer */}
-              {tip.why && (
-                <span className="block pl-[3.25rem] text-[0.82rem] leading-relaxed text-[var(--text-muted)] italic">
-                  {tip.why}
-                </span>
-              )}
-            </Link>
-          );
-        })}
+      <div className="flex flex-col gap-2.5">
+        {visible.map((tip) => (
+          <DailyTipItem key={`${tip.category}-${tip.trading_code}`} tip={tip} compact />
+        ))}
       </div>
 
-      {tips.length > TEASER_COUNT && (
-        <button
-          type="button"
-          onClick={() => setExpanded((v) => !v)}
-          aria-expanded={expanded}
-          className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--surface)] py-2.5 text-[0.8rem] font-bold text-[#0D9488] transition hover:bg-[color-mix(in_srgb,#0D9488_8%,var(--surface))]"
-        >
-          {expanded ? "Show less" : `View all ${tips.length} tips`}
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden
-            style={{ transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}
-          >
-            <path d="M6 9l6 6 6-6" />
-          </svg>
-        </button>
-      )}
+      <Link
+        href="/daily-tips"
+        className="mt-3 flex items-center justify-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--surface)] py-2.5 text-[0.8rem] font-bold text-[#0D9488] transition hover:bg-[color-mix(in_srgb,#0D9488_8%,var(--surface))]"
+      >
+        {tips.length > TEASER_COUNT ? `See all ${tips.length} tips` : "Open all tips"}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M5 12h14M13 6l6 6-6 6" />
+        </svg>
+      </Link>
     </RecommendCard>
   );
 }

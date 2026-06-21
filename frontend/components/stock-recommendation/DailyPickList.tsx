@@ -14,12 +14,15 @@ export default function DailyPickList({
   initialPicks,
   feedback = true,
   limit,
+  compact = false,
 }: {
   initialPicks: RecommendedStock[];
   /** Show like/skip controls + backfill. Off for the homepage teaser. */
   feedback?: boolean;
   /** Render at most this many cards (teaser mode). */
   limit?: number;
+  /** Tight, space-saving card layout for the homepage teaser. */
+  compact?: boolean;
 }) {
   const [picks, setPicks] = useState<RecommendedStock[]>(initialPicks);
   const [liked, setLiked] = useState<Set<string>>(new Set());
@@ -62,12 +65,13 @@ export default function DailyPickList({
   const shown = limit ? picks.slice(0, limit) : picks;
 
   return (
-    <div className="space-y-3">
+    <div className={compact ? "space-y-2" : "space-y-3"}>
       {shown.map((p, i) => (
         <RecommendedStockCard
           key={p.trading_code}
           stock={p}
           rank={i}
+          compact={compact}
           liked={liked.has(p.trading_code)}
           onLike={feedback ? () => handleLike(p.trading_code) : undefined}
           onSkip={feedback ? () => handleSkip(p.trading_code) : undefined}
