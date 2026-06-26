@@ -12,7 +12,6 @@ export default function PortfolioPage() {
   return (
     <main className="max-w-5xl mx-auto px-4 py-6">
       <div className="rank-page-header">
-        <p className="rank-page-eyebrow">// PERSONAL</p>
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <h1 className="rank-page-title">My Portfolio</h1>
           <ViewAnalysisButton />

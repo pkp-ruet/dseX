@@ -56,11 +56,10 @@ function compute(holding: PortfolioHolding, priceMap: Map<string, ScoreItem>): C
   };
 }
 
-type SortKey = "code" | "company" | "qty" | "avgcost" | "invested" | "ltp" | "curvalue" | "pnl";
+type SortKey = "code" | "qty" | "avgcost" | "invested" | "ltp" | "curvalue" | "pnl";
 
 const COLUMNS: { key: SortKey; label: string; align: "left" | "right" }[] = [
   { key: "code", label: "Code", align: "left" },
-  { key: "company", label: "Company", align: "left" },
   { key: "qty", label: "Qty", align: "right" },
   { key: "avgcost", label: "Avg Cost", align: "right" },
   { key: "invested", label: "Invested", align: "right" },
@@ -73,8 +72,6 @@ function sortValue(row: ComputedRow, key: SortKey): string | number | null {
   switch (key) {
     case "code":
       return row.holding.trading_code;
-    case "company":
-      return row.company_name;
     case "qty":
       return row.holding.qty;
     case "avgcost":
@@ -101,6 +98,34 @@ function PnlCell({ value, pct }: { value: number | null; pct: number | null }) {
         <span className="ml-1 text-xs sm:text-sm opacity-90 font-medium">
           ({pct > 0 ? "+" : ""}
           {pct.toFixed(1)}%)
+        </span>
+      )}
+    </span>
+  );
+}
+
+/** Sign-aware accent color used for tints, pills and accent edges. */
+function signAccent(value: number | null): string {
+  if (value == null || value === 0) return "var(--text-muted)";
+  return value > 0 ? "var(--positive)" : "var(--negative)";
+}
+
+/** Tinted P&L pill for the compact mobile cards. */
+function PnlPill({ value, pct }: { value: number | null; pct: number | null }) {
+  if (value == null) return <span className="text-xs text-[var(--text-muted)]">—</span>;
+  const accent = signAccent(value);
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold tabular-nums nums whitespace-nowrap"
+      style={{ color: accent, background: `color-mix(in srgb, ${accent} 12%, transparent)` }}
+    >
+      <span className="text-[9px] leading-none">{value > 0 ? "▲" : value < 0 ? "▼" : "•"}</span>
+      {value > 0 ? "+" : ""}
+      {taka(value, 0)}
+      {pct != null && (
+        <span className="opacity-75 font-semibold">
+          {pct > 0 ? "+" : ""}
+          {pct.toFixed(1)}%
         </span>
       )}
     </span>
@@ -151,6 +176,13 @@ export default function PortfolioClient() {
   const [rowError, setRowError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  // Edit Portfolio picker modal (select a holding → edit qty/price)
+  const [editPickerOpen, setEditPickerOpen] = useState(false);
+  const [pickerCode, setPickerCode] = useState("");
+  const [pickerForm, setPickerForm] = useState({ price: "", qty: "" });
+  const [pickerSaving, setPickerSaving] = useState(false);
+  const [pickerError, setPickerError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -316,6 +348,42 @@ export default function PortfolioClient() {
     }
   }
 
+  function openEditPicker() {
+    if (holdings.length === 0) return;
+    const first = holdings[0];
+    setPickerCode(first.trading_code);
+    setPickerForm({ price: String(first.buy_price), qty: String(first.qty) });
+    setPickerError(null);
+    setEditPickerOpen(true);
+  }
+
+  function selectPickerCode(code: string) {
+    setPickerCode(code);
+    setPickerError(null);
+    const h = holdings.find((x) => x.trading_code === code);
+    if (h) setPickerForm({ price: String(h.buy_price), qty: String(h.qty) });
+  }
+
+  async function savePicker() {
+    const h = holdings.find((x) => x.trading_code === pickerCode);
+    if (!h) return;
+    setPickerError(null);
+    const price = parseFloat(pickerForm.price);
+    const qty = parseInt(pickerForm.qty, 10);
+    if (isNaN(price) || price <= 0) return setPickerError("Invalid price.");
+    if (isNaN(qty) || qty <= 0) return setPickerError("Invalid qty.");
+    setPickerSaving(true);
+    try {
+      const res = await apiUpdateHolding(h.id, { buy_price: price, qty });
+      applyHoldings(res.holdings);
+      setEditPickerOpen(false);
+    } catch (err: unknown) {
+      setPickerError(err instanceof Error ? err.message : "Failed to save.");
+    } finally {
+      setPickerSaving(false);
+    }
+  }
+
   function handleDelete(id: string) {
     setConfirmDeleteId(id);
   }
@@ -323,6 +391,7 @@ export default function PortfolioClient() {
   async function confirmDelete() {
     const id = confirmDeleteId;
     if (!id) return;
+    const removedCode = holdings.find((x) => x.id === id)?.trading_code ?? null;
     setConfirmDeleteId(null);
     setBusyId(id);
     setRowError(null);
@@ -330,6 +399,16 @@ export default function PortfolioClient() {
       const res = await apiDeleteHolding(id);
       applyHoldings(res.holdings);
       setEditId(null);
+      // Keep the Edit Portfolio picker in sync when the selected stock is removed.
+      if (editPickerOpen && removedCode === pickerCode) {
+        if (res.holdings.length === 0) {
+          setEditPickerOpen(false);
+        } else {
+          const next = res.holdings[0];
+          setPickerCode(next.trading_code);
+          setPickerForm({ price: String(next.buy_price), qty: String(next.qty) });
+        }
+      }
     } catch (err: unknown) {
       setRowError(err instanceof Error ? err.message : "Failed to delete.");
     } finally {
@@ -399,6 +478,7 @@ export default function PortfolioClient() {
 
   const pnlPositive = summary.pnl != null && summary.pnl > 0;
   const pnlNegative = summary.pnl != null && summary.pnl < 0;
+  const pnlAccent = pnlPositive ? "var(--positive)" : pnlNegative ? "var(--negative)" : "var(--text-muted)";
   const isHeld = existingCodes.has(form.trading_code.trim().toUpperCase());
   const editingHolding = holdings.find((h) => h.id === editId) ?? null;
 
@@ -407,28 +487,71 @@ export default function PortfolioClient() {
       {/* Summary cards */}
       {holdings.length > 0 && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <Card padding="none" className="p-4">
-            <p className="text-xs text-[var(--text-muted)] uppercase tracking-wider mb-1">Invested</p>
-            <p className="text-lg font-bold text-[var(--text)] nums">{taka(summary.totalInvested, 0)}</p>
-          </Card>
-          <Card padding="none" className="p-4">
-            <p className="text-xs text-[var(--text-muted)] uppercase tracking-wider mb-1">Current Value</p>
-            <p className="text-lg font-bold text-[var(--text)] nums">
+          {/* Invested */}
+          <div className="soft-card p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="grid place-items-center w-8 h-8 rounded-lg shrink-0 text-[var(--primary)]" style={{ background: "color-mix(in srgb, var(--primary) 11%, transparent)" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" /></svg>
+              </span>
+              <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Invested</p>
+            </div>
+            <p className="text-lg sm:text-xl font-bold text-[var(--text)] nums">{taka(summary.totalInvested, 0)}</p>
+          </div>
+
+          {/* Current Value */}
+          <div className="soft-card p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="grid place-items-center w-8 h-8 rounded-lg shrink-0 text-[var(--primary)]" style={{ background: "color-mix(in srgb, var(--primary) 11%, transparent)" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" /></svg>
+              </span>
+              <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Current Value</p>
+            </div>
+            <p className="text-lg sm:text-xl font-bold text-[var(--text)] nums">
               {summary.totalValue != null ? taka(summary.totalValue, 0) : "—"}
             </p>
-          </Card>
-          <Card padding="none" className="p-4">
-            <p className="text-xs text-[var(--text-muted)] uppercase tracking-wider mb-1">Unrealized P&amp;L</p>
-            <p className={`text-lg font-bold nums ${pnlPositive ? "text-[var(--positive)]" : pnlNegative ? "text-[var(--negative)]" : "text-[var(--text)]"}`}>
+          </div>
+
+          {/* Unrealized P&L */}
+          <div
+            className="soft-card p-4"
+            style={{
+              background: `color-mix(in srgb, ${pnlAccent} 6%, var(--surface))`,
+              borderColor: `color-mix(in srgb, ${pnlAccent} 24%, var(--border))`,
+            }}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <span className="grid place-items-center w-8 h-8 rounded-lg shrink-0" style={{ background: `color-mix(in srgb, ${pnlAccent} 14%, transparent)`, color: pnlAccent }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  {pnlNegative
+                    ? <path d="M16 18l2.29-2.29-4.88-4.88-4 4L2 7.41 3.41 6l6 6 4-4 6.3 6.29L22 12v6z" />
+                    : <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z" />}
+                </svg>
+              </span>
+              <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Unrealized P&amp;L</p>
+            </div>
+            <p className={`text-lg sm:text-xl font-bold nums ${pnlPositive ? "text-[var(--positive)]" : pnlNegative ? "text-[var(--negative)]" : "text-[var(--text)]"}`}>
               {summary.pnl != null ? `${summary.pnl > 0 ? "+" : ""}${taka(summary.pnl, 0)}` : "—"}
             </p>
-          </Card>
-          <Card padding="none" className="p-4">
-            <p className="text-xs text-[var(--text-muted)] uppercase tracking-wider mb-1">Return</p>
-            <p className={`text-lg font-bold nums ${pnlPositive ? "text-[var(--positive)]" : pnlNegative ? "text-[var(--negative)]" : "text-[var(--text)]"}`}>
+          </div>
+
+          {/* Return */}
+          <div
+            className="soft-card p-4"
+            style={{
+              background: `color-mix(in srgb, ${pnlAccent} 6%, var(--surface))`,
+              borderColor: `color-mix(in srgb, ${pnlAccent} 24%, var(--border))`,
+            }}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <span className="grid place-items-center w-8 h-8 rounded-lg shrink-0 text-sm font-extrabold" style={{ background: `color-mix(in srgb, ${pnlAccent} 14%, transparent)`, color: pnlAccent }}>
+                %
+              </span>
+              <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Return</p>
+            </div>
+            <p className={`text-lg sm:text-xl font-bold nums ${pnlPositive ? "text-[var(--positive)]" : pnlNegative ? "text-[var(--negative)]" : "text-[var(--text)]"}`}>
               {summary.pnl_pct != null ? `${summary.pnl_pct > 0 ? "+" : ""}${summary.pnl_pct.toFixed(2)}%` : "—"}
             </p>
-          </Card>
+          </div>
         </div>
       )}
 
@@ -448,77 +571,72 @@ export default function PortfolioClient() {
         </Card>
       ) : (
        <>
-        {/* Mobile: card list */}
-        <div className="flex flex-col gap-3 sm:hidden">
+        {/* Mobile: compact card list */}
+        <div className="flex flex-col gap-2 sm:hidden">
           {sortedRows.map((row) => (
-            <Card key={row.holding.id} padding="none" className="p-4">
-              {/* Header: code + name + P&L% + actions */}
-              <div className="flex items-start justify-between gap-3">
+            <div
+              key={row.holding.id}
+              className="soft-card p-3 pl-3.5"
+              style={{ borderLeft: `3px solid ${signAccent(row.pnl)}` }}
+            >
+              {/* Header: code + name | P&L + actions */}
+              <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <Link
                     prefetch={false}
                     href={`/stock/${row.holding.trading_code}`}
-                    className="text-[var(--primary)] font-mono font-bold text-lg leading-tight"
+                    className="text-[var(--primary)] font-mono font-bold text-base leading-tight"
                   >
                     {row.holding.trading_code}
                   </Link>
-                  <p className="text-xs text-[var(--text-muted)] truncate mt-0.5">
+                  <p className="text-[11px] text-[var(--text-muted)] truncate leading-tight">
                     {row.company_name ?? "—"}
                   </p>
                 </div>
-                <div className="flex items-center gap-0.5 shrink-0 -mr-1.5">
+                <div className="flex items-center gap-1 shrink-0 -my-1 -mr-1">
+                  <PnlPill value={row.pnl} pct={row.pnl_pct} />
                   <button
                     onClick={() => startEdit(row.holding)}
-                    className="text-[var(--text-muted)] hover:text-[var(--text)] transition-colors p-2"
+                    className="text-[var(--text-muted)] hover:text-[var(--text)] transition-colors p-1.5"
                     aria-label="Edit"
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
                     </svg>
                   </button>
                   <button
                     onClick={() => handleDelete(row.holding.id)}
                     disabled={busyId === row.holding.id}
-                    className="text-[var(--text-muted)] hover:text-[var(--negative)] transition-colors p-2 disabled:opacity-40"
+                    className="text-[var(--text-muted)] hover:text-[var(--negative)] transition-colors p-1.5 disabled:opacity-40"
                     aria-label="Delete"
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
                     </svg>
                   </button>
                 </div>
               </div>
 
-              {/* P&L band */}
-              <div className="mt-3 flex items-center justify-between rounded-lg bg-[var(--surface)] px-3 py-2">
-                <span className="text-xs text-[var(--text-muted)] uppercase tracking-wider">P&amp;L</span>
-                <PnlCell value={row.pnl} pct={row.pnl_pct} />
-              </div>
-
-              {/* Metric grid */}
-              <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-[var(--text-muted)]">Qty</span>
-                  <span className="text-[var(--text)] tabular-nums nums font-medium">{row.holding.qty.toLocaleString()}</span>
+              {/* Metric strip */}
+              <div className="mt-2.5 grid grid-cols-4 gap-1 text-center rounded-lg py-2 px-1 bg-[color-mix(in_srgb,var(--primary)_5%,var(--surface))]">
+                <div>
+                  <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">Qty</p>
+                  <p className="text-xs text-[var(--text)] tabular-nums nums font-medium mt-0.5">{row.holding.qty.toLocaleString()}</p>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-[var(--text-muted)]">Avg</span>
-                  <span className="text-[var(--text)] tabular-nums nums font-medium">{taka(row.holding.buy_price, 2)}</span>
+                <div className="border-l border-[var(--border)]">
+                  <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">Avg</p>
+                  <p className="text-xs text-[var(--text)] tabular-nums nums font-medium mt-0.5">{taka(row.holding.buy_price, 2)}</p>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-[var(--text-muted)]">LTP</span>
-                  <span className="text-[var(--text)] tabular-nums nums font-medium">{row.ltp != null ? taka(row.ltp, 1) : "—"}</span>
+                <div className="border-l border-[var(--border)]">
+                  <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">LTP</p>
+                  <p className="text-xs text-[var(--text)] tabular-nums nums font-medium mt-0.5">{row.ltp != null ? taka(row.ltp, 1) : "—"}</p>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-[var(--text-muted)]">Invested</span>
-                  <span className="text-[var(--text)] tabular-nums nums font-medium">{taka(row.cost_basis, 0)}</span>
-                </div>
-                <div className="flex justify-between col-span-2 border-t border-[var(--border)] pt-2.5">
-                  <span className="text-[var(--text-muted)]">Current Value</span>
-                  <span className="text-[var(--text)] tabular-nums nums font-bold">{row.current_value != null ? taka(row.current_value, 0) : "—"}</span>
+                <div className="border-l border-[var(--border)]">
+                  <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">Value</p>
+                  <p className="text-xs text-[var(--text)] tabular-nums nums font-bold mt-0.5">{row.current_value != null ? taka(row.current_value, 0) : "—"}</p>
                 </div>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
 
@@ -601,9 +719,6 @@ export default function PortfolioClient() {
                         {row.holding.trading_code}
                       </Link>
                     </td>
-                    <td className="px-3 sm:px-4 py-4 text-[var(--text)] max-w-[200px] truncate">
-                      {row.company_name ?? "—"}
-                    </td>
                     <td className="px-3 sm:px-4 py-4 text-right text-[var(--text)] tabular-nums nums font-medium">
                       {row.holding.qty.toLocaleString()}
                     </td>
@@ -629,6 +744,24 @@ export default function PortfolioClient() {
           </table>
         </Card>
        </>
+      )}
+
+      {/* Edit portfolio entry point */}
+      {holdings.length > 0 && (
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            onClick={openEditPicker}
+            variant="ghost"
+            size="sm"
+            className="inline-flex items-center gap-1.5"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+            </svg>
+            Edit Portfolio
+          </Button>
+        </div>
       )}
 
       {/* Add holding form */}
@@ -794,6 +927,102 @@ export default function PortfolioClient() {
               >
                 {busyId === editingHolding.id ? "Removing…" : "Remove holding"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Portfolio — pick a holding from a dropdown, then edit qty/price */}
+      {editPickerOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50"
+          onClick={() => !pickerSaving && setEditPickerOpen(false)}
+        >
+          <div
+            className="w-full sm:max-w-sm bg-[var(--surface)] border-t sm:border border-[var(--border)] rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 flex flex-col gap-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-[var(--text)]">Edit Portfolio</h3>
+              <button
+                onClick={() => setEditPickerOpen(false)}
+                className="text-[var(--text-muted)] hover:text-[var(--text)] p-1"
+                aria-label="Close"
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.3 5.71 12 12l6.3 6.29-1.42 1.42L12 13.41 5.71 19.7 4.29 18.3 10.59 12 4.29 5.71 5.71 4.29 12 10.59l6.29-6.3z" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Stock selector */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-[var(--text)]">Stock</label>
+              <select
+                value={pickerCode}
+                onChange={(e) => selectPickerCode(e.target.value)}
+                className="input-field text-base w-full py-2.5 font-mono"
+                aria-label="Select holding to edit"
+              >
+                {holdings.map((h) => (
+                  <option key={h.id} value={h.trading_code}>
+                    {h.trading_code}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-[var(--text)]">Quantity</label>
+                <input
+                  type="number"
+                  value={pickerForm.qty}
+                  min="1"
+                  step="1"
+                  inputMode="numeric"
+                  onChange={(e) => setPickerForm((f) => ({ ...f, qty: e.target.value }))}
+                  className="input-field text-lg w-full tabular-nums py-3"
+                  aria-label="Quantity"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-[var(--text)]">Avg Buy Price (৳)</label>
+                <input
+                  type="number"
+                  value={pickerForm.price}
+                  min="0.01"
+                  step="0.01"
+                  inputMode="decimal"
+                  onChange={(e) => setPickerForm((f) => ({ ...f, price: e.target.value }))}
+                  className="input-field text-lg w-full tabular-nums py-3"
+                  aria-label="Avg buy price"
+                />
+              </div>
+            </div>
+
+            {pickerError && <p className="text-sm text-[var(--negative)] font-medium">{pickerError}</p>}
+
+            <div className="flex flex-col gap-2 mt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  const h = holdings.find((x) => x.trading_code === pickerCode);
+                  if (h) handleDelete(h.id);
+                }}
+                disabled={pickerSaving || busyId !== null}
+                className="text-sm font-medium text-[var(--negative)] hover:opacity-80 py-2.5 w-full disabled:opacity-50"
+              >
+                {busyId !== null ? "Removing…" : `Remove ${pickerCode}`}
+              </button>
+              <Button
+                onClick={savePicker}
+                disabled={pickerSaving}
+                variant="primary"
+                className="w-full"
+              >
+                {pickerSaving ? "Saving…" : "Save changes"}
+              </Button>
             </div>
           </div>
         </div>
