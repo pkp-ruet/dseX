@@ -42,6 +42,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import GoogleAuthProvider from "@/components/auth/GoogleAuthProvider";
 import PingTracker from "@/components/analytics/PingTracker";
 import FeedbackPrompt from "@/components/feedback/FeedbackPrompt";
+import PushOptInPrompt from "@/components/push/PushOptInPrompt";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com"),
@@ -70,6 +71,12 @@ export const metadata: Metadata = {
   openGraph: {
     siteName: "TopStockBD",
     type: "website",
+  },
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "TopStockBD",
   },
   verification: {
     google: "IEdSLL4EJwfqeGpnYWMoAS3v7Kgx05grQIapfE9f0CQ",
@@ -107,6 +114,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <MobileBottomBar />
             <GlobalSearch />
             <FeedbackPrompt />
+            <PushOptInPrompt />
           </GoogleAuthProvider>
         </AuthProvider>
         {process.env.NEXT_PUBLIC_GA_ID && (

@@ -565,17 +565,45 @@ function WatchlistTableInner() {
         </div>
       )}
 
-      <div className="flex items-center justify-between gap-2 mb-3">
-        <div className="flex-1">
-          <AddBar scores={scores} />
+      <div className="mb-4">
+        <div className="mb-2.5 flex items-center gap-2.5">
+          <span
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-[var(--primary)]"
+            style={{
+              background: "color-mix(in srgb, var(--primary) 12%, transparent)",
+              border: "1px solid color-mix(in srgb, var(--primary) 22%, var(--border))",
+            }}
+            aria-hidden
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+            </svg>
+          </span>
+          <div className="min-w-0">
+            <h2 className="text-sm font-bold leading-tight text-[var(--text)]">
+              Add to your watchlist
+            </h2>
+            <p className="text-xs text-[var(--text-muted)]">
+              Search any DSE stock and tap to follow it.
+            </p>
+          </div>
         </div>
-        {codes.length > 0 && <ShareWatchlistButton codes={codes} />}
+        <div className="flex items-center gap-2">
+          <div className="flex-1">
+            <AddBar scores={scores} />
+          </div>
+          {codes.length > 0 && <ShareWatchlistButton codes={codes} />}
+        </div>
       </div>
 
       {codes.length === 0 ? (
-        <div className="watchlist-empty">
-          <h2>Your watchlist is empty</h2>
-          <p>Pick a starter pack or search above to add a stock.</p>
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-6">
+          <div className="text-center">
+            <h2 className="text-lg font-bold text-[var(--text)]">Your watchlist is empty</h2>
+            <p className="mx-auto mt-1 max-w-sm text-sm text-[var(--text-muted)]">
+              Search above to add any stock, or tap a suggestion below.
+            </p>
+          </div>
           <EmptyStateActions />
         </div>
       ) : loading ? (

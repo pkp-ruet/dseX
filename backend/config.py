@@ -33,3 +33,13 @@ EMAIL_REPLY_TO = os.getenv("EMAIL_REPLY_TO", EMAIL_FROM_ADDRESS)
 # Absolute bases for links embedded in emails (CTA → site, pixel/unsubscribe → API).
 PUBLIC_SITE_URL = os.getenv("PUBLIC_SITE_URL", "https://www.topstockbd.com").rstrip("/")
 PUBLIC_API_BASE_URL = os.getenv("PUBLIC_API_BASE_URL", "https://dsex.onrender.com").rstrip("/")
+
+# Web push (VAPID) — browser push notifications for the daily digest + alerts.
+# Generate the keypair ONCE (e.g. `vapid --gen` from py-vapid, or the helper in
+# scripts) and set all three as persistent env vars on Render AND in the GitHub
+# Actions secrets that run `notify-digest`. The PUBLIC key is also exposed to the
+# browser as NEXT_PUBLIC_VAPID_PUBLIC_KEY (must match byte-for-byte). Rotating the
+# keys silently invalidates every existing browser subscription — never rotate.
+VAPID_PUBLIC_KEY = os.getenv("VAPID_PUBLIC_KEY", "")
+VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY", "")
+VAPID_SUBJECT = os.getenv("VAPID_SUBJECT", "mailto:hello@topstockbd.com")

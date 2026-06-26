@@ -80,7 +80,7 @@ export default function DailyPicksCard({
                 Make these picks yours
               </span>
               <span className="block text-[0.75rem] text-[var(--text-muted)] leading-snug">
-                Answer 8 quick questions → get stocks matched to your goals, fresh every day.
+                Tell us what you like → get stocks matched to you, fresh every day.
               </span>
             </span>
             <span

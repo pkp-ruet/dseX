@@ -1,137 +1,154 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  getScores,
-  getMarketMovers,
-  type ScoresResponse,
-  type MarketMoversData,
-} from "@/lib/api";
-import { setWatchlist, getCachedWatchlist } from "@/lib/watchlist";
-import Button from "@/components/ui/Button";
+import Link from "next/link";
+import { getScores, type ScoresResponse, type ScoreItem } from "@/lib/api";
+import { addToWatchlist, getCachedWatchlist, subscribeWatchlist } from "@/lib/watchlist";
+import { taka } from "@/lib/formatters";
 
-export default function EmptyStateActions() {
+interface Props {
+  /** Tighter top spacing + no heading when embedded in another card (homepage first-run). */
+  compact?: boolean;
+  /** Called after a stock is added (lets a parent collapse/celebrate). */
+  onAdded?: () => void;
+}
+
+const SUGGEST_COUNT = 6;
+// Strongest-rated tiers first; we pad down so there are always enough picks.
+const TIER_ORDER: Array<keyof ScoresResponse["tiers"]> = ["strong_buy", "safe_buy", "watch"];
+
+const ICON_PLUS = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+);
+const ICON_CHECK = (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M20 6L9 17l-5-5" />
+  </svg>
+);
+
+/**
+ * Empty-watchlist on-ramp. Instead of a "blind" bulk add (one tap dumping five
+ * unseen tickers into the list), we surface the top-rated companies by name with
+ * a quality-score badge, each added one at a time — so the user knows exactly what
+ * they're following. The page/card above this always has a search box for adding
+ * any other stock.
+ */
+export default function EmptyStateActions({ compact = false, onAdded }: Props = {}) {
   const [scores, setScores] = useState<ScoresResponse | null>(null);
-  const [movers, setMovers] = useState<MarketMoversData | null>(null);
-  const [busy, setBusy] = useState<string | null>(null);
-  const [sector, setSector] = useState<string>("");
+  const [watched, setWatched] = useState<string[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-    Promise.allSettled([getScores(), getMarketMovers()]).then(([s, m]) => {
-      if (cancelled) return;
-      if (s.status === "fulfilled") setScores(s.value);
-      if (m.status === "fulfilled") setMovers(m.value);
-    });
+    getScores()
+      .then((s) => {
+        if (!cancelled) setScores(s);
+      })
+      .catch(() => {});
+    setWatched(getCachedWatchlist());
+    const off = subscribeWatchlist(() => setWatched(getCachedWatchlist()));
     return () => {
       cancelled = true;
+      off();
     };
   }, []);
 
-  const sectors = (() => {
+  const suggestions: ScoreItem[] = (() => {
     if (!scores) return [];
-    const set = new Set<string>();
-    for (const tier of Object.values(scores.tiers)) {
+    const out: ScoreItem[] = [];
+    for (const key of TIER_ORDER) {
+      const tier = [...(scores.tiers[key] ?? [])].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
       for (const it of tier) {
-        if (it.sector) set.add(it.sector);
+        out.push(it);
+        if (out.length >= SUGGEST_COUNT) return out;
       }
     }
-    return Array.from(set).sort();
+    return out;
   })();
 
-  async function addCodes(codes: string[], key: string) {
-    setBusy(key);
-    const existing = getCachedWatchlist();
-    const merged = Array.from(new Set([...existing, ...codes.map((c) => c.toUpperCase())]));
-    await setWatchlist(merged);
-    setBusy(null);
-  }
-
-  async function handleStrongBuy() {
-    if (!scores) return;
-    const picks = scores.tiers.strong_buy.slice(0, 5).map((it) => it.trading_code);
-    if (picks.length) await addCodes(picks, "sb");
-  }
-
-  async function handleMovers() {
-    if (!movers) return;
-    const picks = movers.gainers.slice(0, 5).map((it) => it.trading_code);
-    if (picks.length) await addCodes(picks, "mv");
-  }
-
-  async function handleSector() {
-    if (!scores || !sector) return;
-    const flat = Object.values(scores.tiers).flat();
-    const picks = flat
-      .filter((it) => it.sector === sector)
-      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
-      .slice(0, 3)
-      .map((it) => it.trading_code);
-    if (picks.length) await addCodes(picks, "sc");
+  function handleAdd(code: string) {
+    addToWatchlist(code);
+    onAdded?.();
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
-      <button
-        type="button"
-        onClick={handleStrongBuy}
-        disabled={!scores || busy === "sb"}
-        className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 text-left hover:border-[var(--primary)] hover:shadow-md transition-all disabled:opacity-50"
-      >
-        <div className="text-xs font-bold uppercase tracking-wider text-[var(--primary)] mb-1">
-          Top quality
-        </div>
-        <div className="text-sm font-semibold text-[var(--ink)]">Add Strong-Buy 5</div>
-        <div className="text-xs text-[var(--ink-muted)] mt-1">
-          Best 5 from the DSEF leaderboard
-        </div>
-        {busy === "sb" && <div className="mt-2 text-xs text-[var(--ink-muted)]">Adding…</div>}
-      </button>
+    <div className={`text-left ${compact ? "mt-3" : "mt-5"}`}>
+      {!compact && (
+        <p className="mb-2.5 text-[0.7rem] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+          Suggested to follow
+        </p>
+      )}
 
-      <button
-        type="button"
-        onClick={handleMovers}
-        disabled={!movers || busy === "mv"}
-        className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 text-left hover:border-[var(--primary)] hover:shadow-md transition-all disabled:opacity-50"
-      >
-        <div className="text-xs font-bold uppercase tracking-wider text-[var(--primary)] mb-1">
-          Today
-        </div>
-        <div className="text-sm font-semibold text-[var(--ink)]">Add Top Gainers 5</div>
-        <div className="text-xs text-[var(--ink-muted)] mt-1">
-          5 biggest gainers from latest session
-        </div>
-        {busy === "mv" && <div className="mt-2 text-xs text-[var(--ink-muted)]">Adding…</div>}
-      </button>
-
-      <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 flex flex-col">
-        <div className="text-xs font-bold uppercase tracking-wider text-[var(--primary)] mb-1">
-          By sector
-        </div>
-        <div className="text-sm font-semibold text-[var(--ink)] mb-2">Add top 3 from…</div>
-        <select
-          value={sector}
-          onChange={(e) => setSector(e.target.value)}
-          className="text-xs rounded-md border border-[var(--border)] bg-[var(--bg)] text-[var(--ink)] px-2 py-1 mb-2"
-        >
-          <option value="">Choose sector…</option>
-          {sectors.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
+      {scores === null ? (
+        <ul className="flex flex-col gap-2">
+          {[...Array(4)].map((_, i) => (
+            <li
+              key={i}
+              className="h-[60px] animate-pulse rounded-xl border border-[var(--border)] bg-[var(--surface-2)]"
+            />
           ))}
-        </select>
-        <Button
-          type="button"
-          onClick={handleSector}
-          disabled={!sector || busy === "sc"}
-          variant="primary"
-          size="sm"
-          className="self-start"
-        >
-          {busy === "sc" ? "Adding…" : "Add"}
-        </Button>
-      </div>
+        </ul>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {suggestions.map((it) => {
+            const code = it.trading_code.toUpperCase();
+            const isWatched = watched.includes(code);
+            const chg = it.change_pct;
+            const chgColor =
+              chg == null || chg === 0
+                ? "var(--text-muted)"
+                : chg > 0
+                  ? "var(--positive)"
+                  : "var(--negative)";
+            return (
+              <li
+                key={code}
+                className="group flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5 pl-3.5 transition-all hover:border-[color-mix(in_srgb,var(--primary)_45%,var(--border))] hover:shadow-sm"
+              >
+                <Link
+                  href={`/stock/${code}`}
+                  prefetch={false}
+                  className="flex min-w-0 flex-1 flex-col"
+                >
+                  <span className="text-sm font-bold leading-tight text-[var(--text)] transition-colors group-hover:text-[var(--primary)]">
+                    {code}
+                  </span>
+                  <span className="truncate text-xs text-[var(--text-muted)]">
+                    {it.company_name ?? ""}
+                  </span>
+                </Link>
+
+                {/* Latest price + today's move */}
+                <span className="flex shrink-0 flex-col items-end leading-tight">
+                  <span className="text-sm font-bold tabular-nums text-[var(--text)]">
+                    {taka(it.ltp, 1)}
+                  </span>
+                  <span className="text-xs font-semibold tabular-nums" style={{ color: chgColor }}>
+                    {chg == null ? "—" : `${chg > 0 ? "+" : ""}${chg.toFixed(1)}%`}
+                  </span>
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => handleAdd(code)}
+                  disabled={isWatched}
+                  aria-label={isWatched ? `${code} added` : `Add ${code} to watchlist`}
+                  className={`shrink-0 inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-bold transition-all ${
+                    isWatched
+                      ? "cursor-default border border-[color-mix(in_srgb,var(--positive)_30%,var(--border))] bg-[color-mix(in_srgb,var(--positive)_10%,transparent)] text-[var(--positive)]"
+                      : "text-white hover:brightness-110 active:scale-95"
+                  }`}
+                  style={isWatched ? undefined : { background: "var(--primary)" }}
+                >
+                  {isWatched ? ICON_CHECK : ICON_PLUS}
+                  {isWatched ? "Added" : "Add"}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }

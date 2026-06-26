@@ -33,17 +33,18 @@ import { portfolioTodayMove } from "@/lib/portfolio-analysis";
 
 import WelcomeHeader from "@/components/home/personalized/WelcomeHeader";
 import DailyBriefing from "@/components/home/personalized/DailyBriefing";
+import FirstRunSetup from "@/components/home/personalized/FirstRunSetup";
 import SetupCard from "@/components/home/personalized/SetupCard";
 import PortfolioSummaryCard from "@/components/home/personalized/PortfolioSummaryCard";
 import WatchlistSummaryCard from "@/components/home/personalized/WatchlistSummaryCard";
 import WatchlistMoversCard from "@/components/home/personalized/WatchlistMoversCard";
 import DailyPicksCard from "@/components/home/personalized/DailyPicksCard";
+import TuneModal from "@/components/stock-recommendation/TuneModal";
 import CoreFeatureTiles from "@/components/home/personalized/CoreFeatureTiles";
 import MarketAnalysisCard from "@/components/home/personalized/MarketAnalysisCard";
 import InsightsPreview from "@/components/home/personalized/InsightsPreview";
 import Top20Preview from "@/components/home/personalized/Top20Preview";
 import WatchlistNews from "@/components/watchlist/WatchlistNews";
-import WatchlistQuickAdd from "@/components/watchlist/WatchlistQuickAdd";
 import SearchBar from "@/components/home/SearchBar";
 import LiveMarketBand from "@/components/home/LiveMarketBand";
 import LiveRankingPreview from "@/components/home/LiveRankingPreview";
@@ -56,11 +57,6 @@ function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
   return new Map(all.map((s) => [s.trading_code.toUpperCase(), s]));
 }
 
-const STAR_ICON = (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-  </svg>
-);
 const BAG_ICON = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
     <path d="M20 7h-4V5l-2-2h-4L8 5v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm-8-2h4v2h-4V5z" />
@@ -163,6 +159,7 @@ export default function PersonalizedHome() {
     if (!userId) return null;
     return readCache<DailyPicksResponse>(cacheKeys.dailyPicks(userId));
   });
+  const [tuneOpen, setTuneOpen] = useState(false);
 
   // Core + discovery fetch on mount
   useEffect(() => {
@@ -244,6 +241,7 @@ export default function PersonalizedHome() {
 
   const hasWatchlist = codes.length > 0;
   const hasPortfolio = (holdings?.length ?? 0) > 0;
+  const hasTuned = !!dailyPicks?.tuned;
 
   const dateStr = new Date().toLocaleDateString("en-GB", {
     weekday: "long",
@@ -288,6 +286,17 @@ export default function PersonalizedHome() {
     if (divSoon.has(u)) alertCount++;
   }
 
+  // Biggest watchlist mover today → deep-linked chip in the briefing (mirrors push).
+  let topMover: { code: string; changePct: number } | null = null;
+  for (const c of codes) {
+    const item = priceMap.get(c.toUpperCase());
+    const chg = item?.change_pct;
+    if (chg == null) continue;
+    if (!topMover || Math.abs(chg) > Math.abs(topMover.changePct)) {
+      topMover = { code: c.toUpperCase(), changePct: chg };
+    }
+  }
+
   // Homepage shows only the most-recent day's watchlist news (the /watchlist
   // page keeps the full 30-day list).
   const dayKey = (s: string) => new Date(s).toDateString();
@@ -304,7 +313,13 @@ export default function PersonalizedHome() {
 
   return (
     <div className="pb-4">
-      <WelcomeHeader name={user?.display_name} dateStr={dateStr} marketIndex={marketIndex} />
+      <WelcomeHeader
+        name={user?.display_name}
+        dateStr={dateStr}
+        marketIndex={marketIndex}
+        todayMove={todayMove}
+        watchlistCount={codes.length}
+      />
 
       <DailyBriefing
         todayMove={todayMove}
@@ -312,7 +327,14 @@ export default function PersonalizedHome() {
         newsCount={recentNews.length}
         hasPortfolio={hasPortfolio}
         hasWatchlist={hasWatchlist}
+        hasTuned={hasTuned}
+        onPersonalize={() => setTuneOpen(true)}
+        topMover={topMover}
       />
+
+      {/* First-run on-ramp: prominent watchlist setup for brand-new accounts.
+          Unmounts the instant a stock is added (hasWatchlist flips true). */}
+      {!hasWatchlist && <FirstRunSetup />}
 
       {/* Search any stock → its analysis page */}
       {companies.length > 0 && (
@@ -342,7 +364,8 @@ export default function PersonalizedHome() {
             />
           )}
 
-          {hasWatchlist ? (
+          {/* Empty watchlist is handled by <FirstRunSetup/> above the fold. */}
+          {hasWatchlist && (
             <>
               <WatchlistSummaryCard codes={codes} priceMap={priceMap} dividends={dividends} />
               <WatchlistMoversCard codes={codes} priceMap={priceMap} extremes={extremes} dividends={dividends} />
@@ -353,18 +376,6 @@ export default function PersonalizedHome() {
                 </div>
               )}
             </>
-          ) : (
-            <SetupCard
-              icon={STAR_ICON}
-              title="Build your watchlist"
-              blurb="Search any DSE stock and add it — then follow its price, score and news here, synced across your devices."
-              ctaLabel="Open watchlist"
-              ctaHref="/watchlist"
-            >
-              <div className="mt-4">
-                <WatchlistQuickAdd />
-              </div>
-            </SetupCard>
           )}
         </div>
       </section>
@@ -522,6 +533,14 @@ export default function PersonalizedHome() {
           <CoreFeatureTiles />
         </div>
       </section>
+
+      {/* Onboarding step 3 — "Personalize your picks" quiz, opened from DailyBriefing. */}
+      <TuneModal
+        open={tuneOpen}
+        sectors={sectors}
+        onClose={() => setTuneOpen(false)}
+        onComplete={refreshDailyPicks}
+      />
     </div>
   );
 }

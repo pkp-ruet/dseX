@@ -239,6 +239,29 @@ def cmd_scrape_quick(_args):
         print(f"Skipping revalidate — only {len(prices)} prices scraped (expected >=200).")
 
 
+def cmd_notify_digest(_args):
+    """Send the daily "your stocks today" web-push digest to opted-in users.
+
+    Designed to run right after `scrape-quick` (market close) so the numbers are
+    fresh. Idempotent per Dhaka day — re-running is a no-op. Silently does nothing
+    if the VAPID keys aren't configured."""
+    from backend.services.push_campaign_service import run_digest
+
+    counts = run_digest()
+    print(f"Push digest done: {counts}")
+
+
+def cmd_notify_events(_args):
+    """Send dividend + 52-week-extreme web-push alerts to watchers of each stock.
+
+    Run after `scrape-all` (news/dividends fresh). Idempotent per event per Dhaka
+    day. No-op if VAPID keys aren't configured."""
+    from backend.services.push_campaign_service import run_events
+
+    counts = run_events()
+    print(f"Push events done: {counts}")
+
+
 def cmd_scrape_all(args):
     # Track per-step outcomes so the deploy hook only fires when the upstream
     # scrape actually produced data. Without this, a parser break that
@@ -420,6 +443,16 @@ def main():
         help="Recompute DSEF 5-pillar scores and store them in scores_snapshot",
     )
 
+    sub.add_parser(
+        "notify-digest",
+        help="Send the daily 'your stocks today' web-push digest to opted-in users",
+    )
+
+    sub.add_parser(
+        "notify-events",
+        help="Send dividend + 52-week-extreme web-push alerts to watchers (post-scrape)",
+    )
+
     all_parser = sub.add_parser("scrape-all", help="Run all scrapers sequentially")
     all_parser.add_argument(
         "--full",
@@ -444,6 +477,8 @@ def main():
         "scrape-market-summary": cmd_scrape_market_summary,
         "scrape-quick":          cmd_scrape_quick,
         "compute-scores":        cmd_compute_scores,
+        "notify-digest":         cmd_notify_digest,
+        "notify-events":         cmd_notify_events,
         "scrape-all":            cmd_scrape_all,
     }
 

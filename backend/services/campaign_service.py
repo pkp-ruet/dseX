@@ -158,7 +158,13 @@ def _dsex_pulse() -> dict:
             {"dsex": {"$nin": [None, 0, 0.0]}}, sort=[("date", -1)]
         )
         if latest and latest.get("dsex") and latest.get("date") is not None:
-            target = latest["date"] - timedelta(days=30)
+            # `date` may be stored as a datetime or an ISO "YYYY-MM-DD" string;
+            # keep the target in the same type so the $lte comparison matches.
+            latest_date = latest["date"]
+            if isinstance(latest_date, str):
+                target = (datetime.fromisoformat(latest_date[:10]) - timedelta(days=30)).strftime("%Y-%m-%d")
+            else:
+                target = latest_date - timedelta(days=30)
             prev = db.dse_market_summary.find_one(
                 {"date": {"$lte": target}, "dsex": {"$nin": [None, 0, 0.0]}},
                 sort=[("date", -1)],

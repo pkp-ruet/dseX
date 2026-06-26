@@ -25,6 +25,10 @@ jobs:
       FRONTEND_REVALIDATE_URL: ${{ secrets.FRONTEND_REVALIDATE_URL }}
       REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
       VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+      # Web push (event alerts). Same VAPID keypair as the Render backend.
+      VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+      VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+      VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
     steps:
       - uses: actions/checkout@v4
 
@@ -44,3 +48,11 @@ jobs:
             echo "Running daily scrape (scored companies only)..."
             python main.py scrape-all
           fi
+
+      # Dividend + 52-week-extreme push alerts, once news/dividends are fresh.
+      # No-op until the VAPID secrets are set; idempotent per event per day; a
+      # failure here must not fail the scrape.
+      - name: Send push event alerts
+        if: ${{ success() }}
+        continue-on-error: true
+        run: python main.py notify-events

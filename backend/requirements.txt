@@ -8,5 +8,6 @@ pydantic>=2.9.2,<3
 python-jose[cryptography]==3.3.0
 bcrypt==4.0.1
 google-auth==2.35.0
+pywebpush>=1.14.0  # web push (VAPID) sender for notifications + daily digest
 requests>=2.31.0
 tzdata>=2024.1  # zoneinfo tz database (Asia/Dhaka for login streak) — Windows/slim images lack the system tz db

@@ -3,7 +3,7 @@ import WatchlistTable from "@/components/watchlist/WatchlistTable";
 
 export const metadata: Metadata = {
   title: "My Watchlist — TopStockBD",
-  description: "Track your saved DSE stocks with live prices, DSEF scores, and tiers.",
+  description: "Track your saved DSE stocks with live prices, scores, and tiers.",
   robots: { index: false, follow: false },
 };
 

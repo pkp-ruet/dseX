@@ -711,6 +711,58 @@ export async function apiSetWatchlistNote(code: string, text: string): Promise<{
 }
 
 // ---------------------------------------------------------------------------
+// Notifications (web push)
+// ---------------------------------------------------------------------------
+
+export interface NotificationPrefs {
+  daily_digest: boolean;
+  watchlist_alerts: boolean;
+  dividends: boolean;
+  price_extremes: boolean;
+}
+
+export interface NotificationState {
+  push_enabled: boolean;
+  notification_prefs: NotificationPrefs;
+  this_device_registered: boolean;
+  configured: boolean;
+}
+
+export interface PushSubscriptionPayload {
+  endpoint: string;
+  keys: { p256dh: string; auth: string };
+}
+
+export async function apiGetNotificationState(endpoint?: string): Promise<NotificationState> {
+  const q = endpoint ? `?endpoint=${encodeURIComponent(endpoint)}` : "";
+  return apiAuthFetch<NotificationState>(`/api/notifications/me${q}`);
+}
+
+export async function apiSubscribePush(sub: PushSubscriptionPayload): Promise<NotificationState> {
+  return apiAuthFetch<NotificationState>("/api/notifications/subscribe", {
+    method: "POST",
+    body: JSON.stringify(sub),
+  });
+}
+
+export async function apiUnsubscribePush(endpoint: string): Promise<NotificationState> {
+  return apiAuthFetch<NotificationState>("/api/notifications/unsubscribe", {
+    method: "POST",
+    body: JSON.stringify({ endpoint }),
+  });
+}
+
+export async function apiUpdateNotificationPrefs(
+  prefs?: Partial<NotificationPrefs>,
+  pushEnabled?: boolean,
+): Promise<NotificationState> {
+  return apiAuthFetch<NotificationState>("/api/notifications/prefs", {
+    method: "POST",
+    body: JSON.stringify({ prefs, push_enabled: pushEnabled }),
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Stock recommendation
 // ---------------------------------------------------------------------------
 
