@@ -30,6 +30,7 @@ import { loadWatchlist, getCachedWatchlist, subscribeWatchlist } from "@/lib/wat
 import { loadAlerts, getCachedAlerts, subscribeAlerts, type PriceAlert } from "@/lib/price-alerts";
 import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
 import { getStoredUser } from "@/lib/auth";
+import { consumeJustSignedUp } from "@/lib/welcome";
 import { portfolioTodayMove } from "@/lib/portfolio-analysis";
 import { buildHomeAlerts } from "@/lib/home-alerts";
 
@@ -164,6 +165,13 @@ export default function PersonalizedHome() {
     return readCache<DailyPicksResponse>(cacheKeys.dailyPicks(userId));
   });
   const [tuneOpen, setTuneOpen] = useState(false);
+  // True only on the first dashboard render right after signup (one-shot flag).
+  const [isNewUser, setIsNewUser] = useState(false);
+
+  // Read the just-signed-up flag once on mount (clears it).
+  useEffect(() => {
+    if (consumeJustSignedUp()) setIsNewUser(true);
+  }, []);
 
   // Core + discovery fetch on mount
   useEffect(() => {
@@ -314,6 +322,7 @@ export default function PersonalizedHome() {
           todayMove={todayMove}
           watchlistCount={codes.length}
           alerts={homeAlerts}
+          isNew={isNewUser}
         />
       </Card>
 

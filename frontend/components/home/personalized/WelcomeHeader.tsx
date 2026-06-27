@@ -13,6 +13,8 @@ interface Props {
   watchlistCount?: number;
   /** Personalized alerts for the bell (portfolio, movers, dividends, news). */
   alerts?: HomeAlert[];
+  /** First render right after signup — greet as new instead of "Welcome back". */
+  isNew?: boolean;
 }
 
 export default function WelcomeHeader({
@@ -22,6 +24,7 @@ export default function WelcomeHeader({
   todayMove,
   watchlistCount = 0,
   alerts = [],
+  isNew = false,
 }: Props) {
   const dsex = marketIndex?.dsex;
   const chgPct = marketIndex?.dsex_change_pct;
@@ -55,7 +58,9 @@ export default function WelcomeHeader({
       {/* Greeting + alerts bell (replaces the old wave) */}
       <div className="mt-3 flex items-center justify-between gap-3">
         <h1 className="text-[clamp(1.5rem,6vw,2rem)] font-extrabold tracking-tight text-[var(--text)] leading-tight">
-          Welcome back{name ? <>, <span className="text-[var(--primary)]">{name}</span></> : ""}
+          {isNew ? "Welcome to TopStockBD" : "Welcome back"}
+          {name ? <>, <span className="text-[var(--primary)]">{name}</span></> : ""}
+          {isNew ? " 👋" : ""}
         </h1>
         <AlertsBell alerts={alerts} />
       </div>
