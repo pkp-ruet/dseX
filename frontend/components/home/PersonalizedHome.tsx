@@ -35,7 +35,6 @@ import { buildHomeAlerts } from "@/lib/home-alerts";
 
 import WelcomeHeader from "@/components/home/personalized/WelcomeHeader";
 import DailyBriefing from "@/components/home/personalized/DailyBriefing";
-import FirstRunSetup from "@/components/home/personalized/FirstRunSetup";
 import SetupCard from "@/components/home/personalized/SetupCard";
 import PortfolioSummaryCard from "@/components/home/personalized/PortfolioSummaryCard";
 import WatchlistSummaryCard from "@/components/home/personalized/WatchlistSummaryCard";
@@ -318,17 +317,14 @@ export default function PersonalizedHome() {
         />
       </Card>
 
-      {/* Onboarding checklist (own card) — only while setup is incomplete. */}
+      {/* Onboarding checklist (own card) — only while setup is incomplete.
+          Shows from first sign-in (empty watchlist) onward. */}
       <DailyBriefing
         hasPortfolio={hasPortfolio}
         hasWatchlist={hasWatchlist}
         hasTuned={hasTuned}
         onPersonalize={() => setTuneOpen(true)}
       />
-
-      {/* First-run on-ramp: prominent watchlist setup for brand-new accounts.
-          Unmounts the instant a stock is added (hasWatchlist flips true). */}
-      {!hasWatchlist && <FirstRunSetup />}
 
       {/* Search any stock → its analysis page */}
       {companies.length > 0 && (
@@ -363,7 +359,7 @@ export default function PersonalizedHome() {
             />
           )}
 
-          {/* Empty watchlist is handled by <FirstRunSetup/> above the fold. */}
+          {/* Empty watchlist is nudged by the setup checklist (DailyBriefing) above. */}
           {hasWatchlist && (
             <>
               <WatchlistSummaryCard codes={codes} priceMap={priceMap} dividends={dividends} />

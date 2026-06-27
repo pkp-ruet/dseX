@@ -34,6 +34,7 @@ const NAV_GROUPS: NavGroup[] = [
     id: "discover",
     label: "Discover",
     items: [
+      { href: "/assistant", label: "TopStock AI", sub: "Chat: picks, market & answers" },
       { href: "/dsestockranking", label: "Rankings", sub: "Scored leaderboard" },
       { href: "/daily-tips", label: "Daily Tips", sub: "Fresh signals every day" },
       { href: "/stock-recommendation", label: "Find My Stocks", sub: "Personalized picker" },

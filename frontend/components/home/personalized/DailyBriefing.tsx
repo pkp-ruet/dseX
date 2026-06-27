@@ -93,11 +93,9 @@ export default function DailyBriefing({
   }
 
   // ── Setup incomplete → polished 3-step onboarding card (persists until done) ─
-  // While the watchlist is still empty, <FirstRunSetup/> owns the on-ramp (it has
-  // the inline search-to-add), so we hold this checklist back to avoid showing two
-  // "set up your watchlist" cards at once. Once the first stock is added it takes
-  // over to nudge the remaining steps (portfolio + personalize).
-  if (hasWatchlist && (!hasPortfolio || !hasTuned) && !dismissed) {
+  // Shows from first sign-in (empty watchlist) through portfolio + personalize,
+  // then renders nothing once all three steps are done or it's dismissed.
+  if ((!hasWatchlist || !hasPortfolio || !hasTuned) && !dismissed) {
     const steps = [
       {
         key: "watchlist",

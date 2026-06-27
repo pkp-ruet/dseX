@@ -9,14 +9,18 @@ import {
   isIOS,
   getPermission,
   subscribeToPush,
-  PUSH_ASKED_KEY as ASKED_KEY,
+  canShowPushPromptByHistory,
+  snoozePushPrompt,
+  dismissPushPromptForever,
 } from "@/lib/push";
 
 /**
  * Soft web-push opt-in. Never calls Notification.requestPermission() on load — a
- * denial is permanent. Instead it appears once, tied to the value moment of the
- * user having a watchlist ("we'll watch this for you"), and only the explicit
- * "Turn on alerts" tap triggers the real OS dialog.
+ * denial is permanent. Instead it appears at the value moment of the user having a
+ * watchlist ("we'll watch this for you"), and only the explicit "Turn on alerts"
+ * tap triggers the real OS dialog. "Turn on alerts" dismisses it for good; "Not now"
+ * (and the iOS "Got it") only snooze it — it returns after a cooldown, up to a cap
+ * (see canShowPushPromptByHistory / snoozePushPrompt in lib/push.ts).
  *
  * iOS Safari can't subscribe unless the site is installed to the home screen, so
  * iOS-not-installed users get an "Add to Home Screen" hint instead of a dead-end
@@ -30,7 +34,7 @@ export default function PushOptInPrompt() {
 
   useEffect(() => {
     if (!isLoggedIn || typeof window === "undefined") return;
-    if (localStorage.getItem(ASKED_KEY)) return;
+    if (!canShowPushPromptByHistory()) return;
 
     const canPrompt = isPushSupported() && getPermission() === "default";
     const iosInstallHint = isIOS() && !isStandalone();
@@ -55,20 +59,23 @@ export default function PushOptInPrompt() {
     };
   }, [isLoggedIn]);
 
-  function dismiss() {
+  // "Not now" / iOS "Got it" → soft snooze: comes back after the cooldown, up to a cap.
+  function snooze() {
     setShow(false);
-    try {
-      localStorage.setItem(ASKED_KEY, String(Date.now()));
-    } catch {
-      /* ignore */
-    }
+    snoozePushPrompt();
+  }
+
+  // Engaged with the CTA → never ask again.
+  function dismissForever() {
+    setShow(false);
+    dismissPushPromptForever();
   }
 
   async function enable() {
     setBusy(true);
     await subscribeToPush();
     setBusy(false);
-    dismiss();
+    dismissForever();
   }
 
   if (!show) return null;
@@ -108,7 +115,7 @@ export default function PushOptInPrompt() {
                 <div className="mt-3 flex justify-end">
                   <button
                     type="button"
-                    onClick={dismiss}
+                    onClick={snooze}
                     className="rounded-lg px-3 py-2 text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text)]"
                   >
                     Got it
@@ -130,7 +137,7 @@ export default function PushOptInPrompt() {
                 <div className="mt-3 flex items-center justify-end gap-2">
                   <button
                     type="button"
-                    onClick={dismiss}
+                    onClick={snooze}
                     disabled={busy}
                     className="rounded-lg px-3 py-2 text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text)] disabled:opacity-50"
                   >

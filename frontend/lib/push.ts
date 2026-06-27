@@ -9,8 +9,17 @@ import { apiSubscribePush, apiUnsubscribePush, type NotificationState } from "@/
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
 
-/** localStorage flag set once the push opt-in has been shown (dismissed/enabled). */
+/**
+ * Push opt-in dismissal history (localStorage).
+ * - PUSH_ASKED_KEY: permanent. Set when the user engages ("Turn on alerts"). Once
+ *   present, the prompt never shows again.
+ * - PUSH_SNOOZE_KEY: soft "Not now" / iOS "Got it" — JSON `{ts, count}`. The prompt
+ *   returns after PUSH_SNOOZE_COOLDOWN_MS, up to PUSH_MAX_SOFT_PROMPTS times, then stops.
+ */
 export const PUSH_ASKED_KEY = "dsex.push.asked";
+export const PUSH_SNOOZE_KEY = "dsex.push.snooze";
+const PUSH_SNOOZE_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const PUSH_MAX_SOFT_PROMPTS = 3; // total times we'll show it to a soft-dismisser
 
 export function isPushSupported(): boolean {
   return (
@@ -48,6 +57,49 @@ export function getPermission(): NotificationPermission | "unsupported" {
 }
 
 /**
+ * Whether the dismissal history still allows showing the opt-in prompt.
+ * Permanent dismiss (engaged) → false forever. Soft "Not now" → false until the
+ * cooldown elapses, and false for good once the soft-prompt cap is reached.
+ */
+export function canShowPushPromptByHistory(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    if (localStorage.getItem(PUSH_ASKED_KEY)) return false;
+    const raw = localStorage.getItem(PUSH_SNOOZE_KEY);
+    if (raw) {
+      const { ts = 0, count = 0 } = JSON.parse(raw) as { ts?: number; count?: number };
+      if (count >= PUSH_MAX_SOFT_PROMPTS) return false;
+      if (Date.now() - ts < PUSH_SNOOZE_COOLDOWN_MS) return false;
+    }
+  } catch {
+    return true; // unreadable storage → fail open rather than trap the user out
+  }
+  return true;
+}
+
+/** Soft dismiss ("Not now" / iOS "Got it") — re-prompt after the cooldown, up to the cap. */
+export function snoozePushPrompt(): void {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = localStorage.getItem(PUSH_SNOOZE_KEY);
+    const count = (raw ? (JSON.parse(raw) as { count?: number }).count ?? 0 : 0) + 1;
+    localStorage.setItem(PUSH_SNOOZE_KEY, JSON.stringify({ ts: Date.now(), count }));
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Permanent dismiss — the user engaged ("Turn on alerts") and won't be asked again. */
+export function dismissPushPromptForever(): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(PUSH_ASKED_KEY, String(Date.now()));
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
  * Whether the push opt-in card would still show for this user — i.e. they're a
  * logged-in watchlist user who hasn't been asked and could be subscribed (or, on
  * iOS, needs to install first). Mirrors the gate in PushOptInPrompt so the
@@ -59,11 +111,7 @@ export function isPushOptInPending(opts: {
 }): boolean {
   if (typeof window === "undefined") return false;
   if (!opts.isLoggedIn || opts.watchlistCount <= 0) return false;
-  try {
-    if (localStorage.getItem(PUSH_ASKED_KEY)) return false;
-  } catch {
-    /* ignore */
-  }
+  if (!canShowPushPromptByHistory()) return false;
   const canPrompt = isPushSupported() && getPermission() === "default";
   const iosInstallHint = isIOS() && !isStandalone();
   return canPrompt || iosInstallHint;
