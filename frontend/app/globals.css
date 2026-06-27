@@ -4046,9 +4046,10 @@ details.dsex-exp[open] > summary {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.watchlist-chg.up   { color: var(--strong-buy); font-weight: 700; }
-.watchlist-chg.dn   { color: var(--negative); font-weight: 700; }
-.watchlist-chg.flat { color: var(--ink-2); font-weight: 600; }
+/* Scoped above `.watchlist-table td.num` so the change % keeps its up/down color. */
+.watchlist-table td.watchlist-chg.up   { color: var(--positive); font-weight: 700; }
+.watchlist-table td.watchlist-chg.dn   { color: var(--negative); font-weight: 700; }
+.watchlist-table td.watchlist-chg.flat { color: var(--ink-2);    font-weight: 600; }
 .watchlist-score {
   font-weight: 700;
   color: var(--ink);
@@ -4073,55 +4074,63 @@ details.dsex-exp[open] > summary {
   background: var(--bg);
 }
 @media (max-width: 640px) {
-  .watchlist-wrap { overflow-x: visible; }
+  /* Mobile: drop the shared table frame — each ticker becomes its own card. */
+  .watchlist-wrap {
+    overflow-x: visible;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
   .watchlist-table { display: block; }
   .watchlist-table thead { display: none; }
-  .watchlist-table tbody { display: block; }
+  .watchlist-table tbody { display: flex; flex-direction: column; gap: 10px; }
 
-  /* Enriched row: star · code · tier · LTP · chg · eps · 52w-bar · signals · note
-     Mobile layout (per ticker):
-       row1: star  code     LTP   chg%
-       row2: star  tier     eps   note
-     52w bar + signals hidden on mobile (kept on desktop / stock detail). */
+  /* Per-ticker card. Columns 7 (52w bar) + 8 (signals) stay desktop-only.
+       row1:  star   code  Set          LTP
+       row2:  star   tier  EPS          chg% */
   .watchlist-table tbody tr {
     display: grid;
-    grid-template-columns: 26px minmax(0, 1fr) auto auto;
+    grid-template-columns: 30px auto auto minmax(0, 1fr) auto;
     grid-template-areas:
-      "star code ltp chg"
-      "star tier eps note";
+      "star code alert .  ltp"
+      "star tier eps   .  chg";
     column-gap: 10px;
-    row-gap: 4px;
-    padding: 10px 12px;
-    border-bottom: 1px solid var(--cell-rule);
+    row-gap: 7px;
     align-items: center;
+    padding: 13px 14px;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(28, 25, 23, 0.05);
   }
-  .watchlist-table tbody tr:last-child { border-bottom: none; }
-  .watchlist-table tbody tr:hover { background: rgba(14, 165, 233, 0.06); }
+  .watchlist-table tbody tr:active { background: var(--surface-2); }
 
   .watchlist-table td { padding: 0; border: none; font-size: 0.85rem; }
 
-  .watchlist-table td:nth-child(1) { grid-area: star; align-self: center; }
+  .watchlist-table td:nth-child(1) { grid-area: star; align-self: center; justify-self: center; }
   .watchlist-table td:nth-child(2) { grid-area: code; }
   .watchlist-table td:nth-child(3) { grid-area: tier; justify-self: start; }
-  .watchlist-table td:nth-child(4) { grid-area: ltp; text-align: right; font-variant-numeric: tabular-nums; }
-  .watchlist-table td:nth-child(5) { grid-area: chg; text-align: right; min-width: 56px; font-variant-numeric: tabular-nums; }
-  .watchlist-table td:nth-child(6) { grid-area: eps; justify-self: center; }
+  .watchlist-table td:nth-child(4) {
+    grid-area: ltp;
+    text-align: right;
+    font-size: 1rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .watchlist-table td:nth-child(5) {
+    grid-area: chg;
+    text-align: right;
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .watchlist-table td:nth-child(6) { grid-area: eps;  justify-self: start; }
   /* 52w-range bar + signal pills: hidden on mobile */
   .watchlist-table td:nth-child(7),
   .watchlist-table td:nth-child(8) { display: none; }
-  .watchlist-table td:nth-child(9) { grid-area: note; justify-self: end; }
+  .watchlist-table td:nth-child(9)  { grid-area: alert; justify-self: start; }
 
-  /* Note editor row (colspan=9) — break out of grid and span full width. */
-  .watchlist-table tbody tr:has(> td[colspan]) {
-    display: block;
-    padding: 0;
-  }
-  .watchlist-table tbody tr > td[colspan] {
-    display: block;
-    width: 100%;
-  }
-
-  .watchlist-ticker { font-size: 0.9rem; }
+  .watchlist-ticker { font-size: 0.88rem; padding: 4px 11px; }
 }
 
 /* ======================================

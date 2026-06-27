@@ -192,7 +192,7 @@ def get_analytics(_: dict = Depends(get_current_admin_user)):
 
 @router.get("/users/{user_id}")
 def admin_get_user(user_id: str, _: dict = Depends(get_current_admin_user)):
-    """Full per-user drill-down: watchlist, portfolio, notes, recent page views."""
+    """Full per-user drill-down: watchlist, portfolio, recent page views."""
     db = get_db()
     doc = db["users"].find_one({"user_id": user_id}, {"password_hash": 0, "_id": 0})
     if not doc:
@@ -233,7 +233,6 @@ def admin_get_user(user_id: str, _: dict = Depends(get_current_admin_user)):
         "total_visits": doc.get("total_visits", 0),
         "segment": _engagement_segment(doc, now),
         "watchlist": doc.get("watchlist") or [],
-        "watchlist_notes": doc.get("watchlist_notes") or {},
         "portfolio": portfolio,
         "recent_events": events,
     }

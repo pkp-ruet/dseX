@@ -165,19 +165,15 @@ export default function UserDrillDown({
                   <p className="text-xs text-[var(--text-muted)]">Empty.</p>
                 ) : (
                   <div className="flex flex-wrap gap-1.5">
-                    {detail.watchlist.map((c) => {
-                      const note = detail.watchlist_notes?.[c];
-                      return (
-                        <Link
-                          key={c}
-                          prefetch={false} href={`/stock/${c}`}
-                          title={note || undefined}
-                          className="text-xs font-mono font-semibold px-2 py-1 rounded-lg border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)]"
-                        >
-                          {c}{note ? " 📝" : ""}
-                        </Link>
-                      );
-                    })}
+                    {detail.watchlist.map((c) => (
+                      <Link
+                        key={c}
+                        prefetch={false} href={`/stock/${c}`}
+                        className="text-xs font-mono font-semibold px-2 py-1 rounded-lg border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)]"
+                      >
+                        {c}
+                      </Link>
+                    ))}
                   </div>
                 )}
               </section>

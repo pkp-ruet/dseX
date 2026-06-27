@@ -16,8 +16,6 @@ import {
   apiAddToWatchlist,
   apiRemoveFromWatchlist,
   apiSetWatchlist,
-  apiGetWatchlistNotes,
-  apiSetWatchlistNote,
 } from "@/lib/api";
 import { cacheKeys, clearCachePrefix, readCache, writeCache } from "@/lib/swr-cache";
 
@@ -31,29 +29,14 @@ function persistCodes(codes: string[]): void {
   writeCache(cacheKeys.watchlistCodes(uid), codes);
 }
 
-function persistNotes(notes: Record<string, string>): void {
-  const uid = currentUserId();
-  if (!uid) return;
-  writeCache(cacheKeys.watchlistNotes(uid), notes);
-}
-
 const EVENT = "dsex:watchlist-change";
-const NOTES_EVENT = "dsex:watchlist-notes-change";
 
 let _cache: string[] | null = null;
 let _loadPromise: Promise<string[]> | null = null;
 
-let _notes: Record<string, string> | null = null;
-let _notesLoadPromise: Promise<Record<string, string>> | null = null;
-
 function emit() {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent(EVENT));
-}
-
-function emitNotes() {
-  if (typeof window === "undefined") return;
-  window.dispatchEvent(new CustomEvent(NOTES_EVENT));
 }
 
 function normalize(codes: string[] | undefined | null): string[] {
@@ -177,83 +160,15 @@ export function subscribeWatchlist(cb: () => void): () => void {
 }
 
 // ---------------------------------------------------------------------------
-// Notes
-// ---------------------------------------------------------------------------
-
-export function getCachedNotes(): Record<string, string> {
-  return _notes ?? {};
-}
-
-export function getNote(code: string): string {
-  if (!_notes) return "";
-  return _notes[code.toUpperCase()] ?? "";
-}
-
-export async function loadNotes(): Promise<Record<string, string>> {
-  if (!isLoggedIn()) {
-    _notes = {};
-    return _notes;
-  }
-  // SWR: hydrate from localStorage before the API call resolves.
-  if (_notes === null) {
-    const uid = currentUserId();
-    if (uid) {
-      const persisted = readCache<Record<string, string>>(cacheKeys.watchlistNotes(uid));
-      if (persisted) {
-        _notes = persisted;
-        emitNotes();
-      }
-    }
-  }
-  if (_notesLoadPromise) return _notesLoadPromise;
-  _notesLoadPromise = (async () => {
-    try {
-      const res = await apiGetWatchlistNotes();
-      _notes = res.notes ?? {};
-      persistNotes(_notes);
-    } catch {
-      if (_notes === null) _notes = {};
-    } finally {
-      _notesLoadPromise = null;
-    }
-    emitNotes();
-    return _notes ?? {};
-  })();
-  return _notesLoadPromise;
-}
-
-export async function setNote(code: string, text: string): Promise<void> {
-  if (!isLoggedIn()) return;
-  try {
-    const res = await apiSetWatchlistNote(code, text);
-    _notes = res.notes ?? {};
-    persistNotes(_notes);
-    emitNotes();
-  } catch {
-    // swallow
-  }
-}
-
-export function subscribeNotes(cb: () => void): () => void {
-  if (typeof window === "undefined") return () => {};
-  const handler = () => cb();
-  window.addEventListener(NOTES_EVENT, handler);
-  return () => window.removeEventListener(NOTES_EVENT, handler);
-}
-
-// ---------------------------------------------------------------------------
 // Cache invalidation on logout
 // ---------------------------------------------------------------------------
 
 if (typeof window !== "undefined") {
   window.addEventListener("dsex:auth-logout", () => {
     _cache = [];
-    _notes = {};
     // Drop every user-scoped cache so the next signed-in user starts clean.
     clearCachePrefix(`${cacheKeys.watchlistCodes("")}`.slice(0, -1));
-    clearCachePrefix(`${cacheKeys.watchlistNotes("")}`.slice(0, -1));
     clearCachePrefix(`${cacheKeys.portfolio("")}`.slice(0, -1));
     emit();
-    emitNotes();
   });
 }

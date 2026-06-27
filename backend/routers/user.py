@@ -11,8 +11,6 @@ from backend.services.auth_service import (
     get_db,
     sanitize_user,
     touch_watchlist_visit,
-    get_watchlist_notes,
-    set_watchlist_note,
     get_last_recommendation,
     clear_last_recommendation,
     set_pick_feedback,
@@ -33,11 +31,6 @@ class WatchlistBody(BaseModel):
 
 class ProfileUpdateBody(BaseModel):
     display_name: Optional[str] = None
-
-
-class WatchlistNoteBody(BaseModel):
-    code: str
-    text: str = ""
 
 
 class PickFeedbackBody(BaseModel):
@@ -128,20 +121,6 @@ def pick_feedback(body: PickFeedbackBody, current_user: dict = Depends(get_curre
     Returns {"feedback": {...}, "replacement": <pick|null>}."""
     vote = body.vote if body.vote in ("up", "down", "clear") else "clear"
     return apply_pick_feedback(current_user, body.code, vote)
-
-
-@router.get("/watchlist/notes")
-def list_watchlist_notes(current_user: dict = Depends(get_current_user)):
-    return {"notes": get_watchlist_notes(current_user["user_id"])}
-
-
-@router.put("/watchlist/notes")
-def upsert_watchlist_note(
-    body: WatchlistNoteBody,
-    current_user: dict = Depends(get_current_user),
-):
-    notes = set_watchlist_note(current_user["user_id"], body.code, body.text)
-    return {"notes": notes}
 
 
 # ---------------------------------------------------------------------------

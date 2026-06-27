@@ -700,17 +700,6 @@ export async function apiVisitWatchlist(): Promise<{ previous_visit_at: string |
   });
 }
 
-export async function apiGetWatchlistNotes(): Promise<{ notes: Record<string, string> }> {
-  return apiAuthFetch<{ notes: Record<string, string> }>("/api/user/watchlist/notes");
-}
-
-export async function apiSetWatchlistNote(code: string, text: string): Promise<{ notes: Record<string, string> }> {
-  return apiAuthFetch<{ notes: Record<string, string> }>("/api/user/watchlist/notes", {
-    method: "PUT",
-    body: JSON.stringify({ code, text }),
-  });
-}
-
 // ---------------------------------------------------------------------------
 // Notifications (web push)
 // ---------------------------------------------------------------------------
@@ -1347,7 +1336,6 @@ export interface AdminUserDetail {
   total_visits: number;
   segment: EngagementSegment;
   watchlist: string[];
-  watchlist_notes: Record<string, string>;
   portfolio: AdminPortfolioHolding[];
   recent_events: AdminUserEvent[];
 }

@@ -472,40 +472,6 @@ def record_streak_checkin(user_id: str) -> dict:
     }
 
 
-def get_watchlist_notes(user_id: str) -> dict[str, str]:
-    cached = user_cache.get(user_cache.NS_NOTES, user_id)
-    if cached is not None:
-        return cached
-    doc = _users().find_one({"user_id": user_id}, {"watchlist_notes": 1})
-    notes = (doc or {}).get("watchlist_notes") or {}
-    cleaned = {str(k).upper(): str(v) for k, v in notes.items() if isinstance(v, str) and v.strip()}
-    user_cache.set(user_cache.NS_NOTES, user_id, cleaned)
-    return cleaned
-
-
-def set_watchlist_note(user_id: str, code: str, text: str) -> dict[str, str]:
-    code = code.strip().upper()
-    if not code:
-        raise ValueError("code_required")
-    text = (text or "").strip()
-    if len(text) > 500:
-        text = text[:500]
-    field = f"watchlist_notes.{code}"
-    now = datetime.now(timezone.utc)
-    if text:
-        _users().update_one(
-            {"user_id": user_id},
-            {"$set": {field: text, "updated_at": now}},
-        )
-    else:
-        _users().update_one(
-            {"user_id": user_id},
-            {"$unset": {field: ""}, "$set": {"updated_at": now}},
-        )
-    user_cache.invalidate(user_cache.NS_NOTES, user_id)
-    return get_watchlist_notes(user_id)
-
-
 def ensure_users_indexes() -> None:
     col = _users()
     col.create_index("user_id", unique=True)

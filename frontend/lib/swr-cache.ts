@@ -92,7 +92,6 @@ export const cacheKeys = {
   dividends: `${CACHE_PREFIX}dividends`,
   allCodes: `${CACHE_PREFIX}allCodes`,
   watchlistCodes: (userId: string) => `${CACHE_PREFIX}watchlistCodes.${userId}`,
-  watchlistNotes: (userId: string) => `${CACHE_PREFIX}watchlistNotes.${userId}`,
   watchlistNews: (codes: string[]) =>
     `${CACHE_PREFIX}watchlistNews.${[...codes].map((c) => c.toUpperCase()).sort().join(",")}`,
   alerts: (userId: string) => `${CACHE_PREFIX}alerts.${userId}`,

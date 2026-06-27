@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
@@ -24,10 +24,6 @@ import {
   addToWatchlist,
   removeFromWatchlist,
   setWatchlist,
-  getCachedNotes,
-  loadNotes,
-  subscribeNotes,
-  getNote,
 } from "@/lib/watchlist";
 import { useAuth } from "@/context/AuthContext";
 import { getTier } from "@/lib/constants";
@@ -39,7 +35,6 @@ import WatchlistNews from "./WatchlistNews";
 import WatchlistAnalysis from "./WatchlistAnalysis";
 import WatchlistAlertCell from "./WatchlistAlertCell";
 import PriceAlertTip from "./PriceAlertTip";
-import NoteEditor from "./NoteEditor";
 import EmptyStateActions from "./EmptyStateActions";
 import ShareWatchlistButton from "./ShareWatchlistButton";
 
@@ -206,8 +201,6 @@ interface RowProps {
   item: ScoreItem;
   extreme: NearExtremeItem | null;
   hasDividendSoon: boolean;
-  note: string;
-  onOpenNote: () => void;
 }
 
 function RangeBar({ ltp, high, low }: { ltp: number | null; high: number | null; low: number | null }) {
@@ -304,7 +297,7 @@ function EpsPill({ value }: { value: number | null | undefined }) {
   );
 }
 
-function EnrichedRow({ item, extreme, hasDividendSoon, note, onOpenNote }: RowProps) {
+function EnrichedRow({ item, extreme, hasDividendSoon }: RowProps) {
   const chg = item.change_pct;
   const chgCls = chg == null ? "" : chg > 0 ? "up" : chg < 0 ? "dn" : "flat";
   const tier = getTier(item.score);
@@ -355,21 +348,6 @@ function EnrichedRow({ item, extreme, hasDividendSoon, note, onOpenNote }: RowPr
           w52High={extreme?.w52_high ?? null}
           w52Low={extreme?.w52_low ?? null}
         />
-      </td>
-      <td>
-        <button
-          type="button"
-          onClick={onOpenNote}
-          aria-label={note ? "Edit note" : "Add note"}
-          title={note || "Add a private note"}
-          className={`text-base leading-none ${
-            note
-              ? "text-[var(--primary)]"
-              : "text-[var(--ink-muted)] hover:text-[var(--primary)]"
-          }`}
-        >
-          {note ? "✎" : "+"}
-        </button>
       </td>
     </tr>
   );
@@ -422,35 +400,28 @@ function WatchlistTableInner() {
     return cached ? dividendsToSet(cached) : new Set();
   });
   const [codes, setCodes] = useState<string[]>([]);
-  const [notesMap, setNotesMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(
     () => readCache<ScoresResponse>(cacheKeys.scores) === null,
   );
   const [error, setError] = useState<string | null>(null);
-  const [editingNote, setEditingNote] = useState<string | null>(null);
   const [importPrompt, setImportPrompt] = useState(false);
 
   // News fetched in parallel with public data — keyed on the sorted code list.
   const [news, setNews] = useState<WatchlistNewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(false);
 
-  // Load watchlist + notes when logged in.
-  // loadWatchlist/loadNotes synchronously hydrate their module-level caches
-  // from localStorage if available, so the snapshot right after the call gives
-  // us instant codes/notes even before the network round-trip resolves.
+  // Load watchlist when logged in.
+  // loadWatchlist synchronously hydrates its module-level cache from
+  // localStorage if available, so the snapshot right after the call gives us
+  // instant codes even before the network round-trip resolves.
   useEffect(() => {
     if (!isLoggedIn) return;
     const wPromise = loadWatchlist();
-    const nPromise = loadNotes();
     setCodes(getCachedWatchlist());
-    setNotesMap(getCachedNotes());
     wPromise.then(() => setCodes(getCachedWatchlist()));
-    nPromise.then(() => setNotesMap(getCachedNotes()));
     const offW = subscribeWatchlist(() => setCodes(getCachedWatchlist()));
-    const offN = subscribeNotes(() => setNotesMap(getCachedNotes()));
     return () => {
       offW();
-      offN();
     };
   }, [isLoggedIn]);
 
@@ -646,33 +617,18 @@ function WatchlistTableInner() {
                 <th>52w range</th>
                 <th>Signals</th>
                 <th>Alert</th>
-                <th>Note</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((it) => {
                 const code = it.trading_code.toUpperCase();
                 return (
-                  <Fragment key={code}>
-                    <EnrichedRow
-                      item={it}
-                      extreme={extremes.get(code) ?? null}
-                      hasDividendSoon={dividends.has(code)}
-                      note={notesMap[code] ?? ""}
-                      onOpenNote={() => setEditingNote(editingNote === code ? null : code)}
-                    />
-                    {editingNote === code && (
-                      <tr>
-                        <td colSpan={10} className="p-0">
-                          <NoteEditor
-                            code={code}
-                            initial={getNote(code)}
-                            onClose={() => setEditingNote(null)}
-                          />
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
+                  <EnrichedRow
+                    key={code}
+                    item={it}
+                    extreme={extremes.get(code) ?? null}
+                    hasDividendSoon={dividends.has(code)}
+                  />
                 );
               })}
             </tbody>

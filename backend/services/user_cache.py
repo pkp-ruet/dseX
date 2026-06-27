@@ -69,6 +69,5 @@ def clear() -> None:
 
 # Namespace constants — keep stable, never reuse.
 NS_WATCHLIST = "watchlist"
-NS_NOTES = "watchlist_notes"
 NS_PORTFOLIO = "portfolio"
 NS_TRANSACTIONS = "transactions"
