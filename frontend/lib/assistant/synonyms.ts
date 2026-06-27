@@ -41,6 +41,23 @@ export const PE_WORDS = ["pe", "p/e", "p e", "price earnings", "earnings ratio",
 export const GREETING_WORDS = ["hi", "hii", "hello", "hey", "salam", "assalamu", "good morning", "good evening", "yo", "start"];
 export const HELP_WORDS = ["help", "what can you do", "options", "menu", "how does this work", "what do you do"];
 
+/** "Give me a tip" style requests. */
+export const TIP_WORDS = ["tip", "tips", "advice", "stock tip", "any tips", "today's tip"];
+
+/** Highest-rated / best-quality requests (no specific metric). */
+export const TOP_QUALITY_WORDS = [
+  "top quality", "top-quality", "top rated", "top-rated", "best rated", "best-rated",
+  "best companies", "best stocks", "strongest", "strong companies", "highest rated",
+  "best overall", "quality stocks", "top stocks",
+];
+
+/** Phrases that mean "the dividend calendar" rather than "high-dividend stocks". */
+export const UPCOMING_DIV_PHRASES = [
+  "record date", "ex dividend", "ex-dividend", "upcoming dividend", "dividend date",
+  "dividend calendar", "dividend schedule",
+];
+export const UPCOMING_DIV_CONTEXT = ["upcoming", "coming", "soon", "schedule", "calendar", "next"];
+
 /**
  * Sector aliases → a lower-case substring tested against the raw DSE sector
  * string, plus a friendly display label. Short/ambiguous aliases (e.g. "it")

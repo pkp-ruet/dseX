@@ -168,6 +168,17 @@ export async function screenResponder(intent: IntentId, ent: Entities): Promise<
       return result(intent, ent, items, `Top ${ent.sector ?? "sector"}`, "Score", "/dsestockranking");
     }
 
+    case "screen_top": {
+      const u = await loadScoreUniverse();
+      const items = u
+        .filter(notAvoid)
+        .filter(bySector(match))
+        .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+        .slice(0, LIMIT)
+        .map(scoreRow);
+      return result(intent, ent, items, "Top quality", "Score", "/dsestockranking");
+    }
+
     default:
       return [];
   }

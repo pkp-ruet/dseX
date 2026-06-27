@@ -10,6 +10,8 @@ import { marketPulseResponder } from "./marketPulse";
 import { moversResponder } from "./movers";
 import { singleStockResponder, type SingleStockKind } from "./singleStock";
 import { screenResponder } from "./screen";
+import { tipsResponder } from "./tips";
+import { dividendsResponder } from "./dividends";
 
 export function greetingBlocks(): MessageBlock[] {
   return [
@@ -108,7 +110,14 @@ export async function respond(parsed: ParseResult): Promise<MessageBlock[]> {
     case "screen_near_low":
     case "screen_sector":
     case "screen_price_cap":
+    case "screen_top":
       return withDisclaimer(await screenResponder(intent, entities));
+
+    case "tips":
+      return tipsResponder();
+
+    case "dividends":
+      return dividendsResponder();
 
     case "suggest_stocks":
       // Driven by the hook's slot flow — never resolved here.

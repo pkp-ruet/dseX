@@ -18,7 +18,7 @@ export default function QuickActionsBar({
   onCancel: () => void;
 }) {
   return (
-    <div className="disha-qbar flex items-center gap-2 overflow-x-auto border-t border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-2">
+    <div className="disha-qbar flex flex-nowrap items-center gap-2 overflow-x-auto border-t border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-2 sm:flex-wrap sm:overflow-x-visible">
       {flowActive ? (
         <button
           type="button"

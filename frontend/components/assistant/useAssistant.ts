@@ -29,7 +29,8 @@ import type { RecommendationAnswers } from "@/lib/api";
 import { apiMarkAiUsed } from "@/lib/api";
 import { COPY } from "@/lib/assistant/copy";
 
-const STORAGE_KEY = "disha:chat:v1";
+// Bump the version when the greeting/chips change so stale transcripts are dropped.
+const STORAGE_KEY = "disha:chat:v2";
 
 type Status = "idle" | "thinking";
 

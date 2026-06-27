@@ -15,6 +15,9 @@ import {
   isGoodBuy,
   wantsPe,
   moversKind,
+  isTips,
+  isTopQuality,
+  isUpcomingDividends,
 } from "./intents";
 
 export function parse(raw: string, index: CompanyRef[]): ParseResult {
@@ -35,6 +38,7 @@ export function parse(raw: string, index: CompanyRef[]): ParseResult {
   // 1) Greeting / help — only when nothing more specific is in play.
   if (isGreeting(norm) && !hasTopic) return make("greeting", {}, 1);
   if (isHelp(norm) && !hasTopic && !isSuggest(norm)) return make("help", {}, 0.9);
+  if (isTips(norm) && !ent.code) return make("tips", {}, 0.9);
 
   // 2) Single-stock questions — a resolved code wins.
   if (ent.code) {
@@ -51,6 +55,9 @@ export function parse(raw: string, index: CompanyRef[]): ParseResult {
   //    starts the flow with dividend pre-filled).
   if (isSuggest(norm)) return make("suggest_stocks", ent, 0.95);
 
+  // Dividend *calendar* beats the high-dividend screen.
+  if (isUpcomingDividends(norm)) return make("dividends", ent, 0.9);
+
   // 4) Screens (no specific stock). Combos keep sector/price filters in `ent`.
   if (ent.priceCap != null) return make("screen_price_cap", ent, 0.9);
   if (isNearLow(norm)) return make("screen_near_low", ent, 0.9);
@@ -59,6 +66,7 @@ export function parse(raw: string, index: CompanyRef[]): ParseResult {
   if (ent.metric === "momentum") return make("screen_momentum", ent, 0.9);
   if (ent.metric === "cheap") return make("screen_cheap", ent, 0.9);
   if (ent.metric === "safe") return make("screen_safe", ent, 0.9);
+  if (isTopQuality(norm)) return make("screen_top", ent, 0.85);
 
   // 5) Market updates.
   const mk = moversKind(norm);

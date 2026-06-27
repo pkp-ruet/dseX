@@ -15,6 +15,10 @@ import {
   NEAR_LOW_WORDS,
   GOOD_BUY_WORDS,
   PE_WORDS,
+  TIP_WORDS,
+  TOP_QUALITY_WORDS,
+  UPCOMING_DIV_PHRASES,
+  UPCOMING_DIV_CONTEXT,
 } from "./synonyms";
 
 function anyHit(norm: string, words: string[]): boolean {
@@ -41,4 +45,17 @@ export function moversKind(norm: string): "gainers" | "losers" | "active" | null
   if (anyHit(norm, LOSER_WORDS)) return "losers";
   if (anyHit(norm, ACTIVE_WORDS)) return "active";
   return null;
+}
+
+export const isTips = (norm: string) => anyHit(norm, TIP_WORDS);
+
+export const isTopQuality = (norm: string) => anyHit(norm, TOP_QUALITY_WORDS);
+
+/** The dividend *calendar* — distinct from "high-dividend stocks" (a screen). */
+export function isUpcomingDividends(norm: string): boolean {
+  if (UPCOMING_DIV_PHRASES.some((p) => norm.includes(p))) return true;
+  const mentionsDividend =
+    wordIn(norm, "dividend") || wordIn(norm, "dividends") || wordIn(norm, "payout");
+  const mentionsCalendar = UPCOMING_DIV_CONTEXT.some((w) => wordIn(norm, w));
+  return mentionsDividend && mentionsCalendar;
 }

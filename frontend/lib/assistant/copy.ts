@@ -51,9 +51,10 @@ export const COPY = {
     screen_cheap: "Stocks that look good value at today's price:",
     screen_safe: "Steadier, higher-quality names to start with:",
     screen_growth: "Companies growing their profit the fastest:",
-    screen_momentum: "Stocks moving the most lately:",
+    screen_momentum: "Trending stocks — the biggest movers lately:",
     screen_near_low:
       "Stocks trading near their 1-year low — possible bargains, but check why:",
+    screen_top: "Our highest-rated stocks on the numbers right now:",
   } as Record<string, string>,
   sectorLead: (sector: string) => `Top ${sector} stocks by overall quality:`,
   priceCapLead: (cap: number) => `Decent stocks priced under ৳${cap}:`,
@@ -64,6 +65,17 @@ export const COPY = {
 
   error: {
     text: "I'm having trouble reaching the data right now. Mind trying again?",
+  },
+
+  tips: {
+    intro: "A few quick things worth knowing today 👇",
+    none: "No fresh tips right now — check back a little later.",
+    seeAll: "See all tips",
+  },
+
+  dividends: {
+    intro: "Dividends coming up soon:",
+    none: "No upcoming dividend dates to show right now.",
   },
 
   // --- Slot questions (labels mirror the recommendation quiz wording) ---

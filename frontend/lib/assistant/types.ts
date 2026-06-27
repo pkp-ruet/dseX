@@ -28,6 +28,9 @@ export type IntentId =
   | "screen_near_low"
   | "screen_sector"
   | "screen_price_cap"
+  | "screen_top"
+  | "tips"
+  | "dividends"
   | "suggest_stocks";
 
 export interface CompanyRef {
@@ -124,7 +127,7 @@ export interface Chip {
 export type SlotKey = "strategy" | "dividend" | "risk" | "sectors";
 
 export type MessageBlock =
-  | { type: "text"; text: string; bn?: string }
+  | { type: "text"; text: string; bn?: string; link?: { href: string; label: string } }
   | { type: "chips"; chips: Chip[]; layout?: "wrap" | "scroll" }
   | {
       type: "stock-list";
