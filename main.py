@@ -262,6 +262,21 @@ def cmd_notify_events(_args):
     print(f"Push events done: {counts}")
 
 
+def cmd_generate_summaries(args):
+    """Generate plain-Bangla 'এক নজরে' stock summaries into `stock_summaries`.
+
+    Cached: only stocks whose underlying facts changed are regenerated (use
+    --force to override). Calls Claude, so set ANTHROPIC_API_KEY first."""
+    from backend.services.summaries_service import compute_and_store_summaries
+
+    codes = [args.code.upper()] if getattr(args, "code", None) else None
+    res = compute_and_store_summaries(codes=codes, force=getattr(args, "force", False))
+    print(
+        f"Done. Bengali summaries — generated {res['generated']}, "
+        f"skipped {res['skipped']}, failed {res['failed']}."
+    )
+
+
 def cmd_scrape_all(args):
     # Track per-step outcomes so the deploy hook only fires when the upstream
     # scrape actually produced data. Without this, a parser break that
@@ -350,6 +365,20 @@ def cmd_scrape_all(args):
         print(f"  Generated {len(tdoc.get('tips') or [])} tips.\n")
     except Exception as e:
         print(f"  Warning: daily tips regen failed: {e}\n")
+
+    # Refresh the plain-Bangla "এক নজরে" summaries from the fresh snapshot.
+    # Only stocks whose facts changed are regenerated, so this is cheap. Runs
+    # before the hooks so the revalidate/deploy picks up new summaries.
+    print("=== Post-scrape: Generating Bengali summaries ===")
+    try:
+        from backend.services.summaries_service import compute_and_store_summaries
+        sres = compute_and_store_summaries()
+        print(
+            f"  Summaries — generated {sres['generated']}, "
+            f"skipped {sres['skipped']}, failed {sres['failed']}.\n"
+        )
+    except Exception as e:
+        print(f"  Warning: Bengali summary generation failed: {e}\n")
 
     # Gate the deploy hook on the two scrapes most visible to users:
     # company list (drives the universe) and prices (drives every chart/table).
@@ -453,6 +482,21 @@ def main():
         help="Send dividend + 52-week-extreme web-push alerts to watchers (post-scrape)",
     )
 
+    summaries_parser = sub.add_parser(
+        "generate-summaries",
+        help="Generate plain-Bangla 'এক নজরে' stock summaries (cached; regenerates only changed stocks)",
+    )
+    summaries_parser.add_argument(
+        "--code",
+        default=None,
+        help="Generate for a single trading code (e.g. GP)",
+    )
+    summaries_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Regenerate even when the underlying facts are unchanged",
+    )
+
     all_parser = sub.add_parser("scrape-all", help="Run all scrapers sequentially")
     all_parser.add_argument(
         "--full",
@@ -479,6 +523,7 @@ def main():
         "compute-scores":        cmd_compute_scores,
         "notify-digest":         cmd_notify_digest,
         "notify-events":         cmd_notify_events,
+        "generate-summaries":    cmd_generate_summaries,
         "scrape-all":            cmd_scrape_all,
     }
 

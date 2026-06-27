@@ -10,3 +10,7 @@ numpy>=1.26.0
 # campaign_service, which imports email_service (python-jose), and sends via pywebpush.
 python-jose[cryptography]>=3.3.0
 pywebpush>=1.14.0
+# Bengali "এক নজরে" stock summaries default to a free, offline template renderer
+# (no AI). The Anthropic SDK is only needed if you opt into SUMMARY_BACKEND=ai —
+# uncomment then. The FastAPI read path never imports it.
+# anthropic>=0.49.0

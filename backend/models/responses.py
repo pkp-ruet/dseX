@@ -167,6 +167,7 @@ class CompanyDetailResponse(BaseModel):
     verdict: Optional[StockVerdict] = None
     valuation: Optional[ValuationContext] = None
     sector_context: Optional[SectorContext] = None
+    bengali_summary: Optional[str] = None  # plain-Bangla "এক নজরে" (cached, generated post-scrape)
 
 
 class UpcomingDividend(BaseModel):

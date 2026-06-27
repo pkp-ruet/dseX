@@ -7,6 +7,7 @@ import FeaturedInStrip from "@/components/stock/FeaturedInStrip";
 import HeroSection from "@/components/stock/HeroSection";
 import PriceChart from "@/components/stock/PriceChart";
 import VerdictHero from "@/components/stock/VerdictHero";
+import BengaliSummary from "@/components/stock/BengaliSummary";
 import HealthCheck from "@/components/stock/HealthCheck";
 import ValuationPanel from "@/components/stock/ValuationPanel";
 import KeyNumbers from "@/components/stock/KeyNumbers";
@@ -205,6 +206,9 @@ export default async function StockDetailPage({ params }: PageProps) {
 
       {/* The Price Story */}
       <PriceChart code={profile.trading_code} />
+
+      {/* এক নজরে — plain-Bangla at-a-glance summary (cached, SEO content) */}
+      <BengaliSummary detail={detail} />
 
       {/* Sticky stack: summary bar (on scroll) + section jump-nav */}
       <div className="sticky top-14 z-40 -mx-4 sm:-mx-6">

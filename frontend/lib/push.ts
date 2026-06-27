@@ -9,6 +9,9 @@ import { apiSubscribePush, apiUnsubscribePush, type NotificationState } from "@/
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
 
+/** localStorage flag set once the push opt-in has been shown (dismissed/enabled). */
+export const PUSH_ASKED_KEY = "dsex.push.asked";
+
 export function isPushSupported(): boolean {
   return (
     typeof window !== "undefined" &&
@@ -42,6 +45,28 @@ export function isIOS(): boolean {
 export function getPermission(): NotificationPermission | "unsupported" {
   if (!isPushSupported()) return "unsupported";
   return Notification.permission;
+}
+
+/**
+ * Whether the push opt-in card would still show for this user — i.e. they're a
+ * logged-in watchlist user who hasn't been asked and could be subscribed (or, on
+ * iOS, needs to install first). Mirrors the gate in PushOptInPrompt so the
+ * install banner can defer to it and avoid stacking two bottom cards.
+ */
+export function isPushOptInPending(opts: {
+  isLoggedIn: boolean;
+  watchlistCount: number;
+}): boolean {
+  if (typeof window === "undefined") return false;
+  if (!opts.isLoggedIn || opts.watchlistCount <= 0) return false;
+  try {
+    if (localStorage.getItem(PUSH_ASKED_KEY)) return false;
+  } catch {
+    /* ignore */
+  }
+  const canPrompt = isPushSupported() && getPermission() === "default";
+  const iosInstallHint = isIOS() && !isStandalone();
+  return canPrompt || iosInstallHint;
 }
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {

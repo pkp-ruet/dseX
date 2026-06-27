@@ -2,76 +2,79 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { subscribeWatchlist, getCachedWatchlist } from "@/lib/watchlist";
-import {
-  isPushSupported,
-  isStandalone,
-  isIOS,
-  getPermission,
-  subscribeToPush,
-  PUSH_ASKED_KEY as ASKED_KEY,
-} from "@/lib/push";
+import { getCachedWatchlist } from "@/lib/watchlist";
+import { isPushOptInPending } from "@/lib/push";
+import { useInstallPrompt, INSTALL_SHOW_EVENT } from "@/lib/install";
+
+const DISMISS_KEY = "dsex.install.dismissed";
 
 /**
- * Soft web-push opt-in. Never calls Notification.requestPermission() on load — a
- * denial is permanent. Instead it appears once, tied to the value moment of the
- * user having a watchlist ("we'll watch this for you"), and only the explicit
- * "Turn on alerts" tap triggers the real OS dialog.
+ * Floating "Install now" banner. Auto-appears once for installable visitors who
+ * haven't dismissed it (any user — install is not login-gated). After dismissal
+ * it stays hidden, but the navbar Install button can re-summon it via the
+ * `dsex:show-install` event.
  *
- * iOS Safari can't subscribe unless the site is installed to the home screen, so
- * iOS-not-installed users get an "Add to Home Screen" hint instead of a dead-end
- * button. Mounted globally in app/layout.tsx.
+ * Chromium → "Install now" fires the native dialog. iOS (not yet installed) →
+ * Share → Add to Home Screen instructions, since iOS has no install API.
+ * Mirrors the look of components/push/PushOptInPrompt.tsx. Mounted globally in
+ * app/layout.tsx.
  */
-export default function PushOptInPrompt() {
+export default function InstallPrompt() {
   const { isLoggedIn } = useAuth();
+  const { canInstall, installed, ios, promptInstall } = useInstallPrompt();
   const [show, setShow] = useState(false);
-  const [mode, setMode] = useState<"prompt" | "ios">("prompt");
   const [busy, setBusy] = useState(false);
 
+  const eligible = !installed && (canInstall || ios);
+
+  // Auto-show once (unless previously dismissed).
   useEffect(() => {
-    if (!isLoggedIn || typeof window === "undefined") return;
-    if (localStorage.getItem(ASKED_KEY)) return;
+    if (!eligible) {
+      setShow(false);
+      return;
+    }
+    let dismissed = false;
+    try {
+      dismissed = !!localStorage.getItem(DISMISS_KEY);
+    } catch {
+      /* ignore */
+    }
+    if (dismissed) return;
+    // Push opt-in wins for logged-in watchlist users — don't stack two bottom
+    // cards. The navbar Install button (showInstallBanner) still force-shows it,
+    // and the banner auto-shows on a later visit once push has been handled.
+    if (isPushOptInPending({ isLoggedIn, watchlistCount: getCachedWatchlist().length }))
+      return;
+    const t = setTimeout(() => setShow(true), 2500);
+    return () => clearTimeout(t);
+  }, [eligible, isLoggedIn]);
 
-    const canPrompt = isPushSupported() && getPermission() === "default";
-    const iosInstallHint = isIOS() && !isStandalone();
-    if (!canPrompt && !iosInstallHint) return;
+  // Manual re-summon from the navbar button (ignores the dismissed flag).
+  useEffect(() => {
+    const onShow = () => {
+      if (!installed) setShow(true);
+    };
+    window.addEventListener(INSTALL_SHOW_EVENT, onShow);
+    return () => window.removeEventListener(INSTALL_SHOW_EVENT, onShow);
+  }, [installed]);
 
-    let done = false;
-    const maybeShow = () => {
-      if (done) return;
-      // The value moment: they now have at least one stock to follow.
-      if (getCachedWatchlist().length > 0) {
-        done = true;
-        setMode(iosInstallHint ? "ios" : "prompt");
-        setShow(true);
-      }
-    };
-    // Small delay so we don't pop during the initial hydration burst.
-    const t = setTimeout(maybeShow, 1500);
-    const unsub = subscribeWatchlist(maybeShow);
-    return () => {
-      clearTimeout(t);
-      unsub();
-    };
-  }, [isLoggedIn]);
+  if (!show || !eligible) return null;
 
   function dismiss() {
     setShow(false);
     try {
-      localStorage.setItem(ASKED_KEY, String(Date.now()));
+      localStorage.setItem(DISMISS_KEY, String(Date.now()));
     } catch {
       /* ignore */
     }
   }
 
-  async function enable() {
+  async function install() {
     setBusy(true);
-    await subscribeToPush();
+    await promptInstall();
     setBusy(false);
     dismiss();
   }
-
-  if (!show) return null;
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-[60] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:bottom-4 sm:left-auto sm:right-4 sm:px-0">
@@ -86,24 +89,24 @@ export default function PushOptInPrompt() {
             aria-hidden
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              <path d="M12 3v12" />
+              <path d="m7 10 5 5 5-5" />
+              <path d="M5 21h14" />
             </svg>
           </span>
           <div className="min-w-0 flex-1">
-            {mode === "ios" ? (
+            {ios && !canInstall ? (
               <>
                 <p className="text-sm font-bold text-[var(--text)]">
-                  Get a daily heads-up on your stocks
+                  Add TopStockBD to your home screen
                 </p>
                 <p className="mt-1 text-xs leading-snug text-[var(--text-muted)]">
-                  To turn on alerts on iPhone, tap{" "}
-                  <span className="font-semibold">Share</span> then{" "}
-                  <span className="font-semibold">Add to Home Screen</span>, and open
-                  TopStockBD from there.
+                  Tap <span className="font-semibold">Share</span> then{" "}
+                  <span className="font-semibold">Add to Home Screen</span> to open
+                  it like an app — full screen, one tap away.
                 </p>
                 <p className="mt-1 text-xs leading-snug text-[var(--text-muted)] font-bn" lang="bn">
-                  আইফোনে: Share → Add to Home Screen চাপুন, তারপর সেখান থেকে অ্যাপটি খুলুন।
+                  Share → Add to Home Screen চাপুন — অ্যাপের মতো খুলবে।
                 </p>
                 <div className="mt-3 flex justify-end">
                   <button
@@ -118,14 +121,14 @@ export default function PushOptInPrompt() {
             ) : (
               <>
                 <p className="text-sm font-bold text-[var(--text)]">
-                  Your stocks, in one daily update
+                  Install TopStockBD as an app
                 </p>
                 <p className="mt-1 text-xs leading-snug text-[var(--text-muted)]">
-                  A quick look at your watchlist — movers, dividends and alerts.
-                  One message, no spam.
+                  Add it to your home screen — opens full screen, loads faster, one
+                  tap to your stocks.
                 </p>
                 <p className="mt-1 text-xs leading-snug text-[var(--text-muted)] font-bn" lang="bn">
-                  প্রতিদিন আপনার শেয়ারের ছোট্ট আপডেট
+                  হোম স্ক্রিনে যোগ করুন — অ্যাপের মতো দ্রুত খুলবে।
                 </p>
                 <div className="mt-3 flex items-center justify-end gap-2">
                   <button
@@ -138,12 +141,12 @@ export default function PushOptInPrompt() {
                   </button>
                   <button
                     type="button"
-                    onClick={enable}
+                    onClick={install}
                     disabled={busy}
                     className="rounded-lg px-3.5 py-2 text-xs font-bold text-white disabled:opacity-60"
                     style={{ background: "var(--primary)" }}
                   >
-                    {busy ? "Turning on…" : "Turn on alerts"}
+                    {busy ? "Installing…" : "Install now"}
                   </button>
                 </div>
               </>

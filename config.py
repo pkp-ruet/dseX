@@ -35,6 +35,13 @@ DCF_YEARS = 5                 # forecast horizon for DCF
 
 NEWS_LOOKBACK_DAYS = int(os.getenv("NEWS_LOOKBACK_DAYS", "365"))
 
+# Plain-Bangla "এক নজরে" stock summaries. The default backend ("template") is a
+# free, offline Bengali sentence renderer — no AI, no key needed. Set
+# SUMMARY_BACKEND=ai (and ANTHROPIC_API_KEY) only to use Claude for more natural
+# prose instead.
+SUMMARY_BACKEND = os.getenv("SUMMARY_BACKEND", "template")
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",

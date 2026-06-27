@@ -9,6 +9,7 @@ from backend.services.db_service import (
 from backend.services.scoring_service import get_company_score_row, build_scores_df
 from backend.services.top20_service import compute_momentum_for_code
 from backend.services.verdict_service import build_verdict
+from backend.services.summaries_service import load_stock_summary
 from backend.models.responses import (
     CompanyDetailResponse, CompanyProfile, LatestPrice,
     SignalFlags, DividendDeclaration, RelatedStock,
@@ -207,4 +208,5 @@ def get_company_detail(code: str):
         verdict=verdict_model,
         valuation=valuation_model,
         sector_context=sector_context_model,
+        bengali_summary=load_stock_summary(trading_code),
     )

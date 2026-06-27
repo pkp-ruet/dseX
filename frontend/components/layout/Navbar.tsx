@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { openGlobalSearch } from "@/components/layout/GlobalSearch";
 import WatchlistDot from "@/components/watchlist/WatchlistDot";
+import InstallAppButton from "@/components/pwa/InstallAppButton";
 
 const OPEN_DRAWER_EVENT = "dsex:open-drawer";
 
@@ -196,6 +197,7 @@ export default function Navbar() {
             >
               Portfolio
             </Link>
+            <InstallAppButton className="navbar-intel-btn" />
             {isLoggedIn ? (
               <Link
                 href="/profile"
@@ -308,6 +310,10 @@ export default function Navbar() {
             >
               Portfolio
             </Link>
+            <InstallAppButton
+              className="navbar-drawer-link"
+              onClick={() => setMenuOpen(false)}
+            />
             {isLoggedIn ? (
               <Link
                 href="/profile"

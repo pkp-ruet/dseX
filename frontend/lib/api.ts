@@ -173,6 +173,7 @@ export interface CompanyDetail {
   verdict: StockVerdict | null;
   valuation?: ValuationContext | null;
   sector_context?: SectorContext | null;
+  bengali_summary?: string | null;
 }
 
 export interface UpcomingDividend {

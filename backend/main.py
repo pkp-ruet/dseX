@@ -66,6 +66,9 @@ def startup():
     from backend.services.daily_tips_service import ensure_daily_tips_indexes
     ensure_daily_tips_indexes()
 
+    from backend.services.summaries_service import ensure_summaries_indexes
+    ensure_summaries_indexes()
+
     from backend.services.score_adjustments_service import ensure_indexes as ensure_score_adj_indexes
     ensure_score_adj_indexes()
 
