@@ -44,38 +44,25 @@ const ICON_TUNE = (
 );
 
 interface Props {
-  todayMove: { delta: number; pct: number } | null;
-  alertCount: number;
-  newsCount: number;
   hasPortfolio: boolean;
   hasWatchlist: boolean;
   /** True once the user has taken the personalize-picks quiz. */
   hasTuned?: boolean;
   /** Opens the "personalize your picks" quiz (onboarding step 3). */
   onPersonalize?: () => void;
-  /** Biggest watchlist mover today — rendered as a deep-linked chip (mirrors the push digest). */
-  topMover?: { code: string; changePct: number } | null;
-}
-
-function fmtTk(n: number): string {
-  return `৳${Math.abs(n).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 }
 
 /**
- * One-glance daily hook under the greeting. When the user has data we show a
- * "Daily Check-In" pill row (streak · portfolio today · alerts · new news).
- * A brand-new account (no portfolio AND no watchlist) instead sees a "Get
- * started" checklist so the habit loop is reinforced from day one.
+ * Setup checklist shown under the dashboard header while onboarding is
+ * incomplete. Once the user finishes (or dismisses) it, this renders nothing —
+ * today's movers, alerts and news live in the dedicated cards below, so the
+ * header stays clean.
  */
 export default function DailyBriefing({
-  todayMove,
-  alertCount,
-  newsCount,
   hasPortfolio,
   hasWatchlist,
   hasTuned = false,
   onPersonalize,
-  topMover,
 }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dismissed, setDismissed] = useState<boolean>(() => {
@@ -148,7 +135,7 @@ export default function DailyBriefing({
     const pct = (doneCount / steps.length) * 100;
 
     return (
-      <Card padding="none" className="mt-3 p-4 sm:p-5">
+      <Card padding="md" className="mt-4">
         {/* Header: gradient icon · copy · progress count */}
         <div className="flex items-center gap-3">
           <span
@@ -301,73 +288,6 @@ export default function DailyBriefing({
     );
   }
 
-  // ── Has data → glanceable check-in chips ──────────────────────────────────
-  const up = (todayMove?.delta ?? 0) >= 0;
-
-  const chips: React.ReactNode[] = [];
-
-  if (topMover && topMover.changePct != null) {
-    const moverUp = topMover.changePct >= 0;
-    chips.push(
-      <Link
-        key="mover"
-        href={`/stock/${topMover.code}`}
-        className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.8rem] font-bold tabular-nums transition hover:brightness-95"
-        style={{
-          color: moverUp ? "var(--positive)" : "var(--negative)",
-          borderColor: `color-mix(in srgb, ${moverUp ? "var(--positive)" : "var(--negative)"} 30%, var(--border))`,
-          background: `color-mix(in srgb, ${moverUp ? "var(--positive)" : "var(--negative)"} 8%, var(--surface))`,
-        }}
-      >
-        <span className="text-[var(--text)]">{topMover.code}</span>
-        {moverUp ? "+" : ""}
-        {topMover.changePct.toFixed(1)}%
-      </Link>,
-    );
-  }
-
-  if (todayMove) {
-    chips.push(
-      <span
-        key="pf"
-        className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.8rem] font-bold tabular-nums nums"
-        style={{
-          color: up ? "var(--positive)" : "var(--negative)",
-          borderColor: `color-mix(in srgb, ${up ? "var(--positive)" : "var(--negative)"} 30%, var(--border))`,
-          background: `color-mix(in srgb, ${up ? "var(--positive)" : "var(--negative)"} 8%, var(--surface))`,
-        }}
-      >
-        Portfolio {up ? "+" : "−"}
-        {fmtTk(todayMove.delta)} today
-      </span>,
-    );
-  }
-
-  if (alertCount > 0) {
-    chips.push(
-      <span
-        key="alerts"
-        className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-[0.8rem] font-bold text-[var(--text)]"
-      >
-        <span aria-hidden>⚡</span>
-        {alertCount} {alertCount === 1 ? "alert" : "alerts"}
-      </span>,
-    );
-  }
-
-  if (newsCount > 0) {
-    chips.push(
-      <span
-        key="news"
-        className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-[0.8rem] font-bold text-[var(--text)]"
-      >
-        <span aria-hidden>📰</span>
-        {newsCount} news
-      </span>,
-    );
-  }
-
-  if (chips.length === 0) return null;
-
-  return <div className="mt-3 flex flex-wrap items-center gap-2">{chips}</div>;
+  // Setup complete (or dismissed) → nothing here; keeps the header clean.
+  return null;
 }

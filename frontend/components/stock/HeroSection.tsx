@@ -1,6 +1,7 @@
 import Link from "next/link";
 import WatchlistButton from "@/components/stock/WatchlistButton";
 import AddToPortfolioButton from "@/components/stock/AddToPortfolioButton";
+import PriceAlertButton from "@/components/stock/PriceAlertButton";
 import { taka, signed } from "@/lib/formatters";
 import { range52wInfo } from "@/lib/plain-language";
 import type { CompanyDetail } from "@/lib/api";
@@ -105,6 +106,12 @@ export default function HeroSection({ detail }: Props) {
                   )}
                   <WatchlistButton code={code} className="ml-1" />
                   <AddToPortfolioButton code={code} ltp={ltp} />
+                  <PriceAlertButton
+                    code={code}
+                    ltp={ltp}
+                    w52High={latest_price.w52_high}
+                    w52Low={latest_price.w52_low}
+                  />
                 </div>
               </div>
 

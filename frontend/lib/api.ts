@@ -913,6 +913,63 @@ export async function apiDeleteHolding(id: string): Promise<{ holdings: Portfoli
 }
 
 // ---------------------------------------------------------------------------
+// Price alerts
+// ---------------------------------------------------------------------------
+
+export interface PriceAlert {
+  id: string;
+  trading_code: string;
+  target_price: number;
+  direction: "above" | "below";
+  is_active: boolean;
+  created_at: string | null;
+  triggered_at: string | null;
+  triggered_price: number | null;
+}
+
+export interface AlertsResponse {
+  alerts: PriceAlert[];
+}
+
+export async function apiGetAlerts(): Promise<AlertsResponse> {
+  return apiAuthFetch<AlertsResponse>("/api/user/alerts");
+}
+
+export async function apiCreateAlert(data: {
+  trading_code: string;
+  target_price: number;
+}): Promise<{ alert: PriceAlert; alerts: PriceAlert[] }> {
+  return apiAuthFetch("/api/user/alerts", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function apiUpdateAlert(
+  id: string,
+  data: { target_price: number },
+): Promise<{ alert: PriceAlert; alerts: PriceAlert[] }> {
+  return apiAuthFetch(`/api/user/alerts/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function apiRearmAlert(
+  id: string,
+): Promise<{ alert: PriceAlert; alerts: PriceAlert[] }> {
+  return apiAuthFetch(`/api/user/alerts/${id}/rearm`, {
+    method: "POST",
+  });
+}
+
+export async function apiDeleteAlert(id: string): Promise<{ alerts: PriceAlert[] }> {
+  return apiAuthFetch(`/api/user/alerts/${id}`, {
+    method: "DELETE",
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Visit tracking
 // ---------------------------------------------------------------------------
 

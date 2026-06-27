@@ -37,6 +37,8 @@ import Card from "@/components/ui/Card";
 import Skeleton from "@/components/ui/Skeleton";
 import WatchlistNews from "./WatchlistNews";
 import WatchlistAnalysis from "./WatchlistAnalysis";
+import WatchlistAlertCell from "./WatchlistAlertCell";
+import PriceAlertTip from "./PriceAlertTip";
 import NoteEditor from "./NoteEditor";
 import EmptyStateActions from "./EmptyStateActions";
 import ShareWatchlistButton from "./ShareWatchlistButton";
@@ -346,6 +348,14 @@ function EnrichedRow({ item, extreme, hasDividendSoon, note, onOpenNote }: RowPr
       <td>
         <SignalPills extreme={extreme} hasDividendSoon={hasDividendSoon} />
       </td>
+      <td className="text-center">
+        <WatchlistAlertCell
+          code={item.trading_code}
+          ltp={extreme?.ltp ?? item.ltp}
+          w52High={extreme?.w52_high ?? null}
+          w52Low={extreme?.w52_low ?? null}
+        />
+      </td>
       <td>
         <button
           type="button"
@@ -565,6 +575,8 @@ function WatchlistTableInner() {
         </div>
       )}
 
+      {codes.length > 0 && <PriceAlertTip />}
+
       <div className="mb-4">
         <div className="mb-2.5 flex items-center gap-2.5">
           <span
@@ -633,6 +645,7 @@ function WatchlistTableInner() {
                 <th>EPS YoY</th>
                 <th>52w range</th>
                 <th>Signals</th>
+                <th>Alert</th>
                 <th>Note</th>
               </tr>
             </thead>
@@ -650,7 +663,7 @@ function WatchlistTableInner() {
                     />
                     {editingNote === code && (
                       <tr>
-                        <td colSpan={9} className="p-0">
+                        <td colSpan={10} className="p-0">
                           <NoteEditor
                             code={code}
                             initial={getNote(code)}

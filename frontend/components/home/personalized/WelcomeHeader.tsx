@@ -1,5 +1,7 @@
 import StreakBadge from "@/components/home/personalized/StreakBadge";
+import AlertsBell from "@/components/home/personalized/AlertsBell";
 import type { MarketIndexData } from "@/lib/api";
+import type { HomeAlert } from "@/lib/home-alerts";
 
 interface Props {
   name?: string | null;
@@ -9,6 +11,8 @@ interface Props {
   todayMove?: { delta: number; pct: number } | null;
   /** Watchlist size — used for the subline when there's no portfolio yet. */
   watchlistCount?: number;
+  /** Personalized alerts for the bell (portfolio, movers, dividends, news). */
+  alerts?: HomeAlert[];
 }
 
 export default function WelcomeHeader({
@@ -17,51 +21,63 @@ export default function WelcomeHeader({
   marketIndex,
   todayMove,
   watchlistCount = 0,
+  alerts = [],
 }: Props) {
   const dsex = marketIndex?.dsex;
-  const chg = marketIndex?.dsex_change;
   const chgPct = marketIndex?.dsex_change_pct;
-  const up = (chg ?? 0) >= 0;
+  const up = (chgPct ?? 0) >= 0;
   const color = up ? "var(--positive)" : "var(--negative)";
+  const hasSubline = !!todayMove || watchlistCount > 0;
 
   return (
-    <header className="pt-6 sm:pt-8 pb-1">
-      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-        <p className="text-[0.7rem] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">{dateStr}</p>
+    <header>
+      {/* Date · market — one balanced line */}
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+          {dateStr}
+        </span>
         {dsex != null && (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 text-[0.72rem] font-bold tabular-nums">
+          <span className="inline-flex items-center gap-1 whitespace-nowrap text-xs font-semibold tabular-nums">
             <span className="text-[var(--text-muted)]">DSEX</span>
             <span className="text-[var(--text)]">
               {dsex.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
-            {chg != null && chgPct != null && (
+            {chgPct != null && (
               <span style={{ color }}>
                 {up ? "▲" : "▼"} {up ? "+" : ""}
-                {chg.toFixed(2)} ({up ? "+" : ""}
-                {chgPct.toFixed(2)}%)
+                {chgPct.toFixed(2)}%
               </span>
             )}
           </span>
         )}
       </div>
-      <h1 className="mt-1 text-[clamp(1.5rem,5vw,2.1rem)] font-extrabold tracking-tight text-[var(--text)] leading-tight">
-        Welcome back{name ? <>, <span className="text-[var(--primary)]">{name}</span></> : ""} 👋
-      </h1>
-      {todayMove ? (
-        <p className="mt-1 text-sm font-semibold text-[var(--text-muted)]">
-          Your stocks are{" "}
-          <span style={{ color: todayMove.delta >= 0 ? "var(--positive)" : "var(--negative)" }}>
-            {todayMove.delta >= 0 ? "up" : "down"} ৳
-            {Math.abs(todayMove.delta).toLocaleString("en-US", { maximumFractionDigits: 0 })}
-          </span>{" "}
-          today
-        </p>
-      ) : watchlistCount > 0 ? (
-        <p className="mt-1 text-sm font-semibold text-[var(--text-muted)]">
-          You&apos;re following {watchlistCount} {watchlistCount === 1 ? "stock" : "stocks"}.
-        </p>
-      ) : null}
-      <StreakBadge />
+
+      {/* Greeting + alerts bell (replaces the old wave) */}
+      <div className="mt-3 flex items-center justify-between gap-3">
+        <h1 className="text-[clamp(1.5rem,6vw,2rem)] font-extrabold tracking-tight text-[var(--text)] leading-tight">
+          Welcome back{name ? <>, <span className="text-[var(--primary)]">{name}</span></> : ""}
+        </h1>
+        <AlertsBell alerts={alerts} />
+      </div>
+
+      {/* One quiet subline: follow count + streak */}
+      <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-sm text-[var(--text-muted)]">
+        {todayMove ? (
+          <span className="font-medium">
+            Your stocks are{" "}
+            <span style={{ color: todayMove.delta >= 0 ? "var(--positive)" : "var(--negative)" }}>
+              {todayMove.delta >= 0 ? "up" : "down"} ৳
+              {Math.abs(todayMove.delta).toLocaleString("en-US", { maximumFractionDigits: 0 })}
+            </span>{" "}
+            today
+          </span>
+        ) : watchlistCount > 0 ? (
+          <span className="font-medium">
+            Following {watchlistCount} {watchlistCount === 1 ? "stock" : "stocks"}
+          </span>
+        ) : null}
+        <StreakBadge leadingDot={hasSubline} />
+      </div>
     </header>
   );
 }

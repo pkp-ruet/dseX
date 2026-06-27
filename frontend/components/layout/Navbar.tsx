@@ -62,6 +62,7 @@ export default function Navbar() {
 
   const isWatchlist = pathname === "/watchlist";
   const isPortfolio = pathname === "/portfolio";
+  const isAlerts = pathname === "/alerts";
 
   const isItemActive = (href: string) =>
     pathname === href || (href !== "/" && pathname.startsWith(href + "/"));
@@ -197,6 +198,12 @@ export default function Navbar() {
             >
               Portfolio
             </Link>
+            <Link
+              href="/alerts"
+              className={`navbar-intel-btn${isAlerts ? " navbar-intel-btn-active" : ""}`}
+            >
+              Alerts
+            </Link>
             <InstallAppButton className="navbar-intel-btn" />
             {isLoggedIn ? (
               <Link
@@ -309,6 +316,13 @@ export default function Navbar() {
               onClick={() => setMenuOpen(false)}
             >
               Portfolio
+            </Link>
+            <Link
+              href="/alerts"
+              className={`navbar-drawer-link${isAlerts ? " active" : ""}`}
+              onClick={() => setMenuOpen(false)}
+            >
+              Price Alerts
             </Link>
             <InstallAppButton
               className="navbar-drawer-link"

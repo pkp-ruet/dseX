@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getCachedWatchlist } from "@/lib/watchlist";
 import { isPushOptInPending } from "@/lib/push";
@@ -21,6 +22,7 @@ const DISMISS_KEY = "dsex.install.dismissed";
  */
 export default function InstallPrompt() {
   const { isLoggedIn } = useAuth();
+  const pathname = usePathname();
   const { canInstall, installed, ios, promptInstall } = useInstallPrompt();
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -40,6 +42,10 @@ export default function InstallPrompt() {
       /* ignore */
     }
     if (dismissed) return;
+    // The logged-in home has its own inline install banner (InstallHomeBanner) —
+    // don't auto-show the floating one there too. Manual showInstallBanner() (e.g.
+    // iOS taps from that banner) still works via the listener below.
+    if (isLoggedIn && pathname === "/") return;
     // Push opt-in wins for logged-in watchlist users — don't stack two bottom
     // cards. The navbar Install button (showInstallBanner) still force-shows it,
     // and the banner auto-shows on a later visit once push has been handled.
@@ -47,7 +53,7 @@ export default function InstallPrompt() {
       return;
     const t = setTimeout(() => setShow(true), 2500);
     return () => clearTimeout(t);
-  }, [eligible, isLoggedIn]);
+  }, [eligible, isLoggedIn, pathname]);
 
   // Manual re-summon from the navbar button (ignores the dismissed flag).
   useEffect(() => {

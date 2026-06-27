@@ -27,9 +27,11 @@ import {
   type DailyTip,
 } from "@/lib/api";
 import { loadWatchlist, getCachedWatchlist, subscribeWatchlist } from "@/lib/watchlist";
+import { loadAlerts, getCachedAlerts, subscribeAlerts, type PriceAlert } from "@/lib/price-alerts";
 import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
 import { getStoredUser } from "@/lib/auth";
 import { portfolioTodayMove } from "@/lib/portfolio-analysis";
+import { buildHomeAlerts } from "@/lib/home-alerts";
 
 import WelcomeHeader from "@/components/home/personalized/WelcomeHeader";
 import DailyBriefing from "@/components/home/personalized/DailyBriefing";
@@ -46,10 +48,12 @@ import InsightsPreview from "@/components/home/personalized/InsightsPreview";
 import Top20Preview from "@/components/home/personalized/Top20Preview";
 import WatchlistNews from "@/components/watchlist/WatchlistNews";
 import SearchBar from "@/components/home/SearchBar";
+import InstallHomeBanner from "@/components/pwa/InstallHomeBanner";
 import LiveMarketBand from "@/components/home/LiveMarketBand";
 import LiveRankingPreview from "@/components/home/LiveRankingPreview";
 import DailyTipsCard from "@/components/home/DailyTipsCard";
 import PromoPill from "@/components/home/PromoPill";
+import Card from "@/components/ui/Card";
 
 function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
   if (!scores) return new Map();
@@ -136,6 +140,7 @@ export default function PersonalizedHome() {
   const userId = getStoredUser()?.user_id ?? null;
 
   const [codes, setCodes] = useState<string[]>(() => getCachedWatchlist());
+  const [priceAlerts, setPriceAlerts] = useState<PriceAlert[]>(() => getCachedAlerts());
   const [holdings, setHoldings] = useState<PortfolioHolding[] | null>(() => {
     if (!userId) return null;
     return readCache<PortfolioHolding[]>(cacheKeys.portfolio(userId));
@@ -206,10 +211,13 @@ export default function PersonalizedHome() {
         if (userId) writeCache(cacheKeys.dailyPicks(userId), d);
       })
       .catch(() => {});
+    loadAlerts().then((a) => alive && setPriceAlerts(a)).catch(() => {});
     const unsub = subscribeWatchlist(() => setCodes(getCachedWatchlist()));
+    const unsubAlerts = subscribeAlerts(() => setPriceAlerts(getCachedAlerts()));
     return () => {
       alive = false;
       unsub();
+      unsubAlerts();
     };
   }, []);
 
@@ -267,35 +275,8 @@ export default function PersonalizedHome() {
       .catch(() => {});
   }
 
-  // ── Daily Check-In inputs ──────────────────────────────────────────────────
+  // Portfolio move today — drives the WelcomeHeader subline.
   const todayMove = hasPortfolio ? portfolioTodayMove(holdings!, priceMap) : null;
-
-  // Watchlist alert count: near 52w high/low + dividend soon (mirrors WatchlistMoversCard).
-  const nearHigh = new Set((extremes?.near_high ?? []).map((e) => e.trading_code.toUpperCase()));
-  const nearLow = new Set((extremes?.near_low ?? []).map((e) => e.trading_code.toUpperCase()));
-  const divSoon = new Set(
-    [...(dividends?.upcoming_declarations ?? []), ...(dividends?.upcoming_record_dates ?? [])].map((d) =>
-      d.trading_code.toUpperCase(),
-    ),
-  );
-  let alertCount = 0;
-  for (const c of codes) {
-    const u = c.toUpperCase();
-    if (nearHigh.has(u)) alertCount++;
-    if (nearLow.has(u)) alertCount++;
-    if (divSoon.has(u)) alertCount++;
-  }
-
-  // Biggest watchlist mover today → deep-linked chip in the briefing (mirrors push).
-  let topMover: { code: string; changePct: number } | null = null;
-  for (const c of codes) {
-    const item = priceMap.get(c.toUpperCase());
-    const chg = item?.change_pct;
-    if (chg == null) continue;
-    if (!topMover || Math.abs(chg) > Math.abs(topMover.changePct)) {
-      topMover = { code: c.toUpperCase(), changePct: chg };
-    }
-  }
 
   // Homepage shows only the most-recent day's watchlist news (the /watchlist
   // page keeps the full 30-day list).
@@ -311,25 +292,38 @@ export default function PersonalizedHome() {
 
   const showRecommended = !!dailyPicks?.picks?.length || tips.length > 0;
 
+  // Personalized alerts for the header bell — built from data already loaded.
+  const homeAlerts = buildHomeAlerts({
+    codes,
+    priceMap,
+    todayMove,
+    extremes,
+    dividends,
+    news: recentNews,
+    triggeredAlerts: priceAlerts,
+    dateKey: new Date().toDateString(),
+  });
+
   return (
     <div className="pb-4">
-      <WelcomeHeader
-        name={user?.display_name}
-        dateStr={dateStr}
-        marketIndex={marketIndex}
-        todayMove={todayMove}
-        watchlistCount={codes.length}
-      />
+      {/* Dashboard header card — greeting + market line, kept deliberately clean. */}
+      <Card padding="md" className="mt-5">
+        <WelcomeHeader
+          name={user?.display_name}
+          dateStr={dateStr}
+          marketIndex={marketIndex}
+          todayMove={todayMove}
+          watchlistCount={codes.length}
+          alerts={homeAlerts}
+        />
+      </Card>
 
+      {/* Onboarding checklist (own card) — only while setup is incomplete. */}
       <DailyBriefing
-        todayMove={todayMove}
-        alertCount={alertCount}
-        newsCount={recentNews.length}
         hasPortfolio={hasPortfolio}
         hasWatchlist={hasWatchlist}
         hasTuned={hasTuned}
         onPersonalize={() => setTuneOpen(true)}
-        topMover={topMover}
       />
 
       {/* First-run on-ramp: prominent watchlist setup for brand-new accounts.
@@ -342,6 +336,11 @@ export default function PersonalizedHome() {
           <SearchBar companies={companies} variant="sidebar" />
         </div>
       )}
+
+      {/* Mobile-only install CTA — sits with the search box, not wedged into the
+          briefing. Desktop has the navbar button. Auto-hides once installed /
+          dismissed / unsupported. */}
+      <InstallHomeBanner />
 
       {/* ── Section 1: Personal — your portfolio, watchlist & news ── */}
       <section className="mt-8">

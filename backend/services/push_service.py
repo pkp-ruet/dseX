@@ -32,6 +32,7 @@ DEFAULT_PREFS = {
     "watchlist_alerts": True,
     "dividends": True,
     "price_extremes": True,
+    "price_alerts": True,  # user-defined target-price hits
 }
 
 _MAX_FAILS = 5  # prune a subscription after this many consecutive transient failures

@@ -47,3 +47,11 @@ jobs:
         if: ${{ success() }}
         continue-on-error: true
         run: python main.py notify-digest
+
+      # User-defined price-target alerts, against the fresh close prices. One-shot
+      # per alert + idempotent per Dhaka day, so safe on re-run. Alerts still mark
+      # triggered for the in-app bell even when VAPID secrets are unset.
+      - name: Fire price-target alerts
+        if: ${{ success() }}
+        continue-on-error: true
+        run: python main.py notify-price-alerts

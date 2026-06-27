@@ -6211,6 +6211,118 @@ details.dsex-exp[open] > summary {
 .atp-btn-primary:hover:not(:disabled) {
   background: linear-gradient(180deg, var(--strong-buy) 0%, #22C55E 100%);
 }
+.atp-btn-danger {
+  color: var(--negative);
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.3);
+}
+.atp-btn-danger:hover:not(:disabled) {
+  background: rgba(220, 38, 38, 0.16);
+  border-color: rgba(220, 38, 38, 0.5);
+}
+
+/* ======================================
+   PRICE ALERT (stock hero + watchlist)
+   ====================================== */
+
+.add-alert-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--watch);
+  background: rgba(180, 83, 9, 0.1);
+  border: 1px solid rgba(180, 83, 9, 0.3);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  letter-spacing: 0.01em;
+}
+.add-alert-btn:hover {
+  background: rgba(180, 83, 9, 0.2);
+  border-color: rgba(180, 83, 9, 0.5);
+}
+.add-alert-btn:active { transform: scale(0.97); }
+.add-alert-btn--on {
+  color: var(--watch);
+  background: rgba(180, 83, 9, 0.16);
+  border-color: rgba(180, 83, 9, 0.45);
+}
+
+/* Watchlist-row alert chip — warm + higher-impact than a bare icon */
+.wl-alert-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--watch);
+  background: rgba(180, 83, 9, 0.12);
+  border: 1px solid rgba(180, 83, 9, 0.32);
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s, box-shadow 0.15s;
+}
+.wl-alert-btn:hover {
+  background: rgba(180, 83, 9, 0.22);
+  border-color: rgba(180, 83, 9, 0.55);
+}
+.wl-alert-btn:active { transform: scale(0.95); }
+.wl-alert-btn--on {
+  background: rgba(180, 83, 9, 0.2);
+  border-color: rgba(180, 83, 9, 0.55);
+  box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.1);
+}
+
+/* Current price line inside the alert modal */
+.pa-current {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  margin: 2px 0 6px;
+}
+.pa-current b { font-size: 1.6rem; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+.pa-current span { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+
+/* Quick-pick chips */
+.pa-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pa-chip {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  transition: background 0.12s, border-color 0.12s;
+}
+.pa-chip:hover { background: var(--border); }
+.pa-chip--up { color: var(--positive); border-color: rgba(21, 128, 61, 0.3); }
+.pa-chip--down { color: var(--negative); border-color: rgba(220, 38, 38, 0.3); }
+
+/* Live "Alert me when…" preview sentence */
+.pa-sentence {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text);
+  background: rgba(180, 83, 9, 0.07);
+  border: 1px solid rgba(180, 83, 9, 0.25);
+  border-radius: 8px;
+  text-align: center;
+}
+.pa-sentence b { font-weight: 800; }
 
 .view-analysis-btn {
   display: inline-flex;

@@ -262,6 +262,18 @@ def cmd_notify_events(_args):
     print(f"Push events done: {counts}")
 
 
+def cmd_notify_price_alerts(_args):
+    """Fire web-push for user-defined price targets that the latest prices crossed.
+
+    Run right after `scrape-quick` (close prices fresh). One-shot per alert and
+    idempotent per Dhaka day. No-op if VAPID keys aren't configured. Note: alerts
+    are marked triggered (for the in-app bell) even when push is unavailable."""
+    from backend.services.price_alert_service import check_and_notify
+
+    counts = check_and_notify()
+    print(f"Price alerts done: {counts}")
+
+
 def cmd_generate_summaries(args):
     """Generate plain-Bangla 'এক নজরে' stock summaries into `stock_summaries`.
 
@@ -482,6 +494,11 @@ def main():
         help="Send dividend + 52-week-extreme web-push alerts to watchers (post-scrape)",
     )
 
+    sub.add_parser(
+        "notify-price-alerts",
+        help="Fire web-push for user-defined price targets crossed by the latest prices",
+    )
+
     summaries_parser = sub.add_parser(
         "generate-summaries",
         help="Generate plain-Bangla 'এক নজরে' stock summaries (cached; regenerates only changed stocks)",
@@ -523,6 +540,7 @@ def main():
         "compute-scores":        cmd_compute_scores,
         "notify-digest":         cmd_notify_digest,
         "notify-events":         cmd_notify_events,
+        "notify-price-alerts":   cmd_notify_price_alerts,
         "generate-summaries":    cmd_generate_summaries,
         "scrape-all":            cmd_scrape_all,
     }

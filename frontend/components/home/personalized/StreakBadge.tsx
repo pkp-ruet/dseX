@@ -15,7 +15,8 @@ function dismissedKey(milestone: number) {
   return `dsex.streak.milestone.${milestone}`;
 }
 
-export default function StreakBadge() {
+/** Inline streak indicator for the header subline — quiet text, not a pill. */
+export default function StreakBadge({ leadingDot = false }: { leadingDot?: boolean }) {
   const { user } = useAuth();
   const [streak, setStreak] = useState<StreakInfo | null>(() => getStreak());
   const [showMilestone, setShowMilestone] = useState(false);
@@ -38,9 +39,10 @@ export default function StreakBadge() {
   if (current < 1) return null;
 
   const longest = streak?.longest_streak ?? current;
-  // Day 1 with no prior streak = brand-new user; day 1 after a break = returning.
+  // Day 1 with no prior streak = brand-new; day 1 after a break = returning.
   const firstEver = current === 1 && longest <= 1;
-  const dayOneCopy = firstEver ? "Your journey starts today" : "Back on track — day 1 🔄";
+  const label =
+    current === 1 ? (firstEver ? "Day 1" : "Back — day 1") : `${current}-day streak`;
 
   const milestone = streak?.milestone_hit ?? 0;
 
@@ -52,28 +54,27 @@ export default function StreakBadge() {
   };
 
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-2">
-      <span
-        className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1 text-sm font-bold text-[var(--text)]"
-        title={`Longest streak: ${streak?.longest_streak ?? current} days`}
-      >
-        <span aria-hidden="true">🔥</span>
-        {current === 1 ? dayOneCopy : `${current} days in a row`}
-      </span>
-
+    <span
+      className="inline-flex items-center gap-1 text-sm text-[var(--text-muted)]"
+      title={`Longest streak: ${streak?.longest_streak ?? current} days`}
+    >
+      {leadingDot && <span aria-hidden>·</span>}
+      <span aria-hidden>🔥</span>
+      <span className="font-medium text-[var(--text)]">{label}</span>
       {showMilestone && milestone > 0 && (
-        <span className="inline-flex items-center gap-2 rounded-full border border-[var(--primary)] bg-[var(--surface-2)] px-3 py-1 text-sm font-semibold text-[var(--primary)]">
+        <span className="ml-1 inline-flex items-center gap-1 font-semibold text-[var(--primary)]">
+          <span aria-hidden>·</span>
           {MILESTONE_COPY[milestone] ?? `${milestone}-day streak!`}
           <button
             type="button"
             onClick={dismiss}
             aria-label="Dismiss"
-            className="ml-0.5 text-[var(--primary)]/70 hover:text-[var(--primary)]"
+            className="text-[var(--primary)]/70 hover:text-[var(--primary)]"
           >
             ✕
           </button>
         </span>
       )}
-    </div>
+    </span>
   );
 }
