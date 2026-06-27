@@ -4,6 +4,7 @@ import type { AdminAnalyticsResponse } from "@/lib/api";
 import StatCards, { type StatCard } from "./StatCards";
 import GrowthChart from "./GrowthChart";
 import DonutCard from "./DonutCard";
+import FeatureReachCards from "./FeatureReachCards";
 import { COLORS, SEGMENT_META, SIGNUP_META } from "./shared";
 
 export default function OverviewTab({ data }: { data: AdminAnalyticsResponse }) {
@@ -30,15 +31,31 @@ export default function OverviewTab({ data }: { data: AdminAnalyticsResponse }) 
     { name: SIGNUP_META.password.label, value: data.signup_source.password, color: SIGNUP_META.password.color },
   ];
 
+  const vd = data.visit_distribution;
+  const VISIT_PALETTE = [COLORS.positive, COLORS.primary, COLORS.indigo, COLORS.pink, COLORS.orange];
+  const visitSlices = (vd?.bands ?? []).map((b, i) => ({
+    name: `${b.label} visits`,
+    value: b.count,
+    color: VISIT_PALETTE[i % VISIT_PALETTE.length],
+  }));
+  const visitCounted = visitSlices.reduce((a, s) => a + s.value, 0);
+  const visitSubtitle = vd
+    ? `100+ visitors · ${visitCounted.toLocaleString()} of ${vd.total_users.toLocaleString()} users` +
+      (vd.under_100 ? ` · ${vd.under_100.toLocaleString()} under 100 hidden` : "")
+    : "";
+
   return (
     <div className="flex flex-col gap-6">
       <StatCards cards={cards} />
 
+      {data.feature_reach && <FeatureReachCards data={data.feature_reach} />}
+
       <GrowthChart growth={data.growth} />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <DonutCard title="Feature adoption" slices={adoptionSlices} />
         <DonutCard title="How users signed up" slices={sourceSlices} />
+        {vd && <DonutCard title="Visits per user" subtitle={visitSubtitle} slices={visitSlices} />}
       </div>
 
       {/* Segment strip */}

@@ -968,23 +968,49 @@ export interface StreakInfo {
   milestone_hit: number | null; // 7 / 30 / 100 when a milestone is reached this check-in
 }
 
-export async function apiAuthPing(path?: string): Promise<{ streak: StreakInfo | null } | null> {
+export async function apiAuthPing(
+  path?: string,
+  extra?: { standalone?: boolean; platform?: string },
+): Promise<{ streak: StreakInfo | null } | null> {
   const token = getToken();
   if (!token) return null;
+  const body: Record<string, unknown> = {};
+  if (path) body.path = path;
+  if (extra?.standalone) body.standalone = true;
+  if (extra?.platform) body.platform = extra.platform;
+  const hasBody = Object.keys(body).length > 0;
   try {
     const res = await fetch(`${getApiUrl()}/api/auth/ping`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
-        ...(path ? { "Content-Type": "application/json" } : {}),
+        ...(hasBody ? { "Content-Type": "application/json" } : {}),
       },
-      ...(path ? { body: JSON.stringify({ path }) } : {}),
+      ...(hasBody ? { body: JSON.stringify(body) } : {}),
     });
     if (!res.ok) return null;
     return (await res.json()) as { streak: StreakInfo | null };
   } catch {
     // fire-and-forget
     return null;
+  }
+}
+
+/**
+ * Mark that the signed-in user sent a message to TopStock AI. Fire-and-forget;
+ * no-ops for logged-out users (so the assistant stays usable anonymously and
+ * adoption is counted against registered users only).
+ */
+export async function apiMarkAiUsed(): Promise<void> {
+  const token = getToken();
+  if (!token) return;
+  try {
+    await fetch(`${getApiUrl()}/api/user/ai-used`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch {
+    // fire-and-forget
   }
 }
 
@@ -1250,6 +1276,11 @@ export interface AdminUserRow {
   watchlist_last_visit_at: string | null;
   updated_at: string | null;
   segment: EngagementSegment;
+  // power-feature flags
+  push_enabled: boolean;
+  app_installed: boolean;
+  ai_used: boolean;
+  has_price_alert: boolean;
 }
 
 export interface AdminAnalyticsStats {
@@ -1298,11 +1329,32 @@ export interface AdminPopularStocks {
   most_held: AdminPopularStock[];
 }
 
+export interface AdminFeatureReach {
+  total_users: number;
+  push: { users: number; devices: number };
+  install: { users: number; platforms: Record<string, number> };
+  alerts: { users: number; active: number };
+  ai: { users: number; messages: number };
+}
+
+export interface AdminVisitBand {
+  label: string;
+  count: number;
+}
+
+export interface AdminVisitDistribution {
+  bands: AdminVisitBand[];
+  under_100: number;
+  total_users: number;
+}
+
 export interface AdminAnalyticsResponse {
   stats: AdminAnalyticsStats;
   segments: AdminSegments;
   adoption: AdminAdoption;
   signup_source: AdminSignupSource;
+  feature_reach: AdminFeatureReach;
+  visit_distribution: AdminVisitDistribution;
   popular_stocks: AdminPopularStocks;
   growth: AdminGrowthPoint[];
   users: AdminUserRow[];

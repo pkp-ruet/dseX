@@ -124,6 +124,28 @@ def pick_feedback(body: PickFeedbackBody, current_user: dict = Depends(get_curre
 
 
 # ---------------------------------------------------------------------------
+# TopStock AI usage (adoption tracking)
+# ---------------------------------------------------------------------------
+
+@router.post("/ai-used")
+def mark_ai_used(current_user: dict = Depends(get_current_user)):
+    """Record that the signed-in user sent a message to TopStock AI.
+
+    Sets first/last-used timestamps + increments a message counter. Fired
+    fire-and-forget from the assistant on every user message; best-effort."""
+    now = datetime.now(timezone.utc)
+    get_db()["users"].update_one(
+        {"user_id": current_user["user_id"]},
+        {
+            "$set": {"ai_last_used_at": now},
+            "$min": {"ai_first_used_at": now},
+            "$inc": {"ai_query_count": 1},
+        },
+    )
+    return {"ok": True}
+
+
+# ---------------------------------------------------------------------------
 # Profile
 # ---------------------------------------------------------------------------
 

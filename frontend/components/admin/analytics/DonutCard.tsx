@@ -14,16 +14,19 @@ export interface DonutSlice {
 export default function DonutCard({
   title,
   slices,
+  subtitle,
 }: {
   title: string;
   slices: DonutSlice[];
+  subtitle?: string;
 }) {
   const data = slices.filter((s) => s.value > 0);
   const total = data.reduce((a, s) => a + s.value, 0);
 
   return (
     <Card padding="none" className="rounded-2xl p-4 sm:p-5">
-      <h3 className="text-sm font-bold text-[var(--text)] mb-4">{title}</h3>
+      <h3 className={`text-sm font-bold text-[var(--text)] ${subtitle ? "mb-1" : "mb-4"}`}>{title}</h3>
+      {subtitle && <p className="text-[11px] text-[var(--text-muted)] mb-4 leading-snug">{subtitle}</p>}
       {data.length === 0 ? (
         <p className="text-sm text-[var(--text-muted)] py-8 text-center">No data yet.</p>
       ) : (

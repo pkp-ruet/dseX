@@ -96,6 +96,8 @@ class GoogleAuthRequest(BaseModel):
 
 class PingBody(BaseModel):
     path: Optional[str] = None
+    standalone: Optional[bool] = None
+    platform: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------
@@ -217,6 +219,20 @@ def ping(
         {"user_id": uid},
         {"$set": {"last_seen_at": now}, "$inc": {"total_visits": 1}},
     )
+    # PWA install: the client reports it's running in standalone (installed)
+    # mode. Record the first-seen install time + platform once. Catches Android
+    # *and* iOS (iOS only exposes install via navigator.standalone). Best-effort.
+    if body and body.standalone:
+        install_set = {"app_installed_at": now}
+        if body.platform:
+            install_set["app_platform"] = body.platform[:20]
+        try:
+            db["users"].update_one(
+                {"user_id": uid, "app_installed_at": {"$exists": False}},
+                {"$set": install_set},
+            )
+        except Exception:  # noqa: BLE001 — install flag must never break the ping
+            logging.getLogger("auth").warning("install flag write failed", exc_info=True)
     # Daily check-in streak (any app visit counts). Best-effort: a streak write
     # failure must never break the ping.
     streak = None

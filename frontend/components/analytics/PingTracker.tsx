@@ -4,7 +4,15 @@ import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { apiAuthPing } from "@/lib/api";
+import { isStandalone, isIOS } from "@/lib/push";
 import { publishStreak } from "@/lib/streak";
+
+/** Coarse install platform, reported only when running as an installed PWA. */
+function detectPlatform(): string {
+  if (isIOS()) return "ios";
+  if (typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent)) return "android";
+  return "desktop";
+}
 
 export default function PingTracker() {
   const { isLoggedIn } = useAuth();
@@ -20,7 +28,13 @@ export default function PingTracker() {
     // distinct route fires exactly one ping.
     if (lastPinged.current === pathname) return;
     lastPinged.current = pathname;
-    apiAuthPing(pathname).then((r) => {
+    // When the app is running installed (standalone), tell the backend so it can
+    // record the install — the only signal that also catches iOS installs.
+    const standalone = isStandalone();
+    apiAuthPing(
+      pathname,
+      standalone ? { standalone: true, platform: detectPlatform() } : undefined,
+    ).then((r) => {
       if (r?.streak) publishStreak(r.streak);
     });
   }, [isLoggedIn, pathname]);

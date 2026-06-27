@@ -9,7 +9,7 @@ import {
   type ScoreItem,
 } from "@/lib/api";
 import { taka } from "@/lib/formatters";
-import { SegmentPill, SourcePill, fmtDateTime, fmtDate, timeAgo } from "./shared";
+import { SegmentPill, SourcePill, FeatureBadges, fmtDateTime, fmtDate, timeAgo } from "./shared";
 
 function Fact({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -79,9 +79,10 @@ export default function UserDrillDown({
             <h2 className="text-lg font-bold text-[var(--text)] truncate">
               {user.display_name || user.email || user.phone || "User"}
             </h2>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
               <SegmentPill segment={user.segment} />
               <SourcePill source={user.signup_source} />
+              <FeatureBadges user={user} />
               <span className="text-[11px] text-[var(--text-muted)] font-mono">{user.user_id.slice(0, 8)}…</span>
             </div>
           </div>

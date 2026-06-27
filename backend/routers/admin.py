@@ -42,7 +42,7 @@ def _engagement_segment(doc: dict, now: datetime) -> str:
     return "dormant"
 
 
-def _serialize_user(doc: dict, now: datetime) -> dict:
+def _serialize_user(doc: dict, now: datetime, alert_user_ids: set) -> dict:
     out = {}
     for field in (
         "user_id", "email", "phone", "display_name",
@@ -62,6 +62,10 @@ def _serialize_user(doc: dict, now: datetime) -> dict:
     out["has_portfolio"] = bool(portfolio)
     out["signup_source"] = "google" if doc.get("oauth_provider") == "google" else "password"
     out["email_verified"] = bool(doc.get("email_verified"))
+    out["push_enabled"] = bool(doc.get("push_enabled"))
+    out["app_installed"] = bool(doc.get("app_installed_at"))
+    out["ai_used"] = bool(doc.get("ai_query_count") or doc.get("ai_last_used_at"))
+    out["has_price_alert"] = doc.get("user_id") in alert_user_ids
     out["segment"] = _engagement_segment(doc, now)
     return out
 
@@ -86,7 +90,13 @@ def get_analytics(_: dict = Depends(get_current_admin_user)):
             {"password_hash": 0, "_id": 0},
         ).sort("created_at", -1)
     )
-    rows = [_serialize_user(d, now) for d in docs]
+    # Distinct users who have set at least one price alert (active or recently
+    # triggered). Drives the feature-reach count + the per-user badge.
+    try:
+        alert_user_ids = set(db["price_alerts"].distinct("user_id"))
+    except Exception:  # noqa: BLE001 — price_alerts may be empty/absent
+        alert_user_ids = set()
+    rows = [_serialize_user(d, now, alert_user_ids) for d in docs]
 
     # --- Engagement segments (sum == total_users) ---
     seg = Counter(r["segment"] for r in rows)
@@ -98,6 +108,9 @@ def get_analytics(_: dict = Depends(get_current_admin_user)):
 
     # --- Feature adoption (sum == total_users) ---
     wl_only = pf_only = both = neither = 0
+    push_count = install_count = ai_count = ai_messages = 0
+    vb_1000 = vb_750 = vb_500 = vb_250 = vb_100 = visits_under_100 = 0
+    install_platforms: Counter = Counter()
     watched: Counter = Counter()
     held_count: Counter = Counter()
     held_qty: Counter = Counter()
@@ -112,6 +125,36 @@ def get_analytics(_: dict = Depends(get_current_admin_user)):
             pf_only += 1
         else:
             neither += 1
+        # Power-feature adoption — independent flags (a user can have any combo).
+        if d.get("push_enabled"):
+            push_count += 1
+        if d.get("app_installed_at"):
+            install_count += 1
+            install_platforms[(d.get("app_platform") or "other").lower()] += 1
+        _qc = d.get("ai_query_count") or 0
+        if _qc or d.get("ai_last_used_at"):
+            ai_count += 1
+            try:
+                ai_messages += int(_qc)
+            except (TypeError, ValueError):
+                pass
+        # Lifetime visit-count distribution (only the 100+ bands are charted).
+        try:
+            v = int(d.get("total_visits") or 0)
+        except (TypeError, ValueError):
+            v = 0
+        if v >= 1000:
+            vb_1000 += 1
+        elif v >= 750:
+            vb_750 += 1
+        elif v >= 500:
+            vb_500 += 1
+        elif v >= 250:
+            vb_250 += 1
+        elif v >= 100:
+            vb_100 += 1
+        else:
+            visits_under_100 += 1
         for code in wl:
             if isinstance(code, str) and code:
                 watched[code.upper()] += 1
@@ -171,6 +214,16 @@ def get_analytics(_: dict = Depends(get_current_admin_user)):
         for dk in date_keys
     ]
 
+    # Secondary feature-reach stats (cheap counts; best-effort).
+    try:
+        active_alerts = db["price_alerts"].count_documents({"is_active": True})
+    except Exception:  # noqa: BLE001 — price_alerts may be empty/absent
+        active_alerts = 0
+    try:
+        push_devices = db["push_subscriptions"].count_documents({})
+    except Exception:  # noqa: BLE001 — push_subscriptions may be empty/absent
+        push_devices = 0
+
     return {
         "stats": {
             "total_users": len(docs),
@@ -184,6 +237,24 @@ def get_analytics(_: dict = Depends(get_current_admin_user)):
         "segments": segments,
         "adoption": adoption,
         "signup_source": signup_source,
+        "feature_reach": {
+            "total_users": len(docs),
+            "push": {"users": push_count, "devices": push_devices},
+            "install": {"users": install_count, "platforms": dict(install_platforms)},
+            "alerts": {"users": len(alert_user_ids), "active": active_alerts},
+            "ai": {"users": ai_count, "messages": ai_messages},
+        },
+        "visit_distribution": {
+            "bands": [
+                {"label": "1000+", "count": vb_1000},
+                {"label": "750–999", "count": vb_750},
+                {"label": "500–749", "count": vb_500},
+                {"label": "250–499", "count": vb_250},
+                {"label": "100–249", "count": vb_100},
+            ],
+            "under_100": visits_under_100,
+            "total_users": len(docs),
+        },
         "popular_stocks": popular_stocks,
         "growth": growth,
         "users": rows,

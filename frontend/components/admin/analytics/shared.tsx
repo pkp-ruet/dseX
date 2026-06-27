@@ -104,3 +104,36 @@ export function SourcePill({ source }: { source: SignupSource }) {
     </span>
   );
 }
+
+/** Compact power-feature icons for a user — renders only the ones they have. */
+export function FeatureBadges({
+  user,
+  className = "",
+}: {
+  user: {
+    push_enabled?: boolean;
+    app_installed?: boolean;
+    has_price_alert?: boolean;
+    ai_used?: boolean;
+  };
+  className?: string;
+}) {
+  const items = [
+    { on: user.push_enabled, icon: "🔔", title: "Push enabled" },
+    { on: user.app_installed, icon: "📲", title: "Installed app" },
+    { on: user.has_price_alert, icon: "⏰", title: "Price alert set" },
+    { on: user.ai_used, icon: "🤖", title: "Uses TopStock AI" },
+  ].filter((i) => i.on);
+  if (!items.length) {
+    return <span className={`text-xs text-[var(--text-muted)] ${className}`}>—</span>;
+  }
+  return (
+    <span className={`inline-flex items-center gap-1 ${className}`}>
+      {items.map((i) => (
+        <span key={i.title} title={i.title} aria-label={i.title} className="text-xs leading-none">
+          {i.icon}
+        </span>
+      ))}
+    </span>
+  );
+}

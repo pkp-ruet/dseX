@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { AdminUserRow } from "@/lib/api";
-import { SegmentPill, SourcePill, fmtDateTime, timeAgo } from "./shared";
+import { SegmentPill, SourcePill, FeatureBadges, fmtDateTime, timeAgo } from "./shared";
 
 type SortKey = "created_at" | "last_seen_at" | "total_visits" | "watchlist_count" | "portfolio_count";
 
@@ -82,6 +82,7 @@ export default function UsersTable({
               <th className="px-4 py-3 text-right">Visits</th>
               <th className="px-4 py-3 text-right">Watch</th>
               <th className="px-4 py-3 text-right">Folio</th>
+              <th className="px-4 py-3 text-left">Features</th>
             </tr>
           </thead>
           <tbody>
@@ -106,11 +107,12 @@ export default function UsersTable({
                 <td className="px-4 py-3 text-right tabular-nums nums text-[var(--text)]">{u.total_visits ?? 0}</td>
                 <td className="px-4 py-3 text-right tabular-nums nums text-[var(--text-muted)]">{u.watchlist_count}</td>
                 <td className="px-4 py-3 text-right tabular-nums nums text-[var(--text-muted)]">{u.portfolio_count}</td>
+                <td className="px-4 py-3"><FeatureBadges user={u} /></td>
               </tr>
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-[var(--text-muted)]">No users found.</td>
+                <td colSpan={9} className="px-4 py-8 text-center text-[var(--text-muted)]">No users found.</td>
               </tr>
             )}
           </tbody>
@@ -138,6 +140,7 @@ export default function UsersTable({
               <span>{u.total_visits ?? 0} visits</span>
               <span>★ {u.watchlist_count}</span>
               <span>▦ {u.portfolio_count}</span>
+              <FeatureBadges user={u} />
             </div>
           </button>
         ))}

@@ -26,6 +26,7 @@ import {
   prefillFromEntities,
 } from "@/lib/assistant/flows";
 import type { RecommendationAnswers } from "@/lib/api";
+import { apiMarkAiUsed } from "@/lib/api";
 import { COPY } from "@/lib/assistant/copy";
 
 const STORAGE_KEY = "disha:chat:v1";
@@ -188,6 +189,8 @@ export function useAssistant(): UseAssistant {
 
   const addUser = useCallback((text: string) => {
     dispatch({ type: "add", message: mkMessage("user", [{ type: "text", text }]) });
+    // Adoption signal — fire-and-forget; no-ops when logged out.
+    void apiMarkAiUsed();
   }, []);
 
   /** Push a "typing" bubble, then swap in the produced blocks after a short delay. */
