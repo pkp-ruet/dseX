@@ -199,19 +199,32 @@ def _crossed(direction: str, ltp: float, target: float) -> bool:
     return (direction == "above" and ltp >= target) or (direction == "below" and ltp <= target)
 
 
-def check_and_notify() -> dict:
+def check_and_notify(not_before_dhaka_hour: Optional[int] = None) -> dict:
     """Evaluate every armed alert against the latest prices. On a hit: mark the
     alert triggered (one-shot) and best-effort web-push the owner.
 
     Triggering and push are decoupled — the alert is always marked triggered (so
     the in-app bell shows it), while push is skipped when the user has no devices
-    or muted `price_alerts`."""
+    or muted `price_alerts`.
+
+    When `not_before_dhaka_hour` is set, the whole check is skipped before the
+    current Dhaka hour reaches it (returns `gated`). Alerts are one-shot, so an
+    intraday quick-scrape run must not trip one on a transient price — only the
+    close counts. Pass None to disable the gate."""
     from backend.services import push_service
-    from backend.services.auth_service import _dhaka_day
+    from backend.services.auth_service import _dhaka_day, _DHAKA_TZ
+
+    now = datetime.now(timezone.utc)
+    if not_before_dhaka_hour is not None:
+        dhaka_hour = now.astimezone(_DHAKA_TZ).hour
+        if dhaka_hour < not_before_dhaka_hour:
+            log.info("price alerts gated — %02d:00 Dhaka is before market close %02d:00; skipping",
+                     dhaka_hour, not_before_dhaka_hour)
+            return {"checked": 0, "triggered": 0, "pushed": 0, "failed": 0, "gated": True}
 
     ensure_price_alert_indexes()
     push_service.ensure_push_indexes()
-    day = _dhaka_day(datetime.now(timezone.utc))
+    day = _dhaka_day(now)
 
     active = list(_alerts().find({"is_active": True}))
     if not active:

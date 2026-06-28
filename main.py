@@ -239,15 +239,18 @@ def cmd_scrape_quick(_args):
         print(f"Skipping revalidate — only {len(prices)} prices scraped (expected >=200).")
 
 
-def cmd_notify_digest(_args):
+def cmd_notify_digest(args):
     """Send the daily "your stocks today" web-push digest to opted-in users.
 
-    Designed to run right after `scrape-quick` (market close) so the numbers are
-    fresh. Idempotent per Dhaka day — re-running is a no-op. Silently does nothing
-    if the VAPID keys aren't configured."""
+    Gated to 2 PM Dhaka (market close): when quick-scrape runs several times during
+    the session, the first run at/after 2 PM sends and earlier intraday runs skip,
+    so the digest reflects closing prices. Idempotent per Dhaka day, so later
+    same-day runs are no-ops. `--force` bypasses the time gate (manual testing).
+    Silently does nothing if the VAPID keys aren't configured."""
     from backend.services.push_campaign_service import run_digest
 
-    counts = run_digest()
+    not_before = None if getattr(args, "force", False) else 14  # 2 PM Dhaka
+    counts = run_digest(not_before_dhaka_hour=not_before)
     print(f"Push digest done: {counts}")
 
 
@@ -262,15 +265,20 @@ def cmd_notify_events(_args):
     print(f"Push events done: {counts}")
 
 
-def cmd_notify_price_alerts(_args):
+def cmd_notify_price_alerts(args):
     """Fire web-push for user-defined price targets that the latest prices crossed.
 
-    Run right after `scrape-quick` (close prices fresh). One-shot per alert and
-    idempotent per Dhaka day. No-op if VAPID keys aren't configured. Note: alerts
-    are marked triggered (for the in-app bell) even when push is unavailable."""
+    Run right after `scrape-quick` (close prices fresh). Gated to 2 PM Dhaka
+    (market close) like the digest: intraday quick-scrape runs are skipped so a
+    transient spike can't trip a one-shot alert before the close; the first run
+    at/after 2 PM evaluates. `--force` bypasses the gate (manual testing). One-shot
+    per alert and idempotent per Dhaka day. No-op if VAPID keys aren't configured.
+    Note: alerts are marked triggered (for the in-app bell) even when push is
+    unavailable."""
     from backend.services.price_alert_service import check_and_notify
 
-    counts = check_and_notify()
+    not_before = None if getattr(args, "force", False) else 14  # 2 PM Dhaka
+    counts = check_and_notify(not_before_dhaka_hour=not_before)
     print(f"Price alerts done: {counts}")
 
 
@@ -484,9 +492,14 @@ def main():
         help="Recompute DSEF 5-pillar scores and store them in scores_snapshot",
     )
 
-    sub.add_parser(
+    digest_parser = sub.add_parser(
         "notify-digest",
         help="Send the daily 'your stocks today' web-push digest to opted-in users",
+    )
+    digest_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Bypass the 2 PM Dhaka market-close gate (manual testing)",
     )
 
     sub.add_parser(
@@ -494,9 +507,14 @@ def main():
         help="Send dividend + 52-week-extreme web-push alerts to watchers (post-scrape)",
     )
 
-    sub.add_parser(
+    price_alerts_parser = sub.add_parser(
         "notify-price-alerts",
         help="Fire web-push for user-defined price targets crossed by the latest prices",
+    )
+    price_alerts_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Bypass the 2 PM Dhaka market-close gate (manual testing)",
     )
 
     summaries_parser = sub.add_parser(

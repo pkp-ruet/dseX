@@ -16,7 +16,7 @@ from typing import Optional
 
 from backend.services.db_service import get_db
 from backend.services import campaign_service, push_service
-from backend.services.auth_service import _dhaka_day
+from backend.services.auth_service import _dhaka_day, _DHAKA_TZ
 
 log = logging.getLogger("push-digest")
 
@@ -126,12 +126,29 @@ def run_digest(
     campaign_id: Optional[str] = None,
     limit: Optional[int] = None,
     pace_seconds: float = 0.0,
+    not_before_dhaka_hour: Optional[int] = None,
 ) -> dict:
+    """Send the daily digest. When `not_before_dhaka_hour` is set, skip entirely if
+    the current Dhaka hour is earlier than it, so intraday quick-scrape runs don't
+    fire an early digest: the first run at/after that hour sends, earlier runs skip,
+    and later same-day runs dedupe via push_sends. Pass None to disable the gate."""
+    now = datetime.now(timezone.utc)
+    today = _dhaka_day(now)
+    campaign_id = campaign_id or f"digest-{today}"
+
+    # Market-close gate — the digest is an end-of-day summary, so hold it until
+    # ~2 PM Dhaka even when quick-scrape runs several times during the session.
+    if not_before_dhaka_hour is not None:
+        dhaka_hour = now.astimezone(_DHAKA_TZ).hour
+        if dhaka_hour < not_before_dhaka_hour:
+            log.info("digest %s gated — %02d:00 Dhaka is before market close %02d:00; skipping",
+                     campaign_id, dhaka_hour, not_before_dhaka_hour)
+            return {"campaign_id": campaign_id, "eligible": 0, "sent": 0,
+                    "failed": 0, "skipped": 0, "gated": True}
+
     push_service.ensure_push_indexes()  # idempotent — CLI runs don't hit FastAPI startup
     db = get_db()
     sends = db["push_sends"]
-    today = _dhaka_day(datetime.now(timezone.utc))
-    campaign_id = campaign_id or f"digest-{today}"
 
     if not push_service.is_configured():
         log.warning("VAPID keys not set — skipping push digest")
