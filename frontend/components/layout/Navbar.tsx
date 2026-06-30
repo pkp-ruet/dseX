@@ -203,7 +203,7 @@ export default function Navbar() {
               href="/alerts"
               className={`navbar-intel-btn${isAlerts ? " navbar-intel-btn-active" : ""}`}
             >
-              Alerts
+              Price Alerts
             </Link>
             <InstallAppButton className="navbar-intel-btn" />
             {isLoggedIn ? (
