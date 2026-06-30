@@ -36,7 +36,14 @@ export default function QuickActionsBar({
             className="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-[0.76rem] font-medium text-[var(--text)] transition hover:border-[var(--primary)] hover:text-[var(--primary)] active:scale-95"
           >
             {c.emoji && <span aria-hidden>{c.emoji}</span>}
-            {c.label}
+            <span className="leading-tight text-left">
+              {c.label}
+              {c.labelBn && (
+                <span lang="bn" className="font-bn block text-[0.64rem] text-[var(--text-muted)]">
+                  {c.labelBn}
+                </span>
+              )}
+            </span>
           </button>
         ))
       )}

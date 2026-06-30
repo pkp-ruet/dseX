@@ -31,7 +31,12 @@ export type IntentId =
   | "screen_top"
   | "tips"
   | "dividends"
-  | "suggest_stocks";
+  | "suggest_stocks"
+  // Personalized — read the signed-in user's own watchlist / portfolio.
+  | "my_watchlist"
+  | "my_portfolio"
+  | "my_news"
+  | "my_dividends";
 
 export interface CompanyRef {
   trading_code: string;
@@ -96,6 +101,15 @@ export interface StockFact {
   tone?: MetricTone;
 }
 
+/** One tappable line in the daily-brief block (mirrors the home "what's new" bell). */
+export interface BriefRow {
+  emoji: string;
+  title: string;
+  detail?: string;
+  href?: string;
+  tone?: MetricTone;
+}
+
 export interface StockDetailView {
   code: string;
   name: string | null;
@@ -111,9 +125,11 @@ export interface StockDetailView {
   stale?: boolean;
 }
 
-/** A tappable suggestion. Exactly one of send/slot/action drives behavior. */
+/** A tappable suggestion. Exactly one of send/slot/action/client drives behavior. */
 export interface Chip {
   label: string;
+  /** Optional Bengali label shown beneath the English one (audience is bilingual). */
+  labelBn?: string;
   emoji?: string;
   /** Re-enter the parser as if the user typed this. */
   send?: string;
@@ -121,6 +137,8 @@ export interface Chip {
   slot?: { key: SlotKey; value: string };
   /** Jump straight to an intent, skipping the parser. */
   action?: { intentId: IntentId; entities?: Entities };
+  /** Perform a client-side action (e.g. add/remove watchlist) without the parser. */
+  client?: { kind: "watchlist_toggle"; code: string };
 }
 
 /** Slots collected by the guided "suggest stocks" flow. */
@@ -141,6 +159,7 @@ export type MessageBlock =
   | { type: "recommended-list"; picks: RecommendedStock[]; relaxations: string[] }
   | { type: "market-summary"; view: MarketSummaryView }
   | { type: "stock-detail"; view: StockDetailView }
+  | { type: "brief"; rows: BriefRow[] }
   | { type: "loading" }
   | { type: "disclaimer" };
 

@@ -19,6 +19,10 @@ import {
   TOP_QUALITY_WORDS,
   UPCOMING_DIV_PHRASES,
   UPCOMING_DIV_CONTEXT,
+  MY_WATCHLIST_WORDS,
+  MY_PORTFOLIO_WORDS,
+  MINE_CONTEXT,
+  NEWS_WORDS,
 } from "./synonyms";
 
 function anyHit(norm: string, words: string[]): boolean {
@@ -59,3 +63,18 @@ export function isUpcomingDividends(norm: string): boolean {
   const mentionsCalendar = UPCOMING_DIV_CONTEXT.some((w) => wordIn(norm, w));
   return mentionsDividend && mentionsCalendar;
 }
+
+// --- Personalized intents (the signed-in user's own holdings) ---
+
+const mentionsMine = (norm: string) => anyHit(norm, MINE_CONTEXT);
+
+export const isMyWatchlist = (norm: string) => anyHit(norm, MY_WATCHLIST_WORDS);
+export const isMyPortfolio = (norm: string) => anyHit(norm, MY_PORTFOLIO_WORDS);
+
+/** "any news on my stocks" — news word + a possessive/holdings marker. */
+export const isMyNews = (norm: string) => anyHit(norm, NEWS_WORDS) && mentionsMine(norm);
+
+/** "my dividends" — dividend word + a possessive/holdings marker. */
+export const isMyDividends = (norm: string) =>
+  (wordIn(norm, "dividend") || wordIn(norm, "dividends") || norm.includes("লভ্যাংশ")) &&
+  mentionsMine(norm);

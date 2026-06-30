@@ -16,7 +16,11 @@ export async function runSuggest(
 
   const relaxed = (res.relaxations?.length ?? 0) > 0;
   return [
-    { type: "text", text: relaxed ? COPY.suggest.none : COPY.suggest.done },
+    {
+      type: "text",
+      text: relaxed ? COPY.suggest.none : COPY.suggest.done,
+      bn: relaxed ? COPY.suggest.noneBn : COPY.suggest.doneBn,
+    },
     {
       type: "recommended-list",
       picks: res.picks.slice(0, 5),

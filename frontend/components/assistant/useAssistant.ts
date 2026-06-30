@@ -17,7 +17,10 @@ import {
   greetingBlocks,
   errorBlocks,
 } from "@/lib/assistant/responders";
+import { briefBlocks } from "@/lib/assistant/responders/brief";
 import { runSuggest } from "@/lib/assistant/responders/suggestFlow";
+import { isLoggedIn } from "@/lib/auth";
+import { loadWatchlist, toggleWatchlist } from "@/lib/watchlist";
 import {
   SLOT_ORDER,
   nextSlotIndex,
@@ -30,7 +33,32 @@ import { apiMarkAiUsed } from "@/lib/api";
 import { COPY } from "@/lib/assistant/copy";
 
 // Bump the version when the greeting/chips change so stale transcripts are dropped.
-const STORAGE_KEY = "disha:chat:v2";
+// localStorage (not sessionStorage) so a returning visitor sees continuity.
+const STORAGE_KEY = "disha:chat:v3";
+// Per-day flag (dateString) so the personalized brief greets at most once a day.
+const BRIEF_SEEN_KEY = "disha:brief:seen";
+// Cap the persisted transcript so localStorage doesn't grow without bound.
+const MAX_PERSIST = 40;
+
+function todayKey(): string {
+  return new Date().toDateString();
+}
+
+function briefSeenToday(): boolean {
+  try {
+    return localStorage.getItem(BRIEF_SEEN_KEY) === todayKey();
+  } catch {
+    return false;
+  }
+}
+
+function markBriefSeen(): void {
+  try {
+    localStorage.setItem(BRIEF_SEEN_KEY, todayKey());
+  } catch {
+    /* private mode — ignore */
+  }
+}
 
 type Status = "idle" | "thinking";
 
@@ -123,7 +151,7 @@ export function useAssistant(): UseAssistant {
 
     let hydrated = false;
     try {
-      const raw = sessionStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const data = JSON.parse(raw) as Persisted;
         const msgs = (data.messages ?? []).filter(
@@ -139,7 +167,13 @@ export function useAssistant(): UseAssistant {
     } catch {
       /* ignore bad storage */
     }
-    if (!hydrated) {
+
+    // Once-a-day personalized brief greets on open; otherwise greet only when
+    // there's no saved conversation to continue.
+    if (!briefSeenToday()) {
+      markBriefSeen();
+      botRespond(() => briefBlocks());
+    } else if (!hydrated) {
       dispatch({ type: "add", message: mkMessage("bot", greetingBlocks()) });
     }
 
@@ -157,10 +191,12 @@ export function useAssistant(): UseAssistant {
   // --- persist (skip in-flight loading messages) ---
   useEffect(() => {
     if (!didInitRef.current) return;
-    const persistable = state.messages.filter((m) => !m.blocks.some((b) => b.type === "loading"));
+    const persistable = state.messages
+      .filter((m) => !m.blocks.some((b) => b.type === "loading"))
+      .slice(-MAX_PERSIST);
     const data: Persisted = { messages: persistable, flow: flowRef.current };
     try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch {
       /* quota / private mode — ignore */
     }
@@ -229,7 +265,7 @@ export function useAssistant(): UseAssistant {
         const startIdx = nextSlotIndex(prefill, 0);
         setFlow({ active: true, stepIndex: startIdx, collected: prefill });
         return [
-          { type: "text", text: COPY.suggest.intro },
+          { type: "text", text: COPY.suggest.intro, bn: COPY.suggest.introBn },
           ...slotQuestion(SLOT_ORDER[startIdx], sectorsRef.current),
         ];
       }
@@ -256,7 +292,7 @@ export function useAssistant(): UseAssistant {
           }
           const cur = Math.min(flowRef.current.stepIndex, SLOT_ORDER.length - 1);
           return [
-            { type: "text", text: "Tap one of these to continue 👇" },
+            { type: "text", text: "Tap one of these to continue 👇", bn: "চালিয়ে যেতে নিচের একটাতে চাপ দিন 👇" },
             ...slotQuestion(SLOT_ORDER[cur], sectorsRef.current),
           ];
         });
@@ -296,6 +332,31 @@ export function useAssistant(): UseAssistant {
       if (state.status === "thinking") return;
       if (chip.slot) {
         onSlotAnswer(chip.slot, chip.label);
+        return;
+      }
+      if (chip.client) {
+        addUser(chip.label);
+        const { kind, code } = chip.client;
+        botRespond(async () => {
+          if (!isLoggedIn()) {
+            return [
+              {
+                type: "text",
+                text: COPY.actions.signInToSave,
+                bn: COPY.actions.signInToSaveBn,
+                link: { href: "/login", label: COPY.brief.signIn },
+              },
+            ];
+          }
+          if (kind === "watchlist_toggle") {
+            await loadWatchlist(); // ensure current state before toggling
+            const nowWatched = await toggleWatchlist(code);
+            return nowWatched
+              ? [{ type: "text", text: COPY.actions.added(code), bn: COPY.actions.addedBn(code) }]
+              : [{ type: "text", text: COPY.actions.removed(code), bn: COPY.actions.removedBn(code) }];
+          }
+          return [];
+        });
         return;
       }
       if (chip.action) {

@@ -43,6 +43,11 @@ export default function AssistantLauncher() {
   if (pathname?.startsWith("/assistant")) return null;
   if (!mounted || hidden) return null;
 
+  // On a stock page, pre-seed a one-tap "Ask about CODE" so opening the chat
+  // starts pointed at the stock the user is reading.
+  const stockMatch = pathname?.match(/^\/stock\/([^/?#]+)/);
+  const seedCode = stockMatch ? decodeURIComponent(stockMatch[1]).toUpperCase() : undefined;
+
   return (
     <>
       {!open && (
@@ -72,7 +77,7 @@ export default function AssistantLauncher() {
           </button>
         </div>
       )}
-      <AssistantPanel open={open} onClose={() => setOpen(false)} />
+      <AssistantPanel open={open} onClose={() => setOpen(false)} seedCode={seedCode} />
     </>
   );
 }

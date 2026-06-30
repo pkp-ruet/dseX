@@ -42,18 +42,27 @@ export function nextSlotIndex(collected: Partial<RecommendationAnswers>, from = 
 export function slotQuestion(key: SlotKey, sectors: string[]): MessageBlock[] {
   if (key === "sectors") {
     const chips: Chip[] = [
-      { label: COPY.slots.sectors.anyLabel, emoji: "🌐", slot: { key: "sectors", value: ANY_SECTOR } },
+      {
+        label: COPY.slots.sectors.anyLabel,
+        labelBn: COPY.slots.sectors.anyLabelBn,
+        emoji: "🌐",
+        slot: { key: "sectors", value: ANY_SECTOR },
+      },
       ...sectors.map((s) => ({ label: s, slot: { key: "sectors" as SlotKey, value: s } })),
     ];
     return [
-      { type: "text", text: COPY.slots.sectors.q },
+      { type: "text", text: COPY.slots.sectors.q, bn: COPY.slots.sectors.qBn },
       { type: "chips", chips, layout: "wrap" },
     ];
   }
   const def = COPY.slots[key];
-  const chips: Chip[] = def.chips.map((c) => ({ label: c.label, slot: { key, value: c.value } }));
+  const chips: Chip[] = def.chips.map((c) => ({
+    label: c.label,
+    labelBn: c.bn,
+    slot: { key, value: c.value },
+  }));
   return [
-    { type: "text", text: def.q },
+    { type: "text", text: def.q, bn: def.qBn },
     { type: "chips", chips, layout: "wrap" },
   ];
 }

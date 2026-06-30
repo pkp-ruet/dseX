@@ -6,6 +6,7 @@ import StockListBlock from "./blocks/StockListBlock";
 import RecommendedListBlock from "./blocks/RecommendedListBlock";
 import MarketSummaryBlock from "./blocks/MarketSummaryBlock";
 import StockDetailBlock from "./blocks/StockDetailBlock";
+import BriefBlock from "./blocks/BriefBlock";
 import LoadingBlock from "./blocks/LoadingBlock";
 import DisclaimerNote from "./blocks/DisclaimerNote";
 
@@ -29,6 +30,8 @@ export default function MessageBlockRenderer({
       return <MarketSummaryBlock block={block} />;
     case "stock-detail":
       return <StockDetailBlock block={block} />;
+    case "brief":
+      return <BriefBlock block={block} />;
     case "loading":
       return <LoadingBlock />;
     case "disclaimer":

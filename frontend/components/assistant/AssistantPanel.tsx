@@ -8,7 +8,15 @@ import ChatSurface from "./ChatSurface";
  * Built from scratch (the app has no modal primitive): backdrop, focus trap,
  * ESC-to-close, aria-modal, body-scroll lock.
  */
-export default function AssistantPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
+export default function AssistantPanel({
+  open,
+  onClose,
+  seedCode,
+}: {
+  open: boolean;
+  onClose: () => void;
+  seedCode?: string;
+}) {
   const panelRef = useRef<HTMLDivElement>(null);
   const restoreFocusRef = useRef<HTMLElement | null>(null);
 
@@ -95,7 +103,7 @@ export default function AssistantPanel({ open, onClose }: { open: boolean; onClo
           </button>
         </header>
         <div className="min-h-0 flex-1">
-          <ChatSurface variant="panel" />
+          <ChatSurface variant="panel" seedCode={seedCode} />
         </div>
       </div>
     </div>

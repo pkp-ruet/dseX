@@ -27,10 +27,16 @@ const scoreRow = (s: ScoreItem): StockRow => ({
   metricTone: "neutral",
 });
 
-function leadText(intent: IntentId, ent: Entities): string {
-  if (intent === "screen_sector") return COPY.sectorLead(ent.sector ?? "this sector");
-  if (intent === "screen_price_cap") return COPY.priceCapLead(ent.priceCap ?? 0);
-  return COPY.screenLead[intent] ?? "Here's what I found:";
+function leadText(intent: IntentId, ent: Entities): { text: string; bn?: string } {
+  if (intent === "screen_sector") {
+    const s = ent.sector ?? "this sector";
+    return { text: COPY.sectorLead(s), bn: COPY.sectorLeadBn(ent.sector ?? "এই") };
+  }
+  if (intent === "screen_price_cap") {
+    const cap = ent.priceCap ?? 0;
+    return { text: COPY.priceCapLead(cap), bn: COPY.priceCapLeadBn(cap) };
+  }
+  return { text: COPY.screenLead[intent] ?? "Here's what I found:", bn: COPY.screenLeadBn[intent] };
 }
 
 function result(
@@ -43,12 +49,13 @@ function result(
 ): MessageBlock[] {
   if (!items.length) {
     return [
-      { type: "text", text: COPY.empty.text },
+      { type: "text", text: COPY.empty.text, bn: COPY.empty.bn },
       { type: "chips", chips: STARTER_CHIPS, layout: "wrap" },
     ];
   }
+  const lead = leadText(intent, ent);
   return [
-    { type: "text", text: leadText(intent, ent) },
+    { type: "text", text: lead.text, bn: lead.bn },
     {
       type: "stock-list",
       title,

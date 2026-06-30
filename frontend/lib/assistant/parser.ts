@@ -18,6 +18,10 @@ import {
   isTips,
   isTopQuality,
   isUpcomingDividends,
+  isMyWatchlist,
+  isMyPortfolio,
+  isMyNews,
+  isMyDividends,
 } from "./intents";
 
 export function parse(raw: string, index: CompanyRef[]): ParseResult {
@@ -54,6 +58,13 @@ export function parse(raw: string, index: CompanyRef[]): ParseResult {
   // 3) Guided recommendation (beats a bare metric so "suggest dividend stocks"
   //    starts the flow with dividend pre-filled).
   if (isSuggest(norm)) return make("suggest_stocks", ent, 0.95);
+
+  // 3b) Personalized — the user's own watchlist / portfolio. "my dividends" and
+  //     "news on my stocks" must win over the generic dividend/screen paths.
+  if (isMyDividends(norm)) return make("my_dividends", {}, 0.92);
+  if (isMyNews(norm)) return make("my_news", {}, 0.9);
+  if (isMyPortfolio(norm)) return make("my_portfolio", {}, 0.9);
+  if (isMyWatchlist(norm)) return make("my_watchlist", {}, 0.9);
 
   // Dividend *calendar* beats the high-dividend screen.
   if (isUpcomingDividends(norm)) return make("dividends", ent, 0.9);
