@@ -43,6 +43,7 @@ import GoogleAuthProvider from "@/components/auth/GoogleAuthProvider";
 import PingTracker from "@/components/analytics/PingTracker";
 import FeedbackPrompt from "@/components/feedback/FeedbackPrompt";
 import PushOptInPrompt from "@/components/push/PushOptInPrompt";
+import PushAlertBanner from "@/components/push/PushAlertBanner";
 import InstallPrompt from "@/components/pwa/InstallPrompt";
 import AssistantLauncher from "@/components/assistant/AssistantLauncher";
 
@@ -109,6 +110,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {/* Spacer occupies the fixed navbar's 56px so the banner sits just below it */}
             <div aria-hidden="true" className="h-14 shrink-0" />
             <MarketDataBanner />
+            <PushAlertBanner />
             <main className="flex-1 max-w-5xl mx-auto w-full min-w-0 px-4 sm:px-6 pb-20 md:pb-10">
               {children}
             </main>
