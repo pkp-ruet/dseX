@@ -16,8 +16,7 @@ import {
   type DailyTipsResponse,
 } from "@/lib/api";
 import HomeHero from "@/components/home/HomeHero";
-import BlogPromoStrip from "@/components/home/BlogPromoStrip";
-import FindStocksPromoStrip from "@/components/home/FindStocksPromoStrip";
+import LearnPromoCard from "@/components/home/LearnPromoCard";
 import FeatureShowcase from "@/components/home/FeatureShowcase";
 import FinalCTA from "@/components/home/FinalCTA";
 import HomePersonalizationGate from "@/components/home/HomePersonalizationGate";
@@ -184,15 +183,12 @@ export default function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
 
       <HomePersonalizationGate>
-        {/* Bengali blog promo — slim strip above the hero (logged-out landing + crawlers) */}
-        <BlogPromoStrip />
-
         <Suspense fallback={<HeroFallback />}>
           <HeroSection promise={scoresPromise} />
         </Suspense>
 
-        {/* How-to-find-good-stocks promo — between the ranking preview and search */}
-        <FindStocksPromoStrip className="mt-6 sm:mt-8" />
+        {/* Bengali "learn from scratch" entry — one clean card below the hero */}
+        <LearnPromoCard className="mt-6 sm:mt-8" />
 
         <div className="mt-6 sm:mt-8">
           <Suspense fallback={null}>

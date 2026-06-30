@@ -21,7 +21,7 @@
   --bg-gradient: linear-gradient(180deg, #FFFFFF 0%, #FBFAF8 45%, #F5F1EA 100%);
   --border: #E9E3D8;        /* warm hairline */
   --text: #1C1917;          /* warm near-black */
-  --text-muted: #79716B;    /* warm stone-500 */
+  --text-muted: #44403C;    /* warm stone-700 — strong secondary text, no washed-out gray */
   --radius: 10px;
   --radius-lg: 18px;
   --radius-xl: 24px;
@@ -53,7 +53,7 @@
   /* Design palette — light */
   --ink: #1C1917;
   --ink-2: #44403C;
-  --ink-muted: #79716B;
+  --ink-muted: #44403C;     /* warm stone-700 — matches --text-muted, no washed-out gray */
   --rule: #E9E3D8;
   --rule-dark: var(--ink-2);
   --gold: var(--primary);   /* legacy alias — tracks primary, not amber */
@@ -6455,6 +6455,21 @@ details.dsex-exp[open] > summary {
     animation: none;
     opacity: 1;
   }
+}
+
+/* ===========================================================================
+   Homepage hero — score-row staggered reveal
+   ========================================================================= */
+@keyframes hero-row-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hero-row-in {
+  opacity: 0;
+  animation: hero-row-in 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-row-in { animation: none; opacity: 1; }
 }
 
 /* ════════════════════════════════════════════════════════════════════════

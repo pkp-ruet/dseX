@@ -50,7 +50,7 @@ function bumpUsed() {
 }
 
 function gradeOf(score: number | null): { letter: string; word: string; color: string } {
-  if (score == null) return { letter: "?", word: "Unknown", color: "#79716B" };
+  if (score == null) return { letter: "?", word: "Unknown", color: "#44403C" };
   if (score >= 80) return { letter: "A", word: "Excellent", color: "#047857" };
   if (score >= 70) return { letter: "B", word: "Good",      color: "#059669" };
   if (score >= 60) return { letter: "C", word: "Fair",      color: "#4338CA" };

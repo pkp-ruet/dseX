@@ -7,6 +7,7 @@ import { type ScoreItem, type CompanyDetail, type DailyTip } from "@/lib/api";
 import SampleAnalysisCard from "@/components/home/SampleAnalysisCard";
 import LiveRankingPreview from "@/components/home/LiveRankingPreview";
 import WatchlistMockup from "@/components/home/WatchlistMockup";
+import PriceAlertMockup from "@/components/home/PriceAlertMockup";
 import PortfolioMockup from "@/components/home/PortfolioMockup";
 import DailyTipsMockup from "@/components/home/DailyTipsMockup";
 import RecommendationMockup from "@/components/home/RecommendationMockup";
@@ -18,6 +19,8 @@ interface Pillar {
   eyebrow: string;
   title: string;
   desc: string;
+  /** Short, simple Bengali (বাংলা) line — same idea as `desc`, for readers weak in English. */
+  descBn: string;
   anon: { label: string; href: string };
   auth: { label: string; href: string };
   /** When true, the CTA opens the global stock search instead of navigating. */
@@ -72,6 +75,16 @@ const EYEBROW: Record<
     icon: (
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
         <path d="M12 2l2.9 6.3 6.9.6-5.2 4.6 1.6 6.8L12 17.3 5.8 20.9l1.6-6.8L2.2 8.9l6.9-.6L12 2z" />
+      </svg>
+    ),
+  },
+  "Price Alerts": {
+    color: "var(--watch)",
+    kind: "soft",
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
       </svg>
     ),
   },
@@ -180,6 +193,9 @@ function FeatureRow({ pillar, index }: { pillar: Pillar; index: number }) {
           {pillar.title}
         </h3>
         <p className="mt-1.5 text-sm leading-snug text-[var(--text-muted)]">{pillar.desc}</p>
+        <p lang="bn" className="font-bn mt-1 text-[0.9rem] leading-relaxed text-[var(--text-muted)]">
+          {pillar.descBn}
+        </p>
 
         {pillar.search ? (
           <Button type="button" onClick={openGlobalSearch} variant="primary" size="sm" className="mt-4 self-start">
@@ -212,6 +228,7 @@ export default function FeatureShowcase({
       eyebrow: "Stock Analysis",
       title: "Every stock, scored 0–100",
       desc: "Plain-English verdict on any DSE stock.",
+      descBn: "যেকোনো শেয়ার ভালো না খারাপ — সহজ ভাষায় বুঝে নিন।",
       anon: { label: "Search any stock", href: "/stocks" },
       auth: { label: "Search any stock", href: "/stocks" },
       search: true,
@@ -221,6 +238,7 @@ export default function FeatureShowcase({
       eyebrow: "Market Analysis",
       title: "The whole market, in plain words",
       desc: "We read the whole market for you — what's strong, what's cheap, and which stocks to watch.",
+      descBn: "আজ পুরো বাজারে কী হচ্ছে, কোনটা ভালো আর কোনটা সস্তা — সহজ কথায়।",
       anon: { label: "Open market analysis", href: "/market-analysis" },
       auth: { label: "Open market analysis", href: "/market-analysis" },
       visual: <MarketAnalysisMockup />,
@@ -229,6 +247,7 @@ export default function FeatureShowcase({
       eyebrow: "Portfolio Analysis",
       title: "See if your stocks are good",
       desc: "Simple A–F grade, live profit/loss, and what to fix.",
+      descBn: "আপনার শেয়ারে লাভ না লোকসান, আর কী ঠিক করা দরকার — সব এক জায়গায়।",
       anon: { label: "Sign up to track holdings", href: "/register" },
       auth: { label: "Open your portfolio", href: "/portfolio" },
       visual: <PortfolioMockup />,
@@ -237,6 +256,7 @@ export default function FeatureShowcase({
       eyebrow: "Rankings",
       title: "Best DSE stocks, ranked",
       desc: "Top fundamentals first. Updated daily.",
+      descBn: "সেরা শেয়ারগুলোর তালিকা, প্রতিদিন নতুন করে সাজানো।",
       anon: { label: "Browse rankings", href: "/dsestockranking" },
       auth: { label: "Browse rankings", href: "/dsestockranking" },
       visual: <LiveRankingPreview items={rankingItems.slice(0, 3)} totalCount={totalCount} />,
@@ -245,14 +265,25 @@ export default function FeatureShowcase({
       eyebrow: "Watchlist",
       title: "Track what you care about",
       desc: "Save stocks + news, synced free.",
+      descBn: "পছন্দের শেয়ার আর তার খবর একসাথে জমা রাখুন, একদম ফ্রি।",
       anon: { label: "Sign up to save stocks", href: "/register" },
       auth: { label: "Open your watchlist", href: "/watchlist" },
       visual: <WatchlistMockup />,
     },
     {
+      eyebrow: "Price Alerts",
+      title: "Get a ping at your price",
+      desc: "Set a target price. We watch it and tell you the day it's hit.",
+      descBn: "যে দামে কিনতে বা বেচতে চান, সেই দামে পৌঁছালেই আমরা জানিয়ে দেব।",
+      anon: { label: "Sign up to set alerts", href: "/register" },
+      auth: { label: "Open your alerts", href: "/alerts" },
+      visual: <PriceAlertMockup />,
+    },
+    {
       eyebrow: "Stock Recommendation",
       title: "Not sure what to buy?",
       desc: "60-second quiz → 3 matched DSE stocks.",
+      descBn: "কী কিনবেন বুঝতে পারছেন না? ছোট কয়েকটা প্রশ্নের উত্তর দিন, আমরা বেছে দেব।",
       anon: { label: "Find my stocks", href: "/stock-recommendation" },
       auth: { label: "Find my stocks", href: "/stock-recommendation" },
       visual: <RecommendationMockup />,
@@ -264,6 +295,7 @@ export default function FeatureShowcase({
       eyebrow: "Daily Tips",
       title: "Fresh stock ideas, daily",
       desc: "10 hand-picked tips, every day.",
+      descBn: "প্রতিদিন বাছাই করা ১০টি শেয়ারের আইডিয়া।",
       anon: { label: "Sign up for daily tips", href: "/register" },
       auth: { label: "See today's tips", href: "/" },
       visual: <DailyTipsMockup tips={tips.slice(0, 3)} />,
@@ -309,6 +341,7 @@ export default function FeatureShowcase({
             ["Portfolio", "var(--np-cautious)"],
             ["Rankings", "var(--watch)"],
             ["Watchlist", "var(--positive)"],
+            ["Alerts", "var(--watch)"],
             ["Recommendations", "var(--np-cautious)"],
             ...(hasTips ? [["Daily Tips", "var(--negative)"] as const] : []),
           ].map(([word, color]) => (
