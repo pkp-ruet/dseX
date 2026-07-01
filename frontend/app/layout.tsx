@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Inter, Playfair_Display, Space_Grotesk, Hind_Siliguri } from "next/font/google";
 import "./globals.css";
 
@@ -84,6 +85,9 @@ export const metadata: Metadata = {
   verification: {
     google: "IEdSLL4EJwfqeGpnYWMoAS3v7Kgx05grQIapfE9f0CQ",
   },
+  other: {
+    "google-adsense-account": "ca-pub-5290023077207312",
+  },
 };
 
 const ORG_JSON_LD = {
@@ -125,6 +129,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </AuthProvider>
         {process.env.NEXT_PUBLIC_GA_ID && (
           <ConditionalAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+        )}
+        {process.env.NODE_ENV === "production" && (
+          <Script
+            id="adsense-loader"
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5290023077207312"
+            strategy="afterInteractive"
+            crossOrigin="anonymous"
+          />
         )}
       </body>
     </html>
