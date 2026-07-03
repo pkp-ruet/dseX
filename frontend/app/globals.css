@@ -7262,3 +7262,66 @@ details.dsex-exp[open] > summary {
 }
 .ed-hub-feature .ed-hub-eyebrow { color: color-mix(in srgb, var(--c) 80%, #000); }
 .ed-hub-feature .ed-hub-cta { color: color-mix(in srgb, var(--c) 80%, #000); }
+
+/* ---------------------------------------------------------------------------
+   Portfolio — premium pass
+   --------------------------------------------------------------------------- */
+
+/* Privacy mode: blur every element tagged .pv inside a [data-privacy="on"]
+   scope (amounts tied to the user — qty, invested, value, P&L, income).
+   Market data (LTP, 52w) stays readable. */
+.pv { transition: filter 0.25s ease; }
+[data-privacy="on"] .pv {
+  filter: blur(7px);
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Gentle entrance for portfolio sections. */
+@media (prefers-reduced-motion: no-preference) {
+  .pf-rise {
+    animation: pf-rise-in 320ms ease-out backwards;
+  }
+}
+@keyframes pf-rise-in {
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+/* Monogram avatar for a holding row — tinted circle keyed by --mono-c. */
+.pf-mono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--mono-c, var(--primary));
+  background: color-mix(in srgb, var(--mono-c, var(--primary)) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--mono-c, var(--primary)) 26%, transparent);
+}
+
+/* Floating "+ Add" action button (mobile) — sits above the bottom bar. */
+.pf-fab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 18px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  box-shadow: 0 6px 20px -4px color-mix(in srgb, var(--primary) 55%, transparent);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.pf-fab:active { transform: scale(0.96); }

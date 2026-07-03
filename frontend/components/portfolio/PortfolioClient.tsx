@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -16,7 +16,6 @@ import {
   type WatchlistNewsItem,
   type DividendsUpcoming,
   apiGetPortfolio,
-  apiAddHolding,
   apiUpdateHolding,
   apiDeleteHolding,
 } from "@/lib/api";
@@ -28,6 +27,8 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
 import PortfolioAnalysis from "./PortfolioAnalysis";
+import PortfolioHero from "./PortfolioHero";
+import AddHoldingModal from "./AddHoldingModal";
 import WatchlistNews from "@/components/watchlist/WatchlistNews";
 import WatchlistAlertCell from "@/components/watchlist/WatchlistAlertCell";
 
@@ -126,7 +127,7 @@ function PnlCell({ value, pct }: { value: number | null; pct: number | null }) {
   if (value == null) return <span className="text-[var(--text-muted)]">—</span>;
   const cls = value > 0 ? "text-[var(--positive)]" : value < 0 ? "text-[var(--negative)]" : "text-[var(--text-muted)]";
   return (
-    <span className={`${cls} font-semibold tabular-nums nums`}>
+    <span className={`pv ${cls} font-semibold tabular-nums nums`}>
       {value > 0 ? "+" : ""}
       {taka(value, 0)}
       {pct != null && (
@@ -151,7 +152,7 @@ function PnlPill({ value, pct }: { value: number | null; pct: number | null }) {
   const accent = signAccent(value);
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold tabular-nums nums whitespace-nowrap"
+      className="pv inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold tabular-nums nums whitespace-nowrap"
       style={{ color: accent, background: `color-mix(in srgb, ${accent} 12%, transparent)` }}
     >
       <span className="text-[9px] leading-none">{value > 0 ? "▲" : value < 0 ? "▼" : "•"}</span>
@@ -281,7 +282,7 @@ function DividendIncomeCard({
 
       {income > 0 && (
         <div className="mb-4">
-          <p className="text-2xl sm:text-3xl font-bold text-[var(--positive)] nums leading-none">
+          <p className="pv text-2xl sm:text-3xl font-bold text-[var(--positive)] nums leading-none">
             ≈ {taka(income, 0)}
             <span className="text-sm sm:text-base text-[var(--text-muted)] font-semibold"> / year</span>
           </p>
@@ -323,7 +324,53 @@ function DividendIncomeCard({
   );
 }
 
-const emptyForm = () => ({ trading_code: "", price: "", qty: "" });
+/** Deterministic tint per code — matches the hero/allocation palette family. */
+const MONO_COLORS = [
+  "var(--primary)", "var(--positive)", "#EA580C", "#6366F1", "#DB2777",
+  "#0891B2", "#CA8A04", "#9333EA", "#0D9488",
+];
+
+function monoColor(code: string): string {
+  let h = 0;
+  for (let i = 0; i < code.length; i++) h = (h * 31 + code.charCodeAt(i)) >>> 0;
+  return MONO_COLORS[h % MONO_COLORS.length];
+}
+
+function Monogram({ code }: { code: string }) {
+  return (
+    <span className="pf-mono" style={{ "--mono-c": monoColor(code) } as React.CSSProperties} aria-hidden>
+      {code.slice(0, 2)}
+    </span>
+  );
+}
+
+/** Uniform section header — icon chip + title + one-line subtitle (+ actions). */
+function SectionHeader({
+  icon,
+  title,
+  subtitle,
+  right,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle?: string;
+  right?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-2.5 mb-3">
+      <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--primary)]/15 border border-[var(--primary)]/30 text-[var(--primary)] shrink-0">
+        {icon}
+      </span>
+      <div className="min-w-0 flex-1">
+        <h2 className="text-sm sm:text-[15px] uppercase tracking-wider font-bold text-[var(--text)] leading-tight">
+          {title}
+        </h2>
+        {subtitle && <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-0.5">{subtitle}</p>}
+      </div>
+      {right && <div className="shrink-0 flex items-center gap-2">{right}</div>}
+    </div>
+  );
+}
 
 export default function PortfolioClient() {
   const { isLoading, isLoggedIn } = useAuth();
@@ -358,13 +405,25 @@ export default function PortfolioClient() {
     if (userId) writeCache(cacheKeys.portfolio(userId), next);
   }
 
-  // Add form
-  const [form, setForm] = useState(emptyForm);
-  const [formError, setFormError] = useState("");
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [activeSuggestion, setActiveSuggestion] = useState(-1);
-  const suggestionsRef = useRef<HTMLUListElement>(null);
-  const [adding, setAdding] = useState(false);
+  // Add-stock sheet
+  const [addOpen, setAddOpen] = useState(false);
+
+  // Privacy mode — blur personal amounts. Read after mount (SSR-safe).
+  const [privacy, setPrivacy] = useState(false);
+  useEffect(() => {
+    try {
+      setPrivacy(localStorage.getItem("dsex.portfolio.privacy") === "1");
+    } catch {}
+  }, []);
+  function togglePrivacy() {
+    setPrivacy((p) => {
+      const next = !p;
+      try {
+        localStorage.setItem("dsex.portfolio.privacy", next ? "1" : "0");
+      } catch {}
+      return next;
+    });
+  }
 
   // Inline edit state
   const [editId, setEditId] = useState<string | null>(null);
@@ -447,45 +506,6 @@ export default function PortfolioClient() {
     };
   }, [holdingCodesKey]);
 
-  function handleCodeInput(value: string) {
-    const upper = value.toUpperCase();
-    setForm((f) => ({ ...f, trading_code: upper }));
-    setActiveSuggestion(-1);
-    if (upper.length === 0) {
-      setSuggestions([]);
-      return;
-    }
-    setSuggestions(allCodes.filter((c) => c.startsWith(upper)).slice(0, 8));
-  }
-
-  function handleCodeKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (suggestions.length === 0) return;
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setActiveSuggestion((i) => Math.min(i + 1, suggestions.length - 1));
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setActiveSuggestion((i) => Math.max(i - 1, 0));
-    } else if (e.key === "Enter" && activeSuggestion >= 0) {
-      e.preventDefault();
-      selectSuggestion(suggestions[activeSuggestion]);
-    } else if (e.key === "Escape") {
-      setSuggestions([]);
-    }
-  }
-
-  function fillLtp(code: string) {
-    const ltp = priceMap.get(code)?.ltp;
-    if (ltp != null) setForm((f) => ({ ...f, price: String(ltp) }));
-  }
-
-  function selectSuggestion(code: string) {
-    setForm((f) => ({ ...f, trading_code: code }));
-    setSuggestions([]);
-    setActiveSuggestion(-1);
-    fillLtp(code);
-  }
-
   const rows = useMemo(
     () => holdings.map((h) => compute(h, priceMap, ranges)),
     [holdings, priceMap, ranges],
@@ -538,27 +558,6 @@ export default function PortfolioClient() {
     () => new Set(holdings.map((h) => h.trading_code)),
     [holdings],
   );
-
-  async function handleAdd(e: React.FormEvent) {
-    e.preventDefault();
-    setFormError("");
-    const code = form.trading_code.trim().toUpperCase();
-    const price = parseFloat(form.price);
-    const qty = parseInt(form.qty, 10);
-    if (!code) return setFormError("Stock code required.");
-    if (isNaN(price) || price <= 0) return setFormError("Enter a valid buy price.");
-    if (isNaN(qty) || qty <= 0) return setFormError("Enter a valid quantity.");
-    setAdding(true);
-    try {
-      const res = await apiAddHolding({ trading_code: code, buy_price: price, qty });
-      applyHoldings(res.holdings);
-      setForm(emptyForm());
-    } catch (err: unknown) {
-      setFormError(err instanceof Error ? err.message : "Failed to add.");
-    } finally {
-      setAdding(false);
-    }
-  }
 
   function startEdit(h: PortfolioHolding) {
     setEditId(h.id);
@@ -688,20 +687,28 @@ export default function PortfolioClient() {
   if (dataLoading) {
     return (
       <div className="space-y-4" aria-busy="true" aria-label="Loading portfolio">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i} padding="md">
-              <Skeleton width="60%" height={12} className="mb-2" />
-              <Skeleton width="80%" height={22} />
-            </Card>
-          ))}
-        </div>
+        {/* Hero skeleton */}
+        <Card padding="none" className="p-5 sm:p-7">
+          <div className="flex items-start justify-between gap-5">
+            <div className="flex-1">
+              <Skeleton width={130} height={12} className="mb-3" />
+              <Skeleton width="55%" height={40} className="mb-4" />
+              <div className="flex gap-2 mb-3">
+                <Skeleton width={120} height={26} rounded="999px" />
+                <Skeleton width={120} height={26} rounded="999px" />
+              </div>
+              <Skeleton width="40%" height={12} />
+            </div>
+            <Skeleton width={118} height={118} rounded="50%" className="hidden sm:block shrink-0" />
+          </div>
+        </Card>
+        {/* Holdings skeleton */}
         <Card padding="md">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="flex items-center gap-3 py-2">
-              <Skeleton width={40} height={16} rounded="999px" />
-              <Skeleton width="40%" height={14} />
-              <Skeleton width="20%" height={14} className="ml-auto" />
+            <div key={i} className="flex items-center gap-3 py-2.5">
+              <Skeleton width={34} height={34} rounded="12px" />
+              <Skeleton width="35%" height={14} />
+              <Skeleton width="18%" height={14} className="ml-auto" />
             </div>
           ))}
         </Card>
@@ -713,170 +720,152 @@ export default function PortfolioClient() {
     return <p className="text-[var(--negative)] mt-4">Failed to load: {error}</p>;
   }
 
-  const pnlPositive = summary.pnl != null && summary.pnl > 0;
-  const pnlNegative = summary.pnl != null && summary.pnl < 0;
-  const pnlAccent = pnlPositive ? "var(--positive)" : pnlNegative ? "var(--negative)" : "var(--text-muted)";
-  const isHeld = existingCodes.has(form.trading_code.trim().toUpperCase());
   const editingHolding = holdings.find((h) => h.id === editId) ?? null;
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Summary cards */}
+    <div className="flex flex-col gap-6" data-privacy={privacy ? "on" : "off"}>
+      {/* Hero — value first */}
       {holdings.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          {/* Invested */}
-          <div className="soft-card p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="grid place-items-center w-8 h-8 rounded-lg shrink-0 text-[var(--primary)]" style={{ background: "color-mix(in srgb, var(--primary) 11%, transparent)" }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" /></svg>
-              </span>
-              <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Invested</p>
-            </div>
-            <p className="text-lg sm:text-xl font-bold text-[var(--text)] nums">{taka(summary.totalInvested, 0)}</p>
-          </div>
-
-          {/* Current Value */}
-          <div className="soft-card p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="grid place-items-center w-8 h-8 rounded-lg shrink-0 text-[var(--primary)]" style={{ background: "color-mix(in srgb, var(--primary) 11%, transparent)" }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" /></svg>
-              </span>
-              <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Current Value</p>
-            </div>
-            <p className="text-lg sm:text-xl font-bold text-[var(--text)] nums">
-              {summary.totalValue != null ? taka(summary.totalValue, 0) : "—"}
-            </p>
-          </div>
-
-          {/* Today's change */}
-          {(() => {
-            const up = todayMove != null && todayMove.delta > 0;
-            const down = todayMove != null && todayMove.delta < 0;
-            const accent = up ? "var(--positive)" : down ? "var(--negative)" : "var(--text-muted)";
-            return (
-              <div
-                className="soft-card p-4"
-                style={
-                  todayMove != null
-                    ? {
-                        background: `color-mix(in srgb, ${accent} 6%, var(--surface))`,
-                        borderColor: `color-mix(in srgb, ${accent} 24%, var(--border))`,
-                      }
-                    : undefined
-                }
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <span
-                    className="grid place-items-center w-8 h-8 rounded-lg shrink-0"
-                    style={{ background: `color-mix(in srgb, ${accent} 14%, transparent)`, color: accent }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                      <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
-                    </svg>
-                  </span>
-                  <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Today</p>
-                </div>
-                {todayMove != null ? (
-                  <p
-                    className={`text-lg sm:text-xl font-bold nums ${up ? "text-[var(--positive)]" : down ? "text-[var(--negative)]" : "text-[var(--text)]"}`}
-                  >
-                    {todayMove.delta > 0 ? "+" : ""}
-                    {taka(todayMove.delta, 0)}
-                    <span className="text-xs sm:text-sm font-semibold opacity-80 ml-1">
-                      ({todayMove.pct > 0 ? "+" : ""}
-                      {todayMove.pct.toFixed(2)}%)
-                    </span>
-                  </p>
-                ) : (
-                  <p className="text-lg sm:text-xl font-bold text-[var(--text)] nums">—</p>
-                )}
-              </div>
-            );
-          })()}
-
-          {/* Unrealized P&L */}
-          <div
-            className="soft-card p-4"
-            style={{
-              background: `color-mix(in srgb, ${pnlAccent} 6%, var(--surface))`,
-              borderColor: `color-mix(in srgb, ${pnlAccent} 24%, var(--border))`,
-            }}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <span className="grid place-items-center w-8 h-8 rounded-lg shrink-0" style={{ background: `color-mix(in srgb, ${pnlAccent} 14%, transparent)`, color: pnlAccent }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  {pnlNegative
-                    ? <path d="M16 18l2.29-2.29-4.88-4.88-4 4L2 7.41 3.41 6l6 6 4-4 6.3 6.29L22 12v6z" />
-                    : <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z" />}
-                </svg>
-              </span>
-              <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Unrealized P&amp;L</p>
-            </div>
-            <p className={`text-lg sm:text-xl font-bold nums ${pnlPositive ? "text-[var(--positive)]" : pnlNegative ? "text-[var(--negative)]" : "text-[var(--text)]"}`}>
-              {summary.pnl != null ? `${summary.pnl > 0 ? "+" : ""}${taka(summary.pnl, 0)}` : "—"}
-            </p>
-          </div>
-
-          {/* Return */}
-          <div
-            className="soft-card p-4"
-            style={{
-              background: `color-mix(in srgb, ${pnlAccent} 6%, var(--surface))`,
-              borderColor: `color-mix(in srgb, ${pnlAccent} 24%, var(--border))`,
-            }}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <span className="grid place-items-center w-8 h-8 rounded-lg shrink-0 text-sm font-extrabold" style={{ background: `color-mix(in srgb, ${pnlAccent} 14%, transparent)`, color: pnlAccent }}>
-                %
-              </span>
-              <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Return</p>
-            </div>
-            <p className={`text-lg sm:text-xl font-bold nums ${pnlPositive ? "text-[var(--positive)]" : pnlNegative ? "text-[var(--negative)]" : "text-[var(--text)]"}`}>
-              {summary.pnl_pct != null ? `${summary.pnl_pct > 0 ? "+" : ""}${summary.pnl_pct.toFixed(2)}%` : "—"}
-            </p>
-          </div>
-        </div>
+        <PortfolioHero
+          totalInvested={summary.totalInvested}
+          totalValue={summary.totalValue}
+          pnl={summary.pnl}
+          pnlPct={summary.pnl_pct}
+          todayMove={todayMove}
+          holdingsCount={holdings.length}
+          slices={rows.map((r) => ({
+            code: r.holding.trading_code,
+            value: r.current_value ?? r.cost_basis,
+          }))}
+          privacy={privacy}
+          onTogglePrivacy={togglePrivacy}
+        />
       )}
 
       {rowError && <p className="text-xs text-[var(--negative)] -mb-3">{rowError}</p>}
 
-      {/* Holdings table */}
+      {/* Holdings */}
       {holdings.length === 0 ? (
-        <Card padding="none" className="p-10 text-center">
-          <p className="text-[var(--text)] font-medium mb-2">No holdings yet</p>
-          <p className="text-sm text-[var(--text-muted)]">
-            Add your first holding below or browse the{" "}
-            <Link href="/dsestockranking" className="text-[var(--primary)] underline">
-              rankings
-            </Link>
-            .
+        <Card padding="none" className="pf-rise relative overflow-hidden p-8 sm:p-12 text-center ambient-panel">
+          {/* Simple bar-chart illustration */}
+          <div className="mx-auto mb-6 flex items-end justify-center gap-2 h-20" aria-hidden>
+            {[36, 56, 44, 72].map((h, i) => (
+              <span
+                key={i}
+                className="w-7 rounded-t-lg"
+                style={{
+                  height: h,
+                  background:
+                    i === 3
+                      ? "linear-gradient(180deg, var(--positive), color-mix(in srgb, var(--positive) 55%, transparent))"
+                      : `color-mix(in srgb, var(--primary) ${22 + i * 12}%, var(--surface-2))`,
+                }}
+              />
+            ))}
+          </div>
+          <h2 className="font-display text-xl sm:text-2xl font-bold text-[var(--text)] mb-2">
+            Start tracking your portfolio
+          </h2>
+          <p className="text-sm sm:text-base text-[var(--text-muted)] max-w-md mx-auto leading-relaxed">
+            Add the stocks you own once — after that, this page shows your profit &amp; loss,
+            dividends, news, and advice on every holding, every day.
           </p>
+
+          {/* 3 steps */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center max-w-2xl mx-auto mt-7 text-left">
+            {[
+              ["Search your stock", "Type the code — like GP or BATBC."],
+              ["Enter price & quantity", "What you paid and how many shares."],
+              ["Get the full picture", "P&L, signals, and advice — updated daily."],
+            ].map(([t, d], i) => (
+              <div key={i} className="flex items-start gap-3 flex-1">
+                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-[var(--primary)] text-white text-sm font-bold shrink-0">
+                  {i + 1}
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-[var(--text)] leading-tight">{t}</p>
+                  <p className="text-xs text-[var(--text-muted)] mt-0.5 leading-relaxed">{d}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mt-8">
+            <Button variant="primary" onClick={() => setAddOpen(true)}>
+              + Add your first stock
+            </Button>
+            <Link
+              prefetch={false}
+              href="/sample-portfolio/diversified"
+              className="text-sm font-semibold text-[var(--primary)] hover:underline"
+            >
+              See a sample portfolio first →
+            </Link>
+          </div>
         </Card>
       ) : (
-       <>
+       <div className="pf-rise flex flex-col gap-3">
+        <SectionHeader
+          icon={
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <rect x="3" y="3" width="7" height="7" rx="1.5" />
+              <rect x="14" y="3" width="7" height="7" rx="1.5" />
+              <rect x="3" y="14" width="7" height="7" rx="1.5" />
+              <rect x="14" y="14" width="7" height="7" rx="1.5" />
+            </svg>
+          }
+          title={`Holdings (${holdings.length})`}
+          subtitle="Tap a stock for its full analysis."
+          right={
+            <>
+              <Button
+                type="button"
+                onClick={openEditPicker}
+                variant="ghost"
+                size="sm"
+                className="hidden sm:inline-flex"
+              >
+                Edit
+              </Button>
+              <Button
+                type="button"
+                onClick={() => setAddOpen(true)}
+                variant="primary"
+                size="sm"
+                className="hidden sm:inline-flex"
+              >
+                + Add stock
+              </Button>
+            </>
+          }
+        />
+
         {/* Mobile: compact card list */}
         <div className="flex flex-col gap-2 sm:hidden">
           {sortedRows.map((row) => (
             <div
               key={row.holding.id}
-              className="soft-card p-3 pl-3.5"
+              className="soft-card p-3 pl-3.5 transition-transform active:scale-[0.99]"
               style={{ borderLeft: `3px solid ${signAccent(row.pnl)}` }}
             >
-              {/* Header: code + name | P&L + actions */}
+              {/* Header: monogram + code + name | P&L + actions */}
               <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <Link
-                    prefetch={false}
-                    href={`/stock/${row.holding.trading_code}`}
-                    className="text-[var(--primary)] font-mono font-bold text-base leading-tight"
-                  >
-                    {row.holding.trading_code}
-                  </Link>
-                  <p className="text-[11px] text-[var(--text-muted)] truncate leading-tight">
-                    {row.company_name ?? "—"}
-                  </p>
-                  <div className="mt-1.5">
-                    <SignalPill signal={row.signal} />
+                <div className="flex items-start gap-2.5 min-w-0">
+                  <Monogram code={row.holding.trading_code} />
+                  <div className="min-w-0">
+                    <Link
+                      prefetch={false}
+                      href={`/stock/${row.holding.trading_code}`}
+                      className="text-[var(--primary)] font-mono font-bold text-base leading-tight"
+                    >
+                      {row.holding.trading_code}
+                    </Link>
+                    <p className="text-[11px] text-[var(--text-muted)] truncate leading-tight">
+                      {row.company_name ?? "—"}
+                    </p>
+                    <div className="mt-1.5">
+                      <SignalPill signal={row.signal} />
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0 -my-1 -mr-1">
@@ -913,11 +902,11 @@ export default function PortfolioClient() {
               <div className="mt-2.5 grid grid-cols-4 gap-1 text-center rounded-lg py-2 px-1 bg-[color-mix(in_srgb,var(--primary)_5%,var(--surface))]">
                 <div>
                   <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">Qty</p>
-                  <p className="text-xs text-[var(--text)] tabular-nums nums font-medium mt-0.5">{row.holding.qty.toLocaleString()}</p>
+                  <p className="pv text-xs text-[var(--text)] tabular-nums nums font-medium mt-0.5">{row.holding.qty.toLocaleString()}</p>
                 </div>
                 <div className="border-l border-[var(--border)]">
                   <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">Avg</p>
-                  <p className="text-xs text-[var(--text)] tabular-nums nums font-medium mt-0.5">{taka(row.holding.buy_price, 2)}</p>
+                  <p className="pv text-xs text-[var(--text)] tabular-nums nums font-medium mt-0.5">{taka(row.holding.buy_price, 2)}</p>
                 </div>
                 <div className="border-l border-[var(--border)]">
                   <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">LTP</p>
@@ -925,7 +914,7 @@ export default function PortfolioClient() {
                 </div>
                 <div className="border-l border-[var(--border)]">
                   <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">Value</p>
-                  <p className="text-xs text-[var(--text)] tabular-nums nums font-bold mt-0.5">{row.current_value != null ? taka(row.current_value, 0) : "—"}</p>
+                  <p className="pv text-xs text-[var(--text)] tabular-nums nums font-bold mt-0.5">{row.current_value != null ? taka(row.current_value, 0) : "—"}</p>
                 </div>
               </div>
 
@@ -949,7 +938,6 @@ export default function PortfolioClient() {
           <table className="w-full text-sm sm:text-base">
             <thead>
               <tr className="bg-[var(--surface)] border-b-2 border-[var(--border)]">
-                <th className="text-left px-3 sm:px-4 py-3 text-xs sm:text-sm text-[var(--text)] uppercase tracking-wider font-semibold">Edit</th>
                 {COLUMNS.map((col) => {
                   const active = sort?.key === col.key;
                   return (
@@ -981,28 +969,74 @@ export default function PortfolioClient() {
                     </th>
                   );
                 })}
-                <th className="text-center px-3 sm:px-4 py-3 text-xs sm:text-sm text-[var(--text)] uppercase tracking-wider font-semibold">
-                  Alert
+                <th className="px-3 sm:px-4 py-3">
+                  <span className="sr-only">Actions</span>
                 </th>
               </tr>
             </thead>
             <tbody>
-              {sortedRows.map((row, idx) => {
+              {sortedRows.map((row) => {
                 return (
                   <tr
                     key={row.holding.id}
-                    className={`border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface)]/60 transition-colors ${
-                      idx % 2 === 1 ? "bg-[var(--surface)]/30" : ""
-                    }`}
+                    className="group border-b border-[var(--border)] last:border-0 hover:bg-[color-mix(in_srgb,var(--primary)_3%,transparent)] transition-colors"
                   >
-                    <td className="px-3 sm:px-4 py-4">
-                      <div className="flex items-center gap-1.5">
+                    <td className="px-3 sm:px-4 py-3.5">
+                      <div className="flex items-center gap-3">
+                        <Monogram code={row.holding.trading_code} />
+                        <div className="min-w-0">
+                          <Link
+                            prefetch={false} href={`/stock/${row.holding.trading_code}`}
+                            className="text-[var(--primary)] hover:underline font-mono font-bold text-base leading-tight"
+                          >
+                            {row.holding.trading_code}
+                          </Link>
+                          <p className="text-xs text-[var(--text-muted)] truncate max-w-[180px] leading-tight">
+                            {row.company_name ?? "—"}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="pv px-3 sm:px-4 py-3.5 text-right text-[var(--text)] tabular-nums nums font-medium">
+                      {row.holding.qty.toLocaleString()}
+                    </td>
+                    <td className="pv px-3 sm:px-4 py-3.5 text-right text-[var(--text)] tabular-nums nums font-medium">
+                      {taka(row.holding.buy_price, 2)}
+                    </td>
+                    <td className="pv px-3 sm:px-4 py-3.5 text-right text-[var(--text)] tabular-nums nums font-medium">
+                      {taka(row.cost_basis, 0)}
+                    </td>
+                    <td className="px-3 sm:px-4 py-3.5 text-right text-[var(--text)] tabular-nums nums font-medium">
+                      {row.ltp != null ? taka(row.ltp, 1) : "—"}
+                    </td>
+                    <td className="pv px-3 sm:px-4 py-3.5 text-right text-[var(--text)] tabular-nums nums font-semibold">
+                      {row.current_value != null ? taka(row.current_value, 0) : "—"}
+                    </td>
+                    <td className="px-3 sm:px-4 py-3.5 text-right">
+                      <PnlCell value={row.pnl} pct={row.pnl_pct} />
+                    </td>
+                    <td className="px-3 sm:px-4 py-3.5">
+                      <div className="flex justify-end">
+                        <RangeBar52 ltp={row.ltp} high={row.w52_high} low={row.w52_low} />
+                      </div>
+                    </td>
+                    <td className="px-3 sm:px-4 py-3.5 text-right">
+                      <SignalPill signal={row.signal} />
+                    </td>
+                    <td className="px-3 sm:px-4 py-3.5">
+                      <div className="flex items-center justify-end gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+                        <WatchlistAlertCell
+                          code={row.holding.trading_code}
+                          ltp={row.ltp}
+                          w52High={row.w52_high}
+                          w52Low={row.w52_low}
+                        />
                         <button
                           onClick={() => startEdit(row.holding)}
                           className="text-[var(--text-muted)] hover:text-[var(--text)] transition-colors p-1.5"
-                          aria-label="Edit"
+                          aria-label={`Edit ${row.holding.trading_code}`}
                         >
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
                           </svg>
                         </button>
@@ -1010,81 +1044,41 @@ export default function PortfolioClient() {
                           onClick={() => handleDelete(row.holding.id)}
                           disabled={busyId === row.holding.id}
                           className="text-[var(--text-muted)] hover:text-[var(--negative)] transition-colors p-1.5 disabled:opacity-40"
-                          aria-label="Delete"
+                          aria-label={`Delete ${row.holding.trading_code}`}
                         >
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
                           </svg>
                         </button>
                       </div>
                     </td>
-                    <td className="px-3 sm:px-4 py-4">
-                      <Link
-                        prefetch={false} href={`/stock/${row.holding.trading_code}`}
-                        className="text-[var(--primary)] hover:underline font-mono font-bold text-base sm:text-lg"
-                      >
-                        {row.holding.trading_code}
-                      </Link>
-                    </td>
-                    <td className="px-3 sm:px-4 py-4 text-right text-[var(--text)] tabular-nums nums font-medium">
-                      {row.holding.qty.toLocaleString()}
-                    </td>
-                    <td className="px-3 sm:px-4 py-4 text-right text-[var(--text)] tabular-nums nums font-medium">
-                      {taka(row.holding.buy_price, 2)}
-                    </td>
-                    <td className="px-3 sm:px-4 py-4 text-right text-[var(--text)] tabular-nums nums font-medium">
-                      {taka(row.cost_basis, 0)}
-                    </td>
-                    <td className="px-3 sm:px-4 py-4 text-right text-[var(--text)] tabular-nums nums font-medium">
-                      {row.ltp != null ? taka(row.ltp, 1) : "—"}
-                    </td>
-                    <td className="px-3 sm:px-4 py-4 text-right text-[var(--text)] tabular-nums nums font-medium">
-                      {row.current_value != null ? taka(row.current_value, 0) : "—"}
-                    </td>
-                    <td className="px-3 sm:px-4 py-4 text-right">
-                      <PnlCell value={row.pnl} pct={row.pnl_pct} />
-                    </td>
-                    <td className="px-3 sm:px-4 py-4">
-                      <div className="flex justify-end">
-                        <RangeBar52 ltp={row.ltp} high={row.w52_high} low={row.w52_low} />
-                      </div>
-                    </td>
-                    <td className="px-3 sm:px-4 py-4 text-right">
-                      <SignalPill signal={row.signal} />
-                    </td>
-                    <td className="px-3 sm:px-4 py-4 text-center">
-                      <WatchlistAlertCell
-                        code={row.holding.trading_code}
-                        ltp={row.ltp}
-                        w52High={row.w52_high}
-                        w52Low={row.w52_low}
-                      />
-                    </td>
                   </tr>
                 );
               })}
             </tbody>
+            <tfoot>
+              <tr className="border-t-2 border-[var(--border)] bg-[color-mix(in_srgb,var(--primary)_3%,var(--surface))]">
+                <td className="px-3 sm:px-4 py-3.5 text-xs uppercase tracking-wider font-bold text-[var(--text-muted)]">
+                  Total
+                </td>
+                <td />
+                <td />
+                <td className="pv px-3 sm:px-4 py-3.5 text-right text-[var(--text)] tabular-nums nums font-bold">
+                  {taka(summary.totalInvested, 0)}
+                </td>
+                <td />
+                <td className="pv px-3 sm:px-4 py-3.5 text-right text-[var(--text)] tabular-nums nums font-bold">
+                  {summary.totalValue != null ? taka(summary.totalValue, 0) : "—"}
+                </td>
+                <td className="px-3 sm:px-4 py-3.5 text-right">
+                  <PnlCell value={summary.pnl} pct={summary.pnl_pct} />
+                </td>
+                <td colSpan={3} />
+              </tr>
+            </tfoot>
           </table>
         </Card>
-       </>
-      )}
-
-      {/* Edit portfolio entry point */}
-      {holdings.length > 0 && (
-        <div className="flex justify-end">
-          <Button
-            type="button"
-            onClick={openEditPicker}
-            variant="ghost"
-            size="sm"
-            className="inline-flex items-center gap-1.5"
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
-            </svg>
-            Edit Portfolio
-          </Button>
-        </div>
+       </div>
       )}
 
       {/* Dividend income — estimated yearly cash + upcoming dates on held stocks */}
@@ -1092,116 +1086,20 @@ export default function PortfolioClient() {
         <DividendIncomeCard rows={rows} priceMap={priceMap} dividends={dividends} />
       )}
 
-      {/* Add holding form */}
-      <Card padding="none" className="p-5 sm:p-6">
-        <h2 className="text-base sm:text-lg font-semibold text-[var(--text)] mb-5 uppercase tracking-wider">
-          Add Holding
-        </h2>
-        <form onSubmit={handleAdd} className="flex flex-col gap-4">
-          {/* Stock code */}
-          <div className="flex flex-col gap-1.5 relative">
-            <label className="text-sm font-medium text-[var(--text)]">Stock Code</label>
-            <input
-              type="text"
-              placeholder="e.g. GP"
-              value={form.trading_code}
-              onChange={(e) => handleCodeInput(e.target.value)}
-              onKeyDown={handleCodeKeyDown}
-              onBlur={() => setTimeout(() => setSuggestions([]), 150)}
-              className="input-field text-base sm:text-lg uppercase font-mono py-2.5"
-              maxLength={20}
-              autoComplete="off"
-              required
-            />
-            {suggestions.length > 0 && (
-              <ul
-                ref={suggestionsRef}
-                className="absolute top-full left-0 right-0 mt-1 bg-[var(--surface)] border border-[var(--border)] rounded-lg shadow-lg z-20 overflow-hidden"
-              >
-                {suggestions.map((code, i) => (
-                  <li
-                    key={code}
-                    onMouseDown={() => selectSuggestion(code)}
-                    className={`px-4 py-3 text-base cursor-pointer font-mono font-semibold transition-colors ${
-                      i === activeSuggestion
-                        ? "bg-[var(--primary)] text-white"
-                        : "text-[var(--text)] hover:bg-[var(--border)]"
-                    }`}
-                  >
-                    {code}
-                  </li>
-                ))}
-              </ul>
-            )}
-            {isHeld && (
-              <p className="text-xs text-[var(--text-muted)]">
-                Already held — adding will blend into a weighted-average cost.
-              </p>
-            )}
-          </div>
-
-          {/* Price + Qty */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-[var(--text)]">Buy Price (৳)</label>
-              <input
-                type="number"
-                placeholder="295.50"
-                min="0.01"
-                step="0.01"
-                value={form.price}
-                onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-                className="input-field text-base sm:text-lg w-full tabular-nums py-2.5"
-                required
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-[var(--text)]">Quantity</label>
-              <input
-                type="number"
-                placeholder="100"
-                min="1"
-                step="1"
-                value={form.qty}
-                onChange={(e) => setForm((f) => ({ ...f, qty: e.target.value }))}
-                className="input-field text-base sm:text-lg w-full tabular-nums py-2.5"
-                required
-              />
-            </div>
-          </div>
-
-          <Button
-            type="submit"
-            disabled={adding}
-            variant="primary"
-            className="w-full sm:w-auto sm:self-start"
-          >
-            {adding ? "Saving…" : "Add Holding"}
-          </Button>
-        </form>
-        {formError && <p className="text-sm text-[var(--negative)] mt-3 font-medium">{formError}</p>}
-      </Card>
-
       {holdings.length > 0 && <PortfolioAnalysis rows={rows} priceMap={priceMap} />}
 
       {/* News on held stocks */}
       {holdings.length > 0 && (
         <section>
-          <div className="flex items-center gap-2.5 mb-3">
-            <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--primary)]/15 border border-[var(--primary)]/30 text-[var(--primary)]">
+          <SectionHeader
+            icon={
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                 <path d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 14H6v-2h6v2zm6-4H6v-2h12v2zm0-4H6V7h12v2z" />
               </svg>
-            </span>
-            <div>
-              <h2 className="text-sm sm:text-[15px] uppercase tracking-wider font-bold text-[var(--text)]">
-                News On Your Stocks
-              </h2>
-              <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-0.5">
-                Announcements from the companies you own.
-              </p>
-            </div>
-          </div>
+            }
+            title="News On Your Stocks"
+            subtitle="Announcements from the companies you own."
+          />
           <WatchlistNews
             codes={holdings.map((h) => h.trading_code)}
             news={news}
@@ -1210,6 +1108,27 @@ export default function PortfolioClient() {
             compact
           />
         </section>
+      )}
+
+      {/* Floating add button — mobile only */}
+      {holdings.length > 0 && (
+        <button type="button" className="pf-fab sm:hidden" onClick={() => setAddOpen(true)}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          Add stock
+        </button>
+      )}
+
+      {/* Add stock — bottom-sheet on mobile, centered modal on desktop */}
+      {addOpen && (
+        <AddHoldingModal
+          allCodes={allCodes}
+          priceMap={priceMap}
+          existingCodes={existingCodes}
+          onClose={() => setAddOpen(false)}
+          onAdded={applyHoldings}
+        />
       )}
 
       {/* Edit holding — bottom-sheet on mobile, centered modal on desktop */}

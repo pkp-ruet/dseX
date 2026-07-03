@@ -4,50 +4,13 @@ import SectorBreakdownChart from "./SectorBreakdownChart";
 import HoldingsDetailed from "./HoldingsDetailed";
 import RebalanceHelper from "./RebalanceHelper";
 
-const GRADE_THEME: Record<
-  Grade,
-  {
-    badge: string;
-    glow: string;
-    cardGradient: string;
-    accent: string;
-  }
-> = {
-  A: {
-    badge: "bg-green-500/20 text-[var(--positive)] border-green-500/50",
-    glow: "shadow-[0_0_30px_-8px_rgba(34,197,94,0.6)]",
-    cardGradient:
-      "bg-gradient-to-br from-green-500/10 via-emerald-500/5 to-transparent border-green-500/30",
-    accent: "text-[var(--positive)]",
-  },
-  B: {
-    badge: "bg-emerald-500/20 text-[var(--positive)] border-emerald-500/50",
-    glow: "shadow-[0_0_30px_-8px_rgba(16,185,129,0.55)]",
-    cardGradient:
-      "bg-gradient-to-br from-emerald-500/10 via-cyan-500/5 to-transparent border-emerald-500/30",
-    accent: "text-[var(--positive)]",
-  },
-  C: {
-    badge: "bg-amber-500/20 text-[var(--watch)] border-amber-500/50",
-    glow: "shadow-[0_0_30px_-8px_rgba(245,158,11,0.55)]",
-    cardGradient:
-      "bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-transparent border-amber-500/30",
-    accent: "text-[var(--watch)]",
-  },
-  D: {
-    badge: "bg-orange-500/20 text-[var(--watch)] border-orange-500/50",
-    glow: "shadow-[0_0_30px_-8px_rgba(249,115,22,0.55)]",
-    cardGradient:
-      "bg-gradient-to-br from-orange-500/10 via-red-500/5 to-transparent border-orange-500/30",
-    accent: "text-[var(--watch)]",
-  },
-  F: {
-    badge: "bg-red-500/20 text-[var(--negative)] border-red-500/50",
-    glow: "shadow-[0_0_30px_-8px_rgba(239,68,68,0.6)]",
-    cardGradient:
-      "bg-gradient-to-br from-red-500/10 via-rose-500/5 to-transparent border-red-500/30",
-    accent: "text-[var(--negative)]",
-  },
+/** Grade accents come from the site tokens — no raw palette colors. */
+const GRADE_ACCENT: Record<Grade, string> = {
+  A: "var(--positive)",
+  B: "var(--positive)",
+  C: "var(--watch)",
+  D: "color-mix(in srgb, var(--watch) 55%, var(--negative))",
+  F: "var(--negative)",
 };
 
 interface Props {
@@ -66,19 +29,32 @@ export default function PortfolioAnalysisView({
   showHoldingsList = true,
   showDisclaimer = true,
 }: Props) {
-  const theme = GRADE_THEME[analysis.grade];
+  const accent = GRADE_ACCENT[analysis.grade];
   const { spread, quality, entry } = analysis.subScores;
 
   return (
     <div id="portfolio-analysis" className="flex flex-col gap-5 sm:gap-6 scroll-mt-20">
       {/* Verdict hero */}
       <section
-        className={`relative overflow-hidden border rounded-2xl p-5 sm:p-7 ${theme.cardGradient}`}
+        className="relative overflow-hidden border rounded-2xl p-5 sm:p-7"
+        style={{
+          background: `
+            radial-gradient(120% 130% at 0% 0%, color-mix(in srgb, ${accent} 10%, transparent) 0%, transparent 55%),
+            radial-gradient(110% 120% at 100% 100%, color-mix(in srgb, ${accent} 5%, transparent) 0%, transparent 50%),
+            var(--surface)`,
+          borderColor: `color-mix(in srgb, ${accent} 30%, var(--border))`,
+        }}
       >
         <div className="flex flex-col sm:flex-row items-start gap-5 sm:gap-6">
           {/* Grade badge */}
           <div
-            className={`flex flex-col items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-2 shrink-0 ${theme.badge} ${theme.glow}`}
+            className="flex flex-col items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-2 shrink-0"
+            style={{
+              color: accent,
+              background: `color-mix(in srgb, ${accent} 15%, transparent)`,
+              borderColor: `color-mix(in srgb, ${accent} 45%, transparent)`,
+              boxShadow: `0 0 30px -8px color-mix(in srgb, ${accent} 55%, transparent)`,
+            }}
           >
             <span className="text-5xl sm:text-6xl font-black leading-none">
               {analysis.grade}
@@ -91,7 +67,8 @@ export default function PortfolioAnalysisView({
           {/* Headline + explanation */}
           <div className="flex-1 min-w-0 w-full">
             <p
-              className={`text-[11px] sm:text-xs uppercase tracking-[0.18em] font-bold mb-2 ${theme.accent}`}
+              className="text-[11px] sm:text-xs uppercase tracking-[0.18em] font-bold mb-2"
+              style={{ color: accent }}
             >
               Portfolio Verdict
             </p>
@@ -179,22 +156,14 @@ export default function PortfolioAnalysisView({
 
 function SubScore({ label, value, hint }: { label: string; value: number; hint: string }) {
   const pct = Math.max(0, Math.min(100, (value / 10) * 100));
-  const color =
+  const accent =
     value >= 7
-      ? "text-[var(--positive)]"
+      ? "var(--positive)"
       : value >= 5
-        ? "text-[var(--watch)]"
+        ? "var(--watch)"
         : value >= 3.5
-          ? "text-[var(--watch)]"
-          : "text-[var(--negative)]";
-  const barColor =
-    value >= 7
-      ? "bg-green-500"
-      : value >= 5
-        ? "bg-amber-500"
-        : value >= 3.5
-          ? "bg-orange-500"
-          : "bg-red-500";
+          ? "color-mix(in srgb, var(--watch) 55%, var(--negative))"
+          : "var(--negative)";
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -202,7 +171,7 @@ function SubScore({ label, value, hint }: { label: string; value: number; hint: 
         <span className="text-[11px] sm:text-xs uppercase tracking-wider font-bold text-[var(--text)]">
           {label}
         </span>
-        <span className={`text-base sm:text-lg font-black tabular-nums ${color}`}>
+        <span className="text-base sm:text-lg font-black tabular-nums" style={{ color: accent }}>
           {value.toFixed(1)}
           <span className="text-[10px] sm:text-xs text-[var(--text-muted)] font-semibold ml-0.5">
             /10
@@ -211,8 +180,8 @@ function SubScore({ label, value, hint }: { label: string; value: number; hint: 
       </div>
       <div className="h-1.5 w-full rounded-full bg-[var(--border)]/50 overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all duration-500 ${barColor}`}
-          style={{ width: `${pct}%` }}
+          className="h-full rounded-full transition-all duration-500"
+          style={{ width: `${pct}%`, background: accent }}
           aria-hidden
         />
       </div>
@@ -233,20 +202,12 @@ interface SectionProps {
 const TONE_THEME: Record<
   SectionProps["tone"],
   {
-    wrap: string;
-    title: string;
-    bullet: string;
-    bulletBg: string;
-    badge: string;
+    accent: string;
     icon: React.ReactNode;
   }
 > = {
   good: {
-    wrap: "border-green-500/30 bg-gradient-to-br from-green-500/[0.07] to-transparent",
-    title: "text-[var(--positive)]",
-    bullet: "text-[var(--positive)]",
-    bulletBg: "bg-green-500/15",
-    badge: "bg-green-500/15 text-[var(--positive)] border-green-500/30",
+    accent: "var(--positive)",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M20 6L9 17l-5-5" />
@@ -254,11 +215,7 @@ const TONE_THEME: Record<
     ),
   },
   bad: {
-    wrap: "border-red-500/30 bg-gradient-to-br from-red-500/[0.07] to-transparent",
-    title: "text-[var(--negative)]",
-    bullet: "text-[var(--negative)]",
-    bulletBg: "bg-red-500/15",
-    badge: "bg-red-500/15 text-[var(--negative)] border-red-500/30",
+    accent: "var(--negative)",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M12 9v4M12 17h.01" />
@@ -267,11 +224,7 @@ const TONE_THEME: Record<
     ),
   },
   consider: {
-    wrap: "border-amber-500/30 bg-gradient-to-br from-amber-500/[0.07] to-transparent",
-    title: "text-[var(--watch)]",
-    bullet: "text-[var(--watch)]",
-    bulletBg: "bg-amber-500/15",
-    badge: "bg-amber-500/15 text-[var(--watch)] border-amber-500/30",
+    accent: "var(--watch)",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M9 18h6M10 22h4" />
@@ -282,23 +235,37 @@ const TONE_THEME: Record<
 };
 
 function Section({ title, tone, items, emptyText }: SectionProps) {
-  const c = TONE_THEME[tone];
+  const { accent, icon } = TONE_THEME[tone];
+  const chipStyle = {
+    color: accent,
+    background: `color-mix(in srgb, ${accent} 14%, transparent)`,
+    borderColor: `color-mix(in srgb, ${accent} 30%, transparent)`,
+  };
   return (
-    <div className={`border rounded-2xl p-4 sm:p-5 ${c.wrap}`}>
+    <div
+      className="border rounded-2xl p-4 sm:p-5"
+      style={{
+        borderColor: `color-mix(in srgb, ${accent} 30%, var(--border))`,
+        background: `linear-gradient(135deg, color-mix(in srgb, ${accent} 7%, transparent), transparent 60%), var(--surface)`,
+      }}
+    >
       <div className="flex items-center gap-2.5 mb-4">
         <span
-          className={`flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg border ${c.badge}`}
+          className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg border"
+          style={chipStyle}
         >
-          <span className={`w-4 h-4 sm:w-[18px] sm:h-[18px] ${c.title}`}>{c.icon}</span>
+          <span className="w-4 h-4 sm:w-[18px] sm:h-[18px]">{icon}</span>
         </span>
         <h3
-          className={`text-sm sm:text-[15px] uppercase tracking-wider font-bold ${c.title}`}
+          className="text-sm sm:text-[15px] uppercase tracking-wider font-bold"
+          style={{ color: accent }}
         >
           {title}
         </h3>
         {items.length > 0 && (
           <span
-            className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full border ${c.badge}`}
+            className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full border"
+            style={chipStyle}
           >
             {items.length}
           </span>
@@ -312,8 +279,11 @@ function Section({ title, tone, items, emptyText }: SectionProps) {
           {items.map((item, i) => (
             <li key={i} className="flex items-start gap-2.5 leading-relaxed">
               <span
-                className={`shrink-0 mt-1.5 w-1.5 h-1.5 rounded-full ${c.bulletBg}`}
-                style={{ boxShadow: `0 0 0 3px ${tone === "good" ? "rgba(34,197,94,0.15)" : tone === "bad" ? "rgba(239,68,68,0.15)" : "rgba(245,158,11,0.15)"}` }}
+                className="shrink-0 mt-1.5 w-1.5 h-1.5 rounded-full"
+                style={{
+                  background: accent,
+                  boxShadow: `0 0 0 3px color-mix(in srgb, ${accent} 15%, transparent)`,
+                }}
                 aria-hidden
               />
               <span className="text-sm sm:text-[15px] text-[var(--text)] leading-[1.65]">
