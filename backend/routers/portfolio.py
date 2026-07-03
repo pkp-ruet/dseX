@@ -79,6 +79,17 @@ def _normalize(h: dict) -> dict:
     }
 
 
+def _matches(h: dict, holding_id: str) -> bool:
+    """True when a stored holding is addressed by `holding_id`.
+
+    Holdings written by this router use id == trading_code, but rows created by
+    the original router carry a uuid id, which `_normalize` preserves and users'
+    cached frontends still send. Accept the exact id or the trading code —
+    codes never look like uuids, so the two can't collide."""
+    hid = holding_id.strip()
+    return h.get("id") == hid or (h.get("trading_code") or "").upper() == hid.upper()
+
+
 def _load_holdings(user_id: str) -> list[dict]:
     """Return the user's holdings (one row per code).
 
@@ -177,9 +188,8 @@ def update_holding(
     current_user: dict = Depends(get_current_user),
 ):
     user_id = current_user["user_id"]
-    code = holding_id.upper()
     holdings = list(_load_holdings(user_id))
-    holding = next((h for h in holdings if h["trading_code"] == code), None)
+    holding = next((h for h in holdings if _matches(h, holding_id)), None)
     if holding is None:
         raise HTTPException(status_code=404, detail="Holding not found")
     if body.buy_price is not None:
@@ -193,9 +203,8 @@ def update_holding(
 @router.delete("/holdings/{holding_id}")
 def delete_holding(holding_id: str, current_user: dict = Depends(get_current_user)):
     user_id = current_user["user_id"]
-    code = holding_id.upper()
     holdings = list(_load_holdings(user_id))
-    updated = [h for h in holdings if h["trading_code"] != code]
+    updated = [h for h in holdings if not _matches(h, holding_id)]
     if len(updated) == len(holdings):
         raise HTTPException(status_code=404, detail="Holding not found")
     saved = _persist(user_id, updated)
