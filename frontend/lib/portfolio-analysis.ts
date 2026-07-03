@@ -54,6 +54,17 @@ export type EntryTag =
   | "no_data"
   | "no_price";
 
+export type HoldingSignal = "buy_more" | "hold" | "sell";
+
+export interface SignalInfo {
+  signal: HoldingSignal;
+  label: "Buy More" | "Hold" | "Sell";
+  /** Plain-English one-liner explaining why this signal was given. */
+  reason: string;
+  /** True when we lack the data to give a real signal — render dimmed. */
+  muted?: boolean;
+}
+
 export interface HoldingInsight {
   code: string;
   companyName: string | null;
@@ -69,6 +80,7 @@ export interface HoldingInsight {
   qualityWord: QualityWord;
   entryTag: EntryTag;
   entryLabel: string;
+  signal: SignalInfo;
   descriptor: string;
   oneLiner: string;
   pillars: {
@@ -198,6 +210,76 @@ function classifyEntry(
     tag: "expensive_expensive",
     label:
       "You bought when the price was already too high, and even after falling, it's still expensive compared to the company's earnings. Think hard about whether to keep holding or take the loss and move on.",
+  };
+}
+
+/**
+ * Simple Buy More / Hold / Sell signal for a single holding, combining
+ * company quality (overall score tier) with the entry/valuation picture.
+ * Shared by the portfolio table, mobile cards and the analysis section.
+ */
+export function computeHoldingSignal(args: {
+  pnlPct: number | null;
+  score: number | null;
+  p4: number | null | undefined;
+}): SignalInfo {
+  const tier = tierBucket(args.score);
+  if (tier === "unscored") {
+    return {
+      signal: "hold",
+      label: "Hold",
+      reason: "Not enough data on this company yet to give a signal — hold and watch its next results.",
+      muted: true,
+    };
+  }
+  if (tier === "avoid") {
+    return {
+      signal: "sell",
+      label: "Sell",
+      reason:
+        "This company scores low on overall quality. Weak companies usually give disappointing returns — consider moving the money to a stronger stock.",
+    };
+  }
+  const entry = classifyEntry(args.pnlPct, args.p4);
+  if (entry.tag === "expensive_expensive") {
+    return {
+      signal: "sell",
+      label: "Sell",
+      reason:
+        "You're at a loss and the price still looks expensive for what the company earns. Think about taking the loss and moving on.",
+    };
+  }
+  if (
+    (entry.tag === "down_strong" || entry.tag === "fair_attractive") &&
+    (tier === "strong_buy" || tier === "buy")
+  ) {
+    return {
+      signal: "buy_more",
+      label: "Buy More",
+      reason:
+        "Strong company and the price looks cheap right now — adding a little more lowers your average cost.",
+    };
+  }
+  if (entry.tag === "up_expensive") {
+    return {
+      signal: "hold",
+      label: "Hold",
+      reason:
+        "You're up nicely, but the price has run ahead of the company's earnings. Hold — and consider booking part of the profit.",
+    };
+  }
+  if (entry.tag === "no_price" || entry.tag === "no_data") {
+    return {
+      signal: "hold",
+      label: "Hold",
+      reason: entry.label,
+      muted: true,
+    };
+  }
+  return {
+    signal: "hold",
+    label: "Hold",
+    reason: "Nothing urgent here — the price is fair for what the company earns. Let it keep working for you.",
   };
 }
 
@@ -380,6 +462,7 @@ export function analyzePortfolio(
       qualityWord: QUALITY_WORD[tk],
       entryTag: entry.tag,
       entryLabel: entry.label,
+      signal: computeHoldingSignal({ pnlPct: row.pnl_pct, score, p4: item?.p4_val }),
       descriptor: "",
       oneLiner: "",
       pillars: {

@@ -1,6 +1,24 @@
 import Link from "next/link";
 import Card from "@/components/ui/Card";
-import type { PortfolioAnalysis, QualityWord } from "@/lib/portfolio-analysis";
+import type { HoldingSignal, PortfolioAnalysis, QualityWord } from "@/lib/portfolio-analysis";
+
+const SIGNAL_THEME: Record<HoldingSignal, { chip: string; dot: string; icon: string }> = {
+  buy_more: {
+    chip: "bg-[color-mix(in_srgb,var(--positive)_15%,transparent)] text-[var(--positive)] border-[color-mix(in_srgb,var(--positive)_30%,transparent)]",
+    dot: "bg-[var(--positive)]",
+    icon: "▲",
+  },
+  hold: {
+    chip: "bg-[color-mix(in_srgb,var(--watch)_15%,transparent)] text-[var(--watch)] border-[color-mix(in_srgb,var(--watch)_30%,transparent)]",
+    dot: "bg-[var(--watch)]",
+    icon: "●",
+  },
+  sell: {
+    chip: "bg-[color-mix(in_srgb,var(--negative)_15%,transparent)] text-[var(--negative)] border-[color-mix(in_srgb,var(--negative)_30%,transparent)]",
+    dot: "bg-[var(--negative)]",
+    icon: "▼",
+  },
+};
 
 const QUALITY_THEME: Record<
   QualityWord,
@@ -73,6 +91,7 @@ export default function HoldingsDetailed({ analysis }: Props) {
 
       {sorted.map((h) => {
         const qt = QUALITY_THEME[h.qualityWord];
+        const st = SIGNAL_THEME[h.signal.signal];
 
         return (
           <Card
@@ -96,6 +115,16 @@ export default function HoldingsDetailed({ analysis }: Props) {
                   </p>
                 )}
                 <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+                  <span
+                    title={h.signal.reason}
+                    className={`inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-bold uppercase tracking-wide px-2 py-1 rounded-full border cursor-help ${st.chip}`}
+                    style={{ opacity: h.signal.muted ? 0.75 : 1 }}
+                  >
+                    <span className="text-[9px] leading-none" aria-hidden>
+                      {st.icon}
+                    </span>
+                    {h.signal.label}
+                  </span>
                   <span
                     className={`inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-semibold px-2 py-1 rounded-full border ${qt.chip}`}
                   >

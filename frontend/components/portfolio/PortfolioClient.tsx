@@ -15,6 +15,7 @@ import {
   apiDeleteHolding,
 } from "@/lib/api";
 import { taka } from "@/lib/formatters";
+import { computeHoldingSignal, type SignalInfo } from "@/lib/portfolio-analysis";
 import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
 import { getStoredUser } from "@/lib/auth";
 import Card from "@/components/ui/Card";
@@ -36,6 +37,7 @@ interface ComputedRow {
   current_value: number | null;
   pnl: number | null;
   pnl_pct: number | null;
+  signal: SignalInfo;
 }
 
 function compute(holding: PortfolioHolding, priceMap: Map<string, ScoreItem>): ComputedRow {
@@ -53,10 +55,11 @@ function compute(holding: PortfolioHolding, priceMap: Map<string, ScoreItem>): C
     current_value,
     pnl,
     pnl_pct,
+    signal: computeHoldingSignal({ pnlPct: pnl_pct, score: item?.score ?? null, p4: item?.p4_val }),
   };
 }
 
-type SortKey = "code" | "qty" | "avgcost" | "invested" | "ltp" | "curvalue" | "pnl";
+type SortKey = "code" | "qty" | "avgcost" | "invested" | "ltp" | "curvalue" | "pnl" | "signal";
 
 const COLUMNS: { key: SortKey; label: string; align: "left" | "right" }[] = [
   { key: "code", label: "Code", align: "left" },
@@ -66,7 +69,10 @@ const COLUMNS: { key: SortKey; label: string; align: "left" | "right" }[] = [
   { key: "ltp", label: "LTP", align: "right" },
   { key: "curvalue", label: "Cur. Value", align: "right" },
   { key: "pnl", label: "P&L", align: "right" },
+  { key: "signal", label: "Signal", align: "right" },
 ];
+
+const SIGNAL_RANK: Record<SignalInfo["signal"], number> = { sell: 0, hold: 1, buy_more: 2 };
 
 function sortValue(row: ComputedRow, key: SortKey): string | number | null {
   switch (key) {
@@ -84,6 +90,8 @@ function sortValue(row: ComputedRow, key: SortKey): string | number | null {
       return row.current_value;
     case "pnl":
       return row.pnl;
+    case "signal":
+      return SIGNAL_RANK[row.signal.signal];
   }
 }
 
@@ -128,6 +136,33 @@ function PnlPill({ value, pct }: { value: number | null; pct: number | null }) {
           {pct.toFixed(1)}%
         </span>
       )}
+    </span>
+  );
+}
+
+/** Buy More / Hold / Sell pill shown on each holding (cards + table). */
+function SignalPill({ signal }: { signal: SignalInfo }) {
+  const accent = signal.muted
+    ? "var(--text-muted)"
+    : signal.signal === "buy_more"
+      ? "var(--positive)"
+      : signal.signal === "sell"
+        ? "var(--negative)"
+        : "var(--watch)";
+  return (
+    <span
+      title={signal.reason}
+      className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide whitespace-nowrap cursor-help"
+      style={{
+        color: accent,
+        background: `color-mix(in srgb, ${accent} 12%, transparent)`,
+        opacity: signal.muted ? 0.75 : 1,
+      }}
+    >
+      <span className="text-[9px] leading-none" aria-hidden>
+        {signal.signal === "buy_more" ? "▲" : signal.signal === "sell" ? "▼" : "●"}
+      </span>
+      {signal.label}
     </span>
   );
 }
@@ -592,6 +627,9 @@ export default function PortfolioClient() {
                   <p className="text-[11px] text-[var(--text-muted)] truncate leading-tight">
                     {row.company_name ?? "—"}
                   </p>
+                  <div className="mt-1.5">
+                    <SignalPill signal={row.signal} />
+                  </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0 -my-1 -mr-1">
                   <PnlPill value={row.pnl} pct={row.pnl_pct} />
@@ -736,6 +774,9 @@ export default function PortfolioClient() {
                     </td>
                     <td className="px-3 sm:px-4 py-4 text-right">
                       <PnlCell value={row.pnl} pct={row.pnl_pct} />
+                    </td>
+                    <td className="px-3 sm:px-4 py-4 text-right">
+                      <SignalPill signal={row.signal} />
                     </td>
                   </tr>
                 );
