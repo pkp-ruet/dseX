@@ -69,7 +69,14 @@
       "Bash(curl -s -m 10 http://localhost:8000/health)",
       "Bash(curl -s -m 10 http://localhost:8000/api/scores)",
       "Bash(sed 's/:\\\\/\\\\/.*@/:\\\\/\\\\/***@/')",
-      "Bash(curl -s -m 10 http://localhost:8000/api/audit)"
+      "Bash(curl -s -m 10 http://localhost:8000/api/audit)",
+      "Bash(cd /C/Things/dseX && grep -rn \"sponsor_director_pct\\\\|institute_pct\\\\|foreign_pct\\\\|public_pct\\\\|govt_pct\" --include=\"*.py\" backend/)",
+      "Bash(cd /C/Things/dseX && grep -n \"_a2_ownership_score\" backend/services/scoring_service.py)",
+      "Bash(cd /C/Things/dseX && grep -rn \"\\\\.get\\(\" backend/services/scoring_service.py | cut -d'\"' -f2 | sort -u)",
+      "Bash(where python3 *)",
+      "Read(//c/Program Files/**)",
+      "Bash(py --version)",
+      "Bash(py -c ' *)"
     ]
   }
 }

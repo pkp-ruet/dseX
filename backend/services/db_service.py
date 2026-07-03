@@ -650,7 +650,7 @@ def compute_market_intelligence() -> dict:
 
         quality_laggards = [
             e for e in enriched
-            if _sk(e, "score", 0) >= 55 and e["change_pct"] <= 0.2
+            if _sk(e, "score", 0) >= 60 and e["change_pct"] <= 0.2
         ]
         quality_laggards.sort(key=lambda x: _sk(x, "score", 0), reverse=True)
         signals["quality_laggards"] = quality_laggards[:10]
@@ -669,7 +669,7 @@ def compute_market_intelligence() -> dict:
 
         hidden_gems = [
             e for e in enriched
-            if _sk(e, "score", 0) >= 55 and abs(e["change_pct"]) <= 0.3
+            if _sk(e, "score", 0) >= 60 and abs(e["change_pct"]) <= 0.3
         ]
         hidden_gems.sort(key=lambda x: _sk(x, "score", 0), reverse=True)
         signals["hidden_gems"] = hidden_gems[:10]
@@ -819,13 +819,8 @@ def compute_signal_flags(
 def _tier_for_score(score: Optional[float]) -> Optional[str]:
     if score is None:
         return None
-    if score >= 75:
-        return "strong_buy"
-    if score >= 55:
-        return "safe_buy"
-    if score >= 35:
-        return "watch"
-    return "avoid"
+    from backend.services.tiers import tier_key
+    return tier_key(score)
 
 
 @_ttl_cache(300)

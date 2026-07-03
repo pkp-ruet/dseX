@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
-import { getScores } from "@/lib/api";
+import { flattenTiers, getScores } from "@/lib/api";
 import { getTier } from "@/lib/constants";
 import RankingExplorer from "@/components/ranking/RankingExplorer";
 import type { RankedItem } from "@/components/ranking/FullRankTable";
@@ -48,13 +48,11 @@ export default async function DseStockRankingPage() {
       })
     : null;
 
-  // Flatten all API tiers and re-classify into 6 frontend tiers
-  const allRanked: RankedItem[] = [
-    ...tiers.strong_buy,
-    ...tiers.safe_buy,
-    ...tiers.watch,
-    ...tiers.avoid,
-  ].map((i) => ({ ...i, tier: getTier(i.score) }));
+  // Flatten all API tiers and re-classify client-side via getTier
+  const allRanked: RankedItem[] = flattenTiers(scores).map((i) => ({
+    ...i,
+    tier: getTier(i.score),
+  }));
 
   // Build counts from re-classified tiers
   const counts: Record<string, number> = {};

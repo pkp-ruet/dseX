@@ -230,7 +230,7 @@ def _personalized_scored(prep: dict, exclude: set[str]) -> list[tuple]:
         if code in exclude:
             continue
         score = r.get("score")
-        if score is None or r.get("stale_data") or score < 35:
+        if score is None or r.get("stale_data") or score < 45:
             continue
         base = _match_score(r, answers, vol_median, mcap_terc)
         sec = (r.get("sector") or "").strip().lower()
@@ -245,7 +245,7 @@ def _cold_scored(prep: dict, exclude: set[str]) -> list[dict]:
     rows, pop_boost = prep["rows"], prep["pop_boost"]
     cands = [
         r for r in rows
-        if (r.get("score") or 0) >= 55 and not r.get("stale_data")
+        if (r.get("score") or 0) >= 60 and not r.get("stale_data")
         and r["trading_code"] not in exclude
     ]
 

@@ -318,8 +318,8 @@ def _badge_for_code(ctx: dict, code: str, ltp: Optional[float]) -> tuple[Optiona
     if score is not None:
         if score >= 75:
             return f"Strong Buy · {int(round(score))}", "tier"
-        if score >= 55:
-            return f"Safe Buy · {int(round(score))}", "tier"
+        if score >= 60:
+            return f"Buy · {int(round(score))}", "tier"
     return None, None
 
 

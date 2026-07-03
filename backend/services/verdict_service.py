@@ -6,27 +6,7 @@ Fundamentals are primary; momentum modifies tone and horizon.
 """
 from typing import Optional
 
-
-# DSEF tier thresholds (mirror of frontend lib/constants getTier)
-def _tier_key(score: Optional[float]) -> str:
-    if score is None:
-        return "unknown"
-    if score >= 75:
-        return "strong_buy"
-    if score >= 60:
-        return "buy"
-    if score >= 45:
-        return "keep_watching"
-    return "avoid"
-
-
-_TIER_WORD = {
-    "strong_buy": "Strong Buy",
-    "buy": "Buy",
-    "keep_watching": "Watch",
-    "avoid": "Risky",
-    "unknown": "Unrated",
-}
+from backend.services.tiers import TIER_WORDS as _TIER_WORD, tier_key as _tier_key
 
 
 # (tier, momentum_grade) -> (tagline, lead_sentence, stance, horizon)

@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter
 from backend.services.scoring_service import build_scores_df, invalidate_scores_cache
 from backend.services.db_service import load_companies
+from backend.services.tiers import TIER_KEYS, tier_key
 from backend.models.responses import ScoresResponse, ScoreItem, ScoreTiers
 
 router = APIRouter()
@@ -29,9 +30,7 @@ def get_scores():
     df = build_scores_df()
     companies = {c["trading_code"]: c for c in load_companies()}
 
-    tiers: dict[str, list[ScoreItem]] = {
-        "strong_buy": [], "safe_buy": [], "watch": [], "avoid": []
-    }
+    tiers: dict[str, list[ScoreItem]] = {k: [] for k in TIER_KEYS}
 
     if not df.empty:
         scored = df[df["score"].notna()].sort_values("score", ascending=False)
@@ -62,14 +61,7 @@ def get_scores():
                 data_age_years=int(_day) if _day is not None and not (isinstance(_day, float) and math.isnan(_day)) else None,
                 stale_data=bool(_stale) if _stale is not None and not (isinstance(_stale, float) and math.isnan(_stale)) else None,
             )
-            if score >= 75:
-                tiers["strong_buy"].append(item)
-            elif score >= 55:
-                tiers["safe_buy"].append(item)
-            elif score >= 35:
-                tiers["watch"].append(item)
-            else:
-                tiers["avoid"].append(item)
+            tiers[tier_key(score)].append(item)
 
     # Inject latest price change_pct
     from backend.services.db_service import load_latest_prices

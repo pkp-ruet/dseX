@@ -28,7 +28,7 @@ class RecommendedStock(BaseModel):
     company_name: Optional[str] = None
     sector: Optional[str] = None
     score: Optional[float] = None
-    tier: Optional[str] = None          # strong_buy|safe_buy|watch (derived from score)
+    tier: Optional[str] = None          # strong_buy|buy|keep_watching|avoid (services/tiers.py)
     ltp: Optional[float] = None
     change_pct: Optional[float] = None
     div_yield_pct: Optional[float] = None
@@ -51,8 +51,8 @@ class RecommendationResponse(BaseModel):
 
 class ScoreTiers(BaseModel):
     strong_buy: list[ScoreItem]
-    safe_buy: list[ScoreItem]
-    watch: list[ScoreItem]
+    buy: list[ScoreItem]
+    keep_watching: list[ScoreItem]
     avoid: list[ScoreItem]
 
 

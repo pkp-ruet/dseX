@@ -117,13 +117,14 @@ def _plain_sector(s: Optional[str]) -> str:
 
 
 def _tier_label(score: Optional[float]) -> Optional[str]:
+    """Boundaries follow the canonical tiers (backend/services/tiers.py)."""
     if score is None:
         return None
     if score >= 75:
         return "strong"
-    if score >= 55:
+    if score >= 60:
         return "good"
-    if score >= 35:
+    if score >= 45:
         return "soso"
     return "risky"
 

@@ -50,16 +50,12 @@ export interface ScoreItem {
 
 export interface ScoreTiers {
   strong_buy: ScoreItem[];
-  safe_buy: ScoreItem[];
-  watch: ScoreItem[];
-  avoid: ScoreItem[];
-}
-
-export interface FrontendTiers {
-  strong_buy:    ScoreItem[];
-  buy:           ScoreItem[];
+  buy: ScoreItem[];
   keep_watching: ScoreItem[];
-  avoid:         ScoreItem[];
+  avoid: ScoreItem[];
+  /** Legacy keys served by pre-tier-unification backends — tolerated during rollout. */
+  safe_buy?: ScoreItem[];
+  watch?: ScoreItem[];
 }
 
 export interface ScoresResponse {
@@ -67,6 +63,12 @@ export interface ScoresResponse {
   computed_at: string;
   tiers: ScoreTiers;
   counts: Record<string, number>;
+}
+
+/** Flatten all tier buckets into one array, regardless of the backend's key names.
+ *  Use this instead of spreading named buckets — tier grouping belongs to getTier(). */
+export function flattenTiers(res: ScoresResponse): ScoreItem[] {
+  return Object.values(res.tiers ?? {}).flatMap((bucket) => bucket ?? []);
 }
 
 export interface CompanyProfile {
@@ -412,12 +414,7 @@ export async function getStockLists(): Promise<import("@/lib/stock-lists").Stock
 /** Flatten all tiers into a single array, including pillar scores. Used by insight pages. */
 export async function getInsightScores(): Promise<ScoreItem[]> {
   const res = await apiFetch<ScoresResponse>("/api/scores", 86400);
-  return [
-    ...res.tiers.strong_buy,
-    ...res.tiers.safe_buy,
-    ...res.tiers.watch,
-    ...res.tiers.avoid,
-  ];
+  return flattenTiers(res);
 }
 
 export interface WatchlistNewsItem {

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Card from "@/components/ui/Card";
 import {
+  flattenTiers,
   getScores,
   getNearExtremes,
   getDividendsUpcoming,
@@ -12,24 +13,7 @@ import {
   type NearExtremesData,
   type DividendsUpcoming,
 } from "@/lib/api";
-
-type Tier = "strong_buy" | "safe_buy" | "watch" | "avoid";
-
-const TIER_LABEL: Record<Tier, string> = {
-  strong_buy: "Strong Buy",
-  safe_buy: "Safe Buy",
-  watch: "Watch",
-  avoid: "Avoid",
-};
-
-function tierOf(scores: ScoresResponse | null, code: string): Tier | null {
-  if (!scores) return null;
-  const c = code.toUpperCase();
-  for (const k of ["strong_buy", "safe_buy", "watch", "avoid"] as Tier[]) {
-    if (scores.tiers[k].some((it) => it.trading_code.toUpperCase() === c)) return k;
-  }
-  return null;
-}
+import { getTier, type TierKey } from "@/lib/constants";
 
 function CodeChip({ code }: { code: string }) {
   return (
@@ -152,13 +136,7 @@ export default function WatchlistAnalysis({ codes }: { codes: string[] }) {
 
   const rows = useMemo<ScoreItem[]>(() => {
     if (!scores) return [];
-    const flat = [
-      ...scores.tiers.strong_buy,
-      ...scores.tiers.safe_buy,
-      ...scores.tiers.watch,
-      ...scores.tiers.avoid,
-    ];
-    return flat
+    return flattenTiers(scores)
       .filter((it) => codeSet.has(it.trading_code.toUpperCase()))
       .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
   }, [scores, codeSet]);
@@ -166,17 +144,15 @@ export default function WatchlistAnalysis({ codes }: { codes: string[] }) {
   const story = useMemo(() => {
     if (!rows.length || !scores) return null;
 
-    // Tier mix
-    const tierCounts: Record<Tier, number> = { strong_buy: 0, safe_buy: 0, watch: 0, avoid: 0 };
-    const tierCodes: Record<Tier, string[]> = { strong_buy: [], safe_buy: [], watch: [], avoid: [] };
+    // Tier mix — classified client-side from the score (canonical getTier thresholds)
+    const tierCounts: Record<TierKey, number> = { strong_buy: 0, buy: 0, keep_watching: 0, avoid: 0 };
+    const tierCodes: Record<TierKey, string[]> = { strong_buy: [], buy: [], keep_watching: [], avoid: [] };
     for (const r of rows) {
-      const t = tierOf(scores, r.trading_code);
-      if (t) {
-        tierCounts[t] += 1;
-        tierCodes[t].push(r.trading_code);
-      }
+      const t = getTier(r.score);
+      tierCounts[t] += 1;
+      tierCodes[t].push(r.trading_code);
     }
-    const qualityCount = tierCounts.strong_buy + tierCounts.safe_buy;
+    const qualityCount = tierCounts.strong_buy + tierCounts.buy;
     const qualityPct = (qualityCount / rows.length) * 100;
 
     // Avg score + today
@@ -236,10 +212,10 @@ export default function WatchlistAnalysis({ codes }: { codes: string[] }) {
       .filter((r) => (r.score ?? 0) >= 60)
       .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
 
-    // Quality on sale: tier strong/safe buy near low
+    // Quality on sale: Strong Buy / Buy tier near low
     const qualityOnSale = nearLow.filter((r) => {
-      const t = tierOf(scores, r.trading_code);
-      return t === "strong_buy" || t === "safe_buy";
+      const t = getTier(r.score);
+      return t === "strong_buy" || t === "buy";
     });
 
     // Upcoming dividends within 30d
@@ -384,8 +360,8 @@ export default function WatchlistAnalysis({ codes }: { codes: string[] }) {
           {/* Quality */}
           <p>
             <span className="font-bold">{Math.round(story.qualityPct)}% quality:</span>{" "}
-            {story.tierCounts.strong_buy + story.tierCounts.safe_buy} of {rows.length} stocks rank
-            Strong or Safe Buy
+            {story.tierCounts.strong_buy + story.tierCounts.buy} of {rows.length} stocks rank
+            Strong Buy or Buy
             {story.tierCounts.strong_buy > 0 && (
               <>
                 . Best of the lot:{" "}
@@ -505,7 +481,7 @@ export default function WatchlistAnalysis({ codes }: { codes: string[] }) {
               <p>
                 <span className="font-bold">Quality on sale:</span>{" "}
                 {inlineList(story.qualityOnSale.map((r) => r.trading_code))}{" "}
-                rank Strong/Safe Buy AND trade within 5% of 52-week low — potential
+                rank Strong Buy or Buy AND trade within 5% of 52-week low — potential
                 value setup if fundamentals still hold.
               </p>
             )}

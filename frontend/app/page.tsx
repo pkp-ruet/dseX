@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import {
+  flattenTiers,
   getScores,
   getMarketIndex,
   getMarketMovers,
@@ -63,12 +64,7 @@ const JSON_LD = {
 };
 
 function allItemsFromScores(scores: ScoresResponse): ScoreItem[] {
-  return [
-    ...scores.tiers.strong_buy,
-    ...scores.tiers.safe_buy,
-    ...scores.tiers.watch,
-    ...scores.tiers.avoid,
-  ];
+  return flattenTiers(scores);
 }
 
 function sortedByScore(items: ScoreItem[]): ScoreItem[] {

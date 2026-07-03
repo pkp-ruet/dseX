@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getScores, type ScoresResponse, type ScoreItem } from "@/lib/api";
+import { flattenTiers, getScores, type ScoresResponse, type ScoreItem } from "@/lib/api";
 import { addToWatchlist, getCachedWatchlist, subscribeWatchlist } from "@/lib/watchlist";
 import { taka } from "@/lib/formatters";
 
@@ -14,8 +14,6 @@ interface Props {
 }
 
 const SUGGEST_COUNT = 6;
-// Strongest-rated tiers first; we pad down so there are always enough picks.
-const TIER_ORDER: Array<keyof ScoresResponse["tiers"]> = ["strong_buy", "safe_buy", "watch"];
 
 const ICON_PLUS = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
@@ -54,17 +52,12 @@ export default function EmptyStateActions({ compact = false, onAdded }: Props = 
     };
   }, []);
 
+  // Highest-rated companies first (flatten + score sort ≡ strongest tiers first).
   const suggestions: ScoreItem[] = (() => {
     if (!scores) return [];
-    const out: ScoreItem[] = [];
-    for (const key of TIER_ORDER) {
-      const tier = [...(scores.tiers[key] ?? [])].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
-      for (const it of tier) {
-        out.push(it);
-        if (out.length >= SUGGEST_COUNT) return out;
-      }
-    }
-    return out;
+    return flattenTiers(scores)
+      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+      .slice(0, SUGGEST_COUNT);
   })();
 
   function handleAdd(code: string) {

@@ -1,4 +1,4 @@
-import type { ScoresResponse, DividendsUpcoming, ScoreItem } from "@/lib/api";
+import { flattenTiers, type ScoresResponse, type DividendsUpcoming, type ScoreItem } from "@/lib/api";
 import { getTier } from "@/lib/constants";
 import ScoreOverview from "./sidebar/ScoreOverview";
 import UpcomingEvents from "./sidebar/UpcomingEvents";
@@ -9,14 +9,9 @@ interface Props {
 }
 
 export default function HomeSidebar({ scores, dividends }: Props) {
-  const { tiers, computed_at } = scores;
+  const { computed_at } = scores;
 
-  const allItems: ScoreItem[] = [
-    ...tiers.strong_buy,
-    ...tiers.safe_buy,
-    ...tiers.watch,
-    ...tiers.avoid,
-  ];
+  const allItems: ScoreItem[] = flattenTiers(scores);
   const total = allItems.length;
 
   const counts: Record<string, number> = {};

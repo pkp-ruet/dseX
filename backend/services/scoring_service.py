@@ -9,7 +9,7 @@ import time
 from datetime import datetime, timezone
 import numpy as np
 import pandas as pd
-from pymongo import ASCENDING, UpdateOne
+from pymongo import ASCENDING, ReplaceOne
 from typing import Optional
 
 from backend.services.db_service import (
@@ -55,6 +55,53 @@ def _score(value, anchors) -> float:
 def _median(vals: list[float]) -> float:
     """True median (averaging the two middle values for even-length input)."""
     return float(np.median(vals))
+
+
+# ---------------------------------------------------------------------------
+# Missing-data policy — per-pillar weight renormalization with a floor
+# ---------------------------------------------------------------------------
+#
+# A sub-metric is None only when its INPUT DATA is absent (never scraped /
+# disclosed). Present-but-bad data still scores 0.0 — negative equity, burning
+# cash and a lost sector rank are signals, not gaps. The missing metric's
+# weight is redistributed across the present ones, but only down to a floor:
+# the weighted sum is divided by max(present_weight, 0.60), so a pillar backed
+# by less than 60% of its designed weight keeps a proportional penalty (the
+# renormalization boost is capped at 1/0.60 ≈ 1.67x). Without this, sparse-
+# disclosure sectors (insurance, NBFIs, fresh listings) score as "worst
+# possible" on metrics they never report — 0-fill made the largest DSE sector
+# (insurance) look debt-distressed with no moat.
+
+_RENORM_FLOOR = 0.60
+
+# DSE market-category multiplier, applied to the final score like the
+# staleness multiplier. Z (failed AGM / no dividend / operational distress) is
+# the canonical value trap; B is mildly penalized. A multiplier rather than a
+# hard gate: Z is ~a third of the universe and a genuinely recovering Z name
+# should climb the watch list, not vanish. N (newly listed) is not a distress
+# marker — no penalty. Unknown/blank categories get a mild haircut.
+_CATEGORY_MULT = {"A": 1.00, "N": 1.00, "B": 0.90, "Z": 0.65}
+_CATEGORY_MULT_DEFAULT = 0.95
+
+
+def _weighted_pillar(metrics: list[tuple[Optional[float], float]]) -> tuple[float, float]:
+    """Combine (score, weight) sub-metrics into a 0-10 pillar score.
+
+    `metrics` must exclude not-applicable entries entirely (e.g. cash/assets
+    for banks) — N/A neither penalizes nor counts toward coverage. Entries
+    whose score is None (inputs missing) have their weight renormalized away,
+    subject to the 0.60 floor above.
+
+    Returns (pillar_score, coverage) where coverage in [0, 1] is the fraction
+    of the applicable weight backed by present data.
+    """
+    applicable_w = sum(w for _, w in metrics)
+    present = [(s, w) for s, w in metrics if s is not None]
+    if not present or applicable_w <= 0:
+        return 0.0, 0.0
+    wsum = sum(w for _, w in present)
+    raw = sum(s * w for s, w in present)
+    return raw / max(wsum, _RENORM_FLOOR), wsum / applicable_w
 
 
 # ---------------------------------------------------------------------------
@@ -134,6 +181,18 @@ def _a2_nim_score(avg_nim: float, trend: float) -> float:
     if avg_nim > 4 and stable:       return 8.0
     if avg_nim >= 2.5 and trend > 0: return 7.0
     if avg_nim >= 2.5 and stable:    return 5.0
+    return 2.0
+
+
+def _a2_npm_score(avg_npm: float, trend: float) -> float:
+    """Score net-profit margin level+trend — the insurer fallback when no
+    gross-profit line exists. Thresholds sit at roughly half the gross-margin
+    ones because net margin runs well below gross."""
+    stable = abs(trend) <= 1.0
+    if avg_npm > 15 and trend > 0:  return 10.0
+    if avg_npm > 15 and stable:     return 8.0
+    if avg_npm >= 8 and trend > 0:  return 7.0
+    if avg_npm >= 8 and stable:     return 5.0
     return 2.0
 
 
@@ -309,11 +368,14 @@ def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict],
 
     # m3: ROE 3yr avg with trend bonus/penalty
     roe_vals = []
+    roe_inputs_seen = False  # any year with both NP and equity reported
     for er in ext_last5:
         np_v = er.get("net_profit")
         eq_v = er.get("total_equity")
-        if not _is_nanish(np_v) and not _is_nanish(eq_v) and float(eq_v) > 0:
-            roe_vals.append(float(np_v) / float(eq_v) * 100)
+        if not _is_nanish(np_v) and not _is_nanish(eq_v):
+            roe_inputs_seen = True
+            if float(eq_v) > 0:
+                roe_vals.append(float(np_v) / float(eq_v) * 100)
     if roe_vals:
         m3 = _a2_roe_score(sum(roe_vals) / len(roe_vals))
         if len(roe_vals) >= 4:
@@ -328,8 +390,10 @@ def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict],
         # average is high. ROE is a level/quality metric (and lumpy for high-payout names
         # where equity swings), so the penalty is light — capped at 25%.
         m3 = round(m3 * (0.75 + 0.25 * _earnings_stability(roe_vals, is_financial)), 4)
+    elif roe_inputs_seen:
+        m3 = 0.0   # reported, but equity non-positive — genuine distress, not a gap
     else:
-        m3 = 0.0
+        m3 = None  # extended financials never scraped — renormalize
 
     # m4: NPM trend slope using actual year on the x-axis (so year gaps don't distort slope)
     npm_pairs = []
@@ -340,7 +404,7 @@ def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict],
         if yr is not None and not _is_nanish(np_v) and rev_v is not None:
             npm_pairs.append((float(yr), float(np_v) / rev_v * 100))
     if len(npm_pairs) < 2:
-        m4 = 0.0
+        m4 = None  # can't fit a trend without 2+ profit/revenue years — renormalize
     else:
         x = np.array([p[0] for p in npm_pairs], dtype=float)
         y = np.array([p[1] for p in npm_pairs], dtype=float)
@@ -357,29 +421,39 @@ def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict],
         if prev and prev != 0:
             eps_yoy = round((curr - prev) / abs(prev) * 100, 1)
 
-    score = m1 * 0.20 + m2 * 0.30 + m3 * 0.30 + m4 * 0.20
+    # m1/m2 come from the DSE audited table (near-universal) — their absence is
+    # itself damning, so they stay 0-filled and always count as present.
+    score, coverage = _weighted_pillar(
+        [(m1, 0.20), (m2, 0.30), (m3, 0.30), (m4, 0.20)]
+    )
     return score, {"p1_eps_consist": m1, "p1_eps_cagr": m2, "p1_roe": m3, "p1_npm_trend": m4,
+                   "p1_coverage": round(coverage, 3),
                    "eps_yoy_pct": eps_yoy, "eps_stability": round(eps_stability, 4)}
 
 
-def _a2_pillar2(ext_last5: list[dict], is_financial: bool = False) -> tuple[float, dict]:
+def _a2_pillar2(ext_last5: list[dict], is_financial: bool = False,
+                is_insurance: bool = False) -> tuple[float, dict]:
     latest = ext_last5[-1] if ext_last5 else {}
 
     debt = latest.get("total_debt")
     eq   = latest.get("total_equity")
-    if not _is_nanish(debt) and not _is_nanish(eq) and float(eq) > 0:
-        m1 = _a2_de_score(float(debt) / float(eq), is_financial)
+    if not _is_nanish(debt) and not _is_nanish(eq):
+        # Negative equity is distress (0), not a data gap.
+        m1 = _a2_de_score(float(debt) / float(eq), is_financial) if float(eq) > 0 else 0.0
     else:
-        m1 = 0.0
+        # No borrowings/equity lines scraped — common for insurers (typically
+        # unlevered), so renormalize instead of scoring worst-leverage.
+        m1 = None
 
     ebit    = latest.get("ebit")
     int_exp = latest.get("interest_expense")
     if not _is_nanish(ebit) and not _is_nanish(int_exp) and float(int_exp) > 0:
         m2 = _a2_ic_score(float(ebit) / float(int_exp))
-    elif not _is_nanish(ebit) and float(ebit) > 0:
-        m2 = 10.0
+    elif not _is_nanish(ebit):
+        # EBIT reported with no interest expense: debt-free if operating-profitable.
+        m2 = 10.0 if float(ebit) > 0 else 0.0
     else:
-        m2 = 0.0
+        m2 = None  # income-statement detail never scraped — renormalize
 
     ext_m3   = ext_last5[-4:]
     np_vals  = [er.get("net_profit") for er in ext_m3]
@@ -391,7 +465,7 @@ def _a2_pillar2(ext_last5: list[dict], is_financial: bool = False) -> tuple[floa
             cfo_np_ratios.append(float(cfo) / float(np_v))
     valid_cfos = [float(c) for c in cfo_vals if not _is_nanish(c)]
     if not valid_cfos:
-        m3 = 0.0
+        m3 = None  # no cash-flow statement scraped — renormalize
     elif is_financial:
         # For banks/NBFIs: CFO/NP ratio is structurally low (growing loan book
         # consumes operating cash). Score on positivity + trend instead.
@@ -429,29 +503,31 @@ def _a2_pillar2(ext_last5: list[dict], is_financial: bool = False) -> tuple[floa
         else:
             m3 = 0.0
 
-    # Cash/Assets: not meaningful for banks (most assets are loans by design).
-    # Skip the metric and redistribute its 10% weight to the remaining four.
-    if is_financial:
+    # Cash/Assets: not meaningful for banks (most assets are loans by design)
+    # or insurers (assets are the investment float). Not-applicable — excluded
+    # from the pillar entirely, so its weight redistributes without touching
+    # the coverage measure.
+    if is_financial or is_insurance:
         m4 = None
+        metrics = [(m1, 0.313), (m2, 0.250), (m3, 0.313)]
     else:
         cash = latest.get("cash_and_equivalents")
         ta   = latest.get("total_assets")
         if not _is_nanish(cash) and not _is_nanish(ta) and float(ta) > 0:
-            cash_pct = float(cash) / float(ta) * 100
-            m4 = _a2_cash_assets_score(cash_pct)
+            m4 = _a2_cash_assets_score(float(cash) / float(ta) * 100)
         else:
-            m4 = 0.0
+            m4 = None  # balance-sheet detail missing — renormalize
+        metrics = [(m1, 0.313), (m2, 0.250), (m3, 0.313), (m4, 0.125)]
 
-    if m4 is None:
-        score = m1 * 0.357 + m2 * 0.286 + m3 * 0.357
-    else:
-        score = m1 * 0.313 + m2 * 0.250 + m3 * 0.313 + m4 * 0.125
-    return score, {"p2_de": m1, "p2_ic": m2, "p2_cfo": m3, "p2_cash": m4}
+    score, coverage = _weighted_pillar(metrics)
+    return score, {"p2_de": m1, "p2_ic": m2, "p2_cfo": m3, "p2_cash": m4,
+                   "p2_coverage": round(coverage, 3)}
 
 
 def _a2_pillar3(code: str, ext_last5: list[dict],
                 sector_rank_score: dict[str, float],
-                is_financial: bool = False) -> tuple[float, dict]:
+                is_financial: bool = False,
+                is_insurance: bool = False) -> tuple[float, dict]:
     def _trend(vals: list[float]) -> float:
         if len(vals) >= 4:
             return (vals[-2] + vals[-1]) / 2 - (vals[0] + vals[1]) / 2
@@ -467,7 +543,7 @@ def _a2_pillar3(code: str, ext_last5: list[dict],
             ea  = er.get("earning_assets")
             if not _is_nanish(nii) and not _is_nanish(ea) and float(ea) > 0:
                 margin_vals.append(float(nii) / float(ea) * 100)
-        m1 = _a2_nim_score(sum(margin_vals) / len(margin_vals), _trend(margin_vals)) if margin_vals else 0.0
+        m1 = _a2_nim_score(sum(margin_vals) / len(margin_vals), _trend(margin_vals)) if margin_vals else None
     else:
         margin_vals = []
         for er in ext_last5:
@@ -475,9 +551,20 @@ def _a2_pillar3(code: str, ext_last5: list[dict],
             rev = er.get("revenue")
             if not _is_nanish(gp) and not _is_nanish(rev) and float(rev) > 0:
                 margin_vals.append(float(gp) / float(rev) * 100)
-        m1 = _a2_gm_score(sum(margin_vals) / len(margin_vals), _trend(margin_vals)) if margin_vals else 0.0
+        if margin_vals:
+            m1 = _a2_gm_score(sum(margin_vals) / len(margin_vals), _trend(margin_vals))
+        elif is_insurance:
+            # Insurers rarely report a gross-profit line — fall back to net margin.
+            for er in ext_last5:
+                np_v = er.get("net_profit")
+                rev  = er.get("revenue")
+                if not _is_nanish(np_v) and not _is_nanish(rev) and float(rev) > 0:
+                    margin_vals.append(float(np_v) / float(rev) * 100)
+            m1 = _a2_npm_score(sum(margin_vals) / len(margin_vals), _trend(margin_vals)) if margin_vals else None
+        else:
+            m1 = None  # margin lines never scraped — renormalize
     # Gentle volatility haircut so a violently swinging margin can't max out on its average.
-    if margin_vals:
+    if margin_vals and m1 is not None:
         m1 = round(m1 * (0.75 + 0.25 * _earnings_stability(margin_vals, is_financial)), 4)
 
     rev_vals = [rv for er in ext_last5
@@ -493,23 +580,28 @@ def _a2_pillar3(code: str, ext_last5: list[dict],
             std_g  = (sum((g - mean_g) ** 2 for g in growth_rates) / len(growth_rates)) ** 0.5
             m2 = _a2_rev_vol_score(std_g, mean_g)
         else:
-            m2 = 0.0
+            m2 = None
     else:
-        m2 = 0.0
+        m2 = None  # under 4 revenue years — stability unjudgeable, renormalize
 
-    m3 = sector_rank_score.get(code, 2.0)
+    # Rank absence means no usable revenue anywhere (a data gap), not last place.
+    m3 = sector_rank_score.get(code)
 
-    # CapEx reinvestment intensity (avg CapEx / avg Revenue)
+    # CapEx reinvestment intensity (avg CapEx / avg Revenue). Only ~a third of
+    # industrials have a capex line scraped — missing renormalizes, not zeroes.
     capex_vals = []
     for er in ext_last5:
         cx = er.get("capex")
         rv = _effective_revenue(er, is_financial)
         if not _is_nanish(cx) and rv is not None and rv > 0:
             capex_vals.append(abs(float(cx)) / rv * 100)
-    m4 = _a2_capex_score(sum(capex_vals) / len(capex_vals)) if capex_vals else 0.0
+    m4 = _a2_capex_score(sum(capex_vals) / len(capex_vals)) if capex_vals else None
 
-    score = m1 * 0.35 + m2 * 0.30 + m3 * 0.20 + m4 * 0.15
-    return score, {"p3_margin": m1, "p3_rev_vol": m2, "p3_sector_rank": m3, "p3_capex": m4}
+    score, coverage = _weighted_pillar(
+        [(m1, 0.35), (m2, 0.30), (m3, 0.20), (m4, 0.15)]
+    )
+    return score, {"p3_margin": m1, "p3_rev_vol": m2, "p3_sector_rank": m3, "p3_capex": m4,
+                   "p3_coverage": round(coverage, 3)}
 
 
 def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
@@ -709,10 +801,13 @@ def _store_snapshot(df: pd.DataFrame) -> None:
 
     now = datetime.now(timezone.utc)
     records = _records_for_storage(df)
+    # ReplaceOne (not $set) so the stored doc mirrors the computed row exactly —
+    # a renamed/removed sub-metric would otherwise linger in old docs forever
+    # and resurface as a stale DataFrame column on reload.
     ops = [
-        UpdateOne(
+        ReplaceOne(
             {"trading_code": r["trading_code"]},
-            {"$set": {**r, "computed_at": now}},
+            {**r, "computed_at": now},
             upsert=True,
         )
         for r in records if r.get("trading_code")
@@ -931,15 +1026,17 @@ def _compute_scores_df() -> pd.DataFrame:
         ext_rows_all = ext_by_code.get(code, [])
         ext_last5    = ext_rows_all[-5:]
 
-        is_financial = normalize_sector(sector) in ("BANK", "NBFI")
+        sector_class = normalize_sector(sector)
+        is_financial = sector_class in ("BANK", "NBFI")
+        is_insurance = sector_class == "INSURANCE"
         # Sector medians computed *excluding the current company* so its own valuation
         # doesn't pull the comparison toward itself in small sectors.
         sect_pe_for_self = _sector_median_excluding(sector_pes.get(sector, []), code)
         sect_pb_for_self = _sector_median_excluding(sector_pbs.get(sector, []), code)
 
         p1, sub1 = _a2_pillar1(fin_rows, ext_last5, is_financial)
-        p2, sub2 = _a2_pillar2(ext_last5, is_financial)
-        p3, sub3 = _a2_pillar3(code, ext_last5, sector_rank_score, is_financial)
+        p2, sub2 = _a2_pillar2(ext_last5, is_financial, is_insurance)
+        p3, sub3 = _a2_pillar3(code, ext_last5, sector_rank_score, is_financial, is_insurance)
         # Cheap-for-a-reason: mildly discount the valuation reward when EPS is volatile.
         eps_stability = sub1.get("eps_stability", 1.0)
         p4_vol_damp = 1.0 - 0.5 * (1.0 - eps_stability)
@@ -979,11 +1076,25 @@ def _compute_scores_df() -> pd.DataFrame:
             stale_mult = 0.25
         stale_data = stale_mult < 1.0
 
+        # Market-category multiplier — Z-category is the canonical DSE value trap
+        # (see _CATEGORY_MULT). Applied like the staleness multiplier, so tier
+        # ordering within a category is preserved.
+        cat_mult = _CATEGORY_MULT.get(cat, _CATEGORY_MULT_DEFAULT)
+
         base_score_100 = final * 10
         adj_pct = adjustments_map.get(code, 0.0)
-        adjusted_score_100 = base_score_100 * (1 + adj_pct / 100.0) * stale_mult
+        adjusted_score_100 = base_score_100 * (1 + adj_pct / 100.0) * stale_mult * cat_mult
         # Clamp to [0, 100] — UI and tier thresholds assume this range.
         adjusted_score_100 = max(0.0, min(100.0, adjusted_score_100))
+
+        # Fraction of the renormalizable pillar weight (P1-P3) backed by data —
+        # surfaced so downstream views can qualify claims about thin-data names.
+        data_completeness = round(
+            (0.30 * sub1.get("p1_coverage", 0.0)
+             + 0.20 * sub2.get("p2_coverage", 0.0)
+             + 0.20 * sub3.get("p3_coverage", 0.0)) / 0.70,
+            3,
+        )
 
         curr_eps = next((r["eps"] for r in reversed(fin_rows)
                          if r.get("eps") is not None), None)
@@ -1006,6 +1117,8 @@ def _compute_scores_df() -> pd.DataFrame:
             "score":          round(adjusted_score_100, 1),
             "base_score":     round(base_score_100, 1),
             "adjustment_pct": adj_pct if adj_pct else 0.0,
+            "category_mult":  cat_mult,
+            "data_completeness": data_completeness,
             "eps":          curr_eps,
             "roe_pct":      roe_pct,
             "sector_median_pe": round(sect_pe_for_self, 2) if sect_pe_for_self is not None else None,

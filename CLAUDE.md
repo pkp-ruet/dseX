@@ -81,7 +81,11 @@ DSE (Dhaka Stock Exchange) stock data pipeline with four components:
 
 3. **Next.js Frontend (`frontend/`)** — Production web app. ISR caching, server components for data fetching, client components for auth-gated views (portfolio, profile, admin).
 
-4. **Scoring (`backend/services/scoring_service.py`)** — DSEF 5-pillar score (0–100): Earnings Quality (30%), Financial Health (20%), Operational Efficiency / Moat (20%), Valuation (15%), Dividend Sustainability (15%). Bank/NBFI sector uses adjusted Pillar 2 weights (cash/assets dropped, redistributed). Sector medians for valuation exclude the company being scored. CAGR / trend computations are year-aware (handle missing-year gaps correctly). NaN values fill as 0.
+4. **Scoring (`backend/services/scoring_service.py`)** — DSEF 5-pillar score (0–100): Earnings Quality (30%), Financial Health (20%), Operational Efficiency / Moat (20%), Valuation (15%), Dividend Sustainability (15%). Sector classes via `utils/sector.py:normalize_sector` (BANK / NBFI — incl. DSE's "Financial Institutions" — / INSURANCE / GENERAL): banks+NBFIs get financial D/E anchors, NIM margin, CFO-positivity fallback; banks+insurers skip cash/assets; insurers fall back to net margin when no gross-profit line. Sector medians for valuation exclude the company being scored. CAGR / trend computations are year-aware (handle missing-year gaps correctly).
+   - **Missing-data policy**: a sub-metric whose *inputs* were never scraped is `None` and its weight renormalizes across present metrics with a 0.60 floor (`_weighted_pillar`, max boost 1.67×); present-but-bad data still scores 0. EPS (P1 m1/m2) and the whole dividend pillar stay 0-filled — absence there is the signal. Per-pillar `pN_coverage` + row-level `data_completeness` are exposed.
+   - **Final-score multipliers**: staleness (2/3/4+ yr-old reports → ×0.8/0.5/0.25) and DSE market category (`_CATEGORY_MULT`: Z ×0.65, B ×0.90, A/N ×1.0, unknown ×0.95); `category_mult` is exposed on the row.
+   - **Tiers (canonical, `backend/services/tiers.py`)**: strong_buy ≥75, buy ≥60, keep_watching ≥45, avoid <45 — mirrored by frontend `lib/constants.ts`. All backend consumers import `tier_key()`; the old 75/55/35 `safe_buy`/`watch` scheme is gone.
+   - **Regression harness**: `py scripts/score_regression.py` (read-only) diffs working-tree scores vs the live `scores_snapshot` (or `--dump`/`--baseline` pickles) — tier transition matrix, top-30 turnover, movers with pillar attribution, coverage, downstream-gate counts. Run it before deploying any scoring change, then `POST /api/scores/refresh` after deploy.
 
 ### Scrapers
 
@@ -172,7 +176,7 @@ components/
 │   ├── personalized/
 │   │   ├── WelcomeHeader.tsx, SetupCard.tsx
 │   │   ├── PortfolioSummaryCard.tsx, WatchlistMoversCard.tsx
-│   └── (legacy, unused on `/`: Masthead, HeroBand, NavHighlights, TickerBand,
+│   └── (legacy, unused on `/`: Masthead, NavHighlights, TickerBand,
 │        MarketIndexBanner [still used by market-analysis + dse-today], MarketMovers,
 │        MarketIntelStrip, TopRankings, FilterBar, HowWeScoreBox, HomeSidebar,
 │        PortfolioTeaserCTA, GradeAnyStockHero, TodaysTopPicks, sidebar/*)

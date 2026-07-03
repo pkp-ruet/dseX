@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getScores } from "@/lib/api";
+import { flattenTiers, getScores } from "@/lib/api";
 import StocksTable from "@/components/stocks/StocksTable";
 
 export const revalidate = 86400;
@@ -26,14 +26,7 @@ export const metadata: Metadata = {
 export default async function StocksPage() {
   const scores = await getScores().catch(() => null);
 
-  const items = scores
-    ? [
-        ...scores.tiers.strong_buy,
-        ...scores.tiers.safe_buy,
-        ...scores.tiers.watch,
-        ...scores.tiers.avoid,
-      ]
-    : [];
+  const items = scores ? flattenTiers(scores) : [];
 
   const jsonLd = {
     "@context": "https://schema.org",

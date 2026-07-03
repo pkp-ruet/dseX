@@ -19,6 +19,7 @@ from datetime import datetime, timezone
 
 from backend.services.db_service import load_companies, load_latest_prices, _ttl_cache
 from backend.services.scoring_service import build_scores_df
+from backend.services.tiers import BUY, KEEP_WATCHING, tier_key
 
 
 # Allowed answer values (kept in sync with the router's validators).
@@ -44,16 +45,10 @@ def _safe(v):
 
 
 def _tier_of(score: float | None) -> str | None:
-    """Same thresholds as routers/scores.py."""
+    """Canonical tiers — see backend/services/tiers.py."""
     if score is None:
         return None
-    if score >= 75:
-        return "strong_buy"
-    if score >= 55:
-        return "safe_buy"
-    if score >= 35:
-        return "watch"
-    return "avoid"
+    return tier_key(score)
 
 
 # ---------------------------------------------------------------------------
@@ -129,10 +124,10 @@ def _eligible(row: dict, answers: dict, drop: set[str]) -> bool:
         return False
 
     # "Steady" risk-takers should not be shown weak names — lift the score floor
-    # from the baseline avoid-tier cutoff. Relaxable if too few stocks qualify.
-    floor = 35.0
+    # from the baseline avoid-tier cutoff to the Buy tier. Relaxable if too few qualify.
+    floor = KEEP_WATCHING
     if "risk" not in drop and answers.get("risk") == "steady":
-        floor = 55.0
+        floor = BUY
     if score < floor:
         return False
 

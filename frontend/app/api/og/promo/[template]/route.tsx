@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { getScores, getCompanyDetail, getDseToday, getTop20 } from "@/lib/api";
+import { flattenTiers, getScores, getCompanyDetail, getDseToday, getTop20 } from "@/lib/api";
 import { getTier, TIER_LABELS, TIER_COLORS } from "@/lib/constants";
 import type { ScoreItem, Top20Item } from "@/lib/api";
 
@@ -1384,12 +1384,7 @@ async function RenderTopRanked() {
   let ranked: ScoreItem[] = [];
   try {
     const data = await getScores();
-    ranked = [
-      ...data.tiers.strong_buy,
-      ...data.tiers.safe_buy,
-      ...data.tiers.watch,
-      ...data.tiers.avoid,
-    ]
+    ranked = flattenTiers(data)
       .filter((s) => s.score != null)
       .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
   } catch {
@@ -1996,12 +1991,7 @@ async function RenderShowcase() {
   let ranked: ScoreItem[] = [];
   try {
     const data = await getScores();
-    ranked = [
-      ...data.tiers.strong_buy,
-      ...data.tiers.safe_buy,
-      ...data.tiers.watch,
-      ...data.tiers.avoid,
-    ].filter((s) => s.score != null);
+    ranked = flattenTiers(data).filter((s) => s.score != null);
   } catch {
     ranked = [];
   }

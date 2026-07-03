@@ -3,7 +3,7 @@
  * scored stock (from /api/scores). Used for ticker/name resolution by the
  * parser and as the data source for most screens.
  */
-import { getScores, type ScoreItem } from "@/lib/api";
+import { flattenTiers, getScores, type ScoreItem } from "@/lib/api";
 import type { CompanyRef } from "./types";
 
 let universePromise: Promise<ScoreItem[]> | null = null;
@@ -12,12 +12,7 @@ let universePromise: Promise<ScoreItem[]> | null = null;
 export function loadScoreUniverse(): Promise<ScoreItem[]> {
   if (!universePromise) {
     universePromise = getScores()
-      .then((res) => [
-        ...res.tiers.strong_buy,
-        ...res.tiers.safe_buy,
-        ...res.tiers.watch,
-        ...res.tiers.avoid,
-      ])
+      .then((res) => flattenTiers(res))
       .catch((err) => {
         // Let a later call retry rather than caching the failure forever.
         universePromise = null;

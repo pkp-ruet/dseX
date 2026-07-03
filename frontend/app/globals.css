@@ -4215,10 +4215,10 @@ details.dsex-exp[open] > summary {
   border-radius: 999px;
   white-space: nowrap;
 }
-.wla-tier-strong_buy { background: rgba(52, 211, 153, 0.16); color: var(--positive); }
-.wla-tier-safe_buy   { background: rgba(14, 165, 233, 0.16); color: var(--primary); }
-.wla-tier-watch      { background: rgba(234, 179, 8, 0.18);  color: var(--watch); }
-.wla-tier-avoid      { background: rgba(248, 113, 113, 0.16); color: var(--negative); }
+.wla-tier-strong_buy    { background: rgba(52, 211, 153, 0.16); color: var(--positive); }
+.wla-tier-buy           { background: rgba(14, 165, 233, 0.16); color: var(--primary); }
+.wla-tier-keep_watching { background: rgba(234, 179, 8, 0.18);  color: var(--watch); }
+.wla-tier-avoid         { background: rgba(248, 113, 113, 0.16); color: var(--negative); }
 
 /* Panels */
 .wla-panel {
@@ -4989,9 +4989,7 @@ details.dsex-exp[open] > summary {
 }
 
 .tr-ticker-pill--strong_buy    { color: var(--np-strong); }
-.tr-ticker-pill--good_buy      { color: var(--np-good); }
-.tr-ticker-pill--safe_buy      { color: var(--np-safe); }
-.tr-ticker-pill--cautious_buy  { color: var(--np-cautious); }
+.tr-ticker-pill--buy           { color: var(--np-good); }
 .tr-ticker-pill--keep_watching { color: var(--np-watch); }
 .tr-ticker-pill--avoid         { color: var(--np-danger); }
 
