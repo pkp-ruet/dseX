@@ -4086,19 +4086,24 @@ details.dsex-exp[open] > summary {
   .watchlist-table thead { display: none; }
   .watchlist-table tbody { display: flex; flex-direction: column; gap: 10px; }
 
-  /* Per-ticker card. Columns 7 (52w bar) + 8 (signals) stay desktop-only.
-       row1:  star   code  Set          LTP
-       row2:  star   tier  EPS          chg% */
+  /* Per-ticker card.
+       rows 1-2:  code + tier (centered)          LTP
+                                                  chg%
+       row 3:     EPS pill  signal pills    bell  star
+       row 4:     52w range strip (full width, only when data exists)
+     The range strip (td7) is auto-placed with a full-column span instead of a
+     named area so a `.wl-empty` cell leaves no phantom row behind. */
   .watchlist-table tbody tr {
     display: grid;
-    grid-template-columns: 30px auto auto minmax(0, 1fr) auto;
+    grid-template-columns: auto auto minmax(0, 1fr) auto auto;
     grid-template-areas:
-      "star code alert .  ltp"
-      "star tier eps   .  chg";
-    column-gap: 10px;
-    row-gap: 7px;
+      "code tier .   ltp   ltp"
+      "code tier .   chg   chg"
+      "eps  sig  sig alert star";
+    column-gap: 8px;
+    row-gap: 2px;
     align-items: center;
-    padding: 13px 14px;
+    padding: 12px 14px;
     background: var(--surface);
     border: 1px solid var(--rule);
     border-radius: 14px;
@@ -4108,29 +4113,82 @@ details.dsex-exp[open] > summary {
 
   .watchlist-table td { padding: 0; border: none; font-size: 0.85rem; }
 
-  .watchlist-table td:nth-child(1) { grid-area: star; align-self: center; justify-self: center; }
-  .watchlist-table td:nth-child(2) { grid-area: code; }
-  .watchlist-table td:nth-child(3) { grid-area: tier; justify-self: start; }
+  .watchlist-table td:nth-child(1) {
+    grid-area: star;
+    justify-self: end;
+    margin-top: 8px;
+  }
+  .watchlist-table td:nth-child(2) { grid-area: code; align-self: center; }
+  .watchlist-table td:nth-child(3) { grid-area: tier; align-self: center; justify-self: start; }
   .watchlist-table td:nth-child(4) {
     grid-area: ltp;
+    align-self: end;
     text-align: right;
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 800;
+    line-height: 1.15;
     font-variant-numeric: tabular-nums;
   }
   .watchlist-table td:nth-child(5) {
     grid-area: chg;
+    align-self: start;
     text-align: right;
-    font-size: 0.82rem;
+    font-size: 0.8rem;
+    line-height: 1.15;
     font-variant-numeric: tabular-nums;
   }
-  .watchlist-table td:nth-child(6) { grid-area: eps;  justify-self: start; }
-  /* 52w-range bar + signal pills: hidden on mobile */
-  .watchlist-table td:nth-child(7),
-  .watchlist-table td:nth-child(8) { display: none; }
-  .watchlist-table td:nth-child(9)  { grid-area: alert; justify-self: start; }
+  .watchlist-table td:nth-child(6) {
+    grid-area: eps;
+    justify-self: start;
+    margin-top: 8px;
+  }
+  .watchlist-table td:nth-child(7) {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+    margin-top: 9px;
+  }
+  .watchlist-table td:nth-child(8) {
+    grid-area: sig;
+    justify-self: start;
+    min-width: 0;
+    margin-top: 8px;
+  }
+  .watchlist-table td:nth-child(9) {
+    grid-area: alert;
+    justify-self: end;
+    margin-top: 8px;
+  }
+  .watchlist-table td.wl-empty { display: none; }
 
   .watchlist-ticker { font-size: 0.88rem; padding: 4px 11px; }
+
+  /* Pills share one quiet tinted language on mobile — the solid EPS badge is
+     too loud next to the tier + signal pills. */
+  .watchlist-table .wl-eps--up {
+    background: color-mix(in srgb, var(--positive) 12%, transparent);
+    color: var(--positive);
+    border-color: color-mix(in srgb, var(--positive) 28%, transparent);
+  }
+  .watchlist-table .wl-eps--dn {
+    background: color-mix(in srgb, var(--negative) 12%, transparent);
+    color: var(--negative);
+    border-color: color-mix(in srgb, var(--negative) 28%, transparent);
+  }
+  .watchlist-table .wl-eps--flat {
+    background: var(--surface-2);
+    color: var(--text-muted);
+    border-color: var(--border);
+  }
+
+  /* Alert button: icon-only on mobile (full label stays on desktop). */
+  .watchlist-table .wl-alert-btn { padding: 5px 7px; }
+  .watchlist-table .wl-alert-btn span { display: none; }
+
+  /* Range strip: hairline track, no number labels (exact range lives on the
+     stock page). */
+  .watchlist-table .wl-range { gap: 0; }
+  .watchlist-table .wl-range-track { height: 3px; }
+  .watchlist-table .wl-range-labels { display: none; }
 }
 
 /* ======================================

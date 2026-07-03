@@ -55,6 +55,21 @@ function parseCodesParam(raw: string | null): string[] {
   );
 }
 
+/** Near-extreme record tagged with which list it came from. */
+interface ExtremeInfo {
+  item: NearExtremeItem;
+  side: "high" | "low";
+}
+
+type SortKey = "az" | "move" | "score" | "yield";
+
+const SORT_OPTIONS: { key: SortKey; label: string }[] = [
+  { key: "az", label: "A–Z" },
+  { key: "move", label: "Top movers" },
+  { key: "score", label: "Best score" },
+  { key: "yield", label: "Dividend yield" },
+];
+
 // ---------------------------------------------------------------------------
 // Logged-out CTA
 // ---------------------------------------------------------------------------
@@ -199,8 +214,9 @@ function AddBar({ scores }: { scores: ScoresResponse | null }) {
 
 interface RowProps {
   item: ScoreItem;
-  extreme: NearExtremeItem | null;
+  extreme: ExtremeInfo | null;
   hasDividendSoon: boolean;
+  onRemove: (code: string) => void;
 }
 
 function RangeBar({ ltp, high, low }: { ltp: number | null; high: number | null; low: number | null }) {
@@ -209,14 +225,18 @@ function RangeBar({ ltp, high, low }: { ltp: number | null; high: number | null;
   }
   const pos = Math.max(0, Math.min(1, (ltp - low) / (high - low)));
   return (
-    <div className="flex flex-col gap-0.5 min-w-[80px]" title={`52w: ${low.toFixed(1)} – ${high.toFixed(1)}`}>
-      <div className="relative h-1.5 rounded-full bg-[var(--border)]">
+    <div className="wl-range flex flex-col gap-0.5 min-w-[80px]" title={`52w: ${low.toFixed(1)} – ${high.toFixed(1)}`}>
+      <div className="wl-range-track relative h-1.5 rounded-full bg-[var(--border)]">
+        <div
+          className="absolute inset-y-0 left-0 rounded-full bg-[color-mix(in_srgb,var(--primary)_30%,transparent)]"
+          style={{ width: `${pos * 100}%` }}
+        />
         <div
           className="absolute top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-[var(--primary)] border border-[var(--bg)]"
           style={{ left: `calc(${pos * 100}% - 5px)` }}
         />
       </div>
-      <div className="flex justify-between text-[9px] text-[var(--ink-muted)] tabular-nums">
+      <div className="wl-range-labels flex justify-between text-[9px] text-[var(--ink-muted)] tabular-nums">
         <span>{low.toFixed(0)}</span>
         <span>{high.toFixed(0)}</span>
       </div>
@@ -228,21 +248,16 @@ function SignalPills({
   extreme,
   hasDividendSoon,
 }: {
-  extreme: NearExtremeItem | null;
+  extreme: ExtremeInfo | null;
   hasDividendSoon: boolean;
 }) {
   const pills: { label: string; tone: "up" | "dn" | "info" }[] = [];
-  if (extreme && extreme.gap_pct != null) {
-    // gap_pct is distance to high or low — endpoint splits near_high/near_low
-    // We don't know which list this came from here; use sign as heuristic via ltp vs midpoint
-    if (extreme.w52_high != null && extreme.ltp != null && extreme.w52_low != null) {
-      const mid = (extreme.w52_high + extreme.w52_low) / 2;
-      if (extreme.ltp >= mid) {
-        pills.push({ label: "Near 52w high", tone: "up" });
-      } else {
-        pills.push({ label: "Near 52w low", tone: "dn" });
-      }
-    }
+  if (extreme) {
+    pills.push(
+      extreme.side === "high"
+        ? { label: "Near 52w high", tone: "up" }
+        : { label: "Near 52w low", tone: "dn" },
+    );
   }
   if (hasDividendSoon) pills.push({ label: "Dividend soon", tone: "info" });
 
@@ -273,22 +288,23 @@ function SignalPills({
 function EpsPill({ value }: { value: number | null | undefined }) {
   if (value == null || Number.isNaN(value)) {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] text-[var(--ink-muted)] whitespace-nowrap">
+      <span className="wl-eps wl-eps--none inline-flex items-center gap-1 text-[10px] text-[var(--ink-muted)] whitespace-nowrap">
         <span className="opacity-60">EPS</span>
         <span>—</span>
       </span>
     );
   }
+  const toneKey = value > 10 ? "up" : value < -10 ? "dn" : "flat";
   const tone =
-    value > 10
+    toneKey === "up"
       ? "bg-[var(--positive)] text-white border-[var(--positive)]"
-      : value < -10
+      : toneKey === "dn"
         ? "bg-[var(--negative)] text-white border-[var(--negative)]"
         : "bg-[var(--ink-muted)] text-white border-[var(--ink-muted)]";
   const sign = value > 0 ? "+" : "";
   return (
     <span
-      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold tabular-nums whitespace-nowrap border nums ${tone}`}
+      className={`wl-eps wl-eps--${toneKey} inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold tabular-nums whitespace-nowrap border nums ${tone}`}
       title={`EPS year-on-year change: ${sign}${value.toFixed(1)}%`}
     >
       <span className="opacity-70 font-bold tracking-wider">EPS</span>
@@ -297,16 +313,20 @@ function EpsPill({ value }: { value: number | null | undefined }) {
   );
 }
 
-function EnrichedRow({ item, extreme, hasDividendSoon }: RowProps) {
+function EnrichedRow({ item, extreme, hasDividendSoon, onRemove }: RowProps) {
   const chg = item.change_pct;
   const chgCls = chg == null ? "" : chg > 0 ? "up" : chg < 0 ? "dn" : "flat";
   const tier = getTier(item.score);
+  const ex = extreme?.item ?? null;
+  // wl-empty cells collapse on the mobile card layout instead of showing "—"
+  const hasRange = ex?.w52_high != null && ex?.w52_low != null;
+  const hasSignals = extreme != null || hasDividendSoon;
   return (
     <tr>
       <td>
         <button
           type="button"
-          onClick={() => removeFromWatchlist(item.trading_code)}
+          onClick={() => onRemove(item.trading_code)}
           aria-label={`Remove ${item.trading_code}`}
           title="Remove from watchlist"
           className="star-btn star-btn--on"
@@ -331,22 +351,22 @@ function EnrichedRow({ item, extreme, hasDividendSoon }: RowProps) {
       <td>
         <EpsPill value={item.eps_yoy_pct} />
       </td>
-      <td>
+      <td className={hasRange ? undefined : "wl-empty"}>
         <RangeBar
-          ltp={extreme?.ltp ?? item.ltp}
-          high={extreme?.w52_high ?? null}
-          low={extreme?.w52_low ?? null}
+          ltp={ex?.ltp ?? item.ltp}
+          high={ex?.w52_high ?? null}
+          low={ex?.w52_low ?? null}
         />
       </td>
-      <td>
+      <td className={hasSignals ? undefined : "wl-empty"}>
         <SignalPills extreme={extreme} hasDividendSoon={hasDividendSoon} />
       </td>
       <td className="text-center">
         <WatchlistAlertCell
           code={item.trading_code}
-          ltp={extreme?.ltp ?? item.ltp}
-          w52High={extreme?.w52_high ?? null}
-          w52Low={extreme?.w52_low ?? null}
+          ltp={ex?.ltp ?? item.ltp}
+          w52High={ex?.w52_high ?? null}
+          w52Low={ex?.w52_low ?? null}
         />
       </td>
     </tr>
@@ -357,10 +377,12 @@ function EnrichedRow({ item, extreme, hasDividendSoon }: RowProps) {
 // Main client component
 // ---------------------------------------------------------------------------
 
-function extremesToMap(data: NearExtremesData): Map<string, NearExtremeItem> {
-  const map = new Map<string, NearExtremeItem>();
-  for (const it of data.near_high) map.set(it.trading_code.toUpperCase(), it);
-  for (const it of data.near_low) map.set(it.trading_code.toUpperCase(), it);
+function extremesToMap(data: NearExtremesData): Map<string, ExtremeInfo> {
+  const map = new Map<string, ExtremeInfo>();
+  for (const it of data.near_high)
+    map.set(it.trading_code.toUpperCase(), { item: it, side: "high" });
+  for (const it of data.near_low)
+    map.set(it.trading_code.toUpperCase(), { item: it, side: "low" });
   return map;
 }
 
@@ -391,7 +413,7 @@ function WatchlistTableInner() {
   const [scores, setScores] = useState<ScoresResponse | null>(
     () => readCache<ScoresResponse>(cacheKeys.scores),
   );
-  const [extremes, setExtremes] = useState<Map<string, NearExtremeItem>>(() => {
+  const [extremes, setExtremes] = useState<Map<string, ExtremeInfo>>(() => {
     const cached = readCache<NearExtremesData>(cacheKeys.extremes);
     return cached ? extremesToMap(cached) : new Map();
   });
@@ -405,6 +427,9 @@ function WatchlistTableInner() {
   );
   const [error, setError] = useState<string | null>(null);
   const [importPrompt, setImportPrompt] = useState(false);
+  const [sort, setSort] = useState<SortKey>("az");
+  const [undoCode, setUndoCode] = useState<string | null>(null);
+  const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // News fetched in parallel with public data — keyed on the sorted code list.
   const [news, setNews] = useState<WatchlistNewsItem[]>([]);
@@ -496,11 +521,52 @@ function WatchlistTableInner() {
   const rows = useMemo(() => {
     const all = flatten(scores);
     const map = new Map(all.map((it) => [it.trading_code.toUpperCase(), it]));
-    return codes
+    const resolved = codes
       .map((c) => map.get(c.toUpperCase()))
-      .filter((it): it is ScoreItem => Boolean(it))
-      .sort((a, b) => a.trading_code.localeCompare(b.trading_code));
-  }, [scores, codes]);
+      .filter((it): it is ScoreItem => Boolean(it));
+    // Nulls sort last; ties fall back to A–Z so order is stable.
+    const desc = (a: number | null | undefined, b: number | null | undefined) => {
+      if (a == null && b == null) return 0;
+      if (a == null) return 1;
+      if (b == null) return -1;
+      return b - a;
+    };
+    return resolved.sort((a, b) => {
+      let d = 0;
+      if (sort === "move") {
+        d = desc(
+          a.change_pct == null ? null : Math.abs(a.change_pct),
+          b.change_pct == null ? null : Math.abs(b.change_pct),
+        );
+      } else if (sort === "score") {
+        d = desc(a.score, b.score);
+      } else if (sort === "yield") {
+        d = desc(a.div_yield_pct, b.div_yield_pct);
+      }
+      return d !== 0 ? d : a.trading_code.localeCompare(b.trading_code);
+    });
+  }, [scores, codes, sort]);
+
+  // Remove with a short undo window instead of an instant, silent delete.
+  function handleRemove(code: string) {
+    const upper = code.toUpperCase();
+    removeFromWatchlist(upper);
+    setUndoCode(upper);
+    if (undoTimer.current) clearTimeout(undoTimer.current);
+    undoTimer.current = setTimeout(() => setUndoCode(null), 6000);
+  }
+
+  function handleUndo() {
+    if (undoCode) addToWatchlist(undoCode);
+    setUndoCode(null);
+    if (undoTimer.current) clearTimeout(undoTimer.current);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (undoTimer.current) clearTimeout(undoTimer.current);
+    };
+  }, []);
 
   async function handleImportShared() {
     const merged = Array.from(new Set([...codes, ...sharedCodes]));
@@ -604,6 +670,30 @@ function WatchlistTableInner() {
       ) : error ? (
         <div className="watchlist-error">Failed to load: {error}</div>
       ) : (
+        <>
+        <div className="mb-3 flex flex-wrap items-center gap-1.5" role="group" aria-label="Sort watchlist">
+          <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+            Sort
+          </span>
+          {SORT_OPTIONS.map((opt) => {
+            const active = sort === opt.key;
+            return (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => setSort(opt.key)}
+                aria-pressed={active}
+                className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-semibold whitespace-nowrap transition-colors ${
+                  active
+                    ? "border-[var(--primary)] bg-[color-mix(in_srgb,var(--primary)_12%,transparent)] text-[var(--primary)]"
+                    : "border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:text-[var(--text)]"
+                }`}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
         <div className="watchlist-wrap">
           <table className="watchlist-table">
             <thead>
@@ -628,6 +718,7 @@ function WatchlistTableInner() {
                     item={it}
                     extreme={extremes.get(code) ?? null}
                     hasDividendSoon={dividends.has(code)}
+                    onRemove={handleRemove}
                   />
                 );
               })}
@@ -640,11 +731,30 @@ function WatchlistTableInner() {
             </p>
           )}
         </div>
+        </>
       )}
 
       {codes.length > 0 && !loading && !error && <WatchlistAnalysis codes={codes} />}
       {codes.length > 0 && !error && (
         <WatchlistNews codes={codes} news={news} loading={newsLoading} />
+      )}
+
+      {undoCode && (
+        <div
+          role="status"
+          className="fixed bottom-20 sm:bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 shadow-lg"
+        >
+          <span className="text-xs font-semibold text-[var(--text)] whitespace-nowrap">
+            Removed {undoCode}
+          </span>
+          <button
+            type="button"
+            onClick={handleUndo}
+            className="text-xs font-bold text-[var(--primary)] hover:underline"
+          >
+            Undo
+          </button>
+        </div>
       )}
     </>
   );
