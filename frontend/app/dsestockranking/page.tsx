@@ -13,17 +13,17 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com
 export const metadata: Metadata = {
   title: "DSE Stock Rankings by Fundamental Score",
   description:
-    "All Dhaka Stock Exchange (DSE) listed companies ranked 1–N by DSEF fundamental score. View Strong Buy, Buy, Wait & Watch, and Risky tiers with price, EPS growth, and dividend yield.",
+    "All Dhaka Stock Exchange (DSE) listed companies ranked 1–N by fundamental score. View Strong Buy, Buy, Wait & Watch, and Risky tiers with price, profit growth, and dividend yield.",
   alternates: { canonical: "/dsestockranking" },
   openGraph: {
     title: "DSE Stock Rankings by Fundamental Score",
-    description: "All DSE companies ranked by DSEF fundamental score.",
+    description: "All DSE companies ranked by fundamental score.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "DSE Stock Rankings by Fundamental Score",
-    description: "All DSE listed companies ranked 1–N by DSEF fundamental score with price, EPS growth, and dividend yield.",
+    description: "All DSE listed companies ranked 1–N by fundamental score with price, profit growth, and dividend yield.",
   },
 };
 
@@ -74,7 +74,7 @@ export default async function DseStockRankingPage() {
         url: `${BASE_URL}/dsestockranking`,
         name: "DSE Stock Rankings by Fundamental Score",
         description:
-          "All Dhaka Stock Exchange (DSE) listed companies ranked by DSEF fundamental score with price, EPS growth, and dividend yield.",
+          "All Dhaka Stock Exchange (DSE) listed companies ranked by fundamental score with price, profit growth, and dividend yield.",
         inLanguage: "en",
         isPartOf: { "@id": BASE_URL },
       },
