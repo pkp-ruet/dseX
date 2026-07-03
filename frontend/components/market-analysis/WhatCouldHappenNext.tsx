@@ -13,6 +13,21 @@ function shortDate(d: string): string {
   }
 }
 
+const BN_DIGITS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
+
+function bnDigits(n: number): string {
+  return String(n).replace(/\d/g, (d) => BN_DIGITS[Number(d)]);
+}
+
+/** Whole days from today (UTC midnight) to a YYYY-MM-DD date; null if unparsable. */
+function daysUntil(d: string): number | null {
+  const target = Date.parse(`${d}T00:00:00Z`);
+  if (Number.isNaN(target)) return null;
+  const now = new Date();
+  const todayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  return Math.round((target - todayUtc) / 86400000);
+}
+
 function TurningList({
   title,
   sub,
@@ -131,21 +146,33 @@ export default function WhatCouldHappenNext({
         style={{ marginTop: 16, "--card-accent": "var(--positive)" } as CSSProperties}
       >
         <p className="ms-card-title">Cash coming your way soon</p>
-        <p className="ms-card-note">
+        <p className="ms-card-note" style={{ marginBottom: 4 }}>
           A dividend is cash a company gives to the people who own its shares.
+        </p>
+        <p lang="bn" className="font-bn ms-note-bn" style={{ margin: "0 0 12px" }}>
+          ডিভিডেন্ড মানে — কোম্পানি লাভ করলে শেয়ারের মালিকদের নগদ টাকা দেয়।
         </p>
         {dividends.length === 0 ? (
           <p className="ms-empty">No cash dates coming up right now.</p>
         ) : (
           <div className="ms-divgrid">
-            {dividends.map((d) => (
+            {dividends.map((d) => {
+              const days = d.kind === "record" ? daysUntil(d.date) : null;
+              return (
               <Link
                 key={`${d.trading_code}-${d.date}`}
                 href={`/stock/${d.trading_code}`}
                 className="ms-divcard"
               >
-                <span className={`ms-divkind ms-divkind--${d.kind}`}>
-                  {d.kind === "record" ? "Cash date" : "Just announced"}
+                <span className="ms-divcard-top">
+                  <span className={`ms-divkind ms-divkind--${d.kind}`}>
+                    {d.kind === "record" ? "Cash date" : "Just announced"}
+                  </span>
+                  {days != null && days >= 0 && (
+                    <span lang="bn" className={`font-bn ms-divdays${days <= 3 ? " ms-divdays--soon" : ""}`}>
+                      {days === 0 ? "আজ" : `${bnDigits(days)} দিন বাকি`}
+                    </span>
+                  )}
                 </span>
                 <div className="ms-divcard-id">
                   <span className="ms-divcard-tkr" aria-hidden="true">
@@ -161,9 +188,13 @@ export default function WhatCouldHappenNext({
                   <div className="ms-divcash">৳ Pays {Math.round(d.dividend_pct)}%</div>
                 )}
               </Link>
-            ))}
+              );
+            })}
           </div>
         )}
+        <Link href="/blog/dividend-record-date" lang="bn" className="font-bn ms-bloglink">
+          ডিভিডেন্ড ও রেকর্ড ডেট কীভাবে কাজ করে — বিস্তারিত পড়ুন →
+        </Link>
       </div>
     </>
   );

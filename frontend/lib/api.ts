@@ -576,6 +576,8 @@ export interface MarketChanceStock {
 
 export interface MarketStateData {
   date: string | null;
+  /** Plain-Bangla "আজকের বাজার এক নজরে" paragraph (template-rendered on the backend). */
+  summary_bn?: string | null;
   mood: MarketMood;
   now: {
     questions: MarketQuestion[];

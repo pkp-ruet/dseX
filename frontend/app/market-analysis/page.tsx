@@ -4,6 +4,7 @@ import { getMarketState } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 
 import BigPicture from "@/components/market-analysis/BigPicture";
+import BanglaSnapshot from "@/components/market-analysis/BanglaSnapshot";
 import WhatsHappeningNow from "@/components/market-analysis/WhatsHappeningNow";
 import CheaperThanBefore from "@/components/market-analysis/CheaperThanBefore";
 import WhatCouldHappenNext from "@/components/market-analysis/WhatCouldHappenNext";
@@ -26,6 +27,10 @@ export const metadata: Metadata = {
     "best shares to buy DSE",
     "DSE dividend dates",
     "stock market in simple words",
+    "আজকের শেয়ার বাজার",
+    "ডিএসই বাজার বিশ্লেষণ",
+    "শেয়ার বাজার আজ কেমন",
+    "ঢাকা স্টক এক্সচেঞ্জ আজ",
   ],
   alternates: { canonical: "/market-analysis" },
   openGraph: {
@@ -43,13 +48,18 @@ export const metadata: Metadata = {
   },
 };
 
-function SectionHead({ n, title, sub }: { n: number; title: string; sub: string }) {
+function SectionHead({ n, title, sub, subBn }: { n: number; title: string; sub: string; subBn?: string }) {
   return (
     <div className="ms-section-head">
       <span className="ms-section-num" aria-hidden="true">{n}</span>
       <div>
         <h2 className="ms-section-title">{title}</h2>
         <p className="ms-section-sub">{sub}</p>
+        {subBn && (
+          <p lang="bn" className="font-bn ms-section-sub-bn">
+            {subBn}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -113,11 +123,13 @@ export default async function MarketAnalysisPage() {
       ) : (
         <>
           {data.mood && <BigPicture mood={data.mood} />}
+          {data.summary_bn && <BanglaSnapshot text={data.summary_bn} />}
 
           <SectionHead
             n={1}
             title="The Market Right Now"
             sub="Up or down, cheap or expensive — at a glance."
+            subBn="বাজার এখন কেমন — এক নজরে।"
           />
           <WhatsHappeningNow
             questions={data.now?.questions ?? []}
@@ -135,6 +147,7 @@ export default async function MarketAnalysisPage() {
             n={2}
             title="Where to Invest Today"
             sub="Four simple places to start looking for good shares."
+            subBn="আজ কোথায় ভালো শেয়ার খুঁজবেন।"
           />
           <WhereToLook chances={data.chances ?? EMPTY_CHANCES} />
 
@@ -142,6 +155,7 @@ export default async function MarketAnalysisPage() {
             n={3}
             title="Stocks to Watch Next"
             sub="Big moves building up, and cash payouts on the way."
+            subBn="কোন শেয়ারে সামনে কিছু হতে পারে।"
           />
           <WhatCouldHappenNext
             unusual={data.next?.unusual ?? []}

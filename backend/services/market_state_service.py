@@ -334,6 +334,89 @@ def _feeling(idx: dict) -> tuple[int, str]:
 
 
 # ---------------------------------------------------------------------------
+# "আজকের বাজার এক নজরে" — a plain-Bangla paragraph built from the same
+# signals as the mood. Template-rendered like the per-stock summaries
+# (summaries_service): free, deterministic, no AI. Educational tone only.
+# ---------------------------------------------------------------------------
+
+# Plain English sector names (from _PLAIN_SECTOR) → everyday Bangla.
+_SECTOR_BN = {
+    "Banks": "ব্যাংক",
+    "Finance companies": "আর্থিক প্রতিষ্ঠান",
+    "Funds": "ফান্ড",
+    "Medicine": "ওষুধ",
+    "Power & gas": "বিদ্যুৎ ও গ্যাস",
+    "Engineering": "প্রকৌশল",
+    "Food": "খাদ্য",
+    "Clothing": "পোশাক",
+    "Tech": "তথ্যপ্রযুক্তি",
+    "Phone & internet": "টেলিযোগাযোগ",
+    "Cement": "সিমেন্ট",
+    "Insurance": "বীমা",
+    "Leather": "চামড়া",
+    "Ceramics": "সিরামিক",
+    "Jute": "পাট",
+    "Paper": "কাগজ",
+    "Services & property": "সেবা ও আবাসন",
+    "Travel": "ভ্রমণ",
+    "Bonds": "বন্ড",
+    "Other": "বিবিধ",
+}
+
+
+def _build_summary_bn(up, down, advancing_pct, price_pos_pct, cheap_pct,
+                      sectors, quality) -> Optional[str]:
+    """3–5 short sentences in everyday Bangla. Each sentence is guarded by its
+    own inputs, so missing data just drops a sentence instead of breaking."""
+    parts: list[str] = []
+
+    # 1) Today's breadth (same 45/55 bands as the Q&A rows)
+    if (up or down) and advancing_pct is not None:
+        if advancing_pct > 55:
+            parts.append(f"আজ বাজার বেশ চাঙা ছিল — {up}টি শেয়ারের দাম বেড়েছে, আর কমেছে {down}টির।")
+        elif advancing_pct < 45:
+            parts.append(f"আজ বাজার কিছুটা পড়তির দিকে ছিল — {down}টি শেয়ারের দাম কমেছে, আর বেড়েছে {up}টির।")
+        else:
+            parts.append(f"আজ বাজার মিশ্র ছিল — {up}টি শেয়ারের দাম বেড়েছে, আর {down}টির কমেছে।")
+
+    # 2) Where prices sit in this year's range
+    if price_pos_pct is not None:
+        if price_pos_pct < 25:
+            parts.append("দাম এখন এই বছরের প্রায় সবচেয়ে নিচের দিকে।")
+        elif price_pos_pct > 75:
+            parts.append("দাম এখন এই বছরের প্রায় সবচেয়ে উপরের দিকে।")
+        else:
+            parts.append("দাম এখন এই বছরের মাঝামাঝি পর্যায়ে আছে।")
+
+    # 3) Cheap or expensive (same 35/55 bands as the mood)
+    if cheap_pct is not None:
+        tenths = round(cheap_pct / 10)
+        if cheap_pct >= 55:
+            parts.append(f"ভালো খবর হলো, প্রতি 10টি শেয়ারের মধ্যে প্রায় {tenths}টির দাম এখন স্বাভাবিকের চেয়ে কম।")
+        elif cheap_pct <= 35:
+            parts.append("তবে বেশিরভাগ শেয়ারের দাম এখন স্বাভাবিকের চেয়ে বেশি, তাই একটু দেখেশুনে এগোনো ভালো।")
+        else:
+            parts.append("শেয়ারের দাম মোটামুটি স্বাভাবিক পর্যায়ে আছে।")
+
+    # 4) Best-performing sector this week (list is already sorted best-first)
+    if sectors:
+        top = sectors[0]
+        if top.get("ret_1w") is not None:
+            if top["ret_1w"] > 0.5:
+                name_bn = _SECTOR_BN.get(top["name"], top["name"])
+                parts.append(f"এই সপ্তাহে সবচেয়ে ভালো করছে {name_bn} খাত।")
+            elif top["ret_1w"] < -0.5:
+                parts.append("এই সপ্তাহে প্রায় সব খাতই চাপে আছে।")
+
+    # 5) How many companies look healthy
+    if quality.get("total"):
+        healthy = (quality.get("strong") or 0) + (quality.get("good") or 0)
+        parts.append(f"আমাদের বিশ্লেষণে {quality['total']}টি কোম্পানির মধ্যে {healthy}টিকে এখন ভালো অবস্থায় দেখা যাচ্ছে।")
+
+    return " ".join(parts[:5]) if parts else None
+
+
+# ---------------------------------------------------------------------------
 # The headline mood — deterministic, built from four plain signals
 # ---------------------------------------------------------------------------
 
@@ -640,8 +723,13 @@ def compute_market_state() -> dict:
         for d in snap_docs
     ]
 
+    summary_bn = _build_summary_bn(
+        up, down, advancing_pct, price_pos_pct, cheap_pct, sectors, quality
+    )
+
     return {
         "date": idx.get("date"),
+        "summary_bn": summary_bn,
         "mood": {
             **mood,
             "chips": [

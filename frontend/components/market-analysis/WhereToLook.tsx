@@ -13,6 +13,7 @@ interface Lens {
   key: string;
   title: string;
   desc: string;
+  descBn: string;
   ico: string;
   color: string;
   render: (s: MarketChanceStock) => { meta: string; tone?: RowTone };
@@ -23,6 +24,7 @@ const LENSES: Lens[] = [
     key: "on_sale",
     title: "Good companies on sale",
     desc: "Strong companies that cost less than usual.",
+    descBn: "ভালো কোম্পানি, দাম এখন কম।",
     ico: "%",
     color: "var(--primary)",
     render: (s) => ({ meta: `${strengthWord(s.score)} · cheap`, tone: "accent" }),
@@ -31,6 +33,7 @@ const LENSES: Lens[] = [
     key: "income",
     title: "Pay you the most cash",
     desc: "They hand out the biggest yearly cash (dividend).",
+    descBn: "বছরে সবচেয়ে বেশি নগদ টাকা (ডিভিডেন্ড) দেয়।",
     ico: "৳",
     color: "var(--warm)",
     render: (s) => ({
@@ -42,6 +45,7 @@ const LENSES: Lens[] = [
     key: "rising",
     title: "Rising fast now",
     desc: "Going up the most this week.",
+    descBn: "এই সপ্তাহে দ্রুত বাড়ছে।",
     ico: "▲",
     color: "var(--positive)",
     render: (s) => ({
@@ -53,6 +57,7 @@ const LENSES: Lens[] = [
     key: "fallen",
     title: "Cheap after a big fall",
     desc: "Dropped a lot, but still a decent company.",
+    descBn: "অনেক পড়েছে, কিন্তু কোম্পানিটা খারাপ না।",
     ico: "↻",
     color: "#6D28D9",
     render: (s) => ({ meta: `${strengthWord(s.score)} · fell hard`, tone: "accent" }),
@@ -89,6 +94,9 @@ export default function WhereToLook({
               <p className="ms-lens-title">{lens.title}</p>
             </div>
             <p className="ms-lens-desc">{lens.desc}</p>
+            <p lang="bn" className="font-bn ms-lens-desc-bn">
+              {lens.descBn}
+            </p>
             {items.length === 0 ? (
               <p className="ms-empty">Nothing fits right now.</p>
             ) : (

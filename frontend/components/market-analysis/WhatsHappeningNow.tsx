@@ -65,6 +65,12 @@ function Quality({ quality }: { quality: MarketQuality }) {
       : healthyPct >= 30
         ? "Only some companies look healthy, so it's worth choosing carefully."
         : "Most companies look weak right now, so be extra careful which one you pick.";
+  const takeawayBn =
+    healthyPct >= 50
+      ? "ভালো খবর — অর্ধেকের বেশি কোম্পানি এখন ভালো অবস্থায় আছে।"
+      : healthyPct >= 30
+        ? "অল্প কিছু কোম্পানিই ভালো অবস্থায় আছে — বেছে নেওয়ার সময় একটু সাবধান।"
+        : "বেশিরভাগ কোম্পানিই এখন দুর্বল — কোনটা কিনবেন, খুব ভেবে ঠিক করুন।";
   return (
     <div className="ms-card">
       <p className="ms-card-title">How many companies are healthy?</p>
@@ -94,6 +100,9 @@ function Quality({ quality }: { quality: MarketQuality }) {
           </div>
           <p className="ms-card-note" style={{ marginTop: 12, marginBottom: 0 }}>
             {takeaway}
+          </p>
+          <p lang="bn" className="font-bn ms-note-bn">
+            {takeawayBn}
           </p>
         </>
       ) : (

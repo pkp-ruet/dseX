@@ -7248,6 +7248,29 @@ details.dsex-exp[open] > summary {
 }
 .ms-empty { font-size: var(--fs-sm); color: var(--text-muted); padding: 10px 0; }
 
+/* ---- Bengali (বাংলা) accents — paired with .font-bn + lang="bn" ---- */
+.ms-hero-bn {
+  font-size: var(--fs-md); font-weight: 600; color: var(--ink-2);
+  line-height: 1.7; margin: 0 0 20px; max-width: 58ch;
+}
+.ms-hero-sub + .ms-hero-bn { margin-top: -12px; }
+.ms-section-sub-bn { font-size: var(--fs-sm); color: var(--ink-2); margin: 2px 0 0; font-weight: 600; line-height: 1.6; }
+.ms-lens-desc-bn { font-size: var(--fs-sm); color: var(--ink-2); margin: 2px 0 2px; font-weight: 600; line-height: 1.6; }
+.ms-note-bn { font-size: var(--fs-sm); color: var(--ink-2); font-weight: 600; margin: 6px 0 0; line-height: 1.7; }
+.ms-bn-text { font-size: var(--fs-md); color: var(--text); font-weight: 500; line-height: 1.9; margin: 0; max-width: 72ch; }
+.ms-bn-note { font-size: var(--fs-xs); color: var(--text-muted); font-weight: 500; margin: 12px 0 0; }
+.ms-divcard-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ms-divdays {
+  font-size: var(--fs-2xs); font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+  background: color-mix(in srgb, var(--positive) 12%, var(--surface)); color: var(--positive);
+}
+.ms-divdays--soon { background: color-mix(in srgb, var(--warm) 16%, var(--surface)); color: var(--warm-ink); }
+.ms-bloglink {
+  display: inline-block; margin-top: 14px;
+  font-size: var(--fs-sm); font-weight: 700; color: var(--primary); text-decoration: none;
+}
+.ms-bloglink:hover { text-decoration: underline; }
+
 /* ---- Trend chart empty state ---- */
 .ms-trend-empty { display: flex; gap: 13px; align-items: flex-start; padding: 16px; border-radius: var(--radius); background: var(--surface-2); }
 .ms-trend-empty-ico { width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800; background: color-mix(in srgb, var(--primary) 12%, var(--surface)); color: var(--primary); }
