@@ -4073,6 +4073,22 @@ details.dsex-exp[open] > summary {
   border-top: 1px solid var(--cell-rule);
   background: var(--bg);
 }
+/* EPS / DIV chips — quiet tinted style shared by desktop and mobile. */
+.watchlist-table .wl-eps--up {
+  background: color-mix(in srgb, var(--positive) 12%, transparent);
+  color: var(--positive);
+  border-color: color-mix(in srgb, var(--positive) 28%, transparent);
+}
+.watchlist-table .wl-eps--dn {
+  background: color-mix(in srgb, var(--negative) 12%, transparent);
+  color: var(--negative);
+  border-color: color-mix(in srgb, var(--negative) 28%, transparent);
+}
+.watchlist-table .wl-eps--flat {
+  background: var(--surface-2);
+  color: var(--text-muted);
+  border-color: var(--border);
+}
 @media (max-width: 640px) {
   /* Mobile: drop the shared table frame — each ticker becomes its own card. */
   .watchlist-wrap {
@@ -4087,19 +4103,19 @@ details.dsex-exp[open] > summary {
   .watchlist-table tbody { display: flex; flex-direction: column; gap: 10px; }
 
   /* Per-ticker card.
-       rows 1-2:  code + tier (centered)          LTP
-                                                  chg%
-       row 3:     EPS pill  signal pills    bell  star
+       rows 1-2:  code + tier (centered)                LTP
+                                                        chg%
+       row 3:     EPS pill  DIV pill  signals     bell  star
        row 4:     52w range strip (full width, only when data exists)
-     The range strip (td7) is auto-placed with a full-column span instead of a
+     The range strip (td8) is auto-placed with a full-column span instead of a
      named area so a `.wl-empty` cell leaves no phantom row behind. */
   .watchlist-table tbody tr {
     display: grid;
-    grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+    grid-template-columns: auto auto auto minmax(0, 1fr) auto auto;
     grid-template-areas:
-      "code tier .   ltp   ltp"
-      "code tier .   chg   chg"
-      "eps  sig  sig alert star";
+      "code code tier .   ltp   ltp"
+      "code code tier .   chg   chg"
+      "eps  yld  sig  sig alert star";
     column-gap: 8px;
     row-gap: 2px;
     align-items: center;
@@ -4143,17 +4159,22 @@ details.dsex-exp[open] > summary {
     margin-top: 8px;
   }
   .watchlist-table td:nth-child(7) {
+    grid-area: yld;
+    justify-self: start;
+    margin-top: 8px;
+  }
+  .watchlist-table td:nth-child(8) {
     grid-column: 1 / -1;
     justify-self: stretch;
     margin-top: 9px;
   }
-  .watchlist-table td:nth-child(8) {
+  .watchlist-table td:nth-child(9) {
     grid-area: sig;
     justify-self: start;
     min-width: 0;
     margin-top: 8px;
   }
-  .watchlist-table td:nth-child(9) {
+  .watchlist-table td:nth-child(10) {
     grid-area: alert;
     justify-self: end;
     margin-top: 8px;
@@ -4161,24 +4182,6 @@ details.dsex-exp[open] > summary {
   .watchlist-table td.wl-empty { display: none; }
 
   .watchlist-ticker { font-size: 0.88rem; padding: 4px 11px; }
-
-  /* Pills share one quiet tinted language on mobile — the solid EPS badge is
-     too loud next to the tier + signal pills. */
-  .watchlist-table .wl-eps--up {
-    background: color-mix(in srgb, var(--positive) 12%, transparent);
-    color: var(--positive);
-    border-color: color-mix(in srgb, var(--positive) 28%, transparent);
-  }
-  .watchlist-table .wl-eps--dn {
-    background: color-mix(in srgb, var(--negative) 12%, transparent);
-    color: var(--negative);
-    border-color: color-mix(in srgb, var(--negative) 28%, transparent);
-  }
-  .watchlist-table .wl-eps--flat {
-    background: var(--surface-2);
-    color: var(--text-muted);
-    border-color: var(--border);
-  }
 
   /* Alert button: icon-only on mobile (full label stays on desktop). */
   .watchlist-table .wl-alert-btn { padding: 5px 7px; }
