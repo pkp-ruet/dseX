@@ -848,28 +848,24 @@ export default function PortfolioClient() {
               className="soft-card p-3 pl-3.5 transition-transform active:scale-[0.99]"
               style={{ borderLeft: `3px solid ${signAccent(row.pnl)}` }}
             >
-              {/* Header: monogram + code + name | P&L + actions */}
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-start gap-2.5 min-w-0">
+              {/* Row 1: monogram + code + name | icon actions */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   <Monogram code={row.holding.trading_code} />
                   <div className="min-w-0">
                     <Link
                       prefetch={false}
                       href={`/stock/${row.holding.trading_code}`}
-                      className="text-[var(--primary)] font-mono font-bold text-base leading-tight"
+                      className="block truncate text-[var(--primary)] font-mono font-bold text-base leading-tight"
                     >
                       {row.holding.trading_code}
                     </Link>
                     <p className="text-[11px] text-[var(--text-muted)] truncate leading-tight">
                       {row.company_name ?? "—"}
                     </p>
-                    <div className="mt-1.5">
-                      <SignalPill signal={row.signal} />
-                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 shrink-0 -my-1 -mr-1">
-                  <PnlPill value={row.pnl} pct={row.pnl_pct} />
+                <div className="flex items-center gap-0.5 shrink-0 -mr-1">
                   <WatchlistAlertCell
                     code={row.holding.trading_code}
                     ltp={row.ltp}
@@ -896,6 +892,12 @@ export default function PortfolioClient() {
                     </svg>
                   </button>
                 </div>
+              </div>
+
+              {/* Row 2: signal | P&L */}
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <SignalPill signal={row.signal} />
+                <PnlPill value={row.pnl} pct={row.pnl_pct} />
               </div>
 
               {/* Metric strip */}
