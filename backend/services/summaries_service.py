@@ -444,3 +444,14 @@ def load_stock_summary(trading_code: str) -> Optional[str]:
         {"trading_code": trading_code}, {"summary_bn": 1, "_id": 0}
     )
     return (doc or {}).get("summary_bn")
+
+
+@_ttl_cache(3600, 200)
+def load_stock_summaries(codes: tuple) -> dict:
+    """Bulk read for a small code set (portfolio / watchlist rows) — one query.
+    Returns {trading_code: summary_bn}, omitting codes with no cached summary."""
+    docs = get_db()[COLLECTION].find(
+        {"trading_code": {"$in": list(codes)}},
+        {"trading_code": 1, "summary_bn": 1, "_id": 0},
+    )
+    return {d["trading_code"]: d["summary_bn"] for d in docs if d.get("summary_bn")}

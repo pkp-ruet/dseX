@@ -116,3 +116,55 @@ def _compute_near_extremes() -> dict:
 @router.get("/api/market/near-extremes", response_model=NearExtremesResponse)
 def get_near_extremes():
     return _compute_near_extremes()
+
+
+# ---------------------------------------------------------------------------
+# Bulk 52-week ranges for a small set of codes (portfolio / watchlist rows).
+# Unlike near-extremes (top-15 movers only), this answers "where does today's
+# price sit in the year's range" for exactly the stocks the caller holds.
+# ---------------------------------------------------------------------------
+
+
+class Range52wItem(BaseModel):
+    trading_code: str
+    w52_high: Optional[float] = None
+    w52_low: Optional[float] = None
+
+
+class Range52wResponse(BaseModel):
+    items: list[Range52wItem]
+
+
+@_ttl_cache(900)
+def _compute_52w_for(codes: tuple) -> list[dict]:
+    db = get_db()
+    one_year_ago = datetime.now(timezone.utc) - timedelta(days=365)
+    pipeline = [
+        {"$match": {
+            "trading_code": {"$in": list(codes)},
+            "date": {"$gte": one_year_ago},
+            "ltp": {"$gt": 0},
+        }},
+        {"$group": {
+            "_id": "$trading_code",
+            "w52_high": {"$max": "$ltp"},
+            "w52_low": {"$min": "$ltp"},
+        }},
+    ]
+    return [
+        {
+            "trading_code": doc["_id"],
+            "w52_high": _safe(doc.get("w52_high")),
+            "w52_low": _safe(doc.get("w52_low")),
+        }
+        for doc in db.stock_prices.aggregate(pipeline)
+    ]
+
+
+@router.get("/api/market/52w", response_model=Range52wResponse)
+def get_52w_ranges(codes: str):
+    # Sorted + deduped so the TTL-cache key is stable regardless of order.
+    code_list = tuple(sorted({c.strip().upper() for c in codes.split(",") if c.strip()}))[:100]
+    if not code_list:
+        return {"items": []}
+    return {"items": _compute_52w_for(code_list)}

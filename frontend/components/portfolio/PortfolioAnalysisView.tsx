@@ -1,7 +1,8 @@
-import type { Grade, PortfolioAnalysis } from "@/lib/portfolio-analysis";
+import type { Grade, PortfolioAnalysis, RebalancePlan } from "@/lib/portfolio-analysis";
 import AllocationChart from "./AllocationChart";
 import SectorBreakdownChart from "./SectorBreakdownChart";
 import HoldingsDetailed from "./HoldingsDetailed";
+import RebalanceHelper from "./RebalanceHelper";
 
 const GRADE_THEME: Record<
   Grade,
@@ -51,6 +52,8 @@ const GRADE_THEME: Record<
 
 interface Props {
   analysis: PortfolioAnalysis;
+  /** "What to buy next" ideas — omitted on read-only surfaces (e.g. sample portfolios). */
+  rebalance?: RebalancePlan | null;
   showSectorSpread?: boolean;
   showHoldingsList?: boolean;
   showDisclaimer?: boolean;
@@ -58,6 +61,7 @@ interface Props {
 
 export default function PortfolioAnalysisView({
   analysis,
+  rebalance = null,
   showSectorSpread = true,
   showHoldingsList = true,
   showDisclaimer = true,
@@ -150,6 +154,9 @@ export default function PortfolioAnalysisView({
           emptyText="Nothing pressing right now."
         />
       </div>
+
+      {/* What to buy next — concrete ideas for the gaps above */}
+      {rebalance && <RebalanceHelper plan={rebalance} />}
 
       {/* Allocation per company */}
       {showSectorSpread && <AllocationChart analysis={analysis} />}

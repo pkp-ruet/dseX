@@ -6,22 +6,30 @@ import { useAuth } from "@/context/AuthContext";
 import {
   getScores,
   getAllCodes,
+  getRange52w,
+  getWatchlistNews,
+  getDividendsUpcoming,
   type ScoreItem,
   type ScoresResponse,
   type PortfolioHolding,
+  type Range52wItem,
+  type WatchlistNewsItem,
+  type DividendsUpcoming,
   apiGetPortfolio,
   apiAddHolding,
   apiUpdateHolding,
   apiDeleteHolding,
 } from "@/lib/api";
-import { taka } from "@/lib/formatters";
-import { computeHoldingSignal, type SignalInfo } from "@/lib/portfolio-analysis";
+import { taka, formatDate } from "@/lib/formatters";
+import { computeHoldingSignal, portfolioTodayMove, type SignalInfo } from "@/lib/portfolio-analysis";
 import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
 import { getStoredUser } from "@/lib/auth";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
 import PortfolioAnalysis from "./PortfolioAnalysis";
+import WatchlistNews from "@/components/watchlist/WatchlistNews";
+import WatchlistAlertCell from "@/components/watchlist/WatchlistAlertCell";
 
 function flattenScores(scores: ScoresResponse | null): Map<string, ScoreItem> {
   if (!scores) return new Map();
@@ -38,10 +46,17 @@ interface ComputedRow {
   pnl: number | null;
   pnl_pct: number | null;
   signal: SignalInfo;
+  w52_high: number | null;
+  w52_low: number | null;
 }
 
-function compute(holding: PortfolioHolding, priceMap: Map<string, ScoreItem>): ComputedRow {
+function compute(
+  holding: PortfolioHolding,
+  priceMap: Map<string, ScoreItem>,
+  ranges: Map<string, Range52wItem>,
+): ComputedRow {
   const item = priceMap.get(holding.trading_code);
+  const range = ranges.get(holding.trading_code);
   const ltp = item?.ltp ?? null;
   const cost_basis = holding.qty * holding.buy_price;
   const current_value = ltp != null ? holding.qty * ltp : null;
@@ -56,10 +71,19 @@ function compute(holding: PortfolioHolding, priceMap: Map<string, ScoreItem>): C
     pnl,
     pnl_pct,
     signal: computeHoldingSignal({ pnlPct: pnl_pct, score: item?.score ?? null, p4: item?.p4_val }),
+    w52_high: range?.w52_high ?? null,
+    w52_low: range?.w52_low ?? null,
   };
 }
 
-type SortKey = "code" | "qty" | "avgcost" | "invested" | "ltp" | "curvalue" | "pnl" | "signal";
+/** Where today's price sits in the 52-week range (0 = at low, 1 = at high). */
+function rangePosition(row: ComputedRow): number | null {
+  if (row.ltp == null || row.w52_high == null || row.w52_low == null) return null;
+  if (row.w52_high <= row.w52_low) return null;
+  return Math.max(0, Math.min(1, (row.ltp - row.w52_low) / (row.w52_high - row.w52_low)));
+}
+
+type SortKey = "code" | "qty" | "avgcost" | "invested" | "ltp" | "curvalue" | "pnl" | "range" | "signal";
 
 const COLUMNS: { key: SortKey; label: string; align: "left" | "right" }[] = [
   { key: "code", label: "Code", align: "left" },
@@ -69,6 +93,7 @@ const COLUMNS: { key: SortKey; label: string; align: "left" | "right" }[] = [
   { key: "ltp", label: "LTP", align: "right" },
   { key: "curvalue", label: "Cur. Value", align: "right" },
   { key: "pnl", label: "P&L", align: "right" },
+  { key: "range", label: "52W", align: "right" },
   { key: "signal", label: "Signal", align: "right" },
 ];
 
@@ -90,6 +115,8 @@ function sortValue(row: ComputedRow, key: SortKey): string | number | null {
       return row.current_value;
     case "pnl":
       return row.pnl;
+    case "range":
+      return rangePosition(row);
     case "signal":
       return SIGNAL_RANK[row.signal.signal];
   }
@@ -167,6 +194,135 @@ function SignalPill({ signal }: { signal: SignalInfo }) {
   );
 }
 
+/** Where today's price sits between the 52-week low and high. */
+function RangeBar52({ ltp, high, low }: { ltp: number | null; high: number | null; low: number | null }) {
+  if (ltp == null || high == null || low == null || high <= low) {
+    return <span className="text-[var(--text-muted)] text-xs">—</span>;
+  }
+  const pos = Math.max(0, Math.min(1, (ltp - low) / (high - low)));
+  return (
+    <div
+      className="flex flex-col gap-1 min-w-[88px]"
+      title={`52-week range: ৳${low.toFixed(1)} – ৳${high.toFixed(1)} · now ৳${ltp.toFixed(1)}`}
+    >
+      <div className="relative h-1.5 rounded-full bg-[var(--border)]">
+        <div
+          className="absolute top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-[var(--primary)] border-2 border-[var(--surface)] shadow-sm"
+          style={{ left: `calc(${(pos * 100).toFixed(1)}% - 5px)` }}
+        />
+      </div>
+      <div className="flex justify-between text-[9px] text-[var(--text-muted)] tabular-nums nums leading-none">
+        <span>{low.toFixed(1)}</span>
+        <span>{high.toFixed(1)}</span>
+      </div>
+    </div>
+  );
+}
+
+/** Estimated yearly dividend income + upcoming dividend dates for held stocks. */
+function DividendIncomeCard({
+  rows,
+  priceMap,
+  dividends,
+}: {
+  rows: ComputedRow[];
+  priceMap: Map<string, ScoreItem>;
+  dividends: DividendsUpcoming | null;
+}) {
+  let income = 0;
+  let payers = 0;
+  for (const r of rows) {
+    const y = priceMap.get(r.holding.trading_code)?.div_yield_pct;
+    const value = r.current_value ?? r.cost_basis;
+    if (y != null && y > 0 && value > 0) {
+      income += (y / 100) * value;
+      payers += 1;
+    }
+  }
+
+  const held = new Set(rows.map((r) => r.holding.trading_code));
+  const seen = new Set<string>();
+  const upcoming: { code: string; pct: number | null; date: string | null; kind: "declared" | "record" }[] = [];
+  for (const d of dividends?.upcoming_declarations ?? []) {
+    const code = d.trading_code.toUpperCase();
+    if (!held.has(code) || seen.has(code)) continue;
+    seen.add(code);
+    upcoming.push({ code, pct: d.dividend_pct, date: d.projected_date, kind: "declared" });
+  }
+  for (const d of dividends?.upcoming_record_dates ?? []) {
+    const code = d.trading_code.toUpperCase();
+    if (!held.has(code) || seen.has(code)) continue;
+    seen.add(code);
+    upcoming.push({ code, pct: d.dividend_pct, date: d.record_date, kind: "record" });
+  }
+
+  if (income <= 0 && upcoming.length === 0) return null;
+
+  return (
+    <Card padding="none" className="p-5 sm:p-6">
+      <div className="flex items-center gap-2.5 mb-4">
+        <span
+          className="grid place-items-center w-8 h-8 rounded-lg shrink-0 text-[var(--positive)]"
+          style={{ background: "color-mix(in srgb, var(--positive) 12%, transparent)" }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+            <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1H6.32c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z" />
+          </svg>
+        </span>
+        <div>
+          <h2 className="text-base sm:text-lg font-semibold text-[var(--text)] uppercase tracking-wider leading-tight">
+            Dividend Income
+          </h2>
+          <p className="text-xs text-[var(--text-muted)] mt-0.5">
+            Cash your stocks pay you, on top of any price gains.
+          </p>
+        </div>
+      </div>
+
+      {income > 0 && (
+        <div className="mb-4">
+          <p className="text-2xl sm:text-3xl font-bold text-[var(--positive)] nums leading-none">
+            ≈ {taka(income, 0)}
+            <span className="text-sm sm:text-base text-[var(--text-muted)] font-semibold"> / year</span>
+          </p>
+          <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-1.5 leading-relaxed">
+            Rough estimate from {payers} of your {rows.length} stock{rows.length === 1 ? "" : "s"}, at
+            today&apos;s dividend rates and prices. Actual payouts depend on what each company declares.
+          </p>
+        </div>
+      )}
+
+      {upcoming.length > 0 && (
+        <div className={income > 0 ? "border-t border-[var(--border)] pt-3" : ""}>
+          <p className="text-[11px] uppercase tracking-wider font-semibold text-[var(--text-muted)] mb-2">
+            Coming up on your stocks
+          </p>
+          <ul className="flex flex-col gap-2">
+            {upcoming.slice(0, 5).map((u) => (
+              <li key={u.code} className="flex items-center gap-2 text-sm">
+                <Link
+                  prefetch={false}
+                  href={`/stock/${u.code}`}
+                  className="font-mono font-bold text-[var(--primary)] hover:underline"
+                >
+                  {u.code}
+                </Link>
+                <span className="text-[var(--text)]">
+                  {u.pct != null ? `${u.pct}% dividend` : "dividend"}
+                </span>
+                <span className="ml-auto text-xs text-[var(--text-muted)] whitespace-nowrap">
+                  {u.kind === "record" ? "record date" : "expected"}
+                  {u.date ? ` · ${formatDate(u.date)}` : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </Card>
+  );
+}
+
 const emptyForm = () => ({ trading_code: "", price: "", qty: "" });
 
 export default function PortfolioClient() {
@@ -185,6 +341,12 @@ export default function PortfolioClient() {
   const [allCodes, setAllCodes] = useState<string[]>(
     () => readCache<string[]>(cacheKeys.allCodes) ?? [],
   );
+  const [ranges, setRanges] = useState<Map<string, Range52wItem>>(new Map());
+  const [dividends, setDividends] = useState<DividendsUpcoming | null>(
+    () => readCache<DividendsUpcoming>(cacheKeys.dividends),
+  );
+  const [news, setNews] = useState<WatchlistNewsItem[]>([]);
+  const [newsLoading, setNewsLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(() => {
     if (!userId) return true;
     return readCache<PortfolioHolding[]>(cacheKeys.portfolio(userId)) === null;
@@ -222,8 +384,8 @@ export default function PortfolioClient() {
   useEffect(() => {
     if (!isLoggedIn) return;
     let cancelled = false;
-    Promise.allSettled([apiGetPortfolio(), getScores(), getAllCodes()])
-      .then(([p, s, c]) => {
+    Promise.allSettled([apiGetPortfolio(), getScores(), getAllCodes(), getDividendsUpcoming()])
+      .then(([p, s, c, d]) => {
         if (cancelled) return;
         if (p.status === "fulfilled") {
           applyHoldings(p.value.holdings);
@@ -237,6 +399,10 @@ export default function PortfolioClient() {
           setAllCodes(upper);
           writeCache(cacheKeys.allCodes, upper);
         }
+        if (d.status === "fulfilled") {
+          setDividends(d.value);
+          writeCache(cacheKeys.dividends, d.value);
+        }
         if (p.status === "rejected" && s.status === "rejected" && c.status === "rejected") {
           setError(String(p.reason));
         }
@@ -249,6 +415,37 @@ export default function PortfolioClient() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn]);
+
+  // 52-week ranges + news for the held codes — refetch when the set changes.
+  const holdingCodesKey = useMemo(
+    () => holdings.map((h) => h.trading_code).sort().join(","),
+    [holdings],
+  );
+  useEffect(() => {
+    const codes = holdingCodesKey ? holdingCodesKey.split(",") : [];
+    if (codes.length === 0) {
+      setRanges(new Map());
+      setNews([]);
+      setNewsLoading(false);
+      return;
+    }
+    let cancelled = false;
+    getRange52w(codes).then((items) => {
+      if (cancelled) return;
+      setRanges(new Map(items.map((it) => [it.trading_code.toUpperCase(), it])));
+    });
+    setNewsLoading(true);
+    getWatchlistNews(codes)
+      .then((items) => {
+        if (!cancelled) setNews(items);
+      })
+      .finally(() => {
+        if (!cancelled) setNewsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [holdingCodesKey]);
 
   function handleCodeInput(value: string) {
     const upper = value.toUpperCase();
@@ -289,7 +486,12 @@ export default function PortfolioClient() {
     fillLtp(code);
   }
 
-  const rows = useMemo(() => holdings.map((h) => compute(h, priceMap)), [holdings, priceMap]);
+  const rows = useMemo(
+    () => holdings.map((h) => compute(h, priceMap, ranges)),
+    [holdings, priceMap, ranges],
+  );
+
+  const todayMove = useMemo(() => portfolioTodayMove(holdings, priceMap), [holdings, priceMap]);
 
   const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" } | null>(null);
 
@@ -521,7 +723,7 @@ export default function PortfolioClient() {
     <div className="flex flex-col gap-6">
       {/* Summary cards */}
       {holdings.length > 0 && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {/* Invested */}
           <div className="soft-card p-4">
             <div className="flex items-center gap-2 mb-2">
@@ -545,6 +747,52 @@ export default function PortfolioClient() {
               {summary.totalValue != null ? taka(summary.totalValue, 0) : "—"}
             </p>
           </div>
+
+          {/* Today's change */}
+          {(() => {
+            const up = todayMove != null && todayMove.delta > 0;
+            const down = todayMove != null && todayMove.delta < 0;
+            const accent = up ? "var(--positive)" : down ? "var(--negative)" : "var(--text-muted)";
+            return (
+              <div
+                className="soft-card p-4"
+                style={
+                  todayMove != null
+                    ? {
+                        background: `color-mix(in srgb, ${accent} 6%, var(--surface))`,
+                        borderColor: `color-mix(in srgb, ${accent} 24%, var(--border))`,
+                      }
+                    : undefined
+                }
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span
+                    className="grid place-items-center w-8 h-8 rounded-lg shrink-0"
+                    style={{ background: `color-mix(in srgb, ${accent} 14%, transparent)`, color: accent }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                      <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
+                    </svg>
+                  </span>
+                  <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Today</p>
+                </div>
+                {todayMove != null ? (
+                  <p
+                    className={`text-lg sm:text-xl font-bold nums ${up ? "text-[var(--positive)]" : down ? "text-[var(--negative)]" : "text-[var(--text)]"}`}
+                  >
+                    {todayMove.delta > 0 ? "+" : ""}
+                    {taka(todayMove.delta, 0)}
+                    <span className="text-xs sm:text-sm font-semibold opacity-80 ml-1">
+                      ({todayMove.pct > 0 ? "+" : ""}
+                      {todayMove.pct.toFixed(2)}%)
+                    </span>
+                  </p>
+                ) : (
+                  <p className="text-lg sm:text-xl font-bold text-[var(--text)] nums">—</p>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Unrealized P&L */}
           <div
@@ -633,6 +881,12 @@ export default function PortfolioClient() {
                 </div>
                 <div className="flex items-center gap-1 shrink-0 -my-1 -mr-1">
                   <PnlPill value={row.pnl} pct={row.pnl_pct} />
+                  <WatchlistAlertCell
+                    code={row.holding.trading_code}
+                    ltp={row.ltp}
+                    w52High={row.w52_high}
+                    w52Low={row.w52_low}
+                  />
                   <button
                     onClick={() => startEdit(row.holding)}
                     className="text-[var(--text-muted)] hover:text-[var(--text)] transition-colors p-1.5"
@@ -674,6 +928,18 @@ export default function PortfolioClient() {
                   <p className="text-xs text-[var(--text)] tabular-nums nums font-bold mt-0.5">{row.current_value != null ? taka(row.current_value, 0) : "—"}</p>
                 </div>
               </div>
+
+              {/* 52-week position */}
+              {row.w52_high != null && row.w52_low != null && row.w52_high > row.w52_low && (
+                <div className="mt-2.5 flex items-center gap-2 px-0.5">
+                  <span className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] font-semibold shrink-0">
+                    52W
+                  </span>
+                  <div className="flex-1">
+                    <RangeBar52 ltp={row.ltp} high={row.w52_high} low={row.w52_low} />
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -715,6 +981,9 @@ export default function PortfolioClient() {
                     </th>
                   );
                 })}
+                <th className="text-center px-3 sm:px-4 py-3 text-xs sm:text-sm text-[var(--text)] uppercase tracking-wider font-semibold">
+                  Alert
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -775,8 +1044,21 @@ export default function PortfolioClient() {
                     <td className="px-3 sm:px-4 py-4 text-right">
                       <PnlCell value={row.pnl} pct={row.pnl_pct} />
                     </td>
+                    <td className="px-3 sm:px-4 py-4">
+                      <div className="flex justify-end">
+                        <RangeBar52 ltp={row.ltp} high={row.w52_high} low={row.w52_low} />
+                      </div>
+                    </td>
                     <td className="px-3 sm:px-4 py-4 text-right">
                       <SignalPill signal={row.signal} />
+                    </td>
+                    <td className="px-3 sm:px-4 py-4 text-center">
+                      <WatchlistAlertCell
+                        code={row.holding.trading_code}
+                        ltp={row.ltp}
+                        w52High={row.w52_high}
+                        w52Low={row.w52_low}
+                      />
                     </td>
                   </tr>
                 );
@@ -803,6 +1085,11 @@ export default function PortfolioClient() {
             Edit Portfolio
           </Button>
         </div>
+      )}
+
+      {/* Dividend income — estimated yearly cash + upcoming dates on held stocks */}
+      {holdings.length > 0 && (
+        <DividendIncomeCard rows={rows} priceMap={priceMap} dividends={dividends} />
       )}
 
       {/* Add holding form */}
@@ -896,6 +1183,34 @@ export default function PortfolioClient() {
       </Card>
 
       {holdings.length > 0 && <PortfolioAnalysis rows={rows} priceMap={priceMap} />}
+
+      {/* News on held stocks */}
+      {holdings.length > 0 && (
+        <section>
+          <div className="flex items-center gap-2.5 mb-3">
+            <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--primary)]/15 border border-[var(--primary)]/30 text-[var(--primary)]">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                <path d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 14H6v-2h6v2zm6-4H6v-2h12v2zm0-4H6V7h12v2z" />
+              </svg>
+            </span>
+            <div>
+              <h2 className="text-sm sm:text-[15px] uppercase tracking-wider font-bold text-[var(--text)]">
+                News On Your Stocks
+              </h2>
+              <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-0.5">
+                Announcements from the companies you own.
+              </p>
+            </div>
+          </div>
+          <WatchlistNews
+            codes={holdings.map((h) => h.trading_code)}
+            news={news}
+            loading={newsLoading}
+            limit={6}
+            compact
+          />
+        </section>
+      )}
 
       {/* Edit holding — bottom-sheet on mobile, centered modal on desktop */}
       {editingHolding && (

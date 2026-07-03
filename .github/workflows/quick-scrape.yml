@@ -55,3 +55,11 @@ jobs:
         if: ${{ success() }}
         continue-on-error: true
         run: python main.py notify-price-alerts
+
+      # Per-holding Buy More/Hold/Sell signal tracking. Flips are persisted for
+      # the in-app bell even without VAPID; owners get a push when a holding
+      # flips to Sell. Gated to 2 PM Dhaka + deduped per day, so safe on re-run.
+      - name: Track portfolio signal flips
+        if: ${{ success() }}
+        continue-on-error: true
+        run: python main.py notify-portfolio-signals

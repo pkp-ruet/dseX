@@ -1,5 +1,9 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Card from "@/components/ui/Card";
+import { getBengaliSummaries } from "@/lib/api";
 import type { HoldingSignal, PortfolioAnalysis, QualityWord } from "@/lib/portfolio-analysis";
 
 const SIGNAL_THEME: Record<HoldingSignal, { chip: string; dot: string; icon: string }> = {
@@ -57,6 +61,27 @@ interface Props {
 
 export default function HoldingsDetailed({ analysis }: Props) {
   const sorted = [...analysis.holdings].sort((a, b) => b.weightPct - a.weightPct);
+
+  // Cached Bengali "এক নজরে" one-liners — best-effort, cards render without them.
+  const codesKey = useMemo(
+    () => analysis.holdings.map((h) => h.code).sort().join(","),
+    [analysis.holdings],
+  );
+  const [summariesBn, setSummariesBn] = useState<Record<string, string>>({});
+  useEffect(() => {
+    const codes = codesKey ? codesKey.split(",") : [];
+    if (codes.length === 0) {
+      setSummariesBn({});
+      return;
+    }
+    let cancelled = false;
+    getBengaliSummaries(codes).then((map) => {
+      if (!cancelled) setSummariesBn(map);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [codesKey]);
 
   return (
     <section className="flex flex-col gap-4">
@@ -165,6 +190,16 @@ export default function HoldingsDetailed({ analysis }: Props) {
                 <p className="text-sm text-[var(--text-muted)] mt-1.5 leading-[1.6]">
                   {h.entryLabel}
                 </p>
+                {summariesBn[h.code] && (
+                  <div className="mt-3 pt-3 border-t border-dashed border-[var(--border)]">
+                    <p className="text-[10px] uppercase tracking-wider font-bold text-[var(--primary)] mb-1">
+                      এক নজরে
+                    </p>
+                    <p lang="bn" className="font-bn text-sm text-[var(--text)]">
+                      {summariesBn[h.code]}
+                    </p>
+                  </div>
+                )}
               </div>
               <Link
                 prefetch={false} href={`/stock/${h.code}`}

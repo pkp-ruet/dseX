@@ -9,7 +9,7 @@ from backend.services.db_service import (
 from backend.services.scoring_service import get_company_score_row, build_scores_df
 from backend.services.top20_service import compute_momentum_for_code
 from backend.services.verdict_service import build_verdict
-from backend.services.summaries_service import load_stock_summary
+from backend.services.summaries_service import load_stock_summary, load_stock_summaries
 from backend.models.responses import (
     CompanyDetailResponse, CompanyProfile, LatestPrice,
     SignalFlags, DividendDeclaration, RelatedStock,
@@ -30,6 +30,16 @@ def get_multi_news(codes: str):
     if not code_list:
         return []
     return load_news_for_codes(code_list)
+
+
+@router.get("/api/summaries/multi")
+def get_multi_summaries(codes: str):
+    """Cached Bengali 'এক নজরে' one-liners for a set of codes → {code: summary}."""
+    # Sorted + deduped so the TTL-cache key is stable regardless of order.
+    code_list = tuple(sorted({c.strip().upper() for c in codes.split(",") if c.strip()}))[:100]
+    if not code_list:
+        return {}
+    return load_stock_summaries(code_list)
 
 
 @router.get("/api/company/{code}", response_model=CompanyDetailResponse)

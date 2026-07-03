@@ -14,6 +14,8 @@ import {
   getTop20,
   getDailyTips,
   getDailyPicks,
+  apiGetSignalEvents,
+  type PortfolioSignalEvent,
   type DailyPicksResponse,
   type ScoreItem,
   type ScoresResponse,
@@ -141,6 +143,7 @@ export default function PersonalizedHome() {
 
   const [codes, setCodes] = useState<string[]>(() => getCachedWatchlist());
   const [priceAlerts, setPriceAlerts] = useState<PriceAlert[]>(() => getCachedAlerts());
+  const [signalEvents, setSignalEvents] = useState<PortfolioSignalEvent[]>([]);
   const [holdings, setHoldings] = useState<PortfolioHolding[] | null>(() => {
     if (!userId) return null;
     return readCache<PortfolioHolding[]>(cacheKeys.portfolio(userId));
@@ -219,6 +222,9 @@ export default function PersonalizedHome() {
       })
       .catch(() => {});
     loadAlerts().then((a) => alive && setPriceAlerts(a)).catch(() => {});
+    apiGetSignalEvents()
+      .then((r) => alive && setSignalEvents(r.events ?? []))
+      .catch(() => {});
     const unsub = subscribeWatchlist(() => setCodes(getCachedWatchlist()));
     const unsubAlerts = subscribeAlerts(() => setPriceAlerts(getCachedAlerts()));
     return () => {
@@ -308,6 +314,7 @@ export default function PersonalizedHome() {
     dividends,
     news: recentNews,
     triggeredAlerts: priceAlerts,
+    signalEvents,
     dateKey: new Date().toDateString(),
   });
 

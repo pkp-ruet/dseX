@@ -282,6 +282,21 @@ def cmd_notify_price_alerts(args):
     print(f"Price alerts done: {counts}")
 
 
+def cmd_notify_portfolio_signals(args):
+    """Recompute each holding's Buy More / Hold / Sell signal and notify owners
+    whose holdings flipped to Sell.
+
+    Run right after `scrape-quick` (close prices fresh). Gated to 2 PM Dhaka like
+    the price alerts; `--force` bypasses (manual testing). Signal changes are
+    always persisted (the in-app bell reads them) even when VAPID keys aren't
+    configured; push is best-effort and deduped per user per Dhaka day."""
+    from backend.services.portfolio_signal_service import check_and_notify
+
+    not_before = None if getattr(args, "force", False) else 14  # 2 PM Dhaka
+    counts = check_and_notify(not_before_dhaka_hour=not_before)
+    print(f"Portfolio signals done: {counts}")
+
+
 def cmd_generate_summaries(args):
     """Generate plain-Bangla 'এক নজরে' stock summaries into `stock_summaries`.
 
@@ -517,6 +532,16 @@ def main():
         help="Bypass the 2 PM Dhaka market-close gate (manual testing)",
     )
 
+    portfolio_signals_parser = sub.add_parser(
+        "notify-portfolio-signals",
+        help="Track per-holding Buy More/Hold/Sell signals and push owners on flips to Sell",
+    )
+    portfolio_signals_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Bypass the 2 PM Dhaka market-close gate (manual testing)",
+    )
+
     summaries_parser = sub.add_parser(
         "generate-summaries",
         help="Generate plain-Bangla 'এক নজরে' stock summaries (cached; regenerates only changed stocks)",
@@ -559,6 +584,7 @@ def main():
         "notify-digest":         cmd_notify_digest,
         "notify-events":         cmd_notify_events,
         "notify-price-alerts":   cmd_notify_price_alerts,
+        "notify-portfolio-signals": cmd_notify_portfolio_signals,
         "generate-summaries":    cmd_generate_summaries,
         "scrape-all":            cmd_scrape_all,
     }

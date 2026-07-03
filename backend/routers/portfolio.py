@@ -131,6 +131,14 @@ def get_portfolio(current_user: dict = Depends(get_current_user)):
     return {"holdings": _load_holdings(current_user["user_id"])}
 
 
+@router.get("/signal-events")
+def get_signal_events(current_user: dict = Depends(get_current_user)):
+    """Recent Buy More / Hold / Sell flips on the user's holdings (in-app bell)."""
+    from backend.services.portfolio_signal_service import list_recent_events
+
+    return {"events": list_recent_events(current_user["user_id"])}
+
+
 # --------------------------------------------------------------------------- #
 # Holdings CRUD
 # --------------------------------------------------------------------------- #

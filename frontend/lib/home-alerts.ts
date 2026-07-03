@@ -4,6 +4,7 @@ import type {
   DividendsUpcoming,
   WatchlistNewsItem,
   PriceAlert,
+  PortfolioSignalEvent,
 } from "@/lib/api";
 
 export type HomeAlertTone = "positive" | "negative" | "neutral";
@@ -22,6 +23,7 @@ const MOVER_THRESHOLD = 3; // only surface watchlist moves of at least ±3%
 const MAX_MOVERS = 3;
 const MAX_NEWS = 3;
 const TRIGGER_RECENCY_MS = 2 * 24 * 60 * 60 * 1000; // surface a hit target for ~2 days
+const SIGNAL_RECENCY_MS = 3 * 24 * 60 * 60 * 1000; // surface a signal flip for ~3 days
 
 function fmtPrice(n: number): string {
   return Number(n.toFixed(2)).toString();
@@ -41,9 +43,10 @@ export function buildHomeAlerts(opts: {
   dividends: DividendsUpcoming | null;
   news: WatchlistNewsItem[];
   triggeredAlerts?: PriceAlert[];
+  signalEvents?: PortfolioSignalEvent[];
   dateKey: string;
 }): HomeAlert[] {
-  const { codes, priceMap, todayMove, extremes, dividends, news, triggeredAlerts, dateKey } = opts;
+  const { codes, priceMap, todayMove, extremes, dividends, news, triggeredAlerts, signalEvents, dateKey } = opts;
   const watch = new Set(codes.map((c) => c.toUpperCase()));
   const alerts: HomeAlert[] = [];
 
@@ -61,6 +64,25 @@ export function buildHomeAlerts(opts: {
       detail: a.triggered_price != null ? `Reached ৳${fmtPrice(a.triggered_price)}` : undefined,
       href: `/stock/${a.trading_code}`,
       tone: a.direction === "above" ? "positive" : "negative",
+    });
+  }
+
+  // 0.5 — Portfolio signal flips (server-detected, end-of-day). Sell flips are
+  // the actionable ones; Buy More flips are a friendly nudge.
+  for (const ev of signalEvents ?? []) {
+    if (!ev.changed_at || ev.signal === "hold") continue;
+    const t = Date.parse(ev.changed_at);
+    if (Number.isNaN(t) || now - t > SIGNAL_RECENCY_MS) continue;
+    const sell = ev.signal === "sell";
+    alerts.push({
+      id: `sg:${ev.trading_code}:${ev.changed_at}`,
+      emoji: sell ? "⚠️" : "🟢",
+      title: sell
+        ? `${ev.trading_code} signal changed to Sell`
+        : `${ev.trading_code} now looks like a Buy More`,
+      detail: sell ? "Time to review this holding" : "Strong company at a cheap price",
+      href: "/portfolio",
+      tone: sell ? "negative" : "positive",
     });
   }
 

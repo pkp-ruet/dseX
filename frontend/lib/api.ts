@@ -454,6 +454,37 @@ export async function getNearExtremes(): Promise<NearExtremesData> {
   return apiFetch<NearExtremesData>("/api/market/near-extremes", 86400);
 }
 
+export interface Range52wItem {
+  trading_code: string;
+  w52_high: number | null;
+  w52_low: number | null;
+}
+
+/** Client-side bulk 52-week ranges for a small set of codes (portfolio rows). */
+export async function getRange52w(codes: string[]): Promise<Range52wItem[]> {
+  if (!codes.length) return [];
+  try {
+    const res = await fetch(`${getApiUrl()}/api/market/52w?codes=${encodeURIComponent(codes.join(","))}`);
+    if (!res.ok) return [];
+    const data = (await res.json()) as { items?: Range52wItem[] };
+    return data.items ?? [];
+  } catch {
+    return [];
+  }
+}
+
+/** Client-side bulk Bengali "এক নজরে" summaries → {code: summary}. */
+export async function getBengaliSummaries(codes: string[]): Promise<Record<string, string>> {
+  if (!codes.length) return {};
+  try {
+    const res = await fetch(`${getApiUrl()}/api/summaries/multi?codes=${encodeURIComponent(codes.join(","))}`);
+    if (!res.ok) return {};
+    return (await res.json()) as Record<string, string>;
+  } catch {
+    return {};
+  }
+}
+
 // ---- Market State (the "complete picture of the market right now" page) ----
 
 export type MoodTone = "up" | "down" | "weak" | "steady";
@@ -706,6 +737,9 @@ export interface NotificationPrefs {
   watchlist_alerts: boolean;
   dividends: boolean;
   price_extremes: boolean;
+  /** Present on newer backends: price-target hits + portfolio signal flips. */
+  price_alerts?: boolean;
+  portfolio_signals?: boolean;
 }
 
 export interface NotificationState {
@@ -896,6 +930,18 @@ export async function apiDeleteHolding(id: string): Promise<{ holdings: Portfoli
   return apiAuthFetch(`/api/user/portfolio/holdings/${id}`, {
     method: "DELETE",
   });
+}
+
+export interface PortfolioSignalEvent {
+  trading_code: string;
+  signal: "buy_more" | "hold" | "sell";
+  prev_signal: string | null;
+  changed_at: string | null;
+}
+
+/** Recent Buy More / Hold / Sell flips on the user's holdings (in-app bell). */
+export async function apiGetSignalEvents(): Promise<{ events: PortfolioSignalEvent[] }> {
+  return apiAuthFetch<{ events: PortfolioSignalEvent[] }>("/api/user/portfolio/signal-events");
 }
 
 // ---------------------------------------------------------------------------

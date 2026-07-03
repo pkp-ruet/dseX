@@ -729,3 +729,104 @@ export function analyzePortfolio(
     subScores: { spread: spreadScore, quality: qualityScore, entry: entryScore, overall },
   };
 }
+
+// ── Rebalance helper ("what to buy next") ──────────────────────────────────
+
+export interface RebalancePick {
+  code: string;
+  companyName: string | null;
+  sector: string | null;
+  score: number | null;
+  ltp: number | null;
+  divYieldPct: number | null;
+  why: string;
+}
+
+export interface RebalancePlan {
+  /** Plain-English gaps this plan addresses; empty = portfolio looks balanced. */
+  gaps: string[];
+  picks: RebalancePick[];
+}
+
+/**
+ * Turn the analysis' diversification gaps into concrete next-buy ideas from the
+ * rankings: strong companies (score ≥ 65) the user doesn't own, preferring
+ * sectors missing from the portfolio and skipping the overweight sector.
+ * Returns no picks when the portfolio already looks balanced.
+ */
+export function buildRebalancePlan(
+  analysis: PortfolioAnalysis,
+  priceMap: Map<string, ScoreItem>,
+  maxPicks = 3,
+): RebalancePlan {
+  const held = new Set(analysis.holdings.map((h) => h.code.toUpperCase()));
+  const heldSectors = new Set(
+    analysis.holdings.map((h) => h.sector).filter((s): s is string => !!s),
+  );
+  const holdingCount = analysis.holdings.length;
+  const maxSector = analysis.sectorSpread[0];
+  const overweightSector =
+    maxSector && maxSector.weightPct > 40 && holdingCount > 1 ? maxSector.name : null;
+  const avoidHoldings = analysis.holdings.filter((h) => h.tierKey === "avoid");
+
+  const gaps: string[] = [];
+  if (holdingCount > 0 && holdingCount < 5) {
+    gaps.push(
+      `You own ${holdingCount} stock${holdingCount === 1 ? "" : "s"} — aim for 5–8 so one bad company can't drag your whole portfolio down.`,
+    );
+  }
+  if (overweightSector) {
+    gaps.push(
+      `${maxSector!.weightPct.toFixed(0)}% of your money is in ${overweightSector} — your next buy should come from a different sector.`,
+    );
+  }
+  if (avoidHoldings.length > 0) {
+    gaps.push(
+      `${nameList(avoidHoldings.map((h) => h.code))} ${avoidHoldings.length === 1 ? "is" : "are"} rated Risky — a stronger stock could take that money instead.`,
+    );
+  }
+
+  if (gaps.length === 0) return { gaps, picks: [] };
+
+  const candidates = Array.from(priceMap.values()).filter(
+    (s) =>
+      s.score != null &&
+      s.score >= 65 &&
+      s.ltp != null &&
+      s.sector != null &&
+      !held.has(s.trading_code.toUpperCase()) &&
+      (overweightSector == null || s.sector !== overweightSector),
+  );
+  // Sectors the user doesn't own yet come first; within a group, best score wins.
+  candidates.sort((a, b) => {
+    const aNew = heldSectors.has(a.sector!) ? 0 : 1;
+    const bNew = heldSectors.has(b.sector!) ? 0 : 1;
+    if (aNew !== bNew) return bNew - aNew;
+    return (b.score ?? 0) - (a.score ?? 0);
+  });
+
+  const picks: RebalancePick[] = [];
+  const usedSectors = new Set<string>();
+  for (const c of candidates) {
+    if (picks.length >= maxPicks) break;
+    if (usedSectors.has(c.sector!)) continue; // one idea per sector
+    usedSectors.add(c.sector!);
+    const isNewSector = !heldSectors.has(c.sector!);
+    const cheap = (c.p4_val ?? 0) >= 7;
+    const why = isNewSector
+      ? `Adds a sector you don't own yet (${c.sector}).`
+      : cheap
+        ? "Strong company, and the price looks cheap right now."
+        : "One of the strongest companies outside your biggest sector.";
+    picks.push({
+      code: c.trading_code,
+      companyName: c.company_name,
+      sector: c.sector,
+      score: c.score,
+      ltp: c.ltp,
+      divYieldPct: c.div_yield_pct,
+      why,
+    });
+  }
+  return { gaps, picks };
+}
