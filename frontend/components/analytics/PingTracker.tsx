@@ -28,11 +28,24 @@ export default function PingTracker() {
     // distinct route fires exactly one ping.
     if (lastPinged.current === pathname) return;
     lastPinged.current = pathname;
+    // Keep only the attribution params (src/v, set by push deep links) so
+    // user_events path cardinality stays bounded.
+    let pingPath = pathname;
+    try {
+      const sp = new URLSearchParams(window.location.search);
+      const src = sp.get("src");
+      if (src) {
+        const v = sp.get("v");
+        pingPath = `${pathname}?src=${src}${v ? `&v=${v}` : ""}`;
+      }
+    } catch {
+      /* ignore — attribution is best-effort */
+    }
     // When the app is running installed (standalone), tell the backend so it can
     // record the install — the only signal that also catches iOS installs.
     const standalone = isStandalone();
     apiAuthPing(
-      pathname,
+      pingPath,
       standalone ? { standalone: true, platform: detectPlatform() } : undefined,
     ).then((r) => {
       if (r?.streak) publishStreak(r.streak);

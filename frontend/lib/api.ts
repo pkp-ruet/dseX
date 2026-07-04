@@ -742,6 +742,8 @@ export interface NotificationPrefs {
   /** Present on newer backends: price-target hits + portfolio signal flips. */
   price_alerts?: boolean;
   portfolio_signals?: boolean;
+  /** Digest copy language — Bengali by default. */
+  language?: "bn" | "en";
 }
 
 export interface NotificationState {

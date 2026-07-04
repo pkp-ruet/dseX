@@ -213,6 +213,7 @@ def check_and_notify(not_before_dhaka_hour: Optional[int] = None) -> dict:
     close counts. Pass None to disable the gate."""
     from backend.services import push_service
     from backend.services.auth_service import _dhaka_day, _DHAKA_TZ
+    from backend.services.push_campaign_service import _track
 
     now = datetime.now(timezone.utc)
     if not_before_dhaka_hour is not None:
@@ -235,16 +236,19 @@ def check_and_notify(not_before_dhaka_hour: Optional[int] = None) -> dict:
     sends = db["push_sends"]
     push_ok = push_service.is_configured()
 
-    prefs_cache: dict[str, bool] = {}
+    prefs_cache: dict[str, tuple[bool, str]] = {}
 
-    def _wants_push(uid: str) -> bool:
+    def _push_prefs(uid: str) -> tuple[bool, str]:
+        """(wants_push, language) per user, cached for the run."""
         if uid not in prefs_cache:
             u = _users().find_one(
                 {"user_id": uid},
                 {"_id": 0, "push_enabled": 1, "notification_prefs": 1},
             ) or {}
             prefs = {**push_service.DEFAULT_PREFS, **(u.get("notification_prefs") or {})}
-            prefs_cache[uid] = bool(u.get("push_enabled")) and prefs.get("price_alerts", True)
+            wants = bool(u.get("push_enabled")) and prefs.get("price_alerts", True)
+            lang = "en" if prefs.get("language") == "en" else "bn"
+            prefs_cache[uid] = (wants, lang)
         return prefs_cache[uid]
 
     triggered = pushed = failed = 0
@@ -271,16 +275,24 @@ def check_and_notify(not_before_dhaka_hour: Optional[int] = None) -> dict:
 
         # 2) Best-effort web push.
         uid = alert.get("user_id")
-        if not (push_ok and uid and _wants_push(uid)):
+        wants_push, lang = _push_prefs(uid) if uid else (False, "bn")
+        if not (push_ok and uid and wants_push):
             continue
         campaign_id = f"pa-{alert['id']}-{day}"
         if sends.find_one({"campaign_id": campaign_id, "user_id": uid}, {"_id": 1}):
             continue
-        verb = "rose to" if direction == "above" else "dropped to"
+        if lang == "bn":
+            verb = "বেড়ে" if direction == "above" else "নেমে"
+            title = "টার্গেট হিট 🎯"
+            body = f"{code} {verb} ৳{ltp:g} — আপনার ৳{target:g} টার্গেট ছুঁয়ে ফেলেছে"
+        else:
+            verb = "rose to" if direction == "above" else "dropped to"
+            title = "Price target hit 🎯"
+            body = f"{code} {verb} ৳{ltp:g} — your ৳{target:g} target"
         payload = {
-            "title": "Price target hit 🎯",
-            "body": f"{code} {verb} ৳{ltp:g} — your ৳{target:g} target",
-            "url": f"/stock/{code}",
+            "title": title,
+            "body": body,
+            "url": _track(f"/stock/{code}", "price-alert", src="push-alert"),
             "tag": f"pa-{code}",
         }
         result = push_service.send_to_user(uid, payload)
@@ -293,7 +305,7 @@ def check_and_notify(not_before_dhaka_hour: Optional[int] = None) -> dict:
             {"campaign_id": campaign_id, "user_id": uid},
             {"$set": {
                 "campaign_id": campaign_id, "user_id": uid,
-                "status": status, "result": result,
+                "status": status, "variant": "price-alert", "result": result,
                 "sent_at": datetime.now(timezone.utc),
             }},
             upsert=True,

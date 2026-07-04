@@ -34,7 +34,10 @@ DEFAULT_PREFS = {
     "price_extremes": True,
     "price_alerts": True,  # user-defined target-price hits
     "portfolio_signals": True,  # a holding flipped to Sell (buy-more/hold/sell tracker)
+    "language": "bn",  # digest copy language — Bengali default, "en" opt-out
 }
+
+_LANGUAGES = ("bn", "en")
 
 _MAX_FAILS = 5  # prune a subscription after this many consecutive transient failures
 
@@ -158,7 +161,10 @@ def update_prefs(
     update: dict = {"updated_at": datetime.now(timezone.utc)}
     if prefs:
         for k, v in prefs.items():
-            if k in DEFAULT_PREFS:
+            if k == "language":
+                if v in _LANGUAGES:
+                    update["notification_prefs.language"] = v
+            elif k in DEFAULT_PREFS:
                 update[f"notification_prefs.{k}"] = bool(v)
     if push_enabled is not None:
         update["push_enabled"] = bool(push_enabled)
