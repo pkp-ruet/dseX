@@ -39,6 +39,9 @@ const STORAGE_KEY = "disha:chat:v3";
 const BRIEF_SEEN_KEY = "disha:brief:seen";
 // Cap the persisted transcript so localStorage doesn't grow without bound.
 const MAX_PERSIST = 40;
+// Logged-out visitors get this many questions per day, then a sign-up nudge.
+const GUEST_LIMIT = 5;
+const GUEST_COUNT_KEY = "disha:guest:count";
 
 function todayKey(): string {
   return new Date().toDateString();
@@ -60,6 +63,38 @@ function markBriefSeen(): void {
   }
 }
 
+function guestCountToday(): number {
+  try {
+    const raw = localStorage.getItem(GUEST_COUNT_KEY);
+    if (!raw) return 0;
+    const data = JSON.parse(raw) as { date: string; count: number };
+    return data.date === todayKey() ? data.count : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function bumpGuestCount(): number {
+  const next = guestCountToday() + 1;
+  try {
+    localStorage.setItem(GUEST_COUNT_KEY, JSON.stringify({ date: todayKey(), count: next }));
+  } catch {
+    /* private mode — ignore */
+  }
+  return next;
+}
+
+function guestLimitBlocks(): MessageBlock[] {
+  return [
+    {
+      type: "text",
+      text: COPY.guestLimit.text,
+      bn: COPY.guestLimit.bn,
+      link: { href: "/register", label: COPY.guestLimit.cta },
+    },
+  ];
+}
+
 type Status = "idle" | "thinking";
 
 interface State {
@@ -67,6 +102,8 @@ interface State {
   status: Status;
   /** Reactive mirror of the suggest flow's active flag — drives the quick-action bar. */
   flowActive: boolean;
+  /** True when a logged-out visitor has used up today's free questions. */
+  limited: boolean;
 }
 
 type Action =
@@ -75,13 +112,14 @@ type Action =
   | { type: "replace"; id: string; blocks: MessageBlock[] }
   | { type: "status"; status: Status }
   | { type: "flow"; active: boolean }
+  | { type: "limited"; value: boolean }
   | { type: "reset"; messages: Message[] };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case "hydrate":
     case "reset":
-      return { messages: action.messages, status: "idle", flowActive: false };
+      return { messages: action.messages, status: "idle", flowActive: false, limited: state.limited };
     case "add":
       return { ...state, messages: [...state.messages, action.message] };
     case "replace":
@@ -95,6 +133,8 @@ function reducer(state: State, action: Action): State {
       return { ...state, status: action.status };
     case "flow":
       return { ...state, flowActive: action.active };
+    case "limited":
+      return { ...state, limited: action.value };
     default:
       return state;
   }
@@ -117,6 +157,8 @@ export interface UseAssistant {
   messages: Message[];
   status: Status;
   flowActive: boolean;
+  /** Logged-out visitor has used today's free questions — UI should point to sign-up. */
+  limited: boolean;
   sendText: (text: string) => void;
   sendChip: (chip: Chip) => void;
   cancelFlow: () => void;
@@ -128,6 +170,7 @@ export function useAssistant(): UseAssistant {
     messages: [],
     status: "idle",
     flowActive: false,
+    limited: false,
   });
 
   const indexRef = useRef<CompanyRef[] | null>(null);
@@ -137,6 +180,9 @@ export function useAssistant(): UseAssistant {
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const mountedRef = useRef(true);
   const didInitRef = useRef(false);
+  // Set when the guest's counted question is their last free one — the next bot
+  // reply gets a sign-up nudge appended, then input locks.
+  const limitPendingRef = useRef(false);
 
   // --- init: hydrate transcript or greet, prefetch the company index ---
   useEffect(() => {
@@ -175,6 +221,11 @@ export function useAssistant(): UseAssistant {
       botRespond(() => briefBlocks());
     } else if (!hydrated) {
       dispatch({ type: "add", message: mkMessage("bot", greetingBlocks()) });
+    }
+
+    // Re-lock a guest who already spent today's free questions.
+    if (!isLoggedIn() && guestCountToday() >= GUEST_LIMIT) {
+      dispatch({ type: "limited", value: true });
     }
 
     // Warm the universe so ticker matching + screens are instant later.
@@ -230,6 +281,16 @@ export function useAssistant(): UseAssistant {
     void apiMarkAiUsed();
   }, []);
 
+  /**
+   * Count one guest question (typed text or an intent chip — slot answers and
+   * client actions are free so a started flow can finish). On the last free
+   * question, flag the next bot reply to carry the sign-up nudge.
+   */
+  const countGuestMessage = useCallback(() => {
+    if (isLoggedIn()) return;
+    if (bumpGuestCount() >= GUEST_LIMIT) limitPendingRef.current = true;
+  }, []);
+
   /** Push a "typing" bubble, then swap in the produced blocks after a short delay. */
   const botRespond = useCallback((produce: () => Promise<MessageBlock[]>) => {
     const id = uid();
@@ -248,6 +309,12 @@ export function useAssistant(): UseAssistant {
       if (!mountedRef.current) return;
       dispatch({ type: "replace", id, blocks });
       dispatch({ type: "status", status: "idle" });
+      // Guest just spent their last free question — suggest signing up and lock input.
+      if (limitPendingRef.current && !isLoggedIn()) {
+        limitPendingRef.current = false;
+        dispatch({ type: "add", message: mkMessage("bot", guestLimitBlocks()) });
+        dispatch({ type: "limited", value: true });
+      }
     }, delay);
     timersRef.current.push(timer);
   }, []);
@@ -277,8 +344,9 @@ export function useAssistant(): UseAssistant {
   const sendText = useCallback(
     (raw: string) => {
       const text = raw.trim();
-      if (!text || state.status === "thinking") return;
+      if (!text || state.status === "thinking" || state.limited) return;
       addUser(text);
+      countGuestMessage();
 
       // Typed text during the slot flow: a confident new intent abandons the
       // flow; otherwise nudge back to the chips.
@@ -304,7 +372,7 @@ export function useAssistant(): UseAssistant {
         return handleParsed(parse(text, idx));
       });
     },
-    [addUser, botRespond, ensureIndex, handleParsed, setFlow, state.status],
+    [addUser, botRespond, countGuestMessage, ensureIndex, handleParsed, setFlow, state.limited, state.status],
   );
 
   const onSlotAnswer = useCallback(
@@ -330,10 +398,12 @@ export function useAssistant(): UseAssistant {
   const sendChip = useCallback(
     (chip: Chip) => {
       if (state.status === "thinking") return;
+      // Slot answers stay free so a guest can finish a flow they already started.
       if (chip.slot) {
         onSlotAnswer(chip.slot, chip.label);
         return;
       }
+      if (state.limited) return;
       if (chip.client) {
         addUser(chip.label);
         const { kind, code } = chip.client;
@@ -361,6 +431,7 @@ export function useAssistant(): UseAssistant {
       }
       if (chip.action) {
         addUser(chip.label);
+        countGuestMessage();
         const { intentId, entities } = chip.action;
         botRespond(async () => {
           await ensureIndex();
@@ -370,7 +441,7 @@ export function useAssistant(): UseAssistant {
       }
       if (chip.send) sendText(chip.send);
     },
-    [addUser, botRespond, ensureIndex, handleParsed, onSlotAnswer, sendText, state.status],
+    [addUser, botRespond, countGuestMessage, ensureIndex, handleParsed, onSlotAnswer, sendText, state.limited, state.status],
   );
 
   const cancelFlow = useCallback(() => {
@@ -389,6 +460,7 @@ export function useAssistant(): UseAssistant {
     messages: state.messages,
     status: state.status,
     flowActive: state.flowActive,
+    limited: state.limited,
     sendText,
     sendChip,
     cancelFlow,

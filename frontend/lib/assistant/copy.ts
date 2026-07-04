@@ -148,6 +148,16 @@ export const COPY = {
       "আমি ট্র্যাক করতে পারি এমন ওয়াচলিস্ট ও পোর্টফোলিও বানাতে সাইন ইন করুন।",
   },
 
+  // --- Guest daily limit (not signed in) ---
+  guestLimit: {
+    text: "You've used today's 5 free questions 🙂 Sign up free to keep chatting — you'll also get a watchlist, portfolio tracking and a daily brief.",
+    bn: "আজকের ৫টি ফ্রি প্রশ্ন শেষ 🙂 চ্যাট চালিয়ে যেতে ফ্রি অ্যাকাউন্ট খুলুন — সাথে ওয়াচলিস্ট, পোর্টফোলিও ট্র্যাকিং আর প্রতিদিনের বাজার খবরও পাবেন।",
+    bar: "Free questions used up for today.",
+    barBn: "আজকের ফ্রি প্রশ্ন শেষ।",
+    cta: "Sign up free",
+    ctaBn: "ফ্রি সাইন আপ",
+  },
+
   // --- In-chat actions ---
   actions: {
     added: (code: string) => `Added ${code} to your watchlist ⭐`,

@@ -1,9 +1,11 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useAssistant } from "./useAssistant";
 import MessageList from "./MessageList";
 import ChatComposer from "./ChatComposer";
 import QuickActionsBar from "./QuickActionsBar";
+import { COPY } from "@/lib/assistant/copy";
 
 /**
  * The shared chat surface used by both the floating panel and the /assistant
@@ -20,7 +22,7 @@ export default function ChatSurface({
   variant: "panel" | "page";
   seedCode?: string;
 }) {
-  const { messages, status, flowActive, sendText, sendChip, cancelFlow } = useAssistant();
+  const { messages, status, flowActive, limited, sendText, sendChip, cancelFlow } = useAssistant();
   const inputRef = useRef<HTMLInputElement>(null);
   const [seedUsed, setSeedUsed] = useState(false);
 
@@ -28,7 +30,7 @@ export default function ChatSurface({
     if (variant === "panel") inputRef.current?.focus();
   }, [variant]);
 
-  const showSeed = !!seedCode && !seedUsed && !flowActive;
+  const showSeed = !!seedCode && !seedUsed && !flowActive && !limited;
 
   return (
     <div
@@ -58,8 +60,28 @@ export default function ChatSurface({
           </button>
         </div>
       )}
-      <QuickActionsBar flowActive={flowActive} onChip={sendChip} onCancel={cancelFlow} />
-      <ChatComposer ref={inputRef} onSend={sendText} disabled={status === "thinking"} />
+      {limited && !flowActive ? (
+        <div className="flex items-center justify-between gap-3 border-t border-[var(--border)] bg-[var(--surface-2)] px-3.5 py-3">
+          <p className="min-w-0 text-[0.8rem] font-medium text-[var(--text)]">
+            {COPY.guestLimit.bar}
+            <span lang="bn" className="font-bn block text-[0.72rem] text-[var(--text-muted)]">
+              {COPY.guestLimit.barBn}
+            </span>
+          </p>
+          <Link
+            href="/register"
+            className="shrink-0 rounded-full px-4 py-2 text-[0.8rem] font-semibold text-white transition active:scale-95"
+            style={{ background: "var(--primary)" }}
+          >
+            {COPY.guestLimit.cta}
+          </Link>
+        </div>
+      ) : (
+        <>
+          <QuickActionsBar flowActive={flowActive} onChip={sendChip} onCancel={cancelFlow} />
+          <ChatComposer ref={inputRef} onSend={sendText} disabled={status === "thinking" || limited} />
+        </>
+      )}
     </div>
   );
 }
