@@ -57,7 +57,15 @@ export default function PriceAlertButton({ code, ltp, w52High, w52Low, className
         type="button"
         onClick={handleClick}
         aria-label={armed ? `Edit price alert for ${code}` : `Set a price alert for ${code}`}
-        title={armed ? "Edit price alert" : isLoggedIn() ? "Set a price alert" : "Sign in to set alerts"}
+        title={
+          mounted
+            ? armed
+              ? "Edit price alert"
+              : isLoggedIn()
+                ? "Set a price alert"
+                : "Sign in to set alerts"
+            : undefined
+        }
         className={`add-alert-btn ${armed ? "add-alert-btn--on" : ""} ${className}`}
         style={{ visibility: mounted ? "visible" : "hidden" }}
       >

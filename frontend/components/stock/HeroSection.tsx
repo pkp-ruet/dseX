@@ -10,6 +10,26 @@ interface Props {
   detail: CompanyDetail;
 }
 
+// DSE market category, in plain English. Tone mirrors how the score treats it.
+const CATEGORY_INFO: Record<string, { note: string; color: string; bg: string; border: string }> = {
+  A: {
+    note: "Category A — pays regular dividends and holds its yearly meetings on time. The top tier.",
+    color: "var(--positive)", bg: "rgba(21,128,61,0.08)", border: "rgba(21,128,61,0.3)",
+  },
+  B: {
+    note: "Category B — pays small or irregular dividends. Not the top tier.",
+    color: "var(--watch)", bg: "rgba(180,83,9,0.08)", border: "rgba(180,83,9,0.3)",
+  },
+  N: {
+    note: "Category N — newly listed company. No dividend track record yet.",
+    color: "var(--primary)", bg: "rgba(37,99,235,0.08)", border: "rgba(37,99,235,0.3)",
+  },
+  Z: {
+    note: "Category Z — hasn't paid dividends or held yearly meetings. Extra risky — be careful.",
+    color: "var(--negative)", bg: "rgba(220,38,38,0.08)", border: "rgba(220,38,38,0.35)",
+  },
+};
+
 export default function HeroSection({ detail }: Props) {
   const { profile, latest_price, score_row } = detail;
   const code = profile.trading_code;
@@ -30,6 +50,18 @@ export default function HeroSection({ detail }: Props) {
   const rangeColor =
     range?.tone === "high" ? "var(--positive)" :
     range?.tone === "low"  ? "var(--negative)" : "var(--safe-buy)";
+
+  const category = (profile.market_category ?? "").trim().toUpperCase();
+  const categoryInfo = CATEGORY_INFO[category];
+
+  // "Unusually busy" chip: today's volume vs the average of the prior 7 traded days.
+  const vol = latest_price.volume;
+  const avgVol = latest_price.avg_volume_7d;
+  const volRatio = vol != null && avgVol != null && avgVol > 0 && vol > 0 ? vol / avgVol : null;
+  const busyLabel =
+    volRatio != null && volRatio >= 2
+      ? `Traded ${volRatio >= 10 ? Math.round(volRatio) : volRatio.toFixed(1)}× its usual volume today`
+      : null;
 
   return (
     <>
@@ -89,6 +121,20 @@ export default function HeroSection({ detail }: Props) {
                       {profile.sector}
                     </span>
                   )}
+                  {categoryInfo && (
+                    <span
+                      title={categoryInfo.note}
+                      className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full cursor-help"
+                      style={{
+                        color: categoryInfo.color,
+                        background: categoryInfo.bg,
+                        border: `1px solid ${categoryInfo.border}`,
+                      }}
+                    >
+                      {category === "Z" && <span aria-hidden="true">⚠️</span>}
+                      Category {category}
+                    </span>
+                  )}
                   {staleData && lastReportedYear != null && (
                     <span
                       title="Score penalized — financials haven't been updated in 2+ years"
@@ -139,6 +185,22 @@ export default function HeroSection({ detail }: Props) {
                     <span aria-hidden="true">{isPositive ? "▲" : isNegative ? "▼" : "—"}</span>
                     {signed(chg)}% today
                   </span>
+                )}
+                {busyLabel && (
+                  <div className="mt-2">
+                    <span
+                      className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full"
+                      title="Compared with its average over the previous 7 trading days"
+                      style={{
+                        color: "var(--watch)",
+                        background: "rgba(180,83,9,0.08)",
+                        border: "1px solid rgba(180,83,9,0.3)",
+                      }}
+                    >
+                      <span aria-hidden="true">🔥</span>
+                      {busyLabel}
+                    </span>
+                  </div>
                 )}
               </div>
             </div>

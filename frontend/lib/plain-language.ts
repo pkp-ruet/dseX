@@ -123,6 +123,7 @@ export function priceTrendCaption(
     "6M": "over the past 6 months",
     "1Y": "over the past year",
     "2Y": "over the past 2 years",
+    "5Y": "over the past 5 years",
     "All": "across all available history",
   };
   const word = wordMap[rangeLabel] ?? `over the past ${rangeLabel.toLowerCase()}`;
@@ -285,6 +286,63 @@ export function ownershipCaption(sponsorPct: number | null): string | null {
   if (sponsorPct >= 30) return `Owners (sponsors) hold ${r}% — a strong sign of commitment.`;
   if (sponsorPct >= 20) return `Owners (sponsors) hold ${r}% — modest skin in the game.`;
   return `Owners (sponsors) hold only ${r}% — limited alignment with shareholders.`;
+}
+
+// ---------------------------------------------------------------------------
+// Ownership change (latest vs previous shareholding snapshot)
+// ---------------------------------------------------------------------------
+
+export interface OwnershipChange {
+  caption: string;
+  tone: "positive" | "watch" | "neutral";
+}
+
+/** Plain-English read of the biggest insider/institution move between two
+ *  shareholding snapshots. Returns null when nothing moved meaningfully. */
+export function ownershipChangeInfo(
+  current: Record<string, unknown> | null,
+  previous: Record<string, unknown> | null,
+  sinceLabel: string | null,
+): OwnershipChange | null {
+  if (!current || !previous) return null;
+  const val = (rec: Record<string, unknown>, key: string): number | null => {
+    const n = Number(rec[key]);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const groups = [
+    { key: "sponsor_director_pct", who: "Owners (sponsors)", upGood: true },
+    { key: "institute_pct", who: "Big institutions", upGood: true },
+    { key: "foreign_pct", who: "Foreign investors", upGood: true },
+  ];
+
+  let best: { who: string; from: number; to: number; delta: number; upGood: boolean } | null = null;
+  for (const g of groups) {
+    const to = val(current, g.key);
+    const from = val(previous, g.key);
+    if (to == null || from == null) continue;
+    const delta = to - from;
+    if (Math.abs(delta) < 0.5) continue;
+    if (!best || Math.abs(delta) > Math.abs(best.delta)) {
+      best = { who: g.who, from, to, delta, upGood: g.upGood };
+    }
+  }
+  if (!best) return null;
+
+  const since = sinceLabel ? ` since ${sinceLabel}` : " since the last report";
+  const fromS = best.from.toFixed(1);
+  const toS = best.to.toFixed(1);
+
+  if (best.delta > 0) {
+    return {
+      tone: "positive",
+      caption: `Good sign — ${best.who.toLowerCase()} raised their stake from ${fromS}% to ${toS}%${since}. People close to the company are buying.`,
+    };
+  }
+  return {
+    tone: "watch",
+    caption: `Worth watching — ${best.who.toLowerCase()} cut their stake from ${fromS}% to ${toS}%${since}. Keep an eye on why.`,
+  };
 }
 
 // ---------------------------------------------------------------------------

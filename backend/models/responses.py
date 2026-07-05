@@ -71,6 +71,7 @@ class LatestPrice(BaseModel):
     high: Optional[float] = None
     low: Optional[float] = None
     volume: Optional[float] = None
+    avg_volume_7d: Optional[float] = None  # mean volume of the 7 trading days before the latest
     ycp: Optional[float] = None
     w52_high: Optional[float] = None
     w52_low: Optional[float] = None
@@ -160,6 +161,7 @@ class CompanyDetailResponse(BaseModel):
     financials: list[dict[str, Any]]
     extended_financials: list[dict[str, Any]]
     shareholding: Optional[dict[str, Any]] = None
+    shareholding_prev: Optional[dict[str, Any]] = None  # snapshot before the latest, for ownership-change deltas
     dividend_declaration: Optional[DividendDeclaration] = None
     news: list[dict[str, Any]]
     related_stocks: list[RelatedStock] = []

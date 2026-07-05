@@ -91,6 +91,7 @@ export interface LatestPrice {
   high: number | null;
   low: number | null;
   volume: number | null;
+  avg_volume_7d?: number | null;
   ycp: number | null;
   w52_high: number | null;
   w52_low: number | null;
@@ -168,6 +169,7 @@ export interface CompanyDetail {
   financials: Record<string, unknown>[];
   extended_financials: Record<string, unknown>[];
   shareholding: Record<string, unknown> | null;
+  shareholding_prev?: Record<string, unknown> | null;
   dividend_declaration: DividendDeclaration | null;
   news: { title: string; post_date: string; body: string }[];
   related_stocks: RelatedStock[];
@@ -622,7 +624,7 @@ export async function getMarketState(): Promise<MarketStateData> {
 }
 
 /** Client-side price history fetch (no Next.js cache) */
-export async function getPriceHistory(code: string, range: "1y" | "2y" | "3y" | "all" = "1y"): Promise<PricePoint[]> {
+export async function getPriceHistory(code: string, range: "1y" | "2y" | "3y" | "5y" | "all" = "1y"): Promise<PricePoint[]> {
   const res = await fetch(`${getApiUrl()}/api/company/${code.toUpperCase()}/prices?range=${range}`);
   if (!res.ok) throw new Error(`Price history fetch failed: ${res.status}`);
   return res.json() as Promise<PricePoint[]>;

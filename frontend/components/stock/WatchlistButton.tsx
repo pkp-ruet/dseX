@@ -45,7 +45,15 @@ export default function WatchlistButton({ code, className = "" }: Props) {
       type="button"
       onClick={handleClick}
       aria-label={watched ? `Remove ${code} from watchlist` : `Add ${code} to watchlist`}
-      title={watched ? "Remove from watchlist" : isLoggedIn() ? "Add to watchlist" : "Sign in to save"}
+      title={
+        mounted
+          ? watched
+            ? "Remove from watchlist"
+            : isLoggedIn()
+              ? "Add to watchlist"
+              : "Sign in to save"
+          : undefined
+      }
       className={`add-watchlist-btn ${watched ? "add-watchlist-btn--on" : ""} ${className}`}
       style={{ visibility: mounted ? "visible" : "hidden" }}
     >

@@ -90,8 +90,21 @@ def get_company_detail(code: str):
             dividend_type=div_decl.get("dividend_type"),
         )
 
-    # Latest shareholding
+    # Latest shareholding + the snapshot before it (holdings are unique per
+    # as_of_date, sorted desc) so the frontend can show who bought/sold.
     shareholding = holdings[0] if holdings else None
+    shareholding_prev = holdings[1] if len(holdings) > 1 else None
+
+    # "Usual" volume baseline: mean of the last 7 traded days before the
+    # latest one (price_history is sorted asc and already ltp > 0 filtered).
+    avg_volume_7d = None
+    if len(price_history) > 1:
+        prior_vols = [
+            float(d["volume"]) for d in price_history[:-1]
+            if d.get("volume") and float(d["volume"]) > 0
+        ][-7:]
+        if prior_vols:
+            avg_volume_7d = round(sum(prior_vols) / len(prior_vols))
 
     # Signal flags
     flags = compute_signal_flags(score_row, holdings, financials, company)
@@ -217,6 +230,7 @@ def get_company_detail(code: str):
             high=latest.get("high"),
             low=latest.get("low"),
             volume=latest.get("volume"),
+            avg_volume_7d=avg_volume_7d,
             ycp=latest.get("ycp"),
             w52_high=w52_high,
             w52_low=w52_low,
@@ -226,6 +240,7 @@ def get_company_detail(code: str):
         financials=financials,
         extended_financials=ext_financials,
         shareholding=shareholding,
+        shareholding_prev=shareholding_prev,
         dividend_declaration=div_decl_model,
         news=news,
         related_stocks=related,

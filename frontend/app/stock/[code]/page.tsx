@@ -282,7 +282,7 @@ export default async function StockDetailPage({ params }: PageProps) {
 
       {/* Who Owns It */}
       <div id="ownership" className="scroll-mt-[112px]">
-        <ShareholdingPie shareholding={shareholding} />
+        <ShareholdingPie shareholding={shareholding} previous={detail.shareholding_prev ?? null} />
       </div>
 
       {/* What's New */}

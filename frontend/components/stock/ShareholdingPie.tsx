@@ -1,21 +1,29 @@
 "use client";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
-import { ownershipCaption } from "@/lib/plain-language";
+import { ownershipCaption, ownershipChangeInfo } from "@/lib/plain-language";
 import Card from "@/components/ui/Card";
 
 interface Props {
   shareholding: Record<string, unknown> | null;
+  previous?: Record<string, unknown> | null;
 }
 
 const CATEGORIES = [
-  { key: "sponsor_director_pct", label: "Owners (Sponsors / Directors)", color: "var(--primary)" },
-  { key: "govt_pct",             label: "Government",                    color: "#15803D" },
-  { key: "institute_pct",        label: "Institutions",                  color: "#6366F1" },
-  { key: "foreign_pct",          label: "Foreign Investors",             color: "#EA580C" },
-  { key: "public_pct",           label: "General Public",                color: "#DB2777" },
+  { key: "sponsor_director_pct", label: "Owners (Sponsors / Directors)", color: "var(--primary)", deltaMatters: true },
+  { key: "govt_pct",             label: "Government",                    color: "#15803D", deltaMatters: false },
+  { key: "institute_pct",        label: "Institutions",                  color: "#6366F1", deltaMatters: true },
+  { key: "foreign_pct",          label: "Foreign Investors",             color: "#EA580C", deltaMatters: true },
+  { key: "public_pct",           label: "General Public",                color: "#DB2777", deltaMatters: false },
 ];
 
-export default function ShareholdingPie({ shareholding }: Props) {
+function monthYear(iso: unknown): string | null {
+  if (typeof iso !== "string" || !iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString("en-GB", { month: "short", year: "numeric" });
+}
+
+export default function ShareholdingPie({ shareholding, previous = null }: Props) {
   if (!shareholding) return null;
 
   const data = CATEGORIES
@@ -27,6 +35,20 @@ export default function ShareholdingPie({ shareholding }: Props) {
   const sponsorPct = Number(shareholding.sponsor_director_pct ?? 0);
   const caption = ownershipCaption(sponsorPct);
 
+  const asOf = monthYear(shareholding.as_of_date);
+  const prevAsOf = previous ? monthYear(previous.as_of_date) : null;
+  const change = ownershipChangeInfo(shareholding, previous ?? null, prevAsOf);
+  const changeColor = change?.tone === "positive" ? "var(--positive)" : "var(--watch)";
+
+  const deltaFor = (key: string, deltaMatters: boolean): number | null => {
+    if (!previous || !deltaMatters) return null;
+    const now = Number(shareholding[key]);
+    const before = Number(previous[key]);
+    if (!Number.isFinite(now) || !Number.isFinite(before)) return null;
+    const d = now - before;
+    return Math.abs(d) >= 0.3 ? d : null;
+  };
+
   return (
     <section className="mb-8">
       <h2 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: "var(--text)" }}>
@@ -34,6 +56,7 @@ export default function ShareholdingPie({ shareholding }: Props) {
       </h2>
       <p className="text-sm mb-5" style={{ color: "var(--text-muted)" }}>
         Who's behind this company — and how committed are they?
+        {asOf && <span> As of {asOf}{prevAsOf ? `, compared with ${prevAsOf}` : ""}.</span>}
       </p>
 
       <Card padding="none" className="rounded-2xl p-5 sm:p-6">
@@ -75,10 +98,23 @@ export default function ShareholdingPie({ shareholding }: Props) {
             {CATEGORIES.map((c) => {
               const val = Number(shareholding[c.key] ?? 0);
               if (val <= 0) return null;
+              const delta = deltaFor(c.key, c.deltaMatters);
               return (
                 <div key={c.key} className="flex items-center gap-3">
                   <span className="w-3 h-3 rounded-full shrink-0" style={{ background: c.color }} />
                   <span className="text-sm flex-1 min-w-0" style={{ color: "var(--text-muted)" }}>{c.label}</span>
+                  {delta != null && (
+                    <span
+                      className="text-[11px] font-bold tabular-nums nums px-1.5 py-0.5 rounded-full"
+                      title={prevAsOf ? `Change since ${prevAsOf}` : "Change since the previous report"}
+                      style={{
+                        color: delta > 0 ? "var(--positive)" : "var(--negative)",
+                        background: delta > 0 ? "rgba(21,128,61,0.1)" : "rgba(220,38,38,0.1)",
+                      }}
+                    >
+                      {delta > 0 ? "▲" : "▼"} {Math.abs(delta).toFixed(1)}
+                    </span>
+                  )}
                   <span className="text-sm font-bold tabular-nums nums w-14 text-right" style={{ color: c.color }}>
                     {val.toFixed(1)}%
                   </span>
@@ -88,8 +124,21 @@ export default function ShareholdingPie({ shareholding }: Props) {
           </div>
         </div>
 
+        {change && (
+          <p
+            className="text-sm mt-5 leading-snug font-medium rounded-xl px-3 py-2.5"
+            style={{
+              color: changeColor,
+              background: change.tone === "positive" ? "rgba(21,128,61,0.07)" : "rgba(180,83,9,0.08)",
+              border: `1px solid ${change.tone === "positive" ? "rgba(21,128,61,0.2)" : "rgba(180,83,9,0.25)"}`,
+            }}
+          >
+            {change.caption}
+          </p>
+        )}
+
         {caption && (
-          <p className="text-sm mt-5 leading-snug" style={{ color: "var(--text-muted)" }}>
+          <p className="text-sm mt-4 leading-snug" style={{ color: "var(--text-muted)" }}>
             {caption}
           </p>
         )}
