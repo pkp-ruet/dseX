@@ -5,6 +5,7 @@ from backend.services.db_service import (
     load_financials, load_extended_financials, load_shareholdings,
     load_company_news, load_dividend_declarations, load_all_company_codes,
     compute_52w_range, compute_signal_flags, load_news_for_codes,
+    load_market_news,
 )
 from backend.services.scoring_service import get_company_score_row, build_scores_df
 from backend.services.top20_service import compute_momentum_for_code
@@ -30,6 +31,20 @@ def get_multi_news(codes: str):
     if not code_list:
         return []
     return load_news_for_codes(code_list)
+
+
+@router.get("/api/news/today")
+def get_todays_news():
+    """Every story posted on the latest news day, market-wide (falls back to
+    the last 7 days when the latest day has nothing). Same shape as the
+    dse-today bundle's news list."""
+    news = load_market_news(300)
+    for n in news:
+        tc = (n.get("trading_code") or "").strip()
+        n["trading_code"] = tc or "—"
+        title = n.get("title")
+        n["title"] = (title.strip() if isinstance(title, str) and title.strip() else "Untitled")
+    return news
 
 
 @router.get("/api/summaries/multi")

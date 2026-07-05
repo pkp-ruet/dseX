@@ -407,6 +407,12 @@ export async function getDseToday(): Promise<DseTodayData> {
   return apiFetch<DseTodayData>("/api/dse-today", 86400);
 }
 
+/** Every story from the latest news day, market-wide (same item shape as the
+ *  dse-today bundle). Powers the /todays-news page. */
+export async function getTodaysNews(): Promise<DseTodayNewsItem[]> {
+  return apiFetch<DseTodayNewsItem[]>("/api/news/today", 900);
+}
+
 export async function getStockLists(): Promise<import("@/lib/stock-lists").StockListsResponse> {
   return apiFetch("/api/stock-lists", 86400);
 }

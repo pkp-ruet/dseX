@@ -7738,3 +7738,22 @@ details.dsex-exp[open] > summary {
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .pf-fab:active { transform: scale(0.96); }
+
+/* ── Homepage news slider (NewsSlider.tsx) ─────────────────────────────────
+   Auto-advance progress bar — fills over the slide duration in the slide's
+   accent color; paused while the story is expanded or hovered. */
+.news-slider-progress {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--ns-accent, var(--primary));
+  animation: news-slider-fill var(--ns-duration, 5s) linear forwards;
+  transform-origin: left;
+}
+.news-slider-progress.is-paused { animation-play-state: paused; }
+@keyframes news-slider-fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .news-slider-progress { animation: none; transform: scaleX(1); }
+}

@@ -46,7 +46,7 @@ import TuneModal from "@/components/stock-recommendation/TuneModal";
 import CoreFeatureTiles from "@/components/home/personalized/CoreFeatureTiles";
 import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
 import DiscoverCard from "@/components/home/personalized/DiscoverCard";
-import WatchlistNews from "@/components/watchlist/WatchlistNews";
+import NewsSlider from "@/components/home/personalized/NewsSlider";
 import SearchBar from "@/components/home/SearchBar";
 import InstallHomeBanner from "@/components/pwa/InstallHomeBanner";
 import Card from "@/components/ui/Card";
@@ -246,19 +246,28 @@ export default function PersonalizedHome() {
     };
   }, []);
 
-  // Watchlist news — refetch when codes change
+  // News for the homepage slider — watchlist ∪ portfolio codes, refetched
+  // whenever either set changes.
+  const newsCodes = Array.from(
+    new Set([
+      ...codes.map((c) => c.toUpperCase()),
+      ...(holdings ?? []).map((h) => h.trading_code.toUpperCase()),
+    ]),
+  ).sort();
+  const newsCodesKey = newsCodes.join(",");
   useEffect(() => {
-    if (codes.length === 0) {
+    const fetchCodes = newsCodesKey ? newsCodesKey.split(",") : [];
+    if (fetchCodes.length === 0) {
       setNews([]);
       setNewsLoading(false);
       return;
     }
-    const key = cacheKeys.watchlistNews(codes);
+    const key = cacheKeys.watchlistNews(fetchCodes);
     const cached = readCache<WatchlistNewsItem[]>(key);
     if (cached) setNews(cached);
     setNewsLoading(!cached);
     let alive = true;
-    getWatchlistNews(codes)
+    getWatchlistNews(fetchCodes)
       .then((n) => {
         if (!alive) return;
         setNews(n);
@@ -270,7 +279,7 @@ export default function PersonalizedHome() {
     return () => {
       alive = false;
     };
-  }, [codes]);
+  }, [newsCodesKey]);
 
   const hasWatchlist = codes.length > 0;
   const hasPortfolio = (holdings?.length ?? 0) > 0;
@@ -421,10 +430,10 @@ export default function PersonalizedHome() {
             </>
           )}
 
-          {hasWatchlist && (newsLoading || recentNews.length > 0) && (
+          {(hasWatchlist || hasPortfolio) && (newsLoading || news.length > 0) && (
             <div>
-              <SectionLabel>Latest watchlist news</SectionLabel>
-              <WatchlistNews codes={codes} news={recentNews} loading={newsLoading} limit={4} compact />
+              <SectionLabel>News on your stocks</SectionLabel>
+              <NewsSlider news={news} loading={newsLoading} />
             </div>
           )}
 
