@@ -11,9 +11,6 @@ import type {
   QualityWord,
 } from "@/lib/portfolio-analysis";
 
-const BN_DIGITS = "০১২৩৪৫৬৭৮৯";
-const bnNum = (v: string | number) => String(v).replace(/\d/g, (d) => BN_DIGITS[Number(d)]);
-
 const SIGNAL_LABEL_BN: Record<HoldingSignal, string> = {
   buy_more: "আরও কিনুন",
   hold: "ধরে রাখুন",
@@ -39,7 +36,7 @@ const STR = {
   bn: {
     title: "আপনার শেয়ারগুলো",
     subtitle: "প্রতিটি শেয়ারের স্কোর আর হালচাল।",
-    ofPortfolio: (pct: string) => `পোর্টফোলিওর ${bnNum(pct)}%`,
+    ofPortfolio: (pct: string) => `পোর্টফোলিওর ${pct}%`,
     overall: "সার্বিক",
     fullAnalysis: "পুরো বিশ্লেষণ",
   },

@@ -1,8 +1,8 @@
 import type { AnalysisLang, PortfolioAnalysis } from "@/lib/portfolio-analysis";
 import Card from "@/components/ui/Card";
 
-const BN_DIGITS = "০১২৩৪৫৬৭৮৯";
-const bnNum = (v: string | number) => String(v).replace(/\d/g, (d) => BN_DIGITS[Number(d)]);
+// Numbers inside Bengali prose stay Western (9, 6.1%) — matches the rest of the
+// site and avoids webfont glyph issues with Bengali numerals on some devices.
 
 const STR = {
   en: {
@@ -16,10 +16,10 @@ const STR = {
   bn: {
     title: "খাতভিত্তিক ভাগ",
     counts: (sectors: number, stocks: number) =>
-      `${bnNum(sectors)}টি খাত · ${bnNum(stocks)}টি শেয়ার`,
-    desc: "আপনার টাকা কোন কোন শিল্পে ভাগ হয়ে আছে। শুধু ব্যাংকের শেয়ার থাকলে ব্যাংকের বছর খারাপ গেলে পুরো পোর্টফোলিও একসাথে পড়ে — কিন্তু ব্যাংক, ওষুধ, টেলিকম মিলিয়ে রাখলে একটি দুর্বল খাত সব টেনে নামাতে পারে না। মোটামুটি নিয়ম: কোনো একটি খাতে পোর্টফোলিওর ৪০%-এর বেশি না রাখা ভালো।",
+      `${sectors}টি খাত · ${stocks}টি শেয়ার`,
+    desc: "আপনার টাকা কোন কোন শিল্পে ভাগ হয়ে আছে। শুধু ব্যাংকের শেয়ার থাকলে ব্যাংকের বছর খারাপ গেলে পুরো পোর্টফোলিও একসাথে পড়ে — কিন্তু ব্যাংক, ওষুধ, টেলিকম মিলিয়ে রাখলে একটি দুর্বল খাত সব টেনে নামাতে পারে না। মোটামুটি নিয়ম: কোনো একটি খাতে পোর্টফোলিওর 40%-এর বেশি না রাখা ভালো।",
     heavy: "বেশি ভার",
-    stockCount: (n: number) => `· ${bnNum(n)}টি শেয়ার`,
+    stockCount: (n: number) => `· ${n}টি শেয়ার`,
   },
 } as const;
 

@@ -6,8 +6,8 @@ import type { AnalysisLang, PortfolioAnalysis } from "@/lib/portfolio-analysis";
 import { taka } from "@/lib/formatters";
 import Card from "@/components/ui/Card";
 
-const BN_DIGITS = "০১২৩৪৫৬৭৮৯";
-const bnNum = (v: string | number) => String(v).replace(/\d/g, (d) => BN_DIGITS[Number(d)]);
+// Numbers inside Bengali prose stay Western (9, 6.1%) — matches the rest of the
+// site and avoids webfont glyph issues with Bengali numerals on some devices.
 
 const STR = {
   en: {
@@ -32,11 +32,11 @@ const STR = {
       `প্রতিটি শেয়ারে আপনার ${basis === "invested" ? "কেনা টাকার" : "বর্তমান মূল্যের"} কত অংশ আছে।`,
     centerInvested: "বিনিয়োগ",
     centerValue: "মূল্য",
-    more: (n: number) => `+আরও ${bnNum(n)}টি`,
+    more: (n: number) => `+আরও ${n}টি`,
     noteBig: (code: string, pct: string) =>
-      `${code} একাই আপনার টাকার ${bnNum(pct)}% — একটাই বড় বাজি। এটি হোঁচট খেলে পুরো পোর্টফোলিও টের পায়। আরও কয়েকটি শেয়ারে ছড়িয়ে দিলে ধাক্কাটা নরম হয়।`,
+      `${code} একাই আপনার টাকার ${pct}% — একটাই বড় বাজি। এটি হোঁচট খেলে পুরো পোর্টফোলিও টের পায়। আরও কয়েকটি শেয়ারে ছড়িয়ে দিলে ধাক্কাটা নরম হয়।`,
     noteOk: (code: string, pct: string) =>
-      `আপনার সবচেয়ে বড় অবস্থান ${code}, মোট ${bnNum(pct)}% — ভারসাম্য ভালো, কোনো একটি শেয়ার একচেটিয়া নয়।`,
+      `আপনার সবচেয়ে বড় অবস্থান ${code}, মোট ${pct}% — ভারসাম্য ভালো, কোনো একটি শেয়ার একচেটিয়া নয়।`,
   },
 } as const;
 

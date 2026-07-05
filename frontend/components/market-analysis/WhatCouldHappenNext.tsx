@@ -13,11 +13,8 @@ function shortDate(d: string): string {
   }
 }
 
-const BN_DIGITS = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
-
-function bnDigits(n: number): string {
-  return String(n).replace(/\d/g, (d) => BN_DIGITS[Number(d)]);
-}
+// Numbers inside Bengali prose stay Western (9, 6.1%) — matches the rest of the
+// site and avoids webfont glyph issues with Bengali numerals on some devices.
 
 /** Whole days from today (UTC midnight) to a YYYY-MM-DD date; null if unparsable. */
 function daysUntil(d: string): number | null {
@@ -170,7 +167,7 @@ export default function WhatCouldHappenNext({
                   </span>
                   {days != null && days >= 0 && (
                     <span lang="bn" className={`font-bn ms-divdays${days <= 3 ? " ms-divdays--soon" : ""}`}>
-                      {days === 0 ? "আজ" : `${bnDigits(days)} দিন বাকি`}
+                      {days === 0 ? "আজ" : `${days} দিন বাকি`}
                     </span>
                   )}
                 </span>

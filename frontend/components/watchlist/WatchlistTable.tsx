@@ -430,14 +430,20 @@ function WatchlistTableInner() {
   const [scores, setScores] = useState<ScoresResponse | null>(
     () => readCache<ScoresResponse>(cacheKeys.scores),
   );
-  const [extremes, setExtremes] = useState<Map<string, ExtremeInfo>>(() => {
-    const cached = readCache<NearExtremesData>(cacheKeys.extremes);
-    return cached ? extremesToMap(cached) : new Map();
-  });
-  const [dividends, setDividends] = useState<Set<string>>(() => {
-    const cached = readCache<DividendsUpcoming>(cacheKeys.dividends);
-    return cached ? dividendsToSet(cached) : new Set();
-  });
+  const [extremesData, setExtremesData] = useState<NearExtremesData | null>(
+    () => readCache<NearExtremesData>(cacheKeys.extremes),
+  );
+  const [dividendsData, setDividendsData] = useState<DividendsUpcoming | null>(
+    () => readCache<DividendsUpcoming>(cacheKeys.dividends),
+  );
+  const extremes = useMemo(
+    () => (extremesData ? extremesToMap(extremesData) : new Map<string, ExtremeInfo>()),
+    [extremesData],
+  );
+  const dividends = useMemo(
+    () => (dividendsData ? dividendsToSet(dividendsData) : new Set<string>()),
+    [dividendsData],
+  );
   const [codes, setCodes] = useState<string[]>([]);
   const [loading, setLoading] = useState(
     () => readCache<ScoresResponse>(cacheKeys.scores) === null,
@@ -478,11 +484,11 @@ function WatchlistTableInner() {
           writeCache(cacheKeys.scores, s.value);
         }
         if (e.status === "fulfilled") {
-          setExtremes(extremesToMap(e.value));
+          setExtremesData(e.value);
           writeCache(cacheKeys.extremes, e.value);
         }
         if (d.status === "fulfilled") {
-          setDividends(dividendsToSet(d.value));
+          setDividendsData(d.value);
           writeCache(cacheKeys.dividends, d.value);
         }
         // Only surface an error when no cache served the first paint.
@@ -752,7 +758,14 @@ function WatchlistTableInner() {
         </>
       )}
 
-      {codes.length > 0 && !loading && !error && <WatchlistAnalysis codes={codes} />}
+      {codes.length > 0 && !loading && !error && (
+        <WatchlistAnalysis
+          codes={codes}
+          scores={scores}
+          extremes={extremesData}
+          dividends={dividendsData}
+        />
+      )}
       {codes.length > 0 && !error && (
         <WatchlistNews codes={codes} news={news} loading={newsLoading} />
       )}
