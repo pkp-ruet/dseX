@@ -39,9 +39,10 @@ import { buildHomeAlerts } from "@/lib/home-alerts";
 import WelcomeHeader from "@/components/home/personalized/WelcomeHeader";
 import DailyBriefing from "@/components/home/personalized/DailyBriefing";
 import SetupCard from "@/components/home/personalized/SetupCard";
-import PortfolioSummaryCard from "@/components/home/personalized/PortfolioSummaryCard";
-import WatchlistSummaryCard from "@/components/home/personalized/WatchlistSummaryCard";
-import WatchlistMoversCard from "@/components/home/personalized/WatchlistMoversCard";
+import MoneyHero from "@/components/home/personalized/MoneyHero";
+import StatTiles from "@/components/home/personalized/StatTiles";
+import MyStocksToday from "@/components/home/personalized/MyStocksToday";
+import ForYouTeaser from "@/components/home/personalized/ForYouTeaser";
 import DailyPicksCard from "@/components/home/personalized/DailyPicksCard";
 import TuneModal from "@/components/stock-recommendation/TuneModal";
 import CoreFeatureTiles from "@/components/home/personalized/CoreFeatureTiles";
@@ -322,11 +323,12 @@ export default function PersonalizedHome() {
     <div className="pb-4">
       {/* Dashboard header card — greeting + market line, kept deliberately clean. */}
       <Card padding="md" className="mt-5">
+        {/* todayMove intentionally not passed — the MoneyHero below is the money
+            statement; the header subline falls back to the follow count. */}
         <WelcomeHeader
           name={user?.display_name}
           dateStr={dateStr}
           marketIndex={marketIndex}
-          todayMove={todayMove}
           watchlistCount={codes.length}
           alerts={homeAlerts}
           isNew={isNewUser}
@@ -354,39 +356,56 @@ export default function PersonalizedHome() {
           dismissed / unsupported. */}
       <InstallHomeBanner />
 
-      {/* ── Section 1: Personal — your portfolio, watchlist & news ── */}
+      {/* ── Section 1: Your money today — dashboard (hero → tiles → stocks → news → teaser).
+          The hero card carries the section identity, so no big SectionHeader here. ── */}
       <section className="mt-8">
-        <SectionHeader
-          eyebrow="Your money today"
-          title="Portfolio & Watchlist"
-          accent="var(--primary)"
-          icon={BAG_ICON}
-        />
-        <div className="mt-3 flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           {hasPortfolio ? (
-            <PortfolioSummaryCard holdings={holdings!} priceMap={priceMap} />
+            <MoneyHero holdings={holdings!} priceMap={priceMap} marketIndex={marketIndex} />
           ) : (
-            <SetupCard
-              icon={BAG_ICON}
-              title="Track your portfolio"
-              blurb="Add the stocks you own to see live profit & loss and get your portfolio graded A–F on diversification, quality and entry."
-              ctaLabel="Add your holdings"
-              ctaHref="/portfolio"
-            />
+            <div>
+              <SectionLabel>Your money today</SectionLabel>
+              <SetupCard
+                icon={BAG_ICON}
+                title="Track your portfolio"
+                blurb="Add the stocks you own to see live profit & loss and get your portfolio graded A–F on diversification, quality and entry."
+                ctaLabel="Add your holdings"
+                ctaHref="/portfolio"
+              />
+            </div>
           )}
 
           {/* Empty watchlist is nudged by the setup checklist (DailyBriefing) above. */}
-          {hasWatchlist && (
+          {(hasPortfolio || hasWatchlist) && (
             <>
-              <WatchlistSummaryCard codes={codes} priceMap={priceMap} dividends={dividends} />
-              <WatchlistMoversCard codes={codes} priceMap={priceMap} extremes={extremes} dividends={dividends} />
-              {(newsLoading || recentNews.length > 0) && (
-                <div>
-                  <SectionLabel>Latest watchlist news</SectionLabel>
-                  <WatchlistNews codes={codes} news={recentNews} loading={newsLoading} limit={4} compact />
-                </div>
-              )}
+              <StatTiles
+                codes={codes}
+                holdings={holdings ?? []}
+                priceMap={priceMap}
+                dividends={dividends}
+                marketIndex={marketIndex}
+                alerts={homeAlerts}
+              />
+              <MyStocksToday
+                holdings={holdings ?? []}
+                codes={codes}
+                priceMap={priceMap}
+                extremes={extremes}
+                dividends={dividends}
+              />
             </>
+          )}
+
+          {hasWatchlist && (newsLoading || recentNews.length > 0) && (
+            <div>
+              <SectionLabel>Latest watchlist news</SectionLabel>
+              <WatchlistNews codes={codes} news={recentNews} loading={newsLoading} limit={4} compact />
+            </div>
+          )}
+
+          {/* Bridge to the Intelligence section — teaser only, full cards stay below. */}
+          {(hasPortfolio || hasWatchlist) && showRecommended && (
+            <ForYouTeaser picks={dailyPicks?.picks ?? []} tipsCount={tips.length} />
           )}
         </div>
       </section>
@@ -394,7 +413,7 @@ export default function PersonalizedHome() {
       {/* ── Section 2: TopStockBD Intelligence — personalized picks + daily tips.
           Umbrella title is distinct from the cards' own "Picked for you today". ── */}
       {showRecommended && (
-        <section className="mt-8">
+        <section id="intelligence" className="mt-8 scroll-mt-24">
           <SectionHeader
             eyebrow="Made for you · refreshed daily"
             title="TopStockBD Intelligence"

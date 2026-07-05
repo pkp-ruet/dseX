@@ -158,7 +158,7 @@ Scrapers must use upsert logic to avoid duplicates.
 `app/page.tsx` is a server component that renders the **light marketing landing** (SSR for SEO) wrapped in `<HomePersonalizationGate>` (client). The gate reads `useAuth()`: logged-out (and crawlers / first paint) see the marketing children; logged-in users get `<PersonalizedHome>` instead (client, no SEO need) — no hydration mismatch since the server always renders the marketing markup.
 
 - **Marketing landing** (logged-out): `HomeHero` (headline + dual CTA via `SignupCtas` — Google block only renders when `NEXT_PUBLIC_GOOGLE_CLIENT_ID` set — + live fundamental-score ranking preview) → `SearchSection` (reuses `SearchBar` → `/stock/[code]`) → `LiveMarketBand` → `FeatureShowcase` (4 pillars: Stock Analysis w/ `SampleAnalysisCard` + global-search CTA, Rankings w/ `LiveRankingPreview`, Watchlist w/ `WatchlistMockup`, Portfolio w/ `PortfolioMockup`) → `DataScaleStats` → discovery (`Top20MomentumTeaser`, `PopularTeaser`, `StockListPreview` A–Z, `InsightsTeaserStrip`) → `FinalCTA`.
-- **Personalized dashboard** (`PersonalizedHome`, logged-in): `WelcomeHeader` → `SearchBar` (any stock → analysis) → personal blocks: `PortfolioSummaryCard` (value/P&L + A–F grade via `analyzePortfolio`) or `SetupCard` "Add holdings"; `WatchlistMoversCard` (sorted by move + 52w/dividend alerts) + `WatchlistNews` (`limit`/`compact`), or `SetupCard` "Build watchlist" embedding `WatchlistQuickAdd` (search→add) → Discover section (`LiveMarketBand`, `LiveRankingPreview`, `StockListPreview`, `Top20MomentumTeaser`, `PopularTeaser`, `InsightsTeaserStrip`). Empty watchlist+portfolio → both setup cards (welcome-dashboard).
+- **Personalized dashboard** (`PersonalizedHome`, logged-in): `WelcomeHeader` → `SearchBar` (any stock → analysis) → "Your money today" dashboard: `MoneyHero` (animated portfolio value + today's ৳/% move + beating/trailing-DSEX chip + total-P/L chip + A–F grade via `analyzePortfolio`; falls back to `SetupCard` "Add holdings") → `StatTiles` (2×2 mobile / 4-across desktop: watchlist pulse w/ advancing bar, alerts count expanding the `buildHomeAlerts` feed inline, next dividend among user stocks w/ DSEX fallback, best mover today) → `MyStocksToday` (holdings ∪ watchlist merged, sorted by |move|, H/★ tags + 52w/dividend chips) → `WatchlistNews` (`limit`/`compact`) → `ForYouTeaser` (top pick + tip count, smooth-scrolls to `#intelligence`). Then the Intelligence section (`DailyPicksCard`, `DailyTipsCard`) and Discover section (`LiveMarketBand`, `LiveRankingPreview`, `StockListPreview`, `Top20MomentumTeaser`, `PopularTeaser`, `InsightsTeaserStrip`). Empty watchlist+portfolio → setup cards (welcome-dashboard).
 
 **Component tree:**
 
@@ -175,7 +175,7 @@ components/
 │   ├── Top20MomentumTeaser.tsx, PopularTeaser.tsx
 │   ├── personalized/
 │   │   ├── WelcomeHeader.tsx, SetupCard.tsx
-│   │   ├── PortfolioSummaryCard.tsx, WatchlistMoversCard.tsx
+│   │   ├── MoneyHero.tsx, StatTiles.tsx, MyStocksToday.tsx, ForYouTeaser.tsx
 │   └── (legacy, unused on `/`: Masthead, NavHighlights, TickerBand,
 │        MarketIndexBanner [still used by market-analysis + dse-today], MarketMovers,
 │        MarketIntelStrip, TopRankings, FilterBar, HowWeScoreBox, HomeSidebar,
