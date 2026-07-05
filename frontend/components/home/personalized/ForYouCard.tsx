@@ -99,8 +99,10 @@ export default function ForYouCard({
         role="tab"
         aria-selected={isActive}
         onClick={() => switchTab(key)}
-        className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2.5 py-2 text-[0.8rem] font-extrabold transition active:scale-[0.98] ${
-          isActive ? "text-white shadow-sm" : "text-[var(--text-muted)] hover:text-[var(--text)]"
+        className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-2.5 py-2 text-[0.8rem] font-extrabold transition active:scale-[0.98] ${
+          isActive
+            ? "border-transparent text-white shadow-sm"
+            : "border-[var(--border)] bg-[var(--surface)] text-[var(--text)] shadow-sm"
         }`}
         style={isActive ? { background: accent } : undefined}
       >

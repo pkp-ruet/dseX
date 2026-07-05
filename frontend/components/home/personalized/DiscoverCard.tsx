@@ -63,10 +63,10 @@ export default function DiscoverCard({
   const top20Rows = top20.slice(0, ROWS);
 
   const tabs = useMemo(() => {
-    const t: { key: TabKey; label: string }[] = [];
-    if (rankedRows.length > 0) t.push({ key: "ranked", label: "Top ranked" });
-    if (top20Rows.length > 0) t.push({ key: "top20", label: "Top 20" });
-    if (INSIGHT_LISTS.length > 0) t.push({ key: "insights", label: "Stock Lists" });
+    const t: { key: TabKey; label: string; icon: string }[] = [];
+    if (rankedRows.length > 0) t.push({ key: "ranked", label: "Top Ranked", icon: "🏆" });
+    if (top20Rows.length > 0) t.push({ key: "top20", label: "Top 20", icon: "🚀" });
+    if (INSIGHT_LISTS.length > 0) t.push({ key: "insights", label: "Stock Lists", icon: "📋" });
     return t;
   }, [rankedRows.length, top20Rows.length]);
 
@@ -116,12 +116,35 @@ export default function DiscoverCard({
 
   return (
     <section className="soft-card overflow-hidden">
-      <div className="px-3 pt-3.5 sm:px-4">
-        <span className="block px-1 text-[0.66rem] font-bold uppercase tracking-[0.16em] text-[var(--text)]">
-          Discover Stocks
-        </span>
-        <div role="tablist" aria-label="Discover stocks" className="mt-2.5 flex gap-1.5 overflow-x-auto pb-2">
-          {tabs.map(({ key, label }) => {
+      <div className="px-3 pt-4 sm:px-4">
+        <div className="flex items-center gap-2.5 px-1">
+          <span
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-lg"
+            style={{
+              background:
+                "linear-gradient(135deg, color-mix(in srgb, var(--primary) 16%, transparent), color-mix(in srgb, var(--accent) 22%, transparent))",
+            }}
+            aria-hidden
+          >
+            🧭
+          </span>
+          <div className="min-w-0">
+            <h2 className="text-[1.05rem] font-extrabold leading-tight tracking-tight text-[var(--text)]">
+              Discover Stocks
+            </h2>
+            <p className="text-[0.68rem] font-semibold text-[var(--text-muted)]">
+              Quick ways to find your next stock
+            </p>
+          </div>
+        </div>
+
+        <div
+          role="tablist"
+          aria-label="Discover stocks"
+          className="mt-3 grid gap-1 rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-1"
+          style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
+        >
+          {tabs.map(({ key, label, icon }) => {
             const isActive = active === key;
             return (
               <button
@@ -130,18 +153,30 @@ export default function DiscoverCard({
                 role="tab"
                 aria-selected={isActive}
                 onClick={() => switchTab(key)}
-                className={`shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-bold transition active:scale-95 ${
+                className={`flex items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-xs font-bold transition active:scale-95 ${
                   isActive
-                    ? "border-[color-mix(in_srgb,var(--primary)_35%,var(--border))] bg-[color-mix(in_srgb,var(--primary)_10%,var(--surface))] text-[var(--primary)]"
-                    : "border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:text-[var(--text)]"
+                    ? "border-transparent text-white shadow-sm"
+                    : "border-[var(--border)] bg-[var(--surface)] text-[var(--text)] shadow-sm hover:border-[color-mix(in_srgb,var(--primary)_35%,var(--border))]"
                 }`}
+                style={
+                  isActive
+                    ? {
+                        background:
+                          "linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 72%, var(--accent)))",
+                      }
+                    : undefined
+                }
               >
-                {label}
+                <span className="text-sm leading-none" aria-hidden>
+                  {icon}
+                </span>
+                <span className="truncate">{label}</span>
               </button>
             );
           })}
         </div>
-        <p className="px-1 pb-3 text-[0.78rem] font-bold leading-snug text-[var(--text)]">
+
+        <p className="px-1 pb-3 pt-2.5 text-[0.78rem] font-bold leading-snug text-[var(--text)]">
           {tabDescription[active]}
         </p>
       </div>
