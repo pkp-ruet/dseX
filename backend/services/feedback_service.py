@@ -27,7 +27,7 @@ def ensure_feedback_indexes() -> None:
 
 def create_feedback(
     *,
-    rating: int,
+    rating: Optional[int] = None,
     comment: Optional[str] = None,
     source: str = "homepage",
     user: Optional[dict] = None,
@@ -38,7 +38,7 @@ def create_feedback(
     user = user or {}
     text = (comment or "").strip()[:MAX_COMMENT_LEN] or None
     doc = {
-        "rating": int(rating),
+        "rating": int(rating) if rating is not None else None,
         "comment": text,
         "source": source if source in VALID_SOURCES else "homepage",
         "page": (page or "").strip()[:200] or None,

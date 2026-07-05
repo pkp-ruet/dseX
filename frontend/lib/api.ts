@@ -1246,7 +1246,7 @@ export async function getDailyTips(): Promise<DailyTipsResponse> {
 // ---------------------------------------------------------------------------
 
 export interface FeedbackSubmit {
-  rating: number; // 1-5
+  rating?: number; // 1-5, optional — comment-only feedback is allowed
   comment?: string;
   source?: "homepage" | "popup";
   page?: string;
@@ -1279,7 +1279,7 @@ export async function apiSubmitFeedback(
 
 export interface AdminFeedbackItem {
   id: string;
-  rating: number;
+  rating: number | null;
   comment: string | null;
   source: string;
   page: string | null;

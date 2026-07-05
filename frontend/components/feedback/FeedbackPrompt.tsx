@@ -46,13 +46,15 @@ export default function FeedbackPrompt() {
     dismissFeedback(userId); // never show again — whether they reviewed or not
   }
 
+  const canSubmit = rating > 0 || comment.trim().length > 0;
+
   async function submit() {
-    if (rating < 1 || status === "sending") return;
+    if (!canSubmit || status === "sending") return;
     setStatus("sending");
     setError("");
     try {
       await apiSubmitFeedback({
-        rating,
+        rating: rating > 0 ? rating : undefined,
         comment: comment.trim() || undefined,
         source: "popup",
         page: typeof window !== "undefined" ? window.location.pathname : undefined,
@@ -106,16 +108,14 @@ export default function FeedbackPrompt() {
               <StarRating value={rating} onChange={setRating} size={30} />
             </div>
 
-            {rating > 0 && (
-              <textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                rows={2}
-                maxLength={2000}
-                placeholder="Anything you'd like to add? (optional)"
-                className="mt-3 w-full resize-y rounded-xl border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
-              />
-            )}
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              rows={2}
+              maxLength={2000}
+              placeholder="Anything you'd like to add? (optional)"
+              className="mt-3 w-full resize-y rounded-xl border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
+            />
 
             {error && <p className="mt-2 text-xs text-[var(--negative)]">{error}</p>}
 
@@ -131,7 +131,7 @@ export default function FeedbackPrompt() {
                 type="button"
                 variant="primary"
                 onClick={submit}
-                disabled={rating < 1 || status === "sending"}
+                disabled={!canSubmit || status === "sending"}
               >
                 {status === "sending" ? "Sending…" : "Share feedback"}
               </Button>

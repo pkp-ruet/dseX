@@ -8,7 +8,7 @@ feedback_service.
 """
 from typing import Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from backend.routers.auth import get_current_user_optional
@@ -18,7 +18,7 @@ router = APIRouter(prefix="/api", tags=["feedback"])
 
 
 class FeedbackRequest(BaseModel):
-    rating: int = Field(..., ge=1, le=5)
+    rating: Optional[int] = Field(None, ge=1, le=5)
     comment: Optional[str] = Field(None, max_length=MAX_COMMENT_LEN)
     source: str = "homepage"
     page: Optional[str] = Field(None, max_length=200)
@@ -29,6 +29,8 @@ def submit_feedback(
     body: FeedbackRequest,
     current_user: Optional[dict] = Depends(get_current_user_optional),
 ):
+    if body.rating is None and not (body.comment or "").strip():
+        raise HTTPException(status_code=422, detail="Please give a rating or write a message.")
     result = create_feedback(
         rating=body.rating,
         comment=body.comment,

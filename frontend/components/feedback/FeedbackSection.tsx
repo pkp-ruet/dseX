@@ -14,13 +14,15 @@ export default function FeedbackSection() {
   const [status, setStatus] = useState<"idle" | "sending" | "done">("idle");
   const [error, setError] = useState("");
 
+  const canSubmit = rating > 0 || comment.trim().length > 0;
+
   async function submit() {
-    if (rating < 1 || status === "sending") return;
+    if (!canSubmit || status === "sending") return;
     setStatus("sending");
     setError("");
     try {
       await apiSubmitFeedback({
-        rating,
+        rating: rating > 0 ? rating : undefined,
         comment: comment.trim() || undefined,
         source: "homepage",
         page: "/",
@@ -74,11 +76,11 @@ export default function FeedbackSection() {
                 type="button"
                 variant="primary"
                 onClick={submit}
-                disabled={rating < 1 || status === "sending"}
+                disabled={!canSubmit || status === "sending"}
               >
                 {status === "sending" ? "Sending…" : "Send feedback"}
               </Button>
-              {rating < 1 && <span className="text-xs text-[var(--text-muted)]">Tap a star to rate</span>}
+              {!canSubmit && <span className="text-xs text-[var(--text-muted)]">Rate or write something first</span>}
             </div>
           </div>
         )}

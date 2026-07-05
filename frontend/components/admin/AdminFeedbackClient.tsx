@@ -28,7 +28,10 @@ function fmtTime(iso: string | null): string {
   }
 }
 
-function Stars({ n }: { n: number }) {
+function Stars({ n }: { n: number | null }) {
+  if (n == null) {
+    return <span className="text-[11px] text-[var(--text-muted)]">No rating</span>;
+  }
   return (
     <span className="inline-flex" aria-label={`${n} of 5`}>
       {[1, 2, 3, 4, 5].map((i) => (
