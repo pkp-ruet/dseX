@@ -15,6 +15,7 @@ export default function DailyPickList({
   feedback = true,
   limit,
   compact = false,
+  newCodes,
 }: {
   initialPicks: RecommendedStock[];
   /** Show like/skip controls + backfill. Off for the homepage teaser. */
@@ -23,6 +24,8 @@ export default function DailyPickList({
   limit?: number;
   /** Tight, space-saving card layout for the homepage teaser. */
   compact?: boolean;
+  /** Codes new since the user's previous feed — marks those cards "New". */
+  newCodes?: string[];
 }) {
   const [picks, setPicks] = useState<RecommendedStock[]>(initialPicks);
   const [liked, setLiked] = useState<Set<string>>(new Set());
@@ -72,6 +75,7 @@ export default function DailyPickList({
           stock={p}
           rank={i}
           compact={compact}
+          isNew={newCodes?.includes(p.trading_code.toUpperCase()) ?? false}
           liked={liked.has(p.trading_code)}
           onLike={feedback ? () => handleLike(p.trading_code) : undefined}
           onSkip={feedback ? () => handleSkip(p.trading_code) : undefined}

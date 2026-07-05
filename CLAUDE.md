@@ -157,8 +157,8 @@ Scrapers must use upsert logic to avoid duplicates.
 
 `app/page.tsx` is a server component that renders the **light marketing landing** (SSR for SEO) wrapped in `<HomePersonalizationGate>` (client). The gate reads `useAuth()`: logged-out (and crawlers / first paint) see the marketing children; logged-in users get `<PersonalizedHome>` instead (client, no SEO need) — no hydration mismatch since the server always renders the marketing markup.
 
-- **Marketing landing** (logged-out): `HomeHero` (headline + dual CTA via `SignupCtas` — Google block only renders when `NEXT_PUBLIC_GOOGLE_CLIENT_ID` set — + live fundamental-score ranking preview) → `SearchSection` (reuses `SearchBar` → `/stock/[code]`) → `LiveMarketBand` → `FeatureShowcase` (4 pillars: Stock Analysis w/ `SampleAnalysisCard` + global-search CTA, Rankings w/ `LiveRankingPreview`, Watchlist w/ `WatchlistMockup`, Portfolio w/ `PortfolioMockup`) → `DataScaleStats` → discovery (`Top20MomentumTeaser`, `PopularTeaser`, `StockListPreview` A–Z, `InsightsTeaserStrip`) → `FinalCTA`.
-- **Personalized dashboard** (`PersonalizedHome`, logged-in): `WelcomeHeader` → `SearchBar` (any stock → analysis) → "Your money today" dashboard: `MoneyHero` (animated portfolio value + today's ৳/% move + beating/trailing-DSEX chip + total-P/L chip + A–F grade via `analyzePortfolio`; falls back to `SetupCard` "Add holdings") → `StatTiles` (2×2 mobile / 4-across desktop: watchlist pulse w/ advancing bar, alerts count expanding the `buildHomeAlerts` feed inline, next dividend among user stocks w/ DSEX fallback, best mover today) → `MyStocksToday` (holdings ∪ watchlist merged, sorted by |move|, H/★ tags + 52w/dividend chips) → `WatchlistNews` (`limit`/`compact`) → `ForYouTeaser` (top pick + tip count, smooth-scrolls to `#intelligence`). Then the Intelligence section (`DailyPicksCard`, `DailyTipsCard`) and Discover section (`LiveMarketBand`, `LiveRankingPreview`, `StockListPreview`, `Top20MomentumTeaser`, `PopularTeaser`, `InsightsTeaserStrip`). Empty watchlist+portfolio → setup cards (welcome-dashboard).
+- **Marketing landing** (logged-out): `HomeHero` (headline + dual CTA via `SignupCtas` — Google block only renders when `NEXT_PUBLIC_GOOGLE_CLIENT_ID` set — + live fundamental-score ranking preview) → `SearchSection` (reuses `SearchBar` → `/stock/[code]`) → `FeatureShowcase` (4 pillars: Stock Analysis w/ `SampleAnalysisCard` + global-search CTA, Rankings w/ `LiveRankingPreview`, Watchlist w/ `WatchlistMockup`, Portfolio w/ `PortfolioMockup`) → `DataScaleStats` → discovery (`Top20MomentumTeaser`, `PopularTeaser`, `StockListPreview` A–Z, `InsightsTeaserStrip`) → `FinalCTA`.
+- **Personalized dashboard** (`PersonalizedHome`, logged-in): `WelcomeHeader` → `SearchBar` (any stock → analysis) → "Your money today" dashboard: `MoneyHero` (animated portfolio value + today's ৳/% move + beating/trailing-DSEX chip + total-P/L chip + A–F grade via `analyzePortfolio`; falls back to `SetupCard` "Add holdings") → `StatTiles` (2×2 mobile / 4-across desktop: watchlist pulse w/ advancing bar, alerts count expanding the `buildHomeAlerts` feed inline, next dividend among user stocks w/ DSEX fallback, best mover today) → `MyStocksToday` (holdings ∪ watchlist merged, sorted by |move|, H/★ tags + 52w/dividend chips) → `WatchlistNews` (`limit`/`compact`). Then the Intelligence section — big `SectionHeader` (title "Your picks today", or "Top picks today" when untuned; date + "N new" chips fed by `daily_picks.new_codes`) + `ForYouCard` (one card, Picks/Tips segmented tabs merging daily picks and daily tips; personalize nudge when untuned; last tab in localStorage; skeleton while the fetches are in flight) — and an "Explore the market" section under a quiet `SectionLabel`: `MarketTodayCard` (merged index band + market-analysis snapshot: mood headline, DSEX/DSES/DS30, breadth bar, deep-linked tiles, one CTA), `DiscoverCard` (chip-tabbed Top ranked / Top 20 / Insights previews with in-row watchlist stars and New/▲ day-delta tags via `lib/daily-delta.ts`), `CoreFeatureTiles` (Browse A–Z + Bengali blog quick-links row). Empty watchlist+portfolio → setup cards (welcome-dashboard).
 
 **Component tree:**
 
@@ -175,11 +175,14 @@ components/
 │   ├── Top20MomentumTeaser.tsx, PopularTeaser.tsx
 │   ├── personalized/
 │   │   ├── WelcomeHeader.tsx, SetupCard.tsx
-│   │   ├── MoneyHero.tsx, StatTiles.tsx, MyStocksToday.tsx, ForYouTeaser.tsx
+│   │   ├── MoneyHero.tsx, StatTiles.tsx, MyStocksToday.tsx
+│   │   ├── ForYouCard.tsx, MarketTodayCard.tsx, DiscoverCard.tsx, CoreFeatureTiles.tsx
+│   │   └── (legacy, unused: DailyPicksCard, MarketAnalysisCard, InsightsPreview, Top20Preview, ForYouTeaser)
 │   └── (legacy, unused on `/`: Masthead, NavHighlights, TickerBand,
 │        MarketIndexBanner [still used by market-analysis + dse-today], MarketMovers,
 │        MarketIntelStrip, TopRankings, FilterBar, HowWeScoreBox, HomeSidebar,
-│        PortfolioTeaserCTA, GradeAnyStockHero, TodaysTopPicks, sidebar/*)
+│        PortfolioTeaserCTA, GradeAnyStockHero, TodaysTopPicks, sidebar/*,
+│        DailyTipsCard, PromoPill, LiveMarketBand)
 ├── ranking/
 │   ├── FullRankTable.tsx, TierStatCards.tsx
 ├── market-intelligence/
@@ -265,6 +268,7 @@ A 401 response from `apiAuthFetch` triggers `logout()` and throws `AUTH_EXPIRED`
 - `guides.ts` — learn-page content (~14 KB)
 - `insight-utils.ts`, `verdict.ts` — shared insight / verdict helpers
 - `formatters.ts`, `constants.ts`, `market-hours.ts` — formatting + market-open utilities
+- `daily-delta.ts` — per-device localStorage diff of the homepage discovery lists (powers the New/▲ "since your last visit" tags)
 
 **Frontend env vars:**
 - `API_URL` (server-side fetching, recommended for prod) and `NEXT_PUBLIC_API_URL` (browser + server fallback) — both default to `https://dsex.onrender.com`

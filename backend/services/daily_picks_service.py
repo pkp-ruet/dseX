@@ -341,6 +341,21 @@ def get_or_compute_daily_picks(user: dict) -> dict:
     ):
         return cached
     fresh = compute_daily_picks(user)
+    # "New since you last looked": the stale doc from the user's previous
+    # visit is still on the user at this point, so diff before overwriting.
+    # Omitted on the first-ever feed (everything would be "new").
+    prev_codes = {
+        (p.get("trading_code") or "").upper()
+        for p in ((cached or {}).get("picks") or [])
+    }
+    if prev_codes:
+        fresh["new_codes"] = [
+            code
+            for code in (
+                (p.get("trading_code") or "").upper() for p in fresh["picks"]
+            )
+            if code not in prev_codes
+        ]
     if user_id:
         save_daily_picks(user_id, fresh)
     return fresh

@@ -18,6 +18,7 @@ export default function RecommendedStockCard({
   onSkip,
   liked = false,
   compact = false,
+  isNew = false,
 }: {
   stock: RecommendedStock;
   rank: number;
@@ -27,6 +28,8 @@ export default function RecommendedStockCard({
   liked?: boolean;
   /** Tight, space-saving layout for the homepage teaser. */
   compact?: boolean;
+  /** Pick wasn't in the user's previous feed — shows a small "New" chip. */
+  isNew?: boolean;
 }) {
   const r = RANK[rank] ?? { medal: "⭐", label: `Match ${rank + 1}`, color: "var(--primary)" };
   const color = r.color;
@@ -67,6 +70,11 @@ export default function RecommendedStockCard({
                 <span className="tabular-nums text-[0.66rem] font-bold" style={{ color }}>
                   {match}% match
                 </span>
+                {isNew && (
+                  <span className="shrink-0 rounded-full bg-[color-mix(in_srgb,var(--positive)_14%,transparent)] px-1.5 py-0.5 text-[0.58rem] font-extrabold uppercase tracking-[0.06em] text-[var(--positive)]">
+                    New
+                  </span>
+                )}
               </span>
               {stock.company_name && (
                 <span className="block text-[0.72rem] text-[var(--text-muted)] truncate leading-tight">

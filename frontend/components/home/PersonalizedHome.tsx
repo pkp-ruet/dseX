@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import {
   getScores,
@@ -42,20 +41,14 @@ import SetupCard from "@/components/home/personalized/SetupCard";
 import MoneyHero from "@/components/home/personalized/MoneyHero";
 import StatTiles from "@/components/home/personalized/StatTiles";
 import MyStocksToday from "@/components/home/personalized/MyStocksToday";
-import ForYouTeaser from "@/components/home/personalized/ForYouTeaser";
-import DailyPicksCard from "@/components/home/personalized/DailyPicksCard";
+import ForYouCard from "@/components/home/personalized/ForYouCard";
 import TuneModal from "@/components/stock-recommendation/TuneModal";
 import CoreFeatureTiles from "@/components/home/personalized/CoreFeatureTiles";
-import MarketAnalysisCard from "@/components/home/personalized/MarketAnalysisCard";
-import InsightsPreview from "@/components/home/personalized/InsightsPreview";
-import Top20Preview from "@/components/home/personalized/Top20Preview";
+import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
+import DiscoverCard from "@/components/home/personalized/DiscoverCard";
 import WatchlistNews from "@/components/watchlist/WatchlistNews";
 import SearchBar from "@/components/home/SearchBar";
 import InstallHomeBanner from "@/components/pwa/InstallHomeBanner";
-import LiveMarketBand from "@/components/home/LiveMarketBand";
-import LiveRankingPreview from "@/components/home/LiveRankingPreview";
-import DailyTipsCard from "@/components/home/DailyTipsCard";
-import PromoPill from "@/components/home/PromoPill";
 import Card from "@/components/ui/Card";
 
 function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
@@ -69,25 +62,12 @@ const BAG_ICON = (
     <path d="M20 7h-4V5l-2-2h-4L8 5v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm-8-2h4v2h-4V5z" />
   </svg>
 );
-const COMPASS_ICON = (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <circle cx="12" cy="12" r="9" />
-    <polygon points="16 8 13 13 8 16 11 11 16 8" fill="currentColor" stroke="none" />
-  </svg>
-);
 const INTEL_ICON = (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <path d="M12 3a5 5 0 0 0-5 5c0 1.6.8 3 2 4v2h6v-2c1.2-1 2-2.4 2-4a5 5 0 0 0-5-5z" />
     <path d="M9 19h6M10 21h4" />
   </svg>
 );
-const BOOK_ICON = (
-  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-  </svg>
-);
-
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <p className="text-xs uppercase tracking-widest text-[var(--text-muted)] font-semibold mt-2 mb-3">{children}</p>
@@ -99,11 +79,14 @@ function SectionHeader({
   title,
   accent,
   icon,
+  chips,
 }: {
   eyebrow: string;
   title: string;
   accent: string;
   icon: React.ReactNode;
+  /** Small pills rendered next to the title (date, "N new"). */
+  chips?: React.ReactNode;
 }) {
   return (
     <div className="mb-4 flex items-center gap-3">
@@ -122,15 +105,36 @@ function SectionHeader({
         <p className="text-[0.62rem] font-extrabold uppercase tracking-[0.18em]" style={{ color: accent }}>
           {eyebrow}
         </p>
-        <h2 className="font-display text-[clamp(1.3rem,5vw,1.7rem)] font-extrabold tracking-tight text-[var(--text)] leading-tight">
-          {title}
-        </h2>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <h2 className="font-display text-[clamp(1.3rem,5vw,1.7rem)] font-extrabold tracking-tight text-[var(--text)] leading-tight">
+            {title}
+          </h2>
+          {chips}
+        </div>
       </div>
       <span
         className="ml-1 hidden h-1 flex-1 rounded-full sm:block"
         style={{ background: `linear-gradient(90deg, color-mix(in srgb, ${accent} 45%, transparent), transparent)` }}
         aria-hidden
       />
+    </div>
+  );
+}
+
+/** Placeholder matching ForYouCard's shape — shown while the client-side
+ *  picks/tips fetches are still in flight so the section doesn't pop in. */
+function ForYouSkeleton() {
+  return (
+    <div className="soft-card overflow-hidden" aria-hidden>
+      <div className="border-b border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 sm:px-4">
+        <div className="h-9 w-full max-w-xs animate-pulse rounded-xl bg-[var(--surface-2)]" />
+      </div>
+      <div className="space-y-2 bg-[var(--surface-2)] px-4 py-4 sm:px-5">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="h-24 animate-pulse rounded-xl border border-[var(--border)] bg-[var(--surface)]" />
+        ))}
+        <div className="h-10 animate-pulse rounded-xl border border-[var(--border)] bg-[var(--surface)]" />
+      </div>
     </div>
   );
 }
@@ -169,6 +173,9 @@ export default function PersonalizedHome() {
     return readCache<DailyPicksResponse>(cacheKeys.dailyPicks(userId));
   });
   const [tuneOpen, setTuneOpen] = useState(false);
+  // Fetch-settled flags for the intelligence section skeleton (resolve or fail).
+  const [picksSettled, setPicksSettled] = useState(false);
+  const [tipsSettled, setTipsSettled] = useState(false);
   // True only on the first dashboard render right after signup (one-shot flag).
   const [isNewUser, setIsNewUser] = useState(false);
 
@@ -214,14 +221,18 @@ export default function PersonalizedHome() {
     getMarketIndex().then((d) => alive && setMarketIndex(d)).catch(() => {});
     getMarketState().then((d) => alive && setMarketState(d)).catch(() => {});
     getTop20().then((d) => alive && setTop20(d.items ?? [])).catch(() => {});
-    getDailyTips().then((d) => alive && setTips(d.tips ?? [])).catch(() => {});
+    getDailyTips()
+      .then((d) => alive && setTips(d.tips ?? []))
+      .catch(() => {})
+      .finally(() => alive && setTipsSettled(true));
     getDailyPicks()
       .then((d) => {
         if (!alive) return;
         setDailyPicks(d);
         if (userId) writeCache(cacheKeys.dailyPicks(userId), d);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => alive && setPicksSettled(true));
     loadAlerts().then((a) => alive && setPriceAlerts(a)).catch(() => {});
     apiGetSignalEvents()
       .then((r) => alive && setSignalEvents(r.events ?? []))
@@ -305,6 +316,20 @@ export default function PersonalizedHome() {
     : news;
 
   const showRecommended = !!dailyPicks?.picks?.length || tips.length > 0;
+  // Skeleton while the client-side picks/tips fetches are in flight and nothing
+  // was cache-hydrated — stops the section popping in mid-scroll.
+  const intelLoading = !showRecommended && (!picksSettled || !tipsSettled);
+
+  // "New since you last looked" — server-computed diff, filtered to picks still
+  // on today's feed (skip-backfill replacements aren't in new_codes).
+  const pickCodes = new Set((dailyPicks?.picks ?? []).map((p) => p.trading_code.toUpperCase()));
+  const newPickCodes = (dailyPicks?.new_codes ?? []).filter((c) => pickCodes.has(c.toUpperCase()));
+
+  const shortDate = new Date().toLocaleDateString("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
 
   // Personalized alerts for the header bell — built from data already loaded.
   const homeAlerts = buildHomeAlerts({
@@ -403,60 +428,55 @@ export default function PersonalizedHome() {
             </div>
           )}
 
-          {/* Bridge to the Intelligence section — teaser only, full cards stay below. */}
-          {(hasPortfolio || hasWatchlist) && showRecommended && (
-            <ForYouTeaser picks={dailyPicks?.picks ?? []} tipsCount={tips.length} />
-          )}
         </div>
       </section>
 
-      {/* ── Section 2: TopStockBD Intelligence — personalized picks + daily tips.
-          Umbrella title is distinct from the cards' own "Picked for you today". ── */}
-      {showRecommended && (
+      {/* ── Section 2: today's picks + tips — benefit-led title, brand demoted to
+          the eyebrow; the date + "N new" chips prove the daily refresh. ── */}
+      {(showRecommended || intelLoading) && (
         <section id="intelligence" className="mt-8 scroll-mt-24">
           <SectionHeader
-            eyebrow="Made for you · refreshed daily"
-            title="TopStockBD Intelligence"
-            accent="var(--np-cautious)"
+            eyebrow="TopStockBD Intelligence"
+            title={hasTuned ? "Your picks today" : "Top picks today"}
+            accent="var(--primary)"
             icon={INTEL_ICON}
+            chips={
+              <>
+                <span className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-2.5 py-0.5 text-[0.66rem] font-bold text-[var(--text-muted)]">
+                  {shortDate}
+                </span>
+                {newPickCodes.length > 0 && (
+                  <span className="rounded-full bg-[color-mix(in_srgb,var(--primary)_12%,transparent)] px-2.5 py-0.5 text-[0.66rem] font-extrabold text-[var(--primary)]">
+                    {newPickCodes.length} new
+                  </span>
+                )}
+              </>
+            }
           />
-          <div className="mt-3 flex flex-col gap-7">
-            {/* Daily personalized picks — the merged "find stocks" feed, fresh daily. */}
-            {dailyPicks?.picks?.length ? (
-              <DailyPicksCard
-                picks={dailyPicks.picks}
-                tuned={dailyPicks.tuned ?? false}
+          <div className="mt-3">
+            {intelLoading ? (
+              <ForYouSkeleton />
+            ) : (
+              <ForYouCard
+                picks={dailyPicks?.picks ?? []}
+                tips={tips}
+                tuned={hasTuned}
                 sectors={sectors}
                 onTuned={refreshDailyPicks}
+                newCodes={newPickCodes}
               />
-            ) : null}
-
-            {tips.length > 0 && <DailyTipsCard tips={tips} />}
+            )}
           </div>
         </section>
       )}
 
-      {/* ── Section 3: More on TopStockBD — explore core features ── */}
+      {/* ── Section 3: Explore the market — one market snapshot, one tabbed
+          discovery card, quick links last. Quiet label on purpose: the big
+          header above is reserved for the "for you" moment. ── */}
       <section className="mt-10">
-        <SectionHeader
-          eyebrow="Explore"
-          title="More on TopStockBD"
-          accent="var(--positive)"
-          icon={COMPASS_ICON}
-        />
-        <div className="mt-3 flex flex-col gap-6">
-          {/* Bengali "keep learning" nudge → blog */}
-          <PromoPill
-            href="/blog"
-            ariaLabel="বাংলা ব্লগ — সহজ ভাষায় শেয়ার বাজার শিখুন"
-            icon={BOOK_ICON}
-            text="শেয়ার বাজার আরও ভালো বুঝুন — বাংলা ব্লগ পড়ুন"
-            accentVar="var(--positive)"
-          />
-
-          {marketIndex && <LiveMarketBand index={marketIndex} />}
-
-          <MarketAnalysisCard
+        <SectionLabel>Explore the market</SectionLabel>
+        <div className="flex flex-col gap-6">
+          <MarketTodayCard
             index={marketIndex}
             dividends={dividends}
             quality={marketState?.now?.quality ?? null}
@@ -467,98 +487,8 @@ export default function PersonalizedHome() {
             }
           />
 
-          {rankingItems.length > 0 && (
-          <div>
-            <div className="flex items-center justify-between gap-3 mb-3">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <span
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-lg shrink-0"
-                  style={{
-                    color: "#059669",
-                    background: "color-mix(in srgb, #059669 12%, transparent)",
-                    border: "1px solid color-mix(in srgb, #059669 24%, var(--border))",
-                  }}
-                  aria-hidden
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 20V10M12 20V4M19 20v-6" />
-                  </svg>
-                </span>
-                <h3 className="font-display text-[clamp(1.1rem,4vw,1.4rem)] font-extrabold tracking-tight text-[var(--text)] truncate">
-                  Top Ranked <span className="rank-title-accent">Stocks</span>
-                </h3>
-              </div>
-              <Link
-                href="/dsestockranking"
-                className="shrink-0 text-xs font-semibold text-[var(--primary)] hover:underline"
-              >
-                See all →
-              </Link>
-            </div>
-            <LiveRankingPreview items={rankingItems} totalCount={rankingItems.length} showScore={false} />
-          </div>
-        )}
-
-          <div>
-            <div className="flex items-center justify-between gap-3 mb-3">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <span
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-lg shrink-0 text-[var(--primary)]"
-                  style={{
-                    background: "color-mix(in srgb, var(--primary) 12%, transparent)",
-                    border: "1px solid color-mix(in srgb, var(--primary) 24%, var(--border))",
-                  }}
-                  aria-hidden
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2l1.9 5.6L19.5 9l-5.1 2.7L12 17l-2.4-5.3L4.5 9l5.6-1.4L12 2z" />
-                  </svg>
-                </span>
-                <h3 className="font-display text-[clamp(1.1rem,4vw,1.4rem)] font-extrabold tracking-tight text-[var(--text)] truncate">
-                  Stock <span className="rank-title-accent">Insights</span>
-                </h3>
-              </div>
-              <Link
-                href="/stock-insights"
-                className="shrink-0 text-xs font-semibold text-[var(--primary)] hover:underline"
-              >
-                See all →
-              </Link>
-            </div>
-            <InsightsPreview />
-          </div>
-
-          {top20.length > 0 && (
-            <div>
-              <div className="flex items-center justify-between gap-3 mb-3">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span
-                    className="inline-flex items-center justify-center w-8 h-8 rounded-lg shrink-0"
-                    style={{
-                      color: "var(--positive)",
-                      background: "color-mix(in srgb, var(--positive) 12%, transparent)",
-                      border: "1px solid color-mix(in srgb, var(--positive) 24%, var(--border))",
-                    }}
-                    aria-hidden
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M5 20V10M12 20V4M19 20v-6" />
-                    </svg>
-                  </span>
-                  <h3 className="font-display text-[clamp(1.1rem,4vw,1.4rem)] font-extrabold tracking-tight text-[var(--text)] truncate">
-                    DSE <span className="rank-title-accent">Top 20</span>
-                  </h3>
-                </div>
-                <Link
-                  href="/dse-top-20"
-                  className="shrink-0 text-xs font-semibold text-[var(--primary)] hover:underline"
-                >
-                  See all →
-                </Link>
-              </div>
-              <Top20Preview items={top20} />
-            </div>
-          )}
+          {/* One tabbed discovery card replaces the three stacked 5-row tables. */}
+          <DiscoverCard ranked={rankingItems} top20={top20} />
 
           <CoreFeatureTiles />
         </div>

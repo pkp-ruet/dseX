@@ -865,6 +865,8 @@ export interface DailyPicksResponse {
   /** True only when the user actually took the quiz (vs watchlist-inferred). */
   tuned?: boolean;
   picks: RecommendedStock[];
+  /** Codes new since the user's previous feed (absent on the first-ever feed). */
+  new_codes?: string[];
 }
 
 /** Auth-only. Returns 5 daily-rotating picks tuned to the user's taste. */
