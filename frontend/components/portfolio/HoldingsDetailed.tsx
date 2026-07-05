@@ -4,7 +4,46 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Card from "@/components/ui/Card";
 import { getBengaliSummaries } from "@/lib/api";
-import type { HoldingSignal, PortfolioAnalysis, QualityWord } from "@/lib/portfolio-analysis";
+import type {
+  AnalysisLang,
+  HoldingSignal,
+  PortfolioAnalysis,
+  QualityWord,
+} from "@/lib/portfolio-analysis";
+
+const BN_DIGITS = "০১২৩৪৫৬৭৮৯";
+const bnNum = (v: string | number) => String(v).replace(/\d/g, (d) => BN_DIGITS[Number(d)]);
+
+const SIGNAL_LABEL_BN: Record<HoldingSignal, string> = {
+  buy_more: "আরও কিনুন",
+  hold: "ধরে রাখুন",
+  sell: "বিক্রি করুন",
+};
+
+const QUALITY_LABEL_BN: Record<QualityWord, string> = {
+  Strong: "শক্তিশালী কোম্পানি",
+  Solid: "ভালো কোম্পানি",
+  Average: "মাঝারি কোম্পানি",
+  Weak: "দুর্বল কোম্পানি",
+  Unrated: "রেটিং নেই",
+};
+
+const STR = {
+  en: {
+    title: "Your Stocks",
+    subtitle: "How each one scores and how it's doing.",
+    ofPortfolio: (pct: string) => `${pct}% of portfolio`,
+    overall: "Overall",
+    fullAnalysis: "Full analysis",
+  },
+  bn: {
+    title: "আপনার শেয়ারগুলো",
+    subtitle: "প্রতিটি শেয়ারের স্কোর আর হালচাল।",
+    ofPortfolio: (pct: string) => `পোর্টফোলিওর ${bnNum(pct)}%`,
+    overall: "সার্বিক",
+    fullAnalysis: "পুরো বিশ্লেষণ",
+  },
+} as const;
 
 const SIGNAL_THEME: Record<HoldingSignal, { chip: string; dot: string; icon: string }> = {
   buy_more: {
@@ -57,10 +96,14 @@ const QUALITY_THEME: Record<
 
 interface Props {
   analysis: PortfolioAnalysis;
+  lang?: AnalysisLang;
 }
 
-export default function HoldingsDetailed({ analysis }: Props) {
+export default function HoldingsDetailed({ analysis, lang = "en" }: Props) {
   const sorted = [...analysis.holdings].sort((a, b) => b.weightPct - a.weightPct);
+  const t = STR[lang];
+  const bnMode = lang === "bn";
+  const bnText = bnMode ? "font-bn" : "";
 
   // Cached Bengali "এক নজরে" one-liners — best-effort, cards render without them.
   const codesKey = useMemo(
@@ -105,11 +148,13 @@ export default function HoldingsDetailed({ analysis }: Props) {
           </svg>
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="text-sm sm:text-[15px] uppercase tracking-wider font-bold text-[var(--text)]">
-            Your Stocks
+          <h3
+            className={`text-sm sm:text-[15px] uppercase tracking-wider font-bold text-[var(--text)] ${bnText}`}
+          >
+            {t.title}
           </h3>
-          <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-0.5 leading-relaxed">
-            How each one scores and how it&apos;s doing.
+          <p className={`text-xs sm:text-sm text-[var(--text-muted)] mt-0.5 leading-relaxed ${bnText}`}>
+            {t.subtitle}
           </p>
         </div>
       </div>
@@ -142,34 +187,36 @@ export default function HoldingsDetailed({ analysis }: Props) {
                 <div className="flex items-center gap-2 mt-2.5 flex-wrap">
                   <span
                     title={h.signal.reason}
-                    className={`inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-bold uppercase tracking-wide px-2 py-1 rounded-full border cursor-help ${st.chip}`}
+                    className={`inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-bold uppercase tracking-wide px-2 py-1 rounded-full border cursor-help ${st.chip} ${bnText}`}
                     style={{ opacity: h.signal.muted ? 0.75 : 1 }}
                   >
                     <span className="text-[9px] leading-none" aria-hidden>
                       {st.icon}
                     </span>
-                    {h.signal.label}
+                    {bnMode ? SIGNAL_LABEL_BN[h.signal.signal] : h.signal.label}
                   </span>
                   <span
-                    className={`inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-semibold px-2 py-1 rounded-full border ${qt.chip}`}
+                    className={`inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-semibold px-2 py-1 rounded-full border ${qt.chip} ${bnText}`}
                   >
                     <span className={`w-1.5 h-1.5 rounded-full ${qt.dot}`} aria-hidden />
-                    {qt.label}
+                    {bnMode ? QUALITY_LABEL_BN[h.qualityWord] : qt.label}
                   </span>
                   {h.sector && (
                     <span className="text-xs sm:text-[13px] px-2 py-1 bg-[var(--border)]/40 border border-[var(--border)] rounded-full text-[var(--ink-2)] font-medium">
                       {h.sector}
                     </span>
                   )}
-                  <span className="text-xs sm:text-[13px] text-[var(--text-muted)] font-medium">
-                    {h.weightPct.toFixed(0)}% of portfolio
+                  <span className={`text-xs sm:text-[13px] text-[var(--text-muted)] font-medium ${bnText}`}>
+                    {t.ofPortfolio(h.weightPct.toFixed(0))}
                   </span>
                 </div>
               </div>
               {h.score != null && (
                 <div className="text-right shrink-0">
-                  <p className="text-[10px] sm:text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-bold">
-                    Overall
+                  <p
+                    className={`text-[10px] sm:text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-bold ${bnText}`}
+                  >
+                    {t.overall}
                   </p>
                   <p className="text-2xl sm:text-3xl font-black text-[var(--text)] leading-none mt-1 tabular-nums nums">
                     {h.score.toFixed(0)}
@@ -184,10 +231,10 @@ export default function HoldingsDetailed({ analysis }: Props) {
             {/* Finding + link */}
             <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
               <div className="flex-1 min-w-0">
-                <p className="text-sm sm:text-[15px] text-[var(--text)] font-semibold leading-snug">
+                <p className={`text-sm sm:text-[15px] text-[var(--text)] font-semibold leading-snug ${bnText}`}>
                   {h.descriptor}
                 </p>
-                <p className="text-sm text-[var(--text-muted)] mt-1.5 leading-[1.6]">
+                <p className={`text-sm text-[var(--text-muted)] mt-1.5 leading-[1.6] ${bnText}`}>
                   {h.entryLabel}
                 </p>
                 {summariesBn[h.code] && (
@@ -203,9 +250,9 @@ export default function HoldingsDetailed({ analysis }: Props) {
               </div>
               <Link
                 prefetch={false} href={`/stock/${h.code}`}
-                className="inline-flex items-center justify-center gap-1 text-sm font-bold text-[var(--primary)] hover:underline shrink-0 px-3 py-1.5 rounded-lg border border-[var(--primary)]/30 bg-[var(--primary)]/5 hover:bg-[var(--primary)]/10 transition-colors self-start"
+                className={`inline-flex items-center justify-center gap-1 text-sm font-bold text-[var(--primary)] hover:underline shrink-0 px-3 py-1.5 rounded-lg border border-[var(--primary)]/30 bg-[var(--primary)]/5 hover:bg-[var(--primary)]/10 transition-colors self-start ${bnText}`}
               >
-                Full analysis
+                {t.fullAnalysis}
                 <svg
                   width="14"
                   height="14"

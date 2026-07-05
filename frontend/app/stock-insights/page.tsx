@@ -5,10 +5,11 @@ import { STOCK_LISTS } from "@/lib/stock-lists";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 export const metadata: Metadata = {
-  title: "DSE Stock Insights — Top Stocks Bangladesh | TopStockBD",
+  title: "DSE Stock Lists — Top Stocks Bangladesh | TopStockBD",
   description:
-    "Plain-English stock stories for the Dhaka Stock Exchange — best stocks 2026, top sectors, undervalued picks, high-growth companies, bank rankings, and more. Updated daily from DSE financial data.",
+    "Ready-made stock lists for the Dhaka Stock Exchange — best stocks 2026, top sectors, undervalued picks, high-growth companies, bank rankings, and more. Updated daily from DSE financial data.",
   keywords: [
+    "DSE stock lists",
     "DSE stock insights",
     "top stocks Bangladesh",
     "best shares DSE",
@@ -22,9 +23,9 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: `${BASE_URL}/stock-insights` },
   openGraph: {
-    title: "DSE Stock Insights — Top Stocks Bangladesh | TopStockBD",
+    title: "DSE Stock Lists — Top Stocks Bangladesh | TopStockBD",
     description:
-      "Plain-English stock stories for the Dhaka Stock Exchange — best stocks 2026, sector rankings, value picks, and growth leaders.",
+      "Ready-made stock lists for the Dhaka Stock Exchange — best stocks 2026, sector rankings, value picks, and growth leaders.",
     url: `${BASE_URL}/stock-insights`,
     type: "website",
   },
@@ -34,9 +35,9 @@ const jsonLd = [
   {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: "DSE Stock Insights — Top Stocks Bangladesh",
+    name: "DSE Stock Lists — Top Stocks Bangladesh",
     description:
-      "Plain-English stock stories for the Dhaka Stock Exchange, built from real company financials.",
+      "Ready-made stock lists for the Dhaka Stock Exchange, built from real company financials.",
     url: `${BASE_URL}/stock-insights`,
   },
   {
@@ -44,7 +45,7 @@ const jsonLd = [
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-      { "@type": "ListItem", position: 2, name: "Stock Picks", item: `${BASE_URL}/stock-insights` },
+      { "@type": "ListItem", position: 2, name: "Stock Lists", item: `${BASE_URL}/stock-insights` },
     ],
   },
 ];
@@ -78,7 +79,7 @@ export default function StockInsightsPage() {
       <header>
         <div className="ed-kicker">
           <span className="dot" aria-hidden="true" />
-          Stock Picks
+          Stock Lists
         </div>
         <h1 className="ed-headline">Best Stocks on the DSE</h1>
         <p className="ed-dek">Simple, clear stock picks from the Dhaka Stock Exchange — updated daily.</p>

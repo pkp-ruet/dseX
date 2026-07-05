@@ -20,7 +20,7 @@ export default function FeaturedInStrip({ entries, max = 5 }: Props) {
         <div className="flex items-center gap-2 mb-3">
           <span aria-hidden="true">⭐</span>
           <h2 className="text-sm font-bold uppercase tracking-[0.12em]" style={{ color: "var(--text-muted)" }}>
-            Featured in our picks
+            Featured in our stock lists
           </h2>
         </div>
 

@@ -2,12 +2,47 @@
 
 import { useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
-import type { PortfolioAnalysis } from "@/lib/portfolio-analysis";
+import type { AnalysisLang, PortfolioAnalysis } from "@/lib/portfolio-analysis";
 import { taka } from "@/lib/formatters";
 import Card from "@/components/ui/Card";
 
+const BN_DIGITS = "০১২৩৪৫৬৭৮৯";
+const bnNum = (v: string | number) => String(v).replace(/\d/g, (d) => BN_DIGITS[Number(d)]);
+
+const STR = {
+  en: {
+    title: "Where Your Money Sits",
+    invested: "Invested",
+    market: "Market value",
+    desc: (basis: "invested" | "market") =>
+      `How much of your ${basis === "invested" ? "cost" : "current value"} is in each stock.`,
+    centerInvested: "Invested",
+    centerValue: "Value",
+    more: (n: number) => `+${n} more`,
+    noteBig: (code: string, pct: string) =>
+      `${code} is ${pct}% of your money — a big single bet. If it stumbles, the whole portfolio feels it. Spreading across more names softens that.`,
+    noteOk: (code: string, pct: string) =>
+      `Your largest position is ${code} at ${pct}% — a balanced split, no single stock dominates.`,
+  },
+  bn: {
+    title: "আপনার টাকা কোথায় আছে",
+    invested: "বিনিয়োগ",
+    market: "বাজারমূল্য",
+    desc: (basis: "invested" | "market") =>
+      `প্রতিটি শেয়ারে আপনার ${basis === "invested" ? "কেনা টাকার" : "বর্তমান মূল্যের"} কত অংশ আছে।`,
+    centerInvested: "বিনিয়োগ",
+    centerValue: "মূল্য",
+    more: (n: number) => `+আরও ${bnNum(n)}টি`,
+    noteBig: (code: string, pct: string) =>
+      `${code} একাই আপনার টাকার ${bnNum(pct)}% — একটাই বড় বাজি। এটি হোঁচট খেলে পুরো পোর্টফোলিও টের পায়। আরও কয়েকটি শেয়ারে ছড়িয়ে দিলে ধাক্কাটা নরম হয়।`,
+    noteOk: (code: string, pct: string) =>
+      `আপনার সবচেয়ে বড় অবস্থান ${code}, মোট ${bnNum(pct)}% — ভারসাম্য ভালো, কোনো একটি শেয়ার একচেটিয়া নয়।`,
+  },
+} as const;
+
 interface Props {
   analysis: PortfolioAnalysis;
+  lang?: AnalysisLang;
 }
 
 const COLORS = [
@@ -18,8 +53,10 @@ const OTHERS_COLOR = "var(--text-muted)";
 
 type Basis = "invested" | "market";
 
-export default function AllocationChart({ analysis }: Props) {
+export default function AllocationChart({ analysis, lang = "en" }: Props) {
   const [basis, setBasis] = useState<Basis>("invested");
+  const t = STR[lang];
+  const bnText = lang === "bn" ? "font-bn" : "";
 
   const holdings = analysis.holdings;
   if (holdings.length === 0) return null;
@@ -43,7 +80,7 @@ export default function AllocationChart({ analysis }: Props) {
     const restVal = rest.reduce((s, r) => s + valueOf(r), 0);
     slices = [
       ...sorted.slice(0, TOP).map((r, i) => ({ name: r.code, value: valueOf(r), color: COLORS[i % COLORS.length] })),
-      { name: `+${rest.length} more`, value: restVal, color: OTHERS_COLOR },
+      { name: t.more(rest.length), value: restVal, color: OTHERS_COLOR },
     ];
   } else {
     slices = sorted.map((r, i) => ({ name: r.code, value: valueOf(r), color: COLORS[i % COLORS.length] }));
@@ -53,8 +90,8 @@ export default function AllocationChart({ analysis }: Props) {
   const topShare = (valueOf(top) / total) * 100;
   const note =
     topShare > 25
-      ? `${top.code} is ${topShare.toFixed(0)}% of your money — a big single bet. If it stumbles, the whole portfolio feels it. Spreading across more names softens that.`
-      : `Your largest position is ${top.code} at ${topShare.toFixed(0)}% — a balanced split, no single stock dominates.`;
+      ? t.noteBig(top.code, topShare.toFixed(0))
+      : t.noteOk(top.code, topShare.toFixed(0));
 
   return (
     <Card as="section" padding="none" className="rounded-2xl p-5 sm:p-6">
@@ -66,8 +103,10 @@ export default function AllocationChart({ analysis }: Props) {
             <path d="M22 12A10 10 0 0 0 12 2v10z" />
           </svg>
         </span>
-        <h3 className="text-sm sm:text-[15px] uppercase tracking-wider font-bold text-[var(--text)]">
-          Where Your Money Sits
+        <h3
+          className={`text-sm sm:text-[15px] uppercase tracking-wider font-bold text-[var(--text)] ${bnText}`}
+        >
+          {t.title}
         </h3>
         <div className="ml-auto inline-flex rounded-lg border border-[var(--border)] overflow-hidden text-xs">
           {(["invested", "market"] as Basis[]).map((b) => (
@@ -75,19 +114,19 @@ export default function AllocationChart({ analysis }: Props) {
               key={b}
               type="button"
               onClick={() => setBasis(b)}
-              className={`px-3 py-1.5 font-semibold transition-colors ${
+              className={`px-3 py-1.5 font-semibold transition-colors ${bnText} ${
                 basis === b
                   ? "bg-[var(--primary)] text-white"
                   : "bg-transparent text-[var(--text-muted)] hover:text-[var(--text)]"
               }`}
             >
-              {b === "invested" ? "Invested" : "Market value"}
+              {b === "invested" ? t.invested : t.market}
             </button>
           ))}
         </div>
       </div>
-      <p className="text-sm text-[var(--ink-2)] mb-5 leading-relaxed">
-        How much of your {basis === "invested" ? "cost" : "current value"} is in each stock.
+      <p className={`text-sm text-[var(--ink-2)] mb-5 leading-relaxed ${bnText}`}>
+        {t.desc(basis)}
       </p>
 
       <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start">
@@ -124,8 +163,10 @@ export default function AllocationChart({ analysis }: Props) {
             </PieChart>
           </ResponsiveContainer>
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-bold">
-              {basis === "invested" ? "Invested" : "Value"}
+            <span
+              className={`text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-bold ${bnText}`}
+            >
+              {basis === "invested" ? t.centerInvested : t.centerValue}
             </span>
             <span className="text-base font-black text-[var(--text)] tabular-nums leading-tight">
               {taka(total, 0)}
@@ -150,7 +191,7 @@ export default function AllocationChart({ analysis }: Props) {
         </div>
       </div>
 
-      <p className="text-sm text-[var(--text-muted)] mt-5 leading-relaxed">{note}</p>
+      <p className={`text-sm text-[var(--text-muted)] mt-5 leading-relaxed ${bnText}`}>{note}</p>
     </Card>
   );
 }

@@ -86,7 +86,7 @@ function buildJsonLd(
       "@type": "BreadcrumbList",
       itemListElement: [
         { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-        { "@type": "ListItem", position: 2, name: "Stock Picks", item: `${BASE_URL}/stock-insights` },
+        { "@type": "ListItem", position: 2, name: "Stock Lists", item: `${BASE_URL}/stock-insights` },
         { "@type": "ListItem", position: 3, name: displayName, item: `${BASE_URL}/stock-insights/${slug}` },
       ],
     },
@@ -108,7 +108,7 @@ export default async function StockInsightPage({ params }: Props) {
 
   let entries: StoryEntry[] = [];
   let lede = "";
-  let kicker = "DSE Insights";
+  let kicker = "DSE Stock Lists";
   let unit = "companies";
 
   if (def.insightMode) {
@@ -217,7 +217,7 @@ function Crumbs({ here }: { here: string }) {
     <nav aria-label="breadcrumb" className="ed-crumbs">
       <Link href="/">Home</Link>
       <span className="sep" aria-hidden="true">/</span>
-      <Link href="/stock-insights">Stock Picks</Link>
+      <Link href="/stock-insights">Stock Lists</Link>
       <span className="sep" aria-hidden="true">/</span>
       <span className="here">{here}</span>
     </nav>
@@ -228,7 +228,7 @@ function NavButtons() {
   return (
     <div className="ed-nav">
       <Link href="/stock-insights" className="ed-btn ed-btn-ghost">
-        ← All stories
+        ← All stock lists
       </Link>
       <Link href="/dsestockranking" className="ed-btn ed-btn-primary">
         See full rankings

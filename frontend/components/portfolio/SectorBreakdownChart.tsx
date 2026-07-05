@@ -1,8 +1,31 @@
-import type { PortfolioAnalysis } from "@/lib/portfolio-analysis";
+import type { AnalysisLang, PortfolioAnalysis } from "@/lib/portfolio-analysis";
 import Card from "@/components/ui/Card";
+
+const BN_DIGITS = "০১২৩৪৫৬৭৮৯";
+const bnNum = (v: string | number) => String(v).replace(/\d/g, (d) => BN_DIGITS[Number(d)]);
+
+const STR = {
+  en: {
+    title: "Sector Breakdown",
+    counts: (sectors: number, stocks: number) =>
+      `${sectors} sector${sectors === 1 ? "" : "s"} · ${stocks} stock${stocks === 1 ? "" : "s"}`,
+    desc: "How your money is split across different industries. If you own only bank stocks and banks have a bad year, your whole portfolio falls together — owning a mix (say bank, pharma, and telecom) means one weak sector doesn't drag everything down. As a rule of thumb, no single sector should hold more than about 40% of your portfolio.",
+    heavy: "Heavy",
+    stockCount: (n: number) => `· ${n} stock${n === 1 ? "" : "s"}`,
+  },
+  bn: {
+    title: "খাতভিত্তিক ভাগ",
+    counts: (sectors: number, stocks: number) =>
+      `${bnNum(sectors)}টি খাত · ${bnNum(stocks)}টি শেয়ার`,
+    desc: "আপনার টাকা কোন কোন শিল্পে ভাগ হয়ে আছে। শুধু ব্যাংকের শেয়ার থাকলে ব্যাংকের বছর খারাপ গেলে পুরো পোর্টফোলিও একসাথে পড়ে — কিন্তু ব্যাংক, ওষুধ, টেলিকম মিলিয়ে রাখলে একটি দুর্বল খাত সব টেনে নামাতে পারে না। মোটামুটি নিয়ম: কোনো একটি খাতে পোর্টফোলিওর ৪০%-এর বেশি না রাখা ভালো।",
+    heavy: "বেশি ভার",
+    stockCount: (n: number) => `· ${bnNum(n)}টি শেয়ার`,
+  },
+} as const;
 
 interface Props {
   analysis: PortfolioAnalysis;
+  lang?: AnalysisLang;
 }
 
 const BAR_GRADIENTS = [
@@ -27,9 +50,11 @@ const DOT_BG = [
   "bg-orange-400",
 ];
 
-export default function SectorBreakdownChart({ analysis }: Props) {
+export default function SectorBreakdownChart({ analysis, lang = "en" }: Props) {
   if (analysis.sectorSpread.length === 0) return null;
 
+  const t = STR[lang];
+  const bnText = lang === "bn" ? "font-bn" : "";
   const max = Math.max(...analysis.sectorSpread.map((s) => s.weightPct));
   const totalStocks = analysis.sectorSpread.reduce((acc, s) => acc + s.count, 0);
 
@@ -52,22 +77,17 @@ export default function SectorBreakdownChart({ analysis }: Props) {
             <path d="M22 12A10 10 0 0 0 12 2v10z" />
           </svg>
         </span>
-        <h3 className="text-sm sm:text-[15px] uppercase tracking-wider font-bold text-[var(--text)]">
-          Sector Breakdown
+        <h3
+          className={`text-sm sm:text-[15px] uppercase tracking-wider font-bold text-[var(--text)] ${bnText}`}
+        >
+          {t.title}
         </h3>
-        <span className="ml-auto text-xs sm:text-sm text-[var(--text-muted)] font-medium">
-          {analysis.sectorSpread.length} sector
-          {analysis.sectorSpread.length === 1 ? "" : "s"} · {totalStocks} stock
-          {totalStocks === 1 ? "" : "s"}
+        <span className={`ml-auto text-xs sm:text-sm text-[var(--text-muted)] font-medium ${bnText}`}>
+          {t.counts(analysis.sectorSpread.length, totalStocks)}
         </span>
       </div>
 
-      <p className="text-sm text-[var(--ink-2)] mb-5 leading-relaxed">
-        How your money is split across different industries. If you own only bank stocks and
-        banks have a bad year, your whole portfolio falls together — owning a mix (say bank,
-        pharma, and telecom) means one weak sector doesn't drag everything down. As a rule of
-        thumb, no single sector should hold more than about 40% of your portfolio.
-      </p>
+      <p className={`text-sm text-[var(--ink-2)] mb-5 leading-relaxed ${bnText}`}>{t.desc}</p>
 
       <ul className="flex flex-col gap-4">
         {analysis.sectorSpread.map((s, i) => {
@@ -82,8 +102,10 @@ export default function SectorBreakdownChart({ analysis }: Props) {
                   />
                   <span className="font-semibold text-[var(--text)] truncate">{s.name}</span>
                   {isOver40 && (
-                    <span className="shrink-0 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/15 text-[var(--watch)] border border-amber-500/30">
-                      Heavy
+                    <span
+                      className={`shrink-0 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/15 text-[var(--watch)] border border-amber-500/30 ${bnText}`}
+                    >
+                      {t.heavy}
                     </span>
                   )}
                 </div>
@@ -91,8 +113,8 @@ export default function SectorBreakdownChart({ analysis }: Props) {
                   <span className="text-base sm:text-lg font-black text-[var(--text)] tabular-nums nums">
                     {s.weightPct.toFixed(0)}%
                   </span>
-                  <span className="text-xs sm:text-sm text-[var(--text-muted)]">
-                    · {s.count} stock{s.count === 1 ? "" : "s"}
+                  <span className={`text-xs sm:text-sm text-[var(--text-muted)] ${bnText}`}>
+                    {t.stockCount(s.count)}
                   </span>
                 </div>
               </div>

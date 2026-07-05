@@ -38,7 +38,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/dsestockranking", label: "Rankings", sub: "Scored leaderboard" },
       { href: "/daily-tips", label: "Daily Tips", sub: "Fresh signals every day" },
       { href: "/stock-recommendation", label: "Find My Stocks", sub: "Personalized picker" },
-      { href: "/stock-insights", label: "Stock Picks", sub: "Curated lists" },
+      { href: "/stock-insights", label: "Stock Lists", sub: "Ready-made lists" },
       { href: "/stocks", label: "Browse All Stocks", sub: "Full A–Z table" },
     ],
   },

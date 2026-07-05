@@ -86,7 +86,7 @@ export default function ExploreMore({
           </span>
         </h2>
         <p className="mt-3 text-[var(--text-muted)] max-w-md">
-          Top movers, every listed stock, market analysis, curated insights and free guides — all in one place.
+          Top movers, every listed stock, market analysis, ready-made stock lists and free guides — all in one place.
         </p>
       </div>
 
@@ -98,7 +98,7 @@ export default function ExploreMore({
           className={`${CARD} md:col-span-2 md:row-span-2 hover:border-[color-mix(in_srgb,var(--np-cautious)_40%,var(--border))]`}
         >
           <div className="flex items-center justify-between gap-2 mb-4">
-            <CardEyebrow label="Stock Picks" color="var(--np-cautious)" />
+            <CardEyebrow label="Stock Lists" color="var(--np-cautious)" />
             <span className="text-xs font-semibold text-[var(--np-cautious)] opacity-0 group-hover:opacity-100 transition-opacity">
               View all →
             </span>
@@ -127,7 +127,7 @@ export default function ExploreMore({
           </div>
 
           <span className="mt-auto pt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--np-cautious)]">
-            Explore all insights →
+            Explore all stock lists →
           </span>
         </Link>
 

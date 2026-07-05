@@ -66,7 +66,7 @@ export default function DiscoverCard({
     const t: { key: TabKey; label: string }[] = [];
     if (rankedRows.length > 0) t.push({ key: "ranked", label: "Top ranked" });
     if (top20Rows.length > 0) t.push({ key: "top20", label: "Top 20" });
-    if (INSIGHT_LISTS.length > 0) t.push({ key: "insights", label: "Insights" });
+    if (INSIGHT_LISTS.length > 0) t.push({ key: "insights", label: "Stock Lists" });
     return t;
   }, [rankedRows.length, top20Rows.length]);
 
@@ -105,7 +105,13 @@ export default function DiscoverCard({
   const footer: Record<TabKey, { href: string; label: string }> = {
     ranked: { href: "/dsestockranking", label: "See full ranking →" },
     top20: { href: "/dse-top-20", label: "See all DSE Top 20 →" },
-    insights: { href: "/stock-insights", label: "See all stock insights →" },
+    insights: { href: "/stock-insights", label: "See all stock lists →" },
+  };
+
+  const tabDescription: Record<TabKey, string> = {
+    ranked: "Strong companies with healthy business numbers, best first.",
+    top20: "Stocks whose price moved the most in the last 7 days.",
+    insights: "Ready-made stock lists — dividends, growth, big companies and more.",
   };
 
   return (
@@ -114,7 +120,7 @@ export default function DiscoverCard({
         <span className="block px-1 text-[0.66rem] font-bold uppercase tracking-[0.16em] text-[var(--text)]">
           Discover Stocks
         </span>
-        <div role="tablist" aria-label="Discover stocks" className="mt-2.5 flex gap-1.5 overflow-x-auto pb-3">
+        <div role="tablist" aria-label="Discover stocks" className="mt-2.5 flex gap-1.5 overflow-x-auto pb-2">
           {tabs.map(({ key, label }) => {
             const isActive = active === key;
             return (
@@ -135,6 +141,9 @@ export default function DiscoverCard({
             );
           })}
         </div>
+        <p className="px-1 pb-3 text-[0.78rem] font-bold leading-snug text-[var(--text)]">
+          {tabDescription[active]}
+        </p>
       </div>
 
       <div className="divide-y divide-[var(--cell-rule)] border-t border-[var(--border)]">

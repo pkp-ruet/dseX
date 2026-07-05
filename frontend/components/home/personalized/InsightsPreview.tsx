@@ -40,7 +40,7 @@ export default function InsightsPreview() {
         href="/stock-insights"
         className="block text-center px-4 py-3 text-xs font-semibold text-[var(--primary)] hover:bg-[var(--surface-2)] border-t border-[var(--border)] transition-colors"
       >
-        See all stock insights →
+        See all stock lists →
       </Link>
     </div>
   );

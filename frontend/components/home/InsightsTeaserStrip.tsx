@@ -5,10 +5,10 @@ const PICKS = STOCK_LISTS.filter((l) => l.insightMode === true);
 
 export default function InsightsTeaserStrip() {
   return (
-    <section className="mt-10 mb-4" aria-label="Stock Picks">
+    <section className="mt-10 mb-4" aria-label="Stock Lists">
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs uppercase tracking-widest text-[var(--text-muted)] font-medium">
-          Stock Picks
+          Stock Lists
         </p>
         <Link
           href="/stock-insights"
@@ -35,7 +35,7 @@ export default function InsightsTeaserStrip() {
               {list.description}
             </p>
             <span className="text-xs font-semibold text-[var(--primary)] mt-auto">
-              Read insights →
+              See the list →
             </span>
           </Link>
         ))}
