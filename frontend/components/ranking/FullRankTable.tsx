@@ -248,6 +248,7 @@ export default function FullRankTable({ rows }: Props) {
                       aria-label={`${open ? "Hide" : "Show"} quick view for ${item.trading_code}`}
                       onClick={() => toggle(item.trading_code)}
                     >
+                      <span className="fr-toggle-label">{open ? "Less" : "More"}</span>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
                         <path
                           d="m6 9 6 6 6-6"

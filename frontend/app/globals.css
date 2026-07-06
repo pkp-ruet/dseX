@@ -401,7 +401,49 @@ a:hover .ticker-tag,
   margin: 0 0 10px;
   line-height: 1.06;
 }
-.rank-title-accent {
+.rank-page-meta {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  letter-spacing: 0.02em;
+}
+
+/* ---- Ranking page hero (bespoke — the flagship leaderboard) ---- */
+.rank-hero {
+  margin-bottom: 26px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--border);
+}
+.rank-hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--primary-ink);
+  background: color-mix(in srgb, var(--primary) 9%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--border));
+  padding: 5px 13px 5px 10px;
+  border-radius: 999px;
+  margin-bottom: 15px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.rank-hero-kicker-ico {
+  font-size: 0.92rem;
+  line-height: 1;
+  filter: saturate(1.15);
+}
+.rank-hero-title {
+  font-size: clamp(1.95rem, 4.4vw, 2.9rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  margin: 0 0 12px;
+  line-height: 1.05;
+}
+.rank-hero-accent {
   position: relative;
   white-space: nowrap;
   background: linear-gradient(95deg, var(--primary) 0%, #059669 100%);
@@ -410,53 +452,54 @@ a:hover .ticker-tag,
   -webkit-text-fill-color: transparent;
   color: transparent;
 }
-.rank-title-accent::after {
+.rank-hero-accent::after {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -0.14em;
-  height: 0.14em;
+  bottom: -0.12em;
+  height: 0.12em;
   border-radius: 999px;
   background: linear-gradient(95deg, var(--primary) 0%, #059669 100%);
   opacity: 0.9;
 }
-.rank-page-lead {
-  font-size: 1rem;
+.rank-hero-lead {
+  font-size: 1.02rem;
   line-height: 1.6;
-  max-width: 640px;
+  max-width: 600px;
   margin: 0;
-  color: var(--ink-muted);
+  color: var(--ink);
+  font-weight: 500;
 }
-.rank-page-meta-row {
+.rank-hero-lead-bn {
+  font-size: 0.95rem;
+  line-height: 1.75;
+  max-width: 600px;
+  margin: 9px 0 0;
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+.rank-hero-stats {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 16px;
-  margin-top: 14px;
+  gap: 8px;
+  margin-top: 18px;
 }
-.rank-page-meta {
-  font-size: 0.78rem;
+.rank-hero-stat {
+  font-size: 0.76rem;
   font-weight: 600;
   color: var(--ink-muted);
-  letter-spacing: 0.02em;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: 999px;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
 }
-.rank-page-meta-row .rank-page-meta + .rank-page-aside {
-  padding-left: 16px;
-  border-left: 1px solid var(--border);
-}
-.rank-page-aside {
-  font-size: 0.82rem;
-  color: var(--ink-muted);
-  text-decoration: none;
-  transition: color 0.15s ease;
-}
-.rank-page-aside strong {
-  color: var(--primary-ink);
-  font-weight: 600;
-}
-.rank-page-aside:hover {
-  color: var(--primary-ink);
+.rank-hero-stat strong {
+  color: var(--ink);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---- Tier filter chips (summary + toggle) ---- */
@@ -1033,14 +1076,15 @@ a:hover .ticker-tag,
   padding-right: 12px;
   text-align: center;
 }
-/* Vibrant tier-colored gradient squircle with a white chevron */
+/* Vibrant tier-colored gradient pill: "More" label + white chevron */
 .fr-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
+  gap: 4px;
   height: 28px;
-  border-radius: 10px;
+  padding: 0 8px 0 10px;
+  border-radius: 9px;
   border: none;
   cursor: pointer;
   color: #fff;
@@ -1054,6 +1098,12 @@ a:hover .ticker-tag,
     0 2px 7px color-mix(in srgb, var(--tier-color, var(--primary)) 38%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.28);
   transition: box-shadow 0.16s ease, transform 0.16s ease, filter 0.16s ease;
+}
+.fr-toggle-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1;
 }
 /* Springy chevron flip */
 .fr-toggle svg { transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1); }
@@ -1312,7 +1362,19 @@ a:hover .ticker-tag,
   .fr-price-val { font-size: 0.95rem; }
   .fr-chg { margin-top: 1px; font-size: 0.7rem; }
 
-  .fr-toggle { width: 30px; height: 30px; border-radius: 10px; }
+  /* Label is desktop-only. On mobile the toggle becomes a clear, raised round
+     icon-button with a prominent rotating chevron — unmistakably tappable. */
+  .fr-toggle-label { display: none; }
+  .fr-toggle {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 50%;
+    box-shadow:
+      0 3px 9px color-mix(in srgb, var(--tier-color, var(--primary)) 44%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.34);
+  }
+  .fr-toggle svg { width: 15px; height: 15px; }
 
   /* Quick view docks under its card */
   .fr-expand-row { display: block; margin-top: -9px; }

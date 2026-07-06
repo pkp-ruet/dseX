@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import Link from "next/link";
 import { flattenTiers, getScores } from "@/lib/api";
 import { getTier } from "@/lib/constants";
 import RankingExplorer from "@/components/ranking/RankingExplorer";
@@ -95,24 +94,28 @@ export default async function DseStockRankingPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className="max-w-6xl mx-auto px-4 py-8 md:py-10">
-      {/* Page header — editorial */}
-      <header className="rank-page-header">
-        <div className="rank-page-eyebrow">
-          <span className="rank-page-eyebrow-ico" aria-hidden>🏆</span>
-          Powered by TopStockBD
-        </div>
-        <h1 className="rank-page-title font-display">
-          DSE Stock <span className="rank-title-accent">Rankings</span>
+      {/* Hero — bespoke leaderboard header */}
+      <header className="rank-hero">
+        <span className="rank-hero-kicker">
+          <span className="rank-hero-kicker-ico" aria-hidden>🏆</span>
+          Dhaka Stock Exchange
+        </span>
+        <h1 className="rank-hero-title font-display">
+          DSE Stock <span className="rank-hero-accent">Rankings</span>
         </h1>
-        <p className="rank-page-lead">
-          All DSE stocks, ranked from strongest to weakest.
+        <p className="rank-hero-lead">
+          Every company on the Dhaka Stock Exchange, scored on how strong its
+          business really is — then ranked from strongest to weakest.
         </p>
-        <div className="rank-page-meta-row">
-          <span className="rank-page-meta">{allRanked.length} companies ranked</span>
-          {updated && <span className="rank-page-meta">Updated {updated}</span>}
-          <Link prefetch={false} href="/stocks" className="rank-page-aside">
-            Browse the full <strong>A–Z list</strong> →
-          </Link>
+        <p className="rank-hero-lead-bn font-bn" lang="bn">
+          ঢাকা স্টক এক্সচেঞ্জের প্রতিটি কোম্পানিকে তার ব্যবসা কতটা শক্তিশালী সেই
+          অনুযায়ী নম্বর দিয়ে সেরা থেকে দুর্বল ক্রমে সাজানো হয়েছে।
+        </p>
+        <div className="rank-hero-stats">
+          <span className="rank-hero-stat">
+            <strong>{allRanked.length}</strong> companies ranked
+          </span>
+          {updated && <span className="rank-hero-stat">Updated {updated}</span>}
         </div>
       </header>
 
