@@ -12,7 +12,7 @@ const CAT_META: Record<string, { color: string; icon: string; tag: string }> = {
   high_roe: { color: "var(--np-cautious)", icon: "⚙️", tag: "High Returns" },
   near_52w_low: { color: "var(--accent)", icon: "📉", tag: "Near Low" },
   rel_strength: { color: "var(--positive)", icon: "🚀", tag: "Outperforming" },
-  div_catalyst: { color: "var(--strong-buy)", icon: "🔔", tag: "Just Declared" },
+  div_catalyst: { color: "var(--tier-excellent)", icon: "🔔", tag: "Just Declared" },
 };
 const FALLBACK = { color: "var(--text-muted)", icon: "⭐", tag: "Pick" };
 

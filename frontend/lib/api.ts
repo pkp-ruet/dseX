@@ -27,6 +27,25 @@ export function getApiUrl(): string {
   return "https://dsex.onrender.com";
 }
 
+/** Canonical backend Buy/Hold/Sell signal (backend/services/signal_service.py).
+ *  The single source of truth for action advice — the frontend only renders it. */
+export interface StockSignalInfo {
+  signal: "buy" | "hold" | "sell" | "none";
+  reason_key: string;
+  reason_en: string;
+  reason_bn: string;
+  tier: string | null;           // excellent|good|average|weak|unknown
+  momentum_grade: string | null; // hot|warm|flat|cold|weak_liquidity|unknown
+}
+
+/** Personalized per-holding overlay on GET /api/user/portfolio. */
+export interface HoldingSignalInfo {
+  signal: "buy_more" | "hold" | "sell";
+  reason_key: string;
+  reason_en: string;
+  reason_bn: string;
+}
+
 export interface ScoreItem {
   trading_code: string;
   company_name: string | null;
@@ -46,14 +65,20 @@ export interface ScoreItem {
   last_reported_year?: number | null;
   data_age_years?: number | null;
   stale_data?: boolean | null;
+  signal?: StockSignalInfo | null;
 }
 
 export interface ScoreTiers {
-  strong_buy: ScoreItem[];
-  buy: ScoreItem[];
-  keep_watching: ScoreItem[];
-  avoid: ScoreItem[];
-  /** Legacy keys served by pre-tier-unification backends — tolerated during rollout. */
+  excellent?: ScoreItem[];
+  good?: ScoreItem[];
+  average?: ScoreItem[];
+  weak?: ScoreItem[];
+  /** Legacy keys served by pre-rename backends — tolerated during rollout;
+   *  flattenTiers() is key-agnostic so either generation renders. */
+  strong_buy?: ScoreItem[];
+  buy?: ScoreItem[];
+  keep_watching?: ScoreItem[];
+  avoid?: ScoreItem[];
   safe_buy?: ScoreItem[];
   watch?: ScoreItem[];
 }
@@ -154,11 +179,10 @@ export interface MomentumSnapshot {
 }
 
 export interface StockVerdict {
+  /** Descriptive prose only — action advice lives in CompanyDetail.signal. */
   headline: string;
   tagline: string;
   sentences: string[];
-  stance: string;
-  horizon_hint: string;
 }
 
 export interface CompanyDetail {
@@ -175,6 +199,7 @@ export interface CompanyDetail {
   related_stocks: RelatedStock[];
   momentum: MomentumSnapshot | null;
   verdict: StockVerdict | null;
+  signal?: StockSignalInfo | null;
   valuation?: ValuationContext | null;
   sector_context?: SectorContext | null;
   bengali_summary?: string | null;
@@ -909,6 +934,9 @@ export interface PortfolioHolding {
   buy_price: number;
   qty: number;
   added_at: string;
+  /** Server-computed Buy More / Hold / Sell — present on GET /api/user/portfolio
+   *  (mutation responses return bare holdings; refetch after edits). */
+  signal?: HoldingSignalInfo | null;
 }
 
 export interface PortfolioResponse {

@@ -217,8 +217,7 @@ export default async function StockDetailPage({ params }: PageProps) {
           score={score}
           rank={num(score_row?.overall_rank)}
           total={num(score_row?.total_scored)}
-          stance={verdict?.stance ?? null}
-          horizon={verdict?.horizon_hint ?? null}
+          signal={detail.signal ?? null}
           ltp={num(detail.latest_price.ltp)}
           changePct={num(detail.latest_price.change_pct)}
         />

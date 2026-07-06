@@ -1,20 +1,21 @@
 "use client";
 import { useEffect, useState } from "react";
-import { verdictHeadline, verdictTone, stanceLabel } from "@/lib/plain-language";
+import { verdictHeadline, verdictTone } from "@/lib/plain-language";
+import SignalChip from "@/components/ui/SignalChip";
+import type { StockSignalInfo } from "@/lib/api";
 
 interface Props {
   code: string;
   score: number | null;
   rank: number | null;
   total: number | null;
-  stance: string | null;
-  horizon: string | null;
+  signal?: StockSignalInfo | null;
   ltp: number | null;
   changePct: number | null;
 }
 
 export default function StickySummaryBar({
-  code, score, rank, total, stance, horizon, ltp, changePct,
+  code, score, rank, total, signal, ltp, changePct,
 }: Props) {
   const [show, setShow] = useState(false);
 
@@ -27,7 +28,6 @@ export default function StickySummaryBar({
 
   const tone = verdictTone(score);
   const word = verdictHeadline(score);
-  const stanceText = stanceLabel(stance);
   const ltpFmt = ltp == null ? "--" : ltp >= 100 ? Math.round(ltp).toLocaleString() : ltp.toFixed(1);
   const chgColor = changePct == null ? "var(--text-muted)" : changePct >= 0 ? "var(--positive)" : "var(--negative)";
 
@@ -52,13 +52,14 @@ export default function StickySummaryBar({
         >
           {word}{score != null ? ` ${Math.round(score)}` : ""}
         </span>
+        {signal && (
+          <SignalChip signal={signal.signal} reason={signal.reason_en} className="shrink-0" />
+        )}
 
         <div className="hidden sm:flex items-center gap-3 text-xs" style={{ color: "var(--text-muted)" }}>
           {rank != null && total != null && (
             <span>Rank <b style={{ color: "var(--text)" }}>#{rank}</b> of {total}</span>
           )}
-          {stanceText && <span>{stanceText}</span>}
-          {horizon && <span>{horizon}</span>}
         </div>
 
         <div className="ml-auto flex items-baseline gap-1.5 shrink-0 tabular-nums">

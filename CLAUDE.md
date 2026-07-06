@@ -84,7 +84,8 @@ DSE (Dhaka Stock Exchange) stock data pipeline with four components:
 4. **Scoring (`backend/services/scoring_service.py`)** — DSEF 5-pillar score (0–100): Earnings Quality (30%), Financial Health (20%), Operational Efficiency / Moat (20%), Valuation (15%), Dividend Sustainability (15%). Sector classes via `utils/sector.py:normalize_sector` (BANK / NBFI — incl. DSE's "Financial Institutions" — / INSURANCE / GENERAL): banks+NBFIs get financial D/E anchors, NIM margin, CFO-positivity fallback; banks+insurers skip cash/assets; insurers fall back to net margin when no gross-profit line. Sector medians for valuation exclude the company being scored. CAGR / trend computations are year-aware (handle missing-year gaps correctly).
    - **Missing-data policy**: a sub-metric whose *inputs* were never scraped is `None` and its weight renormalizes across present metrics with a 0.60 floor (`_weighted_pillar`, max boost 1.67×); present-but-bad data still scores 0. EPS (P1 m1/m2) and the whole dividend pillar stay 0-filled — absence there is the signal. Per-pillar `pN_coverage` + row-level `data_completeness` are exposed.
    - **Final-score multipliers**: staleness (2/3/4+ yr-old reports → ×0.8/0.5/0.25) and DSE market category (`_CATEGORY_MULT`: Z ×0.65, B ×0.90, A/N ×1.0, unknown ×0.95); `category_mult` is exposed on the row.
-   - **Tiers (canonical, `backend/services/tiers.py`)**: strong_buy ≥75, buy ≥60, keep_watching ≥45, avoid <45 — mirrored by frontend `lib/constants.ts`. All backend consumers import `tier_key()`; the old 75/55/35 `safe_buy`/`watch` scheme is gone.
+   - **Tiers (canonical, `backend/services/tiers.py`)**: excellent ≥75, good ≥60, average ≥45, weak <45 — labels "Excellent/Good/Average/Weak" (+ Bengali `TIER_WORDS_BN`), mirrored by frontend `lib/constants.ts`. Tiers describe fundamental strength ONLY — action advice lives in the signal service below. All consumers import `tier_key()`; the pre-2026-07 recommendation-language keys (`strong_buy`/`buy`/`keep_watching`/`avoid`) are gone (`LEGACY_TIER_KEYS` maps them at read time for old stored picks).
+   - **Buy/Hold/Sell signal (canonical, `backend/services/signal_service.py`)**: single source of truth for action advice everywhere — `/api/scores` rows, company detail, recommendation/daily picks, portfolio, push sweep. Rules: unrated→none; weak→sell; average→hold; good/excellent capped to hold by Z category, stale financials, or thin trading (<Tk 1mn avg 7d turnover); else valuation forks it — p4_val ≥7 (cheap) → buy, <4 (expensive) → hold, mid/unknown → buy only for excellent; ≥85% of the 52w range dampens any buy to hold. Momentum comes from `top20_service.compute_momentum_all()` (shared bulk `_market_window_raw`). Every signal carries `reason_en`+`reason_bn`. `holding_signal()` layers the owner's entry picture (buy_more/hold/sell — `portfolio_signals` enum unchanged); portfolio GET returns it per holding and the frontend never derives buy/sell advice itself (old TS `computeHoldingSignal` deleted). Cached 300s; cleared via `invalidate_scores_cache()`.
    - **Regression harness**: `py scripts/score_regression.py` (read-only) diffs working-tree scores vs the live `scores_snapshot` (or `--dump`/`--baseline` pickles) — tier transition matrix, top-30 turnover, movers with pillar attribution, coverage, downstream-gate counts. Run it before deploying any scoring change, then `POST /api/scores/refresh` after deploy.
 
 ### Scrapers
@@ -215,7 +216,7 @@ components/
 ├── analytics/
 │   └── PingTracker.tsx          — fires apiAuthPing on page transitions
 └── ui/
-    ├── ScoreBadge.tsx, TierPill.tsx, SectionLabel.tsx
+    ├── ScoreBadge.tsx, TierPill.tsx, SignalChip.tsx, SectionLabel.tsx
     ├── StarButton.tsx          (ThemeToggle removed — light-only)
 ```
 
@@ -312,6 +313,7 @@ Returns the same `{access_token, token_type, user}` envelope as `/login`, so fro
 - `db_service.py` — cached query layer (`@_ttl_cache(300)`, 5-min in-memory TTL).
   Key functions: `load_companies`, `load_latest_prices`, `load_price_history`, `load_financials`, `load_extended_financials`, `load_shareholdings`, `load_company_news`, `load_dividend_declarations`, `load_market_movers`, `load_market_index`, `load_dse_today_table`, `load_market_news`, `load_news_for_codes`, `load_all_company_codes`, `compute_market_intelligence`, `compute_signal_flags`, `compute_52w_range`.
 - `scoring_service.py` — DSEF scoring pipeline (`build_scores_df`), used by `scores.py` and `stock_lists.py`.
+- `signal_service.py` — canonical Buy/Hold/Sell signal (`build_signals`, `get_signal`, `holding_signal`) — see the scoring section above for the rule order.
 - `auth_service.py` — bcrypt password hashing, JWT issue/verify, `create_user`, `authenticate_user`, `get_user_by_id`, `get_user_watchlist`, `update_user_watchlist`, `sanitize_user`, `ensure_users_indexes()` (called at FastAPI startup).
 
 **Models (`backend/models/responses.py`):** Pydantic response schemas — `ScoreItem`, `ScoreTiers`, `ScoresResponse`, `LatestPrice`, `CompanyProfile`, `CompanyDetailResponse`, `MarketMoversResponse`, `DseTodayResponse`, etc. Used as `response_model=` on the relevant router endpoints.

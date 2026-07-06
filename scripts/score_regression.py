@@ -38,8 +38,7 @@ def _forbid_store(*_a, **_k):
 
 scoring_service._store_snapshot = _forbid_store  # hard guard
 
-TIERS = [("strong_buy", 75), ("buy", 60), ("keep_watching", 45), ("avoid", None)]
-LEGACY_TIERS = [("strong_buy", 75), ("safe_buy", 55), ("watch", 35), ("avoid", None)]
+TIERS = [("excellent", 75), ("good", 60), ("average", 45), ("weak", None)]
 PILLARS = [("p1_biz", 0.30), ("p2_health", 0.20), ("p3_moat", 0.20),
            ("p4_val", 0.15), ("p5_div", 0.15)]
 # Green/red signal-flag predicates that read sub-metric columns (db_service.compute_signal_flags)
@@ -176,14 +175,6 @@ def main():
     if any(entrants.values()):
         lines.append(f"| (new codes) | " + " | ".join(str(entrants[n]) for n in names) + " | - |")
 
-    lines.append("")
-    lines.append("Legacy 75/55/35 populations (for the tier-unification cutover):")
-    lt_old, lt_new = tier_counts(b, LEGACY_TIERS), tier_counts(c, LEGACY_TIERS)
-    lines.append("| tier | old | new |")
-    lines.append("|---|---|---|")
-    for name, _ in LEGACY_TIERS:
-        lines.append(f"| {name} | {lt_old[name]} | {lt_new[name]} |")
-
     # 4. Top-N stability
     section(lines, f"Top-{args.top} stability")
     top_old = list(b["score"].dropna().sort_values(ascending=False).head(args.top).index)
@@ -268,7 +259,7 @@ def main():
     lines.append("|---|---|---|")
     lines.append(f"| recommendations pool (score >= 45, not stale) | {pool(b, 45)} | {pool(c, 45)} |")
     lines.append(f"| buy-tier pools: daily picks / hidden gems (>= 60, not stale) | {pool(b, 60)} | {pool(c, 60)} |")
-    lines.append(f"| campaign strong-buy list (>= 75) | {int((b['score'] >= 75).sum())} | {int((c['score'] >= 75).sum())} |")
+    lines.append(f"| campaign top-rated list (>= 75) | {int((b['score'] >= 75).sum())} | {int((c['score'] >= 75).sum())} |")
     lines.append("")
     lines.append("Signal-flag predicate counts:")
     lines.append("| predicate | old | new |")

@@ -14,6 +14,7 @@ import {
   type DividendsUpcoming,
   type NearExtremesData,
   type WatchlistNewsItem,
+  type StockSignalInfo,
 } from "@/lib/api";
 import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
 import { taka } from "@/lib/formatters";
@@ -28,6 +29,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { getTier } from "@/lib/constants";
 import TierPill from "@/components/ui/TierPill";
+import SignalChip from "@/components/ui/SignalChip";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Skeleton from "@/components/ui/Skeleton";
@@ -245,9 +247,11 @@ function RangeBar({ ltp, high, low }: { ltp: number | null; high: number | null;
 }
 
 function SignalPills({
+  signal,
   extreme,
   hasDividendSoon,
 }: {
+  signal: StockSignalInfo | null | undefined;
   extreme: ExtremeInfo | null;
   hasDividendSoon: boolean;
 }) {
@@ -261,10 +265,17 @@ function SignalPills({
   }
   if (hasDividendSoon) pills.push({ label: "Dividend soon", tone: "info" });
 
-  if (pills.length === 0) return <span className="text-[var(--ink-muted)] text-xs">—</span>;
+  const chip =
+    signal && signal.signal !== "none" ? (
+      <SignalChip signal={signal.signal} reason={signal.reason_en} />
+    ) : null;
+
+  if (!chip && pills.length === 0)
+    return <span className="text-[var(--ink-muted)] text-xs">—</span>;
 
   return (
-    <div className="flex flex-wrap gap-1">
+    <div className="flex flex-wrap items-center gap-1">
+      {chip}
       {pills.map((p) => {
         const cls =
           p.tone === "up"
@@ -334,7 +345,8 @@ function EnrichedRow({ item, extreme, hasDividendSoon, onRemove }: RowProps) {
   const ex = extreme?.item ?? null;
   // wl-empty cells collapse on the mobile card layout instead of showing "—"
   const hasRange = ex?.w52_high != null && ex?.w52_low != null;
-  const hasSignals = extreme != null || hasDividendSoon;
+  const hasBuySell = item.signal != null && item.signal.signal !== "none";
+  const hasSignals = extreme != null || hasDividendSoon || hasBuySell;
   return (
     <tr>
       <td>
@@ -376,7 +388,7 @@ function EnrichedRow({ item, extreme, hasDividendSoon, onRemove }: RowProps) {
         />
       </td>
       <td className={hasSignals ? undefined : "wl-empty"}>
-        <SignalPills extreme={extreme} hasDividendSoon={hasDividendSoon} />
+        <SignalPills signal={item.signal} extreme={extreme} hasDividendSoon={hasDividendSoon} />
       </td>
       <td className="text-center">
         <WatchlistAlertCell

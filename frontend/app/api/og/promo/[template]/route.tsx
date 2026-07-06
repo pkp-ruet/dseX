@@ -140,7 +140,10 @@ async function RenderRankings() {
   let top: ScoreItem[] = [];
   try {
     const data = await getScores();
-    top = data.tiers.strong_buy.slice(0, 5);
+    top = flattenTiers(data)
+      .filter((s) => getTier(s.score) === "excellent")
+      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+      .slice(0, 5);
   } catch {
     top = [];
   }
@@ -170,7 +173,7 @@ async function RenderRankings() {
             lineHeight: 1.05,
           }}
         >
-          Top 5 Strong Buy Stocks
+          Top 5 Highest-Rated Stocks
         </div>
         <div
           style={{

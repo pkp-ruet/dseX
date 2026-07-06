@@ -333,7 +333,11 @@ def _ensure_today_picks() -> list[dict]:
 
 
 def _public_pick_payload(doc: dict) -> dict:
-    """Strip storage-only fields from a pick document for public consumption."""
+    """Strip storage-only fields from a pick document for public consumption.
+
+    The Buy/Hold/Sell signal is attached at read time from the live signal
+    service (current state — never persisted into daily_picks docs)."""
+    from backend.services.signal_service import build_signals, wire_fields
     return {
         "slot": doc.get("slot"),
         "source": doc.get("source"),
@@ -346,6 +350,7 @@ def _public_pick_payload(doc: dict) -> dict:
         "change_pct": doc.get("change_pct_at_pick"),
         "return_7d_pct": doc.get("return_7d_pct"),
         "reasons": doc.get("reasons") or [],
+        "signal": wire_fields(build_signals().get((doc.get("trading_code") or "").upper())),
     }
 
 

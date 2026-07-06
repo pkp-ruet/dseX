@@ -84,8 +84,14 @@ export default function AboutPage() {
         <p className="text-[1.0625rem] leading-[1.78] text-[var(--ink-2)]">
           The score reflects how strong a company looks across five
           key dimensions of fundamental analysis. Higher is better. Companies are then grouped into
-          tiers — <strong className="text-[var(--ink)]">Strong Buy, Buy, Wait &amp; Watch,</strong> and{" "}
-          <strong className="text-[var(--ink)]">Risky</strong> — so you can filter quickly.
+          ratings — <strong className="text-[var(--ink)]">Excellent, Good, Average,</strong> and{" "}
+          <strong className="text-[var(--ink)]">Weak</strong> — so you can filter quickly.
+        </p>
+        <p className="text-[1.0625rem] leading-[1.78] text-[var(--ink-2)]">
+          Separately, every stock carries a simple <strong className="text-[var(--ink)]">Buy / Hold / Sell
+          signal</strong>. The rating tells you how strong the company is; the signal tells you whether
+          now looks like a sensible time to act — it also weighs the current price and how actively
+          the share trades.
         </p>
         <p className="text-[1.0625rem] leading-[1.78] text-[var(--ink-2)]">
           No predictions. No price targets. Just a clear, structured view of what the numbers say.

@@ -1,4 +1,4 @@
-import type { ScoreItem, ScoresResponse, PortfolioHolding } from "@/lib/api";
+import { flattenTiers, type ScoreItem, type ScoresResponse, type PortfolioHolding, type HoldingSignalInfo } from "@/lib/api";
 import {
   analyzePortfolio,
   type ComputedRow,
@@ -7,8 +7,20 @@ import {
 import type { SamplePortfolio } from "@/lib/sample-portfolios";
 
 function flattenScores(scores: ScoresResponse): Map<string, ScoreItem> {
-  const all = Object.values(scores.tiers).flat();
-  return new Map(all.map((s) => [s.trading_code.toUpperCase(), s]));
+  return new Map(flattenTiers(scores).map((s) => [s.trading_code.toUpperCase(), s]));
+}
+
+/** Demo pages have no per-user portfolio API, so approximate the holding
+ *  signal from the stock's market-level signal (buy ≈ buy more). */
+function sampleHoldingSignal(item: ScoreItem | undefined): HoldingSignalInfo | null {
+  const sig = item?.signal;
+  if (!sig || sig.signal === "none") return null;
+  return {
+    signal: sig.signal === "buy" ? "buy_more" : sig.signal,
+    reason_key: sig.reason_key,
+    reason_en: sig.reason_en,
+    reason_bn: sig.reason_bn,
+  };
 }
 
 function compute(holding: PortfolioHolding, priceMap: Map<string, ScoreItem>): ComputedRow {
@@ -40,18 +52,20 @@ export function buildSampleAnalysis(
   scores: ScoresResponse,
 ): SampleAnalysisResult {
   const priceMap = flattenScores(scores);
-  const rows: ComputedRow[] = portfolio.holdings.map((h, i) =>
-    compute(
+  const rows: ComputedRow[] = portfolio.holdings.map((h, i) => {
+    const code = h.trading_code.toUpperCase();
+    return compute(
       {
         id: `sample-${portfolio.slug}-${i}`,
-        trading_code: h.trading_code.toUpperCase(),
+        trading_code: code,
         buy_price: h.buy_price,
         qty: h.qty,
         added_at: "",
+        signal: sampleHoldingSignal(priceMap.get(code)),
       },
       priceMap,
-    ),
-  );
+    );
+  });
   const analysis = analyzePortfolio(rows, priceMap);
   return { rows, priceMap, analysis };
 }

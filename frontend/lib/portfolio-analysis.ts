@@ -1,5 +1,5 @@
-import type { ScoreItem, PortfolioHolding } from "@/lib/api";
-import { getTier, type TierKey } from "@/lib/constants";
+import type { ScoreItem, PortfolioHolding, HoldingSignalInfo } from "@/lib/api";
+import { getTier, SIGNAL_LABELS, SIGNAL_LABELS_BN, type TierKey } from "@/lib/constants";
 
 export interface ComputedRow {
   holding: PortfolioHolding;
@@ -64,8 +64,9 @@ export type HoldingSignal = "buy_more" | "hold" | "sell";
 
 export interface SignalInfo {
   signal: HoldingSignal;
-  label: "Buy More" | "Hold" | "Sell";
-  /** Plain-English one-liner explaining why this signal was given. */
+  /** Display label — English or Bengali depending on the analysis language. */
+  label: string;
+  /** Plain-language one-liner explaining why this signal was given. */
   reason: string;
   /** True when we lack the data to give a real signal — render dimmed. */
   muted?: boolean;
@@ -139,10 +140,10 @@ function tierBucket(score: number | null | undefined): TierBucket {
 }
 
 const QUALITY_WORD: Record<TierBucket, QualityWord> = {
-  strong_buy: "Strong",
-  buy: "Solid",
-  keep_watching: "Average",
-  avoid: "Weak",
+  excellent: "Strong",
+  good: "Solid",
+  average: "Average",
+  weak: "Weak",
   unscored: "Unrated",
 };
 
@@ -222,75 +223,31 @@ function classifyEntry(
 }
 
 /**
- * Simple Buy More / Hold / Sell signal for a single holding, combining
- * company quality (overall score tier) with the entry/valuation picture.
- * Shared by the portfolio table, mobile cards and the analysis section.
+ * Adapter: turn the backend-computed per-holding signal (single source of
+ * truth — backend/services/signal_service.py, delivered on GET
+ * /api/user/portfolio) into the SignalInfo shape the portfolio UI renders.
+ * The frontend never derives Buy/Hold/Sell advice itself.
  */
-const SIGNAL_REASON: Record<
-  AnalysisLang,
-  { unscored: string; avoid: string; expensive: string; buyMore: string; upExpensive: string; hold: string }
-> = {
-  en: {
-    unscored:
-      "Not enough data on this company yet to give a signal — hold and watch its next results.",
-    avoid:
-      "This company scores low on overall quality. Weak companies usually give disappointing returns — consider moving the money to a stronger stock.",
-    expensive:
-      "You're at a loss and the price still looks expensive for what the company earns. Think about taking the loss and moving on.",
-    buyMore:
-      "Strong company and the price looks cheap right now — adding a little more lowers your average cost.",
-    upExpensive:
-      "You're up nicely, but the price has run ahead of the company's earnings. Hold — and consider booking part of the profit.",
-    hold: "Nothing urgent here — the price is fair for what the company earns. Let it keep working for you.",
-  },
-  bn: {
-    unscored:
-      "এই কোম্পানির যথেষ্ট তথ্য এখনো নেই, তাই এখন কোনো সংকেত দেওয়া যাচ্ছে না — ধরে রাখুন আর পরের ফলাফল দেখুন।",
-    avoid:
-      "সার্বিক মানের দিক থেকে এই কোম্পানির স্কোর কম। দুর্বল কোম্পানি সাধারণত হতাশ করে — টাকাটা আরও শক্তিশালী কোনো শেয়ারে সরানোর কথা ভাবুন।",
-    expensive:
-      "আপনি লোকসানে আছেন, আর কোম্পানির আয়ের তুলনায় দাম এখনো বেশি। লোকসান মেনে নিয়ে সরে আসার কথা ভাবুন।",
-    buyMore:
-      "কোম্পানিটি শক্তিশালী আর দাম এখন সস্তা মনে হচ্ছে — আরেকটু কিনলে আপনার গড় খরচ কমবে।",
-    upExpensive:
-      "আপনি বেশ লাভে আছেন, কিন্তু দাম কোম্পানির আয়ের চেয়ে এগিয়ে গেছে। ধরে রাখুন — আর কিছু লাভ তুলে নেওয়ার কথা ভাবুন।",
-    hold: "জরুরি কিছু নেই — কোম্পানির আয়ের তুলনায় দাম ঠিকই আছে। এটিকে আপনার জন্য কাজ করতে দিন।",
-  },
-};
-
-export function computeHoldingSignal(
-  args: {
-    pnlPct: number | null;
-    score: number | null;
-    p4: number | null | undefined;
-  },
+export function signalInfoFromApi(
+  sig: HoldingSignalInfo | null | undefined,
   lang: AnalysisLang = "en",
 ): SignalInfo {
-  const R = SIGNAL_REASON[lang];
-  const tier = tierBucket(args.score);
-  if (tier === "unscored") {
-    return { signal: "hold", label: "Hold", reason: R.unscored, muted: true };
+  if (!sig) {
+    return {
+      signal: "hold",
+      label: lang === "bn" ? SIGNAL_LABELS_BN.hold : SIGNAL_LABELS.hold,
+      reason:
+        lang === "bn"
+          ? "এই শেয়ারের সংকেত এখনো তৈরি হয়নি — পরের আপডেটে চলে আসবে।"
+          : "No signal for this holding yet — it arrives with the next data update.",
+      muted: true,
+    };
   }
-  if (tier === "avoid") {
-    return { signal: "sell", label: "Sell", reason: R.avoid };
-  }
-  const entry = classifyEntry(args.pnlPct, args.p4, lang);
-  if (entry.tag === "expensive_expensive") {
-    return { signal: "sell", label: "Sell", reason: R.expensive };
-  }
-  if (
-    (entry.tag === "down_strong" || entry.tag === "fair_attractive") &&
-    (tier === "strong_buy" || tier === "buy")
-  ) {
-    return { signal: "buy_more", label: "Buy More", reason: R.buyMore };
-  }
-  if (entry.tag === "up_expensive") {
-    return { signal: "hold", label: "Hold", reason: R.upExpensive };
-  }
-  if (entry.tag === "no_price" || entry.tag === "no_data") {
-    return { signal: "hold", label: "Hold", reason: entry.label, muted: true };
-  }
-  return { signal: "hold", label: "Hold", reason: R.hold };
+  return {
+    signal: sig.signal,
+    label: lang === "bn" ? SIGNAL_LABELS_BN[sig.signal] : SIGNAL_LABELS[sig.signal],
+    reason: (lang === "bn" ? sig.reason_bn : sig.reason_en) || sig.reason_en,
+  };
 }
 
 const ENTRY_SHORT: Record<AnalysisLang, Record<EntryTag, string>> = {
@@ -550,7 +507,7 @@ export function analyzePortfolio(
       qualityWord: QUALITY_WORD[tk],
       entryTag: entry.tag,
       entryLabel: entry.label,
-      signal: computeHoldingSignal({ pnlPct: row.pnl_pct, score, p4: item?.p4_val }, lang),
+      signal: signalInfoFromApi(row.holding.signal, lang),
       descriptor: "",
       oneLiner: "",
       pillars: {
@@ -594,7 +551,7 @@ export function analyzePortfolio(
       ? scored.reduce((acc, i) => acc + (i.score as number) * i.weightPct, 0) / totalScoredWeight
       : null;
 
-  const avoidNames = insights.filter((i) => i.tierKey === "avoid").map((i) => i.code);
+  const avoidNames = insights.filter((i) => i.tierKey === "weak").map((i) => i.code);
   const strugglingNames = insights.filter((i) => i.flags.weakFinances).map((i) => i.code);
   const shrinkingItems = insights
     .filter((i) => i.flags.earningsShrinking)
@@ -803,7 +760,7 @@ export function analyzePortfolio(
     );
   }
   const sellCandidates = insights.filter(
-    (i) => i.tierKey === "avoid" && i.entryTag === "expensive_expensive",
+    (i) => i.tierKey === "weak" && i.entryTag === "expensive_expensive",
   );
   if (sellCandidates.length > 0) {
     consider.push(
@@ -921,7 +878,7 @@ export function buildRebalancePlan(
   const maxSector = analysis.sectorSpread[0];
   const overweightSector =
     maxSector && maxSector.weightPct > 40 && holdingCount > 1 ? maxSector.name : null;
-  const avoidHoldings = analysis.holdings.filter((h) => h.tierKey === "avoid");
+  const avoidHoldings = analysis.holdings.filter((h) => h.tierKey === "weak");
   const lang = analysis.lang ?? "en";
   const bnMode = lang === "bn";
 

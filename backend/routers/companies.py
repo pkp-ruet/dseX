@@ -8,13 +8,14 @@ from backend.services.db_service import (
     load_market_news,
 )
 from backend.services.scoring_service import get_company_score_row, build_scores_df
+from backend.services.signal_service import get_signal, wire_fields
 from backend.services.top20_service import compute_momentum_for_code
 from backend.services.verdict_service import build_verdict
 from backend.services.summaries_service import load_stock_summary, load_stock_summaries
 from backend.models.responses import (
     CompanyDetailResponse, CompanyProfile, LatestPrice,
     SignalFlags, DividendDeclaration, RelatedStock,
-    MomentumSnapshot, StockVerdict, ValuationContext, SectorContext,
+    MomentumSnapshot, StockVerdict, StockSignal, ValuationContext, SectorContext,
 )
 
 router = APIRouter()
@@ -186,6 +187,13 @@ def get_company_detail(code: str):
     momentum_model = MomentumSnapshot(**momentum_dict) if momentum_dict else None
     verdict_model = StockVerdict(**verdict_dict) if verdict_dict else None
 
+    # Canonical Buy/Hold/Sell signal — attached by the router (single source;
+    # the verdict stays purely descriptive so the two can never disagree).
+    try:
+        signal_model = StockSignal(**wire_fields(get_signal(trading_code)))
+    except Exception:
+        signal_model = None
+
     # Valuation context — raw P/E & P/B vs own history vs sector median.
     # sector_implied_price = sector_median_pe × EPS (peer-relative, NOT intrinsic value).
     valuation_model = None
@@ -246,6 +254,7 @@ def get_company_detail(code: str):
         related_stocks=related,
         momentum=momentum_model,
         verdict=verdict_model,
+        signal=signal_model,
         valuation=valuation_model,
         sector_context=sector_context_model,
         bengali_summary=load_stock_summary(trading_code),

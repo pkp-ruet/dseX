@@ -2,6 +2,7 @@ import Link from "next/link";
 import { type CompanyDetail } from "@/lib/api";
 import { getTier, TIER_LABELS } from "@/lib/constants";
 import { verdictHeadline, verdictTone } from "@/lib/plain-language";
+import SignalChip from "@/components/ui/SignalChip";
 
 function toNum(v: unknown): number | null {
   if (v == null) return null;
@@ -16,7 +17,8 @@ export default function SampleAnalysisCard({ detail }: { detail: CompanyDetail }
   const score = toNum(score_row?.score);
   const tier = getTier(score);
   const tone = verdictTone(score);
-  const word = verdict?.headline ?? verdictHeadline(score);
+  const word = verdictHeadline(score);
+  const signal = detail.signal ?? null;
   const tagline = verdict?.tagline ?? verdict?.sentences?.[0] ?? null;
 
   const ltp = latest_price?.ltp ?? null;
@@ -87,9 +89,19 @@ export default function SampleAnalysisCard({ detail }: { detail: CompanyDetail }
         <span className="text-[0.6rem] font-semibold uppercase tracking-wide text-[var(--text-muted)]">Latest price</span>
       </div>
 
-      {/* Verdict teaser */}
+      {/* Verdict teaser — the tier word lives in the header pill; here the
+          action signal answers "so what do I do?" */}
       <div className="px-4 sm:px-5 pt-3">
-        <span className="font-extrabold text-lg leading-tight" style={{ color: tone.color }}>{word}</span>
+        {signal && signal.signal !== "none" ? (
+          <>
+            <SignalChip signal={signal.signal} size="md" />
+            <p className="mt-1.5 text-[0.82rem] leading-snug text-[var(--text)] font-medium line-clamp-2">
+              {signal.reason_en}
+            </p>
+          </>
+        ) : (
+          <span className="font-extrabold text-lg leading-tight" style={{ color: tone.color }}>{word}</span>
+        )}
         {tagline && (
           <p className="mt-1 text-[0.82rem] leading-snug text-[var(--text-muted)] line-clamp-2">{tagline}</p>
         )}

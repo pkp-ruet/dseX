@@ -6,17 +6,17 @@ import { getTier, type TierKey } from "@/lib/constants";
 // ---------------------------------------------------------------------------
 
 const VERDICT_WORDS: Record<TierKey, string> = {
-  strong_buy:    "Strong Buy",
-  buy:           "Buy",
-  keep_watching: "Watch",
-  avoid:         "Risky",
+  excellent: "Excellent",
+  good:      "Good",
+  average:   "Average",
+  weak:      "Weak",
 };
 
 const VERDICT_TONES: Record<TierKey, { color: string; bg: string; border: string; soft: string }> = {
-  strong_buy:    { color: "var(--strong-buy)", bg: "color-mix(in srgb, var(--strong-buy) 12%, transparent)", border: "color-mix(in srgb, var(--strong-buy) 40%, transparent)", soft: "color-mix(in srgb, var(--strong-buy) 6%, transparent)" },
-  buy:           { color: "var(--np-good)",    bg: "color-mix(in srgb, var(--np-good) 12%, transparent)",    border: "color-mix(in srgb, var(--np-good) 40%, transparent)",    soft: "color-mix(in srgb, var(--np-good) 6%, transparent)" },
-  keep_watching: { color: "var(--watch)",      bg: "color-mix(in srgb, var(--watch) 12%, transparent)",      border: "color-mix(in srgb, var(--watch) 40%, transparent)",      soft: "color-mix(in srgb, var(--watch) 6%, transparent)" },
-  avoid:         { color: "var(--negative)",   bg: "color-mix(in srgb, var(--negative) 12%, transparent)",   border: "color-mix(in srgb, var(--negative) 40%, transparent)",   soft: "color-mix(in srgb, var(--negative) 6%, transparent)" },
+  excellent: { color: "var(--tier-excellent)", bg: "color-mix(in srgb, var(--tier-excellent) 12%, transparent)", border: "color-mix(in srgb, var(--tier-excellent) 40%, transparent)", soft: "color-mix(in srgb, var(--tier-excellent) 6%, transparent)" },
+  good:      { color: "var(--tier-good)",      bg: "color-mix(in srgb, var(--tier-good) 12%, transparent)",      border: "color-mix(in srgb, var(--tier-good) 40%, transparent)",      soft: "color-mix(in srgb, var(--tier-good) 6%, transparent)" },
+  average:   { color: "var(--tier-average)",   bg: "color-mix(in srgb, var(--tier-average) 12%, transparent)",   border: "color-mix(in srgb, var(--tier-average) 40%, transparent)",   soft: "color-mix(in srgb, var(--tier-average) 6%, transparent)" },
+  weak:      { color: "var(--tier-weak)",      bg: "color-mix(in srgb, var(--tier-weak) 12%, transparent)",      border: "color-mix(in srgb, var(--tier-weak) 40%, transparent)",      soft: "color-mix(in srgb, var(--tier-weak) 6%, transparent)" },
 };
 
 export function verdictHeadline(score: number | null): string {
@@ -392,21 +392,6 @@ export function momentumSummary(m: MomentumSnapshot): MomentumSummary | null {
     ? `${bits[0].charAt(0).toUpperCase()}${bits.slice(0, 3).join(", ").slice(1)}.`
     : "No clear short-term trend right now.";
   return { ...meta, line };
-}
-
-// ---------------------------------------------------------------------------
-// Verdict stance → plain label
-// ---------------------------------------------------------------------------
-
-export function stanceLabel(stance: string | null | undefined): string | null {
-  if (!stance) return null;
-  const map: Record<string, string> = {
-    long_term_hold: "Hold for the long run",
-    short_term_trade: "Short-term trade",
-    wait: "Wait for now",
-    avoid: "Best avoided",
-  };
-  return map[stance] ?? null;
 }
 
 // ---------------------------------------------------------------------------

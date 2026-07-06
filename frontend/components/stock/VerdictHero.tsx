@@ -1,4 +1,5 @@
 import { verdictHeadline, verdictTone } from "@/lib/plain-language";
+import SignalChip from "@/components/ui/SignalChip";
 import type { CompanyDetail } from "@/lib/api";
 
 interface Props {
@@ -6,14 +7,13 @@ interface Props {
 }
 
 export default function VerdictHero({ detail }: Props) {
-  const { score_row, profile, verdict, latest_price } = detail;
+  const { score_row, profile, verdict, signal, latest_price } = detail;
   const ltp = latest_price?.ltp;
   const score = (score_row?.score as number | null) ?? null;
-  const word = verdict?.headline ?? verdictHeadline(score);
+  const word = verdictHeadline(score);
   const tone = verdictTone(score);
   const tagline = verdict?.tagline ?? null;
   const sentences = verdict?.sentences ?? [];
-  const horizonHint = verdict?.horizon_hint ?? null;
 
   // Ring geometry
   const size = 140;
@@ -180,19 +180,16 @@ export default function VerdictHero({ detail }: Props) {
               >
                 {word}
               </p>
-              {horizonHint && (
-                <span
-                  className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full whitespace-nowrap"
-                  style={{
-                    color: tone.color,
-                    background: tone.bg,
-                    border: `1px solid ${tone.border}`,
-                  }}
-                >
-                  {horizonHint}
-                </span>
-              )}
+              {signal && <SignalChip signal={signal.signal} size="md" />}
             </div>
+            {signal && signal.signal !== "none" && (
+              <p
+                className="text-sm sm:text-base font-semibold mt-2.5 leading-snug"
+                style={{ color: "var(--text)" }}
+              >
+                {signal.reason_en}
+              </p>
+            )}
             {tagline && (
               <p
                 className="text-sm sm:text-base font-semibold mt-3 leading-snug"

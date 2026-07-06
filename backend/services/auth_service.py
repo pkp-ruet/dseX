@@ -326,6 +326,13 @@ def get_last_recommendation(user_id: str) -> Optional[dict]:
     rec = (d or {}).get("last_recommendation")
     if rec and isinstance(rec.get("saved_at"), datetime):
         rec = {**rec, "saved_at": rec["saved_at"].isoformat()}
+    if rec and rec.get("picks"):
+        # Docs saved before the 2026-07 tier rename carry old tier keys.
+        from backend.services.tiers import LEGACY_TIER_KEYS
+        rec = {**rec, "picks": [
+            {**p, "tier": LEGACY_TIER_KEYS.get(p.get("tier"), p.get("tier"))}
+            for p in rec["picks"]
+        ]}
     return rec
 
 

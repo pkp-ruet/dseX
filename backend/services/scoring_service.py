@@ -845,6 +845,13 @@ def invalidate_scores_cache() -> None:
     with _scores_lock:
         df = compute_and_store_scores()
         _scores_cache = {"df": df, "at": time.time()}
+    # Signals derive from scores — drop their cache too (lazy import: the
+    # signal service imports build_scores_df from this module).
+    try:
+        from backend.services.signal_service import invalidate_signal_cache
+        invalidate_signal_cache()
+    except Exception:  # noqa: BLE001 — cache hygiene must never break a refresh
+        pass
 
 
 def build_scores_df() -> pd.DataFrame:

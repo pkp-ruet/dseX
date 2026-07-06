@@ -7,10 +7,10 @@ import { getTier } from "@/lib/constants";
 import StarButton from "@/components/ui/StarButton";
 
 const SCORE_CLASS: Record<string, string> = {
-  strong_buy:    "rr-score-top",
-  buy:           "rr-score-good",
-  keep_watching: "rr-score-watch",
-  avoid:         "rr-score-danger",
+  excellent: "rr-score-top",
+  good:      "rr-score-good",
+  average:   "rr-score-watch",
+  weak:      "rr-score-danger",
 };
 
 function sortedTop(scores: ScoreItem[]): ScoreItem[] {

@@ -33,6 +33,7 @@ from backend.services.email_service import (
     send_transactional,
     sign_email_token,
 )
+from backend.services.tiers import EXCELLENT, GOOD, TIER_WORDS
 
 log = logging.getLogger("campaign")
 
@@ -204,7 +205,7 @@ def build_market_context() -> dict:
                 name = companies.get(code, {}).get("company_name")
                 s = float(v)
                 scores[code] = s
-                if s >= 75:
+                if s >= EXCELLENT:
                     strong.append({
                         "code": code, "name": name, "score": s,
                         "ltp": prices.get(code, {}).get("ltp"),
@@ -275,8 +276,8 @@ def build_market_context() -> dict:
         "prices": prices,
         "companies": companies,
         "scores": scores,
-        "strong_buy": strong,
-        "strong_buy_count": len(strong),
+        "top_rated": strong,
+        "top_rated_count": len(strong),
         "top_dividends": div_yields[:4],
         "dividend_record": div_record,
         "upcoming_dividends": upcoming_dividends[:3],
@@ -307,7 +308,7 @@ def _52w(ctx: dict, code: str) -> tuple[Optional[float], Optional[float]]:
 
 def _badge_for_code(ctx: dict, code: str, ltp: Optional[float]) -> tuple[Optional[str], Optional[str]]:
     """Most attention-worthy badge for a watchlist row: near-52w-high → dividend
-    → strong/safe buy → none."""
+    → top rating → none."""
     hi, _lo = _52w(ctx, code)
     if ltp and hi and ltp >= 0.95 * hi:
         return "near 52w high", "high"
@@ -316,10 +317,10 @@ def _badge_for_code(ctx: dict, code: str, ltp: Optional[float]) -> tuple[Optiona
         return f"div record {rd.day} {rd.strftime('%b')}", "div"
     score = ctx["scores"].get(code)
     if score is not None:
-        if score >= 75:
-            return f"Strong Buy · {int(round(score))}", "tier"
-        if score >= 60:
-            return f"Buy · {int(round(score))}", "tier"
+        if score >= EXCELLENT:
+            return f"{TIER_WORDS['excellent']} rated · {int(round(score))}", "tier"
+        if score >= GOOD:
+            return f"{TIER_WORDS['good']} rated · {int(round(score))}", "tier"
     return None, None
 
 
@@ -398,8 +399,8 @@ def render_for_user(user: dict, ctx: dict, campaign_id: str) -> dict:
     weeks = _weeks_away(user)
     uid = user["user_id"]
     pulse = ctx["pulse"]
-    strong = ctx["strong_buy"]
-    strong_count = ctx["strong_buy_count"]
+    strong = ctx["top_rated"]
+    strong_count = ctx["top_rated_count"]
 
     watchlist_rows = None
     portfolio = None
@@ -419,7 +420,7 @@ def render_for_user(user: dict, ctx: dict, campaign_id: str) -> dict:
         pnl = portfolio.get("pnl") if portfolio else None
         direction = "up" if (pnl or 0) >= 0 else "down"
         subject = f"{first_name}, your portfolio is {direction} since you left"
-        preheader = f"Your holdings + {strong_count} stocks just hit Strong Buy"
+        preheader = f"Your holdings + {strong_count} stocks just hit our top rating"
         cta_text, cta_path = "See your portfolio", "/portfolio"
     elif segment == "watchlist":
         top = watchlist_rows[0] if watchlist_rows else None
@@ -427,14 +428,14 @@ def render_for_user(user: dict, ctx: dict, campaign_id: str) -> dict:
             subject = f"{top['code']} moved {top['change_pct']:+.1f}% — your watchlist update"
         else:
             subject = f"{first_name}, your watchlist moved"
-        preheader = f"{len(watchlist_rows)} stocks on your list · {strong_count} new Strong Buy"
+        preheader = f"{len(watchlist_rows)} stocks on your list · {strong_count} new top-rated"
         cta_text, cta_path = "See your watchlist", "/watchlist"
     else:
         chg = pulse.get("change_pct")
         if chg is not None:
-            subject = f"DSEX is {chg:+.1f}% — {strong_count} Strong Buy stocks you're missing"
+            subject = f"DSEX is {chg:+.1f}% — {strong_count} top-rated stocks you're missing"
         else:
-            subject = f"{strong_count} Strong Buy stocks on the DSE right now"
+            subject = f"{strong_count} top-rated stocks on the DSE right now"
         preheader = "A quick market update from TopStock BD"
         cta_text, cta_path = "Explore today's market", "/dse-today"
 
@@ -451,8 +452,8 @@ def render_for_user(user: dict, ctx: dict, campaign_id: str) -> dict:
         weeks_away=weeks,
         preheader=preheader,
         pulse=pulse,
-        strong_buy=strong,
-        strong_buy_count=strong_count,
+        top_rated=strong,
+        top_rated_count=strong_count,
         watchlist_rows=watchlist_rows,
         portfolio=portfolio,
         recap=recap,
@@ -479,7 +480,7 @@ def render_for_user(user: dict, ctx: dict, campaign_id: str) -> dict:
 # ---------------------------------------------------------------------------
 
 def _sample_user(segment: str, ctx: dict) -> dict:
-    codes = [s["code"] for s in ctx["strong_buy"][:4]]
+    codes = [s["code"] for s in ctx["top_rated"][:4]]
     if not codes:
         codes = list(ctx["prices"].keys())[:4]
     base = {

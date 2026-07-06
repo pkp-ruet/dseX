@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 
 from backend.services.db_service import load_companies, load_latest_prices, _ttl_cache
 from backend.services.scoring_service import build_scores_df
-from backend.services.tiers import BUY, KEEP_WATCHING, tier_key
+from backend.services.tiers import GOOD, AVERAGE, tier_key
 
 
 # Allowed answer values (kept in sync with the router's validators).
@@ -119,15 +119,15 @@ def _selected_sectors(answers: dict) -> set[str]:
 
 def _eligible(row: dict, answers: dict, drop: set[str]) -> bool:
     score = row.get("score")
-    # Always: usable score, not stale, not bottom "avoid" tier.
+    # Always: usable score, not stale, not bottom "weak" tier.
     if score is None or row.get("stale_data"):
         return False
 
     # "Steady" risk-takers should not be shown weak names — lift the score floor
-    # from the baseline avoid-tier cutoff to the Buy tier. Relaxable if too few qualify.
-    floor = KEEP_WATCHING
+    # from the baseline average-tier cutoff to the Good tier. Relaxable if too few qualify.
+    floor = AVERAGE
     if "risk" not in drop and answers.get("risk") == "steady":
-        floor = BUY
+        floor = GOOD
     if score < floor:
         return False
 
@@ -357,6 +357,9 @@ def build_recommendation(answers: dict) -> dict:
     scored.sort(key=lambda t: (-t[0], -(t[1].get("score") or 0), t[1]["trading_code"]))
     top = scored[:N_RECOMMEND]
 
+    from backend.services.signal_service import build_signals, wire_fields
+    signals = build_signals()
+
     picks = []
     for match, r in top:
         score = r.get("score")
@@ -366,6 +369,7 @@ def build_recommendation(answers: dict) -> dict:
             "sector": r.get("sector"),
             "score": score,
             "tier": _tier_of(score),
+            "signal": wire_fields(signals.get(r["trading_code"])),
             "ltp": r.get("ltp"),
             "change_pct": r.get("change_pct"),
             "div_yield_pct": r.get("div_yield_pct"),

@@ -139,7 +139,33 @@ def _persist(user_id: str, holdings: list[dict]) -> list[dict]:
 
 @router.get("")
 def get_portfolio(current_user: dict = Depends(get_current_user)):
-    return {"holdings": _load_holdings(current_user["user_id"])}
+    """Holdings enriched with the personalized Buy More / Hold / Sell signal.
+
+    Signals are computed server-side from the canonical signal service — the
+    frontend renders them and never re-derives buy/sell advice. Mutation
+    endpoints return bare holdings; the frontend refetches after edits."""
+    from backend.services.db_service import load_latest_prices
+    from backend.services.signal_service import build_signals, holding_signal
+
+    holdings = _load_holdings(current_user["user_id"])
+    try:
+        prices = load_latest_prices()
+        signals = build_signals()
+    except Exception:  # noqa: BLE001 — signals are an enrichment, never a blocker
+        prices, signals = {}, {}
+
+    out = []
+    for h in holdings:
+        code = h["trading_code"]
+        ltp = (prices.get(code) or {}).get("ltp")
+        buy_price = h.get("buy_price") or 0
+        pnl_pct = (
+            (float(ltp) - buy_price) / buy_price * 100
+            if ltp and buy_price > 0 else None
+        )
+        sig = signals.get(code)
+        out.append({**h, "signal": holding_signal(sig, pnl_pct, (sig or {}).get("p4_val"))})
+    return {"holdings": out}
 
 
 @router.get("/signal-events")

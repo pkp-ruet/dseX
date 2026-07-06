@@ -4,18 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Card from "@/components/ui/Card";
 import { getBengaliSummaries } from "@/lib/api";
+import SignalChip from "@/components/ui/SignalChip";
 import type {
   AnalysisLang,
-  HoldingSignal,
   PortfolioAnalysis,
   QualityWord,
 } from "@/lib/portfolio-analysis";
-
-const SIGNAL_LABEL_BN: Record<HoldingSignal, string> = {
-  buy_more: "আরও কিনুন",
-  hold: "ধরে রাখুন",
-  sell: "বিক্রি করুন",
-};
 
 const QUALITY_LABEL_BN: Record<QualityWord, string> = {
   Strong: "শক্তিশালী কোম্পানি",
@@ -41,24 +35,6 @@ const STR = {
     fullAnalysis: "পুরো বিশ্লেষণ",
   },
 } as const;
-
-const SIGNAL_THEME: Record<HoldingSignal, { chip: string; dot: string; icon: string }> = {
-  buy_more: {
-    chip: "bg-[color-mix(in_srgb,var(--positive)_15%,transparent)] text-[var(--positive)] border-[color-mix(in_srgb,var(--positive)_30%,transparent)]",
-    dot: "bg-[var(--positive)]",
-    icon: "▲",
-  },
-  hold: {
-    chip: "bg-[color-mix(in_srgb,var(--watch)_15%,transparent)] text-[var(--watch)] border-[color-mix(in_srgb,var(--watch)_30%,transparent)]",
-    dot: "bg-[var(--watch)]",
-    icon: "●",
-  },
-  sell: {
-    chip: "bg-[color-mix(in_srgb,var(--negative)_15%,transparent)] text-[var(--negative)] border-[color-mix(in_srgb,var(--negative)_30%,transparent)]",
-    dot: "bg-[var(--negative)]",
-    icon: "▼",
-  },
-};
 
 const QUALITY_THEME: Record<
   QualityWord,
@@ -158,7 +134,6 @@ export default function HoldingsDetailed({ analysis, lang = "en" }: Props) {
 
       {sorted.map((h) => {
         const qt = QUALITY_THEME[h.qualityWord];
-        const st = SIGNAL_THEME[h.signal.signal];
 
         return (
           <Card
@@ -182,16 +157,13 @@ export default function HoldingsDetailed({ analysis, lang = "en" }: Props) {
                   </p>
                 )}
                 <div className="flex items-center gap-2 mt-2.5 flex-wrap">
-                  <span
-                    title={h.signal.reason}
-                    className={`inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-bold uppercase tracking-wide px-2 py-1 rounded-full border cursor-help ${st.chip} ${bnText}`}
-                    style={{ opacity: h.signal.muted ? 0.75 : 1 }}
-                  >
-                    <span className="text-[9px] leading-none" aria-hidden>
-                      {st.icon}
-                    </span>
-                    {bnMode ? SIGNAL_LABEL_BN[h.signal.signal] : h.signal.label}
-                  </span>
+                  <SignalChip
+                    signal={h.signal.signal}
+                    reason={h.signal.reason}
+                    muted={h.signal.muted}
+                    size="md"
+                    lang={bnMode ? "bn" : "en"}
+                  />
                   <span
                     className={`inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-semibold px-2 py-1 rounded-full border ${qt.chip} ${bnText}`}
                   >

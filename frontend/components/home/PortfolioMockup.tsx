@@ -6,7 +6,7 @@ const SUBSCORES = [
 
 const INSIGHTS: { tone: "good" | "warn"; text: string }[] = [
   { tone: "good", text: "Well spread across 3 sectors" },
-  { tone: "good", text: "2 holdings rated Strong Buy" },
+  { tone: "good", text: "2 holdings rated Excellent" },
   { tone: "warn", text: "BEXIMCO's fundamentals look weak" },
 ];
 

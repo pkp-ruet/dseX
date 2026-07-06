@@ -29,7 +29,7 @@ SECTOR_BONUS = 6.0    # bonus when a candidate sits in a sector the user favours
 
 # Bump whenever the pick shape or scoring logic changes — a cached doc with a
 # different version is treated as stale and recomputed (no waiting for tomorrow).
-PICKS_VERSION = 2
+PICKS_VERSION = 3  # v3: tier keys renamed (excellent/good/average/weak) + signal attached
 
 
 # ---------------------------------------------------------------------------
@@ -145,12 +145,14 @@ def _pick_dict(row: dict, answers: dict, match: float, personal_reason: str | No
     reasons = _reasons_for_pick(row, answers, ctx)
     if personal_reason:
         reasons = [personal_reason] + [r for r in reasons if r != personal_reason]
+    from backend.services.signal_service import build_signals, wire_fields
     return {
         "trading_code": row["trading_code"],
         "company_name": row.get("company_name"),
         "sector": row.get("sector"),
         "score": score,
         "tier": _tier_of(score),
+        "signal": wire_fields(build_signals().get(row["trading_code"])),
         "ltp": row.get("ltp"),
         "change_pct": row.get("change_pct"),
         "div_yield_pct": row.get("div_yield_pct"),

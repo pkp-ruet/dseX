@@ -1,18 +1,11 @@
 """
 Portfolio Buy More / Hold / Sell signal tracking.
 
-The frontend shows a per-holding signal derived from company quality (score
-tier) and the entry picture (P&L vs the valuation pillar). This service mirrors
-that logic in Python so an end-of-day job can spot holdings whose signal
-*changed* — most importantly a flip to Sell — and notify the owner.
-
-Mirrors `frontend/lib/portfolio-analysis.ts:computeHoldingSignal`:
-    tier unknown                          -> hold
-    tier avoid                            -> sell
-    loss > 5% and still expensive (p4<4)  -> sell   (expensive_expensive)
-    strong/buy tier and cheap (p4>=7),
-      not already up >= 5%                -> buy_more (down_strong / fair_attractive)
-    everything else                       -> hold
+Per-holding signals come from the canonical signal service
+(`signal_service.holding_signal` — stock signal + the owner's entry picture).
+This end-of-day job spots holdings whose signal *changed* — most importantly
+a flip to Sell — and notifies the owner. The backend is the single source of
+truth; the frontend renders signals from the portfolio API response.
 
 State lives in its own `portfolio_signals` collection (one doc per
 user+holding) rather than on the user doc: the checker sweeps all users at
@@ -29,14 +22,11 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional
 
 from backend.services.db_service import get_db, load_latest_prices
-from backend.services.tiers import tier_key
 
 log = logging.getLogger("portfolio-signals")
 
 # Flips older than this are dropped from the API response (in-app bell window).
 _EVENT_RETENTION_DAYS = 7
-
-SIGNAL_WORDS = {"buy_more": "Buy More", "hold": "Hold", "sell": "Sell"}
 
 
 def _signals():
@@ -53,52 +43,6 @@ def ensure_portfolio_signal_indexes() -> None:
     col.create_index(
         [("user_id", 1), ("trading_code", 1)], unique=True, name="psig_user_code"
     )
-
-
-# ---------------------------------------------------------------------------
-# Signal computation (keep in lockstep with computeHoldingSignal on the frontend)
-# ---------------------------------------------------------------------------
-
-def compute_signal(
-    score: Optional[float],
-    p4: Optional[float],
-    pnl_pct: Optional[float],
-) -> str:
-    """Return 'buy_more' | 'hold' | 'sell' for one holding."""
-    tier = tier_key(score)
-    if tier == "unknown":
-        return "hold"
-    if tier == "avoid":
-        return "sell"
-    if pnl_pct is None or p4 is None:
-        return "hold"
-    if pnl_pct < -5 and p4 < 4:
-        return "sell"  # bought high, still expensive after the fall
-    if tier in ("strong_buy", "buy") and p4 >= 7 and pnl_pct < 5:
-        return "buy_more"  # strong company, price still cheap
-    return "hold"
-
-
-def _score_maps() -> dict:
-    """{code: {"score": float|None, "p4": float|None}} from the scores snapshot."""
-    from backend.services.scoring_service import build_scores_df
-
-    df = build_scores_df()
-    out: dict[str, dict] = {}
-    if df.empty:
-        return out
-    cols = set(df.columns)
-    for row in df.to_dict("records"):
-        code = row.get("trading_code")
-        if not code:
-            continue
-        score = row.get("score") if "score" in cols else None
-        p4 = row.get("p4_val") if "p4_val" in cols else None
-        out[str(code).upper()] = {
-            "score": float(score) if score is not None and score == score else None,
-            "p4": float(p4) if p4 is not None and p4 == p4 else None,
-        }
-    return out
 
 
 # ---------------------------------------------------------------------------
@@ -165,7 +109,9 @@ def check_and_notify(not_before_dhaka_hour: Optional[int] = None) -> dict:
     if not users:
         return {"users": 0, "holdings": 0, "changed": 0, "pushed": 0, "failed": 0}
 
-    scores = _score_maps()
+    from backend.services.signal_service import build_signals, holding_signal
+
+    signals = build_signals()
     prices = load_latest_prices()
     db = get_db()
     sends = db["push_sends"]
@@ -200,8 +146,8 @@ def check_and_notify(not_before_dhaka_hour: Optional[int] = None) -> dict:
                 (float(ltp) - buy_price) / buy_price * 100
                 if ltp and buy_price > 0 else None
             )
-            srow = scores.get(code) or {}
-            signal = compute_signal(srow.get("score"), srow.get("p4"), pnl_pct)
+            sig = signals.get(code)
+            signal = holding_signal(sig, pnl_pct, (sig or {}).get("p4_val"))["signal"]
 
             prev = prev_state.get(code)
             if prev is None:

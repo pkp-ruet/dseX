@@ -132,7 +132,7 @@ def _recap_block(recap: dict) -> str:
         chips.append((f"{s}{abs(chg):.1f}%", f"DSEX · {recap.get('dsex_label', '')}", INDIGO_BG, INDIGO_DARK))
     sc = recap.get("strong_count")
     if sc:
-        chips.append((f"{sc} new", "Strong Buy stocks", POS_BG, POS_TX))
+        chips.append((f"{sc} new", "top-rated stocks", POS_BG, POS_TX))
     dc = recap.get("dividends_count")
     if dc:
         chips.append((f"{dc}", "dividends declared", WARM_BG, WARM_TX))
@@ -152,8 +152,8 @@ def _recap_block(recap: dict) -> str:
     )
 
 
-def _strong_buy_card(strong: list[dict]) -> str:
-    """3–4 top Strong Buy stocks with score + price."""
+def _top_rated_card(strong: list[dict]) -> str:
+    """3–4 top-rated (Excellent tier) stocks with score + price."""
     if not strong:
         return ""
     items = strong[:4]
@@ -172,7 +172,7 @@ def _strong_buy_card(strong: list[dict]) -> str:
             f'color:{INDIGO_DARK};padding:2px 8px;border-radius:20px;">{score}</span></td></tr>'
         )
     return (
-        _section_label("💎 Strong Buy this week")
+        _section_label("💎 Top-rated this week")
         + f'<tr><td style="padding:0 24px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
         f'style="font-size:13px;">{"".join(rows)}</table></td></tr>'
     )
@@ -331,8 +331,8 @@ def build_html(
     weeks_away: Optional[int],
     preheader: str,
     pulse: dict,
-    strong_buy: list[dict],
-    strong_buy_count: Optional[int],
+    top_rated: list[dict],
+    top_rated_count: Optional[int],
     watchlist_rows: Optional[list[dict]] = None,
     portfolio: Optional[dict] = None,
     recap: Optional[dict] = None,
@@ -357,7 +357,7 @@ def build_html(
         sections.append(_portfolio_block(portfolio))
     elif segment == "watchlist" and watchlist_rows:
         sections.append(_watchlist_table(watchlist_rows))
-    sections.append(_strong_buy_card(strong_buy))
+    sections.append(_top_rated_card(top_rated))
     sections.append(_dividends_block(top_dividends, upcoming_dividends))
     sections.append(_sectors_block(sectors))
     sections.append(_most_watched_block(most_watched))

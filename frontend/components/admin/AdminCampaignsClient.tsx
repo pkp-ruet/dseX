@@ -17,7 +17,7 @@ import {
 const SEGMENTS: { key: CampaignSegment; label: string; hint: string }[] = [
   { key: "portfolio", label: "Portfolio holders", hint: "Value + P&L since they left" },
   { key: "watchlist", label: "Watchlist watchers", hint: "Their tickers, moves & alerts" },
-  { key: "cold", label: "Cold (no lists)", hint: "Market FOMO + Strong Buy picks" },
+  { key: "cold", label: "Cold (no lists)", hint: "Market FOMO + top-rated picks" },
 ];
 
 const btnBase =

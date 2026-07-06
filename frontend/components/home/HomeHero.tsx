@@ -78,7 +78,7 @@ function PreviewRow({ item, rank }: { item: ScoreItem; rank: number }) {
 export default function HomeHero({ topItems }: { topItems: ScoreItem[] }) {
   const { isLoggedIn, user } = useAuth();
   const preview = topItems.slice(0, 5);
-  const topTier = preview[0] ? getTier(preview[0].score) : "strong_buy";
+  const topTier = preview[0] ? getTier(preview[0].score) : "excellent";
   const companies = topItems.map((s) => ({
     trading_code: s.trading_code,
     company_name: s.company_name,

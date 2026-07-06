@@ -8,7 +8,7 @@ import type { Entities, IntentId, MessageBlock, StockRow } from "../types";
 
 const LIMIT = 5;
 
-const notAvoid = (s: ScoreItem) => getTier(s.score ?? null) !== "avoid";
+const notAvoid = (s: ScoreItem) => getTier(s.score ?? null) !== "weak";
 const bySector = (match?: string) => (s: { sector: string | null }) =>
   !match || (s.sector ?? "").toLowerCase().includes(match);
 

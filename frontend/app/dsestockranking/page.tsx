@@ -13,7 +13,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com
 export const metadata: Metadata = {
   title: "DSE Stock Rankings by Fundamental Score",
   description:
-    "All Dhaka Stock Exchange (DSE) listed companies ranked 1–N by fundamental score. View Strong Buy, Buy, Wait & Watch, and Risky tiers with price, profit growth, and dividend yield.",
+    "All Dhaka Stock Exchange (DSE) listed companies ranked 1–N by fundamental score. See Excellent, Good, Average, and Weak ratings plus a daily Buy / Hold / Sell signal, price, profit growth, and dividend yield.",
   alternates: { canonical: "/dsestockranking" },
   openGraph: {
     title: "DSE Stock Rankings by Fundamental Score",

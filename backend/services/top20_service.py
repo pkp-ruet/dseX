@@ -92,29 +92,34 @@ def _rationale(item: dict) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Core compute
+# Shared 30-day market window (bulk, cached)
 # ---------------------------------------------------------------------------
 
 @_ttl_cache(300)
-def compute_top20() -> dict:
-    db = get_db()
-    generated_at = datetime.utcnow().isoformat() + "Z"
+def _market_window_raw() -> dict:
+    """Per-code price-window factors over the last 30 trading days, computed
+    for EVERY code with a usable window in one bulk pass (one 30-day price
+    query + one DSEX summary query + one 52-week aggregation).
 
-    # --- 1. Most recent 30 distinct trading dates -----------------------------
+    Shared by compute_top20 (ranks a filtered subset), compute_momentum_for_code
+    (single-code momentum for the stock page) and compute_momentum_all (signal
+    service). No liquidity floor and no company filter here — thin and excluded
+    codes keep their rows; consumers filter as needed.
+
+    Returns {"as_of_date": str|None, "dsex_7d_change_pct": float|None,
+             "rows": {code: raw_record}} — as_of_date None means fewer than
+    two trading dates exist (rows empty).
+    """
+    db = get_db()
+
+    # --- 1. Most recent 30 distinct trading dates ---------------------------
     all_dates = sorted(
         db.stock_prices.distinct("date"),
         key=lambda d: _date_str(d),
         reverse=True,
     )
     if len(all_dates) < 2:
-        return {
-            "generated_at": generated_at,
-            "as_of_date": None,
-            "market_condition": "unknown",
-            "dsex_7d_change_pct": None,
-            "universe_size": 0,
-            "items": [],
-        }
+        return {"as_of_date": None, "dsex_7d_change_pct": None, "rows": {}}
 
     recent_dates = all_dates[:30]
     latest_date = recent_dates[0]
@@ -128,7 +133,7 @@ def compute_top20() -> dict:
 
     window30_dates = recent_dates  # up to 30 days for normalisation
 
-    # --- 2. Pull all rows for the 30-day window in a single query -------------
+    # --- 2. Pull all rows for the 30-day window in a single query -----------
     docs = list(db.stock_prices.find(
         {"date": {"$in": window30_dates}},
         {
@@ -146,7 +151,7 @@ def compute_top20() -> dict:
         bucket = by_code.setdefault(code, {})
         bucket[_date_str(d["date"])] = d
 
-    # --- 3. DSEX 7d return ----------------------------------------------------
+    # --- 3. DSEX 7d return ---------------------------------------------------
     summary_docs = list(db.dse_market_summary.find(
         {"date": {"$in": window30_dates}},
         {"_id": 0, "date": 1, "dsex": 1},
@@ -159,10 +164,7 @@ def compute_top20() -> dict:
     if today_dsex and ref_dsex and ref_dsex > 0:
         dsex_7d_pct = (today_dsex / ref_dsex - 1.0) * 100.0
 
-    # --- 4. Company metadata --------------------------------------------------
-    companies = {c["trading_code"]: c for c in load_companies()}
-
-    # --- 4b. 52-week min/max per code (one grouped aggregation) --------------
+    # --- 4. 52-week min/max per code (one grouped aggregation) --------------
     cutoff_365 = _date_str_minus_days(latest_date, 365)
     range_agg = list(db.stock_prices.aggregate([
         {"$match": {
@@ -177,13 +179,9 @@ def compute_top20() -> dict:
     ]))
     range_by_code = {r["_id"]: r for r in range_agg}
 
-    # --- 5. Per-stock raw factors --------------------------------------------
-    raw: list[dict] = []
+    # --- 5. Per-code raw factors ---------------------------------------------
+    rows: dict[str, dict] = {}
     for code, day_map in by_code.items():
-        comp = companies.get(code)
-        if not comp:
-            continue  # excluded (bond/ETF/MF) or unknown — skip
-
         today_row = day_map.get(latest_date_str)
         if not today_row:
             continue
@@ -191,60 +189,44 @@ def compute_top20() -> dict:
         if not today_ltp or today_ltp <= 0:
             continue
 
-        # 7-day window rows (excluding today is fine; we use today vs ref close)
-        window_rows = []
-        for ds in window7_dates:
-            row = day_map.get(_date_str(ds))
-            if row:
-                window_rows.append(row)
+        window_rows = [day_map[_date_str(ds)] for ds in window7_dates if _date_str(ds) in day_map]
         if len(window_rows) < MIN_DAYS_IN_WINDOW:
             continue
 
-        # 7d avg daily turnover (Tk million)
+        # 7d / 30d avg daily turnover (Tk million); 0.0 when no turnover data
         turnovers7 = [r.get("value_mn") for r in window_rows if r.get("value_mn") is not None]
-        if not turnovers7:
-            continue
-        avg_turnover_7d = sum(turnovers7) / len(turnovers7)
-        if avg_turnover_7d < MIN_AVG_TURNOVER_MN:
-            continue  # liquidity floor
+        avg_turnover_7d = (sum(turnovers7) / len(turnovers7)) if turnovers7 else 0.0
 
-        # 30d avg daily turnover (for volume conviction)
-        turnovers30 = []
-        for ds in window30_dates:
-            row = day_map.get(_date_str(ds))
-            if row and row.get("value_mn") is not None:
-                turnovers30.append(row["value_mn"])
+        turnovers30 = [day_map[_date_str(ds)].get("value_mn")
+                       for ds in window30_dates
+                       if _date_str(ds) in day_map and day_map[_date_str(ds)].get("value_mn") is not None]
         avg_turnover_30d = (sum(turnovers30) / len(turnovers30)) if turnovers30 else avg_turnover_7d
         if avg_turnover_30d <= 0:
             avg_turnover_30d = avg_turnover_7d
 
-        # --- Factor 1: 7-day price momentum -------------------------------
+        # 7d return vs the reference close (falls back to oldest row in window)
         ref_row = day_map.get(_date_str(ref_date))
         ref_close = (ref_row.get("close_price") or ref_row.get("ltp")) if ref_row else None
         if not ref_close or ref_close <= 0:
-            # Fall back to oldest row in window
             oldest = sorted(window_rows, key=lambda r: _date_str(r["date"]))[0]
             ref_close = oldest.get("close_price") or oldest.get("ltp") or oldest.get("ycp")
         if not ref_close or ref_close <= 0:
             continue
-
         return_7d = (today_ltp / ref_close - 1.0)
-        return_7d_capped = max(-RETURN_CAP, min(RETURN_CAP, return_7d))
 
-        # --- Factor 2: Relative strength vs DSEX -------------------------
+        # Relative strength vs DSEX (percentage points)
         rs = None
         if dsex_7d_pct is not None:
             rs = (return_7d * 100.0) - dsex_7d_pct
 
-        # --- Factor 3: Volume conviction ---------------------------------
+        # Volume conviction
         if avg_turnover_30d > 0 and avg_turnover_7d > 0:
             vol_factor = math.log(avg_turnover_7d / avg_turnover_30d)
         else:
             vol_factor = 0.0
-        volume_ratio_display = (avg_turnover_7d / avg_turnover_30d) if avg_turnover_30d > 0 else 1.0
+        volume_ratio = (avg_turnover_7d / avg_turnover_30d) if avg_turnover_30d > 0 else 1.0
 
-        # --- Factor 4: Trend quality -------------------------------------
-        # Compute daily returns within the window using each row's ycp/close
+        # Trend quality: daily returns within the window using each row's ycp/close
         sorted_rows = sorted(window_rows, key=lambda r: _date_str(r["date"]))
         daily_returns: list[float] = []
         for r in sorted_rows:
@@ -268,7 +250,7 @@ def compute_top20() -> dict:
         else:
             trend_factor = 0.0
 
-        # --- Factor 5: Sweet-spot bonus from 52w range -------------------
+        # 52w range position + sweet-spot bonus
         sweet = 0.0
         pct_in_range: Optional[float] = None
         rng = range_by_code.get(code)
@@ -282,22 +264,72 @@ def compute_top20() -> dict:
                 elif pct_in_range >= 95.0:
                     sweet = -1.0
 
+        rows[code] = {
+            "ltp": float(today_ltp),
+            "return_7d": return_7d,
+            "return_7d_capped": max(-RETURN_CAP, min(RETURN_CAP, return_7d)),
+            "rs": rs,
+            "volume_ratio": volume_ratio,
+            "vol_factor": vol_factor,
+            "avg_turnover_7d": avg_turnover_7d,
+            "up_days": up_days,
+            "days_counted": days_counted,
+            "trend_factor": trend_factor,
+            "pct_in_52w_range": pct_in_range,
+            "sweet": sweet,
+        }
+
+    return {"as_of_date": latest_date_str, "dsex_7d_change_pct": dsex_7d_pct, "rows": rows}
+
+
+# ---------------------------------------------------------------------------
+# Core compute
+# ---------------------------------------------------------------------------
+
+@_ttl_cache(300)
+def compute_top20() -> dict:
+    generated_at = datetime.utcnow().isoformat() + "Z"
+
+    window = _market_window_raw()
+    latest_date_str = window["as_of_date"]
+    dsex_7d_pct = window["dsex_7d_change_pct"]
+    if latest_date_str is None:
+        return {
+            "generated_at": generated_at,
+            "as_of_date": None,
+            "market_condition": "unknown",
+            "dsex_7d_change_pct": None,
+            "universe_size": 0,
+            "items": [],
+        }
+
+    # --- Company metadata + per-stock display rows ----------------------------
+    companies = {c["trading_code"]: c for c in load_companies()}
+
+    raw: list[dict] = []
+    for code, r in window["rows"].items():
+        comp = companies.get(code)
+        if not comp:
+            continue  # excluded (bond/ETF/MF) or unknown — skip
+        if r["avg_turnover_7d"] < MIN_AVG_TURNOVER_MN:
+            continue  # liquidity floor (also drops rows with no turnover data)
+
         raw.append({
             "trading_code": code,
             "company_name": comp.get("company_name"),
             "sector": comp.get("sector"),
-            "ltp": float(today_ltp),
-            "return_7d_pct": round(return_7d * 100.0, 2),
-            "_return_7d_capped": return_7d_capped,
-            "rs_vs_dsex_pct": round(rs, 2) if rs is not None else None,
-            "volume_ratio": round(volume_ratio_display, 2),
-            "_vol_factor": vol_factor,
-            "avg_turnover_7d_mn": round(avg_turnover_7d, 2),
-            "up_days_7d": up_days,
-            "days_counted": days_counted,
-            "_trend_factor": trend_factor,
-            "pct_in_52w_range": round(pct_in_range, 1) if pct_in_range is not None else None,
-            "_sweet": sweet,
+            "ltp": r["ltp"],
+            "return_7d_pct": round(r["return_7d"] * 100.0, 2),
+            "_return_7d_capped": r["return_7d_capped"],
+            "rs_vs_dsex_pct": round(r["rs"], 2) if r["rs"] is not None else None,
+            "volume_ratio": round(r["volume_ratio"], 2),
+            "_vol_factor": r["vol_factor"],
+            "avg_turnover_7d_mn": round(r["avg_turnover_7d"], 2),
+            "up_days_7d": r["up_days"],
+            "days_counted": r["days_counted"],
+            "_trend_factor": r["trend_factor"],
+            "pct_in_52w_range": round(r["pct_in_52w_range"], 1) if r["pct_in_52w_range"] is not None else None,
+            "_sweet": r["sweet"],
         })
 
     universe_size = len(raw)
@@ -391,120 +423,39 @@ def _grade_momentum(return_7d_pct: Optional[float],
     return "flat"
 
 
-@_ttl_cache(300)
 def compute_momentum_for_code(code: str) -> Optional[dict]:
-    """Compute 7d momentum snapshot for a single ticker. Returns None if data insufficient."""
+    """7d momentum snapshot for a single ticker (stock detail page verdict).
+
+    Thin delegate over the shared market window; returns None if data
+    insufficient — same conditions as the old standalone implementation.
+    """
     if not code:
         return None
-    db = get_db()
+    raw = _market_window_raw()["rows"].get(code)
+    return _momentum_dict(raw) if raw else None
 
-    all_dates = sorted(
-        db.stock_prices.distinct("date"),
-        key=lambda d: _date_str(d),
-        reverse=True,
-    )
-    if len(all_dates) < 2:
-        return None
 
-    recent_dates = all_dates[:30]
-    latest_date = recent_dates[0]
-    latest_date_str = _date_str(latest_date)
-    window7_dates = recent_dates[: min(7, len(recent_dates))]
-    ref_idx = min(7, len(recent_dates) - 1)
-    ref_date = recent_dates[ref_idx]
-    window30_dates = recent_dates
+def compute_momentum_all() -> dict[str, dict]:
+    """Momentum snapshots for every code with a usable price window.
 
-    # DSEX 7d for relative strength
-    summary_docs = list(db.dse_market_summary.find(
-        {"date": {"$in": window30_dates}},
-        {"_id": 0, "date": 1, "dsex": 1},
-    ))
-    summary_by_date = {_date_str(d["date"]): d for d in summary_docs}
-    today_dsex = summary_by_date.get(latest_date_str, {}).get("dsex")
-    ref_dsex = summary_by_date.get(_date_str(ref_date), {}).get("dsex")
-    dsex_7d_pct: Optional[float] = None
-    if today_dsex and ref_dsex and ref_dsex > 0:
-        dsex_7d_pct = (today_dsex / ref_dsex - 1.0) * 100.0
+    Same per-code shape as compute_momentum_for_code. Consumed by the
+    signal service; thin (weak_liquidity) codes are included on purpose.
+    """
+    return {code: _momentum_dict(raw) for code, raw in _market_window_raw()["rows"].items()}
 
-    # Pull this code's window
-    docs = list(db.stock_prices.find(
-        {"trading_code": code, "date": {"$in": window30_dates}},
-        {"_id": 0, "date": 1, "ltp": 1, "close_price": 1, "ycp": 1, "value_mn": 1, "volume": 1},
-    ))
-    if not docs:
-        return None
-    day_map = {_date_str(d["date"]): d for d in docs}
 
-    today_row = day_map.get(latest_date_str)
-    if not today_row:
-        return None
-    today_ltp = today_row.get("ltp") or today_row.get("close_price")
-    if not today_ltp or today_ltp <= 0:
-        return None
-
-    window_rows = [day_map[_date_str(ds)] for ds in window7_dates if _date_str(ds) in day_map]
-    if len(window_rows) < MIN_DAYS_IN_WINDOW:
-        return None
-
-    turnovers7 = [r.get("value_mn") for r in window_rows if r.get("value_mn") is not None]
-    avg_turnover_7d = (sum(turnovers7) / len(turnovers7)) if turnovers7 else 0.0
-
-    turnovers30 = [day_map[_date_str(ds)].get("value_mn")
-                   for ds in window30_dates
-                   if _date_str(ds) in day_map and day_map[_date_str(ds)].get("value_mn") is not None]
-    avg_turnover_30d = (sum(turnovers30) / len(turnovers30)) if turnovers30 else avg_turnover_7d
-    if avg_turnover_30d <= 0:
-        avg_turnover_30d = avg_turnover_7d
-
-    # 7d return
-    ref_row = day_map.get(_date_str(ref_date))
-    ref_close = (ref_row.get("close_price") or ref_row.get("ltp")) if ref_row else None
-    if not ref_close or ref_close <= 0:
-        oldest = sorted(window_rows, key=lambda r: _date_str(r["date"]))[0]
-        ref_close = oldest.get("close_price") or oldest.get("ltp") or oldest.get("ycp")
-    if not ref_close or ref_close <= 0:
-        return None
-    return_7d = (today_ltp / ref_close - 1.0) * 100.0
-
-    rs = (return_7d - dsex_7d_pct) if dsex_7d_pct is not None else None
-
-    volume_ratio = (avg_turnover_7d / avg_turnover_30d) if avg_turnover_30d > 0 else 1.0
-
-    sorted_rows = sorted(window_rows, key=lambda r: _date_str(r["date"]))
-    daily_returns = []
-    for r in sorted_rows:
-        close = r.get("close_price") or r.get("ltp")
-        ycp = r.get("ycp")
-        if close and ycp and ycp > 0:
-            daily_returns.append((close / ycp) - 1.0)
-    days_counted = len(daily_returns)
-    up_days = sum(1 for x in daily_returns if x > 0)
-
-    # 52w range position
-    cutoff_365 = _date_str_minus_days(latest_date, 365)
-    rng_doc = next(iter(db.stock_prices.aggregate([
-        {"$match": {"trading_code": code,
-                    "date": {"$gte": cutoff_365 if isinstance(cutoff_365, str) else cutoff_365},
-                    "ltp": {"$gt": 0}}},
-        {"$group": {"_id": "$trading_code", "hi": {"$max": "$ltp"}, "lo": {"$min": "$ltp"}}},
-    ])), None)
-    pct_in_range: Optional[float] = None
-    if rng_doc:
-        hi, lo = rng_doc.get("hi"), rng_doc.get("lo")
-        if hi and lo and hi > lo:
-            pct_in_range = (today_ltp - lo) / (hi - lo) * 100.0
-
-    grade = _grade_momentum(return_7d, rs, volume_ratio, avg_turnover_7d)
-
+def _momentum_dict(raw: dict) -> dict:
+    """Public momentum shape from a _market_window_raw row (grades use unrounded values)."""
+    return_7d_pct = raw["return_7d"] * 100.0
     return {
-        "return_7d_pct": round(return_7d, 2),
-        "rs_vs_dsex_pct": round(rs, 2) if rs is not None else None,
-        "volume_ratio": round(volume_ratio, 2),
-        "avg_turnover_7d_mn": round(avg_turnover_7d, 2),
-        "up_days_7d": up_days,
-        "days_counted": days_counted,
-        "pct_in_52w_range": round(pct_in_range, 1) if pct_in_range is not None else None,
-        "momentum_grade": grade,
+        "return_7d_pct": round(return_7d_pct, 2),
+        "rs_vs_dsex_pct": round(raw["rs"], 2) if raw["rs"] is not None else None,
+        "volume_ratio": round(raw["volume_ratio"], 2),
+        "avg_turnover_7d_mn": round(raw["avg_turnover_7d"], 2),
+        "up_days_7d": raw["up_days"],
+        "days_counted": raw["days_counted"],
+        "pct_in_52w_range": round(raw["pct_in_52w_range"], 1) if raw["pct_in_52w_range"] is not None else None,
+        "momentum_grade": _grade_momentum(return_7d_pct, raw["rs"], raw["volume_ratio"], raw["avg_turnover_7d"]),
     }
 
 

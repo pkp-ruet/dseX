@@ -10,20 +10,14 @@ import {
   type NearExtremesData,
   type DividendsUpcoming,
 } from "@/lib/api";
-import { getTier, TIER_LABELS, TIER_VAR, type TierKey } from "@/lib/constants";
+import { getTier, TIER_LABELS, TIER_LABELS_BN, TIER_VAR, type TierKey } from "@/lib/constants";
 
 // ---------------------------------------------------------------------------
 // Bengali helpers
 // ---------------------------------------------------------------------------
 
-// Numbers inside Bengali prose stay Western (9, 6.1%) — matches the rest of the
-// site and avoids webfont glyph issues with Bengali numerals on some devices.
-const TIER_BN: Record<TierKey, string> = {
-  strong_buy: "খুব ভালো",
-  buy: "ভালো",
-  keep_watching: "দেখে নিন",
-  avoid: "ঝুঁকি",
-};
+// Bengali tier words come from the canonical map in lib/constants
+// (Numbers inside Bengali prose stay Western — 9, 6.1% — per site convention.)
 
 // ---------------------------------------------------------------------------
 // Small building blocks
@@ -241,7 +235,7 @@ function MoodGauge({ value }: { value: number | null }) {
   );
 }
 
-const TIER_ORDER: TierKey[] = ["strong_buy", "buy", "keep_watching", "avoid"];
+const TIER_ORDER: TierKey[] = ["excellent", "good", "average", "weak"];
 
 function TierMixBar({ counts, total }: { counts: Record<TierKey, number>; total: number }) {
   if (total === 0) return null;
@@ -270,7 +264,7 @@ function TierMixBar({ counts, total }: { counts: Record<TierKey, number>; total:
             <span className="h-2 w-2 rounded-full" style={{ background: TIER_VAR[t] }} aria-hidden />
             {TIER_LABELS[t]}
             <span lang="bn" className="font-bn text-[var(--text-muted)]">
-              ({TIER_BN[t]})
+              ({TIER_LABELS_BN[t]})
             </span>
             <span className="nums">{counts[t]}</span>
           </span>
@@ -305,14 +299,14 @@ export default function WatchlistAnalysis({ codes, scores, extremes, dividends }
     if (!rows.length || !scores) return null;
 
     // Tier mix — classified client-side from the score (canonical getTier thresholds)
-    const tierCounts: Record<TierKey, number> = { strong_buy: 0, buy: 0, keep_watching: 0, avoid: 0 };
-    const tierCodes: Record<TierKey, string[]> = { strong_buy: [], buy: [], keep_watching: [], avoid: [] };
+    const tierCounts: Record<TierKey, number> = { excellent: 0, good: 0, average: 0, weak: 0 };
+    const tierCodes: Record<TierKey, string[]> = { excellent: [], good: [], average: [], weak: [] };
     for (const r of rows) {
       const t = getTier(r.score);
       tierCounts[t] += 1;
       tierCodes[t].push(r.trading_code);
     }
-    const qualityCount = tierCounts.strong_buy + tierCounts.buy;
+    const qualityCount = tierCounts.excellent + tierCounts.good;
     const qualityPct = (qualityCount / rows.length) * 100;
 
     // Avg score + today
@@ -372,10 +366,10 @@ export default function WatchlistAnalysis({ codes, scores, extremes, dividends }
       .filter((r) => (r.score ?? 0) >= 60)
       .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
 
-    // Quality on sale: Strong Buy / Buy tier near low
+    // Quality on sale: Excellent / Good tier near low
     const qualityOnSale = nearLow.filter((r) => {
       const t = getTier(r.score);
-      return t === "strong_buy" || t === "buy";
+      return t === "excellent" || t === "good";
     });
 
     // Upcoming dividends within 30d
@@ -393,7 +387,7 @@ export default function WatchlistAnalysis({ codes, scores, extremes, dividends }
     }
 
     // Red flags
-    const avoidCodes = tierCodes.avoid;
+    const avoidCodes = tierCodes.weak;
     const weakBalance = rows.filter((r) => (r.p2_health ?? 10) < 4);
     const overValued = rows.filter((r) => (r.p4_val ?? 10) < 4);
 
@@ -576,11 +570,11 @@ export default function WatchlistAnalysis({ codes, scores, extremes, dividends }
           <StoryItem
             tone={story.qualityPct >= 50 ? "good" : "warn"}
             label={`${Math.round(story.qualityPct)}% quality`}
-            bn={`${rows.length}টির মধ্যে ${story.qualityCount}টি স্টক ভালো মানের (Strong Buy বা Buy)।`}
+            bn={`${rows.length}টির মধ্যে ${story.qualityCount}টি স্টক ভালো মানের (Excellent বা Good)।`}
           >
-            {story.qualityCount} of {rows.length} stocks rank Strong Buy or Buy
-            {story.tierCodes.strong_buy.length > 0 && (
-              <>. Best of the lot: {inlineList(story.tierCodes.strong_buy.slice(0, 3))}</>
+            {story.qualityCount} of {rows.length} stocks rate Excellent or Good
+            {story.tierCodes.excellent.length > 0 && (
+              <>. Best of the lot: {inlineList(story.tierCodes.excellent.slice(0, 3))}</>
             )}
             .
           </StoryItem>
@@ -773,8 +767,8 @@ export default function WatchlistAnalysis({ codes, scores, extremes, dividends }
                 label="Quality on sale"
                 bn="ভালো স্কোরের স্টক এখন বছরের সর্বনিম্ন দামের কাছে — সস্তায় কেনার সুযোগ হতে পারে, তবে আগে যাচাই করুন।"
               >
-                {inlineList(story.qualityOnSale.map((r) => r.trading_code))} rank Strong Buy or
-                Buy AND trade within 5% of the 52-week low — a possible bargain if the business
+                {inlineList(story.qualityOnSale.map((r) => r.trading_code))} rate Excellent or
+                Good AND trade within 5% of the 52-week low — a possible bargain if the business
                 still looks healthy.
               </StoryItem>
             )}
@@ -823,7 +817,7 @@ export default function WatchlistAnalysis({ codes, scores, extremes, dividends }
             {story.avoidCodes.length > 0 && (
               <StoryItem
                 tone="bad"
-                label="Risky tier"
+                label="Weak tier"
                 bn="এই স্টকগুলোর স্কোর 45-এর নিচে — কেন রেখেছেন, আরেকবার ভেবে দেখুন।"
               >
                 {inlineList(story.avoidCodes)} score below 45 — review why you hold them, or

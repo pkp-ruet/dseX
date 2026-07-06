@@ -35,10 +35,10 @@ export interface Verdict {
 }
 
 const VERDICTS: Record<TierKey, Verdict> = {
-  strong_buy:    { label: "Top-tier pick",     colorVar: "var(--strong-buy)" },
-  buy:           { label: "Solid & dependable", colorVar: "var(--safe-buy)" },
-  keep_watching: { label: "One to watch",       colorVar: "var(--watch)" },
-  avoid:         { label: "Higher risk",        colorVar: "var(--avoid)" },
+  excellent: { label: "Top-tier pick",      colorVar: "var(--tier-excellent)" },
+  good:      { label: "Solid & dependable", colorVar: "var(--tier-good)" },
+  average:   { label: "One to watch",       colorVar: "var(--tier-average)" },
+  weak:      { label: "Higher risk",        colorVar: "var(--tier-weak)" },
 };
 
 export function getVerdict(score: number | null | undefined): Verdict {
@@ -324,7 +324,7 @@ export interface SectorSummary {
   avgScore: number;
   topStock: ScoreItem;
   stockCount: number;
-  strongBuyCount: number;
+  topTierCount: number;
   avgEpsYoy: number | null;
   insight: string;
 }
@@ -346,7 +346,7 @@ export function getSectorInsights(items: ScoreItem[]): SectorSummary[] {
 
     const avgScore = scored.reduce((acc, s) => acc + (s.score ?? 0), 0) / scored.length;
     const topStock = scored.reduce((a, b) => ((a.score ?? 0) > (b.score ?? 0) ? a : b));
-    const strongBuyCount = scored.filter((s) => (s.score ?? 0) >= 75).length;
+    const topTierCount = scored.filter((s) => (s.score ?? 0) >= 75).length;
 
     const epsVals = stocks
       .filter((s) => s.eps_yoy_pct != null)
@@ -356,8 +356,8 @@ export function getSectorInsights(items: ScoreItem[]): SectorSummary[] {
 
     const topName = nameOf(topStock);
     const strongBit =
-      strongBuyCount > 0
-        ? ` ${strongBuyCount} of its names rank among the market's best.`
+      topTierCount > 0
+        ? ` ${topTierCount} of its names rank among the market's best.`
         : "";
     const epsBit =
       avgEpsYoy != null && avgEpsYoy > 3
@@ -367,7 +367,7 @@ export function getSectorInsights(items: ScoreItem[]): SectorSummary[] {
         : "";
     const insight = `A deep field of ${scored.length} companies, with ${topName} the standout.${strongBit}${epsBit}`;
 
-    summaries.push({ sector, avgScore, topStock, stockCount: stocks.length, strongBuyCount, avgEpsYoy, insight });
+    summaries.push({ sector, avgScore, topStock, stockCount: stocks.length, topTierCount, avgEpsYoy, insight });
   }
 
   return summaries.sort((a, b) => b.avgScore - a.avgScore).slice(0, 12);

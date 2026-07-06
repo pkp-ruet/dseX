@@ -55,7 +55,7 @@ export const metadata: Metadata = {
     template: "%s | TopStockBD",
   },
   description:
-    "Free fundamental analysis and DSEF scores for all Dhaka Stock Exchange (DSE) listed companies. Find Strong Buy, Safe Buy, Watch, and Avoid tier rankings.",
+    "Free fundamental analysis, stock scores, and daily Buy / Hold / Sell signals for every Dhaka Stock Exchange (DSE) listed company. See which stocks rate Excellent, Good, Average, or Weak before you invest.",
   keywords: [
     "DSE", "Dhaka Stock Exchange", "DSEX", "Bangladesh stock market",
     "share market Bangladesh", "BD stock market", "DSE share price",

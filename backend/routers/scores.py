@@ -3,8 +3,9 @@ from datetime import datetime, timezone
 from fastapi import APIRouter
 from backend.services.scoring_service import build_scores_df, invalidate_scores_cache
 from backend.services.db_service import load_companies
+from backend.services.signal_service import build_signals, wire_fields
 from backend.services.tiers import TIER_KEYS, tier_key
-from backend.models.responses import ScoresResponse, ScoreItem, ScoreTiers
+from backend.models.responses import ScoresResponse, ScoreItem, ScoreTiers, StockSignal
 
 router = APIRouter()
 
@@ -29,6 +30,7 @@ def refresh_scores():
 def get_scores():
     df = build_scores_df()
     companies = {c["trading_code"]: c for c in load_companies()}
+    signals = build_signals()
 
     tiers: dict[str, list[ScoreItem]] = {k: [] for k in TIER_KEYS}
 
@@ -61,6 +63,9 @@ def get_scores():
                 data_age_years=int(_day) if _day is not None and not (isinstance(_day, float) and math.isnan(_day)) else None,
                 stale_data=bool(_stale) if _stale is not None and not (isinstance(_stale, float) and math.isnan(_stale)) else None,
             )
+            sig = wire_fields(signals.get(code))
+            if sig:
+                item.signal = StockSignal(**sig)
             tiers[tier_key(score)].append(item)
 
     # Inject latest price change_pct

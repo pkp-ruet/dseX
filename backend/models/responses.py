@@ -2,6 +2,24 @@ from typing import Optional, Any
 from pydantic import BaseModel
 
 
+class StockSignal(BaseModel):
+    """Canonical Buy/Hold/Sell action signal (services/signal_service.py)."""
+    signal: str                          # buy | hold | sell | none
+    reason_key: str
+    reason_en: str
+    reason_bn: str
+    tier: Optional[str] = None           # excellent|good|average|weak|unknown
+    momentum_grade: Optional[str] = None  # hot|warm|flat|cold|weak_liquidity|unknown
+
+
+class HoldingSignal(BaseModel):
+    """Personalized per-holding overlay (portfolio_signals enum, unchanged)."""
+    signal: str                          # buy_more | hold | sell
+    reason_key: str
+    reason_en: str
+    reason_bn: str
+
+
 class ScoreItem(BaseModel):
     trading_code: str
     company_name: Optional[str] = None
@@ -21,6 +39,7 @@ class ScoreItem(BaseModel):
     last_reported_year: Optional[int] = None
     data_age_years: Optional[int] = None
     stale_data: Optional[bool] = None
+    signal: Optional[StockSignal] = None
 
 
 class RecommendedStock(BaseModel):
@@ -28,7 +47,7 @@ class RecommendedStock(BaseModel):
     company_name: Optional[str] = None
     sector: Optional[str] = None
     score: Optional[float] = None
-    tier: Optional[str] = None          # strong_buy|buy|keep_watching|avoid (services/tiers.py)
+    tier: Optional[str] = None          # excellent|good|average|weak (services/tiers.py)
     ltp: Optional[float] = None
     change_pct: Optional[float] = None
     div_yield_pct: Optional[float] = None
@@ -39,6 +58,7 @@ class RecommendedStock(BaseModel):
     p5_div: Optional[float] = None
     match_score: float = 0.0            # internal 0-100 ranking score
     reasons: list[str] = []            # 1-2 plain-language sentences
+    signal: Optional[StockSignal] = None
 
 
 class RecommendationResponse(BaseModel):
@@ -50,10 +70,10 @@ class RecommendationResponse(BaseModel):
 
 
 class ScoreTiers(BaseModel):
-    strong_buy: list[ScoreItem]
-    buy: list[ScoreItem]
-    keep_watching: list[ScoreItem]
-    avoid: list[ScoreItem]
+    excellent: list[ScoreItem]
+    good: list[ScoreItem]
+    average: list[ScoreItem]
+    weak: list[ScoreItem]
 
 
 class ScoresResponse(BaseModel):
@@ -146,11 +166,10 @@ class MomentumSnapshot(BaseModel):
 
 
 class StockVerdict(BaseModel):
+    """Descriptive prose only — action advice lives in StockSignal."""
     headline: str
     tagline: str
     sentences: list[str]
-    stance: str       # long_term_hold | short_term_trade | wait | avoid
-    horizon_hint: str # display label
 
 
 class CompanyDetailResponse(BaseModel):
@@ -167,6 +186,7 @@ class CompanyDetailResponse(BaseModel):
     related_stocks: list[RelatedStock] = []
     momentum: Optional[MomentumSnapshot] = None
     verdict: Optional[StockVerdict] = None
+    signal: Optional[StockSignal] = None
     valuation: Optional[ValuationContext] = None
     sector_context: Optional[SectorContext] = None
     bengali_summary: Optional[str] = None  # plain-Bangla "এক নজরে" (cached, generated post-scrape)

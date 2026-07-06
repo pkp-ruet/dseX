@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { TIER_LABELS, TIER_SCORE_LABELS, TIER_VAR, type TierKey } from "@/lib/constants";
 import FullRankTable, { type RankedItem, type RankedRow } from "@/components/ranking/FullRankTable";
 
-const TIERS_ORDER: TierKey[] = ["strong_buy", "buy", "keep_watching", "avoid"];
+const TIERS_ORDER: TierKey[] = ["excellent", "good", "average", "weak"];
 
 // Canonical token tier colors — shared with FullRankTable / ScoreBadge.
 const TIER_COLOR = TIER_VAR;

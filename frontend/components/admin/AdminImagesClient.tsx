@@ -41,7 +41,7 @@ const TEMPLATES: Template[] = [
   {
     key: "rankings",
     title: "Top Rankings",
-    description: "Top 5 Strong Buy stocks with DSEF score and price.",
+    description: "Top 5 highest-rated stocks with DSEF score and price.",
   },
   {
     key: "stock",

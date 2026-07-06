@@ -390,7 +390,7 @@ def _watchlist_angle(ctx: dict, codes: list[str], lang: str) -> Optional[dict]:
         if bn:
             body = {"high": f"{code} ৫২-সপ্তাহের চূড়ার খুব কাছে",
                     "div": f"{code}-এর ডিভিডেন্ড রেকর্ড ডেট কাছেই",
-                    "tier": f"{code} এখন Strong Buy তালিকায়"}.get(kind, f"{code}: {badge['badge_text']}")
+                    "tier": f"{code} এখন সেরা রেটিং তালিকায়"}.get(kind, f"{code}: {badge['badge_text']}")
         else:
             body = f"{code}: {badge['badge_text']}"
         return {"v": "watch-badge", "title": title, "body": body, "url": f"/stock/{code}"}

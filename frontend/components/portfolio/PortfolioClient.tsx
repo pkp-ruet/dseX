@@ -9,6 +9,7 @@ import {
   getRange52w,
   getWatchlistNews,
   getDividendsUpcoming,
+  flattenTiers,
   type ScoreItem,
   type ScoresResponse,
   type PortfolioHolding,
@@ -20,12 +21,13 @@ import {
   apiDeleteHolding,
 } from "@/lib/api";
 import { taka, formatDate } from "@/lib/formatters";
-import { computeHoldingSignal, portfolioTodayMove, type SignalInfo } from "@/lib/portfolio-analysis";
+import { signalInfoFromApi, portfolioTodayMove, type SignalInfo } from "@/lib/portfolio-analysis";
 import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
 import { getStoredUser } from "@/lib/auth";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
+import SignalChip from "@/components/ui/SignalChip";
 import PortfolioAnalysis from "./PortfolioAnalysis";
 import PortfolioHero from "./PortfolioHero";
 import AddHoldingModal from "./AddHoldingModal";
@@ -34,8 +36,7 @@ import WatchlistAlertCell from "@/components/watchlist/WatchlistAlertCell";
 
 function flattenScores(scores: ScoresResponse | null): Map<string, ScoreItem> {
   if (!scores) return new Map();
-  const all = Object.values(scores.tiers).flat();
-  return new Map(all.map((s) => [s.trading_code.toUpperCase(), s]));
+  return new Map(flattenTiers(scores).map((s) => [s.trading_code.toUpperCase(), s]));
 }
 
 interface ComputedRow {
@@ -71,7 +72,7 @@ function compute(
     current_value,
     pnl,
     pnl_pct,
-    signal: computeHoldingSignal({ pnlPct: pnl_pct, score: item?.score ?? null, p4: item?.p4_val }),
+    signal: signalInfoFromApi(holding.signal),
     w52_high: range?.w52_high ?? null,
     w52_low: range?.w52_low ?? null,
   };
@@ -164,33 +165,6 @@ function PnlPill({ value, pct }: { value: number | null; pct: number | null }) {
           {pct.toFixed(1)}%
         </span>
       )}
-    </span>
-  );
-}
-
-/** Buy More / Hold / Sell pill shown on each holding (cards + table). */
-function SignalPill({ signal }: { signal: SignalInfo }) {
-  const accent = signal.muted
-    ? "var(--text-muted)"
-    : signal.signal === "buy_more"
-      ? "var(--positive)"
-      : signal.signal === "sell"
-        ? "var(--negative)"
-        : "var(--watch)";
-  return (
-    <span
-      title={signal.reason}
-      className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide whitespace-nowrap cursor-help"
-      style={{
-        color: accent,
-        background: `color-mix(in srgb, ${accent} 12%, transparent)`,
-        opacity: signal.muted ? 0.75 : 1,
-      }}
-    >
-      <span className="text-[9px] leading-none" aria-hidden>
-        {signal.signal === "buy_more" ? "▲" : signal.signal === "sell" ? "▼" : "●"}
-      </span>
-      {signal.label}
     </span>
   );
 }
@@ -896,7 +870,7 @@ export default function PortfolioClient() {
 
               {/* Row 2: signal | P&L */}
               <div className="mt-2 flex items-center justify-between gap-2">
-                <SignalPill signal={row.signal} />
+                <SignalChip signal={row.signal.signal} reason={row.signal.reason} muted={row.signal.muted} />
                 <PnlPill value={row.pnl} pct={row.pnl_pct} />
               </div>
 
@@ -1023,7 +997,7 @@ export default function PortfolioClient() {
                       </div>
                     </td>
                     <td className="px-3 sm:px-4 py-3.5 text-right">
-                      <SignalPill signal={row.signal} />
+                      <SignalChip signal={row.signal.signal} reason={row.signal.reason} muted={row.signal.muted} />
                     </td>
                     <td className="px-3 sm:px-4 py-3.5">
                       <div className="flex items-center justify-end gap-1 opacity-70 group-hover:opacity-100 transition-opacity">

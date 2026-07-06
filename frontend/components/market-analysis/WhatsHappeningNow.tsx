@@ -52,10 +52,10 @@ function Sectors({ sectors }: { sectors: MarketSectorRow[] }) {
 
 function Quality({ quality }: { quality: MarketQuality }) {
   const segs = [
-    { label: "Strong", n: quality.strong, bg: "var(--strong-buy)" },
-    { label: "Good", n: quality.good, bg: "var(--np-good)" },
-    { label: "So-so", n: quality.soso, bg: "var(--watch)" },
-    { label: "Risky", n: quality.risky, bg: "var(--avoid)" },
+    { label: "Strong", n: quality.strong, bg: "var(--tier-excellent)" },
+    { label: "Good", n: quality.good, bg: "var(--tier-good)" },
+    { label: "So-so", n: quality.soso, bg: "var(--tier-average)" },
+    { label: "Weak", n: quality.risky, bg: "var(--tier-weak)" },
   ];
   const healthy = quality.strong + quality.good;
   const healthyPct = quality.total ? (healthy / quality.total) * 100 : 0;

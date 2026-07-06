@@ -8,10 +8,10 @@ interface Props {
 }
 
 const TIERS = [
-  { key: "strong_buy",    label: "Strong Buy",    fillClass: "score-bar-fill-strong"        },
-  { key: "buy",           label: "Buy",           fillClass: "score-bar-fill-good"          },
-  { key: "keep_watching", label: "Wait & Watch",  fillClass: "score-bar-fill-keep-watching" },
-  { key: "avoid",         label: "Risky",         fillClass: "score-bar-fill-avoid"         },
+  { key: "excellent", label: "Excellent", fillClass: "score-bar-fill-excellent" },
+  { key: "good",      label: "Good",      fillClass: "score-bar-fill-good"      },
+  { key: "average",   label: "Average",   fillClass: "score-bar-fill-average"   },
+  { key: "weak",      label: "Weak",      fillClass: "score-bar-fill-weak"      },
 ] as const;
 
 export default function ScoreOverview({ counts, total, computedAt }: Props) {
