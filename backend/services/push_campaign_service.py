@@ -371,7 +371,7 @@ def _watchlist_angle(ctx: dict, codes: list[str], lang: str) -> Optional[dict]:
     if nup + ndown >= 2:
         parts = []
         if nup:
-            parts.append(f"{nup}টা স্টক আজ লাফিয়েছে" if bn else f"{nup} jumped")
+            parts.append(f"{nup}টা স্টক আজ বেড়েছে" if bn else f"{nup} jumped")
         if ndown:
             parts.append(f"{ndown}টা পড়েছে" if bn else f"{ndown} fell")
         if nhigh:
