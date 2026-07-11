@@ -2,7 +2,7 @@
 
 import { Fragment, useMemo, useState, type MouseEvent } from "react";
 import Link from "next/link";
-import { TIER_LABELS, TIER_VAR, type TierKey } from "@/lib/constants";
+import { TIER_GRADES, TIER_LABELS, TIER_MEANINGS, TIER_VAR, type TierKey } from "@/lib/constants";
 import StarButton from "@/components/ui/StarButton";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import RankRowDetails from "@/components/ranking/RankRowDetails";
@@ -100,9 +100,15 @@ export default function FullRankTable({ rows }: Props) {
                       className="fr-tier-sep"
                       style={{ ["--tier-color" as string]: tierColor }}
                     >
-                      <span className="fr-tier-sep-dot" style={{ background: tierColor }} />
-                      <span className="fr-tier-sep-label">{TIER_LABELS[entry.tier]}</span>
-                      <span className="fr-tier-sep-count">{entry.count}</span>
+                      <span className="fr-tier-sep-grade" aria-hidden>{TIER_GRADES[entry.tier]}</span>
+                      <span className="fr-tier-sep-text">
+                        <span className="fr-tier-sep-label">{TIER_LABELS[entry.tier]}</span>
+                        <span className="fr-tier-sep-meaning">{TIER_MEANINGS[entry.tier]}</span>
+                      </span>
+                      <span className="fr-tier-sep-count">
+                        <strong>{entry.count}</strong>
+                        <span className="fr-tier-sep-count-word">companies</span>
+                      </span>
                     </div>
                   </td>
                 </tr>
@@ -209,7 +215,15 @@ export default function FullRankTable({ rows }: Props) {
                   </td>
 
                   <td className="fr-td fr-td-score">
-                    <ScoreBadge score={item.score} tier={item.tier} size="sm" />
+                    <div className="fr-score-cell">
+                      <ScoreBadge score={item.score} tier={item.tier} size="sm" />
+                      <span className="fr-tier-tag">
+                        <span className="fr-tier-tag-grade" aria-hidden>
+                          {TIER_GRADES[item.tier]}
+                        </span>
+                        <span className="fr-tier-tag-word">{TIER_LABELS[item.tier]}</span>
+                      </span>
+                    </div>
                   </td>
 
                   <td className="fr-td fr-td-num">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { TIER_LABELS, TIER_SCORE_LABELS, TIER_VAR, type TierKey } from "@/lib/constants";
+import { TIER_GRADES, TIER_LABELS, TIER_VAR, type TierKey } from "@/lib/constants";
 import FullRankTable, { type RankedItem, type RankedRow } from "@/components/ranking/FullRankTable";
 
 const TIERS_ORDER: TierKey[] = ["excellent", "good", "average", "weak"];
@@ -73,32 +73,40 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
 
   return (
     <div className="rank-explorer">
-      {/* Tier filter chips (double as the at-a-glance summary) */}
-      <div className="rank-chips" role="group" aria-label="Filter by tier">
-        {TIERS_ORDER.map((tier) => {
-          const count = counts[tier] ?? 0;
-          const share = total > 0 ? Math.round((count / total) * 100) : 0;
-          const active = activeTiers.has(tier);
-          return (
-            <button
-              key={tier}
-              type="button"
-              onClick={() => toggleTier(tier)}
-              aria-pressed={active}
-              className={`rank-chip${active ? " is-active" : ""}`}
-              style={{ ["--tier-color" as string]: TIER_COLOR[tier] }}
-            >
-              <span className="rank-chip-top">
-                <span className="rank-chip-dot" />
-                <span className="rank-chip-label">{TIER_LABELS[tier]}</span>
-              </span>
-              <span className="rank-chip-count">{count}</span>
-              <span className="rank-chip-meta">
-                {share}% · {TIER_SCORE_LABELS[tier]}
-              </span>
-            </button>
-          );
-        })}
+      {/* Tier quality bar — market proportion per tier; doubles as the filter */}
+      <div className="rank-qbar-wrap" role="group" aria-label="Filter by tier">
+        <div className="rank-qbar">
+          {TIERS_ORDER.map((tier) => {
+            const count = counts[tier] ?? 0;
+            const share = total > 0 ? Math.round((count / total) * 100) : 0;
+            const active = activeTiers.has(tier);
+            return (
+              <button
+                key={tier}
+                type="button"
+                onClick={() => toggleTier(tier)}
+                aria-pressed={active}
+                aria-label={`${TIER_LABELS[tier]} — ${count} companies, ${share}%${
+                  active ? "" : " (hidden)"
+                }`}
+                className={`rank-qseg${active ? " is-active" : ""}`}
+                style={{ flexGrow: count, ["--tier-color" as string]: TIER_COLOR[tier] }}
+              >
+                <span className="rank-qseg-grade" aria-hidden>{TIER_GRADES[tier]}</span>
+                <span className="rank-qseg-count">{count}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="rank-qbar-legend">
+          {TIERS_ORDER.map((tier) => (
+            <span key={tier} className="rank-qbar-legend-item">
+              <b style={{ color: TIER_COLOR[tier] }}>{TIER_GRADES[tier]}</b>
+              {TIER_LABELS[tier]}
+            </span>
+          ))}
+          <span className="rank-qbar-hint">tap a band to filter</span>
+        </div>
       </div>
 
       {/* Search + sector controls */}

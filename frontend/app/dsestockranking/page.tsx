@@ -97,7 +97,7 @@ export default async function DseStockRankingPage() {
       {/* Hero — bespoke leaderboard header */}
       <header className="rank-hero">
         <span className="rank-hero-kicker">
-          <span className="rank-hero-kicker-ico" aria-hidden>🏆</span>
+          <span className="rank-hero-kicker-bar" aria-hidden />
           Dhaka Stock Exchange
         </span>
         <h1 className="rank-hero-title font-display">
@@ -111,11 +111,16 @@ export default async function DseStockRankingPage() {
           ঢাকা স্টক এক্সচেঞ্জের প্রতিটি কোম্পানিকে তার ব্যবসা কতটা শক্তিশালী সেই
           অনুযায়ী নম্বর দিয়ে সেরা থেকে দুর্বল ক্রমে সাজানো হয়েছে।
         </p>
-        <div className="rank-hero-stats">
-          <span className="rank-hero-stat">
+        <div className="rank-hero-meta">
+          <span className="rank-hero-meta-item">
             <strong>{allRanked.length}</strong> companies ranked
           </span>
-          {updated && <span className="rank-hero-stat">Updated {updated}</span>}
+          {updated && (
+            <>
+              <span className="rank-hero-meta-dot" aria-hidden>·</span>
+              <span className="rank-hero-meta-item">Updated {updated}</span>
+            </>
+          )}
         </div>
       </header>
 

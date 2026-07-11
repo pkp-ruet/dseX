@@ -28,6 +28,12 @@ log = logging.getLogger("portfolio-signals")
 # Flips older than this are dropped from the API response (in-app bell window).
 _EVENT_RETENTION_DAYS = 7
 
+# Sell is currently hidden from the product UX (we surface only Buy / Strong Buy),
+# so the "changed to Sell" web push is muted. Flip detection + persistence below
+# run unchanged (the API / in-app bell still record every flip, and the backtest
+# still sees sells), so re-enabling the push is just flipping this to True.
+SELL_PUSH_ENABLED = False
+
 
 def _signals():
     return get_db()["portfolio_signals"]
@@ -82,8 +88,9 @@ def list_recent_events(user_id: str) -> list[dict]:
 
 def check_and_notify(not_before_dhaka_hour: Optional[int] = None) -> dict:
     """Recompute every holding's signal against the latest snapshot. On a change:
-    persist it (`changed_at` powers the in-app bell) and, for flips *to Sell*,
-    best-effort web-push the owner (pref `portfolio_signals`, deduped per day).
+    persist it (`changed_at` powers the in-app bell / API). The "changed to Sell"
+    web push is currently MUTED (`SELL_PUSH_ENABLED=False`) because Sell is hidden
+    from the UX; flip detection + persistence still run so nothing is lost.
 
     Gated to market close like the price alerts — intraday quick-scrape runs
     return `gated` without touching the DB. Pass None to disable the gate."""
@@ -185,7 +192,9 @@ def check_and_notify(not_before_dhaka_hour: Optional[int] = None) -> dict:
             _signals().delete_many({"user_id": uid, "trading_code": {"$nin": held_codes}})
 
         # Best-effort push — one notification per user per day covering all flips.
-        if not (sell_flips and push_ok):
+        # Currently muted (SELL_PUSH_ENABLED): Sell is hidden from the UX, so we
+        # record the flip above but don't push. Flip to True to restore.
+        if not (SELL_PUSH_ENABLED and sell_flips and push_ok):
             continue
         prefs = {**push_service.DEFAULT_PREFS, **(user.get("notification_prefs") or {})}
         if not (user.get("push_enabled") and prefs.get("portfolio_signals", True)):

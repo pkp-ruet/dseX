@@ -30,7 +30,7 @@ export const TIER_LABELS_BN: Record<TierKey, string> = {
 
 export const TIER_COLORS = {
   excellent: "#047857",
-  good:      "#059669",
+  good:      "#185FA5",   // true blue — distinct from emerald Excellent + indigo primary
   average:   "#B45309",
   weak:      "#DC2626",
 } as const;
@@ -49,6 +49,30 @@ export const TIER_SCORE_LABELS: Record<TierKey, string> = {
   good:      "Score 60–74",
   average:   "Score 45–59",
   weak:      "Score < 45",
+};
+
+/** Letter grade per tier — instantly readable, language-independent (A best → D worst). */
+export const TIER_GRADES: Record<TierKey, string> = {
+  excellent: "A",
+  good:      "B",
+  average:   "C",
+  weak:      "D",
+};
+
+/** One-line plain-English meaning of each tier — no finance jargon. */
+export const TIER_MEANINGS: Record<TierKey, string> = {
+  excellent: "Financially strongest",
+  good:      "Solid and healthy",
+  average:   "Mixed — look closer",
+  weak:      "High risk",
+};
+
+/** Bengali meaning line — mirrors TIER_MEANINGS. */
+export const TIER_MEANINGS_BN: Record<TierKey, string> = {
+  excellent: "সবচেয়ে মজবুত ব্যবসা",
+  good:      "ভালো ও সুস্থ",
+  average:   "মিশ্র — দেখে নিন",
+  weak:      "ঝুঁকি বেশি",
 };
 
 export function getTier(score: number | null | undefined): TierKey {

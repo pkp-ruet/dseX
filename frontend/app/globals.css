@@ -47,7 +47,7 @@
 
   /* Fundamental-strength tier colors (excellent/good/average/weak) */
   --tier-excellent: #047857;
-  --tier-good: #059669;
+  --tier-good: #185FA5;    /* true blue — no longer a near-twin of emerald Excellent */
   --tier-average: #B45309;
   --tier-weak: #DC2626;
   --safe-buy: #4338CA;      /* generic indigo accent (not a tier) */
@@ -417,56 +417,36 @@ a:hover .ticker-tag,
 .rank-hero-kicker {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  font-size: 0.68rem;
+  gap: 10px;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--primary-ink);
-  background: color-mix(in srgb, var(--primary) 9%, var(--surface));
-  border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--border));
-  padding: 5px 13px 5px 10px;
-  border-radius: 999px;
-  margin-bottom: 15px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  margin-bottom: 16px;
 }
-.rank-hero-kicker-ico {
-  font-size: 0.92rem;
-  line-height: 1;
-  filter: saturate(1.15);
+.rank-hero-kicker-bar {
+  width: 22px;
+  height: 2.5px;
+  border-radius: 999px;
+  background: var(--primary);
+  flex-shrink: 0;
 }
 .rank-hero-title {
-  font-size: clamp(1.95rem, 4.4vw, 2.9rem);
+  font-size: clamp(2.05rem, 4.8vw, 3.05rem);
   font-weight: 800;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
   color: var(--ink);
-  margin: 0 0 12px;
-  line-height: 1.05;
+  margin: 0 0 14px;
+  line-height: 1.02;
 }
 .rank-hero-accent {
-  position: relative;
-  white-space: nowrap;
-  background: linear-gradient(95deg, var(--primary) 0%, #059669 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-}
-.rank-hero-accent::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -0.12em;
-  height: 0.12em;
-  border-radius: 999px;
-  background: linear-gradient(95deg, var(--primary) 0%, #059669 100%);
-  opacity: 0.9;
+  color: var(--primary);
 }
 .rank-hero-lead {
-  font-size: 1.02rem;
+  font-size: 1.05rem;
   line-height: 1.6;
-  max-width: 600px;
+  max-width: 620px;
   margin: 0;
   color: var(--ink);
   font-weight: 500;
@@ -474,121 +454,111 @@ a:hover .ticker-tag,
 .rank-hero-lead-bn {
   font-size: 0.95rem;
   line-height: 1.75;
-  max-width: 600px;
+  max-width: 620px;
   margin: 9px 0 0;
   color: var(--ink-muted);
   font-weight: 500;
 }
-.rank-hero-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 18px;
-}
-.rank-hero-stat {
-  font-size: 0.76rem;
-  font-weight: 600;
-  color: var(--ink-muted);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  padding: 5px 12px;
-  border-radius: 999px;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-}
-.rank-hero-stat strong {
-  color: var(--ink);
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-
-/* ---- Tier filter chips (summary + toggle) ---- */
-.rank-chips {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-bottom: 18px;
-}
-@media (min-width: 720px) {
-  .rank-chips {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-.rank-chip {
-  position: relative;
-  text-align: left;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  padding: 13px 14px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  cursor: pointer;
-  overflow: hidden;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease,
-    background 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
-}
-.rank-chip::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 3px;
-  background: var(--tier-color, var(--primary));
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-.rank-chip:hover {
-  border-color: color-mix(in srgb, var(--tier-color, var(--primary)) 45%, var(--border));
-  box-shadow: var(--shadow-soft);
-}
-.rank-chip.is-active {
-  background: color-mix(in srgb, var(--tier-color, var(--primary)) 6%, var(--surface));
-  border-color: color-mix(in srgb, var(--tier-color, var(--primary)) 38%, var(--border));
-}
-.rank-chip.is-active::before {
-  opacity: 1;
-}
-.rank-chip:not(.is-active) {
-  opacity: 0.55;
-}
-.rank-chip:not(.is-active):hover {
-  opacity: 0.85;
-}
-.rank-chip-top {
+.rank-hero-meta {
   display: flex;
   align-items: center;
-  gap: 7px;
-}
-.rank-chip-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--tier-color, var(--primary));
-  flex-shrink: 0;
-}
-.rank-chip-label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink);
-}
-.rank-chip-count {
-  font-size: 1.9rem;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-}
-.rank-chip-meta {
-  font-size: 0.68rem;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 20px;
+  font-size: 0.82rem;
   font-weight: 600;
   color: var(--ink-muted);
   letter-spacing: 0.01em;
+}
+.rank-hero-meta-item {
+  white-space: nowrap;
+}
+.rank-hero-meta-item strong {
+  color: var(--ink);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.rank-hero-meta-dot {
+  color: color-mix(in srgb, var(--ink-muted) 45%, transparent);
+  font-weight: 700;
+}
+
+/* ---- Tier quality bar — market proportion per tier; doubles as the filter ---- */
+.rank-qbar-wrap {
+  margin-bottom: 18px;
+}
+.rank-qbar {
+  display: flex;
+  align-items: stretch;
+  height: 54px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
+}
+.rank-qseg {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: 58px;
+  min-width: 58px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: none;
+  cursor: pointer;
+  background: var(--tier-color, var(--primary));
+  color: #fff;
+  transition: background 0.15s ease, color 0.15s ease, filter 0.15s ease;
+}
+.rank-qseg:not(:last-child) {
+  border-right: 2px solid var(--surface);
+}
+.rank-qseg.is-active:hover {
+  filter: brightness(1.06);
+}
+/* Toggled off — pale tinted band with muted text (clearly "hidden") */
+.rank-qseg:not(.is-active) {
+  background: color-mix(in srgb, var(--tier-color, var(--primary)) 13%, var(--surface));
+  color: color-mix(in srgb, var(--ink-muted) 82%, var(--tier-color, var(--ink)));
+}
+.rank-qseg:not(.is-active):hover {
+  background: color-mix(in srgb, var(--tier-color, var(--primary)) 22%, var(--surface));
+}
+.rank-qseg-grade {
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.rank-qseg-count {
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.rank-qbar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 9px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+.rank-qbar-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.rank-qbar-legend-item b {
+  font-weight: 800;
+}
+.rank-qbar-hint {
+  margin-left: auto;
+  color: color-mix(in srgb, var(--ink-muted) 65%, transparent);
+  font-weight: 600;
 }
 
 /* ---- Search + sector controls ---- */
@@ -680,23 +650,12 @@ a:hover .ticker-tag,
 }
 
 @media (max-width: 640px) {
-  .rank-chips {
-    gap: 8px;
-    margin-bottom: 14px;
+  .rank-qbar {
+    height: 50px;
   }
-  .rank-chip {
-    padding: 10px 11px 9px;
-    border-radius: 10px;
-  }
-  .rank-chip-label {
-    font-size: 0.6rem;
-    letter-spacing: 0.08em;
-  }
-  .rank-chip-count {
-    font-size: 1.45rem;
-  }
-  .rank-chip-meta {
-    font-size: 0.6rem;
+  .rank-qbar-legend {
+    gap: 9px;
+    font-size: 0.68rem;
   }
   .rank-search {
     flex: 1 1 100%;
@@ -751,7 +710,8 @@ a:hover .ticker-tag,
 .fr-th-score   { width: 1%; }
 .fr-th-num     { text-align: right; width: 1%; }
 
-/* Tier separator — calm editorial band (scrolls with content, not sticky) */
+/* Tier separator — bold section header announcing each tier group
+   (scrolls with content, not sticky) */
 .fr-tier-sep-row td {
   padding: 0;
   background: var(--surface);
@@ -759,40 +719,71 @@ a:hover .ticker-tag,
 .fr-tier-sep {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 16px 16px 12px;
+  gap: 14px;
+  padding: 24px 18px 18px;
   border-top: 1px solid var(--border);
-  border-left: 3px solid var(--tier-color, var(--primary));
+  border-left: 5px solid var(--tier-color, var(--primary));
   background: linear-gradient(
     90deg,
-    color-mix(in srgb, var(--tier-color, var(--primary)) 7%, var(--surface)) 0%,
-    var(--surface) 55%
+    color-mix(in srgb, var(--tier-color, var(--primary)) 15%, var(--surface)) 0%,
+    color-mix(in srgb, var(--tier-color, var(--primary)) 4%, var(--surface)) 42%,
+    var(--surface) 78%
   );
 }
 .full-rank-table tbody tr:first-child .fr-tier-sep {
   border-top: none;
-  padding-top: 14px;
+  padding-top: 18px;
 }
-.fr-tier-sep-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
+.fr-tier-sep-grade {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  background: var(--tier-color, var(--primary));
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1;
   flex-shrink: 0;
+  box-shadow: 0 5px 14px -4px color-mix(in srgb, var(--tier-color, var(--primary)) 60%, transparent);
+}
+.fr-tier-sep-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 .fr-tier-sep-label {
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--tier-color, var(--ink));
+  line-height: 1.05;
+}
+.fr-tier-sep-meaning {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  letter-spacing: 0.01em;
 }
 .fr-tier-sep-count {
-  font-size: 0.7rem;
-  font-weight: 700;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
   color: var(--ink-muted);
-  padding: 3px 9px;
-  border-radius: 999px;
-  background: var(--surface-2);
+}
+.fr-tier-sep-count strong {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--tier-color, var(--ink));
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 
@@ -846,6 +837,57 @@ a:hover .ticker-tag,
 .fr-rank-m1 { background: #fbf1d2; border-color: #d9b65a; color: #7a5a12; }
 .fr-rank-m2 { background: #eef1f5; border-color: #c2cad4; color: #5a6573; }
 .fr-rank-m3 { background: #f6e5d8; border-color: #d6a883; color: #8a5326; }
+
+/* Score cell — score ring + a persistent tier tag (grade + word) on every row,
+   so the tier is legible even after the group separator scrolls off. */
+.fr-score-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+.fr-tier-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px 3px 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tier-color, var(--primary)) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--tier-color, var(--primary)) 26%, transparent);
+  line-height: 1;
+  white-space: nowrap;
+}
+.fr-tier-tag-grade {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--tier-color, var(--primary));
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.fr-tier-tag-word {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--tier-color, var(--primary));
+  letter-spacing: 0.01em;
+}
+/* Narrow screens: drop the word + chrome, keep just the colored grade pip
+   (the compact per-row tier signal) so the row never outgrows the frame. */
+@media (max-width: 640px) {
+  .fr-score-cell { gap: 6px; }
+  .fr-tier-tag {
+    padding: 0;
+    background: none;
+    border: none;
+  }
+  .fr-tier-tag-word { display: none; }
+  .fr-tier-tag-grade { width: 20px; height: 20px; font-size: 0.72rem; }
+}
+
 .fr-td-code {
   white-space: nowrap;
 }
@@ -1146,9 +1188,25 @@ a:hover .ticker-tag,
   min-width: 0;
 }
 .fr-detail-tier {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   font-size: 0.98rem;
   font-weight: 800;
   letter-spacing: -0.01em;
+}
+.fr-detail-grade {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1;
+  flex-shrink: 0;
 }
 .fr-detail-score-sub {
   font-size: 0.72rem;
@@ -1283,11 +1341,19 @@ a:hover .ticker-tag,
   .fr-tier-sep {
     border: none;
     background: transparent;
-    padding: 12px 2px 0;
-    gap: 8px;
+    padding: 16px 2px 2px;
+    gap: 11px;
   }
-  .full-rank-table tbody tr:first-child .fr-tier-sep { padding-top: 2px; }
-  .fr-tier-sep-label { font-size: 0.74rem; }
+  .full-rank-table tbody tr:first-child .fr-tier-sep { padding-top: 4px; }
+  .fr-tier-sep-grade {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    font-size: 1.02rem;
+  }
+  .fr-tier-sep-label { font-size: 1.05rem; letter-spacing: 0.07em; }
+  .fr-tier-sep-meaning { font-size: 0.74rem; }
+  .fr-tier-sep-count strong { font-size: 1.3rem; }
 
   /* Each row becomes one compact card with a tier-colored spine */
   .fr-row,

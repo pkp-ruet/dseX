@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { pct, signed, taka } from "@/lib/formatters";
-import { TIER_LABELS, TIER_VAR } from "@/lib/constants";
+import { TIER_GRADES, TIER_LABELS, TIER_VAR } from "@/lib/constants";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import type { RankedItem } from "@/components/ranking/FullRankTable";
 
@@ -150,6 +150,13 @@ export default function RankRowDetails({ item }: { item: RankedItem }) {
         <ScoreBadge score={item.score} tier={item.tier} size="md" />
         <div className="fr-detail-head-text">
           <span className="fr-detail-tier" style={{ color: TIER_VAR[item.tier] }}>
+            <span
+              className="fr-detail-grade"
+              style={{ background: TIER_VAR[item.tier] }}
+              aria-hidden
+            >
+              {TIER_GRADES[item.tier]}
+            </span>
             {TIER_LABELS[item.tier]}
           </span>
           <span className="fr-detail-score-sub">
