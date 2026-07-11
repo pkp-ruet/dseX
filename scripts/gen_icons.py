@@ -7,6 +7,7 @@ Writes to frontend/public/icons/:
   - icon-192.png            (rounded, "any" purpose — also the notification icon)
   - icon-512.png            (rounded, "any" purpose — install splash)
   - icon-512-maskable.png   (full-bleed; mark kept inside the maskable safe zone)
+  - badge-96.png            (monochrome silhouette for the Android status-bar badge)
 
 This is a placeholder mark (brand-blue + white ascending bars). To use a real
 logo, just overwrite the three PNGs with the same filenames/sizes.
@@ -51,6 +52,33 @@ def draw_icon(size: int, maskable: bool = False) -> Image.Image:
     return img
 
 
+def draw_badge(size: int = 96) -> Image.Image:
+    """Android notification badge: the status-bar icon.
+
+    Android ignores color and renders only the *alpha silhouette* (then tints it),
+    so this must be an opaque mark on a fully transparent background — never a
+    filled square, which would show as a solid blob. We reuse the three ascending
+    bars as the silhouette.
+    """
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+
+    margin = size * 0.18  # a little breathing room inside the 24dp status slot
+    box = size - 2 * margin
+    gap = box * 0.12
+    bar_w = (box - 2 * gap) / 3
+    base_y = size - margin
+    for i, hf in enumerate((0.5, 0.75, 1.0)):
+        x0 = margin + i * (bar_w + gap)
+        h = box * hf
+        d.rounded_rectangle(
+            [x0, base_y - h, x0 + bar_w, base_y],
+            radius=bar_w * 0.3,
+            fill=WHITE,  # color is irrelevant to Android; only the alpha matters
+        )
+    return img
+
+
 def main() -> None:
     os.makedirs(OUT_DIR, exist_ok=True)
     targets = [
@@ -62,6 +90,10 @@ def main() -> None:
         path = os.path.join(OUT_DIR, name)
         draw_icon(size, maskable).save(path, "PNG")
         print(f"wrote {os.path.normpath(path)} ({size}x{size}{', maskable' if maskable else ''})")
+
+    badge_path = os.path.join(OUT_DIR, "badge-96.png")
+    draw_badge(96).save(badge_path, "PNG")
+    print(f"wrote {os.path.normpath(badge_path)} (96x96, badge)")
 
 
 if __name__ == "__main__":

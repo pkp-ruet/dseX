@@ -67,22 +67,19 @@ export function buildHomeAlerts(opts: {
     });
   }
 
-  // 0.5 — Portfolio signal flips (server-detected, end-of-day). Sell flips are
-  // the actionable ones; Buy More flips are a friendly nudge.
+  // 0.5 — Portfolio signal flips (server-detected, end-of-day). Only Buy More
+  // flips are surfaced; Sell is kept in the backend but hidden from the UI for now.
   for (const ev of signalEvents ?? []) {
-    if (!ev.changed_at || ev.signal === "hold") continue;
+    if (!ev.changed_at || ev.signal !== "buy_more") continue;
     const t = Date.parse(ev.changed_at);
     if (Number.isNaN(t) || now - t > SIGNAL_RECENCY_MS) continue;
-    const sell = ev.signal === "sell";
     alerts.push({
       id: `sg:${ev.trading_code}:${ev.changed_at}`,
-      emoji: sell ? "⚠️" : "🟢",
-      title: sell
-        ? `${ev.trading_code} signal changed to Sell`
-        : `${ev.trading_code} now looks like a Buy More`,
-      detail: sell ? "Time to review this holding" : "Strong company at a cheap price",
+      emoji: "🟢",
+      title: `${ev.trading_code} now looks like a Buy More`,
+      detail: "Strong company at a cheap price",
       href: "/portfolio",
-      tone: sell ? "negative" : "positive",
+      tone: "positive",
     });
   }
 

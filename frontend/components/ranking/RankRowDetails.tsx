@@ -4,7 +4,6 @@ import Link from "next/link";
 import { pct, signed, taka } from "@/lib/formatters";
 import { TIER_LABELS, TIER_VAR } from "@/lib/constants";
 import ScoreBadge from "@/components/ui/ScoreBadge";
-import SignalChip from "@/components/ui/SignalChip";
 import type { RankedItem } from "@/components/ranking/FullRankTable";
 
 type PointKind = "good" | "bad" | "warn" | "neutral";
@@ -41,16 +40,6 @@ const TIER_POINTS: Record<RankedItem["tier"], Point> = {
 /** Plain-language takeaways (English + Bengali) built from the row's own numbers. */
 function buildPoints(item: RankedItem): Point[] {
   const points: Point[] = [TIER_POINTS[item.tier]];
-
-  // The backend Buy/Hold/Sell reason leads — it answers "so what do I do?"
-  const sig = item.signal;
-  if (sig && sig.signal !== "none") {
-    points.push({
-      en: sig.reason_en,
-      bn: sig.reason_bn,
-      kind: sig.signal === "buy" ? "good" : sig.signal === "sell" ? "bad" : "neutral",
-    });
-  }
 
   const growth = item.eps_yoy_pct;
   if (growth != null) {
@@ -162,14 +151,6 @@ export default function RankRowDetails({ item }: { item: RankedItem }) {
         <div className="fr-detail-head-text">
           <span className="fr-detail-tier" style={{ color: TIER_VAR[item.tier] }}>
             {TIER_LABELS[item.tier]}
-            {item.signal && item.signal.signal !== "none" && (
-              <SignalChip
-                signal={item.signal.signal}
-                reason={item.signal.reason_en}
-                size="md"
-                className="ml-2 align-middle"
-              />
-            )}
           </span>
           <span className="fr-detail-score-sub">
             Fundamental score {item.score != null ? Math.round(item.score) : "—"} / 100

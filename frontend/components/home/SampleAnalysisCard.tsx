@@ -92,9 +92,9 @@ export default function SampleAnalysisCard({ detail }: { detail: CompanyDetail }
       {/* Verdict teaser — the tier word lives in the header pill; here the
           action signal answers "so what do I do?" */}
       <div className="px-4 sm:px-5 pt-3">
-        {signal && signal.signal !== "none" ? (
+        {signal && signal.signal === "buy" ? (
           <>
-            <SignalChip signal={signal.signal} size="md" />
+            <SignalChip signal={signal.signal} strength={signal.strength} size="md" />
             <p className="mt-1.5 text-[0.82rem] leading-snug text-[var(--text)] font-medium line-clamp-2">
               {signal.reason_en}
             </p>

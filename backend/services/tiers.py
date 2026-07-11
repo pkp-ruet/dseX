@@ -9,7 +9,7 @@ Aligned with frontend lib/constants.ts (TIER_THRESHOLDS / TIER_LABELS):
     weak        score <  45    "Weak"
 
 Tiers describe how fundamentally strong the company is — nothing else.
-Action advice (Buy / Hold / Sell) lives in services/signal_service.py and
+Action advice (Buy / Sell, else none) lives in services/signal_service.py and
 must never be inferred from the tier alone.
 
 History: renamed 2026-07 from recommendation language (strong_buy / buy /

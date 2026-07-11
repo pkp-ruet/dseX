@@ -88,10 +88,10 @@ export default function AboutPage() {
           <strong className="text-[var(--ink)]">Weak</strong> — so you can filter quickly.
         </p>
         <p className="text-[1.0625rem] leading-[1.78] text-[var(--ink-2)]">
-          Separately, every stock carries a simple <strong className="text-[var(--ink)]">Buy / Hold / Sell
+          Separately, every stock carries a simple <strong className="text-[var(--ink)]">Buy / Sell
           signal</strong>. The rating tells you how strong the company is; the signal tells you whether
           now looks like a sensible time to act — it also weighs the current price and how actively
-          the share trades.
+          the share trades. When neither applies, no signal is shown.
         </p>
         <p className="text-[1.0625rem] leading-[1.78] text-[var(--ink-2)]">
           No predictions. No price targets. Just a clear, structured view of what the numbers say.

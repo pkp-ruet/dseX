@@ -265,9 +265,10 @@ function SignalPills({
   }
   if (hasDividendSoon) pills.push({ label: "Dividend soon", tone: "info" });
 
+  // Only Buy/Strong Buy is shown; Sell is hidden from the UI for now.
   const chip =
-    signal && signal.signal !== "none" ? (
-      <SignalChip signal={signal.signal} reason={signal.reason_en} />
+    signal && signal.signal === "buy" ? (
+      <SignalChip signal={signal.signal} strength={signal.strength} reason={signal.reason_en} />
     ) : null;
 
   if (!chip && pills.length === 0)
@@ -345,7 +346,8 @@ function EnrichedRow({ item, extreme, hasDividendSoon, onRemove }: RowProps) {
   const ex = extreme?.item ?? null;
   // wl-empty cells collapse on the mobile card layout instead of showing "—"
   const hasRange = ex?.w52_high != null && ex?.w52_low != null;
-  const hasBuySell = item.signal != null && item.signal.signal !== "none";
+  // Only Buy counts as a shown signal now — Sell is hidden from the UI.
+  const hasBuySell = item.signal != null && item.signal.signal === "buy";
   const hasSignals = extreme != null || hasDividendSoon || hasBuySell;
   return (
     <tr>

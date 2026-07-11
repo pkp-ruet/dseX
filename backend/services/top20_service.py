@@ -96,7 +96,7 @@ def _rationale(item: dict) -> str:
 # ---------------------------------------------------------------------------
 
 @_ttl_cache(300)
-def _market_window_raw() -> dict:
+def _market_window_raw(as_of: Optional[str] = None) -> dict:
     """Per-code price-window factors over the last 30 trading days, computed
     for EVERY code with a usable window in one bulk pass (one 30-day price
     query + one DSEX summary query + one 52-week aggregation).
@@ -105,6 +105,11 @@ def _market_window_raw() -> dict:
     (single-code momentum for the stock page) and compute_momentum_all (signal
     service). No liquidity floor and no company filter here — thin and excluded
     codes keep their rows; consumers filter as needed.
+
+    ``as_of`` (ISO ``YYYY-MM-DD``) is a backtest hook: when set, "today" becomes
+    the latest trading day on/before that date and every window (7d/30d/52w) is
+    measured backward from there. Production callers pass nothing, so the cache
+    key ``((), ())`` and the computed result are byte-identical to before.
 
     Returns {"as_of_date": str|None, "dsex_7d_change_pct": float|None,
              "rows": {code: raw_record}} — as_of_date None means fewer than
@@ -118,6 +123,8 @@ def _market_window_raw() -> dict:
         key=lambda d: _date_str(d),
         reverse=True,
     )
+    if as_of is not None:
+        all_dates = [d for d in all_dates if _date_str(d) <= as_of]
     if len(all_dates) < 2:
         return {"as_of_date": None, "dsex_7d_change_pct": None, "rows": {}}
 
@@ -435,13 +442,14 @@ def compute_momentum_for_code(code: str) -> Optional[dict]:
     return _momentum_dict(raw) if raw else None
 
 
-def compute_momentum_all() -> dict[str, dict]:
+def compute_momentum_all(as_of: Optional[str] = None) -> dict[str, dict]:
     """Momentum snapshots for every code with a usable price window.
 
     Same per-code shape as compute_momentum_for_code. Consumed by the
     signal service; thin (weak_liquidity) codes are included on purpose.
+    ``as_of`` is the backtest hook (see _market_window_raw).
     """
-    return {code: _momentum_dict(raw) for code, raw in _market_window_raw()["rows"].items()}
+    return {code: _momentum_dict(raw) for code, raw in _market_window_raw(as_of)["rows"].items()}
 
 
 def _momentum_dict(raw: dict) -> dict:

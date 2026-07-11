@@ -162,6 +162,23 @@ def cmd_compute_scores(_args):
         print(f"Warning: market snapshot store failed: {e}")
 
 
+def cmd_snapshot_signals(_args):
+    """Persist today's Buy/Sell signal for every scored company to
+    `signal_snapshots` (one row per company per trading day).
+
+    Grows an exact history the signal backtest can replay. Idempotent per day.
+    Run once daily after the close scrape (wired into `scrape-quick` cron and
+    `scrape-all`)."""
+    from backend.services.signal_service import snapshot_signals_today
+
+    res = snapshot_signals_today()
+    if not res.get("stored"):
+        print(f"No signals stored ({res.get('reason', 'unknown')}).")
+        return
+    print(f"Stored {res['stored']} signals for {res['date']} "
+          f"(buy {res.get('buy', 0)}, sell {res.get('sell', 0)}, none {res.get('none', 0)}).")
+
+
 def _trigger_post_scrape_hooks(*, fire_deploy_hook: bool = False):
     """Purge the Next.js market-data tag (and optionally fire the Vercel deploy hook).
 
@@ -283,7 +300,7 @@ def cmd_notify_price_alerts(args):
 
 
 def cmd_notify_portfolio_signals(args):
-    """Recompute each holding's Buy More / Hold / Sell signal and notify owners
+    """Recompute each holding's Buy More / Sell signal (else none) and notify owners
     whose holdings flipped to Sell.
 
     Run right after `scrape-quick` (close prices fresh). Gated to 2 PM Dhaka like
@@ -391,6 +408,16 @@ def cmd_scrape_all(args):
             print(f"  Stored market snapshot for {snap['date']}.\n")
     except Exception as e:
         print(f"  Warning: score recompute failed: {e}\n")
+
+    # Persist today's Buy/Sell signals (one row per company per day) so the
+    # signal backtest gets a growing, exact history. Best-effort.
+    print("=== Post-scrape: Snapshotting Buy/Sell signals ===")
+    try:
+        from backend.services.signal_service import snapshot_signals_today
+        ssig = snapshot_signals_today()
+        print(f"  Stored {ssig.get('stored', 0)} signals for {ssig.get('date')}.\n")
+    except Exception as e:
+        print(f"  Warning: signal snapshot failed: {e}\n")
 
     # Regenerate the "TopStockBD Tips" homepage bullets from the fresh snapshot.
     print("=== Post-scrape: Regenerating TopStockBD Tips ===")
@@ -507,6 +534,11 @@ def main():
         help="Recompute DSEF 5-pillar scores and store them in scores_snapshot",
     )
 
+    sub.add_parser(
+        "snapshot-signals",
+        help="Persist today's Buy/Sell signal per company to signal_snapshots (backtest history)",
+    )
+
     digest_parser = sub.add_parser(
         "notify-digest",
         help="Send the daily 'your stocks today' web-push digest to opted-in users",
@@ -534,7 +566,7 @@ def main():
 
     portfolio_signals_parser = sub.add_parser(
         "notify-portfolio-signals",
-        help="Track per-holding Buy More/Hold/Sell signals and push owners on flips to Sell",
+        help="Track per-holding Buy More/Sell signals and push owners on flips to Sell",
     )
     portfolio_signals_parser.add_argument(
         "--force",
@@ -581,6 +613,7 @@ def main():
         "scrape-market-summary": cmd_scrape_market_summary,
         "scrape-quick":          cmd_scrape_quick,
         "compute-scores":        cmd_compute_scores,
+        "snapshot-signals":      cmd_snapshot_signals,
         "notify-digest":         cmd_notify_digest,
         "notify-events":         cmd_notify_events,
         "notify-price-alerts":   cmd_notify_price_alerts,

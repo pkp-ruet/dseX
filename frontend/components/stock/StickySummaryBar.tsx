@@ -53,7 +53,12 @@ export default function StickySummaryBar({
           {word}{score != null ? ` ${Math.round(score)}` : ""}
         </span>
         {signal && (
-          <SignalChip signal={signal.signal} reason={signal.reason_en} className="shrink-0" />
+          <SignalChip
+            signal={signal.signal}
+            strength={signal.strength}
+            reason={signal.reason_en}
+            className="shrink-0"
+          />
         )}
 
         <div className="hidden sm:flex items-center gap-3 text-xs" style={{ color: "var(--text-muted)" }}>

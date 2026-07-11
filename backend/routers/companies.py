@@ -187,7 +187,7 @@ def get_company_detail(code: str):
     momentum_model = MomentumSnapshot(**momentum_dict) if momentum_dict else None
     verdict_model = StockVerdict(**verdict_dict) if verdict_dict else None
 
-    # Canonical Buy/Hold/Sell signal — attached by the router (single source;
+    # Canonical Buy/Sell signal (else none) — attached by the router (single source;
     # the verdict stays purely descriptive so the two can never disagree).
     try:
         signal_model = StockSignal(**wire_fields(get_signal(trading_code)))

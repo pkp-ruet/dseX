@@ -60,11 +60,11 @@ export type EntryTag =
   | "no_data"
   | "no_price";
 
-export type HoldingSignal = "buy_more" | "hold" | "sell";
+export type HoldingSignal = "buy_more" | "sell" | "none";
 
 export interface SignalInfo {
   signal: HoldingSignal;
-  /** Display label — English or Bengali depending on the analysis language. */
+  /** Display label — English or Bengali depending on the analysis language. Empty for `none`. */
   label: string;
   /** Plain-language one-liner explaining why this signal was given. */
   reason: string;
@@ -226,18 +226,20 @@ function classifyEntry(
  * Adapter: turn the backend-computed per-holding signal (single source of
  * truth — backend/services/signal_service.py, delivered on GET
  * /api/user/portfolio) into the SignalInfo shape the portfolio UI renders.
- * The frontend never derives Buy/Hold/Sell advice itself.
+ * The frontend never derives Buy/Sell advice itself. A neutral holding comes
+ * through as `none` and renders no chip.
  */
 export function signalInfoFromApi(
   sig: HoldingSignalInfo | null | undefined,
   lang: AnalysisLang = "en",
 ): SignalInfo {
-  if (!sig) {
+  if (!sig || sig.signal === "none") {
     return {
-      signal: "hold",
-      label: lang === "bn" ? SIGNAL_LABELS_BN.hold : SIGNAL_LABELS.hold,
-      reason:
-        lang === "bn"
+      signal: "none",
+      label: "",
+      reason: sig
+        ? (lang === "bn" ? sig.reason_bn : sig.reason_en) || sig.reason_en
+        : lang === "bn"
           ? "এই শেয়ারের সংকেত এখনো তৈরি হয়নি — পরের আপডেটে চলে আসবে।"
           : "No signal for this holding yet — it arrives with the next data update.",
       muted: true,
@@ -759,16 +761,18 @@ export function analyzePortfolio(
         : `${c.code} is down, but the company is still strong and the price is now cheaper than when you bought. If you have spare money and still believe in the business, buying a little more here lowers your average cost — so when it recovers, you make back the loss faster.`,
     );
   }
-  const sellCandidates = insights.filter(
-    (i) => i.tierKey === "weak" && i.entryTag === "expensive_expensive",
-  );
-  if (sellCandidates.length > 0) {
-    consider.push(
-      bnMode
-        ? `${nameList(sellCandidates.map((s) => s.code), 2, "bn")} বিক্রি বা কমানোর কথা ভাবুন — কোম্পানির মান আর দাম দুটোই দুর্বল দেখাচ্ছে। দুর্বল কোম্পানি বেশি দামে ধরে রাখা সবচেয়ে খারাপ জুটি, কারণ যে ঘুরে দাঁড়ানোর অপেক্ষায় আছেন তা হয়তো কখনোই আসবে না। লোকসান মেনে নিন, শিক্ষা নিন, টাকাটা ভালো শেয়ারে সরান।`
-        : `Consider selling or reducing ${nameList(sellCandidates.map((s) => s.code))} — both the company quality and the price look weak. Holding a weak company at an expensive price is the worst combination, because you may keep waiting for a recovery that never comes. Take the loss, learn from it, and move the money into a better stock.`,
-    );
-  }
+  // Sell advice is hidden from the UI for now (we only surface Buy / Strong Buy).
+  // The logic is kept here, commented out, to restore easily when Sell returns.
+  // const sellCandidates = insights.filter(
+  //   (i) => i.tierKey === "weak" && i.entryTag === "expensive_expensive",
+  // );
+  // if (sellCandidates.length > 0) {
+  //   consider.push(
+  //     bnMode
+  //       ? `${nameList(sellCandidates.map((s) => s.code), 2, "bn")} বিক্রি বা কমানোর কথা ভাবুন — ...`
+  //       : `Consider selling or reducing ${nameList(sellCandidates.map((s) => s.code))} — ...`,
+  //   );
+  // }
   if (upExpensiveItems.length > 0) {
     const c = upExpensiveItems[0];
     consider.push(

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { TIER_LABELS, TIER_VAR, type TierKey } from "@/lib/constants";
 import StarButton from "@/components/ui/StarButton";
 import ScoreBadge from "@/components/ui/ScoreBadge";
-import SignalChip from "@/components/ui/SignalChip";
 import RankRowDetails from "@/components/ranking/RankRowDetails";
 import { signed } from "@/lib/formatters";
 import type { ScoreItem } from "@/lib/api";
@@ -29,7 +28,7 @@ const TIER_COLOR = TIER_VAR;
 
 const TIERS_ORDER: TierKey[] = ["excellent", "good", "average", "weak"];
 
-const COL_COUNT = 10;
+const COL_COUNT = 9;
 
 const CATEGORY_TITLES: Record<string, string> = {
   Z: "Z category — irregular dividends, extra trading restrictions. High risk.",
@@ -86,7 +85,6 @@ export default function FullRankTable({ rows }: Props) {
             <th className="fr-th fr-th-num fr-th-hide-md">Profit Growth</th>
             <th className="fr-th fr-th-num fr-th-hide-md">Dividend</th>
             <th className="fr-th fr-th-score">Score</th>
-            <th className="fr-th fr-th-signal">Signal</th>
             <th className="fr-th fr-th-num">LTP</th>
             <th className="fr-th fr-th-toggle" aria-label="Quick view"></th>
           </tr>
@@ -212,14 +210,6 @@ export default function FullRankTable({ rows }: Props) {
 
                   <td className="fr-td fr-td-score">
                     <ScoreBadge score={item.score} tier={item.tier} size="sm" />
-                  </td>
-
-                  <td className="fr-td fr-td-signal">
-                    {item.signal && item.signal.signal !== "none" ? (
-                      <SignalChip signal={item.signal.signal} reason={item.signal.reason_en} />
-                    ) : (
-                      <span className="fr-metric-empty">—</span>
-                    )}
                   </td>
 
                   <td className="fr-td fr-td-num">

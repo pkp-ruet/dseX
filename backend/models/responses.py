@@ -3,8 +3,9 @@ from pydantic import BaseModel
 
 
 class StockSignal(BaseModel):
-    """Canonical Buy/Hold/Sell action signal (services/signal_service.py)."""
-    signal: str                          # buy | hold | sell | none
+    """Canonical Buy/Sell action signal (services/signal_service.py); neutral = none."""
+    signal: str                          # buy | sell | none
+    strength: Optional[str] = None       # strong | normal (only meaningful for buy)
     reason_key: str
     reason_en: str
     reason_bn: str
@@ -13,8 +14,8 @@ class StockSignal(BaseModel):
 
 
 class HoldingSignal(BaseModel):
-    """Personalized per-holding overlay (portfolio_signals enum, unchanged)."""
-    signal: str                          # buy_more | hold | sell
+    """Personalized per-holding overlay (Buy More / Sell, or none — never Hold)."""
+    signal: str                          # buy_more | sell | none
     reason_key: str
     reason_en: str
     reason_bn: str

@@ -99,7 +99,7 @@ const COLUMNS: { key: SortKey; label: string; align: "left" | "right" }[] = [
   { key: "signal", label: "Signal", align: "right" },
 ];
 
-const SIGNAL_RANK: Record<SignalInfo["signal"], number> = { sell: 0, hold: 1, buy_more: 2 };
+const SIGNAL_RANK: Record<SignalInfo["signal"], number> = { sell: 0, none: 1, buy_more: 2 };
 
 function sortValue(row: ComputedRow, key: SortKey): string | number | null {
   switch (key) {

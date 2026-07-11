@@ -1,5 +1,5 @@
 """
-Portfolio Buy More / Hold / Sell signal tracking.
+Portfolio Buy More / Sell signal tracking (neutral holdings carry `none`).
 
 Per-holding signals come from the canonical signal service
 (`signal_service.holding_signal` — stock signal + the owner's entry picture).
@@ -68,7 +68,7 @@ def list_recent_events(user_id: str) -> list[dict]:
     return [
         {
             "trading_code": (d.get("trading_code") or "").upper(),
-            "signal": d.get("signal") or "hold",
+            "signal": d.get("signal") or "none",
             "prev_signal": d.get("prev_signal"),
             "changed_at": _iso(d.get("changed_at")),
         }
@@ -160,7 +160,7 @@ def check_and_notify(not_before_dhaka_hour: Optional[int] = None) -> dict:
                 )
                 continue
 
-            if (prev.get("signal") or "hold") == signal:
+            if (prev.get("signal") or "none") == signal:
                 _signals().update_one(
                     {"user_id": uid, "trading_code": code},
                     {"$set": {"updated_at": now}},

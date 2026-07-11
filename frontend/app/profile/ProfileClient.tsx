@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { getCachedWatchlist, loadWatchlist, subscribeWatchlist } from "@/lib/watchlist";
 import { getToken } from "@/lib/auth";
+import NotificationSettings from "@/components/push/NotificationSettings";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "https://dsex.onrender.com";
@@ -164,6 +165,9 @@ export default function ProfileClient() {
             View
           </Link>
         </div>
+
+        {/* Notifications */}
+        <NotificationSettings />
 
         {/* Sign out */}
         <button

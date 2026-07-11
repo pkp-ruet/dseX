@@ -70,3 +70,24 @@ def update_prefs(body: PrefsBody, current_user: dict = Depends(get_current_user)
     return push_service.update_prefs(
         current_user["user_id"], body.prefs, body.push_enabled
     )
+
+
+@router.post("/test")
+def send_test(current_user: dict = Depends(get_current_user)):
+    """Fire a real push to every device on the caller's account — powers the
+    "Send me a test" button on the profile page. Uses the same send path as the
+    daily digest, so a success here proves the whole pipeline for this device.
+
+    Copy is deliberately substantive (not the word "test"): Chrome's Safe Browsing
+    classifier flags generic notifications, so we mirror a real alert's tone.
+    """
+    if not push_service.is_configured():
+        raise HTTPException(status_code=503, detail="Push is not configured")
+    payload = {
+        "v": "test",
+        "title": "Notifications are on ✅",
+        "body": "You'll get your daily stock update here.",
+        "url": "/",
+        "tag": "topstockbd-test",
+    }
+    return push_service.send_to_user(current_user["user_id"], payload)

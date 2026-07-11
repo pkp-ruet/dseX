@@ -27,10 +27,13 @@ export function getApiUrl(): string {
   return "https://dsex.onrender.com";
 }
 
-/** Canonical backend Buy/Hold/Sell signal (backend/services/signal_service.py).
- *  The single source of truth for action advice — the frontend only renders it. */
+/** Canonical backend Buy/Sell signal (backend/services/signal_service.py).
+ *  The single source of truth for action advice — the frontend only renders it.
+ *  There is no "Hold": anything neutral arrives as `none` (no chip). */
 export interface StockSignalInfo {
-  signal: "buy" | "hold" | "sell" | "none";
+  signal: "buy" | "sell" | "none";
+  /** Conviction, only meaningful when signal === "buy": "strong" | "normal". */
+  strength?: "strong" | "normal" | null;
   reason_key: string;
   reason_en: string;
   reason_bn: string;
@@ -38,9 +41,9 @@ export interface StockSignalInfo {
   momentum_grade: string | null; // hot|warm|flat|cold|weak_liquidity|unknown
 }
 
-/** Personalized per-holding overlay on GET /api/user/portfolio. */
+/** Personalized per-holding overlay on GET /api/user/portfolio (else `none`). */
 export interface HoldingSignalInfo {
-  signal: "buy_more" | "hold" | "sell";
+  signal: "buy_more" | "sell" | "none";
   reason_key: string;
   reason_en: string;
   reason_bn: string;
@@ -820,6 +823,18 @@ export async function apiUpdateNotificationPrefs(
   });
 }
 
+/** Result of fanning a push out to a user's devices. */
+export interface PushSendResult {
+  sent: number;
+  expired: number;
+  failed: number;
+}
+
+/** Fire a real test push to all of the current user's registered devices. */
+export async function apiSendTestPush(): Promise<PushSendResult> {
+  return apiAuthFetch<PushSendResult>("/api/notifications/test", { method: "POST" });
+}
+
 // ---------------------------------------------------------------------------
 // Stock recommendation
 // ---------------------------------------------------------------------------
@@ -934,7 +949,7 @@ export interface PortfolioHolding {
   buy_price: number;
   qty: number;
   added_at: string;
-  /** Server-computed Buy More / Hold / Sell — present on GET /api/user/portfolio
+  /** Server-computed Buy More / Sell (else none) — present on GET /api/user/portfolio
    *  (mutation responses return bare holdings; refetch after edits). */
   signal?: HoldingSignalInfo | null;
 }
@@ -976,12 +991,12 @@ export async function apiDeleteHolding(id: string): Promise<{ holdings: Portfoli
 
 export interface PortfolioSignalEvent {
   trading_code: string;
-  signal: "buy_more" | "hold" | "sell";
+  signal: "buy_more" | "sell" | "none";
   prev_signal: string | null;
   changed_at: string | null;
 }
 
-/** Recent Buy More / Hold / Sell flips on the user's holdings (in-app bell). */
+/** Recent Buy More / Sell flips on the user's holdings (in-app bell). */
 export async function apiGetSignalEvents(): Promise<{ events: PortfolioSignalEvent[] }> {
   return apiAuthFetch<{ events: PortfolioSignalEvent[] }>("/api/user/portfolio/signal-events");
 }

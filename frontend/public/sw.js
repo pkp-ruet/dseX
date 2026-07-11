@@ -7,7 +7,7 @@
  * link). Bump SW_VERSION when this file changes; skipWaiting + clients.claim
  * roll the update out on the next visit.
  */
-const SW_VERSION = "v1";
+const SW_VERSION = "v2";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -28,7 +28,7 @@ self.addEventListener("push", (event) => {
   const options = {
     body: data.body || "",
     icon: data.icon || "/icons/icon-192.png",
-    badge: data.badge || "/icons/icon-192.png",
+    badge: data.badge || "/icons/badge-96.png",
     tag: data.tag || "topstockbd",
     data: { url: data.url || "/" },
   };

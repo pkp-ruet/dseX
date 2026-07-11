@@ -2,7 +2,7 @@
 Stock verdict generator — combines fundamentals with 7-day market momentum
 into a 2-3 sentence retail-friendly description of what is happening.
 
-Descriptive prose only: the Buy/Hold/Sell call lives in signal_service and is
+Descriptive prose only: the Buy/Sell call lives in signal_service and is
 attached to the company response by the router — the verdict must describe,
 never advise, so the two can never contradict each other.
 

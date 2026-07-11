@@ -749,7 +749,6 @@ a:hover .ticker-tag,
 .fr-th-company { text-align: left; width: 100%; }
 .fr-th-sector  { width: 1%; }
 .fr-th-score   { width: 1%; }
-.fr-th-signal  { width: 1%; }
 .fr-th-num     { text-align: right; width: 1%; }
 
 /* Tier separator — calm editorial band (scrolls with content, not sticky) */
@@ -932,9 +931,6 @@ a:hover .ticker-tag,
 }
 
 .fr-td-score {
-  white-space: nowrap;
-}
-.fr-td-signal {
   white-space: nowrap;
 }
 .fr-score {
@@ -1297,8 +1293,8 @@ a:hover .ticker-tag,
   .fr-row,
   .fr-tier-sep-row + .fr-row {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto auto auto auto;
-    grid-template-areas: "rank code signal ltp star tgl";
+    grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+    grid-template-areas: "rank code ltp star tgl";
     align-items: center;
     column-gap: 8px;
     padding: 10px 10px 10px 12px;
@@ -1315,7 +1311,6 @@ a:hover .ticker-tag,
   .fr-td { display: block; padding: 0; }
   .fr-td-rank   { grid-area: rank; text-align: left; }
   .fr-td-code   { grid-area: code; min-width: 0; }
-  .fr-td-signal { grid-area: signal; justify-self: end; }
   .fr-td-star   { grid-area: star; justify-self: end; }
   .fr-td-toggle { grid-area: tgl; justify-self: end; }
 

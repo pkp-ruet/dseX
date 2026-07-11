@@ -40,6 +40,14 @@ jobs:
       - name: Run quick close update
         run: python main.py scrape-quick
 
+      # Persist today's Buy/Sell signal per company (one row/company/day) so the
+      # signal backtest builds an exact, growing history. Idempotent per Dhaka
+      # day; a failure here must not fail the price refresh.
+      - name: Snapshot Buy/Sell signals
+        if: ${{ success() }}
+        continue-on-error: true
+        run: python main.py snapshot-signals
+
       # Daily "your stocks today" push, right after fresh prices land. No-op until
       # the VAPID secrets are set, and idempotent per Dhaka day, so this is safe
       # even if the job re-runs. A failure here must not fail the price refresh.
@@ -56,7 +64,7 @@ jobs:
         continue-on-error: true
         run: python main.py notify-price-alerts
 
-      # Per-holding Buy More/Hold/Sell signal tracking. Flips are persisted for
+      # Per-holding Buy More/Sell signal tracking. Flips are persisted for
       # the in-app bell even without VAPID; owners get a push when a holding
       # flips to Sell. Gated to 2 PM Dhaka + deduped per day, so safe on re-run.
       - name: Track portfolio signal flips

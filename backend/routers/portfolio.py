@@ -139,7 +139,7 @@ def _persist(user_id: str, holdings: list[dict]) -> list[dict]:
 
 @router.get("")
 def get_portfolio(current_user: dict = Depends(get_current_user)):
-    """Holdings enriched with the personalized Buy More / Hold / Sell signal.
+    """Holdings enriched with the personalized Buy More / Sell signal (else none).
 
     Signals are computed server-side from the canonical signal service — the
     frontend renders them and never re-derives buy/sell advice. Mutation
@@ -170,7 +170,7 @@ def get_portfolio(current_user: dict = Depends(get_current_user)):
 
 @router.get("/signal-events")
 def get_signal_events(current_user: dict = Depends(get_current_user)):
-    """Recent Buy More / Hold / Sell flips on the user's holdings (in-app bell)."""
+    """Recent Buy More / Sell flips on the user's holdings (in-app bell)."""
     from backend.services.portfolio_signal_service import list_recent_events
 
     return {"events": list_recent_events(current_user["user_id"])}

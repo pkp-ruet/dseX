@@ -180,9 +180,10 @@ export default function VerdictHero({ detail }: Props) {
               >
                 {word}
               </p>
-              {signal && <SignalChip signal={signal.signal} size="md" />}
+              {signal && <SignalChip signal={signal.signal} strength={signal.strength} size="md" />}
             </div>
-            {signal && signal.signal !== "none" && (
+            {/* Only the Buy action reason is surfaced; Sell is hidden from the UI for now. */}
+            {signal && signal.signal === "buy" && (
               <p
                 className="text-sm sm:text-base font-semibold mt-2.5 leading-snug"
                 style={{ color: "var(--text)" }}

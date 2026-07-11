@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
 // Fundamental-strength tiers — describe how strong the company is, nothing
-// else. Action advice is the separate Buy/Hold/Sell signal below (computed
+// else. Action advice is the separate Buy/Sell signal below (computed
 // by the backend signal service; the frontend only renders it).
 // Mirrors backend/services/tiers.py — keep the two in sync.
 // ---------------------------------------------------------------------------
@@ -60,21 +60,21 @@ export function getTier(score: number | null | undefined): TierKey {
 }
 
 // ---------------------------------------------------------------------------
-// Buy / Hold / Sell signal — backend-computed single source of truth
+// Buy / Sell signal — backend-computed single source of truth
 // (backend/services/signal_service.py). The frontend NEVER derives buy/sell
-// advice itself; it renders what the API sends.
-//   Stock-level:   buy | hold | sell   (null/none = not rated)
-//   Holding-level: buy_more | hold | sell (personalized, portfolio API)
+// advice itself; it renders what the API sends. There is no "Hold": anything
+// neutral arrives as `none` and renders no chip.
+//   Stock-level:   buy | sell   (null/none = no signal)
+//   Holding-level: buy_more | sell   (personalized, portfolio API; else none)
 // ---------------------------------------------------------------------------
 
-export type StockSignalKind   = "buy" | "hold" | "sell";
-export type HoldingSignalKind = "buy_more" | "hold" | "sell";
+export type StockSignalKind   = "buy" | "sell";
+export type HoldingSignalKind = "buy_more" | "sell";
 export type AnySignalKind     = StockSignalKind | HoldingSignalKind;
 
 export const SIGNAL_LABELS: Record<AnySignalKind, string> = {
   buy:      "Buy",
   buy_more: "Buy More",
-  hold:     "Hold",
   sell:     "Sell",
 };
 
@@ -82,13 +82,17 @@ export const SIGNAL_LABELS: Record<AnySignalKind, string> = {
 export const SIGNAL_LABELS_BN: Record<AnySignalKind, string> = {
   buy:      "কেনা যায়",
   buy_more: "আরও কিনুন",
-  hold:     "ধরে রাখুন",
   sell:     "বিক্রি করুন",
 };
 
 export const SIGNAL_VAR: Record<AnySignalKind, string> = {
   buy:      "var(--positive)",
   buy_more: "var(--positive)",
-  hold:     "var(--watch)",
   sell:     "var(--negative)",
 };
+
+// Conviction — the backend upgrades a cheap Buy to "strong" when the stock is
+// deeply cheap AND still low in its 52-week range. The UI shows only Buy or
+// Strong Buy (Sell is computed but hidden for now).
+export const STRONG_BUY_LABEL = "Strong Buy";
+export const STRONG_BUY_LABEL_BN = "জোরালো কেনা যায়";

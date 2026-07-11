@@ -876,7 +876,21 @@ def build_scores_df() -> pd.DataFrame:
         return df
 
 
-def _compute_scores_df() -> pd.DataFrame:
+def _compute_scores_df(
+    prices_override: Optional[dict] = None,
+    fin_max_year: Optional[int] = None,
+) -> pd.DataFrame:
+    """Pure scoring compute over the current DB snapshot.
+
+    Backtest hooks (both default None -> production behaviour is unchanged):
+      * ``prices_override`` — a {code: {"ltp": float}} map to score against
+        instead of today's latest prices (used to value the universe as-of a
+        past date).
+      * ``fin_max_year`` — drop every financial/extended-financial row for a
+        fiscal ``year`` greater than this, so scores reflect only the reports
+        knowable at a past date (removes fundamental look-ahead). Staleness is
+        derived from the freshest *surviving* report, so it auto-adjusts.
+    """
     db = get_db()
 
     # Build set of codes to exclude from DSEF scoring: hard-excluded (bonds/debentures/etc.)
@@ -907,6 +921,10 @@ def _compute_scores_df() -> pd.DataFrame:
         return pd.DataFrame()
 
     fin_df = pd.DataFrame(fin_docs).sort_values(["trading_code", "year"])
+    if fin_max_year is not None and "year" in fin_df.columns:
+        fin_df = fin_df[fin_df["year"] <= fin_max_year]
+        if fin_df.empty:
+            return pd.DataFrame()
     if "eps_cont_basic" in fin_df.columns:
         fin_df["eps"] = fin_df["eps_cont_basic"].combine_first(fin_df.get("eps_basic"))
     elif "eps_basic" in fin_df.columns:
@@ -926,6 +944,9 @@ def _compute_scores_df() -> pd.DataFrame:
     ext_docs = list(db.company_financials_ext.find(
         {"trading_code": {"$nin": list(excluded_codes)}}, {"_id": 0}
     ))
+    if fin_max_year is not None:
+        ext_docs = [d for d in ext_docs
+                    if d.get("year") is not None and d["year"] <= fin_max_year]
     ext_by_code: dict[str, list] = {}
     for doc in ext_docs:
         ext_by_code.setdefault(doc["trading_code"], []).append(doc)
@@ -985,7 +1006,7 @@ def _compute_scores_df() -> pd.DataFrame:
                     sr = 2.0
             sector_rank_score[code] = sr
 
-    prices = load_latest_prices()
+    prices = load_latest_prices() if prices_override is None else prices_override
 
     # Admin manual score adjustments (percentage). Loaded once per scoring rebuild;
     # cache is invalidated by score_adjustments_service on every write.

@@ -31,6 +31,7 @@ export default function PushOptInPrompt() {
   const [show, setShow] = useState(false);
   const [mode, setMode] = useState<"prompt" | "ios">("prompt");
   const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     if (!isLoggedIn || typeof window === "undefined") return;
@@ -73,9 +74,18 @@ export default function PushOptInPrompt() {
 
   async function enable() {
     setBusy(true);
-    await subscribeToPush();
+    setFailed(false);
+    const state = await subscribeToPush();
     setBusy(false);
-    dismissForever();
+    // Only dismiss forever if we actually subscribed. On failure (denied
+    // permission, network/POST error, subscribe threw) keep the prompt so the
+    // user can retry — otherwise they land in a "granted but no subscription"
+    // dead-end with no UI way back.
+    if (state) {
+      dismissForever();
+    } else {
+      setFailed(true);
+    }
   }
 
   if (!show) return null;
@@ -134,6 +144,12 @@ export default function PushOptInPrompt() {
                 <p className="mt-1 text-xs leading-snug text-[var(--text-muted)] font-bn" lang="bn">
                   প্রতিদিন আপনার শেয়ারের ছোট্ট আপডেট
                 </p>
+                {failed && (
+                  <p className="mt-2 text-xs leading-snug text-[var(--negative)]">
+                    Couldn&apos;t turn on alerts. If your browser blocked them, allow
+                    notifications for this site and try again.
+                  </p>
+                )}
                 <div className="mt-3 flex items-center justify-end gap-2">
                   <button
                     type="button"
@@ -150,7 +166,7 @@ export default function PushOptInPrompt() {
                     className="rounded-lg px-3.5 py-2 text-xs font-bold text-white disabled:opacity-60"
                     style={{ background: "var(--primary)" }}
                   >
-                    {busy ? "Turning on…" : "Turn on alerts"}
+                    {busy ? "Turning on…" : failed ? "Try again" : "Turn on alerts"}
                   </button>
                 </div>
               </>
