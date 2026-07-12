@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  /* Palette B — confident indigo + warm amber accent on warm ivory/stone neutrals */
+  /* Palette B — confident indigo + warm amber accent on a soft-lavender canvas with warm-neutral ink */
   --primary: #4338CA;       /* indigo-700 — trust / primary actions */
   --primary-ink: #3730A3;   /* darker — accent text/links on light */
   --primary-soft: #818CF8;  /* lighter — gradients, hover tints */
@@ -17,9 +17,9 @@
 
   --positive: #047857;      /* richer emerald */
   --negative: #DC2626;
-  --bg: #FBFAF8;            /* warm ivory */
-  --bg-gradient: linear-gradient(180deg, #FFFFFF 0%, #FBFAF8 45%, #F5F1EA 100%);
-  --border: #E9E3D8;        /* warm hairline */
+  --bg: #F3F0FB;            /* soft lavender */
+  --bg-gradient: linear-gradient(180deg, #FAF8FE 0%, #F3F0FB 50%, #ECE7F7 100%);
+  --border: #E5E0F2;        /* lavender hairline */
   --text: #1C1917;          /* warm near-black */
   --text-muted: #44403C;    /* warm stone-700 — strong secondary text, no washed-out gray */
   --radius: 10px;
@@ -57,7 +57,7 @@
   --ink: #1C1917;
   --ink-2: #44403C;
   --ink-muted: #44403C;     /* warm stone-700 — matches --text-muted, no washed-out gray */
-  --rule: #E9E3D8;
+  --rule: #E5E0F2;
   --rule-dark: var(--ink-2);
   --gold: var(--primary);   /* legacy alias — tracks primary, not amber */
   --gold-light: #EEF0FB;
@@ -67,9 +67,9 @@
   --np-cautious: #7C3AED;
   --np-watch:    #B45309;
   --np-danger:   #DC2626;
-  --cell-rule: #F0EDE6;
+  --cell-rule: #EDE9F6;
   --surface: #FFFFFF;
-  --surface-2: #F5F1EA;
+  --surface-2: #EEEAF8;
 }
 
 body {
