@@ -7,23 +7,28 @@ import {
   getMarketMovers,
   getCompanyDetail,
   getTop20,
-  getDailyTips,
   type ScoresResponse,
   type ScoreItem,
   type MarketIndexData,
   type MarketMoversData,
-  type CompanyDetail,
   type Top20Response,
-  type DailyTipsResponse,
+  type StockSignalInfo,
 } from "@/lib/api";
+import { getTier, TIER_MEANINGS_BN } from "@/lib/constants";
 import HomeHero from "@/components/home/HomeHero";
+import { type HeroStock } from "@/components/home/HeroGradeReveal";
 import LearnPromoCard from "@/components/home/LearnPromoCard";
-import FeatureShowcase from "@/components/home/FeatureShowcase";
+import SignupSlideshow from "@/components/home/SignupSlideshow";
+import RankingPromo from "@/components/home/RankingPromo";
 import FinalCTA from "@/components/home/FinalCTA";
 import HomePersonalizationGate from "@/components/home/HomePersonalizationGate";
 import ExploreMore from "@/components/home/ExploreMore";
-import SearchBar from "@/components/home/SearchBar";
+import LiveMarketBand from "@/components/home/LiveMarketBand";
+import HowItWorks from "@/components/home/HowItWorks";
+import StatsCountUp from "@/components/home/StatsCountUp";
 import FeedbackSection from "@/components/feedback/FeedbackSection";
+import MotionProvider from "@/components/motion/MotionProvider";
+import Reveal from "@/components/ui/Reveal";
 
 export const revalidate = 86400;
 
@@ -71,55 +76,82 @@ function sortedByScore(items: ScoreItem[]): ScoreItem[] {
   return [...items].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
 }
 
+/** One demo card for the hero. Prefer stocks that carry a Buy signal (strong
+ *  first). Signals ride on the /api/scores payload; when they don't, we enrich
+ *  the top names from company detail (authoritative source). */
+async function buildHeroStocks(all: ScoreItem[]): Promise<HeroStock[]> {
+  const scored = all.filter((s) => s.score != null);
+  if (scored.length === 0) return [];
+
+  const make = (s: ScoreItem, sig: StockSignalInfo | null): HeroStock => {
+    const tier = getTier(s.score);
+    const isBuy = sig?.signal === "buy";
+    return {
+      code: s.trading_code,
+      name: s.company_name ?? s.trading_code,
+      sector: s.sector,
+      score: s.score as number,
+      tier,
+      signal: isBuy ? "buy" : "none",
+      strength: isBuy ? sig?.strength ?? "normal" : null,
+      reasonBn: (isBuy ? sig?.reason_bn : null) || TIER_MEANINGS_BN[tier],
+      ltp: s.ltp,
+      changePct: s.change_pct,
+    };
+  };
+
+  // Fast path — the scores payload already carries the signal.
+  const buysInline = scored.filter((s) => s.signal?.signal === "buy");
+  if (buysInline.length >= 3) {
+    return buysInline.slice(0, 3).map((s) => make(s, s.signal ?? null));
+  }
+
+  // Fallback — enrich the top names with the authoritative signal from detail.
+  const probe = scored.slice(0, 6);
+  const details = await Promise.all(
+    probe.map((s) => getCompanyDetail(s.trading_code).catch(() => null)),
+  );
+  const candidates = probe.map((s, i) => make(s, details[i]?.signal ?? s.signal ?? null));
+  const buys = candidates
+    .filter((c) => c.signal === "buy")
+    .sort(
+      (a, b) =>
+        (a.strength === "strong" ? 0 : 1) - (b.strength === "strong" ? 0 : 1) ||
+        b.score - a.score,
+    );
+  const rest = candidates.filter((c) => c.signal !== "buy");
+  return [...buys, ...rest].slice(0, 3);
+}
+
 async function HeroSection({ promise }: { promise: Promise<ScoresResponse | null> }) {
   const scores = await promise;
   if (!scores) return <HeroFallback />;
   const top = sortedByScore(allItemsFromScores(scores));
-  return <HomeHero topItems={top} />;
+  const heroStocks = await buildHeroStocks(top);
+  return <HomeHero topItems={top} heroStocks={heroStocks} />;
 }
 
-async function ShowcaseSection({
-  promise,
-  tipsPromise,
-}: {
-  promise: Promise<ScoresResponse | null>;
-  tipsPromise: Promise<DailyTipsResponse | null>;
-}) {
-  const [scores, tips] = await Promise.all([promise, tipsPromise]);
-  if (!scores) return null;
-  const all = sortedByScore(allItemsFromScores(scores));
-  const total = all.length;
-
-  // Pick a strong, well-known top stock and pull its full detail (verdict + key numbers)
-  const sampleCode = (all.find((s) => s.score != null) ?? all[0])?.trading_code;
-  const sampleDetail: CompanyDetail | null = sampleCode
-    ? await getCompanyDetail(sampleCode).catch(() => null)
-    : null;
-
-  return (
-    <>
-      <FeatureShowcase sampleDetail={sampleDetail} rankingItems={all} totalCount={total} tips={tips?.tips ?? []} />
-    </>
-  );
-}
-
-async function SearchSection({ promise }: { promise: Promise<ScoresResponse | null> }) {
+async function RankingPromoSection({ promise }: { promise: Promise<ScoresResponse | null> }) {
   const scores = await promise;
   if (!scores) return null;
-  const companies = allItemsFromScores(scores).map((s) => ({
-    trading_code: s.trading_code,
-    company_name: s.company_name,
-  }));
-  if (companies.length === 0) return null;
-  return (
-    <section className="soft-card px-5 sm:px-7 py-6 sm:py-7">
-      <p className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-[var(--primary-ink)]">Explore · Free</p>
-      <h2 className="font-display mt-1.5 mb-4 text-xl sm:text-2xl font-bold tracking-tight text-[var(--text)]">
-        Look up any DSE stock
-      </h2>
-      <SearchBar companies={companies} variant="sidebar" />
-    </section>
-  );
+  const all = sortedByScore(allItemsFromScores(scores));
+  if (all.length === 0) return null;
+  return <RankingPromo items={all} totalCount={all.length} />;
+}
+
+async function MarketPulseSection({ promise }: { promise: Promise<MarketIndexData | null> }) {
+  const index = await promise;
+  if (!index) return null;
+  return <LiveMarketBand index={index} />;
+}
+
+async function StatsSection({ promise }: { promise: Promise<ScoresResponse | null> }) {
+  const scores = await promise;
+  if (!scores) return null;
+  const all = allItemsFromScores(scores);
+  const total = Math.max(50, Math.floor(all.length / 50) * 50);
+  const sectorCount = new Set(all.map((s) => s.sector).filter(Boolean)).size;
+  return <StatsCountUp totalCount={total} sectorCount={sectorCount} />;
 }
 
 async function DiscoverSection({
@@ -172,48 +204,75 @@ export default function HomePage() {
   const marketIndexPromise = getMarketIndex().catch(() => null);
   const moversPromise = getMarketMovers().catch(() => null);
   const top20Promise = getTop20().catch(() => null);
-  const tipsPromise = getDailyTips().catch(() => null);
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
 
+      <MotionProvider>
       <HomePersonalizationGate>
         <Suspense fallback={<HeroFallback />}>
           <HeroSection promise={scoresPromise} />
         </Suspense>
 
-        {/* Bengali "learn from scratch" entry — one clean card below the hero */}
-        <LearnPromoCard className="mt-6 sm:mt-8" />
-
-        <div className="mt-6 sm:mt-8">
+        {/* Live DSE pulse — right under the hero: "real data, updated daily" */}
+        <Reveal className="block mt-6 sm:mt-8" y={12}>
           <Suspense fallback={null}>
-            <SearchSection promise={scoresPromise} />
+            <MarketPulseSection promise={marketIndexPromise} />
           </Suspense>
-        </div>
+        </Reveal>
 
-        <div className="mt-10 sm:mt-12 flex flex-col gap-16 sm:gap-24">
-          <Suspense fallback={<div className="py-16 text-center text-[var(--text-muted)] text-sm">Loading…</div>}>
-            <ShowcaseSection promise={scoresPromise} tipsPromise={tipsPromise} />
-          </Suspense>
+        <div className="mt-12 sm:mt-16 flex flex-col gap-16 sm:gap-24">
+          {/* Rankings hub — right under the live market band */}
+          <Reveal>
+            <Suspense fallback={null}>
+              <RankingPromoSection promise={scoresPromise} />
+            </Suspense>
+          </Reveal>
 
-          <Suspense fallback={null}>
-            <DiscoverSection
-              scoresPromise={scoresPromise}
-              top20Promise={top20Promise}
-              indexPromise={marketIndexPromise}
-              moversPromise={moversPromise}
-            />
-          </Suspense>
+          {/* Self-reveals its header + staggered step cards */}
+          <HowItWorks />
 
-          <FinalCTA />
+          {/* What you unlock with a free account — auto-advancing slideshow */}
+          <Reveal>
+            <SignupSlideshow />
+          </Reveal>
+
+          <Reveal>
+            <Suspense fallback={null}>
+              <StatsSection promise={scoresPromise} />
+            </Suspense>
+          </Reveal>
+
+          <Reveal>
+            <Suspense fallback={null}>
+              <DiscoverSection
+                scoresPromise={scoresPromise}
+                top20Promise={top20Promise}
+                indexPromise={marketIndexPromise}
+                moversPromise={moversPromise}
+              />
+            </Suspense>
+          </Reveal>
+
+          {/* Bengali "learn from scratch" entry */}
+          <Reveal>
+            <LearnPromoCard />
+          </Reveal>
+
+          <Reveal>
+            <FinalCTA />
+          </Reveal>
         </div>
       </HomePersonalizationGate>
 
       {/* Feedback band — shown to everyone (logged-in or out), just before the footer */}
       <div className="mt-16 sm:mt-24">
-        <FeedbackSection />
+        <Reveal>
+          <FeedbackSection />
+        </Reveal>
       </div>
+      </MotionProvider>
     </>
   );
 }
