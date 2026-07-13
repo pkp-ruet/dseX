@@ -261,7 +261,7 @@ export default async function DseTop20Page() {
                 letterSpacing: "-0.03em",
                 lineHeight: 1.02,
                 margin: "0 auto",
-                background: "linear-gradient(100deg, #0EA5E9 0%, #2563EB 40%, #7C3AED 100%)",
+                background: "linear-gradient(100deg, #F28C00 0%, #E8760A 45%, #B85D00 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",

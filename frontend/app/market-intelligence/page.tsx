@@ -114,7 +114,7 @@ export default async function MarketIntelligencePage() {
                 sectors={signals.sector_strength}
                 condition={market_condition}
                 fullWidth={false}
-                titleColor="#7C3AED"
+                titleColor="#185FA5"
               />
             )}
           </div>
@@ -196,7 +196,7 @@ export default async function MarketIntelligencePage() {
                 metricCol="volume_ratio"
                 metricLabel="Vol ×"
                 fullWidth
-                titleColor="#7C3AED"
+                titleColor="#185FA5"
               />
             </div>
           )}
@@ -230,7 +230,7 @@ export default async function MarketIntelligencePage() {
         <SectorMap
           sectors={signals.sector_strength}
           condition={market_condition}
-          titleColor="#7C3AED"
+          titleColor="#185FA5"
         />
       )}
     </>

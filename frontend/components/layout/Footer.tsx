@@ -119,7 +119,7 @@ export default function Footer() {
           </div>
 
           {/* SEO blurb */}
-          <p className="text-[11px] text-[var(--text-muted)] leading-relaxed mt-8 pt-6 border-t border-[var(--border)]">
+          <p className="text-[11px] text-[var(--text-muted)] leading-relaxed mt-8 pt-6 border-t border-white/10">
             TopStockBD covers <strong>DSE share price</strong> today, <strong>Dhaka Stock Exchange</strong> (DSEX) live data,{" "}
             <strong>Bangladesh stock market</strong> rankings, <strong>DSE news</strong>, BD stock market signals,{" "}
             and <strong>DSE share price list</strong> — free fundamental analysis for every listed company.{" "}
@@ -130,7 +130,7 @@ export default function Footer() {
           </p>
 
           {/* Bottom bar */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-6 pt-5 border-t border-[var(--border)]">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-6 pt-5 border-t border-white/10">
             <p className="text-xs text-[var(--text-muted)]">
               © {year} TopStockBD. All rights reserved.
             </p>

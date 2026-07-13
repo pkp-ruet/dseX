@@ -92,8 +92,8 @@ export default function VerdictHero({ detail }: Props) {
                 className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full"
                 style={{
                   color: "var(--np-cautious)",
-                  background: "rgba(124,58,237,0.1)",
-                  border: "1px solid rgba(124,58,237,0.3)",
+                  background: "rgba(180,83,9,0.1)",
+                  border: "1px solid rgba(180,83,9,0.3)",
                 }}
               >
                 {profile.sector}

@@ -3,25 +3,39 @@
 @tailwind utilities;
 
 :root {
-  /* Palette B — confident indigo + warm amber accent on a soft-lavender canvas with warm-neutral ink */
-  --primary: #4338CA;       /* indigo-700 — trust / primary actions */
-  --primary-ink: #3730A3;   /* darker — accent text/links on light */
-  --primary-soft: #818CF8;  /* lighter — gradients, hover tints */
-  --accent: var(--primary); /* accent tracks primary (cool) — never amber */
+  /* Role-based palette — cream canvas · navy anchor · clay primary · steel-blue info · gold premium.
+     Different colors do different jobs; green/red stay locked to market data. */
+  --primary: #B0714E;       /* clay — primary buttons + main actions */
+  --primary-ink: #8F5638;   /* deeper clay — primary text/links on light */
+  --primary-soft: #C99475;  /* light clay — gradients, hover tints */
+  --accent: var(--primary); /* generic accent tracks clay primary */
 
-  /* Warm amber accent — DELIBERATE use only (premium badges, secondary CTA,
-     chart accent, star). NEVER focus rings / borders / default accent. */
-  --warm: #D97706;
-  --warm-soft: #FBBF24;
-  --warm-ink: #B45309;
+  /* Anchor — deep navy: navbar, footer, top ribbon, dark headings */
+  --navy: #2A3644;
+  --navy-ink: #1F2833;
+  --navy-soft: #3C4C5E;
 
-  --positive: #047857;      /* richer emerald */
-  --negative: #DC2626;
-  --bg: #F3F0FB;            /* soft lavender */
-  --bg-gradient: linear-gradient(180deg, #FAF8FE 0%, #F3F0FB 50%, #ECE7F7 100%);
-  --border: #E5E0F2;        /* lavender hairline */
-  --text: #1C1917;          /* warm near-black */
-  --text-muted: #44403C;    /* warm stone-700 — strong secondary text, no washed-out gray */
+  /* Info — steel blue: links, info chips, rankings + market surfaces */
+  --info: #4E7292;
+  --info-ink: #3A576F;
+  --info-soft: #83A0B8;
+
+  /* Gold — premium accents: stars, watchlist, dividends, "best" (gold token defined below) */
+  --gold-ink: #8F7333;      /* deeper gold — gold text on light (readable) */
+  --gold-soft: #DCC79A;
+
+  /* Warm accent — readable bronze-gold; safe as text AND as a fill (pairs with the gold premium accent) */
+  --warm: #97762F;
+  --warm-soft: #E6D6A4;
+  --warm-ink: #6E5622;
+
+  --positive: #047857;      /* emerald — gain / buy (LOCKED market semantic) */
+  --negative: #DC2626;      /* red — loss / sell (LOCKED market semantic) */
+  --bg: #FAF7F0;            /* warm cream canvas */
+  --bg-gradient: linear-gradient(180deg, #FDFBF6 0%, #FAF7F0 55%, #F4EFE4 100%);
+  --border: #E4DDCD;        /* warm hairline */
+  --text: #2E2B26;          /* charcoal ink */
+  --text-muted: #5C554A;    /* warm stone — strong secondary text, no washed-out gray */
   --radius: 10px;
   --radius-lg: 18px;
   --radius-xl: 24px;
@@ -37,39 +51,39 @@
   --fs-2xl: 2rem;        /* 32px */
   --fs-display: 2.75rem; /* 44px */
 
-  /* Soft, layered depth — warm-tinted shadow base, indigo lift */
-  --shadow-soft: 0 1px 2px rgba(28, 25, 23, 0.04), 0 12px 32px -12px rgba(28, 25, 23, 0.12);
-  --shadow-lift: 0 1px 2px rgba(28, 25, 23, 0.05), 0 22px 48px -16px rgba(67, 56, 202, 0.20);
-  /* Gentle ambient gradient for hero / closing panels — indigo + faint warm */
+  /* Soft, layered depth — warm charcoal-tinted shadow */
+  --shadow-soft: 0 1px 2px rgba(46, 43, 38, 0.04), 0 12px 32px -12px rgba(46, 43, 38, 0.12);
+  --shadow-lift: 0 1px 2px rgba(46, 43, 38, 0.05), 0 22px 48px -16px rgba(46, 43, 38, 0.16);
+  /* Gentle ambient gradient for hero / closing panels — soft clay + steel on cream */
   --ambient:
-    radial-gradient(120% 90% at 0% 0%, rgba(67, 56, 202, 0.07) 0%, transparent 55%),
-    radial-gradient(110% 90% at 100% 0%, rgba(217, 119, 6, 0.05) 0%, transparent 55%);
+    radial-gradient(120% 90% at 0% 0%, rgba(176, 113, 78, 0.06) 0%, transparent 55%),
+    radial-gradient(110% 90% at 100% 0%, rgba(78, 114, 146, 0.05) 0%, transparent 55%);
 
   /* Fundamental-strength tier colors (excellent/good/average/weak) */
-  --tier-excellent: #047857;
-  --tier-good: #185FA5;    /* true blue — no longer a near-twin of emerald Excellent */
-  --tier-average: #B45309;
-  --tier-weak: #DC2626;
-  --safe-buy: #4338CA;      /* generic indigo accent (not a tier) */
-  --watch: #B45309;         /* generic amber warn token (not a tier) */
+  --tier-excellent: #047857;   /* emerald */
+  --tier-good: #4E7292;        /* steel blue */
+  --tier-average: #64748B;     /* slate — neutral */
+  --tier-weak: #DC2626;        /* red */
+  --safe-buy: #4E7292;         /* info-blue accent (not a tier) */
+  --watch: #B45309;            /* burnt-amber warn token (not a tier) */
 
   /* Design palette — light */
-  --ink: #1C1917;
-  --ink-2: #44403C;
-  --ink-muted: #44403C;     /* warm stone-700 — matches --text-muted, no washed-out gray */
-  --rule: #E5E0F2;
+  --ink: #2E2B26;
+  --ink-2: #5C554A;
+  --ink-muted: #5C554A;     /* warm stone — matches --text-muted, no washed-out gray */
+  --rule: #E4DDCD;
   --rule-dark: var(--ink-2);
-  --gold: var(--primary);   /* legacy alias — tracks primary, not amber */
-  --gold-light: #EEF0FB;
+  --gold: #C6A96B;          /* real gold — premium accent (stars, dividends, "best") */
+  --gold-light: #F3ECDA;
   --np-strong:   #047857;
   --np-good:     #059669;
-  --np-safe:     #4338CA;
-  --np-cautious: #7C3AED;
+  --np-safe:     #4E7292;
+  --np-cautious: #B45309;
   --np-watch:    #B45309;
   --np-danger:   #DC2626;
-  --cell-rule: #EDE9F6;
+  --cell-rule: #EFE8DA;
   --surface: #FFFFFF;
-  --surface-2: #EEEAF8;
+  --surface-2: #F1ECE1;
 }
 
 body {
@@ -95,7 +109,7 @@ body::before {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, var(--primary) 0%, var(--primary-soft) 100%);
+  background: linear-gradient(90deg, var(--info) 0%, var(--primary) 50%, var(--gold) 100%);
   z-index: 1000;
 }
 
@@ -350,20 +364,20 @@ a:hover .ticker-tag,
   padding: 5px 12px;
   border-radius: 999px;
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-soft) 100%);
-  box-shadow: 0 0 10px rgba(67, 56, 202,0.45);
+  box-shadow: 0 0 10px rgba(232, 118, 10, 0.42);
   color: #fff;
   text-decoration: none;
   transition: box-shadow 0.15s, transform 0.12s, background 0.15s;
   white-space: nowrap;
 }
 .navbar-rank-btn:hover {
-  background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
-  box-shadow: 0 0 18px rgba(67, 56, 202,0.65);
+  background: linear-gradient(135deg, #F28C00 0%, #E8760A 100%);
+  box-shadow: 0 0 18px rgba(232, 118, 10, 0.6);
   transform: translateY(-1px);
 }
 .navbar-rank-btn-active {
-  background: linear-gradient(135deg, #4338ca 0%, #7e22ce 100%);
-  box-shadow: 0 0 14px rgba(67, 56, 202,0.55);
+  background: linear-gradient(135deg, #E8760A 0%, #B85D00 100%);
+  box-shadow: 0 0 14px rgba(232, 118, 10, 0.5);
 }
 
 /* ---- Ranking page header ---- */
@@ -1790,14 +1804,14 @@ a:hover .ticker-tag,
   text-decoration: none;
   padding: 5px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(167,139,250,0.30);
-  background: rgba(124,58,237,0.10);
+  border: 1px solid rgba(232,118,10,0.30);
+  background: rgba(232,118,10,0.10);
   transition: color 0.15s, background 0.15s, border-color 0.15s, transform 0.15s;
 }
 .mib-cta:hover {
   color: #fff;
-  background: linear-gradient(135deg, rgba(124,58,237,0.40), rgba(236,72,153,0.30));
-  border-color: rgba(167,139,250,0.55);
+  background: linear-gradient(135deg, rgba(232,118,10,0.42), rgba(242,140,0,0.30));
+  border-color: rgba(232,118,10,0.55);
   transform: translateY(-1px);
 }
 
@@ -2161,7 +2175,7 @@ a:hover .ticker-tag,
   border-radius: 999px;
   padding: 0 14px;
   gap: 8px;
-  box-shadow: 0 2px 16px rgba(14, 165, 233, 0.12), 0 1px 4px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 16px rgba(232, 118, 10, 0.10), 0 1px 3px rgba(38, 35, 34, 0.10);
   transition: box-shadow 0.2s, background 0.2s;
 }
 
@@ -2171,9 +2185,9 @@ a:hover .ticker-tag,
     linear-gradient(var(--surface), var(--surface)) padding-box,
     linear-gradient(135deg, var(--primary), var(--primary), var(--np-cautious)) border-box;
   box-shadow:
-    0 0 0 4px rgba(34, 211, 238, 0.18),
-    0 0 32px rgba(167, 139, 250, 0.15),
-    0 4px 20px rgba(14, 165, 233, 0.2);
+    0 0 0 4px rgba(232, 118, 10, 0.14),
+    0 0 28px rgba(232, 118, 10, 0.10),
+    0 4px 20px rgba(38, 35, 34, 0.10);
 }
 
 .search-bar-open {
@@ -2230,7 +2244,7 @@ a:hover .ticker-tag,
   border: 2px solid transparent;
   border-top: none;
   border-radius: 0 0 16px 16px;
-  box-shadow: 0 12px 32px rgba(14, 165, 233, 0.15), 0 4px 12px rgba(0,0,0,0.4);
+  box-shadow: 0 12px 32px rgba(38, 35, 34, 0.14), 0 4px 12px rgba(38, 35, 34, 0.10);
   overflow: hidden;
 }
 
@@ -2245,7 +2259,7 @@ a:hover .ticker-tag,
 
 .search-suggestion-item:hover,
 .search-suggestion-active {
-  background: linear-gradient(90deg, rgba(34,211,238,0.1), rgba(167,139,250,0.07));
+  background: linear-gradient(90deg, rgba(232,118,10,0.10), rgba(242,140,0,0.06));
 }
 
 .search-suggestion-code {
@@ -2765,7 +2779,7 @@ a:hover .ticker-tag,
   align-items: center;
   gap: 10px;
   padding: 8px 4px;
-  border-bottom: 1px solid rgba(99, 102, 241, 0.14);
+  border-bottom: 1px solid rgba(232, 118, 10, 0.14);
   text-decoration: none;
   color: inherit;
   font-size: 0.75rem;
@@ -3003,8 +3017,9 @@ a:hover .ticker-tag,
   margin-bottom: 12px;
   padding: 22px 20px 26px;
   border-radius: 18px;
-  background: linear-gradient(180deg, #FFFFFF 0%, var(--surface-2) 100%);
-  border: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--navy) 0%, var(--navy-ink) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.72);
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
 }
 .np-footer-brand {
@@ -3012,14 +3027,20 @@ a:hover .ticker-tag,
   font-size: 0.95rem;
   font-weight: 700;
   letter-spacing: 2px;
-  color: var(--ink);
+  color: #fff;
 }
 .np-footer-tagline {
   font-size: 0.64rem;
-  color: var(--ink-muted);
+  color: rgba(255, 255, 255, 0.60);
   margin-top: 4px;
   letter-spacing: 0.02em;
 }
+/* Footer is a navy anchor — flip its content to light; links hover to gold */
+.np-footer-modern h3 { color: rgba(255, 255, 255, 0.52); }
+.np-footer-modern a { color: rgba(255, 255, 255, 0.82); }
+.np-footer-modern a:hover { color: var(--gold); }
+.np-footer-modern p { color: rgba(255, 255, 255, 0.66); }
+.np-footer-modern strong { color: rgba(255, 255, 255, 0.86); font-weight: 600; }
 
 /* Pillar score bar */
 .pillar-bar {
@@ -3416,9 +3437,9 @@ a:hover .ticker-tag,
    the dropdown popover is re-asserted light further down.
    ====================================== */
 .navbar-header {
-  background: linear-gradient(100deg, var(--primary) 0%, var(--primary-ink) 100%);
+  background: linear-gradient(100deg, var(--navy) 0%, var(--navy-ink) 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.10);
-  box-shadow: 0 2px 14px rgba(55, 48, 163, 0.28);
+  box-shadow: 0 2px 14px rgba(31, 40, 51, 0.30);
 }
 
 /* Brand */
@@ -3452,16 +3473,16 @@ a:hover .ticker-tag,
 }
 .navbar-header .navbar-nav-divider { background: rgba(255, 255, 255, 0.24); }
 
-/* Sign Up — invert to a white pill for max CTA pop on indigo */
+/* Sign Up — the one clay CTA, popping against the navy bar */
 .navbar-header .navbar-rank-btn {
-  background: #fff;
-  color: var(--primary);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.22);
 }
 .navbar-header .navbar-rank-btn:hover {
-  background: #fff;
-  color: var(--primary-ink);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.26);
+  background: var(--primary-ink);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.30);
   transform: translateY(-1px);
 }
 
@@ -3482,10 +3503,10 @@ a:hover .ticker-tag,
   color: #fff;
 }
 
-/* Watch count badge — readable on dark */
+/* Watch count badge — gold (watchlist = gold), readable on dark */
 .navbar-header .navbar-watch-badge {
-  background: #fff;
-  color: var(--primary);
+  background: var(--gold);
+  color: #3A2E14;
 }
 
 /* Mobile controls */
@@ -3775,15 +3796,15 @@ a:hover .ticker-tag,
   line-height: 0;
 }
 .star-btn:hover {
-  color: #D97706;
-  background: rgba(217, 119, 6, 0.08);
+  color: var(--gold-ink);
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
 }
 .star-btn--on {
-  color: #F59E0B;
+  color: var(--gold);
 }
 .star-btn--on:hover {
-  color: #B45309;
-  background: rgba(245, 158, 11, 0.12);
+  color: var(--gold-ink);
+  background: color-mix(in srgb, var(--gold) 18%, transparent);
 }
 .star-btn:active {
   transform: scale(0.92);
@@ -3861,17 +3882,17 @@ a:hover .ticker-tag,
   text-decoration: none;
   border: 1px solid transparent;
   white-space: nowrap;
-  box-shadow: 0 0 14px rgba(67, 56, 202,0.4);
+  box-shadow: 0 0 14px rgba(232, 118, 10, 0.4);
   transition: filter 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 .navbar-portfolio-mobile-btn:hover {
   filter: brightness(1.08);
   transform: translateY(-1px);
-  box-shadow: 0 0 18px rgba(67, 56, 202,0.55);
+  box-shadow: 0 0 18px rgba(232, 118, 10, 0.55);
 }
 .navbar-portfolio-mobile-btn-active {
-  background: linear-gradient(135deg, #4338ca 0%, #7e22ce 100%);
-  box-shadow: 0 0 14px rgba(67, 56, 202,0.55);
+  background: linear-gradient(135deg, #E8760A 0%, #B85D00 100%);
+  box-shadow: 0 0 14px rgba(232, 118, 10, 0.55);
 }
 @media (max-width: 380px) {
   .navbar-portfolio-mobile-btn {
@@ -4068,7 +4089,7 @@ a:hover .ticker-tag,
   font-weight: 500;
   font-family: inherit;
   outline: none;
-  box-shadow: 0 1px 2px rgba(17, 12, 6, 0.05), 0 6px 16px -8px rgba(67, 56, 202, 0.18);
+  box-shadow: 0 1px 2px rgba(17, 12, 6, 0.05), 0 6px 16px -8px rgba(232, 118, 10, 0.18);
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .watchlist-add-input:hover {
@@ -4077,7 +4098,7 @@ a:hover .ticker-tag,
 .watchlist-add-input:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent),
-    0 8px 20px -8px rgba(67, 56, 202, 0.28);
+    0 8px 20px -8px rgba(232, 118, 10, 0.28);
 }
 .watchlist-add-input::placeholder { color: var(--ink-muted); font-weight: 500; }
 .watchlist-add-clear {
@@ -4251,7 +4272,7 @@ a:hover .ticker-tag,
   padding: 4px 10px;
   border-radius: 5px;
   background: var(--gold-light);
-  color: var(--gold);
+  color: var(--gold-ink);
   text-decoration: none;
 }
 .watchlist-ticker:hover {
@@ -4599,7 +4620,7 @@ a:hover .ticker-tag,
   padding: 2px 7px;
   border-radius: 5px;
   background: var(--gold-light);
-  color: var(--gold);
+  color: var(--gold-ink);
   text-decoration: none;
 }
 .wla-code-link:hover { opacity: 0.78; }
@@ -4868,8 +4889,8 @@ a:hover .ticker-tag,
   padding: 0 4px;
   font-size: 0.55rem;
   font-weight: 800;
-  background: #F59E0B;
-  color: #fff;
+  background: var(--gold);
+  color: #3A2E14;
   border-radius: 999px;
   display: flex;
   align-items: center;
@@ -4900,9 +4921,9 @@ a:hover .ticker-tag,
 
 /* ---- Bottom bar → indigo, mirrors the top bar ---- */
 .mobile-bottom-bar {
-  background: linear-gradient(100deg, var(--primary) 0%, var(--primary-ink) 100%);
+  background: linear-gradient(100deg, var(--navy) 0%, var(--navy-ink) 100%);
   border-top: 1px solid rgba(255, 255, 255, 0.10);
-  box-shadow: 0 -2px 14px rgba(55, 48, 163, 0.30);
+  box-shadow: 0 -2px 14px rgba(31, 40, 51, 0.30);
 }
 .mobile-bottom-bar-item {
   color: rgba(255, 255, 255, 0.74);
@@ -4968,9 +4989,9 @@ a:hover .ticker-tag,
   .disha-typing span { animation: none; opacity: 0.6; }
 }
 
-/* ---- Drawer: indigo header, light scannable body w/ indigo accents ---- */
+/* ---- Drawer: navy header, light scannable body w/ clay accents ---- */
 .navbar-drawer-header {
-  background: linear-gradient(100deg, var(--primary) 0%, var(--primary-ink) 100%);
+  background: linear-gradient(100deg, var(--navy) 0%, var(--navy-ink) 100%);
   border-bottom: none;
 }
 .navbar-drawer-title {
@@ -5209,18 +5230,18 @@ a:hover .ticker-tag,
 }
 
 .tr-star .star-btn {
-  color: var(--watch);
+  color: var(--gold);
   padding: 2px;
 }
 
 .tr-star .star-btn:hover {
-  color: #F59E0B;
-  background: rgba(251, 191, 36, 0.14);
+  color: var(--gold-ink);
+  background: color-mix(in srgb, var(--gold) 16%, transparent);
 }
 
 .tr-star .star-btn--on {
-  color: #F59E0B;
-  filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.6));
+  color: var(--gold);
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--gold) 55%, transparent));
 }
 
 .tr-ticker-pill {
@@ -6867,7 +6888,7 @@ a:hover .ticker-tag,
 }
 .ms-page-kicker::before {
   content: ""; width: 24px; height: 3px; border-radius: 2px; flex-shrink: 0;
-  background: linear-gradient(90deg, var(--primary), #6D28D9);
+  background: linear-gradient(90deg, var(--primary), #B85D00);
 }
 .ms-page-h1-main {
   font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
@@ -6876,7 +6897,7 @@ a:hover .ticker-tag,
 }
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
   .ms-page-h1-main {
-    background: linear-gradient(115deg, var(--primary) 0%, #6D28D9 70%);
+    background: linear-gradient(115deg, var(--primary) 0%, #B85D00 70%);
     -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent; color: transparent;
   }
@@ -6904,7 +6925,7 @@ a:hover .ticker-tag,
 .ms-hero--up::before {
   background:
     radial-gradient(130% 95% at 0% 0%, rgba(4, 120, 87, 0.16) 0%, transparent 56%),
-    radial-gradient(120% 95% at 100% 0%, rgba(67, 56, 202, 0.08) 0%, transparent 56%);
+    radial-gradient(120% 95% at 100% 0%, rgba(24, 95, 165, 0.08) 0%, transparent 56%);
 }
 .ms-hero--down::before, .ms-hero--weak::before {
   background:
@@ -6953,8 +6974,8 @@ a:hover .ticker-tag,
   flex-shrink: 0; width: 42px; height: 42px; border-radius: 14px;
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-grotesk), system-ui, sans-serif; font-weight: 800; font-size: 1.25rem; color: #fff;
-  background: linear-gradient(135deg, var(--primary) 0%, #6D28D9 100%);
-  box-shadow: 0 10px 24px -10px rgba(67, 56, 202, 0.6);
+  background: linear-gradient(135deg, var(--primary) 0%, #B85D00 100%);
+  box-shadow: 0 10px 24px -10px rgba(232, 118, 10, 0.5);
 }
 .ms-section-title {
   font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
@@ -7094,7 +7115,7 @@ a:hover .ticker-tag,
   background: radial-gradient(circle, color-mix(in srgb, var(--lens, var(--primary)) 15%, transparent), transparent 70%);
 }
 .ms-lens-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lift); }
-.ms-lens-card--best { border: 2px solid transparent; background: linear-gradient(var(--surface), var(--surface)) padding-box, linear-gradient(135deg, var(--primary), #6D28D9) border-box; }
+.ms-lens-card--best { border: 2px solid transparent; background: linear-gradient(var(--surface), var(--surface)) padding-box, linear-gradient(135deg, var(--primary), #B85D00) border-box; }
 .ms-lens-head { display: flex; align-items: center; gap: 11px; margin-bottom: 4px; }
 .ms-lens-ico {
   width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
@@ -7105,7 +7126,7 @@ a:hover .ticker-tag,
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lens, var(--primary)) 24%, transparent);
 }
 .ms-lens-title { font-size: var(--fs-base); font-weight: 800; color: var(--ink); margin: 0; line-height: 1.15; letter-spacing: -0.01em; }
-.ms-lens-best { position: absolute; top: 0; right: 0; background: linear-gradient(135deg, var(--primary), #6D28D9); color: #fff; font-size: var(--fs-2xs); font-weight: 800; padding: 4px 12px; border-bottom-left-radius: var(--radius); letter-spacing: 0.04em; }
+.ms-lens-best { position: absolute; top: 0; right: 0; background: linear-gradient(135deg, var(--primary), #B85D00); color: #fff; font-size: var(--fs-2xs); font-weight: 800; padding: 4px 12px; border-bottom-left-radius: var(--radius); letter-spacing: 0.04em; }
 .ms-lens-desc { font-size: var(--fs-xs); color: var(--text-muted); margin: 10px 0 2px; }
 
 /* ---- Accent-tinted card (top accent bar + soft corner glow, keyed off --card-accent) ---- */

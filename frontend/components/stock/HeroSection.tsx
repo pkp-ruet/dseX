@@ -116,7 +116,7 @@ export default function HeroSection({ detail }: Props) {
                   {profile.sector && (
                     <span
                       className="text-xs font-semibold px-3 py-1 rounded-full"
-                      style={{ color: "var(--np-cautious)", background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.25)" }}
+                      style={{ color: "var(--np-cautious)", background: "rgba(180,83,9,0.1)", border: "1px solid rgba(180,83,9,0.25)" }}
                     >
                       {profile.sector}
                     </span>

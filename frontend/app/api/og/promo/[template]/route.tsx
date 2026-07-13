@@ -1753,8 +1753,8 @@ async function RenderTop20() {
           if (item.rs_vs_dsex_pct != null && Math.abs(item.rs_vs_dsex_pct) >= 0.5)
             chips.push({
               text: `${item.rs_vs_dsex_pct > 0 ? "+" : ""}${item.rs_vs_dsex_pct.toFixed(1)}% vs DSEX`,
-              fg: "#4338CA",
-              bg: "#E0E7FF",
+              fg: "#B85D00",
+              bg: "#FEE8CF",
             });
           if (item.volume_ratio != null && item.volume_ratio >= 1.3)
             chips.push({
@@ -2399,13 +2399,13 @@ async function RenderShowcase() {
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
                 {watchChips.map((c) => (
-                  <div key={c} style={pill("#E0E7FF", "#4338CA")}>
+                  <div key={c} style={pill("#FEE8CF", "#B85D00")}>
                     {c}
                   </div>
                 ))}
               </div>
             </div>
-            <TileCaption index="03" accent="#4338CA" title="Watchlist & alerts" />
+            <TileCaption index="03" accent="#E8760A" title="Watchlist & alerts" />
           </div>
 
           {/* Tile 4 — Portfolio analysis */}
