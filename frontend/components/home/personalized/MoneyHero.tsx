@@ -116,7 +116,7 @@ export default function MoneyHero({
           </div>
 
           <Link
-            href="/portfolio#portfolio-analysis"
+            href="/portfolio"
             aria-label={`Portfolio grade ${analysis.grade} — ${analysis.gradeLabel}. See full analysis`}
             className="flex flex-col items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border-2 shrink-0 transition active:scale-95"
             style={{ color: gradeColor, borderColor: gradeColor, background: "var(--surface-2)" }}
@@ -177,7 +177,7 @@ export default function MoneyHero({
       </div>
 
       <Link
-        href="/portfolio#portfolio-analysis"
+        href="/portfolio"
         className="block text-center px-4 py-3 text-xs font-semibold text-[var(--primary)] hover:bg-[var(--surface-2)] border-t border-[var(--border)] transition-colors"
       >
         See full portfolio analysis →
