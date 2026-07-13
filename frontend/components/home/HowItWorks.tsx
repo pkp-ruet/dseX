@@ -1,11 +1,9 @@
 import Link from "next/link";
-import Reveal from "@/components/ui/Reveal";
 
 /**
  * Plain-language "how it works" — three jargon-free steps, English + Bengali.
- * Server component: all copy is in the SSR HTML (SEO). Each card reveals with a
- * staggered rise via <Reveal> (client wrapper); under reduced-motion they simply
- * fade in. This section self-reveals, so it is NOT wrapped again at the page level.
+ * Server component: all copy is in the SSR HTML (SEO). Rendered statically (no
+ * scroll-reveal) so the marketing homepage stays smooth while scrolling.
  */
 
 const STEPS = [
@@ -53,28 +51,25 @@ const STEPS = [
 export default function HowItWorks() {
   return (
     <section aria-labelledby="how-it-works-title">
-      <Reveal>
-        <div className="text-center max-w-2xl mx-auto">
-          <span className="inline-flex items-center gap-2 rounded-full bg-[color-mix(in_srgb,var(--primary)_10%,transparent)] px-3.5 py-1 text-[0.7rem] font-extrabold uppercase tracking-[0.14em] text-[var(--primary-ink)]">
-            How it works
-          </span>
-          <h2
-            id="how-it-works-title"
-            className="font-display mt-3 text-[clamp(1.6rem,4.5vw,2.4rem)] font-bold tracking-tight text-[var(--text)]"
-          >
-            Understand any stock in three simple steps
-          </h2>
-          <p className="mt-2.5 text-[0.95rem] text-[var(--text-muted)]">
-            No finance background needed. If you can search, you can invest smarter.
-          </p>
-        </div>
-      </Reveal>
+      <div className="text-center max-w-2xl mx-auto">
+        <span className="inline-flex items-center gap-2 rounded-full bg-[color-mix(in_srgb,var(--primary)_10%,transparent)] px-3.5 py-1 text-[0.7rem] font-extrabold uppercase tracking-[0.14em] text-[var(--primary-ink)]">
+          How it works
+        </span>
+        <h2
+          id="how-it-works-title"
+          className="font-display mt-3 text-[clamp(1.6rem,4.5vw,2.4rem)] font-bold tracking-tight text-[var(--text)]"
+        >
+          Understand any stock in three simple steps
+        </h2>
+        <p className="mt-2.5 text-[0.95rem] text-[var(--text-muted)]">
+          No finance background needed. If you can search, you can invest smarter.
+        </p>
+      </div>
 
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
-        {STEPS.map((s, i) => (
-          <Reveal
+        {STEPS.map((s) => (
+          <div
             key={s.n}
-            delay={i * 0.1}
             className="soft-card hover-lift relative flex flex-col p-5 sm:p-6"
           >
             {/* top accent */}
@@ -105,18 +100,18 @@ export default function HowItWorks() {
             <p lang="bn" className="font-bn mt-2 text-[0.9rem] leading-relaxed text-[var(--text)]">
               {s.bn}
             </p>
-          </Reveal>
+          </div>
         ))}
       </div>
 
-      <Reveal className="mt-6 text-center">
+      <div className="mt-6 text-center">
         <Link
           href="/dsestockranking"
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--primary)] hover:underline underline-offset-2"
         >
           See how every DSE stock ranks →
         </Link>
-      </Reveal>
+      </div>
     </section>
   );
 }

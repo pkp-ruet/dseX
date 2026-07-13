@@ -9,6 +9,9 @@ export interface ComputedRow {
   current_value: number | null;
   pnl: number | null;
   pnl_pct: number | null;
+  /** 52-week high/low, when known — powers the "near its high" awareness check. */
+  w52_high?: number | null;
+  w52_low?: number | null;
 }
 
 /** Language for all user-facing copy the analysis generates. */
@@ -82,6 +85,8 @@ export interface HoldingInsight {
   buyPrice: number;
   ltp: number | null;
   pnlPct: number | null;
+  /** Position of LTP within the 52-week range (0 = at low, 1 = at high), or null. */
+  rangePos: number | null;
   score: number | null;
   tierKey: TierBucket;
   qualityWord: QualityWord;
@@ -102,6 +107,7 @@ export interface HoldingInsight {
     weakEarnings: boolean;
     earningsShrinking: boolean;
     expensiveEntry: boolean;
+    nearHigh: boolean;
   };
 }
 
@@ -122,6 +128,15 @@ export interface PortfolioAnalysis {
   holdings: HoldingInsight[];
   sectorSpread: { name: string; weightPct: number; count: number }[];
   subScores: { spread: number; quality: number; entry: number; overall: number };
+  /** Herfindahl-based "effective number of stocks" — concentration-honest count. */
+  effectiveStocks: number;
+  /** Biggest single concentration risk: a large position in a below-good company. */
+  topRisk: {
+    code: string;
+    weightPct: number;
+    tierKey: TierBucket;
+    qualityWord: QualityWord;
+  } | null;
 }
 
 // ── helpers ────────────────────────────────────────────────────────────────
@@ -485,6 +500,12 @@ export function analyzePortfolio(
     const tk = tierBucket(score);
     const entry = classifyEntry(row.pnl_pct, item?.p4_val, lang);
     const weightPct = (weightBasisOf(row) / totalBasis) * 100;
+    const w52h = row.w52_high ?? null;
+    const w52l = row.w52_low ?? null;
+    const rangePos =
+      row.ltp != null && w52h != null && w52l != null && w52h > w52l
+        ? Math.max(0, Math.min(1, (row.ltp - w52l) / (w52h - w52l)))
+        : null;
     const flags = {
       weakFinances: isLow(item?.p2_health, 4),
       weakEarnings: isLow(item?.p1_biz, 4),
@@ -493,6 +514,8 @@ export function analyzePortfolio(
         entry.tag === "expensive_expensive" ||
         entry.tag === "up_expensive" ||
         entry.tag === "full_price",
+      // Mirrors the signal service's ≥85%-of-range dampening.
+      nearHigh: rangePos != null && rangePos >= 0.85,
     };
     const insight: HoldingInsight = {
       code,
@@ -504,6 +527,7 @@ export function analyzePortfolio(
       buyPrice: row.holding.buy_price,
       ltp: row.ltp,
       pnlPct: row.pnl_pct,
+      rangePos,
       score,
       tierKey: tk,
       qualityWord: QUALITY_WORD[tk],
@@ -582,6 +606,33 @@ export function analyzePortfolio(
   const sortedByWeight = [...insights].sort((a, b) => b.weightPct - a.weightPct);
   const largestPos = sortedByWeight[0];
 
+  // Concentration — Herfindahl "effective number of stocks". A portfolio of 8
+  // names with one at 60% behaves like far fewer than 8; this says how many.
+  const hhi = insights.reduce((acc, i) => acc + (i.weightPct / 100) ** 2, 0);
+  const effectiveStocks = hhi > 0 ? 1 / hhi : 0;
+
+  // Biggest single risk: a large position (≥15%) in a below-good company
+  // (score < 60). Ranked by weight × how far short of top quality it is.
+  const topRiskInsight =
+    insights
+      .filter((i) => i.score != null && (i.score as number) < 60 && i.weightPct >= 15)
+      .map((i) => ({ insight: i, risk: i.weightPct * (10 - (i.score as number) / 10) }))
+      .sort((a, b) => b.risk - a.risk)[0]?.insight ?? null;
+  const topRiskCode = topRiskInsight?.code ?? null;
+
+  // Financials (banks + NBFIs + insurers) move together with rates/regulation,
+  // so a heavy combined weight is a hidden concentration even when it's split
+  // across those sub-sectors.
+  const isFinancial = (sec: string | null) =>
+    !!sec && /bank|financ|nbfi|leasing|insuranc/.test(sec.toLowerCase());
+  const financialInsights = insights.filter((i) => isFinancial(i.sector));
+  const financialsWeight = financialInsights.reduce((acc, i) => acc + i.weightPct, 0);
+  const financialSectorCount = new Set(financialInsights.map((i) => i.sector)).size;
+  const financialsOverweight =
+    financialsWeight > 55 && financialSectorCount >= 2;
+
+  const nearHighItems = insights.filter((i) => i.flags.nearHigh);
+
   // ── Bullets ────────────────────────────────────────────────────────────
   const good: string[] = [];
   const bad: string[] = [];
@@ -649,6 +700,15 @@ export function analyzePortfolio(
         : "You only own 2 stocks — that's still too concentrated. A bad day for either one hits your portfolio hard, because half your money moves with each stock. Aim for at least 5 stocks across 3 different sectors.",
     );
   }
+  if (topRiskInsight) {
+    const w = topRiskInsight.weightPct.toFixed(0);
+    const qBn = QUALITY_WORD_BN[topRiskInsight.qualityWord];
+    bad.push(
+      bnMode
+        ? `${topRiskInsight.code} আপনার পোর্টফোলিওর ${w}%, অথচ এর মান ${qBn} — এটাই আপনার সবচেয়ে বড় ঝুঁকি। দুর্বল কোম্পানিতে বড় বাজি রাখলে বাকি সব শেয়ারের লাভ এক ধাক্কায় মুছে যেতে পারে। এটি কমিয়ে 10%-এর কাছাকাছি আনার কথা ভাবুন, বা কিছু টাকা আরও শক্তিশালী কোনো শেয়ারে সরান।`
+        : `${topRiskInsight.code} is ${w}% of your portfolio but only rated ${topRiskInsight.qualityWord.toLowerCase()} — that's your single biggest risk. A large bet on a weaker company can wipe out the gains from everything else you own. Consider trimming it toward 10%, or moving some of that money into a stronger name.`,
+    );
+  }
   if (maxSectorPct > 50 && distinctSectors > 1) {
     const pct = maxSectorPct.toFixed(0);
     bad.push(
@@ -663,7 +723,15 @@ export function analyzePortfolio(
         : `All your stocks are in one sector (${maxSectorName}), so your portfolio rises and falls with that single industry. When that sector is in trouble, you have nothing else to balance the loss. Add stocks from at least 2 other sectors to fix this.`,
     );
   }
-  if (largestPos && largestPos.weightPct > 40 && holdingCount > 1) {
+  if (financialsOverweight && maxSectorPct <= 50) {
+    const pct = financialsWeight.toFixed(0);
+    bad.push(
+      bnMode
+        ? `আপনার প্রায় ${pct}% টাকা আর্থিক খাতের কোম্পানিতে — ব্যাংক, এনবিএফআই আর বিমা মিলিয়ে। এগুলো আলাদা খাত মনে হলেও বেশিরভাগ সময় একসাথেই ওঠানামা করে (সুদের হার আর নিয়মকানুন বদলালে)। আর্থিক খাতে বড় ধাক্কা এলে আপনার পোর্টফোলিওর বেশিরভাগ একসাথে পড়বে। ভারসাম্যের জন্য অন্তত একটি অ-আর্থিক খাত (ওষুধ, খাদ্য, টেলিকম) যোগ করুন।`
+        : `About ${pct}% of your money is in financial companies — banks, NBFIs, and insurers combined. They may look like different sectors, but they mostly move together with interest rates and regulation. A shock to the financial sector would hit most of your portfolio at once. Adding a non-financial sector (pharma, food, telecom) would balance this.`,
+    );
+  }
+  if (largestPos && largestPos.weightPct > 40 && holdingCount > 1 && largestPos.code !== topRiskCode) {
     const w = largestPos.weightPct.toFixed(0);
     const hit = (largestPos.weightPct * 0.2).toFixed(0);
     bad.push(
@@ -685,17 +753,19 @@ export function analyzePortfolio(
         : `${nameList(strugglingNames)} have weak finances — likely heavy debt or weak cash flow. Companies in this shape can struggle to pay dividends or even survive a downturn. Watch their next quarterly results closely.`,
     );
   }
-  if (avoidNames.length === 1) {
+  // The top-risk name is already called out above (big-and-weak) — don't repeat it here.
+  const avoidForBullet = avoidNames.filter((c) => c !== topRiskCode);
+  if (avoidForBullet.length === 1) {
     bad.push(
       bnMode
-        ? `${avoidNames[0]} সার্বিক মানে কম স্কোর পেয়েছে, মানে মৌলিক দিকগুলো সব মিলিয়ে দুর্বল। দুর্বল কোম্পানি ধরে রাখলে সময়ের সাথে সাধারণত হতাশ হতে হয়। নিজেকে সৎভাবে জিজ্ঞেস করুন কেন এটি ধরে রেখেছেন — শক্ত কারণ না থাকলে ভালো রেটিংয়ের শেয়ারে বদলে নেওয়ার কথা ভাবুন।`
-        : `${avoidNames[0]} is rated low on overall quality, meaning weak fundamentals across the board. Holding weak companies usually leads to disappointing returns over time. Honestly ask yourself why you're holding it — and if there's no strong reason, consider switching to a better-rated stock.`,
+        ? `${avoidForBullet[0]} সার্বিক মানে কম স্কোর পেয়েছে, মানে মৌলিক দিকগুলো সব মিলিয়ে দুর্বল। দুর্বল কোম্পানি ধরে রাখলে সময়ের সাথে সাধারণত হতাশ হতে হয়। নিজেকে সৎভাবে জিজ্ঞেস করুন কেন এটি ধরে রেখেছেন — শক্ত কারণ না থাকলে ভালো রেটিংয়ের শেয়ারে বদলে নেওয়ার কথা ভাবুন।`
+        : `${avoidForBullet[0]} is rated low on overall quality, meaning weak fundamentals across the board. Holding weak companies usually leads to disappointing returns over time. Honestly ask yourself why you're holding it — and if there's no strong reason, consider switching to a better-rated stock.`,
     );
-  } else if (avoidNames.length > 1) {
+  } else if (avoidForBullet.length > 1) {
     bad.push(
       bnMode
-        ? `${nameList(avoidNames, 2, "bn")} সার্বিক মানে কম স্কোর পেয়েছে, মানে মৌলিক দিকগুলো সব মিলিয়ে দুর্বল। দুর্বল কোম্পানি ধরে রাখলে সাধারণত হতাশ হতে হয়। সুযোগ পেলেই এগুলো ভালো রেটিংয়ের শেয়ার দিয়ে বদলে নিন।`
-        : `${nameList(avoidNames)} are rated low on overall quality, meaning weak fundamentals across the board. Holding weak companies usually leads to disappointing returns over time. Replace them with better-rated stocks when you get the chance.`,
+        ? `${nameList(avoidForBullet, 2, "bn")} সার্বিক মানে কম স্কোর পেয়েছে, মানে মৌলিক দিকগুলো সব মিলিয়ে দুর্বল। দুর্বল কোম্পানি ধরে রাখলে সাধারণত হতাশ হতে হয়। সুযোগ পেলেই এগুলো ভালো রেটিংয়ের শেয়ার দিয়ে বদলে নিন।`
+        : `${nameList(avoidForBullet)} are rated low on overall quality, meaning weak fundamentals across the board. Holding weak companies usually leads to disappointing returns over time. Replace them with better-rated stocks when you get the chance.`,
     );
   }
   if (shrinkingItems.length === 1) {
@@ -781,6 +851,22 @@ export function analyzePortfolio(
         : `${c.code} has run up sharply — the stock now looks expensive compared to what the company actually earns. Booking some profit (selling part of your position) lets you lock in your gains while still keeping some shares for further upside. You don't have to sell all of it.`,
     );
   }
+  if (nearHighItems.length > 0) {
+    const codes = nearHighItems.map((i) => i.code);
+    if (codes.length === 1) {
+      consider.push(
+        bnMode
+          ? `${codes[0]} তার গত 52 সপ্তাহের সর্বোচ্চ দামের কাছাকাছি চলছে। এটা শক্তির লক্ষণ, তবে এখান থেকে আরও ওপরে যাওয়ার জায়গা কম আর একটু পিছিয়ে আসার ঝুঁকি বেশি। ভালো কোম্পানি বিক্রি করার দরকার নেই — শুধু এই দামে আরও কেনার আগে দুবার ভাবুন।`
+          : `${codes[0]} is trading near its 52-week high. That's a sign of strength, but it also means limited room left to run and a higher chance of a pullback. No need to sell a good company — just think twice before buying more at this level.`,
+      );
+    } else {
+      consider.push(
+        bnMode
+          ? `${nameList(codes, 2, "bn")} তাদের 52 সপ্তাহের সর্বোচ্চ দামের কাছাকাছি — আরও ওপরে ওঠার জায়গা কম আর পিছিয়ে আসার ঝুঁকি বেশি। ভালোগুলো ধরে রাখুন, তবে এই দামে নতুন করে কেনায় সাবধান।`
+          : `${nameList(codes)} are trading near their 52-week highs — limited room left to run and more prone to a pullback. Hold your good ones, but be cautious about buying more at these levels.`,
+      );
+    }
+  }
   if (reliableDividend.length === 0 && holdingCount >= 3) {
     consider.push(
       bnMode
@@ -800,7 +886,13 @@ export function analyzePortfolio(
   let sectorPenalty = 0;
   if (distinctSectors === 1 && holdingCount >= 1) sectorPenalty = Math.max(sectorPenalty, 2);
   if (maxSectorPct > 50) sectorPenalty = Math.max(sectorPenalty, 4);
-  const spreadScore = clamp(Math.min(holdingCount, 10) - sectorPenalty, 0, 10);
+  // Financials move together — a heavy combined weight is a concentration even
+  // when it's split across banks / NBFIs / insurers.
+  if (financialsOverweight) sectorPenalty = Math.max(sectorPenalty, 3);
+  // Effective (concentration-honest) count, not a raw holding count: 8 names
+  // with one at 60% behaves like far fewer than 8. Equal-weight portfolios are
+  // unaffected (effectiveStocks === holdingCount there).
+  const spreadScore = clamp(Math.min(effectiveStocks, 10) - sectorPenalty, 0, 10);
 
   const baseQuality = weightedAvgScore != null ? weightedAvgScore / 10 : 5;
   const qualityScore = clamp(
@@ -842,6 +934,15 @@ export function analyzePortfolio(
     holdings: insights,
     sectorSpread,
     subScores: { spread: spreadScore, quality: qualityScore, entry: entryScore, overall },
+    effectiveStocks,
+    topRisk: topRiskInsight
+      ? {
+          code: topRiskInsight.code,
+          weightPct: topRiskInsight.weightPct,
+          tierKey: topRiskInsight.tierKey,
+          qualityWord: topRiskInsight.qualityWord,
+        }
+      : null,
   };
 }
 

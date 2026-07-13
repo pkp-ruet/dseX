@@ -350,33 +350,25 @@ function Section({ title, tone, items, emptyText, bnMode }: SectionProps) {
   const bnText = bnMode ? "font-bn" : "";
   const chipStyle = {
     color: accent,
-    background: `color-mix(in srgb, ${accent} 14%, transparent)`,
-    borderColor: `color-mix(in srgb, ${accent} 30%, transparent)`,
+    background: `color-mix(in srgb, ${accent} 12%, transparent)`,
   };
   return (
-    <div
-      className="border rounded-2xl p-4 sm:p-5"
-      style={{
-        borderColor: `color-mix(in srgb, ${accent} 30%, var(--border))`,
-        background: `linear-gradient(135deg, color-mix(in srgb, ${accent} 7%, transparent), transparent 60%), var(--surface)`,
-      }}
-    >
+    <div className="flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5">
       <div className="flex items-center gap-2.5 mb-4">
         <span
-          className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg border"
+          className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0"
           style={chipStyle}
         >
-          <span className="w-4 h-4 sm:w-[18px] sm:h-[18px]">{icon}</span>
+          <span className="w-[18px] h-[18px]">{icon}</span>
         </span>
         <h3
-          className={`text-sm sm:text-[15px] uppercase tracking-wider font-bold ${bnText}`}
-          style={{ color: accent }}
+          className={`text-sm sm:text-[15px] font-bold text-[var(--text)] leading-tight ${bnText}`}
         >
           {title}
         </h3>
         {items.length > 0 && (
           <span
-            className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full border"
+            className="ml-auto grid place-items-center min-w-[22px] h-[22px] px-1.5 text-xs font-bold rounded-full tabular-nums"
             style={chipStyle}
           >
             {items.length}
@@ -385,19 +377,16 @@ function Section({ title, tone, items, emptyText, bnMode }: SectionProps) {
       </div>
 
       {items.length === 0 ? (
-        <p className={`text-sm text-[var(--text-muted)] italic leading-relaxed ${bnText}`}>
+        <p className={`text-sm text-[var(--text-muted)] leading-relaxed ${bnText}`}>
           {emptyText}
         </p>
       ) : (
-        <ul className="flex flex-col gap-3.5">
+        <ul className="flex flex-col gap-3">
           {items.map((item, i) => (
             <li key={i} className="flex items-start gap-2.5 leading-relaxed">
               <span
-                className="shrink-0 mt-1.5 w-1.5 h-1.5 rounded-full"
-                style={{
-                  background: accent,
-                  boxShadow: `0 0 0 3px color-mix(in srgb, ${accent} 15%, transparent)`,
-                }}
+                className="shrink-0 mt-[7px] w-1.5 h-1.5 rounded-full"
+                style={{ background: accent }}
                 aria-hidden
               />
               <span className={`text-sm sm:text-[15px] text-[var(--text)] leading-[1.65] ${bnText}`}>

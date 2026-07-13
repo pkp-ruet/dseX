@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -9,6 +9,7 @@ import {
   getRange52w,
   getWatchlistNews,
   getDividendsUpcoming,
+  getMarketIndex,
   flattenTiers,
   type ScoreItem,
   type ScoresResponse,
@@ -19,20 +20,36 @@ import {
   apiGetPortfolio,
   apiUpdateHolding,
   apiDeleteHolding,
+  apiGetSignalEvents,
+  type PortfolioSignalEvent,
 } from "@/lib/api";
 import { taka, formatDate } from "@/lib/formatters";
-import { signalInfoFromApi, portfolioTodayMove, type SignalInfo } from "@/lib/portfolio-analysis";
+import {
+  signalInfoFromApi,
+  portfolioTodayMove,
+  analyzePortfolio,
+  buildRebalancePlan,
+  type SignalInfo,
+  type AnalysisLang,
+} from "@/lib/portfolio-analysis";
 import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
 import { getStoredUser } from "@/lib/auth";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
 import SignalChip from "@/components/ui/SignalChip";
-import PortfolioAnalysis from "./PortfolioAnalysis";
+import PortfolioAnalysisView from "./PortfolioAnalysisView";
+import PortfolioHealthStrip from "./PortfolioHealthStrip";
+import ContributionStrip from "./ContributionStrip";
 import PortfolioHero from "./PortfolioHero";
 import AddHoldingModal from "./AddHoldingModal";
 import WatchlistNews from "@/components/watchlist/WatchlistNews";
 import WatchlistAlertCell from "@/components/watchlist/WatchlistAlertCell";
+
+const LANG_KEY = "dsex.portfolio.lang";
+const lastSeenKey = (uid: string) => `dsex.portfolio.lastseen.${uid}`;
+/** Only surface a "since last visit" delta when the prior visit is at least this old. */
+const LAST_SEEN_MIN_AGE_MS = 60 * 60 * 1000;
 
 function flattenScores(scores: ScoresResponse | null): Map<string, ScoreItem> {
   if (!scores) return new Map();
@@ -373,11 +390,41 @@ export default function PortfolioClient() {
     return readCache<PortfolioHolding[]>(cacheKeys.portfolio(userId)) === null;
   });
   const [error, setError] = useState<string | null>(null);
+  const [events, setEvents] = useState<PortfolioSignalEvent[]>([]);
+  const [dsexPct, setDsexPct] = useState<number | null>(null);
+  const [lang, setLang] = useState<AnalysisLang>("bn");
+  const [lastSeen, setLastSeen] = useState<{ value: number; ts: string } | null>(null);
+  const wroteLastSeen = useRef(false);
 
   function applyHoldings(next: PortfolioHolding[]) {
     setHoldings(next);
     if (userId) writeCache(cacheKeys.portfolio(userId), next);
   }
+
+  // Analysis language — restored from localStorage, Bengali-first.
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(LANG_KEY);
+      if (saved === "bn" || saved === "en") setLang(saved);
+    } catch {}
+  }, []);
+  function changeLang(next: AnalysisLang) {
+    setLang(next);
+    try {
+      localStorage.setItem(LANG_KEY, next);
+    } catch {}
+  }
+
+  // Prior-visit snapshot (value + timestamp) powering the "since your last visit" line.
+  useEffect(() => {
+    if (!userId) return;
+    try {
+      const raw = localStorage.getItem(lastSeenKey(userId));
+      setLastSeen(raw ? JSON.parse(raw) : null);
+    } catch {
+      setLastSeen(null);
+    }
+  }, [userId]);
 
   // Add-stock sheet
   const [addOpen, setAddOpen] = useState(false);
@@ -417,11 +464,24 @@ export default function PortfolioClient() {
   useEffect(() => {
     if (!isLoggedIn) return;
     let cancelled = false;
-    Promise.allSettled([apiGetPortfolio(), getScores(), getAllCodes(), getDividendsUpcoming()])
-      .then(([p, s, c, d]) => {
+    Promise.allSettled([
+      apiGetPortfolio(),
+      getScores(),
+      getAllCodes(),
+      getDividendsUpcoming(),
+      apiGetSignalEvents(),
+      getMarketIndex(),
+    ])
+      .then(([p, s, c, d, e, m]) => {
         if (cancelled) return;
         if (p.status === "fulfilled") {
           applyHoldings(p.value.holdings);
+        }
+        if (e.status === "fulfilled") {
+          setEvents(e.value.events);
+        }
+        if (m.status === "fulfilled") {
+          setDsexPct(m.value.dsex_change_pct ?? null);
         }
         if (s.status === "fulfilled") {
           setPriceMap(flattenScores(s.value));
@@ -527,6 +587,34 @@ export default function PortfolioClient() {
     const pnl_pct = pnl != null && totalInvested > 0 ? (pnl / totalInvested) * 100 : null;
     return { totalInvested, totalValue: hasPrice ? totalValue : null, pnl, pnl_pct };
   }, [rows]);
+
+  const analysis = useMemo(() => analyzePortfolio(rows, priceMap, lang), [rows, priceMap, lang]);
+  const rebalance = useMemo(() => buildRebalancePlan(analysis, priceMap), [analysis, priceMap]);
+
+  // Snapshot this visit's value once data has settled, so the *next* visit can
+  // show the change since now. Written once per mount.
+  useEffect(() => {
+    if (dataLoading || !userId || wroteLastSeen.current || summary.totalValue == null) return;
+    wroteLastSeen.current = true;
+    try {
+      localStorage.setItem(
+        lastSeenKey(userId),
+        JSON.stringify({ value: summary.totalValue, ts: new Date().toISOString() }),
+      );
+    } catch {}
+  }, [dataLoading, userId, summary.totalValue]);
+
+  const valueDelta = useMemo(() => {
+    if (!lastSeen || summary.totalValue == null) return null;
+    if (Date.now() - Date.parse(lastSeen.ts) < LAST_SEEN_MIN_AGE_MS) return null;
+    return { delta: summary.totalValue - lastSeen.value, since: lastSeen.ts };
+  }, [lastSeen, summary.totalValue]);
+
+  function scrollToAnalysis() {
+    document
+      .getElementById("portfolio-analysis")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   const existingCodes = useMemo(
     () => new Set(holdings.map((h) => h.trading_code)),
@@ -706,6 +794,7 @@ export default function PortfolioClient() {
           pnl={summary.pnl}
           pnlPct={summary.pnl_pct}
           todayMove={todayMove}
+          dsexPct={dsexPct}
           holdingsCount={holdings.length}
           slices={rows.map((r) => ({
             code: r.holding.trading_code,
@@ -715,6 +804,20 @@ export default function PortfolioClient() {
           onTogglePrivacy={togglePrivacy}
         />
       )}
+
+      {/* Health summary — verdict + what changed since your last visit */}
+      {holdings.length > 0 && (
+        <PortfolioHealthStrip
+          analysis={analysis}
+          lang={lang}
+          events={events}
+          valueDelta={valueDelta}
+          onSeeDetails={scrollToAnalysis}
+        />
+      )}
+
+      {/* What's moving your money — per-stock gain/loss contribution */}
+      {holdings.length > 0 && <ContributionStrip rows={rows} lang={lang} />}
 
       {rowError && <p className="text-xs text-[var(--negative)] -mb-3">{rowError}</p>}
 
@@ -1062,7 +1165,14 @@ export default function PortfolioClient() {
         <DividendIncomeCard rows={rows} priceMap={priceMap} dividends={dividends} />
       )}
 
-      {holdings.length > 0 && <PortfolioAnalysis rows={rows} priceMap={priceMap} />}
+      {holdings.length > 0 && (
+        <PortfolioAnalysisView
+          analysis={analysis}
+          rebalance={rebalance}
+          lang={lang}
+          onLangChange={changeLang}
+        />
+      )}
 
       {/* News on held stocks */}
       {holdings.length > 0 && (

@@ -23,6 +23,8 @@ const STR = {
       `${code} is ${pct}% of your money — a big single bet. If it stumbles, the whole portfolio feels it. Spreading across more names softens that.`,
     noteOk: (code: string, pct: string) =>
       `Your largest position is ${code} at ${pct}% — a balanced split, no single stock dominates.`,
+    effective: (eff: string, n: number) =>
+      `Even though you hold ${n} stocks, the split is uneven — your money is effectively concentrated in about ${eff} of them. The rest are small positions that barely move your total.`,
   },
   bn: {
     title: "আপনার টাকা কোথায় আছে",
@@ -37,6 +39,8 @@ const STR = {
       `${code} একাই আপনার টাকার ${pct}% — একটাই বড় বাজি। এটি হোঁচট খেলে পুরো পোর্টফোলিও টের পায়। আরও কয়েকটি শেয়ারে ছড়িয়ে দিলে ধাক্কাটা নরম হয়।`,
     noteOk: (code: string, pct: string) =>
       `আপনার সবচেয়ে বড় অবস্থান ${code}, মোট ${pct}% — ভারসাম্য ভালো, কোনো একটি শেয়ার একচেটিয়া নয়।`,
+    effective: (eff: string, n: number) =>
+      `আপনি ${n}টি শেয়ার রাখলেও ভাগটা অসম — আপনার টাকা কার্যত ${eff}টির মতো শেয়ারে জমে আছে। বাকিগুলো ছোট, মোট মূল্যে তেমন প্রভাব ফেলে না।`,
   },
 } as const;
 
@@ -92,6 +96,12 @@ export default function AllocationChart({ analysis, lang = "en" }: Props) {
     topShare > 25
       ? t.noteBig(top.code, topShare.toFixed(0))
       : t.noteOk(top.code, topShare.toFixed(0));
+
+  // Effective (concentration-honest) count — only worth calling out when the
+  // split is meaningfully lopsided, otherwise it just restates the count.
+  const eff = analysis.effectiveStocks;
+  const n = holdings.length;
+  const showEff = n >= 3 && eff > 0 && eff < n - 0.75;
 
   return (
     <Card as="section" padding="none" className="rounded-2xl p-5 sm:p-6">
@@ -192,6 +202,11 @@ export default function AllocationChart({ analysis, lang = "en" }: Props) {
       </div>
 
       <p className={`text-sm text-[var(--text-muted)] mt-5 leading-relaxed ${bnText}`}>{note}</p>
+      {showEff && (
+        <p className={`text-xs text-[var(--text-muted)] mt-2 leading-relaxed ${bnText}`}>
+          {t.effective(eff.toFixed(1), n)}
+        </p>
+      )}
     </Card>
   );
 }

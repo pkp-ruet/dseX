@@ -7,12 +7,16 @@ import {
   getMarketMovers,
   getCompanyDetail,
   getTop20,
+  getDividendsUpcoming,
+  getMarketState,
   type ScoresResponse,
   type ScoreItem,
   type MarketIndexData,
   type MarketMoversData,
   type Top20Response,
   type StockSignalInfo,
+  type DividendsUpcoming,
+  type MarketStateData,
 } from "@/lib/api";
 import { getTier, TIER_MEANINGS_BN } from "@/lib/constants";
 import HomeHero from "@/components/home/HomeHero";
@@ -23,12 +27,11 @@ import RankingPromo from "@/components/home/RankingPromo";
 import FinalCTA from "@/components/home/FinalCTA";
 import HomePersonalizationGate from "@/components/home/HomePersonalizationGate";
 import ExploreMore from "@/components/home/ExploreMore";
-import LiveMarketBand from "@/components/home/LiveMarketBand";
+import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
 import HowItWorks from "@/components/home/HowItWorks";
 import StatsCountUp from "@/components/home/StatsCountUp";
 import FeedbackSection from "@/components/feedback/FeedbackSection";
 import MotionProvider from "@/components/motion/MotionProvider";
-import Reveal from "@/components/ui/Reveal";
 
 export const revalidate = 86400;
 
@@ -139,10 +142,31 @@ async function RankingPromoSection({ promise }: { promise: Promise<ScoresRespons
   return <RankingPromo items={all} totalCount={all.length} />;
 }
 
-async function MarketPulseSection({ promise }: { promise: Promise<MarketIndexData | null> }) {
-  const index = await promise;
+async function MarketPulseSection({
+  indexPromise,
+  dividendsPromise,
+  statePromise,
+}: {
+  indexPromise: Promise<MarketIndexData | null>;
+  dividendsPromise: Promise<DividendsUpcoming | null>;
+  statePromise: Promise<MarketStateData | null>;
+}) {
+  const [index, dividends, state] = await Promise.all([
+    indexPromise,
+    dividendsPromise,
+    statePromise,
+  ]);
   if (!index) return null;
-  return <LiveMarketBand index={index} />;
+  const cheap =
+    state?.now?.questions?.find((q) => q.q.toLowerCase().startsWith("are shares cheap")) ?? null;
+  return (
+    <MarketTodayCard
+      index={index}
+      dividends={dividends}
+      quality={state?.now?.quality ?? null}
+      cheap={cheap}
+    />
+  );
 }
 
 async function StatsSection({ promise }: { promise: Promise<ScoresResponse | null> }) {
@@ -204,6 +228,9 @@ export default function HomePage() {
   const marketIndexPromise = getMarketIndex().catch(() => null);
   const moversPromise = getMarketMovers().catch(() => null);
   const top20Promise = getTop20().catch(() => null);
+  const dividendsPromise = getDividendsUpcoming().catch(() => null);
+  // Match the landing page's daily ISR cadence (defaults to 900s otherwise).
+  const marketStatePromise = getMarketState(86400).catch(() => null);
 
   return (
     <>
@@ -215,36 +242,41 @@ export default function HomePage() {
           <HeroSection promise={scoresPromise} />
         </Suspense>
 
-        {/* Live DSE pulse — right under the hero: "real data, updated daily" */}
-        <Reveal className="block mt-6 sm:mt-8" y={12}>
+        {/* Live DSE pulse — right under the hero: "real data, updated daily".
+            Same "Market Today" card the logged-in home uses, so the market-
+            analysis link + tiles are here too. */}
+        <div className="mt-6 sm:mt-8">
           <Suspense fallback={null}>
-            <MarketPulseSection promise={marketIndexPromise} />
+            <MarketPulseSection
+              indexPromise={marketIndexPromise}
+              dividendsPromise={dividendsPromise}
+              statePromise={marketStatePromise}
+            />
           </Suspense>
-        </Reveal>
+        </div>
 
         <div className="mt-12 sm:mt-16 flex flex-col gap-16 sm:gap-24">
           {/* Rankings hub — right under the live market band */}
-          <Reveal>
+          <div>
             <Suspense fallback={null}>
               <RankingPromoSection promise={scoresPromise} />
             </Suspense>
-          </Reveal>
+          </div>
 
-          {/* Self-reveals its header + staggered step cards */}
           <HowItWorks />
 
           {/* What you unlock with a free account — auto-advancing slideshow */}
-          <Reveal>
+          <div>
             <SignupSlideshow />
-          </Reveal>
+          </div>
 
-          <Reveal>
+          <div>
             <Suspense fallback={null}>
               <StatsSection promise={scoresPromise} />
             </Suspense>
-          </Reveal>
+          </div>
 
-          <Reveal>
+          <div>
             <Suspense fallback={null}>
               <DiscoverSection
                 scoresPromise={scoresPromise}
@@ -253,24 +285,22 @@ export default function HomePage() {
                 moversPromise={moversPromise}
               />
             </Suspense>
-          </Reveal>
+          </div>
 
           {/* Bengali "learn from scratch" entry */}
-          <Reveal>
+          <div>
             <LearnPromoCard />
-          </Reveal>
+          </div>
 
-          <Reveal>
+          <div>
             <FinalCTA />
-          </Reveal>
+          </div>
         </div>
       </HomePersonalizationGate>
 
       {/* Feedback band — shown to everyone (logged-in or out), just before the footer */}
       <div className="mt-16 sm:mt-24">
-        <Reveal>
-          <FeedbackSection />
-        </Reveal>
+        <FeedbackSection />
       </div>
       </MotionProvider>
     </>

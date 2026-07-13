@@ -7617,7 +7617,10 @@ a:hover .ticker-tag,
 /* Floating "+ Add" action button (mobile) — sits above the bottom bar. */
 .pf-fab {
   position: fixed;
-  right: 16px;
+  /* Bottom-LEFT so it clears the site-wide assistant launcher (.disha-fab),
+     which owns the bottom-right corner. The two are independent (the assistant
+     is dismissible), so opposite corners keep both correct regardless of state. */
+  left: calc(16px + env(safe-area-inset-left, 0px));
   bottom: calc(76px + env(safe-area-inset-bottom, 0px));
   z-index: 40;
   display: inline-flex;

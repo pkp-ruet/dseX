@@ -647,8 +647,8 @@ export interface MarketStateData {
   };
 }
 
-export async function getMarketState(): Promise<MarketStateData> {
-  return apiFetch<MarketStateData>("/api/market/state", 900);
+export async function getMarketState(revalidate = 900): Promise<MarketStateData> {
+  return apiFetch<MarketStateData>("/api/market/state", revalidate);
 }
 
 /** Client-side price history fetch (no Next.js cache) */

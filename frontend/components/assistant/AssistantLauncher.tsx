@@ -56,13 +56,15 @@ export default function AssistantLauncher() {
             type="button"
             onClick={() => setOpen(true)}
             aria-label={`Chat with ${PERSONA.name}, your stock helper`}
-            className="inline-flex h-12 items-center gap-2 rounded-full px-4 text-white shadow-lg transition hover:brightness-110 active:scale-95"
+            className="inline-flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg transition hover:brightness-110 active:scale-95 sm:h-12 sm:w-auto sm:justify-start sm:gap-2 sm:px-4"
             style={{ background: "var(--primary)" }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-              <path d="M12 3C6.5 3 2 6.8 2 11.5c0 2.3 1.1 4.4 2.9 5.9-.1 1-.5 2.4-1.4 3.4 1.6-.2 3.2-.8 4.3-1.6 1.3.5 2.7.8 4.2.8 5.5 0 10-3.8 10-8.5S17.5 3 12 3z" />
+            {/* Sparkle = "AI". Icon-only circle on mobile; full pill on sm+. */}
+            <svg className="h-6 w-6 sm:h-5 sm:w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+              <path d="M10 4c.5 4 1.5 5.5 5.5 6-4 .5-5 2-5.5 6-.5-4-1.5-5.5-5.5-6 4-.5 5-2 5.5-6z" />
+              <path d="M18 3c.2 1.9.6 2.3 2.5 2.5-1.9.2-2.3.6-2.5 2.5-.2-1.9-.6-2.3-2.5-2.5 1.9-.2 2.3-.6 2.5-2.5z" />
             </svg>
-            <span className="text-[0.82rem] font-bold">Ask {PERSONA.name}</span>
+            <span className="hidden text-[0.82rem] font-bold sm:inline">Ask {PERSONA.name}</span>
           </button>
           <button
             type="button"

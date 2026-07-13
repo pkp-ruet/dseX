@@ -23,6 +23,8 @@ interface Props {
   pnl: number | null;
   pnlPct: number | null;
   todayMove: { delta: number; pct: number } | null;
+  /** DSEX index change % today — powers the "ahead of / behind the market" chip. */
+  dsexPct: number | null;
   holdingsCount: number;
   /** Per-holding value for the donut (current value, falling back to cost). */
   slices: HeroSlice[];
@@ -107,6 +109,36 @@ function MovePill({
   );
 }
 
+/** "Ahead of / behind the market today" — portfolio's move vs the DSEX index. */
+function MarketChip({
+  portfolioPct,
+  dsexPct,
+}: {
+  portfolioPct: number | null;
+  dsexPct: number | null;
+}) {
+  if (portfolioPct == null || dsexPct == null) return null;
+  const dsexAccent =
+    dsexPct > 0 ? "var(--positive)" : dsexPct < 0 ? "var(--negative)" : "var(--text-muted)";
+  // A hair's-width tie counts as neither ahead nor behind.
+  const diff = portfolioPct - dsexPct;
+  const ahead = Math.abs(diff) < 0.05 ? null : diff > 0;
+  const verdictAccent =
+    ahead == null ? "var(--text-muted)" : ahead ? "var(--positive)" : "var(--negative)";
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full pl-2.5 pr-3 py-1 text-xs sm:text-sm font-bold tabular-nums nums whitespace-nowrap border border-[var(--border)]">
+      <span className="font-semibold text-[var(--text-muted)]">DSEX</span>
+      <span style={{ color: dsexAccent }}>
+        {dsexPct > 0 ? "+" : ""}
+        {dsexPct.toFixed(2)}%
+      </span>
+      <span className="font-semibold" style={{ color: verdictAccent }}>
+        {ahead == null ? "· level" : ahead ? "· you're ahead" : "· you're behind"}
+      </span>
+    </span>
+  );
+}
+
 /** Lightweight SVG donut of the portfolio split (top 5 + rest). */
 function HeroDonut({ slices, holdingsCount }: { slices: HeroSlice[]; holdingsCount: number }) {
   const total = slices.reduce((s, x) => s + x.value, 0);
@@ -168,6 +200,7 @@ export default function PortfolioHero({
   pnl,
   pnlPct,
   todayMove,
+  dsexPct,
   holdingsCount,
   slices,
   privacy,
@@ -228,6 +261,7 @@ export default function PortfolioHero({
           <div className="flex items-center gap-2 flex-wrap mt-3.5">
             <MovePill label="Today" delta={todayMove?.delta ?? null} pct={todayMove?.pct ?? null} />
             <MovePill label="Total" delta={pnl} pct={pnlPct} />
+            <MarketChip portfolioPct={todayMove?.pct ?? null} dsexPct={dsexPct} />
           </div>
 
           {/* Secondary line */}
