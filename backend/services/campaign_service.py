@@ -515,7 +515,7 @@ def send_test(segment: str, to_email: str, to_name: Optional[str]) -> str:
     return send_transactional(
         to_email, to_name, r["subject"], r["html"],
         tags=["test"], headers=_list_unsub_headers("test"),
-    )
+    )  # -> (message_id, provider)
 
 
 # ---------------------------------------------------------------------------
@@ -570,11 +570,11 @@ def run_campaign(
 
         attempted += 1
         segment = classify_segment(user)
-        status, msg_id, err = "failed", None, None
+        status, msg_id, err, provider = "failed", None, None, None
         try:
             rendered = render_for_user(user, ctx, campaign_id)
             segment = rendered["segment"]
-            msg_id = send_transactional(
+            msg_id, provider = send_transactional(
                 email, rendered["to_name"], rendered["subject"], rendered["html"],
                 tags=[campaign_id], headers=_list_unsub_headers(uid),
             )
@@ -592,7 +592,8 @@ def run_campaign(
                 "email": email,
                 "segment": segment,
                 "status": status,
-                "brevo_message_id": msg_id,
+                "brevo_message_id": msg_id,  # legacy field name; holds the provider's msg id
+                "provider": provider,
                 "error": err,
                 "sent_at": datetime.now(timezone.utc),
             }},

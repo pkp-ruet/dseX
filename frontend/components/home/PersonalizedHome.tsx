@@ -42,6 +42,7 @@ import MoneyHero from "@/components/home/personalized/MoneyHero";
 import StatTiles from "@/components/home/personalized/StatTiles";
 import MyStocksToday from "@/components/home/personalized/MyStocksToday";
 import ForYouCard from "@/components/home/personalized/ForYouCard";
+import BuySignalsCard from "@/components/home/personalized/BuySignalsCard";
 import TuneModal from "@/components/stock-recommendation/TuneModal";
 import CoreFeatureTiles from "@/components/home/personalized/CoreFeatureTiles";
 import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
@@ -295,6 +296,8 @@ export default function PersonalizedHome() {
   const rankingItems = allStocks
     .filter((s) => s.score != null)
     .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+  // Buy signals ride along on the scores already in priceMap — no extra fetch.
+  const buys = allStocks.filter((s) => s.signal?.signal === "buy");
   const companies = allStocks.map((s) => ({ trading_code: s.trading_code, company_name: s.company_name }));
   const sectors = Array.from(
     new Set(allStocks.map((s) => s.sector).filter((x): x is string => Boolean(x))),
@@ -479,7 +482,17 @@ export default function PersonalizedHome() {
         </section>
       )}
 
-      {/* ── Section 3: Explore the market — one market snapshot, one tabbed
+      {/* ── Section 3: today's buy signals — the objective, whole-market
+          counterpart to the personalized picks above. Self-contained card (its
+          own header carries the title + counts); leads with buys the user
+          follows. Data rides along on scores already loaded (no extra fetch). ── */}
+      {buys.length > 0 && (
+        <section className="mt-8">
+          <BuySignalsCard buys={buys} watchCodes={newsCodes} />
+        </section>
+      )}
+
+      {/* ── Section 4: Explore the market — one market snapshot, one tabbed
           discovery card, quick links last. Quiet label on purpose: the big
           header above is reserved for the "for you" moment. ── */}
       <section className="mt-10">

@@ -59,7 +59,7 @@ class TestBody(BaseModel):
 @router.post("/test")
 def send_test(body: TestBody, user: dict = Depends(get_current_admin_user)):
     if not is_configured():
-        raise HTTPException(status_code=400, detail="RESEND_API_KEY is not set on the server.")
+        raise HTTPException(status_code=400, detail="No email provider configured — set RESEND_API_KEY and/or BREVO_API_KEY on the server.")
     if body.segment not in VALID_SEGMENTS:
         raise HTTPException(status_code=400, detail="Unknown segment.")
     email = ((body.to_email or "").strip() or (user.get("email") or "").strip())
@@ -68,10 +68,10 @@ def send_test(body: TestBody, user: dict = Depends(get_current_admin_user)):
     if not _EMAIL_RE.match(email):
         raise HTTPException(status_code=400, detail="That doesn't look like a valid email address.")
     try:
-        msg_id = campaign_service.send_test(body.segment, email, user.get("display_name"))
+        msg_id, provider = campaign_service.send_test(body.segment, email, user.get("display_name"))
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=502, detail=f"Send failed: {exc}")
-    return {"ok": True, "to": email, "message_id": msg_id}
+    return {"ok": True, "to": email, "message_id": msg_id, "provider": provider}
 
 
 class SendBody(BaseModel):
@@ -88,7 +88,7 @@ def start_send(
     user: dict = Depends(get_current_admin_user),
 ):
     if not is_configured():
-        raise HTTPException(status_code=400, detail="RESEND_API_KEY is not set on the server.")
+        raise HTTPException(status_code=400, detail="No email provider configured — set RESEND_API_KEY and/or BREVO_API_KEY on the server.")
     segments = _clean_segments(body.segments)
 
     raw = (body.name or f"reengage-{datetime.now(timezone.utc):%Y%m%d-%H%M%S}").strip()
