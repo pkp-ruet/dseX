@@ -1570,6 +1570,68 @@ export async function apiGetCampaignStats(campaignId: string): Promise<CampaignS
 }
 
 // ---------------------------------------------------------------------------
+// Admin — Daily market email (one shared email, auto-selected audience)
+// ---------------------------------------------------------------------------
+
+export interface DailyBuy {
+  code: string;
+  name: string | null;
+  change_pct: number | null;
+  strength: string | null;
+}
+
+export interface DailyAudience {
+  eligible: number;
+  in_cooldown: number;
+  ready: number;
+  selected: number;
+  cap: number;
+  lapsed_days: number;
+  cooldown_days: number;
+}
+
+export interface DailyOverview {
+  campaign_id: string;
+  date_label: string;
+  subject: string;
+  mood: string;
+  buys: DailyBuy[];
+  audience: DailyAudience;
+  already_sent: number;
+}
+
+export async function apiGetDailyEmail(cap = 300): Promise<DailyOverview> {
+  return apiAuthFetch<DailyOverview>(`/api/admin/campaigns/daily?cap=${cap}`);
+}
+
+/** Returns the rendered daily-email HTML (text) for an in-iframe preview. */
+export async function apiPreviewDailyEmail(): Promise<string> {
+  const token = getToken();
+  const res = await fetch(`${getApiUrl()}/api/admin/campaigns/daily/preview`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (res.status === 401) { logout(); throw new Error("AUTH_EXPIRED"); }
+  if (!res.ok) throw new Error(`Preview failed: ${res.status}`);
+  return res.text();
+}
+
+export async function apiSendDailyTest(toEmail?: string): Promise<CampaignTestResult> {
+  return apiAuthFetch<CampaignTestResult>("/api/admin/campaigns/daily/test", {
+    method: "POST",
+    body: JSON.stringify({ to_email: toEmail || undefined }),
+  });
+}
+
+export interface DailySendResult { campaign_id: string; will_send: number; started: boolean; }
+
+export async function apiSendDailyEmail(payload: { subject?: string; cap?: number }): Promise<DailySendResult> {
+  return apiAuthFetch<DailySendResult>("/api/admin/campaigns/daily/send", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Admin — Score Adjustments
 // ---------------------------------------------------------------------------
 

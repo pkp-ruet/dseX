@@ -403,3 +403,200 @@ def build_html(
 </table>
 <img src="{pixel_url}" width="1" height="1" alt="" style="display:block;border:0;width:1px;height:1px;">
 </body></html>"""
+
+
+# ===========================================================================
+# Daily market email — ONE shared email (not personalized) sent to lapsed
+# power users. The content is identical for everyone; only the per-user
+# unsubscribe + open-pixel links differ. The `content` dict is assembled once
+# per day in daily_email_service.build_daily_content(); this just formats it.
+# ===========================================================================
+
+_STRONG_BADGE = (INDIGO, "#FFFFFF")
+_BUY_BADGE = (INDIGO_BG, INDIGO_DARK)
+# Include Bengali-capable fonts up front so the tagline renders on clients that
+# have them (falls back to the client's system Bengali font otherwise).
+_BN_FONT = "'Noto Sans Bengali','Hind Siliguri'," + _FONT
+
+
+def _turnover_str(cr: Optional[float]) -> str:
+    return f"৳{cr:,.0f}cr" if cr else "—"
+
+
+def _daily_glance(m: dict) -> str:
+    """Three tiles: index, turnover, breadth — each with a day-over-day delta."""
+    up, down = m.get("up"), m.get("down")
+    breadth = f"{up}/{down}" if up is not None and down is not None else "—"
+    dsex = m.get("dsex")
+    cells = [
+        ("Market index", f"{dsex:,.0f}" if dsex else "—", _chg_span(m.get("dsex_chg"))),
+        ("Money traded", _turnover_str(m.get("turnover_cr")), _chg_span(m.get("turnover_chg"))),
+        ("Up vs down", breadth, f'<span style="color:{MUTED};font-size:11px;">stocks</span>'),
+    ]
+    tds = "".join(
+        f'<td width="33%" valign="top" style="background:{CELL};border-radius:8px;padding:10px 8px;">'
+        f'<div style="font-size:10px;color:{MUTED};text-transform:uppercase;letter-spacing:.3px;">{label}</div>'
+        f'<div style="font-size:16px;font-weight:700;color:{TEXT};margin-top:3px;">{big}</div>'
+        f'<div style="font-size:12px;margin-top:1px;">{sub}</div></td>'
+        for (label, big, sub) in cells
+    )
+    return (
+        _section_label("The market in one glance")
+        + f'<tr><td style="padding:0 24px 4px;">'
+        f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;border-spacing:6px;">'
+        f'<tr>{tds}</tr></table></td></tr>'
+    )
+
+
+def _daily_buys(buys: list[dict]) -> str:
+    """Today's Buy-signal stocks (strong ones first), each a bordered card."""
+    if not buys:
+        return ""
+    cards = []
+    for b in buys:
+        strong = b.get("strength") == "strong"
+        bg, fg = _STRONG_BADGE if strong else _BUY_BADGE
+        label = "Strong buy" if strong else "Buy"
+        name = (b.get("name") or "")[:26]
+        code = b.get("code")
+        url = b.get("url")
+        code_html = f'<a href="{url}" style="color:{INDIGO};text-decoration:none;">{code}</a>' if url else code
+        reason = b.get("reason_en") or ""
+        cards.append(
+            f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
+            f'style="background:{SURFACE};border:1px solid {BORDER};border-radius:10px;margin-bottom:8px;">'
+            f'<tr><td style="padding:12px 14px;">'
+            f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
+            f'<td style="font-size:15px;font-weight:700;">{code_html} '
+            f'<span style="font-size:11px;font-weight:400;color:{MUTED};">{name}</span></td>'
+            f'<td style="text-align:right;white-space:nowrap;font-size:14px;color:{TEXT};font-weight:700;">'
+            f'{_money(b.get("ltp"))}{_chg_inline(b.get("change_pct"))}</td>'
+            f'</tr></table>'
+            f'<div style="font-size:13px;color:{TEXT2};line-height:1.5;margin-top:5px;">{reason}</div>'
+            f'<span style="display:inline-block;margin-top:8px;font-size:11px;font-weight:700;'
+            f'background:{bg};color:{fg};padding:3px 10px;border-radius:20px;">{label}</span>'
+            f'</td></tr></table>'
+        )
+    return (
+        _section_label("Today's top buys")
+        + f'<tr><td style="padding:0 24px 2px;color:{TEXT2};font-size:12px;">'
+        f"Our system's strongest picks after today's close</td></tr>"
+        + f'<tr><td style="padding:8px 24px 0;">{"".join(cards)}</td></tr>'
+    )
+
+
+def _daily_scorecard(sc: Optional[dict]) -> str:
+    """Green 'how our last picks did' strip — the trust-builder."""
+    if not sc or not sc.get("items"):
+        return ""
+    bits = []
+    for it in sc["items"]:
+        chg = it.get("change_pct")
+        if chg is None:
+            bits.append(it["code"])
+        else:
+            bits.append(f'{it["code"]} {"+" if chg >= 0 else "−"}{abs(chg):.1f}%')
+    line = " · ".join(bits)
+    up, total = sc.get("up_count"), sc.get("total")
+    tail = f" · {up} of {total} up" if up is not None and total else ""
+    label = sc.get("date_label")
+    head = f"How our {label} picks did" if label else "How yesterday's picks did"
+    return (
+        f'<tr><td style="padding:10px 24px 4px;">'
+        f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:{POS_BG};border-radius:10px;">'
+        f'<tr><td style="padding:12px 14px;">'
+        f'<div style="font-size:12px;font-weight:700;color:{POS_TX};">{head}</div>'
+        f'<div style="font-size:13px;color:{POS_TX};margin-top:4px;line-height:1.5;">{line} — one day later{tail}.</div>'
+        f'</td></tr></table></td></tr>'
+    )
+
+
+def _daily_extras(x: Optional[dict]) -> str:
+    """Biggest mover / most traded / fresh dividends — one rotating strip."""
+    if not x:
+        return ""
+    lines = []
+    g = x.get("top_gainer")
+    if g and g.get("code"):
+        lines.append(f'<b style="color:{TEXT};">Biggest jump today:</b> {g["code"]}{_chg_inline(g.get("change_pct"))}')
+    mt = x.get("most_traded")
+    if mt and mt.get("code"):
+        cr = mt.get("value_cr")
+        lines.append(f'<b style="color:{TEXT};">Most traded:</b> {mt["code"]}' + (f' · ৳{cr:,.0f}cr traded' if cr else ""))
+    dc = x.get("dividends_count")
+    if dc:
+        lines.append(f'<b style="color:{TEXT};">Just announced:</b> {dc} companies declared dividends')
+    if not lines:
+        return ""
+    return (
+        _section_label("Also today")
+        + f'<tr><td style="padding:0 24px;font-size:13px;color:{TEXT2};line-height:1.8;">{"<br>".join(lines)}</td></tr>'
+    )
+
+
+def build_daily_html(*, content: dict, unsubscribe_url: str, pixel_url: str) -> str:
+    """Assemble the full daily email. `content` is shared across all recipients;
+    only unsubscribe_url + pixel_url are per-user."""
+    preheader = content.get("preheader", "")
+    date_label = content.get("date_label", "")
+    mood = content.get("mood", "")
+    mood_kind = content.get("mood_kind")
+    tagline_bn = content.get("bengali_tagline", "")
+    cta_text = content.get("cta_text", "See today's market")
+    cta_url = content.get("cta_url", "#")
+
+    pill_bg, pill_fg = {"pos": ("rgba(255,255,255,0.18)", "#ffffff"),
+                        "neg": ("rgba(255,255,255,0.18)", "#ffffff")}.get(mood_kind, ("rgba(255,255,255,0.16)", "#ffffff"))
+    mood_pill = (
+        f'<div style="display:inline-block;margin-top:10px;background:{pill_bg};color:{pill_fg};'
+        f'font-size:12px;padding:4px 11px;border-radius:20px;">{mood}</div>' if mood else ""
+    )
+    tagline_row = (
+        f'<tr><td style="padding:14px 24px 2px;"><div style="font-size:14px;color:{TEXT2};'
+        f'line-height:1.7;font-family:{_BN_FONT};">{tagline_bn}</div></td></tr>' if tagline_bn else ""
+    )
+
+    inner = "".join(s for s in [
+        _daily_glance(content.get("market") or {}),
+        _daily_buys(content.get("buys") or []),
+        _daily_scorecard(content.get("scorecard")),
+        _daily_extras(content.get("extras")),
+    ] if s)
+
+    return f"""<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light only">
+<title>TopStock Daily</title>
+</head>
+<body style="margin:0;padding:0;background:{BG};">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:{BG};font-size:1px;line-height:1px;">{preheader}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:{BG};font-family:{_FONT};">
+  <tr><td align="center" style="padding:18px 12px;">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:{BG};border:1px solid {BORDER};border-radius:12px;overflow:hidden;">
+
+      <tr><td style="background:{INDIGO};padding:18px 24px;">
+        <div style="font-size:19px;font-weight:800;color:#ffffff;letter-spacing:.3px;">TopStock Daily</div>
+        <div style="font-size:12px;color:#C7C2F5;margin-top:3px;">{date_label} · Dhaka Stock Exchange</div>
+        {mood_pill}
+      </td></tr>
+
+      {tagline_row}
+
+      {inner}
+
+      <tr><td style="padding:20px 24px 8px;" align="center">
+        <a href="{cta_url}" style="display:inline-block;background:{INDIGO};color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;padding:13px 30px;border-radius:8px;">{cta_text} →</a>
+      </td></tr>
+
+      <tr><td style="padding:16px 24px 22px;border-top:1px solid {BORDER};">
+        <div style="font-size:11px;color:{MUTED};line-height:1.6;">You're receiving this because you have a watchlist or portfolio on TopStock BD. Prices are for information only, not investment advice.</div>
+        <div style="font-size:11px;color:{MUTED};margin-top:8px;"><a href="{unsubscribe_url}" style="color:{INDIGO};text-decoration:underline;">Unsubscribe</a> · topstockbd.com</div>
+      </td></tr>
+
+    </table>
+  </td></tr>
+</table>
+<img src="{pixel_url}" width="1" height="1" alt="" style="display:block;border:0;width:1px;height:1px;">
+</body></html>"""

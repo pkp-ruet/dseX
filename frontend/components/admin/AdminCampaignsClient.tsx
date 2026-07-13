@@ -4,21 +4,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import {
-  apiGetCampaignAudience,
-  apiPreviewCampaign,
-  apiSendTestEmail,
-  apiSendCampaign,
+  apiGetDailyEmail,
+  apiPreviewDailyEmail,
+  apiSendDailyTest,
+  apiSendDailyEmail,
   apiGetCampaignStats,
-  type CampaignAudience,
-  type CampaignSegment,
+  type DailyOverview,
   type CampaignStats,
 } from "@/lib/api";
-
-const SEGMENTS: { key: CampaignSegment; label: string; hint: string }[] = [
-  { key: "portfolio", label: "Portfolio holders", hint: "Value + P&L since they left" },
-  { key: "watchlist", label: "Watchlist watchers", hint: "Their tickers, moves & alerts" },
-  { key: "cold", label: "Cold (no lists)", hint: "Market FOMO + top-rated picks" },
-];
 
 const btnBase =
   "inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
@@ -27,19 +20,16 @@ export default function AdminCampaignsClient() {
   const router = useRouter();
   const { isLoading, isLoggedIn, isAdmin } = useAuth();
 
-  const [inactiveDays, setInactiveDays] = useState(30);
-  const [audience, setAudience] = useState<CampaignAudience | null>(null);
-  const [audienceErr, setAudienceErr] = useState("");
+  const [cap, setCap] = useState(300);
+  const [overview, setOverview] = useState<DailyOverview | null>(null);
+  const [overviewErr, setOverviewErr] = useState("");
 
-  const [selected, setSelected] = useState<Set<CampaignSegment>>(
-    new Set(["portfolio", "watchlist", "cold"]),
-  );
-  const [previewSeg, setPreviewSeg] = useState<CampaignSegment>("watchlist");
+  const [subject, setSubject] = useState("");
+  const subjectDirty = useRef(false);
+
   const [previewHtml, setPreviewHtml] = useState("");
   const [previewErr, setPreviewErr] = useState("");
 
-  const [name, setName] = useState("");
-  const [limit, setLimit] = useState("50");
   const [testEmail, setTestEmail] = useState("");
   const [testMsg, setTestMsg] = useState("");
   const [sendMsg, setSendMsg] = useState("");
@@ -56,33 +46,35 @@ export default function AdminCampaignsClient() {
     if (!isAdmin) { router.replace("/"); return; }
   }, [isLoading, isLoggedIn, isAdmin, router]);
 
-  // --- audience counts ---
-  const loadAudience = useCallback((days: number) => {
-    setAudienceErr("");
-    apiGetCampaignAudience(days)
-      .then(setAudience)
-      .catch((e: Error) => setAudienceErr(e?.message ?? "Failed to load audience"));
+  // --- today's email overview (subject + audience + featured buys) ---
+  const loadOverview = useCallback((c: number) => {
+    setOverviewErr("");
+    apiGetDailyEmail(c)
+      .then((d) => {
+        setOverview(d);
+        if (!subjectDirty.current) setSubject(d.subject);
+      })
+      .catch((e: Error) => setOverviewErr(e?.message ?? "Failed to load today's email"));
   }, []);
 
   useEffect(() => {
     if (!isAdmin) return;
-    loadAudience(inactiveDays);
-  }, [isAdmin, inactiveDays, loadAudience]);
+    loadOverview(cap);
+  }, [isAdmin, cap, loadOverview]);
 
   // --- preview ---
   useEffect(() => {
     if (!isAdmin) return;
     setPreviewErr("");
-    apiPreviewCampaign(previewSeg)
+    apiPreviewDailyEmail()
       .then(setPreviewHtml)
       .catch((e: Error) => setPreviewErr(e?.message ?? "Preview failed"));
-  }, [isAdmin, previewSeg]);
+  }, [isAdmin]);
 
   // --- stats polling while a send is running ---
   useEffect(() => {
     if (!campaignId) return;
-    const tick = () =>
-      apiGetCampaignStats(campaignId).then(setStats).catch(() => {});
+    const tick = () => apiGetCampaignStats(campaignId).then(setStats).catch(() => {});
     tick();
     pollRef.current = setInterval(tick, 4000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
@@ -92,10 +84,11 @@ export default function AdminCampaignsClient() {
     if (stats?.status === "done" && pollRef.current) {
       clearInterval(pollRef.current);
       pollRef.current = null;
+      loadOverview(cap); // refresh "already sent" + audience after the run
     }
-  }, [stats?.status]);
+  }, [stats?.status, cap, loadOverview]);
 
-  if (isLoading || (!isAdmin)) {
+  if (isLoading || !isAdmin) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <p className="text-[var(--text-muted)]">Loading…</p>
@@ -103,48 +96,34 @@ export default function AdminCampaignsClient() {
     );
   }
 
-  const toggleSeg = (k: CampaignSegment) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(k)) next.delete(k); else next.add(k);
-      return next;
-    });
-  };
-
-  const targetCount = audience
-    ? SEGMENTS.filter((s) => selected.has(s.key)).reduce((n, s) => n + audience.by_segment[s.key], 0)
-    : 0;
+  const aud = overview?.audience;
+  const alreadySent = overview?.already_sent ?? 0;
+  const willSend = aud ? Math.max(0, Math.min(aud.ready, cap - alreadySent)) : 0;
 
   const onSendTest = async () => {
     setBusy(true); setTestMsg("");
     try {
-      const r = await apiSendTestEmail(previewSeg, testEmail.trim() || undefined);
-      setTestMsg(`Test (${previewSeg}) sent to ${r.to}. Check inbox + spam.`);
+      const r = await apiSendDailyTest(testEmail.trim() || undefined);
+      setTestMsg(`Test sent to ${r.to}. Check inbox + spam.`);
     } catch (e) {
       setTestMsg(`Failed: ${(e as Error)?.message ?? "send error"}`);
     } finally { setBusy(false); }
   };
 
-  const onSendCampaign = async () => {
-    if (selected.size === 0) { setSendMsg("Select at least one segment."); return; }
-    const lim = limit.trim() ? Number(limit) : undefined;
-    const limLabel = lim ? `${lim} (warm-up batch)` : `all ${targetCount}`;
+  const onSend = async () => {
+    if (willSend === 0) { setSendMsg("Nobody to send to right now (all eligible users are in their 7-day cooldown)."); return; }
     const ok = window.confirm(
-      `Send "${name || "auto-named"}" to ${limLabel} of ${targetCount} eligible users` +
-      `\n\nSegments: ${[...selected].join(", ")}\nInactive ≥ ${inactiveDays} days` +
-      `\n\nReminder: warm up a new sending domain — start small (e.g. 50), ramp up over a few days.`,
+      `Send "TopStock Daily" to ${willSend} user${willSend > 1 ? "s" : ""} now?\n\n` +
+      `Subject: ${subject}\n\n` +
+      `These are power users idle 7+ days. Sending sets a 7-day cooldown so nobody is emailed again this week.` +
+      (alreadySent ? `\n\n(${alreadySent} already sent today — this tops up to the ${cap} cap.)` : ""),
     );
     if (!ok) return;
     setBusy(true); setSendMsg(""); setStats(null);
     try {
-      const r = await apiSendCampaign({
-        name: name.trim() || undefined,
-        segments: [...selected],
-        inactive_days: inactiveDays,
-        limit: lim,
-      });
+      const r = await apiSendDailyEmail({ subject: subjectDirty.current ? subject.trim() : undefined, cap });
       setCampaignId(r.campaign_id);
-      setSendMsg(`Started "${r.campaign_id}" → ${r.eligible} eligible. Sending in background…`);
+      setSendMsg(`Started → sending to ${r.will_send} users in the background…`);
     } catch (e) {
       setSendMsg(`Failed: ${(e as Error)?.message ?? "send error"}`);
     } finally { setBusy(false); }
@@ -157,7 +136,12 @@ export default function AdminCampaignsClient() {
       <div className="rank-page-header mb-5 flex items-end justify-between gap-3 flex-wrap">
         <div>
           <p className="rank-page-eyebrow">// ADMIN</p>
-          <h1 className="rank-page-title">Email Campaigns</h1>
+          <h1 className="rank-page-title">Daily Email</h1>
+          {overview && (
+            <p className="text-xs text-[var(--text-muted)] mt-1">
+              {overview.date_label}{overview.mood ? ` · ${overview.mood}` : ""}
+            </p>
+          )}
         </div>
         <a
           href="/admin/analytics"
@@ -171,76 +155,76 @@ export default function AdminCampaignsClient() {
         {/* ---- Left: audience + controls ---- */}
         <div className="space-y-5">
           <div className={card}>
-            <h2 className="text-sm font-bold text-[var(--text)] mb-3">Audience</h2>
-            <label className="flex items-center gap-2 text-sm text-[var(--text-muted)] mb-3">
-              Inactive for at least
-              <input
-                type="number"
-                min={1}
-                max={3650}
-                value={inactiveDays}
-                onChange={(e) => setInactiveDays(Math.max(1, Number(e.target.value) || 1))}
-                className="w-20 px-2 py-1 rounded-md border border-[var(--border)] bg-[var(--bg)] text-[var(--text)]"
-              />
-              days
-            </label>
-
-            {audienceErr && <p className="text-[var(--negative)] text-sm">{audienceErr}</p>}
-            {audience && (
-              <div className="grid grid-cols-3 gap-2 text-center">
-                {SEGMENTS.map((s) => (
-                  <label
-                    key={s.key}
-                    className={`cursor-pointer rounded-lg border p-2 transition-colors ${
-                      selected.has(s.key)
-                        ? "border-[var(--primary)] bg-[var(--primary)]/5"
-                        : "border-[var(--border)]"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      className="sr-only"
-                      checked={selected.has(s.key)}
-                      onChange={() => toggleSeg(s.key)}
-                    />
-                    <div className="text-lg font-bold text-[var(--text)]">
-                      {audience.by_segment[s.key]}
-                    </div>
-                    <div className="text-[11px] font-semibold text-[var(--text)]">{s.label}</div>
-                    <div className="text-[10px] text-[var(--text-muted)] leading-tight mt-0.5">{s.hint}</div>
-                  </label>
-                ))}
-              </div>
-            )}
-            {audience && (
-              <p className="text-xs text-[var(--text-muted)] mt-3">
-                <b className="text-[var(--text)]">{targetCount}</b> selected · {audience.eligible} total
-                eligible · {audience.opted_out} opted-out · {audience.no_email} no email
-              </p>
+            <h2 className="text-sm font-bold text-[var(--text)] mb-3">Who gets it today</h2>
+            {overviewErr && <p className="text-[var(--negative)] text-sm">{overviewErr}</p>}
+            {aud && (
+              <>
+                <div className="grid grid-cols-3 gap-2 text-center mb-3">
+                  <Metric label="Idle power users" value={aud.eligible} />
+                  <Metric label="In cooldown" value={aud.in_cooldown} muted />
+                  <Metric label="Will send now" value={willSend} accent />
+                </div>
+                <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                  Power users (watchlist or portfolio) idle {aud.lapsed_days}+ days, minus anyone
+                  emailed in the last {aud.cooldown_days} days.
+                  {alreadySent > 0 && <> <b className="text-[var(--text)]">{alreadySent}</b> already sent today.</>}
+                </p>
+                <label className="flex items-center gap-2 text-sm text-[var(--text-muted)] mt-3">
+                  Daily cap
+                  <input
+                    type="number"
+                    min={1}
+                    max={1000}
+                    value={cap}
+                    onChange={(e) => setCap(Math.max(1, Math.min(1000, Number(e.target.value) || 1)))}
+                    className="w-24 px-2 py-1 rounded-md border border-[var(--border)] bg-[var(--bg)] text-[var(--text)]"
+                  />
+                  <span className="text-xs">max recipients / day</span>
+                </label>
+              </>
             )}
           </div>
+
+          {overview && overview.buys.length > 0 && (
+            <div className={card}>
+              <h2 className="text-sm font-bold text-[var(--text)] mb-3">Featured buys ({overview.buys.length})</h2>
+              <div className="space-y-1.5">
+                {overview.buys.map((b) => (
+                  <div key={b.code} className="flex items-center justify-between gap-2 text-sm">
+                    <span className="font-semibold text-[var(--text)]">
+                      {b.code}
+                      <span className="ml-2 text-xs font-normal text-[var(--text-muted)]">{b.name}</span>
+                    </span>
+                    <span className="flex items-center gap-2 whitespace-nowrap">
+                      {b.change_pct != null && (
+                        <span style={{ color: b.change_pct >= 0 ? "var(--positive)" : "var(--negative)" }}>
+                          {b.change_pct >= 0 ? "+" : "−"}{Math.abs(b.change_pct).toFixed(1)}%
+                        </span>
+                      )}
+                      <span
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                        style={{ background: "var(--primary)", color: "#fff" }}
+                      >
+                        {b.strength === "strong" ? "Strong buy" : "Buy"}
+                      </span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className={card}>
             <h2 className="text-sm font-bold text-[var(--text)] mb-3">Send</h2>
             <div className="space-y-3">
-              <input
-                type="text"
-                placeholder="Campaign name (optional, e.g. reengage-jun)"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--bg)] text-[var(--text)] text-sm"
-              />
-              <label className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
-                Limit (warm-up)
+              <label className="block text-xs text-[var(--text-muted)]">
+                Subject line
                 <input
-                  type="number"
-                  min={1}
-                  placeholder="all"
-                  value={limit}
-                  onChange={(e) => setLimit(e.target.value)}
-                  className="w-24 px-2 py-1 rounded-md border border-[var(--border)] bg-[var(--bg)] text-[var(--text)]"
+                  type="text"
+                  value={subject}
+                  onChange={(e) => { subjectDirty.current = true; setSubject(e.target.value); }}
+                  className="mt-1 w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--bg)] text-[var(--text)] text-sm"
                 />
-                <span className="text-xs">blank = all</span>
               </label>
 
               <input
@@ -257,14 +241,14 @@ export default function AdminCampaignsClient() {
                   disabled={busy}
                   className={`${btnBase} border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30`}
                 >
-                  ✉ Send test ({previewSeg})
+                  ✉ Send test to me
                 </button>
                 <button
-                  onClick={onSendCampaign}
-                  disabled={busy || selected.size === 0 || targetCount === 0}
+                  onClick={onSend}
+                  disabled={busy || willSend === 0}
                   className={`${btnBase} bg-[var(--primary)] text-white hover:opacity-90`}
                 >
-                  ▶ Send campaign
+                  ▶ Send to {willSend} users
                 </button>
               </div>
 
@@ -279,40 +263,21 @@ export default function AdminCampaignsClient() {
                 Progress {stats?.status === "done" ? "· done" : "· sending…"}
               </h2>
               <div className="grid grid-cols-3 gap-2 text-center">
-                <Stat label="Sent" value={stats?.sent ?? 0} color="var(--positive)" />
-                <Stat label="Failed" value={stats?.failed ?? 0} color="var(--negative)" />
-                <Stat label="Opened" value={stats?.opened ?? 0} color="var(--primary)" />
+                <Metric label="Sent" value={stats?.sent ?? 0} color="var(--positive)" />
+                <Metric label="Failed" value={stats?.failed ?? 0} color="var(--negative)" />
+                <Metric label="Opened" value={stats?.opened ?? 0} color="var(--primary)" />
               </div>
-              {campaignId && (
-                <p className="text-[11px] text-[var(--text-muted)] mt-3">id: {campaignId}</p>
-              )}
+              {campaignId && <p className="text-[11px] text-[var(--text-muted)] mt-3">id: {campaignId}</p>}
             </div>
           )}
         </div>
 
-        {/* ---- Right: live preview ---- */}
+        {/* ---- Right: live preview of the exact email ---- */}
         <div className={card}>
-          <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
-            <h2 className="text-sm font-bold text-[var(--text)]">Preview</h2>
-            <div className="flex gap-1">
-              {SEGMENTS.map((s) => (
-                <button
-                  key={s.key}
-                  onClick={() => setPreviewSeg(s.key)}
-                  className={`px-2 py-1 rounded-md text-[11px] font-semibold transition-colors ${
-                    previewSeg === s.key
-                      ? "bg-[var(--primary)] text-white"
-                      : "border border-[var(--border)] text-[var(--text-muted)] hover:bg-[var(--border)]/30"
-                  }`}
-                >
-                  {s.key}
-                </button>
-              ))}
-            </div>
-          </div>
+          <h2 className="text-sm font-bold text-[var(--text)] mb-3">Preview · the email everyone gets</h2>
           {previewErr && <p className="text-[var(--negative)] text-sm">{previewErr}</p>}
           <iframe
-            title="Email preview"
+            title="Daily email preview"
             srcDoc={previewHtml}
             sandbox=""
             className="w-full h-[640px] rounded-lg border border-[var(--border)] bg-white"
@@ -323,11 +288,14 @@ export default function AdminCampaignsClient() {
   );
 }
 
-function Stat({ label, value, color }: { label: string; value: number; color: string }) {
+function Metric({
+  label, value, color, muted, accent,
+}: { label: string; value: number; color?: string; muted?: boolean; accent?: boolean }) {
+  const c = color ?? (accent ? "var(--primary)" : muted ? "var(--text-muted)" : "var(--text)");
   return (
     <div className="rounded-lg border border-[var(--border)] p-2">
-      <div className="text-xl font-bold" style={{ color }}>{value}</div>
-      <div className="text-[11px] text-[var(--text-muted)]">{label}</div>
+      <div className="text-xl font-bold" style={{ color: c }}>{value}</div>
+      <div className="text-[11px] text-[var(--text-muted)] leading-tight mt-0.5">{label}</div>
     </div>
   );
 }
