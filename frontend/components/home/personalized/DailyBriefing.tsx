@@ -103,6 +103,7 @@ export default function DailyBriefing({
         icon: ICON_WATCHLIST,
         title: "Build your watchlist",
         desc: "Follow any stock's price, score & news — every day.",
+        descBn: "পছন্দের শেয়ার যোগ করুন — দাম, স্কোর ও খবর প্রতিদিন এক জায়গায়।",
         href: "/watchlist" as string | undefined,
         onClick: undefined as (() => void) | undefined,
         cta: "Add stocks",
@@ -113,6 +114,7 @@ export default function DailyBriefing({
         icon: ICON_PORTFOLIO,
         title: "Track your portfolio",
         desc: "Add what you own → see live profit/loss and a quick health check.",
+        descBn: "আপনার কেনা শেয়ার যোগ করুন — লাভ-লোকসান ও অবস্থা সরাসরি দেখুন।",
         href: "/portfolio" as string | undefined,
         onClick: undefined as (() => void) | undefined,
         cta: "Add holdings",
@@ -123,6 +125,7 @@ export default function DailyBriefing({
         icon: ICON_TUNE,
         title: "Personalize your picks",
         desc: "Answer a few quick questions → daily picks matched to you.",
+        descBn: "কয়েকটি সহজ প্রশ্নের উত্তর দিন — আপনার জন্য বাছাই করা পরামর্শ পান।",
         href: onPersonalize ? undefined : "/stock-recommendation",
         onClick: onPersonalize,
         cta: "Personalize",
@@ -210,6 +213,14 @@ export default function DailyBriefing({
           />
         </div>
 
+        {/* Bengali guidance for a newly joined user — same steps, everyday Bangla. */}
+        <p
+          lang="bn"
+          className="font-bn mt-3 text-xs font-semibold leading-relaxed text-[var(--text-muted)]"
+        >
+          নতুন এসেছেন? নিচের ধাপগুলো শেষ করুন — তাহলে প্রতিদিন আপনার জন্য সাজানো শেয়ারের তথ্য, খবর ও পরামর্শ এক জায়গায় পাবেন।
+        </p>
+
         {/* Steps */}
         <ul className="mt-4 flex flex-col gap-2.5">
           {steps.map((s) => {
@@ -257,6 +268,12 @@ export default function DailyBriefing({
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-bold text-[var(--text)]">{s.title}</span>
                   <span className="block text-xs leading-snug text-[var(--text-muted)]">{s.desc}</span>
+                  <span
+                    lang="bn"
+                    className="font-bn mt-0.5 block text-[0.72rem] font-semibold leading-snug text-[var(--text-muted)]"
+                  >
+                    {s.descBn}
+                  </span>
                 </span>
                 <span
                   className="shrink-0 inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-[0.72rem] font-bold text-white transition-transform group-hover:translate-x-0.5"
