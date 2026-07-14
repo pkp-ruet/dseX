@@ -64,9 +64,9 @@ export default function DiscoverCard({
 
   const tabs = useMemo(() => {
     const t: { key: TabKey; label: string; icon: string }[] = [];
-    if (rankedRows.length > 0) t.push({ key: "ranked", label: "Top Ranked", icon: "🏆" });
+    if (rankedRows.length > 0) t.push({ key: "ranked", label: "Ranked", icon: "🏆" });
     if (top20Rows.length > 0) t.push({ key: "top20", label: "Top 20", icon: "🚀" });
-    if (INSIGHT_LISTS.length > 0) t.push({ key: "insights", label: "Stock Lists", icon: "📋" });
+    if (INSIGHT_LISTS.length > 0) t.push({ key: "insights", label: "Lists", icon: "📋" });
     return t;
   }, [rankedRows.length, top20Rows.length]);
 

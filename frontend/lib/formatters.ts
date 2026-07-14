@@ -4,6 +4,32 @@ export function taka(value: number | null | undefined, decimals = 2): string {
   return `৳${value.toFixed(decimals)}`;
 }
 
+/**
+ * Group an integer the South-Asian way — last three digits, then pairs:
+ *   234000 → "2,34,000" · 12500000 → "1,25,00,000".
+ * This is how Bangladeshi users read money (lakh/crore), unlike en-US grouping
+ * which would show "234,000". Rounds to a whole number and keeps the sign.
+ */
+export function bdGroup(value: number | null | undefined): string {
+  if (value == null || isNaN(value)) return "--";
+  const neg = value < 0;
+  const digits = String(Math.round(Math.abs(value)));
+  if (digits.length <= 3) return (neg ? "-" : "") + digits;
+  const last3 = digits.slice(-3);
+  const rest = digits.slice(0, -3).replace(/\B(?=(\d{2})+(?!\d))/g, ",");
+  return (neg ? "-" : "") + rest + "," + last3;
+}
+
+/**
+ * Taka amount with South-Asian digit grouping: 234000 → "৳2,34,000".
+ * Use for personal money figures (portfolio value, P/L) so they read native.
+ * A negative uses a proper minus sign (−) for display.
+ */
+export function takaGroup(value: number | null | undefined): string {
+  if (value == null || isNaN(value)) return "--";
+  return `${value < 0 ? "−" : ""}৳${bdGroup(Math.abs(value))}`;
+}
+
 /** Format a percentage value */
 export function pct(value: number | null | undefined, decimals = 1): string {
   if (value == null) return "--";

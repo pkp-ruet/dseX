@@ -1,44 +1,61 @@
 import StreakBadge from "@/components/home/personalized/StreakBadge";
 import AlertsBell from "@/components/home/personalized/AlertsBell";
+import MarketStatusPill from "@/components/home/personalized/MarketStatusPill";
+import { bstHour } from "@/lib/market-hours";
 import type { MarketIndexData } from "@/lib/api";
 import type { HomeAlert } from "@/lib/home-alerts";
+import type { BriefSegment } from "@/lib/daily-brief";
 
 interface Props {
   name?: string | null;
   dateStr: string;
   marketIndex?: MarketIndexData | null;
-  /** Portfolio move today, when the user has holdings — drives the personal subline. */
-  todayMove?: { delta: number; pct: number } | null;
-  /** Watchlist size — used for the subline when there's no portfolio yet. */
+  /** Watchlist size — used for the meta line. */
   watchlistCount?: number;
   /** Personalized alerts for the bell (portfolio, movers, dividends, news). */
   alerts?: HomeAlert[];
-  /** First render right after signup — greet as new instead of "Welcome back". */
+  /** First render right after signup — greet as new instead of the time-of-day line. */
   isNew?: boolean;
+  /** The synthesized one-line "daily brief" (coloured segments). */
+  brief?: BriefSegment[];
+}
+
+const TONE_COLOR: Record<NonNullable<BriefSegment["tone"]>, string> = {
+  pos: "var(--positive)",
+  neg: "var(--negative)",
+  accent: "var(--primary)",
+};
+
+/** Time-of-day greeting on the BST wall clock (client-rendered subtree). */
+function greetingForHour(h: number): string {
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
 }
 
 export default function WelcomeHeader({
   name,
   dateStr,
   marketIndex,
-  todayMove,
   watchlistCount = 0,
   alerts = [],
   isNew = false,
+  brief = [],
 }: Props) {
   const dsex = marketIndex?.dsex;
   const chgPct = marketIndex?.dsex_change_pct;
   const up = (chgPct ?? 0) >= 0;
   const color = up ? "var(--positive)" : "var(--negative)";
-  const hasSubline = !!todayMove || watchlistCount > 0;
+  const greeting = isNew ? "Welcome to TopStockBD" : greetingForHour(bstHour());
 
   return (
     <header>
-      {/* Date · market — one balanced line */}
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+      {/* Date · live status · market — one balanced, wrap-friendly line */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+        <span className="mr-auto text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
           {dateStr}
         </span>
+        <MarketStatusPill />
         {dsex != null && (
           <span className="inline-flex items-center gap-1 whitespace-nowrap text-xs font-semibold tabular-nums">
             <span className="text-[var(--text-muted)]">DSEX</span>
@@ -55,33 +72,39 @@ export default function WelcomeHeader({
         )}
       </div>
 
-      {/* Greeting + alerts bell (replaces the old wave) */}
+      {/* Greeting + alerts bell */}
       <div className="mt-3 flex items-center justify-between gap-3">
         <h1 className="text-[clamp(1.5rem,6vw,2rem)] font-extrabold tracking-tight text-[var(--text)] leading-tight">
-          {isNew ? "Welcome to TopStockBD" : "Welcome back"}
+          {greeting}
           {name ? <>, <span className="text-[var(--primary)]">{name}</span></> : ""}
           {isNew ? " 👋" : ""}
         </h1>
         <AlertsBell alerts={alerts} />
       </div>
 
-      {/* One quiet subline: follow count + streak */}
+      {/* Daily brief — the synthesized concierge sentence */}
+      {brief.length > 0 && (
+        <p className="mt-1.5 text-[0.95rem] leading-relaxed text-[var(--text-muted)]">
+          {brief.map((s, i) => (
+            <span
+              key={i}
+              className={s.tone ? "font-bold" : undefined}
+              style={s.tone ? { color: TONE_COLOR[s.tone] } : undefined}
+            >
+              {s.text}
+            </span>
+          ))}
+        </p>
+      )}
+
+      {/* One quiet meta line: follow count + streak */}
       <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-sm text-[var(--text-muted)]">
-        {todayMove ? (
-          <span className="font-medium">
-            Your stocks are{" "}
-            <span style={{ color: todayMove.delta >= 0 ? "var(--positive)" : "var(--negative)" }}>
-              {todayMove.delta >= 0 ? "up" : "down"} ৳
-              {Math.abs(todayMove.delta).toLocaleString("en-US", { maximumFractionDigits: 0 })}
-            </span>{" "}
-            today
-          </span>
-        ) : watchlistCount > 0 ? (
+        {watchlistCount > 0 && (
           <span className="font-medium">
             Following {watchlistCount} {watchlistCount === 1 ? "stock" : "stocks"}
           </span>
-        ) : null}
-        <StreakBadge leadingDot={hasSubline} />
+        )}
+        <StreakBadge leadingDot={watchlistCount > 0} />
       </div>
     </header>
   );

@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { type PortfolioHolding, type ScoreItem, type MarketIndexData } from "@/lib/api";
 import { analyzePortfolio, portfolioTodayMove, type ComputedRow, type Grade } from "@/lib/portfolio-analysis";
+import { bdGroup, takaGroup } from "@/lib/formatters";
+import { marketSession, formatBstDateLabel } from "@/lib/market-hours";
 import Card from "@/components/ui/Card";
 
 const GRADE_COLOR: Record<Grade, string> = {
@@ -101,7 +103,7 @@ export default function MoneyHero({
               Your money today
             </p>
             <div className="mt-1 text-[clamp(1.6rem,7vw,2rem)] font-extrabold tabular-nums nums text-[var(--text)] leading-tight">
-              {hasPrice ? `৳${Math.round(shownValue).toLocaleString("en-US")}` : "—"}
+              {hasPrice ? takaGroup(shownValue) : "—"}
             </div>
             {today && (
               <div
@@ -109,10 +111,18 @@ export default function MoneyHero({
                 style={{ color: todayUp ? "var(--positive)" : "var(--negative)" }}
               >
                 {todayUp ? "▲" : "▼"} {todayUp ? "+" : "−"}৳
-                {Math.abs(today.delta).toLocaleString("en-US", { maximumFractionDigits: 0 })} ({todayUp ? "+" : ""}
+                {bdGroup(Math.abs(today.delta))} ({todayUp ? "+" : ""}
                 {today.pct.toFixed(2)}%) today
               </div>
             )}
+            {/* Freshness — is this number live or last close? */}
+            <p className="mt-1 text-[0.68rem] font-medium text-[var(--text-muted)]">
+              {marketSession() === "open"
+                ? "Updating live through the day"
+                : marketIndex?.date
+                  ? `As of ${formatBstDateLabel(marketIndex.date)} close`
+                  : "Latest available prices"}
+            </p>
           </div>
 
           <Link
@@ -167,7 +177,7 @@ export default function MoneyHero({
                 border: "1px solid var(--border)",
               }}
             >
-              Total {up ? "+" : "−"}৳{Math.abs(pnl).toLocaleString("en-US", { maximumFractionDigits: 0 })} ({up ? "+" : ""}
+              Total {up ? "+" : "−"}৳{bdGroup(Math.abs(pnl))} ({up ? "+" : ""}
               {pnlPct.toFixed(1)}%)
             </span>
           )}
@@ -182,6 +192,34 @@ export default function MoneyHero({
       >
         See full portfolio analysis →
       </Link>
+    </Card>
+  );
+}
+
+/**
+ * Same footprint as MoneyHero — shown while the portfolio fetch is still in
+ * flight (holdings unknown) so the sections below don't jump when it resolves.
+ */
+export function MoneyHeroSkeleton() {
+  return (
+    <Card as="section" padding="none" className="overflow-hidden" aria-hidden>
+      <div className="px-4 sm:px-5 pt-4 pb-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1 space-y-2.5">
+            <div className="h-3 w-24 animate-pulse rounded-full bg-[var(--surface-2)]" />
+            <div className="h-8 w-40 animate-pulse rounded-lg bg-[var(--surface-2)]" />
+            <div className="h-4 w-32 animate-pulse rounded-full bg-[var(--surface-2)]" />
+            <div className="h-3 w-28 animate-pulse rounded-full bg-[var(--surface-2)]" />
+          </div>
+          <div className="h-14 w-14 shrink-0 animate-pulse rounded-2xl bg-[var(--surface-2)] sm:h-16 sm:w-16" />
+        </div>
+        <div className="mt-3 flex gap-1.5">
+          <div className="h-6 w-32 animate-pulse rounded-full bg-[var(--surface-2)]" />
+          <div className="h-6 w-24 animate-pulse rounded-full bg-[var(--surface-2)]" />
+        </div>
+        <div className="mt-3 h-4 w-full max-w-xs animate-pulse rounded-full bg-[var(--surface-2)]" />
+      </div>
+      <div className="h-11 border-t border-[var(--border)]" />
     </Card>
   );
 }

@@ -62,6 +62,20 @@ export function isAfterOpen(): boolean {
   return nowBST().getUTCHours() >= 10;
 }
 
+/** Current hour (0–23) on the BST wall clock — for time-of-day greetings. */
+export function bstHour(): number {
+  return nowBST().getUTCHours();
+}
+
+export type MarketSession = "open" | "pre" | "closed";
+
+/** Coarse trading-session state for the live/closed status pill. */
+export function marketSession(): MarketSession {
+  if (isMarketOpen()) return "open";
+  if (isTradingDay() && !isAfterOpen()) return "pre"; // trading day, before 10:00
+  return "closed";
+}
+
 /** Today's date in BST as `YYYY-MM-DD` — matches the `date` strings on scraped market data. */
 export function bstDateStr(): string {
   const b = nowBST();

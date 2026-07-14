@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   type ScoreItem,
@@ -8,6 +11,42 @@ import {
 import { signed } from "@/lib/formatters";
 import Card from "@/components/ui/Card";
 import TierPill from "@/components/ui/TierPill";
+
+/**
+ * Price + today's-change cell that flashes green/red for ~0.9s whenever a
+ * background refetch changes the price — the "it's alive" cue of a native app.
+ * Remounts via `key` on change so the CSS animation replays each tick.
+ */
+function PriceCell({ ltp, chg, chgColor }: { ltp: number | null; chg: number | null; chgColor: string }) {
+  const prev = useRef<number | null>(ltp);
+  const idRef = useRef(0);
+  const [flash, setFlash] = useState<{ dir: "up" | "down"; id: number } | null>(null);
+
+  useEffect(() => {
+    if (ltp == null) return;
+    if (prev.current != null && ltp !== prev.current) {
+      idRef.current += 1;
+      setFlash({ dir: ltp > prev.current ? "up" : "down", id: idRef.current });
+    }
+    prev.current = ltp;
+  }, [ltp]);
+
+  return (
+    <span
+      key={flash?.id ?? "init"}
+      className={`-mx-1.5 block shrink-0 rounded-md px-1.5 text-right ${
+        flash ? (flash.dir === "up" ? "price-flash-up" : "price-flash-down") : ""
+      }`}
+    >
+      <span className="block text-sm font-semibold tabular-nums nums text-[var(--text)]">
+        {ltp != null ? `৳${ltp.toFixed(2)}` : "—"}
+      </span>
+      <span className="block text-xs font-bold tabular-nums nums" style={{ color: chgColor }}>
+        {chg == null ? "--" : `${signed(chg)}%`}
+      </span>
+    </span>
+  );
+}
 
 const MAX_ROWS = 6;
 
@@ -130,14 +169,7 @@ export default function MyStocksToday({
                   </span>
                 )}
               </span>
-              <span className="text-right shrink-0">
-                <span className="block text-sm font-semibold tabular-nums nums text-[var(--text)]">
-                  {item.ltp != null ? `৳${item.ltp.toFixed(2)}` : "—"}
-                </span>
-                <span className="block text-xs font-bold tabular-nums nums" style={{ color: chgColor }}>
-                  {chg == null ? "--" : `${signed(chg)}%`}
-                </span>
-              </span>
+              <PriceCell ltp={item.ltp} chg={chg} chgColor={chgColor} />
             </Link>
           );
         })}

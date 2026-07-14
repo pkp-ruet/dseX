@@ -199,6 +199,22 @@ body::before {
   border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
 }
 
+/* Live price-tick flash — a brief coloured bloom that fades out when a
+   background refetch changes a price (personalized home "your stocks"). */
+@keyframes price-flash-up {
+  0%   { background-color: color-mix(in srgb, var(--positive) 24%, transparent); }
+  100% { background-color: transparent; }
+}
+@keyframes price-flash-down {
+  0%   { background-color: color-mix(in srgb, var(--negative) 22%, transparent); }
+  100% { background-color: transparent; }
+}
+.price-flash-up   { animation: price-flash-up 0.9s ease-out; }
+.price-flash-down { animation: price-flash-down 0.9s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .price-flash-up, .price-flash-down { animation: none; }
+}
+
 /* Clickable stock-code chip — reads as a button, font-size inherits from context */
 .ticker-tag {
   display: inline-flex;

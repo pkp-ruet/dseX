@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import {
   getScores,
@@ -34,11 +34,13 @@ import { getStoredUser } from "@/lib/auth";
 import { consumeJustSignedUp } from "@/lib/welcome";
 import { portfolioTodayMove } from "@/lib/portfolio-analysis";
 import { buildHomeAlerts } from "@/lib/home-alerts";
+import { buildDailyBrief } from "@/lib/daily-brief";
 
 import WelcomeHeader from "@/components/home/personalized/WelcomeHeader";
 import DailyBriefing from "@/components/home/personalized/DailyBriefing";
-import SetupCard from "@/components/home/personalized/SetupCard";
-import MoneyHero from "@/components/home/personalized/MoneyHero";
+import MoneyHero, { MoneyHeroSkeleton } from "@/components/home/personalized/MoneyHero";
+import MoneyHeroGhost from "@/components/home/personalized/MoneyHeroGhost";
+import PullToRefresh from "@/components/home/personalized/PullToRefresh";
 import StatTiles from "@/components/home/personalized/StatTiles";
 import MyStocksToday from "@/components/home/personalized/MyStocksToday";
 import ForYouCard from "@/components/home/personalized/ForYouCard";
@@ -58,11 +60,6 @@ function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
   return new Map(all.map((s) => [s.trading_code.toUpperCase(), s]));
 }
 
-const BAG_ICON = (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M20 7h-4V5l-2-2h-4L8 5v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm-8-2h4v2h-4V5z" />
-  </svg>
-);
 const INTEL_ICON = (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <path d="M12 3a5 5 0 0 0-5 5c0 1.6.8 3 2 4v2h6v-2c1.2-1 2-2.4 2-4a5 5 0 0 0-5-5z" />
@@ -165,9 +162,15 @@ export default function PersonalizedHome() {
   const [dividends, setDividends] = useState<DividendsUpcoming | null>(
     () => readCache<DividendsUpcoming>(cacheKeys.dividends),
   );
-  const [marketIndex, setMarketIndex] = useState<MarketIndexData | null>(null);
-  const [marketState, setMarketState] = useState<MarketStateData | null>(null);
-  const [top20, setTop20] = useState<Top20Item[]>([]);
+  const [marketIndex, setMarketIndex] = useState<MarketIndexData | null>(
+    () => readCache<MarketIndexData>(cacheKeys.marketIndex),
+  );
+  const [marketState, setMarketState] = useState<MarketStateData | null>(
+    () => readCache<MarketStateData>(cacheKeys.marketState),
+  );
+  const [top20, setTop20] = useState<Top20Item[]>(
+    () => readCache<Top20Item[]>(cacheKeys.top20) ?? [],
+  );
   const [tips, setTips] = useState<DailyTip[]>([]);
   const [dailyPicks, setDailyPicks] = useState<DailyPicksResponse | null>(() => {
     if (!userId) return null;
@@ -185,59 +188,89 @@ export default function PersonalizedHome() {
     if (consumeJustSignedUp()) setIsNewUser(true);
   }, []);
 
+  // All core + discovery fetches in one place so pull-to-refresh can re-run
+  // them. `isAlive` lets the mount effect cancel state writes after unmount; a
+  // manual refresh passes the default (always alive) and awaits the promise.
+  const runFetches = useCallback(
+    (isAlive: () => boolean = () => true) => {
+      const jobs: Promise<unknown>[] = [
+        loadWatchlist().then((c) => isAlive() && setCodes(c)).catch(() => {}),
+        apiGetPortfolio()
+          .then((r) => {
+            if (!isAlive()) return;
+            setHoldings(r.holdings);
+            if (userId) writeCache(cacheKeys.portfolio(userId), r.holdings);
+          })
+          // Keep the cache-hydrated value on failure; only fall back to empty
+          // (→ setup card) when nothing was cached.
+          .catch(() => isAlive() && setHoldings((h) => h ?? [])),
+        getScores()
+          .then((s) => {
+            if (!isAlive()) return;
+            setPriceMap(flatten(s));
+            writeCache(cacheKeys.scores, s);
+          })
+          .catch(() => {}),
+        getNearExtremes()
+          .then((d) => {
+            if (!isAlive()) return;
+            setExtremes(d);
+            writeCache(cacheKeys.extremes, d);
+          })
+          .catch(() => {}),
+        getDividendsUpcoming()
+          .then((d) => {
+            if (!isAlive()) return;
+            setDividends(d);
+            writeCache(cacheKeys.dividends, d);
+          })
+          .catch(() => {}),
+        getMarketIndex()
+          .then((d) => {
+            if (!isAlive()) return;
+            setMarketIndex(d);
+            writeCache(cacheKeys.marketIndex, d);
+          })
+          .catch(() => {}),
+        getMarketState()
+          .then((d) => {
+            if (!isAlive()) return;
+            setMarketState(d);
+            writeCache(cacheKeys.marketState, d);
+          })
+          .catch(() => {}),
+        getTop20()
+          .then((d) => {
+            if (!isAlive()) return;
+            const items = d.items ?? [];
+            setTop20(items);
+            writeCache(cacheKeys.top20, items);
+          })
+          .catch(() => {}),
+        getDailyTips()
+          .then((d) => isAlive() && setTips(d.tips ?? []))
+          .catch(() => {})
+          .finally(() => isAlive() && setTipsSettled(true)),
+        getDailyPicks()
+          .then((d) => {
+            if (!isAlive()) return;
+            setDailyPicks(d);
+            if (userId) writeCache(cacheKeys.dailyPicks(userId), d);
+          })
+          .catch(() => {})
+          .finally(() => isAlive() && setPicksSettled(true)),
+        loadAlerts().then((a) => isAlive() && setPriceAlerts(a)).catch(() => {}),
+        apiGetSignalEvents().then((r) => isAlive() && setSignalEvents(r.events ?? [])).catch(() => {}),
+      ];
+      return Promise.allSettled(jobs);
+    },
+    [userId],
+  );
+
   // Core + discovery fetch on mount
   useEffect(() => {
     let alive = true;
-    loadWatchlist().then((c) => alive && setCodes(c)).catch(() => {});
-    apiGetPortfolio()
-      .then((r) => {
-        if (!alive) return;
-        setHoldings(r.holdings);
-        if (userId) writeCache(cacheKeys.portfolio(userId), r.holdings);
-      })
-      // Keep the cache-hydrated value on failure; only fall back to empty
-      // (→ setup card) when nothing was cached.
-      .catch(() => alive && setHoldings((h) => h ?? []));
-    getScores()
-      .then((s) => {
-        if (!alive) return;
-        setPriceMap(flatten(s));
-        writeCache(cacheKeys.scores, s);
-      })
-      .catch(() => {});
-    getNearExtremes()
-      .then((d) => {
-        if (!alive) return;
-        setExtremes(d);
-        writeCache(cacheKeys.extremes, d);
-      })
-      .catch(() => {});
-    getDividendsUpcoming()
-      .then((d) => {
-        if (!alive) return;
-        setDividends(d);
-        writeCache(cacheKeys.dividends, d);
-      })
-      .catch(() => {});
-    getMarketIndex().then((d) => alive && setMarketIndex(d)).catch(() => {});
-    getMarketState().then((d) => alive && setMarketState(d)).catch(() => {});
-    getTop20().then((d) => alive && setTop20(d.items ?? [])).catch(() => {});
-    getDailyTips()
-      .then((d) => alive && setTips(d.tips ?? []))
-      .catch(() => {})
-      .finally(() => alive && setTipsSettled(true));
-    getDailyPicks()
-      .then((d) => {
-        if (!alive) return;
-        setDailyPicks(d);
-        if (userId) writeCache(cacheKeys.dailyPicks(userId), d);
-      })
-      .catch(() => {})
-      .finally(() => alive && setPicksSettled(true));
-    loadAlerts().then((a) => alive && setPriceAlerts(a)).catch(() => {});
-    apiGetSignalEvents()
-      .then((r) => alive && setSignalEvents(r.events ?? []))
-      .catch(() => {});
+    runFetches(() => alive);
     const unsub = subscribeWatchlist(() => setCodes(getCachedWatchlist()));
     const unsubAlerts = subscribeAlerts(() => setPriceAlerts(getCachedAlerts()));
     return () => {
@@ -245,7 +278,7 @@ export default function PersonalizedHome() {
       unsub();
       unsubAlerts();
     };
-  }, []);
+  }, [runFetches]);
 
   // News for the homepage slider — watchlist ∪ portfolio codes, refetched
   // whenever either set changes.
@@ -312,8 +345,19 @@ export default function PersonalizedHome() {
       .catch(() => {});
   }
 
-  // Portfolio move today — drives the WelcomeHeader subline.
+  // Portfolio move today — feeds the money statement + the daily brief.
   const todayMove = hasPortfolio ? portfolioTodayMove(holdings!, priceMap) : null;
+
+  // One-line "daily brief" synthesized from data already loaded.
+  const briefSegments = buildDailyBrief({
+    holdings: holdings ?? [],
+    codes,
+    priceMap,
+    todayMove,
+    extremes,
+    dividends,
+    marketIndex,
+  });
 
   // Homepage shows only the most-recent day's watchlist news (the /watchlist
   // page keeps the full 30-day list).
@@ -357,11 +401,10 @@ export default function PersonalizedHome() {
   });
 
   return (
+    <PullToRefresh onRefresh={() => runFetches()}>
     <div className="pb-4">
-      {/* Dashboard header card — greeting + market line, kept deliberately clean. */}
+      {/* Dashboard header card — greeting + live market line + daily brief. */}
       <Card padding="md" className="mt-5">
-        {/* todayMove intentionally not passed — the MoneyHero below is the money
-            statement; the header subline falls back to the follow count. */}
         <WelcomeHeader
           name={user?.display_name}
           dateStr={dateStr}
@@ -369,6 +412,7 @@ export default function PersonalizedHome() {
           watchlistCount={codes.length}
           alerts={homeAlerts}
           isNew={isNewUser}
+          brief={briefSegments}
         />
       </Card>
 
@@ -393,22 +437,25 @@ export default function PersonalizedHome() {
           dismissed / unsupported. */}
       <InstallHomeBanner />
 
-      {/* ── Section 1: Your money today — dashboard (hero → tiles → stocks → news → teaser).
-          The hero card carries the section identity, so no big SectionHeader here. ── */}
-      <section className="mt-8">
+      {/* ── Bento: your dashboard (main column) + explore the market (aside) on
+          desktop. Mobile keeps the single-column source order: money → picks →
+          buys → explore. ── */}
+      <div className="mt-8 lg:grid lg:grid-cols-5 lg:gap-6 lg:items-start">
+      <div className="space-y-8 lg:col-span-3">
+
+      {/* ── Section 1: Your money today — hero → tiles → stocks → news. ── */}
+      <section>
         <div className="flex flex-col gap-3">
-          {hasPortfolio ? (
-            <MoneyHero holdings={holdings!} priceMap={priceMap} marketIndex={marketIndex} />
+          {holdings === null ? (
+            // Portfolio not known yet → hold the hero's space so nothing below
+            // jumps when it resolves (kills the SetupCard↔MoneyHero shift).
+            <MoneyHeroSkeleton />
+          ) : hasPortfolio ? (
+            <MoneyHero holdings={holdings} priceMap={priceMap} marketIndex={marketIndex} />
           ) : (
             <div>
               <SectionLabel>Your money today</SectionLabel>
-              <SetupCard
-                icon={BAG_ICON}
-                title="Track your portfolio"
-                blurb="Add the stocks you own to see live profit & loss and get your portfolio graded A–F on diversification, quality and entry."
-                ctaLabel="Add your holdings"
-                ctaHref="/portfolio"
-              />
+              <MoneyHeroGhost />
             </div>
           )}
 
@@ -446,7 +493,7 @@ export default function PersonalizedHome() {
       {/* ── Section 2: today's picks + tips — benefit-led title, brand demoted to
           the eyebrow; the date + "N new" chips prove the daily refresh. ── */}
       {(showRecommended || intelLoading) && (
-        <section id="intelligence" className="mt-8 scroll-mt-24">
+        <section id="intelligence" className="scroll-mt-24">
           <SectionHeader
             eyebrow="TopStockBD Intelligence"
             title={hasTuned ? "Your picks today" : "Top picks today"}
@@ -487,15 +534,17 @@ export default function PersonalizedHome() {
           own header carries the title + counts); leads with buys the user
           follows. Data rides along on scores already loaded (no extra fetch). ── */}
       {buys.length > 0 && (
-        <section className="mt-8">
+        <section>
           <BuySignalsCard buys={buys} watchCodes={newsCodes} />
         </section>
       )}
+      </div>
+      {/* end main column */}
 
-      {/* ── Section 4: Explore the market — one market snapshot, one tabbed
-          discovery card, quick links last. Quiet label on purpose: the big
-          header above is reserved for the "for you" moment. ── */}
-      <section className="mt-10">
+      {/* ── ASIDE: Explore the market — market snapshot, discovery, quick links.
+          Becomes the right sidebar on desktop; stacks under the main column on
+          mobile (source order preserved). ── */}
+      <aside className="mt-8 lg:col-span-2 lg:mt-0">
         <SectionLabel>Explore the market</SectionLabel>
         <div className="flex flex-col gap-6">
           <MarketTodayCard
@@ -514,7 +563,9 @@ export default function PersonalizedHome() {
 
           <CoreFeatureTiles />
         </div>
-      </section>
+      </aside>
+      </div>
+      {/* end bento grid */}
 
       {/* Onboarding step 3 — "Personalize your picks" quiz, opened from DailyBriefing. */}
       <TuneModal
@@ -524,5 +575,6 @@ export default function PersonalizedHome() {
         onComplete={refreshDailyPicks}
       />
     </div>
+    </PullToRefresh>
   );
 }

@@ -6,6 +6,7 @@ import type {
   PriceAlert,
   PortfolioSignalEvent,
 } from "@/lib/api";
+import { bdGroup } from "@/lib/formatters";
 
 export type HomeAlertTone = "positive" | "negative" | "neutral";
 
@@ -89,7 +90,7 @@ export function buildHomeAlerts(opts: {
     alerts.push({
       id: `pf:${dateKey}`,
       emoji: up ? "📈" : "📉",
-      title: `Portfolio ${up ? "up" : "down"} ৳${Math.abs(todayMove.delta).toLocaleString("en-US", { maximumFractionDigits: 0 })} today`,
+      title: `Portfolio ${up ? "up" : "down"} ৳${bdGroup(Math.abs(todayMove.delta))} today`,
       detail: `${up ? "+" : ""}${todayMove.pct.toFixed(2)}%`,
       href: "/portfolio",
       tone: up ? "positive" : "negative",
