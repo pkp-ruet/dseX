@@ -13,9 +13,11 @@ import {
 } from "@/lib/api";
 
 import AdminTabs, { type TabKey } from "./analytics/AdminTabs";
-import OverviewTab from "./analytics/OverviewTab";
-import SegmentsTab from "./analytics/SegmentsTab";
-import AdoptionTab from "./analytics/AdoptionTab";
+import PulseTab from "./analytics/PulseTab";
+import BehaviorTab from "./analytics/BehaviorTab";
+import RetentionTab from "./analytics/RetentionTab";
+import GrowthTab from "./analytics/GrowthTab";
+import FeaturesTab from "./analytics/FeaturesTab";
 import UsersTable from "./analytics/UsersTable";
 import UserDrillDown from "./analytics/UserDrillDown";
 
@@ -32,7 +34,7 @@ export default function AdminAnalyticsClient() {
   const [data, setData] = useState<AdminAnalyticsResponse | null>(null);
   const [priceMap, setPriceMap] = useState<Map<string, ScoreItem>>(new Map());
   const [fetchError, setFetchError] = useState("");
-  const [tab, setTab] = useState<TabKey>("overview");
+  const [tab, setTab] = useState<TabKey>("pulse");
   const [selected, setSelected] = useState<AdminUserRow | null>(null);
 
   useEffect(() => {
@@ -109,9 +111,11 @@ export default function AdminAnalyticsClient() {
             <AdminTabs active={tab} onChange={setTab} />
           </div>
 
-          {tab === "overview" && <OverviewTab data={data} />}
-          {tab === "segments" && <SegmentsTab data={data} onSelect={setSelected} />}
-          {tab === "adoption" && <AdoptionTab data={data} priceMap={priceMap} />}
+          {tab === "pulse" && <PulseTab data={data} />}
+          {tab === "behavior" && <BehaviorTab data={data} priceMap={priceMap} />}
+          {tab === "retention" && <RetentionTab data={data} onSelect={setSelected} />}
+          {tab === "growth" && <GrowthTab data={data} />}
+          {tab === "features" && <FeaturesTab data={data} onSelect={setSelected} />}
           {tab === "users" && <UsersTable users={data.users} onSelect={setSelected} />}
         </>
       )}

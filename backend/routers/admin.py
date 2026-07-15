@@ -1,5 +1,5 @@
-from collections import Counter
-from datetime import datetime, timezone, timedelta
+from collections import Counter, defaultdict
+from datetime import datetime, timezone, timedelta, date
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
@@ -24,6 +24,49 @@ def _naive(dt):
     if isinstance(dt, datetime) and dt.tzinfo is not None:
         return dt.astimezone(timezone.utc).replace(tzinfo=None)
     return dt
+
+
+_BDT = timezone(timedelta(hours=6))
+
+
+def _bdt_date(dt):
+    """Calendar date of a stored (naive-UTC) datetime in Dhaka time."""
+    if not isinstance(dt, datetime):
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(_BDT).date()
+
+
+# Route → human section. Ordered; first regex match wins (home before the
+# generic prefixes, `/stock/` before `/stocks`). Used by the behavior + pulse
+# aggregations to bucket raw page-view paths into product areas.
+_CATEGORY_BRANCHES = [
+    (r"^/(\?|$)", "Home"),
+    (r"^/stock/", "Stock detail"),
+    (r"^/dsestockranking", "Rankings"),
+    (r"^/stocks", "Browse stocks"),
+    (r"^/(market-analysis|market-intelligence|dse-today|market)", "Market"),
+    (r"^/watchlist", "Watchlist"),
+    (r"^/portfolio", "Portfolio"),
+    (r"^/(learn|blog)", "Learn & Blog"),
+    (r"^/stock-insights", "Insights"),
+    (r"^/(profile|login|register)", "Account"),
+    (r"^/admin", "Admin"),
+]
+
+
+def _category_switch():
+    """A Mongo `$switch` expression that maps `$path` → section label."""
+    return {
+        "$switch": {
+            "branches": [
+                {"case": {"$regexMatch": {"input": "$path", "regex": rx}}, "then": label}
+                for rx, label in _CATEGORY_BRANCHES
+            ],
+            "default": "Other",
+        }
+    }
 
 
 def _engagement_segment(doc: dict, now: datetime) -> str:
@@ -66,6 +109,8 @@ def _serialize_user(doc: dict, now: datetime, alert_user_ids: set) -> dict:
     out["app_installed"] = bool(doc.get("app_installed_at"))
     out["ai_used"] = bool(doc.get("ai_query_count") or doc.get("ai_last_used_at"))
     out["has_price_alert"] = doc.get("user_id") in alert_user_ids
+    out["current_streak"] = int(doc.get("current_streak") or 0)
+    out["longest_streak"] = int(doc.get("longest_streak") or 0)
     out["segment"] = _engagement_segment(doc, now)
     return out
 
@@ -224,6 +269,69 @@ def get_analytics(_: dict = Depends(get_current_admin_user)):
     except Exception:  # noqa: BLE001 — push_subscriptions may be empty/absent
         push_devices = 0
 
+    # --- DAU / WAU / MAU + stickiness (distinct active users from events) ---
+    events_col = db["user_events"]
+
+    def _distinct_active(since) -> int:
+        try:
+            return len(events_col.distinct("user_id", {"ts": {"$gte": since}}))
+        except Exception:  # noqa: BLE001 — best-effort
+            return 0
+
+    dau = _distinct_active(today)
+    wau = _distinct_active(seven_ago)
+    mau = _distinct_active(now - timedelta(days=30))
+    dau_wau_mau = {
+        "dau": dau,
+        "wau": wau,
+        "mau": mau,
+        "stickiness": round(dau / mau * 100, 1) if mau else 0.0,
+    }
+
+    # --- Activation milestones (doc-derived; reach of each product step) ---
+    returned = wl_reach = pf_reach = power_reach = 0
+    for d in docs:
+        cd = _bdt_date(d.get("created_at"))
+        sd = _bdt_date(d.get("last_seen_at"))
+        if cd and sd and sd > cd:
+            returned += 1
+        if d.get("watchlist"):
+            wl_reach += 1
+        if d.get("portfolio"):
+            pf_reach += 1
+        if (
+            d.get("push_enabled")
+            or d.get("app_installed_at")
+            or d.get("ai_query_count")
+            or d.get("ai_last_used_at")
+            or (d.get("user_id") in alert_user_ids)
+        ):
+            power_reach += 1
+    activation = {
+        "signed_up": len(docs),
+        "returned": returned,
+        "built_watchlist": wl_reach,
+        "added_portfolio": pf_reach,
+        "power_feature": power_reach,
+    }
+
+    # --- Today's top sections (for the Pulse tab) ---
+    top_routes_today: list = []
+    try:
+        rt = events_col.aggregate([
+            {"$match": {"ts": {"$gte": today}}},
+            {"$addFields": {"cat": _category_switch()}},
+            {"$group": {"_id": "$cat", "views": {"$sum": "$count"},
+                        "users": {"$addToSet": "$user_id"}}},
+            {"$project": {"_id": 0, "category": "$_id", "views": 1,
+                          "users": {"$size": "$users"}}},
+            {"$sort": {"views": -1}},
+            {"$limit": 8},
+        ])
+        top_routes_today = list(rt)
+    except Exception:  # noqa: BLE001 — best-effort
+        top_routes_today = []
+
     return {
         "stats": {
             "total_users": len(docs),
@@ -237,6 +345,9 @@ def get_analytics(_: dict = Depends(get_current_admin_user)):
         "segments": segments,
         "adoption": adoption,
         "signup_source": signup_source,
+        "dau_wau_mau": dau_wau_mau,
+        "activation": activation,
+        "top_routes_today": top_routes_today,
         "feature_reach": {
             "total_users": len(docs),
             "push": {"users": push_count, "devices": push_devices},
@@ -306,6 +417,210 @@ def admin_get_user(user_id: str, _: dict = Depends(get_current_admin_user)):
         "watchlist": doc.get("watchlist") or [],
         "portfolio": portfolio,
         "recent_events": events,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Behavior — what registered users actually do (aggregated page-view events)
+# ---------------------------------------------------------------------------
+
+@router.get("/analytics/behavior")
+def get_analytics_behavior(
+    _: dict = Depends(get_current_admin_user),
+    days: int = 30,
+):
+    """Aggregate `user_events` into product-behavior views: section mix, top
+    pages, most-viewed stocks, and notification (`?src=`) attribution.
+    Lazy-loaded by the Behavior tab so the main payload stays light."""
+    db = get_db()
+    events = db["user_events"]
+    days = max(1, min(int(days or 30), 90))
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+
+    def _agg(pipeline):
+        try:
+            return list(events.aggregate(pipeline))
+        except Exception:  # noqa: BLE001 — every panel is best-effort
+            return []
+
+    # Section mix — accurate views + distinct users per product area.
+    category_mix = _agg([
+        {"$match": {"ts": {"$gte": since}}},
+        {"$addFields": {"cat": _category_switch()}},
+        {"$group": {"_id": "$cat", "views": {"$sum": "$count"},
+                    "users": {"$addToSet": "$user_id"}}},
+        {"$project": {"_id": 0, "category": "$_id", "views": 1,
+                      "users": {"$size": "$users"}}},
+        {"$sort": {"views": -1}},
+    ])
+
+    # Most-viewed stocks — code extracted from `/stock/<CODE>[?…]`.
+    stocks_raw = _agg([
+        {"$match": {"ts": {"$gte": since}, "path": {"$regex": "^/stock/"}}},
+        {"$addFields": {"code": {"$toUpper": {"$arrayElemAt": [
+            {"$split": [{"$arrayElemAt": [{"$split": ["$path", "?"]}, 0]}, "/"]}, 2]}}}},
+        {"$group": {"_id": "$code", "views": {"$sum": "$count"},
+                    "users": {"$addToSet": "$user_id"}}},
+        {"$project": {"_id": 0, "code": "$_id", "views": 1,
+                      "users": {"$size": "$users"}}},
+        {"$sort": {"views": -1}},
+        {"$limit": 20},
+    ])
+    top_stocks_viewed = [s for s in stocks_raw if s.get("code")]
+
+    # Top pages — merge query-string variants of the same path (views only).
+    raw_pages = _agg([
+        {"$match": {"ts": {"$gte": since}}},
+        {"$group": {"_id": "$path", "views": {"$sum": "$count"}}},
+        {"$sort": {"views": -1}},
+        {"$limit": 80},
+    ])
+    merged_pages: Counter = Counter()
+    for row in raw_pages:
+        p = (row["_id"] or "/").split("?")[0].split("#")[0]
+        merged_pages[p] += row["views"]
+    top_pages = [
+        {"path": p, "views": v}
+        for p, v in merged_pages.most_common(15)
+    ]
+
+    # Notification attribution — `?src=<channel>` tags from push/email deep links.
+    attribution = _agg([
+        {"$match": {"ts": {"$gte": since}, "path": {"$regex": "src="}}},
+        {"$addFields": {"m": {"$regexFind": {"input": "$path", "regex": "src=([^&]+)"}}}},
+        {"$addFields": {"src": {"$arrayElemAt": ["$m.captures", 0]}}},
+        {"$match": {"src": {"$ne": None}}},
+        {"$group": {"_id": "$src", "views": {"$sum": "$count"},
+                    "users": {"$addToSet": "$user_id"}}},
+        {"$project": {"_id": 0, "src": "$_id", "views": 1,
+                      "users": {"$size": "$users"}}},
+        {"$sort": {"views": -1}},
+        {"$limit": 15},
+    ])
+
+    try:
+        active_users = len(events.distinct("user_id", {"ts": {"$gte": since}}))
+        total_views = sum(c.get("views", 0) for c in category_mix)
+    except Exception:  # noqa: BLE001
+        active_users = total_views = 0
+
+    return {
+        "window_days": days,
+        "active_users": active_users,
+        "total_views": total_views,
+        "category_mix": category_mix,
+        "top_pages": top_pages,
+        "top_stocks_viewed": top_stocks_viewed,
+        "attribution": attribution,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Retention — do users come back? (cohorts, new-user retention, active hours)
+# ---------------------------------------------------------------------------
+
+@router.get("/analytics/retention")
+def get_analytics_retention(_: dict = Depends(get_current_admin_user)):
+    """New-user retention (D1/D7/D30), a weekly cohort grid, and an active-hours
+    heatmap — all from tracked page-view activity over the last 90 days."""
+    db = get_db()
+    events = db["user_events"]
+    now = datetime.now(timezone.utc)
+    ninety_ago = now - timedelta(days=90)
+    today_bdt = now.astimezone(_BDT).date()
+
+    # Per-user set of active calendar dates (Dhaka) from events.
+    active_by_user: dict = {}
+    try:
+        agg = events.aggregate([
+            {"$match": {"ts": {"$gte": ninety_ago}}},
+            {"$group": {"_id": {
+                "u": "$user_id",
+                "d": {"$dateToString": {"format": "%Y-%m-%d", "date": "$ts",
+                                        "timezone": "Asia/Dhaka"}},
+            }}},
+        ])
+        for row in agg:
+            u = row["_id"]["u"]
+            try:
+                active_by_user.setdefault(u, set()).add(date.fromisoformat(row["_id"]["d"]))
+            except (ValueError, TypeError):
+                continue
+    except Exception:  # noqa: BLE001 — retention is best-effort
+        active_by_user = {}
+
+    users = list(db["users"].find({}, {"user_id": 1, "created_at": 1, "_id": 0}))
+    signup = {u["user_id"]: _bdt_date(u.get("created_at")) for u in users}
+
+    # --- New-user retention: % still active on/after signup + N days ---
+    new_user_retention = {}
+    for n in (1, 7, 30):
+        eligible = retained = 0
+        for uid, s in signup.items():
+            if not s or (today_bdt - s).days < n:
+                continue  # not enough time elapsed to have an N-day outcome yet
+            eligible += 1
+            dates = active_by_user.get(uid)
+            if dates and max(dates) >= s + timedelta(days=n):
+                retained += 1
+        new_user_retention[f"d{n}"] = {
+            "eligible": eligible,
+            "retained": retained,
+            "pct": round(retained / eligible * 100, 1) if eligible else 0.0,
+        }
+
+    # --- Weekly cohort grid (last 8 signup weeks × weeks-since) ---
+    cohorts: dict = defaultdict(set)
+    for uid, s in signup.items():
+        if not s:
+            continue
+        monday = s - timedelta(days=s.weekday())
+        if (today_bdt - monday).days <= 7 * 9:  # keep ~last 9 weeks
+            cohorts[monday].add(uid)
+    grid = []
+    for wk in sorted(cohorts.keys()):
+        members = cohorts[wk]
+        size = len(members)
+        weeks_available = (today_bdt - wk).days // 7
+        cells = []
+        for w in range(0, min(8, weeks_available) + 1):
+            start = wk + timedelta(days=7 * w)
+            end = start + timedelta(days=7)
+            active_ct = sum(
+                1 for uid in members
+                if (d := active_by_user.get(uid)) and any(start <= x < end for x in d)
+            )
+            cells.append({
+                "week": w,
+                "count": active_ct,
+                "pct": round(active_ct / size * 100) if size else 0,
+            })
+        grid.append({"cohort": wk.isoformat(), "size": size, "cells": cells})
+
+    # --- Active-hours heatmap (weekday 0=Sun..6=Sat × hour 0..23, Dhaka) ---
+    matrix = [[0] * 24 for _ in range(7)]
+    hours_max = 0
+    try:
+        hrs = events.aggregate([
+            {"$match": {"ts": {"$gte": ninety_ago}}},
+            {"$group": {"_id": {
+                "dow": {"$dayOfWeek": {"date": "$ts", "timezone": "Asia/Dhaka"}},
+                "h": {"$hour": {"date": "$ts", "timezone": "Asia/Dhaka"}},
+            }, "views": {"$sum": "$count"}}},
+        ])
+        for row in hrs:
+            dow = int(row["_id"]["dow"]) - 1  # $dayOfWeek: 1=Sun → 0=Sun
+            h = int(row["_id"]["h"])
+            if 0 <= dow < 7 and 0 <= h < 24:
+                matrix[dow][h] = row["views"]
+                hours_max = max(hours_max, row["views"])
+    except Exception:  # noqa: BLE001 — heatmap is best-effort
+        pass
+
+    return {
+        "new_user_retention": new_user_retention,
+        "cohort_grid": grid,
+        "active_hours": {"matrix": matrix, "max": hours_max},
     }
 
 

@@ -1381,6 +1381,9 @@ export interface AdminUserRow {
   app_installed: boolean;
   ai_used: boolean;
   has_price_alert: boolean;
+  // engagement streaks
+  current_streak: number;
+  longest_streak: number;
 }
 
 export interface AdminAnalyticsStats {
@@ -1448,16 +1451,96 @@ export interface AdminVisitDistribution {
   total_users: number;
 }
 
+export interface AdminDauWauMau {
+  dau: number;
+  wau: number;
+  mau: number;
+  stickiness: number; // DAU/MAU %
+}
+
+export interface AdminActivation {
+  signed_up: number;
+  returned: number;
+  built_watchlist: number;
+  added_portfolio: number;
+  power_feature: number;
+}
+
+export interface AdminRouteToday {
+  category: string;
+  views: number;
+  users: number;
+}
+
 export interface AdminAnalyticsResponse {
   stats: AdminAnalyticsStats;
   segments: AdminSegments;
   adoption: AdminAdoption;
   signup_source: AdminSignupSource;
+  dau_wau_mau: AdminDauWauMau;
+  activation: AdminActivation;
+  top_routes_today: AdminRouteToday[];
   feature_reach: AdminFeatureReach;
   visit_distribution: AdminVisitDistribution;
   popular_stocks: AdminPopularStocks;
   growth: AdminGrowthPoint[];
   users: AdminUserRow[];
+}
+
+// --- Behavior tab (lazy) ---
+export interface AdminCategoryStat {
+  category: string;
+  views: number;
+  users: number;
+}
+export interface AdminTopPage {
+  path: string;
+  views: number;
+}
+export interface AdminStockViewed {
+  code: string;
+  views: number;
+  users: number;
+}
+export interface AdminAttribution {
+  src: string;
+  views: number;
+  users: number;
+}
+export interface AdminBehaviorResponse {
+  window_days: number;
+  active_users: number;
+  total_views: number;
+  category_mix: AdminCategoryStat[];
+  top_pages: AdminTopPage[];
+  top_stocks_viewed: AdminStockViewed[];
+  attribution: AdminAttribution[];
+}
+
+// --- Retention tab (lazy) ---
+export interface AdminRetentionStat {
+  eligible: number;
+  retained: number;
+  pct: number;
+}
+export interface AdminCohortCell {
+  week: number;
+  count: number;
+  pct: number;
+}
+export interface AdminCohortRow {
+  cohort: string; // YYYY-MM-DD (Monday of signup week)
+  size: number;
+  cells: AdminCohortCell[];
+}
+export interface AdminActiveHours {
+  matrix: number[][]; // [weekday 0=Sun..6=Sat][hour 0..23]
+  max: number;
+}
+export interface AdminRetentionResponse {
+  new_user_retention: { d1: AdminRetentionStat; d7: AdminRetentionStat; d30: AdminRetentionStat };
+  cohort_grid: AdminCohortRow[];
+  active_hours: AdminActiveHours;
 }
 
 export interface AdminUserEvent {
@@ -1498,6 +1581,14 @@ export async function apiGetAdminAnalytics(): Promise<AdminAnalyticsResponse> {
 
 export async function apiGetAdminUser(userId: string): Promise<AdminUserDetail> {
   return apiAuthFetch<AdminUserDetail>(`/api/admin/users/${encodeURIComponent(userId)}`);
+}
+
+export async function apiGetAdminBehavior(days = 30): Promise<AdminBehaviorResponse> {
+  return apiAuthFetch<AdminBehaviorResponse>(`/api/admin/analytics/behavior?days=${days}`);
+}
+
+export async function apiGetAdminRetention(): Promise<AdminRetentionResponse> {
+  return apiAuthFetch<AdminRetentionResponse>("/api/admin/analytics/retention");
 }
 
 // ---------------------------------------------------------------------------
