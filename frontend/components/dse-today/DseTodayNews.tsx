@@ -1,4 +1,4 @@
-import DseTodayNewsCard from "./DseTodayNewsCard";
+import PersonalNewsFeed from "@/components/news/PersonalNewsFeed";
 import type { DseTodayNewsItem } from "@/lib/api";
 
 export default function DseTodayNews({ items }: { items: DseTodayNewsItem[] }) {
@@ -23,11 +23,7 @@ export default function DseTodayNews({ items }: { items: DseTodayNewsItem[] }) {
         </span>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        {items.map((n, i) => (
-          <DseTodayNewsCard key={`${n.trading_code}-${n.post_date ?? i}-${i}`} item={n} />
-        ))}
-      </div>
+      <PersonalNewsFeed items={items} />
     </section>
   );
 }

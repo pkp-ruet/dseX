@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTodaysNews } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
-import DseTodayNewsCard from "@/components/dse-today/DseTodayNewsCard";
+import PersonalNewsFeed from "@/components/news/PersonalNewsFeed";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
@@ -95,11 +95,7 @@ export default async function TodaysNewsPage() {
 
       {items.length > 0 && (
         <section className="mb-6">
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            {items.map((n, i) => (
-              <DseTodayNewsCard key={`${n.trading_code}-${n.post_date ?? i}-${i}`} item={n} />
-            ))}
-          </div>
+          <PersonalNewsFeed items={items} />
         </section>
       )}
     </>
