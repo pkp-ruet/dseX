@@ -18,12 +18,6 @@ const ICON_WATCHLIST = (
     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
   </svg>
 );
-const ICON_PORTFOLIO = (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
-    <path d="M22 12A10 10 0 0 0 12 2v10z" />
-  </svg>
-);
 const ICON_CHECK = (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <path d="M20 6L9 17l-5-5" />
@@ -44,22 +38,21 @@ const ICON_TUNE = (
 );
 
 interface Props {
-  hasPortfolio: boolean;
   hasWatchlist: boolean;
   /** True once the user has taken the personalize-picks quiz. */
   hasTuned?: boolean;
-  /** Opens the "personalize your picks" quiz (onboarding step 3). */
+  /** Opens the "personalize your picks" quiz. */
   onPersonalize?: () => void;
 }
 
 /**
- * Setup checklist shown under the dashboard header while onboarding is
- * incomplete. Once the user finishes (or dismisses) it, this renders nothing —
- * today's movers, alerts and news live in the dedicated cards below, so the
- * header stays clean.
+ * Setup checklist shown under the dashboard hero while onboarding is
+ * incomplete. Covers the two steps the money hero doesn't already drive —
+ * build a watchlist and personalize picks (adding a portfolio is sold by the
+ * MoneyHeroGhost hero itself, so it's intentionally not repeated here). Once
+ * both are done (or the card is dismissed), this renders nothing.
  */
 export default function DailyBriefing({
-  hasPortfolio,
   hasWatchlist,
   hasTuned = false,
   onPersonalize,
@@ -92,10 +85,11 @@ export default function DailyBriefing({
     setDismissed(true);
   }
 
-  // ── Setup incomplete → polished 3-step onboarding card (persists until done) ─
-  // Shows from first sign-in (empty watchlist) through portfolio + personalize,
-  // then renders nothing once all three steps are done or it's dismissed.
-  if ((!hasWatchlist || !hasPortfolio || !hasTuned) && !dismissed) {
+  // ── Setup incomplete → polished onboarding card (persists until done) ──────
+  // Shows from first sign-in (empty watchlist) through personalize, then renders
+  // nothing once both steps are done or it's dismissed. (Adding a portfolio is
+  // handled by the MoneyHeroGhost hero, so it isn't a step here.)
+  if ((!hasWatchlist || !hasTuned) && !dismissed) {
     const steps = [
       {
         key: "watchlist",
@@ -107,17 +101,6 @@ export default function DailyBriefing({
         href: "/watchlist" as string | undefined,
         onClick: undefined as (() => void) | undefined,
         cta: "Add stocks",
-      },
-      {
-        key: "portfolio",
-        done: hasPortfolio,
-        icon: ICON_PORTFOLIO,
-        title: "Track your portfolio",
-        desc: "Add what you own → see live profit/loss and a quick health check.",
-        descBn: "আপনার কেনা শেয়ার যোগ করুন — লাভ-লোকসান ও অবস্থা সরাসরি দেখুন।",
-        href: "/portfolio" as string | undefined,
-        onClick: undefined as (() => void) | undefined,
-        cta: "Add holdings",
       },
       {
         key: "personalize",
@@ -156,7 +139,7 @@ export default function DailyBriefing({
             </p>
             <p className="text-sm font-bold leading-tight text-[var(--text)]">
               {doneCount === 0
-                ? "Three quick steps to your daily check-in"
+                ? "Two quick steps to your daily check-in"
                 : remaining === 1
                   ? "Almost there — one step to go"
                   : `${remaining} steps left to set up`}

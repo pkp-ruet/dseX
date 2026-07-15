@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import Card from "@/components/ui/Card";
 
@@ -13,9 +14,13 @@ const BAG_ICON = (
  * with a glass "Add your holdings" call-to-action floated on top. Replaces the
  * plain SetupCard so the empty state sells the feature instead of describing it.
  */
-export default function MoneyHeroGhost() {
+export default function MoneyHeroGhost({ greeting }: { greeting?: ReactNode }) {
   return (
-    <Card as="section" padding="none" className="relative overflow-hidden">
+    <Card as="section" padding="none" className="overflow-hidden">
+      {greeting && (
+        <div className="border-b border-[var(--border)] px-4 pb-3 pt-4 sm:px-5">{greeting}</div>
+      )}
+      <div className="relative">
       {/* Ghost content — sample numbers, blurred + inert */}
       <div className="pointer-events-none select-none blur-[3px] opacity-45" aria-hidden>
         <div className="px-4 sm:px-5 pt-4 pb-4">
@@ -76,6 +81,7 @@ export default function MoneyHeroGhost() {
             </svg>
           </Link>
         </div>
+      </div>
       </div>
     </Card>
   );

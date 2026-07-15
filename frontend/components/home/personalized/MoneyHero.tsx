@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { type PortfolioHolding, type ScoreItem, type MarketIndexData } from "@/lib/api";
 import { analyzePortfolio, portfolioTodayMove, type ComputedRow, type Grade } from "@/lib/portfolio-analysis";
@@ -63,10 +63,13 @@ export default function MoneyHero({
   holdings,
   priceMap,
   marketIndex,
+  greeting,
 }: {
   holdings: PortfolioHolding[];
   priceMap: Map<string, ScoreItem>;
   marketIndex: MarketIndexData | null;
+  /** Slim greeting line folded into the top of the hero card (see HeroGreeting). */
+  greeting?: ReactNode;
 }) {
   const rows = holdings.map((h) => compute(h, priceMap));
   let invested = 0;
@@ -96,6 +99,9 @@ export default function MoneyHero({
 
   return (
     <Card as="section" padding="none" className="overflow-hidden">
+      {greeting && (
+        <div className="border-b border-[var(--border)] px-4 pb-3 pt-4 sm:px-5">{greeting}</div>
+      )}
       <div className="px-4 sm:px-5 pt-4 pb-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
@@ -200,10 +206,13 @@ export default function MoneyHero({
  * Same footprint as MoneyHero — shown while the portfolio fetch is still in
  * flight (holdings unknown) so the sections below don't jump when it resolves.
  */
-export function MoneyHeroSkeleton() {
+export function MoneyHeroSkeleton({ greeting }: { greeting?: ReactNode }) {
   return (
-    <Card as="section" padding="none" className="overflow-hidden" aria-hidden>
-      <div className="px-4 sm:px-5 pt-4 pb-4">
+    <Card as="section" padding="none" className="overflow-hidden">
+      {greeting && (
+        <div className="border-b border-[var(--border)] px-4 pb-3 pt-4 sm:px-5">{greeting}</div>
+      )}
+      <div className="px-4 sm:px-5 pt-4 pb-4" aria-hidden>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1 space-y-2.5">
             <div className="h-3 w-24 animate-pulse rounded-full bg-[var(--surface-2)]" />

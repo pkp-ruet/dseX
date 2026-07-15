@@ -36,23 +36,22 @@ import { portfolioTodayMove } from "@/lib/portfolio-analysis";
 import { buildHomeAlerts } from "@/lib/home-alerts";
 import { buildDailyBrief } from "@/lib/daily-brief";
 
-import WelcomeHeader from "@/components/home/personalized/WelcomeHeader";
 import DailyBriefing from "@/components/home/personalized/DailyBriefing";
+import HeroGreeting from "@/components/home/personalized/HeroGreeting";
 import MoneyHero, { MoneyHeroSkeleton } from "@/components/home/personalized/MoneyHero";
 import MoneyHeroGhost from "@/components/home/personalized/MoneyHeroGhost";
+import AttentionStrip from "@/components/home/personalized/AttentionStrip";
 import PullToRefresh from "@/components/home/personalized/PullToRefresh";
 import StatTiles from "@/components/home/personalized/StatTiles";
 import MyStocksToday from "@/components/home/personalized/MyStocksToday";
-import ForYouCard from "@/components/home/personalized/ForYouCard";
-import BuySignalsCard from "@/components/home/personalized/BuySignalsCard";
+import IdeasCard from "@/components/home/personalized/IdeasCard";
 import TuneModal from "@/components/stock-recommendation/TuneModal";
 import CoreFeatureTiles from "@/components/home/personalized/CoreFeatureTiles";
 import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
 import DiscoverCard from "@/components/home/personalized/DiscoverCard";
-import NewsSlider from "@/components/home/personalized/NewsSlider";
+import NewsPeek from "@/components/home/personalized/NewsPeek";
 import SearchBar from "@/components/home/SearchBar";
 import InstallHomeBanner from "@/components/pwa/InstallHomeBanner";
-import Card from "@/components/ui/Card";
 
 function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
   if (!scores) return new Map();
@@ -119,9 +118,9 @@ function SectionHeader({
   );
 }
 
-/** Placeholder matching ForYouCard's shape — shown while the client-side
+/** Placeholder matching IdeasCard's shape — shown while the client-side
  *  picks/tips fetches are still in flight so the section doesn't pop in. */
-function ForYouSkeleton() {
+function IdeasSkeleton() {
   return (
     <div className="soft-card overflow-hidden" aria-hidden>
       <div className="border-b border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 sm:px-4">
@@ -359,22 +358,10 @@ export default function PersonalizedHome() {
     marketIndex,
   });
 
-  // Homepage shows only the most-recent day's watchlist news (the /watchlist
-  // page keeps the full 30-day list).
-  const dayKey = (s: string) => new Date(s).toDateString();
-  const recentNews = news.length
-    ? (() => {
-        const latestKey = dayKey(
-          news.reduce((a, b) => (new Date(b.post_date) > new Date(a.post_date) ? b : a)).post_date,
-        );
-        return news.filter((n) => dayKey(n.post_date) === latestKey);
-      })()
-    : news;
-
-  const showRecommended = !!dailyPicks?.picks?.length || tips.length > 0;
+  const showIdeas = !!dailyPicks?.picks?.length || tips.length > 0 || buys.length > 0;
   // Skeleton while the client-side picks/tips fetches are in flight and nothing
   // was cache-hydrated — stops the section popping in mid-scroll.
-  const intelLoading = !showRecommended && (!picksSettled || !tipsSettled);
+  const ideasLoading = !showIdeas && (!picksSettled || !tipsSettled);
 
   // "New since you last looked" — server-computed diff, filtered to picks still
   // on today's feed (skip-backfill replacements aren't in new_codes).
@@ -387,116 +374,111 @@ export default function PersonalizedHome() {
     month: "short",
   });
 
-  // Personalized alerts for the header bell — built from data already loaded.
+  // Personalized "needs attention" list (AttentionStrip) — built from data
+  // already loaded. News is excluded here (includeNews: false) so headlines
+  // live only in the NewsPeek section below — no double-listing.
   const homeAlerts = buildHomeAlerts({
     codes,
     priceMap,
     todayMove,
     extremes,
     dividends,
-    news: recentNews,
     triggeredAlerts: priceAlerts,
     signalEvents,
     dateKey: new Date().toDateString(),
+    includeNews: false,
   });
+
+  const greeting = (
+    <HeroGreeting name={user?.display_name} dateStr={dateStr} isNew={isNewUser} watchlistCount={codes.length} />
+  );
 
   return (
     <PullToRefresh onRefresh={() => runFetches()}>
     <div className="pb-4">
-      {/* Dashboard header card — greeting + live market line + daily brief. */}
-      <Card padding="md" className="mt-5">
-        <WelcomeHeader
-          name={user?.display_name}
-          dateStr={dateStr}
-          marketIndex={marketIndex}
-          watchlistCount={codes.length}
-          alerts={homeAlerts}
-          isNew={isNewUser}
-          brief={briefSegments}
-        />
-      </Card>
-
-      {/* Onboarding checklist (own card) — only while setup is incomplete.
-          Shows from first sign-in (empty watchlist) onward. */}
+      {/* Onboarding checklist — build a watchlist + personalize picks (adding a
+          portfolio is sold by the money hero itself, so it's not a step here).
+          Renders nothing once both are done or it's dismissed. */}
       <DailyBriefing
-        hasPortfolio={hasPortfolio}
         hasWatchlist={hasWatchlist}
         hasTuned={hasTuned}
         onPersonalize={() => setTuneOpen(true)}
       />
 
-      {/* Search any stock → its analysis page */}
-      {companies.length > 0 && (
-        <div className="mt-4">
-          <SearchBar companies={companies} variant="sidebar" />
-        </div>
-      )}
-
-      {/* Mobile-only install CTA — sits with the search box, not wedged into the
-          briefing. Desktop has the navbar button. Auto-hides once installed /
-          dismissed / unsupported. */}
-      <InstallHomeBanner />
-
       {/* ── Bento: your dashboard (main column) + explore the market (aside) on
-          desktop. Mobile keeps the single-column source order: money → picks →
-          buys → explore. ── */}
-      <div className="mt-8 lg:grid lg:grid-cols-5 lg:gap-6 lg:items-start">
+          desktop. Mobile keeps the single-column source order: money → ideas →
+          explore. ── */}
+      <div className="mt-5 lg:grid lg:grid-cols-5 lg:gap-6 lg:items-start">
       <div className="space-y-8 lg:col-span-3">
 
-      {/* ── Section 1: Your money today — hero → tiles → stocks → news. ── */}
-      <section>
-        <div className="flex flex-col gap-3">
-          {holdings === null ? (
-            // Portfolio not known yet → hold the hero's space so nothing below
-            // jumps when it resolves (kills the SetupCard↔MoneyHero shift).
-            <MoneyHeroSkeleton />
-          ) : hasPortfolio ? (
-            <MoneyHero holdings={holdings} priceMap={priceMap} marketIndex={marketIndex} />
-          ) : (
-            <div>
-              <SectionLabel>Your money today</SectionLabel>
-              <MoneyHeroGhost />
-            </div>
-          )}
+      {/* ── Chapter 1: Your money — greeting+value hero → what needs attention →
+          glance tiles → your stocks → news. The hero leads so a returning
+          user's money is the first thing on screen. ── */}
+      <section className="space-y-3">
+        {holdings === null ? (
+          // Portfolio not known yet → hold the hero's space so nothing below
+          // jumps when it resolves (kills the ghost↔MoneyHero shift).
+          <MoneyHeroSkeleton greeting={greeting} />
+        ) : hasPortfolio ? (
+          <MoneyHero holdings={holdings} priceMap={priceMap} marketIndex={marketIndex} greeting={greeting} />
+        ) : (
+          <MoneyHeroGhost greeting={greeting} />
+        )}
 
-          {/* Empty watchlist is nudged by the setup checklist (DailyBriefing) above. */}
-          {(hasPortfolio || hasWatchlist) && (
-            <>
-              <StatTiles
-                codes={codes}
-                holdings={holdings ?? []}
-                priceMap={priceMap}
-                dividends={dividends}
-                marketIndex={marketIndex}
-                alerts={homeAlerts}
-              />
-              <MyStocksToday
-                holdings={holdings ?? []}
-                codes={codes}
-                priceMap={priceMap}
-                extremes={extremes}
-                dividends={dividends}
-              />
-            </>
-          )}
+        {/* The single home for "what happened on your stocks today" — replaces
+            the old header bell + Alerts tile + brief line. Quiet days fall back
+            to one calm concierge sentence; nothing at all → renders nothing. */}
+        {(hasWatchlist || hasPortfolio) && (
+          <AttentionStrip alerts={homeAlerts} brief={briefSegments} />
+        )}
 
-          {(hasWatchlist || hasPortfolio) && (newsLoading || news.length > 0) && (
-            <div>
-              <SectionLabel>News on your stocks</SectionLabel>
-              <NewsSlider news={news} loading={newsLoading} />
-            </div>
-          )}
+        {(hasPortfolio || hasWatchlist) && (
+          <>
+            <StatTiles
+              codes={codes}
+              holdings={holdings ?? []}
+              priceMap={priceMap}
+              dividends={dividends}
+              marketIndex={marketIndex}
+            />
+            <MyStocksToday
+              holdings={holdings ?? []}
+              codes={codes}
+              priceMap={priceMap}
+              extremes={extremes}
+              dividends={dividends}
+            />
+          </>
+        )}
 
-        </div>
+        {(hasWatchlist || hasPortfolio) && (newsLoading || news.length > 0) && (
+          <div>
+            <SectionLabel>News on your stocks</SectionLabel>
+            <NewsPeek news={news} loading={newsLoading} />
+          </div>
+        )}
+
+        {/* Mobile-only install CTA — auto-hides once installed / dismissed. */}
+        <InstallHomeBanner />
+
+        {/* Look up any stock → its analysis page. Demoted below the money block
+            so it doesn't outrank a returning user's portfolio. */}
+        {companies.length > 0 && (
+          <div className="pt-1">
+            <SectionLabel>Look up any stock</SectionLabel>
+            <SearchBar companies={companies} variant="sidebar" />
+          </div>
+        )}
       </section>
 
-      {/* ── Section 2: today's picks + tips — benefit-led title, brand demoted to
-          the eyebrow; the date + "N new" chips prove the daily refresh. ── */}
-      {(showRecommended || intelLoading) && (
+      {/* ── Chapter 2: Ideas for you — personalized picks, whole-market buy
+          signals, and daily tips merged into ONE tabbed card (was two separate
+          look-alike cards). The date + "N new" chips prove the daily refresh. ── */}
+      {(showIdeas || ideasLoading) && (
         <section id="intelligence" className="scroll-mt-24">
           <SectionHeader
             eyebrow="TopStockBD Intelligence"
-            title={hasTuned ? "Your picks today" : "Top picks today"}
+            title={hasTuned ? "Your ideas today" : "Ideas for you today"}
             accent="var(--primary)"
             icon={INTEL_ICON}
             chips={
@@ -513,29 +495,21 @@ export default function PersonalizedHome() {
             }
           />
           <div className="mt-3">
-            {intelLoading ? (
-              <ForYouSkeleton />
+            {ideasLoading ? (
+              <IdeasSkeleton />
             ) : (
-              <ForYouCard
+              <IdeasCard
                 picks={dailyPicks?.picks ?? []}
+                buys={buys}
                 tips={tips}
                 tuned={hasTuned}
                 sectors={sectors}
                 onTuned={refreshDailyPicks}
-                newCodes={newPickCodes}
+                newPickCodes={newPickCodes}
+                watchCodes={newsCodes}
               />
             )}
           </div>
-        </section>
-      )}
-
-      {/* ── Section 3: today's buy signals — the objective, whole-market
-          counterpart to the personalized picks above. Self-contained card (its
-          own header carries the title + counts); leads with buys the user
-          follows. Data rides along on scores already loaded (no extra fetch). ── */}
-      {buys.length > 0 && (
-        <section>
-          <BuySignalsCard buys={buys} watchCodes={newsCodes} />
         </section>
       )}
       </div>

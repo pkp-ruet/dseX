@@ -31,10 +31,14 @@ function fmtPrice(n: number): string {
 }
 
 /**
- * Builds the personalized "what's new" list for the header bell from data
- * already loaded on the home page — portfolio move, big watchlist movers,
- * 52-week extremes, upcoming dividends, and latest watchlist news. Ordered by
- * importance (portfolio → movers → extremes → dividends → news).
+ * Builds the personalized "what's new" list from data already loaded on the
+ * home page — portfolio move, big watchlist movers, 52-week extremes, upcoming
+ * dividends, and (optionally) latest watchlist news. Ordered by importance
+ * (portfolio → movers → extremes → dividends → news).
+ *
+ * `includeNews` is opt-out (default true): the home dashboard sets it false so
+ * headlines live only in the dedicated NewsPeek section (no double-listing),
+ * while the assistant's single "what's new" brief keeps news inline.
  */
 export function buildHomeAlerts(opts: {
   codes: string[];
@@ -42,12 +46,25 @@ export function buildHomeAlerts(opts: {
   todayMove: { delta: number; pct: number } | null;
   extremes: NearExtremesData | null;
   dividends: DividendsUpcoming | null;
-  news: WatchlistNewsItem[];
+  news?: WatchlistNewsItem[];
   triggeredAlerts?: PriceAlert[];
   signalEvents?: PortfolioSignalEvent[];
   dateKey: string;
+  /** Include latest watchlist news as 📰 rows. Default true. */
+  includeNews?: boolean;
 }): HomeAlert[] {
-  const { codes, priceMap, todayMove, extremes, dividends, news, triggeredAlerts, signalEvents, dateKey } = opts;
+  const {
+    codes,
+    priceMap,
+    todayMove,
+    extremes,
+    dividends,
+    news = [],
+    triggeredAlerts,
+    signalEvents,
+    dateKey,
+    includeNews = true,
+  } = opts;
   const watch = new Set(codes.map((c) => c.toUpperCase()));
   const alerts: HomeAlert[] = [];
 
@@ -173,19 +190,22 @@ export function buildHomeAlerts(opts: {
     });
   }
 
-  // 5 — Latest watchlist news
-  const wlNews = news
-    .filter((n) => watch.has(n.trading_code.toUpperCase()))
-    .slice(0, MAX_NEWS);
-  for (const n of wlNews) {
-    alerts.push({
-      id: `nw:${n.trading_code}:${n.post_date}:${n.title.slice(0, 48)}`,
-      emoji: "📰",
-      title: n.title,
-      detail: n.trading_code,
-      href: `/stock/${n.trading_code}`,
-      tone: "neutral",
-    });
+  // 5 — Latest watchlist news (opt-out; the home dashboard shows these in the
+  // dedicated NewsPeek section instead, so it passes includeNews: false).
+  if (includeNews) {
+    const wlNews = news
+      .filter((n) => watch.has(n.trading_code.toUpperCase()))
+      .slice(0, MAX_NEWS);
+    for (const n of wlNews) {
+      alerts.push({
+        id: `nw:${n.trading_code}:${n.post_date}:${n.title.slice(0, 48)}`,
+        emoji: "📰",
+        title: n.title,
+        detail: n.trading_code,
+        href: `/stock/${n.trading_code}`,
+        tone: "neutral",
+      });
+    }
   }
 
   return alerts;
