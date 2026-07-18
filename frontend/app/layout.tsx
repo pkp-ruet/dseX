@@ -115,7 +115,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div aria-hidden="true" className="h-14 shrink-0" />
             <MarketDataBanner />
             <PushAlertBanner />
-            <main className="flex-1 max-w-5xl mx-auto w-full min-w-0 px-4 sm:px-6 pb-20 md:pb-10">
+            <main className="flex-1 max-w-5xl mx-auto w-full min-w-0 px-4 sm:px-6 pb-[calc(72px_+_env(safe-area-inset-bottom))] md:pb-10">
               {children}
             </main>
             <Footer />

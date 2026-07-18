@@ -3995,18 +3995,6 @@ a:hover .ticker-tag,
   font-weight: 700;
 }
 
-/* Mobile bottom bar — search trigger button reset */
-.mobile-bottom-bar-search {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-
 /* Full rank table star column */
 .fr-th-star {
   width: 1%;
@@ -5109,7 +5097,10 @@ a:hover .ticker-tag,
   bottom: 0;
   left: 0;
   right: 0;
-  height: 60px;
+  /* border-box: fold the inset into min-height so the tap row stays a full 60px
+     and the padding-bottom only adds clearance for the iOS home indicator */
+  min-height: calc(60px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   background: var(--surface);
   border-top: 1px solid var(--border);
   display: flex;
@@ -5125,36 +5116,46 @@ a:hover .ticker-tag,
 
 .mobile-bottom-bar-item {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 3px;
+  padding: 6px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
   text-decoration: none;
   color: var(--ink-muted);
-  font-size: 0.58rem;
+  font-family: inherit;
+  font-size: 0.56rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  transition: color 0.15s;
+  letter-spacing: 0.03em;
+  transition: color 0.15s, transform 0.12s ease;
   position: relative;
 }
 .mobile-bottom-bar-item:hover,
 .mobile-bottom-bar-item.active {
   color: var(--primary);
 }
-.mobile-bottom-bar-item.active::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 28px;
-  height: 2.5px;
-  background: var(--primary);
-  border-radius: 0 0 4px 4px;
+.mobile-bottom-bar-item:active {
+  transform: scale(0.94);
 }
 
+/* icon wrapper doubles as the active "pill" (Material-3 style) */
 .mobile-bottom-bar-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  transition: background 0.18s;
+}
+.mobile-bottom-bar-item.active .mobile-bottom-bar-icon {
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+}
+.mobile-bottom-bar-glyph {
   position: relative;
   display: inline-flex;
 }
@@ -5181,13 +5182,27 @@ a:hover .ticker-tag,
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.mobile-bottom-bar-item {
-  min-width: 0;
+
+/* ---- accented primary action (Search) — filled clay circle, inline ---- */
+.mobile-bottom-bar-search-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-soft) 0%, var(--primary) 55%, var(--primary-ink) 100%);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(143, 86, 56, 0.45);
 }
+
 @media (max-width: 380px) {
   .mobile-bottom-bar-label {
-    font-size: 0.54rem;
-    letter-spacing: 0.02em;
+    font-size: 0.5rem;
+    letter-spacing: 0.01em;
+  }
+  .mobile-bottom-bar-icon {
+    padding: 3px 7px;
   }
 }
 
@@ -5210,12 +5225,13 @@ a:hover .ticker-tag,
 .mobile-bottom-bar-item.active {
   color: #fff;
 }
-.mobile-bottom-bar-item.active::after {
-  background: #fff;
+/* active "pill" → soft white on the indigo bar */
+.mobile-bottom-bar-item.active .mobile-bottom-bar-icon {
+  background: rgba(255, 255, 255, 0.16);
 }
-/* amber badge already pops on indigo — keep, just sharpen the ring */
+/* amber badge already pops on indigo — keep, just sharpen the ring to the bar */
 .mobile-bottom-bar-badge {
-  box-shadow: 0 0 0 2px var(--primary-ink);
+  box-shadow: 0 0 0 2px var(--navy-ink);
 }
 
 /* ======================================
