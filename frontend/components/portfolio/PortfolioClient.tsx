@@ -43,6 +43,7 @@ import PortfolioHealthStrip from "./PortfolioHealthStrip";
 import ContributionStrip from "./ContributionStrip";
 import PortfolioHero from "./PortfolioHero";
 import AddHoldingModal from "./AddHoldingModal";
+import BuySellModal from "./BuySellModal";
 import WatchlistNews from "@/components/watchlist/WatchlistNews";
 import WatchlistAlertCell from "@/components/watchlist/WatchlistAlertCell";
 
@@ -139,23 +140,6 @@ function sortValue(row: ComputedRow, key: SortKey): string | number | null {
     case "signal":
       return SIGNAL_RANK[row.signal.signal];
   }
-}
-
-function PnlCell({ value, pct }: { value: number | null; pct: number | null }) {
-  if (value == null) return <span className="text-[var(--text-muted)]">—</span>;
-  const cls = value > 0 ? "text-[var(--positive)]" : value < 0 ? "text-[var(--negative)]" : "text-[var(--text-muted)]";
-  return (
-    <span className={`pv ${cls} font-semibold tabular-nums nums`}>
-      {value > 0 ? "+" : ""}
-      {taka(value, 0)}
-      {pct != null && (
-        <span className="ml-1 text-xs sm:text-sm opacity-90 font-medium">
-          ({pct > 0 ? "+" : ""}
-          {pct.toFixed(1)}%)
-        </span>
-      )}
-    </span>
-  );
 }
 
 /** Sign-aware accent color used for tints, pills and accent edges. */
@@ -428,6 +412,18 @@ export default function PortfolioClient() {
 
   // Add-stock sheet
   const [addOpen, setAddOpen] = useState(false);
+
+  // Buy / Sell a specific holding — transaction-style, no realized P&L.
+  const [tx, setTx] = useState<{
+    mode: "buy" | "sell";
+    holding: PortfolioHolding;
+    ltp: number | null;
+    companyName: string | null;
+  } | null>(null);
+
+  function openTx(mode: "buy" | "sell", row: ComputedRow) {
+    setTx({ mode, holding: row.holding, ltp: row.ltp, companyName: row.company_name });
+  }
 
   // Privacy mode — blur personal amounts. Read after mount (SSR-safe).
   const [privacy, setPrivacy] = useState(false);
@@ -894,35 +890,65 @@ export default function PortfolioClient() {
           title={`Holdings (${holdings.length})`}
           subtitle="Tap a stock for its full analysis."
           right={
-            <>
-              <Button
-                type="button"
-                onClick={openEditPicker}
-                variant="ghost"
-                size="sm"
-                className="hidden sm:inline-flex"
-              >
+            <div className="hidden sm:flex items-center gap-2">
+              <Button type="button" onClick={openEditPicker} variant="ghost" size="sm">
                 Edit
               </Button>
-              <Button
-                type="button"
-                onClick={() => setAddOpen(true)}
-                variant="primary"
-                size="sm"
-                className="hidden sm:inline-flex"
-              >
+              <Button type="button" onClick={() => setAddOpen(true)} variant="primary" size="sm">
                 + Add stock
               </Button>
-            </>
+            </div>
           }
         />
 
-        {/* Mobile: compact card list */}
-        <div className="flex flex-col gap-2 sm:hidden">
+        {/* Sort — its own row so it never crowds the header on small screens */}
+        {holdings.length > 1 && (
+          <div className="flex items-center justify-end gap-1.5 -mt-1">
+            <label htmlFor="pf-sort" className="text-xs text-[var(--text-muted)]">
+              Sort
+            </label>
+            <select
+              id="pf-sort"
+              value={sort?.key ?? ""}
+              onChange={(e) => {
+                const key = e.target.value;
+                if (!key) return setSort(null);
+                setSort((s) =>
+                  s && s.key === key
+                    ? s
+                    : { key: key as SortKey, dir: key === "code" ? "asc" : "desc" },
+                );
+              }}
+              className="input-field text-xs py-1.5 pl-2 pr-6 w-auto cursor-pointer"
+              aria-label="Sort holdings"
+            >
+              <option value="">Default</option>
+              {COLUMNS.map((c) => (
+                <option key={c.key} value={c.key}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+            {sort && (
+              <button
+                type="button"
+                onClick={() => toggleSort(sort.key)}
+                className="px-1.5 py-1 rounded-md text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors"
+                aria-label="Toggle sort direction"
+                title={sort.dir === "asc" ? "Ascending" : "Descending"}
+              >
+                {sort.dir === "asc" ? "▲" : "▼"}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Holdings — cards on every breakpoint: one column on mobile, two-up on desktop */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
           {sortedRows.map((row) => (
             <div
               key={row.holding.id}
-              className="soft-card p-3 pl-3.5 transition-transform active:scale-[0.99]"
+              className="soft-card p-3 pl-3.5 sm:p-4 sm:pl-4 transition-transform active:scale-[0.99]"
               style={{ borderLeft: `3px solid ${signAccent(row.pnl)}` }}
             >
               {/* Row 1: monogram + code + name | icon actions */}
@@ -1008,155 +1034,35 @@ export default function PortfolioClient() {
                   </div>
                 </div>
               )}
+
+              {/* Buy / Sell — bought or sold some shares */}
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => openTx("buy", row)}
+                  className="tx-btn tx-buy"
+                  aria-label={`Buy more ${row.holding.trading_code}`}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                  Buy
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openTx("sell", row)}
+                  className="tx-btn tx-sell"
+                  aria-label={`Sell ${row.holding.trading_code}`}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
+                    <path d="M5 12h14" />
+                  </svg>
+                  Sell
+                </button>
+              </div>
             </div>
           ))}
         </div>
-
-        {/* Desktop: table */}
-        <Card padding="none" className="overflow-x-auto hidden sm:block">
-          <table className="w-full text-sm sm:text-base">
-            <thead>
-              <tr className="bg-[var(--surface)] border-b-2 border-[var(--border)]">
-                {COLUMNS.map((col) => {
-                  const active = sort?.key === col.key;
-                  return (
-                    <th
-                      key={col.key}
-                      className={`px-3 sm:px-4 py-3 text-xs sm:text-sm text-[var(--text)] uppercase tracking-wider font-semibold ${
-                        col.align === "left" ? "text-left" : "text-right"
-                      }`}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => toggleSort(col.key)}
-                        className={`group inline-flex items-center gap-1 cursor-pointer uppercase tracking-wider font-semibold hover:text-[var(--primary)] transition-colors ${
-                          col.align === "right" ? "flex-row-reverse" : ""
-                        } ${active ? "text-[var(--primary)]" : ""}`}
-                        aria-label={`Sort by ${col.label}`}
-                      >
-                        {col.label === "P&L" ? <>P&amp;L</> : col.label}
-                        <span
-                          className={`text-[10px] leading-none ${
-                            active
-                              ? "text-[var(--primary)]"
-                              : "text-[var(--text-muted)] opacity-50 group-hover:opacity-100"
-                          }`}
-                        >
-                          {active ? (sort!.dir === "asc" ? "▲" : "▼") : "⇅"}
-                        </span>
-                      </button>
-                    </th>
-                  );
-                })}
-                <th className="px-3 sm:px-4 py-3">
-                  <span className="sr-only">Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedRows.map((row) => {
-                return (
-                  <tr
-                    key={row.holding.id}
-                    className="group border-b border-[var(--border)] last:border-0 hover:bg-[color-mix(in_srgb,var(--primary)_3%,transparent)] transition-colors"
-                  >
-                    <td className="px-3 sm:px-4 py-3.5">
-                      <div className="flex items-center gap-3">
-                        <Monogram code={row.holding.trading_code} />
-                        <div className="min-w-0">
-                          <Link
-                            prefetch={false} href={`/stock/${row.holding.trading_code}`}
-                            className="text-[var(--primary)] hover:underline font-mono font-bold text-base leading-tight"
-                          >
-                            {row.holding.trading_code}
-                          </Link>
-                          <p className="text-xs text-[var(--text-muted)] truncate max-w-[180px] leading-tight">
-                            {row.company_name ?? "—"}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="pv px-3 sm:px-4 py-3.5 text-right text-[var(--text)] tabular-nums nums font-medium">
-                      {row.holding.qty.toLocaleString()}
-                    </td>
-                    <td className="pv px-3 sm:px-4 py-3.5 text-right text-[var(--text)] tabular-nums nums font-medium">
-                      {taka(row.holding.buy_price, 2)}
-                    </td>
-                    <td className="pv px-3 sm:px-4 py-3.5 text-right text-[var(--text)] tabular-nums nums font-medium">
-                      {taka(row.cost_basis, 0)}
-                    </td>
-                    <td className="px-3 sm:px-4 py-3.5 text-right text-[var(--text)] tabular-nums nums font-medium">
-                      {row.ltp != null ? taka(row.ltp, 1) : "—"}
-                    </td>
-                    <td className="pv px-3 sm:px-4 py-3.5 text-right text-[var(--text)] tabular-nums nums font-semibold">
-                      {row.current_value != null ? taka(row.current_value, 0) : "—"}
-                    </td>
-                    <td className="px-3 sm:px-4 py-3.5 text-right">
-                      <PnlCell value={row.pnl} pct={row.pnl_pct} />
-                    </td>
-                    <td className="px-3 sm:px-4 py-3.5">
-                      <div className="flex justify-end">
-                        <RangeBar52 ltp={row.ltp} high={row.w52_high} low={row.w52_low} />
-                      </div>
-                    </td>
-                    <td className="px-3 sm:px-4 py-3.5 text-right">
-                      <SignalChip signal={row.signal.signal} reason={row.signal.reason} muted={row.signal.muted} />
-                    </td>
-                    <td className="px-3 sm:px-4 py-3.5">
-                      <div className="flex items-center justify-end gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
-                        <WatchlistAlertCell
-                          code={row.holding.trading_code}
-                          ltp={row.ltp}
-                          w52High={row.w52_high}
-                          w52Low={row.w52_low}
-                        />
-                        <button
-                          onClick={() => startEdit(row.holding)}
-                          className="text-[var(--text-muted)] hover:text-[var(--text)] transition-colors p-1.5"
-                          aria-label={`Edit ${row.holding.trading_code}`}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleDelete(row.holding.id)}
-                          disabled={busyId === row.holding.id}
-                          className="text-[var(--text-muted)] hover:text-[var(--negative)] transition-colors p-1.5 disabled:opacity-40"
-                          aria-label={`Delete ${row.holding.trading_code}`}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-            <tfoot>
-              <tr className="border-t-2 border-[var(--border)] bg-[color-mix(in_srgb,var(--primary)_3%,var(--surface))]">
-                <td className="px-3 sm:px-4 py-3.5 text-xs uppercase tracking-wider font-bold text-[var(--text-muted)]">
-                  Total
-                </td>
-                <td />
-                <td />
-                <td className="pv px-3 sm:px-4 py-3.5 text-right text-[var(--text)] tabular-nums nums font-bold">
-                  {taka(summary.totalInvested, 0)}
-                </td>
-                <td />
-                <td className="pv px-3 sm:px-4 py-3.5 text-right text-[var(--text)] tabular-nums nums font-bold">
-                  {summary.totalValue != null ? taka(summary.totalValue, 0) : "—"}
-                </td>
-                <td className="px-3 sm:px-4 py-3.5 text-right">
-                  <PnlCell value={summary.pnl} pct={summary.pnl_pct} />
-                </td>
-                <td colSpan={3} />
-              </tr>
-            </tfoot>
-          </table>
-        </Card>
        </div>
       )}
 
@@ -1214,6 +1120,18 @@ export default function PortfolioClient() {
           existingCodes={existingCodes}
           onClose={() => setAddOpen(false)}
           onAdded={applyHoldings}
+        />
+      )}
+
+      {/* Buy / Sell a holding — transaction-style, no realized P&L */}
+      {tx && (
+        <BuySellModal
+          mode={tx.mode}
+          holding={tx.holding}
+          ltp={tx.ltp}
+          companyName={tx.companyName}
+          onClose={() => setTx(null)}
+          onDone={applyHoldings}
         />
       )}
 
