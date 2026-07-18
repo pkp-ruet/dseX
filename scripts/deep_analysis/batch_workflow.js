@@ -17,7 +17,7 @@ export const meta = {
     { title: 'Write', detail: 'per stock: dump facts -> write the durable report (no save)' },
     { title: 'Verify', detail: 'independent check: numbers grounded in figures, no leaks' },
     { title: 'Repair', detail: 'fix flagged issues in place, then re-verify' },
-    { title: 'Save', detail: 'persist ONLY reports that pass verification' },
+    { title: 'Save', detail: 'write ONLY passing reports to data/deep_analysis (no DB)' },
   ],
 }
 
@@ -98,8 +98,9 @@ const repairPrompt = (code, issuesText) =>
 const savePrompt = (code) =>
   `Run from the repo root: py scripts/deep_analysis/save_analysis.py --code ${code} ` +
   `--file ${workdir}/${code}.analysis.json --facts ${workdir}/${code}.json\n` +
-  `If it rejects the file, fix the reported STRUCTURAL problem and re-run. Return {code, saved:true} ` +
-  `on a successful upsert.`
+  `This validates the draft and WRITES the final report to data/deep_analysis/${code}.json ` +
+  `(no database write). If it rejects the draft, fix the reported STRUCTURAL problem and re-run. ` +
+  `Return {code, saved:true} once the report file is written.`
 
 const results = await parallel(codes.map((code) => async () => {
   const w = await agent(writePrompt(code),

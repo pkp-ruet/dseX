@@ -2,7 +2,8 @@
 name: deep-stock-analysis
 description: >
   Generate a comprehensive bilingual (English + Bengali) deep-dive analysis report for one or
-  more Dhaka Stock Exchange (DSE) stocks and save it to the deep_analysis MongoDB collection.
+  more Dhaka Stock Exchange (DSE) stocks and write it as a JSON file in the repo
+  (data/deep_analysis/, no database writes).
   Use when the user asks to generate, write, or refresh deep / premium stock analysis reports —
   a single code, or in RANKING order via "run next N" / "run next" (default 10), which generates
   the next N companies down the leaderboard that don't have a report yet.
@@ -12,11 +13,12 @@ description: >
 
 You (Claude Code) are the analysis engine. For each stock you read a complete **fact pack**
 (produced by a Python helper straight from the app's own data) and **write** a long-form,
-bilingual, retail-friendly research report, then save it to MongoDB. There is no Anthropic API
-key and no per-call cost — the reasoning is yours.
+bilingual, retail-friendly research report. There is no Anthropic API key and no per-call cost —
+the reasoning is yours.
 
-This runs **locally, on demand** (it can't run inside the server's scrape cron). Reports are a
-premium feature served later from the `deep_analysis` collection.
+**The skill never writes to the database.** Each report is saved as one JSON file at
+`data/deep_analysis/<CODE>.json` inside the repo; seeding those files into MongoDB is a separate
+step handled later. This runs **locally, on demand**.
 
 ## The loop (per stock)
 
@@ -34,12 +36,13 @@ Run these from the **repo root**. Use any working directory for the JSON files (
    pack. **Quote every number from the fact pack's `figures` block** (already in crore / taka) —
    never convert the raw figures yourself.
 
-3. **Save it**
+3. **Write the report file**
    ```bash
    py scripts/deep_analysis/save_analysis.py --code GP --file _work/GP.analysis.json --facts _work/GP.json
    ```
-   It validates the structure and upserts into `deep_analysis`. If it rejects the file, fix the
-   reported problem and re-run — never work around the validator.
+   It validates the draft, stamps metadata, and writes the final report to
+   `data/deep_analysis/GP.json` — **no database write**. If it rejects the draft, fix the reported
+   problem and re-run — never work around the validator.
 
 ## The report — structure
 
@@ -151,15 +154,16 @@ scorecard, or fair-value figures (those are served live).
 
 The 10 `sections` must be present, in order, each with all six fields non-empty.
 `save_analysis.py` fills `source_hash`, `data_completeness`, `schema_version`, `model` and
-`generated_at` — pass `--facts <CODE>.json` so the first two come from the fact pack.
+`generated_at` (pass `--facts <CODE>.json` so the first two come from the fact pack), then writes
+the validated file to `data/deep_analysis/<CODE>.json`. It never touches the database.
 
 ## Running in ranking order: "run next N"
 
 Reports are generated top-down through our leaderboard (the `/dsestockranking` order — highest
 score first). **"run next N"** generates the next N companies down the ranking that don't have a
 report yet; **"run next"** with no number means **N = 10**. Progress tracks itself — the
-`deep_analysis` collection is the bookmark, so successive runs march ranks 1–10, 11–20, … with
-no stored counter and pick up where you left off across sessions.
+`data/deep_analysis/` folder is the bookmark (a stock is "done" once its file exists), so
+successive runs march ranks 1–10, 11–20, … with no stored counter and pick up where you left off.
 
 1. **Pick the batch** (prints the next N codes by rank, using the latest ranking):
    ```bash
@@ -192,6 +196,6 @@ Regenerate the `stale` codes the same way (single loop, or the workflow with tho
 
 ## Cost gate
 
-Each report stores the `source_hash` of the facts it was built from, so an unchanged stock is
-never regenerated: `next_batch.py` skips anything already in `deep_analysis`, and `status.py`
-skips anything whose facts are unchanged.
+Each report file stores the `source_hash` of the facts it was built from, so an unchanged stock
+is never regenerated: `next_batch.py` skips any stock that already has a file in
+`data/deep_analysis/`, and `status.py` compares each file's hash to the current facts.

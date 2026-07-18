@@ -22,6 +22,7 @@ Usage (from the repo root; .env supplies MONGODB_URI):
     py scripts/deep_analysis/status.py --list          # also print the code lists
 """
 import argparse
+import json
 import pathlib
 import sys
 
@@ -34,16 +35,26 @@ except Exception:
     pass
 
 from backend.services.db_service import (  # noqa: E402
-    get_db, close_db, load_companies, load_latest_prices, load_all_company_codes,
+    close_db, load_companies, load_latest_prices, load_all_company_codes,
 )
 from backend.services.scoring_service import build_scores_df  # noqa: E402
 from dump_facts import build_fact_pack  # noqa: E402
-from save_analysis import COLLECTION  # noqa: E402
+from save_analysis import DEFAULT_OUT_DIR  # noqa: E402
 
 
 def _stored_hashes() -> dict:
-    docs = get_db()[COLLECTION].find({}, {"trading_code": 1, "source_hash": 1, "_id": 0})
-    return {d["trading_code"]: d.get("source_hash") for d in docs}
+    """{trading_code: source_hash} read from the report files in the repo folder."""
+    out: dict = {}
+    if not DEFAULT_OUT_DIR.exists():
+        return out
+    for p in DEFAULT_OUT_DIR.glob("*.json"):
+        try:
+            doc = json.loads(p.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        code = (doc.get("trading_code") or p.stem).upper()
+        out[code] = doc.get("source_hash")
+    return out
 
 
 def main() -> int:

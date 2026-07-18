@@ -25,15 +25,15 @@ import sys
 
 _HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(_HERE.parents[1]))  # repo root
+sys.path.insert(0, str(_HERE))             # sibling import of save_analysis
 try:
     sys.stdout.reconfigure(encoding="utf-8")
 except Exception:
     pass
 
-from backend.services.db_service import get_db, close_db, load_companies  # noqa: E402
+from backend.services.db_service import close_db, load_companies  # noqa: E402
 from backend.services.scoring_service import build_scores_df  # noqa: E402
-
-COLLECTION = "deep_analysis"  # keep in sync with save_analysis.py
+from save_analysis import DEFAULT_OUT_DIR  # noqa: E402  (report folder = the bookmark)
 
 
 def main() -> int:
@@ -52,10 +52,11 @@ def main() -> int:
     ranked = [str(c) for c in scored["trading_code"].tolist()]
     total = len(ranked)
 
-    done = {
-        d["trading_code"]
-        for d in get_db()[COLLECTION].find({}, {"trading_code": 1, "_id": 0})
-    }
+    # "Done" = a report file already exists in the repo folder (not the DB).
+    done = (
+        {p.stem.upper() for p in DEFAULT_OUT_DIR.glob("*.json")}
+        if DEFAULT_OUT_DIR.exists() else set()
+    )
 
     # Walk the ranking top-down; keep the rank position for display.
     pending = [(rank, code) for rank, code in enumerate(ranked, 1) if code not in done]

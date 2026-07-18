@@ -1,23 +1,23 @@
 """
-Validate a deep-analysis report and upsert it into the `deep_analysis`
-MongoDB collection (one document per trading_code).
+Validate a deep-analysis report and write it as a JSON file into the repo's
+report folder (`data/deep_analysis/<CODE>.json`). **No database access.**
 
-The report JSON is written by Claude Code from a fact pack (see the skill
-`.claude/skills/deep-stock-analysis`). This writer is the gate: it rejects a
-malformed / half-written report (clear message, non-zero exit, nothing stored)
-so bad LLM output can never silently land. It follows the idempotent upsert
-pattern of `scoring_service._store_snapshot`.
+The skill never touches MongoDB. It produces one self-contained JSON file per
+stock; seeding those files into the database is a separate step handled later.
+
+This writer is the gate: it rejects a malformed / half-written report (clear
+message, non-zero exit, nothing written) so bad LLM output never becomes an
+official report file. On success it stamps metadata and writes the final doc.
 
 The report should carry the `source_hash` and `data_completeness` copied from
-its fact pack (the cost gate in `status.py` reads them back). If they are
-missing you may supply the fact pack with `--facts` and they'll be pulled from
-there.
+its fact pack (the cost gate in `status.py` reads them back). If they're
+missing, pass the fact pack with `--facts` and they'll be pulled from there.
 
-Usage (from the repo root; .env supplies MONGODB_URI):
+Usage (from the repo root):
 
-    py scripts/deep_analysis/save_analysis.py --code GP --file facts/GP.analysis.json
-    py scripts/deep_analysis/save_analysis.py --code GP --file GP.analysis.json --facts facts/GP.json
-    py scripts/deep_analysis/save_analysis.py --dir facts        # every *.analysis.json in facts/
+    py scripts/deep_analysis/save_analysis.py --code GP --file _work/GP.analysis.json --facts _work/GP.json
+    py scripts/deep_analysis/save_analysis.py --dir _work        # every *.analysis.json in _work/
+    # optional: --out-dir some/other/folder   (default: data/deep_analysis)
 """
 import argparse
 import json
@@ -26,16 +26,13 @@ import sys
 from datetime import datetime, timezone
 
 _HERE = pathlib.Path(__file__).resolve().parent
-sys.path.insert(0, str(_HERE.parents[1]))  # repo root
+REPO_ROOT = _HERE.parents[1]
+DEFAULT_OUT_DIR = REPO_ROOT / "data" / "deep_analysis"
 try:
     sys.stdout.reconfigure(encoding="utf-8")
 except Exception:
     pass
 
-from pymongo import ASCENDING, ReplaceOne  # noqa: E402
-from backend.services.db_service import get_db, close_db  # noqa: E402
-
-COLLECTION = "deep_analysis"
 SCHEMA_VERSION = 1
 MODEL = "claude-code"
 
@@ -94,7 +91,7 @@ def _load_json(path: pathlib.Path) -> dict:
 
 
 def prepare(doc: dict, facts: dict | None) -> dict:
-    """Validate + attach storage metadata; returns the doc ready to upsert."""
+    """Validate + attach metadata; returns the final report doc ready to write."""
     validate(doc)
     code = doc["trading_code"].strip().upper()
     doc["trading_code"] = code
@@ -111,32 +108,33 @@ def prepare(doc: dict, facts: dict | None) -> dict:
     doc["schema_version"] = SCHEMA_VERSION
     doc["model"] = MODEL
     doc["lang"] = doc.get("lang") or "both"
-    doc["generated_at"] = datetime.now(timezone.utc)
+    doc["generated_at"] = datetime.now(timezone.utc).isoformat()
     return doc
 
 
-def upsert_many(docs: list[dict]) -> int:
-    col = get_db()[COLLECTION]
-    if "trading_code_1" not in {ix["name"] for ix in col.list_indexes()}:
-        col.create_index([("trading_code", ASCENDING)], unique=True, name="trading_code_1")
-    ops = [ReplaceOne({"trading_code": d["trading_code"]}, d, upsert=True) for d in docs]
-    if ops:
-        col.bulk_write(ops, ordered=False)
-    return len(ops)
+def write_report(doc: dict, out_dir: pathlib.Path) -> pathlib.Path:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    path = out_dir / f"{doc['trading_code']}.json"
+    path.write_text(json.dumps(doc, indent=2, ensure_ascii=False), encoding="utf-8")
+    return path
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate + save deep-analysis reports.")
-    parser.add_argument("--file", help="A single *.analysis.json report")
+    parser = argparse.ArgumentParser(description="Validate + write deep-analysis report files (no DB).")
+    parser.add_argument("--file", help="A single *.analysis.json draft report")
     parser.add_argument("--code", help="Expected trading code (checked against the report)")
     parser.add_argument("--facts", help="The fact pack JSON (source_hash / data_completeness fallback)")
-    parser.add_argument("--dir", help="Directory of *.analysis.json reports (batch)")
+    parser.add_argument("--dir", help="Directory of *.analysis.json drafts (batch)")
+    parser.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR),
+                        help=f"Where to write <CODE>.json (default: {DEFAULT_OUT_DIR})")
     args = parser.parse_args()
 
     if not args.file and not args.dir:
         parser.error("give --file or --dir")
 
-    # Collect (report_path, facts_path|None) pairs.
+    out_dir = pathlib.Path(args.out_dir)
+
+    # Collect (draft_path, facts_path|None) pairs.
     jobs: list[tuple[pathlib.Path, pathlib.Path | None]] = []
     if args.dir:
         d = pathlib.Path(args.dir)
@@ -152,35 +150,27 @@ def main() -> int:
         facts_p = pathlib.Path(args.facts) if args.facts else None
         jobs.append((pathlib.Path(args.file), facts_p))
 
-    prepared: list[dict] = []
-    failed = 0
-    for report_p, facts_p in jobs:
+    written, failed = 0, 0
+    for draft_p, facts_p in jobs:
         try:
-            doc = _load_json(report_p)
+            doc = _load_json(draft_p)
             facts = _load_json(facts_p) if facts_p and facts_p.exists() else None
             if args.code and doc.get("trading_code", "").strip().upper() != args.code.strip().upper():
                 raise ValidationError(
                     f"--code {args.code.upper()} != report trading_code {doc.get('trading_code')}"
                 )
-            prepared.append(prepare(doc, facts))
+            doc = prepare(doc, facts)
+            path = write_report(doc, out_dir)
+            h = (doc.get("source_hash") or "")[:8]
+            print(f"wrote {path}  ({len(doc['sections'])} sections, hash={h})")
+            written += 1
         except (ValidationError, json.JSONDecodeError) as e:
             failed += 1
-            print(f"REJECTED {report_p.name}: {e}", file=sys.stderr)
+            print(f"REJECTED {draft_p.name}: {e}", file=sys.stderr)
 
-    if not prepared:
-        print("Nothing valid to save.", file=sys.stderr)
-        return 1
-
-    n = upsert_many(prepared)
-    for d in prepared:
-        h = (d.get("source_hash") or "")[:8]
-        print(f"saved {d['trading_code']}: {len(d['sections'])} sections, hash={h}")
-    print(f"\nUpserted {n} report(s), {failed} rejected.")
+    print(f"\nWrote {written} report file(s) to {out_dir}, {failed} rejected.")
     return 0 if failed == 0 else 1
 
 
 if __name__ == "__main__":
-    try:
-        raise SystemExit(main())
-    finally:
-        close_db()
+    raise SystemExit(main())
