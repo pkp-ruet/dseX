@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { openGlobalSearch } from "@/components/layout/GlobalSearch";
 import WatchlistDot from "@/components/watchlist/WatchlistDot";
@@ -16,52 +16,112 @@ export function openMobileDrawer() {
   window.dispatchEvent(new CustomEvent(OPEN_DRAWER_EVENT));
 }
 
-type NavItem = { href: string; label: string; sub?: string };
-type NavGroup = { id: string; label: string; items: NavItem[] };
+type NavItem = { href: string; label: string; sub?: string; icon?: string };
+type NavGroup = { id: string; label: string; accent?: string; items: NavItem[] };
 
 const NAV_GROUPS: NavGroup[] = [
   {
     id: "markets",
     label: "Markets",
+    accent: "info",
     items: [
-      { href: "/dse-today", label: "DSE Today", sub: "Today's prices & movers" },
-      { href: "/todays-news", label: "Today's News", sub: "All company news, last day" },
-      { href: "/market-analysis", label: "Market Analysis", sub: "Pulse, sentiment, trends" },
-      { href: "/dse-top-20", label: "DSE Top 20", sub: "Momentum leaders" },
-      { href: "/dse-popular-stocks", label: "Popular Stocks", sub: "Most-traded today" },
+      { href: "/dse-today", label: "DSE Today", sub: "Today's prices & movers", icon: "today" },
+      { href: "/todays-news", label: "Today's News", sub: "All company news, last day", icon: "news" },
+      { href: "/market-analysis", label: "Market Analysis", sub: "Pulse, sentiment, trends", icon: "analysis" },
+      { href: "/dse-top-20", label: "DSE Top 20", sub: "Momentum leaders", icon: "top20" },
+      { href: "/dse-popular-stocks", label: "Popular Stocks", sub: "Most-traded today", icon: "popular" },
     ],
   },
   {
     id: "discover",
     label: "Discover",
+    accent: "clay",
     items: [
-      { href: "/assistant", label: "TopStock AI", sub: "Chat: picks, market & answers" },
-      { href: "/buy-sell-signals", label: "Buy/Sell Signals", sub: "What to buy & sell now" },
-      { href: "/dsestockranking", label: "Rankings", sub: "Scored leaderboard" },
-      { href: "/daily-tips", label: "Daily Tips", sub: "Fresh signals every day" },
-      { href: "/stock-recommendation", label: "Find My Stocks", sub: "Personalized picker" },
-      { href: "/stock-insights", label: "Stock Lists", sub: "Ready-made lists" },
-      { href: "/stocks", label: "Browse All Stocks", sub: "Full A–Z table" },
+      { href: "/assistant", label: "TopStock AI", sub: "Chat: picks, market & answers", icon: "ai" },
+      { href: "/buy-sell-signals", label: "Buy/Sell Signals", sub: "What to buy & sell now", icon: "signals" },
+      { href: "/dsestockranking", label: "Rankings", sub: "Scored leaderboard", icon: "rankings" },
+      { href: "/daily-tips", label: "Daily Tips", sub: "Fresh signals every day", icon: "tips" },
+      { href: "/stock-recommendation", label: "Find My Stocks", sub: "Personalized picker", icon: "find" },
+      { href: "/stock-insights", label: "Stock Lists", sub: "Ready-made lists", icon: "lists" },
+      { href: "/stocks", label: "Browse All Stocks", sub: "Full A–Z table", icon: "browse" },
     ],
   },
   {
     id: "learn",
     label: "Learn",
+    accent: "gold",
     items: [
-      { href: "/learn", label: "Blogs", sub: "English guides" },
-      { href: "/blog", label: "বাংলা ব্লগ", sub: "Bangla guides" },
-      { href: "/about", label: "Behind the Score", sub: "How we rank stocks" },
+      { href: "/learn", label: "Blogs", sub: "English guides", icon: "blog" },
+      { href: "/blog", label: "বাংলা ব্লগ", sub: "Bangla guides", icon: "bangla" },
+      { href: "/about", label: "Behind the Score", sub: "How we rank stocks", icon: "about" },
     ],
   },
 ];
+
+/** Compact stroke icons for the full-page mobile menu tiles. */
+function MenuIcon({ name }: { name?: string }) {
+  const p = {
+    width: 20,
+    height: 20,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.7,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true,
+  };
+  switch (name) {
+    case "today":
+      return <svg {...p}><path d="M6 20v-5M12 20V8M18 20v-9" /><path d="M4 20h16" /></svg>;
+    case "news":
+      return <svg {...p}><path d="M4 5h13v14H6a2 2 0 0 1-2-2V5Z" /><path d="M17 8h3v9a2 2 0 0 1-2 2" /><path d="M7 9h7M7 13h7M7 16h4" /></svg>;
+    case "analysis":
+      return <svg {...p}><path d="M3 12h4l2 6 4-14 2 8h6" /></svg>;
+    case "top20":
+      return <svg {...p}><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z" /><path d="M17 5h2.5a1.5 1.5 0 0 1 0 5H17M7 5H4.5a1.5 1.5 0 0 0 0 5H7" /></svg>;
+    case "popular":
+      return <svg {...p}><path d="M12 3c1.5 3 4 4 4 7a4 4 0 0 1-8 0c0-1 .4-2 1-2.5C9 9 12 6 12 3Z" /><path d="M12 21a6 6 0 0 0 6-6c0-3-2-5-3.5-7 .3 1.5-.5 3-2.5 4-1.5.8-2 2-2 3a2.5 2.5 0 0 0 2 2.5" /></svg>;
+    case "ai":
+      return <svg {...p}><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3Z" /><path d="M18.5 15l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z" /></svg>;
+    case "signals":
+      return <svg {...p}><path d="M7 3v18M7 3l-3 4M7 3l3 4" /><path d="M17 21V3M17 21l-3-4M17 21l3-4" /></svg>;
+    case "rankings":
+      return <svg {...p}><path d="M9 6h11M9 12h11M9 18h11" /><circle cx="4.5" cy="6" r="1.1" /><circle cx="4.5" cy="12" r="1.1" /><circle cx="4.5" cy="18" r="1.1" /></svg>;
+    case "tips":
+      return <svg {...p}><path d="M9 18h6M10 21h4" /><path d="M15 14c.2-1 .8-1.7 1.5-2.4A5 5 0 1 0 7.5 11.6c.7.7 1.3 1.4 1.5 2.4" /></svg>;
+    case "find":
+      return <svg {...p}><circle cx="11" cy="11" r="7" /><path d="M11 8v6M8 11h6" /><path d="m20 20-3-3" /></svg>;
+    case "lists":
+      return <svg {...p}><path d="M12 3 3 8l9 5 9-5-9-5Z" /><path d="m3 13 9 5 9-5M3 18l9 5 9-5" opacity="0.55" /></svg>;
+    case "browse":
+      return <svg {...p}><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 9h18M9 9v11M3 14h18" /></svg>;
+    case "blog":
+      return <svg {...p}><path d="M4 5a2 2 0 0 1 2-2h5v18H6a2 2 0 0 1-2-2V5Z" /><path d="M20 5a2 2 0 0 0-2-2h-5v18h5a2 2 0 0 0 2-2V5Z" /></svg>;
+    case "bangla":
+      return <svg {...p}><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z" /></svg>;
+    case "about":
+      return <svg {...p}><circle cx="12" cy="12" r="9" /><path d="M12 16v-4M12 8h.01" /></svg>;
+    case "star":
+      return <svg {...p}><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 17l-5.2 2.6 1-5.8-4.3-4.1 5.9-.9L12 3.5Z" /></svg>;
+    case "portfolio":
+      return <svg {...p}><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18" /></svg>;
+    case "bell":
+      return <svg {...p}><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7 2.5 7h-17S6 15 6 9Z" /><path d="M10.5 20a1.8 1.8 0 0 0 3 0" /></svg>;
+    case "search":
+      return <svg {...p}><circle cx="11" cy="11" r="7" /><path d="m20 20-3-3" /></svg>;
+    case "chevron":
+      return <svg {...p}><path d="m9 6 6 6-6 6" /></svg>;
+    default:
+      return <svg {...p}><circle cx="12" cy="12" r="9" /></svg>;
+  }
+}
 
 export default function Navbar() {
   const pathname = usePathname();
   const { user, isLoggedIn } = useAuth();
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const [openMenu, setOpenMenu] = useState<string | null>(null);
-  const navRef = useRef<HTMLDivElement | null>(null);
 
   const isWatchlist = pathname === "/watchlist";
   const isPortfolio = pathname === "/portfolio";
@@ -69,34 +129,23 @@ export default function Navbar() {
 
   const isItemActive = (href: string) =>
     pathname === href || (href !== "/" && pathname.startsWith(href + "/"));
-  const isGroupActive = (g: NavGroup) => g.items.some((it) => isItemActive(it.href));
 
-  // Close drawer + dropdowns on route change
+  // Close the menu on route change
   useEffect(() => {
     setMenuOpen(false);
-    setOpenMenu(null);
   }, [pathname]);
 
-  // Close dropdowns on outside click / Escape
+  // Close the menu on Escape
   useEffect(() => {
-    if (!openMenu) return;
-    const onDown = (e: MouseEvent) => {
-      if (navRef.current && !navRef.current.contains(e.target as Node)) {
-        setOpenMenu(null);
-      }
-    };
+    if (!menuOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpenMenu(null);
+      if (e.key === "Escape") setMenuOpen(false);
     };
-    document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [openMenu]);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
 
-  // Open drawer from external trigger (bottom-bar Menu tab)
+  // Open the menu from an external trigger (bottom-bar Menu tab)
   useEffect(() => {
     const onOpen = () => setMenuOpen(true);
     window.addEventListener(OPEN_DRAWER_EVENT, onOpen);
@@ -131,42 +180,24 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop nav — hidden on mobile via CSS */}
-          <nav className="navbar-nav" ref={navRef}>
-            {/* Primary: grouped dropdowns by intent */}
-            {NAV_GROUPS.map((g) => {
-              const open = openMenu === g.id;
-              return (
-                <div className="navbar-dropdown" key={g.id}>
-                  <button
-                    type="button"
-                    className={`navbar-dropdown-trigger navbar-intel-btn${isGroupActive(g) ? " navbar-intel-btn-active" : ""}`}
-                    aria-haspopup="menu"
-                    aria-expanded={open}
-                    onClick={() => setOpenMenu(open ? null : g.id)}
-                  >
-                    {g.label}
-                    <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true" style={{ marginLeft: 4 }}>
-                      <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-                  {/* Always mounted (display toggled via CSS) so crawlers see the links */}
-                  <div className={`navbar-dropdown-panel navbar-dropdown-panel-left${open ? " open" : ""}`} role="menu">
-                    {g.items.map((it) => (
-                      <Link
-                        key={it.href}
-                        href={it.href}
-                        className={`navbar-dropdown-item${isItemActive(it.href) ? " navbar-intel-btn-active" : ""}`}
-                        role="menuitem"
-                        onClick={() => setOpenMenu(null)}
-                      >
-                        <span className="navbar-dropdown-item-label">{it.label}</span>
-                        {it.sub && <span className="navbar-dropdown-item-sub">{it.sub}</span>}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
+          <nav className="navbar-nav">
+            {/* Explore launcher — opens the full tile menu (desktop mega-panel) */}
+            <button
+              type="button"
+              className={`navbar-explore-btn${menuOpen ? " navbar-explore-btn-active" : ""}`}
+              aria-haspopup="dialog"
+              aria-expanded={menuOpen}
+              aria-controls="mobile-menu"
+              onClick={() => setMenuOpen(true)}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                <rect x="14" y="14" width="7" height="7" rx="1.5" />
+              </svg>
+              Explore
+            </button>
 
             <span className="navbar-nav-divider" aria-hidden="true" />
 
@@ -260,25 +291,48 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* Overlay */}
-      {menuOpen && (
-        <div
-          className="navbar-overlay"
-          onClick={() => setMenuOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Slide-in drawer — mirrors the desktop groups */}
+      {/* Full menu — mobile: full-screen sheet · desktop: centered mega-panel */}
       <div
-        className={`navbar-drawer${menuOpen ? " open" : ""}`}
+        id="mobile-menu"
+        className={`mobile-menu${menuOpen ? " open" : ""}`}
         aria-hidden={!menuOpen}
         inert={!menuOpen}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu"
+        onClick={(e) => {
+          // Backdrop click (desktop mega-panel) closes; panel clicks don't.
+          if (e.target === e.currentTarget) setMenuOpen(false);
+        }}
       >
-        <div className="navbar-drawer-header">
-          <span className="navbar-drawer-title">Menu</span>
+        <div className="mobile-menu-panel">
+        <div className="mobile-menu-header">
+          <Link
+            href="/"
+            className="mobile-menu-brand"
+            onClick={() => setMenuOpen(false)}
+            aria-label="TopStockBD — Home"
+          >
+            <span className="mobile-menu-brand-home" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 11.5L12 4l9 7.5" />
+                <path d="M5 10v9a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1v-9" />
+              </svg>
+            </span>
+            <span>TopStock<b>BD</b></span>
+          </Link>
+          {/* Desktop mega-panel shows an "Explore" heading instead of the brand */}
+          <span className="mobile-menu-title" aria-hidden="true">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7" rx="1.5" />
+              <rect x="14" y="3" width="7" height="7" rx="1.5" />
+              <rect x="3" y="14" width="7" height="7" rx="1.5" />
+              <rect x="14" y="14" width="7" height="7" rx="1.5" />
+            </svg>
+            Explore
+          </span>
           <button
-            className="navbar-drawer-close"
+            className="mobile-menu-close"
             onClick={() => setMenuOpen(false)}
             aria-label="Close menu"
           >
@@ -287,81 +341,127 @@ export default function Navbar() {
             </svg>
           </button>
         </div>
-        <nav className="navbar-drawer-nav">
-          {NAV_GROUPS.map((g) => (
-            <div className="navbar-drawer-group" key={g.id}>
-              <span className="navbar-drawer-group-label">{g.label}</span>
-              {g.items.map((it) => (
-                <Link
-                  key={it.href}
-                  href={it.href}
-                  className={`navbar-drawer-link${isItemActive(it.href) ? " active" : ""}`}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {it.label}
-                </Link>
-              ))}
-            </div>
-          ))}
 
-          <div className="navbar-drawer-group">
-            <span className="navbar-drawer-group-label">You</span>
+        <div className="mobile-menu-body">
+          {/* Search — top priority, opens global search */}
+          <button
+            type="button"
+            className="mobile-menu-search"
+            onClick={() => {
+              setMenuOpen(false);
+              openGlobalSearch();
+            }}
+          >
+            <MenuIcon name="search" />
+            <span>Search any stock or company…</span>
+          </button>
+
+          {/* Account */}
+          {isLoggedIn ? (
             <Link
-              href="/watchlist"
-              className={`navbar-drawer-link${isWatchlist ? " active" : ""}`}
+              href="/profile"
+              className="mobile-menu-account"
               onClick={() => setMenuOpen(false)}
             >
-              Watchlist
+              <span className="mobile-menu-account-avatar" aria-hidden="true">
+                {(user?.display_name ?? "U")[0].toUpperCase()}
+              </span>
+              <span className="mobile-menu-account-text">
+                <span className="mobile-menu-account-name">{user?.display_name ?? "My Profile"}</span>
+                <span className="mobile-menu-account-sub">View profile &amp; settings</span>
+              </span>
+              <MenuIcon name="chevron" />
             </Link>
-            <Link
-              href="/portfolio"
-              className={`navbar-drawer-link${isPortfolio ? " active" : ""}`}
-              onClick={() => setMenuOpen(false)}
-            >
-              Portfolio
-            </Link>
-            <Link
-              href="/alerts"
-              className={`navbar-drawer-link${isAlerts ? " active" : ""}`}
-              onClick={() => setMenuOpen(false)}
-            >
-              Price Alerts
-            </Link>
-            <InstallAppButton
-              className="navbar-drawer-link"
-              onClick={() => setMenuOpen(false)}
-            />
-            {isLoggedIn ? (
+          ) : (
+            <div className="mobile-menu-auth">
               <Link
-                href="/profile"
-                className={`navbar-drawer-link navbar-drawer-profile${pathname === "/profile" ? " active" : ""}`}
+                href="/login"
+                className="mobile-menu-auth-btn ghost"
                 onClick={() => setMenuOpen(false)}
               >
-                <span className="navbar-profile-avatar">
-                  {(user?.display_name ?? "U")[0].toUpperCase()}
-                </span>
-                {user?.display_name ?? "My Profile"}
+                Sign In
               </Link>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className={`navbar-drawer-link${pathname === "/login" ? " active" : ""}`}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/register"
-                  className={`navbar-drawer-link${pathname === "/register" ? " active" : ""}`}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Create Account
-                </Link>
-              </>
-            )}
+              <Link
+                href="/register"
+                className="mobile-menu-auth-btn solid"
+                onClick={() => setMenuOpen(false)}
+              >
+                Sign Up
+              </Link>
+            </div>
+          )}
+
+          {/* Quick access — the personal, frequently-used shortcuts */}
+          <section className="mobile-menu-section">
+            <span className="mobile-menu-section-label">Quick access</span>
+            <div className="mobile-menu-quick">
+              <Link
+                href="/watchlist"
+                className={`mobile-menu-quick-item${isWatchlist ? " active" : ""}`}
+                onClick={() => setMenuOpen(false)}
+              >
+                <span className="mobile-menu-quick-icon relative">
+                  <MenuIcon name="star" />
+                  <WatchlistDot />
+                </span>
+                Watchlist
+              </Link>
+              <Link
+                href="/portfolio"
+                className={`mobile-menu-quick-item${isPortfolio ? " active" : ""}`}
+                onClick={() => setMenuOpen(false)}
+              >
+                <span className="mobile-menu-quick-icon">
+                  <MenuIcon name="portfolio" />
+                </span>
+                Portfolio
+              </Link>
+              <Link
+                href="/alerts"
+                className={`mobile-menu-quick-item${isAlerts ? " active" : ""}`}
+                onClick={() => setMenuOpen(false)}
+              >
+                <span className="mobile-menu-quick-icon">
+                  <MenuIcon name="bell" />
+                </span>
+                Price Alerts
+              </Link>
+              <InstallAppButton
+                className="mobile-menu-quick-item"
+                label="Install app"
+                onClick={() => setMenuOpen(false)}
+              />
+            </div>
+          </section>
+
+          {/* Grouped navigation — scannable tile grids (3-up columns on desktop) */}
+          <div className="mobile-menu-groups">
+            {NAV_GROUPS.map((g) => (
+              <section className="mobile-menu-section" data-accent={g.accent} key={g.id}>
+                <span className="mobile-menu-section-label">{g.label}</span>
+                <div className="mobile-menu-grid">
+                  {g.items.map((it) => (
+                    <Link
+                      key={it.href}
+                      href={it.href}
+                      className={`mobile-menu-tile${isItemActive(it.href) ? " active" : ""}`}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <span className="mobile-menu-tile-icon">
+                        <MenuIcon name={it.icon} />
+                      </span>
+                      <span className="mobile-menu-tile-text">
+                        <span className="mobile-menu-tile-label">{it.label}</span>
+                        {it.sub && <span className="mobile-menu-tile-sub">{it.sub}</span>}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            ))}
           </div>
-        </nav>
+        </div>
+        </div>
       </div>
     </>
   );

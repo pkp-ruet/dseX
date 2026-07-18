@@ -358,16 +358,6 @@ a:hover .ticker-tag,
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.navbar-drawer-profile {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.navbar-drawer-profile .navbar-profile-avatar {
-  width: 28px;
-  height: 28px;
-  font-size: 0.75rem;
-}
 
 /* ---- Navbar rank button ---- */
 .navbar-rank-btn {
@@ -3369,77 +3359,32 @@ a:hover .ticker-tag,
   color: var(--ink);
 }
 
-/* ---- Navbar Markets dropdown ---- */
-.navbar-dropdown {
-  position: relative;
-  display: inline-flex;
-}
-.navbar-dropdown-trigger {
+/* ---- Navbar Explore launcher (opens the full tile menu) ---- */
+.navbar-explore-btn {
   display: inline-flex;
   align-items: center;
-  cursor: pointer;
+  gap: 6px;
   font-family: inherit;
-}
-.navbar-dropdown-trigger[aria-expanded="true"] {
-  background: var(--surface);
-  border-color: var(--border);
-  color: var(--ink);
-}
-.navbar-dropdown-panel {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  min-width: 230px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-  padding: 6px;
-  display: none;
-  flex-direction: column;
-  gap: 2px;
-  z-index: 60;
-}
-.navbar-dropdown-panel.open {
-  display: flex;
-}
-/* Left-anchored for the primary nav groups (which sit on the left) */
-.navbar-dropdown-panel-left {
-  right: auto;
-  left: 0;
-}
-.navbar-dropdown-item {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  width: 100%;
-  text-align: left;
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--ink-muted);
-  border: 1px solid transparent;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-.navbar-dropdown-item:hover {
-  background: var(--surface);
-  border-color: var(--border);
-  color: var(--ink);
-}
-.navbar-dropdown-item-label {
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.76rem;
+  font-weight: 700;
   letter-spacing: 0.02em;
-  color: var(--ink);
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--primary-ink);
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--primary) 26%, transparent);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
 }
-.navbar-dropdown-item-sub {
-  font-size: 0.68rem;
-  font-weight: 500;
-  color: var(--ink-muted);
+.navbar-explore-btn svg { color: var(--primary); }
+.navbar-explore-btn:hover,
+.navbar-explore-btn-active {
+  background: color-mix(in srgb, var(--primary) 20%, var(--surface));
+  border-color: color-mix(in srgb, var(--primary) 40%, transparent);
+  color: var(--primary-ink);
 }
-/* Divider between primary groups and the utility/personal cluster */
+/* Divider between the launcher and the utility/personal cluster */
 .navbar-nav-divider {
   width: 1px;
   height: 18px;
@@ -3471,7 +3416,7 @@ a:hover .ticker-tag,
   background: rgba(255, 255, 255, 0.24);
 }
 
-/* Primary nav items, dropdown triggers, search + watch buttons */
+/* Primary nav items, search + watch buttons */
 .navbar-header .navbar-intel-btn,
 .navbar-header .navbar-search-btn,
 .navbar-header .navbar-watch-btn {
@@ -3481,10 +3426,22 @@ a:hover .ticker-tag,
 .navbar-header .navbar-search-btn:hover,
 .navbar-header .navbar-watch-btn:hover,
 .navbar-header .navbar-intel-btn-active,
-.navbar-header .navbar-watch-btn-active,
-.navbar-header .navbar-dropdown-trigger[aria-expanded="true"] {
+.navbar-header .navbar-watch-btn-active {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.24);
+  color: #fff;
+}
+/* Explore launcher — a solid white chip so it reads as the primary browse action */
+.navbar-header .navbar-explore-btn {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #fff;
+}
+.navbar-header .navbar-explore-btn svg { color: #fff; }
+.navbar-header .navbar-explore-btn:hover,
+.navbar-header .navbar-explore-btn-active {
+  background: rgba(255, 255, 255, 0.26);
+  border-color: rgba(255, 255, 255, 0.45);
   color: #fff;
 }
 .navbar-header .navbar-nav-divider { background: rgba(255, 255, 255, 0.24); }
@@ -3536,16 +3493,6 @@ a:hover .ticker-tag,
   background: rgba(255, 255, 255, 0.15);
   color: #fff;
   border-color: rgba(255, 255, 255, 0.5);
-}
-
-/* Keep the dropdown popover light (it lives inside the dark bar) */
-.navbar-header .navbar-dropdown-panel { color: var(--ink); }
-.navbar-header .navbar-dropdown-item { color: var(--ink-muted); }
-.navbar-header .navbar-dropdown-panel .navbar-intel-btn-active,
-.navbar-header .navbar-dropdown-item:hover {
-  background: var(--surface-2);
-  border-color: var(--border);
-  color: var(--ink);
 }
 
 /* ======================================
@@ -4722,120 +4669,435 @@ a:hover .ticker-tag,
 }
 
 /* ======================================
-   MOBILE DRAWER
+   FULL-PAGE MENU  (mobile: full-screen slide-in · desktop: centered mega-panel)
+   Tile-based, easy to scan — one component, two presentations.
    ====================================== */
-
-.navbar-overlay {
+/* Positioning / backdrop layer (transparent on mobile; dims the page on desktop) */
+.mobile-menu {
   position: fixed;
   inset: 0;
-  background: rgba(2, 6, 23, 0.32);
-  z-index: 58;
-  backdrop-filter: blur(1px);
+  z-index: 60;
+  display: flex;
+  visibility: hidden;
+  /* hide only after the slide/fade finishes so the close animation is visible */
+  transition: visibility 0s linear 0.28s;
+}
+.mobile-menu.open {
+  visibility: visible;
+  transition: visibility 0s;
 }
 
-.navbar-drawer {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: min(280px, 85vw);
-  background: var(--bg);
-  border-left: 1px solid var(--border);
-  box-shadow: -6px 0 22px rgba(0, 0, 0, 0.1);
-  z-index: 60;
-  transform: translateX(100%);
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+/* The actual menu surface. Mobile: full-screen, slides in from the right. */
+.mobile-menu-panel {
   display: flex;
   flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  background: var(--bg-gradient, var(--bg));
+  transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.navbar-drawer.open {
+.mobile-menu.open .mobile-menu-panel {
   transform: translateX(0);
 }
+@media (prefers-reduced-motion: reduce) {
+  .mobile-menu,
+  .mobile-menu-panel { transition: visibility 0s; }
+}
 
-.navbar-drawer-header {
+/* ---- header (navy) ---- */
+.mobile-menu-header {
+  flex-shrink: 0;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border);
-  height: 52px;
+  padding: 0 14px;
+  background: linear-gradient(100deg, var(--navy) 0%, var(--navy-ink) 100%);
 }
-.navbar-drawer-title {
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-muted);
+.mobile-menu-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #fff;
+  font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.08rem;
+  letter-spacing: -0.01em;
+  text-decoration: none;
 }
-.navbar-drawer-close {
+.mobile-menu-brand b { color: var(--gold-soft); font-weight: 700; }
+.mobile-menu-brand-home {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 8px;
-  border: 1px solid var(--border);
-  background: transparent;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+/* "Explore" heading — desktop mega-panel only (hidden on the mobile sheet) */
+.mobile-menu-title {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.08rem;
+  letter-spacing: -0.01em;
+}
+.mobile-menu-title svg { color: rgba(255, 255, 255, 0.9); }
+.mobile-menu-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
   cursor: pointer;
-  color: var(--ink-muted);
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s;
 }
-.navbar-drawer-close:hover {
-  background: var(--surface);
-  color: var(--ink);
-}
+.mobile-menu-close:hover { background: rgba(255, 255, 255, 0.16); }
 
-.navbar-drawer-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 12px;
+/* ---- scrollable body ---- */
+.mobile-menu-body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  padding: 16px 16px calc(28px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
-.navbar-drawer-group {
+
+/* ---- search ---- */
+.mobile-menu-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 13px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  transition: border-color 0.15s;
+}
+.mobile-menu-search:hover { border-color: var(--primary-soft); }
+.mobile-menu-search svg { color: var(--primary); flex-shrink: 0; }
+
+/* ---- account (logged in) ---- */
+.mobile-menu-account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  text-decoration: none;
+  box-shadow: var(--shadow-soft);
+}
+.mobile-menu-account-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-ink) 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.mobile-menu-account-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+.mobile-menu-account-name {
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mobile-menu-account-sub { color: var(--ink-muted); font-size: 0.75rem; }
+.mobile-menu-account svg { color: var(--ink-muted); flex-shrink: 0; }
+
+/* ---- auth buttons (logged out) ---- */
+.mobile-menu-auth {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.mobile-menu-auth-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  border: 1px solid var(--border);
+}
+.mobile-menu-auth-btn.ghost { background: var(--surface); color: var(--ink); }
+.mobile-menu-auth-btn.solid {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-ink) 100%);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: var(--shadow-soft);
+}
+
+/* ---- section ---- */
+.mobile-menu-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mobile-menu-section-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--primary-ink);
+  padding-left: 2px;
+}
+.mobile-menu-section[data-accent="info"] .mobile-menu-section-label { color: var(--info-ink); }
+.mobile-menu-section[data-accent="gold"] .mobile-menu-section-label { color: var(--warm-ink); }
+
+/* ---- quick access chips ---- */
+.mobile-menu-quick {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.mobile-menu-quick-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 0.86rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.08s;
+}
+.mobile-menu-quick-item:active { transform: scale(0.98); }
+.mobile-menu-quick-item.active {
+  border-color: color-mix(in srgb, var(--primary) 40%, transparent);
+  background: color-mix(in srgb, var(--primary) 7%, var(--surface));
+  color: var(--primary-ink);
+}
+.mobile-menu-quick-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  color: var(--primary-ink);
+  flex-shrink: 0;
+}
+/* InstallAppButton renders a bare 14px svg + label (no icon chip) */
+.mobile-menu-quick-item > svg {
+  width: 20px;
+  height: 20px;
+  color: var(--primary-ink);
+  flex-shrink: 0;
+  margin-left: 6px;
+}
+
+/* ---- navigation groups + tiles ---- */
+.mobile-menu-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.mobile-menu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.mobile-menu-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 13px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  text-decoration: none;
+  box-shadow: var(--shadow-soft);
+  transition: border-color 0.15s, transform 0.08s;
+}
+.mobile-menu-tile:active { transform: scale(0.98); }
+.mobile-menu-tile-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  color: var(--primary-ink);
+  flex-shrink: 0;
+}
+.mobile-menu-tile-text {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
-.navbar-drawer-group + .navbar-drawer-group {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
-}
-.navbar-drawer-group-label {
-  font-size: 0.66rem;
+.mobile-menu-tile-label {
+  color: var(--ink);
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.86rem;
+  line-height: 1.2;
+}
+.mobile-menu-tile-sub {
   color: var(--ink-muted);
-  padding: 2px 12px 4px;
+  font-size: 0.7rem;
+  line-height: 1.28;
 }
-.navbar-drawer-link {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 12px;
-  border-radius: 8px;
-  font-size: 0.84rem;
-  font-weight: 500;
-  color: var(--ink-muted);
-  text-decoration: none;
-  border: 1px solid transparent;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+/* per-section icon accents */
+.mobile-menu-section[data-accent="info"] .mobile-menu-tile-icon {
+  background: color-mix(in srgb, var(--info) 12%, var(--surface));
+  color: var(--info-ink);
 }
-.navbar-drawer-link:hover {
-  background: var(--surface);
-  color: var(--ink);
-  border-color: var(--border);
+.mobile-menu-section[data-accent="gold"] .mobile-menu-tile-icon {
+  background: color-mix(in srgb, var(--warm) 14%, var(--surface));
+  color: var(--warm-ink);
 }
-.navbar-drawer-link.active {
-  background: var(--surface);
-  color: var(--ink);
-  border-color: var(--border);
+/* active tile */
+.mobile-menu-tile.active {
+  border-color: color-mix(in srgb, var(--primary) 40%, transparent);
+  background: color-mix(in srgb, var(--primary) 7%, var(--surface));
+}
+.mobile-menu-tile.active .mobile-menu-tile-icon,
+.mobile-menu-section[data-accent="info"] .mobile-menu-tile.active .mobile-menu-tile-icon,
+.mobile-menu-section[data-accent="gold"] .mobile-menu-tile.active .mobile-menu-tile-icon {
+  background: var(--primary);
+  color: #fff;
+}
+.mobile-menu-tile.active .mobile-menu-tile-label { color: var(--primary-ink); }
+
+/* larger phones / tablet band → 3-up grids so it stays organized, not sparse */
+@media (min-width: 560px) {
+  .mobile-menu-quick,
+  .mobile-menu-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ======================================
+   DESKTOP → centered mega-panel over a dimmed page.
+   Same DOM as mobile; the container becomes a backdrop and the panel a card.
+   ====================================== */
+@media (min-width: 900px) {
+  .mobile-menu {
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(20, 24, 33, 0.46);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+  }
+  .mobile-menu.open {
+    opacity: 1;
+    transition: opacity 0.2s ease, visibility 0s;
+  }
+
+  /* full-screen sheet → centered card */
+  .mobile-menu-panel {
+    width: min(1060px, 94vw);
+    height: auto;
+    max-height: 88vh;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow: var(--shadow-lift);
+    overflow: hidden;
+    transform: scale(0.97);
+    opacity: 0;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  .mobile-menu.open .mobile-menu-panel {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  /* swap the brand for the "Explore" heading */
+  .mobile-menu-brand { display: none; }
+  .mobile-menu-title { display: inline-flex; }
+
+  .mobile-menu-body {
+    padding: 22px 24px 26px;
+    gap: 20px;
+  }
+
+  /* keep the account / auth block from stretching across the whole card */
+  .mobile-menu-account,
+  .mobile-menu-auth {
+    max-width: 440px;
+  }
+
+  /* all four shortcuts on one row */
+  .mobile-menu-quick {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .mobile-menu-quick-item:hover {
+    border-color: color-mix(in srgb, var(--primary) 34%, transparent);
+  }
+
+  /* Markets · Discover · Learn side by side */
+  .mobile-menu-groups {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px 24px;
+    align-items: start;
+  }
+
+  /* one tile per row within a column, laid out horizontally */
+  .mobile-menu-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .mobile-menu-tile {
+    flex-direction: row;
+    align-items: center;
+    gap: 11px;
+    padding: 10px 12px;
+    box-shadow: none;
+  }
+  .mobile-menu-tile:hover {
+    border-color: color-mix(in srgb, var(--primary) 34%, transparent);
+    background: color-mix(in srgb, var(--primary) 5%, var(--surface));
+  }
 }
 
 /* ======================================
@@ -5003,34 +5265,6 @@ a:hover .ticker-tag,
 @media (prefers-reduced-motion: reduce) {
   .disha-rise { animation: none; }
   .disha-typing span { animation: none; opacity: 0.6; }
-}
-
-/* ---- Drawer: navy header, light scannable body w/ clay accents ---- */
-.navbar-drawer-header {
-  background: linear-gradient(100deg, var(--navy) 0%, var(--navy-ink) 100%);
-  border-bottom: none;
-}
-.navbar-drawer-title {
-  color: rgba(255, 255, 255, 0.85);
-}
-.navbar-drawer-close {
-  color: #fff;
-}
-.navbar-drawer-close:hover {
-  background: rgba(255, 255, 255, 0.16);
-  color: #fff;
-}
-/* group labels → indigo for color + hierarchy */
-.navbar-drawer-group-label {
-  color: var(--primary-ink);
-}
-/* active link → indigo tint + left accent bar */
-.navbar-drawer-link.active {
-  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
-  border-color: color-mix(in srgb, var(--primary) 22%, transparent);
-  color: var(--primary-ink);
-  font-weight: 600;
-  box-shadow: inset 3px 0 0 var(--primary);
 }
 
 /* ─── TopRankings ───────────────────────────────────────────── */
