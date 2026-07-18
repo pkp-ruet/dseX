@@ -4,28 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { ScoreItem, Top20Item } from "@/lib/api";
 import { getTier, TIER_VAR } from "@/lib/constants";
-import { STOCK_LISTS } from "@/lib/stock-lists";
 import StarButton from "@/components/ui/StarButton";
 import TierPill from "@/components/ui/TierPill";
 import { getListDelta, type ListDelta } from "@/lib/daily-delta";
 
-const ROWS = 5;
-const TAB_KEY = "dsex.home.discoverTab";
-
-type TabKey = "ranked" | "top20" | "insights";
-
-const INSIGHT_LISTS = STOCK_LISTS.filter((l) => l.insightMode === true).slice(0, ROWS);
+const RANKED_ROWS = 3;
 
 const EMPTY_DELTA: ListDelta = { newCodes: new Set(), movedUp: new Map() };
-
-function readStoredTab(): TabKey | null {
-  try {
-    const v = window.localStorage.getItem(TAB_KEY);
-    return v === "ranked" || v === "top20" || v === "insights" ? v : null;
-  } catch {
-    return null;
-  }
-}
 
 /** Small "changed since your last visit" cue on a discovery row. */
 function DeltaTag({ isNew, moved }: { isNew: boolean; moved: number | undefined }) {
@@ -46,11 +31,47 @@ function DeltaTag({ isNew, moved }: { isNew: boolean; moved: number | undefined 
   return null;
 }
 
-/** Tabbed discovery card for the logged-in home: Top ranked / Top 20 /
- *  Insights previews behind chips (last tab remembered per device). Replaces
- *  the three stacked 5-row tables. Rows are divs (not links) so the watchlist
- *  star can act in place; New/▲ tags come from a per-device localStorage diff
- *  of the last visit day's list (lib/daily-delta). */
+/** One tappable entry into a fuller discovery page (Top 20, stock lists). */
+function EntryRow({
+  emoji,
+  label,
+  sub,
+  href,
+}: {
+  emoji: string;
+  label: string;
+  sub: string;
+  href: string;
+}) {
+  return (
+    <Link
+      prefetch={false}
+      href={href}
+      className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-3 transition-colors hover:bg-[var(--surface-2)]"
+    >
+      <span
+        className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-base"
+        style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)" }}
+        aria-hidden
+      >
+        {emoji}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[0.9rem] font-bold leading-tight text-[var(--text)]">{label}</span>
+        <span className="block truncate text-[0.7rem] text-[var(--text-muted)]">{sub}</span>
+      </span>
+      <span className="shrink-0 text-sm font-bold text-[var(--primary)]" aria-hidden>
+        →
+      </span>
+    </Link>
+  );
+}
+
+/** Discovery card for the logged-in home. "Top ranked" stays a real preview
+ *  list (the app's core value); Top 20 and Lists collapse to one-line entry
+ *  rows so the whole card scans in one pass with no tabs. Ranked rows are divs
+ *  (not links) so the watchlist star can act in place; New/▲ tags come from a
+ *  per-device localStorage diff of the last visit day's list (lib/daily-delta). */
 export default function DiscoverCard({
   ranked,
   top20,
@@ -59,239 +80,114 @@ export default function DiscoverCard({
   ranked: ScoreItem[];
   top20: Top20Item[];
 }) {
-  const rankedRows = ranked.slice(0, ROWS);
-  const top20Rows = top20.slice(0, ROWS);
-
-  const tabs = useMemo(() => {
-    const t: { key: TabKey; label: string; icon: string }[] = [];
-    if (rankedRows.length > 0) t.push({ key: "ranked", label: "Ranked", icon: "🏆" });
-    if (top20Rows.length > 0) t.push({ key: "top20", label: "Top 20", icon: "🚀" });
-    if (INSIGHT_LISTS.length > 0) t.push({ key: "insights", label: "Lists", icon: "📋" });
-    return t;
-  }, [rankedRows.length, top20Rows.length]);
-
-  const [tab, setTab] = useState<TabKey>("ranked");
+  const rankedRows = useMemo(() => ranked.slice(0, RANKED_ROWS), [ranked]);
   const [rankedDelta, setRankedDelta] = useState<ListDelta>(EMPTY_DELTA);
-  const [top20Delta, setTop20Delta] = useState<ListDelta>(EMPTY_DELTA);
 
-  // Restore the last-used tab after mount (localStorage is client-only).
-  useEffect(() => {
-    const stored = readStoredTab();
-    if (stored && tabs.some((t) => t.key === stored)) setTab(stored);
-  }, [tabs]);
-
-  // Day-over-day diffs, computed client-side once the lists arrive.
+  // Day-over-day diff, computed client-side once the list arrives.
   const rankedKey = rankedRows.map((r) => r.trading_code).join(",");
-  const top20Key = top20Rows.map((r) => r.trading_code).join(",");
   useEffect(() => {
     if (rankedKey) setRankedDelta(getListDelta("home.ranked", rankedKey.split(",")));
   }, [rankedKey]);
-  useEffect(() => {
-    if (top20Key) setTop20Delta(getListDelta("home.top20", top20Key.split(",")));
-  }, [top20Key]);
 
-  if (tabs.length === 0) return null;
-  const active: TabKey = tabs.some((t) => t.key === tab) ? tab : tabs[0].key;
+  const hasRanked = rankedRows.length > 0;
+  const hasTop20 = top20.length > 0;
 
-  function switchTab(next: TabKey) {
-    setTab(next);
-    try {
-      window.localStorage.setItem(TAB_KEY, next);
-    } catch {
-      /* private mode */
-    }
-  }
-
-  const footer: Record<TabKey, { href: string; label: string }> = {
-    ranked: { href: "/dsestockranking", label: "See full ranking →" },
-    top20: { href: "/dse-top-20", label: "See all DSE Top 20 →" },
-    insights: { href: "/stock-insights", label: "See all stock lists →" },
-  };
-
-  const tabDescription: Record<TabKey, string> = {
-    ranked: "Strong companies with healthy business numbers, best first.",
-    top20: "Stocks whose price moved the most in the last 7 days.",
-    insights: "Ready-made stock lists — dividends, growth, big companies and more.",
-  };
+  if (!hasRanked && !hasTop20) return null;
 
   return (
     <section className="soft-card overflow-hidden">
-      <div className="px-3 pt-4 sm:px-4">
-        <div className="flex items-center gap-2.5 px-1">
-          <span
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-lg"
-            style={{
-              background:
-                "linear-gradient(135deg, color-mix(in srgb, var(--primary) 16%, transparent), color-mix(in srgb, var(--accent) 22%, transparent))",
-            }}
-            aria-hidden
-          >
-            🧭
-          </span>
-          <div className="min-w-0">
-            <h2 className="text-[1.05rem] font-extrabold leading-tight tracking-tight text-[var(--text)]">
-              Discover Stocks
-            </h2>
-            <p className="text-[0.68rem] font-semibold text-[var(--text-muted)]">
-              Quick ways to find your next stock
-            </p>
-          </div>
-        </div>
-
-        <div
-          role="tablist"
-          aria-label="Discover stocks"
-          className="mt-3 grid gap-1 rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-1"
-          style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
+      <div className="flex items-center gap-2.5 px-3 pt-4 sm:px-4">
+        <span
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-lg"
+          style={{
+            background:
+              "linear-gradient(135deg, color-mix(in srgb, var(--primary) 16%, transparent), color-mix(in srgb, var(--accent) 22%, transparent))",
+          }}
+          aria-hidden
         >
-          {tabs.map(({ key, label, icon }) => {
-            const isActive = active === key;
-            return (
-              <button
-                key={key}
-                type="button"
-                role="tab"
-                aria-selected={isActive}
-                onClick={() => switchTab(key)}
-                className={`flex items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-xs font-bold transition active:scale-95 ${
-                  isActive
-                    ? "border-transparent text-white shadow-sm"
-                    : "border-[var(--border)] bg-[var(--surface)] text-[var(--text)] shadow-sm hover:border-[color-mix(in_srgb,var(--primary)_35%,var(--border))]"
-                }`}
-                style={
-                  isActive
-                    ? {
-                        background:
-                          "linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 72%, var(--accent)))",
-                      }
-                    : undefined
-                }
-              >
-                <span className="text-sm leading-none" aria-hidden>
-                  {icon}
-                </span>
-                <span className="truncate">{label}</span>
-              </button>
-            );
-          })}
+          🧭
+        </span>
+        <div className="min-w-0">
+          <h2 className="text-[1.05rem] font-extrabold leading-tight tracking-tight text-[var(--text)]">
+            Discover Stocks
+          </h2>
+          <p className="text-[0.68rem] font-semibold text-[var(--text-muted)]">
+            Quick ways to find your next stock
+          </p>
         </div>
-
-        <p className="px-1 pb-3 pt-2.5 text-[0.78rem] font-bold leading-snug text-[var(--text)]">
-          {tabDescription[active]}
-        </p>
       </div>
 
-      <div className="divide-y divide-[var(--cell-rule)] border-t border-[var(--border)]">
-        {active === "ranked" &&
-          rankedRows.map((item, i) => {
-            const tier = getTier(item.score);
-            const color = TIER_VAR[tier];
-            const code = item.trading_code.toUpperCase();
-            return (
-              <div
-                key={item.trading_code}
-                className="grid grid-cols-[1.75rem_1fr_auto_auto] items-center gap-3 border-l-[3px] px-3 py-3 transition-colors hover:bg-[var(--surface-2)] sm:px-4"
-                style={{ borderLeftColor: `color-mix(in srgb, ${color} 26%, transparent)` }}
-              >
-                <span className="text-right text-xs font-bold tabular-nums text-[var(--text-muted)]">{i + 1}</span>
-                <Link prefetch={false} href={`/stock/${item.trading_code}`} className="group min-w-0">
-                  <span className="flex items-center gap-1.5">
-                    <span
-                      className="inline-flex items-center rounded-md border px-2 py-0.5 font-mono text-[0.8rem] font-extrabold tracking-[0.03em] transition-all group-hover:brightness-95"
-                      style={{
-                        color,
-                        background: `color-mix(in srgb, ${color} 11%, transparent)`,
-                        borderColor: `color-mix(in srgb, ${color} 32%, transparent)`,
-                      }}
-                    >
-                      {item.trading_code}
-                    </span>
-                    <DeltaTag isNew={rankedDelta.newCodes.has(code)} moved={rankedDelta.movedUp.get(code)} />
-                  </span>
-                  {item.company_name && (
-                    <span className="mt-0.5 block truncate text-[0.66rem] text-[var(--text-muted)] group-hover:underline underline-offset-2 decoration-dotted">
-                      {item.company_name}
-                    </span>
-                  )}
-                </Link>
-                <TierPill tier={tier} className="justify-self-end" />
-                <StarButton code={item.trading_code} size="sm" />
-              </div>
-            );
-          })}
-
-        {active === "top20" &&
-          top20Rows.map((item) => {
-            const v = item.return_7d_pct;
-            const color =
-              v == null ? "var(--text-muted)" : v > 0 ? "var(--positive)" : v < 0 ? "var(--negative)" : "var(--text-muted)";
-            const code = item.trading_code.toUpperCase();
-            return (
-              <div
-                key={item.trading_code}
-                className="grid grid-cols-[1.75rem_1fr_auto_auto] items-center gap-3 border-l-[3px] px-3 py-3 transition-colors hover:bg-[var(--surface-2)] sm:px-4"
-                style={{ borderLeftColor: `color-mix(in srgb, ${color} 26%, transparent)` }}
-              >
-                <span className="text-right text-xs font-bold tabular-nums text-[var(--text-muted)]">{item.rank}</span>
-                <Link prefetch={false} href={`/stock/${item.trading_code}`} className="group min-w-0">
-                  <span className="flex items-center gap-1.5">
-                    <span className="ticker-tag text-[0.8rem]">{item.trading_code}</span>
-                    <DeltaTag isNew={top20Delta.newCodes.has(code)} moved={top20Delta.movedUp.get(code)} />
-                  </span>
-                  {item.company_name && (
-                    <span className="mt-0.5 block truncate text-[0.66rem] text-[var(--text-muted)] group-hover:underline underline-offset-2 decoration-dotted">
-                      {item.company_name}
-                    </span>
-                  )}
-                </Link>
-                <span className="justify-self-end text-right">
-                  <span className="block text-sm font-extrabold tabular-nums" style={{ color }}>
-                    {v != null && v > 0 ? "▲" : v != null && v < 0 ? "▼" : ""}
-                    {v == null ? "—" : `${v > 0 ? "+" : ""}${v.toFixed(1)}%`}
-                  </span>
-                  <span className="fr-price block">
-                    <span className="fr-price-cur">৳</span>
-                    <span className="fr-price-val">{item.ltp != null ? item.ltp.toFixed(2) : "--"}</span>
-                  </span>
-                </span>
-                <StarButton code={item.trading_code} size="sm" />
-              </div>
-            );
-          })}
-
-        {active === "insights" &&
-          INSIGHT_LISTS.map((list, i) => (
+      {hasRanked && (
+        <>
+          <div className="flex items-center justify-between gap-2 px-3 pb-2 pt-3 sm:px-4">
+            <span className="flex items-center gap-1.5 text-[0.86rem] font-extrabold tracking-tight text-[var(--text)]">
+              <span aria-hidden>🏆</span> Top ranked
+            </span>
             <Link
-              key={list.slug}
-              prefetch={false}
-              href={`/stock-insights/${list.slug}`}
-              className="grid grid-cols-[1.75rem_auto_1fr_auto] items-center gap-3 border-l-[3px] px-3 py-3 transition-colors hover:bg-[var(--surface-2)] sm:px-4"
-              style={{ borderLeftColor: "color-mix(in srgb, var(--primary) 26%, transparent)" }}
+              href="/dsestockranking"
+              className="text-[0.72rem] font-bold text-[var(--primary)] transition hover:underline"
             >
-              <span className="text-right text-xs font-bold tabular-nums text-[var(--text-muted)]">{i + 1}</span>
-              <span
-                className="grid h-8 w-8 place-items-center rounded-lg text-base"
-                style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)" }}
-                aria-hidden
-              >
-                {list.icon}
-              </span>
-              <span className="min-w-0 truncate text-[0.9rem] font-bold leading-tight text-[var(--text)]">
-                {list.shortName}
-              </span>
-              <span className="justify-self-end text-sm font-bold text-[var(--primary)]" aria-hidden>
-                →
-              </span>
+              Full ranking →
             </Link>
-          ))}
-      </div>
+          </div>
 
-      <Link
-        href={footer[active].href}
-        className="block border-t border-[var(--border)] px-4 py-3 text-center text-xs font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--surface-2)]"
-      >
-        {footer[active].label}
-      </Link>
+          <div className="divide-y divide-[var(--cell-rule)] border-t border-[var(--border)]">
+            {rankedRows.map((item, i) => {
+              const tier = getTier(item.score);
+              const color = TIER_VAR[tier];
+              const code = item.trading_code.toUpperCase();
+              return (
+                <div
+                  key={item.trading_code}
+                  className="grid grid-cols-[1.75rem_1fr_auto_auto] items-center gap-3 border-l-[3px] px-3 py-3 transition-colors hover:bg-[var(--surface-2)] sm:px-4"
+                  style={{ borderLeftColor: `color-mix(in srgb, ${color} 26%, transparent)` }}
+                >
+                  <span className="text-right text-xs font-bold tabular-nums text-[var(--text-muted)]">{i + 1}</span>
+                  <Link prefetch={false} href={`/stock/${item.trading_code}`} className="group min-w-0">
+                    <span className="flex items-center gap-1.5">
+                      <span
+                        className="inline-flex items-center rounded-md border px-2 py-0.5 font-mono text-[0.8rem] font-extrabold tracking-[0.03em] transition-all group-hover:brightness-95"
+                        style={{
+                          color,
+                          background: `color-mix(in srgb, ${color} 11%, transparent)`,
+                          borderColor: `color-mix(in srgb, ${color} 32%, transparent)`,
+                        }}
+                      >
+                        {item.trading_code}
+                      </span>
+                      <DeltaTag isNew={rankedDelta.newCodes.has(code)} moved={rankedDelta.movedUp.get(code)} />
+                    </span>
+                    {item.company_name && (
+                      <span className="mt-0.5 block truncate text-[0.66rem] text-[var(--text-muted)] group-hover:underline underline-offset-2 decoration-dotted">
+                        {item.company_name}
+                      </span>
+                    )}
+                  </Link>
+                  <TierPill tier={tier} className="justify-self-end" />
+                  <StarButton code={item.trading_code} size="sm" />
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      <div className="space-y-2 border-t border-[var(--border)] px-3 py-3 sm:px-4">
+        {hasTop20 && (
+          <EntryRow
+            emoji="🚀"
+            label="Top 20 movers"
+            sub="Biggest 7-day gainers"
+            href="/dse-top-20"
+          />
+        )}
+        <EntryRow
+          emoji="📋"
+          label="Ready-made lists"
+          sub="Dividends, growth, big companies and more"
+          href="/stock-insights"
+        />
+      </div>
     </section>
   );
 }
