@@ -56,3 +56,7 @@ def ensure_indexes():
 
     db.stock_visits.create_index([("trading_code", ASCENDING)], unique=True)
     db.stock_visits.create_index([("count", -1)])
+
+    # LLM-written deep-analysis reports (one per company; see the
+    # deep-stock-analysis skill). save_analysis.py also self-heals this index.
+    db.deep_analysis.create_index([("trading_code", ASCENDING)], unique=True)
