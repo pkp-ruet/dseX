@@ -425,6 +425,15 @@ export default function PersonalizedHome() {
           <MoneyHeroGhost greeting={greeting} />
         )}
 
+        {/* Look up any stock → its analysis page. Sits right under the money
+            hero so search is the first action after a user checks their value. */}
+        {companies.length > 0 && (
+          <div className="pt-1">
+            <SectionLabel>Look up any stock</SectionLabel>
+            <SearchBar companies={companies} variant="sidebar" />
+          </div>
+        )}
+
         {/* The single home for "what happened on your stocks today" — replaces
             the old header bell + Alerts tile + brief line. Quiet days fall back
             to one calm concierge sentence; nothing at all → renders nothing. */}
@@ -460,15 +469,6 @@ export default function PersonalizedHome() {
 
         {/* Mobile-only install CTA — auto-hides once installed / dismissed. */}
         <InstallHomeBanner />
-
-        {/* Look up any stock → its analysis page. Demoted below the money block
-            so it doesn't outrank a returning user's portfolio. */}
-        {companies.length > 0 && (
-          <div className="pt-1">
-            <SectionLabel>Look up any stock</SectionLabel>
-            <SearchBar companies={companies} variant="sidebar" />
-          </div>
-        )}
       </section>
 
       {/* ── Chapter 2: Ideas for you — personalized picks, whole-market buy
