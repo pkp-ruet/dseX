@@ -1,0 +1,758 @@
+{
+  "trading_code": "OLYMPIC",
+  "company_name": "Olympic Industries PLC.",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Food & Allied",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 199938886,
+    "paid_up_capital_mn": 1999.39,
+    "reserve_surplus_mn": 10466.8,
+    "total_loan_mn": 0,
+    "listing_year": 1989,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 159.9,
+    "change": -1.1,
+    "change_pct": -0.68,
+    "date": "2026-07-16",
+    "high": 162,
+    "low": 159,
+    "volume": 115127,
+    "avg_volume_7d": 223902,
+    "ycp": 161,
+    "w52_high": 172.9,
+    "w52_low": 134.4
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 7.8,
+      "m3": 11.0,
+      "m6": 12.4,
+      "y1": 2.0
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 143.4
+      },
+      {
+        "date": "2025-06-30",
+        "close": 153.5
+      },
+      {
+        "date": "2025-07-31",
+        "close": 166.9
+      },
+      {
+        "date": "2025-08-31",
+        "close": 169.9
+      },
+      {
+        "date": "2025-09-30",
+        "close": 154.7
+      },
+      {
+        "date": "2025-10-30",
+        "close": 148.6
+      },
+      {
+        "date": "2025-11-30",
+        "close": 140.8
+      },
+      {
+        "date": "2025-12-30",
+        "close": 137.8
+      },
+      {
+        "date": "2026-01-29",
+        "close": 144.2
+      },
+      {
+        "date": "2026-02-26",
+        "close": 157.8
+      },
+      {
+        "date": "2026-03-31",
+        "close": 147.1
+      },
+      {
+        "date": "2026-04-30",
+        "close": 142.1
+      },
+      {
+        "date": "2026-05-31",
+        "close": 143
+      },
+      {
+        "date": "2026-06-30",
+        "close": 155
+      },
+      {
+        "date": "2026-07-16",
+        "close": 159.9
+      }
+    ],
+    "pct_in_52w_range": 66.2
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.5
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 7.9
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 4.9
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Fairly priced",
+      "word_bn": "দাম যুক্তিসঙ্গত",
+      "score10": 6.3
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.8
+    }
+  ],
+  "fair_value": {
+    "low": 205,
+    "high": 307,
+    "center": 256,
+    "today": 160,
+    "stance": "cheap",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 174
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 478
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 179
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 50.0
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 15.89,
+    "current_pb": 2.56,
+    "own_avg_pe": 17.34,
+    "own_avg_pb": 2.87,
+    "sector_median_pe": 47.55,
+    "sector_median_pb": 3.27,
+    "eps": 10.06,
+    "sector_implied_price": 478.35
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 10.19,
+        "net_profit_crore": 203.7,
+        "cash_dividend_pct": 54.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 5.4,
+        "nav_per_share_taka": 46.21,
+        "revenue_crore": 1803,
+        "operating_profit_crore": 242.6,
+        "operating_cash_flow_crore": 186.8,
+        "capex_crore": null,
+        "total_debt_crore": 170.8,
+        "total_equity_crore": 923.9,
+        "total_assets_crore": 1441,
+        "cash_crore": 76.9,
+        "debt_to_equity": 0.18
+      },
+      {
+        "year": 2022,
+        "eps_taka": 6.03,
+        "net_profit_crore": 120.5,
+        "cash_dividend_pct": 45.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 4.5,
+        "nav_per_share_taka": 46.84,
+        "revenue_crore": 2144,
+        "operating_profit_crore": 143.0,
+        "operating_cash_flow_crore": 70.1,
+        "capex_crore": null,
+        "total_debt_crore": 253.2,
+        "total_equity_crore": 936.5,
+        "total_assets_crore": 1443,
+        "cash_crore": 59.5,
+        "debt_to_equity": 0.27
+      },
+      {
+        "year": 2023,
+        "eps_taka": 7.78,
+        "net_profit_crore": 155.6,
+        "cash_dividend_pct": 60.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 6.0,
+        "nav_per_share_taka": 50.12,
+        "revenue_crore": 2579,
+        "operating_profit_crore": 203.9,
+        "operating_cash_flow_crore": 138.9,
+        "capex_crore": null,
+        "total_debt_crore": 197.0,
+        "total_equity_crore": 1002,
+        "total_assets_crore": 1408,
+        "cash_crore": 84.9,
+        "debt_to_equity": 0.2
+      },
+      {
+        "year": 2024,
+        "eps_taka": 9.17,
+        "net_profit_crore": 183.4,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 53.29,
+        "revenue_crore": 2593,
+        "operating_profit_crore": 230.6,
+        "operating_cash_flow_crore": 375.2,
+        "capex_crore": null,
+        "total_debt_crore": 54.4,
+        "total_equity_crore": 1066,
+        "total_assets_crore": 1402,
+        "cash_crore": 89.0,
+        "debt_to_equity": 0.05
+      },
+      {
+        "year": 2025,
+        "eps_taka": 10.06,
+        "net_profit_crore": 201.0,
+        "cash_dividend_pct": 30.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 3.0,
+        "nav_per_share_taka": 62.35
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 10.06,
+      "net_profit_crore": 201.0,
+      "cash_dividend_pct": 30.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 3.0,
+      "nav_per_share_taka": 62.35
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": -1.0,
+      "eps_change_pct": -1.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 20.0,
+      "paid_up_capital_crore": 199.9,
+      "reserve_surplus_crore": 1047,
+      "total_loan_crore": 0.0,
+      "listing_year": 1989
+    },
+    "ownership": {
+      "sponsor_director_pct": 37.38,
+      "govt_pct": 0.0,
+      "institute_pct": 22.0,
+      "foreign_pct": 27.62,
+      "public_pct": 13.0
+    }
+  },
+  "sector_context": {
+    "sector": "Food & Allied",
+    "peer_count": 21,
+    "rank_in_sector": 3,
+    "sector_avg_score": 33.7,
+    "sector_median_pe": 47.55
+  },
+  "score": {
+    "trading_code": "OLYMPIC",
+    "sector": "Food & Allied",
+    "market_cat": "A",
+    "ltp": 159.9,
+    "mcap_mn": 31970.227871400002,
+    "score": 60.2,
+    "base_score": 60.2,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.957,
+    "eps": 10.06,
+    "roe_pct": 17.2,
+    "sector_median_pe": 47.55,
+    "sector_median_pb": 3.27,
+    "p1_biz": 5.47,
+    "p2_health": 7.88,
+    "p3_moat": 4.94,
+    "p4_val": 6.31,
+    "p5_div": 5.8,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 3.4059,
+    "p1_roe": 6.8431,
+    "p1_npm_trend": 2.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 9.7,
+    "eps_stability": 0.5479,
+    "p2_de": 10.0,
+    "p2_ic": 10.0,
+    "p2_cfo": 5.0,
+    "p2_cash": 5.53761851185265,
+    "p2_coverage": 1.0,
+    "p3_margin": 2.0,
+    "p3_rev_vol": 7.0,
+    "p3_sector_rank": 7.0,
+    "p3_capex": null,
+    "p3_coverage": 0.85,
+    "p4_pe": 8.27,
+    "p4_pb": 7.99,
+    "p4_vol_damp": 0.774,
+    "current_pe": 15.89,
+    "current_pb": 2.56,
+    "own_avg_pe": 17.34,
+    "own_avg_pb": 2.87,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 5.314258911819888,
+    "div_yield_pct": 1.9,
+    "overall_rank": 60,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "good_wait_price",
+    "reason_en": "Good company — fine to hold, but wait for a cheaper price to buy.",
+    "reason_bn": "ভালো কোম্পানি — ধরে রাখা যায়, তবে কেনার জন্য আরেকটু কম দামের অপেক্ষা করুন।",
+    "tier": "good",
+    "momentum_grade": "warm",
+    "score": 60.2,
+    "p4_val": 6.31,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Currently cheap vs historical P/E",
+      "Sponsor holding 37.4% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, price moving up steadily",
+    "sentences": [
+      "The company is in good financial shape, and the share price is steadily rising.",
+      "The share price looks cheaper now than its average over the past few years."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 2.04,
+    "rs_vs_dsex_pct": -0.02,
+    "volume_ratio": 0.96,
+    "avg_turnover_7d_mn": 32.63,
+    "up_days_7d": 4,
+    "days_counted": 7,
+    "pct_in_52w_range": 66.2,
+    "momentum_grade": "warm"
+  },
+  "financials": [
+    {
+      "trading_code": "OLYMPIC",
+      "year": 2021,
+      "cash_dividend_pct": 54.0,
+      "dividend_yield_pct": 3.18,
+      "eps_basic": null,
+      "eps_cont_basic": 10.19,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 46.21,
+      "pe_ratio_basic": 16.68,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 2037.36,
+      "profit_mn": 2037.36,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 2037.36,
+      "dps": 5.4,
+      "eps": 10.19
+    },
+    {
+      "trading_code": "OLYMPIC",
+      "year": 2022,
+      "cash_dividend_pct": 45.0,
+      "dividend_yield_pct": 3.63,
+      "eps_basic": null,
+      "eps_cont_basic": 6.03,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 46.84,
+      "pe_ratio_basic": 20.59,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 1205.15,
+      "profit_mn": 1205.15,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 1205.15,
+      "dps": 4.5,
+      "eps": 6.03
+    },
+    {
+      "trading_code": "OLYMPIC",
+      "year": 2023,
+      "cash_dividend_pct": 60.0,
+      "dividend_yield_pct": 3.91,
+      "eps_basic": null,
+      "eps_cont_basic": 7.78,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 50.12,
+      "pe_ratio_basic": 19.73,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 1556.24,
+      "profit_mn": 1556.24,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 1556.24,
+      "dps": 6.0,
+      "eps": 7.78
+    },
+    {
+      "year": 2024,
+      "trading_code": "OLYMPIC",
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 0.76,
+      "eps_basic": null,
+      "eps_cont_basic": 9.17,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 53.29,
+      "pe_ratio_basic": 14.43,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 1834.06,
+      "profit_mn": 1834.06,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 1834.06,
+      "dps": 1.0,
+      "eps": 9.17
+    },
+    {
+      "trading_code": "OLYMPIC",
+      "year": 2025,
+      "cash_dividend_pct": 30.0,
+      "dividend_yield_pct": 1.95,
+      "eps_basic": null,
+      "eps_cont_basic": 10.06,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 62.35,
+      "pe_ratio_basic": 15.27,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 2010.43,
+      "profit_mn": 2010.43,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 2010.43,
+      "dps": 3.0,
+      "eps": 10.06
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "OLYMPIC",
+      "year": 2021,
+      "capex": null,
+      "investing_cf": -1046154442.0,
+      "net_profit": 2037363202.0,
+      "nocfps": null,
+      "operating_cf": 1867652632.0,
+      "total_equity": 9239249406.0,
+      "ebit": 2426027837.0,
+      "intangibles": 1.0,
+      "interest_expense": 125271270.0,
+      "revenue": 18032599144.0,
+      "total_assets": 14414622493.0,
+      "cash_and_equivalents": 768925893.0,
+      "earning_assets": null,
+      "gross_profit": 5281117643.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 1707796469.0
+    },
+    {
+      "year": 2022,
+      "trading_code": "OLYMPIC",
+      "capex": null,
+      "investing_cf": -514235808.0,
+      "net_profit": 1205153261.0,
+      "nocfps": null,
+      "operating_cf": 701059588.0,
+      "total_equity": 9364732683.0,
+      "ebit": 1430228950.0,
+      "intangibles": null,
+      "interest_expense": 122900955.0,
+      "revenue": 21438817722.0,
+      "total_assets": 14426960894.0,
+      "cash_and_equivalents": 594503667.0,
+      "earning_assets": null,
+      "gross_profit": 4920364744.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 2531520830.0
+    },
+    {
+      "trading_code": "OLYMPIC",
+      "year": 2023,
+      "capex": null,
+      "investing_cf": 406642885.0,
+      "net_profit": 1556237123.0,
+      "nocfps": null,
+      "operating_cf": 1389433296.0,
+      "total_equity": 10021244819.0,
+      "ebit": 2038964957.0,
+      "intangibles": 1.0,
+      "interest_expense": 166905792.0,
+      "revenue": 25785247628.0,
+      "total_assets": 14080113225.0,
+      "cash_and_equivalents": 849429837.0,
+      "earning_assets": null,
+      "gross_profit": 6127187429.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 1970332103.0
+    },
+    {
+      "trading_code": "OLYMPIC",
+      "year": 2024,
+      "capex": null,
+      "investing_cf": -922942856.0,
+      "net_profit": 1834055875.0,
+      "nocfps": null,
+      "operating_cf": 3751759759.0,
+      "total_equity": 10655667378.0,
+      "ebit": 2306300904.0,
+      "intangibles": 1.0,
+      "interest_expense": 141841112.0,
+      "revenue": 25928815845.0,
+      "total_assets": 14021323187.0,
+      "cash_and_equivalents": 889519232.0,
+      "earning_assets": null,
+      "gross_profit": 6170738834.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 544281865.0
+    }
+  ],
+  "shareholding": {
+    "trading_code": "OLYMPIC",
+    "as_of_date": "Mar 31, 2026",
+    "foreign_pct": 27.62,
+    "govt_pct": 0.0,
+    "institute_pct": 22.0,
+    "public_pct": 13.0,
+    "reporting_period": null,
+    "sponsor_director_pct": 37.38
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jun 30, 2025",
+    "trading_code": "OLYMPIC",
+    "foreign_pct": 34.21,
+    "govt_pct": 0.0,
+    "institute_pct": 20.77,
+    "public_pct": 12.64,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 32.38
+  },
+  "dividend_declaration": {
+    "trading_code": "OLYMPIC",
+    "declaration_date": "2025-10-28T00:00:00",
+    "dividend_pct": 30.0,
+    "dividend_type": "Final",
+    "record_date": "2025-11-17T00:00:00",
+    "scraped_at": "2026-07-16T10:32:47.696000",
+    "title": "OLYMPIC: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-04-29T00:00:00",
+      "title": "OLYMPIC: Q3 Financials",
+      "body": "(Q3 Un-audited): EPS was Tk. 1.42 for January-March 2026 as against Tk. 2.15 for January-March 2025; EPS was Tk. 7.41 for July 2025-March 2026 as against Tk. 7.97 for July 2024-March 2025. NOCFPS was Tk. 7.13 for July 2025-March 2026 as against Tk. 8.95 for July 2024-March 2025. NAV per share was Tk. 66.76 as on March 31, 2026 and Tk. 60.26 as on March 31, 2025."
+    },
+    {
+      "post_date": "2026-04-29T00:00:00",
+      "title": "OLYMPIC: Decision in Board Meeting to Purchase Lands",
+      "body": "The company has informed that the Board of Directors of the company in its meeting held on April 28, 2026 has decided to purchase the following lands for undertaking construction to accommodate future expansions: 1. Decision taken to purchase total 322.00 decimals land adjacent to Lolati Factory of the company under Mouza: Changain, Union Kanchpur, Police Station: Sonargoan and District: Narayangonj in the name of Olympic Industries PLC. (cont.1)"
+    },
+    {
+      "post_date": "2026-04-20T00:00:00",
+      "title": "OLYMPIC: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 28, 2026 at 2:05 pm to consider, among others, Un-Audited Financial Statements for the Third Quarter (Q3) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-03-31T00:00:00",
+      "title": "OLYMPIC: Buy Confirmation of the Chairman of the Company",
+      "body": "Mr. Aziz Mohammad Bhai, a Sponsor Director and Chairman of the company, has completed his buying of 10,000,000 shares of the company at prevailing market price through Dhaka Stock Exchange PLC. as per declaration disseminated on 19.02.2026."
+    },
+    {
+      "title": "OLYMPIC: Decision to purchase & import machinery and Rooftop Solar Power Plant",
+      "post_date": "2026-03-15T00:00:00",
+      "body": "The company has informed that the Board of Directors of the company in its meeting held on March 14, 2026 has taken the following decisions: 1. To purchase and import 10 (ten) sets of Brand New Capital Machinery for single carton making production Plant with standard accessories having total production capacity of 394.20 million Square Meter (SQMT) Corrugated Board per annum for 3 ply & 5 ply carton (2500mm * 100 Meter) from M/S. HEBEI SHENGLI PAPER (cont.1)"
+    },
+    {
+      "post_date": "2026-03-08T00:00:00",
+      "title": "OLYMPIC: Board decision to purchase and import 3 sets of Machinery",
+      "body": "The Board of Directors of Olympic Industries PLC. in its meeting held on March 07, 2026 has taken the following decisions: 1. To purchase and import of 2 (two) sets of Brand-New Capital Machinery for making Carton Production Plant with Standard Accessories having total Production Capacity of 315.36 million pieces per annum for 2 (two) sets (per set 157.68 million pieces per annum with maximum printing area 900 x 2050 mm) from (cont.1)"
+    },
+    {
+      "title": "OLYMPIC: Buy Declaration of Chairman of the Company",
+      "post_date": "2026-02-19T00:00:00",
+      "body": "Mr. Aziz Mohammad Bhai, a Sponsor Director and Chairman of the company, has expressed his intention to buy 10,000,000 shares of the company at prevailing market price (in the Block Market) through Dhaka Stock Exchange PLC. within next 30 working days pursuant to the Regulation 34(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, as well as Rule 4 of the BSEC (Ullekhzogyo Sonkhyok Share Orjon, Odhigrohon o Kortritto Grohon) Bidhimala, 2018."
+    },
+    {
+      "post_date": "2026-01-29T00:00:00",
+      "title": "OLYMPIC: Q2 Financials",
+      "body": "(Q2 Un-audited): Basic and Diluted EPS was Tk. 3.12 for October-December 2025 as against Tk. 2.99 for October-December 2024; Basic and Diluted EPS was Tk. 5.99 for July-December 2025 as against Tk. 5.82 for July-December 2024. NOCFPS was Tk. 7.15 for July-December 2025 as against Tk. 7.25 for July-December 2024. NAV per share was Tk. 65.34 as on December 31, 2025 and Tk. 58.11 as on December 31, 2024."
+    },
+    {
+      "title": "OLYMPIC: Decision to purchase land",
+      "post_date": "2026-01-29T00:00:00",
+      "body": "The Board of Directors of Olympic Industries PLC. has decided to purchase the following land to undertake future expansion: Decision taken to purchase total 159 decimals land adjacent Lolati Factory of the company under Mouza: Lolati, Union: Kanchpur, Police Station: Sonargaon and District: Narayangonj in the name of Olympic Industries PLC. at an agreed total price of Tk. 23,00,00,000/- (Taka twenty-three crore) (cont.)"
+    },
+    {
+      "title": "OLYMPIC: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-01-22T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 28, 2026 at 3:00 PM to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "title": "OLYMPIC: Decision to purchase land & invest in a company as Sponsor Shareholder",
+      "post_date": "2026-01-20T00:00:00",
+      "body": "The company has informed that the Board of Directors of Olympic Industries PLC. in its meeting held on January 19, 2026 has taken the following decisions: 1. Decision taken to purchase total 19.25 decimals land under Mouza: Madanpur-6, Police Station: Bondar and District: Narayangonj in the name of Olympic Industries PLC. at an agreed total price of Tk. 57,75,000/- (Taka fifty-seven lac seventy-five thousand) to undertake construction to accommodate future expansion of (cont.1)"
+    },
+    {
+      "title": "OLYMPIC: Dividend Disbursement",
+      "post_date": "2026-01-07T00:00:00",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended June 30, 2025 to the respective shareholders."
+    },
+    {
+      "title": "OLYMPIC: Credit Rating Result",
+      "post_date": "2025-11-27T00:00:00",
+      "body": "National Credit Ratings Limited (NCR) has assigned the rating of the Company as \"AAA\" in the long term and \"ST-1\" in the short term along with Stable outlook based on audited financial statements as on June 30, 2025."
+    },
+    {
+      "title": "OLYMPIC: Resumption after Record Date",
+      "post_date": "2025-11-17T00:00:00",
+      "body": "Trading of the shares of the company will resume on 18.11.2025."
+    },
+    {
+      "title": "OLYMPIC: Q1 Financials",
+      "post_date": "2025-11-16T00:00:00",
+      "body": "(Q1 Un-audited): EPS was Tk. 2.86 for July-September 2025 as against Tk. 2.83 for July-September 2024. NOCFPS was Tk. 2.18 for July-September 2025 as against Tk. 3.08 for July-September 2024. NAV per share was Tk. 65.21 as on September 30, 2025 and Tk. 56.12 as on September 30, 2024."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "UNILEVERCL",
+      "company_name": "Unilever Consumer Care Limited",
+      "sector": "Food & Allied",
+      "score": 62.7,
+      "ltp": 2060.8,
+      "change_pct": 0.28,
+      "pe": 50.01,
+      "pb": 17.72,
+      "div_yield_pct": 2.0,
+      "roe_pct": 27.3,
+      "eps_yoy_pct": 19.0
+    },
+    {
+      "trading_code": "LOVELLO",
+      "company_name": "Taufika Foods and Lovello Ice-cream PLC",
+      "sector": "Food & Allied",
+      "score": 60.4,
+      "ltp": 73.8,
+      "change_pct": -1.47,
+      "pe": 44.73,
+      "pb": 6.14,
+      "div_yield_pct": 1.5,
+      "roe_pct": 10.7,
+      "eps_yoy_pct": 15.4
+    },
+    {
+      "trading_code": "BATBC",
+      "company_name": "British American Tobacco Bangladesh Company Limited",
+      "sector": "Food & Allied",
+      "score": 59.9,
+      "ltp": 222.7,
+      "change_pct": -0.49,
+      "pe": 20.6,
+      "pb": 2.17,
+      "div_yield_pct": 1.3,
+      "roe_pct": 30.3,
+      "eps_yoy_pct": -66.7
+    },
+    {
+      "trading_code": "AMCL(PRAN)",
+      "company_name": "Agricultural Marketing Company Ltd. (Pran",
+      "sector": "Food & Allied",
+      "score": 58.0,
+      "ltp": 239.1,
+      "change_pct": 0.5,
+      "pe": 47.72,
+      "pb": 2.57,
+      "div_yield_pct": 1.3,
+      "roe_pct": 6.1,
+      "eps_yoy_pct": -9.1
+    },
+    {
+      "trading_code": "APEXFOODS",
+      "company_name": "Apex Foods Limited",
+      "sector": "Food & Allied",
+      "score": 55.8,
+      "ltp": 295.4,
+      "change_pct": -0.61,
+      "pe": 46.08,
+      "pb": 2.34,
+      "div_yield_pct": 0.7,
+      "roe_pct": 4.4,
+      "eps_yoy_pct": 13.3
+    }
+  ],
+  "source_hash": "2e6174bb07a6244bb8ac57f1ce46044cf035a79844f3cf1a9fad24708295f50b"
+}

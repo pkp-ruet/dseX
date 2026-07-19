@@ -1,0 +1,756 @@
+{
+  "trading_code": "TAMIJTEX",
+  "company_name": "Tamijuddin Textile Mills PLC",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Textile",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 33071243,
+    "paid_up_capital_mn": 330.71,
+    "reserve_surplus_mn": 2759.6,
+    "total_loan_mn": 4529.889999999999,
+    "listing_year": 1992,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 135,
+    "change": -2.8,
+    "change_pct": -2.03,
+    "date": "2026-07-16",
+    "high": 137.6,
+    "low": 131.3,
+    "volume": 239743,
+    "avg_volume_7d": 201762,
+    "ycp": 137.8,
+    "w52_high": 163.2,
+    "w52_low": 104.8
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 4.2,
+      "m3": 18.9,
+      "m6": 12.7,
+      "y1": 6.8
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 96.0
+      },
+      {
+        "date": "2025-06-30",
+        "close": 104.9
+      },
+      {
+        "date": "2025-07-31",
+        "close": 126.8
+      },
+      {
+        "date": "2025-08-31",
+        "close": 135.3
+      },
+      {
+        "date": "2025-09-30",
+        "close": 142.1
+      },
+      {
+        "date": "2025-10-30",
+        "close": 146.8
+      },
+      {
+        "date": "2025-11-30",
+        "close": 137.7
+      },
+      {
+        "date": "2025-12-30",
+        "close": 123.4
+      },
+      {
+        "date": "2026-01-29",
+        "close": 116.3
+      },
+      {
+        "date": "2026-02-26",
+        "close": 124.8
+      },
+      {
+        "date": "2026-03-31",
+        "close": 112.7
+      },
+      {
+        "date": "2026-04-30",
+        "close": 116.0
+      },
+      {
+        "date": "2026-05-31",
+        "close": 121.8
+      },
+      {
+        "date": "2026-06-30",
+        "close": 134.1
+      },
+      {
+        "date": "2026-07-16",
+        "close": 135
+      }
+    ],
+    "pct_in_52w_range": 51.7
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 7.4
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.7
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 4.4
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Fairly priced",
+      "word_bn": "দাম যুক্তিসঙ্গত",
+      "score10": 5.2
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.5
+    }
+  ],
+  "fair_value": {
+    "low": 119,
+    "high": 178,
+    "center": 148,
+    "today": 135,
+    "stance": "fair",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 121
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 259
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 110
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 20.0
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 20.12,
+    "current_pb": 1.31,
+    "own_avg_pe": 18.03,
+    "own_avg_pb": 1.07,
+    "sector_median_pe": 38.57,
+    "sector_median_pb": 0.88,
+    "eps": 6.71,
+    "sector_implied_price": 258.8
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 2.05,
+        "net_profit_crore": 6.18,
+        "cash_dividend_pct": 20.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.0,
+        "nav_per_share_taka": 82.3,
+        "revenue_crore": 272.9,
+        "operating_profit_crore": null,
+        "operating_cash_flow_crore": 12.1,
+        "capex_crore": null,
+        "total_debt_crore": 235.5,
+        "total_equity_crore": 247.4,
+        "total_assets_crore": 687.2,
+        "cash_crore": 8.56,
+        "debt_to_equity": 0.95
+      },
+      {
+        "year": 2022,
+        "eps_taka": 6.61,
+        "net_profit_crore": 19.9,
+        "cash_dividend_pct": 30.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 3.0,
+        "nav_per_share_taka": 87.02,
+        "revenue_crore": 418.7,
+        "operating_profit_crore": null,
+        "operating_cash_flow_crore": 30.8,
+        "capex_crore": null,
+        "total_debt_crore": 247.1,
+        "total_equity_crore": 261.6,
+        "total_assets_crore": 711.6,
+        "cash_crore": 13.2,
+        "debt_to_equity": 0.94
+      },
+      {
+        "year": 2023,
+        "eps_taka": 6.64,
+        "net_profit_crore": 20.0,
+        "cash_dividend_pct": 20.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.0,
+        "nav_per_share_taka": 90.77,
+        "revenue_crore": 401.9,
+        "operating_profit_crore": null,
+        "operating_cash_flow_crore": 15.1,
+        "capex_crore": null,
+        "total_debt_crore": 287.9,
+        "total_equity_crore": 272.9,
+        "total_assets_crore": 756.6,
+        "cash_crore": 26.2,
+        "debt_to_equity": 1.05
+      },
+      {
+        "year": 2024,
+        "eps_taka": 6.7,
+        "net_profit_crore": 20.1,
+        "cash_dividend_pct": 21.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.1,
+        "nav_per_share_taka": 96.79,
+        "revenue_crore": 393.8,
+        "operating_profit_crore": null,
+        "operating_cash_flow_crore": -53.4,
+        "capex_crore": null,
+        "total_debt_crore": 233.6,
+        "total_equity_crore": 291.0,
+        "total_assets_crore": 924.0,
+        "cash_crore": 14.4,
+        "debt_to_equity": 0.8
+      },
+      {
+        "year": 2025,
+        "eps_taka": 6.71,
+        "net_profit_crore": 20.2,
+        "cash_dividend_pct": 12.0,
+        "stock_dividend_pct": 10,
+        "dps_taka": 1.2,
+        "nav_per_share_taka": 102.79
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 6.71,
+      "net_profit_crore": 20.2,
+      "cash_dividend_pct": 12.0,
+      "stock_dividend_pct": 10,
+      "dps_taka": 1.2,
+      "nav_per_share_taka": 102.79
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": 227.0,
+      "eps_change_pct": 227.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 3.31,
+      "paid_up_capital_crore": 33.1,
+      "reserve_surplus_crore": 276.0,
+      "total_loan_crore": 453.0,
+      "listing_year": 1992
+    },
+    "ownership": {
+      "sponsor_director_pct": 61.23,
+      "govt_pct": 0.0,
+      "institute_pct": 1.33,
+      "foreign_pct": 0.0,
+      "public_pct": 37.44
+    }
+  },
+  "sector_context": {
+    "sector": "Textile",
+    "peer_count": 58,
+    "rank_in_sector": 6,
+    "sector_avg_score": 27.8,
+    "sector_median_pe": 38.57
+  },
+  "score": {
+    "trading_code": "TAMIJTEX",
+    "sector": "Textile",
+    "market_cat": "A",
+    "ltp": 135.0,
+    "mcap_mn": 4464.617805,
+    "score": 60.6,
+    "base_score": 60.6,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.886,
+    "eps": 6.71,
+    "roe_pct": 6.9,
+    "sector_median_pe": 38.57,
+    "sector_median_pb": 0.88,
+    "p1_biz": 7.38,
+    "p2_health": 6.73,
+    "p3_moat": 4.41,
+    "p4_val": 5.23,
+    "p5_div": 5.55,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 8.6208,
+    "p1_roe": 4.6503,
+    "p1_npm_trend": 7.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 0.1,
+    "eps_stability": 1.0,
+    "p2_de": 6.985814822674339,
+    "p2_ic": null,
+    "p2_cfo": 8.0,
+    "p2_cash": 2.9369155720161197,
+    "p2_coverage": 0.75,
+    "p3_margin": 7.0,
+    "p3_rev_vol": 1.0,
+    "p3_sector_rank": 5.0,
+    "p3_capex": null,
+    "p3_coverage": 0.85,
+    "p4_pe": 6.9,
+    "p4_pb": 2.71,
+    "p4_vol_damp": 1.0,
+    "current_pe": 20.12,
+    "current_pb": 1.31,
+    "own_avg_pe": 18.03,
+    "own_avg_pb": 1.07,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 3.6666666666666665,
+    "div_yield_pct": 0.9,
+    "overall_rank": 56,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "good_wait_price",
+    "reason_en": "Good company — fine to hold, but wait for a cheaper price to buy.",
+    "reason_bn": "ভালো কোম্পানি — ধরে রাখা যায়, তবে কেনার জন্য আরেকটু কম দামের অপেক্ষা করুন।",
+    "tier": "good",
+    "momentum_grade": "warm",
+    "score": 60.6,
+    "p4_val": 5.23,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 61.2% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, price moving up steadily",
+    "sentences": [
+      "The company is in good financial shape, and the share price is steadily rising."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 2.35,
+    "rs_vs_dsex_pct": 0.29,
+    "volume_ratio": 1.48,
+    "avg_turnover_7d_mn": 30.07,
+    "up_days_7d": 4,
+    "days_counted": 7,
+    "pct_in_52w_range": 51.7,
+    "momentum_grade": "warm"
+  },
+  "financials": [
+    {
+      "trading_code": "TAMIJTEX",
+      "year": 2021,
+      "cash_dividend_pct": 20.0,
+      "dividend_yield_pct": 4.49,
+      "eps_basic": null,
+      "eps_cont_basic": 2.05,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 82.3,
+      "pe_ratio_basic": 21.66,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 61.78,
+      "profit_mn": 61.78,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 61.78,
+      "dps": 2.0,
+      "eps": 2.05
+    },
+    {
+      "trading_code": "TAMIJTEX",
+      "year": 2022,
+      "cash_dividend_pct": 30.0,
+      "dividend_yield_pct": 6.74,
+      "eps_basic": null,
+      "eps_cont_basic": 6.61,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 87.02,
+      "pe_ratio_basic": 6.73,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 198.74,
+      "profit_mn": 198.74,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 198.74,
+      "dps": 3.0,
+      "eps": 6.61
+    },
+    {
+      "trading_code": "TAMIJTEX",
+      "year": 2023,
+      "cash_dividend_pct": 20.0,
+      "dividend_yield_pct": 1.09,
+      "eps_basic": null,
+      "eps_cont_basic": 6.64,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 90.77,
+      "pe_ratio_basic": 27.51,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 199.76,
+      "profit_mn": 199.76,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 199.76,
+      "dps": 2.0,
+      "eps": 6.64
+    },
+    {
+      "trading_code": "TAMIJTEX",
+      "year": 2024,
+      "cash_dividend_pct": 21.0,
+      "dividend_yield_pct": 1.69,
+      "eps_basic": null,
+      "eps_cont_basic": 6.7,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 96.79,
+      "pe_ratio_basic": 18.6,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 201.41,
+      "profit_mn": 201.41,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 201.41,
+      "dps": 2.1,
+      "eps": 6.7
+    },
+    {
+      "trading_code": "TAMIJTEX",
+      "year": 2025,
+      "cash_dividend_pct": 12.0,
+      "dividend_yield_pct": 1.14,
+      "eps_basic": null,
+      "eps_cont_basic": 6.71,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 102.79,
+      "pe_ratio_basic": 15.63,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 201.79,
+      "profit_mn": 201.79,
+      "stock_dividend_pct": 10,
+      "total_comprehensive_income_mn": 201.79,
+      "dps": 1.2,
+      "eps": 6.71
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "TAMIJTEX",
+      "year": 2021,
+      "capex": null,
+      "investing_cf": -376851986.0,
+      "net_profit": 61781445.0,
+      "nocfps": 4.03,
+      "operating_cf": 121123373.0,
+      "total_equity": 2474301090.0,
+      "ebit": null,
+      "intangibles": null,
+      "interest_expense": 375770693.0,
+      "revenue": 2728865367.0,
+      "total_assets": 6872391481.0,
+      "cash_and_equivalents": 85633824.0,
+      "earning_assets": null,
+      "gross_profit": 504822438.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 2354678163.0
+    },
+    {
+      "trading_code": "TAMIJTEX",
+      "year": 2022,
+      "capex": null,
+      "investing_cf": -283922629.0,
+      "net_profit": 198742506.0,
+      "nocfps": 10.26,
+      "operating_cf": 308415451.0,
+      "total_equity": 2616096195.0,
+      "ebit": null,
+      "intangibles": null,
+      "interest_expense": 474511824.0,
+      "revenue": 4186546590.0,
+      "total_assets": 7115810496.0,
+      "cash_and_equivalents": 131729079.0,
+      "earning_assets": null,
+      "gross_profit": 773972434.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 2470971054.0
+    },
+    {
+      "year": 2023,
+      "trading_code": "TAMIJTEX",
+      "capex": null,
+      "investing_cf": -57901101.0,
+      "net_profit": 199761629.0,
+      "nocfps": 5.03,
+      "operating_cf": 151144819.0,
+      "total_equity": 2728937252.0,
+      "ebit": null,
+      "intangibles": null,
+      "interest_expense": 462282695.0,
+      "revenue": 4019039042.0,
+      "total_assets": 7566457834.0,
+      "cash_and_equivalents": 262272964.0,
+      "earning_assets": null,
+      "gross_profit": 768711278.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 2878774754.0
+    },
+    {
+      "year": 2024,
+      "trading_code": "TAMIJTEX",
+      "capex": null,
+      "investing_cf": -333964751.0,
+      "net_profit": 201413927.0,
+      "nocfps": -17.76,
+      "operating_cf": -533991766.0,
+      "total_equity": 2910104615.0,
+      "ebit": null,
+      "intangibles": null,
+      "interest_expense": 496759983.0,
+      "revenue": 3937991049.0,
+      "total_assets": 9239545695.0,
+      "cash_and_equivalents": 144277904.0,
+      "earning_assets": null,
+      "gross_profit": 786088895.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 2336339762.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "TAMIJTEX",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 1.33,
+    "public_pct": 37.44,
+    "reporting_period": null,
+    "sponsor_director_pct": 61.23
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jun 30, 2025",
+    "trading_code": "TAMIJTEX",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 1.04,
+    "public_pct": 37.73,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 61.23
+  },
+  "dividend_declaration": {
+    "trading_code": "TAMIJTEX",
+    "declaration_date": "2025-10-30T00:00:00",
+    "dividend_pct": 22.0,
+    "dividend_type": "Final",
+    "record_date": null,
+    "scraped_at": "2026-07-16T10:49:57.814000",
+    "title": "TAMIJTEX: Dividend Declaration"
+  },
+  "news": [
+    {
+      "title": "TAMIJTEX: Q3 Financials",
+      "post_date": "2026-05-03T00:00:00",
+      "body": "(Q3 Un-audited): EPS was Tk. 1.53 for January-March 2026 as against Tk. 1.54 (restated) for January-March 2025; EPS was Tk. 4.08 for July 2025-March 2026 as against Tk. 4.07 (restated) for July 2024-March 2025. NOCFPS was Tk. (64.89) for July 2025-March 2026 as against Tk. 9.21 (restated) for July 2024-March 2025. NAV per share was Tk. 98.57 as on March 31, 2026 and Tk. 93.44 (restated) as on June 30, 2025. Reason for Deviation in NOCFPS: (cont.)"
+    },
+    {
+      "post_date": "2026-04-23T00:00:00",
+      "title": "TAMIJTEX: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 30, 2026 at 3:30 pm to consider, among others, Un-Audited Financial Statements for the Third Quarter (Q3) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-02-05T00:00:00",
+      "title": "TAMIJTEX: Dividend Disbursement",
+      "body": "The Company has informed that it has credited the Bonus Shares to the respective shareholders' BO Accounts and it has also disbursed the Cash Dividend to the respective shareholders for the year ended June 30, 2025."
+    },
+    {
+      "title": "TAMIJTEX: Q2 Financials",
+      "post_date": "2026-01-29T00:00:00",
+      "body": "(Q2 Un-audited): EPS was Tk. 1.91 for October-December 2025 as against Tk. 1.90 for October-December 2024; EPS was Tk. 2.81 for July-December 2025 as against Tk. 2.78 for July-December 2024. NOCFPS was Tk. (68.19) for July-December 2025 as against Tk. 3.90 for July-December 2024. NAV per share was Tk. 105.72 as on December 31, 2025 and Tk. 102.79 as on June 30, 2025. (cont.)"
+    },
+    {
+      "title": "TAMIJTEX: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-01-22T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 28, 2026 at 4:00 PM to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "post_date": "2025-12-18T00:00:00",
+      "title": "TAMIJTEX: Credit Rating Result",
+      "body": "WASO Credit Rating Company (BD) Ltd. has assigned entity rating of the Company as \"A+\" for long term and \"ST 2\" for short term along with Stable outlook based on audited financial statements of FY 2025 (30.06.2025) and other relevant qualitative and quantitative information."
+    },
+    {
+      "title": "TAMIJTEX: Qualified Opinion",
+      "post_date": "2025-12-11T00:00:00",
+      "body": "The auditor of the company has given the Qualified Opinion in the Auditor?s Report for the year ended on 30 June 2025. To view the details, please visit: https://www.dsebd.org/Auditors_opinion/2025/131.%20Tamijuddin%20Textile%20Mills%20PLC.pdf"
+    },
+    {
+      "post_date": "2025-12-07T00:00:00",
+      "title": "TAMIJTEX: Regarding Venue and Link of AGM of the company",
+      "body": "Refer to their earlier news disseminated by DSE on 30.10.2025 regarding dividend declaration, the company has further informed that the Annual General Meeting of the company will be held at Gulshan Club, Gulshan-02, Dhaka-1212. Link of the AGM: https://tamijuddintex.bdvirtualagm.com."
+    },
+    {
+      "post_date": "2025-12-03T00:00:00",
+      "title": "TAMIJTEX: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 04.12.2025."
+    },
+    {
+      "post_date": "2025-12-02T00:00:00",
+      "title": "TAMIJTEX: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 03.12.2025."
+    },
+    {
+      "title": "TAMIJTEX: Spot News",
+      "post_date": "2025-11-30T00:00:00",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 01.12.2025 to 02.12.2025 and trading of the shares will remain suspended on record date i.e., 03.12.2025."
+    },
+    {
+      "post_date": "2025-11-16T00:00:00",
+      "title": "TAMIJTEX: Q1 Financials",
+      "body": "(Q1 Un-audited): EPS was Tk. 0.90 for July-September 2025 as against Tk. 0.88 for July-September 2024; NOCFPS was Tk. 3.66 for July-September 2025 as against Tk. 3.57 for July-September 2024. NAV per share was Tk. 103.71 as on September 30, 2025 and Tk. 102.79 as on June 30, 2025."
+    },
+    {
+      "title": "TAMIJTEX: Board Meeting schedule under LR 16(1)",
+      "post_date": "2025-11-10T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on November 13, 2025 at 5:00 PM to consider, among others, Un-audited financial statements of the Company for the First Quarter (Q1) period ended September 30, 2025."
+    },
+    {
+      "title": "TAMIJTEX: Dividend Declaration",
+      "post_date": "2025-10-30T00:00:00",
+      "body": "The Board of Directors has recommended Total 22% (12% Cash + 10% Stock) as Dividend: 12% Cash (Tk 1.20 per share of 10 Tk each) for all general shareholders (excluding Sponsors and Directors) for the year ended June 30, 2025. The Total Number of shares is 30,064,767 where Sponsor & Directors hold 18,410,596 Shares and general shareholders hold 11,654,171 Shares. An amount of Taka 1,39,85,005.20 will be paid to the general Shareholders as Cash Dividend. 10% Stock Dividend is for all(cont.1)"
+    },
+    {
+      "title": "TAMIJTEX: Price Limit Open",
+      "post_date": "2025-10-30T00:00:00",
+      "body": "There will be no price limit on the trading of the shares of the Company today (30.10.2025) following its corporate declaration."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "ENVOYTEX",
+      "company_name": "Envoy Textiles Limited",
+      "sector": "Textile",
+      "score": 75.6,
+      "ltp": 58.4,
+      "change_pct": 0.17,
+      "pe": 6.95,
+      "pb": 1.0,
+      "div_yield_pct": 5.1,
+      "roe_pct": 14.4,
+      "eps_yoy_pct": 134.6
+    },
+    {
+      "trading_code": "FEKDIL",
+      "company_name": "Far East Knitting & Dyeing Industries PLC.",
+      "sector": "Textile",
+      "score": 69.5,
+      "ltp": 25.0,
+      "change_pct": 2.46,
+      "pe": 14.62,
+      "pb": 1.17,
+      "div_yield_pct": 4.8,
+      "roe_pct": 8.0,
+      "eps_yoy_pct": 4.3
+    },
+    {
+      "trading_code": "ARGONDENIM",
+      "company_name": "Argon Denims Limited",
+      "sector": "Textile",
+      "score": 68.6,
+      "ltp": 20.9,
+      "change_pct": -2.34,
+      "pe": 12.44,
+      "pb": 0.85,
+      "div_yield_pct": 4.8,
+      "roe_pct": 6.8,
+      "eps_yoy_pct": 124.0
+    },
+    {
+      "trading_code": "PTL",
+      "company_name": "Paramount Textile PLC.",
+      "sector": "Textile",
+      "score": 65.4,
+      "ltp": 65.2,
+      "change_pct": -0.91,
+      "pe": 10.06,
+      "pb": 1.49,
+      "div_yield_pct": 1.8,
+      "roe_pct": 17.4,
+      "eps_yoy_pct": -2.1
+    },
+    {
+      "trading_code": "SIMTEX",
+      "company_name": "Simtex Industries PLC.",
+      "sector": "Textile",
+      "score": 63.3,
+      "ltp": 27.8,
+      "change_pct": -2.46,
+      "pe": 26.99,
+      "pb": 1.24,
+      "div_yield_pct": 3.6,
+      "roe_pct": 4.6,
+      "eps_yoy_pct": 19.8
+    }
+  ],
+  "source_hash": "6010bd86a5e8e471c0e78461beb1166dbb8ecebd1bf6762d7eb23adc5b128f72"
+}

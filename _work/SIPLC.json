@@ -1,0 +1,786 @@
+{
+  "trading_code": "SIPLC",
+  "company_name": "Sena Insurance PLC",
+  "sector_class": "INSURANCE",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Insurance",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 40000000,
+    "paid_up_capital_mn": 400.0,
+    "reserve_surplus_mn": 743.3,
+    "total_loan_mn": 0,
+    "listing_year": 2021,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 108.4,
+    "change": -4.4,
+    "change_pct": -3.9,
+    "date": "2026-07-16",
+    "high": 112.9,
+    "low": 108,
+    "volume": 148800,
+    "avg_volume_7d": 216454,
+    "ycp": 112.8,
+    "w52_high": 113.4,
+    "w52_low": 43.5
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 3.9,
+      "m3": 54.2,
+      "m6": 99.6,
+      "y1": 116.8
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 42.0
+      },
+      {
+        "date": "2025-06-30",
+        "close": 43.7
+      },
+      {
+        "date": "2025-07-31",
+        "close": 48.9
+      },
+      {
+        "date": "2025-08-31",
+        "close": 49.7
+      },
+      {
+        "date": "2025-09-30",
+        "close": 49.5
+      },
+      {
+        "date": "2025-10-30",
+        "close": 54.9
+      },
+      {
+        "date": "2025-11-30",
+        "close": 51.7
+      },
+      {
+        "date": "2025-12-30",
+        "close": 52.8
+      },
+      {
+        "date": "2026-01-29",
+        "close": 56.9
+      },
+      {
+        "date": "2026-02-26",
+        "close": 61.2
+      },
+      {
+        "date": "2026-03-31",
+        "close": 61.2
+      },
+      {
+        "date": "2026-04-30",
+        "close": 74.4
+      },
+      {
+        "date": "2026-05-31",
+        "close": 81.2
+      },
+      {
+        "date": "2026-06-30",
+        "close": 108.4
+      },
+      {
+        "date": "2026-07-16",
+        "close": 108.4
+      }
+    ],
+    "pct_in_52w_range": 92.8
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.9
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 9.4
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 4.0
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Pricey",
+      "word_bn": "দাম চড়া",
+      "score10": 4.0
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 7.3
+    }
+  ],
+  "fair_value": {
+    "low": 59.7,
+    "high": 89.5,
+    "center": 74.6,
+    "today": 108,
+    "stance": "expensive",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 87.8
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 141
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 73.7
+      },
+      {
+        "name": "book_peer",
+        "label_en": "Priced like similar companies (assets)",
+        "price": 57.4
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 25.0
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 20.97,
+    "current_pb": 3.79,
+    "own_avg_pe": 16.98,
+    "own_avg_pb": 2.58,
+    "sector_median_pe": 27.25,
+    "sector_median_pb": 2.01,
+    "eps": 5.17,
+    "sector_implied_price": 140.88
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2020,
+        "eps_taka": 3.93,
+        "net_profit_crore": 9.43,
+        "cash_dividend_pct": null,
+        "stock_dividend_pct": null,
+        "dps_taka": null,
+        "nav_per_share_taka": 21.09
+      },
+      {
+        "year": 2021,
+        "eps_taka": 3.83,
+        "net_profit_crore": 10.6,
+        "cash_dividend_pct": 12.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.2,
+        "nav_per_share_taka": 26.99,
+        "revenue_crore": 1.16,
+        "operating_profit_crore": 8.1,
+        "operating_cash_flow_crore": 24.7,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 74.8,
+        "total_assets_crore": 138.2,
+        "cash_crore": 0.01
+      },
+      {
+        "year": 2022,
+        "eps_taka": 2.86,
+        "net_profit_crore": 11.4,
+        "cash_dividend_pct": 12.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.2,
+        "nav_per_share_taka": 20.17,
+        "revenue_crore": 1.36,
+        "operating_profit_crore": 8.23,
+        "operating_cash_flow_crore": 17.8,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 80.7,
+        "total_assets_crore": 148.4,
+        "cash_crore": 0.01
+      },
+      {
+        "year": 2023,
+        "eps_taka": 3.42,
+        "net_profit_crore": 13.7,
+        "cash_dividend_pct": 13.5,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.35,
+        "nav_per_share_taka": 22.43,
+        "revenue_crore": 0.41,
+        "operating_profit_crore": 8.98,
+        "operating_cash_flow_crore": 23.3,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 89.7,
+        "total_assets_crore": 160.1,
+        "cash_crore": 0.02
+      },
+      {
+        "year": 2024,
+        "eps_taka": 4.29,
+        "net_profit_crore": 17.2,
+        "cash_dividend_pct": 15.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.5,
+        "nav_per_share_taka": 25.16,
+        "revenue_crore": 1.2,
+        "operating_profit_crore": 10.3,
+        "operating_cash_flow_crore": 28.9,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 100.6,
+        "total_assets_crore": 184.3,
+        "cash_crore": 0.01
+      },
+      {
+        "year": 2025,
+        "eps_taka": 5.17,
+        "net_profit_crore": 20.7,
+        "cash_dividend_pct": 15.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.5,
+        "nav_per_share_taka": 28.58
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 5.17,
+      "net_profit_crore": 20.7,
+      "cash_dividend_pct": 15.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 1.5,
+      "nav_per_share_taka": 28.58
+    },
+    "growth": {
+      "span": "2020–2025",
+      "net_profit_change_pct": 120.0,
+      "eps_change_pct": 32.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 4.0,
+      "paid_up_capital_crore": 40.0,
+      "reserve_surplus_crore": 74.3,
+      "total_loan_crore": 0.0,
+      "listing_year": 2021
+    },
+    "ownership": {
+      "sponsor_director_pct": 60.0,
+      "govt_pct": 0.0,
+      "institute_pct": 16.36,
+      "foreign_pct": 0.0,
+      "public_pct": 23.64
+    }
+  },
+  "sector_context": {
+    "sector": "Insurance",
+    "peer_count": 59,
+    "rank_in_sector": 2,
+    "sector_avg_score": 41.4,
+    "sector_median_pe": 27.25
+  },
+  "score": {
+    "trading_code": "SIPLC",
+    "sector": "Insurance",
+    "market_cat": "A",
+    "ltp": 108.4,
+    "mcap_mn": 4336.0,
+    "score": 70.4,
+    "base_score": 70.4,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.855,
+    "eps": 5.17,
+    "roe_pct": 17.1,
+    "sector_median_pe": 27.25,
+    "sector_median_pb": 2.01,
+    "p1_biz": 8.92,
+    "p2_health": 9.38,
+    "p3_moat": 4.0,
+    "p4_val": 3.95,
+    "p5_div": 7.33,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 7.3239,
+    "p1_roe": 9.0651,
+    "p1_npm_trend": 10.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 20.5,
+    "eps_stability": 0.9907,
+    "p2_de": null,
+    "p2_ic": 10.0,
+    "p2_cfo": 10.0,
+    "p2_cash": null,
+    "p2_coverage": 0.643,
+    "p3_margin": 7.7263,
+    "p3_rev_vol": 1.0,
+    "p3_sector_rank": 2.0,
+    "p3_capex": null,
+    "p3_coverage": 0.85,
+    "p4_pe": 5.82,
+    "p4_pb": 1.18,
+    "p4_vol_damp": 0.9953,
+    "current_pe": 20.97,
+    "current_pb": 3.79,
+    "own_avg_pe": 16.98,
+    "own_avg_pb": 2.58,
+    "p5_dps_cagr": 6.2949,
+    "p5_consist": 10.0,
+    "p5_yield": 4.575645756457565,
+    "div_yield_pct": 1.4,
+    "overall_rank": 22,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "quality_expensive",
+    "reason_en": "Strong company, but the price is expensive right now.",
+    "reason_bn": "কোম্পানি শক্তিশালী, কিন্তু দাম এখন বেশ চড়া।",
+    "tier": "good",
+    "momentum_grade": "flat",
+    "score": 70.4,
+    "p4_val": 3.95,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 60.0% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, but share is quiet",
+    "sentences": [
+      "The company's numbers are good, but the share has been quiet — the price is not moving much in either direction.",
+      "Has paid dividends regularly in past years.",
+      "Price is close to the highest level of the past year — not much room left for a cheap entry."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 1.5,
+    "rs_vs_dsex_pct": -0.56,
+    "volume_ratio": 0.53,
+    "avg_turnover_7d_mn": 21.32,
+    "up_days_7d": 4,
+    "days_counted": 7,
+    "pct_in_52w_range": 92.8,
+    "momentum_grade": "flat"
+  },
+  "financials": [
+    {
+      "trading_code": "SIPLC",
+      "year": 2020,
+      "cash_dividend_pct": null,
+      "dividend_yield_pct": null,
+      "eps_basic": null,
+      "eps_cont_basic": 3.93,
+      "eps_cont_diluted": 2.36,
+      "eps_diluted": null,
+      "nav_per_share": 21.09,
+      "pe_ratio_basic": null,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 94.28,
+      "profit_mn": 94.28,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 94.28,
+      "eps": 3.93
+    },
+    {
+      "trading_code": "SIPLC",
+      "year": 2021,
+      "cash_dividend_pct": 12.0,
+      "dividend_yield_pct": 1.55,
+      "eps_basic": null,
+      "eps_cont_basic": 3.83,
+      "eps_cont_diluted": 2.65,
+      "eps_diluted": null,
+      "nav_per_share": 26.99,
+      "pe_ratio_basic": 29.13,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 106.15,
+      "profit_mn": 106.15,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 106.15,
+      "dps": 1.2,
+      "eps": 3.83
+    },
+    {
+      "trading_code": "SIPLC",
+      "year": 2022,
+      "cash_dividend_pct": 12.0,
+      "dividend_yield_pct": 2.08,
+      "eps_basic": null,
+      "eps_cont_basic": 2.86,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 20.17,
+      "pe_ratio_basic": 20.15,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 114.33,
+      "profit_mn": 114.33,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 114.33,
+      "dps": 1.2,
+      "eps": 2.86
+    },
+    {
+      "trading_code": "SIPLC",
+      "year": 2023,
+      "cash_dividend_pct": 13.5,
+      "dividend_yield_pct": 2.57,
+      "eps_basic": null,
+      "eps_cont_basic": 3.42,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 22.43,
+      "pe_ratio_basic": 15.4,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 136.66,
+      "profit_mn": 136.66,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 136.66,
+      "dps": 1.35,
+      "eps": 3.42
+    },
+    {
+      "trading_code": "SIPLC",
+      "year": 2024,
+      "cash_dividend_pct": 15.0,
+      "dividend_yield_pct": 3.49,
+      "eps_basic": null,
+      "eps_cont_basic": 4.29,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 25.16,
+      "pe_ratio_basic": 10.02,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 171.68,
+      "profit_mn": 171.68,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 171.68,
+      "dps": 1.5,
+      "eps": 4.29
+    },
+    {
+      "trading_code": "SIPLC",
+      "year": 2025,
+      "cash_dividend_pct": 15.0,
+      "dividend_yield_pct": 2.84,
+      "dps": 1.5,
+      "eps_basic": null,
+      "eps_cont_basic": 5.17,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 28.58,
+      "pe_ratio_basic": 10.22,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 206.6,
+      "profit_mn": 206.6,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 206.6,
+      "eps": 5.17
+    }
+  ],
+  "extended_financials": [
+    {
+      "year": 2021,
+      "trading_code": "SIPLC",
+      "capex": null,
+      "investing_cf": -55700662.0,
+      "net_profit": 106150316.0,
+      "nocfps": 9.24,
+      "operating_cf": 246513762.0,
+      "total_equity": 748373313.0,
+      "ebit": 80985987.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 11635184.0,
+      "total_assets": 1381812243.0,
+      "cash_and_equivalents": 66391.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "trading_code": "SIPLC",
+      "year": 2022,
+      "capex": null,
+      "investing_cf": -197671052.0,
+      "net_profit": 114330734.0,
+      "nocfps": 4.45,
+      "operating_cf": 178110067.0,
+      "total_equity": 806672565.0,
+      "ebit": 82294297.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 13642303.0,
+      "total_assets": 1483708535.0,
+      "cash_and_equivalents": 55788.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "trading_code": "SIPLC",
+      "year": 2023,
+      "capex": null,
+      "investing_cf": -6747072.0,
+      "net_profit": 136660747.0,
+      "nocfps": 5.82,
+      "operating_cf": 232600736.0,
+      "total_equity": 897055380.0,
+      "ebit": 89848590.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 4119025.0,
+      "total_assets": 1600539275.0,
+      "cash_and_equivalents": 203725.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "year": 2024,
+      "trading_code": "SIPLC",
+      "capex": null,
+      "investing_cf": -78598116.0,
+      "net_profit": 171678594.0,
+      "nocfps": 7.23,
+      "operating_cf": 289109382.0,
+      "total_equity": 1006384787.0,
+      "ebit": 103331454.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 11986845.0,
+      "total_assets": 1842685876.0,
+      "cash_and_equivalents": 56846.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "SIPLC",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 16.36,
+    "public_pct": 23.64,
+    "reporting_period": null,
+    "sponsor_director_pct": 60.0
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jan 29, 2026",
+    "trading_code": "SIPLC",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 12.35,
+    "public_pct": 27.65,
+    "reporting_period": null,
+    "sponsor_director_pct": 60.0
+  },
+  "dividend_declaration": {
+    "trading_code": "SIPLC",
+    "declaration_date": "2026-02-17T00:00:00",
+    "dividend_pct": 15.0,
+    "dividend_type": "Final",
+    "record_date": "2026-03-09T00:00:00",
+    "scraped_at": "2026-07-16T10:46:53.954000",
+    "title": "SIPLC: Dividend Declaration"
+  },
+  "news": [
+    {
+      "title": "SIPLC: Q2 Financials",
+      "post_date": "2026-07-16T00:00:00",
+      "body": "(Q2 Un-audited): EPS was Tk. 1.55 for April-June 2026 as against Tk. 1.57 for April-June 2025; EPS was Tk. 3.39 for January-June 2026 as against Tk. 3.47 for January-June 2025. NOCFPS was Tk. 6.32 for January-June 2026 as against Tk. 4.00 for January-June 2025. NAV per share was Tk. 30.43 as on June 30, 2026 and Tk. 28.58 as on December 31, 2025.  (cont.)"
+    },
+    {
+      "post_date": "2026-07-09T00:00:00",
+      "title": "SIPLC: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on July 15, 2026 at 2:45 pm to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended June 30, 2026."
+    },
+    {
+      "post_date": "2026-06-11T00:00:00",
+      "title": "SIPLC: Credit Rating Result",
+      "body": "Alpha Credit Rating PLC (Alpha Rating) has assigned the Surveillance rating of the Company as \"AAA\" in the long term and \"ST-1\" in the short term along with Stable outlook based on the audited financial statements up to December 31, 2025 and relevant qualitative information till June 09, 2026."
+    },
+    {
+      "post_date": "2026-04-29T00:00:00",
+      "title": "SIPLC: Q1 Financials",
+      "body": "(Q1 Un-audited): EPS was Tk. 1.84 for January-March 2026 as against Tk. 1.90 for January-March 2025. NOCFPS was Tk. 1.91 for January-March 2026 as against Tk. 9.50 for January-March 2025. NAV per share was Tk. 30.37 as on March 31, 2026 and Tk. 28.58 as on December 31, 2025. Reasons for Deviation in EPS, NOCFPS and NAVPS: EPS has decreased for the period of January-March 2026 due to higher payment of claim expenses compared to January-March 2025. (cont.)"
+    },
+    {
+      "post_date": "2026-04-27T00:00:00",
+      "title": "SIPLC: Dividend Disbursement",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended December 31, 2025 to the respective shareholders."
+    },
+    {
+      "post_date": "2026-04-23T00:00:00",
+      "title": "SIPLC: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 28, 2026 at 2:45 pm to consider, among others, Un-Audited Financial Statements for the First Quarter (Q1) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-03-09T00:00:00",
+      "title": "SIPLC: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 10.03.2026."
+    },
+    {
+      "post_date": "2026-03-08T00:00:00",
+      "title": "SIPLC: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 09.03.2026."
+    },
+    {
+      "title": "SIPLC: Spot News",
+      "post_date": "2026-03-04T00:00:00",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 05.03.2026 to 08.03.2026 and trading of the shares will remain suspended on record date i.e., 09.03.2026."
+    },
+    {
+      "title": "SIPLC: Dividend Declaration",
+      "post_date": "2026-02-17T00:00:00",
+      "body": "The Board of Directors has recommended 15% cash dividend for the year ended December 31, 2025. The Company has reported EPS of Tk. 5.17, NAV per share of Tk. 28.58 and NOCFPS of Tk. 5.00 for the year ended December 31, 2025 as against Tk. 4.29, Tk. 25.16 and Tk. 7.23 respectively for the year ended December 31, 2024. Date of AGM: 31.03.2026, Time: 11:30 AM. Record Date: 09.03.2026. Venue of AGM: (cont.)"
+    },
+    {
+      "post_date": "2026-02-17T00:00:00",
+      "title": "SIPLC: Price Limit Open",
+      "body": "There will be no price limit on the trading of the shares of the Company today (17.02.2026) following its corporate declaration."
+    },
+    {
+      "post_date": "2026-02-17T00:00:00",
+      "title": "SIPLC: Decision to purchase land at Rupganj, Narayanganj",
+      "body": "The company has informed that the Board has decided to purchase 11.31 decimal land at Rupganj, Narayanganj for an amount of Tk. 1.28 crore excluding registration & others fees, subject to the approval from IDRA."
+    },
+    {
+      "post_date": "2026-02-08T00:00:00",
+      "title": "SIPLC: Board Meeting schedule under LR 19(1)",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on February 16, 2026 at 2:45 PM to consider, among others, audited financial statements of the Company for the year ended December 31, 2025."
+    },
+    {
+      "title": "SIPLC: Q3 Financials",
+      "post_date": "2025-10-21T00:00:00",
+      "body": "(Q3 Un-audited): EPS was Tk. 0.81 for July-September, 2025 as against Tk. 0.97 for July-September, 2024; EPS was Tk. 4.28 for January-September, 2025 as against Tk. 3.03 for January-September, 2024. NOCFPS was Tk. 5.68 for January-September, 2025 as against Tk. 4.88 for January-September, 2024. NAV per share was Tk. 27.76 as on September 30, 2025 and Tk. 25.16 as on December 31, 2024. (cont.)"
+    },
+    {
+      "post_date": "2025-10-16T00:00:00",
+      "title": "SIPLC: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on October 20, 2025 at 02:45 PM to consider, among others, Un-audited financial statements of the Company for the Third Quarter (Q3) period ended September 30, 2025."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "UNITEDINS",
+      "company_name": "United Insurance Company Ltd.",
+      "sector": "Insurance",
+      "score": 71.6,
+      "ltp": 47.9,
+      "change_pct": -1.64,
+      "pe": 13.84,
+      "pb": 1.54,
+      "div_yield_pct": 3.1,
+      "roe_pct": 7.4,
+      "eps_yoy_pct": 53.1
+    },
+    {
+      "trading_code": "RELIANCINS",
+      "company_name": "Reliance Insurance PLC.",
+      "sector": "Insurance",
+      "score": 69.7,
+      "ltp": 114.1,
+      "change_pct": -2.23,
+      "pe": 13.55,
+      "pb": 1.45,
+      "div_yield_pct": 2.6,
+      "roe_pct": 13.1,
+      "eps_yoy_pct": -7.7
+    },
+    {
+      "trading_code": "PRAGATIINS",
+      "company_name": "Pragati Insurance PLC.",
+      "sector": "Insurance",
+      "score": 65.8,
+      "ltp": 81.5,
+      "change_pct": -1.21,
+      "pe": 15.35,
+      "pb": 1.42,
+      "div_yield_pct": 3.3,
+      "roe_pct": 9.7,
+      "eps_yoy_pct": -5.3
+    },
+    {
+      "trading_code": "ASIAPACINS",
+      "company_name": "Asia Pacific General Insurance PLC",
+      "sector": "Insurance",
+      "score": 64.9,
+      "ltp": 47.1,
+      "change_pct": -1.88,
+      "pe": 18.76,
+      "pb": 1.86,
+      "div_yield_pct": 3.0,
+      "roe_pct": 8.0,
+      "eps_yoy_pct": 32.8
+    },
+    {
+      "trading_code": "PIONEERINS",
+      "company_name": "Pioneer Insurance PLC",
+      "sector": "Insurance",
+      "score": 64.3,
+      "ltp": 70.7,
+      "change_pct": -0.7,
+      "pe": 15.47,
+      "pb": 1.51,
+      "div_yield_pct": 3.5,
+      "roe_pct": 10.7,
+      "eps_yoy_pct": -4.6
+    }
+  ],
+  "source_hash": "ccb130dcb536e3a16a95a7c5da99700166166af09b09ba95fe3596578be13b94"
+}

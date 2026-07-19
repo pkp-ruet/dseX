@@ -1,0 +1,791 @@
+{
+  "trading_code": "PADMAOIL",
+  "company_name": "Padma Oil PLC.",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Fuel & Power",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 98232750,
+    "paid_up_capital_mn": 982.33,
+    "reserve_surplus_mn": 26017.7,
+    "total_loan_mn": 183.46,
+    "listing_year": 1976,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 204.9,
+    "change": 3.9,
+    "change_pct": 1.94,
+    "date": "2026-07-16",
+    "high": 205,
+    "low": 199.2,
+    "volume": 447191,
+    "avg_volume_7d": 75831,
+    "ycp": 201,
+    "w52_high": 205.4,
+    "w52_low": 164.8
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 10.8,
+      "m3": 16.1,
+      "m6": 21.4,
+      "y1": 10.0
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 176.7
+      },
+      {
+        "date": "2025-06-30",
+        "close": 182.9
+      },
+      {
+        "date": "2025-07-31",
+        "close": 199.1
+      },
+      {
+        "date": "2025-08-31",
+        "close": 202.2
+      },
+      {
+        "date": "2025-09-30",
+        "close": 198.6
+      },
+      {
+        "date": "2025-10-30",
+        "close": 195.0
+      },
+      {
+        "date": "2025-11-30",
+        "close": 180.4
+      },
+      {
+        "date": "2025-12-30",
+        "close": 168.2
+      },
+      {
+        "date": "2026-01-29",
+        "close": 171.7
+      },
+      {
+        "date": "2026-02-26",
+        "close": 182.4
+      },
+      {
+        "date": "2026-03-31",
+        "close": 176.0
+      },
+      {
+        "date": "2026-04-30",
+        "close": 175.7
+      },
+      {
+        "date": "2026-05-31",
+        "close": 177.3
+      },
+      {
+        "date": "2026-06-30",
+        "close": 202
+      },
+      {
+        "date": "2026-07-16",
+        "close": 204.9
+      }
+    ],
+    "pct_in_52w_range": 98.8
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 9.9
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 7.8
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.9
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Good value",
+      "word_bn": "দাম সস্তা",
+      "score10": 9.2
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 7.9
+    }
+  ],
+  "fair_value": {
+    "low": 468,
+    "high": 702,
+    "center": 585,
+    "today": 205,
+    "stance": "cheap",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 356
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 1130
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 269
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 267
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 3.58,
+    "current_pb": 0.75,
+    "own_avg_pe": 6.22,
+    "own_avg_pb": 0.98,
+    "sector_median_pe": 19.72,
+    "sector_median_pb": 0.75,
+    "eps": 57.3,
+    "sector_implied_price": 1129.96
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 23.27,
+        "net_profit_crore": 228.6,
+        "cash_dividend_pct": 125.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 12.5,
+        "nav_per_share_taka": 168.41,
+        "revenue_crore": 216.1,
+        "operating_profit_crore": -2.94,
+        "operating_cash_flow_crore": 26.8,
+        "capex_crore": null,
+        "total_debt_crore": 18.3,
+        "total_equity_crore": 1654,
+        "total_assets_crore": 9409,
+        "cash_crore": 3907,
+        "debt_to_equity": 0.01
+      },
+      {
+        "year": 2022,
+        "eps_taka": 24.47,
+        "net_profit_crore": 240.4,
+        "cash_dividend_pct": 125.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 12.5,
+        "nav_per_share_taka": 180.38,
+        "revenue_crore": 234.4,
+        "operating_profit_crore": -2.84,
+        "operating_cash_flow_crore": 964.2,
+        "capex_crore": null,
+        "total_debt_crore": 18.3,
+        "total_equity_crore": 1772,
+        "total_assets_crore": 11209,
+        "cash_crore": 3897,
+        "debt_to_equity": 0.01
+      },
+      {
+        "year": 2023,
+        "eps_taka": 35.58,
+        "net_profit_crore": 349.5,
+        "cash_dividend_pct": 135.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 13.5,
+        "nav_per_share_taka": 203.46,
+        "revenue_crore": 261.6,
+        "operating_profit_crore": -2.13,
+        "operating_cash_flow_crore": -510.7,
+        "capex_crore": null,
+        "total_debt_crore": 18.3,
+        "total_equity_crore": 1999,
+        "total_assets_crore": 15207,
+        "cash_crore": 4669,
+        "debt_to_equity": 0.01
+      },
+      {
+        "year": 2024,
+        "eps_taka": 41.59,
+        "net_profit_crore": 408.6,
+        "cash_dividend_pct": 140.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 14.0,
+        "nav_per_share_taka": 231.56,
+        "revenue_crore": 321.1,
+        "operating_profit_crore": 0.1,
+        "operating_cash_flow_crore": 626.9,
+        "capex_crore": null,
+        "total_debt_crore": 18.3,
+        "total_equity_crore": 2275,
+        "total_assets_crore": 12970,
+        "cash_crore": 5391,
+        "debt_to_equity": 0.01
+      },
+      {
+        "year": 2025,
+        "eps_taka": 57.3,
+        "net_profit_crore": 562.9,
+        "cash_dividend_pct": 160.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 16.0,
+        "nav_per_share_taka": 274.86,
+        "revenue_crore": 319.5,
+        "operating_profit_crore": 0.53,
+        "operating_cash_flow_crore": -391.3,
+        "capex_crore": null,
+        "total_debt_crore": 18.3,
+        "total_equity_crore": 2700,
+        "total_assets_crore": 12686,
+        "cash_crore": 5087,
+        "debt_to_equity": 0.01
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 57.3,
+      "net_profit_crore": 562.9,
+      "cash_dividend_pct": 160.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 16.0,
+      "nav_per_share_taka": 274.86,
+      "revenue_crore": 319.5,
+      "operating_profit_crore": 0.53,
+      "operating_cash_flow_crore": -391.3,
+      "capex_crore": null,
+      "total_debt_crore": 18.3,
+      "total_equity_crore": 2700,
+      "total_assets_crore": 12686,
+      "cash_crore": 5087,
+      "debt_to_equity": 0.01
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": 146.0,
+      "eps_change_pct": 146.0,
+      "revenue_change_pct": 48.0
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 9.82,
+      "paid_up_capital_crore": 98.2,
+      "reserve_surplus_crore": 2602,
+      "total_loan_crore": 18.3,
+      "listing_year": 1976
+    },
+    "ownership": {
+      "sponsor_director_pct": 2.06,
+      "govt_pct": 50.35,
+      "institute_pct": 31.54,
+      "foreign_pct": 0.03,
+      "public_pct": 16.02
+    }
+  },
+  "sector_context": {
+    "sector": "Fuel & Power",
+    "peer_count": 23,
+    "rank_in_sector": 2,
+    "sector_avg_score": 41.9,
+    "sector_median_pe": 19.72
+  },
+  "score": {
+    "trading_code": "PADMAOIL",
+    "sector": "Fuel & Power",
+    "market_cat": "A",
+    "ltp": 204.9,
+    "mcap_mn": 20127.890475,
+    "score": 84.8,
+    "base_score": 84.8,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.957,
+    "eps": 57.3,
+    "roe_pct": 20.8,
+    "sector_median_pe": 19.72,
+    "sector_median_pb": 0.75,
+    "p1_biz": 9.9,
+    "p2_health": 7.81,
+    "p3_moat": 6.94,
+    "p4_val": 9.17,
+    "p5_div": 7.9,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 10.0,
+    "p1_roe": 9.6822,
+    "p1_npm_trend": 10.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 37.8,
+    "eps_stability": 1.0,
+    "p2_de": 10.0,
+    "p2_ic": 10.0,
+    "p2_cfo": 3.0,
+    "p2_cash": 10.0,
+    "p2_coverage": 1.0,
+    "p3_margin": 8.0,
+    "p3_rev_vol": 7.0,
+    "p3_sector_rank": 5.0,
+    "p3_capex": null,
+    "p3_coverage": 0.85,
+    "p4_pe": 10.0,
+    "p4_pb": 7.92,
+    "p4_vol_damp": 1.0,
+    "current_pe": 3.58,
+    "current_pb": 0.75,
+    "own_avg_pe": 6.22,
+    "own_avg_pb": 0.98,
+    "p5_dps_cagr": 5.7981,
+    "p5_consist": 10.0,
+    "p5_yield": 10.0,
+    "div_yield_pct": 7.8,
+    "overall_rank": 3,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "near_52w_high",
+    "reason_en": "Strong company, but the price is near its one-year high — wait for a better entry.",
+    "reason_bn": "কোম্পানি ভালো, কিন্তু দাম এখন বছরের সর্বোচ্চের কাছাকাছি — একটু অপেক্ষা করুন।",
+    "tier": "excellent",
+    "momentum_grade": "flat",
+    "score": 84.8,
+    "p4_val": 9.17,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "Consistent dividend payer (4+ years)",
+      "Currently cheap vs historical P/E"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Excellent",
+    "tagline": "Strong company, but market hasn't noticed yet",
+    "sentences": [
+      "The company has strong profits and a healthy balance sheet, but the share price has not moved for weeks — the market has not noticed it yet.",
+      "Has paid dividends regularly in past years.",
+      "The share price looks cheaper now than its average over the past few years."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 0.24,
+    "rs_vs_dsex_pct": -1.82,
+    "volume_ratio": 1.05,
+    "avg_turnover_7d_mn": 25.23,
+    "up_days_7d": 4,
+    "days_counted": 7,
+    "pct_in_52w_range": 98.8,
+    "momentum_grade": "flat"
+  },
+  "financials": [
+    {
+      "year": 2021,
+      "trading_code": "PADMAOIL",
+      "cash_dividend_pct": 125.0,
+      "dividend_yield_pct": 6.13,
+      "eps_basic": null,
+      "eps_cont_basic": 23.27,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 168.41,
+      "pe_ratio_basic": 8.76,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 2286.03,
+      "profit_mn": 2286.03,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 2286.03,
+      "dps": 12.5,
+      "eps": 23.27
+    },
+    {
+      "trading_code": "PADMAOIL",
+      "year": 2022,
+      "cash_dividend_pct": 125.0,
+      "dividend_yield_pct": 5.84,
+      "eps_basic": null,
+      "eps_cont_basic": 24.47,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 180.38,
+      "pe_ratio_basic": 8.75,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 2403.8,
+      "profit_mn": 2403.8,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 2321.57,
+      "dps": 12.5,
+      "eps": 24.47
+    },
+    {
+      "trading_code": "PADMAOIL",
+      "year": 2023,
+      "cash_dividend_pct": 135.0,
+      "dividend_yield_pct": 6.45,
+      "eps_basic": null,
+      "eps_cont_basic": 35.58,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 203.46,
+      "pe_ratio_basic": 5.88,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 3495.29,
+      "profit_mn": 3495.29,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 3495.29,
+      "dps": 13.5,
+      "eps": 35.58
+    },
+    {
+      "year": 2024,
+      "trading_code": "PADMAOIL",
+      "cash_dividend_pct": 140.0,
+      "dividend_yield_pct": 7.47,
+      "eps_basic": null,
+      "eps_cont_basic": 41.59,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 231.56,
+      "pe_ratio_basic": 4.51,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 4085.89,
+      "profit_mn": 4085.89,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 4085.89,
+      "dps": 14.0,
+      "eps": 41.59
+    },
+    {
+      "trading_code": "PADMAOIL",
+      "year": 2025,
+      "cash_dividend_pct": 160.0,
+      "dividend_yield_pct": 8.75,
+      "eps_basic": null,
+      "eps_cont_basic": 57.3,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 274.86,
+      "pe_ratio_basic": 3.19,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 5628.83,
+      "profit_mn": 5628.83,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 5628.83,
+      "dps": 16.0,
+      "eps": 57.3
+    }
+  ],
+  "extended_financials": [
+    {
+      "year": 2021,
+      "trading_code": "PADMAOIL",
+      "capex": null,
+      "investing_cf": 584718000.0,
+      "net_profit": 2260342000.0,
+      "nocfps": 2.73,
+      "operating_cf": 268258000.0,
+      "total_equity": 16543486000.0,
+      "ebit": -29388000.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 2161231000.0,
+      "total_assets": 94094730000.0,
+      "cash_and_equivalents": 39065100000.0,
+      "earning_assets": null,
+      "gross_profit": 2137481000.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 183463000.0
+    },
+    {
+      "year": 2022,
+      "trading_code": "PADMAOIL",
+      "capex": null,
+      "investing_cf": -8395652000.0,
+      "net_profit": 2403797000.0,
+      "nocfps": 98.15,
+      "operating_cf": 9641670000.0,
+      "total_equity": 17719374000.0,
+      "ebit": -28398000.0,
+      "intangibles": null,
+      "interest_expense": -249685000.0,
+      "revenue": 2343909000.0,
+      "total_assets": 112092828000.0,
+      "cash_and_equivalents": 38967515000.0,
+      "earning_assets": null,
+      "gross_profit": 2181892000.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 183463000.0
+    },
+    {
+      "trading_code": "PADMAOIL",
+      "year": 2023,
+      "capex": null,
+      "investing_cf": 14066320000.0,
+      "net_profit": 3495286000.0,
+      "nocfps": -51.99,
+      "operating_cf": -5107208000.0,
+      "total_equity": 19986752000.0,
+      "ebit": -21252000.0,
+      "intangibles": null,
+      "interest_expense": -251364000.0,
+      "revenue": 2616382000.0,
+      "total_assets": 152066430000.0,
+      "cash_and_equivalents": 46686423000.0,
+      "earning_assets": null,
+      "gross_profit": 2437871000.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 183463000.0
+    },
+    {
+      "trading_code": "PADMAOIL",
+      "year": 2024,
+      "capex": null,
+      "investing_cf": 2270789000.0,
+      "net_profit": 4085892000.0,
+      "nocfps": 63.82,
+      "operating_cf": 6269437000.0,
+      "total_equity": 22746502000.0,
+      "ebit": 1022000.0,
+      "intangibles": null,
+      "interest_expense": -287057000.0,
+      "revenue": 3211450000.0,
+      "total_assets": 129701179000.0,
+      "cash_and_equivalents": 53906419000.0,
+      "earning_assets": null,
+      "gross_profit": 3052153000.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 183463000.0
+    },
+    {
+      "trading_code": "PADMAOIL",
+      "year": 2025,
+      "capex": null,
+      "cash_and_equivalents": 50867316000.0,
+      "earning_assets": null,
+      "ebit": 5338000.0,
+      "gross_profit": 3073326000.0,
+      "intangibles": null,
+      "interest_expense": -369391000.0,
+      "interest_income": null,
+      "investing_cf": 2244616000.0,
+      "net_interest_income": null,
+      "net_profit": 5628825000.0,
+      "nocfps": -39.83,
+      "operating_cf": -3912566000.0,
+      "revenue": 3195184000.0,
+      "total_assets": 126862663000.0,
+      "total_debt": 183463000.0,
+      "total_equity": 27000069000.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "PADMAOIL",
+    "foreign_pct": 0.03,
+    "govt_pct": 50.35,
+    "institute_pct": 31.54,
+    "public_pct": 16.02,
+    "reporting_period": null,
+    "sponsor_director_pct": 2.06
+  },
+  "shareholding_prev": {
+    "trading_code": "PADMAOIL",
+    "as_of_date": "Jun 30, 2025",
+    "foreign_pct": 0.06,
+    "govt_pct": 50.35,
+    "institute_pct": 31.0,
+    "public_pct": 16.53,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 2.06
+  },
+  "dividend_declaration": {
+    "trading_code": "PADMAOIL",
+    "declaration_date": "2025-11-06T00:00:00",
+    "dividend_pct": 160.0,
+    "dividend_type": "Final",
+    "record_date": "2025-11-27T00:00:00",
+    "scraped_at": "2026-07-16T10:33:43.639000",
+    "title": "PADMAOIL: Dividend Declaration"
+  },
+  "news": [
+    {
+      "title": "PADMAOIL: Q3 Financials",
+      "post_date": "2026-04-29T00:00:00",
+      "body": "(Q3 Un-audited): EPS was Tk. 13.46 for January-March 2026 as against Tk. 14.80 for January-March 2025; EPS was Tk. 44.02 for July 2025-March 2026 as against Tk. 40.20 for July 2024-March 2025. NOCFPS was Tk. (54.86) for July 2025-March 2026 as against Tk. (27.21) for July 2024-March 2025. NAV per share was Tk. 302.87 as on March 31, 2026 and Tk. 274.86 as on June 30, 2025. The change in NOCFPS is due to increase of Stock and decrease of Due to Affiliated Companies."
+    },
+    {
+      "title": "PADMAOIL: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-04-22T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 28, 2026 at 6:00 pm to consider, among others, Un-Audited Financial Statements for the Third Quarter (Q3) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-02-10T00:00:00",
+      "title": "PADMAOIL: Dividend Disbursement",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended June 30, 2025 to the respective shareholders."
+    },
+    {
+      "post_date": "2026-01-27T00:00:00",
+      "title": "PADMAOIL: Q2 Financials",
+      "body": "(Q2 Un-audited): EPS was Tk. 14.50 for October-December 2025 as against Tk. 12.73 for October-December 2024; EPS was Tk. 30.54 for July-December 2025 as against Tk. 25.40 for July-December 2024. NOCFPS was Tk. (34.53) for July-December 2025 as against Tk. (20.36) for July-December 2024. NAV per share was Tk. 305.40 as on December 31, 2025 and Tk. 274.86 as on June 30, 2025. EPS has been increased due to increase of non-operating income as compared to last year's corresponding periods."
+    },
+    {
+      "post_date": "2026-01-20T00:00:00",
+      "title": "PADMAOIL: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 26, 2026 at 5:30 PM to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "post_date": "2025-11-27T00:00:00",
+      "title": "PADMAOIL: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 30.11.2025."
+    },
+    {
+      "title": "PADMAOIL: Qualified Opinion and Emphasis of Matters",
+      "post_date": "2025-11-27T00:00:00",
+      "body": "The auditor of the company has given the \"Qualified Opinion\" and \"Emphasis of Matters\" paragraph in the Auditor's Report of the company for the year ended on 30 June 2025. To view the details, please visit: https://www.dsebd.org/Auditors_opinion/2025/PADMAOIL_2025.pdf"
+    },
+    {
+      "post_date": "2025-11-26T00:00:00",
+      "title": "PADMAOIL: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 27.11.2025."
+    },
+    {
+      "title": "PADMAOIL: Spot News",
+      "post_date": "2025-11-24T00:00:00",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 25.11.2025 to 26.11.2025 and trading of the shares will remain suspended on record date i.e., 27.11.2025."
+    },
+    {
+      "post_date": "2025-11-06T00:00:00",
+      "title": "PADMAOIL: Q1 Financials",
+      "body": "(Q1 Un-audited): EPS was Tk. 16.04 for July-September 2025 as against Tk. 12.67 for July-September 2024. NOCFPS was Tk. (91.89) for July-September 2025 as against Tk. 10.85 for July-September 2024. NAV per share was Tk. 290.89 as on September 30, 2025 and Tk. 274.86 as on June 30, 2025."
+    },
+    {
+      "post_date": "2025-11-06T00:00:00",
+      "title": "PADMAOIL: Dividend Declaration",
+      "body": "The Board of Directors has recommended 160% Cash Dividend (Tk. 16.00 per Share of Tk. 10.00 each) for the year ended June 30, 2025. Date of AGM: 03.01.2026, Time: 11:00 AM, Venue: Digital Platform. Record Date: 27.11.2025. The Company has also reported EPS of Tk. 57.30, NAV per share of Tk. 274.86, and NOCFPS of Tk. (39.83) for the year ended June 30, 2025, as against EPS of Tk. 41.59, NAV per share of Tk. 231.56, and NOCFPS of Tk. 63.82 for the year ended June 30, 2024."
+    },
+    {
+      "post_date": "2025-11-06T00:00:00",
+      "title": "PADMAOIL: Price Limit Open",
+      "body": "There will be no price limit on the trading of the shares of the Company today (06.11.2025) following its corporate declaration."
+    },
+    {
+      "post_date": "2025-10-27T00:00:00",
+      "title": "PADMAOIL: Board Meeting schedule under LR 19(1)",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on November 05, 2025 at 5:30 PM to consider, among others, audited financial statements of the Company for the year ended on June 30, 2025."
+    },
+    {
+      "post_date": "2025-10-27T00:00:00",
+      "title": "PADMAOIL: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on November 05, 2025 at 5:30 PM to consider, among others, Un-audited financial statements of the Company for the First Quarter (Q1) period ended September 30, 2025."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "MPETROLEUM",
+      "company_name": "Meghna Petroleum PLC.",
+      "sector": "Fuel & Power",
+      "score": 90.1,
+      "ltp": 216.0,
+      "change_pct": -0.09,
+      "pe": 3.52,
+      "pb": 0.78,
+      "div_yield_pct": 9.3,
+      "roe_pct": 22.0,
+      "eps_yoy_pct": 22.5
+    },
+    {
+      "trading_code": "JAMUNAOIL",
+      "company_name": "Jamuna Oil PLC.",
+      "sector": "Fuel & Power",
+      "score": 83.1,
+      "ltp": 185.2,
+      "change_pct": -0.43,
+      "pe": 3.16,
+      "pb": 0.68,
+      "div_yield_pct": 9.7,
+      "roe_pct": 21.4,
+      "eps_yoy_pct": 46.8
+    },
+    {
+      "trading_code": "MJLBD",
+      "company_name": "MJL Bangladesh PLC.",
+      "sector": "Fuel & Power",
+      "score": 69.7,
+      "ltp": 95.9,
+      "change_pct": -0.93,
+      "pe": 8.44,
+      "pb": 1.77,
+      "div_yield_pct": 5.4,
+      "roe_pct": 18.8,
+      "eps_yoy_pct": 30.4
+    },
+    {
+      "trading_code": "UPGDCL",
+      "company_name": "United Power Generation & Distribution Company Ltd.",
+      "sector": "Fuel & Power",
+      "score": 63.6,
+      "ltp": 128.6,
+      "change_pct": -1.91,
+      "pe": 6.22,
+      "pb": 1.74,
+      "div_yield_pct": 5.1,
+      "roe_pct": 28.1,
+      "eps_yoy_pct": 47.5
+    },
+    {
+      "trading_code": "CVOPRL",
+      "company_name": "CVO Petrochemical Refinery PLC.",
+      "sector": "Fuel & Power",
+      "score": 54.7,
+      "ltp": 178.6,
+      "change_pct": -1.76,
+      "pe": 46.75,
+      "pb": 5.9,
+      "div_yield_pct": 0.6,
+      "roe_pct": 12.6,
+      "eps_yoy_pct": 63.2
+    }
+  ],
+  "source_hash": "5d4095d085cdaca7989827b391c63151c397b472d687c834e071ba13d06f9f20"
+}

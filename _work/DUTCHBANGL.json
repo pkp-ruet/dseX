@@ -1,0 +1,792 @@
+{
+  "trading_code": "DUTCHBANGL",
+  "company_name": "Dutch-Bangla Bank PLC.",
+  "sector_class": "BANK",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Bank",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 1015036195,
+    "paid_up_capital_mn": 10150.36,
+    "reserve_surplus_mn": 60070.5,
+    "total_loan_mn": 32971.44,
+    "listing_year": 2001,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 51,
+    "change": 0.3,
+    "change_pct": 0.59,
+    "date": "2026-07-16",
+    "high": 51.7,
+    "low": 49.8,
+    "volume": 2125181,
+    "avg_volume_7d": 1417542,
+    "ycp": 50.7,
+    "w52_high": 51.0,
+    "w52_low": 36.9
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 18.9,
+      "m3": 26.9,
+      "m6": 29.1,
+      "y1": 17.5
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 38.0
+      },
+      {
+        "date": "2025-06-30",
+        "close": 39.6
+      },
+      {
+        "date": "2025-07-31",
+        "close": 45.3
+      },
+      {
+        "date": "2025-08-31",
+        "close": 42.4
+      },
+      {
+        "date": "2025-09-30",
+        "close": 40.4
+      },
+      {
+        "date": "2025-10-30",
+        "close": 40.3
+      },
+      {
+        "date": "2025-11-30",
+        "close": 39.2
+      },
+      {
+        "date": "2025-12-30",
+        "close": 38.5
+      },
+      {
+        "date": "2026-01-29",
+        "close": 40.0
+      },
+      {
+        "date": "2026-02-26",
+        "close": 43.8
+      },
+      {
+        "date": "2026-03-31",
+        "close": 41.6
+      },
+      {
+        "date": "2026-04-30",
+        "close": 43.3
+      },
+      {
+        "date": "2026-05-31",
+        "close": 39
+      },
+      {
+        "date": "2026-06-30",
+        "close": 44.4
+      },
+      {
+        "date": "2026-07-16",
+        "close": 51
+      }
+    ],
+    "pct_in_52w_range": 100.0
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.3
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 9.3
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 7.0
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Fairly priced",
+      "word_bn": "দাম যুক্তিসঙ্গত",
+      "score10": 6.3
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.5
+    }
+  ],
+  "fair_value": {
+    "low": 40.7,
+    "high": 61.0,
+    "center": 50.9,
+    "today": 51,
+    "stance": "fair",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 69.6
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 55.6
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 59.0
+      },
+      {
+        "name": "book_peer",
+        "label_en": "Priced like similar companies (assets)",
+        "price": 34.2
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 41.7
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 5.11,
+    "current_pb": 0.82,
+    "own_avg_pe": 6.97,
+    "own_avg_pb": 0.95,
+    "sector_median_pe": 5.57,
+    "sector_median_pb": 0.55,
+    "eps": 9.98,
+    "sector_implied_price": 55.59
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2020,
+        "eps_taka": 10,
+        "net_profit_crore": 549.9,
+        "cash_dividend_pct": 15.0,
+        "stock_dividend_pct": 15,
+        "dps_taka": 1.5,
+        "nav_per_share_taka": 58.65
+      },
+      {
+        "year": 2021,
+        "eps_taka": 8.79,
+        "net_profit_crore": 556.1,
+        "cash_dividend_pct": 17.5,
+        "stock_dividend_pct": 10,
+        "dps_taka": 1.75,
+        "nav_per_share_taka": 58.44,
+        "revenue_crore": null,
+        "operating_profit_crore": 1161,
+        "operating_cash_flow_crore": 430.6,
+        "capex_crore": 172.0,
+        "total_debt_crore": 2897,
+        "total_equity_crore": 3697,
+        "total_assets_crore": 51440,
+        "cash_crore": null,
+        "debt_to_equity": 0.78
+      },
+      {
+        "year": 2022,
+        "eps_taka": 8.14,
+        "net_profit_crore": 566.2,
+        "cash_dividend_pct": 17.5,
+        "stock_dividend_pct": 7.5,
+        "dps_taka": 1.75,
+        "nav_per_share_taka": 59.85,
+        "revenue_crore": null,
+        "operating_profit_crore": 1236,
+        "operating_cash_flow_crore": 680.4,
+        "capex_crore": 389.2,
+        "total_debt_crore": 2828,
+        "total_equity_crore": 4164,
+        "total_assets_crore": 55547,
+        "cash_crore": null,
+        "debt_to_equity": 0.68
+      },
+      {
+        "year": 2023,
+        "eps_taka": 10.72,
+        "net_profit_crore": 801.7,
+        "cash_dividend_pct": 17.5,
+        "stock_dividend_pct": 17.5,
+        "dps_taka": 1.75,
+        "nav_per_share_taka": 64.41,
+        "revenue_crore": null,
+        "operating_profit_crore": 1454,
+        "operating_cash_flow_crore": 527.8,
+        "capex_crore": 359.8,
+        "total_debt_crore": 2323,
+        "total_equity_crore": 4817,
+        "total_assets_crore": 59388,
+        "cash_crore": null,
+        "debt_to_equity": 0.48
+      },
+      {
+        "year": 2024,
+        "eps_taka": 5.39,
+        "net_profit_crore": 473.5,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": 10,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 58.72,
+        "revenue_crore": null,
+        "operating_profit_crore": 2236,
+        "operating_cash_flow_crore": 635.7,
+        "capex_crore": 494.0,
+        "total_debt_crore": 4035,
+        "total_equity_crore": 5161,
+        "total_assets_crore": 67988,
+        "cash_crore": null,
+        "debt_to_equity": 0.78
+      },
+      {
+        "year": 2025,
+        "eps_taka": 9.98,
+        "net_profit_crore": 964.8,
+        "cash_dividend_pct": 25.0,
+        "stock_dividend_pct": 5,
+        "dps_taka": 2.5,
+        "nav_per_share_taka": 62.14
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 9.98,
+      "net_profit_crore": 964.8,
+      "cash_dividend_pct": 25.0,
+      "stock_dividend_pct": 5,
+      "dps_taka": 2.5,
+      "nav_per_share_taka": 62.14
+    },
+    "growth": {
+      "span": "2020–2025",
+      "net_profit_change_pct": 75.0,
+      "eps_change_pct": -0.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 101.5,
+      "paid_up_capital_crore": 1015,
+      "reserve_surplus_crore": 6007,
+      "total_loan_crore": 3297,
+      "listing_year": 2001
+    },
+    "ownership": {
+      "sponsor_director_pct": 83.56,
+      "govt_pct": 0.0,
+      "institute_pct": 7.05,
+      "foreign_pct": 0.03,
+      "public_pct": 9.36
+    }
+  },
+  "sector_context": {
+    "sector": "Bank",
+    "peer_count": 36,
+    "rank_in_sector": 9,
+    "sector_avg_score": 42.9,
+    "sector_median_pe": 5.57
+  },
+  "score": {
+    "trading_code": "DUTCHBANGL",
+    "sector": "Bank",
+    "market_cat": "A",
+    "ltp": 51.0,
+    "mcap_mn": 51766.845945,
+    "score": 67.6,
+    "base_score": 67.6,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 1.0,
+    "eps": 9.98,
+    "roe_pct": 10.4,
+    "sector_median_pe": 5.57,
+    "sector_median_pb": 0.55,
+    "p1_biz": 5.27,
+    "p2_health": 9.29,
+    "p3_moat": 7.0,
+    "p4_val": 6.33,
+    "p5_div": 6.48,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 1.7084,
+    "p1_roe": 7.8597,
+    "p1_npm_trend": 2.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 85.2,
+    "eps_stability": 0.757,
+    "p2_de": 10.0,
+    "p2_ic": 10.0,
+    "p2_cfo": 8.0,
+    "p2_cash": null,
+    "p2_coverage": 1.0,
+    "p3_margin": 10.0,
+    "p3_rev_vol": 4.0,
+    "p3_sector_rank": 7.0,
+    "p3_capex": 6.0,
+    "p3_coverage": 1.0,
+    "p4_pe": 8.57,
+    "p4_pb": 5.15,
+    "p4_vol_damp": 0.8785,
+    "current_pe": 5.11,
+    "current_pb": 0.82,
+    "own_avg_pe": 6.97,
+    "own_avg_pb": 0.95,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 9.852941176470589,
+    "div_yield_pct": 4.9,
+    "overall_rank": 31,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "good_wait_price",
+    "reason_en": "Good company — fine to hold, but wait for a cheaper price to buy.",
+    "reason_bn": "ভালো কোম্পানি — ধরে রাখা যায়, তবে কেনার জন্য আরেকটু কম দামের অপেক্ষা করুন।",
+    "tier": "good",
+    "momentum_grade": "hot",
+    "score": 67.6,
+    "p4_val": 6.33,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Currently cheap vs historical P/E",
+      "Sponsor holding 83.6% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, market is buying actively",
+    "sentences": [
+      "The company's numbers are good, and people are buying the share and pushing the price up — the market agrees with the quality.",
+      "The share price looks cheaper now than its average over the past few years.",
+      "Price is close to the highest level of the past year — not much room left for a cheap entry."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 8.97,
+    "rs_vs_dsex_pct": 6.91,
+    "volume_ratio": 1.65,
+    "avg_turnover_7d_mn": 71.05,
+    "up_days_7d": 5,
+    "days_counted": 7,
+    "pct_in_52w_range": 100.0,
+    "momentum_grade": "hot"
+  },
+  "financials": [
+    {
+      "trading_code": "DUTCHBANGL",
+      "year": 2020,
+      "cash_dividend_pct": 15.0,
+      "dividend_yield_pct": 2.31,
+      "eps_basic": null,
+      "eps_cont_basic": 10,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 58.65,
+      "pe_ratio_basic": 6.5,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 5498.74,
+      "profit_mn": 5498.74,
+      "stock_dividend_pct": 15,
+      "total_comprehensive_income_mn": 5498.74,
+      "dps": 1.5,
+      "eps": 10
+    },
+    {
+      "trading_code": "DUTCHBANGL",
+      "year": 2021,
+      "cash_dividend_pct": 17.5,
+      "dividend_yield_pct": 2.24,
+      "eps_basic": null,
+      "eps_cont_basic": 8.79,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 58.44,
+      "pe_ratio_basic": 8.88,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 5561.08,
+      "profit_mn": 5561.08,
+      "stock_dividend_pct": 10,
+      "total_comprehensive_income_mn": 5561.08,
+      "dps": 1.75,
+      "eps": 8.79
+    },
+    {
+      "trading_code": "DUTCHBANGL",
+      "year": 2022,
+      "cash_dividend_pct": 17.5,
+      "dividend_yield_pct": 2.8,
+      "eps_basic": null,
+      "eps_cont_basic": 8.14,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 59.85,
+      "pe_ratio_basic": 7.69,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 5661.69,
+      "profit_mn": 5661.69,
+      "stock_dividend_pct": 7.5,
+      "total_comprehensive_income_mn": 5661.69,
+      "dps": 1.75,
+      "eps": 8.14
+    },
+    {
+      "trading_code": "DUTCHBANGL",
+      "year": 2023,
+      "cash_dividend_pct": 17.5,
+      "dividend_yield_pct": 2.96,
+      "eps_basic": null,
+      "eps_cont_basic": 10.72,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 64.41,
+      "pe_ratio_basic": 5.51,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 8017.4,
+      "profit_mn": 8017.4,
+      "stock_dividend_pct": 17.5,
+      "total_comprehensive_income_mn": 8017.4,
+      "dps": 1.75,
+      "eps": 10.72
+    },
+    {
+      "trading_code": "DUTCHBANGL",
+      "year": 2024,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 2.09,
+      "eps_basic": null,
+      "eps_cont_basic": 5.39,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 58.72,
+      "pe_ratio_basic": 8.89,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 4734.76,
+      "profit_mn": 4734.76,
+      "stock_dividend_pct": 10,
+      "total_comprehensive_income_mn": 4734.76,
+      "dps": 1.0,
+      "eps": 5.39
+    },
+    {
+      "trading_code": "DUTCHBANGL",
+      "year": 2025,
+      "cash_dividend_pct": 25.0,
+      "dividend_yield_pct": 6.49,
+      "dps": 2.5,
+      "eps_basic": null,
+      "eps_cont_basic": 9.98,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 62.14,
+      "pe_ratio_basic": 3.86,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 9647.68,
+      "profit_mn": 9647.68,
+      "stock_dividend_pct": 5,
+      "total_comprehensive_income_mn": 9647.68,
+      "eps": 9.98
+    }
+  ],
+  "extended_financials": [
+    {
+      "year": 2021,
+      "trading_code": "DUTCHBANGL",
+      "capex": -1720213227.0,
+      "investing_cf": -15912196954.0,
+      "net_profit": 8132714877.0,
+      "nocfps": 19.06,
+      "operating_cf": 4306205143.0,
+      "total_equity": 36966361801.0,
+      "ebit": 11607249920.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 514399778058.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 449489832900.0,
+      "gross_profit": null,
+      "interest_income": 22219818602.0,
+      "net_interest_income": 15524168719.0,
+      "total_debt": 28974520236.0
+    },
+    {
+      "trading_code": "DUTCHBANGL",
+      "year": 2022,
+      "capex": -3892295502.0,
+      "investing_cf": -8819838354.0,
+      "net_profit": 8866603738.0,
+      "nocfps": 19.06,
+      "operating_cf": 6804250879.0,
+      "total_equity": 41638755228.0,
+      "ebit": 12362802415.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 555473634446.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 475862869677.0,
+      "gross_profit": null,
+      "interest_income": 24640667324.0,
+      "net_interest_income": 16897309939.0,
+      "total_debt": 28283480657.0
+    },
+    {
+      "trading_code": "DUTCHBANGL",
+      "year": 2023,
+      "capex": -3598279124.0,
+      "investing_cf": -9545889628.0,
+      "net_profit": 11450053950.0,
+      "nocfps": 11.08,
+      "operating_cf": 5277963686.0,
+      "total_equity": 48172764551.0,
+      "ebit": 14536041827.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 593883123100.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 511986327684.0,
+      "gross_profit": null,
+      "interest_income": 30955636303.0,
+      "net_interest_income": 22262216999.0,
+      "total_debt": 23233692945.0
+    },
+    {
+      "year": 2024,
+      "trading_code": "DUTCHBANGL",
+      "capex": -4940030312.0,
+      "investing_cf": -16739969235.0,
+      "net_profit": 5369469658.0,
+      "nocfps": 41.91,
+      "operating_cf": 6356999991.0,
+      "total_equity": 51608170451.0,
+      "ebit": 22362768278.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 679875504457.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 569063728715.0,
+      "gross_profit": null,
+      "interest_income": 42139241540.0,
+      "net_interest_income": 29256248630.0,
+      "total_debt": 40350632198.0
+    }
+  ],
+  "shareholding": {
+    "trading_code": "DUTCHBANGL",
+    "as_of_date": "Mar 31, 2026",
+    "foreign_pct": 0.03,
+    "govt_pct": 0.0,
+    "institute_pct": 7.05,
+    "public_pct": 9.36,
+    "reporting_period": null,
+    "sponsor_director_pct": 83.56
+  },
+  "shareholding_prev": {
+    "trading_code": "DUTCHBANGL",
+    "as_of_date": "Jan 31, 2026",
+    "foreign_pct": 0.03,
+    "govt_pct": 0.0,
+    "institute_pct": 6.91,
+    "public_pct": 9.5,
+    "reporting_period": null,
+    "sponsor_director_pct": 83.56
+  },
+  "dividend_declaration": {
+    "trading_code": "DUTCHBANGL",
+    "declaration_date": "2026-04-29T00:00:00",
+    "dividend_pct": 25.0,
+    "dividend_type": "Final",
+    "record_date": "2026-05-19T00:00:00",
+    "scraped_at": "2026-07-16T10:10:18.786000",
+    "title": "DUTCHBANGL: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-07-13T00:00:00",
+      "title": "DUTCHBANGL: Dividend Disbursement",
+      "body": "The Company has informed that it has credited the Bonus Shares to the respective shareholders' BO Accounts and it has also disbursed the Cash Dividend to the respective shareholders for the year ended December 31, 2025."
+    },
+    {
+      "post_date": "2026-06-24T00:00:00",
+      "title": "DUTCHBANGL: Credit Rating Result",
+      "body": "Credit Rating Agency of Bangladesh Limited (CRAB) has announced the Surveillance rating of the Company as \"AAA\" in the long term and \"ST-1\" in the short term along with Stable outlook based on audited financial statements up to December 31, 2025 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "post_date": "2026-06-02T00:00:00",
+      "title": "DUTCHBANGL: Emphasis of Matter",
+      "body": "The auditor of the company has given the Emphasis of Matter paragraph in the auditor's report for the year ended December 31, 2025. To view the details, please visit: https://www.dsebd.org/Auditors_opinion/2025/DBBL25.pdf"
+    },
+    {
+      "post_date": "2026-05-19T00:00:00",
+      "title": "DUTCHBANGL: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 20.05.2026."
+    },
+    {
+      "title": "DUTCHBANGL: Suspension for Record Date",
+      "post_date": "2026-05-18T00:00:00",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 19.05.2026."
+    },
+    {
+      "post_date": "2026-05-14T00:00:00",
+      "title": "DUTCHBANGL: Spot News",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 17.05.2026 to 18.05.2026 and trading of the shares will remain suspended on record date i.e., 19.05.2026."
+    },
+    {
+      "title": "DUTCHBANGL: Q1 Financials",
+      "post_date": "2026-04-29T00:00:00",
+      "body": "(Q1 Un-audited): EPS was Tk. 2.70 for January-March 2026 as against Tk. 0.92 (restated) for January-March 2025. NOCFPS was Tk. 4.04 for January-March 2026 as against Tk. 34.90 (restated) for January-March 2025. NAV per share was Tk. 64.84 as on March 31, 2026 and Tk. 62.14 (restated) as on December 31, 2025. Reasons for deviation: Net Operating Cash Flow Per Share (NOCFPS) has been decreased mainly for purchase of trading securities."
+    },
+    {
+      "title": "DUTCHBANGL: Dividend Declaration",
+      "post_date": "2026-04-29T00:00:00",
+      "body": "The Board of Directors has recommended 25% Cash and 5% Stock Dividend for the year ended December 31, 2025. Date of AGM: 16.06.2026, Time: 11:00 AM, Venue/Mode: Digital Platform, Record Date: 19.05.2026. The Company has also reported EPS of Tk. 9.98, NAV per share of Tk. 62.14 and NOCFPS of Tk. (2.49) for the year ended December 31, 2025 as against Tk. 4.90 (restated), Tk. 53.39 (restated) and Tk. 38.10 (restated) respectively for the year ended December 31, 2024. (cont.1)"
+    },
+    {
+      "title": "DUTCHBANGL: Price Limit Open",
+      "post_date": "2026-04-29T00:00:00",
+      "body": "There will be no price limit on the trading of the shares of the Company today (29.04.2026) following its corporate declaration."
+    },
+    {
+      "title": "DUTCHBANGL: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-04-23T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 28, 2026 at 3:00 pm to consider, among others, Un-Audited Financial Statements for the First Quarter (Q1) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-04-22T00:00:00",
+      "title": "DUTCHBANGL: Board Meeting schedule under LR 19(1)",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 28, 2026 at 3:00 PM to consider, among others, audited financial statements of the Company for the year ended December 31, 2025."
+    },
+    {
+      "post_date": "2026-02-08T00:00:00",
+      "title": "DUTCHBANGL: Appointment of Managing Director and CEO",
+      "body": "The company has informed that the Board of Directors of the company in its meeting held on December 29, 2025 approved the appointment of Mr. Md. Ahteshamul Haque Khan as the MD and CEO of the company. Bangladesh Bank also approved the appointment of Mr. Md. Ahteshamul Haque Khan on January 28, 2026. Accordingly, Mr. Md. Ahteshamul Haque Khan has assumed the office of the Managing Director and Chief Executive Officer of the company with effect from February 07, 2026."
+    },
+    {
+      "post_date": "2025-10-28T00:00:00",
+      "title": "DUTCHBANGL: Q3 Financials",
+      "body": "(Q3 Un-audited): EPS was Tk. 1.56 for July-September 2025 as against Tk. 0.35 (restated) for July-September 2024; EPS was Tk. 2.65 for January-September 2025 as against Tk. 2.45 (restated) for January-September 2024. NOCFPS was Tk. (4.18) for January-September 2025 as against Tk. 20.88 (restated) for January-September 2024. NAV per share was Tk. 55.00 as on September 30, 2025 and Tk. 53.39 (restated) as on December 31, 2024. (cont.)"
+    },
+    {
+      "post_date": "2025-10-22T00:00:00",
+      "title": "DUTCHBANGL: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on October 27, 2025 at 3:00 PM to consider, among others, Un-audited financial statements of the Company for the Third Quarter (Q3) period ended September 30, 2025."
+    },
+    {
+      "title": "DUTCHBANGL: Clarification on recent news published in newspaper",
+      "post_date": "2025-09-22T00:00:00",
+      "body": "In response to a DSE query to the company regarding a news published in a newspaper titled \"The company's brazen attempt at building purchase and sale\" (translated from Bangla title) on September 18, 2025, the company has submitted clarification vide its letter dated September 21, 2025. To view the details, please visit: https://www.dsebd.org/Annexure/2025/dutchbanglabank_2025.pdf"
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "PRIMEBANK",
+      "company_name": "Prime Bank PLC.",
+      "sector": "Bank",
+      "score": 80.2,
+      "ltp": 30.5,
+      "change_pct": -0.65,
+      "pe": 3.89,
+      "pb": 0.76,
+      "div_yield_pct": 8.2,
+      "roe_pct": 31.1,
+      "eps_yoy_pct": 21.2
+    },
+    {
+      "trading_code": "UTTARABANK",
+      "company_name": "Uttara Bank PLC.",
+      "sector": "Bank",
+      "score": 78.8,
+      "ltp": 21.4,
+      "change_pct": 0.0,
+      "pe": 3.52,
+      "pb": 0.67,
+      "div_yield_pct": 2.3,
+      "roe_pct": 34.2,
+      "eps_yoy_pct": 5.0
+    },
+    {
+      "trading_code": "BRACBANK",
+      "company_name": "BRAC Bank PLC.",
+      "sector": "Bank",
+      "score": 76.5,
+      "ltp": 64.6,
+      "change_pct": -1.07,
+      "pe": 7.08,
+      "pb": 1.25,
+      "div_yield_pct": 2.3,
+      "roe_pct": 24.0,
+      "eps_yoy_pct": 31.2
+    },
+    {
+      "trading_code": "EBL",
+      "company_name": "Eastern Bank PLC.",
+      "sector": "Bank",
+      "score": 76.0,
+      "ltp": 24.4,
+      "change_pct": -0.41,
+      "pe": 4.67,
+      "pb": 0.78,
+      "div_yield_pct": 10.2,
+      "roe_pct": 28.2,
+      "eps_yoy_pct": 7.6
+    },
+    {
+      "trading_code": "NCCBANK",
+      "company_name": "National Credit and Commerce Bank PLC.",
+      "sector": "Bank",
+      "score": 74.1,
+      "ltp": 15.6,
+      "change_pct": 0.0,
+      "pe": 3.64,
+      "pb": 0.57,
+      "div_yield_pct": 10.9,
+      "roe_pct": 20.5,
+      "eps_yoy_pct": 104.3
+    }
+  ],
+  "source_hash": "a3c43eb4c77530341427af9525c301be3c0198ab4e5f355897a0f1675e56d82d"
+}

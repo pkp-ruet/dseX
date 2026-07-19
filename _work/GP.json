@@ -1,0 +1,789 @@
+{
+  "trading_code": "GP",
+  "company_name": "Grameenphone Ltd.",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Telecommunication",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 1350300022,
+    "paid_up_capital_mn": 13503.0,
+    "reserve_surplus_mn": 35167.4,
+    "total_loan_mn": 7000,
+    "listing_year": 2009,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 257.5,
+    "change": 0,
+    "change_pct": 0.0,
+    "date": "2026-07-16",
+    "high": 259,
+    "low": 257.2,
+    "volume": 118569,
+    "avg_volume_7d": 183795,
+    "ycp": 257.5,
+    "w52_high": 323.3,
+    "w52_low": 237.7
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 2.8,
+      "m3": 6.1,
+      "m6": 0.9,
+      "y1": -13.2
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 283.4
+      },
+      {
+        "date": "2025-06-30",
+        "close": 303.1
+      },
+      {
+        "date": "2025-07-31",
+        "close": 313.0
+      },
+      {
+        "date": "2025-08-31",
+        "close": 310.4
+      },
+      {
+        "date": "2025-09-30",
+        "close": 299.0
+      },
+      {
+        "date": "2025-10-30",
+        "close": 283.4
+      },
+      {
+        "date": "2025-11-30",
+        "close": 279.5
+      },
+      {
+        "date": "2025-12-30",
+        "close": 257.9
+      },
+      {
+        "date": "2026-01-29",
+        "close": 267.8
+      },
+      {
+        "date": "2026-02-26",
+        "close": 262.1
+      },
+      {
+        "date": "2026-03-31",
+        "close": 244.8
+      },
+      {
+        "date": "2026-04-30",
+        "close": 243.0
+      },
+      {
+        "date": "2026-05-31",
+        "close": 241
+      },
+      {
+        "date": "2026-06-30",
+        "close": 259.6
+      },
+      {
+        "date": "2026-07-16",
+        "close": 257.5
+      }
+    ],
+    "pct_in_52w_range": 23.1
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 4.3
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 7.9
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 9.3
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Fairly priced",
+      "word_bn": "দাম যুক্তিসঙ্গত",
+      "score10": 6.9
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.5
+    }
+  ],
+  "fair_value": {
+    "low": 277,
+    "high": 369,
+    "center": 323,
+    "today": 258,
+    "stance": "cheap",
+    "confidence": "medium",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 272
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 365
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 304
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 358
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 11.76,
+    "current_pb": 6.21,
+    "own_avg_pe": 12.44,
+    "own_avg_pb": 7.32,
+    "sector_median_pe": 16.65,
+    "sector_median_pb": 2.14,
+    "eps": 21.9,
+    "sector_implied_price": 364.63
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2020,
+        "eps_taka": 27.54,
+        "net_profit_crore": 3719,
+        "cash_dividend_pct": 275.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 27.5,
+        "nav_per_share_taka": 38.59
+      },
+      {
+        "year": 2021,
+        "eps_taka": 25.28,
+        "net_profit_crore": 3413,
+        "cash_dividend_pct": 250.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 25.0,
+        "nav_per_share_taka": 36.94,
+        "revenue_crore": 14307,
+        "operating_profit_crore": 6334,
+        "operating_cash_flow_crore": 5781,
+        "capex_crore": 1905,
+        "total_debt_crore": 550.0,
+        "total_equity_crore": 4988,
+        "total_assets_crore": 16301,
+        "cash_crore": 274.9,
+        "debt_to_equity": 0.11
+      },
+      {
+        "year": 2022,
+        "eps_taka": 22.29,
+        "net_profit_crore": 3009,
+        "cash_dividend_pct": 220.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 22.0,
+        "nav_per_share_taka": 34.22,
+        "revenue_crore": 15040,
+        "operating_profit_crore": 6360,
+        "operating_cash_flow_crore": 6381,
+        "capex_crore": 2179,
+        "total_debt_crore": 503.7,
+        "total_equity_crore": 4621,
+        "total_assets_crore": 18509,
+        "cash_crore": 332.6,
+        "debt_to_equity": 0.11
+      },
+      {
+        "year": 2023,
+        "eps_taka": 24.49,
+        "net_profit_crore": 3307,
+        "cash_dividend_pct": 125.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 12.5,
+        "nav_per_share_taka": 49.39,
+        "revenue_crore": 15872,
+        "operating_profit_crore": 6443,
+        "operating_cash_flow_crore": 6060,
+        "capex_crore": 2386,
+        "total_debt_crore": 312.0,
+        "total_equity_crore": 6669,
+        "total_assets_crore": 20042,
+        "cash_crore": 1672,
+        "debt_to_equity": 0.05
+      },
+      {
+        "year": 2024,
+        "eps_taka": 26.89,
+        "net_profit_crore": 3631,
+        "cash_dividend_pct": 330.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 33.0,
+        "nav_per_share_taka": 47.95,
+        "revenue_crore": 15845,
+        "operating_profit_crore": 5913,
+        "operating_cash_flow_crore": 6199,
+        "capex_crore": 2052,
+        "total_debt_crore": 500.0,
+        "total_equity_crore": 6474,
+        "total_assets_crore": 19885,
+        "cash_crore": 733.4,
+        "debt_to_equity": 0.08
+      },
+      {
+        "year": 2025,
+        "eps_taka": 21.9,
+        "net_profit_crore": 2958,
+        "cash_dividend_pct": 215.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 21.5,
+        "nav_per_share_taka": 41.49,
+        "revenue_crore": 15806,
+        "operating_profit_crore": 5640,
+        "operating_cash_flow_crore": 6157,
+        "capex_crore": 1403,
+        "total_debt_crore": 700.0,
+        "total_equity_crore": 5602,
+        "total_assets_crore": 19132,
+        "cash_crore": 675.9,
+        "debt_to_equity": 0.12
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 21.9,
+      "net_profit_crore": 2958,
+      "cash_dividend_pct": 215.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 21.5,
+      "nav_per_share_taka": 41.49,
+      "revenue_crore": 15806,
+      "operating_profit_crore": 5640,
+      "operating_cash_flow_crore": 6157,
+      "capex_crore": 1403,
+      "total_debt_crore": 700.0,
+      "total_equity_crore": 5602,
+      "total_assets_crore": 19132,
+      "cash_crore": 675.9,
+      "debt_to_equity": 0.12
+    },
+    "growth": {
+      "span": "2020–2025",
+      "net_profit_change_pct": -20.0,
+      "eps_change_pct": -20.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 135.0,
+      "paid_up_capital_crore": 1350,
+      "reserve_surplus_crore": 3517,
+      "total_loan_crore": 700.0,
+      "listing_year": 2009
+    },
+    "ownership": {
+      "sponsor_director_pct": 90.0,
+      "govt_pct": 0.0,
+      "institute_pct": 6.71,
+      "foreign_pct": 0.51,
+      "public_pct": 2.78
+    }
+  },
+  "sector_context": {
+    "sector": "Telecommunication",
+    "peer_count": 3,
+    "rank_in_sector": 2,
+    "sector_avg_score": 65.0,
+    "sector_median_pe": 16.65
+  },
+  "score": {
+    "trading_code": "GP",
+    "sector": "Telecommunication",
+    "market_cat": "A",
+    "ltp": 257.5,
+    "mcap_mn": 347702.255665,
+    "score": 67.5,
+    "base_score": 67.5,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.786,
+    "eps": 21.9,
+    "roe_pct": null,
+    "sector_median_pe": 16.65,
+    "sector_median_pb": 2.14,
+    "p1_biz": 4.33,
+    "p2_health": 7.89,
+    "p3_moat": 9.3,
+    "p4_val": 6.89,
+    "p5_div": 6.5,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 2.0,
+    "p1_roe": null,
+    "p1_npm_trend": null,
+    "p1_coverage": 0.5,
+    "eps_yoy_pct": -18.6,
+    "eps_stability": 1.0,
+    "p2_de": 10.0,
+    "p2_ic": 9.517321561319743,
+    "p2_cfo": 6.0,
+    "p2_cash": 4.119817403392309,
+    "p2_coverage": 1.0,
+    "p3_margin": 8.0,
+    "p3_rev_vol": 10.0,
+    "p3_sector_rank": 10.0,
+    "p3_capex": 10.0,
+    "p3_coverage": 1.0,
+    "p4_pe": 8.0,
+    "p4_pb": 5.22,
+    "p4_vol_damp": 1.0,
+    "current_pe": 11.76,
+    "current_pb": 6.21,
+    "own_avg_pe": 12.44,
+    "own_avg_pb": 7.32,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 10.0,
+    "div_yield_pct": 8.3,
+    "overall_rank": 32,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "good_wait_price",
+    "reason_en": "Good company — fine to hold, but wait for a cheaper price to buy.",
+    "reason_bn": "ভালো কোম্পানি — ধরে রাখা যায়, তবে কেনার জন্য আরেকটু কম দামের অপেক্ষা করুন।",
+    "tier": "good",
+    "momentum_grade": "flat",
+    "score": 67.5,
+    "p4_val": 6.89,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Currently cheap vs historical P/E",
+      "Sponsor holding 90.0% (strong alignment)"
+    ],
+    "red": [
+      "Payout ratio 98% — potentially unsustainable"
+    ]
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, but share is quiet",
+    "sentences": [
+      "The company's numbers are good, but the share has been quiet — the price is not moving much in either direction.",
+      "Has paid dividends regularly in past years.",
+      "The share price looks cheaper now than its average over the past few years."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": -0.54,
+    "rs_vs_dsex_pct": -2.6,
+    "volume_ratio": 0.92,
+    "avg_turnover_7d_mn": 47.0,
+    "up_days_7d": 3,
+    "days_counted": 7,
+    "pct_in_52w_range": 23.1,
+    "momentum_grade": "flat"
+  },
+  "financials": [
+    {
+      "trading_code": "GP",
+      "year": 2020,
+      "cash_dividend_pct": 275.0,
+      "dividend_yield_pct": 7.92,
+      "eps_basic": null,
+      "eps_cont_basic": 27.54,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 38.59,
+      "pe_ratio_basic": 12.6,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 37187.04,
+      "profit_mn": 37187.04,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 36717.19,
+      "dps": 27.5,
+      "eps": 27.54
+    },
+    {
+      "trading_code": "GP",
+      "year": 2021,
+      "cash_dividend_pct": 250.0,
+      "dividend_yield_pct": 7.15,
+      "eps_basic": null,
+      "eps_cont_basic": 25.28,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 36.94,
+      "pe_ratio_basic": 13.83,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 34129.06,
+      "profit_mn": 34129.06,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 34229.04,
+      "dps": 25.0,
+      "eps": 25.28
+    },
+    {
+      "year": 2022,
+      "trading_code": "GP",
+      "cash_dividend_pct": 220.0,
+      "dividend_yield_pct": 7.68,
+      "eps_basic": null,
+      "eps_cont_basic": 22.29,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 34.22,
+      "pe_ratio_basic": 12.86,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 30091.6,
+      "profit_mn": 30091.6,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 30089.7,
+      "dps": 22.0,
+      "eps": 22.29
+    },
+    {
+      "trading_code": "GP",
+      "year": 2023,
+      "cash_dividend_pct": 125.0,
+      "dividend_yield_pct": 4.36,
+      "eps_basic": null,
+      "eps_cont_basic": 24.49,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 49.39,
+      "pe_ratio_basic": 11.7,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 33074.87,
+      "profit_mn": 33074.87,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 33306.63,
+      "dps": 12.5,
+      "eps": 24.49
+    },
+    {
+      "year": 2024,
+      "trading_code": "GP",
+      "cash_dividend_pct": 330.0,
+      "dividend_yield_pct": 10.21,
+      "eps_basic": null,
+      "eps_cont_basic": 26.89,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 47.95,
+      "pe_ratio_basic": 12.02,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 36308.73,
+      "profit_mn": 36308.73,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 36536.47,
+      "dps": 33.0,
+      "eps": 26.89
+    },
+    {
+      "trading_code": "GP",
+      "year": 2025,
+      "cash_dividend_pct": 215.0,
+      "dividend_yield_pct": 8.34,
+      "dps": 21.5,
+      "eps_basic": null,
+      "eps_cont_basic": 21.9,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 41.49,
+      "pe_ratio_basic": 11.77,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 29576.54,
+      "profit_mn": 29576.54,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 29086.95,
+      "eps": 21.9
+    }
+  ],
+  "extended_financials": [
+    {
+      "year": 2021,
+      "trading_code": "GP",
+      "capex": -19050944000.0,
+      "investing_cf": -18785699000.0,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": 57813963000.0,
+      "total_equity": 49878558000.0,
+      "ebit": 63335572000.0,
+      "intangibles": 3632296000.0,
+      "interest_expense": 2595396000.0,
+      "revenue": 143065872000.0,
+      "total_assets": 163006680000.0,
+      "cash_and_equivalents": 2748661000.0,
+      "earning_assets": null,
+      "gross_profit": 143065872000.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 5500000000.0
+    },
+    {
+      "trading_code": "GP",
+      "year": 2022,
+      "capex": -21786189000.0,
+      "investing_cf": -21571260000.0,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": 63812694000.0,
+      "total_equity": 46210758000.0,
+      "ebit": 63598187000.0,
+      "intangibles": 4023092000.0,
+      "interest_expense": 10177407000.0,
+      "revenue": 150403469000.0,
+      "total_assets": 185087416000.0,
+      "cash_and_equivalents": 3325922000.0,
+      "earning_assets": null,
+      "gross_profit": 150403469000.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 5037394000.0
+    },
+    {
+      "trading_code": "GP",
+      "year": 2023,
+      "capex": -23860594000.0,
+      "investing_cf": -23596888000.0,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": 60600815000.0,
+      "total_equity": 66689540000.0,
+      "ebit": 64428972000.0,
+      "intangibles": 4396001000.0,
+      "interest_expense": 9383833000.0,
+      "revenue": 158715818000.0,
+      "total_assets": 200420208000.0,
+      "cash_and_equivalents": 16718338000.0,
+      "earning_assets": null,
+      "gross_profit": 158715818000.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 3119599000.0
+    },
+    {
+      "year": 2024,
+      "trading_code": "GP",
+      "capex": -20517238000.0,
+      "investing_cf": -20261876000.0,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": 61990645000.0,
+      "total_equity": 64742457000.0,
+      "ebit": 59129211000.0,
+      "intangibles": 4774439000.0,
+      "interest_expense": 4986593000.0,
+      "revenue": 158447003000.0,
+      "total_assets": 198853227000.0,
+      "cash_and_equivalents": 7334432000.0,
+      "earning_assets": null,
+      "gross_profit": 158447003000.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 5000000000.0
+    },
+    {
+      "year": 2025,
+      "trading_code": "GP",
+      "capex": -14027145000.0,
+      "cash_and_equivalents": 6759495000.0,
+      "earning_assets": null,
+      "ebit": 56398985000.0,
+      "gross_profit": 158057490000.0,
+      "intangibles": 4862429000.0,
+      "interest_expense": 6413856000.0,
+      "interest_income": null,
+      "investing_cf": -13741558000.0,
+      "net_interest_income": null,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": 61569457000.0,
+      "revenue": 158057490000.0,
+      "total_assets": 191322941000.0,
+      "total_debt": 7000000000.0,
+      "total_equity": 56021005000.0
+    }
+  ],
+  "shareholding": {
+    "trading_code": "GP",
+    "as_of_date": "Mar 31, 2026",
+    "foreign_pct": 0.51,
+    "govt_pct": 0.0,
+    "institute_pct": 6.71,
+    "public_pct": 2.78,
+    "reporting_period": null,
+    "sponsor_director_pct": 90.0
+  },
+  "shareholding_prev": {
+    "trading_code": "GP",
+    "as_of_date": "Jan 31, 2026",
+    "foreign_pct": 0.67,
+    "govt_pct": 0.0,
+    "institute_pct": 6.68,
+    "public_pct": 2.65,
+    "reporting_period": null,
+    "sponsor_director_pct": 90.0
+  },
+  "dividend_declaration": {
+    "trading_code": "GP",
+    "declaration_date": "2026-02-03T00:00:00",
+    "dividend_pct": 105.0,
+    "dividend_type": "Final",
+    "record_date": "2026-03-03T00:00:00",
+    "scraped_at": "2026-07-16T10:15:50.797000",
+    "title": "GP: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-07-15T00:00:00",
+      "title": "GP: Declaration of Interim Dividend and Audited Q2 Financials",
+      "body": "The Board of Directors of the company has declared Interim Cash Dividend for the year 2026 at the rate of 105% of the paid-up capital of the Company which represents 100% of the Profit after Tax for the six-month period ended on 30 June 2026 (BDT 10.50 per share of BDT 10 each), out of the audited net profits of the Company for the six-month period ended 30 June 2026. Record date for entitlement of Interim Cash Dividend is August 12, 2026. (cont.1)"
+    },
+    {
+      "title": "GP: Price Limit Open",
+      "post_date": "2026-07-15T00:00:00",
+      "body": "There will be no price limit on the trading of the shares of the Company today (15.07.2026) following its corporate declaration."
+    },
+    {
+      "post_date": "2026-07-15T00:00:00",
+      "title": "GP: Update of Information",
+      "body": "The company has requested the members to update their Bank Account, Address, Mobile Number, Email Address etc. through their respective Depository Participant (DP) before the 'Record Date'. Members are also requested to update their respective BO Account with 12 digit Taxpayer's identification number (TIN) through their respective Depository Participant (DP) before the 'Record Date'. (cont.1)"
+    },
+    {
+      "post_date": "2026-07-08T00:00:00",
+      "title": "GP: Conference on 2nd Quarter Financial Results",
+      "body": "The Company has informed that they will organize a conference on its 2nd quarter 2026 Financial results on July 15, 2026 at 01:00 PM via live webcast facility with the web link of https://gpworld.co/Earnings-Call-Q2-2026. Research analysts or investors can participate in the upcoming online question & answer session following the Q2'26 results announcement. To participate, please send the name and email address to investor.relations@grameenphone.com."
+    },
+    {
+      "post_date": "2026-07-08T00:00:00",
+      "title": "GP: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on July 14, 2026 at 3:00 pm to consider, among others, Financial Statements for the Second Quarter (Q2) period ended June 30, 2026."
+    },
+    {
+      "post_date": "2026-05-24T00:00:00",
+      "title": "GP: Dividend Disbursement",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended December 31, 2025 to the respective shareholders."
+    },
+    {
+      "post_date": "2026-04-23T00:00:00",
+      "title": "GP: Q1 Financials",
+      "body": "(Q1 Un-audited): EPS was Tk. 4.90 for January-March 2026 as against Tk. 4.69 for January-March 2025. NOCFPS was Tk. 12.48 for January-March 2026 as against Tk. 14.11 for January-March 2025. NAV per share was Tk. 46.39 as on March 31, 2026 and Tk. 52.64 as on March 31, 2025. (cont.)"
+    },
+    {
+      "title": "GP: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-04-16T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 22, 2026 at 3:00 PM to consider, among others, Un-Audited Financial Statements for the First Quarter (Q1) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-04-16T00:00:00",
+      "title": "GP: Conference on 1st Quarter Financial Results",
+      "body": "The Company has informed that they will organize a conference on its 1st quarter 2026 Financial results on April 23, 2026 at 11:00 AM via live webcast facility with the web link of https://gpworld.co/Earnings-Call-Q1-2026. Research analysts or investors can participate in the upcoming online question & answer session following the Q1'26 results announcement. To participate, please send your name and email address to investor.relations@grameenphone.com."
+    },
+    {
+      "post_date": "2026-03-24T00:00:00",
+      "title": "GP: Disclosure on expected Q1 performance amid energy volatility",
+      "body": "The company has informed that the ongoing geopolitical tensions in the Middle East that have led to significant disruption in global energy markets leaves Bangladesh particularly exposed due to its reliance on imported fuels and LNG. This has resulted in increased volatility in energy supplies, higher fuel import costs, and initial signs of constraints in energy supplies and logistics across the country. (cont.1)"
+    },
+    {
+      "post_date": "2026-03-03T00:00:00",
+      "title": "GP: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 04.03.2026."
+    },
+    {
+      "post_date": "2026-03-03T00:00:00",
+      "title": "GP: Credit Rating Result",
+      "body": "Credit Rating Information and Services PLC (CRISL) has assigned rating of the Company as \"AAA\" in the long term and \"ST-1\" in the short term along with Stable outlook in consideration of its audited financials up to December 31, 2025 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "post_date": "2026-03-02T00:00:00",
+      "title": "GP: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 03.03.2026."
+    },
+    {
+      "post_date": "2026-02-26T00:00:00",
+      "title": "GP: Spot News",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 01.03.2026 to 02.03.2026 and trading of the shares will remain suspended on record date i.e., 03.03.2026."
+    },
+    {
+      "post_date": "2026-02-17T00:00:00",
+      "title": "GP: Emphasis of Matter",
+      "body": "The auditor of the company has given Emphasis of Matter paragraph in the auditor's report for the year ended December 31, 2025. To view the details, please visit: https://www.dsebd.org/Auditors_opinion/2025/184.%20Grameenphone%20Ltd_2025.pdf"
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "ROBI",
+      "company_name": "Robi Axiata PLC.",
+      "sector": "Telecommunication",
+      "score": 76.0,
+      "ltp": 33.0,
+      "change_pct": -0.9,
+      "pe": 18.44,
+      "pb": 2.47,
+      "div_yield_pct": 5.3,
+      "roe_pct": null,
+      "eps_yoy_pct": 33.6
+    },
+    {
+      "trading_code": "BSCPLC",
+      "company_name": "Bangladesh Submarine Cables PLC",
+      "sector": "Telecommunication",
+      "score": 51.4,
+      "ltp": 163.6,
+      "change_pct": -2.39,
+      "pe": 14.86,
+      "pb": 1.8,
+      "div_yield_pct": 2.4,
+      "roe_pct": null,
+      "eps_yoy_pct": -0.8
+    }
+  ],
+  "source_hash": "f62bfdd16cb12b4c6c42c16cc9f9d0233f1ea41e0a2bf2969db5dec8795f38ee"
+}

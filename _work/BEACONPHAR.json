@@ -1,0 +1,800 @@
+{
+  "trading_code": "BEACONPHAR",
+  "company_name": "Beacon Pharmaceuticals PLC",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Pharmaceuticals & Chemicals",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 231000000,
+    "paid_up_capital_mn": 2310.0,
+    "reserve_surplus_mn": 4357.1,
+    "total_loan_mn": 10077.44,
+    "listing_year": 2010,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 112.2,
+    "change": -1.9,
+    "change_pct": -1.67,
+    "date": "2026-07-16",
+    "high": 114,
+    "low": 112,
+    "volume": 592357,
+    "avg_volume_7d": 496825,
+    "ycp": 114.1,
+    "w52_high": 142.8,
+    "w52_low": 96.6
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 3.2,
+      "m3": 7.9,
+      "m6": 9.3,
+      "y1": 0.4
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 106.7
+      },
+      {
+        "date": "2025-06-30",
+        "close": 105.9
+      },
+      {
+        "date": "2025-07-31",
+        "close": 112.4
+      },
+      {
+        "date": "2025-08-31",
+        "close": 138.1
+      },
+      {
+        "date": "2025-09-30",
+        "close": 121.3
+      },
+      {
+        "date": "2025-10-30",
+        "close": 113.0
+      },
+      {
+        "date": "2025-11-30",
+        "close": 108.0
+      },
+      {
+        "date": "2025-12-30",
+        "close": 104.6
+      },
+      {
+        "date": "2026-01-29",
+        "close": 104.0
+      },
+      {
+        "date": "2026-02-26",
+        "close": 109.7
+      },
+      {
+        "date": "2026-03-31",
+        "close": 101.3
+      },
+      {
+        "date": "2026-04-30",
+        "close": 103.0
+      },
+      {
+        "date": "2026-05-31",
+        "close": 101.7
+      },
+      {
+        "date": "2026-06-30",
+        "close": 110.3
+      },
+      {
+        "date": "2026-07-16",
+        "close": 112.2
+      }
+    ],
+    "pct_in_52w_range": 33.8
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 4.3
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.1
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.5
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Fairly priced",
+      "word_bn": "দাম যুক্তিসঙ্গত",
+      "score10": 5.6
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 7.7
+    }
+  ],
+  "fair_value": {
+    "low": 130,
+    "high": 195,
+    "center": 162,
+    "today": 112,
+    "stance": "cheap",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 248
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 123
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 199
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 35.0
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 27.37,
+    "current_pb": 3.89,
+    "own_avg_pe": 60.39,
+    "own_avg_pb": 6.89,
+    "sector_median_pe": 29.9,
+    "sector_median_pb": 1.53,
+    "eps": 4.1,
+    "sector_implied_price": 122.59
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 3.74,
+        "net_profit_crore": 86.3,
+        "cash_dividend_pct": 15.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.5,
+        "nav_per_share_taka": 23.18,
+        "revenue_crore": 712.1,
+        "operating_profit_crore": 142.2,
+        "operating_cash_flow_crore": 19.7,
+        "capex_crore": 31.3,
+        "total_debt_crore": 38.8,
+        "total_equity_crore": 535.5,
+        "total_assets_crore": 853.6,
+        "cash_crore": 33.8,
+        "debt_to_equity": 0.07
+      },
+      {
+        "year": 2022,
+        "eps_taka": 4.05,
+        "net_profit_crore": 93.5,
+        "cash_dividend_pct": 16.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.6,
+        "nav_per_share_taka": 25.73,
+        "revenue_crore": 802.3,
+        "operating_profit_crore": 168.2,
+        "operating_cash_flow_crore": 108.2,
+        "capex_crore": 171.9,
+        "total_debt_crore": 19.8,
+        "total_equity_crore": 594.4,
+        "total_assets_crore": 1082,
+        "cash_crore": 53.8,
+        "debt_to_equity": 0.03
+      },
+      {
+        "year": 2023,
+        "eps_taka": 2.21,
+        "net_profit_crore": 51.0,
+        "cash_dividend_pct": 16.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.6,
+        "nav_per_share_taka": 25.72,
+        "revenue_crore": 851.0,
+        "operating_profit_crore": 100.2,
+        "operating_cash_flow_crore": 62.1,
+        "capex_crore": 98.0,
+        "total_debt_crore": 77.2,
+        "total_equity_crore": 594.2,
+        "total_assets_crore": 1464,
+        "cash_crore": 45.2,
+        "debt_to_equity": 0.13
+      },
+      {
+        "year": 2024,
+        "eps_taka": 2.26,
+        "net_profit_crore": 52.1,
+        "cash_dividend_pct": 20.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.0,
+        "nav_per_share_taka": 26.37,
+        "revenue_crore": 1070,
+        "operating_profit_crore": 186.2,
+        "operating_cash_flow_crore": -18.0,
+        "capex_crore": 44.9,
+        "total_debt_crore": 272.9,
+        "total_equity_crore": 609.0,
+        "total_assets_crore": 1893,
+        "cash_crore": 30.7,
+        "debt_to_equity": 0.45
+      },
+      {
+        "year": 2025,
+        "eps_taka": 4.1,
+        "net_profit_crore": 94.7,
+        "cash_dividend_pct": 21.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.1,
+        "nav_per_share_taka": 28.86,
+        "revenue_crore": 1254,
+        "operating_profit_crore": 239.9,
+        "operating_cash_flow_crore": 160.0,
+        "capex_crore": 21.7,
+        "total_debt_crore": 319.3,
+        "total_equity_crore": 666.7,
+        "total_assets_crore": 1940,
+        "cash_crore": 22.8,
+        "debt_to_equity": 0.48
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 4.1,
+      "net_profit_crore": 94.7,
+      "cash_dividend_pct": 21.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 2.1,
+      "nav_per_share_taka": 28.86,
+      "revenue_crore": 1254,
+      "operating_profit_crore": 239.9,
+      "operating_cash_flow_crore": 160.0,
+      "capex_crore": 21.7,
+      "total_debt_crore": 319.3,
+      "total_equity_crore": 666.7,
+      "total_assets_crore": 1940,
+      "cash_crore": 22.8,
+      "debt_to_equity": 0.48
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": 10.0,
+      "eps_change_pct": 10.0,
+      "revenue_change_pct": 76.0
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 23.1,
+      "paid_up_capital_crore": 231.0,
+      "reserve_surplus_crore": 435.7,
+      "total_loan_crore": 1008,
+      "listing_year": 2010
+    },
+    "ownership": {
+      "sponsor_director_pct": 39.86,
+      "govt_pct": 0.0,
+      "institute_pct": 38.15,
+      "foreign_pct": 0.0,
+      "public_pct": 21.99
+    }
+  },
+  "sector_context": {
+    "sector": "Pharmaceuticals & Chemicals",
+    "peer_count": 34,
+    "rank_in_sector": 7,
+    "sector_avg_score": 43.3,
+    "sector_median_pe": 29.9
+  },
+  "score": {
+    "trading_code": "BEACONPHAR",
+    "sector": "Pharmaceuticals & Chemicals",
+    "market_cat": "A",
+    "ltp": 112.2,
+    "mcap_mn": 25918.2,
+    "score": 66.2,
+    "base_score": 66.2,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 1.0,
+    "eps": 4.1,
+    "roe_pct": 14.2,
+    "sector_median_pe": 29.9,
+    "sector_median_pb": 1.53,
+    "p1_biz": 4.34,
+    "p2_health": 8.09,
+    "p3_moat": 8.5,
+    "p4_val": 5.57,
+    "p5_div": 7.74,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 1.2995,
+    "p1_roe": 5.1698,
+    "p1_npm_trend": 2.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 81.4,
+    "eps_stability": 0.4162,
+    "p2_de": 8.807099668870851,
+    "p2_ic": 10.0,
+    "p2_cfo": 8.0,
+    "p2_cash": 2.704602436355959,
+    "p2_coverage": 1.0,
+    "p3_margin": 10.0,
+    "p3_rev_vol": 7.0,
+    "p3_sector_rank": 7.0,
+    "p3_capex": 10.0,
+    "p3_coverage": 1.0,
+    "p4_pe": 8.85,
+    "p4_pb": 6.4,
+    "p4_vol_damp": 0.7081,
+    "current_pe": 27.37,
+    "current_pb": 3.89,
+    "own_avg_pe": 60.39,
+    "own_avg_pb": 6.89,
+    "p5_dps_cagr": 6.8959,
+    "p5_consist": 10.0,
+    "p5_yield": 5.307486631016043,
+    "div_yield_pct": 1.9,
+    "overall_rank": 34,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "good_wait_price",
+    "reason_en": "Good company — fine to hold, but wait for a cheaper price to buy.",
+    "reason_bn": "ভালো কোম্পানি — ধরে রাখা যায়, তবে কেনার জন্য আরেকটু কম দামের অপেক্ষা করুন।",
+    "tier": "good",
+    "momentum_grade": "flat",
+    "score": 66.2,
+    "p4_val": 5.57,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Currently cheap vs historical P/E",
+      "Sponsor holding 39.9% (strong alignment)"
+    ],
+    "red": [
+      "Total loan > 2× reserve surplus"
+    ]
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, but share is quiet",
+    "sentences": [
+      "The company's numbers are good, but the share has been quiet — the price is not moving much in either direction.",
+      "Has paid dividends regularly in past years.",
+      "The share price looks cheaper now than its average over the past few years."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": -0.88,
+    "rs_vs_dsex_pct": -2.94,
+    "volume_ratio": 1.08,
+    "avg_turnover_7d_mn": 60.85,
+    "up_days_7d": 3,
+    "days_counted": 7,
+    "pct_in_52w_range": 33.8,
+    "momentum_grade": "flat"
+  },
+  "financials": [
+    {
+      "trading_code": "BEACONPHAR",
+      "year": 2021,
+      "cash_dividend_pct": 15.0,
+      "dividend_yield_pct": 1.21,
+      "eps_basic": null,
+      "eps_cont_basic": 3.74,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 23.18,
+      "pe_ratio_basic": 33.08,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 863.17,
+      "profit_mn": 863.17,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 863.42,
+      "dps": 1.5,
+      "eps": 3.74
+    },
+    {
+      "year": 2022,
+      "trading_code": "BEACONPHAR",
+      "cash_dividend_pct": 16.0,
+      "dividend_yield_pct": 0.62,
+      "eps_basic": null,
+      "eps_cont_basic": 4.05,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 25.73,
+      "pe_ratio_basic": 63.81,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 935.04,
+      "profit_mn": 935.04,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 935.19,
+      "dps": 1.6,
+      "eps": 4.05
+    },
+    {
+      "trading_code": "BEACONPHAR",
+      "year": 2023,
+      "cash_dividend_pct": 16.0,
+      "dividend_yield_pct": 0.65,
+      "eps_basic": null,
+      "eps_cont_basic": 2.21,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 25.72,
+      "pe_ratio_basic": 111.01,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 509.84,
+      "profit_mn": 509.84,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 509.87,
+      "dps": 1.6,
+      "eps": 2.21
+    },
+    {
+      "year": 2024,
+      "trading_code": "BEACONPHAR",
+      "cash_dividend_pct": 20.0,
+      "dividend_yield_pct": 1.3,
+      "eps_basic": null,
+      "eps_cont_basic": 2.26,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 26.37,
+      "pe_ratio_basic": 68.19,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 521.01,
+      "profit_mn": 521.01,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 520.34,
+      "dps": 2.0,
+      "eps": 2.26
+    },
+    {
+      "trading_code": "BEACONPHAR",
+      "year": 2025,
+      "cash_dividend_pct": 21.0,
+      "dividend_yield_pct": 1.98,
+      "eps_basic": null,
+      "eps_cont_basic": 4.1,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 28.86,
+      "pe_ratio_basic": 25.85,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 946.51,
+      "profit_mn": 946.51,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 946.6,
+      "dps": 2.1,
+      "eps": 4.1
+    }
+  ],
+  "extended_financials": [
+    {
+      "year": 2021,
+      "trading_code": "BEACONPHAR",
+      "capex": -313408023.0,
+      "investing_cf": -713871341.0,
+      "net_profit": 863169294.0,
+      "nocfps": 0.85,
+      "operating_cf": 196557471.0,
+      "total_equity": 5355162953.0,
+      "ebit": 1421623726.0,
+      "intangibles": null,
+      "interest_expense": -166796221.0,
+      "revenue": 7121152785.0,
+      "total_assets": 8535571689.0,
+      "cash_and_equivalents": 337839512.0,
+      "earning_assets": null,
+      "gross_profit": 3686730252.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 387746624.0
+    },
+    {
+      "trading_code": "BEACONPHAR",
+      "year": 2022,
+      "capex": -1719241463.0,
+      "investing_cf": -1837764588.0,
+      "net_profit": 935036132.0,
+      "nocfps": 4.68,
+      "operating_cf": 1082175400.0,
+      "total_equity": 5943850487.0,
+      "ebit": 1681909542.0,
+      "intangibles": null,
+      "interest_expense": -339380959.0,
+      "revenue": 8022736306.0,
+      "total_assets": 10815897393.0,
+      "cash_and_equivalents": 538497391.0,
+      "earning_assets": null,
+      "gross_profit": 4146945032.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 197914365.0
+    },
+    {
+      "trading_code": "BEACONPHAR",
+      "year": 2023,
+      "capex": -980247766.0,
+      "investing_cf": -3964750619.0,
+      "net_profit": 509839579.0,
+      "nocfps": 2.69,
+      "operating_cf": 621176623.0,
+      "total_equity": 5942024057.0,
+      "ebit": 1001656873.0,
+      "intangibles": null,
+      "interest_expense": -464362814.0,
+      "revenue": 8509947615.0,
+      "total_assets": 14642107470.0,
+      "cash_and_equivalents": 452188479.0,
+      "earning_assets": null,
+      "gross_profit": 4288950633.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 772479013.0
+    },
+    {
+      "trading_code": "BEACONPHAR",
+      "year": 2024,
+      "capex": -449346655.0,
+      "investing_cf": -2366287608.0,
+      "net_profit": 521005605.0,
+      "nocfps": -0.78,
+      "operating_cf": -179632635.0,
+      "total_equity": 6090395149.0,
+      "ebit": 1862156429.0,
+      "intangibles": 27979681.0,
+      "interest_expense": -983912388.0,
+      "revenue": 10701688579.0,
+      "total_assets": 18931676383.0,
+      "cash_and_equivalents": 306952051.0,
+      "earning_assets": null,
+      "gross_profit": 5532772995.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 2728926258.0
+    },
+    {
+      "trading_code": "BEACONPHAR",
+      "year": 2025,
+      "capex": -217189696.0,
+      "cash_and_equivalents": 227866038.0,
+      "earning_assets": null,
+      "ebit": 2399216902.0,
+      "gross_profit": 6528105954.0,
+      "intangibles": 16526379.0,
+      "interest_expense": -1327236245.0,
+      "interest_income": null,
+      "investing_cf": -1016972047.0,
+      "net_interest_income": null,
+      "net_profit": 946511762.0,
+      "nocfps": 6.93,
+      "operating_cf": 1600027867.0,
+      "revenue": 12542717214.0,
+      "total_assets": 19403796488.0,
+      "total_debt": 3193098790.0,
+      "total_equity": 6667081042.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "BEACONPHAR",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 38.15,
+    "public_pct": 21.99,
+    "reporting_period": null,
+    "sponsor_director_pct": 39.86
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jun 30, 2025",
+    "trading_code": "BEACONPHAR",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 38.9,
+    "public_pct": 21.24,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 39.86
+  },
+  "dividend_declaration": {
+    "trading_code": "BEACONPHAR",
+    "declaration_date": "2025-10-23T00:00:00",
+    "dividend_pct": 21.0,
+    "dividend_type": "Final",
+    "record_date": "2025-11-16T00:00:00",
+    "scraped_at": "2026-07-16T10:02:49.433000",
+    "title": "BEACONPHAR: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-07-02T00:00:00",
+      "title": "BEACONPHAR: Appointment of Company Secretary",
+      "body": "The Company has informed that Mr. Md. Emroj Hossain will hold the Current Charge of the responsibilities of Company Secretary of the company with effect from July 01, 2026."
+    },
+    {
+      "title": "BEACONPHAR: Q3 Financials",
+      "post_date": "2026-04-28T00:00:00",
+      "body": "(Q3 Un-audited): EPS was Tk. 1.22 for January-March 2026 as against Tk. 0.28 for January-March 2025; EPS was Tk. 5.95 for July 2025-March 2026 as against Tk. 3.75 for July 2024-March 2025. NOCFPS was Tk. 9.45 for July 2025-March 2026 as against Tk. 5.45 for July 2024-March 2025. NAV per share was Tk. 33.55 as on March 31, 2026 and Tk. 28.86 as on June 30, 2025. (cont.)"
+    },
+    {
+      "post_date": "2026-04-21T00:00:00",
+      "title": "BEACONPHAR: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 27, 2026 at 3:00 pm to consider, among others, Un-Audited Financial Statements for the Third Quarter (Q3) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-01-29T00:00:00",
+      "title": "BEACONPHAR: Q2 Financials",
+      "body": "(Q2 Un-audited): EPS was Tk. 2.47 for October-December 2025 as against Tk. 1.91 for October-December 2024; EPS was Tk. 4.73 for July-December 2025 as against Tk. 3.47 for July-December 2024. NOCFPS was Tk. 6.57 for July-December 2025 as against Tk. 6.38 for July-December 2024. NAV per share was Tk. 32.32 as on December 31, 2025 and Tk. 28.86 as on June 30, 2025."
+    },
+    {
+      "post_date": "2026-01-25T00:00:00",
+      "title": "BEACONPHAR: Dividend Disbursement",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended June 30, 2025 to the respective shareholders."
+    },
+    {
+      "title": "BEACONPHAR: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-01-22T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 28, 2026 at 3:15 PM to consider, among others, un-audited financial statements of the Company for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "post_date": "2025-12-17T00:00:00",
+      "title": "BEACONPHAR: Appointment of Managing Director",
+      "body": "The Company has informed that Mr. Ulfat Karim, Existing Chief Operating Offer (COO) and Director has been appointed as Managing Director of the Company effective from December 14, 2025."
+    },
+    {
+      "post_date": "2025-11-20T00:00:00",
+      "title": "BEACONPHAR: Credit Rating Result",
+      "body": "Credit Rating Agency of Bangladesh Limited (CRAB) has announced the Surveillance rating of the Company as \"AA3\" in the long term and \"ST-2\" in the short term along with Stable outlook based on audited financial statements up to June 30, 2025; latest bank liability position and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "title": "BEACONPHAR: Resumption after Record Date",
+      "post_date": "2025-11-16T00:00:00",
+      "body": "Trading of the shares of the company will resume on 17.11.2025."
+    },
+    {
+      "post_date": "2025-11-13T00:00:00",
+      "title": "BEACONPHAR: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 16.11.2025."
+    },
+    {
+      "post_date": "2025-11-12T00:00:00",
+      "title": "BEACONPHAR: Q1 Financials",
+      "body": "(Q1 Un-audited): EPS was Tk. 2.26 for July-September 2025 as against Tk. 1.56 for July-September 2024. NOCFPS was Tk. 1.35 for July-September 2025 as against Tk. 2.96 for July-September 2024. NAV per share was Tk. 31.12 as on September 30, 2025 and Tk. 28.86 as on June 30, 2025."
+    },
+    {
+      "post_date": "2025-11-11T00:00:00",
+      "title": "BEACONPHAR: Spot News",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 12.11.2025 to 13.11.2025 and trading of the shares will remain suspended on record date i.e., 16.11.2025."
+    },
+    {
+      "title": "BEACONPHAR: Board Meeting schedule under LR 16(1)",
+      "post_date": "2025-11-06T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on November 11, 2025 at 3:00 PM to consider, among others, Un-audited financial statements of the Company for the First Quarter (Q1) period ended September 30, 2025."
+    },
+    {
+      "title": "BEACONPHAR: Dividend Declaration",
+      "post_date": "2025-10-23T00:00:00",
+      "body": "The Board of Directors has recommended 21% Cash Dividend to General Shareholders (excluding Sponsors and Directors) for the year ended June 30, 2025. The Sponsors and Directors hold 92,084,615 shares out of the total 231,000,000 shares of the company and Cash Dividend payable to the General Shareholders is Tk. 291,722,309.00. Date of AGM: 23.12.2025, Time: 11:00 AM, Venue/Mode: Hybrid Platform. Record Date: 16.11.2025. (cont.)"
+    },
+    {
+      "title": "BEACONPHAR: Price Limit Open",
+      "post_date": "2025-10-23T00:00:00",
+      "body": "There will be no price limit on the trading of the shares of the Company today (23.10.2025) following its corporate declaration."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "MARICO",
+      "company_name": "Marico Bangladesh Limited",
+      "sector": "Pharmaceuticals & Chemicals",
+      "score": 86.6,
+      "ltp": 2745.5,
+      "change_pct": 0.41,
+      "pe": 13.32,
+      "pb": 29.84,
+      "div_yield_pct": 7.6,
+      "roe_pct": 78.4,
+      "eps_yoy_pct": 9.9
+    },
+    {
+      "trading_code": "SQURPHARMA",
+      "company_name": "Square Pharmaceuticals PLC.",
+      "sector": "Pharmaceuticals & Chemicals",
+      "score": 81.7,
+      "ltp": 225.0,
+      "change_pct": 0.04,
+      "pe": 8.32,
+      "pb": 1.43,
+      "div_yield_pct": 5.3,
+      "roe_pct": 14.8,
+      "eps_yoy_pct": 14.5
+    },
+    {
+      "trading_code": "KOHINOOR",
+      "company_name": "Kohinoor Chemical Company (Bangladesh) PLC.",
+      "sector": "Pharmaceuticals & Chemicals",
+      "score": 76.9,
+      "ltp": 542.0,
+      "change_pct": 1.29,
+      "pe": 31.79,
+      "pb": 8.32,
+      "div_yield_pct": 1.2,
+      "roe_pct": 26.2,
+      "eps_yoy_pct": 12.8
+    },
+    {
+      "trading_code": "RECKITTBEN",
+      "company_name": "Reckitt Benckiser (Bangladesh) PLC",
+      "sector": "Pharmaceuticals & Chemicals",
+      "score": 73.8,
+      "ltp": 3329.8,
+      "change_pct": 0.26,
+      "pe": 19.26,
+      "pb": 17.75,
+      "div_yield_pct": 5.2,
+      "roe_pct": 45.4,
+      "eps_yoy_pct": 8.6
+    },
+    {
+      "trading_code": "ACMELAB",
+      "company_name": "The ACME Laboratories Limited",
+      "sector": "Pharmaceuticals & Chemicals",
+      "score": 73.2,
+      "ltp": 85.3,
+      "change_pct": -1.27,
+      "pe": 7.43,
+      "pb": 0.68,
+      "div_yield_pct": 4.1,
+      "roe_pct": 9.1,
+      "eps_yoy_pct": -1.1
+    }
+  ],
+  "source_hash": "61667c37049db7a0867ef772b5ad28776f7696c3ca4f259d0ab54c8fd18b9d14"
+}

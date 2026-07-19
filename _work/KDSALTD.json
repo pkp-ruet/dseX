@@ -1,0 +1,790 @@
+{
+  "trading_code": "KDSALTD",
+  "company_name": "KDS Accessories Limited",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Engineering",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 74741479,
+    "paid_up_capital_mn": 747.41,
+    "reserve_surplus_mn": 1203.4,
+    "total_loan_mn": 385.76,
+    "listing_year": 2015,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 53,
+    "change": 0.1,
+    "change_pct": 0.19,
+    "date": "2026-07-16",
+    "high": 53.6,
+    "low": 52.5,
+    "volume": 591588,
+    "avg_volume_7d": 946827,
+    "ycp": 52.9,
+    "w52_high": 54.4,
+    "w52_low": 37.5
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 8.2,
+      "m3": 9.5,
+      "m6": 30.2,
+      "y1": 21.6
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 39.6
+      },
+      {
+        "date": "2025-06-30",
+        "close": 39.5
+      },
+      {
+        "date": "2025-07-31",
+        "close": 40.2
+      },
+      {
+        "date": "2025-08-31",
+        "close": 45.8
+      },
+      {
+        "date": "2025-09-30",
+        "close": 47.7
+      },
+      {
+        "date": "2025-10-30",
+        "close": 42.2
+      },
+      {
+        "date": "2025-11-30",
+        "close": 41.5
+      },
+      {
+        "date": "2025-12-30",
+        "close": 41.0
+      },
+      {
+        "date": "2026-01-29",
+        "close": 40.5
+      },
+      {
+        "date": "2026-02-26",
+        "close": 42.4
+      },
+      {
+        "date": "2026-03-31",
+        "close": 39.5
+      },
+      {
+        "date": "2026-04-30",
+        "close": 45.9
+      },
+      {
+        "date": "2026-05-31",
+        "close": 49.6
+      },
+      {
+        "date": "2026-06-30",
+        "close": 53.2
+      },
+      {
+        "date": "2026-07-16",
+        "close": 53
+      }
+    ],
+    "pct_in_52w_range": 91.7
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 4.8
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 9.1
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 4.2
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Fairly priced",
+      "word_bn": "দাম যুক্তিসঙ্গত",
+      "score10": 6.3
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.8
+    }
+  ],
+  "fair_value": {
+    "low": 50.2,
+    "high": 75.3,
+    "center": 62.7,
+    "today": 53,
+    "stance": "fair",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 52.3
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 99.5
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 56.0
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 16.7
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 24.2,
+    "current_pb": 1.91,
+    "own_avg_pe": 23.9,
+    "own_avg_pb": 2.02,
+    "sector_median_pe": 45.45,
+    "sector_median_pb": 0.98,
+    "eps": 2.19,
+    "sector_implied_price": 99.54
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 2.2,
+        "net_profit_crore": 15.7,
+        "cash_dividend_pct": 15.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.5,
+        "nav_per_share_taka": 24.75,
+        "revenue_crore": 221.8,
+        "operating_profit_crore": 21.4,
+        "operating_cash_flow_crore": 46.9,
+        "capex_crore": 15.5,
+        "total_debt_crore": 4.63,
+        "total_equity_crore": 176.2,
+        "total_assets_crore": 376.2,
+        "cash_crore": 23.2,
+        "debt_to_equity": 0.03
+      },
+      {
+        "year": 2022,
+        "eps_taka": 2.33,
+        "net_profit_crore": 16.6,
+        "cash_dividend_pct": 16.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.6,
+        "nav_per_share_taka": 25.58,
+        "revenue_crore": 320.0,
+        "operating_profit_crore": 24.4,
+        "operating_cash_flow_crore": 63.9,
+        "capex_crore": 8.71,
+        "total_debt_crore": 10.2,
+        "total_equity_crore": 182.1,
+        "total_assets_crore": 464.8,
+        "cash_crore": 27.0,
+        "debt_to_equity": 0.06
+      },
+      {
+        "year": 2023,
+        "eps_taka": 2.15,
+        "net_profit_crore": 15.3,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 26.13,
+        "revenue_crore": 279.5,
+        "operating_profit_crore": 31.9,
+        "operating_cash_flow_crore": -63.8,
+        "capex_crore": 1.54,
+        "total_debt_crore": 8.26,
+        "total_equity_crore": 186.0,
+        "total_assets_crore": 437.9,
+        "cash_crore": 1.88,
+        "debt_to_equity": 0.04
+      },
+      {
+        "year": 2024,
+        "eps_taka": 2.16,
+        "net_profit_crore": 15.4,
+        "cash_dividend_pct": 5.0,
+        "stock_dividend_pct": 5,
+        "dps_taka": 0.5,
+        "nav_per_share_taka": 27.29,
+        "revenue_crore": 253.1,
+        "operating_profit_crore": 21.2,
+        "operating_cash_flow_crore": 81.0,
+        "capex_crore": 1.23,
+        "total_debt_crore": 5.38,
+        "total_equity_crore": 194.3,
+        "total_assets_crore": 403.3,
+        "cash_crore": 6.08,
+        "debt_to_equity": 0.03
+      },
+      {
+        "year": 2025,
+        "eps_taka": 2.19,
+        "net_profit_crore": 16.4,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 27.71,
+        "revenue_crore": 288.8,
+        "operating_profit_crore": 21.7,
+        "operating_cash_flow_crore": 16.3,
+        "capex_crore": 1.37,
+        "total_debt_crore": 2.78,
+        "total_equity_crore": 207.1,
+        "total_assets_crore": 465.8,
+        "cash_crore": 6.83,
+        "debt_to_equity": 0.01
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 2.19,
+      "net_profit_crore": 16.4,
+      "cash_dividend_pct": 10.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 1.0,
+      "nav_per_share_taka": 27.71,
+      "revenue_crore": 288.8,
+      "operating_profit_crore": 21.7,
+      "operating_cash_flow_crore": 16.3,
+      "capex_crore": 1.37,
+      "total_debt_crore": 2.78,
+      "total_equity_crore": 207.1,
+      "total_assets_crore": 465.8,
+      "cash_crore": 6.83,
+      "debt_to_equity": 0.01
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": 4.0,
+      "eps_change_pct": -0.0,
+      "revenue_change_pct": 30.0
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 7.47,
+      "paid_up_capital_crore": 74.7,
+      "reserve_surplus_crore": 120.3,
+      "total_loan_crore": 38.6,
+      "listing_year": 2015
+    },
+    "ownership": {
+      "sponsor_director_pct": 63.97,
+      "govt_pct": 0.0,
+      "institute_pct": 11.63,
+      "foreign_pct": 0.0,
+      "public_pct": 24.4
+    }
+  },
+  "sector_context": {
+    "sector": "Engineering",
+    "peer_count": 42,
+    "rank_in_sector": 4,
+    "sector_avg_score": 31.6,
+    "sector_median_pe": 45.45
+  },
+  "score": {
+    "trading_code": "KDSALTD",
+    "sector": "Engineering",
+    "market_cat": "A",
+    "ltp": 53.0,
+    "mcap_mn": 3961.298387,
+    "score": 59.2,
+    "base_score": 59.2,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 1.0,
+    "eps": 2.19,
+    "roe_pct": 7.9,
+    "sector_median_pe": 45.45,
+    "sector_median_pb": 0.98,
+    "p1_biz": 4.81,
+    "p2_health": 9.11,
+    "p3_moat": 4.2,
+    "p4_val": 6.28,
+    "p5_div": 5.8,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 2.0,
+    "p1_roe": 4.0485,
+    "p1_npm_trend": 5.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 1.4,
+    "eps_stability": 1.0,
+    "p2_de": 10.0,
+    "p2_ic": 10.0,
+    "p2_cfo": 10.0,
+    "p2_cash": 2.879940852743527,
+    "p2_coverage": 1.0,
+    "p3_margin": 7.0,
+    "p3_rev_vol": 1.0,
+    "p3_sector_rank": 5.0,
+    "p3_capex": 3.0,
+    "p3_coverage": 1.0,
+    "p4_pe": 7.53,
+    "p4_pb": 4.42,
+    "p4_vol_damp": 1.0,
+    "current_pe": 24.2,
+    "current_pb": 1.91,
+    "own_avg_pe": 23.9,
+    "own_avg_pb": 2.02,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 5.330188679245283,
+    "div_yield_pct": 1.9,
+    "overall_rank": 64,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "average_fundamentals",
+    "reason_en": "An average company — no strong reason to buy or sell.",
+    "reason_bn": "মাঝারি মানের কোম্পানি — কেনা বা বেচার জোরালো কারণ নেই।",
+    "tier": "average",
+    "momentum_grade": "flat",
+    "score": 59.2,
+    "p4_val": 6.28,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 64.0% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Average",
+    "tagline": "Average company, very little trading",
+    "sentences": [
+      "The company's profits and balance sheet are average — not strong, not weak. The share price is also quiet, not moving much in either direction. There is no clear reason to buy or sell — better to wait and watch."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": -0.19,
+    "rs_vs_dsex_pct": -2.25,
+    "volume_ratio": 0.8,
+    "avg_turnover_7d_mn": 47.75,
+    "up_days_7d": 4,
+    "days_counted": 7,
+    "pct_in_52w_range": 91.7,
+    "momentum_grade": "flat"
+  },
+  "financials": [
+    {
+      "trading_code": "KDSALTD",
+      "year": 2021,
+      "cash_dividend_pct": 15.0,
+      "dividend_yield_pct": 3.04,
+      "eps_basic": null,
+      "eps_cont_basic": 2.2,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 24.75,
+      "pe_ratio_basic": 22.41,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 156.95,
+      "profit_mn": 156.95,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 156.95,
+      "dps": 1.5,
+      "eps": 2.2
+    },
+    {
+      "trading_code": "KDSALTD",
+      "year": 2022,
+      "cash_dividend_pct": 16.0,
+      "dividend_yield_pct": 2.67,
+      "eps_basic": null,
+      "eps_cont_basic": 2.33,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 25.58,
+      "pe_ratio_basic": 25.77,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 165.73,
+      "profit_mn": 165.73,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 165.73,
+      "dps": 1.6,
+      "eps": 2.33
+    },
+    {
+      "trading_code": "KDSALTD",
+      "year": 2023,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 1.3,
+      "eps_basic": null,
+      "eps_cont_basic": 2.15,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 26.13,
+      "pe_ratio_basic": 35.76,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 153.25,
+      "profit_mn": 153.25,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 153.25,
+      "dps": 1.0,
+      "eps": 2.15
+    },
+    {
+      "trading_code": "KDSALTD",
+      "year": 2024,
+      "cash_dividend_pct": 5.0,
+      "dividend_yield_pct": 1.32,
+      "eps_basic": null,
+      "eps_cont_basic": 2.16,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 27.29,
+      "pe_ratio_basic": 17.55,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 153.76,
+      "profit_mn": 153.76,
+      "stock_dividend_pct": 5,
+      "total_comprehensive_income_mn": 153.76,
+      "dps": 0.5,
+      "eps": 2.16
+    },
+    {
+      "year": 2025,
+      "trading_code": "KDSALTD",
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 2.53,
+      "eps_basic": null,
+      "eps_cont_basic": 2.19,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 27.71,
+      "pe_ratio_basic": 18.03,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 163.75,
+      "profit_mn": 163.75,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 163.75,
+      "dps": 1.0,
+      "eps": 2.19
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "KDSALTD",
+      "year": 2021,
+      "capex": -154890122.0,
+      "investing_cf": -149058318.0,
+      "net_profit": 156945148.0,
+      "nocfps": 6.58,
+      "operating_cf": 468631445.0,
+      "total_equity": 1761810181.0,
+      "ebit": 213800776.0,
+      "intangibles": 381561.0,
+      "interest_expense": -22005402.0,
+      "revenue": 2217942652.0,
+      "total_assets": 3761638857.0,
+      "cash_and_equivalents": 232483367.0,
+      "earning_assets": 4614503.0,
+      "gross_profit": 424624094.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 46313895.0
+    },
+    {
+      "year": 2022,
+      "trading_code": "KDSALTD",
+      "capex": -87113736.0,
+      "investing_cf": -83045982.0,
+      "net_profit": 165725402.0,
+      "nocfps": 8.97,
+      "operating_cf": 638661525.0,
+      "total_equity": 1820762043.0,
+      "ebit": 243883330.0,
+      "intangibles": 94880.0,
+      "interest_expense": -2260346.0,
+      "revenue": 3199681329.0,
+      "total_assets": 4647796044.0,
+      "cash_and_equivalents": 270139607.0,
+      "earning_assets": 4880832.0,
+      "gross_profit": 496703842.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 101676544.0
+    },
+    {
+      "trading_code": "KDSALTD",
+      "year": 2023,
+      "capex": -15371140.0,
+      "investing_cf": -16024116.0,
+      "net_profit": 153252545.0,
+      "nocfps": -8.97,
+      "operating_cf": -638250717.0,
+      "total_equity": 1860122810.0,
+      "ebit": 318579540.0,
+      "intangibles": 438520.0,
+      "interest_expense": -10871908.0,
+      "revenue": 2794569748.0,
+      "total_assets": 4379258993.0,
+      "cash_and_equivalents": 18840442.0,
+      "earning_assets": 5013936.0,
+      "gross_profit": 555024234.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 82556471.0
+    },
+    {
+      "trading_code": "KDSALTD",
+      "year": 2024,
+      "capex": -12282772.0,
+      "investing_cf": -9525503.0,
+      "net_profit": 153759685.0,
+      "nocfps": 11.38,
+      "operating_cf": 810026512.0,
+      "total_equity": 1942700136.0,
+      "ebit": 211644858.0,
+      "intangibles": 283750.0,
+      "interest_expense": -8157610.0,
+      "revenue": 2530678096.0,
+      "total_assets": 4032636332.0,
+      "cash_and_equivalents": 60847460.0,
+      "earning_assets": 1441455.0,
+      "gross_profit": 458228136.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 53773284.0
+    },
+    {
+      "trading_code": "KDSALTD",
+      "year": 2025,
+      "capex": -13727979.0,
+      "cash_and_equivalents": 68313634.0,
+      "earning_assets": 1535192.0,
+      "ebit": 217415423.0,
+      "gross_profit": 496448581.0,
+      "intangibles": 128981.0,
+      "interest_expense": 17349794.0,
+      "interest_income": null,
+      "investing_cf": -13226907.0,
+      "net_interest_income": null,
+      "net_profit": 163746486.0,
+      "nocfps": 2.19,
+      "operating_cf": 163318046.0,
+      "revenue": 2888158169.0,
+      "total_assets": 4658060854.0,
+      "total_debt": 27758020.0,
+      "total_equity": 2070855441.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "KDSALTD",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 11.63,
+    "public_pct": 24.4,
+    "reporting_period": null,
+    "sponsor_director_pct": 63.97
+  },
+  "shareholding_prev": {
+    "trading_code": "KDSALTD",
+    "as_of_date": "Jun 30, 2025",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 14.8,
+    "public_pct": 21.23,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 63.97
+  },
+  "dividend_declaration": {
+    "trading_code": "KDSALTD",
+    "declaration_date": "2025-10-22T00:00:00",
+    "dividend_pct": 10.0,
+    "dividend_type": "Final",
+    "record_date": "2025-11-13T00:00:00",
+    "scraped_at": "2026-07-16T10:22:12.140000",
+    "title": "KDSALTD: Dividend Declaration"
+  },
+  "news": [
+    {
+      "title": "KDSALTD: Q3 Financials",
+      "post_date": "2026-04-30T00:00:00",
+      "body": "(Q3 Un-audited): EPS was Tk. 0.52 for January-March 2026 as against Tk. 0.51 for January-March 2025; EPS was Tk. 1.52 for July 2025-March 2026 as against Tk. 1.56 for July 2024-March 2025. NOCFPS was Tk. (0.96) for July 2025-March 2026 as against Tk. 3.30 for July 2024-March 2025. NAV per share was Tk. 28.23 as on March 31, 2026 and Tk. 27.71 as on June 30, 2025. (cont.1)"
+    },
+    {
+      "post_date": "2026-04-26T00:00:00",
+      "title": "KDSALTD: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 29, 2026 at 3:30 pm to consider, among others, Un-Audited Financial Statements for the Third Quarter (Q3) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-02-01T00:00:00",
+      "title": "KDSALTD: Q2 Financials",
+      "body": "(Q2 Un-audited): EPS was Tk. 0.45 for October-December 2025 as against Tk. 0.49 for October-December 2024; EPS was Tk. 1.00 for July-December 2025 as against Tk. 1.05 for July-December 2024. NOCFPS was Tk. 0.25 for July-December 2025 as against Tk. 2.32 for July-December 2024. NAV per share was Tk. 27.70 as on December 31, 2025 and Tk. 27.71 as on June 30, 2025."
+    },
+    {
+      "post_date": "2026-01-25T00:00:00",
+      "title": "KDSALTD: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 29, 2026 at 3:30 PM to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "title": "KDSALTD: Dividend Disbursement",
+      "post_date": "2026-01-07T00:00:00",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended June 30, 2025 to the respective shareholders."
+    },
+    {
+      "title": "KDSALTD: Credit Rating Result",
+      "post_date": "2025-11-16T00:00:00",
+      "body": "Credit Rating Information and Services Limited (CRISL) has assigned rating of the Company as \"AA-\" in the long term and \"ST-2\" in the short term along with a Stable outlook in consideration of its audited financials up to June 30, 2025 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "title": "KDSALTD: Q1 Financials",
+      "post_date": "2025-11-13T00:00:00",
+      "body": "(Q1 Un-audited): EPS was Tk. 0.55 for July-September 2025 as against Tk. 0.56 for July-September 2024. NOCFPS was Tk. 1.05 for July-September 2025 as against Tk. 0.12 for July-September 2024. NAV per share was Tk. 28.26 as on September 30, 2025 and Tk. 27.71 as on June 30, 2025."
+    },
+    {
+      "post_date": "2025-11-13T00:00:00",
+      "title": "KDSALTD: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 16.11.2025."
+    },
+    {
+      "title": "KDSALTD: Suspension for Record Date",
+      "post_date": "2025-11-12T00:00:00",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 13.11.2025."
+    },
+    {
+      "title": "KDSALTD: Spot News",
+      "post_date": "2025-11-10T00:00:00",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 11.11.2025 to 12.11.2025 and trading of the shares will remain suspended on record date i.e., 13.11.2025."
+    },
+    {
+      "post_date": "2025-11-06T00:00:00",
+      "title": "KDSALTD: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on November 12, 2025 at 4:00 PM to consider, among others, un-audited financial statements of the Company for the First Quarter (Q1) period ended September 30, 2025."
+    },
+    {
+      "title": "KDSALTD: Dividend Declaration",
+      "post_date": "2025-10-22T00:00:00",
+      "body": "The Board of Directors has recommended 10% Cash Dividend for the year ended June 30, 2025. Date of AGM: 10.12.2025, Time: 11:00 AM, Venue: Digital Platform. Record Date: 13.11.2025. The Company has also reported EPS of Tk. 2.19, NAV per share of Tk. 27.71 and NOCFPS of Tk. 2.19 for the year ended June 30, 2025 as against EPS of Tk. 2.06, NAV per share of Tk. 27.29 and NOCFPS of Tk. 11.38 for the year ended June 30, 2024."
+    },
+    {
+      "title": "KDSALTD: Price Limit Open",
+      "post_date": "2025-10-22T00:00:00",
+      "body": "There will be no price limit on the trading of the shares of the Company today (22.10.2025) following its corporate declaration."
+    },
+    {
+      "title": "KDSALTD: Board Meeting schedule under LR 19(1)",
+      "post_date": "2025-10-13T00:00:00",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on October 21, 2025 at 4:00 PM to consider, among others, audited financial statements of the Company for the year ended June 30, 2025."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "WALTONHIL",
+      "company_name": "Walton Hi-Tech Industries PLC",
+      "sector": "Engineering",
+      "score": 68.3,
+      "ltp": 404.5,
+      "change_pct": -0.32,
+      "pe": 11.82,
+      "pb": 1.01,
+      "div_yield_pct": 4.3,
+      "roe_pct": 8.6,
+      "eps_yoy_pct": -23.6
+    },
+    {
+      "trading_code": "BSRMSTEEL",
+      "company_name": "BSRM Steels Limited",
+      "sector": "Engineering",
+      "score": 67.9,
+      "ltp": 99.0,
+      "change_pct": -1.79,
+      "pe": 7.19,
+      "pb": 1.09,
+      "div_yield_pct": 5.1,
+      "roe_pct": 15.2,
+      "eps_yoy_pct": 36.3
+    },
+    {
+      "trading_code": "BSRMLTD",
+      "company_name": "Bangladesh Steel Re-Rolling Mills Limited",
+      "sector": "Engineering",
+      "score": 59.8,
+      "ltp": 109.4,
+      "change_pct": -3.36,
+      "pe": 5.32,
+      "pb": 0.66,
+      "div_yield_pct": 4.6,
+      "roe_pct": 12.3,
+      "eps_yoy_pct": 42.1
+    },
+    {
+      "trading_code": "RANFOUNDRY",
+      "company_name": "Rangpur Foundry Ltd.",
+      "sector": "Engineering",
+      "score": 59.0,
+      "ltp": 168.5,
+      "change_pct": -1.52,
+      "pe": 43.65,
+      "pb": 4.8,
+      "div_yield_pct": 1.4,
+      "roe_pct": 11.0,
+      "eps_yoy_pct": 2.1
+    },
+    {
+      "trading_code": "BENGALWTL",
+      "company_name": "Bengal Windsor Thermoplastics PLC.",
+      "sector": "Engineering",
+      "score": 53.4,
+      "ltp": 25.0,
+      "change_pct": -0.4,
+      "pe": 45.45,
+      "pb": 0.96,
+      "div_yield_pct": 2.0,
+      "roe_pct": 2.1,
+      "eps_yoy_pct": 3.8
+    }
+  ],
+  "source_hash": "f4ed6b373ed867fea0d70a43420347b056177d0c1b4fb6acd6f64ade232820ce"
+}

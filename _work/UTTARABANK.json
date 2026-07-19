@@ -1,0 +1,791 @@
+{
+  "trading_code": "UTTARABANK",
+  "company_name": "Uttara Bank PLC.",
+  "sector_class": "BANK",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Bank",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 1212836090,
+    "paid_up_capital_mn": 12128.36,
+    "reserve_surplus_mn": 18871.6,
+    "total_loan_mn": 1684.05,
+    "listing_year": 1984,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 21.4,
+    "change": 0,
+    "change_pct": 0.0,
+    "date": "2026-07-16",
+    "high": 21.5,
+    "low": 21.3,
+    "volume": 3627416,
+    "avg_volume_7d": 3011082,
+    "ycp": 21.4,
+    "w52_high": 26.2,
+    "w52_low": 20.7
+  },
+  "price_trend": {
+    "returns": {
+      "m1": -0.9,
+      "m3": -14.4,
+      "m6": -10.1,
+      "y1": -0.9
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 20.3
+      },
+      {
+        "date": "2025-06-30",
+        "close": 21.2
+      },
+      {
+        "date": "2025-07-31",
+        "close": 21.8
+      },
+      {
+        "date": "2025-08-31",
+        "close": 21.3
+      },
+      {
+        "date": "2025-09-30",
+        "close": 21.5
+      },
+      {
+        "date": "2025-10-30",
+        "close": 21.4
+      },
+      {
+        "date": "2025-11-30",
+        "close": 21.4
+      },
+      {
+        "date": "2025-12-30",
+        "close": 22.8
+      },
+      {
+        "date": "2026-01-29",
+        "close": 24.5
+      },
+      {
+        "date": "2026-02-26",
+        "close": 26.2
+      },
+      {
+        "date": "2026-03-31",
+        "close": 25.0
+      },
+      {
+        "date": "2026-04-30",
+        "close": 25.5
+      },
+      {
+        "date": "2026-05-31",
+        "close": 21
+      },
+      {
+        "date": "2026-06-30",
+        "close": 21.8
+      },
+      {
+        "date": "2026-07-16",
+        "close": 21.4
+      }
+    ],
+    "pct_in_52w_range": 12.7
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 9.4
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.6
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.1
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Good value",
+      "word_bn": "দাম সস্তা",
+      "score10": 8.3
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.9
+    }
+  ],
+  "fair_value": {
+    "low": 17.7,
+    "high": 26.6,
+    "center": 22.2,
+    "today": 21.4,
+    "stance": "fair",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 30.2
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 33.9
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 23.3
+      },
+      {
+        "name": "book_peer",
+        "label_en": "Priced like similar companies (assets)",
+        "price": 17.6
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 8.33
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 3.52,
+    "current_pb": 0.67,
+    "own_avg_pe": 4.96,
+    "own_avg_pb": 0.73,
+    "sector_median_pe": 5.57,
+    "sector_median_pb": 0.55,
+    "eps": 6.08,
+    "sector_implied_price": 33.87
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2020,
+        "eps_taka": 4.28,
+        "net_profit_crore": 214.7,
+        "cash_dividend_pct": 12.5,
+        "stock_dividend_pct": 12.5,
+        "dps_taka": 1.25,
+        "nav_per_share_taka": 34.79
+      },
+      {
+        "year": 2021,
+        "eps_taka": 3.93,
+        "net_profit_crore": 222.0,
+        "cash_dividend_pct": 14.0,
+        "stock_dividend_pct": 14,
+        "dps_taka": 1.4,
+        "nav_per_share_taka": 32.83,
+        "revenue_crore": null,
+        "operating_profit_crore": 471.6,
+        "operating_cash_flow_crore": 85.0,
+        "capex_crore": 14.0,
+        "total_debt_crore": 196.4,
+        "total_equity_crore": 1854,
+        "total_assets_crore": 24003,
+        "cash_crore": null,
+        "debt_to_equity": 0.11
+      },
+      {
+        "year": 2022,
+        "eps_taka": 4.2,
+        "net_profit_crore": 270.6,
+        "cash_dividend_pct": 14.0,
+        "stock_dividend_pct": 14,
+        "dps_taka": 1.4,
+        "nav_per_share_taka": 31.79,
+        "revenue_crore": null,
+        "operating_profit_crore": 603.9,
+        "operating_cash_flow_crore": 96.6,
+        "capex_crore": 15.5,
+        "total_debt_crore": 186.4,
+        "total_equity_crore": 2047,
+        "total_assets_crore": 24615,
+        "cash_crore": null,
+        "debt_to_equity": 0.09
+      },
+      {
+        "year": 2023,
+        "eps_taka": 4.32,
+        "net_profit_crore": 317.3,
+        "cash_dividend_pct": 17.5,
+        "stock_dividend_pct": 12.5,
+        "dps_taka": 1.75,
+        "nav_per_share_taka": 31.04,
+        "revenue_crore": null,
+        "operating_profit_crore": 692.8,
+        "operating_cash_flow_crore": 110.4,
+        "capex_crore": 19.2,
+        "total_debt_crore": 299.5,
+        "total_equity_crore": 2278,
+        "total_assets_crore": 26366,
+        "cash_crore": null,
+        "debt_to_equity": 0.13
+      },
+      {
+        "year": 2024,
+        "eps_taka": 5.79,
+        "net_profit_crore": 478.4,
+        "cash_dividend_pct": 17.5,
+        "stock_dividend_pct": 17.5,
+        "dps_taka": 1.75,
+        "nav_per_share_taka": 32.07,
+        "revenue_crore": null,
+        "operating_profit_crore": 1099,
+        "operating_cash_flow_crore": 70.6,
+        "capex_crore": 60.1,
+        "total_debt_crore": 202.1,
+        "total_equity_crore": 2648,
+        "total_assets_crore": 28146,
+        "cash_crore": null,
+        "debt_to_equity": 0.08
+      },
+      {
+        "year": 2025,
+        "eps_taka": 6.08,
+        "net_profit_crore": 589.7,
+        "cash_dividend_pct": 5.0,
+        "stock_dividend_pct": 25,
+        "dps_taka": 0.5,
+        "nav_per_share_taka": 31.95
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 6.08,
+      "net_profit_crore": 589.7,
+      "cash_dividend_pct": 5.0,
+      "stock_dividend_pct": 25,
+      "dps_taka": 0.5,
+      "nav_per_share_taka": 31.95
+    },
+    "growth": {
+      "span": "2020–2025",
+      "net_profit_change_pct": 175.0,
+      "eps_change_pct": 42.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 121.3,
+      "paid_up_capital_crore": 1213,
+      "reserve_surplus_crore": 1887,
+      "total_loan_crore": 168.4,
+      "listing_year": 1984
+    },
+    "ownership": {
+      "sponsor_director_pct": 28.11,
+      "govt_pct": 0.0,
+      "institute_pct": 25.98,
+      "foreign_pct": 0.93,
+      "public_pct": 44.98
+    }
+  },
+  "sector_context": {
+    "sector": "Bank",
+    "peer_count": 36,
+    "rank_in_sector": 2,
+    "sector_avg_score": 42.9,
+    "sector_median_pe": 5.57
+  },
+  "score": {
+    "trading_code": "UTTARABANK",
+    "sector": "Bank",
+    "market_cat": "A",
+    "ltp": 21.4,
+    "mcap_mn": 25954.692326,
+    "score": 78.8,
+    "base_score": 78.8,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 1.0,
+    "eps": 6.08,
+    "roe_pct": 34.2,
+    "sector_median_pe": 5.57,
+    "sector_median_pb": 0.55,
+    "p1_biz": 9.38,
+    "p2_health": 8.57,
+    "p3_moat": 6.1,
+    "p4_val": 8.28,
+    "p5_div": 5.9,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 7.9489,
+    "p1_roe": 10.0,
+    "p1_npm_trend": 10.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 5.0,
+    "eps_stability": 1.0,
+    "p2_de": 10.0,
+    "p2_ic": 10.0,
+    "p2_cfo": 6.0,
+    "p2_cash": null,
+    "p2_coverage": 1.0,
+    "p3_margin": 7.0,
+    "p3_rev_vol": 4.0,
+    "p3_sector_rank": 7.0,
+    "p3_capex": 7.0,
+    "p3_coverage": 1.0,
+    "p4_pe": 9.93,
+    "p4_pb": 5.81,
+    "p4_vol_damp": 1.0,
+    "current_pe": 3.52,
+    "current_pb": 0.67,
+    "own_avg_pe": 4.96,
+    "own_avg_pb": 0.73,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 6.004672897196262,
+    "div_yield_pct": 2.3,
+    "overall_rank": 8,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "buy",
+    "reason_key": "quality_cheap",
+    "reason_en": "Strong company and the price looks cheap right now.",
+    "reason_bn": "শক্তিশালী কোম্পানি, দামও এখন তুলনামূলক সস্তা।",
+    "tier": "excellent",
+    "momentum_grade": "flat",
+    "score": 78.8,
+    "p4_val": 8.28,
+    "strength": "strong"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Currently cheap vs historical P/E"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Excellent",
+    "tagline": "Strong company, but market hasn't noticed yet",
+    "sentences": [
+      "The company has strong profits and a healthy balance sheet, but the share price has not moved for weeks — the market has not noticed it yet.",
+      "The share price looks cheaper now than its average over the past few years.",
+      "Price is close to the lowest level of the past year — may be a good time to buy slowly."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": -1.38,
+    "rs_vs_dsex_pct": -3.44,
+    "volume_ratio": 1.29,
+    "avg_turnover_7d_mn": 70.22,
+    "up_days_7d": 1,
+    "days_counted": 7,
+    "pct_in_52w_range": 12.7,
+    "momentum_grade": "flat"
+  },
+  "financials": [
+    {
+      "trading_code": "UTTARABANK",
+      "year": 2020,
+      "cash_dividend_pct": 12.5,
+      "dividend_yield_pct": 5.21,
+      "eps_basic": null,
+      "eps_cont_basic": 4.28,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 34.79,
+      "pe_ratio_basic": 5.61,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 2146.57,
+      "profit_mn": 2146.57,
+      "stock_dividend_pct": 12.5,
+      "total_comprehensive_income_mn": 2146.57,
+      "dps": 1.25,
+      "eps": 4.28
+    },
+    {
+      "trading_code": "UTTARABANK",
+      "year": 2021,
+      "cash_dividend_pct": 14.0,
+      "dividend_yield_pct": 5.49,
+      "eps_basic": null,
+      "eps_cont_basic": 3.93,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 32.83,
+      "pe_ratio_basic": 6.49,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 2219.81,
+      "profit_mn": 2219.81,
+      "stock_dividend_pct": 14,
+      "total_comprehensive_income_mn": 2219.81,
+      "dps": 1.4,
+      "eps": 3.93
+    },
+    {
+      "year": 2022,
+      "trading_code": "UTTARABANK",
+      "cash_dividend_pct": 14.0,
+      "dividend_yield_pct": 6.01,
+      "eps_basic": null,
+      "eps_cont_basic": 4.2,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 31.79,
+      "pe_ratio_basic": 5.54,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 2706.45,
+      "profit_mn": 2706.45,
+      "stock_dividend_pct": 14,
+      "total_comprehensive_income_mn": 2706.45,
+      "dps": 1.4,
+      "eps": 4.2
+    },
+    {
+      "trading_code": "UTTARABANK",
+      "year": 2023,
+      "cash_dividend_pct": 17.5,
+      "dividend_yield_pct": 7.85,
+      "eps_basic": null,
+      "eps_cont_basic": 4.32,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 31.04,
+      "pe_ratio_basic": 5.16,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 3172.85,
+      "profit_mn": 3172.85,
+      "stock_dividend_pct": 12.5,
+      "total_comprehensive_income_mn": 3172.85,
+      "dps": 1.75,
+      "eps": 4.32
+    },
+    {
+      "trading_code": "UTTARABANK",
+      "year": 2024,
+      "cash_dividend_pct": 17.5,
+      "dividend_yield_pct": 7.81,
+      "eps_basic": null,
+      "eps_cont_basic": 5.79,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 32.07,
+      "pe_ratio_basic": 3.87,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 4784.34,
+      "profit_mn": 4784.34,
+      "stock_dividend_pct": 17.5,
+      "total_comprehensive_income_mn": 4784.34,
+      "dps": 1.75,
+      "eps": 5.79
+    },
+    {
+      "trading_code": "UTTARABANK",
+      "year": 2025,
+      "cash_dividend_pct": 5.0,
+      "dividend_yield_pct": 2.19,
+      "dps": 0.5,
+      "eps_basic": null,
+      "eps_cont_basic": 6.08,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 31.95,
+      "pe_ratio_basic": 3.75,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 5897.28,
+      "profit_mn": 5897.28,
+      "stock_dividend_pct": 25,
+      "total_comprehensive_income_mn": 5897.28,
+      "eps": 6.08
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "UTTARABANK",
+      "year": 2021,
+      "capex": 140492985.0,
+      "investing_cf": -5912587200.0,
+      "net_profit": 3858968922.0,
+      "nocfps": null,
+      "operating_cf": 850448125.0,
+      "total_equity": 18538158200.0,
+      "ebit": 4715945174.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 240034164845.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 206833892077.0,
+      "gross_profit": null,
+      "interest_income": 11488991137.0,
+      "net_interest_income": 5595714160.0,
+      "total_debt": 1964438423.0
+    },
+    {
+      "trading_code": "UTTARABANK",
+      "year": 2022,
+      "capex": -155015721.0,
+      "investing_cf": 2969199180.0,
+      "net_profit": 5111849652.0,
+      "nocfps": null,
+      "operating_cf": 966486106.0,
+      "total_equity": 20465580252.0,
+      "ebit": 6038849652.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 246147103650.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 209442218633.0,
+      "gross_profit": null,
+      "interest_income": 12779342195.0,
+      "net_interest_income": 6800141862.0,
+      "total_debt": 1864216005.0
+    },
+    {
+      "trading_code": "UTTARABANK",
+      "year": 2023,
+      "capex": -192285665.0,
+      "investing_cf": 5976703114.0,
+      "net_profit": 5999574587.0,
+      "nocfps": null,
+      "operating_cf": 1104341033.0,
+      "total_equity": 22781094778.0,
+      "ebit": 6927574587.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 263662175782.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 225309439656.0,
+      "gross_profit": null,
+      "interest_income": 14579085475.0,
+      "net_interest_income": 7900679913.0,
+      "total_debt": 2995201019.0
+    },
+    {
+      "trading_code": "UTTARABANK",
+      "year": 2024,
+      "capex": -600961906.0,
+      "investing_cf": 159866503.0,
+      "net_profit": 9061017450.0,
+      "nocfps": null,
+      "operating_cf": 706358895.0,
+      "total_equity": 26481168229.0,
+      "ebit": 10988686663.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 281464855475.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 243515365448.0,
+      "gross_profit": null,
+      "interest_income": 20215343797.0,
+      "net_interest_income": 11897929492.0,
+      "total_debt": 2021411426.0
+    }
+  ],
+  "shareholding": {
+    "trading_code": "UTTARABANK",
+    "as_of_date": "Mar 31, 2026",
+    "foreign_pct": 0.93,
+    "govt_pct": 0.0,
+    "institute_pct": 25.98,
+    "public_pct": 44.98,
+    "reporting_period": null,
+    "sponsor_director_pct": 28.11
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jan 31, 2026",
+    "trading_code": "UTTARABANK",
+    "foreign_pct": 0.84,
+    "govt_pct": 0.0,
+    "institute_pct": 25.39,
+    "public_pct": 45.66,
+    "reporting_period": null,
+    "sponsor_director_pct": 28.11
+  },
+  "dividend_declaration": {
+    "trading_code": "UTTARABANK",
+    "declaration_date": "2026-05-06T00:00:00",
+    "dividend_pct": 2.42,
+    "dividend_type": "Final",
+    "record_date": null,
+    "scraped_at": "2026-07-16T10:52:49.619000",
+    "title": "UTTARABANK: No BSEC Approval Required for Stock Dividend Declaration"
+  },
+  "news": [
+    {
+      "title": "UTTARABANK: Dividend Disbursement",
+      "post_date": "2026-07-13T00:00:00",
+      "body": "The Company has informed that it has credited the Bonus Shares to the respective shareholders' BO Accounts and it has also disbursed the Cash Dividend to the respective shareholders for the year ended December 31, 2025."
+    },
+    {
+      "post_date": "2026-07-02T00:00:00",
+      "title": "UTTARABANK: Credit Rating Result",
+      "body": "Credit Rating Agency of Bangladesh Limited (CRAB) has announced the rating of the Company as \"AA1\" in the long term and \"ST-2\" for short term along with a Stable outlook based on audited financial statements as of December 31, 2025 and other relevant quantitative as well as qualitative information up to the date of rating."
+    },
+    {
+      "post_date": "2026-06-02T00:00:00",
+      "title": "UTTARABANK: Emphasis of Matter",
+      "body": "The auditor of the company has given the Emphasis of Matter paragraph in the auditor's report for the year ended December 31, 2025. To view the details, please visit: https://www.dsebd.org/Auditors_opinion/2025/Uttara%20Bank%20plc25.pdf"
+    },
+    {
+      "post_date": "2026-05-20T00:00:00",
+      "title": "UTTARABANK: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 21.05.2026."
+    },
+    {
+      "post_date": "2026-05-19T00:00:00",
+      "title": "UTTARABANK: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 20.05.2026."
+    },
+    {
+      "post_date": "2026-05-17T00:00:00",
+      "title": "UTTARABANK: Spot News",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 18.05.2026 to 19.05.2026 and trading of the shares will remain suspended on record date i.e., 20.05.2026."
+    },
+    {
+      "post_date": "2026-05-12T00:00:00",
+      "title": "UTTARABANK: Q1 Financials",
+      "body": "(Q1 Un-audited): Consolidated EPS was Tk. 1.32 for January-March 2026 as against Tk. 1.24 for January-March 2025 ; Consolidated NOCFPS was Tk. 7.18 for January-March 2026 as against Tk. 0.55 for January-March 2025. Consolidated NAV per share was Tk. 33.33 as on March 31, 2026 and Tk. 28.73 as on March 31, 2025."
+    },
+    {
+      "post_date": "2026-05-12T00:00:00",
+      "title": "UTTARABANK: Board Decision Regarding Sale of Land",
+      "body": "The Board of Directors of the company has decided to sell 19.50 decimals of land located at Mouza- Paikpara, Mirpur, Dhaka, subject to obtaining necessary permission from the regulatory authority (ies), if any."
+    },
+    {
+      "title": "UTTARABANK: No BSEC Approval Required for Stock Dividend Declaration",
+      "post_date": "2026-05-06T00:00:00",
+      "body": "Refer to their earlier news disseminated by DSE on 30.04.2026, the company has further informed that the Board of Directors of the company in its 856th meeting held on 29 April, 2026 inducted Mr. Asif Rahman as a Shareholder Director (holding 2.42% shares) in the Board of Directors of the Bank. As a result, the collective shareholding of the Board of Directors stood at 30.531%. (cont.1)"
+    },
+    {
+      "post_date": "2026-05-06T00:00:00",
+      "title": "UTTARABANK: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on May 11, 2026 at 3:00 pm to consider, among others, Un-Audited Financial Statements for the First Quarter (Q1) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-04-30T00:00:00",
+      "title": "UTTARABANK: Dividend Declaration",
+      "body": "The Board of Directors has recommended 5% Cash and 25% Stock Dividend for the year ended December 31, 2025. Date of AGM: 15.06.2026, Time: 11:00 AM, Venue/Mode: Digital Platform, Record Date: 20.05.2026. The Company has also reported Consolidated EPS of Tk. 6.08, Consolidated NAV per share of Tk. 31.95 and Consolidated NOCFPS of Tk. 11.45 for the year ended December 31, 2025 as against Tk. 4.93, Tk. 27.29 and Tk. 6.55 respectively for the year ended December 31, 2024. (cont.1)"
+    },
+    {
+      "title": "UTTARABANK: Price Limit Open",
+      "post_date": "2026-04-30T00:00:00",
+      "body": "There will be no price limit on the trading of the shares of the Company today (30.04.2026) following its corporate declaration."
+    },
+    {
+      "title": "UTTARABANK: Dividend Declaration (Additional Information)",
+      "post_date": "2026-04-30T00:00:00",
+      "body": "Refer to the earlier news disseminated by DSE today i.e., April 30, 2026 regarding Dividend Declaration, the company has further informed that the Stock Dividend is subject to approval from Bangladesh Securities and Exchange Commission (BSEC)."
+    },
+    {
+      "title": "UTTARABANK: Board Meeting schedule under LR 19(1)",
+      "post_date": "2026-04-22T00:00:00",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 29, 2026 at 3:00 PM to consider, among others, audited financial statements of the Company for the year ended December 31, 2025."
+    },
+    {
+      "post_date": "2026-04-19T00:00:00",
+      "title": "UTTARABANK: Regarding further investment in Uttara Bank Securities Limited",
+      "body": "The company has informed that it is going to invest further Tk. 1,92,55,84,500.00 (Taka one hundred ninety two crore fifty five lac eighty four thousand five hundred) only in its Subsidiary Company \"Uttara Bank Securities Limited\" within the next 30 (thirty) days in response to the offer of Right Share (1:4) which was unanimously approved by its Shareholders at the Extra-ordinary General Meeting (EGM) of Uttara Bank Securities Limited held at 3:00 p.m. on Thursday, the 16th April, 2026."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "PRIMEBANK",
+      "company_name": "Prime Bank PLC.",
+      "sector": "Bank",
+      "score": 80.2,
+      "ltp": 30.5,
+      "change_pct": -0.65,
+      "pe": 3.89,
+      "pb": 0.76,
+      "div_yield_pct": 8.2,
+      "roe_pct": 31.1,
+      "eps_yoy_pct": 21.2
+    },
+    {
+      "trading_code": "BRACBANK",
+      "company_name": "BRAC Bank PLC.",
+      "sector": "Bank",
+      "score": 76.5,
+      "ltp": 64.6,
+      "change_pct": -1.07,
+      "pe": 7.08,
+      "pb": 1.25,
+      "div_yield_pct": 2.3,
+      "roe_pct": 24.0,
+      "eps_yoy_pct": 31.2
+    },
+    {
+      "trading_code": "EBL",
+      "company_name": "Eastern Bank PLC.",
+      "sector": "Bank",
+      "score": 76.0,
+      "ltp": 24.4,
+      "change_pct": -0.41,
+      "pe": 4.67,
+      "pb": 0.78,
+      "div_yield_pct": 10.2,
+      "roe_pct": 28.2,
+      "eps_yoy_pct": 7.6
+    },
+    {
+      "trading_code": "NCCBANK",
+      "company_name": "National Credit and Commerce Bank PLC.",
+      "sector": "Bank",
+      "score": 74.1,
+      "ltp": 15.6,
+      "change_pct": 0.0,
+      "pe": 3.64,
+      "pb": 0.57,
+      "div_yield_pct": 10.9,
+      "roe_pct": 20.5,
+      "eps_yoy_pct": 104.3
+    },
+    {
+      "trading_code": "CITYBANK",
+      "company_name": "City Bank PLC.",
+      "sector": "Bank",
+      "score": 73.4,
+      "ltp": 31.6,
+      "change_pct": -0.63,
+      "pe": 3.63,
+      "pb": 0.78,
+      "div_yield_pct": 4.7,
+      "roe_pct": 30.9,
+      "eps_yoy_pct": 15.7
+    }
+  ],
+  "source_hash": "c2e0df7983baa85670bae9f9cd2d1a716b08da4ca573666799f58e7882709f35"
+}

@@ -1,0 +1,786 @@
+{
+  "trading_code": "ASIAINS",
+  "company_name": "Asia Insurance PLC.",
+  "sector_class": "INSURANCE",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Insurance",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 47069858,
+    "paid_up_capital_mn": 470.69,
+    "reserve_surplus_mn": 514.2,
+    "total_loan_mn": 0,
+    "listing_year": 2009,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 44.5,
+    "change": -0.8,
+    "change_pct": -1.77,
+    "date": "2026-07-16",
+    "high": 45.4,
+    "low": 44.3,
+    "volume": 657207,
+    "avg_volume_7d": 941737,
+    "ycp": 45.3,
+    "w52_high": 46.0,
+    "w52_low": 24.8
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 2.8,
+      "m3": 9.9,
+      "m6": 61.8,
+      "y1": 59.5
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 23.0
+      },
+      {
+        "date": "2025-06-30",
+        "close": 25.9
+      },
+      {
+        "date": "2025-07-31",
+        "close": 27.8
+      },
+      {
+        "date": "2025-08-31",
+        "close": 29.0
+      },
+      {
+        "date": "2025-09-30",
+        "close": 27.9
+      },
+      {
+        "date": "2025-10-30",
+        "close": 29.1
+      },
+      {
+        "date": "2025-11-30",
+        "close": 26.8
+      },
+      {
+        "date": "2025-12-30",
+        "close": 27.3
+      },
+      {
+        "date": "2026-01-29",
+        "close": 37.9
+      },
+      {
+        "date": "2026-02-26",
+        "close": 41.5
+      },
+      {
+        "date": "2026-03-31",
+        "close": 40.2
+      },
+      {
+        "date": "2026-04-30",
+        "close": 39.2
+      },
+      {
+        "date": "2026-05-31",
+        "close": 38.8
+      },
+      {
+        "date": "2026-06-30",
+        "close": 43.6
+      },
+      {
+        "date": "2026-07-16",
+        "close": 44.5
+      }
+    ],
+    "pct_in_52w_range": 92.9
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.4
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 9.4
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Weak",
+      "word_bn": "দুর্বল",
+      "score10": 1.6
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Fairly priced",
+      "word_bn": "দাম যুক্তিসঙ্গত",
+      "score10": 7.0
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.9
+    }
+  ],
+  "fair_value": {
+    "low": 41.1,
+    "high": 61.6,
+    "center": 51.3,
+    "today": 44.5,
+    "stance": "fair",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 46.2
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 57.0
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 60.2
+      },
+      {
+        "name": "book_peer",
+        "label_en": "Priced like similar companies (assets)",
+        "price": 62.9
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 16.7
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 21.29,
+    "current_pb": 1.46,
+    "own_avg_pe": 22.09,
+    "own_avg_pb": 1.97,
+    "sector_median_pe": 27.25,
+    "sector_median_pb": 2.06,
+    "eps": 2.09,
+    "sector_implied_price": 56.95
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2020,
+        "eps_taka": 2.34,
+        "net_profit_crore": 11.0,
+        "cash_dividend_pct": 12.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.2,
+        "nav_per_share_taka": 24.52
+      },
+      {
+        "year": 2021,
+        "eps_taka": 3.29,
+        "net_profit_crore": 15.5,
+        "cash_dividend_pct": 15.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.5,
+        "nav_per_share_taka": 26.57,
+        "revenue_crore": 0.3,
+        "operating_profit_crore": 19.3,
+        "operating_cash_flow_crore": 32.1,
+        "capex_crore": null,
+        "total_debt_crore": 1.13,
+        "total_equity_crore": null,
+        "total_assets_crore": 252.1,
+        "cash_crore": null
+      },
+      {
+        "year": 2022,
+        "eps_taka": 2.09,
+        "net_profit_crore": 9.82,
+        "cash_dividend_pct": 11.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.1,
+        "nav_per_share_taka": 26.88,
+        "revenue_crore": 0.14,
+        "operating_profit_crore": 14.3,
+        "operating_cash_flow_crore": 22.3,
+        "capex_crore": null,
+        "total_debt_crore": 0.88,
+        "total_equity_crore": null,
+        "total_assets_crore": 243.0,
+        "cash_crore": null
+      },
+      {
+        "year": 2023,
+        "eps_taka": 2.02,
+        "net_profit_crore": 9.5,
+        "cash_dividend_pct": 11.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.1,
+        "nav_per_share_taka": 27.4,
+        "revenue_crore": 0.22,
+        "operating_profit_crore": 10.5,
+        "operating_cash_flow_crore": 12.7,
+        "capex_crore": null,
+        "total_debt_crore": 0.74,
+        "total_equity_crore": null,
+        "total_assets_crore": 256.6,
+        "cash_crore": null
+      },
+      {
+        "year": 2024,
+        "eps_taka": 2.06,
+        "net_profit_crore": 9.68,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 29.63,
+        "revenue_crore": 0.13,
+        "operating_profit_crore": 13.4,
+        "operating_cash_flow_crore": 16.3,
+        "capex_crore": null,
+        "total_debt_crore": 1.36,
+        "total_equity_crore": null,
+        "total_assets_crore": 233.7,
+        "cash_crore": null
+      },
+      {
+        "year": 2025,
+        "eps_taka": 2.09,
+        "net_profit_crore": 9.82,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 30.55
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 2.09,
+      "net_profit_crore": 9.82,
+      "cash_dividend_pct": 10.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 1.0,
+      "nav_per_share_taka": 30.55
+    },
+    "growth": {
+      "span": "2020–2025",
+      "net_profit_change_pct": -11.0,
+      "eps_change_pct": -11.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 4.71,
+      "paid_up_capital_crore": 47.1,
+      "reserve_surplus_crore": 51.4,
+      "total_loan_crore": 0.0,
+      "listing_year": 2009
+    },
+    "ownership": {
+      "sponsor_director_pct": 37.88,
+      "govt_pct": 0.0,
+      "institute_pct": 11.51,
+      "foreign_pct": 0.0,
+      "public_pct": 50.61
+    }
+  },
+  "sector_context": {
+    "sector": "Insurance",
+    "peer_count": 59,
+    "rank_in_sector": 9,
+    "sector_avg_score": 41.4,
+    "sector_median_pe": 27.25
+  },
+  "score": {
+    "trading_code": "ASIAINS",
+    "sector": "Insurance",
+    "market_cat": "A",
+    "ltp": 44.5,
+    "mcap_mn": 2094.608681,
+    "score": 60.4,
+    "base_score": 60.4,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.727,
+    "eps": 2.09,
+    "roe_pct": null,
+    "sector_median_pe": 27.25,
+    "sector_median_pb": 2.06,
+    "p1_biz": 6.4,
+    "p2_health": 9.38,
+    "p3_moat": 1.56,
+    "p4_val": 6.97,
+    "p5_div": 5.88,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 1.6066,
+    "p1_roe": null,
+    "p1_npm_trend": 10.0,
+    "p1_coverage": 0.7,
+    "eps_yoy_pct": 1.5,
+    "eps_stability": 0.6722,
+    "p2_de": null,
+    "p2_ic": 10.0,
+    "p2_cfo": 10.0,
+    "p2_cash": null,
+    "p2_coverage": 0.643,
+    "p3_margin": 1.7882,
+    "p3_rev_vol": 1.0,
+    "p3_sector_rank": 2.0,
+    "p3_capex": null,
+    "p3_coverage": 0.85,
+    "p4_pe": 7.45,
+    "p4_pb": 9.65,
+    "p4_vol_damp": 0.8361,
+    "current_pe": 21.29,
+    "current_pb": 1.46,
+    "own_avg_pe": 22.09,
+    "own_avg_pb": 1.97,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 5.870786516853933,
+    "div_yield_pct": 2.2,
+    "overall_rank": 58,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "good_wait_price",
+    "reason_en": "Good company — fine to hold, but wait for a cheaper price to buy.",
+    "reason_bn": "ভালো কোম্পানি — ধরে রাখা যায়, তবে কেনার জন্য আরেকটু কম দামের অপেক্ষা করুন।",
+    "tier": "good",
+    "momentum_grade": "flat",
+    "score": 60.4,
+    "p4_val": 6.97,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 37.9% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, but share is quiet",
+    "sentences": [
+      "The company's numbers are good, but the share has been quiet — the price is not moving much in either direction.",
+      "Price is close to the highest level of the past year — not much room left for a cheap entry."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 1.14,
+    "rs_vs_dsex_pct": -0.92,
+    "volume_ratio": 1.08,
+    "avg_turnover_7d_mn": 42.41,
+    "up_days_7d": 4,
+    "days_counted": 7,
+    "pct_in_52w_range": 92.9,
+    "momentum_grade": "flat"
+  },
+  "financials": [
+    {
+      "trading_code": "ASIAINS",
+      "year": 2020,
+      "cash_dividend_pct": 12.0,
+      "dividend_yield_pct": 1.11,
+      "eps_basic": null,
+      "eps_cont_basic": 2.34,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 24.52,
+      "pe_ratio_basic": 45.98,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 110.36,
+      "profit_mn": 110.36,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 110.36,
+      "dps": 1.2,
+      "eps": 2.34
+    },
+    {
+      "trading_code": "ASIAINS",
+      "year": 2021,
+      "cash_dividend_pct": 15.0,
+      "dividend_yield_pct": 1.3,
+      "eps_basic": null,
+      "eps_cont_basic": 3.29,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 26.57,
+      "pe_ratio_basic": 34.91,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 155.07,
+      "profit_mn": 155.07,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 155.07,
+      "dps": 1.5,
+      "eps": 3.29
+    },
+    {
+      "trading_code": "ASIAINS",
+      "year": 2022,
+      "cash_dividend_pct": 11.0,
+      "dividend_yield_pct": 2.25,
+      "eps_basic": null,
+      "eps_cont_basic": 2.09,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 26.88,
+      "pe_ratio_basic": 23.44,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 98.22,
+      "profit_mn": 98.22,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 98.22,
+      "dps": 1.1,
+      "eps": 2.09
+    },
+    {
+      "trading_code": "ASIAINS",
+      "year": 2023,
+      "cash_dividend_pct": 11.0,
+      "dividend_yield_pct": 2.23,
+      "eps_basic": null,
+      "eps_cont_basic": 2.02,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 27.4,
+      "pe_ratio_basic": 24.42,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 95.02,
+      "profit_mn": 95.02,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 95.02,
+      "dps": 1.1,
+      "eps": 2.02
+    },
+    {
+      "trading_code": "ASIAINS",
+      "year": 2024,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 3.32,
+      "eps_basic": null,
+      "eps_cont_basic": 2.06,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 29.63,
+      "pe_ratio_basic": 14.64,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 96.8,
+      "profit_mn": 96.8,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 96.8,
+      "dps": 1.0,
+      "eps": 2.06
+    },
+    {
+      "year": 2025,
+      "trading_code": "ASIAINS",
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 3.68,
+      "dps": 1.0,
+      "eps_basic": null,
+      "eps_cont_basic": 2.09,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 30.55,
+      "pe_ratio_basic": 13.04,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 98.16,
+      "profit_mn": 98.16,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 98.16,
+      "eps": 2.09
+    }
+  ],
+  "extended_financials": [
+    {
+      "year": 2021,
+      "trading_code": "ASIAINS",
+      "capex": null,
+      "investing_cf": -331312538.0,
+      "net_profit": 155071808.0,
+      "nocfps": 6.83,
+      "operating_cf": 321415390.0,
+      "total_equity": null,
+      "ebit": 193378910.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 2998747.0,
+      "total_assets": 2520523081.0,
+      "cash_and_equivalents": null,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 11290801.0
+    },
+    {
+      "trading_code": "ASIAINS",
+      "year": 2022,
+      "capex": null,
+      "investing_cf": -33552218.0,
+      "net_profit": 98216284.0,
+      "nocfps": 4.73,
+      "operating_cf": 222559795.0,
+      "total_equity": null,
+      "ebit": 142805909.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 1369040.0,
+      "total_assets": 2430267842.0,
+      "cash_and_equivalents": null,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 8777970.0
+    },
+    {
+      "trading_code": "ASIAINS",
+      "year": 2023,
+      "capex": null,
+      "investing_cf": 29434556.0,
+      "net_profit": 95288455.0,
+      "nocfps": 2.7,
+      "operating_cf": 127153258.0,
+      "total_equity": null,
+      "ebit": 105146236.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 2207413.0,
+      "total_assets": 2565858154.0,
+      "cash_and_equivalents": null,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 7426021.0
+    },
+    {
+      "trading_code": "ASIAINS",
+      "year": 2024,
+      "capex": null,
+      "investing_cf": 59374922.0,
+      "net_profit": 96801752.0,
+      "nocfps": 3.47,
+      "operating_cf": 163365184.0,
+      "total_equity": null,
+      "ebit": 134228051.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 1252734.0,
+      "total_assets": 2336609540.0,
+      "cash_and_equivalents": null,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 13588314.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "ASIAINS",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 11.51,
+    "public_pct": 50.61,
+    "reporting_period": null,
+    "sponsor_director_pct": 37.88
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jan 31, 2026",
+    "trading_code": "ASIAINS",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 15.84,
+    "public_pct": 46.28,
+    "reporting_period": null,
+    "sponsor_director_pct": 37.88
+  },
+  "dividend_declaration": {
+    "trading_code": "ASIAINS",
+    "declaration_date": "2026-04-23T00:00:00",
+    "dividend_pct": 10.0,
+    "dividend_type": "Final",
+    "record_date": "2026-06-03T00:00:00",
+    "scraped_at": "2026-07-16T09:59:14.476000",
+    "title": "ASIAINS: Dividend Declaration"
+  },
+  "news": [
+    {
+      "title": "ASIAINS: Resumption after Record Date",
+      "post_date": "2026-06-03T00:00:00",
+      "body": "Trading of the shares of the company will resume on 04.06.2026."
+    },
+    {
+      "title": "ASIAINS: Suspension for Record Date",
+      "post_date": "2026-06-02T00:00:00",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 03.06.2026."
+    },
+    {
+      "title": "ASIAINS: Emphasis of Matters",
+      "post_date": "2026-06-01T00:00:00",
+      "body": "The auditor of the company has given the Emphasis of Matters paragraph in the auditor's report for the year ended December 31, 2025. To view the details, please visit: https://www.dsebd.org/Auditors_opinion/2025/232.%20Asia%20Insurance%20PLC25.pdf"
+    },
+    {
+      "title": "ASIAINS: Spot News",
+      "post_date": "2026-05-24T00:00:00",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 01.06.2026 to 02.06.2026 and trading of the shares will remain suspended on record date i.e., 03.06.2026."
+    },
+    {
+      "post_date": "2026-05-19T00:00:00",
+      "title": "ASIAINS: Credit Rating Result",
+      "body": "National Credit Ratings Limited (NCR) has assigned Surveillance entity rating of the Company as \"AAA\" in the long term and \"ST-1\" in the short term along with Developing outlook based on audited financial statements as on December 31, 2025."
+    },
+    {
+      "title": "ASIAINS: Q1 Financials",
+      "post_date": "2026-05-12T00:00:00",
+      "body": "(Q1 Un-audited): EPS was Tk. 0.51 for January-March 2026 as against Tk. 0.40 for January-March 2025. NOCFPS was Tk. 0.42 for January-March 2026 as against Tk. 0.39 for January-March 2025. NAV per share was Tk. 30.42 as on March 31, 2026 and Tk. 30.55 as on December 31, 2025. Reasons for deviation: Despite premium income in the 1st quarter of 2026 being lower compared to 2025, the EPS increased mainly due to lower claim expenses amounting Tk. 7,262,759.00, (cont.)"
+    },
+    {
+      "post_date": "2026-05-07T00:00:00",
+      "title": "ASIAINS: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on May 11, 2026 at 3:00 pm to consider, among others, Un-Audited Financial Statements for the First Quarter (Q1) period ended March 31, 2026."
+    },
+    {
+      "title": "ASIAINS: Dividend Declaration",
+      "post_date": "2026-04-23T00:00:00",
+      "body": "The Board of Directors has recommended 10% cash dividend for the year ended December 31, 2025. Date of AGM: 29.06.2026, Time: 12:00 Noon. Venue: Digital Platform. Record Date: 03.06.2026. The Company has also reported EPS of Tk. 2.09, NAV per share of Tk. 30.55 and NOCFPS of Tk. 1.89 for the year ended December 31, 2025 as against Tk. 2.06, Tk. 29.63 and Tk. 2.85 (restated) respectively for the year ended December 31, 2024."
+    },
+    {
+      "title": "ASIAINS: Price Limit Open",
+      "post_date": "2026-04-23T00:00:00",
+      "body": "There will be no price limit on the trading of the shares of the Company today (23.04.2026) following its corporate declaration."
+    },
+    {
+      "title": "ASIAINS: Update of Information",
+      "post_date": "2026-04-23T00:00:00",
+      "body": "The Company has requested the shareholders to update their respective BO Account with 12 digits Taxpayer's Identification Number (e-TIN) through their respective Depository Participant (DP) before the 'Record Date'. If anyone fails to update e-TIN in BO Account before the Record Date, disbursement of respective dividend will be subject to deduction of Advance Income Tax (AIT) @ 15% instead of @ 10% (Individual)."
+    },
+    {
+      "title": "ASIAINS: Board Meeting schedule under LR 19(1)",
+      "post_date": "2026-04-12T00:00:00",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 22, 2026 at 3:00 PM to consider, among others, audited financial statements of the Company for the year ended December 31, 2025."
+    },
+    {
+      "title": "ASIAINS: Q3 Financials",
+      "post_date": "2025-10-26T00:00:00",
+      "body": "(Q3 Un-audited): EPS was Tk. 0.94 for July-September 2025 as against Tk. 0.61 for July-September 2024; EPS was Tk. 1.45 for January-September 2025 as against Tk. 1.48 for January-September 2024. NOCFPS was Tk. 2.98 for January-September 2025 as against Tk. 2.93 for January-September 2024. NAV per share was Tk. 28.93 as on September 30, 2025 and Tk. 29.63 as on December 31, 2024. (cont.)"
+    },
+    {
+      "title": "ASIAINS: Board Meeting schedule under LR 16(1)",
+      "post_date": "2025-10-16T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on October 25, 2025 at 02:00 PM to consider, among others, Un-audited financial statements of the Company for the Third Quarter (Q3) period ended September 30, 2025."
+    },
+    {
+      "post_date": "2025-09-14T00:00:00",
+      "title": "ASIAINS: Dividend Disbursement",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended December 31, 2024 to the respective shareholders."
+    },
+    {
+      "post_date": "2025-07-29T00:00:00",
+      "title": "ASIAINS: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 30.07.2025."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "UNITEDINS",
+      "company_name": "United Insurance Company Ltd.",
+      "sector": "Insurance",
+      "score": 71.6,
+      "ltp": 47.9,
+      "change_pct": -1.64,
+      "pe": 13.84,
+      "pb": 1.54,
+      "div_yield_pct": 3.1,
+      "roe_pct": 7.4,
+      "eps_yoy_pct": 53.1
+    },
+    {
+      "trading_code": "SIPLC",
+      "company_name": "Sena Insurance PLC",
+      "sector": "Insurance",
+      "score": 70.4,
+      "ltp": 108.4,
+      "change_pct": -3.9,
+      "pe": 20.97,
+      "pb": 3.79,
+      "div_yield_pct": 1.4,
+      "roe_pct": 17.1,
+      "eps_yoy_pct": 20.5
+    },
+    {
+      "trading_code": "RELIANCINS",
+      "company_name": "Reliance Insurance PLC.",
+      "sector": "Insurance",
+      "score": 69.7,
+      "ltp": 114.1,
+      "change_pct": -2.23,
+      "pe": 13.55,
+      "pb": 1.45,
+      "div_yield_pct": 2.6,
+      "roe_pct": 13.1,
+      "eps_yoy_pct": -7.7
+    },
+    {
+      "trading_code": "PRAGATIINS",
+      "company_name": "Pragati Insurance PLC.",
+      "sector": "Insurance",
+      "score": 65.8,
+      "ltp": 81.5,
+      "change_pct": -1.21,
+      "pe": 15.35,
+      "pb": 1.42,
+      "div_yield_pct": 3.3,
+      "roe_pct": 9.7,
+      "eps_yoy_pct": -5.3
+    },
+    {
+      "trading_code": "ASIAPACINS",
+      "company_name": "Asia Pacific General Insurance PLC",
+      "sector": "Insurance",
+      "score": 64.9,
+      "ltp": 47.1,
+      "change_pct": -1.88,
+      "pe": 18.76,
+      "pb": 1.86,
+      "div_yield_pct": 3.0,
+      "roe_pct": 8.0,
+      "eps_yoy_pct": 32.8
+    }
+  ],
+  "source_hash": "ea6cfb9e0ca7d4a655d8d47522203a7d076656385e6b50f5f09bfa77b96b1f7d"
+}

@@ -1,0 +1,767 @@
+{
+  "trading_code": "BSRMSTEEL",
+  "company_name": "BSRM Steels Limited",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Engineering",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 375952500,
+    "paid_up_capital_mn": 3759.53,
+    "reserve_surplus_mn": 30273.5,
+    "total_loan_mn": 45307.66,
+    "listing_year": 2009,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 99,
+    "change": -1.8,
+    "change_pct": -1.79,
+    "date": "2026-07-16",
+    "high": 101.5,
+    "low": 98,
+    "volume": 1182281,
+    "avg_volume_7d": 1830694,
+    "ycp": 100.8,
+    "w52_high": 100.8,
+    "w52_low": 58.2
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 26.6,
+      "m3": 43.5,
+      "m6": 46.7,
+      "y1": 69.2
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 51.3
+      },
+      {
+        "date": "2025-06-30",
+        "close": 55.8
+      },
+      {
+        "date": "2025-07-31",
+        "close": 65.9
+      },
+      {
+        "date": "2025-08-31",
+        "close": 69.7
+      },
+      {
+        "date": "2025-09-30",
+        "close": 67.0
+      },
+      {
+        "date": "2025-10-30",
+        "close": 67.9
+      },
+      {
+        "date": "2025-11-30",
+        "close": 64.3
+      },
+      {
+        "date": "2025-12-30",
+        "close": 63.3
+      },
+      {
+        "date": "2026-01-29",
+        "close": 72.3
+      },
+      {
+        "date": "2026-02-26",
+        "close": 74.0
+      },
+      {
+        "date": "2026-03-31",
+        "close": 67.2
+      },
+      {
+        "date": "2026-04-30",
+        "close": 72.8
+      },
+      {
+        "date": "2026-05-31",
+        "close": 72
+      },
+      {
+        "date": "2026-06-30",
+        "close": 86.6
+      },
+      {
+        "date": "2026-07-16",
+        "close": 99
+      }
+    ],
+    "pct_in_52w_range": 95.8
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 7.7
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.5
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.0
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Fairly priced",
+      "word_bn": "দাম যুক্তিসঙ্গত",
+      "score10": 5.6
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.5
+    }
+  ],
+  "fair_value": {
+    "low": 212,
+    "high": 317,
+    "center": 265,
+    "today": 99,
+    "stance": "cheap",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 89.4
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 626
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 73.3
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 83.3
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 7.19,
+    "current_pb": 1.09,
+    "own_avg_pe": 6.49,
+    "own_avg_pb": 0.81,
+    "sector_median_pe": 45.45,
+    "sector_median_pb": 0.98,
+    "eps": 13.77,
+    "sector_implied_price": 625.85
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 8.1,
+        "net_profit_crore": 304.7,
+        "cash_dividend_pct": 40.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 4.0,
+        "nav_per_share_taka": 62.38
+      },
+      {
+        "year": 2022,
+        "eps_taka": 8.72,
+        "net_profit_crore": 327.9,
+        "cash_dividend_pct": 30.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 3.0,
+        "nav_per_share_taka": 68.99,
+        "revenue_crore": 6712,
+        "operating_profit_crore": 541.5,
+        "operating_cash_flow_crore": 399.3,
+        "capex_crore": 14.5,
+        "total_debt_crore": 499.6,
+        "total_equity_crore": 2594,
+        "total_assets_crore": 8202,
+        "cash_crore": 907.4,
+        "debt_to_equity": 0.19
+      },
+      {
+        "year": 2023,
+        "eps_taka": 7.92,
+        "net_profit_crore": 297.9,
+        "cash_dividend_pct": 25.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.5,
+        "nav_per_share_taka": 73.32,
+        "revenue_crore": 8452,
+        "operating_profit_crore": 644.1,
+        "operating_cash_flow_crore": 1096,
+        "capex_crore": 99.2,
+        "total_debt_crore": 439.8,
+        "total_equity_crore": 2756,
+        "total_assets_crore": 7690,
+        "cash_crore": 444.3,
+        "debt_to_equity": 0.16
+      },
+      {
+        "year": 2024,
+        "eps_taka": 10.1,
+        "net_profit_crore": 379.7,
+        "cash_dividend_pct": 32.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 3.2,
+        "nav_per_share_taka": 80.93,
+        "revenue_crore": 8271,
+        "operating_profit_crore": 673.3,
+        "operating_cash_flow_crore": 613.4,
+        "capex_crore": 125.3,
+        "total_debt_crore": 844.2,
+        "total_equity_crore": 3043,
+        "total_assets_crore": 9717,
+        "cash_crore": 538.0,
+        "debt_to_equity": 0.28
+      },
+      {
+        "year": 2025,
+        "eps_taka": 13.77,
+        "net_profit_crore": 517.6,
+        "cash_dividend_pct": 50.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 5.0,
+        "nav_per_share_taka": 90.52,
+        "revenue_crore": 10367,
+        "operating_profit_crore": 897.3,
+        "operating_cash_flow_crore": 730.7,
+        "capex_crore": 1635,
+        "total_debt_crore": 2224,
+        "total_equity_crore": 3405,
+        "total_assets_crore": 8782,
+        "cash_crore": 191.7,
+        "debt_to_equity": 0.65
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 13.77,
+      "net_profit_crore": 517.6,
+      "cash_dividend_pct": 50.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 5.0,
+      "nav_per_share_taka": 90.52,
+      "revenue_crore": 10367,
+      "operating_profit_crore": 897.3,
+      "operating_cash_flow_crore": 730.7,
+      "capex_crore": 1635,
+      "total_debt_crore": 2224,
+      "total_equity_crore": 3405,
+      "total_assets_crore": 8782,
+      "cash_crore": 191.7,
+      "debt_to_equity": 0.65
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": 70.0,
+      "eps_change_pct": 70.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 37.6,
+      "paid_up_capital_crore": 376.0,
+      "reserve_surplus_crore": 3027,
+      "total_loan_crore": 4531,
+      "listing_year": 2009
+    },
+    "ownership": {
+      "sponsor_director_pct": 72.06,
+      "govt_pct": 0.0,
+      "institute_pct": 19.28,
+      "foreign_pct": 0.25,
+      "public_pct": 8.41
+    }
+  },
+  "sector_context": {
+    "sector": "Engineering",
+    "peer_count": 42,
+    "rank_in_sector": 2,
+    "sector_avg_score": 31.6,
+    "sector_median_pe": 45.45
+  },
+  "score": {
+    "trading_code": "BSRMSTEEL",
+    "sector": "Engineering",
+    "market_cat": "A",
+    "ltp": 99.0,
+    "mcap_mn": 37219.2975,
+    "score": 67.9,
+    "base_score": 67.9,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 1.0,
+    "eps": 13.77,
+    "roe_pct": 15.2,
+    "sector_median_pe": 45.45,
+    "sector_median_pb": 0.98,
+    "p1_biz": 7.66,
+    "p2_health": 8.46,
+    "p3_moat": 4.95,
+    "p4_val": 5.57,
+    "p5_div": 6.5,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 7.4305,
+    "p1_roe": 8.1127,
+    "p1_npm_trend": 5.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 36.3,
+    "eps_stability": 1.0,
+    "p2_de": 7.733770794147984,
+    "p2_ic": 10.0,
+    "p2_cfo": 10.0,
+    "p2_cash": 3.3094398125666173,
+    "p2_coverage": 1.0,
+    "p3_margin": 2.0,
+    "p3_rev_vol": 4.0,
+    "p3_sector_rank": 10.0,
+    "p3_capex": 7.0,
+    "p3_coverage": 1.0,
+    "p4_pe": 6.96,
+    "p4_pb": 3.5,
+    "p4_vol_damp": 1.0,
+    "current_pe": 7.19,
+    "current_pb": 1.09,
+    "own_avg_pe": 6.49,
+    "own_avg_pb": 0.81,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 10.0,
+    "div_yield_pct": 5.1,
+    "overall_rank": 30,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "good_wait_price",
+    "reason_en": "Good company — fine to hold, but wait for a cheaper price to buy.",
+    "reason_bn": "ভালো কোম্পানি — ধরে রাখা যায়, তবে কেনার জন্য আরেকটু কম দামের অপেক্ষা করুন।",
+    "tier": "good",
+    "momentum_grade": "hot",
+    "score": 67.9,
+    "p4_val": 5.57,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 72.1% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, market is buying actively",
+    "sentences": [
+      "The company's numbers are good, and people are buying the share and pushing the price up — the market agrees with the quality.",
+      "Has paid dividends regularly in past years.",
+      "Price is close to the highest level of the past year — not much room left for a cheap entry."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 11.74,
+    "rs_vs_dsex_pct": 9.68,
+    "volume_ratio": 2.15,
+    "avg_turnover_7d_mn": 178.9,
+    "up_days_7d": 6,
+    "days_counted": 7,
+    "pct_in_52w_range": 95.8,
+    "momentum_grade": "hot"
+  },
+  "financials": [
+    {
+      "trading_code": "BSRMSTEEL",
+      "year": 2021,
+      "cash_dividend_pct": 40.0,
+      "dividend_yield_pct": 7.14,
+      "eps_basic": null,
+      "eps_cont_basic": 8.1,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 62.38,
+      "pe_ratio_basic": 6.91,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 3047.09,
+      "profit_mn": 3047.09,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 3019.5,
+      "dps": 4.0,
+      "eps": 8.1
+    },
+    {
+      "year": 2022,
+      "trading_code": "BSRMSTEEL",
+      "cash_dividend_pct": 30.0,
+      "dividend_yield_pct": 4.46,
+      "eps_basic": null,
+      "eps_cont_basic": 8.72,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 68.99,
+      "pe_ratio_basic": 7.71,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 3278.5,
+      "profit_mn": 3278.5,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 3607.68,
+      "dps": 3.0,
+      "eps": 8.72
+    },
+    {
+      "trading_code": "BSRMSTEEL",
+      "year": 2023,
+      "cash_dividend_pct": 25.0,
+      "dividend_yield_pct": 3.91,
+      "eps_basic": null,
+      "eps_cont_basic": 7.92,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 73.32,
+      "pe_ratio_basic": 8.06,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 2979.4,
+      "profit_mn": 2979.4,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 2753.9,
+      "dps": 2.5,
+      "eps": 7.92
+    },
+    {
+      "year": 2024,
+      "trading_code": "BSRMSTEEL",
+      "cash_dividend_pct": 32.0,
+      "dividend_yield_pct": 5.53,
+      "eps_basic": null,
+      "eps_cont_basic": 10.1,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 80.93,
+      "pe_ratio_basic": 5.73,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 3796.57,
+      "profit_mn": 3796.57,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 3796.57,
+      "dps": 3.2,
+      "eps": 10.1
+    },
+    {
+      "year": 2025,
+      "trading_code": "BSRMSTEEL",
+      "cash_dividend_pct": 50.0,
+      "dividend_yield_pct": 8.96,
+      "eps_basic": null,
+      "eps_cont_basic": 13.77,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 90.52,
+      "pe_ratio_basic": 4.05,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 5176.04,
+      "profit_mn": 5176.04,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 4802.8,
+      "dps": 5.0,
+      "eps": 13.77
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "BSRMSTEEL",
+      "year": 2022,
+      "capex": -145402119.0,
+      "investing_cf": -2562966437.0,
+      "net_profit": 3278499010.0,
+      "nocfps": 10.62,
+      "operating_cf": 3993347108.0,
+      "total_equity": 25935183375.0,
+      "ebit": 5414578862.0,
+      "intangibles": 57122126.0,
+      "interest_expense": 384476326.0,
+      "revenue": 67121061172.0,
+      "total_assets": 82021393808.0,
+      "cash_and_equivalents": 9073822713.0,
+      "earning_assets": null,
+      "gross_profit": 7045539137.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 4995757666.0
+    },
+    {
+      "year": 2023,
+      "trading_code": "BSRMSTEEL",
+      "capex": -991665944.0,
+      "investing_cf": -7328000725.0,
+      "net_profit": 2979399870.0,
+      "nocfps": 29.15,
+      "operating_cf": 10960619819.0,
+      "total_equity": 27564553854.0,
+      "ebit": 6440586674.0,
+      "intangibles": 51500326.0,
+      "interest_expense": -1837010038.0,
+      "revenue": 84524774603.0,
+      "total_assets": 76899124002.0,
+      "cash_and_equivalents": 4443074215.0,
+      "earning_assets": null,
+      "gross_profit": 8113882332.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 4397519453.0
+    },
+    {
+      "trading_code": "BSRMSTEEL",
+      "year": 2024,
+      "capex": -1252625121.0,
+      "investing_cf": -11512663539.0,
+      "net_profit": 3796573089.0,
+      "nocfps": 16.32,
+      "operating_cf": 6134494101.0,
+      "total_equity": 30427576699.0,
+      "ebit": 6732633430.0,
+      "intangibles": 39998556.0,
+      "interest_expense": -862365441.0,
+      "revenue": 82706096133.0,
+      "total_assets": 97168526087.0,
+      "cash_and_equivalents": 5379649980.0,
+      "earning_assets": null,
+      "gross_profit": 9175610889.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 8442159247.0
+    },
+    {
+      "trading_code": "BSRMSTEEL",
+      "year": 2025,
+      "capex": -16352731625.0,
+      "investing_cf": -818806799.0,
+      "net_profit": 5176044033.0,
+      "nocfps": 19.44,
+      "operating_cf": 7306903624.0,
+      "total_equity": 34052648758.0,
+      "ebit": 8973258875.0,
+      "intangibles": 41672853.0,
+      "interest_expense": -1888440130.0,
+      "revenue": 103665210348.0,
+      "total_assets": 87824293867.0,
+      "cash_and_equivalents": 1916677115.0,
+      "earning_assets": null,
+      "gross_profit": 11504575646.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 22244751182.0
+    }
+  ],
+  "shareholding": {
+    "trading_code": "BSRMSTEEL",
+    "as_of_date": "Mar 31, 2026",
+    "foreign_pct": 0.25,
+    "govt_pct": 0.0,
+    "institute_pct": 19.28,
+    "public_pct": 8.41,
+    "reporting_period": null,
+    "sponsor_director_pct": 72.06
+  },
+  "shareholding_prev": {
+    "trading_code": "BSRMSTEEL",
+    "as_of_date": "Jun 30, 2025",
+    "foreign_pct": 0.33,
+    "govt_pct": 0.0,
+    "institute_pct": 17.76,
+    "public_pct": 9.85,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 72.06
+  },
+  "dividend_declaration": {
+    "trading_code": "BSRMSTEEL",
+    "declaration_date": "2025-10-19T00:00:00",
+    "dividend_pct": 50.0,
+    "dividend_type": "Final",
+    "record_date": "2025-11-10T00:00:00",
+    "scraped_at": "2026-07-16T10:05:05.497000",
+    "title": "BSRMSTEEL: Dividend Declaration"
+  },
+  "news": [
+    {
+      "title": "BSRMSTEEL: Q3 Financials",
+      "post_date": "2026-04-30T00:00:00",
+      "body": "(Q3 Un-audited): EPS was Tk. 6.35 for January-March 2026 as against Tk. 4.45 for January-March 2025; EPS was Tk. 11.49 for July 2025-March 2026 as against Tk. 9.12 for July 2024-March 2025. NOCFPS was Tk. 28.89 for July 2025-March 2026 as against Tk. 23.75 for July 2024-March 2025. NAV per share was Tk. 97.36 as on March 31, 2026 and Tk. 90.52 as on June 30, 2025."
+    },
+    {
+      "title": "BSRMSTEEL: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-04-23T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 29, 2026 at 2:15 pm to consider, among others, Un-Audited Financial Statements for the Third Quarter (Q3) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-02-01T00:00:00",
+      "title": "BSRMSTEEL: Dividend Disbursement",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended June 30, 2025 to the respective shareholders."
+    },
+    {
+      "post_date": "2026-01-25T00:00:00",
+      "title": "BSRMSTEEL: Q2 Financials",
+      "body": "(Q2 Un-audited): EPS was Tk. 2.54 for October-December 2025 as against Tk. 2.41 for October-December 2024; EPS was Tk. 5.14 for July-December 2025 as against Tk. 4.67 for July-December 2024. NOCFPS was Tk. 10.71 for July-December 2025 as against Tk. 15.61 for July-December 2024. NAV per share was Tk. 90.48 as on December 31, 2025 and Tk. 90.52 as on June 30, 2025. (cont.)"
+    },
+    {
+      "post_date": "2026-01-19T00:00:00",
+      "title": "BSRMSTEEL: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 24, 2026 at 11:30 AM to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "post_date": "2025-11-20T00:00:00",
+      "title": "BSRMSTEEL: Credit Rating Result",
+      "body": "Credit Rating Information and Services Limited (CRISL) has assigned the rating of the Company as \"AAA\" in the long term and \"ST-1\" in the short term along with Stable outlook in consideration of its audited financials up to June 30, 2025 also unaudited financials up to September 30, 2025 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "post_date": "2025-11-16T00:00:00",
+      "title": "BSRMSTEEL: Q1 Financials",
+      "body": "(Q1 Un-audited): EPS was Tk. 2.60 for July-September 2025 as against Tk. 2.26 for July-September 2024; NOCFPS was Tk. 3.57 for July-September 2025 as against Tk. 5.13 for July-September 2024. NAV per share was Tk. 93.74 as on September 30, 2025 and Tk. 90.52 as on June 30, 2025. NOCFPS decreased compared to the same period of the previous year. This decline was primarily attributable to higher payments to suppliers and an increase in credit sales during the period."
+    },
+    {
+      "post_date": "2025-11-10T00:00:00",
+      "title": "BSRMSTEEL: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 11.11.2025."
+    },
+    {
+      "post_date": "2025-11-09T00:00:00",
+      "title": "BSRMSTEEL: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on November 13, 2025 at 4:00 PM to consider, among others, Un-audited financial statements of the Company for the First Quarter (Q1) period ended September 30, 2025."
+    },
+    {
+      "title": "BSRMSTEEL: Suspension for Record Date",
+      "post_date": "2025-11-09T00:00:00",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 10.11.2025."
+    },
+    {
+      "post_date": "2025-11-05T00:00:00",
+      "title": "BSRMSTEEL: Spot News",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 06.11.2025 to 09.11.2025 and trading of the shares will remain suspended on record date i.e., 10.11.2025."
+    },
+    {
+      "post_date": "2025-10-19T00:00:00",
+      "title": "BSRMSTEEL: Price Limit Open",
+      "body": "There will be no price limit on the trading of the shares of the Company today (19.10.2025) following its corporate declaration."
+    },
+    {
+      "post_date": "2025-10-19T00:00:00",
+      "title": "BSRMSTEEL: Dividend Declaration",
+      "body": "The Board of Directors has recommended 50% cash dividend for the year ended June 30, 2025. Date of AGM: 24.12.2025, Time: 10:30 AM, Venue: Digital Platform. Record Date: 10.11.2025. The Company has also reported EPS of Tk. 13.77, NAV per share of Tk. 90.52 and NOCFPS of Tk. 19.44 for the year ended June 30, 2025 as against Tk. 10.10, Tk. 80.93 and Tk. 16.32 respectively for the year ended June 30, 2024."
+    },
+    {
+      "post_date": "2025-10-19T00:00:00",
+      "title": "BSRMSTEEL:  Price Limit Open",
+      "body": "There will be no price limit on the trading of the shares of the Company today (19.10.2025) following its corporate declaration."
+    },
+    {
+      "title": "BSRMSTEEL: Investment in BSRM Wires Ltd. & Enhancement of CSR Activities",
+      "post_date": "2025-10-19T00:00:00",
+      "body": "The company has informed that the Board of Directors has approved an investment of BDT 200 Crore in BSRM Wires Limited through subscription to its shares. This strategic investment aims to enhance shareholder value by diversifying the groups portfolio into the production of high-quality wire products such as LRPC, Electrodes, ACSR Core Wires, Chain-Link Fence and others. (cont.1)"
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "WALTONHIL",
+      "company_name": "Walton Hi-Tech Industries PLC",
+      "sector": "Engineering",
+      "score": 68.3,
+      "ltp": 404.5,
+      "change_pct": -0.32,
+      "pe": 11.82,
+      "pb": 1.01,
+      "div_yield_pct": 4.3,
+      "roe_pct": 8.6,
+      "eps_yoy_pct": -23.6
+    },
+    {
+      "trading_code": "BSRMLTD",
+      "company_name": "Bangladesh Steel Re-Rolling Mills Limited",
+      "sector": "Engineering",
+      "score": 59.8,
+      "ltp": 109.4,
+      "change_pct": -3.36,
+      "pe": 5.32,
+      "pb": 0.66,
+      "div_yield_pct": 4.6,
+      "roe_pct": 12.3,
+      "eps_yoy_pct": 42.1
+    },
+    {
+      "trading_code": "KDSALTD",
+      "company_name": "KDS Accessories Limited",
+      "sector": "Engineering",
+      "score": 59.2,
+      "ltp": 53.0,
+      "change_pct": 0.19,
+      "pe": 24.2,
+      "pb": 1.91,
+      "div_yield_pct": 1.9,
+      "roe_pct": 7.9,
+      "eps_yoy_pct": 1.4
+    },
+    {
+      "trading_code": "RANFOUNDRY",
+      "company_name": "Rangpur Foundry Ltd.",
+      "sector": "Engineering",
+      "score": 59.0,
+      "ltp": 168.5,
+      "change_pct": -1.52,
+      "pe": 43.65,
+      "pb": 4.8,
+      "div_yield_pct": 1.4,
+      "roe_pct": 11.0,
+      "eps_yoy_pct": 2.1
+    },
+    {
+      "trading_code": "BENGALWTL",
+      "company_name": "Bengal Windsor Thermoplastics PLC.",
+      "sector": "Engineering",
+      "score": 53.4,
+      "ltp": 25.0,
+      "change_pct": -0.4,
+      "pe": 45.45,
+      "pb": 0.96,
+      "div_yield_pct": 2.0,
+      "roe_pct": 2.1,
+      "eps_yoy_pct": 3.8
+    }
+  ],
+  "source_hash": "7150a4c5f5262abaa713f2d6b457d0eff2fb3e3e7f2627121e060c4e9047e1fd"
+}

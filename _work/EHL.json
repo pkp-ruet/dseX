@@ -1,0 +1,765 @@
+{
+  "trading_code": "EHL",
+  "company_name": "Eastern Housing Limited",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Services & Real Estate",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 93345153,
+    "paid_up_capital_mn": 933.45,
+    "reserve_surplus_mn": 7467.0,
+    "total_loan_mn": 6.83,
+    "listing_year": 1994,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 97.8,
+    "change": -0.7,
+    "change_pct": -0.71,
+    "date": "2026-07-16",
+    "high": 99.4,
+    "low": 96.8,
+    "volume": 708827,
+    "avg_volume_7d": 2283226,
+    "ycp": 98.5,
+    "w52_high": 103.0,
+    "w52_low": 70.0
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 10.8,
+      "m3": 26.4,
+      "m6": 29.9,
+      "y1": 25.9
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 70.0
+      },
+      {
+        "date": "2025-06-30",
+        "close": 71.8
+      },
+      {
+        "date": "2025-07-31",
+        "close": 85.2
+      },
+      {
+        "date": "2025-08-31",
+        "close": 90.7
+      },
+      {
+        "date": "2025-09-30",
+        "close": 86.7
+      },
+      {
+        "date": "2025-10-30",
+        "close": 78.0
+      },
+      {
+        "date": "2025-11-30",
+        "close": 73.7
+      },
+      {
+        "date": "2025-12-30",
+        "close": 73.0
+      },
+      {
+        "date": "2026-01-29",
+        "close": 78.6
+      },
+      {
+        "date": "2026-02-26",
+        "close": 80.2
+      },
+      {
+        "date": "2026-03-31",
+        "close": 75.4
+      },
+      {
+        "date": "2026-04-30",
+        "close": 81.5
+      },
+      {
+        "date": "2026-05-31",
+        "close": 84
+      },
+      {
+        "date": "2026-06-30",
+        "close": 91.9
+      },
+      {
+        "date": "2026-07-16",
+        "close": 97.8
+      }
+    ],
+    "pct_in_52w_range": 84.2
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.1
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.6
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.5
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Good value",
+      "word_bn": "দাম সস্তা",
+      "score10": 7.0
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 7.6
+    }
+  ],
+  "fair_value": {
+    "low": 83.5,
+    "high": 125,
+    "center": 104,
+    "today": 97.8,
+    "stance": "fair",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 96.8
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 154
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 81.9
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 41.7
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 11.83,
+    "current_pb": 1.09,
+    "own_avg_pe": 11.7,
+    "own_avg_pb": 0.91,
+    "sector_median_pe": 18.67,
+    "sector_median_pb": 1.49,
+    "eps": 8.27,
+    "sector_implied_price": 154.4
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 3.98,
+        "net_profit_crore": 37.2,
+        "cash_dividend_pct": 15.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.5,
+        "nav_per_share_taka": 70.33,
+        "revenue_crore": 264.3,
+        "operating_profit_crore": 46.9,
+        "operating_cash_flow_crore": 105.3,
+        "capex_crore": 5.6,
+        "total_debt_crore": 0.17,
+        "total_equity_crore": 656.5,
+        "total_assets_crore": 2154,
+        "cash_crore": 17.9,
+        "debt_to_equity": 0.0
+      },
+      {
+        "year": 2022,
+        "eps_taka": 5.88,
+        "net_profit_crore": 54.9,
+        "cash_dividend_pct": 20.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.0,
+        "nav_per_share_taka": 74.71,
+        "revenue_crore": 331.3,
+        "operating_profit_crore": 60.0,
+        "operating_cash_flow_crore": 203.5,
+        "capex_crore": 0.89,
+        "total_debt_crore": null,
+        "total_equity_crore": 697.4,
+        "total_assets_crore": 2276,
+        "cash_crore": 14.4
+      },
+      {
+        "year": 2023,
+        "eps_taka": 7.37,
+        "net_profit_crore": 68.8,
+        "cash_dividend_pct": 25.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.5,
+        "nav_per_share_taka": 80.08,
+        "revenue_crore": 308.6,
+        "operating_profit_crore": 66.3,
+        "operating_cash_flow_crore": 191.9,
+        "capex_crore": 6.01,
+        "total_debt_crore": null,
+        "total_equity_crore": 747.5,
+        "total_assets_crore": 2405,
+        "cash_crore": 14.1
+      },
+      {
+        "year": 2024,
+        "eps_taka": 6.04,
+        "net_profit_crore": 56.4,
+        "cash_dividend_pct": 19.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.9,
+        "nav_per_share_taka": 83.62,
+        "revenue_crore": 275.0,
+        "operating_profit_crore": 53.1,
+        "operating_cash_flow_crore": -97.2,
+        "capex_crore": 0.7,
+        "total_debt_crore": null,
+        "total_equity_crore": 780.6,
+        "total_assets_crore": 2377,
+        "cash_crore": 14.7
+      },
+      {
+        "year": 2025,
+        "eps_taka": 8.27,
+        "net_profit_crore": 77.2,
+        "cash_dividend_pct": 25.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.5,
+        "nav_per_share_taka": 89.99,
+        "revenue_crore": 303.1,
+        "operating_profit_crore": 67.9,
+        "operating_cash_flow_crore": 27.1,
+        "capex_crore": 3.95,
+        "total_debt_crore": null,
+        "total_equity_crore": 840.0,
+        "total_assets_crore": 2420,
+        "cash_crore": 13.6
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 8.27,
+      "net_profit_crore": 77.2,
+      "cash_dividend_pct": 25.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 2.5,
+      "nav_per_share_taka": 89.99,
+      "revenue_crore": 303.1,
+      "operating_profit_crore": 67.9,
+      "operating_cash_flow_crore": 27.1,
+      "capex_crore": 3.95,
+      "total_debt_crore": null,
+      "total_equity_crore": 840.0,
+      "total_assets_crore": 2420,
+      "cash_crore": 13.6
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": 108.0,
+      "eps_change_pct": 108.0,
+      "revenue_change_pct": 15.0
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 9.33,
+      "paid_up_capital_crore": 93.3,
+      "reserve_surplus_crore": 746.7,
+      "total_loan_crore": 0.68,
+      "listing_year": 1994
+    },
+    "ownership": {
+      "sponsor_director_pct": 50.44,
+      "govt_pct": 0.0,
+      "institute_pct": 27.32,
+      "foreign_pct": 0.03,
+      "public_pct": 22.21
+    }
+  },
+  "sector_context": {
+    "sector": "Services & Real Estate",
+    "peer_count": 4,
+    "rank_in_sector": 1,
+    "sector_avg_score": 51.0,
+    "sector_median_pe": 18.67
+  },
+  "score": {
+    "trading_code": "EHL",
+    "sector": "Services & Real Estate",
+    "market_cat": "A",
+    "ltp": 97.8,
+    "mcap_mn": 9129.1559634,
+    "score": 74.5,
+    "base_score": 74.5,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.911,
+    "eps": 8.27,
+    "roe_pct": 9.2,
+    "sector_median_pe": 18.67,
+    "sector_median_pb": 1.49,
+    "p1_biz": 8.06,
+    "p2_health": 8.61,
+    "p3_moat": 5.55,
+    "p4_val": 7.02,
+    "p5_div": 7.63,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 7.8394,
+    "p1_roe": 5.6985,
+    "p1_npm_trend": 10.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 36.9,
+    "eps_stability": 1.0,
+    "p2_de": null,
+    "p2_ic": 10.0,
+    "p2_cfo": 10.0,
+    "p2_cash": 2.3382917642130687,
+    "p2_coverage": 0.687,
+    "p3_margin": 10.0,
+    "p3_rev_vol": 4.0,
+    "p3_sector_rank": 2.0,
+    "p3_capex": 3.0,
+    "p3_coverage": 1.0,
+    "p4_pe": 7.53,
+    "p4_pb": 6.25,
+    "p4_vol_damp": 1.0,
+    "current_pe": 11.83,
+    "current_pb": 1.09,
+    "own_avg_pe": 11.7,
+    "own_avg_pb": 0.91,
+    "p5_dps_cagr": 6.3551,
+    "p5_consist": 10.0,
+    "p5_yield": 6.334355828220859,
+    "div_yield_pct": 2.6,
+    "overall_rank": 15,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "buy",
+    "reason_key": "quality_cheap",
+    "reason_en": "Strong company and the price looks cheap right now.",
+    "reason_bn": "শক্তিশালী কোম্পানি, দামও এখন তুলনামূলক সস্তা।",
+    "tier": "good",
+    "momentum_grade": "hot",
+    "score": 74.5,
+    "p4_val": 7.02,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 50.4% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, market is buying actively",
+    "sentences": [
+      "The company's numbers are good, and people are buying the share and pushing the price up — the market agrees with the quality.",
+      "Has paid dividends regularly in past years."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 5.27,
+    "rs_vs_dsex_pct": 3.21,
+    "volume_ratio": 2.33,
+    "avg_turnover_7d_mn": 229.34,
+    "up_days_7d": 4,
+    "days_counted": 7,
+    "pct_in_52w_range": 84.2,
+    "momentum_grade": "hot"
+  },
+  "financials": [
+    {
+      "trading_code": "EHL",
+      "year": 2021,
+      "cash_dividend_pct": 15.0,
+      "dividend_yield_pct": 2.78,
+      "eps_basic": null,
+      "eps_cont_basic": 3.98,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 70.33,
+      "pe_ratio_basic": 13.57,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 371.53,
+      "profit_mn": 371.53,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 371.53,
+      "dps": 1.5,
+      "eps": 3.98
+    },
+    {
+      "trading_code": "EHL",
+      "year": 2022,
+      "cash_dividend_pct": 20.0,
+      "dividend_yield_pct": 3.47,
+      "eps_basic": null,
+      "eps_cont_basic": 5.88,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 74.71,
+      "pe_ratio_basic": 9.81,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 549.09,
+      "profit_mn": 549.09,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 549.09,
+      "dps": 2.0,
+      "eps": 5.88
+    },
+    {
+      "trading_code": "EHL",
+      "year": 2023,
+      "cash_dividend_pct": 25.0,
+      "dividend_yield_pct": 2.39,
+      "eps_basic": null,
+      "eps_cont_basic": 7.37,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 80.08,
+      "pe_ratio_basic": 14.16,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 688.06,
+      "profit_mn": 688.06,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 688.06,
+      "dps": 2.5,
+      "eps": 7.37
+    },
+    {
+      "trading_code": "EHL",
+      "year": 2024,
+      "cash_dividend_pct": 19.0,
+      "dividend_yield_pct": 2.56,
+      "eps_basic": null,
+      "eps_cont_basic": 6.04,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 83.62,
+      "pe_ratio_basic": 12.27,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 563.83,
+      "profit_mn": 563.83,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 563.83,
+      "dps": 1.9,
+      "eps": 6.04
+    },
+    {
+      "trading_code": "EHL",
+      "year": 2025,
+      "cash_dividend_pct": 25.0,
+      "dividend_yield_pct": 3.48,
+      "eps_basic": null,
+      "eps_cont_basic": 8.27,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 89.99,
+      "pe_ratio_basic": 8.68,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 772.25,
+      "profit_mn": 772.25,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 772.25,
+      "dps": 2.5,
+      "eps": 8.27
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "EHL",
+      "year": 2021,
+      "capex": -55998459.0,
+      "investing_cf": null,
+      "net_profit": 371533975.0,
+      "nocfps": 11.29,
+      "operating_cf": 1053436849.0,
+      "total_equity": 6564688776.0,
+      "ebit": 469387208.0,
+      "intangibles": null,
+      "interest_expense": 6521071.0,
+      "revenue": 2642639864.0,
+      "total_assets": 21544691988.0,
+      "cash_and_equivalents": 178523710.0,
+      "earning_assets": null,
+      "gross_profit": 877329956.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 1721906.0
+    },
+    {
+      "trading_code": "EHL",
+      "year": 2022,
+      "capex": -8926795.0,
+      "investing_cf": null,
+      "net_profit": 549087900.0,
+      "nocfps": 21.8,
+      "operating_cf": 2034567938.0,
+      "total_equity": 6973758946.0,
+      "ebit": 600406613.0,
+      "intangibles": null,
+      "interest_expense": 3963660.0,
+      "revenue": 3312751669.0,
+      "total_assets": 22757446373.0,
+      "cash_and_equivalents": 143909540.0,
+      "earning_assets": null,
+      "gross_profit": 1007998718.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "trading_code": "EHL",
+      "year": 2023,
+      "capex": -60070500.0,
+      "investing_cf": null,
+      "net_profit": 688063013.0,
+      "nocfps": 20.56,
+      "operating_cf": 1919251402.0,
+      "total_equity": 7475131653.0,
+      "ebit": 662567446.0,
+      "intangibles": null,
+      "interest_expense": 4405707.0,
+      "revenue": 3085630120.0,
+      "total_assets": 24045037650.0,
+      "cash_and_equivalents": 140642973.0,
+      "earning_assets": null,
+      "gross_profit": 1077420871.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "trading_code": "EHL",
+      "year": 2024,
+      "capex": -7025507.0,
+      "investing_cf": null,
+      "net_profit": 563828684.0,
+      "nocfps": -10.42,
+      "operating_cf": -972435318.0,
+      "total_equity": 7805597454.0,
+      "ebit": 531333580.0,
+      "intangibles": null,
+      "interest_expense": 3418913.0,
+      "revenue": 2749985646.0,
+      "total_assets": 23774603745.0,
+      "cash_and_equivalents": 146832862.0,
+      "earning_assets": null,
+      "gross_profit": 953173522.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "year": 2025,
+      "trading_code": "EHL",
+      "capex": -39476681.0,
+      "cash_and_equivalents": 136434359.0,
+      "earning_assets": null,
+      "ebit": 678764496.0,
+      "gross_profit": 1101345996.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "interest_income": null,
+      "investing_cf": null,
+      "net_interest_income": null,
+      "net_profit": 772249803.0,
+      "nocfps": 2.9,
+      "operating_cf": 270794004.0,
+      "revenue": 3030874654.0,
+      "total_assets": 24198228884.0,
+      "total_debt": null,
+      "total_equity": 8400491466.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "EHL",
+    "foreign_pct": 0.03,
+    "govt_pct": 0.0,
+    "institute_pct": 27.32,
+    "public_pct": 22.21,
+    "reporting_period": null,
+    "sponsor_director_pct": 50.44
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jun 30, 2025",
+    "trading_code": "EHL",
+    "foreign_pct": 0.01,
+    "govt_pct": 0.0,
+    "institute_pct": 24.74,
+    "public_pct": 24.89,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 50.36
+  },
+  "dividend_declaration": {
+    "trading_code": "EHL",
+    "declaration_date": "2025-09-10T00:00:00",
+    "dividend_pct": 25.0,
+    "dividend_type": "Final",
+    "record_date": "2025-10-05T00:00:00",
+    "scraped_at": "2026-07-16T10:11:29.256000",
+    "title": "EHL: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-04-30T00:00:00",
+      "title": "EHL: Q3 Financials",
+      "body": "(Q3 Un-audited): EPS was Tk. 1.94 for January-March 2026 as against Tk. 1.83 for January-March 2025; EPS was Tk. 6.65 for July 2025-March 2026 as against Tk. 5.99 for July 2024-March 2025. NOCFPS was Tk. (9.38) for July 2025-March 2026 as against Tk. 1.53 for July 2024-March 2025. NAV per share was Tk. 94.15 as on March 31, 2026 and Tk. 89.99 as on June 30, 2025. (cont.)"
+    },
+    {
+      "title": "EHL: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-04-26T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 29, 2026 at 3:30 pm to consider, among others, Un-Audited Financial Statements for the Third Quarter (Q3) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-02-01T00:00:00",
+      "title": "EHL: Appointment of Managing Director",
+      "body": "The Company has informed that the Board of Directors has confirmed the service of Engr. Md. Aminul Karim Siddique as the Managing Director of the company with effect from January 28, 2026."
+    },
+    {
+      "post_date": "2026-01-29T00:00:00",
+      "title": "EHL: Q2 Financials",
+      "body": "(Q2 Un-audited): EPS was Tk. 2.55 for October-December 2025 as against Tk. 2.46 for October-December 2024; EPS was Tk. 4.71 for July-December 2025 as against Tk. 4.17 for July-December 2024. NOCFPS was Tk. (4.56) for July-December 2025 as against Tk. 2.73 for July-December 2024. NAV per share was Tk. 92.21 as on December 31, 2025 and Tk. 89.99 as on June 30, 2025. (cont.)"
+    },
+    {
+      "post_date": "2026-01-22T00:00:00",
+      "title": "EHL: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 28, 2026 at 3:30 PM to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "post_date": "2025-12-17T00:00:00",
+      "title": "EHL: Credit Rating Result",
+      "body": "National Credit Ratings Limited (NCR) has assigned initial entity rating of the Company as \"AAA\" in the long term and \"ST-1\" in the short term along with Stable outlook based on audited financial statements as on June 30, 2025 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "post_date": "2025-12-08T00:00:00",
+      "title": "EHL: Dividend Disbursement",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended June 30, 2025 to the respective shareholders."
+    },
+    {
+      "post_date": "2025-11-26T00:00:00",
+      "title": "EHL: Appointment of Managing Director (Acting)",
+      "body": "The company has informed that as per the decision of the Board, Mr. Aminul Karim Siddique has been assigned the responsibility of Acting Managing Director of the company."
+    },
+    {
+      "post_date": "2025-10-28T00:00:00",
+      "title": "EHL: Q1 Financials",
+      "body": "(Q1 Un-audited): EPS was Tk. 2.16 for July-September 2025 as against Tk. 1.70 for July-September 2024. NOCFPS was Tk. (0.59) for July-September 2025 as against Tk. 2.36 for July-September 2024. NAV per share was Tk. 92.16 as on September 30, 2025 and Tk. 89.99 as on June 30, 2025."
+    },
+    {
+      "post_date": "2025-10-22T00:00:00",
+      "title": "EHL: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on October 27, 2025 at 3:30 PM to consider, among others, Un-audited financial statements of the Company for the First Quarter (Q1) period ended September 30, 2025."
+    },
+    {
+      "post_date": "2025-10-05T00:00:00",
+      "title": "EHL: Resumption after Record date",
+      "body": "Trading of the shares of the company will resume on 06.10.2025."
+    },
+    {
+      "post_date": "2025-09-30T00:00:00",
+      "title": "EHL: Suspension for Record date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 05.10.2025."
+    },
+    {
+      "title": "EHL: Spot News",
+      "post_date": "2025-09-28T00:00:00",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 29.09.2025 to 30.09.2025 and trading of the shares will remain suspended on record date i.e., 05.10.2025."
+    },
+    {
+      "title": "EHL: Dividend Declaration",
+      "post_date": "2025-09-10T00:00:00",
+      "body": "The Board of Directors has recommended 25% Cash Dividend for the year ended June 30, 2025. Date of AGM: 30.10.2025, Time: 10:30 AM, Venue: Digital Platform through the link: https://ehl.bdvirtualagm.com. Record Date: 05.10.2025. The Company has reported EPS of Tk. 8.27, NAV per share of Tk. 89.99 and NOCFPS of Tk. 2.90 for the year ended June 30, 2025 as against Tk. 6.04, Tk. 83.62 and Tk. (10.42) respectively for the year ended June 30, 2024."
+    },
+    {
+      "title": "EHL: Price Limit Open",
+      "post_date": "2025-09-10T00:00:00",
+      "body": "There will be no price limit on the trading of the shares of the Company today (10.09.2025) following its corporate declaration."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "SAPORTL",
+      "company_name": "Summit Alliance Port Limited",
+      "sector": "Services & Real Estate",
+      "score": 62.0,
+      "ltp": 53.2,
+      "change_pct": 1.72,
+      "pe": 18.67,
+      "pb": 1.49,
+      "div_yield_pct": 3.4,
+      "roe_pct": 10.0,
+      "eps_yoy_pct": 62.9
+    },
+    {
+      "trading_code": "SAMORITA",
+      "company_name": "Samorita Hospital Limited",
+      "sector": "Services & Real Estate",
+      "score": 43.8,
+      "ltp": 94.1,
+      "change_pct": 0.97,
+      "pe": 151.77,
+      "pb": 1.94,
+      "div_yield_pct": 0.5,
+      "roe_pct": 1.3,
+      "eps_yoy_pct": 10.7
+    },
+    {
+      "trading_code": "SAIFPOWER",
+      "company_name": "SAIF Powertec Limited",
+      "sector": "Services & Real Estate",
+      "score": 23.5,
+      "ltp": 9.4,
+      "change_pct": -1.05,
+      "pe": 13.43,
+      "pb": 0.55,
+      "div_yield_pct": 1.1,
+      "roe_pct": 3.7,
+      "eps_yoy_pct": -7.9
+    }
+  ],
+  "source_hash": "2977d5c228af38fd2940a5ddcdb1732adf0b16afb54ce892f92bbfe4ec816c4f"
+}

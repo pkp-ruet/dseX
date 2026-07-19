@@ -1,0 +1,799 @@
+{
+  "trading_code": "GENEXIL",
+  "company_name": "Genex Infosys PLC",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "IT Sector",
+    "market_category": "B",
+    "face_value": 10.0,
+    "total_shares": 120450021,
+    "paid_up_capital_mn": 1204.5,
+    "reserve_surplus_mn": 1730.3,
+    "total_loan_mn": 3493.26,
+    "listing_year": 2019,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 40.5,
+    "change": -0.2,
+    "change_pct": -0.49,
+    "date": "2026-07-16",
+    "high": 41.3,
+    "low": 40.3,
+    "volume": 1794166,
+    "avg_volume_7d": 4442682,
+    "ycp": 40.7,
+    "w52_high": 41.4,
+    "w52_low": 22.0
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 14.4,
+      "m3": 44.6,
+      "m6": 60.7,
+      "y1": 60.1
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 21.2
+      },
+      {
+        "date": "2025-06-30",
+        "close": 22.1
+      },
+      {
+        "date": "2025-07-31",
+        "close": 23.7
+      },
+      {
+        "date": "2025-08-31",
+        "close": 26.5
+      },
+      {
+        "date": "2025-09-30",
+        "close": 29.9
+      },
+      {
+        "date": "2025-10-30",
+        "close": 27.4
+      },
+      {
+        "date": "2025-11-30",
+        "close": 24.7
+      },
+      {
+        "date": "2025-12-30",
+        "close": 26.9
+      },
+      {
+        "date": "2026-01-29",
+        "close": 26.0
+      },
+      {
+        "date": "2026-02-26",
+        "close": 28.3
+      },
+      {
+        "date": "2026-03-31",
+        "close": 25.9
+      },
+      {
+        "date": "2026-04-30",
+        "close": 27.1
+      },
+      {
+        "date": "2026-05-31",
+        "close": 27.3
+      },
+      {
+        "date": "2026-06-30",
+        "close": 35.4
+      },
+      {
+        "date": "2026-07-16",
+        "close": 40.5
+      }
+    ],
+    "pct_in_52w_range": 95.4
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 4.3
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 7.8
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.1
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Good value",
+      "word_bn": "দাম সস্তা",
+      "score10": 8.7
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.3
+    }
+  ],
+  "fair_value": {
+    "low": 44.3,
+    "high": 66.5,
+    "center": 55.4,
+    "today": 40.5,
+    "stance": "cheap",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 45.3
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 82.0
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 76.3
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 1.67
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 18.66,
+    "current_pb": 1.83,
+    "own_avg_pe": 20.86,
+    "own_avg_pb": 3.45,
+    "sector_median_pe": 37.81,
+    "sector_median_pb": 2.13,
+    "eps": 2.17,
+    "sector_implied_price": 82.05
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 3.22,
+        "net_profit_crore": 33.2,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": 10,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 18.22,
+        "revenue_crore": 102.3,
+        "operating_profit_crore": 43.8,
+        "operating_cash_flow_crore": 49.7,
+        "capex_crore": null,
+        "total_debt_crore": 31.5,
+        "total_equity_crore": 188.1,
+        "total_assets_crore": 277.6,
+        "cash_crore": 14.8,
+        "debt_to_equity": 0.17
+      },
+      {
+        "year": 2022,
+        "eps_taka": 3.36,
+        "net_profit_crore": 38.2,
+        "cash_dividend_pct": 11.0,
+        "stock_dividend_pct": 2,
+        "dps_taka": 1.1,
+        "nav_per_share_taka": 16.53,
+        "revenue_crore": 122.0,
+        "operating_profit_crore": 45.0,
+        "operating_cash_flow_crore": 57.7,
+        "capex_crore": null,
+        "total_debt_crore": 31.3,
+        "total_equity_crore": 187.7,
+        "total_assets_crore": 315.1,
+        "cash_crore": 14.3,
+        "debt_to_equity": 0.17
+      },
+      {
+        "year": 2023,
+        "eps_taka": 3.32,
+        "net_profit_crore": 38.4,
+        "cash_dividend_pct": 6.0,
+        "stock_dividend_pct": 4,
+        "dps_taka": 0.6,
+        "nav_per_share_taka": 19.2,
+        "revenue_crore": 144.3,
+        "operating_profit_crore": 56.2,
+        "operating_cash_flow_crore": 56.7,
+        "capex_crore": null,
+        "total_debt_crore": 45.0,
+        "total_equity_crore": 222.9,
+        "total_assets_crore": 435.0,
+        "cash_crore": 3.57,
+        "debt_to_equity": 0.2
+      },
+      {
+        "year": 2024,
+        "eps_taka": 2.62,
+        "net_profit_crore": 31.6,
+        "cash_dividend_pct": 3.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 0.3,
+        "nav_per_share_taka": 20.38,
+        "revenue_crore": 185.4,
+        "operating_profit_crore": 68.0,
+        "operating_cash_flow_crore": 22.3,
+        "capex_crore": null,
+        "total_debt_crore": 68.5,
+        "total_equity_crore": 245.5,
+        "total_assets_crore": 596.1,
+        "cash_crore": 2.5,
+        "debt_to_equity": 0.28
+      },
+      {
+        "year": 2025,
+        "eps_taka": 2.17,
+        "net_profit_crore": 26.1,
+        "cash_dividend_pct": 1.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 0.1,
+        "nav_per_share_taka": 22.11,
+        "revenue_crore": 191.3,
+        "operating_profit_crore": 72.8,
+        "operating_cash_flow_crore": 82.8,
+        "capex_crore": null,
+        "total_debt_crore": 72.7,
+        "total_equity_crore": 266.3,
+        "total_assets_crore": 660.7,
+        "cash_crore": 7.9,
+        "debt_to_equity": 0.27
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 2.17,
+      "net_profit_crore": 26.1,
+      "cash_dividend_pct": 1.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 0.1,
+      "nav_per_share_taka": 22.11,
+      "revenue_crore": 191.3,
+      "operating_profit_crore": 72.8,
+      "operating_cash_flow_crore": 82.8,
+      "capex_crore": null,
+      "total_debt_crore": 72.7,
+      "total_equity_crore": 266.3,
+      "total_assets_crore": 660.7,
+      "cash_crore": 7.9,
+      "debt_to_equity": 0.27
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": -21.0,
+      "eps_change_pct": -33.0,
+      "revenue_change_pct": 87.0
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 12.0,
+      "paid_up_capital_crore": 120.5,
+      "reserve_surplus_crore": 173.0,
+      "total_loan_crore": 349.3,
+      "listing_year": 2019
+    },
+    "ownership": {
+      "sponsor_director_pct": 26.07,
+      "govt_pct": 0.0,
+      "institute_pct": 20.96,
+      "foreign_pct": 0.09,
+      "public_pct": 52.88
+    }
+  },
+  "sector_context": {
+    "sector": "IT Sector",
+    "peer_count": 11,
+    "rank_in_sector": 2,
+    "sector_avg_score": 41.9,
+    "sector_median_pe": 37.81
+  },
+  "score": {
+    "trading_code": "GENEXIL",
+    "sector": "IT Sector",
+    "market_cat": "B",
+    "ltp": 40.5,
+    "mcap_mn": 4878.2258505,
+    "score": 59.3,
+    "base_score": 65.9,
+    "adjustment_pct": 0.0,
+    "category_mult": 0.9,
+    "data_completeness": 0.743,
+    "eps": 2.17,
+    "roe_pct": null,
+    "sector_median_pe": 37.81,
+    "sector_median_pb": 2.13,
+    "p1_biz": 4.33,
+    "p2_health": 7.84,
+    "p3_moat": 8.12,
+    "p4_val": 8.72,
+    "p5_div": 5.26,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 2.0,
+    "p1_roe": null,
+    "p1_npm_trend": null,
+    "p1_coverage": 0.5,
+    "eps_yoy_pct": -17.2,
+    "eps_stability": 1.0,
+    "p2_de": 10.0,
+    "p2_ic": 10.0,
+    "p2_cfo": 6.0,
+    "p2_cash": 2.717243184221978,
+    "p2_coverage": 1.0,
+    "p3_margin": 8.0,
+    "p3_rev_vol": 7.0,
+    "p3_sector_rank": 10.0,
+    "p3_capex": null,
+    "p3_coverage": 0.85,
+    "p4_pe": 8.44,
+    "p4_pb": 9.14,
+    "p4_vol_damp": 1.0,
+    "current_pe": 18.66,
+    "current_pb": 1.83,
+    "own_avg_pe": 20.86,
+    "own_avg_pb": 3.45,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 1.7407407407407407,
+    "div_yield_pct": 0.2,
+    "overall_rank": 63,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "average_fundamentals",
+    "reason_en": "An average company — no strong reason to buy or sell.",
+    "reason_bn": "মাঝারি মানের কোম্পানি — কেনা বা বেচার জোরালো কারণ নেই।",
+    "tier": "average",
+    "momentum_grade": "hot",
+    "score": 59.3,
+    "p4_val": 8.72,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Currently cheap vs historical P/E"
+    ],
+    "red": [
+      "Total loan > 2× reserve surplus",
+      "Market category: B (not 'A')"
+    ]
+  },
+  "verdict": {
+    "headline": "Average",
+    "tagline": "Average company, but share is running hot",
+    "sentences": [
+      "The company's numbers are average — not strong, not weak. But people are buying the share heavily right now and pushing the price up fast. This is a short-term trade for people who accept risk — not a long-term hold.",
+      "The share price looks cheaper now than its average over the past few years."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 11.26,
+    "rs_vs_dsex_pct": 9.2,
+    "volume_ratio": 1.19,
+    "avg_turnover_7d_mn": 170.66,
+    "up_days_7d": 3,
+    "days_counted": 7,
+    "pct_in_52w_range": 95.4,
+    "momentum_grade": "hot"
+  },
+  "financials": [
+    {
+      "trading_code": "GENEXIL",
+      "year": 2021,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 1.12,
+      "eps_basic": null,
+      "eps_cont_basic": 3.22,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 18.22,
+      "pe_ratio_basic": 27.61,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 332.42,
+      "profit_mn": 332.42,
+      "stock_dividend_pct": 10,
+      "total_comprehensive_income_mn": 332.42,
+      "dps": 1.0,
+      "eps": 3.22
+    },
+    {
+      "trading_code": "GENEXIL",
+      "year": 2022,
+      "cash_dividend_pct": 11.0,
+      "dividend_yield_pct": 1.45,
+      "eps_basic": null,
+      "eps_cont_basic": 3.36,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 16.53,
+      "pe_ratio_basic": 22.61,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 381.68,
+      "profit_mn": 381.68,
+      "stock_dividend_pct": 2,
+      "total_comprehensive_income_mn": 381.68,
+      "dps": 1.1,
+      "eps": 3.36
+    },
+    {
+      "trading_code": "GENEXIL",
+      "year": 2023,
+      "cash_dividend_pct": 6.0,
+      "dividend_yield_pct": 0.7,
+      "eps_basic": null,
+      "eps_cont_basic": 3.32,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 19.2,
+      "pe_ratio_basic": 25.72,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 384.07,
+      "profit_mn": 384.07,
+      "stock_dividend_pct": 4,
+      "total_comprehensive_income_mn": 384.07,
+      "dps": 0.6,
+      "eps": 3.32
+    },
+    {
+      "trading_code": "GENEXIL",
+      "year": 2024,
+      "cash_dividend_pct": 3.0,
+      "dividend_yield_pct": 0.63,
+      "eps_basic": null,
+      "eps_cont_basic": 2.62,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 20.38,
+      "pe_ratio_basic": 18.16,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 315.67,
+      "profit_mn": 315.67,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 315.67,
+      "dps": 0.3,
+      "eps": 2.62
+    },
+    {
+      "trading_code": "GENEXIL",
+      "year": 2025,
+      "cash_dividend_pct": 1.0,
+      "dividend_yield_pct": 0.45,
+      "eps_basic": null,
+      "eps_cont_basic": 2.17,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 22.11,
+      "pe_ratio_basic": 10.21,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 260.79,
+      "profit_mn": 260.79,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 260.79,
+      "dps": 0.1,
+      "eps": 2.17
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "GENEXIL",
+      "year": 2021,
+      "capex": null,
+      "investing_cf": null,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": 497073985.0,
+      "total_equity": 1880868790.0,
+      "ebit": 437851922.0,
+      "intangibles": 325209711.0,
+      "interest_expense": null,
+      "revenue": 1022600112.0,
+      "total_assets": 2775895589.0,
+      "cash_and_equivalents": 147700964.0,
+      "earning_assets": null,
+      "gross_profit": 493749440.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 315103558.0
+    },
+    {
+      "trading_code": "GENEXIL",
+      "year": 2022,
+      "capex": null,
+      "investing_cf": null,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": 576688682.0,
+      "total_equity": 1877135902.0,
+      "ebit": 450222574.0,
+      "intangibles": 258604474.0,
+      "interest_expense": null,
+      "revenue": 1219728667.0,
+      "total_assets": 3151143396.0,
+      "cash_and_equivalents": 142796995.0,
+      "earning_assets": null,
+      "gross_profit": 509853820.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 312722782.0
+    },
+    {
+      "year": 2023,
+      "trading_code": "GENEXIL",
+      "capex": null,
+      "investing_cf": null,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": 566658674.0,
+      "total_equity": 2228806825.0,
+      "ebit": 562305321.0,
+      "intangibles": 422237675.0,
+      "interest_expense": null,
+      "revenue": 1442580332.0,
+      "total_assets": 4349977806.0,
+      "cash_and_equivalents": 35732062.0,
+      "earning_assets": null,
+      "gross_profit": 635279520.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 449928245.0
+    },
+    {
+      "trading_code": "GENEXIL",
+      "year": 2024,
+      "capex": null,
+      "investing_cf": null,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": 223088284.0,
+      "total_equity": 2455183382.0,
+      "ebit": 680004068.0,
+      "intangibles": 423424154.0,
+      "interest_expense": null,
+      "revenue": 1853536148.0,
+      "total_assets": 5960800917.0,
+      "cash_and_equivalents": 24999080.0,
+      "earning_assets": null,
+      "gross_profit": 809505840.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 684809296.0
+    },
+    {
+      "trading_code": "GENEXIL",
+      "year": 2025,
+      "capex": null,
+      "cash_and_equivalents": 78985708.0,
+      "earning_assets": null,
+      "ebit": 728174842.0,
+      "gross_profit": 860571520.0,
+      "intangibles": 377099689.0,
+      "interest_expense": null,
+      "interest_income": null,
+      "investing_cf": null,
+      "net_interest_income": null,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": 827509088.0,
+      "revenue": 1913167149.0,
+      "total_assets": 6607441638.0,
+      "total_debt": 726626546.0,
+      "total_equity": 2663294756.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "GENEXIL",
+    "foreign_pct": 0.09,
+    "govt_pct": 0.0,
+    "institute_pct": 20.96,
+    "public_pct": 52.88,
+    "reporting_period": null,
+    "sponsor_director_pct": 26.07
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jun 30, 2025",
+    "trading_code": "GENEXIL",
+    "foreign_pct": 0.04,
+    "govt_pct": 0.0,
+    "institute_pct": 18.4,
+    "public_pct": 51.51,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 30.05
+  },
+  "dividend_declaration": {
+    "trading_code": "GENEXIL",
+    "declaration_date": "2025-12-07T00:00:00",
+    "dividend_pct": 1.0,
+    "dividend_type": "Final",
+    "record_date": "2025-12-21T00:00:00",
+    "scraped_at": "2026-07-16T10:14:49.410000",
+    "title": "GENEXIL: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-04-30T00:00:00",
+      "title": "GENEXIL: Q3 Financials",
+      "body": "(Q3 Un-audited): Consolidated EPS was Tk. 0.67 for January-March 2026 as against Tk. 0.85 for January-March 2025; Consolidated EPS was Tk. 2.12 for July 2025-March 2026 as against Tk. 2.10 for July 2024-March 2025. Consolidated NOCFPS was Tk. 4.44 for July 2025-March 2026 as against Tk. 4.09 for July 2024-March 2025. Consolidated NAV per share was Tk. 24.20 as on March 31, 2026 and Tk. 22.11 as on June 30, 2025."
+    },
+    {
+      "post_date": "2026-04-26T00:00:00",
+      "title": "GENEXIL: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 29, 2026 at 5:00 pm to consider, among others, Un-Audited Financial Statements for the Third Quarter (Q3) period ended March 31, 2026."
+    },
+    {
+      "title": "GENEXIL: Transfer of shares outside the Trading System of the Exchange",
+      "post_date": "2026-02-08T00:00:00",
+      "body": "Dhaka Stock Exchange PLC. (DSE) has approved the transfer of total 3,000,000 shares of Genex Infosys PLC held by Nilofar Imam (transferor), a director of the company to City Bank PLC. (transferee) within next 30 working days with effect from February 3, 2026 outside the trading system of the Exchange other than by way of gift under Regulation 47(1)(d) of the Dhaka Stock Exchange (Listing) Regulations, 2015 as well as other applicable laws."
+    },
+    {
+      "post_date": "2026-02-05T00:00:00",
+      "title": "GENEXIL: Dividend Disbursement",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended June 30, 2025 to the respective shareholders."
+    },
+    {
+      "post_date": "2026-02-01T00:00:00",
+      "title": "GENEXIL: Q2 Financials",
+      "body": "(Q2 Un-audited): Consolidated EPS was Tk. 0.65 for October-December 2025 as against Tk. 0.57 for October-December 2024; Consolidated EPS was Tk. 1.46 for July-December 2025 as against Tk. 1.25 for July-December 2024. Consolidated NOCFPS was Tk. 2.54 for July-December 2025 as against Tk. 2.73 for July-December 2024. Consolidated NAV per share was Tk. 23.52 as on December 31, 2025 and Tk. 22.11 as on June 30, 2025."
+    },
+    {
+      "post_date": "2026-01-25T00:00:00",
+      "title": "GENEXIL: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 29, 2026 at 5:00 PM to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "post_date": "2026-01-18T00:00:00",
+      "title": "GENEXIL: Transfer of shares outside the Trading System of the Exchange",
+      "body": "Dhaka Stock Exchange PLC. (DSE) has approved the transfer of 992,147 shares held in Genex Infosys PLC by Oracle Services Limited, a corporate director of the company to Dhaka Bank PLC. (the transferee) within 30 working days with effect from January 15, 2026 outside the trading system of the Exchange other than by way of gift under Regulation 47(1)(d) of the Dhaka Stock Exchange (Listing) Regulations, 2015 as well as other applicable laws."
+    },
+    {
+      "post_date": "2025-12-21T00:00:00",
+      "title": "GENEXIL: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 22.12.2025."
+    },
+    {
+      "post_date": "2025-12-18T00:00:00",
+      "title": "GENEXIL: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 21.12.2025."
+    },
+    {
+      "post_date": "2025-12-17T00:00:00",
+      "title": "GENEXIL: Q1 Financials",
+      "body": "(Q1 Un-audited): Consolidated EPS was Tk. 0.81 for July-September 2025 as against Tk. 0.69 for July-September 2024; Consolidated NOCFPS was Tk. 1.67 for July-September 2025 as against Tk. 0.91 for July-September 2024. Consolidated NAV per share was Tk. 23.14 as on September 30, 2025 and Tk. 22.11 as on June 30, 2025."
+    },
+    {
+      "title": "GENEXIL: Spot News",
+      "post_date": "2025-12-15T00:00:00",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 17.12.2025 to 18.12.2025 and trading of the shares will remain suspended on record date i.e., 21.12.2025."
+    },
+    {
+      "title": "GENEXIL: Board Meeting schedule under LR 16(1)",
+      "post_date": "2025-12-10T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on December 15, 2025 at 4:30 PM to consider, among others, Un-audited financial statements of the Company for the First Quarter (Q1) period ended September 30, 2025."
+    },
+    {
+      "post_date": "2025-12-07T00:00:00",
+      "title": "GENEXIL: Dividend Declaration",
+      "body": "The Board of Directors has recommended 1% Cash Dividend excluding Sponsors and Directors for the year ended June 30, 2025. The Sponsors and Directors hold 36,195,732 shares out of the total 120,450,021 shares of the company and Cash Dividend payable to the General Shareholders is Tk. 8,425,429.00. Date of AGM: 30.12.2025, Time: 11:00 AM, Venue/Mode: Hybrid System and at RAOWA Convention Hall. Record Date: 21.12.2025. (cont.)"
+    },
+    {
+      "title": "GENEXIL: Price Limit Open",
+      "post_date": "2025-12-07T00:00:00",
+      "body": "There will be no price limit on the trading of the shares of the Company today (07.12.2025) following its corporate declaration."
+    },
+    {
+      "title": "GENEXIL: Board Meeting schedule under LR 19(1)",
+      "post_date": "2025-12-01T00:00:00",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on December 04, 2025 at 5:00 PM to consider, among others, audited financial statements of the Company for the year ended June 30, 2025."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "ITC",
+      "company_name": "IT Consultants PLC.",
+      "sector": "IT Sector",
+      "score": 77.3,
+      "ltp": 51.4,
+      "change_pct": 2.8,
+      "pe": 14.2,
+      "pb": 2.21,
+      "div_yield_pct": 2.3,
+      "roe_pct": null,
+      "eps_yoy_pct": 21.5
+    },
+    {
+      "trading_code": "BDCOM",
+      "company_name": "BDCOM Online Ltd.",
+      "sector": "IT Sector",
+      "score": 58.4,
+      "ltp": 33.5,
+      "change_pct": 0.0,
+      "pe": 38.95,
+      "pb": 2.15,
+      "div_yield_pct": 1.5,
+      "roe_pct": null,
+      "eps_yoy_pct": -3.4
+    },
+    {
+      "trading_code": "ADNTEL",
+      "company_name": "ADN Telecom Limited",
+      "sector": "IT Sector",
+      "score": 51.8,
+      "ltp": 69.0,
+      "change_pct": -1.43,
+      "pe": 27.06,
+      "pb": 2.1,
+      "div_yield_pct": 1.4,
+      "roe_pct": null,
+      "eps_yoy_pct": 10.4
+    },
+    {
+      "trading_code": "AGNISYSL",
+      "company_name": "Agni Systems PLC.",
+      "sector": "IT Sector",
+      "score": 49.5,
+      "ltp": 33.6,
+      "change_pct": 4.35,
+      "pe": 41.48,
+      "pb": 1.98,
+      "div_yield_pct": 0.7,
+      "roe_pct": null,
+      "eps_yoy_pct": -29.6
+    },
+    {
+      "trading_code": "DAFODILCOM",
+      "company_name": "Daffodil Computers PLC.",
+      "sector": "IT Sector",
+      "score": 45.2,
+      "ltp": 165.6,
+      "change_pct": 0.55,
+      "pe": 1035.0,
+      "pb": 12.84,
+      "div_yield_pct": null,
+      "roe_pct": null,
+      "eps_yoy_pct": -23.8
+    }
+  ],
+  "source_hash": "8120fb52225a459089f4813ca6f60193695858c46a4cf2c57b1b0483b1970d5f"
+}

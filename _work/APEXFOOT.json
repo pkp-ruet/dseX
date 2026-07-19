@@ -1,0 +1,797 @@
+{
+  "trading_code": "APEXFOOT",
+  "company_name": "Apex Footwear Limited",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Tannery Industries",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 19653046,
+    "paid_up_capital_mn": 196.53,
+    "reserve_surplus_mn": 6639.7,
+    "total_loan_mn": 19230.21,
+    "listing_year": 1993,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 220.4,
+    "change": 1.7,
+    "change_pct": 0.78,
+    "date": "2026-07-16",
+    "high": 222,
+    "low": 216.8,
+    "volume": 215097,
+    "avg_volume_7d": 268460,
+    "ycp": 218.7,
+    "w52_high": 263.0,
+    "w52_low": 171.2
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 10.0,
+      "m3": 14.5,
+      "m6": 21.8,
+      "y1": 0.8
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 195.5
+      },
+      {
+        "date": "2025-06-30",
+        "close": 203.4
+      },
+      {
+        "date": "2025-07-31",
+        "close": 219.6
+      },
+      {
+        "date": "2025-08-31",
+        "close": 234.9
+      },
+      {
+        "date": "2025-09-30",
+        "close": 236.4
+      },
+      {
+        "date": "2025-10-30",
+        "close": 193.1
+      },
+      {
+        "date": "2025-11-30",
+        "close": 190.5
+      },
+      {
+        "date": "2025-12-30",
+        "close": 177.5
+      },
+      {
+        "date": "2026-01-29",
+        "close": 182.5
+      },
+      {
+        "date": "2026-02-26",
+        "close": 191.7
+      },
+      {
+        "date": "2026-03-31",
+        "close": 184.0
+      },
+      {
+        "date": "2026-04-30",
+        "close": 194.0
+      },
+      {
+        "date": "2026-05-31",
+        "close": 201.1
+      },
+      {
+        "date": "2026-06-30",
+        "close": 205.5
+      },
+      {
+        "date": "2026-07-16",
+        "close": 220.4
+      }
+    ],
+    "pct_in_52w_range": 53.6
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Weak",
+      "word_bn": "দুর্বল",
+      "score10": 3.8
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.4
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.7
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Good value",
+      "word_bn": "দাম সস্তা",
+      "score10": 7.6
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.6
+    }
+  ],
+  "fair_value": {
+    "low": 2514,
+    "high": 3771,
+    "center": 3143,
+    "today": 220,
+    "stance": "cheap",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 199
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 9023
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 371
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 41.7
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 25.57,
+    "current_pb": 0.5,
+    "own_avg_pe": 23.14,
+    "own_avg_pb": 0.85,
+    "sector_median_pe": 1046.71,
+    "sector_median_pb": 4.71,
+    "eps": 8.62,
+    "sector_implied_price": 9022.64
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 9.36,
+        "net_profit_crore": 10.5,
+        "cash_dividend_pct": 35.0,
+        "stock_dividend_pct": 5,
+        "dps_taka": 3.5,
+        "nav_per_share_taka": 256.81,
+        "revenue_crore": 1176,
+        "operating_profit_crore": 108.6,
+        "operating_cash_flow_crore": 171.6,
+        "capex_crore": null,
+        "total_debt_crore": 342.2,
+        "total_equity_crore": 288.9,
+        "total_assets_crore": 1761,
+        "cash_crore": 6.37,
+        "debt_to_equity": 1.18
+      },
+      {
+        "year": 2022,
+        "eps_taka": 11.7,
+        "net_profit_crore": 13.8,
+        "cash_dividend_pct": 35.0,
+        "stock_dividend_pct": 10,
+        "dps_taka": 3.5,
+        "nav_per_share_taka": 252.95,
+        "revenue_crore": 1297,
+        "operating_profit_crore": 98.1,
+        "operating_cash_flow_crore": 38.9,
+        "capex_crore": null,
+        "total_debt_crore": 521.2,
+        "total_equity_crore": 298.8,
+        "total_assets_crore": 2040,
+        "cash_crore": 7.14,
+        "debt_to_equity": 1.74
+      },
+      {
+        "year": 2023,
+        "eps_taka": 12.86,
+        "net_profit_crore": 16.7,
+        "cash_dividend_pct": 35.0,
+        "stock_dividend_pct": 10,
+        "dps_taka": 3.5,
+        "nav_per_share_taka": 239.64,
+        "revenue_crore": 1654,
+        "operating_profit_crore": 126.0,
+        "operating_cash_flow_crore": 35.4,
+        "capex_crore": null,
+        "total_debt_crore": 494.6,
+        "total_equity_crore": 311.4,
+        "total_assets_crore": 2453,
+        "cash_crore": 8.28,
+        "debt_to_equity": 1.59
+      },
+      {
+        "year": 2024,
+        "eps_taka": 12.34,
+        "net_profit_crore": 17.6,
+        "cash_dividend_pct": 35.0,
+        "stock_dividend_pct": 10,
+        "dps_taka": 3.5,
+        "nav_per_share_taka": 474.37,
+        "revenue_crore": 1498,
+        "operating_profit_crore": 127.9,
+        "operating_cash_flow_crore": 260.8,
+        "capex_crore": null,
+        "total_debt_crore": 400.2,
+        "total_equity_crore": 678.0,
+        "total_assets_crore": 2853,
+        "cash_crore": 7.37,
+        "debt_to_equity": 0.59
+      },
+      {
+        "year": 2025,
+        "eps_taka": 8.62,
+        "net_profit_crore": 13.6,
+        "cash_dividend_pct": 25.0,
+        "stock_dividend_pct": 25,
+        "dps_taka": 2.5,
+        "nav_per_share_taka": 436.68,
+        "revenue_crore": 1773,
+        "operating_profit_crore": 170.4,
+        "operating_cash_flow_crore": 88.8,
+        "capex_crore": null,
+        "total_debt_crore": 394.7,
+        "total_equity_crore": 686.6,
+        "total_assets_crore": 3097,
+        "cash_crore": 8.18,
+        "debt_to_equity": 0.57
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 8.62,
+      "net_profit_crore": 13.6,
+      "cash_dividend_pct": 25.0,
+      "stock_dividend_pct": 25,
+      "dps_taka": 2.5,
+      "nav_per_share_taka": 436.68,
+      "revenue_crore": 1773,
+      "operating_profit_crore": 170.4,
+      "operating_cash_flow_crore": 88.8,
+      "capex_crore": null,
+      "total_debt_crore": 394.7,
+      "total_equity_crore": 686.6,
+      "total_assets_crore": 3097,
+      "cash_crore": 8.18,
+      "debt_to_equity": 0.57
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": 30.0,
+      "eps_change_pct": -8.0,
+      "revenue_change_pct": 51.0
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 1.97,
+      "paid_up_capital_crore": 19.7,
+      "reserve_surplus_crore": 664.0,
+      "total_loan_crore": 1923,
+      "listing_year": 1993
+    },
+    "ownership": {
+      "sponsor_director_pct": 31.01,
+      "govt_pct": 0.0,
+      "institute_pct": 28.82,
+      "foreign_pct": 0.0,
+      "public_pct": 40.17
+    }
+  },
+  "sector_context": {
+    "sector": "Tannery Industries",
+    "peer_count": 6,
+    "rank_in_sector": 1,
+    "sector_avg_score": 36.5,
+    "sector_median_pe": 1046.71
+  },
+  "score": {
+    "trading_code": "APEXFOOT",
+    "sector": "Tannery Industries",
+    "market_cat": "A",
+    "ltp": 220.4,
+    "mcap_mn": 4331.531338400001,
+    "score": 61.5,
+    "base_score": 61.5,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.957,
+    "eps": 8.62,
+    "roe_pct": 2.0,
+    "sector_median_pe": 1046.71,
+    "sector_median_pb": 4.71,
+    "p1_biz": 3.83,
+    "p2_health": 8.45,
+    "p3_moat": 6.65,
+    "p4_val": 7.58,
+    "p5_div": 5.63,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 1.8236,
+    "p1_roe": 0.947,
+    "p1_npm_trend": 5.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": -30.1,
+    "eps_stability": 0.853,
+    "p2_de": 8.167215452213803,
+    "p2_ic": 10.0,
+    "p2_cfo": 10.0,
+    "p2_cash": 2.1583939455128793,
+    "p2_coverage": 1.0,
+    "p3_margin": 7.0,
+    "p3_rev_vol": 4.0,
+    "p3_sector_rank": 10.0,
+    "p3_capex": null,
+    "p3_coverage": 0.85,
+    "p4_pe": 6.97,
+    "p4_pb": 10.0,
+    "p4_vol_damp": 0.9265,
+    "current_pe": 25.57,
+    "current_pb": 0.5,
+    "own_avg_pe": 23.14,
+    "own_avg_pb": 0.85,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 4.201451905626135,
+    "div_yield_pct": 1.1,
+    "overall_rank": 54,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "earnings_dropped",
+    "reason_en": "The price looks cheap, but the company's latest profit fell sharply — safer to wait until it recovers.",
+    "reason_bn": "দাম সস্তা মনে হলেও কোম্পানির সর্বশেষ মুনাফা অনেকটাই কমে গেছে — পরিস্থিতি ভালো না হওয়া পর্যন্ত অপেক্ষা করা নিরাপদ।",
+    "tier": "good",
+    "momentum_grade": "warm",
+    "score": 61.5,
+    "p4_val": 7.58,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 31.0% (strong alignment)"
+    ],
+    "red": [
+      "Total loan > 2× reserve surplus"
+    ]
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, price moving up steadily",
+    "sentences": [
+      "The company is in good financial shape, and the share price is steadily rising."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 3.96,
+    "rs_vs_dsex_pct": 1.9,
+    "volume_ratio": 1.58,
+    "avg_turnover_7d_mn": 53.02,
+    "up_days_7d": 5,
+    "days_counted": 7,
+    "pct_in_52w_range": 53.6,
+    "momentum_grade": "warm"
+  },
+  "financials": [
+    {
+      "trading_code": "APEXFOOT",
+      "year": 2021,
+      "cash_dividend_pct": 35.0,
+      "dividend_yield_pct": 1.49,
+      "eps_basic": null,
+      "eps_cont_basic": 9.36,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 256.81,
+      "pe_ratio_basic": 25.14,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 105.31,
+      "profit_mn": 105.31,
+      "stock_dividend_pct": 5,
+      "total_comprehensive_income_mn": 105.31,
+      "dps": 3.5,
+      "eps": 9.36
+    },
+    {
+      "year": 2022,
+      "trading_code": "APEXFOOT",
+      "cash_dividend_pct": 35.0,
+      "dividend_yield_pct": 1.29,
+      "eps_basic": null,
+      "eps_cont_basic": 11.7,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 252.95,
+      "pe_ratio_basic": 23.2,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 138.23,
+      "profit_mn": 138.23,
+      "stock_dividend_pct": 10,
+      "total_comprehensive_income_mn": 138.23,
+      "dps": 3.5,
+      "eps": 11.7
+    },
+    {
+      "trading_code": "APEXFOOT",
+      "year": 2023,
+      "cash_dividend_pct": 35.0,
+      "dividend_yield_pct": 1.11,
+      "eps_basic": null,
+      "eps_cont_basic": 12.86,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 239.64,
+      "pe_ratio_basic": 24.44,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 167.14,
+      "profit_mn": 167.14,
+      "stock_dividend_pct": 10,
+      "total_comprehensive_income_mn": 167.14,
+      "dps": 3.5,
+      "eps": 12.86
+    },
+    {
+      "trading_code": "APEXFOOT",
+      "year": 2024,
+      "cash_dividend_pct": 35.0,
+      "dividend_yield_pct": 1.47,
+      "eps_basic": null,
+      "eps_cont_basic": 12.34,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 474.37,
+      "pe_ratio_basic": 19.35,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 176.43,
+      "profit_mn": 176.43,
+      "stock_dividend_pct": 10,
+      "total_comprehensive_income_mn": 3711.9,
+      "dps": 3.5,
+      "eps": 12.34
+    },
+    {
+      "trading_code": "APEXFOOT",
+      "year": 2025,
+      "cash_dividend_pct": 25.0,
+      "dividend_yield_pct": 1.23,
+      "eps_basic": null,
+      "eps_cont_basic": 8.62,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 436.68,
+      "pe_ratio_basic": 23.59,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 135.57,
+      "profit_mn": 135.57,
+      "stock_dividend_pct": 25,
+      "total_comprehensive_income_mn": 135.57,
+      "dps": 2.5,
+      "eps": 8.62
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "APEXFOOT",
+      "year": 2021,
+      "capex": null,
+      "investing_cf": -845728377.0,
+      "net_profit": 101089587.0,
+      "nocfps": 152.51,
+      "operating_cf": 1715687592.0,
+      "total_equity": 2889131240.0,
+      "ebit": 1085726751.0,
+      "intangibles": null,
+      "interest_expense": -939509439.0,
+      "revenue": 11764076599.0,
+      "total_assets": 17605710580.0,
+      "cash_and_equivalents": 63748273.0,
+      "earning_assets": 893954793.0,
+      "gross_profit": 3423037298.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 3422304500.0
+    },
+    {
+      "trading_code": "APEXFOOT",
+      "year": 2022,
+      "capex": null,
+      "investing_cf": -927300824.0,
+      "net_profit": 138225131.0,
+      "nocfps": 32.93,
+      "operating_cf": 389015022.0,
+      "total_equity": 2987981370.0,
+      "ebit": 980734154.0,
+      "intangibles": null,
+      "interest_expense": -767708756.0,
+      "revenue": 12974603177.0,
+      "total_assets": 20402237736.0,
+      "cash_and_equivalents": 71404212.0,
+      "earning_assets": 1468396311.0,
+      "gross_profit": 3712781382.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 5212449412.0
+    },
+    {
+      "year": 2023,
+      "trading_code": "APEXFOOT",
+      "capex": null,
+      "investing_cf": -1040911769.0,
+      "net_profit": 167136600.0,
+      "nocfps": 27.23,
+      "operating_cf": 353771040.0,
+      "total_equity": 3113774219.0,
+      "ebit": 1259537102.0,
+      "intangibles": null,
+      "interest_expense": -912207918.0,
+      "revenue": 16535866706.0,
+      "total_assets": 24528540026.0,
+      "cash_and_equivalents": 82754449.0,
+      "earning_assets": 1477934409.0,
+      "gross_profit": 4436435739.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 4945512954.0
+    },
+    {
+      "year": 2024,
+      "trading_code": "APEXFOOT",
+      "capex": null,
+      "investing_cf": -853315478.0,
+      "net_profit": 176434773.0,
+      "nocfps": 165.88,
+      "operating_cf": 2608001876.0,
+      "total_equity": 6780196018.0,
+      "ebit": 1278698909.0,
+      "intangibles": null,
+      "interest_expense": -878420347.0,
+      "revenue": 14978156717.0,
+      "total_assets": 28532790954.0,
+      "cash_and_equivalents": 73654226.0,
+      "earning_assets": 1693106279.0,
+      "gross_profit": 4540894169.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 4002494836.0
+    },
+    {
+      "trading_code": "APEXFOOT",
+      "year": 2025,
+      "capex": null,
+      "cash_and_equivalents": 81752697.0,
+      "earning_assets": 1686401621.0,
+      "ebit": 1703804279.0,
+      "gross_profit": 5131613439.0,
+      "intangibles": null,
+      "interest_expense": -1087028143.0,
+      "interest_income": null,
+      "investing_cf": -782245035.0,
+      "net_interest_income": null,
+      "net_profit": 135573476.0,
+      "nocfps": 56.48,
+      "operating_cf": 888078451.0,
+      "revenue": 17734307760.0,
+      "total_assets": 30968114369.0,
+      "total_debt": 3947237371.0,
+      "total_equity": 6865743555.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "APEXFOOT",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 28.82,
+    "public_pct": 40.17,
+    "reporting_period": null,
+    "sponsor_director_pct": 31.01
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jun 30, 2025",
+    "trading_code": "APEXFOOT",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 28.05,
+    "public_pct": 40.41,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 31.54
+  },
+  "dividend_declaration": {
+    "trading_code": "APEXFOOT",
+    "declaration_date": "2025-09-28T00:00:00",
+    "dividend_pct": 25.0,
+    "dividend_type": "Final",
+    "record_date": "2025-10-20T00:00:00",
+    "scraped_at": "2026-07-16T09:57:46.745000",
+    "title": "APEXFOOT: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-04-28T00:00:00",
+      "title": "APEXFOOT: Q3 Financials",
+      "body": "(Q3 Un-audited): EPS was Tk. 0.54 for January-March 2026 as against Tk. 0.49 for January-March 2025; EPS was Tk. 4.54 for July 2025-March 2026 as against Tk. 3.56 for July 2024-March 2025. NOCFPS was Tk. 122.92 for July 2025-March 2026 as against Tk. 140.95 for July 2024-March 2025. NAV per share was Tk. 351.89 as on March 31, 2026 and Tk. 349.35 as on June 30, 2025. Reasons for Deviation in EPS, NOCFPS and NAVPS: (cont.1)"
+    },
+    {
+      "post_date": "2026-04-23T00:00:00",
+      "title": "APEXFOOT: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 27, 2026 at 5:00 pm to consider, among others, Un-Audited Financial Statements for the Third Quarter (Q3) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-01-27T00:00:00",
+      "title": "APEXFOOT: Q2 Financials",
+      "body": "(Q2 Un-audited): EPS was Tk. 2.72 for October-December 2025 as against Tk. 1.63 for October-December 2024; EPS was Tk. 3.99 for July-December 2025 as against Tk. 3.07 for July-December 2024. NOCFPS was Tk. 91.86 for July-December 2025 as against Tk. 57.07 for July-December 2024. NAV per share was Tk. 351.34 as on December 31, 2025 and Tk. 349.35 as on June 30, 2025. Reasons for variance in EPS, NOCFPS and NAV per share: (cont.1)"
+    },
+    {
+      "title": "APEXFOOT: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-01-22T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 26, 2026 at 5:00 PM to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "post_date": "2026-01-05T00:00:00",
+      "title": "APEXFOOT: Dividend Disbursement",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended June 30, 2025 to the respective shareholders."
+    },
+    {
+      "title": "APEXFOOT: Credit Rating Result",
+      "post_date": "2025-12-23T00:00:00",
+      "body": "Credit Rating Information and Services Limited (CRISL) has assigned the rating of the Company as \"AA\" in the long term and \"ST-3\" in the short term along with Stable outlook in consideration of its audited financials up to June 30, 2025 also unaudited financials up to September 30, 2025 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "post_date": "2025-12-04T00:00:00",
+      "title": "APEXFOOT: Dividend Disbursement",
+      "body": "The Company has informed that it has credited the Bonus Shares for the year ended June 30, 2025 to the respective shareholders' BO Accounts."
+    },
+    {
+      "title": "APEXFOOT: Qualified Opinion",
+      "post_date": "2025-11-02T00:00:00",
+      "body": "The auditor of the company has given the \"Qualified Opinion\" in the Auditor's Report of the company for the year ended June 30, 2025. To view the details, please visit: https://www.dsebd.org/Auditors_opinion/2025/APEXFOOT_112025.pdf"
+    },
+    {
+      "title": "APEXFOOT: Q1 Financials",
+      "post_date": "2025-10-26T00:00:00",
+      "body": "(Q1 Un-audited): EPS was Tk. 1.59 for July-September 2025 as against Tk. 1.80 for July-September 2024; NOCFPS was Tk. 72.58 for July-September 2025 as against Tk. 39.20 for July-September 2024. NAV per share was Tk. 438.27 as on September 30, 2025 and Tk. 436.68 as on June 30, 2025. Reasons for variance in EPS, NOCFPS and NAV per share: (cont.1)"
+    },
+    {
+      "title": "APEXFOOT: Resumption after Record Date",
+      "post_date": "2025-10-20T00:00:00",
+      "body": "Trading of the shares of the company will resume on 21.10.2025."
+    },
+    {
+      "post_date": "2025-10-20T00:00:00",
+      "title": "APEXFOOT: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on October 25, 2025 at 5:00 PM to consider, among others, Un-audited financial statements of the Company for the First Quarter (Q1) period ended September 30, 2025."
+    },
+    {
+      "title": "APEXFOOT: Suspension for Record Date",
+      "post_date": "2025-10-19T00:00:00",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 20.10.2025."
+    },
+    {
+      "post_date": "2025-10-15T00:00:00",
+      "title": "APEXFOOT: Spot News",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 16.10.2025 to 19.10.2025 and trading of the shares will remain suspended on record date i.e., 20.10.2025."
+    },
+    {
+      "post_date": "2025-09-28T00:00:00",
+      "title": "APEXFOOT: Dividend Declaration",
+      "body": "The Board of Directors has recommended 25% Cash and 25% Stock Dividend for the year ended June 30, 2025. Date of AGM: 26.11.2025, Time: 11:00 AM, Venue: Digital Platform. Record Date: 20.10.2025. The Company has also reported EPS of Tk. 8.62, NAV per share of Tk. 436.68 and NOCFPS of Tk. 56.48 for the year ended June 30, 2025 as against Tk. 11.22, Tk. 431.24 and Tk. 165.88 respectively for the year ended June 30, 2024. (cont.1)"
+    },
+    {
+      "title": "APEXFOOT: Price Limit Open",
+      "post_date": "2025-09-28T00:00:00",
+      "body": "There will be no price limit on the trading of the shares of the Company today (28.09.2025) following its corporate declaration."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "BATASHOE",
+      "company_name": "Bata Shoe Company (Bangladesh) Limited",
+      "sector": "Tannery Industries",
+      "score": 55.5,
+      "ltp": 889.7,
+      "change_pct": 2.35,
+      "pe": 1046.71,
+      "pb": 4.71,
+      "div_yield_pct": 2.8,
+      "roe_pct": 9.8,
+      "eps_yoy_pct": -96.1
+    },
+    {
+      "trading_code": "LEGACYFOOT",
+      "company_name": "Legacy Footwear Ltd.",
+      "sector": "Tannery Industries",
+      "score": 29.0,
+      "ltp": 70.6,
+      "change_pct": 0.28,
+      "pe": 1412.0,
+      "pb": 6.3,
+      "div_yield_pct": 0.1,
+      "roe_pct": 0.5,
+      "eps_yoy_pct": -28.6
+    },
+    {
+      "trading_code": "FORTUNE",
+      "company_name": "Fortune Shoes Limited",
+      "sector": "Tannery Industries",
+      "score": 27.4,
+      "ltp": 20.9,
+      "change_pct": -0.48,
+      "pe": 190.0,
+      "pb": 1.42,
+      "div_yield_pct": 0.2,
+      "roe_pct": 0.7,
+      "eps_yoy_pct": -78.0
+    },
+    {
+      "trading_code": "APEXTANRY",
+      "company_name": "Apex Tannery Limited",
+      "sector": "Tannery Industries",
+      "score": 24.7,
+      "ltp": 111.8,
+      "change_pct": 3.33,
+      "pe": 136.34,
+      "pb": 3.7,
+      "div_yield_pct": null,
+      "roe_pct": -48.4,
+      "eps_yoy_pct": -75.9
+    },
+    {
+      "trading_code": "SAMATALETH",
+      "company_name": "Samata Leather Complex Ltd.",
+      "sector": "Tannery Industries",
+      "score": 20.8,
+      "ltp": 102.5,
+      "change_pct": -2.38,
+      "pe": 2050.0,
+      "pb": 7.14,
+      "div_yield_pct": null,
+      "roe_pct": -0.1,
+      "eps_yoy_pct": -140.0
+    }
+  ],
+  "source_hash": "cf6e18314d7d4a3c65e1b035e07e066286278a4cf5ef656a2e8ab37d51f4613e"
+}

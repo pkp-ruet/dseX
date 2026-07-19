@@ -1,0 +1,758 @@
+{
+  "trading_code": "LOVELLO",
+  "company_name": "Taufika Foods and Lovello Ice-cream PLC",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Food & Allied",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 98175000,
+    "paid_up_capital_mn": 981.75,
+    "reserve_surplus_mn": 141.0,
+    "total_loan_mn": 1917.94,
+    "listing_year": 2021,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 73.8,
+    "change": -1.1,
+    "change_pct": -1.47,
+    "date": "2026-07-16",
+    "high": 75.9,
+    "low": 73.5,
+    "volume": 2617535,
+    "avg_volume_7d": 4345308,
+    "ycp": 74.9,
+    "w52_high": 106.4,
+    "w52_low": 64.7
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 3.8,
+      "m3": -1.3,
+      "m6": 3.7,
+      "y1": -22.6
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 80.3
+      },
+      {
+        "date": "2025-06-30",
+        "close": 98.6
+      },
+      {
+        "date": "2025-07-31",
+        "close": 92.4
+      },
+      {
+        "date": "2025-08-31",
+        "close": 103.3
+      },
+      {
+        "date": "2025-09-30",
+        "close": 96.7
+      },
+      {
+        "date": "2025-10-30",
+        "close": 95.4
+      },
+      {
+        "date": "2025-11-30",
+        "close": 71.1
+      },
+      {
+        "date": "2025-12-30",
+        "close": 67.6
+      },
+      {
+        "date": "2026-01-29",
+        "close": 69.3
+      },
+      {
+        "date": "2026-02-26",
+        "close": 70.0
+      },
+      {
+        "date": "2026-03-31",
+        "close": 68.7
+      },
+      {
+        "date": "2026-04-30",
+        "close": 84.7
+      },
+      {
+        "date": "2026-05-31",
+        "close": 75.6
+      },
+      {
+        "date": "2026-06-30",
+        "close": 70.9
+      },
+      {
+        "date": "2026-07-16",
+        "close": 73.8
+      }
+    ],
+    "pct_in_52w_range": 21.8
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.1
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.7
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.9
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Leaning pricey",
+      "word_bn": "দাম একটু বেশি",
+      "score10": 4.2
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.7
+    }
+  ],
+  "fair_value": {
+    "low": 48.4,
+    "high": 72.6,
+    "center": 60.5,
+    "today": 73.8,
+    "stance": "expensive",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 66.0
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 78.5
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 55.5
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 18.3
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 44.73,
+    "current_pb": 6.14,
+    "own_avg_pe": 40.01,
+    "own_avg_pb": 4.62,
+    "sector_median_pe": 47.55,
+    "sector_median_pb": 2.7,
+    "eps": 1.65,
+    "sector_implied_price": 78.46
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 1.41,
+        "net_profit_crore": 9.5,
+        "cash_dividend_pct": 11.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.1,
+        "nav_per_share_taka": 12.57,
+        "revenue_crore": 85.1,
+        "operating_profit_crore": 21.6,
+        "operating_cash_flow_crore": 17.2,
+        "capex_crore": null,
+        "total_debt_crore": 68.4,
+        "total_equity_crore": 106.8,
+        "total_assets_crore": 215.1,
+        "cash_crore": 17.3,
+        "debt_to_equity": 0.64
+      },
+      {
+        "year": 2022,
+        "eps_taka": 1.43,
+        "net_profit_crore": 12.2,
+        "cash_dividend_pct": 12.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.2,
+        "nav_per_share_taka": 12.9,
+        "revenue_crore": 96.0,
+        "operating_profit_crore": 26.2,
+        "operating_cash_flow_crore": 17.8,
+        "capex_crore": null,
+        "total_debt_crore": 77.4,
+        "total_equity_crore": 109.6,
+        "total_assets_crore": 228.9,
+        "cash_crore": 12.5,
+        "debt_to_equity": 0.71
+      },
+      {
+        "year": 2023,
+        "eps_taka": 1.24,
+        "net_profit_crore": 10.5,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 12.94,
+        "revenue_crore": 94.4,
+        "operating_profit_crore": 24.1,
+        "operating_cash_flow_crore": 18.0,
+        "capex_crore": null,
+        "total_debt_crore": 92.2,
+        "total_equity_crore": 110.0,
+        "total_assets_crore": 262.4,
+        "cash_crore": 14.5,
+        "debt_to_equity": 0.84
+      },
+      {
+        "year": 2024,
+        "eps_taka": 1.43,
+        "net_profit_crore": 12.2,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": 10,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 13.37,
+        "revenue_crore": 99.2,
+        "operating_profit_crore": 27.3,
+        "operating_cash_flow_crore": 35.4,
+        "capex_crore": null,
+        "total_debt_crore": 98.8,
+        "total_equity_crore": 113.6,
+        "total_assets_crore": 270.5,
+        "cash_crore": 16.0,
+        "debt_to_equity": 0.87
+      },
+      {
+        "year": 2025,
+        "eps_taka": 1.65,
+        "net_profit_crore": 15.4,
+        "cash_dividend_pct": 11.0,
+        "stock_dividend_pct": 5,
+        "dps_taka": 1.1,
+        "nav_per_share_taka": 12.01
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 1.65,
+      "net_profit_crore": 15.4,
+      "cash_dividend_pct": 11.0,
+      "stock_dividend_pct": 5,
+      "dps_taka": 1.1,
+      "nav_per_share_taka": 12.01
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": 62.0,
+      "eps_change_pct": 17.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 9.82,
+      "paid_up_capital_crore": 98.2,
+      "reserve_surplus_crore": 14.1,
+      "total_loan_crore": 191.8,
+      "listing_year": 2021
+    },
+    "ownership": {
+      "sponsor_director_pct": 31.83,
+      "govt_pct": 0.0,
+      "institute_pct": 18.97,
+      "foreign_pct": 0.0,
+      "public_pct": 49.2
+    }
+  },
+  "sector_context": {
+    "sector": "Food & Allied",
+    "peer_count": 21,
+    "rank_in_sector": 2,
+    "sector_avg_score": 33.7,
+    "sector_median_pe": 47.55
+  },
+  "score": {
+    "trading_code": "LOVELLO",
+    "sector": "Food & Allied",
+    "market_cat": "A",
+    "ltp": 73.8,
+    "mcap_mn": 7245.315,
+    "score": 60.4,
+    "base_score": 60.4,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.957,
+    "eps": 1.65,
+    "roe_pct": 10.7,
+    "sector_median_pe": 47.55,
+    "sector_median_pb": 2.7,
+    "p1_biz": 6.12,
+    "p2_health": 6.69,
+    "p3_moat": 6.94,
+    "p4_val": 4.17,
+    "p5_div": 5.71,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 3.3659,
+    "p1_roe": 7.0272,
+    "p1_npm_trend": 5.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 15.4,
+    "eps_stability": 1.0,
+    "p2_de": 6.6515358180107995,
+    "p2_ic": 3.2606686388168455,
+    "p2_cfo": 10.0,
+    "p2_cash": 5.359480372774737,
+    "p2_coverage": 1.0,
+    "p3_margin": 8.0,
+    "p3_rev_vol": 7.0,
+    "p3_sector_rank": 5.0,
+    "p3_capex": null,
+    "p3_coverage": 0.85,
+    "p4_pe": 5.61,
+    "p4_pb": 2.02,
+    "p4_vol_damp": 1.0,
+    "current_pe": 44.73,
+    "current_pb": 6.14,
+    "own_avg_pe": 40.01,
+    "own_avg_pb": 4.62,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 4.735772357723578,
+    "div_yield_pct": 1.5,
+    "overall_rank": 59,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "good_wait_price",
+    "reason_en": "Good company — fine to hold, but wait for a cheaper price to buy.",
+    "reason_bn": "ভালো কোম্পানি — ধরে রাখা যায়, তবে কেনার জন্য আরেকটু কম দামের অপেক্ষা করুন।",
+    "tier": "good",
+    "momentum_grade": "warm",
+    "score": 60.4,
+    "p4_val": 4.17,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 31.8% (strong alignment)"
+    ],
+    "red": [
+      "Total loan > 2× reserve surplus"
+    ]
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, price moving up steadily",
+    "sentences": [
+      "The company is in good financial shape, and the share price is steadily rising."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 3.07,
+    "rs_vs_dsex_pct": 1.01,
+    "volume_ratio": 2.09,
+    "avg_turnover_7d_mn": 338.48,
+    "up_days_7d": 2,
+    "days_counted": 7,
+    "pct_in_52w_range": 21.8,
+    "momentum_grade": "warm"
+  },
+  "financials": [
+    {
+      "trading_code": "LOVELLO",
+      "year": 2021,
+      "cash_dividend_pct": 11.0,
+      "dividend_yield_pct": 3.93,
+      "eps_basic": null,
+      "eps_cont_basic": 1.41,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 12.57,
+      "pe_ratio_basic": 19.82,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 95.01,
+      "profit_mn": 95.01,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 95.01,
+      "dps": 1.1,
+      "eps": 1.41
+    },
+    {
+      "year": 2022,
+      "trading_code": "LOVELLO",
+      "cash_dividend_pct": 12.0,
+      "dividend_yield_pct": 2.86,
+      "eps_basic": null,
+      "eps_cont_basic": 1.43,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 12.9,
+      "pe_ratio_basic": 29.29,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 121.6,
+      "profit_mn": 121.6,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 121.6,
+      "dps": 1.2,
+      "eps": 1.43
+    },
+    {
+      "trading_code": "LOVELLO",
+      "year": 2023,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 2.64,
+      "eps_basic": null,
+      "eps_cont_basic": 1.24,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 12.94,
+      "pe_ratio_basic": 30.6,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 105.26,
+      "profit_mn": 105.26,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 105.26,
+      "dps": 1.0,
+      "eps": 1.24
+    },
+    {
+      "trading_code": "LOVELLO",
+      "year": 2024,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 1.15,
+      "eps_basic": null,
+      "eps_cont_basic": 1.43,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 13.37,
+      "pe_ratio_basic": 60.45,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 121.77,
+      "profit_mn": 121.77,
+      "stock_dividend_pct": 10,
+      "total_comprehensive_income_mn": 121.77,
+      "dps": 1.0,
+      "eps": 1.43
+    },
+    {
+      "trading_code": "LOVELLO",
+      "year": 2025,
+      "cash_dividend_pct": 11.0,
+      "dividend_yield_pct": 1.12,
+      "eps_basic": null,
+      "eps_cont_basic": 1.65,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 12.01,
+      "pe_ratio_basic": 59.87,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 153.98,
+      "profit_mn": 153.98,
+      "stock_dividend_pct": 5,
+      "total_comprehensive_income_mn": 153.98,
+      "dps": 1.1,
+      "eps": 1.65
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "LOVELLO",
+      "year": 2021,
+      "capex": null,
+      "investing_cf": -213072580.0,
+      "net_profit": 95007875.0,
+      "nocfps": null,
+      "operating_cf": 171773881.0,
+      "total_equity": 1068294075.0,
+      "ebit": 216203680.0,
+      "intangibles": 839720.0,
+      "interest_expense": null,
+      "revenue": 850801390.0,
+      "total_assets": 2150908778.0,
+      "cash_and_equivalents": 173150854.0,
+      "earning_assets": null,
+      "gross_profit": 355891757.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 683765138.0
+    },
+    {
+      "trading_code": "LOVELLO",
+      "year": 2022,
+      "capex": null,
+      "investing_cf": -123051548.0,
+      "net_profit": 121595009.0,
+      "nocfps": null,
+      "operating_cf": 178220134.0,
+      "total_equity": 1096389086.0,
+      "ebit": 261921870.0,
+      "intangibles": 633610.0,
+      "interest_expense": null,
+      "revenue": 960385039.0,
+      "total_assets": 2288973408.0,
+      "cash_and_equivalents": 125365626.0,
+      "earning_assets": null,
+      "gross_profit": 403065829.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 773865993.0
+    },
+    {
+      "trading_code": "LOVELLO",
+      "year": 2023,
+      "capex": null,
+      "investing_cf": -211021135.0,
+      "net_profit": 105263926.0,
+      "nocfps": null,
+      "operating_cf": 179693788.0,
+      "total_equity": 1099653011.0,
+      "ebit": 241452423.0,
+      "intangibles": 451805.0,
+      "interest_expense": null,
+      "revenue": 943667285.0,
+      "total_assets": 2624380632.0,
+      "cash_and_equivalents": 145090668.0,
+      "earning_assets": null,
+      "gross_profit": 384737006.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 921730842.0
+    },
+    {
+      "trading_code": "LOVELLO",
+      "year": 2024,
+      "capex": null,
+      "investing_cf": -159448450.0,
+      "net_profit": 121771349.0,
+      "nocfps": null,
+      "operating_cf": 353854134.0,
+      "total_equity": 1136424360.0,
+      "ebit": 273162525.0,
+      "intangibles": 462153.0,
+      "interest_expense": 128225191.0,
+      "revenue": 992132243.0,
+      "total_assets": 2705335155.0,
+      "cash_and_equivalents": 159579630.0,
+      "earning_assets": null,
+      "gross_profit": 414197046.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 988340125.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "LOVELLO",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 18.97,
+    "public_pct": 49.2,
+    "reporting_period": null,
+    "sponsor_director_pct": 31.83
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jun 30, 2025",
+    "trading_code": "LOVELLO",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 26.34,
+    "public_pct": 35.0,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 38.66
+  },
+  "dividend_declaration": {
+    "trading_code": "LOVELLO",
+    "declaration_date": "2025-10-12T00:00:00",
+    "dividend_pct": 16.0,
+    "dividend_type": "Final",
+    "record_date": "2025-11-06T00:00:00",
+    "scraped_at": "2026-07-16T10:23:51.511000",
+    "title": "LOVELLO: Dividend Declaration and Others"
+  },
+  "news": [
+    {
+      "title": "LOVELLO: Q3 Financials",
+      "post_date": "2026-05-03T00:00:00",
+      "body": "(Q3 Un-audited): EPS was Tk. 0.93 for January-March 2026 as against Tk. 0.22 for January-March 2025; EPS was Tk. 3.06 for July 2025-March 2026 as against Tk. 1.59 for July 2024-March 2025. NOCFPS was Tk. 6.55 for July 2025-March 2026 as against Tk. 2.82 for July 2024-March 2025. NAV per share was Tk. 13.45 as on March 31, 2026 and Tk. 12.01 as on June 30, 2025. Reason for decreased in EPS: (cont.)"
+    },
+    {
+      "title": "LOVELLO: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-04-27T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 30, 2026 at 3:30 pm to consider, among others, Un-Audited Financial Statements for the Third Quarter (Q3) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-03-15T00:00:00",
+      "title": "LOVELLO: Sale Intimation",
+      "body": "Taufika Engineering Limited, a placement shareholder of the company has declared its intention to sell 13,46,646 shares of Taufika Foods and Lovello Ice-cream PLC. In this regard, it is mentionable that Mrs. Shamima Nargis Haque and Mr. Md. Ekramul Haque are the directors (Chairman and Managing Director respectively) of Taufika Foods and Lovello Ice-cream PLC. and they are also the Directors (Managing Director and Chairman respectively) of Taufika Engineering Limited."
+    },
+    {
+      "post_date": "2026-01-25T00:00:00",
+      "title": "LOVELLO: Sale Intimation",
+      "body": "Taufika Engineering Limited, a placement shareholder of the company, has declared its intention to sell 30,00,000 shares of Taufika Foods and Lovello Ice-cream PLC. In this regard, it is mentionable that Mrs. Shamima Nargis Haque and Mr. Md. Ekramul Haque are the directors (Chairman and Managing Director respectively) of Taufika Foods and Lovello Ice-cream PLC. and they are also the Directors (Managing Director and Chairman respectively) of Taufika Engineering Limited."
+    },
+    {
+      "title": "LOVELLO: Confirmation of share transfer by a Sponsor Director",
+      "post_date": "2026-01-21T00:00:00",
+      "body": "Mr. Md. Ekramul Haque, Sponsor Director of the company, has further informed that he has completed his transfer of 25,00,000 shares of the Company to his Brother Mr. Md. Zahedul Haque (General Shareholder of the company), by way of gift outside the trading system of the Exchange as per declaration disseminated by DSE on 15.01.2026."
+    },
+    {
+      "title": "LOVELLO: Q2 Financials",
+      "post_date": "2026-01-18T00:00:00",
+      "body": "(Q2 Un-audited): Diluted EPS was Tk. 1.16 for October-December 2025 as against Tk. 0.56 for October-December 2024; Diluted EPS was Tk. 2.13 for July-December 2025 as against Tk. 1.38 for July-December 2024. Diluted NOCFPS was Tk. 4.48 for July-December 2025 as against Tk. 1.78 for July-December 2024. Diluted NAV per share was Tk. 12.52 as on December 31, 2025 and Tk. 12.01 as on June 30, 2025. (cont.)"
+    },
+    {
+      "title": "LOVELLO: Sale Intimation",
+      "post_date": "2026-01-15T00:00:00",
+      "body": "Taufika Engineering Limited, a placement shareholder of the company, has declared its intention to sell 5,00,000 shares of Taufika Foods and Lovello Ice-cream PLC. In this regard, it is mentionable that Mrs. Shamima Nargis Haque and Mr. Md. Ekramul Haque are the directors (Chairman and Managing Director respectively) of Taufika Foods and Lovello Ice-cream PLC. and they are also the Directors (Managing Director and Chairman respectively) of Taufika Engineering Limited."
+    },
+    {
+      "title": "LOVELLO: Declaration of share transfer by a Sponsor Director",
+      "post_date": "2026-01-15T00:00:00",
+      "body": "Mr. Md. Ekramul Haque, Sponsor Director of the company, has expressed his intention to transfer 25,00,000 shares of the Company to his Brother Mr. Md. Zahedul Haque (General Shareholder of the company), by way of gift outside the trading system of the Exchange within 30 working days with effect from December 22, 2025."
+    },
+    {
+      "title": "LOVELLO: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-01-12T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 17, 2026 at 3:30 PM to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "post_date": "2026-01-11T00:00:00",
+      "title": "LOVELLO: Dividend Disbursement",
+      "body": "The Company has informed that it has credited the Bonus Shares to the respective shareholders' BO Accounts and it has also disbursed the Cash Dividend to the respective shareholders for the year ended June 30, 2025."
+    },
+    {
+      "post_date": "2026-01-05T00:00:00",
+      "title": "LOVELLO: Credit Rating Result",
+      "body": "ARGUS Credit Rating Services Limited (ACRSL) has announced the Credit Rating of the company as \"A\" for Long Term and \"ST-2\" for Short Term with outlook as \"Stable\" in consideration of audited financials of the Company up to 30th June 2024 and unaudited financials up to the period ending September 30, 2025 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "post_date": "2025-12-22T00:00:00",
+      "title": "LOVELLO: Qualified Opinion, Emphasis of Matter and Other Matter",
+      "body": "The auditor of the company has given the Qualified Opinion, Emphasis of Matter and Other Matter paragraph in the audited financial statements of the company for the year ended June 30, 2025. To view the details, please visit: https://www.dsebd.org/Auditors_opinion/2025/LOVELLO_2025.pdf"
+    },
+    {
+      "title": "LOVELLO: Change of AGM Date",
+      "post_date": "2025-12-07T00:00:00",
+      "body": "Refer to their earlier news disseminated by DSE on 12.10.2025 regarding dividend declaration, the company has further informed that the Board of Directors of the Company has decided to reschedule the date of the 14th Annual General Meeting (AGM) on December 28, 2025 instead of December 30, 2025."
+    },
+    {
+      "post_date": "2025-12-03T00:00:00",
+      "title": "LOVELLO: Clarification on recent news published in the website/newspaper",
+      "body": "In response to a DSE query to the company regarding a news published in an online portal titled \"Travel ban imposed on the Managing Director of Lovello Ice Cream along with his family (translated from Bengali to English)\" on November 26, 2025, the company has informed, among others, the following: \".....The Company acknowledges that a travel restriction order was passed on the basis of an application (cont.1)"
+    },
+    {
+      "post_date": "2025-11-06T00:00:00",
+      "title": "LOVELLO: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 09.11.2025."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "UNILEVERCL",
+      "company_name": "Unilever Consumer Care Limited",
+      "sector": "Food & Allied",
+      "score": 62.7,
+      "ltp": 2060.8,
+      "change_pct": 0.28,
+      "pe": 50.01,
+      "pb": 17.72,
+      "div_yield_pct": 2.0,
+      "roe_pct": 27.3,
+      "eps_yoy_pct": 19.0
+    },
+    {
+      "trading_code": "OLYMPIC",
+      "company_name": "Olympic Industries PLC.",
+      "sector": "Food & Allied",
+      "score": 60.2,
+      "ltp": 159.9,
+      "change_pct": -0.68,
+      "pe": 15.89,
+      "pb": 2.56,
+      "div_yield_pct": 1.9,
+      "roe_pct": 17.2,
+      "eps_yoy_pct": 9.7
+    },
+    {
+      "trading_code": "BATBC",
+      "company_name": "British American Tobacco Bangladesh Company Limited",
+      "sector": "Food & Allied",
+      "score": 59.9,
+      "ltp": 222.7,
+      "change_pct": -0.49,
+      "pe": 20.6,
+      "pb": 2.17,
+      "div_yield_pct": 1.3,
+      "roe_pct": 30.3,
+      "eps_yoy_pct": -66.7
+    },
+    {
+      "trading_code": "AMCL(PRAN)",
+      "company_name": "Agricultural Marketing Company Ltd. (Pran",
+      "sector": "Food & Allied",
+      "score": 58.0,
+      "ltp": 239.1,
+      "change_pct": 0.5,
+      "pe": 47.72,
+      "pb": 2.57,
+      "div_yield_pct": 1.3,
+      "roe_pct": 6.1,
+      "eps_yoy_pct": -9.1
+    },
+    {
+      "trading_code": "APEXFOODS",
+      "company_name": "Apex Foods Limited",
+      "sector": "Food & Allied",
+      "score": 55.8,
+      "ltp": 295.4,
+      "change_pct": -0.61,
+      "pe": 46.08,
+      "pb": 2.34,
+      "div_yield_pct": 0.7,
+      "roe_pct": 4.4,
+      "eps_yoy_pct": 13.3
+    }
+  ],
+  "source_hash": "13b2927a4b7fc81dbd1b10822bce3cf32d1eb128aca05d02dbbc05981cc3b090"
+}

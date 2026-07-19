@@ -1,0 +1,798 @@
+{
+  "trading_code": "SIMTEX",
+  "company_name": "Simtex Industries PLC.",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Textile",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 79595381,
+    "paid_up_capital_mn": 795.95,
+    "reserve_surplus_mn": 689.1,
+    "total_loan_mn": 598.25,
+    "listing_year": 2015,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 27.8,
+    "change": -0.7,
+    "change_pct": -2.46,
+    "date": "2026-07-16",
+    "high": 28.5,
+    "low": 27.5,
+    "volume": 2789183,
+    "avg_volume_7d": 3871702,
+    "ycp": 28.5,
+    "w52_high": 34.1,
+    "w52_low": 15.7
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 8.6,
+      "m3": 13.9,
+      "m6": 37.6,
+      "y1": 72.7
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 15.0
+      },
+      {
+        "date": "2025-06-30",
+        "close": 15.5
+      },
+      {
+        "date": "2025-07-31",
+        "close": 16.9
+      },
+      {
+        "date": "2025-08-31",
+        "close": 19.5
+      },
+      {
+        "date": "2025-09-30",
+        "close": 22.8
+      },
+      {
+        "date": "2025-10-30",
+        "close": 30.3
+      },
+      {
+        "date": "2025-11-30",
+        "close": 29.8
+      },
+      {
+        "date": "2025-12-30",
+        "close": 22.4
+      },
+      {
+        "date": "2026-01-29",
+        "close": 21.9
+      },
+      {
+        "date": "2026-02-26",
+        "close": 24.1
+      },
+      {
+        "date": "2026-03-31",
+        "close": 24.3
+      },
+      {
+        "date": "2026-04-30",
+        "close": 24.7
+      },
+      {
+        "date": "2026-05-31",
+        "close": 24.2
+      },
+      {
+        "date": "2026-06-30",
+        "close": 27.7
+      },
+      {
+        "date": "2026-07-16",
+        "close": 27.8
+      }
+    ],
+    "pct_in_52w_range": 65.8
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 4.0
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.7
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.5
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Leaning pricey",
+      "word_bn": "দাম একটু বেশি",
+      "score10": 4.4
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 9.4
+    }
+  ],
+  "fair_value": {
+    "low": 21.4,
+    "high": 32.1,
+    "center": 26.7,
+    "today": 27.8,
+    "stance": "fair",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 22.3
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 39.7
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 19.7
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 16.7
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 26.99,
+    "current_pb": 1.24,
+    "own_avg_pe": 21.64,
+    "own_avg_pb": 0.88,
+    "sector_median_pe": 38.57,
+    "sector_median_pb": 0.88,
+    "eps": 1.03,
+    "sector_implied_price": 39.73
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 0.92,
+        "net_profit_crore": 7.31,
+        "cash_dividend_pct": 4.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 0.4,
+        "nav_per_share_taka": 21.82,
+        "revenue_crore": 133.1,
+        "operating_profit_crore": null,
+        "operating_cash_flow_crore": 25.0,
+        "capex_crore": null,
+        "total_debt_crore": 46.6,
+        "total_equity_crore": 173.7,
+        "total_assets_crore": 262.0,
+        "cash_crore": 7.24,
+        "debt_to_equity": 0.27
+      },
+      {
+        "year": 2022,
+        "eps_taka": 0.97,
+        "net_profit_crore": 7.72,
+        "cash_dividend_pct": 8.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 0.8,
+        "nav_per_share_taka": 22.39,
+        "revenue_crore": 138.8,
+        "operating_profit_crore": null,
+        "operating_cash_flow_crore": -2.11,
+        "capex_crore": null,
+        "total_debt_crore": 66.7,
+        "total_equity_crore": 178.2,
+        "total_assets_crore": 280.6,
+        "cash_crore": 5.84,
+        "debt_to_equity": 0.37
+      },
+      {
+        "year": 2023,
+        "eps_taka": 0.82,
+        "net_profit_crore": 6.53,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 22.41,
+        "revenue_crore": 149.2,
+        "operating_profit_crore": null,
+        "operating_cash_flow_crore": 39.3,
+        "capex_crore": null,
+        "total_debt_crore": 49.4,
+        "total_equity_crore": 178.4,
+        "total_assets_crore": 259.5,
+        "cash_crore": 2.79,
+        "debt_to_equity": 0.28
+      },
+      {
+        "year": 2024,
+        "eps_taka": 0.86,
+        "net_profit_crore": 6.81,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 22.39,
+        "revenue_crore": 166.6,
+        "operating_profit_crore": null,
+        "operating_cash_flow_crore": 35.5,
+        "capex_crore": null,
+        "total_debt_crore": 44.2,
+        "total_equity_crore": 178.2,
+        "total_assets_crore": 256.5,
+        "cash_crore": 2.03,
+        "debt_to_equity": 0.25
+      },
+      {
+        "year": 2025,
+        "eps_taka": 1.03,
+        "net_profit_crore": 8.23,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 22.43,
+        "revenue_crore": 199.8,
+        "operating_profit_crore": null,
+        "operating_cash_flow_crore": 15.6,
+        "capex_crore": null,
+        "total_debt_crore": 54.5,
+        "total_equity_crore": 178.5,
+        "total_assets_crore": 261.5,
+        "cash_crore": 1.29,
+        "debt_to_equity": 0.31
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 1.03,
+      "net_profit_crore": 8.23,
+      "cash_dividend_pct": 10.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 1.0,
+      "nav_per_share_taka": 22.43,
+      "revenue_crore": 199.8,
+      "operating_profit_crore": null,
+      "operating_cash_flow_crore": 15.6,
+      "capex_crore": null,
+      "total_debt_crore": 54.5,
+      "total_equity_crore": 178.5,
+      "total_assets_crore": 261.5,
+      "cash_crore": 1.29,
+      "debt_to_equity": 0.31
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": 13.0,
+      "eps_change_pct": 12.0,
+      "revenue_change_pct": 50.0
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 7.96,
+      "paid_up_capital_crore": 79.6,
+      "reserve_surplus_crore": 68.9,
+      "total_loan_crore": 59.8,
+      "listing_year": 2015
+    },
+    "ownership": {
+      "sponsor_director_pct": 31.65,
+      "govt_pct": 0.0,
+      "institute_pct": 16.77,
+      "foreign_pct": 0.0,
+      "public_pct": 51.58
+    }
+  },
+  "sector_context": {
+    "sector": "Textile",
+    "peer_count": 58,
+    "rank_in_sector": 5,
+    "sector_avg_score": 27.8,
+    "sector_median_pe": 38.57
+  },
+  "score": {
+    "trading_code": "SIMTEX",
+    "sector": "Textile",
+    "market_cat": "A",
+    "ltp": 27.8,
+    "mcap_mn": 2212.7515918000004,
+    "score": 63.3,
+    "base_score": 63.3,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.886,
+    "eps": 1.03,
+    "roe_pct": 4.6,
+    "sector_median_pe": 38.57,
+    "sector_median_pb": 0.88,
+    "p1_biz": 4.04,
+    "p2_health": 8.7,
+    "p3_moat": 6.53,
+    "p4_val": 4.43,
+    "p5_div": 9.41,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 2.0,
+    "p1_roe": 1.4757,
+    "p1_npm_trend": 5.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 19.8,
+    "eps_stability": 1.0,
+    "p2_de": 9.965129939953966,
+    "p2_ic": null,
+    "p2_cfo": 10.0,
+    "p2_cash": 2.296028995848614,
+    "p2_coverage": 0.75,
+    "p3_margin": 7.0,
+    "p3_rev_vol": 7.0,
+    "p3_sector_rank": 5.0,
+    "p3_capex": null,
+    "p3_coverage": 0.85,
+    "p4_pe": 6.12,
+    "p4_pb": 1.9,
+    "p4_vol_damp": 1.0,
+    "current_pe": 26.99,
+    "current_pb": 1.24,
+    "own_avg_pe": 21.64,
+    "own_avg_pb": 0.88,
+    "p5_dps_cagr": 9.4488,
+    "p5_consist": 10.0,
+    "p5_yield": 7.89568345323741,
+    "div_yield_pct": 3.6,
+    "overall_rank": 48,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "good_wait_price",
+    "reason_en": "Good company — fine to hold, but wait for a cheaper price to buy.",
+    "reason_bn": "ভালো কোম্পানি — ধরে রাখা যায়, তবে কেনার জন্য আরেকটু কম দামের অপেক্ষা করুন।",
+    "tier": "good",
+    "momentum_grade": "flat",
+    "score": 63.3,
+    "p4_val": 4.43,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 31.6% (strong alignment)"
+    ],
+    "red": [
+      "Payout ratio 97% — potentially unsustainable"
+    ]
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, but share is quiet",
+    "sentences": [
+      "The company's numbers are good, but the share has been quiet — the price is not moving much in either direction.",
+      "Has paid dividends regularly in past years."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": -2.46,
+    "rs_vs_dsex_pct": -4.52,
+    "volume_ratio": 0.87,
+    "avg_turnover_7d_mn": 85.55,
+    "up_days_7d": 3,
+    "days_counted": 7,
+    "pct_in_52w_range": 65.8,
+    "momentum_grade": "flat"
+  },
+  "financials": [
+    {
+      "trading_code": "SIMTEX",
+      "year": 2021,
+      "cash_dividend_pct": 4.0,
+      "dividend_yield_pct": 2.2,
+      "eps_basic": null,
+      "eps_cont_basic": 0.92,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 21.82,
+      "pe_ratio_basic": 19.83,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 73.07,
+      "profit_mn": 73.07,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 73.07,
+      "dps": 0.4,
+      "eps": 0.92
+    },
+    {
+      "trading_code": "SIMTEX",
+      "year": 2022,
+      "cash_dividend_pct": 8.0,
+      "dividend_yield_pct": 4.42,
+      "eps_basic": null,
+      "eps_cont_basic": 0.97,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 22.39,
+      "pe_ratio_basic": 18.65,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 77.25,
+      "profit_mn": 77.25,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 77.25,
+      "dps": 0.8,
+      "eps": 0.97
+    },
+    {
+      "trading_code": "SIMTEX",
+      "year": 2023,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 4.22,
+      "eps_basic": null,
+      "eps_cont_basic": 0.82,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 22.41,
+      "pe_ratio_basic": 28.9,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 65.26,
+      "profit_mn": 65.26,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 65.26,
+      "dps": 1.0,
+      "eps": 0.82
+    },
+    {
+      "trading_code": "SIMTEX",
+      "year": 2024,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 4.52,
+      "eps_basic": null,
+      "eps_cont_basic": 0.86,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 22.39,
+      "pe_ratio_basic": 25.83,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 68.09,
+      "profit_mn": 68.09,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 68.09,
+      "dps": 1.0,
+      "eps": 0.86
+    },
+    {
+      "trading_code": "SIMTEX",
+      "year": 2025,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 6.45,
+      "eps_basic": null,
+      "eps_cont_basic": 1.03,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 22.43,
+      "pe_ratio_basic": 14.99,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 82.29,
+      "profit_mn": 82.29,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 82.29,
+      "dps": 1.0,
+      "eps": 1.03
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "SIMTEX",
+      "year": 2021,
+      "capex": null,
+      "investing_cf": -94615887.0,
+      "net_profit": 73067444.0,
+      "nocfps": 3.14,
+      "operating_cf": 249987776.0,
+      "total_equity": 1736773599.0,
+      "ebit": null,
+      "intangibles": null,
+      "interest_expense": 61156297.0,
+      "revenue": 1330609019.0,
+      "total_assets": 2619685500.0,
+      "cash_and_equivalents": 72393480.0,
+      "earning_assets": null,
+      "gross_profit": 222035767.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 466192891.0
+    },
+    {
+      "trading_code": "SIMTEX",
+      "year": 2022,
+      "capex": null,
+      "investing_cf": -19494129.0,
+      "net_profit": 77246467.0,
+      "nocfps": -0.27,
+      "operating_cf": -21129321.0,
+      "total_equity": 1782209708.0,
+      "ebit": null,
+      "intangibles": null,
+      "interest_expense": 75609922.0,
+      "revenue": 1387655587.0,
+      "total_assets": 2805743185.0,
+      "cash_and_equivalents": 58397128.0,
+      "earning_assets": null,
+      "gross_profit": 248933094.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 666830000.0
+    },
+    {
+      "trading_code": "SIMTEX",
+      "year": 2023,
+      "capex": null,
+      "investing_cf": -50422294.0,
+      "net_profit": 65263040.0,
+      "nocfps": 4.94,
+      "operating_cf": 393027776.0,
+      "total_equity": 1783796444.0,
+      "ebit": null,
+      "intangibles": null,
+      "interest_expense": 76878322.0,
+      "revenue": 1491911950.0,
+      "total_assets": 2595491663.0,
+      "cash_and_equivalents": 27917636.0,
+      "earning_assets": null,
+      "gross_profit": 255395401.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 494058012.0
+    },
+    {
+      "year": 2024,
+      "trading_code": "SIMTEX",
+      "capex": null,
+      "investing_cf": -131069539.0,
+      "net_profit": 68098400.0,
+      "nocfps": 4.46,
+      "operating_cf": 355273405.0,
+      "total_equity": 1782376700.0,
+      "ebit": null,
+      "intangibles": null,
+      "interest_expense": 68375474.0,
+      "revenue": 1665507318.0,
+      "total_assets": 2565124890.0,
+      "cash_and_equivalents": 20284124.0,
+      "earning_assets": null,
+      "gross_profit": 290049271.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 442162784.0
+    },
+    {
+      "trading_code": "SIMTEX",
+      "year": 2025,
+      "capex": null,
+      "cash_and_equivalents": 12902562.0,
+      "earning_assets": null,
+      "ebit": null,
+      "gross_profit": 353563327.0,
+      "intangibles": null,
+      "interest_expense": 76269372.0,
+      "interest_income": null,
+      "investing_cf": -70719853.0,
+      "net_interest_income": null,
+      "net_profit": 82294720.0,
+      "nocfps": 1.96,
+      "operating_cf": 155715437.0,
+      "revenue": 1997875808.0,
+      "total_assets": 2615128014.0,
+      "total_debt": 544859668.0,
+      "total_equity": 1785076039.0
+    }
+  ],
+  "shareholding": {
+    "trading_code": "SIMTEX",
+    "as_of_date": "Mar 31, 2026",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 16.77,
+    "public_pct": 51.58,
+    "reporting_period": null,
+    "sponsor_director_pct": 31.65
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jun 30, 2025",
+    "trading_code": "SIMTEX",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 11.13,
+    "public_pct": 57.22,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 31.65
+  },
+  "dividend_declaration": {
+    "trading_code": "SIMTEX",
+    "declaration_date": "2025-10-28T00:00:00",
+    "dividend_pct": 10.0,
+    "dividend_type": "Final",
+    "record_date": "2025-11-27T00:00:00",
+    "scraped_at": "2026-07-16T10:46:21.885000",
+    "title": "SIMTEX: Dividend Declaration"
+  },
+  "news": [
+    {
+      "title": "SIMTEX: Q3 Financials",
+      "post_date": "2026-04-30T00:00:00",
+      "body": "(Q3 Un-audited): EPS was Tk. 0.29 for January-March 2026 as against Tk. 0.26 for January-March 2025; EPS was Tk. 0.96 for July 2025-March 2026 as against Tk. 0.87 for July 2024-March 2025. NOCFPS was Tk. 2.67 for July 2025-March 2026 as against Tk. 0.58 for July 2024-March 2025. NAV per share was Tk. 22.39 as on March 31, 2026, and Tk. 22.43 as on June 30, 2025."
+    },
+    {
+      "post_date": "2026-04-22T00:00:00",
+      "title": "SIMTEX: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 29, 2026 at 3:30 pm to consider, among others, Un-Audited Financial Statements for the Third Quarter (Q3) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-03-12T00:00:00",
+      "title": "SIMTEX: Credit Rating Result",
+      "body": "Credit Rating Information and Services PLC (CRISL) has assigned rating of the Company as \"A\" in the long term and \"ST-3\" in the short term along with a Stable outlook in consideration of its audited financials up to June 30, 2025 also unaudited financial up to December 31, 2025 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "post_date": "2026-01-29T00:00:00",
+      "title": "SIMTEX: Q2 Financials",
+      "body": "(Q2 Un-audited): EPS was Tk. 0.41 for October-December 2025 as against Tk. 0.33 for October-December 2024; EPS was Tk. 0.67 for July-December 2025 as against Tk. 0.61 for July-December 2024. NOCFPS was Tk. 1.04 for July-December 2025 as against Tk. (0.63) for July-December 2024. NAV per share was Tk. 22.10 as on December 31, 2025 and Tk. 22.43 as on June 30, 2025. (cont.)"
+    },
+    {
+      "post_date": "2026-01-29T00:00:00",
+      "title": "SIMTEX: Election of Chairman",
+      "body": "The company has informed that the Board of Directors has elected Mr. Md. Hafizur Rahman as the Chairman of the Board of Directors of the Company with immediate effect."
+    },
+    {
+      "title": "SIMTEX: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-01-20T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 28, 2026 at 3:30 PM to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "post_date": "2026-01-19T00:00:00",
+      "title": "SIMTEX: Dividend Disbursement",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended June 30, 2025 to the respective shareholders."
+    },
+    {
+      "title": "SIMTEX: Resumption after Record Date",
+      "post_date": "2025-11-27T00:00:00",
+      "body": "Trading of the shares of the company will resume on 30.11.2025."
+    },
+    {
+      "post_date": "2025-11-26T00:00:00",
+      "title": "SIMTEX: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 27.11.2025."
+    },
+    {
+      "post_date": "2025-11-24T00:00:00",
+      "title": "SIMTEX: Spot News",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 25.11.2025 to 26.11.2025 and trading of the shares will remain suspended on record date i.e., 27.11.2025."
+    },
+    {
+      "post_date": "2025-11-13T00:00:00",
+      "title": "SIMTEX: Q1 Financials",
+      "body": "(Q1 Un-audited): EPS was Tk. 0.26 for July-September 2025 as against Tk. 0.28 for July-September 2024; NOCFPS was Tk. 0.29 for July-September 2025 as against Tk. (0.55) for July-September 2024. NAV per share was Tk. 22.69 as on September 30, 2025 and Tk. 22.43 as on June 30, 2025. (cont.)"
+    },
+    {
+      "post_date": "2025-11-11T00:00:00",
+      "title": "SIMTEX: Update of Information",
+      "body": "The company has requested the shareholders to update their 12 digits e TIN Number, Bank Accounts, Address, Mobile Number in the BO Account through their respective Brokerage Houses/DPs before the record date i.e. November 27, 2025. If anyone fails to update their e TIN information before the record date, disbursement of respective dividend will be subject to deduction of Advance Income Tax (AIT) at the rate of 15% instead of 10% (in the case of individual) (cont.1)"
+    },
+    {
+      "title": "SIMTEX: Board Meeting schedule under LR 16(1)",
+      "post_date": "2025-11-05T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on November 12, 2025 at 3:30 PM to consider, among others, financial statements of the Company for the First Quarter (Q1) period ended September 30, 2025."
+    },
+    {
+      "post_date": "2025-10-28T00:00:00",
+      "title": "SIMTEX: Dividend Declaration",
+      "body": "The Board of Directors has recommended 10% Cash Dividend for the year ended June 30, 2025. Date of AGM: 24.12.2025, Time: 11:00 AM, Venue: Hybrid Platform (RAOWA Convention Hall, EAGLE (Hall-3), VIP Road, Mohakhali, Dhaka-1206). Record Date: 27.11.2025. The Company has also reported EPS of Tk. 1.03, NAV per share of Tk. 22.43 and NOCFPS of Tk. 1.96 for the year ended June 30, 2025 as against EPS of Tk. 0.86, NAV per share of Tk. 22.39 and NOCFPS of Tk. 4.27 for the year ended June 30, 2024."
+    },
+    {
+      "post_date": "2025-10-28T00:00:00",
+      "title": "SIMTEX: Price Limit Open",
+      "body": "There will be no price limit on the trading of the shares of the Company today (28.10.2025) following its corporate declaration."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "ENVOYTEX",
+      "company_name": "Envoy Textiles Limited",
+      "sector": "Textile",
+      "score": 75.6,
+      "ltp": 58.4,
+      "change_pct": 0.17,
+      "pe": 6.95,
+      "pb": 1.0,
+      "div_yield_pct": 5.1,
+      "roe_pct": 14.4,
+      "eps_yoy_pct": 134.6
+    },
+    {
+      "trading_code": "FEKDIL",
+      "company_name": "Far East Knitting & Dyeing Industries PLC.",
+      "sector": "Textile",
+      "score": 69.5,
+      "ltp": 25.0,
+      "change_pct": 2.46,
+      "pe": 14.62,
+      "pb": 1.17,
+      "div_yield_pct": 4.8,
+      "roe_pct": 8.0,
+      "eps_yoy_pct": 4.3
+    },
+    {
+      "trading_code": "ARGONDENIM",
+      "company_name": "Argon Denims Limited",
+      "sector": "Textile",
+      "score": 68.6,
+      "ltp": 20.9,
+      "change_pct": -2.34,
+      "pe": 12.44,
+      "pb": 0.85,
+      "div_yield_pct": 4.8,
+      "roe_pct": 6.8,
+      "eps_yoy_pct": 124.0
+    },
+    {
+      "trading_code": "PTL",
+      "company_name": "Paramount Textile PLC.",
+      "sector": "Textile",
+      "score": 65.4,
+      "ltp": 65.2,
+      "change_pct": -0.91,
+      "pe": 10.06,
+      "pb": 1.49,
+      "div_yield_pct": 1.8,
+      "roe_pct": 17.4,
+      "eps_yoy_pct": -2.1
+    },
+    {
+      "trading_code": "TAMIJTEX",
+      "company_name": "Tamijuddin Textile Mills PLC",
+      "sector": "Textile",
+      "score": 60.6,
+      "ltp": 135.0,
+      "change_pct": -2.03,
+      "pe": 20.12,
+      "pb": 1.31,
+      "div_yield_pct": 0.9,
+      "roe_pct": 6.9,
+      "eps_yoy_pct": 0.1
+    }
+  ],
+  "source_hash": "0dc6498ebc936bd5b2366e12bf2f84dc4dfbd8094a5ca63a0a6fc5072db7a012"
+}

@@ -1,0 +1,797 @@
+{
+  "trading_code": "ITC",
+  "company_name": "IT Consultants PLC.",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "IT Sector",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 128592664,
+    "paid_up_capital_mn": 1285.93,
+    "reserve_surplus_mn": 1409.4,
+    "total_loan_mn": 1058.52,
+    "listing_year": 2016,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 51.4,
+    "change": 1.4,
+    "change_pct": 2.8,
+    "date": "2026-07-16",
+    "high": 51.7,
+    "low": 49.5,
+    "volume": 2908872,
+    "avg_volume_7d": 4170530,
+    "ycp": 50,
+    "w52_high": 52.2,
+    "w52_low": 36.2
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 24.5,
+      "m3": 28.2,
+      "m6": 33.5,
+      "y1": 34.9
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 34.3
+      },
+      {
+        "date": "2025-06-30",
+        "close": 35.5
+      },
+      {
+        "date": "2025-07-31",
+        "close": 39.6
+      },
+      {
+        "date": "2025-08-31",
+        "close": 44.4
+      },
+      {
+        "date": "2025-09-30",
+        "close": 43.5
+      },
+      {
+        "date": "2025-10-30",
+        "close": 40.3
+      },
+      {
+        "date": "2025-11-30",
+        "close": 40.2
+      },
+      {
+        "date": "2025-12-30",
+        "close": 38.4
+      },
+      {
+        "date": "2026-01-29",
+        "close": 39.1
+      },
+      {
+        "date": "2026-02-26",
+        "close": 40.1
+      },
+      {
+        "date": "2026-03-31",
+        "close": 37.6
+      },
+      {
+        "date": "2026-04-30",
+        "close": 38.5
+      },
+      {
+        "date": "2026-05-31",
+        "close": 41.4
+      },
+      {
+        "date": "2026-06-30",
+        "close": 48.4
+      },
+      {
+        "date": "2026-07-16",
+        "close": 51.4
+      }
+    ],
+    "pct_in_52w_range": 95.0
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.3
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.4
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 7.2
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Good value",
+      "word_bn": "দাম সস্তা",
+      "score10": 7.3
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 9.4
+    }
+  ],
+  "fair_value": {
+    "low": 61.4,
+    "high": 92.1,
+    "center": 76.8,
+    "today": 51.4,
+    "stance": "cheap",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 60.1
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 137
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 46.5
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 20.0
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 14.2,
+    "current_pb": 2.21,
+    "own_avg_pe": 16.61,
+    "own_avg_pb": 2.0,
+    "sector_median_pe": 37.81,
+    "sector_median_pb": 2.04,
+    "eps": 3.62,
+    "sector_implied_price": 136.87
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 1.54,
+        "net_profit_crore": 19.8,
+        "cash_dividend_pct": 5.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 0.5,
+        "nav_per_share_taka": 16.48,
+        "revenue_crore": 133.6,
+        "operating_profit_crore": 26.7,
+        "operating_cash_flow_crore": -8.23,
+        "capex_crore": 1.02,
+        "total_debt_crore": 2.26,
+        "total_equity_crore": 211.9,
+        "total_assets_crore": 283.8,
+        "cash_crore": 14.9,
+        "debt_to_equity": 0.01
+      },
+      {
+        "year": 2022,
+        "eps_taka": 1.87,
+        "net_profit_crore": 24.0,
+        "cash_dividend_pct": 6.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 0.6,
+        "nav_per_share_taka": 17.15,
+        "revenue_crore": 101.5,
+        "operating_profit_crore": 29.7,
+        "operating_cash_flow_crore": -8.12,
+        "capex_crore": 0.04,
+        "total_debt_crore": 2.37,
+        "total_equity_crore": 220.5,
+        "total_assets_crore": 266.6,
+        "cash_crore": 17.8,
+        "debt_to_equity": 0.01
+      },
+      {
+        "year": 2023,
+        "eps_taka": 2.45,
+        "net_profit_crore": 31.5,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 19,
+        "revenue_crore": 119.9,
+        "operating_profit_crore": 36.3,
+        "operating_cash_flow_crore": -9.14,
+        "capex_crore": 44.5,
+        "total_debt_crore": 0.41,
+        "total_equity_crore": 244.3,
+        "total_assets_crore": 307.5,
+        "cash_crore": 24.4,
+        "debt_to_equity": 0.0
+      },
+      {
+        "year": 2024,
+        "eps_taka": 2.98,
+        "net_profit_crore": 38.3,
+        "cash_dividend_pct": 11.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.1,
+        "nav_per_share_taka": 20.75,
+        "revenue_crore": 136.7,
+        "operating_profit_crore": 47.3,
+        "operating_cash_flow_crore": -12.0,
+        "capex_crore": 0.28,
+        "total_debt_crore": 47.7,
+        "total_equity_crore": 266.8,
+        "total_assets_crore": 356.2,
+        "cash_crore": 31.4,
+        "debt_to_equity": 0.18
+      },
+      {
+        "year": 2025,
+        "eps_taka": 3.62,
+        "net_profit_crore": 46.5,
+        "cash_dividend_pct": 12.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.2,
+        "nav_per_share_taka": 23.25,
+        "revenue_crore": 156.4,
+        "operating_profit_crore": 56.9,
+        "operating_cash_flow_crore": -13.1,
+        "capex_crore": 0.46,
+        "total_debt_crore": 96.1,
+        "total_equity_crore": 299.0,
+        "total_assets_crore": 451.9,
+        "cash_crore": 43.2,
+        "debt_to_equity": 0.32
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 3.62,
+      "net_profit_crore": 46.5,
+      "cash_dividend_pct": 12.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 1.2,
+      "nav_per_share_taka": 23.25,
+      "revenue_crore": 156.4,
+      "operating_profit_crore": 56.9,
+      "operating_cash_flow_crore": -13.1,
+      "capex_crore": 0.46,
+      "total_debt_crore": 96.1,
+      "total_equity_crore": 299.0,
+      "total_assets_crore": 451.9,
+      "cash_crore": 43.2,
+      "debt_to_equity": 0.32
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": 135.0,
+      "eps_change_pct": 135.0,
+      "revenue_change_pct": 17.0
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 12.9,
+      "paid_up_capital_crore": 128.6,
+      "reserve_surplus_crore": 140.9,
+      "total_loan_crore": 105.9,
+      "listing_year": 2016
+    },
+    "ownership": {
+      "sponsor_director_pct": 51.09,
+      "govt_pct": 0.0,
+      "institute_pct": 17.58,
+      "foreign_pct": 0.03,
+      "public_pct": 31.3
+    }
+  },
+  "sector_context": {
+    "sector": "IT Sector",
+    "peer_count": 11,
+    "rank_in_sector": 1,
+    "sector_avg_score": 41.9,
+    "sector_median_pe": 37.81
+  },
+  "score": {
+    "trading_code": "ITC",
+    "sector": "IT Sector",
+    "market_cat": "A",
+    "ltp": 51.4,
+    "mcap_mn": 6609.662929599999,
+    "score": 77.3,
+    "base_score": 77.3,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.786,
+    "eps": 3.62,
+    "roe_pct": null,
+    "sector_median_pe": 37.81,
+    "sector_median_pb": 2.04,
+    "p1_biz": 8.33,
+    "p2_health": 6.43,
+    "p3_moat": 7.2,
+    "p4_val": 7.27,
+    "p5_div": 9.4,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 10.0,
+    "p1_roe": null,
+    "p1_npm_trend": null,
+    "p1_coverage": 0.5,
+    "eps_yoy_pct": 21.5,
+    "eps_stability": 1.0,
+    "p2_de": 9.857036735422245,
+    "p2_ic": 10.0,
+    "p2_cfo": 0.0,
+    "p2_cash": 6.824162744195588,
+    "p2_coverage": 1.0,
+    "p3_margin": 10.0,
+    "p3_rev_vol": 4.0,
+    "p3_sector_rank": 5.0,
+    "p3_capex": 10.0,
+    "p3_coverage": 1.0,
+    "p4_pe": 8.76,
+    "p4_pb": 5.03,
+    "p4_vol_damp": 1.0,
+    "current_pe": 14.2,
+    "current_pb": 2.21,
+    "own_avg_pe": 16.61,
+    "own_avg_pb": 2.0,
+    "p5_dps_cagr": 10.0,
+    "p5_consist": 10.0,
+    "p5_yield": 6.001945525291829,
+    "div_yield_pct": 2.3,
+    "overall_rank": 9,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "near_52w_high",
+    "reason_en": "Strong company, but the price is near its one-year high — wait for a better entry.",
+    "reason_bn": "কোম্পানি ভালো, কিন্তু দাম এখন বছরের সর্বোচ্চের কাছাকাছি — একটু অপেক্ষা করুন।",
+    "tier": "excellent",
+    "momentum_grade": "flat",
+    "score": 77.3,
+    "p4_val": 7.27,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "Consistent dividend payer (4+ years)",
+      "Currently cheap vs historical P/E",
+      "Sponsor holding 51.1% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Excellent",
+    "tagline": "Strong company, but market hasn't noticed yet",
+    "sentences": [
+      "The company has strong profits and a healthy balance sheet, but the share price has not moved for weeks — the market has not noticed it yet.",
+      "Has paid dividends regularly in past years.",
+      "The share price looks cheaper now than its average over the past few years."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 0.39,
+    "rs_vs_dsex_pct": -1.67,
+    "volume_ratio": 1.17,
+    "avg_turnover_7d_mn": 197.22,
+    "up_days_7d": 2,
+    "days_counted": 7,
+    "pct_in_52w_range": 95.0,
+    "momentum_grade": "flat"
+  },
+  "financials": [
+    {
+      "trading_code": "ITC",
+      "year": 2021,
+      "cash_dividend_pct": 5.0,
+      "dividend_yield_pct": 1.39,
+      "eps_basic": null,
+      "eps_cont_basic": 1.54,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 16.48,
+      "pe_ratio_basic": 23.44,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 198.03,
+      "profit_mn": 198.03,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 198.03,
+      "dps": 0.5,
+      "eps": 1.54
+    },
+    {
+      "trading_code": "ITC",
+      "year": 2022,
+      "cash_dividend_pct": 6.0,
+      "dividend_yield_pct": 1.79,
+      "eps_basic": null,
+      "eps_cont_basic": 1.87,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 17.15,
+      "pe_ratio_basic": 17.99,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 240.23,
+      "profit_mn": 240.23,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 240.23,
+      "dps": 0.6,
+      "eps": 1.87
+    },
+    {
+      "trading_code": "ITC",
+      "year": 2023,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 2.32,
+      "eps_basic": null,
+      "eps_cont_basic": 2.45,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 19,
+      "pe_ratio_basic": 17.59,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 315.11,
+      "profit_mn": 315.11,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 315.11,
+      "dps": 1.0,
+      "eps": 2.45
+    },
+    {
+      "trading_code": "ITC",
+      "year": 2024,
+      "cash_dividend_pct": 11.0,
+      "dividend_yield_pct": 2.59,
+      "eps_basic": null,
+      "eps_cont_basic": 2.98,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 20.75,
+      "pe_ratio_basic": 14.22,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 383.48,
+      "profit_mn": 383.48,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 383.48,
+      "dps": 1.1,
+      "eps": 2.98
+    },
+    {
+      "trading_code": "ITC",
+      "year": 2025,
+      "cash_dividend_pct": 12.0,
+      "dividend_yield_pct": 3.38,
+      "eps_basic": null,
+      "eps_cont_basic": 3.62,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 23.25,
+      "pe_ratio_basic": 9.82,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 465.02,
+      "profit_mn": 465.02,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 465.02,
+      "dps": 1.2,
+      "eps": 3.62
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "ITC",
+      "year": 2021,
+      "capex": -10168106.0,
+      "investing_cf": null,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": -82267348.0,
+      "total_equity": 2119162938.0,
+      "ebit": 267086199.0,
+      "intangibles": 830098662.0,
+      "interest_expense": null,
+      "revenue": 1336036216.0,
+      "total_assets": 2837749411.0,
+      "cash_and_equivalents": 149495291.0,
+      "earning_assets": null,
+      "gross_profit": 459007357.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 22562567.0
+    },
+    {
+      "trading_code": "ITC",
+      "year": 2022,
+      "capex": -416700.0,
+      "investing_cf": null,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": -81162851.0,
+      "total_equity": 2204940852.0,
+      "ebit": 297300980.0,
+      "intangibles": 806527592.0,
+      "interest_expense": null,
+      "revenue": 1014613264.0,
+      "total_assets": 2666041543.0,
+      "cash_and_equivalents": 177883075.0,
+      "earning_assets": null,
+      "gross_profit": 498913978.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 23711834.0
+    },
+    {
+      "trading_code": "ITC",
+      "year": 2023,
+      "capex": -444972630.0,
+      "investing_cf": null,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": -91424306.0,
+      "total_equity": 2442739207.0,
+      "ebit": 363026851.0,
+      "intangibles": 782981595.0,
+      "interest_expense": null,
+      "revenue": 1199312627.0,
+      "total_assets": 3074820522.0,
+      "cash_and_equivalents": 244360941.0,
+      "earning_assets": null,
+      "gross_profit": 565233347.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 4058053.0
+    },
+    {
+      "trading_code": "ITC",
+      "year": 2024,
+      "capex": -2779792.0,
+      "investing_cf": null,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": -120422239.0,
+      "total_equity": 2667989364.0,
+      "ebit": 472743702.0,
+      "intangibles": 754666851.0,
+      "interest_expense": null,
+      "revenue": 1366655666.0,
+      "total_assets": 3561741705.0,
+      "cash_and_equivalents": 314287380.0,
+      "earning_assets": null,
+      "gross_profit": 702259190.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 476834304.0
+    },
+    {
+      "year": 2025,
+      "trading_code": "ITC",
+      "capex": -4614763.0,
+      "cash_and_equivalents": 432021357.0,
+      "earning_assets": null,
+      "ebit": 568958084.0,
+      "gross_profit": 820713575.0,
+      "intangibles": 721812814.0,
+      "interest_expense": null,
+      "interest_income": null,
+      "investing_cf": null,
+      "net_interest_income": null,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": -131427615.0,
+      "revenue": 1564486154.0,
+      "total_assets": 4518859535.0,
+      "total_debt": 961081834.0,
+      "total_equity": 2989884303.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "ITC",
+    "foreign_pct": 0.03,
+    "govt_pct": 0.0,
+    "institute_pct": 17.58,
+    "public_pct": 31.3,
+    "reporting_period": null,
+    "sponsor_director_pct": 51.09
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jun 30, 2025",
+    "trading_code": "ITC",
+    "foreign_pct": 0.01,
+    "govt_pct": 0.0,
+    "institute_pct": 19.55,
+    "public_pct": 29.35,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 51.09
+  },
+  "dividend_declaration": {
+    "trading_code": "ITC",
+    "declaration_date": "2025-10-27T00:00:00",
+    "dividend_pct": 12.0,
+    "dividend_type": "Final",
+    "record_date": "2025-11-16T00:00:00",
+    "scraped_at": "2026-07-16T10:20:23.336000",
+    "title": "ITC: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-04-30T00:00:00",
+      "title": "ITC: Q3 Financials",
+      "body": "(Q3 Un-audited): EPS was Tk. 0.92 for January-March 2026 as against Tk. 1.07 for January-March 2025; EPS was Tk. 2.70 for July 2025-March 2026 as against Tk. 3.00 for July 2024-March 2025. NOCFPS was Tk. 2.63 for July 2025-March 2026 as against Tk. 4.10 for July 2024-March 2025. NAV per share was Tk. 24.75 as on March 31, 2026 and Tk. 23.25 as on June 30, 2025."
+    },
+    {
+      "title": "ITC: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-04-23T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 29, 2026 at 3:00 pm to consider, among others, Un-Audited Financial Statements for the Third Quarter (Q3) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-02-01T00:00:00",
+      "title": "ITC: Q2 Financials",
+      "body": "(Q2 Un-audited): EPS was Tk. 0.86 for October-December 2025 as against Tk. 1.11 for October-December 2024; EPS was Tk. 1.78 for July-December 2025 as against Tk. 1.93 for July-December 2024. NOCFPS was Tk. 2.28 for July-December 2025 as against Tk. 3.14 for July-December 2024. NAV per share was Tk. 23.83 as on December 31, 2025 and Tk. 23.25 as on June 30, 2025."
+    },
+    {
+      "title": "ITC: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-01-25T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 29, 2026 at 3:00 PM to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "title": "ITC: Dividend Disbursement",
+      "post_date": "2026-01-05T00:00:00",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended June 30, 2025 to the respective shareholders."
+    },
+    {
+      "title": "ITC: Credit Rating Result",
+      "post_date": "2025-12-28T00:00:00",
+      "body": "Credit Rating Agency of Bangladesh Limited (CRAB) has announced the entity rating of the Company as \"AA1\" in the long term and \"ST-2\" in the short term along with Stable outlook based on audited financial statements (FYE 30/06/2025, 30/06/2024, 30/06/2023), bank liability position as on 27/11/2025 and other information up to the date of rating declaration."
+    },
+    {
+      "post_date": "2025-11-16T00:00:00",
+      "title": "ITC: Q1 Financials",
+      "body": "(Q1 Un-audited): EPS was Tk. 0.92 for July-September 2025 as against Tk. 0.81 for July-September 2024. NOCFPS was Tk. 0.35 for July-September 2025 as against Tk. 1.18 for July-September 2024. NAV per share was Tk. 24.17 as on September 30, 2025 and Tk. 23.25 as on June 30, 2025."
+    },
+    {
+      "title": "ITC: Resumption after Record Date",
+      "post_date": "2025-11-16T00:00:00",
+      "body": "Trading of the shares of the company will resume on 17.11.2025."
+    },
+    {
+      "title": "ITC: Suspension for Record Date",
+      "post_date": "2025-11-13T00:00:00",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 16.11.2025."
+    },
+    {
+      "title": "ITC: Spot News",
+      "post_date": "2025-11-11T00:00:00",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 12.11.2025 to 13.11.2025 and trading of the shares will remain suspended on record date i.e., 16.11.2025."
+    },
+    {
+      "post_date": "2025-11-09T00:00:00",
+      "title": "ITC: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on November 13, 2025 at 3:00 PM to consider, among others, Un-audited financial statements of the Company for the First Quarter (Q1) period ended September 30, 2025."
+    },
+    {
+      "post_date": "2025-10-27T00:00:00",
+      "title": "ITC: Dividend Declaration",
+      "body": "The Board of Directors has recommended 12% Cash Dividend (i.e., Tk. 1.12 per ordinary share of Tk. 10 each) for the year ended June 30, 2025. Date of AGM: 07.12.2025; Time: 10:30 AM; Venue/Mode of AGM: Hybrid System in combination of both online (virtual/digital platform) and physical presence at SKS Convention Hall (Sena Gourab), SKS Tower, VIP Road, Mohakhali, Dhaka-1206. Record Date: 16.11.2025. (cont.)"
+    },
+    {
+      "post_date": "2025-10-27T00:00:00",
+      "title": "ITC: Price Limit Open",
+      "body": "There will be no price limit on the trading of the shares of the Company today (27.10.2025) following its corporate declaration."
+    },
+    {
+      "post_date": "2025-10-27T00:00:00",
+      "title": "ITC: Update of Information",
+      "body": "The company has requested the shareholders for updating their respective BO account with 12 digits e-TIN number, BO account, address, mobile number, e-mail address etc. through their respective DPs before the Record Date."
+    },
+    {
+      "post_date": "2025-10-27T00:00:00",
+      "title": "ITC: Dividend Declaration (correction news)",
+      "body": "Refer to the earlier news disseminated by DSE today i.e., 27.10.2025 regarding dividend declaration, the correct dividend amount is Tk. 1.20 per ordinary share of Tk. 10 each instead of Tk. 1.12 per ordinary share of Tk. 10 each. Other information shall remain unchanged."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "GENEXIL",
+      "company_name": "Genex Infosys PLC",
+      "sector": "IT Sector",
+      "score": 59.3,
+      "ltp": 40.5,
+      "change_pct": -0.49,
+      "pe": 18.66,
+      "pb": 1.83,
+      "div_yield_pct": 0.2,
+      "roe_pct": null,
+      "eps_yoy_pct": -17.2
+    },
+    {
+      "trading_code": "BDCOM",
+      "company_name": "BDCOM Online Ltd.",
+      "sector": "IT Sector",
+      "score": 58.4,
+      "ltp": 33.5,
+      "change_pct": 0.0,
+      "pe": 38.95,
+      "pb": 2.15,
+      "div_yield_pct": 1.5,
+      "roe_pct": null,
+      "eps_yoy_pct": -3.4
+    },
+    {
+      "trading_code": "ADNTEL",
+      "company_name": "ADN Telecom Limited",
+      "sector": "IT Sector",
+      "score": 51.8,
+      "ltp": 69.0,
+      "change_pct": -1.43,
+      "pe": 27.06,
+      "pb": 2.1,
+      "div_yield_pct": 1.4,
+      "roe_pct": null,
+      "eps_yoy_pct": 10.4
+    },
+    {
+      "trading_code": "AGNISYSL",
+      "company_name": "Agni Systems PLC.",
+      "sector": "IT Sector",
+      "score": 49.5,
+      "ltp": 33.6,
+      "change_pct": 4.35,
+      "pe": 41.48,
+      "pb": 1.98,
+      "div_yield_pct": 0.7,
+      "roe_pct": null,
+      "eps_yoy_pct": -29.6
+    },
+    {
+      "trading_code": "DAFODILCOM",
+      "company_name": "Daffodil Computers PLC.",
+      "sector": "IT Sector",
+      "score": 45.2,
+      "ltp": 165.6,
+      "change_pct": 0.55,
+      "pe": 1035.0,
+      "pb": 12.84,
+      "div_yield_pct": null,
+      "roe_pct": null,
+      "eps_yoy_pct": -23.8
+    }
+  ],
+  "source_hash": "d738ae930057b85600dac850c80d960d31544df6050abde3a1aeae6f013d2345"
+}

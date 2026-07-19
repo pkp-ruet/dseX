@@ -1,0 +1,798 @@
+{
+  "trading_code": "UPGDCL",
+  "company_name": "United Power Generation & Distribution Company Ltd.",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Fuel & Power",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 579695270,
+    "paid_up_capital_mn": 5796.95,
+    "reserve_surplus_mn": 34990.5,
+    "total_loan_mn": 9995.83,
+    "listing_year": 2015,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 128.6,
+    "change": -2.5,
+    "change_pct": -1.91,
+    "date": "2026-07-16",
+    "high": 131.9,
+    "low": 128.4,
+    "volume": 133142,
+    "avg_volume_7d": 120372,
+    "ycp": 131.1,
+    "w52_high": 149.0,
+    "w52_low": 112.7
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 3.0,
+      "m3": 9.9,
+      "m6": 8.1,
+      "y1": 3.1
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 117.3
+      },
+      {
+        "date": "2025-06-30",
+        "close": 120.6
+      },
+      {
+        "date": "2025-07-31",
+        "close": 132.2
+      },
+      {
+        "date": "2025-08-31",
+        "close": 148.0
+      },
+      {
+        "date": "2025-09-30",
+        "close": 142.5
+      },
+      {
+        "date": "2025-10-30",
+        "close": 132.2
+      },
+      {
+        "date": "2025-11-30",
+        "close": 121.5
+      },
+      {
+        "date": "2025-12-30",
+        "close": 116.1
+      },
+      {
+        "date": "2026-01-29",
+        "close": 122.1
+      },
+      {
+        "date": "2026-02-26",
+        "close": 126.3
+      },
+      {
+        "date": "2026-03-31",
+        "close": 116.6
+      },
+      {
+        "date": "2026-04-30",
+        "close": 118.0
+      },
+      {
+        "date": "2026-05-31",
+        "close": 117.7
+      },
+      {
+        "date": "2026-06-30",
+        "close": 123.9
+      },
+      {
+        "date": "2026-07-16",
+        "close": 128.6
+      }
+    ],
+    "pct_in_52w_range": 43.8
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.7
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 7.5
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 4.4
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Good value",
+      "word_bn": "দাম সস্তা",
+      "score10": 8.6
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.5
+    }
+  ],
+  "fair_value": {
+    "low": 226,
+    "high": 340,
+    "center": 283,
+    "today": 129,
+    "stance": "cheap",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 256
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 407
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 262
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 108
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 6.22,
+    "current_pb": 1.74,
+    "own_avg_pe": 12.41,
+    "own_avg_pb": 3.55,
+    "sector_median_pe": 19.72,
+    "sector_median_pb": 0.74,
+    "eps": 20.66,
+    "sector_implied_price": 407.42
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 18.8,
+        "net_profit_crore": 1090,
+        "cash_dividend_pct": 170.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 17.0,
+        "nav_per_share_taka": 56.18,
+        "revenue_crore": 3058,
+        "operating_profit_crore": 1168,
+        "operating_cash_flow_crore": 1575,
+        "capex_crore": null,
+        "total_debt_crore": 375.1,
+        "total_equity_crore": 3309,
+        "total_assets_crore": 6767,
+        "cash_crore": 148.3,
+        "debt_to_equity": 0.11
+      },
+      {
+        "year": 2022,
+        "eps_taka": 17.21,
+        "net_profit_crore": 997.4,
+        "cash_dividend_pct": 170.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 17.0,
+        "nav_per_share_taka": 56.38,
+        "revenue_crore": 4944,
+        "operating_profit_crore": 1016,
+        "operating_cash_flow_crore": null,
+        "capex_crore": null,
+        "total_debt_crore": 388.3,
+        "total_equity_crore": 3320,
+        "total_assets_crore": 8621,
+        "cash_crore": 123.0,
+        "debt_to_equity": 0.12
+      },
+      {
+        "year": 2023,
+        "eps_taka": 13.83,
+        "net_profit_crore": 801.9,
+        "cash_dividend_pct": 80.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 8.0,
+        "nav_per_share_taka": 53.22,
+        "revenue_crore": 4131,
+        "operating_profit_crore": 1036,
+        "operating_cash_flow_crore": 1125,
+        "capex_crore": null,
+        "total_debt_crore": 302.0,
+        "total_equity_crore": 3135,
+        "total_assets_crore": 8119,
+        "cash_crore": 150.2,
+        "debt_to_equity": 0.1
+      },
+      {
+        "year": 2024,
+        "eps_taka": 14.01,
+        "net_profit_crore": 812.3,
+        "cash_dividend_pct": 60.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 6.0,
+        "nav_per_share_taka": 59.23,
+        "revenue_crore": 3478,
+        "operating_profit_crore": 1004,
+        "operating_cash_flow_crore": -51.3,
+        "capex_crore": null,
+        "total_debt_crore": 82.5,
+        "total_equity_crore": 3482,
+        "total_assets_crore": 7300,
+        "cash_crore": 70.4,
+        "debt_to_equity": 0.02
+      },
+      {
+        "year": 2025,
+        "eps_taka": 20.66,
+        "net_profit_crore": 1198,
+        "cash_dividend_pct": 65.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 6.5,
+        "nav_per_share_taka": 73.89,
+        "revenue_crore": 3909,
+        "operating_profit_crore": 1318,
+        "operating_cash_flow_crore": 1079,
+        "capex_crore": null,
+        "total_debt_crore": 33.2,
+        "total_equity_crore": 4342,
+        "total_assets_crore": 7730,
+        "cash_crore": 107.9,
+        "debt_to_equity": 0.01
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 20.66,
+      "net_profit_crore": 1198,
+      "cash_dividend_pct": 65.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 6.5,
+      "nav_per_share_taka": 73.89,
+      "revenue_crore": 3909,
+      "operating_profit_crore": 1318,
+      "operating_cash_flow_crore": 1079,
+      "capex_crore": null,
+      "total_debt_crore": 33.2,
+      "total_equity_crore": 4342,
+      "total_assets_crore": 7730,
+      "cash_crore": 107.9,
+      "debt_to_equity": 0.01
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": 10.0,
+      "eps_change_pct": 10.0,
+      "revenue_change_pct": 28.0
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 58.0,
+      "paid_up_capital_crore": 579.7,
+      "reserve_surplus_crore": 3499,
+      "total_loan_crore": 999.6,
+      "listing_year": 2015
+    },
+    "ownership": {
+      "sponsor_director_pct": 90.0,
+      "govt_pct": 0.0,
+      "institute_pct": 7.48,
+      "foreign_pct": 0.0,
+      "public_pct": 2.52
+    }
+  },
+  "sector_context": {
+    "sector": "Fuel & Power",
+    "peer_count": 23,
+    "rank_in_sector": 5,
+    "sector_avg_score": 41.9,
+    "sector_median_pe": 19.72
+  },
+  "score": {
+    "trading_code": "UPGDCL",
+    "sector": "Fuel & Power",
+    "market_cat": "A",
+    "ltp": 128.6,
+    "mcap_mn": 74548.811722,
+    "score": 63.6,
+    "base_score": 63.6,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.957,
+    "eps": 20.66,
+    "roe_pct": 28.1,
+    "sector_median_pe": 19.72,
+    "sector_median_pb": 0.74,
+    "p1_biz": 5.7,
+    "p2_health": 7.54,
+    "p3_moat": 4.43,
+    "p4_val": 8.56,
+    "p5_div": 6.5,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 2.0,
+    "p1_roe": 9.0,
+    "p1_npm_trend": 2.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 47.5,
+    "eps_stability": 1.0,
+    "p2_de": 10.0,
+    "p2_ic": 10.0,
+    "p2_cfo": 5.0,
+    "p2_cash": 2.837460179335485,
+    "p2_coverage": 1.0,
+    "p3_margin": 5.9118,
+    "p3_rev_vol": 1.0,
+    "p3_sector_rank": 7.0,
+    "p3_capex": null,
+    "p3_coverage": 0.85,
+    "p4_pe": 10.0,
+    "p4_pb": 6.4,
+    "p4_vol_damp": 1.0,
+    "current_pe": 6.22,
+    "current_pb": 1.74,
+    "own_avg_pe": 12.41,
+    "own_avg_pb": 3.55,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 10.0,
+    "div_yield_pct": 5.1,
+    "overall_rank": 47,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "buy",
+    "reason_key": "quality_cheap",
+    "reason_en": "Strong company and the price looks cheap right now.",
+    "reason_bn": "শক্তিশালী কোম্পানি, দামও এখন তুলনামূলক সস্তা।",
+    "tier": "good",
+    "momentum_grade": "flat",
+    "score": 63.6,
+    "p4_val": 8.56,
+    "strength": "strong"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Currently cheap vs historical P/E",
+      "Sponsor holding 90.0% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, but share is quiet",
+    "sentences": [
+      "The company's numbers are good, but the share has been quiet — the price is not moving much in either direction.",
+      "Has paid dividends regularly in past years.",
+      "The share price looks cheaper now than its average over the past few years."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 1.02,
+    "rs_vs_dsex_pct": -1.04,
+    "volume_ratio": 1.39,
+    "avg_turnover_7d_mn": 15.84,
+    "up_days_7d": 4,
+    "days_counted": 7,
+    "pct_in_52w_range": 43.8,
+    "momentum_grade": "flat"
+  },
+  "financials": [
+    {
+      "trading_code": "UPGDCL",
+      "year": 2021,
+      "cash_dividend_pct": 170.0,
+      "dividend_yield_pct": 6.34,
+      "eps_basic": null,
+      "eps_cont_basic": 18.8,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 56.18,
+      "pe_ratio_basic": 14.67,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 10900.86,
+      "profit_mn": 10900.86,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 10900.86,
+      "dps": 17.0,
+      "eps": 18.8
+    },
+    {
+      "trading_code": "UPGDCL",
+      "year": 2022,
+      "cash_dividend_pct": 170.0,
+      "dividend_yield_pct": 6.84,
+      "eps_basic": null,
+      "eps_cont_basic": 17.21,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 56.38,
+      "pe_ratio_basic": 14.45,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 9974.41,
+      "profit_mn": 9974.41,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 9974.41,
+      "dps": 17.0,
+      "eps": 17.21
+    },
+    {
+      "trading_code": "UPGDCL",
+      "year": 2023,
+      "cash_dividend_pct": 80.0,
+      "dividend_yield_pct": 3.42,
+      "eps_basic": null,
+      "eps_cont_basic": 13.83,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 53.22,
+      "pe_ratio_basic": 16.89,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 8019.11,
+      "profit_mn": 8019.11,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 8019.11,
+      "dps": 8.0,
+      "eps": 13.83
+    },
+    {
+      "year": 2024,
+      "trading_code": "UPGDCL",
+      "cash_dividend_pct": 60.0,
+      "dividend_yield_pct": 4.19,
+      "eps_basic": null,
+      "eps_cont_basic": 14.01,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 59.23,
+      "pe_ratio_basic": 10.22,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 8123.06,
+      "profit_mn": 8123.06,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 8123.06,
+      "dps": 6.0,
+      "eps": 14.01
+    },
+    {
+      "year": 2025,
+      "trading_code": "UPGDCL",
+      "cash_dividend_pct": 65.0,
+      "dividend_yield_pct": 5.39,
+      "eps_basic": null,
+      "eps_cont_basic": 20.66,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 73.89,
+      "pe_ratio_basic": 5.84,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 11976.33,
+      "profit_mn": 11976.33,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 11976.33,
+      "dps": 6.5,
+      "eps": 20.66
+    }
+  ],
+  "extended_financials": [
+    {
+      "year": 2021,
+      "trading_code": "UPGDCL",
+      "capex": null,
+      "investing_cf": 748713863.0,
+      "net_profit": 11114175008.0,
+      "nocfps": null,
+      "operating_cf": 15749629568.0,
+      "total_equity": 33090999670.0,
+      "ebit": 11680372544.0,
+      "intangibles": null,
+      "interest_expense": 973102746.0,
+      "revenue": 30580520521.0,
+      "total_assets": 67673349480.0,
+      "cash_and_equivalents": 1482743529.0,
+      "earning_assets": null,
+      "gross_profit": 11812779438.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 3750946968.0
+    },
+    {
+      "trading_code": "UPGDCL",
+      "year": 2022,
+      "capex": null,
+      "investing_cf": 1093082883.0,
+      "net_profit": 10155296397.0,
+      "nocfps": null,
+      "operating_cf": null,
+      "total_equity": 33197681279.0,
+      "ebit": 10162262805.0,
+      "intangibles": null,
+      "interest_expense": 510727599.0,
+      "revenue": 49435163297.0,
+      "total_assets": 86210354114.0,
+      "cash_and_equivalents": 1230174686.0,
+      "earning_assets": null,
+      "gross_profit": 10165863381.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 3883160052.0
+    },
+    {
+      "trading_code": "UPGDCL",
+      "year": 2023,
+      "capex": null,
+      "investing_cf": 9667338278.0,
+      "net_profit": 8242305790.0,
+      "nocfps": null,
+      "operating_cf": 11247809665.0,
+      "total_equity": 31352826280.0,
+      "ebit": 10363800740.0,
+      "intangibles": null,
+      "interest_expense": 1204422000.0,
+      "revenue": 41309112151.0,
+      "total_assets": 81187558266.0,
+      "cash_and_equivalents": 1501799518.0,
+      "earning_assets": null,
+      "gross_profit": 10652923506.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 3020168488.0
+    },
+    {
+      "year": 2024,
+      "trading_code": "UPGDCL",
+      "capex": null,
+      "investing_cf": 1262138690.0,
+      "net_profit": 8258715572.0,
+      "nocfps": -0.88,
+      "operating_cf": -512919012.0,
+      "total_equity": 34818237391.0,
+      "ebit": 10039395635.0,
+      "intangibles": null,
+      "interest_expense": 1731012093.0,
+      "revenue": 34780668669.0,
+      "total_assets": 73003235226.0,
+      "cash_and_equivalents": 703893563.0,
+      "earning_assets": null,
+      "gross_profit": 10251330377.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 824826282.0
+    },
+    {
+      "year": 2025,
+      "trading_code": "UPGDCL",
+      "capex": null,
+      "cash_and_equivalents": 1078973929.0,
+      "earning_assets": null,
+      "ebit": 13180750001.0,
+      "gross_profit": 13268180200.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "interest_income": null,
+      "investing_cf": 4086962985.0,
+      "net_interest_income": null,
+      "net_profit": 12183575529.0,
+      "nocfps": 18.61,
+      "operating_cf": 10789719084.0,
+      "revenue": 39085076049.0,
+      "total_assets": 77303300309.0,
+      "total_debt": 331839909.0,
+      "total_equity": 43417213301.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "UPGDCL",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 7.48,
+    "public_pct": 2.52,
+    "reporting_period": null,
+    "sponsor_director_pct": 90.0
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jun 30, 2025",
+    "trading_code": "UPGDCL",
+    "foreign_pct": 0.01,
+    "govt_pct": 0.0,
+    "institute_pct": 7.42,
+    "public_pct": 2.57,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 90.0
+  },
+  "dividend_declaration": {
+    "trading_code": "UPGDCL",
+    "declaration_date": "2025-10-27T00:00:00",
+    "dividend_pct": 65.0,
+    "dividend_type": "Final",
+    "record_date": "2025-11-17T00:00:00",
+    "scraped_at": "2026-07-16T10:52:31.012000",
+    "title": "UPGDCL: Dividend Declaration"
+  },
+  "news": [
+    {
+      "title": "UPGDCL: Q3 Financials",
+      "post_date": "2026-04-30T00:00:00",
+      "body": "(Q3 Un-audited): Consolidated EPS was Tk. 4.69 for January-March 2026 as against Tk. 7.21 for January-March 2025; Consolidated EPS was Tk. 14.69 for July 2025-March 2026 as against Tk. 19.32 for July 2024-March 2025. Consolidated NOCFPS was Tk. 7.22 for July 2025-March 2026 as against Tk. 15.17 for July 2024-March 2025. Consolidated NAV per share was Tk. 82.08 as on March 31, 2026, and Tk. 73.89 as on June 30, 2025. (Cont.)"
+    },
+    {
+      "post_date": "2026-04-26T00:00:00",
+      "title": "UPGDCL: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 29, 2026 at 3:00 pm to consider, among others, Un-Audited Financial Statements for the Third Quarter (Q3) period ended March 31, 2026."
+    },
+    {
+      "title": "UPGDCL: Appointment of Chairman",
+      "post_date": "2026-03-16T00:00:00",
+      "body": "The company has informed that Maj. Gen. Abul Kalam Mohammad Ziaur Rahman has been appointed as the Chairman of the Board of Directors of the Company with immediate effect."
+    },
+    {
+      "post_date": "2026-02-01T00:00:00",
+      "title": "UPGDCL: Q2 Financials",
+      "body": "(Q2 Un-audited): Consolidated EPS was Tk. 5.06 for October-December 2025 as against Tk. 4.98 for October-December 2024; Consolidated EPS was Tk. 10.00 for July-December 2025 as against Tk. 12.11 for July-December 2024. Consolidated NOCFPS was Tk. 9.57 for July-December 2025 as against Tk. 7.55 for July-December 2024. Consolidated NAV per share was Tk. 77.39 as on December 31, 2025 and Tk. 73.89 as on June 30, 2025. (cont.)"
+    },
+    {
+      "post_date": "2026-01-27T00:00:00",
+      "title": "UPGDCL: Dividend Disbursement",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended June 30, 2025 to the respective shareholders."
+    },
+    {
+      "title": "UPGDCL: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-01-26T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 29, 2026 at 3:30 PM to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "post_date": "2025-12-14T00:00:00",
+      "title": "UPGDCL: Credit Rating Result",
+      "body": "Emerging Credit Rating Limited (ECRL) has affirmed surveillance rating of the Company as \"AAA\" in the long term and \"ST-1\" in the short term along with a Stable outlook based on annual audited financial statements up to June 30, 2025 and other relevant quantitative as well as qualitative information up to the date of rating."
+    },
+    {
+      "post_date": "2025-11-27T00:00:00",
+      "title": "UPGDCL: Emphasis of Matters",
+      "body": "The auditor of the company has given the \"Emphasis of Matters\" paragraph in the Auditor's Report of the company for the year ended on 30 June 2025. To view the details, please visit: https://www.dsebd.org/Auditors_opinion/2025/UPGDCL_2025.pdf"
+    },
+    {
+      "post_date": "2025-11-23T00:00:00",
+      "title": "UPGDCL: Q1 Financials",
+      "body": "(Q1 Un-audited): Consolidated EPS was Tk. 4.94 for July-September 2025 as against Tk. 7.13 for July-September 2024; Consolidated NOCFPS was Tk. 6.62 July-September 2025 as against Tk. 1.85 for July-September 2024. Consolidated NAV per share was Tk. 78.83 as on September 30, 2025 and Tk. 73.89 as on June 30, 2025. Reasons for deviation: Earnings Per Share (EPS) for the current quarter has decreased compared to the previous year. (cont.1)"
+    },
+    {
+      "post_date": "2025-11-18T00:00:00",
+      "title": "UPGDCL: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on November 20, 2025 at 3:30 PM to consider, among others, Un-audited financial statements of the Company for the First Quarter (Q1) period ended September 30, 2025."
+    },
+    {
+      "post_date": "2025-11-17T00:00:00",
+      "title": "UPGDCL: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 18.11.2025."
+    },
+    {
+      "post_date": "2025-11-16T00:00:00",
+      "title": "UPGDCL: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 17.11.2025."
+    },
+    {
+      "post_date": "2025-11-12T00:00:00",
+      "title": "UPGDCL: Spot News",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 13.11.2025 to 16.11.2025 and trading of the shares will remain suspended on record date i.e., 17.11.2025."
+    },
+    {
+      "post_date": "2025-11-06T00:00:00",
+      "title": "UPGDCL: Update of Information",
+      "body": "The company has requested the shareholders to update the details (Shareholders Name, Routing Number to get Dividend through BEFTN system, BO ID Number, 12 digits e-TIN number along with other information including contact address) before the Record Date. The company also requested the Brokerages/DPs/TREC Holders to take note of the following: Provide the details information of Margin Loan Holders who are eligible to receive Cash Dividend for the year ended 30th June 2025 (cont.)"
+    },
+    {
+      "post_date": "2025-10-29T00:00:00",
+      "title": "UPGDCL: Dividend declaration of a subsidiary",
+      "body": "The company has informed that the Board of Directors of United Ashuganj Energy Ltd. (UAEL), which is a 92.407% owned subsidiary of United Power Generation & Distribution Company Ltd. (UPGDCL) has declared Cash Dividend @15% or Tk. 1.50 per share, based on the audited Financial Statements for the year ended June 30, 2025."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "MPETROLEUM",
+      "company_name": "Meghna Petroleum PLC.",
+      "sector": "Fuel & Power",
+      "score": 90.1,
+      "ltp": 216.0,
+      "change_pct": -0.09,
+      "pe": 3.52,
+      "pb": 0.78,
+      "div_yield_pct": 9.3,
+      "roe_pct": 22.0,
+      "eps_yoy_pct": 22.5
+    },
+    {
+      "trading_code": "PADMAOIL",
+      "company_name": "Padma Oil PLC.",
+      "sector": "Fuel & Power",
+      "score": 84.8,
+      "ltp": 204.9,
+      "change_pct": 1.94,
+      "pe": 3.58,
+      "pb": 0.75,
+      "div_yield_pct": 7.8,
+      "roe_pct": 20.8,
+      "eps_yoy_pct": 37.8
+    },
+    {
+      "trading_code": "JAMUNAOIL",
+      "company_name": "Jamuna Oil PLC.",
+      "sector": "Fuel & Power",
+      "score": 83.1,
+      "ltp": 185.2,
+      "change_pct": -0.43,
+      "pe": 3.16,
+      "pb": 0.68,
+      "div_yield_pct": 9.7,
+      "roe_pct": 21.4,
+      "eps_yoy_pct": 46.8
+    },
+    {
+      "trading_code": "MJLBD",
+      "company_name": "MJL Bangladesh PLC.",
+      "sector": "Fuel & Power",
+      "score": 69.7,
+      "ltp": 95.9,
+      "change_pct": -0.93,
+      "pe": 8.44,
+      "pb": 1.77,
+      "div_yield_pct": 5.4,
+      "roe_pct": 18.8,
+      "eps_yoy_pct": 30.4
+    },
+    {
+      "trading_code": "CVOPRL",
+      "company_name": "CVO Petrochemical Refinery PLC.",
+      "sector": "Fuel & Power",
+      "score": 54.7,
+      "ltp": 178.6,
+      "change_pct": -1.76,
+      "pe": 46.75,
+      "pb": 5.9,
+      "div_yield_pct": 0.6,
+      "roe_pct": 12.6,
+      "eps_yoy_pct": 63.2
+    }
+  ],
+  "source_hash": "6c855ff7f3faa67012f5f0561cb66ffea9ccc4ac4576673e2e29d6cbb0f3c214"
+}

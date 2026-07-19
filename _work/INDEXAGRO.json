@@ -1,0 +1,796 @@
+{
+  "trading_code": "INDEXAGRO",
+  "company_name": "Index Agro Industries Limited",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Miscellaneous",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 49616331,
+    "paid_up_capital_mn": 496.16,
+    "reserve_surplus_mn": 3138.1,
+    "total_loan_mn": 2709.1,
+    "listing_year": 2021,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 76.1,
+    "change": -0.8,
+    "change_pct": -1.04,
+    "date": "2026-07-16",
+    "high": 77,
+    "low": 75.8,
+    "volume": 247945,
+    "avg_volume_7d": 530942,
+    "ycp": 76.9,
+    "w52_high": 89.0,
+    "w52_low": 62.6
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 5.3,
+      "m3": 14.3,
+      "m6": 17.1,
+      "y1": 9.0
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 59.4
+      },
+      {
+        "date": "2025-06-30",
+        "close": 62.8
+      },
+      {
+        "date": "2025-07-31",
+        "close": 67.7
+      },
+      {
+        "date": "2025-08-31",
+        "close": 77.7
+      },
+      {
+        "date": "2025-09-30",
+        "close": 76.3
+      },
+      {
+        "date": "2025-10-30",
+        "close": 75.9
+      },
+      {
+        "date": "2025-11-30",
+        "close": 66.4
+      },
+      {
+        "date": "2025-12-30",
+        "close": 65.3
+      },
+      {
+        "date": "2026-01-29",
+        "close": 65.1
+      },
+      {
+        "date": "2026-02-26",
+        "close": 69.1
+      },
+      {
+        "date": "2026-03-31",
+        "close": 64.3
+      },
+      {
+        "date": "2026-04-30",
+        "close": 70.4
+      },
+      {
+        "date": "2026-05-31",
+        "close": 72.2
+      },
+      {
+        "date": "2026-06-30",
+        "close": 73.1
+      },
+      {
+        "date": "2026-07-16",
+        "close": 76.1
+      }
+    ],
+    "pct_in_52w_range": 51.1
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 4.1
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.0
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.9
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Good value",
+      "word_bn": "দাম সস্তা",
+      "score10": 9.3
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.7
+    }
+  ],
+  "fair_value": {
+    "low": 110,
+    "high": 165,
+    "center": 138,
+    "today": 76.1,
+    "stance": "cheap",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 90.7
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 258
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 109
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 20.0
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 13.79,
+    "current_pb": 0.89,
+    "own_avg_pe": 16.44,
+    "own_avg_pb": 1.27,
+    "sector_median_pe": 46.77,
+    "sector_median_pb": 1.87,
+    "eps": 5.52,
+    "sector_implied_price": 258.17
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 5.63,
+        "net_profit_crore": 23.3,
+        "cash_dividend_pct": 25.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.5,
+        "nav_per_share_taka": 58.27,
+        "revenue_crore": 367.3,
+        "operating_profit_crore": 36.3,
+        "operating_cash_flow_crore": null,
+        "capex_crore": 1.82,
+        "total_debt_crore": 189.9,
+        "total_equity_crore": 503.1,
+        "total_assets_crore": 503.1,
+        "cash_crore": 28.9,
+        "debt_to_equity": 0.38
+      },
+      {
+        "year": 2022,
+        "eps_taka": 5.09,
+        "net_profit_crore": 24.1,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 62.93,
+        "revenue_crore": 415.4,
+        "operating_profit_crore": 39.6,
+        "operating_cash_flow_crore": null,
+        "capex_crore": 3.66,
+        "total_debt_crore": 234.5,
+        "total_equity_crore": 592.9,
+        "total_assets_crore": 592.9,
+        "cash_crore": 24.9,
+        "debt_to_equity": 0.4
+      },
+      {
+        "year": 2023,
+        "eps_taka": 5.22,
+        "net_profit_crore": 24.7,
+        "cash_dividend_pct": 20.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.0,
+        "nav_per_share_taka": 77.0,
+        "revenue_crore": 419.1,
+        "operating_profit_crore": 54.5,
+        "operating_cash_flow_crore": null,
+        "capex_crore": 17.9,
+        "total_debt_crore": 256.6,
+        "total_equity_crore": 720.6,
+        "total_assets_crore": 720.6,
+        "cash_crore": 22.1,
+        "debt_to_equity": 0.36
+      },
+      {
+        "year": 2024,
+        "eps_taka": 5.48,
+        "net_profit_crore": 25.9,
+        "cash_dividend_pct": 25.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.5,
+        "nav_per_share_taka": 82.14,
+        "revenue_crore": 428.1,
+        "operating_profit_crore": 58.1,
+        "operating_cash_flow_crore": null,
+        "capex_crore": 15.8,
+        "total_debt_crore": 228.4,
+        "total_equity_crore": 697.5,
+        "total_assets_crore": 697.5,
+        "cash_crore": 16.6,
+        "debt_to_equity": 0.33
+      },
+      {
+        "year": 2025,
+        "eps_taka": 5.52,
+        "net_profit_crore": 26.1,
+        "cash_dividend_pct": 12.0,
+        "stock_dividend_pct": 5,
+        "dps_taka": 1.2,
+        "nav_per_share_taka": 85.74,
+        "revenue_crore": 441.0,
+        "operating_profit_crore": 73.4,
+        "operating_cash_flow_crore": null,
+        "capex_crore": 4.08,
+        "total_debt_crore": 237.6,
+        "total_equity_crore": 719.2,
+        "total_assets_crore": 719.2,
+        "cash_crore": 6.15,
+        "debt_to_equity": 0.33
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 5.52,
+      "net_profit_crore": 26.1,
+      "cash_dividend_pct": 12.0,
+      "stock_dividend_pct": 5,
+      "dps_taka": 1.2,
+      "nav_per_share_taka": 85.74,
+      "revenue_crore": 441.0,
+      "operating_profit_crore": 73.4,
+      "operating_cash_flow_crore": null,
+      "capex_crore": 4.08,
+      "total_debt_crore": 237.6,
+      "total_equity_crore": 719.2,
+      "total_assets_crore": 719.2,
+      "cash_crore": 6.15,
+      "debt_to_equity": 0.33
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": 12.0,
+      "eps_change_pct": -2.0,
+      "revenue_change_pct": 20.0
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 4.96,
+      "paid_up_capital_crore": 49.6,
+      "reserve_surplus_crore": 313.8,
+      "total_loan_crore": 270.9,
+      "listing_year": 2021
+    },
+    "ownership": {
+      "sponsor_director_pct": 57.77,
+      "govt_pct": 0.0,
+      "institute_pct": 21.34,
+      "foreign_pct": 0.0,
+      "public_pct": 20.89
+    }
+  },
+  "sector_context": {
+    "sector": "Miscellaneous",
+    "peer_count": 15,
+    "rank_in_sector": 3,
+    "sector_avg_score": 34.6,
+    "sector_median_pe": 46.77
+  },
+  "score": {
+    "trading_code": "INDEXAGRO",
+    "sector": "Miscellaneous",
+    "market_cat": "A",
+    "ltp": 76.1,
+    "mcap_mn": 3775.8027890999997,
+    "score": 60.8,
+    "base_score": 60.8,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.911,
+    "eps": 5.52,
+    "roe_pct": 3.6,
+    "sector_median_pe": 46.77,
+    "sector_median_pb": 1.87,
+    "p1_biz": 4.13,
+    "p2_health": 6.01,
+    "p3_moat": 6.9,
+    "p4_val": 9.33,
+    "p5_div": 5.73,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 2.4311,
+    "p1_roe": 1.334,
+    "p1_npm_trend": 5.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 0.7,
+    "eps_stability": 1.0,
+    "p2_de": 9.797658094031437,
+    "p2_ic": 3.0066443429505876,
+    "p2_cfo": null,
+    "p2_cash": 2.51316823225359,
+    "p2_coverage": 0.687,
+    "p3_margin": 7.0,
+    "p3_rev_vol": 10.0,
+    "p3_sector_rank": 5.0,
+    "p3_capex": 3.0,
+    "p3_coverage": 1.0,
+    "p4_pe": 8.89,
+    "p4_pb": 10.0,
+    "p4_vol_damp": 1.0,
+    "current_pe": 13.79,
+    "current_pb": 0.89,
+    "own_avg_pe": 16.44,
+    "own_avg_pb": 1.27,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 4.865308804204994,
+    "div_yield_pct": 1.6,
+    "overall_rank": 55,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "buy",
+    "reason_key": "quality_cheap",
+    "reason_en": "Strong company and the price looks cheap right now.",
+    "reason_bn": "শক্তিশালী কোম্পানি, দামও এখন তুলনামূলক সস্তা।",
+    "tier": "good",
+    "momentum_grade": "warm",
+    "score": 60.8,
+    "p4_val": 9.33,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "Consistent dividend payer (4+ years)",
+      "Currently cheap vs historical P/E",
+      "Sponsor holding 57.8% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, price moving up steadily",
+    "sentences": [
+      "The company is in good financial shape, and the share price is steadily rising.",
+      "The share price looks cheaper now than its average over the past few years."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 2.15,
+    "rs_vs_dsex_pct": 0.09,
+    "volume_ratio": 1.44,
+    "avg_turnover_7d_mn": 39.19,
+    "up_days_7d": 4,
+    "days_counted": 7,
+    "pct_in_52w_range": 51.1,
+    "momentum_grade": "warm"
+  },
+  "financials": [
+    {
+      "trading_code": "INDEXAGRO",
+      "year": 2021,
+      "cash_dividend_pct": 25.0,
+      "dividend_yield_pct": 2.3,
+      "eps_basic": null,
+      "eps_cont_basic": 5.63,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 58.27,
+      "pe_ratio_basic": 19.28,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 232.58,
+      "profit_mn": 232.58,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 232.58,
+      "dps": 2.5,
+      "eps": 5.63
+    },
+    {
+      "trading_code": "INDEXAGRO",
+      "year": 2022,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 0.98,
+      "eps_basic": null,
+      "eps_cont_basic": 5.09,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 62.93,
+      "pe_ratio_basic": 20.05,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 240.59,
+      "profit_mn": 240.59,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 240.59,
+      "dps": 1.0,
+      "eps": 5.09
+    },
+    {
+      "trading_code": "INDEXAGRO",
+      "year": 2023,
+      "cash_dividend_pct": 20.0,
+      "dividend_yield_pct": 1.93,
+      "eps_basic": null,
+      "eps_cont_basic": 5.22,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 77.0,
+      "pe_ratio_basic": 19.85,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 246.65,
+      "profit_mn": 246.65,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 246.65,
+      "dps": 2.0,
+      "eps": 5.22
+    },
+    {
+      "trading_code": "INDEXAGRO",
+      "year": 2024,
+      "cash_dividend_pct": 25.0,
+      "dividend_yield_pct": 3.89,
+      "eps_basic": null,
+      "eps_cont_basic": 5.48,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 82.14,
+      "pe_ratio_basic": 11.72,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 259.17,
+      "profit_mn": 259.17,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 259.17,
+      "dps": 2.5,
+      "eps": 5.48
+    },
+    {
+      "trading_code": "INDEXAGRO",
+      "year": 2025,
+      "cash_dividend_pct": 12.0,
+      "dividend_yield_pct": 1.92,
+      "eps_basic": null,
+      "eps_cont_basic": 5.52,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 85.74,
+      "pe_ratio_basic": 11.3,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 261.05,
+      "profit_mn": 261.05,
+      "stock_dividend_pct": 5,
+      "total_comprehensive_income_mn": 261.05,
+      "dps": 1.2,
+      "eps": 5.52
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "INDEXAGRO",
+      "year": 2021,
+      "capex": -18178046.0,
+      "investing_cf": -467850276.0,
+      "net_profit": 232576349.0,
+      "nocfps": -16.83,
+      "operating_cf": null,
+      "total_equity": 5030829571.0,
+      "ebit": 363024059.0,
+      "intangibles": null,
+      "interest_expense": 111191084.0,
+      "revenue": 3672667933.0,
+      "total_assets": 5030829571.0,
+      "cash_and_equivalents": 288503534.0,
+      "earning_assets": null,
+      "gross_profit": 541101146.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 1898550509.0
+    },
+    {
+      "trading_code": "INDEXAGRO",
+      "year": 2022,
+      "capex": -36637421.0,
+      "investing_cf": -422027308.0,
+      "net_profit": 240594522.0,
+      "nocfps": -1.45,
+      "operating_cf": null,
+      "total_equity": 5928929349.0,
+      "ebit": 395533161.0,
+      "intangibles": null,
+      "interest_expense": 143309210.0,
+      "revenue": 4154327729.0,
+      "total_assets": 5928929348.0,
+      "cash_and_equivalents": 248697473.0,
+      "earning_assets": null,
+      "gross_profit": 575195232.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 2344957555.0
+    },
+    {
+      "trading_code": "INDEXAGRO",
+      "year": 2023,
+      "capex": -178918546.0,
+      "investing_cf": -207557918.0,
+      "net_profit": 246645244.0,
+      "nocfps": -1.45,
+      "operating_cf": null,
+      "total_equity": 7205604843.0,
+      "ebit": 544697461.0,
+      "intangibles": null,
+      "interest_expense": 203110241.0,
+      "revenue": 4191025405.0,
+      "total_assets": 7205604843.0,
+      "cash_and_equivalents": 220701341.0,
+      "earning_assets": null,
+      "gross_profit": 731551312.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 2565899746.0
+    },
+    {
+      "trading_code": "INDEXAGRO",
+      "year": 2024,
+      "capex": -158009882.0,
+      "investing_cf": -55133673.0,
+      "net_profit": 259170778.0,
+      "nocfps": 14.77,
+      "operating_cf": null,
+      "total_equity": 6974879987.0,
+      "ebit": 580590089.0,
+      "intangibles": null,
+      "interest_expense": 235429668.0,
+      "revenue": 4281254785.0,
+      "total_assets": 6974879987.0,
+      "cash_and_equivalents": 166047276.0,
+      "earning_assets": null,
+      "gross_profit": 758072873.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 2283865498.0
+    },
+    {
+      "trading_code": "INDEXAGRO",
+      "year": 2025,
+      "capex": -40803536.0,
+      "cash_and_equivalents": 61510133.0,
+      "earning_assets": null,
+      "ebit": 733955960.0,
+      "gross_profit": 899049342.0,
+      "intangibles": null,
+      "interest_expense": 366369409.0,
+      "interest_income": null,
+      "investing_cf": -124588105.0,
+      "net_interest_income": null,
+      "net_profit": 261054589.0,
+      "nocfps": 10.26,
+      "operating_cf": null,
+      "revenue": 4410237259.0,
+      "total_assets": 7191809134.0,
+      "total_debt": 2375823395.0,
+      "total_equity": 7191809133.0
+    }
+  ],
+  "shareholding": {
+    "trading_code": "INDEXAGRO",
+    "as_of_date": "Mar 31, 2026",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 21.34,
+    "public_pct": 20.89,
+    "reporting_period": null,
+    "sponsor_director_pct": 57.77
+  },
+  "shareholding_prev": {
+    "trading_code": "INDEXAGRO",
+    "as_of_date": "Jun 30, 2025",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 21.58,
+    "public_pct": 20.65,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 57.77
+  },
+  "dividend_declaration": {
+    "trading_code": "INDEXAGRO",
+    "declaration_date": "2025-10-19T00:00:00",
+    "dividend_pct": 12.0,
+    "dividend_type": "Final",
+    "record_date": "2025-11-09T00:00:00",
+    "scraped_at": "2026-07-16T10:18:54.043000",
+    "title": "INDEXAGRO: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-04-28T00:00:00",
+      "title": "INDEXAGRO: Q3 Financials",
+      "body": "(Q3 Un-audited): EPS was Tk. 1.03 for January-March 2026 as against Tk. 1.20 for January-March 2025; EPS was Tk. 2.90 for July 2025-March 2026 as against Tk. 3.17 for July 2024-March 2025. NOCFPS was Tk. 14.13 for July 2025-March 2026 as against Tk. 4.94 for July 2024-March 2025. NAV per share was Tk. 83.66 as on March 31, 2026 and Tk. 81.90 (Restated) as on June 30, 2025."
+    },
+    {
+      "post_date": "2026-04-20T00:00:00",
+      "title": "INDEXAGRO: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 27, 2026 at 4:00 pm to consider, among others, Un-Audited Financial Statements for the Third Quarter (Q3) period ended March 31, 2026."
+    },
+    {
+      "title": "INDEXAGRO: Q2 Financials",
+      "post_date": "2026-01-29T00:00:00",
+      "body": "(Q2 Un-audited): EPS was Tk. 0.91 for October-December 2025 as against Tk. 1.01 for October-December 2024; EPS was Tk. 1.76 for July-December 2025 as against Tk. 1.97 for July-December 2024. NOCFPS was Tk. 10.02 for July-December 2025 as against Tk. (0.51) for July-December 2024. NAV per share was Tk. 82.52 as on December 31, 2025 and Tk. 81.90 (Restated) as on June 30, 2025. (cont.)"
+    },
+    {
+      "post_date": "2026-01-25T00:00:00",
+      "title": "INDEXAGRO: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 28, 2026 at 4:00 PM to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "post_date": "2026-01-22T00:00:00",
+      "title": "INDEXAGRO: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 28, 2026 at 4:00 PM to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "title": "INDEXAGRO: Dividend Disbursement",
+      "post_date": "2026-01-14T00:00:00",
+      "body": "The Company has informed that it has credited the Bonus Shares to the respective shareholders' BO Accounts and it has also disbursed the Cash Dividend to the respective shareholders for the year ended June 30, 2025."
+    },
+    {
+      "post_date": "2025-12-23T00:00:00",
+      "title": "INDEXAGRO: Credit Rating Result",
+      "body": "Credit Rating Agency of Bangladesh Limited (CRAB) has announced the rating of the Company as \"A2\" in the long term and \"ST-3\" in the short term along with Stable outlook based on audited financial statements (FYE 30/06/2025, 30/06/2024, 30/06/2023), and other relevant qualitative and quantitative information up to the date of rating declaration."
+    },
+    {
+      "post_date": "2025-11-13T00:00:00",
+      "title": "INDEXAGRO: Q1 Financials",
+      "body": "(Q1 Un-audited): EPS was Tk. 0.91 for July-September 2025 as against Tk. 1.01 for July-September 2024; NOCFPS was Tk. 5.87 for July-September 2025 as against Tk. (8.51) for July-September 2024. NAV per share was Tk. 86.65 as on September 30, 2025 and Tk. 85.74 as on June 30, 2025. Reasons behind deviation in NOCFPS and EPS: (cont.)"
+    },
+    {
+      "post_date": "2025-11-09T00:00:00",
+      "title": "INDEXAGRO: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 10.11.2025."
+    },
+    {
+      "title": "INDEXAGRO: Board Meeting schedule under LR 16(1)",
+      "post_date": "2025-11-06T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on November 12, 2025 at 6:00 PM to consider, among others, Un-audited financial statements of the Company for the First Quarter (Q1) period ended September 30, 2025."
+    },
+    {
+      "post_date": "2025-11-06T00:00:00",
+      "title": "INDEXAGRO: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 09.11.2025."
+    },
+    {
+      "post_date": "2025-11-04T00:00:00",
+      "title": "INDEXAGRO: Spot News",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 05.11.2025 to 06.11.2025 and trading of the shares will remain suspended on record date i.e., 09.11.2025."
+    },
+    {
+      "post_date": "2025-11-02T00:00:00",
+      "title": "INDEXAGRO: Qualified Opinion and Emphasis of Matter",
+      "body": "The auditor of the company has given the \"Qualified Opinion\" and \"Emphasis of Matter\" paragraph in the Auditor's Report of the company for the year ended June 30, 2025. To view the details, please visit: https://www.dsebd.org/Auditors_opinion/2025/INDEXAGRO_112025.pdf"
+    },
+    {
+      "post_date": "2025-10-19T00:00:00",
+      "title": "INDEXAGRO: Dividend Declaration",
+      "body": "The Board of Directors has recommended 12% Cash Dividend and 5% Stock Dividend for the year ended June 30, 2025. Date of AGM: 15.12.2025, Time: 11:00 AM, Venue: To be notified later. Record Date: 09.11.2025. The Company has also reported EPS of Tk. 5.52, NAV per share of Tk. 85.74 and NOCFPS of Tk. 10.26 for the year ended June 30, 2025 as against EPS of Tk. 5.48, NAV per share of Tk. 82.14 and NOCFPS of Tk. 14.77 for the year ended June 30, 2024. (cont.1)"
+    },
+    {
+      "post_date": "2025-10-19T00:00:00",
+      "title": "INDEXAGRO: Price Limit Open",
+      "body": "There will be no price limit on the trading of the shares of the Company today (19.10.2025) following its corporate declaration."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "BSC",
+      "company_name": "Bangladesh Shipping Corporation",
+      "sector": "Miscellaneous",
+      "score": 79.7,
+      "ltp": 126.4,
+      "change_pct": -2.32,
+      "pe": 6.29,
+      "pb": 1.21,
+      "div_yield_pct": 2.0,
+      "roe_pct": 8.6,
+      "eps_yoy_pct": 22.8
+    },
+    {
+      "trading_code": "BERGERPBL",
+      "company_name": "Berger Paints Bangladesh Ltd.",
+      "sector": "Miscellaneous",
+      "score": 66.0,
+      "ltp": 1406.0,
+      "change_pct": -0.18,
+      "pe": 19.35,
+      "pb": 4.22,
+      "div_yield_pct": 3.7,
+      "roe_pct": 14.1,
+      "eps_yoy_pct": 3.9
+    },
+    {
+      "trading_code": "KBPPWBIL",
+      "company_name": "Khan Brothers PP Woven Bag Industries Limited",
+      "sector": "Miscellaneous",
+      "score": 56.0,
+      "ltp": 40.7,
+      "change_pct": -1.21,
+      "pe": 150.74,
+      "pb": 3.37,
+      "div_yield_pct": 2.5,
+      "roe_pct": 2.1,
+      "eps_yoy_pct": 2600.0
+    },
+    {
+      "trading_code": "SINOBANGLA",
+      "company_name": "Sinobangla Industries Ltd.",
+      "sector": "Miscellaneous",
+      "score": 41.0,
+      "ltp": 59.4,
+      "change_pct": -1.16,
+      "pe": 46.77,
+      "pb": 2.25,
+      "div_yield_pct": 1.7,
+      "roe_pct": 1.3,
+      "eps_yoy_pct": -8.0
+    },
+    {
+      "trading_code": "AMANFEED",
+      "company_name": "Aman Feed PLC.",
+      "sector": "Miscellaneous",
+      "score": 37.4,
+      "ltp": 37.8,
+      "change_pct": 3.28,
+      "pe": 171.82,
+      "pb": 1.35,
+      "div_yield_pct": 3.0,
+      "roe_pct": 0.3,
+      "eps_yoy_pct": 15.8
+    }
+  ],
+  "source_hash": "3293e1e9c407f9e518b6e22f7377406b4c22c25541788c5e1b416e195140ecdb"
+}

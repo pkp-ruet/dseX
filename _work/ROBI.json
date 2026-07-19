@@ -1,0 +1,817 @@
+{
+  "trading_code": "ROBI",
+  "company_name": "Robi Axiata PLC.",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Telecommunication",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 5237932895,
+    "paid_up_capital_mn": 52379.3,
+    "reserve_surplus_mn": 17645.0,
+    "total_loan_mn": 20.03,
+    "listing_year": 2020,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 33,
+    "change": -0.3,
+    "change_pct": -0.9,
+    "date": "2026-07-16",
+    "high": 33.5,
+    "low": 32.9,
+    "volume": 3495729,
+    "avg_volume_7d": 3626640,
+    "ycp": 33.3,
+    "w52_high": 33.3,
+    "w52_low": 25.8
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 6.5,
+      "m3": 15.8,
+      "m6": 12.2,
+      "y1": 31.5
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 23.5
+      },
+      {
+        "date": "2025-06-30",
+        "close": 24.8
+      },
+      {
+        "date": "2025-07-31",
+        "close": 27.5
+      },
+      {
+        "date": "2025-08-31",
+        "close": 28.8
+      },
+      {
+        "date": "2025-09-30",
+        "close": 29.6
+      },
+      {
+        "date": "2025-10-30",
+        "close": 29.6
+      },
+      {
+        "date": "2025-11-30",
+        "close": 28.2
+      },
+      {
+        "date": "2025-12-30",
+        "close": 28.2
+      },
+      {
+        "date": "2026-01-29",
+        "close": 30.2
+      },
+      {
+        "date": "2026-02-26",
+        "close": 32.9
+      },
+      {
+        "date": "2026-03-31",
+        "close": 29.0
+      },
+      {
+        "date": "2026-04-30",
+        "close": 28.8
+      },
+      {
+        "date": "2026-05-31",
+        "close": 30.2
+      },
+      {
+        "date": "2026-06-30",
+        "close": 32.6
+      },
+      {
+        "date": "2026-07-16",
+        "close": 33
+      }
+    ],
+    "pct_in_52w_range": 96.2
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.3
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.4
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.3
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Good value",
+      "word_bn": "দাম সস্তা",
+      "score10": 7.0
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 10.0
+    }
+  ],
+  "fair_value": {
+    "low": 40.4,
+    "high": 60.6,
+    "center": 50.5,
+    "today": 33,
+    "stance": "cheap",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 97.5
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 23.8
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 31.1
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 29.2
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 18.44,
+    "current_pb": 2.47,
+    "own_avg_pe": 54.46,
+    "own_avg_pb": 2.33,
+    "sector_median_pe": 13.31,
+    "sector_median_pb": 4.0,
+    "eps": 1.79,
+    "sector_implied_price": 23.82
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2020,
+        "eps_taka": 0.33,
+        "net_profit_crore": 155.3,
+        "cash_dividend_pct": null,
+        "stock_dividend_pct": null,
+        "dps_taka": null,
+        "nav_per_share_taka": 13.9,
+        "revenue_crore": 7564,
+        "operating_profit_crore": 1053,
+        "operating_cash_flow_crore": 2546,
+        "capex_crore": 2118,
+        "total_debt_crore": 1035,
+        "total_equity_crore": 6596,
+        "total_assets_crore": 19946,
+        "cash_crore": 947.0,
+        "debt_to_equity": 0.16
+      },
+      {
+        "year": 2021,
+        "eps_taka": 0.34,
+        "net_profit_crore": 180.3,
+        "cash_dividend_pct": 5.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 0.5,
+        "nav_per_share_taka": 12.64,
+        "revenue_crore": 8142,
+        "operating_profit_crore": 925.8,
+        "operating_cash_flow_crore": 3256,
+        "capex_crore": 2394,
+        "total_debt_crore": 808.0,
+        "total_equity_crore": 6621,
+        "total_assets_crore": 20759,
+        "cash_crore": 491.8,
+        "debt_to_equity": 0.12
+      },
+      {
+        "year": 2022,
+        "eps_taka": 0.35,
+        "net_profit_crore": 182.7,
+        "cash_dividend_pct": 7.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 0.7,
+        "nav_per_share_taka": 12.82,
+        "revenue_crore": 8586,
+        "operating_profit_crore": 1351,
+        "operating_cash_flow_crore": 3727,
+        "capex_crore": 2844,
+        "total_debt_crore": 1009,
+        "total_equity_crore": 6713,
+        "total_assets_crore": 19975,
+        "cash_crore": 356.3,
+        "debt_to_equity": 0.15
+      },
+      {
+        "year": 2023,
+        "eps_taka": 0.61,
+        "net_profit_crore": 321.0,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 12.76,
+        "revenue_crore": 9942,
+        "operating_profit_crore": 1722,
+        "operating_cash_flow_crore": 4080,
+        "capex_crore": 2400,
+        "total_debt_crore": 764.1,
+        "total_equity_crore": 6682,
+        "total_assets_crore": 21900,
+        "cash_crore": 353.6,
+        "debt_to_equity": 0.11
+      },
+      {
+        "year": 2024,
+        "eps_taka": 1.34,
+        "net_profit_crore": 702.8,
+        "cash_dividend_pct": 15.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.5,
+        "nav_per_share_taka": 13.08,
+        "revenue_crore": 9950,
+        "operating_profit_crore": 2185,
+        "operating_cash_flow_crore": 4623,
+        "capex_crore": 2838,
+        "total_debt_crore": 2208,
+        "total_equity_crore": 6851,
+        "total_assets_crore": 20717,
+        "cash_crore": 261.9,
+        "debt_to_equity": 0.32
+      },
+      {
+        "year": 2025,
+        "eps_taka": 1.79,
+        "net_profit_crore": 937.1,
+        "cash_dividend_pct": 17.5,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.75,
+        "nav_per_share_taka": 13.34,
+        "revenue_crore": 9992,
+        "operating_profit_crore": 1882,
+        "operating_cash_flow_crore": 4734,
+        "capex_crore": 1671,
+        "total_debt_crore": 332.9,
+        "total_equity_crore": 6986,
+        "total_assets_crore": 20599,
+        "cash_crore": 242.1,
+        "debt_to_equity": 0.05
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 1.79,
+      "net_profit_crore": 937.1,
+      "cash_dividend_pct": 17.5,
+      "stock_dividend_pct": null,
+      "dps_taka": 1.75,
+      "nav_per_share_taka": 13.34,
+      "revenue_crore": 9992,
+      "operating_profit_crore": 1882,
+      "operating_cash_flow_crore": 4734,
+      "capex_crore": 1671,
+      "total_debt_crore": 332.9,
+      "total_equity_crore": 6986,
+      "total_assets_crore": 20599,
+      "cash_crore": 242.1,
+      "debt_to_equity": 0.05
+    },
+    "growth": {
+      "span": "2020–2025",
+      "net_profit_change_pct": 503.0,
+      "eps_change_pct": 442.0,
+      "revenue_change_pct": 32.0
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 523.8,
+      "paid_up_capital_crore": 5238,
+      "reserve_surplus_crore": 1764,
+      "total_loan_crore": 2.0,
+      "listing_year": 2020
+    },
+    "ownership": {
+      "sponsor_director_pct": 90.0,
+      "govt_pct": 0.0,
+      "institute_pct": 2.86,
+      "foreign_pct": 0.0,
+      "public_pct": 7.14
+    }
+  },
+  "sector_context": {
+    "sector": "Telecommunication",
+    "peer_count": 3,
+    "rank_in_sector": 1,
+    "sector_avg_score": 65.0,
+    "sector_median_pe": 13.31
+  },
+  "score": {
+    "trading_code": "ROBI",
+    "sector": "Telecommunication",
+    "market_cat": "A",
+    "ltp": 33.0,
+    "mcap_mn": 172851.785535,
+    "score": 76.0,
+    "base_score": 76.0,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.786,
+    "eps": 1.79,
+    "roe_pct": null,
+    "sector_median_pe": 13.31,
+    "sector_median_pb": 4.0,
+    "p1_biz": 8.33,
+    "p2_health": 6.44,
+    "p3_moat": 6.3,
+    "p4_val": 7.01,
+    "p5_div": 10.0,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 10.0,
+    "p1_roe": null,
+    "p1_npm_trend": null,
+    "p1_coverage": 0.5,
+    "eps_yoy_pct": 33.6,
+    "eps_stability": 1.0,
+    "p2_de": 10.0,
+    "p2_ic": 4.4130803706159165,
+    "p2_cfo": 6.0,
+    "p2_cash": 2.7053188960022077,
+    "p2_coverage": 1.0,
+    "p3_margin": 10.0,
+    "p3_rev_vol": 7.0,
+    "p3_sector_rank": 2.0,
+    "p3_capex": 2.0,
+    "p3_coverage": 1.0,
+    "p4_pe": 6.86,
+    "p4_pb": 7.24,
+    "p4_vol_damp": 1.0,
+    "current_pe": 18.44,
+    "current_pb": 2.47,
+    "own_avg_pe": 54.46,
+    "own_avg_pb": 2.33,
+    "p5_dps_cagr": 10.0,
+    "p5_consist": 10.0,
+    "p5_yield": 10.0,
+    "div_yield_pct": 5.3,
+    "overall_rank": 13,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "near_52w_high",
+    "reason_en": "Strong company, but the price is near its one-year high — wait for a better entry.",
+    "reason_bn": "কোম্পানি ভালো, কিন্তু দাম এখন বছরের সর্বোচ্চের কাছাকাছি — একটু অপেক্ষা করুন।",
+    "tier": "excellent",
+    "momentum_grade": "warm",
+    "score": 76.0,
+    "p4_val": 7.01,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 90.0% (strong alignment)"
+    ],
+    "red": [
+      "Payout ratio 98% — potentially unsustainable"
+    ]
+  },
+  "verdict": {
+    "headline": "Excellent",
+    "tagline": "Strong company, price slowly rising",
+    "sentences": [
+      "The company is doing well financially, and the share price has been slowly climbing.",
+      "Has paid dividends regularly in past years.",
+      "Price is close to the highest level of the past year — not much room left for a cheap entry."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 1.85,
+    "rs_vs_dsex_pct": -0.21,
+    "volume_ratio": 0.93,
+    "avg_turnover_7d_mn": 122.64,
+    "up_days_7d": 4,
+    "days_counted": 7,
+    "pct_in_52w_range": 96.2,
+    "momentum_grade": "warm"
+  },
+  "financials": [
+    {
+      "trading_code": "ROBI",
+      "year": 2020,
+      "cash_dividend_pct": null,
+      "dividend_yield_pct": null,
+      "eps_basic": null,
+      "eps_cont_basic": 0.33,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 13.9,
+      "pe_ratio_basic": null,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 1553.32,
+      "profit_mn": 1553.32,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 826.72,
+      "eps": 0.33
+    },
+    {
+      "year": 2021,
+      "trading_code": "ROBI",
+      "cash_dividend_pct": 5.0,
+      "dividend_yield_pct": 1.45,
+      "eps_basic": null,
+      "eps_cont_basic": 0.34,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 12.64,
+      "pe_ratio_basic": 100.5,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 1803.35,
+      "profit_mn": 1803.35,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 1803.35,
+      "dps": 0.5,
+      "eps": 0.34
+    },
+    {
+      "trading_code": "ROBI",
+      "year": 2022,
+      "cash_dividend_pct": 7.0,
+      "dividend_yield_pct": 2.33,
+      "eps_basic": null,
+      "eps_cont_basic": 0.35,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 12.82,
+      "pe_ratio_basic": 86,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 1827.2,
+      "profit_mn": 1827.2,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 1966.57,
+      "dps": 0.7,
+      "eps": 0.35
+    },
+    {
+      "trading_code": "ROBI",
+      "year": 2023,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 3.33,
+      "eps_basic": null,
+      "eps_cont_basic": 0.61,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 12.76,
+      "pe_ratio_basic": 48.96,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 3209.6,
+      "profit_mn": 3209.6,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 3355.92,
+      "dps": 1.0,
+      "eps": 0.61
+    },
+    {
+      "year": 2024,
+      "trading_code": "ROBI",
+      "cash_dividend_pct": 15.0,
+      "dividend_yield_pct": 5.3,
+      "eps_basic": null,
+      "eps_cont_basic": 1.34,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 13.08,
+      "pe_ratio_basic": 21.09,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 7027.8,
+      "profit_mn": 7027.8,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 7027.8,
+      "dps": 1.5,
+      "eps": 1.34
+    },
+    {
+      "trading_code": "ROBI",
+      "year": 2025,
+      "cash_dividend_pct": 17.5,
+      "dividend_yield_pct": 6.21,
+      "dps": 1.75,
+      "eps_basic": null,
+      "eps_cont_basic": 1.79,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 13.34,
+      "pe_ratio_basic": 15.76,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 9370.82,
+      "profit_mn": 9370.82,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 9202.08,
+      "eps": 1.79
+    }
+  ],
+  "extended_financials": [
+    {
+      "year": 2020,
+      "trading_code": "ROBI",
+      "capex": -21184349000.0,
+      "investing_cf": -21030763000.0,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": 25458453000.0,
+      "total_equity": 65956131000.0,
+      "ebit": 10526025000.0,
+      "intangibles": 39841489000.0,
+      "interest_expense": 4888850000.0,
+      "revenue": 75642696000.0,
+      "total_assets": 199464858000.0,
+      "cash_and_equivalents": 9469879000.0,
+      "earning_assets": null,
+      "gross_profit": 28284295000.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 10353244000.0
+    },
+    {
+      "year": 2021,
+      "trading_code": "ROBI",
+      "capex": -23940283000.0,
+      "investing_cf": -23807362000.0,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": 32560580000.0,
+      "total_equity": 66207563000.0,
+      "ebit": 9257639000.0,
+      "intangibles": 42948690000.0,
+      "interest_expense": 4017381000.0,
+      "revenue": 81424640000.0,
+      "total_assets": 207594366000.0,
+      "cash_and_equivalents": 4918491000.0,
+      "earning_assets": null,
+      "gross_profit": 27436515000.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 8079635000.0
+    },
+    {
+      "trading_code": "ROBI",
+      "year": 2022,
+      "capex": -28437012000.0,
+      "investing_cf": -28263276000.0,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": 37274521000.0,
+      "total_equity": 67126541000.0,
+      "ebit": 13512482000.0,
+      "intangibles": 36076067000.0,
+      "interest_expense": 5857490000.0,
+      "revenue": 85859740000.0,
+      "total_assets": 199745086000.0,
+      "cash_and_equivalents": 3563406000.0,
+      "earning_assets": null,
+      "gross_profit": 32236698000.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 10085541000.0
+    },
+    {
+      "year": 2023,
+      "trading_code": "ROBI",
+      "capex": -23998443000.0,
+      "investing_cf": -23722859000.0,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": 40800658000.0,
+      "total_equity": 66815912000.0,
+      "ebit": 17219095000.0,
+      "intangibles": 48213887000.0,
+      "interest_expense": 6350684000.0,
+      "revenue": 99422639000.0,
+      "total_assets": 219003657000.0,
+      "cash_and_equivalents": 3535725000.0,
+      "earning_assets": null,
+      "gross_profit": 38461706000.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 7641195000.0
+    },
+    {
+      "year": 2024,
+      "trading_code": "ROBI",
+      "capex": -28377516000.0,
+      "cash_and_equivalents": 2618657000.0,
+      "earning_assets": null,
+      "ebit": 21845441000.0,
+      "gross_profit": 41375413000.0,
+      "intangibles": 39618960000.0,
+      "interest_expense": 7251704000.0,
+      "interest_income": null,
+      "investing_cf": -28195821000.0,
+      "net_interest_income": null,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": 46231483000.0,
+      "revenue": 99502359000.0,
+      "total_assets": 207172107000.0,
+      "total_debt": 22080551000.0,
+      "total_equity": 68505020000.0
+    },
+    {
+      "year": 2025,
+      "trading_code": "ROBI",
+      "capex": -16708368000.0,
+      "cash_and_equivalents": 2421440000.0,
+      "earning_assets": null,
+      "ebit": 18824033000.0,
+      "gross_profit": 38653006000.0,
+      "intangibles": 35286075000.0,
+      "interest_expense": 6955017000.0,
+      "interest_income": null,
+      "investing_cf": -16545282000.0,
+      "net_interest_income": null,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": 47336186000.0,
+      "revenue": 99922095000.0,
+      "total_assets": 205986825000.0,
+      "total_debt": 3329039000.0,
+      "total_equity": 69855553000.0
+    }
+  ],
+  "shareholding": {
+    "trading_code": "ROBI",
+    "as_of_date": "Mar 31, 2026",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 2.86,
+    "public_pct": 7.14,
+    "reporting_period": null,
+    "sponsor_director_pct": 90.0
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jan 31, 2026",
+    "trading_code": "ROBI",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 2.5,
+    "public_pct": 7.5,
+    "reporting_period": null,
+    "sponsor_director_pct": 90.0
+  },
+  "dividend_declaration": {
+    "trading_code": "ROBI",
+    "declaration_date": "2026-02-22T00:00:00",
+    "dividend_pct": 17.5,
+    "dividend_type": "Final",
+    "record_date": "2026-03-16T00:00:00",
+    "scraped_at": "2026-07-16T10:41:08.397000",
+    "title": "ROBI: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-06-04T00:00:00",
+      "title": "ROBI: Dividend Disbursement",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended December 31, 2025 to the respective shareholders."
+    },
+    {
+      "title": "ROBI: Q1 Financials",
+      "post_date": "2026-05-10T00:00:00",
+      "body": "(Q1 Un-audited): Consolidated EPS was Tk. 0.44 for January-March 2026 as against Tk. 0.24 for January-March 2025. Consolidated NOCFPS was Tk. 0.97 for January-March 2026 as against Tk. 2.20 for January-March 2025. Consolidated NAV per share was Tk. 13.78 as on March 31, 2026 and Tk. 13.32 as on March 31, 2025."
+    },
+    {
+      "post_date": "2026-05-05T00:00:00",
+      "title": "ROBI: Credit Rating Result",
+      "body": "Emerging Credit Rating Limited (ECRL) has affirmed surveillance rating of the Company as \"AA+\" in the long term and \"ST-1\" in the short term along with a Stable outlook based on audited financial statements of FY2022-2025 (FYE: December) and other relevant quantitative as well as qualitative information up to the date of rating."
+    },
+    {
+      "post_date": "2026-04-30T00:00:00",
+      "title": "ROBI: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on May 07, 2026 at 2:30 pm to consider, among others, Un-Audited Financial Statements for the First Quarter (Q1) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-03-16T00:00:00",
+      "title": "ROBI: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 24.03.2026."
+    },
+    {
+      "title": "ROBI: Suspension for Record Date",
+      "post_date": "2026-03-15T00:00:00",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e. 16.03.2026."
+    },
+    {
+      "post_date": "2026-03-11T00:00:00",
+      "title": "ROBI: Spot News",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 12.03.2026 to 15.03.2026 and trading of the shares will remain suspended on record date i.e., 16.03.2026."
+    },
+    {
+      "post_date": "2026-02-22T00:00:00",
+      "title": "ROBI: Dividend Declaration",
+      "body": "The Board of Directors has recommended 17.5% Cash dividend for the year ended December 31, 2025. Date of AGM: 22.04.2026, Time: 11:00 AM, Venue: Address and link will be shared in due course. Record date: 16.03.2026. The Company has also reported consolidated EPS of Tk. 1.79, consolidated NAV per share of Tk. 13.34 and consolidated NOCFPS of Tk. 9.04 for the year ended on December 31, 2025 as against Tk. 1.34, Tk. 13.08 and Tk. 8.83 respectively for the year ended December 31, 2024."
+    },
+    {
+      "title": "ROBI: Price Limit Open",
+      "post_date": "2026-02-22T00:00:00",
+      "body": "There will be no price limit on the trading of the shares of the Company today (22.02.2026) following its corporate declaration."
+    },
+    {
+      "title": "ROBI: Update of Information",
+      "post_date": "2026-02-22T00:00:00",
+      "body": "The company has requested the members to update their respective Bank Account, Address, Mobile Number, Email Address, etc. through their Depository Participant (DP) before the \"Record Date\" i.e., March 16, 2026. The company has also requested Members to update their respective BO account with 12-digit Taxpayer's Identification Number (E-TIN) through their respective Depository Participant (DP) before the \"Record Date\". (cont.1)"
+    },
+    {
+      "post_date": "2026-02-10T00:00:00",
+      "title": "ROBI: Board Meeting schedule under LR 19(1)",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on February 19, 2026 at 2:30 PM to consider, among others, audited financial statements of the Company for the year ended December 31, 2025."
+    },
+    {
+      "post_date": "2025-10-28T00:00:00",
+      "title": "ROBI: Q3 Financials",
+      "body": "(Q3 Un-audited): Consolidated EPS was Tk. 0.46 for July-September 2025 as against Tk. 0.36 for July-September 2024; Consolidated EPS was Tk. 1.19 for January-September 2025 as against Tk. 0.77 for January-September 2024. Consolidated NOCFPS was Tk. 6.68 for January-September 2025 as against Tk. 6.67 for January-September 2024. Consolidated NAV per share was Tk. 12.77 as on September 30, 2025 and Tk. 13.08 as on December 31, 2024."
+    },
+    {
+      "title": "ROBI: Board Meeting schedule under LR 16(1)",
+      "post_date": "2025-10-19T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on October 27, 2025 at 3:00 PM to consider, among others, Un-audited financial statements of the Company for the Third Quarter (Q3) period ended September 30, 2025."
+    },
+    {
+      "title": "ROBI: Receipt of PSP NOC by SmartPay Limited (a subsidiary of the company)",
+      "post_date": "2025-10-14T00:00:00",
+      "body": "The company has informed that SmartPay Limited, a fully owned subsidiary of Robi Axiata PLC., is a private company limited by shares incorporated under the Bangladesh Companies Act, 1994. The principal activity of SmartPay is to provide fintech-driven electronic payment services such as bill payments and other related services. Bangladesh Bank has issued a No Objection Certificate (NOC) in favour of SmartPay Limited to operate as a Payment Service Provider (PSP)."
+    },
+    {
+      "post_date": "2025-07-29T00:00:00",
+      "title": "ROBI: Q2 Financials",
+      "body": "(Q2 Un-audited): Consolidated EPS was Tk. 0.49 for April - June 2025 as against Tk. 0.21 for April - June 2024; Consolidated EPS was Tk. 0.73 for January - June 2025 as against Tk. 0.41 for January - June 2024; Consolidated NOCFPS was Tk. 4.48 for January - June 2025 as against Tk. 4.45 for January - June 2024. Consolidated NAV per share was Tk. 12.31 as on June 30, 2025 and Tk. 13.08 as on December 31, 2024."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "GP",
+      "company_name": "Grameenphone Ltd.",
+      "sector": "Telecommunication",
+      "score": 67.5,
+      "ltp": 257.5,
+      "change_pct": 0.0,
+      "pe": 11.76,
+      "pb": 6.21,
+      "div_yield_pct": 8.3,
+      "roe_pct": null,
+      "eps_yoy_pct": -18.6
+    },
+    {
+      "trading_code": "BSCPLC",
+      "company_name": "Bangladesh Submarine Cables PLC",
+      "sector": "Telecommunication",
+      "score": 51.4,
+      "ltp": 163.6,
+      "change_pct": -2.39,
+      "pe": 14.86,
+      "pb": 1.8,
+      "div_yield_pct": 2.4,
+      "roe_pct": null,
+      "eps_yoy_pct": -0.8
+    }
+  ],
+  "source_hash": "c88086a67160c903f3e4bd50b4cf194b0cadb768c7cd15ac97219028e610cadd"
+}

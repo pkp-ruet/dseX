@@ -1,0 +1,740 @@
+{
+  "trading_code": "SAPORTL",
+  "company_name": "Summit Alliance Port Limited",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Services & Real Estate",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 236867123,
+    "paid_up_capital_mn": 2369.0,
+    "reserve_surplus_mn": 5871.2,
+    "total_loan_mn": 3217.4,
+    "listing_year": 2008,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 53.2,
+    "change": 0.9,
+    "change_pct": 1.72,
+    "date": "2026-07-16",
+    "high": 54.1,
+    "low": 52,
+    "volume": 6617937,
+    "avg_volume_7d": 3623030,
+    "ycp": 52.3,
+    "w52_high": 60.5,
+    "w52_low": 23.2
+  },
+  "price_trend": {
+    "returns": {
+      "m1": -9.1,
+      "m3": 6.6,
+      "m6": 25.5,
+      "y1": 130.3
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 20.9
+      },
+      {
+        "date": "2025-06-30",
+        "close": 21.5
+      },
+      {
+        "date": "2025-07-31",
+        "close": 23.3
+      },
+      {
+        "date": "2025-08-31",
+        "close": 29.0
+      },
+      {
+        "date": "2025-09-30",
+        "close": 42.5
+      },
+      {
+        "date": "2025-10-30",
+        "close": 44.5
+      },
+      {
+        "date": "2025-11-30",
+        "close": 45.0
+      },
+      {
+        "date": "2025-12-30",
+        "close": 42.5
+      },
+      {
+        "date": "2026-01-29",
+        "close": 44.6
+      },
+      {
+        "date": "2026-02-26",
+        "close": 47.7
+      },
+      {
+        "date": "2026-03-31",
+        "close": 48.6
+      },
+      {
+        "date": "2026-04-30",
+        "close": 50.7
+      },
+      {
+        "date": "2026-05-31",
+        "close": 46.1
+      },
+      {
+        "date": "2026-06-30",
+        "close": 52.8
+      },
+      {
+        "date": "2026-07-16",
+        "close": 53.2
+      }
+    ],
+    "pct_in_52w_range": 80.5
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.7
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.1
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Weak",
+      "word_bn": "দুর্বল",
+      "score10": 4.0
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Pricey",
+      "word_bn": "দাম চড়া",
+      "score10": 3.8
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.1
+    }
+  ],
+  "fair_value": {
+    "low": 33.8,
+    "high": 50.8,
+    "center": 42.3,
+    "today": 53.2,
+    "stance": "expensive",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 59.7
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 38.3
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 27.8
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 30.0
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 18.67,
+    "current_pb": 1.49,
+    "own_avg_pe": 20.95,
+    "own_avg_pb": 0.78,
+    "sector_median_pe": 13.43,
+    "sector_median_pb": 1.09,
+    "eps": 2.85,
+    "sector_implied_price": 38.28
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 0.79,
+        "net_profit_crore": 18.8,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 33.52
+      },
+      {
+        "year": 2022,
+        "eps_taka": 1.19,
+        "net_profit_crore": 28.2,
+        "cash_dividend_pct": 15.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.5,
+        "nav_per_share_taka": 34.34,
+        "revenue_crore": 176.7,
+        "operating_profit_crore": 74.3,
+        "operating_cash_flow_crore": 47.4,
+        "capex_crore": 12.3,
+        "total_debt_crore": 346.9,
+        "total_equity_crore": 813.4,
+        "total_assets_crore": 1227,
+        "cash_crore": 4.26,
+        "debt_to_equity": 0.43
+      },
+      {
+        "year": 2023,
+        "eps_taka": 1.22,
+        "net_profit_crore": 29.0,
+        "cash_dividend_pct": 12.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.2,
+        "nav_per_share_taka": 33.11,
+        "revenue_crore": 182.1,
+        "operating_profit_crore": 73.2,
+        "operating_cash_flow_crore": 46.7,
+        "capex_crore": 8.49,
+        "total_debt_crore": 345.3,
+        "total_equity_crore": 784.3,
+        "total_assets_crore": 1193,
+        "cash_crore": 2.7,
+        "debt_to_equity": 0.44
+      },
+      {
+        "year": 2024,
+        "eps_taka": 1.75,
+        "net_profit_crore": 41.4,
+        "cash_dividend_pct": 15.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.5,
+        "nav_per_share_taka": 33.71,
+        "revenue_crore": 214.9,
+        "operating_profit_crore": 82.3,
+        "operating_cash_flow_crore": 58.2,
+        "capex_crore": 7.95,
+        "total_debt_crore": 326.2,
+        "total_equity_crore": 798.4,
+        "total_assets_crore": 1198,
+        "cash_crore": 6.85,
+        "debt_to_equity": 0.41
+      },
+      {
+        "year": 2025,
+        "eps_taka": 2.85,
+        "net_profit_crore": 67.5,
+        "cash_dividend_pct": 18.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.8,
+        "nav_per_share_taka": 35.67,
+        "revenue_crore": 728.1,
+        "operating_profit_crore": 156.0,
+        "operating_cash_flow_crore": 90.9,
+        "capex_crore": 11.6,
+        "total_debt_crore": 321.7,
+        "total_equity_crore": 845.0,
+        "total_assets_crore": 1385,
+        "cash_crore": 30.2,
+        "debt_to_equity": 0.38
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 2.85,
+      "net_profit_crore": 67.5,
+      "cash_dividend_pct": 18.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 1.8,
+      "nav_per_share_taka": 35.67,
+      "revenue_crore": 728.1,
+      "operating_profit_crore": 156.0,
+      "operating_cash_flow_crore": 90.9,
+      "capex_crore": 11.6,
+      "total_debt_crore": 321.7,
+      "total_equity_crore": 845.0,
+      "total_assets_crore": 1385,
+      "cash_crore": 30.2,
+      "debt_to_equity": 0.38
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": 259.0,
+      "eps_change_pct": 261.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 23.7,
+      "paid_up_capital_crore": 236.9,
+      "reserve_surplus_crore": 587.1,
+      "total_loan_crore": 321.7,
+      "listing_year": 2008
+    },
+    "ownership": {
+      "sponsor_director_pct": 62.68,
+      "govt_pct": 0.0,
+      "institute_pct": 11.57,
+      "foreign_pct": 0.01,
+      "public_pct": 25.74
+    }
+  },
+  "sector_context": {
+    "sector": "Services & Real Estate",
+    "peer_count": 4,
+    "rank_in_sector": 2,
+    "sector_avg_score": 51.0,
+    "sector_median_pe": 13.43
+  },
+  "score": {
+    "trading_code": "SAPORTL",
+    "sector": "Services & Real Estate",
+    "market_cat": "A",
+    "ltp": 53.2,
+    "mcap_mn": 12601.3309436,
+    "score": 62.0,
+    "base_score": 62.0,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 1.0,
+    "eps": 2.85,
+    "roe_pct": 10.0,
+    "sector_median_pe": 13.43,
+    "sector_median_pb": 1.09,
+    "p1_biz": 6.71,
+    "p2_health": 8.08,
+    "p3_moat": 3.96,
+    "p4_val": 3.79,
+    "p5_div": 8.07,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 10.0,
+    "p1_roe": 4.3567,
+    "p1_npm_trend": 2.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 62.9,
+    "eps_stability": 1.0,
+    "p2_de": 9.461593627081337,
+    "p2_ic": 6.315155752256704,
+    "p2_cfo": 10.0,
+    "p2_cash": 3.307564689992319,
+    "p2_coverage": 1.0,
+    "p3_margin": 1.7333,
+    "p3_rev_vol": 1.0,
+    "p3_sector_rank": 10.0,
+    "p3_capex": 7.0,
+    "p3_coverage": 1.0,
+    "p4_pe": 5.31,
+    "p4_pb": 1.51,
+    "p4_vol_damp": 1.0,
+    "current_pe": 18.67,
+    "current_pb": 1.49,
+    "own_avg_pe": 20.95,
+    "own_avg_pb": 0.78,
+    "p5_dps_cagr": 6.8749,
+    "p5_consist": 10.0,
+    "p5_yield": 7.575187969924812,
+    "div_yield_pct": 3.4,
+    "overall_rank": 52,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "quality_expensive",
+    "reason_en": "Strong company, but the price is expensive right now.",
+    "reason_bn": "কোম্পানি শক্তিশালী, কিন্তু দাম এখন বেশ চড়া।",
+    "tier": "good",
+    "momentum_grade": "hot",
+    "score": 62.0,
+    "p4_val": 3.79,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 62.7% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, market is buying actively",
+    "sentences": [
+      "The company's numbers are good, and people are buying the share and pushing the price up — the market agrees with the quality.",
+      "Has paid dividends regularly in past years."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 7.47,
+    "rs_vs_dsex_pct": 5.41,
+    "volume_ratio": 0.66,
+    "avg_turnover_7d_mn": 206.83,
+    "up_days_7d": 5,
+    "days_counted": 7,
+    "pct_in_52w_range": 80.5,
+    "momentum_grade": "hot"
+  },
+  "financials": [
+    {
+      "trading_code": "SAPORTL",
+      "year": 2021,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 3.69,
+      "eps_basic": null,
+      "eps_cont_basic": 0.79,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 33.52,
+      "pe_ratio_basic": 34.09,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 188.3,
+      "profit_mn": 188.3,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 193.29,
+      "dps": 1.0,
+      "eps": 0.79
+    },
+    {
+      "trading_code": "SAPORTL",
+      "year": 2022,
+      "cash_dividend_pct": 15.0,
+      "dividend_yield_pct": 5.07,
+      "eps_basic": null,
+      "eps_cont_basic": 1.19,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 34.34,
+      "pe_ratio_basic": 24.86,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 282.08,
+      "profit_mn": 282.08,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 282.16,
+      "dps": 1.5,
+      "eps": 1.19
+    },
+    {
+      "trading_code": "SAPORTL",
+      "year": 2023,
+      "cash_dividend_pct": 12.0,
+      "dividend_yield_pct": 4.17,
+      "eps_basic": null,
+      "eps_cont_basic": 1.22,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 33.11,
+      "pe_ratio_basic": 23.53,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 289.87,
+      "profit_mn": 289.87,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 292.81,
+      "dps": 1.2,
+      "eps": 1.22
+    },
+    {
+      "trading_code": "SAPORTL",
+      "year": 2024,
+      "cash_dividend_pct": 15.0,
+      "dividend_yield_pct": 5.84,
+      "eps_basic": null,
+      "eps_cont_basic": 1.75,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 33.71,
+      "pe_ratio_basic": 14.72,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 413.63,
+      "profit_mn": 413.63,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 417.06,
+      "dps": 1.5,
+      "eps": 1.75
+    },
+    {
+      "year": 2025,
+      "trading_code": "SAPORTL",
+      "cash_dividend_pct": 18.0,
+      "dividend_yield_pct": 8.37,
+      "eps_basic": null,
+      "eps_cont_basic": 2.85,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 35.67,
+      "pe_ratio_basic": 7.55,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 674.96,
+      "profit_mn": 674.96,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 794.66,
+      "dps": 1.8,
+      "eps": 2.85
+    }
+  ],
+  "extended_financials": [
+    {
+      "year": 2022,
+      "trading_code": "SAPORTL",
+      "capex": -123484479.0,
+      "investing_cf": null,
+      "net_profit": 282077577.0,
+      "nocfps": 2.0,
+      "operating_cf": 473559675.0,
+      "total_equity": 8134265859.0,
+      "ebit": 743083160.0,
+      "intangibles": 999975.0,
+      "interest_expense": 322583637.0,
+      "revenue": 1767443829.0,
+      "total_assets": 12266616971.0,
+      "cash_and_equivalents": 42554932.0,
+      "earning_assets": null,
+      "gross_profit": 893119827.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 3469342459.0
+    },
+    {
+      "trading_code": "SAPORTL",
+      "year": 2023,
+      "capex": -84919724.0,
+      "investing_cf": null,
+      "net_profit": 292026902.0,
+      "nocfps": 1.97,
+      "operating_cf": 467192488.0,
+      "total_equity": 7842702177.0,
+      "ebit": 732047583.0,
+      "intangibles": 999975.0,
+      "interest_expense": 259035994.0,
+      "revenue": 1820850495.0,
+      "total_assets": 11934341111.0,
+      "cash_and_equivalents": 27046568.0,
+      "earning_assets": null,
+      "gross_profit": 892949909.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 3453135004.0
+    },
+    {
+      "trading_code": "SAPORTL",
+      "year": 2024,
+      "capex": -79472644.0,
+      "investing_cf": null,
+      "net_profit": 417604233.0,
+      "nocfps": 2.45,
+      "operating_cf": 581507707.0,
+      "total_equity": 7983795420.0,
+      "ebit": 822711113.0,
+      "intangibles": 999975.0,
+      "interest_expense": 297878456.0,
+      "revenue": 2149370003.0,
+      "total_assets": 11980959706.0,
+      "cash_and_equivalents": 68533814.0,
+      "earning_assets": null,
+      "gross_profit": 1006546590.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 3261524508.0
+    },
+    {
+      "trading_code": "SAPORTL",
+      "year": 2025,
+      "capex": -116170937.0,
+      "investing_cf": null,
+      "net_profit": 841298125.0,
+      "nocfps": 3.84,
+      "operating_cf": 909212602.0,
+      "total_equity": 8449909989.0,
+      "ebit": 1559505973.0,
+      "intangibles": 48037.0,
+      "interest_expense": 402269356.0,
+      "revenue": 7280993592.0,
+      "total_assets": 13853339371.0,
+      "cash_and_equivalents": 301902290.0,
+      "earning_assets": null,
+      "gross_profit": 1920686220.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 3217395805.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "SAPORTL",
+    "foreign_pct": 0.01,
+    "govt_pct": 0.0,
+    "institute_pct": 11.57,
+    "public_pct": 25.74,
+    "reporting_period": null,
+    "sponsor_director_pct": 62.68
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jun 30, 2025",
+    "trading_code": "SAPORTL",
+    "foreign_pct": 3.95,
+    "govt_pct": 0.0,
+    "institute_pct": 12.02,
+    "public_pct": 25.03,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 59.0
+  },
+  "dividend_declaration": {
+    "trading_code": "SAPORTL",
+    "declaration_date": "2025-11-09T00:00:00",
+    "dividend_pct": 18.0,
+    "dividend_type": "Final",
+    "record_date": "2025-11-27T00:00:00",
+    "scraped_at": "2026-07-16T10:44:06.201000",
+    "title": "SAPORTL: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-05-03T00:00:00",
+      "title": "SAPORTL: Regarding ratification of Strike-Off of a subsidiary of the company",
+      "body": "The company has informed that Summit Alliance Port Pte. Limited, a wholly owned dormant subsidiary of Summit Alliance Port Limited with an investment value of SGD 1, had applied for strike-off with the Accounting and Corporate Regulatory Authority (ACRA), Singapore, as part of the administrative rationalization of the Group structure. (cont.1)"
+    },
+    {
+      "post_date": "2026-05-03T00:00:00",
+      "title": "SAPORTL: Q3 Financials",
+      "body": "(Q3 Un-audited): Consolidated EPS was Tk. 0.65 for January-March 2026 as against Tk. 0.81 for January-March 2025; Consolidated EPS was Tk. 1.62 for July 2025-March 2026 as against Tk. 2.34 for July 2024-March 2025. Consolidated NOCFPS was Tk. 1.21 for July 2025-March 2026 as against Tk. 2.62 for July 2024-March 2025. Consolidated NAV per share was Tk. 35.37 as on March 31, 2026 and Tk. 35.67 as on June 30, 2025."
+    },
+    {
+      "post_date": "2026-04-27T00:00:00",
+      "title": "SAPORTL: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 30, 2026 at 3:00 pm to consider, among others, Un-Audited Financial Statements for the Third Quarter (Q3) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-04-01T00:00:00",
+      "title": "SAPORTL: Credit Rating Result",
+      "body": "Credit Rating Agency of Bangladesh Limited (CRAB) has announced the Surveillance entity rating of the Company as \"AA2 (Lr)\" in the long term loan and \"ST-2\" in the short term loan along with Stable outlook based on Audited financial statements (FYE 30/06/2025, 30/06/2024, 30/06/2023), bank liability as on 28/02/2026 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "post_date": "2026-02-01T00:00:00",
+      "title": "SAPORTL: Q2 Financials",
+      "body": "(Q2 Un-audited): Consolidated EPS was Tk. 0.37 for October-December 2025 as against Tk. 0.73 for October-December 2024; Consolidated EPS was Tk. 0.96 for July-December 2025 as against Tk. 1.52 for July-December 2024. Consolidated NOCFPS was Tk. 1.88 for July-December 2025 as against Tk. 1.52 for July-December 2024. Consolidated NAV per share was Tk. 34.47 as on December 31, 2025 and Tk. 35.67 as on June 30, 2025. (cont.1)"
+    },
+    {
+      "post_date": "2026-01-28T00:00:00",
+      "title": "SAPORTL: Dividend Disbursement",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended June 30, 2025 to the respective shareholders."
+    },
+    {
+      "title": "SAPORTL: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-01-27T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 31, 2026 at 11:00 AM to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "title": "SAPORTL: Emphasis of Matter",
+      "post_date": "2025-12-14T00:00:00",
+      "body": "The auditor of the company has given the Emphasis of Matters paragraph in the audited financial statement for the year ended on 30 June 2025. To view the details, please visit: https://www.dsebd.org/Auditors_opinion/2025/Summit%20Alliance%20Port%20Ltd_2025.pdf"
+    },
+    {
+      "title": "SAPORTL: Resumption after Record Date",
+      "post_date": "2025-11-27T00:00:00",
+      "body": "Trading of the shares of the company will resume on 30.11.2025."
+    },
+    {
+      "title": "SAPORTL: Declaration of Share Transfer by a Director",
+      "post_date": "2025-11-26T00:00:00",
+      "body": "Mr. Syed Ali Jowher Rizvi, a Director of the company, has expressed his intention to transfer 2,813,616 shares of the company to his daughter Ms. Fatema Hossain Rizvi (a general shareholder of the company) by way of gift outside the trading system of the Exchange within next 30 working days."
+    },
+    {
+      "title": "SAPORTL: Suspension for Record Date",
+      "post_date": "2025-11-26T00:00:00",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 27.11.2025."
+    },
+    {
+      "post_date": "2025-11-24T00:00:00",
+      "title": "SAPORTL: Spot News",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 25.11.2025 to 26.11.2025 and trading of the shares will remain suspended on record date i.e., 27.11.2025."
+    },
+    {
+      "post_date": "2025-11-16T00:00:00",
+      "title": "SAPORTL: Q1 Financials",
+      "body": "(Q1 Un-audited): Consolidated EPS was Tk. 0.59 for July-September 2025 as against Tk. 0.80 for July-September 2024. Consolidated NOCFPS was Tk. 0.98 for July-September 2025 as against Tk. (1.86) for July-September 2024. Consolidated NAV per share was Tk. 36.33 as on September 30, 2025 and Tk. 35.67 as on June 30, 2025. (cont.1)"
+    },
+    {
+      "title": "SAPORTL: Board Meeting schedule under LR 16(1)",
+      "post_date": "2025-11-10T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on November 13, 2025 at 2:35 PM to consider, among others, Un-audited financial statements of the Company for the First Quarter (Q1) period ended September 30, 2025."
+    },
+    {
+      "title": "SAPORTL: Dividend Declaration",
+      "post_date": "2025-11-09T00:00:00",
+      "body": "The Board of Directors has recommended 18% Cash Dividend for the year ended June 30, 2025. Date of AGM: 23.12.2025, Time: 11:30 AM, Venue: Digital Platform. Record Date: 27.11.2025. The Company has also reported Consolidated EPS of Tk. 2.85, Consolidated NAV per share of Tk. 35.67 and Consolidated NOCFPS of Tk. 3.84 for the year ended June 30, 2025 as against Tk. 1.75, Tk. 33.71 and Tk. 2.45 respectively for the year ended June 30, 2024."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "EHL",
+      "company_name": "Eastern Housing Limited",
+      "sector": "Services & Real Estate",
+      "score": 74.5,
+      "ltp": 97.8,
+      "change_pct": -0.71,
+      "pe": 11.83,
+      "pb": 1.09,
+      "div_yield_pct": 2.6,
+      "roe_pct": 9.2,
+      "eps_yoy_pct": 36.9
+    },
+    {
+      "trading_code": "SAMORITA",
+      "company_name": "Samorita Hospital Limited",
+      "sector": "Services & Real Estate",
+      "score": 43.8,
+      "ltp": 94.1,
+      "change_pct": 0.97,
+      "pe": 151.77,
+      "pb": 1.94,
+      "div_yield_pct": 0.5,
+      "roe_pct": 1.3,
+      "eps_yoy_pct": 10.7
+    },
+    {
+      "trading_code": "SAIFPOWER",
+      "company_name": "SAIF Powertec Limited",
+      "sector": "Services & Real Estate",
+      "score": 23.5,
+      "ltp": 9.4,
+      "change_pct": -1.05,
+      "pe": 13.43,
+      "pb": 0.55,
+      "div_yield_pct": 1.1,
+      "roe_pct": 3.7,
+      "eps_yoy_pct": -7.9
+    }
+  ],
+  "source_hash": "3adc90fc97afe5e8d17e0e22e1542b1581e88a53c7d14ae9b16dd72e546f4e54"
+}

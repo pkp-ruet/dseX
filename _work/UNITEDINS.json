@@ -1,0 +1,787 @@
+{
+  "trading_code": "UNITEDINS",
+  "company_name": "United Insurance Company Ltd.",
+  "sector_class": "INSURANCE",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Insurance",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 44500000,
+    "paid_up_capital_mn": 445.0,
+    "reserve_surplus_mn": 936.1,
+    "total_loan_mn": 0,
+    "listing_year": 1990,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 47.9,
+    "change": -0.8,
+    "change_pct": -1.64,
+    "date": "2026-07-16",
+    "high": 48.7,
+    "low": 47.3,
+    "volume": 216439,
+    "avg_volume_7d": 223423,
+    "ycp": 48.7,
+    "w52_high": 50.1,
+    "w52_low": 35.8
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 8.4,
+      "m3": 12.2,
+      "m6": 14.9,
+      "y1": 27.1
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 33.4
+      },
+      {
+        "date": "2025-06-30",
+        "close": 34.9
+      },
+      {
+        "date": "2025-07-31",
+        "close": 37.6
+      },
+      {
+        "date": "2025-08-31",
+        "close": 43.3
+      },
+      {
+        "date": "2025-09-30",
+        "close": 41.2
+      },
+      {
+        "date": "2025-10-30",
+        "close": 42.8
+      },
+      {
+        "date": "2025-11-30",
+        "close": 39.7
+      },
+      {
+        "date": "2025-12-30",
+        "close": 40.5
+      },
+      {
+        "date": "2026-01-29",
+        "close": 44.7
+      },
+      {
+        "date": "2026-02-26",
+        "close": 42.8
+      },
+      {
+        "date": "2026-03-31",
+        "close": 40.6
+      },
+      {
+        "date": "2026-04-30",
+        "close": 47.5
+      },
+      {
+        "date": "2026-05-31",
+        "close": 41.5
+      },
+      {
+        "date": "2026-06-30",
+        "close": 44.8
+      },
+      {
+        "date": "2026-07-16",
+        "close": 47.9
+      }
+    ],
+    "pct_in_52w_range": 84.6
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 7.8
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.7
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.3
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Good value",
+      "word_bn": "দাম সস্তা",
+      "score10": 8.7
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.7
+    }
+  ],
+  "fair_value": {
+    "low": 48.2,
+    "high": 72.3,
+    "center": 60.3,
+    "today": 47.9,
+    "stance": "cheap",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 82.3
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 94.3
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 44.1
+      },
+      {
+        "name": "book_peer",
+        "label_en": "Priced like similar companies (assets)",
+        "price": 63.9
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 25.0
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 13.84,
+    "current_pb": 1.54,
+    "own_avg_pe": 23.78,
+    "own_avg_pb": 1.42,
+    "sector_median_pe": 27.25,
+    "sector_median_pb": 2.06,
+    "eps": 3.46,
+    "sector_implied_price": 94.28
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2020,
+        "eps_taka": 2.04,
+        "net_profit_crore": 9.08,
+        "cash_dividend_pct": 11.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.1,
+        "nav_per_share_taka": 33.04
+      },
+      {
+        "year": 2021,
+        "eps_taka": 1.65,
+        "net_profit_crore": 7.35,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 36.45,
+        "revenue_crore": 0.32,
+        "operating_profit_crore": 5.46,
+        "operating_cash_flow_crore": 11.1,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 162.2,
+        "total_assets_crore": 212.1,
+        "cash_crore": 30.6
+      },
+      {
+        "year": 2022,
+        "eps_taka": 1.75,
+        "net_profit_crore": 7.79,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 32.68,
+        "revenue_crore": -0.69,
+        "operating_profit_crore": 6.11,
+        "operating_cash_flow_crore": 3.05,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 145.4,
+        "total_assets_crore": 205.0,
+        "cash_crore": 18.1
+      },
+      {
+        "year": 2023,
+        "eps_taka": 1.78,
+        "net_profit_crore": 7.92,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 31.42,
+        "revenue_crore": -2.06,
+        "operating_profit_crore": 6.59,
+        "operating_cash_flow_crore": 2.27,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 139.8,
+        "total_assets_crore": 208.0,
+        "cash_crore": 11.7
+      },
+      {
+        "year": 2024,
+        "eps_taka": 2.26,
+        "net_profit_crore": 10.1,
+        "cash_dividend_pct": 15.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.5,
+        "nav_per_share_taka": 30.59,
+        "revenue_crore": -2.66,
+        "operating_profit_crore": 8.24,
+        "operating_cash_flow_crore": 4.42,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 136.1,
+        "total_assets_crore": 206.9,
+        "cash_crore": 6.54
+      },
+      {
+        "year": 2025,
+        "eps_taka": 3.46,
+        "net_profit_crore": 15.4,
+        "cash_dividend_pct": 15.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.5,
+        "nav_per_share_taka": 31.04
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 3.46,
+      "net_profit_crore": 15.4,
+      "cash_dividend_pct": 15.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 1.5,
+      "nav_per_share_taka": 31.04
+    },
+    "growth": {
+      "span": "2020–2025",
+      "net_profit_change_pct": 70.0,
+      "eps_change_pct": 70.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 4.45,
+      "paid_up_capital_crore": 44.5,
+      "reserve_surplus_crore": 93.6,
+      "total_loan_crore": 0.0,
+      "listing_year": 1990
+    },
+    "ownership": {
+      "sponsor_director_pct": 59.9,
+      "govt_pct": 0.0,
+      "institute_pct": 20.6,
+      "foreign_pct": 0.0,
+      "public_pct": 19.5
+    }
+  },
+  "sector_context": {
+    "sector": "Insurance",
+    "peer_count": 59,
+    "rank_in_sector": 1,
+    "sector_avg_score": 41.4,
+    "sector_median_pe": 27.25
+  },
+  "score": {
+    "trading_code": "UNITEDINS",
+    "sector": "Insurance",
+    "market_cat": "A",
+    "ltp": 47.9,
+    "mcap_mn": 2131.55,
+    "score": 71.6,
+    "base_score": 71.6,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.684,
+    "eps": 3.46,
+    "roe_pct": 7.4,
+    "sector_median_pe": 27.25,
+    "sector_median_pb": 2.06,
+    "p1_biz": 7.75,
+    "p2_health": 5.73,
+    "p3_moat": 5.33,
+    "p4_val": 8.73,
+    "p5_div": 8.71,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 9.5553,
+    "p1_roe": 4.4484,
+    "p1_npm_trend": null,
+    "p1_coverage": 0.8,
+    "eps_yoy_pct": 53.1,
+    "eps_stability": 1.0,
+    "p2_de": null,
+    "p2_ic": 10.0,
+    "p2_cfo": 3.0,
+    "p2_cash": null,
+    "p2_coverage": 0.643,
+    "p3_margin": 8.0,
+    "p3_rev_vol": null,
+    "p3_sector_rank": 2.0,
+    "p3_capex": null,
+    "p3_coverage": 0.55,
+    "p4_pe": 10.0,
+    "p4_pb": 6.83,
+    "p4_vol_damp": 1.0,
+    "current_pe": 13.84,
+    "current_pb": 1.54,
+    "own_avg_pe": 23.78,
+    "own_avg_pb": 1.42,
+    "p5_dps_cagr": 8.2673,
+    "p5_consist": 10.0,
+    "p5_yield": 7.197286012526096,
+    "div_yield_pct": 3.1,
+    "overall_rank": 21,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "buy",
+    "reason_key": "quality_cheap",
+    "reason_en": "Strong company and the price looks cheap right now.",
+    "reason_bn": "শক্তিশালী কোম্পানি, দামও এখন তুলনামূলক সস্তা।",
+    "tier": "good",
+    "momentum_grade": "hot",
+    "score": 71.6,
+    "p4_val": 8.73,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "Consistent dividend payer (4+ years)",
+      "Currently cheap vs historical P/E",
+      "Sponsor holding 59.9% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, market is buying actively",
+    "sentences": [
+      "The company's numbers are good, and people are buying the share and pushing the price up — the market agrees with the quality.",
+      "Has paid dividends regularly in past years.",
+      "The share price looks cheaper now than its average over the past few years."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 6.44,
+    "rs_vs_dsex_pct": 4.38,
+    "volume_ratio": 1.43,
+    "avg_turnover_7d_mn": 11.43,
+    "up_days_7d": 3,
+    "days_counted": 7,
+    "pct_in_52w_range": 84.6,
+    "momentum_grade": "hot"
+  },
+  "financials": [
+    {
+      "year": 2020,
+      "trading_code": "UNITEDINS",
+      "cash_dividend_pct": 11.0,
+      "dividend_yield_pct": 2,
+      "eps_basic": null,
+      "eps_cont_basic": 2.04,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 33.04,
+      "pe_ratio_basic": 26.95,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 90.83,
+      "profit_mn": 90.83,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 90.83,
+      "dps": 1.1,
+      "eps": 2.04
+    },
+    {
+      "trading_code": "UNITEDINS",
+      "year": 2021,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 1.52,
+      "eps_basic": null,
+      "eps_cont_basic": 1.65,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 36.45,
+      "pe_ratio_basic": 39.81,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 73.45,
+      "profit_mn": 73.45,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 73.45,
+      "dps": 1.0,
+      "eps": 1.65
+    },
+    {
+      "trading_code": "UNITEDINS",
+      "year": 2022,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 2.19,
+      "eps_basic": null,
+      "eps_cont_basic": 1.75,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 32.68,
+      "pe_ratio_basic": 26.12,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 77.86,
+      "profit_mn": 77.86,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 77.86,
+      "dps": 1.0,
+      "eps": 1.75
+    },
+    {
+      "trading_code": "UNITEDINS",
+      "year": 2023,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 2.23,
+      "eps_basic": null,
+      "eps_cont_basic": 1.78,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 31.42,
+      "pe_ratio_basic": 25.19,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 79.15,
+      "profit_mn": 79.15,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 79.15,
+      "dps": 1.0,
+      "eps": 1.78
+    },
+    {
+      "trading_code": "UNITEDINS",
+      "year": 2024,
+      "cash_dividend_pct": 15.0,
+      "dividend_yield_pct": 4.11,
+      "eps_basic": null,
+      "eps_cont_basic": 2.26,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 30.59,
+      "pe_ratio_basic": 16.14,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 100.64,
+      "profit_mn": 100.64,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 100.64,
+      "dps": 1.5,
+      "eps": 2.26
+    },
+    {
+      "trading_code": "UNITEDINS",
+      "year": 2025,
+      "cash_dividend_pct": 15.0,
+      "dividend_yield_pct": 3.73,
+      "dps": 1.5,
+      "eps_basic": null,
+      "eps_cont_basic": 3.46,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 31.04,
+      "pe_ratio_basic": 11.63,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 153.79,
+      "profit_mn": 153.79,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 153.79,
+      "eps": 3.46
+    }
+  ],
+  "extended_financials": [
+    {
+      "year": 2021,
+      "trading_code": "UNITEDINS",
+      "capex": null,
+      "investing_cf": 61911909.0,
+      "net_profit": 74272020.0,
+      "nocfps": 2.49,
+      "operating_cf": 110954194.0,
+      "total_equity": 1622012628.0,
+      "ebit": 54585540.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 3242169.0,
+      "total_assets": 2120596659.0,
+      "cash_and_equivalents": 306402689.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "year": 2022,
+      "trading_code": "UNITEDINS",
+      "capex": null,
+      "investing_cf": -39458517.0,
+      "net_profit": 77864036.0,
+      "nocfps": 0.69,
+      "operating_cf": 30507813.0,
+      "total_equity": 1454105194.0,
+      "ebit": 61079362.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": -6859232.0,
+      "total_assets": 2050210704.0,
+      "cash_and_equivalents": 181276534.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "trading_code": "UNITEDINS",
+      "year": 2023,
+      "capex": null,
+      "investing_cf": -24025509.0,
+      "net_profit": 79150946.0,
+      "nocfps": 0.51,
+      "operating_cf": 22670846.0,
+      "total_equity": 1397978401.0,
+      "ebit": 65863400.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": -20609816.0,
+      "total_assets": 2080465380.0,
+      "cash_and_equivalents": 116961612.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "trading_code": "UNITEDINS",
+      "year": 2024,
+      "capex": null,
+      "investing_cf": -48899006.0,
+      "net_profit": 100641057.0,
+      "nocfps": 0.99,
+      "operating_cf": 44204929.0,
+      "total_equity": 1361124105.0,
+      "ebit": 82429980.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": -26560775.0,
+      "total_assets": 2068861630.0,
+      "cash_and_equivalents": 65383630.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "UNITEDINS",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 20.6,
+    "public_pct": 19.5,
+    "reporting_period": null,
+    "sponsor_director_pct": 59.9
+  },
+  "shareholding_prev": {
+    "trading_code": "UNITEDINS",
+    "as_of_date": "Jan 31, 2026",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 21.16,
+    "public_pct": 18.94,
+    "reporting_period": null,
+    "sponsor_director_pct": 59.9
+  },
+  "dividend_declaration": {
+    "trading_code": "UNITEDINS",
+    "declaration_date": "2026-04-29T00:00:00",
+    "dividend_pct": 15.0,
+    "dividend_type": "Final",
+    "record_date": "2026-05-20T00:00:00",
+    "scraped_at": "2026-07-16T10:52:22.225000",
+    "title": "UNITEDINS: Dividend Declaration"
+  },
+  "news": [
+    {
+      "title": "UNITEDINS: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-07-12T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on July 16, 2026 at 2:35 pm to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended June 30, 2026."
+    },
+    {
+      "post_date": "2026-06-28T00:00:00",
+      "title": "UNITEDINS: Credit Rating Result",
+      "body": "Credit Rating Information and Services PLC (CRISL) has assigned rating of the Company as \"AAA\" in the long term along with Stable outlook based on audited financials up to December 31, 2025; unaudited financials up to March 31, 2026 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "title": "UNITEDINS: Appointment of CEO",
+      "post_date": "2026-06-22T00:00:00",
+      "body": "The company has informed that Insurance Development and Regulatory Authority (IDRA) vide its letter dated June 17, 2026 has accorded approval to the appointment of Mr. Syed Sehab Ullah Al-Manjur, ACII (UK) as the Chief Executive Officer (CEO) of the company."
+    },
+    {
+      "post_date": "2026-05-20T00:00:00",
+      "title": "UNITEDINS: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 21.05.2026."
+    },
+    {
+      "post_date": "2026-05-19T00:00:00",
+      "title": "UNITEDINS: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 20.05.2026."
+    },
+    {
+      "post_date": "2026-05-17T00:00:00",
+      "title": "UNITEDINS: Spot News",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 18.05.2026 to 19.05.2026 and trading of the shares will remain suspended on record date i.e., 20.05.2026."
+    },
+    {
+      "title": "UNITEDINS: Q1 Financials",
+      "post_date": "2026-05-06T00:00:00",
+      "body": "(Q1 Un-audited): EPS was Tk. 0.24 for January-March 2026 as against Tk. 0.45 for January-March 2025. NOCFPS was Tk. (2.79) for January-March 2026 as against Tk. 0.11 for January-March 2025. NAV per share was Tk. 32.11 as on March 31, 2026 and Tk. 31.04 as on December 31, 2025. (cont.)"
+    },
+    {
+      "post_date": "2026-05-03T00:00:00",
+      "title": "UNITEDINS: Change of Head Office & Registered Office Address",
+      "body": "The company has informed that the Head office & Registered Office of the company has been shifted to the following address: Gulshan Centre Point (12th Floor-North Block), H- 23-26, R-90, 91 & 46, Gulshan-2, Dhaka. Ph- 02-58816933-36. E-mail: info@unitedinsurance.com.bd. Web: www.unitedinsurance.com.bd, with effect from May 03, 2026."
+    },
+    {
+      "title": "UNITEDINS: Dividend Declaration",
+      "post_date": "2026-04-29T00:00:00",
+      "body": "The Board of Directors has recommended 15% Cash Dividend for the year ended December 31, 2025. Date of AGM: June 29, 2026, Time: 11:00 A.M., Venue: Digital Platform. Record Date: May 20, 2026. The Company has also reported EPS of Tk. 3.46, NAV per share of Tk. 31.04 and NOCFPS of Tk. 2.17 for the year ended December 31, 2025 as against Tk. 2.26, Tk. 30.59 and Tk. 0.99 respectively for the year ended December 31, 2024. (cont.)"
+    },
+    {
+      "title": "UNITEDINS: Price Limit Open",
+      "post_date": "2026-04-29T00:00:00",
+      "body": "There will be no price limit on the trading of the shares of the Company today (29.04.2026) following its corporate declaration."
+    },
+    {
+      "post_date": "2026-04-29T00:00:00",
+      "title": "UNITEDINS: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on May 05, 2026 at 3:00 pm to consider, among others, Un-Audited Financial Statements for the First Quarter (Q1) period ended March 31, 2026."
+    },
+    {
+      "title": "UNITEDINS: Board Meeting schedule under LR 19(1)",
+      "post_date": "2026-04-19T00:00:00",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 28, 2026 at 3:00 PM to consider, among others, audited financial statements of the Company for the year ended December 31, 2025."
+    },
+    {
+      "post_date": "2026-01-22T00:00:00",
+      "title": "UNITEDINS: Appointment of Chief Executive Officer (Acting)",
+      "body": "The company has informed that due to the retirement of the existing Chief Executive Officer, the Board of Directors of the Company has decided to appoint Mr. Md. Jashim Uddin, Additional Managing Director of the Company, as Chief Executive Officer (Acting) for three (3) months, effective from February 01, 2026 to April 30, 2026."
+    },
+    {
+      "post_date": "2025-10-26T00:00:00",
+      "title": "UNITEDINS: Q3 Financials",
+      "body": "(Q3 Un-audited): EPS was Tk. 0.69 for July-September 2025 as against Tk. 0.44 for July-September 2024; EPS was Tk. 2.35 for January-September 2025 as against Tk. 1.55 for January-September 2024. NOCFPS was Tk. 0.82 for January-September 2025 as against Tk. 0.43 for January-September 2024. NAV per share was Tk. 31.59 as on September 30, 2025 and Tk. 30.59 as on December 31, 2024. (cont.)"
+    },
+    {
+      "post_date": "2025-10-19T00:00:00",
+      "title": "UNITEDINS: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on October 23, 2025 at 3:00 PM to consider, among others, Un-audited financial statements of the Company for the Third Quarter (Q3) period ended September 30, 2025."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "SIPLC",
+      "company_name": "Sena Insurance PLC",
+      "sector": "Insurance",
+      "score": 70.4,
+      "ltp": 108.4,
+      "change_pct": -3.9,
+      "pe": 20.97,
+      "pb": 3.79,
+      "div_yield_pct": 1.4,
+      "roe_pct": 17.1,
+      "eps_yoy_pct": 20.5
+    },
+    {
+      "trading_code": "RELIANCINS",
+      "company_name": "Reliance Insurance PLC.",
+      "sector": "Insurance",
+      "score": 69.7,
+      "ltp": 114.1,
+      "change_pct": -2.23,
+      "pe": 13.55,
+      "pb": 1.45,
+      "div_yield_pct": 2.6,
+      "roe_pct": 13.1,
+      "eps_yoy_pct": -7.7
+    },
+    {
+      "trading_code": "PRAGATIINS",
+      "company_name": "Pragati Insurance PLC.",
+      "sector": "Insurance",
+      "score": 65.8,
+      "ltp": 81.5,
+      "change_pct": -1.21,
+      "pe": 15.35,
+      "pb": 1.42,
+      "div_yield_pct": 3.3,
+      "roe_pct": 9.7,
+      "eps_yoy_pct": -5.3
+    },
+    {
+      "trading_code": "ASIAPACINS",
+      "company_name": "Asia Pacific General Insurance PLC",
+      "sector": "Insurance",
+      "score": 64.9,
+      "ltp": 47.1,
+      "change_pct": -1.88,
+      "pe": 18.76,
+      "pb": 1.86,
+      "div_yield_pct": 3.0,
+      "roe_pct": 8.0,
+      "eps_yoy_pct": 32.8
+    },
+    {
+      "trading_code": "PIONEERINS",
+      "company_name": "Pioneer Insurance PLC",
+      "sector": "Insurance",
+      "score": 64.3,
+      "ltp": 70.7,
+      "change_pct": -0.7,
+      "pe": 15.47,
+      "pb": 1.51,
+      "div_yield_pct": 3.5,
+      "roe_pct": 10.7,
+      "eps_yoy_pct": -4.6
+    }
+  ],
+  "source_hash": "e8993cf420a92f699ee4ca64b17805bd200b1f0ba93272a81d4e555cef9fa8b2"
+}

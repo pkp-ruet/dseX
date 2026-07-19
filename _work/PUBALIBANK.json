@@ -1,0 +1,788 @@
+{
+  "trading_code": "PUBALIBANK",
+  "company_name": "Pubali Bank PLC.",
+  "sector_class": "BANK",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Bank",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 1561721842,
+    "paid_up_capital_mn": 15617.22,
+    "reserve_surplus_mn": 55078.2,
+    "total_loan_mn": 65304.21,
+    "listing_year": 1984,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 37.4,
+    "change": -0.1,
+    "change_pct": -0.27,
+    "date": "2026-07-16",
+    "high": 37.8,
+    "low": 37.2,
+    "volume": 377224,
+    "avg_volume_7d": 367069,
+    "ycp": 37.5,
+    "w52_high": 42.1,
+    "w52_low": 25.4
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 0.3,
+      "m3": 2.5,
+      "m6": -0.3,
+      "y1": 45.0
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 24.1
+      },
+      {
+        "date": "2025-06-30",
+        "close": 25.4
+      },
+      {
+        "date": "2025-07-31",
+        "close": 30.1
+      },
+      {
+        "date": "2025-08-31",
+        "close": 29.7
+      },
+      {
+        "date": "2025-09-30",
+        "close": 29.1
+      },
+      {
+        "date": "2025-10-30",
+        "close": 28.3
+      },
+      {
+        "date": "2025-11-30",
+        "close": 29.4
+      },
+      {
+        "date": "2025-12-30",
+        "close": 30.9
+      },
+      {
+        "date": "2026-01-29",
+        "close": 40.6
+      },
+      {
+        "date": "2026-02-26",
+        "close": 40.0
+      },
+      {
+        "date": "2026-03-31",
+        "close": 36.1
+      },
+      {
+        "date": "2026-04-30",
+        "close": 38.3
+      },
+      {
+        "date": "2026-05-31",
+        "close": 33.6
+      },
+      {
+        "date": "2026-06-30",
+        "close": 36.9
+      },
+      {
+        "date": "2026-07-16",
+        "close": 37.4
+      }
+    ],
+    "pct_in_52w_range": 71.9
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.0
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 9.3
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Weak",
+      "word_bn": "দুর্বল",
+      "score10": 2.7
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Fairly priced",
+      "word_bn": "দাম যুক্তিসঙ্গত",
+      "score10": 6.1
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.0
+    }
+  ],
+  "fair_value": {
+    "low": 26.3,
+    "high": 39.4,
+    "center": 32.8,
+    "today": 37.4,
+    "stance": "fair",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 38.6
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 46.7
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 33.7
+      },
+      {
+        "name": "book_peer",
+        "label_en": "Priced like similar companies (assets)",
+        "price": 29.9
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 16.7
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 4.46,
+    "current_pb": 0.69,
+    "own_avg_pe": 4.61,
+    "own_avg_pb": 0.62,
+    "sector_median_pe": 5.57,
+    "sector_median_pb": 0.55,
+    "eps": 8.38,
+    "sector_implied_price": 46.68
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2020,
+        "eps_taka": 3.6,
+        "net_profit_crore": 370.7,
+        "cash_dividend_pct": 12.5,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.25,
+        "nav_per_share_taka": 37.63
+      },
+      {
+        "year": 2021,
+        "eps_taka": 4.23,
+        "net_profit_crore": 435.2,
+        "cash_dividend_pct": 12.5,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.25,
+        "nav_per_share_taka": 38.69,
+        "revenue_crore": null,
+        "operating_profit_crore": 998.6,
+        "operating_cash_flow_crore": 206.8,
+        "capex_crore": 69.1,
+        "total_debt_crore": 4650,
+        "total_equity_crore": 4008,
+        "total_assets_crore": 63040,
+        "cash_crore": null,
+        "debt_to_equity": 1.16
+      },
+      {
+        "year": 2022,
+        "eps_taka": 5.49,
+        "net_profit_crore": 564.8,
+        "cash_dividend_pct": 12.5,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.25,
+        "nav_per_share_taka": 41.96,
+        "revenue_crore": null,
+        "operating_profit_crore": 1181,
+        "operating_cash_flow_crore": 291.0,
+        "capex_crore": null,
+        "total_debt_crore": 6502,
+        "total_equity_crore": 4315,
+        "total_assets_crore": 71427,
+        "cash_crore": null,
+        "debt_to_equity": 1.51
+      },
+      {
+        "year": 2023,
+        "eps_taka": 6.76,
+        "net_profit_crore": 695.0,
+        "cash_dividend_pct": 12.5,
+        "stock_dividend_pct": 12.5,
+        "dps_taka": 1.25,
+        "nav_per_share_taka": 46.33,
+        "revenue_crore": null,
+        "operating_profit_crore": 1566,
+        "operating_cash_flow_crore": 268.7,
+        "capex_crore": 209.2,
+        "total_debt_crore": 5981,
+        "total_equity_crore": 4541,
+        "total_assets_crore": 81519,
+        "cash_crore": null,
+        "debt_to_equity": 1.32
+      },
+      {
+        "year": 2024,
+        "eps_taka": 6.74,
+        "net_profit_crore": 780.1,
+        "cash_dividend_pct": 12.5,
+        "stock_dividend_pct": 12.5,
+        "dps_taka": 1.25,
+        "nav_per_share_taka": 46.08,
+        "revenue_crore": null,
+        "operating_profit_crore": 2301,
+        "operating_cash_flow_crore": 404.6,
+        "capex_crore": 291.4,
+        "total_debt_crore": 5489,
+        "total_equity_crore": 5330,
+        "total_assets_crore": 98426,
+        "cash_crore": null,
+        "debt_to_equity": 1.03
+      },
+      {
+        "year": 2025,
+        "eps_taka": 8.38,
+        "net_profit_crore": 1090,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": 20,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 54.32
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 8.38,
+      "net_profit_crore": 1090,
+      "cash_dividend_pct": 10.0,
+      "stock_dividend_pct": 20,
+      "dps_taka": 1.0,
+      "nav_per_share_taka": 54.32
+    },
+    "growth": {
+      "span": "2020–2025",
+      "net_profit_change_pct": 194.0,
+      "eps_change_pct": 133.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 156.2,
+      "paid_up_capital_crore": 1562,
+      "reserve_surplus_crore": 5508,
+      "total_loan_crore": 6530,
+      "listing_year": 1984
+    },
+    "ownership": {
+      "sponsor_director_pct": 28.2,
+      "govt_pct": 0.0,
+      "institute_pct": 28.18,
+      "foreign_pct": 0.05,
+      "public_pct": 43.57
+    }
+  },
+  "sector_context": {
+    "sector": "Bank",
+    "peer_count": 36,
+    "rank_in_sector": 10,
+    "sector_avg_score": 42.9,
+    "sector_median_pe": 5.57
+  },
+  "score": {
+    "trading_code": "PUBALIBANK",
+    "sector": "Bank",
+    "market_cat": "A",
+    "ltp": 37.4,
+    "mcap_mn": 58408.396890799995,
+    "score": 66.1,
+    "base_score": 66.1,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 1.0,
+    "eps": 8.38,
+    "roe_pct": 25.1,
+    "sector_median_pe": 5.57,
+    "sector_median_pb": 0.55,
+    "p1_biz": 8.0,
+    "p2_health": 9.29,
+    "p3_moat": 2.7,
+    "p4_val": 6.13,
+    "p5_div": 5.98,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 8.6716,
+    "p1_roe": 10.0,
+    "p1_npm_trend": 2.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 24.3,
+    "eps_stability": 1.0,
+    "p2_de": 10.0,
+    "p2_ic": 10.0,
+    "p2_cfo": 8.0,
+    "p2_cash": null,
+    "p2_coverage": 1.0,
+    "p3_margin": 2.0,
+    "p3_rev_vol": 1.0,
+    "p3_sector_rank": 7.0,
+    "p3_capex": 2.0,
+    "p3_coverage": 1.0,
+    "p4_pe": 7.31,
+    "p4_pb": 4.35,
+    "p4_vol_damp": 1.0,
+    "current_pe": 4.46,
+    "current_pb": 0.69,
+    "own_avg_pe": 4.61,
+    "own_avg_pb": 0.62,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 6.510695187165775,
+    "div_yield_pct": 2.7,
+    "overall_rank": 35,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "good_wait_price",
+    "reason_en": "Good company — fine to hold, but wait for a cheaper price to buy.",
+    "reason_bn": "ভালো কোম্পানি — ধরে রাখা যায়, তবে কেনার জন্য আরেকটু কম দামের অপেক্ষা করুন।",
+    "tier": "good",
+    "momentum_grade": "warm",
+    "score": 66.1,
+    "p4_val": 6.13,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, price moving up steadily",
+    "sentences": [
+      "The company is in good financial shape, and the share price is steadily rising."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 4.18,
+    "rs_vs_dsex_pct": 2.12,
+    "volume_ratio": 0.99,
+    "avg_turnover_7d_mn": 13.53,
+    "up_days_7d": 4,
+    "days_counted": 7,
+    "pct_in_52w_range": 71.9,
+    "momentum_grade": "warm"
+  },
+  "financials": [
+    {
+      "trading_code": "PUBALIBANK",
+      "year": 2020,
+      "cash_dividend_pct": 12.5,
+      "dividend_yield_pct": 5.19,
+      "eps_basic": null,
+      "eps_cont_basic": 3.6,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 37.63,
+      "pe_ratio_basic": 6.69,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 3706.82,
+      "profit_mn": 3706.82,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 3706.82,
+      "dps": 1.25,
+      "eps": 3.6
+    },
+    {
+      "year": 2021,
+      "trading_code": "PUBALIBANK",
+      "cash_dividend_pct": 12.5,
+      "dividend_yield_pct": 4.66,
+      "eps_basic": null,
+      "eps_cont_basic": 4.23,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 38.69,
+      "pe_ratio_basic": 6.33,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 4351.77,
+      "profit_mn": 4351.77,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 4351.77,
+      "dps": 1.25,
+      "eps": 4.23
+    },
+    {
+      "trading_code": "PUBALIBANK",
+      "year": 2022,
+      "cash_dividend_pct": 12.5,
+      "dividend_yield_pct": 4.75,
+      "eps_basic": null,
+      "eps_cont_basic": 5.49,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 41.96,
+      "pe_ratio_basic": 4.79,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 5648.01,
+      "profit_mn": 5648.01,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 5648.01,
+      "dps": 1.25,
+      "eps": 5.49
+    },
+    {
+      "trading_code": "PUBALIBANK",
+      "year": 2023,
+      "cash_dividend_pct": 12.5,
+      "dividend_yield_pct": 4.77,
+      "eps_basic": null,
+      "eps_cont_basic": 6.76,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 46.33,
+      "pe_ratio_basic": 3.88,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 6949.84,
+      "profit_mn": 6949.84,
+      "stock_dividend_pct": 12.5,
+      "total_comprehensive_income_mn": 6949.84,
+      "dps": 1.25,
+      "eps": 6.76
+    },
+    {
+      "trading_code": "PUBALIBANK",
+      "year": 2024,
+      "cash_dividend_pct": 12.5,
+      "dividend_yield_pct": 4.27,
+      "eps_basic": null,
+      "eps_cont_basic": 6.74,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 46.08,
+      "pe_ratio_basic": 4.35,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 7800.87,
+      "profit_mn": 7800.87,
+      "stock_dividend_pct": 12.5,
+      "total_comprehensive_income_mn": 7800.87,
+      "dps": 1.25,
+      "eps": 6.74
+    },
+    {
+      "year": 2025,
+      "trading_code": "PUBALIBANK",
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 3.24,
+      "dps": 1.0,
+      "eps_basic": null,
+      "eps_cont_basic": 8.38,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 54.32,
+      "pe_ratio_basic": 3.69,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 10901.14,
+      "profit_mn": 10901.14,
+      "stock_dividend_pct": 20,
+      "total_comprehensive_income_mn": 10901.14,
+      "eps": 8.38
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "PUBALIBANK",
+      "year": 2021,
+      "capex": -690661807.0,
+      "investing_cf": -690661807.0,
+      "net_profit": 5742671447.0,
+      "nocfps": null,
+      "operating_cf": 2067797864.0,
+      "total_equity": 40084137632.0,
+      "ebit": 9986472993.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 630396979607.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 551298924354.0,
+      "gross_profit": null,
+      "interest_income": 22790938427.0,
+      "net_interest_income": 890017618.0,
+      "total_debt": 46500331001.0
+    },
+    {
+      "trading_code": "PUBALIBANK",
+      "year": 2022,
+      "capex": null,
+      "investing_cf": -888749783.0,
+      "net_profit": 8926363335.0,
+      "nocfps": null,
+      "operating_cf": 2910386823.0,
+      "total_equity": 43146239304.0,
+      "ebit": 11806247172.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 714272726951.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 619656210617.0,
+      "gross_profit": null,
+      "interest_income": 29860247898.0,
+      "net_interest_income": 6619654339.0,
+      "total_debt": 65017699496.0
+    },
+    {
+      "year": 2023,
+      "trading_code": "PUBALIBANK",
+      "capex": -2092131617.0,
+      "investing_cf": -8582531735.0,
+      "net_profit": 12202346410.0,
+      "nocfps": 3.06,
+      "operating_cf": 2687044927.0,
+      "total_equity": 45406995429.0,
+      "ebit": 15664994416.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 815186068678.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 716978658237.0,
+      "gross_profit": null,
+      "interest_income": 40404751034.0,
+      "net_interest_income": 10083674231.0,
+      "total_debt": 59808670090.0
+    },
+    {
+      "trading_code": "PUBALIBANK",
+      "year": 2024,
+      "capex": -2914273092.0,
+      "investing_cf": -53444709561.0,
+      "net_profit": 13399843483.0,
+      "nocfps": 61.01,
+      "operating_cf": 4046421211.0,
+      "total_equity": 53302476694.0,
+      "ebit": 23011422058.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 984264564931.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 858403963411.0,
+      "gross_profit": null,
+      "interest_income": 58450570232.0,
+      "net_interest_income": 15137168146.0,
+      "total_debt": 54891354611.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "PUBALIBANK",
+    "foreign_pct": 0.05,
+    "govt_pct": 0.0,
+    "institute_pct": 28.18,
+    "public_pct": 43.57,
+    "reporting_period": null,
+    "sponsor_director_pct": 28.2
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jan 31, 2026",
+    "trading_code": "PUBALIBANK",
+    "foreign_pct": 0.05,
+    "govt_pct": 0.0,
+    "institute_pct": 28.21,
+    "public_pct": 43.54,
+    "reporting_period": null,
+    "sponsor_director_pct": 28.2
+  },
+  "dividend_declaration": {
+    "trading_code": "PUBALIBANK",
+    "declaration_date": "2026-04-30T00:00:00",
+    "dividend_pct": 15.0,
+    "dividend_type": "Final",
+    "record_date": "2026-05-20T00:00:00",
+    "scraped_at": "2026-07-16T10:38:22.855000",
+    "title": "PUBALIBANK: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-06-17T00:00:00",
+      "title": "PUBALIBANK: Shareholders Approve Revised Dividend Structure at 43rd AGM",
+      "body": "Refer to their earlier news disseminated by DSE on 30.04.2026, the company has further informed that the valued Shareholders of the company in its 43rd Annual General Meeting (AGM) held on 16 June 2026 via a digital platform, have successfully considered and adopted a total of 06 (six) agendas, including 01 (one) Special Agenda. Under Agenda No. 02 (\"To declare Dividend for the year ended 31st December 2025 (cont.1)"
+    },
+    {
+      "title": "PUBALIBANK: Emphasis of Matter",
+      "post_date": "2026-06-02T00:00:00",
+      "body": "The auditor of the company has given the Emphasis of Matter paragraph in the auditor's report for the year ended December 31, 2025. To view the details, please visit: https://www.dsebd.org/Auditors_opinion/2025/240.Pubali%20Bank%20plc25.pdf"
+    },
+    {
+      "post_date": "2026-06-01T00:00:00",
+      "title": "PUBALIBANK: Credit Rating Result",
+      "body": "Credit Rating Information and Services PLC (CRISL) has assigned rating of the Company as \"AAA\" in the long term and \"ST-1\" in the short term along with Stable outlook based on audited financials up to December 31, 2025, unaudited financial statements up to March 31, 2026 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "title": "PUBALIBANK: Resumption after Record Date",
+      "post_date": "2026-05-20T00:00:00",
+      "body": "Trading of the shares of the company will resume on 21.05.2026."
+    },
+    {
+      "post_date": "2026-05-19T00:00:00",
+      "title": "PUBALIBANK: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 20.05.2026."
+    },
+    {
+      "title": "PUBALIBANK: Spot News",
+      "post_date": "2026-05-17T00:00:00",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 18.05.2026 to 19.05.2026 and trading of the shares will remain suspended on record date i.e., 20.05.2026."
+    },
+    {
+      "title": "PUBALIBANK: Q1 Financials",
+      "post_date": "2026-05-14T00:00:00",
+      "body": "(Q1 Un-audited): Consolidated EPS was Tk. 1.72 for January-March 2026 as against Tk. 1.42 (restated) for January-March 2025. Consolidated NOCFPS was Tk. 17.00 for January-March 2026 as against Tk. 17.68 (restated) for January-March 2025. Consolidated NAV per share was Tk. 57.77 as on March 31, 2026 and Tk. 54.32 as on December 31, 2025. Reasons for Deviation: EPS substantially increased compare to same period of last year due to increase of Income from investment income, (cont.1)"
+    },
+    {
+      "post_date": "2026-05-14T00:00:00",
+      "title": "PUBALIBANK: Decision to amend clause of AOA for increasing number of Directors",
+      "body": "The company has informed that the Board of Directors of the company in its 1517th Board Meeting held on 13.05.2026 has taken decision to amend the clause 80 (a) of the Articles of Association (AOA) of the Bank for increasing the number of Directors subject to approval from the Regulatory Authorities and Shareholders in the upcoming 43rd Annual General Meeting to be held on the 16th June, 2026 at 11.00 AM or any adjournment there on as well as completion of necessary regulatory formalities."
+    },
+    {
+      "post_date": "2026-05-07T00:00:00",
+      "title": "PUBALIBANK: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on May 13, 2026 at 5:30 pm to consider, among others, Un-Audited Financial Statements for the First Quarter (Q1) period ended March 31, 2026."
+    },
+    {
+      "title": "PUBALIBANK: Dividend Declaration",
+      "post_date": "2026-04-30T00:00:00",
+      "body": "The Board of Directors has recommended 15% Cash and 15% Stock Dividend for the year ended December 31, 2025. Date of AGM: 16.06.2026, Time: 11:00 AM, Venue/Mode: Digital Platform, Record Date: 20.05.2026. The Company has also reported Consolidated EPS of Tk. 8.38, Consolidated NAV per share of Tk. 54.32 and Consolidated NOCFPS of Tk. 32.04 for the year ended December 31, 2025 (cont.1)"
+    },
+    {
+      "post_date": "2026-04-30T00:00:00",
+      "title": "PUBALIBANK: Price Limit Open",
+      "body": "There will be no price limit on the trading of the shares of the Company today (30.04.2026) following its corporate declaration."
+    },
+    {
+      "title": "PUBALIBANK: Board Meeting schedule under LR 19(1)",
+      "post_date": "2026-04-23T00:00:00",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 29, 2026 at 5:30 PM to consider, among others, audited financial statements of the Company for the year ended December 31, 2025."
+    },
+    {
+      "post_date": "2026-03-12T00:00:00",
+      "title": "PUBALIBANK: Board decision to raise USD 100M through issuance of Green Bond",
+      "body": "The company has informed that the Board of Directors in its meeting held on 11 March 2026 have decided to raise USD 100 Million through issuance of Green Bond with a tenor of 05 (Five) years as a part of Sustainable and Green Finance initiative in line with Green Bond Principles (ICMA), IFC guidelines, and Bangladesh Bank's Sustainable Finance Policy subject to approval from concerned authorities and complying with regulatory requirements."
+    },
+    {
+      "post_date": "2025-10-30T00:00:00",
+      "title": "PUBALIBANK: Q3 Financials",
+      "body": "(Q3 Un-audited): Consolidated EPS was Tk. 2.56 for July-September 2025 as against Tk. 3.43 (restated) for July-September 2024; Consolidated EPS was Tk. 7.00 for January-September 2025 as against Tk. 6.74 (restated) for January-September 2024. Consolidated NOCFPS was Tk. 68.64 for January-September 2025 as against Tk. 35.20 (restated) for January-September 2024. Consolidated NAV per share was Tk. 58.09 as on September 30, 2025 and Tk. 43.04 (restated) as on September 30, 2024. (cont.1)"
+    },
+    {
+      "title": "PUBALIBANK: Board Meeting schedule under LR 16(1)",
+      "post_date": "2025-10-23T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on October 29, 2025 at 5:00 PM to consider, among others, Un-audited financial statements of the Company for the Third Quarter (Q3) period ended September 30, 2025."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "PRIMEBANK",
+      "company_name": "Prime Bank PLC.",
+      "sector": "Bank",
+      "score": 80.2,
+      "ltp": 30.5,
+      "change_pct": -0.65,
+      "pe": 3.89,
+      "pb": 0.76,
+      "div_yield_pct": 8.2,
+      "roe_pct": 31.1,
+      "eps_yoy_pct": 21.2
+    },
+    {
+      "trading_code": "UTTARABANK",
+      "company_name": "Uttara Bank PLC.",
+      "sector": "Bank",
+      "score": 78.8,
+      "ltp": 21.4,
+      "change_pct": 0.0,
+      "pe": 3.52,
+      "pb": 0.67,
+      "div_yield_pct": 2.3,
+      "roe_pct": 34.2,
+      "eps_yoy_pct": 5.0
+    },
+    {
+      "trading_code": "BRACBANK",
+      "company_name": "BRAC Bank PLC.",
+      "sector": "Bank",
+      "score": 76.5,
+      "ltp": 64.6,
+      "change_pct": -1.07,
+      "pe": 7.08,
+      "pb": 1.25,
+      "div_yield_pct": 2.3,
+      "roe_pct": 24.0,
+      "eps_yoy_pct": 31.2
+    },
+    {
+      "trading_code": "EBL",
+      "company_name": "Eastern Bank PLC.",
+      "sector": "Bank",
+      "score": 76.0,
+      "ltp": 24.4,
+      "change_pct": -0.41,
+      "pe": 4.67,
+      "pb": 0.78,
+      "div_yield_pct": 10.2,
+      "roe_pct": 28.2,
+      "eps_yoy_pct": 7.6
+    },
+    {
+      "trading_code": "NCCBANK",
+      "company_name": "National Credit and Commerce Bank PLC.",
+      "sector": "Bank",
+      "score": 74.1,
+      "ltp": 15.6,
+      "change_pct": 0.0,
+      "pe": 3.64,
+      "pb": 0.57,
+      "div_yield_pct": 10.9,
+      "roe_pct": 20.5,
+      "eps_yoy_pct": 104.3
+    }
+  ],
+  "source_hash": "aab6399ed79069fffed48c4d05f45c927a0eedd427e72d27c8f52d281b3e0dd8"
+}

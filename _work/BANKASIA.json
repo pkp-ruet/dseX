@@ -1,0 +1,789 @@
+{
+  "trading_code": "BANKASIA",
+  "company_name": "Bank Asia PLC.",
+  "sector_class": "BANK",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Bank",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 1391509837,
+    "paid_up_capital_mn": 13915.09,
+    "reserve_surplus_mn": 21254.5,
+    "total_loan_mn": 27363.24,
+    "listing_year": 2004,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 18.4,
+    "change": -0.1,
+    "change_pct": -0.54,
+    "date": "2026-07-16",
+    "high": 18.6,
+    "low": 18.4,
+    "volume": 801630,
+    "avg_volume_7d": 584388,
+    "ycp": 18.5,
+    "w52_high": 23.7,
+    "w52_low": 15.8
+  },
+  "price_trend": {
+    "returns": {
+      "m1": -0.5,
+      "m3": -12.4,
+      "m6": -3.7,
+      "y1": 14.3
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 14.8
+      },
+      {
+        "date": "2025-06-30",
+        "close": 15.9
+      },
+      {
+        "date": "2025-07-31",
+        "close": 19.5
+      },
+      {
+        "date": "2025-08-31",
+        "close": 19.1
+      },
+      {
+        "date": "2025-09-30",
+        "close": 18.0
+      },
+      {
+        "date": "2025-10-30",
+        "close": 17.8
+      },
+      {
+        "date": "2025-11-30",
+        "close": 18.6
+      },
+      {
+        "date": "2025-12-30",
+        "close": 18.2
+      },
+      {
+        "date": "2026-01-29",
+        "close": 20.0
+      },
+      {
+        "date": "2026-02-25",
+        "close": 21.9
+      },
+      {
+        "date": "2026-03-31",
+        "close": 21.4
+      },
+      {
+        "date": "2026-04-30",
+        "close": 20.1
+      },
+      {
+        "date": "2026-05-31",
+        "close": 17.8
+      },
+      {
+        "date": "2026-06-30",
+        "close": 18.4
+      },
+      {
+        "date": "2026-07-16",
+        "close": 18.4
+      }
+    ],
+    "pct_in_52w_range": 32.9
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 7.2
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 9.3
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Weak",
+      "word_bn": "দুর্বল",
+      "score10": 3.8
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Good value",
+      "word_bn": "দাম সস্তা",
+      "score10": 7.3
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.4
+    }
+  ],
+  "fair_value": {
+    "low": 14.9,
+    "high": 22.3,
+    "center": 18.6,
+    "today": 18.4,
+    "stance": "fair",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 26.7
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 16.6
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 21.1
+      },
+      {
+        "name": "book_peer",
+        "label_en": "Priced like similar companies (assets)",
+        "price": 15.1
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 14.2
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 5.79,
+    "current_pb": 0.67,
+    "own_avg_pe": 8.4,
+    "own_avg_pb": 0.77,
+    "sector_median_pe": 5.23,
+    "sector_median_pb": 0.55,
+    "eps": 3.18,
+    "sector_implied_price": 16.63
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2020,
+        "eps_taka": 1.74,
+        "net_profit_crore": 202.4,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 23.34
+      },
+      {
+        "year": 2021,
+        "eps_taka": 2.34,
+        "net_profit_crore": 272.8,
+        "cash_dividend_pct": 15.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.5,
+        "nav_per_share_taka": 23.33,
+        "revenue_crore": null,
+        "operating_profit_crore": 955.2,
+        "operating_cash_flow_crore": 345.4,
+        "capex_crore": null,
+        "total_debt_crore": 4784,
+        "total_equity_crore": 2720,
+        "total_assets_crore": 44103,
+        "cash_crore": null,
+        "debt_to_equity": 1.76
+      },
+      {
+        "year": 2022,
+        "eps_taka": 2.61,
+        "net_profit_crore": 304.6,
+        "cash_dividend_pct": 15.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.5,
+        "nav_per_share_taka": 24.41,
+        "revenue_crore": null,
+        "operating_profit_crore": 1087,
+        "operating_cash_flow_crore": 127.2,
+        "capex_crore": null,
+        "total_debt_crore": 5102,
+        "total_equity_crore": 2846,
+        "total_assets_crore": 47072,
+        "cash_crore": null,
+        "debt_to_equity": 1.79
+      },
+      {
+        "year": 2023,
+        "eps_taka": 1.79,
+        "net_profit_crore": 208.9,
+        "cash_dividend_pct": 15.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.5,
+        "nav_per_share_taka": 25.22,
+        "revenue_crore": null,
+        "operating_profit_crore": 1172,
+        "operating_cash_flow_crore": 207.6,
+        "capex_crore": null,
+        "total_debt_crore": 2707,
+        "total_equity_crore": 2940,
+        "total_assets_crore": 47655,
+        "cash_crore": null,
+        "debt_to_equity": 0.92
+      },
+      {
+        "year": 2024,
+        "eps_taka": 2.14,
+        "net_profit_crore": 249.9,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": 10,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 27.28,
+        "revenue_crore": null,
+        "operating_profit_crore": 1730,
+        "operating_cash_flow_crore": 510.5,
+        "capex_crore": null,
+        "total_debt_crore": 1811,
+        "total_equity_crore": 3181,
+        "total_assets_crore": 53531,
+        "cash_crore": null,
+        "debt_to_equity": 0.57
+      },
+      {
+        "year": 2025,
+        "eps_taka": 3.18,
+        "net_profit_crore": 407.3,
+        "cash_dividend_pct": 8.5,
+        "stock_dividend_pct": 8.5,
+        "dps_taka": 0.85,
+        "nav_per_share_taka": 27.42
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 3.18,
+      "net_profit_crore": 407.3,
+      "cash_dividend_pct": 8.5,
+      "stock_dividend_pct": 8.5,
+      "dps_taka": 0.85,
+      "nav_per_share_taka": 27.42
+    },
+    "growth": {
+      "span": "2020–2025",
+      "net_profit_change_pct": 101.0,
+      "eps_change_pct": 83.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 139.2,
+      "paid_up_capital_crore": 1392,
+      "reserve_surplus_crore": 2125,
+      "total_loan_crore": 2736,
+      "listing_year": 2004
+    },
+    "ownership": {
+      "sponsor_director_pct": 50.7,
+      "govt_pct": 0.0,
+      "institute_pct": 38.55,
+      "foreign_pct": 0.0,
+      "public_pct": 10.75
+    }
+  },
+  "sector_context": {
+    "sector": "Bank",
+    "peer_count": 36,
+    "rank_in_sector": 8,
+    "sector_avg_score": 42.9,
+    "sector_median_pe": 5.23
+  },
+  "score": {
+    "trading_code": "BANKASIA",
+    "sector": "Bank",
+    "market_cat": "A",
+    "ltp": 18.4,
+    "mcap_mn": 25603.781000799998,
+    "score": 68.2,
+    "base_score": 68.2,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.957,
+    "eps": 3.18,
+    "roe_pct": 20.3,
+    "sector_median_pe": 5.23,
+    "sector_median_pb": 0.55,
+    "p1_biz": 7.2,
+    "p2_health": 9.29,
+    "p3_moat": 3.76,
+    "p4_val": 7.26,
+    "p5_div": 6.41,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 2.0,
+    "p1_roe": 8.6595,
+    "p1_npm_trend": 10.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 48.6,
+    "eps_stability": 1.0,
+    "p2_de": 10.0,
+    "p2_ic": 10.0,
+    "p2_cfo": 8.0,
+    "p2_cash": null,
+    "p2_coverage": 1.0,
+    "p3_margin": 2.0,
+    "p3_rev_vol": 7.0,
+    "p3_sector_rank": 2.0,
+    "p3_capex": null,
+    "p3_coverage": 0.85,
+    "p4_pe": 7.97,
+    "p4_pb": 6.19,
+    "p4_vol_damp": 1.0,
+    "current_pe": 5.79,
+    "current_pb": 0.67,
+    "own_avg_pe": 8.4,
+    "own_avg_pb": 0.77,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 9.429347826086957,
+    "div_yield_pct": 4.6,
+    "overall_rank": 29,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "buy",
+    "reason_key": "quality_cheap",
+    "reason_en": "Strong company and the price looks cheap right now.",
+    "reason_bn": "শক্তিশালী কোম্পানি, দামও এখন তুলনামূলক সস্তা।",
+    "tier": "good",
+    "momentum_grade": "flat",
+    "score": 68.2,
+    "p4_val": 7.26,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 50.7% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, but share is quiet",
+    "sentences": [
+      "The company's numbers are good, but the share has been quiet — the price is not moving much in either direction."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 0.55,
+    "rs_vs_dsex_pct": -1.51,
+    "volume_ratio": 0.73,
+    "avg_turnover_7d_mn": 12.01,
+    "up_days_7d": 3,
+    "days_counted": 7,
+    "pct_in_52w_range": 32.9,
+    "momentum_grade": "flat"
+  },
+  "financials": [
+    {
+      "trading_code": "BANKASIA",
+      "year": 2020,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 5.49,
+      "eps_basic": null,
+      "eps_cont_basic": 1.74,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 23.34,
+      "pe_ratio_basic": 10.48,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 2024.49,
+      "profit_mn": 2024.49,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 2024.49,
+      "dps": 1.0,
+      "eps": 1.74
+    },
+    {
+      "trading_code": "BANKASIA",
+      "year": 2021,
+      "cash_dividend_pct": 15.0,
+      "dividend_yield_pct": 6.88,
+      "eps_basic": null,
+      "eps_cont_basic": 2.34,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 23.33,
+      "pe_ratio_basic": 9.32,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 2728.27,
+      "profit_mn": 2728.27,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 2728.27,
+      "dps": 1.5,
+      "eps": 2.34
+    },
+    {
+      "year": 2022,
+      "trading_code": "BANKASIA",
+      "cash_dividend_pct": 15.0,
+      "dividend_yield_pct": 7.43,
+      "eps_basic": null,
+      "eps_cont_basic": 2.61,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 24.41,
+      "pe_ratio_basic": 7.73,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 3045.87,
+      "profit_mn": 3045.87,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 3045.87,
+      "dps": 1.5,
+      "eps": 2.61
+    },
+    {
+      "year": 2023,
+      "trading_code": "BANKASIA",
+      "cash_dividend_pct": 15.0,
+      "dividend_yield_pct": 7.43,
+      "eps_basic": null,
+      "eps_cont_basic": 1.79,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 25.22,
+      "pe_ratio_basic": 11.28,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 2088.6,
+      "profit_mn": 2088.6,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 2088.6,
+      "dps": 1.5,
+      "eps": 1.79
+    },
+    {
+      "trading_code": "BANKASIA",
+      "year": 2024,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 5.88,
+      "eps_basic": null,
+      "eps_cont_basic": 2.14,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 27.28,
+      "pe_ratio_basic": 7.93,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 2498.92,
+      "profit_mn": 2498.92,
+      "stock_dividend_pct": 10,
+      "total_comprehensive_income_mn": 2498.92,
+      "dps": 1.0,
+      "eps": 2.14
+    },
+    {
+      "year": 2025,
+      "trading_code": "BANKASIA",
+      "cash_dividend_pct": 8.5,
+      "dividend_yield_pct": 4.67,
+      "dps": 0.85,
+      "eps_basic": null,
+      "eps_cont_basic": 3.18,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 27.42,
+      "pe_ratio_basic": 5.73,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 4072.55,
+      "profit_mn": 4072.55,
+      "stock_dividend_pct": 8.5,
+      "total_comprehensive_income_mn": 4072.55,
+      "eps": 3.18
+    }
+  ],
+  "extended_financials": [
+    {
+      "year": 2021,
+      "trading_code": "BANKASIA",
+      "capex": null,
+      "investing_cf": 16480948408.0,
+      "net_profit": 4523005715.0,
+      "nocfps": null,
+      "operating_cf": 3453659983.0,
+      "total_equity": 27203745360.0,
+      "ebit": 9552453672.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 441026191438.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 390639531514.0,
+      "gross_profit": null,
+      "interest_income": 18422217336.0,
+      "net_interest_income": 5694254525.0,
+      "total_debt": 47836151368.0
+    },
+    {
+      "trading_code": "BANKASIA",
+      "year": 2022,
+      "capex": null,
+      "investing_cf": -26193753470.0,
+      "net_profit": 6620303189.0,
+      "nocfps": null,
+      "operating_cf": 1271679392.0,
+      "total_equity": 28463837649.0,
+      "ebit": 10869236428.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 470722130861.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 428163191555.0,
+      "gross_profit": null,
+      "interest_income": 20484449300.0,
+      "net_interest_income": 5547107674.0,
+      "total_debt": 51024080743.0
+    },
+    {
+      "trading_code": "BANKASIA",
+      "year": 2023,
+      "capex": null,
+      "investing_cf": -12398173130.0,
+      "net_profit": 4829360344.0,
+      "nocfps": null,
+      "operating_cf": 2076404624.0,
+      "total_equity": 29402737678.0,
+      "ebit": 11719012855.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 476552532288.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 434305129216.0,
+      "gross_profit": null,
+      "interest_income": 23380598457.0,
+      "net_interest_income": 6313257625.0,
+      "total_debt": 27071897305.0
+    },
+    {
+      "trading_code": "BANKASIA",
+      "year": 2024,
+      "capex": null,
+      "investing_cf": -62314759844.0,
+      "net_profit": 6452101137.0,
+      "nocfps": null,
+      "operating_cf": 5105220204.0,
+      "total_equity": 31807889969.0,
+      "ebit": 17298060470.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 535312197170.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 490615285578.0,
+      "gross_profit": null,
+      "interest_income": 30651886991.0,
+      "net_interest_income": 6142739357.0,
+      "total_debt": 18114043540.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "BANKASIA",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 38.55,
+    "public_pct": 10.75,
+    "reporting_period": null,
+    "sponsor_director_pct": 50.7
+  },
+  "shareholding_prev": {
+    "trading_code": "BANKASIA",
+    "as_of_date": "Jan 31, 2026",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 38.84,
+    "public_pct": 10.46,
+    "reporting_period": null,
+    "sponsor_director_pct": 50.7
+  },
+  "dividend_declaration": {
+    "trading_code": "BANKASIA",
+    "declaration_date": "2026-04-30T00:00:00",
+    "dividend_pct": 8.5,
+    "dividend_type": "Final",
+    "record_date": "2026-05-20T00:00:00",
+    "scraped_at": "2026-07-16T10:00:16.209000",
+    "title": "BANKASIA: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-07-06T00:00:00",
+      "title": "BANKASIA: Sale Declaration of a Sponsor Director",
+      "body": "Mr. Rumee A Hossain, a Sponsor Director of the Company has expressed his intention to sell 1,063,000 shares out of his total holding of 39,318,455 shares of the Company at the prevailing market price in the Public Market through Dhaka Stock Exchange PLC. (DSE) within next 30 working days."
+    },
+    {
+      "post_date": "2026-06-30T00:00:00",
+      "title": "BANKASIA: Credit Rating Result",
+      "body": "Credit Rating Information and Services PLC (CRISL) has assigned the rating of the Company as \"AA+\" in the long term and \"ST-1\" in the short term along with Stable outlook in consideration of its audited financials up to December 31, 2025 also unaudited financials up to March 31, 2026 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "title": "BANKASIA: Resumption after Record Date",
+      "post_date": "2026-05-20T00:00:00",
+      "body": "Trading of the shares of the company will resume on 21.05.2026."
+    },
+    {
+      "post_date": "2026-05-20T00:00:00",
+      "title": "BANKASIA: Emphasis of Matter",
+      "body": "The auditor of the company has given the Emphasis of Matter paragraph in the auditor's report for the year ended December 31, 2025. To view the details, please visit: https://www.dsebd.org/Auditors_opinion/2025/Bank%20Asia25.pdf"
+    },
+    {
+      "post_date": "2026-05-19T00:00:00",
+      "title": "BANKASIA: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 20.05.2026."
+    },
+    {
+      "title": "BANKASIA: Spot News",
+      "post_date": "2026-05-17T00:00:00",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 18.05.2026 to 19.05.2026 and trading of the shares will remain suspended on record date i.e., 20.05.2026."
+    },
+    {
+      "title": "BANKASIA: Q1 Financials",
+      "post_date": "2026-05-13T00:00:00",
+      "body": "(Q1 Un-audited): Consolidated EPS was Tk. 0.98 for January-March 2026 as against Tk. 1.29 for January-March 2025; Consolidated NOCFPS was Tk. 30.72 for January-March 2026 as against Tk. 26.60 for January-March 2025. Consolidated NAV per share was Tk. 29.06 as on March 31, 2026 and Tk. 26.67 as on March 31, 2025. (cont.)"
+    },
+    {
+      "post_date": "2026-05-07T00:00:00",
+      "title": "BANKASIA: Board approved the issuance of Green Sustainable Subordinated Bond",
+      "body": "The company has informed that the Board of Directors of the company in its 584th meeting held on 06 May 2026 has approved the issuance of Green Sustainable Subordinated Bond of BDT 10,000 Million (Ten Thousand Million Taka). The proposed Green Sustainable Subordinated Bond will be Non-Convertible, Unsecured, Fully Redeemable, Coupon-Bearing, Floating Rate for a tenure of 07 years through private placement. (cont.)"
+    },
+    {
+      "title": "BANKASIA: Reschedule of Board Meeting under LR 16(1)",
+      "post_date": "2026-05-07T00:00:00",
+      "body": "The Company has further informed that due to unavoidable circumstances, the meeting of the Board of Directors of the Company as per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, will be held on May 12, 2026 at 3:00 pm instead of earlier declared May 10, 2026 at 3:00 pm to consider, among others, Un-audited financial statements of the Company for the First Quarter (Q1) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-05-05T00:00:00",
+      "title": "BANKASIA: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on May 10, 2026 at 3:00 pm to consider, among others, Un-Audited Financial Statements for the First Quarter (Q1) period ended March 31, 2026."
+    },
+    {
+      "title": "BANKASIA: Dividend Declaration",
+      "post_date": "2026-04-30T00:00:00",
+      "body": "The Board of Directors has recommended 8.50% Cash Dividend and 8.50% Stock Dividend for the year ended December 31, 2025. Date of AGM: June 11, 2026, Time: 11:00 a.m., Venue/Mode: Through Digital Platform (link will be communicated in due course), Record Date: May 20, 2026. (cont. 1)"
+    },
+    {
+      "title": "BANKASIA: Price Limit Open",
+      "post_date": "2026-04-30T00:00:00",
+      "body": "There will be no price limit on the trading of the shares of the Company today (30.04.2026) following its corporate declaration."
+    },
+    {
+      "post_date": "2026-04-30T00:00:00",
+      "title": "BANKASIA: Board approves increase of Authorized Capital",
+      "body": "The Authorized Capital of the Company will be increased from 15,000,000,000.00 (Taka one thousand five hundred crore) divided into 1,500,000,000 (one hundred fifty crore) ordinary shares of Tk. 10.00 each to Tk. 30,000,000,000.00 (Taka three thousand crore) only divided into 3,000,000,000 (three hundred crore) ordinary shares of Tk. 10.00 each subject to the approval from Bangladesh Bank, and the adoption of Special Resolution by the Shareholders of the Company at the General Meeting."
+    },
+    {
+      "title": "BANKASIA: Board Meeting schedule under LR 19(1)",
+      "post_date": "2026-04-21T00:00:00",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 29, 2026 at 3:30 PM to consider, among others, audited financial statements of the Company for the year ended December 31, 2025."
+    },
+    {
+      "post_date": "2026-02-26T00:00:00",
+      "title": "BANKASIA: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 01.03.2026."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "PRIMEBANK",
+      "company_name": "Prime Bank PLC.",
+      "sector": "Bank",
+      "score": 80.2,
+      "ltp": 30.5,
+      "change_pct": -0.65,
+      "pe": 3.89,
+      "pb": 0.76,
+      "div_yield_pct": 8.2,
+      "roe_pct": 31.1,
+      "eps_yoy_pct": 21.2
+    },
+    {
+      "trading_code": "UTTARABANK",
+      "company_name": "Uttara Bank PLC.",
+      "sector": "Bank",
+      "score": 78.8,
+      "ltp": 21.4,
+      "change_pct": 0.0,
+      "pe": 3.52,
+      "pb": 0.67,
+      "div_yield_pct": 2.3,
+      "roe_pct": 34.2,
+      "eps_yoy_pct": 5.0
+    },
+    {
+      "trading_code": "BRACBANK",
+      "company_name": "BRAC Bank PLC.",
+      "sector": "Bank",
+      "score": 76.5,
+      "ltp": 64.6,
+      "change_pct": -1.07,
+      "pe": 7.08,
+      "pb": 1.25,
+      "div_yield_pct": 2.3,
+      "roe_pct": 24.0,
+      "eps_yoy_pct": 31.2
+    },
+    {
+      "trading_code": "EBL",
+      "company_name": "Eastern Bank PLC.",
+      "sector": "Bank",
+      "score": 76.0,
+      "ltp": 24.4,
+      "change_pct": -0.41,
+      "pe": 4.67,
+      "pb": 0.78,
+      "div_yield_pct": 10.2,
+      "roe_pct": 28.2,
+      "eps_yoy_pct": 7.6
+    },
+    {
+      "trading_code": "NCCBANK",
+      "company_name": "National Credit and Commerce Bank PLC.",
+      "sector": "Bank",
+      "score": 74.1,
+      "ltp": 15.6,
+      "change_pct": 0.0,
+      "pe": 3.64,
+      "pb": 0.57,
+      "div_yield_pct": 10.9,
+      "roe_pct": 20.5,
+      "eps_yoy_pct": 104.3
+    }
+  ],
+  "source_hash": "bc32b26a5bd1e281124b36b448f3a4ea586e42c7ce4b28603a712ab9e817a557"
+}

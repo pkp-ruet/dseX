@@ -1,0 +1,794 @@
+{
+  "trading_code": "RANFOUNDRY",
+  "company_name": "Rangpur Foundry Ltd.",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Engineering",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 10000000,
+    "paid_up_capital_mn": 100.0,
+    "reserve_surplus_mn": 251.0,
+    "total_loan_mn": 92.22,
+    "listing_year": 1999,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 168.5,
+    "change": -2.6,
+    "change_pct": -1.52,
+    "date": "2026-07-16",
+    "high": 175.4,
+    "low": 160,
+    "volume": 57754,
+    "avg_volume_7d": 33847,
+    "ycp": 171.1,
+    "w52_high": 188.3,
+    "w52_low": 137.2
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 8.4,
+      "m3": 11.4,
+      "m6": 16.8,
+      "y1": 12.5
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 130.0
+      },
+      {
+        "date": "2025-06-30",
+        "close": 136.3
+      },
+      {
+        "date": "2025-07-31",
+        "close": 152.9
+      },
+      {
+        "date": "2025-08-31",
+        "close": 164.3
+      },
+      {
+        "date": "2025-09-30",
+        "close": 179.3
+      },
+      {
+        "date": "2025-10-30",
+        "close": 168.3
+      },
+      {
+        "date": "2025-11-30",
+        "close": 152.7
+      },
+      {
+        "date": "2025-12-30",
+        "close": 141.5
+      },
+      {
+        "date": "2026-01-29",
+        "close": 153.8
+      },
+      {
+        "date": "2026-02-26",
+        "close": 149.1
+      },
+      {
+        "date": "2026-03-31",
+        "close": 148.2
+      },
+      {
+        "date": "2026-04-30",
+        "close": 153.9
+      },
+      {
+        "date": "2026-05-31",
+        "close": 156.8
+      },
+      {
+        "date": "2026-06-30",
+        "close": 164.2
+      },
+      {
+        "date": "2026-07-16",
+        "close": 168.5
+      }
+    ],
+    "pct_in_52w_range": 61.3
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.4
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.5
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.9
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Leaning pricey",
+      "word_bn": "দাম একটু বেশি",
+      "score10": 5.0
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.7
+    }
+  ],
+  "fair_value": {
+    "low": 115,
+    "high": 173,
+    "center": 144,
+    "today": 168,
+    "stance": "fair",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 154
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 175
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 166
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 38.3
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 43.65,
+    "current_pb": 4.8,
+    "own_avg_pe": 39.96,
+    "own_avg_pb": 4.72,
+    "sector_median_pe": 45.45,
+    "sector_median_pb": 0.98,
+    "eps": 3.86,
+    "sector_implied_price": 175.44
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 3.68,
+        "net_profit_crore": 3.68,
+        "cash_dividend_pct": 23.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.3,
+        "nav_per_share_taka": 29.11,
+        "revenue_crore": 136.9,
+        "operating_profit_crore": 8.84,
+        "operating_cash_flow_crore": -1.01,
+        "capex_crore": 0.93,
+        "total_debt_crore": 22.7,
+        "total_equity_crore": 29.1,
+        "total_assets_crore": 43.2,
+        "cash_crore": 3.2,
+        "debt_to_equity": 0.78
+      },
+      {
+        "year": 2022,
+        "eps_taka": 3.81,
+        "net_profit_crore": 3.8,
+        "cash_dividend_pct": 23.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.3,
+        "nav_per_share_taka": 30.61,
+        "revenue_crore": 144.7,
+        "operating_profit_crore": 9.28,
+        "operating_cash_flow_crore": 0.2,
+        "capex_crore": null,
+        "total_debt_crore": 28.4,
+        "total_equity_crore": 30.6,
+        "total_assets_crore": 48.7,
+        "cash_crore": 1.11,
+        "debt_to_equity": 0.93
+      },
+      {
+        "year": 2023,
+        "eps_taka": 3.74,
+        "net_profit_crore": 3.74,
+        "cash_dividend_pct": 23.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.3,
+        "nav_per_share_taka": 32.06,
+        "revenue_crore": 141.7,
+        "operating_profit_crore": 8.84,
+        "operating_cash_flow_crore": 9.03,
+        "capex_crore": null,
+        "total_debt_crore": 21.7,
+        "total_equity_crore": 32.1,
+        "total_assets_crore": 44.4,
+        "cash_crore": 3.98,
+        "debt_to_equity": 0.68
+      },
+      {
+        "year": 2024,
+        "eps_taka": 3.78,
+        "net_profit_crore": 3.78,
+        "cash_dividend_pct": 23.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.3,
+        "nav_per_share_taka": 33.54,
+        "revenue_crore": 145.1,
+        "operating_profit_crore": 8.88,
+        "operating_cash_flow_crore": 1.54,
+        "capex_crore": null,
+        "total_debt_crore": 21.9,
+        "total_equity_crore": 33.5,
+        "total_assets_crore": 47.2,
+        "cash_crore": 3.32,
+        "debt_to_equity": 0.65
+      },
+      {
+        "year": 2025,
+        "eps_taka": 3.86,
+        "net_profit_crore": 3.85,
+        "cash_dividend_pct": 23.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.3,
+        "nav_per_share_taka": 35.09,
+        "revenue_crore": 150.2,
+        "operating_profit_crore": 9.46,
+        "operating_cash_flow_crore": 1.56,
+        "capex_crore": null,
+        "total_debt_crore": 18.6,
+        "total_equity_crore": 35.1,
+        "total_assets_crore": 46.6,
+        "cash_crore": 1.02,
+        "debt_to_equity": 0.53
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 3.86,
+      "net_profit_crore": 3.85,
+      "cash_dividend_pct": 23.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 2.3,
+      "nav_per_share_taka": 35.09,
+      "revenue_crore": 150.2,
+      "operating_profit_crore": 9.46,
+      "operating_cash_flow_crore": 1.56,
+      "capex_crore": null,
+      "total_debt_crore": 18.6,
+      "total_equity_crore": 35.1,
+      "total_assets_crore": 46.6,
+      "cash_crore": 1.02,
+      "debt_to_equity": 0.53
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": 5.0,
+      "eps_change_pct": 5.0,
+      "revenue_change_pct": 10.0
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 1.0,
+      "paid_up_capital_crore": 10.0,
+      "reserve_surplus_crore": 25.1,
+      "total_loan_crore": 9.22,
+      "listing_year": 1999
+    },
+    "ownership": {
+      "sponsor_director_pct": 49.89,
+      "govt_pct": 0.0,
+      "institute_pct": 30.5,
+      "foreign_pct": 0.0,
+      "public_pct": 19.61
+    }
+  },
+  "sector_context": {
+    "sector": "Engineering",
+    "peer_count": 42,
+    "rank_in_sector": 5,
+    "sector_avg_score": 31.6,
+    "sector_median_pe": 45.45
+  },
+  "score": {
+    "trading_code": "RANFOUNDRY",
+    "sector": "Engineering",
+    "market_cat": "A",
+    "ltp": 168.5,
+    "mcap_mn": 1685.0,
+    "score": 59.0,
+    "base_score": 59.0,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 1.0,
+    "eps": 3.86,
+    "roe_pct": 11.0,
+    "sector_median_pe": 45.45,
+    "sector_median_pb": 0.98,
+    "p1_biz": 5.42,
+    "p2_health": 6.49,
+    "p3_moat": 6.9,
+    "p4_val": 4.95,
+    "p5_div": 5.68,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 2.3313,
+    "p1_roe": 5.7208,
+    "p1_npm_trend": 5.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 2.1,
+    "eps_stability": 1.0,
+    "p2_de": 8.458522467164357,
+    "p2_ic": 10.0,
+    "p2_cfo": 3.0,
+    "p2_cash": 3.314077490948333,
+    "p2_coverage": 1.0,
+    "p3_margin": 7.0,
+    "p3_rev_vol": 10.0,
+    "p3_sector_rank": 5.0,
+    "p3_capex": 3.0,
+    "p3_coverage": 1.0,
+    "p4_pe": 5.66,
+    "p4_pb": 3.9,
+    "p4_vol_damp": 1.0,
+    "current_pe": 43.65,
+    "current_pb": 4.8,
+    "own_avg_pe": 39.96,
+    "own_avg_pb": 4.72,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 4.5474777448071215,
+    "div_yield_pct": 1.4,
+    "overall_rank": 66,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "average_fundamentals",
+    "reason_en": "An average company — no strong reason to buy or sell.",
+    "reason_bn": "মাঝারি মানের কোম্পানি — কেনা বা বেচার জোরালো কারণ নেই।",
+    "tier": "average",
+    "momentum_grade": "warm",
+    "score": 59.0,
+    "p4_val": 4.95,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 49.9% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Average",
+    "tagline": "Average company, mild buying interest",
+    "sentences": [
+      "The company's numbers are average, and the share price is slowly going up. There is no strong reason to buy for the long term — better to wait for clearer signals."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 3.82,
+    "rs_vs_dsex_pct": 1.76,
+    "volume_ratio": 1.28,
+    "avg_turnover_7d_mn": 6.6,
+    "up_days_7d": 3,
+    "days_counted": 7,
+    "pct_in_52w_range": 61.3,
+    "momentum_grade": "warm"
+  },
+  "financials": [
+    {
+      "year": 2021,
+      "trading_code": "RANFOUNDRY",
+      "cash_dividend_pct": 23.0,
+      "dividend_yield_pct": 1.81,
+      "eps_basic": null,
+      "eps_cont_basic": 3.68,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 29.11,
+      "pe_ratio_basic": 34.51,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 36.81,
+      "profit_mn": 36.81,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 36.81,
+      "dps": 2.3,
+      "eps": 3.68
+    },
+    {
+      "trading_code": "RANFOUNDRY",
+      "year": 2022,
+      "cash_dividend_pct": 23.0,
+      "dividend_yield_pct": 1.32,
+      "eps_basic": null,
+      "eps_cont_basic": 3.81,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 30.61,
+      "pe_ratio_basic": 45.67,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 38.05,
+      "profit_mn": 38.05,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 38.05,
+      "dps": 2.3,
+      "eps": 3.81
+    },
+    {
+      "trading_code": "RANFOUNDRY",
+      "year": 2023,
+      "cash_dividend_pct": 23.0,
+      "dividend_yield_pct": 1.35,
+      "eps_basic": null,
+      "eps_cont_basic": 3.74,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 32.06,
+      "pe_ratio_basic": 45.56,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 37.42,
+      "profit_mn": 37.42,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 37.42,
+      "dps": 2.3,
+      "eps": 3.74
+    },
+    {
+      "trading_code": "RANFOUNDRY",
+      "year": 2024,
+      "cash_dividend_pct": 23.0,
+      "dividend_yield_pct": 1.57,
+      "eps_basic": null,
+      "eps_cont_basic": 3.78,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 33.54,
+      "pe_ratio_basic": 38.7,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 37.83,
+      "profit_mn": 37.83,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 37.83,
+      "dps": 2.3,
+      "eps": 3.78
+    },
+    {
+      "trading_code": "RANFOUNDRY",
+      "year": 2025,
+      "cash_dividend_pct": 23.0,
+      "dividend_yield_pct": 1.69,
+      "eps_basic": null,
+      "eps_cont_basic": 3.86,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 35.09,
+      "pe_ratio_basic": 35.36,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 38.55,
+      "profit_mn": 38.55,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 38.55,
+      "dps": 2.3,
+      "eps": 3.86
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "RANFOUNDRY",
+      "year": 2021,
+      "capex": -9251047.0,
+      "investing_cf": -9251047.0,
+      "net_profit": 36805439.0,
+      "nocfps": -1.01,
+      "operating_cf": -10068171.0,
+      "total_equity": 291094151.0,
+      "ebit": 88377919.0,
+      "intangibles": null,
+      "interest_expense": -37804802.0,
+      "revenue": 1368536463.0,
+      "total_assets": 432285096.0,
+      "cash_and_equivalents": 32017019.0,
+      "earning_assets": null,
+      "gross_profit": 279501797.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 227329886.0
+    },
+    {
+      "trading_code": "RANFOUNDRY",
+      "year": 2022,
+      "capex": null,
+      "investing_cf": -24769273.0,
+      "net_profit": 38052433.0,
+      "nocfps": 0.2,
+      "operating_cf": 1953856.0,
+      "total_equity": 306146584.0,
+      "ebit": 92807778.0,
+      "intangibles": null,
+      "interest_expense": -38456823.0,
+      "revenue": 1447104857.0,
+      "total_assets": 487105071.0,
+      "cash_and_equivalents": 11142209.0,
+      "earning_assets": null,
+      "gross_profit": 295371347.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 283756524.0
+    },
+    {
+      "trading_code": "RANFOUNDRY",
+      "year": 2023,
+      "capex": null,
+      "investing_cf": -5113166.0,
+      "net_profit": 37422910.0,
+      "nocfps": 9.03,
+      "operating_cf": 90327332.0,
+      "total_equity": 320569495.0,
+      "ebit": 88415304.0,
+      "intangibles": null,
+      "interest_expense": -35310822.0,
+      "revenue": 1417222476.0,
+      "total_assets": 443761909.0,
+      "cash_and_equivalents": 39783417.0,
+      "earning_assets": null,
+      "gross_profit": 289038974.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 217442622.0
+    },
+    {
+      "trading_code": "RANFOUNDRY",
+      "year": 2024,
+      "capex": null,
+      "investing_cf": 0.0,
+      "net_profit": 37826777.0,
+      "nocfps": 1.54,
+      "operating_cf": 15429226.0,
+      "total_equity": 335396272.0,
+      "ebit": 88830068.0,
+      "intangibles": null,
+      "interest_expense": -37277297.0,
+      "revenue": 1451069242.0,
+      "total_assets": 471528972.0,
+      "cash_and_equivalents": 33212086.0,
+      "earning_assets": null,
+      "gross_profit": 296551798.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 218589214.0
+    },
+    {
+      "trading_code": "RANFOUNDRY",
+      "year": 2025,
+      "capex": null,
+      "cash_and_equivalents": 10205453.0,
+      "earning_assets": null,
+      "ebit": 94563937.0,
+      "gross_profit": 307198632.0,
+      "intangibles": null,
+      "interest_expense": -37377539.0,
+      "interest_income": null,
+      "investing_cf": 0.0,
+      "net_interest_income": null,
+      "net_profit": 38550107.0,
+      "nocfps": 1.56,
+      "operating_cf": 15582231.0,
+      "revenue": 1502080829.0,
+      "total_assets": 465974940.0,
+      "total_debt": 186430308.0,
+      "total_equity": 350946380.0
+    }
+  ],
+  "shareholding": {
+    "trading_code": "RANFOUNDRY",
+    "as_of_date": "Mar 31, 2026",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 30.5,
+    "public_pct": 19.61,
+    "reporting_period": null,
+    "sponsor_director_pct": 49.89
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jun 30, 2025",
+    "trading_code": "RANFOUNDRY",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 31.59,
+    "public_pct": 18.52,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 49.89
+  },
+  "dividend_declaration": {
+    "trading_code": "RANFOUNDRY",
+    "declaration_date": "2025-10-27T00:00:00",
+    "dividend_pct": 23.0,
+    "dividend_type": "Final",
+    "record_date": "2025-11-17T00:00:00",
+    "scraped_at": "2026-07-16T10:39:36.923000",
+    "title": "RANFOUNDRY: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-04-28T00:00:00",
+      "title": "RANFOUNDRY: Q3 Financials",
+      "body": "(Q3 Un-audited): EPS was Tk. 0.97 for January-March 2026 as against Tk. 0.99 for January-March 2025; EPS was Tk. 3.14 for July 2025-March 2026 as against Tk. 3.17 for July 2024-March 2025. NOCFPS was Tk. 0.06 for July 2025-March 2026 as against Tk. (2.55) for July 2024-March 2025. NAV per share was Tk. 35.94 as on March 31, 2026 and Tk. 35.09 as on June 30, 2025."
+    },
+    {
+      "post_date": "2026-04-19T00:00:00",
+      "title": "RANFOUNDRY: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 27, 2026 at 4:00 pm to consider, among others, Un-Audited Financial Statements for the Third Quarter (Q3) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-02-24T00:00:00",
+      "title": "RANFOUNDRY: Credit Rating Result",
+      "body": "Credit Rating Information and Services PLC (CRISL) has assigned rating of the Company as \"AA-\" in the long term and \"ST-3\" in the short term along with Stable outlook in consideration of its audited financials up to June 30, 2025 also unaudited financials up to December 31, 2025 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "post_date": "2026-02-03T00:00:00",
+      "title": "RANFOUNDRY: Dividend Disbursement",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended June 30, 2025 to the respective shareholders."
+    },
+    {
+      "post_date": "2026-02-01T00:00:00",
+      "title": "RANFOUNDRY: Q2 Financials",
+      "body": "(Q2 Un-audited): EPS was Tk. 1.00 for October-December 2025 as against Tk. 1.02 for October-December 2024; EPS was Tk. 2.18 for July-December 2025 as against Tk. 2.19 for July-December 2024. NOCFPS was Tk. 1.59 for July-December 2025 as against Tk. 0.18 for July-December 2024. NAV per share was Tk. 34.97 as on December 31, 2025 and Tk. 35.09 as on June 30, 2025."
+    },
+    {
+      "title": "RANFOUNDRY: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-01-27T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 31, 2026 at 1:00 PM to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "post_date": "2025-11-17T00:00:00",
+      "title": "RANFOUNDRY: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 18.11.2025."
+    },
+    {
+      "post_date": "2025-11-16T00:00:00",
+      "title": "RANFOUNDRY: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 17.11.2025."
+    },
+    {
+      "title": "RANFOUNDRY: Q1 Financials",
+      "post_date": "2025-11-13T00:00:00",
+      "body": "(Q1 Un-audited): EPS was Tk. 1.18 for July-September 2025 as against Tk. 1.17 for July-September 2024. NOCFPS was Tk. (4.58) for July-September 2025 as against Tk. (3.35) for July-September 2024. NAV per share was Tk. 36.27 as on September 30, 2025 and Tk. 35.09 as on June 30, 2025."
+    },
+    {
+      "post_date": "2025-11-12T00:00:00",
+      "title": "RANFOUNDRY: Spot News",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 13.11.2025 to 16.11.2025 and trading of the shares will remain suspended on record date i.e., 17.11.2025."
+    },
+    {
+      "title": "RANFOUNDRY: Board Meeting schedule under LR 16(1)",
+      "post_date": "2025-11-10T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on November 12, 2025 at 4:00 PM to consider, among others, Un-audited financial statements of the Company for the First Quarter (Q1) period ended September 30, 2025."
+    },
+    {
+      "title": "RANFOUNDRY: Dividend Declaration",
+      "post_date": "2025-10-27T00:00:00",
+      "body": "The Board of Directors has recommended 23% Cash Dividend for the year ended June 30, 2025. Date of AGM: 24.12.2025, Time: 10:30 AM, Venue: Digital Platform. Record Date: 17.11.2025. The Company has also reported EPS of Tk. 3.86, NAV per share of Tk. 35.09 and NOCFPS of Tk. 1.56 for the year ended June 30, 2025 as against Tk. 3.78, Tk. 33.54 and Tk. 1.54 respectively for the year ended June 30, 2024."
+    },
+    {
+      "title": "RANFOUNDRY: Price Limit Open",
+      "post_date": "2025-10-27T00:00:00",
+      "body": "There will be no price limit on the trading of the shares of the Company today (27.10.2025) following its corporate declaration."
+    },
+    {
+      "title": "RANFOUNDRY: Board Meeting schedule under LR 19(1)",
+      "post_date": "2025-10-15T00:00:00",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on October 26, 2025 at 4:00 PM to consider, among others, audited financial statements of the Company for the year ended June 30, 2025."
+    },
+    {
+      "post_date": "2025-10-12T00:00:00",
+      "title": "RANFOUNDRY: Regarding appointment of Independent Directors",
+      "body": "The company has informed that as per BSEC's consent letter dated October 06, 2025, regarding the appointment of the Independent Directors of the company, the Board of Directors has appointed Mr. Abu Taher Chowdhury and Mrs. Zakia Sultana as Independent Directors of the company, subject to the approval by the shareholders in the upcoming AGM."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "WALTONHIL",
+      "company_name": "Walton Hi-Tech Industries PLC",
+      "sector": "Engineering",
+      "score": 68.3,
+      "ltp": 404.5,
+      "change_pct": -0.32,
+      "pe": 11.82,
+      "pb": 1.01,
+      "div_yield_pct": 4.3,
+      "roe_pct": 8.6,
+      "eps_yoy_pct": -23.6
+    },
+    {
+      "trading_code": "BSRMSTEEL",
+      "company_name": "BSRM Steels Limited",
+      "sector": "Engineering",
+      "score": 67.9,
+      "ltp": 99.0,
+      "change_pct": -1.79,
+      "pe": 7.19,
+      "pb": 1.09,
+      "div_yield_pct": 5.1,
+      "roe_pct": 15.2,
+      "eps_yoy_pct": 36.3
+    },
+    {
+      "trading_code": "BSRMLTD",
+      "company_name": "Bangladesh Steel Re-Rolling Mills Limited",
+      "sector": "Engineering",
+      "score": 59.8,
+      "ltp": 109.4,
+      "change_pct": -3.36,
+      "pe": 5.32,
+      "pb": 0.66,
+      "div_yield_pct": 4.6,
+      "roe_pct": 12.3,
+      "eps_yoy_pct": 42.1
+    },
+    {
+      "trading_code": "KDSALTD",
+      "company_name": "KDS Accessories Limited",
+      "sector": "Engineering",
+      "score": 59.2,
+      "ltp": 53.0,
+      "change_pct": 0.19,
+      "pe": 24.2,
+      "pb": 1.91,
+      "div_yield_pct": 1.9,
+      "roe_pct": 7.9,
+      "eps_yoy_pct": 1.4
+    },
+    {
+      "trading_code": "BENGALWTL",
+      "company_name": "Bengal Windsor Thermoplastics PLC.",
+      "sector": "Engineering",
+      "score": 53.4,
+      "ltp": 25.0,
+      "change_pct": -0.4,
+      "pe": 45.45,
+      "pb": 0.96,
+      "div_yield_pct": 2.0,
+      "roe_pct": 2.1,
+      "eps_yoy_pct": 3.8
+    }
+  ],
+  "source_hash": "ca9ca9265fab9f58206a31c2567a8c06ab08627e35de1e7b33df337070626328"
+}

@@ -1,0 +1,831 @@
+{
+  "trading_code": "CITYBANK",
+  "company_name": "City Bank PLC.",
+  "sector_class": "BANK",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Bank",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 1749405380,
+    "paid_up_capital_mn": 17494.05,
+    "reserve_surplus_mn": 42782.1,
+    "total_loan_mn": 11080,
+    "listing_year": 1987,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 31.6,
+    "change": -0.2,
+    "change_pct": -0.63,
+    "date": "2026-07-16",
+    "high": 32,
+    "low": 31.5,
+    "volume": 5200336,
+    "avg_volume_7d": 4705661,
+    "ycp": 31.8,
+    "w52_high": 33.4,
+    "w52_low": 21.4
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 3.6,
+      "m3": 2.6,
+      "m6": 24.4,
+      "y1": 47.7
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 18.0
+      },
+      {
+        "date": "2025-06-30",
+        "close": 19.7
+      },
+      {
+        "date": "2025-07-31",
+        "close": 25.8
+      },
+      {
+        "date": "2025-08-31",
+        "close": 25.4
+      },
+      {
+        "date": "2025-09-30",
+        "close": 25.5
+      },
+      {
+        "date": "2025-10-30",
+        "close": 24.5
+      },
+      {
+        "date": "2025-11-30",
+        "close": 24.2
+      },
+      {
+        "date": "2025-12-30",
+        "close": 24.4
+      },
+      {
+        "date": "2026-01-29",
+        "close": 26.0
+      },
+      {
+        "date": "2026-02-26",
+        "close": 33.0
+      },
+      {
+        "date": "2026-03-31",
+        "close": 29.7
+      },
+      {
+        "date": "2026-04-30",
+        "close": 33.0
+      },
+      {
+        "date": "2026-05-31",
+        "close": 28.7
+      },
+      {
+        "date": "2026-06-30",
+        "close": 32
+      },
+      {
+        "date": "2026-07-16",
+        "close": 31.6
+      }
+    ],
+    "pct_in_52w_range": 85.1
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 10.0
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 9.3
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Weak",
+      "word_bn": "দুর্বল",
+      "score10": 1.5
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Fairly priced",
+      "word_bn": "দাম যুক্তিসঙ্গত",
+      "score10": 6.5
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.0
+    }
+  ],
+  "fair_value": {
+    "low": 24.4,
+    "high": 36.6,
+    "center": 30.5,
+    "today": 31.6,
+    "stance": "fair",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 35.1
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 48.5
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 28.5
+      },
+      {
+        "name": "book_peer",
+        "label_en": "Priced like similar companies (assets)",
+        "price": 22.4
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 25.0
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 3.63,
+    "current_pb": 0.78,
+    "own_avg_pe": 4.03,
+    "own_avg_pb": 0.7,
+    "sector_median_pe": 5.57,
+    "sector_median_pb": 0.55,
+    "eps": 8.71,
+    "sector_implied_price": 48.51
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2020,
+        "eps_taka": 4.29,
+        "net_profit_crore": 436.4,
+        "cash_dividend_pct": 17.5,
+        "stock_dividend_pct": 5,
+        "dps_taka": 1.75,
+        "nav_per_share_taka": 29.03
+      },
+      {
+        "year": 2021,
+        "eps_taka": 5.15,
+        "net_profit_crore": 549.4,
+        "cash_dividend_pct": 12.5,
+        "stock_dividend_pct": 12.5,
+        "dps_taka": 1.25,
+        "nav_per_share_taka": 30.68,
+        "revenue_crore": null,
+        "operating_profit_crore": 1208,
+        "operating_cash_flow_crore": 460.1,
+        "capex_crore": 109.8,
+        "total_debt_crore": 5593,
+        "total_equity_crore": 3274,
+        "total_assets_crore": 42491,
+        "cash_crore": null,
+        "debt_to_equity": 1.71
+      },
+      {
+        "year": 2022,
+        "eps_taka": 3.98,
+        "net_profit_crore": 478.1,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": 2,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 28.21,
+        "revenue_crore": null,
+        "operating_profit_crore": 1237,
+        "operating_cash_flow_crore": 526.7,
+        "capex_crore": 141.6,
+        "total_debt_crore": 3580,
+        "total_equity_crore": 3387,
+        "total_assets_crore": 51491,
+        "cash_crore": null,
+        "debt_to_equity": 1.06
+      },
+      {
+        "year": 2023,
+        "eps_taka": 5.21,
+        "net_profit_crore": 638.5,
+        "cash_dividend_pct": 15.0,
+        "stock_dividend_pct": 10,
+        "dps_taka": 1.5,
+        "nav_per_share_taka": 31.42,
+        "revenue_crore": null,
+        "operating_profit_crore": 1391,
+        "operating_cash_flow_crore": 268.0,
+        "capex_crore": 135.8,
+        "total_debt_crore": 1881,
+        "total_equity_crore": 3848,
+        "total_assets_crore": 56493,
+        "cash_crore": null,
+        "debt_to_equity": 0.49
+      },
+      {
+        "year": 2024,
+        "eps_taka": 7.53,
+        "net_profit_crore": 1014,
+        "cash_dividend_pct": 12.5,
+        "stock_dividend_pct": 12.5,
+        "dps_taka": 1.25,
+        "nav_per_share_taka": 34.39,
+        "revenue_crore": null,
+        "operating_profit_crore": 2351,
+        "operating_cash_flow_crore": 1378,
+        "capex_crore": 119.8,
+        "total_debt_crore": 2696,
+        "total_equity_crore": 4663,
+        "total_assets_crore": 71129,
+        "cash_crore": null,
+        "debt_to_equity": 0.58
+      },
+      {
+        "year": 2025,
+        "eps_taka": 8.71,
+        "net_profit_crore": 1324,
+        "cash_dividend_pct": 15.0,
+        "stock_dividend_pct": 15,
+        "dps_taka": 1.5,
+        "nav_per_share_taka": 40.67,
+        "revenue_crore": null,
+        "operating_profit_crore": 2727,
+        "operating_cash_flow_crore": 3482,
+        "capex_crore": 265.7,
+        "total_debt_crore": 3770,
+        "total_equity_crore": 6195,
+        "total_assets_crore": 84720,
+        "cash_crore": null,
+        "debt_to_equity": 0.61
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 8.71,
+      "net_profit_crore": 1324,
+      "cash_dividend_pct": 15.0,
+      "stock_dividend_pct": 15,
+      "dps_taka": 1.5,
+      "nav_per_share_taka": 40.67,
+      "revenue_crore": null,
+      "operating_profit_crore": 2727,
+      "operating_cash_flow_crore": 3482,
+      "capex_crore": 265.7,
+      "total_debt_crore": 3770,
+      "total_equity_crore": 6195,
+      "total_assets_crore": 84720,
+      "cash_crore": null,
+      "debt_to_equity": 0.61
+    },
+    "growth": {
+      "span": "2020–2025",
+      "net_profit_change_pct": 203.0,
+      "eps_change_pct": 103.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 174.9,
+      "paid_up_capital_crore": 1749,
+      "reserve_surplus_crore": 4278,
+      "total_loan_crore": 1108,
+      "listing_year": 1987
+    },
+    "ownership": {
+      "sponsor_director_pct": 30.37,
+      "govt_pct": 0.0,
+      "institute_pct": 17.41,
+      "foreign_pct": 4.87,
+      "public_pct": 47.35
+    }
+  },
+  "sector_context": {
+    "sector": "Bank",
+    "peer_count": 36,
+    "rank_in_sector": 6,
+    "sector_avg_score": 42.9,
+    "sector_median_pe": 5.57
+  },
+  "score": {
+    "trading_code": "CITYBANK",
+    "sector": "Bank",
+    "market_cat": "A",
+    "ltp": 31.6,
+    "mcap_mn": 55281.210008,
+    "score": 73.4,
+    "base_score": 73.4,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 1.0,
+    "eps": 8.71,
+    "roe_pct": 30.9,
+    "sector_median_pe": 5.57,
+    "sector_median_pb": 0.55,
+    "p1_biz": 10.0,
+    "p2_health": 9.29,
+    "p3_moat": 1.53,
+    "p4_val": 6.54,
+    "p5_div": 7.97,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 10.0,
+    "p1_roe": 10.0,
+    "p1_npm_trend": 10.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 15.7,
+    "eps_stability": 1.0,
+    "p2_de": 10.0,
+    "p2_ic": 10.0,
+    "p2_cfo": 8.0,
+    "p2_cash": null,
+    "p2_coverage": 1.0,
+    "p3_margin": 1.5,
+    "p3_rev_vol": 1.0,
+    "p3_sector_rank": 2.0,
+    "p3_capex": 2.0,
+    "p3_coverage": 1.0,
+    "p4_pe": 8.4,
+    "p4_pb": 3.76,
+    "p4_vol_damp": 1.0,
+    "current_pe": 3.63,
+    "current_pb": 0.78,
+    "own_avg_pe": 4.03,
+    "own_avg_pb": 0.7,
+    "p5_dps_cagr": 6.0579,
+    "p5_consist": 10.0,
+    "p5_yield": 9.620253164556962,
+    "div_yield_pct": 4.7,
+    "overall_rank": 18,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "good_wait_price",
+    "reason_en": "Good company — fine to hold, but wait for a cheaper price to buy.",
+    "reason_bn": "ভালো কোম্পানি — ধরে রাখা যায়, তবে কেনার জন্য আরেকটু কম দামের অপেক্ষা করুন।",
+    "tier": "good",
+    "momentum_grade": "warm",
+    "score": 73.4,
+    "p4_val": 6.54,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Currently cheap vs historical P/E",
+      "Sponsor holding 30.4% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, price moving up steadily",
+    "sentences": [
+      "The company is in good financial shape, and the share price is steadily rising.",
+      "Has paid dividends regularly in past years.",
+      "The share price looks cheaper now than its average over the past few years."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 2.27,
+    "rs_vs_dsex_pct": 0.21,
+    "volume_ratio": 1.04,
+    "avg_turnover_7d_mn": 155.52,
+    "up_days_7d": 4,
+    "days_counted": 7,
+    "pct_in_52w_range": 85.1,
+    "momentum_grade": "warm"
+  },
+  "financials": [
+    {
+      "year": 2020,
+      "trading_code": "CITYBANK",
+      "cash_dividend_pct": 17.5,
+      "dividend_yield_pct": 7.06,
+      "eps_basic": null,
+      "eps_cont_basic": 4.29,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 29.03,
+      "pe_ratio_basic": 4.91,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 4364.18,
+      "profit_mn": 4364.18,
+      "stock_dividend_pct": 5,
+      "total_comprehensive_income_mn": 4364.18,
+      "dps": 1.75,
+      "eps": 4.29
+    },
+    {
+      "year": 2021,
+      "trading_code": "CITYBANK",
+      "cash_dividend_pct": 12.5,
+      "dividend_yield_pct": 5.04,
+      "eps_basic": null,
+      "eps_cont_basic": 5.15,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 30.68,
+      "pe_ratio_basic": 4.82,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 5494.16,
+      "profit_mn": 5494.16,
+      "stock_dividend_pct": 12.5,
+      "total_comprehensive_income_mn": 5494.16,
+      "dps": 1.25,
+      "eps": 5.15
+    },
+    {
+      "trading_code": "CITYBANK",
+      "year": 2022,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 4.59,
+      "eps_basic": null,
+      "eps_cont_basic": 3.98,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 28.21,
+      "pe_ratio_basic": 5.47,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 4781.26,
+      "profit_mn": 4781.26,
+      "stock_dividend_pct": 2,
+      "total_comprehensive_income_mn": 4781.26,
+      "dps": 1.0,
+      "eps": 3.98
+    },
+    {
+      "trading_code": "CITYBANK",
+      "year": 2023,
+      "cash_dividend_pct": 15.0,
+      "dividend_yield_pct": 7.01,
+      "eps_basic": null,
+      "eps_cont_basic": 5.21,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 31.42,
+      "pe_ratio_basic": 4.1,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 6384.66,
+      "profit_mn": 6384.66,
+      "stock_dividend_pct": 10,
+      "total_comprehensive_income_mn": 6384.66,
+      "dps": 1.5,
+      "eps": 5.21
+    },
+    {
+      "year": 2024,
+      "trading_code": "CITYBANK",
+      "cash_dividend_pct": 12.5,
+      "dividend_yield_pct": 5.58,
+      "eps_basic": null,
+      "eps_cont_basic": 7.53,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 34.39,
+      "pe_ratio_basic": 2.97,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 10143.46,
+      "profit_mn": 10143.46,
+      "stock_dividend_pct": 12.5,
+      "total_comprehensive_income_mn": 10143.46,
+      "dps": 1.25,
+      "eps": 7.53
+    },
+    {
+      "year": 2025,
+      "trading_code": "CITYBANK",
+      "cash_dividend_pct": 15.0,
+      "dividend_yield_pct": 6.15,
+      "dps": 1.5,
+      "eps_basic": null,
+      "eps_cont_basic": 8.71,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 40.67,
+      "pe_ratio_basic": 2.8,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 13242.27,
+      "profit_mn": 13242.27,
+      "stock_dividend_pct": 15,
+      "total_comprehensive_income_mn": 13242.27,
+      "eps": 8.71
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "CITYBANK",
+      "year": 2021,
+      "capex": -1098357996.0,
+      "investing_cf": -8596710608.0,
+      "net_profit": 9543967799.0,
+      "nocfps": 11.8,
+      "operating_cf": 4601336910.0,
+      "total_equity": 32737596310.0,
+      "ebit": 12084713500.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 424914436281.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 372066209341.0,
+      "gross_profit": null,
+      "interest_income": 21053274613.0,
+      "net_interest_income": 12326793835.0,
+      "total_debt": 55926728459.0
+    },
+    {
+      "trading_code": "CITYBANK",
+      "year": 2022,
+      "capex": -1415975186.0,
+      "investing_cf": -15290907220.0,
+      "net_profit": 9378031875.0,
+      "nocfps": 11.42,
+      "operating_cf": 5266853232.0,
+      "total_equity": 33874356670.0,
+      "ebit": 12366893032.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 514911840125.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 455568470600.0,
+      "gross_profit": null,
+      "interest_income": 25833360887.0,
+      "net_interest_income": 12607469744.0,
+      "total_debt": 35796526227.0
+    },
+    {
+      "trading_code": "CITYBANK",
+      "year": 2023,
+      "capex": -1358240870.0,
+      "investing_cf": -13635225007.0,
+      "net_profit": 11085702169.0,
+      "nocfps": 2.9,
+      "operating_cf": 2680214744.0,
+      "total_equity": 38475656674.0,
+      "ebit": 13905620063.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 564929461835.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 501722328435.0,
+      "gross_profit": null,
+      "interest_income": 34064911554.0,
+      "net_interest_income": 16076371795.0,
+      "total_debt": 18806756088.0
+    },
+    {
+      "trading_code": "CITYBANK",
+      "year": 2024,
+      "capex": -1197924999.0,
+      "investing_cf": -8683553906.0,
+      "net_profit": 17228560927.0,
+      "nocfps": 58.84,
+      "operating_cf": 13778529222.0,
+      "total_equity": 46630948982.0,
+      "ebit": 23513990413.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 711287564041.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 629325300650.0,
+      "gross_profit": null,
+      "interest_income": 45244214054.0,
+      "net_interest_income": 14941318007.0,
+      "total_debt": 26961366435.0
+    },
+    {
+      "trading_code": "CITYBANK",
+      "year": 2025,
+      "capex": -2656948616.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 733479612974.0,
+      "ebit": 27272322735.0,
+      "gross_profit": null,
+      "intangibles": null,
+      "interest_expense": null,
+      "interest_income": 54836040595.0,
+      "investing_cf": -17414186896.0,
+      "net_interest_income": 2908741222.0,
+      "net_profit": 19118025701.0,
+      "nocfps": 47.0,
+      "operating_cf": 34823683953.0,
+      "revenue": null,
+      "total_assets": 847202200588.0,
+      "total_debt": 37701277199.0,
+      "total_equity": 61946430724.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "CITYBANK",
+    "foreign_pct": 4.87,
+    "govt_pct": 0.0,
+    "institute_pct": 17.41,
+    "public_pct": 47.35,
+    "reporting_period": null,
+    "sponsor_director_pct": 30.37
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jan 31, 2026",
+    "trading_code": "CITYBANK",
+    "foreign_pct": 5.07,
+    "govt_pct": 0.0,
+    "institute_pct": 19.71,
+    "public_pct": 44.85,
+    "reporting_period": null,
+    "sponsor_director_pct": 30.37
+  },
+  "dividend_declaration": {
+    "trading_code": "CITYBANK",
+    "declaration_date": "2026-04-12T00:00:00",
+    "dividend_pct": 15.0,
+    "dividend_type": "Final",
+    "record_date": "2026-05-03T00:00:00",
+    "scraped_at": "2026-07-16T10:05:38.962000",
+    "title": "CITYBANK: Dividend Declaration"
+  },
+  "news": [
+    {
+      "title": "CITYBANK: Dividend Disbursement",
+      "post_date": "2026-07-15T00:00:00",
+      "body": "The Company has informed that it has credited the Bonus Shares to the respective shareholders' BO Accounts and it has also disbursed the Cash Dividend to the respective shareholders for the year ended December 31, 2025."
+    },
+    {
+      "title": "CITYBANK: Credit Rating Result",
+      "post_date": "2026-06-17T00:00:00",
+      "body": "Credit Rating Agency of Bangladesh Limited (CRAB) has Surveillance rating of the Company as \"AAA\" in the long term and \"ST-1\" for short term along with a Stable outlook based on audited financial statements as of December 31, 2025 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "title": "CITYBANK: Emphasis of Matter",
+      "post_date": "2026-05-17T00:00:00",
+      "body": "The auditor of the company has given the Emphasis of Matter paragraph in the auditor's report for the year ended December 31, 2025. To view the details, please visit: https://www.dsebd.org/Auditors_opinion/2025/204.%20City%20Bank%20PLC2025.pdf"
+    },
+    {
+      "post_date": "2026-05-04T00:00:00",
+      "title": "CITYBANK: Event on Earnings Disclosure Q1 2026",
+      "body": "The company has informed that they are arranging an earnings disclosure event on financial information of Q1 2026 scheduled to be held on 5th May, 2026 at 4:00 PM virtually. The event will also showcase the performance review of FY 2025. (cont.)"
+    },
+    {
+      "title": "CITYBANK: Resumption after Record Date",
+      "post_date": "2026-05-03T00:00:00",
+      "body": "Trading of the shares of the company will resume on 04.05.2026."
+    },
+    {
+      "title": "CITYBANK: Q1 Financials",
+      "post_date": "2026-04-30T00:00:00",
+      "body": "(Q1 Un-audited): Consolidated EPS was Tk. 1.58 for January-March 2026 as against Tk. 0.61 for January-March 2025. Consolidated NOCFPS was Tk. 7.69 for January-March 2026 as against Tk. 9.42 for January-March 2025. Consolidated NAV per share was Tk. 43.31 as on March 31, 2026, and Tk. 40.67 as on December 31, 2025. In computing figures for same period of previous year bonus shares declared and issued based on 2024 performance were duly considered."
+    },
+    {
+      "post_date": "2026-04-30T00:00:00",
+      "title": "CITYBANK: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 03.05.2026."
+    },
+    {
+      "title": "CITYBANK: Spot News",
+      "post_date": "2026-04-28T00:00:00",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 29.04.2026 to 30.04.2026 and trading of the shares will remain suspended on record date i.e., 03.05.2026."
+    },
+    {
+      "title": "CITYBANK: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-04-21T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 29, 2026 at 3:00 pm to consider, among others, Un-Audited Financial Statements for the First Quarter (Q1) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-04-13T00:00:00",
+      "title": "CITYBANK: Update of Information",
+      "body": "The company has requested all shareholders to update their BO Accounts (mailing address, bank account, TIN/e-TIN, contact numbers, etc.) through their respective Depository Participants (DP) before the Record Date."
+    },
+    {
+      "post_date": "2026-04-12T00:00:00",
+      "title": "CITYBANK: BSEC's Consent for the Issuance of Tk. 1,200 Crore Subordinated Bond",
+      "body": "Refer to the earlier news disseminated by DSE on 14.09.2025 regarding issuance of Subordinated Bond worth Tk. 1,200.00 (Twelve Hundred) Crore, the company has further informed that it has applied to Bangladesh Securities and Exchange Commission (BSEC) for their approval & BSEC has given its consent for issuance of unsecured, non-convertible, fully paid-up, fully redeemable, coupon-bearing, subordinated Tier-II Bond of Tk. 1,200.00 (Twelve Hundred) Crore divided into 12,000 bonds of Tk. 10 (Ten) …"
+    },
+    {
+      "post_date": "2026-04-12T00:00:00",
+      "title": "CITYBANK: Dividend Declaration",
+      "body": "The Board of Directors has recommended 15% Cash Dividend and 15% Stock Dividend for the year ended December 31, 2025. Date of AGM: 07.06.2026, Time: 3:00 PM, Venue: Digital Platform, Record Date: 03.05.2026. The Company has also reported Consolidated EPS of Tk. 8.71, Consolidated NAV per share of Tk. 40.67 and Consolidated NOCFPS of Tk. 47.00 for the year ended December 31, 2025 (cont.1)"
+    },
+    {
+      "post_date": "2026-04-12T00:00:00",
+      "title": "CITYBANK: Price Limit Open",
+      "body": "There will be no price limit on the trading of the shares of the Company today (12.04.2026) following its corporate declaration."
+    },
+    {
+      "post_date": "2026-04-02T00:00:00",
+      "title": "CITYBANK: Board Meeting schedule under LR 19(1)",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 09, 2026 at 3:00 PM to consider, among others, audited financial statements of the Company for the year ended December 31, 2025."
+    },
+    {
+      "post_date": "2026-01-08T00:00:00",
+      "title": "CITYBANK: Decision to purchase land",
+      "body": "The company has informed that the Board of Directors in their Meeting held on 7th January, 2026, among others, has decided, based on the approval that obtained from Bangladesh Bank on 6th January 2026, to purchase a land (approx. 20 Katha) located at Plot# 09, Block# CEN(C), Gulshan Avenue, Gulshan-2, Dhaka, adjacent to bank's own land (approx. 20 Katha) at Plot# 11, Block# CEN(C), Gulshan Avenue, Gulshan-2, Dhaka, at a purchase price of taka 345.00 (Three Hundred Forty-Five) Crore (cont.)"
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "PRIMEBANK",
+      "company_name": "Prime Bank PLC.",
+      "sector": "Bank",
+      "score": 80.2,
+      "ltp": 30.5,
+      "change_pct": -0.65,
+      "pe": 3.89,
+      "pb": 0.76,
+      "div_yield_pct": 8.2,
+      "roe_pct": 31.1,
+      "eps_yoy_pct": 21.2
+    },
+    {
+      "trading_code": "UTTARABANK",
+      "company_name": "Uttara Bank PLC.",
+      "sector": "Bank",
+      "score": 78.8,
+      "ltp": 21.4,
+      "change_pct": 0.0,
+      "pe": 3.52,
+      "pb": 0.67,
+      "div_yield_pct": 2.3,
+      "roe_pct": 34.2,
+      "eps_yoy_pct": 5.0
+    },
+    {
+      "trading_code": "BRACBANK",
+      "company_name": "BRAC Bank PLC.",
+      "sector": "Bank",
+      "score": 76.5,
+      "ltp": 64.6,
+      "change_pct": -1.07,
+      "pe": 7.08,
+      "pb": 1.25,
+      "div_yield_pct": 2.3,
+      "roe_pct": 24.0,
+      "eps_yoy_pct": 31.2
+    },
+    {
+      "trading_code": "EBL",
+      "company_name": "Eastern Bank PLC.",
+      "sector": "Bank",
+      "score": 76.0,
+      "ltp": 24.4,
+      "change_pct": -0.41,
+      "pe": 4.67,
+      "pb": 0.78,
+      "div_yield_pct": 10.2,
+      "roe_pct": 28.2,
+      "eps_yoy_pct": 7.6
+    },
+    {
+      "trading_code": "NCCBANK",
+      "company_name": "National Credit and Commerce Bank PLC.",
+      "sector": "Bank",
+      "score": 74.1,
+      "ltp": 15.6,
+      "change_pct": 0.0,
+      "pe": 3.64,
+      "pb": 0.57,
+      "div_yield_pct": 10.9,
+      "roe_pct": 20.5,
+      "eps_yoy_pct": 104.3
+    }
+  ],
+  "source_hash": "d486d6d7a8d1a97fca6d5a4b270cf2232ae7d660339ccea932b0b1f5e5ea09d7"
+}

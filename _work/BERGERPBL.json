@@ -1,0 +1,791 @@
+{
+  "trading_code": "BERGERPBL",
+  "company_name": "Berger Paints Bangladesh Ltd.",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Miscellaneous",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 49105991,
+    "paid_up_capital_mn": 491.06,
+    "reserve_surplus_mn": 15049.1,
+    "total_loan_mn": 549,
+    "listing_year": 2006,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 1406,
+    "change": -2.5,
+    "change_pct": -0.18,
+    "date": "2026-07-16",
+    "high": 1410,
+    "low": 1405.3,
+    "volume": 3753,
+    "avg_volume_7d": 10871,
+    "ycp": 1408.5,
+    "w52_high": 1594.3,
+    "w52_low": 1364.3
+  },
+  "price_trend": {
+    "returns": {
+      "m1": -0.7,
+      "m3": 1.1,
+      "m6": 0.2,
+      "y1": -6.8
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 1749.6
+      },
+      {
+        "date": "2025-06-30",
+        "close": 1595.5
+      },
+      {
+        "date": "2025-07-31",
+        "close": 1562.0
+      },
+      {
+        "date": "2025-08-31",
+        "close": 1477.9
+      },
+      {
+        "date": "2025-09-30",
+        "close": 1461.9
+      },
+      {
+        "date": "2025-10-30",
+        "close": 1425.0
+      },
+      {
+        "date": "2025-11-30",
+        "close": 1422.0
+      },
+      {
+        "date": "2025-12-30",
+        "close": 1389.9
+      },
+      {
+        "date": "2026-01-29",
+        "close": 1411.2
+      },
+      {
+        "date": "2026-02-26",
+        "close": 1439.5
+      },
+      {
+        "date": "2026-03-31",
+        "close": 1394.8
+      },
+      {
+        "date": "2026-04-30",
+        "close": 1384.0
+      },
+      {
+        "date": "2026-05-31",
+        "close": 1379.4
+      },
+      {
+        "date": "2026-06-30",
+        "close": 1427.7
+      },
+      {
+        "date": "2026-07-16",
+        "close": 1406
+      }
+    ],
+    "pct_in_52w_range": 18.1
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.9
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.2
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.4
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Good value",
+      "word_bn": "দাম সস্তা",
+      "score10": 8.5
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.2
+    }
+  ],
+  "fair_value": {
+    "low": 1837,
+    "high": 2755,
+    "center": 2296,
+    "today": 1406,
+    "stance": "cheap",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 1965
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 3398
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 2174
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 875
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 19.35,
+    "current_pb": 4.22,
+    "own_avg_pe": 27.04,
+    "own_avg_pb": 6.52,
+    "sector_median_pe": 46.77,
+    "sector_median_pb": 1.52,
+    "eps": 72.66,
+    "sector_implied_price": 3398.31
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 58.03,
+        "net_profit_crore": 269.2,
+        "cash_dividend_pct": 375.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 37.5,
+        "nav_per_share_taka": 232.78,
+        "revenue_crore": 1688,
+        "operating_profit_crore": 368.1,
+        "operating_cash_flow_crore": null,
+        "capex_crore": 103.3,
+        "total_debt_crore": null,
+        "total_equity_crore": 1640,
+        "total_assets_crore": 1640,
+        "cash_crore": 412.5
+      },
+      {
+        "year": 2022,
+        "eps_taka": 62.68,
+        "net_profit_crore": 290.7,
+        "cash_dividend_pct": 400.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 40.0,
+        "nav_per_share_taka": 227.39,
+        "revenue_crore": 2219,
+        "operating_profit_crore": 409.3,
+        "operating_cash_flow_crore": null,
+        "capex_crore": 129.1,
+        "total_debt_crore": null,
+        "total_equity_crore": 1695,
+        "total_assets_crore": 1695,
+        "cash_crore": 244.2
+      },
+      {
+        "year": 2023,
+        "eps_taka": 64.91,
+        "net_profit_crore": 301.0,
+        "cash_dividend_pct": 400.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 40.0,
+        "nav_per_share_taka": 279.78,
+        "revenue_crore": 2590,
+        "operating_profit_crore": 411.0,
+        "operating_cash_flow_crore": null,
+        "capex_crore": 139.8,
+        "total_debt_crore": null,
+        "total_equity_crore": 2000,
+        "total_assets_crore": 2000,
+        "cash_crore": 387.7
+      },
+      {
+        "year": 2024,
+        "eps_taka": 69.92,
+        "net_profit_crore": 324.3,
+        "cash_dividend_pct": 500.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 50.0,
+        "nav_per_share_taka": 309.53,
+        "revenue_crore": 2625,
+        "operating_profit_crore": 420.8,
+        "operating_cash_flow_crore": null,
+        "capex_crore": 115.3,
+        "total_debt_crore": null,
+        "total_equity_crore": 2510,
+        "total_assets_crore": 2510,
+        "cash_crore": 766.5
+      },
+      {
+        "year": 2025,
+        "eps_taka": 72.66,
+        "net_profit_crore": 337.0,
+        "cash_dividend_pct": 525.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 52.5,
+        "nav_per_share_taka": 333.42,
+        "revenue_crore": 2852,
+        "operating_profit_crore": 433.7,
+        "operating_cash_flow_crore": null,
+        "capex_crore": 185.5,
+        "total_debt_crore": null,
+        "total_equity_crore": 2384,
+        "total_assets_crore": 2384,
+        "cash_crore": 594.3
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 72.66,
+      "net_profit_crore": 337.0,
+      "cash_dividend_pct": 525.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 52.5,
+      "nav_per_share_taka": 333.42,
+      "revenue_crore": 2852,
+      "operating_profit_crore": 433.7,
+      "operating_cash_flow_crore": null,
+      "capex_crore": 185.5,
+      "total_debt_crore": null,
+      "total_equity_crore": 2384,
+      "total_assets_crore": 2384,
+      "cash_crore": 594.3
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": 25.0,
+      "eps_change_pct": 25.0,
+      "revenue_change_pct": 69.0
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 4.91,
+      "paid_up_capital_crore": 49.1,
+      "reserve_surplus_crore": 1505,
+      "total_loan_crore": 54.9,
+      "listing_year": 2006
+    },
+    "ownership": {
+      "sponsor_director_pct": 89.76,
+      "govt_pct": 0.0,
+      "institute_pct": 8.26,
+      "foreign_pct": 0.01,
+      "public_pct": 1.97
+    }
+  },
+  "sector_context": {
+    "sector": "Miscellaneous",
+    "peer_count": 15,
+    "rank_in_sector": 2,
+    "sector_avg_score": 34.6,
+    "sector_median_pe": 46.77
+  },
+  "score": {
+    "trading_code": "BERGERPBL",
+    "sector": "Miscellaneous",
+    "market_cat": "A",
+    "ltp": 1406.0,
+    "mcap_mn": 69043.023346,
+    "score": 66.0,
+    "base_score": 66.0,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.821,
+    "eps": 72.66,
+    "roe_pct": 14.1,
+    "sector_median_pe": 46.77,
+    "sector_median_pb": 1.52,
+    "p1_biz": 5.9,
+    "p2_health": 6.25,
+    "p3_moat": 5.4,
+    "p4_val": 8.49,
+    "p5_div": 8.16,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 4.6253,
+    "p1_roe": 7.0424,
+    "p1_npm_trend": 2.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 3.9,
+    "eps_stability": 1.0,
+    "p2_de": null,
+    "p2_ic": 10.0,
+    "p2_cfo": null,
+    "p2_cash": 10.0,
+    "p2_coverage": 0.375,
+    "p3_margin": 2.0,
+    "p3_rev_vol": 4.0,
+    "p3_sector_rank": 10.0,
+    "p3_capex": 10.0,
+    "p3_coverage": 1.0,
+    "p4_pe": 9.88,
+    "p4_pb": 6.4,
+    "p4_vol_damp": 1.0,
+    "current_pe": 19.35,
+    "current_pb": 4.22,
+    "own_avg_pe": 27.04,
+    "own_avg_pb": 6.52,
+    "p5_dps_cagr": 6.8959,
+    "p5_consist": 10.0,
+    "p5_yield": 8.100995732574681,
+    "div_yield_pct": 3.7,
+    "overall_rank": 37,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "buy",
+    "reason_key": "quality_cheap",
+    "reason_en": "Strong company and the price looks cheap right now.",
+    "reason_bn": "শক্তিশালী কোম্পানি, দামও এখন তুলনামূলক সস্তা।",
+    "tier": "good",
+    "momentum_grade": "flat",
+    "score": 66.0,
+    "p4_val": 8.49,
+    "strength": "strong"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "Consistent dividend payer (4+ years)",
+      "Currently cheap vs historical P/E",
+      "Sponsor holding 89.8% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, but share is quiet",
+    "sentences": [
+      "The company's numbers are good, but the share has been quiet — the price is not moving much in either direction.",
+      "Has paid dividends regularly in past years.",
+      "The share price looks cheaper now than its average over the past few years."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 0.87,
+    "rs_vs_dsex_pct": -1.19,
+    "volume_ratio": 0.74,
+    "avg_turnover_7d_mn": 12.31,
+    "up_days_7d": 4,
+    "days_counted": 7,
+    "pct_in_52w_range": 18.1,
+    "momentum_grade": "flat"
+  },
+  "financials": [
+    {
+      "trading_code": "BERGERPBL",
+      "year": 2021,
+      "cash_dividend_pct": 375.0,
+      "dividend_yield_pct": 2.14,
+      "eps_basic": null,
+      "eps_cont_basic": 58.03,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 232.78,
+      "pe_ratio_basic": 30.24,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 2691.53,
+      "profit_mn": 2691.53,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 2693.5,
+      "dps": 37.5,
+      "eps": 58.03
+    },
+    {
+      "trading_code": "BERGERPBL",
+      "year": 2022,
+      "cash_dividend_pct": 400.0,
+      "dividend_yield_pct": 2.28,
+      "eps_basic": null,
+      "eps_cont_basic": 62.68,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 227.39,
+      "pe_ratio_basic": 27.98,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 2906.96,
+      "profit_mn": 2906.96,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 2902.91,
+      "dps": 40.0,
+      "eps": 62.68
+    },
+    {
+      "year": 2023,
+      "trading_code": "BERGERPBL",
+      "cash_dividend_pct": 400.0,
+      "dividend_yield_pct": 2.31,
+      "eps_basic": null,
+      "eps_cont_basic": 64.91,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 279.78,
+      "pe_ratio_basic": 26.7,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 3010.45,
+      "profit_mn": 3010.45,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 2893.53,
+      "dps": 40.0,
+      "eps": 64.91
+    },
+    {
+      "trading_code": "BERGERPBL",
+      "year": 2024,
+      "cash_dividend_pct": 500.0,
+      "dividend_yield_pct": 2.8,
+      "eps_basic": null,
+      "eps_cont_basic": 69.92,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 309.53,
+      "pe_ratio_basic": 25.57,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 3242.91,
+      "profit_mn": 3242.91,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 3242.91,
+      "dps": 50.0,
+      "eps": 69.92
+    },
+    {
+      "trading_code": "BERGERPBL",
+      "year": 2025,
+      "cash_dividend_pct": 525.0,
+      "dividend_yield_pct": 2.92,
+      "eps_basic": null,
+      "eps_cont_basic": 72.66,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 333.42,
+      "pe_ratio_basic": 24.71,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 3369.74,
+      "profit_mn": 3369.74,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 3369.74,
+      "dps": 52.5,
+      "eps": 72.66
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "BERGERPBL",
+      "year": 2021,
+      "capex": -1032634000.0,
+      "investing_cf": -1158300000.0,
+      "net_profit": 2669184000.0,
+      "nocfps": 0.7164,
+      "operating_cf": null,
+      "total_equity": 16400858000.0,
+      "ebit": 3680786000.0,
+      "intangibles": 54503000.0,
+      "interest_expense": 36515000.0,
+      "revenue": 16877369000.0,
+      "total_assets": 16400858000.0,
+      "cash_and_equivalents": 4125304000.0,
+      "earning_assets": null,
+      "gross_profit": 6808599000.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "trading_code": "BERGERPBL",
+      "year": 2022,
+      "capex": -1290711000.0,
+      "investing_cf": -1400100000.0,
+      "net_profit": 2906959000.0,
+      "nocfps": 0.6332,
+      "operating_cf": null,
+      "total_equity": 16947068000.0,
+      "ebit": 4093476000.0,
+      "intangibles": 47223000.0,
+      "interest_expense": 78179000.0,
+      "revenue": 22194761000.0,
+      "total_assets": 16947068000.0,
+      "cash_and_equivalents": 2441687000.0,
+      "earning_assets": null,
+      "gross_profit": 7750470000.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "year": 2023,
+      "trading_code": "BERGERPBL",
+      "capex": -1397970000.0,
+      "investing_cf": -1479879000.0,
+      "net_profit": 3010449000.0,
+      "nocfps": 0.743,
+      "operating_cf": null,
+      "total_equity": 20000834000.0,
+      "ebit": 4110209000.0,
+      "intangibles": 61180000.0,
+      "interest_expense": 21629000.0,
+      "revenue": 25898700000.0,
+      "total_assets": 20000834000.0,
+      "cash_and_equivalents": 3876914000.0,
+      "earning_assets": null,
+      "gross_profit": 7653134000.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "trading_code": "BERGERPBL",
+      "year": 2024,
+      "capex": -1152829000.0,
+      "investing_cf": -1092501000.0,
+      "net_profit": 3242906000.0,
+      "nocfps": 1.3964,
+      "operating_cf": null,
+      "total_equity": 25102950000.0,
+      "ebit": 4208233000.0,
+      "intangibles": 67222000.0,
+      "interest_expense": 234673000.0,
+      "revenue": 26251181000.0,
+      "total_assets": 25102950000.0,
+      "cash_and_equivalents": 7665036000.0,
+      "earning_assets": null,
+      "gross_profit": 8469079000.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "trading_code": "BERGERPBL",
+      "year": 2025,
+      "capex": -1854972000.0,
+      "cash_and_equivalents": 5943409000.0,
+      "earning_assets": null,
+      "ebit": 4336975000.0,
+      "gross_profit": 9100287000.0,
+      "intangibles": 59295000.0,
+      "interest_expense": 389670000.0,
+      "interest_income": null,
+      "investing_cf": -1748211000.0,
+      "net_interest_income": null,
+      "net_profit": 3369737000.0,
+      "nocfps": 0.5894,
+      "operating_cf": null,
+      "revenue": 28524768000.0,
+      "total_assets": 23843519000.0,
+      "total_debt": null,
+      "total_equity": 23843519000.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "BERGERPBL",
+    "foreign_pct": 0.01,
+    "govt_pct": 0.0,
+    "institute_pct": 8.26,
+    "public_pct": 1.97,
+    "reporting_period": null,
+    "sponsor_director_pct": 89.76
+  },
+  "shareholding_prev": {
+    "as_of_date": "Mar 31, 2025",
+    "trading_code": "BERGERPBL",
+    "foreign_pct": 0.2,
+    "govt_pct": 0.0,
+    "institute_pct": 4.08,
+    "public_pct": 0.72,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 95.0
+  },
+  "dividend_declaration": {
+    "trading_code": "BERGERPBL",
+    "declaration_date": "2026-06-16T00:00:00",
+    "dividend_pct": 525.0,
+    "dividend_type": "Final",
+    "record_date": "2026-07-07T00:00:00",
+    "scraped_at": "2026-07-16T10:03:10.628000",
+    "title": "BERGERPBL: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-07-07T00:00:00",
+      "title": "BERGERPBL: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 08.07.2026."
+    },
+    {
+      "title": "BERGERPBL: Suspension for Record Date",
+      "post_date": "2026-07-06T00:00:00",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 07.07.2026."
+    },
+    {
+      "title": "BERGERPBL: Spot News",
+      "post_date": "2026-07-02T00:00:00",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 05.07.2026 to 06.07.2026 and trading of the shares will remain suspended on record date i.e., 07.07.2026."
+    },
+    {
+      "post_date": "2026-06-16T00:00:00",
+      "title": "BERGERPBL: Dividend Declaration",
+      "body": "The Board of Directors has recommended 525% Cash Dividend for the year ended March 31, 2026. Date of AGM: 24.08.2026, Time: 10:00 AM, Mode of AGM: Digital Platform, link: https://berger.bdvirtualagm.com. Record Date: 07.07.2026. The Company has also reported Consolidated EPS of Tk. 76.83, Consolidated NAV per share of Tk. 400.24 and Consolidated NOCFPS of Tk. 89.53 for the year ended March 31, 2026 as against Tk. 71.20, Tk. 333.42, and Tk. 57.76 respectively for the year ended March 31, 2025."
+    },
+    {
+      "post_date": "2026-06-16T00:00:00",
+      "title": "BERGERPBL: Price Limit Open",
+      "body": "There will be no price limit on the trading of the shares of the Company today (16.06.2026) following its corporate declaration."
+    },
+    {
+      "post_date": "2026-06-16T00:00:00",
+      "title": "BERGERPBL: Regarding investment in subsidiary company",
+      "body": "The company has informed that it will invest additional BDT 51 million in the ordinary share capital of subsidiary company Jenson & Nicholson Packaging Limited (JNPL). Jenson & Nicholson (Bangladesh) Limited, a wholly owned subsidiary of Berger Paints Bangladesh Limited, will also invest BDT 49 million in the ordinary share capital of JNPL. Berger Paints Bangladesh Limited holds 51% equity share in JNPL and the rest 49% shares are held by Jenson & Nicholson (Bangladesh) Limited."
+    },
+    {
+      "post_date": "2026-06-16T00:00:00",
+      "title": "BERGERPBL: Update of Information",
+      "body": "The company has requested the shareholders to update their mobile number, address, bank details, email and 12-digit Taxpayer's Identification Number (e-TIN) through Depository Participant before the Record Date. The Brokerage Houses/DPs are requested to provide the statement of dividend entitlements with details of their margin loan holders within 7 days of Record Date by email to share@bergerbd.com followed by hard copy letter. (cont.)"
+    },
+    {
+      "title": "BERGERPBL: Board Meeting schedule under LR 19(1)",
+      "post_date": "2026-06-08T00:00:00",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on June 15, 2026 at 3:15 PM to consider, among others, audited financial statements of the Company for the year ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-05-20T00:00:00",
+      "title": "BERGERPBL: Auditor's report regarding status of IPO Proceeds utilization",
+      "body": "Berger Paints Bangladesh Limited submitted auditor's report regarding status of RI (Right Share Issue) Proceeds utilization statement for the quarter ended 31 March, 2026. To view the details, please visit: https://www.dsebd.org/Auditors_opinion/Berger26.pdf"
+    },
+    {
+      "title": "BERGERPBL: Appointment of Managing Director",
+      "post_date": "2026-04-30T00:00:00",
+      "body": "The Company has informed that the Board of Directors in its meeting held on April 29, 2026 resolved to appoint Mr. Mohsin Habib Chowdhury as the Chief Executive Officer and Managing Director of the Company with effect from August 01, 2026."
+    },
+    {
+      "post_date": "2026-04-13T00:00:00",
+      "title": "BERGERPBL: Extension of time for utilization of the Rights Share issue proceeds",
+      "body": "The company has informed that pursuant to its application dated 30 December 2025 seeking approval of deviation in the utilization of the Rights Share issue proceeds of the company, Bangladesh Securities and Exchange Commission (BSEC) vide its letter dated 12 April 2026, has approved an extension of time for utilization of the Rights Share issue proceeds up to 31 March 2027."
+    },
+    {
+      "post_date": "2026-01-29T00:00:00",
+      "title": "BERGERPBL: Q3 Financials",
+      "body": "(Q3 un-audited): Consolidated EPS was Tk. 24.14 for October-December 2025 as against Tk. 19.92 for October-December 2024; Consolidated EPS was Tk. 55.43 for April-December 2025 as against Tk. 52.20 for April-December 2024. Consolidated NOCFPS was Tk. 34.64 for April-December 2025 as against Tk. 18.09 for April-December 2024. Consolidated NAV per share was Tk. 380.46 as on December 31, 2025 and Tk. 314.90 as on March 31, 2025. (cont.)"
+    },
+    {
+      "title": "BERGERPBL: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-01-22T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 28, 2026 at 4:00 PM to consider, among others, un-audited financial statements of the Company for the 3rd Quarter (Q3) period ended December 31, 2025."
+    },
+    {
+      "post_date": "2025-11-20T00:00:00",
+      "title": "BERGERPBL: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 23.11.2025."
+    },
+    {
+      "title": "BERGERPBL: Suspension for Record Date",
+      "post_date": "2025-11-19T00:00:00",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 20.11.2025 for EGM."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "BSC",
+      "company_name": "Bangladesh Shipping Corporation",
+      "sector": "Miscellaneous",
+      "score": 79.7,
+      "ltp": 126.4,
+      "change_pct": -2.32,
+      "pe": 6.29,
+      "pb": 1.21,
+      "div_yield_pct": 2.0,
+      "roe_pct": 8.6,
+      "eps_yoy_pct": 22.8
+    },
+    {
+      "trading_code": "INDEXAGRO",
+      "company_name": "Index Agro Industries Limited",
+      "sector": "Miscellaneous",
+      "score": 60.8,
+      "ltp": 76.1,
+      "change_pct": -1.04,
+      "pe": 13.79,
+      "pb": 0.89,
+      "div_yield_pct": 1.6,
+      "roe_pct": 3.6,
+      "eps_yoy_pct": 0.7
+    },
+    {
+      "trading_code": "KBPPWBIL",
+      "company_name": "Khan Brothers PP Woven Bag Industries Limited",
+      "sector": "Miscellaneous",
+      "score": 56.0,
+      "ltp": 40.7,
+      "change_pct": -1.21,
+      "pe": 150.74,
+      "pb": 3.37,
+      "div_yield_pct": 2.5,
+      "roe_pct": 2.1,
+      "eps_yoy_pct": 2600.0
+    },
+    {
+      "trading_code": "SINOBANGLA",
+      "company_name": "Sinobangla Industries Ltd.",
+      "sector": "Miscellaneous",
+      "score": 41.0,
+      "ltp": 59.4,
+      "change_pct": -1.16,
+      "pe": 46.77,
+      "pb": 2.25,
+      "div_yield_pct": 1.7,
+      "roe_pct": 1.3,
+      "eps_yoy_pct": -8.0
+    },
+    {
+      "trading_code": "AMANFEED",
+      "company_name": "Aman Feed PLC.",
+      "sector": "Miscellaneous",
+      "score": 37.4,
+      "ltp": 37.8,
+      "change_pct": 3.28,
+      "pe": 171.82,
+      "pb": 1.35,
+      "div_yield_pct": 3.0,
+      "roe_pct": 0.3,
+      "eps_yoy_pct": 15.8
+    }
+  ],
+  "source_hash": "2667d2c29f9a346dd0315ca2d189cb87c38b155697900a02c893d7145dc6c858"
+}

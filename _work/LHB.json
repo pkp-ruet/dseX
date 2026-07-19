@@ -1,0 +1,789 @@
+{
+  "trading_code": "LHB",
+  "company_name": "LafargeHolcim Bangladesh PLC.",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Cement",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 1161373500,
+    "paid_up_capital_mn": 11613.7,
+    "reserve_surplus_mn": 7449.6,
+    "total_loan_mn": 0,
+    "listing_year": 2003,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 60.7,
+    "change": -1,
+    "change_pct": -1.62,
+    "date": "2026-07-16",
+    "high": 61.8,
+    "low": 60.1,
+    "volume": 3099923,
+    "avg_volume_7d": 3008819,
+    "ycp": 61.7,
+    "w52_high": 61.7,
+    "w52_low": 46.1
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 11.8,
+      "m3": 20.2,
+      "m6": 28.3,
+      "y1": 23.4
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 42.7
+      },
+      {
+        "date": "2025-06-30",
+        "close": 47.5
+      },
+      {
+        "date": "2025-07-31",
+        "close": 58.8
+      },
+      {
+        "date": "2025-08-31",
+        "close": 57.7
+      },
+      {
+        "date": "2025-09-30",
+        "close": 55.2
+      },
+      {
+        "date": "2025-10-30",
+        "close": 53.3
+      },
+      {
+        "date": "2025-11-30",
+        "close": 50.6
+      },
+      {
+        "date": "2025-12-30",
+        "close": 46.7
+      },
+      {
+        "date": "2026-01-29",
+        "close": 50.8
+      },
+      {
+        "date": "2026-02-26",
+        "close": 54.5
+      },
+      {
+        "date": "2026-03-31",
+        "close": 51.2
+      },
+      {
+        "date": "2026-04-30",
+        "close": 50.0
+      },
+      {
+        "date": "2026-05-31",
+        "close": 51.3
+      },
+      {
+        "date": "2026-06-30",
+        "close": 56
+      },
+      {
+        "date": "2026-07-16",
+        "close": 60.7
+      }
+    ],
+    "pct_in_52w_range": 93.6
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 4.2
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.8
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.6
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Fairly priced",
+      "word_bn": "দাম যুক্তিসঙ্গত",
+      "score10": 5.7
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 7.0
+    }
+  ],
+  "fair_value": {
+    "low": 71.2,
+    "high": 107,
+    "center": 89.0,
+    "today": 60.7,
+    "stance": "cheap",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 69.3
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 134
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 59.9
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 66.7
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 13.8,
+    "current_pb": 3.7,
+    "own_avg_pe": 15.75,
+    "own_avg_pb": 3.65,
+    "sector_median_pe": 30.54,
+    "sector_median_pb": 0.94,
+    "eps": 4.4,
+    "sector_implied_price": 134.38
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2020,
+        "eps_taka": 2.03,
+        "net_profit_crore": 236.1,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 14.89,
+        "revenue_crore": 1622,
+        "operating_profit_crore": 295.4,
+        "operating_cash_flow_crore": 454.0,
+        "capex_crore": 77.5,
+        "total_debt_crore": 3.71,
+        "total_equity_crore": 1729,
+        "total_assets_crore": 2622,
+        "cash_crore": 137.3,
+        "debt_to_equity": 0.0
+      },
+      {
+        "year": 2021,
+        "eps_taka": 3.34,
+        "net_profit_crore": 388.2,
+        "cash_dividend_pct": 25.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.5,
+        "nav_per_share_taka": 17.04,
+        "revenue_crore": 2053,
+        "operating_profit_crore": 484.0,
+        "operating_cash_flow_crore": 607.7,
+        "capex_crore": 94.6,
+        "total_debt_crore": 2.91,
+        "total_equity_crore": 1979,
+        "total_assets_crore": 2962,
+        "cash_crore": 527.7,
+        "debt_to_equity": 0.0
+      },
+      {
+        "year": 2022,
+        "eps_taka": 3.83,
+        "net_profit_crore": 444.5,
+        "cash_dividend_pct": 48.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 4.8,
+        "nav_per_share_taka": 15.25,
+        "revenue_crore": 2359,
+        "operating_profit_crore": 597.0,
+        "operating_cash_flow_crore": 669.4,
+        "capex_crore": 70.1,
+        "total_debt_crore": 0.38,
+        "total_equity_crore": 1771,
+        "total_assets_crore": 2897,
+        "cash_crore": 484.4,
+        "debt_to_equity": 0.0
+      },
+      {
+        "year": 2023,
+        "eps_taka": 5.12,
+        "net_profit_crore": 594.2,
+        "cash_dividend_pct": 50.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 5.0,
+        "nav_per_share_taka": 19.14,
+        "revenue_crore": 2839,
+        "operating_profit_crore": 775.8,
+        "operating_cash_flow_crore": 792.7,
+        "capex_crore": 37.7,
+        "total_debt_crore": 11.2,
+        "total_equity_crore": 2223,
+        "total_assets_crore": 3620,
+        "cash_crore": 934.6,
+        "debt_to_equity": 0.01
+      },
+      {
+        "year": 2024,
+        "eps_taka": 3.29,
+        "net_profit_crore": 381.9,
+        "cash_dividend_pct": 38.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 3.8,
+        "nav_per_share_taka": 16.01
+      },
+      {
+        "year": 2025,
+        "eps_taka": 4.4,
+        "net_profit_crore": 510.8,
+        "cash_dividend_pct": 40.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 4.0,
+        "nav_per_share_taka": 16.41
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 4.4,
+      "net_profit_crore": 510.8,
+      "cash_dividend_pct": 40.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 4.0,
+      "nav_per_share_taka": 16.41
+    },
+    "growth": {
+      "span": "2020–2025",
+      "net_profit_change_pct": 116.0,
+      "eps_change_pct": 117.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 116.1,
+      "paid_up_capital_crore": 1161,
+      "reserve_surplus_crore": 745.0,
+      "total_loan_crore": 0.0,
+      "listing_year": 2003
+    },
+    "ownership": {
+      "sponsor_director_pct": 63.39,
+      "govt_pct": 0.0,
+      "institute_pct": 22.31,
+      "foreign_pct": 0.78,
+      "public_pct": 13.52
+    }
+  },
+  "sector_context": {
+    "sector": "Cement",
+    "peer_count": 7,
+    "rank_in_sector": 1,
+    "sector_avg_score": 36.8,
+    "sector_median_pe": 30.54
+  },
+  "score": {
+    "trading_code": "LHB",
+    "sector": "Cement",
+    "market_cat": "A",
+    "ltp": 60.7,
+    "mcap_mn": 70495.37145,
+    "score": 66.1,
+    "base_score": 66.1,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.786,
+    "eps": 4.4,
+    "roe_pct": null,
+    "sector_median_pe": 30.54,
+    "sector_median_pb": 0.94,
+    "p1_biz": 4.15,
+    "p2_health": 8.75,
+    "p3_moat": 8.55,
+    "p4_val": 5.69,
+    "p5_div": 7.0,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 1.6317,
+    "p1_roe": null,
+    "p1_npm_trend": null,
+    "p1_coverage": 0.5,
+    "eps_yoy_pct": 33.7,
+    "eps_stability": 0.6931,
+    "p2_de": 10.0,
+    "p2_ic": 10.0,
+    "p2_cfo": 6.0,
+    "p2_cash": 10.0,
+    "p2_coverage": 1.0,
+    "p3_margin": 10.0,
+    "p3_rev_vol": 10.0,
+    "p3_sector_rank": 5.0,
+    "p3_capex": 7.0,
+    "p3_coverage": 1.0,
+    "p4_pe": 8.59,
+    "p4_pb": 3.92,
+    "p4_vol_damp": 0.8466,
+    "current_pe": 13.8,
+    "current_pb": 3.7,
+    "own_avg_pe": 15.75,
+    "own_avg_pb": 3.65,
+    "p5_dps_cagr": 4.002,
+    "p5_consist": 10.0,
+    "p5_yield": 10.0,
+    "div_yield_pct": 6.6,
+    "overall_rank": 36,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "good_wait_price",
+    "reason_en": "Good company — fine to hold, but wait for a cheaper price to buy.",
+    "reason_bn": "ভালো কোম্পানি — ধরে রাখা যায়, তবে কেনার জন্য আরেকটু কম দামের অপেক্ষা করুন।",
+    "tier": "good",
+    "momentum_grade": "hot",
+    "score": 66.1,
+    "p4_val": 5.69,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Currently cheap vs historical P/E",
+      "Sponsor holding 63.4% (strong alignment)"
+    ],
+    "red": [
+      "Payout ratio 91% — potentially unsustainable"
+    ]
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, market is buying actively",
+    "sentences": [
+      "The company's numbers are good, and people are buying the share and pushing the price up — the market agrees with the quality.",
+      "Has paid dividends regularly in past years.",
+      "The share price looks cheaper now than its average over the past few years."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 7.24,
+    "rs_vs_dsex_pct": 5.18,
+    "volume_ratio": 1.97,
+    "avg_turnover_7d_mn": 185.67,
+    "up_days_7d": 4,
+    "days_counted": 7,
+    "pct_in_52w_range": 93.6,
+    "momentum_grade": "hot"
+  },
+  "financials": [
+    {
+      "year": 2020,
+      "trading_code": "LHB",
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 2.09,
+      "eps_basic": null,
+      "eps_cont_basic": 2.03,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 14.89,
+      "pe_ratio_basic": 23.51,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 2361.41,
+      "profit_mn": 2361.41,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 2361.41,
+      "dps": 1.0,
+      "eps": 2.03
+    },
+    {
+      "trading_code": "LHB",
+      "year": 2021,
+      "cash_dividend_pct": 25.0,
+      "dividend_yield_pct": 3.52,
+      "eps_basic": null,
+      "eps_cont_basic": 3.34,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 17.04,
+      "pe_ratio_basic": 21.27,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 3881.87,
+      "profit_mn": 3881.87,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 3881.87,
+      "dps": 2.5,
+      "eps": 3.34
+    },
+    {
+      "year": 2022,
+      "trading_code": "LHB",
+      "cash_dividend_pct": 48.0,
+      "dividend_yield_pct": 7.41,
+      "eps_basic": null,
+      "eps_cont_basic": 3.83,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 15.25,
+      "pe_ratio_basic": 16.93,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 4444.54,
+      "profit_mn": 4444.54,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 4444.54,
+      "dps": 4.8,
+      "eps": 3.83
+    },
+    {
+      "trading_code": "LHB",
+      "year": 2023,
+      "cash_dividend_pct": 50.0,
+      "dividend_yield_pct": 7.22,
+      "eps_basic": null,
+      "eps_cont_basic": 5.12,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 19.14,
+      "pe_ratio_basic": 13.54,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 5942.09,
+      "profit_mn": 5942.09,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 5942.09,
+      "dps": 5.0,
+      "eps": 5.12
+    },
+    {
+      "year": 2024,
+      "trading_code": "LHB",
+      "cash_dividend_pct": 38.0,
+      "dividend_yield_pct": 7.05,
+      "eps_basic": null,
+      "eps_cont_basic": 3.29,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 16.01,
+      "pe_ratio_basic": 16.39,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 3819.31,
+      "profit_mn": 3819.31,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 3819.31,
+      "dps": 3.8,
+      "eps": 3.29
+    },
+    {
+      "year": 2025,
+      "trading_code": "LHB",
+      "cash_dividend_pct": 40.0,
+      "dividend_yield_pct": 8.57,
+      "dps": 4.0,
+      "eps_basic": null,
+      "eps_cont_basic": 4.4,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 16.41,
+      "pe_ratio_basic": 10.62,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 5108.44,
+      "profit_mn": 5108.44,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 5108.44,
+      "eps": 4.4
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "LHB",
+      "year": 2020,
+      "capex": -774714000.0,
+      "investing_cf": -750567000.0,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": 4540495000.0,
+      "total_equity": 17289075000.0,
+      "ebit": 2954060000.0,
+      "intangibles": 317776000.0,
+      "interest_expense": 123966000.0,
+      "revenue": 16222483000.0,
+      "total_assets": 26218984000.0,
+      "cash_and_equivalents": 1372660000.0,
+      "earning_assets": null,
+      "gross_profit": 4606073000.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 37099000.0
+    },
+    {
+      "year": 2021,
+      "trading_code": "LHB",
+      "capex": -945768000.0,
+      "investing_cf": -910857000.0,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": 6076922000.0,
+      "total_equity": 19793826000.0,
+      "ebit": 4839975000.0,
+      "intangibles": 317776000.0,
+      "interest_expense": 39043000.0,
+      "revenue": 20534442000.0,
+      "total_assets": 29622065000.0,
+      "cash_and_equivalents": 5276723000.0,
+      "earning_assets": null,
+      "gross_profit": 6640237000.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 29111000.0
+    },
+    {
+      "year": 2022,
+      "trading_code": "LHB",
+      "capex": -701444000.0,
+      "investing_cf": -633050000.0,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": 6693692000.0,
+      "total_equity": 17710330000.0,
+      "ebit": 5970473000.0,
+      "intangibles": 921263000.0,
+      "interest_expense": 275935000.0,
+      "revenue": 23594038000.0,
+      "total_assets": 28971479000.0,
+      "cash_and_equivalents": 4843726000.0,
+      "earning_assets": null,
+      "gross_profit": 8334268000.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 3844000.0
+    },
+    {
+      "year": 2023,
+      "trading_code": "LHB",
+      "capex": -376977000.0,
+      "investing_cf": -221977000.0,
+      "net_profit": null,
+      "nocfps": null,
+      "operating_cf": 7927345000.0,
+      "total_equity": 22226289000.0,
+      "ebit": 7757799000.0,
+      "intangibles": 906938000.0,
+      "interest_expense": 209071000.0,
+      "revenue": 28388093000.0,
+      "total_assets": 36196406000.0,
+      "cash_and_equivalents": 9345525000.0,
+      "earning_assets": null,
+      "gross_profit": 10269363000.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 112365000.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "LHB",
+    "foreign_pct": 0.78,
+    "govt_pct": 0.0,
+    "institute_pct": 22.31,
+    "public_pct": 13.52,
+    "reporting_period": null,
+    "sponsor_director_pct": 63.39
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jan 31, 2026",
+    "trading_code": "LHB",
+    "foreign_pct": 0.79,
+    "govt_pct": 0.0,
+    "institute_pct": 22.26,
+    "public_pct": 13.56,
+    "reporting_period": null,
+    "sponsor_director_pct": 63.39
+  },
+  "dividend_declaration": {
+    "trading_code": "LHB",
+    "declaration_date": "2026-03-12T00:00:00",
+    "dividend_pct": 40.0,
+    "dividend_type": "Final",
+    "record_date": "2026-04-09T00:00:00",
+    "scraped_at": "2026-07-16T10:23:21.970000",
+    "title": "LHB: Dividend Declaration"
+  },
+  "news": [
+    {
+      "title": "LHB: Dividend Disbursement",
+      "post_date": "2026-06-15T00:00:00",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended December 31, 2025 to the respective shareholders."
+    },
+    {
+      "title": "LHB: Q1 Financials",
+      "post_date": "2026-05-13T00:00:00",
+      "body": "(Q1 Un-audited): Consolidated EPS was Tk. 0.97 for January-March 2026 as against Tk. 1.20 for January-March 2025; Consolidated NOCFPS was Tk. (4.16) for January-March 2026 as against Tk. (2.98) for January-March 2025. Consolidated NAV per share was Tk. 17.33 as on March 31, 2026 and Tk. 16.41 as on December 31, 2025. (cont.)"
+    },
+    {
+      "post_date": "2026-05-05T00:00:00",
+      "title": "LHB: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on May 12, 2026 at 4:00 pm to consider, among others, Un-Audited Financial Statements for the First Quarter (Q1) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-04-09T00:00:00",
+      "title": "LHB: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 12.04.2026."
+    },
+    {
+      "post_date": "2026-04-08T00:00:00",
+      "title": "LHB: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e. 09.04.2026."
+    },
+    {
+      "title": "LHB: Spot News",
+      "post_date": "2026-04-06T00:00:00",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 07.04.2026 to 08.04.2026 and trading of the shares will remain suspended on record date i.e., 09.04.2026."
+    },
+    {
+      "post_date": "2026-03-16T00:00:00",
+      "title": "LHB: Credit Rating Result",
+      "body": "Credit Rating Information and Services PLC (CRISL) has assigned rating of the Company as \"AAA\" in the long term and \"ST-1\" in the short term along with a Stable outlook in consideration of its audited financials up to December 31, 2025 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "post_date": "2026-03-12T00:00:00",
+      "title": "LHB: Dividend Declaration",
+      "body": "The Board of Directors has recommended 40% Final Cash Dividend (including 18% interim cash dividend which has already been paid in December 2025) for the year ended December 31, 2025. Date of AGM: 13.05.2026, Time: 3:00 PM, Mode/Venue: Digital Platform (link to be communicated later). Record Date: 09.04.2026. (cont.)"
+    },
+    {
+      "post_date": "2026-03-12T00:00:00",
+      "title": "LHB: Price Limit Open",
+      "body": "There will be no price limit on the trading of the shares of the Company today (12.03.2026) following its corporate declaration."
+    },
+    {
+      "post_date": "2026-03-01T00:00:00",
+      "title": "LHB: Board Meeting schedule under LR 19(1)",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on March 11, 2026 at 4:00 PM to consider, among others, audited financial statements of the Company for the year ended December 31, 2025."
+    },
+    {
+      "post_date": "2025-12-18T00:00:00",
+      "title": "LHB: Interim Dividend Disbursement",
+      "body": "The Company has informed that it has disbursed the Interim Cash Dividend for the period ended September 30, 2025 to the respective shareholders."
+    },
+    {
+      "post_date": "2025-11-11T00:00:00",
+      "title": "LHB: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 12.11.2025."
+    },
+    {
+      "title": "LHB: Suspension for Record Date",
+      "post_date": "2025-11-10T00:00:00",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 11.11.2025."
+    },
+    {
+      "post_date": "2025-11-06T00:00:00",
+      "title": "LHB: Spot News",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 09.11.2025 to 10.11.2025 and trading of the shares will remain suspended on record date i.e., 11.11.2025."
+    },
+    {
+      "post_date": "2025-10-22T00:00:00",
+      "title": "LHB: Interim Dividend Declaration",
+      "body": "The company has informed that the Board of Directors has declared interim cash dividend @ 18% (i.e., Tk. 1.80 per share of Tk. 10.00 each) for the year ending on December 31, 2025, out of the provisional net profits of the Company for the period ended on September 30, 2025.  Record Date: 11.11.2025."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "CROWNCEMNT",
+      "company_name": "Crown Cement PLC.",
+      "sector": "Cement",
+      "score": 54.1,
+      "ltp": 69.7,
+      "change_pct": 1.01,
+      "pe": 15.42,
+      "pb": 1.11,
+      "div_yield_pct": 3.0,
+      "roe_pct": null,
+      "eps_yoy_pct": -32.9
+    },
+    {
+      "trading_code": "HEIDELBCEM",
+      "company_name": "Heidelberg Materials Bangladesh PLC.",
+      "sector": "Cement",
+      "score": 41.8,
+      "ltp": 243.4,
+      "change_pct": -1.06,
+      "pe": 68.56,
+      "pb": 3.29,
+      "div_yield_pct": 0.5,
+      "roe_pct": null,
+      "eps_yoy_pct": -56.5
+    },
+    {
+      "trading_code": "CONFIDCEM",
+      "company_name": "Confidence Cement PLC.",
+      "sector": "Cement",
+      "score": 39.2,
+      "ltp": 71.5,
+      "change_pct": -2.32,
+      "pe": 6.37,
+      "pb": 0.81,
+      "div_yield_pct": 1.4,
+      "roe_pct": null,
+      "eps_yoy_pct": 28.6
+    },
+    {
+      "trading_code": "PREMIERCEM",
+      "company_name": "Premier Cement Mills PLC",
+      "sector": "Cement",
+      "score": 35.5,
+      "ltp": 51.5,
+      "change_pct": -0.96,
+      "pe": 39.92,
+      "pb": 0.8,
+      "div_yield_pct": 1.9,
+      "roe_pct": null,
+      "eps_yoy_pct": -81.7
+    },
+    {
+      "trading_code": "MEGHNACEM",
+      "company_name": "Meghna Cement Mills PLC.",
+      "sector": "Cement",
+      "score": 14.0,
+      "ltp": 32.9,
+      "change_pct": -0.3,
+      "pe": 57.72,
+      "pb": 0.87,
+      "div_yield_pct": null,
+      "roe_pct": null,
+      "eps_yoy_pct": -410.9
+    }
+  ],
+  "source_hash": "3fb28bf9452bee1cab5e557c6cdf66915606a97be7e64b81e17bf0729b357b7a"
+}

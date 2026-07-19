@@ -1,0 +1,770 @@
+{
+  "trading_code": "MJLBD",
+  "company_name": "MJL Bangladesh PLC.",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Fuel & Power",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 316752027,
+    "paid_up_capital_mn": 3167.52,
+    "reserve_surplus_mn": 9883.6,
+    "total_loan_mn": 19843.61,
+    "listing_year": 2011,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 95.9,
+    "change": -0.9,
+    "change_pct": -0.93,
+    "date": "2026-07-16",
+    "high": 97,
+    "low": 95.5,
+    "volume": 83565,
+    "avg_volume_7d": 164614,
+    "ycp": 96.8,
+    "w52_high": 104.3,
+    "w52_low": 87.0
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 4.4,
+      "m3": 9.9,
+      "m6": 3.6,
+      "y1": 3.0
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 89.4
+      },
+      {
+        "date": "2025-06-30",
+        "close": 93.8
+      },
+      {
+        "date": "2025-07-31",
+        "close": 96.4
+      },
+      {
+        "date": "2025-08-31",
+        "close": 98.5
+      },
+      {
+        "date": "2025-09-30",
+        "close": 96.7
+      },
+      {
+        "date": "2025-10-30",
+        "close": 93.7
+      },
+      {
+        "date": "2025-11-30",
+        "close": 89.7
+      },
+      {
+        "date": "2025-12-30",
+        "close": 90.5
+      },
+      {
+        "date": "2026-01-29",
+        "close": 92.4
+      },
+      {
+        "date": "2026-02-26",
+        "close": 93.1
+      },
+      {
+        "date": "2026-03-31",
+        "close": 89.0
+      },
+      {
+        "date": "2026-04-30",
+        "close": 88.7
+      },
+      {
+        "date": "2026-05-31",
+        "close": 89.3
+      },
+      {
+        "date": "2026-06-30",
+        "close": 94.5
+      },
+      {
+        "date": "2026-07-16",
+        "close": 95.9
+      }
+    ],
+    "pct_in_52w_range": 51.4
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.2
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.2
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.0
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Good value",
+      "word_bn": "দাম সস্তা",
+      "score10": 7.4
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.5
+    }
+  ],
+  "fair_value": {
+    "low": 117,
+    "high": 176,
+    "center": 146,
+    "today": 95.9,
+    "stance": "cheap",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 119
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 224
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 104
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 86.7
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 8.44,
+    "current_pb": 1.77,
+    "own_avg_pe": 10.51,
+    "own_avg_pb": 1.93,
+    "sector_median_pe": 19.72,
+    "sector_median_pb": 0.74,
+    "eps": 11.36,
+    "sector_implied_price": 224.02
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 7.53,
+        "net_profit_crore": 238.5,
+        "cash_dividend_pct": 55.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 5.5,
+        "nav_per_share_taka": 39.69
+      },
+      {
+        "year": 2022,
+        "eps_taka": 6.36,
+        "net_profit_crore": 188.3,
+        "cash_dividend_pct": 50.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 5.0,
+        "nav_per_share_taka": 40.55,
+        "revenue_crore": 2642,
+        "operating_profit_crore": 346.1,
+        "operating_cash_flow_crore": 145.0,
+        "capex_crore": null,
+        "total_debt_crore": 981.4,
+        "total_equity_crore": 1489,
+        "total_assets_crore": 3551,
+        "cash_crore": 20.7,
+        "debt_to_equity": 0.66
+      },
+      {
+        "year": 2023,
+        "eps_taka": 8.73,
+        "net_profit_crore": 276.9,
+        "cash_dividend_pct": 50.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 5.0,
+        "nav_per_share_taka": 44.27,
+        "revenue_crore": 3316,
+        "operating_profit_crore": 559.8,
+        "operating_cash_flow_crore": 59.6,
+        "capex_crore": null,
+        "total_debt_crore": 1324,
+        "total_equity_crore": 1607,
+        "total_assets_crore": 3720,
+        "cash_crore": 64.8,
+        "debt_to_equity": 0.82
+      },
+      {
+        "year": 2024,
+        "eps_taka": 8.71,
+        "net_profit_crore": 276.6,
+        "cash_dividend_pct": 52.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 5.2,
+        "nav_per_share_taka": 48.03,
+        "revenue_crore": 3895,
+        "operating_profit_crore": 581.6,
+        "operating_cash_flow_crore": 468.6,
+        "capex_crore": null,
+        "total_debt_crore": 1542,
+        "total_equity_crore": 1727,
+        "total_assets_crore": 4140,
+        "cash_crore": 30.4,
+        "debt_to_equity": 0.89
+      },
+      {
+        "year": 2025,
+        "eps_taka": 11.36,
+        "net_profit_crore": 359.8,
+        "cash_dividend_pct": 52.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 5.2,
+        "nav_per_share_taka": 54.06,
+        "revenue_crore": 4483,
+        "operating_profit_crore": 748.8,
+        "operating_cash_flow_crore": 274.5,
+        "capex_crore": null,
+        "total_debt_crore": 1986,
+        "total_equity_crore": 1919,
+        "total_assets_crore": 4792,
+        "cash_crore": 33.7,
+        "debt_to_equity": 1.03
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 11.36,
+      "net_profit_crore": 359.8,
+      "cash_dividend_pct": 52.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 5.2,
+      "nav_per_share_taka": 54.06,
+      "revenue_crore": 4483,
+      "operating_profit_crore": 748.8,
+      "operating_cash_flow_crore": 274.5,
+      "capex_crore": null,
+      "total_debt_crore": 1986,
+      "total_equity_crore": 1919,
+      "total_assets_crore": 4792,
+      "cash_crore": 33.7,
+      "debt_to_equity": 1.03
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": 51.0,
+      "eps_change_pct": 51.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 31.7,
+      "paid_up_capital_crore": 316.8,
+      "reserve_surplus_crore": 988.4,
+      "total_loan_crore": 1984,
+      "listing_year": 2011
+    },
+    "ownership": {
+      "sponsor_director_pct": 71.52,
+      "govt_pct": 0.0,
+      "institute_pct": 22.77,
+      "foreign_pct": 0.02,
+      "public_pct": 5.69
+    }
+  },
+  "sector_context": {
+    "sector": "Fuel & Power",
+    "peer_count": 23,
+    "rank_in_sector": 4,
+    "sector_avg_score": 41.9,
+    "sector_median_pe": 19.72
+  },
+  "score": {
+    "trading_code": "MJLBD",
+    "sector": "Fuel & Power",
+    "market_cat": "A",
+    "ltp": 95.9,
+    "mcap_mn": 30376.519389300003,
+    "score": 69.7,
+    "base_score": 69.7,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.957,
+    "eps": 11.36,
+    "roe_pct": 18.8,
+    "sector_median_pe": 19.72,
+    "sector_median_pb": 0.74,
+    "p1_biz": 8.17,
+    "p2_health": 6.17,
+    "p3_moat": 6.0,
+    "p4_val": 7.37,
+    "p5_div": 6.5,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 7.7587,
+    "p1_roe": 9.4705,
+    "p1_npm_trend": 5.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 30.4,
+    "eps_stability": 1.0,
+    "p2_de": 5.7906210851540685,
+    "p2_ic": 10.0,
+    "p2_cfo": 5.0,
+    "p2_cash": 2.4215896989364842,
+    "p2_coverage": 1.0,
+    "p3_margin": 2.0,
+    "p3_rev_vol": 10.0,
+    "p3_sector_rank": 7.0,
+    "p3_capex": null,
+    "p3_coverage": 0.85,
+    "p4_pe": 9.18,
+    "p4_pb": 4.66,
+    "p4_vol_damp": 1.0,
+    "current_pe": 8.44,
+    "current_pb": 1.77,
+    "own_avg_pe": 10.51,
+    "own_avg_pb": 1.93,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 10.0,
+    "div_yield_pct": 5.4,
+    "overall_rank": 24,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "buy",
+    "reason_key": "quality_cheap",
+    "reason_en": "Strong company and the price looks cheap right now.",
+    "reason_bn": "শক্তিশালী কোম্পানি, দামও এখন তুলনামূলক সস্তা।",
+    "tier": "good",
+    "momentum_grade": "flat",
+    "score": 69.7,
+    "p4_val": 7.37,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Currently cheap vs historical P/E",
+      "Sponsor holding 71.5% (strong alignment)"
+    ],
+    "red": [
+      "Total loan > 2× reserve surplus"
+    ]
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, but share is quiet",
+    "sentences": [
+      "The company's numbers are good, but the share has been quiet — the price is not moving much in either direction.",
+      "Has paid dividends regularly in past years.",
+      "The share price looks cheaper now than its average over the past few years."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 0.95,
+    "rs_vs_dsex_pct": -1.11,
+    "volume_ratio": 0.65,
+    "avg_turnover_7d_mn": 13.8,
+    "up_days_7d": 3,
+    "days_counted": 7,
+    "pct_in_52w_range": 51.4,
+    "momentum_grade": "flat"
+  },
+  "financials": [
+    {
+      "trading_code": "MJLBD",
+      "year": 2021,
+      "cash_dividend_pct": 55.0,
+      "dividend_yield_pct": 6.61,
+      "eps_basic": null,
+      "eps_cont_basic": 7.53,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 39.69,
+      "pe_ratio_basic": 11.05,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 2385.33,
+      "profit_mn": 2385.33,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 2497.9,
+      "dps": 5.5,
+      "eps": 7.53
+    },
+    {
+      "trading_code": "MJLBD",
+      "year": 2022,
+      "cash_dividend_pct": 50.0,
+      "dividend_yield_pct": 5.45,
+      "eps_basic": null,
+      "eps_cont_basic": 6.36,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 40.55,
+      "pe_ratio_basic": 14.42,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 1883.08,
+      "profit_mn": 1883.08,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 1885.56,
+      "dps": 5.0,
+      "eps": 6.36
+    },
+    {
+      "trading_code": "MJLBD",
+      "year": 2023,
+      "cash_dividend_pct": 50.0,
+      "dividend_yield_pct": 5.77,
+      "eps_basic": null,
+      "eps_cont_basic": 8.73,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 44.27,
+      "pe_ratio_basic": 9.93,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 2769.0,
+      "profit_mn": 2769.0,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 2761.97,
+      "dps": 5.0,
+      "eps": 8.73
+    },
+    {
+      "year": 2024,
+      "trading_code": "MJLBD",
+      "cash_dividend_pct": 52.0,
+      "dividend_yield_pct": 6.7,
+      "eps_basic": null,
+      "eps_cont_basic": 8.71,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 48.03,
+      "pe_ratio_basic": 8.91,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 2766.32,
+      "profit_mn": 2766.32,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 2770.9,
+      "dps": 5.2,
+      "eps": 8.71
+    },
+    {
+      "trading_code": "MJLBD",
+      "year": 2025,
+      "cash_dividend_pct": 52.0,
+      "dividend_yield_pct": 5.54,
+      "eps_basic": null,
+      "eps_cont_basic": 11.36,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 54.06,
+      "pe_ratio_basic": 8.26,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 3598.06,
+      "profit_mn": 3598.06,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 3598.06,
+      "dps": 5.2,
+      "eps": 11.36
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "MJLBD",
+      "year": 2022,
+      "capex": null,
+      "investing_cf": -959065947.0,
+      "net_profit": 1883076151.0,
+      "nocfps": 4.58,
+      "operating_cf": 1450416336.0,
+      "total_equity": 14891644710.0,
+      "ebit": 3460989869.0,
+      "intangibles": 64882352.0,
+      "interest_expense": null,
+      "revenue": 26416164551.0,
+      "total_assets": 35512799617.0,
+      "cash_and_equivalents": 206819779.0,
+      "earning_assets": null,
+      "gross_profit": 4308213651.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 9814436197.0
+    },
+    {
+      "trading_code": "MJLBD",
+      "year": 2023,
+      "capex": null,
+      "investing_cf": -1362140809.0,
+      "net_profit": 2769004271.0,
+      "nocfps": 1.88,
+      "operating_cf": 596296519.0,
+      "total_equity": 16069853517.0,
+      "ebit": 5597975063.0,
+      "intangibles": 58337574.0,
+      "interest_expense": null,
+      "revenue": 33156355824.0,
+      "total_assets": 37195970719.0,
+      "cash_and_equivalents": 647689182.0,
+      "earning_assets": null,
+      "gross_profit": 6444460228.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 13236899163.0
+    },
+    {
+      "year": 2024,
+      "trading_code": "MJLBD",
+      "capex": null,
+      "investing_cf": -5149560866.0,
+      "net_profit": 2766321891.0,
+      "nocfps": 14.79,
+      "operating_cf": 4686152805.0,
+      "total_equity": 17267496814.0,
+      "ebit": 5816234100.0,
+      "intangibles": 54793571.0,
+      "interest_expense": null,
+      "revenue": 38953288919.0,
+      "total_assets": 41403394086.0,
+      "cash_and_equivalents": 304416405.0,
+      "earning_assets": null,
+      "gross_profit": 6862941761.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 15415892744.0
+    },
+    {
+      "trading_code": "MJLBD",
+      "year": 2025,
+      "capex": null,
+      "investing_cf": -6498132558.0,
+      "net_profit": 3609380850.0,
+      "nocfps": 8.67,
+      "operating_cf": 2744687639.0,
+      "total_equity": 19190218800.0,
+      "ebit": 7487592098.0,
+      "intangibles": 46073985.0,
+      "interest_expense": null,
+      "revenue": 44832355984.0,
+      "total_assets": 47922645195.0,
+      "cash_and_equivalents": 336728226.0,
+      "earning_assets": null,
+      "gross_profit": 6786250567.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 19859889998.0
+    }
+  ],
+  "shareholding": {
+    "trading_code": "MJLBD",
+    "as_of_date": "Mar 31, 2026",
+    "foreign_pct": 0.02,
+    "govt_pct": 0.0,
+    "institute_pct": 22.77,
+    "public_pct": 5.69,
+    "reporting_period": null,
+    "sponsor_director_pct": 71.52
+  },
+  "shareholding_prev": {
+    "trading_code": "MJLBD",
+    "as_of_date": "Jun 30, 2025",
+    "foreign_pct": 2.26,
+    "govt_pct": 0.0,
+    "institute_pct": 21.08,
+    "public_pct": 5.14,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 71.52
+  },
+  "dividend_declaration": {
+    "trading_code": "MJLBD",
+    "declaration_date": "2025-10-28T00:00:00",
+    "dividend_pct": 52.0,
+    "dividend_type": "Final",
+    "record_date": "2025-11-17T00:00:00",
+    "scraped_at": "2026-07-16T10:27:27.128000",
+    "title": "MJLBD: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-04-30T00:00:00",
+      "title": "MJLBD: Q3 Financials",
+      "body": "(Q3 Un-audited): Consolidated EPS was Tk. 2.05 for January-March 2026 as against Tk. 1.43 for January-March 2025; Consolidated EPS was Tk. 5.91 for July 2025-March 2026 as against Tk. 8.09 for July 2024-March 2025. Consolidated NOCFPS was Tk. 15.83 for July 2025-March 2026 as against Tk. 0.29 for July 2024-March 2025. Consolidated NAV per share was Tk. 54.78 as on March 31, 2026 and Tk. 54.06 as on June 30, 2025. (cont.)"
+    },
+    {
+      "post_date": "2026-04-26T00:00:00",
+      "title": "MJLBD: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 29, 2026 at 4:00 pm to consider, among others, Un-Audited Financial Statements for the Third Quarter (Q3) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-02-01T00:00:00",
+      "title": "MJLBD: Q2 Financials",
+      "body": "(Q2 Un-audited): Consolidated EPS was Tk. 0.80 for October-December 2025 as against Tk. 3.23 for October-December 2024; Consolidated EPS was Tk. 3.86 for July-December 2025 as against Tk. 6.66 for July-December 2024. Consolidated NOCFPS was Tk. 6.44 for July-December 2025 as against Tk. (3.02) for July-December 2024. Consolidated NAV per share was Tk. 52.72 as on December 31, 2025 and Tk. 54.06 as on June 30, 2025."
+    },
+    {
+      "title": "MJLBD: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-01-26T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 29, 2026 at 3:00 PM to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "post_date": "2026-01-21T00:00:00",
+      "title": "MJLBD: Dividend Disbursement",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended June 30, 2025 to the respective shareholders."
+    },
+    {
+      "post_date": "2025-12-23T00:00:00",
+      "title": "MJLBD: Credit Rating Result",
+      "body": "Credit Rating Information and Services Limited (CRISL) has assigned the rating of the Company as \"AAA\" in the long term and \"ST-1\" in the short term along with Stable outlook in consideration of its audited financials up to June 30, 2025 also unaudited financials up to September 30, 2025 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "title": "MJLBD: Emphasis of Matter and Other Matter",
+      "post_date": "2025-12-14T00:00:00",
+      "body": "The auditor of the company has given the Emphasis of Matter and Other Matter paragraph in the audited financial statements of the company for the year ended June 30, 2025. To view the details, please visit: https://www.dsebd.org/Auditors_opinion/2025/MJLBD_2025.pdf"
+    },
+    {
+      "post_date": "2025-11-17T00:00:00",
+      "title": "MJLBD: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 18.11.2025."
+    },
+    {
+      "post_date": "2025-11-16T00:00:00",
+      "title": "MJLBD: Suspension for Record Date",
+      "body": "Trading of the shares  of the company will remain suspended on record date i.e., 17.11.2025."
+    },
+    {
+      "title": "MJLBD: Spot News",
+      "post_date": "2025-11-12T00:00:00",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 13.11.2025 to 16.11.2025 and trading of the shares will remain suspended on record date i.e., 17.11.2025."
+    },
+    {
+      "post_date": "2025-11-11T00:00:00",
+      "title": "MJLBD: Q1 Financials",
+      "body": "(Q1 Un-audited): Consolidated EPS was Tk. 3.06 for July-September 2025 as against Tk. 3.43 for July-September 2024; Consolidated NOCFPS was Tk. 2.01 for July-September 2025 as against Tk. 2.85 for July-September 2024. Consolidated NAV per share was Tk. 57.12 as on September 30, 2025 and Tk. 54.06 as on June 30, 2025."
+    },
+    {
+      "title": "MJLBD: Board Meeting schedule under LR 16(1)",
+      "post_date": "2025-11-04T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on November 10, 2025 at 3:00 PM to consider, among others, Un-audited financial statements of the Company for the First Quarter (Q1) period ended September 30, 2025."
+    },
+    {
+      "post_date": "2025-10-28T00:00:00",
+      "title": "MJLBD: Dividend Declaration",
+      "body": "The Board of Directors has recommended 52% Cash Dividend for the year ended June 30, 2025. Date of AGM: 22.12.2025; Time: 11:00 AM; Venue/Mode of AGM: Digital Platform. Record Date: 17.11.2025. The Company has also reported Consolidated EPS of Tk. 11.36, Consolidated NAV per share of Tk. 54.06 and Consolidated NOCFPS of Tk. 8.67 for the year ended June 30, 2025 as against Tk. 8.71, Tk. 48.03 and Tk. 14.79 respectively for the year ended June 30, 2024."
+    },
+    {
+      "post_date": "2025-10-28T00:00:00",
+      "title": "MJLBD: Price Limit Open",
+      "body": "There will be no price limit on the trading of the shares of the Company today (28.10.2025) following its corporate declaration."
+    },
+    {
+      "post_date": "2025-10-19T00:00:00",
+      "title": "MJLBD: Board Meeting schedule under LR 19(1)",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on October 27, 2025 at 6:00 PM to consider, among others, audited financial statements of the Company for the year ended June 30, 2025."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "MPETROLEUM",
+      "company_name": "Meghna Petroleum PLC.",
+      "sector": "Fuel & Power",
+      "score": 90.1,
+      "ltp": 216.0,
+      "change_pct": -0.09,
+      "pe": 3.52,
+      "pb": 0.78,
+      "div_yield_pct": 9.3,
+      "roe_pct": 22.0,
+      "eps_yoy_pct": 22.5
+    },
+    {
+      "trading_code": "PADMAOIL",
+      "company_name": "Padma Oil PLC.",
+      "sector": "Fuel & Power",
+      "score": 84.8,
+      "ltp": 204.9,
+      "change_pct": 1.94,
+      "pe": 3.58,
+      "pb": 0.75,
+      "div_yield_pct": 7.8,
+      "roe_pct": 20.8,
+      "eps_yoy_pct": 37.8
+    },
+    {
+      "trading_code": "JAMUNAOIL",
+      "company_name": "Jamuna Oil PLC.",
+      "sector": "Fuel & Power",
+      "score": 83.1,
+      "ltp": 185.2,
+      "change_pct": -0.43,
+      "pe": 3.16,
+      "pb": 0.68,
+      "div_yield_pct": 9.7,
+      "roe_pct": 21.4,
+      "eps_yoy_pct": 46.8
+    },
+    {
+      "trading_code": "UPGDCL",
+      "company_name": "United Power Generation & Distribution Company Ltd.",
+      "sector": "Fuel & Power",
+      "score": 63.6,
+      "ltp": 128.6,
+      "change_pct": -1.91,
+      "pe": 6.22,
+      "pb": 1.74,
+      "div_yield_pct": 5.1,
+      "roe_pct": 28.1,
+      "eps_yoy_pct": 47.5
+    },
+    {
+      "trading_code": "CVOPRL",
+      "company_name": "CVO Petrochemical Refinery PLC.",
+      "sector": "Fuel & Power",
+      "score": 54.7,
+      "ltp": 178.6,
+      "change_pct": -1.76,
+      "pe": 46.75,
+      "pb": 5.9,
+      "div_yield_pct": 0.6,
+      "roe_pct": 12.6,
+      "eps_yoy_pct": 63.2
+    }
+  ],
+  "source_hash": "83285498325db5e52d0927bd8e8144ecce381b22dc1dc252fa9220d7a7ac10eb"
+}

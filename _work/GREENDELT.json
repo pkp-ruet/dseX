@@ -1,0 +1,785 @@
+{
+  "trading_code": "GREENDELT",
+  "company_name": "Green Delta Insurance PLC.",
+  "sector_class": "INSURANCE",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Insurance",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 100188194,
+    "paid_up_capital_mn": 1001.88,
+    "reserve_surplus_mn": 6064.6,
+    "total_loan_mn": 0,
+    "listing_year": 1989,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 68.6,
+    "change": -0.7,
+    "change_pct": -1.01,
+    "date": "2026-07-16",
+    "high": 69.4,
+    "low": 67.8,
+    "volume": 219660,
+    "avg_volume_7d": 317838,
+    "ycp": 69.3,
+    "w52_high": 70.6,
+    "w52_low": 45.5
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 1.5,
+      "m3": 21.6,
+      "m6": 27.5,
+      "y1": 49.1
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 37.5
+      },
+      {
+        "date": "2025-06-30",
+        "close": 40.2
+      },
+      {
+        "date": "2025-07-31",
+        "close": 49.0
+      },
+      {
+        "date": "2025-08-31",
+        "close": 53.1
+      },
+      {
+        "date": "2025-09-30",
+        "close": 50.0
+      },
+      {
+        "date": "2025-10-30",
+        "close": 54.5
+      },
+      {
+        "date": "2025-11-30",
+        "close": 53.2
+      },
+      {
+        "date": "2025-12-30",
+        "close": 53.8
+      },
+      {
+        "date": "2026-01-29",
+        "close": 57.0
+      },
+      {
+        "date": "2026-02-26",
+        "close": 57.3
+      },
+      {
+        "date": "2026-03-31",
+        "close": 53.0
+      },
+      {
+        "date": "2026-04-30",
+        "close": 61.3
+      },
+      {
+        "date": "2026-05-31",
+        "close": 59
+      },
+      {
+        "date": "2026-06-30",
+        "close": 67
+      },
+      {
+        "date": "2026-07-16",
+        "close": 68.6
+      }
+    ],
+    "pct_in_52w_range": 92.0
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.0
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.7
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.7
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Fairly priced",
+      "word_bn": "দাম যুক্তিসঙ্গত",
+      "score10": 6.7
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.3
+    }
+  ],
+  "fair_value": {
+    "low": 76.3,
+    "high": 114,
+    "center": 95.4,
+    "today": 68.6,
+    "stance": "cheap",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 55.7
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 148
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 67.7
+      },
+      {
+        "name": "book_peer",
+        "label_en": "Priced like similar companies (assets)",
+        "price": 145
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 45.0
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 12.61,
+    "current_pb": 0.97,
+    "own_avg_pe": 10.23,
+    "own_avg_pb": 0.96,
+    "sector_median_pe": 27.25,
+    "sector_median_pb": 2.06,
+    "eps": 5.44,
+    "sector_implied_price": 148.24
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2020,
+        "eps_taka": 7.34,
+        "net_profit_crore": 68.4,
+        "cash_dividend_pct": 24.5,
+        "stock_dividend_pct": 7.5,
+        "dps_taka": 2.45,
+        "nav_per_share_taka": 68.95
+      },
+      {
+        "year": 2021,
+        "eps_taka": 8.43,
+        "net_profit_crore": 84.5,
+        "cash_dividend_pct": 30.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 3.0,
+        "nav_per_share_taka": 69.32,
+        "revenue_crore": 54.7,
+        "operating_profit_crore": 120.3,
+        "operating_cash_flow_crore": -17.0,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 694.5,
+        "total_assets_crore": 1351,
+        "cash_crore": 151.5
+      },
+      {
+        "year": 2022,
+        "eps_taka": 7.3,
+        "net_profit_crore": 73.1,
+        "cash_dividend_pct": 25.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.5,
+        "nav_per_share_taka": 68.96,
+        "revenue_crore": 54.8,
+        "operating_profit_crore": 110.0,
+        "operating_cash_flow_crore": 59.5,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 690.9,
+        "total_assets_crore": 1412,
+        "cash_crore": 165.8
+      },
+      {
+        "year": 2023,
+        "eps_taka": 6.11,
+        "net_profit_crore": 61.2,
+        "cash_dividend_pct": 25.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.5,
+        "nav_per_share_taka": 73.18,
+        "revenue_crore": 42.3,
+        "operating_profit_crore": 104.5,
+        "operating_cash_flow_crore": 59.9,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 733.2,
+        "total_assets_crore": 1599,
+        "cash_crore": 162.7
+      },
+      {
+        "year": 2024,
+        "eps_taka": 5.39,
+        "net_profit_crore": 54.0,
+        "cash_dividend_pct": 25.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.5,
+        "nav_per_share_taka": 70.4,
+        "revenue_crore": 27.7,
+        "operating_profit_crore": 98.3,
+        "operating_cash_flow_crore": 11.9,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 705.4,
+        "total_assets_crore": 1538,
+        "cash_crore": 153.6
+      },
+      {
+        "year": 2025,
+        "eps_taka": 5.44,
+        "net_profit_crore": 54.5,
+        "cash_dividend_pct": 27.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.7,
+        "nav_per_share_taka": 70.53
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 5.44,
+      "net_profit_crore": 54.5,
+      "cash_dividend_pct": 27.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 2.7,
+      "nav_per_share_taka": 70.53
+    },
+    "growth": {
+      "span": "2020–2025",
+      "net_profit_change_pct": -20.0,
+      "eps_change_pct": -26.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 10.0,
+      "paid_up_capital_crore": 100.2,
+      "reserve_surplus_crore": 606.5,
+      "total_loan_crore": 0.0,
+      "listing_year": 1989
+    },
+    "ownership": {
+      "sponsor_director_pct": 30.58,
+      "govt_pct": 0.0,
+      "institute_pct": 22.97,
+      "foreign_pct": 4.6,
+      "public_pct": 41.85
+    }
+  },
+  "sector_context": {
+    "sector": "Insurance",
+    "peer_count": 59,
+    "rank_in_sector": 10,
+    "sector_avg_score": 41.4,
+    "sector_median_pe": 27.25
+  },
+  "score": {
+    "trading_code": "GREENDELT",
+    "sector": "Insurance",
+    "market_cat": "A",
+    "ltp": 68.6,
+    "mcap_mn": 6872.910108399999,
+    "score": 60.4,
+    "base_score": 60.4,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.855,
+    "eps": 5.44,
+    "roe_pct": 7.7,
+    "sector_median_pe": 27.25,
+    "sector_median_pb": 2.06,
+    "p1_biz": 6.04,
+    "p2_health": 5.73,
+    "p3_moat": 5.65,
+    "p4_val": 6.74,
+    "p5_div": 6.26,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 2.0,
+    "p1_roe": 4.8165,
+    "p1_npm_trend": 10.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 0.9,
+    "eps_stability": 1.0,
+    "p2_de": null,
+    "p2_ic": 10.0,
+    "p2_cfo": 3.0,
+    "p2_cash": null,
+    "p2_coverage": 0.643,
+    "p3_margin": 10.0,
+    "p3_rev_vol": 1.0,
+    "p3_sector_rank": 5.0,
+    "p3_capex": null,
+    "p3_coverage": 0.85,
+    "p4_pe": 6.2,
+    "p4_pb": 7.55,
+    "p4_vol_damp": 1.0,
+    "current_pe": 12.61,
+    "current_pb": 0.97,
+    "own_avg_pe": 10.23,
+    "own_avg_pb": 0.96,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 8.403790087463557,
+    "div_yield_pct": 3.9,
+    "overall_rank": 57,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "good_wait_price",
+    "reason_en": "Good company — fine to hold, but wait for a cheaper price to buy.",
+    "reason_bn": "ভালো কোম্পানি — ধরে রাখা যায়, তবে কেনার জন্য আরেকটু কম দামের অপেক্ষা করুন।",
+    "tier": "good",
+    "momentum_grade": "flat",
+    "score": 60.4,
+    "p4_val": 6.74,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 30.6% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, but share is quiet",
+    "sentences": [
+      "The company's numbers are good, but the share has been quiet — the price is not moving much in either direction.",
+      "Price is close to the highest level of the past year — not much room left for a cheap entry."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 0.73,
+    "rs_vs_dsex_pct": -1.33,
+    "volume_ratio": 0.83,
+    "avg_turnover_7d_mn": 21.17,
+    "up_days_7d": 4,
+    "days_counted": 7,
+    "pct_in_52w_range": 92.0,
+    "momentum_grade": "flat"
+  },
+  "financials": [
+    {
+      "trading_code": "GREENDELT",
+      "year": 2020,
+      "cash_dividend_pct": 24.5,
+      "dividend_yield_pct": 3.98,
+      "eps_basic": null,
+      "eps_cont_basic": 7.34,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 68.95,
+      "pe_ratio_basic": 8.4,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 683.8,
+      "profit_mn": 683.8,
+      "stock_dividend_pct": 7.5,
+      "total_comprehensive_income_mn": 683.8,
+      "dps": 2.45,
+      "eps": 7.34
+    },
+    {
+      "year": 2021,
+      "trading_code": "GREENDELT",
+      "cash_dividend_pct": 30.0,
+      "dividend_yield_pct": 2.83,
+      "eps_basic": null,
+      "eps_cont_basic": 8.43,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 69.32,
+      "pe_ratio_basic": 12.58,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 844.69,
+      "profit_mn": 844.69,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 844.69,
+      "dps": 3.0,
+      "eps": 8.43
+    },
+    {
+      "year": 2022,
+      "trading_code": "GREENDELT",
+      "cash_dividend_pct": 25.0,
+      "dividend_yield_pct": 3.84,
+      "eps_basic": null,
+      "eps_cont_basic": 7.3,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 68.96,
+      "pe_ratio_basic": 8.92,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 731.23,
+      "profit_mn": 731.23,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 731.23,
+      "dps": 2.5,
+      "eps": 7.3
+    },
+    {
+      "year": 2023,
+      "trading_code": "GREENDELT",
+      "cash_dividend_pct": 25.0,
+      "dividend_yield_pct": 3.82,
+      "eps_basic": null,
+      "eps_cont_basic": 6.11,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 73.18,
+      "pe_ratio_basic": 10.72,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 612.19,
+      "profit_mn": 612.19,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 612.19,
+      "dps": 2.5,
+      "eps": 6.11
+    },
+    {
+      "trading_code": "GREENDELT",
+      "year": 2024,
+      "cash_dividend_pct": 25.0,
+      "dividend_yield_pct": 5.14,
+      "eps_basic": null,
+      "eps_cont_basic": 5.39,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 70.4,
+      "pe_ratio_basic": 9.02,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 539.76,
+      "profit_mn": 539.76,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 539.76,
+      "dps": 2.5,
+      "eps": 5.39
+    },
+    {
+      "trading_code": "GREENDELT",
+      "year": 2025,
+      "cash_dividend_pct": 27.0,
+      "dividend_yield_pct": 5.02,
+      "dps": 2.7,
+      "eps_basic": null,
+      "eps_cont_basic": 5.44,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 70.53,
+      "pe_ratio_basic": 9.89,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 545.14,
+      "profit_mn": 545.14,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 545.14,
+      "eps": 5.44
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "GREENDELT",
+      "year": 2021,
+      "capex": null,
+      "investing_cf": 1618651.0,
+      "net_profit": 844690269.0,
+      "nocfps": -1.7,
+      "operating_cf": -170432826.0,
+      "total_equity": 6945236120.0,
+      "ebit": 1202589686.0,
+      "intangibles": 5700732.0,
+      "interest_expense": -130910205.0,
+      "revenue": 546835174.0,
+      "total_assets": 13506264125.0,
+      "cash_and_equivalents": 1514501460.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "trading_code": "GREENDELT",
+      "year": 2022,
+      "capex": null,
+      "investing_cf": -173364098.0,
+      "net_profit": 731225379.0,
+      "nocfps": 5.94,
+      "operating_cf": 595150849.0,
+      "total_equity": 6908569169.0,
+      "ebit": 1099569578.0,
+      "intangibles": 4528148.0,
+      "interest_expense": -162535318.0,
+      "revenue": 547506889.0,
+      "total_assets": 14118452689.0,
+      "cash_and_equivalents": 1658113569.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "year": 2023,
+      "trading_code": "GREENDELT",
+      "capex": null,
+      "investing_cf": -1529010757.0,
+      "net_profit": 614270046.0,
+      "nocfps": 5.98,
+      "operating_cf": 599035399.0,
+      "total_equity": 7331830941.0,
+      "ebit": 1045196373.0,
+      "intangibles": 3520080.0,
+      "interest_expense": -210030781.0,
+      "revenue": 423370517.0,
+      "total_assets": 15994719473.0,
+      "cash_and_equivalents": 1626949547.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "year": 2024,
+      "trading_code": "GREENDELT",
+      "capex": null,
+      "investing_cf": -102024856.0,
+      "net_profit": 539756767.0,
+      "nocfps": 1.19,
+      "operating_cf": 119123525.0,
+      "total_equity": 7053746953.0,
+      "ebit": 982949616.0,
+      "intangibles": 5785952.0,
+      "interest_expense": -423382810.0,
+      "revenue": 276736535.0,
+      "total_assets": 15376286480.0,
+      "cash_and_equivalents": 1535970291.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "GREENDELT",
+    "foreign_pct": 4.6,
+    "govt_pct": 0.0,
+    "institute_pct": 22.97,
+    "public_pct": 41.85,
+    "reporting_period": null,
+    "sponsor_director_pct": 30.58
+  },
+  "shareholding_prev": {
+    "trading_code": "GREENDELT",
+    "as_of_date": "Jan 29, 2026",
+    "foreign_pct": 4.6,
+    "govt_pct": 0.0,
+    "institute_pct": 22.95,
+    "public_pct": 41.87,
+    "reporting_period": null,
+    "sponsor_director_pct": 30.58
+  },
+  "dividend_declaration": {
+    "trading_code": "GREENDELT",
+    "declaration_date": "2026-02-16T00:00:00",
+    "dividend_pct": 27.0,
+    "dividend_type": "Final",
+    "record_date": "2026-03-08T00:00:00",
+    "scraped_at": "2026-07-16T10:16:29.054000",
+    "title": "GREENDELT: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-07-02T00:00:00",
+      "title": "GREENDELT: Credit Rating Result",
+      "body": "Credit Rating Agency of Bangladesh Limited (CRAB) has Surveillance rating of the Company as \"AAA\" in the long term and \"ST-1\" for short term along with a Stable outlook based on audited financial statements as of December 31, 2025 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "post_date": "2026-05-13T00:00:00",
+      "title": "GREENDELT: Q1 Financials",
+      "body": "(Q1 Un-audited): Consolidated EPS was Tk. 0.73 for January-March 2026 as against Tk. 1.03 for January-March 2025. Consolidated NOCFPS was Tk. 1.81 for January-March 2026 as against Tk. 1.38 for January-March 2025. Consolidated NAV per share was Tk. 70.43 as on March 31, 2026 and Tk. 70.53 as on December 31, 2025. Reasons for Deviation: EPS decreased due to higher net claims and an increase in net losses incurred by the subsidiaries. (cont.)"
+    },
+    {
+      "title": "GREENDELT: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-05-06T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on May 12, 2026 at 2:45 pm to consider, among others, Un-Audited Financial Statements for the First Quarter (Q1) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-04-29T00:00:00",
+      "title": "GREENDELT: Dividend Disbursement",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended December 31, 2025 to the respective shareholders."
+    },
+    {
+      "post_date": "2026-03-08T00:00:00",
+      "title": "GREENDELT: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 09.03.2026."
+    },
+    {
+      "post_date": "2026-03-05T00:00:00",
+      "title": "GREENDELT: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 08.03.2026."
+    },
+    {
+      "title": "GREENDELT: Spot News",
+      "post_date": "2026-03-03T00:00:00",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 04.03.2026 to 05.03.2026 and trading of the shares will remain suspended on record date i.e., 08.03.2026."
+    },
+    {
+      "post_date": "2026-02-16T00:00:00",
+      "title": "GREENDELT: Dividend Declaration",
+      "body": "The Board of Directors of the company has recommended 27% Cash Dividend for the year ended December 31, 2025. The Company has reported Consolidated EPS of Tk. 5.44, Consolidated NAV per share of Tk. 70.53 and Consolidated NOCFPS of Tk. 8.91 for the year ended December 31, 2025 as against Tk. 5.39, Tk. 70.40 and Tk. 1.19 respectively for the year ended December 31, 2024. Date of AGM: 31.03.2026. Record Date: 08.03.2026. Venue/Mode of AGM: Online Platform. Time: 11:00 AM. (cont.)"
+    },
+    {
+      "post_date": "2026-02-16T00:00:00",
+      "title": "GREENDELT: Price Limit Open",
+      "body": "There will be no price limit on the trading of the shares of the Company today (16.02.2026) following its corporate declaration."
+    },
+    {
+      "post_date": "2026-02-16T00:00:00",
+      "title": "GREENDELT: Board decision to acquire 40% shares of a company",
+      "body": "The company has informed that the Board of Directors of Green Delta Insurance PLC has decided to acquire 40% of the shares of Green Delta Dragon Asset Management Co. Ltd. from Dragon Capital Management (HK) Ltd."
+    },
+    {
+      "post_date": "2026-02-05T00:00:00",
+      "title": "GREENDELT: Board Meeting schedule under LR 19(1)",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on February 15, 2026 at 2:45 PM to consider, among others, audited financial statements of the Company for the year ended December 31, 2025."
+    },
+    {
+      "post_date": "2025-12-18T00:00:00",
+      "title": "GREENDELMF: Daily NAV",
+      "body": "On the close of operation on December 17, 2025, the Fund has reported Net Asset Value (NAV) of Tk. 8.59 per unit on the basis of current market price and Tk. 11.11 per unit on the basis of cost price against face value of Tk. 10.00 whereas total Net Assets of the Fund stood at Tk. 1,288,148,231.00 on the basis of current market price and Tk. 1,666,443,663.00 on the basis of cost price after considering all assets and liabilities of the Fund."
+    },
+    {
+      "title": "GREENDELT: Q3 Financials",
+      "post_date": "2025-10-30T00:00:00",
+      "body": "(Q3 Un-audited): Consolidated EPS was Tk. 0.81 for July-September, 2025 as against Tk. 0.86 for July-September, 2024; Consolidated EPS was Tk. 3.63 for January-September, 2025 as against Tk. 3.71 for January-September, 2024. Consolidated NOCFPS was Tk. 6.25 for January-September, 2025 as against Tk. 1.02 for January-September, 2024. Consolidated NAV per share was Tk. 69.98 as on September 30, 2025 and Tk. 70.40 as on December 31, 2024. NOCFPS increased due to increase of premium income & investm…"
+    },
+    {
+      "title": "GREENDELT: Board Meeting schedule under LR 16(1)",
+      "post_date": "2025-10-23T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on October 29, 2025 at 2:45 PM to consider, among others, Un-audited financial statements of the Company for the Third Quarter (Q3) period ended September 30, 2025."
+    },
+    {
+      "post_date": "2025-09-23T00:00:00",
+      "title": "GREENDELT: Declaration of share receipt by a Sponsor",
+      "body": "Mr. Syed Moazzem Hussain, a sponsor shareholder of the company, has informed that he will receive 262,355 shares of the company from his wife Late Halima Hussain by way of nomination."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "UNITEDINS",
+      "company_name": "United Insurance Company Ltd.",
+      "sector": "Insurance",
+      "score": 71.6,
+      "ltp": 47.9,
+      "change_pct": -1.64,
+      "pe": 13.84,
+      "pb": 1.54,
+      "div_yield_pct": 3.1,
+      "roe_pct": 7.4,
+      "eps_yoy_pct": 53.1
+    },
+    {
+      "trading_code": "SIPLC",
+      "company_name": "Sena Insurance PLC",
+      "sector": "Insurance",
+      "score": 70.4,
+      "ltp": 108.4,
+      "change_pct": -3.9,
+      "pe": 20.97,
+      "pb": 3.79,
+      "div_yield_pct": 1.4,
+      "roe_pct": 17.1,
+      "eps_yoy_pct": 20.5
+    },
+    {
+      "trading_code": "RELIANCINS",
+      "company_name": "Reliance Insurance PLC.",
+      "sector": "Insurance",
+      "score": 69.7,
+      "ltp": 114.1,
+      "change_pct": -2.23,
+      "pe": 13.55,
+      "pb": 1.45,
+      "div_yield_pct": 2.6,
+      "roe_pct": 13.1,
+      "eps_yoy_pct": -7.7
+    },
+    {
+      "trading_code": "PRAGATIINS",
+      "company_name": "Pragati Insurance PLC.",
+      "sector": "Insurance",
+      "score": 65.8,
+      "ltp": 81.5,
+      "change_pct": -1.21,
+      "pe": 15.35,
+      "pb": 1.42,
+      "div_yield_pct": 3.3,
+      "roe_pct": 9.7,
+      "eps_yoy_pct": -5.3
+    },
+    {
+      "trading_code": "ASIAPACINS",
+      "company_name": "Asia Pacific General Insurance PLC",
+      "sector": "Insurance",
+      "score": 64.9,
+      "ltp": 47.1,
+      "change_pct": -1.88,
+      "pe": 18.76,
+      "pb": 1.86,
+      "div_yield_pct": 3.0,
+      "roe_pct": 8.0,
+      "eps_yoy_pct": 32.8
+    }
+  ],
+  "source_hash": "3650d20aca9e87907d1f9246e245939027b8174e631e0010f465294ed47e2b7e"
+}

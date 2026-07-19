@@ -1,0 +1,786 @@
+{
+  "trading_code": "CRYSTALINS",
+  "company_name": "Crystal Insurance Company Limited",
+  "sector_class": "INSURANCE",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Insurance",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 44000000,
+    "paid_up_capital_mn": 440.0,
+    "reserve_surplus_mn": 776.5,
+    "total_loan_mn": 0,
+    "listing_year": 2020,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 72.1,
+    "change": -1,
+    "change_pct": -1.37,
+    "date": "2026-07-16",
+    "high": 73,
+    "low": 71.9,
+    "volume": 176295,
+    "avg_volume_7d": 400859,
+    "ycp": 73.1,
+    "w52_high": 88.2,
+    "w52_low": 42.2
+  },
+  "price_trend": {
+    "returns": {
+      "m1": -1.6,
+      "m3": -6.7,
+      "m6": 4.8,
+      "y1": 54.1
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 39.2
+      },
+      {
+        "date": "2025-06-30",
+        "close": 42.5
+      },
+      {
+        "date": "2025-07-31",
+        "close": 45.7
+      },
+      {
+        "date": "2025-08-31",
+        "close": 58.8
+      },
+      {
+        "date": "2025-09-30",
+        "close": 56.4
+      },
+      {
+        "date": "2025-10-30",
+        "close": 55.0
+      },
+      {
+        "date": "2025-11-30",
+        "close": 49.3
+      },
+      {
+        "date": "2025-12-30",
+        "close": 57.2
+      },
+      {
+        "date": "2026-01-29",
+        "close": 85.0
+      },
+      {
+        "date": "2026-02-26",
+        "close": 76.2
+      },
+      {
+        "date": "2026-03-31",
+        "close": 81.4
+      },
+      {
+        "date": "2026-04-30",
+        "close": 78.3
+      },
+      {
+        "date": "2026-05-31",
+        "close": 72.9
+      },
+      {
+        "date": "2026-06-30",
+        "close": 74.1
+      },
+      {
+        "date": "2026-07-16",
+        "close": 72.1
+      }
+    ],
+    "pct_in_52w_range": 65.0
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 7.8
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.8
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Weak",
+      "word_bn": "দুর্বল",
+      "score10": 3.9
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Fairly priced",
+      "word_bn": "দাম যুক্তিসঙ্গত",
+      "score10": 5.5
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 7.2
+    }
+  ],
+  "fair_value": {
+    "low": 47.6,
+    "high": 71.4,
+    "center": 59.5,
+    "today": 72.1,
+    "stance": "expensive",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 65.5
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 91.0
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 64.7
+      },
+      {
+        "name": "book_peer",
+        "label_en": "Priced like similar companies (assets)",
+        "price": 55.6
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 20.0
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 21.59,
+    "current_pb": 2.61,
+    "own_avg_pe": 19.6,
+    "own_avg_pb": 2.34,
+    "sector_median_pe": 27.25,
+    "sector_median_pb": 2.01,
+    "eps": 3.34,
+    "sector_implied_price": 91.02
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2020,
+        "eps_taka": 4.58,
+        "net_profit_crore": 11.5,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 20.98
+      },
+      {
+        "year": 2021,
+        "eps_taka": 2.83,
+        "net_profit_crore": 11.3,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 22.8,
+        "revenue_crore": 1.4,
+        "operating_profit_crore": 11.8,
+        "operating_cash_flow_crore": 11.2,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 91.2,
+        "total_assets_crore": 159.8,
+        "cash_crore": 0.02
+      },
+      {
+        "year": 2022,
+        "eps_taka": 2.72,
+        "net_profit_crore": 10.9,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 24.31,
+        "revenue_crore": 5.49,
+        "operating_profit_crore": 13.7,
+        "operating_cash_flow_crore": 24.3,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 97.2,
+        "total_assets_crore": 183.8,
+        "cash_crore": 0.02
+      },
+      {
+        "year": 2023,
+        "eps_taka": 3.05,
+        "net_profit_crore": 12.2,
+        "cash_dividend_pct": 7.0,
+        "stock_dividend_pct": 10,
+        "dps_taka": 0.7,
+        "nav_per_share_taka": 25.87,
+        "revenue_crore": 1.99,
+        "operating_profit_crore": 14.2,
+        "operating_cash_flow_crore": 6.97,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 103.5,
+        "total_assets_crore": 190.7,
+        "cash_crore": 0.01
+      },
+      {
+        "year": 2024,
+        "eps_taka": 3.13,
+        "net_profit_crore": 13.8,
+        "cash_dividend_pct": 12.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.2,
+        "nav_per_share_taka": 25.67,
+        "revenue_crore": 1.71,
+        "operating_profit_crore": 15.4,
+        "operating_cash_flow_crore": 9.68,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 112.9,
+        "total_assets_crore": 206.0,
+        "cash_crore": 0.01
+      },
+      {
+        "year": 2025,
+        "eps_taka": 3.34,
+        "net_profit_crore": 14.7,
+        "cash_dividend_pct": 12.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.2,
+        "nav_per_share_taka": 27.65
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 3.34,
+      "net_profit_crore": 14.7,
+      "cash_dividend_pct": 12.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 1.2,
+      "nav_per_share_taka": 27.65
+    },
+    "growth": {
+      "span": "2020–2025",
+      "net_profit_change_pct": 28.0,
+      "eps_change_pct": -27.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 4.4,
+      "paid_up_capital_crore": 44.0,
+      "reserve_surplus_crore": 77.7,
+      "total_loan_crore": 0.0,
+      "listing_year": 2020
+    },
+    "ownership": {
+      "sponsor_director_pct": 58.0,
+      "govt_pct": 0.0,
+      "institute_pct": 21.64,
+      "foreign_pct": 0.01,
+      "public_pct": 20.35
+    }
+  },
+  "sector_context": {
+    "sector": "Insurance",
+    "peer_count": 59,
+    "rank_in_sector": 8,
+    "sector_avg_score": 41.4,
+    "sector_median_pe": 27.25
+  },
+  "score": {
+    "trading_code": "CRYSTALINS",
+    "sector": "Insurance",
+    "market_cat": "A",
+    "ltp": 72.1,
+    "mcap_mn": 3172.3999999999996,
+    "score": 63.7,
+    "base_score": 63.7,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.855,
+    "eps": 3.34,
+    "roe_pct": 13.0,
+    "sector_median_pe": 27.25,
+    "sector_median_pb": 2.01,
+    "p1_biz": 7.75,
+    "p2_health": 6.77,
+    "p3_moat": 3.91,
+    "p4_val": 5.55,
+    "p5_div": 7.15,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 4.4545,
+    "p1_roe": 8.0386,
+    "p1_npm_trend": 10.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 6.7,
+    "eps_stability": 1.0,
+    "p2_de": null,
+    "p2_ic": 10.0,
+    "p2_cfo": 5.0,
+    "p2_cash": null,
+    "p2_coverage": 0.643,
+    "p3_margin": 7.5,
+    "p3_rev_vol": 1.0,
+    "p3_sector_rank": 2.0,
+    "p3_capex": null,
+    "p3_coverage": 0.85,
+    "p4_pe": 6.5,
+    "p4_pb": 4.14,
+    "p4_vol_damp": 1.0,
+    "current_pe": 21.59,
+    "current_pb": 2.61,
+    "own_avg_pe": 19.6,
+    "own_avg_pb": 2.34,
+    "p5_dps_cagr": 5.7981,
+    "p5_consist": 10.0,
+    "p5_yield": 4.996532593619972,
+    "div_yield_pct": 1.7,
+    "overall_rank": 46,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "good_wait_price",
+    "reason_en": "Good company — fine to hold, but wait for a cheaper price to buy.",
+    "reason_bn": "ভালো কোম্পানি — ধরে রাখা যায়, তবে কেনার জন্য আরেকটু কম দামের অপেক্ষা করুন।",
+    "tier": "good",
+    "momentum_grade": "flat",
+    "score": 63.7,
+    "p4_val": 5.55,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 58.0% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, but share is quiet",
+    "sentences": [
+      "The company's numbers are good, but the share has been quiet — the price is not moving much in either direction.",
+      "Has paid dividends regularly in past years."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 0.0,
+    "rs_vs_dsex_pct": -2.06,
+    "volume_ratio": 0.65,
+    "avg_turnover_7d_mn": 26.83,
+    "up_days_7d": 3,
+    "days_counted": 7,
+    "pct_in_52w_range": 65.0,
+    "momentum_grade": "flat"
+  },
+  "financials": [
+    {
+      "year": 2020,
+      "trading_code": "CRYSTALINS",
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 2.54,
+      "eps_basic": null,
+      "eps_cont_basic": 4.58,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 20.98,
+      "pe_ratio_basic": 8.61,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 115.45,
+      "profit_mn": 115.45,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 115.45,
+      "dps": 1.0,
+      "eps": 4.58
+    },
+    {
+      "trading_code": "CRYSTALINS",
+      "year": 2021,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 1.77,
+      "eps_basic": null,
+      "eps_cont_basic": 2.83,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 22.8,
+      "pe_ratio_basic": 20.01,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 113.17,
+      "profit_mn": 113.17,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 113.17,
+      "dps": 1.0,
+      "eps": 2.83
+    },
+    {
+      "year": 2022,
+      "trading_code": "CRYSTALINS",
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 2.48,
+      "eps_basic": null,
+      "eps_cont_basic": 2.72,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 24.31,
+      "pe_ratio_basic": 14.8,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 108.96,
+      "profit_mn": 108.96,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 108.96,
+      "dps": 1.0,
+      "eps": 2.72
+    },
+    {
+      "trading_code": "CRYSTALINS",
+      "year": 2023,
+      "cash_dividend_pct": 7.0,
+      "dividend_yield_pct": 0.82,
+      "eps_basic": null,
+      "eps_cont_basic": 3.05,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 25.87,
+      "pe_ratio_basic": 27.93,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 121.87,
+      "profit_mn": 121.87,
+      "stock_dividend_pct": 10,
+      "total_comprehensive_income_mn": 121.87,
+      "dps": 0.7,
+      "eps": 3.05
+    },
+    {
+      "trading_code": "CRYSTALINS",
+      "year": 2024,
+      "cash_dividend_pct": 12.0,
+      "dividend_yield_pct": 2.12,
+      "eps_basic": null,
+      "eps_cont_basic": 3.13,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 25.67,
+      "pe_ratio_basic": 18.13,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 137.64,
+      "profit_mn": 137.64,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 137.64,
+      "dps": 1.2,
+      "eps": 3.13
+    },
+    {
+      "trading_code": "CRYSTALINS",
+      "year": 2025,
+      "cash_dividend_pct": 12.0,
+      "dividend_yield_pct": 2.1,
+      "dps": 1.2,
+      "eps_basic": null,
+      "eps_cont_basic": 3.34,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 27.65,
+      "pe_ratio_basic": 17.13,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 146.96,
+      "profit_mn": 146.96,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 146.96,
+      "eps": 3.34
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "CRYSTALINS",
+      "year": 2021,
+      "capex": null,
+      "investing_cf": -50499375.0,
+      "net_profit": 119585904.0,
+      "nocfps": 2.8,
+      "operating_cf": 111815794.0,
+      "total_equity": 911893778.0,
+      "ebit": 118069902.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 14039579.0,
+      "total_assets": 1598499668.0,
+      "cash_and_equivalents": 214196.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "trading_code": "CRYSTALINS",
+      "year": 2022,
+      "capex": null,
+      "investing_cf": 6741253.0,
+      "net_profit": 115157577.0,
+      "nocfps": 6.08,
+      "operating_cf": 243189044.0,
+      "total_equity": 972432566.0,
+      "ebit": 137438974.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 54918782.0,
+      "total_assets": 1838048444.0,
+      "cash_and_equivalents": 234587.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "trading_code": "CRYSTALINS",
+      "year": 2023,
+      "capex": null,
+      "investing_cf": -19798004.0,
+      "net_profit": 128827379.0,
+      "nocfps": 1.74,
+      "operating_cf": 69659098.0,
+      "total_equity": 1034611105.0,
+      "ebit": 142163020.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 19944842.0,
+      "total_assets": 1907421689.0,
+      "cash_and_equivalents": 148625.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "trading_code": "CRYSTALINS",
+      "year": 2024,
+      "capex": null,
+      "investing_cf": -18182564.0,
+      "net_profit": 146581918.0,
+      "nocfps": 2.2,
+      "operating_cf": 96789544.0,
+      "total_equity": 1129497629.0,
+      "ebit": 154207841.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 17080976.0,
+      "total_assets": 2059606848.0,
+      "cash_and_equivalents": 76586.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "CRYSTALINS",
+    "foreign_pct": 0.01,
+    "govt_pct": 0.0,
+    "institute_pct": 21.64,
+    "public_pct": 20.35,
+    "reporting_period": null,
+    "sponsor_director_pct": 58.0
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jan 31, 2026",
+    "trading_code": "CRYSTALINS",
+    "foreign_pct": 0.01,
+    "govt_pct": 0.0,
+    "institute_pct": 13.23,
+    "public_pct": 28.76,
+    "reporting_period": null,
+    "sponsor_director_pct": 58.0
+  },
+  "dividend_declaration": {
+    "trading_code": "CRYSTALINS",
+    "declaration_date": "2026-02-17T00:00:00",
+    "dividend_pct": 12.0,
+    "dividend_type": "Final",
+    "record_date": "2026-03-09T00:00:00",
+    "scraped_at": "2026-07-16T10:07:07.924000",
+    "title": "CRYSTALINS: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-07-13T00:00:00",
+      "title": "CRYSTALINS: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on July 21, 2026 at 3:00 pm to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended June 30, 2026."
+    },
+    {
+      "title": "CRYSTALINS: Dividend Disbursement",
+      "post_date": "2026-05-07T00:00:00",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended December 31, 2025 to the respective shareholders."
+    },
+    {
+      "title": "CRYSTALINS: Q1 Financials",
+      "post_date": "2026-04-29T00:00:00",
+      "body": "(Q1 Un-audited): EPS was Tk. 1.13 for January-March 2026 as against Tk. 0.94 for January-March 2025. NOCFPS was Tk. 1.35 for January-March 2026 as against Tk. 1.41 for January-March 2025. NAV per share was Tk. 27.61 as on March 31, 2026 and Tk. 25.50 as on March 31, 2025. Reason for Deviation in EPS: EPS increased from the previous period due to increase of interest income during the period."
+    },
+    {
+      "title": "CRYSTALINS: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-04-27T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 28, 2026 at 3:00 pm to consider, among others, Un-Audited Financial Statements for the First Quarter (Q1) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-03-09T00:00:00",
+      "title": "CRYSTALINS: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 10.03.2026."
+    },
+    {
+      "post_date": "2026-03-08T00:00:00",
+      "title": "CRYSTALINS: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 09.03.2026."
+    },
+    {
+      "post_date": "2026-03-04T00:00:00",
+      "title": "CRYSTALINS: Spot News",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 05.03.2026 to 08.03.2026 and trading of the shares will remain suspended on record date i.e., 09.03.2026."
+    },
+    {
+      "title": "CRYSTALINS: Credit Rating Result",
+      "post_date": "2026-02-26T00:00:00",
+      "body": "National Credit Ratings Limited has assigned the surveillance entity rating of the Company as \"AAA\" in the long term and \"ST-1\" in the short term along with stable outlook based on audited financial statements as on December 31, 2025."
+    },
+    {
+      "title": "CRYSTALINS: Dividend Declaration",
+      "post_date": "2026-02-17T00:00:00",
+      "body": "The Board of Directors has recommended 12% Cash Dividend for the year ended December 31, 2025. The Company has reported EPS of Tk. 3.34, NAV per share of Tk. 27.65 and NOCFPS of Tk. 1.74 for the year ended December 31, 2025 as against Tk. 3.13, Tk. 25.67 and Tk. 2.20 respectively for the year ended December 31, 2024. Date of AGM: 30.03.2026. Record Date: 09.03.2026. Time of AGM: 11:00 AM, Venue/Mode: Digital platform."
+    },
+    {
+      "title": "CRYSTALINS: Price Limit Open",
+      "post_date": "2026-02-17T00:00:00",
+      "body": "There will be no price limit on the trading of the shares of the Company today (17.02.2026) following its corporate declaration."
+    },
+    {
+      "post_date": "2026-02-10T00:00:00",
+      "title": "CRYSTALINS: Board Meeting schedule under LR 19(1)",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on February 16, 2026 at 3:00 PM to consider, among others, audited financial statements of the Company for the year ended December 31, 2025."
+    },
+    {
+      "title": "CRYSTALINS: Q3 Financials",
+      "post_date": "2025-10-30T00:00:00",
+      "body": "(Q3 Un-audited): EPS was Tk. 0.87 for July-September, 2025 as against Tk. 0.76 for July-September, 2024; EPS was Tk. 2.65 for January-September, 2025 as against Tk. 2.44 for January-September, 2024. NOCFPS was Tk. 1.08 for January-September, 2025 as against Tk. 0.30 for January-September, 2024. NAV per share was Tk. 27.18 as on September 30, 2025 and Tk. 25.67 as on December 31, 2024. (cont.)"
+    },
+    {
+      "post_date": "2025-10-22T00:00:00",
+      "title": "CRYSTALINS: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on October 29, 2025 at 3:00 PM to consider, among others, Un-audited financial statements of the Company for the Third Quarter (Q3) period ended September 30, 2025."
+    },
+    {
+      "post_date": "2025-07-28T00:00:00",
+      "title": "CRYSTALINS: Q2 Financials",
+      "body": "(Q2 Un-audited): EPS was Tk. 0.84 for April-June 2025 as against Tk. 0.86 for April-June 2024; EPS was Tk. 1.78 for January-June 2025 as against Tk. 1.69 for January-June 2024. NOCFPS was Tk. 0.90 for January-June 2025 as against Tk. 0.30 for January-June 2024. NAV per share was Tk. 26.25 as on June 30, 2025 and Tk. 25.67 as on December 31, 2024. Reasons for deviation: NOCFPS increased from the previous period due to increase of premium collection and decrease of claim payment during the period."
+    },
+    {
+      "post_date": "2025-07-20T00:00:00",
+      "title": "CRYSTALINS: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on July 27, 2025 at 3:00 PM to consider, among others, un-audited financial statements of the Company for the Second Quarter (Q2) period ended June 30, 2025."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "UNITEDINS",
+      "company_name": "United Insurance Company Ltd.",
+      "sector": "Insurance",
+      "score": 71.6,
+      "ltp": 47.9,
+      "change_pct": -1.64,
+      "pe": 13.84,
+      "pb": 1.54,
+      "div_yield_pct": 3.1,
+      "roe_pct": 7.4,
+      "eps_yoy_pct": 53.1
+    },
+    {
+      "trading_code": "SIPLC",
+      "company_name": "Sena Insurance PLC",
+      "sector": "Insurance",
+      "score": 70.4,
+      "ltp": 108.4,
+      "change_pct": -3.9,
+      "pe": 20.97,
+      "pb": 3.79,
+      "div_yield_pct": 1.4,
+      "roe_pct": 17.1,
+      "eps_yoy_pct": 20.5
+    },
+    {
+      "trading_code": "RELIANCINS",
+      "company_name": "Reliance Insurance PLC.",
+      "sector": "Insurance",
+      "score": 69.7,
+      "ltp": 114.1,
+      "change_pct": -2.23,
+      "pe": 13.55,
+      "pb": 1.45,
+      "div_yield_pct": 2.6,
+      "roe_pct": 13.1,
+      "eps_yoy_pct": -7.7
+    },
+    {
+      "trading_code": "PRAGATIINS",
+      "company_name": "Pragati Insurance PLC.",
+      "sector": "Insurance",
+      "score": 65.8,
+      "ltp": 81.5,
+      "change_pct": -1.21,
+      "pe": 15.35,
+      "pb": 1.42,
+      "div_yield_pct": 3.3,
+      "roe_pct": 9.7,
+      "eps_yoy_pct": -5.3
+    },
+    {
+      "trading_code": "ASIAPACINS",
+      "company_name": "Asia Pacific General Insurance PLC",
+      "sector": "Insurance",
+      "score": 64.9,
+      "ltp": 47.1,
+      "change_pct": -1.88,
+      "pe": 18.76,
+      "pb": 1.86,
+      "div_yield_pct": 3.0,
+      "roe_pct": 8.0,
+      "eps_yoy_pct": 32.8
+    }
+  ],
+  "source_hash": "2890010cca96b99c6bd712b67f00fbe4dfc15b7a1224f41cbd5ec089591a2cd2"
+}

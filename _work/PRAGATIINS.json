@@ -1,0 +1,790 @@
+{
+  "trading_code": "PRAGATIINS",
+  "company_name": "Pragati Insurance PLC.",
+  "sector_class": "INSURANCE",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Insurance",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 81214559,
+    "paid_up_capital_mn": 812.15,
+    "reserve_surplus_mn": 3702.8,
+    "total_loan_mn": 0,
+    "listing_year": 1996,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 81.5,
+    "change": -1,
+    "change_pct": -1.21,
+    "date": "2026-07-16",
+    "high": 83.5,
+    "low": 81.2,
+    "volume": 170316,
+    "avg_volume_7d": 456527,
+    "ycp": 82.5,
+    "w52_high": 86.1,
+    "w52_low": 48.4
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 8.7,
+      "m3": 15.8,
+      "m6": 16.9,
+      "y1": 65.7
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 45.7
+      },
+      {
+        "date": "2025-06-30",
+        "close": 45.5
+      },
+      {
+        "date": "2025-07-31",
+        "close": 52.0
+      },
+      {
+        "date": "2025-08-31",
+        "close": 58.6
+      },
+      {
+        "date": "2025-09-30",
+        "close": 64.3
+      },
+      {
+        "date": "2025-10-30",
+        "close": 75.1
+      },
+      {
+        "date": "2025-11-30",
+        "close": 70.6
+      },
+      {
+        "date": "2025-12-30",
+        "close": 70.6
+      },
+      {
+        "date": "2026-01-29",
+        "close": 77.7
+      },
+      {
+        "date": "2026-02-26",
+        "close": 76.2
+      },
+      {
+        "date": "2026-03-31",
+        "close": 68.0
+      },
+      {
+        "date": "2026-04-30",
+        "close": 76.2
+      },
+      {
+        "date": "2026-05-31",
+        "close": 71
+      },
+      {
+        "date": "2026-06-30",
+        "close": 84.7
+      },
+      {
+        "date": "2026-07-16",
+        "close": 81.5
+      }
+    ],
+    "pct_in_52w_range": 87.8
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.0
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.2
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.5
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Fairly priced",
+      "word_bn": "দাম যুক্তিসঙ্গত",
+      "score10": 6.1
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.1
+    }
+  ],
+  "fair_value": {
+    "low": 70.8,
+    "high": 106,
+    "center": 88.5,
+    "today": 81.5,
+    "stance": "fair",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 64.2
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 145
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 66.0
+      },
+      {
+        "name": "book_peer",
+        "label_en": "Priced like similar companies (assets)",
+        "price": 118
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 45.0
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 15.35,
+    "current_pb": 1.42,
+    "own_avg_pe": 12.09,
+    "own_avg_pb": 1.15,
+    "sector_median_pe": 27.25,
+    "sector_median_pb": 2.06,
+    "eps": 5.31,
+    "sector_implied_price": 144.7
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2020,
+        "eps_taka": 4.07,
+        "net_profit_crore": 26.7,
+        "cash_dividend_pct": 30.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 3.0,
+        "nav_per_share_taka": 53.51
+      },
+      {
+        "year": 2021,
+        "eps_taka": 5.72,
+        "net_profit_crore": 37.5,
+        "cash_dividend_pct": 35.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 3.5,
+        "nav_per_share_taka": 57.32,
+        "revenue_crore": 2.9,
+        "operating_profit_crore": 40.9,
+        "operating_cash_flow_crore": 79.3,
+        "capex_crore": null,
+        "total_debt_crore": 2.11,
+        "total_equity_crore": 376.0,
+        "total_assets_crore": 568.0,
+        "cash_crore": null,
+        "debt_to_equity": 0.01
+      },
+      {
+        "year": 2022,
+        "eps_taka": 5.65,
+        "net_profit_crore": 37.0,
+        "cash_dividend_pct": 25.0,
+        "stock_dividend_pct": 5,
+        "dps_taka": 2.5,
+        "nav_per_share_taka": 59.01,
+        "revenue_crore": 0.32,
+        "operating_profit_crore": 38.0,
+        "operating_cash_flow_crore": 44.9,
+        "capex_crore": null,
+        "total_debt_crore": 1.48,
+        "total_equity_crore": 387.0,
+        "total_assets_crore": 607.2,
+        "cash_crore": null,
+        "debt_to_equity": 0.0
+      },
+      {
+        "year": 2023,
+        "eps_taka": 5.36,
+        "net_profit_crore": 36.9,
+        "cash_dividend_pct": 20.0,
+        "stock_dividend_pct": 7,
+        "dps_taka": 2.0,
+        "nav_per_share_taka": 58.97,
+        "revenue_crore": -7.74,
+        "operating_profit_crore": 34.1,
+        "operating_cash_flow_crore": 1.05,
+        "capex_crore": null,
+        "total_debt_crore": 1.16,
+        "total_equity_crore": 406.1,
+        "total_assets_crore": 634.1,
+        "cash_crore": null,
+        "debt_to_equity": 0.0
+      },
+      {
+        "year": 2024,
+        "eps_taka": 5.61,
+        "net_profit_crore": 41.3,
+        "cash_dividend_pct": 20.0,
+        "stock_dividend_pct": 7,
+        "dps_taka": 2.0,
+        "nav_per_share_taka": 57.58,
+        "revenue_crore": -6.32,
+        "operating_profit_crore": 36.7,
+        "operating_cash_flow_crore": 24.7,
+        "capex_crore": null,
+        "total_debt_crore": 1.89,
+        "total_equity_crore": 424.3,
+        "total_assets_crore": 599.5,
+        "cash_crore": null,
+        "debt_to_equity": 0.0
+      },
+      {
+        "year": 2025,
+        "eps_taka": 5.31,
+        "net_profit_crore": 41.9,
+        "cash_dividend_pct": 27.0,
+        "stock_dividend_pct": 3,
+        "dps_taka": 2.7,
+        "nav_per_share_taka": 57.36
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 5.31,
+      "net_profit_crore": 41.9,
+      "cash_dividend_pct": 27.0,
+      "stock_dividend_pct": 3,
+      "dps_taka": 2.7,
+      "nav_per_share_taka": 57.36
+    },
+    "growth": {
+      "span": "2020–2025",
+      "net_profit_change_pct": 57.0,
+      "eps_change_pct": 30.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 8.12,
+      "paid_up_capital_crore": 81.2,
+      "reserve_surplus_crore": 370.3,
+      "total_loan_crore": 0.0,
+      "listing_year": 1996
+    },
+    "ownership": {
+      "sponsor_director_pct": 41.99,
+      "govt_pct": 0.0,
+      "institute_pct": 21.87,
+      "foreign_pct": 0.0,
+      "public_pct": 36.14
+    }
+  },
+  "sector_context": {
+    "sector": "Insurance",
+    "peer_count": 59,
+    "rank_in_sector": 4,
+    "sector_avg_score": 41.4,
+    "sector_median_pe": 27.25
+  },
+  "score": {
+    "trading_code": "PRAGATIINS",
+    "sector": "Insurance",
+    "market_cat": "A",
+    "ltp": 81.5,
+    "mcap_mn": 6618.9865585,
+    "score": 65.8,
+    "base_score": 65.8,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.871,
+    "eps": 5.31,
+    "roe_pct": 9.7,
+    "sector_median_pe": 27.25,
+    "sector_median_pb": 2.06,
+    "p1_biz": 6.03,
+    "p2_health": 8.21,
+    "p3_moat": 6.5,
+    "p4_val": 6.08,
+    "p5_div": 6.12,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 2.0,
+    "p1_roe": 4.7573,
+    "p1_npm_trend": 10.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": -5.3,
+    "eps_stability": 1.0,
+    "p2_de": 10.0,
+    "p2_ic": 10.0,
+    "p2_cfo": 5.0,
+    "p2_cash": null,
+    "p2_coverage": 1.0,
+    "p3_margin": 10.0,
+    "p3_rev_vol": null,
+    "p3_sector_rank": 2.0,
+    "p3_capex": null,
+    "p3_coverage": 0.55,
+    "p4_pe": 5.98,
+    "p4_pb": 6.22,
+    "p4_vol_damp": 1.0,
+    "current_pe": 15.35,
+    "current_pb": 1.42,
+    "own_avg_pe": 12.09,
+    "own_avg_pb": 1.15,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 7.469325153374234,
+    "div_yield_pct": 3.3,
+    "overall_rank": 38,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "good_wait_price",
+    "reason_en": "Good company — fine to hold, but wait for a cheaper price to buy.",
+    "reason_bn": "ভালো কোম্পানি — ধরে রাখা যায়, তবে কেনার জন্য আরেকটু কম দামের অপেক্ষা করুন।",
+    "tier": "good",
+    "momentum_grade": "flat",
+    "score": 65.8,
+    "p4_val": 6.08,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 42.0% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, but share is quiet",
+    "sentences": [
+      "The company's numbers are good, but the share has been quiet — the price is not moving much in either direction.",
+      "Price is close to the highest level of the past year — not much room left for a cheap entry."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": -0.61,
+    "rs_vs_dsex_pct": -2.67,
+    "volume_ratio": 0.57,
+    "avg_turnover_7d_mn": 33.61,
+    "up_days_7d": 2,
+    "days_counted": 7,
+    "pct_in_52w_range": 87.8,
+    "momentum_grade": "flat"
+  },
+  "financials": [
+    {
+      "trading_code": "PRAGATIINS",
+      "year": 2020,
+      "cash_dividend_pct": 30.0,
+      "dividend_yield_pct": 4.74,
+      "eps_basic": null,
+      "eps_cont_basic": 4.07,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 53.51,
+      "pe_ratio_basic": 15.55,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 266.98,
+      "profit_mn": 266.98,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 333.56,
+      "dps": 3.0,
+      "eps": 4.07
+    },
+    {
+      "trading_code": "PRAGATIINS",
+      "year": 2021,
+      "cash_dividend_pct": 35.0,
+      "dividend_yield_pct": 3.83,
+      "eps_basic": null,
+      "eps_cont_basic": 5.72,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 57.32,
+      "pe_ratio_basic": 16.0,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 375.06,
+      "profit_mn": 375.06,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 446.67,
+      "dps": 3.5,
+      "eps": 5.72
+    },
+    {
+      "year": 2022,
+      "trading_code": "PRAGATIINS",
+      "cash_dividend_pct": 25.0,
+      "dividend_yield_pct": 4.22,
+      "eps_basic": null,
+      "eps_cont_basic": 5.65,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 59.01,
+      "pe_ratio_basic": 10.49,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 370.32,
+      "profit_mn": 370.32,
+      "stock_dividend_pct": 5,
+      "total_comprehensive_income_mn": 340.19,
+      "dps": 2.5,
+      "eps": 5.65
+    },
+    {
+      "year": 2023,
+      "trading_code": "PRAGATIINS",
+      "cash_dividend_pct": 20.0,
+      "dividend_yield_pct": 3.4,
+      "eps_basic": null,
+      "eps_cont_basic": 5.36,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 58.97,
+      "pe_ratio_basic": 10.98,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 369.46,
+      "profit_mn": 369.46,
+      "stock_dividend_pct": 7,
+      "total_comprehensive_income_mn": 354.76,
+      "dps": 2.0,
+      "eps": 5.36
+    },
+    {
+      "year": 2024,
+      "trading_code": "PRAGATIINS",
+      "cash_dividend_pct": 20.0,
+      "dividend_yield_pct": 3.68,
+      "eps_basic": null,
+      "eps_cont_basic": 5.61,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 57.58,
+      "pe_ratio_basic": 9.7,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 413.34,
+      "profit_mn": 413.34,
+      "stock_dividend_pct": 7,
+      "total_comprehensive_income_mn": 319.99,
+      "dps": 2.0,
+      "eps": 5.61
+    },
+    {
+      "trading_code": "PRAGATIINS",
+      "year": 2025,
+      "cash_dividend_pct": 27.0,
+      "dividend_yield_pct": 3.82,
+      "dps": 2.7,
+      "eps_basic": null,
+      "eps_cont_basic": 5.31,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 57.36,
+      "pe_ratio_basic": 13.29,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 418.85,
+      "profit_mn": 418.85,
+      "stock_dividend_pct": 3,
+      "total_comprehensive_income_mn": 418.85,
+      "eps": 5.31
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "PRAGATIINS",
+      "year": 2021,
+      "capex": null,
+      "investing_cf": -149126588.0,
+      "net_profit": 375064597.0,
+      "nocfps": 12.09,
+      "operating_cf": 792672399.0,
+      "total_equity": 3759783491.0,
+      "ebit": 408988289.0,
+      "intangibles": null,
+      "interest_expense": -1230019.0,
+      "revenue": 29047427.0,
+      "total_assets": 5679793709.0,
+      "cash_and_equivalents": null,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 21135514.0
+    },
+    {
+      "trading_code": "PRAGATIINS",
+      "year": 2022,
+      "capex": null,
+      "investing_cf": -6199919.0,
+      "net_profit": 370323224.0,
+      "nocfps": 6.84,
+      "operating_cf": 448648664.0,
+      "total_equity": 3870402767.0,
+      "ebit": 379697337.0,
+      "intangibles": null,
+      "interest_expense": -44346.0,
+      "revenue": 3230298.0,
+      "total_assets": 6071913695.0,
+      "cash_and_equivalents": null,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 14752918.0
+    },
+    {
+      "trading_code": "PRAGATIINS",
+      "year": 2023,
+      "capex": null,
+      "investing_cf": 16740969.0,
+      "net_profit": 369463336.0,
+      "nocfps": 0.14,
+      "operating_cf": 10505759.0,
+      "total_equity": 4061184973.0,
+      "ebit": 341052529.0,
+      "intangibles": null,
+      "interest_expense": -6595185.0,
+      "revenue": -77366415.0,
+      "total_assets": 6340901172.0,
+      "cash_and_equivalents": null,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 11641796.0
+    },
+    {
+      "year": 2024,
+      "trading_code": "PRAGATIINS",
+      "capex": null,
+      "investing_cf": -133713425.0,
+      "net_profit": 413344585.0,
+      "nocfps": 3.35,
+      "operating_cf": 246634724.0,
+      "total_equity": 4243436018.0,
+      "ebit": 366987583.0,
+      "intangibles": null,
+      "interest_expense": -5559706.0,
+      "revenue": -63160839.0,
+      "total_assets": 5995162132.0,
+      "cash_and_equivalents": null,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 18862253.0
+    }
+  ],
+  "shareholding": {
+    "trading_code": "PRAGATIINS",
+    "as_of_date": "Mar 31, 2026",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 21.87,
+    "public_pct": 36.14,
+    "reporting_period": null,
+    "sponsor_director_pct": 41.99
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jan 31, 2026",
+    "trading_code": "PRAGATIINS",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 22.83,
+    "public_pct": 35.18,
+    "reporting_period": null,
+    "sponsor_director_pct": 41.99
+  },
+  "dividend_declaration": {
+    "trading_code": "PRAGATIINS",
+    "declaration_date": "2026-04-13T00:00:00",
+    "dividend_pct": 27.0,
+    "dividend_type": "Final",
+    "record_date": "2026-05-12T00:00:00",
+    "scraped_at": "2026-07-16T10:36:06.298000",
+    "title": "PRAGATIINS: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-07-14T00:00:00",
+      "title": "PRAGATIINS: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on July 19, 2026 at 3:00 pm to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended June 30, 2026."
+    },
+    {
+      "title": "PRAGATIINS: Declaration of Share receipt by a Sponsor Director",
+      "post_date": "2026-06-28T00:00:00",
+      "body": "Ms. Nahreen Yeahea, a Sponsor Directors of the Company, has informed that she will receive a total of 101,652 shares (including 2,960 bonus shares) from her deceased spouse, Abu Naser Md. Yeahea, as one of the legal heirs, in accordance with the Succession Certificate issued by the Hon'ble Court."
+    },
+    {
+      "title": "PRAGATIINS: Q1 Financials",
+      "post_date": "2026-05-17T00:00:00",
+      "body": "(Q1 Un-audited): EPS was Tk. 1.63 for January-March 2026 as against Tk. 1.05 for January-March 2025. NOCFPS was Tk. 0.96 for January-March 2026 as against Tk. (1.32) for January-March 2025. NAV per share was Tk. 59.61 as on March 31, 2026 and Tk. 57.36 as on December 31, 2025. (cont.)"
+    },
+    {
+      "post_date": "2026-05-17T00:00:00",
+      "title": "PRAGATIINS: Regarding Acquiring 30% Share of First National Credit Bureau Ltd.",
+      "body": "The company has informed that the Board of Directors in its 342nd meeting held on May 14, 2026 has decided to invest Tk. 3.00 (Three) crore equivalent to 30% of minimum paid-up capital of the First National Credit Bureau Limited (FNCBL), a proposed private company related to determine credit standards of borrowers in Bangladesh. The operation of the proposed company (FNCBL) will be commenced after acquiring the license from Bangladesh Bank."
+    },
+    {
+      "post_date": "2026-05-12T00:00:00",
+      "title": "PRAGATIINS: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 13.05.2026."
+    },
+    {
+      "title": "PRAGATIINS: Suspension for Record Date",
+      "post_date": "2026-05-11T00:00:00",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 12.05.2026."
+    },
+    {
+      "title": "PRAGATIINS: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-05-10T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on May 14, 2026 at 3:00 pm to consider, among others, Un-Audited Financial Statements for the First Quarter (Q1) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-05-07T00:00:00",
+      "title": "PRAGATIINS: Spot News",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 10.05.2026 to 11.05.2026 and trading of the shares will remain suspended on record date i.e., 12.05.2026."
+    },
+    {
+      "post_date": "2026-04-13T00:00:00",
+      "title": "PRAGATIINS: Dividend Declaration",
+      "body": "The Board of Directors has recommended 27% Cash and 03% Stock dividend for the year ended December 31, 2025. Date of AGM: 18.06.2026, Time: 12:00 Noon, Venue: Digital Platform. Record Date: 12.05.2026. The Company has also reported EPS of Tk. 5.31, NAV per share of Tk. 57.36 and NOCFPS of Tk. 1.44 for the year ended December 31, 2025 as against Tk. 5.24 (Restated), Tk. 53.82 and Tk. 3.13 respectively for the year ended December 31, 2024. (cont.1)"
+    },
+    {
+      "post_date": "2026-04-13T00:00:00",
+      "title": "PRAGATIINS: Price Limit Open",
+      "body": "There will be no price limit on the trading of the shares of the Company today (13.04.2026) following its corporate declaration."
+    },
+    {
+      "post_date": "2026-04-05T00:00:00",
+      "title": "PRAGATIINS: Board Meeting schedule under LR 19(1)",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 12, 2026 at 3:00 PM to consider, among others, audited financial statements of the Company for the year ended December 31, 2025."
+    },
+    {
+      "post_date": "2025-12-28T00:00:00",
+      "title": "PRAGATIINS: Name Change of the Company",
+      "body": "Dhaka Stock Exchange PLC. (DSE) has approved the proposed name change of the Company. Accordingly, the name of the Company will be 'Pragati Insurance PLC.' instead of 'Pragati Insurance Limited' with effect from December 29, 2025. Other information (except name) will remain unchanged."
+    },
+    {
+      "post_date": "2025-10-26T00:00:00",
+      "title": "PRAGATIINS: Q3 Financials",
+      "body": "(Q3 Un-audited): EPS was Tk. 0.83 for July-September 2025 as against Tk. 0.81 for July-September 2024; EPS was Tk. 3.16 for January-September 2025 as against Tk. 3.11 for January-September 2024. NOCFPS was Tk. (2.62) for January-September 2025 as against Tk. (1.08) for January-September 2024. NAV per share was Tk. 56.44 as on September 30, 2025 and Tk. 53.82 as on December 31, 2024."
+    },
+    {
+      "post_date": "2025-10-19T00:00:00",
+      "title": "PRAGATIINS: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on October 23, 2025 at 3:30 PM to consider, among others, Un-audited financial statements of the Company for the Third Quarter (Q3) period ended September 30, 2025."
+    },
+    {
+      "post_date": "2025-10-08T00:00:00",
+      "title": "PRAGATIINS: CSE's Query Reply",
+      "body": "In response to a CSE query dated October 06, 2025, regarding the unusual upward trend of its share price and volume, the company has informed that they have no undisclosed event that may have contributed to increase shares prices in this moment."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "UNITEDINS",
+      "company_name": "United Insurance Company Ltd.",
+      "sector": "Insurance",
+      "score": 71.6,
+      "ltp": 47.9,
+      "change_pct": -1.64,
+      "pe": 13.84,
+      "pb": 1.54,
+      "div_yield_pct": 3.1,
+      "roe_pct": 7.4,
+      "eps_yoy_pct": 53.1
+    },
+    {
+      "trading_code": "SIPLC",
+      "company_name": "Sena Insurance PLC",
+      "sector": "Insurance",
+      "score": 70.4,
+      "ltp": 108.4,
+      "change_pct": -3.9,
+      "pe": 20.97,
+      "pb": 3.79,
+      "div_yield_pct": 1.4,
+      "roe_pct": 17.1,
+      "eps_yoy_pct": 20.5
+    },
+    {
+      "trading_code": "RELIANCINS",
+      "company_name": "Reliance Insurance PLC.",
+      "sector": "Insurance",
+      "score": 69.7,
+      "ltp": 114.1,
+      "change_pct": -2.23,
+      "pe": 13.55,
+      "pb": 1.45,
+      "div_yield_pct": 2.6,
+      "roe_pct": 13.1,
+      "eps_yoy_pct": -7.7
+    },
+    {
+      "trading_code": "ASIAPACINS",
+      "company_name": "Asia Pacific General Insurance PLC",
+      "sector": "Insurance",
+      "score": 64.9,
+      "ltp": 47.1,
+      "change_pct": -1.88,
+      "pe": 18.76,
+      "pb": 1.86,
+      "div_yield_pct": 3.0,
+      "roe_pct": 8.0,
+      "eps_yoy_pct": 32.8
+    },
+    {
+      "trading_code": "PIONEERINS",
+      "company_name": "Pioneer Insurance PLC",
+      "sector": "Insurance",
+      "score": 64.3,
+      "ltp": 70.7,
+      "change_pct": -0.7,
+      "pe": 15.47,
+      "pb": 1.51,
+      "div_yield_pct": 3.5,
+      "roe_pct": 10.7,
+      "eps_yoy_pct": -4.6
+    }
+  ],
+  "source_hash": "9acdab5adc3645d30c297d42dc6de6a2c24f1ecc8771a7d936f57132182e5625"
+}

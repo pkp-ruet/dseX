@@ -1,0 +1,798 @@
+{
+  "trading_code": "ACIFORMULA",
+  "company_name": "ACI Formulations PLC",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Pharmaceuticals & Chemicals",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 47250000,
+    "paid_up_capital_mn": 472.5,
+    "reserve_surplus_mn": 3061.4,
+    "total_loan_mn": 3643.05,
+    "listing_year": 2008,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 175.6,
+    "change": 2.3,
+    "change_pct": 1.33,
+    "date": "2026-07-16",
+    "high": 180.1,
+    "low": 171.9,
+    "volume": 913805,
+    "avg_volume_7d": 324112,
+    "ycp": 173.3,
+    "w52_high": 175.6,
+    "w52_low": 119.2
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 22.8,
+      "m3": 25.4,
+      "m6": 29.0,
+      "y1": 29.5
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 121.4
+      },
+      {
+        "date": "2025-06-30",
+        "close": 127.4
+      },
+      {
+        "date": "2025-07-31",
+        "close": 136.2
+      },
+      {
+        "date": "2025-08-31",
+        "close": 156.4
+      },
+      {
+        "date": "2025-09-30",
+        "close": 142.6
+      },
+      {
+        "date": "2025-10-30",
+        "close": 136.9
+      },
+      {
+        "date": "2025-11-30",
+        "close": 131.6
+      },
+      {
+        "date": "2025-12-30",
+        "close": 127.9
+      },
+      {
+        "date": "2026-01-29",
+        "close": 133.0
+      },
+      {
+        "date": "2026-02-26",
+        "close": 150.4
+      },
+      {
+        "date": "2026-03-31",
+        "close": 136.6
+      },
+      {
+        "date": "2026-04-30",
+        "close": 141.8
+      },
+      {
+        "date": "2026-05-31",
+        "close": 138.8
+      },
+      {
+        "date": "2026-06-30",
+        "close": 154.4
+      },
+      {
+        "date": "2026-07-16",
+        "close": 175.6
+      }
+    ],
+    "pct_in_52w_range": 100.0
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 7.3
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.4
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.0
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Fairly priced",
+      "word_bn": "দাম যুক্তিসঙ্গত",
+      "score10": 6.4
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.7
+    }
+  ],
+  "fair_value": {
+    "low": 143,
+    "high": 214,
+    "center": 179,
+    "today": 176,
+    "stance": "fair",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 201
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 235
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 159
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 41.7
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 22.37,
+    "current_pb": 2.33,
+    "own_avg_pe": 25.6,
+    "own_avg_pb": 2.11,
+    "sector_median_pe": 29.9,
+    "sector_median_pb": 1.53,
+    "eps": 7.85,
+    "sector_implied_price": 234.71
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 4.74,
+        "net_profit_crore": 21.3,
+        "cash_dividend_pct": 30.0,
+        "stock_dividend_pct": 5,
+        "dps_taka": 3.0,
+        "nav_per_share_taka": 66.77,
+        "revenue_crore": 386.5,
+        "operating_profit_crore": 42.8,
+        "operating_cash_flow_crore": 60.4,
+        "capex_crore": 1.11,
+        "total_debt_crore": 155.1,
+        "total_equity_crore": 300.5,
+        "total_assets_crore": 566.0,
+        "cash_crore": 20.9,
+        "debt_to_equity": 0.52
+      },
+      {
+        "year": 2022,
+        "eps_taka": 5.14,
+        "net_profit_crore": 24.3,
+        "cash_dividend_pct": 25.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.5,
+        "nav_per_share_taka": 65.88,
+        "revenue_crore": 424.7,
+        "operating_profit_crore": 46.2,
+        "operating_cash_flow_crore": 34.2,
+        "capex_crore": 3.03,
+        "total_debt_crore": 257.2,
+        "total_equity_crore": 311.3,
+        "total_assets_crore": 646.9,
+        "cash_crore": 22.5,
+        "debt_to_equity": 0.83
+      },
+      {
+        "year": 2023,
+        "eps_taka": 4.97,
+        "net_profit_crore": 23.5,
+        "cash_dividend_pct": 25.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.5,
+        "nav_per_share_taka": 64.57,
+        "revenue_crore": 496.0,
+        "operating_profit_crore": 50.1,
+        "operating_cash_flow_crore": 1.12,
+        "capex_crore": 11.2,
+        "total_debt_crore": 261.3,
+        "total_equity_crore": 305.3,
+        "total_assets_crore": 667.4,
+        "cash_crore": 19.8,
+        "debt_to_equity": 0.86
+      },
+      {
+        "year": 2024,
+        "eps_taka": 6.88,
+        "net_profit_crore": 32.5,
+        "cash_dividend_pct": 20.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.0,
+        "nav_per_share_taka": 68.94,
+        "revenue_crore": 493.5,
+        "operating_profit_crore": 58.1,
+        "operating_cash_flow_crore": 69.8,
+        "capex_crore": 14.4,
+        "total_debt_crore": 303.1,
+        "total_equity_crore": 326.0,
+        "total_assets_crore": 755.9,
+        "cash_crore": 20.7,
+        "debt_to_equity": 0.93
+      },
+      {
+        "year": 2025,
+        "eps_taka": 7.85,
+        "net_profit_crore": 37.1,
+        "cash_dividend_pct": 25.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.5,
+        "nav_per_share_taka": 75.51,
+        "revenue_crore": 517.4,
+        "operating_profit_crore": 73.7,
+        "operating_cash_flow_crore": 3.1,
+        "capex_crore": 13.1,
+        "total_debt_crore": 364.3,
+        "total_equity_crore": 357.0,
+        "total_assets_crore": 858.5,
+        "cash_crore": 24.4,
+        "debt_to_equity": 1.02
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 7.85,
+      "net_profit_crore": 37.1,
+      "cash_dividend_pct": 25.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 2.5,
+      "nav_per_share_taka": 75.51,
+      "revenue_crore": 517.4,
+      "operating_profit_crore": 73.7,
+      "operating_cash_flow_crore": 3.1,
+      "capex_crore": 13.1,
+      "total_debt_crore": 364.3,
+      "total_equity_crore": 357.0,
+      "total_assets_crore": 858.5,
+      "cash_crore": 24.4,
+      "debt_to_equity": 1.02
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": 74.0,
+      "eps_change_pct": 66.0,
+      "revenue_change_pct": 34.0
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 4.72,
+      "paid_up_capital_crore": 47.2,
+      "reserve_surplus_crore": 306.1,
+      "total_loan_crore": 364.3,
+      "listing_year": 2008
+    },
+    "ownership": {
+      "sponsor_director_pct": 66.02,
+      "govt_pct": 0.0,
+      "institute_pct": 23.36,
+      "foreign_pct": 0.0,
+      "public_pct": 10.62
+    }
+  },
+  "sector_context": {
+    "sector": "Pharmaceuticals & Chemicals",
+    "peer_count": 34,
+    "rank_in_sector": 9,
+    "sector_avg_score": 43.3,
+    "sector_median_pe": 29.9
+  },
+  "score": {
+    "trading_code": "ACIFORMULA",
+    "sector": "Pharmaceuticals & Chemicals",
+    "market_cat": "A",
+    "ltp": 175.6,
+    "mcap_mn": 8297.1,
+    "score": 64.7,
+    "base_score": 64.7,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 1.0,
+    "eps": 7.85,
+    "roe_pct": 10.4,
+    "sector_median_pe": 29.9,
+    "sector_median_pb": 1.53,
+    "p1_biz": 7.31,
+    "p2_health": 6.36,
+    "p3_moat": 6.0,
+    "p4_val": 6.37,
+    "p5_div": 5.7,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 8.1999,
+    "p1_roe": 6.156,
+    "p1_npm_trend": 5.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 14.1,
+    "eps_stability": 1.0,
+    "p2_de": 5.87688769628746,
+    "p2_ic": 10.0,
+    "p2_cfo": 5.0,
+    "p2_cash": 3.708726419799543,
+    "p2_coverage": 1.0,
+    "p3_margin": 7.0,
+    "p3_rev_vol": 7.0,
+    "p3_sector_rank": 5.0,
+    "p3_capex": 3.0,
+    "p3_coverage": 1.0,
+    "p4_pe": 8.35,
+    "p4_pb": 3.39,
+    "p4_vol_damp": 1.0,
+    "current_pe": 22.37,
+    "current_pb": 2.33,
+    "own_avg_pe": 25.6,
+    "own_avg_pb": 2.11,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 4.635535307517085,
+    "div_yield_pct": 1.4,
+    "overall_rank": 42,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "good_wait_price",
+    "reason_en": "Good company — fine to hold, but wait for a cheaper price to buy.",
+    "reason_bn": "ভালো কোম্পানি — ধরে রাখা যায়, তবে কেনার জন্য আরেকটু কম দামের অপেক্ষা করুন।",
+    "tier": "good",
+    "momentum_grade": "hot",
+    "score": 64.7,
+    "p4_val": 6.37,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Currently cheap vs historical P/E",
+      "Sponsor holding 66.0% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, market is buying actively",
+    "sentences": [
+      "The company's numbers are good, and people are buying the share and pushing the price up — the market agrees with the quality.",
+      "The share price looks cheaper now than its average over the past few years.",
+      "Price is close to the highest level of the past year — not much room left for a cheap entry."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 16.06,
+    "rs_vs_dsex_pct": 14.0,
+    "volume_ratio": 2.72,
+    "avg_turnover_7d_mn": 74.95,
+    "up_days_7d": 5,
+    "days_counted": 7,
+    "pct_in_52w_range": 100.0,
+    "momentum_grade": "hot"
+  },
+  "financials": [
+    {
+      "trading_code": "ACIFORMULA",
+      "year": 2021,
+      "cash_dividend_pct": 30.0,
+      "dividend_yield_pct": 2.02,
+      "eps_basic": null,
+      "eps_cont_basic": 4.74,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 66.77,
+      "pe_ratio_basic": 31.24,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 213.46,
+      "profit_mn": 213.46,
+      "stock_dividend_pct": 5,
+      "total_comprehensive_income_mn": 692.83,
+      "dps": 3.0,
+      "eps": 4.74
+    },
+    {
+      "trading_code": "ACIFORMULA",
+      "year": 2022,
+      "cash_dividend_pct": 25.0,
+      "dividend_yield_pct": 1.58,
+      "eps_basic": null,
+      "eps_cont_basic": 5.14,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 65.88,
+      "pe_ratio_basic": 30.76,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 242.88,
+      "profit_mn": 242.88,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 242.88,
+      "dps": 2.5,
+      "eps": 5.14
+    },
+    {
+      "trading_code": "ACIFORMULA",
+      "year": 2023,
+      "cash_dividend_pct": 25.0,
+      "dividend_yield_pct": 1.6,
+      "eps_basic": null,
+      "eps_cont_basic": 4.97,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 64.57,
+      "pe_ratio_basic": 31.42,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 234.92,
+      "profit_mn": 234.92,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 234.92,
+      "dps": 2.5,
+      "eps": 4.97
+    },
+    {
+      "trading_code": "ACIFORMULA",
+      "year": 2024,
+      "cash_dividend_pct": 20.0,
+      "dividend_yield_pct": 1.58,
+      "eps_basic": null,
+      "eps_cont_basic": 6.88,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 68.94,
+      "pe_ratio_basic": 18.44,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 324.94,
+      "profit_mn": 324.94,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 324.94,
+      "dps": 2.0,
+      "eps": 6.88
+    },
+    {
+      "trading_code": "ACIFORMULA",
+      "year": 2025,
+      "cash_dividend_pct": 25.0,
+      "dividend_yield_pct": 1.97,
+      "eps_basic": null,
+      "eps_cont_basic": 7.85,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 75.51,
+      "pe_ratio_basic": 16.16,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 370.98,
+      "profit_mn": 370.98,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 404.67,
+      "dps": 2.5,
+      "eps": 7.85
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "ACIFORMULA",
+      "year": 2021,
+      "capex": -11070176.0,
+      "investing_cf": -13020949.0,
+      "net_profit": 213464224.0,
+      "nocfps": 12.79,
+      "operating_cf": 604144513.0,
+      "total_equity": 3004692036.0,
+      "ebit": 428075495.0,
+      "intangibles": 5147792.0,
+      "interest_expense": -126854438.0,
+      "revenue": 3864530432.0,
+      "total_assets": 5659960995.0,
+      "cash_and_equivalents": 208963186.0,
+      "earning_assets": 48146112.0,
+      "gross_profit": 1126677889.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 1551197579.0
+    },
+    {
+      "trading_code": "ACIFORMULA",
+      "year": 2022,
+      "capex": -30314643.0,
+      "investing_cf": -31349980.0,
+      "net_profit": 242881164.0,
+      "nocfps": 7.23,
+      "operating_cf": 341821950.0,
+      "total_equity": 3112573200.0,
+      "ebit": 461635580.0,
+      "intangibles": 5147792.0,
+      "interest_expense": -139324515.0,
+      "revenue": 4247415070.0,
+      "total_assets": 6469376391.0,
+      "cash_and_equivalents": 224596891.0,
+      "earning_assets": 75901732.0,
+      "gross_profit": 1218312935.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 2572416971.0
+    },
+    {
+      "year": 2023,
+      "trading_code": "ACIFORMULA",
+      "capex": -112228449.0,
+      "investing_cf": -114090357.0,
+      "net_profit": 234869474.0,
+      "nocfps": 0.24,
+      "operating_cf": 11171448.0,
+      "total_equity": 3052672585.0,
+      "ebit": 500796271.0,
+      "intangibles": 5147792.0,
+      "interest_expense": -162965248.0,
+      "revenue": 4959808824.0,
+      "total_assets": 6674319691.0,
+      "cash_and_equivalents": 198057347.0,
+      "earning_assets": 81213290.0,
+      "gross_profit": 1316935549.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 2612630721.0
+    },
+    {
+      "year": 2024,
+      "trading_code": "ACIFORMULA",
+      "capex": -144098016.0,
+      "investing_cf": -110010444.0,
+      "net_profit": 325089838.0,
+      "nocfps": 14.78,
+      "operating_cf": 698312511.0,
+      "total_equity": 3259637422.0,
+      "ebit": 580500741.0,
+      "intangibles": 5147792.0,
+      "interest_expense": -170432552.0,
+      "revenue": 4935454455.0,
+      "total_assets": 7559151740.0,
+      "cash_and_equivalents": 206681633.0,
+      "earning_assets": 48795705.0,
+      "gross_profit": 1427664868.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 3031092233.0
+    },
+    {
+      "year": 2025,
+      "trading_code": "ACIFORMULA",
+      "capex": -130783737.0,
+      "cash_and_equivalents": 244488432.0,
+      "earning_assets": 63685472.0,
+      "ebit": 737109413.0,
+      "gross_profit": 1669253930.0,
+      "intangibles": 5147792.0,
+      "interest_expense": -257418339.0,
+      "interest_income": null,
+      "investing_cf": -97967492.0,
+      "net_interest_income": null,
+      "net_profit": 370975251.0,
+      "nocfps": 0.66,
+      "operating_cf": 30994601.0,
+      "revenue": 5174065309.0,
+      "total_assets": 8584935394.0,
+      "total_debt": 3643053687.0,
+      "total_equity": 3569805850.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "ACIFORMULA",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 23.36,
+    "public_pct": 10.62,
+    "reporting_period": null,
+    "sponsor_director_pct": 66.02
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jun 30, 2025",
+    "trading_code": "ACIFORMULA",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 22.18,
+    "public_pct": 11.8,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 66.02
+  },
+  "dividend_declaration": {
+    "trading_code": "ACIFORMULA",
+    "declaration_date": "2025-10-30T00:00:00",
+    "dividend_pct": 25.0,
+    "dividend_type": "Final",
+    "record_date": null,
+    "scraped_at": "2026-07-16T09:53:56.890000",
+    "title": "ACIFORMULA: Dividend Declaration (Additional Information)"
+  },
+  "news": [
+    {
+      "title": "ACIFORMULA: Q3 Financials",
+      "post_date": "2026-04-30T00:00:00",
+      "body": "(Q3 Un-audited): Consolidated EPS was Tk. 1.76 for January-March 2026 as against Tk. 1.89 for January-March 2025; Consolidated EPS was Tk. 8.26 for July 2025-March 2026 as against Tk. 8.65 for July 2024-March 2025. Consolidated NOCFPS was Tk. (6.79) for July 2025-March 2026 as against Tk. 3.53 for July 2024-March 2025. Consolidated NAV per share was Tk. 81.27 as on March 31, 2026 and Tk. 75.51 as on June 30, 2025. (cont.1)"
+    },
+    {
+      "post_date": "2026-04-22T00:00:00",
+      "title": "ACIFORMULA: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 29, 2026 at 2:45 pm to consider, among others, Un-Audited Financial Statements for the Third Quarter (Q3) period ended March 31, 2026."
+    },
+    {
+      "title": "ACIFORMULA: Dividend Disbursement",
+      "post_date": "2026-02-05T00:00:00",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended June 30, 2025 to the respective shareholders."
+    },
+    {
+      "title": "ACIFORMULA: Q2 Financials",
+      "post_date": "2026-02-01T00:00:00",
+      "body": "(Q2 Un-audited): Consolidated EPS was Tk. 4.64 for October-December 2025 as against Tk. 4.40 for October-December 2024; Consolidated EPS was Tk. 6.50 for July-December 2025 as against Tk. 6.75 for July-December 2024. Consolidated NOCFPS was Tk. (4.01) for July-December 2025 as against Tk. 2.95 for July-December 2024. Consolidated NAV per share was Tk. 79.50 as on December 31, 2025 and Tk. 75.51 as on June 30, 2025. NOCFPS fell primarily due to lower collections and higher payments."
+    },
+    {
+      "title": "ACIFORMULA: Credit Rating Result",
+      "post_date": "2026-01-25T00:00:00",
+      "body": "Credit Rating Information and Services PLC (CRISL) has assigned rating of the Company as \"AA-\" in the long term and \"ST-3\" in the short term along with Stable outlook in consideration of its audited financials up to June 30, 2025, also unaudited financials up to September 30, 2025 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "title": "ACIFORMULA: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-01-21T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 29, 2026 at 2:45 PM to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "post_date": "2025-11-19T00:00:00",
+      "title": "ACIFORMULA: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 20.11.2025."
+    },
+    {
+      "title": "ACIFORMULA: Suspension for Record Date",
+      "post_date": "2025-11-18T00:00:00",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 19.11.2025."
+    },
+    {
+      "title": "ACIFORMULA: Spot News",
+      "post_date": "2025-11-16T00:00:00",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 17.11.2025 to 18.11.2025 and trading of the shares will remain suspended on record date i.e., 19.11.2025."
+    },
+    {
+      "post_date": "2025-11-13T00:00:00",
+      "title": "ACIFORMULA: Q1 Financials",
+      "body": "(Q1 Un-audited): Consolidated EPS was Tk. 1.85 for July-September 2025 as against Tk. 2.35 for July-September 2024. Consolidated NOCFPS was Tk. (6.48) for July-September 2025 as against Tk. (3.86) for July-September 2024. Consolidated NAV per share was Tk. 77.36 as on September 30, 2025 and Tk. 75.51 as on June 30, 2025. Reasons for deviation: Consolidated revenue increased by 10% over SPLY. (cont.1)"
+    },
+    {
+      "post_date": "2025-11-09T00:00:00",
+      "title": "ACIFORMULA: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on November 12, 2025 at 2:45 PM to consider, among others, Un-audited financial statements of the Company for the First Quarter (Q1) period ended September 30, 2025."
+    },
+    {
+      "post_date": "2025-10-30T00:00:00",
+      "title": "ACIFORMULA: Dividend Declaration (Additional Information)",
+      "body": "Refer to the earlier news disseminated by DSE on 29.10.2025 regarding dividend declaration, the company has further informed that the recommended for 25% Cash is from it retained earnings for the year ended June 30, 2025. The declared dividend has not been recommended from capital reserve or revaluation reserve or any unrealized gain of the company or through reducing the paid-up capital."
+    },
+    {
+      "post_date": "2025-10-29T00:00:00",
+      "title": "ACIFORMULA: Dividend Declaration",
+      "body": "The Board of Directors has recommended 25% Cash Dividend for the year ended June 30, 2025. Date of AGM: 28.12.2025, Time: 10:00 AM, Venue: Digital System. Record Date: 19.11.2025. The Company has also reported Consolidated EPS of Tk. 7.85, Consolidated NAV per share of Tk. 75.51 and Consolidated NOCFPS of Tk. 0.66 for the year ended June 30, 2025 as against Consolidated EPS of Tk. 6.88, Consolidated NAV per share of Tk. 68.94 and Consolidated NOCFPS of Tk. 14.78 for the year ended June 30, 2024."
+    },
+    {
+      "post_date": "2025-10-29T00:00:00",
+      "title": "ACIFORMULA: Price Limit Open",
+      "body": "There will be no price limit on the trading of the shares of the Company today (29.10.2025) following its corporate declaration."
+    },
+    {
+      "post_date": "2025-10-20T00:00:00",
+      "title": "ACIFORMULA: Board Meeting schedule under LR 19(1)",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on October 28, 2025 at 2:45 PM to consider, among others, audited financial statements of the Company for the year ended June 30, 2025."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "MARICO",
+      "company_name": "Marico Bangladesh Limited",
+      "sector": "Pharmaceuticals & Chemicals",
+      "score": 86.6,
+      "ltp": 2745.5,
+      "change_pct": 0.41,
+      "pe": 13.32,
+      "pb": 29.84,
+      "div_yield_pct": 7.6,
+      "roe_pct": 78.4,
+      "eps_yoy_pct": 9.9
+    },
+    {
+      "trading_code": "SQURPHARMA",
+      "company_name": "Square Pharmaceuticals PLC.",
+      "sector": "Pharmaceuticals & Chemicals",
+      "score": 81.7,
+      "ltp": 225.0,
+      "change_pct": 0.04,
+      "pe": 8.32,
+      "pb": 1.43,
+      "div_yield_pct": 5.3,
+      "roe_pct": 14.8,
+      "eps_yoy_pct": 14.5
+    },
+    {
+      "trading_code": "KOHINOOR",
+      "company_name": "Kohinoor Chemical Company (Bangladesh) PLC.",
+      "sector": "Pharmaceuticals & Chemicals",
+      "score": 76.9,
+      "ltp": 542.0,
+      "change_pct": 1.29,
+      "pe": 31.79,
+      "pb": 8.32,
+      "div_yield_pct": 1.2,
+      "roe_pct": 26.2,
+      "eps_yoy_pct": 12.8
+    },
+    {
+      "trading_code": "RECKITTBEN",
+      "company_name": "Reckitt Benckiser (Bangladesh) PLC",
+      "sector": "Pharmaceuticals & Chemicals",
+      "score": 73.8,
+      "ltp": 3329.8,
+      "change_pct": 0.26,
+      "pe": 19.26,
+      "pb": 17.75,
+      "div_yield_pct": 5.2,
+      "roe_pct": 45.4,
+      "eps_yoy_pct": 8.6
+    },
+    {
+      "trading_code": "ACMELAB",
+      "company_name": "The ACME Laboratories Limited",
+      "sector": "Pharmaceuticals & Chemicals",
+      "score": 73.2,
+      "ltp": 85.3,
+      "change_pct": -1.27,
+      "pe": 7.43,
+      "pb": 0.68,
+      "div_yield_pct": 4.1,
+      "roe_pct": 9.1,
+      "eps_yoy_pct": -1.1
+    }
+  ],
+  "source_hash": "03c03f0c7ff54ce3c2ff64065eea630b7e507547bfdf896c0676f6bbce928fe7"
+}

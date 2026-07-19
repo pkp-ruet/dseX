@@ -1,0 +1,798 @@
+{
+  "trading_code": "SQURPHARMA",
+  "company_name": "Square Pharmaceuticals PLC.",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Pharmaceuticals & Chemicals",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 886451010,
+    "paid_up_capital_mn": 8864.51,
+    "reserve_surplus_mn": 129050.4,
+    "total_loan_mn": 825.5,
+    "listing_year": 1995,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 225,
+    "change": 0.1,
+    "change_pct": 0.04,
+    "date": "2026-07-16",
+    "high": 227,
+    "low": 224.2,
+    "volume": 410253,
+    "avg_volume_7d": 443321,
+    "ycp": 224.9,
+    "w52_high": 232.2,
+    "w52_low": 198.3
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 3.7,
+      "m3": 6.2,
+      "m6": 7.2,
+      "y1": 5.6
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 201.9
+      },
+      {
+        "date": "2025-06-30",
+        "close": 208.9
+      },
+      {
+        "date": "2025-07-31",
+        "close": 229.8
+      },
+      {
+        "date": "2025-08-31",
+        "close": 224.1
+      },
+      {
+        "date": "2025-09-30",
+        "close": 215.0
+      },
+      {
+        "date": "2025-10-30",
+        "close": 213.8
+      },
+      {
+        "date": "2025-11-30",
+        "close": 204.5
+      },
+      {
+        "date": "2025-12-30",
+        "close": 198.6
+      },
+      {
+        "date": "2026-01-29",
+        "close": 218.9
+      },
+      {
+        "date": "2026-02-26",
+        "close": 225.7
+      },
+      {
+        "date": "2026-03-31",
+        "close": 210.8
+      },
+      {
+        "date": "2026-04-30",
+        "close": 211.8
+      },
+      {
+        "date": "2026-05-31",
+        "close": 211.8
+      },
+      {
+        "date": "2026-06-30",
+        "close": 224
+      },
+      {
+        "date": "2026-07-16",
+        "close": 225
+      }
+    ],
+    "pct_in_52w_range": 78.8
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 7.3
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.4
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.5
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Good value",
+      "word_bn": "দাম সস্তা",
+      "score10": 8.3
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.9
+    }
+  ],
+  "fair_value": {
+    "low": 348,
+    "high": 522,
+    "center": 435,
+    "today": 225,
+    "stance": "cheap",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 265
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 808
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 265
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 200
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 8.32,
+    "current_pb": 1.43,
+    "own_avg_pe": 9.8,
+    "own_avg_pb": 1.68,
+    "sector_median_pe": 29.9,
+    "sector_median_pb": 1.56,
+    "eps": 27.04,
+    "sector_implied_price": 808.5
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 17.99,
+        "net_profit_crore": 1595,
+        "cash_dividend_pct": 60.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 6.0,
+        "nav_per_share_taka": 102.54,
+        "revenue_crore": 5835,
+        "operating_profit_crore": 1626,
+        "operating_cash_flow_crore": 1098,
+        "capex_crore": 379.8,
+        "total_debt_crore": 10.4,
+        "total_equity_crore": 9090,
+        "total_assets_crore": 9545,
+        "cash_crore": 4336,
+        "debt_to_equity": 0.0
+      },
+      {
+        "year": 2022,
+        "eps_taka": 20.51,
+        "net_profit_crore": 1818,
+        "cash_dividend_pct": 100.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 10.0,
+        "nav_per_share_taka": 116.7,
+        "revenue_crore": 6641,
+        "operating_profit_crore": 1842,
+        "operating_cash_flow_crore": 1287,
+        "capex_crore": 618.3,
+        "total_debt_crore": 20.0,
+        "total_equity_crore": 10520,
+        "total_assets_crore": 11176,
+        "cash_crore": 4896,
+        "debt_to_equity": 0.0
+      },
+      {
+        "year": 2023,
+        "eps_taka": 21.41,
+        "net_profit_crore": 1898,
+        "cash_dividend_pct": 105.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 10.5,
+        "nav_per_share_taka": 129.95,
+        "revenue_crore": 6071,
+        "operating_profit_crore": 1834,
+        "operating_cash_flow_crore": 854.6,
+        "capex_crore": 286.1,
+        "total_debt_crore": 61.9,
+        "total_equity_crore": 11520,
+        "total_assets_crore": 12182,
+        "cash_crore": 5009,
+        "debt_to_equity": 0.01
+      },
+      {
+        "year": 2024,
+        "eps_taka": 23.61,
+        "net_profit_crore": 2093,
+        "cash_dividend_pct": 110.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 11.0,
+        "nav_per_share_taka": 142.05,
+        "revenue_crore": 7010,
+        "operating_profit_crore": 1948,
+        "operating_cash_flow_crore": 1853,
+        "capex_crore": 418.1,
+        "total_debt_crore": 61.5,
+        "total_equity_crore": 12592,
+        "total_assets_crore": 13264,
+        "cash_crore": 5201,
+        "debt_to_equity": 0.0
+      },
+      {
+        "year": 2025,
+        "eps_taka": 27.04,
+        "net_profit_crore": 2397,
+        "cash_dividend_pct": 120.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 12.0,
+        "nav_per_share_taka": 157.88,
+        "revenue_crore": 7629,
+        "operating_profit_crore": 2100,
+        "operating_cash_flow_crore": 1730,
+        "capex_crore": 617.7,
+        "total_debt_crore": 62.6,
+        "total_equity_crore": 13996,
+        "total_assets_crore": 14682,
+        "cash_crore": 5540,
+        "debt_to_equity": 0.0
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 27.04,
+      "net_profit_crore": 2397,
+      "cash_dividend_pct": 120.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 12.0,
+      "nav_per_share_taka": 157.88,
+      "revenue_crore": 7629,
+      "operating_profit_crore": 2100,
+      "operating_cash_flow_crore": 1730,
+      "capex_crore": 617.7,
+      "total_debt_crore": 62.6,
+      "total_equity_crore": 13996,
+      "total_assets_crore": 14682,
+      "cash_crore": 5540,
+      "debt_to_equity": 0.0
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": 50.0,
+      "eps_change_pct": 50.0,
+      "revenue_change_pct": 31.0
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 88.6,
+      "paid_up_capital_crore": 886.5,
+      "reserve_surplus_crore": 12905,
+      "total_loan_crore": 82.5,
+      "listing_year": 1995
+    },
+    "ownership": {
+      "sponsor_director_pct": 44.15,
+      "govt_pct": 0.0,
+      "institute_pct": 13.61,
+      "foreign_pct": 15.33,
+      "public_pct": 26.91
+    }
+  },
+  "sector_context": {
+    "sector": "Pharmaceuticals & Chemicals",
+    "peer_count": 34,
+    "rank_in_sector": 2,
+    "sector_avg_score": 43.3,
+    "sector_median_pe": 29.9
+  },
+  "score": {
+    "trading_code": "SQURPHARMA",
+    "sector": "Pharmaceuticals & Chemicals",
+    "market_cat": "A",
+    "ltp": 225.0,
+    "mcap_mn": 199451.47725,
+    "score": 81.7,
+    "base_score": 81.7,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 1.0,
+    "eps": 27.04,
+    "roe_pct": 14.8,
+    "sector_median_pe": 29.9,
+    "sector_median_pb": 1.56,
+    "p1_biz": 7.33,
+    "p2_health": 8.44,
+    "p3_moat": 8.5,
+    "p4_val": 8.35,
+    "p5_div": 8.9,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 6.0651,
+    "p1_roe": 7.0251,
+    "p1_npm_trend": 7.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 14.5,
+    "eps_stability": 1.0,
+    "p2_de": 10.0,
+    "p2_ic": 10.0,
+    "p2_cfo": 5.0,
+    "p2_cash": 10.0,
+    "p2_coverage": 1.0,
+    "p3_margin": 10.0,
+    "p3_rev_vol": 7.0,
+    "p3_sector_rank": 7.0,
+    "p3_capex": 10.0,
+    "p3_coverage": 1.0,
+    "p4_pe": 8.81,
+    "p4_pb": 7.65,
+    "p4_vol_damp": 1.0,
+    "current_pe": 8.32,
+    "current_pb": 1.43,
+    "own_avg_pe": 9.8,
+    "own_avg_pb": 1.68,
+    "p5_dps_cagr": 7.7988,
+    "p5_consist": 10.0,
+    "p5_yield": 10.0,
+    "div_yield_pct": 5.3,
+    "overall_rank": 5,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "buy",
+    "reason_key": "quality_cheap",
+    "reason_en": "Strong company and the price looks cheap right now.",
+    "reason_bn": "শক্তিশালী কোম্পানি, দামও এখন তুলনামূলক সস্তা।",
+    "tier": "excellent",
+    "momentum_grade": "flat",
+    "score": 81.7,
+    "p4_val": 8.35,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Currently cheap vs historical P/E",
+      "Sponsor holding 44.1% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Excellent",
+    "tagline": "Strong company, but market hasn't noticed yet",
+    "sentences": [
+      "The company has strong profits and a healthy balance sheet, but the share price has not moved for weeks — the market has not noticed it yet.",
+      "Has paid dividends regularly in past years.",
+      "The share price looks cheaper now than its average over the past few years."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 0.81,
+    "rs_vs_dsex_pct": -1.25,
+    "volume_ratio": 0.75,
+    "avg_turnover_7d_mn": 98.23,
+    "up_days_7d": 5,
+    "days_counted": 7,
+    "pct_in_52w_range": 78.8,
+    "momentum_grade": "flat"
+  },
+  "financials": [
+    {
+      "trading_code": "SQURPHARMA",
+      "year": 2021,
+      "cash_dividend_pct": 60.0,
+      "dividend_yield_pct": 2.78,
+      "eps_basic": null,
+      "eps_cont_basic": 17.99,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 102.54,
+      "pe_ratio_basic": 11.98,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 15947.45,
+      "profit_mn": 15947.45,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 17497.68,
+      "dps": 6.0,
+      "eps": 17.99
+    },
+    {
+      "trading_code": "SQURPHARMA",
+      "year": 2022,
+      "cash_dividend_pct": 100.0,
+      "dividend_yield_pct": 4.61,
+      "eps_basic": null,
+      "eps_cont_basic": 20.51,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 116.7,
+      "pe_ratio_basic": 10.57,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 18176.74,
+      "profit_mn": 18176.74,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 17877.01,
+      "dps": 10.0,
+      "eps": 20.51
+    },
+    {
+      "trading_code": "SQURPHARMA",
+      "year": 2023,
+      "cash_dividend_pct": 105.0,
+      "dividend_yield_pct": 5.0,
+      "eps_basic": null,
+      "eps_cont_basic": 21.41,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 129.95,
+      "pe_ratio_basic": 9.8,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 18980.14,
+      "profit_mn": 18980.14,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 18858.13,
+      "dps": 10.5,
+      "eps": 21.41
+    },
+    {
+      "trading_code": "SQURPHARMA",
+      "year": 2024,
+      "cash_dividend_pct": 110.0,
+      "dividend_yield_pct": 5.22,
+      "eps_basic": null,
+      "eps_cont_basic": 23.61,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 142.05,
+      "pe_ratio_basic": 8.93,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 20927.45,
+      "profit_mn": 20927.45,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 20032.71,
+      "dps": 11.0,
+      "eps": 23.61
+    },
+    {
+      "trading_code": "SQURPHARMA",
+      "year": 2025,
+      "cash_dividend_pct": 120.0,
+      "dividend_yield_pct": 5.74,
+      "eps_basic": null,
+      "eps_cont_basic": 27.04,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 157.88,
+      "pe_ratio_basic": 7.73,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 23967.97,
+      "profit_mn": 23967.97,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 23782.03,
+      "dps": 12.0,
+      "eps": 27.04
+    }
+  ],
+  "extended_financials": [
+    {
+      "year": 2021,
+      "trading_code": "SQURPHARMA",
+      "capex": -3798315053.0,
+      "investing_cf": 3606736650.0,
+      "net_profit": 14792597728.0,
+      "nocfps": 12.43,
+      "operating_cf": 10976340110.0,
+      "total_equity": 90895143168.0,
+      "ebit": 16257947987.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 58346258281.0,
+      "total_assets": 95452262580.0,
+      "cash_and_equivalents": 43364039004.0,
+      "earning_assets": null,
+      "gross_profit": 25902993347.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 103707469.0
+    },
+    {
+      "trading_code": "SQURPHARMA",
+      "year": 2022,
+      "capex": -6183191295.0,
+      "investing_cf": -3969654790.0,
+      "net_profit": 16146372062.0,
+      "nocfps": 14.52,
+      "operating_cf": 12874691568.0,
+      "total_equity": 105203030030.0,
+      "ebit": 18416506895.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 66406959950.0,
+      "total_assets": 111757869268.0,
+      "cash_and_equivalents": 48962498336.0,
+      "earning_assets": null,
+      "gross_profit": 29639914379.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 200000000.0
+    },
+    {
+      "trading_code": "SQURPHARMA",
+      "year": 2023,
+      "capex": -2860502967.0,
+      "investing_cf": 787693808.0,
+      "net_profit": 16457626777.0,
+      "nocfps": 9.64,
+      "operating_cf": 8545614327.0,
+      "total_equity": 115196648765.0,
+      "ebit": 18340635033.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 60707892284.0,
+      "total_assets": 121816305166.0,
+      "cash_and_equivalents": 50094321854.0,
+      "earning_assets": null,
+      "gross_profit": 29066339154.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 618609472.0
+    },
+    {
+      "trading_code": "SQURPHARMA",
+      "year": 2024,
+      "capex": -4181292384.0,
+      "investing_cf": -7048971649.0,
+      "net_profit": 18332883086.0,
+      "nocfps": 20.9,
+      "operating_cf": 18528854295.0,
+      "total_equity": 125921620832.0,
+      "ebit": 19480860721.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 70101031196.0,
+      "total_assets": 132637197060.0,
+      "cash_and_equivalents": 52013459742.0,
+      "earning_assets": 1952359671.0,
+      "gross_profit": 33065638502.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 614539826.0
+    },
+    {
+      "trading_code": "SQURPHARMA",
+      "year": 2025,
+      "capex": -6177044184.0,
+      "cash_and_equivalents": 55396306657.0,
+      "earning_assets": 1874631768.0,
+      "ebit": 20997494400.0,
+      "gross_profit": 36518204124.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "interest_income": null,
+      "investing_cf": -3896518290.0,
+      "net_interest_income": null,
+      "net_profit": 20777330953.0,
+      "nocfps": 19.52,
+      "operating_cf": 17301637969.0,
+      "revenue": 76288455851.0,
+      "total_assets": 146815407615.0,
+      "total_debt": 625501239.0,
+      "total_equity": 139955809575.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "SQURPHARMA",
+    "foreign_pct": 15.33,
+    "govt_pct": 0.0,
+    "institute_pct": 13.61,
+    "public_pct": 26.91,
+    "reporting_period": null,
+    "sponsor_director_pct": 44.15
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jun 30, 2025",
+    "trading_code": "SQURPHARMA",
+    "foreign_pct": 15.14,
+    "govt_pct": 0.0,
+    "institute_pct": 14.05,
+    "public_pct": 27.22,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 43.59
+  },
+  "dividend_declaration": {
+    "trading_code": "SQURPHARMA",
+    "declaration_date": "2025-10-23T00:00:00",
+    "dividend_pct": 120.0,
+    "dividend_type": "Final",
+    "record_date": "2025-11-16T00:00:00",
+    "scraped_at": "2026-07-16T10:48:35.893000",
+    "title": "SQURPHARMA: Dividend Declaration and Others"
+  },
+  "news": [
+    {
+      "post_date": "2026-06-29T00:00:00",
+      "title": "SQURPHARMA: Contract Manufacturing Agreement with M/s C2C Pharma Ltd.",
+      "body": "The company has informed that the Board of Directors of the company in its meeting held on 28 June 2026 has approved agreements with M/s C2C Pharma Ltd., Dhaka, Bangladesh for contract manufacturing of some products on behalf of Square Pharmaceuticals PLC. to meet increased demand of existing products and to introduce new products. It is mentionable that DSE has requested the company to provide copy of the agreement; however, DSE is yet to receive the copy of the agreement."
+    },
+    {
+      "title": "SQURPHARMA: Q3 Financials",
+      "post_date": "2026-04-30T00:00:00",
+      "body": "(Q3 Un-audited): Consolidated EPS was Tk. 6.73 for January-March 2026 as against Tk. 6.83 for January-March 2025; Consolidated EPS was Tk. 23.29 for July 2025-March 2026 as against Tk. 21.15 for July 2024-March 2025. Consolidated NOCFPS was Tk. 17.54 for July 2025-March 2026 as against Tk. 11.90 for July 2024-March 2025. Consolidated NAV per share was Tk. 169.79 as on March 31, 2026 and Tk. 157.88 as on June 30, 2025. (cont.)"
+    },
+    {
+      "post_date": "2026-04-26T00:00:00",
+      "title": "SQURPHARMA: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 29, 2026 at 3:00 pm to consider, among others, Un-Audited Financial Statements for the Third Quarter (Q3) period ended March 31, 2026."
+    },
+    {
+      "title": "SQURPHARMA: Buy Confirmation of Chairman",
+      "post_date": "2026-02-23T00:00:00",
+      "body": "Mr. Samuel S Chowdhury, Chairman of the Company, has further informed that he has completed his buying of 2,000,000 shares of the company at prevailing market price through Dhaka Stock Exchange PLC. as per declaration disseminated on 20.01.2026."
+    },
+    {
+      "post_date": "2026-02-05T00:00:00",
+      "title": "SQURPHARMA: Buy Confirmation of Managing Director",
+      "body": "Mr. Tapan Chowdhury, Managing Director of the company, has further informed that he has completed his buying of 2,000,000 shares of the company at prevailing market price through Dhaka Stock Exchange PLC. as per declaration disseminated on 5.01.2026."
+    },
+    {
+      "title": "SQURPHARMA: Buy Confirmation of a Director",
+      "post_date": "2026-02-05T00:00:00",
+      "body": "Mrs. Ratna Patra, one of the Directors of the Company, has further informed that she has completed her buying of 1,000,000 shares of the company at prevailing market price through Dhaka Stock Exchange PLC. as per declaration disseminated on 15.01.2026."
+    },
+    {
+      "post_date": "2026-02-01T00:00:00",
+      "title": "SQURPHARMA: Q2 Financials",
+      "body": "(Q2 Un-audited): Consolidated EPS was Tk. 8.20 for October-December 2025 as against Tk. 7.45 for October-December 2024; Consolidated EPS was Tk. 16.56 for July-December 2025 as against Tk. 14.32 for July-December 2024. Consolidated NOCFPS was Tk. 13.16 for July-December 2025 as against Tk. 8.28 for July-December 2024. Consolidated NAV per share was Tk. 162.41 as on December 31, 2025 and Tk. 157.88 as on June 30, 2025. (cont.)"
+    },
+    {
+      "post_date": "2026-01-25T00:00:00",
+      "title": "SQURPHARMA: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 29, 2026 at 3:00 PM to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "title": "SQURPHARMA: Dividend Disbursement",
+      "post_date": "2026-01-21T00:00:00",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended June 30, 2025 to the respective shareholders."
+    },
+    {
+      "post_date": "2026-01-20T00:00:00",
+      "title": "SQURPHARMA: Buy Declaration of Chairman",
+      "body": "Mr. Samuel S Chowdhury, Chairman of the Company, has expressed his intention to buy 20,00,000 shares of the company at prevailing market price (in the Public and Block Market) through Dhaka Stock Exchange PLC. within next 30 working days."
+    },
+    {
+      "post_date": "2026-01-15T00:00:00",
+      "title": "SQURPHARMA: Buy Declaration of a Director",
+      "body": "Mrs. Ratna Patra, one of the Directors of the Company, has expressed her intention to buy 10,00,000 shares of the company at prevailing market price (in the Public and Block Market) through Dhaka Stock Exchange PLC. within next 30 working days."
+    },
+    {
+      "post_date": "2026-01-05T00:00:00",
+      "title": "SQURPHARMA: Buy Declaration of Managing Director",
+      "body": "Mr. Tapan Chowdhury, Managing Director of the company, has expressed his intention to buy 20,00,000 shares of the company at prevailing market price (in the Public/Block Market) through Dhaka Stock Exchange PLC. within next 30 working days."
+    },
+    {
+      "post_date": "2025-12-14T00:00:00",
+      "title": "SQURPHARMA: Credit Rating Result",
+      "body": "Credit Rating Information and Services PLC (CRISL) has assigned the rating of the Company as \"AAA\" in the long term and \"ST-1\" in the short term along with Stable outlook in consideration of its audited financials up to June 30, 2025; unaudited financials up to September 30, 2025 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "post_date": "2025-11-16T00:00:00",
+      "title": "SQURPHARMA: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 17.11.2025."
+    },
+    {
+      "title": "SQURPHARMA: Q1 Financials",
+      "post_date": "2025-11-13T00:00:00",
+      "body": "(Q1 Un-audited): Consolidated EPS was Tk. 8.35 for July-September 2025 as against Tk. 6.87 for July-September 2024; Consolidated NOCFPS was Tk. 7.55 for July-September 2025 as against Tk. 3.89 for July-September 2024. Consolidated NAV per share was Tk. 167.50 as on September 30, 2025 and Tk. 157.88 as on June 30, 2025."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "MARICO",
+      "company_name": "Marico Bangladesh Limited",
+      "sector": "Pharmaceuticals & Chemicals",
+      "score": 86.6,
+      "ltp": 2745.5,
+      "change_pct": 0.41,
+      "pe": 13.32,
+      "pb": 29.84,
+      "div_yield_pct": 7.6,
+      "roe_pct": 78.4,
+      "eps_yoy_pct": 9.9
+    },
+    {
+      "trading_code": "KOHINOOR",
+      "company_name": "Kohinoor Chemical Company (Bangladesh) PLC.",
+      "sector": "Pharmaceuticals & Chemicals",
+      "score": 76.9,
+      "ltp": 542.0,
+      "change_pct": 1.29,
+      "pe": 31.79,
+      "pb": 8.32,
+      "div_yield_pct": 1.2,
+      "roe_pct": 26.2,
+      "eps_yoy_pct": 12.8
+    },
+    {
+      "trading_code": "RECKITTBEN",
+      "company_name": "Reckitt Benckiser (Bangladesh) PLC",
+      "sector": "Pharmaceuticals & Chemicals",
+      "score": 73.8,
+      "ltp": 3329.8,
+      "change_pct": 0.26,
+      "pe": 19.26,
+      "pb": 17.75,
+      "div_yield_pct": 5.2,
+      "roe_pct": 45.4,
+      "eps_yoy_pct": 8.6
+    },
+    {
+      "trading_code": "ACMELAB",
+      "company_name": "The ACME Laboratories Limited",
+      "sector": "Pharmaceuticals & Chemicals",
+      "score": 73.2,
+      "ltp": 85.3,
+      "change_pct": -1.27,
+      "pe": 7.43,
+      "pb": 0.68,
+      "div_yield_pct": 4.1,
+      "roe_pct": 9.1,
+      "eps_yoy_pct": -1.1
+    },
+    {
+      "trading_code": "NAVANAPHAR",
+      "company_name": "Navana Pharmaceuticals PLC",
+      "sector": "Pharmaceuticals & Chemicals",
+      "score": 71.8,
+      "ltp": 75.1,
+      "change_pct": 2.04,
+      "pe": 16.54,
+      "pb": 1.66,
+      "div_yield_pct": 1.9,
+      "roe_pct": 8.9,
+      "eps_yoy_pct": 20.4
+    }
+  ],
+  "source_hash": "6572b79745d4506f2bf460185d9db025faa7c0597619dba4ee239333859edb66"
+}

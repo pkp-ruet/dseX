@@ -1,0 +1,798 @@
+{
+  "trading_code": "PTL",
+  "company_name": "Paramount Textile PLC.",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Textile",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 179116886,
+    "paid_up_capital_mn": 1791.17,
+    "reserve_surplus_mn": 5529.5,
+    "total_loan_mn": 25530.79,
+    "listing_year": 2013,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 65.2,
+    "change": -0.6,
+    "change_pct": -0.91,
+    "date": "2026-07-16",
+    "high": 66.3,
+    "low": 64.7,
+    "volume": 738695,
+    "avg_volume_7d": 947118,
+    "ycp": 65.8,
+    "w52_high": 68.4,
+    "w52_low": 42.4
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 3.5,
+      "m3": 9.8,
+      "m6": 31.7,
+      "y1": 44.6
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 42.8
+      },
+      {
+        "date": "2025-06-30",
+        "close": 40.8
+      },
+      {
+        "date": "2025-07-31",
+        "close": 48.9
+      },
+      {
+        "date": "2025-08-31",
+        "close": 56.4
+      },
+      {
+        "date": "2025-09-30",
+        "close": 57.9
+      },
+      {
+        "date": "2025-10-30",
+        "close": 50.2
+      },
+      {
+        "date": "2025-11-30",
+        "close": 51.5
+      },
+      {
+        "date": "2025-12-30",
+        "close": 51.5
+      },
+      {
+        "date": "2026-01-29",
+        "close": 49.7
+      },
+      {
+        "date": "2026-02-26",
+        "close": 55.8
+      },
+      {
+        "date": "2026-03-31",
+        "close": 53.9
+      },
+      {
+        "date": "2026-04-30",
+        "close": 62.3
+      },
+      {
+        "date": "2026-05-31",
+        "close": 60.9
+      },
+      {
+        "date": "2026-06-30",
+        "close": 66.7
+      },
+      {
+        "date": "2026-07-16",
+        "close": 65.2
+      }
+    ],
+    "pct_in_52w_range": 87.7
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.4
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.5
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.9
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Fairly priced",
+      "word_bn": "দাম যুক্তিসঙ্গত",
+      "score10": 5.8
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.8
+    }
+  ],
+  "fair_value": {
+    "low": 93.7,
+    "high": 141,
+    "center": 117,
+    "today": 65.2,
+    "stance": "cheap",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 58.3
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 250
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 66.3
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 20.0
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 10.06,
+    "current_pb": 1.49,
+    "own_avg_pe": 9.0,
+    "own_avg_pb": 1.51,
+    "sector_median_pe": 38.57,
+    "sector_median_pb": 0.88,
+    "eps": 6.48,
+    "sector_implied_price": 249.93
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 4.27,
+        "net_profit_crore": 66.2,
+        "cash_dividend_pct": 20.0,
+        "stock_dividend_pct": 5,
+        "dps_taka": 2.0,
+        "nav_per_share_taka": 27.24,
+        "revenue_crore": 502.1,
+        "operating_profit_crore": null,
+        "operating_cash_flow_crore": 79.7,
+        "capex_crore": null,
+        "total_debt_crore": 368.4,
+        "total_equity_crore": 422.5,
+        "total_assets_crore": 1097,
+        "cash_crore": 6.91,
+        "debt_to_equity": 0.87
+      },
+      {
+        "year": 2022,
+        "eps_taka": 4.67,
+        "net_profit_crore": 76.0,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 29.6,
+        "revenue_crore": 661.6,
+        "operating_profit_crore": null,
+        "operating_cash_flow_crore": 57.2,
+        "capex_crore": null,
+        "total_debt_crore": 550.2,
+        "total_equity_crore": 482.0,
+        "total_assets_crore": 1712,
+        "cash_crore": 13.3,
+        "debt_to_equity": 1.14
+      },
+      {
+        "year": 2023,
+        "eps_taka": 7.51,
+        "net_profit_crore": 122.4,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 36.1,
+        "revenue_crore": 946.4,
+        "operating_profit_crore": null,
+        "operating_cash_flow_crore": 95.5,
+        "capex_crore": null,
+        "total_debt_crore": 596.8,
+        "total_equity_crore": 596.1,
+        "total_assets_crore": 2574,
+        "cash_crore": 101.5,
+        "debt_to_equity": 1.0
+      },
+      {
+        "year": 2024,
+        "eps_taka": 6.62,
+        "net_profit_crore": 107.8,
+        "cash_dividend_pct": 5.0,
+        "stock_dividend_pct": 10,
+        "dps_taka": 0.5,
+        "nav_per_share_taka": 41.72,
+        "revenue_crore": 1117,
+        "operating_profit_crore": null,
+        "operating_cash_flow_crore": 125.7,
+        "capex_crore": null,
+        "total_debt_crore": 604.7,
+        "total_equity_crore": 693.7,
+        "total_assets_crore": 3141,
+        "cash_crore": 68.0,
+        "debt_to_equity": 0.87
+      },
+      {
+        "year": 2025,
+        "eps_taka": 6.48,
+        "net_profit_crore": 116.1,
+        "cash_dividend_pct": 12.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.2,
+        "nav_per_share_taka": 43.89,
+        "revenue_crore": 1226,
+        "operating_profit_crore": null,
+        "operating_cash_flow_crore": 185.7,
+        "capex_crore": null,
+        "total_debt_crore": 655.4,
+        "total_equity_crore": 786.1,
+        "total_assets_crore": 3446,
+        "cash_crore": 72.6,
+        "debt_to_equity": 0.83
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 6.48,
+      "net_profit_crore": 116.1,
+      "cash_dividend_pct": 12.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 1.2,
+      "nav_per_share_taka": 43.89,
+      "revenue_crore": 1226,
+      "operating_profit_crore": null,
+      "operating_cash_flow_crore": 185.7,
+      "capex_crore": null,
+      "total_debt_crore": 655.4,
+      "total_equity_crore": 786.1,
+      "total_assets_crore": 3446,
+      "cash_crore": 72.6,
+      "debt_to_equity": 0.83
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": 75.0,
+      "eps_change_pct": 52.0,
+      "revenue_change_pct": 144.0
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 17.9,
+      "paid_up_capital_crore": 179.1,
+      "reserve_surplus_crore": 553.0,
+      "total_loan_crore": 2553,
+      "listing_year": 2013
+    },
+    "ownership": {
+      "sponsor_director_pct": 60.95,
+      "govt_pct": 0.0,
+      "institute_pct": 14.14,
+      "foreign_pct": 4.41,
+      "public_pct": 20.5
+    }
+  },
+  "sector_context": {
+    "sector": "Textile",
+    "peer_count": 58,
+    "rank_in_sector": 4,
+    "sector_avg_score": 27.8,
+    "sector_median_pe": 38.57
+  },
+  "score": {
+    "trading_code": "PTL",
+    "sector": "Textile",
+    "market_cat": "A",
+    "ltp": 65.2,
+    "mcap_mn": 11678.420967200002,
+    "score": 65.4,
+    "base_score": 65.4,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.886,
+    "eps": 6.48,
+    "roe_pct": 17.4,
+    "sector_median_pe": 38.57,
+    "sector_median_pb": 0.88,
+    "p1_biz": 8.4,
+    "p2_health": 5.47,
+    "p3_moat": 5.94,
+    "p4_val": 5.79,
+    "p5_div": 5.79,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 8.0092,
+    "p1_roe": 10.0,
+    "p1_npm_trend": 5.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": -2.1,
+    "eps_stability": 1.0,
+    "p2_de": 6.8313378609361,
+    "p2_ic": null,
+    "p2_cfo": 5.0,
+    "p2_cash": 3.263608280975739,
+    "p2_coverage": 0.75,
+    "p3_margin": 7.0,
+    "p3_rev_vol": 4.0,
+    "p3_sector_rank": 7.0,
+    "p3_capex": null,
+    "p3_coverage": 0.85,
+    "p4_pe": 6.9,
+    "p4_pb": 4.13,
+    "p4_vol_damp": 1.0,
+    "current_pe": 10.06,
+    "current_pb": 1.49,
+    "own_avg_pe": 9.0,
+    "own_avg_pb": 1.51,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 5.260736196319018,
+    "div_yield_pct": 1.8,
+    "overall_rank": 40,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "good_wait_price",
+    "reason_en": "Good company — fine to hold, but wait for a cheaper price to buy.",
+    "reason_bn": "ভালো কোম্পানি — ধরে রাখা যায়, তবে কেনার জন্য আরেকটু কম দামের অপেক্ষা করুন।",
+    "tier": "good",
+    "momentum_grade": "flat",
+    "score": 65.4,
+    "p4_val": 5.79,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 61.0% (strong alignment)"
+    ],
+    "red": [
+      "Total loan > 2× reserve surplus"
+    ]
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, but share is quiet",
+    "sentences": [
+      "The company's numbers are good, but the share has been quiet — the price is not moving much in either direction.",
+      "Price is close to the highest level of the past year — not much room left for a cheap entry."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": -2.54,
+    "rs_vs_dsex_pct": -4.6,
+    "volume_ratio": 0.86,
+    "avg_turnover_7d_mn": 61.31,
+    "up_days_7d": 2,
+    "days_counted": 7,
+    "pct_in_52w_range": 87.7,
+    "momentum_grade": "flat"
+  },
+  "financials": [
+    {
+      "trading_code": "PTL",
+      "year": 2021,
+      "cash_dividend_pct": 20.0,
+      "dividend_yield_pct": 3.69,
+      "eps_basic": null,
+      "eps_cont_basic": 4.27,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 27.24,
+      "pe_ratio_basic": 12.7,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 661.89,
+      "profit_mn": 661.89,
+      "stock_dividend_pct": 5,
+      "total_comprehensive_income_mn": 728.66,
+      "dps": 2.0,
+      "eps": 4.27
+    },
+    {
+      "trading_code": "PTL",
+      "year": 2022,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 4.26,
+      "eps_basic": null,
+      "eps_cont_basic": 4.67,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 29.6,
+      "pe_ratio_basic": 5.03,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 760.01,
+      "profit_mn": 760.01,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 716.04,
+      "dps": 1.0,
+      "eps": 4.67
+    },
+    {
+      "trading_code": "PTL",
+      "year": 2023,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 1.3,
+      "eps_basic": null,
+      "eps_cont_basic": 7.51,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 36.1,
+      "pe_ratio_basic": 10.25,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 1223.58,
+      "profit_mn": 1223.58,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 1220.86,
+      "dps": 1.0,
+      "eps": 7.51
+    },
+    {
+      "year": 2024,
+      "trading_code": "PTL",
+      "cash_dividend_pct": 5.0,
+      "dividend_yield_pct": 0.7,
+      "eps_basic": null,
+      "eps_cont_basic": 6.62,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 41.72,
+      "pe_ratio_basic": 10.79,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 1077.7,
+      "profit_mn": 1077.7,
+      "stock_dividend_pct": 10,
+      "total_comprehensive_income_mn": 1079.31,
+      "dps": 0.5,
+      "eps": 6.62
+    },
+    {
+      "trading_code": "PTL",
+      "year": 2025,
+      "cash_dividend_pct": 12.0,
+      "dividend_yield_pct": 2.96,
+      "eps_basic": null,
+      "eps_cont_basic": 6.48,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 43.89,
+      "pe_ratio_basic": 6.25,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 1160.6,
+      "profit_mn": 1160.6,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 1147.81,
+      "dps": 1.2,
+      "eps": 6.48
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "PTL",
+      "year": 2021,
+      "capex": null,
+      "investing_cf": -1096287171.0,
+      "net_profit": 661887438.0,
+      "nocfps": 5.14,
+      "operating_cf": 797197340.0,
+      "total_equity": 4224794130.0,
+      "ebit": null,
+      "intangibles": null,
+      "interest_expense": 214427912.0,
+      "revenue": 5020706859.0,
+      "total_assets": 10967047480.0,
+      "cash_and_equivalents": 69138124.0,
+      "earning_assets": null,
+      "gross_profit": 773739844.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 3684479320.0
+    },
+    {
+      "year": 2022,
+      "trading_code": "PTL",
+      "capex": null,
+      "investing_cf": -4623829948.0,
+      "net_profit": 760008744.0,
+      "nocfps": 3.51,
+      "operating_cf": 571588172.0,
+      "total_equity": 4819727928.0,
+      "ebit": null,
+      "intangibles": null,
+      "interest_expense": 311435145.0,
+      "revenue": 6615529179.0,
+      "total_assets": 17116229944.0,
+      "cash_and_equivalents": 133057123.0,
+      "earning_assets": null,
+      "gross_profit": 995630174.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 5502056415.0
+    },
+    {
+      "trading_code": "PTL",
+      "year": 2023,
+      "capex": null,
+      "investing_cf": -4480377897.0,
+      "net_profit": 1357089296.0,
+      "nocfps": 5.87,
+      "operating_cf": 955041639.0,
+      "total_equity": 5960571664.0,
+      "ebit": null,
+      "intangibles": 525778757.0,
+      "interest_expense": 482104842.0,
+      "revenue": 9463818403.0,
+      "total_assets": 25736034394.0,
+      "cash_and_equivalents": 1014762074.0,
+      "earning_assets": null,
+      "gross_profit": 1896975314.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 5967503311.0
+    },
+    {
+      "trading_code": "PTL",
+      "year": 2024,
+      "capex": null,
+      "investing_cf": -5922290260.0,
+      "net_profit": 1221952108.0,
+      "nocfps": 7.72,
+      "operating_cf": 1257189106.0,
+      "total_equity": 6937144353.0,
+      "ebit": null,
+      "intangibles": 525778757.0,
+      "interest_expense": 965682030.0,
+      "revenue": 11174242698.0,
+      "total_assets": 31406882836.0,
+      "cash_and_equivalents": 679588048.0,
+      "earning_assets": null,
+      "gross_profit": 2273175441.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 6046840474.0
+    },
+    {
+      "trading_code": "PTL",
+      "year": 2025,
+      "capex": null,
+      "cash_and_equivalents": 725627431.0,
+      "earning_assets": null,
+      "ebit": null,
+      "gross_profit": 2633212959.0,
+      "intangibles": 529703346.0,
+      "interest_expense": 1276950015.0,
+      "interest_income": null,
+      "investing_cf": -3752560329.0,
+      "net_interest_income": null,
+      "net_profit": 1368489550.0,
+      "nocfps": 10.37,
+      "operating_cf": 1857280125.0,
+      "revenue": 12264739671.0,
+      "total_assets": 34455017837.0,
+      "total_debt": 6553654743.0,
+      "total_equity": 7860621135.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "PTL",
+    "foreign_pct": 4.41,
+    "govt_pct": 0.0,
+    "institute_pct": 14.14,
+    "public_pct": 20.5,
+    "reporting_period": null,
+    "sponsor_director_pct": 60.95
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jun 30, 2025",
+    "trading_code": "PTL",
+    "foreign_pct": 4.33,
+    "govt_pct": 0.0,
+    "institute_pct": 12.51,
+    "public_pct": 22.21,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 60.95
+  },
+  "dividend_declaration": {
+    "trading_code": "PTL",
+    "declaration_date": "2025-10-29T00:00:00",
+    "dividend_pct": 12.0,
+    "dividend_type": "Final",
+    "record_date": "2025-11-19T00:00:00",
+    "scraped_at": "2026-07-16T10:38:11.717000",
+    "title": "PTL: Dividend Declaration"
+  },
+  "news": [
+    {
+      "title": "PTL: Decision to covert investment in subsidiary 'DSEPL' to preference shares",
+      "post_date": "2026-07-02T00:00:00",
+      "body": "The company has informed that a meeting of the Board of Directors of Paramount Textile PLC was held on 30th June, 2026 to take various decisions. The extracts of the meeting relating to \"Price Sensitive Information\" were taken unanimously and narrated as below: Approval for converting BDT. 200,00,00,000 (two hundred crore) into convertible non-redeemable preference share & BDT. 93,01,00,000 (ninety three crore one lakh only) crore as non-convertible redeemable preference share (cont.1)"
+    },
+    {
+      "post_date": "2026-05-03T00:00:00",
+      "title": "PTL: Q3 Financials",
+      "body": "(Q3 Un-audited): Consolidated EPS was Tk. 2.78 for January-March 2026 as against Tk. 2.76 for January-March 2025; Consolidated EPS was Tk. 5.14 for July 2025-March 2026 as against Tk. 5.22 for July 2024-March 2025. Consolidated NOCFPS was Tk. 2.24 for July 2025-March 2026 as against Tk. 6.73 for July 2024-March 2025. Consol. NAV per share was Tk. 47.88 as on March 31, 2026 and Tk. 43.89 as on June 30, 2025. NOCFPS decreased due to reduced revenue collection compared to the same period of the pre…"
+    },
+    {
+      "post_date": "2026-04-26T00:00:00",
+      "title": "PTL: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 30, 2026 at 4:00 pm to consider, among others, Un-Audited Financial Statements for the Third Quarter (Q3) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-03-16T00:00:00",
+      "title": "PTL:Decision for signing PPA between Paramount Textile PLC & Paramount Solar Ltd",
+      "body": "The company has informed that a meeting of the Board of Directors of Paramount Textile PLC was held on 15th March, 2026 to take various decisions. The extracts of the meeting relating to \"Price Sensitive Information\" were taken unanimously and narrated as below: Agenda-02: To discuss and take necessary decision for signing Power Purchase Agreement (PPA) between Paramount Textile PLC & Paramount Solar Limited (cont.1)"
+    },
+    {
+      "title": "PTL: Q2 Financials",
+      "post_date": "2026-03-03T00:00:00",
+      "body": "(Q2 Un-audited): Consolidated EPS was Tk. 1.16 for October-December 2025 as against Tk. 1.44 for October-December 2024; Consolidated EPS was Tk. 2.36 for July-December 2025 as against Tk. 2.46 for July-December 2024. Consolidated NOCFPS was Tk. 3.26 for July-December 2025 as against Tk. 5.03 for July-December 2024. Consolidated NAV per share was Tk. 45.06 as on December 31, 2025 and Tk. 43.89 as on June 30, 2025. (cont.)"
+    },
+    {
+      "post_date": "2026-02-25T00:00:00",
+      "title": "PTL: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on March 02, 2026 at 3:00 PM to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "post_date": "2026-01-29T00:00:00",
+      "title": "PTL: Dividend Disbursement",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended June 30, 2025 to the respective shareholders."
+    },
+    {
+      "post_date": "2026-01-04T00:00:00",
+      "title": "PTL: The company and Paramount Holdings Ltd. jointly received NOA from BPDB",
+      "body": "The company has informed that Paramount Textile PLC and Paramount Holdings Ltd. jointly awarded for development of 4 solar projects with a combine capacity of 295 Mega Watt in different locations of Bangladesh. On December 29, 2025 the JV partners received the Notification of Award (NOA) from Bangladesh Power Development Board (BPDB) which was issued under the Public Procurement Rule 2008 following a successful bidding process. Furthermore, it is to be noted that (cont.1)"
+    },
+    {
+      "title": "PTL: Resumption after Record Date",
+      "post_date": "2025-11-19T00:00:00",
+      "body": "Trading of the shares of the company will resume on 20.11.2025."
+    },
+    {
+      "post_date": "2025-11-18T00:00:00",
+      "title": "PTL: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 19.11.2025."
+    },
+    {
+      "post_date": "2025-11-16T00:00:00",
+      "title": "PTL: Q1 Financials",
+      "body": "(Q1 Un-audited): Consolidated EPS was Tk. 1.19 for July-September 2025 as against Tk. 0.97 for July-September 2024. Consolidated NOCFPS was Tk. 5.15 for July-September 2025 as against Tk. 1.51 for July-September 2024. Consolidated NAV per share was Tk. 45.10 as on September 30, 2025 and Tk. 43.89 as on June 30, 2025. (cont.)"
+    },
+    {
+      "post_date": "2025-11-16T00:00:00",
+      "title": "PTL: Spot News",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 17.11.2025 to 18.11.2025 and trading of the shares will remain suspended on record date i.e., 19.11.2025."
+    },
+    {
+      "post_date": "2025-11-09T00:00:00",
+      "title": "PTL: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on November 13, 2025 at 4:00 PM to consider, among others, Un-audited financial statements of the Company for the First Quarter (Q1) period ended September 30, 2025."
+    },
+    {
+      "title": "PTL: Dividend Declaration",
+      "post_date": "2025-10-29T00:00:00",
+      "body": "The Board of Directors has recommended 12% Cash Dividend for the year ended June 30, 2025. Date of AGM: 20.12.2025; Time: 11:00 AM; Venue/Mode of AGM: Digital Platform (Link will be provided later). Record Date: 19.11.2025. The Company has also reported Consolidated EPS of Tk. 6.48, Consolidated NAV per share of Tk. 43.89 and Consolidated NOCFPS of Tk. 10.37 for the year ended June 30, 2025 as against Tk. 6.02, Tk. 37.93 and Tk. 7.02 respectively for the year ended June 30, 2024."
+    },
+    {
+      "title": "PTL: Price Limit Open",
+      "post_date": "2025-10-29T00:00:00",
+      "body": "There will be no price limit on the trading of the shares of the Company today (29.10.2025) following its corporate declaration."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "ENVOYTEX",
+      "company_name": "Envoy Textiles Limited",
+      "sector": "Textile",
+      "score": 75.6,
+      "ltp": 58.4,
+      "change_pct": 0.17,
+      "pe": 6.95,
+      "pb": 1.0,
+      "div_yield_pct": 5.1,
+      "roe_pct": 14.4,
+      "eps_yoy_pct": 134.6
+    },
+    {
+      "trading_code": "FEKDIL",
+      "company_name": "Far East Knitting & Dyeing Industries PLC.",
+      "sector": "Textile",
+      "score": 69.5,
+      "ltp": 25.0,
+      "change_pct": 2.46,
+      "pe": 14.62,
+      "pb": 1.17,
+      "div_yield_pct": 4.8,
+      "roe_pct": 8.0,
+      "eps_yoy_pct": 4.3
+    },
+    {
+      "trading_code": "ARGONDENIM",
+      "company_name": "Argon Denims Limited",
+      "sector": "Textile",
+      "score": 68.6,
+      "ltp": 20.9,
+      "change_pct": -2.34,
+      "pe": 12.44,
+      "pb": 0.85,
+      "div_yield_pct": 4.8,
+      "roe_pct": 6.8,
+      "eps_yoy_pct": 124.0
+    },
+    {
+      "trading_code": "SIMTEX",
+      "company_name": "Simtex Industries PLC.",
+      "sector": "Textile",
+      "score": 63.3,
+      "ltp": 27.8,
+      "change_pct": -2.46,
+      "pe": 26.99,
+      "pb": 1.24,
+      "div_yield_pct": 3.6,
+      "roe_pct": 4.6,
+      "eps_yoy_pct": 19.8
+    },
+    {
+      "trading_code": "TAMIJTEX",
+      "company_name": "Tamijuddin Textile Mills PLC",
+      "sector": "Textile",
+      "score": 60.6,
+      "ltp": 135.0,
+      "change_pct": -2.03,
+      "pe": 20.12,
+      "pb": 1.31,
+      "div_yield_pct": 0.9,
+      "roe_pct": 6.9,
+      "eps_yoy_pct": 0.1
+    }
+  ],
+  "source_hash": "607d3e8d3f7b9f9e129aac9881965b2bcce6791340d7434339bd3ea30ecfb174"
+}

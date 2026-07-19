@@ -1,0 +1,791 @@
+{
+  "trading_code": "BRACBANK",
+  "company_name": "BRAC Bank PLC.",
+  "sector_class": "BANK",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Bank",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 2289565092,
+    "paid_up_capital_mn": 22895.65,
+    "reserve_surplus_mn": 49145.3,
+    "total_loan_mn": 69098.04,
+    "listing_year": 2007,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 64.6,
+    "change": -0.7,
+    "change_pct": -1.07,
+    "date": "2026-07-16",
+    "high": 66,
+    "low": 64.5,
+    "volume": 2760038,
+    "avg_volume_7d": 4594715,
+    "ycp": 65.3,
+    "w52_high": 89.1,
+    "w52_low": 61.3
+  },
+  "price_trend": {
+    "returns": {
+      "m1": -2.3,
+      "m3": -9.0,
+      "m6": -3.4,
+      "y1": 7.8
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 46.0
+      },
+      {
+        "date": "2025-06-30",
+        "close": 50.7
+      },
+      {
+        "date": "2025-07-31",
+        "close": 70.7
+      },
+      {
+        "date": "2025-08-31",
+        "close": 76.5
+      },
+      {
+        "date": "2025-09-30",
+        "close": 69.5
+      },
+      {
+        "date": "2025-10-30",
+        "close": 68.1
+      },
+      {
+        "date": "2025-11-30",
+        "close": 65.8
+      },
+      {
+        "date": "2025-12-30",
+        "close": 63.1
+      },
+      {
+        "date": "2026-01-29",
+        "close": 74.0
+      },
+      {
+        "date": "2026-02-26",
+        "close": 87.5
+      },
+      {
+        "date": "2026-03-31",
+        "close": 67.0
+      },
+      {
+        "date": "2026-04-30",
+        "close": 73.2
+      },
+      {
+        "date": "2026-05-31",
+        "close": 67.3
+      },
+      {
+        "date": "2026-06-30",
+        "close": 65.5
+      },
+      {
+        "date": "2026-07-16",
+        "close": 64.6
+      }
+    ],
+    "pct_in_52w_range": 11.9
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 9.7
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 9.3
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Weak",
+      "word_bn": "দুর্বল",
+      "score10": 3.6
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Fairly priced",
+      "word_bn": "দাম যুক্তিসঙ্গত",
+      "score10": 5.0
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 9.4
+    }
+  ],
+  "fair_value": {
+    "low": 37.5,
+    "high": 56.3,
+    "center": 46.9,
+    "today": 64.6,
+    "stance": "expensive",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 82.4
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 47.7
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 56.7
+      },
+      {
+        "name": "book_peer",
+        "label_en": "Priced like similar companies (assets)",
+        "price": 28.4
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 25.0
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 7.08,
+    "current_pb": 1.25,
+    "own_avg_pe": 9.04,
+    "own_avg_pb": 1.1,
+    "sector_median_pe": 5.23,
+    "sector_median_pb": 0.55,
+    "eps": 9.12,
+    "sector_implied_price": 47.7
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2020,
+        "eps_taka": 3.33,
+        "net_profit_crore": 441.3,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": 5,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 36.63
+      },
+      {
+        "year": 2021,
+        "eps_taka": 3.93,
+        "net_profit_crore": 546.5,
+        "cash_dividend_pct": 7.5,
+        "stock_dividend_pct": 7.5,
+        "dps_taka": 0.75,
+        "nav_per_share_taka": 41.08,
+        "revenue_crore": null,
+        "operating_profit_crore": 1011,
+        "operating_cash_flow_crore": 59.2,
+        "capex_crore": 469.6,
+        "total_debt_crore": 2415,
+        "total_equity_crore": 7695,
+        "total_assets_crore": 52791,
+        "cash_crore": null,
+        "debt_to_equity": 0.31
+      },
+      {
+        "year": 2022,
+        "eps_taka": 4.02,
+        "net_profit_crore": 601.4,
+        "cash_dividend_pct": 7.5,
+        "stock_dividend_pct": 7.5,
+        "dps_taka": 0.75,
+        "nav_per_share_taka": 40.86,
+        "revenue_crore": null,
+        "operating_profit_crore": 1146,
+        "operating_cash_flow_crore": 97.4,
+        "capex_crore": 354.1,
+        "total_debt_crore": 3891,
+        "total_equity_crore": 8106,
+        "total_assets_crore": 65595,
+        "cash_crore": null,
+        "debt_to_equity": 0.48
+      },
+      {
+        "year": 2023,
+        "eps_taka": 4.73,
+        "net_profit_crore": 761.0,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": 10,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 41.36,
+        "revenue_crore": null,
+        "operating_profit_crore": 1573,
+        "operating_cash_flow_crore": 167.4,
+        "capex_crore": 384.7,
+        "total_debt_crore": 4192,
+        "total_equity_crore": 8702,
+        "total_assets_crore": 83715,
+        "cash_crore": null,
+        "debt_to_equity": 0.48
+      },
+      {
+        "year": 2024,
+        "eps_taka": 6.95,
+        "net_profit_crore": 1230,
+        "cash_dividend_pct": 12.5,
+        "stock_dividend_pct": 12.5,
+        "dps_taka": 1.25,
+        "nav_per_share_taka": 44.11,
+        "revenue_crore": null,
+        "operating_profit_crore": 2794,
+        "operating_cash_flow_crore": 264.1,
+        "capex_crore": 574.0,
+        "total_debt_crore": 5035,
+        "total_equity_crore": 10057,
+        "total_assets_crore": 105672,
+        "cash_crore": null,
+        "debt_to_equity": 0.5
+      },
+      {
+        "year": 2025,
+        "eps_taka": 9.12,
+        "net_profit_crore": 1816,
+        "cash_dividend_pct": 15.0,
+        "stock_dividend_pct": 15,
+        "dps_taka": 1.5,
+        "nav_per_share_taka": 51.56
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 9.12,
+      "net_profit_crore": 1816,
+      "cash_dividend_pct": 15.0,
+      "stock_dividend_pct": 15,
+      "dps_taka": 1.5,
+      "nav_per_share_taka": 51.56
+    },
+    "growth": {
+      "span": "2020–2025",
+      "net_profit_change_pct": 312.0,
+      "eps_change_pct": 174.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 229.0,
+      "paid_up_capital_crore": 2290,
+      "reserve_surplus_crore": 4915,
+      "total_loan_crore": 6910,
+      "listing_year": 2007
+    },
+    "ownership": {
+      "sponsor_director_pct": 46.17,
+      "govt_pct": 0.0,
+      "institute_pct": 11.51,
+      "foreign_pct": 36.48,
+      "public_pct": 5.84
+    }
+  },
+  "sector_context": {
+    "sector": "Bank",
+    "peer_count": 36,
+    "rank_in_sector": 3,
+    "sector_avg_score": 42.9,
+    "sector_median_pe": 5.23
+  },
+  "score": {
+    "trading_code": "BRACBANK",
+    "sector": "Bank",
+    "market_cat": "A",
+    "ltp": 64.6,
+    "mcap_mn": 147905.90494319997,
+    "score": 76.5,
+    "base_score": 76.5,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 1.0,
+    "eps": 9.12,
+    "roe_pct": 24.0,
+    "sector_median_pe": 5.23,
+    "sector_median_pb": 0.55,
+    "p1_biz": 9.67,
+    "p2_health": 9.29,
+    "p3_moat": 3.6,
+    "p4_val": 5.05,
+    "p5_div": 9.4,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 10.0,
+    "p1_roe": 8.9128,
+    "p1_npm_trend": 10.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 31.2,
+    "eps_stability": 1.0,
+    "p2_de": 10.0,
+    "p2_ic": 10.0,
+    "p2_cfo": 8.0,
+    "p2_cash": null,
+    "p2_coverage": 1.0,
+    "p3_margin": 2.0,
+    "p3_rev_vol": 4.0,
+    "p3_sector_rank": 7.0,
+    "p3_capex": 2.0,
+    "p3_coverage": 1.0,
+    "p4_pe": 6.31,
+    "p4_pb": 3.15,
+    "p4_vol_damp": 1.0,
+    "current_pe": 7.08,
+    "current_pb": 1.25,
+    "own_avg_pe": 9.04,
+    "own_avg_pb": 1.1,
+    "p5_dps_cagr": 10.0,
+    "p5_consist": 10.0,
+    "p5_yield": 5.9829721362229105,
+    "div_yield_pct": 2.3,
+    "overall_rank": 11,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "buy",
+    "reason_key": "excellent_fair_price",
+    "reason_en": "Excellent company at a reasonable price.",
+    "reason_bn": "চমৎকার কোম্পানি, দামও যুক্তিসঙ্গত।",
+    "tier": "excellent",
+    "momentum_grade": "warm",
+    "score": 76.5,
+    "p4_val": 5.05,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 46.2% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Excellent",
+    "tagline": "Strong company, price slowly rising",
+    "sentences": [
+      "The company is doing well financially, and the share price has been slowly climbing.",
+      "Has paid dividends regularly in past years.",
+      "Price is close to the lowest level of the past year — may be a good time to buy slowly."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 2.7,
+    "rs_vs_dsex_pct": 0.64,
+    "volume_ratio": 0.94,
+    "avg_turnover_7d_mn": 253.86,
+    "up_days_7d": 5,
+    "days_counted": 7,
+    "pct_in_52w_range": 11.9,
+    "momentum_grade": "warm"
+  },
+  "financials": [
+    {
+      "trading_code": "BRACBANK",
+      "year": 2020,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 2.26,
+      "eps_basic": null,
+      "eps_cont_basic": 3.33,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 36.63,
+      "pe_ratio_basic": 13.31,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 4413.38,
+      "profit_mn": 4413.38,
+      "stock_dividend_pct": 5,
+      "total_comprehensive_income_mn": 4413.38,
+      "dps": 1.0,
+      "eps": 3.33
+    },
+    {
+      "trading_code": "BRACBANK",
+      "year": 2021,
+      "cash_dividend_pct": 7.5,
+      "dividend_yield_pct": 1.36,
+      "eps_basic": null,
+      "eps_cont_basic": 3.93,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 41.08,
+      "pe_ratio_basic": 14.09,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 5464.67,
+      "profit_mn": 5464.67,
+      "stock_dividend_pct": 7.5,
+      "total_comprehensive_income_mn": 5464.67,
+      "dps": 0.75,
+      "eps": 3.93
+    },
+    {
+      "trading_code": "BRACBANK",
+      "year": 2022,
+      "cash_dividend_pct": 7.5,
+      "dividend_yield_pct": 1.95,
+      "eps_basic": null,
+      "eps_cont_basic": 4.02,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 40.86,
+      "pe_ratio_basic": 9.58,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 6013.97,
+      "profit_mn": 6013.97,
+      "stock_dividend_pct": 7.5,
+      "total_comprehensive_income_mn": 6013.97,
+      "dps": 0.75,
+      "eps": 4.02
+    },
+    {
+      "trading_code": "BRACBANK",
+      "year": 2023,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 2.79,
+      "eps_basic": null,
+      "eps_cont_basic": 4.73,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 41.36,
+      "pe_ratio_basic": 7.57,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 7610.1,
+      "profit_mn": 7610.1,
+      "stock_dividend_pct": 10,
+      "total_comprehensive_income_mn": 7610.1,
+      "dps": 1.0,
+      "eps": 4.73
+    },
+    {
+      "year": 2024,
+      "trading_code": "BRACBANK",
+      "cash_dividend_pct": 12.5,
+      "dividend_yield_pct": 2.55,
+      "eps_basic": null,
+      "eps_cont_basic": 6.95,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 44.11,
+      "pe_ratio_basic": 7.05,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 12296.24,
+      "profit_mn": 12296.24,
+      "stock_dividend_pct": 12.5,
+      "total_comprehensive_income_mn": 12296.24,
+      "dps": 1.25,
+      "eps": 6.95
+    },
+    {
+      "trading_code": "BRACBANK",
+      "year": 2025,
+      "cash_dividend_pct": 15.0,
+      "dividend_yield_pct": 2.38,
+      "dps": 1.5,
+      "eps_basic": null,
+      "eps_cont_basic": 9.12,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 51.56,
+      "pe_ratio_basic": 6.92,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 18162.7,
+      "profit_mn": 18162.7,
+      "stock_dividend_pct": 15,
+      "total_comprehensive_income_mn": 18162.7,
+      "eps": 9.12
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "BRACBANK",
+      "year": 2021,
+      "capex": -4696385425.0,
+      "investing_cf": 17868261954.0,
+      "net_profit": 6909789946.0,
+      "nocfps": null,
+      "operating_cf": 592067664.0,
+      "total_equity": 76948090498.0,
+      "ebit": 10107284184.0,
+      "intangibles": 1427468911.0,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 527912923582.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 473965094653.0,
+      "gross_profit": null,
+      "interest_income": 24225217948.0,
+      "net_interest_income": 16312334440.0,
+      "total_debt": 24150953707.0
+    },
+    {
+      "trading_code": "BRACBANK",
+      "year": 2022,
+      "capex": -3541043054.0,
+      "investing_cf": -51201775168.0,
+      "net_profit": 9282917553.0,
+      "nocfps": 23.39,
+      "operating_cf": 974319835.0,
+      "total_equity": 81064189166.0,
+      "ebit": 11464626808.0,
+      "intangibles": 1372563393.0,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 655950266451.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 588413547206.0,
+      "gross_profit": null,
+      "interest_income": 31370219731.0,
+      "net_interest_income": 18416346000.0,
+      "total_debt": 38909562251.0
+    },
+    {
+      "trading_code": "BRACBANK",
+      "year": 2023,
+      "capex": -3847205997.0,
+      "investing_cf": -79524352363.0,
+      "net_profit": 12822871487.0,
+      "nocfps": 37.05,
+      "operating_cf": 1673704264.0,
+      "total_equity": 87020403154.0,
+      "ebit": 15726597957.0,
+      "intangibles": 1372563393.0,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 837145184673.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 749360389033.0,
+      "gross_profit": null,
+      "interest_income": 41863962190.0,
+      "net_interest_income": 20548946212.0,
+      "total_debt": 41923370755.0
+    },
+    {
+      "year": 2024,
+      "trading_code": "BRACBANK",
+      "capex": -5739806230.0,
+      "investing_cf": -111861934580.0,
+      "net_profit": 24098129035.0,
+      "nocfps": 60.91,
+      "operating_cf": 2641492218.0,
+      "total_equity": 100569690045.0,
+      "ebit": 27940927865.0,
+      "intangibles": 1126273572.0,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 1056723501375.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 954824137326.0,
+      "gross_profit": null,
+      "interest_income": 58573509702.0,
+      "net_interest_income": 16453644514.0,
+      "total_debt": 50347610405.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "BRACBANK",
+    "foreign_pct": 36.48,
+    "govt_pct": 0.0,
+    "institute_pct": 11.51,
+    "public_pct": 5.84,
+    "reporting_period": null,
+    "sponsor_director_pct": 46.17
+  },
+  "shareholding_prev": {
+    "trading_code": "BRACBANK",
+    "as_of_date": "Jan 31, 2026",
+    "foreign_pct": 36.05,
+    "govt_pct": 0.0,
+    "institute_pct": 11.59,
+    "public_pct": 6.19,
+    "reporting_period": null,
+    "sponsor_director_pct": 46.17
+  },
+  "dividend_declaration": {
+    "trading_code": "BRACBANK",
+    "declaration_date": "2026-04-27T00:00:00",
+    "dividend_pct": 15.0,
+    "dividend_type": "Final",
+    "record_date": "2026-05-17T00:00:00",
+    "scraped_at": "2026-07-16T10:04:21.802000",
+    "title": "BRACBANK: Dividend Declaration"
+  },
+  "news": [
+    {
+      "title": "BRACBANK: Dividend Disbursement",
+      "post_date": "2026-06-30T00:00:00",
+      "body": "The Company has informed that it has credited the Bonus Shares to the respective shareholders' BO Accounts and it has also disbursed the Cash Dividend to the respective shareholders for the year ended December 31, 2025."
+    },
+    {
+      "post_date": "2026-05-23T00:00:00",
+      "title": "BRACBANK: Board approval to issue BRAC Bank Green Bond",
+      "body": "The company has informed that the Board of Directors of the company in its 395th Board meeting, held on May 21, 2026, has approved to issue \"BRAC Bank Green Bond\". The proposed bond will be Non-Convertible, Unsecured, Fully Redeemable, Green Bond of up to BDT 1,000 Crore (Taka One Thousand Crore) at face value, with a tenure of maximum 03 years through private placement. It will be issued to support green financing initiatives of BRAC Bank PLC., subject to approvals of the Regulatory Authorities…"
+    },
+    {
+      "post_date": "2026-05-20T00:00:00",
+      "title": "BRACBANK: Emphasis of Matter",
+      "body": "The auditor of the company has given the Emphasis of Matter paragraph in the auditor's report for the year ended December 31, 2025. To view the details, please visit: https://www.dsebd.org/Auditors_opinion/2025/Brac%20Bank%20Plc_25.pdf"
+    },
+    {
+      "post_date": "2026-05-17T00:00:00",
+      "title": "BRACBANK: Disclosure Program on audited & first quarter financial statements",
+      "body": "The Company has informed that they will organize an Earnings Disclosure Program on its Audited Financial Statements for the year ended December 31, 2025 and First Quarter Un-audited Financial Statements ended on March 31, 2026 on Thursday, May 21, 2026 at 8:00 PM through Digital Platform. The Valued Shareholders, Research Analysts and Financial Reporters of the company can participate and ask questions at this event via live webcast facility at the web link: https://agmbd.live/bracbankfy25_q126.…"
+    },
+    {
+      "post_date": "2026-05-17T00:00:00",
+      "title": "BRACBANK: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 18.05.2026."
+    },
+    {
+      "title": "BRACBANK: Credit Rating Result",
+      "post_date": "2026-05-14T00:00:00",
+      "body": "Credit Rating Agency of Bangladesh Limited (CRAB) has affirmed rating of the Company as \"AAA\" in the long term and \"ST-1\" in the short term along with a Stable outlook based on audited financial statements up to December 31, 2025 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "post_date": "2026-05-14T00:00:00",
+      "title": "BRACBANK: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 17.05.2026."
+    },
+    {
+      "title": "BRACBANK: Q1 Financials",
+      "post_date": "2026-05-13T00:00:00",
+      "body": "(Q1 Un-audited): Consolidated EPS was Tk. 2.90 for January-March 2026 as against Tk. 2.02 for January-March 2025. Consolidated NOCFPS was Tk. 33.48 for January-March 2026 as against Tk. 48.35 for January-March 2025. Consolidated NAV per share was Tk. 56.12 as on March 31, 2026 and Tk. 51.56 as on December 31, 2025. Reasons for Deviation: During the reported period Q1-2026, (cont.)"
+    },
+    {
+      "title": "Trading of the BBL 2nd Subordinated Bond",
+      "post_date": "2026-05-12T00:00:00",
+      "body": "Trading of the BBL 2nd Subordinated Bond will commence at DSE from Tuesday, May 12, 2026 under 'P' category at ATB Platform of DSE. Trading Code of the bond is \"BBL2NDSB\" and Scrip Code is \"55008\". Some other salient features of the bond are as follows: 1. Issuer: BRAC Bank PLC. 2. Face value: BDT 10,00,000 per unit. 3. Remaining Tenure: 4 years 10 months (Issue date: March 11, 2024). 4. Coupon rate: 12.59% per annum. 5. Coupon payment frequency: Semi Annual. (cont.1)"
+    },
+    {
+      "title": "BRACBANK: Spot News",
+      "post_date": "2026-05-12T00:00:00",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 13.05.2026 to 14.05.2026 and trading of the shares will remain suspended on record date i.e., 17.05.2026."
+    },
+    {
+      "post_date": "2026-05-06T00:00:00",
+      "title": "BRACBANK: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on May 12, 2026 at 3:00 pm to consider, among others, Un-Audited Financial Statements for the First Quarter (Q1) period ended March 31, 2026."
+    },
+    {
+      "title": "BRACBANK: Dividend Declaration",
+      "post_date": "2026-04-27T00:00:00",
+      "body": "The Board of Directors has recommended 15% cash and 15% stock dividend for all shareholders for the year ended 31-Dec-2025. Date of AGM: 11-Jun-2026, Time: 11:00 AM, Venue: Digital Platform. Record Date: 17-May-2026. The Company has also reported Consolidated EPS of Tk. 9.12, Consolidated NAV per share of Tk. 51.56 and Consolidated NOCFPS of Tk. 72.72 for the year ended 31-Dec-2025 as against Consolidated Tk. 6.18, Consolidated Tk. 39.38 and (cont.1)"
+    },
+    {
+      "title": "BRACBANK: Price Limit Open",
+      "post_date": "2026-04-27T00:00:00",
+      "body": "There will be no price limit on the trading of the shares of the Company today (27.04.2026) following its corporate declaration."
+    },
+    {
+      "post_date": "2026-04-20T00:00:00",
+      "title": "BRACBANK: Board Meeting schedule under LR 19(1)",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 26, 2026 at 3:00 PM to consider, among others, audited financial statements of the Company for the year ended December 31, 2025."
+    },
+    {
+      "post_date": "2025-10-30T00:00:00",
+      "title": "BRACBANK: Earnings Disclosure Program on Third Quarter Financial Statements",
+      "body": "The Company has informed that they will organize an earnings disclosure program on its Third Quarter Un-audited Financial Statements of 2025 on November 03, 2025 at 08:00 PM through Digital Platform. The concerned Shareholders, Research Analysts and Financial Reporters are welcome to participate and ask questions at this event via live webcast facility at the web link: https://meetbd.live/bracbankQ32025. (cont.)"
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "PRIMEBANK",
+      "company_name": "Prime Bank PLC.",
+      "sector": "Bank",
+      "score": 80.2,
+      "ltp": 30.5,
+      "change_pct": -0.65,
+      "pe": 3.89,
+      "pb": 0.76,
+      "div_yield_pct": 8.2,
+      "roe_pct": 31.1,
+      "eps_yoy_pct": 21.2
+    },
+    {
+      "trading_code": "UTTARABANK",
+      "company_name": "Uttara Bank PLC.",
+      "sector": "Bank",
+      "score": 78.8,
+      "ltp": 21.4,
+      "change_pct": 0.0,
+      "pe": 3.52,
+      "pb": 0.67,
+      "div_yield_pct": 2.3,
+      "roe_pct": 34.2,
+      "eps_yoy_pct": 5.0
+    },
+    {
+      "trading_code": "EBL",
+      "company_name": "Eastern Bank PLC.",
+      "sector": "Bank",
+      "score": 76.0,
+      "ltp": 24.4,
+      "change_pct": -0.41,
+      "pe": 4.67,
+      "pb": 0.78,
+      "div_yield_pct": 10.2,
+      "roe_pct": 28.2,
+      "eps_yoy_pct": 7.6
+    },
+    {
+      "trading_code": "NCCBANK",
+      "company_name": "National Credit and Commerce Bank PLC.",
+      "sector": "Bank",
+      "score": 74.1,
+      "ltp": 15.6,
+      "change_pct": 0.0,
+      "pe": 3.64,
+      "pb": 0.57,
+      "div_yield_pct": 10.9,
+      "roe_pct": 20.5,
+      "eps_yoy_pct": 104.3
+    },
+    {
+      "trading_code": "CITYBANK",
+      "company_name": "City Bank PLC.",
+      "sector": "Bank",
+      "score": 73.4,
+      "ltp": 31.6,
+      "change_pct": -0.63,
+      "pe": 3.63,
+      "pb": 0.78,
+      "div_yield_pct": 4.7,
+      "roe_pct": 30.9,
+      "eps_yoy_pct": 15.7
+    }
+  ],
+  "source_hash": "96fed388bf7bbf83bb9f9741c76138aab6f9193c50bde5afb0115ef3d79704dc"
+}

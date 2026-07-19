@@ -1,0 +1,791 @@
+{
+  "trading_code": "SHAHJABANK",
+  "company_name": "Shahjalal Islami Bank PLC.",
+  "sector_class": "BANK",
+  "as_of_price_date": "2026-07-16",
+  "profile": {
+    "sector": "Bank",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 1112968351,
+    "paid_up_capital_mn": 11129.68,
+    "reserve_surplus_mn": 14542.8,
+    "total_loan_mn": 26616.69,
+    "listing_year": 2007,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 17.7,
+    "change": 0.1,
+    "change_pct": 0.57,
+    "date": "2026-07-16",
+    "high": 17.7,
+    "low": 17.6,
+    "volume": 419723,
+    "avg_volume_7d": 276055,
+    "ycp": 17.6,
+    "w52_high": 19.0,
+    "w52_low": 15.7
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 4.7,
+      "m3": 1.1,
+      "m6": 2.9,
+      "y1": -1.7
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 16.4
+      },
+      {
+        "date": "2025-06-30",
+        "close": 16.5
+      },
+      {
+        "date": "2025-07-31",
+        "close": 18.9
+      },
+      {
+        "date": "2025-08-31",
+        "close": 18.8
+      },
+      {
+        "date": "2025-09-30",
+        "close": 18.9
+      },
+      {
+        "date": "2025-10-30",
+        "close": 16.5
+      },
+      {
+        "date": "2025-11-30",
+        "close": 16.7
+      },
+      {
+        "date": "2025-12-30",
+        "close": 16.5
+      },
+      {
+        "date": "2026-01-29",
+        "close": 17.5
+      },
+      {
+        "date": "2026-02-26",
+        "close": 18.6
+      },
+      {
+        "date": "2026-03-31",
+        "close": 17.7
+      },
+      {
+        "date": "2026-04-29",
+        "close": 17.3
+      },
+      {
+        "date": "2026-05-31",
+        "close": 16
+      },
+      {
+        "date": "2026-06-30",
+        "close": 18
+      },
+      {
+        "date": "2026-07-16",
+        "close": 17.7
+      }
+    ],
+    "pct_in_52w_range": 60.6
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.6
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 9.3
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 7.3
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Fairly priced",
+      "word_bn": "দাম যুক্তিসঙ্গত",
+      "score10": 6.2
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.5
+    }
+  ],
+  "fair_value": {
+    "low": 15.3,
+    "high": 22.9,
+    "center": 19.1,
+    "today": 17.7,
+    "stance": "fair",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 24.9
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 18.0
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 21.0
+      },
+      {
+        "name": "book_peer",
+        "label_en": "Priced like similar companies (assets)",
+        "price": 12.7
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 21.7
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 5.35,
+    "current_pb": 0.77,
+    "own_avg_pe": 7.52,
+    "own_avg_pb": 0.91,
+    "sector_median_pe": 5.45,
+    "sector_median_pb": 0.55,
+    "eps": 3.31,
+    "sector_implied_price": 18.04
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2020,
+        "eps_taka": 1.95,
+        "net_profit_crore": 191.3,
+        "cash_dividend_pct": null,
+        "stock_dividend_pct": 7.0,
+        "dps_taka": null,
+        "nav_per_share_taka": 18.33
+      },
+      {
+        "year": 2021,
+        "eps_taka": 2.52,
+        "net_profit_crore": 259.2,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": 5,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 19.27,
+        "revenue_crore": null,
+        "operating_profit_crore": 611.4,
+        "operating_cash_flow_crore": 105.7,
+        "capex_crore": 19.1,
+        "total_debt_crore": 3270,
+        "total_equity_crore": 2006,
+        "total_assets_crore": 31656,
+        "cash_crore": null,
+        "debt_to_equity": 1.63
+      },
+      {
+        "year": 2022,
+        "eps_taka": 3.31,
+        "net_profit_crore": 358.0,
+        "cash_dividend_pct": 12.0,
+        "stock_dividend_pct": 3,
+        "dps_taka": 1.2,
+        "nav_per_share_taka": 20.32,
+        "revenue_crore": null,
+        "operating_profit_crore": 854.3,
+        "operating_cash_flow_crore": 135.3,
+        "capex_crore": 21.8,
+        "total_debt_crore": 4230,
+        "total_equity_crore": 2219,
+        "total_assets_crore": 34273,
+        "cash_crore": null,
+        "debt_to_equity": 1.91
+      },
+      {
+        "year": 2023,
+        "eps_taka": 3.22,
+        "net_profit_crore": 358.2,
+        "cash_dividend_pct": 14.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.4,
+        "nav_per_share_taka": 21.38,
+        "revenue_crore": null,
+        "operating_profit_crore": 886.6,
+        "operating_cash_flow_crore": 154.2,
+        "capex_crore": 23.8,
+        "total_debt_crore": 2774,
+        "total_equity_crore": 2403,
+        "total_assets_crore": 35446,
+        "cash_crore": null,
+        "debt_to_equity": 1.15
+      },
+      {
+        "year": 2024,
+        "eps_taka": 1.52,
+        "net_profit_crore": 169.3,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 21.09,
+        "revenue_crore": null,
+        "operating_profit_crore": 1076,
+        "operating_cash_flow_crore": 149.6,
+        "capex_crore": 19.2,
+        "total_debt_crore": 2420,
+        "total_equity_crore": 2370,
+        "total_assets_crore": 38885,
+        "cash_crore": null,
+        "debt_to_equity": 1.02
+      },
+      {
+        "year": 2025,
+        "eps_taka": 3.31,
+        "net_profit_crore": 368.1,
+        "cash_dividend_pct": 13.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.3,
+        "nav_per_share_taka": 23.07
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 3.31,
+      "net_profit_crore": 368.1,
+      "cash_dividend_pct": 13.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 1.3,
+      "nav_per_share_taka": 23.07
+    },
+    "growth": {
+      "span": "2020–2025",
+      "net_profit_change_pct": 92.0,
+      "eps_change_pct": 70.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 111.3,
+      "paid_up_capital_crore": 1113,
+      "reserve_surplus_crore": 1454,
+      "total_loan_crore": 2662,
+      "listing_year": 2007
+    },
+    "ownership": {
+      "sponsor_director_pct": 43.08,
+      "govt_pct": 0.0,
+      "institute_pct": 24.25,
+      "foreign_pct": 0.0,
+      "public_pct": 32.67
+    }
+  },
+  "sector_context": {
+    "sector": "Bank",
+    "peer_count": 36,
+    "rank_in_sector": 7,
+    "sector_avg_score": 42.9,
+    "sector_median_pe": 5.45
+  },
+  "score": {
+    "trading_code": "SHAHJABANK",
+    "sector": "Bank",
+    "market_cat": "A",
+    "ltp": 17.7,
+    "mcap_mn": 19699.5398127,
+    "score": 68.9,
+    "base_score": 68.9,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 1.0,
+    "eps": 3.31,
+    "roe_pct": 23.2,
+    "sector_median_pe": 5.45,
+    "sector_median_pb": 0.55,
+    "p1_biz": 5.58,
+    "p2_health": 9.29,
+    "p3_moat": 7.3,
+    "p4_val": 6.17,
+    "p5_div": 6.5,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 1.6161,
+    "p1_roe": 9.0,
+    "p1_npm_trend": 2.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 117.8,
+    "eps_stability": 0.6801,
+    "p2_de": 10.0,
+    "p2_ic": 10.0,
+    "p2_cfo": 8.0,
+    "p2_cash": null,
+    "p2_coverage": 1.0,
+    "p3_margin": 7.0,
+    "p3_rev_vol": 10.0,
+    "p3_sector_rank": 7.0,
+    "p3_capex": 3.0,
+    "p3_coverage": 1.0,
+    "p4_pe": 8.41,
+    "p4_pb": 5.76,
+    "p4_vol_damp": 0.84,
+    "current_pe": 5.35,
+    "current_pb": 0.77,
+    "own_avg_pe": 7.52,
+    "own_avg_pb": 0.91,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 10.0,
+    "div_yield_pct": 7.3,
+    "overall_rank": 26,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "good_wait_price",
+    "reason_en": "Good company — fine to hold, but wait for a cheaper price to buy.",
+    "reason_bn": "ভালো কোম্পানি — ধরে রাখা যায়, তবে কেনার জন্য আরেকটু কম দামের অপেক্ষা করুন।",
+    "tier": "good",
+    "momentum_grade": "warm",
+    "score": 68.9,
+    "p4_val": 6.17,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Currently cheap vs historical P/E",
+      "Sponsor holding 43.1% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, price moving up steadily",
+    "sentences": [
+      "The company is in good financial shape, and the share price is steadily rising.",
+      "Has paid dividends regularly in past years.",
+      "The share price looks cheaper now than its average over the past few years."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 1.72,
+    "rs_vs_dsex_pct": -0.34,
+    "volume_ratio": 0.46,
+    "avg_turnover_7d_mn": 5.51,
+    "up_days_7d": 4,
+    "days_counted": 7,
+    "pct_in_52w_range": 60.6,
+    "momentum_grade": "warm"
+  },
+  "financials": [
+    {
+      "trading_code": "SHAHJABANK",
+      "year": 2020,
+      "cash_dividend_pct": null,
+      "dividend_yield_pct": 3.06,
+      "eps_basic": null,
+      "eps_cont_basic": 1.95,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 18.33,
+      "pe_ratio_basic": 11.99,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 1913.44,
+      "profit_mn": 1913.44,
+      "stock_dividend_pct": 7.005,
+      "total_comprehensive_income_mn": 1913.44,
+      "eps": 1.95
+    },
+    {
+      "trading_code": "SHAHJABANK",
+      "year": 2021,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 4.59,
+      "eps_basic": null,
+      "eps_cont_basic": 2.52,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 19.27,
+      "pe_ratio_basic": 8.66,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 2591.54,
+      "profit_mn": 2591.54,
+      "stock_dividend_pct": 5,
+      "total_comprehensive_income_mn": 2591.54,
+      "dps": 1.0,
+      "eps": 2.52
+    },
+    {
+      "year": 2022,
+      "trading_code": "SHAHJABANK",
+      "cash_dividend_pct": 12.0,
+      "dividend_yield_pct": 6.38,
+      "eps_basic": null,
+      "eps_cont_basic": 3.31,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 20.32,
+      "pe_ratio_basic": 5.67,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 3580.35,
+      "profit_mn": 3580.35,
+      "stock_dividend_pct": 3,
+      "total_comprehensive_income_mn": 3580.35,
+      "dps": 1.2,
+      "eps": 3.31
+    },
+    {
+      "trading_code": "SHAHJABANK",
+      "year": 2023,
+      "cash_dividend_pct": 14.0,
+      "dividend_yield_pct": 7.65,
+      "eps_basic": null,
+      "eps_cont_basic": 3.22,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 21.38,
+      "pe_ratio_basic": 5.69,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 3581.55,
+      "profit_mn": 3581.55,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 3581.55,
+      "dps": 1.4,
+      "eps": 3.22
+    },
+    {
+      "trading_code": "SHAHJABANK",
+      "year": 2024,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 5.46,
+      "eps_basic": null,
+      "eps_cont_basic": 1.52,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 21.09,
+      "pe_ratio_basic": 12.03,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 1693.35,
+      "profit_mn": 1693.35,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 1693.35,
+      "dps": 1.0,
+      "eps": 1.52
+    },
+    {
+      "trading_code": "SHAHJABANK",
+      "year": 2025,
+      "cash_dividend_pct": 13.0,
+      "dividend_yield_pct": 7.88,
+      "dps": 1.3,
+      "eps_basic": null,
+      "eps_cont_basic": 3.31,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 23.07,
+      "pe_ratio_basic": 5.53,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 3681.36,
+      "profit_mn": 3681.36,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 3681.36,
+      "eps": 3.31
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "SHAHJABANK",
+      "year": 2021,
+      "capex": -191167040.0,
+      "investing_cf": -9129613440.0,
+      "net_profit": 4929698485.0,
+      "nocfps": null,
+      "operating_cf": 1057282006.0,
+      "total_equity": 20057718328.0,
+      "ebit": 6114226485.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 316558388612.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 279150090709.0,
+      "gross_profit": null,
+      "interest_income": 13792776608.0,
+      "net_interest_income": 6394873695.0,
+      "total_debt": 32701012974.0
+    },
+    {
+      "trading_code": "SHAHJABANK",
+      "year": 2022,
+      "capex": -218322332.0,
+      "investing_cf": 2505064341.0,
+      "net_profit": 7331596618.0,
+      "nocfps": 3.52,
+      "operating_cf": 1352760404.0,
+      "total_equity": 22185103446.0,
+      "ebit": 8543385936.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 342727632327.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 278807981050.0,
+      "gross_profit": null,
+      "interest_income": 15965123028.0,
+      "net_interest_income": 7599264985.0,
+      "total_debt": 42299588342.0
+    },
+    {
+      "trading_code": "SHAHJABANK",
+      "year": 2023,
+      "capex": -238429092.0,
+      "investing_cf": 1347407021.0,
+      "net_profit": 7132784807.0,
+      "nocfps": 10.09,
+      "operating_cf": 1542030020.0,
+      "total_equity": 24027333938.0,
+      "ebit": 8866365697.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 354461764321.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 282282815389.0,
+      "gross_profit": null,
+      "interest_income": 18178269302.0,
+      "net_interest_income": 9115226731.0,
+      "total_debt": 27742904371.0
+    },
+    {
+      "trading_code": "SHAHJABANK",
+      "year": 2024,
+      "capex": -191515432.0,
+      "investing_cf": -4490313487.0,
+      "net_profit": 5506571795.0,
+      "nocfps": 8.03,
+      "operating_cf": 1495973315.0,
+      "total_equity": 23699458203.0,
+      "ebit": 10761045289.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": null,
+      "total_assets": 388847435422.0,
+      "cash_and_equivalents": null,
+      "earning_assets": 321751291335.0,
+      "gross_profit": null,
+      "interest_income": 22233226924.0,
+      "net_interest_income": 10359554636.0,
+      "total_debt": 24197634890.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "SHAHJABANK",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 24.25,
+    "public_pct": 32.67,
+    "reporting_period": null,
+    "sponsor_director_pct": 43.08
+  },
+  "shareholding_prev": {
+    "trading_code": "SHAHJABANK",
+    "as_of_date": "Jan 31, 2026",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 24.19,
+    "public_pct": 32.73,
+    "reporting_period": null,
+    "sponsor_director_pct": 43.08
+  },
+  "dividend_declaration": {
+    "trading_code": "SHAHJABANK",
+    "declaration_date": "2026-04-09T00:00:00",
+    "dividend_pct": 13.0,
+    "dividend_type": "Final",
+    "record_date": "2026-04-30T00:00:00",
+    "scraped_at": "2026-07-16T10:44:39.216000",
+    "title": "SHAHJABANK: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-06-30T00:00:00",
+      "title": "SHAHJABANK: Dividend Disbursement",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended December 31, 2025 to the respective shareholders."
+    },
+    {
+      "title": "SHAHJABANK: Emphasis of Matter",
+      "post_date": "2026-05-17T00:00:00",
+      "body": "The auditor of the company has given the Emphasis of Matter paragraph in the auditor's report for the year ended December 31, 2025. To view the details, please visit: https://www.dsebd.org/Auditors_opinion/2025/203.%20Shahjalal%20Islami%20Bank%20PLC2025.pdf"
+    },
+    {
+      "title": "SHAHJABANK: Q1 Financials",
+      "post_date": "2026-04-30T00:00:00",
+      "body": "(Q1 Un-audited): Consolidated EPS was Tk. 1.12 for January-March 2026 as against Tk. 1.04 for January-March 2025. Consolidated NOCFPS was Tk. 3.07 for January-March 2026 as against Tk. 4.36 for January-March 2025. Consolidated NAV per share was Tk. 24.09 as on March 31, 2026 and Tk. 22.02 as on March 31, 2025. (cont.)"
+    },
+    {
+      "title": "SHAHJABANK: Resumption after Record Date",
+      "post_date": "2026-04-30T00:00:00",
+      "body": "Trading of the shares of the company will resume on 03.05.2026."
+    },
+    {
+      "title": "SHAHJABANK: Suspension for Record Date",
+      "post_date": "2026-04-29T00:00:00",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e. 30.04.2026."
+    },
+    {
+      "post_date": "2026-04-27T00:00:00",
+      "title": "SHAHJABANK: Spot News",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 28.04.2026 to 29.04.2026 and trading of the shares will remain suspended on record date i.e., 30.04.2026."
+    },
+    {
+      "title": "SHAHJABANK: Credit Rating Result",
+      "post_date": "2026-04-26T00:00:00",
+      "body": "Emerging Credit Rating Limited (ECRL) has affirmed surveillance credit rating of the Company as \"AA+\" in the long term and \"ST-1\" in the short term along with a Stable outlook based on audited financial statements up to December 31, 2025 and other relevant quantitative as well as qualitative information up to the date of rating."
+    },
+    {
+      "post_date": "2026-04-26T00:00:00",
+      "title": "SHAHJABANK: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 29, 2026 at 4:00 pm to consider, among others, Un-Audited Financial Statements for the First Quarter (Q1) period ended March 31, 2026."
+    },
+    {
+      "title": "SHAHJABANK: Dividend Declaration",
+      "post_date": "2026-04-09T00:00:00",
+      "body": "The Board of Directors has recommended 13% Cash Dividend for the year ended December 31, 2025. Date of AGM: 24.05.2026, Time: 11:00 a.m., Venue: Digital Platform. Record Date: 30.04.2026. The Company has also reported Consolidated EPS of Tk. 3.31, Consolidated NAV per share of Tk. 23.07 and Consolidated NOCFPS of Tk. 12.28 for the year ended December 31, 2025 as against Tk. 1.52, Tk. 21.09 and Tk. 8.03 respectively for the year ended December 31, 2024. (cont.)"
+    },
+    {
+      "post_date": "2026-04-09T00:00:00",
+      "title": "SHAHJABANK: Price Limit Open",
+      "body": "There will be no price limit on the trading of the shares of the Company today (09.04.2026) following its corporate declaration."
+    },
+    {
+      "post_date": "2026-04-09T00:00:00",
+      "title": "SHAHJABANK: Transfer of shares outside the Trading System of the Exchange",
+      "body": "Dhaka Stock Exchange PLC. (DSE) has approved the transfer of 810,000 shares of Shahjalal Islami Bank PLC. held by Mr. Anwer Hossain Khan (Sponsor), transferor, to Bangladesh Finance PLC. (Institute), transferee, within next 30 working days outside the trading system of the Exchange other than by way of gift under Regulation 47(1)(d) of the Dhaka Stock Exchange (Listing) Regulations, 2015 as well as other applicable laws."
+    },
+    {
+      "post_date": "2026-04-02T00:00:00",
+      "title": "SHAHJABANK: Board Meeting schedule under LR 19(1)",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 08, 2026 at 3:00 PM to consider, among others, audited financial statements of the Company for the year ended December 31, 2025."
+    },
+    {
+      "title": "SHAHJABANK: Election of Chairman",
+      "post_date": "2026-02-03T00:00:00",
+      "body": "The company has informed that the Board of Directors has elected Mr. Mohammed Younus as the Chairman of the Company."
+    },
+    {
+      "post_date": "2025-10-23T00:00:00",
+      "title": "SHAHJABANK: Q3 Financials",
+      "body": "(Q3 Un-audited): Consolidated EPS was Tk. 1.02 for July-September, 2025 as against Tk. 1.06 for July-September, 2024; Consolidated EPS was Tk. 3.50 for January-September, 2025 as against Tk. 3.65 for January-September, 2024. Consolidated NOCFPS was Tk. 22.97 for January-September, 2025 as against Tk. 7.84 for January-September, 2024. Consolidated NAV per share was Tk. 23.39 as on September 30, 2025 and Tk. 23.30 as on September 30, 2024. (cont.)"
+    },
+    {
+      "post_date": "2025-10-19T00:00:00",
+      "title": "SHAHJABANK: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on October 22, 2025 at 4:00 PM to consider, among others, Un-audited financial statements of the Company for the Third Quarter (Q3) period ended September 30, 2025."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "PRIMEBANK",
+      "company_name": "Prime Bank PLC.",
+      "sector": "Bank",
+      "score": 80.2,
+      "ltp": 30.5,
+      "change_pct": -0.65,
+      "pe": 3.89,
+      "pb": 0.76,
+      "div_yield_pct": 8.2,
+      "roe_pct": 31.1,
+      "eps_yoy_pct": 21.2
+    },
+    {
+      "trading_code": "UTTARABANK",
+      "company_name": "Uttara Bank PLC.",
+      "sector": "Bank",
+      "score": 78.8,
+      "ltp": 21.4,
+      "change_pct": 0.0,
+      "pe": 3.52,
+      "pb": 0.67,
+      "div_yield_pct": 2.3,
+      "roe_pct": 34.2,
+      "eps_yoy_pct": 5.0
+    },
+    {
+      "trading_code": "BRACBANK",
+      "company_name": "BRAC Bank PLC.",
+      "sector": "Bank",
+      "score": 76.5,
+      "ltp": 64.6,
+      "change_pct": -1.07,
+      "pe": 7.08,
+      "pb": 1.25,
+      "div_yield_pct": 2.3,
+      "roe_pct": 24.0,
+      "eps_yoy_pct": 31.2
+    },
+    {
+      "trading_code": "EBL",
+      "company_name": "Eastern Bank PLC.",
+      "sector": "Bank",
+      "score": 76.0,
+      "ltp": 24.4,
+      "change_pct": -0.41,
+      "pe": 4.67,
+      "pb": 0.78,
+      "div_yield_pct": 10.2,
+      "roe_pct": 28.2,
+      "eps_yoy_pct": 7.6
+    },
+    {
+      "trading_code": "NCCBANK",
+      "company_name": "National Credit and Commerce Bank PLC.",
+      "sector": "Bank",
+      "score": 74.1,
+      "ltp": 15.6,
+      "change_pct": 0.0,
+      "pe": 3.64,
+      "pb": 0.57,
+      "div_yield_pct": 10.9,
+      "roe_pct": 20.5,
+      "eps_yoy_pct": 104.3
+    }
+  ],
+  "source_hash": "3c5e6b98e6e02339b6d0a93fa801cfb15c7336c129c1a357924c746ded107e54"
+}
