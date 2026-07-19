@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 interface Company {
@@ -18,6 +18,8 @@ export default function SearchBar({ companies, variant = "default" }: Props) {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Company[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [navCode, setNavCode] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -54,9 +56,15 @@ export default function SearchBar({ companies, variant = "default" }: Props) {
   }, []);
 
   function navigate(code: string) {
+    const upper = code.toUpperCase();
     setSuggestions([]);
     setQuery("");
-    router.push(`/stock/${code}`);
+    setNavCode(upper);
+    // Show an instant loading overlay; isPending stays true until the stock
+    // page is ready, so the user never sees a frozen screen.
+    startTransition(() => {
+      router.push(`/stock/${upper}`);
+    });
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -143,6 +151,18 @@ export default function SearchBar({ companies, variant = "default" }: Props) {
             </li>
           ))}
         </ul>
+      )}
+
+      {pending && navCode && (
+        <div className="nav-loading-overlay" role="status" aria-live="polite">
+          <div className="nav-loading-card">
+            <div className="nav-loading-spinner" aria-hidden="true" />
+            <div className="nav-loading-label">
+              Opening <span className="nav-loading-code">{navCode}</span>…
+            </div>
+            <div className="nav-loading-sub">Loading the latest data</div>
+          </div>
+        </div>
       )}
     </div>
   );

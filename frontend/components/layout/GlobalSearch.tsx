@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { getInsightScores } from "@/lib/api";
 
@@ -23,6 +23,8 @@ export default function GlobalSearch() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [navCode, setNavCode] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Listen for global open event
@@ -92,11 +94,24 @@ export default function GlobalSearch() {
 
   const navigate = useCallback(
     (code: string) => {
-      close();
-      router.push(`/stock/${code.toUpperCase()}`);
+      const upper = code.toUpperCase();
+      setNavCode(upper);
+      // Keep the overlay up and show a loading state instead of freezing on
+      // the current view; isPending stays true until the stock page is ready.
+      startTransition(() => {
+        router.push(`/stock/${upper}`);
+      });
     },
-    [close, router]
+    [router]
   );
+
+  // Once the navigation settles, dismiss the search modal.
+  useEffect(() => {
+    if (!pending && navCode) {
+      close();
+      setNavCode(null);
+    }
+  }, [pending, navCode, close]);
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "ArrowDown") {
@@ -121,6 +136,24 @@ export default function GlobalSearch() {
   }
 
   if (!open) return null;
+
+  // While the stock page loads, replace the search panel with a loading card
+  // so the user gets instant feedback instead of a frozen screen.
+  if (pending && navCode) {
+    return (
+      <div className="global-search-overlay" role="status" aria-live="polite">
+        <div className="global-search-panel">
+          <div className="nav-loading-card nav-loading-card--panel">
+            <div className="nav-loading-spinner" aria-hidden="true" />
+            <div className="nav-loading-label">
+              Opening <span className="nav-loading-code">{navCode}</span>…
+            </div>
+            <div className="nav-loading-sub">Loading the latest data</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

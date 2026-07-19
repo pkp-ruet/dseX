@@ -3995,6 +3995,82 @@ a:hover .ticker-tag,
   font-weight: 700;
 }
 
+/* ── Navigation loading (search → stock page) ─────────────────────────── */
+/* Instant feedback while the destination page's data is fetched, so a slow
+   backend never leaves the user on a frozen screen. */
+.nav-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: rgba(7, 14, 28, 0.62);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  /* Delayed reveal: near-instant navigations (prefetched routes) resolve
+     before the overlay becomes visible, avoiding a jarring flash. */
+  animation: nav-loading-appear 0.28s ease-out both;
+}
+@keyframes nav-loading-appear {
+  0%   { opacity: 0; }
+  55%  { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.nav-loading-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 13px;
+  padding: 26px 34px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(7, 14, 28, 0.28);
+  text-align: center;
+}
+/* Variant used inside the global-search overlay panel (top-aligned, full width) */
+.nav-loading-card--panel {
+  width: 100%;
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+.nav-loading-spinner {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 3px solid var(--surface-2);
+  border-top-color: var(--primary);
+  animation: nav-spin 0.7s linear infinite;
+}
+@keyframes nav-spin {
+  to { transform: rotate(360deg); }
+}
+
+.nav-loading-label {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+.nav-loading-code {
+  color: var(--primary);
+  font-weight: 800;
+}
+.nav-loading-sub {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  margin-top: -4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-loading-overlay { animation: none; }
+  .nav-loading-spinner { animation-duration: 1.4s; }
+}
+
 /* Full rank table star column */
 .fr-th-star {
   width: 1%;
