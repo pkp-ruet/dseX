@@ -88,32 +88,27 @@ function SectionHeader({
   return (
     <div className="mb-4 flex items-center gap-3">
       <span
-        className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl shadow-sm"
+        className="grid h-10 w-10 shrink-0 place-items-center rounded-xl"
         style={{
-          color: "#fff",
-          background: `linear-gradient(135deg, ${accent} 0%, color-mix(in srgb, ${accent} 72%, #000) 100%)`,
-          boxShadow: `0 8px 20px -8px color-mix(in srgb, ${accent} 70%, transparent)`,
+          color: accent,
+          background: `color-mix(in srgb, ${accent} 12%, transparent)`,
+          border: `1px solid color-mix(in srgb, ${accent} 22%, transparent)`,
         }}
         aria-hidden
       >
         {icon}
       </span>
-      <div className="min-w-0">
-        <p className="text-[0.62rem] font-extrabold uppercase tracking-[0.18em]" style={{ color: accent }}>
+      <div className="min-w-0 flex-1">
+        <p className="text-[0.6rem] font-extrabold uppercase tracking-[0.16em]" style={{ color: accent }}>
           {eyebrow}
         </p>
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <h2 className="font-display text-[clamp(1.3rem,5vw,1.7rem)] font-extrabold tracking-tight text-[var(--text)] leading-tight">
+          <h2 className="font-display text-[clamp(1.25rem,4.5vw,1.55rem)] font-extrabold tracking-tight text-[var(--text)] leading-tight">
             {title}
           </h2>
           {chips}
         </div>
       </div>
-      <span
-        className="ml-1 hidden h-1 flex-1 rounded-full sm:block"
-        style={{ background: `linear-gradient(90deg, color-mix(in srgb, ${accent} 45%, transparent), transparent)` }}
-        aria-hidden
-      />
     </div>
   );
 }
@@ -122,16 +117,16 @@ function SectionHeader({
  *  picks/tips fetches are still in flight so the section doesn't pop in. */
 function IdeasSkeleton() {
   return (
-    <div className="soft-card overflow-hidden" aria-hidden>
-      <div className="border-b border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 sm:px-4">
-        <div className="h-9 w-full max-w-xs animate-pulse rounded-xl bg-[var(--surface-2)]" />
-      </div>
-      <div className="space-y-2 bg-[var(--surface-2)] px-4 py-4 sm:px-5">
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="h-24 animate-pulse rounded-xl border border-[var(--border)] bg-[var(--surface)]" />
-        ))}
-        <div className="h-10 animate-pulse rounded-xl border border-[var(--border)] bg-[var(--surface)]" />
-      </div>
+    <div className="space-y-3" aria-hidden>
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="rounded-2xl border border-[var(--border)] p-3.5">
+          <div className="mb-3 h-5 w-40 animate-pulse rounded-lg bg-[var(--surface-2)]" />
+          <div className="space-y-2">
+            <div className="h-12 animate-pulse rounded-xl bg-[var(--surface-2)]" />
+            <div className="h-12 animate-pulse rounded-xl bg-[var(--surface-2)]" />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
