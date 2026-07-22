@@ -176,9 +176,9 @@ export default function DiscoverCard({
         {hasTop20 && (
           <EntryRow
             emoji="🚀"
-            label="Top 20 movers"
+            label="Trending stocks"
             sub="Biggest 7-day gainers"
-            href="/dse-top-20"
+            href="/dse-trending-stocks"
           />
         )}
         <EntryRow

@@ -7,7 +7,7 @@ import { isLoggedIn } from "@/lib/auth";
 import { openMobileDrawer } from "@/components/layout/Navbar";
 import { openGlobalSearch } from "@/components/layout/GlobalSearch";
 
-const MARKETS_PATHS = ["/dse-today", "/dse-top-20", "/dse-popular-stocks", "/market-analysis"];
+const MARKETS_PATHS = ["/dse-today", "/dse-trending-stocks", "/dse-popular-stocks", "/market-analysis"];
 const matches = (pathname: string, paths: string[]) =>
   paths.some((p) => pathname === p || pathname.startsWith(p + "/"));
 

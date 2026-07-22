@@ -6,7 +6,7 @@ function fmtSigned(val: number | null): string {
   return `${val > 0 ? "+" : ""}${val.toFixed(1)}%`;
 }
 
-/** Compact DSE Top 20 preview styled like LiveRankingPreview: 5 rows
+/** Compact Trending Stocks preview styled like LiveRankingPreview: 5 rows
  *  (rank · ticker · 7d return · LTP) + a "See all" footer. */
 export default function Top20Preview({ items }: { items: Top20Item[] }) {
   const rows = items.slice(0, 5);
@@ -55,10 +55,10 @@ export default function Top20Preview({ items }: { items: Top20Item[] }) {
         })}
       </div>
       <Link
-        href="/dse-top-20"
+        href="/dse-trending-stocks"
         className="block text-center px-4 py-3 text-xs font-semibold text-[var(--primary)] hover:bg-[var(--surface-2)] border-t border-[var(--border)] transition-colors"
       >
-        See all DSE Top 20 →
+        See all Trending Stocks →
       </Link>
     </div>
   );

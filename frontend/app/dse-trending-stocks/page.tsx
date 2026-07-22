@@ -7,69 +7,69 @@ import Top20Deck from "@/components/top20/Top20Deck";
 export const revalidate = 86400;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
-const PAGE_URL = `${BASE_URL}/dse-top-20`;
+const PAGE_URL = `${BASE_URL}/dse-trending-stocks`;
 
 export const metadata: Metadata = {
-  title: "DSE Top 20 Stocks This Week — 7-Day Momentum Picks | TopStockBD",
+  title: "DSE Trending Stocks — This Week's Top Movers | TopStockBD",
   description:
-    "The 20 best-performing Dhaka Stock Exchange stocks based on the last 7 trading days. Updated daily and ranked by price momentum, relative strength vs DSEX, volume conviction, and trend quality.",
+    "The 20 strongest-performing Dhaka Stock Exchange stocks over the last 7 trading days. Updated daily and ranked by price momentum, relative strength vs DSEX, volume conviction, and trend quality.",
   keywords: [
-    "DSE top 20",
-    "DSE top 20 stocks",
-    "top 20 DSE stocks",
-    "Dhaka Stock Exchange top 20",
-    "top performing DSE stocks",
-    "best DSE stocks this week",
+    "DSE trending stocks",
+    "trending stocks Bangladesh",
+    "trending shares DSE",
+    "DSE top movers this week",
+    "best performing DSE stocks",
     "DSE momentum stocks",
-    "DSE weekly picks",
-    "DSEX top 20",
-    "Bangladesh top stocks",
+    "Dhaka Stock Exchange trending stocks",
+    "DSE weekly movers",
+    "hot stocks DSE",
+    "top 20 DSE stocks",
     "DSE stock movers",
     "best stocks to buy DSE",
   ],
-  alternates: { canonical: "/dse-top-20" },
+  alternates: { canonical: "/dse-trending-stocks" },
   openGraph: {
-    title: "DSE Top 20 Stocks This Week — 7-Day Momentum Picks",
+    title: "DSE Trending Stocks — This Week's Top Movers",
     description:
-      "Top 20 Dhaka Stock Exchange stocks ranked daily by 7-day momentum, relative strength vs DSEX, and volume conviction. Updated after every market close.",
+      "The 20 strongest Dhaka Stock Exchange stocks, ranked daily by 7-day momentum, relative strength vs DSEX, and volume conviction. Updated after every market close.",
     url: PAGE_URL,
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "DSE Top 20 Stocks — 7-Day Momentum Picks",
+    title: "DSE Trending Stocks — Top Movers This Week",
     description:
-      "20 best-performing DSE stocks ranked by 7-day market data. Updated daily.",
+      "The 20 strongest DSE stocks ranked by 7-day market data. Updated daily.",
   },
 };
 
 const FAQS: { q: string; a: string }[] = [
   {
-    q: "What is the DSE Top 20?",
-    a: "The DSE Top 20 is a daily ranking of 20 Dhaka Stock Exchange stocks selected purely from the last 7 trading days of market data — price action, relative strength against the DSEX index, and turnover trends. It is not a fundamental screen and does not use earnings, dividends, or balance-sheet metrics.",
+    q: "What are DSE trending stocks?",
+    a: "Trending Stocks is a daily list of 20 Dhaka Stock Exchange shares selected purely from the last 7 trading days of market data — price action, relative strength against the DSEX index, and turnover trends. It is not a fundamental screen and does not use earnings, dividends, or balance-sheet metrics.",
   },
   {
-    q: "How is the DSE Top 20 list calculated?",
-    a: "Every stock with at least 5 of the last 7 trading days of price data and an average daily turnover of Tk 1 million or more is scored on five factors: 7-day price return (35%), relative strength vs DSEX (25%), volume conviction measured as 7-day vs 30-day turnover (20%), trend quality based on up-day ratio with a whipsaw penalty (15%), and a 52-week sweet-spot bonus (5%). Each factor is z-scored across the universe, then combined into a composite. The 20 highest composite scores are the DSE Top 20.",
+    q: "How is the trending stocks list calculated?",
+    a: "Every stock with at least 5 of the last 7 trading days of price data and an average daily turnover of Tk 1 million or more is scored on five factors: 7-day price return (35%), relative strength vs DSEX (25%), volume conviction measured as 7-day vs 30-day turnover (20%), trend quality based on up-day ratio with a whipsaw penalty (15%), and a 52-week sweet-spot bonus (5%). Each factor is z-scored across the universe, then combined into a composite. The 20 highest composite scores make the Trending Stocks list.",
   },
   {
-    q: "How often is the DSE Top 20 updated?",
-    a: "The list is recomputed every day after the DSE close, once the daily price scrape finishes. The page itself revalidates every 30 minutes so changes propagate quickly without a redeploy.",
+    q: "How often is the trending stocks list updated?",
+    a: "The list is recomputed every day after the DSE close, once the daily price scrape finishes. The page then refreshes so the newest list appears after each market close.",
   },
   {
-    q: "Does the DSE Top 20 use fundamental analysis or the DSEF score?",
-    a: "No. This page is deliberately separate from the DSEF fundamental rankings on /dsestockranking. The DSE Top 20 looks only at recent market behavior — momentum, breadth, and liquidity — to surface what the market is actually rewarding right now.",
+    q: "Does the trending stocks list use fundamental analysis or a company score?",
+    a: "No. This page is deliberately separate from our fundamental Stock Rankings on /dsestockranking. Trending Stocks looks only at recent market behaviour — momentum, breadth, and liquidity — to surface what the market is actually rewarding right now.",
   },
   {
-    q: "What is the difference between DSE Top 20 and DSE Popular Stocks?",
-    a: "DSE Popular Stocks ranks tickers by how many times site visitors viewed them — a reader-interest signal. DSE Top 20 ranks by what the market did in the last 7 trading days. They often disagree, which is the point.",
+    q: "What is the difference between Trending Stocks and Popular Stocks?",
+    a: "Popular Stocks ranks tickers by how many times site visitors viewed them — a reader-interest signal. Trending Stocks ranks by what the market actually did over the last 7 trading days. They often disagree, which is the point.",
   },
   {
-    q: "Can I use the DSE Top 20 as a buy list?",
-    a: "No. The Top 20 is a starting point for research, not a buy list. Momentum can reverse quickly on the DSE, especially around dividend record dates and category changes. Always cross-check fundamentals, your own risk tolerance, and recent news before acting.",
+    q: "Can I use the trending stocks list as a buy list?",
+    a: "No. Trending Stocks is a starting point for research, not a buy list. Momentum can reverse quickly on the DSE, especially around dividend record dates and category changes. Always cross-check fundamentals, your own risk tolerance, and recent news before acting.",
   },
   {
-    q: "Why are some popular stocks not in the Top 20?",
+    q: "Why are some popular stocks not trending?",
     a: "The list filters out stocks with thin liquidity (under Tk 1 million average daily turnover) and stocks missing recent price data. A widely watched ticker that traded sideways with no volume surge over the last week will not score highly on this composite, even if it is fundamentally strong.",
   },
   {
@@ -81,15 +81,15 @@ const FAQS: { q: string; a: string }[] = [
 const CONDITION_COPY: Record<string, { eyebrow: string; line: string }> = {
   rising: {
     eyebrow: "Market is rising",
-    line: "In a rising market, the Top 20 favors stocks confirming the move — strong 7-day returns paired with above-normal turnover. These are the leaders pulling the DSEX higher.",
+    line: "In a rising market, the list favors stocks confirming the move — strong 7-day returns paired with above-normal turnover. These are the leaders pulling the DSEX higher.",
   },
   falling: {
     eyebrow: "Market is falling",
-    line: "In a falling market, the Top 20 surfaces resilience — stocks holding up against the DSEX slide, often with quiet accumulation visible in turnover. These are the relative-strength names that historically lead the next rebound.",
+    line: "In a falling market, the list surfaces resilience — stocks holding up against the DSEX slide, often with quiet accumulation visible in turnover. These are the relative-strength names that historically lead the next rebound.",
   },
   sideways: {
     eyebrow: "Market is sideways",
-    line: "In a sideways market, the Top 20 highlights setups where turnover is rising even though price is not yet — accumulation candidates. Watch for breakouts to confirm.",
+    line: "In a sideways market, the list highlights setups where turnover is rising even though price is not yet — accumulation candidates. Watch for breakouts to confirm.",
   },
   unknown: {
     eyebrow: "Market state",
@@ -112,9 +112,9 @@ function buildJsonLd(args: {
         "@type": "WebPage",
         "@id": PAGE_URL,
         url: PAGE_URL,
-        name: "DSE Top 20 Stocks This Week — 7-Day Momentum Picks",
+        name: "DSE Trending Stocks — This Week's Top Movers",
         description:
-          "Top 20 Dhaka Stock Exchange stocks ranked daily by 7-day momentum, relative strength vs DSEX, and volume conviction.",
+          "The strongest Dhaka Stock Exchange stocks over the last 7 trading days, ranked by price momentum, relative strength vs DSEX, and volume conviction.",
         inLanguage: "en",
         datePublished,
         dateModified: args.generatedAt || now,
@@ -124,12 +124,12 @@ function buildJsonLd(args: {
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-          { "@type": "ListItem", position: 2, name: "DSE Top 20", item: PAGE_URL },
+          { "@type": "ListItem", position: 2, name: "Trending Stocks", item: PAGE_URL },
         ],
       },
       {
         "@type": "ItemList",
-        name: "DSE Top 20 — 7-Day Momentum",
+        name: "DSE Trending Stocks — 7-Day Momentum",
         description:
           "Twenty Dhaka Stock Exchange stocks ranked by a 7-day market-data composite: price momentum, relative strength vs DSEX, volume conviction, trend quality, and 52-week sweet-spot bonus.",
         numberOfItems: args.items.length,
@@ -153,13 +153,13 @@ function buildJsonLd(args: {
   };
 }
 
-export default async function DseTop20Page() {
+export default async function DseTrendingStocksPage() {
   const data = await getTop20().catch(() => null);
 
   if (!data) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-20 text-center text-[var(--text-muted)]">
-        Unable to load DSE Top 20 right now. Please try again shortly.
+        Unable to load Trending Stocks right now. Please try again shortly.
       </div>
     );
   }
@@ -267,7 +267,7 @@ export default async function DseTop20Page() {
                 backgroundClip: "text",
               }}
             >
-              DSE Top 20
+              Trending Stocks
             </h1>
 
             <p
@@ -279,7 +279,7 @@ export default async function DseTop20Page() {
                 color: "var(--ink)",
               }}
             >
-              Strongest DSE stocks of the last 7 trading days — ranked by momentum, strength vs DSEX, and turnover.
+              The strongest DSE stocks of the last 7 trading days — ranked by momentum, strength vs DSEX, and turnover.
             </p>
           </div>
         </div>
@@ -292,10 +292,10 @@ export default async function DseTop20Page() {
         {/* Methodology */}
         <section className="mt-12 max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold text-[var(--ink)] mb-3">
-            How we rank the DSE Top 20
+            How we build the Trending Stocks list
           </h2>
           <p className="text-[var(--ink)] leading-relaxed mb-4">
-            The DSE Top 20 is a market-data composite — no earnings models, no fundamental scoring.
+            The Trending Stocks list is a market-data composite — no earnings models, no fundamental scoring.
             Every stock listed on the Dhaka Stock Exchange that has at least five of the last seven
             trading days of price data and an average daily turnover of Tk 1 million or more enters
             the universe. Bonds, debentures, mutual funds, and ETFs are excluded automatically.
@@ -363,10 +363,10 @@ export default async function DseTop20Page() {
         {/* Dynamic condition explainer */}
         <section className="mt-10 max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold text-[var(--ink)] mb-3">
-            What &quot;Top 20&quot; means on DSE this week
+            What &quot;trending&quot; means on the DSE this week
           </h2>
           <p className="text-[var(--ink)] leading-relaxed">
-            {copy.line} The list above reflects that. {dsexLine} The DSE Top 20 is recomputed every
+            {copy.line} The list above reflects that. {dsexLine} The list is recomputed every
             day after the close, so the names change as the market regime changes — the same five
             factors, applied to fresh data.
           </p>
@@ -409,7 +409,7 @@ export default async function DseTop20Page() {
             >
               <div className="font-semibold text-[var(--ink)]">DSE Stock Rankings</div>
               <div className="text-sm text-[var(--ink-muted)] mt-1">
-                Long-term DSEF fundamental score across every listed company.
+                Our long-term fundamental score across every listed company.
               </div>
             </Link>
             <Link

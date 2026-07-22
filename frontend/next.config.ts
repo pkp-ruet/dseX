@@ -33,6 +33,11 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/dse-top-20",
+        destination: "/dse-trending-stocks",
+        permanent: true,
+      },
+      {
         source: "/stock-lists/:slug*",
         destination: "/stock-insights/:slug*",
         permanent: true,

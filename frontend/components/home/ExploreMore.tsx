@@ -180,12 +180,12 @@ export default function ExploreMore({
           </span>
         </Link>
 
-        {/* DSE Top 20 — small card */}
+        {/* Trending Stocks — small card */}
         <Link
-          href="/dse-top-20"
+          href="/dse-trending-stocks"
           className={`${CARD} hover:border-[color-mix(in_srgb,var(--positive)_45%,var(--border))]`}
         >
-          <CardEyebrow label="DSE Top 20" color="var(--positive)" />
+          <CardEyebrow label="Trending Stocks" color="var(--positive)" />
           <p className="mt-3 text-sm font-semibold text-[var(--text)] leading-snug">This week&apos;s top movers</p>
           <div className="mt-2 flex flex-col divide-y divide-[var(--cell-rule)]">
             {top3.map((item) => {
@@ -203,7 +203,7 @@ export default function ExploreMore({
             })}
           </div>
           <span className="mt-auto pt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--positive)]">
-            See Top 20 →
+            See Trending →
           </span>
         </Link>
 

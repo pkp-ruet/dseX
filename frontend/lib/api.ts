@@ -1239,7 +1239,7 @@ export async function getPopularStocks(): Promise<PopularStocksResponse> {
 }
 
 // ---------------------------------------------------------------------------
-// DSE Top 20 (7-day momentum composite)
+// Trending Stocks (7-day momentum composite; endpoint remains /api/top-20)
 // ---------------------------------------------------------------------------
 
 export interface Top20Item {

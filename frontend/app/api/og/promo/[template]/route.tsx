@@ -1686,7 +1686,7 @@ async function RenderTop20() {
             letterSpacing: -2,
           }}
         >
-          DSE Top 20
+          Trending Stocks
         </div>
         <div
           style={{
@@ -1742,7 +1742,7 @@ async function RenderTop20() {
           <div
             style={{ display: "flex", fontSize: 28, color: "#64748B", padding: 40 }}
           >
-            Top 20 unavailable right now.
+            Trending Stocks unavailable right now.
           </div>
         )}
 
@@ -1934,7 +1934,7 @@ async function RenderTop20() {
               boxShadow: "0 8px 22px rgba(13,148,136,0.32)",
             }}
           >
-            Visit topstockbd.com for the full Top 20  →
+            Visit topstockbd.com for the full list  →
           </div>
         )}
       </div>

@@ -55,9 +55,9 @@ const classicLists = STOCK_LISTS.filter((l) => !l.insightMode);
 
 const featuredLists = [
   {
-    href: "/dse-top-20",
+    href: "/dse-trending-stocks",
     eyebrow: "7-Day Momentum",
-    title: "DSE Top 20 Stocks This Week",
+    title: "DSE Trending Stocks This Week",
     description:
       "The 20 best-performing names on the exchange this week, ranked by price momentum and trading conviction. Refreshed daily.",
   },

@@ -24,14 +24,14 @@ export default function Top20MomentumTeaser({ items }: Props) {
   const top5 = items.slice(0, 5);
 
   return (
-    <section aria-label="DSE Top 20">
+    <section aria-label="Trending Stocks">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-baseline gap-2 min-w-0">
           <span className="w-1 h-4 rounded-full bg-[var(--positive)] shrink-0 self-center" />
-          <span className="text-sm font-extrabold text-[var(--text)]">DSE Top 20</span>
+          <span className="text-sm font-extrabold text-[var(--text)]">Trending Stocks</span>
           <span className="text-xs text-[var(--text-muted)] truncate">· this week&apos;s movers</span>
         </div>
-        <Link href="/dse-top-20" className="text-xs font-semibold text-[var(--primary)] hover:underline shrink-0">
+        <Link href="/dse-trending-stocks" className="text-xs font-semibold text-[var(--primary)] hover:underline shrink-0">
           View all →
         </Link>
       </div>

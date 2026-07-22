@@ -33,9 +33,9 @@ const TEMPLATES: Template[] = [
   },
   {
     key: "top-20",
-    title: "DSE Top 20 (Portrait)",
+    title: "Trending Stocks (Portrait)",
     description:
-      "Top 5 of the DSE Top 20 — this week's 7-day momentum movers with returns. 4:5 portrait.",
+      "Top 5 of the Trending Stocks list — this week's 7-day momentum movers with returns. 4:5 portrait.",
     aspect: "portrait",
   },
   {

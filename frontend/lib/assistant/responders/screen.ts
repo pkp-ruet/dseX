@@ -145,7 +145,7 @@ export async function screenResponder(intent: IntentId, ent: Entities): Promise<
           metricValue: pct(t.return_7d_pct),
           metricTone: (t.return_7d_pct ?? 0) >= 0 ? "pos" : "neg",
         }));
-      return result(intent, ent, items, "Moving the most", "7-day", "/dse-top-20");
+      return result(intent, ent, items, "Moving the most", "7-day", "/dse-trending-stocks");
     }
 
     case "screen_near_low": {

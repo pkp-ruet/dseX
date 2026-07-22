@@ -9,7 +9,7 @@ export default function Top20Deck({ items }: Props) {
   if (items.length === 0) {
     return (
       <div className="text-center py-16 text-[var(--text-muted)]">
-        Not enough recent market data to build the Top 20 right now. Check back after the next scrape.
+        Not enough recent market data to build the Trending Stocks list right now. Check back after the next scrape.
       </div>
     );
   }

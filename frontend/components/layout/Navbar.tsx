@@ -28,7 +28,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/dse-today", label: "DSE Today", sub: "Today's prices & movers", icon: "today" },
       { href: "/todays-news", label: "Today's News", sub: "All company news, last day", icon: "news" },
       { href: "/market-analysis", label: "Market Analysis", sub: "Pulse, sentiment, trends", icon: "analysis" },
-      { href: "/dse-top-20", label: "DSE Top 20", sub: "Momentum leaders", icon: "top20" },
+      { href: "/dse-trending-stocks", label: "Trending Stocks", sub: "This week's top movers", icon: "top20" },
       { href: "/dse-popular-stocks", label: "Popular Stocks", sub: "Most-traded today", icon: "popular" },
     ],
   },
