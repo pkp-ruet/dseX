@@ -6,8 +6,8 @@ import { computeFeaturedIn } from "@/lib/featured-lists";
 import FeaturedInStrip from "@/components/stock/FeaturedInStrip";
 import HeroSection from "@/components/stock/HeroSection";
 import PriceChart from "@/components/stock/PriceChart";
-import VerdictHero from "@/components/stock/VerdictHero";
-import BengaliSummary from "@/components/stock/BengaliSummary";
+import VerdictBlock from "@/components/stock/VerdictBlock";
+import ValueTodayBox from "@/components/stock/ValueTodayBox";
 import HealthCheck from "@/components/stock/HealthCheck";
 import ValuationPanel from "@/components/stock/ValuationPanel";
 import KeyNumbers from "@/components/stock/KeyNumbers";
@@ -162,8 +162,9 @@ export default async function StockDetailPage({ params }: PageProps) {
   const hasSignals = (signal_flags?.green?.length ?? 0) + (signal_flags?.red?.length ?? 0) > 0;
   const hasPeers = (related_stocks?.length ?? 0) > 0;
 
+  // The verdict card sits above the sticky nav (right under the price story),
+  // so it is intentionally NOT a jump-nav anchor.
   const sections: NavSection[] = [
-    { id: "verdict", label: "Verdict" },
     ...(hasHealth ? [{ id: "health", label: "Health" }] : []),
     ...(hasValuation ? [{ id: "valuation", label: "Value" }] : []),
     ...(hasFinancials ? [{ id: "numbers", label: "Numbers" }] : []),
@@ -207,8 +208,8 @@ export default async function StockDetailPage({ params }: PageProps) {
       {/* The Price Story */}
       <PriceChart code={profile.trading_code} />
 
-      {/* এক নজরে — plain-Bangla at-a-glance summary (cached, SEO content) */}
-      <BengaliSummary detail={detail} />
+      {/* Our Verdict — one card, right below the price story (not a nav anchor) */}
+      <VerdictBlock detail={detail} />
 
       {/* Sticky stack: summary bar (on scroll) + section jump-nav */}
       <div className="sticky top-14 z-40 -mx-4 sm:-mx-6">
@@ -224,25 +225,25 @@ export default async function StockDetailPage({ params }: PageProps) {
         <StockSectionNav sections={sections} />
       </div>
 
-      {/* Our Verdict */}
-      <div id="verdict" className="scroll-mt-[112px]">
-        <VerdictHero detail={detail} />
-      </div>
-
       {/* Featured in our curated pick lists */}
       <FeaturedInStrip entries={featuredIn} />
 
       {/* The Health Check */}
       {hasHealth && score_row && <HealthCheck scoreRow={score_row} detail={detail} />}
 
-      {/* Is the Price Right? */}
+      {/* Is the Price Right? — live "value today" box, then the P/E history panel */}
       {hasValuation && (
-        <ValuationPanel
-          financials={financials}
-          latestPrice={detail.latest_price}
-          scoreRow={score_row}
-          valuation={valuation}
-        />
+        <>
+          {detail.fair_value && (
+            <ValueTodayBox fairValue={detail.fair_value} lang="en" className="mb-4" />
+          )}
+          <ValuationPanel
+            financials={financials}
+            latestPrice={detail.latest_price}
+            scoreRow={score_row}
+            valuation={valuation}
+          />
+        </>
       )}
 
       {/* Key Numbers — the raw figures behind the verdict (EPS, P/E, yield, reserve, loan) */}

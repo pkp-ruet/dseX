@@ -173,6 +173,72 @@ class StockVerdict(BaseModel):
     sentences: list[str]
 
 
+class FairValueMethod(BaseModel):
+    """One yardstick used in the fair-value blend (services/fair_value.py)."""
+    name: str
+    label_en: str
+    label_bn: str
+    price: Optional[float] = None
+
+
+class FairValue(BaseModel):
+    """Live "value today" box — grounded, price-relative, never stored in the report."""
+    low: Optional[float] = None
+    high: Optional[float] = None
+    center: Optional[float] = None
+    today: Optional[float] = None
+    stance: Optional[str] = None          # cheap | fair | expensive
+    confidence: Optional[str] = None      # low | medium | high
+    methods: list[FairValueMethod] = []
+    basis_en: Optional[str] = None
+    basis_bn: Optional[str] = None
+
+
+class DeepAnalysisTeaser(BaseModel):
+    """Light hook for the main stock page — full sections load on the sub-page."""
+    available: bool = True
+    trading_code: Optional[str] = None
+    headline_en: Optional[str] = None
+    headline_bn: Optional[str] = None
+    bottom_line_en: Optional[str] = None
+    bottom_line_bn: Optional[str] = None
+    as_of_date: Optional[str] = None
+    data_note_en: Optional[str] = None
+    data_note_bn: Optional[str] = None
+
+
+class DeepAnalysisSection(BaseModel):
+    """One durable narrative section (bilingual). Body is markdown."""
+    key: str
+    title_en: str
+    takeaway_en: str
+    body_en: str
+    title_bn: str
+    takeaway_bn: str
+    body_bn: str
+
+
+class DeepAnalysisReport(BaseModel):
+    """The full durable bilingual narrative (deep_analysis collection)."""
+    trading_code: str
+    company_name: Optional[str] = None
+    lang: Optional[str] = "both"
+    headline_en: str
+    headline_bn: str
+    bottom_line_en: str
+    bottom_line_bn: str
+    sections: list[DeepAnalysisSection] = []
+    disclaimer_en: Optional[str] = None
+    disclaimer_bn: Optional[str] = None
+    as_of_date: Optional[str] = None
+    data_note_en: Optional[str] = None
+    data_note_bn: Optional[str] = None
+    data_completeness: Optional[float] = None
+    schema_version: Optional[int] = None
+    model: Optional[str] = None
+    generated_at: Optional[str] = None
+
+
 class CompanyDetailResponse(BaseModel):
     profile: CompanyProfile
     latest_price: LatestPrice
@@ -191,6 +257,14 @@ class CompanyDetailResponse(BaseModel):
     valuation: Optional[ValuationContext] = None
     sector_context: Optional[SectorContext] = None
     bengali_summary: Optional[str] = None  # plain-Bangla "এক নজরে" (cached, generated post-scrape)
+    fair_value: Optional[FairValue] = None  # live "value today" box (services/fair_value.py)
+    deep_analysis: Optional[DeepAnalysisTeaser] = None  # teaser only; full report on the /analysis sub-page
+
+
+class DeepAnalysisResponse(BaseModel):
+    """Sub-page bundle: the durable narrative + the live value box beside it."""
+    report: DeepAnalysisReport
+    fair_value: Optional[FairValue] = None
 
 
 class UpcomingDividend(BaseModel):

@@ -12,10 +12,14 @@ from backend.services.signal_service import get_signal, wire_fields
 from backend.services.top20_service import compute_momentum_for_code
 from backend.services.verdict_service import build_verdict
 from backend.services.summaries_service import load_stock_summary, load_stock_summaries
+from backend.services.deep_analysis_service import (
+    load_report, report_teaser, list_report_codes, compute_fair_value,
+)
 from backend.models.responses import (
     CompanyDetailResponse, CompanyProfile, LatestPrice,
     SignalFlags, DividendDeclaration, RelatedStock,
     MomentumSnapshot, StockVerdict, StockSignal, ValuationContext, SectorContext,
+    FairValue, DeepAnalysisTeaser, DeepAnalysisReport, DeepAnalysisResponse,
 )
 
 router = APIRouter()
@@ -218,6 +222,23 @@ def get_company_detail(code: str):
             sector_implied_price=implied,
         )
 
+    # Live "value today" box + deep-analysis teaser. Both are best-effort — a
+    # failure here must never break the whole detail response. The full report
+    # is intentionally NOT included; the /analysis sub-page fetches it.
+    fair_value_model = None
+    try:
+        fv = compute_fair_value(trading_code)
+        fair_value_model = FairValue(**fv) if fv else None
+    except Exception:
+        fair_value_model = None
+
+    deep_analysis_model = None
+    try:
+        teaser = report_teaser(trading_code)
+        deep_analysis_model = DeepAnalysisTeaser(**teaser) if teaser else None
+    except Exception:
+        deep_analysis_model = None
+
     return CompanyDetailResponse(
         profile=CompanyProfile(
             trading_code=trading_code,
@@ -258,4 +279,35 @@ def get_company_detail(code: str):
         valuation=valuation_model,
         sector_context=sector_context_model,
         bengali_summary=load_stock_summary(trading_code),
+        fair_value=fair_value_model,
+        deep_analysis=deep_analysis_model,
+    )
+
+
+@router.get("/api/deep-analysis/codes")
+def get_deep_analysis_codes() -> list[str]:
+    """Every trading code that has a deep-analysis report (for sitemap / static params)."""
+    return list_report_codes()
+
+
+@router.get("/api/company/{code}/analysis", response_model=DeepAnalysisResponse)
+def get_company_analysis(code: str):
+    """Full durable narrative for one code + the live value box beside it.
+
+    404 when no report has been written for the code yet (the frontend hides the
+    sub-page and its teaser in that case)."""
+    report = load_report(code)
+    if not report:
+        raise HTTPException(status_code=404, detail=f"No deep analysis for '{code}'")
+
+    fair_value_model = None
+    try:
+        fv = compute_fair_value(report["trading_code"])
+        fair_value_model = FairValue(**fv) if fv else None
+    except Exception:
+        fair_value_model = None
+
+    return DeepAnalysisResponse(
+        report=DeepAnalysisReport(**report),
+        fair_value=fair_value_model,
     )

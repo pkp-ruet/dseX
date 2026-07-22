@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getAllCodes } from "@/lib/api";
+import { getAllCodes, getDeepAnalysisCodes } from "@/lib/api";
 import { GUIDES } from "@/lib/guides";
 import { BLOG_POSTS } from "@/lib/blog-bn";
 import { STOCK_LISTS } from "@/lib/stock-lists";
@@ -10,13 +10,24 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com
 export const revalidate = 86400;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const codes = await getAllCodes().catch(() => [] as string[]);
+  const [codes, analysisCodes] = await Promise.all([
+    getAllCodes().catch(() => [] as string[]),
+    getDeepAnalysisCodes().catch(() => [] as string[]),
+  ]);
 
   const stockPages = codes.map((code) => ({
     url: `${BASE_URL}/stock/${code}`,
     lastModified: new Date(),
     changeFrequency: "daily" as const,
     priority: 0.8,
+  }));
+
+  // In-depth analysis sub-pages — only codes that actually have a report.
+  const analysisPages = analysisCodes.map((code) => ({
+    url: `${BASE_URL}/stock/${code}/analysis`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.75,
   }));
 
   const guidePages = GUIDES.map((g) => ({
@@ -185,5 +196,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...guidePages,
     ...blogPages,
     ...stockPages,
+    ...analysisPages,
   ];
 }

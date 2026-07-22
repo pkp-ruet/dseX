@@ -188,6 +188,78 @@ export interface StockVerdict {
   sentences: string[];
 }
 
+/** Live "value today" box — grounded, price-relative (backend/services/fair_value.py).
+ *  Deliberately NOT part of the stored report, so the durable prose never goes stale. */
+export interface FairValueMethod {
+  name: string;
+  label_en: string;
+  label_bn: string;
+  price: number | null;
+}
+
+export interface FairValue {
+  low: number | null;
+  high: number | null;
+  center: number | null;
+  today: number | null;
+  stance: "cheap" | "fair" | "expensive" | null;
+  confidence: "low" | "medium" | "high" | null;
+  methods: FairValueMethod[];
+  basis_en: string | null;
+  basis_bn: string | null;
+}
+
+/** Light hook shown on the main stock page; full sections load from the sub-page. */
+export interface DeepAnalysisTeaser {
+  available: boolean;
+  trading_code: string | null;
+  headline_en: string | null;
+  headline_bn: string | null;
+  bottom_line_en: string | null;
+  bottom_line_bn: string | null;
+  as_of_date: string | null;
+  data_note_en: string | null;
+  data_note_bn: string | null;
+}
+
+/** One durable narrative section (bilingual). `body_*` is markdown. */
+export interface DeepAnalysisSection {
+  key: string;
+  title_en: string;
+  takeaway_en: string;
+  body_en: string;
+  title_bn: string;
+  takeaway_bn: string;
+  body_bn: string;
+}
+
+/** Full durable bilingual narrative (deep_analysis collection). */
+export interface DeepAnalysisReport {
+  trading_code: string;
+  company_name: string | null;
+  lang: string | null;
+  headline_en: string;
+  headline_bn: string;
+  bottom_line_en: string;
+  bottom_line_bn: string;
+  sections: DeepAnalysisSection[];
+  disclaimer_en: string | null;
+  disclaimer_bn: string | null;
+  as_of_date: string | null;
+  data_note_en: string | null;
+  data_note_bn: string | null;
+  data_completeness: number | null;
+  schema_version: number | null;
+  model: string | null;
+  generated_at: string | null;
+}
+
+/** Sub-page bundle: the durable narrative + the live value box beside it. */
+export interface DeepAnalysisResponse {
+  report: DeepAnalysisReport;
+  fair_value: FairValue | null;
+}
+
 export interface CompanyDetail {
   profile: CompanyProfile;
   latest_price: LatestPrice;
@@ -206,6 +278,10 @@ export interface CompanyDetail {
   valuation?: ValuationContext | null;
   sector_context?: SectorContext | null;
   bengali_summary?: string | null;
+  /** Live "value today" box (may be null when there's no sensible basis). */
+  fair_value?: FairValue | null;
+  /** Deep-analysis teaser (null when no report exists for this code). */
+  deep_analysis?: DeepAnalysisTeaser | null;
 }
 
 export interface UpcomingDividend {
@@ -333,6 +409,17 @@ export async function getAllCodes(): Promise<string[]> {
 
 export async function getCompanyDetail(code: string): Promise<CompanyDetail> {
   return apiFetch<CompanyDetail>(`/api/company/${code.toUpperCase()}`, 86400);
+}
+
+/** Full durable deep-analysis narrative + live value box for the /analysis sub-page.
+ *  Throws ApiNotFoundError (404) when no report has been written for the code. */
+export async function getDeepAnalysis(code: string): Promise<DeepAnalysisResponse> {
+  return apiFetch<DeepAnalysisResponse>(`/api/company/${code.toUpperCase()}/analysis`, 86400);
+}
+
+/** Every trading code that has a deep-analysis report (for static params + sitemap). */
+export async function getDeepAnalysisCodes(): Promise<string[]> {
+  return apiFetch<string[]>("/api/deep-analysis/codes", 86400);
 }
 
 export async function getMarketMovers(): Promise<MarketMoversData> {
