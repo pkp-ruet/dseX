@@ -1,0 +1,789 @@
+{
+  "trading_code": "TAKAFULINS",
+  "company_name": "Takaful Islami Insurance PLC",
+  "sector_class": "INSURANCE",
+  "as_of_price_date": "2026-07-22",
+  "profile": {
+    "sector": "Insurance",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 42586977,
+    "paid_up_capital_mn": 425.87,
+    "reserve_surplus_mn": 368.5,
+    "total_loan_mn": 116.71,
+    "listing_year": 2008,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 45.8,
+    "change": -2.9,
+    "change_pct": -5.95,
+    "date": "2026-07-22",
+    "high": 48.6,
+    "low": 45.3,
+    "volume": 172839,
+    "avg_volume_7d": 311136,
+    "ycp": 48.7,
+    "w52_high": 49.9,
+    "w52_low": 28.8
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 25.8,
+      "m3": 35.9,
+      "m6": 35.9,
+      "y1": 34.7
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 30.7
+      },
+      {
+        "date": "2025-06-30",
+        "close": 31.4
+      },
+      {
+        "date": "2025-07-31",
+        "close": 34.5
+      },
+      {
+        "date": "2025-08-31",
+        "close": 34.2
+      },
+      {
+        "date": "2025-09-30",
+        "close": 34.6
+      },
+      {
+        "date": "2025-10-30",
+        "close": 34.6
+      },
+      {
+        "date": "2025-11-30",
+        "close": 34.0
+      },
+      {
+        "date": "2025-12-30",
+        "close": 33.3
+      },
+      {
+        "date": "2026-01-29",
+        "close": 33.8
+      },
+      {
+        "date": "2026-02-26",
+        "close": 33.6
+      },
+      {
+        "date": "2026-03-31",
+        "close": 31.3
+      },
+      {
+        "date": "2026-04-30",
+        "close": 33.8
+      },
+      {
+        "date": "2026-05-31",
+        "close": 34.6
+      },
+      {
+        "date": "2026-06-30",
+        "close": 44.2
+      },
+      {
+        "date": "2026-07-22",
+        "close": 45.8
+      }
+    ],
+    "pct_in_52w_range": 80.6
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 4.7
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 10.0
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.3
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Pricey",
+      "word_bn": "দাম চড়া",
+      "score10": 2.2
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.9
+    }
+  ],
+  "fair_value": {
+    "low": 25.8,
+    "high": 38.7,
+    "center": 32.2,
+    "today": 45.8,
+    "stance": "expensive",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 32.7
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 29.4
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 41.1
+      },
+      {
+        "name": "book_peer",
+        "label_en": "Priced like similar companies (assets)",
+        "price": 34.1
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 16.7
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 37.85,
+    "current_pb": 2.48,
+    "own_avg_pe": 27.03,
+    "own_avg_pb": 2.23,
+    "sector_median_pe": 24.3,
+    "sector_median_pb": 1.85,
+    "eps": 1.21,
+    "sector_implied_price": 29.4
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2020,
+        "eps_taka": 1.65,
+        "net_profit_crore": 7.03,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 17.97
+      },
+      {
+        "year": 2021,
+        "eps_taka": 2.25,
+        "net_profit_crore": 9.6,
+        "cash_dividend_pct": 11.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.1,
+        "nav_per_share_taka": 19.15,
+        "revenue_crore": -0.15,
+        "operating_profit_crore": 8.46,
+        "operating_cash_flow_crore": 13.3,
+        "capex_crore": null,
+        "total_debt_crore": 4.72,
+        "total_equity_crore": 81.5,
+        "total_assets_crore": 124.7,
+        "cash_crore": 0.15,
+        "debt_to_equity": 0.06
+      },
+      {
+        "year": 2022,
+        "eps_taka": 1.49,
+        "net_profit_crore": 6.33,
+        "cash_dividend_pct": 12.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.2,
+        "nav_per_share_taka": 18.94,
+        "revenue_crore": 1.49,
+        "operating_profit_crore": 7.31,
+        "operating_cash_flow_crore": 9.51,
+        "capex_crore": null,
+        "total_debt_crore": 1.14,
+        "total_equity_crore": 80.6,
+        "total_assets_crore": 124.3,
+        "cash_crore": null,
+        "debt_to_equity": 0.01
+      },
+      {
+        "year": 2023,
+        "eps_taka": 1.47,
+        "net_profit_crore": 6.27,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 19.18,
+        "revenue_crore": -0.42,
+        "operating_profit_crore": 7.25,
+        "operating_cash_flow_crore": -2.58,
+        "capex_crore": null,
+        "total_debt_crore": 12.0,
+        "total_equity_crore": 81.7,
+        "total_assets_crore": 128.8,
+        "cash_crore": null,
+        "debt_to_equity": 0.15
+      },
+      {
+        "year": 2024,
+        "eps_taka": 1.46,
+        "net_profit_crore": 6.22,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 18.76,
+        "revenue_crore": -0.44,
+        "operating_profit_crore": 7.26,
+        "operating_cash_flow_crore": 9.07,
+        "capex_crore": null,
+        "total_debt_crore": 11.7,
+        "total_equity_crore": 80.0,
+        "total_assets_crore": 132.8,
+        "cash_crore": null,
+        "debt_to_equity": 0.15
+      },
+      {
+        "year": 2025,
+        "eps_taka": 1.21,
+        "net_profit_crore": 5.17,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 18.44
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 1.21,
+      "net_profit_crore": 5.17,
+      "cash_dividend_pct": 10.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 1.0,
+      "nav_per_share_taka": 18.44
+    },
+    "growth": {
+      "span": "2020–2025",
+      "net_profit_change_pct": -26.0,
+      "eps_change_pct": -27.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 4.26,
+      "paid_up_capital_crore": 42.6,
+      "reserve_surplus_crore": 36.9,
+      "total_loan_crore": 11.7,
+      "listing_year": 2008
+    },
+    "ownership": {
+      "sponsor_director_pct": 48.93,
+      "govt_pct": 0.0,
+      "institute_pct": 19.73,
+      "foreign_pct": 0.06,
+      "public_pct": 31.28
+    }
+  },
+  "sector_context": {
+    "sector": "Insurance",
+    "peer_count": 59,
+    "rank_in_sector": 17,
+    "sector_avg_score": 42.2,
+    "sector_median_pe": 24.3
+  },
+  "score": {
+    "trading_code": "TAKAFULINS",
+    "sector": "Insurance",
+    "market_cat": "A",
+    "ltp": 45.8,
+    "mcap_mn": 1950.4835466,
+    "score": 56.7,
+    "base_score": 56.7,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.786,
+    "eps": 1.21,
+    "roe_pct": 7.8,
+    "sector_median_pe": 24.3,
+    "sector_median_pb": 1.85,
+    "p1_biz": 4.65,
+    "p2_health": 10.0,
+    "p3_moat": 5.33,
+    "p4_val": 2.22,
+    "p5_div": 5.87,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 1.699,
+    "p1_roe": 4.0212,
+    "p1_npm_trend": null,
+    "p1_coverage": 0.8,
+    "eps_yoy_pct": -17.1,
+    "eps_stability": 0.7492,
+    "p2_de": 10.0,
+    "p2_ic": 10.0,
+    "p2_cfo": 10.0,
+    "p2_cash": null,
+    "p2_coverage": 1.0,
+    "p3_margin": 8.0,
+    "p3_rev_vol": null,
+    "p3_sector_rank": 2.0,
+    "p3_capex": null,
+    "p3_coverage": 0.55,
+    "p4_pe": 1.6,
+    "p4_pb": 3.96,
+    "p4_vol_damp": 0.8746,
+    "current_pe": 37.85,
+    "current_pb": 2.48,
+    "own_avg_pe": 27.03,
+    "own_avg_pb": 2.23,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 5.775109170305678,
+    "div_yield_pct": 2.2,
+    "overall_rank": 79,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "average_fundamentals",
+    "reason_en": "An average company — no strong reason to buy or sell.",
+    "reason_bn": "মাঝারি মানের কোম্পানি — কেনা বা বেচার জোরালো কারণ নেই।",
+    "tier": "average",
+    "momentum_grade": "cold",
+    "score": 56.7,
+    "p4_val": 2.22,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 48.9% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Average",
+    "tagline": "Average company, share price falling",
+    "sentences": [
+      "The company's numbers are average, and the share price is slowly going down. Better to wait or look at other stocks."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": -6.34,
+    "rs_vs_dsex_pct": -6.42,
+    "volume_ratio": 1.21,
+    "avg_turnover_7d_mn": 14.92,
+    "up_days_7d": 4,
+    "days_counted": 7,
+    "pct_in_52w_range": 80.6,
+    "momentum_grade": "cold"
+  },
+  "financials": [
+    {
+      "trading_code": "TAKAFULINS",
+      "year": 2020,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 2.11,
+      "eps_basic": null,
+      "eps_cont_basic": 1.65,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 17.97,
+      "pe_ratio_basic": 28.76,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 70.33,
+      "profit_mn": 70.33,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 70.33,
+      "dps": 1.0,
+      "eps": 1.65
+    },
+    {
+      "trading_code": "TAKAFULINS",
+      "year": 2021,
+      "cash_dividend_pct": 11.0,
+      "dividend_yield_pct": 1.97,
+      "eps_basic": null,
+      "eps_cont_basic": 2.25,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 19.15,
+      "pe_ratio_basic": 24.81,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 95.96,
+      "profit_mn": 95.96,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 95.96,
+      "dps": 1.1,
+      "eps": 2.25
+    },
+    {
+      "trading_code": "TAKAFULINS",
+      "year": 2022,
+      "cash_dividend_pct": 12.0,
+      "dividend_yield_pct": 2.64,
+      "eps_basic": null,
+      "eps_cont_basic": 1.49,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 18.94,
+      "pe_ratio_basic": 30.52,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 63.35,
+      "profit_mn": 63.35,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 63.35,
+      "dps": 1.2,
+      "eps": 1.49
+    },
+    {
+      "year": 2023,
+      "trading_code": "TAKAFULINS",
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 2.38,
+      "eps_basic": null,
+      "eps_cont_basic": 1.47,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 19.18,
+      "pe_ratio_basic": 28.58,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 62.72,
+      "profit_mn": 62.72,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 62.72,
+      "dps": 1.0,
+      "eps": 1.47
+    },
+    {
+      "trading_code": "TAKAFULINS",
+      "year": 2024,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 2.87,
+      "eps_basic": null,
+      "eps_cont_basic": 1.46,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 18.76,
+      "pe_ratio_basic": 23.83,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 62.19,
+      "profit_mn": 62.19,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 62.19,
+      "dps": 1.0,
+      "eps": 1.46
+    },
+    {
+      "year": 2025,
+      "trading_code": "TAKAFULINS",
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 3.0,
+      "dps": 1.0,
+      "eps_basic": null,
+      "eps_cont_basic": 1.21,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 18.44,
+      "pe_ratio_basic": 27.42,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 51.73,
+      "profit_mn": 51.73,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 51.73,
+      "eps": 1.21
+    }
+  ],
+  "extended_financials": [
+    {
+      "year": 2021,
+      "trading_code": "TAKAFULINS",
+      "capex": null,
+      "investing_cf": -88896008.0,
+      "net_profit": 95593498.0,
+      "nocfps": 3.13,
+      "operating_cf": 133064419.0,
+      "total_equity": 815447868.0,
+      "ebit": 84609631.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": -1499297.0,
+      "total_assets": 1246653476.0,
+      "cash_and_equivalents": 1480495.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": 34051281.0,
+      "net_interest_income": null,
+      "total_debt": 47244946.0
+    },
+    {
+      "trading_code": "TAKAFULINS",
+      "year": 2022,
+      "capex": null,
+      "investing_cf": -44567158.0,
+      "net_profit": 63485865.0,
+      "nocfps": 2.23,
+      "operating_cf": 95076612.0,
+      "total_equity": 805767634.0,
+      "ebit": 73054231.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 14879729.0,
+      "total_assets": 1242981682.0,
+      "cash_and_equivalents": null,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": 32005209.0,
+      "net_interest_income": null,
+      "total_debt": 11425000.0
+    },
+    {
+      "trading_code": "TAKAFULINS",
+      "year": 2023,
+      "capex": null,
+      "investing_cf": -16046529.0,
+      "net_profit": 62723796.0,
+      "nocfps": -0.61,
+      "operating_cf": -25815560.0,
+      "total_equity": 816881574.0,
+      "ebit": 72489079.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": -4207487.0,
+      "total_assets": 1288112968.0,
+      "cash_and_equivalents": null,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": 38498829.0,
+      "net_interest_income": null,
+      "total_debt": 119864000.0
+    },
+    {
+      "trading_code": "TAKAFULINS",
+      "year": 2024,
+      "capex": null,
+      "investing_cf": 15900937.0,
+      "net_profit": 62193097.0,
+      "nocfps": 2.13,
+      "operating_cf": 90727861.0,
+      "total_equity": 799996563.0,
+      "ebit": 72605934.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": -4414627.0,
+      "total_assets": 1328244487.0,
+      "cash_and_equivalents": null,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": 34169627.0,
+      "net_interest_income": null,
+      "total_debt": 116714000.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "TAKAFULINS",
+    "foreign_pct": 0.06,
+    "govt_pct": 0.0,
+    "institute_pct": 19.73,
+    "public_pct": 31.28,
+    "reporting_period": null,
+    "sponsor_director_pct": 48.93
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jan 31, 2026",
+    "trading_code": "TAKAFULINS",
+    "foreign_pct": 0.06,
+    "govt_pct": 0.0,
+    "institute_pct": 19.82,
+    "public_pct": 31.19,
+    "reporting_period": null,
+    "sponsor_director_pct": 48.93
+  },
+  "dividend_declaration": {
+    "trading_code": "TAKAFULINS",
+    "declaration_date": "2026-04-30T00:00:00",
+    "dividend_pct": 10.0,
+    "dividend_type": "Final",
+    "record_date": null,
+    "scraped_at": "2026-07-22T10:48:55.218000",
+    "title": "TAKAFULINS: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-07-16T00:00:00",
+      "title": "TAKAFULINS: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on July 23, 2026 at 5:00 pm to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended June 30, 2026."
+    },
+    {
+      "post_date": "2026-07-13T00:00:00",
+      "title": "TAKAFULINS: Buy Confirmation of a Director",
+      "body": "Mr. Md. Humayun Kabir Patwary, a Director of the Company, has completed his buying of 250,265 shares of the company at the prevailing market price through Dhaka Stock Exchange PLC. as per declaration disseminated on 29.06.2026 and 06.07.2026."
+    },
+    {
+      "title": "TAKAFULINS: Buy Declaration of a Director",
+      "post_date": "2026-07-06T00:00:00",
+      "body": "Mr. Md. Humayun Kabir Patwary, a Director of the Company, has expressed his intention to buy 265 shares of the Company at the prevailing market price in the Public Market through Dhaka Stock Exchange PLC. (DSE) within next 30 working days."
+    },
+    {
+      "title": "TAKAFULINS: Dividend Disbursement",
+      "post_date": "2026-07-02T00:00:00",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended December 31, 2025 to the respective shareholders."
+    },
+    {
+      "post_date": "2026-06-29T00:00:00",
+      "title": "TAKAFULINS: Buy Declaration of a Director",
+      "body": "Mr. Md. Humayun Kabir Patwary, a Director of the Company, has expressed his intention to buy 250,000 shares of the Company at the prevailing market price in both the Public and Block Markets through Dhaka Stock Exchange PLC. (DSE) within next 30 working days."
+    },
+    {
+      "title": "TAKAFULINS: Resumption after Record Date",
+      "post_date": "2026-05-21T00:00:00",
+      "body": "Trading of the shares of the company will resume on 23.05.2026."
+    },
+    {
+      "post_date": "2026-05-20T00:00:00",
+      "title": "TAKAFULINS: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 21.05.2026."
+    },
+    {
+      "title": "TAKAFULINS: Spot News",
+      "post_date": "2026-05-18T00:00:00",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 19.05.2026 to 20.05.2026 and trading of the shares will remain suspended on record date i.e., 21.05.2026."
+    },
+    {
+      "post_date": "2026-04-30T00:00:00",
+      "title": "TAKAFULINS: Dividend Declaration",
+      "body": "The Board of Directors has recommended 10% Cash Dividend for the year ended December 31, 2025. Date of AGM: 20-06-2026 at 11:00 a.m., Venue: Digital Platform. Record Date: 21-05-2026. The Company has also reported EPS of Tk. 1.21, NAV per share of Tk. 18.44 and NOCFPS of Tk. 1.37 for the year ended December 31, 2025 as against Tk. 1.46, Tk. 18.76 and Tk. 2.13 respectively for the year ended December 31, 2024."
+    },
+    {
+      "title": "TAKAFULINS: Price Limit Open",
+      "post_date": "2026-04-30T00:00:00",
+      "body": "There will be no price limit on the trading of the shares of the Company today (30.04.2026) following its corporate declaration."
+    },
+    {
+      "title": "TAKAFULINS: Q1 Financials",
+      "post_date": "2026-04-30T00:00:00",
+      "body": "(Q1 Un-audited): EPS was Tk. 0.60 for January-March 2026 as against Tk. 0.40 for January-March 2025. NOCFPS was Tk. (0.06) for January-March 2026 as against Tk. 0.06 for January-March 2025. NAV per share was Tk. 19.77 as on March 31, 2026 and Tk. 19.00 as on December 31, 2025."
+    },
+    {
+      "post_date": "2026-04-21T00:00:00",
+      "title": "TAKAFULINS: Board Meeting schedule under LR 19(1)",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 29, 2026 at 4:00 PM to consider, among others, audited financial statements of the Company for the year ended December 31, 2025."
+    },
+    {
+      "post_date": "2026-04-21T00:00:00",
+      "title": "TAKAFULINS: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 29, 2026 at 4:00 pm to consider, among others, Un-Audited Financial Statements for the First Quarter (Q1) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-01-13T00:00:00",
+      "title": "TAKAFULINS: Credit Rating Result",
+      "body": "National Credit Ratings Limited (NCR) has assigned the rating of the Company as \"AAA\" in the long term and \"ST-1\" in the short term along with Stable outlook based on audited financial statements up to December 31, 2024."
+    },
+    {
+      "title": "TAKAFULINS: Q3 Financials",
+      "post_date": "2025-10-22T00:00:00",
+      "body": "(Q3 Un-audited): EPS was Tk. 0.39 for July-September, 2025 as against Tk. 0.41 for July-September, 2024; EPS was Tk. 1.13 for January-September, 2025 as against Tk. 1.11 for January-September, 2024. NOCFPS was Tk. 1.74 for January-September, 2025 as against Tk. (0.69) for January-September, 2024. NAV per share was Tk. 19.19 as on September 30, 2025 and Tk. 19.11 as on December 31, 2024."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "UNITEDINS",
+      "company_name": "United Insurance Company Ltd.",
+      "sector": "Insurance",
+      "score": 71.2,
+      "ltp": 48.5,
+      "change_pct": -3.0,
+      "pe": 14.02,
+      "pb": 1.56,
+      "div_yield_pct": 3.1,
+      "roe_pct": 7.4,
+      "eps_yoy_pct": 53.1
+    },
+    {
+      "trading_code": "RELIANCINS",
+      "company_name": "Reliance Insurance PLC.",
+      "sector": "Insurance",
+      "score": 70.5,
+      "ltp": 107.2,
+      "change_pct": -0.83,
+      "pe": 12.73,
+      "pb": 1.36,
+      "div_yield_pct": 2.8,
+      "roe_pct": 13.1,
+      "eps_yoy_pct": -7.7
+    },
+    {
+      "trading_code": "SIPLC",
+      "company_name": "Sena Insurance PLC",
+      "sector": "Insurance",
+      "score": 69.6,
+      "ltp": 111.5,
+      "change_pct": 0.72,
+      "pe": 21.57,
+      "pb": 3.9,
+      "div_yield_pct": 1.3,
+      "roe_pct": 17.1,
+      "eps_yoy_pct": 20.5
+    },
+    {
+      "trading_code": "PEOPLESINS",
+      "company_name": "Peoples Insurance PLC.",
+      "sector": "Insurance",
+      "score": 68.9,
+      "ltp": 53.2,
+      "change_pct": -3.27,
+      "pe": 12.7,
+      "pb": 1.4,
+      "div_yield_pct": 2.0,
+      "roe_pct": 8.2,
+      "eps_yoy_pct": 47.5
+    },
+    {
+      "trading_code": "PRAGATIINS",
+      "company_name": "Pragati Insurance PLC.",
+      "sector": "Insurance",
+      "score": 66.9,
+      "ltp": 74.6,
+      "change_pct": -1.71,
+      "pe": 14.05,
+      "pb": 1.3,
+      "div_yield_pct": 3.6,
+      "roe_pct": 9.7,
+      "eps_yoy_pct": -5.3
+    }
+  ],
+  "source_hash": "a31c59b7561fee2278be2918374d7cc4068b25058603424ef83e5b3409256758"
+}

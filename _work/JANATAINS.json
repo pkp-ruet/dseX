@@ -1,0 +1,787 @@
+{
+  "trading_code": "JANATAINS",
+  "company_name": "Janata Insurance PLC",
+  "sector_class": "INSURANCE",
+  "as_of_price_date": "2026-07-22",
+  "profile": {
+    "sector": "Insurance",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 48482628,
+    "paid_up_capital_mn": 484.83,
+    "reserve_surplus_mn": 190.0,
+    "total_loan_mn": 0,
+    "listing_year": 1994,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 33.1,
+    "change": -1,
+    "change_pct": -2.93,
+    "date": "2026-07-22",
+    "high": 34.4,
+    "low": 33.1,
+    "volume": 299540,
+    "avg_volume_7d": 568348,
+    "ycp": 34.1,
+    "w52_high": 37.4,
+    "w52_low": 21.8
+  },
+  "price_trend": {
+    "returns": {
+      "m1": -5.4,
+      "m3": -7.8,
+      "m6": 18.6,
+      "y1": 30.8
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 21.5
+      },
+      {
+        "date": "2025-06-30",
+        "close": 22.7
+      },
+      {
+        "date": "2025-07-30",
+        "close": 27.3
+      },
+      {
+        "date": "2025-08-31",
+        "close": 26.0
+      },
+      {
+        "date": "2025-09-30",
+        "close": 25.6
+      },
+      {
+        "date": "2025-10-30",
+        "close": 25.6
+      },
+      {
+        "date": "2025-11-30",
+        "close": 23.9
+      },
+      {
+        "date": "2025-12-30",
+        "close": 23.5
+      },
+      {
+        "date": "2026-01-29",
+        "close": 26.5
+      },
+      {
+        "date": "2026-02-26",
+        "close": 26.0
+      },
+      {
+        "date": "2026-03-31",
+        "close": 27.0
+      },
+      {
+        "date": "2026-04-30",
+        "close": 35.8
+      },
+      {
+        "date": "2026-05-31",
+        "close": 34
+      },
+      {
+        "date": "2026-06-30",
+        "close": 34.4
+      },
+      {
+        "date": "2026-07-22",
+        "close": 33.1
+      }
+    ],
+    "pct_in_52w_range": 72.4
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.5
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 9.4
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.3
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Leaning pricey",
+      "word_bn": "দাম একটু বেশি",
+      "score10": 4.7
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.0
+    }
+  ],
+  "fair_value": {
+    "low": 22.0,
+    "high": 33.0,
+    "center": 27.5,
+    "today": 33.1,
+    "stance": "expensive",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 29.3
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 26.7
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 33.2
+      },
+      {
+        "name": "book_peer",
+        "label_en": "Priced like similar companies (assets)",
+        "price": 27.9
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 16.7
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 30.09,
+    "current_pb": 2.2,
+    "own_avg_pe": 26.6,
+    "own_avg_pb": 2.2,
+    "sector_median_pe": 24.3,
+    "sector_median_pb": 1.85,
+    "eps": 1.1,
+    "sector_implied_price": 26.73
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2020,
+        "eps_taka": 1.25,
+        "net_profit_crore": 5.27,
+        "cash_dividend_pct": 6.0,
+        "stock_dividend_pct": 5,
+        "dps_taka": 0.6,
+        "nav_per_share_taka": 14.45
+      },
+      {
+        "year": 2021,
+        "eps_taka": 1.21,
+        "net_profit_crore": 5.35,
+        "cash_dividend_pct": 6.0,
+        "stock_dividend_pct": 5,
+        "dps_taka": 0.6,
+        "nav_per_share_taka": 14.41,
+        "revenue_crore": 0.85,
+        "operating_profit_crore": 7.38,
+        "operating_cash_flow_crore": 8.53,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 64.0,
+        "total_assets_crore": 117.8,
+        "cash_crore": 0.37
+      },
+      {
+        "year": 2022,
+        "eps_taka": 1.2,
+        "net_profit_crore": 5.6,
+        "cash_dividend_pct": 11.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.1,
+        "nav_per_share_taka": 14.55,
+        "revenue_crore": -0.06,
+        "operating_profit_crore": 8.11,
+        "operating_cash_flow_crore": 8.64,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 67.8,
+        "total_assets_crore": 130.4,
+        "cash_crore": 0.32
+      },
+      {
+        "year": 2023,
+        "eps_taka": 1.24,
+        "net_profit_crore": 5.79,
+        "cash_dividend_pct": 11.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.1,
+        "nav_per_share_taka": 14.69,
+        "revenue_crore": -1.57,
+        "operating_profit_crore": 8.46,
+        "operating_cash_flow_crore": 12.6,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 68.5,
+        "total_assets_crore": 143.0,
+        "cash_crore": 0.23
+      },
+      {
+        "year": 2024,
+        "eps_taka": 1.31,
+        "net_profit_crore": 6.1,
+        "cash_dividend_pct": 6.0,
+        "stock_dividend_pct": 4,
+        "dps_taka": 0.6,
+        "nav_per_share_taka": 14.96,
+        "revenue_crore": -3.26,
+        "operating_profit_crore": 8.66,
+        "operating_cash_flow_crore": 4.46,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 69.7,
+        "total_assets_crore": 149.3,
+        "cash_crore": 0.36
+      },
+      {
+        "year": 2025,
+        "eps_taka": 1.1,
+        "net_profit_crore": 5.35,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 15.07
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 1.1,
+      "net_profit_crore": 5.35,
+      "cash_dividend_pct": 10.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 1.0,
+      "nav_per_share_taka": 15.07
+    },
+    "growth": {
+      "span": "2020–2025",
+      "net_profit_change_pct": 2.0,
+      "eps_change_pct": -12.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 4.85,
+      "paid_up_capital_crore": 48.5,
+      "reserve_surplus_crore": 19.0,
+      "total_loan_crore": 0.0,
+      "listing_year": 1994
+    },
+    "ownership": {
+      "sponsor_director_pct": 39.87,
+      "govt_pct": 0.0,
+      "institute_pct": 8.98,
+      "foreign_pct": 0.0,
+      "public_pct": 51.15
+    }
+  },
+  "sector_context": {
+    "sector": "Insurance",
+    "peer_count": 59,
+    "rank_in_sector": 9,
+    "sector_avg_score": 42.2,
+    "sector_median_pe": 24.3
+  },
+  "score": {
+    "trading_code": "JANATAINS",
+    "sector": "Insurance",
+    "market_cat": "A",
+    "ltp": 33.1,
+    "mcap_mn": 1604.7749867999999,
+    "score": 62.2,
+    "base_score": 62.2,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.684,
+    "eps": 1.1,
+    "roe_pct": 8.8,
+    "sector_median_pe": 24.3,
+    "sector_median_pb": 1.85,
+    "p1_biz": 5.55,
+    "p2_health": 9.38,
+    "p3_moat": 5.33,
+    "p4_val": 4.66,
+    "p5_div": 6.05,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 2.0,
+    "p1_roe": 6.1366,
+    "p1_npm_trend": null,
+    "p1_coverage": 0.8,
+    "eps_yoy_pct": -16.0,
+    "eps_stability": 1.0,
+    "p2_de": null,
+    "p2_ic": 10.0,
+    "p2_cfo": 10.0,
+    "p2_cash": null,
+    "p2_coverage": 0.643,
+    "p3_margin": 8.0,
+    "p3_rev_vol": null,
+    "p3_sector_rank": 2.0,
+    "p3_capex": null,
+    "p3_coverage": 0.55,
+    "p4_pe": 4.26,
+    "p4_pb": 5.26,
+    "p4_vol_damp": 1.0,
+    "current_pe": 30.09,
+    "current_pb": 2.2,
+    "own_avg_pe": 26.6,
+    "own_avg_pb": 2.2,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 7.031722054380664,
+    "div_yield_pct": 3.0,
+    "overall_rank": 51,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "good_wait_price",
+    "reason_en": "Good company — fine to hold, but wait for a cheaper price to buy.",
+    "reason_bn": "ভালো কোম্পানি — ধরে রাখা যায়, তবে কেনার জন্য আরেকটু কম দামের অপেক্ষা করুন।",
+    "tier": "good",
+    "momentum_grade": "cold",
+    "score": 62.2,
+    "p4_val": 4.66,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 39.9% (strong alignment)"
+    ],
+    "red": [
+      "Payout ratio 91% — potentially unsustainable"
+    ]
+  },
+  "verdict": {
+    "headline": "Good",
+    "tagline": "Good company, but price is falling lately",
+    "sentences": [
+      "The company's numbers are good, but the share price has been falling lately — the market mood is against it for now."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": -11.5,
+    "rs_vs_dsex_pct": -11.57,
+    "volume_ratio": 0.78,
+    "avg_turnover_7d_mn": 16.1,
+    "up_days_7d": 1,
+    "days_counted": 7,
+    "pct_in_52w_range": 72.4,
+    "momentum_grade": "cold"
+  },
+  "financials": [
+    {
+      "year": 2020,
+      "trading_code": "JANATAINS",
+      "cash_dividend_pct": 6.0,
+      "dividend_yield_pct": 1.51,
+      "eps_basic": null,
+      "eps_cont_basic": 1.25,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 14.45,
+      "pe_ratio_basic": 31.86,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 52.69,
+      "profit_mn": 52.69,
+      "stock_dividend_pct": 5,
+      "total_comprehensive_income_mn": 52.69,
+      "dps": 0.6,
+      "eps": 1.25
+    },
+    {
+      "trading_code": "JANATAINS",
+      "year": 2021,
+      "cash_dividend_pct": 6.0,
+      "dividend_yield_pct": 1.26,
+      "eps_basic": null,
+      "eps_cont_basic": 1.21,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 14.41,
+      "pe_ratio_basic": 39.58,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 53.51,
+      "profit_mn": 53.51,
+      "stock_dividend_pct": 5,
+      "total_comprehensive_income_mn": 53.51,
+      "dps": 0.6,
+      "eps": 1.21
+    },
+    {
+      "year": 2022,
+      "trading_code": "JANATAINS",
+      "cash_dividend_pct": 11.0,
+      "dividend_yield_pct": 3.85,
+      "eps_basic": null,
+      "eps_cont_basic": 1.2,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 14.55,
+      "pe_ratio_basic": 23.79,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 56.05,
+      "profit_mn": 56.05,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 56.05,
+      "dps": 1.1,
+      "eps": 1.2
+    },
+    {
+      "year": 2023,
+      "trading_code": "JANATAINS",
+      "cash_dividend_pct": 11.0,
+      "dividend_yield_pct": 3.3,
+      "eps_basic": null,
+      "eps_cont_basic": 1.24,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 14.69,
+      "pe_ratio_basic": 26.81,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 57.9,
+      "profit_mn": 57.9,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 57.9,
+      "dps": 1.1,
+      "eps": 1.24
+    },
+    {
+      "trading_code": "JANATAINS",
+      "year": 2024,
+      "cash_dividend_pct": 6.0,
+      "dividend_yield_pct": 2.13,
+      "eps_basic": null,
+      "eps_cont_basic": 1.31,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 14.96,
+      "pe_ratio_basic": 21.54,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 61.04,
+      "profit_mn": 61.04,
+      "stock_dividend_pct": 4,
+      "total_comprehensive_income_mn": 61.04,
+      "dps": 0.6,
+      "eps": 1.31
+    },
+    {
+      "trading_code": "JANATAINS",
+      "year": 2025,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 4.26,
+      "dps": 1.0,
+      "eps_basic": null,
+      "eps_cont_basic": 1.1,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 15.07,
+      "pe_ratio_basic": 21.28,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 53.54,
+      "profit_mn": 53.54,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 53.54,
+      "eps": 1.1
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "JANATAINS",
+      "year": 2021,
+      "capex": null,
+      "investing_cf": 5973862.0,
+      "net_profit": 56147804.0,
+      "nocfps": 1.42,
+      "operating_cf": 85279800.0,
+      "total_equity": 639953783.0,
+      "ebit": 73822858.0,
+      "intangibles": null,
+      "interest_expense": 3088827.0,
+      "revenue": 8494378.0,
+      "total_assets": 1178122082.0,
+      "cash_and_equivalents": 3740886.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "trading_code": "JANATAINS",
+      "year": 2022,
+      "capex": null,
+      "investing_cf": -6139699.0,
+      "net_profit": 56054617.0,
+      "nocfps": 1.85,
+      "operating_cf": 86388556.0,
+      "total_equity": 678310981.0,
+      "ebit": 81142879.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": -645032.0,
+      "total_assets": 1303951817.0,
+      "cash_and_equivalents": 3202275.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "trading_code": "JANATAINS",
+      "year": 2023,
+      "capex": null,
+      "investing_cf": -10878108.0,
+      "net_profit": 57903656.0,
+      "nocfps": 2.69,
+      "operating_cf": 125614283.0,
+      "total_equity": 684940870.0,
+      "ebit": 84632317.0,
+      "intangibles": null,
+      "interest_expense": 513262.0,
+      "revenue": -15683940.0,
+      "total_assets": 1430462548.0,
+      "cash_and_equivalents": 2265053.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "trading_code": "JANATAINS",
+      "year": 2024,
+      "capex": null,
+      "investing_cf": -2338223.0,
+      "net_profit": 61042885.0,
+      "nocfps": 0.96,
+      "operating_cf": 44578464.0,
+      "total_equity": 697441289.0,
+      "ebit": 86559038.0,
+      "intangibles": null,
+      "interest_expense": 634070.0,
+      "revenue": -32629569.0,
+      "total_assets": 1492613319.0,
+      "cash_and_equivalents": 3603569.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": null
+    }
+  ],
+  "shareholding": {
+    "trading_code": "JANATAINS",
+    "as_of_date": "Mar 31, 2026",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 8.98,
+    "public_pct": 51.15,
+    "reporting_period": null,
+    "sponsor_director_pct": 39.87
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jan 31, 2026",
+    "trading_code": "JANATAINS",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 8.89,
+    "public_pct": 51.24,
+    "reporting_period": null,
+    "sponsor_director_pct": 39.87
+  },
+  "dividend_declaration": {
+    "trading_code": "JANATAINS",
+    "declaration_date": "2026-05-20T00:00:00",
+    "dividend_pct": 0.0,
+    "dividend_type": "Final",
+    "record_date": null,
+    "scraped_at": "2026-07-22T10:21:20.485000",
+    "title": "JANATAINS: Dividend Declaration (Revised EPS)"
+  },
+  "news": [
+    {
+      "title": "JANATAINS: Resumption after Record Date",
+      "post_date": "2026-06-22T00:00:00",
+      "body": "Trading of the shares of the company will resume on 23.06.2026."
+    },
+    {
+      "post_date": "2026-06-21T00:00:00",
+      "title": "JANATAINS: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 22.06.2026."
+    },
+    {
+      "title": "JANATAINS: Spot News",
+      "post_date": "2026-06-17T00:00:00",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 18.06.2026 to 21.06.2026 and trading of the shares will remain suspended on record date i.e., 22.06.2026."
+    },
+    {
+      "post_date": "2026-06-02T00:00:00",
+      "title": "JANATAINS: Emphasis of Matter",
+      "body": "The auditor of the company has given the Emphasis of Matter paragraph in the auditor's report for the year ended December 31, 2025. To view the details, please visit: https://www.dsebd.org/Auditors_opinion/2025/Janata%20Insurance%20PLC25.pdf"
+    },
+    {
+      "post_date": "2026-05-20T00:00:00",
+      "title": "JANATAINS: Dividend Declaration (Revised EPS)",
+      "body": "Refer to their earlier news disseminated by DSE on 07.05.2026 regarding Dividend Declaration, the company has further informed that the Earnings Per Share (EPS) for the year ended December 31, 2025 was mistakenly stated as Tk. 1.30 instead of Tk. 1.10. Now, the correct EPS is Tk. 1.10. Other information will remain unchanged."
+    },
+    {
+      "title": "JANATAINS: Dividend Declaration",
+      "post_date": "2026-05-07T00:00:00",
+      "body": "The Board of Directors has recommended 10% Cash Dividend for the year ended December 31, 2025. Date of AGM: 19.07.2026, Time: 11:00 AM, Venue/Mode: Digital Platform, Record Date: 22.06.2026. The Company has also reported EPS of Tk. 1.30, NAV per share of Tk. 15.07 and NOCFPS of Tk. 1.45 for the year ended December 31, 2025 as against Tk. 1.26, Tk. 14.39 and Tk. 0.92 respectively for the year ended December 31, 2024."
+    },
+    {
+      "title": "JANATAINS: Price Limit Open",
+      "post_date": "2026-05-07T00:00:00",
+      "body": "There will be no price limit on the trading of the shares of the Company today (07.05.2026) following its corporate declaration."
+    },
+    {
+      "post_date": "2026-05-07T00:00:00",
+      "title": "JANATAINS: Q1 Financials",
+      "body": "(Q1 Un-audited): EPS was Tk. 0.29 for January-March 2026 as against Tk. 0.26 for January-March 2025. NOCFPS was Tk. 0.11 for January-March 2026 as against Tk. 0.48 for January-March 2025. NAV per share was Tk. 15.37 as on March 31, 2026 and Tk. 15.07 as on December 31, 2025."
+    },
+    {
+      "post_date": "2026-04-29T00:00:00",
+      "title": "JANATAINS: Board Meeting schedule under LR 19(1)",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on May 06, 2026 at 3:00 PM to consider, among others, audited financial statements of the Company for the year ended December 31, 2025."
+    },
+    {
+      "post_date": "2026-04-29T00:00:00",
+      "title": "JANATAINS: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on May 06, 2026 at 3:00 pm to consider, among others, Un-Audited Financial Statements for the First Quarter (Q1) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2025-11-23T00:00:00",
+      "title": "JANATAINS: Credit Rating Result",
+      "body": "National Credit Ratings Limited (NCR) has assigned Surveillance entity rating of the Company as \"AAA\" in the long term and \"ST-1\" in the short term along with Stable outlook based on audited financial statements as on December 31, 2024 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "post_date": "2025-10-26T00:00:00",
+      "title": "JANATAINS: Q3 Financials",
+      "body": "(Q3 Un-audited): EPS was Tk. 0.45 for July-September 2025 as against Tk. 0.28 for July-September 2024; EPS was Tk. 1.19 for January-September 2025 as against Tk. 1.40 for January-September 2024. NOCFPS was Tk. 0.64 for January-September 2025 as against Tk. 0.89 for January-September 2024. NAV per share was Tk. 15.21 as on September 30, 2025 and Tk. 14.96 as on December 31, 2024."
+    },
+    {
+      "post_date": "2025-10-20T00:00:00",
+      "title": "JANATAINS: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on October 23, 2025 at 3:00 PM to consider, among others, Un-audited financial statements of the Company for the Third Quarter (Q3) period ended September 30, 2025."
+    },
+    {
+      "post_date": "2025-10-14T00:00:00",
+      "title": "JANATAINS: Dividend Disbursement",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended December 31, 2024 to the respective shareholders."
+    },
+    {
+      "post_date": "2025-10-14T00:00:00",
+      "title": "JANATAINS: Category Change",
+      "body": "The Company will be placed in 'A' category from existing 'Z' category with effect from October 15, 2025 as the Company has reported disbursement of 6% Cash and 4% Stock Dividend for the year ended December 31, 2024."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "UNITEDINS",
+      "company_name": "United Insurance Company Ltd.",
+      "sector": "Insurance",
+      "score": 71.2,
+      "ltp": 48.5,
+      "change_pct": -3.0,
+      "pe": 14.02,
+      "pb": 1.56,
+      "div_yield_pct": 3.1,
+      "roe_pct": 7.4,
+      "eps_yoy_pct": 53.1
+    },
+    {
+      "trading_code": "RELIANCINS",
+      "company_name": "Reliance Insurance PLC.",
+      "sector": "Insurance",
+      "score": 70.5,
+      "ltp": 107.2,
+      "change_pct": -0.83,
+      "pe": 12.73,
+      "pb": 1.36,
+      "div_yield_pct": 2.8,
+      "roe_pct": 13.1,
+      "eps_yoy_pct": -7.7
+    },
+    {
+      "trading_code": "SIPLC",
+      "company_name": "Sena Insurance PLC",
+      "sector": "Insurance",
+      "score": 69.6,
+      "ltp": 111.5,
+      "change_pct": 0.72,
+      "pe": 21.57,
+      "pb": 3.9,
+      "div_yield_pct": 1.3,
+      "roe_pct": 17.1,
+      "eps_yoy_pct": 20.5
+    },
+    {
+      "trading_code": "PEOPLESINS",
+      "company_name": "Peoples Insurance PLC.",
+      "sector": "Insurance",
+      "score": 68.9,
+      "ltp": 53.2,
+      "change_pct": -3.27,
+      "pe": 12.7,
+      "pb": 1.4,
+      "div_yield_pct": 2.0,
+      "roe_pct": 8.2,
+      "eps_yoy_pct": 47.5
+    },
+    {
+      "trading_code": "PRAGATIINS",
+      "company_name": "Pragati Insurance PLC.",
+      "sector": "Insurance",
+      "score": 66.9,
+      "ltp": 74.6,
+      "change_pct": -1.71,
+      "pe": 14.05,
+      "pb": 1.3,
+      "div_yield_pct": 3.6,
+      "roe_pct": 9.7,
+      "eps_yoy_pct": -5.3
+    }
+  ],
+  "source_hash": "b29c66e860a96dfe389c098232cf3f706d11c5ca5ffb4219b743905e5c8cc13c"
+}

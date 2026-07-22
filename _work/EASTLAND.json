@@ -1,0 +1,789 @@
+{
+  "trading_code": "EASTLAND",
+  "company_name": "Eastland Insurance PLC.",
+  "sector_class": "INSURANCE",
+  "as_of_price_date": "2026-07-22",
+  "profile": {
+    "sector": "Insurance",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 83880581,
+    "paid_up_capital_mn": 838.81,
+    "reserve_surplus_mn": 971.3,
+    "total_loan_mn": 0,
+    "listing_year": 1994,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 26.8,
+    "change": -0.7,
+    "change_pct": -2.55,
+    "date": "2026-07-22",
+    "high": 27.5,
+    "low": 26.7,
+    "volume": 342629,
+    "avg_volume_7d": 838277,
+    "ycp": 27.5,
+    "w52_high": 31.5,
+    "w52_low": 17.0
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 5.9,
+      "m3": 17.5,
+      "m6": 22.9,
+      "y1": 44.1
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 17.0
+      },
+      {
+        "date": "2025-06-30",
+        "close": 17.1
+      },
+      {
+        "date": "2025-07-31",
+        "close": 19.7
+      },
+      {
+        "date": "2025-08-31",
+        "close": 22.0
+      },
+      {
+        "date": "2025-09-30",
+        "close": 20.9
+      },
+      {
+        "date": "2025-10-30",
+        "close": 20.0
+      },
+      {
+        "date": "2025-11-30",
+        "close": 18.6
+      },
+      {
+        "date": "2025-12-30",
+        "close": 18.5
+      },
+      {
+        "date": "2026-01-29",
+        "close": 22.1
+      },
+      {
+        "date": "2026-02-26",
+        "close": 21.4
+      },
+      {
+        "date": "2026-03-31",
+        "close": 20.3
+      },
+      {
+        "date": "2026-04-30",
+        "close": 22.8
+      },
+      {
+        "date": "2026-05-31",
+        "close": 25.5
+      },
+      {
+        "date": "2026-06-30",
+        "close": 26
+      },
+      {
+        "date": "2026-07-22",
+        "close": 26.8
+      }
+    ],
+    "pct_in_52w_range": 67.6
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 4.2
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.7
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.3
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Fairly priced",
+      "word_bn": "দাম যুক্তিসঙ্গত",
+      "score10": 5.2
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 9.7
+    }
+  ],
+  "fair_value": {
+    "low": 22.1,
+    "high": 33.1,
+    "center": 27.6,
+    "today": 26.8,
+    "stance": "fair",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 21.3
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 26.9
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 25.5
+      },
+      {
+        "name": "book_peer",
+        "label_en": "Priced like similar companies (assets)",
+        "price": 40.4
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 16.7
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 24.36,
+    "current_pb": 1.24,
+    "own_avg_pe": 19.39,
+    "own_avg_pb": 1.18,
+    "sector_median_pe": 24.48,
+    "sector_median_pb": 1.87,
+    "eps": 1.1,
+    "sector_implied_price": 26.93
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2020,
+        "eps_taka": 1.12,
+        "net_profit_crore": 9.16,
+        "cash_dividend_pct": null,
+        "stock_dividend_pct": 7.0,
+        "dps_taka": null,
+        "nav_per_share_taka": 21.32
+      },
+      {
+        "year": 2021,
+        "eps_taka": 1.51,
+        "net_profit_crore": 12.7,
+        "cash_dividend_pct": 1.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 0.1,
+        "nav_per_share_taka": 20.89,
+        "revenue_crore": -27.0,
+        "operating_profit_crore": 0.13,
+        "operating_cash_flow_crore": 7.3,
+        "capex_crore": null,
+        "total_debt_crore": 1.02,
+        "total_equity_crore": 175.2,
+        "total_assets_crore": 265.0,
+        "cash_crore": 49.6,
+        "debt_to_equity": 0.01
+      },
+      {
+        "year": 2022,
+        "eps_taka": 1.63,
+        "net_profit_crore": 13.7,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 21.19,
+        "revenue_crore": -5.05,
+        "operating_profit_crore": 18.6,
+        "operating_cash_flow_crore": 7.72,
+        "capex_crore": null,
+        "total_debt_crore": 3.56,
+        "total_equity_crore": 177.7,
+        "total_assets_crore": 270.9,
+        "cash_crore": 43.7,
+        "debt_to_equity": 0.02
+      },
+      {
+        "year": 2023,
+        "eps_taka": 1.14,
+        "net_profit_crore": 9.6,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 21.67,
+        "revenue_crore": -3.03,
+        "operating_profit_crore": 15.7,
+        "operating_cash_flow_crore": 6.96,
+        "capex_crore": null,
+        "total_debt_crore": 1.86,
+        "total_equity_crore": 181.7,
+        "total_assets_crore": 256.5,
+        "cash_crore": 40.0,
+        "debt_to_equity": 0.01
+      },
+      {
+        "year": 2024,
+        "eps_taka": 1.07,
+        "net_profit_crore": 8.95,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 21.12,
+        "revenue_crore": 0.11,
+        "operating_profit_crore": 13.4,
+        "operating_cash_flow_crore": 6.37,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 177.1,
+        "total_assets_crore": 283.6,
+        "cash_crore": 39.7
+      },
+      {
+        "year": 2025,
+        "eps_taka": 1.1,
+        "net_profit_crore": 9.25,
+        "cash_dividend_pct": 10.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.0,
+        "nav_per_share_taka": 21.58
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 1.1,
+      "net_profit_crore": 9.25,
+      "cash_dividend_pct": 10.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 1.0,
+      "nav_per_share_taka": 21.58
+    },
+    "growth": {
+      "span": "2020–2025",
+      "net_profit_change_pct": 1.0,
+      "eps_change_pct": -2.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 8.39,
+      "paid_up_capital_crore": 83.9,
+      "reserve_surplus_crore": 97.1,
+      "total_loan_crore": 0.0,
+      "listing_year": 1994
+    },
+    "ownership": {
+      "sponsor_director_pct": 41.11,
+      "govt_pct": 0.0,
+      "institute_pct": 22.48,
+      "foreign_pct": 0.0,
+      "public_pct": 36.41
+    }
+  },
+  "sector_context": {
+    "sector": "Insurance",
+    "peer_count": 59,
+    "rank_in_sector": 15,
+    "sector_avg_score": 42.2,
+    "sector_median_pe": 24.48
+  },
+  "score": {
+    "trading_code": "EASTLAND",
+    "sector": "Insurance",
+    "market_cat": "A",
+    "ltp": 26.8,
+    "mcap_mn": 2247.9995708,
+    "score": 57.1,
+    "base_score": 57.1,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.684,
+    "eps": 1.1,
+    "roe_pct": 5.1,
+    "sector_median_pe": 24.48,
+    "sector_median_pb": 1.87,
+    "p1_biz": 4.18,
+    "p2_health": 5.73,
+    "p3_moat": 5.33,
+    "p4_val": 5.2,
+    "p5_div": 9.71,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 1.8265,
+    "p1_roe": 2.6627,
+    "p1_npm_trend": null,
+    "p1_coverage": 0.8,
+    "eps_yoy_pct": 2.8,
+    "eps_stability": 0.8554,
+    "p2_de": null,
+    "p2_ic": 10.0,
+    "p2_cfo": 3.0,
+    "p2_cash": null,
+    "p2_coverage": 0.643,
+    "p3_margin": 8.0,
+    "p3_rev_vol": null,
+    "p3_sector_rank": 2.0,
+    "p3_capex": null,
+    "p3_coverage": 0.55,
+    "p4_pe": 4.48,
+    "p4_pb": 7.29,
+    "p4_vol_damp": 0.9277,
+    "current_pe": 24.36,
+    "current_pb": 1.24,
+    "own_avg_pe": 19.39,
+    "own_avg_pb": 1.18,
+    "p5_dps_cagr": 10.0,
+    "p5_consist": 10.0,
+    "p5_yield": 8.097014925373134,
+    "div_yield_pct": 3.7,
+    "overall_rank": 77,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "average_fundamentals",
+    "reason_en": "An average company — no strong reason to buy or sell.",
+    "reason_bn": "মাঝারি মানের কোম্পানি — কেনা বা বেচার জোরালো কারণ নেই।",
+    "tier": "average",
+    "momentum_grade": "cold",
+    "score": 57.1,
+    "p4_val": 5.2,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 41.1% (strong alignment)"
+    ],
+    "red": [
+      "Payout ratio 91% — potentially unsustainable"
+    ]
+  },
+  "verdict": {
+    "headline": "Average",
+    "tagline": "Average company, share price falling",
+    "sentences": [
+      "The company's numbers are average, and the share price is slowly going down. Better to wait or look at other stocks.",
+      "Has paid dividends regularly in past years."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": -14.92,
+    "rs_vs_dsex_pct": -15.0,
+    "volume_ratio": 0.8,
+    "avg_turnover_7d_mn": 18.68,
+    "up_days_7d": 1,
+    "days_counted": 7,
+    "pct_in_52w_range": 67.6,
+    "momentum_grade": "cold"
+  },
+  "financials": [
+    {
+      "trading_code": "EASTLAND",
+      "year": 2020,
+      "cash_dividend_pct": null,
+      "dividend_yield_pct": 2.06,
+      "eps_basic": null,
+      "eps_cont_basic": 1.12,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 21.32,
+      "pe_ratio_basic": 30.15,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 91.58,
+      "profit_mn": 91.58,
+      "stock_dividend_pct": 7.003,
+      "total_comprehensive_income_mn": 91.58,
+      "eps": 1.12
+    },
+    {
+      "trading_code": "EASTLAND",
+      "year": 2021,
+      "cash_dividend_pct": 1.0,
+      "dividend_yield_pct": 2.58,
+      "eps_basic": null,
+      "eps_cont_basic": 1.51,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 20.89,
+      "pe_ratio_basic": 25.6,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 126.81,
+      "profit_mn": 126.81,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 126.81,
+      "dps": 0.1,
+      "eps": 1.51
+    },
+    {
+      "trading_code": "EASTLAND",
+      "year": 2022,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 4.1,
+      "eps_basic": null,
+      "eps_cont_basic": 1.63,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 21.19,
+      "pe_ratio_basic": 14.96,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 136.82,
+      "profit_mn": 136.82,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 136.82,
+      "dps": 1.0,
+      "eps": 1.63
+    },
+    {
+      "trading_code": "EASTLAND",
+      "year": 2023,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 4.1,
+      "eps_basic": null,
+      "eps_cont_basic": 1.14,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 21.67,
+      "pe_ratio_basic": 21.33,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 95.97,
+      "profit_mn": 95.97,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 95.97,
+      "dps": 1.0,
+      "eps": 1.14
+    },
+    {
+      "trading_code": "EASTLAND",
+      "year": 2024,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 5.13,
+      "eps_basic": null,
+      "eps_cont_basic": 1.07,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 21.12,
+      "pe_ratio_basic": 18.27,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 89.51,
+      "profit_mn": 89.51,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 89.51,
+      "dps": 1.0,
+      "eps": 1.07
+    },
+    {
+      "trading_code": "EASTLAND",
+      "year": 2025,
+      "cash_dividend_pct": 10.0,
+      "dividend_yield_pct": 5.41,
+      "dps": 1.0,
+      "eps_basic": null,
+      "eps_cont_basic": 1.1,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 21.58,
+      "pe_ratio_basic": 16.77,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 92.54,
+      "profit_mn": 92.54,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 92.54,
+      "eps": 1.1
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "EASTLAND",
+      "year": 2021,
+      "capex": null,
+      "investing_cf": 350594668.0,
+      "net_profit": 126806143.0,
+      "nocfps": 0.87,
+      "operating_cf": 72976105.0,
+      "total_equity": 1752397023.0,
+      "ebit": 1302599.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": -269849666.0,
+      "total_assets": 2649561184.0,
+      "cash_and_equivalents": 496276484.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": 23655481.0,
+      "net_interest_income": null,
+      "total_debt": 10197108.0
+    },
+    {
+      "trading_code": "EASTLAND",
+      "year": 2022,
+      "capex": null,
+      "investing_cf": -168610905.0,
+      "net_profit": 136816756.0,
+      "nocfps": 0.92,
+      "operating_cf": 77170135.0,
+      "total_equity": 1777479129.0,
+      "ebit": 186451736.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": -50493819.0,
+      "total_assets": 2708561959.0,
+      "cash_and_equivalents": 436569038.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": 27594169.0,
+      "net_interest_income": null,
+      "total_debt": 35613402.0
+    },
+    {
+      "year": 2023,
+      "trading_code": "EASTLAND",
+      "capex": null,
+      "investing_cf": 57849605.0,
+      "net_profit": 95970545.0,
+      "nocfps": 0.83,
+      "operating_cf": 69620882.0,
+      "total_equity": 1817360507.0,
+      "ebit": 156978638.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": -30250055.0,
+      "total_assets": 2565030687.0,
+      "cash_and_equivalents": 399889191.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": 30371867.0,
+      "net_interest_income": null,
+      "total_debt": 18608163.0
+    },
+    {
+      "trading_code": "EASTLAND",
+      "year": 2024,
+      "capex": null,
+      "investing_cf": 16162355.0,
+      "net_profit": 89513235.0,
+      "nocfps": 0.76,
+      "operating_cf": 63749242.0,
+      "total_equity": 1771383056.0,
+      "ebit": 133801855.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 1085612.0,
+      "total_assets": 2835906485.0,
+      "cash_and_equivalents": 397357393.0,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": 46023513.0,
+      "net_interest_income": null,
+      "total_debt": null
+    }
+  ],
+  "shareholding": {
+    "trading_code": "EASTLAND",
+    "as_of_date": "Mar 31, 2026",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 22.48,
+    "public_pct": 36.41,
+    "reporting_period": null,
+    "sponsor_director_pct": 41.11
+  },
+  "shareholding_prev": {
+    "trading_code": "EASTLAND",
+    "as_of_date": "Jan 31, 2026",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 22.65,
+    "public_pct": 36.24,
+    "reporting_period": null,
+    "sponsor_director_pct": 41.11
+  },
+  "dividend_declaration": {
+    "trading_code": "EASTLAND",
+    "declaration_date": "2026-04-23T00:00:00",
+    "dividend_pct": 10.0,
+    "dividend_type": "Final",
+    "record_date": "2026-06-02T00:00:00",
+    "scraped_at": "2026-07-22T10:11:47.103000",
+    "title": "EASTLAND: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-07-22T00:00:00",
+      "title": "EASTLAND: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on July 28, 2026 at 3:00 pm to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended June 30, 2026."
+    },
+    {
+      "post_date": "2026-06-02T00:00:00",
+      "title": "EASTLAND: Emphasis of Matter",
+      "body": "The auditor of the company has given the Emphasis of Matter paragraph in the auditor's report for the year ended December 31, 2025. To view the details, please visit: https://www.dsebd.org/Auditors_opinion/2025/Eastland%20Insurance%20PLC25.pdf"
+    },
+    {
+      "title": "EASTLAND: Resumption after Record Date",
+      "post_date": "2026-06-02T00:00:00",
+      "body": "Trading of the shares of the company will resume on 03.06.2026."
+    },
+    {
+      "post_date": "2026-06-01T00:00:00",
+      "title": "EASTLAND: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 02.06.2026."
+    },
+    {
+      "title": "EASTLAND: Spot News",
+      "post_date": "2026-05-23T00:00:00",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 24.05.2026 to 01.06.2026 and trading of the shares will remain suspended on record date i.e., 02.06.2026."
+    },
+    {
+      "title": "EASTLAND: Dividend Declaration",
+      "post_date": "2026-04-23T00:00:00",
+      "body": "The Board of Directors has recommended 10% Cash Dividend for the General shareholders excluding Sponsors and or Directors for the year ended December 31, 2025. The Sponsors and Directors hold 3,44,85,719 shares and Cash Dividend payable to the General Shareholders is Tk. 49,394,862.00. Date of AGM: 29.06.2026, Time: 03:00 PM, Venue/Mode: Virtual Platform, Record Date: 02.06.2026. (cont.)"
+    },
+    {
+      "post_date": "2026-04-23T00:00:00",
+      "title": "EASTLAND: Price Limit Open",
+      "body": "There will be no price limit on the trading of the shares of the Company today (23.04.2026) following its corporate declaration."
+    },
+    {
+      "title": "EASTLAND: Q1 Financials",
+      "post_date": "2026-04-23T00:00:00",
+      "body": "(Q1 Un-audited): EPS was Tk. 0.27 for January-March 2026 as against Tk. 0.25 for January-March 2025. NOCFPS was Tk. 0.21 for January-March 2026 as against Tk. 0.11 for January-March 2025. NAV per share was Tk. 21.86 as on March 31, 2026 and Tk. 21.38 as on March 31, 2025. Reasons for deviation: EPS increased due to increase of net profit after tax of the company. NAV per share increased due to increase of reserve. NOCFPS increased due to increase of net profit after tax of the company."
+    },
+    {
+      "post_date": "2026-04-23T00:00:00",
+      "title": "EASTLAND: Update of Information",
+      "body": "The Company has requested the shareholders to update their respective BO account with 12 digits e-TIN number, Bank account, address, mobile number etc. through their respective DPs before the Record Date."
+    },
+    {
+      "post_date": "2026-04-20T00:00:00",
+      "title": "EASTLAND: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 22, 2026 at 2:30 PM to consider, among others, Un-Audited Financial Statements for the First Quarter (Q1) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-04-15T00:00:00",
+      "title": "EASTLAND: Board Meeting schedule under LR 19(1)",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 22, 2026 at 2:30 PM to consider, among others, audited financial statements of the Company for the year ended December 31, 2025."
+    },
+    {
+      "post_date": "2025-10-28T00:00:00",
+      "title": "EASTLAND: Q3 Financials",
+      "body": "(Q3 Un-audited): EPS was Tk. 0.16 for July-September 2025 as against Tk. 0.18 for July-September 2024; EPS was Tk. 0.69 for January-September 2025 as against Tk. 0.73 for January-September 2024. NOCFPS was Tk. 0.48 for January-September 2025 as against Tk. 0.52 for January-September 2024. NAV per share (Investment shown at fair value) was Tk. 21.25 as on September 30, 2025 and Tk. 21.64 as on September 30, 2024. (cont.)"
+    },
+    {
+      "title": "EASTLAND: Change of Board Meeting Time under LR 16(1)",
+      "post_date": "2025-10-22T00:00:00",
+      "body": "The Company has further informed that, the Board meeting under LR 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, will be held on October 27, 2025 at 3:00 PM instead of 2:30 PM to consider, among others, un-audited financial statements of the Company for the Third Quarter (Q3) period ended September 30, 2025."
+    },
+    {
+      "title": "EASTLAND: Board Meeting schedule under LR 16(1)",
+      "post_date": "2025-10-21T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on October 27, 2025 at 2:30 PM to consider, among others, Un-audited financial statements of the Company for the Third Quarter (Q3) period ended September 30, 2025."
+    },
+    {
+      "post_date": "2025-08-10T00:00:00",
+      "title": "EASTLAND: Dividend Disbursement",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended December 31, 2024 to the respective shareholders."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "UNITEDINS",
+      "company_name": "United Insurance Company Ltd.",
+      "sector": "Insurance",
+      "score": 71.2,
+      "ltp": 48.5,
+      "change_pct": -3.0,
+      "pe": 14.02,
+      "pb": 1.56,
+      "div_yield_pct": 3.1,
+      "roe_pct": 7.4,
+      "eps_yoy_pct": 53.1
+    },
+    {
+      "trading_code": "RELIANCINS",
+      "company_name": "Reliance Insurance PLC.",
+      "sector": "Insurance",
+      "score": 70.5,
+      "ltp": 107.2,
+      "change_pct": -0.83,
+      "pe": 12.73,
+      "pb": 1.36,
+      "div_yield_pct": 2.8,
+      "roe_pct": 13.1,
+      "eps_yoy_pct": -7.7
+    },
+    {
+      "trading_code": "SIPLC",
+      "company_name": "Sena Insurance PLC",
+      "sector": "Insurance",
+      "score": 69.6,
+      "ltp": 111.5,
+      "change_pct": 0.72,
+      "pe": 21.57,
+      "pb": 3.9,
+      "div_yield_pct": 1.3,
+      "roe_pct": 17.1,
+      "eps_yoy_pct": 20.5
+    },
+    {
+      "trading_code": "PEOPLESINS",
+      "company_name": "Peoples Insurance PLC.",
+      "sector": "Insurance",
+      "score": 68.9,
+      "ltp": 53.2,
+      "change_pct": -3.27,
+      "pe": 12.7,
+      "pb": 1.4,
+      "div_yield_pct": 2.0,
+      "roe_pct": 8.2,
+      "eps_yoy_pct": 47.5
+    },
+    {
+      "trading_code": "PRAGATIINS",
+      "company_name": "Pragati Insurance PLC.",
+      "sector": "Insurance",
+      "score": 66.9,
+      "ltp": 74.6,
+      "change_pct": -1.71,
+      "pe": 14.05,
+      "pb": 1.3,
+      "div_yield_pct": 3.6,
+      "roe_pct": 9.7,
+      "eps_yoy_pct": -5.3
+    }
+  ],
+  "source_hash": "25563b65547ba8c77fac7189f279498a6ed3922215a206699ad99169e2ad2c6a"
+}

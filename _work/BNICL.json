@@ -1,0 +1,785 @@
+{
+  "trading_code": "BNICL",
+  "company_name": "Bangladesh National Insurance Company Limited",
+  "sector_class": "INSURANCE",
+  "as_of_price_date": "2026-07-22",
+  "profile": {
+    "sector": "Insurance",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 44250000,
+    "paid_up_capital_mn": 442.5,
+    "reserve_surplus_mn": 940.7,
+    "total_loan_mn": 0,
+    "listing_year": 2016,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 107.2,
+    "change": -1,
+    "change_pct": -0.92,
+    "date": "2026-07-22",
+    "high": 110.9,
+    "low": 105.6,
+    "volume": 84051,
+    "avg_volume_7d": 166035,
+    "ycp": 108.2,
+    "w52_high": 122.4,
+    "w52_low": 39.3
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 1.2,
+      "m3": 33.3,
+      "m6": 97.4,
+      "y1": 171.4
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 34.7
+      },
+      {
+        "date": "2025-06-30",
+        "close": 36.5
+      },
+      {
+        "date": "2025-07-31",
+        "close": 42.0
+      },
+      {
+        "date": "2025-08-31",
+        "close": 44.4
+      },
+      {
+        "date": "2025-09-30",
+        "close": 43.4
+      },
+      {
+        "date": "2025-10-30",
+        "close": 48.1
+      },
+      {
+        "date": "2025-11-30",
+        "close": 44.3
+      },
+      {
+        "date": "2025-12-30",
+        "close": 44.7
+      },
+      {
+        "date": "2026-01-29",
+        "close": 55.7
+      },
+      {
+        "date": "2026-02-26",
+        "close": 55.5
+      },
+      {
+        "date": "2026-03-31",
+        "close": 58.6
+      },
+      {
+        "date": "2026-04-30",
+        "close": 81.6
+      },
+      {
+        "date": "2026-05-31",
+        "close": 91.7
+      },
+      {
+        "date": "2026-06-30",
+        "close": 120.6
+      },
+      {
+        "date": "2026-07-22",
+        "close": 107.2
+      }
+    ],
+    "pct_in_52w_range": 81.7
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.1
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 9.4
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Weak",
+      "word_bn": "দুর্বল",
+      "score10": 1.8
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Leaning pricey",
+      "word_bn": "দাম একটু বেশি",
+      "score10": 4.0
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.6
+    }
+  ],
+  "fair_value": {
+    "low": 60.8,
+    "high": 91.2,
+    "center": 76.0,
+    "today": 107,
+    "stance": "expensive",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 86.7
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 118
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 86.0
+      },
+      {
+        "name": "book_peer",
+        "label_en": "Priced like similar companies (assets)",
+        "price": 57.8
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 36.7
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 22.29,
+    "current_pb": 3.43,
+    "own_avg_pe": 18.02,
+    "own_avg_pb": 2.75,
+    "sector_median_pe": 24.55,
+    "sector_median_pb": 1.85,
+    "eps": 4.81,
+    "sector_implied_price": 118.09
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2020,
+        "eps_taka": 2.32,
+        "net_profit_crore": 10.3,
+        "cash_dividend_pct": 15.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.5,
+        "nav_per_share_taka": 20.17
+      },
+      {
+        "year": 2021,
+        "eps_taka": 3.23,
+        "net_profit_crore": 14.3,
+        "cash_dividend_pct": 18.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 1.8,
+        "nav_per_share_taka": 21.85,
+        "revenue_crore": 0.08,
+        "operating_profit_crore": 13.3,
+        "operating_cash_flow_crore": 42.8,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 96.7,
+        "total_assets_crore": 200.4,
+        "cash_crore": null
+      },
+      {
+        "year": 2022,
+        "eps_taka": 4.0,
+        "net_profit_crore": 17.7,
+        "cash_dividend_pct": 20.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.0,
+        "nav_per_share_taka": 23.8,
+        "revenue_crore": 0.07,
+        "operating_profit_crore": 15.7,
+        "operating_cash_flow_crore": 45.7,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 105.3,
+        "total_assets_crore": 232.6,
+        "cash_crore": null
+      },
+      {
+        "year": 2023,
+        "eps_taka": 4.04,
+        "net_profit_crore": 17.9,
+        "cash_dividend_pct": 20.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.0,
+        "nav_per_share_taka": 26.28,
+        "revenue_crore": 0.1,
+        "operating_profit_crore": 17.3,
+        "operating_cash_flow_crore": 18.7,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 116.3,
+        "total_assets_crore": 248.6,
+        "cash_crore": null
+      },
+      {
+        "year": 2024,
+        "eps_taka": 4.19,
+        "net_profit_crore": 18.5,
+        "cash_dividend_pct": 20.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.0,
+        "nav_per_share_taka": 28.45,
+        "revenue_crore": -5.98,
+        "operating_profit_crore": 13.1,
+        "operating_cash_flow_crore": 29.7,
+        "capex_crore": null,
+        "total_debt_crore": null,
+        "total_equity_crore": 125.9,
+        "total_assets_crore": 277.1,
+        "cash_crore": null
+      },
+      {
+        "year": 2025,
+        "eps_taka": 4.81,
+        "net_profit_crore": 21.3,
+        "cash_dividend_pct": 22.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 2.2,
+        "nav_per_share_taka": 31.26
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 4.81,
+      "net_profit_crore": 21.3,
+      "cash_dividend_pct": 22.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 2.2,
+      "nav_per_share_taka": 31.26
+    },
+    "growth": {
+      "span": "2020–2025",
+      "net_profit_change_pct": 107.0,
+      "eps_change_pct": 107.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 4.42,
+      "paid_up_capital_crore": 44.2,
+      "reserve_surplus_crore": 94.1,
+      "total_loan_crore": 0.0,
+      "listing_year": 2016
+    },
+    "ownership": {
+      "sponsor_director_pct": 60.13,
+      "govt_pct": 0.0,
+      "institute_pct": 11.66,
+      "foreign_pct": 0.0,
+      "public_pct": 28.21
+    }
+  },
+  "sector_context": {
+    "sector": "Insurance",
+    "peer_count": 59,
+    "rank_in_sector": 16,
+    "sector_avg_score": 42.2,
+    "sector_median_pe": 24.55
+  },
+  "score": {
+    "trading_code": "BNICL",
+    "sector": "Insurance",
+    "market_cat": "A",
+    "ltp": 107.2,
+    "mcap_mn": 4743.6,
+    "score": 56.8,
+    "base_score": 56.8,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.769,
+    "eps": 4.81,
+    "roe_pct": 14.6,
+    "sector_median_pe": 24.55,
+    "sector_median_pb": 1.85,
+    "p1_biz": 6.12,
+    "p2_health": 9.38,
+    "p3_moat": 1.83,
+    "p4_val": 4.05,
+    "p5_div": 6.6,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 5.3136,
+    "p1_roe": 7.0935,
+    "p1_npm_trend": 2.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": 14.8,
+    "eps_stability": 1.0,
+    "p2_de": null,
+    "p2_ic": 10.0,
+    "p2_cfo": 10.0,
+    "p2_cash": null,
+    "p2_coverage": 0.643,
+    "p3_margin": 2.0,
+    "p3_rev_vol": null,
+    "p3_sector_rank": 2.0,
+    "p3_capex": null,
+    "p3_coverage": 0.55,
+    "p4_pe": 5.07,
+    "p4_pb": 2.52,
+    "p4_vol_damp": 1.0,
+    "current_pe": 22.29,
+    "current_pb": 3.43,
+    "own_avg_pe": 18.02,
+    "own_avg_pb": 2.75,
+    "p5_dps_cagr": 4.5202,
+    "p5_consist": 10.0,
+    "p5_yield": 5.578358208955224,
+    "div_yield_pct": 2.1,
+    "overall_rank": 78,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "average_fundamentals",
+    "reason_en": "An average company — no strong reason to buy or sell.",
+    "reason_bn": "মাঝারি মানের কোম্পানি — কেনা বা বেচার জোরালো কারণ নেই।",
+    "tier": "average",
+    "momentum_grade": "cold",
+    "score": 56.8,
+    "p4_val": 4.05,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 60.1% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Average",
+    "tagline": "Average company, share price falling",
+    "sentences": [
+      "The company's numbers are average, and the share price is slowly going down. Better to wait or look at other stocks."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": -6.46,
+    "rs_vs_dsex_pct": -6.53,
+    "volume_ratio": 0.27,
+    "avg_turnover_7d_mn": 14.03,
+    "up_days_7d": 2,
+    "days_counted": 7,
+    "pct_in_52w_range": 81.7,
+    "momentum_grade": "cold"
+  },
+  "financials": [
+    {
+      "year": 2020,
+      "trading_code": "BNICL",
+      "cash_dividend_pct": 15.0,
+      "dividend_yield_pct": 2.04,
+      "eps_basic": null,
+      "eps_cont_basic": 2.32,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 20.17,
+      "pe_ratio_basic": 31.69,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 102.62,
+      "profit_mn": 102.62,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 102.62,
+      "dps": 1.5,
+      "eps": 2.32
+    },
+    {
+      "trading_code": "BNICL",
+      "year": 2021,
+      "cash_dividend_pct": 18.0,
+      "dividend_yield_pct": 1.32,
+      "eps_basic": null,
+      "eps_cont_basic": 3.23,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 21.85,
+      "pe_ratio_basic": 42.04,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 143.03,
+      "profit_mn": 143.03,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 143.03,
+      "dps": 1.8,
+      "eps": 3.23
+    },
+    {
+      "trading_code": "BNICL",
+      "year": 2022,
+      "cash_dividend_pct": 20.0,
+      "dividend_yield_pct": 3.45,
+      "eps_basic": null,
+      "eps_cont_basic": 4.0,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 23.8,
+      "pe_ratio_basic": 14.49,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 176.78,
+      "profit_mn": 176.78,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 176.78,
+      "dps": 2.0,
+      "eps": 4.0
+    },
+    {
+      "year": 2023,
+      "trading_code": "BNICL",
+      "cash_dividend_pct": 20.0,
+      "dividend_yield_pct": 3.53,
+      "eps_basic": null,
+      "eps_cont_basic": 4.04,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 26.28,
+      "pe_ratio_basic": 14.03,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 178.79,
+      "profit_mn": 178.79,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 178.79,
+      "dps": 2.0,
+      "eps": 4.04
+    },
+    {
+      "trading_code": "BNICL",
+      "year": 2024,
+      "cash_dividend_pct": 20.0,
+      "dividend_yield_pct": 4.65,
+      "eps_basic": null,
+      "eps_cont_basic": 4.19,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 28.45,
+      "pe_ratio_basic": 10.27,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 185.34,
+      "profit_mn": 185.34,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 185.34,
+      "dps": 2.0,
+      "eps": 4.19
+    },
+    {
+      "trading_code": "BNICL",
+      "year": 2025,
+      "cash_dividend_pct": 22.0,
+      "dividend_yield_pct": 4.92,
+      "dps": 2.2,
+      "eps_basic": null,
+      "eps_cont_basic": 4.81,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 31.26,
+      "pe_ratio_basic": 9.29,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 212.91,
+      "profit_mn": 212.91,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 212.91,
+      "eps": 4.81
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "BNICL",
+      "year": 2021,
+      "capex": null,
+      "investing_cf": -64278119.0,
+      "net_profit": 143028036.0,
+      "nocfps": 9.67,
+      "operating_cf": 427876075.0,
+      "total_equity": 966962125.0,
+      "ebit": 133084764.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 766775.0,
+      "total_assets": 2004415687.0,
+      "cash_and_equivalents": null,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": 74119612.0,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "trading_code": "BNICL",
+      "year": 2022,
+      "capex": null,
+      "investing_cf": -144425750.0,
+      "net_profit": 169773273.0,
+      "nocfps": 10.32,
+      "operating_cf": 456796555.0,
+      "total_equity": 1052961802.0,
+      "ebit": 156882958.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 743647.0,
+      "total_assets": 2326386453.0,
+      "cash_and_equivalents": null,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": 87405603.0,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "trading_code": "BNICL",
+      "year": 2023,
+      "capex": null,
+      "investing_cf": -94112939.0,
+      "net_profit": 178786912.0,
+      "nocfps": 4.23,
+      "operating_cf": 187008367.0,
+      "total_equity": 1162949928.0,
+      "ebit": 172951518.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": 999779.0,
+      "total_assets": 2485932317.0,
+      "cash_and_equivalents": null,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": 102209423.0,
+      "net_interest_income": null,
+      "total_debt": null
+    },
+    {
+      "year": 2024,
+      "trading_code": "BNICL",
+      "capex": null,
+      "investing_cf": -29488534.0,
+      "net_profit": 184380197.0,
+      "nocfps": 6.71,
+      "operating_cf": 296948563.0,
+      "total_equity": 1258830124.0,
+      "ebit": 131473177.0,
+      "intangibles": null,
+      "interest_expense": null,
+      "revenue": -59819225.0,
+      "total_assets": 2771374275.0,
+      "cash_and_equivalents": null,
+      "earning_assets": null,
+      "gross_profit": null,
+      "interest_income": 160114230.0,
+      "net_interest_income": null,
+      "total_debt": null
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "BNICL",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 11.66,
+    "public_pct": 28.21,
+    "reporting_period": null,
+    "sponsor_director_pct": 60.13
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jan 31, 2026",
+    "trading_code": "BNICL",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 10.19,
+    "public_pct": 29.68,
+    "reporting_period": null,
+    "sponsor_director_pct": 60.13
+  },
+  "dividend_declaration": {
+    "trading_code": "BNICL",
+    "declaration_date": "2026-04-19T00:00:00",
+    "dividend_pct": 22.0,
+    "dividend_type": "Final",
+    "record_date": "2025-05-13T00:00:00",
+    "scraped_at": "2026-07-22T10:05:28.119000",
+    "title": "BNICL: Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-07-22T00:00:00",
+      "title": "BNICL: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on July 27, 2026 at 4:00 pm to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended June 30, 2026."
+    },
+    {
+      "title": "BNICL: Resumption after Record Date",
+      "post_date": "2026-05-13T00:00:00",
+      "body": "Trading of the shares of the company will resume on 14.05.2026."
+    },
+    {
+      "post_date": "2026-05-12T00:00:00",
+      "title": "BNICL: Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 13.05.2026."
+    },
+    {
+      "post_date": "2026-05-11T00:00:00",
+      "title": "BNICL: Q1 Financials",
+      "body": "(Q1 Un-audited): EPS was Tk. 1.61 for January-March 2026 as against Tk. 1.06 for January-March 2025. NOCFPS was Tk. 2.59 for January-March 2026 as against Tk. 0.78 for January-March 2025. NAV per share was Tk. 32.87 as on March 31, 2026 and Tk. 31.26 as on December 31, 2025."
+    },
+    {
+      "post_date": "2026-05-10T00:00:00",
+      "title": "BNICL: Spot News",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 11.05.2026 to 12.05.2026 and trading of the shares will remain suspended on record date i.e., 13.05.2026."
+    },
+    {
+      "title": "BNICL: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-05-05T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on May 10, 2026 at 3:00 pm to consider, among others, Un-Audited Financial Statements for the First Quarter (Q1) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-04-19T00:00:00",
+      "title": "BNICL: Dividend Declaration",
+      "body": "The Board of Directors has recommended 22% Cash Dividend for the year ended December 31, 2025. Date of AGM: 23.06.2026, Time: 12:00 PM, Venue: Digital Platform. Record Date: 13.05.2025. The Company has also reported EPS of Tk. 4.81, NAV per share of Tk. 31.26 and NOCFPS of Tk. 4.10 for the year ended December 31, 2025 as against Tk. 4.19, Tk. 28.45 and Tk. 6.71 respectively for the year ended December 31, 2024."
+    },
+    {
+      "title": "BNICL: Price Limit Open",
+      "post_date": "2026-04-19T00:00:00",
+      "body": "There will be no price limit on the trading of the shares of the Company today (19.04.2026) following its corporate declaration."
+    },
+    {
+      "title": "BNICL: Dividend Declaration (Correction of Record Date)",
+      "post_date": "2026-04-19T00:00:00",
+      "body": "Refer to the earlier news disseminated by DSE today i.e., April 19, 2026 regarding Dividend Declaration, Record date will be 13.05.2026 instead of 13.05.2025. All other information regarding the dividend declaration will remain unchanged."
+    },
+    {
+      "title": "BNICL: Board Meeting schedule under LR 19(1)",
+      "post_date": "2026-04-09T00:00:00",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 16, 2026 at 3:00 PM to consider, among others, audited financial statements of the Company for the year ended December 31, 2025."
+    },
+    {
+      "post_date": "2025-10-28T00:00:00",
+      "title": "BNICL: Q3 Financials",
+      "body": "(Q3 Un-audited): EPS was Tk. 1.47 for July-September 2025 as against Tk. 1.22 for July-September 2024; EPS was Tk. 3.51 for January-September 2025 as against Tk. 3.09 for January-September 2024. NOCFPS was Tk. 2.76 for January-September 2025 as against Tk. 3.68 for January-September 2024. NAV per share was Tk. 29.96 as on September 30, 2025 and Tk. 28.45 as on December 31, 2024."
+    },
+    {
+      "post_date": "2025-10-22T00:00:00",
+      "title": "BNICL: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on October 27, 2025 at 4:00 PM to consider, among others, Un-audited financial statements of the Company for the Third Quarter (Q3) period ended September 30, 2025."
+    },
+    {
+      "post_date": "2025-09-30T00:00:00",
+      "title": "BNICL: Credit Rating Result",
+      "body": "Emerging Credit Rating Limited (ECRL) has assigned Surveillance rating of the Company as \"AAA\" in the long term and \"ST-1\" in the short term along with a Stable outlook based on annual report from 2021 to 2024, six months unaudited financial statement till June 30, 2025 and other relevant quantitative as well as qualitative information up to the date of rating."
+    },
+    {
+      "post_date": "2025-09-16T00:00:00",
+      "title": "BNICL: Confirmation of share transfer by a Director",
+      "body": "Ms. Tasnim Binthe Mostafa, a Director of the company, has further informed that she has completed the transfer of 885,000 shares of the Company to her spouse Mr. Rashik Alam Chowdhury by way of gift outside the trading system of the Exchange as per declaration disseminated by DSE on 04.09.2025."
+    },
+    {
+      "post_date": "2025-09-04T00:00:00",
+      "title": "BNICL: Declaration of share transfer by a Director",
+      "body": "Ms. Tasnim Binthe Mostafa, a Director of the company, has expressed her intention to transfer 885,000 shares of the Company to her spouse Mr. Rashik Alam Chowdhury (General Shareholder of the company), by way of gift outside the trading system of the Exchange within next 30 working days with effect from August 20, 2025."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "UNITEDINS",
+      "company_name": "United Insurance Company Ltd.",
+      "sector": "Insurance",
+      "score": 71.2,
+      "ltp": 48.5,
+      "change_pct": -3.0,
+      "pe": 14.02,
+      "pb": 1.56,
+      "div_yield_pct": 3.1,
+      "roe_pct": 7.4,
+      "eps_yoy_pct": 53.1
+    },
+    {
+      "trading_code": "RELIANCINS",
+      "company_name": "Reliance Insurance PLC.",
+      "sector": "Insurance",
+      "score": 70.5,
+      "ltp": 107.2,
+      "change_pct": -0.83,
+      "pe": 12.73,
+      "pb": 1.36,
+      "div_yield_pct": 2.8,
+      "roe_pct": 13.1,
+      "eps_yoy_pct": -7.7
+    },
+    {
+      "trading_code": "SIPLC",
+      "company_name": "Sena Insurance PLC",
+      "sector": "Insurance",
+      "score": 69.6,
+      "ltp": 111.5,
+      "change_pct": 0.72,
+      "pe": 21.57,
+      "pb": 3.9,
+      "div_yield_pct": 1.3,
+      "roe_pct": 17.1,
+      "eps_yoy_pct": 20.5
+    },
+    {
+      "trading_code": "PEOPLESINS",
+      "company_name": "Peoples Insurance PLC.",
+      "sector": "Insurance",
+      "score": 68.9,
+      "ltp": 53.2,
+      "change_pct": -3.27,
+      "pe": 12.7,
+      "pb": 1.4,
+      "div_yield_pct": 2.0,
+      "roe_pct": 8.2,
+      "eps_yoy_pct": 47.5
+    },
+    {
+      "trading_code": "PRAGATIINS",
+      "company_name": "Pragati Insurance PLC.",
+      "sector": "Insurance",
+      "score": 66.9,
+      "ltp": 74.6,
+      "change_pct": -1.71,
+      "pe": 14.05,
+      "pb": 1.3,
+      "div_yield_pct": 3.6,
+      "roe_pct": 9.7,
+      "eps_yoy_pct": -5.3
+    }
+  ],
+  "source_hash": "a190e5277408c01742197d1ec62f90e024755dffba5661e57d66923e5a75a278"
+}

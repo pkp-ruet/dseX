@@ -1,0 +1,796 @@
+{
+  "trading_code": "SONALIPAPR",
+  "company_name": "Sonali Paper & Board Mills Ltd.",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-22",
+  "profile": {
+    "sector": "Paper & Printing",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 32945188,
+    "paid_up_capital_mn": 329.45,
+    "reserve_surplus_mn": 5201.9,
+    "total_loan_mn": 1071.5,
+    "listing_year": 2020,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 243,
+    "change": -3.3,
+    "change_pct": -1.34,
+    "date": "2026-07-22",
+    "high": 249.9,
+    "low": 242,
+    "volume": 167765,
+    "avg_volume_7d": 280475,
+    "ycp": 246.3,
+    "w52_high": 307.4,
+    "w52_low": 152.1
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 7.7,
+      "m3": 3.2,
+      "m6": 8.2,
+      "y1": 54.1
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 132.9
+      },
+      {
+        "date": "2025-06-30",
+        "close": 139.0
+      },
+      {
+        "date": "2025-07-31",
+        "close": 156.1
+      },
+      {
+        "date": "2025-08-31",
+        "close": 281.8
+      },
+      {
+        "date": "2025-09-30",
+        "close": 293.3
+      },
+      {
+        "date": "2025-10-30",
+        "close": 255.2
+      },
+      {
+        "date": "2025-11-30",
+        "close": 234.9
+      },
+      {
+        "date": "2025-12-30",
+        "close": 236.0
+      },
+      {
+        "date": "2026-01-29",
+        "close": 230.9
+      },
+      {
+        "date": "2026-02-26",
+        "close": 255.2
+      },
+      {
+        "date": "2026-03-31",
+        "close": 230.3
+      },
+      {
+        "date": "2026-04-30",
+        "close": 226.3
+      },
+      {
+        "date": "2026-05-31",
+        "close": 225.3
+      },
+      {
+        "date": "2026-06-30",
+        "close": 233.5
+      },
+      {
+        "date": "2026-07-22",
+        "close": 243
+      }
+    ],
+    "pct_in_52w_range": 58.5
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 4.3
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 6.3
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Weak",
+      "word_bn": "দুর্বল",
+      "score10": 4.0
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Good value",
+      "word_bn": "দাম সস্তা",
+      "score10": 8.5
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 7.7
+    }
+  ],
+  "fair_value": {
+    "low": 250,
+    "high": 376,
+    "center": 313,
+    "today": 243,
+    "stance": "cheap",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 534
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 212
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 321
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 66.7
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 33.89,
+    "current_pb": 1.45,
+    "own_avg_pe": 74.42,
+    "own_avg_pb": 1.91,
+    "sector_median_pe": 29.55,
+    "sector_median_pb": 2.71,
+    "eps": 7.17,
+    "sector_implied_price": 211.87
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 4.89,
+        "net_profit_crore": 8.95,
+        "cash_dividend_pct": 20.0,
+        "stock_dividend_pct": 20,
+        "dps_taka": 2.0,
+        "nav_per_share_taka": 284.33,
+        "revenue_crore": 141.5,
+        "operating_profit_crore": null,
+        "operating_cash_flow_crore": 24.8,
+        "capex_crore": 4.38,
+        "total_debt_crore": 110.2,
+        "total_equity_crore": 667.6,
+        "total_assets_crore": 667.6,
+        "cash_crore": 8.54,
+        "debt_to_equity": 0.17
+      },
+      {
+        "year": 2022,
+        "eps_taka": 6.03,
+        "net_profit_crore": 13.2,
+        "cash_dividend_pct": 40.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 4.0,
+        "nav_per_share_taka": 241.3,
+        "revenue_crore": 204.6,
+        "operating_profit_crore": null,
+        "operating_cash_flow_crore": -0.33,
+        "capex_crore": 18.1,
+        "total_debt_crore": 133.6,
+        "total_equity_crore": 700.4,
+        "total_assets_crore": 700.4,
+        "cash_crore": 31.5,
+        "debt_to_equity": 0.19
+      },
+      {
+        "year": 2023,
+        "eps_taka": 4.74,
+        "net_profit_crore": 15.6,
+        "cash_dividend_pct": 40.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 4.0,
+        "nav_per_share_taka": 164.94,
+        "revenue_crore": 249.1,
+        "operating_profit_crore": null,
+        "operating_cash_flow_crore": 24.6,
+        "capex_crore": 7.74,
+        "total_debt_crore": 112.6,
+        "total_equity_crore": 694.7,
+        "total_assets_crore": 694.7,
+        "cash_crore": 9.67,
+        "debt_to_equity": 0.16
+      },
+      {
+        "year": 2024,
+        "eps_taka": 3.79,
+        "net_profit_crore": 12.5,
+        "cash_dividend_pct": 40.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 4.0,
+        "nav_per_share_taka": 164.73,
+        "revenue_crore": 278.1,
+        "operating_profit_crore": null,
+        "operating_cash_flow_crore": 34.2,
+        "capex_crore": 3.76,
+        "total_debt_crore": 100.4,
+        "total_equity_crore": 680.6,
+        "total_assets_crore": 680.6,
+        "cash_crore": 19.8,
+        "debt_to_equity": 0.15
+      },
+      {
+        "year": 2025,
+        "eps_taka": 7.17,
+        "net_profit_crore": 23.6,
+        "cash_dividend_pct": 40.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 4.0,
+        "nav_per_share_taka": 167.9,
+        "revenue_crore": 282.7,
+        "operating_profit_crore": null,
+        "operating_cash_flow_crore": 49.0,
+        "capex_crore": 3.67,
+        "total_debt_crore": 214.3,
+        "total_equity_crore": 707.6,
+        "total_assets_crore": 707.6,
+        "cash_crore": 12.3,
+        "debt_to_equity": 0.3
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 7.17,
+      "net_profit_crore": 23.6,
+      "cash_dividend_pct": 40.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 4.0,
+      "nav_per_share_taka": 167.9,
+      "revenue_crore": 282.7,
+      "operating_profit_crore": null,
+      "operating_cash_flow_crore": 49.0,
+      "capex_crore": 3.67,
+      "total_debt_crore": 214.3,
+      "total_equity_crore": 707.6,
+      "total_assets_crore": 707.6,
+      "cash_crore": 12.3,
+      "debt_to_equity": 0.3
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": 164.0,
+      "eps_change_pct": 47.0,
+      "revenue_change_pct": 100.0
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 3.29,
+      "paid_up_capital_crore": 32.9,
+      "reserve_surplus_crore": 520.2,
+      "total_loan_crore": 107.2,
+      "listing_year": 2020
+    },
+    "ownership": {
+      "sponsor_director_pct": 67.51,
+      "govt_pct": 0.0,
+      "institute_pct": 6.14,
+      "foreign_pct": 0.0,
+      "public_pct": 26.35
+    }
+  },
+  "sector_context": {
+    "sector": "Paper & Printing",
+    "peer_count": 6,
+    "rank_in_sector": 1,
+    "sector_avg_score": 33.9,
+    "sector_median_pe": 29.55
+  },
+  "score": {
+    "trading_code": "SONALIPAPR",
+    "sector": "Paper & Printing",
+    "market_cat": "A",
+    "ltp": 243.0,
+    "mcap_mn": 8005.680684,
+    "score": 57.9,
+    "base_score": 57.9,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.714,
+    "eps": 7.17,
+    "roe_pct": null,
+    "sector_median_pe": 29.55,
+    "sector_median_pb": 2.71,
+    "p1_biz": 4.33,
+    "p2_health": 6.33,
+    "p3_moat": 3.95,
+    "p4_val": 8.5,
+    "p5_div": 7.74,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 2.0,
+    "p1_roe": null,
+    "p1_npm_trend": null,
+    "p1_coverage": 0.5,
+    "eps_yoy_pct": 89.2,
+    "eps_stability": 1.0,
+    "p2_de": 9.980873385155892,
+    "p2_ic": null,
+    "p2_cfo": 4.0,
+    "p2_cash": 3.047111487236704,
+    "p2_coverage": 0.75,
+    "p3_margin": 2.0,
+    "p3_rev_vol": 4.0,
+    "p3_sector_rank": 5.0,
+    "p3_capex": 7.0,
+    "p3_coverage": 1.0,
+    "p4_pe": 7.81,
+    "p4_pb": 9.54,
+    "p4_vol_damp": 1.0,
+    "current_pe": 33.89,
+    "current_pb": 1.45,
+    "own_avg_pe": 74.42,
+    "own_avg_pb": 1.91,
+    "p5_dps_cagr": 6.9828,
+    "p5_consist": 10.0,
+    "p5_yield": 4.969135802469136,
+    "div_yield_pct": 1.6,
+    "overall_rank": 72,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "average_fundamentals",
+    "reason_en": "An average company — no strong reason to buy or sell.",
+    "reason_bn": "মাঝারি মানের কোম্পানি — কেনা বা বেচার জোরালো কারণ নেই।",
+    "tier": "average",
+    "momentum_grade": "cold",
+    "score": 57.9,
+    "p4_val": 8.5,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 67.5% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Average",
+    "tagline": "Average company, share price falling",
+    "sentences": [
+      "The company's numbers are average, and the share price is slowly going down. Better to wait or look at other stocks.",
+      "Has paid dividends regularly in past years."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": -5.92,
+    "rs_vs_dsex_pct": -6.0,
+    "volume_ratio": 1.26,
+    "avg_turnover_7d_mn": 56.41,
+    "up_days_7d": 1,
+    "days_counted": 7,
+    "pct_in_52w_range": 58.5,
+    "momentum_grade": "cold"
+  },
+  "financials": [
+    {
+      "trading_code": "SONALIPAPR",
+      "year": 2021,
+      "cash_dividend_pct": 20.0,
+      "dividend_yield_pct": 0.72,
+      "eps_basic": null,
+      "eps_cont_basic": 4.89,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 284.33,
+      "pe_ratio_basic": 56.67,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 89.47,
+      "profit_mn": 89.47,
+      "stock_dividend_pct": 20,
+      "total_comprehensive_income_mn": 89.47,
+      "dps": 2.0,
+      "eps": 4.89
+    },
+    {
+      "trading_code": "SONALIPAPR",
+      "year": 2022,
+      "cash_dividend_pct": 40.0,
+      "dividend_yield_pct": 0.69,
+      "eps_basic": null,
+      "eps_cont_basic": 6.03,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 241.3,
+      "pe_ratio_basic": 96.53,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 132.47,
+      "profit_mn": 132.47,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 132.47,
+      "dps": 4.0,
+      "eps": 6.03
+    },
+    {
+      "year": 2023,
+      "trading_code": "SONALIPAPR",
+      "cash_dividend_pct": 40.0,
+      "dividend_yield_pct": 0.65,
+      "eps_basic": null,
+      "eps_cont_basic": 4.74,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 164.94,
+      "pe_ratio_basic": 129.77,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 156.16,
+      "profit_mn": 156.16,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 156.16,
+      "dps": 4.0,
+      "eps": 4.74
+    },
+    {
+      "trading_code": "SONALIPAPR",
+      "year": 2024,
+      "cash_dividend_pct": 40.0,
+      "dividend_yield_pct": 1.51,
+      "eps_basic": null,
+      "eps_cont_basic": 3.79,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 164.73,
+      "pe_ratio_basic": 69.72,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 124.8,
+      "profit_mn": 124.8,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 124.8,
+      "dps": 4.0,
+      "eps": 3.79
+    },
+    {
+      "year": 2025,
+      "trading_code": "SONALIPAPR",
+      "cash_dividend_pct": 40.0,
+      "dividend_yield_pct": 2.88,
+      "eps_basic": null,
+      "eps_cont_basic": 7.17,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 167.9,
+      "pe_ratio_basic": 19.4,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 236.06,
+      "profit_mn": 236.06,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 236.06,
+      "dps": 4.0,
+      "eps": 7.17
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "SONALIPAPR",
+      "year": 2021,
+      "capex": -43847831.0,
+      "investing_cf": null,
+      "net_profit": null,
+      "nocfps": 85365060.0,
+      "operating_cf": 247635768.0,
+      "total_equity": 6675663652.0,
+      "ebit": null,
+      "intangibles": null,
+      "interest_expense": 100182730.0,
+      "revenue": 1414657548.0,
+      "total_assets": 6675663652.0,
+      "cash_and_equivalents": 85365060.0,
+      "earning_assets": null,
+      "gross_profit": 184630200.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 1102137233.0
+    },
+    {
+      "trading_code": "SONALIPAPR",
+      "year": 2022,
+      "capex": -180681118.0,
+      "investing_cf": 111325539.0,
+      "net_profit": null,
+      "nocfps": -0.1,
+      "operating_cf": -3281627.0,
+      "total_equity": 7004468733.0,
+      "ebit": null,
+      "intangibles": null,
+      "interest_expense": 161037291.0,
+      "revenue": 2046087300.0,
+      "total_assets": 7004468732.0,
+      "cash_and_equivalents": 315025432.0,
+      "earning_assets": null,
+      "gross_profit": 214128034.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 1336237990.0
+    },
+    {
+      "trading_code": "SONALIPAPR",
+      "year": 2023,
+      "capex": -77437272.0,
+      "investing_cf": -122119565.0,
+      "net_profit": null,
+      "nocfps": 7.47,
+      "operating_cf": 246071294.0,
+      "total_equity": 6947160737.0,
+      "ebit": null,
+      "intangibles": 39815.0,
+      "interest_expense": 175794356.0,
+      "revenue": 2490642634.0,
+      "total_assets": 6947160737.0,
+      "cash_and_equivalents": 96710718.0,
+      "earning_assets": null,
+      "gross_profit": 213824098.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 1125662897.0
+    },
+    {
+      "trading_code": "SONALIPAPR",
+      "year": 2024,
+      "capex": -37578000.0,
+      "investing_cf": 178866047.0,
+      "net_profit": null,
+      "nocfps": 10.39,
+      "operating_cf": 342182103.0,
+      "total_equity": 6806004850.0,
+      "ebit": null,
+      "intangibles": 39815.0,
+      "interest_expense": 162384048.0,
+      "revenue": 2780508091.0,
+      "total_assets": 6806004850.0,
+      "cash_and_equivalents": 197533837.0,
+      "earning_assets": null,
+      "gross_profit": 411203539.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 1003832454.0
+    },
+    {
+      "trading_code": "SONALIPAPR",
+      "year": 2025,
+      "capex": -36655826.0,
+      "cash_and_equivalents": 123483253.0,
+      "earning_assets": null,
+      "ebit": null,
+      "gross_profit": 461554774.0,
+      "intangibles": null,
+      "interest_expense": 297994773.0,
+      "interest_income": null,
+      "investing_cf": -399449343.0,
+      "net_interest_income": null,
+      "net_profit": null,
+      "nocfps": 14.86,
+      "operating_cf": 489610960.0,
+      "revenue": 2826656563.0,
+      "total_assets": 7075650750.0,
+      "total_debt": 2142995212.0,
+      "total_equity": 7075650750.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "SONALIPAPR",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 6.14,
+    "public_pct": 26.35,
+    "reporting_period": null,
+    "sponsor_director_pct": 67.51
+  },
+  "shareholding_prev": {
+    "trading_code": "SONALIPAPR",
+    "as_of_date": "Jun 30, 2025",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 6.44,
+    "public_pct": 26.05,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 67.51
+  },
+  "dividend_declaration": {
+    "trading_code": "SONALIPAPR",
+    "declaration_date": "2025-10-28T00:00:00",
+    "dividend_pct": 40.0,
+    "dividend_type": "Final",
+    "record_date": "2025-11-17T00:00:00",
+    "scraped_at": "2026-07-22T10:46:38.694000",
+    "title": "SONALIPAPR: Dividend Declaration"
+  },
+  "news": [
+    {
+      "title": "SONALIPAPR: Q3 Financials",
+      "post_date": "2026-05-03T00:00:00",
+      "body": "(Q3 Un-audited): EPS was Tk. 0.67 for January-March 2026 as against Tk. 1.05 for January-March 2025; EPS was Tk. 6.57 for July 2025-March 2026 as against Tk. 6.53 for July 2024-March 2025. NOCFPS was Tk. 2.66 for July 2025-March 2026 as against Tk. 9.58 for July 2024-March 2025. NAV per share was Tk. 153.18 as on March 31, 2026 and Tk. 167.90 as on June 30, 2025. Reasons for Deviation in NOCFPS and NAVPS: (cont.1)"
+    },
+    {
+      "post_date": "2026-04-27T00:00:00",
+      "title": "SONALIPAPR: Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 30, 2026 at 4:00 pm to consider, among others, Un-Audited Financial Statements for the Third Quarter (Q3) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-02-01T00:00:00",
+      "title": "SONALIPAPR: Q2 Financials",
+      "body": "(Q2 Un-audited): EPS was Tk. 3.08 for October-December 2025 as against Tk. 3.72 for October-December 2024; EPS was Tk. 5.90 for July-December 2025 as against Tk. 5.48 for July-December 2024. NOCFPS was Tk. 11.98 for July-December 2025 as against Tk. 10.94 for July-December 2024. NAV per share was Tk. 152.52 as on December 31, 2025 and 167.90 as on June 30, 2025. (cont.1)"
+    },
+    {
+      "post_date": "2026-02-01T00:00:00",
+      "title": "SONALIPAPR: Credit Rating Result",
+      "body": "Credit Rating Agency of Bangladesh Limited (CRAB) has announced the Surveillance entity rating of the Company as \"A2\" in the long term loan rating and short term loan rating \"ST-3\" along with Stable outlook based on audited financial statements up to June 30, 2025, bank liability position as on December 30, 2025 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "title": "SONALIPAPR: Board Meeting schedule under LR 16(1)",
+      "post_date": "2026-01-27T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 29, 2026 at 4:00 PM to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "title": "SONALIPAPR: Dividend Disbursement",
+      "post_date": "2026-01-26T00:00:00",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended June 30, 2025 to the respective shareholders."
+    },
+    {
+      "post_date": "2025-11-17T00:00:00",
+      "title": "SONALIPAPR: Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 18.11.2025."
+    },
+    {
+      "title": "SONALIPAPR: Q1 Financials",
+      "post_date": "2025-11-16T00:00:00",
+      "body": "(Q1 Un-audited): EPS was Tk. 2.82 for July-September 2025 as against Tk. 1.76 for July-September 2024; NOCFPS was Tk. 7.44 for July-September 2025 as against Tk. (8.71) for July-September 2024. NAV per share was Tk. 153.44 as on September 30, 2025 and Tk. 167.90 as on June 30, 2025. (cont.1)"
+    },
+    {
+      "post_date": "2025-11-16T00:00:00",
+      "title": "SONALIPAPR: Suspension for Record Date",
+      "body": "Trading of the shares will of the company remain suspended on record date i.e., 17.11.2025."
+    },
+    {
+      "title": "SONALIPAPR: Spot News",
+      "post_date": "2025-11-12T00:00:00",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 13.11.2025 to 16.11.2025 and trading of the shares will remain suspended on record date i.e., 17.11.2025."
+    },
+    {
+      "title": "SONALIPAPR: Qualified Opinion",
+      "post_date": "2025-11-11T00:00:00",
+      "body": "The auditor of the company has given the \"Qualified Opinion\" in the Auditor's Report of the company for the year ended June 30, 2025. To view the details, please visit: https://www.dsebd.org/Auditors_opinion/2025/SONALIPAPER2025.pdf"
+    },
+    {
+      "title": "SONALIPAPR: Board Meeting schedule under LR 16(1)",
+      "post_date": "2025-11-10T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on November 13, 2025 at 3:00 PM to consider, among others, Un-audited financial statements of the Company for the First Quarter (Q1) period ended September 30, 2025."
+    },
+    {
+      "title": "SONALIPAPR: Dividend Declaration",
+      "post_date": "2025-10-28T00:00:00",
+      "body": "The Board of Directors has recommended 40% Cash Dividend for the year ended June 30, 2025. Date of AGM: 18.12.2025, Time: 11:00 AM, Venue: Digital Platform. Record Date: 17.11.2025. The Company has also reported EPS of Tk. 7.17, NAV per share of Tk. 167.90 and NOCFPS of Tk. 14.86 for the year ended June 30, 2025 as against Tk. 3.79, Tk. 164.94 and Tk. 10.39 respectively for the year ended June 30, 2024."
+    },
+    {
+      "title": "SONALIPAPR: Price Limit Open",
+      "post_date": "2025-10-28T00:00:00",
+      "body": "There will be no price limit on the trading of the shares of the Company today (28.10.2025) following its corporate declaration."
+    },
+    {
+      "post_date": "2025-10-21T00:00:00",
+      "title": "SONALIPAPR: Board Meeting schedule under LR 19(1)",
+      "body": "As per Regulation 19(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on October 27, 2025 at 4:00 PM to consider, among others, audited financial statements of the Company for the year ended on June 30, 2025."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "MAGURAPLEX",
+      "company_name": "Magura Multiplex PLC.",
+      "sector": "Paper & Printing",
+      "score": 48.8,
+      "ltp": 92.7,
+      "change_pct": -1.17,
+      "pe": 25.75,
+      "pb": 1.24,
+      "div_yield_pct": 1.2,
+      "roe_pct": null,
+      "eps_yoy_pct": 42.9
+    },
+    {
+      "trading_code": "MONOSPOOL",
+      "company_name": "Monospool Bangladesh PLC",
+      "sector": "Paper & Printing",
+      "score": 36.3,
+      "ltp": 122.1,
+      "change_pct": 2.18,
+      "pe": 32.47,
+      "pb": 2.71,
+      "div_yield_pct": 0.4,
+      "roe_pct": null,
+      "eps_yoy_pct": 26.2
+    },
+    {
+      "trading_code": "HAKKANIPUL",
+      "company_name": "Hakkani Pulp & Paper Mills PLC.",
+      "sector": "Paper & Printing",
+      "score": 33.8,
+      "ltp": 81.7,
+      "change_pct": -1.8,
+      "pe": 1167.14,
+      "pb": 3.37,
+      "div_yield_pct": 0.6,
+      "roe_pct": null,
+      "eps_yoy_pct": 75.0
+    },
+    {
+      "trading_code": "BPML",
+      "company_name": "Bashundhara Paper Mills Limited",
+      "sector": "Paper & Printing",
+      "score": 24.4,
+      "ltp": 29.3,
+      "change_pct": -0.68,
+      "pe": 26.64,
+      "pb": 0.51,
+      "div_yield_pct": null,
+      "roe_pct": null,
+      "eps_yoy_pct": -1825.5
+    },
+    {
+      "trading_code": "KPPL",
+      "company_name": "Khulna Printing & Packaging Limited",
+      "sector": "Paper & Printing",
+      "score": 2.2,
+      "ltp": 15.4,
+      "change_pct": -2.53,
+      "pe": null,
+      "pb": 12.52,
+      "div_yield_pct": null,
+      "roe_pct": null,
+      "eps_yoy_pct": 49.3
+    }
+  ],
+  "source_hash": "af9105b780984e704d90f2f3cbc9737c71f557494df0b38da663ecdd0794b062"
+}

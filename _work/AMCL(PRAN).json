@@ -1,0 +1,756 @@
+{
+  "trading_code": "AMCL(PRAN)",
+  "company_name": "Agricultural Marketing Company Ltd. (Pran",
+  "sector_class": "GENERAL",
+  "as_of_price_date": "2026-07-22",
+  "profile": {
+    "sector": "Food & Allied",
+    "market_category": "A",
+    "face_value": 10.0,
+    "total_shares": 8000000,
+    "paid_up_capital_mn": 80.0,
+    "reserve_surplus_mn": 623.1,
+    "total_loan_mn": 956.01,
+    "listing_year": 1996,
+    "instrument_type": "Equity"
+  },
+  "price": {
+    "ltp": 233.4,
+    "change": -3.5,
+    "change_pct": -1.48,
+    "date": "2026-07-22",
+    "high": 237.9,
+    "low": 233.2,
+    "volume": 4784,
+    "avg_volume_7d": 26633,
+    "ycp": 236.9,
+    "w52_high": 251.7,
+    "w52_low": 198.0
+  },
+  "price_trend": {
+    "returns": {
+      "m1": 7.5,
+      "m3": 7.2,
+      "m6": 12.2,
+      "y1": 1.0
+    },
+    "monthly_closes": [
+      {
+        "date": "2025-05-29",
+        "close": 199.7
+      },
+      {
+        "date": "2025-06-30",
+        "close": 208.8
+      },
+      {
+        "date": "2025-07-31",
+        "close": 224.9
+      },
+      {
+        "date": "2025-08-31",
+        "close": 250.6
+      },
+      {
+        "date": "2025-09-30",
+        "close": 238.7
+      },
+      {
+        "date": "2025-10-30",
+        "close": 208.1
+      },
+      {
+        "date": "2025-11-30",
+        "close": 209.2
+      },
+      {
+        "date": "2025-12-30",
+        "close": 202.2
+      },
+      {
+        "date": "2026-01-29",
+        "close": 211.6
+      },
+      {
+        "date": "2026-02-26",
+        "close": 214.5
+      },
+      {
+        "date": "2026-03-31",
+        "close": 210.6
+      },
+      {
+        "date": "2026-04-30",
+        "close": 212.9
+      },
+      {
+        "date": "2026-05-31",
+        "close": 215.7
+      },
+      {
+        "date": "2026-06-30",
+        "close": 223.5
+      },
+      {
+        "date": "2026-07-22",
+        "close": 233.4
+      }
+    ],
+    "pct_in_52w_range": 65.9
+  },
+  "scorecard": [
+    {
+      "key": "profit",
+      "label_en": "Profit",
+      "label_bn": "মুনাফা",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 4.4
+    },
+    {
+      "key": "safety",
+      "label_en": "Safety",
+      "label_bn": "আর্থিক ভিত",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.4
+    },
+    {
+      "key": "business",
+      "label_en": "Business",
+      "label_bn": "ব্যবসার শক্তি",
+      "word_en": "Strong",
+      "word_bn": "শক্তিশালী",
+      "score10": 8.1
+    },
+    {
+      "key": "value",
+      "label_en": "Price value",
+      "label_bn": "দামের যৌক্তিকতা",
+      "word_en": "Fairly priced",
+      "word_bn": "দাম যুক্তিসঙ্গত",
+      "score10": 6.4
+    },
+    {
+      "key": "dividend",
+      "label_en": "Dividend",
+      "label_bn": "ডিভিডেন্ড",
+      "word_en": "Okay",
+      "word_bn": "মোটামুটি",
+      "score10": 5.7
+    }
+  ],
+  "fair_value": {
+    "low": 160,
+    "high": 241,
+    "center": 200,
+    "today": 233,
+    "stance": "fair",
+    "confidence": "low",
+    "methods": [
+      {
+        "name": "own_history_pe",
+        "label_en": "Its own usual price vs profit",
+        "price": 221
+      },
+      {
+        "name": "peer_pe",
+        "label_en": "Priced like similar companies (profit)",
+        "price": 229
+      },
+      {
+        "name": "book_own",
+        "label_en": "Its own usual price vs asset value",
+        "price": 250
+      },
+      {
+        "name": "dividend_yield",
+        "label_en": "Based on the dividend it pays",
+        "price": 53.3
+      }
+    ],
+    "basis_en": "Based on its own past price levels, what similar companies trade at, the value of what it owns and the dividend it pays.",
+    "basis_bn": "অতীতে এর নিজের দামের ধরন, একই ধরনের কোম্পানির দাম, এর সম্পদের মূল্য এবং এর দেওয়া ডিভিডেন্ড বিবেচনা করে।"
+  },
+  "valuation": {
+    "current_pe": 46.59,
+    "current_pb": 2.51,
+    "own_avg_pe": 44.05,
+    "own_avg_pb": 2.69,
+    "sector_median_pe": 45.74,
+    "sector_median_pb": 3.17,
+    "eps": 5.01,
+    "sector_implied_price": 229.16
+  },
+  "figures": {
+    "units_note": "All *_crore values are crore taka (1 crore = 10,000,000 taka); *_taka values are taka per share; *_pct are percentages. These are already converted and rounded — QUOTE THEM DIRECTLY and do NOT convert the raw financials/extended_financials yourself.",
+    "per_year": [
+      {
+        "year": 2021,
+        "eps_taka": 5.37,
+        "net_profit_crore": 4.3,
+        "cash_dividend_pct": 32.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 3.2,
+        "nav_per_share_taka": 84.17,
+        "revenue_crore": 294.9,
+        "operating_profit_crore": 8.88,
+        "operating_cash_flow_crore": 17.0,
+        "capex_crore": null,
+        "total_debt_crore": 119.3,
+        "total_equity_crore": 67.3,
+        "total_assets_crore": 137.5,
+        "cash_crore": 3.75,
+        "debt_to_equity": 1.77
+      },
+      {
+        "year": 2022,
+        "eps_taka": 5.62,
+        "net_profit_crore": 4.49,
+        "cash_dividend_pct": 32.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 3.2,
+        "nav_per_share_taka": 86.59,
+        "revenue_crore": 315.4,
+        "operating_profit_crore": 8.55,
+        "operating_cash_flow_crore": 15.7,
+        "capex_crore": null,
+        "total_debt_crore": 125.0,
+        "total_equity_crore": 69.3,
+        "total_assets_crore": 144.3,
+        "cash_crore": 5.04,
+        "debt_to_equity": 1.81
+      },
+      {
+        "year": 2023,
+        "eps_taka": 5.42,
+        "net_profit_crore": 4.33,
+        "cash_dividend_pct": 32.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 3.2,
+        "nav_per_share_taka": 88.59,
+        "revenue_crore": 322.6,
+        "operating_profit_crore": 8.06,
+        "operating_cash_flow_crore": 19.5,
+        "capex_crore": null,
+        "total_debt_crore": 123.1,
+        "total_equity_crore": 70.9,
+        "total_assets_crore": 144.0,
+        "cash_crore": 2.12,
+        "debt_to_equity": 1.74
+      },
+      {
+        "year": 2024,
+        "eps_taka": 5.51,
+        "net_profit_crore": 4.41,
+        "cash_dividend_pct": 32.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 3.2,
+        "nav_per_share_taka": 90.9,
+        "revenue_crore": 330.6,
+        "operating_profit_crore": 8.46,
+        "operating_cash_flow_crore": 9.79,
+        "capex_crore": null,
+        "total_debt_crore": 79.0,
+        "total_equity_crore": 72.7,
+        "total_assets_crore": 164.2,
+        "cash_crore": 1.82,
+        "debt_to_equity": 1.09
+      },
+      {
+        "year": 2025,
+        "eps_taka": 5.01,
+        "net_profit_crore": 4.01,
+        "cash_dividend_pct": 32.0,
+        "stock_dividend_pct": null,
+        "dps_taka": 3.2,
+        "nav_per_share_taka": 92.88
+      }
+    ],
+    "latest": {
+      "year": 2025,
+      "eps_taka": 5.01,
+      "net_profit_crore": 4.01,
+      "cash_dividend_pct": 32.0,
+      "stock_dividend_pct": null,
+      "dps_taka": 3.2,
+      "nav_per_share_taka": 92.88
+    },
+    "growth": {
+      "span": "2021–2025",
+      "net_profit_change_pct": -7.0,
+      "eps_change_pct": -7.0,
+      "revenue_change_pct": null
+    },
+    "profile": {
+      "face_value_taka": 10.0,
+      "shares_crore": 0.8,
+      "paid_up_capital_crore": 8.0,
+      "reserve_surplus_crore": 62.3,
+      "total_loan_crore": 95.6,
+      "listing_year": 1996
+    },
+    "ownership": {
+      "sponsor_director_pct": 40.15,
+      "govt_pct": 0.0,
+      "institute_pct": 28.19,
+      "foreign_pct": 0.0,
+      "public_pct": 31.66
+    }
+  },
+  "sector_context": {
+    "sector": "Food & Allied",
+    "peer_count": 21,
+    "rank_in_sector": 5,
+    "sector_avg_score": 33.9,
+    "sector_median_pe": 45.74
+  },
+  "score": {
+    "trading_code": "AMCL(PRAN)",
+    "sector": "Food & Allied",
+    "market_cat": "A",
+    "ltp": 233.4,
+    "mcap_mn": 1867.2,
+    "score": 58.2,
+    "base_score": 58.2,
+    "adjustment_pct": 0.0,
+    "category_mult": 1.0,
+    "data_completeness": 0.957,
+    "eps": 5.01,
+    "roe_pct": 6.1,
+    "sector_median_pe": 45.74,
+    "sector_median_pb": 3.17,
+    "p1_biz": 4.43,
+    "p2_health": 5.36,
+    "p3_moat": 8.06,
+    "p4_val": 6.4,
+    "p5_div": 5.68,
+    "last_reported_year": 2025,
+    "data_age_years": 1,
+    "stale_data": false,
+    "p1_eps_consist": 10.0,
+    "p1_eps_cagr": 2.0,
+    "p1_roe": 2.7579,
+    "p1_npm_trend": 5.0,
+    "p1_coverage": 1.0,
+    "eps_yoy_pct": -9.1,
+    "eps_stability": 1.0,
+    "p2_de": 5.479716694832969,
+    "p2_ic": 0.7302435334416337,
+    "p2_cfo": 10.0,
+    "p2_cash": 2.666691489813807,
+    "p2_coverage": 1.0,
+    "p3_margin": 7.0,
+    "p3_rev_vol": 10.0,
+    "p3_sector_rank": 7.0,
+    "p3_capex": null,
+    "p3_coverage": 0.85,
+    "p4_pe": 5.58,
+    "p4_pb": 7.62,
+    "p4_vol_damp": 1.0,
+    "current_pe": 46.59,
+    "current_pb": 2.51,
+    "own_avg_pe": 44.05,
+    "own_avg_pb": 2.69,
+    "p5_dps_cagr": 3.0,
+    "p5_consist": 10.0,
+    "p5_yield": 4.556555269922879,
+    "div_yield_pct": 1.4,
+    "overall_rank": 71,
+    "total_scored": 361
+  },
+  "signal": {
+    "signal": "none",
+    "reason_key": "average_fundamentals",
+    "reason_en": "An average company — no strong reason to buy or sell.",
+    "reason_bn": "মাঝারি মানের কোম্পানি — কেনা বা বেচার জোরালো কারণ নেই।",
+    "tier": "average",
+    "momentum_grade": "warm",
+    "score": 58.2,
+    "p4_val": 6.4,
+    "strength": "normal"
+  },
+  "signal_flags": {
+    "green": [
+      "EPS positive 4+ of 5 years",
+      "CFO positive 3+ years",
+      "Consistent dividend payer (4+ years)",
+      "Sponsor holding 40.1% (strong alignment)"
+    ],
+    "red": []
+  },
+  "verdict": {
+    "headline": "Average",
+    "tagline": "Average company, mild buying interest",
+    "sentences": [
+      "The company's numbers are average, and the share price is slowly going up. There is no strong reason to buy for the long term — better to wait for clearer signals."
+    ]
+  },
+  "momentum": {
+    "return_7d_pct": 2.55,
+    "rs_vs_dsex_pct": 2.47,
+    "volume_ratio": 1.28,
+    "avg_turnover_7d_mn": 4.97,
+    "up_days_7d": 4,
+    "days_counted": 7,
+    "pct_in_52w_range": 65.9,
+    "momentum_grade": "warm"
+  },
+  "financials": [
+    {
+      "year": 2021,
+      "trading_code": "AMCL(PRAN)",
+      "cash_dividend_pct": 32.0,
+      "dividend_yield_pct": 1.67,
+      "eps_basic": null,
+      "eps_cont_basic": 5.37,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 84.17,
+      "pe_ratio_basic": 35.73,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 42.99,
+      "profit_mn": 42.99,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 42.99,
+      "dps": 3.2,
+      "eps": 5.37
+    },
+    {
+      "trading_code": "AMCL(PRAN)",
+      "year": 2022,
+      "cash_dividend_pct": 32.0,
+      "dividend_yield_pct": 1.16,
+      "eps_basic": null,
+      "eps_cont_basic": 5.62,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 86.59,
+      "pe_ratio_basic": 49.02,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 44.93,
+      "profit_mn": 44.93,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 44.93,
+      "dps": 3.2,
+      "eps": 5.62
+    },
+    {
+      "trading_code": "AMCL(PRAN)",
+      "year": 2023,
+      "cash_dividend_pct": 32.0,
+      "dividend_yield_pct": 1.12,
+      "eps_basic": null,
+      "eps_cont_basic": 5.42,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 88.59,
+      "pe_ratio_basic": 52.5,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 43.35,
+      "profit_mn": 43.35,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 43.35,
+      "dps": 3.2,
+      "eps": 5.42
+    },
+    {
+      "trading_code": "AMCL(PRAN)",
+      "year": 2024,
+      "cash_dividend_pct": 32.0,
+      "dividend_yield_pct": 1.39,
+      "eps_basic": null,
+      "eps_cont_basic": 5.51,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 90.9,
+      "pe_ratio_basic": 41.6,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 44.11,
+      "profit_mn": 44.11,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 44.11,
+      "dps": 3.2,
+      "eps": 5.51
+    },
+    {
+      "trading_code": "AMCL(PRAN)",
+      "year": 2025,
+      "cash_dividend_pct": 32.0,
+      "dividend_yield_pct": 1.54,
+      "eps_basic": null,
+      "eps_cont_basic": 5.01,
+      "eps_cont_diluted": null,
+      "eps_diluted": null,
+      "nav_per_share": 92.88,
+      "pe_ratio_basic": 41.38,
+      "pe_ratio_diluted": null,
+      "profit_cont_ops_mn": 40.1,
+      "profit_mn": 40.1,
+      "stock_dividend_pct": null,
+      "total_comprehensive_income_mn": 40.1,
+      "dps": 3.2,
+      "eps": 5.01
+    }
+  ],
+  "extended_financials": [
+    {
+      "trading_code": "AMCL(PRAN)",
+      "year": 2021,
+      "capex": null,
+      "investing_cf": 375644.0,
+      "net_profit": 42992439.0,
+      "nocfps": null,
+      "operating_cf": 169802589.0,
+      "total_equity": 673369389.0,
+      "ebit": 88755815.0,
+      "intangibles": null,
+      "interest_expense": 132026639.0,
+      "revenue": 2948858953.0,
+      "total_assets": 1375073985.0,
+      "cash_and_equivalents": 37542089.0,
+      "earning_assets": null,
+      "gross_profit": 556326841.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 1192523062.0
+    },
+    {
+      "trading_code": "AMCL(PRAN)",
+      "year": 2022,
+      "capex": null,
+      "investing_cf": -1085900.0,
+      "net_profit": 44928327.0,
+      "nocfps": null,
+      "operating_cf": 156623288.0,
+      "total_equity": 692721455.0,
+      "ebit": 85546841.0,
+      "intangibles": null,
+      "interest_expense": 141602028.0,
+      "revenue": 3153682330.0,
+      "total_assets": 1442586564.0,
+      "cash_and_equivalents": 50419861.0,
+      "earning_assets": null,
+      "gross_profit": 596202709.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 1250417316.0
+    },
+    {
+      "trading_code": "AMCL(PRAN)",
+      "year": 2023,
+      "capex": null,
+      "investing_cf": -46065008.0,
+      "net_profit": 43345002.0,
+      "nocfps": null,
+      "operating_cf": 195411963.0,
+      "total_equity": 708702128.0,
+      "ebit": 80614286.0,
+      "intangibles": null,
+      "interest_expense": 145724266.0,
+      "revenue": 3226363501.0,
+      "total_assets": 1439831524.0,
+      "cash_and_equivalents": 21196194.0,
+      "earning_assets": null,
+      "gross_profit": 616596581.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 1230772964.0
+    },
+    {
+      "trading_code": "AMCL(PRAN)",
+      "year": 2024,
+      "capex": null,
+      "investing_cf": -98299463.0,
+      "net_profit": 44112195.0,
+      "nocfps": null,
+      "operating_cf": 97916586.0,
+      "total_equity": 727223023.0,
+      "ebit": 84649286.0,
+      "intangibles": null,
+      "interest_expense": 154559006.0,
+      "revenue": 3306077584.0,
+      "total_assets": 1641988951.0,
+      "cash_and_equivalents": 18245001.0,
+      "earning_assets": null,
+      "gross_profit": 632054407.0,
+      "interest_income": null,
+      "net_interest_income": null,
+      "total_debt": 790283356.0
+    }
+  ],
+  "shareholding": {
+    "as_of_date": "Mar 31, 2026",
+    "trading_code": "AMCL(PRAN)",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 28.19,
+    "public_pct": 31.66,
+    "reporting_period": null,
+    "sponsor_director_pct": 40.15
+  },
+  "shareholding_prev": {
+    "as_of_date": "Jun 30, 2025",
+    "trading_code": "AMCL(PRAN)",
+    "foreign_pct": 0.0,
+    "govt_pct": 0.0,
+    "institute_pct": 28.09,
+    "public_pct": 31.76,
+    "reporting_period": "year ended",
+    "sponsor_director_pct": 40.15
+  },
+  "dividend_declaration": {
+    "trading_code": "AMCL(PRAN)",
+    "declaration_date": "2025-10-27T00:00:00",
+    "dividend_pct": 32.0,
+    "dividend_type": "Final",
+    "record_date": "2025-11-17T00:00:00",
+    "scraped_at": "2026-07-22T09:59:01.551000",
+    "title": "AMCL(PRAN): Dividend Declaration"
+  },
+  "news": [
+    {
+      "post_date": "2026-04-28T00:00:00",
+      "title": "AMCL (PRAN): Q3 Financials",
+      "body": "(Q3 Un-audited): EPS was Tk. 1.33 for January-March 2026 as against Tk. 1.37 for January-March 2025; EPS was Tk. 4.74 for July 2025-March 2026 as against Tk. 4.93 for July 2024-March 2025. NOCFPS was Tk. 35.91 for July 2025-March 2026 as against Tk. 16.39 for July 2024-March 2025. NAV per share was Tk. 94.50 as on March 31, 2026 and Tk. 92.88 as on June 30, 2025."
+    },
+    {
+      "post_date": "2026-04-19T00:00:00",
+      "title": "AMCL(PRAN): Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on April 27, 2026 at 3:00 pm to consider, among others, Un-Audited Financial Statements for the Third Quarter (Q3) period ended March 31, 2026."
+    },
+    {
+      "post_date": "2026-02-05T00:00:00",
+      "title": "AMCL(PRAN): Dividend Disbursement",
+      "body": "The Company has informed that it has disbursed the Cash Dividend for the year ended June 30, 2025 to the respective shareholders."
+    },
+    {
+      "post_date": "2026-02-05T00:00:00",
+      "title": "AMCL(PRAN): Category status remains unchanged",
+      "body": "Refer to the earlier news disseminated by DSE on 03.02.2026 regarding Category Change, the company has subsequently submitted a revised Dividend Distribution Compliance Report along with the required supporting documents on the same date i.e., 03.02.2026, upon compliance with the provision 1(e) of BSEC Directive No. BSEC/CMRRCD/2009-193/77, dated May 20, 2024. As such, the company will remain in the same category, i.e., \"A Category.\""
+    },
+    {
+      "title": "AMCL(PRAN): Category Change",
+      "post_date": "2026-02-03T00:00:00",
+      "body": "The Company will be placed in 'Z' category from existing 'A' category with effect from February 05, 2026 as per provision 1(e) of BSEC Directive No. BSEC/CMRRCD/2009-193/77, dated May 20, 2024 regarding non-disbursement of the approved dividend within the stipulated time frame."
+    },
+    {
+      "title": "AMCL(PRAN): Prohibition on providing loan facilities to purchase securities",
+      "post_date": "2026-02-03T00:00:00",
+      "body": "The Stock Brokers and Merchant Bankers are requested to abstain from providing loan facilities to purchase securities of Agricultural Marketing Company Ltd. (Pran) with effect from February 05, 2026 as per rule 11(8) of Bangladesh Securities and Exchange Commission (Margin) Rules, 2025."
+    },
+    {
+      "title": "AMCL(PRAN): Q2 Financials",
+      "post_date": "2026-02-01T00:00:00",
+      "body": "(Q2 Un-audited): EPS was Tk. 1.71 for October-December 2025 as against Tk. 1.69 for October-December 2024; EPS was Tk. 3.41 for July-December 2025 as against Tk. 3.54 for July-December 2024. NOCFPS was Tk. 23.81 for July-December 2025 as against Tk. (22.93) for July-December 2024. NAV per share was Tk. 93.17 as on December 31, 2025 and Tk. 92.88 as on June 30, 2025."
+    },
+    {
+      "post_date": "2026-01-27T00:00:00",
+      "title": "AMCL(PRAN): Board Meeting schedule under LR 16(1)",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on January 31, 2026 at 12:00 PM to consider, among others, Un-Audited Financial Statements for the Second Quarter (Q2) period ended December 31, 2025."
+    },
+    {
+      "title": "AMCL(PRAN): Credit Rating Result",
+      "post_date": "2025-12-21T00:00:00",
+      "body": "Credit Rating Information and Services PLC (CRISL) has assigned the rating of the Company as \"AA-\" in the long term and \"ST-3\" in the short term along with Stable outlook in consideration of its audited financials up to June 30, 2025; unaudited financials up to September 30, 2025 and other relevant quantitative as well as qualitative information up to the date of rating declaration."
+    },
+    {
+      "post_date": "2025-11-17T00:00:00",
+      "title": "AMCL(PRAN): Resumption after Record Date",
+      "body": "Trading of the shares of the company will resume on 18.11.2025."
+    },
+    {
+      "title": "AMCL(PRAN): Emphasis of Matter",
+      "post_date": "2025-11-17T00:00:00",
+      "body": "The auditor of the company has given the \"Emphasis of Matter\" paragraph in the Auditor's Report of the company for the year ended June 30, 2025. To view the details, please visit: https://www.dsebd.org/Auditors_opinion/2025/AMCL(PRAN)_2025.pdf"
+    },
+    {
+      "post_date": "2025-11-16T00:00:00",
+      "title": "AMCL(PRAN): Suspension for Record Date",
+      "body": "Trading of the shares of the company will remain suspended on record date i.e., 17.11.2025."
+    },
+    {
+      "title": "AMCL(PRAN): Q1 Financials",
+      "post_date": "2025-11-13T00:00:00",
+      "body": "(Q1 Un-audited): EPS was Tk. 1.70 for July-September 2025 as against Tk. 1.72 for July-September 2024. NOCFPS was Tk. 15.52 for July-September 2025 as against Tk. (17.40) for July-September 2024. NAV per share was Tk. 94.66 as on September 30, 2025 and Tk. 92.88 as on June 30, 2025."
+    },
+    {
+      "title": "AMCL(PRAN): Spot News",
+      "post_date": "2025-11-12T00:00:00",
+      "body": "Trading of the shares of the company will be allowed only in the Spot Market and Block transaction will also be settled as per spot settlement cycle with cum benefit from 13.11.2025 to 16.11.2025 and trading of the shares will remain suspended on record date i.e., 17.11.2025."
+    },
+    {
+      "title": "AMCL(PRAN): Board Meeting schedule under LR 16(1)",
+      "post_date": "2025-11-10T00:00:00",
+      "body": "As per Regulation 16(1) of the Dhaka Stock Exchange (Listing) Regulations, 2015, the Company has informed that a meeting of the Board of Directors will be held on November 12, 2025 at 3:00 PM to consider, among others, Un-audited financial statements of the Company for the First Quarter (Q1) period ended September 30, 2025."
+    }
+  ],
+  "peers": [
+    {
+      "trading_code": "UNILEVERCL",
+      "company_name": "Unilever Consumer Care Limited",
+      "sector": "Food & Allied",
+      "score": 62.6,
+      "ltp": 2061.6,
+      "change_pct": -0.34,
+      "pe": 50.03,
+      "pb": 17.73,
+      "div_yield_pct": 2.0,
+      "roe_pct": 27.3,
+      "eps_yoy_pct": 19.0
+    },
+    {
+      "trading_code": "LOVELLO",
+      "company_name": "Taufika Foods and Lovello Ice-cream PLC",
+      "sector": "Food & Allied",
+      "score": 60.6,
+      "ltp": 72.8,
+      "change_pct": 0.14,
+      "pe": 44.12,
+      "pb": 6.06,
+      "div_yield_pct": 1.5,
+      "roe_pct": 10.7,
+      "eps_yoy_pct": 15.4
+    },
+    {
+      "trading_code": "OLYMPIC",
+      "company_name": "Olympic Industries PLC.",
+      "sector": "Food & Allied",
+      "score": 60.5,
+      "ltp": 155.0,
+      "change_pct": -0.9,
+      "pe": 15.41,
+      "pb": 2.49,
+      "div_yield_pct": 1.9,
+      "roe_pct": 17.2,
+      "eps_yoy_pct": 9.7
+    },
+    {
+      "trading_code": "BATBC",
+      "company_name": "British American Tobacco Bangladesh Company Limited",
+      "sector": "Food & Allied",
+      "score": 59.8,
+      "ltp": 228.1,
+      "change_pct": 1.56,
+      "pe": 21.1,
+      "pb": 2.23,
+      "div_yield_pct": 1.3,
+      "roe_pct": 30.3,
+      "eps_yoy_pct": -66.7
+    },
+    {
+      "trading_code": "APEXFOODS",
+      "company_name": "Apex Foods Limited",
+      "sector": "Food & Allied",
+      "score": 56.1,
+      "ltp": 286.6,
+      "change_pct": -1.48,
+      "pe": 44.71,
+      "pb": 2.27,
+      "div_yield_pct": 0.7,
+      "roe_pct": 4.4,
+      "eps_yoy_pct": 13.3
+    }
+  ],
+  "source_hash": "df29b32417df2072769d56e58fd3e411f1c241c412dfe746afa65b8e7798ac8b"
+}
