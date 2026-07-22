@@ -37,6 +37,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import MobileBottomBar from "@/components/layout/MobileBottomBar";
 import GlobalSearch from "@/components/layout/GlobalSearch";
+import ExploreSheet from "@/components/layout/ExploreSheet";
 import MarketDataBanner from "@/components/layout/MarketDataBanner";
 import ConditionalAnalytics from "@/components/analytics/ConditionalAnalytics";
 import { AuthProvider } from "@/context/AuthContext";
@@ -121,6 +122,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Footer />
             <MobileBottomBar />
             <GlobalSearch />
+            <ExploreSheet />
             <FeedbackPrompt />
             <PushOptInPrompt />
             <InstallPrompt />

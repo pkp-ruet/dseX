@@ -6,8 +6,17 @@ import { getCachedWatchlist, subscribeWatchlist, loadWatchlist } from "@/lib/wat
 import { isLoggedIn } from "@/lib/auth";
 import { openMobileDrawer } from "@/components/layout/Navbar";
 import { openGlobalSearch } from "@/components/layout/GlobalSearch";
+import { openExploreSheet } from "@/components/layout/ExploreSheet";
 
-const MARKETS_PATHS = ["/dse-today", "/dse-trending-stocks", "/dse-popular-stocks", "/market-analysis"];
+// The Explore tab stays highlighted on any of its launcher destinations.
+const EXPLORE_PATHS = [
+  "/dsestockranking",
+  "/stocks",
+  "/market-analysis",
+  "/dse-today",
+  "/dse-trending-stocks",
+  "/dse-popular-stocks",
+];
 const matches = (pathname: string, paths: string[]) =>
   paths.some((p) => pathname === p || pathname.startsWith(p + "/"));
 
@@ -24,9 +33,10 @@ const HomeIcon = (
     <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
   </svg>
 );
-const MarketsIcon = (
+const ExploreIcon = (
   <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M4 13h3v7H4zM10.5 8h3v12h-3zM17 4h3v16h-3z" />
+    <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16z" />
+    <path d="M15.6 8.4l-2 5.2-5.2 2 2-5.2 5.2-2z" />
   </svg>
 );
 const WatchIcon = (
@@ -63,14 +73,9 @@ export default function MobileBottomBar() {
 
   const leftItems: BarItem[] = [
     { href: "/", label: "Home", active: pathname === "/", badge: null, icon: HomeIcon },
-    {
-      href: "/dse-today",
-      label: "Markets",
-      active: matches(pathname, MARKETS_PATHS),
-      badge: null,
-      icon: MarketsIcon,
-    },
   ];
+
+  const exploreActive = matches(pathname, EXPLORE_PATHS);
 
   const rightItems: BarItem[] = [
     {
@@ -110,6 +115,20 @@ export default function MobileBottomBar() {
   return (
     <nav className="mobile-bottom-bar" aria-label="Mobile navigation">
       {leftItems.map(renderItem)}
+
+      {/* Explore — opens the bottom-sheet launcher (Rankings, Browse, Analysis, DSE Today) */}
+      <button
+        type="button"
+        onClick={openExploreSheet}
+        className={`mobile-bottom-bar-item${exploreActive ? " active" : ""}`}
+        aria-label="Explore"
+        aria-haspopup="dialog"
+      >
+        <span className="mobile-bottom-bar-icon">
+          <span className="mobile-bottom-bar-glyph">{ExploreIcon}</span>
+        </span>
+        <span className="mobile-bottom-bar-label">Explore</span>
+      </button>
 
       {/* Accented primary action — search any stock */}
       <button
