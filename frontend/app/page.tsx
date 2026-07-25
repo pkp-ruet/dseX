@@ -24,6 +24,8 @@ import { type HeroStock } from "@/components/home/HeroGradeReveal";
 import LearnPromoCard from "@/components/home/LearnPromoCard";
 import SignupSlideshow from "@/components/home/SignupSlideshow";
 import RankingPromo from "@/components/home/RankingPromo";
+import ThreeStoriesSection from "@/components/home/ThreeStoriesSection";
+import { pickStoryStocks } from "@/lib/home-stories";
 import FinalCTA from "@/components/home/FinalCTA";
 import HomePersonalizationGate from "@/components/home/HomePersonalizationGate";
 import ExploreMore from "@/components/home/ExploreMore";
@@ -132,6 +134,14 @@ async function HeroSection({ promise }: { promise: Promise<ScoresResponse | null
   const top = sortedByScore(allItemsFromScores(scores));
   const heroStocks = await buildHeroStocks(top);
   return <HomeHero topItems={top} heroStocks={heroStocks} />;
+}
+
+async function ThreeStoriesSectionWrapper({ promise }: { promise: Promise<ScoresResponse | null> }) {
+  const scores = await promise;
+  if (!scores) return null;
+  const all = sortedByScore(allItemsFromScores(scores));
+  if (all.length === 0) return null;
+  return <ThreeStoriesSection cards={pickStoryStocks(all, all.length)} totalCount={all.length} />;
 }
 
 async function RankingPromoSection({ promise }: { promise: Promise<ScoresResponse | null> }) {
@@ -256,6 +266,14 @@ export default function HomePage() {
         </div>
 
         <div className="mt-12 sm:mt-16 flex flex-col gap-16 sm:gap-24">
+          {/* Three story cards — what the data SAYS, before the rankings table
+              shows the shape of it. One card per reason to care. */}
+          <div>
+            <Suspense fallback={null}>
+              <ThreeStoriesSectionWrapper promise={scoresPromise} />
+            </Suspense>
+          </div>
+
           {/* Rankings hub — right under the live market band */}
           <div>
             <Suspense fallback={null}>
