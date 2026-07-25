@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import {
   getScores,
@@ -35,6 +35,7 @@ import { consumeJustSignedUp } from "@/lib/welcome";
 import { portfolioTodayMove } from "@/lib/portfolio-analysis";
 import { buildHomeAlerts } from "@/lib/home-alerts";
 import { buildDailyBrief } from "@/lib/daily-brief";
+import { pickStoryStocks } from "@/lib/home-stories";
 
 import DailyBriefing from "@/components/home/personalized/DailyBriefing";
 import HeroGreeting from "@/components/home/personalized/HeroGreeting";
@@ -49,6 +50,7 @@ import TuneModal from "@/components/stock-recommendation/TuneModal";
 import CoreFeatureTiles from "@/components/home/personalized/CoreFeatureTiles";
 import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
 import DiscoverCard from "@/components/home/personalized/DiscoverCard";
+import StoriesCard from "@/components/home/personalized/StoriesCard";
 import NewsPeek from "@/components/home/personalized/NewsPeek";
 import SearchBar from "@/components/home/SearchBar";
 import InstallHomeBanner from "@/components/pwa/InstallHomeBanner";
@@ -320,9 +322,15 @@ export default function PersonalizedHome() {
   });
 
   const allStocks = Array.from(priceMap.values());
-  const rankingItems = allStocks
-    .filter((s) => s.score != null)
-    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+  // Memoized on the score map (not on a freshly-built array) so the derived
+  // consumers below — DiscoverCard, the story cards — keep a stable input.
+  const rankingItems = useMemo(
+    () =>
+      Array.from(priceMap.values())
+        .filter((s) => s.score != null)
+        .sort((a, b) => (b.score ?? 0) - (a.score ?? 0)),
+    [priceMap],
+  );
   // Buy signals ride along on the scores already in priceMap — no extra fetch.
   const buys = allStocks.filter((s) => s.signal?.signal === "buy");
   const companies = allStocks.map((s) => ({ trading_code: s.trading_code, company_name: s.company_name }));
@@ -387,6 +395,14 @@ export default function PersonalizedHome() {
   const greeting = (
     <HeroGreeting name={user?.display_name} dateStr={dateStr} isNew={isNewUser} watchlistCount={codes.length} />
   );
+
+  // The marketing home's three story stocks (strongest / biggest dividend /
+  // fastest growing), rotated daily by pickStoryStocks. Rendered twice below —
+  // sidebar top on desktop, under the news on mobile — so one instance is
+  // always hidden by CSS.
+  const storyCards = useMemo(() => pickStoryStocks(rankingItems, rankingItems.length), [rankingItems]);
+  const hasStories = storyCards.length > 0;
+  const storiesCard = <StoriesCard cards={storyCards} totalCount={rankingItems.length} />;
 
   return (
     <PullToRefresh onRefresh={() => runFetches()}>
@@ -462,6 +478,10 @@ export default function PersonalizedHome() {
           </div>
         )}
 
+        {/* Three story stocks — mobile slot only (right after the news). On
+            desktop the same card sits at the top of the Explore aside. */}
+        {hasStories && <div className="lg:hidden">{storiesCard}</div>}
+
         {/* Mobile-only install CTA — auto-hides once installed / dismissed. */}
         <InstallHomeBanner />
       </section>
@@ -516,6 +536,10 @@ export default function PersonalizedHome() {
       <aside className="mt-8 lg:col-span-2 lg:mt-0">
         <SectionLabel>Explore the market</SectionLabel>
         <div className="flex flex-col gap-6">
+          {/* Desktop slot for the three story stocks — top of the aside. The
+              mobile copy lives under the news in the main column above. */}
+          {hasStories && <div className="hidden lg:block">{storiesCard}</div>}
+
           <MarketTodayCard
             index={marketIndex}
             dividends={dividends}

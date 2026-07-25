@@ -1,15 +1,8 @@
 import Link from "next/link";
 import { getTier, TIER_VAR } from "@/lib/constants";
-import { type StoryKey, type StoryStock } from "@/lib/home-stories";
+import { STORY_META, type StoryStock } from "@/lib/home-stories";
 import SignalChip from "@/components/ui/SignalChip";
 import TierPill from "@/components/ui/TierPill";
-
-/** Per-story identity: label, glyph and accent. ৳ for the cash card is deliberate. */
-const STORY: Record<StoryKey, { label: string; glyph: string; color: string; ink: string }> = {
-  strongest: { label: "The strongest",   glyph: "★", color: "var(--tier-excellent)", ink: "var(--tier-excellent)" },
-  dividend:  { label: "Biggest dividend", glyph: "৳", color: "var(--warm)",          ink: "var(--warm-ink)" },
-  growth:    { label: "Fastest growing",  glyph: "▲", color: "var(--primary)",        ink: "var(--primary-ink)" },
-};
 
 function fmtPrice(n: number | null | undefined): string {
   return n == null ? "--" : n.toFixed(2);
@@ -45,7 +38,7 @@ function Metric({ value, label, on, color }: { value: string; label: string; on:
 
 function StoryCard({ card, index }: { card: StoryStock; index: number }) {
   const { item, headline, highlight, reasonEn, reasonBn } = card;
-  const story = STORY[card.key];
+  const story = STORY_META[card.key];
   const tier = getTier(item.score);
   const tierColor = TIER_VAR[tier];
   const isBuy = item.signal?.signal === "buy";
