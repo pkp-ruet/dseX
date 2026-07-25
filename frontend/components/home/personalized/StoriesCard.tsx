@@ -104,7 +104,8 @@ function StoryRow({ card }: { card: StoryStock }) {
         aria-hidden
         className="mt-2.5 flex items-center justify-center gap-1 rounded-lg bg-[color-mix(in_srgb,var(--story)_11%,transparent)] py-1.5 text-[0.7rem] font-extrabold text-[var(--story-ink)] transition-colors group-hover:bg-[color-mix(in_srgb,var(--story)_20%,transparent)]"
       >
-        See full breakdown <span className="transition-transform group-hover:translate-x-0.5">→</span>
+        See full breakdown{" "}
+        <span className="inline-block transition-transform group-hover:translate-x-0.5">→</span>
       </span>
     </Link>
   );
