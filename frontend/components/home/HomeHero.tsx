@@ -1,12 +1,26 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { type ScoreItem } from "@/lib/api";
+import {
+  getStockRecommendations,
+  type ScoreItem,
+  type RecommendationAnswers,
+  type RecommendedStock,
+} from "@/lib/api";
 import SignupCtas from "@/components/home/SignupCtas";
 import SearchBar from "@/components/home/SearchBar";
 import Button from "@/components/ui/Button";
 import HeroGradeReveal, { type HeroStock } from "@/components/home/HeroGradeReveal";
+import HeroMiniQuiz from "@/components/home/HeroMiniQuiz";
+import HeroQuizResult, { HeroQuizLoading } from "@/components/home/HeroQuizResult";
 import LiveRankingPreview from "@/components/home/LiveRankingPreview";
+
+interface QuizResult {
+  picks: RecommendedStock[];
+  summary: string[];
+  relaxations: string[];
+}
 
 export default function HomeHero({
   topItems,
@@ -21,6 +35,41 @@ export default function HomeHero({
     company_name: s.company_name,
   }));
   const statCount = Math.max(50, Math.floor(topItems.length / 50) * 50);
+
+  const [result, setResult] = useState<QuizResult | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  // Bumped on every reset so the quiz remounts at question 1 — "Start over"
+  // lives in the result panel, which can't reach the quiz's own step state.
+  const [quizKey, setQuizKey] = useState(0);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // On mobile the result panel stacks below the quiz, so bring it into view.
+  // Fires twice by design — once for the loader, once when the picks land.
+  useEffect(() => {
+    if (!busy && !result) return;
+    if (window.innerWidth >= 768) return;
+    panelRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [busy, result]);
+
+  async function runQuiz(answers: RecommendationAnswers, summary: string[]) {
+    setBusy(true);
+    setError("");
+    try {
+      const res = await getStockRecommendations(answers);
+      setResult({ picks: res.picks, summary, relaxations: res.relaxations });
+    } catch {
+      setError("Couldn't load your matches. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function resetQuiz() {
+    setResult(null);
+    setError("");
+    setQuizKey((k) => k + 1);
+  }
 
   return (
     <section className="relative pt-8 sm:pt-14 pb-2">
@@ -88,17 +137,37 @@ export default function HomeHero({
             </div>
           ) : (
             <>
-              {/* Try-it search — explore instantly, before any signup */}
+              {/* Primary entry point — three taps, no stock knowledge needed.
+                  The search below is the shortcut for people who already know
+                  the code they want. */}
               <div className="mt-6">
-                <p className="mb-2 text-[0.72rem] font-bold uppercase tracking-[0.12em] text-[var(--primary-ink)]">
-                  See any stock&apos;s score — free
+                <HeroMiniQuiz
+                  key={quizKey}
+                  onComplete={runQuiz}
+                  onRestart={resetQuiz}
+                  busy={busy}
+                  done={result != null}
+                />
+              </div>
+
+              {error && (
+                <p className="mt-2 text-[0.8rem] font-semibold text-[var(--negative)]">{error}</p>
+              )}
+
+              <div className="mt-4">
+                <p className="mb-1.5 text-[0.7rem] font-bold text-[var(--text-muted)]">
+                  Already know a stock? Look up its score — free
                 </p>
                 <SearchBar companies={companies} variant="sidebar" />
               </div>
 
-              <div className="mt-5">
-                <SignupCtas />
-              </div>
+              {/* One signup ask at a time: once matches are on screen, the
+                  result panel owns the ask. */}
+              {result == null && (
+                <div className="mt-5">
+                  <SignupCtas />
+                </div>
+              )}
 
               {/* Trust / scale proof */}
               <div className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.72rem] text-[var(--text-muted)]">
@@ -114,9 +183,19 @@ export default function HomeHero({
           )}
         </div>
 
-        {/* Right (below on mobile): the live grade-reveal demo */}
-        <div className="w-full">
-          {heroStocks.length > 0 ? (
+        {/* Right (below on mobile): the live grade-reveal demo — swapped for the
+            visitor's own matches once the mini-quiz runs. */}
+        <div ref={panelRef} className="w-full scroll-mt-24">
+          {busy ? (
+            <HeroQuizLoading />
+          ) : result ? (
+            <HeroQuizResult
+              picks={result.picks}
+              summary={result.summary}
+              relaxations={result.relaxations}
+              onRestart={resetQuiz}
+            />
+          ) : heroStocks.length > 0 ? (
             <HeroGradeReveal stocks={heroStocks} />
           ) : (
             <LiveRankingPreview items={topItems} totalCount={topItems.length} />
