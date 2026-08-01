@@ -161,8 +161,12 @@ export default async function DseStockRankingPage() {
             <span className="rank-method-checks">
               {PILLARS.map((p, i) => (
                 <span key={p.key} className="rank-method-check">
-                  {i > 0 && <span className="rank-method-sep" aria-hidden>·</span>}
                   {p.en}
+                  {/* Separator keeps normal whitespace — the one place each
+                      nowrap check name allows the line to break on phones */}
+                  {i < PILLARS.length - 1 && (
+                    <span className="rank-method-sep" aria-hidden>{" · "}</span>
+                  )}
                 </span>
               ))}
             </span>

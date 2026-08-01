@@ -93,6 +93,16 @@ body {
   font-family: var(--font-inter), system-ui, sans-serif;
 }
 
+/* The page must never scroll sideways: anything poking past the viewport lets
+   mobile browsers pan horizontally, and the fixed navbar / bottom bar visibly
+   slide off screen. Decorations are sized to fit (see .hero-glow); this is the
+   guard for anything that slips through. `clip`, not `hidden` — clip creates no
+   scroll container, so `position: sticky` keeps working. Browsers too old for
+   `clip` ignore the line, which is safe: the decorations themselves fit. */
+html {
+  overflow-x: clip;
+}
+
 /* Smooth anchor jumps (e.g. /learn category index) — respect reduced motion */
 @media (prefers-reduced-motion: no-preference) {
   html {
@@ -199,18 +209,23 @@ body::before {
     var(--surface);
 }
 
-/* Hero ambience — a wide, very soft wash behind the first screen. */
+/* Hero ambience — a wide, very soft wash behind the first screen.
+   MUST stay inside its own box: an absolutely-positioned element poking past
+   the viewport makes the whole document horizontally pannable on mobile, and
+   the fixed navbar / bottom bar stay pinned to the layout viewport — i.e. they
+   visibly slide off screen (shipped bug, 2026-07-30). The radial stops are
+   tuned to finish fading just inside both edges so the box needs no bleed. */
 .hero-glow {
   position: absolute;
-  inset-inline: -20%;
-  top: -18%;
+  inset-inline: 0;
+  top: -14%;
   height: 34rem;
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(48% 60% at 22% 18%, color-mix(in srgb, var(--primary) 16%, transparent) 0%, transparent 68%),
-    radial-gradient(46% 58% at 82% 6%, color-mix(in srgb, var(--info) 15%, transparent) 0%, transparent 66%),
-    radial-gradient(40% 50% at 60% 52%, color-mix(in srgb, var(--gold) 11%, transparent) 0%, transparent 70%);
+    radial-gradient(44% 60% at 26% 18%, color-mix(in srgb, var(--primary) 16%, transparent) 0%, transparent 58%),
+    radial-gradient(44% 58% at 72% 8%, color-mix(in srgb, var(--info) 15%, transparent) 0%, transparent 58%),
+    radial-gradient(40% 50% at 55% 52%, color-mix(in srgb, var(--gold) 11%, transparent) 0%, transparent 62%);
 }
 
 /* Live dot — a quiet pulse that says "this updates". */
@@ -693,8 +708,10 @@ a:hover .ticker-tag,
 .rank-method-check {
   white-space: nowrap;
 }
+/* Real spaces + normal whitespace: without this, the nowrap check names fuse
+   into one unbreakable ~600px line and get clipped on phones */
 .rank-method-sep {
-  margin: 0 6px;
+  white-space: normal;
   color: color-mix(in srgb, var(--ink-muted) 45%, transparent);
 }
 .rank-method-link {
