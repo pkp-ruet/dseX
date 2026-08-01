@@ -1800,6 +1800,16 @@ export interface DailyBuy {
   name: string | null;
   change_pct: number | null;
   strength: string | null;
+  /** True when this code wasn't on yesterday's buy list. */
+  is_new: boolean;
+}
+
+/** One block of today's mail and whether it found anything to say. */
+export interface DailyBlock {
+  key: string;
+  label: string;
+  detail: string;
+  ok: boolean;
 }
 
 export interface DailyAudience {
@@ -1816,8 +1826,11 @@ export interface DailyOverview {
   campaign_id: string;
   date_label: string;
   subject: string;
+  preheader: string;
   mood: string;
   buys: DailyBuy[];
+  buys_total: number;
+  blocks: DailyBlock[];
   audience: DailyAudience;
   already_sent: number;
 }

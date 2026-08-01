@@ -185,9 +185,35 @@ export default function AdminCampaignsClient() {
             )}
           </div>
 
+          {/* What actually filled today — a block that came up empty is the one
+              thing worth spotting before pressing Send. */}
+          {overview && overview.blocks?.length > 0 && (
+            <div className={card}>
+              <h2 className="text-sm font-bold text-[var(--text)] mb-3">What&apos;s in today&apos;s mail</h2>
+              <div className="space-y-1.5">
+                {overview.blocks.map((b) => (
+                  <div key={b.key} className="flex items-start justify-between gap-3 text-sm">
+                    <span className="flex items-center gap-2">
+                      <span
+                        aria-hidden
+                        className="inline-block w-1.5 h-1.5 rounded-full shrink-0"
+                        style={{ background: b.ok ? "var(--positive)" : "var(--border)" }}
+                      />
+                      <span className={b.ok ? "text-[var(--text)]" : "text-[var(--text-muted)]"}>{b.label}</span>
+                    </span>
+                    <span className="text-xs text-[var(--text-muted)] text-right">{b.detail}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {overview && overview.buys.length > 0 && (
             <div className={card}>
-              <h2 className="text-sm font-bold text-[var(--text)] mb-3">Featured buys ({overview.buys.length})</h2>
+              <h2 className="text-sm font-bold text-[var(--text)] mb-3">
+                Featured buys ({overview.buys.length}
+                {overview.buys_total > overview.buys.length ? ` of ${overview.buys_total}` : ""})
+              </h2>
               <div className="space-y-1.5">
                 {overview.buys.map((b) => (
                   <div key={b.code} className="flex items-center justify-between gap-2 text-sm">
@@ -196,6 +222,14 @@ export default function AdminCampaignsClient() {
                       <span className="ml-2 text-xs font-normal text-[var(--text-muted)]">{b.name}</span>
                     </span>
                     <span className="flex items-center gap-2 whitespace-nowrap">
+                      {b.is_new && (
+                        <span
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                          style={{ background: "var(--positive)", color: "#fff" }}
+                        >
+                          New
+                        </span>
+                      )}
                       {b.change_pct != null && (
                         <span style={{ color: b.change_pct >= 0 ? "var(--positive)" : "var(--negative)" }}>
                           {b.change_pct >= 0 ? "+" : "−"}{Math.abs(b.change_pct).toFixed(1)}%

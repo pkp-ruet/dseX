@@ -338,6 +338,7 @@ _SIGNALS = [
         "fact": lambda r: f"yields {r['div_yield_pct']:.1f}%",
         "value": lambda r: f"{r['div_yield_pct']:.1f}% yield",
         "why": "A 4%+ dividend yield rivals a bank FDR — you get paid while you hold.",
+        "why_bn": "৪% বা তার বেশি ডিভিডেন্ড ব্যাংকের এফডিআরের মতো — শেয়ার ধরে রাখলেই টাকা আসে।",
         "strength": lambda r: min(r["div_yield_pct"] / 12.0, 1.0),
     },
     {
@@ -347,6 +348,7 @@ _SIGNALS = [
         "fact": lambda r: f"{r['div_streak']}-year dividend streak",
         "value": lambda r: f"{r['div_streak']}y payouts",
         "why": "Paying a cash dividend every year shows the payout is durable, not a one-off.",
+        "why_bn": "প্রতি বছর নগদ ডিভিডেন্ড দেওয়ার মানে টাকাটা একবারের ব্যাপার নয়, নিয়মিত।",
         "strength": lambda r: min(r["div_streak"] / 7.0, 1.0),
     },
     {
@@ -356,6 +358,7 @@ _SIGNALS = [
         "fact": lambda r: f"profit up {round(r['eps_yoy_pct'])}%",
         "value": lambda r: f"+{round(r['eps_yoy_pct'])}%",
         "why": "Rising earnings per share is the engine behind a higher share price over time.",
+        "why_bn": "শেয়ারপ্রতি মুনাফা বাড়তে থাকলে সময়ের সাথে শেয়ারের দামও বাড়ে।",
         "strength": lambda r: min(r["eps_yoy_pct"] / 60.0, 1.0),
     },
     {
@@ -365,6 +368,7 @@ _SIGNALS = [
         "fact": lambda r: f"profitable {r['profit_streak']} years running",
         "value": lambda r: f"{r['profit_streak']}y profit",
         "why": "Years of unbroken profit point to a stable, proven business.",
+        "why_bn": "টানা কয়েক বছর মুনাফা মানে ব্যবসাটা স্থির ও পরীক্ষিত।",
         "strength": lambda r: min(r["profit_streak"] / 7.0, 1.0),
     },
     {
@@ -377,6 +381,7 @@ _SIGNALS = [
         "fact": lambda r: f"{round((1 - _pe(r) / r['sector_median_pe']) * 100)}% cheaper P/E than its sector",
         "value": lambda r: f"P/E {_pe(r):.1f}",
         "why": "A P/E below the sector median means you pay less per taka of profit than for rival stocks.",
+        "why_bn": "সেক্টরের গড়ের চেয়ে কম পি/ই মানে একই মুনাফার জন্য আপনি কম দাম দিচ্ছেন।",
         "strength": lambda r: min((1 - _pe(r) / r["sector_median_pe"]), 1.0),
     },
     {
@@ -389,6 +394,7 @@ _SIGNALS = [
         "fact": lambda r: f"trades below book ({r['ltp']:.1f} vs {r['nav_per_share']:.1f})",
         "value": lambda r: f"{r['ltp'] / r['nav_per_share']:.2f}× book",
         "why": "Buying below book value means the share price is under the company's net assets per share.",
+        "why_bn": "বুক ভ্যালুর নিচে দাম মানে কোম্পানির নিট সম্পদের চেয়েও শেয়ারের দাম কম।",
         "strength": lambda r: min(1 - r["ltp"] / r["nav_per_share"], 1.0),
     },
     {
@@ -401,6 +407,7 @@ _SIGNALS = [
         "fact": lambda r: f"earns {round(r['roe_pct'])}% on equity",
         "value": lambda r: f"{round(r['roe_pct'])}% ROE",
         "why": "A high return on equity means the company turns shareholder money into profit efficiently.",
+        "why_bn": "বেশি আরওই মানে কোম্পানি শেয়ারহোল্ডারের টাকা ভালোভাবে মুনাফায় রূপ দিচ্ছে।",
         "strength": lambda r: min(r["roe_pct"] / 30.0, 1.0),
     },
     {
@@ -412,6 +419,7 @@ _SIGNALS = [
         "fact": lambda r: "sits near its 52-week low",
         "value": lambda r: f"+{round((r['ltp'] / r['w52_low'] - 1) * 100)}% off low",
         "why": "A quality stock near its yearly low can offer a cheaper entry — if the business stays sound.",
+        "why_bn": "ভালো কোম্পানি বছরের সবচেয়ে কম দামের কাছে থাকলে সস্তায় ঢোকার সুযোগ — যদি ব্যবসা ঠিক থাকে।",
         "strength": lambda r: max(0.0, 1 - (r["ltp"] / r["w52_low"] - 1) / 0.10),
     },
     {
@@ -421,6 +429,7 @@ _SIGNALS = [
         "fact": lambda r: f"beating the DSEX index by {round(r['rel_strength'])}% (3 months)",
         "value": lambda r: f"+{round(r['rel_strength'])}% vs DSEX",
         "why": "Outpacing the broad index shows real demand and relative strength behind the stock.",
+        "why_bn": "পুরো বাজারের চেয়ে ভালো করা মানে শেয়ারটির পেছনে আসল চাহিদা আছে।",
         "strength": lambda r: min(r["rel_strength"] / 30.0, 1.0),
     },
     {
@@ -430,6 +439,7 @@ _SIGNALS = [
         "fact": lambda r: f"just declared a {r['div_catalyst']['dividend_pct']}% dividend",
         "value": lambda r: f"{r['div_catalyst']['dividend_pct']}% declared",
         "why": "A fresh dividend declaration is a near-term catalyst — note the record date to qualify.",
+        "why_bn": "নতুন ডিভিডেন্ড ঘোষণা কাছাকাছি সময়ের একটি খবর — রেকর্ড ডেটের আগে শেয়ার হাতে থাকতে হবে।",
         "strength": lambda r: 0.9,   # catalysts always float high
     },
 ]
@@ -457,6 +467,7 @@ def _build_tip(r: dict, passed: list[dict]) -> dict:
         "text": headline,                   # backward-compatible single-line text
         "facts": facts,                     # stacked chips
         "why": lead["why"],                 # concept explainer (education)
+        "why_bn": lead.get("why_bn"),       # same explainer in everyday Bengali
         "conviction": len(passed),          # # raw signals passed
         "trading_code": r["trading_code"],
         "company_name": r["company_name"],

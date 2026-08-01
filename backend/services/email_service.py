@@ -256,3 +256,7 @@ def ensure_email_indexes() -> None:
     campaigns = db["email_campaigns"]
     campaigns.create_index("campaign_id", unique=True, name="campaign_id_unique")
     campaigns.create_index([("created_at", -1)], name="campaign_created")
+
+    # One row per day of Buy-signal codes, so the daily mail can tell the reader
+    # which signals are actually new (see daily_email_service._prev_buy_codes).
+    db["daily_buy_sets"].create_index("date", unique=True, name="buy_set_date_unique")

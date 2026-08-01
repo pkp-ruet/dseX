@@ -6,6 +6,7 @@ plain primitives. Output is inline-CSS, table-based, 600px single-column so it
 renders consistently across email clients (Gmail/Outlook/Apple Mail) and on
 mobile. Brand tokens mirror frontend/app/globals.css (light-only).
 """
+import html
 from typing import Optional
 
 # Brand palette (hardcoded — email clients can't read CSS variables)
@@ -16,6 +17,7 @@ POS = "#047857"
 POS_BG = "#E1F5EE"
 POS_TX = "#0F6E56"
 NEG = "#DC2626"
+NEG_BG = "#FCEBEB"
 WARM_BG = "#FAEEDA"
 WARM_TX = "#854F0B"
 BG = "#FBFAF8"
@@ -34,6 +36,11 @@ _BADGE = {
     "high": (POS_BG, POS_TX),
     "div": (WARM_BG, WARM_TX),
 }
+
+
+def _esc(v) -> str:
+    """Scraped news titles and company names land in this HTML — escape them."""
+    return html.escape(str(v), quote=False) if v is not None else ""
 
 
 def _money(v: Optional[float]) -> str:
@@ -414,9 +421,23 @@ def build_html(
 
 _STRONG_BADGE = (INDIGO, "#FFFFFF")
 _BUY_BADGE = (INDIGO_BG, INDIGO_DARK)
+# One accent per story slot so the three cards read as three different things.
+_STORY_TONE = {
+    "strongest": (INDIGO_BG, INDIGO_DARK),
+    "dividend": (WARM_BG, WARM_TX),
+    "growth": (POS_BG, POS_TX),
+}
 # Include Bengali-capable fonts up front so the tagline renders on clients that
 # have them (falls back to the client's system Bengali font otherwise).
 _BN_FONT = "'Noto Sans Bengali','Hind Siliguri'," + _FONT
+
+
+def _bn_line(text: str, *, size: int = 13, color: str = TEXT2, pad_top: int = 6) -> str:
+    """One Bengali line. Bengali needs its own font stack or it renders as boxes."""
+    return (
+        f'<div lang="bn" style="font-family:{_BN_FONT};font-size:{size}px;color:{color};'
+        f'line-height:1.75;margin-top:{pad_top}px;">{_esc(text)}</div>'
+    )
 
 
 def _turnover_str(cr: Optional[float]) -> str:
@@ -424,7 +445,8 @@ def _turnover_str(cr: Optional[float]) -> str:
 
 
 def _daily_glance(m: dict) -> str:
-    """Three tiles: index, turnover, breadth — each with a day-over-day delta."""
+    """Three tiles: index, turnover, breadth — each with a day-over-day delta,
+    plus the week's move underneath so one red day isn't read as a trend."""
     up, down = m.get("up"), m.get("down")
     breadth = f"{up}/{down}" if up is not None and down is not None else "—"
     dsex = m.get("dsex")
@@ -440,16 +462,142 @@ def _daily_glance(m: dict) -> str:
         f'<div style="font-size:12px;margin-top:1px;">{sub}</div></td>'
         for (label, big, sub) in cells
     )
+    wk = m.get("week_chg")
+    wk_row = ""
+    if wk is not None:
+        colour = POS if wk >= 0 else NEG
+        wk_row = (
+            f'<tr><td style="padding:2px 24px 0;font-size:12px;color:{MUTED};">'
+            f'Over the past week the index is '
+            f'<b style="color:{colour};">{"up" if wk >= 0 else "down"} {abs(wk):.1f}%</b>.</td></tr>'
+        )
     return (
         _section_label("The market in one glance")
         + f'<tr><td style="padding:0 24px 4px;">'
         f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;border-spacing:6px;">'
         f'<tr>{tds}</tr></table></td></tr>'
+        + wk_row
     )
 
 
-def _daily_buys(buys: list[dict]) -> str:
-    """Today's Buy-signal stocks (strong ones first), each a bordered card."""
+def _daily_story(story: Optional[dict]) -> str:
+    """The lede — three plain sentences about the day, then the Bengali line.
+    This is what makes the mail read like a paper instead of a dashboard."""
+    if not story or not story.get("lines"):
+        return ""
+    lines = story["lines"]
+    body = (
+        f'<div style="font-size:15px;font-weight:600;color:{TEXT};line-height:1.6;">{_esc(lines[0])}</div>'
+    )
+    for extra in lines[1:]:
+        body += (
+            f'<div style="font-size:14px;color:{TEXT2};line-height:1.65;margin-top:7px;">{_esc(extra)}</div>'
+        )
+    if story.get("bn"):
+        body += _bn_line(story["bn"], size=13, pad_top=10)
+    return (
+        _section_label("Today's story")
+        + f'<tr><td style="padding:0 24px 2px;">'
+        f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
+        f'style="background:{SURFACE};border:1px solid {BORDER};border-radius:10px;">'
+        f'<tr><td style="padding:14px 16px;">{body}</td></tr></table></td></tr>'
+    )
+
+
+def _daily_stories(stories: list[dict]) -> str:
+    """Three stocks worth knowing — one per slot, so no two cards say the same
+    thing. Stacked rather than columned: three columns collapse badly on a phone."""
+    if not stories:
+        return ""
+    cards = []
+    for s in stories:
+        bg, fg = _STORY_TONE.get(s.get("key"), (INDIGO_BG, INDIGO_DARK))
+        code, url = s.get("code"), s.get("url")
+        code_html = (f'<a href="{url}" style="color:{INDIGO};text-decoration:none;">{code}</a>'
+                     if url else code)
+        chip = (
+            f'<span style="display:inline-block;font-size:11px;font-weight:700;background:{bg};'
+            f'color:{fg};padding:3px 10px;border-radius:20px;">{s.get("glyph", "")} {_esc(s.get("label") or "")}</span>'
+        )
+        metric = ""
+        if s.get("metric_value"):
+            metric = (
+                f'<span style="display:inline-block;font-size:11px;background:{CELL};color:{TEXT2};'
+                f'padding:3px 9px;border-radius:20px;margin-right:6px;">'
+                f'{_esc(s.get("metric_label") or "")} <b style="color:{TEXT};">{_esc(s["metric_value"])}</b></span>'
+            )
+        reason = ""
+        if s.get("reason_en"):
+            reason = (f'<div style="font-size:12px;color:{MUTED};line-height:1.5;margin-top:6px;">'
+                      f'{_esc(s["reason_en"])}</div>')
+        cards.append(
+            f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
+            f'style="background:{SURFACE};border:1px solid {BORDER};border-left:3px solid {fg};'
+            f'border-radius:10px;margin-bottom:8px;">'
+            f'<tr><td style="padding:12px 14px;">'
+            f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
+            f'<td>{chip}</td>'
+            f'<td style="text-align:right;white-space:nowrap;font-size:13px;color:{TEXT};font-weight:700;">'
+            f'{_money(s.get("ltp"))}{_chg_inline(s.get("change_pct"))}</td></tr></table>'
+            f'<div style="font-size:15px;font-weight:700;color:{TEXT};margin-top:8px;">{code_html} '
+            f'<span style="font-size:11px;font-weight:400;color:{MUTED};">{_esc((s.get("name") or "")[:26])}</span></div>'
+            f'<div style="font-size:14px;color:{TEXT2};line-height:1.55;margin-top:4px;">{_esc(s.get("headline") or "")}</div>'
+            f'<div style="margin-top:8px;">{metric}</div>{reason}'
+            f'</td></tr></table>'
+        )
+    return (
+        _section_label("Three worth knowing today")
+        + f'<tr><td style="padding:0 24px 2px;color:{TEXT2};font-size:12px;">'
+        f'Each one answers a different question — and they change every day.</td></tr>'
+        + f'<tr><td style="padding:8px 24px 0;">{"".join(cards)}</td></tr>'
+    )
+
+
+def _daily_personal(personal: Optional[dict]) -> str:
+    """The one block written for this reader alone: their own biggest movers."""
+    if not personal or not personal.get("items"):
+        return ""
+    rows = []
+    items = personal["items"]
+    last = len(items) - 1
+    for i, it in enumerate(items):
+        border = "" if i == last else f"border-bottom:1px solid {CELL};"
+        code, url = it.get("code"), it.get("url")
+        code_html = (f'<a href="{url}" style="color:{INDIGO};text-decoration:none;font-weight:700;">{code}</a>'
+                     if url else f'<b>{code}</b>')
+        sig = it.get("signal")
+        chip = ""
+        if sig in ("buy", "sell"):
+            bg, fg = (POS_BG, POS_TX) if sig == "buy" else (NEG_BG, NEG)
+            chip = (f'<span style="font-size:10px;font-weight:700;background:{bg};color:{fg};'
+                    f'padding:2px 8px;border-radius:20px;margin-left:6px;">{sig.title()}</span>')
+        rows.append(
+            f'<tr style="{border}"><td style="padding:9px 0;font-size:13px;">{code_html}'
+            f'<span style="color:{MUTED};font-size:11px;"> {_esc(it.get("name") or "")}</span>{chip}</td>'
+            f'<td style="text-align:right;white-space:nowrap;font-size:13px;color:{TEXT};padding:9px 0;">'
+            f'{_money(it.get("ltp"))}{_chg_inline(it.get("change_pct"))}</td></tr>'
+        )
+    note = ""
+    if personal.get("quiet"):
+        note = (f'<div style="font-size:12px;color:{MUTED};margin-top:8px;">'
+                f'A quiet day on your list — no big moves.</div>')
+    elif personal.get("total", 0) > len(items):
+        note = (f'<div style="font-size:12px;color:{MUTED};margin-top:8px;">'
+                f'Your biggest movers out of {personal["total"]} stocks you follow.</div>')
+    return (
+        _section_label("Your stocks today")
+        + f'<tr><td style="padding:0 24px 2px;">'
+        f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
+        f'style="background:{INDIGO_BG};border-radius:10px;"><tr><td style="padding:10px 14px;">'
+        f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0">{"".join(rows)}</table>'
+        f'{note}</td></tr></table></td></tr>'
+    )
+
+
+def _daily_buys(buys: list[dict], total: int = 0) -> str:
+    """Today's Buy-signal stocks (strong ones first), each a bordered card.
+    A "New today" chip marks what actually changed — buy signals are sticky, so
+    without it the same codes read as fresh news every morning."""
     if not buys:
         return ""
     cards = []
@@ -462,26 +610,148 @@ def _daily_buys(buys: list[dict]) -> str:
         url = b.get("url")
         code_html = f'<a href="{url}" style="color:{INDIGO};text-decoration:none;">{code}</a>' if url else code
         reason = b.get("reason_en") or ""
+        new_chip = (
+            f'<span style="display:inline-block;margin-left:6px;font-size:11px;font-weight:700;'
+            f'background:{POS_BG};color:{POS_TX};padding:3px 9px;border-radius:20px;">New today</span>'
+            if b.get("is_new") else ""
+        )
         cards.append(
             f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
             f'style="background:{SURFACE};border:1px solid {BORDER};border-radius:10px;margin-bottom:8px;">'
             f'<tr><td style="padding:12px 14px;">'
             f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
             f'<td style="font-size:15px;font-weight:700;">{code_html} '
-            f'<span style="font-size:11px;font-weight:400;color:{MUTED};">{name}</span></td>'
+            f'<span style="font-size:11px;font-weight:400;color:{MUTED};">{_esc(name)}</span></td>'
             f'<td style="text-align:right;white-space:nowrap;font-size:14px;color:{TEXT};font-weight:700;">'
             f'{_money(b.get("ltp"))}{_chg_inline(b.get("change_pct"))}</td>'
             f'</tr></table>'
-            f'<div style="font-size:13px;color:{TEXT2};line-height:1.5;margin-top:5px;">{reason}</div>'
+            f'<div style="font-size:13px;color:{TEXT2};line-height:1.5;margin-top:5px;">{_esc(reason)}</div>'
             f'<span style="display:inline-block;margin-top:8px;font-size:11px;font-weight:700;'
-            f'background:{bg};color:{fg};padding:3px 10px;border-radius:20px;">{label}</span>'
+            f'background:{bg};color:{fg};padding:3px 10px;border-radius:20px;">{label}</span>{new_chip}'
             f'</td></tr></table>'
         )
+    more = ""
+    if total > len(buys):
+        more = (f'<div style="font-size:12px;color:{MUTED};padding:2px 0 4px;">'
+                f'{total - len(buys)} more stocks carry a buy signal today.</div>')
     return (
-        _section_label("Today's top buys")
+        _section_label("Today's buys")
         + f'<tr><td style="padding:0 24px 2px;color:{TEXT2};font-size:12px;">'
         f"Our system's strongest picks after today's close</td></tr>"
-        + f'<tr><td style="padding:8px 24px 0;">{"".join(cards)}</td></tr>'
+        + f'<tr><td style="padding:8px 24px 0;">{"".join(cards)}{more}</td></tr>'
+    )
+
+
+def _daily_learn(learn: Optional[dict]) -> str:
+    """One concept, taught off a real stock in today's data — the block that
+    makes the mail worth opening on a day when nothing moved."""
+    if not learn or not learn.get("concept"):
+        return ""
+    body = f'<div style="font-size:14px;color:{TEXT};line-height:1.6;">{_esc(learn["concept"])}</div>'
+    if learn.get("concept_bn"):
+        body += _bn_line(learn["concept_bn"], size=13, pad_top=8)
+    if learn.get("code"):
+        fact = ""
+        if learn.get("fact_value"):
+            fact = (f' — <b style="color:{WARM_TX};">{_esc(str(learn["fact_value"]))}</b>'
+                    f' {_esc((learn.get("fact_label") or "").lower())}')
+        code_html = (f'<a href="{learn["url"]}" style="color:{INDIGO};text-decoration:none;font-weight:700;">'
+                     f'{learn["code"]}</a>' if learn.get("url") else f'<b>{learn["code"]}</b>')
+        body += (f'<div style="font-size:12px;color:{MUTED};margin-top:10px;">'
+                 f'Seen today in {code_html}{fact}</div>')
+    return (
+        _section_label("One thing worth knowing")
+        + f'<tr><td style="padding:0 24px 2px;">'
+        f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:{WARM_BG};border-radius:10px;">'
+        f'<tr><td style="padding:13px 15px;">{body}</td></tr></table></td></tr>'
+    )
+
+
+def _rot_rows(items: list[dict]) -> str:
+    rows = []
+    last = len(items) - 1
+    for i, it in enumerate(items):
+        border = "" if i == last else f"border-bottom:1px solid {CELL};"
+        left = it.get("left") or ""
+        url = it.get("url")
+        left_html = (f'<a href="{url}" style="color:{INDIGO};text-decoration:none;font-weight:700;">{_esc(left)}</a>'
+                     if url else f'<b style="color:{TEXT};">{_esc(left)}</b>')
+        sub = (f'<span style="color:{MUTED};font-size:11px;"> {_esc(it["sub"])}</span>'
+               if it.get("sub") else "")
+        note = (f'<div style="font-size:11px;color:{MUTED};margin-top:2px;">{_esc(it["note"])}</div>'
+                if it.get("note") else "")
+        tone = it.get("tone")
+        colour = {"pos": POS, "neg": NEG, "warm": WARM_TX}.get(tone, TEXT)
+        rows.append(
+            f'<tr style="{border}"><td style="padding:9px 0;font-size:13px;">{left_html}{sub}{note}</td>'
+            f'<td style="text-align:right;white-space:nowrap;padding:9px 0;font-size:13px;'
+            f'font-weight:700;color:{colour};">{_esc(str(it.get("right") or ""))}</td></tr>'
+        )
+    return f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0">{"".join(rows)}</table>'
+
+
+def _daily_rotating(rot: Optional[dict]) -> str:
+    """The angle of the day — a different one each weekday, so five straight
+    days of this mail never show the same middle block twice."""
+    if not rot:
+        return ""
+    inner = ""
+    if rot.get("prose"):
+        p = rot["prose"]
+        if p.get("headline"):
+            inner += f'<div style="font-size:15px;font-weight:700;color:{TEXT};line-height:1.5;">{_esc(p["headline"])}</div>'
+        if p.get("bottom_line"):
+            inner += f'<div style="font-size:13px;color:{TEXT2};line-height:1.6;margin-top:7px;">{_esc(p["bottom_line"])}</div>'
+        if p.get("bottom_line_bn"):
+            inner += _bn_line(p["bottom_line_bn"], size=13, pad_top=8)
+    elif rot.get("items"):
+        inner = _rot_rows(rot["items"])
+    if not inner:
+        return ""
+
+    sub = (f'<tr><td style="padding:0 24px 2px;color:{TEXT2};font-size:12px;">{_esc(rot["subtitle"])}</td></tr>'
+           if rot.get("subtitle") else "")
+    bn = (f'<tr><td style="padding:2px 24px 0;">{_bn_line(rot["bn"], size=12, pad_top=0)}</td></tr>'
+          if rot.get("bn") else "")
+    more = ""
+    if rot.get("more_url") and rot.get("more_text"):
+        more = (f'<div style="margin-top:10px;"><a href="{rot["more_url"]}" '
+                f'style="font-size:12px;color:{INDIGO};text-decoration:none;font-weight:700;">'
+                f'{_esc(rot["more_text"])} →</a></div>')
+    return (
+        _section_label(rot.get("title") or "Also today")
+        + sub + bn
+        + f'<tr><td style="padding:8px 24px 0;">'
+        f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
+        f'style="background:{SURFACE};border:1px solid {BORDER};border-radius:10px;">'
+        f'<tr><td style="padding:10px 14px;">{inner}{more}</td></tr></table></td></tr>'
+    )
+
+
+def _daily_headlines(items: list[dict]) -> str:
+    """Three company headlines — cheap to build, and the thing that makes the
+    mail feel like today rather than a monthly summary."""
+    if not items:
+        return ""
+    rows = []
+    last = len(items) - 1
+    for i, n in enumerate(items):
+        border = "" if i == last else f"border-bottom:1px solid {CELL};"
+        title = _esc(n.get("title") or "")
+        url = n.get("url")
+        title_html = (f'<a href="{url}" style="color:{TEXT};text-decoration:none;">{title}</a>'
+                      if url else title)
+        meta = " · ".join(x for x in [n.get("code"), n.get("when")] if x)
+        rows.append(
+            f'<tr style="{border}"><td style="padding:9px 0;">'
+            f'<div style="font-size:13px;color:{TEXT};line-height:1.5;">{title_html}</div>'
+            f'<div style="font-size:11px;color:{MUTED};margin-top:2px;">{_esc(meta)}</div></td></tr>'
+        )
+    return (
+        _section_label("In the news")
+        + f'<tr><td style="padding:0 24px 2px;">'
+        f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0">{"".join(rows)}</table>'
+        f'</td></tr>'
     )
 
 
@@ -501,42 +771,29 @@ def _daily_scorecard(sc: Optional[dict]) -> str:
     tail = f" · {up} of {total} up" if up is not None and total else ""
     label = sc.get("date_label")
     head = f"How our {label} picks did" if label else "How yesterday's picks did"
+    rec = sc.get("record")
+    rec_line = ""
+    if rec and rec.get("total"):
+        rec_line = (
+            f'<div style="font-size:12px;color:{POS_TX};margin-top:6px;opacity:.9;">'
+            f'Across the last {rec["emails"]} emails, {rec["up"]} of {rec["total"]} featured picks '
+            f'are higher now than when we showed them.</div>'
+        )
     return (
         f'<tr><td style="padding:10px 24px 4px;">'
         f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:{POS_BG};border-radius:10px;">'
         f'<tr><td style="padding:12px 14px;">'
         f'<div style="font-size:12px;font-weight:700;color:{POS_TX};">{head}</div>'
         f'<div style="font-size:13px;color:{POS_TX};margin-top:4px;line-height:1.5;">{line} — one day later{tail}.</div>'
+        f'{rec_line}'
         f'</td></tr></table></td></tr>'
     )
 
 
-def _daily_extras(x: Optional[dict]) -> str:
-    """Biggest mover / most traded / fresh dividends — one rotating strip."""
-    if not x:
-        return ""
-    lines = []
-    g = x.get("top_gainer")
-    if g and g.get("code"):
-        lines.append(f'<b style="color:{TEXT};">Biggest jump today:</b> {g["code"]}{_chg_inline(g.get("change_pct"))}')
-    mt = x.get("most_traded")
-    if mt and mt.get("code"):
-        cr = mt.get("value_cr")
-        lines.append(f'<b style="color:{TEXT};">Most traded:</b> {mt["code"]}' + (f' · ৳{cr:,.0f}cr traded' if cr else ""))
-    dc = x.get("dividends_count")
-    if dc:
-        lines.append(f'<b style="color:{TEXT};">Just announced:</b> {dc} companies declared dividends')
-    if not lines:
-        return ""
-    return (
-        _section_label("Also today")
-        + f'<tr><td style="padding:0 24px;font-size:13px;color:{TEXT2};line-height:1.8;">{"<br>".join(lines)}</td></tr>'
-    )
-
-
-def build_daily_html(*, content: dict, unsubscribe_url: str, pixel_url: str) -> str:
+def build_daily_html(*, content: dict, unsubscribe_url: str, pixel_url: str,
+                     personal: Optional[dict] = None) -> str:
     """Assemble the full daily email. `content` is shared across all recipients;
-    only unsubscribe_url + pixel_url are per-user."""
+    `personal` (their own movers), unsubscribe_url and pixel_url are per-user."""
     preheader = content.get("preheader", "")
     date_label = content.get("date_label", "")
     mood = content.get("mood", "")
@@ -556,11 +813,18 @@ def build_daily_html(*, content: dict, unsubscribe_url: str, pixel_url: str) -> 
         f'line-height:1.7;font-family:{_BN_FONT};">{tagline_bn}</div></td></tr>' if tagline_bn else ""
     )
 
+    # Order matters: the day's narrative, then the numbers, then the reader's
+    # own stocks, then what to look at, then something to learn, then the news.
     inner = "".join(s for s in [
+        _daily_story(content.get("story")),
         _daily_glance(content.get("market") or {}),
-        _daily_buys(content.get("buys") or []),
+        _daily_personal(personal),
+        _daily_stories(content.get("stories") or []),
+        _daily_buys(content.get("buys") or [], content.get("buys_total") or 0),
+        _daily_learn(content.get("learn")),
+        _daily_rotating(content.get("rotating")),
+        _daily_headlines(content.get("headlines") or []),
         _daily_scorecard(content.get("scorecard")),
-        _daily_extras(content.get("extras")),
     ] if s)
 
     return f"""<!DOCTYPE html>
