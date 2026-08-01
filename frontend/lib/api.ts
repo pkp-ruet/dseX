@@ -1418,6 +1418,8 @@ export interface AdminFeedbackItem {
   user_id: string | null;
   user_email: string | null;
   user_name: string | null;
+  /** Approved for public display on the landing page. */
+  featured: boolean;
   created_at: string;
 }
 
@@ -1426,6 +1428,7 @@ export interface AdminFeedbackStats {
   average: number | null;
   distribution: Record<string, number>; // "1".."5" -> count
   with_comment: number;
+  featured: number;
 }
 
 export interface AdminFeedbackResponse {
@@ -1435,6 +1438,47 @@ export interface AdminFeedbackResponse {
 
 export async function apiGetAdminFeedback(): Promise<AdminFeedbackResponse> {
   return apiAuthFetch<AdminFeedbackResponse>("/api/admin/feedback");
+}
+
+/** Approve / un-approve one review for public display on the landing page.
+ *  Nothing a user writes goes public until it is featured here. */
+export async function apiFeatureFeedback(
+  id: string,
+  featured: boolean,
+): Promise<{ ok: boolean; id: string; featured: boolean }> {
+  return apiAuthFetch(`/api/admin/feedback/${id}/feature`, {
+    method: "POST",
+    body: JSON.stringify({ featured }),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Public trust signals (landing page)
+// ---------------------------------------------------------------------------
+
+export interface Testimonial {
+  name: string | null;
+  rating: number | null;
+  comment: string;
+  date: string | null;
+}
+
+export interface TrustStats {
+  user_count: number;
+  review_count: number;
+  review_average: number | null;
+  testimonials: Testimonial[];
+}
+
+/** Real, checkable numbers for the landing page's trust block. Carries no
+ *  performance or accuracy claim — by design.
+ *
+ *  Revalidates daily to keep the landing page on its own 1-day ISR cadence (the
+ *  route inherits the shortest revalidate among its fetches). It also carries
+ *  the `market-data` tag, so the scraper's revalidate hook refreshes it with
+ *  everything else, and an admin publishing a review can purge it the same way. */
+export async function getTrust(): Promise<TrustStats> {
+  return apiFetch<TrustStats>("/api/trust", 86400);
 }
 
 // ---------------------------------------------------------------------------

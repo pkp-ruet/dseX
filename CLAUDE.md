@@ -13,7 +13,7 @@ Guidance for Claude Code when working in this repository.
 - **Scrapers**: Python (requests + BeautifulSoup + lxml)
 - **Auth**: JWT (HS256) via `python-jose` · `bcrypt` for password hashing · Google Sign-In via `google-auth` (backend ID-token verification) and `@react-oauth/google` (frontend)
 - **Theme**: **light-only, mobile-first** (no dark mode). All colors are CSS custom properties in `app/globals.css :root` (`--bg`, `--surface`, `--surface-2`, `--text`, `--text-muted`, `--border`, `--primary` #2563EB, `--accent`, `--positive` #15803D, `--negative` #DC2626, tier vars `--strong-buy`/`--safe-buy`/`--watch`/`--avoid` + `--np-*`). Dark mode + `ThemeToggle` were removed. Use tokens (never hardcoded dark hex); components target ~360px first, enhance with `sm:`/`md:`.
-- **Fonts**: Latin UI fonts (Inter / Playfair / Space Grotesk) are loaded in `app/layout.tsx` with the `latin` subset only — they carry **no Bengali glyphs**. Bengali (বাংলা) content uses **Hind Siliguri** (`--font-bengali`), opted into via the `.font-bn` utility class (sets the font + comfortable line-height). Wrap any Bengali page/region in `.font-bn` and set `lang="bn"` (see `/blog`).
+- **Fonts**: Latin UI fonts (Inter / Playfair / Space Grotesk) are loaded in `app/layout.tsx` with the `latin` subset only — they carry **no Bengali glyphs**. Bengali (বাংলা) content uses **Hind Siliguri** (`--font-bengali`), opted into via the `.font-bn` utility class (sets the font + comfortable line-height). Wrap any Bengali page/region in `.font-bn` and set `lang="bn"` (see `/blog`). For a Bengali line inside otherwise-English copy use `components/i18n/Bn.tsx`, which sets both for you.
 - **Deployment**: Frontend on Vercel, Backend on Render, DB on MongoDB Atlas
 
 No Streamlit. The app is Next.js + Python only.
@@ -158,7 +158,14 @@ Scrapers must use upsert logic to avoid duplicates.
 
 `app/page.tsx` is a server component that renders the **light marketing landing** (SSR for SEO) wrapped in `<HomePersonalizationGate>` (client). The gate reads `useAuth()`: logged-out (and crawlers / first paint) see the marketing children; logged-in users get `<PersonalizedHome>` instead (client, no SEO need) — no hydration mismatch since the server always renders the marketing markup.
 
-- **Marketing landing** (logged-out): `HomeHero` (headline + dual CTA via `SignupCtas` — Google block only renders when `NEXT_PUBLIC_GOOGLE_CLIENT_ID` set — + live fundamental-score ranking preview) → `SearchSection` (reuses `SearchBar` → `/stock/[code]`) → `FeatureShowcase` (4 pillars: Stock Analysis w/ `SampleAnalysisCard` + global-search CTA, Rankings w/ `LiveRankingPreview`, Watchlist w/ `WatchlistMockup`, Portfolio w/ `PortfolioMockup`) → `DataScaleStats` → discovery (`Top20MomentumTeaser`, `PopularTeaser`, `StockListPreview` A–Z, `InsightsTeaserStrip`) → `FinalCTA`.
+- **Marketing landing** (logged-out) — rebuilt from scratch 2026-07-29. **The page has ONE job: look like the most credible stock platform in Bangladesh.** That constrains everything else, so before changing it read the rules below.
+  - **Language: English headline + Bengali explanation. No toggle.** Every headline is English in **easy words**, with **one simple Bengali line directly under it**. Use `components/i18n/SectionHead.tsx` for section heads (eyebrow + `<h2>` + Bengali sub-line) and `components/i18n/Bn.tsx` for a Bengali line anywhere else — `Bn` applies `lang="bn"` + `.font-bn`, which Bengali needs or it renders as boxes. **Small UI text stays English only** (chips, buttons, table headers, metric labels, pillar names in the hero card): doubling one-word labels wrecks dense layouts. A previous cut of this page had a বাংলা/English toggle with both languages in the DOM — the user removed it; **do not reintroduce it.**
+  - **Hard "no" list** (user decisions, do not re-litigate): **no performance or track-record claims** of any kind (no past-signal returns, no "X% of our Excellent picks are up", no backtest numbers) · no premium/pricing block — everything is free and "free" is itself a trust signal · no named third-party data sources.
+  - **Colour is deliberate, not decorative** (revised after the user found the first cut "too boring"). Every block owns an **accent** passed into `SectionHead` (`accent` + `icon` → tinted eyebrow pill, and `highlight` paints the last phrase of the headline). Cards use the `--acc` custom-property utilities in `globals.css`: `.acc-top` (gradient hairline), `.icon-tile` / `.icon-tile-sm` (gradient icon square), `.acc-card` (accent-tinted hover), `.acc-panel` (soft tinted panel), plus `.hero-glow` and `.live-dot`. The rhythm: hero clay→steel gradient · TrustStrip steel · CoreFeatures steel/emerald/gold/clay per card · LiveToday emerald/gold/clay per slot · WaysToFind emerald/gold/steel · ReportAnatomy navy + tier colour · StartFromZero steel · close clay→steel. Market semantics stay locked (`--positive`/`--negative`, tier vars) — never re-purpose those for decoration. Still no count-up animations and no auto-advancing carousels; motion is scoped to block 5's picker.
+  - **Features come before prose.** The first cut put trust + method as two full sections at positions 2–3 and buried the product; the user rejected that. **Do not move the long-form credibility copy back above the features.** Rankings / Portfolio / Watchlist / Alerts are the reason people visit, so they sit at block 3.
+  - **No prose sections explaining the scoring.** Two of them shipped in earlier cuts (a full trust section, then a compressed method section headed "How the score is built / The rules are public") and the user cut **both**. The written-out method lives on `/about`, linked from the footer on every page. **Do not add a scoring-explainer section back to `/`.** What carries credibility on the page instead: the `TrustStrip` numbers, the real report in the hero, and the five checks shown as bars inside that card.
+  - **Seven blocks, one job each:** 1 `LandingHero` (English headline + Bengali line + `StockLookup` + `MiniReport` — a real report for a familiar company already on screen; the lookup filters the in-memory `/api/scores` payload so results appear on the keystroke, no request) → 2 `TrustStrip` (**thin** one-row strip: companies scored, sectors covered, live signup count, star average, plus a single "no tips, no rumours / where the data comes from" line — no paragraphs) → 3 `CoreFeatures` (**the promoted block** — Rankings w/ real `LiveRankingPreview`, Portfolio, Watchlist, Alerts in a 2×2 grid; title + one line + visual each, `No login needed` / `Free account` tag per card) → 4 `LiveToday` (`MarketTodayCard` + the three standouts from `pickStoryStocks`) → 5 `WaysToFind` (3 doors — Signals / Lists / A–Z, deliberately **not** Rankings since block 3 owns it — plus the relocated 3-question picker via `FindMyStocks`, wrapped in `MotionProvider`; remaining tools as a plain link row) → 6 `ReportAnatomy` (the 8 sections really on `/stock/[code]`, with a live example panel) → 7 `StartFromZero` (Bengali `/blog` entry points) + `LandingClose` (admin-approved review quotes + one ask).
+  - Trust numbers come from `getTrust()` → `GET /api/trust`. Review quotes are **only** ever the ones an admin featured in `/admin/feedback` — nothing a user types reaches the landing page unmoderated.
 - **Personalized dashboard** (`PersonalizedHome`, logged-in): `DailyBriefing` onboarding checklist (only while setup incomplete — two steps, build-watchlist + personalize; adding a portfolio is sold by the money hero itself, so it's not a step). Then a bento (main column + "Explore" aside on desktop; single column on mobile). **Chapter 1 — Your money** (money-first so a returning user's value is above the fold): the money hero with `HeroGreeting` (date + time-of-day greeting + live `MarketStatusPill` + follow-count/streak) folded into its top — `MoneyHero` (animated portfolio value + today's ৳/% move + beating/trailing-DSEX chip + total-P/L chip + A–F grade via `analyzePortfolio`), `MoneyHeroGhost` when no holdings, `MoneyHeroSkeleton` while the portfolio fetch is in flight → `AttentionStrip` (**the single home for "what happened on your stocks today"** — an alerts list from `buildHomeAlerts`, else one calm daily-brief line from `buildDailyBrief`; replaces the old header bell + Alerts stat-tile + brief line) → `StatTiles` (three non-overlapping glances: watchlist pulse w/ advancing bar, then two of {next dividend, DSEX today, best mover}; dynamic columns) → `MyStocksToday` (holdings ∪ watchlist merged, sorted by |move|, H/★ tags + 52w/dividend chips) → `NewsPeek` (stacked latest-3 headlines, no auto-rotate) → `InstallHomeBanner` → `SearchBar` (demoted below the money block). **Chapter 2 — Ideas for you**: `SectionHeader` (title "Your ideas today", or "Ideas for you today" when untuned; date + "N new" chips fed by `daily_picks.new_codes`) + `IdeasCard` (one card, **Picks / Buys / Tips** segmented tabs merging daily picks, whole-market buy signals, and daily tips; personalize nudge when untuned; per-tab "See all" + Tune; last tab in localStorage). **Explore aside** under a quiet `SectionLabel`: `MarketTodayCard` (merged index band + market-analysis snapshot: mood headline, DSEX/DSES/DS30, breadth bar, deep-linked tiles, one CTA), `DiscoverCard` (chip-tabbed Top ranked / Top 20 / Insights previews with in-row watchlist stars and New/▲ day-delta tags via `lib/daily-delta.ts`), `CoreFeatureTiles` (Browse A–Z + Bengali blog quick-links row).
 
 **Component tree:**
@@ -167,20 +174,41 @@ Scrapers must use upsert logic to avoid duplicates.
 components/
 ├── layout/
 │   ├── Navbar.tsx, Footer.tsx, MobileBottomBar.tsx
-├── home/                          — current (light) homepage
+├── i18n/                          — bilingual copy helpers (see Homepage rules above)
+│   ├── SectionHead.tsx            — eyebrow + English <h2> + Bengali sub-line
+│   └── Bn.tsx                     — one Bengali line (sets lang="bn" + .font-bn)
+├── landing/                       — the logged-out landing page, 7 blocks in order
+│   ├── LandingHero.tsx, StockLookup.tsx, MiniReport.tsx    — block 1
+│   ├── TrustStrip.tsx                                      — block 2 (thin)
+│   ├── CoreFeatures.tsx                                    — block 3 (promoted)
+│   ├── LiveToday.tsx                                       — block 4 (standouts = home/StandoutCard)
+│   ├── WaysToFind.tsx, FindMyStocks.tsx                    — block 5
+│   ├── ReportAnatomy.tsx                                   — block 6
+│   └── StartFromZero.tsx, LandingClose.tsx                 — block 7
+├── home/                          — logged-in dashboard + shared homepage parts
 │   ├── HomePersonalizationGate.tsx, PersonalizedHome.tsx
-│   ├── HomeHero.tsx, SignupCtas.tsx, SearchBar.tsx, LiveMarketBand.tsx
-│   ├── FeatureShowcase.tsx, SampleAnalysisCard.tsx, LiveRankingPreview.tsx
-│   ├── WatchlistMockup.tsx, PortfolioMockup.tsx, DataScaleStats.tsx, FinalCTA.tsx
-│   ├── StockListPreview.tsx, InsightsTeaserStrip.tsx
+│   ├── SearchBar.tsx, SignupCtas.tsx
+│   ├── WatchlistMockup.tsx, PortfolioMockup.tsx, PriceAlertMockup.tsx  — reused by landing block 7
+│   ├── HeroMiniQuiz.tsx, HeroQuizResult.tsx      — reused by landing block 6
+│   ├── StandoutCard.tsx           — one daily standout as a small report card (slot + its
+│   │                                number, grade, price/today + the two figures it isn't
+│   │                                about, the five pillar bars, verdict). Shared by landing
+│   │                                block 4 and dashboard personalized/StoriesCard.
+│   ├── LiveRankingPreview.tsx, StockListPreview.tsx, InsightsTeaserStrip.tsx
 │   ├── Top20MomentumTeaser.tsx, PopularTeaser.tsx
 │   ├── personalized/
 │   │   ├── HeroGreeting.tsx, MoneyHero.tsx (+ MoneyHeroGhost, MoneyHeroSkeleton), AttentionStrip.tsx
 │   │   ├── DailyBriefing.tsx, StatTiles.tsx, MyStocksToday.tsx, NewsPeek.tsx
+│   │   ├── StoriesCard.tsx        — "Three worth knowing today": heading + three StandoutCards
+│   │   │                            (no outer frame). Aside top on desktop, under the news on mobile.
 │   │   ├── IdeasCard.tsx, MarketTodayCard.tsx, DiscoverCard.tsx, CoreFeatureTiles.tsx
 │   │   ├── StreakBadge.tsx, MarketStatusPill.tsx, PullToRefresh.tsx, SetupCard.tsx
 │   │   └── (legacy, unused: WelcomeHeader, AlertsBell, ForYouCard, BuySignalsCard, NewsSlider,
 │   │        DailyPicksCard, MarketAnalysisCard, InsightsPreview, Top20Preview, ForYouTeaser)
+│   ├── (retired by the 2026-07-29 landing rebuild — kept, but nothing imports them:
+│   │    HomeHero, HeroGradeReveal, SignupSlideshow, HowItWorks, ExploreMore,
+│   │    StatsCountUp, RankingPromo, ThreeStoriesSection, LearnPromoCard, FinalCTA,
+│   │    FeatureShowcase, SampleAnalysisCard, DataScaleStats)
 │   └── (legacy, unused on `/`: Masthead, NavHighlights, TickerBand,
 │        MarketIndexBanner [still used by market-analysis + dse-today], MarketMovers,
 │        MarketIntelStrip, TopRankings, FilterBar, HowWeScoreBox, HomeSidebar,
@@ -250,6 +278,7 @@ Public / cached (Next ISR):
 - `getDseToday()` → `/api/dse-today` (900s)
 - `getStockLists()` → `/api/stock-lists` (3600s)
 - `getNearExtremes()` → `/api/market/near-extremes` (900s)
+- `getTrust()` → `/api/trust` (86400s) — landing-page trust block: signup count, star average, admin-approved review quotes. **Never** carries a performance claim.
 - `getInsightScores()` — flattens all tiers from `/api/scores`
 
 Client-side, no cache:
@@ -262,6 +291,7 @@ Auth (Bearer token via `lib/auth.ts`):
 - `apiGetWatchlist`, `apiSetWatchlist`, `apiAddToWatchlist`, `apiRemoveFromWatchlist` → `/api/user/watchlist*`
 - `apiGetPortfolio`, `apiAddHolding`, `apiUpdateHolding`, `apiDeleteHolding` → `/api/user/portfolio*`
 - `apiGetAdminAnalytics` → `/api/admin/analytics`
+- `apiGetAdminFeedback`, `apiFeatureFeedback` → `/api/admin/feedback`, `POST /api/admin/feedback/:id/feature` (publish / unpublish one review on the landing page)
 
 A 401 response from `apiAuthFetch` triggers `logout()` and throws `AUTH_EXPIRED`.
 
@@ -271,6 +301,7 @@ A 401 response from `apiAuthFetch` triggers `logout()` and throws `AUTH_EXPIRED`
 - `guides.ts` — learn-page content (~14 KB)
 - `insight-utils.ts`, `verdict.ts` — shared insight / verdict helpers
 - `formatters.ts`, `constants.ts`, `market-hours.ts` — formatting + market-open utilities
+- `landing.ts` — landing-page data: the compact `LandingStock` projection of `/api/scores` the hero lookup runs off, `pickHeroCode()` (familiar-name preference), and `PILLARS` (just the five plain-language pillar names for the hero card's bars — weights and explanations live on `/about`)
 - `daily-delta.ts` — per-device localStorage diff of the homepage discovery lists (powers the New/▲ "since your last visit" tags)
 
 **Frontend env vars:**
@@ -296,7 +327,8 @@ A 401 response from `apiAuthFetch` triggers `logout()` and throws `AUTH_EXPIRED`
 | `routers/auth.py` | `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/google`, `GET /api/auth/me`, `POST /api/auth/ping` | Account creation, login, Google sign-in, current user, visit ping |
 | `routers/user.py` | `GET/PUT /api/user/watchlist`, `PATCH /api/user/watchlist/add`, `PATCH /api/user/watchlist/remove`, `PATCH /api/user/profile` | User watchlist + profile updates |
 | `routers/portfolio.py` | `GET /api/user/portfolio`, `POST /api/user/portfolio/holdings`, `PUT/DELETE /api/user/portfolio/holdings/:id` | Portfolio CRUD |
-| `routers/admin.py` | `GET /api/admin/analytics` | User analytics (admin-only via `ADMIN_EMAILS`) |
+| `routers/admin.py` | `GET /api/admin/analytics`, `GET /api/admin/feedback`, `POST /api/admin/feedback/:id/feature` | User analytics + review moderation (admin-only via `ADMIN_EMAILS`) |
+| `routers/trust.py` | `GET /api/trust` | Public landing-page trust block: signup count, star average, **admin-approved** review quotes only. Never serves a performance/accuracy claim — do not add one here. |
 
 App-level: `GET /health` (DB ping + JSON), `HEAD /health` (uptime monitor short-circuit), CORS allowlist via `ALLOWED_ORIGINS` plus a regex for `*.vercel.app`.
 

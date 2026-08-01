@@ -785,3 +785,23 @@ def admin_list_feedback(_: dict = Depends(get_current_admin_user)):
     """All feedback (newest first) + summary stats."""
     from backend.services.feedback_service import list_feedback, feedback_stats
     return {"stats": feedback_stats(), "items": list_feedback()}
+
+
+class FeatureFeedbackRequest(BaseModel):
+    featured: bool
+
+
+@router.post("/feedback/{feedback_id}/feature")
+def admin_feature_feedback(
+    feedback_id: str,
+    payload: FeatureFeedbackRequest,
+    _: dict = Depends(get_current_admin_user),
+):
+    """Approve (or un-approve) one review for public display on the landing page.
+    Nothing a user writes appears publicly until it is featured here."""
+    from backend.services.feedback_service import set_featured, public_trust_stats
+    if not set_featured(feedback_id, payload.featured):
+        raise HTTPException(status_code=404, detail="Feedback not found")
+    # The public block is TTL-cached; drop it so moderation takes effect at once.
+    public_trust_stats.cache_clear()
+    return {"ok": True, "id": feedback_id, "featured": payload.featured}

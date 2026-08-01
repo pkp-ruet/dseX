@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import {
   apiGetAdminFeedback,
+  apiFeatureFeedback,
   type AdminFeedbackResponse,
   type AdminFeedbackItem,
 } from "@/lib/api";
@@ -60,6 +61,7 @@ export default function AdminFeedbackClient() {
 
   const [data, setData] = useState<AdminFeedbackResponse | null>(null);
   const [loadError, setLoadError] = useState("");
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isLoading) return;
@@ -84,6 +86,33 @@ export default function AdminFeedbackClient() {
     if (!isAdmin) return;
     refetch();
   }, [isAdmin, refetch]);
+
+  /** Publish / unpublish one review on the landing page's trust block. */
+  const toggleFeatured = useCallback(async (f: AdminFeedbackItem) => {
+    setBusyId(f.id);
+    setLoadError("");
+    try {
+      await apiFeatureFeedback(f.id, !f.featured);
+      setData((prev) =>
+        prev
+          ? {
+              ...prev,
+              stats: {
+                ...prev.stats,
+                featured: prev.stats.featured + (f.featured ? -1 : 1),
+              },
+              items: prev.items.map((x) =>
+                x.id === f.id ? { ...x, featured: !f.featured } : x,
+              ),
+            }
+          : prev,
+      );
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : "Could not update");
+    } finally {
+      setBusyId(null);
+    }
+  }, []);
 
   if (isLoading || (!isAdmin && !loadError)) {
     return (
@@ -112,6 +141,8 @@ export default function AdminFeedbackClient() {
           </h1>
           <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-1">
             Star ratings and comments from the homepage band and the signed-in popup.
+            Use <span className="font-semibold text-[var(--text)]">Publish</span> to show a
+            review on the landing page — nothing goes public until you do.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -144,6 +175,9 @@ export default function AdminFeedbackClient() {
               <p className="text-3xl font-extrabold text-[var(--text)] nums">{stats.average ?? "—"}</p>
               <p className="text-xs text-[var(--text-muted)] mt-0.5">
                 avg · {stats.total} review{stats.total === 1 ? "" : "s"}
+              </p>
+              <p className="text-xs text-[var(--text-muted)] mt-0.5 nums">
+                {stats.featured} published
               </p>
             </div>
             <div className="flex-1 min-w-[200px] flex flex-col gap-1.5">
@@ -190,6 +224,34 @@ export default function AdminFeedbackClient() {
                 </span>
                 {f.user_email && f.user_name && <span>· {f.user_email}</span>}
                 {f.page && f.page !== "/" && <span>· {f.page}</span>}
+
+                {/* Publish control — only a comment can be shown publicly, and
+                    only the reviewer's first name goes with it. */}
+                <span className="ml-auto flex items-center gap-2">
+                  {f.featured && (
+                    <span
+                      className="inline-flex items-center rounded-full px-2 py-0.5 font-bold"
+                      style={{
+                        color: "var(--positive)",
+                        background: "color-mix(in srgb, var(--positive) 12%, transparent)",
+                      }}
+                    >
+                      Live on landing
+                    </span>
+                  )}
+                  {f.comment ? (
+                    <button
+                      type="button"
+                      onClick={() => toggleFeatured(f)}
+                      disabled={busyId === f.id}
+                      className="rounded-full border border-[var(--border)] px-2.5 py-1 font-bold text-[var(--text)] transition hover:border-[color-mix(in_srgb,var(--primary)_45%,var(--border))] hover:text-[var(--primary)] disabled:opacity-50"
+                    >
+                      {busyId === f.id ? "…" : f.featured ? "Unpublish" : "Publish"}
+                    </button>
+                  ) : (
+                    <span className="opacity-60">No comment to publish</span>
+                  )}
+                </span>
               </div>
             </Card>
           ))

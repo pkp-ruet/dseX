@@ -4,323 +4,292 @@ import {
   flattenTiers,
   getScores,
   getMarketIndex,
-  getMarketMovers,
-  getCompanyDetail,
-  getTop20,
   getDividendsUpcoming,
   getMarketState,
+  getTrust,
   type ScoresResponse,
   type ScoreItem,
   type MarketIndexData,
-  type MarketMoversData,
-  type Top20Response,
-  type StockSignalInfo,
   type DividendsUpcoming,
   type MarketStateData,
+  type TrustStats,
 } from "@/lib/api";
-import { getTier, TIER_MEANINGS_BN } from "@/lib/constants";
-import HomeHero from "@/components/home/HomeHero";
-import { type HeroStock } from "@/components/home/HeroGradeReveal";
-import LearnPromoCard from "@/components/home/LearnPromoCard";
-import SignupSlideshow from "@/components/home/SignupSlideshow";
-import RankingPromo from "@/components/home/RankingPromo";
-import ThreeStoriesSection from "@/components/home/ThreeStoriesSection";
 import { pickStoryStocks } from "@/lib/home-stories";
-import FinalCTA from "@/components/home/FinalCTA";
+import { toLandingStock, pickHeroCode, type LandingStock } from "@/lib/landing";
 import HomePersonalizationGate from "@/components/home/HomePersonalizationGate";
-import ExploreMore from "@/components/home/ExploreMore";
-import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
-import HowItWorks from "@/components/home/HowItWorks";
-import StatsCountUp from "@/components/home/StatsCountUp";
+import LandingHero from "@/components/landing/LandingHero";
+import TrustStrip from "@/components/landing/TrustStrip";
+import CoreFeatures from "@/components/landing/CoreFeatures";
+import ReportAnatomy from "@/components/landing/ReportAnatomy";
+import LiveToday from "@/components/landing/LiveToday";
+import WaysToFind from "@/components/landing/WaysToFind";
+import StartFromZero from "@/components/landing/StartFromZero";
+import LandingClose from "@/components/landing/LandingClose";
 import FeedbackSection from "@/components/feedback/FeedbackSection";
-import MotionProvider from "@/components/motion/MotionProvider";
 
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: "DSE Stock Analysis, Rankings & Share Price — TopStockBD",
   description:
-    "Free fundamental analysis for every Dhaka Stock Exchange (DSE) company. Score, rank, watch and track DSE stocks — find what's worth owning, plus live DSEX rankings and Bangladesh stock market data.",
+    "Free fundamental analysis for every Dhaka Stock Exchange (DSE) company, in Bengali and English. See the score, the five checks behind it, and today's rankings before you buy. No tips, no rumours.",
+  keywords: [
+    "DSE stock analysis", "DSE share price", "Dhaka Stock Exchange rankings",
+    "Bangladesh stock market analysis", "DSE fundamental analysis",
+    "শেয়ার বাজার", "শেয়ার বাজার বিশ্লেষণ", "কোন শেয়ার কিনব",
+    "ভালো শেয়ার চেনার উপায়", "ডিএসই শেয়ার দাম", "বাংলাদেশ শেয়ার বাজার",
+  ],
   alternates: { canonical: "/" },
   openGraph: {
     title: "DSE Stock Analysis, Rankings & Share Price — TopStockBD",
     description:
-      "Free fundamental scores, rankings, watchlists and portfolio tracking for every Dhaka Stock Exchange stock.",
+      "Free fundamental scores for every DSE company, in Bengali and English. The score, the method behind it, and today's market — all free.",
+    url: "/",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "DSE Stock Analysis, Rankings & Share Price — TopStockBD",
     description:
-      "Free fundamental scores, rankings, watchlists and portfolio tracking for every Dhaka Stock Exchange stock.",
+      "Free fundamental scores for every DSE company, in Bengali and English. No tips, no rumours.",
   },
 };
+
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 const JSON_LD = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "TopStockBD",
-  url: process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com",
+  url: BASE_URL,
+  inLanguage: ["bn", "en"],
   description:
-    "Free fundamental analysis, scores, rankings, watchlists and portfolio tracking for every Dhaka Stock Exchange (DSE) company.",
+    "Free fundamental analysis, scores, rankings, watchlists and portfolio tracking for every Dhaka Stock Exchange (DSE) company, in Bengali and English.",
   potentialAction: {
     "@type": "SearchAction",
     target: {
       "@type": "EntryPoint",
-      urlTemplate: `${process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com"}/stock/{search_term}`,
+      urlTemplate: `${BASE_URL}/stock/{search_term}`,
     },
     "query-input": "required name=search_term",
   },
 };
 
-function allItemsFromScores(scores: ScoresResponse): ScoreItem[] {
-  return flattenTiers(scores);
-}
-
 function sortedByScore(items: ScoreItem[]): ScoreItem[] {
   return [...items].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
 }
 
-/** One demo card for the hero. Prefer stocks that carry a Buy signal (strong
- *  first). Signals ride on the /api/scores payload; when they don't, we enrich
- *  the top names from company detail (authoritative source). */
-async function buildHeroStocks(all: ScoreItem[]): Promise<HeroStock[]> {
-  const scored = all.filter((s) => s.score != null);
-  if (scored.length === 0) return [];
+/** Round down to the nearest 50 so a headline count never over-claims. */
+function safeCount(n: number): number {
+  return Math.max(50, Math.floor(n / 50) * 50);
+}
 
-  const make = (s: ScoreItem, sig: StockSignalInfo | null): HeroStock => {
-    const tier = getTier(s.score);
-    const isBuy = sig?.signal === "buy";
-    return {
-      code: s.trading_code,
-      name: s.company_name ?? s.trading_code,
-      sector: s.sector,
-      score: s.score as number,
-      tier,
-      signal: isBuy ? "buy" : "none",
-      strength: isBuy ? sig?.strength ?? "normal" : null,
-      reasonBn: (isBuy ? sig?.reason_bn : null) || TIER_MEANINGS_BN[tier],
-      ltp: s.ltp,
-      changePct: s.change_pct,
-    };
+interface LandingData {
+  stocks: LandingStock[];
+  heroCode: string | null;
+  total: number;
+  sectors: number;
+}
+
+async function landingData(promise: Promise<ScoresResponse | null>): Promise<LandingData | null> {
+  const scores = await promise;
+  if (!scores) return null;
+  const items = sortedByScore(flattenTiers(scores));
+  if (items.length === 0) return null;
+  const stocks = items.map(toLandingStock);
+  return {
+    stocks,
+    heroCode: pickHeroCode(stocks),
+    total: items.length,
+    sectors: new Set(items.map((s) => s.sector).filter(Boolean)).size,
   };
+}
 
-  // Fast path — the scores payload already carries the signal.
-  const buysInline = scored.filter((s) => s.signal?.signal === "buy");
-  if (buysInline.length >= 3) {
-    return buysInline.slice(0, 3).map((s) => make(s, s.signal ?? null));
-  }
+// ---------------------------------------------------------------------------
+// Blocks. Each awaits only the data it needs so a slow endpoint can't hold up
+// the rest of the page.
+// ---------------------------------------------------------------------------
 
-  // Fallback — enrich the top names with the authoritative signal from detail.
-  const probe = scored.slice(0, 6);
-  const details = await Promise.all(
-    probe.map((s) => getCompanyDetail(s.trading_code).catch(() => null)),
+async function HeroBlock({ promise }: { promise: Promise<ScoresResponse | null> }) {
+  const data = await landingData(promise);
+  if (!data) return <HeroFallback />;
+  return (
+    <LandingHero
+      stocks={data.stocks}
+      initialCode={data.heroCode}
+      totalCount={safeCount(data.total)}
+    />
   );
-  const candidates = probe.map((s, i) => make(s, details[i]?.signal ?? s.signal ?? null));
-  const buys = candidates
-    .filter((c) => c.signal === "buy")
-    .sort(
-      (a, b) =>
-        (a.strength === "strong" ? 0 : 1) - (b.strength === "strong" ? 0 : 1) ||
-        b.score - a.score,
-    );
-  const rest = candidates.filter((c) => c.signal !== "buy");
-  return [...buys, ...rest].slice(0, 3);
 }
 
-async function HeroSection({ promise }: { promise: Promise<ScoresResponse | null> }) {
+async function TrustStripSection({
+  scoresPromise,
+  trustPromise,
+}: {
+  scoresPromise: Promise<ScoresResponse | null>;
+  trustPromise: Promise<TrustStats | null>;
+}) {
+  const [data, trust] = await Promise.all([landingData(scoresPromise), trustPromise]);
+  if (!data) return null;
+  return <TrustStrip totalCount={safeCount(data.total)} sectorCount={data.sectors} trust={trust} />;
+}
+
+async function CoreFeaturesSection({ promise }: { promise: Promise<ScoresResponse | null> }) {
   const scores = await promise;
-  if (!scores) return <HeroFallback />;
-  const top = sortedByScore(allItemsFromScores(scores));
-  const heroStocks = await buildHeroStocks(top);
-  return <HomeHero topItems={top} heroStocks={heroStocks} />;
+  const items = scores ? sortedByScore(flattenTiers(scores)) : [];
+  if (items.length === 0) return null;
+  return <CoreFeatures items={items} totalCount={safeCount(items.length)} />;
 }
 
-async function ThreeStoriesSectionWrapper({ promise }: { promise: Promise<ScoresResponse | null> }) {
-  const scores = await promise;
-  if (!scores) return null;
-  const all = sortedByScore(allItemsFromScores(scores));
-  if (all.length === 0) return null;
-  return <ThreeStoriesSection cards={pickStoryStocks(all, all.length)} totalCount={all.length} />;
+async function AnatomySection({ promise }: { promise: Promise<ScoresResponse | null> }) {
+  const data = await landingData(promise);
+  if (!data) return null;
+  const hero = data.heroCode ? data.stocks.find((s) => s.code === data.heroCode) ?? null : null;
+  return <ReportAnatomy stock={hero} totalCount={safeCount(data.total)} />;
 }
 
-async function RankingPromoSection({ promise }: { promise: Promise<ScoresResponse | null> }) {
-  const scores = await promise;
-  if (!scores) return null;
-  const all = sortedByScore(allItemsFromScores(scores));
-  if (all.length === 0) return null;
-  return <RankingPromo items={all} totalCount={all.length} />;
-}
-
-async function MarketPulseSection({
+async function LiveTodaySection({
+  scoresPromise,
   indexPromise,
   dividendsPromise,
   statePromise,
 }: {
+  scoresPromise: Promise<ScoresResponse | null>;
   indexPromise: Promise<MarketIndexData | null>;
   dividendsPromise: Promise<DividendsUpcoming | null>;
   statePromise: Promise<MarketStateData | null>;
 }) {
-  const [index, dividends, state] = await Promise.all([
+  const [scores, index, dividends, state] = await Promise.all([
+    scoresPromise,
     indexPromise,
     dividendsPromise,
     statePromise,
   ]);
-  if (!index) return null;
-  const cheap =
-    state?.now?.questions?.find((q) => q.q.toLowerCase().startsWith("are shares cheap")) ?? null;
+  const items = scores ? sortedByScore(flattenTiers(scores)) : [];
+  if (!index && items.length === 0) return null;
   return (
-    <MarketTodayCard
+    <LiveToday
       index={index}
       dividends={dividends}
-      quality={state?.now?.quality ?? null}
-      cheap={cheap}
+      state={state}
+      standouts={items.length > 0 ? pickStoryStocks(items, items.length) : []}
+      totalCount={safeCount(items.length)}
     />
   );
 }
 
-async function StatsSection({ promise }: { promise: Promise<ScoresResponse | null> }) {
-  const scores = await promise;
-  if (!scores) return null;
-  const all = allItemsFromScores(scores);
-  const total = Math.max(50, Math.floor(all.length / 50) * 50);
-  const sectorCount = new Set(all.map((s) => s.sector).filter(Boolean)).size;
-  return <StatsCountUp totalCount={total} sectorCount={sectorCount} />;
-}
-
-async function DiscoverSection({
-  scoresPromise,
-  top20Promise,
-  indexPromise,
-  moversPromise,
-}: {
-  scoresPromise: Promise<ScoresResponse | null>;
-  top20Promise: Promise<Top20Response | null>;
-  indexPromise: Promise<MarketIndexData | null>;
-  moversPromise: Promise<MarketMoversData | null>;
-}) {
-  const [scores, top20, index, movers] = await Promise.all([
-    scoresPromise,
-    top20Promise,
-    indexPromise,
-    moversPromise,
-  ]);
-  const allStocks = scores ? sortedByScore(allItemsFromScores(scores)) : [];
-  const top20Items = top20?.items ?? [];
-  return (
-    <ExploreMore
-      top20={top20Items}
-      totalStocks={allStocks.length}
-      index={index}
-      movers={movers}
-    />
-  );
+async function CloseSection({ promise }: { promise: Promise<TrustStats | null> }) {
+  const trust = await promise;
+  return <LandingClose testimonials={trust?.testimonials ?? []} />;
 }
 
 function HeroFallback() {
   return (
-    <section className="pt-6 sm:pt-10 pb-2">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+    <section className="pt-6 sm:pt-10">
+      <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-[1fr_minmax(0,26rem)] md:gap-12">
         <div className="flex flex-col gap-4">
-          <div className="h-6 w-64 rounded bg-[var(--surface-2)] animate-pulse" />
-          <div className="h-14 w-full rounded bg-[var(--surface-2)] animate-pulse" />
-          <div className="h-20 w-full rounded bg-[var(--surface-2)] animate-pulse" />
-          <div className="h-12 w-48 rounded bg-[var(--surface-2)] animate-pulse" />
+          <div className="h-14 w-full animate-pulse rounded bg-[var(--surface-2)]" />
+          <div className="h-16 w-full animate-pulse rounded bg-[var(--surface-2)]" />
+          <div className="h-14 w-full animate-pulse rounded bg-[var(--surface-2)]" />
         </div>
-        <div className="h-72 w-full rounded-2xl bg-[var(--surface-2)] animate-pulse" />
+        <div className="h-80 w-full animate-pulse rounded-2xl bg-[var(--surface-2)]" />
       </div>
     </section>
   );
 }
 
+/**
+ * The logged-out landing page.
+ *
+ * One job: look like the most credible stock platform in Bangladesh. That
+ * decides the shape — the first thing on screen is a real report rather than a
+ * sales pitch, the method and its downward adjustments are published in full,
+ * and there is no performance claim anywhere on the page because the product
+ * doesn't make one.
+ *
+ * Language: there is no toggle. Every headline is English in easy words with one
+ * simple Bengali line under it (components/i18n/SectionHead.tsx for section
+ * heads, components/i18n/Bn.tsx for a Bengali line anywhere else). Small UI text
+ * — chips, buttons, table headers, metric labels — stays English only.
+ *
+ * Order matters and was corrected twice: the four core features (rankings,
+ * portfolio, watchlist, alerts) sit at block 3, straight after a thin trust
+ * strip, because the first cut buried them under two full sections of
+ * trust-and-method prose. Both of those prose sections have since been cut
+ * entirely — the credibility signal that survives is the strip at block 2, the
+ * real report in the hero, and the five checks shown inside it. The written-out
+ * method lives on `/about`, linked from the footer on every page. Do not put it
+ * back on this page.
+ *
+ * `HomePersonalizationGate` swaps the whole thing for the dashboard once a user
+ * is signed in; crawlers and first paint always get this markup.
+ */
 export default function HomePage() {
   const scoresPromise = getScores().catch(() => null);
   const marketIndexPromise = getMarketIndex().catch(() => null);
-  const moversPromise = getMarketMovers().catch(() => null);
-  const top20Promise = getTop20().catch(() => null);
   const dividendsPromise = getDividendsUpcoming().catch(() => null);
-  // Match the landing page's daily ISR cadence (defaults to 900s otherwise).
+  // Match this page's daily ISR cadence (the helper defaults to 900s).
   const marketStatePromise = getMarketState(86400).catch(() => null);
+  const trustPromise = getTrust().catch(() => null);
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
 
-      <MotionProvider>
       <HomePersonalizationGate>
+        {/* 1 — the claim and its proof, side by side */}
         <Suspense fallback={<HeroFallback />}>
-          <HeroSection promise={scoresPromise} />
+          <HeroBlock promise={scoresPromise} />
         </Suspense>
 
-        {/* Live DSE pulse — right under the hero: "real data, updated daily".
-            Same "Market Today" card the logged-in home uses, so the market-
-            analysis link + tiles are here too. */}
-        <div className="mt-6 sm:mt-8">
+        {/* 2 — credibility as a thin strip, not a wall of prose. The long-form
+            version of this argument is block 6, far enough down that it can't
+            stand between a visitor and the product. */}
+        <div className="mt-8 sm:mt-10">
           <Suspense fallback={null}>
-            <MarketPulseSection
+            <TrustStripSection scoresPromise={scoresPromise} trustPromise={trustPromise} />
+          </Suspense>
+        </div>
+
+        <div className="mt-14 flex flex-col gap-16 sm:mt-16 sm:gap-24">
+          {/* 3 — the four things people come for: rankings, portfolio,
+              watchlist, alerts. High on the page, by design. */}
+          <Suspense fallback={null}>
+            <CoreFeaturesSection promise={scoresPromise} />
+          </Suspense>
+
+          {/* 4 — today's data, so nothing above is only a claim */}
+          <Suspense fallback={null}>
+            <LiveTodaySection
+              scoresPromise={scoresPromise}
               indexPromise={marketIndexPromise}
               dividendsPromise={dividendsPromise}
               statePromise={marketStatePromise}
             />
           </Suspense>
-        </div>
 
-        <div className="mt-12 sm:mt-16 flex flex-col gap-16 sm:gap-24">
-          {/* Three story cards — what the data SAYS, before the rankings table
-              shows the shape of it. One card per reason to care. */}
-          <div>
-            <Suspense fallback={null}>
-              <ThreeStoriesSectionWrapper promise={scoresPromise} />
-            </Suspense>
-          </div>
+          {/* 5 — more routes in, for someone with no company in mind */}
+          <WaysToFind />
 
-          {/* Rankings hub — right under the live market band */}
-          <div>
-            <Suspense fallback={null}>
-              <RankingPromoSection promise={scoresPromise} />
-            </Suspense>
-          </div>
+          {/* 6 — how deep one company's page goes */}
+          <Suspense fallback={null}>
+            <AnatomySection promise={scoresPromise} />
+          </Suspense>
 
-          <HowItWorks />
+          {/* 7 — the door that starts at zero */}
+          <StartFromZero />
 
-          {/* What you unlock with a free account — auto-advancing slideshow */}
-          <div>
-            <SignupSlideshow />
-          </div>
-
-          <div>
-            <Suspense fallback={null}>
-              <StatsSection promise={scoresPromise} />
-            </Suspense>
-          </div>
-
-          <div>
-            <Suspense fallback={null}>
-              <DiscoverSection
-                scoresPromise={scoresPromise}
-                top20Promise={top20Promise}
-                indexPromise={marketIndexPromise}
-                moversPromise={moversPromise}
-              />
-            </Suspense>
-          </div>
-
-          {/* Bengali "learn from scratch" entry */}
-          <div>
-            <LearnPromoCard />
-          </div>
-
-          <div>
-            <FinalCTA />
-          </div>
+          {/* 8 — real reviews, then one ask */}
+          <Suspense fallback={null}>
+            <CloseSection promise={trustPromise} />
+          </Suspense>
         </div>
       </HomePersonalizationGate>
 
-      {/* Feedback band — shown to everyone (logged-in or out), just before the footer */}
+      {/* Shown to everyone, signed in or not, just above the footer */}
       <div className="mt-16 sm:mt-24">
         <FeedbackSection />
       </div>
-      </MotionProvider>
     </>
   );
 }
