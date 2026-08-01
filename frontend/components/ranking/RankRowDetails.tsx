@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { pct, signed, taka } from "@/lib/formatters";
 import { TIER_GRADES, TIER_LABELS, TIER_VAR } from "@/lib/constants";
+import { PILLARS, pillarBand, PILLAR_BAND_COLOR } from "@/lib/landing";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import type { RankedItem } from "@/components/ranking/FullRankTable";
 
@@ -140,9 +141,66 @@ function Stat({
   );
 }
 
+/** The five pillars in P1..P5 order, matching `PILLARS`. */
+function pillarValues(item: RankedItem): (number | null)[] {
+  return [
+    item.p1_biz ?? null,
+    item.p2_health ?? null,
+    item.p3_moat ?? null,
+    item.p4_val ?? null,
+    item.p5_div ?? null,
+  ];
+}
+
+/**
+ * One check as a labelled 0–10 bar.
+ *
+ * The score is the whole point of the page, so the row that expands under it has
+ * to show what the score is made of — otherwise the number is just an assertion.
+ */
+function PillarBar({
+  label,
+  short,
+  value,
+}: {
+  label: string;
+  short: string;
+  value: number | null;
+}) {
+  const color = PILLAR_BAND_COLOR[pillarBand(value)];
+  const width = value == null ? 0 : Math.max(4, Math.min(100, value * 10));
+
+  return (
+    <div className="fr-pillar" title={label}>
+      <span className="fr-pillar-top">
+        <span className="fr-pillar-label">
+          <span className="fr-pillar-label-full">{label}</span>
+          <span className="fr-pillar-label-short">{short}</span>
+        </span>
+        <span
+          className="fr-pillar-value"
+          style={{ color: value == null ? "var(--ink-muted)" : color }}
+        >
+          {value == null ? "—" : value.toFixed(1)}
+        </span>
+      </span>
+      <span className="fr-pillar-track">
+        {value != null && (
+          <span
+            className="fr-pillar-fill"
+            style={{ width: `${width}%`, background: color }}
+          />
+        )}
+      </span>
+    </div>
+  );
+}
+
 export default function RankRowDetails({ item }: { item: RankedItem }) {
   const points = buildPoints(item);
   const chg = item.change_pct;
+  const pillars = pillarValues(item);
+  const hasPillars = pillars.some((p) => p != null);
 
   return (
     <div className="fr-detail">
@@ -188,6 +246,25 @@ export default function RankRowDetails({ item }: { item: RankedItem }) {
           value={item.div_yield_pct != null && item.div_yield_pct > 0 ? pct(item.div_yield_pct) : "—"}
         />
       </div>
+
+      {hasPillars && (
+        <div className="fr-pillars">
+          <div className="fr-pillars-head">
+            <span className="fr-pillars-title">
+              The five checks behind this score
+            </span>
+            <Link prefetch={false} href="/about" className="fr-pillars-link">
+              How we score <span aria-hidden>→</span>
+            </Link>
+          </div>
+          <div className="fr-pillars-grid">
+            {PILLARS.map((p, i) => (
+              <PillarBar key={p.key} label={p.en} short={p.short} value={pillars[i]} />
+            ))}
+          </div>
+          <p className="fr-pillars-scale">Each check is scored out of 10.</p>
+        </div>
+      )}
 
       <ul className="fr-detail-points">
         {points.map((p) => (
