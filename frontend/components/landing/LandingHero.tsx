@@ -2,12 +2,16 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import Bn from "@/components/i18n/Bn";
 import Button from "@/components/ui/Button";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import MiniReport from "@/components/landing/MiniReport";
 import StockLookup from "@/components/landing/StockLookup";
+import type { AuthApiResponse } from "@/lib/api";
 import type { LandingStock } from "@/lib/landing";
+import { loadWatchlist } from "@/lib/watchlist";
 
 /**
  * Block 1 — the hero.
@@ -27,8 +31,16 @@ export default function LandingHero({
   initialCode: string | null;
   totalCount: number;
 }) {
-  const { isLoggedIn, user } = useAuth();
+  const router = useRouter();
+  const { isLoggedIn, user, login } = useAuth();
   const [code, setCode] = useState(initialCode);
+  const [googleError, setGoogleError] = useState("");
+
+  async function handleGoogleSuccess(data: AuthApiResponse) {
+    login(data.access_token, data.user);
+    await loadWatchlist().catch(() => {});
+    router.refresh();
+  }
 
   const byCode = useMemo(() => new Map(stocks.map((s) => [s.code, s])), [stocks]);
   const stock = code ? byCode.get(code) ?? null : null;
@@ -93,16 +105,24 @@ export default function LandingHero({
               </div>
             </div>
           ) : (
-            <div className="mt-7 flex flex-wrap items-center gap-x-4 gap-y-3">
-              <Button href="/dsestockranking" variant="primary">
-                See every company ranked
-              </Button>
-              <Link
-                href="/register"
-                className="text-[0.85rem] font-bold text-[var(--primary-ink)] underline-offset-4 hover:underline"
-              >
-                Open a free account
-              </Link>
+            <div className="mt-7 flex flex-col gap-3">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+                <Button href="/dsestockranking" variant="primary">
+                  See every company ranked
+                </Button>
+                <Link
+                  href="/register"
+                  className="text-[0.85rem] font-bold text-[var(--primary-ink)] underline-offset-4 hover:underline"
+                >
+                  Open a free account
+                </Link>
+                <div className="[color-scheme:light]">
+                  <GoogleSignInButton onSuccess={handleGoogleSuccess} onError={setGoogleError} />
+                </div>
+              </div>
+              {googleError && (
+                <p className="text-xs text-[var(--negative)]">{googleError}</p>
+              )}
             </div>
           )}
         </div>
