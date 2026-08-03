@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import Bn from "@/components/i18n/Bn";
 import Button from "@/components/ui/Button";
-import type { Testimonial } from "@/lib/api";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+import type { AuthApiResponse, Testimonial } from "@/lib/api";
+import { loadWatchlist } from "@/lib/watchlist";
 
 /**
  * Block 8b — the close.
@@ -42,8 +45,16 @@ function Stars({ n }: { n: number }) {
 }
 
 export default function LandingClose({ testimonials }: { testimonials: Testimonial[] }) {
-  const { isLoggedIn } = useAuth();
+  const router = useRouter();
+  const { isLoggedIn, login } = useAuth();
+  const [googleError, setGoogleError] = useState("");
   const quotes = testimonials.slice(0, 3);
+
+  async function handleGoogleSuccess(data: AuthApiResponse) {
+    login(data.access_token, data.user);
+    await loadWatchlist().catch(() => {});
+    router.refresh();
+  }
 
   return (
     <section aria-labelledby="close-title">
@@ -134,15 +145,21 @@ export default function LandingClose({ testimonials }: { testimonials: Testimoni
               <Button href="/register" variant="primary">
                 Open a free account
               </Button>
+              <div className="[color-scheme:light]">
+                <GoogleSignInButton onSuccess={handleGoogleSuccess} onError={setGoogleError} />
+              </div>
               <Link
                 href="/dsestockranking"
-                className="text-[0.88rem] font-bold text-[var(--primary-ink)] underline-offset-4 hover:underline"
+                className="w-full text-[0.88rem] font-bold text-[var(--primary-ink)] underline-offset-4 hover:underline sm:w-auto"
               >
                 Just look around first
               </Link>
             </>
           )}
         </div>
+        {googleError && !isLoggedIn && (
+          <p className="mt-3 text-xs text-[var(--negative)]">{googleError}</p>
+        )}
       </div>
     </section>
   );
