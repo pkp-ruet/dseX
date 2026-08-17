@@ -280,6 +280,75 @@ class DividendsUpcomingResponse(BaseModel):
     upcoming_record_dates: list[UpcomingDividend]
 
 
+class CorporateActionEvent(BaseModel):
+    """One declared dividend, priced off the latest close.
+
+    `kind`/`event_date` are only set inside the month buckets, where record dates
+    and AGMs share one timeline.
+    """
+    trading_code: str
+    company_name: Optional[str] = None
+    sector: Optional[str] = None
+    market_category: Optional[str] = None
+    ltp: Optional[float] = None
+    change_pct: Optional[float] = None
+    score: Optional[float] = None
+    tier: Optional[str] = None
+    dividend_type: Optional[str] = None
+    cash_pct: Optional[float] = None
+    stock_pct: Optional[float] = None
+    cash_per_share: Optional[float] = None
+    yield_pct: Optional[float] = None
+    face_value: Optional[float] = None
+    declaration_date: Optional[str] = None
+    record_date: Optional[str] = None
+    agm_date: Optional[str] = None
+    period_end: Optional[str] = None
+    amended: bool = False
+    is_no_dividend: bool = False
+    record_days_left: Optional[int] = None
+    agm_days_left: Optional[int] = None
+    buy_by: Optional[str] = None
+    buy_days_left: Optional[int] = None
+    spot_starts: Optional[str] = None
+    kind: Optional[str] = None
+    event_date: Optional[str] = None
+
+
+class CorporateActionMonth(BaseModel):
+    key: str
+    label: str
+    events: list[CorporateActionEvent]
+
+
+class DividendCalendarStats(BaseModel):
+    upcoming_record_dates: int
+    record_dates_this_week: int
+    upcoming_agms: int
+    recent_declarations: int
+    cash_payers_upcoming: int
+    top_yield_pct: Optional[float] = None
+    declarations_tracked: int
+
+
+class SettlementInfo(BaseModel):
+    normal_buy_lead_trading_days: int
+    spot_window_trading_days: int
+
+
+class DividendCalendarResponse(BaseModel):
+    today: str
+    note_en: str
+    note_bn: str
+    settlement: SettlementInfo
+    stats: DividendCalendarStats
+    record_dates: list[CorporateActionEvent]
+    agms: list[CorporateActionEvent]
+    recent_declarations: list[CorporateActionEvent]
+    top_cash_dividends: list[CorporateActionEvent]
+    months: list[CorporateActionMonth]
+
+
 class MarketMoverItem(BaseModel):
     trading_code: str
     company_name: Optional[str] = None

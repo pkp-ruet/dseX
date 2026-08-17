@@ -28,6 +28,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/dse-today", label: "DSE Today", sub: "Today's prices & movers", icon: "today" },
       { href: "/todays-news", label: "Today's News", sub: "All company news, last day", icon: "news" },
       { href: "/market-analysis", label: "Market Analysis", sub: "Pulse, sentiment, trends", icon: "analysis" },
+      { href: "/dividend-calendar", label: "Dividend Calendar", sub: "Record dates & AGMs", icon: "dividend" },
       { href: "/dse-trending-stocks", label: "Trending Stocks", sub: "This week's top movers", icon: "top20" },
       { href: "/dse-popular-stocks", label: "Popular Stocks", sub: "Most-traded today", icon: "popular" },
     ],
@@ -90,6 +91,8 @@ function MenuIcon({ name }: { name?: string }) {
       return <svg {...p}><path d="M9 6h11M9 12h11M9 18h11" /><circle cx="4.5" cy="6" r="1.1" /><circle cx="4.5" cy="12" r="1.1" /><circle cx="4.5" cy="18" r="1.1" /></svg>;
     case "tips":
       return <svg {...p}><path d="M9 18h6M10 21h4" /><path d="M15 14c.2-1 .8-1.7 1.5-2.4A5 5 0 1 0 7.5 11.6c.7.7 1.3 1.4 1.5 2.4" /></svg>;
+    case "dividend":
+      return <svg {...p}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /><path d="M12 13.5v4M10.6 14.2h2.2a1.1 1.1 0 0 1 0 2.2h-1.5a1.1 1.1 0 0 0 0 2.2h2.3" /></svg>;
     case "find":
       return <svg {...p}><circle cx="11" cy="11" r="7" /><path d="M11 8v6M8 11h6" /><path d="m20 20-3-3" /></svg>;
     case "lists":

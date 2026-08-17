@@ -211,15 +211,44 @@ def load_news_for_codes(codes: tuple, days: int = 30) -> list[dict]:
     return docs
 
 
+_DECLARATION_DATE_FIELDS = (
+    "declaration_date", "record_date", "agm_date", "period_end", "amended_at",
+)
+
+
+def _isoformat_declaration(doc: dict) -> dict:
+    for k in _DECLARATION_DATE_FIELDS:
+        if k in doc and hasattr(doc[k], "isoformat"):
+            doc[k] = doc[k].isoformat()
+    # Legacy docs (written before the cash/stock split) only carry dividend_pct.
+    doc.setdefault("cash_pct", doc.get("dividend_pct"))
+    doc.setdefault("stock_pct", None)
+    return doc
+
+
+@_ttl_cache(300)
+def load_dividend_history() -> list[dict]:
+    """Every stored declaration, newest first — interim + final, all years."""
+    db = get_db()
+    docs = list(
+        db.dividend_declarations.find({}, {"_id": 0}).sort("declaration_date", -1)
+    )
+    return [_isoformat_declaration(d) for d in docs]
+
+
 @_ttl_cache(300)
 def load_dividend_declarations() -> list[dict]:
-    db = get_db()
-    docs = list(db.dividend_declarations.find({}, {"_id": 0}))
-    for d in docs:
-        for k in ("declaration_date", "record_date", "agm_date"):
-            if k in d and hasattr(d[k], "isoformat"):
-                d[k] = d[k].isoformat()
-    return docs
+    """Latest declaration per company.
+
+    The collection keeps full history now, but every existing caller (company
+    detail, daily tips, email + push campaigns, market state) means "the current
+    dividend" — so this stays one row per code. Use `load_dividend_history()` for
+    the whole ledger.
+    """
+    latest: dict[str, dict] = {}
+    for d in load_dividend_history():   # already sorted newest-first
+        latest.setdefault(d.get("trading_code"), d)
+    return list(latest.values())
 
 
 @_ttl_cache(300)

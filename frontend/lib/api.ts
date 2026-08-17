@@ -1,3 +1,5 @@
+import type { TierKey } from "@/lib/constants";
+
 /**
  * Backend base URL (no trailing slash).
  * On Vercel, set **`API_URL`** for server-side fetching (recommended for prod).
@@ -297,6 +299,90 @@ export interface DividendsUpcoming {
   upcoming_record_dates: UpcomingDividend[];
 }
 
+/** One declared dividend — priced off the latest close. `kind`/`event_date` are
+ *  only set inside the month buckets, where record dates and AGMs share a
+ *  timeline. */
+export interface CorporateActionEvent {
+  trading_code: string;
+  company_name: string | null;
+  sector: string | null;
+  market_category: string | null;
+  ltp: number | null;
+  change_pct: number | null;
+  score: number | null;
+  tier: TierKey | null;
+  dividend_type: string | null;
+  /** Cash dividend as a % of face value (DSE convention: 25% of Tk 10 = Tk 2.50). */
+  cash_pct: number | null;
+  /** Bonus/stock dividend as a % — new shares, not money. */
+  stock_pct: number | null;
+  cash_per_share: number | null;
+  /** Gross cash dividend as a % of today's price. Before tax. */
+  yield_pct: number | null;
+  face_value: number | null;
+  declaration_date: string | null;
+  record_date: string | null;
+  agm_date: string | null;
+  /** Financial period the dividend is for (e.g. year ended 30 Jun 2025). */
+  period_end: string | null;
+  /** True when a later DSE notice corrected this declaration's dates. */
+  amended: boolean;
+  is_no_dividend: boolean;
+  record_days_left: number | null;
+  agm_days_left: number | null;
+  /** Last normal-market buy day that still settles before the record date. */
+  buy_by: string | null;
+  buy_days_left: number | null;
+  spot_starts: string | null;
+  kind?: "record" | "agm";
+  event_date?: string;
+}
+
+/** A row of the `dividend_declarations` ledger, as stored. */
+export interface DividendDeclarationRecord {
+  trading_code: string;
+  declaration_date: string | null;
+  record_date: string | null;
+  agm_date: string | null;
+  period_end: string | null;
+  dividend_type: string | null;
+  dividend_pct: number | null;
+  cash_pct: number | null;
+  stock_pct: number | null;
+  title: string | null;
+  amended_at?: string | null;
+}
+
+export interface DividendCalendarMonth {
+  key: string;
+  label: string;
+  events: CorporateActionEvent[];
+}
+
+export interface DividendCalendarData {
+  today: string;
+  note_en: string;
+  note_bn: string;
+  settlement: {
+    normal_buy_lead_trading_days: number;
+    spot_window_trading_days: number;
+  };
+  stats: {
+    upcoming_record_dates: number;
+    record_dates_this_week: number;
+    upcoming_agms: number;
+    recent_declarations: number;
+    cash_payers_upcoming: number;
+    top_yield_pct: number | null;
+    declarations_tracked: number;
+  };
+  record_dates: CorporateActionEvent[];
+  agms: CorporateActionEvent[];
+  recent_declarations: CorporateActionEvent[];
+  top_cash_dividends: CorporateActionEvent[];
+  months: DividendCalendarMonth[];
+}
+
 export interface PricePoint {
   date: string;
   ltp: number | null;
@@ -432,6 +518,20 @@ export async function getMarketIndex(): Promise<MarketIndexData> {
 
 export async function getDividendsUpcoming(): Promise<DividendsUpcoming> {
   return apiFetch<DividendsUpcoming>("/api/dividends/upcoming", 86400);
+}
+
+/** Record dates, AGMs and recent declarations for /dividend-calendar. */
+export async function getDividendCalendar(): Promise<DividendCalendarData> {
+  return apiFetch<DividendCalendarData>("/api/dividend-calendar", 86400);
+}
+
+/** Every declaration stored for one company, newest first (raw ledger rows —
+ *  no price/score enrichment, unlike the calendar's events). */
+export async function getDividendHistory(code: string): Promise<DividendDeclarationRecord[]> {
+  return apiFetch<DividendDeclarationRecord[]>(
+    `/api/company/${code.toUpperCase()}/dividend-history`,
+    86400,
+  );
 }
 
 // ---- Market Intelligence ----

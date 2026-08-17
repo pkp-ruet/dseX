@@ -39,10 +39,21 @@ def ensure_indexes():
         [("trading_code", ASCENDING), ("post_date", ASCENDING)],
     )
 
+    # One doc per (company, declaration) so interim + final + prior-year
+    # declarations all survive — the dividend calendar and dividend history
+    # read off this. Self-heals the pre-2026-08 unique-on-trading_code index,
+    # which forced "latest declaration only" and threw the rest away.
+    existing = db.dividend_declarations.index_information()
+    legacy = existing.get("trading_code_1")
+    if legacy and legacy.get("unique"):
+        db.dividend_declarations.drop_index("trading_code_1")
+
     db.dividend_declarations.create_index(
-        [("trading_code", ASCENDING)],
+        [("trading_code", ASCENDING), ("declaration_date", ASCENDING)],
         unique=True,
     )
+    db.dividend_declarations.create_index([("record_date", ASCENDING)])
+    db.dividend_declarations.create_index([("agm_date", ASCENDING)])
 
     db.company_financials_ext.create_index(
         [("trading_code", ASCENDING), ("year", ASCENDING)],

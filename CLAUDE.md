@@ -67,6 +67,11 @@ python main.py scrape-cashflow         # extended financials from Amarstock
 python main.py scrape-cashflow --code GP
 python main.py scrape-news             # news for all non-excluded companies
 python main.py scrape-news --code GP
+
+# Rebuild dividend_declarations from news already in MongoDB (offline, no DSE hits).
+# Also prunes declaration docs the old scraper wrote from follow-up notices.
+py scripts/backfill_dividend_declarations.py            # dry run
+py scripts/backfill_dividend_declarations.py --write
 python main.py scrape-market-summary   # DSE index values + daily totals
 python main.py scrape-all              # run all 6 scrapers sequentially (POSTs to VERCEL_DEPLOY_HOOK_URL on success if set)
 ```
@@ -96,7 +101,7 @@ DSE (Dhaka Stock Exchange) stock data pipeline with four components:
 | `scrapers/stock_price.py` | Daily prices → `stock_prices` collection |
 | `scrapers/company_details.py` | Financials, dividends, shareholding → `financials`, `shareholdings`; updates `reserve_surplus_mn`, `total_loan_mn`, `total_shares` on `companies`; auto-excludes bonds, debentures, mutual funds, ETFs |
 | `scrapers/cash_flow_scraper.py` | Extended financials from Amarstock → `company_financials_ext` |
-| `scrapers/news.py` | News & dividend declarations → `company_news`, `dividend_declarations` |
+| `scrapers/news.py` | News & dividend declarations → `company_news`, `dividend_declarations`. Parses cash vs stock (bonus) %, record date, AGM date and period end out of the body; classifies each "Dividend Declaration" item as a real declaration or a follow-up notice (`is_declaration_news`) — follow-ups ("(Additional Information)", "Refer to the earlier news …") never become declarations, they only fold corrected dates into the declaration they amend |
 | `scrapers/market_summary.py` | DSE index values (DSEX/DSES/DS30) + daily totals → `dse_market_summary` (consumed by `/api/market-index` and `/api/dse-today`) |
 
 ### MongoDB
@@ -111,7 +116,7 @@ Connection is a module-level singleton in `db/connection.py` (`get_db()` / `clos
 | `shareholdings` | `(trading_code, as_of_date)` |
 | `company_financials_ext` | `(trading_code, year)` |
 | `company_news` | `(trading_code, post_date, title)` |
-| `dividend_declarations` | `trading_code` |
+| `dividend_declarations` | `(trading_code, declaration_date)` — full history: interim + final + prior years. Was unique on `trading_code` alone (latest only) before 2026-08; `ensure_indexes()` self-heals the old index. Secondary indexes on `record_date` + `agm_date`. |
 | `dse_market_summary` | `(date)` |
 | `users` | `(user_id)`, `(email)`, `(phone)` — created at backend startup by `auth_service.ensure_users_indexes()` |
 
@@ -130,6 +135,7 @@ Scrapers must use upsert logic to avoid duplicates.
 | `/market-intelligence` | `app/market-intelligence/page.tsx` | Auto-detects falling/rising/sideways, shows signal tables |
 | `/market-analysis` | `app/market-analysis/page.tsx` | Pulse, sentiment, near-extremes, trending, top picks |
 | `/dse-today` | `app/dse-today/page.tsx` | Today's market header + table + news (single-bundle endpoint) |
+| `/dividend-calendar` | `app/dividend-calendar/page.tsx` | Corporate-action calendar: upcoming record dates (with the last normal-market buy day), AGMs, biggest cash dividends of the last 12 months, just-declared list, and the four-step explainer. FAQ JSON-LD lives here |
 | `/stock-insights`, `/stock-insights/[slug]` | `app/stock-insights/...` | Curated insight cards (SEO content) |
 | `/learn`, `/learn/[slug]` | `app/learn/...` | Educational guides (SEO content, English, data from `lib/guides.ts`) |
 | `/blog`, `/blog/[slug]` | `app/blog/...` | Bengali (বাংলা) blog — beginner guides in everyday Bengali (SEO content, data from `lib/blog-bn.ts`). Reuses `components/learn/CategoryNav.tsx`. Content opts into the Bengali webfont via the `.font-bn` utility + `lang="bn"` |
@@ -145,6 +151,7 @@ Scrapers must use upsert logic to avoid duplicates.
 - Rankings → `/dsestockranking`
 - Market Analysis → `/market-analysis`
 - DSE Today → `/dse-today`
+- Dividend Calendar → `/dividend-calendar`
 - Browse Stocks → `/stocks`
 - Stock Insights → `/stock-insights`
 - Blogs → `/learn`
@@ -226,6 +233,10 @@ components/
 │   ├── SectorHeatmap.tsx (shared treemap, consumed by dse-today + market-analysis)
 ├── dse-today/
 │   ├── DseTodayHeader.tsx, DseTodayTable.tsx, DseTodayNews.tsx
+├── dividend-calendar/
+│   ├── CalendarSummary.tsx, RecordDateBoard.tsx, EventCard.tsx
+│   ├── AgmBoard.tsx, TopCashDividends.tsx, RecentDeclarations.tsx
+│   └── HowDividendsWork.tsx   — 4-step explainer; its FAQ copy mirrors the page's FAQPage JSON-LD
 ├── stocks/
 │   └── StocksTable.tsx
 ├── stock-insights/
@@ -272,6 +283,8 @@ Public / cached (Next ISR):
 - `getMarketMovers()` → `/api/market-movers` (3600s)
 - `getMarketIndex()` → `/api/market-index` (900s)
 - `getDividendsUpcoming()` → `/api/dividends/upcoming` (3600s)
+- `getDividendCalendar()` → `/api/dividend-calendar` (86400s + `market-data` tag)
+- `getDividendHistory(code)` → `/api/company/:code/dividend-history` (raw ledger rows, no price/score enrichment)
 - `getMarketIntelligence()` → `/api/market-intelligence` (900s)
 - `getCompanyDetail(code)` → `/api/company/:code` (3600s)
 - `getAllCodes()` → `/api/companies/codes` (3600s)
@@ -320,7 +333,8 @@ A 401 response from `apiAuthFetch` triggers `logout()` and throws `AUTH_EXPIRED`
 | `routers/market_index.py` | `GET /api/market-index` | DSEX / DSES / DS30 + totals |
 | `routers/market_intelligence.py` | `GET /api/market-intelligence` | Market condition + signal tables |
 | `routers/market_analysis.py` | `GET /api/market/near-extremes` | Stocks within 5% of 52-week high/low |
-| `routers/dividends.py` | `GET /api/dividends/upcoming` | Upcoming declarations + record dates |
+| `routers/dividends.py` | `GET /api/dividends/upcoming` | Upcoming declarations + record dates (homepage widget) |
+| `routers/corporate_actions.py` | `GET /api/dividend-calendar`, `GET /api/company/:code/dividend-history` | Full dividend calendar (record dates, AGMs, top payers) + per-company declaration history |
 | `routers/audit.py` | `GET /api/audit` | Data coverage report |
 | `routers/stock_lists.py` | `GET /api/stock-lists` | Pre-computed top-20 lists (dividend, EPS, profit, market cap, growth, volume, 52w return, sector slices) |
 | `routers/dse_today.py` | `GET /api/dse-today` | Bundle: header + movers + intelligence + table + news |
@@ -345,9 +359,10 @@ Returns the same `{access_token, token_type, user}` envelope as `/login`, so fro
 **Service layer (`backend/services/`):**
 
 - `db_service.py` — cached query layer (`@_ttl_cache(300)`, 5-min in-memory TTL).
-  Key functions: `load_companies`, `load_latest_prices`, `load_price_history`, `load_financials`, `load_extended_financials`, `load_shareholdings`, `load_company_news`, `load_dividend_declarations`, `load_market_movers`, `load_market_index`, `load_dse_today_table`, `load_market_news`, `load_news_for_codes`, `load_all_company_codes`, `compute_market_intelligence`, `compute_signal_flags`, `compute_52w_range`.
+  Key functions: `load_companies`, `load_latest_prices`, `load_price_history`, `load_financials`, `load_extended_financials`, `load_shareholdings`, `load_company_news`, `load_dividend_declarations` (**latest declaration per company** — what every pre-existing caller means by "the current dividend"), `load_dividend_history` (the whole ledger, newest first), `load_market_movers`, `load_market_index`, `load_dse_today_table`, `load_market_news`, `load_news_for_codes`, `load_all_company_codes`, `compute_market_intelligence`, `compute_signal_flags`, `compute_52w_range`.
 - `scoring_service.py` — DSEF scoring pipeline (`build_scores_df`), used by `scores.py` and `stock_lists.py`.
 - `signal_service.py` — canonical Buy/Sell signal, else `none` — never Hold (`build_signals`, `get_signal`, `holding_signal`) — see the scoring section above for the rule order.
+- `corporate_actions_service.py` — dividend calendar (`build_dividend_calendar`, cached 900s). Turns the declaration ledger into forward record dates + AGMs priced off the latest close: cash per share (`cash_pct` × face value), **gross** yield, days left, and `buy_by` — the last normal-market buy day, `SPOT_WINDOW_DAYS + 1` = 3 Bangladesh trading days (Sun–Thu, holidays not modelled) before the record date, since normal-market trades settle T+2 and DSE opens a spot window just before. No tax is applied and no advice is derived; the DSEF score/tier ride along as context only.
 - `auth_service.py` — bcrypt password hashing, JWT issue/verify, `create_user`, `authenticate_user`, `get_user_by_id`, `get_user_watchlist`, `update_user_watchlist`, `sanitize_user`, `ensure_users_indexes()` (called at FastAPI startup).
 
 **Models (`backend/models/responses.py`):** Pydantic response schemas — `ScoreItem`, `ScoreTiers`, `ScoresResponse`, `LatestPrice`, `CompanyProfile`, `CompanyDetailResponse`, `MarketMoversResponse`, `DseTodayResponse`, etc. Used as `response_model=` on the relevant router endpoints.
