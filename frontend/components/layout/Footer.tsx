@@ -5,6 +5,7 @@ const exploreLinks = [
   { href: "/market-analysis", label: "Market Analysis" },
   { href: "/dse-today", label: "DSE Today" },
   { href: "/dividend-calendar", label: "Dividend Calendar" },
+  { href: "/sectors", label: "Sectors" },
   { href: "/stocks", label: "Browse Stocks" },
   { href: "/stock-insights", label: "Stock Lists" },
 ];

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getDseToday } from "@/lib/api";
+import { getDseToday, getSectorSlugs } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 import DseTodayHeader from "@/components/dse-today/DseTodayHeader";
 import DseTodayPromo from "@/components/dse-today/DseTodayPromo";
@@ -36,7 +36,10 @@ export const metadata: Metadata = {
 };
 
 export default async function DseTodayPage() {
-  const data = await getDseToday().catch(() => null);
+  const [data, sectorSlugs] = await Promise.all([
+    getDseToday().catch(() => null),
+    getSectorSlugs().catch(() => [] as string[]),
+  ]);
 
   if (!data) {
     return (
@@ -103,7 +106,10 @@ export default async function DseTodayPage() {
       <DseTodayPromo />
 
       {data.intelligence.sector_strength.length > 0 && (
-        <SectorHeatmap sectors={data.intelligence.sector_strength} />
+        <SectorHeatmap
+          sectors={data.intelligence.sector_strength}
+          pageSlugs={sectorSlugs}
+        />
       )}
 
       <DseTodayTable rows={data.table} />

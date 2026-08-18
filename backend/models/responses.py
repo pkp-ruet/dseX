@@ -280,6 +280,111 @@ class DividendsUpcomingResponse(BaseModel):
     upcoming_record_dates: list[UpcomingDividend]
 
 
+class SectorStockRow(BaseModel):
+    """One company inside a sector page's table."""
+    trading_code: str
+    company_name: Optional[str] = None
+    market_category: Optional[str] = None
+    score: Optional[float] = None
+    tier: Optional[str] = None
+    ltp: Optional[float] = None
+    change_pct: Optional[float] = None
+    pe: Optional[float] = None
+    pb: Optional[float] = None
+    eps: Optional[float] = None
+    eps_yoy_pct: Optional[float] = None
+    roe_pct: Optional[float] = None
+    div_yield_pct: Optional[float] = None
+    mcap_mn: Optional[float] = None
+    return_7d_pct: Optional[float] = None
+    rs_vs_dsex_pct: Optional[float] = None
+    p1_biz: Optional[float] = None
+    p2_health: Optional[float] = None
+    p3_moat: Optional[float] = None
+    p4_val: Optional[float] = None
+    p5_div: Optional[float] = None
+    stale_data: Optional[bool] = None
+    signal: Optional[StockSignal] = None
+
+
+class SectorBrief(BaseModel):
+    trading_code: str
+    company_name: Optional[str] = None
+    score: Optional[float] = None
+    tier: Optional[str] = None
+    ltp: Optional[float] = None
+    change_pct: Optional[float] = None
+
+
+class SectorSummary(BaseModel):
+    """Group-level figures for one sector. Valuation uses medians, not averages."""
+    sector: str
+    slug: str
+    sector_class: str                    # BANK | NBFI | INSURANCE | GENERAL
+    company_count: int
+    total_mcap_mn: Optional[float] = None
+    median_score: Optional[float] = None
+    median_pe: Optional[float] = None
+    median_pb: Optional[float] = None
+    median_yield_pct: Optional[float] = None
+    median_roe_pct: Optional[float] = None
+    avg_change_pct: Optional[float] = None
+    avg_return_7d_pct: Optional[float] = None
+    avg_rs_vs_dsex_pct: Optional[float] = None
+    buy_signals: int = 0
+    sell_signals: int = 0
+    tier_counts: dict[str, int]
+    top_ranked: Optional[SectorBrief] = None
+    best_today: Optional[SectorBrief] = None
+    worst_today: Optional[SectorBrief] = None
+
+
+class MarketMedians(BaseModel):
+    company_count: int
+    median_score: Optional[float] = None
+    median_pe: Optional[float] = None
+    median_pb: Optional[float] = None
+    median_yield_pct: Optional[float] = None
+    median_roe_pct: Optional[float] = None
+    avg_change_pct: Optional[float] = None
+    avg_return_7d_pct: Optional[float] = None
+    sector_count: int
+
+
+class SectorComparisonRow(BaseModel):
+    metric: str
+    label: str
+    sector: Optional[float] = None
+    market: Optional[float] = None
+    # Positive means the sector reads higher than the market median.
+    gap_pct: Optional[float] = None
+    higher_is_better: bool
+
+
+class SectorScoringNote(BaseModel):
+    label: str
+    en: str
+    bn: str
+
+
+class SectorsListResponse(BaseModel):
+    market: MarketMedians
+    sectors: list[SectorSummary]
+
+
+class SectorDetailResponse(BaseModel):
+    summary: SectorSummary
+    market: MarketMedians
+    comparison: list[SectorComparisonRow]
+    scoring_note: SectorScoringNote
+    stocks: list[SectorStockRow]
+    top_dividend: list[SectorStockRow]
+    gainers: list[SectorStockRow]
+    losers: list[SectorStockRow]
+    week_leaders: list[SectorStockRow]
+    related_sectors: list[SectorSummary]
+
+
 class CorporateActionEvent(BaseModel):
     """One declared dividend, priced off the latest close.
 

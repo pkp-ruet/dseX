@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getAllCodes, getDeepAnalysisCodes } from "@/lib/api";
+import { getAllCodes, getDeepAnalysisCodes, getSectorSlugs } from "@/lib/api";
 import { GUIDES } from "@/lib/guides";
 import { BLOG_POSTS } from "@/lib/blog-bn";
 import { STOCK_LISTS } from "@/lib/stock-lists";
@@ -10,10 +10,20 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com
 export const revalidate = 86400;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [codes, analysisCodes] = await Promise.all([
+  const [codes, analysisCodes, sectorSlugs] = await Promise.all([
     getAllCodes().catch(() => [] as string[]),
     getDeepAnalysisCodes().catch(() => [] as string[]),
+    getSectorSlugs().catch(() => [] as string[]),
   ]);
+
+  // Expanded from the live sector list, not hardcoded — a new DSE sector appears
+  // in the sitemap as soon as it has enough scored listings for a page.
+  const sectorPages = sectorSlugs.map((slug) => ({
+    url: `${BASE_URL}/sector/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: "daily" as const,
+    priority: 0.8,
+  }));
 
   const stockPages = codes.map((code) => ({
     url: `${BASE_URL}/stock/${code}`,
@@ -197,6 +207,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "yearly" as const,
       priority: 0.2,
     },
+    {
+      url: `${BASE_URL}/sectors`,
+      lastModified: new Date(),
+      changeFrequency: "daily" as const,
+      priority: 0.85,
+    },
+    ...sectorPages,
     ...samplePortfolioPages,
     ...stockListPages,
     ...guidePages,

@@ -1,5 +1,7 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { Treemap, ResponsiveContainer, Tooltip } from "recharts";
+import { sectorSlug } from "@/lib/sector";
 
 export interface SectorHeatmapItem {
   sector: string;
@@ -12,6 +14,11 @@ interface Props {
   onSectorClick?: (sector: string) => void;
   /** Render the section-rule header above the card. Default true. */
   withHeader?: boolean;
+  /** Slugs that actually have a `/sector/[slug]` page. When a tile's sector is in
+   *  here and no `onSectorClick` is given, clicking it opens that page. Passing
+   *  the list (rather than assuming) keeps tiles for unscored groups — mutual
+   *  funds, tiny sectors — from linking to a 404. */
+  pageSlugs?: string[];
 }
 
 function sectorColor(pct: number | null): string {
@@ -64,8 +71,26 @@ function CustomContent(props: any) {
   );
 }
 
-export default function SectorHeatmap({ sectors, onSectorClick, withHeader = true }: Props) {
+export default function SectorHeatmap({
+  sectors,
+  onSectorClick,
+  withHeader = true,
+  pageSlugs,
+}: Props) {
+  const router = useRouter();
   if (!sectors || sectors.length === 0) return null;
+
+  const linkable = new Set(pageSlugs ?? []);
+
+  function handleClick(name?: string) {
+    if (!name) return;
+    if (onSectorClick) {
+      onSectorClick(name);
+      return;
+    }
+    const slug = sectorSlug(name);
+    if (linkable.has(slug)) router.push(`/sector/${slug}`);
+  }
 
   const data = sectors
     .filter((s) => s.sector && s.sector !== "nan")
@@ -99,9 +124,8 @@ export default function SectorHeatmap({ sectors, onSectorClick, withHeader = tru
               data={data}
               dataKey="size"
               content={<CustomContent />}
-              onClick={(node) => {
-                if (onSectorClick && node?.name) onSectorClick(node.name as string);
-              }}
+              onClick={(node) => handleClick(node?.name as string | undefined)}
+              style={{ cursor: onSectorClick || linkable.size ? "pointer" : "default" }}
             >
               <Tooltip
                 content={({ payload }) => {

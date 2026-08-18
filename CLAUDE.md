@@ -135,6 +135,8 @@ Scrapers must use upsert logic to avoid duplicates.
 | `/market-intelligence` | `app/market-intelligence/page.tsx` | Auto-detects falling/rising/sideways, shows signal tables |
 | `/market-analysis` | `app/market-analysis/page.tsx` | Pulse, sentiment, near-extremes, trending, top picks |
 | `/dse-today` | `app/dse-today/page.tsx` | Today's market header + table + news (single-bundle endpoint) |
+| `/sectors` | `app/sectors/page.tsx` | Sector hub: market medians + one card per sector (largest first) |
+| `/sector/[slug]` | `app/sector/[slug]/page.tsx` | One sector: size/valuation hero, sector-vs-market medians, standouts, sortable table of every company, how that sector class is scored, related sectors. `generateStaticParams` + per-sector `generateMetadata` from `/api/sectors/slugs` |
 | `/dividend-calendar` | `app/dividend-calendar/page.tsx` | Corporate-action calendar: upcoming record dates (with the last normal-market buy day), AGMs, biggest cash dividends of the last 12 months, just-declared list, and the four-step explainer. FAQ JSON-LD lives here |
 | `/stock-insights`, `/stock-insights/[slug]` | `app/stock-insights/...` | Curated insight cards (SEO content) |
 | `/learn`, `/learn/[slug]` | `app/learn/...` | Educational guides (SEO content, English, data from `lib/guides.ts`) |
@@ -152,6 +154,7 @@ Scrapers must use upsert logic to avoid duplicates.
 - Market Analysis → `/market-analysis`
 - DSE Today → `/dse-today`
 - Dividend Calendar → `/dividend-calendar`
+- Sectors → `/sectors`
 - Browse Stocks → `/stocks`
 - Stock Insights → `/stock-insights`
 - Blogs → `/learn`
@@ -230,7 +233,13 @@ components/
 │   ├── NearExtremesPanel.tsx, TrendingStocksGrid.tsx
 │   ├── TopPicksTabs.tsx, VolumeSurgeList.tsx
 ├── market/
-│   ├── SectorHeatmap.tsx (shared treemap, consumed by dse-today + market-analysis)
+│   ├── SectorHeatmap.tsx (shared treemap, consumed by dse-today + market-analysis;
+│   │                      tiles link to `/sector/[slug]` for sectors passed in
+│   │                      `pageSlugs` — unscored groups stay unlinked)
+├── sector/
+│   ├── SectorCard.tsx (+ exported `TierBar`), SectorHero.tsx
+│   ├── SectorVsMarket.tsx, SectorHighlights.tsx, SectorScoringNote.tsx
+│   └── SectorStockTable.tsx  — client, sortable; unscored rows always sort last
 ├── dse-today/
 │   ├── DseTodayHeader.tsx, DseTodayTable.tsx, DseTodayNews.tsx
 ├── dividend-calendar/
@@ -283,6 +292,7 @@ Public / cached (Next ISR):
 - `getMarketMovers()` → `/api/market-movers` (3600s)
 - `getMarketIndex()` → `/api/market-index` (900s)
 - `getDividendsUpcoming()` → `/api/dividends/upcoming` (3600s)
+- `getSectors()` → `/api/sectors` (86400s) · `getSectorSlugs()` → `/api/sectors/slugs` · `getSectorDetail(slug)` → `/api/sector/:slug`
 - `getDividendCalendar()` → `/api/dividend-calendar` (86400s + `market-data` tag)
 - `getDividendHistory(code)` → `/api/company/:code/dividend-history` (raw ledger rows, no price/score enrichment)
 - `getMarketIntelligence()` → `/api/market-intelligence` (900s)
@@ -314,6 +324,7 @@ A 401 response from `apiAuthFetch` triggers `logout()` and throws `AUTH_EXPIRED`
 - `guides.ts` — learn-page content (~14 KB)
 - `insight-utils.ts`, `verdict.ts` — shared insight / verdict helpers
 - `formatters.ts`, `constants.ts`, `market-hours.ts` — formatting + market-open utilities
+- `sector.ts` — `sectorSlug(name)`, the frontend mirror of `sector_service.sector_slug` (used by the heatmap to build `/sector/[slug]` links)
 - `landing.ts` — landing-page data: the compact `LandingStock` projection of `/api/scores` the hero lookup runs off, `pickHeroCode()` (familiar-name preference), and `PILLARS` (just the five plain-language pillar names for the hero card's bars — weights and explanations live on `/about`)
 - `daily-delta.ts` — per-device localStorage diff of the homepage discovery lists (powers the New/▲ "since your last visit" tags)
 
@@ -334,6 +345,7 @@ A 401 response from `apiAuthFetch` triggers `logout()` and throws `AUTH_EXPIRED`
 | `routers/market_intelligence.py` | `GET /api/market-intelligence` | Market condition + signal tables |
 | `routers/market_analysis.py` | `GET /api/market/near-extremes` | Stocks within 5% of 52-week high/low |
 | `routers/dividends.py` | `GET /api/dividends/upcoming` | Upcoming declarations + record dates (homepage widget) |
+| `routers/sectors.py` | `GET /api/sectors`, `GET /api/sectors/slugs`, `GET /api/sector/:slug` | Per-sector aggregates; 404 on an unknown slug |
 | `routers/corporate_actions.py` | `GET /api/dividend-calendar`, `GET /api/company/:code/dividend-history` | Full dividend calendar (record dates, AGMs, top payers) + per-company declaration history |
 | `routers/audit.py` | `GET /api/audit` | Data coverage report |
 | `routers/stock_lists.py` | `GET /api/stock-lists` | Pre-computed top-20 lists (dividend, EPS, profit, market cap, growth, volume, 52w return, sector slices) |
@@ -362,6 +374,7 @@ Returns the same `{access_token, token_type, user}` envelope as `/login`, so fro
   Key functions: `load_companies`, `load_latest_prices`, `load_price_history`, `load_financials`, `load_extended_financials`, `load_shareholdings`, `load_company_news`, `load_dividend_declarations` (**latest declaration per company** — what every pre-existing caller means by "the current dividend"), `load_dividend_history` (the whole ledger, newest first), `load_market_movers`, `load_market_index`, `load_dse_today_table`, `load_market_news`, `load_news_for_codes`, `load_all_company_codes`, `compute_market_intelligence`, `compute_signal_flags`, `compute_52w_range`.
 - `scoring_service.py` — DSEF scoring pipeline (`build_scores_df`), used by `scores.py` and `stock_lists.py`.
 - `signal_service.py` — canonical Buy/Sell signal, else `none` — never Hold (`build_signals`, `get_signal`, `holding_signal`) — see the scoring section above for the rule order.
+- `sector_service.py` — per-sector aggregates (`list_sectors`, `get_sector`, `sector_slugs`, `sector_slug`; cached 900s). Groups the score frame by DSE's own sector field, needs `MIN_COMPANIES = 3` before a sector gets a page, and uses **medians** for valuation so one giant listing can't skew a sector. `CLASS_NOTES` holds the per-class ("scored as a bank / insurer / …") explanation shown on the page — it describes `scoring_service`'s sector handling, so keep the two in step. `sector_slug()` is mirrored by frontend `lib/sector.ts` — change both or heatmap tiles link to 404s.
 - `corporate_actions_service.py` — dividend calendar (`build_dividend_calendar`, cached 900s). Turns the declaration ledger into forward record dates + AGMs priced off the latest close: cash per share (`cash_pct` × face value), **gross** yield, days left, and `buy_by` — the last normal-market buy day, `SPOT_WINDOW_DAYS + 1` = 3 Bangladesh trading days (Sun–Thu, holidays not modelled) before the record date, since normal-market trades settle T+2 and DSE opens a spot window just before. No tax is applied and no advice is derived; the DSEF score/tier ride along as context only.
 - `auth_service.py` — bcrypt password hashing, JWT issue/verify, `create_user`, `authenticate_user`, `get_user_by_id`, `get_user_watchlist`, `update_user_watchlist`, `sanitize_user`, `ensure_users_indexes()` (called at FastAPI startup).
 

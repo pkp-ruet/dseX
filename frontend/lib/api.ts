@@ -338,6 +338,109 @@ export interface CorporateActionEvent {
   event_date?: string;
 }
 
+// ---- Sectors ----
+
+/** One company inside a sector page. */
+export interface SectorStockRow {
+  trading_code: string;
+  company_name: string | null;
+  market_category: string | null;
+  score: number | null;
+  tier: TierKey | null;
+  ltp: number | null;
+  change_pct: number | null;
+  pe: number | null;
+  pb: number | null;
+  eps: number | null;
+  eps_yoy_pct: number | null;
+  roe_pct: number | null;
+  div_yield_pct: number | null;
+  mcap_mn: number | null;
+  return_7d_pct: number | null;
+  /** 7-day return minus DSEX's — positive means it beat the index. */
+  rs_vs_dsex_pct: number | null;
+  p1_biz: number | null;
+  p2_health: number | null;
+  p3_moat: number | null;
+  p4_val: number | null;
+  p5_div: number | null;
+  stale_data: boolean | null;
+  signal: StockSignalInfo | null;
+}
+
+export interface SectorBrief {
+  trading_code: string;
+  company_name: string | null;
+  score: number | null;
+  tier: TierKey | null;
+  ltp: number | null;
+  change_pct: number | null;
+}
+
+/** Group-level figures for one sector. Valuation uses medians, not averages. */
+export interface SectorSummary {
+  sector: string;
+  slug: string;
+  /** Scoring class: BANK | NBFI | INSURANCE | GENERAL. */
+  sector_class: string;
+  company_count: number;
+  total_mcap_mn: number | null;
+  median_score: number | null;
+  median_pe: number | null;
+  median_pb: number | null;
+  median_yield_pct: number | null;
+  median_roe_pct: number | null;
+  avg_change_pct: number | null;
+  avg_return_7d_pct: number | null;
+  avg_rs_vs_dsex_pct: number | null;
+  buy_signals: number;
+  sell_signals: number;
+  tier_counts: Record<string, number>;
+  top_ranked: SectorBrief | null;
+  best_today: SectorBrief | null;
+  worst_today: SectorBrief | null;
+}
+
+export interface MarketMedians {
+  company_count: number;
+  median_score: number | null;
+  median_pe: number | null;
+  median_pb: number | null;
+  median_yield_pct: number | null;
+  median_roe_pct: number | null;
+  avg_change_pct: number | null;
+  avg_return_7d_pct: number | null;
+  sector_count: number;
+}
+
+export interface SectorComparisonRow {
+  metric: string;
+  label: string;
+  sector: number | null;
+  market: number | null;
+  /** Positive means the sector reads higher than the market median. */
+  gap_pct: number | null;
+  higher_is_better: boolean;
+}
+
+export interface SectorsListData {
+  market: MarketMedians;
+  sectors: SectorSummary[];
+}
+
+export interface SectorDetailData {
+  summary: SectorSummary;
+  market: MarketMedians;
+  comparison: SectorComparisonRow[];
+  scoring_note: { label: string; en: string; bn: string };
+  stocks: SectorStockRow[];
+  top_dividend: SectorStockRow[];
+  gainers: SectorStockRow[];
+  losers: SectorStockRow[];
+  week_leaders: SectorStockRow[];
+  related_sectors: SectorSummary[];
+}
+
 /** A row of the `dividend_declarations` ledger, as stored. */
 export interface DividendDeclarationRecord {
   trading_code: string;
@@ -518,6 +621,21 @@ export async function getMarketIndex(): Promise<MarketIndexData> {
 
 export async function getDividendsUpcoming(): Promise<DividendsUpcoming> {
   return apiFetch<DividendsUpcoming>("/api/dividends/upcoming", 86400);
+}
+
+/** Sector hub: one summary per sector + market-wide medians. */
+export async function getSectors(): Promise<SectorsListData> {
+  return apiFetch<SectorsListData>("/api/sectors", 86400);
+}
+
+/** Slugs that have a sector page — for generateStaticParams and the sitemap. */
+export async function getSectorSlugs(): Promise<string[]> {
+  return apiFetch<string[]>("/api/sectors/slugs", 86400);
+}
+
+/** One sector's detail. Throws ApiNotFoundError (404) for an unknown slug. */
+export async function getSectorDetail(slug: string): Promise<SectorDetailData> {
+  return apiFetch<SectorDetailData>(`/api/sector/${slug}`, 86400);
 }
 
 /** Record dates, AGMs and recent declarations for /dividend-calendar. */
