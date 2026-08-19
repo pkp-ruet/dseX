@@ -32,6 +32,7 @@ from typing import Optional
 from pymongo import ASCENDING, DESCENDING, UpdateOne
 
 from backend.services.db_service import (
+    CLOSE_EXPR,
     get_db,
     load_companies,
     load_latest_prices,
@@ -165,7 +166,7 @@ def _load_w52_low(db) -> dict[str, float]:
     since = _iso_days_ago(365)
     pipeline = [
         {"$match": {"date": {"$gte": since}, "ltp": {"$gt": 0}}},
-        {"$group": {"_id": "$trading_code", "w52_low": {"$min": "$ltp"}}},
+        {"$group": {"_id": "$trading_code", "w52_low": {"$min": CLOSE_EXPR}}},
     ]
     return {d["_id"]: _safe(d.get("w52_low")) for d in db.stock_prices.aggregate(pipeline)}
 
@@ -198,8 +199,8 @@ def _load_rel_strength(db) -> dict[str, float]:
         {"$sort": {"date": ASCENDING}},
         {"$group": {
             "_id": "$trading_code",
-            "first": {"$first": "$ltp"},
-            "last": {"$last": "$ltp"},
+            "first": {"$first": CLOSE_EXPR},
+            "last": {"$last": CLOSE_EXPR},
         }},
     ]
     out: dict[str, float] = {}

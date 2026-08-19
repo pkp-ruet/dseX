@@ -82,11 +82,12 @@ def load_price_matrix(db):
     all_dates: set[str] = set()
     cur = db.stock_prices.find(
         {"ltp": {"$gt": 0}},
-        {"_id": 0, "trading_code": 1, "date": 1, "ltp": 1},
+        {"_id": 0, "trading_code": 1, "date": 1, "ltp": 1, "close_price": 1},
     )
     for doc in cur:
         code = doc.get("trading_code")
-        ltp = doc.get("ltp")
+        # Official close, matching what the app prices everything off.
+        ltp = doc.get("close_price") or doc.get("ltp")
         if not code or ltp is None or ltp <= 0:
             continue
         ds = _d10(doc["date"])

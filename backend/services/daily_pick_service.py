@@ -72,13 +72,14 @@ def _next_day_return_pct(trading_code: str, pick_date: str) -> Optional[float]:
     docs = list(
         db.stock_prices.find(
             {"trading_code": trading_code, "date": {"$gte": pick_dt}},
-            {"_id": 0, "date": 1, "ltp": 1},
+            {"_id": 0, "date": 1, "ltp": 1, "close_price": 1},
         ).sort("date", ASCENDING).limit(2)
     )
     if len(docs) < 2:
         return None
-    base = docs[0].get("ltp")
-    nxt = docs[1].get("ltp")
+    # Official close on both ends — see db_service.use_official_close.
+    base = docs[0].get("close_price") or docs[0].get("ltp")
+    nxt = docs[1].get("close_price") or docs[1].get("ltp")
     if not base or not nxt or base <= 0:
         return None
     return round((nxt - base) / base * 100, 2)

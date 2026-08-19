@@ -94,9 +94,54 @@ def load_companies() -> list[dict]:
     return list(db.companies.find({"excluded": {"$ne": True}}, {"_id": 0}))
 
 
+# ---------------------------------------------------------------------------
+# Official close
+# ---------------------------------------------------------------------------
+# DSE publishes two prices per stock per day:
+#   ltp         — the last executed trade of the session
+#   close_price — DSE's CLOSEP, the official close: the weighted average of
+#                 trades in the final 30 minutes (or the LTP if nothing traded
+#                 in that window)
+# CLOSEP is the official one. DSE carries it forward as the next day's YCP and
+# prices the +/-10% circuit limit off it (verified: ycp matches the prior day's
+# close_price for 100% of stocks, vs ~88% for ltp). The two differ for roughly
+# 14% of stocks on a normal day — worst observed gap 5.3% — and the gap is
+# widest in thinly traded small caps, where one final tick is least
+# representative. Prices are scraped once a day at 2 PM Dhaka (market close),
+# so the close is always final by the time we read it.
+#
+# Every read path therefore runs raw `stock_prices` docs through
+# `use_official_close()`. The `ltp` key name is kept so no consumer downstream
+# has to change; `close_price` stays on the doc untouched.
+
+def use_official_close(doc: dict) -> dict:
+    """Overwrite `ltp` with DSE's official close, re-deriving change from it.
+
+    Mutates and returns `doc`. Idempotent. A no-op when `close_price` is absent
+    (some backfilled rows) — the LTP is then the best price available.
+    """
+    close = doc.get("close_price")
+    if close is None or close <= 0:
+        return doc
+    doc["ltp"] = close
+    ycp = doc.get("ycp")
+    if ycp:
+        doc["change"] = round(close - ycp, 2)
+        doc["change_pct"] = round((close - ycp) / ycp * 100, 2)
+    return doc
+
+
+# The official close, for use inside an aggregation pipeline (`$max`, `$min`,
+# `$first`) where there is no Python doc to normalise.
+CLOSE_EXPR = {"$ifNull": ["$close_price", "$ltp"]}
+
+
 @_ttl_cache(60)
 def load_latest_prices() -> dict[str, dict]:
-    """Returns {trading_code: {ltp, change, change_pct, date, high, low, volume, ycp, ...}}"""
+    """Returns {trading_code: {ltp, change, change_pct, date, high, low, volume, ycp, ...}}
+
+    `ltp` carries DSE's official close — see `use_official_close`.
+    """
     db = get_db()
     pipeline = [
         # Skip suspended / no-trade days (DSE reports 0 on dividend record dates)
@@ -118,7 +163,7 @@ def load_latest_prices() -> dict[str, dict]:
             "ycp":        {"$first": "$ycp"},
         }},
     ]
-    return {doc["_id"]: doc for doc in db.stock_prices.aggregate(pipeline)}
+    return {doc["_id"]: use_official_close(doc) for doc in db.stock_prices.aggregate(pipeline)}
 
 
 @_ttl_cache(300)
@@ -129,11 +174,12 @@ def load_price_history(trading_code: str) -> list[dict]:
             # ltp > 0 drops suspended / no-trade days so the chart never dips to 0
             {"trading_code": trading_code, "ltp": {"$gt": 0}},
             {"_id": 0, "date": 1, "ltp": 1, "volume": 1, "change_pct": 1,
-             "high": 1, "low": 1, "close_price": 1}
+             "high": 1, "low": 1, "close_price": 1, "ycp": 1}
         ).sort("date", 1)
     )
     # Convert date objects to ISO strings for JSON serialisation
     for d in docs:
+        use_official_close(d)
         if "date" in d and hasattr(d["date"], "isoformat"):
             d["date"] = d["date"].isoformat()
     return docs
@@ -324,12 +370,14 @@ def load_market_movers() -> dict:
     docs = list(db.stock_prices.find(
         {"date": latest_date},
         {"_id": 0, "trading_code": 1, "ltp": 1, "change": 1,
-         "change_pct": 1, "volume": 1, "value_mn": 1},
+         "change_pct": 1, "volume": 1, "value_mn": 1,
+         "close_price": 1, "ycp": 1},
     ))
 
     # Join company names
     companies = {c["trading_code"]: c.get("company_name") for c in load_companies()}
     for d in docs:
+        use_official_close(d)
         d["company_name"] = companies.get(d["trading_code"])
 
     # Filter out entries with missing change_pct / value_mn, and suspended /
@@ -445,10 +493,13 @@ def load_market_index() -> dict:
     ds30_change = index_change(doc.get("ds30"), doc.get("ds30_change"), "ds30")
 
     # Up / down / neutral company counts for the latest date
-    price_changes = list(db.stock_prices.find(
-        {"date": doc["date"]},
-        {"_id": 0, "change_pct": 1},
-    ))
+    price_changes = [
+        use_official_close(p)
+        for p in db.stock_prices.find(
+            {"date": doc["date"]},
+            {"_id": 0, "change_pct": 1, "close_price": 1, "ycp": 1},
+        )
+    ]
     up_count = sum(1 for p in price_changes if (p.get("change_pct") or 0) > 0)
     down_count = sum(1 for p in price_changes if (p.get("change_pct") or 0) < 0)
     neutral_count = len(price_changes) - up_count - down_count
@@ -514,11 +565,14 @@ def compute_market_intelligence() -> dict:
     recent_dates = all_dates[:10]
 
     # --- Today's prices ---
-    today_docs = list(db.stock_prices.find(
-        {"date": latest_date},
-        {"_id": 0, "trading_code": 1, "ltp": 1, "change_pct": 1,
-         "volume": 1, "value_mn": 1}
-    ))
+    today_docs = [
+        use_official_close(d)
+        for d in db.stock_prices.find(
+            {"date": latest_date},
+            {"_id": 0, "trading_code": 1, "ltp": 1, "change_pct": 1,
+             "volume": 1, "value_mn": 1, "close_price": 1, "ycp": 1}
+        )
+    ]
 
     # --- Historical (last 7 trading days, excluding today) for volume avg ---
     hist_dates = recent_dates[1:8]

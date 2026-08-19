@@ -16,6 +16,7 @@ from datetime import datetime
 from typing import Optional
 
 from backend.services.db_service import (
+    CLOSE_EXPR,
     _ttl_cache,
     compute_market_intelligence,
     get_db,
@@ -180,8 +181,8 @@ def _market_window_raw(as_of: Optional[str] = None) -> dict:
         }},
         {"$group": {
             "_id": "$trading_code",
-            "hi": {"$max": "$ltp"},
-            "lo": {"$min": "$ltp"},
+            "hi": {"$max": CLOSE_EXPR},
+            "lo": {"$min": CLOSE_EXPR},
         }},
     ]))
     range_by_code = {r["_id"]: r for r in range_agg}
@@ -192,7 +193,9 @@ def _market_window_raw(as_of: Optional[str] = None) -> dict:
         today_row = day_map.get(latest_date_str)
         if not today_row:
             continue
-        today_ltp = today_row.get("ltp") or today_row.get("close_price")
+        # Official close first, same as the reference close below — mixing the
+        # two put a last-trade price over a close-based reference.
+        today_ltp = today_row.get("close_price") or today_row.get("ltp")
         if not today_ltp or today_ltp <= 0:
             continue
 
