@@ -3,15 +3,9 @@ import { Suspense } from "react";
 import {
   flattenTiers,
   getScores,
-  getMarketIndex,
-  getDividendsUpcoming,
-  getMarketState,
   getTrust,
   type ScoresResponse,
   type ScoreItem,
-  type MarketIndexData,
-  type DividendsUpcoming,
-  type MarketStateData,
   type TrustStats,
 } from "@/lib/api";
 import { pickStoryStocks } from "@/lib/home-stories";
@@ -148,31 +142,13 @@ async function AnatomySection({ promise }: { promise: Promise<ScoresResponse | n
   return <ReportAnatomy stock={hero} totalCount={safeCount(data.total)} />;
 }
 
-async function LiveTodaySection({
-  scoresPromise,
-  indexPromise,
-  dividendsPromise,
-  statePromise,
-}: {
-  scoresPromise: Promise<ScoresResponse | null>;
-  indexPromise: Promise<MarketIndexData | null>;
-  dividendsPromise: Promise<DividendsUpcoming | null>;
-  statePromise: Promise<MarketStateData | null>;
-}) {
-  const [scores, index, dividends, state] = await Promise.all([
-    scoresPromise,
-    indexPromise,
-    dividendsPromise,
-    statePromise,
-  ]);
+async function LiveTodaySection({ promise }: { promise: Promise<ScoresResponse | null> }) {
+  const scores = await promise;
   const items = scores ? sortedByScore(flattenTiers(scores)) : [];
-  if (!index && items.length === 0) return null;
+  if (items.length === 0) return null;
   return (
     <LiveToday
-      index={index}
-      dividends={dividends}
-      state={state}
-      standouts={items.length > 0 ? pickStoryStocks(items, items.length) : []}
+      standouts={pickStoryStocks(items, items.length)}
       totalCount={safeCount(items.length)}
     />
   );
@@ -226,10 +202,6 @@ function HeroFallback() {
  */
 export default function HomePage() {
   const scoresPromise = getScores().catch(() => null);
-  const marketIndexPromise = getMarketIndex().catch(() => null);
-  const dividendsPromise = getDividendsUpcoming().catch(() => null);
-  // Match this page's daily ISR cadence (the helper defaults to 900s).
-  const marketStatePromise = getMarketState(86400).catch(() => null);
   const trustPromise = getTrust().catch(() => null);
 
   return (
@@ -260,12 +232,7 @@ export default function HomePage() {
 
           {/* 4 — today's data, so nothing above is only a claim */}
           <Suspense fallback={null}>
-            <LiveTodaySection
-              scoresPromise={scoresPromise}
-              indexPromise={marketIndexPromise}
-              dividendsPromise={dividendsPromise}
-              statePromise={marketStatePromise}
-            />
+            <LiveTodaySection promise={scoresPromise} />
           </Suspense>
 
           {/* 5 — more routes in, for someone with no company in mind */}

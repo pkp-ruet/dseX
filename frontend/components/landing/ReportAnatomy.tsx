@@ -1,8 +1,6 @@
 import Link from "next/link";
-import type { CSSProperties } from "react";
 import Bn from "@/components/i18n/Bn";
 import SectionHead from "@/components/i18n/SectionHead";
-import { getTier, TIER_VAR, TIER_GRADES, TIER_LABELS } from "@/lib/constants";
 import type { LandingStock } from "@/lib/landing";
 
 /**
@@ -11,8 +9,10 @@ import type { LandingStock } from "@/lib/landing";
  * This is the "look how deep this goes" block, and it earns that by listing only
  * sections that really render on /stock/[code] — score + health checks, price
  * chart, valuation, five-year financials, dividends, ownership, peers, news and
- * the Bengali summary. No mocked screenshot: the example panel is built from the
- * same live payload as the hero, so it can't drift out of date or overstate.
+ * the Bengali summary. Compact by design: the list + one link out to a real
+ * page. The live example panel that used to sit beside the list was cut
+ * 2026-08-30 — the hero's MiniReport already shows a real report, and one proof
+ * per page is enough.
  */
 
 const CONTENTS = [
@@ -57,8 +57,6 @@ export default function ReportAnatomy({
   stock: LandingStock | null;
   totalCount: number;
 }) {
-  const tier = stock ? getTier(stock.score) : null;
-
   return (
     <section aria-labelledby="anatomy-title">
       <SectionHead
@@ -71,87 +69,40 @@ export default function ReportAnatomy({
         bn={`${totalCount}টি কোম্পানির প্রত্যেকটার জন্য একই — কোনোটার পাতা ছোট নয়।`}
       />
 
-      <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-[1fr_minmax(0,20rem)] md:gap-10">
-        {/* The contents, numbered */}
-        <ol className="flex flex-col divide-y divide-[var(--border)] border-t border-[var(--border)]">
-          {CONTENTS.map((c, i) => (
-            <li key={c.title} className="flex items-start gap-3.5 py-3.5">
-              <span
-                className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-lg font-display text-[0.72rem] font-extrabold tabular-nums nums"
-                style={{
-                  color: "var(--info-ink)",
-                  background: "color-mix(in srgb, var(--info) 13%, transparent)",
-                }}
-                aria-hidden
-              >
-                {i + 1}
-              </span>
-              <div className="min-w-0">
-                <h3 className="text-[0.9rem] font-bold text-[var(--text)]">{c.title}</h3>
-                <Bn className="mt-0.5 text-[0.82rem] leading-relaxed text-[var(--text-muted)]">
-                  {c.bn}
-                </Bn>
-              </div>
-            </li>
-          ))}
-        </ol>
-
-        {/* A real example, not a mockup */}
-        {stock && tier && (
-          <aside
-            className="acc-panel acc-top h-fit p-5 md:sticky md:top-24"
-            style={{ "--acc": TIER_VAR[tier] } as CSSProperties}
-          >
-            <span className="text-[0.66rem] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
-              For example
+      {/* The contents, numbered — two columns on wider screens so the block
+          stays short; each item keeps its one-line Bengali explanation. */}
+      <ol className="mt-8 border-t border-[var(--border)] sm:columns-2 sm:gap-10">
+        {CONTENTS.map((c, i) => (
+          <li key={c.title} className="flex items-start gap-3.5 break-inside-avoid border-b border-[var(--border)] py-3">
+            <span
+              className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-lg font-display text-[0.72rem] font-extrabold tabular-nums nums"
+              style={{
+                color: "var(--info-ink)",
+                background: "color-mix(in srgb, var(--info) 13%, transparent)",
+              }}
+              aria-hidden
+            >
+              {i + 1}
             </span>
-            <div className="mt-2.5 flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="font-mono text-[0.95rem] font-extrabold text-[var(--text)]">{stock.code}</p>
-                <p className="mt-0.5 line-clamp-2 text-[0.78rem] font-semibold leading-snug text-[var(--text-muted)]">
-                  {stock.name ?? stock.code}
-                </p>
-              </div>
-              <div className="shrink-0 text-right">
-                <div
-                  className="font-display text-[1.9rem] font-extrabold leading-none tabular-nums nums"
-                  style={{ color: TIER_VAR[tier] }}
-                >
-                  {stock.score == null ? "—" : Math.round(stock.score)}
-                </div>
-                <div className="mt-1 flex items-center justify-end gap-1.5">
-                  <span
-                    className="inline-flex h-4 w-4 items-center justify-center rounded text-[0.6rem] font-extrabold text-white"
-                    style={{ background: TIER_VAR[tier] }}
-                  >
-                    {TIER_GRADES[tier]}
-                  </span>
-                  <span className="text-[0.7rem] font-extrabold" style={{ color: TIER_VAR[tier] }}>
-                    {TIER_LABELS[tier]}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 border-t border-[var(--border)] pt-4">
-              <p className="text-[0.8rem] leading-relaxed text-[var(--text-muted)]">
-                All eight sections above are on {stock.code}&apos;s page. Go and check.
-              </p>
-              <Bn className="mt-1 text-[0.8rem] leading-relaxed text-[var(--text-muted)]">
-                উপরের 8টা অংশই {stock.code}-এর পাতায় আছে। নিজেই দেখে নিন।
+            <div className="min-w-0">
+              <h3 className="text-[0.9rem] font-bold text-[var(--text)]">{c.title}</h3>
+              <Bn className="mt-0.5 text-[0.82rem] leading-relaxed text-[var(--text-muted)]">
+                {c.bn}
               </Bn>
             </div>
+          </li>
+        ))}
+      </ol>
 
-            <Link
-              href={`/stock/${stock.code}`}
-              prefetch={false}
-              className="ui-btn ui-btn-md ui-btn-primary mt-4 w-full justify-center"
-            >
-              Open {stock.code}&apos;s report
-            </Link>
-          </aside>
-        )}
-      </div>
+      {/* One proof link instead of a second report panel — the hero already
+          shows a real report. */}
+      <Link
+        href={stock ? `/stock/${stock.code}` : "/stocks"}
+        prefetch={false}
+        className="mt-6 inline-block text-[0.85rem] font-bold text-[var(--primary-ink)] underline-offset-4 hover:underline"
+      >
+        {stock ? `See all 8 sections on ${stock.code}'s page →` : "Open any company and see →"}
+      </Link>
     </section>
   );
 }
