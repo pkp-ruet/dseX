@@ -38,6 +38,10 @@ export function portfolioTodayMove(
     const ltp = item?.ltp;
     const pct = item?.change_pct;
     if (ltp == null || pct == null) continue;
+    // A -100% (or worse) change means a bad price row (e.g. a zero official
+    // close scraped intraday), and would make prevClose = ltp / 0 = Infinity —
+    // the hero once rendered "−৳Infinity (NaN%)". Skip the holding instead.
+    if (!Number.isFinite(ltp) || !Number.isFinite(pct) || pct <= -100) continue;
     const prevClose = ltp / (1 + pct / 100);
     delta += h.qty * (ltp - prevClose);
     prevValue += h.qty * prevClose;

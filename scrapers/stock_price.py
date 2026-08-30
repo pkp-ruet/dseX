@@ -53,13 +53,26 @@ class StockPriceScraper(BaseScraper):
                 ltp = high = low = close_price = None
                 change = change_pct = None
             else:
+                # Intraday, DSE shows CLOSEP as 0.00 until the session closes —
+                # the official close doesn't exist yet. `scrape-quick` runs
+                # several times during the session, so store "no close yet"
+                # (None) rather than a real 0: a 0 close made `change` = -ycp,
+                # i.e. -100% for every stock (shipped bug, 2026-08-30).
+                # `db_service.use_official_close` no-ops on a None close and
+                # the post-close scrape overwrites the row with the real CLOSEP.
+                if close_price is not None and close_price <= 0:
+                    close_price = None
+
                 # DSE's own CHANGE column is last-trade based (ltp - ycp). Store
                 # the official close's change instead, so this row means the same
                 # thing as a backfilled one (historical_prices.py) and as every
                 # read path in db_service, which all price off CLOSEP. Nothing is
                 # lost — DSE's figure is still ltp - ycp, and both are stored.
-                if close_price is not None and ycp:
-                    change = round(close_price - ycp, 2)
+                # With no close yet, fall back to the LTP so the intraday row
+                # still carries a sensible change.
+                basis = close_price if close_price is not None else ltp
+                if ycp:
+                    change = round(basis - ycp, 2)
                 change_pct = None
                 if change is not None and ycp and ycp != 0:
                     change_pct = round(change / ycp * 100, 2)
