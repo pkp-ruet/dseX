@@ -98,7 +98,7 @@ DSE (Dhaka Stock Exchange) stock data pipeline with four components:
 | File | Purpose |
 |---|---|
 | `scrapers/company_list.py` | All companies → `companies` collection |
-| `scrapers/stock_price.py` | Daily prices → `stock_prices` collection |
+| `scrapers/stock_price.py` | Daily prices → `stock_prices` collection. Stores both DSE price columns — `ltp` (last executed trade) and `close_price` (CLOSEP, the official close) — but writes `change`/`change_pct` **close-based** (`close_price - ycp`), not from DSE's own last-trade-based CHANGE column, so a scraped row means the same thing as a `historical_prices.py` backfilled one. See **Official close** below |
 | `scrapers/company_details.py` | Financials, dividends, shareholding → `financials`, `shareholdings`; updates `reserve_surplus_mn`, `total_loan_mn`, `total_shares` on `companies`; auto-excludes bonds, debentures, mutual funds, ETFs |
 | `scrapers/cash_flow_scraper.py` | Extended financials from Amarstock → `company_financials_ext` |
 | `scrapers/news.py` | News & dividend declarations → `company_news`, `dividend_declarations`. Parses cash vs stock (bonus) %, record date, AGM date and period end out of the body; classifies each "Dividend Declaration" item as a real declaration or a follow-up notice (`is_declaration_news`) — follow-ups ("(Additional Information)", "Refer to the earlier news …") never become declarations, they only fold corrected dates into the declaration they amend |
@@ -121,6 +121,21 @@ Connection is a module-level singleton in `db/connection.py` (`get_db()` / `clos
 | `users` | `(user_id)`, `(email)`, `(phone)` — created at backend startup by `auth_service.ensure_users_indexes()` |
 
 Scrapers must use upsert logic to avoid duplicates.
+
+### Official close (which price the app shows)
+
+DSE publishes two prices per stock per day and `stock_prices` stores both:
+
+- **`ltp`** — the last executed trade of the session.
+- **`close_price`** — DSE's CLOSEP, the **official close**: the weighted average of trades in the final 30 minutes (or the LTP when nothing traded in that window).
+
+**CLOSEP is the one the app prices everything off.** It is DSE's official number — DSE carries it forward as the next day's `ycp` and bases the ±10% circuit limit on it (verified: `ycp` matches the prior day's `close_price` for 100% of stocks, vs ~88% for `ltp`). The two differ for ~14% of stocks on a normal day (median gap ~1%, worst observed 5.3%), widest in thin small caps where one final tick is least representative. Prices are scraped once a day at 2 PM Dhaka (market close), so the close is always final when read.
+
+Every read path funnels raw `stock_prices` docs through **`db_service.use_official_close(doc)`**, which overwrites `ltp` with the close and re-derives `change`/`change_pct` from `close_price - ycp`. It is idempotent and no-ops when `close_price` is absent (then LTP is the best price available). **The `ltp` key name is deliberately kept** so no router, response model, or frontend component has to change — `ltp` in an API response means the official close. Inside aggregation pipelines (`$max`/`$min`/`$first` for 52-week ranges) use the **`db_service.CLOSE_EXPR`** constant instead.
+
+When adding a code path that reads `stock_prices` directly, apply one of those two — do not read `ltp` raw. Normalized paths: `load_latest_prices`, `load_price_history` (→ `compute_52w_range`), `load_market_movers`, `load_market_index` breadth counts, `compute_market_intelligence`, `top20_service._market_window_raw`, `market_state_service`, `daily_tips_service`, `daily_pick_service`, the `market_analysis` + `stock_lists` 52w aggregations, and `scripts/signal_backtest.py`.
+
+⚠️ **`stock_prices.date` is an ISO string** (`"YYYY-MM-DD"`), not a BSON date. Range filters must compare against a **string** bound (`.strftime("%Y-%m-%d")`) — BSON sorts String before Date, so a `datetime` bound silently matches **zero** documents. Four 52-week pipelines shipped with this bug and returned empty for months (fixed 2026-08-20).
 
 ### Next.js Frontend (`frontend/`)
 
@@ -372,6 +387,7 @@ Returns the same `{access_token, token_type, user}` envelope as `/login`, so fro
 
 - `db_service.py` — cached query layer (`@_ttl_cache(300)`, 5-min in-memory TTL).
   Key functions: `load_companies`, `load_latest_prices`, `load_price_history`, `load_financials`, `load_extended_financials`, `load_shareholdings`, `load_company_news`, `load_dividend_declarations` (**latest declaration per company** — what every pre-existing caller means by "the current dividend"), `load_dividend_history` (the whole ledger, newest first), `load_market_movers`, `load_market_index`, `load_dse_today_table`, `load_market_news`, `load_news_for_codes`, `load_all_company_codes`, `compute_market_intelligence`, `compute_signal_flags`, `compute_52w_range`.
+  Also owns `use_official_close(doc)` + `CLOSE_EXPR` — the canonical "which price" rule for the whole app (see **Official close** above). Every price a user sees is DSE's CLOSEP, exposed under the legacy `ltp` key.
 - `scoring_service.py` — DSEF scoring pipeline (`build_scores_df`), used by `scores.py` and `stock_lists.py`.
 - `signal_service.py` — canonical Buy/Sell signal, else `none` — never Hold (`build_signals`, `get_signal`, `holding_signal`) — see the scoring section above for the rule order.
 - `sector_service.py` — per-sector aggregates (`list_sectors`, `get_sector`, `sector_slugs`, `sector_slug`; cached 900s). Groups the score frame by DSE's own sector field, needs `MIN_COMPANIES = 3` before a sector gets a page, and uses **medians** for valuation so one giant listing can't skew a sector. `CLASS_NOTES` holds the per-class ("scored as a bank / insurer / …") explanation shown on the page — it describes `scoring_service`'s sector handling, so keep the two in step. `sector_slug()` is mirrored by frontend `lib/sector.ts` — change both or heatmap tiles link to 404s.

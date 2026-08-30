@@ -5,7 +5,13 @@ Used by the /stock-lists section of the frontend.
 import math
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter
-from backend.services.db_service import get_db, load_companies, load_latest_prices, _ttl_cache
+from backend.services.db_service import (
+    CLOSE_EXPR,
+    get_db,
+    load_companies,
+    load_latest_prices,
+    _ttl_cache,
+)
 from backend.services.scoring_service import build_scores_df
 
 router = APIRouter()
@@ -70,13 +76,15 @@ def _compute_stock_lists() -> dict:
         }
 
     # --- 52-week high/low for return calculation ---
-    one_year_ago = datetime.now(timezone.utc) - timedelta(days=365)
+    # `stock_prices.date` holds an ISO string, so the bound has to be a string
+    # too — BSON sorts String before Date, so a datetime bound matched nothing.
+    one_year_ago = (datetime.now(timezone.utc) - timedelta(days=365)).strftime("%Y-%m-%d")
     pipeline_52w = [
         {"$match": {"date": {"$gte": one_year_ago}, "ltp": {"$gt": 0}}},
         {"$group": {
             "_id": "$trading_code",
-            "w52_low": {"$min": "$ltp"},
-            "ltp_latest": {"$last": "$ltp"},
+            "w52_low": {"$min": CLOSE_EXPR},
+            "ltp_latest": {"$last": CLOSE_EXPR},
         }},
     ]
     perf_map: dict[str, dict] = {}

@@ -20,11 +20,13 @@ from typing import Optional
 from pymongo import ASCENDING, UpdateOne
 
 from backend.services.db_service import (
+    CLOSE_EXPR,
     get_db,
     load_companies,
     load_latest_prices,
     load_market_index,
     load_dividend_declarations,
+    use_official_close,
     _ttl_cache,
 )
 from backend.services.scoring_service import build_scores_df
@@ -166,12 +168,14 @@ def _window_returns(db, codes: set) -> tuple[dict, dict]:
     wanted = {latest, week_ago, month_ago}
     docs = db.stock_prices.find(
         {"date": {"$in": list(wanted)}, "ltp": {"$gt": 0}},
-        {"_id": 0, "trading_code": 1, "date": 1, "ltp": 1},
+        {"_id": 0, "trading_code": 1, "date": 1, "ltp": 1,
+         "close_price": 1, "ycp": 1},
     )
     px_latest: dict = {}
     px_week: dict = {}
     px_month: dict = {}
     for d in docs:
+        use_official_close(d)
         code = d.get("trading_code")
         if code is not None and codes and code not in codes:
             continue
@@ -200,10 +204,12 @@ def _window_returns(db, codes: set) -> tuple[dict, dict]:
 
 def _near_extremes(db, companies: dict, prices: dict) -> tuple[list, list]:
     """Stocks within 5% of their 1-year high / low. Returns (near_high, near_low)."""
-    one_year_ago = datetime.now(timezone.utc) - timedelta(days=365)
+    # `stock_prices.date` holds an ISO string, so the bound has to be a string
+    # too — BSON sorts String before Date, so a datetime bound matched nothing.
+    one_year_ago = (datetime.now(timezone.utc) - timedelta(days=365)).strftime("%Y-%m-%d")
     agg = db.stock_prices.aggregate([
         {"$match": {"date": {"$gte": one_year_ago}, "ltp": {"$gt": 0}}},
-        {"$group": {"_id": "$trading_code", "hi": {"$max": "$ltp"}, "lo": {"$min": "$ltp"}}},
+        {"$group": {"_id": "$trading_code", "hi": {"$max": CLOSE_EXPR}, "lo": {"$min": CLOSE_EXPR}}},
     ])
     ext = {d["_id"]: d for d in agg}
 

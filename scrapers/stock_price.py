@@ -53,6 +53,13 @@ class StockPriceScraper(BaseScraper):
                 ltp = high = low = close_price = None
                 change = change_pct = None
             else:
+                # DSE's own CHANGE column is last-trade based (ltp - ycp). Store
+                # the official close's change instead, so this row means the same
+                # thing as a backfilled one (historical_prices.py) and as every
+                # read path in db_service, which all price off CLOSEP. Nothing is
+                # lost — DSE's figure is still ltp - ycp, and both are stored.
+                if close_price is not None and ycp:
+                    change = round(close_price - ycp, 2)
                 change_pct = None
                 if change is not None and ycp and ycp != 0:
                     change_pct = round(change / ycp * 100, 2)

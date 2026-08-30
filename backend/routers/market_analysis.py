@@ -6,7 +6,13 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 from fastapi import APIRouter
 from pydantic import BaseModel
-from backend.services.db_service import get_db, load_companies, load_latest_prices, _ttl_cache
+from backend.services.db_service import (
+    CLOSE_EXPR,
+    get_db,
+    load_companies,
+    load_latest_prices,
+    _ttl_cache,
+)
 
 router = APIRouter()
 
@@ -42,14 +48,16 @@ def _compute_near_extremes() -> dict:
     companies = {c["trading_code"]: c for c in load_companies()}
     prices = load_latest_prices()
 
-    one_year_ago = datetime.now(timezone.utc) - timedelta(days=365)
+    # `stock_prices.date` holds an ISO string, so the bound has to be a string
+    # too — BSON sorts String before Date, so a datetime bound matched nothing.
+    one_year_ago = (datetime.now(timezone.utc) - timedelta(days=365)).strftime("%Y-%m-%d")
 
     pipeline = [
         {"$match": {"date": {"$gte": one_year_ago}, "ltp": {"$gt": 0}}},
         {"$group": {
             "_id": "$trading_code",
-            "w52_high": {"$max": "$ltp"},
-            "w52_low": {"$min": "$ltp"},
+            "w52_high": {"$max": CLOSE_EXPR},
+            "w52_low": {"$min": CLOSE_EXPR},
         }},
     ]
 
@@ -138,7 +146,9 @@ class Range52wResponse(BaseModel):
 @_ttl_cache(900)
 def _compute_52w_for(codes: tuple) -> list[dict]:
     db = get_db()
-    one_year_ago = datetime.now(timezone.utc) - timedelta(days=365)
+    # `stock_prices.date` holds an ISO string, so the bound has to be a string
+    # too — BSON sorts String before Date, so a datetime bound matched nothing.
+    one_year_ago = (datetime.now(timezone.utc) - timedelta(days=365)).strftime("%Y-%m-%d")
     pipeline = [
         {"$match": {
             "trading_code": {"$in": list(codes)},
@@ -147,8 +157,8 @@ def _compute_52w_for(codes: tuple) -> list[dict]:
         }},
         {"$group": {
             "_id": "$trading_code",
-            "w52_high": {"$max": "$ltp"},
-            "w52_low": {"$min": "$ltp"},
+            "w52_high": {"$max": CLOSE_EXPR},
+            "w52_low": {"$min": CLOSE_EXPR},
         }},
     ]
     return [
