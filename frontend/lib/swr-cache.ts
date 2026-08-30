@@ -93,7 +93,6 @@ export const cacheKeys = {
   allCodes: `${CACHE_PREFIX}allCodes`,
   marketIndex: `${CACHE_PREFIX}marketIndex`,
   marketState: `${CACHE_PREFIX}marketState`,
-  top20: `${CACHE_PREFIX}top20`,
   watchlistCodes: (userId: string) => `${CACHE_PREFIX}watchlistCodes.${userId}`,
   watchlistNews: (codes: string[]) =>
     `${CACHE_PREFIX}watchlistNews.${[...codes].map((c) => c.toUpperCase()).sort().join(",")}`,

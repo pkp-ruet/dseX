@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import {
   getScores,
@@ -10,7 +10,6 @@ import {
   getDividendsUpcoming,
   getMarketIndex,
   getMarketState,
-  getTop20,
   getDailyTips,
   getDailyPicks,
   apiGetSignalEvents,
@@ -24,7 +23,6 @@ import {
   type DividendsUpcoming,
   type MarketIndexData,
   type MarketStateData,
-  type Top20Item,
   type DailyTip,
 } from "@/lib/api";
 import { loadWatchlist, getCachedWatchlist, subscribeWatchlist } from "@/lib/watchlist";
@@ -35,7 +33,6 @@ import { consumeJustSignedUp } from "@/lib/welcome";
 import { portfolioTodayMove } from "@/lib/portfolio-analysis";
 import { buildHomeAlerts } from "@/lib/home-alerts";
 import { buildDailyBrief } from "@/lib/daily-brief";
-import { pickStoryStocks } from "@/lib/home-stories";
 
 import DailyBriefing from "@/components/home/personalized/DailyBriefing";
 import HeroGreeting from "@/components/home/personalized/HeroGreeting";
@@ -43,14 +40,11 @@ import MoneyHero, { MoneyHeroSkeleton } from "@/components/home/personalized/Mon
 import MoneyHeroGhost from "@/components/home/personalized/MoneyHeroGhost";
 import AttentionStrip from "@/components/home/personalized/AttentionStrip";
 import PullToRefresh from "@/components/home/personalized/PullToRefresh";
-import StatTiles from "@/components/home/personalized/StatTiles";
 import MyStocksToday from "@/components/home/personalized/MyStocksToday";
 import IdeasCard from "@/components/home/personalized/IdeasCard";
 import TuneModal from "@/components/stock-recommendation/TuneModal";
-import CoreFeatureTiles from "@/components/home/personalized/CoreFeatureTiles";
 import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
-import DiscoverCard from "@/components/home/personalized/DiscoverCard";
-import StoriesCard from "@/components/home/personalized/StoriesCard";
+import ExploreLinks from "@/components/home/personalized/ExploreLinks";
 import NewsPeek from "@/components/home/personalized/NewsPeek";
 import SearchBar from "@/components/home/SearchBar";
 import InstallHomeBanner from "@/components/pwa/InstallHomeBanner";
@@ -164,9 +158,6 @@ export default function PersonalizedHome() {
   const [marketState, setMarketState] = useState<MarketStateData | null>(
     () => readCache<MarketStateData>(cacheKeys.marketState),
   );
-  const [top20, setTop20] = useState<Top20Item[]>(
-    () => readCache<Top20Item[]>(cacheKeys.top20) ?? [],
-  );
   const [tips, setTips] = useState<DailyTip[]>([]);
   const [dailyPicks, setDailyPicks] = useState<DailyPicksResponse | null>(() => {
     if (!userId) return null;
@@ -233,14 +224,6 @@ export default function PersonalizedHome() {
             if (!isAlive()) return;
             setMarketState(d);
             writeCache(cacheKeys.marketState, d);
-          })
-          .catch(() => {}),
-        getTop20()
-          .then((d) => {
-            if (!isAlive()) return;
-            const items = d.items ?? [];
-            setTop20(items);
-            writeCache(cacheKeys.top20, items);
           })
           .catch(() => {}),
         getDailyTips()
@@ -322,15 +305,6 @@ export default function PersonalizedHome() {
   });
 
   const allStocks = Array.from(priceMap.values());
-  // Memoized on the score map (not on a freshly-built array) so the derived
-  // consumers below — DiscoverCard, the story cards — keep a stable input.
-  const rankingItems = useMemo(
-    () =>
-      Array.from(priceMap.values())
-        .filter((s) => s.score != null)
-        .sort((a, b) => (b.score ?? 0) - (a.score ?? 0)),
-    [priceMap],
-  );
   // Buy signals ride along on the scores already in priceMap — no extra fetch.
   const buys = allStocks.filter((s) => s.signal?.signal === "buy");
   const companies = allStocks.map((s) => ({ trading_code: s.trading_code, company_name: s.company_name }));
@@ -396,14 +370,6 @@ export default function PersonalizedHome() {
     <HeroGreeting name={user?.display_name} dateStr={dateStr} isNew={isNewUser} watchlistCount={codes.length} />
   );
 
-  // The marketing home's three story stocks (strongest / biggest dividend /
-  // fastest growing), rotated daily by pickStoryStocks. Rendered twice below —
-  // sidebar top on desktop, under the news on mobile — so one instance is
-  // always hidden by CSS.
-  const storyCards = useMemo(() => pickStoryStocks(rankingItems, rankingItems.length), [rankingItems]);
-  const hasStories = storyCards.length > 0;
-  const storiesCard = <StoriesCard cards={storyCards} totalCount={rankingItems.length} />;
-
   return (
     <PullToRefresh onRefresh={() => runFetches()}>
     <div className="pb-4">
@@ -423,8 +389,8 @@ export default function PersonalizedHome() {
       <div className="space-y-8 lg:col-span-3">
 
       {/* ── Chapter 1: Your money — greeting+value hero → what needs attention →
-          glance tiles → your stocks → news. The hero leads so a returning
-          user's money is the first thing on screen. ── */}
+          your stocks → news. The hero leads so a returning user's money is the
+          first thing on screen. ── */}
       <section className="space-y-3">
         {holdings === null ? (
           // Portfolio not known yet → hold the hero's space so nothing below
@@ -453,22 +419,13 @@ export default function PersonalizedHome() {
         )}
 
         {(hasPortfolio || hasWatchlist) && (
-          <>
-            <StatTiles
-              codes={codes}
-              holdings={holdings ?? []}
-              priceMap={priceMap}
-              dividends={dividends}
-              marketIndex={marketIndex}
-            />
-            <MyStocksToday
-              holdings={holdings ?? []}
-              codes={codes}
-              priceMap={priceMap}
-              extremes={extremes}
-              dividends={dividends}
-            />
-          </>
+          <MyStocksToday
+            holdings={holdings ?? []}
+            codes={codes}
+            priceMap={priceMap}
+            extremes={extremes}
+            dividends={dividends}
+          />
         )}
 
         {(hasWatchlist || hasPortfolio) && (newsLoading || news.length > 0) && (
@@ -477,10 +434,6 @@ export default function PersonalizedHome() {
             <NewsPeek news={news} loading={newsLoading} />
           </div>
         )}
-
-        {/* Three story stocks — mobile slot only (right after the news). On
-            desktop the same card sits at the top of the Explore aside. */}
-        {hasStories && <div className="lg:hidden">{storiesCard}</div>}
 
         {/* Mobile-only install CTA — auto-hides once installed / dismissed. */}
         <InstallHomeBanner />
@@ -536,10 +489,6 @@ export default function PersonalizedHome() {
       <aside className="mt-8 lg:col-span-2 lg:mt-0">
         <SectionLabel>Explore the market</SectionLabel>
         <div className="flex flex-col gap-6">
-          {/* Desktop slot for the three story stocks — top of the aside. The
-              mobile copy lives under the news in the main column above. */}
-          {hasStories && <div className="hidden lg:block">{storiesCard}</div>}
-
           <MarketTodayCard
             index={marketIndex}
             dividends={dividends}
@@ -551,10 +500,9 @@ export default function PersonalizedHome() {
             }
           />
 
-          {/* One tabbed discovery card replaces the three stacked 5-row tables. */}
-          <DiscoverCard ranked={rankingItems} top20={top20} />
-
-          <CoreFeatureTiles />
+          {/* Plain link rows out to the discovery pages — no preview tables,
+              the full pages are one tap away. */}
+          <ExploreLinks />
         </div>
       </aside>
       </div>

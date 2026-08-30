@@ -56,7 +56,8 @@ interface AlertChip {
 }
 
 /** Merged movers list: holdings and watchlist in one feed, sorted by today's
- *  move size, tagged H (holding) / ★ (watching) with 52w + dividend chips. */
+ *  move size, tagged H (holding) / ★ (watching) with 52w + dividend chips.
+ *  The header carries the ▲up/▼down day pulse across everything followed. */
 export default function MyStocksToday({
   holdings,
   codes,
@@ -82,12 +83,17 @@ export default function MyStocksToday({
     ),
   );
 
-  const rows = universe
+  const all = universe
     .map((c) => priceMap.get(c))
-    .filter((x): x is ScoreItem => !!x)
+    .filter((x): x is ScoreItem => !!x);
+  const rows = [...all]
     .sort((a, b) => Math.abs(b.change_pct ?? 0) - Math.abs(a.change_pct ?? 0))
     .slice(0, MAX_ROWS);
   if (rows.length === 0) return null;
+
+  // Pulse counts every followed stock, not just the MAX_ROWS shown.
+  const upCount = all.filter((x) => (x.change_pct ?? 0) > 0).length;
+  const downCount = all.filter((x) => (x.change_pct ?? 0) < 0).length;
 
   function alertsFor(code: string): AlertChip[] {
     const c = code.toUpperCase();
@@ -102,9 +108,20 @@ export default function MyStocksToday({
 
   return (
     <Card as="section" padding="none" className="overflow-hidden">
-      <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-[var(--border)]">
-        <h2 className="text-[0.72rem] font-bold uppercase tracking-[0.12em] text-[var(--text)]">Your stocks today</h2>
-        <Link href={viewHref} className="text-xs font-semibold text-[var(--primary)] hover:underline">
+      <div className="flex items-center justify-between gap-2 px-4 sm:px-5 py-3 border-b border-[var(--border)]">
+        <span className="flex min-w-0 items-center gap-2">
+          <h2 className="text-[0.72rem] font-bold uppercase tracking-[0.12em] text-[var(--text)]">Your stocks today</h2>
+          {upCount + downCount > 0 && (
+            <span
+              className="shrink-0 whitespace-nowrap text-[0.68rem] font-bold tabular-nums nums"
+              title={`${upCount} up · ${downCount} down today`}
+            >
+              <span style={{ color: "var(--positive)" }}>▲{upCount}</span>{" "}
+              <span style={{ color: "var(--negative)" }}>▼{downCount}</span>
+            </span>
+          )}
+        </span>
+        <Link href={viewHref} className="shrink-0 text-xs font-semibold text-[var(--primary)] hover:underline">
           View all {universe.length} →
         </Link>
       </div>
