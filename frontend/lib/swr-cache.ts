@@ -90,6 +90,8 @@ export const cacheKeys = {
   scores: `${CACHE_PREFIX}scores`,
   extremes: `${CACHE_PREFIX}extremes`,
   dividends: `${CACHE_PREFIX}dividends`,
+  /** Trimmed `/api/dividend-calendar` (record dates only) for the portfolio page. */
+  dividendCalendar: `${CACHE_PREFIX}dividendCalendar`,
   allCodes: `${CACHE_PREFIX}allCodes`,
   marketIndex: `${CACHE_PREFIX}marketIndex`,
   marketState: `${CACHE_PREFIX}marketState`,

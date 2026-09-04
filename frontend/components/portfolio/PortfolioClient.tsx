@@ -9,6 +9,7 @@ import {
   getRange52w,
   getWatchlistNews,
   getDividendsUpcoming,
+  getDividendCalendar,
   getMarketIndex,
   flattenTiers,
   type ScoreItem,
@@ -17,6 +18,7 @@ import {
   type Range52wItem,
   type WatchlistNewsItem,
   type DividendsUpcoming,
+  type DividendCalendarData,
   apiGetPortfolio,
   apiUpdateHolding,
   apiDeleteHolding,
@@ -195,15 +197,54 @@ function RangeBar52({ ltp, high, low }: { ltp: number | null; high: number | nul
   );
 }
 
-/** Estimated yearly dividend income + upcoming dividend dates for held stocks. */
+/** One dividend event on a held stock, sized to the user's position. */
+interface UpcomingPayout {
+  code: string;
+  kind: "record" | "declared";
+  date: string | null;
+  daysLeft: number | null;
+  cashPct: number | null;
+  stockPct: number | null;
+  /** qty × cash per share — the taka that lands in the account (before tax). */
+  payout: number | null;
+  /** qty × bonus % — roughly how many new shares a stock dividend adds. */
+  bonusShares: number | null;
+  /** Headline % when the calendar has no cash/stock split for this row. */
+  pct: number | null;
+}
+
+function daysLeftLabel(n: number | null): string {
+  if (n == null) return "";
+  if (n <= 0) return " · today";
+  if (n === 1) return " · tomorrow";
+  return ` · in ${n} days`;
+}
+
+function describeDividend(u: UpcomingPayout): string {
+  const parts: string[] = [];
+  if (u.cashPct != null && u.cashPct > 0) parts.push(`${u.cashPct}% cash`);
+  if (u.stockPct != null && u.stockPct > 0) parts.push(`${u.stockPct}% bonus shares`);
+  if (parts.length > 0) return parts.join(" + ");
+  return u.pct != null ? `${u.pct}% dividend` : "dividend";
+}
+
+/**
+ * Estimated yearly dividend income, plus the dividends about to land on held
+ * stocks in taka: qty × cash per share from the corporate-action calendar
+ * (`/api/dividend-calendar`), with the record date the user must still be a
+ * shareholder on. Falls back to the headline % from `/api/dividends/upcoming`
+ * for anything the calendar doesn't carry.
+ */
 function DividendIncomeCard({
   rows,
   priceMap,
   dividends,
+  calendar,
 }: {
   rows: ComputedRow[];
   priceMap: Map<string, ScoreItem>;
   dividends: DividendsUpcoming | null;
+  calendar: Pick<DividendCalendarData, "record_dates"> | null;
 }) {
   let income = 0;
   let payers = 0;
@@ -216,21 +257,53 @@ function DividendIncomeCard({
     }
   }
 
-  const held = new Set(rows.map((r) => r.holding.trading_code));
+  const qtyByCode = new Map(
+    rows.map((r) => [r.holding.trading_code.toUpperCase(), r.holding.qty] as const),
+  );
   const seen = new Set<string>();
-  const upcoming: { code: string; pct: number | null; date: string | null; kind: "declared" | "record" }[] = [];
-  for (const d of dividends?.upcoming_declarations ?? []) {
-    const code = d.trading_code.toUpperCase();
-    if (!held.has(code) || seen.has(code)) continue;
+  const upcoming: UpcomingPayout[] = [];
+
+  // Record dates inside the calendar's window, sized to the position. One row
+  // per code — the calendar is sorted by record date, so the nearest wins.
+  for (const e of calendar?.record_dates ?? []) {
+    const code = e.trading_code.toUpperCase();
+    const qty = qtyByCode.get(code);
+    if (qty == null || seen.has(code) || !e.record_date) continue;
     seen.add(code);
-    upcoming.push({ code, pct: d.dividend_pct, date: d.projected_date, kind: "declared" });
+    const cps = e.cash_per_share;
+    upcoming.push({
+      code,
+      kind: "record",
+      date: e.record_date,
+      daysLeft: e.record_days_left,
+      cashPct: e.cash_pct,
+      stockPct: e.stock_pct,
+      payout: cps != null && cps > 0 ? qty * cps : null,
+      bonusShares:
+        e.stock_pct != null && e.stock_pct > 0 ? Math.floor((qty * e.stock_pct) / 100) : null,
+      pct: null,
+    });
   }
+  // Fallback rows (headline % only) for anything the calendar didn't cover.
+  const fallback = (kind: UpcomingPayout["kind"], code: string, date: string | null, pct: number | null) =>
+    upcoming.push({
+      code, kind, date, daysLeft: null, cashPct: null, stockPct: null,
+      payout: null, bonusShares: null, pct,
+    });
   for (const d of dividends?.upcoming_record_dates ?? []) {
     const code = d.trading_code.toUpperCase();
-    if (!held.has(code) || seen.has(code)) continue;
+    if (!qtyByCode.has(code) || seen.has(code)) continue;
     seen.add(code);
-    upcoming.push({ code, pct: d.dividend_pct, date: d.record_date, kind: "record" });
+    fallback("record", code, d.record_date, d.dividend_pct);
   }
+  for (const d of dividends?.upcoming_declarations ?? []) {
+    const code = d.trading_code.toUpperCase();
+    if (!qtyByCode.has(code) || seen.has(code)) continue;
+    seen.add(code);
+    fallback("declared", code, d.projected_date, d.dividend_pct);
+  }
+  upcoming.sort((a, b) => (a.date ?? "9999").localeCompare(b.date ?? "9999"));
+  const totalPayout = upcoming.reduce((acc, u) => acc + (u.payout ?? 0), 0);
 
   if (income <= 0 && upcoming.length === 0) return null;
 
@@ -270,29 +343,58 @@ function DividendIncomeCard({
 
       {upcoming.length > 0 && (
         <div className={income > 0 ? "border-t border-[var(--border)] pt-3" : ""}>
-          <p className="text-[11px] uppercase tracking-wider font-semibold text-[var(--text-muted)] mb-2">
-            Coming up on your stocks
-          </p>
-          <ul className="flex flex-col gap-2">
+          <div className="flex items-baseline justify-between gap-2 mb-2">
+            <p className="text-[11px] uppercase tracking-wider font-semibold text-[var(--text-muted)]">
+              Coming up on your stocks
+            </p>
+            {totalPayout > 0 && (
+              <p className="pv text-sm font-bold text-[var(--positive)] nums whitespace-nowrap">
+                ≈ {taka(totalPayout, 0)}
+                <span className="text-xs text-[var(--text-muted)] font-semibold"> on its way</span>
+              </p>
+            )}
+          </div>
+          <ul className="flex flex-col gap-2.5">
             {upcoming.slice(0, 5).map((u) => (
-              <li key={u.code} className="flex items-center gap-2 text-sm">
+              <li key={u.code} className="flex items-start gap-2 text-sm">
                 <Link
                   prefetch={false}
                   href={`/stock/${u.code}`}
-                  className="font-mono font-bold text-[var(--primary)] hover:underline"
+                  className="font-mono font-bold text-[var(--primary)] hover:underline shrink-0"
                 >
                   {u.code}
                 </Link>
-                <span className="text-[var(--text)]">
-                  {u.pct != null ? `${u.pct}% dividend` : "dividend"}
-                </span>
-                <span className="ml-auto text-xs text-[var(--text-muted)] whitespace-nowrap">
-                  {u.kind === "record" ? "record date" : "expected"}
-                  {u.date ? ` · ${formatDate(u.date)}` : ""}
-                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[var(--text)] leading-snug">{describeDividend(u)}</p>
+                  <p className="text-xs text-[var(--text-muted)] mt-0.5 leading-snug">
+                    {u.kind === "record" ? "record date" : "expected"}
+                    {u.date ? ` · ${formatDate(u.date)}` : ""}
+                    {daysLeftLabel(u.daysLeft)}
+                  </p>
+                </div>
+                {(u.payout != null || (u.bonusShares != null && u.bonusShares > 0)) && (
+                  <div className="text-right shrink-0">
+                    {u.payout != null && (
+                      <p className="pv font-bold text-[var(--positive)] nums leading-tight">
+                        ≈ {taka(u.payout, 0)}
+                      </p>
+                    )}
+                    {u.bonusShares != null && u.bonusShares > 0 && (
+                      <p className="pv text-xs text-[var(--text-muted)] nums leading-tight mt-0.5">
+                        +{u.bonusShares} shares
+                      </p>
+                    )}
+                  </div>
+                )}
               </li>
             ))}
           </ul>
+          {totalPayout > 0 && (
+            <p className="text-xs text-[var(--text-muted)] mt-3 leading-relaxed">
+              Cash amounts are before tax. You must still hold the shares on the record date to
+              receive them.
+            </p>
+          )}
         </div>
       )}
     </Card>
@@ -366,6 +468,11 @@ export default function PortfolioClient() {
   const [ranges, setRanges] = useState<Map<string, Range52wItem>>(new Map());
   const [dividends, setDividends] = useState<DividendsUpcoming | null>(
     () => readCache<DividendsUpcoming>(cacheKeys.dividends),
+  );
+  // Upcoming record dates with cash-per-share — sizes each dividend to the
+  // user's position in taka. Only the record_dates slice is kept/cached.
+  const [calendar, setCalendar] = useState<Pick<DividendCalendarData, "record_dates"> | null>(
+    () => readCache<Pick<DividendCalendarData, "record_dates">>(cacheKeys.dividendCalendar),
   );
   const [news, setNews] = useState<WatchlistNewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(false);
@@ -467,8 +574,9 @@ export default function PortfolioClient() {
       getDividendsUpcoming(),
       apiGetSignalEvents(),
       getMarketIndex(),
+      getDividendCalendar(),
     ])
-      .then(([p, s, c, d, e, m]) => {
+      .then(([p, s, c, d, e, m, cal]) => {
         if (cancelled) return;
         if (p.status === "fulfilled") {
           applyHoldings(p.value.holdings);
@@ -491,6 +599,11 @@ export default function PortfolioClient() {
         if (d.status === "fulfilled") {
           setDividends(d.value);
           writeCache(cacheKeys.dividends, d.value);
+        }
+        if (cal.status === "fulfilled") {
+          const trimmed = { record_dates: cal.value.record_dates ?? [] };
+          setCalendar(trimmed);
+          writeCache(cacheKeys.dividendCalendar, trimmed);
         }
         if (p.status === "rejected" && s.status === "rejected" && c.status === "rejected") {
           setError(String(p.reason));
@@ -1068,7 +1181,12 @@ export default function PortfolioClient() {
 
       {/* Dividend income — estimated yearly cash + upcoming dates on held stocks */}
       {holdings.length > 0 && (
-        <DividendIncomeCard rows={rows} priceMap={priceMap} dividends={dividends} />
+        <DividendIncomeCard
+          rows={rows}
+          priceMap={priceMap}
+          dividends={dividends}
+          calendar={calendar}
+        />
       )}
 
       {holdings.length > 0 && (

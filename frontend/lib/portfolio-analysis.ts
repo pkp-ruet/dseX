@@ -54,16 +54,24 @@ export function portfolioTodayMove(
 export type SectorBucket = "BANK" | "NBFI" | "GENERAL" | "OTHER";
 export type TierBucket = TierKey | "unscored";
 export type QualityWord = "Strong" | "Solid" | "Average" | "Weak" | "Unrated";
+/** How the price paid compared with what the company earned — the "did you
+ *  overpay?" half of a holding's entry story. Judged on the buy price against
+ *  the company's latest yearly EPS, relative to its sector's median P/E. */
+export type EntryValuation = "cheap" | "fair" | "expensive" | "unknown";
+/** (what you paid) × (how it has gone since): a cheap / fair / expensive entry
+ *  crossed with up (≥ +5%), flat, or down (≤ −5%) — plus three "can't judge"
+ *  states. */
 export type EntryTag =
-  | "great"
-  | "good"
-  | "up_expensive"
-  | "fair_attractive"
-  | "fair_fair"
-  | "full_price"
-  | "down_strong"
-  | "down_fair"
-  | "expensive_expensive"
+  | "cheap_up"
+  | "cheap_flat"
+  | "cheap_down"
+  | "fair_up"
+  | "fair_flat"
+  | "fair_down"
+  | "expensive_up"
+  | "expensive_flat"
+  | "expensive_down"
+  | "loss_making"
   | "no_data"
   | "no_price";
 
@@ -96,6 +104,21 @@ export interface HoldingInsight {
   qualityWord: QualityWord;
   entryTag: EntryTag;
   entryLabel: string;
+  /** Buy price ÷ latest yearly EPS — what you paid per taka of earnings. */
+  entryPe: number | null;
+  /** Median P/E of the company's sector (market-wide when the sector is thin). */
+  sectorPe: number | null;
+  /** Did you overpay? Judged on the buy price — see the Entry block. */
+  entryValuation: EntryValuation;
+  /** 0–10 entry quality feeding the weighted Entry sub-score; null = can't judge. */
+  entryScore: number | null;
+  /** Today's valuation from the scoring pillar (cheap ≥ 7, expensive < 4). */
+  valuationNow: EntryValuation;
+  /** DSE market category (A / B / N / Z), upper-cased. */
+  marketCategory: string | null;
+  /** Latest accounts are 2+ years old — the score rests on stale numbers. */
+  staleData: boolean;
+  dataAgeYears: number | null;
   signal: SignalInfo;
   descriptor: string;
   oneLiner: string;
@@ -112,6 +135,8 @@ export interface HoldingInsight {
     earningsShrinking: boolean;
     expensiveEntry: boolean;
     nearHigh: boolean;
+    zCategory: boolean;
+    staleData: boolean;
   };
 }
 
@@ -166,79 +191,227 @@ const QUALITY_WORD: Record<TierBucket, QualityWord> = {
   unscored: "Unrated",
 };
 
-/** Long, plain-language entry explanations per tag, in both languages. */
-const ENTRY_LABEL: Record<AnalysisLang, Record<EntryTag, string>> = {
+// ── Entry (what you paid) ──────────────────────────────────────────────────
+//
+// "Entry" answers one question: did you overpay when you bought? It is judged
+// on the price you PAID, never on today's price — a stock bought cheap that
+// then rallied must not be marked "expensive". (The pre-2026-09 version read
+// the live valuation pillar here and did exactly that, penalising the user's
+// best trades.) Today's valuation still matters for what to do NEXT, so it
+// lives in `valuationNow` and drives the "book some profit" / "average down"
+// ideas instead.
+//
+// Method: entry P/E = buy price ÷ the company's latest yearly EPS, compared
+// with the median P/E of its sector (market-wide when the sector has too few
+// profitable companies). The ratio maps onto the same cheap / fair / expensive
+// bands the backend valuation pillar uses (scoring_service._a2_pe_pb_ratio_score),
+// so "expensive" means the same thing on the stock page and here. The latest
+// EPS stands in for what the company earned when the shares were bought — the
+// label says "earned last year" so the approximation is visible.
+
+/** Linear interpolation across (x, y) anchors, clamped at both ends. */
+function piecewise(x: number, anchors: [number, number][]): number {
+  if (x <= anchors[0][0]) return anchors[0][1];
+  for (let i = 1; i < anchors.length; i++) {
+    const [x1, y1] = anchors[i];
+    if (x <= x1) {
+      const [x0, y0] = anchors[i - 1];
+      return y0 + ((x - x0) / (x1 - x0)) * (y1 - y0);
+    }
+  }
+  return anchors[anchors.length - 1][1];
+}
+
+/** Entry P/E ÷ sector median P/E → 0–10. Paying the sector's going rate scores
+ *  8.5 (a fair price is a good outcome, not a shortfall); 1.2× the sector is the
+ *  edge of "expensive" (6); 2× or worse bottoms out at 1. */
+const ENTRY_SCORE_ANCHORS: [number, number][] = [
+  [0.5, 10], [0.85, 10], [1.0, 8.5], [1.2, 6], [1.5, 3], [2.0, 1],
+];
+/** Ratio bands — mirror the valuation pillar's cheap (p4 ≥ 7 ≈ ≤0.9×) and
+ *  expensive (p4 < 4 ≈ ≥1.2×) cut-offs. */
+const ENTRY_CHEAP_RATIO = 0.9;
+const ENTRY_EXPENSIVE_RATIO = 1.2;
+/** Absolute guard: on the DSE a P/E above ~30 is expensive whatever the sector
+ *  median says (five barely-profitable names can post an absurd median).
+ *  Implemented as ratio ≥ entryPe / 25, so P/E 30 → ≥1.2× (expensive). */
+const ENTRY_ABS_PE_DIVISOR = 25;
+/** A sector needs this many profitable companies before its own median is used. */
+const SECTOR_PE_MIN_SAMPLES = 5;
+
+function median(values: number[]): number | null {
+  if (values.length === 0) return null;
+  const s = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+}
+
+/**
+ * Median trailing P/E per sector from the whole-market scores payload, plus a
+ * market-wide median as the fallback for thin sectors. Only profitable
+ * companies (EPS > 0) count — a loss-maker has no P/E.
+ */
+function sectorMedianPeMap(priceMap: Map<string, ScoreItem>): {
+  bySector: Map<string, number>;
+  market: number | null;
+} {
+  const perSector = new Map<string, number[]>();
+  const all: number[] = [];
+  for (const s of priceMap.values()) {
+    if (s.eps == null || s.eps <= 0 || s.ltp == null || s.ltp <= 0) continue;
+    const pe = s.ltp / s.eps;
+    all.push(pe);
+    if (s.sector) {
+      const arr = perSector.get(s.sector) ?? [];
+      arr.push(pe);
+      perSector.set(s.sector, arr);
+    }
+  }
+  const bySector = new Map<string, number>();
+  for (const [sector, pes] of perSector) {
+    if (pes.length < SECTOR_PE_MIN_SAMPLES) continue;
+    const m = median(pes);
+    if (m != null) bySector.set(sector, m);
+  }
+  return { bySector, market: all.length >= SECTOR_PE_MIN_SAMPLES ? median(all) : null };
+}
+
+interface EntryJudgement {
+  entryPe: number | null;
+  sectorPe: number | null;
+  valuation: EntryValuation;
+  /** 0–10 entry quality, or null when it can't be judged. */
+  score: number | null;
+  /** True when the company has no positive EPS to judge against. */
+  lossMaking: boolean;
+}
+
+function judgeEntry(
+  buyPrice: number,
+  eps: number | null | undefined,
+  sectorPe: number | null,
+): EntryJudgement {
+  const none: EntryJudgement = {
+    entryPe: null, sectorPe, valuation: "unknown", score: null, lossMaking: false,
+  };
+  if (eps == null || !Number.isFinite(eps) || buyPrice <= 0) return none;
+  if (eps <= 0) return { ...none, lossMaking: true };
+  const entryPe = buyPrice / eps;
+  if (sectorPe == null || sectorPe <= 0) return { ...none, entryPe };
+  const ratio = Math.max(entryPe / sectorPe, entryPe / ENTRY_ABS_PE_DIVISOR);
+  const valuation: EntryValuation =
+    ratio <= ENTRY_CHEAP_RATIO ? "cheap" : ratio < ENTRY_EXPENSIVE_RATIO ? "fair" : "expensive";
+  return {
+    entryPe,
+    sectorPe,
+    valuation,
+    score: piecewise(ratio, ENTRY_SCORE_ANCHORS),
+    lossMaking: false,
+  };
+}
+
+/** Today's valuation from the scoring pillar — the same bands the signal uses. */
+function valuationNowOf(p4: number | null | undefined): EntryValuation {
+  if (p4 == null) return "unknown";
+  if (p4 >= 7) return "cheap";
+  if (p4 >= 4) return "fair";
+  return "expensive";
+}
+
+/** "9" for 9.03, "8.5" for 8.46, "15" for 15.3 — a P/E rounded the way a
+ *  person would say it (one decimal only below 10, and never a trailing ".0"). */
+function fmtPe(pe: number): string {
+  return pe >= 10 ? pe.toFixed(0) : String(Math.round(pe * 10) / 10);
+}
+
+/** The P/E in plain words: what you paid for every taka the company earned
+ *  last year, next to what similar companies cost. */
+function entryNumbersSentence(entryPe: number, sectorPe: number, lang: AnalysisLang): string {
+  const paid = fmtPe(entryPe);
+  const peers = fmtPe(sectorPe);
+  return lang === "bn"
+    ? `এই কোম্পানি গত বছর যে 1 টাকা আয় করেছে, তার জন্য আপনি দিয়েছেন প্রায় ${paid} টাকা; একই ধরনের কোম্পানিতে লাগে প্রায় ${peers} টাকা।`
+    : `For every 1 taka this company earned last year, you paid about ${paid} taka; similar companies cost about ${peers} taka.`;
+}
+
+/** Long, plain-language entry explanations per tag, in both languages. `{n}`
+ *  is replaced with the holding's gain/loss percentage (absolute value). */
+const ENTRY_SITUATION: Record<AnalysisLang, Record<EntryTag, string>> = {
   en: {
     no_price:
-      "We don't have a live price for this stock right now, so we can't tell yet whether you bought at a good price. Check back when the market reopens.",
+      "We don't have a live price for this stock right now, so we can't tell yet how your purchase is doing. Check back when the market reopens.",
     no_data:
       "We don't have enough financial data on this company to judge whether the price you paid was fair. Be a bit more careful with this one until more numbers are available.",
-    great:
-      "You bought at a great price, and the stock is still cheap compared to what the company earns. Hold on to this one — you got real value for your money.",
-    good:
-      "You got a good price, and today's price is still fair. Nothing to do here — let the company keep working for you.",
-    up_expensive:
-      "You're up nicely, but the stock now looks expensive — meaning the price has run far ahead of the company's earnings. Booking some profit now locks in your gains in case the price comes back down.",
-    fair_attractive:
-      "You paid a fair price, and the stock is still cheap today. If you have spare money, this is the kind of stock to add a little more of.",
-    fair_fair:
-      "Fair price when you bought, fair price today. No urgent action — just hold and let the business grow.",
-    full_price:
-      "You paid full price for this stock, and it still looks fully priced. There isn't much room for the price to go higher from here, so keep your expectations modest.",
-    down_strong:
-      "The stock is down, but the company is still strong and the price is now cheaper than when you bought. If you believe in the business, buying a little more here lowers your average cost.",
-    down_fair:
-      "You're sitting on a loss, but the price is fair now and the company is okay. Don't panic-sell — give it time to recover.",
-    expensive_expensive:
-      "You bought when the price was already too high, and even after falling, it's still expensive compared to the company's earnings. Think hard about whether to keep holding or take the loss and move on.",
+    loss_making:
+      "This company isn't making a profit right now, so there are no earnings to judge your buying price against. Be extra careful with it — a loss-making company can look cheap for a very long time.",
+    cheap_up:
+      "That was a cheap price, and it has paid off — you're up {n}%. Nothing to fix here; let the company keep working for you.",
+    cheap_flat:
+      "That was a cheap price. The market hasn't rewarded it yet, but you didn't overpay — give it time.",
+    cheap_down:
+      "That was a cheap price, yet the stock still fell {n}%. The price wasn't the problem — check whether something changed in the business before you decide anything.",
+    fair_up:
+      "That's a fair price, and you're up {n}%. A good, ordinary result — hold and let the business grow.",
+    fair_flat:
+      "That's a fair price. Nothing urgent to do — hold and let the business grow.",
+    fair_down:
+      "That's a fair price, so this {n}% loss isn't from overpaying. Don't panic-sell — give the company time to recover.",
+    expensive_up:
+      "That was a high price, but it has worked out so far — you're up {n}%. This gain leans on the market staying generous, so think about booking part of it.",
+    expensive_flat:
+      "That was a high price, and the stock hasn't moved. The company has to grow a lot just to justify what you paid, so keep your expectations modest.",
+    expensive_down:
+      "That was a high price, and the stock has fallen {n}%. This is the classic overpaying mistake. Look at today's valuation on the stock page before deciding to hold, add, or exit.",
   },
   bn: {
     no_price:
-      "এই শেয়ারের লাইভ দাম এখন আমাদের কাছে নেই, তাই আপনি ভালো দামে কিনেছেন কি না তা এখনই বলা যাচ্ছে না। বাজার খুললে আবার দেখুন।",
+      "এই শেয়ারের লাইভ দাম এখন আমাদের কাছে নেই, তাই আপনার কেনাটা কেমন চলছে এখনই বলা যাচ্ছে না। বাজার খুললে আবার দেখুন।",
     no_data:
       "এই কোম্পানির যথেষ্ট আর্থিক তথ্য আমাদের কাছে নেই, তাই আপনার কেনা দাম ঠিক ছিল কি না বলা কঠিন। আরও তথ্য না আসা পর্যন্ত এটি নিয়ে একটু সাবধানে থাকুন।",
-    great:
-      "আপনি খুব ভালো দামে কিনেছেন, আর কোম্পানির আয়ের তুলনায় শেয়ারটি এখনো সস্তা। এটি ধরে রাখুন — আপনার টাকার আসল দাম পেয়েছেন।",
-    good:
-      "আপনি ভালো দামে কিনেছেন, আর আজকের দামও ন্যায্য। এখানে কিছু করার দরকার নেই — কোম্পানিকে আপনার জন্য কাজ করতে দিন।",
-    up_expensive:
-      "আপনি বেশ লাভে আছেন, কিন্তু শেয়ারটির দাম এখন বেশি মনে হচ্ছে — মানে দাম কোম্পানির আয়ের চেয়ে অনেক এগিয়ে গেছে। এখন কিছু লাভ তুলে নিলে দাম পড়ে গেলেও আপনার লাভ নিরাপদ থাকবে।",
-    fair_attractive:
-      "আপনি ন্যায্য দামে কিনেছিলেন, আর শেয়ারটি আজও সস্তা। হাতে বাড়তি টাকা থাকলে এই ধরনের শেয়ারই আরেকটু কেনা যায়।",
-    fair_fair:
-      "কেনার সময়ও ন্যায্য দাম ছিল, আজও ন্যায্য। জরুরি কিছু করার নেই — ধরে রাখুন, ব্যবসাকে বাড়তে দিন।",
-    full_price:
-      "আপনি এই শেয়ারটি পুরো দামে কিনেছেন, আর এখনো এটি পুরো দামেই আছে। এখান থেকে দাম অনেক বাড়ার জায়গা কম, তাই খুব বেশি আশা করবেন না।",
-    down_strong:
-      "শেয়ারটির দাম কমেছে, কিন্তু কোম্পানিটি এখনো শক্তিশালী আর দাম এখন আপনার কেনার সময়ের চেয়েও সস্তা। ব্যবসাটিতে ভরসা থাকলে এখানে আরেকটু কিনলে আপনার গড় খরচ কমবে।",
-    down_fair:
-      "আপনি লোকসানে আছেন, তবে দাম এখন ন্যায্য আর কোম্পানিটিও মোটামুটি ঠিক আছে। ভয়ে বিক্রি করবেন না — ঘুরে দাঁড়ানোর সময় দিন।",
-    expensive_expensive:
-      "আপনি যখন কিনেছিলেন তখনই দাম অনেক বেশি ছিল, আর দাম পড়ার পরেও কোম্পানির আয়ের তুলনায় এটি এখনো দামি। ধরে রাখবেন নাকি লোকসান মেনে নিয়ে সরে আসবেন — ভালো করে ভাবুন।",
+    loss_making:
+      "এই কোম্পানি এখন মুনাফা করছে না, তাই আপনার কেনার দাম যাচাই করার মতো কোনো আয় নেই। এটি নিয়ে বাড়তি সাবধান থাকুন — লোকসানি কোম্পানি অনেক দিন সস্তা দেখাতে পারে।",
+    cheap_up:
+      "এটা সস্তা দাম ছিল, আর তার ফলও পেয়েছেন — {n}% লাভে আছেন। এখানে কিছু করার নেই; কোম্পানিকে আপনার জন্য কাজ করতে দিন।",
+    cheap_flat:
+      "এটা সস্তা দাম ছিল। বাজার এখনো এর দাম দেয়নি, তবে আপনি বাড়তি দাম দেননি — সময় দিন।",
+    cheap_down:
+      "এটা সস্তা দাম ছিল, তবু শেয়ারটি {n}% পড়েছে। দাম সমস্যা ছিল না — কিছু ঠিক করার আগে দেখুন ব্যবসায় কিছু বদলেছে কি না।",
+    fair_up:
+      "এটা ন্যায্য দাম, আর আপনি {n}% লাভে আছেন। ভালো, স্বাভাবিক ফল — ধরে রাখুন, ব্যবসাকে বাড়তে দিন।",
+    fair_flat:
+      "এটা ন্যায্য দাম। জরুরি কিছু করার নেই — ধরে রাখুন, ব্যবসাকে বাড়তে দিন।",
+    fair_down:
+      "এটা ন্যায্য দাম, তাই এই {n}% লোকসান বাড়তি দাম দেওয়ার জন্য নয়। ভয়ে বিক্রি করবেন না — কোম্পানিকে ঘুরে দাঁড়ানোর সময় দিন।",
+    expensive_up:
+      "এটা বেশি দাম ছিল, তবু এখন পর্যন্ত কাজে লেগেছে — {n}% লাভে আছেন। এই লাভ বাজারের উদারতার ওপর দাঁড়িয়ে, তাই কিছুটা লাভ তুলে নেওয়ার কথা ভাবুন।",
+    expensive_flat:
+      "এটা বেশি দাম ছিল, আর শেয়ারটি নড়েনি। আপনার দেওয়া দামের যোগ্য হতেই কোম্পানিকে অনেক বাড়তে হবে, তাই আশা কমই রাখুন।",
+    expensive_down:
+      "এটা বেশি দাম ছিল, আর শেয়ারটি {n}% পড়েছে। এটাই বাড়তি দাম দেওয়ার চেনা ভুল। ধরে রাখবেন, আরও কিনবেন, না সরে আসবেন — সিদ্ধান্তের আগে শেয়ারের পাতায় আজকের দাম-মূল্যায়ন দেখুন।",
   },
 };
 
 function classifyEntry(
   pnlPct: number | null,
-  p4: number | null | undefined,
+  judgement: EntryJudgement,
   lang: AnalysisLang = "en",
 ): { tag: EntryTag; label: string } {
-  const withLabel = (tag: EntryTag) => ({ tag, label: ENTRY_LABEL[lang][tag] });
+  const withLabel = (tag: EntryTag) => {
+    const situation = ENTRY_SITUATION[lang][tag].replace(
+      "{n}",
+      pnlPct != null ? Math.abs(pnlPct).toFixed(1) : "",
+    );
+    const numbers =
+      judgement.entryPe != null && judgement.sectorPe != null && judgement.valuation !== "unknown"
+        ? `${entryNumbersSentence(judgement.entryPe, judgement.sectorPe, lang)} `
+        : "";
+    return { tag, label: numbers + situation };
+  };
   if (pnlPct == null) return withLabel("no_price");
-  if (p4 == null) return withLabel("no_data");
-  if (pnlPct >= 5) {
-    if (p4 >= 7) return withLabel("great");
-    if (p4 >= 4) return withLabel("good");
-    return withLabel("up_expensive");
-  }
-  if (pnlPct >= -5) {
-    if (p4 >= 7) return withLabel("fair_attractive");
-    if (p4 >= 4) return withLabel("fair_fair");
-    return withLabel("full_price");
-  }
-  if (p4 >= 7) return withLabel("down_strong");
-  if (p4 >= 4) return withLabel("down_fair");
-  return withLabel("expensive_expensive");
+  if (judgement.lossMaking) return withLabel("loss_making");
+  if (judgement.valuation === "unknown") return withLabel("no_data");
+  const outcome = pnlPct >= 5 ? "up" : pnlPct <= -5 ? "down" : "flat";
+  return withLabel(`${judgement.valuation}_${outcome}` as EntryTag);
 }
 
 /**
@@ -273,28 +446,30 @@ export function signalInfoFromApi(
 
 const ENTRY_SHORT: Record<AnalysisLang, Record<EntryTag, string>> = {
   en: {
-    great: "great price",
-    good: "good price",
-    up_expensive: "now overpriced",
-    fair_attractive: "fair price",
-    fair_fair: "fair price",
-    full_price: "full price",
-    down_strong: "still cheap",
-    down_fair: "fair price",
-    expensive_expensive: "paid too much",
+    cheap_up: "bought cheap",
+    cheap_flat: "bought cheap",
+    cheap_down: "bought cheap",
+    fair_up: "fair price",
+    fair_flat: "fair price",
+    fair_down: "fair price",
+    expensive_up: "paid too much",
+    expensive_flat: "paid too much",
+    expensive_down: "paid too much",
+    loss_making: "no profit to judge by",
     no_data: "price unclear",
     no_price: "no live price",
   },
   bn: {
-    great: "খুব ভালো দামে কেনা",
-    good: "ভালো দামে কেনা",
-    up_expensive: "এখন দাম বেশি",
-    fair_attractive: "ন্যায্য দামে কেনা",
-    fair_fair: "ন্যায্য দামে কেনা",
-    full_price: "পুরো দামে কেনা",
-    down_strong: "এখনো সস্তা",
-    down_fair: "ন্যায্য দাম",
-    expensive_expensive: "বেশি দামে কেনা",
+    cheap_up: "সস্তায় কেনা",
+    cheap_flat: "সস্তায় কেনা",
+    cheap_down: "সস্তায় কেনা",
+    fair_up: "ন্যায্য দামে কেনা",
+    fair_flat: "ন্যায্য দামে কেনা",
+    fair_down: "ন্যায্য দামে কেনা",
+    expensive_up: "বেশি দামে কেনা",
+    expensive_flat: "বেশি দামে কেনা",
+    expensive_down: "বেশি দামে কেনা",
+    loss_making: "মুনাফা নেই",
     no_data: "দাম যাচাই করা যাচ্ছে না",
     no_price: "লাইভ দাম নেই",
   },
@@ -375,6 +550,7 @@ function composeHeadline(
     maxSectorName: string;
     strugglingCount: number;
     avoidCount: number;
+    zCount: number;
     expensiveCount: number;
   },
   lang: AnalysisLang = "en",
@@ -406,6 +582,13 @@ function composeHeadline(
       bnMode
         ? `${args.avoidCount}টি কম মানের শেয়ার`
         : `${args.avoidCount} low-quality holding${args.avoidCount === 1 ? "" : "s"}`,
+    );
+  }
+  if (args.zCount > 0) {
+    issues.push(
+      bnMode
+        ? `${args.zCount}টি Z ক্যাটাগরির শেয়ার`
+        : `${args.zCount} Z-category share${args.zCount === 1 ? "" : "s"}`,
     );
   }
   if (args.expensiveCount > 0) {
@@ -497,12 +680,23 @@ export function analyzePortfolio(
   const weightBasisOf = (r: ComputedRow): number => r.current_value ?? r.cost_basis;
   const totalBasis = rows.reduce((acc, r) => acc + weightBasisOf(r), 0) || 1;
 
+  // Sector P/E medians come from the whole-market payload the page already holds.
+  const peMap = sectorMedianPeMap(priceMap);
+
   const insights: HoldingInsight[] = rows.map((row) => {
     const code = row.holding.trading_code;
     const item = priceMap.get(code);
     const score = item?.score ?? null;
     const tk = tierBucket(score);
-    const entry = classifyEntry(row.pnl_pct, item?.p4_val, lang);
+    const sectorPe =
+      (item?.sector ? peMap.bySector.get(item.sector) : undefined) ?? peMap.market;
+    const judgement = judgeEntry(row.holding.buy_price, item?.eps, sectorPe);
+    const entry = classifyEntry(row.pnl_pct, judgement, lang);
+    const valuationNow = valuationNowOf(item?.p4_val);
+    const marketCategory = item?.market_category?.trim().toUpperCase() || null;
+    const dataAgeYears = item?.data_age_years ?? null;
+    // Mirrors the scoring service: the staleness multiplier kicks in at 2 years.
+    const staleData = item?.stale_data === true || (dataAgeYears != null && dataAgeYears >= 2);
     const weightPct = (weightBasisOf(row) / totalBasis) * 100;
     const w52h = row.w52_high ?? null;
     const w52l = row.w52_low ?? null;
@@ -514,12 +708,11 @@ export function analyzePortfolio(
       weakFinances: isLow(item?.p2_health, 4),
       weakEarnings: isLow(item?.p1_biz, 4),
       earningsShrinking: isLow(item?.eps_yoy_pct, -10),
-      expensiveEntry:
-        entry.tag === "expensive_expensive" ||
-        entry.tag === "up_expensive" ||
-        entry.tag === "full_price",
+      expensiveEntry: judgement.valuation === "expensive",
       // Mirrors the signal service's ≥85%-of-range dampening.
       nearHigh: rangePos != null && rangePos >= 0.85,
+      zCategory: marketCategory === "Z",
+      staleData,
     };
     const insight: HoldingInsight = {
       code,
@@ -537,6 +730,14 @@ export function analyzePortfolio(
       qualityWord: QUALITY_WORD[tk],
       entryTag: entry.tag,
       entryLabel: entry.label,
+      entryPe: judgement.entryPe,
+      sectorPe: judgement.sectorPe,
+      entryValuation: judgement.valuation,
+      entryScore: judgement.score,
+      valuationNow,
+      marketCategory,
+      staleData,
+      dataAgeYears,
       signal: signalInfoFromApi(row.holding.signal, lang),
       descriptor: "",
       oneLiner: "",
@@ -588,15 +789,34 @@ export function analyzePortfolio(
     .map((i) => ({ code: i.code, epsYoy: priceMap.get(i.code)?.eps_yoy_pct ?? null }));
   const reliableDividend = insights.filter((i) => (priceMap.get(i.code)?.p5_div ?? 0) >= 7);
 
-  const expensiveItems = insights.filter((i) => i.entryTag === "expensive_expensive");
-  const upExpensiveItems = insights.filter((i) => i.entryTag === "up_expensive");
-  const fullPriceItems = insights.filter((i) => i.entryTag === "full_price");
-  const goodEntryCount = insights.filter((i) =>
-    ["great", "good", "fair_attractive", "fair_fair", "down_strong", "down_fair"].includes(i.entryTag),
+  // Entry (what you paid) and today's valuation (what to do next) are separate
+  // questions — see the Entry block above.
+  const expensiveItems = insights.filter((i) => i.entryValuation === "expensive");
+  const judgeableEntryCount = insights.filter((i) => i.entryValuation !== "unknown").length;
+  const goodEntryCount = insights.filter(
+    (i) => i.entryValuation === "cheap" || i.entryValuation === "fair",
   ).length;
-  const judgeableEntryCount = insights.filter(
-    (i) => i.entryTag !== "no_data" && i.entryTag !== "no_price",
-  ).length;
+  // Up nicely AND expensive today → "book some profit" idea.
+  const upExpensiveItems = insights.filter(
+    (i) => i.pnlPct != null && i.pnlPct >= 5 && i.valuationNow === "expensive",
+  );
+  // Down, cheap today, and still a good/excellent business → "average down" idea.
+  const averageDownCandidates = insights.filter(
+    (i) =>
+      i.pnlPct != null &&
+      i.pnlPct <= -5 &&
+      i.valuationNow === "cheap" &&
+      (i.tierKey === "good" || i.tierKey === "excellent"),
+  );
+  // DSE market category — Z is the exchange's own warning label.
+  const zItems = insights.filter((i) => i.flags.zCategory);
+  const zWeightPct = zItems.reduce((acc, i) => acc + i.weightPct, 0);
+  const bWeightPct = insights
+    .filter((i) => i.marketCategory === "B")
+    .reduce((acc, i) => acc + i.weightPct, 0);
+  // Stale accounts — the score rests on numbers 2+ years old.
+  const staleItems = insights.filter((i) => i.flags.staleData);
+  const staleWeightPct = staleItems.reduce((acc, i) => acc + i.weightPct, 0);
 
   const performersWithPnl = insights.filter((i) => i.pnlPct != null);
   const winners = performersWithPnl.filter((i) => (i.pnlPct as number) > 0);
@@ -713,6 +933,23 @@ export function analyzePortfolio(
         : `${topRiskInsight.code} is ${w}% of your portfolio but only rated ${topRiskInsight.qualityWord.toLowerCase()} — that's your single biggest risk. A large bet on a weaker company can wipe out the gains from everything else you own. Consider trimming it toward 10%, or moving some of that money into a stronger name.`,
     );
   }
+  if (zItems.length > 0) {
+    const pct = zWeightPct.toFixed(0);
+    const codes = zItems.map((i) => i.code);
+    if (codes.length === 1) {
+      bad.push(
+        bnMode
+          ? `${codes[0]} একটি Z ক্যাটাগরির শেয়ার — আপনার টাকার ${pct}%। কোম্পানি এজিএম না করলে বা ডিভিডেন্ড না দিলে ডিএসই তাকে Z-এ পাঠায় — এটা স্টক এক্সচেঞ্জের নিজের সতর্ক সংকেত। Z শেয়ারের লেনদেন নিষ্পত্তিও দেরিতে হয়, তাড়াহুড়োয় বেচা কঠিন। আর কিনবেন না, আর ধরে রাখার একটা স্পষ্ট কারণ থাকা চাই।`
+          : `${codes[0]} is a Z-category share — ${pct}% of your money. DSE puts a company in Z when it skips its AGM or pays no dividend, so this is the exchange's own warning label. Z shares also settle slowly and are hard to sell in a hurry. Don't add more, and have a clear reason for keeping it.`,
+      );
+    } else {
+      bad.push(
+        bnMode
+          ? `${nameList(codes, 2, "bn")} Z ক্যাটাগরির শেয়ার — একসাথে আপনার টাকার ${pct}%। কোম্পানি এজিএম না করলে বা ডিভিডেন্ড না দিলে ডিএসই তাকে Z-এ পাঠায় — এটা স্টক এক্সচেঞ্জের নিজের সতর্ক সংকেত। Z শেয়ারের লেনদেন নিষ্পত্তিও দেরিতে হয়, তাড়াহুড়োয় বেচা কঠিন। আর কিনবেন না, আর প্রতিটি ধরে রাখার একটা স্পষ্ট কারণ থাকা চাই।`
+          : `${nameList(codes)} are Z-category shares — ${pct}% of your money together. DSE puts a company in Z when it skips its AGM or pays no dividend, so this is the exchange's own warning label. Z shares also settle slowly and are hard to sell in a hurry. Don't add more, and have a clear reason for keeping each one.`,
+      );
+    }
+  }
   if (maxSectorPct > 50 && distinctSectors > 1) {
     const pct = maxSectorPct.toFixed(0);
     bad.push(
@@ -757,8 +994,26 @@ export function analyzePortfolio(
         : `${nameList(strugglingNames)} have weak finances — likely heavy debt or weak cash flow. Companies in this shape can struggle to pay dividends or even survive a downturn. Watch their next quarterly results closely.`,
     );
   }
+  if (staleItems.length === 1) {
+    const s = staleItems[0];
+    const yrs = s.dataAgeYears != null ? `${s.dataAgeYears}` : "2+";
+    bad.push(
+      bnMode
+        ? `${s.code}-এর সর্বশেষ হিসাব ${yrs} বছরের পুরোনো, তাই এর স্কোর পুরোনো সংখ্যার ওপর দাঁড়িয়ে — আজকের ব্যবসার ছবি এতে না-ও থাকতে পারে। যে কোম্পানি হিসাব প্রকাশে চুপ হয়ে যায়, তার ভেতরে প্রায়ই কোনো সমস্যা থাকে। রেটিংয়ে ভরসা করার আগে শেয়ারের পাতায় সাম্প্রতিক খবর দেখুন।`
+        : `${s.code}'s latest accounts are ${yrs} years old, so its score rests on stale numbers and may not reflect the business today. Companies that go quiet on reporting are often hiding a problem. Check the stock page for recent news before trusting the rating.`,
+    );
+  } else if (staleItems.length > 1) {
+    const codes = staleItems.map((i) => i.code);
+    bad.push(
+      bnMode
+        ? `${nameList(codes, 2, "bn")} 2 বছরের বেশি নতুন হিসাব প্রকাশ করেনি — এদের স্কোর পুরোনো সংখ্যার ওপর দাঁড়িয়ে, আজকের ব্যবসার ছবি এতে না-ও থাকতে পারে। যে কোম্পানি হিসাব প্রকাশে চুপ হয়ে যায়, তার ভেতরে প্রায়ই সমস্যা থাকে। রেটিংয়ে ভরসার আগে এদের পাতায় সাম্প্রতিক খবর দেখুন।`
+        : `${nameList(codes)} haven't published fresh accounts in 2 or more years — their scores rest on stale numbers and may not reflect the businesses today. Companies that go quiet on reporting are often hiding a problem. Check their pages for recent news before trusting the ratings.`,
+    );
+  }
   // The top-risk name is already called out above (big-and-weak) — don't repeat it here.
-  const avoidForBullet = avoidNames.filter((c) => c !== topRiskCode);
+  // …and Z-category names already have their own bullet above.
+  const zCodes = new Set(zItems.map((i) => i.code));
+  const avoidForBullet = avoidNames.filter((c) => c !== topRiskCode && !zCodes.has(c));
   if (avoidForBullet.length === 1) {
     bad.push(
       bnMode
@@ -790,21 +1045,20 @@ export function analyzePortfolio(
     );
   }
   if (expensiveItems.length > 0) {
-    const heads = expensiveItems.slice(0, 2).map((i) => {
-      const downPct = Math.abs(i.pnlPct ?? 0).toFixed(1);
-      return bnMode ? `${i.code} (${downPct}% লোকসানে)` : `${i.code} (down ${downPct}%)`;
-    });
-    const head = heads.join(", ");
+    const heads = expensiveItems
+      .slice(0, 2)
+      .map((i) => `${i.code} (${shortPnl(i.pnlPct, lang)})`);
+    const head = heads.join(bnMode ? " আর " : " and ");
     const extra = expensiveItems.length - 2;
     if (bnMode) {
       const more = extra > 0 ? ` এবং আরও ${extra}টি` : "";
       bad.push(
-        `আপনি ${head}${more} বেশি দামে কিনেছেন — আর আজও ${expensiveItems.length === 1 ? "এটি" : "এগুলো"} দামি দেখাচ্ছে। মানে দাম পড়ার পরেও কোম্পানির আসল আয়ের সাথে দাম এখনো মেলেনি। হয় মেনে নিন যে ঘুরে দাঁড়াতে অনেক সময় লাগতে পারে, নয়তো লোকসান মেনে টাকাটা ভালো দামের শেয়ারে সরান।`,
+        `আপনি ${head}${more} বেশি দামে কিনেছেন — সে সময় কোম্পানির আয় এত দামের সমর্থন করত না। শেয়ারবাজারে সবচেয়ে বেশি ক্ষতি করে এই বাড়তি দাম দেওয়াটাই, কারণ ভালো কোম্পানিরও বেশি দামের যোগ্য হতে বছরের পর বছর লাগে। ধরে রাখবেন, আরও কিনবেন, না সরে আসবেন — সিদ্ধান্তের আগে শেয়ারের পাতায় আজকের দাম-মূল্যায়ন দেখে নিন।`,
       );
     } else {
       const more = extra > 0 ? ` and ${extra} more` : "";
       bad.push(
-        `You paid a high price for ${head}${more} — and ${expensiveItems.length === 1 ? "it" : "they"} still ${expensiveItems.length === 1 ? "looks" : "look"} expensive today. That means even after the fall, the price hasn't yet caught up to what the company actually earns. Either accept it may take a long time to recover, or take the loss and put the money into better-priced stocks.`,
+        `You paid a high price for ${head}${more} — more than the company's earnings justified at the time. Overpaying is the mistake that hurts most on the DSE, because even a good company needs years to grow into a high price. Check today's valuation on the stock page before deciding to hold, add, or exit.`,
       );
     }
   }
@@ -826,7 +1080,6 @@ export function analyzePortfolio(
         : `Trim your ${maxSectorName} exposure — it's currently ${pct}% of your portfolio. The simplest fix is to stop adding to it and direct your next investments into a different sector. Over time the balance will even out without you having to sell anything.`,
     );
   }
-  const averageDownCandidates = insights.filter((i) => i.entryTag === "down_strong");
   if (averageDownCandidates.length > 0) {
     const c = averageDownCandidates[0];
     consider.push(
@@ -871,6 +1124,14 @@ export function analyzePortfolio(
       );
     }
   }
+  if (bWeightPct >= 30) {
+    const pct = bWeightPct.toFixed(0);
+    consider.push(
+      bnMode
+        ? `আপনার টাকার ${pct}% আছে B ক্যাটাগরির শেয়ারে — যে কোম্পানিগুলো গত বছর 10%-এর কম ডিভিডেন্ড দিয়েছে। এটা নিজে থেকে বিপদ সংকেত নয়, তবে এই ব্যবসাগুলো এখনো আপনার সাথে মুনাফা তেমন ভাগ করছে না। নিয়মিত ডিভিডেন্ড দেয় এমন কয়েকটি A ক্যাটাগরির শেয়ার দিয়ে ভারসাম্য আনুন।`
+        : `${pct}% of your money is in B-category shares — companies that paid less than a 10% dividend last year. Not a red flag by itself, but these businesses aren't sharing much profit with you yet. Balance them with a few A-category names that pay regular dividends.`,
+    );
+  }
   if (reliableDividend.length === 0 && holdingCount >= 3) {
     consider.push(
       bnMode
@@ -899,15 +1160,36 @@ export function analyzePortfolio(
   const spreadScore = clamp(Math.min(effectiveStocks, 10) - sectorPenalty, 0, 10);
 
   const baseQuality = weightedAvgScore != null ? weightedAvgScore / 10 : 5;
+  // Z-category and stale-accounts exposure dent Quality by portfolio weight,
+  // capped so they nudge rather than dominate (the backend's category and
+  // staleness multipliers have already pulled those companies' own scores down).
+  const categoryPenalty = Math.min(2, zWeightPct / 15);
+  const stalePenalty = Math.min(2, staleWeightPct / 15);
   const qualityScore = clamp(
-    baseQuality - 2 * avoidNames.length - 1 * strugglingNames.length,
+    baseQuality -
+      2 * avoidNames.length -
+      1 * strugglingNames.length -
+      categoryPenalty -
+      stalePenalty,
     0,
     10,
   );
 
-  const expensivePenalty =
-    2 * (expensiveItems.length + upExpensiveItems.length) + 1 * fullPriceItems.length;
-  const entryScore = clamp(10 - expensivePenalty, 0, 10);
+  // Entry = weight-averaged "did you overpay?" across the holdings we can judge
+  // (see judgeEntry). A 40% position bought dear costs far more than a 2% one;
+  // holdings with no EPS to judge against are left out; nothing judgeable → a
+  // neutral 5, the same fallback Quality uses.
+  const judgeable = insights.filter((i) => i.entryScore != null);
+  const judgeableWeight = judgeable.reduce((acc, i) => acc + i.weightPct, 0);
+  const entryScore =
+    judgeableWeight > 0
+      ? clamp(
+          judgeable.reduce((acc, i) => acc + (i.entryScore as number) * i.weightPct, 0) /
+            judgeableWeight,
+          0,
+          10,
+        )
+      : 5;
 
   const overall = (spreadScore + qualityScore + entryScore) / 3;
   const { grade, label: gradeLabel } = gradeFromAvg(overall);
@@ -920,6 +1202,7 @@ export function analyzePortfolio(
       maxSectorName,
       strugglingCount: strugglingNames.length,
       avoidCount: avoidNames.length,
+      zCount: zItems.length,
       expensiveCount: expensiveItems.length,
     },
     lang,
