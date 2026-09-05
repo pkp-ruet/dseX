@@ -69,7 +69,7 @@ function Tile({
 function Label({ accent, children }: { accent?: string; children: React.ReactNode }) {
   return (
     <span
-      className="pr-9 text-[0.6rem] font-extrabold uppercase tracking-[0.12em]"
+      className="pr-9 text-[0.68rem] font-extrabold uppercase tracking-[0.12em]"
       style={{ color: accent ?? "var(--text-muted)" }}
     >
       {children}
@@ -78,7 +78,7 @@ function Label({ accent, children }: { accent?: string; children: React.ReactNod
 }
 
 const MAIN_CLS = "flex w-full items-center gap-1.5 text-[0.95rem] font-extrabold text-[var(--text)] leading-tight";
-const SUB_CLS = "mt-auto pt-1 text-[0.65rem] font-semibold text-[var(--text-muted)] leading-snug";
+const SUB_CLS = "mt-auto pt-1 text-[0.68rem] font-semibold text-[var(--text-muted)] leading-snug";
 
 interface DivPick {
   code: string;

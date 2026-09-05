@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { SignalFlags } from "@/lib/api";
 import { friendlyFlag } from "@/lib/plain-language";
 import Card from "@/components/ui/Card";
+import SectionTitle from "@/components/stock/SectionTitle";
 
 interface Props {
   flags: SignalFlags;
@@ -68,12 +69,13 @@ export default function SignalBoard({ flags }: Props) {
 
   return (
     <section id="signals" className="mb-8 scroll-mt-[112px]">
-      <h2 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: "var(--text)" }}>
-        Signals at a Glance
-      </h2>
-      <p className="text-sm mb-5" style={{ color: "var(--text-muted)" }}>
-        The good signs and the things to keep an eye on.
-      </p>
+      <SectionTitle
+        title="Signals at a Glance"
+        sub={<>
+            The good signs and the things to keep an eye on.
+        </>}
+        bn="ভালো লক্ষণ আর যেগুলোতে নজর রাখা দরকার।"
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Column title="Good signs" items={flags.green} tone="good" />

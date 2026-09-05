@@ -2,6 +2,7 @@ import type { MomentumSnapshot } from "@/lib/api";
 import { momentumSummary, type MomentumTone } from "@/lib/plain-language";
 import { crore } from "@/lib/formatters";
 import Card from "@/components/ui/Card";
+import SectionTitle from "@/components/stock/SectionTitle";
 
 interface Props {
   momentum: MomentumSnapshot | null;
@@ -66,12 +67,13 @@ export default function MomentumStrip({ momentum }: Props) {
 
   return (
     <section id="momentum" className="mb-8 scroll-mt-[112px]">
-      <h2 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: "var(--text)" }}>
-        Recent Momentum
-      </h2>
-      <p className="text-sm mb-5" style={{ color: "var(--text-muted)" }}>
-        What the share price has been doing over the last week.
-      </p>
+      <SectionTitle
+        title="Recent Momentum"
+        sub={<>
+            What the share price has been doing over the last week.
+        </>}
+        bn="গত এক সপ্তাহে শেয়ারের দাম কোন দিকে গেছে।"
+      />
 
       <Card padding="none" className="rounded-2xl p-5 mb-4">
         <div className="flex items-center gap-3">
@@ -95,7 +97,7 @@ export default function MomentumStrip({ momentum }: Props) {
         {tiles.map((t) => (
           <Card key={t.label} padding="none" className="rounded-2xl p-4">
             <p
-              className="text-[10px] font-bold uppercase tracking-[0.15em] mb-2"
+              className="text-[11px] font-bold uppercase tracking-[0.15em] mb-2"
               style={{ color: "var(--text-muted)" }}
             >
               {t.label}

@@ -133,7 +133,7 @@ export default function AdminFeedbackClient() {
       {/* Header / nav */}
       <div className="flex items-center justify-between mb-6 gap-2 flex-wrap">
         <div>
-          <p className="text-[10px] uppercase tracking-widest font-bold text-[var(--text-muted)] mb-1">
+          <p className="text-[11px] uppercase tracking-widest font-bold text-[var(--text-muted)] mb-1">
             Admin
           </p>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text)] leading-tight">

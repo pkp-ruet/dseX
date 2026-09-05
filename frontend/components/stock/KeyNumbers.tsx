@@ -1,6 +1,7 @@
 import type { CompanyDetail } from "@/lib/api";
 import { crore } from "@/lib/formatters";
 import Card from "@/components/ui/Card";
+import SectionTitle from "@/components/stock/SectionTitle";
 
 interface Props {
   detail: CompanyDetail;
@@ -66,18 +67,19 @@ export default function KeyNumbers({ detail }: Props) {
 
   return (
     <section className="mb-8">
-      <h2 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: "var(--text)" }}>
-        Key Numbers
-      </h2>
-      <p className="text-sm mb-5" style={{ color: "var(--text-muted)" }}>
-        The raw figures behind the verdict — for the curious.
-      </p>
+      <SectionTitle
+        title="Key Numbers"
+        sub={<>
+            The raw figures behind the verdict — for the curious.
+        </>}
+        bn="রায়ের পেছনের আসল সংখ্যাগুলো।"
+      />
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {items.map((item) => (
           <Card key={item.label} padding="none" className="rounded-2xl p-4">
             <p
-              className="text-[10px] font-bold uppercase tracking-[0.15em] mb-2"
+              className="text-[11px] font-bold uppercase tracking-[0.15em] mb-2"
               style={{ color: "var(--text-muted)" }}
             >
               {item.label}

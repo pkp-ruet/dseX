@@ -40,7 +40,7 @@ export default function DseTodayPromo() {
         {/* Copy */}
         <div className="min-w-0 flex-1">
           <span
-            className="text-[10px] font-extrabold uppercase tracking-[0.16em]"
+            className="text-[11px] font-extrabold uppercase tracking-[0.16em]"
             style={{ color: "var(--primary-ink)" }}
           >
             The bigger picture

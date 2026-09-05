@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import PortfolioClient from "@/components/portfolio/PortfolioClient";
 import ViewAnalysisButton from "@/components/portfolio/ViewAnalysisButton";
+import Bn from "@/components/i18n/Bn";
 
 export const metadata: Metadata = {
   title: "My Portfolio — TopStockBD",
@@ -16,6 +17,7 @@ export default function PortfolioPage() {
           <h1 className="rank-page-title">My Portfolio</h1>
           <ViewAnalysisButton />
         </div>
+        <Bn className="page-h1-bn">আপনার কেনা শেয়ারগুলোর লাভ-ক্ষতি, ডিভিডেন্ড আর পরামর্শ — প্রতিদিন।</Bn>
       </div>
       <PortfolioClient />
     </main>

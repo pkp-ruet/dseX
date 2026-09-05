@@ -169,7 +169,7 @@ export default function NotificationSettings() {
                   type="button"
                   onClick={handleTest}
                   disabled={busy}
-                  className="navbar-rank-btn text-xs py-1.5 px-3 disabled:opacity-60"
+                  className="btn-primary btn-sm"
                 >
                   {busy ? "Working…" : "Send me a test"}
                 </button>
@@ -177,7 +177,7 @@ export default function NotificationSettings() {
                   type="button"
                   onClick={handleDisable}
                   disabled={busy}
-                  className="navbar-intel-btn text-xs py-1.5 px-3 disabled:opacity-60"
+                  className="btn-quiet btn-sm"
                 >
                   Turn off
                 </button>
@@ -187,7 +187,7 @@ export default function NotificationSettings() {
                 type="button"
                 onClick={handleEnable}
                 disabled={busy}
-                className="navbar-rank-btn text-xs py-1.5 px-3 disabled:opacity-60"
+                className="btn-primary btn-sm"
               >
                 {busy ? "Turning on…" : "Turn on for this device"}
               </button>

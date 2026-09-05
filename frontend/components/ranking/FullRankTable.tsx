@@ -8,6 +8,7 @@ import ScoreBadge from "@/components/ui/ScoreBadge";
 import RankRowDetails from "@/components/ranking/RankRowDetails";
 import { signed } from "@/lib/formatters";
 import type { ScoreItem } from "@/lib/api";
+import EmptyState from "@/components/ui/EmptyState";
 
 export interface RankedItem extends ScoreItem {
   tier: TierKey;
@@ -66,10 +67,11 @@ export default function FullRankTable({ rows }: Props) {
 
   if (rows.length === 0) {
     return (
-      <div className="full-rank-wrap full-rank-empty">
-        <p className="fr-empty-title">No companies match your filters</p>
-        <p className="fr-empty-sub">Try clearing the search or choosing a different sector.</p>
-      </div>
+      <EmptyState
+        title="No companies match your filters"
+        message="Try clearing the search or choosing a different sector."
+        bn="এই ফিল্টারে কোনো কোম্পানি মিলছে না। সার্চ মুছে বা অন্য সেক্টর বেছে দেখুন।"
+      />
     );
   }
 

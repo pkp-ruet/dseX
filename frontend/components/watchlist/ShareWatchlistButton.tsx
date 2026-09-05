@@ -1,14 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { toast } from "@/lib/toast";
 
 interface Props {
   codes: string[];
 }
 
 export default function ShareWatchlistButton({ codes }: Props) {
-  const [toast, setToast] = useState<string | null>(null);
-
   async function handleShare() {
     if (codes.length === 0) return;
     const origin =
@@ -17,7 +15,7 @@ export default function ShareWatchlistButton({ codes }: Props) {
     try {
       if (navigator.clipboard) {
         await navigator.clipboard.writeText(url);
-        setToast("Link copied — share it with anyone");
+        toast({ message: "Link copied — share it with anyone", tone: "success" });
       } else {
         // fallback for old browsers
         const ta = document.createElement("textarea");
@@ -26,12 +24,11 @@ export default function ShareWatchlistButton({ codes }: Props) {
         ta.select();
         document.execCommand("copy");
         document.body.removeChild(ta);
-        setToast("Link copied");
+        toast({ message: "Link copied", tone: "success" });
       }
     } catch {
-      setToast("Could not copy — copy manually: " + url);
+      toast({ message: "Couldn't copy the link", tone: "error" });
     }
-    setTimeout(() => setToast(null), 2500);
   }
 
   if (codes.length === 0) return null;
@@ -55,11 +52,6 @@ export default function ShareWatchlistButton({ codes }: Props) {
           Share
         </span>
       </button>
-      {toast && (
-        <div className="absolute right-0 top-full mt-2 z-50 whitespace-nowrap text-xs px-3 py-2 rounded-md bg-[var(--ink)] text-[var(--bg)] shadow-lg">
-          {toast}
-        </div>
-      )}
     </div>
   );
 }

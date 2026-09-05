@@ -172,8 +172,8 @@ export default function BuySellModal({ mode, holding, ltp, companyName, onClose,
           {isBuy ? (
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-[var(--text)]">Shares bought</label>
-                <input
+                <label htmlFor="bs-1" className="text-sm font-medium text-[var(--text)]">Shares bought</label>
+                <input id="bs-1"
                   ref={qtyRef}
                   type="number"
                   placeholder="100"
@@ -187,8 +187,8 @@ export default function BuySellModal({ mode, holding, ltp, companyName, onClose,
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-[var(--text)]">Buy price (৳)</label>
-                <input
+                <label htmlFor="bs-2" className="text-sm font-medium text-[var(--text)]">Buy price (৳)</label>
+                <input id="bs-2"
                   type="number"
                   placeholder="295.50"
                   min="0.01"
@@ -204,7 +204,7 @@ export default function BuySellModal({ mode, holding, ltp, companyName, onClose,
           ) : (
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-[var(--text)]">Shares sold</label>
+                <label htmlFor="bs-3" className="text-sm font-medium text-[var(--text)]">Shares sold</label>
                 <button
                   type="button"
                   onClick={() => setQty(String(holding.qty))}
@@ -214,7 +214,7 @@ export default function BuySellModal({ mode, holding, ltp, companyName, onClose,
                   Sell all ({holding.qty.toLocaleString()})
                 </button>
               </div>
-              <input
+              <input id="bs-3"
                 ref={qtyRef}
                 type="number"
                 placeholder="50"

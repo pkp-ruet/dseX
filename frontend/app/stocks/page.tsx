@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { flattenTiers, getScores } from "@/lib/api";
 import StocksTable from "@/components/stocks/StocksTable";
+import ErrorState from "@/components/ui/ErrorState";
+import Bn from "@/components/i18n/Bn";
 
 export const revalidate = 86400;
 
@@ -26,7 +28,18 @@ export const metadata: Metadata = {
 export default async function StocksPage() {
   const scores = await getScores().catch(() => null);
 
-  const items = scores ? flattenTiers(scores) : [];
+  if (!scores) {
+    return (
+      <ErrorState
+        title="Couldn't load the stock list"
+        bn="শেয়ারের তালিকা এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+        reload
+        links={[{ href: "/dsestockranking", label: "Stock rankings" }]}
+      />
+    );
+  }
+
+  const items = flattenTiers(scores);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -62,6 +75,7 @@ export default async function StocksPage() {
         <p className="sl-page-sub">
           {items.length} companies · Click any column header to sort
         </p>
+        <Bn className="page-h1-bn">ঢাকা স্টক এক্সচেঞ্জের সব শেয়ার এক টেবিলে — দাম, আয়, ডিভিডেন্ড আর স্কোর।</Bn>
       </div>
       <StocksTable items={items} />
     </>

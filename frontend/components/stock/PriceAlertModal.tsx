@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createAlert, updateAlert, deleteAlert, type PriceAlert } from "@/lib/price-alerts";
+import { toast } from "@/lib/toast";
 
 interface Props {
   code: string;
@@ -72,6 +73,7 @@ export default function PriceAlertModal({ code, ltp, w52High, w52Low, existing, 
         setSubmitting(false);
         return;
       }
+      toast({ message: `Alert set for ${code} at ৳${target.toFixed(1)}`, tone: "success" });
       onClose();
     } catch {
       setError("Couldn't save the alert. Try again.");
@@ -84,6 +86,7 @@ export default function PriceAlertModal({ code, ltp, w52High, w52Low, existing, 
     setSubmitting(true);
     try {
       await deleteAlert(existing.id);
+      toast({ message: `Alert removed for ${code}` });
       onClose();
     } catch {
       setSubmitting(false);

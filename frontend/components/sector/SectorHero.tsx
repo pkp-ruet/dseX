@@ -30,7 +30,7 @@ function Stat({ label, value, sub, accent }: {
       }}
     >
       <span
-        className="text-[10px] font-extrabold uppercase tracking-[0.14em]"
+        className="text-[11px] font-extrabold uppercase tracking-[0.14em]"
         style={{ color: accent ?? "var(--text-muted)" }}
       >
         {label}
@@ -131,7 +131,7 @@ export default function SectorHero({ summary: s }: { summary: SectorSummary }) {
         {/* Tier mix */}
         <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3">
           <div className="mb-2 flex items-center justify-between gap-2">
-            <span className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+            <span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[var(--text-muted)]">
               Strength mix
             </span>
             {/* Buy count only — SignalChip deliberately never surfaces sell. */}

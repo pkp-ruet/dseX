@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { apiAddHolding } from "@/lib/api";
+import { toast } from "@/lib/toast";
 
 interface Props {
   code: string;
@@ -55,6 +56,7 @@ export default function AddToPortfolioButton({ code, ltp }: Props) {
     setSubmitting(true);
     try {
       await apiAddHolding({ trading_code: code, buy_price: p, qty: q });
+      toast({ message: `${code} added to your portfolio`, tone: "success" });
       router.push("/portfolio");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to add.");

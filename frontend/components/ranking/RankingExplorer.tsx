@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useUrlParams, useUrlSync } from "@/lib/use-url-state";
 import { TIER_GRADES, TIER_LABELS, TIER_VAR, type TierKey } from "@/lib/constants";
 import FullRankTable, { type RankedItem, type RankedRow } from "@/components/ranking/FullRankTable";
 
@@ -21,6 +22,38 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
   const [sector, setSector] = useState("all");
   const [activeTiers, setActiveTiers] = useState<Set<TierKey>>(
     () => new Set(TIERS_ORDER)
+  );
+
+  // ---- URL ⇄ state: ?q=…&sector=…&tiers=excellent,good ----
+  // Defaults render on the server; the query string is applied once after
+  // mount, then every change is mirrored back so the view is linkable.
+  const urlParams = useUrlParams();
+  const [urlReady, setUrlReady] = useState(false);
+  useEffect(() => {
+    if (!urlParams) return;
+    const q = urlParams.get("q");
+    if (q) setQuery(q);
+    const sec = urlParams.get("sector");
+    if (sec && sectors.includes(sec)) setSector(sec);
+    const tiers = urlParams.get("tiers");
+    if (tiers) {
+      const picked = tiers
+        .split(",")
+        .filter((t): t is TierKey => (TIERS_ORDER as string[]).includes(t));
+      if (picked.length > 0) setActiveTiers(new Set(picked));
+    }
+    setUrlReady(true);
+  }, [urlParams, sectors]);
+  useUrlSync(
+    {
+      q: query.trim() || null,
+      sector: sector === "all" ? null : sector,
+      tiers:
+        activeTiers.size === TIERS_ORDER.length
+          ? null
+          : TIERS_ORDER.filter((t) => activeTiers.has(t)).join(","),
+    },
+    urlReady
   );
 
   // Assign each company its stable global rank once (tier order → by score).

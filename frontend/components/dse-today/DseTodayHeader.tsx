@@ -40,7 +40,7 @@ function IndexTile({ name, value, change, changePct, lead = false }: {
       }}
     >
       <span
-        className="text-[10px] font-extrabold uppercase tracking-[0.14em]"
+        className="text-[11px] font-extrabold uppercase tracking-[0.14em]"
         style={{ color: lead ? "var(--primary-ink)" : "var(--text-muted)" }}
       >
         {name}
@@ -51,7 +51,7 @@ function IndexTile({ name, value, change, changePct, lead = false }: {
       <span className="flex items-baseline gap-1 text-[11px] sm:text-xs font-bold tabular-nums" style={{ color }}>
         {hasChange ? (
           <>
-            <span className="text-[9px]">{up ? "▲" : "▼"}</span>
+            <span className="text-[11px]">{up ? "▲" : "▼"}</span>
             {signed(change)}
             {changePct != null && <span className="opacity-75">({signed(changePct, 2)}%)</span>}
           </>
@@ -72,7 +72,7 @@ function StatTile({ label, value, sub, subColor }: {
 }) {
   return (
     <div className="flex flex-col gap-1 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-2.5 sm:p-3">
-      <span className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+      <span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[var(--text-muted)]">
         {label}
       </span>
       <span className="text-sm sm:text-lg font-extrabold leading-none tabular-nums text-[var(--text)]">
@@ -167,7 +167,7 @@ export default function DseTodayHeader({ header, condition }: Props) {
         {/* Breadth */}
         <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3">
           <div className="mb-2 flex items-center justify-between gap-2">
-            <span className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+            <span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[var(--text-muted)]">
               Market Breadth
             </span>
             <span className="text-[11px] font-bold tabular-nums">
@@ -183,7 +183,7 @@ export default function DseTodayHeader({ header, condition }: Props) {
             <div style={{ width: `${downWidth}%`, background: "var(--negative)" }} />
           </div>
           {breadthTotal > 0 && (
-            <div className="mt-1.5 text-[10px] font-semibold tabular-nums text-[var(--text-muted)]">
+            <div className="mt-1.5 text-[11px] font-semibold tabular-nums text-[var(--text-muted)]">
               {pct((up / breadthTotal) * 100)} advancing · {pct((down / breadthTotal) * 100)} declining
             </div>
           )}

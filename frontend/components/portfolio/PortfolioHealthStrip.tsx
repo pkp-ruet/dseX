@@ -129,7 +129,7 @@ export default function PortfolioHealthStrip({
           }}
         >
           <span className="text-2xl sm:text-3xl font-black leading-none">{analysis.grade}</span>
-          <span className={`text-[10px] sm:text-[11px] font-bold mt-0.5 ${bnText}`}>{gradeLabel}</span>
+          <span className={`text-[11px] sm:text-[11px] font-bold mt-0.5 ${bnText}`}>{gradeLabel}</span>
         </div>
 
         {/* Verdict */}

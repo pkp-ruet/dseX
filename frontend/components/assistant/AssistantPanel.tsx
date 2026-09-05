@@ -88,7 +88,7 @@ export default function AssistantPanel({
               <div className="text-[0.9rem] font-bold text-[var(--text)]">
                 {PERSONA.name}
               </div>
-              <div className="text-[0.66rem] text-[var(--text-muted)]">{PERSONA.tagline}</div>
+              <div className="text-[0.68rem] text-[var(--text-muted)]">{PERSONA.tagline}</div>
             </div>
           </div>
           <button

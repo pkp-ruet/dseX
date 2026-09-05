@@ -26,7 +26,7 @@ export default function DailyTipsMockup({ tips }: { tips: DailyTip[] }) {
     <div className="soft-card overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] bg-[var(--surface-2)]">
         <span className="text-[0.7rem] font-bold uppercase tracking-[0.12em] text-[var(--text)]">💡 Today&apos;s tips</span>
-        <span className="text-[0.62rem] text-[var(--text-muted)]">fresh every day</span>
+        <span className="text-[0.68rem] text-[var(--text-muted)]">fresh every day</span>
       </div>
 
       <div className="divide-y divide-[var(--cell-rule)]">
@@ -45,7 +45,7 @@ export default function DailyTipsMockup({ tips }: { tips: DailyTip[] }) {
               <span className="min-w-0 flex-1">
                 <span className="ticker-tag ticker-tag--static text-[0.8rem]">{tip.trading_code}</span>
                 <span
-                  className="block text-[0.6rem] font-bold uppercase tracking-[0.08em]"
+                  className="block text-[0.68rem] font-bold uppercase tracking-[0.08em]"
                   style={{ color: meta.color }}
                 >
                   {meta.tag}

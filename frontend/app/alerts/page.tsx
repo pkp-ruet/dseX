@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import AlertsClient from "@/components/alerts/AlertsClient";
+import Bn from "@/components/i18n/Bn";
 
 export const metadata: Metadata = {
   title: "My Price Alerts — TopStockBD",
@@ -16,6 +17,7 @@ export default function AlertsPage() {
         <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
           Get pinged the day a stock reaches your target — by web push and in your alerts bell.
         </p>
+        <Bn className="page-h1-bn">শেয়ারের দাম আপনার ঠিক করা দামে পৌঁছালেই জানিয়ে দেব।</Bn>
       </div>
       <AlertsClient />
     </main>

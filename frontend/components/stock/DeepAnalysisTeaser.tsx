@@ -60,7 +60,7 @@ export default function DeepAnalysisTeaser({ teaser, code }: Props) {
             <div className="flex items-center gap-2">
               <span aria-hidden className="text-base">📊</span>
               <span
-                className={`text-[10px] font-bold uppercase tracking-[0.15em] ${isBn ? "font-bn" : ""}`}
+                className={`text-[11px] font-bold uppercase tracking-[0.15em] ${isBn ? "font-bn" : ""}`}
                 style={{ color: "var(--primary)" }}
               >
                 {T.eyebrow[lang]}

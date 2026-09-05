@@ -51,7 +51,7 @@ export default function DailyTipItem({
           <span className="flex items-center gap-2">
             <span className="ticker-tag text-[0.8rem]">{tip.trading_code}</span>
             <span
-              className="text-[0.64rem] font-extrabold uppercase tracking-[0.07em]"
+              className="text-[0.68rem] font-extrabold uppercase tracking-[0.07em]"
               style={{ color: meta.color }}
             >
               {meta.tag}

@@ -48,6 +48,7 @@ import AddHoldingModal from "./AddHoldingModal";
 import BuySellModal from "./BuySellModal";
 import WatchlistNews from "@/components/watchlist/WatchlistNews";
 import WatchlistAlertCell from "@/components/watchlist/WatchlistAlertCell";
+import ErrorState from "@/components/ui/ErrorState";
 
 const LANG_KEY = "dsex.portfolio.lang";
 const lastSeenKey = (uid: string) => `dsex.portfolio.lastseen.${uid}`;
@@ -159,7 +160,7 @@ function PnlPill({ value, pct }: { value: number | null; pct: number | null }) {
       className="pv inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold tabular-nums nums whitespace-nowrap"
       style={{ color: accent, background: `color-mix(in srgb, ${accent} 12%, transparent)` }}
     >
-      <span className="text-[9px] leading-none">{value > 0 ? "▲" : value < 0 ? "▼" : "•"}</span>
+      <span className="text-[11px] leading-none">{value > 0 ? "▲" : value < 0 ? "▼" : "•"}</span>
       {value > 0 ? "+" : ""}
       {taka(value, 0)}
       {pct != null && (
@@ -189,7 +190,7 @@ function RangeBar52({ ltp, high, low }: { ltp: number | null; high: number | nul
           style={{ left: `calc(${(pos * 100).toFixed(1)}% - 5px)` }}
         />
       </div>
-      <div className="flex justify-between text-[9px] text-[var(--text-muted)] tabular-nums nums leading-none">
+      <div className="flex justify-between text-[11px] text-[var(--text-muted)] tabular-nums nums leading-none">
         <span>{low.toFixed(1)}</span>
         <span>{high.toFixed(1)}</span>
       </div>
@@ -888,7 +889,15 @@ export default function PortfolioClient() {
   }
 
   if (error) {
-    return <p className="text-[var(--negative)] mt-4">Failed to load: {error}</p>;
+    return (
+      <ErrorState
+        size="inline"
+        title="Couldn't load your portfolio"
+        bn="আপনার পোর্টফোলিও এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+        reload
+        className="mt-4"
+      />
+    );
   }
 
   const editingHolding = holdings.find((h) => h.id === editId) ?? null;
@@ -1119,19 +1128,19 @@ export default function PortfolioClient() {
               {/* Metric strip */}
               <div className="mt-2.5 grid grid-cols-4 gap-1 text-center rounded-lg py-2 px-1 bg-[color-mix(in_srgb,var(--primary)_5%,var(--surface))]">
                 <div>
-                  <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">Qty</p>
+                  <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wide">Qty</p>
                   <p className="pv text-xs text-[var(--text)] tabular-nums nums font-medium mt-0.5">{row.holding.qty.toLocaleString()}</p>
                 </div>
                 <div className="border-l border-[var(--border)]">
-                  <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">Avg</p>
+                  <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wide">Avg</p>
                   <p className="pv text-xs text-[var(--text)] tabular-nums nums font-medium mt-0.5">{taka(row.holding.buy_price, 2)}</p>
                 </div>
                 <div className="border-l border-[var(--border)]">
-                  <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">LTP</p>
+                  <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wide">LTP</p>
                   <p className="text-xs text-[var(--text)] tabular-nums nums font-medium mt-0.5">{row.ltp != null ? taka(row.ltp, 1) : "—"}</p>
                 </div>
                 <div className="border-l border-[var(--border)]">
-                  <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">Value</p>
+                  <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wide">Value</p>
                   <p className="pv text-xs text-[var(--text)] tabular-nums nums font-bold mt-0.5">{row.current_value != null ? taka(row.current_value, 0) : "—"}</p>
                 </div>
               </div>
@@ -1139,7 +1148,7 @@ export default function PortfolioClient() {
               {/* 52-week position */}
               {row.w52_high != null && row.w52_low != null && row.w52_high > row.w52_low && (
                 <div className="mt-2.5 flex items-center gap-2 px-0.5">
-                  <span className="text-[9px] uppercase tracking-wide text-[var(--text-muted)] font-semibold shrink-0">
+                  <span className="text-[11px] uppercase tracking-wide text-[var(--text-muted)] font-semibold shrink-0">
                     52W
                   </span>
                   <div className="flex-1">
@@ -1279,8 +1288,8 @@ export default function PortfolioClient() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-[var(--text)]">Quantity</label>
-              <input
+              <label htmlFor="pf-1" className="text-sm font-medium text-[var(--text)]">Quantity</label>
+              <input id="pf-1"
                 type="number"
                 value={editForm.qty}
                 min="1"
@@ -1293,8 +1302,8 @@ export default function PortfolioClient() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-[var(--text)]">Avg Buy Price (৳)</label>
-              <input
+              <label htmlFor="pf-2" className="text-sm font-medium text-[var(--text)]">Avg Buy Price (৳)</label>
+              <input id="pf-2"
                 type="number"
                 value={editForm.price}
                 min="0.01"
@@ -1354,8 +1363,8 @@ export default function PortfolioClient() {
 
             {/* Stock selector */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-[var(--text)]">Stock</label>
-              <select
+              <label htmlFor="pf-3" className="text-sm font-medium text-[var(--text)]">Stock</label>
+              <select id="pf-3"
                 value={pickerCode}
                 onChange={(e) => selectPickerCode(e.target.value)}
                 className="input-field text-base w-full py-2.5 font-mono"
@@ -1371,8 +1380,8 @@ export default function PortfolioClient() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-[var(--text)]">Quantity</label>
-                <input
+                <label htmlFor="pf-4" className="text-sm font-medium text-[var(--text)]">Quantity</label>
+                <input id="pf-4"
                   type="number"
                   value={pickerForm.qty}
                   min="1"
@@ -1384,8 +1393,8 @@ export default function PortfolioClient() {
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-[var(--text)]">Avg Buy Price (৳)</label>
-                <input
+                <label htmlFor="pf-5" className="text-sm font-medium text-[var(--text)]">Avg Buy Price (৳)</label>
+                <input id="pf-5"
                   type="number"
                   value={pickerForm.price}
                   min="0.01"

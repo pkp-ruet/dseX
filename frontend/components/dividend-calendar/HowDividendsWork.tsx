@@ -105,7 +105,7 @@ export default function HowDividendsWork({ data }: { data: DividendCalendarData 
             Cash vs bonus, and what tax takes
           </h3>
           <p className="mt-2 text-[0.82rem] font-medium leading-relaxed text-[var(--text)]">
-            A 25% cash dividend on a Tk 10 face value pays Tk 2.50 per share — it has nothing
+            A 25% cash dividend on a ৳10 face value pays ৳2.50 per share — it has nothing
             to do with the market price. A 25% bonus gives you 25 extra shares per 100 held and
             no money; the price adjusts down for the new shares. Cash dividends are taxed at
             10% with a TIN, 15% without.

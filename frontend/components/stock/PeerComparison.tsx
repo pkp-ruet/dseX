@@ -5,6 +5,7 @@ import type { RelatedStock } from "@/lib/api";
 import { getTier, TIER_COLORS } from "@/lib/constants";
 import { peerStandingCaption } from "@/lib/plain-language";
 import Card from "@/components/ui/Card";
+import SectionTitle from "@/components/stock/SectionTitle";
 
 export interface PeerRow {
   trading_code: string;
@@ -101,12 +102,13 @@ export default function PeerComparison({ current, peers, sector }: Props) {
 
   return (
     <section id="peers" className="mb-8 scroll-mt-[112px]">
-      <h2 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: "var(--text)" }}>
-        How It Stacks Up
-      </h2>
-      <p className="text-sm mb-5" style={{ color: "var(--text-muted)" }}>
-        {caption ?? `${current.trading_code} versus the strongest names in ${sector ?? "its sector"}.`}
-      </p>
+      <SectionTitle
+        title="How It Stacks Up"
+        sub={<>
+            {caption ?? `${current.trading_code} versus the strongest names in ${sector ?? "its sector"}.`}
+        </>}
+        bn="একই সেক্টরের সেরা কোম্পানিগুলোর সাথে তুলনা।"
+      />
 
       <Card padding="none" className="rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">

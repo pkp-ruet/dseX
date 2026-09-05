@@ -118,7 +118,7 @@ export default function VerdictHero({ detail }: Props) {
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-7">
           <div className="flex flex-col items-center shrink-0">
             <span
-              className="text-[10px] font-bold uppercase tracking-[0.22em] mb-2"
+              className="text-[11px] font-bold uppercase tracking-[0.22em] mb-2"
               style={{ color: "var(--text-muted)" }}
             >
               Fundamental Score
@@ -160,7 +160,7 @@ export default function VerdictHero({ detail }: Props) {
                   {score != null ? score.toFixed(0) : "--"}
                 </span>
                 <span
-                  className="text-[10px] font-bold uppercase tracking-[0.2em] mt-0.5"
+                  className="text-[11px] font-bold uppercase tracking-[0.2em] mt-0.5"
                   style={{ color: "var(--text-muted)" }}
                 >
                   / 100
@@ -226,7 +226,7 @@ export default function VerdictHero({ detail }: Props) {
 
         {/* Footer watermark — for shared screenshots */}
         <div
-          className="mt-5 pt-3 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.2em]"
+          className="mt-5 pt-3 flex items-center justify-between text-[11px] font-bold uppercase tracking-[0.2em]"
           style={{ borderTop: "1px solid var(--border)" }}
         >
           <span style={{ color: "var(--text-muted)" }}>topstockbd.com</span>

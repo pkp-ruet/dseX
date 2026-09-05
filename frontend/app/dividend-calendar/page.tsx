@@ -7,6 +7,8 @@ import AgmBoard from "@/components/dividend-calendar/AgmBoard";
 import TopCashDividends from "@/components/dividend-calendar/TopCashDividends";
 import RecentDeclarations from "@/components/dividend-calendar/RecentDeclarations";
 import HowDividendsWork from "@/components/dividend-calendar/HowDividendsWork";
+import ErrorState from "@/components/ui/ErrorState";
+import Bn from "@/components/i18n/Bn";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
@@ -58,11 +60,13 @@ export default async function DividendCalendarPage() {
             <span className="ms-page-h1-main">Dividend Calendar</span>
           </h1>
         </header>
-        <div className="ms-card">
-          <p className="ms-empty">
-            We couldn&apos;t reach the dividend data right now. Please refresh in a moment.
-          </p>
-        </div>
+        <ErrorState
+          size="inline"
+          title="Couldn't load the dividend calendar"
+          bn="ডিভিডেন্ড ক্যালেন্ডার এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+          reload
+          links={[{ href: "/dsestockranking", label: "Stock rankings" }]}
+        />
       </>
     );
   }
@@ -122,7 +126,7 @@ export default async function DividendCalendarPage() {
             acceptedAnswer: {
               "@type": "Answer",
               text:
-                "Dividend percentages are quoted on face value, not market price. A 25% cash dividend on a Tk 10 face value pays Tk 2.50 per share, whatever the share trades at. A 25% bonus dividend instead gives 25 extra shares per 100 held and pays no cash.",
+                "Dividend percentages are quoted on face value, not market price. A 25% cash dividend on a ৳10 face value pays ৳2.50 per share, whatever the share trades at. A 25% bonus dividend instead gives 25 extra shares per 100 held and pays no cash.",
             },
           },
           {
@@ -164,7 +168,8 @@ export default async function DividendCalendarPage() {
           {data.stats.declarations_tracked} declarations tracked · updated{" "}
           {formatDate(data.today)}
         </span>
-      </header>
+              <Bn className="page-h1-bn">কোন কোম্পানি কবে ডিভিডেন্ড দিচ্ছে — রেকর্ড ডেট, এজিএম আর শেষ কেনার দিন।</Bn>
+</header>
 
       <CalendarSummary data={data} />
 

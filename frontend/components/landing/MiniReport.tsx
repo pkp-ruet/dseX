@@ -93,7 +93,7 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
               {stock.code}
             </span>
             {stock.category && (
-              <span className="text-[0.65rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)]">
+              <span className="text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)]">
                 Cat {stock.category}
               </span>
             )}
@@ -166,7 +166,7 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
 
       {/* The five pillars — this is the part that says "there is a method here" */}
       <div className="flex flex-col gap-2 px-4 py-3.5 sm:px-5">
-        <p className="mb-0.5 text-[0.66rem] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+        <p className="mb-0.5 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
           The five checks behind the score
         </p>
         {PILLARS.map((p, i) => (
@@ -180,7 +180,7 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
           <div className="text-[0.82rem] font-extrabold tabular-nums nums text-[var(--text)]">
             ৳{fmt(stock.ltp)}
           </div>
-          <span className="mt-0.5 block truncate text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+          <span className="mt-0.5 block truncate text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">
             Price
           </span>
         </div>
@@ -191,7 +191,7 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
           >
             {fmtSigned(stock.chg)}
           </div>
-          <span className="mt-0.5 block truncate text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+          <span className="mt-0.5 block truncate text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">
             Today
           </span>
         </div>
@@ -199,7 +199,7 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
           <div className="text-[0.82rem] font-extrabold tabular-nums nums text-[var(--text)]">
             {stock.divY == null ? "—" : `${stock.divY.toFixed(1)}%`}
           </div>
-          <span className="mt-0.5 block truncate text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+          <span className="mt-0.5 block truncate text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">
             Dividend
           </span>
         </div>
@@ -210,7 +210,7 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
           >
             {fmtSigned(stock.epsG)}
           </div>
-          <span className="mt-0.5 block truncate text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+          <span className="mt-0.5 block truncate text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">
             Profit growth
           </span>
         </div>
@@ -218,7 +218,7 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
 
       {/* Provenance — the reader can see how old the underlying report is. */}
       <div className="flex items-center justify-between gap-3 border-t border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 sm:px-5">
-        <span className="text-[0.66rem] font-semibold text-[var(--text-muted)]">
+        <span className="text-[0.68rem] font-semibold text-[var(--text-muted)]">
           {stock.year ? `Based on the FY${stock.year} report` : "No annual report on file"}
           {stock.stale && <span className="text-[var(--np-cautious)]"> · report is old</span>}
         </span>

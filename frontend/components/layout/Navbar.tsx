@@ -220,6 +220,7 @@ export default function Navbar() {
                 <path d="M13.5 13.5L17 17" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
               </svg>
               <span className="navbar-search-label">Search</span>
+              <kbd className="kbd-hint" aria-hidden="true">/</kbd>
             </button>
             <Link
               href="/watchlist"

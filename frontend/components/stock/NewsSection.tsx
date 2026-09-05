@@ -2,6 +2,7 @@
 import { useState } from "react";
 import NewsCard from "./NewsCard";
 import Button from "@/components/ui/Button";
+import SectionTitle from "@/components/stock/SectionTitle";
 
 interface Props {
   news: { title: string; post_date: string; body: string }[];
@@ -19,12 +20,13 @@ export default function NewsSection({ news }: Props) {
 
   return (
     <section className="mb-8">
-      <h2 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: "var(--text)" }}>
-        What's New
-      </h2>
-      <p className="text-sm mb-5" style={{ color: "var(--text-muted)" }}>
-        Recent news and announcements about this company.
-      </p>
+      <SectionTitle
+        title="What's New"
+        sub={<>
+            Recent news and announcements about this company.
+        </>}
+        bn="এই কোম্পানির সাম্প্রতিক খবর ও ঘোষণা।"
+      />
 
       <div className="space-y-2">
         {visible.map((item, i) => (

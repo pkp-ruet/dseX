@@ -42,6 +42,7 @@ import MarketDataBanner from "@/components/layout/MarketDataBanner";
 import ConditionalAnalytics from "@/components/analytics/ConditionalAnalytics";
 import { AuthProvider } from "@/context/AuthContext";
 import GoogleAuthProvider from "@/components/auth/GoogleAuthProvider";
+import Toaster from "@/components/ui/Toaster";
 import PingTracker from "@/components/analytics/PingTracker";
 import FeedbackPrompt from "@/components/feedback/FeedbackPrompt";
 import PushOptInPrompt from "@/components/push/PushOptInPrompt";
@@ -104,6 +105,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable} ${spaceGrotesk.variable} ${hindSiliguri.variable}`}>
       <body className="min-h-screen flex flex-col">
+        <a href="#main" className="skip-link">Skip to content</a>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSON_LD) }}
@@ -116,12 +118,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div aria-hidden="true" className="h-14 shrink-0" />
             <MarketDataBanner />
             <PushAlertBanner />
-            <main className="flex-1 max-w-5xl mx-auto w-full min-w-0 px-4 sm:px-6 pb-[calc(72px_+_env(safe-area-inset-bottom))] md:pb-10">
+            <main id="main" tabIndex={-1} className="flex-1 max-w-5xl mx-auto w-full min-w-0 px-4 sm:px-6 pb-[calc(72px_+_env(safe-area-inset-bottom))] md:pb-10">
               {children}
             </main>
             <Footer />
             <MobileBottomBar />
             <GlobalSearch />
+            <Toaster />
             <ExploreSheet />
             <FeedbackPrompt />
             <PushOptInPrompt />

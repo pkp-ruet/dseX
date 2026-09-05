@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { RelatedStock } from "@/lib/api";
 import { getTier, TIER_VAR, TIER_LABELS } from "@/lib/constants";
 import { signed } from "@/lib/formatters";
+import SectionTitle from "@/components/stock/SectionTitle";
 
 interface Props {
   stocks: RelatedStock[];
@@ -13,14 +14,15 @@ export default function RelatedStocks({ stocks, currentSector }: Props) {
 
   return (
     <section className="mb-8">
-      <h2 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: "var(--text)" }}>
-        Related Stocks
-      </h2>
-      <p className="text-sm mb-5" style={{ color: "var(--text-muted)" }}>
-        {currentSector
-          ? `Other top-ranked stocks in the ${currentSector} sector.`
-          : "Other top-ranked stocks you might want to compare."}
-      </p>
+      <SectionTitle
+        title="Related Stocks"
+        sub={<>
+            {currentSector
+            ? `Other top-ranked stocks in the ${currentSector} sector.`
+            : "Other top-ranked stocks you might want to compare."}
+        </>}
+        bn="একই ধরনের আরও কিছু ভালো শেয়ার।"
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {stocks.map((s) => (

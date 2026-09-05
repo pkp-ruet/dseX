@@ -7,12 +7,12 @@ export default function MarketAnalysisMockup() {
         <span className="text-[0.7rem] font-bold uppercase tracking-[0.12em] text-[var(--text)]">
           📊 The market right now
         </span>
-        <span className="text-[0.62rem] text-[var(--text-muted)]">in plain words</span>
+        <span className="text-[0.68rem] text-[var(--text-muted)]">in plain words</span>
       </div>
 
       <div className="px-4 pt-3">
         <span
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.66rem] font-extrabold"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.68rem] font-extrabold"
           style={{ background: "color-mix(in srgb, var(--warm) 15%, var(--surface))", color: "var(--warm-ink)" }}
         >
           <span className="h-1.5 w-1.5 rounded-full" style={{ background: "currentColor" }} />
@@ -31,7 +31,7 @@ export default function MarketAnalysisMockup() {
             border: "1px solid color-mix(in srgb, var(--negative) 20%, var(--border))",
           }}
         >
-          <p className="text-[0.56rem] font-bold text-[var(--text-muted)]">Up or down today?</p>
+          <p className="text-[0.68rem] font-bold text-[var(--text-muted)]">Up or down today?</p>
           <p className="text-[0.95rem] font-extrabold" style={{ color: "var(--negative)" }}>Down</p>
         </div>
         <div
@@ -41,7 +41,7 @@ export default function MarketAnalysisMockup() {
             border: "1px solid color-mix(in srgb, var(--positive) 22%, var(--border))",
           }}
         >
-          <p className="text-[0.56rem] font-bold text-[var(--text-muted)]">Cheap or pricey?</p>
+          <p className="text-[0.68rem] font-bold text-[var(--text-muted)]">Cheap or pricey?</p>
           <p className="text-[0.95rem] font-extrabold" style={{ color: "var(--positive)" }}>Cheap</p>
         </div>
       </div>
@@ -56,7 +56,7 @@ export default function MarketAnalysisMockup() {
         </span>
         <span className="min-w-0 flex-1">
           <span className="ticker-tag ticker-tag--static text-[0.78rem]">RENATA</span>
-          <span className="block text-[0.6rem] text-[var(--text-muted)]">unusual buying today</span>
+          <span className="block text-[0.68rem] text-[var(--text-muted)]">unusual buying today</span>
         </span>
         <span className="text-[0.7rem] font-bold" style={{ color: "var(--positive)" }}>4× usual</span>
       </div>

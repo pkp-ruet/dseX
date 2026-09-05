@@ -15,6 +15,7 @@ import {
   type PriceAlert,
 } from "@/lib/price-alerts";
 import PriceAlertModal from "@/components/stock/PriceAlertModal";
+import EmptyState from "@/components/ui/EmptyState";
 
 function flatten(scores: ScoresResponse | null): ScoreItem[] {
   if (!scores) return [];
@@ -76,14 +77,14 @@ function AlertCard({
         </Link>
         {alert.is_active ? (
           <span
-            className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full"
+            className="text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full"
             style={{ color: "var(--watch)", background: "rgba(180,83,9,0.1)", border: "1px solid rgba(180,83,9,0.3)" }}
           >
             Armed
           </span>
         ) : (
           <span
-            className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full"
+            className="text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full"
             style={{ color: "var(--text-muted)", background: "var(--surface-2)", border: "1px solid var(--border)" }}
           >
             Triggered {triggeredDate(alert.triggered_at)}
@@ -201,18 +202,15 @@ export default function AlertsClient() {
 
   if (alerts.length === 0) {
     return (
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 text-center">
-        <h2 className="text-lg font-bold text-[var(--text)]">No price alerts yet</h2>
-        <p className="mx-auto mt-1 max-w-sm text-sm text-[var(--text-muted)]">
-          Open any stock and tap the <b>🔔 Alert</b> button to set a target price. We&apos;ll watch
-          it for you and ping you the day it&apos;s hit.
-        </p>
-        <div className="mt-4 flex justify-center">
-          <Button href="/stocks" variant="primary" size="sm">
-            Browse stocks
-          </Button>
-        </div>
-      </div>
+      <EmptyState
+        title="No price alerts yet"
+        message="Open any stock and tap the Alert button to set a target price. We'll watch it and ping you the day it's hit."
+        bn="যে কোনো শেয়ারে গিয়ে Alert বোতামে চাপ দিয়ে দাম ঠিক করে দিন — পৌঁছালেই জানাব।"
+        actions={[
+          { href: "/dsestockranking", label: "See top-ranked stocks" },
+          { href: "/stocks", label: "Browse all stocks" },
+        ]}
+      />
     );
   }
 

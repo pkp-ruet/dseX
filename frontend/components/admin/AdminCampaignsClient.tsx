@@ -224,7 +224,7 @@ export default function AdminCampaignsClient() {
                     <span className="flex items-center gap-2 whitespace-nowrap">
                       {b.is_new && (
                         <span
-                          className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                          className="text-[11px] font-bold px-2 py-0.5 rounded-full"
                           style={{ background: "var(--positive)", color: "#fff" }}
                         >
                           New
@@ -236,7 +236,7 @@ export default function AdminCampaignsClient() {
                         </span>
                       )}
                       <span
-                        className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                        className="text-[11px] font-bold px-2 py-0.5 rounded-full"
                         style={{ background: "var(--primary)", color: "#fff" }}
                       >
                         {b.strength === "strong" ? "Strong buy" : "Buy"}

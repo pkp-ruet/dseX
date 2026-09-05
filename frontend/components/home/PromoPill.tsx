@@ -54,7 +54,7 @@ export default function PromoPill({
         {/* Optional tag */}
         {tag && (
           <span
-            className="shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-[0.6rem] sm:text-[0.66rem] font-bold text-white"
+            className="shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-[0.68rem] sm:text-[0.68rem] font-bold text-white"
             style={{ background: accentVar }}
           >
             {tag}

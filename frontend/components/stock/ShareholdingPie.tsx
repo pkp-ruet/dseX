@@ -2,6 +2,7 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { ownershipCaption, ownershipChangeInfo } from "@/lib/plain-language";
 import Card from "@/components/ui/Card";
+import SectionTitle from "@/components/stock/SectionTitle";
 
 interface Props {
   shareholding: Record<string, unknown> | null;
@@ -51,13 +52,14 @@ export default function ShareholdingPie({ shareholding, previous = null }: Props
 
   return (
     <section className="mb-8">
-      <h2 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: "var(--text)" }}>
-        Who Owns It
-      </h2>
-      <p className="text-sm mb-5" style={{ color: "var(--text-muted)" }}>
-        Who's behind this company — and how committed are they?
-        {asOf && <span> As of {asOf}{prevAsOf ? `, compared with ${prevAsOf}` : ""}.</span>}
-      </p>
+      <SectionTitle
+        title="Who Owns It"
+        sub={<>
+            Who's behind this company — and how committed are they?
+            {asOf && <span> As of {asOf}{prevAsOf ? `, compared with ${prevAsOf}` : ""}.</span>}
+        </>}
+        bn="কোম্পানির মালিক কারা, আর তারা কতটা শেয়ার ধরে রেখেছেন।"
+      />
 
       <Card padding="none" className="rounded-2xl p-5 sm:p-6">
         <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start">

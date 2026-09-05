@@ -86,7 +86,7 @@ export default function VerdictBlock({ detail }: Props) {
   const animName = `vb_ring_${code.toLowerCase()}`;
 
   const eyebrowCls = (bn: boolean) =>
-    `text-[10px] font-bold tracking-[0.22em] ${bn ? "font-bn" : "uppercase"}`;
+    `text-[11px] font-bold tracking-[0.22em] ${bn ? "font-bn" : "uppercase"}`;
 
   return (
     <section
@@ -174,7 +174,7 @@ export default function VerdictBlock({ detail }: Props) {
                 <span className="font-black tabular-nums leading-none" style={{ color: tone.color, fontSize: "2.5rem" }}>
                   {score != null ? score.toFixed(0) : "--"}
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] mt-0.5" style={{ color: "var(--text-muted)" }}>
+                <span className="text-[11px] font-bold uppercase tracking-[0.2em] mt-0.5" style={{ color: "var(--text-muted)" }}>
                   / 100
                 </span>
               </div>
@@ -285,7 +285,7 @@ export default function VerdictBlock({ detail }: Props) {
 
         {/* Footer watermark — for shared screenshots */}
         <div
-          className="mt-5 pt-3 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.2em]"
+          className="mt-5 pt-3 flex items-center justify-between text-[11px] font-bold uppercase tracking-[0.2em]"
           style={{ borderTop: "1px solid var(--border)" }}
         >
           <span style={{ color: "var(--text-muted)" }}>topstockbd.com</span>

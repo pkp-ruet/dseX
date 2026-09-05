@@ -12,7 +12,7 @@ export default function RecommendationMockup() {
     <div className="soft-card overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] bg-[var(--surface-2)]">
         <span className="text-[0.7rem] font-bold uppercase tracking-[0.12em] text-[var(--text)]">🎯 Your matches</span>
-        <span className="text-[0.62rem] text-[var(--text-muted)]">3 picks for you</span>
+        <span className="text-[0.68rem] text-[var(--text-muted)]">3 picks for you</span>
       </div>
 
       {/* Answers recap */}
@@ -20,7 +20,7 @@ export default function RecommendationMockup() {
         {ANSWERS.map((a) => (
           <span
             key={a}
-            className="px-2 py-0.5 rounded-full text-[0.6rem] font-semibold"
+            className="px-2 py-0.5 rounded-full text-[0.68rem] font-semibold"
             style={{ background: "color-mix(in srgb, var(--np-cautious) 12%, transparent)", color: "var(--np-cautious)" }}
           >
             {a}
@@ -34,10 +34,10 @@ export default function RecommendationMockup() {
             <span className="text-base leading-none" aria-hidden="true">{m.medal}</span>
             <span className="min-w-0 flex-1">
               <span className="ticker-tag ticker-tag--static text-[0.8rem]">{m.code}</span>
-              <span className="block text-[0.66rem] text-[var(--text-muted)] truncate">{m.name}</span>
+              <span className="block text-[0.68rem] text-[var(--text-muted)] truncate">{m.name}</span>
             </span>
             <span className="w-20 shrink-0">
-              <span className="flex items-center justify-between text-[0.56rem] font-semibold mb-0.5">
+              <span className="flex items-center justify-between text-[0.68rem] font-semibold mb-0.5">
                 <span className="text-[var(--text-muted)]">match</span>
                 <span style={{ color: m.color }}>{m.match}%</span>
               </span>

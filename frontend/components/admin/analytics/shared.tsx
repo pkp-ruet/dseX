@@ -85,7 +85,7 @@ export function SegmentPill({ segment }: { segment: EngagementSegment }) {
   const m = SEGMENT_META[segment];
   return (
     <span
-      className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full whitespace-nowrap"
+      className="text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full whitespace-nowrap"
       style={{ color: m.color, background: `${m.color}1a`, border: `1px solid ${m.color}40` }}
     >
       {m.label}
@@ -97,7 +97,7 @@ export function SourcePill({ source }: { source: SignupSource }) {
   const m = SIGNUP_META[source];
   return (
     <span
-      className="text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap"
+      className="text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap"
       style={{ color: m.color, background: `${m.color}14` }}
     >
       {m.label}

@@ -7,6 +7,8 @@ import DseTodayTable from "@/components/dse-today/DseTodayTable";
 import DseTodayNews from "@/components/dse-today/DseTodayNews";
 import MarketMovers from "@/components/home/MarketMovers";
 import SectorHeatmap from "@/components/market/SectorHeatmap";
+import ErrorState from "@/components/ui/ErrorState";
+import Bn from "@/components/i18n/Bn";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
@@ -50,11 +52,13 @@ export default async function DseTodayPage() {
             <span className="ms-page-h1-main">DSE Today</span>
           </h1>
         </header>
-        <div className="ms-card">
-          <p className="ms-empty">
-            We couldn&apos;t reach the market data right now. Please refresh in a moment.
-          </p>
-        </div>
+        <ErrorState
+          size="inline"
+          title="Couldn't load today's market"
+          bn="আজকের বাজারের তথ্য এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+          reload
+          links={[{ href: "/market-analysis", label: "Market analysis" }]}
+        />
       </>
     );
   }
@@ -97,7 +101,8 @@ export default async function DseTodayPage() {
           <span className="ms-page-h1-main">DSE Today</span>
         </h1>
         {dateLabel && <span className="ms-page-date">Last trading day · {dateLabel}</span>}
-      </header>
+              <Bn className="page-h1-bn">আজ বাজার কেমন গেল — সূচক, দাম বাড়া-কমা আর খবর এক পাতায়।</Bn>
+</header>
 
       <DseTodayHeader header={data.header} condition={data.intelligence.market_condition} />
 

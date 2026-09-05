@@ -58,7 +58,7 @@ function PickRow({ pick }: { pick: DailyPickItem }) {
         {/* Row 2: tag + price change */}
         <div className="flex items-center justify-between gap-2 mb-1">
           <span
-            className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider whitespace-nowrap px-2 py-0.5 rounded-full shrink-0"
+            className="text-[11px] sm:text-[11px] font-bold uppercase tracking-wider whitespace-nowrap px-2 py-0.5 rounded-full shrink-0"
             style={{ background: sourceBg, color: sourceColor }}
           >
             {pick.source_label}

@@ -8,6 +8,7 @@ import { priceTrendCaption } from "@/lib/plain-language";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
+import Bn from "@/components/i18n/Bn";
 
 interface Props {
   code: string;
@@ -101,6 +102,9 @@ export default function PriceChart({ code }: Props) {
               {caption}
             </p>
           )}
+          <Bn className="text-[0.9rem] font-medium mt-1" >
+            <span style={{ color: "var(--text-muted)" }}>শেয়ারের দাম সময়ের সাথে কীভাবে বদলেছে, এক নজরে।</span>
+          </Bn>
         </div>
         <div
           className="inline-flex rounded-full p-1 self-start"

@@ -76,7 +76,7 @@ export default function ValueTodayBox({ fairValue, lang = "en", className = "" }
       lang={isBn ? "bn" : undefined}
     >
       <div className="flex items-center justify-between gap-3 mb-3">
-        <p className="text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: "var(--text-muted)" }}>
+        <p className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: "var(--text-muted)" }}>
           {T.title[lang]}
         </p>
         <span

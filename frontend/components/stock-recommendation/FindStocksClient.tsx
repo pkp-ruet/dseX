@@ -58,7 +58,7 @@ function GuestQuiz({ sectors }: { sectors: string[] }) {
     return (
       <div className="space-y-4">
         <div className="rec-pop text-center">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.66rem] font-bold uppercase tracking-[0.08em] bg-[color-mix(in_srgb,var(--primary)_12%,transparent)] text-[var(--primary)]">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.68rem] font-bold uppercase tracking-[0.08em] bg-[color-mix(in_srgb,var(--primary)_12%,transparent)] text-[var(--primary)]">
             🎯 Matched to your answers
           </span>
           <h2 className="mt-2.5 text-[1.5rem] font-extrabold leading-tight bg-gradient-to-r from-[var(--primary)] to-[var(--positive)] bg-clip-text text-transparent">

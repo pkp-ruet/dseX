@@ -6,6 +6,7 @@ import { getTier } from "@/lib/constants";
 import { PILLARS } from "@/lib/landing";
 import RankingExplorer from "@/components/ranking/RankingExplorer";
 import type { RankedItem } from "@/components/ranking/FullRankTable";
+import ErrorState from "@/components/ui/ErrorState";
 
 export const revalidate = 86400;
 
@@ -46,9 +47,12 @@ export default async function DseStockRankingPage() {
 
   if (!scores) {
     return (
-      <div className="text-center py-20 text-[var(--text-muted)]">
-        Unable to load rankings. Please try again shortly.
-      </div>
+      <ErrorState
+        title="Couldn't load the rankings"
+        bn="র‍্যাংকিং এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+        reload
+        links={[{ href: "/stocks", label: "Browse all stocks" }]}
+      />
     );
   }
 

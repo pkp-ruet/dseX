@@ -56,7 +56,7 @@ export default function DseTodayNewsCard({
         </Link>
         {(isPortfolio || isWatchlist) && (
           <span
-            className="inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-bold"
+            className="inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[11px] font-bold"
             style={{
               color: pillColor,
               background: `color-mix(in srgb, ${isPortfolio ? "var(--positive)" : "var(--primary)"} 12%, transparent)`,
@@ -69,7 +69,7 @@ export default function DseTodayNewsCard({
           {item.company_name ?? ""}
         </span>
         {item.post_date && (
-          <span className="shrink-0 text-[10px] font-bold tabular-nums uppercase tracking-wide text-[var(--text-muted)]">
+          <span className="shrink-0 text-[11px] font-bold tabular-nums uppercase tracking-wide text-[var(--text-muted)]">
             {formatDate(item.post_date)}
           </span>
         )}

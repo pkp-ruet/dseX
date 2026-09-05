@@ -80,7 +80,7 @@ export default function AlertsBell({ alerts }: { alerts: HomeAlert[] }) {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </svg>
         {newCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[var(--negative)] px-1 text-[0.62rem] font-extrabold leading-none text-white ring-2 ring-[var(--surface)]">
+          <span className="absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[var(--negative)] px-1 text-[0.68rem] font-extrabold leading-none text-white ring-2 ring-[var(--surface)]">
             {newCount > 9 ? "9+" : newCount}
           </span>
         )}

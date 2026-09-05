@@ -136,12 +136,12 @@ export default function CoreFeatures({
                 <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
                   <h3 className="text-[1.1rem] font-bold text-[var(--text)]">{f.title}</h3>
                   {f.needsAccount ? (
-                    <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+                    <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5 text-[0.68rem] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">
                       Free account
                     </span>
                   ) : (
                     <span
-                      className="rounded-full px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.08em]"
+                      className="rounded-full px-2 py-0.5 text-[0.68rem] font-bold uppercase tracking-[0.08em]"
                       style={{
                         color: "var(--positive)",
                         background: "color-mix(in srgb, var(--positive) 12%, transparent)",

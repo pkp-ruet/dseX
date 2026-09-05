@@ -12,7 +12,7 @@ function IndexStat({ label, value, change }: { label: string; value: number | nu
   const color = change == null ? "var(--text-muted)" : up ? "var(--positive)" : "var(--negative)";
   return (
     <div className="flex flex-col">
-      <span className="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">{label}</span>
+      <span className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">{label}</span>
       <span className="text-lg sm:text-xl font-extrabold tabular-nums text-[var(--text)] leading-tight">{num(value)}</span>
       <span className="text-xs font-semibold tabular-nums" style={{ color }}>
         {change == null ? "--" : `${up ? "▲" : "▼"} ${signed(change)}`}
@@ -31,7 +31,7 @@ export default function LiveMarketBand({ index }: { index: MarketIndexData }) {
     <section className="soft-card overflow-hidden">
       <div className="flex items-center gap-2 px-4 sm:px-5 pt-3.5">
         <span className="w-2 h-2 rounded-full bg-[var(--positive)] animate-pulse" />
-        <span className="text-[0.66rem] font-bold uppercase tracking-[0.16em] text-[var(--text)]">
+        <span className="text-[0.68rem] font-bold uppercase tracking-[0.16em] text-[var(--text)]">
           Dhaka Stock Exchange
         </span>
         <Link

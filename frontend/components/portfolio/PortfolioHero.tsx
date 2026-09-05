@@ -90,7 +90,7 @@ function MovePill({
       className="inline-flex items-center gap-1.5 rounded-full pl-2.5 pr-3 py-1 text-xs sm:text-sm font-bold tabular-nums nums whitespace-nowrap"
       style={{ color: accent, background: `color-mix(in srgb, ${accent} 12%, transparent)` }}
     >
-      <span className="text-[9px] leading-none" aria-hidden>
+      <span className="text-[11px] leading-none" aria-hidden>
         {up ? "▲" : down ? "▼" : "•"}
       </span>
       <span className="font-semibold opacity-80">{label}</span>
@@ -185,7 +185,7 @@ function HeroDonut({ slices, holdingsCount }: { slices: HeroSlice[]; holdingsCou
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
         <span className="text-xl font-black text-[var(--text)] leading-none nums">{holdingsCount}</span>
-        <span className="text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-bold mt-0.5">
+        <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-bold mt-0.5">
           {holdingsCount === 1 ? "stock" : "stocks"}
         </span>
       </div>

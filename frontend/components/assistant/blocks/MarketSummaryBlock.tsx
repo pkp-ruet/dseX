@@ -26,7 +26,7 @@ export default function MarketSummaryBlock({
 
       <div className="flex items-center justify-between gap-3">
         <div>
-          <div className="text-[0.64rem] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+          <div className="text-[0.68rem] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
             DSEX Index
           </div>
           <div className="text-xl font-extrabold nums text-[var(--text)]">
@@ -35,7 +35,7 @@ export default function MarketSummaryBlock({
         </div>
         <div className="text-right">
           <span
-            className="inline-block rounded-full px-2 py-0.5 text-[0.64rem] font-bold"
+            className="inline-block rounded-full px-2 py-0.5 text-[0.68rem] font-bold"
             style={{ background: `color-mix(in srgb, ${meta.color} 14%, transparent)`, color: meta.color }}
           >
             {meta.label}

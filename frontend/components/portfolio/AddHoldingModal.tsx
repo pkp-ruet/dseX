@@ -121,8 +121,8 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onC
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {/* Stock code */}
           <div className="flex flex-col gap-1.5 relative">
-            <label className="text-sm font-medium text-[var(--text)]">Stock Code</label>
-            <input
+            <label htmlFor="ah-1" className="text-sm font-medium text-[var(--text)]">Stock Code</label>
+            <input id="ah-1"
               ref={codeInputRef}
               type="text"
               placeholder="e.g. GP"
@@ -162,8 +162,8 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onC
           {/* Price + Qty */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-[var(--text)]">Buy Price (৳)</label>
-              <input
+              <label htmlFor="ah-2" className="text-sm font-medium text-[var(--text)]">Buy Price (৳)</label>
+              <input id="ah-2"
                 type="number"
                 placeholder="295.50"
                 min="0.01"
@@ -176,8 +176,8 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onC
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-[var(--text)]">Quantity</label>
-              <input
+              <label htmlFor="ah-3" className="text-sm font-medium text-[var(--text)]">Quantity</label>
+              <input id="ah-3"
                 type="number"
                 placeholder="100"
                 min="1"

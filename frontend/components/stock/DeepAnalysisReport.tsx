@@ -58,7 +58,7 @@ export default function DeepAnalysisReport({ report, fairValue }: Props) {
       <div className="flex items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
           <span aria-hidden className="text-base">📊</span>
-          <span className="text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: "var(--primary)" }}>
+          <span className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: "var(--primary)" }}>
             {T.eyebrow[lang]}
           </span>
         </div>

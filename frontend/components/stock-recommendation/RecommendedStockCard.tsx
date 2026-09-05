@@ -67,11 +67,11 @@ export default function RecommendedStockCard({
                 <span className="font-mono text-base font-extrabold tracking-[0.02em] text-[var(--text)] group-hover:text-[var(--primary)] transition-colors">
                   {stock.trading_code}
                 </span>
-                <span className="tabular-nums text-[0.66rem] font-bold" style={{ color }}>
+                <span className="tabular-nums text-[0.68rem] font-bold" style={{ color }}>
                   {match}% match
                 </span>
                 {isNew && (
-                  <span className="shrink-0 rounded-full bg-[color-mix(in_srgb,var(--positive)_14%,transparent)] px-1.5 py-0.5 text-[0.58rem] font-extrabold uppercase tracking-[0.06em] text-[var(--positive)]">
+                  <span className="shrink-0 rounded-full bg-[color-mix(in_srgb,var(--positive)_14%,transparent)] px-1.5 py-0.5 text-[0.68rem] font-extrabold uppercase tracking-[0.06em] text-[var(--positive)]">
                     New
                   </span>
                 )}
@@ -110,7 +110,7 @@ export default function RecommendedStockCard({
             {topReason ? (
               <span className="flex min-w-0 items-center gap-1.5 text-[0.74rem] leading-snug text-[var(--text-muted)]">
                 <span
-                  className="shrink-0 inline-flex h-3.5 w-3.5 items-center justify-center rounded-full text-[0.55rem] text-white"
+                  className="shrink-0 inline-flex h-3.5 w-3.5 items-center justify-center rounded-full text-[0.68rem] text-white"
                   style={{ background: color }}
                 >
                   ✓
@@ -151,7 +151,7 @@ export default function RecommendedStockCard({
       <div className="p-4 sm:p-5 pl-5 sm:pl-6">
         {/* Rank pill */}
         <span
-          className="rec-pop inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.64rem] font-bold uppercase tracking-[0.06em]"
+          className="rec-pop inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.68rem] font-bold uppercase tracking-[0.06em]"
           style={{
             background: `color-mix(in srgb, ${color} 14%, var(--surface))`,
             color,
@@ -176,14 +176,14 @@ export default function RecommendedStockCard({
         </Link>
 
         {stock.sector && (
-          <span className="mt-2 inline-block px-2 py-0.5 rounded-full text-[0.66rem] bg-[var(--surface-2)] text-[var(--text-muted)]">
+          <span className="mt-2 inline-block px-2 py-0.5 rounded-full text-[0.68rem] bg-[var(--surface-2)] text-[var(--text-muted)]">
             {stock.sector}
           </span>
         )}
 
         {/* Match strength bar */}
         <div className="mt-3.5">
-          <div className="flex items-center justify-between text-[0.66rem] font-semibold mb-1">
+          <div className="flex items-center justify-between text-[0.68rem] font-semibold mb-1">
             <span className="text-[var(--text-muted)]">How well it fits you</span>
             <span className="tabular-nums" style={{ color }}>
               {match}% match
@@ -206,7 +206,7 @@ export default function RecommendedStockCard({
             {stock.reasons.map((reason, i) => (
               <li key={i} className="flex gap-2 text-[0.82rem] leading-snug text-[var(--text)]">
                 <span
-                  className="mt-[0.05rem] shrink-0 inline-flex items-center justify-center w-4 h-4 rounded-full text-[0.6rem] text-white"
+                  className="mt-[0.05rem] shrink-0 inline-flex items-center justify-center w-4 h-4 rounded-full text-[0.68rem] text-white"
                   style={{ background: color }}
                 >
                   ✓

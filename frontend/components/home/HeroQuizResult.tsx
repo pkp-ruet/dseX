@@ -147,7 +147,7 @@ export default function HeroQuizResult({ picks, summary, relaxations, onRestart 
           borderColor: "color-mix(in srgb, var(--positive) 20%, transparent)",
         }}
       >
-        <span className="inline-flex items-center gap-1.5 text-[0.66rem] font-extrabold uppercase tracking-[0.13em] text-[var(--positive)]">
+        <span className="inline-flex items-center gap-1.5 text-[0.68rem] font-extrabold uppercase tracking-[0.13em] text-[var(--positive)]">
           🎯 Matched to your answers
         </span>
         {/* Styled as a heading but not an <h2> — see HeroMiniQuiz: the page's
@@ -252,7 +252,7 @@ export default function HeroQuizResult({ picks, summary, relaxations, onRestart 
           </Link>
         </div>
 
-        <p className="mt-2 text-center text-[0.66rem] leading-snug text-[var(--text-muted)]">
+        <p className="mt-2 text-center text-[0.68rem] leading-snug text-[var(--text-muted)]">
           Suggestions based on data, not financial advice. Always do your own research.
         </p>
       </div>

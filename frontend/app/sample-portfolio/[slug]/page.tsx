@@ -147,7 +147,7 @@ export default async function SamplePortfolioPage({ params }: Props) {
 
       {/* Hero */}
       <section className="space-y-3">
-        <p className="text-[10px] uppercase tracking-widest font-bold text-[var(--text-muted)]">
+        <p className="text-[11px] uppercase tracking-widest font-bold text-[var(--text-muted)]">
           // SAMPLE PORTFOLIO ANALYSIS
         </p>
         <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text)] leading-snug">

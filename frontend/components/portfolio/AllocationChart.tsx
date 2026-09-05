@@ -174,7 +174,7 @@ export default function AllocationChart({ analysis, lang = "en" }: Props) {
           </ResponsiveContainer>
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <span
-              className={`text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-bold ${bnText}`}
+              className={`text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-bold ${bnText}`}
             >
               {basis === "invested" ? t.centerInvested : t.centerValue}
             </span>

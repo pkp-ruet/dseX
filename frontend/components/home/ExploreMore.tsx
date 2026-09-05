@@ -146,7 +146,7 @@ export default function ExploreMore({
           <div className="flex flex-wrap items-end gap-x-8 gap-y-3">
             {/* DSEX */}
             <div className="flex flex-col">
-              <span className="text-[0.65rem] font-bold uppercase tracking-wide text-[var(--text-muted)]">DSEX</span>
+              <span className="text-[0.68rem] font-bold uppercase tracking-wide text-[var(--text-muted)]">DSEX</span>
               <div className="flex items-baseline gap-2">
                 <span className="font-display text-2xl sm:text-[1.7rem] font-extrabold tabular-nums nums text-[var(--text)] leading-none">
                   {index?.dsex != null ? Math.round(index.dsex).toLocaleString() : "—"}
@@ -159,7 +159,7 @@ export default function ExploreMore({
 
             {/* Traded today (turnover) */}
             <div className="flex flex-col">
-              <span className="text-[0.65rem] font-bold uppercase tracking-wide text-[var(--text-muted)]">Traded today</span>
+              <span className="text-[0.68rem] font-bold uppercase tracking-wide text-[var(--text-muted)]">Traded today</span>
               <div className="flex items-baseline gap-2">
                 <span className="font-display text-2xl sm:text-[1.7rem] font-extrabold tabular-nums nums text-[var(--text)] leading-none">
                   {index?.total_value_mn != null ? crore(index.total_value_mn) : "—"}
@@ -192,7 +192,7 @@ export default function ExploreMore({
               const color = chgColor(item.return_7d_pct);
               return (
                 <div key={item.trading_code} className="flex items-center gap-2 py-1.5">
-                  <span className="text-[0.62rem] font-extrabold tabular-nums nums text-[var(--text-muted)] w-3 shrink-0">{item.rank}</span>
+                  <span className="text-[0.68rem] font-extrabold tabular-nums nums text-[var(--text-muted)] w-3 shrink-0">{item.rank}</span>
                   <span className="ticker-tag text-[0.74rem]">{item.trading_code}</span>
                   <span className="ml-auto text-sm font-extrabold tabular-nums nums" style={{ color }}>
                     {item.return_7d_pct != null && item.return_7d_pct > 0 ? "▲ " : item.return_7d_pct != null && item.return_7d_pct < 0 ? "▼ " : ""}

@@ -47,7 +47,7 @@ export default function Top20MomentumTeaser({ items }: Props) {
               className="group soft-card hover-lift snap-start shrink-0 w-[158px] p-3 flex flex-col gap-2.5"
             >
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center justify-center w-6 h-5 rounded-md bg-[var(--surface-2)] text-[0.62rem] font-extrabold tabular-nums text-[var(--text-muted)]">
+                <span className="inline-flex items-center justify-center w-6 h-5 rounded-md bg-[var(--surface-2)] text-[0.68rem] font-extrabold tabular-nums text-[var(--text-muted)]">
                   {item.rank}
                 </span>
                 <span className="ticker-tag text-[0.8rem]">{item.trading_code}</span>
@@ -61,12 +61,12 @@ export default function Top20MomentumTeaser({ items }: Props) {
                 {item.return_7d_pct != null && item.return_7d_pct > 0 ? "▲" : item.return_7d_pct != null && item.return_7d_pct < 0 ? "▼" : ""}
                 {fmtSigned(item.return_7d_pct)}
               </span>
-              <span className="text-[0.62rem] font-semibold text-[var(--text-muted)] -mt-1">
+              <span className="text-[0.68rem] font-semibold text-[var(--text-muted)] -mt-1">
                 {item.up_days_7d}/{days} days up · 7d
               </span>
 
               <div className="flex items-baseline justify-between border-t border-[var(--cell-rule)] pt-2 mt-auto">
-                <span className="text-[0.58rem] font-bold uppercase tracking-wide text-[var(--text-muted)]">LTP</span>
+                <span className="text-[0.68rem] font-bold uppercase tracking-wide text-[var(--text-muted)]">LTP</span>
                 <span className="text-sm font-bold tabular-nums text-[var(--text)]">
                   {item.ltp != null ? taka(item.ltp, 1) : "—"}
                 </span>

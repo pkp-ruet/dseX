@@ -86,7 +86,7 @@ export default function EventCard({
             </Link>
             {e.tier && <TierPill tier={e.tier} />}
             {e.dividend_type && (
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
                 {e.dividend_type}
               </span>
             )}

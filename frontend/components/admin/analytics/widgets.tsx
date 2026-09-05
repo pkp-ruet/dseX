@@ -105,7 +105,7 @@ export function BarList({
               <span className="min-w-0 text-sm text-[var(--text)] truncate">{it.label}</span>
               <span className="shrink-0 text-sm font-bold tabular-nums nums" style={{ color }}>
                 {it.value.toLocaleString()}
-                {valueSuffix && <span className="text-[10px] font-normal text-[var(--text-muted)] ml-0.5">{valueSuffix}</span>}
+                {valueSuffix && <span className="text-[11px] font-normal text-[var(--text-muted)] ml-0.5">{valueSuffix}</span>}
               </span>
             </div>
             <div className="h-2 rounded-full bg-[var(--surface-2)] overflow-hidden">
@@ -195,7 +195,7 @@ export function FunnelBars({
               <span className="text-xs text-[var(--text-muted)] tabular-nums">
                 <span className="font-bold text-[var(--text)] text-sm">{s.count.toLocaleString()}</span>
                 <span className="ml-1.5">{Math.round(pctOfTop)}%</span>
-                {showConversion && i > 0 && <span className="ml-1.5 text-[10px]">({conv}% of prev)</span>}
+                {showConversion && i > 0 && <span className="ml-1.5 text-[11px]">({conv}% of prev)</span>}
               </span>
             </div>
             <div className="h-6 rounded-lg bg-[var(--surface-2)] overflow-hidden">
@@ -237,11 +237,11 @@ export function CohortGrid({
       <table className="w-full border-separate" style={{ borderSpacing: "3px" }}>
         <thead>
           <tr>
-            <th className="text-left text-[10px] uppercase tracking-wide text-[var(--text-muted)] font-semibold px-2 whitespace-nowrap">
+            <th className="text-left text-[11px] uppercase tracking-wide text-[var(--text-muted)] font-semibold px-2 whitespace-nowrap">
               Signup week
             </th>
             {Array.from({ length: maxWeek + 1 }, (_, w) => (
-              <th key={w} className="text-[10px] text-[var(--text-muted)] font-semibold tabular-nums w-11">
+              <th key={w} className="text-[11px] text-[var(--text-muted)] font-semibold tabular-nums w-11">
                 W{w}
               </th>
             ))}
@@ -252,7 +252,7 @@ export function CohortGrid({
             <tr key={r.cohort}>
               <td className="px-2 whitespace-nowrap">
                 <span className="text-xs font-semibold text-[var(--text)]">{weekLabel(r.cohort)}</span>
-                <span className="ml-1.5 text-[10px] text-[var(--text-muted)] tabular-nums">n={r.size}</span>
+                <span className="ml-1.5 text-[11px] text-[var(--text-muted)] tabular-nums">n={r.size}</span>
               </td>
               {Array.from({ length: maxWeek + 1 }, (_, w) => {
                 const cell = r.cells.find((c) => c.week === w);
@@ -300,7 +300,7 @@ export function HoursHeatmap({ matrix, max }: { matrix: number[][]; max: number 
           <tr>
             <th />
             {Array.from({ length: 24 }, (_, h) => (
-              <th key={h} className="text-[9px] text-[var(--text-muted)] font-medium tabular-nums w-6 text-center">
+              <th key={h} className="text-[11px] text-[var(--text-muted)] font-medium tabular-nums w-6 text-center">
                 {h % 3 === 0 ? fmtHour(h) : ""}
               </th>
             ))}
@@ -309,7 +309,7 @@ export function HoursHeatmap({ matrix, max }: { matrix: number[][]; max: number 
         <tbody>
           {matrix.map((row, d) => (
             <tr key={d}>
-              <td className="text-[10px] text-[var(--text-muted)] font-semibold pr-1.5 text-right whitespace-nowrap">
+              <td className="text-[11px] text-[var(--text-muted)] font-semibold pr-1.5 text-right whitespace-nowrap">
                 {WEEKDAYS[d]}
               </td>
               {row.map((v, h) => (

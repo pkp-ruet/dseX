@@ -184,7 +184,7 @@ function PillarBar({ label, value }: { label: string; value: number | null }) {
   return (
     <div className="flex min-w-0 flex-col items-center gap-1">
       <span
-        className="text-[0.6rem] font-extrabold leading-none tabular-nums nums"
+        className="text-[0.68rem] font-extrabold leading-none tabular-nums nums"
         style={{ color: value == null ? "var(--text-muted)" : color }}
       >
         {value == null ? "—" : value.toFixed(1)}
@@ -194,7 +194,7 @@ function PillarBar({ label, value }: { label: string; value: number | null }) {
           <span className="w-full rounded-[4px]" style={{ height: `${pct}%`, background: color }} />
         )}
       </span>
-      <span className="w-full truncate text-center text-[0.56rem] font-bold leading-none text-[var(--text-muted)]">
+      <span className="w-full truncate text-center text-[0.68rem] font-bold leading-none text-[var(--text-muted)]">
         {label}
       </span>
     </div>
@@ -229,7 +229,7 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
           {meta.glyph}
         </span>
         <span
-          className="min-w-0 flex-1 text-[0.63rem] font-extrabold uppercase leading-tight tracking-[0.1em]"
+          className="min-w-0 flex-1 text-[0.68rem] font-extrabold uppercase leading-tight tracking-[0.1em]"
           style={{ color: meta.ink }}
         >
           {meta.label}
@@ -252,7 +252,7 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
               {it.trading_code}
             </span>
             <span
-              className="inline-flex h-[1.05rem] w-[1.05rem] shrink-0 items-center justify-center rounded text-[0.62rem] font-extrabold leading-none text-white"
+              className="inline-flex h-[1.05rem] w-[1.05rem] shrink-0 items-center justify-center rounded text-[0.68rem] font-extrabold leading-none text-white"
               style={{ background: tierColor }}
               title={TIER_MEANINGS[tier]}
             >
@@ -263,7 +263,7 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
             {it.company_name ?? it.trading_code}
           </p>
           {it.sector && (
-            <p className="mt-0.5 truncate text-[0.66rem] font-semibold text-[var(--text-muted)]">
+            <p className="mt-0.5 truncate text-[0.68rem] font-semibold text-[var(--text-muted)]">
               {it.sector}
             </p>
           )}
@@ -278,7 +278,7 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
           >
             {value}
           </span>
-          <span className="mt-1 block text-[0.58rem] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+          <span className="mt-1 block text-[0.68rem] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">
             {meta.unit}
           </span>
         </div>
@@ -310,7 +310,7 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
             >
               {s.value}
             </span>
-            <span className="mt-1 block truncate text-[0.56rem] font-bold uppercase tracking-[0.06em] text-[var(--text-muted)]">
+            <span className="mt-1 block truncate text-[0.68rem] font-bold uppercase tracking-[0.06em] text-[var(--text-muted)]">
               {s.label}
             </span>
           </div>
@@ -319,7 +319,7 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
 
       {/* The five checks behind the score — the same method the hero card shows */}
       <div className="mt-3.5 px-3.5 sm:px-4">
-        <p className="text-[0.58rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)]">
+        <p className="text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)]">
           The five checks behind the score
         </p>
         <div className="mt-1.5 grid grid-cols-5 gap-1.5">
@@ -342,7 +342,7 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
       {/* The card is one big link, so this is a styled affordance rather than a
           nested control — hidden from screen readers to avoid a double read. */}
       <div className="mt-auto flex items-center justify-between gap-2 border-t border-[var(--border)] bg-[var(--surface-2)] px-3.5 py-2.5 sm:px-4">
-        <span className="truncate text-[0.62rem] font-semibold text-[var(--text-muted)]">
+        <span className="truncate text-[0.68rem] font-semibold text-[var(--text-muted)]">
           {it.last_reported_year
             ? `From the FY${it.last_reported_year} report`
             : "No annual report on file"}

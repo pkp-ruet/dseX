@@ -29,7 +29,7 @@ function Metric({ value, label, on, color }: { value: string; label: string; on:
       >
         {value}
       </div>
-      <div className="mt-1 text-[0.62rem] font-semibold uppercase tracking-[0.1em] text-[var(--text-muted)] truncate">
+      <div className="mt-1 text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-[var(--text-muted)] truncate">
         {label}
       </div>
     </div>
@@ -69,12 +69,12 @@ function StoryCard({ card, index }: { card: StoryStock; index: number }) {
           {story.glyph}
         </span>
         <span
-          className="text-[0.66rem] font-extrabold uppercase tracking-[0.14em]"
+          className="text-[0.68rem] font-extrabold uppercase tracking-[0.14em]"
           style={{ color: story.ink }}
         >
           {story.label}
         </span>
-        <span className="ml-auto text-[0.66rem] font-bold tabular-nums text-[var(--text-muted)]">
+        <span className="ml-auto text-[0.68rem] font-bold tabular-nums text-[var(--text-muted)]">
           {index + 1}/3
         </span>
       </div>
@@ -107,7 +107,7 @@ function StoryCard({ card, index }: { card: StoryStock; index: number }) {
             >
               {item.score == null ? "--" : Math.round(item.score)}
             </div>
-            <div className="mt-0.5 text-[0.6rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)]">
+            <div className="mt-0.5 text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)]">
               / 100
             </div>
           </div>

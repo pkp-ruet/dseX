@@ -14,7 +14,7 @@ import { SegmentPill, SourcePill, FeatureBadges, fmtDateTime, fmtDate, timeAgo }
 function Fact({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
-      <dt className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">{label}</dt>
+      <dt className="text-[11px] uppercase tracking-wider text-[var(--text-muted)]">{label}</dt>
       <dd className="text-sm text-[var(--text)] mt-0.5">{value}</dd>
     </div>
   );
@@ -129,7 +129,7 @@ export default function UserDrillDown({
                   <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
                     <table className="w-full text-xs sm:text-sm">
                       <thead>
-                        <tr className="text-[var(--text-muted)] text-[10px] uppercase border-b border-[var(--border)]">
+                        <tr className="text-[var(--text-muted)] text-[11px] uppercase border-b border-[var(--border)]">
                           <th className="px-3 py-2 text-left">Code</th>
                           <th className="px-3 py-2 text-right">Qty</th>
                           <th className="px-3 py-2 text-right">Buy</th>

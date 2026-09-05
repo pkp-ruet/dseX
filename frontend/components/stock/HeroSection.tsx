@@ -162,7 +162,7 @@ export default function HeroSection({ detail }: Props) {
               </div>
 
               <div className="text-left sm:text-right shrink-0">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color: "var(--text-muted)" }}>
+                <p className="text-[11px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color: "var(--text-muted)" }}>
                   Last Price
                 </p>
                 <div className="flex items-baseline gap-3 sm:justify-end">

@@ -183,7 +183,7 @@ export default function HoldingsDetailed({ analysis, lang = "en" }: Props) {
               {h.score != null && (
                 <div className="text-right shrink-0">
                   <p
-                    className={`text-[10px] sm:text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-bold ${bnText}`}
+                    className={`text-[11px] sm:text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-bold ${bnText}`}
                   >
                     {t.overall}
                   </p>
@@ -208,7 +208,7 @@ export default function HoldingsDetailed({ analysis, lang = "en" }: Props) {
                 </p>
                 {summariesBn[h.code] && (
                   <div className="mt-3 pt-3 border-t border-dashed border-[var(--border)]">
-                    <p className="text-[10px] uppercase tracking-wider font-bold text-[var(--primary)] mb-1">
+                    <p className="text-[11px] uppercase tracking-wider font-bold text-[var(--primary)] mb-1">
                       এক নজরে
                     </p>
                     <p lang="bn" className="font-bn text-sm text-[var(--text)]">

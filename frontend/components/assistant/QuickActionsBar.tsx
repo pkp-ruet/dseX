@@ -39,7 +39,7 @@ export default function QuickActionsBar({
             <span className="leading-tight text-left">
               {c.label}
               {c.labelBn && (
-                <span lang="bn" className="font-bn block text-[0.64rem] text-[var(--text-muted)]">
+                <span lang="bn" className="font-bn block text-[0.68rem] text-[var(--text-muted)]">
                   {c.labelBn}
                 </span>
               )}

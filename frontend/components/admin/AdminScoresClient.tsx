@@ -277,7 +277,7 @@ export default function AdminScoresClient() {
                       {finalScore != null ? finalScore.toFixed(1) : "—"}
                     </span>
                     {delta != null && Math.abs(delta) >= 0.05 && (
-                      <span className="ml-1 text-[10px] nums" style={{ color: delta > 0 ? "var(--positive)" : "var(--negative)" }}>
+                      <span className="ml-1 text-[11px] nums" style={{ color: delta > 0 ? "var(--positive)" : "var(--negative)" }}>
                         ({delta > 0 ? "+" : ""}{delta.toFixed(1)})
                       </span>
                     )}
@@ -326,7 +326,7 @@ export default function AdminScoresClient() {
                       )}
                     </div>
                     {r.updated_at && currentPct !== 0 && (
-                      <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
+                      <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
                         {formatDate(r.updated_at)}{r.updated_by ? ` · ${r.updated_by}` : ""}
                       </p>
                     )}

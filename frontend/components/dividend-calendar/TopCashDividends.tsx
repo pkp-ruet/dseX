@@ -33,22 +33,22 @@ export default function TopCashDividends({ events }: { events: CorporateActionEv
         <table className="w-full min-w-[600px] border-collapse text-left">
           <thead>
             <tr className="border-b border-[var(--border)] bg-[var(--surface-2)]">
-              <th className="px-3 py-2.5 text-[10px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
+              <th className="px-3 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
                 Stock
               </th>
-              <th className="px-3 py-2.5 text-right text-[10px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
+              <th className="px-3 py-2.5 text-right text-[11px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
                 Price
               </th>
-              <th className="px-3 py-2.5 text-right text-[10px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
+              <th className="px-3 py-2.5 text-right text-[11px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
                 Cash
               </th>
-              <th className="px-3 py-2.5 text-right text-[10px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
+              <th className="px-3 py-2.5 text-right text-[11px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
                 Per share
               </th>
-              <th className="px-3 py-2.5 text-right text-[10px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
+              <th className="px-3 py-2.5 text-right text-[11px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
                 Yield
               </th>
-              <th className="px-3 py-2.5 text-right text-[10px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
+              <th className="px-3 py-2.5 text-right text-[11px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
                 Declared
               </th>
             </tr>

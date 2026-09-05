@@ -124,7 +124,7 @@ export default function NewsSlider({ news, loading }: Props) {
                       prefetch={false}
                       href={`/stock/${n.trading_code}`}
                       tabIndex={i === index ? 0 : -1}
-                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide text-white shadow-sm hover:opacity-85 transition-opacity"
+                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide text-white shadow-sm hover:opacity-85 transition-opacity"
                       style={{
                         background: `linear-gradient(135deg, ${slideAccent} 0%, color-mix(in srgb, ${slideAccent} 72%, #000) 100%)`,
                       }}
@@ -132,7 +132,7 @@ export default function NewsSlider({ news, loading }: Props) {
                       {n.trading_code}
                     </Link>
                     <span
-                      className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold"
+                      className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold"
                       style={{
                         color: `color-mix(in srgb, ${slideAccent} 80%, var(--text))`,
                         background: `color-mix(in srgb, ${slideAccent} 10%, transparent)`,

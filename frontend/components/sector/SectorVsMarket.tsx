@@ -55,16 +55,16 @@ export default function SectorVsMarket({
         <table className="w-full min-w-[440px] border-collapse text-left">
           <thead>
             <tr className="border-b border-[var(--border)] bg-[var(--surface-2)]">
-              <th className="px-3 py-2.5 text-[10px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
+              <th className="px-3 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
                 Measure
               </th>
-              <th className="px-3 py-2.5 text-right text-[10px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
+              <th className="px-3 py-2.5 text-right text-[11px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
                 This sector
               </th>
-              <th className="px-3 py-2.5 text-right text-[10px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
+              <th className="px-3 py-2.5 text-right text-[11px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
                 Whole market
               </th>
-              <th className="px-3 py-2.5 text-right text-[10px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
+              <th className="px-3 py-2.5 text-right text-[11px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
                 Difference
               </th>
             </tr>

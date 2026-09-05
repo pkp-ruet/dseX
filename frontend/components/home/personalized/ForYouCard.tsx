@@ -111,7 +111,7 @@ export default function ForYouCard({
         </span>
         {label}
         <span
-          className="inline-flex min-w-[1.3rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[0.64rem] font-extrabold tabular-nums leading-none"
+          className="inline-flex min-w-[1.3rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[0.68rem] font-extrabold tabular-nums leading-none"
           style={
             isActive
               ? { background: "rgba(255,255,255,0.24)", color: "#fff" }

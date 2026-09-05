@@ -123,7 +123,7 @@ export default function BuySignalsCard({
           </p>
         </div>
         <span
-          className="shrink-0 rounded-full px-2.5 py-0.5 text-[0.66rem] font-bold tabular-nums"
+          className="shrink-0 rounded-full px-2.5 py-0.5 text-[0.68rem] font-bold tabular-nums"
           style={{
             color: POSITIVE,
             background: `color-mix(in srgb, ${POSITIVE} 12%, transparent)`,
@@ -134,7 +134,7 @@ export default function BuySignalsCard({
         </span>
         {hasStrongTab && (
           <span
-            className="shrink-0 rounded-full px-2.5 py-0.5 text-[0.66rem] font-extrabold tabular-nums text-white"
+            className="shrink-0 rounded-full px-2.5 py-0.5 text-[0.68rem] font-extrabold tabular-nums text-white"
             style={{ background: POSITIVE }}
           >
             ★ {strongBuys.length} strong
@@ -256,7 +256,7 @@ export default function BuySignalsCard({
                   )}
                   {isNew && (
                     <span
-                      className="rounded-full px-1.5 py-0.5 text-[0.58rem] font-extrabold uppercase tracking-[0.06em]"
+                      className="rounded-full px-1.5 py-0.5 text-[0.68rem] font-extrabold uppercase tracking-[0.06em]"
                       style={{
                         color: POSITIVE,
                         background: `color-mix(in srgb, ${POSITIVE} 14%, transparent)`,

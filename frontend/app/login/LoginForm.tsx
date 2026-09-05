@@ -79,10 +79,10 @@ export default function LoginForm() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-[var(--text)]">
+            <label htmlFor="login-1" className="text-sm font-medium text-[var(--text)]">
               {mode === "email" ? "Email address" : "Phone number"}
             </label>
-            <input
+            <input id="login-1"
               type={mode === "email" ? "email" : "tel"}
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
@@ -94,9 +94,9 @@ export default function LoginForm() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-[var(--text)]">Password</label>
+            <label htmlFor="login-2" className="text-sm font-medium text-[var(--text)]">Password</label>
             <div className="relative">
-              <input
+              <input id="login-2"
                 type={showPw ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -125,7 +125,7 @@ export default function LoginForm() {
           </div>
 
           {error && (
-            <p className="text-sm text-red-500 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
+            <p className="form-error" role="alert">
               {error}
             </p>
           )}
@@ -133,7 +133,7 @@ export default function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="navbar-rank-btn w-full justify-center py-2.5 text-sm disabled:opacity-60"
+            className="btn-primary btn-block"
           >
             {loading ? "Signing in…" : "Sign In"}
           </button>

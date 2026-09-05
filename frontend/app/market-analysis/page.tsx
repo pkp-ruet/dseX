@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getMarketState } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 
@@ -9,6 +8,8 @@ import WhatsHappeningNow from "@/components/market-analysis/WhatsHappeningNow";
 import CheaperThanBefore from "@/components/market-analysis/CheaperThanBefore";
 import WhatCouldHappenNext from "@/components/market-analysis/WhatCouldHappenNext";
 import WhereToLook from "@/components/market-analysis/WhereToLook";
+import ErrorState from "@/components/ui/ErrorState";
+import Bn from "@/components/i18n/Bn";
 
 export const revalidate = 900;
 
@@ -108,18 +109,17 @@ export default async function MarketAnalysisPage() {
           <span className="ms-page-h1-main">Market Analysis</span>
         </h1>
         {dateLabel && <span className="ms-page-date">{dateLabel}</span>}
+        <Bn className="page-h1-bn">বাজার এখন উপরে না নিচে, সস্তা না দামি — সহজ ভাষায়।</Bn>
       </header>
 
       {!data ? (
-        <div className="ms-card">
-          <p className="ms-empty">
-            We couldn&apos;t load the market right now. Please refresh in a moment, or{" "}
-            <Link href="/dse-today" style={{ textDecoration: "underline" }}>
-              see today&apos;s market
-            </Link>
-            .
-          </p>
-        </div>
+        <ErrorState
+          size="inline"
+          title="Couldn't load the market right now"
+          bn="বাজারের তথ্য এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+          reload
+          links={[{ href: "/dse-today", label: "See today's market" }]}
+        />
       ) : (
         <>
           {data.mood && <BigPicture mood={data.mood} />}

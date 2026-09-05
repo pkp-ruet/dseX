@@ -8,6 +8,7 @@ import { valuationCaption } from "@/lib/plain-language";
 import { peHistory, peRatio, pbRatio, toNum, avgIgnoringNulls } from "@/lib/stock-metrics";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
+import SectionTitle from "@/components/stock/SectionTitle";
 
 interface Props {
   financials: Record<string, unknown>[];
@@ -31,7 +32,7 @@ type Tab = "pe" | "pb" | "sector";
 function tile(label: string, value: string, sub: string, color?: string) {
   return (
     <Card key={label} padding="none" className="flex-1 rounded-2xl p-4">
-      <p className="text-[10px] font-bold uppercase tracking-[0.15em] mb-2" style={{ color: "var(--text-muted)" }}>
+      <p className="text-[11px] font-bold uppercase tracking-[0.15em] mb-2" style={{ color: "var(--text-muted)" }}>
         {label}
       </p>
       <p className="text-2xl font-bold tabular-nums nums leading-none" style={{ color: color ?? "var(--text)" }}>
@@ -87,12 +88,13 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
 
   return (
     <section id="valuation" className="mb-8 scroll-mt-[112px]">
-      <h2 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: "var(--text)" }}>
-        Is the Price Right?
-      </h2>
-      <p className="text-sm mb-5" style={{ color: "var(--text-muted)" }}>
-        {caption ?? "How today's price compares to the company's earnings and its own history."}
-      </p>
+      <SectionTitle
+        title="Is the Price Right?"
+        sub={<>
+            {caption ?? "How today's price compares to the company's earnings and its own history."}
+        </>}
+        bn="আজকের দাম কোম্পানির আয়ের তুলনায় সস্তা না দামি।"
+      />
 
       {/* Headline tiles */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">

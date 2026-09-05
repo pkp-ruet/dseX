@@ -167,7 +167,7 @@ export default function HeroGradeReveal({ stocks }: { stocks: HeroStock[] }) {
             transition={{ duration: 1, times: [0, 0.5, 0.5, 1], repeat: Infinity }}
           />
         </span>
-        <span className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-[color-mix(in_srgb,var(--primary)_12%,transparent)] px-2.5 py-0.5 text-[0.58rem] font-extrabold uppercase tracking-[0.12em] text-[var(--primary-ink)]">
+        <span className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-[color-mix(in_srgb,var(--primary)_12%,transparent)] px-2.5 py-0.5 text-[0.68rem] font-extrabold uppercase tracking-[0.12em] text-[var(--primary-ink)]">
           <span className="relative flex h-1.5 w-1.5">
             <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--primary)] opacity-75 animate-ping" />
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
@@ -196,7 +196,7 @@ export default function HeroGradeReveal({ stocks }: { stocks: HeroStock[] }) {
             {/* Identity + score ring */}
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <span className="inline-block text-[0.55rem] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)] mb-1">
+                <span className="inline-block text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)] mb-1">
                   Fundamental score · 0–100
                 </span>
                 <div className="font-extrabold text-base text-[var(--text)] leading-tight truncate">
@@ -214,7 +214,7 @@ export default function HeroGradeReveal({ stocks }: { stocks: HeroStock[] }) {
                     {cur.code}
                   </span>
                   {cur.sector && (
-                    <span className="text-[0.66rem] text-[var(--text-muted)] truncate">{cur.sector}</span>
+                    <span className="text-[0.68rem] text-[var(--text-muted)] truncate">{cur.sector}</span>
                   )}
                 </div>
               </div>

@@ -37,7 +37,7 @@ export default function Top20Preview({ items }: { items: Top20Item[] }) {
               <span className="min-w-0">
                 <span className="ticker-tag text-[0.8rem]">{item.trading_code}</span>
                 {item.company_name && (
-                  <span className="block mt-0.5 text-[0.66rem] text-[var(--text-muted)] truncate">
+                  <span className="block mt-0.5 text-[0.68rem] text-[var(--text-muted)] truncate">
                     {item.company_name}
                   </span>
                 )}

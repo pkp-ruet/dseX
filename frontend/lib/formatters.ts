@@ -84,7 +84,7 @@ export function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return "--";
   try {
     return new Date(dateStr).toLocaleDateString("en-GB", {
-      day: "2-digit", month: "short", year: "numeric"
+      day: "numeric", month: "short", year: "numeric"
     });
   } catch {
     return dateStr;
@@ -98,4 +98,15 @@ export function abbrev(value: number | null | undefined): string {
   if (Math.abs(value) >= 1e6) return `${(value / 1e6).toFixed(1)}M`;
   if (Math.abs(value) >= 1e3) return `${(value / 1e3).toFixed(1)}K`;
   return value.toFixed(1);
+}
+
+/**
+ * The one way to print a share price in the UI: whole taka at ৳100 and above,
+ * one decimal below, always with the ৳ mark. Use it instead of hand-rolling
+ * `ltp >= 100 ? Math.round(...) : ltp.toFixed(1)` so every surface agrees.
+ */
+export function money(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value)) return "--";
+  const body = value >= 100 ? Math.round(value).toLocaleString("en-US") : value.toFixed(1);
+  return `৳${body}`;
 }

@@ -155,12 +155,12 @@ export default function PortfolioAnalyzerHero() {
             <div className="flex items-start gap-3 mb-4">
               <div className="flex flex-col items-center justify-center w-16 h-16 rounded-xl border-2 bg-green-500/20 text-green-400 border-green-500/50 shrink-0 shadow-[0_0_24px_-8px_rgba(34,197,94,0.6)]">
                 <span className="text-3xl font-black leading-none">{MOCKUP.grade}</span>
-                <span className="text-[9px] uppercase tracking-wider mt-1 font-bold">
+                <span className="text-[11px] uppercase tracking-wider mt-1 font-bold">
                   {MOCKUP.gradeLabel}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] uppercase tracking-[0.16em] text-green-400 mb-1 font-bold">
+                <p className="text-[11px] uppercase tracking-[0.16em] text-green-400 mb-1 font-bold">
                   Sample · Verdict
                 </p>
                 <p className="text-xs sm:text-[13px] text-[var(--text)] leading-relaxed font-medium">
@@ -193,7 +193,7 @@ export default function PortfolioAnalyzerHero() {
                     <path d="M20 6L9 17l-5-5" />
                   </svg>
                 </span>
-                <p className="text-[10px] uppercase tracking-wider font-bold text-green-400">
+                <p className="text-[11px] uppercase tracking-wider font-bold text-green-400">
                   Working Well
                 </p>
               </div>
@@ -227,7 +227,7 @@ export default function PortfolioAnalyzerHero() {
                     <path d="M15.09 14A6.5 6.5 0 1012 2a6.5 6.5 0 00-3.09 12c.34.36.59.78.74 1.24l.04.13c.16.5.6.86 1.12.86h2.38c.52 0 .96-.36 1.12-.86l.04-.13c.15-.46.4-.88.74-1.24z" />
                   </svg>
                 </span>
-                <p className="text-[10px] uppercase tracking-wider font-bold text-amber-400">
+                <p className="text-[11px] uppercase tracking-wider font-bold text-amber-400">
                   To Consider
                 </p>
               </div>
@@ -243,7 +243,7 @@ export default function PortfolioAnalyzerHero() {
               </ul>
             </div>
 
-            <p className="text-[10px] sm:text-[11px] text-[var(--text-muted)] text-center mt-3 leading-relaxed">
+            <p className="text-[11px] sm:text-[11px] text-[var(--text-muted)] text-center mt-3 leading-relaxed">
               Sample preview · the full report covers sectors, holdings, and entry prices.
             </p>
           </div>
@@ -282,7 +282,7 @@ function MiniScore({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-baseline justify-between gap-1">
-        <span className="text-[9px] sm:text-[10px] uppercase tracking-wider font-bold text-[var(--text)]">
+        <span className="text-[11px] sm:text-[11px] uppercase tracking-wider font-bold text-[var(--text)]">
           {label}
         </span>
         <span className="text-xs sm:text-sm font-black text-green-400 tabular-nums">

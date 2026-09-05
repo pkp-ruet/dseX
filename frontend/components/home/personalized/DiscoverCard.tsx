@@ -16,14 +16,14 @@ const EMPTY_DELTA: ListDelta = { newCodes: new Set(), movedUp: new Map() };
 function DeltaTag({ isNew, moved }: { isNew: boolean; moved: number | undefined }) {
   if (isNew) {
     return (
-      <span className="shrink-0 rounded-full bg-[color-mix(in_srgb,var(--positive)_14%,transparent)] px-1.5 py-0.5 text-[0.58rem] font-extrabold uppercase tracking-[0.06em] text-[var(--positive)]">
+      <span className="shrink-0 rounded-full bg-[color-mix(in_srgb,var(--positive)_14%,transparent)] px-1.5 py-0.5 text-[0.68rem] font-extrabold uppercase tracking-[0.06em] text-[var(--positive)]">
         New
       </span>
     );
   }
   if (moved && moved > 0) {
     return (
-      <span className="shrink-0 text-[0.64rem] font-extrabold tabular-nums text-[var(--positive)]" title={`Up ${moved} place${moved === 1 ? "" : "s"} since your last visit`}>
+      <span className="shrink-0 text-[0.68rem] font-extrabold tabular-nums text-[var(--positive)]" title={`Up ${moved} place${moved === 1 ? "" : "s"} since your last visit`}>
         ▲{moved}
       </span>
     );
@@ -158,7 +158,7 @@ export default function DiscoverCard({
                       <DeltaTag isNew={rankedDelta.newCodes.has(code)} moved={rankedDelta.movedUp.get(code)} />
                     </span>
                     {item.company_name && (
-                      <span className="mt-0.5 block truncate text-[0.66rem] text-[var(--text-muted)] group-hover:underline underline-offset-2 decoration-dotted">
+                      <span className="mt-0.5 block truncate text-[0.68rem] text-[var(--text-muted)] group-hover:underline underline-offset-2 decoration-dotted">
                         {item.company_name}
                       </span>
                     )}

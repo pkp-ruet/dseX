@@ -21,7 +21,7 @@ export default function SectorScoringNote({
       </div>
 
       <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3.5 sm:p-4">
-        <span className="inline-flex items-center rounded-full border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+        <span className="inline-flex items-center rounded-full border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-[0.14em] text-[var(--text-muted)]">
           Scoring template · {note.label}
         </span>
 

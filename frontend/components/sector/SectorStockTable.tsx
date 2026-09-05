@@ -92,7 +92,7 @@ export default function SectorStockTable({
                     key={c.col}
                     onClick={() => onSort(c.col)}
                     aria-sort={active ? (dir === "asc" ? "ascending" : "descending") : "none"}
-                    className={`cursor-pointer select-none px-3 py-2.5 text-[10px] font-extrabold uppercase tracking-[0.13em] hover:text-[var(--primary)] ${
+                    className={`cursor-pointer select-none px-3 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.13em] hover:text-[var(--primary)] ${
                       c.align === "right" ? "text-right" : "text-left"
                     }`}
                     style={{ color: active ? "var(--primary)" : "var(--text-muted)" }}
@@ -104,7 +104,7 @@ export default function SectorStockTable({
                   </th>
                 );
               })}
-              <th className="px-3 py-2.5 text-right text-[10px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
+              <th className="px-3 py-2.5 text-right text-[11px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
                 Signal
               </th>
             </tr>
@@ -127,7 +127,7 @@ export default function SectorStockTable({
                         {s.stale_data && (
                           <span
                             title="Latest financials are more than two years old"
-                            className="text-[9px] font-extrabold uppercase tracking-wider text-[var(--text-muted)]"
+                            className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--text-muted)]"
                           >
                             stale
                           </span>

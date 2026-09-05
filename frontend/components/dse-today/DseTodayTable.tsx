@@ -65,7 +65,7 @@ export default function DseTodayTable({ rows }: { rows: DseTodayTableItem[] }) {
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-[var(--border)] bg-[var(--surface-2)] text-left text-[10px] font-extrabold uppercase tracking-[0.1em] text-[var(--text-muted)]">
+              <tr className="border-b border-[var(--border)] bg-[var(--surface-2)] text-left text-[11px] font-extrabold uppercase tracking-[0.1em] text-[var(--text-muted)]">
                 <th className="px-3 py-2.5 w-10 text-right">#</th>
                 <th className="px-3 py-2.5">Code</th>
                 <th className="px-3 py-2.5 hidden md:table-cell">Company</th>

@@ -86,7 +86,7 @@ function PickItemCard({ item }: { item: DailyPickHistoryDayItem }) {
             {item.trading_code}
           </p>
           <span
-            className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider whitespace-nowrap px-1.5 py-0.5 rounded-full"
+            className="text-[11px] sm:text-[11px] font-bold uppercase tracking-wider whitespace-nowrap px-1.5 py-0.5 rounded-full"
             style={{ background: sourceBg, color: sourceColor }}
           >
             {item.source_label}
@@ -133,7 +133,7 @@ export default async function TopPicksPage() {
 
       <div className="max-w-4xl mx-auto px-3 sm:px-4 py-6 sm:py-10">
         <header className="mb-6 sm:mb-8">
-          <p className="text-[10px] sm:text-xs uppercase tracking-widest font-bold mb-2" style={{ color: "#F97316" }}>
+          <p className="text-[11px] sm:text-xs uppercase tracking-widest font-bold mb-2" style={{ color: "#F97316" }}>
             ★ Daily Top Picks
           </p>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[var(--text)] leading-tight mb-2">
@@ -151,13 +151,13 @@ export default async function TopPicksPage() {
         {total > 0 && (
           <section className="grid grid-cols-3 gap-2 sm:gap-3 mb-6 sm:mb-8">
             <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 sm:p-4">
-              <p className="text-[10px] sm:text-xs uppercase tracking-wider text-[var(--text-muted)] font-semibold mb-1">
+              <p className="text-[11px] sm:text-xs uppercase tracking-wider text-[var(--text-muted)] font-semibold mb-1">
                 Picks tracked
               </p>
               <p className="text-xl sm:text-2xl font-extrabold text-[var(--text)]">{total}</p>
             </div>
             <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 sm:p-4">
-              <p className="text-[10px] sm:text-xs uppercase tracking-wider text-[var(--text-muted)] font-semibold mb-1">
+              <p className="text-[11px] sm:text-xs uppercase tracking-wider text-[var(--text-muted)] font-semibold mb-1">
                 Went up next day
               </p>
               <p className="text-xl sm:text-2xl font-extrabold" style={{ color: "var(--positive)" }}>
@@ -165,7 +165,7 @@ export default async function TopPicksPage() {
               </p>
             </div>
             <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 sm:p-4">
-              <p className="text-[10px] sm:text-xs uppercase tracking-wider text-[var(--text-muted)] font-semibold mb-1">
+              <p className="text-[11px] sm:text-xs uppercase tracking-wider text-[var(--text-muted)] font-semibold mb-1">
                 Average next day
               </p>
               <p className="text-xl sm:text-2xl font-extrabold" style={{ color: chgColor(avg) }}>
@@ -201,7 +201,7 @@ export default async function TopPicksPage() {
           </ul>
         )}
 
-        <p className="text-[10px] sm:text-xs text-[var(--text-muted)] mt-6 leading-relaxed">
+        <p className="text-[11px] sm:text-xs text-[var(--text-muted)] mt-6 leading-relaxed">
           Past performance does not guarantee future results. This is research, not investment advice — always do your own homework.
         </p>
       </div>

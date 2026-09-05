@@ -20,7 +20,7 @@ export default function StockListPreview({
       <div className="flex items-center gap-2 px-1 pt-1 pb-3">
         <span className="text-sm">🔤</span>
         <span className="text-[0.78rem] font-extrabold text-[var(--text)]">Browse Stocks A–Z</span>
-        <span className="ml-auto text-[0.58rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)]">
+        <span className="ml-auto text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)]">
           Live Price
         </span>
       </div>
@@ -39,13 +39,13 @@ export default function StockListPreview({
               <div className="flex items-center justify-between gap-2">
                 <span className="ticker-tag text-[0.78rem]">{item.trading_code}</span>
                 {item.market_category && (
-                  <span className="text-[0.5rem] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[var(--surface-2)] text-[var(--text-muted)]">
+                  <span className="text-[0.68rem] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[var(--surface-2)] text-[var(--text-muted)]">
                     {item.market_category}
                   </span>
                 )}
               </div>
 
-              <span className="text-[0.62rem] text-[var(--text-muted)] truncate leading-tight">
+              <span className="text-[0.68rem] text-[var(--text-muted)] truncate leading-tight">
                 {item.company_name}
               </span>
 
@@ -54,7 +54,7 @@ export default function StockListPreview({
                   {item.ltp != null ? taka(item.ltp, 2) : "--"}
                 </span>
                 <span
-                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[0.66rem] font-extrabold tabular-nums nums text-white"
+                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[0.68rem] font-extrabold tabular-nums nums text-white"
                   style={{ background: chgColor }}
                 >
                   {chg != null && (up ? "▲" : "▼")}

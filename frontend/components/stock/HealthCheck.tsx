@@ -8,6 +8,7 @@ import {
 } from "@/lib/stock-metrics";
 import type { CompanyDetail } from "@/lib/api";
 import Card from "@/components/ui/Card";
+import SectionTitle from "@/components/stock/SectionTitle";
 
 type ScoreRow = Record<string, number | string | boolean | null>;
 
@@ -102,12 +103,13 @@ export default function HealthCheck({ scoreRow, detail }: Props) {
 
   return (
     <section id="health" className="mb-8 scroll-mt-[112px]">
-      <h2 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: "var(--text)" }}>
-        The Health Check
-      </h2>
-      <p className="text-sm mb-5" style={{ color: "var(--text-muted)" }}>
-        Five quick checks that tell you whether this company is healthy, fairly priced, and worth holding.
-      </p>
+      <SectionTitle
+        title="The Health Check"
+        sub={<>
+            Five quick checks that tell you whether this company is healthy, fairly priced, and worth holding.
+        </>}
+        bn="পাঁচটি সহজ পরীক্ষায় দেখুন কোম্পানিটি কতটা সুস্থ।"
+      />
 
       <div className="space-y-2.5">
         {rows.map((row) => (
@@ -180,7 +182,7 @@ function HealthRow({ row, scoreRow, detail }: { row: HealthCheckRow; scoreRow: S
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               {numbers.map((n) => (
                 <Card key={n.label} padding="none" className="rounded-xl p-3">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.12em] mb-1" style={{ color: "var(--text-muted)" }}>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.12em] mb-1" style={{ color: "var(--text-muted)" }}>
                     {n.label}
                   </p>
                   <p className="text-lg font-bold tabular-nums nums" style={{ color: "var(--text)" }}>{n.value}</p>

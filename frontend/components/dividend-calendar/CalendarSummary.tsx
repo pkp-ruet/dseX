@@ -21,7 +21,7 @@ function StatTile({ label, value, sub, accent }: {
       }}
     >
       <span
-        className="text-[10px] font-extrabold uppercase tracking-[0.14em]"
+        className="text-[11px] font-extrabold uppercase tracking-[0.14em]"
         style={{ color: accent ?? "var(--text-muted)" }}
       >
         {label}

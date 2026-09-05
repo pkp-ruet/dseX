@@ -38,7 +38,7 @@ function CodeChip({ code }: { code: string }) {
     <Link
       prefetch={false}
       href={`/stock/${code}`}
-      className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider bg-[var(--primary)]/15 text-[var(--primary)] hover:bg-[var(--primary)]/25 transition-colors mx-0.5"
+      className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-bold tracking-wider bg-[var(--primary)]/15 text-[var(--primary)] hover:bg-[var(--primary)]/25 transition-colors mx-0.5"
     >
       {code}
     </Link>
@@ -208,7 +208,7 @@ function StatTile({
 }) {
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5">
-      <div className="text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+      <div className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">
         {label}
       </div>
       <div className="mt-0.5 text-xl font-bold nums leading-tight" style={color ? { color } : { color: "var(--text)" }}>
@@ -244,7 +244,7 @@ function MoodGauge({ value }: { value: number | null }) {
             style={{ left: `calc(${pos}% - 7px)`, background: tone }}
           />
         </div>
-        <div className="mt-1 flex justify-between text-[9px] font-semibold text-[var(--text-muted)] nums">
+        <div className="mt-1 flex justify-between text-[11px] font-semibold text-[var(--text-muted)] nums">
           <span>−3%</span>
           <span>0</span>
           <span>+3%</span>
@@ -270,7 +270,7 @@ function TierMixBar({ counts, total }: { counts: Record<TierKey, number>; total:
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-x-2">
-        <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+        <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">
           Quality mix
         </span>
         <span lang="bn" className="font-bn text-[11px] font-semibold text-[var(--text-muted)]">
@@ -556,7 +556,7 @@ export default function WatchlistAnalysis({
           আপনার তালিকার আজকের গল্প — সহজ ভাষায়
         </p>
       </div>
-      <span className="text-[10px] text-[var(--text-muted)]">
+      <span className="text-[11px] text-[var(--text-muted)]">
         Auto-generated · not investment advice
       </span>
     </div>
@@ -589,7 +589,7 @@ export default function WatchlistAnalysis({
           </p>
         </div>
         {mode === "snapshot" && (
-          <span className="hidden sm:block shrink-0 text-[10px] text-[var(--text-muted)]">
+          <span className="hidden sm:block shrink-0 text-[11px] text-[var(--text-muted)]">
             Auto-generated
           </span>
         )}

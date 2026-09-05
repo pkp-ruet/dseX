@@ -281,7 +281,7 @@ function SubScore({
         </span>
         <span className="text-base sm:text-lg font-black tabular-nums" style={{ color: accent }}>
           {value.toFixed(1)}
-          <span className="text-[10px] sm:text-xs text-[var(--text-muted)] font-semibold ml-0.5">
+          <span className="text-[11px] sm:text-xs text-[var(--text-muted)] font-semibold ml-0.5">
             /10
           </span>
         </span>
@@ -294,7 +294,7 @@ function SubScore({
         />
       </div>
       <span
-        className={`text-[10px] sm:text-[11px] text-[var(--text-muted)] leading-snug hidden sm:block ${bnText}`}
+        className={`text-[11px] sm:text-[11px] text-[var(--text-muted)] leading-snug hidden sm:block ${bnText}`}
       >
         {hint}
       </span>

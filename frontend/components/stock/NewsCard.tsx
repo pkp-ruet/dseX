@@ -29,7 +29,7 @@ export default function NewsCard({ title, body, postDate }: Props) {
           {title}
         </span>
         <span
-          className="text-[10px] font-bold shrink-0 mt-0.5 px-2.5 py-1 rounded-full whitespace-nowrap"
+          className="text-[11px] font-bold shrink-0 mt-0.5 px-2.5 py-1 rounded-full whitespace-nowrap"
           style={{ background: "color-mix(in srgb, var(--accent) 10%, transparent)", color: "var(--primary)", border: "1px solid color-mix(in srgb, var(--accent) 25%, transparent)" }}
         >
           {formatDate(postDate)}

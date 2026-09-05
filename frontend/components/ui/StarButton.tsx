@@ -9,6 +9,7 @@ import {
   loadWatchlist,
 } from "@/lib/watchlist";
 import { isLoggedIn } from "@/lib/auth";
+import { toast } from "@/lib/toast";
 
 interface Props {
   code: string;
@@ -38,7 +39,14 @@ export default function StarButton({ code, size = "sm", className = "" }: Props)
       router.push(`/register?save=${code.toUpperCase()}&next=${next}`);
       return;
     }
-    toggleWatchlist(code).then((nowWatched) => setWatched(nowWatched));
+    toggleWatchlist(code).then((nowWatched) => {
+      setWatched(nowWatched);
+      toast({
+        message: nowWatched ? `${code.toUpperCase()} added to your watchlist` : `${code.toUpperCase()} removed from watchlist`,
+        tone: nowWatched ? "success" : "neutral",
+        action: nowWatched ? { label: "View", onClick: () => router.push("/watchlist") } : undefined,
+      });
+    });
   };
 
   const dim = size === "lg" ? 22 : size === "md" ? 18 : 14;

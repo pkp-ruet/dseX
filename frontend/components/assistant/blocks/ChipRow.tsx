@@ -25,7 +25,7 @@ export default function ChipRow({
           <span className="leading-tight text-left">
             {c.label}
             {c.labelBn && (
-              <span lang="bn" className="font-bn block text-[0.66rem] text-[var(--text-muted)]">
+              <span lang="bn" className="font-bn block text-[0.68rem] text-[var(--text-muted)]">
                 {c.labelBn}
               </span>
             )}

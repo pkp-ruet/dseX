@@ -122,10 +122,10 @@ export default function RegisterForm() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-[var(--text)]">
+            <label htmlFor="login-1" className="text-sm font-medium text-[var(--text)]">
               {mode === "email" ? "Email address" : "Phone number"}
             </label>
-            <input
+            <input id="login-1"
               type={mode === "email" ? "email" : "tel"}
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
@@ -137,10 +137,10 @@ export default function RegisterForm() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-[var(--text)]">
+            <label htmlFor="login-2" className="text-sm font-medium text-[var(--text)]">
               Name <span className="text-[var(--text-muted)] font-normal">(optional)</span>
             </label>
-            <input
+            <input id="login-2"
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
@@ -151,9 +151,9 @@ export default function RegisterForm() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-[var(--text)]">Password</label>
+            <label htmlFor="login-3" className="text-sm font-medium text-[var(--text)]">Password</label>
             <div className="relative">
-              <input
+              <input id="login-3"
                 type={showPw ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -182,8 +182,8 @@ export default function RegisterForm() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-[var(--text)]">Confirm password</label>
-            <input
+            <label htmlFor="login-4" className="text-sm font-medium text-[var(--text)]">Confirm password</label>
+            <input id="login-4"
               type={showPw ? "text" : "password"}
               value={confirmPw}
               onChange={(e) => setConfirmPw(e.target.value)}
@@ -195,7 +195,7 @@ export default function RegisterForm() {
           </div>
 
           {error && (
-            <p className="text-sm text-red-500 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
+            <p className="form-error" role="alert">
               {error}
             </p>
           )}
@@ -203,7 +203,7 @@ export default function RegisterForm() {
           <button
             type="submit"
             disabled={loading}
-            className="navbar-rank-btn w-full justify-center py-2.5 text-sm disabled:opacity-60"
+            className="btn-primary btn-block"
           >
             {loading ? "Creating account…" : "Create Account"}
           </button>

@@ -50,7 +50,7 @@ export default function RankingPromo({
               >
                 <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: TIER_VAR[t] }} />
                 <span className="text-[0.8rem] font-bold text-[var(--text)]">{TIER_LABELS[t]}</span>
-                <span className="ml-auto text-[0.66rem] font-semibold tabular-nums text-[var(--text-muted)]">
+                <span className="ml-auto text-[0.68rem] font-semibold tabular-nums text-[var(--text-muted)]">
                   {TIER_SCORE_LABELS[t].replace("Score ", "")}
                 </span>
               </li>

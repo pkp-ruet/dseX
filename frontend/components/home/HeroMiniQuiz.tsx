@@ -145,7 +145,7 @@ export default function HeroMiniQuiz({ onComplete, busy = false, done = false, o
   if (done) {
     return (
       <div className="flex flex-wrap items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5">
-        <span className="text-[0.62rem] font-extrabold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+        <span className="text-[0.68rem] font-extrabold uppercase tracking-[0.12em] text-[var(--text-muted)]">
           You said
         </span>
         {picked.map((o) => (

@@ -6,6 +6,7 @@ import { profitTrendCaption, epsCaption, dividendStreakCaption } from "@/lib/pla
 import { formatDate, crore } from "@/lib/formatters";
 import type { DividendDeclaration } from "@/lib/api";
 import ChartCard from "@/components/stock/ChartCard";
+import SectionTitle from "@/components/stock/SectionTitle";
 
 interface Props {
   financials: Record<string, unknown>[];
@@ -85,12 +86,13 @@ export default function ProfitsAndDividends({ financials, extFinancials, declara
 
   return (
     <section className="mb-8">
-      <h2 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: "var(--text)" }}>
-        Profits & Dividends
-      </h2>
-      <p className="text-sm mb-5" style={{ color: "var(--text-muted)" }}>
-        Are they making money — and do they share it with shareholders?
-      </p>
+      <SectionTitle
+        title="Profits & Dividends"
+        sub={<>
+            Are they making money — and do they share it with shareholders?
+        </>}
+        bn="কোম্পানি লাভ করছে কি না, আর শেয়ারহোল্ডারদের সাথে ভাগ করছে কি না।"
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {hasProfit && (

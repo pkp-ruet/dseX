@@ -104,7 +104,7 @@ export default function MarketAnalysisCard({
           >
             {CHART_ICON}
           </span>
-          <span className="text-[0.66rem] font-bold uppercase tracking-[0.16em] text-[var(--text)]">
+          <span className="text-[0.68rem] font-bold uppercase tracking-[0.16em] text-[var(--text)]">
             Market Analysis
           </span>
         </span>

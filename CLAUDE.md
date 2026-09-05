@@ -298,7 +298,26 @@ components/
 └── ui/
     ├── ScoreBadge.tsx, TierPill.tsx, SignalChip.tsx, SectionLabel.tsx
     ├── StarButton.tsx          (ThemeToggle removed — light-only)
+    ├── PageSkeleton.tsx        — route-level `loading.tsx` body (variants table / cards / hero);
+    │                             every server data route has a loading.tsx that renders it
+    ├── ErrorState.tsx          — THE error surface (root `app/error.tsx`, per-route error.tsx,
+    │                             and every page's `.catch(() => null)` fallback via `reload`).
+    │                             English + Bengali line + Try again; never prints a raw error
+    ├── EmptyState.tsx          — "nothing here yet" block: title, one line, Bengali line, ≤2 actions
+    └── Toaster.tsx             — renders the one active toast fired via `lib/toast.ts`
 ```
+
+**Shared UI rules (2026-09-06 consistency pass — keep them):**
+- **Buttons by role**: `.btn-primary` / `.btn-quiet` / `.btn-link` (+ `.btn-sm`, `.btn-block`) in `globals.css`. Never reuse `navbar-rank-btn` / `navbar-intel-btn` for page actions — those are navbar-only.
+- **Form errors** use `.form-error` (token-based); no `text-red-*` / `dark:` classes anywhere (light-only, tokens only).
+- **Every `<label>` has `htmlFor`** and its control an `id` (or the label wraps the control).
+- **Text floor is 11px** (`text-[11px]` / `text-[0.68rem]` / `--fs-2xs`) app-wide. Nothing smaller — the audience reads on budget Android phones. `app/api/og/*` (Satori image routes) are exempt.
+- **Money**: `formatters.money(v)` → `৳1,234` at ≥100, `৳45.6` below. Always ৳ in UI copy, never "Tk" / "BDT" (OG image routes excepted — their font lacks the glyph).
+- **Dates**: `formatters.formatDate` → `6 Sep 2026` (en-GB, numeric day). No `en-US` dates.
+- **Feedback**: any silent success (added to watchlist, holding saved, alert set, link copied) fires `toast()`; undo windows use `toast({ action })`.
+- **Filters in the URL**: client tables keep search/sort/filter state in the query string via `lib/use-url-state.ts` (`useUrlParams` + `useUrlSync`), not `useSearchParams` — that hook forces a Suspense fallback that blanks the SSR table.
+- **Bengali sub-line under every page `<h1>`** (`<Bn className="page-h1-bn">`) and under every stock-detail section head (`components/stock/SectionTitle.tsx`).
+- **Keyboard**: `/` or Ctrl/Cmd+K opens `GlobalSearch` from anywhere; the navbar pill shows a `.kbd-hint`. Layout has a `.skip-link` → `#main`.
 
 **Watchlist (`lib/watchlist.ts`):**
 - Server is the source of truth (logged-in users only; logged-out callers get `[]` and mutations no-op). An in-memory cache + a per-user SWR copy in localStorage (`cacheKeys.watchlistCodes` / `watchlistMeta`) give an instant first paint.
@@ -353,7 +372,9 @@ A 401 response from `apiAuthFetch` triggers `logout()` and throws `AUTH_EXPIRED`
 - `stock-lists.ts` — curated list definitions consumed by `/stock-insights` (large file, ~34 KB)
 - `guides.ts` — learn-page content (~14 KB)
 - `insight-utils.ts`, `verdict.ts` — shared insight / verdict helpers
-- `formatters.ts`, `constants.ts`, `market-hours.ts` — formatting + market-open utilities
+- `formatters.ts`, `constants.ts`, `market-hours.ts` — formatting + market-open utilities (`money()` and `formatDate()` are the canonical price / date printers)
+- `toast.ts` — `toast({message, action?, tone?})` event bus; rendered by `components/ui/Toaster.tsx` in the root layout
+- `use-url-state.ts` — `useUrlParams()` / `useUrlSync()` for URL-mirrored table filters (see Shared UI rules)
 - `sector.ts` — `sectorSlug(name)`, the frontend mirror of `sector_service.sector_slug` (used by the heatmap to build `/sector/[slug]` links)
 - `landing.ts` — landing-page data: the compact `LandingStock` projection of `/api/scores` the hero lookup runs off, `pickHeroCode()` (familiar-name preference), and `PILLARS` (just the five plain-language pillar names for the hero card's bars — weights and explanations live on `/about`)
 - `daily-delta.ts` — per-device localStorage diff of the homepage discovery lists (powers the New/▲ "since your last visit" tags)

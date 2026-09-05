@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { verdictHeadline, verdictTone } from "@/lib/plain-language";
 import SignalChip from "@/components/ui/SignalChip";
 import type { StockSignalInfo } from "@/lib/api";
+import { money } from "@/lib/formatters";
+import StarButton from "@/components/ui/StarButton";
 
 interface Props {
   code: string;
@@ -28,7 +30,6 @@ export default function StickySummaryBar({
 
   const tone = verdictTone(score);
   const word = verdictHeadline(score);
-  const ltpFmt = ltp == null ? "--" : ltp >= 100 ? Math.round(ltp).toLocaleString() : ltp.toFixed(1);
   const chgColor = changePct == null ? "var(--text-muted)" : changePct >= 0 ? "var(--positive)" : "var(--negative)";
 
   return (
@@ -36,6 +37,7 @@ export default function StickySummaryBar({
       className="overflow-hidden transition-all duration-200"
       style={{ maxHeight: show ? 56 : 0, opacity: show ? 1 : 0 }}
       aria-hidden={!show}
+      inert={!show}
     >
       <div
         className="flex items-center gap-2 sm:gap-3 py-2 px-3"
@@ -67,8 +69,9 @@ export default function StickySummaryBar({
           )}
         </div>
 
-        <div className="ml-auto flex items-baseline gap-1.5 shrink-0 tabular-nums">
-          <span className="font-bold text-sm" style={{ color: "var(--text)" }}>৳{ltpFmt}</span>
+        <div className="ml-auto flex items-center gap-2 shrink-0 tabular-nums">
+          <StarButton code={code} size="md" />
+          <span className="font-bold text-sm" style={{ color: "var(--text)" }}>{money(ltp)}</span>
           {changePct != null && (
             <span className="text-xs font-semibold" style={{ color: chgColor }}>
               {changePct >= 0 ? "+" : ""}{changePct.toFixed(1)}%

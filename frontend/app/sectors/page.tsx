@@ -4,6 +4,7 @@ import Bn from "@/components/i18n/Bn";
 import SectorCard from "@/components/sector/SectorCard";
 import { getSectors } from "@/lib/api";
 import { crore, pct } from "@/lib/formatters";
+import ErrorState from "@/components/ui/ErrorState";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
@@ -38,7 +39,7 @@ export const metadata: Metadata = {
 function MarketStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-2.5 sm:p-3">
-      <span className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+      <span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[var(--text-muted)]">
         {label}
       </span>
       <span className="text-base font-extrabold leading-none tabular-nums text-[var(--text)] sm:text-lg">
@@ -60,11 +61,13 @@ export default async function SectorsPage() {
             <span className="ms-page-h1-main">Sectors</span>
           </h1>
         </header>
-        <div className="ms-card">
-          <p className="ms-empty">
-            We couldn&apos;t reach the sector data right now. Please refresh in a moment.
-          </p>
-        </div>
+        <ErrorState
+          size="inline"
+          title="Couldn't load the sectors"
+          bn="সেক্টরের তথ্য এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+          reload
+          links={[{ href: "/dsestockranking", label: "Stock rankings" }]}
+        />
       </>
     );
   }
@@ -119,7 +122,8 @@ export default async function SectorsPage() {
         <span className="ms-page-date">
           {sectors.length} sectors · {market.company_count} scored companies
         </span>
-      </header>
+              <Bn className="page-h1-bn">কোম্পানি বাছার আগে পুরো সেক্টর দেখে নিন।</Bn>
+</header>
 
       <section className="soft-card mb-6 p-4 sm:p-5">
         <p className="text-[0.9rem] font-semibold text-[var(--text)]">

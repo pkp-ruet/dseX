@@ -43,6 +43,7 @@ import PriceAlertTip from "./PriceAlertTip";
 import EmptyStateActions from "./EmptyStateActions";
 import ShareWatchlistButton from "./ShareWatchlistButton";
 import SinceLastVisit from "./SinceLastVisit";
+import { toast } from "@/lib/toast";
 
 function flatten(scores: ScoresResponse | null): ScoreItem[] {
   if (!scores) return [];
@@ -256,7 +257,7 @@ function SinceAddedCell({ item, meta }: { item: ScoreItem; meta: WatchlistMetaEn
         {pct > 0 ? "+" : ""}
         {pct.toFixed(1)}%
       </span>
-      <span className="wl-since-date text-[10px] font-semibold text-[var(--ink-muted)]">
+      <span className="wl-since-date text-[11px] font-semibold text-[var(--ink-muted)]">
         since {shortDate(meta.added_at)}
       </span>
     </span>
@@ -286,7 +287,7 @@ function RangeBar({ ltp, high, low }: { ltp: number | null; high: number | null;
           style={{ left: `calc(${pos * 100}% - 5px)` }}
         />
       </div>
-      <div className="wl-range-labels flex justify-between text-[9px] text-[var(--ink-muted)] tabular-nums">
+      <div className="wl-range-labels flex justify-between text-[11px] text-[var(--ink-muted)] tabular-nums">
         <span>{low.toFixed(0)}</span>
         <span>{high.toFixed(0)}</span>
       </div>
@@ -335,7 +336,7 @@ function SignalPills({
         return (
           <span
             key={p.label}
-            className={`text-[10px] px-1.5 py-0.5 rounded font-semibold whitespace-nowrap ${cls}`}
+            className={`text-[11px] px-1.5 py-0.5 rounded font-semibold whitespace-nowrap ${cls}`}
           >
             {p.label}
           </span>
@@ -348,7 +349,7 @@ function SignalPills({
 function EpsPill({ value }: { value: number | null | undefined }) {
   if (value == null || Number.isNaN(value)) {
     return (
-      <span className="wl-eps wl-eps--none inline-flex items-center gap-1 text-[10px] text-[var(--ink-muted)] whitespace-nowrap">
+      <span className="wl-eps wl-eps--none inline-flex items-center gap-1 text-[11px] text-[var(--ink-muted)] whitespace-nowrap">
         <span className="opacity-60">EPS</span>
         <span>—</span>
       </span>
@@ -358,7 +359,7 @@ function EpsPill({ value }: { value: number | null | undefined }) {
   const sign = value > 0 ? "+" : "";
   return (
     <span
-      className={`wl-eps wl-eps--${toneKey} inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold tabular-nums whitespace-nowrap border nums`}
+      className={`wl-eps wl-eps--${toneKey} inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold tabular-nums whitespace-nowrap border nums`}
       title={`EPS year-on-year change: ${sign}${value.toFixed(1)}%`}
     >
       <span className="opacity-70 font-bold tracking-wider">EPS</span>
@@ -370,7 +371,7 @@ function EpsPill({ value }: { value: number | null | undefined }) {
 function YieldPill({ value }: { value: number | null | undefined }) {
   if (value == null || Number.isNaN(value)) {
     return (
-      <span className="wl-eps wl-eps--none inline-flex items-center gap-1 text-[10px] text-[var(--ink-muted)] whitespace-nowrap">
+      <span className="wl-eps wl-eps--none inline-flex items-center gap-1 text-[11px] text-[var(--ink-muted)] whitespace-nowrap">
         <span className="opacity-60">DIV</span>
         <span>—</span>
       </span>
@@ -378,7 +379,7 @@ function YieldPill({ value }: { value: number | null | undefined }) {
   }
   return (
     <span
-      className="wl-eps wl-eps--flat inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold tabular-nums whitespace-nowrap border nums"
+      className="wl-eps wl-eps--flat inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold tabular-nums whitespace-nowrap border nums"
       title={`Dividend yield: ${value.toFixed(2)}%`}
     >
       <span className="opacity-70 font-bold tracking-wider">DIV</span>
@@ -523,11 +524,6 @@ function WatchlistTableInner() {
   const [error, setError] = useState<string | null>(null);
   const [importPrompt, setImportPrompt] = useState(false);
   const [sort, setSort] = useState<SortKey>("az");
-  const [undoCode, setUndoCode] = useState<string | null>(null);
-  // Meta of the code just removed, so an undo restores the original added-on
-  // date + price instead of re-stamping today.
-  const undoMeta = useRef<WatchlistMeta | undefined>(undefined);
-  const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // News fetched in parallel with public data — keyed on the sorted code list.
   const [news, setNews] = useState<WatchlistNewsItem[]>([]);
@@ -661,29 +657,19 @@ function WatchlistTableInner() {
     });
   }, [scores, codes, sort, meta]);
 
-  // Remove with a short undo window instead of an instant, silent delete.
+  // Remove with a short undo window (shared toast) instead of an instant, silent
+  // delete. The undo restores the original added-on date + price meta instead
+  // of re-stamping today.
   function handleRemove(code: string) {
     const upper = code.toUpperCase();
     const m = getCachedWatchlistMeta()[upper];
-    undoMeta.current = m ? { [upper]: m } : undefined;
+    const restore: WatchlistMeta | undefined = m ? { [upper]: m } : undefined;
     removeFromWatchlist(upper);
-    setUndoCode(upper);
-    if (undoTimer.current) clearTimeout(undoTimer.current);
-    undoTimer.current = setTimeout(() => setUndoCode(null), 6000);
+    toast({
+      message: `Removed ${upper} from your watchlist`,
+      action: { label: "Undo", onClick: () => addToWatchlist(upper, restore) },
+    });
   }
-
-  function handleUndo() {
-    if (undoCode) addToWatchlist(undoCode, undoMeta.current);
-    undoMeta.current = undefined;
-    setUndoCode(null);
-    if (undoTimer.current) clearTimeout(undoTimer.current);
-  }
-
-  useEffect(() => {
-    return () => {
-      if (undoTimer.current) clearTimeout(undoTimer.current);
-    };
-  }, []);
 
   async function handleImportShared() {
     const merged = Array.from(new Set([...codes, ...sharedCodes]));
@@ -811,7 +797,7 @@ function WatchlistTableInner() {
           meta={meta}
         />
         <div className="mb-3 flex flex-wrap items-center gap-1.5" role="group" aria-label="Sort watchlist">
-          <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+          <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
             Sort
           </span>
           {SORT_OPTIONS.map((opt) => {
@@ -890,23 +876,6 @@ function WatchlistTableInner() {
         <WatchlistNews codes={codes} news={news} loading={newsLoading} />
       )}
 
-      {undoCode && (
-        <div
-          role="status"
-          className="fixed bottom-20 sm:bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 shadow-lg"
-        >
-          <span className="text-xs font-semibold text-[var(--text)] whitespace-nowrap">
-            Removed {undoCode}
-          </span>
-          <button
-            type="button"
-            onClick={handleUndo}
-            className="text-xs font-bold text-[var(--primary)] hover:underline"
-          >
-            Undo
-          </button>
-        </div>
-      )}
     </>
   );
 }

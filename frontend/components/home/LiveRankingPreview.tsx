@@ -51,7 +51,7 @@ export default function LiveRankingPreview({
                   {item.trading_code}
                 </span>
                 <span
-                  className="block mt-0.5 text-[0.66rem] truncate group-hover:underline underline-offset-2 decoration-dotted"
+                  className="block mt-0.5 text-[0.68rem] truncate group-hover:underline underline-offset-2 decoration-dotted"
                   style={{ color: `color-mix(in srgb, ${color} 38%, var(--text-muted))` }}
                 >
                   {item.company_name}

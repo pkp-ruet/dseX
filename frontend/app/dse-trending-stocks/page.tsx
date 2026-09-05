@@ -50,7 +50,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "How is the trending stocks list calculated?",
-    a: "Every stock with at least 5 of the last 7 trading days of price data and an average daily turnover of Tk 1 million or more is scored on five factors: 7-day price return (35%), relative strength vs DSEX (25%), volume conviction measured as 7-day vs 30-day turnover (20%), trend quality based on up-day ratio with a whipsaw penalty (15%), and a 52-week sweet-spot bonus (5%). Each factor is z-scored across the universe, then combined into a composite. The 20 highest composite scores make the Trending Stocks list.",
+    a: "Every stock with at least 5 of the last 7 trading days of price data and an average daily turnover of ৳1 million or more is scored on five factors: 7-day price return (35%), relative strength vs DSEX (25%), volume conviction measured as 7-day vs 30-day turnover (20%), trend quality based on up-day ratio with a whipsaw penalty (15%), and a 52-week sweet-spot bonus (5%). Each factor is z-scored across the universe, then combined into a composite. The 20 highest composite scores make the Trending Stocks list.",
   },
   {
     q: "How often is the trending stocks list updated?",
@@ -70,11 +70,11 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Why are some popular stocks not trending?",
-    a: "The list filters out stocks with thin liquidity (under Tk 1 million average daily turnover) and stocks missing recent price data. A widely watched ticker that traded sideways with no volume surge over the last week will not score highly on this composite, even if it is fundamentally strong.",
+    a: "The list filters out stocks with thin liquidity (under ৳1 million average daily turnover) and stocks missing recent price data. A widely watched ticker that traded sideways with no volume surge over the last week will not score highly on this composite, even if it is fundamentally strong.",
   },
   {
     q: "How do you handle penny stocks and pump candidates?",
-    a: "The Tk 1 million daily turnover floor removes the most obvious pump-and-dump candidates. The trend-quality factor also penalises whipsaw moves, so a single-day spike on otherwise erratic price action will not lift a stock into the top ranks.",
+    a: "The ৳1 million daily turnover floor removes the most obvious pump-and-dump candidates. The trend-quality factor also penalises whipsaw moves, so a single-day spike on otherwise erratic price action will not lift a stock into the top ranks.",
   },
 ];
 
@@ -297,7 +297,7 @@ export default async function DseTrendingStocksPage() {
           <p className="text-[var(--ink)] leading-relaxed mb-4">
             The Trending Stocks list is a market-data composite — no earnings models, no fundamental scoring.
             Every stock listed on the Dhaka Stock Exchange that has at least five of the last seven
-            trading days of price data and an average daily turnover of Tk 1 million or more enters
+            trading days of price data and an average daily turnover of ৳1 million or more enters
             the universe. Bonds, debentures, mutual funds, and ETFs are excluded automatically.
           </p>
           <p className="text-[var(--ink)] leading-relaxed mb-4">

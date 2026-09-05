@@ -31,7 +31,7 @@ export default function PriceAlertMockup() {
         <span className="inline-flex items-center gap-1.5 text-[0.7rem] font-bold uppercase tracking-[0.12em] text-[var(--text)]">
           <span className="text-[var(--watch)]">{BELL}</span> My Alerts
         </span>
-        <span className="text-[0.62rem] text-[var(--text-muted)]">we watch the price for you</span>
+        <span className="text-[0.68rem] text-[var(--text-muted)]">we watch the price for you</span>
       </div>
       <div className="divide-y divide-[var(--cell-rule)]">
         {ROWS.map((r) => {
@@ -49,13 +49,13 @@ export default function PriceAlertMockup() {
               </span>
               <span className="min-w-0 flex-1">
                 <span className="ticker-tag ticker-tag--static text-[0.8rem]">{r.code}</span>
-                <span className="block text-[0.66rem] text-[var(--text-muted)]">
+                <span className="block text-[0.68rem] text-[var(--text-muted)]">
                   {hit ? `Hit ৳${r.target} today` : up ? `Rises to ৳${r.target}` : `Drops to ৳${r.target}`}
                 </span>
               </span>
               {hit ? (
                 <span
-                  className="text-[0.6rem] font-bold uppercase tracking-[0.08em] px-2 py-0.5 rounded-full"
+                  className="text-[0.68rem] font-bold uppercase tracking-[0.08em] px-2 py-0.5 rounded-full"
                   style={{ color: accent, background: `color-mix(in srgb, ${accent} 12%, transparent)` }}
                 >
                   Hit 🎯

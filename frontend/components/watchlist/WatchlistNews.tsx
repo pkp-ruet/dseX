@@ -26,7 +26,7 @@ function NewsItem({ item }: { item: WatchlistNewsItem }) {
       <div className="flex items-center justify-between gap-2">
         <Link
           prefetch={false} href={`/stock/${item.trading_code}`}
-          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-[var(--primary)] text-white hover:opacity-80 transition-opacity"
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide bg-[var(--primary)] text-white hover:opacity-80 transition-opacity"
         >
           {item.trading_code}
         </Link>
@@ -90,7 +90,7 @@ export default function WatchlistNews({ codes, news, loading, limit, compact = f
       {/* Header */}
       {!compact && (
         <div className="flex flex-col items-center text-center mb-6">
-          <span className="text-[10px] font-bold tracking-[0.15em] uppercase text-[var(--primary)] mb-1">
+          <span className="text-[11px] font-bold tracking-[0.15em] uppercase text-[var(--primary)] mb-1">
             Watchlist News
           </span>
           <h2 className="text-xl font-bold text-[var(--ink)]">Last 30 Days</h2>

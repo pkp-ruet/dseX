@@ -34,6 +34,24 @@ export default function GlobalSearch() {
     return () => window.removeEventListener(OPEN_EVENT, onOpen);
   }, []);
 
+  // Keyboard: "/" (when not typing) or Ctrl/Cmd+K opens the search anywhere.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const isK = (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === "k";
+      const isSlash = e.key === "/" && !e.ctrlKey && !e.metaKey && !e.altKey;
+      if (!isK && !isSlash) return;
+      const t = e.target as HTMLElement | null;
+      const typing =
+        !!t &&
+        (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
+      if (isSlash && typing) return;
+      e.preventDefault();
+      setOpen(true);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   // Lazy-fetch companies on first open
   useEffect(() => {
     if (!open || companies.length > 0 || loading) return;

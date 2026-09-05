@@ -46,7 +46,7 @@ export default function SampleAnalysisCard({ detail }: { detail: CompanyDetail }
       {/* Header: identity + score */}
       <div className="flex items-start justify-between gap-3 px-4 sm:px-5 py-4 border-b border-[var(--border)]">
         <div className="min-w-0">
-          <span className="inline-block text-[0.55rem] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)] mb-1">
+          <span className="inline-block text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)] mb-1">
             Example · any stock
           </span>
           <div className="font-extrabold text-base text-[var(--text)] leading-tight truncate">
@@ -57,18 +57,18 @@ export default function SampleAnalysisCard({ detail }: { detail: CompanyDetail }
               {profile.trading_code}
             </span>
             {profile.sector && (
-              <span className="text-[0.66rem] text-[var(--text-muted)] truncate">{profile.sector}</span>
+              <span className="text-[0.68rem] text-[var(--text-muted)] truncate">{profile.sector}</span>
             )}
           </div>
         </div>
         <div className="flex items-center gap-2.5 shrink-0">
           <div className="text-right">
-            <div className="text-[0.58rem] font-bold uppercase tracking-wider text-[var(--text-muted)]">Score</div>
+            <div className="text-[0.68rem] font-bold uppercase tracking-wider text-[var(--text-muted)]">Score</div>
             <div className="text-3xl font-extrabold tabular-nums nums leading-none" style={{ color: tone.color }}>
               {score != null ? Math.round(score) : "--"}
             </div>
           </div>
-          <span className="text-[0.6rem] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full text-white" style={{ background: tone.color }}>
+          <span className="text-[0.68rem] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full text-white" style={{ background: tone.color }}>
             {TIER_LABELS[tier]}
           </span>
         </div>
@@ -86,7 +86,7 @@ export default function SampleAnalysisCard({ detail }: { detail: CompanyDetail }
             </span>
           )}
         </div>
-        <span className="text-[0.6rem] font-semibold uppercase tracking-wide text-[var(--text-muted)]">Latest price</span>
+        <span className="text-[0.68rem] font-semibold uppercase tracking-wide text-[var(--text-muted)]">Latest price</span>
       </div>
 
       {/* Verdict teaser — the tier word lives in the header pill; here the
@@ -111,7 +111,7 @@ export default function SampleAnalysisCard({ detail }: { detail: CompanyDetail }
       <div className="grid grid-cols-3 gap-px bg-[var(--border)] mt-4 border-t border-[var(--border)]">
         {stats.map((s) => (
           <div key={s.label} className="bg-[var(--surface)] px-3 py-3 text-center">
-            <div className="text-[0.58rem] font-bold uppercase tracking-wider text-[var(--text-muted)]">{s.label}</div>
+            <div className="text-[0.68rem] font-bold uppercase tracking-wider text-[var(--text-muted)]">{s.label}</div>
             <div className="mt-1 text-base font-extrabold tabular-nums nums text-[var(--text)]">{s.value}</div>
           </div>
         ))}

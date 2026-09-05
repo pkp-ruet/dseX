@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { useUrlParams, useUrlSync } from "@/lib/use-url-state";
 import Link from "next/link";
 import { taka, pct } from "@/lib/formatters";
 import { getTier, TIER_VAR } from "@/lib/constants";
 import StarButton from "@/components/ui/StarButton";
 import type { ScoreItem } from "@/lib/api";
+import EmptyState from "@/components/ui/EmptyState";
 
 type SortCol =
   | "trading_code"
@@ -55,6 +57,9 @@ interface Props {
 }
 
 const CATEGORIES = ["A", "B", "N", "Z"] as const;
+const SORT_COLS: SortCol[] = [
+  "trading_code", "company_name", "sector", "market_category", "ltp", "change_pct", "eps", "div_yield_pct",
+];
 
 export default function StocksTable({ items }: Props) {
   const [search, setSearch] = useState("");
@@ -68,6 +73,34 @@ export default function StocksTable({ items }: Props) {
     for (const i of items) if (i.sector) s.add(i.sector);
     return Array.from(s).sort();
   }, [items]);
+
+  // ---- URL ⇄ state: ?q=…&sector=…&cat=A&sort=ltp&dir=desc ----
+  const urlParams = useUrlParams();
+  const [urlReady, setUrlReady] = useState(false);
+  useEffect(() => {
+    if (!urlParams) return;
+    const q = urlParams.get("q");
+    if (q) setSearch(q);
+    const sec = urlParams.get("sector");
+    if (sec && sectors.includes(sec)) setActiveSector(sec);
+    const cat = urlParams.get("cat");
+    if (cat && (CATEGORIES as readonly string[]).includes(cat)) setActiveCategory(cat);
+    const sort = urlParams.get("sort");
+    if (sort && (SORT_COLS as string[]).includes(sort)) setSortCol(sort as SortCol);
+    const dir = urlParams.get("dir");
+    if (dir === "asc" || dir === "desc") setSortDir(dir);
+    setUrlReady(true);
+  }, [urlParams, sectors]);
+  useUrlSync(
+    {
+      q: search.trim() || null,
+      sector: activeSector,
+      cat: activeCategory,
+      sort: sortCol === "trading_code" && sortDir === "asc" ? null : sortCol,
+      dir: sortCol === "trading_code" && sortDir === "asc" ? null : sortDir,
+    },
+    urlReady
+  );
 
   function handleSort(col: SortCol) {
     if (sortCol === col) {
@@ -223,7 +256,14 @@ export default function StocksTable({ items }: Props) {
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={11} className="sl-empty">No stocks match your filters.</td>
+                <td colSpan={11} className="sl-empty">
+                  <EmptyState
+                    variant="bare"
+                    title="No stocks match your filters"
+                    message="Try a shorter search, or clear the sector and category."
+                    bn="এই ফিল্টারে কোনো শেয়ার মিলছে না। সার্চ ছোট করুন বা ফিল্টার মুছে দেখুন।"
+                  />
+                </td>
               </tr>
             )}
           </tbody>

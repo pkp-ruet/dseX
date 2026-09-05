@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { flattenTiers, getScores, type ScoreItem } from "@/lib/api";
 import SignalsExplorer from "@/components/signals/SignalsExplorer";
+import { formatDate } from "@/lib/formatters";
 
 export const revalidate = 3600;
 
@@ -67,13 +68,7 @@ export default async function BuySellSignalsPage() {
     new Set(buy.map((i) => i.sector).filter((s): s is string => Boolean(s))),
   ).sort((a, b) => a.localeCompare(b));
 
-  const updated = scores.computed_at
-    ? new Date(scores.computed_at).toLocaleDateString("en-US", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      })
-    : null;
+  const updated = scores.computed_at ? formatDate(scores.computed_at) : null;
 
   const jsonLd = {
     "@context": "https://schema.org",

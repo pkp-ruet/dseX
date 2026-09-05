@@ -117,18 +117,18 @@ export default function ProfileClient() {
                 placeholder="Your name"
                 autoFocus
               />
-              {saveError && <p className="text-xs text-red-500">{saveError}</p>}
+              {saveError && <p className="text-xs font-semibold text-[var(--negative)]" role="alert">{saveError}</p>}
               <div className="flex gap-2">
                 <button
                   onClick={handleSaveName}
                   disabled={saving}
-                  className="navbar-rank-btn text-xs py-1.5 px-3 disabled:opacity-60"
+                  className="btn-primary btn-sm"
                 >
                   {saving ? "Saving…" : "Save"}
                 </button>
                 <button
                   onClick={() => { setEditingName(false); setNameInput(user.display_name ?? ""); setSaveError(""); }}
-                  className="navbar-intel-btn text-xs py-1.5 px-3"
+                  className="btn-quiet btn-sm"
                 >
                   Cancel
                 </button>
@@ -161,7 +161,7 @@ export default function ProfileClient() {
             <span className="text-xs text-[var(--text-muted)] uppercase tracking-wider">Watchlist</span>
             <p className="text-[var(--text)] font-medium mt-1">{watchCount} stocks</p>
           </div>
-          <Link href="/watchlist" className="navbar-intel-btn text-xs py-1.5 px-3">
+          <Link href="/watchlist" className="btn-quiet btn-sm">
             View
           </Link>
         </div>
@@ -172,7 +172,7 @@ export default function ProfileClient() {
         {/* Sign out */}
         <button
           onClick={handleLogout}
-          className="mt-2 text-sm text-red-500 hover:text-red-600 hover:underline self-start"
+          className="mt-2 text-sm font-semibold text-[var(--negative)] hover:underline self-start"
         >
           Sign out
         </button>
