@@ -1040,26 +1040,44 @@ export async function apiGetMe(): Promise<{ user: AuthUser }> {
   return apiAuthFetch<{ user: AuthUser }>("/api/auth/me");
 }
 
-export async function apiGetWatchlist(): Promise<{ codes: string[] }> {
-  return apiAuthFetch<{ codes: string[] }>("/api/user/watchlist");
+/** Per-code watchlist metadata: when the user followed it and the official
+ *  close that day. Codes followed before this existed have no entry. */
+export interface WatchlistMetaEntry {
+  added_at: string;
+  price_at_add: number | null;
+}
+export type WatchlistMeta = Record<string, WatchlistMetaEntry>;
+
+export interface WatchlistResponse {
+  codes: string[];
+  meta?: WatchlistMeta;
 }
 
-export async function apiSetWatchlist(codes: string[]): Promise<{ codes: string[] }> {
-  return apiAuthFetch<{ codes: string[] }>("/api/user/watchlist", {
+export async function apiGetWatchlist(): Promise<WatchlistResponse> {
+  return apiAuthFetch<WatchlistResponse>("/api/user/watchlist");
+}
+
+export async function apiSetWatchlist(codes: string[]): Promise<WatchlistResponse> {
+  return apiAuthFetch<WatchlistResponse>("/api/user/watchlist", {
     method: "PUT",
     body: JSON.stringify({ codes }),
   });
 }
 
-export async function apiAddToWatchlist(codes: string[]): Promise<{ codes: string[] }> {
-  return apiAuthFetch<{ codes: string[] }>("/api/user/watchlist/add", {
+/** `restore` carries the meta of codes being re-added after an undo so the
+ *  server keeps the original "added on" date + price instead of re-stamping. */
+export async function apiAddToWatchlist(
+  codes: string[],
+  restore?: WatchlistMeta,
+): Promise<WatchlistResponse> {
+  return apiAuthFetch<WatchlistResponse>("/api/user/watchlist/add", {
     method: "PATCH",
-    body: JSON.stringify({ codes }),
+    body: JSON.stringify(restore ? { codes, meta: restore } : { codes }),
   });
 }
 
-export async function apiRemoveFromWatchlist(codes: string[]): Promise<{ codes: string[] }> {
-  return apiAuthFetch<{ codes: string[] }>("/api/user/watchlist/remove", {
+export async function apiRemoveFromWatchlist(codes: string[]): Promise<WatchlistResponse> {
+  return apiAuthFetch<WatchlistResponse>("/api/user/watchlist/remove", {
     method: "PATCH",
     body: JSON.stringify({ codes }),
   });

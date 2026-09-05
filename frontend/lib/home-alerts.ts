@@ -10,9 +10,22 @@ import { bdGroup } from "@/lib/formatters";
 
 export type HomeAlertTone = "positive" | "negative" | "neutral";
 
+export type HomeAlertKind =
+  | "target"
+  | "signal"
+  | "portfolio"
+  | "mover"
+  | "high"
+  | "low"
+  | "dividend"
+  | "news";
+
 export interface HomeAlert {
   /** Stable per-day id — also the key for read/seen state. */
   id: string;
+  /** What the alert is about — the dashboard maps this to an SVG icon. */
+  kind: HomeAlertKind;
+  /** Legacy glyph (assistant brief + retired AlertsBell still read it). */
   emoji: string;
   title: string;
   detail?: string;
@@ -77,6 +90,7 @@ export function buildHomeAlerts(opts: {
     if (Number.isNaN(t) || now - t > TRIGGER_RECENCY_MS) continue;
     alerts.push({
       id: `pa:${a.id}`,
+      kind: "target",
       emoji: "🎯",
       title: `${a.trading_code} hit your ৳${fmtPrice(a.target_price)} target`,
       detail: a.triggered_price != null ? `Reached ৳${fmtPrice(a.triggered_price)}` : undefined,
@@ -93,6 +107,7 @@ export function buildHomeAlerts(opts: {
     if (Number.isNaN(t) || now - t > SIGNAL_RECENCY_MS) continue;
     alerts.push({
       id: `sg:${ev.trading_code}:${ev.changed_at}`,
+      kind: "signal",
       emoji: "🟢",
       title: `${ev.trading_code} now looks like a Buy More`,
       detail: "Strong company at a cheap price",
@@ -106,6 +121,7 @@ export function buildHomeAlerts(opts: {
     const up = todayMove.delta >= 0;
     alerts.push({
       id: `pf:${dateKey}`,
+      kind: "portfolio",
       emoji: up ? "📈" : "📉",
       title: `Portfolio ${up ? "up" : "down"} ৳${bdGroup(Math.abs(todayMove.delta))} today`,
       detail: `${up ? "+" : ""}${todayMove.pct.toFixed(2)}%`,
@@ -127,6 +143,7 @@ export function buildHomeAlerts(opts: {
     const up = (m.change_pct ?? 0) >= 0;
     alerts.push({
       id: `mv:${m.trading_code}:${dateKey}`,
+      kind: "mover",
       emoji: up ? "🟢" : "🔴",
       title: `${m.trading_code} ${up ? "+" : ""}${m.change_pct!.toFixed(1)}% today`,
       detail: m.company_name ?? undefined,
@@ -143,6 +160,7 @@ export function buildHomeAlerts(opts: {
     extremeSeen.add(code);
     alerts.push({
       id: `hi:${code}:${dateKey}`,
+      kind: "high",
       emoji: "🔼",
       title: `${e.trading_code} near its 52-week high`,
       href: `/stock/${e.trading_code}`,
@@ -155,6 +173,7 @@ export function buildHomeAlerts(opts: {
     extremeSeen.add(code);
     alerts.push({
       id: `lo:${code}:${dateKey}`,
+      kind: "low",
       emoji: "🔽",
       title: `${e.trading_code} near its 52-week low`,
       href: `/stock/${e.trading_code}`,
@@ -171,6 +190,7 @@ export function buildHomeAlerts(opts: {
     const pct = d.dividend_pct != null ? `${d.dividend_pct}% ` : "";
     alerts.push({
       id: `dv:${code}`,
+      kind: "dividend",
       emoji: "💰",
       title: `${d.trading_code} — ${pct}dividend declared`,
       href: `/stock/${d.trading_code}`,
@@ -183,6 +203,7 @@ export function buildHomeAlerts(opts: {
     divSeen.add(code);
     alerts.push({
       id: `dv:${code}`,
+      kind: "dividend",
       emoji: "💰",
       title: `${d.trading_code} — dividend record date soon`,
       href: `/stock/${d.trading_code}`,
@@ -199,7 +220,8 @@ export function buildHomeAlerts(opts: {
     for (const n of wlNews) {
       alerts.push({
         id: `nw:${n.trading_code}:${n.post_date}:${n.title.slice(0, 48)}`,
-        emoji: "📰",
+        kind: "news",
+      emoji: "📰",
         title: n.title,
         detail: n.trading_code,
         href: `/stock/${n.trading_code}`,

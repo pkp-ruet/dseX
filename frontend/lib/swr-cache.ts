@@ -96,6 +96,7 @@ export const cacheKeys = {
   marketIndex: `${CACHE_PREFIX}marketIndex`,
   marketState: `${CACHE_PREFIX}marketState`,
   watchlistCodes: (userId: string) => `${CACHE_PREFIX}watchlistCodes.${userId}`,
+  watchlistMeta: (userId: string) => `${CACHE_PREFIX}watchlistMeta.${userId}`,
   watchlistNews: (codes: string[]) =>
     `${CACHE_PREFIX}watchlistNews.${[...codes].map((c) => c.toUpperCase()).sort().join(",")}`,
   alerts: (userId: string) => `${CACHE_PREFIX}alerts.${userId}`,

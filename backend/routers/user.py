@@ -7,7 +7,10 @@ from pydantic import BaseModel
 from backend.routers.auth import get_current_user
 from backend.services.auth_service import (
     get_user_watchlist,
+    get_user_watchlist_meta,
     update_user_watchlist,
+    add_to_user_watchlist,
+    remove_from_user_watchlist,
     get_db,
     sanitize_user,
     touch_watchlist_visit,
@@ -16,7 +19,6 @@ from backend.services.auth_service import (
     set_pick_feedback,
     clear_daily_picks,
 )
-from backend.services import user_cache
 from backend.services.daily_picks_service import (
     get_or_compute_daily_picks,
     apply_pick_feedback,
@@ -27,6 +29,10 @@ router = APIRouter(prefix="/api/user", tags=["user"])
 
 class WatchlistBody(BaseModel):
     codes: list[str]
+    # Optional per-code meta to restore (undo after a remove keeps the original
+    # "added on" date + price instead of re-stamping today). Only honoured for
+    # codes that have no server-side meta yet.
+    meta: Optional[dict[str, dict]] = None
 
 
 class ProfileUpdateBody(BaseModel):
@@ -44,41 +50,27 @@ class PickFeedbackBody(BaseModel):
 
 @router.get("/watchlist")
 def get_watchlist(current_user: dict = Depends(get_current_user)):
-    codes = get_user_watchlist(current_user["user_id"])
-    return {"codes": codes}
+    user_id = current_user["user_id"]
+    codes = get_user_watchlist(user_id)
+    return {"codes": codes, "meta": get_user_watchlist_meta(user_id)}
 
 
 @router.put("/watchlist")
 def set_watchlist(body: WatchlistBody, current_user: dict = Depends(get_current_user)):
-    codes = update_user_watchlist(current_user["user_id"], body.codes)
-    return {"codes": codes}
+    codes, meta = update_user_watchlist(current_user["user_id"], body.codes)
+    return {"codes": codes, "meta": meta}
 
 
 @router.patch("/watchlist/add")
 def add_to_watchlist(body: WatchlistBody, current_user: dict = Depends(get_current_user)):
-    user_id = current_user["user_id"]
-    existing = get_user_watchlist(user_id)
-    merged = list(dict.fromkeys(existing + [c.upper() for c in body.codes]))
-    get_db()["users"].update_one(
-        {"user_id": user_id},
-        {"$set": {"watchlist": merged, "updated_at": datetime.now(timezone.utc)}},
-    )
-    user_cache.set(user_cache.NS_WATCHLIST, user_id, merged)
-    return {"codes": merged}
+    codes, meta = add_to_user_watchlist(current_user["user_id"], body.codes, restore=body.meta)
+    return {"codes": codes, "meta": meta}
 
 
 @router.patch("/watchlist/remove")
 def remove_from_watchlist(body: WatchlistBody, current_user: dict = Depends(get_current_user)):
-    user_id = current_user["user_id"]
-    to_remove = {c.upper() for c in body.codes}
-    existing = get_user_watchlist(user_id)
-    updated = [c for c in existing if c not in to_remove]
-    get_db()["users"].update_one(
-        {"user_id": user_id},
-        {"$set": {"watchlist": updated, "updated_at": datetime.now(timezone.utc)}},
-    )
-    user_cache.set(user_cache.NS_WATCHLIST, user_id, updated)
-    return {"codes": updated}
+    codes, meta = remove_from_user_watchlist(current_user["user_id"], body.codes)
+    return {"codes": codes, "meta": meta}
 
 
 @router.post("/watchlist/visit")

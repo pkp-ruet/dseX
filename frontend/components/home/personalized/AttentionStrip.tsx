@@ -1,6 +1,20 @@
 import Link from "next/link";
-import type { HomeAlert } from "@/lib/home-alerts";
+import type { HomeAlert, HomeAlertKind } from "@/lib/home-alerts";
 import type { BriefSegment } from "@/lib/daily-brief";
+import DashHeader, { HeaderChip } from "@/components/home/personalized/DashHeader";
+import {
+  IconArrowDown,
+  IconArrowUp,
+  IconCheck,
+  IconChevron,
+  IconCoin,
+  IconNews,
+  IconSparkle,
+  IconTarget,
+  IconTrendDown,
+  IconTrendUp,
+  IconWallet,
+} from "@/components/home/personalized/DashIcons";
 
 const TONE_COLOR: Record<NonNullable<BriefSegment["tone"]>, string> = {
   pos: "var(--positive)",
@@ -10,18 +24,29 @@ const TONE_COLOR: Record<NonNullable<BriefSegment["tone"]>, string> = {
 
 const MAX_ROWS = 4;
 
-const BELL = (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-  </svg>
-);
-
-const CHEVRON = (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-[var(--text-muted)]" aria-hidden>
-    <path d="M9 18l6-6-6-6" />
-  </svg>
-);
+/** One SVG per alert kind — the row's tone colours it. */
+function KindIcon({ kind, tone }: { kind: HomeAlertKind; tone: HomeAlert["tone"] }) {
+  const up = tone === "positive";
+  switch (kind) {
+    case "target":
+      return <IconTarget size={16} />;
+    case "signal":
+      return <IconSparkle size={16} />;
+    case "portfolio":
+      return <IconWallet size={16} />;
+    case "mover":
+      return up ? <IconTrendUp size={16} /> : <IconTrendDown size={16} />;
+    case "high":
+      return <IconArrowUp size={16} />;
+    case "low":
+      return <IconArrowDown size={16} />;
+    case "dividend":
+      return <IconCoin size={16} />;
+    case "news":
+    default:
+      return <IconNews size={16} />;
+  }
+}
 
 /**
  * The single home for "what happened on your stocks today" — replaces the old
@@ -32,6 +57,10 @@ const CHEVRON = (
  *    daily brief; on quiet days it reads market/breadth, never repeating the
  *    money hero's own today-move).
  *  • Truly nothing to say   → renders null.
+ *
+ * The header is deliberately neutral (no amber tile, no red badge): most of
+ * these rows are dividends and 52-week highs, not alarms. Each row carries its
+ * own tone colour instead.
  */
 export default function AttentionStrip({
   alerts,
@@ -44,24 +73,10 @@ export default function AttentionStrip({
     const shown = alerts.slice(0, MAX_ROWS);
     return (
       <section className="soft-card overflow-hidden">
-        <div className="flex items-center gap-2 border-b border-[var(--border)] px-4 py-2.5">
-          <span
-            className="grid h-6 w-6 shrink-0 place-items-center rounded-lg text-white"
-            style={{ background: "var(--np-cautious)" }}
-            aria-hidden
-          >
-            {BELL}
-          </span>
-          <h2 className="text-[0.72rem] font-bold uppercase tracking-[0.12em] text-[var(--text)]">
-            Needs your attention
-          </h2>
-          <span
-            className="ml-auto grid h-5 min-w-[20px] place-items-center rounded-full px-1.5 text-[0.66rem] font-extrabold leading-none text-white"
-            style={{ background: "var(--negative)" }}
-          >
-            {alerts.length > 9 ? "9+" : alerts.length}
-          </span>
-        </div>
+        <DashHeader
+          title="Needs your attention"
+          chips={<HeaderChip>{alerts.length > 9 ? "9+" : alerts.length}</HeaderChip>}
+        />
 
         <ul className="divide-y divide-[var(--cell-rule)]">
           {shown.map((a) => {
@@ -70,11 +85,15 @@ export default function AttentionStrip({
                 ? "var(--positive)"
                 : a.tone === "negative"
                   ? "var(--negative)"
-                  : "var(--text-muted)";
+                  : "var(--primary)";
             const inner = (
               <>
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[var(--surface-2)] text-sm" aria-hidden>
-                  {a.emoji}
+                <span
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-lg"
+                  style={{ color: toneColor, background: `color-mix(in srgb, ${toneColor} 11%, transparent)` }}
+                  aria-hidden
+                >
+                  <KindIcon kind={a.kind} tone={a.tone} />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-semibold text-[var(--text)]">{a.title}</span>
@@ -84,7 +103,11 @@ export default function AttentionStrip({
                     </span>
                   )}
                 </span>
-                {a.href && CHEVRON}
+                {a.href && (
+                  <span className="shrink-0 text-[var(--text-muted)]">
+                    <IconChevron size={15} />
+                  </span>
+                )}
               </>
             );
             return (
@@ -93,7 +116,7 @@ export default function AttentionStrip({
                   <Link
                     prefetch={false}
                     href={a.href}
-                    className="flex items-center gap-2.5 px-4 py-2.5 transition-colors hover:bg-[var(--surface-2)]"
+                    className="flex items-center gap-2.5 px-4 py-2.5 transition-colors hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)]"
                   >
                     {inner}
                   </Link>
@@ -118,11 +141,11 @@ export default function AttentionStrip({
     return (
       <section className="soft-card flex items-start gap-2.5 px-4 py-3">
         <span
-          className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-lg text-sm font-bold text-[var(--positive)]"
+          className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-lg text-[var(--positive)]"
           style={{ background: "color-mix(in srgb, var(--positive) 12%, transparent)" }}
           aria-hidden
         >
-          ✓
+          <IconCheck size={13} />
         </span>
         <p className="text-[0.85rem] leading-relaxed text-[var(--text-muted)]">
           <span className="font-bold text-[var(--text)]">All caught up. </span>

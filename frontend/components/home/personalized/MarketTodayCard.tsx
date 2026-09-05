@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { MarketIndexData, DividendsUpcoming, MarketQuality, MarketQuestion } from "@/lib/api";
 import { signed } from "@/lib/formatters";
+import DashHeader from "@/components/home/personalized/DashHeader";
 
 function num(v: number | null | undefined, d = 2): string {
   if (v == null) return "--";
@@ -23,7 +24,7 @@ function IndexStat({ label, value, change }: { label: string; value: number | nu
   const color = change == null ? "var(--text-muted)" : up ? "var(--positive)" : "var(--negative)";
   return (
     <div className="flex flex-col">
-      <span className="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">{label}</span>
+      <span className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">{label}</span>
       <span className="text-lg sm:text-xl font-extrabold tabular-nums text-[var(--text)] leading-tight">{num(value)}</span>
       <span className="text-xs font-semibold tabular-nums" style={{ color }}>
         {change == null ? "--" : `${up ? "▲" : "▼"} ${signed(change)}`}
@@ -35,39 +36,35 @@ function IndexStat({ label, value, change }: { label: string; value: number | nu
 function Tile({
   href,
   value,
-  emoji,
   valueColor,
   label,
 }: {
   href: string;
   value: string;
-  emoji?: string;
   valueColor: string;
   label: string;
 }) {
   return (
     <Link
       href={href}
-      className="flex flex-col rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 transition hover:border-[color-mix(in_srgb,var(--primary)_40%,var(--border))] hover:shadow-sm"
+      prefetch={false}
+      className="flex flex-col rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 transition hover:border-[color-mix(in_srgb,var(--primary)_40%,var(--border))] hover:shadow-sm active:bg-[var(--surface-2)]"
     >
-      <span className="flex items-center gap-1.5 leading-none">
-        <span className="font-display text-xl font-extrabold tabular-nums nums" style={{ color: valueColor }}>
-          {value}
-        </span>
-        {emoji && (
-          <span className="text-sm" aria-hidden>
-            {emoji}
-          </span>
-        )}
+      <span className="font-display text-xl font-extrabold tabular-nums nums leading-none" style={{ color: valueColor }}>
+        {value}
       </span>
-      <span className="mt-1 text-[0.7rem] font-semibold text-[var(--text-muted)] leading-tight">{label}</span>
+      <span className="mt-1 text-[0.75rem] font-semibold text-[var(--text-muted)] leading-tight">{label}</span>
     </Link>
   );
 }
 
 /** One "Market today" card for the logged-in home — merges the old index band
  *  (DSEX/DSES/DS30 + breadth bar) and the market-analysis snapshot (mood
- *  headline + deep-linked tiles) into a single piece of chrome. */
+ *  headline + deep-linked tiles) into a single piece of chrome.
+ *  Exactly one header link (DSE Today) + the four tiles as links; the old
+ *  footer button and pulsing "live" dot were cut — the dot was always green
+ *  even when the market was closed, and the greeting's MarketStatusPill is the
+ *  one honest live cue on the page. */
 export default function MarketTodayCard({
   index,
   dividends,
@@ -114,21 +111,7 @@ export default function MarketTodayCard({
 
   return (
     <section className="soft-card overflow-hidden">
-      <div className="flex items-center gap-2 px-4 sm:px-5 pt-3.5">
-        <span className="w-2 h-2 rounded-full bg-[var(--positive)] animate-pulse" aria-hidden />
-        <span className="text-[0.66rem] font-bold uppercase tracking-[0.16em] text-[var(--text)]">
-          Market Today
-        </span>
-        <Link
-          href="/dse-today"
-          className="ml-auto inline-flex items-center gap-1 rounded-full border border-[color-mix(in_srgb,var(--primary)_30%,var(--border))] bg-[color-mix(in_srgb,var(--primary)_8%,var(--surface))] px-2.5 py-1 text-[0.68rem] font-bold text-[var(--primary)] transition hover:bg-[color-mix(in_srgb,var(--primary)_16%,var(--surface))] active:scale-95"
-        >
-          DSE Today
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M5 12h14M13 6l6 6-6 6" />
-          </svg>
-        </Link>
-      </div>
+      <DashHeader title="Market today" href="/dse-today" linkLabel="DSE Today" />
 
       <div className="px-4 sm:px-5 py-4">
         <h3
@@ -162,33 +145,17 @@ export default function MarketTodayCard({
         )}
 
         <div className="mt-4 grid grid-cols-2 gap-2.5">
-          <Tile href="/market-analysis" value={cheapValue} emoji="🏷️" valueColor={cheapColor} label={cheapLabel} />
+          <Tile href="/market-analysis" value={cheapValue} valueColor={cheapColor} label={cheapLabel} />
           <Tile
             href="/market-analysis"
             value={healthy != null ? String(healthy) : "—"}
-            emoji="💚"
             valueColor={healthyColor}
             label={total > 0 ? `of ${total} look healthy` : "companies healthy"}
           />
-          <Tile
-            href="/market-analysis"
-            value={String(divCount)}
-            emoji="💰"
-            valueColor="var(--watch)"
-            label="dividends coming up"
-          />
+          <Tile href="/dividend-calendar" value={String(divCount)} valueColor="var(--watch)" label="dividends coming up" />
           <Tile href="/dse-today" value={turnStr} valueColor={turnColor} label="turnover vs last day" />
         </div>
 
-        <Link
-          href="/market-analysis"
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--primary)_35%,var(--border))] bg-[color-mix(in_srgb,var(--primary)_9%,var(--surface))] py-2.5 text-[0.82rem] font-bold text-[var(--primary)] shadow-sm transition hover:bg-[color-mix(in_srgb,var(--primary)_16%,var(--surface))] hover:shadow active:scale-[0.99]"
-        >
-          Open market analysis
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M5 12h14M13 6l6 6-6 6" />
-          </svg>
-        </Link>
       </div>
     </section>
   );

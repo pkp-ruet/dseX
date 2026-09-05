@@ -4700,8 +4700,8 @@ a:hover .ticker-tag,
   opacity: 0.78;
 }
 .watchlist-company {
-  color: var(--ink);
-  max-width: 280px;
+  color: var(--ink-2);
+  max-width: 220px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -4763,19 +4763,23 @@ a:hover .ticker-tag,
   .watchlist-table tbody { display: flex; flex-direction: column; gap: 10px; }
 
   /* Per-ticker card.
-       rows 1-2:  code + tier (centered)                LTP
+       rows 1-2:  code + company name + tier             LTP
                                                         chg%
-       row 3:     EPS pill  DIV pill  signals     bell  star
-       row 4:     52w range strip (full width, only when data exists)
-     The range strip (td8) is auto-placed with a full-column span instead of a
-     named area so a `.wl-empty` cell leaves no phantom row behind. */
+       row 3:     since-added line (full width, only when recorded)
+       row 4:     EPS pill  DIV pill  signals     bell  star
+       row 5:     52w range strip (full width, only when data exists)
+     The range strip (td9) is auto-placed with a full-column span instead of a
+     named area so a `.wl-empty` cell leaves no phantom row behind; the
+     since-added row is a named area whose cell is hidden when empty, which
+     collapses that grid row to zero height. */
   .watchlist-table tbody tr {
     display: grid;
     grid-template-columns: auto auto auto minmax(0, 1fr) auto auto;
     grid-template-areas:
-      "code code tier .   ltp   ltp"
-      "code code tier .   chg   chg"
-      "eps  yld  sig  sig alert star";
+      "code  code  tier  .     ltp   ltp"
+      "code  code  tier  .     chg   chg"
+      "since since since since since since"
+      "eps   yld   sig   sig   alert star";
     column-gap: 8px;
     row-gap: 2px;
     align-items: center;
@@ -4794,7 +4798,8 @@ a:hover .ticker-tag,
     justify-self: end;
     margin-top: 8px;
   }
-  .watchlist-table td:nth-child(2) { grid-area: code; align-self: center; }
+  .watchlist-table td:nth-child(2) { grid-area: code; align-self: center; min-width: 0; }
+  .watchlist-table td:nth-child(2) .watchlist-company { max-width: 150px; font-size: 0.72rem; }
   .watchlist-table td:nth-child(3) { grid-area: tier; align-self: center; justify-self: start; }
   .watchlist-table td:nth-child(4) {
     grid-area: ltp;
@@ -4814,27 +4819,35 @@ a:hover .ticker-tag,
     font-variant-numeric: tabular-nums;
   }
   .watchlist-table td:nth-child(6) {
+    grid-area: since;
+    justify-self: start;
+    text-align: left;
+    margin-top: 6px;
+    font-weight: 500;
+  }
+  .watchlist-table td:nth-child(6) .wl-since > span:first-child { font-size: 0.8rem; }
+  .watchlist-table td:nth-child(7) {
     grid-area: eps;
     justify-self: start;
     margin-top: 8px;
   }
-  .watchlist-table td:nth-child(7) {
+  .watchlist-table td:nth-child(8) {
     grid-area: yld;
     justify-self: start;
     margin-top: 8px;
   }
-  .watchlist-table td:nth-child(8) {
+  .watchlist-table td:nth-child(9) {
     grid-column: 1 / -1;
     justify-self: stretch;
     margin-top: 9px;
   }
-  .watchlist-table td:nth-child(9) {
+  .watchlist-table td:nth-child(10) {
     grid-area: sig;
     justify-self: start;
     min-width: 0;
     margin-top: 8px;
   }
-  .watchlist-table td:nth-child(10) {
+  .watchlist-table td:nth-child(11) {
     grid-area: alert;
     justify-self: end;
     margin-top: 8px;
@@ -4857,6 +4870,13 @@ a:hover .ticker-tag,
 /* ======================================
    WATCHLIST ANALYSIS
    ====================================== */
+/* Collapsible story sections (<details>): hide the native marker, rotate the
+   chevron when open. */
+.wl-story-summary { list-style: none; }
+.wl-story-summary::-webkit-details-marker { display: none; }
+.wl-story-summary:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+.wl-story-chevron { transition: transform 0.2s ease; }
+.wl-story-section[open] .wl-story-chevron { transform: rotate(180deg); }
 
 .wla-section {
   margin-top: 28px;

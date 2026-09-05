@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { type RecommendedStock, type DailyTip, type ScoreItem } from "@/lib/api";
 import { getTier } from "@/lib/constants";
@@ -10,31 +10,36 @@ import TuneModal from "@/components/stock-recommendation/TuneModal";
 import SignalChip from "@/components/ui/SignalChip";
 import TierPill from "@/components/ui/TierPill";
 import StarButton from "@/components/ui/StarButton";
+import Card from "@/components/ui/Card";
+import DashHeader from "@/components/home/personalized/DashHeader";
+import { IconArrowUp, IconBulb, IconSparkle, IconTune } from "@/components/home/personalized/DashIcons";
 
-const ROWS = 2;
+const ROWS = 3;
 const EMPTY_DELTA: ListDelta = { newCodes: new Set(), movedUp: new Map() };
-const MEDALS = ["🥇", "🥈", "🥉"];
+const TAB_KEY = "dsex.home.ideasTab";
 
-// Each stack owns a color so the three sections read as distinct zones.
-const PICKS_ACCENT = "var(--primary)"; // clay — personalized
-const BUYS_ACCENT = "var(--positive)"; // emerald — action
-const TIPS_ACCENT = "#0D9488"; // teal — learn
+type TabKey = "picks" | "buys" | "tips";
 
-// Per-signal identity for the daily tips (accent + emoji + short tag). Mirrors
+// Each tab owns a colour so the three idea types stay distinguishable.
+const PICKS_ACCENT = "var(--primary)"; // personalized
+const BUYS_ACCENT = "var(--positive)"; // action
+const TIPS_ACCENT = "#0D9488"; // learn
+
+// Per-signal identity for the daily tips (accent + short tag). Mirrors
 // components/daily-tips/DailyTipItem so the homepage teaser owns its own row.
-const TIP_META: Record<string, { color: string; icon: string; tag: string }> = {
-  profit_growth: { color: "var(--positive)", icon: "📈", tag: "Growth" },
-  profit_streak: { color: "var(--positive)", icon: "✅", tag: "Consistent" },
-  dividend_yield: { color: "var(--watch)", icon: "💰", tag: "Dividend" },
-  dividend_streak: { color: "var(--watch)", icon: "🔁", tag: "Payout Streak" },
-  cheap_pe: { color: "var(--primary)", icon: "🏷️", tag: "Cheap vs Peers" },
-  below_book: { color: "var(--primary)", icon: "📘", tag: "Below Book" },
-  high_roe: { color: "var(--np-cautious)", icon: "⚙️", tag: "High Returns" },
-  near_52w_low: { color: "var(--accent)", icon: "📉", tag: "Near Low" },
-  rel_strength: { color: "var(--positive)", icon: "🚀", tag: "Outperforming" },
-  div_catalyst: { color: "var(--tier-excellent)", icon: "🔔", tag: "Just Declared" },
+const TIP_META: Record<string, { color: string; tag: string }> = {
+  profit_growth: { color: "var(--positive)", tag: "Growth" },
+  profit_streak: { color: "var(--positive)", tag: "Consistent" },
+  dividend_yield: { color: "var(--watch)", tag: "Dividend" },
+  dividend_streak: { color: "var(--watch)", tag: "Payout Streak" },
+  cheap_pe: { color: "var(--primary)", tag: "Cheap vs Peers" },
+  below_book: { color: "var(--primary)", tag: "Below Book" },
+  high_roe: { color: "var(--np-cautious)", tag: "High Returns" },
+  near_52w_low: { color: "var(--accent)", tag: "Near Low" },
+  rel_strength: { color: "var(--positive)", tag: "Outperforming" },
+  div_catalyst: { color: "var(--tier-excellent)", tag: "Just Declared" },
 };
-const TIP_FALLBACK = { color: "var(--text-muted)", icon: "⭐", tag: "Pick" };
+const TIP_FALLBACK = { color: "var(--text-muted)", tag: "Pick" };
 
 const isStrong = (i: ScoreItem) => i.signal?.strength === "strong";
 
@@ -48,72 +53,42 @@ function sortBuys(list: ScoreItem[], watch: Set<string>): ScoreItem[] {
   );
 }
 
-/* ── shared row vocabulary — one rhythm, color-coded per zone ── */
+function readTab(): TabKey | null {
+  try {
+    const v = localStorage.getItem(TAB_KEY);
+    return v === "picks" || v === "buys" || v === "tips" ? v : null;
+  } catch {
+    return null;
+  }
+}
 
-const TICKER =
-  "font-mono text-[0.9rem] font-black tracking-tight text-[var(--text)] transition-colors group-hover:text-[var(--primary)]";
+/* ── shared row vocabulary — one rhythm for all three tabs ── */
+
+const ROW =
+  "flex items-center gap-1 px-4 sm:px-5 transition-colors hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)]";
+const TICKER = "font-mono text-[0.9rem] font-black tracking-tight text-[var(--text)]";
 // `block` + `truncate` so a long reason clips with an ellipsis instead of
 // overflowing sideways into the price column.
 const WHY = "mt-0.5 block truncate text-[0.75rem] leading-snug text-[var(--text-muted)]";
-// White badge that pops on the tinted zone; the accent colors the glyph.
-const badgeStyle = (accent: string) => ({
-  background: "var(--surface)",
-  border: `1px solid color-mix(in srgb, ${accent} 22%, var(--border))`,
-  color: accent,
-});
 
-const SPARKLE = (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-    <path d="M12 2l1.9 5.6L19.5 9l-5.1 2.7L12 17l-2.4-5.3L4.5 9l5.6-1.4L12 2z" />
-    <path d="M19 14l.9 2.6L22.5 18l-2.6 1.1L19 22l-.9-2.9L15.5 18l2.6-1.4L19 14z" opacity="0.6" />
-  </svg>
-);
-const SPARKLE_SM = (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-    <path d="M12 2l1.9 5.6L19.5 9l-5.1 2.7L12 17l-2.4-5.3L4.5 9l5.6-1.4L12 2z" />
-  </svg>
-);
-const UP_SM = (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <polyline points="3 17 9 11 13 15 21 7" />
-    <polyline points="15 7 21 7 21 13" />
-  </svg>
-);
-const UP_ARROW = (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <line x1="12" y1="19" x2="12" y2="6" />
-    <polyline points="6 12 12 6 18 12" />
-  </svg>
-);
-const BULB_SM = (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-    <path d="M9 21h6v-1H9v1zm3-20a7 7 0 0 0-4 12.7V17h8v-3.3A7 7 0 0 0 12 1z" />
-  </svg>
-);
-const ARROW_SM = (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <path d="M5 12h14M13 6l6 6-6 6" />
-  </svg>
-);
-const TUNE = (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <line x1="4" y1="21" x2="4" y2="14" />
-    <line x1="4" y1="10" x2="4" y2="3" />
-    <line x1="12" y1="21" x2="12" y2="12" />
-    <line x1="12" y1="8" x2="12" y2="3" />
-    <line x1="20" y1="21" x2="20" y2="16" />
-    <line x1="20" y1="12" x2="20" y2="3" />
-    <line x1="1" y1="14" x2="7" y2="14" />
-    <line x1="9" y1="8" x2="15" y2="8" />
-    <line x1="17" y1="16" x2="23" y2="16" />
-  </svg>
-);
+/** Tinted square that leads every row — the accent colours icon + wash. */
+function Badge({ accent, children }: { accent: string; children: ReactNode }) {
+  return (
+    <span
+      className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-[0.9rem] font-black tabular-nums"
+      style={{ color: accent, background: `color-mix(in srgb, ${accent} 11%, transparent)` }}
+      aria-hidden
+    >
+      {children}
+    </span>
+  );
+}
 
 /** Tiny "New since your last visit" tag — same emerald across picks + buys. */
 function NewTag() {
   return (
     <span
-      className="shrink-0 rounded-full px-1.5 py-0.5 text-[0.56rem] font-extrabold uppercase tracking-[0.06em]"
+      className="shrink-0 rounded-full px-1.5 py-0.5 text-[0.68rem] font-extrabold uppercase tracking-[0.06em]"
       style={{ color: "var(--positive)", background: "color-mix(in srgb, var(--positive) 14%, transparent)" }}
     >
       New
@@ -130,7 +105,7 @@ function PriceCell({ ltp, chg }: { ltp: number | null; chg: number | null }) {
         {taka(ltp, ltp != null && ltp >= 100 ? 0 : 1)}
       </div>
       {chg != null && (
-        <div className="text-[0.72rem] font-semibold" style={{ color }}>
+        <div className="text-[0.75rem] font-semibold" style={{ color }}>
           {chg >= 0 ? "▲" : "▼"} {Math.abs(chg).toFixed(1)}%
         </div>
       )}
@@ -138,73 +113,25 @@ function PriceCell({ ltp, chg }: { ltp: number | null; chg: number | null }) {
   );
 }
 
-/** A color-coded zone: soft accent wash + a colored left spine, so each of the
- *  three idea types is instantly distinguishable. */
-function GroupPanel({ accent, children }: { accent: string; children: React.ReactNode }) {
-  return (
-    <div
-      className="rounded-2xl p-3 sm:p-3.5"
-      style={{
-        background: `color-mix(in srgb, ${accent} 5%, var(--surface))`,
-        border: `1px solid color-mix(in srgb, ${accent} 15%, var(--border))`,
-        borderLeftWidth: "3px",
-        borderLeftColor: `color-mix(in srgb, ${accent} 55%, transparent)`,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-/** One zone's header: a white icon chip + label, then optional action + an
- *  accent-tinted "See all" deep-link. */
-function GroupHeader({
-  icon,
-  label,
-  accent,
-  href,
-  seeAll,
-  action,
-}: {
-  icon: React.ReactNode;
+interface Tab {
+  key: TabKey;
   label: string;
+  count: number;
   accent: string;
   href: string;
-  seeAll: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="mb-2 flex items-center justify-between gap-2">
-      <span className="flex min-w-0 items-center gap-2 text-[0.9rem] font-extrabold tracking-tight text-[var(--text)]">
-        <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg" style={badgeStyle(accent)} aria-hidden>
-          {icon}
-        </span>
-        <span className="truncate">{label}</span>
-      </span>
-      <span className="flex shrink-0 items-center gap-2">
-        {action}
-        <Link
-          href={href}
-          className="inline-flex items-center gap-0.5 text-[0.72rem] font-bold transition hover:underline"
-          style={{ color: accent }}
-        >
-          {seeAll}
-          {ARROW_SM}
-        </Link>
-      </span>
-    </div>
-  );
 }
 
 /**
  * "Ideas for you" card — the personalized daily picks, the whole-market buy
- * signals, and the daily tips as three color-coded zones (clay = for you,
- * emerald = buy now, teal = learn). Each zone shares one clean row rhythm
- * (badge · ticker + meaningful chips · one-line why · the key number), so the
- * section is scannable in a glance yet the three idea types feel distinct.
- * Empty zones don't render.
+ * signals, and the daily tips as three segmented tabs inside ONE plain card
+ * (the earlier cut stacked three tinted panels with medals and coloured spines,
+ * which made this the heaviest block on the page). One tab shows at a time; the
+ * last tab is remembered per device. Empty tabs don't render; the card renders
+ * nothing when all three are empty.
  */
 export default function IdeasCard({
+  title,
+  chips,
   picks,
   buys,
   tips,
@@ -214,6 +141,10 @@ export default function IdeasCard({
   newPickCodes,
   watchCodes,
 }: {
+  /** Card title ("Your ideas today" / "Ideas for you today"). */
+  title: string;
+  /** Header chips — the date + "N new" pills proving the daily refresh. */
+  chips?: ReactNode;
   picks: RecommendedStock[];
   /** Every whole-market buy signal (strong + normal), any order. */
   buys: ScoreItem[];
@@ -225,22 +156,38 @@ export default function IdeasCard({
   onTuned: () => void | Promise<void>;
   /** Codes new since the user's previous picks feed — marks those "New". */
   newPickCodes?: string[];
-  /** Watchlist ∪ holdings codes — personalizes the buys group. */
+  /** Watchlist ∪ holdings codes — personalizes the buys tab. */
   watchCodes: string[];
 }) {
-  const hasPicks = picks.length > 0;
-  const hasBuys = buys.length > 0;
-  const hasTips = tips.length > 0;
+  const tabs = useMemo(() => {
+    const t: Tab[] = [];
+    if (picks.length > 0)
+      t.push({ key: "picks", label: "Picks", count: picks.length, accent: PICKS_ACCENT, href: "/stock-recommendation" });
+    if (buys.length > 0)
+      t.push({ key: "buys", label: "Buys", count: buys.length, accent: BUYS_ACCENT, href: "/buy-sell-signals" });
+    if (tips.length > 0)
+      t.push({ key: "tips", label: "Tips", count: tips.length, accent: TIPS_ACCENT, href: "/daily-tips" });
+    return t;
+  }, [picks.length, buys.length, tips.length]);
 
-  const newPicks = useMemo(
-    () => new Set((newPickCodes ?? []).map((c) => c.toUpperCase())),
-    [newPickCodes],
-  );
+  // Remembered tab, but only if it's still available today; else the first one.
+  const [stored, setStored] = useState<TabKey | null>(null);
+  useEffect(() => setStored(readTab()), []);
+  const [chosen, setChosen] = useState<TabKey | null>(null);
+  const has = (k: TabKey | null): k is TabKey => !!k && tabs.some((t) => t.key === k);
+  const activeKey: TabKey | null = has(chosen) ? chosen : has(stored) ? stored : tabs[0]?.key ?? null;
+  const active = tabs.find((t) => t.key === activeKey);
+
+  function pick(key: TabKey) {
+    setChosen(key);
+    try {
+      localStorage.setItem(TAB_KEY, key);
+    } catch {}
+  }
+
+  const newPicks = useMemo(() => new Set((newPickCodes ?? []).map((c) => c.toUpperCase())), [newPickCodes]);
   const watch = useMemo(() => new Set(watchCodes.map((c) => c.toUpperCase())), [watchCodes]);
-  const watchBuys = useMemo(
-    () => buys.filter((b) => watch.has(b.trading_code.toUpperCase())),
-    [buys, watch],
-  );
+  const watchBuys = useMemo(() => buys.filter((b) => watch.has(b.trading_code.toUpperCase())), [buys, watch]);
   const buyRows = useMemo(() => sortBuys(buys, watch).slice(0, ROWS), [buys, watch]);
   const pickRows = useMemo(() => picks.slice(0, ROWS), [picks]);
 
@@ -249,233 +196,237 @@ export default function IdeasCard({
 
   // "Flipped to buy since your last visit" — diff the whole buy set (stable
   // order) so the tags don't churn as the lists refresh.
-  const buyKey = useMemo(
-    () => sortBuys(buys, watch).map((b) => b.trading_code).join(","),
-    [buys, watch],
-  );
+  const buyKey = useMemo(() => sortBuys(buys, watch).map((b) => b.trading_code).join(","), [buys, watch]);
   useEffect(() => {
     if (buyKey) setBuyDelta(getListDelta("home.buysignals", buyKey.split(",")));
   }, [buyKey]);
 
-  if (!hasPicks && !hasBuys && !hasTips) return null;
+  if (!active) return null;
 
-  const panels: React.ReactNode[] = [];
-
-  /* ── Picked for you (clay) ── */
-  if (hasPicks) {
-    panels.push(
-      <GroupPanel key="picks" accent={PICKS_ACCENT}>
-        <GroupHeader
-          icon={SPARKLE_SM}
-          label="Picked for you"
-          accent={PICKS_ACCENT}
-          href="/stock-recommendation"
-          seeAll={picks.length > ROWS ? `See all ${picks.length}` : "See all"}
-          action={
-            tuned ? (
-              <button
-                type="button"
-                onClick={() => setTuneOpen(true)}
-                className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-[0.68rem] font-bold text-[var(--primary)] shadow-sm transition hover:brightness-105 active:scale-95"
-              >
-                {TUNE}
-                Tune
-              </button>
-            ) : undefined
-          }
-        />
-
-        {!tuned && (
-          <button
-            type="button"
-            onClick={() => setTuneOpen(true)}
-            className="mb-2 flex w-full items-center gap-3 rounded-xl border border-[color-mix(in_srgb,var(--primary)_30%,var(--border))] bg-[var(--surface)] p-3 text-left transition hover:brightness-[0.99] active:scale-[0.99]"
-          >
-            <span
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-white"
-              style={{ background: "var(--primary)" }}
-              aria-hidden
-            >
-              {SPARKLE}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-[0.84rem] font-bold leading-tight text-[var(--text)]">
-                Make these picks yours
-              </span>
-              <span className="block text-[0.74rem] leading-snug text-[var(--text-muted)]">
-                Tell us what you like → get stocks matched to you, fresh daily.
-              </span>
-            </span>
-            <span
-              className="shrink-0 rounded-lg px-3 py-2 text-[0.74rem] font-bold text-white"
-              style={{ background: "var(--primary)" }}
-            >
-              Personalize →
-            </span>
-          </button>
-        )}
-
-        <div className="space-y-1">
-          {pickRows.map((p, i) => {
-            const match = Math.max(0, Math.min(100, Math.round(p.match_score)));
-            const why = p.reasons[0] || p.company_name || "";
-            return (
-              <div
-                key={p.trading_code}
-                className="group -mx-2 flex items-center gap-1 rounded-xl px-2 transition hover:bg-[var(--surface)] hover:shadow-sm"
-              >
-                <Link
-                  prefetch={false}
-                  href={`/stock/${p.trading_code}`}
-                  className="flex min-w-0 flex-1 items-center gap-3 py-2"
-                >
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-[1.05rem]" style={badgeStyle(PICKS_ACCENT)} aria-hidden>
-                    {MEDALS[i] ?? "⭐"}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className={TICKER}>{p.trading_code}</span>
-                      <span className="shrink-0 text-[0.72rem] font-bold tabular-nums text-[var(--primary)]">
-                        {match}% match
-                      </span>
-                      {newPicks.has(p.trading_code.toUpperCase()) && <NewTag />}
-                    </div>
-                    {why && <span className={WHY}>{why}</span>}
-                  </div>
-                  <PriceCell ltp={p.ltp} chg={p.change_pct} />
-                </Link>
-                <StarButton code={p.trading_code} size="sm" className="shrink-0" />
-              </div>
-            );
-          })}
-        </div>
-      </GroupPanel>,
-    );
-  }
-
-  /* ── Buy signals today (emerald) ── */
-  if (hasBuys) {
-    panels.push(
-      <GroupPanel key="buys" accent={BUYS_ACCENT}>
-        <GroupHeader
-          icon={UP_SM}
-          label="Buy signals today"
-          accent={BUYS_ACCENT}
-          href="/buy-sell-signals"
-          seeAll={`See all ${buys.length}`}
-        />
-
-        {watchBuys.length > 0 && (
-          <p className="mb-2 flex items-center gap-1.5 text-[0.74rem] font-semibold leading-snug text-[var(--text-muted)]">
-            <span style={{ color: "var(--gold-ink)" }} aria-hidden>★</span>
-            <span>
-              <b className="text-[var(--text)]">
-                {watchBuys.length} {watchBuys.length === 1 ? "stock" : "stocks"}
-              </b>{" "}
-              {watchBuys.length === 1 ? "you follow is" : "you follow are"} a buy today
-            </span>
-          </p>
-        )}
-
-        <div className="space-y-1">
-          {buyRows.map((item) => {
-            const code = item.trading_code.toUpperCase();
-            const tier = getTier(item.score);
-            const fresh = buyDelta.newCodes.has(code);
-            return (
-              <div
-                key={item.trading_code}
-                className="group -mx-2 flex items-center gap-1 rounded-xl px-2 transition hover:bg-[var(--surface)] hover:shadow-sm"
-              >
-                <Link
-                  prefetch={false}
-                  href={`/stock/${item.trading_code}`}
-                  className="flex min-w-0 flex-1 items-center gap-3 py-2"
-                >
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl" style={badgeStyle(BUYS_ACCENT)} aria-hidden>
-                    {UP_ARROW}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span className={TICKER}>{item.trading_code}</span>
-                      {item.score != null && <TierPill tier={tier} size="sm" />}
-                      {item.signal && (
-                        <SignalChip signal={item.signal.signal} strength={item.signal.strength} size="sm" />
-                      )}
-                      {fresh && <NewTag />}
-                    </div>
-                    {item.signal?.reason_en && <span className={WHY}>{item.signal.reason_en}</span>}
-                  </div>
-                  <PriceCell ltp={item.ltp} chg={item.change_pct} />
-                </Link>
-                <StarButton code={item.trading_code} size="sm" className="shrink-0" />
-              </div>
-            );
-          })}
-        </div>
-      </GroupPanel>,
-    );
-  }
-
-  /* ── Daily tips (teal) ── */
-  if (hasTips) {
-    panels.push(
-      <GroupPanel key="tips" accent={TIPS_ACCENT}>
-        <GroupHeader
-          icon={BULB_SM}
-          label="Daily tips"
-          accent={TIPS_ACCENT}
-          href="/daily-tips"
-          seeAll={tips.length > ROWS ? `See all ${tips.length}` : "See all"}
-        />
-        <div className="space-y-1">
-          {tips.slice(0, ROWS).map((tip) => {
-            const meta = TIP_META[tip.category] ?? TIP_FALLBACK;
-            const metric = tip.facts?.[0]?.value;
-            const summary = tip.text.includes(" — ")
-              ? tip.text.slice(tip.text.indexOf(" — ") + 3)
-              : tip.text;
-            return (
-              <Link
-                key={`${tip.category}-${tip.trading_code}`}
-                prefetch={false}
-                href={`/stock/${tip.trading_code}`}
-                className="group -mx-2 flex items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-[var(--surface)] hover:shadow-sm"
-              >
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-[1.05rem]" style={badgeStyle(meta.color)} aria-hidden>
-                  {meta.icon}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className={TICKER}>{tip.trading_code}</span>
-                    <span
-                      className="shrink-0 text-[0.62rem] font-extrabold uppercase tracking-[0.07em]"
-                      style={{ color: meta.color }}
-                    >
-                      {meta.tag}
-                    </span>
-                  </div>
-                  <span className={WHY}>{summary}</span>
-                </div>
-                {metric && (
-                  <span
-                    className="shrink-0 rounded-md px-2 py-1 text-[0.72rem] font-bold tabular-nums"
-                    style={{ color: meta.color, background: `color-mix(in srgb, ${meta.color} 14%, transparent)` }}
-                  >
-                    {metric}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
-        </div>
-      </GroupPanel>,
-    );
-  }
+  const seeAll = active.count > ROWS ? `See all ${active.count}` : "See all";
 
   return (
     <>
-      <div className="space-y-3">{panels}</div>
+      <Card as="section" padding="none" className="overflow-hidden">
+        <DashHeader
+          title={title}
+          chips={chips}
+          right={
+            <span className="flex shrink-0 items-center gap-2">
+              {active.key === "picks" && tuned && (
+                <button
+                  type="button"
+                  onClick={() => setTuneOpen(true)}
+                  className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-[0.68rem] font-bold text-[var(--primary)] transition hover:bg-[var(--surface-2)] active:scale-95"
+                >
+                  <IconTune size={12} />
+                  Tune
+                </button>
+              )}
+              <Link
+                href={active.href}
+                prefetch={false}
+                className="text-xs font-semibold text-[var(--primary)] hover:underline active:opacity-70"
+              >
+                {seeAll} →
+              </Link>
+            </span>
+          }
+        />
+
+        {/* Segmented control — only when there is more than one tab. */}
+        {tabs.length > 1 && (
+          <div
+            role="tablist"
+            aria-label="Idea type"
+            className="mx-4 mt-3 grid gap-1 rounded-xl bg-[var(--surface-2)] p-1 sm:mx-5"
+            style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
+          >
+            {tabs.map((t) => {
+              const on = t.key === active.key;
+              return (
+                <button
+                  key={t.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={on}
+                  onClick={() => pick(t.key)}
+                  className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-[0.8rem] font-bold transition-colors ${
+                    on
+                      ? "bg-[var(--surface)] text-[var(--text)] shadow-sm"
+                      : "text-[var(--text-muted)] active:bg-[var(--surface)]"
+                  }`}
+                >
+                  <span
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ background: t.accent, opacity: on ? 1 : 0.45 }}
+                    aria-hidden
+                  />
+                  {t.label}
+                  <span className="text-[0.68rem] font-extrabold tabular-nums" style={{ color: on ? t.accent : undefined }}>
+                    {t.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ── Picks ── */}
+        {active.key === "picks" && (
+          <div className="pt-1">
+            {!tuned && (
+              <button
+                type="button"
+                onClick={() => setTuneOpen(true)}
+                className="mx-4 mt-2 flex w-[calc(100%-2rem)] items-center gap-3 rounded-xl border border-[color-mix(in_srgb,var(--primary)_30%,var(--border))] bg-[color-mix(in_srgb,var(--primary)_5%,var(--surface))] p-3 text-left transition active:scale-[0.99] sm:mx-5 sm:w-[calc(100%-2.5rem)]"
+              >
+                <span
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-white"
+                  style={{ background: PICKS_ACCENT }}
+                  aria-hidden
+                >
+                  <IconSparkle size={18} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[0.84rem] font-bold leading-tight text-[var(--text)]">
+                    Make these picks yours
+                  </span>
+                  <span className="block text-[0.75rem] leading-snug text-[var(--text-muted)]">
+                    Tell us what you like and get stocks matched to you, fresh daily.
+                  </span>
+                </span>
+                <span
+                  className="shrink-0 rounded-lg px-3 py-2 text-[0.75rem] font-bold text-white"
+                  style={{ background: PICKS_ACCENT }}
+                >
+                  Personalize
+                </span>
+              </button>
+            )}
+            <div className="mt-1 divide-y divide-[var(--cell-rule)]">
+              {pickRows.map((p, i) => {
+                const match = Math.max(0, Math.min(100, Math.round(p.match_score)));
+                const why = p.reasons[0] || p.company_name || "";
+                return (
+                  <div key={p.trading_code} className={ROW}>
+                    <Link
+                      prefetch={false}
+                      href={`/stock/${p.trading_code}`}
+                      className="flex min-w-0 flex-1 items-center gap-3 py-2.5"
+                    >
+                      <Badge accent={PICKS_ACCENT}>{i + 1}</Badge>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className={TICKER}>{p.trading_code}</span>
+                          <span className="shrink-0 text-[0.75rem] font-bold tabular-nums" style={{ color: PICKS_ACCENT }}>
+                            {match}% match
+                          </span>
+                          {newPicks.has(p.trading_code.toUpperCase()) && <NewTag />}
+                        </div>
+                        {why && <span className={WHY}>{why}</span>}
+                      </div>
+                      <PriceCell ltp={p.ltp} chg={p.change_pct} />
+                    </Link>
+                    <StarButton code={p.trading_code} size="sm" className="shrink-0" />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── Buys ── */}
+        {active.key === "buys" && (
+          <div className="pt-1">
+            {watchBuys.length > 0 && (
+              <p className="mx-4 mt-2 text-[0.75rem] font-semibold leading-snug text-[var(--text-muted)] sm:mx-5">
+                <b className="text-[var(--text)]">
+                  {watchBuys.length} {watchBuys.length === 1 ? "stock" : "stocks"}
+                </b>{" "}
+                {watchBuys.length === 1 ? "you follow is" : "you follow are"} a buy today
+              </p>
+            )}
+            <div className="mt-1 divide-y divide-[var(--cell-rule)]">
+              {buyRows.map((item) => {
+                const code = item.trading_code.toUpperCase();
+                const fresh = buyDelta.newCodes.has(code);
+                return (
+                  <div key={item.trading_code} className={ROW}>
+                    <Link
+                      prefetch={false}
+                      href={`/stock/${item.trading_code}`}
+                      className="flex min-w-0 flex-1 items-center gap-3 py-2.5"
+                    >
+                      <Badge accent={BUYS_ACCENT}>
+                        <IconArrowUp size={16} />
+                      </Badge>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className={TICKER}>{item.trading_code}</span>
+                          {item.score != null && <TierPill tier={getTier(item.score)} size="sm" />}
+                          {item.signal && (
+                            <SignalChip signal={item.signal.signal} strength={item.signal.strength} size="sm" />
+                          )}
+                          {fresh && <NewTag />}
+                        </div>
+                        {item.signal?.reason_en && <span className={WHY}>{item.signal.reason_en}</span>}
+                      </div>
+                      <PriceCell ltp={item.ltp} chg={item.change_pct} />
+                    </Link>
+                    <StarButton code={item.trading_code} size="sm" className="shrink-0" />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── Tips ── */}
+        {active.key === "tips" && (
+          <div className="mt-2 divide-y divide-[var(--cell-rule)]">
+            {tips.slice(0, ROWS).map((tip) => {
+              const meta = TIP_META[tip.category] ?? TIP_FALLBACK;
+              const metric = tip.facts?.[0]?.value;
+              const summary = tip.text.includes(" — ")
+                ? tip.text.slice(tip.text.indexOf(" — ") + 3)
+                : tip.text;
+              return (
+                <Link
+                  key={`${tip.category}-${tip.trading_code}`}
+                  prefetch={false}
+                  href={`/stock/${tip.trading_code}`}
+                  className={`${ROW} gap-3 py-2.5`}
+                >
+                  <Badge accent={meta.color}>
+                    <IconBulb size={16} />
+                  </Badge>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className={TICKER}>{tip.trading_code}</span>
+                      <span
+                        className="shrink-0 text-[0.68rem] font-extrabold uppercase tracking-[0.07em]"
+                        style={{ color: meta.color }}
+                      >
+                        {meta.tag}
+                      </span>
+                    </div>
+                    <span className={WHY}>{summary}</span>
+                  </div>
+                  {metric && (
+                    <span
+                      className="shrink-0 rounded-md px-2 py-1 text-[0.75rem] font-bold tabular-nums"
+                      style={{ color: meta.color, background: `color-mix(in srgb, ${meta.color} 14%, transparent)` }}
+                    >
+                      {metric}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </Card>
       <TuneModal open={tuneOpen} sectors={sectors} onClose={() => setTuneOpen(false)} onComplete={onTuned} />
     </>
   );

@@ -26,7 +26,7 @@ export default function MoneyHeroGhost({ greeting }: { greeting?: ReactNode }) {
         <div className="px-4 sm:px-5 pt-4 pb-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <p className="text-[0.62rem] font-extrabold uppercase tracking-[0.18em] text-[var(--primary)]">
+              <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.18em] text-[var(--primary)]">
                 Your money today
               </p>
               <div className="mt-1 text-[clamp(1.6rem,7vw,2rem)] font-extrabold tabular-nums nums text-[var(--text)] leading-tight">
@@ -38,11 +38,11 @@ export default function MoneyHeroGhost({ greeting }: { greeting?: ReactNode }) {
               <p className="mt-1 text-[0.68rem] font-medium text-[var(--text-muted)]">Updating live through the day</p>
             </div>
             <div
-              className="flex h-14 w-14 sm:h-16 sm:w-16 shrink-0 flex-col items-center justify-center rounded-2xl border-2"
+              className="flex h-16 w-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-2xl border-2"
               style={{ color: "var(--positive)", borderColor: "var(--positive)", background: "var(--surface-2)" }}
             >
-              <span className="text-2xl sm:text-3xl font-black leading-none">A</span>
-              <span className="text-[0.5rem] font-bold uppercase tracking-wide">Excellent</span>
+              <span className="text-[1.65rem] font-black leading-none">A</span>
+              <span className="text-[0.68rem] font-bold uppercase tracking-wide leading-none">Excellent</span>
             </div>
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-1.5">

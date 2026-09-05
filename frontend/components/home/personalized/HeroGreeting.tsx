@@ -21,13 +21,11 @@ export default function HeroGreeting({
   name,
   dateStr,
   isNew = false,
-  watchlistCount = 0,
 }: {
   name?: string | null;
   dateStr: string;
   /** First render right after signup — greet as new instead of time-of-day. */
   isNew?: boolean;
-  watchlistCount?: number;
 }) {
   const greeting = isNew ? "Welcome to TopStockBD" : greetingForHour(bstHour());
 
@@ -35,7 +33,7 @@ export default function HeroGreeting({
     <div>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
             {dateStr}
           </p>
           <h1 className="mt-0.5 text-[clamp(1.15rem,4.6vw,1.5rem)] font-extrabold tracking-tight leading-tight text-[var(--text)]">
@@ -47,13 +45,10 @@ export default function HeroGreeting({
         <MarketStatusPill compact className="mt-0.5 shrink-0" />
       </div>
 
-      <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-[0.8rem] text-[var(--text-muted)]">
-        {watchlistCount > 0 && (
-          <span className="font-medium">
-            Following {watchlistCount} {watchlistCount === 1 ? "stock" : "stocks"}
-          </span>
-        )}
-        <StreakBadge leadingDot={watchlistCount > 0} />
+      {/* Follow-count was dropped — "Your stocks today" already shows it as
+          "View all N". Only the streak stays, and only when there is one. */}
+      <div className="mt-1 flex flex-wrap items-center text-[0.8rem] text-[var(--text-muted)] empty:hidden">
+        <StreakBadge />
       </div>
     </div>
   );

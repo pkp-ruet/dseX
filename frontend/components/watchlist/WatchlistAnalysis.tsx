@@ -9,6 +9,7 @@ import {
   type ScoresResponse,
   type NearExtremesData,
   type DividendsUpcoming,
+  type WatchlistMeta,
 } from "@/lib/api";
 import { getTier, TIER_LABELS, TIER_LABELS_BN, TIER_VAR, type TierKey } from "@/lib/constants";
 
@@ -88,25 +89,30 @@ const ICONS = {
   ),
 };
 
-/** Card with a tinted header strip: icon chip + English title + Bengali subtitle. */
+/** Collapsible card: tinted header strip (icon chip + English title + Bengali
+ *  subtitle + item count) is the <summary>; body opens on tap. */
 function Section({
   tone = "primary",
   icon,
   title,
   titleBn,
+  count,
+  defaultOpen = false,
   children,
 }: {
   tone?: Tone;
   icon: React.ReactNode;
   title: string;
   titleBn: string;
+  count?: number;
+  defaultOpen?: boolean;
   children: React.ReactNode;
 }) {
   const c = TONE_COLOR[tone];
   return (
-    <Card padding="none" className="overflow-hidden">
-      <div
-        className="flex items-center gap-2.5 border-b border-[var(--border)] px-4 py-3 sm:px-5"
+    <details className="soft-card wl-story-section overflow-hidden" open={defaultOpen || undefined}>
+      <summary
+        className="wl-story-summary flex cursor-pointer select-none items-center gap-2.5 px-4 py-3 sm:px-5"
         style={{ background: `color-mix(in srgb, ${c} 5%, var(--surface))` }}
       >
         <span
@@ -120,7 +126,7 @@ function Section({
         >
           {icon}
         </span>
-        <div className="min-w-0 flex flex-wrap items-baseline gap-x-2">
+        <div className="min-w-0 flex-1 flex flex-wrap items-baseline gap-x-2">
           <h3 className="text-sm sm:text-[15px] font-bold leading-tight text-[var(--text)]">
             {title}
           </h3>
@@ -128,9 +134,31 @@ function Section({
             {titleBn}
           </p>
         </div>
-      </div>
-      <div className="px-4 py-4 sm:px-5">{children}</div>
-    </Card>
+        {count != null && count > 0 && (
+          <span
+            className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold nums"
+            style={{ color: c, background: `color-mix(in srgb, ${c} 12%, transparent)` }}
+          >
+            {count}
+          </span>
+        )}
+        <svg
+          className="wl-story-chevron shrink-0 text-[var(--text-muted)]"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </summary>
+      <div className="border-t border-[var(--border)] px-4 py-4 sm:px-5">{children}</div>
+    </details>
   );
 }
 
@@ -283,9 +311,24 @@ interface Props {
   scores: ScoresResponse | null;
   extremes: NearExtremesData | null;
   dividends: DividendsUpcoming | null;
+  /** Per-code "added on" meta — powers the "since you added" stat. */
+  meta?: WatchlistMeta;
+  /**
+   * `snapshot` = the one-card summary (headline, mood, stat tiles, quality mix)
+   * meant to sit above the table. `details` = the collapsible deep-dive
+   * sections meant to sit below it. `all` = both (legacy).
+   */
+  mode?: "snapshot" | "details" | "all";
 }
 
-export default function WatchlistAnalysis({ codes, scores, extremes, dividends }: Props) {
+export default function WatchlistAnalysis({
+  codes,
+  scores,
+  extremes,
+  dividends,
+  meta,
+  mode = "all",
+}: Props) {
   const codeSet = useMemo(() => new Set(codes.map((c) => c.toUpperCase())), [codes]);
 
   const rows = useMemo<ScoreItem[]>(() => {
@@ -294,6 +337,20 @@ export default function WatchlistAnalysis({ codes, scores, extremes, dividends }
       .filter((it) => codeSet.has(it.trading_code.toUpperCase()))
       .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
   }, [scores, codeSet]);
+
+  // Average move since each stock was followed (only codes with a recorded
+  // price at add). One number for "is this list working out?".
+  const sinceAdded = useMemo(() => {
+    if (!meta) return null;
+    const pcts: number[] = [];
+    for (const r of rows) {
+      const m = meta[r.trading_code.toUpperCase()];
+      if (!m || m.price_at_add == null || m.price_at_add <= 0 || r.ltp == null) continue;
+      pcts.push(((r.ltp - m.price_at_add) / m.price_at_add) * 100);
+    }
+    if (pcts.length === 0) return null;
+    return { avg: pcts.reduce((a, b) => a + b, 0) / pcts.length, n: pcts.length };
+  }, [meta, rows]);
 
   const story = useMemo(() => {
     if (!rows.length || !scores) return null;
@@ -486,6 +543,9 @@ export default function WatchlistAnalysis({ codes, scores, extremes, dividends }
 
   if (codes.length === 0) return null;
 
+  const showSnapshot = mode === "snapshot" || mode === "all";
+  const showDetails = mode === "details" || mode === "all";
+
   const header = (
     <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-1">
       <div>
@@ -503,9 +563,9 @@ export default function WatchlistAnalysis({ codes, scores, extremes, dividends }
   );
 
   if (!rows.length || !story) {
+    if (!showSnapshot) return null;
     return (
-      <section className="mt-8 flex flex-col gap-3">
-        {header}
+      <section className="mb-4 flex flex-col gap-3">
         <Card padding="none" className="p-5">
           <p className="text-sm text-[var(--text)]">No scored stocks in your watchlist yet.</p>
           <p lang="bn" className="font-bn mt-1 text-[13px] font-medium text-[var(--text-muted)]">
@@ -516,183 +576,393 @@ export default function WatchlistAnalysis({ codes, scores, extremes, dividends }
     );
   }
 
+  // ---- Snapshot card ------------------------------------------------------
+  const snapshot = (
+    <Card padding="none" className="p-4 sm:p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-base sm:text-lg font-semibold leading-relaxed text-[var(--text)]">
+            {story.headline}
+          </p>
+          <p lang="bn" className="font-bn mt-1.5 text-[15px] font-semibold leading-relaxed text-[var(--text)]">
+            {story.headlineBn}
+          </p>
+        </div>
+        {mode === "snapshot" && (
+          <span className="hidden sm:block shrink-0 text-[10px] text-[var(--text-muted)]">
+            Auto-generated
+          </span>
+        )}
+      </div>
+
+      <div className="mt-4">
+        <MoodGauge value={story.avgChg} />
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {sinceAdded ? (
+          <StatTile
+            label="Since added"
+            labelBn={`যোগ করার পর (${sinceAdded.n}টি)`}
+            value={`${sinceAdded.avg > 0 ? "+" : ""}${sinceAdded.avg.toFixed(1)}%`}
+            color={
+              sinceAdded.avg > 0
+                ? "var(--positive)"
+                : sinceAdded.avg < 0
+                  ? "var(--negative)"
+                  : undefined
+            }
+          />
+        ) : (
+          <StatTile label="Stocks" labelBn="মোট স্টক" value={String(rows.length)} />
+        )}
+        <StatTile
+          label="Avg score"
+          labelBn="গড় স্কোর"
+          value={story.avgScore != null ? String(Math.round(story.avgScore)) : "—"}
+          color={story.avgScore != null ? TIER_VAR[getTier(story.avgScore)] : undefined}
+        />
+        <StatTile
+          label="Up today"
+          labelBn="আজ বেড়েছে"
+          value={String(story.upToday.length)}
+          color="var(--positive)"
+        />
+        <StatTile
+          label="Down today"
+          labelBn="আজ কমেছে"
+          value={String(story.downToday.length)}
+          color="var(--negative)"
+        />
+      </div>
+
+      <div className="mt-4">
+        <TierMixBar counts={story.tierCounts} total={rows.length} />
+      </div>
+    </Card>
+  );
+
+  if (!showDetails) {
+    return <section className="mb-4">{snapshot}</section>;
+  }
+
+  // ---- Detail sections (each built as an item list so the header can show
+  //      a count while collapsed) -------------------------------------------
+  const basketItems: React.ReactNode[] = [
+    <StoryItem
+      key="quality"
+      tone={story.qualityPct >= 50 ? "good" : "warn"}
+      label={`${Math.round(story.qualityPct)}% quality`}
+      bn={`${rows.length}টির মধ্যে ${story.qualityCount}টি স্টক ভালো মানের (Excellent বা Good)।`}
+    >
+      {story.qualityCount} of {rows.length} stocks rate Excellent or Good
+      {story.tierCodes.excellent.length > 0 && (
+        <>. Best of the lot: {inlineList(story.tierCodes.excellent.slice(0, 3))}</>
+      )}
+      .
+    </StoryItem>,
+  ];
+  if (story.topScorer) {
+    basketItems.push(
+      <StoryItem
+        key="strongest"
+        tone="primary"
+        label="Strongest vs weakest"
+        bn={`সবচেয়ে শক্ত ${story.topScorer.trading_code}${story.bottomScorer ? `, সবচেয়ে দুর্বল ${story.bottomScorer.trading_code}` : ""}।`}
+      >
+        <CodeChip code={story.topScorer.trading_code} /> leads with score{" "}
+        <span className="font-bold nums">{Math.round(story.topScorer.score!)}</span>
+        {story.bottomScorer && (
+          <>
+            , while <CodeChip code={story.bottomScorer.trading_code} /> sits at the bottom with{" "}
+            <span className="font-bold nums">{Math.round(story.bottomScorer.score!)}</span>
+          </>
+        )}
+        .
+      </StoryItem>,
+    );
+  }
+  if (story.dominantSector) {
+    basketItems.push(
+      <StoryItem
+        key="sector"
+        tone={story.isConcentrated ? "warn" : "primary"}
+        label="Sector tilt"
+        bn={
+          story.isConcentrated
+            ? `তালিকার ${Math.round(story.sectorConcentrationPct)}% স্টকই ${story.dominantSector[0]} খাতে — একটু ছড়িয়ে দিলে ঝুঁকি কমে।`
+            : `স্টকগুলো ${story.sectorsSorted.length}টি খাতে ছড়ানো, সবচেয়ে বেশি ${story.dominantSector[0]} খাতে।`
+        }
+      >
+        {story.isConcentrated ? (
+          <>
+            Heavy on <span className="font-bold">{story.dominantSector[0]}</span> —{" "}
+            {Math.round(story.sectorConcentrationPct)}% of your list. Consider diversifying.
+          </>
+        ) : (
+          <>
+            Spread across {story.sectorsSorted.length} sector
+            {story.sectorsSorted.length > 1 ? "s" : ""}, led by{" "}
+            <span className="font-bold">{story.dominantSector[0]}</span> (
+            {story.dominantSector[1]} stock{story.dominantSector[1] > 1 ? "s" : ""}).
+          </>
+        )}
+      </StoryItem>,
+    );
+  }
+  basketItems.push(
+    <StoryItem
+      key="personality"
+      tone="primary"
+      label="Personality"
+      bn={
+        story.dividendPct >= 60
+          ? `আপনার তালিকা ডিভিডেন্ড-বান্ধব — ${story.dividendPayers.length}টি কোম্পানি শেয়ারহোল্ডারদের টাকা দেয়।`
+          : story.epsGrowers.length > story.dividendPayers.length
+            ? `আপনার তালিকা গ্রোথ-মুখী — ${story.epsGrowers.length}টি কোম্পানির আয় দ্রুত বাড়ছে।`
+            : `ডিভিডেন্ড আর গ্রোথ — দুটোরই মিশ্রণ আছে আপনার তালিকায়।`
+      }
+    >
+      {story.dividendPct >= 60 ? (
+        <>
+          Income-leaning — {story.dividendPayers.length} stocks pay dividends
+          {story.highestYield?.div_yield_pct != null && (
+            <>
+              , best yield from <CodeChip code={story.highestYield.trading_code} /> at{" "}
+              {story.highestYield.div_yield_pct.toFixed(1)}%
+            </>
+          )}
+          .
+        </>
+      ) : story.epsGrowers.length > story.dividendPayers.length ? (
+        <>
+          Growth-leaning — {story.epsGrowers.length} stocks grew EPS &gt; 10% YoY
+          {story.bestGrower?.eps_yoy_pct != null && (
+            <>
+              , fastest is <CodeChip code={story.bestGrower.trading_code} /> at +
+              {story.bestGrower.eps_yoy_pct.toFixed(0)}%
+            </>
+          )}
+          .
+        </>
+      ) : (
+        <>
+          Mixed — {story.dividendPayers.length} dividend payer
+          {story.dividendPayers.length === 1 ? "" : "s"}, {story.epsGrowers.length} fast grower
+          {story.epsGrowers.length === 1 ? "" : "s"}.
+        </>
+      )}
+    </StoryItem>,
+  );
+  if (story.nearHigh.length > 0 || story.nearLow.length > 0) {
+    basketItems.push(
+      <StoryItem
+        key="position"
+        tone="primary"
+        label="Price position"
+        bn={`${story.nearHigh.length > 0 ? `${story.nearHigh.length}টি স্টক বছরের সর্বোচ্চ দামের কাছে` : ""}${story.nearHigh.length > 0 && story.nearLow.length > 0 ? ", " : ""}${story.nearLow.length > 0 ? `${story.nearLow.length}টি সর্বনিম্নের কাছে` : ""}।`}
+      >
+        {story.nearHigh.length > 0 && (
+          <>
+            {story.nearHigh.length} near the 52-week high (
+            {inlineList(story.nearHigh.map((r) => r.trading_code), 3)})
+          </>
+        )}
+        {story.nearHigh.length > 0 && story.nearLow.length > 0 && <>, </>}
+        {story.nearLow.length > 0 && (
+          <>
+            {story.nearLow.length} near the 52-week low (
+            {inlineList(story.nearLow.map((r) => r.trading_code), 3)})
+          </>
+        )}
+        .
+      </StoryItem>,
+    );
+  }
+
+  const todayItems: React.ReactNode[] = [];
+  if (story.topGainer) {
+    todayItems.push(
+      <StoryItem key="best" tone="good" label="Best">
+        <CodeChip code={story.topGainer.trading_code} /> led the gainers, up{" "}
+        <span className="font-bold text-[var(--positive)] nums">
+          +{story.topGainer.change_pct!.toFixed(2)}%
+        </span>
+        .
+      </StoryItem>,
+    );
+  }
+  if (story.topLoser) {
+    todayItems.push(
+      <StoryItem key="worst" tone="bad" label="Worst">
+        <CodeChip code={story.topLoser.trading_code} /> dragged, off{" "}
+        <span className="font-bold text-[var(--negative)] nums">
+          {story.topLoser.change_pct!.toFixed(2)}%
+        </span>
+        .
+      </StoryItem>,
+    );
+  }
+  if (story.upToday.length > story.downToday.length * 2 && story.upToday.length >= 3) {
+    todayItems.push(
+      <StoryItem key="breadth-up" tone="good" label="Breadth">
+        Broad-based strength — most of your list closed green.
+      </StoryItem>,
+    );
+  }
+  if (story.downToday.length > story.upToday.length * 2 && story.downToday.length >= 3) {
+    todayItems.push(
+      <StoryItem key="breadth-dn" tone="bad" label="Breadth">
+        Broad-based weakness — selling pressure across most of your list.
+      </StoryItem>,
+    );
+  }
+  const quietToday = story.upToday.length === 0 && story.downToday.length === 0;
+
+  const lookItems: React.ReactNode[] = [];
+  if (story.qualityOnSale.length > 0) {
+    lookItems.push(
+      <StoryItem
+        key="sale"
+        tone="good"
+        label="Quality on sale"
+        bn="ভালো স্কোরের স্টক এখন বছরের সর্বনিম্ন দামের কাছে — সস্তায় কেনার সুযোগ হতে পারে, তবে আগে যাচাই করুন।"
+      >
+        {inlineList(story.qualityOnSale.map((r) => r.trading_code))} rate Excellent or Good AND
+        trade within 5% of the 52-week low — a possible bargain if the business still looks
+        healthy.
+      </StoryItem>,
+    );
+  } else if (story.valuePlays.length > 0) {
+    lookItems.push(
+      <StoryItem
+        key="value"
+        tone="good"
+        label="High score, low price"
+        bn="স্কোর 60-এর বেশি, কিন্তু দাম বছরের সর্বনিম্নের কাছে।"
+      >
+        {inlineList(story.valuePlays.map((r) => r.trading_code))} score 60+ and sit near 52-week
+        lows.
+      </StoryItem>,
+    );
+  }
+  if (story.dueDividends.length > 0) {
+    lookItems.push(
+      <StoryItem
+        key="div"
+        tone="primary"
+        label="Dividend dates ahead"
+        bn="আগামী 30 দিনের মধ্যে রেকর্ড ডেট — ডিভিডেন্ড পেতে হলে ওই দিনের আগে শেয়ার ধরে রাখতে হবে।"
+      >
+        {inlineList(story.dueDividends.map((d) => d.code))} have record dates in the next 30 days
+        — hold before the record date to get the dividend.
+      </StoryItem>,
+    );
+  }
+  if (story.nearHigh.length > 0) {
+    lookItems.push(
+      <StoryItem
+        key="highs"
+        tone="warn"
+        label="Pushing highs"
+        bn="বছরের সর্বোচ্চ দামের কাছাকাছি — গতি ভালো, তবে এখান থেকে দাম আটকে যেতেও পারে।"
+      >
+        {inlineList(story.nearHigh.map((r) => r.trading_code))} trade within 5% of the 52-week
+        high — momentum is strong, but the price may pause here.
+      </StoryItem>,
+    );
+  }
+
+  const riskItems: React.ReactNode[] = [];
+  if (story.avoidCodes.length > 0) {
+    riskItems.push(
+      <StoryItem
+        key="weak"
+        tone="bad"
+        label="Weak tier"
+        bn="এই স্টকগুলোর স্কোর 45-এর নিচে — কেন রেখেছেন, আরেকবার ভেবে দেখুন।"
+      >
+        {inlineList(story.avoidCodes)} score below 45 — review why you hold them, or consider
+        trimming.
+      </StoryItem>,
+    );
+  }
+  if (story.weakBalance.length > 0) {
+    riskItems.push(
+      <StoryItem
+        key="balance"
+        tone="warn"
+        label="Weak balance sheet"
+        bn="এই কোম্পানিগুলোর ধারদেনা বা নগদ টাকার অবস্থা দুর্বল।"
+      >
+        {inlineList(story.weakBalance.map((r) => r.trading_code))} score low on financial health
+        — debt or cash position is a worry.
+      </StoryItem>,
+    );
+  }
+  if (story.overValued.length > 0) {
+    riskItems.push(
+      <StoryItem
+        key="expensive"
+        tone="warn"
+        label="Looks expensive"
+        bn="নিজেদের ইতিহাসের তুলনায় এই স্টকগুলোর দাম বেশি মনে হচ্ছে।"
+      >
+        {inlineList(story.overValued.map((r) => r.trading_code))} score low on valuation — the
+        price looks stretched vs their own history.
+      </StoryItem>,
+    );
+  }
+  if (story.epsShrinkers.length > 0) {
+    riskItems.push(
+      <StoryItem
+        key="shrink"
+        tone="warn"
+        label="Earnings shrinking"
+        bn="এই কোম্পানিগুলোর আয় আগের বছরের চেয়ে কমেছে।"
+      >
+        {inlineList(story.epsShrinkers.map((r) => r.trading_code))} posted EPS drops &gt; 10%
+        year-on-year.
+      </StoryItem>,
+    );
+  }
+  if (story.isConcentrated) {
+    riskItems.push(
+      <StoryItem
+        key="concentration"
+        tone="warn"
+        label="Concentration risk"
+        bn="একটাই খাতে অনেক বেশি স্টক — খাতটা খারাপ করলে পুরো তালিকা একসাথে ভুগবে।"
+      >
+        {Math.round(story.sectorConcentrationPct)}% of your list sits in{" "}
+        <span className="font-bold">{story.dominantSector?.[0]}</span>. One sector shock would
+        hurt the whole list.
+      </StoryItem>,
+    );
+  }
+
   return (
     <section className="mt-8 flex flex-col gap-3">
       {header}
 
-      {/* 1. Snapshot — headline, mood, stat tiles, tier mix */}
-      <Card padding="none" className="p-4 sm:p-5">
-        <p className="text-base sm:text-lg font-semibold leading-relaxed text-[var(--text)]">
-          {story.headline}
-        </p>
-        <p lang="bn" className="font-bn mt-1.5 text-[15px] font-semibold leading-relaxed text-[var(--text)]">
-          {story.headlineBn}
-        </p>
+      {showSnapshot && snapshot}
 
-        <div className="mt-4">
-          <MoodGauge value={story.avgChg} />
-        </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <StatTile label="Stocks" labelBn="মোট স্টক" value={String(rows.length)} />
-          <StatTile
-            label="Avg score"
-            labelBn="গড় স্কোর"
-            value={story.avgScore != null ? String(Math.round(story.avgScore)) : "—"}
-            color={story.avgScore != null ? TIER_VAR[getTier(story.avgScore)] : undefined}
-          />
-          <StatTile
-            label="Up today"
-            labelBn="আজ বেড়েছে"
-            value={String(story.upToday.length)}
-            color="var(--positive)"
-          />
-          <StatTile
-            label="Down today"
-            labelBn="আজ কমেছে"
-            value={String(story.downToday.length)}
-            color="var(--negative)"
-          />
-        </div>
-
-        <div className="mt-4">
-          <TierMixBar counts={story.tierCounts} total={rows.length} />
-        </div>
-      </Card>
-
-      {/* 2. Composition — what kind of basket this is */}
       <Section
         icon={ICONS.basket}
         title="What's in your basket"
         titleBn="আপনার ঝুড়িতে কী আছে"
+        count={basketItems.length}
       >
-        <ul className="flex flex-col gap-3">
-          <StoryItem
-            tone={story.qualityPct >= 50 ? "good" : "warn"}
-            label={`${Math.round(story.qualityPct)}% quality`}
-            bn={`${rows.length}টির মধ্যে ${story.qualityCount}টি স্টক ভালো মানের (Excellent বা Good)।`}
-          >
-            {story.qualityCount} of {rows.length} stocks rate Excellent or Good
-            {story.tierCodes.excellent.length > 0 && (
-              <>. Best of the lot: {inlineList(story.tierCodes.excellent.slice(0, 3))}</>
-            )}
-            .
-          </StoryItem>
-
-          {story.topScorer && (
-            <StoryItem
-              tone="primary"
-              label="Strongest vs weakest"
-              bn={`সবচেয়ে শক্ত ${story.topScorer.trading_code}${story.bottomScorer ? `, সবচেয়ে দুর্বল ${story.bottomScorer.trading_code}` : ""}।`}
-            >
-              <CodeChip code={story.topScorer.trading_code} /> leads with score{" "}
-              <span className="font-bold nums">{Math.round(story.topScorer.score!)}</span>
-              {story.bottomScorer && (
-                <>
-                  , while <CodeChip code={story.bottomScorer.trading_code} /> sits at the bottom
-                  with <span className="font-bold nums">{Math.round(story.bottomScorer.score!)}</span>
-                </>
-              )}
-              .
-            </StoryItem>
-          )}
-
-          {story.dominantSector && (
-            <StoryItem
-              tone={story.isConcentrated ? "warn" : "primary"}
-              label="Sector tilt"
-              bn={
-                story.isConcentrated
-                  ? `তালিকার ${Math.round(story.sectorConcentrationPct)}% স্টকই ${story.dominantSector[0]} খাতে — একটু ছড়িয়ে দিলে ঝুঁকি কমে।`
-                  : `স্টকগুলো ${story.sectorsSorted.length}টি খাতে ছড়ানো, সবচেয়ে বেশি ${story.dominantSector[0]} খাতে।`
-              }
-            >
-              {story.isConcentrated ? (
-                <>
-                  Heavy on <span className="font-bold">{story.dominantSector[0]}</span> —{" "}
-                  {Math.round(story.sectorConcentrationPct)}% of your list. Consider diversifying.
-                </>
-              ) : (
-                <>
-                  Spread across {story.sectorsSorted.length} sector
-                  {story.sectorsSorted.length > 1 ? "s" : ""}, led by{" "}
-                  <span className="font-bold">{story.dominantSector[0]}</span> (
-                  {story.dominantSector[1]} stock{story.dominantSector[1] > 1 ? "s" : ""}).
-                </>
-              )}
-            </StoryItem>
-          )}
-
-          <StoryItem
-            tone="primary"
-            label="Personality"
-            bn={
-              story.dividendPct >= 60
-                ? `আপনার তালিকা ডিভিডেন্ড-বান্ধব — ${story.dividendPayers.length}টি কোম্পানি শেয়ারহোল্ডারদের টাকা দেয়।`
-                : story.epsGrowers.length > story.dividendPayers.length
-                  ? `আপনার তালিকা গ্রোথ-মুখী — ${story.epsGrowers.length}টি কোম্পানির আয় দ্রুত বাড়ছে।`
-                  : `ডিভিডেন্ড আর গ্রোথ — দুটোরই মিশ্রণ আছে আপনার তালিকায়।`
-            }
-          >
-            {story.dividendPct >= 60 ? (
-              <>
-                Income-leaning — {story.dividendPayers.length} stocks pay dividends
-                {story.highestYield?.div_yield_pct != null && (
-                  <>
-                    , best yield from <CodeChip code={story.highestYield.trading_code} /> at{" "}
-                    {story.highestYield.div_yield_pct.toFixed(1)}%
-                  </>
-                )}
-                .
-              </>
-            ) : story.epsGrowers.length > story.dividendPayers.length ? (
-              <>
-                Growth-leaning — {story.epsGrowers.length} stocks grew EPS &gt; 10% YoY
-                {story.bestGrower?.eps_yoy_pct != null && (
-                  <>
-                    , fastest is <CodeChip code={story.bestGrower.trading_code} /> at +
-                    {story.bestGrower.eps_yoy_pct.toFixed(0)}%
-                  </>
-                )}
-                .
-              </>
-            ) : (
-              <>
-                Mixed — {story.dividendPayers.length} dividend payer
-                {story.dividendPayers.length === 1 ? "" : "s"}, {story.epsGrowers.length} fast
-                grower{story.epsGrowers.length === 1 ? "" : "s"}.
-              </>
-            )}
-          </StoryItem>
-
-          {(story.nearHigh.length > 0 || story.nearLow.length > 0) && (
-            <StoryItem
-              tone="primary"
-              label="Price position"
-              bn={`${story.nearHigh.length > 0 ? `${story.nearHigh.length}টি স্টক বছরের সর্বোচ্চ দামের কাছে` : ""}${story.nearHigh.length > 0 && story.nearLow.length > 0 ? ", " : ""}${story.nearLow.length > 0 ? `${story.nearLow.length}টি সর্বনিম্নের কাছে` : ""}।`}
-            >
-              {story.nearHigh.length > 0 && (
-                <>
-                  {story.nearHigh.length} near the 52-week high (
-                  {inlineList(story.nearHigh.map((r) => r.trading_code), 3)})
-                </>
-              )}
-              {story.nearHigh.length > 0 && story.nearLow.length > 0 && <>, </>}
-              {story.nearLow.length > 0 && (
-                <>
-                  {story.nearLow.length} near the 52-week low (
-                  {inlineList(story.nearLow.map((r) => r.trading_code), 3)})
-                </>
-              )}
-              .
-            </StoryItem>
-          )}
-        </ul>
+        <ul className="flex flex-col gap-3">{basketItems}</ul>
       </Section>
 
-      {/* 3. Today's action */}
-      <Section icon={ICONS.pulse} title="What moved today" titleBn="আজ কী নড়ল">
-        {story.upToday.length === 0 && story.downToday.length === 0 ? (
+      <Section
+        icon={ICONS.pulse}
+        title="What moved today"
+        titleBn="আজ কী নড়ল"
+        count={quietToday ? undefined : todayItems.length}
+      >
+        {quietToday ? (
           <>
             <p className="text-sm text-[var(--text)]">No price action recorded today.</p>
             <p lang="bn" className="font-bn mt-1 text-[13px] font-medium text-[var(--text-muted)]">
@@ -712,36 +982,7 @@ export default function WatchlistAnalysis({ codes, scores, extremes, dividends }
                 ▼ {story.downToday.length} down
               </span>
             </div>
-            <ul className="flex flex-col gap-3">
-              {story.topGainer && (
-                <StoryItem tone="good" label="Best">
-                  <CodeChip code={story.topGainer.trading_code} /> led the gainers, up{" "}
-                  <span className="font-bold text-[var(--positive)] nums">
-                    +{story.topGainer.change_pct!.toFixed(2)}%
-                  </span>
-                  .
-                </StoryItem>
-              )}
-              {story.topLoser && (
-                <StoryItem tone="bad" label="Worst">
-                  <CodeChip code={story.topLoser.trading_code} /> dragged, off{" "}
-                  <span className="font-bold text-[var(--negative)] nums">
-                    {story.topLoser.change_pct!.toFixed(2)}%
-                  </span>
-                  .
-                </StoryItem>
-              )}
-              {story.upToday.length > story.downToday.length * 2 && story.upToday.length >= 3 && (
-                <StoryItem tone="good" label="Breadth">
-                  Broad-based strength — most of your list closed green.
-                </StoryItem>
-              )}
-              {story.downToday.length > story.upToday.length * 2 && story.downToday.length >= 3 && (
-                <StoryItem tone="bad" label="Breadth">
-                  Broad-based weakness — selling pressure across most of your list.
-                </StoryItem>
-              )}
-            </ul>
+            <ul className="flex flex-col gap-3">{todayItems}</ul>
             <p lang="bn" className="font-bn mt-3 border-t border-[var(--border)] pt-3 text-[13px] font-medium leading-relaxed text-[var(--text-muted)]">
               {story.todayBn}
             </p>
@@ -749,123 +990,27 @@ export default function WatchlistAnalysis({ codes, scores, extremes, dividends }
         )}
       </Section>
 
-      {/* 4. Opportunities */}
-      {(story.valuePlays.length > 0 ||
-        story.qualityOnSale.length > 0 ||
-        story.dueDividends.length > 0 ||
-        story.nearHigh.length > 0) && (
+      {lookItems.length > 0 && (
         <Section
           tone="good"
           icon={ICONS.eye}
           title="Worth a second look"
           titleBn="নজরে রাখার মতো"
+          count={lookItems.length}
         >
-          <ul className="flex flex-col gap-3">
-            {story.qualityOnSale.length > 0 && (
-              <StoryItem
-                tone="good"
-                label="Quality on sale"
-                bn="ভালো স্কোরের স্টক এখন বছরের সর্বনিম্ন দামের কাছে — সস্তায় কেনার সুযোগ হতে পারে, তবে আগে যাচাই করুন।"
-              >
-                {inlineList(story.qualityOnSale.map((r) => r.trading_code))} rate Excellent or
-                Good AND trade within 5% of the 52-week low — a possible bargain if the business
-                still looks healthy.
-              </StoryItem>
-            )}
-            {story.valuePlays.length > 0 && story.qualityOnSale.length === 0 && (
-              <StoryItem
-                tone="good"
-                label="High score, low price"
-                bn="স্কোর 60-এর বেশি, কিন্তু দাম বছরের সর্বনিম্নের কাছে।"
-              >
-                {inlineList(story.valuePlays.map((r) => r.trading_code))} score 60+ and sit near
-                52-week lows.
-              </StoryItem>
-            )}
-            {story.dueDividends.length > 0 && (
-              <StoryItem
-                tone="primary"
-                label="Dividend dates ahead"
-                bn="আগামী 30 দিনের মধ্যে রেকর্ড ডেট — ডিভিডেন্ড পেতে হলে ওই দিনের আগে শেয়ার ধরে রাখতে হবে।"
-              >
-                {inlineList(story.dueDividends.map((d) => d.code))} have record dates in the next
-                30 days — hold before the record date to get the dividend.
-              </StoryItem>
-            )}
-            {story.nearHigh.length > 0 && (
-              <StoryItem
-                tone="warn"
-                label="Pushing highs"
-                bn="বছরের সর্বোচ্চ দামের কাছাকাছি — গতি ভালো, তবে এখান থেকে দাম আটকে যেতেও পারে।"
-              >
-                {inlineList(story.nearHigh.map((r) => r.trading_code))} trade within 5% of the
-                52-week high — momentum is strong, but the price may pause here.
-              </StoryItem>
-            )}
-          </ul>
+          <ul className="flex flex-col gap-3">{lookItems}</ul>
         </Section>
       )}
 
-      {/* 5. Risks */}
-      {(story.avoidCodes.length > 0 ||
-        story.weakBalance.length > 0 ||
-        story.overValued.length > 0 ||
-        story.epsShrinkers.length > 0 ||
-        story.isConcentrated) && (
-        <Section tone="bad" icon={ICONS.alert} title="Heads up" titleBn="একটু সাবধান">
-          <ul className="flex flex-col gap-3">
-            {story.avoidCodes.length > 0 && (
-              <StoryItem
-                tone="bad"
-                label="Weak tier"
-                bn="এই স্টকগুলোর স্কোর 45-এর নিচে — কেন রেখেছেন, আরেকবার ভেবে দেখুন।"
-              >
-                {inlineList(story.avoidCodes)} score below 45 — review why you hold them, or
-                consider trimming.
-              </StoryItem>
-            )}
-            {story.weakBalance.length > 0 && (
-              <StoryItem
-                tone="warn"
-                label="Weak balance sheet"
-                bn="এই কোম্পানিগুলোর ধারদেনা বা নগদ টাকার অবস্থা দুর্বল।"
-              >
-                {inlineList(story.weakBalance.map((r) => r.trading_code))} score low on financial
-                health — debt or cash position is a worry.
-              </StoryItem>
-            )}
-            {story.overValued.length > 0 && (
-              <StoryItem
-                tone="warn"
-                label="Looks expensive"
-                bn="নিজেদের ইতিহাসের তুলনায় এই স্টকগুলোর দাম বেশি মনে হচ্ছে।"
-              >
-                {inlineList(story.overValued.map((r) => r.trading_code))} score low on valuation —
-                the price looks stretched vs their own history.
-              </StoryItem>
-            )}
-            {story.epsShrinkers.length > 0 && (
-              <StoryItem
-                tone="warn"
-                label="Earnings shrinking"
-                bn="এই কোম্পানিগুলোর আয় আগের বছরের চেয়ে কমেছে।"
-              >
-                {inlineList(story.epsShrinkers.map((r) => r.trading_code))} posted EPS drops &gt;
-                10% year-on-year.
-              </StoryItem>
-            )}
-            {story.isConcentrated && (
-              <StoryItem
-                tone="warn"
-                label="Concentration risk"
-                bn="একটাই খাতে অনেক বেশি স্টক — খাতটা খারাপ করলে পুরো তালিকা একসাথে ভুগবে।"
-              >
-                {Math.round(story.sectorConcentrationPct)}% of your list sits in{" "}
-                <span className="font-bold">{story.dominantSector?.[0]}</span>. One sector shock
-                would hurt the whole list.
-              </StoryItem>
-            )}
-          </ul>
+      {riskItems.length > 0 && (
+        <Section
+          tone="bad"
+          icon={ICONS.alert}
+          title="Heads up"
+          titleBn="একটু সাবধান"
+          count={riskItems.length}
+        >
+          <ul className="flex flex-col gap-3">{riskItems}</ul>
         </Section>
       )}
 

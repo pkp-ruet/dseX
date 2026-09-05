@@ -12,7 +12,19 @@ const MAX_ROWS = 3;
  * the latest few headlines on the user's stocks. No motion (reduced-motion
  * friendly), everything visible at once, each row taps straight to the stock.
  */
-export default function NewsPeek({ news, loading }: { news: WatchlistNewsItem[]; loading: boolean }) {
+export default function NewsPeek({
+  news,
+  loading,
+  moreHref = "/todays-news",
+  moreLabel = "All market news",
+}: {
+  news: WatchlistNewsItem[];
+  loading: boolean;
+  /** Footer link — the parent points it at the watchlist page when the user
+   *  has one (news on *their* stocks), else at the whole-market news page. */
+  moreHref?: string;
+  moreLabel?: string;
+}) {
   if (loading && news.length === 0) {
     return (
       <Card padding="none" className="p-4">
@@ -36,14 +48,14 @@ export default function NewsPeek({ news, loading }: { news: WatchlistNewsItem[];
             <Link
               prefetch={false}
               href={`/stock/${n.trading_code}`}
-              className="flex items-start gap-2.5 px-4 py-3 transition-colors hover:bg-[var(--surface-2)]"
+              className="flex items-start gap-2.5 px-4 py-3 transition-colors hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)]"
             >
-              <span className="ticker-tag mt-0.5 shrink-0 text-[0.7rem]">{n.trading_code}</span>
+              <span className="ticker-tag mt-0.5 shrink-0 text-[0.75rem]">{n.trading_code}</span>
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-semibold leading-snug text-[var(--ink)] line-clamp-2">
                   {n.title}
                 </span>
-                <span className="mt-0.5 block text-[0.66rem] font-medium text-[var(--text-muted)]">
+                <span className="mt-0.5 block text-[0.68rem] font-medium text-[var(--text-muted)]">
                   {formatDate(n.post_date)}
                 </span>
               </span>
@@ -67,10 +79,11 @@ export default function NewsPeek({ news, loading }: { news: WatchlistNewsItem[];
       </ul>
 
       <Link
-        href="/todays-news"
-        className="block border-t border-[var(--border)] px-4 py-2.5 text-center text-xs font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--surface-2)]"
+        href={moreHref}
+        prefetch={false}
+        className="block border-t border-[var(--border)] px-4 py-2.5 text-center text-xs font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)]"
       >
-        All news →
+        {moreLabel} →
       </Link>
     </Card>
   );

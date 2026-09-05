@@ -134,7 +134,7 @@ export default function DailyBriefing({
             {ICON_SETUP}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-[0.6rem] font-extrabold uppercase tracking-[0.16em] text-[var(--primary)]">
+            <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.16em] text-[var(--primary)]">
               Finish setting up
             </p>
             <p className="text-sm font-bold leading-tight text-[var(--text)]">
@@ -146,7 +146,7 @@ export default function DailyBriefing({
             </p>
           </div>
           <div className="relative flex shrink-0 items-center gap-1">
-            <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 text-[0.7rem] font-bold tabular-nums text-[var(--text-muted)]">
+            <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 text-[0.75rem] font-bold tabular-nums text-[var(--text-muted)]">
               {doneCount}/{steps.length}
             </span>
             <button
@@ -253,13 +253,13 @@ export default function DailyBriefing({
                   <span className="block text-xs leading-snug text-[var(--text-muted)]">{s.desc}</span>
                   <span
                     lang="bn"
-                    className="font-bn mt-0.5 block text-[0.72rem] font-semibold leading-snug text-[var(--text-muted)]"
+                    className="font-bn mt-0.5 block text-[0.75rem] font-semibold leading-snug text-[var(--text-muted)]"
                   >
                     {s.descBn}
                   </span>
                 </span>
                 <span
-                  className="shrink-0 inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-[0.72rem] font-bold text-white transition-transform group-hover:translate-x-0.5"
+                  className="shrink-0 inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-[0.75rem] font-bold text-white transition-transform group-hover:translate-x-0.5"
                   style={{ background: "var(--primary)" }}
                 >
                   {s.cta}

@@ -26,11 +26,12 @@ function compute(holding: PortfolioHolding, priceMap: Map<string, ScoreItem>): C
   return { holding, ltp, company_name: item?.company_name ?? null, cost_basis, current_value, pnl, pnl_pct };
 }
 
-/** Tween the displayed number toward `target` — counts up from 0 on first paint,
- *  then eases between values when a background refetch updates prices. */
+/** Show `target` immediately on first paint (a returning user should be able
+ *  to read their money at once — no count-up from 0), then ease between values
+ *  when a background refetch changes the price. */
 function useCountUp(target: number, duration = 700): number {
-  const [display, setDisplay] = useState(0);
-  const displayRef = useRef(0);
+  const [display, setDisplay] = useState(target);
+  const displayRef = useRef(target);
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       displayRef.current = target;
@@ -105,7 +106,7 @@ export default function MoneyHero({
       <div className="px-4 sm:px-5 pt-4 pb-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-[0.62rem] font-extrabold uppercase tracking-[0.18em] text-[var(--primary)]">
+            <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.18em] text-[var(--primary)]">
               Your money today
             </p>
             <div className="mt-1 text-[clamp(1.6rem,7vw,2rem)] font-extrabold tabular-nums nums text-[var(--text)] leading-tight">
@@ -134,11 +135,11 @@ export default function MoneyHero({
           <Link
             href="/portfolio"
             aria-label={`Portfolio grade ${analysis.grade} — ${analysis.gradeLabel}. See full analysis`}
-            className="flex flex-col items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border-2 shrink-0 transition active:scale-95"
+            className="flex flex-col items-center justify-center gap-0.5 w-16 h-16 rounded-2xl border-2 shrink-0 transition active:scale-95"
             style={{ color: gradeColor, borderColor: gradeColor, background: "var(--surface-2)" }}
           >
-            <span className="text-2xl sm:text-3xl font-black leading-none">{analysis.grade}</span>
-            <span className="text-[0.5rem] font-bold uppercase tracking-wide">{analysis.gradeLabel}</span>
+            <span className="text-[1.65rem] font-black leading-none">{analysis.grade}</span>
+            <span className="text-[0.68rem] font-bold uppercase tracking-wide leading-none">{analysis.gradeLabel}</span>
           </Link>
         </div>
 
@@ -194,7 +195,7 @@ export default function MoneyHero({
 
       <Link
         href="/portfolio"
-        className="block text-center px-4 py-3 text-xs font-semibold text-[var(--primary)] hover:bg-[var(--surface-2)] border-t border-[var(--border)] transition-colors"
+        className="block text-center px-4 py-3 text-xs font-semibold text-[var(--primary)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)] border-t border-[var(--border)] transition-colors"
       >
         See full portfolio analysis →
       </Link>

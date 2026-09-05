@@ -47,6 +47,7 @@ import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
 import ExploreLinks from "@/components/home/personalized/ExploreLinks";
 import NewsPeek from "@/components/home/personalized/NewsPeek";
 import SearchBar from "@/components/home/SearchBar";
+import { HeaderChip } from "@/components/home/personalized/DashHeader";
 import InstallHomeBanner from "@/components/pwa/InstallHomeBanner";
 
 function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
@@ -55,57 +56,9 @@ function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
   return new Map(all.map((s) => [s.trading_code.toUpperCase(), s]));
 }
 
-const INTEL_ICON = (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M12 3a5 5 0 0 0-5 5c0 1.6.8 3 2 4v2h6v-2c1.2-1 2-2.4 2-4a5 5 0 0 0-5-5z" />
-    <path d="M9 19h6M10 21h4" />
-  </svg>
-);
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <p className="text-xs uppercase tracking-widest text-[var(--text-muted)] font-semibold mt-2 mb-3">{children}</p>
-  );
-}
-
-function SectionHeader({
-  eyebrow,
-  title,
-  accent,
-  icon,
-  chips,
-}: {
-  eyebrow: string;
-  title: string;
-  accent: string;
-  icon: React.ReactNode;
-  /** Small pills rendered next to the title (date, "N new"). */
-  chips?: React.ReactNode;
-}) {
-  return (
-    <div className="mb-4 flex items-center gap-3">
-      <span
-        className="grid h-10 w-10 shrink-0 place-items-center rounded-xl"
-        style={{
-          color: accent,
-          background: `color-mix(in srgb, ${accent} 12%, transparent)`,
-          border: `1px solid color-mix(in srgb, ${accent} 22%, transparent)`,
-        }}
-        aria-hidden
-      >
-        {icon}
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-[0.6rem] font-extrabold uppercase tracking-[0.16em]" style={{ color: accent }}>
-          {eyebrow}
-        </p>
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <h2 className="font-display text-[clamp(1.25rem,4.5vw,1.55rem)] font-extrabold tracking-tight text-[var(--text)] leading-tight">
-            {title}
-          </h2>
-          {chips}
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -113,16 +66,17 @@ function SectionHeader({
  *  picks/tips fetches are still in flight so the section doesn't pop in. */
 function IdeasSkeleton() {
   return (
-    <div className="space-y-3" aria-hidden>
-      {[0, 1, 2].map((i) => (
-        <div key={i} className="rounded-2xl border border-[var(--border)] p-3.5">
-          <div className="mb-3 h-5 w-40 animate-pulse rounded-lg bg-[var(--surface-2)]" />
-          <div className="space-y-2">
-            <div className="h-12 animate-pulse rounded-xl bg-[var(--surface-2)]" />
-            <div className="h-12 animate-pulse rounded-xl bg-[var(--surface-2)]" />
-          </div>
-        </div>
-      ))}
+    <div className="soft-card overflow-hidden" aria-hidden>
+      <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3 sm:px-5">
+        <div className="h-3.5 w-32 animate-pulse rounded-full bg-[var(--surface-2)]" />
+        <div className="h-3.5 w-16 animate-pulse rounded-full bg-[var(--surface-2)]" />
+      </div>
+      <div className="mx-4 mt-3 h-9 animate-pulse rounded-xl bg-[var(--surface-2)] sm:mx-5" />
+      <div className="space-y-px px-4 pb-2 pt-2 sm:px-5">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="h-14 animate-pulse rounded-xl bg-[var(--surface-2)]" />
+        ))}
+      </div>
     </div>
   );
 }
@@ -367,7 +321,7 @@ export default function PersonalizedHome() {
   });
 
   const greeting = (
-    <HeroGreeting name={user?.display_name} dateStr={dateStr} isNew={isNewUser} watchlistCount={codes.length} />
+    <HeroGreeting name={user?.display_name} dateStr={dateStr} isNew={isNewUser} />
   );
 
   return (
@@ -402,15 +356,6 @@ export default function PersonalizedHome() {
           <MoneyHeroGhost greeting={greeting} />
         )}
 
-        {/* Look up any stock → its analysis page. Sits right under the money
-            hero so search is the first action after a user checks their value. */}
-        {companies.length > 0 && (
-          <div className="pt-1">
-            <SectionLabel>Look up any stock</SectionLabel>
-            <SearchBar companies={companies} variant="sidebar" />
-          </div>
-        )}
-
         {/* The single home for "what happened on your stocks today" — replaces
             the old header bell + Alerts tile + brief line. Quiet days fall back
             to one calm concierge sentence; nothing at all → renders nothing. */}
@@ -428,10 +373,25 @@ export default function PersonalizedHome() {
           />
         )}
 
+        {/* Look up any stock → its analysis page. Sits after the user's own
+            stocks so the money chapter reads value → attention → your stocks
+            without a search box interrupting it. */}
+        {companies.length > 0 && (
+          <div className="pt-1">
+            <SectionLabel>Look up any stock</SectionLabel>
+            <SearchBar companies={companies} variant="sidebar" />
+          </div>
+        )}
+
         {(hasWatchlist || hasPortfolio) && (newsLoading || news.length > 0) && (
           <div>
             <SectionLabel>News on your stocks</SectionLabel>
-            <NewsPeek news={news} loading={newsLoading} />
+            <NewsPeek
+              news={news}
+              loading={newsLoading}
+              moreHref={hasWatchlist ? "/watchlist" : "/todays-news"}
+              moreLabel={hasWatchlist ? "All news on your stocks" : "All market news"}
+            />
           </div>
         )}
 
@@ -440,44 +400,32 @@ export default function PersonalizedHome() {
       </section>
 
       {/* ── Chapter 2: Ideas for you — personalized picks, whole-market buy
-          signals, and daily tips merged into ONE tabbed card (was two separate
-          look-alike cards). The date + "N new" chips prove the daily refresh. ── */}
+          signals, and daily tips as Picks / Buys / Tips tabs inside ONE card.
+          The card carries its own DashHeader (same style as every other card
+          on the page); the date + "N new" chips prove the daily refresh. ── */}
       {(showIdeas || ideasLoading) && (
         <section id="intelligence" className="scroll-mt-24">
-          <SectionHeader
-            eyebrow="TopStockBD Intelligence"
-            title={hasTuned ? "Your ideas today" : "Ideas for you today"}
-            accent="var(--primary)"
-            icon={INTEL_ICON}
-            chips={
-              <>
-                <span className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-2.5 py-0.5 text-[0.66rem] font-bold text-[var(--text-muted)]">
-                  {shortDate}
-                </span>
-                {newPickCodes.length > 0 && (
-                  <span className="rounded-full bg-[color-mix(in_srgb,var(--primary)_12%,transparent)] px-2.5 py-0.5 text-[0.66rem] font-extrabold text-[var(--primary)]">
-                    {newPickCodes.length} new
-                  </span>
-                )}
-              </>
-            }
-          />
-          <div className="mt-3">
-            {ideasLoading ? (
-              <IdeasSkeleton />
-            ) : (
-              <IdeasCard
-                picks={dailyPicks?.picks ?? []}
-                buys={buys}
-                tips={tips}
-                tuned={hasTuned}
-                sectors={sectors}
-                onTuned={refreshDailyPicks}
-                newPickCodes={newPickCodes}
-                watchCodes={newsCodes}
-              />
-            )}
-          </div>
+          {ideasLoading ? (
+            <IdeasSkeleton />
+          ) : (
+            <IdeasCard
+              title={hasTuned ? "Your ideas today" : "Ideas for you today"}
+              chips={
+                <>
+                  <HeaderChip>{shortDate}</HeaderChip>
+                  {newPickCodes.length > 0 && <HeaderChip tone="accent">{newPickCodes.length} new</HeaderChip>}
+                </>
+              }
+              picks={dailyPicks?.picks ?? []}
+              buys={buys}
+              tips={tips}
+              tuned={hasTuned}
+              sectors={sectors}
+              onTuned={refreshDailyPicks}
+              newPickCodes={newPickCodes}
+              watchCodes={newsCodes}
+            />
+          )}
         </section>
       )}
       </div>
@@ -486,7 +434,7 @@ export default function PersonalizedHome() {
       {/* ── ASIDE: Explore the market — market snapshot, discovery, quick links.
           Becomes the right sidebar on desktop; stacks under the main column on
           mobile (source order preserved). ── */}
-      <aside className="mt-8 lg:col-span-2 lg:mt-0">
+      <aside className="mt-8 lg:col-span-2 lg:mt-0 lg:sticky lg:top-20">
         <SectionLabel>Explore the market</SectionLabel>
         <div className="flex flex-col gap-6">
           <MarketTodayCard

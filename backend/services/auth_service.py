@@ -270,14 +270,109 @@ def get_user_watchlist(user_id: str) -> list[str]:
     return codes
 
 
-def update_user_watchlist(user_id: str, codes: list[str]) -> list[str]:
-    deduped = list(dict.fromkeys(c.upper() for c in codes))
+# Per-code metadata kept beside the plain `watchlist` array (which every
+# downstream reader — digests, picks, campaigns, admin — keeps using as-is):
+#   watchlist_meta: {CODE: {"added_at": ISO-8601 str, "price_at_add": float|None}}
+# `price_at_add` is the official close on the day the user followed the stock,
+# so the watchlist page can show "since you added". Codes followed before this
+# field existed have no entry and the UI shows nothing for them.
+
+def get_user_watchlist_meta(user_id: str) -> dict[str, dict]:
+    doc = _users().find_one({"user_id": user_id}, {"watchlist_meta": 1})
+    meta = (doc or {}).get("watchlist_meta") or {}
+    return meta if isinstance(meta, dict) else {}
+
+
+def _clean_meta_entry(raw: object) -> Optional[dict]:
+    """Validate a client-supplied meta entry (undo restore). None if unusable."""
+    if not isinstance(raw, dict):
+        return None
+    added = raw.get("added_at")
+    if not isinstance(added, str) or len(added) > 40:
+        return None
+    try:
+        datetime.fromisoformat(added.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    px = raw.get("price_at_add")
+    if px is not None and not (isinstance(px, (int, float)) and px > 0):
+        px = None
+    return {"added_at": added, "price_at_add": float(px) if px is not None else None}
+
+
+def _reconcile_watchlist_meta(
+    codes: list[str],
+    meta: dict[str, dict],
+    restore: Optional[dict[str, dict]] = None,
+) -> dict[str, dict]:
+    """Return meta with an entry for every code in `codes` (new ones stamped
+    now at the latest close, or taken from `restore` when the client is undoing
+    a remove) and nothing for codes no longer followed."""
+    if restore:
+        meta = dict(meta)
+        for code, raw in restore.items():
+            c = str(code).upper()
+            if c in meta or c not in codes:
+                continue
+            entry = _clean_meta_entry(raw)
+            if entry:
+                meta[c] = entry
+    new_codes = [c for c in codes if c not in meta]
+    prices: dict[str, dict] = {}
+    if new_codes:
+        try:
+            from backend.services.db_service import load_latest_prices
+            prices = load_latest_prices()
+        except Exception:
+            prices = {}
+    now_iso = datetime.now(timezone.utc).isoformat()
+    out: dict[str, dict] = {}
+    for c in codes:
+        if c in meta:
+            out[c] = meta[c]
+            continue
+        px = (prices.get(c) or {}).get("ltp")
+        out[c] = {
+            "added_at": now_iso,
+            "price_at_add": float(px) if isinstance(px, (int, float)) and px > 0 else None,
+        }
+    return out
+
+
+def update_user_watchlist(
+    user_id: str,
+    codes: list[str],
+    restore: Optional[dict[str, dict]] = None,
+) -> tuple[list[str], dict[str, dict]]:
+    """Replace the watchlist. Returns (codes, meta)."""
+    deduped = list(dict.fromkeys(c.upper() for c in codes if c))
+    meta = _reconcile_watchlist_meta(deduped, get_user_watchlist_meta(user_id), restore)
     _users().update_one(
         {"user_id": user_id},
-        {"$set": {"watchlist": deduped, "updated_at": datetime.now(timezone.utc)}},
+        {"$set": {
+            "watchlist": deduped,
+            "watchlist_meta": meta,
+            "updated_at": datetime.now(timezone.utc),
+        }},
     )
     user_cache.set(user_cache.NS_WATCHLIST, user_id, deduped)
-    return deduped
+    return deduped, meta
+
+
+def add_to_user_watchlist(
+    user_id: str,
+    codes: list[str],
+    restore: Optional[dict[str, dict]] = None,
+) -> tuple[list[str], dict[str, dict]]:
+    existing = get_user_watchlist(user_id)
+    merged = list(dict.fromkeys(existing + [c.upper() for c in codes if c]))
+    return update_user_watchlist(user_id, merged, restore)
+
+
+def remove_from_user_watchlist(user_id: str, codes: list[str]) -> tuple[list[str], dict[str, dict]]:
+    to_remove = {c.upper() for c in codes if c}
+    existing = get_user_watchlist(user_id)
+    return update_user_watchlist(user_id, [c for c in existing if c not in to_remove])
 
 
 def touch_watchlist_visit(user_id: str) -> Optional[str]:

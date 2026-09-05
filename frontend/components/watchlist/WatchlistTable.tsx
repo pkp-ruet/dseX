@@ -15,11 +15,14 @@ import {
   type NearExtremesData,
   type WatchlistNewsItem,
   type StockSignalInfo,
+  type WatchlistMeta,
+  type WatchlistMetaEntry,
 } from "@/lib/api";
 import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
 import { taka } from "@/lib/formatters";
 import {
   getCachedWatchlist,
+  getCachedWatchlistMeta,
   subscribeWatchlist,
   loadWatchlist,
   addToWatchlist,
@@ -39,6 +42,7 @@ import WatchlistAlertCell from "./WatchlistAlertCell";
 import PriceAlertTip from "./PriceAlertTip";
 import EmptyStateActions from "./EmptyStateActions";
 import ShareWatchlistButton from "./ShareWatchlistButton";
+import SinceLastVisit from "./SinceLastVisit";
 
 function flatten(scores: ScoresResponse | null): ScoreItem[] {
   if (!scores) return [];
@@ -63,14 +67,29 @@ interface ExtremeInfo {
   side: "high" | "low";
 }
 
-type SortKey = "az" | "move" | "score" | "yield";
+type SortKey = "az" | "recent" | "move" | "score" | "yield" | "since";
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: "az", label: "A–Z" },
+  { key: "recent", label: "Recently added" },
   { key: "move", label: "Top movers" },
+  { key: "since", label: "Since added" },
   { key: "score", label: "Best score" },
   { key: "yield", label: "Dividend yield" },
 ];
+
+/** % move from the close on the day the stock was followed to today. */
+function sinceAddedPct(item: ScoreItem, m: WatchlistMetaEntry | null | undefined): number | null {
+  if (!m || m.price_at_add == null || m.price_at_add <= 0 || item.ltp == null) return null;
+  return ((item.ltp - m.price_at_add) / m.price_at_add) * 100;
+}
+
+function shortDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const sameYear = d.getFullYear() === new Date().getFullYear();
+  return d.toLocaleDateString("en-GB", sameYear ? { day: "numeric", month: "short" } : { month: "short", year: "2-digit" });
+}
 
 // ---------------------------------------------------------------------------
 // Logged-out CTA
@@ -218,7 +237,36 @@ interface RowProps {
   item: ScoreItem;
   extreme: ExtremeInfo | null;
   hasDividendSoon: boolean;
+  meta: WatchlistMetaEntry | null;
   onRemove: (code: string) => void;
+}
+
+/** "Since you added" cell: signed % (coloured) + the added-on date. Empty
+ *  (collapses on mobile) for codes followed before the price was recorded. */
+function SinceAddedCell({ item, meta }: { item: ScoreItem; meta: WatchlistMetaEntry | null }) {
+  const pct = sinceAddedPct(item, meta);
+  if (pct == null || !meta) return <span className="text-[var(--ink-muted)] text-xs">—</span>;
+  const color = pct > 0 ? "var(--positive)" : pct < 0 ? "var(--negative)" : "var(--ink-2)";
+  return (
+    <span
+      className="wl-since inline-flex items-baseline gap-1.5 whitespace-nowrap"
+      title={`Added ${formatDateLong(meta.added_at)} at ${taka(meta.price_at_add, 1)}`}
+    >
+      <span className="text-sm font-bold tabular-nums nums" style={{ color }}>
+        {pct > 0 ? "+" : ""}
+        {pct.toFixed(1)}%
+      </span>
+      <span className="wl-since-date text-[10px] font-semibold text-[var(--ink-muted)]">
+        since {shortDate(meta.added_at)}
+      </span>
+    </span>
+  );
+}
+
+function formatDateLong(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
 function RangeBar({ ltp, high, low }: { ltp: number | null; high: number | null; low: number | null }) {
@@ -339,7 +387,7 @@ function YieldPill({ value }: { value: number | null | undefined }) {
   );
 }
 
-function EnrichedRow({ item, extreme, hasDividendSoon, onRemove }: RowProps) {
+function EnrichedRow({ item, extreme, hasDividendSoon, meta, onRemove }: RowProps) {
   const chg = item.change_pct;
   const chgCls = chg == null ? "" : chg > 0 ? "up" : chg < 0 ? "dn" : "flat";
   const tier = getTier(item.score);
@@ -349,6 +397,7 @@ function EnrichedRow({ item, extreme, hasDividendSoon, onRemove }: RowProps) {
   // Only Buy counts as a shown signal now — Sell is hidden from the UI.
   const hasBuySell = item.signal != null && item.signal.signal === "buy";
   const hasSignals = extreme != null || hasDividendSoon || hasBuySell;
+  const hasSince = sinceAddedPct(item, meta) != null;
   return (
     <tr>
       <td>
@@ -368,6 +417,11 @@ function EnrichedRow({ item, extreme, hasDividendSoon, onRemove }: RowProps) {
         <Link prefetch={false} href={`/stock/${item.trading_code}`} className="watchlist-ticker">
           {item.trading_code}
         </Link>
+        {item.company_name && (
+          <span className="watchlist-company block mt-1 text-xs font-medium" title={item.company_name}>
+            {item.company_name}
+          </span>
+        )}
       </td>
       <td>
         <TierPill tier={tier} />
@@ -375,6 +429,9 @@ function EnrichedRow({ item, extreme, hasDividendSoon, onRemove }: RowProps) {
       <td className="num">{item.ltp != null ? taka(item.ltp, 1) : "—"}</td>
       <td className={`num watchlist-chg ${chgCls}`}>
         {chg == null ? "—" : `${chg > 0 ? "+" : ""}${chg.toFixed(1)}%`}
+      </td>
+      <td className={hasSince ? "num" : "num wl-empty"}>
+        <SinceAddedCell item={item} meta={meta} />
       </td>
       <td>
         <EpsPill value={item.eps_yoy_pct} />
@@ -459,6 +516,7 @@ function WatchlistTableInner() {
     [dividendsData],
   );
   const [codes, setCodes] = useState<string[]>([]);
+  const [meta, setMeta] = useState<WatchlistMeta>({});
   const [loading, setLoading] = useState(
     () => readCache<ScoresResponse>(cacheKeys.scores) === null,
   );
@@ -466,6 +524,9 @@ function WatchlistTableInner() {
   const [importPrompt, setImportPrompt] = useState(false);
   const [sort, setSort] = useState<SortKey>("az");
   const [undoCode, setUndoCode] = useState<string | null>(null);
+  // Meta of the code just removed, so an undo restores the original added-on
+  // date + price instead of re-stamping today.
+  const undoMeta = useRef<WatchlistMeta | undefined>(undefined);
   const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // News fetched in parallel with public data — keyed on the sorted code list.
@@ -478,10 +539,14 @@ function WatchlistTableInner() {
   // instant codes even before the network round-trip resolves.
   useEffect(() => {
     if (!isLoggedIn) return;
+    const sync = () => {
+      setCodes(getCachedWatchlist());
+      setMeta(getCachedWatchlistMeta());
+    };
     const wPromise = loadWatchlist();
-    setCodes(getCachedWatchlist());
-    wPromise.then(() => setCodes(getCachedWatchlist()));
-    const offW = subscribeWatchlist(() => setCodes(getCachedWatchlist()));
+    sync();
+    wPromise.then(sync);
+    const offW = subscribeWatchlist(sync);
     return () => {
       offW();
     };
@@ -568,9 +633,21 @@ function WatchlistTableInner() {
       if (b == null) return -1;
       return b - a;
     };
+    const addedMs = (it: ScoreItem) => {
+      const m = meta[it.trading_code.toUpperCase()];
+      const t = m ? Date.parse(m.added_at) : NaN;
+      return Number.isFinite(t) ? t : null;
+    };
     return resolved.sort((a, b) => {
       let d = 0;
-      if (sort === "move") {
+      if (sort === "recent") {
+        d = desc(addedMs(a), addedMs(b));
+      } else if (sort === "since") {
+        d = desc(
+          sinceAddedPct(a, meta[a.trading_code.toUpperCase()]),
+          sinceAddedPct(b, meta[b.trading_code.toUpperCase()]),
+        );
+      } else if (sort === "move") {
         d = desc(
           a.change_pct == null ? null : Math.abs(a.change_pct),
           b.change_pct == null ? null : Math.abs(b.change_pct),
@@ -582,11 +659,13 @@ function WatchlistTableInner() {
       }
       return d !== 0 ? d : a.trading_code.localeCompare(b.trading_code);
     });
-  }, [scores, codes, sort]);
+  }, [scores, codes, sort, meta]);
 
   // Remove with a short undo window instead of an instant, silent delete.
   function handleRemove(code: string) {
     const upper = code.toUpperCase();
+    const m = getCachedWatchlistMeta()[upper];
+    undoMeta.current = m ? { [upper]: m } : undefined;
     removeFromWatchlist(upper);
     setUndoCode(upper);
     if (undoTimer.current) clearTimeout(undoTimer.current);
@@ -594,7 +673,8 @@ function WatchlistTableInner() {
   }
 
   function handleUndo() {
-    if (undoCode) addToWatchlist(undoCode);
+    if (undoCode) addToWatchlist(undoCode, undoMeta.current);
+    undoMeta.current = undefined;
     setUndoCode(null);
     if (undoTimer.current) clearTimeout(undoTimer.current);
   }
@@ -647,6 +727,20 @@ function WatchlistTableInner() {
             </Button>
           </div>
         </div>
+      )}
+
+      {codes.length > 0 && (
+        <p className="-mt-2 mb-4 text-sm font-medium text-[var(--text-muted)]">
+          <span className="font-bold text-[var(--text)] nums">{codes.length}</span>{" "}
+          {codes.length === 1 ? "stock" : "stocks"} followed
+          {rows.length > 0 && rows.length < codes.length && (
+            <> · {rows.length} scored</>
+          )}
+        </p>
+      )}
+
+      {codes.length > 0 && !loading && (
+        <SinceLastVisit codes={codes} rows={rows} news={news} dividendSoon={dividends} />
       )}
 
       {codes.length > 0 && <PriceAlertTip />}
@@ -708,6 +802,14 @@ function WatchlistTableInner() {
         <div className="watchlist-error">Failed to load: {error}</div>
       ) : (
         <>
+        <WatchlistAnalysis
+          mode="snapshot"
+          codes={codes}
+          scores={scores}
+          extremes={extremesData}
+          dividends={dividendsData}
+          meta={meta}
+        />
         <div className="mb-3 flex flex-wrap items-center gap-1.5" role="group" aria-label="Sort watchlist">
           <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
             Sort
@@ -740,6 +842,7 @@ function WatchlistTableInner() {
                 <th>Tier</th>
                 <th className="num">LTP</th>
                 <th className="num">Chg %</th>
+                <th className="num">Since added</th>
                 <th>EPS YoY</th>
                 <th>Div yield</th>
                 <th>52w range</th>
@@ -756,6 +859,7 @@ function WatchlistTableInner() {
                     item={it}
                     extreme={extremes.get(code) ?? null}
                     hasDividendSoon={dividends.has(code)}
+                    meta={meta[code] ?? null}
                     onRemove={handleRemove}
                   />
                 );
@@ -774,10 +878,12 @@ function WatchlistTableInner() {
 
       {codes.length > 0 && !loading && !error && (
         <WatchlistAnalysis
+          mode="details"
           codes={codes}
           scores={scores}
           extremes={extremesData}
           dividends={dividendsData}
+          meta={meta}
         />
       )}
       {codes.length > 0 && !error && (

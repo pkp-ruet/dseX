@@ -11,6 +11,7 @@ import {
 import { signed } from "@/lib/formatters";
 import Card from "@/components/ui/Card";
 import TierPill from "@/components/ui/TierPill";
+import DashHeader from "@/components/home/personalized/DashHeader";
 
 /**
  * Price + today's-change cell that flashes green/red for ~0.9s whenever a
@@ -105,13 +106,16 @@ export default function MyStocksToday({
   }
 
   const viewHref = watched.size > 0 ? "/watchlist" : "/portfolio";
+  // The H / ★ tags only carry information when a row could be either — with
+  // just a watchlist (or just a portfolio) every row would wear the same tag.
+  const showOwnerTags = held.size > 0 && watched.size > 0;
 
   return (
     <Card as="section" padding="none" className="overflow-hidden">
-      <div className="flex items-center justify-between gap-2 px-4 sm:px-5 py-3 border-b border-[var(--border)]">
-        <span className="flex min-w-0 items-center gap-2">
-          <h2 className="text-[0.72rem] font-bold uppercase tracking-[0.12em] text-[var(--text)]">Your stocks today</h2>
-          {upCount + downCount > 0 && (
+      <DashHeader
+        title="Your stocks today"
+        chips={
+          upCount + downCount > 0 ? (
             <span
               className="shrink-0 whitespace-nowrap text-[0.68rem] font-bold tabular-nums nums"
               title={`${upCount} up · ${downCount} down today`}
@@ -119,12 +123,11 @@ export default function MyStocksToday({
               <span style={{ color: "var(--positive)" }}>▲{upCount}</span>{" "}
               <span style={{ color: "var(--negative)" }}>▼{downCount}</span>
             </span>
-          )}
-        </span>
-        <Link href={viewHref} className="shrink-0 text-xs font-semibold text-[var(--primary)] hover:underline">
-          View all {universe.length} →
-        </Link>
-      </div>
+          ) : undefined
+        }
+        href={viewHref}
+        linkLabel={`View all ${universe.length}`}
+      />
 
       <div className="divide-y divide-[var(--cell-rule)]">
         {rows.map((item) => {
@@ -137,7 +140,7 @@ export default function MyStocksToday({
               key={item.trading_code}
               prefetch={false}
               href={`/stock/${item.trading_code}`}
-              className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--surface-2)] transition-colors"
+              className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)] transition-colors"
             >
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-1.5">
@@ -145,10 +148,10 @@ export default function MyStocksToday({
                     {item.trading_code}
                   </span>
                   <TierPill score={item.score} variant="solid" size="sm" />
-                  {held.has(code) && (
+                  {showOwnerTags && held.has(code) && (
                     <span
                       title="In your portfolio"
-                      className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded-[5px] text-[0.6rem] font-extrabold"
+                      className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded-[5px] text-[0.68rem] font-extrabold"
                       style={{
                         color: "var(--primary)",
                         background: "color-mix(in srgb, var(--primary) 12%, transparent)",
@@ -158,10 +161,10 @@ export default function MyStocksToday({
                       H
                     </span>
                   )}
-                  {watched.has(code) && (
+                  {showOwnerTags && watched.has(code) && (
                     <span
                       title="On your watchlist"
-                      className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded-[5px] text-[0.6rem] font-extrabold"
+                      className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded-[5px] text-[0.68rem] font-extrabold"
                       style={{
                         color: "var(--watch)",
                         background: "color-mix(in srgb, var(--watch) 14%, transparent)",
@@ -177,7 +180,7 @@ export default function MyStocksToday({
                     {chips.map((a) => (
                       <span
                         key={a.label}
-                        className="text-[0.6rem] font-semibold px-1.5 py-0.5 rounded-full"
+                        className="text-[0.68rem] font-semibold px-1.5 py-0.5 rounded-full"
                         style={{ color: a.color, background: "var(--surface-2)", border: "1px solid var(--border)" }}
                       >
                         {a.label}
