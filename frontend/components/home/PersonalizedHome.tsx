@@ -287,6 +287,7 @@ export default function PersonalizedHome() {
     extremes,
     dividends,
     marketIndex,
+    marketMood: marketState?.mood ?? null,
   });
 
   const showIdeas = !!dailyPicks?.picks?.length || tips.length > 0 || buys.length > 0;
@@ -440,6 +441,9 @@ export default function PersonalizedHome() {
           <MarketTodayCard
             index={marketIndex}
             dividends={dividends}
+            mood={marketState?.mood ?? null}
+            since={marketState?.since_yesterday ?? null}
+            stats={marketState?.stats ?? null}
             quality={marketState?.now?.quality ?? null}
             cheap={
               marketState?.now?.questions?.find((q) =>

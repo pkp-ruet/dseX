@@ -837,9 +837,13 @@ export async function getBengaliSummaries(codes: string[]): Promise<Record<strin
 export type MoodTone = "up" | "down" | "weak" | "steady";
 export type CellTone = "pos" | "neg" | "neutral";
 
-export interface MarketMoodChip {
-  label: string;
-  value: string;
+/** The four plain bands the mood is built from (shown as "why we say this"). */
+export interface MarketMoodBands {
+  breadth: "up" | "down" | "mixed";
+  price: "low" | "high" | "middle";
+  value: "cheap" | "expensive" | "normal";
+  trend: "up" | "down" | "flat";
+  feeling: string;
 }
 
 export interface MarketMood {
@@ -848,10 +852,13 @@ export interface MarketMood {
   sentence: string;
   sentence2: string;
   best_lens: string;
-  chips: MarketMoodChip[];
+  bands?: MarketMoodBands;
 }
 
+export type MarketQuestionKey = "price" | "breadth" | "value" | "activity";
+
 export interface MarketQuestion {
+  key?: MarketQuestionKey;
   q: string;
   a: string;
   extra?: string | null;
@@ -860,11 +867,20 @@ export interface MarketQuestion {
 
 export interface MarketSectorRow {
   name: string;
+  /** Set only when `/sector/[slug]` exists for this sector. */
+  slug?: string | null;
   status: string;
   tone: CellTone;
   ret_1w: number;
   ret_1m: number | null;
   count: number;
+}
+
+/** One-trading-week movement of the quality buckets (from the daily snapshots). */
+export interface MarketQualityTrend {
+  healthy_delta_1w: number | null;
+  median_score_delta_1w: number | null;
+  since: string | null;
 }
 
 export interface MarketQuality {
@@ -874,12 +890,50 @@ export interface MarketQuality {
   soso: number;
   risky: number;
   median_score: number | null;
+  trend?: MarketQualityTrend;
 }
 
-export interface MarketTrendPoint {
-  date: string | null;
+export interface MarketHistoryIndexPoint {
+  date: string;
+  dsex: number | null;
+  turnover_mn: number | null;
+}
+
+export interface MarketHistoryDailyPoint {
+  date: string;
   cheap_pct: number | null;
-  median_pe: number | null;
+  healthy_pct: number | null;
+  median_score: number | null;
+  advancing_pct: number | null;
+  dsex: number | null;
+}
+
+export interface MarketHistory {
+  /** DSEX + turnover per trading day, oldest first (≈ a year at most). */
+  index: MarketHistoryIndexPoint[];
+  /** The stored daily market snapshots, oldest first. */
+  daily: MarketHistoryDailyPoint[];
+}
+
+export interface MarketNewName {
+  trading_code: string;
+  company_name: string | null;
+}
+
+/** What changed against the previous trading day's stored snapshot. */
+export interface MarketSinceYesterday {
+  prev_date: string | null;
+  healthy_now: number;
+  healthy_delta: number | null;
+  median_score_delta: number | null;
+  cheap_delta: number | null;
+  breadth_rank: { better_than: number; of: number } | null;
+  sectors_up: string[];
+  sectors_down: string[];
+  new_on_sale: MarketNewName[];
+  new_near_high: MarketNewName[];
+  new_near_low: MarketNewName[];
+  new_unusual: MarketNewName[];
 }
 
 export interface MarketTurningStock {
@@ -894,8 +948,17 @@ export interface MarketDividendEvent {
   trading_code: string;
   company_name: string | null;
   sector?: string | null;
+  /** Record date for `kind === "record"`, declaration date for `"declared"`. */
   date: string;
+  /** Cash dividend as % of face value (the DSE convention). */
   dividend_pct: number | null;
+  stock_pct?: number | null;
+  cash_per_share?: number | null;
+  yield_pct?: number | null;
+  /** Last normal-market buy day that still lands on the register. */
+  buy_by?: string | null;
+  buy_days_left?: number | null;
+  record_days_left?: number | null;
   kind: "record" | "declared";
   last_price?: number | null;
 }
@@ -921,6 +984,30 @@ export interface MarketChanceStock {
   last_price?: number | null;
 }
 
+/** The raw numbers behind the mood — rendered as "why we say this". */
+export interface MarketStats {
+  advancing_pct: number | null;
+  up: number;
+  down: number;
+  neutral: number;
+  price_pos_pct: number | null;
+  dsex: number | null;
+  dsex_change_pct: number | null;
+  year_high: number | null;
+  year_low: number | null;
+  week_change_pct: number | null;
+  cheap_pct: number | null;
+  cheap_n: number;
+  cheap_total: number;
+  median_pe: number | null;
+  turnover_mn: number | null;
+  turnover_avg_mn: number | null;
+  turnover_ratio: number | null;
+  turnover_band: "busy" | "quiet" | "normal" | null;
+  feeling_score: number;
+  feeling_word: string;
+}
+
 export interface MarketStateData {
   date: string | null;
   /** Plain-Bangla "আজকের বাজার এক নজরে" paragraph (template-rendered on the backend). */
@@ -931,10 +1018,8 @@ export interface MarketStateData {
     sectors: MarketSectorRow[];
     quality: MarketQuality;
   };
-  trend: {
-    points: MarketTrendPoint[];
-    has_history: boolean;
-  };
+  since_yesterday?: MarketSinceYesterday | null;
+  history?: MarketHistory | null;
   next: {
     unusual: MarketUnusualStock[];
     near_high: MarketTurningStock[];
@@ -948,14 +1033,7 @@ export interface MarketStateData {
     rising: MarketChanceStock[];
     fallen: MarketChanceStock[];
   };
-  stats: {
-    advancing_pct: number | null;
-    price_pos_pct: number | null;
-    cheap_pct: number | null;
-    median_pe: number | null;
-    week_change_pct: number | null;
-    feeling_score: number;
-  };
+  stats: MarketStats;
 }
 
 export async function getMarketState(revalidate = 900): Promise<MarketStateData> {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { getInsightScores } from "@/lib/api";
 
@@ -8,6 +8,92 @@ interface Company {
   trading_code: string;
   company_name: string | null;
 }
+
+/**
+ * Page shortcuts — so typing "market" or "dividend" finds the page, not just
+ * a stock whose name happens to contain the word. Matched on the label and
+ * on plain keywords a reader might type (English + a few Bengali), shown above
+ * the stock matches, at most three.
+ */
+interface PageShortcut {
+  href: string;
+  label: string;
+  sub: string;
+  keys: string[];
+}
+
+const PAGES: PageShortcut[] = [
+  {
+    href: "/market-analysis",
+    label: "Market Analysis",
+    sub: "Is the market up or down, cheap or pricey?",
+    keys: ["market", "analysis", "mood", "up or down", "cheap", "expensive", "bazar", "বাজার"],
+  },
+  {
+    href: "/dse-today",
+    label: "DSE Today",
+    sub: "Today's prices, movers and news",
+    keys: ["today", "dsex", "index", "movers", "gainers", "losers", "আজ"],
+  },
+  {
+    href: "/dividend-calendar",
+    label: "Dividend Calendar",
+    sub: "Record dates, AGMs and cash payouts",
+    keys: ["dividend", "record date", "agm", "cash", "calendar", "ডিভিডেন্ড"],
+  },
+  {
+    href: "/dsestockranking",
+    label: "Stock Rankings",
+    sub: "Every company scored, best first",
+    keys: ["ranking", "rank", "best stocks", "top stocks", "score"],
+  },
+  {
+    href: "/sectors",
+    label: "Sectors",
+    sub: "Compare whole industries",
+    keys: ["sector", "industry", "industries"],
+  },
+  {
+    href: "/dse-trending-stocks",
+    label: "Trending Stocks",
+    sub: "This week's top movers",
+    keys: ["trending", "hot", "momentum"],
+  },
+  {
+    href: "/stock-insights",
+    label: "Ready-made lists",
+    sub: "Dividends, growth, big companies and more",
+    keys: ["list", "lists", "insights"],
+  },
+  {
+    href: "/watchlist",
+    label: "Watchlist",
+    sub: "Stocks you follow",
+    keys: ["watchlist", "watch", "follow"],
+  },
+  {
+    href: "/portfolio",
+    label: "Portfolio",
+    sub: "Your holdings",
+    keys: ["portfolio", "holdings", "my stocks"],
+  },
+];
+
+const MAX_PAGES = 3;
+
+function pageMatches(q: string): PageShortcut[] {
+  const lower = q.trim().toLowerCase();
+  if (lower.length < 2) return [];
+  return PAGES.filter(
+    (p) =>
+      p.label.toLowerCase().includes(lower) ||
+      p.keys.some((k) => k.includes(lower) || (k.length >= 3 && lower.includes(k))),
+  ).slice(0, MAX_PAGES);
+}
+
+type Item =
+  | { kind: "page"; href: string; label: string; sub: string }
+  | { kind: "stock"; code: string; name: string | null };
 
 const OPEN_EVENT = "dsex:open-search";
 
@@ -23,7 +109,7 @@ export default function GlobalSearch() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-  const [navCode, setNavCode] = useState<string | null>(null);
+  const [navLabel, setNavLabel] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -108,16 +194,21 @@ export default function GlobalSearch() {
     [companies]
   );
 
-  const suggestions = getSuggestions(query);
+  // Pages first, then stocks — one flat list so arrow keys walk both.
+  const items = useMemo<Item[]>(() => {
+    const pages = pageMatches(query).map<Item>((p) => ({ kind: "page", href: p.href, label: p.label, sub: p.sub }));
+    const stocks = getSuggestions(query).map<Item>((c) => ({ kind: "stock", code: c.trading_code, name: c.company_name }));
+    return [...pages, ...stocks];
+  }, [query, getSuggestions]);
 
-  const navigate = useCallback(
-    (code: string) => {
-      const upper = code.toUpperCase();
-      setNavCode(upper);
+  const go = useCallback(
+    (item: Item) => {
+      const href = item.kind === "page" ? item.href : `/stock/${item.code.toUpperCase()}`;
+      setNavLabel(item.kind === "page" ? item.label : item.code.toUpperCase());
       // Keep the overlay up and show a loading state instead of freezing on
-      // the current view; isPending stays true until the stock page is ready.
+      // the current view; isPending stays true until the destination is ready.
       startTransition(() => {
-        router.push(`/stock/${upper}`);
+        router.push(href);
       });
     },
     [router]
@@ -125,27 +216,27 @@ export default function GlobalSearch() {
 
   // Once the navigation settles, dismiss the search modal.
   useEffect(() => {
-    if (!pending && navCode) {
+    if (!pending && navLabel) {
       close();
-      setNavCode(null);
+      setNavLabel(null);
     }
-  }, [pending, navCode, close]);
+  }, [pending, navLabel, close]);
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setActiveIndex((i) => Math.min(i + 1, suggestions.length - 1));
+      setActiveIndex((i) => Math.min(i + 1, items.length - 1));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setActiveIndex((i) => Math.max(i - 1, -1));
     } else if (e.key === "Enter") {
       e.preventDefault();
-      if (activeIndex >= 0 && suggestions[activeIndex]) {
-        navigate(suggestions[activeIndex].trading_code);
-      } else if (suggestions.length > 0) {
-        navigate(suggestions[0].trading_code);
+      if (activeIndex >= 0 && items[activeIndex]) {
+        go(items[activeIndex]);
+      } else if (items.length > 0) {
+        go(items[0]);
       } else if (query.trim()) {
-        navigate(query.trim().toUpperCase());
+        go({ kind: "stock", code: query.trim().toUpperCase(), name: null });
       }
     } else if (e.key === "Escape") {
       e.preventDefault();
@@ -155,16 +246,16 @@ export default function GlobalSearch() {
 
   if (!open) return null;
 
-  // While the stock page loads, replace the search panel with a loading card
+  // While the destination loads, replace the search panel with a loading card
   // so the user gets instant feedback instead of a frozen screen.
-  if (pending && navCode) {
+  if (pending && navLabel) {
     return (
       <div className="global-search-overlay" role="status" aria-live="polite">
         <div className="global-search-panel">
           <div className="nav-loading-card nav-loading-card--panel">
             <div className="nav-loading-spinner" aria-hidden="true" />
             <div className="nav-loading-label">
-              Opening <span className="nav-loading-code">{navCode}</span>…
+              Opening <span className="nav-loading-code">{navLabel}</span>…
             </div>
             <div className="nav-loading-sub">Loading the latest data</div>
           </div>
@@ -181,7 +272,7 @@ export default function GlobalSearch() {
       }}
       role="dialog"
       aria-modal="true"
-      aria-label="Search stocks"
+      aria-label="Search stocks and pages"
     >
       <div className="global-search-panel">
         <div className="search-bar-box search-bar-open">
@@ -193,7 +284,7 @@ export default function GlobalSearch() {
             ref={inputRef}
             className="search-bar-input"
             type="text"
-            placeholder="Search by code or company name…"
+            placeholder="Search a code, a company, or a page…"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -203,9 +294,9 @@ export default function GlobalSearch() {
             autoComplete="off"
             spellCheck={false}
             role="combobox"
-            aria-label="Search companies"
+            aria-label="Search companies and pages"
             aria-autocomplete="list"
-            aria-expanded={suggestions.length > 0}
+            aria-expanded={items.length > 0}
             aria-controls="global-search-listbox"
             aria-activedescendant={
               activeIndex >= 0 ? `global-search-option-${activeIndex}` : undefined
@@ -223,15 +314,15 @@ export default function GlobalSearch() {
           </button>
         </div>
 
-        {suggestions.length > 0 ? (
+        {items.length > 0 ? (
           <ul
             id="global-search-listbox"
             className="search-suggestions global-search-suggestions"
             role="listbox"
           >
-            {suggestions.map((c, i) => (
+            {items.map((it, i) => (
               <li
-                key={c.trading_code}
+                key={it.kind === "page" ? it.href : it.code}
                 id={`global-search-option-${i}`}
                 role="option"
                 aria-selected={i === activeIndex}
@@ -240,13 +331,21 @@ export default function GlobalSearch() {
                 }`}
                 onMouseDown={(e) => {
                   e.preventDefault();
-                  navigate(c.trading_code);
+                  go(it);
                 }}
                 onMouseEnter={() => setActiveIndex(i)}
               >
-                <span className="search-suggestion-code">{c.trading_code}</span>
-                {c.company_name && (
-                  <span className="search-suggestion-name">{c.company_name}</span>
+                {it.kind === "page" ? (
+                  <>
+                    <span className="search-suggestion-code">{it.label}</span>
+                    <span className="search-suggestion-name">{it.sub}</span>
+                    <span className="search-suggestion-tag">Page</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="search-suggestion-code">{it.code}</span>
+                    {it.name && <span className="search-suggestion-name">{it.name}</span>}
+                  </>
                 )}
               </li>
             ))}
@@ -257,7 +356,8 @@ export default function GlobalSearch() {
           </div>
         ) : (
           <div className="global-search-hint">
-            Type a code (e.g. <strong>GP</strong>, <strong>BATBC</strong>) or a company name.
+            Type a code (e.g. <strong>GP</strong>, <strong>BATBC</strong>), a company name, or a page
+            like <strong>market</strong> or <strong>dividend</strong>.
           </div>
         )}
       </div>

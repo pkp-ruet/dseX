@@ -1,6 +1,17 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import {
+  IconCoin,
+  IconStar,
+  IconTag,
+  IconTrendDown,
+  IconTrendUp,
+} from "@/components/home/personalized/DashIcons";
 import type { MarketChanceStock } from "@/lib/api";
 import MarketRow, { type RowTone } from "./MarketRow";
+import ShowMore from "./ShowMore";
+
+/** Rows shown before the "See all" button. */
+const ROWS = 3;
 
 function strengthWord(score?: number): string {
   if (score == null) return "Decent";
@@ -14,7 +25,7 @@ interface Lens {
   title: string;
   desc: string;
   descBn: string;
-  ico: string;
+  ico: ReactNode;
   color: string;
   render: (s: MarketChanceStock) => { meta: string; tone?: RowTone };
 }
@@ -25,7 +36,7 @@ const LENSES: Lens[] = [
     title: "Good companies on sale",
     desc: "Strong companies that cost less than usual.",
     descBn: "ভালো কোম্পানি, দাম এখন কম।",
-    ico: "%",
+    ico: <IconTag size={20} />,
     color: "var(--primary)",
     render: (s) => ({ meta: `${strengthWord(s.score)} · cheap`, tone: "accent" }),
   },
@@ -34,7 +45,7 @@ const LENSES: Lens[] = [
     title: "Pay you the most cash",
     desc: "They hand out the biggest yearly cash (dividend).",
     descBn: "বছরে সবচেয়ে বেশি নগদ টাকা (ডিভিডেন্ড) দেয়।",
-    ico: "৳",
+    ico: <IconCoin size={20} />,
     color: "var(--warm)",
     render: (s) => ({
       meta: s.div_yield_pct != null ? `pays ~${s.div_yield_pct.toFixed(1)}% a year` : "pays well",
@@ -46,7 +57,7 @@ const LENSES: Lens[] = [
     title: "Rising fast now",
     desc: "Going up the most this week.",
     descBn: "এই সপ্তাহে দ্রুত বাড়ছে।",
-    ico: "▲",
+    ico: <IconTrendUp size={20} />,
     color: "var(--positive)",
     render: (s) => ({
       meta: s.ret_1w != null ? `up ${s.ret_1w.toFixed(1)}% this week` : "rising",
@@ -58,7 +69,7 @@ const LENSES: Lens[] = [
     title: "Cheap after a big fall",
     desc: "Dropped a lot, but still a decent company.",
     descBn: "অনেক পড়েছে, কিন্তু কোম্পানিটা খারাপ না।",
-    ico: "↻",
+    ico: <IconTrendDown size={20} />,
     color: "#6D28D9",
     render: (s) => ({ meta: `${strengthWord(s.score)} · fell hard`, tone: "accent" }),
   },
@@ -86,7 +97,11 @@ export default function WhereToLook({
             className={`ms-lens-card${isBest ? " ms-lens-card--best" : ""}`}
             style={{ "--lens": lens.color } as CSSProperties}
           >
-            {isBest && <span className="ms-lens-best">★ Best now</span>}
+            {isBest && (
+              <span className="ms-lens-best">
+                <IconStar size={10} /> Best now
+              </span>
+            )}
             <div className="ms-lens-head">
               <span className="ms-lens-ico" aria-hidden="true">
                 {lens.ico}
@@ -100,8 +115,9 @@ export default function WhereToLook({
             {items.length === 0 ? (
               <p className="ms-empty">Nothing fits right now.</p>
             ) : (
-              <div className="ms-srow-list">
-                {items.map((s) => {
+              <ShowMore
+                initial={ROWS}
+                rows={items.map((s) => {
                   const { meta, tone } = lens.render(s);
                   return (
                     <MarketRow
@@ -116,7 +132,7 @@ export default function WhereToLook({
                     />
                   );
                 })}
-              </div>
+              />
             )}
           </div>
         );

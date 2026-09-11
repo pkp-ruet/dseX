@@ -6,6 +6,7 @@ import {
   IconGrid,
   IconList,
   IconRocket,
+  IconTrendUp,
   IconTrophy,
 } from "@/components/home/personalized/DashIcons";
 
@@ -20,6 +21,7 @@ interface Row {
 
 const ROWS: Row[] = [
   { href: "/dsestockranking", icon: <IconTrophy size={18} />, label: "Stock Rankings", sub: "Every company scored, best first" },
+  { href: "/market-analysis", icon: <IconTrendUp size={18} />, label: "Market Analysis", sub: "Up or down, cheap or pricey — in plain words" },
   { href: "/dse-trending-stocks", icon: <IconRocket size={18} />, label: "Trending stocks", sub: "Biggest 7-day gainers" },
   { href: "/stock-insights", icon: <IconList size={18} />, label: "Ready-made lists", sub: "Dividends, growth, big companies and more" },
   { href: "/stocks", icon: <IconGrid size={18} />, label: "Browse Stocks", sub: "Every DSE stock, A–Z" },

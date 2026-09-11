@@ -17,7 +17,10 @@ import MotionProvider from "@/components/motion/MotionProvider";
 
 // Rankings is deliberately absent — it's promoted to the core-features block
 // higher up the page, and repeating it here would just split the tap.
+// Market analysis is phrased as the question it answers — a category label
+// ("Market analysis") gets read past; the question gets tapped.
 const LINKS = [
+  { href: "/market-analysis", label: "Is the market up or down today?" },
   { href: "/buy-sell-signals", label: "Today's buy and sell calls" },
   { href: "/stock-insights", label: "Ready-made lists" },
   { href: "/stocks", label: "Every stock, A–Z" },

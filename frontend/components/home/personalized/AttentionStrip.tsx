@@ -149,15 +149,27 @@ export default function AttentionStrip({
         </span>
         <p className="text-[0.85rem] leading-relaxed text-[var(--text-muted)]">
           <span className="font-bold text-[var(--text)]">All caught up. </span>
-          {brief.map((s, i) => (
-            <span
-              key={i}
-              className={s.tone ? "font-bold" : undefined}
-              style={s.tone ? { color: TONE_COLOR[s.tone] } : undefined}
-            >
-              {s.text}
-            </span>
-          ))}
+          {brief.map((s, i) =>
+            s.href ? (
+              <Link
+                key={i}
+                href={s.href}
+                prefetch={false}
+                className={`underline decoration-current/40 underline-offset-2 hover:decoration-current active:opacity-70${s.tone ? " font-bold" : ""}`}
+                style={s.tone ? { color: TONE_COLOR[s.tone] } : undefined}
+              >
+                {s.text}
+              </Link>
+            ) : (
+              <span
+                key={i}
+                className={s.tone ? "font-bold" : undefined}
+                style={s.tone ? { color: TONE_COLOR[s.tone] } : undefined}
+              >
+                {s.text}
+              </span>
+            ),
+          )}
         </p>
       </section>
     );

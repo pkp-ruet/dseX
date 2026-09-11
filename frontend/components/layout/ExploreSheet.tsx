@@ -57,7 +57,7 @@ const DESTS: Dest[] = [
   {
     href: "/market-analysis",
     label: "Market Analysis",
-    desc: "Mood, trends & picks",
+    desc: "Up or down, cheap or pricey",
     accent: "var(--info)",
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" {...stroke} aria-hidden="true">

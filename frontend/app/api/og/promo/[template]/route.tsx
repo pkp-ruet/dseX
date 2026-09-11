@@ -1,12 +1,15 @@
 import { ImageResponse } from "next/og";
-import { flattenTiers, getScores, getCompanyDetail, getDseToday, getTop20 } from "@/lib/api";
+import { flattenTiers, getScores, getCompanyDetail, getDseToday, getTop20, getMarketState } from "@/lib/api";
 import { getTier, TIER_LABELS, TIER_COLORS } from "@/lib/constants";
+import { formatDate } from "@/lib/formatters";
 import type { ScoreItem, Top20Item } from "@/lib/api";
 
 export const runtime = "edge";
 
 const SIZE = { width: 1080, height: 1080 };
 const PORTRAIT = { width: 1080, height: 1350 };
+/** Link-preview shape (Facebook / X cards want ~1.91:1). Used by `mood`. */
+const LANDSCAPE = { width: 1200, height: 630 };
 const COLORS = {
   primary: "#1A6B5A",
   accent: "#E07A5F",
@@ -2516,6 +2519,117 @@ async function RenderShowcase() {
 }
 
 // ---- Route handler ----
+// ---- Template: mood (landscape — the /market-analysis link preview) ----
+// English only: the OG font has no Bengali glyphs and no ৳ (see CLAUDE.md).
+const MOOD_TONE_COLOR: Record<string, string> = {
+  up: COLORS.positive,
+  down: COLORS.accent,
+  weak: COLORS.accent,
+  steady: COLORS.primary,
+};
+const MOOD_CELL_COLOR: Record<string, string> = {
+  pos: COLORS.positive,
+  neg: COLORS.negative,
+  neutral: COLORS.text,
+};
+const MOOD_SHORT_Q: Record<string, string> = {
+  price: "Prices this year",
+  breadth: "Today",
+  value: "Price tags",
+  activity: "Trading",
+};
+
+async function RenderMood() {
+  const s = await getMarketState().catch(() => null);
+  const mood = s?.mood ?? null;
+  const color = MOOD_TONE_COLOR[mood?.tone ?? "steady"] ?? COLORS.primary;
+  const questions = (s?.now?.questions ?? []).slice(0, 4);
+  const dateLabel = s?.date ? formatDate(s.date) : todayDhakaLabel();
+  const pill = `Right now: ${(mood?.label ?? "the market in plain words").toLowerCase()}`;
+  const headline = mood?.sentence ?? "The whole Dhaka Stock Exchange in plain words.";
+
+  return (
+    <Frame>
+      <Header />
+      <div style={{ display: "flex", marginTop: 26, gap: 36, flex: 1, minHeight: 0 }}>
+        <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              display: "flex",
+              fontSize: 20,
+              color: COLORS.accent,
+              fontWeight: 700,
+              letterSpacing: 2,
+            }}
+          >
+            {`DSE MARKET · ${dateLabel.toUpperCase()}`}
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              marginTop: 16,
+              alignSelf: "flex-start",
+              background: "white",
+              border: `1px solid ${COLORS.surface}`,
+              borderRadius: 999,
+              padding: "10px 22px",
+            }}
+          >
+            <div style={{ display: "flex", width: 14, height: 14, borderRadius: 999, background: color }} />
+            <div style={{ display: "flex", fontSize: 26, fontWeight: 800, color }}>{pill}</div>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              marginTop: 22,
+              fontSize: 40,
+              fontWeight: 800,
+              lineHeight: 1.15,
+              color: COLORS.text,
+              letterSpacing: -0.5,
+            }}
+          >
+            {headline}
+          </div>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, width: 380 }}>
+          {questions.map((q) => (
+            <div
+              key={q.key ?? q.q}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                background: "white",
+                border: `1px solid ${COLORS.surface}`,
+                borderRadius: 16,
+                padding: "12px 18px",
+              }}
+            >
+              <div style={{ display: "flex", fontSize: 17, color: COLORS.muted, fontWeight: 700 }}>
+                {MOOD_SHORT_Q[q.key ?? ""] ?? q.q}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: 24,
+                  fontWeight: 800,
+                  color: MOOD_CELL_COLOR[q.tone] ?? COLORS.text,
+                  marginTop: 2,
+                }}
+              >
+                {q.a}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <Footer tagline="The whole market in plain words" />
+    </Frame>
+  );
+}
+
 export async function GET(
   req: Request,
   ctx: { params: Promise<{ template: string }> }
@@ -2547,13 +2661,18 @@ export async function GET(
     case "portfolio":
       element = RenderPortfolio();
       break;
+    case "mood":
+      element = await RenderMood();
+      break;
     default:
       return new Response("Unknown template", { status: 404 });
   }
 
   const size =
-    template === "top-ranked" || template === "top-20" || template === "showcase"
-      ? PORTRAIT
-      : SIZE;
+    template === "mood"
+      ? LANDSCAPE
+      : template === "top-ranked" || template === "top-20" || template === "showcase"
+        ? PORTRAIT
+        : SIZE;
   return new ImageResponse(element, size);
 }

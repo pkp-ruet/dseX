@@ -1,29 +1,15 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
-import { taka } from "@/lib/formatters";
-import { sectorIcon } from "@/lib/sector-icons";
+import Bn from "@/components/i18n/Bn";
+import { IconArrowDown, IconArrowUp, IconSparkle } from "@/components/home/personalized/DashIcons";
+import { formatDate } from "@/lib/formatters";
+import { isoLocal, recordDateInfo, todayDhaka } from "@/lib/dividend-dates";
 import type { MarketTurningStock, MarketDividendEvent, MarketUnusualStock } from "@/lib/api";
-import MarketRow from "./MarketRow";
+import MarketRow, { type RowTone } from "./MarketRow";
+import ShowMore from "./ShowMore";
 
-function shortDate(d: string): string {
-  try {
-    return new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
-  } catch {
-    return d;
-  }
-}
-
-// Numbers inside Bengali prose stay Western (9, 6.1%) — matches the rest of the
-// site and avoids webfont glyph issues with Bengali numerals on some devices.
-
-/** Whole days from today (UTC midnight) to a YYYY-MM-DD date; null if unparsable. */
-function daysUntil(d: string): number | null {
-  const target = Date.parse(`${d}T00:00:00Z`);
-  if (Number.isNaN(target)) return null;
-  const now = new Date();
-  const todayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-  return Math.round((target - todayUtc) / 86400000);
-}
+/** Rows shown before the "See all" button. */
+const ROWS = 3;
 
 function TurningList({
   title,
@@ -41,7 +27,7 @@ function TurningList({
     <div className="ms-card ms-card--tint" style={{ "--card-accent": accent } as CSSProperties}>
       <div className="ms-edge-head">
         <span className={`ms-edge-ico ms-edge-ico--${edge === "high" ? "up" : "down"}`} aria-hidden="true">
-          {edge === "high" ? "▲" : "▼"}
+          {edge === "high" ? <IconArrowUp size={18} /> : <IconArrowDown size={18} />}
         </span>
         <p className="ms-edge-title">{title}</p>
       </div>
@@ -49,8 +35,9 @@ function TurningList({
       {items.length === 0 ? (
         <p className="ms-empty">Nothing close right now.</p>
       ) : (
-        <div className="ms-srow-list">
-          {items.map((it) => (
+        <ShowMore
+          initial={ROWS}
+          rows={items.map((it) => (
             <MarketRow
               key={it.trading_code}
               code={it.trading_code}
@@ -62,7 +49,7 @@ function TurningList({
               accent={accent}
             />
           ))}
-        </div>
+        />
       )}
     </div>
   );
@@ -77,7 +64,7 @@ function UnusualBuying({ items }: { items: MarketUnusualStock[] }) {
           aria-hidden="true"
           style={{ background: "color-mix(in srgb, var(--warm) 16%, var(--surface))", color: "var(--warm-ink)" }}
         >
-          ⚡
+          <IconSparkle size={18} />
         </span>
         <p className="ms-edge-title">Unusual buying today</p>
       </div>
@@ -87,8 +74,9 @@ function UnusualBuying({ items }: { items: MarketUnusualStock[] }) {
       {items.length === 0 ? (
         <p className="ms-empty">Nothing unusual today — trading looks normal.</p>
       ) : (
-        <div className="ms-srow-list">
-          {items.map((it) => (
+        <ShowMore
+          initial={ROWS}
+          rows={items.map((it) => (
             <MarketRow
               key={it.trading_code}
               code={it.trading_code}
@@ -100,8 +88,110 @@ function UnusualBuying({ items }: { items: MarketUnusualStock[] }) {
               accent="var(--warm)"
             />
           ))}
-        </div>
+        />
       )}
+    </div>
+  );
+}
+
+/** One dividend event → the row's pill, tone and detail lines. Days are counted
+ *  from the Dhaka calendar date (the old UTC-midnight count was a day off
+ *  between midnight and 6 AM Dhaka), with the same buy-by arithmetic as the
+ *  stock page and /dividend-calendar. */
+function dividendRow(d: MarketDividendEvent, today: Date) {
+  let meta: string;
+  let tone: RowTone;
+  let dates: string;
+  if (d.kind === "record") {
+    const info = recordDateInfo(d.date, today);
+    if (info) {
+      if (info.buyDaysLeft > 0) {
+        meta = `${info.buyDaysLeft} day${info.buyDaysLeft === 1 ? "" : "s"} left to buy`;
+        tone = info.buyDaysLeft <= 3 ? "neg" : "pos";
+      } else if (info.buyDaysLeft === 0) {
+        meta = "Last day to buy";
+        tone = "neg";
+      } else {
+        meta = "Too late to buy";
+        tone = "neutral";
+      }
+      dates = `Record ${formatDate(d.date)} · buy by ${formatDate(isoLocal(info.buyBy))}`;
+    } else {
+      meta = "Cash date set";
+      tone = "pos";
+      dates = `Record ${formatDate(d.date)}`;
+    }
+  } else {
+    meta = "Just announced";
+    tone = "accent";
+    dates = `Announced ${formatDate(d.date)} · record date not set yet`;
+  }
+
+  let cash: string | null = null;
+  if (d.cash_per_share != null && d.cash_per_share >= 0.05) {
+    cash = `৳${d.cash_per_share % 1 === 0 ? d.cash_per_share : d.cash_per_share.toFixed(2)} per share`;
+    if (d.yield_pct != null && d.yield_pct > 0) cash += ` · ${d.yield_pct.toFixed(1)}% at today's price`;
+  } else if (d.stock_pct != null && d.stock_pct > 0) {
+    cash = `${d.stock_pct % 1 === 0 ? d.stock_pct : d.stock_pct.toFixed(1)}% bonus shares`;
+  }
+
+  return { meta, tone, cash, dates };
+}
+
+function Dividends({ items }: { items: MarketDividendEvent[] }) {
+  const today = todayDhaka();
+  return (
+    <div
+      className="ms-card ms-card--tint"
+      style={{ marginTop: 16, "--card-accent": "var(--positive)" } as CSSProperties}
+    >
+      <p className="ms-card-title">Cash coming your way soon</p>
+      <p className="ms-card-note" style={{ marginBottom: 4 }}>
+        A dividend is cash a company gives to the people who own its shares. You must own the share
+        before the record date — and normal buys take three trading days to land, so &ldquo;buy by&rdquo; is
+        the day that matters.
+      </p>
+      <p lang="bn" className="font-bn ms-note-bn" style={{ margin: "0 0 12px" }}>
+        ডিভিডেন্ড মানে — কোম্পানি লাভ করলে শেয়ারের মালিকদের নগদ টাকা দেয়। রেকর্ড ডেটের অন্তত তিন
+        কার্যদিবস আগে কিনলে তবেই পাবেন।
+      </p>
+      {items.length === 0 ? (
+        <p className="ms-empty">No cash dates coming up right now.</p>
+      ) : (
+        <ShowMore
+          initial={4}
+          noun="dividends"
+          rows={items.map((d) => {
+            const r = dividendRow(d, today);
+            return (
+              <MarketRow
+                key={`${d.trading_code}-${d.date}`}
+                code={d.trading_code}
+                name={d.company_name}
+                sector={d.sector}
+                price={d.last_price}
+                meta={r.meta}
+                tone={r.tone}
+                accent="var(--positive)"
+                sub={
+                  <>
+                    {r.cash && <span className="ms-srow-sub-line ms-srow-sub-line--cash">{r.cash}</span>}
+                    <span className="ms-srow-sub-line">{r.dates}</span>
+                  </>
+                }
+              />
+            );
+          })}
+        />
+      )}
+      <div className="ms-links">
+        <Link href="/dividend-calendar" className="ms-bloglink">
+          See the full dividend calendar →
+        </Link>
+        <Link href="/blog/dividend-record-date" lang="bn" className="font-bn ms-bloglink">
+          ডিভিডেন্ড ও রেকর্ড ডেট কীভাবে কাজ করে →
+        </Link>
+      </div>
     </div>
   );
 }
@@ -138,60 +228,9 @@ export default function WhatCouldHappenNext({
         />
       </div>
 
-      <div
-        className="ms-card ms-card--tint"
-        style={{ marginTop: 16, "--card-accent": "var(--positive)" } as CSSProperties}
-      >
-        <p className="ms-card-title">Cash coming your way soon</p>
-        <p className="ms-card-note" style={{ marginBottom: 4 }}>
-          A dividend is cash a company gives to the people who own its shares.
-        </p>
-        <p lang="bn" className="font-bn ms-note-bn" style={{ margin: "0 0 12px" }}>
-          ডিভিডেন্ড মানে — কোম্পানি লাভ করলে শেয়ারের মালিকদের নগদ টাকা দেয়।
-        </p>
-        {dividends.length === 0 ? (
-          <p className="ms-empty">No cash dates coming up right now.</p>
-        ) : (
-          <div className="ms-divgrid">
-            {dividends.map((d) => {
-              const days = d.kind === "record" ? daysUntil(d.date) : null;
-              return (
-              <Link
-                key={`${d.trading_code}-${d.date}`}
-                href={`/stock/${d.trading_code}`}
-                className="ms-divcard"
-              >
-                <span className="ms-divcard-top">
-                  <span className={`ms-divkind ms-divkind--${d.kind}`}>
-                    {d.kind === "record" ? "Cash date" : "Just announced"}
-                  </span>
-                  {days != null && days >= 0 && (
-                    <span lang="bn" className={`font-bn ms-divdays${days <= 3 ? " ms-divdays--soon" : ""}`}>
-                      {days === 0 ? "আজ" : `${days} দিন বাকি`}
-                    </span>
-                  )}
-                </span>
-                <div className="ms-divcard-id">
-                  <span className="ms-divcard-tkr" aria-hidden="true">
-                    {sectorIcon(d.sector) ?? d.trading_code.charAt(0)}
-                  </span>
-                  <span className="ms-divcard-code">{d.trading_code}</span>
-                </div>
-                <div className="ms-divcard-meta">
-                  <span>{shortDate(d.date)}</span>
-                  {d.last_price != null && <span className="ms-divcard-price">{taka(d.last_price)}</span>}
-                </div>
-                {d.dividend_pct != null && (
-                  <div className="ms-divcash">৳ Pays {Math.round(d.dividend_pct)}%</div>
-                )}
-              </Link>
-              );
-            })}
-          </div>
-        )}
-        <Link href="/blog/dividend-record-date" lang="bn" className="font-bn ms-bloglink">
-          ডিভিডেন্ড ও রেকর্ড ডেট কীভাবে কাজ করে — বিস্তারিত পড়ুন →
-        </Link>
+      <Dividends items={dividends} />
+      <div style={{ marginTop: 10 }}>
+        <Bn className="ms-note-bn">এগুলো শিক্ষামূলক তথ্য, বিনিয়োগ পরামর্শ নয়।</Bn>
       </div>
     </>
   );

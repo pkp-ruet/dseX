@@ -4,9 +4,11 @@ import {
   flattenTiers,
   getScores,
   getTrust,
+  getMarketState,
   type ScoresResponse,
   type ScoreItem,
   type TrustStats,
+  type MarketStateData,
 } from "@/lib/api";
 import { pickStoryStocks } from "@/lib/home-stories";
 import { toLandingStock, pickHeroCode, type LandingStock } from "@/lib/landing";
@@ -142,14 +144,21 @@ async function AnatomySection({ promise }: { promise: Promise<ScoresResponse | n
   return <ReportAnatomy stock={hero} totalCount={safeCount(data.total)} />;
 }
 
-async function LiveTodaySection({ promise }: { promise: Promise<ScoresResponse | null> }) {
-  const scores = await promise;
+async function LiveTodaySection({
+  promise,
+  marketPromise,
+}: {
+  promise: Promise<ScoresResponse | null>;
+  marketPromise: Promise<MarketStateData | null>;
+}) {
+  const [scores, market] = await Promise.all([promise, marketPromise]);
   const items = scores ? sortedByScore(flattenTiers(scores)) : [];
   if (items.length === 0) return null;
   return (
     <LiveToday
       standouts={pickStoryStocks(items, items.length)}
       totalCount={safeCount(items.length)}
+      mood={market?.mood ?? null}
     />
   );
 }
@@ -203,6 +212,9 @@ function HeroFallback() {
 export default function HomePage() {
   const scoresPromise = getScores().catch(() => null);
   const trustPromise = getTrust().catch(() => null);
+  // Only the mood sentence is used here (block 4). Fetched at the same 3600s
+  // as the scores so this page's ISR cadence doesn't tighten to 15 minutes.
+  const marketPromise = getMarketState(3600).catch(() => null);
 
   return (
     <>
@@ -230,9 +242,11 @@ export default function HomePage() {
             <CoreFeaturesSection promise={scoresPromise} />
           </Suspense>
 
-          {/* 4 — today's data, so nothing above is only a claim */}
+          {/* 4 — today's data, so nothing above is only a claim: the market's
+              mood in one plain sentence (the door to /market-analysis), then
+              the three standouts */}
           <Suspense fallback={null}>
-            <LiveTodaySection promise={scoresPromise} />
+            <LiveTodaySection promise={scoresPromise} marketPromise={marketPromise} />
           </Suspense>
 
           {/* 5 — more routes in, for someone with no company in mind */}

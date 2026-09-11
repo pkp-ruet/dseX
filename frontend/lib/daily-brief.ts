@@ -4,6 +4,7 @@ import type {
   DividendsUpcoming,
   PortfolioHolding,
   MarketIndexData,
+  MarketMood,
 } from "@/lib/api";
 import { bdGroup } from "@/lib/formatters";
 
@@ -11,6 +12,17 @@ import { bdGroup } from "@/lib/formatters";
 export interface BriefSegment {
   text: string;
   tone?: "pos" | "neg" | "accent";
+  /** Optional destination — the renderer turns the run into a link. */
+  href?: string;
+}
+
+const MARKET_HREF = "/market-analysis";
+
+/** Segment tone for the backend mood's tone word. */
+function moodTone(tone: MarketMood["tone"]): BriefSegment["tone"] {
+  if (tone === "up") return "pos";
+  if (tone === "down" || tone === "weak") return "neg";
+  return "accent";
 }
 
 function relDays(date: Date): string {
@@ -65,8 +77,10 @@ export function buildDailyBrief(opts: {
   extremes: NearExtremesData | null;
   dividends: DividendsUpcoming | null;
   marketIndex: MarketIndexData | null;
+  /** The market-analysis page's own verdict, so the brief never disagrees with it. */
+  marketMood?: MarketMood | null;
 }): BriefSegment[] {
-  const { holdings, codes, priceMap, todayMove, extremes, dividends, marketIndex } = opts;
+  const { holdings, codes, priceMap, todayMove, extremes, dividends, marketIndex, marketMood } = opts;
   const held = new Set(holdings.map((h) => h.trading_code.toUpperCase()));
   const universe = new Set([...held, ...codes.map((c) => c.toUpperCase())]);
   const seg: BriefSegment[] = [];
@@ -98,16 +112,24 @@ export function buildDailyBrief(opts: {
       } else {
         seg.push({ text: `Your ${total} stocks are mixed today.` });
       }
+    } else if (marketMood?.label) {
+      // Whole-market read — the same verdict the Market Analysis page shows,
+      // linked there so the reader can see why.
+      seg.push(
+        { text: "The market is " },
+        { text: marketMood.label.toLowerCase(), tone: moodTone(marketMood.tone), href: MARKET_HREF },
+        { text: " today." },
+      );
     } else {
       const u = marketIndex?.up_count ?? null;
       const d = marketIndex?.down_count ?? null;
       if (u != null && d != null && u + d > 0) {
         const r = u / (u + d);
-        if (r >= 0.58) seg.push({ text: "Buyers are " }, { text: "in control", tone: "pos" }, { text: " across the market today." });
-        else if (r <= 0.42) seg.push({ text: "Sellers are " }, { text: "in control", tone: "neg" }, { text: " across the market today." });
-        else seg.push({ text: "The market is evenly split today." });
+        if (r >= 0.58) seg.push({ text: "Buyers are " }, { text: "in control", tone: "pos", href: MARKET_HREF }, { text: " across the market today." });
+        else if (r <= 0.42) seg.push({ text: "Sellers are " }, { text: "in control", tone: "neg", href: MARKET_HREF }, { text: " across the market today." });
+        else seg.push({ text: "The market is " }, { text: "evenly split", tone: "accent", href: MARKET_HREF }, { text: " today." });
       } else {
-        seg.push({ text: "Here's your market at a glance." });
+        seg.push({ text: "Here's " }, { text: "your market at a glance", tone: "accent", href: MARKET_HREF }, { text: "." });
       }
     }
   }
