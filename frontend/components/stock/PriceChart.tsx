@@ -195,7 +195,7 @@ export default function PriceChart({ code }: Props) {
                 <Bar
                   yAxisId="volume"
                   dataKey="volume"
-                  fill="rgba(100,116,139,0.55)"
+                  fill="color-mix(in srgb, var(--text-muted) 45%, transparent)"
                   isAnimationActive={false}
                 />
               )}

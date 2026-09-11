@@ -111,6 +111,8 @@ export interface CompanyProfile {
   reserve_surplus_mn: number | null;
   total_loan_mn: number | null;
   paid_up_capital_mn: number | null;
+  listing_year?: number | null;
+  market_lot?: number | null;
 }
 
 export interface LatestPrice {
@@ -125,6 +127,10 @@ export interface LatestPrice {
   ycp: number | null;
   w52_high: number | null;
   w52_low: number | null;
+  /** Day's turnover in millions of BDT. */
+  value_mn?: number | null;
+  /** Number of trades that day. */
+  trade_count?: number | null;
 }
 
 export interface SignalFlags {

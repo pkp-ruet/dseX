@@ -96,6 +96,8 @@ class LatestPrice(BaseModel):
     ycp: Optional[float] = None
     w52_high: Optional[float] = None
     w52_low: Optional[float] = None
+    value_mn: Optional[float] = None      # day's turnover in millions of BDT
+    trade_count: Optional[int] = None     # number of trades that day
 
 
 class CompanyProfile(BaseModel):
@@ -108,6 +110,8 @@ class CompanyProfile(BaseModel):
     reserve_surplus_mn: Optional[float] = None
     total_loan_mn: Optional[float] = None
     paid_up_capital_mn: Optional[float] = None
+    listing_year: Optional[int] = None
+    market_lot: Optional[int] = None
 
 
 class SignalFlags(BaseModel):

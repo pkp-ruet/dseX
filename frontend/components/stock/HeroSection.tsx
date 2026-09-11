@@ -2,8 +2,13 @@ import Link from "next/link";
 import WatchlistButton from "@/components/stock/WatchlistButton";
 import AddToPortfolioButton from "@/components/stock/AddToPortfolioButton";
 import PriceAlertButton from "@/components/stock/PriceAlertButton";
+import ShareButton from "@/components/stock/ShareButton";
+import CategoryChip from "@/components/stock/CategoryChip";
+import YourPosition from "@/components/stock/YourPosition";
+import { IconAlert, IconFlame } from "@/components/stock/StockIcons";
 import { taka, signed } from "@/lib/formatters";
 import { range52wInfo } from "@/lib/plain-language";
+import { sectorSlug } from "@/lib/sector";
 import type { CompanyDetail } from "@/lib/api";
 
 interface Props {
@@ -36,6 +41,7 @@ export default function HeroSection({ detail }: Props) {
   const staleData = score_row?.stale_data === true || score_row?.stale_data === "true";
   const lastReportedYear = score_row?.last_reported_year as number | null | undefined;
   const dataAgeYears = score_row?.data_age_years as number | null | undefined;
+  const score = (score_row?.score as number | null | undefined) ?? null;
 
   const ltp = latest_price.ltp;
   const chg = latest_price.change_pct;
@@ -71,7 +77,7 @@ export default function HeroSection({ detail }: Props) {
           <li aria-hidden="true" className="opacity-40">/</li>
           <li><Link href="/dsestockranking" className="hover:text-[var(--primary)] transition-colors">Rankings</Link></li>
           <li aria-hidden="true" className="opacity-40">/</li>
-          <li aria-current="page" className="text-[var(--primary)] font-semibold">{code}</li>
+          <li aria-current="page" className="font-semibold text-[var(--text)]">{code}</li>
         </ol>
       </nav>
 
@@ -114,26 +120,24 @@ export default function HeroSection({ detail }: Props) {
                     {code}
                   </span>
                   {profile.sector && (
-                    <span
-                      className="text-xs font-semibold px-3 py-1 rounded-full"
+                    <Link
+                      href={`/sector/${sectorSlug(profile.sector)}`}
+                      prefetch={false}
+                      title={`See every ${profile.sector} company`}
+                      className="text-xs font-semibold px-3 py-1 rounded-full transition-opacity hover:opacity-80"
                       style={{ color: "var(--np-cautious)", background: "rgba(180,83,9,0.1)", border: "1px solid rgba(180,83,9,0.25)" }}
                     >
-                      {profile.sector}
-                    </span>
+                      {profile.sector} →
+                    </Link>
                   )}
                   {categoryInfo && (
-                    <span
-                      title={categoryInfo.note}
-                      className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full cursor-help"
-                      style={{
-                        color: categoryInfo.color,
-                        background: categoryInfo.bg,
-                        border: `1px solid ${categoryInfo.border}`,
-                      }}
-                    >
-                      {category === "Z" && <span aria-hidden="true">⚠️</span>}
-                      Category {category}
-                    </span>
+                    <CategoryChip
+                      category={category}
+                      note={categoryInfo.note}
+                      color={categoryInfo.color}
+                      bg={categoryInfo.bg}
+                      border={categoryInfo.border}
+                    />
                   )}
                   {staleData && lastReportedYear != null && (
                     <span
@@ -145,12 +149,15 @@ export default function HeroSection({ detail }: Props) {
                         border: "1px solid rgba(180,83,9,0.35)",
                       }}
                     >
-                      <span aria-hidden="true">⚠️</span>
+                      <IconAlert size={12} />
                       Last reported: {lastReportedYear}
                       {dataAgeYears != null && dataAgeYears >= 2 ? ` — ${dataAgeYears}y stale` : ""}
                     </span>
                   )}
-                  <WatchlistButton code={code} className="ml-1" />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 mt-3">
+                  <WatchlistButton code={code} />
                   <AddToPortfolioButton code={code} ltp={ltp} />
                   <PriceAlertButton
                     code={code}
@@ -158,6 +165,7 @@ export default function HeroSection({ detail }: Props) {
                     w52High={latest_price.w52_high}
                     w52Low={latest_price.w52_low}
                   />
+                  <ShareButton code={code} companyName={profile.company_name} score={score} ltp={ltp} />
                 </div>
               </div>
 
@@ -197,7 +205,7 @@ export default function HeroSection({ detail }: Props) {
                         border: "1px solid rgba(180,83,9,0.3)",
                       }}
                     >
-                      <span aria-hidden="true">🔥</span>
+                      <IconFlame size={12} />
                       {busyLabel}
                     </span>
                   </div>
@@ -228,10 +236,13 @@ export default function HeroSection({ detail }: Props) {
                   />
                 </div>
                 <p className="text-xs mt-2 text-center sm:text-left" style={{ color: "var(--text-muted)" }}>
-                  Where today's price sits in its 52-week range
+                  Where today&apos;s price sits in its 52-week range
                 </p>
               </div>
             )}
+
+            {/* The reader's own stake — renders only for a signed-in holder / watcher */}
+            <YourPosition code={code} ltp={ltp} />
 
           </div>
         </div>

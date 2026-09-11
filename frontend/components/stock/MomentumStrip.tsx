@@ -31,7 +31,6 @@ export default function MomentumStrip({ momentum }: Props) {
   const vr = momentum.volume_ratio;
   const up = momentum.up_days_7d;
   const days = momentum.days_counted;
-  const pos = momentum.pct_in_52w_range;
   const turnover = momentum.avg_turnover_7d_mn;
 
   const tiles: { label: string; value: string; sub: string; color?: string }[] = [
@@ -57,11 +56,6 @@ export default function MomentumStrip({ momentum }: Props) {
       label: "Up days",
       value: up != null && days != null && days > 0 ? `${up}/${days}` : "--",
       sub: "Green days this week",
-    },
-    {
-      label: "52-week spot",
-      value: pos != null ? `${Math.round(pos)}%` : "--",
-      sub: "Position in 1-year range",
     },
   ];
 
@@ -93,7 +87,7 @@ export default function MomentumStrip({ momentum }: Props) {
         </p>
       </Card>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {tiles.map((t) => (
           <Card key={t.label} padding="none" className="rounded-2xl p-4">
             <p
@@ -108,21 +102,6 @@ export default function MomentumStrip({ momentum }: Props) {
             >
               {t.value}
             </p>
-            {/* 52-week range bar under the position tile */}
-            {t.label === "52-week spot" && pos != null && (
-              <div
-                className="mt-2 h-1.5 rounded-full overflow-hidden"
-                style={{ background: "var(--surface-2)" }}
-              >
-                <div
-                  className="h-full rounded-full"
-                  style={{
-                    width: `${Math.max(2, Math.min(100, pos))}%`,
-                    background: "var(--primary)",
-                  }}
-                />
-              </div>
-            )}
             <p className="text-xs mt-2 leading-snug" style={{ color: "var(--text-muted)" }}>
               {t.sub}
             </p>

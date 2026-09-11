@@ -25,6 +25,19 @@ from backend.models.responses import (
 router = APIRouter()
 
 
+def _int_or_none(v):
+    """DSE scrapes some integers as strings / floats — coerce, else None."""
+    if v is None:
+        return None
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    if math.isnan(f):
+        return None
+    return int(f)
+
+
 @router.get("/api/companies/codes")
 def get_all_codes() -> list[str]:
     return load_all_company_codes()
@@ -250,6 +263,8 @@ def get_company_detail(code: str):
             reserve_surplus_mn=company.get("reserve_surplus_mn"),
             total_loan_mn=company.get("total_loan_mn"),
             paid_up_capital_mn=company.get("paid_up_capital_mn"),
+            listing_year=_int_or_none(company.get("listing_year")),
+            market_lot=_int_or_none(company.get("market_lot")),
         ),
         latest_price=LatestPrice(
             ltp=latest.get("ltp"),
@@ -263,6 +278,8 @@ def get_company_detail(code: str):
             ycp=latest.get("ycp"),
             w52_high=w52_high,
             w52_low=w52_low,
+            value_mn=latest.get("value_mn"),
+            trade_count=_int_or_none(latest.get("trade_count")),
         ),
         score_row=score_row,
         signal_flags=SignalFlags(green=flags["green"], red=flags["red"]),

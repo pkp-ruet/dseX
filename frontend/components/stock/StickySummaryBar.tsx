@@ -21,11 +21,33 @@ export default function StickySummaryBar({
 }: Props) {
   const [show, setShow] = useState(false);
 
+  // Past the hero the bar appears. On a phone the navbar + this bar + the
+  // section nav is ~170px of fixed chrome, so there it also hides while the
+  // reader scrolls down and comes back the moment they scroll up.
   useEffect(() => {
-    const onScroll = () => setShow(window.scrollY > 320);
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      const pastHero = y > 320;
+      const narrow = window.innerWidth < 640;
+      if (!pastHero) {
+        setShow(false);
+      } else if (!narrow) {
+        setShow(true);
+      } else if (y < lastY - 6) {
+        setShow(true);
+      } else if (y > lastY + 6) {
+        setShow(false);
+      }
+      lastY = y;
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
   }, []);
 
   const tone = verdictTone(score);

@@ -270,12 +270,31 @@ components/
 │   └── StocksTable.tsx
 ├── stock-insights/
 │   └── InsightCard.tsx
-├── stock/
-│   ├── HeroSection.tsx, QuickSummary.tsx, MetricStrip.tsx, SectionNav.tsx
-│   ├── PriceChart.tsx, FinancialCharts.tsx, CashFlowPanel.tsx
-│   ├── DividendSection.tsx, NewsSection.tsx, NewsCard.tsx
-│   ├── ShareholdingPie.tsx, CompanyFundamentals.tsx
-│   ├── PillarScores.tsx, ValuationCard.tsx, SignalFlags.tsx, VerdictBar.tsx
+├── stock/                         — `/stock/[code]`, in page order. Wrapped in `context/StockLangContext.tsx`
+│   │                                (one EN/বাংলা switch for the whole page; server renders English, a
+│   │                                Bengali-language browser defaults to Bengali, choice saved in localStorage)
+│   ├── HeroSection.tsx            — name, code, sector chip (links to `/sector/[slug]`), CategoryChip (tap to
+│   │                                explain — no hover tooltips, the audience is on phones), actions row
+│   │                                (WatchlistButton / AddToPortfolioButton / PriceAlertButton / ShareButton —
+│   │                                native share sheet, else copy link), price + 52w bar, then YourPosition
+│   │                                (signed-in holder: shares / avg cost / value / P/L / holding signal from
+│   │                                the portfolio GET; watcher: since-added move from watchlist_meta)
+│   ├── PriceChart.tsx, VerdictBlock.tsx (score ring + verdict word + Buy OR Sell chip WITH its reason +
+│   │                                sector standing from `sector_context` + the take + deep-analysis hook;
+│   │                                does NOT repeat the company identity — the hero owns it)
+│   ├── StickySummaryBar.tsx (hides on scroll-down below 640px), StockSectionNav.tsx, FeaturedInStrip.tsx
+│   ├── HealthCheck.tsx            — five pillar bars at a glance, then the five accordions (bilingual copy
+│   │                                lives in `lib/plain-language.ts` PILLAR_PHRASES `*Bn` fields)
+│   ├── ValueTodayBox.tsx, ValuationPanel.tsx (P/E + yield tiles live ONLY here)
+│   ├── CompanyFacts.tsx           — market cap, EPS, paid-up, reserve, loan, shares, face value, lot, listed
+│   │                                since, today's range/turnover/trades (replaced KeyNumbers 2026-09-11)
+│   ├── ProfitsAndDividends.tsx, FinancialTrends.tsx
+│   ├── DividendTimeline.tsx       — full ledger from `/api/company/:code/dividend-history` + next record-date
+│   │                                countdown (`DaysLeft.tsx` client-side, buy-by via `lib/dividend-dates.ts`)
+│   ├── MomentumStrip.tsx (4 tiles — 52w position is the hero bar), SignalBoard.tsx, PeerComparison.tsx
+│   ├── ShareholdingPie.tsx (token colours), NewsSection.tsx, NewsCard.tsx (kind chip via `lib/news-kind.ts`)
+│   ├── StockIcons.tsx             — stroked SVG icons for this page; no emoji on the stock page
+│   └── (analysis sub-page: DeepAnalysisReport.tsx, DeepAnalysisTeaser.tsx, BengaliSummary.tsx, LangToggle.tsx)
 ├── watchlist/
 │   ├── WatchlistTable.tsx     — page body: "N stocks followed" line → SinceLastVisit →
 │   │                            WatchlistAnalysis mode="snapshot" (headline + mood + tiles)

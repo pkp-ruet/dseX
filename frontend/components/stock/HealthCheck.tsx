@@ -9,6 +9,7 @@ import {
 import type { CompanyDetail } from "@/lib/api";
 import Card from "@/components/ui/Card";
 import SectionTitle from "@/components/stock/SectionTitle";
+import { useStockLang } from "@/context/StockLangContext";
 
 type ScoreRow = Record<string, number | string | boolean | null>;
 
@@ -23,7 +24,16 @@ const STATUS_TONE: Record<HealthStatus, { color: string; bg: string; border: str
   weak:   { color: "var(--negative)", bg: "rgba(220,38,38,0.07)",  border: "rgba(220,38,38,0.22)",  icon: "⚠" },
 };
 
-// Sub-metric keys per pillar + plain-English labels.
+/** Short pillar names for the at-a-glance bars (English + Bengali). */
+const PILLAR_NAMES: Record<string, { en: string; bn: string }> = {
+  p1_biz:    { en: "Profit quality",       bn: "লাভের মান" },
+  p2_health: { en: "Financial health",     bn: "আর্থিক স্বাস্থ্য" },
+  p3_moat:   { en: "Business strength",    bn: "ব্যবসার শক্তি" },
+  p4_val:    { en: "Is the price fair",    bn: "দাম ন্যায্য কি" },
+  p5_div:    { en: "Dividend reliability", bn: "লভ্যাংশের ভরসা" },
+};
+
+// Sub-metric keys per pillar + plain-English labels (small UI text stays English).
 const PILLAR_SUBS: Record<string, { key: string; label: string }[]> = {
   p1_biz: [
     { key: "p1_eps_consist", label: "Profitable years" },
@@ -95,11 +105,18 @@ function pillarNumbers(pillarKey: string, detail: CompanyDetail): { label: strin
 }
 
 export default function HealthCheck({ scoreRow, detail }: Props) {
+  const { lang } = useStockLang();
+  const isBn = lang === "bn";
+
   const rows = HEALTH_PILLAR_ORDER
     .map((key) => pillarHealthCheck(key, scoreRow[key] as number | null))
     .filter((r): r is HealthCheckRow => r != null);
 
   if (rows.length === 0) return null;
+
+  const bars = HEALTH_PILLAR_ORDER
+    .map((key) => ({ key, value: toNum(scoreRow[key] as number | null) }))
+    .filter((b) => b.value != null);
 
   return (
     <section id="health" className="mb-8 scroll-mt-[112px]">
@@ -111,16 +128,51 @@ export default function HealthCheck({ scoreRow, detail }: Props) {
         bn="পাঁচটি সহজ পরীক্ষায় দেখুন কোম্পানিটি কতটা সুস্থ।"
       />
 
+      {/* At-a-glance: the five pillars as bars, so the shape reads before anyone taps */}
+      {bars.length > 0 && (
+        <Card padding="none" className="rounded-2xl p-4 sm:p-5 mb-3">
+          <div className="space-y-2.5">
+            {bars.map((b) => {
+              const v = b.value as number;
+              const color = pillarColor(v);
+              const name = PILLAR_NAMES[b.key];
+              return (
+                <div key={b.key} className="flex items-center gap-3">
+                  <span
+                    className={`w-[8.5rem] sm:w-[10rem] shrink-0 text-xs font-semibold leading-tight ${isBn ? "font-bn" : ""}`}
+                    lang={isBn ? "bn" : undefined}
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    {isBn ? name?.bn : name?.en}
+                  </span>
+                  <div
+                    className="h-2 flex-1 overflow-hidden rounded-full"
+                    style={{ background: "var(--surface-2)" }}
+                    role="img"
+                    aria-label={`${name?.en ?? b.key}: ${v.toFixed(1)} out of 10`}
+                  >
+                    <div className="h-full rounded-full" style={{ width: `${Math.max(2, Math.min(100, v * 10))}%`, background: color }} />
+                  </div>
+                  <span className="w-8 shrink-0 text-right text-xs font-extrabold tabular-nums nums" style={{ color }}>
+                    {v.toFixed(1)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      )}
+
       <div className="space-y-2.5">
         {rows.map((row) => (
-          <HealthRow key={row.pillarKey} row={row} scoreRow={scoreRow} detail={detail} />
+          <HealthRow key={row.pillarKey} row={row} scoreRow={scoreRow} detail={detail} isBn={isBn} />
         ))}
       </div>
     </section>
   );
 }
 
-function HealthRow({ row, scoreRow, detail }: { row: HealthCheckRow; scoreRow: ScoreRow; detail: CompanyDetail }) {
+function HealthRow({ row, scoreRow, detail, isBn }: { row: HealthCheckRow; scoreRow: ScoreRow; detail: CompanyDetail; isBn: boolean }) {
   const [open, setOpen] = useState(false);
   const tone = STATUS_TONE[row.status];
 
@@ -128,6 +180,11 @@ function HealthRow({ row, scoreRow, detail }: { row: HealthCheckRow; scoreRow: S
     .map((s) => ({ ...s, score: toNum(scoreRow[s.key] as number | null) }))
     .filter((s) => s.score != null);
   const numbers = pillarNumbers(row.pillarKey, detail);
+
+  const headline = isBn ? row.headlineBn : row.headline;
+  const oneLine = isBn ? row.oneLineBn : row.oneLine;
+  const learnMore = isBn ? row.learnMoreBn : row.learnMore;
+  const bnCls = isBn ? "font-bn" : "";
 
   return (
     <div
@@ -153,12 +210,12 @@ function HealthRow({ row, scoreRow, detail }: { row: HealthCheckRow; scoreRow: S
         >
           {tone.icon}
         </div>
-        <div className="flex-1 min-w-0">
+        <div className={`flex-1 min-w-0 ${bnCls}`} lang={isBn ? "bn" : undefined}>
           <p className="text-base sm:text-lg font-bold leading-tight" style={{ color: "var(--text)" }}>
-            {row.headline}
+            {headline}
           </p>
           <p className="text-sm leading-snug mt-0.5" style={{ color: "var(--text-muted)" }}>
-            {row.oneLine}
+            {oneLine}
           </p>
         </div>
         <span
@@ -172,10 +229,11 @@ function HealthRow({ row, scoreRow, detail }: { row: HealthCheckRow; scoreRow: S
       {open && (
         <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4">
           <div
-            className="rounded-xl p-4 text-sm leading-relaxed"
+            className={`rounded-xl p-4 text-sm leading-relaxed ${bnCls}`}
+            lang={isBn ? "bn" : undefined}
             style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
           >
-            {row.learnMore}
+            {learnMore}
           </div>
 
           {numbers.length > 0 && (

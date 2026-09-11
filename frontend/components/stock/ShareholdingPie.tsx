@@ -10,11 +10,12 @@ interface Props {
 }
 
 const CATEGORIES = [
-  { key: "sponsor_director_pct", label: "Owners (Sponsors / Directors)", color: "var(--primary)", deltaMatters: true },
-  { key: "govt_pct",             label: "Government",                    color: "#15803D", deltaMatters: false },
-  { key: "institute_pct",        label: "Institutions",                  color: "#185FA5", deltaMatters: true },
-  { key: "foreign_pct",          label: "Foreign Investors",             color: "#7C3AED", deltaMatters: true },
-  { key: "public_pct",           label: "General Public",                color: "#DB2777", deltaMatters: false },
+  // Categorical palette from the design tokens — no market semantics implied.
+  { key: "sponsor_director_pct", label: "Owners (Sponsors / Directors)", color: "var(--primary)",   deltaMatters: true },
+  { key: "govt_pct",             label: "Government",                    color: "var(--navy-soft)", deltaMatters: false },
+  { key: "institute_pct",        label: "Institutions",                  color: "var(--info)",      deltaMatters: true },
+  { key: "foreign_pct",          label: "Foreign Investors",             color: "var(--warm)",      deltaMatters: true },
+  { key: "public_pct",           label: "General Public",                color: "var(--gold-soft)", deltaMatters: false },
 ];
 
 function monthYear(iso: unknown): string | null {

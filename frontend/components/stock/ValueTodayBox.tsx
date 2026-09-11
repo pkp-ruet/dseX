@@ -1,8 +1,11 @@
+"use client";
 import type { FairValue } from "@/lib/api";
 import type { Lang } from "@/components/stock/LangToggle";
+import { useStockLang } from "@/context/StockLangContext";
 
 interface Props {
   fairValue: FairValue | null | undefined;
+  /** Explicit language (the /analysis sub-page). Omit on the stock page to follow the page-wide toggle. */
   lang?: Lang;
   className?: string;
 }
@@ -42,7 +45,9 @@ function money(v: number | null | undefined): string {
   return `৳${v.toFixed(2)}`;
 }
 
-export default function ValueTodayBox({ fairValue, lang = "en", className = "" }: Props) {
+export default function ValueTodayBox({ fairValue, lang: langProp, className = "" }: Props) {
+  const { lang: pageLang } = useStockLang();
+  const lang: Lang = langProp ?? pageLang;
   if (!fairValue || fairValue.center == null) return null;
   const { low, high, center, today, stance, confidence, methods, basis_en, basis_bn } = fairValue;
   const isBn = lang === "bn";

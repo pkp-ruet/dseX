@@ -1,17 +1,17 @@
 "use client";
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { verdictHeadline, verdictTone } from "@/lib/plain-language";
-import { getTier, TIER_LABELS_BN } from "@/lib/constants";
+import { getTier, TIER_LABELS_BN, SIGNAL_LABELS, SIGNAL_LABELS_BN, SIGNAL_VAR } from "@/lib/constants";
+import { sectorSlug } from "@/lib/sector";
 import SignalChip from "@/components/ui/SignalChip";
-import LangToggle, { type Lang } from "@/components/stock/LangToggle";
+import LangToggle from "@/components/stock/LangToggle";
+import { IconChartBars, IconTrophy } from "@/components/stock/StockIcons";
+import { useStockLang } from "@/context/StockLangContext";
 import type { CompanyDetail } from "@/lib/api";
 
 interface Props {
   detail: CompanyDetail;
 }
-
-const LANG_KEY = "dsex.analysis.lang";
 
 const T = {
   brand: { en: "Analysis", bn: "বিশ্লেষণ" },
@@ -24,41 +24,35 @@ const T = {
   eduNote: { en: "Educational information, not investment advice.", bn: "এটি শিক্ষামূলক তথ্য, বিনিয়োগ পরামর্শ নয়।" },
   deepEyebrow: { en: "In-depth analysis", bn: "গভীর বিশ্লেষণ" },
   deepCta: { en: "Read the full analysis", bn: "সম্পূর্ণ বিশ্লেষণ পড়ুন" },
-  latest: { en: "Latest Price", bn: "সর্বশেষ দাম" },
+  sectorAvg: { en: "sector average", bn: "খাতের গড়" },
 } as const;
 
+function ordinal(n: number): string {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return `${n}${s[(v - 20) % 10] || s[v] || s[0]}`;
+}
+
 /**
- * The single "Our Verdict" card — one home for what was previously three
- * stacked blocks (Bengali এক নজরে summary, the TopStockBD score/verdict, and the
- * deep-analysis teaser). A single EN / বাংলা toggle drives the whole card:
- *   • Score ring + verdict word + Buy signal (word + reason flip language)
- *   • The take — English shows the verdict tagline + sentences; Bengali shows
- *     the cached এক নজরে prose. BOTH language blocks are rendered into the
- *     server HTML and toggled by visibility, so crawlers still see the Bengali.
- *   • A distinct in-depth-analysis hook (kept as the premium/conversion surface)
- *     linking to the full /stock/[code]/analysis report.
+ * The single "Our Verdict" card: score ring + verdict word + the Buy / Sell
+ * signal with its reason, the sector standing, the take (English verdict prose
+ * or the cached Bengali এক নজরে), and the in-depth-analysis hook.
+ *
+ * The company name, code, sector and price are NOT repeated here — the hero
+ * directly above already carries them, and on a phone the two stacked headers
+ * used to fill a whole screen. The language toggle drives the whole page via
+ * `StockLangContext`, not just this card. Both language blocks of the take are
+ * rendered into the server HTML and toggled by visibility, so crawlers still
+ * see the Bengali.
  */
 export default function VerdictBlock({ detail }: Props) {
-  const { score_row, profile, verdict, signal, latest_price, bengali_summary, deep_analysis } = detail;
-
-  const [lang, setLang] = useState<Lang>("en");
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(LANG_KEY);
-      if (saved === "bn" || saved === "en") setLang(saved);
-    } catch {}
-  }, []);
-  const setAndSave = (l: Lang) => {
-    setLang(l);
-    try { localStorage.setItem(LANG_KEY, l); } catch {}
-  };
+  const { score_row, profile, verdict, signal, bengali_summary, deep_analysis, sector_context } = detail;
+  const { lang, setLang } = useStockLang();
   const isBn = lang === "bn";
 
-  const ltp = latest_price?.ltp;
   const score = (score_row?.score as number | null) ?? null;
   const tone = verdictTone(score);
   const word = isBn ? TIER_LABELS_BN[getTier(score)] : verdictHeadline(score);
-  const companyName = profile.company_name || profile.trading_code;
   const code = profile.trading_code;
 
   const tagline = verdict?.tagline ?? null;
@@ -68,9 +62,19 @@ export default function VerdictBlock({ detail }: Props) {
   const bnSummary = bengali_summary?.trim() || "";
   const bnParas = bnSummary ? bnSummary.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean) : [];
 
-  // Only the Buy action reason is surfaced (Sell is hidden from the UI for now).
-  const showReason = !!signal && signal.signal === "buy";
+  // The reason rides with both Buy and Sell — a Sell is exactly where the reader
+  // most needs the why. Neutral (`none`) shows no chip and no reason.
+  const isSell = signal?.signal === "sell";
+  const isBuy = signal?.signal === "buy";
   const reason = isBn ? signal?.reason_bn : signal?.reason_en;
+  const showReason = (isBuy || isSell) && !!reason;
+
+  // Sector standing — the API has always returned this; nothing rendered it.
+  const rank = sector_context?.rank_in_sector ?? null;
+  const peers = sector_context?.peer_count ?? null;
+  const sectorAvg = sector_context?.sector_avg_score ?? null;
+  const sectorName = sector_context?.sector ?? profile.sector ?? null;
+  const hasStanding = rank != null && peers != null && peers >= 2 && !!sectorName;
 
   const hasDeep = !!deep_analysis?.available;
   const deepHeadline = (isBn ? deep_analysis?.headline_bn : deep_analysis?.headline_en) ?? deep_analysis?.headline_en ?? "";
@@ -104,8 +108,8 @@ export default function VerdictBlock({ detail }: Props) {
       <div aria-hidden style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: "3px", background: tone.color }} />
 
       <div className="relative p-5 sm:p-7">
-        {/* Brand strip + single language toggle */}
-        <div className="flex items-center justify-between gap-3 mb-4">
+        {/* Brand strip + the page-wide language toggle */}
+        <div className="flex items-center justify-between gap-3 mb-5">
           <span className="text-[11px] font-bold uppercase tracking-[0.22em] flex items-center gap-1.5">
             <span className="inline-block w-2 h-2 rounded-full" style={{ background: tone.color }} />
             <span style={{ color: "var(--text)" }}>TopStockBD</span>
@@ -113,38 +117,7 @@ export default function VerdictBlock({ detail }: Props) {
               {T.brand[lang]}
             </span>
           </span>
-          <LangToggle value={lang} onChange={setAndSave} size="sm" />
-        </div>
-
-        {/* Company identity */}
-        <div className="mb-4">
-          <h2 className="font-black tracking-tight leading-[1.05]" style={{ color: "var(--text)", fontSize: "clamp(1.5rem, 4vw, 2.25rem)" }}>
-            {companyName}
-          </h2>
-          <div className="flex flex-wrap items-center gap-2 mt-2">
-            <span
-              className="inline-flex items-center text-xs font-bold px-2.5 py-0.5 rounded-full tabular-nums"
-              style={{ color: tone.color, background: tone.bg, border: `1px solid ${tone.border}` }}
-            >
-              {code}
-            </span>
-            {profile.sector && (
-              <span
-                className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full"
-                style={{ color: "var(--np-cautious)", background: "rgba(180,83,9,0.1)", border: "1px solid rgba(180,83,9,0.3)" }}
-              >
-                {profile.sector}
-              </span>
-            )}
-            {ltp != null && (
-              <span
-                className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full tabular-nums ${isBn ? "font-bn" : ""}`}
-                style={{ color: "var(--watch)", background: "rgba(180,83,9,0.1)", border: "1px solid rgba(180,83,9,0.3)" }}
-              >
-                {T.latest[lang]}: ৳{ltp.toFixed(1)}
-              </span>
-            )}
-          </div>
+          <LangToggle value={lang} onChange={setLang} size="sm" />
         </div>
 
         {/* Score ring + verdict word + signal */}
@@ -189,11 +162,70 @@ export default function VerdictBlock({ detail }: Props) {
               >
                 {word}
               </p>
-              {signal && <SignalChip signal={signal.signal} strength={signal.strength} size="md" lang={lang} />}
+              {isBuy && signal && <SignalChip signal={signal.signal} strength={signal.strength} size="md" lang={lang} />}
+              {isSell && (
+                <span
+                  className={`inline-flex items-center gap-1 rounded-md font-bold whitespace-nowrap ${isBn ? "font-bn" : "uppercase tracking-wide"}`}
+                  style={{
+                    color: SIGNAL_VAR.sell,
+                    background: `color-mix(in srgb, ${SIGNAL_VAR.sell} 12%, transparent)`,
+                    border: `1px solid color-mix(in srgb, ${SIGNAL_VAR.sell} 28%, transparent)`,
+                    padding: "4px 12px",
+                    fontSize: "0.8rem",
+                  }}
+                >
+                  <span aria-hidden style={{ fontSize: 10, lineHeight: 1 }}>▼</span>
+                  {isBn ? SIGNAL_LABELS_BN.sell : SIGNAL_LABELS.sell}
+                </span>
+              )}
             </div>
-            {showReason && reason && (
-              <p className={`text-sm sm:text-base font-semibold mt-2.5 leading-snug ${isBn ? "font-bn" : ""}`} style={{ color: "var(--text)" }}>
+
+            {showReason && (
+              <p
+                className={`text-sm sm:text-base font-semibold mt-2.5 leading-snug ${isBn ? "font-bn" : ""}`}
+                style={{ color: isSell ? SIGNAL_VAR.sell : "var(--text)" }}
+              >
                 {reason}
+              </p>
+            )}
+
+            {hasStanding && (
+              <p
+                className={`mt-3 inline-flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm ${isBn ? "font-bn" : ""}`}
+                lang={isBn ? "bn" : undefined}
+                style={{ color: "var(--text-muted)" }}
+              >
+                <span className="inline-flex" style={{ color: tone.color }}><IconTrophy size={15} /></span>
+                {isBn ? (
+                  <>
+                    <Link
+                      href={`/sector/${sectorSlug(sectorName as string)}`}
+                      prefetch={false}
+                      className="font-semibold hover:underline"
+                      style={{ color: "var(--text)" }}
+                    >
+                      {sectorName}
+                    </Link>
+                    <span>খাতে {peers}টির মধ্যে <b style={{ color: "var(--text)" }}>{rank} নম্বরে</b></span>
+                  </>
+                ) : (
+                  <>
+                    <span>Ranked <b style={{ color: "var(--text)" }}>{ordinal(rank as number)}</b> of {peers} in</span>
+                    <Link
+                      href={`/sector/${sectorSlug(sectorName as string)}`}
+                      prefetch={false}
+                      className="font-semibold hover:underline"
+                      style={{ color: "var(--text)" }}
+                    >
+                      {sectorName}
+                    </Link>
+                  </>
+                )}
+                {sectorAvg != null && score != null && (
+                  <span>
+                    · {T.sectorAvg[lang]} <b className="tabular-nums nums" style={{ color: "var(--text)" }}>{Math.round(sectorAvg)}</b>
+                  </span>
+                )}
               </p>
             )}
 
@@ -257,9 +289,9 @@ export default function VerdictBlock({ detail }: Props) {
           >
             <div className="h-1 w-full" style={{ background: "linear-gradient(90deg, var(--primary), var(--accent, var(--primary)))" }} />
             <div className="p-4 sm:p-5">
-              <div className="flex items-center gap-2 mb-2">
-                <span aria-hidden className="text-base">📊</span>
-                <span className={eyebrowCls(isBn)} style={{ color: "var(--primary)" }}>
+              <div className="flex items-center gap-2 mb-2" style={{ color: "var(--primary)" }}>
+                <IconChartBars size={16} />
+                <span className={eyebrowCls(isBn)}>
                   {T.deepEyebrow[lang]}
                 </span>
               </div>
@@ -289,7 +321,7 @@ export default function VerdictBlock({ detail }: Props) {
           style={{ borderTop: "1px solid var(--border)" }}
         >
           <span style={{ color: "var(--text-muted)" }}>topstockbd.com</span>
-          <span style={{ color: "var(--text-muted)" }}>DSE Stock Analysis</span>
+          <span style={{ color: "var(--text-muted)" }}>{code} · DSE Stock Analysis</span>
         </div>
       </div>
     </section>
