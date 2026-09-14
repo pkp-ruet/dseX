@@ -17,7 +17,7 @@ const PILLARS = [
   {
     label: "Financial Health",
     icon: "🏦",
-    desc: "Does the company have too much debt? Can it pay its bills? We check the balance sheet for debt levels, cash flow from operations, and liquidity.",
+    desc: "Does the company have too much debt? Can it pay its bills? We check the balance sheet for debt levels, cash flow from operations, and liquidity. For banks we look at their capital cushion instead — how much of their own money stands behind the loans.",
   },
   {
     label: "Competitive Strength",
@@ -32,7 +32,7 @@ const PILLARS = [
   {
     label: "Dividend Quality",
     icon: "💰",
-    desc: "Does the company reward its shareholders? We track how consistently it pays dividends, whether those dividends have grown, and the current yield.",
+    desc: "Does the company reward its shareholders — and can it afford to? We track how consistently it pays cash dividends, what share of profit that dividend takes, the current yield, and whether the payout has grown.",
   },
 ];
 

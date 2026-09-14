@@ -108,26 +108,33 @@ def _weighted_pillar(metrics: list[tuple[Optional[float], float]]) -> tuple[floa
 # Algorithm 2 — DSE Fundamental Stock Scoring (5-pillar)
 # ---------------------------------------------------------------------------
 
-# Growth-curve anchors (annualized % change -> 0..10 score). Shared by the legacy
-# point scorers and the trajectory engine so there's a single source of truth.
-# Note: 0% growth maps to a low score by design — these reward growth, not mere
-# survival (steady profitability is rewarded by the consistency/ROE metrics instead).
+# Growth-curve anchors (annualized % change -> 0..10 score), consumed by the
+# trajectory engine. Note: 0% growth maps to a low score by design — these reward
+# growth, not mere survival (steady profitability is rewarded by the
+# consistency/ROE metrics instead). A shrinking series scores BELOW the 0% mark.
 _EPS_GROWTH_ANCHORS = [(-5, 0), (0, 2), (3, 4), (7, 6), (10, 8), (15, 10)]
 _DPS_GROWTH_ANCHORS = [(-5, 0), (0, 3), (5, 6), (10, 8), (15, 10)]
-
-
-def _a2_eps_cagr_score(cagr_pct: float) -> float:
-    return _score(cagr_pct, _EPS_GROWTH_ANCHORS)
 
 
 def _a2_roe_score(roe_pct: float) -> float:
     return _score(roe_pct, [(0, 0), (5, 3), (10, 6), (15, 8), (20, 10)])
 
 
-def _a2_de_score(de: float, is_financial: bool = False) -> float:
-    if is_financial:
-        return _score(de, [(0, 10), (5, 10), (8, 7), (12, 4), (16, 0)])
+def _a2_de_score(de: float) -> float:
+    """Industrial debt-to-equity (borrowings / equity). Banks and NBFIs never come
+    here — their leverage is scored as a capital cushion by _a2_capital_score."""
     return _score(de, [(0, 10), (0.3, 10), (0.6, 8), (1.0, 6), (1.5, 3), (2.0, 0)])
+
+
+def _a2_capital_score(equity_to_assets_pct: float) -> float:
+    """Capital cushion for banks / NBFIs: equity as a % of total assets.
+
+    The scraper's `total_debt` for a bank is borrowings only (deposits are not
+    labelled as debt), so borrowings/equity sits near 1.0 for almost every bank
+    and cannot separate a well-capitalised lender from a hollowed-out one. Equity
+    over assets can: Basel's leverage floor is 3%, DSE's strong banks run 8-10%,
+    and the distressed names sit at or below 2% (or negative)."""
+    return _score(equity_to_assets_pct, [(2, 0), (5, 5), (7, 8), (9, 10)])
 
 
 def _a2_ic_score(ic: float) -> float:
@@ -136,33 +143,6 @@ def _a2_ic_score(ic: float) -> float:
 
 def _a2_cash_assets_score(pct: float) -> float:
     return _score(pct, [(0, 2), (5, 5), (10, 7), (15, 10)])
-
-
-def _a2_ownership_score(sponsor_pct: float, institute_pct: float, foreign_pct: float) -> float:
-    """Score ownership quality: balanced sponsor + institutional/foreign presence."""
-    score = 0.0
-    # Sponsor: sweet spot 30-60%, penalize <15% (weak) or >75% (entrenched)
-    if 30 <= sponsor_pct <= 60:
-        score += 5.0
-    elif 20 <= sponsor_pct < 30 or 60 < sponsor_pct <= 75:
-        score += 3.0
-    else:
-        score += 1.0
-    # Institutional: higher is better (smart money confidence)
-    if institute_pct >= 20:
-        score += 3.0
-    elif institute_pct >= 10:
-        score += 2.0
-    else:
-        score += 0.5
-    # Foreign: any meaningful presence is a positive signal
-    if foreign_pct >= 10:
-        score += 2.0
-    elif foreign_pct >= 3:
-        score += 1.0
-    else:
-        score += 0.5
-    return min(score, 10.0)
 
 
 def _a2_gm_score(avg_gm: float, trend: float) -> float:
@@ -175,13 +155,19 @@ def _a2_gm_score(avg_gm: float, trend: float) -> float:
 
 
 def _a2_nim_score(avg_nim: float, trend: float) -> float:
-    """Score Net Interest Margin for banks/NBFIs (2–5% is typical range)."""
-    stable = abs(trend) <= 0.3
-    if avg_nim > 4 and trend > 0:    return 10.0
-    if avg_nim > 4 and stable:       return 8.0
-    if avg_nim >= 2.5 and trend > 0: return 7.0
-    if avg_nim >= 2.5 and stable:    return 5.0
-    return 2.0
+    """Score Net Interest Margin (NII / earning assets, %) for banks and NBFIs.
+
+    Continuous level curve plus a ±1 trend nudge. Calibrated to what the
+    scraper actually produces (2026-09: bank median 1.6%, p90 3.1%) rather
+    than to textbook 2.5-5% bands, which put half of all banks on a flat 2.0.
+    A negative NII (distressed lender) lands on 0.
+    """
+    level = _score(avg_nim, [(0, 0), (1, 2), (2, 5), (3, 8), (4, 10)])
+    if trend > 0.2:
+        level += 1.0
+    elif trend < -0.2:
+        level -= 1.0
+    return max(0.0, min(10.0, level))
 
 
 def _a2_npm_score(avg_npm: float, trend: float) -> float:
@@ -212,14 +198,23 @@ def _effective_revenue(er: dict, is_financial: bool = False) -> Optional[float]:
     return None
 
 
-def _a2_rev_vol_score(std_g: float, mean_g: float) -> float:
-    # Penalize declining revenue regardless of stability
+def _a2_rev_vol_score(growth_rates: list[float]) -> float:
+    """Revenue steadiness from year-over-year growth rates (annualized %, one per
+    consecutive pair of reported years).
+
+    Two separate questions, so a shrinking business and an erratic one are no
+    longer folded onto the same 1.0 floor:
+      * mean growth < 0  -> scored on how fast sales are shrinking (max 3.0);
+      * otherwise        -> scored on how bumpy the growth is (std of the rates),
+                            with bands wide enough for a ~9-10% inflation economy
+                            where nominal growth swings of 10-20 points are normal.
+    """
+    n = len(growth_rates)
+    mean_g = sum(growth_rates) / n
     if mean_g < 0:
-        return 1.0
-    if std_g < 5:    return 10.0
-    if std_g < 10:   return 7.0
-    if std_g < 20:   return 4.0
-    return 1.0
+        return _score(mean_g, [(-10, 0), (0, 3)])
+    std_g = (sum((g - mean_g) ** 2 for g in growth_rates) / n) ** 0.5
+    return _score(std_g, [(5, 10), (10, 8), (20, 5), (35, 2), (50, 1)])
 
 
 def _a2_capex_score(capex_rev_pct: float) -> float:
@@ -235,12 +230,16 @@ def _a2_pe_pb_ratio_score(ratio: float) -> float:
     return _score(ratio, [(0.5, 10), (0.70, 10), (0.85, 8), (1.00, 6), (1.20, 4), (1.50, 1)])
 
 
-def _a2_dps_cagr_score(cagr_pct: float) -> float:
-    return _score(cagr_pct, _DPS_GROWTH_ANCHORS)
-
-
 def _a2_div_yield_score(yield_pct: float) -> float:
     return _score(yield_pct, [(0, 1), (1, 4), (3, 7), (5, 10)])
+
+
+def _a2_payout_score(payout_pct: float) -> float:
+    """Dividend affordability: cash DPS as a % of EPS (median of the last 3 paying
+    years). Anything up to 60% of profit is comfortably covered; above 100% the
+    company is paying out of reserves; a dividend declared on a loss-making year
+    arrives here as a very large number and scores 0."""
+    return _score(payout_pct, [(60, 10), (80, 7), (100, 4), (150, 0)])
 
 
 # ---------------------------------------------------------------------------
@@ -252,19 +251,25 @@ def _a2_div_yield_score(yield_pct: float) -> float:
 def _earnings_stability(values: list, is_financial: bool = False) -> float:
     """Path smoothness of a metric series in [0, 1] (1.0 = steady, 0.0 = violent).
 
-    Driven by the worst single-year drawdown — the 'big downfall' signal. Drawdown
-    (not a coefficient of variation) is used deliberately: it flags a fall-and-recover
-    round-trip while leaving a healthy one-time *step up* alone (a step up has no
-    drawdown). Banks/NBFIs get a wider tolerance band — their earnings swing on
-    loan-loss provisioning, so a moderate dip is normal rather than alarming.
+    Driven by the worst peak-to-trough drawdown — the 'big downfall' signal.
+    Peak-to-trough (running peak, not consecutive years) so a slow slide such as
+    10, 9, 8, 7, 6 registers as the 40% fall it is instead of four "normal" 10-15%
+    dips. Drawdown (not a coefficient of variation) is used deliberately: it flags
+    a fall-and-recover round-trip while leaving a healthy one-time *step up* alone
+    (a step up has no drawdown). Banks/NBFIs get a wider tolerance band — their
+    earnings swing on loan-loss provisioning, so a moderate dip is normal rather
+    than alarming.
     """
     vals = [float(v) for v in values if not _is_nanish(v)]
     if len(vals) < 3:
         return 1.0  # too short to judge volatility — don't penalize
     max_dd = 0.0
-    for prev, curr in zip(vals[:-1], vals[1:]):
-        if prev > 0 and curr < prev:
-            max_dd = max(max_dd, (prev - curr) / prev)
+    peak: Optional[float] = None
+    for v in vals:
+        if peak is None or v > peak:
+            peak = v
+        elif peak > 0 and v < peak:
+            max_dd = max(max_dd, (peak - v) / peak)
     dd_tol  = 0.40 if is_financial else 0.25   # drawdown still considered "normal"
     dd_span = 0.40 if is_financial else 0.35   # extra drawdown beyond tol => fully unstable
     instability = min(max(0.0, max_dd - dd_tol) / dd_span, 1.0)
@@ -275,54 +280,74 @@ def _trajectory_score(pairs: list, anchors: list,
                       is_financial: bool = False,
                       turnaround_ok: bool = True,
                       penalize_volatility: bool = True) -> tuple:
-    """Growth score that rewards a *sustained* rise and penalizes a volatile path.
-    Replaces fragile endpoint-to-endpoint CAGR. Returns (score 0..10, stability 0..1).
+    """Growth score that rewards a *sustained* rise, scores a shrinking series below
+    flat, and penalizes a volatile path. Returns (score 0..10, stability 0..1).
 
-    Logic:
-      - A higher current level earns growth credit only when it is *held above the early
-        baseline*: the lower of the last two years must stay above where the series started.
-        A single recovered or one-off spiked year earns none (scored as flat) — this is what
-        catches the "100 -> 20 -> 100" round-trip, whose recent trough fell back to baseline.
-      - The level score is then scaled down by earnings instability, so a down-and-back-up
-        path lands *below* a flat-but-steady one. A genuine "20 -> 100 held" breakout keeps
-        its high level score (a clean step up has no drawdown, so stability stays ~1).
+    Growth rate = Theil-Sen slope of ln(value) against the fiscal year (the median of
+    all pairwise log-slopes), annualized. Year-aware, so a missing year does not
+    stretch or compress the rate, and robust to one freak year in five: a single
+    spike or dip moves 4 of the 10 pairwise slopes and leaves the median alone,
+    whereas endpoint CAGR or an OLS fit swing with it. A negative slope scores
+    below the 0% anchor — a steady 10, 9, 8, 7, 6 is a decline, not "flat".
+
+    Gate: a positive rate earns growth credit only when the current level is *held
+    above where the series started* (the first value, or the median of the first two
+    when there are 4+ points, whichever is higher). A fall-and-recover round-trip
+    (10, 2, 10, 10, 10) ends where it began, so it gets no growth credit and the
+    volatility penalty then pushes it below flat; a clean step-up (10, 10, 20, 20, 20)
+    has no drawdown and keeps its full credit.
+
+    Short histories are damped toward the neutral mark (2 points: half credit,
+    3 points: three-quarters) — two data points cannot prove a trend either way.
+
+    A series whose latest value is <= 0 earns nothing. One that *started* at or below
+    zero and is profitable now gets a modest 5.0 (turnaround) rather than a CAGR
+    fabricated off a non-positive base.
 
     penalize_volatility=False skips the instability scaling (used for dividends, where a
     lumpy-but-generous payout is a feature, not a risk — see the DPS call site).
     """
-    pts = [(int(y), float(v)) for (y, v) in pairs
-           if y is not None and not _is_nanish(v)]
-    stability = _earnings_stability([v for _, v in pts], is_financial)
-    if len(pts) < 2:
+    pts = sorted(
+        ((int(y), float(v)) for (y, v) in pairs
+         if y is not None and not _is_nanish(y) and not _is_nanish(v)),
+        key=lambda p: p[0],
+    )
+    vals = [v for _, v in pts]
+    stability = _earnings_stability(vals, is_financial)
+    n = len(pts)
+    if n < 2:
         return 0.0, stability
 
-    vals = [v for _, v in pts]
-    yrs  = [y for y, _ in pts]
-    early = vals[:2] if len(vals) >= 4 else vals[:1]
-    base  = sum(early) / len(early)
-    last2 = vals[-2:]
     neutral = _score(0.0, anchors)  # the "no growth" mark for this metric
 
-    if base <= 0:
-        # Recovery from a loss/zero base — credit a modest neutral-positive only if
-        # currently profitable (don't fabricate a CAGR off a non-positive base).
-        level = 5.0 if (turnaround_ok and vals[-1] > 0) else neutral
-    elif min(last2) <= base:
-        # The higher level isn't *held above the early baseline*: the lower of the last
-        # two years has fallen back to (or below) where it started. That's a one-year
-        # recovery or a one-off spike, not sustained growth — no growth credit (a true
-        # round-trip is then pushed below flat by the volatility penalty). Genuine
-        # compounders, whose recent trough stays above their early base, are unaffected
-        # even if a single recent year wobbles below the all-time peak.
-        level = neutral
+    if vals[-1] <= 0:
+        level = 0.0  # loss-making now — no growth credit whatever the path
+    elif vals[0] <= 0:
+        level = 5.0 if turnaround_ok else neutral
     else:
-        current = sum(last2) / len(last2)
-        span = max(yrs[-1] - yrs[0], 1)
-        try:
-            cagr = (current / base) ** (1.0 / span) - 1.0
-            level = _score(cagr * 100, anchors)
-        except (ValueError, OverflowError, ZeroDivisionError):
+        pos = [(y, v) for y, v in pts if v > 0]
+        slopes = [
+            (math.log(v1) - math.log(v0)) / (y1 - y0)
+            for i, (y0, v0) in enumerate(pos)
+            for (y1, v1) in pos[i + 1:]
+            if y1 != y0
+        ]
+        if not slopes:
             level = neutral
+        else:
+            growth_pct = (math.exp(_median(slopes)) - 1.0) * 100.0
+            if growth_pct > 0:
+                early = vals[:2] if n >= 4 else vals[:1]
+                start = max(vals[0], _median(early))
+                current = sum(vals[-2:]) / 2 if n >= 4 else vals[-1]
+                level = _score(growth_pct, anchors) if current > start else neutral
+            else:
+                level = _score(growth_pct, anchors)
+            # Damp short histories toward neutral — 2-3 points can't prove a trend.
+            if len(pos) == 2:
+                level = neutral + (level - neutral) * 0.5
+            elif len(pos) == 3:
+                level = neutral + (level - neutral) * 0.75
 
     # Volatility penalty pushes a round-trip below flat. When exempt (dividends), only the
     # sustainability gate applies — lumpiness isn't punished, just denied growth credit.
@@ -366,7 +391,8 @@ def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict],
     # level" identically to genuine growth. eps_stability is reused for the valuation pillar.
     m2, eps_stability = _trajectory_score(eps_pairs, _EPS_GROWTH_ANCHORS, is_financial)
 
-    # m3: ROE 3yr avg with trend bonus/penalty
+    # m3: ROE averaged over the reported years in the 5-year window (up to 5), with a
+    # first-half vs last-half trend bonus/penalty and a light volatility haircut.
     roe_vals = []
     roe_inputs_seen = False  # any year with both NP and equity reported
     for er in ext_last5:
@@ -437,9 +463,18 @@ def _a2_pillar2(ext_last5: list[dict], is_financial: bool = False,
 
     debt = latest.get("total_debt")
     eq   = latest.get("total_equity")
-    if not _is_nanish(debt) and not _is_nanish(eq):
+    ta   = latest.get("total_assets")
+    m1_capital: Optional[float] = None
+    if is_financial:
+        # Banks / NBFIs: leverage is a capital cushion (equity / assets), not
+        # borrowings / equity — see _a2_capital_score for why.
+        m1 = None
+        if not _is_nanish(eq) and not _is_nanish(ta) and float(ta) > 0:
+            m1_capital = _a2_capital_score(float(eq) / float(ta) * 100)
+        # else: balance-sheet totals never scraped — renormalize
+    elif not _is_nanish(debt) and not _is_nanish(eq):
         # Negative equity is distress (0), not a data gap.
-        m1 = _a2_de_score(float(debt) / float(eq), is_financial) if float(eq) > 0 else 0.0
+        m1 = _a2_de_score(float(debt) / float(eq)) if float(eq) > 0 else 0.0
     else:
         # No borrowings/equity lines scraped — common for insurers (typically
         # unlevered), so renormalize instead of scoring worst-leverage.
@@ -447,13 +482,35 @@ def _a2_pillar2(ext_last5: list[dict], is_financial: bool = False,
 
     ebit    = latest.get("ebit")
     int_exp = latest.get("interest_expense")
-    if not _is_nanish(ebit) and not _is_nanish(int_exp) and float(int_exp) > 0:
-        m2 = _a2_ic_score(float(ebit) / float(int_exp))
-    elif not _is_nanish(ebit):
-        # EBIT reported with no interest expense: debt-free if operating-profitable.
+    # Amarstock books expenses with a NEGATIVE sign for many issuers (ACI 2025:
+    # interest -8.65bn against EBIT 10.1bn). A `> 0` test read that as "no
+    # interest" and scored real 1.2x coverage as a debt-free 10 — use magnitude.
+    ie = None if _is_nanish(int_exp) else abs(float(int_exp))
+    debt_known = not _is_nanish(debt)
+    has_debt = debt_known and float(debt) > 0
+    if is_financial:
+        # Interest is a lender's cost of goods, so EBIT / interest says nothing
+        # about solvency. Not-applicable — excluded from the pillar entirely.
+        m2 = None
+    elif _is_nanish(ebit):
+        m2 = None  # income-statement detail never scraped — renormalize
+    elif ie is not None and ie > 0:
+        if has_debt and ie < 0.005 * float(debt):
+            # Interest under 0.5% of borrowings is not the real interest line
+            # (a stray "finance cost" sub-item) — a gap, not 400x coverage.
+            m2 = None
+        else:
+            m2 = _a2_ic_score(float(ebit) / ie)
+    elif (ie == 0 and not has_debt) or (debt_known and not has_debt):
+        # An explicit zero interest line with no borrowings on the books, or a
+        # zero-borrowings balance sheet: genuinely debt-free if operating-profitable.
         m2 = 10.0 if float(ebit) > 0 else 0.0
     else:
-        m2 = None  # income-statement detail never scraped — renormalize
+        # Interest line missing (or a zero that contradicts real borrowings) — the
+        # scraper simply didn't find the line. A data gap, never "debt-free":
+        # this branch used to hand a free 10 to 88 companies, one of them with
+        # borrowings at 73x equity. Renormalize.
+        m2 = None
 
     ext_m3   = ext_last5[-4:]
     np_vals  = [er.get("net_profit") for er in ext_m3]
@@ -507,21 +564,34 @@ def _a2_pillar2(ext_last5: list[dict], is_financial: bool = False,
     # or insurers (assets are the investment float). Not-applicable — excluded
     # from the pillar entirely, so its weight redistributes without touching
     # the coverage measure.
-    if is_financial or is_insurance:
+    if is_financial:
         m4 = None
-        metrics = [(m1, 0.313), (m2, 0.250), (m3, 0.313)]
+        # Capital cushion carries the weight the D/E + interest-cover pair had.
+        metrics = [(m1_capital, 0.60), (m3, 0.40)]
+    elif is_insurance:
+        m4 = None
+        # Insurers are unlevered by nature: only 4 of 59 report a borrowings line
+        # and none report interest, so an absent D/E or interest cover is
+        # not-applicable, not a gap. Score on whatever applies, weights rescaled so
+        # the 0.60 renormalization floor does not punish the missing lines (until
+        # 2026-09 the free "debt-free" 10 masked this; removing it alone cost
+        # every insurer ~8 points).
+        parts = [(s, w) for s, w in ((m1, 0.3125), (m2, 0.25), (m3, 0.3125)) if s is not None]
+        tot = sum(w for _, w in parts)
+        metrics = [(s, w / tot) for s, w in parts] if tot else [(None, 1.0)]
     else:
         cash = latest.get("cash_and_equivalents")
-        ta   = latest.get("total_assets")
         if not _is_nanish(cash) and not _is_nanish(ta) and float(ta) > 0:
             m4 = _a2_cash_assets_score(float(cash) / float(ta) * 100)
         else:
             m4 = None  # balance-sheet detail missing — renormalize
-        metrics = [(m1, 0.313), (m2, 0.250), (m3, 0.313), (m4, 0.125)]
+        metrics = [(m1, 0.3125), (m2, 0.25), (m3, 0.3125), (m4, 0.125)]
 
     score, coverage = _weighted_pillar(metrics)
-    return score, {"p2_de": m1, "p2_ic": m2, "p2_cfo": m3, "p2_cash": m4,
-                   "p2_coverage": round(coverage, 3)}
+    # p2_de is None for banks/NBFIs and p2_capital is None for everyone else, so
+    # the stock page shows exactly one leverage bar per company.
+    return score, {"p2_de": m1, "p2_capital": m1_capital, "p2_ic": m2, "p2_cfo": m3,
+                   "p2_cash": m4, "p2_coverage": round(coverage, 3)}
 
 
 def _a2_pillar3(code: str, ext_last5: list[dict],
@@ -567,24 +637,26 @@ def _a2_pillar3(code: str, ext_last5: list[dict],
     if margin_vals and m1 is not None:
         m1 = round(m1 * (0.75 + 0.25 * _earnings_stability(margin_vals, is_financial)), 4)
 
-    rev_vals = [rv for er in ext_last5
-                for rv in [_effective_revenue(er, is_financial)] if rv is not None]
-    if len(rev_vals) >= 4:
-        growth_rates = [
-            (rev_vals[i] - rev_vals[i - 1]) / rev_vals[i - 1] * 100
-            for i in range(1, len(rev_vals))
-            if rev_vals[i - 1] > 0
-        ]
-        if len(growth_rates) >= 3:
-            mean_g = sum(growth_rates) / len(growth_rates)
-            std_g  = (sum((g - mean_g) ** 2 for g in growth_rates) / len(growth_rates)) ** 0.5
-            m2 = _a2_rev_vol_score(std_g, mean_g)
-        else:
-            m2 = None
+    # Year-aware revenue growth rates: each consecutive pair of *reported* years,
+    # annualized over the gap between them, so a missing year doesn't show up as
+    # one huge jump. ext_last5 is year-ascending.
+    rev_pairs = [
+        (int(er["year"]), rv)
+        for er in ext_last5
+        for rv in [_effective_revenue(er, is_financial)]
+        if rv is not None and er.get("year") is not None and not _is_nanish(er.get("year"))
+    ]
+    if len(rev_pairs) >= 4:
+        growth_rates = []
+        for (y0, r0), (y1, r1) in zip(rev_pairs[:-1], rev_pairs[1:]):
+            span = max(y1 - y0, 1)
+            growth_rates.append(((r1 / r0) ** (1.0 / span) - 1.0) * 100.0)
+        m2 = _a2_rev_vol_score(growth_rates) if len(growth_rates) >= 3 else None
     else:
         m2 = None  # under 4 revenue years — stability unjudgeable, renormalize
 
-    # Rank absence means no usable revenue anywhere (a data gap), not last place.
+    # Rank absence means no usable (or hopelessly old) revenue — a data gap, not
+    # last place. See the sector-rank block in _compute_scores_df.
     m3 = sector_rank_score.get(code)
 
     # CapEx reinvestment intensity (avg CapEx / avg Revenue). Only ~a third of
@@ -617,8 +689,12 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
     if ltp is None or ltp <= 0:
         return 0.0, {"p4_pe": 0.0, "p4_pb": 0.0}
 
-    curr_eps = next((r["eps"] for r in reversed(fin_last5)
-                     if r.get("eps") is not None and r["eps"] > 0), None)
+    # The LATEST reported EPS, whatever its sign. A company that has fallen into
+    # losses has no P/E — it must not borrow a positive EPS from an earlier year
+    # and come out looking "cheap" (68 loss-makers did exactly that, one of them
+    # with a 9.96/10 P/E-value score on a negative EPS).
+    curr_eps = next((float(r["eps"]) for r in reversed(fin_last5)
+                     if not _is_nanish(r.get("eps"))), None)
     has_sector_pe = sector_median_pe is not None and sector_median_pe > 0
 
     # Raw ratios surfaced for the stock-detail valuation panel (not used in scoring).
@@ -627,14 +703,17 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
     current_pb: Optional[float] = None
     own_avg_pb: Optional[float] = None
 
-    if curr_eps is None:
-        pe_score = 0.0
+    if curr_eps is None or curr_eps <= 0:
+        pe_score = 0.0  # no earnings -> P/E undefined -> nothing to call cheap
     else:
         current_pe = ltp / curr_eps
+        # DSE's audited table carries a year-end P/E per fiscal year (verified
+        # 2026-09: implied year-end prices vary across years, so it is NOT the
+        # live price / old EPS). Only `pe_ratio_basic` is scraped.
         hist_pes = [
             float(pe)
             for r in fin_last5
-            for pe in [r.get("pe_ratio_cont_basic") or r.get("pe_ratio_basic")]
+            for pe in [r.get("pe_ratio_basic")]
             if pe and float(pe) > 0
         ]
         has_self_pe = len(hist_pes) >= 2
@@ -668,7 +747,11 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
         current_pb = ltp / curr_nav
         hist_pbs = []
         for r in fin_last5:
-            pe  = r.get("pe_ratio_cont_basic") or r.get("pe_ratio_basic")
+            # Year-end price = P/E x EPS. `eps` is the only EPS the scraper fills
+            # (its `eps_basic` column is None on every row — see company_details.py),
+            # and pe_ratio_basic x eps reproduces the year-end price (GP 2020:
+            # 12.6 x 27.54 = 347), so the two are on the same basis.
+            pe  = r.get("pe_ratio_basic")
             eps = r.get("eps")
             nav = r.get("nav_per_share")
             if pe and float(pe) > 0 and eps and float(eps) > 0 and nav and float(nav) > 0:
@@ -706,53 +789,89 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
 
 
 def _a2_pillar5(fin_last5: list[dict], ltp: Optional[float],
-                face: Optional[float], is_financial: bool = False) -> tuple[float, dict]:
+                face: Optional[float], is_financial: bool = False,
+                ledger_cash_pct: Optional[dict[int, float]] = None) -> tuple[float, dict]:
+    """Dividend pillar: consistency 0.35 · payout affordability 0.30 · yield 0.20 ·
+    growth 0.15.
+
+    Growth used to carry half the pillar, but two-thirds of the market sat on its
+    neutral constant, so a steady generous payer could never beat 6.5/10 and the
+    pillar never measured what its name promised (sustainability). Payout ratio —
+    cash DPS as a share of EPS — is now the second-largest component.
+
+    Nothing in this pillar renormalizes: for dividends, absence IS the signal.
+
+    `ledger_cash_pct` maps fiscal year -> cash % declared per the news ledger
+    (dividend_declarations); it only fills a year whose audited-table dividend
+    cell was blank. When the ledger has nothing for that year either, the blank
+    means what DSE shows: no dividend.
+    """
+    empty = {"p5_dps_cagr": 0.0, "p5_consist": 0.0, "p5_yield": 0.0, "p5_payout": 0.0,
+             "div_yield_pct": None, "payout_pct": None}
     # Face value is required to convert "cash_dividend_pct" (% of face) into actual DPS.
     # Default of 10 silently understates DPS by 10× for face-100 stocks — bail out instead.
     if _is_nanish(face) or float(face) <= 0:
-        return 0.0, {"p5_dps_cagr": 0.0, "p5_consist": 0.0, "p5_yield": 0.0,
-                     "div_yield_pct": None}
+        return 0.0, empty
     face_val = float(face)
+    ledger = ledger_cash_pct or {}
 
-    # Pair (year, dps) so CAGR uses real time spans and first non-zero year as the base
-    dps_pairs = [
-        (r["year"], float(r.get("cash_dividend_pct") or 0) * face_val / 100.0)
-        for r in fin_last5
-        if r.get("year") is not None
-    ]
-    dps_vals = [d for _, d in dps_pairs]
+    # (year, cash DPS in Tk, EPS or None) — year-aware so growth uses real time spans.
+    years: list[tuple[int, float, Optional[float]]] = []
+    for r in fin_last5:
+        y = r.get("year")
+        if y is None or _is_nanish(y):
+            continue
+        y = int(y)
+        pct = r.get("cash_dividend_pct")
+        if _is_nanish(pct):
+            pct = ledger.get(y, 0.0)
+        eps = r.get("eps")
+        years.append((y, float(pct) * face_val / 100.0,
+                      None if _is_nanish(eps) else float(eps)))
+    dps_vals = [d for _, d, _ in years]
 
     # m1: DPS trajectory — same sustained-growth gate as EPS, but volatility is NOT
     # penalized: lumpy-but-generous payouts (big special dividends some years) are a feature,
-    # rewarded via yield/consistency, not a risk. So a dividend that dipped and recovered to
-    # (or below) its old level simply earns no *growth* credit (neutral), without being
-    # pushed below flat. Operates on non-zero years so a skipped year doesn't distort the base.
-    nonzero_pairs = [(y, d) for y, d in dps_pairs if d > 0]
+    # rewarded via yield/consistency, not a risk. Operates on non-zero years so a skipped
+    # year doesn't distort the trend (consistency below already charges for the skip).
+    nonzero_pairs = [(y, d) for y, d, _ in years if d > 0]
     if len(nonzero_pairs) >= 2:
         m1, _ = _trajectory_score(nonzero_pairs, _DPS_GROWTH_ANCHORS, is_financial,
                                   penalize_volatility=False)
     else:
         m1 = 0.0
 
+    # m2: consistency — paying years out of the 5-year window.
     paid = sum(1 for d in dps_vals if d > 0)
     if paid >= 5:   m2 = 10.0
     elif paid == 4: m2 = 7.0
     elif paid == 3: m2 = 4.0
     else:           m2 = 0.0
 
+    # m3: yield on the latest year's cash dividend at today's official close.
     latest_dps = dps_vals[-1] if dps_vals else 0.0
+    div_yield_pct = None
     if ltp and ltp > 0 and latest_dps > 0:
+        div_yield_pct = round(latest_dps / ltp * 100, 1)
         m3 = _a2_div_yield_score(latest_dps / ltp * 100)
     else:
         m3 = 0.0
 
-    div_yield_pct = None
-    if ltp and ltp > 0 and latest_dps > 0:
-        div_yield_pct = round(latest_dps / ltp * 100, 1)
+    # m4: payout affordability — median DPS/EPS over the last three paying years.
+    # A dividend declared on a loss year is paid out of reserves: sentinel 999%.
+    payouts = [
+        (d / eps * 100.0) if eps > 0 else 999.0
+        for _, d, eps in years
+        if d > 0 and eps is not None
+    ][-3:]
+    payout_pct = _median(payouts) if payouts else None
+    m4 = _a2_payout_score(payout_pct) if payout_pct is not None else 0.0
 
-    score = m1 * 0.50 + m2 * 0.35 + m3 * 0.15
-    return score, {"p5_dps_cagr": m1, "p5_consist": m2, "p5_yield": m3,
-                   "div_yield_pct": div_yield_pct}
+    score = m2 * 0.35 + m4 * 0.30 + m3 * 0.20 + m1 * 0.15
+    return score, {"p5_dps_cagr": m1, "p5_consist": m2, "p5_yield": m3, "p5_payout": m4,
+                   "div_yield_pct": div_yield_pct,
+                   # None when unknown OR when the sentinel fired (a % of a loss is not a number)
+                   "payout_pct": round(payout_pct, 1) if payout_pct is not None and payout_pct < 999 else None}
 
 
 # ---------------------------------------------------------------------------
@@ -876,6 +995,33 @@ def build_scores_df() -> pd.DataFrame:
         return df
 
 
+def _reference_year(data_max_year: Optional[int], fin_max_year: Optional[int],
+                    today: Optional[datetime] = None) -> Optional[int]:
+    """The fiscal year every company is expected to have reported by now — the
+    anchor the staleness multiplier measures `data_age_years` against.
+
+    Calendar-driven: from July onward the reference is the current year (the
+    June-FY crowd has filed, and December-FY companies filed the previous year
+    by April); January–June it is the previous year. Companies whose latest
+    report is one year behind the reference are within tolerance; two or more
+    behind are stale.
+
+    Why not simply the freshest year seen in the data (the old rule): that hung
+    the multiplier for 49 companies on whether a couple of March-FY names had
+    filed yet — one early or mis-parsed row moved a ×0.8 on or off for everyone.
+    The data maximum is only used (a) in backtests, where `fin_max_year` defines
+    "now", and (b) as a guard when the scrape itself has fallen two or more
+    years behind the calendar, so our own stale data never penalizes the market.
+    """
+    if data_max_year is None:
+        return None
+    if fin_max_year is not None:
+        return data_max_year
+    today = today or datetime.now(timezone.utc)
+    calendar_ref = today.year if today.month >= 7 else today.year - 1
+    return calendar_ref if data_max_year >= calendar_ref - 1 else data_max_year
+
+
 def _compute_scores_df(
     prices_override: Optional[dict] = None,
     fin_max_year: Optional[int] = None,
@@ -971,40 +1117,49 @@ def _compute_scores_df(
                     _candidate_years.append(int(_y))
                 except Exception:
                     pass
-    latest_market_year: Optional[int] = max(_candidate_years) if _candidate_years else None
+    data_max_year: Optional[int] = max(_candidate_years) if _candidate_years else None
+    latest_market_year: Optional[int] = _reference_year(data_max_year, fin_max_year)
 
     # Group latest revenue by sector for within-sector ranking.
     # For banks/NBFIs, fall back to net_interest_income when revenue is absent.
-    rev_by_sector: dict[str, list[tuple[str, float]]] = {}
+    rev_by_sector: dict[str, list[tuple[str, float, int]]] = {}
     for code, rows in ext_by_code.items():
         sector = (companies.get(code, {}).get("sector") or "").strip()
         is_fin = normalize_sector(sector) in ("BANK", "NBFI")
         for row in reversed(rows):
             rv = _effective_revenue(row, is_fin)
             if rv:
-                rev_by_sector.setdefault(sector, []).append((code, rv))
+                yr = row.get("year")
+                rev_by_sector.setdefault(sector, []).append(
+                    (code, rv, int(yr) if yr is not None else 0))
                 break
 
+    # Sector standing = revenue-size percentile within the DSE sector, mapped
+    # linearly onto 2..10 (largest = 10, smallest = 2). The old four-step ladder
+    # gave the entire bottom half of every sector a flat 2.0 — 124 of 243
+    # industrials were told they had weak "sector standing".
+    #   * a company whose latest revenue is 3+ years older than the sector's
+    #     freshest is left out (None -> renormalize): ranking a 2019 figure
+    #     against 2025 peers is noise, and the staleness multiplier already
+    #     charges for the age;
+    #   * a solo company, and every member of DSE's catch-all "Miscellaneous"
+    #     sector (unrelated businesses), gets the neutral 5.0 — there are no
+    #     real peers to rank against.
     sector_rank_score: dict[str, float] = {}
     for sector, items in rev_by_sector.items():
-        items_sorted = sorted(items, key=lambda x: x[1], reverse=True)
-        n = len(items_sorted)
-        for rank_idx, (code, _) in enumerate(items_sorted):
+        if sector.lower() == "miscellaneous":
+            for code, _, _ in items:
+                sector_rank_score[code] = 5.0
+            continue
+        freshest = max(y for _, _, y in items)
+        ranked = [it for it in items if it[2] >= freshest - 2]
+        ranked.sort(key=lambda x: x[1], reverse=True)
+        n = len(ranked)
+        for rank_idx, (code, _, _) in enumerate(ranked):
             if n == 1:
-                # Solo company in a sector — can't rank against peers, give a neutral mark
-                # (not 10, which would be a free max for niche-sector listings).
-                sr = 5.0
+                sector_rank_score[code] = 5.0
             else:
-                pct = (rank_idx + 1) / n
-                if rank_idx == 0:
-                    sr = 10.0
-                elif pct <= 0.25:
-                    sr = 7.0
-                elif pct <= 0.50:
-                    sr = 5.0
-                else:
-                    sr = 2.0
-            sector_rank_score[code] = sr
+                sector_rank_score[code] = round(2.0 + 8.0 * (1.0 - rank_idx / (n - 1)), 4)
 
     prices = load_latest_prices() if prices_override is None else prices_override
 
@@ -1018,6 +1173,28 @@ def _compute_scores_df(
     except Exception:
         adjustments_map = {}
 
+    # Cash dividend % per fiscal year from the news ledger, used by pillar 5 only
+    # to fill a blank dividend cell in the audited table. Interim + final for the
+    # same period-end year are summed (DSE's table shows the year's total).
+    ledger_by_code: dict[str, dict[int, float]] = {}
+    try:
+        for d in db.dividend_declarations.find(
+            {"cash_pct": {"$ne": None}, "period_end": {"$ne": None}},
+            {"trading_code": 1, "period_end": 1, "cash_pct": 1, "_id": 0},
+        ):
+            pe = d.get("period_end")
+            try:
+                fy = pe.year if isinstance(pe, datetime) else int(str(pe)[:4])
+            except (TypeError, ValueError):
+                continue
+            if fin_max_year is not None and fy > fin_max_year:
+                continue  # backtest: a declaration not yet knowable
+            per_year = ledger_by_code.setdefault(d["trading_code"], {})
+            per_year[fy] = per_year.get(fy, 0.0) + float(d.get("cash_pct") or 0.0)
+    except Exception as e:  # noqa: BLE001 — the ledger is a fill-in, never a blocker
+        logger.warning("dividend ledger unavailable for scoring: %s", e)
+        ledger_by_code = {}
+
     # Pre-compute sector P/E and P/B values keyed by code so the per-company median
     # can exclude the company itself (otherwise a small sector's median is biased toward self).
     sector_pes: dict[str, list[tuple[str, float]]] = {}
@@ -1028,13 +1205,15 @@ def _compute_scores_df(
         if not p or p <= 0:
             continue
         fin_rows_tmp = fin_by_code.get(code, [])
-        eps_v = next((r["eps"] for r in reversed(fin_rows_tmp)
-                      if r.get("eps") is not None and r["eps"] > 0), None)
-        nav_v = next((r["nav_per_share"] for r in reversed(fin_rows_tmp)
-                      if r.get("nav_per_share") is not None and r["nav_per_share"] > 0), None)
-        if eps_v:
+        # Latest reported EPS / NAV, whatever the sign — a loss-maker has no P/E
+        # and must not enter the sector median on a stale positive figure.
+        eps_v = next((float(r["eps"]) for r in reversed(fin_rows_tmp)
+                      if not _is_nanish(r.get("eps"))), None)
+        nav_v = next((float(r["nav_per_share"]) for r in reversed(fin_rows_tmp)
+                      if not _is_nanish(r.get("nav_per_share"))), None)
+        if eps_v is not None and eps_v > 0:
             sector_pes.setdefault(sector, []).append((code, p / eps_v))
-        if nav_v:
+        if nav_v is not None and nav_v > 0:
             sector_pbs.setdefault(sector, []).append((code, p / nav_v))
 
     def _sector_median_excluding(pairs: list[tuple[str, float]], exclude_code: str) -> Optional[float]:
@@ -1069,7 +1248,8 @@ def _compute_scores_df(
         eps_stability = sub1.get("eps_stability", 1.0)
         p4_vol_damp = 1.0 - 0.5 * (1.0 - eps_stability)
         p4, sub4 = _a2_pillar4(fin_rows, ltp, sect_pe_for_self, sect_pb_for_self, vol_damp=p4_vol_damp)
-        p5, sub5 = _a2_pillar5(fin_rows, ltp, face, is_financial)
+        p5, sub5 = _a2_pillar5(fin_rows, ltp, face, is_financial,
+                               ledger_cash_pct=ledger_by_code.get(code))
 
         final = p1 * 0.30 + p2 * 0.20 + p3 * 0.20 + p4 * 0.15 + p5 * 0.15
 
@@ -1124,8 +1304,8 @@ def _compute_scores_df(
             3,
         )
 
-        curr_eps = next((r["eps"] for r in reversed(fin_rows)
-                         if r.get("eps") is not None), None)
+        curr_eps = next((float(r["eps"]) for r in reversed(fin_rows)
+                         if not _is_nanish(r.get("eps"))), None)
 
         # Point-in-time ROE (%) from the latest extended-financials year — surfaced for
         # the stock-detail peer table, not used in scoring.

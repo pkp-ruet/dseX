@@ -43,22 +43,23 @@ CLASS_NOTES: dict[str, dict[str, str]] = {
     "BANK": {
         "label": "Bank",
         "en": (
-            "Banks are scored on a financial-sector template: debt-to-equity is judged "
-            "against bank-appropriate anchors instead of industrial ones, net interest "
-            "margin stands in for gross margin, and the cash-to-assets test is skipped "
+            "Banks are scored on a financial-sector template: the debt and interest-cover "
+            "tests are replaced by a capital cushion (equity as a share of total assets), net "
+            "interest margin stands in for gross margin, and the cash-to-assets test is skipped "
             "because a bank's balance sheet is deposits, not spare cash."
         ),
         "bn": (
-            "ব্যাংকের স্কোর আলাদা নিয়মে হয় — ঋণ-ইকুইটি অনুপাত ব্যাংকের মানদণ্ডে দেখা হয়, "
-            "গ্রস মার্জিনের বদলে সুদের মার্জিন ধরা হয়।"
+            "ব্যাংকের স্কোর আলাদা নিয়মে হয় — ঋণের বদলে দেখা হয় মোট সম্পদের তুলনায় নিজের মূলধন কতটা, "
+            "আর গ্রস মার্জিনের বদলে সুদের মার্জিন ধরা হয়।"
         ),
     },
     "NBFI": {
         "label": "Non-bank financial institution",
         "en": (
             "DSE lists these under Financial Institutions. They use the same financial-sector "
-            "template as banks — financial debt anchors, interest margin in place of gross "
-            "margin, and operating cash flow as a fallback when the usual lines are missing."
+            "template as banks — a capital cushion in place of debt and interest-cover tests, "
+            "interest margin in place of gross margin, and operating cash flow as a fallback "
+            "when the usual lines are missing."
         ),
         "bn": (
             "আর্থিক প্রতিষ্ঠানগুলো ব্যাংকের মতো একই আর্থিক টেমপ্লেটে স্কোর পায়।"

@@ -42,7 +42,10 @@ const PILLAR_SUBS: Record<string, { key: string; label: string }[]> = {
     { key: "p1_npm_trend", label: "Margin trend" },
   ],
   p2_health: [
+    // p2_de is null for banks / NBFIs and p2_capital is null for everyone else,
+    // so exactly one leverage bar renders per company (rows with null hide).
     { key: "p2_de", label: "Low debt" },
+    { key: "p2_capital", label: "Capital cushion" },
     { key: "p2_ic", label: "Covers interest" },
     { key: "p2_cfo", label: "Cash from profit" },
     { key: "p2_cash", label: "Cash cushion" },
@@ -58,9 +61,10 @@ const PILLAR_SUBS: Record<string, { key: string; label: string }[]> = {
     { key: "p4_pb", label: "P/B value" },
   ],
   p5_div: [
-    { key: "p5_dps_cagr", label: "Dividend growth" },
     { key: "p5_consist", label: "Pays consistently" },
+    { key: "p5_payout", label: "Payout affordable" },
     { key: "p5_yield", label: "Dividend yield" },
+    { key: "p5_dps_cagr", label: "Dividend growth" },
   ],
 };
 
@@ -80,11 +84,21 @@ function pillarNumbers(pillarKey: string, detail: CompanyDetail): { label: strin
       push("Return on equity (3y avg)", pct(roe3yAvg(rows)));
       push("Net margin", last ? pct(netMargin(last.net_profit, last.revenue ?? last.net_interest_income)) : null);
       break;
-    case "p2_health":
-      push("Debt to equity", last ? x(debtToEquity(last.total_debt, last.total_equity)) : null);
-      push("Interest coverage", last ? x(interestCoverage(last.ebit, last.interest_expense)) : null);
+    case "p2_health": {
+      // Banks / NBFIs are scored on a capital cushion (equity / assets); the
+      // borrowings-based ratios below say nothing useful for them.
+      const isLender = toNum(sr.p2_capital as number | null) != null;
+      if (isLender) {
+        const eq = toNum(last?.total_equity ?? null);
+        const ta = toNum(last?.total_assets ?? null);
+        push("Equity as % of assets", eq != null && ta != null && ta > 0 ? pct((eq / ta) * 100) : null);
+      } else {
+        push("Debt to equity", last ? x(debtToEquity(last.total_debt, last.total_equity)) : null);
+        push("Interest coverage", last ? x(interestCoverage(last.ebit, last.interest_expense)) : null);
+      }
       push("Cash flow vs profit", last ? x(cashFlowQuality(last.operating_cf, last.net_profit)) : null);
       break;
+    }
     case "p3_moat":
       push("Gross margin", last ? pct(grossMargin(last.gross_profit, last.revenue ?? last.net_interest_income)) : null);
       break;
@@ -99,6 +113,7 @@ function pillarNumbers(pillarKey: string, detail: CompanyDetail): { label: strin
     }
     case "p5_div":
       push("Dividend yield", pct(toNum(sr.div_yield_pct as number | null)));
+      push("Paid out of profit", pct(toNum(sr.payout_pct as number | null)));
       break;
   }
   return out;

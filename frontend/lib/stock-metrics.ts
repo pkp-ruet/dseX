@@ -110,7 +110,8 @@ export function debtToEquity(totalDebt: number | null, totalEquity: number | nul
 
 /** Interest coverage (x). */
 export function interestCoverage(ebit: number | null, interestExpense: number | null): number | null {
-  return safeDiv(ebit, interestExpense, true);
+  // Amarstock books expenses with a negative sign for many issuers — use the magnitude.
+  return safeDiv(ebit, interestExpense == null ? null : Math.abs(interestExpense), true);
 }
 
 /** Gross margin (%). */
