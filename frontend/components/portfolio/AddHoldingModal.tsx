@@ -136,7 +136,9 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onC
               required
             />
             {suggestions.length > 0 && (
-              <ul className="absolute top-full left-0 right-0 mt-1 bg-[var(--surface)] border border-[var(--border)] rounded-lg shadow-lg z-20 overflow-hidden">
+              // Opens UPWARD on phones (the sheet is pinned to the bottom, so a
+              // downward list ran off-screen) and scrolls past ~4 rows.
+              <ul className="absolute bottom-full mb-1 sm:bottom-auto sm:top-full sm:mb-0 sm:mt-1 left-0 right-0 max-h-56 overflow-y-auto bg-[var(--surface)] border border-[var(--border)] rounded-lg shadow-lg z-20">
                 {suggestions.map((code, i) => (
                   <li
                     key={code}

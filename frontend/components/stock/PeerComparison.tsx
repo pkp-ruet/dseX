@@ -101,7 +101,7 @@ export default function PeerComparison({ current, peers, sector }: Props) {
   ] as Col[]).filter((c) => c.show);
 
   return (
-    <section id="peers" className="mb-8 scroll-mt-[112px]">
+    <section id="peers" className="mb-8 stock-anchor">
       <SectionTitle
         title="How It Stacks Up"
         sub={<>

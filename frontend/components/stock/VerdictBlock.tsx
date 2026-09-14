@@ -317,7 +317,7 @@ export default function VerdictBlock({ detail }: Props) {
 
         {/* Footer watermark — for shared screenshots */}
         <div
-          className="mt-5 pt-3 flex items-center justify-between text-[11px] font-bold uppercase tracking-[0.2em]"
+          className="mt-5 pt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] font-bold uppercase tracking-[0.2em]"
           style={{ borderTop: "1px solid var(--border)" }}
         >
           <span style={{ color: "var(--text-muted)" }}>topstockbd.com</span>

@@ -5,6 +5,7 @@ import SignalChip from "@/components/ui/SignalChip";
 import type { StockSignalInfo } from "@/lib/api";
 import { money } from "@/lib/formatters";
 import StarButton from "@/components/ui/StarButton";
+import { STOCK_JUMP_EVENT } from "@/components/stock/StockSectionNav";
 
 interface Props {
   code: string;
@@ -26,6 +27,10 @@ export default function StickySummaryBar({
   // reader scrolls down and comes back the moment they scroll up.
   useEffect(() => {
     let lastY = window.scrollY;
+    // A section-chip jump on a phone scrolls "up" for upward targets, which
+    // would pop the bar in mid-scroll and push the heading under the chips.
+    // StockSectionNav announces the jump; stay hidden until it settles.
+    let holdHiddenUntil = 0;
     const onScroll = () => {
       const y = window.scrollY;
       const pastHero = y > 320;
@@ -34,6 +39,8 @@ export default function StickySummaryBar({
         setShow(false);
       } else if (!narrow) {
         setShow(true);
+      } else if (Date.now() < holdHiddenUntil) {
+        setShow(false);
       } else if (y < lastY - 6) {
         setShow(true);
       } else if (y > lastY + 6) {
@@ -41,12 +48,20 @@ export default function StickySummaryBar({
       }
       lastY = y;
     };
+    const onJump = () => {
+      if (window.innerWidth < 640) {
+        holdHiddenUntil = Date.now() + 1000;
+        setShow(false);
+      }
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
+    window.addEventListener(STOCK_JUMP_EVENT, onJump);
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
+      window.removeEventListener(STOCK_JUMP_EVENT, onJump);
     };
   }, []);
 
@@ -62,6 +77,7 @@ export default function StickySummaryBar({
       inert={!show}
     >
       <div
+        data-summary-inner
         className="flex items-center gap-2 sm:gap-3 py-2 px-3"
         style={{
           background: "color-mix(in srgb, var(--surface) 92%, transparent)",
@@ -69,7 +85,8 @@ export default function StickySummaryBar({
           borderBottom: "1px solid var(--border)",
         }}
       >
-        <span className="font-bold text-sm shrink-0" style={{ color: "var(--text)" }}>{code}</span>
+        {/* everything in this bar is shrink-0, so the code is the one thing that ellipsises */}
+        <span className="font-bold text-sm shrink-0 max-w-[5.5rem] truncate" style={{ color: "var(--text)" }}>{code}</span>
         <span
           className="text-xs font-bold px-2 py-0.5 rounded-full shrink-0"
           style={{ color: tone.color, background: tone.bg, border: `1px solid ${tone.border}` }}
@@ -81,7 +98,9 @@ export default function StickySummaryBar({
             signal={signal.signal}
             strength={signal.strength}
             reason={signal.reason_en}
-            className="shrink-0"
+            /* phones: code + verdict + Strong Buy + star + price + % is ~440px at 360px,
+               so the bar clipped its own price. The hero and verdict already show the chip. */
+            className="hidden sm:inline-flex shrink-0"
           />
         )}
 

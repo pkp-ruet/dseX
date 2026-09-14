@@ -47,7 +47,7 @@ export default function DeepAnalysisTeaser({ teaser, code }: Props) {
   const bottomLine = (isBn ? teaser.bottom_line_bn : teaser.bottom_line_en) ?? teaser.bottom_line_en;
 
   return (
-    <section id="deep-dive" className="mb-8 scroll-mt-[112px]">
+    <section id="deep-dive" className="mb-8 stock-anchor">
       <div
         className="rounded-3xl overflow-hidden"
         style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "var(--shadow-soft)" }}

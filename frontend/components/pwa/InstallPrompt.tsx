@@ -83,7 +83,9 @@ export default function InstallPrompt() {
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[60] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:bottom-4 sm:left-auto sm:right-4 sm:px-0">
+    // .above-bottom-bar keeps the card clear of the mobile bottom bar (it used to
+    // sit at bottom-0 ON the bar); z-45 = above the bar, below modals / the menu.
+    <div data-bottom-card className="above-bottom-bar fixed inset-x-0 z-[45] px-3 md:left-auto md:right-4 md:px-0">
       <div className="mx-auto w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-xl">
         <div className="flex items-start gap-3">
           <span

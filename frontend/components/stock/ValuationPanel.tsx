@@ -87,7 +87,7 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
   const caption = valuationCaption(p4);
 
   return (
-    <section id="valuation" className="mb-8 scroll-mt-[112px]">
+    <section id="valuation" className="mb-8 stock-anchor">
       <SectionTitle
         title="Is the Price Right?"
         sub={<>
@@ -150,7 +150,7 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
                       y={ownAvgPe}
                       stroke="var(--text-muted)"
                       strokeDasharray="4 4"
-                      label={{ value: `5y avg ${ownAvgPe.toFixed(1)}`, position: "insideTopRight", fontSize: 10, fill: "var(--text-muted)" }}
+                      label={{ value: `5y avg ${ownAvgPe.toFixed(1)}`, position: peLabelPosition(peData, ownAvgPe), fontSize: 10, fill: "var(--text-muted)" }}
                     />
                   )}
                   <Line type="monotone" dataKey="pe" stroke="var(--primary)" strokeWidth={2.5} dot={{ r: 3 }} />
@@ -214,4 +214,19 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
       )}
     </section>
   );
+}
+
+/**
+ * Put the "5y avg" label on the side of the dashed line the recent P/E points
+ * are NOT on — Recharts does no label/series collision avoidance, so a label
+ * drawn into the last few years' dots was unreadable.
+ */
+function peLabelPosition(
+  rows: { pe?: number | null }[],
+  avg: number,
+): "insideTopRight" | "insideBottomRight" {
+  const recent = rows.slice(-3).map((r) => r.pe).filter((v): v is number => typeof v === "number");
+  if (!recent.length) return "insideTopRight";
+  const mean = recent.reduce((a, b) => a + b, 0) / recent.length;
+  return mean >= avg ? "insideBottomRight" : "insideTopRight";
 }

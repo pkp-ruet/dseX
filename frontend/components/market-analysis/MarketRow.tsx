@@ -47,7 +47,8 @@ export default function MarketRow({
       </span>
       <span className="ms-srow-id">
         <span className="ms-srow-code">
-          {code}
+          {/* the text ellipsises (.ms-srow-code-txt); the H/★ mark never gets pushed out */}
+          <span className="ms-srow-code-txt">{code}</span>
           <PersonalMark code={code} />
         </span>
         {name && <span className="ms-srow-name">{name}</span>}

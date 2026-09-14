@@ -422,23 +422,27 @@ a:hover .ticker-tag,
 }
 
 /* ---- Form input ---- */
-.input-field {
-  width: 100%;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1.5px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  font-size: 0.875rem;
-  outline: none;
-  transition: border-color 0.15s;
-}
-.input-field::placeholder {
-  color: var(--text-muted);
-  opacity: 0.7;
-}
-.input-field:focus {
-  border-color: var(--accent);
+/* In the components layer so per-field utilities (pr-10, py-3, text-lg, w-auto)
+   override it — as plain CSS after `@tailwind utilities` it used to win instead. */
+@layer components {
+  .input-field {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .input-field::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+  }
+  .input-field:focus {
+    border-color: var(--accent);
+  }
 }
 
 /* ---- Navbar profile button ---- */
@@ -1018,7 +1022,7 @@ a:hover .ticker-tag,
 }
 .fr-th {
   position: sticky;
-  top: 49px;
+  top: 56px; /* = navbar height (h-14) */
   background: var(--surface);
   z-index: 20;
   font-size: 0.68rem;
@@ -4779,7 +4783,8 @@ a:hover .ticker-tag,
       "code  code  tier  .     ltp   ltp"
       "code  code  tier  .     chg   chg"
       "since since since since since since"
-      "eps   yld   sig   sig   alert star";
+      "sig   sig   sig   sig   sig   sig"
+      "eps   yld   .     .     alert star";
     column-gap: 8px;
     row-gap: 2px;
     align-items: center;
@@ -4843,7 +4848,7 @@ a:hover .ticker-tag,
   }
   .watchlist-table td:nth-child(10) {
     grid-area: sig;
-    justify-self: start;
+    justify-self: stretch; /* own row — pills wrap instead of spilling onto the bell */
     min-width: 0;
     margin-top: 8px;
   }
@@ -6400,7 +6405,7 @@ a:hover .ticker-tag,
 .sl-th-sortable:hover { color: var(--ink); }
 .sl-th-active { color: var(--primary); }
 .sl-th-rank  { width: 32px; text-align: right; }
-.sl-th-star  { width: 28px; }
+.sl-th-star  { width: 34px; }
 .sl-th-num   { text-align: right; }
 .sl-sort-icon { font-size: 0.68rem; opacity: 0.55; margin-left: 2px; }
 
@@ -6425,7 +6430,7 @@ a:hover .ticker-tag,
   width: 32px;
   font-variant-numeric: tabular-nums;
 }
-.sl-td-star  { width: 28px; }
+.sl-td-star  { width: 34px; }
 .sl-td-num   {
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -6506,7 +6511,7 @@ a:hover .ticker-tag,
   .sl-table { table-layout: fixed; font-size: 0.82rem; }
   .sl-th, .sl-td { padding: 10px 6px; }
   .sl-th { font-size: 0.68rem; letter-spacing: 0.08em; }
-  .sl-th-rank, .sl-td-rank { width: 22px; padding-left: 8px; padding-right: 4px; font-size: 0.7rem; }
+  .sl-th-rank, .sl-td-rank { width: 32px; padding-left: 8px; padding-right: 4px; font-size: 0.7rem; } /* fits 3 digits */
   .sl-th-code, .sl-td-code { width: auto; }
   .sl-code-link { font-size: 0.86rem; letter-spacing: 0.02em; }
   .sl-code-sub { display: block; }
@@ -7333,7 +7338,8 @@ a:hover .ticker-tag,
   border: 1px solid var(--border);
   border-radius: 16px;
   box-shadow: 0 12px 40px rgba(15, 23, 42, 0.18);
-  overflow: hidden;
+  max-height: calc(100dvh - 32px);
+  overflow: hidden auto; /* x clipped for the rounded corners, y scrolls */
 }
 
 .atp-modal-header {
@@ -7918,10 +7924,13 @@ a:hover .ticker-tag,
 .ms-srow-tkr--icon { font-size: 1.25rem; }
 .ms-srow-id { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .ms-srow-code {
+  display: flex; align-items: center; min-width: 0;
   font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
   font-weight: 800; font-size: var(--fs-md); letter-spacing: -0.01em;
   color: var(--ink); line-height: 1.15; transition: color 0.16s ease;
 }
+/* The code text itself ellipsises; the H/★ mark beside it never gets pushed out. */
+.ms-srow-code-txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ms-srow:hover .ms-srow-code { color: var(--row-accent, var(--primary)); }
 .ms-srow-name {
   font-size: var(--fs-xs); color: var(--text-muted); font-weight: 500; margin-top: 1px;
@@ -7993,6 +8002,7 @@ a:hover .ticker-tag,
 .ms-lens-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lift); }
 .ms-lens-card--best { border: 2px solid transparent; background: linear-gradient(var(--surface), var(--surface)) padding-box, linear-gradient(135deg, var(--primary), #B85D00) border-box; }
 .ms-lens-head { display: flex; align-items: center; gap: 11px; margin-bottom: 4px; }
+.ms-lens-card--best .ms-lens-head { padding-right: 84px; } /* clears the absolute .ms-lens-best badge */
 .ms-lens-ico {
   width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
@@ -8626,7 +8636,9 @@ a:hover .ticker-tag,
 .app-toast {
   position: fixed;
   left: 50%;
-  bottom: calc(76px + env(safe-area-inset-bottom));
+  /* Above the bottom bar (60px) AND the .pf-fab / .disha-fab row that sits
+     just over it, so a toast never lands on a floating button. */
+  bottom: calc(130px + env(safe-area-inset-bottom, 0px));
   z-index: 90;
   display: flex;
   align-items: center;
@@ -8894,4 +8906,29 @@ a:hover .ticker-tag,
   font-size: var(--fs-2xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--primary); background: color-mix(in srgb, var(--primary) 11%, var(--surface));
   padding: 2px 7px; border-radius: 999px;
+}
+
+/* ---- Mobile-only FAB: `.pf-fab { display }` used to beat `sm:hidden` (plain CSS
+   after the utilities layer), so the "+ Add stock" button floated over desktop
+   content too. Hide it explicitly from the sm breakpoint up. ---- */
+@media (min-width: 640px) {
+  .pf-fab { display: none; }
+}
+
+/* ---- Bottom-anchored prompt cards (push opt-in, install, feedback). One home
+   for the offset so every card clears the 60px mobile bottom bar + the iOS home
+   indicator, and drops to the corner once the bar is gone (md+). ---- */
+.above-bottom-bar {
+  bottom: calc(60px + env(safe-area-inset-bottom, 0px) + 10px);
+}
+@media (min-width: 768px) {
+  .above-bottom-bar { bottom: 20px; }
+}
+
+/* ---- Stock page jump targets. The sticky stack under the navbar (summary bar
+   + section nav) is measured live into --stock-sticky-h by
+   components/stock/StickyStackMeasure.tsx, so a hash jump lands the section
+   title just below it whether or not the summary bar is showing. ---- */
+.stock-anchor {
+  scroll-margin-top: calc(56px + var(--stock-sticky-h, 56px) + 8px);
 }

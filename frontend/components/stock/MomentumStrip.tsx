@@ -60,7 +60,7 @@ export default function MomentumStrip({ momentum }: Props) {
   ];
 
   return (
-    <section id="momentum" className="mb-8 scroll-mt-[112px]">
+    <section id="momentum" className="mb-8 stock-anchor">
       <SectionTitle
         title="Recent Momentum"
         sub={<>

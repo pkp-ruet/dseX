@@ -68,7 +68,7 @@ export default function SignalBoard({ flags }: Props) {
   if (!flags.green.length && !flags.red.length) return null;
 
   return (
-    <section id="signals" className="mb-8 scroll-mt-[112px]">
+    <section id="signals" className="mb-8 stock-anchor">
       <SectionTitle
         title="Signals at a Glance"
         sub={<>

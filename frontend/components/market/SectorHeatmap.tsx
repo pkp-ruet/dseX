@@ -37,21 +37,33 @@ function CustomContent(props: any) {
   if (width < 30 || height < 20) return null;
   const color = sectorColor(avg_change_pct);
   const sign = (avg_change_pct ?? 0) >= 0 ? "+" : "";
+  // SVG text never clips to its tile, so "Pharmaceuticals & Chemicals" bled across
+  // neighbours on phones. Ellipsise the name to what fits (~0.6em per glyph).
+  const nameSize = Math.min(12, width / 8);
+  const maxChars = Math.floor((width - 10) / (nameSize * 0.6));
+  const label: string =
+    typeof name === "string" && name.length > maxChars
+      ? maxChars > 3
+        ? `${name.slice(0, maxChars - 1)}…`
+        : ""
+      : (name ?? "");
   return (
     <g>
       <rect x={x} y={y} width={width} height={height} fill={color} rx={6} ry={6} stroke="var(--surface)" strokeWidth={2} />
       {width > 60 && height > 30 && (
         <>
-          <text
-            x={x + width / 2}
-            y={y + height / 2 - 6}
-            textAnchor="middle"
-            fill="#ffffff"
-            fontSize={Math.min(12, width / 8)}
-            fontWeight="700"
-          >
-            {name}
-          </text>
+          {label && (
+            <text
+              x={x + width / 2}
+              y={y + height / 2 - 6}
+              textAnchor="middle"
+              fill="#ffffff"
+              fontSize={nameSize}
+              fontWeight="700"
+            >
+              {label}
+            </text>
+          )}
           {avg_change_pct != null && (
             <text
               x={x + width / 2}

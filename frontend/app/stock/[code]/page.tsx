@@ -24,6 +24,7 @@ import ProfitsAndDividends from "@/components/stock/ProfitsAndDividends";
 import ShareholdingPie from "@/components/stock/ShareholdingPie";
 import NewsSection from "@/components/stock/NewsSection";
 import StickySummaryBar from "@/components/stock/StickySummaryBar";
+import StickyStackMeasure from "@/components/stock/StickyStackMeasure";
 import StockSectionNav, { type NavSection } from "@/components/stock/StockSectionNav";
 import StockVisitTracker from "@/components/analytics/StockVisitTracker";
 import { formatDate, money } from "@/lib/formatters";
@@ -310,6 +311,8 @@ export default async function StockDetailPage({ params }: PageProps) {
           changePct={num(detail.latest_price.change_pct)}
         />
         <StockSectionNav sections={sections} />
+        {/* writes the stack's live height to --stock-sticky-h for .stock-anchor */}
+        <StickyStackMeasure />
       </div>
 
       {/* Featured in our curated pick lists */}
@@ -335,14 +338,14 @@ export default async function StockDetailPage({ params }: PageProps) {
 
       {/* Company Facts — size, balance-sheet basics, listing facts, today's tape */}
       {hasFacts && (
-        <div id="numbers" className="scroll-mt-[112px]">
+        <div id="numbers" className="stock-anchor">
           <CompanyFacts detail={detail} />
         </div>
       )}
 
       {/* Profits & Dividends + Financial Trends */}
       {hasFinancials && (
-        <div id="financials" className="scroll-mt-[112px]">
+        <div id="financials" className="stock-anchor">
           <ProfitsAndDividends
             financials={financials}
             extFinancials={extended_financials}
@@ -378,12 +381,12 @@ export default async function StockDetailPage({ params }: PageProps) {
       )}
 
       {/* Who Owns It */}
-      <div id="ownership" className="scroll-mt-[112px]">
+      <div id="ownership" className="stock-anchor">
         <ShareholdingPie shareholding={shareholding} previous={detail.shareholding_prev ?? null} />
       </div>
 
       {/* What's New */}
-      <div id="news" className="scroll-mt-[112px]">
+      <div id="news" className="stock-anchor">
         <NewsSection news={news} />
       </div>
     </StockLangProvider>

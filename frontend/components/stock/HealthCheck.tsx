@@ -119,7 +119,7 @@ export default function HealthCheck({ scoreRow, detail }: Props) {
     .filter((b) => b.value != null);
 
   return (
-    <section id="health" className="mb-8 scroll-mt-[112px]">
+    <section id="health" className="mb-8 stock-anchor">
       <SectionTitle
         title="The Health Check"
         sub={<>

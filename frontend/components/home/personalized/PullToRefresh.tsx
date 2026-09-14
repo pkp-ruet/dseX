@@ -102,7 +102,7 @@ export default function PullToRefresh({
   }, []);
 
   const progress = Math.min(1, pull / THRESHOLD);
-  const snap = dragging ? "none" : "transform 0.22s ease, opacity 0.22s ease";
+  const snap = dragging ? "none" : "transform 0.22s ease, opacity 0.22s ease, height 0.22s ease";
 
   return (
     <div className="relative">
@@ -134,11 +134,12 @@ export default function PullToRefresh({
         </span>
       </div>
 
-      {/* Transform only while pulling/refreshing — a permanent transform would
-          make position:fixed descendants (modals, sheets) anchor here. */}
-      <div style={{ transform: pull ? `translateY(${pull}px)` : undefined, transition: snap }}>
-        {children}
-      </div>
+      {/* A spacer grows instead of translating the children: any transform on
+          the wrapper — even a temporary one — re-anchors position:fixed
+          descendants (the search "Opening…" overlay, the briefing menu's
+          click-catcher) to this box instead of the viewport. */}
+      <div aria-hidden style={{ height: pull, transition: snap }} />
+      {children}
     </div>
   );
 }

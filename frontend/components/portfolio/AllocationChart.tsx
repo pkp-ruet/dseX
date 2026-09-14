@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import type { AnalysisLang, PortfolioAnalysis } from "@/lib/portfolio-analysis";
-import { taka } from "@/lib/formatters";
+import { taka, takaCompact } from "@/lib/formatters";
 import Card from "@/components/ui/Card";
 
 // Numbers inside Bengali prose stay Western (9, 6.1%) — matches the rest of the
@@ -178,8 +178,9 @@ export default function AllocationChart({ analysis, lang = "en" }: Props) {
             >
               {basis === "invested" ? t.centerInvested : t.centerValue}
             </span>
+            {/* takaCompact: the 116px donut hole cannot hold an ungrouped 11-digit total */}
             <span className="text-base font-black text-[var(--text)] tabular-nums leading-tight">
-              {taka(total, 0)}
+              {takaCompact(total)}
             </span>
           </div>
         </div>

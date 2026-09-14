@@ -8,6 +8,33 @@ import type { DividendDeclaration } from "@/lib/api";
 import ChartCard from "@/components/stock/ChartCard";
 import SectionTitle from "@/components/stock/SectionTitle";
 
+/**
+ * Bar value labels that know when to stay quiet. Recharts' LabelList has no
+ * collision handling, so with 8+ yearly bars on a phone every "৳2,662 Cr" ran
+ * into its neighbours. Draw the label only when the text fits the bar's slot
+ * (bar width plus most of the 30% category gap); otherwise the tooltip has it.
+ */
+function fitLabel(fmt: (v: number) => string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return function FitLabel(props: any) {
+    const vb = props.viewBox ?? {};
+    const x = typeof props.x === "number" ? props.x : vb.x;
+    const y = typeof props.y === "number" ? props.y : vb.y;
+    const width = typeof props.width === "number" ? props.width : vb.width;
+    const raw = props.value;
+    if (raw == null || typeof x !== "number" || typeof y !== "number" || typeof width !== "number") return null;
+    const text = fmt(Number(raw));
+    if (!text) return null;
+    const est = text.length * 6.4; // ~11px bold
+    if (est > width * 1.35) return null;
+    return (
+      <text x={x + width / 2} y={y - 6} textAnchor="middle" fontSize={11} fontWeight={700} fill="var(--text)">
+        {text}
+      </text>
+    );
+  };
+}
+
 interface Props {
   financials: Record<string, unknown>[];
   extFinancials: Record<string, unknown>[];
@@ -112,12 +139,7 @@ export default function ProfitsAndDividends({ financials, extFinancials, declara
                   formatter={(v: number) => [crore(v), "Profit"]}
                 />
                 <Bar dataKey="profit" radius={[6, 6, 0, 0]}>
-                  <LabelList
-                    dataKey="profit"
-                    position="top"
-                    formatter={(v: number) => crore(v)}
-                    style={{ fontSize: 11, fontWeight: 700, fill: "var(--text)" }}
-                  />
+                  <LabelList dataKey="profit" content={fitLabel(crore)} />
                   {profitData.map((d, i) => (
                     <Cell
                       key={i}
@@ -147,12 +169,7 @@ export default function ProfitsAndDividends({ financials, extFinancials, declara
                   formatter={(v: number) => [fmtEps(v), "EPS"]}
                 />
                 <Bar dataKey="eps" radius={[6, 6, 0, 0]}>
-                  <LabelList
-                    dataKey="eps"
-                    position="top"
-                    formatter={(v: number) => fmtEps(v)}
-                    style={{ fontSize: 11, fontWeight: 700, fill: "var(--text)" }}
-                  />
+                  <LabelList dataKey="eps" content={fitLabel(fmtEps)} />
                   {epsData.map((d, i) => (
                     <Cell
                       key={i}
@@ -190,12 +207,7 @@ export default function ProfitsAndDividends({ financials, extFinancials, declara
                     formatter={(v: number) => [`${v}%`, "Cash Dividend"]}
                   />
                   <Bar dataKey="cash" fill="var(--positive)" radius={[6, 6, 0, 0]}>
-                    <LabelList
-                      dataKey="cash"
-                      position="top"
-                      formatter={(v: number) => v > 0 ? `${v}%` : ""}
-                      style={{ fontSize: 11, fontWeight: 700, fill: "var(--text)" }}
-                    />
+                    <LabelList dataKey="cash" content={fitLabel((v: number) => (v > 0 ? `${v}%` : ""))} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>

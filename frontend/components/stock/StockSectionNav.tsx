@@ -1,6 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 
+/** Fired when a section chip is tapped. StickySummaryBar listens: on phones it
+ *  hides for the jump so the sticky stack is as short as the offset assumes. */
+export const STOCK_JUMP_EVENT = "dsex:stock-jump";
+/** Fixed navbar height (layout.tsx `h-14`). */
+const NAVBAR_H = 56;
+
 export interface NavSection {
   id: string;
   label: string;
@@ -62,7 +68,23 @@ export default function StockSectionNav({ sections }: Props) {
     const el = document.getElementById(id);
     if (!el) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+
+    // Land the section title just under the sticky stack, whatever it measures
+    // right now. `scroll-margin-top` alone was a fixed 112px while the stack is
+    // navbar + summary bar + this nav (~150–165px with the bar showing), so the
+    // heading ended up hidden behind the chips.
+    window.dispatchEvent(new CustomEvent(STOCK_JUMP_EVENT));
+    const nav = navRef.current;
+    const stack = nav?.parentElement;
+    const narrow = window.innerWidth < 640;
+    // On phones the summary bar hides for the jump (see STOCK_JUMP_EVENT); on
+    // wider screens it is always showing past the hero, so count its full height
+    // even if it is still collapsed at click time.
+    const bar = stack?.querySelector<HTMLElement>("[data-summary-inner]");
+    const barH = !narrow && bar ? bar.offsetHeight : 0;
+    const navH = nav?.offsetHeight ?? 0;
+    const top = el.getBoundingClientRect().top + window.scrollY - (NAVBAR_H + barH + navH + 8);
+    window.scrollTo({ top: Math.max(0, top), behavior: reduce ? "auto" : "smooth" });
     setActive(id);
   }
 

@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useUrlParams, useUrlSync } from "@/lib/use-url-state";
 import Link from "next/link";
-import { taka, pct } from "@/lib/formatters";
+import { pct, money } from "@/lib/formatters";
 import { getTier, TIER_VAR } from "@/lib/constants";
 import StarButton from "@/components/ui/StarButton";
 import type { ScoreItem } from "@/lib/api";
@@ -237,7 +237,8 @@ export default function StocksTable({ items }: Props) {
                   </td>
 
                   <td className="sl-td sl-td-num nums">
-                    {item.ltp != null ? taka(item.ltp) : "—"}
+                    {/* money(): whole taka ≥ ৳100 — "৳12345.60" overflowed the 58px mobile column */}
+                    {item.ltp != null ? money(item.ltp) : "—"}
                   </td>
 
                   <td className="sl-td sl-td-num nums" style={{ color: chgColor(item.change_pct) }}>

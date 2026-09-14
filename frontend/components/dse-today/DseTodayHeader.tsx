@@ -48,7 +48,9 @@ function IndexTile({ name, value, change, changePct, lead = false }: {
       <span className="text-base sm:text-xl font-extrabold leading-none tabular-nums text-[var(--text)]">
         {value != null ? value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—"}
       </span>
-      <span className="flex items-baseline gap-1 text-[11px] sm:text-xs font-bold tabular-nums" style={{ color }}>
+      {/* flex-wrap: "▲ +18.45 (+0.35%)" is ~100px but a 3-up tile is ~70px at 360px,
+          so the percentage drops to its own line instead of running into DSES. */}
+      <span className="flex min-w-0 flex-wrap items-baseline gap-x-1 text-[11px] sm:text-xs font-bold tabular-nums" style={{ color }}>
         {hasChange ? (
           <>
             <span className="text-[11px]">{up ? "▲" : "▼"}</span>

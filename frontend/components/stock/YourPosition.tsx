@@ -141,10 +141,12 @@ export default function YourPosition({ code, ltp }: Props) {
           </div>
           <div>
             <dt className="text-[11px]" style={{ color: "var(--text-muted)" }}>{T.pl[lang]}</dt>
-            <dd className="text-base font-bold tabular-nums nums" style={{ color: plColor }}>
-              {pl == null ? "--" : `${pl >= 0 ? "+" : "-"}${money(Math.abs(pl))}`}
+            {/* flex-wrap gives "+৳1,234,567" and "(+12.3%)" a break between them —
+                as one unbreakable run they overflowed the 2-col grid cell */}
+            <dd className="flex min-w-0 flex-wrap items-baseline gap-x-1 text-base font-bold tabular-nums nums" style={{ color: plColor }}>
+              <span>{pl == null ? "--" : `${pl >= 0 ? "+" : "-"}${money(Math.abs(pl))}`}</span>
               {plPct != null && (
-                <span className="text-xs font-semibold ml-1">
+                <span className="text-xs font-semibold">
                   ({plPct >= 0 ? "+" : ""}{plPct.toFixed(1)}%)
                 </span>
               )}

@@ -77,7 +77,8 @@ export default function EventCard({
       {/* Identity + price */}
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
+          {/* flex-wrap: code + tier + CASH/STOCK used to spill under the price */}
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <Link
               href={`/stock/${e.trading_code}`}
               className="font-display text-[1.02rem] font-extrabold leading-none tracking-tight text-[var(--text)] hover:text-[var(--primary)]"

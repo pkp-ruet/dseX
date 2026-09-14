@@ -40,8 +40,10 @@ export default function LiveRankingPreview({
             >
               <span className="text-right text-xs font-bold tabular-nums nums text-[var(--text-muted)]">{i + 1}</span>
               <span className="min-w-0">
+                {/* inline-block + truncate: a 10-char code in the 1fr column used to
+                    overflow onto a 4-digit price; now it ellipsises instead. */}
                 <span
-                  className="inline-flex items-center font-mono text-[0.8rem] font-extrabold tracking-[0.03em] px-2 py-0.5 rounded-md border group-hover:brightness-95 transition-all"
+                  className="inline-block max-w-full truncate align-bottom font-mono text-[0.8rem] font-extrabold tracking-[0.03em] px-2 py-0.5 rounded-md border group-hover:brightness-95 transition-all"
                   style={{
                     color,
                     background: `color-mix(in srgb, ${color} 11%, transparent)`,

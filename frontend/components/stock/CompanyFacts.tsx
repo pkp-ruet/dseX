@@ -111,7 +111,9 @@ export default function CompanyFacts({ detail }: Props) {
               {ycpPos != null && (
                 <div
                   className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2"
-                  style={{ left: `${ycpPos * 100}%`, width: 2, height: 14, background: "var(--text-muted)", borderRadius: 1 }}
+                  /* taller than the 18px dot+ring and layered above it, so on an unchanged
+                     close (ltp === ycp, common on the DSE) the tick still shows through */
+                  style={{ left: `${ycpPos * 100}%`, width: 2, height: 22, background: "var(--text-muted)", borderRadius: 1, zIndex: 1 }}
                   title={`Yesterday's close ${money(ycp)}`}
                   aria-hidden="true"
                 />

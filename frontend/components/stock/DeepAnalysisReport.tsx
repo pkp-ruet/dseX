@@ -102,7 +102,7 @@ export default function DeepAnalysisReport({ report, fairValue }: Props) {
           const accent = accentFor(s.key);
           const isValuation = s.key === "valuation";
           return (
-            <section key={s.key} className="scroll-mt-[112px]" id={`sec-${s.key}`}>
+            <section key={s.key} className="stock-anchor" id={`sec-${s.key}`}>
               <div className="flex items-baseline gap-2.5 mb-2">
                 <span
                   className="text-xs font-bold tabular-nums shrink-0"

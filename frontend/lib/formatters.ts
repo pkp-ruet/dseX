@@ -110,3 +110,14 @@ export function money(value: number | null | undefined): string {
   const body = value >= 100 ? Math.round(value).toLocaleString("en-US") : value.toFixed(1);
   return `৳${body}`;
 }
+
+/**
+ * Big taka amounts in a tight cell (portfolio metric strip, donut centre): from
+ * one crore up compress to `৳1.25 Cr`, otherwise plain `taka()`. Ungrouped
+ * `taka(v, 0)` at ৳10 crore+ was a single 11-char token that overran its box.
+ */
+export function takaCompact(value: number | null | undefined, decimals = 0): string {
+  if (value == null || !Number.isFinite(value)) return "--";
+  if (Math.abs(value) >= 1e7) return `৳${(value / 1e7).toFixed(2)} Cr`;
+  return taka(value, decimals);
+}

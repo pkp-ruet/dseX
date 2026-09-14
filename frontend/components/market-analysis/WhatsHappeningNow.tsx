@@ -28,7 +28,8 @@ function Sectors({ sectors }: { sectors: MarketSectorRow[] }) {
               : { right: "50%", width: `${halfWidth(s.ret_1w)}%`, background: "var(--negative)" };
             const mark =
               s.ret_1m != null
-                ? { left: `${50 + Math.max(-1, Math.min(1, s.ret_1m / SCALE_PCT)) * 50}%` }
+                ? // 4–96%: the 8px dot has a 4px half-width, so at 0% / 100% it poked past the track
+                  { left: `${Math.min(96, Math.max(4, 50 + Math.max(-1, Math.min(1, s.ret_1m / SCALE_PCT)) * 50))}%` }
                 : null;
             const body = (
               <>

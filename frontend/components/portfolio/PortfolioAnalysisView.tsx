@@ -157,7 +157,8 @@ export default function PortfolioAnalysisView({
           </div>
 
           {/* Headline + explanation */}
-          <div className="flex-1 min-w-0 w-full">
+          {/* sm:pr reserves room for the absolute English/বাংলা toggle in the corner */}
+          <div className={`flex-1 min-w-0 w-full ${onLangChange ? "sm:pr-36" : ""}`}>
             <p
               className={`text-[11px] sm:text-xs uppercase tracking-[0.18em] font-bold mb-2 ${bnText}`}
               style={{ color: accent }}
@@ -273,7 +274,8 @@ function SubScore({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="flex items-baseline justify-between gap-1">
+      {/* Stacked on phones: "QUALITY" + "7.5/10" cannot share a 90px column */}
+      <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-x-1">
         <span
           className={`text-[11px] sm:text-xs uppercase tracking-wider font-bold text-[var(--text)] ${bnText}`}
         >

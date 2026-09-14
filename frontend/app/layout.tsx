@@ -117,7 +117,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div aria-hidden="true" className="h-14 shrink-0" />
             <MarketDataBanner />
             <PushAlertBanner />
-            <main id="main" tabIndex={-1} className="flex-1 max-w-5xl mx-auto w-full min-w-0 px-4 sm:px-6 pb-[calc(72px_+_env(safe-area-inset-bottom))] md:pb-10">
+            {/* Bottom-bar clearance lives on the Footer (it is the last thing on the page) */}
+            <main id="main" tabIndex={-1} className="flex-1 max-w-5xl mx-auto w-full min-w-0 px-4 sm:px-6 pb-8 md:pb-10">
               {children}
             </main>
             <Footer />

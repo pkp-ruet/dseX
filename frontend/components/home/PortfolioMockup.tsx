@@ -44,7 +44,8 @@ export default function PortfolioMockup() {
       <div className="grid grid-cols-3 gap-3 px-4 sm:px-5 py-4">
         {SUBSCORES.map((s) => (
           <div key={s.label} className="flex flex-col gap-1.5">
-            <div className="flex items-baseline justify-between">
+            {/* stacked on phones — label + "8.2/10" don't fit a 76px column */}
+            <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
               <span className="text-[0.68rem] font-bold uppercase tracking-wide text-[var(--text)]">{s.label}</span>
               <span className="text-sm font-black tabular-nums" style={{ color: s.color }}>
                 {s.value.toFixed(1)}<span className="text-[0.68rem] text-[var(--text-muted)] font-semibold">/10</span>

@@ -68,7 +68,7 @@ export default function DividendTimeline({ rows, faceValue, ltp }: Props) {
       : null;
 
   return (
-    <section id="dividends" className="mb-8 scroll-mt-[112px]">
+    <section id="dividends" className="mb-8 stock-anchor">
       <SectionTitle
         title="Dividend Timeline"
         sub={<>{streakLine ?? "Every dividend the company has declared, and the dates that matter if you want the next one."}</>}

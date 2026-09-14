@@ -25,7 +25,7 @@ import {
   apiGetSignalEvents,
   type PortfolioSignalEvent,
 } from "@/lib/api";
-import { taka, formatDate } from "@/lib/formatters";
+import { taka, formatDate, takaCompact } from "@/lib/formatters";
 import {
   signalInfoFromApi,
   portfolioTodayMove,
@@ -1141,7 +1141,8 @@ export default function PortfolioClient() {
                 </div>
                 <div className="border-l border-[var(--border)]">
                   <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wide">Value</p>
-                  <p className="pv text-xs text-[var(--text)] tabular-nums nums font-bold mt-0.5">{row.current_value != null ? taka(row.current_value, 0) : "—"}</p>
+                  {/* takaCompact: a ৳10-crore+ position was one unbreakable 11-char token crossing the divider */}
+                  <p className="pv text-xs text-[var(--text)] tabular-nums nums font-bold mt-0.5">{row.current_value != null ? takaCompact(row.current_value) : "—"}</p>
                 </div>
               </div>
 

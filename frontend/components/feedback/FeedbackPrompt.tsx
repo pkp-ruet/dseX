@@ -37,7 +37,12 @@ export default function FeedbackPrompt() {
     // New users get a grace period — don't ask before they've had time to use it.
     const age = accountAgeDays(user?.created_at);
     if (age == null || age < MIN_ACCOUNT_AGE_DAYS) return;
-    const t = setTimeout(() => setVisible(true), SHOW_DELAY_MS);
+    const t = setTimeout(() => {
+      // One bottom card at a time: the push / install prompts (which show
+      // sooner) mark themselves with data-bottom-card. Try again next visit.
+      if (document.querySelector("[data-bottom-card]")) return;
+      setVisible(true);
+    }, SHOW_DELAY_MS);
     return () => clearTimeout(t);
   }, [isLoading, isLoggedIn, userId, user?.created_at]);
 
@@ -74,7 +79,8 @@ export default function FeedbackPrompt() {
     <div
       role="dialog"
       aria-label="Feedback"
-      className="fixed z-[60] inset-x-3 bottom-20 sm:inset-x-auto sm:right-5 sm:bottom-5 sm:w-[22rem] rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-xl shadow-black/10"
+      data-bottom-card
+      className="above-bottom-bar fixed z-[45] inset-x-3 md:inset-x-auto md:right-5 md:w-[22rem] rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-xl shadow-black/10"
     >
       <div className="p-4 sm:p-5">
         {status === "done" ? (

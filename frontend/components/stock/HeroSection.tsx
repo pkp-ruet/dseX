@@ -105,7 +105,7 @@ export default function HeroSection({ detail }: Props) {
               <div className="flex-1 min-w-0">
                 {profile.company_name && (
                   <h1
-                    className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-[1.05] mb-3"
+                    className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-[1.05] mb-3 break-words"
                     style={{ color: "var(--text)" }}
                   >
                     {profile.company_name}
@@ -215,10 +215,13 @@ export default function HeroSection({ detail }: Props) {
 
             {range && latest_price.w52_high != null && latest_price.w52_low != null && (
               <div className="pt-2">
-                <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 mb-2 text-xs font-medium" style={{ color: "var(--text-muted)" }}>
-                  <span className="tabular-nums">Low {taka(latest_price.w52_low, 1)}</span>
-                  <span className="text-center" style={{ color: rangeColor, fontWeight: 700 }}>{range.caption}</span>
-                  <span className="tabular-nums">High {taka(latest_price.w52_high, 1)}</span>
+                {/* Grid, not justify-between: at 360px the caption wraps in the middle
+                    cell while Low / High stay pinned to the bar's two ends (the old
+                    flex-wrap dropped "High" onto a second line under "Low"). */}
+                <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 mb-2 text-xs font-medium" style={{ color: "var(--text-muted)" }}>
+                  <span className="tabular-nums whitespace-nowrap">Low {taka(latest_price.w52_low, 1)}</span>
+                  <span className="text-center leading-tight" style={{ color: rangeColor, fontWeight: 700 }}>{range.caption}</span>
+                  <span className="tabular-nums whitespace-nowrap">High {taka(latest_price.w52_high, 1)}</span>
                 </div>
                 <div
                   className="relative h-2 rounded-full"

@@ -413,7 +413,9 @@ export default function PersonalizedHome() {
               title={hasTuned ? "Your ideas today" : "Ideas for you today"}
               chips={
                 <>
-                  <HeaderChip>{shortDate}</HeaderChip>
+                  {/* Date is already in the greeting above — drop it on narrow phones
+                      so the title + "N new" + See all fit on one header row. */}
+                  <HeaderChip className="hidden sm:inline">{shortDate}</HeaderChip>
                   {newPickCodes.length > 0 && <HeaderChip tone="accent">{newPickCodes.length} new</HeaderChip>}
                 </>
               }

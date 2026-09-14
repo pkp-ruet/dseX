@@ -29,7 +29,9 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-auto w-full">
+    // pb clears the fixed 60px mobile bottom bar (+ iOS home indicator) — without
+    // it the copyright / disclaimer lines sat underneath the bar on every phone.
+    <footer className="mt-auto w-full pb-[calc(60px_+_env(safe-area-inset-bottom,0px))] md:pb-0">
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
         <div className="np-footer-modern">
           {/* Top: brand + link columns */}

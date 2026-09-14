@@ -203,7 +203,6 @@ export default function IdeasCard({
 
   if (!active) return null;
 
-  const seeAll = active.count > ROWS ? `See all ${active.count}` : "See all";
 
   return (
     <>
@@ -228,7 +227,8 @@ export default function IdeasCard({
                 prefetch={false}
                 className="text-xs font-semibold text-[var(--primary)] hover:underline active:opacity-70"
               >
-                {seeAll} →
+                {/* the count already sits in the tab pill — drop it on narrow phones */}
+                See all{active.count > ROWS && <span className="hidden sm:inline"> {active.count}</span>} →
               </Link>
             </span>
           }
@@ -317,7 +317,8 @@ export default function IdeasCard({
                     >
                       <Badge accent={PICKS_ACCENT}>{i + 1}</Badge>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5">
+                        {/* flex-wrap: a long code + "% match" + NEW used to run into the price */}
+                        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
                           <span className={TICKER}>{p.trading_code}</span>
                           <span className="shrink-0 text-[0.75rem] font-bold tabular-nums" style={{ color: PICKS_ACCENT }}>
                             {match}% match
@@ -402,7 +403,7 @@ export default function IdeasCard({
                     <IconBulb size={16} />
                   </Badge>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
                       <span className={TICKER}>{tip.trading_code}</span>
                       <span
                         className="shrink-0 text-[0.68rem] font-extrabold uppercase tracking-[0.07em]"

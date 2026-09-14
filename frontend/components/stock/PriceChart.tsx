@@ -144,7 +144,8 @@ export default function PriceChart({ code }: Props) {
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={320}>
-            <ComposedChart data={data} margin={{ top: 16, right: 16, left: 0, bottom: 8 }} barCategoryGap={0} barGap={0}>
+            {/* right: 28 — the forced last tick ("Sep '26") is centred on the plot edge and was clipped at 16 */}
+            <ComposedChart data={data} margin={{ top: 16, right: 28, left: 0, bottom: 8 }} barCategoryGap={0} barGap={0}>
               <defs>
                 <linearGradient id="priceArea" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%"   stopColor={fillTop} />
