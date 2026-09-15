@@ -4,25 +4,38 @@ import {
   getScores,
   getTrust,
   getMarketState,
+  getMarketMovers,
+  getTodaysNews,
+  getTop20,
+  getDailyTips,
+  getPopularStocks,
   type ScoresResponse,
   type ScoreItem,
   type TrustStats,
   type MarketStateData,
+  type MarketMoversData,
+  type DseTodayNewsItem,
+  type Top20Item,
+  type DailyTip,
+  type PopularStockItem,
 } from "@/lib/api";
 import { pickStoryStocks } from "@/lib/home-stories";
 import { toLandingStock, pickHeroCode, type LandingStock } from "@/lib/landing";
 import HomePersonalizationGate from "@/components/home/HomePersonalizationGate";
 import LandingHero from "@/components/landing/LandingHero";
 import TrustStrip from "@/components/landing/TrustStrip";
-import CoreFeatures from "@/components/landing/CoreFeatures";
-import ReportAnatomy from "@/components/landing/ReportAnatomy";
 import LiveToday from "@/components/landing/LiveToday";
-import WaysToFind from "@/components/landing/WaysToFind";
+import MarketToday from "@/components/landing/MarketToday";
+import WorthALook from "@/components/landing/WorthALook";
+import SignUpStrip from "@/components/landing/SignUpStrip";
 import StartFromZero from "@/components/landing/StartFromZero";
 import LandingClose from "@/components/landing/LandingClose";
 import FeedbackSection from "@/components/feedback/FeedbackSection";
 
-export const revalidate = 86400;
+// Hourly, not daily: the page now renders today's movers, buy signals,
+// trending and tips, so day-old HTML would show yesterday's market. Matches the
+// 3600s the scores / market-state fetches below use.
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   // Root segment: the layout's "%s | TopStockBD" template only applies to child
@@ -131,18 +144,56 @@ async function TrustStripSection({
   return <TrustStrip totalCount={safeCount(data.total)} sectorCount={data.sectors} trust={trust} />;
 }
 
-async function CoreFeaturesSection({ promise }: { promise: Promise<ScoresResponse | null> }) {
-  const scores = await promise;
-  const items = scores ? sortedByScore(flattenTiers(scores)) : [];
-  if (items.length === 0) return null;
-  return <CoreFeatures items={items} totalCount={safeCount(items.length)} />;
+async function MarketTodaySection({
+  moversPromise,
+  newsPromise,
+  marketPromise,
+}: {
+  moversPromise: Promise<MarketMoversData | null>;
+  newsPromise: Promise<DseTodayNewsItem[] | null>;
+  marketPromise: Promise<MarketStateData | null>;
+}) {
+  const [movers, news, market] = await Promise.all([moversPromise, newsPromise, marketPromise]);
+  return (
+    <MarketToday
+      movers={movers}
+      sectors={market?.now?.sectors ?? []}
+      news={(news ?? []).slice(0, 12)}
+      summaryBn={market?.summary_bn}
+      next={market?.next ?? null}
+    />
+  );
 }
 
-async function AnatomySection({ promise }: { promise: Promise<ScoresResponse | null> }) {
-  const data = await landingData(promise);
-  if (!data) return null;
-  const hero = data.heroCode ? data.stocks.find((s) => s.code === data.heroCode) ?? null : null;
-  return <ReportAnatomy stock={hero} totalCount={safeCount(data.total)} />;
+async function WorthALookSection({
+  scoresPromise,
+  trendingPromise,
+  tipsPromise,
+  popularPromise,
+  marketPromise,
+}: {
+  scoresPromise: Promise<ScoresResponse | null>;
+  trendingPromise: Promise<Top20Item[] | null>;
+  tipsPromise: Promise<DailyTip[] | null>;
+  popularPromise: Promise<PopularStockItem[] | null>;
+  marketPromise: Promise<MarketStateData | null>;
+}) {
+  const [scores, trending, tips, popular, market] = await Promise.all([
+    scoresPromise,
+    trendingPromise,
+    tipsPromise,
+    popularPromise,
+    marketPromise,
+  ]);
+  return (
+    <WorthALook
+      stocks={scores ? sortedByScore(flattenTiers(scores)) : []}
+      trending={trending ?? []}
+      tips={tips ?? []}
+      popular={popular ?? []}
+      chances={market?.chances ?? null}
+    />
+  );
 }
 
 async function LiveTodaySection({
@@ -198,24 +249,48 @@ function HeroFallback() {
  * heads, components/i18n/Bn.tsx for a Bengali line anywhere else). Small UI text
  * — chips, buttons, table headers, metric labels — stays English only.
  *
- * Order matters and was corrected twice: the four core features (rankings,
- * portfolio, watchlist, alerts) sit at block 3, straight after a thin trust
- * strip, because the first cut buried them under two full sections of
- * trust-and-method prose. Both of those prose sections have since been cut
- * entirely — the credibility signal that survives is the strip at block 2, the
- * real report in the hero, and the five checks shown inside it. The written-out
- * method lives on `/about`, linked from the footer on every page. Do not put it
- * back on this page.
+ * Order was corrected three times. The first cut buried the product under two
+ * sections of trust-and-method prose; both were deleted. The second cut put the
+ * four core features (rankings, portfolio, watchlist, alerts) at block 3, which
+ * still described the product rather than running it. So as of 2026-09-16 the
+ * page shows the market instead of talking about it: today's movers, sectors,
+ * news and the Bangla snapshot at block 4, then buy signals, the ranking,
+ * trending, the ready-made lists, tips and what others are reading at block 5 —
+ * the very cards the signed-in dashboard uses, fed from public endpoints.
+ *
+ * Deleted to make room, and not to be written back as prose: `ReportAnatomy`
+ * (block 6, a list of the eight sections on a stock page) and `WaysToFind`
+ * (block 5, a picker plus a row of links). `CoreFeatures` shrank to
+ * `SignUpStrip` and moved *below* the data — the ask comes after the proof now,
+ * and only has to answer "what changes if I sign in?". The written-out method
+ * lives on `/about`, linked from the footer on every page. Do not put it back
+ * on this page.
  *
  * `HomePersonalizationGate` swaps the whole thing for the dashboard once a user
  * is signed in; crawlers and first paint always get this markup.
  */
 export default function HomePage() {
+  // Every request is fired here and awaited inside the block that needs it, so
+  // they overlap. Each one degrades to null on its own — a dead endpoint drops
+  // its card, never the page. No Suspense and no loading.tsx: this route has to
+  // return finished HTML with a real status code (see the SEO rules).
   const scoresPromise = getScores().catch(() => null);
   const trustPromise = getTrust().catch(() => null);
-  // Only the mood sentence is used here (block 4). Fetched at the same 3600s
-  // as the scores so this page's ISR cadence doesn't tighten to 15 minutes.
+  // Carries the mood sentence (block 3), the sector rows and Bangla snapshot
+  // (block 4) and the ready-made lists (block 5). Fetched at the same 3600s as
+  // the scores so this page's ISR cadence doesn't tighten to 15 minutes.
   const marketPromise = getMarketState(3600).catch(() => null);
+  const moversPromise = getMarketMovers().catch(() => null);
+  const newsPromise = getTodaysNews().catch(() => null);
+  const trendingPromise = getTop20()
+    .then((d) => d.items)
+    .catch(() => null);
+  const tipsPromise = getDailyTips()
+    .then((d) => d.tips)
+    .catch(() => null);
+  const popularPromise = getPopularStocks()
+    .then((d) => d.items)
+    .catch(() => null);
 
   return (
     <>
@@ -223,36 +298,47 @@ export default function HomePage() {
 
       <HomePersonalizationGate>
         {/* 1 — the claim and its proof, side by side */}
-          <HeroBlock promise={scoresPromise} />
+        <HeroBlock promise={scoresPromise} />
 
-        {/* 2 — credibility as a thin strip, not a wall of prose. The long-form
-            version of this argument is block 6, far enough down that it can't
-            stand between a visitor and the product. */}
+        {/* 2 — credibility as a thin strip, not a wall of prose. There is no
+            long-form version of this argument anywhere on the page any more;
+            the blocks below make the case by running. */}
         <div className="mt-8 sm:mt-10">
-            <TrustStripSection scoresPromise={scoresPromise} trustPromise={trustPromise} />
+          <TrustStripSection scoresPromise={scoresPromise} trustPromise={trustPromise} />
         </div>
 
         <div className="mt-14 flex flex-col gap-16 sm:mt-16 sm:gap-24">
-          {/* 3 — the four things people come for: rankings, portfolio,
-              watchlist, alerts. High on the page, by design. */}
-            <CoreFeaturesSection promise={scoresPromise} />
+          {/* 3 — the market's mood in one plain sentence (the door to
+              /market-analysis), then the three companies today's numbers
+              single out */}
+          <LiveTodaySection promise={scoresPromise} marketPromise={marketPromise} />
 
-          {/* 4 — today's data, so nothing above is only a claim: the market's
-              mood in one plain sentence (the door to /market-analysis), then
-              the three standouts */}
-            <LiveTodaySection promise={scoresPromise} marketPromise={marketPromise} />
+          {/* 4 — the day itself: movers, sectors this week, today's headlines,
+              and the Bangla paragraph */}
+          <MarketTodaySection
+            moversPromise={moversPromise}
+            newsPromise={newsPromise}
+            marketPromise={marketPromise}
+          />
 
-          {/* 5 — more routes in, for someone with no company in mind */}
-          <WaysToFind />
+          {/* 5 — every way in that needs no account: buy signals, the top of
+              the ranking, trending, the ready-made lists, tips, popular */}
+          <WorthALookSection
+            scoresPromise={scoresPromise}
+            trendingPromise={trendingPromise}
+            tipsPromise={tipsPromise}
+            popularPromise={popularPromise}
+            marketPromise={marketPromise}
+          />
 
-          {/* 6 — how deep one company's page goes */}
-            <AnatomySection promise={scoresPromise} />
+          {/* 6 — the ask, after the proof: what an account adds */}
+          <SignUpStrip />
 
           {/* 7 — the door that starts at zero */}
           <StartFromZero />
 
           {/* 8 — real reviews, then one ask */}
-            <CloseSection promise={trustPromise} />
+          <CloseSection promise={trustPromise} />
         </div>
       </HomePersonalizationGate>
 
