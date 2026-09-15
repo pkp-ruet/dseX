@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 import type { Lang } from "@/context/LangContext";
+import { accVars } from "@/components/home/personalized/accents";
 
 export interface DashNavItem {
   id: string;
   label: string;
+  /** The chapter's colour — the chip wears it while that chapter is active. */
+  accent?: string;
 }
 
 /**
@@ -68,6 +71,7 @@ export default function DashSectionNav({ items, lang = "en" }: { items: DashNavI
             key={i.id}
             type="button"
             className="dash-chip"
+            style={accVars(i.accent)}
             aria-current={active === i.id ? "true" : undefined}
             onClick={() => go(i.id)}
           >

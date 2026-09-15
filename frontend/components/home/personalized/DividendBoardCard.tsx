@@ -7,6 +7,7 @@ import type { Lang } from "@/context/LangContext";
 import { formatDate } from "@/lib/formatters";
 import { bnDate } from "@/lib/bn";
 import { t } from "@/lib/home-copy";
+import { ACC } from "@/components/home/personalized/accents";
 import DashHeader, { HeaderChip } from "@/components/home/personalized/DashHeader";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
 import { IconCoin } from "@/components/home/personalized/DashIcons";
@@ -52,6 +53,7 @@ export default function DividendBoardCard({
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
       <DashHeader
+        accent={ACC.gold} icon={<IconCoin size={15} />}
         title={t(lang, "divBoardTitle")}
         chips={rows.length > 0 ? <HeaderChip tone="accent">{rows.length}</HeaderChip> : undefined}
         href="/dividend-calendar"

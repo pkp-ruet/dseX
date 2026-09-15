@@ -3,6 +3,7 @@ import type { Lang } from "@/context/LangContext";
 import { BLOG_POSTS } from "@/lib/blog-bn";
 import { GUIDES } from "@/lib/guides";
 import { t } from "@/lib/home-copy";
+import { ACC, accVars } from "@/components/home/personalized/accents";
 import DashHeader from "@/components/home/personalized/DashHeader";
 import { IconBook, IconChevron } from "@/components/home/personalized/DashIcons";
 
@@ -47,6 +48,7 @@ export default function LearnCard({ brandNew, lang = "en" }: { brandNew: boolean
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
       <DashHeader
+        accent={ACC.steel} icon={<IconBook size={15} />}
         title={t(lang, brandNew ? "startHere" : "learnTitle")}
         href={bn || brandNew ? "/blog" : "/learn"}
         linkLabel={t(lang, "allGuides")}
@@ -60,7 +62,11 @@ export default function LearnCard({ brandNew, lang = "en" }: { brandNew: boolean
               href={r.href}
               className={`flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)] sm:px-5 ${r.bn ? "font-bn" : ""}`}
             >
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-[var(--primary)]" style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)" }} aria-hidden>
+              <span
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-lg"
+                style={{ ...accVars(ACC.steel), color: "var(--acc)", background: "color-mix(in srgb, var(--acc) 13%, transparent)" }}
+                aria-hidden
+              >
                 <IconBook size={18} />
               </span>
               <span className="min-w-0 flex-1">

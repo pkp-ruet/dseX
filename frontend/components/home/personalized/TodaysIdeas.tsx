@@ -9,6 +9,8 @@ import { getListDelta, type ListDelta } from "@/lib/daily-delta";
 import { buildIdeas, IDEA_ROWS, type IdeaRow } from "@/lib/home-ideas";
 import { t, type CopyKey } from "@/lib/home-copy";
 import StarButton from "@/components/ui/StarButton";
+import { ACC } from "@/components/home/personalized/accents";
+import { IconSparkle } from "@/components/home/personalized/DashIcons";
 import DashHeader from "@/components/home/personalized/DashHeader";
 
 const EMPTY_DELTA: ListDelta = { newCodes: new Set(), movedUp: new Map() };
@@ -121,6 +123,7 @@ export default function TodaysIdeas({
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
       <DashHeader
+        accent={ACC.clay} icon={<IconSparkle size={15} />}
         title={t(lang, tuned ? "ideasTitleTuned" : "ideasTitle")}
         chips={chips}
         href="/stock-recommendation"

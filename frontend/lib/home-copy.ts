@@ -177,7 +177,7 @@ const COPY = {
   newTag: ["New", "নতুন"],
 
   // Dividend board
-  divBoardTitle: ["Dividends in the next 2 weeks", "আগামী 2 সপ্তাহের ডিভিডেন্ড"],
+  divBoardTitle: ["Next 2 weeks", "আগামী 2 সপ্তাহ"],
   perShare: ["per share", "শেয়ারপ্রতি"],
   yieldWord: ["yield", "দামের তুলনায়"],
   buyBy: ["Buy by {date}", "{date}-এর মধ্যে কিনুন"],

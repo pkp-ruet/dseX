@@ -4,6 +4,8 @@ import type { Lang } from "@/context/LangContext";
 import { formatDate } from "@/lib/formatters";
 import { bnDate } from "@/lib/bn";
 import { t } from "@/lib/home-copy";
+import { ACC } from "@/components/home/personalized/accents";
+import { IconNews } from "@/components/home/personalized/DashIcons";
 import DashHeader from "@/components/home/personalized/DashHeader";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
 
@@ -27,7 +29,7 @@ export default function MarketNewsCard({
   if (rows.length === 0) return null;
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
-      <DashHeader title={t(lang, "marketNewsTitle")} href="/todays-news" linkLabel={t(lang, "allNews")} />
+      <DashHeader title={t(lang, "marketNewsTitle")} href="/todays-news" linkLabel={t(lang, "allNews")} accent={ACC.navy} icon={<IconNews size={15} />} />
       <ul className="divide-y divide-[var(--cell-rule)]">
         {rows.map((n, i) => {
           const code = n.trading_code && n.trading_code !== "—" ? n.trading_code : null;

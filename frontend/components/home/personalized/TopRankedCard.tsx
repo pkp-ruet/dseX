@@ -4,6 +4,8 @@ import type { Lang } from "@/context/LangContext";
 import { money } from "@/lib/formatters";
 import { getTier, TIER_LABELS, TIER_LABELS_BN, TIER_VAR } from "@/lib/constants";
 import { t } from "@/lib/home-copy";
+import { ACC } from "@/components/home/personalized/accents";
+import { IconTrophy } from "@/components/home/personalized/DashIcons";
 import DashHeader, { HeaderChip } from "@/components/home/personalized/DashHeader";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
 
@@ -34,6 +36,7 @@ export default function TopRankedCard({
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
       <DashHeader
+        accent={ACC.gold} icon={<IconTrophy size={15} />}
         title={t(lang, "rankedTitle")}
         chips={<HeaderChip className="hidden sm:inline">{t(lang, "ofN", { n: scored.length })}</HeaderChip>}
         href="/dsestockranking"

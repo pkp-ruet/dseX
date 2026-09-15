@@ -12,8 +12,9 @@ import type {
 import type { Lang } from "@/context/LangContext";
 import { signed } from "@/lib/formatters";
 import { t } from "@/lib/home-copy";
+import { ACC } from "@/components/home/personalized/accents";
 import DashHeader from "@/components/home/personalized/DashHeader";
-import { IconChevron } from "@/components/home/personalized/DashIcons";
+import { IconChevron, IconGrid } from "@/components/home/personalized/DashIcons";
 
 const MARKET_HREF = "/market-analysis";
 /** The Bengali daily article — the front door in বাংলা mode. */
@@ -253,7 +254,7 @@ export default function MarketTodayCard({
 
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
-      <DashHeader title={t(lang, "marketToday")} href={marketHref} linkLabel={t(lang, "fullPicture")} />
+      <DashHeader title={t(lang, "marketToday")} href={marketHref} linkLabel={t(lang, "fullPicture")} accent={ACC.steel} icon={<IconGrid size={15} />} />
 
       <div className="px-4 sm:px-5 py-4">
         <h3

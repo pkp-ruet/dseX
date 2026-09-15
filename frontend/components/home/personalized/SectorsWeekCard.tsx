@@ -7,6 +7,8 @@ import type { Lang } from "@/context/LangContext";
 import { sectorBn } from "@/lib/bn";
 import { SectorIcon } from "@/lib/sector-icons";
 import { t } from "@/lib/home-copy";
+import { ACC } from "@/components/home/personalized/accents";
+import { IconList } from "@/components/home/personalized/DashIcons";
 import DashHeader from "@/components/home/personalized/DashHeader";
 
 const INITIAL = 8;
@@ -31,7 +33,7 @@ export default function SectorsWeekCard({ sectors, lang = "en" }: { sectors: Mar
 
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
-      <DashHeader title={t(lang, "sectorsTitle")} href="/sectors" linkLabel={t(lang, "allSectors")} />
+      <DashHeader title={t(lang, "sectorsTitle")} href="/sectors" linkLabel={t(lang, "allSectors")} accent={ACC.steel} icon={<IconList size={15} />} />
       <p className="px-4 pt-2.5 text-[0.68rem] font-semibold text-[var(--text-muted)] sm:px-5">{t(lang, "weekDotLegend")}</p>
       <ul className="mt-1 divide-y divide-[var(--cell-rule)]">
         {shown.map((s) => {

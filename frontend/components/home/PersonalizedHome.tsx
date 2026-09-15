@@ -53,6 +53,8 @@ import LearnCard from "@/components/home/personalized/LearnCard";
 import ExploreLinks from "@/components/home/personalized/ExploreLinks";
 import NewsPeek from "@/components/home/personalized/NewsPeek";
 import ChapterHead from "@/components/home/personalized/ChapterHead";
+import { CHAPTER_ACC } from "@/components/home/personalized/accents";
+import { IconBook, IconCoin, IconGrid, IconSparkle, IconWallet } from "@/components/home/personalized/DashIcons";
 import DashSectionNav, { type DashNavItem } from "@/components/home/personalized/DashSectionNav";
 import { HeaderChip } from "@/components/home/personalized/DashHeader";
 import InstallHomeBanner from "@/components/pwa/InstallHomeBanner";
@@ -68,8 +70,15 @@ function SectionLabel({ children, lang }: { children: React.ReactNode; lang: Lan
   return (
     <p
       lang={bn ? "bn" : undefined}
-      className={`text-xs uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-2${bn ? " font-bn" : ""}`}
+      className={`mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[var(--text-muted)]${bn ? " font-bn" : ""}`}
     >
+      {/* Standing in for a DashHeader's icon tile, so this label does not read
+          as the one grey thing between two coloured cards. */}
+      <span
+        className="h-3.5 w-1 shrink-0 rounded-full"
+        aria-hidden
+        style={{ background: CHAPTER_ACC.money }}
+      />
       {children}
     </p>
   );
@@ -306,12 +315,12 @@ export default function PersonalizedHome() {
 
   const navItems = useMemo<DashNavItem[]>(() => {
     const items: DashNavItem[] = [
-      { id: "money", label: t(lang, "chMoney") },
-      { id: "market", label: t(lang, "chMarket") },
-      { id: "ideas", label: t(lang, "chIdeas") },
+      { id: "money", label: t(lang, "chMoney"), accent: CHAPTER_ACC.money },
+      { id: "market", label: t(lang, "chMarket"), accent: CHAPTER_ACC.market },
+      { id: "ideas", label: t(lang, "chIdeas"), accent: CHAPTER_ACC.ideas },
     ];
-    if (hasDividends) items.push({ id: "dividends", label: t(lang, "chDividends") });
-    items.push({ id: "learn", label: t(lang, "chLearn") });
+    if (hasDividends) items.push({ id: "dividends", label: t(lang, "chDividends"), accent: CHAPTER_ACC.dividends });
+    items.push({ id: "learn", label: t(lang, "chLearn"), accent: CHAPTER_ACC.learn });
     return items;
   }, [lang, hasDividends]);
 
@@ -345,7 +354,11 @@ export default function PersonalizedHome() {
     <PullToRefresh onRefresh={() => runFetches()}>
     <div className="pb-4" onClickCapture={onTap}>
       {/* ── Chapter 1a: the hero — brief + value + grade. Always first. ── */}
-      <section id="money" className="dash-section mt-5" data-card="money">
+      <section id="money" className="dash-section relative mt-5" data-card="money">
+        {/* Soft clay/steel/gold wash behind the hero — the one place on the
+            page with ambience. `.dash-glow` is inset-inline: 0, never negative,
+            so it cannot make the page pan sideways on a phone. */}
+        <span className="dash-glow" aria-hidden />
         {holdings === null ? (
           // Portfolio not known yet → hold the hero's space so nothing below
           // jumps when it resolves (kills the ghost↔MoneyHero shift).
@@ -411,7 +424,7 @@ export default function PersonalizedHome() {
             mood + index + sparkline, movers, sectors, market news, the Bengali
             paragraph, and what is near a turning point. ── */}
         <section id="market" className="dash-section space-y-3">
-          <ChapterHead label={t(lang, "chMarket")} lang={lang} />
+          <ChapterHead label={t(lang, "chMarket")} lang={lang} accent={CHAPTER_ACC.market} icon={<IconGrid size={16} />} />
           <div className={PAIR}>
             <div data-card="market">
               <MarketTodayCard
@@ -477,7 +490,7 @@ export default function PersonalizedHome() {
             signal, the top of the ranking, the four lists, trending, tips,
             and what other readers are viewing. ── */}
         <section id="ideas" className="dash-section space-y-3">
-          <ChapterHead label={t(lang, "chIdeas")} lang={lang} />
+          <ChapterHead label={t(lang, "chIdeas")} lang={lang} accent={CHAPTER_ACC.ideas} icon={<IconSparkle size={16} />} />
           <div className={PAIR}>
             {(hasIdeas || ideasLoading) && (
               <div id="intelligence" data-card="ideas">
@@ -552,7 +565,7 @@ export default function PersonalizedHome() {
             weeks, market-wide, plus the latest declarations. ── */}
         {hasDividends && (
           <section id="dividends" className="dash-section space-y-3">
-            <ChapterHead label={t(lang, "chDividends")} lang={lang} />
+            <ChapterHead label={t(lang, "chDividends")} lang={lang} accent={CHAPTER_ACC.dividends} icon={<IconCoin size={16} />} />
             <div data-card="dividends">
               <DividendBoardCard recordDates={calendarRows} declared={declared} held={heldSet} watched={watchedSet} lang={lang} />
             </div>
@@ -574,7 +587,7 @@ export default function PersonalizedHome() {
             Bengali beginner guides for a brand-new account) + the way out to
             every other page. ── */}
         <section id="learn" className="dash-section space-y-3">
-          <ChapterHead label={t(lang, "chLearn")} lang={lang} />
+          <ChapterHead label={t(lang, "chLearn")} lang={lang} accent={CHAPTER_ACC.learn} icon={<IconBook size={16} />} />
           <div className={PAIR}>
             <div data-card="learn">
               <LearnCard brandNew={isBrandNew} lang={lang} />

@@ -3,9 +3,10 @@ import type { MarketTurningStock, MarketUnusualStock } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
 import { money } from "@/lib/formatters";
 import { t } from "@/lib/home-copy";
+import { ACC } from "@/components/home/personalized/accents";
 import DashHeader from "@/components/home/personalized/DashHeader";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
-import { IconArrowDown, IconArrowUp, IconRocket } from "@/components/home/personalized/DashIcons";
+import { IconArrowDown, IconArrowUp, IconRocket, IconTarget } from "@/components/home/personalized/DashIcons";
 
 const ROWS = 3;
 
@@ -111,7 +112,7 @@ export default function TurningPointsCard({
 
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
-      <DashHeader title={t(lang, "turningTitle")} href="/market-analysis" linkLabel={t(lang, "fullPicture")} />
+      <DashHeader title={t(lang, "turningTitle")} href="/market-analysis" linkLabel={t(lang, "fullPicture")} accent={ACC.amber} icon={<IconTarget size={15} />} />
       {/* Stacked on a phone the three groups ran together — a hairline between
           them replaces the column rules that only exist from md up. */}
       <div className="grid grid-cols-1 divide-y divide-[var(--cell-rule)] pb-1 md:grid-cols-3 md:divide-x md:divide-y-0">

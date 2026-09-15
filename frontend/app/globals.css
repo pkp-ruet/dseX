@@ -9046,8 +9046,76 @@ h2.info-col-header { margin: 0; }
   }
   .dash-chip:active { background: var(--surface-2); }
   .dash-chip[aria-current="true"] {
-    background: var(--primary);
-    border-color: var(--primary);
+    background: var(--acc, var(--primary));
+    border-color: var(--acc, var(--primary));
     color: #fff;
+    box-shadow: 0 4px 12px -6px color-mix(in srgb, var(--acc, var(--primary)) 85%, transparent);
+  }
+
+  /* ── Dashboard colour system ──
+     Twenty identical white cards read as one grey wall, so every card carries a
+     chapter accent on `--acc`: a gradient hairline across the very top, a
+     whisper of that colour behind the header row, and a gradient icon tile.
+     All three live on the shared DashHeader, so a card opts in with one prop
+     and no card markup changes. Accents are decorative ONLY — green/red and
+     the tier colours stay locked to market meaning (see accents.ts). */
+  .dash-head {
+    position: relative;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--acc, var(--primary)) 9%, transparent) 0%,
+      transparent 100%
+    );
+  }
+  .dash-head::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      var(--acc, var(--primary)) 0%,
+      color-mix(in srgb, var(--acc, var(--primary)) 30%, transparent) 55%,
+      transparent 92%
+    );
+  }
+  /* Small sibling of the landing page's .icon-tile, sized for a card header. */
+  .dash-tile {
+    display: inline-grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 0.55rem;
+    flex-shrink: 0;
+    color: #fff;
+    background: linear-gradient(
+      135deg,
+      var(--acc, var(--primary)),
+      color-mix(in srgb, var(--acc, var(--primary)) 62%, #000)
+    );
+    box-shadow: 0 4px 10px -5px color-mix(in srgb, var(--acc, var(--primary)) 85%, transparent);
+  }
+  .dash-tile-lg { width: 1.9rem; height: 1.9rem; border-radius: 0.65rem; }
+
+  /* Rank/serial pill tinted with the card's accent instead of flat grey. */
+  .dash-rank {
+    color: var(--acc, var(--primary));
+    background: color-mix(in srgb, var(--acc, var(--primary)) 13%, transparent);
+  }
+
+  /* Ambient wash behind the hero. Like .hero-glow it MUST stay inside its own
+     box — `inset-inline: 0`, never a negative inset, or the page pans
+     sideways on a phone. */
+  .dash-glow {
+    position: absolute;
+    inset-inline: 0;
+    top: -3rem;
+    height: 22rem;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(42% 55% at 18% 16%, color-mix(in srgb, var(--primary) 15%, transparent) 0%, transparent 60%),
+      radial-gradient(45% 55% at 82% 4%, color-mix(in srgb, var(--info) 14%, transparent) 0%, transparent 60%),
+      radial-gradient(38% 46% at 52% 46%, color-mix(in srgb, var(--gold) 10%, transparent) 0%, transparent 64%);
   }
 }

@@ -3,6 +3,8 @@ import type { PopularStockItem } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
 import { money } from "@/lib/formatters";
 import { t } from "@/lib/home-copy";
+import { ACC, accVars } from "@/components/home/personalized/accents";
+import { IconHeart } from "@/components/home/personalized/DashIcons";
 import DashHeader from "@/components/home/personalized/DashHeader";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
 
@@ -25,7 +27,7 @@ export default function PopularCard({
   if (rows.length === 0) return null;
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
-      <DashHeader title={t(lang, "popularTitle")} href="/dse-popular-stocks" linkLabel={t(lang, "seeAll")} />
+      <DashHeader title={t(lang, "popularTitle")} href="/dse-popular-stocks" linkLabel={t(lang, "seeAll")} accent={ACC.steel} icon={<IconHeart size={15} />} />
       <ol className="divide-y divide-[var(--cell-rule)]">
         {rows.map((it, i) => {
           const chg = it.change_pct;
@@ -37,7 +39,9 @@ export default function PopularCard({
                 href={`/stock/${it.trading_code}`}
                 className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)] sm:px-5"
               >
-                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[var(--surface-2)] text-[0.75rem] font-black tabular-nums text-[var(--text-muted)]" aria-hidden>
+                <span className="dash-rank grid h-7 w-7 shrink-0 place-items-center rounded-lg text-[0.75rem] font-black tabular-nums"
+                  style={accVars(ACC.steel)}
+                  aria-hidden>
                   {i + 1}
                 </span>
                 <span className="min-w-0 flex-1">

@@ -13,6 +13,8 @@ import type { Lang } from "@/context/LangContext";
 import { signed } from "@/lib/formatters";
 import { t } from "@/lib/home-copy";
 import TierPill from "@/components/ui/TierPill";
+import { ACC } from "@/components/home/personalized/accents";
+import { IconWallet } from "@/components/home/personalized/DashIcons";
 import DashHeader from "@/components/home/personalized/DashHeader";
 
 /**
@@ -139,6 +141,7 @@ export default function MyStocksToday({
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
       <DashHeader
+        accent={ACC.clay} icon={<IconWallet size={15} />}
         title={t(lang, "yourStocksToday")}
         chips={
           upCount + downCount > 0 ? (

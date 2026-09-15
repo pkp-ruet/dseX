@@ -4,7 +4,8 @@ import type { Lang } from "@/context/LangContext";
 import { getTier, TIER_LABELS, TIER_LABELS_BN, TIER_VAR } from "@/lib/constants";
 import { t, type CopyKey } from "@/lib/home-copy";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
-import { IconArrowRight, IconCoin, IconTag, IconTrendDown, IconTrendUp } from "@/components/home/personalized/DashIcons";
+import { ACC, accVars } from "@/components/home/personalized/accents";
+import { IconArrowRight, IconCoin, IconList, IconTag, IconTrendDown, IconTrendUp } from "@/components/home/personalized/DashIcons";
 
 type LensKey = "on_sale" | "income" | "rising" | "fallen";
 
@@ -60,9 +61,16 @@ export default function ListsRail({
 
   return (
     <div className={bn ? "font-bn" : undefined} lang={bn ? "bn" : undefined}>
-      <div className="mb-2 flex items-center justify-between px-0.5">
-        <h3 className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[var(--text)]">{t(lang, "listsTitle")}</h3>
-        <Link href="/stock-insights" prefetch={false} className="text-xs font-semibold text-[var(--primary)] hover:underline active:opacity-70">
+      <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
+        <span className="flex min-w-0 items-center gap-2" style={accVars(ACC.navy)}>
+          <span className="dash-tile" aria-hidden>
+            <IconList size={15} />
+          </span>
+          <h3 className="min-w-0 truncate text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[var(--text)]">
+            {t(lang, "listsTitle")}
+          </h3>
+        </span>
+        <Link href="/stock-insights" prefetch={false} className="shrink-0 text-xs font-semibold text-[var(--primary)] hover:underline active:opacity-70">
           {t(lang, "allLists")} →
         </Link>
       </div>
@@ -70,9 +78,9 @@ export default function ListsRail({
         {cards.map((c) => {
           const best = chances.best === c.key;
           return (
-            <article key={c.key} className="soft-card w-[16rem] overflow-hidden sm:w-[17rem]">
-              <div className="flex items-start gap-2.5 px-4 pt-3.5">
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg" style={{ color: c.color, background: `color-mix(in srgb, ${c.color} 12%, transparent)` }} aria-hidden>
+            <article key={c.key} className="soft-card acc-top w-[16rem] overflow-hidden sm:w-[17rem]" style={accVars(c.color)}>
+              <div className="flex items-start gap-2.5 px-4 pt-4">
+                <span className="dash-tile dash-tile-lg" aria-hidden>
                   {c.icon}
                 </span>
                 <span className="min-w-0 flex-1">

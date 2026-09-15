@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import type { Lang } from "@/context/LangContext";
 import { t } from "@/lib/home-copy";
+import { ACC, accVars } from "@/components/home/personalized/accents";
 
 const BAG_ICON = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -18,7 +19,11 @@ const BAG_ICON = (
 export default function MoneyHeroGhost({ greeting, lang = "en" }: { greeting?: ReactNode; lang?: Lang }) {
   const bn = lang === "bn";
   return (
-    <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
+    <section
+      className={`soft-card acc-top overflow-hidden ${bn ? "font-bn" : ""}`}
+      style={accVars(ACC.clay)}
+      lang={bn ? "bn" : undefined}
+    >
       {greeting && (
         <div className="border-b border-[var(--border)] px-4 pb-3 pt-4 sm:px-5">{greeting}</div>
       )}

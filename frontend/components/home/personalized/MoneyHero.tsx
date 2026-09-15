@@ -9,6 +9,7 @@ import { bdGroup, takaGroup } from "@/lib/formatters";
 import { marketSession, formatBstDateLabel } from "@/lib/market-hours";
 import { bnDate } from "@/lib/bn";
 import { t, gradeLabel } from "@/lib/home-copy";
+import { ACC, accVars } from "@/components/home/personalized/accents";
 
 const GRADE_COLOR: Record<Grade, string> = {
   A: "var(--positive)",
@@ -111,7 +112,11 @@ export default function MoneyHero({
         : t(lang, "latestPrices");
 
   return (
-    <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
+    <section
+      className={`soft-card acc-top overflow-hidden ${bn ? "font-bn" : ""}`}
+      style={accVars(ACC.clay)}
+      lang={bn ? "bn" : undefined}
+    >
       {greeting && (
         <div className="border-b border-[var(--border)] px-4 pb-3 pt-4 sm:px-5">{greeting}</div>
       )}

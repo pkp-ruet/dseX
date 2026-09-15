@@ -6,6 +6,7 @@ import type { DailyTip } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
 import { TIP_KIND } from "@/lib/home-ideas";
 import { t } from "@/lib/home-copy";
+import { ACC } from "@/components/home/personalized/accents";
 import DashHeader, { HeaderChip } from "@/components/home/personalized/DashHeader";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
 import { IconBulb } from "@/components/home/personalized/DashIcons";
@@ -50,7 +51,7 @@ export default function TipsCard({
   const shown = open ? tips : tips.slice(0, INITIAL);
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
-      <DashHeader title={t(lang, "tipsTitle")} chips={<HeaderChip>{tips.length}</HeaderChip>} href="/daily-tips" linkLabel={t(lang, "allTips")} />
+      <DashHeader title={t(lang, "tipsTitle")} chips={<HeaderChip>{tips.length}</HeaderChip>} href="/daily-tips" linkLabel={t(lang, "allTips")} accent={ACC.gold} icon={<IconBulb size={15} />} />
       <ul className="divide-y divide-[var(--cell-rule)]">
         {shown.map((tip) => {
           const kind = TIP_KIND[tip.category] ?? "kindTip";

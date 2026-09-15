@@ -6,6 +6,8 @@ import type { ScoreItem } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
 import { money } from "@/lib/formatters";
 import { t } from "@/lib/home-copy";
+import { ACC } from "@/components/home/personalized/accents";
+import { IconCheck } from "@/components/home/personalized/DashIcons";
 import DashHeader, { HeaderChip } from "@/components/home/personalized/DashHeader";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
 import StarButton from "@/components/ui/StarButton";
@@ -49,6 +51,7 @@ export default function BuysTodayCard({
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
       <DashHeader
+        accent={ACC.green} icon={<IconCheck size={15} />}
         title={t(lang, "buysTitle")}
         chips={count > 0 ? <HeaderChip tone="accent">{count}</HeaderChip> : undefined}
         href="/buy-sell-signals"

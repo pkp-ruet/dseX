@@ -5,6 +5,7 @@ import { analyzePortfolio, type ComputedRow } from "@/lib/portfolio-analysis";
 import { bdGroup } from "@/lib/formatters";
 import { sectorBn } from "@/lib/bn";
 import { t } from "@/lib/home-copy";
+import { ACC } from "@/components/home/personalized/accents";
 import DashHeader from "@/components/home/personalized/DashHeader";
 import { IconBulb, IconCheck, IconCoin, IconTarget } from "@/components/home/personalized/DashIcons";
 
@@ -72,7 +73,7 @@ export default function PortfolioGlanceCard({
 
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
-      <DashHeader title={t(lang, "glanceTitle")} href="/portfolio" linkLabel={t(lang, "fullAnalysis")} />
+      <DashHeader title={t(lang, "glanceTitle")} href="/portfolio" linkLabel={t(lang, "fullAnalysis")} accent={ACC.clay} icon={<IconTarget size={15} />} />
 
       {bullets.length > 0 && (
         <ul className="divide-y divide-[var(--cell-rule)]">
