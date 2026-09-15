@@ -18,6 +18,11 @@ import {
   getMarketIndex,
   getDividendsUpcoming,
   getNearExtremes,
+  getMarketMovers,
+  getTodaysNews,
+  getTop20,
+  getPopularStocks,
+  getDividendCalendar,
   type HomeBundle,
 } from "@/lib/api";
 
@@ -47,7 +52,14 @@ async function legacyBundle(): Promise<HomeBundle> {
       ...(portfolio.holdings ?? []).map((h) => h.trading_code.toUpperCase()),
     ]),
   ).sort();
-  const news = codes.length ? await settle(getWatchlistNews(codes), []) : [];
+  const [news, movers, marketNews, top20, popular, calendar] = await Promise.all([
+    codes.length ? settle(getWatchlistNews(codes), []) : Promise.resolve([]),
+    settle(getMarketMovers(), null),
+    settle(getTodaysNews(), []),
+    settle(getTop20(), null),
+    settle(getPopularStocks(), null),
+    settle(getDividendCalendar(), null),
+  ]);
   return {
     generated_at: new Date().toISOString(),
     holdings: portfolio.holdings ?? [],
@@ -63,6 +75,16 @@ async function legacyBundle(): Promise<HomeBundle> {
     dividend_cash: [],
     report_codes: [],
     summaries_bn: {},
+    movers,
+    market_news: marketNews.slice(0, 12),
+    top20: top20?.items?.slice(0, 8) ?? [],
+    popular: popular?.items?.slice(0, 8) ?? [],
+    calendar: {
+      record_dates: (calendar?.record_dates ?? []).filter(
+        (e) => e.record_days_left != null && e.record_days_left >= 0 && e.record_days_left <= 14,
+      ).slice(0, 12),
+      recent_declarations: (calendar?.recent_declarations ?? []).slice(0, 5),
+    },
   };
 }
 

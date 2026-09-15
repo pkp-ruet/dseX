@@ -37,7 +37,7 @@ export interface IdeaRow {
 
 export const IDEA_ROWS = 3;
 
-const TIP_KIND: Record<string, CopyKey> = {
+export const TIP_KIND: Record<string, CopyKey> = {
   dividend_yield: "kindPaysCash",
   dividend_streak: "kindPaysCash",
   div_catalyst: "kindPaysCash",

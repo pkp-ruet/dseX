@@ -7,6 +7,7 @@ import type {
   MarketMood,
   MarketSinceYesterday,
   MarketStats,
+  MarketHistory,
 } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
 import { signed } from "@/lib/formatters";
@@ -97,9 +98,9 @@ function IndexStat({ label, value, change }: { label: string; value: number | nu
   const up = (change ?? 0) >= 0;
   const color = change == null ? "var(--text-muted)" : up ? "var(--positive)" : "var(--negative)";
   return (
-    <div className="flex flex-col">
+    <div className="flex min-w-0 flex-col">
       <span className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">{label}</span>
-      <span className="text-lg sm:text-xl font-extrabold tabular-nums text-[var(--text)] leading-tight">{num(value)}</span>
+      <span className="text-[1.02rem] font-extrabold tabular-nums text-[var(--text)] leading-tight sm:text-xl">{num(value)}</span>
       <span className="text-xs font-semibold tabular-nums" style={{ color }}>
         {change == null ? "--" : `${up ? "▲" : "▼"} ${signed(change)}`}
       </span>
@@ -142,6 +143,42 @@ function cheapWord(a: string | undefined, lang: Lang): string {
   return a;
 }
 
+/** DSEX over the stored history as a small line, plus the change over it. */
+function Sparkline({ history, label }: { history: MarketHistory | null | undefined; label: string }) {
+  const pts = (history?.index ?? []).filter((p) => p.dsex != null) as { date: string; dsex: number }[];
+  if (pts.length < 2) return null;
+  const first = pts[0].dsex;
+  const last = pts[pts.length - 1].dsex;
+  const chg = first > 0 ? ((last - first) / first) * 100 : 0;
+  const up = last >= first;
+  const color = up ? "var(--positive)" : "var(--negative)";
+  const W = 120;
+  const H = 32;
+  const min = Math.min(...pts.map((p) => p.dsex));
+  const max = Math.max(...pts.map((p) => p.dsex));
+  const span = max - min || 1;
+  const path = pts
+    .map((p, i) => {
+      const x = (i / (pts.length - 1)) * W;
+      const y = H - 2 - ((p.dsex - min) / span) * (H - 4);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+  return (
+    <div className="mt-3 flex items-center gap-3">
+      <svg viewBox={`0 0 ${W} ${H}`} className="h-8 w-28 shrink-0" preserveAspectRatio="none" aria-hidden>
+        <polyline points={path} fill="none" stroke={color} strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" />
+      </svg>
+      <span className="min-w-0">
+        <span className="block text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)]">{label}</span>
+        <span className="block text-[0.9rem] font-extrabold tabular-nums nums leading-tight" style={{ color }}>
+          {up ? "▲" : "▼"} {Math.abs(chg).toFixed(1)}%
+        </span>
+      </span>
+    </div>
+  );
+}
+
 /**
  * One "Market today" card for the logged-in home — the front door to
  * `/market-analysis` (or, in বাংলা mode, to the Bengali daily article at
@@ -149,12 +186,10 @@ function cheapWord(a: string | undefined, lang: Lang): string {
  *
  *  • the headline is the backend mood (the page's own verdict), not a local
  *    breadth guess — the two can no longer disagree;
+ *  • a DSEX sparkline over the stored history under the headline;
  *  • the ONE header link goes to the full picture; the index row is the link
  *    to DSE Today, where those numbers live;
  *  • a "Since yesterday" line under the tiles changes daily and links through.
- *
- * The old pulsing "live" dot and footer button stay cut — the greeting's
- * MarketStatusPill is the one honest live cue on the page.
  */
 export default function MarketTodayCard({
   index,
@@ -164,6 +199,7 @@ export default function MarketTodayCard({
   stats,
   quality,
   cheap,
+  history,
   lang = "en",
 }: {
   index: MarketIndexData | null;
@@ -177,6 +213,8 @@ export default function MarketTodayCard({
   quality?: MarketQuality | null;
   /** The "Are shares cheap or expensive?" Q&A row (from /api/market/state). */
   cheap?: MarketQuestion | null;
+  /** DSEX history for the sparkline (from /api/market/state). */
+  history?: MarketHistory | null;
   lang?: Lang;
 }) {
   const bn = lang === "bn";
@@ -225,12 +263,16 @@ export default function MarketTodayCard({
           {head.text}
         </h3>
 
+        <Sparkline history={history} label={t(lang, "thisYear")} />
+
+        {/* gap-2 + a slightly smaller level on a phone: three 4-digit indices
+            need ~80px each, and gap-4 left exactly that on a 360px screen. */}
         {index && (
           <Link
             href="/dse-today"
             prefetch={false}
             aria-label="Today's index levels on DSE Today"
-            className="mt-3.5 -mx-2 grid grid-cols-3 gap-4 rounded-xl px-2 py-1.5 transition-colors hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)]"
+            className="mt-3.5 -mx-2 grid grid-cols-3 gap-2 rounded-xl px-2 py-1.5 transition-colors hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)] sm:gap-4"
           >
             <IndexStat label="DSEX" value={index.dsex} change={index.dsex_change} />
             <IndexStat label="DSES" value={index.dses} change={index.dses_change} />

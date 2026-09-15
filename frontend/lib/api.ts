@@ -1434,6 +1434,17 @@ export interface HomeBundle {
   report_codes: string[];
   /** Cached Bengali "এক নজরে" one-liners, keyed by trading code. */
   summaries_bn: Record<string, string>;
+  /** Market chapter (added 2026-09-16) — optional so a bundle assembled by the
+   *  legacy fallback still type-checks. */
+  movers?: MarketMoversData | null;
+  market_news?: DseTodayNewsItem[];
+  top20?: Top20Item[];
+  popular?: PopularStockItem[];
+  calendar?: {
+    /** Record dates inside the next two weeks, market-wide. */
+    record_dates: CorporateActionEvent[];
+    recent_declarations: CorporateActionEvent[];
+  };
 }
 
 /** Auth-only. The dashboard paints from this + `/api/scores` + `/api/market/state`. */

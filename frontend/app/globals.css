@@ -8992,3 +8992,62 @@ a:hover .ticker-tag,
 }
 /* Movers column headers became <h2> for the "top gainers today" queries — kill the UA margin */
 h2.info-col-header { margin: 0; }
+
+/* ── Logged-in dashboard: horizontal card rail + sticky chapter nav ──
+   `.dash-section` leaves room for the fixed navbar (56px) + the chapter chips
+   (~48px) when a chip scrolls a chapter into view. */
+@layer components {
+  .dash-rail {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.25rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .dash-rail::-webkit-scrollbar { display: none; }
+  .dash-rail > * { flex: 0 0 auto; scroll-snap-align: start; }
+  .dash-section { scroll-margin-top: 112px; }
+  .dash-nav {
+    position: sticky;
+    top: 56px;
+    z-index: 30;
+    margin-inline: -1rem;
+    padding-inline: 1rem;
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  @media (min-width: 640px) {
+    .dash-nav { margin-inline: -1.5rem; padding-inline: 1.5rem; }
+  }
+  .dash-nav-row {
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    padding-block: 0.5rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .dash-nav-row::-webkit-scrollbar { display: none; }
+  .dash-chip {
+    flex: 0 0 auto;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    border-radius: 999px;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+    transition: background-color 120ms, color 120ms, border-color 120ms;
+  }
+  .dash-chip:active { background: var(--surface-2); }
+  .dash-chip[aria-current="true"] {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+  }
+}

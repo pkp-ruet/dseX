@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, type MouseEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type MouseEvent } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useLang, type Lang } from "@/context/LangContext";
 import {
@@ -33,13 +33,27 @@ import MoneyHeroGhost from "@/components/home/personalized/MoneyHeroGhost";
 import AttentionStrip from "@/components/home/personalized/AttentionStrip";
 import PullToRefresh from "@/components/home/personalized/PullToRefresh";
 import MyStocksToday from "@/components/home/personalized/MyStocksToday";
+import PortfolioGlanceCard from "@/components/home/personalized/PortfolioGlanceCard";
 import TodaysIdeas from "@/components/home/personalized/TodaysIdeas";
 import TuneModal from "@/components/stock-recommendation/TuneModal";
 import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
+import MoversCard from "@/components/home/personalized/MoversCard";
+import SectorsWeekCard from "@/components/home/personalized/SectorsWeekCard";
+import MarketNewsCard from "@/components/home/personalized/MarketNewsCard";
+import BanglaSnapshotCard from "@/components/home/personalized/BanglaSnapshotCard";
+import TurningPointsCard from "@/components/home/personalized/TurningPointsCard";
+import BuysTodayCard from "@/components/home/personalized/BuysTodayCard";
+import TopRankedCard from "@/components/home/personalized/TopRankedCard";
+import ListsRail from "@/components/home/personalized/ListsRail";
+import TrendingCard from "@/components/home/personalized/TrendingCard";
+import PopularCard from "@/components/home/personalized/PopularCard";
+import TipsCard from "@/components/home/personalized/TipsCard";
+import DividendBoardCard from "@/components/home/personalized/DividendBoardCard";
+import LearnCard from "@/components/home/personalized/LearnCard";
 import ExploreLinks from "@/components/home/personalized/ExploreLinks";
-import StartHereCard from "@/components/home/personalized/StartHereCard";
 import NewsPeek from "@/components/home/personalized/NewsPeek";
-import SearchBar from "@/components/home/SearchBar";
+import ChapterHead from "@/components/home/personalized/ChapterHead";
+import DashSectionNav, { type DashNavItem } from "@/components/home/personalized/DashSectionNav";
 import { HeaderChip } from "@/components/home/personalized/DashHeader";
 import InstallHomeBanner from "@/components/pwa/InstallHomeBanner";
 
@@ -54,7 +68,7 @@ function SectionLabel({ children, lang }: { children: React.ReactNode; lang: Lan
   return (
     <p
       lang={bn ? "bn" : undefined}
-      className={`text-xs uppercase tracking-widest text-[var(--text-muted)] font-semibold mt-2 mb-3${bn ? " font-bn" : ""}`}
+      className={`text-xs uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-2${bn ? " font-bn" : ""}`}
     >
       {children}
     </p>
@@ -80,11 +94,18 @@ function IdeasSkeleton() {
   );
 }
 
+/** Two cards side by side from `md:` up; a lone card takes the full width.
+ *  `grid-cols-1` is load-bearing on a phone: without it the implicit column is
+ *  `auto`, which cannot shrink below a card's min-content, so one over-wide
+ *  row would widen the whole page instead of being contained. */
+const PAIR = "grid grid-cols-1 gap-3 md:grid-cols-2 md:items-start [&>*:only-child]:md:col-span-2";
+
 /** Alerts that are NOT a price row — price moves and 52-week extremes live as
  *  chips on the "Your stocks today" rows, so they are not listed twice. */
 const ATTENTION_KINDS = new Set<HomeAlertKind>(["target", "signal", "dividend"]);
 
 const EMPTY_DIVIDENDS = { upcoming_declarations: [], upcoming_record_dates: [] };
+const EMPTY_SET = new Set<string>();
 
 export default function PersonalizedHome() {
   const { user } = useAuth();
@@ -116,11 +137,10 @@ export default function PersonalizedHome() {
     if (consumeJustSignedUp()) setIsNewUser(true);
   }, []);
 
-  // THREE requests: the personal bundle, the scores, the market state. The
-  // bundle also feeds the shared watchlist + alerts stores (navbar badge,
-  // StarButtons) so those need no request of their own. `isAlive` lets the
-  // mount effect cancel state writes after unmount; pull-to-refresh passes
-  // the default (always alive) and awaits the promise.
+  // THREE requests: the personal bundle (which now also carries the market
+  // chapter — movers, market news, trending, popular, the dividend board), the
+  // scores, the market state. The bundle also feeds the shared watchlist +
+  // alerts stores so the navbar badge needs no request of its own.
   const runFetches = useCallback(
     (isAlive: () => boolean = () => true) => {
       const jobs: Promise<unknown>[] = [
@@ -186,11 +206,23 @@ export default function PersonalizedHome() {
   const reportCodes = bundle?.report_codes ?? [];
   const summariesBn = bundle?.summaries_bn ?? {};
   const signalEvents = bundle?.signal_events ?? [];
+  const movers = bundle?.movers ?? null;
+  const marketNews = bundle?.market_news ?? [];
+  const top20 = bundle?.top20 ?? [];
+  const popular = bundle?.popular ?? [];
+  const calendarRows = bundle?.calendar?.record_dates ?? [];
+  const declared = bundle?.calendar?.recent_declarations ?? [];
 
   const hasWatchlist = codes.length > 0;
   const hasPortfolio = (holdings?.length ?? 0) > 0;
   const hasTuned = !!dailyPicks?.tuned;
   const isBrandNew = holdings !== null && !hasPortfolio && !hasWatchlist;
+
+  const heldSet = useMemo(
+    () => (holdings && holdings.length ? new Set(holdings.map((h) => h.trading_code.toUpperCase())) : EMPTY_SET),
+    [holdings],
+  );
+  const watchedSet = useMemo(() => (codes.length ? new Set(codes.map((c) => c.toUpperCase())) : EMPTY_SET), [codes]);
 
   const isoToday = bstDateStr();
   const dateStr = bn
@@ -200,20 +232,15 @@ export default function PersonalizedHome() {
     ? bnDate(isoToday)
     : new Date().toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
 
-  const allStocks = Array.from(priceMap.values());
+  const allStocks = useMemo(() => Array.from(priceMap.values()), [priceMap]);
   // Buy signals ride along on the scores already in priceMap — no extra fetch.
-  const buys = allStocks.filter((s) => s.signal?.signal === "buy");
-  const companies = allStocks.map((s) => ({ trading_code: s.trading_code, company_name: s.company_name }));
-  const sectors = Array.from(
-    new Set(allStocks.map((s) => s.sector).filter((x): x is string => Boolean(x))),
-  ).sort();
+  const buys = useMemo(() => allStocks.filter((s) => s.signal?.signal === "buy"), [allStocks]);
+  const sectors = useMemo(
+    () => Array.from(new Set(allStocks.map((s) => s.sector).filter((x): x is string => Boolean(x)))).sort(),
+    [allStocks],
+  );
 
-  const followedCodes = Array.from(
-    new Set([
-      ...codes.map((c) => c.toUpperCase()),
-      ...(holdings ?? []).map((h) => h.trading_code.toUpperCase()),
-    ]),
-  ).sort();
+  const followedCodes = Array.from(new Set([...watchedSet, ...heldSet])).sort();
 
   function refreshDailyPicks() {
     return getDailyPicks()
@@ -271,6 +298,23 @@ export default function PersonalizedHome() {
   const hasIdeas = (dailyPicks?.picks?.length ?? 0) > 0 || tips.length > 0 || buys.length > 0;
   const ideasLoading = !hasIdeas && !bundleSettled;
 
+  const hasMovers = !!movers && ((movers.gainers?.length ?? 0) + (movers.losers?.length ?? 0) + (movers.most_traded?.length ?? 0) > 0);
+  const sectorRows = marketState?.now?.sectors ?? [];
+  const hasTurning =
+    (marketState?.next?.near_high?.length ?? 0) + (marketState?.next?.near_low?.length ?? 0) + (marketState?.next?.unusual?.length ?? 0) > 0;
+  const hasDividends = calendarRows.length > 0 || declared.length > 0;
+
+  const navItems = useMemo<DashNavItem[]>(() => {
+    const items: DashNavItem[] = [
+      { id: "money", label: t(lang, "chMoney") },
+      { id: "market", label: t(lang, "chMarket") },
+      { id: "ideas", label: t(lang, "chIdeas") },
+    ];
+    if (hasDividends) items.push({ id: "dividends", label: t(lang, "chDividends") });
+    items.push({ id: "learn", label: t(lang, "chLearn") });
+    return items;
+  }, [lang, hasDividends]);
+
   function onLang(l: Lang) {
     setLang(l);
     trackEvent("home_lang", { lang: l });
@@ -300,161 +344,250 @@ export default function PersonalizedHome() {
   return (
     <PullToRefresh onRefresh={() => runFetches()}>
     <div className="pb-4" onClickCapture={onTap}>
-      {/* ── Bento: your dashboard (main column) + explore the market (aside) on
-          desktop. Mobile keeps the single-column source order. ── */}
-      <div className="mt-5 lg:grid lg:grid-cols-5 lg:gap-6 lg:items-start">
-      <div className="space-y-6 lg:col-span-3">
+      {/* ── Chapter 1a: the hero — brief + value + grade. Always first. ── */}
+      <section id="money" className="dash-section mt-5" data-card="money">
+        {holdings === null ? (
+          // Portfolio not known yet → hold the hero's space so nothing below
+          // jumps when it resolves (kills the ghost↔MoneyHero shift).
+          <MoneyHeroSkeleton greeting={greeting} />
+        ) : hasPortfolio ? (
+          <MoneyHero holdings={holdings} priceMap={priceMap} marketIndex={marketIndex} greeting={greeting} lang={lang} />
+        ) : (
+          <MoneyHeroGhost greeting={greeting} lang={lang} />
+        )}
+      </section>
 
-      {/* ── Chapter 1: Your money — the brief + value hero → your stocks →
-          what needs attention → news. The hero leads so a returning user's
-          money is the first thing on screen. ── */}
-      <section className="space-y-3">
-        <div data-card="money">
-          {holdings === null ? (
-            // Portfolio not known yet → hold the hero's space so nothing below
-            // jumps when it resolves (kills the ghost↔MoneyHero shift).
-            <MoneyHeroSkeleton greeting={greeting} />
-          ) : hasPortfolio ? (
-            <MoneyHero holdings={holdings} priceMap={priceMap} marketIndex={marketIndex} greeting={greeting} lang={lang} />
-          ) : (
-            <MoneyHeroGhost greeting={greeting} lang={lang} />
+      {/* Sticky chapter chips — the page is a long daily read now. */}
+      <DashSectionNav items={navItems} lang={lang} />
+
+      <div className="mt-4 space-y-9">
+        {/* ── Chapter 1b: the rest of "your money" — portfolio at a glance +
+            your stocks, then what needs attention + your news. ── */}
+        {(hasPortfolio || hasWatchlist) && (
+          <section className="space-y-3">
+            <div className={PAIR}>
+              {hasPortfolio && (
+                <div data-card="glance">
+                  <PortfolioGlanceCard holdings={holdings!} priceMap={priceMap} dividendCash={dividendCash} lang={lang} />
+                </div>
+              )}
+              <div data-card="stocks">
+                <MyStocksToday
+                  holdings={holdings ?? []}
+                  codes={codes}
+                  priceMap={priceMap}
+                  extremes={extremes}
+                  dividends={dividends}
+                  alerts={priceAlerts}
+                  reportCodes={reportCodes}
+                  lang={lang}
+                />
+              </div>
+            </div>
+            {(attention.length > 0 || news.length > 0) && (
+              <div className={PAIR}>
+                {attention.length > 0 && (
+                  <div data-card="attention">
+                    <AttentionStrip alerts={attention} lang={lang} />
+                  </div>
+                )}
+                {news.length > 0 && (
+                  <div data-card="news">
+                    <SectionLabel lang={lang}>{t(lang, "newsOnYourStocks")}</SectionLabel>
+                    <NewsPeek
+                      news={news}
+                      loading={false}
+                      moreHref={hasWatchlist ? "/watchlist" : "/todays-news"}
+                      moreLabel={hasWatchlist ? t(lang, "allNewsYourStocks") : t(lang, "allMarketNews")}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ── Chapter 2: Market today — the whole day without leaving the page:
+            mood + index + sparkline, movers, sectors, market news, the Bengali
+            paragraph, and what is near a turning point. ── */}
+        <section id="market" className="dash-section space-y-3">
+          <ChapterHead label={t(lang, "chMarket")} lang={lang} />
+          <div className={PAIR}>
+            <div data-card="market">
+              <MarketTodayCard
+                index={marketIndex}
+                dividends={dividends}
+                mood={marketState?.mood ?? null}
+                since={marketState?.since_yesterday ?? null}
+                stats={marketState?.stats ?? null}
+                quality={marketState?.now?.quality ?? null}
+                cheap={
+                  marketState?.now?.questions?.find((q) =>
+                    q.key === "value" || q.q.toLowerCase().startsWith("are shares cheap"),
+                  ) ?? null
+                }
+                history={marketState?.history ?? null}
+                lang={lang}
+              />
+            </div>
+            {hasMovers && (
+              <div data-card="movers">
+                <MoversCard movers={movers} held={heldSet} watched={watchedSet} lang={lang} />
+              </div>
+            )}
+          </div>
+          {(sectorRows.length > 0 || marketNews.length > 0 || marketState?.summary_bn) && (
+            <div className={PAIR}>
+              {sectorRows.length > 0 && (
+                <div data-card="sectors">
+                  <SectorsWeekCard sectors={sectorRows} lang={lang} />
+                </div>
+              )}
+              {(marketNews.length > 0 || marketState?.summary_bn) && (
+                <div className="space-y-3">
+                  {marketNews.length > 0 && (
+                    <div data-card="marketnews">
+                      <MarketNewsCard news={marketNews} held={heldSet} watched={watchedSet} lang={lang} />
+                    </div>
+                  )}
+                  {marketState?.summary_bn && (
+                    <div data-card="bangla">
+                      <BanglaSnapshotCard summary={marketState.summary_bn} />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           )}
+          {hasTurning && (
+            <div data-card="turning">
+              <TurningPointsCard
+                nearHigh={marketState?.next?.near_high ?? []}
+                nearLow={marketState?.next?.near_low ?? []}
+                unusual={marketState?.next?.unusual ?? []}
+                held={heldSet}
+                watched={watchedSet}
+                lang={lang}
+              />
+            </div>
+          )}
+        </section>
+
+        {/* ── Chapter 3: Worth a look — the three-stock opener, then every buy
+            signal, the top of the ranking, the four lists, trending, tips,
+            and what other readers are viewing. ── */}
+        <section id="ideas" className="dash-section space-y-3">
+          <ChapterHead label={t(lang, "chIdeas")} lang={lang} />
+          <div className={PAIR}>
+            {(hasIdeas || ideasLoading) && (
+              <div id="intelligence" data-card="ideas">
+                {ideasLoading ? (
+                  <IdeasSkeleton />
+                ) : (
+                  <TodaysIdeas
+                    picks={dailyPicks?.picks ?? []}
+                    buys={buys}
+                    tips={tips}
+                    followed={followedCodes}
+                    tuned={hasTuned}
+                    newPickCodes={newPickCodes}
+                    summariesBn={summariesBn}
+                    lang={lang}
+                    chips={
+                      <>
+                        <HeaderChip className="hidden sm:inline">{shortDate}</HeaderChip>
+                        {newPickCodes.length > 0 && (
+                          <HeaderChip tone="accent">
+                            {newPickCodes.length} {t(lang, "newTag").toLowerCase()}
+                          </HeaderChip>
+                        )}
+                      </>
+                    }
+                  />
+                )}
+              </div>
+            )}
+            {allStocks.length > 0 && (
+              <div data-card="buys">
+                <BuysTodayCard buys={buys} held={heldSet} watched={watchedSet} lang={lang} />
+              </div>
+            )}
+          </div>
+          {(allStocks.length > 0 || top20.length > 0) && (
+            <div className={PAIR}>
+              {allStocks.length > 0 && (
+                <div data-card="ranked">
+                  <TopRankedCard stocks={allStocks} held={heldSet} watched={watchedSet} lang={lang} />
+                </div>
+              )}
+              {top20.length > 0 && (
+                <div data-card="trending">
+                  <TrendingCard items={top20} held={heldSet} watched={watchedSet} lang={lang} />
+                </div>
+              )}
+            </div>
+          )}
+          {marketState?.chances && (
+            <div data-card="lists">
+              <ListsRail chances={marketState.chances} held={heldSet} watched={watchedSet} lang={lang} />
+            </div>
+          )}
+          {(tips.length > 0 || popular.length > 0) && (
+            <div className={PAIR}>
+              {tips.length > 0 && (
+                <div data-card="tips">
+                  <TipsCard tips={tips} held={heldSet} watched={watchedSet} lang={lang} />
+                </div>
+              )}
+              {popular.length > 0 && (
+                <div data-card="popular">
+                  <PopularCard items={popular} held={heldSet} watched={watchedSet} lang={lang} />
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* ── Chapter 4: Money coming — every record date in the next two
+            weeks, market-wide, plus the latest declarations. ── */}
+        {hasDividends && (
+          <section id="dividends" className="dash-section space-y-3">
+            <ChapterHead label={t(lang, "chDividends")} lang={lang} />
+            <div data-card="dividends">
+              <DividendBoardCard recordDates={calendarRows} declared={declared} held={heldSet} watched={watchedSet} lang={lang} />
+            </div>
+          </section>
+        )}
+
+        {/* Onboarding checklist — build a watchlist + personalize picks. Sits
+            below the money chapter so a returning user never meets "Finish
+            setting up" before their own money. Renders nothing once done. */}
+        <div data-card="setup">
+          <DailyBriefing
+            hasWatchlist={hasWatchlist}
+            hasTuned={hasTuned}
+            onPersonalize={() => setTuneOpen(true)}
+          />
         </div>
 
-        {(hasPortfolio || hasWatchlist) && (
-          <div data-card="stocks">
-            <MyStocksToday
-              holdings={holdings ?? []}
-              codes={codes}
-              priceMap={priceMap}
-              extremes={extremes}
-              dividends={dividends}
-              alerts={priceAlerts}
-              reportCodes={reportCodes}
-              lang={lang}
-            />
+        {/* ── Chapter 5: Learn — two short reads that rotate daily (three
+            Bengali beginner guides for a brand-new account) + the way out to
+            every other page. ── */}
+        <section id="learn" className="dash-section space-y-3">
+          <ChapterHead label={t(lang, "chLearn")} lang={lang} />
+          <div className={PAIR}>
+            <div data-card="learn">
+              <LearnCard brandNew={isBrandNew} lang={lang} />
+            </div>
+            <div data-card="explore">
+              <ExploreLinks lang={lang} />
+            </div>
           </div>
-        )}
-
-        {/* Targets hit, Buy More / Sell flips, dividends (with the cash a
-            holder will be paid). Renders nothing on a quiet day. */}
-        {attention.length > 0 && (
-          <div data-card="attention">
-            <AttentionStrip alerts={attention} lang={lang} />
-          </div>
-        )}
-
-        {(hasWatchlist || hasPortfolio) && news.length > 0 && (
-          <div data-card="news">
-            <SectionLabel lang={lang}>{t(lang, "newsOnYourStocks")}</SectionLabel>
-            <NewsPeek
-              news={news}
-              loading={false}
-              moreHref={hasWatchlist ? "/watchlist" : "/todays-news"}
-              moreLabel={hasWatchlist ? t(lang, "allNewsYourStocks") : t(lang, "allMarketNews")}
-            />
-          </div>
-        )}
-
-        {/* Look up any stock → its analysis page. Desktop only: on a phone the
-            navbar pill and the bottom-bar Search button already cover it, and
-            a third box here interrupted the money → news flow. */}
-        {companies.length > 0 && (
-          <div className="hidden pt-1 sm:block" data-card="search">
-            <SectionLabel lang={lang}>{t(lang, "lookUpAnyStock")}</SectionLabel>
-            <SearchBar companies={companies} variant="sidebar" />
-          </div>
-        )}
+        </section>
 
         {/* Mobile-only install CTA — auto-hides once installed / dismissed. */}
         <InstallHomeBanner />
-      </section>
-
-      {/* ── Chapter 2: Ideas — ONE plain list of three stocks, each with a
-          company name, a plain reason and a kind word. No tabs. ── */}
-      {(hasIdeas || ideasLoading) && (
-        <section id="intelligence" className="scroll-mt-24" data-card="ideas">
-          {ideasLoading ? (
-            <IdeasSkeleton />
-          ) : (
-            <TodaysIdeas
-              picks={dailyPicks?.picks ?? []}
-              buys={buys}
-              tips={tips}
-              followed={followedCodes}
-              tuned={hasTuned}
-              newPickCodes={newPickCodes}
-              summariesBn={summariesBn}
-              lang={lang}
-              chips={
-                <>
-                  {/* Date is already in the greeting above — drop it on narrow phones
-                      so the title + "N new" + link fit on one header row. */}
-                  <HeaderChip className="hidden sm:inline">{shortDate}</HeaderChip>
-                  {newPickCodes.length > 0 && (
-                    <HeaderChip tone="accent">
-                      {newPickCodes.length} {t(lang, "newTag").toLowerCase()}
-                    </HeaderChip>
-                  )}
-                </>
-              }
-            />
-          )}
-        </section>
-      )}
-
-      {/* Onboarding checklist — build a watchlist + personalize picks. Sits
-          BELOW the money chapter now: a returning user with a portfolio but no
-          quiz used to meet "Finish setting up" before their own money. Renders
-          nothing once both are done or it's dismissed. */}
-      <div data-card="setup">
-        <DailyBriefing
-          hasWatchlist={hasWatchlist}
-          hasTuned={hasTuned}
-          onPersonalize={() => setTuneOpen(true)}
-        />
       </div>
-
-      {/* Brand-new account (no portfolio, no watchlist): three beginner guides
-          from the Bengali blog. */}
-      {isBrandNew && (
-        <div data-card="start">
-          <StartHereCard lang={lang} />
-        </div>
-      )}
-      </div>
-      {/* end main column */}
-
-      {/* ── ASIDE: Explore the market — market snapshot + quick links.
-          Becomes the right sidebar on desktop; stacks under the main column on
-          mobile (source order preserved). ── */}
-      <aside className="mt-8 lg:col-span-2 lg:mt-0 lg:sticky lg:top-20" data-card="market">
-        <SectionLabel lang={lang}>{t(lang, "exploreMarket")}</SectionLabel>
-        <div className="flex flex-col gap-6">
-          <MarketTodayCard
-            index={marketIndex}
-            dividends={dividends}
-            mood={marketState?.mood ?? null}
-            since={marketState?.since_yesterday ?? null}
-            stats={marketState?.stats ?? null}
-            quality={marketState?.now?.quality ?? null}
-            cheap={
-              marketState?.now?.questions?.find((q) =>
-                q.key === "value" || q.q.toLowerCase().startsWith("are shares cheap"),
-              ) ?? null
-            }
-            lang={lang}
-          />
-
-          {/* Plain link rows out to the discovery pages — no preview tables,
-              the full pages are one tap away. */}
-          <div data-card="explore">
-            <ExploreLinks lang={lang} />
-          </div>
-        </div>
-      </aside>
-      </div>
-      {/* end bento grid */}
 
       {/* "Personalize your picks" quiz, opened from the setup checklist. */}
       <TuneModal
