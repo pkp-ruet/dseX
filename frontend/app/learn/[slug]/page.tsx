@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GUIDES, getGuide } from "@/lib/guides";
+import { guideLanguages } from "@/lib/i18n-pairs";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
@@ -16,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const guide = getGuide(slug);
   if (!guide) return {};
   return {
-    title: `${guide.title} — TopStockBD`,
+    title: `${guide.title}`,
     description: guide.description,
     keywords: [
       guide.title,
@@ -25,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       "Dhaka Stock Exchange",
       "TopStockBD",
     ],
-    alternates: { canonical: `/learn/${slug}` },
+    alternates: { canonical: `/learn/${slug}`, languages: guideLanguages(slug) },
     openGraph: {
       title: `${guide.title} — TopStockBD`,
       description: guide.description,

@@ -6,7 +6,7 @@ import FindStocksClient from "@/components/stock-recommendation/FindStocksClient
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 export const metadata: Metadata = {
-  title: "Stock Recommendation — Find DSE Stocks That Fit You | TopStockBD",
+  title: "Stock Recommendation — Find DSE Stocks That Fit You",
   description:
     "Answer a few quick questions and get Dhaka Stock Exchange (DSE) stocks matched to your goals — holding time, risk, company size, dividends, value or growth, sector and budget. Refreshed daily.",
   keywords: [

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import { flattenTiers, getScores, type ScoreItem } from "@/lib/api";
 import SignalsExplorer from "@/components/signals/SignalsExplorer";
 import { formatDate } from "@/lib/formatters";
@@ -228,9 +227,7 @@ export default async function BuySellSignalsPage() {
         </section>
 
         {/* Interactive explorer */}
-        <Suspense>
           <SignalsExplorer buy={buy} sectors={sectors} />
-        </Suspense>
 
         {/* Responsible-use note */}
         <p

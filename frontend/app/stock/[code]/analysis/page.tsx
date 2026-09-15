@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   } catch {
     // 404 / transient → minimal title, never block the page
   }
-  if (!data) return { title: `${code} In-Depth Analysis — TopStockBD` };
+  if (!data) return { title: `${code} In-Depth Analysis`, robots: { index: false, follow: true } };
 
   const name = data.report.company_name ?? code;
   const description = truncate(
@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       `A plain-language, in-depth fundamental analysis of ${name} (${code}) on the Dhaka Stock Exchange.`,
   );
   const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
-  const title = `${code} In-Depth Analysis — ${name} | TopStockBD`;
+  const title = `${code} In-Depth Analysis — ${name}`;
 
   return {
     title,

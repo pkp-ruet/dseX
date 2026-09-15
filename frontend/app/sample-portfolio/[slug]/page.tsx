@@ -24,7 +24,7 @@ export async function generateStaticParams() {
 
 const META: Record<SampleSlug, { title: string; description: string; keywords: string[] }> = {
   diversified: {
-    title: "Diversified DSE Portfolio — Sample Analysis | TopStockBD",
+    title: "Diversified DSE Portfolio — Sample Analysis",
     description:
       "See a real example of a well-built Dhaka Stock Exchange portfolio. Spread across 6 sectors, strong companies, fair entry prices — analysed line by line.",
     keywords: [
@@ -37,7 +37,7 @@ const META: Record<SampleSlug, { title: string; description: string; keywords: s
     ],
   },
   risky: {
-    title: "Risky DSE Portfolio — Sample Analysis | TopStockBD",
+    title: "Risky DSE Portfolio — Sample Analysis",
     description:
       "What does a risky Dhaka Stock Exchange portfolio look like? See a sample concentrated DSE bet with a single mid-tier stock at a peak buy price — analysed in plain English.",
     keywords: [

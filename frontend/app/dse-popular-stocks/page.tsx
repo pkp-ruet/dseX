@@ -7,7 +7,7 @@ export const revalidate = 86400;
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 export const metadata: Metadata = {
-  title: "DSE Popular Stocks — Most Viewed This Week | TopStockBD",
+  title: "DSE Popular Stocks — Most Viewed This Week",
   description:
     "Top 20 most-viewed Dhaka Stock Exchange (DSE) stocks on TopStockBD over the last 7 days, with FIFA-style rank changes vs the previous week. See which Bangladesh tickers traders are watching right now.",
   keywords: [

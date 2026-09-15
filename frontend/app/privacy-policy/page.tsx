@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — TopStockBD",
+  title: "Privacy Policy",
   description:
     "TopStockBD privacy policy. Learn how we use cookies, third-party advertising vendors (Google AdSense), and analytics on our Dhaka Stock Exchange data platform.",
   alternates: { canonical: "/privacy-policy" },

@@ -3,7 +3,7 @@ import AlertsClient from "@/components/alerts/AlertsClient";
 import Bn from "@/components/i18n/Bn";
 
 export const metadata: Metadata = {
-  title: "My Price Alerts — TopStockBD",
+  title: "My Price Alerts",
   description:
     "Set a target price on any DSE stock and get notified the day it's hit — by web push and in your alerts bell.",
   robots: { index: false, follow: false },

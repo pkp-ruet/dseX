@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import {
   flattenTiers,
   getScores,
@@ -26,7 +25,9 @@ import FeedbackSection from "@/components/feedback/FeedbackSection";
 export const revalidate = 86400;
 
 export const metadata: Metadata = {
-  title: "DSE Stock Analysis, Rankings & Share Price — TopStockBD",
+  // Root segment: the layout's "%s | TopStockBD" template only applies to child
+  // segments, so this page has to carry the brand itself.
+  title: "DSE Stock Analysis, Rankings & Share Price | TopStockBD",
   description:
     "Free fundamental analysis for every Dhaka Stock Exchange (DSE) company, in Bengali and English. See the score, the five checks behind it, and today's rankings before you buy. No tips, no rumours.",
   keywords: [
@@ -222,48 +223,36 @@ export default function HomePage() {
 
       <HomePersonalizationGate>
         {/* 1 — the claim and its proof, side by side */}
-        <Suspense fallback={<HeroFallback />}>
           <HeroBlock promise={scoresPromise} />
-        </Suspense>
 
         {/* 2 — credibility as a thin strip, not a wall of prose. The long-form
             version of this argument is block 6, far enough down that it can't
             stand between a visitor and the product. */}
         <div className="mt-8 sm:mt-10">
-          <Suspense fallback={null}>
             <TrustStripSection scoresPromise={scoresPromise} trustPromise={trustPromise} />
-          </Suspense>
         </div>
 
         <div className="mt-14 flex flex-col gap-16 sm:mt-16 sm:gap-24">
           {/* 3 — the four things people come for: rankings, portfolio,
               watchlist, alerts. High on the page, by design. */}
-          <Suspense fallback={null}>
             <CoreFeaturesSection promise={scoresPromise} />
-          </Suspense>
 
           {/* 4 — today's data, so nothing above is only a claim: the market's
               mood in one plain sentence (the door to /market-analysis), then
               the three standouts */}
-          <Suspense fallback={null}>
             <LiveTodaySection promise={scoresPromise} marketPromise={marketPromise} />
-          </Suspense>
 
           {/* 5 — more routes in, for someone with no company in mind */}
           <WaysToFind />
 
           {/* 6 — how deep one company's page goes */}
-          <Suspense fallback={null}>
             <AnatomySection promise={scoresPromise} />
-          </Suspense>
 
           {/* 7 — the door that starts at zero */}
           <StartFromZero />
 
           {/* 8 — real reviews, then one ask */}
-          <Suspense fallback={null}>
             <CloseSection promise={trustPromise} />
-          </Suspense>
         </div>
       </HomePersonalizationGate>
 

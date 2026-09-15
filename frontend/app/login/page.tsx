@@ -5,7 +5,7 @@ const BASE_URL =
   process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 export const metadata: Metadata = {
-  title: "Sign In — TopStockBD",
+  title: "Sign In",
   description:
     "Sign in to your TopStockBD account to sync your DSE watchlist across all your devices.",
   alternates: { canonical: `${BASE_URL}/login` },

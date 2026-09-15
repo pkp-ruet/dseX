@@ -24,7 +24,10 @@ Every new page must include all of the following — no exceptions, no reminders
 
 1. **`metadata` export** — `title`, `description`, `keywords` (Bangladesh/DSE-relevant terms), `alternates: { canonical }`, `openGraph` (title, description, url, type)
 2. **JSON-LD structured data** — `Article` + `BreadcrumbList` for content pages; `WebPage` or `Organization` for hub/listing pages. Injected via `<script type="application/ld+json">` in the component.
-3. **`sitemap.ts` entry** — add the new route(s) with appropriate `changeFrequency` and `priority`. Dynamic routes (like `/learn/[slug]`) must be expanded from their data source, not hardcoded.
+3. **`sitemap.ts` entry** — add the new route(s) with appropriate `changeFrequency` and `priority`. Dynamic routes (like `/learn/[slug]`) must be expanded from their data source, not hardcoded. Use the `data()` helper for pages whose numbers change with the market (lastModified = latest trading date) and `content()` for hand-written pages (no lastModified — never a fake `new Date()`). Only indexable URLs go in: no `noindex` pages, and stock pages only for codes with a DSEF score.
+4. **No streaming on indexable routes** — no `loading.tsx` and no `<Suspense>` around primary content on any page Google should index. With a boundary, Next flushes a 200 shell whose `<main>` is only the skeleton and streams the real content into a `<div hidden>` swapped in by JS; Google's first pass then sees an empty page, and `notFound()` / thrown errors can no longer set a status (every unknown `/stock/X` returned 200). That is what emptied the index in Aug–Sep 2026 (17 `loading.tsx` files shipped 2026-09-06, deleted 2026-09-15). Fetch everything a page needs in parallel and `await` it in the page; a slow backend means a slow response, not an empty one. Streaming is fine on `noindex` routes (portfolio, watchlist, register).
+5. **Titles**: the root layout template already appends `| TopStockBD` — never put the brand in a child page's `title` (23 pages shipped as "… | TopStockBD | TopStockBD"). The one exception is `app/page.tsx` itself: the template does not apply to the root segment, so the homepage title carries the brand explicitly.
+6. **Bengali pages**: `/blog` sets `<html lang="bn">` client-side via `components/i18n/HtmlLang.tsx`; `/learn/[slug]` ↔ `/blog/[slug]` topic pairs emit `hreflang` alternates from `lib/i18n-pairs.ts` — add the pair there when writing a guide in both languages.
 
 Pattern for content pages (articles, guides):
 - OG type: `"article"`
@@ -349,8 +352,9 @@ components/
 └── ui/
     ├── ScoreBadge.tsx, TierPill.tsx, SignalChip.tsx, SectionLabel.tsx
     ├── StarButton.tsx          (ThemeToggle removed — light-only)
-    ├── PageSkeleton.tsx        — route-level `loading.tsx` body (variants table / cards / hero);
-    │                             every server data route has a loading.tsx that renders it
+    ├── PageSkeleton.tsx        — page-shaped placeholder (variants table / cards / hero). NOT wired to
+    │                             any route: the per-route `loading.tsx` files were deleted 2026-09-15
+    │                             (see the SEO rule "No streaming on indexable routes" below)
     ├── ErrorState.tsx          — THE error surface (root `app/error.tsx`, per-route error.tsx,
     │                             and every page's `.catch(() => null)` fallback via `reload`).
     │                             English + Bengali line + Try again; never prints a raw error

@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     "share bazar Bangla",
     "how to invest in Bangladesh stock market in Bangla",
   ],
-  alternates: { canonical: "/blog" },
+  alternates: { canonical: "/blog", languages: { en: "/learn", bn: "/blog", "x-default": "/learn" } },
   openGraph: {
     title: "বাংলা ব্লগ — সহজ ভাষায় শেয়ার বাজার",
     description:

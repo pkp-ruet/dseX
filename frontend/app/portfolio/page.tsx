@@ -4,7 +4,7 @@ import ViewAnalysisButton from "@/components/portfolio/ViewAnalysisButton";
 import Bn from "@/components/i18n/Bn";
 
 export const metadata: Metadata = {
-  title: "My Portfolio — TopStockBD",
+  title: "My Portfolio",
   description: "Track your DSE stock portfolio with live P&L, current market value, and gain/loss calculations.",
   robots: { index: false, follow: false },
 };

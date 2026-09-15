@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Contact Us — TopStockBD",
+  title: "Contact Us",
   description:
     "Get in touch with the TopStockBD team. Questions about DSE stock data, scores, or the site? We'd love to hear from you.",
   alternates: { canonical: "/contact" },

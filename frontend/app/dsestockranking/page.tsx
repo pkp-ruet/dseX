@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
 import { flattenTiers, getMarketIndex, getScores } from "@/lib/api";
 import { getTier } from "@/lib/constants";
 import { PILLARS } from "@/lib/landing";
@@ -199,14 +198,12 @@ export default async function DseStockRankingPage() {
       </section>
 
       {/* Filters + ranked table */}
-      <Suspense>
         <RankingExplorer
           items={allRanked}
           counts={counts}
           total={allRanked.length}
           sectors={sectors}
         />
-      </Suspense>
 
       {/* What this list covers — and what it deliberately doesn't */}
       <section className="rank-limits" aria-label="What this list covers">

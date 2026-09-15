@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BLOG_POSTS, getBlogPost, getBlogCategory } from "@/lib/blog-bn";
+import { blogLanguages } from "@/lib/i18n-pairs";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
@@ -27,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       "বাংলায় বিনিয়োগ",
       "TopStockBD",
     ],
-    alternates: { canonical: `/blog/${slug}` },
+    alternates: { canonical: `/blog/${slug}`, languages: blogLanguages(slug) },
     openGraph: {
       title: post.title,
       description: post.description,

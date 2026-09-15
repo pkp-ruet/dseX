@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Disclaimer — TopStockBD",
+  title: "Disclaimer",
   description:
     "TopStockBD is not a financial advisor. All DSE stock data and scores are for informational purposes only. Invest at your own risk.",
   alternates: { canonical: "/disclaimer" },

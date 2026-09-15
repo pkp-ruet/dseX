@@ -6,7 +6,7 @@ import DailyTipItem from "@/components/daily-tips/DailyTipItem";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 export const metadata: Metadata = {
-  title: "Daily Stock Tips — Fresh DSE Signals Every Day | TopStockBD",
+  title: "Daily Stock Tips — Fresh DSE Signals Every Day",
   description:
     "A fresh set of Dhaka Stock Exchange (DSE) stock tips every day — companies that are growing, paying good dividends, or trading cheap versus peers. Each tip explains, in plain words, why the stock stands out.",
   keywords: [

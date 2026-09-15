@@ -5,7 +5,7 @@ import { STOCK_LISTS } from "@/lib/stock-lists";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 export const metadata: Metadata = {
-  title: "DSE Stock Lists — Top Stocks Bangladesh | TopStockBD",
+  title: "DSE Stock Lists — Top Stocks Bangladesh",
   description:
     "Ready-made stock lists for the Dhaka Stock Exchange — best stocks 2026, top sectors, undervalued picks, high-growth companies, bank rankings, and more. Updated daily from DSE financial data.",
   keywords: [

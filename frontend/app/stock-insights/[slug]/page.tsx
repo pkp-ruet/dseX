@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const extraKeywords = isMonthly ? getCurrentMonthKeywords() : [];
 
   return {
-    title: `${title} | TopStockBD`,
+    title: `${title}`,
     description,
     keywords: [...def.keywords, ...extraKeywords],
     alternates: { canonical: `${BASE_URL}/stock-insights/${slug}` },

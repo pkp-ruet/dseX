@@ -6,7 +6,7 @@ import { PERSONA } from "@/lib/assistant/persona";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 export const metadata: Metadata = {
-  title: "Stock Chat Assistant — Ask About DSE Stocks | TopStockBD",
+  title: "Stock Chat Assistant — Ask About DSE Stocks",
   description:
     "Chat with TopStock AI, a free DSE stock helper. Get stock suggestions, today's market update, top gainers and losers, and quick answers about any Dhaka Stock Exchange share — no sign-up needed.",
   keywords: [

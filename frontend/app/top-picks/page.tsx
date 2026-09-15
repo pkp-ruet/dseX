@@ -11,7 +11,7 @@ export const revalidate = 86400;
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 export const metadata: Metadata = {
-  title: "Daily Top 3 Stocks — DSE Picks History | TopStockBD",
+  title: "Daily Top 3 Stocks — DSE Picks History",
   description:
     "Every day we pick 3 DSE stocks: 2 trending, 1 top quality. See the full history and how each pick performed the next trading day.",
   keywords:

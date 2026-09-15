@@ -58,9 +58,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   } catch {
     // 404 or transient — fall through to a minimal title so metadata never blocks the page
   }
-  if (!detail) return { title: `${code} — TopStockBD` };
+  if (!detail) return { title: code, robots: { index: false, follow: true } };
 
   const name = detail.profile.company_name ?? code;
+  // Mutual funds / bonds and anything else without a DSEF score render a
+  // near-identical "no rating" template — keep those out of the index.
+  const unscored = detail.score_row?.score == null;
 
   const ltp = detail.latest_price?.ltp != null ? Number(detail.latest_price.ltp) : null;
   const changePct = detail.latest_price?.change_pct != null ? Number(detail.latest_price.change_pct) : null;
@@ -87,9 +90,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
   return {
-    title: `${code} Stock Price & Analysis — ৳${ltpFmt} | TopStockBD`,
+    title: `${code} Stock Price & Analysis — ৳${ltpFmt}`,
     description,
     alternates: { canonical: `/stock/${code}` },
+    ...(unscored ? { robots: { index: false, follow: true } } : {}),
     openGraph: {
       title: `${code} — ৳${ltpFmt}${chgFmt ? ` (${chgFmt}%)` : ""} | ${name} | TopStockBD`,
       description: ogDesc,

@@ -10,7 +10,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com
 const PAGE_URL = `${BASE_URL}/dse-trending-stocks`;
 
 export const metadata: Metadata = {
-  title: "DSE Trending Stocks — This Week's Top Movers | TopStockBD",
+  title: "DSE Trending Stocks — This Week's Top Movers",
   description:
     "The 20 strongest-performing Dhaka Stock Exchange stocks over the last 7 trading days. Updated daily and ranked by price momentum, relative strength vs DSEX, volume conviction, and trend quality.",
   keywords: [

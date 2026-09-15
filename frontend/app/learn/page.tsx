@@ -13,7 +13,7 @@ import CategoryNav from "@/components/learn/CategoryNav";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 export const metadata: Metadata = {
-  title: "Beginner's Guide to Stock Market — TopStockBD",
+  title: "Beginner's Guide to Stock Market",
   description:
     "Everything you need to start investing in the Dhaka Stock Exchange — from opening a BO account to understanding fundamental analysis.",
   keywords: [
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     "stock market basics Bangladesh",
     "fundamental analysis DSE",
   ],
-  alternates: { canonical: "/learn" },
+  alternates: { canonical: "/learn", languages: { en: "/learn", bn: "/blog", "x-default": "/learn" } },
   openGraph: {
     title: "Beginner's Guide to Stock Market — TopStockBD",
     description:
