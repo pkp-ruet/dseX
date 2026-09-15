@@ -7,9 +7,11 @@ import {
   type NearExtremesData,
   type DividendsUpcoming,
   type PortfolioHolding,
+  type PriceAlert,
 } from "@/lib/api";
+import type { Lang } from "@/context/LangContext";
 import { signed } from "@/lib/formatters";
-import Card from "@/components/ui/Card";
+import { t } from "@/lib/home-copy";
 import TierPill from "@/components/ui/TierPill";
 import DashHeader from "@/components/home/personalized/DashHeader";
 
@@ -51,27 +53,42 @@ function PriceCell({ ltp, chg, chgColor }: { ltp: number | null; chg: number | n
 
 const MAX_ROWS = 6;
 
-interface AlertChip {
+interface Chip {
   label: string;
   color: string;
 }
 
-/** Merged movers list: holdings and watchlist in one feed, sorted by today's
- *  move size, tagged H (holding) / ★ (watching) with 52w + dividend chips.
- *  The header carries the ▲up/▼down day pulse across everything followed. */
+function fmtTarget(n: number): string {
+  return Number(n.toFixed(2)).toString();
+}
+
+/** Merged list: holdings and watchlist in one feed, sorted by today's move
+ *  size, tagged H (holding) / ★ (watching), with the company name under the
+ *  code (a first-time reader knows "Grameenphone", not "GP") and chips for
+ *  52-week extremes, dividends, an armed price alert and a full report. The
+ *  header carries the ▲up/▼down day pulse across everything followed. */
 export default function MyStocksToday({
   holdings,
   codes,
   priceMap,
   extremes,
   dividends,
+  alerts = [],
+  reportCodes = [],
+  lang = "en",
 }: {
   holdings: PortfolioHolding[];
   codes: string[];
   priceMap: Map<string, ScoreItem>;
   extremes: NearExtremesData | null;
   dividends: DividendsUpcoming | null;
+  /** The user's price alerts — an armed one becomes an "Alert at ৳X" chip. */
+  alerts?: PriceAlert[];
+  /** Codes with a deep-analysis report — a "Full report" chip. */
+  reportCodes?: string[];
+  lang?: Lang;
 }) {
+  const bn = lang === "bn";
   const held = new Set(holdings.map((h) => h.trading_code.toUpperCase()));
   const watched = new Set(codes.map((c) => c.toUpperCase()));
   const universe = Array.from(new Set([...held, ...watched]));
@@ -83,6 +100,12 @@ export default function MyStocksToday({
       d.trading_code.toUpperCase(),
     ),
   );
+  const reports = new Set(reportCodes.map((c) => c.toUpperCase()));
+  const armed = new Map<string, PriceAlert>();
+  for (const a of alerts) {
+    const c = a.trading_code.toUpperCase();
+    if (a.is_active && !armed.has(c)) armed.set(c, a);
+  }
 
   const all = universe
     .map((c) => priceMap.get(c))
@@ -96,12 +119,15 @@ export default function MyStocksToday({
   const upCount = all.filter((x) => (x.change_pct ?? 0) > 0).length;
   const downCount = all.filter((x) => (x.change_pct ?? 0) < 0).length;
 
-  function alertsFor(code: string): AlertChip[] {
+  function chipsFor(code: string): Chip[] {
     const c = code.toUpperCase();
-    const out: AlertChip[] = [];
-    if (nearHigh.has(c)) out.push({ label: "Near 52W high", color: "var(--positive)" });
-    if (nearLow.has(c)) out.push({ label: "Near 52W low", color: "var(--negative)" });
-    if (divSoon.has(c)) out.push({ label: "Dividend soon", color: "var(--watch)" });
+    const out: Chip[] = [];
+    if (nearHigh.has(c)) out.push({ label: t(lang, "near52wHigh"), color: "var(--positive)" });
+    if (nearLow.has(c)) out.push({ label: t(lang, "near52wLow"), color: "var(--negative)" });
+    if (divSoon.has(c)) out.push({ label: t(lang, "dividendSoon"), color: "var(--watch)" });
+    const a = armed.get(c);
+    if (a) out.push({ label: t(lang, "alertAt", { n: fmtTarget(a.target_price) }), color: "var(--primary)" });
+    if (reports.has(c)) out.push({ label: t(lang, "fullReport"), color: "var(--text-muted)" });
     return out;
   }
 
@@ -111,9 +137,9 @@ export default function MyStocksToday({
   const showOwnerTags = held.size > 0 && watched.size > 0;
 
   return (
-    <Card as="section" padding="none" className="overflow-hidden">
+    <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
       <DashHeader
-        title="Your stocks today"
+        title={t(lang, "yourStocksToday")}
         chips={
           upCount + downCount > 0 ? (
             <span
@@ -126,7 +152,7 @@ export default function MyStocksToday({
           ) : undefined
         }
         href={viewHref}
-        linkLabel={`View all ${universe.length}`}
+        linkLabel={t(lang, "viewAll", { n: universe.length })}
       />
 
       <div className="divide-y divide-[var(--cell-rule)]">
@@ -134,13 +160,13 @@ export default function MyStocksToday({
           const code = item.trading_code.toUpperCase();
           const chg = item.change_pct;
           const chgColor = chg == null ? "var(--text-muted)" : chg >= 0 ? "var(--positive)" : "var(--negative)";
-          const chips = alertsFor(code);
+          const chips = chipsFor(code);
           return (
             <Link
               key={item.trading_code}
               prefetch={false}
               href={`/stock/${item.trading_code}`}
-              className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)] transition-colors"
+              className="flex items-center gap-3 px-4 py-2.5 hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)] transition-colors"
             >
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-1.5">
@@ -150,7 +176,7 @@ export default function MyStocksToday({
                   <TierPill score={item.score} variant="solid" size="sm" />
                   {showOwnerTags && held.has(code) && (
                     <span
-                      title="In your portfolio"
+                      title={t(lang, "inPortfolio")}
                       className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded-[5px] text-[0.68rem] font-extrabold"
                       style={{
                         color: "var(--primary)",
@@ -163,7 +189,7 @@ export default function MyStocksToday({
                   )}
                   {showOwnerTags && watched.has(code) && (
                     <span
-                      title="On your watchlist"
+                      title={t(lang, "onWatchlist")}
                       className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded-[5px] text-[0.68rem] font-extrabold"
                       style={{
                         color: "var(--watch)",
@@ -175,6 +201,11 @@ export default function MyStocksToday({
                     </span>
                   )}
                 </span>
+                {item.company_name && (
+                  <span className="mt-0.5 block truncate text-[0.75rem] font-medium text-[var(--text-muted)]">
+                    {item.company_name}
+                  </span>
+                )}
                 {chips.length > 0 && (
                   <span className="mt-1 flex flex-wrap gap-1">
                     {chips.map((a) => (
@@ -194,6 +225,6 @@ export default function MyStocksToday({
           );
         })}
       </div>
-    </Card>
+    </section>
   );
 }

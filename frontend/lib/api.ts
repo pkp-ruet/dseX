@@ -1273,6 +1273,8 @@ export interface RecommendedStock {
   p5_div?: number | null;
   match_score: number;
   reasons: string[];
+  /** The same sentences in everyday Bengali (absent on picks cached before 2026-09-16). */
+  reasons_bn?: string[];
 }
 
 export interface RecommendationResponse {
@@ -1406,6 +1408,37 @@ export interface PortfolioSignalEvent {
 /** Recent Buy More / Sell flips on the user's holdings (in-app bell). */
 export async function apiGetSignalEvents(): Promise<{ events: PortfolioSignalEvent[] }> {
   return apiAuthFetch<{ events: PortfolioSignalEvent[] }>("/api/user/portfolio/signal-events");
+}
+
+// ---------------------------------------------------------------------------
+// Logged-in homepage bundle — everything personal in ONE request
+// ---------------------------------------------------------------------------
+
+export interface HomeBundle {
+  generated_at: string;
+  holdings: PortfolioHolding[];
+  watchlist: WatchlistResponse;
+  alerts: PriceAlert[];
+  signal_events: PortfolioSignalEvent[];
+  daily_picks: DailyPicksResponse | null;
+  tips: DailyTipsResponse;
+  /** Latest news on holdings ∪ watchlist (newest first, capped server-side). */
+  news: WatchlistNewsItem[];
+  market_index: MarketIndexData | null;
+  /** Upcoming declarations + record dates for the user's own codes only, uncapped. */
+  dividends: DividendsUpcoming;
+  near_extremes: NearExtremesData | null;
+  /** Calendar record-date rows (cash per share worked out) for the user's codes. */
+  dividend_cash: CorporateActionEvent[];
+  /** User's codes (+ today's pick codes) that have a deep-analysis report. */
+  report_codes: string[];
+  /** Cached Bengali "এক নজরে" one-liners, keyed by trading code. */
+  summaries_bn: Record<string, string>;
+}
+
+/** Auth-only. The dashboard paints from this + `/api/scores` + `/api/market/state`. */
+export async function apiGetHomeBundle(): Promise<HomeBundle> {
+  return apiAuthFetch<HomeBundle>("/api/user/home");
 }
 
 // ---------------------------------------------------------------------------
@@ -1675,6 +1708,8 @@ export interface DailyTip {
   text: string;
   facts?: DailyTipFact[];
   why?: string | null;
+  /** `why` in everyday Bengali. */
+  why_bn?: string | null;
   conviction?: number;
   trading_code: string;
   company_name: string | null;

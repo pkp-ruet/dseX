@@ -271,53 +271,95 @@ def _match_score(row: dict, answers: dict, vol_median: float,
 # Reasons — plain language, never "DSEF"
 # ---------------------------------------------------------------------------
 
-def _reasons_for_pick(row: dict, answers: dict, ctx: dict | None = None) -> list[str]:
-    reasons: list[str] = []
+def _sector_name_bn(sector: str | None) -> str:
+    """Bengali sector word when the summaries service knows one, else the DSE name."""
+    try:
+        from backend.services.summaries_service import _sector_bn
+        return _sector_bn(sector) or (sector or "")
+    except Exception:  # noqa: BLE001 — a label helper must never break picks
+        return sector or ""
+
+
+def _reason_pairs_for_pick(row: dict, answers: dict, ctx: dict | None = None) -> list[tuple[str, str]]:
+    """(English, Bengali) reason sentences for one pick — same rule order as before.
+
+    Bengali sentences use Western digits (9%, 6.1%) — the Bengali numeral glyphs
+    render as boxes on some of the audience's phones."""
+    reasons: list[tuple[str, str]] = []
     score = row.get("score") or 0
     sectors = _selected_sectors(answers)
     sector = row.get("sector")
 
     if sectors and sector and sector.strip().lower() in sectors:
-        reasons.append(f"In the {sector} sector you picked.")
+        reasons.append((
+            f"In the {sector} sector you picked.",
+            f"আপনার বেছে নেওয়া {_sector_name_bn(sector)} খাতের কোম্পানি।",
+        ))
 
     dy = row.get("div_yield_pct")
     if answers.get("dividend") == "income_focused" and dy and dy > 0:
-        reasons.append(f"Pays a {dy:.1f}% dividend — good for steady income.")
+        reasons.append((
+            f"Pays a {dy:.1f}% dividend — good for steady income.",
+            f"বছরে {dy:.1f}% ডিভিডেন্ড দেয় — নিয়মিত আয়ের জন্য ভালো।",
+        ))
 
     p4 = row.get("p4_val") or 0
     if answers.get("valuation") == "value" and p4 >= 7:
-        reasons.append("Priced cheaper than its usual history right now.")
+        reasons.append((
+            "Priced cheaper than its usual history right now.",
+            "এখন দাম তার স্বাভাবিক সময়ের চেয়ে কম।",
+        ))
 
     eps_yoy = row.get("eps_yoy_pct")
     if answers.get("valuation") == "growth" and eps_yoy is not None and eps_yoy >= 10:
-        reasons.append(f"Profit grew {round(eps_yoy)}% over the last year.")
+        reasons.append((
+            f"Profit grew {round(eps_yoy)}% over the last year.",
+            f"গত এক বছরে মুনাফা বেড়েছে {round(eps_yoy)}%।",
+        ))
 
     long_or_fundamental = answers.get("timeline") == "long" or answers.get("strategy") == "fundamental_strong"
     if long_or_fundamental and (score >= 70 or (row.get("p1_biz") or 0) >= 7) and len(reasons) < 2:
-        reasons.append("Strong, consistent business fundamentals.")
+        reasons.append((
+            "Strong, consistent business fundamentals.",
+            "ব্যবসার ভিত শক্ত, বছরের পর বছর ধারাবাহিক।",
+        ))
 
     short_or_trending = answers.get("timeline") == "short" or answers.get("strategy") == "market_trending"
     change = row.get("change_pct")
     if short_or_trending and change and change > 0 and len(reasons) < 2:
-        reasons.append(f"Positive recent momentum — up {change:.1f}% today.")
+        reasons.append((
+            f"Positive recent momentum — up {change:.1f}% today.",
+            f"দাম বাড়ছে — আজ {change:.1f}% উপরে।",
+        ))
 
     risk = answers.get("risk")
     p2 = row.get("p2_health") or 0
     if risk == "steady" and p2 >= 7 and len(reasons) < 2:
-        reasons.append("Financially solid — built to ride out rough patches.")
+        reasons.append((
+            "Financially solid — built to ride out rough patches.",
+            "আর্থিকভাবে মজবুত — খারাপ সময় সামলাতে পারে।",
+        ))
 
     size = answers.get("size")
     mcap = row.get("mcap_mn")
     if ctx and size and mcap is not None and len(reasons) < 2:
         if size == "large" and ctx.get("mcap_p66") and mcap >= ctx["mcap_p66"]:
-            reasons.append("A large, established company.")
+            reasons.append(("A large, established company.", "বড়, প্রতিষ্ঠিত কোম্পানি।"))
         elif size == "small" and ctx.get("mcap_p33") and mcap <= ctx["mcap_p33"]:
-            reasons.append("A smaller company with room to grow.")
+            reasons.append(("A smaller company with room to grow.", "ছোট কোম্পানি, বড় হওয়ার জায়গা আছে।"))
 
     if not reasons:
-        reasons.append(f"One of the best overall matches for your answers (grade {round(score)}/100).")
+        reasons.append((
+            f"One of the best overall matches for your answers (grade {round(score)}/100).",
+            f"আপনার উত্তরের সাথে সবচেয়ে ভালো মিলগুলোর একটি (গ্রেড {round(score)}/100)।",
+        ))
 
     return reasons[:2]
+
+
+def _reasons_for_pick(row: dict, answers: dict, ctx: dict | None = None) -> list[str]:
+    """English-only view of `_reason_pairs_for_pick` (kept for existing callers)."""
+    return [en for en, _bn in _reason_pairs_for_pick(row, answers, ctx)]
 
 
 # ---------------------------------------------------------------------------
@@ -379,7 +421,8 @@ def build_recommendation(answers: dict) -> dict:
             "p4_val": r.get("p4_val"),
             "p5_div": r.get("p5_div"),
             "match_score": match,
-            "reasons": _reasons_for_pick(r, answers, ctx),
+            "reasons": [en for en, _bn in _reason_pairs_for_pick(r, answers, ctx)],
+            "reasons_bn": [bn for _en, bn in _reason_pairs_for_pick(r, answers, ctx)],
         })
 
     return {

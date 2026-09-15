@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 from backend.services.recommendation_service import (
     _build_universe,
     _match_score,
-    _reasons_for_pick,
+    _reason_pairs_for_pick,
     _tier_of,
 )
 from backend.services.db_service import load_stock_visit_counts
@@ -29,7 +29,7 @@ SECTOR_BONUS = 6.0    # bonus when a candidate sits in a sector the user favours
 
 # Bump whenever the pick shape or scoring logic changes — a cached doc with a
 # different version is treated as stale and recomputed (no waiting for tomorrow).
-PICKS_VERSION = 3  # v3: tier keys renamed (excellent/good/average/weak) + signal attached
+PICKS_VERSION = 4  # v4: reasons_bn (Bengali reason sentences) beside reasons
 
 
 # ---------------------------------------------------------------------------
@@ -140,11 +140,15 @@ def _today() -> str:
 
 
 def _pick_dict(row: dict, answers: dict, match: float, personal_reason: str | None = None,
-               ctx: dict | None = None) -> dict:
+               ctx: dict | None = None, personal_reason_bn: str | None = None) -> dict:
     score = row.get("score")
-    reasons = _reasons_for_pick(row, answers, ctx)
+    pairs = _reason_pairs_for_pick(row, answers, ctx)
     if personal_reason:
-        reasons = [personal_reason] + [r for r in reasons if r != personal_reason]
+        pairs = [(personal_reason, personal_reason_bn or personal_reason)] + [
+            p for p in pairs if p[0] != personal_reason
+        ]
+    reasons = [en for en, _bn in pairs][:2]
+    reasons_bn = [bn for _en, bn in pairs][:2]
     from backend.services.signal_service import build_signals, wire_fields
     return {
         "trading_code": row["trading_code"],
@@ -162,7 +166,8 @@ def _pick_dict(row: dict, answers: dict, match: float, personal_reason: str | No
         "p4_val": row.get("p4_val"),
         "p5_div": row.get("p5_div"),
         "match_score": round(float(match), 1),
-        "reasons": reasons[:2],
+        "reasons": reasons,
+        "reasons_bn": reasons_bn,
     }
 
 
@@ -270,20 +275,25 @@ def _owned_by_sector(prep: dict) -> dict[str, str]:
 
 def _cold_pick(r: dict, prep: dict) -> dict:
     chg = r.get("change_pct")
-    reason = (
-        f"Trending — up {chg:.1f}% today."
-        if chg and chg > 0
-        else f"Top-rated stock (grade {round(r.get('score') or 0)}/100)."
-    )
-    return _pick_dict(r, prep["answers"], r.get("score") or 0, personal_reason=reason, ctx=prep["ctx"])
+    if chg and chg > 0:
+        reason = f"Trending — up {chg:.1f}% today."
+        reason_bn = f"আজ আলোচনায় — দাম {chg:.1f}% বেড়েছে।"
+    else:
+        grade = round(r.get("score") or 0)
+        reason = f"Top-rated stock (grade {grade}/100)."
+        reason_bn = f"সেরা গ্রেডের শেয়ার (গ্রেড {grade}/100)।"
+    return _pick_dict(r, prep["answers"], r.get("score") or 0, personal_reason=reason,
+                      ctx=prep["ctx"], personal_reason_bn=reason_bn)
 
 
 def _personal_pick(base: float, r: dict, prep: dict, owned_by_sector: dict[str, str]) -> dict:
     sec = (r.get("sector") or "").strip().lower()
-    personal = None
+    personal = personal_bn = None
     if sec and sec in owned_by_sector:
         personal = f"{r.get('sector')} — like {owned_by_sector[sec]} you follow."
-    return _pick_dict(r, prep["answers"], base, personal_reason=personal, ctx=prep["ctx"])
+        personal_bn = f"{r.get('sector')} খাত — আপনার ফলো করা {owned_by_sector[sec]}-এর মতো।"
+    return _pick_dict(r, prep["answers"], base, personal_reason=personal, ctx=prep["ctx"],
+                      personal_reason_bn=personal_bn)
 
 
 # ---------------------------------------------------------------------------

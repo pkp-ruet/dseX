@@ -1,11 +1,19 @@
+"use client";
+
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { Lang } from "@/context/LangContext";
+import { t } from "@/lib/home-copy";
 import {
   IconArrowRight,
   IconBook,
+  IconCoin,
   IconGrid,
+  IconHeart,
   IconList,
+  IconNews,
   IconRocket,
+  IconSparkle,
   IconTrendUp,
   IconTrophy,
 } from "@/components/home/personalized/DashIcons";
@@ -13,51 +21,128 @@ import {
 interface Row {
   href: string;
   icon: ReactNode;
-  label: string;
-  sub: string;
-  /** Bengali row — needs lang="bn" + .font-bn or the glyphs render as boxes. */
-  bn?: boolean;
+  /** [English, Bengali] */
+  label: [string, string];
+  sub: [string, string];
+  /** Always Bengali (the destination is Bengali). */
+  bnOnly?: boolean;
 }
 
+/** In order of how often a typical reader needs them. The first `INITIAL`
+ *  show on a phone; the rest sit behind "More". */
 const ROWS: Row[] = [
-  { href: "/dsestockranking", icon: <IconTrophy size={18} />, label: "Stock Rankings", sub: "Every company scored, best first" },
-  { href: "/market-analysis", icon: <IconTrendUp size={18} />, label: "Market Analysis", sub: "Up or down, cheap or pricey — in plain words" },
-  { href: "/dse-trending-stocks", icon: <IconRocket size={18} />, label: "Trending stocks", sub: "Biggest 7-day gainers" },
-  { href: "/stock-insights", icon: <IconList size={18} />, label: "Ready-made lists", sub: "Dividends, growth, big companies and more" },
-  { href: "/stocks", icon: <IconGrid size={18} />, label: "Browse Stocks", sub: "Every DSE stock, A–Z" },
-  { href: "/blog", icon: <IconBook size={18} />, label: "বাংলা ব্লগ", sub: "সহজ ভাষায় শেয়ার বাজার", bn: true },
+  {
+    href: "/dsestockranking",
+    icon: <IconTrophy size={18} />,
+    label: ["Stock Rankings", "সেরা শেয়ারের তালিকা"],
+    sub: ["Every company scored, best first", "সব কোম্পানির নম্বর, সেরাটা আগে"],
+  },
+  {
+    href: "/share-bazar",
+    icon: <IconNews size={18} />,
+    label: ["Today's market, in Bengali", "আজকের শেয়ার বাজার"],
+    sub: ["The whole day as a short Bengali read", "আজকের বাজার সহজ বাংলায়"],
+  },
+  {
+    href: "/dividend-calendar",
+    icon: <IconCoin size={18} />,
+    label: ["Who pays cash soon", "কে কবে ডিভিডেন্ড দিচ্ছে"],
+    sub: ["Record dates and cash per share", "রেকর্ড ডেট আর শেয়ারপ্রতি টাকা"],
+  },
+  {
+    href: "/assistant",
+    icon: <IconSparkle size={18} />,
+    label: ["Ask TopStock AI", "TopStock AI-কে প্রশ্ন করুন"],
+    sub: ["Any question about any stock", "যে কোনো শেয়ার নিয়ে যে কোনো প্রশ্ন"],
+  },
+  {
+    href: "/dse-popular-stocks",
+    icon: <IconHeart size={18} />,
+    label: ["What others are looking at", "অন্যরা কী দেখছে"],
+    sub: ["Most viewed stocks this week", "এই সপ্তাহে সবচেয়ে বেশি দেখা শেয়ার"],
+  },
+  {
+    href: "/market-analysis",
+    icon: <IconTrendUp size={18} />,
+    label: ["Market Analysis", "বাজার বিশ্লেষণ"],
+    sub: ["Up or down, cheap or pricey — in plain words", "উপরে না নিচে, সস্তা না দামি — সহজ কথায়"],
+  },
+  {
+    href: "/dse-trending-stocks",
+    icon: <IconRocket size={18} />,
+    label: ["Trending stocks", "আলোচিত শেয়ার"],
+    sub: ["Biggest 7-day gainers", "গত 7 দিনে সবচেয়ে বেড়েছে"],
+  },
+  {
+    href: "/stock-insights",
+    icon: <IconList size={18} />,
+    label: ["Ready-made lists", "তৈরি তালিকা"],
+    sub: ["Dividends, growth, big companies and more", "ডিভিডেন্ড, বৃদ্ধি, বড় কোম্পানি আর অন্যান্য"],
+  },
+  {
+    href: "/stocks",
+    icon: <IconGrid size={18} />,
+    label: ["Browse Stocks", "সব শেয়ার"],
+    sub: ["Every DSE stock, A–Z", "ডিএসই-র সব শেয়ার, A–Z"],
+  },
+  {
+    href: "/blog",
+    icon: <IconBook size={18} />,
+    label: ["বাংলা ব্লগ", "বাংলা ব্লগ"],
+    sub: ["সহজ ভাষায় শেয়ার বাজার", "সহজ ভাষায় শেয়ার বাজার"],
+    bnOnly: true,
+  },
 ];
 
+const INITIAL = 5;
+
 /** Flat "where else to look" rows closing the Explore aside — one tappable row
- *  per discovery page, no preview tables (the full pages are one tap away).
- *  Replaced DiscoverCard (ranked preview + entry rows) and CoreFeatureTiles. */
-export default function ExploreLinks() {
+ *  per page, no preview tables (the full pages are one tap away). Five show;
+ *  the rest open on "More". Bengali rows carry lang="bn" + .font-bn. */
+export default function ExploreLinks({ lang = "en" }: { lang?: Lang }) {
+  const [open, setOpen] = useState(false);
+  const bn = lang === "bn";
+  const shown = open ? ROWS : ROWS.slice(0, INITIAL);
   return (
-    <nav aria-label="Explore the market" className="flex flex-col gap-2">
-      {ROWS.map((r) => (
-        <Link
-          key={r.href}
-          prefetch={false}
-          href={r.href}
-          lang={r.bn ? "bn" : undefined}
-          className={`flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-3 transition-colors hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)]${r.bn ? " font-bn" : ""}`}
-        >
-          <span
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-[var(--primary)]"
-            style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)" }}
-            aria-hidden
+    <nav aria-label={t(lang, "exploreMarket")} className="flex flex-col gap-2">
+      {shown.map((r) => {
+        const isBn = bn || r.bnOnly;
+        return (
+          <Link
+            key={r.href}
+            prefetch={false}
+            href={r.href}
+            lang={isBn ? "bn" : undefined}
+            className={`flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-3 transition-colors hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)]${isBn ? " font-bn" : ""}`}
           >
-            {r.icon}
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-[0.9rem] font-bold leading-tight text-[var(--text)]">{r.label}</span>
-            <span className="block truncate text-[0.75rem] text-[var(--text-muted)]">{r.sub}</span>
-          </span>
-          <span className="shrink-0 text-[var(--primary)]" aria-hidden>
-            <IconArrowRight size={14} />
-          </span>
-        </Link>
-      ))}
+            <span
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-[var(--primary)]"
+              style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)" }}
+              aria-hidden
+            >
+              {r.icon}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[0.9rem] font-bold leading-tight text-[var(--text)]">{bn ? r.label[1] : r.label[0]}</span>
+              <span className="block truncate text-[0.75rem] text-[var(--text-muted)]">{bn ? r.sub[1] : r.sub[0]}</span>
+            </span>
+            <span className="shrink-0 text-[var(--primary)]" aria-hidden>
+              <IconArrowRight size={14} />
+            </span>
+          </Link>
+        );
+      })}
+      {ROWS.length > INITIAL && (
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          className={`btn-quiet btn-sm btn-block${bn ? " font-bn" : ""}`}
+          lang={bn ? "bn" : undefined}
+        >
+          {open ? t(lang, "seeFewer") : `${t(lang, "seeMore")} (${ROWS.length - INITIAL})`}
+        </button>
+      )}
     </nav>
   );
 }

@@ -47,6 +47,15 @@ function emit() {
 // Reads (sync, off the in-memory cache)
 // ---------------------------------------------------------------------------
 
+/** Feed alerts that arrived via the `/api/user/home` bundle into the shared
+ *  cache (same effect as `loadAlerts()` resolving). */
+export function primeAlerts(alerts: PriceAlert[]): void {
+  if (!isLoggedIn()) return;
+  _cache = alerts ?? [];
+  persist(_cache);
+  emit();
+}
+
 export function getCachedAlerts(): PriceAlert[] {
   return _cache ?? [];
 }

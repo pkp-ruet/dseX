@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Iterable, Optional
 from fastapi import APIRouter
 from backend.services.db_service import load_dividend_declarations, load_companies
 from backend.models.responses import DividendsUpcomingResponse, UpcomingDividend
@@ -6,17 +7,27 @@ from backend.models.responses import DividendsUpcomingResponse, UpcomingDividend
 router = APIRouter()
 
 
-@router.get("/api/dividends/upcoming", response_model=DividendsUpcomingResponse)
-def get_upcoming_dividends():
+def compute_upcoming_dividends(
+    codes: Optional[Iterable[str]] = None,
+    limit: Optional[int] = 6,
+) -> DividendsUpcomingResponse:
+    """Upcoming declarations + record dates from the declaration ledger.
+
+    `codes` narrows the result to those trading codes (the logged-in home bundle
+    asks for the user's own stocks — the public widget's top-6 cut used to drop
+    them). `limit=None` returns every match."""
     decls = load_dividend_declarations()
     companies = {c["trading_code"]: c for c in load_companies()}
     today = date.today().isoformat()
+    wanted = {c.upper() for c in codes} if codes is not None else None
 
     upcoming_decls = []
     upcoming_records = []
 
     for d in decls:
         code = d.get("trading_code", "")
+        if wanted is not None and code.upper() not in wanted:
+            continue
         comp = companies.get(code, {})
         name = comp.get("company_name")
         div_pct = d.get("dividend_pct")
@@ -50,7 +61,16 @@ def get_upcoming_dividends():
     upcoming_decls.sort(key=lambda x: x.projected_date or "")
     upcoming_records.sort(key=lambda x: x.record_date or "")
 
+    if limit is not None:
+        upcoming_decls = upcoming_decls[:limit]
+        upcoming_records = upcoming_records[:limit]
+
     return DividendsUpcomingResponse(
-        upcoming_declarations=upcoming_decls[:6],
-        upcoming_record_dates=upcoming_records[:6],
+        upcoming_declarations=upcoming_decls,
+        upcoming_record_dates=upcoming_records,
     )
+
+
+@router.get("/api/dividends/upcoming", response_model=DividendsUpcomingResponse)
+def get_upcoming_dividends():
+    return compute_upcoming_dividends()

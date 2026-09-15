@@ -3,10 +3,12 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { type PortfolioHolding, type ScoreItem, type MarketIndexData } from "@/lib/api";
+import type { Lang } from "@/context/LangContext";
 import { analyzePortfolio, portfolioTodayMove, type ComputedRow, type Grade } from "@/lib/portfolio-analysis";
 import { bdGroup, takaGroup } from "@/lib/formatters";
 import { marketSession, formatBstDateLabel } from "@/lib/market-hours";
-import Card from "@/components/ui/Card";
+import { bnDate } from "@/lib/bn";
+import { t, gradeLabel } from "@/lib/home-copy";
 
 const GRADE_COLOR: Record<Grade, string> = {
   A: "var(--positive)",
@@ -42,8 +44,8 @@ function useCountUp(target: number, duration = 700): number {
     if (from === target) return;
     const t0 = performance.now();
     let raf: number;
-    const tick = (t: number) => {
-      const p = Math.min(1, (t - t0) / duration);
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - t0) / duration);
       const eased = 1 - Math.pow(1 - p, 3);
       const v = from + (target - from) * eased;
       displayRef.current = v;
@@ -65,13 +67,16 @@ export default function MoneyHero({
   priceMap,
   marketIndex,
   greeting,
+  lang = "en",
 }: {
   holdings: PortfolioHolding[];
   priceMap: Map<string, ScoreItem>;
   marketIndex: MarketIndexData | null;
   /** Slim greeting line folded into the top of the hero card (see HeroGreeting). */
   greeting?: ReactNode;
+  lang?: Lang;
 }) {
+  const bn = lang === "bn";
   const rows = holdings.map((h) => compute(h, priceMap));
   let invested = 0;
   let value = 0;
@@ -90,7 +95,7 @@ export default function MoneyHero({
   const today = portfolioTodayMove(holdings, priceMap);
   const todayUp = (today?.delta ?? 0) >= 0;
 
-  const analysis = analyzePortfolio(rows, priceMap);
+  const analysis = analyzePortfolio(rows, priceMap, lang);
   const gradeColor = GRADE_COLOR[analysis.grade];
 
   const shownValue = useCountUp(hasPrice ? value : 0);
@@ -98,8 +103,15 @@ export default function MoneyHero({
   const dsexPct = marketIndex?.dsex_change_pct ?? null;
   const vsDsex = today && dsexPct != null ? today.pct - dsexPct : null;
 
+  const freshness =
+    marketSession() === "open"
+      ? t(lang, "updatingLive")
+      : marketIndex?.date
+        ? t(lang, "asOfClose", { date: bn ? bnDate(marketIndex.date) : formatBstDateLabel(marketIndex.date) })
+        : t(lang, "latestPrices");
+
   return (
-    <Card as="section" padding="none" className="overflow-hidden">
+    <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
       {greeting && (
         <div className="border-b border-[var(--border)] px-4 pb-3 pt-4 sm:px-5">{greeting}</div>
       )}
@@ -107,7 +119,7 @@ export default function MoneyHero({
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.18em] text-[var(--primary)]">
-              Your money today
+              {t(lang, "yourMoneyToday")}
             </p>
             <div className="mt-1 text-[clamp(1.6rem,7vw,2rem)] font-extrabold tabular-nums nums text-[var(--text)] leading-tight">
               {hasPrice ? takaGroup(shownValue) : "—"}
@@ -119,17 +131,11 @@ export default function MoneyHero({
               >
                 {todayUp ? "▲" : "▼"} {todayUp ? "+" : "−"}৳
                 {bdGroup(Math.abs(today.delta))} ({todayUp ? "+" : ""}
-                {today.pct.toFixed(2)}%) today
+                {today.pct.toFixed(2)}%) {t(lang, "today")}
               </div>
             )}
             {/* Freshness — is this number live or last close? */}
-            <p className="mt-1 text-[0.68rem] font-medium text-[var(--text-muted)]">
-              {marketSession() === "open"
-                ? "Updating live through the day"
-                : marketIndex?.date
-                  ? `As of ${formatBstDateLabel(marketIndex.date)} close`
-                  : "Latest available prices"}
-            </p>
+            <p className="mt-1 text-[0.68rem] font-medium text-[var(--text-muted)]">{freshness}</p>
           </div>
 
           <Link
@@ -139,7 +145,9 @@ export default function MoneyHero({
             style={{ color: gradeColor, borderColor: gradeColor, background: "var(--surface-2)" }}
           >
             <span className="text-[1.65rem] font-black leading-none">{analysis.grade}</span>
-            <span className="text-[0.68rem] font-bold uppercase tracking-wide leading-none">{analysis.gradeLabel}</span>
+            <span className="px-1 text-center text-[0.68rem] font-bold uppercase leading-none tracking-wide">
+              {gradeLabel(lang, analysis.gradeLabel)}
+            </span>
           </Link>
         </div>
 
@@ -150,7 +158,7 @@ export default function MoneyHero({
                 className={CHIP_CLS}
                 style={{ color: "var(--text-muted)", background: "var(--surface-2)", border: "1px solid var(--border)" }}
               >
-                Tracking DSEX today
+                {t(lang, "trackingDsex")}
               </span>
             ) : vsDsex > 0 ? (
               <span
@@ -161,7 +169,7 @@ export default function MoneyHero({
                   border: "1px solid color-mix(in srgb, var(--positive) 28%, var(--border))",
                 }}
               >
-                ▲ Beating DSEX by +{vsDsex.toFixed(2)}%
+                ▲ {t(lang, "beatingDsex", { n: vsDsex.toFixed(2) })}
               </span>
             ) : (
               <span
@@ -172,7 +180,7 @@ export default function MoneyHero({
                   border: "1px solid color-mix(in srgb, var(--negative) 24%, var(--border))",
                 }}
               >
-                Trailing DSEX by {Math.abs(vsDsex).toFixed(2)}%
+                {t(lang, "trailingDsex", { n: Math.abs(vsDsex).toFixed(2) })}
               </span>
             ))}
           {pnl != null && pnlPct != null && (
@@ -184,7 +192,7 @@ export default function MoneyHero({
                 border: "1px solid var(--border)",
               }}
             >
-              Total {up ? "+" : "−"}৳{bdGroup(Math.abs(pnl))} ({up ? "+" : ""}
+              {t(lang, "total")} {up ? "+" : "−"}৳{bdGroup(Math.abs(pnl))} ({up ? "+" : ""}
               {pnlPct.toFixed(1)}%)
             </span>
           )}
@@ -197,9 +205,9 @@ export default function MoneyHero({
         href="/portfolio"
         className="block text-center px-4 py-3 text-xs font-semibold text-[var(--primary)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)] border-t border-[var(--border)] transition-colors"
       >
-        See full portfolio analysis →
+        {t(lang, "seeFullPortfolio")} →
       </Link>
-    </Card>
+    </section>
   );
 }
 
@@ -209,7 +217,7 @@ export default function MoneyHero({
  */
 export function MoneyHeroSkeleton({ greeting }: { greeting?: ReactNode }) {
   return (
-    <Card as="section" padding="none" className="overflow-hidden">
+    <section className="soft-card overflow-hidden">
       {greeting && (
         <div className="border-b border-[var(--border)] px-4 pb-3 pt-4 sm:px-5">{greeting}</div>
       )}
@@ -230,6 +238,6 @@ export function MoneyHeroSkeleton({ greeting }: { greeting?: ReactNode }) {
         <div className="mt-3 h-4 w-full max-w-xs animate-pulse rounded-full bg-[var(--surface-2)]" />
       </div>
       <div className="h-11 border-t border-[var(--border)]" />
-    </Card>
+    </section>
   );
 }

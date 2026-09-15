@@ -59,6 +59,7 @@ class RecommendedStock(BaseModel):
     p5_div: Optional[float] = None
     match_score: float = 0.0            # internal 0-100 ranking score
     reasons: list[str] = []            # 1-2 plain-language sentences
+    reasons_bn: list[str] = []         # the same sentences in everyday Bengali
     signal: Optional[StockSignal] = None
 
 

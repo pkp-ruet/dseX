@@ -8,11 +8,15 @@ import type {
   MarketSinceYesterday,
   MarketStats,
 } from "@/lib/api";
+import type { Lang } from "@/context/LangContext";
 import { signed } from "@/lib/formatters";
+import { t } from "@/lib/home-copy";
 import DashHeader from "@/components/home/personalized/DashHeader";
 import { IconChevron } from "@/components/home/personalized/DashIcons";
 
 const MARKET_HREF = "/market-analysis";
+/** The Bengali daily article — the front door in বাংলা mode. */
+const MARKET_HREF_BN = "/share-bazar";
 
 function num(v: number | null | undefined, d = 2): string {
   if (v == null) return "--";
@@ -32,42 +36,58 @@ const MOOD_COLOR: Record<MarketMood["tone"], string> = {
  * page never disagree. Falls back to a plain breadth read while the bundle is
  * still loading or when it failed.
  */
-function headline(mood: MarketMood | null | undefined, index: MarketIndexData | null): { text: string; color: string } {
-  if (mood?.label) {
-    const l = mood.label.toLowerCase();
-    return {
-      text: l === "steady" ? "The market is steady today." : `The market is ${l} today.`,
-      color: MOOD_COLOR[mood.tone] ?? "var(--text)",
-    };
+function headline(
+  mood: MarketMood | null | undefined,
+  index: MarketIndexData | null,
+  lang: Lang,
+): { text: string; color: string } {
+  if (mood?.tone) {
+    const key = mood.tone === "up" ? "moodUp" : mood.tone === "down" ? "moodDown" : mood.tone === "weak" ? "moodWeak" : "moodSteady";
+    return { text: t(lang, key), color: MOOD_COLOR[mood.tone] ?? "var(--text)" };
   }
   const up = index?.up_count ?? null;
   const down = index?.down_count ?? null;
   if (up == null || down == null || up + down === 0) {
-    return { text: "See how the whole market is doing today.", color: "var(--text)" };
+    return { text: t(lang, "moodFallback"), color: "var(--text)" };
   }
+  const bn = lang === "bn";
   const ratio = up / (up + down);
-  if (ratio >= 0.58) return { text: "Buyers are in control today.", color: "var(--positive)" };
-  if (ratio <= 0.42) return { text: "Sellers are in control today.", color: "var(--negative)" };
-  return { text: "An even, mixed market today.", color: "var(--text)" };
+  if (ratio >= 0.58) return { text: bn ? "আজ বাজারে ক্রেতারা এগিয়ে।" : "Buyers are in control today.", color: "var(--positive)" };
+  if (ratio <= 0.42) return { text: bn ? "আজ বাজারে বিক্রেতারা এগিয়ে।" : "Sellers are in control today.", color: "var(--negative)" };
+  return { text: bn ? "আজ বাজার মিশ্র, সমান-সমান।" : "An even, mixed market today.", color: "var(--text)" };
 }
 
 /** One "since yesterday" sentence — the freshest hook the page has, so it's
  *  the line that earns the tap through. Breadth rank first, then the healthy
  *  count, then the index move. Null when there is nothing to say. */
-function sinceLine(since: MarketSinceYesterday | null | undefined, stats: MarketStats | null | undefined): string | null {
+function sinceLine(
+  since: MarketSinceYesterday | null | undefined,
+  stats: MarketStats | null | undefined,
+  lang: Lang,
+): string | null {
   if (!since) return null;
+  const bn = lang === "bn";
   const br = since.breadth_rank;
   if (br && br.of >= 3) {
-    return br.better_than >= br.of / 2
+    const more = br.better_than >= br.of / 2;
+    if (bn) {
+      return more
+        ? `আজ যত শেয়ার বেড়েছে, গত ${br.of} দিনের ${br.better_than} দিনের চেয়ে বেশি।`
+        : `আজ যত শেয়ার বেড়েছে, গত ${br.of} দিনের ${br.of - br.better_than} দিনের চেয়ে কম।`;
+    }
+    return more
       ? `More shares rose today than on ${br.better_than} of the last ${br.of} days.`
       : `Fewer shares rose today than on ${br.of - br.better_than} of the last ${br.of} days.`;
   }
   if (since.healthy_delta) {
     const n = Math.abs(since.healthy_delta);
-    return `${n} ${n === 1 ? "company" : "companies"} ${since.healthy_delta > 0 ? "more" : "fewer"} look healthy than yesterday.`;
+    const more = since.healthy_delta > 0;
+    if (bn) return `গতকালের চেয়ে ${n}টি কোম্পানি ${more ? "বেশি" : "কম"} ভালো অবস্থায়।`;
+    return `${n} ${n === 1 ? "company" : "companies"} ${more ? "more" : "fewer"} look healthy than yesterday.`;
   }
   const chg = stats?.dsex_change_pct;
   if (chg != null && Math.abs(chg) >= 0.05) {
+    if (bn) return `বাজার গতকালের চেয়ে ${Math.abs(chg).toFixed(1)}% ${chg > 0 ? "উপরে" : "নিচে"}।`;
     return `The index is ${chg > 0 ? "up" : "down"} ${Math.abs(chg).toFixed(1)}% since yesterday.`;
   }
   return null;
@@ -112,14 +132,25 @@ function Tile({
   );
 }
 
+/** "Cheap" / "Expensive" / "About normal" from the backend, in the reader's language. */
+function cheapWord(a: string | undefined, lang: Lang): string {
+  if (!a) return "—";
+  const k = a.toLowerCase();
+  if (k === "cheap") return t(lang, "cheapCheap");
+  if (k === "expensive") return t(lang, "cheapExpensive");
+  if (k === "about normal") return t(lang, "cheapNormal");
+  return a;
+}
+
 /**
- * One "Market today" card for the logged-in home — and, since 2026-09-12, the
- * front door to `/market-analysis`:
+ * One "Market today" card for the logged-in home — the front door to
+ * `/market-analysis` (or, in বাংলা mode, to the Bengali daily article at
+ * `/share-bazar`):
  *
  *  • the headline is the backend mood (the page's own verdict), not a local
  *    breadth guess — the two can no longer disagree;
- *  • the ONE header link goes to Market Analysis ("Full picture"); the index
- *    row is the link to DSE Today, where those numbers live;
+ *  • the ONE header link goes to the full picture; the index row is the link
+ *    to DSE Today, where those numbers live;
  *  • a "Since yesterday" line under the tiles changes daily and links through.
  *
  * The old pulsing "live" dot and footer button stay cut — the greeting's
@@ -133,6 +164,7 @@ export default function MarketTodayCard({
   stats,
   quality,
   cheap,
+  lang = "en",
 }: {
   index: MarketIndexData | null;
   dividends?: DividendsUpcoming | null;
@@ -145,20 +177,23 @@ export default function MarketTodayCard({
   quality?: MarketQuality | null;
   /** The "Are shares cheap or expensive?" Q&A row (from /api/market/state). */
   cheap?: MarketQuestion | null;
+  lang?: Lang;
 }) {
-  const head = headline(mood, index);
-  const line = sinceLine(since, stats);
+  const bn = lang === "bn";
+  const marketHref = bn ? MARKET_HREF_BN : MARKET_HREF;
+  const head = headline(mood, index, lang);
+  const line = sinceLine(since, stats, lang);
 
   const up = index?.up_count ?? 0;
   const down = index?.down_count ?? 0;
   const flat = index?.neutral_count ?? 0;
   const breadthTotal = up + down + flat;
 
-  // Are shares cheap? Reuse the market-analysis page's own answer + phrasing.
+  // Are shares cheap? Reuse the market-analysis page's own answer.
   const cheapColor =
     cheap?.tone === "pos" ? "var(--positive)" : cheap?.tone === "neg" ? "var(--negative)" : "var(--text)";
-  const cheapValue = cheap ? (cheap.a === "About normal" ? "Normal" : cheap.a) : "—";
-  const cheapLabel = cheap?.extra || "share prices vs usual";
+  const cheapValue = cheapWord(cheap?.a, lang);
+  const cheapLabel = !bn && cheap?.extra ? cheap.extra : t(lang, "sharePricesVsUsual");
 
   // How many companies look healthy = strong + good, of those scored. Always
   // green — it's a count of healthy companies, never shown in red.
@@ -179,8 +214,8 @@ export default function MarketTodayCard({
   const turnColor = turn == null ? "var(--text)" : turn >= 0 ? "var(--positive)" : "var(--negative)";
 
   return (
-    <section className="soft-card overflow-hidden">
-      <DashHeader title="Market today" href={MARKET_HREF} linkLabel="Full picture" />
+    <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
+      <DashHeader title={t(lang, "marketToday")} href={marketHref} linkLabel={t(lang, "fullPicture")} />
 
       <div className="px-4 sm:px-5 py-4">
         <h3
@@ -211,33 +246,33 @@ export default function MarketTodayCard({
               <span className="h-full bg-[var(--negative)]" style={{ width: `${(down / breadthTotal) * 100}%` }} />
             </div>
             <div className="mt-2 flex items-center justify-between text-xs font-semibold tabular-nums">
-              <span className="text-[var(--positive)]">{up} advancing</span>
-              <span className="text-[var(--text-muted)]">{flat} unchanged</span>
-              <span className="text-[var(--negative)]">{down} declining</span>
+              <span className="text-[var(--positive)]">{t(lang, "advancing", { n: up })}</span>
+              <span className="text-[var(--text-muted)]">{t(lang, "unchanged", { n: flat })}</span>
+              <span className="text-[var(--negative)]">{t(lang, "declining", { n: down })}</span>
             </div>
           </div>
         )}
 
         <div className="mt-4 grid grid-cols-2 gap-2.5">
-          <Tile href={MARKET_HREF} value={cheapValue} valueColor={cheapColor} label={cheapLabel} />
+          <Tile href={marketHref} value={cheapValue} valueColor={cheapColor} label={cheapLabel} />
           <Tile
-            href={MARKET_HREF}
+            href={marketHref}
             value={healthy != null ? String(healthy) : "—"}
             valueColor={healthyColor}
-            label={total > 0 ? `of ${total} look healthy` : "companies healthy"}
+            label={total > 0 ? t(lang, "lookHealthy", { total }) : t(lang, "companiesHealthy")}
           />
-          <Tile href="/dividend-calendar" value={String(divCount)} valueColor="var(--watch)" label="dividends coming up" />
-          <Tile href="/dse-today" value={turnStr} valueColor={turnColor} label="turnover vs last day" />
+          <Tile href="/dividend-calendar" value={String(divCount)} valueColor="var(--watch)" label={t(lang, "dividendsComingUp")} />
+          <Tile href="/dse-today" value={turnStr} valueColor={turnColor} label={t(lang, "turnoverVsLastDay")} />
         </div>
 
         {line && (
           <Link
-            href={MARKET_HREF}
+            href={marketHref}
             prefetch={false}
             className="mt-3 flex items-center gap-2.5 rounded-xl bg-[var(--surface-2)] px-3 py-2.5 transition-colors hover:bg-[color-mix(in_srgb,var(--primary)_10%,var(--surface-2))] active:opacity-80"
           >
             <span className="shrink-0 rounded-full border border-[var(--border)] bg-[var(--surface)] px-2 py-0.5 text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)]">
-              Since yesterday
+              {t(lang, "sinceYesterday")}
             </span>
             <span className="min-w-0 flex-1 text-[0.75rem] font-semibold leading-snug text-[var(--text)]">{line}</span>
             <span className="shrink-0 text-[var(--primary)]" aria-hidden>

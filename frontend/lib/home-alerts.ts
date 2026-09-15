@@ -5,8 +5,13 @@ import type {
   WatchlistNewsItem,
   PriceAlert,
   PortfolioSignalEvent,
+  PortfolioHolding,
+  CorporateActionEvent,
 } from "@/lib/api";
-import { bdGroup } from "@/lib/formatters";
+import type { Lang } from "@/context/LangContext";
+import { bdGroup, formatDate } from "@/lib/formatters";
+import { bnDate } from "@/lib/bn";
+import { recordDateInfo } from "@/lib/dividend-dates";
 
 export type HomeAlertTone = "positive" | "negative" | "neutral";
 
@@ -33,7 +38,7 @@ export interface HomeAlert {
   tone: HomeAlertTone;
 }
 
-const MOVER_THRESHOLD = 3; // only surface watchlist moves of at least ±3%
+const MOVER_THRESHOLD = 3; // only surface moves of at least ±3%
 const MAX_MOVERS = 3;
 const MAX_NEWS = 3;
 const TRIGGER_RECENCY_MS = 2 * 24 * 60 * 60 * 1000; // surface a hit target for ~2 days
@@ -45,40 +50,59 @@ function fmtPrice(n: number): string {
 
 /**
  * Builds the personalized "what's new" list from data already loaded on the
- * home page — portfolio move, big watchlist movers, 52-week extremes, upcoming
- * dividends, and (optionally) latest watchlist news. Ordered by importance
- * (portfolio → movers → extremes → dividends → news).
+ * home page — targets hit, Buy More / Sell flips on holdings, portfolio move,
+ * big movers, 52-week extremes, upcoming dividends, and (optionally) latest
+ * news. Ordered by importance.
+ *
+ * The universe is **holdings ∪ watchlist**. Until 2026-09-16 it was the
+ * watchlist only, so a portfolio-only user never saw a mover, a 52-week low or
+ * a record date on the stocks they actually own.
  *
  * `includeNews` is opt-out (default true): the home dashboard sets it false so
  * headlines live only in the dedicated NewsPeek section (no double-listing),
  * while the assistant's single "what's new" brief keeps news inline.
+ *
+ * `lang` writes every sentence in English or everyday Bengali (Western digits).
  */
 export function buildHomeAlerts(opts: {
+  /** Watchlist codes. */
   codes: string[];
+  /** Portfolio holdings — adds their codes to the universe and lets the
+   *  dividend rows say what the reader will actually be paid. */
+  holdings?: PortfolioHolding[];
   priceMap: Map<string, ScoreItem>;
   todayMove: { delta: number; pct: number } | null;
   extremes: NearExtremesData | null;
   dividends: DividendsUpcoming | null;
+  /** Calendar record-date rows (cash per share worked out) for the user's codes. */
+  dividendCash?: CorporateActionEvent[];
   news?: WatchlistNewsItem[];
   triggeredAlerts?: PriceAlert[];
   signalEvents?: PortfolioSignalEvent[];
   dateKey: string;
-  /** Include latest watchlist news as 📰 rows. Default true. */
+  /** Include latest news as 📰 rows. Default true. */
   includeNews?: boolean;
+  lang?: Lang;
 }): HomeAlert[] {
   const {
     codes,
+    holdings = [],
     priceMap,
     todayMove,
     extremes,
     dividends,
+    dividendCash = [],
     news = [],
     triggeredAlerts,
     signalEvents,
     dateKey,
     includeNews = true,
   } = opts;
-  const watch = new Set(codes.map((c) => c.toUpperCase()));
+  const bn = opts.lang === "bn";
+
+  const held = new Map<string, PortfolioHolding>();
+  for (const h of holdings) held.set(h.trading_code.toUpperCase(), h);
+  const universe = new Set<string>([...held.keys(), ...codes.map((c) => c.toUpperCase())]);
   const alerts: HomeAlert[] = [];
 
   // 0 — Price targets hit (most personal — lead with these). The server is the
@@ -88,51 +112,73 @@ export function buildHomeAlerts(opts: {
     if (!a.triggered_at) continue;
     const t = Date.parse(a.triggered_at);
     if (Number.isNaN(t) || now - t > TRIGGER_RECENCY_MS) continue;
+    const target = fmtPrice(a.target_price);
+    const reached = a.triggered_price != null ? fmtPrice(a.triggered_price) : null;
     alerts.push({
       id: `pa:${a.id}`,
       kind: "target",
       emoji: "🎯",
-      title: `${a.trading_code} hit your ৳${fmtPrice(a.target_price)} target`,
-      detail: a.triggered_price != null ? `Reached ৳${fmtPrice(a.triggered_price)}` : undefined,
+      title: bn ? `${a.trading_code} আপনার ৳${target} লক্ষ্যে পৌঁছেছে` : `${a.trading_code} hit your ৳${target} target`,
+      detail: reached ? (bn ? `৳${reached}-এ পৌঁছেছে` : `Reached ৳${reached}`) : undefined,
       href: `/stock/${a.trading_code}`,
       tone: a.direction === "above" ? "positive" : "negative",
     });
   }
 
-  // 0.5 — Portfolio signal flips (server-detected, end-of-day). Only Buy More
-  // flips are surfaced; Sell is kept in the backend but hidden from the UI for now.
+  // 0.5 — Portfolio signal flips (server-detected, end-of-day). Both Buy More
+  // and Sell are surfaced: for an owner the Sell flip is the one alert that
+  // matters most. The reason comes from the holding's own signal when present.
   for (const ev of signalEvents ?? []) {
-    if (!ev.changed_at || ev.signal !== "buy_more") continue;
+    if (!ev.changed_at || ev.signal === "none") continue;
     const t = Date.parse(ev.changed_at);
     if (Number.isNaN(t) || now - t > SIGNAL_RECENCY_MS) continue;
+    const code = ev.trading_code.toUpperCase();
+    const sig = held.get(code)?.signal ?? null;
+    const reason = sig && sig.signal === ev.signal ? (bn ? sig.reason_bn : sig.reason_en) || null : null;
+    const sell = ev.signal === "sell";
     alerts.push({
       id: `sg:${ev.trading_code}:${ev.changed_at}`,
       kind: "signal",
-      emoji: "🟢",
-      title: `${ev.trading_code} now looks like a Buy More`,
-      detail: "Strong company at a cheap price",
-      href: "/portfolio",
-      tone: "positive",
+      emoji: sell ? "🔴" : "🟢",
+      title: sell
+        ? bn
+          ? `${ev.trading_code} এখন বিক্রির মতো দেখাচ্ছে`
+          : `${ev.trading_code} now looks like a Sell`
+        : bn
+          ? `${ev.trading_code} এখন আরও কেনার মতো দেখাচ্ছে`
+          : `${ev.trading_code} now looks like a Buy More`,
+      detail:
+        reason ??
+        (sell
+          ? bn
+            ? "আবার ভেবে দেখার সময়"
+            : "Time to take another look"
+          : bn
+            ? "ভালো কোম্পানি, দাম এখন কম"
+            : "Strong company at a cheap price"),
+      href: `/stock/${ev.trading_code}`,
+      tone: sell ? "negative" : "positive",
     });
   }
 
   // 1 — Portfolio move today
   if (todayMove && Math.abs(todayMove.delta) >= 1) {
     const up = todayMove.delta >= 0;
+    const amt = bdGroup(Math.abs(todayMove.delta));
     alerts.push({
       id: `pf:${dateKey}`,
       kind: "portfolio",
       emoji: up ? "📈" : "📉",
-      title: `Portfolio ${up ? "up" : "down"} ৳${bdGroup(Math.abs(todayMove.delta))} today`,
+      title: bn ? `পোর্টফোলিও আজ ৳${amt} ${up ? "বেড়েছে" : "কমেছে"}` : `Portfolio ${up ? "up" : "down"} ৳${amt} today`,
       detail: `${up ? "+" : ""}${todayMove.pct.toFixed(2)}%`,
       href: "/portfolio",
       tone: up ? "positive" : "negative",
     });
   }
 
-  // 2 — Biggest watchlist movers (beyond threshold)
-  const movers = codes
-    .map((c) => priceMap.get(c.toUpperCase()))
+  // 2 — Biggest movers across everything followed (beyond threshold)
+  const movers = Array.from(universe)
+    .map((c) => priceMap.get(c))
     .filter(
       (s): s is ScoreItem =>
         !!s && s.change_pct != null && Math.abs(s.change_pct) >= MOVER_THRESHOLD,
@@ -141,87 +187,137 @@ export function buildHomeAlerts(opts: {
     .slice(0, MAX_MOVERS);
   for (const m of movers) {
     const up = (m.change_pct ?? 0) >= 0;
+    const pctStr = `${up ? "+" : ""}${m.change_pct!.toFixed(1)}%`;
     alerts.push({
       id: `mv:${m.trading_code}:${dateKey}`,
       kind: "mover",
       emoji: up ? "🟢" : "🔴",
-      title: `${m.trading_code} ${up ? "+" : ""}${m.change_pct!.toFixed(1)}% today`,
+      title: bn ? `${m.trading_code} আজ ${pctStr}` : `${m.trading_code} ${pctStr} today`,
       detail: m.company_name ?? undefined,
       href: `/stock/${m.trading_code}`,
       tone: up ? "positive" : "negative",
     });
   }
 
-  // 3 — Watchlist stocks near a 52-week high / low
+  // 3 — Followed stocks near a 52-week high / low
   const extremeSeen = new Set<string>();
   for (const e of extremes?.near_high ?? []) {
     const code = e.trading_code.toUpperCase();
-    if (!watch.has(code) || extremeSeen.has(code)) continue;
+    if (!universe.has(code) || extremeSeen.has(code)) continue;
     extremeSeen.add(code);
     alerts.push({
       id: `hi:${code}:${dateKey}`,
       kind: "high",
       emoji: "🔼",
-      title: `${e.trading_code} near its 52-week high`,
+      title: bn ? `${e.trading_code} বছরের সর্বোচ্চ দামের কাছে` : `${e.trading_code} near its 52-week high`,
       href: `/stock/${e.trading_code}`,
       tone: "positive",
     });
   }
   for (const e of extremes?.near_low ?? []) {
     const code = e.trading_code.toUpperCase();
-    if (!watch.has(code) || extremeSeen.has(code)) continue;
+    if (!universe.has(code) || extremeSeen.has(code)) continue;
     extremeSeen.add(code);
     alerts.push({
       id: `lo:${code}:${dateKey}`,
       kind: "low",
       emoji: "🔽",
-      title: `${e.trading_code} near its 52-week low`,
+      title: bn ? `${e.trading_code} বছরের সর্বনিম্ন দামের কাছে` : `${e.trading_code} near its 52-week low`,
       href: `/stock/${e.trading_code}`,
       tone: "negative",
     });
   }
 
-  // 4 — Dividends for watchlist stocks (declaration takes priority over record date)
+  // 4 — Dividends on followed stocks. For a stock the reader OWNS and where the
+  // calendar knows the cash per share, say what they will be paid and when to
+  // hold by; otherwise the plain declaration / record-date notice.
   const divSeen = new Set<string>();
+  const cashByCode = new Map<string, CorporateActionEvent>();
+  for (const e of dividendCash) {
+    const code = e.trading_code.toUpperCase();
+    if (!cashByCode.has(code)) cashByCode.set(code, e);
+  }
+  for (const [code, e] of cashByCode) {
+    const h = held.get(code);
+    if (!h || !e.record_date) continue;
+    const cps = e.cash_per_share;
+    const info = recordDateInfo(e.record_date);
+    const daysLeft = info?.recordDaysLeft ?? e.record_days_left;
+    const when = bn ? bnDate(e.record_date) : formatDate(e.record_date);
+    const daysStr =
+      daysLeft == null ? "" : bn ? ` · ${daysLeft} দিন বাকি` : ` · ${daysLeft} ${daysLeft === 1 ? "day" : "days"} left`;
+    if (cps != null && cps > 0) {
+      const payout = Math.round(h.qty * cps);
+      divSeen.add(code);
+      alerts.push({
+        id: `dv:${code}`,
+        kind: "dividend",
+        emoji: "💰",
+        title: bn ? `${e.trading_code} আপনাকে ৳${bdGroup(payout)} দেবে` : `${e.trading_code} pays you ৳${bdGroup(payout)}`,
+        detail: bn ? `রেকর্ড ডেট ${when}${daysStr}` : `Record date ${when}${daysStr}`,
+        href: `/stock/${e.trading_code}`,
+        tone: "positive",
+      });
+    } else if (e.stock_pct != null && e.stock_pct > 0) {
+      divSeen.add(code);
+      alerts.push({
+        id: `dv:${code}`,
+        kind: "dividend",
+        emoji: "💰",
+        title: bn ? `${e.trading_code} ${e.stock_pct}% বোনাস শেয়ার দিচ্ছে` : `${e.trading_code} gives ${e.stock_pct}% bonus shares`,
+        detail: bn ? `রেকর্ড ডেট ${when}${daysStr}` : `Record date ${when}${daysStr}`,
+        href: `/stock/${e.trading_code}`,
+        tone: "neutral",
+      });
+    }
+  }
   for (const d of dividends?.upcoming_declarations ?? []) {
     const code = d.trading_code.toUpperCase();
-    if (!watch.has(code) || divSeen.has(code)) continue;
+    if (!universe.has(code) || divSeen.has(code)) continue;
     divSeen.add(code);
     const pct = d.dividend_pct != null ? `${d.dividend_pct}% ` : "";
     alerts.push({
       id: `dv:${code}`,
       kind: "dividend",
       emoji: "💰",
-      title: `${d.trading_code} — ${pct}dividend declared`,
+      title: bn ? `${d.trading_code} — ${pct}ডিভিডেন্ড ঘোষণা` : `${d.trading_code} — ${pct}dividend declared`,
       href: `/stock/${d.trading_code}`,
       tone: "neutral",
     });
   }
   for (const d of dividends?.upcoming_record_dates ?? []) {
     const code = d.trading_code.toUpperCase();
-    if (!watch.has(code) || divSeen.has(code)) continue;
+    if (!universe.has(code) || divSeen.has(code)) continue;
     divSeen.add(code);
+    const info = recordDateInfo(d.record_date);
+    const detail =
+      info && d.record_date
+        ? bn
+          ? `রেকর্ড ডেট ${bnDate(d.record_date)} · ${info.recordDaysLeft} দিন বাকি`
+          : `Record date ${formatDate(d.record_date)} · ${info.recordDaysLeft} ${info.recordDaysLeft === 1 ? "day" : "days"} left`
+        : undefined;
     alerts.push({
       id: `dv:${code}`,
       kind: "dividend",
       emoji: "💰",
-      title: `${d.trading_code} — dividend record date soon`,
+      title: bn ? `${d.trading_code} — ডিভিডেন্ডের রেকর্ড ডেট আসছে` : `${d.trading_code} — dividend record date soon`,
+      detail,
       href: `/stock/${d.trading_code}`,
       tone: "neutral",
     });
   }
 
-  // 5 — Latest watchlist news (opt-out; the home dashboard shows these in the
-  // dedicated NewsPeek section instead, so it passes includeNews: false).
+  // 5 — Latest news (opt-out; the home dashboard shows these in the dedicated
+  // NewsPeek section instead, so it passes includeNews: false).
   if (includeNews) {
     const wlNews = news
-      .filter((n) => watch.has(n.trading_code.toUpperCase()))
+      .filter((n) => universe.has(n.trading_code.toUpperCase()))
       .slice(0, MAX_NEWS);
     for (const n of wlNews) {
       alerts.push({
         id: `nw:${n.trading_code}:${n.post_date}:${n.title.slice(0, 48)}`,
         kind: "news",
-      emoji: "📰",
+        emoji: "📰",
         title: n.title,
         detail: n.trading_code,
         href: `/stock/${n.trading_code}`,

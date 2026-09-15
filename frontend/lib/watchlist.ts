@@ -87,6 +87,15 @@ function applyResponse(res: WatchlistResponse): void {
 // Watchlist
 // ---------------------------------------------------------------------------
 
+/** Feed a server response that arrived by another route (the `/api/user/home`
+ *  bundle) into the shared cache, so the navbar badge / StarButtons update
+ *  without a second `/api/user/watchlist` round-trip. */
+export function primeWatchlist(res: WatchlistResponse): void {
+  if (!isLoggedIn()) return;
+  applyResponse(res);
+  emit();
+}
+
 export function getCachedWatchlist(): string[] {
   return _cache ?? [];
 }

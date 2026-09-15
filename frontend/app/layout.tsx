@@ -41,6 +41,7 @@ import ExploreSheet from "@/components/layout/ExploreSheet";
 import MarketDataBanner from "@/components/layout/MarketDataBanner";
 import ConditionalAnalytics from "@/components/analytics/ConditionalAnalytics";
 import { AuthProvider } from "@/context/AuthContext";
+import { LangProvider } from "@/context/LangContext";
 import GoogleAuthProvider from "@/components/auth/GoogleAuthProvider";
 import Toaster from "@/components/ui/Toaster";
 import PingTracker from "@/components/analytics/PingTracker";
@@ -110,6 +111,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSON_LD) }}
         />
         <AuthProvider>
+          <LangProvider>
           <GoogleAuthProvider>
             <PingTracker />
             <Navbar />
@@ -130,6 +132,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <PushOptInPrompt />
             <InstallPrompt />
           </GoogleAuthProvider>
+          </LangProvider>
         </AuthProvider>
         {process.env.NEXT_PUBLIC_GA_ID && (
           <ConditionalAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
