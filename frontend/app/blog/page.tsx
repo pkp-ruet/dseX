@@ -91,6 +91,11 @@ export default function BlogPage() {
           <p className="text-[1.0625rem] leading-[1.85] text-[var(--ink-2)] max-w-xl mx-auto">
             বাংলাদেশে বিনিয়োগে একদম নতুন? কঠিন কোনো শব্দ ছাড়া, গল্পের মতো করে — এখান থেকেই শুরু করুন।
           </p>
+          <p className="text-[0.95rem] font-semibold">
+            <Link href="/share-bazar" className="text-[var(--primary)] underline">
+              আজকের শেয়ার বাজার কেমন গেল — সহজ বাংলায় দেখুন →
+            </Link>
+          </p>
         </section>
 
         {/* Category index — tap to jump to a section */}

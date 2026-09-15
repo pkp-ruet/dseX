@@ -160,6 +160,7 @@ When adding a code path that reads `stock_prices` directly, apply one of those t
 | `/market-intelligence` | `app/market-intelligence/page.tsx` | Auto-detects falling/rising/sideways, shows signal tables |
 | `/market-analysis` | `app/market-analysis/page.tsx` | "The whole market in plain words", one `GET /api/market/state` bundle (rebuilt 2026-09; see **Market analysis page** below) |
 | `/dse-today` | `app/dse-today/page.tsx` | Today's market header + table + news (single-bundle endpoint) |
+| `/share-bazar` | `app/share-bazar/page.tsx` | **আজকের শেয়ার বাজার** — the DSE day as a Bengali daily article (added 2026-09-15 for the "শেয়ার বাজার / আজকের শেয়ার বাজার" query cluster): title carries the DSEX level + move, then mood, four plain answers, gainers/losers/most traded, sector week moves, next record dates. Built from `getMarketState()` + `getDseToday()`, ISR 900. Whole page `lang="bn"` + `.font-bn`, `HtmlLang` flips `<html lang>`; hreflang pairs it with `/market-analysis`. Western digits in Bengali prose (rule in `Bn.tsx`); helpers in `lib/bn.ts` (`bnDate`, `sectorBn`, `bnCroreTaka`) |
 | `/sectors` | `app/sectors/page.tsx` | Sector hub: market medians + one card per sector (largest first) |
 | `/sector/[slug]` | `app/sector/[slug]/page.tsx` | One sector: size/valuation hero, sector-vs-market medians, standouts, sortable table of every company, how that sector class is scored, related sectors. `generateStaticParams` + per-sector `generateMetadata` from `/api/sectors/slugs` |
 | `/dividend-calendar` | `app/dividend-calendar/page.tsx` | Corporate-action calendar: upcoming record dates (with the last normal-market buy day), AGMs, biggest cash dividends of the last 12 months, just-declared list, and the four-step explainer. FAQ JSON-LD lives here |
@@ -355,6 +356,10 @@ components/
     ├── PageSkeleton.tsx        — page-shaped placeholder (variants table / cards / hero). NOT wired to
     │                             any route: the per-route `loading.tsx` files were deleted 2026-09-15
     │                             (see the SEO rule "No streaming on indexable routes" below)
+    ├── (seo/PageGuide.tsx)     — the "about this page" prose + `<details>` FAQ (+ FAQPage JSON-LD) under every
+    │                             hub table: /stocks, /dsestockranking, /dse-today, /sectors, /sector/[slug],
+    │                             /dividend-calendar (prose only there — its FAQ lives in HowDividendsWork).
+    │                             Added 2026-09-15 because the data pages served 13–94 words of prose.
     ├── ErrorState.tsx          — THE error surface (root `app/error.tsx`, per-route error.tsx,
     │                             and every page's `.catch(() => null)` fallback via `reload`).
     │                             English + Bengali line + Try again; never prints a raw error

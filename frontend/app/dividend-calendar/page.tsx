@@ -9,12 +9,16 @@ import RecentDeclarations from "@/components/dividend-calendar/RecentDeclaration
 import HowDividendsWork from "@/components/dividend-calendar/HowDividendsWork";
 import ErrorState from "@/components/ui/ErrorState";
 import Bn from "@/components/i18n/Bn";
+import PageGuide from "@/components/seo/PageGuide";
+import Link from "next/link";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 export const revalidate = 86400;
 
-const TITLE = "DSE Dividend Calendar — Record Dates, AGMs & Declarations";
+// The year is in the title because that is how the query is typed ("dse record date 2026").
+const YEAR = new Date().getFullYear();
+const TITLE = `DSE Dividend, Record Date & AGM Calendar ${YEAR}`;
 const DESCRIPTION =
   "Every upcoming DSE record date and AGM in one calendar: cash and bonus dividend percentages, taka per share, gross yield at today's price, and the last day you can buy and still qualify.";
 
@@ -24,6 +28,10 @@ export const metadata: Metadata = {
   keywords: [
     "DSE dividend calendar",
     "DSE record date",
+    `DSE record date ${YEAR}`,
+    `DSE dividend ${YEAR}`,
+    "DSE AGM record date list",
+    "upcoming dividend DSE",
     "dividend record date Bangladesh",
     "DSE AGM date",
     "dividend declaration DSE",
@@ -182,6 +190,35 @@ export default async function DividendCalendarPage() {
       <RecentDeclarations events={data.recent_declarations} />
 
       <HowDividendsWork data={data} />
+
+      {/* The FAQ for this page lives in HowDividendsWork + the FAQPage JSON-LD above,
+          so this block is prose only (faqSchema off, no faq). */}
+      <PageGuide
+        title="About this dividend calendar"
+        faqSchema={false}
+        intro={[
+          <>
+            This is a <b>calendar of every dividend event on the Dhaka Stock Exchange</b> that we can see
+            coming: upcoming record dates, AGM dates, the cash and bonus percentages each board declared, and
+            the biggest cash payouts of the past year. It is rebuilt from DSE&apos;s own corporate announcements
+            every trading day, currently tracking {data.stats.declarations_tracked} declarations.
+          </>,
+          <>
+            Two numbers on each row do the work. <b>Cash per share</b> turns DSE&apos;s percentage (quoted on a
+            ৳10 face value) into taka, and <b>gross yield</b> divides that by today&apos;s closing price, so a
+            &ldquo;30% dividend&rdquo; on a ৳300 share reads as the 1% it really is. The <b>buy-by</b> day is the last
+            normal-market session that still lands the shares in your BO account by the record date, allowing
+            for T+2 settlement and DSE&apos;s spot-market window just before it.
+          </>,
+          <>
+            A high yield alone is not a reason to buy: the share often drops by roughly the dividend on the
+            ex-date, and a company paying out more than it earns will not keep it up. Open the company for its
+            dividend history and fundamental score, or start from the{" "}
+            <Link href="/stock-insights/top-dividend-stocks-bangladesh">best dividend shares list</Link>.
+          </>,
+        ]}
+        bn="রেকর্ড ডেটের আগে শেষ কোন দিনে কিনলে ডিভিডেন্ড পাবেন — সেটাই এখানে শেষ কেনার দিন।"
+      />
     </>
   );
 }

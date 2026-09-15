@@ -4,6 +4,7 @@ const exploreLinks = [
   { href: "/dsestockranking", label: "Stock Rankings" },
   { href: "/market-analysis", label: "Market Analysis" },
   { href: "/dse-today", label: "DSE Today" },
+  { href: "/share-bazar", label: "আজকের শেয়ার বাজার" },
   { href: "/dividend-calendar", label: "Dividend Calendar" },
   { href: "/sectors", label: "Sectors" },
   { href: "/stocks", label: "Browse Stocks" },

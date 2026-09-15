@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import Link from "next/link";
 
 /**
  * "আজকের বাজার এক নজরে" — the whole market in a short everyday-Bangla
@@ -14,6 +15,9 @@ export default function BanglaSnapshot({ text }: { text: string }) {
     >
       <p className="ms-card-title">আজকের বাজার এক নজরে</p>
       <p className="ms-bn-text">{text}</p>
+      <p className="ms-bn-note">
+        <Link href="/share-bazar" className="ms-bloglink">আজকের পুরো বাজার বাংলায় পড়ুন →</Link>
+      </p>
       <p className="ms-bn-note">এটি শিক্ষামূলক তথ্য, বিনিয়োগ পরামর্শ নয়।</p>
     </section>
   );

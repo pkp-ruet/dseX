@@ -36,6 +36,12 @@ const PAGES: PageShortcut[] = [
     keys: ["today", "dsex", "index", "movers", "gainers", "losers", "আজ"],
   },
   {
+    href: "/share-bazar",
+    label: "আজকের শেয়ার বাজার",
+    sub: "Today's market in Bengali",
+    keys: ["bangla", "bengali", "share bazar", "bazar", "শেয়ার বাজার", "আজকের", "বাংলা"],
+  },
+  {
     href: "/dividend-calendar",
     label: "Dividend Calendar",
     sub: "Record dates, AGMs and cash payouts",

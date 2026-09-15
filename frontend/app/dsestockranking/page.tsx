@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import PageGuide from "@/components/seo/PageGuide";
 import Link from "next/link";
 import { flattenTiers, getMarketIndex, getScores } from "@/lib/api";
 import { getTier } from "@/lib/constants";
@@ -243,6 +244,52 @@ export default async function DseStockRankingPage() {
           এটি শেখার জন্য, বিনিয়োগের পরামর্শ নয়। কেনা বা বেচার আগে নিজে যাচাই করে নিন।
         </p>
       </section>
+
+      <PageGuide
+        title="How the DSE stock ranking works"
+        intro={[
+          <>
+            This is a <b>ranking of every operating company on the Dhaka Stock Exchange by the strength of its
+            business</b>, from strongest to weakest, rebuilt after every trading day. Each company gets a score
+            out of 100 from five checks on its own published accounts: earnings quality (30%), financial health
+            (20%), competitive strength (20%), valuation against its sector (15%) and dividend sustainability
+            (15%). Scores of 75 and above are labelled Excellent, 60 to 74 Good, 45 to 59 Average, and below 45
+            Weak.
+          </>,
+          <>
+            The same rules apply to all {allRanked.length} companies, with one honest exception: banks, NBFIs
+            and insurers are judged on the measures that fit a lender or an insurer (capital cushion, interest
+            margin, net margin) instead of debt ratios that mean nothing for them. A company whose latest annual
+            report is two or more years old is scored down for staleness, and DSE&apos;s Z-category listings are
+            scored down for irregular dividends.
+          </>,
+          <>
+            A high rank means a strong business, not a cheap share. Whether today&apos;s price is attractive is a
+            separate question, answered on each company page by the valuation check and the Buy or Sell signal,
+            and across the market on <Link href="/buy-sell-signals">Buy Signals</Link>. Nobody can pay to move
+            up this list.
+          </>,
+        ]}
+        bn="ব্যবসা কতটা শক্ত, সেটাই এই র‍্যাঙ্কিং বলে — আজকের দামটা সস্তা কি না, সেটা কোম্পানির পাতায় আলাদা করে দেখা হয়।"
+        faq={[
+          {
+            q: "What is the DSEF fundamental score?",
+            a: "A 0–100 score TopStockBD computes from a company's published financial statements and DSE prices, using five weighted checks: earnings quality, financial health, competitive strength, valuation and dividend sustainability. It measures business strength, not price momentum.",
+          },
+          {
+            q: "Does an Excellent rank mean I should buy the share?",
+            a: "No. The rank describes the company; the price is judged separately. A strong company can be expensive, and the site only shows a Buy signal when the score is Good or Excellent, the share is reasonably valued, trades enough to exit, and profits have not just dropped sharply.",
+          },
+          {
+            q: "How often is the DSE stock ranking updated?",
+            a: "Prices and signals refresh after every trading day at the 2:30 PM close. Scores change when a company publishes new annual or quarterly figures, and the whole list is recomputed daily so a new filing shows up the next morning.",
+          },
+          {
+            q: "Which stocks are not ranked?",
+            a: "Mutual funds, bonds, debentures and ETFs, because they have no business earnings to score. Companies that have never published an annual report on DSE are also left out until they do.",
+          },
+        ]}
+      />
       </div>
     </>
   );

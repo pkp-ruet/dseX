@@ -39,7 +39,11 @@ export const metadata: Metadata = {
     "শেয়ার বাজার আজ কেমন",
     "ঢাকা স্টক এক্সচেঞ্জ আজ",
   ],
-  alternates: { canonical: "/market-analysis" },
+  alternates: {
+    canonical: "/market-analysis",
+    // Reciprocal hreflang with the Bengali daily page (/share-bazar).
+    languages: { en: "/market-analysis", bn: "/share-bazar", "x-default": "/market-analysis" },
+  },
   openGraph: {
     title: TITLE,
     description:

@@ -66,19 +66,19 @@ export default function MarketMovers({ data, compact }: { data: MarketMoversData
 
       <div className={compact ? "movers-strip movers-strip--compact" : "movers-strip"}>
         <div className="info-col info-col--gainers">
-          <div className="info-col-header">Top Gainers</div>
+          <h2 className="info-col-header">Top Gainers Today</h2>
           {data.gainers.map((item) => (
             <MoverRow key={item.trading_code} item={item} metric="change" />
           ))}
         </div>
         <div className="info-col info-col--losers">
-          <div className="info-col-header">Top Losers</div>
+          <h2 className="info-col-header">Top Losers Today</h2>
           {data.losers.map((item) => (
             <MoverRow key={item.trading_code} item={item} metric="change" />
           ))}
         </div>
         <div className="info-col info-col--traded">
-          <div className="info-col-header">Most Traded</div>
+          <h2 className="info-col-header">Most Traded Today</h2>
           {data.most_traded.map((item) => (
             <MoverRow key={item.trading_code} item={item} metric="value" />
           ))}

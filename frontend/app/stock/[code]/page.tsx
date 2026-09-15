@@ -76,33 +76,32 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const epsFmt = eps != null ? eps.toFixed(1) : null;
   const divFmt = divPct != null ? Math.round(divPct) : null;
 
-  const descParts = [`৳${ltpFmt}`];
-  if (chgFmt) descParts.push(`${chgFmt}% today`);
-  const lead = descParts.join(" · ");
   const details: string[] = [];
   if (epsFmt) details.push(`EPS ৳${epsFmt}`);
   if (divFmt != null) details.push(`last dividend ${divFmt}%`);
-  const detailStr = details.length ? ` — ${details.join(", ")}` : "";
-  const description = `${lead}. ${name}${detailStr}. Full stock analysis with buy/sell signals & fundamentals. Free on TopStockBD.`;
+  const detailStr = details.length ? ` ${details.join(", ")}.` : "";
+  const description = `${name} (${code}) share price today ৳${ltpFmt}${chgFmt ? ` (${chgFmt}%)` : ""} on the Dhaka Stock Exchange.${detailStr} Dividend history, fundamental score, buy/sell signal and financials — free on TopStockBD.`;
 
   const ogDesc = `${name} · ৳${ltpFmt} today${epsFmt ? ` · EPS ৳${epsFmt}` : ""}${divFmt != null ? ` · Dividend ${divFmt}%` : ""}. Free DSE stock analysis on TopStockBD.`;
 
   const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
   return {
-    title: `${code} Stock Price & Analysis — ৳${ltpFmt}`,
+    // Company name first — people search "grameenphone share price", never "GP stock price".
+    // The price stays out of the title so it does not change on every crawl.
+    title: `${name} (${code}) Share Price, Dividend & Analysis`,
     description,
     alternates: { canonical: `/stock/${code}` },
     ...(unscored ? { robots: { index: false, follow: true } } : {}),
     openGraph: {
-      title: `${code} — ৳${ltpFmt}${chgFmt ? ` (${chgFmt}%)` : ""} | ${name} | TopStockBD`,
+      title: `${name} (${code}) — ৳${ltpFmt}${chgFmt ? ` (${chgFmt}%)` : ""} | TopStockBD`,
       description: ogDesc,
       type: "website",
       url: `${BASE}/stock/${code}`,
     },
     twitter: {
       card: "summary_large_image",
-      title: `${code} — ৳${ltpFmt}${chgFmt ? ` (${chgFmt}%)` : ""} | ${name} | TopStockBD`,
+      title: `${name} (${code}) — ৳${ltpFmt}${chgFmt ? ` (${chgFmt}%)` : ""} | TopStockBD`,
       description: ogDesc,
     },
   };
@@ -155,11 +154,13 @@ export default async function StockDetailPage({ params }: PageProps) {
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "FinancialProduct",
-    name: `${name} (${profile.trading_code})`,
-    description: `DSE listed equity. Fundamental analysis score: ${score ?? "--"}/100 (${tierLabel}).`,
-    provider: { "@type": "Organization", name: "Dhaka Stock Exchange" },
+    "@type": "Corporation",
+    name,
+    tickerSymbol: profile.trading_code,
+    ...(profile.sector ? { industry: profile.sector } : {}),
+    description: `${name} (${profile.trading_code}) is listed on the Dhaka Stock Exchange${profile.sector ? ` in the ${profile.sector} sector` : ""}. TopStockBD fundamental score: ${score ?? "--"}/100 (${tierLabel}).`,
     url: `${BASE}/stock/${code}`,
+    sameAs: `https://www.dsebd.org/displayCompany.php?name=${encodeURIComponent(profile.trading_code)}`,
   };
 
   const breadcrumbLd = {
