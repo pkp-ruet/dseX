@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Inter, Playfair_Display, Space_Grotesk, Hind_Siliguri } from "next/font/google";
 import "./globals.css";
@@ -49,6 +49,12 @@ import FeedbackPrompt from "@/components/feedback/FeedbackPrompt";
 import PushOptInPrompt from "@/components/push/PushOptInPrompt";
 import PushAlertBanner from "@/components/push/PushAlertBanner";
 import InstallPrompt from "@/components/pwa/InstallPrompt";
+
+// Same navy as the manifest theme_color so the browser chrome matches the navbar
+// in a normal tab too, not only when installed.
+export const viewport: Viewport = {
+  themeColor: "#2A3644",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com"),

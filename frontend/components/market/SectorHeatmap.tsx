@@ -28,7 +28,7 @@ function sectorColor(pct: number | null): string {
   if (pct > 0) return "#86efac";
   if (pct > -0.5) return "#fca5a5";
   if (pct > -2) return "#f87171";
-  return "#dc2626";
+  return "#b91c1c";
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -115,7 +115,7 @@ export default function SectorHeatmap({
   if (data.length === 0) return null;
 
   const legend: { c: string; label: string }[] = [
-    { c: "#dc2626", label: "< -2%" },
+    { c: "#b91c1c", label: "< -2%" },
     { c: "#f87171", label: "-2 to 0%" },
     { c: "#86efac", label: "0 to 0.5%" },
     { c: "#047857", label: "> 2%" },

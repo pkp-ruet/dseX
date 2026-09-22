@@ -32,7 +32,7 @@ export const TIER_COLORS = {
   excellent: "#047857",
   good:      "#185FA5",   // true blue — distinct from emerald Excellent + indigo primary
   average:   "#B45309",
-  weak:      "#DC2626",
+  weak:      "#B91C1C",
 } as const;
 
 /** Canonical tier → CSS-token color. Use this everywhere (badges, pills,

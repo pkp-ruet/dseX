@@ -30,10 +30,9 @@
   --warm-ink: #6E5622;
 
   --positive: #047857;      /* emerald — gain / buy (LOCKED market semantic) */
-  --negative: #DC2626;      /* red — loss / sell (LOCKED market semantic) */
-  --bg: #FAF7F0;            /* warm cream canvas */
-  --bg-gradient: linear-gradient(180deg, #FDFBF6 0%, #FAF7F0 55%, #F4EFE4 100%);
-  --border: #E4DDCD;        /* warm hairline */
+  --negative: #B91C1C;      /* red — loss / sell (LOCKED market semantic; one step deeper than #DC2626 so it clears AA on --surface-2) */
+  --bg: #F6F1E7;            /* warm cream canvas — one step deeper than the old #FAF7F0 so white cards lift off it */
+  --border: #DED6C3;        /* warm hairline (deepened with the canvas so it still reads) */
   --text: #2E2B26;          /* charcoal ink */
   --text-muted: #5C554A;    /* warm stone — strong secondary text, no washed-out gray */
   --radius: 10px;
@@ -63,7 +62,7 @@
   --tier-excellent: #047857;   /* emerald */
   --tier-good: #4E7292;        /* steel blue */
   --tier-average: #64748B;     /* slate — neutral */
-  --tier-weak: #DC2626;        /* red */
+  --tier-weak: #B91C1C;        /* red (matches --negative) */
   --safe-buy: #4E7292;         /* info-blue accent (not a tier) */
   --watch: #B45309;            /* burnt-amber warn token (not a tier) */
 
@@ -71,7 +70,7 @@
   --ink: #2E2B26;
   --ink-2: #5C554A;
   --ink-muted: #5C554A;     /* warm stone — matches --text-muted, no washed-out gray */
-  --rule: #E4DDCD;
+  --rule: #DED6C3;
   --rule-dark: var(--ink-2);
   --gold: #C6A96B;          /* real gold — premium accent (stars, dividends, "best") */
   --gold-light: #F3ECDA;
@@ -80,15 +79,16 @@
   --np-safe:     #4E7292;
   --np-cautious: #B45309;
   --np-watch:    #B45309;
-  --np-danger:   #DC2626;
+  --np-danger:   #B91C1C;
   --cell-rule: #EFE8DA;
   --surface: #FFFFFF;
-  --surface-2: #F1ECE1;
+  --surface-2: #EFEADF;   /* inset panel — kept light enough that emerald/red text stay AA on it */
 }
 
 body {
-  background: var(--bg-gradient, var(--bg));
-  background-attachment: fixed;
+  /* Flat canvas on purpose: the old fixed-attachment gradient was ignored by iOS
+     Safari and forced full repaints on Android Chrome while scrolling. */
+  background: var(--bg);
   color: var(--text);
   font-family: var(--font-inter), system-ui, sans-serif;
 }
@@ -2333,7 +2333,7 @@ a:hover .ticker-tag,
   transition: width 0.4s ease;
 }
 .mib-breadth-seg-up   { background: linear-gradient(90deg, var(--positive), var(--positive)); }
-.mib-breadth-seg-dn   { background: linear-gradient(90deg, #DC2626, var(--negative)); }
+.mib-breadth-seg-dn   { background: linear-gradient(90deg, var(--negative), var(--negative)); }
 .mib-breadth-seg-flat { background: linear-gradient(90deg, #475569, var(--text-muted)); }
 
 .mib-breadth-counts {
@@ -5177,7 +5177,7 @@ a:hover .ticker-tag,
   width: 100%;
   height: 100vh;
   height: 100dvh;
-  background: var(--bg-gradient, var(--bg));
+  background: var(--bg);
   transform: translateX(100%);
   transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
