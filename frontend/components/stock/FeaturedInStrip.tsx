@@ -50,7 +50,7 @@ export default function FeaturedInStrip({ entries, max = 5 }: Props) {
           ))}
 
           {extra > 0 && (
-            <Button variant="ghost" size="sm" href="/stock-insights" className="rounded-full">
+            <Button variant="quiet" size="sm" href="/stock-insights" className="rounded-full">
               +{extra} more
             </Button>
           )}

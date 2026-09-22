@@ -10,6 +10,7 @@ import {
 } from "@/lib/watchlist";
 import { isLoggedIn } from "@/lib/auth";
 import { toast } from "@/lib/toast";
+import Button from "@/components/ui/Button";
 
 interface Props {
   code: string;
@@ -49,8 +50,11 @@ export default function WatchlistButton({ code, className = "" }: Props) {
   };
 
   return (
-    <button
+    <Button
       type="button"
+      variant="quiet"
+      size="sm"
+      active={watched}
       onClick={handleClick}
       aria-label={watched ? `Remove ${code} from watchlist` : `Add ${code} to watchlist`}
       title={
@@ -62,8 +66,7 @@ export default function WatchlistButton({ code, className = "" }: Props) {
               : "Sign in to save"
           : undefined
       }
-      className={`add-watchlist-btn ${watched ? "add-watchlist-btn--on" : ""} ${className}`}
-      style={{ visibility: mounted ? "visible" : "hidden" }}
+      className={`${mounted ? "" : "invisible"} ${className}`.trim()}
     >
       <svg
         width="14"
@@ -79,6 +82,6 @@ export default function WatchlistButton({ code, className = "" }: Props) {
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
       </svg>
       <span>{watched ? "Saved" : "Watchlist"}</span>
-    </button>
+    </Button>
   );
 }

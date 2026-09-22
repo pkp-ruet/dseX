@@ -5,7 +5,7 @@ import { formatDate } from "@/lib/formatters";
 import StocksTable from "@/components/stocks/StocksTable";
 import ErrorState from "@/components/ui/ErrorState";
 import PageGuide from "@/components/seo/PageGuide";
-import Bn from "@/components/i18n/Bn";
+import PageHeader from "@/components/ui/PageHeader";
 
 export const revalidate = 86400;
 
@@ -86,13 +86,12 @@ export default async function StocksPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="sl-page-header">
-        <h1 className="sl-page-title">DSE Latest Share Price — All Stocks</h1>
-        <p className="sl-page-sub">
-          {items.length} companies{dateLabel ? ` · official close of ${dateLabel}` : ""} · Click any column header to sort
-        </p>
-        <Bn className="page-h1-bn">ঢাকা স্টক এক্সচেঞ্জের সব শেয়ারের আজকের দাম এক টেবিলে — দাম, আয়, ডিভিডেন্ড আর স্কোর।</Bn>
-      </div>
+      <PageHeader
+        eyebrow="Dhaka Stock Exchange"
+        title="DSE Latest Share Price — All Stocks"
+        bn="ঢাকা স্টক এক্সচেঞ্জের সব শেয়ারের আজকের দাম এক টেবিলে — দাম, আয়, ডিভিডেন্ড আর স্কোর।"
+        lead={<>{items.length} companies{dateLabel ? ` · official close of ${dateLabel}` : ""} · tap any column header to sort</>}
+      />
       <StocksTable items={items} />
 
       <PageGuide

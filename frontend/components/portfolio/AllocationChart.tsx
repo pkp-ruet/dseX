@@ -5,6 +5,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import type { AnalysisLang, PortfolioAnalysis } from "@/lib/portfolio-analysis";
 import { taka, takaCompact } from "@/lib/formatters";
 import Card from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
 
 // Numbers inside Bengali prose stay Western (9, 6.1%) — matches the rest of the
 // site and avoids webfont glyph issues with Bengali numerals on some devices.
@@ -50,8 +51,8 @@ interface Props {
 }
 
 const COLORS = [
-  "var(--primary)", "var(--positive)", "#EA580C", "#6366F1", "#DB2777",
-  "#0891B2", "#CA8A04", "#9333EA", "#DC2626", "#0D9488",
+  "var(--primary)", "var(--info)", "var(--gold)", "var(--warm)", "var(--navy-soft)",
+  "var(--positive)", "var(--primary-soft)", "var(--info-soft)", "var(--gold-soft)", "var(--text-muted)",
 ];
 const OTHERS_COLOR = "var(--text-muted)";
 
@@ -104,38 +105,38 @@ export default function AllocationChart({ analysis, lang = "en" }: Props) {
   const showEff = n >= 3 && eff > 0 && eff < n - 0.75;
 
   return (
-    <Card as="section" padding="none" className="rounded-2xl p-5 sm:p-6">
+    <Card as="section" padding="none" className="rounded-xl p-5 sm:p-6">
       {/* Header + toggle */}
       <div className="flex items-center gap-2.5 mb-1 flex-wrap">
-        <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--primary)]/15 border border-[var(--primary)]/30 text-[var(--primary)]">
+        <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/15 border border-primary/30 text-primary">
           <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M21 15.9A10 10 0 1 1 8 3" />
             <path d="M22 12A10 10 0 0 0 12 2v10z" />
           </svg>
         </span>
         <h3
-          className={`text-sm sm:text-[15px] uppercase tracking-wider font-bold text-[var(--text)] ${bnText}`}
+          className={`text-sm sm:text-base uppercase tracking-wider font-bold text-text-main ${bnText}`}
         >
           {t.title}
         </h3>
-        <div className="ml-auto inline-flex rounded-lg border border-[var(--border)] overflow-hidden text-xs">
+        <div className="ml-auto inline-flex rounded-full bg-surface-2 p-0.5" role="group" aria-label="Allocation basis">
           {(["invested", "market"] as Basis[]).map((b) => (
-            <button
+            <Button
               key={b}
               type="button"
+              variant="tab"
+              size="sm"
+              active={basis === b}
+              aria-pressed={basis === b}
               onClick={() => setBasis(b)}
-              className={`px-3 py-1.5 font-semibold transition-colors ${bnText} ${
-                basis === b
-                  ? "bg-[var(--primary)] text-white"
-                  : "bg-transparent text-[var(--text-muted)] hover:text-[var(--text)]"
-              }`}
+              className={bnText}
             >
               {b === "invested" ? t.invested : t.market}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
-      <p className={`text-sm text-[var(--ink-2)] mb-5 leading-relaxed ${bnText}`}>
+      <p className={`text-sm text-text-muted mb-5 leading-relaxed ${bnText}`}>
         {t.desc(basis)}
       </p>
 
@@ -174,12 +175,12 @@ export default function AllocationChart({ analysis, lang = "en" }: Props) {
           </ResponsiveContainer>
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <span
-              className={`text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-bold ${bnText}`}
+              className={`text-xs uppercase tracking-wider text-text-muted font-bold ${bnText}`}
             >
               {basis === "invested" ? t.centerInvested : t.centerValue}
             </span>
             {/* takaCompact: the 116px donut hole cannot hold an ungrouped 11-digit total */}
-            <span className="text-base font-black text-[var(--text)] tabular-nums leading-tight">
+            <span className="text-base font-black text-text-main tabular-nums leading-tight">
               {takaCompact(total)}
             </span>
           </div>
@@ -190,10 +191,10 @@ export default function AllocationChart({ analysis, lang = "en" }: Props) {
           {slices.map((s) => (
             <div key={s.name} className="flex items-center gap-3">
               <span className="w-3 h-3 rounded-full shrink-0" style={{ background: s.color }} />
-              <span className="text-sm font-semibold flex-1 min-w-0 truncate text-[var(--text)]">
+              <span className="text-sm font-semibold flex-1 min-w-0 truncate text-text-main">
                 {s.name}
               </span>
-              <span className="text-sm text-[var(--text-muted)] tabular-nums">{taka(s.value, 0)}</span>
+              <span className="text-sm text-text-muted tabular-nums">{taka(s.value, 0)}</span>
               <span className="text-sm font-black tabular-nums w-12 text-right" style={{ color: s.color }}>
                 {((s.value / total) * 100).toFixed(0)}%
               </span>
@@ -202,9 +203,9 @@ export default function AllocationChart({ analysis, lang = "en" }: Props) {
         </div>
       </div>
 
-      <p className={`text-sm text-[var(--text-muted)] mt-5 leading-relaxed ${bnText}`}>{note}</p>
+      <p className={`text-sm text-text-muted mt-5 leading-relaxed ${bnText}`}>{note}</p>
       {showEff && (
-        <p className={`text-xs text-[var(--text-muted)] mt-2 leading-relaxed ${bnText}`}>
+        <p className={`text-xs text-text-muted mt-2 leading-relaxed ${bnText}`}>
           {t.effective(eff.toFixed(1), n)}
         </p>
       )}

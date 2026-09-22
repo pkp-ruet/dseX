@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { STOCK_LISTS } from "@/lib/stock-lists";
+import PageHeader from "@/components/ui/PageHeader";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
@@ -72,18 +73,15 @@ const featuredLists = [
 
 export default function StockInsightsPage() {
   return (
-    <main className="ed-page">
+    <div className="page-narrow">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      {/* Masthead */}
-      <header>
-        <div className="ed-kicker">
-          <span className="dot" aria-hidden="true" />
-          Stock Lists
-        </div>
-        <h1 className="ed-headline">Best Stocks on the DSE</h1>
-        <p className="ed-dek">Simple, clear stock picks from the Dhaka Stock Exchange — updated daily.</p>
-      </header>
+      <PageHeader
+        eyebrow="Stock Lists"
+        title="Best Stocks on the DSE"
+        bn="ডিভিডেন্ড, আয়, দাম — যে দিক থেকে খুশি, তৈরি করা তালিকা থেকে শেয়ার বেছে নিন।"
+        lead="Simple, clear stock picks from the Dhaka Stock Exchange — updated daily."
+      />
 
       {/* Featured */}
       <div className="ed-section-label">Featured this week</div>
@@ -126,13 +124,13 @@ export default function StockInsightsPage() {
 
       {/* Footer CTA */}
       <div className="ed-nav">
-        <Link href="/dsestockranking" className="ed-btn ed-btn-primary">
+        <Link href="/dsestockranking" className="btn-primary">
           See the full leaderboard
         </Link>
-        <Link href="/" className="ed-btn ed-btn-ghost">
+        <Link href="/" className="btn-quiet">
           Back home
         </Link>
       </div>
-    </main>
+    </div>
   );
 }

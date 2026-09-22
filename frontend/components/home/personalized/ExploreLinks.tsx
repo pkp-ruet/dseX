@@ -129,7 +129,7 @@ export default function ExploreLinks({ lang = "en" }: { lang?: Lang }) {
             style={accVars(r.acc)}
             // Kept as Tailwind utilities, NOT .acc-card: that class sets
             // `background` in plain CSS, which would beat `active:bg-*` here.
-            className={`flex items-center gap-3 rounded-xl border border-[color-mix(in_srgb,var(--acc)_22%,var(--border))] bg-[var(--surface)] px-3 py-3 transition-colors hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)]${isBn ? " font-bn" : ""}`}
+            className={`flex items-center gap-3 rounded-xl border border-[color-mix(in_srgb,var(--acc)_22%,var(--border))] bg-surface px-3 py-3 transition-colors hover:bg-surface-2 active:bg-surface-2${isBn ? " font-bn" : ""}`}
           >
             <span
               className="grid h-9 w-9 shrink-0 place-items-center rounded-lg"
@@ -139,8 +139,8 @@ export default function ExploreLinks({ lang = "en" }: { lang?: Lang }) {
               {r.icon}
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-[0.9rem] font-bold leading-tight text-[var(--text)]">{bn ? r.label[1] : r.label[0]}</span>
-              <span className="block truncate text-[0.75rem] text-[var(--text-muted)]">{bn ? r.sub[1] : r.sub[0]}</span>
+              <span className="block text-sm font-bold leading-tight text-text-main">{bn ? r.label[1] : r.label[0]}</span>
+              <span className="block truncate text-xs text-text-muted">{bn ? r.sub[1] : r.sub[0]}</span>
             </span>
             <span className="shrink-0" style={{ color: "var(--acc, var(--primary))" }} aria-hidden>
               <IconArrowRight size={14} />

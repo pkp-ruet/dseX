@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import PageHeader from "@/components/ui/PageHeader";
 import ChatSurface from "@/components/assistant/ChatSurface";
 import { PERSONA } from "@/lib/assistant/persona";
 
@@ -59,27 +60,24 @@ export default function AssistantPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <main className="mx-auto max-w-xl px-4 py-6 sm:py-10 space-y-5">
-        <header className="text-center space-y-2">
-          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text)]">
-            Ask {PERSONA.name} about DSE stocks
-          </h1>
-          <p className="text-sm sm:text-base leading-relaxed text-[var(--text-muted)]">
-            Your free stock helper. Get suggestions that fit you, see how the market is doing
-            today, or ask a quick question about any share — just tap a button or type.
-          </p>
-        </header>
+      <div className="page-narrow space-y-5">
+        <PageHeader
+          eyebrow="TopStock AI"
+          title={<>Ask {PERSONA.name} about DSE stocks</>}
+          bn="শেয়ার নিয়ে যে কোনো প্রশ্ন সহজ ভাষায় করুন — উত্তর পাবেন সঙ্গে সঙ্গে।"
+          lead="Your free stock helper. Get suggestions that fit you, see how the market is doing today, or ask a quick question about any share — just tap a button or type."
+        />
 
         <ChatSurface variant="page" />
 
-        <p className="text-center text-[0.72rem] leading-relaxed text-[var(--text-muted)]">
+        <p className="text-center text-xs leading-relaxed text-text-muted">
           Ideas for learning, not financial advice. Always do your own research.{" "}
-          <Link href="/dsestockranking" className="text-[var(--primary)] hover:underline">
+          <Link href="/dsestockranking" className="text-primary hover:underline">
             See the full rankings
           </Link>
           .
         </p>
-      </main>
+      </div>
     </>
   );
 }

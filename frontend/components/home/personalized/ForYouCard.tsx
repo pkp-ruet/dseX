@@ -19,7 +19,7 @@ const SPARKLE = (
   </svg>
 );
 
-const TIPS_ACCENT = "#0D9488";
+const TIPS_ACCENT = "var(--positive)";
 
 const SPARKLE_SM = (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -106,7 +106,7 @@ export default function ForYouCard({
         }`}
         style={isActive ? { background: accent } : undefined}
       >
-        <span className="shrink-0" style={{ color: isActive ? "#fff" : accent }} aria-hidden>
+        <span className="shrink-0" style={{ color: isActive ? "var(--surface)" : accent }} aria-hidden>
           {icon}
         </span>
         {label}
@@ -114,7 +114,7 @@ export default function ForYouCard({
           className="inline-flex min-w-[1.3rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[0.68rem] font-extrabold tabular-nums leading-none"
           style={
             isActive
-              ? { background: "rgba(255,255,255,0.24)", color: "#fff" }
+              ? { background: "color-mix(in srgb, var(--surface) 24%, transparent)", color: "var(--surface)" }
               : { background: `color-mix(in srgb, ${accent} 13%, transparent)`, color: accent }
           }
         >

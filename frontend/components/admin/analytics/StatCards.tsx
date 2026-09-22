@@ -17,7 +17,7 @@ export default function StatCards({ cards }: { cards: StatCard[] }) {
           <p className="text-2xl font-bold tabular-nums nums" style={{ color: c.accent ?? "var(--text)" }}>
             {c.value}
           </p>
-          <p className="text-xs text-[var(--text-muted)] mt-1 leading-tight">{c.label}</p>
+          <p className="text-xs text-text-muted mt-1 leading-tight">{c.label}</p>
         </Card>
       ))}
     </div>

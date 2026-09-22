@@ -55,21 +55,21 @@ export default function StreakBadge({ leadingDot = false }: { leadingDot?: boole
 
   return (
     <span
-      className="inline-flex items-center gap-1 text-sm text-[var(--text-muted)]"
+      className="inline-flex items-center gap-1 text-sm text-text-muted"
       title={`Longest streak: ${streak?.longest_streak ?? current} days`}
     >
       {leadingDot && <span aria-hidden>·</span>}
       <span aria-hidden>🔥</span>
-      <span className="font-medium text-[var(--text)]">{label}</span>
+      <span className="font-medium text-text-main">{label}</span>
       {showMilestone && milestone > 0 && (
-        <span className="ml-1 inline-flex items-center gap-1 font-semibold text-[var(--primary)]">
+        <span className="ml-1 inline-flex items-center gap-1 font-semibold text-primary">
           <span aria-hidden>·</span>
           {MILESTONE_COPY[milestone] ?? `${milestone}-day streak!`}
           <button
             type="button"
             onClick={dismiss}
             aria-label="Dismiss"
-            className="text-[var(--primary)]/70 hover:text-[var(--primary)]"
+            className="text-primary/70 hover:text-primary"
           >
             ✕
           </button>

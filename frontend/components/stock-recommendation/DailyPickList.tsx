@@ -59,7 +59,7 @@ export default function DailyPickList({
 
   if (picks.length === 0) {
     return (
-      <p className="text-center text-sm text-[var(--text-muted)] py-8">
+      <p className="text-center text-sm text-text-muted py-8">
         No picks right now — try tuning your preferences.
       </p>
     );

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import {
   ApiNotFoundError, getDeepAnalysis, getDeepAnalysisCodes, getCompanyDetail,
 } from "@/lib/api";
+import { money, changePct as fmtChangePct, changeTone } from "@/lib/formatters";
 import DeepAnalysisReport from "@/components/stock/DeepAnalysisReport";
 import StockVisitTracker from "@/components/analytics/StockVisitTracker";
 
@@ -121,7 +122,6 @@ export default async function StockAnalysisPage({ params }: PageProps) {
     ],
   };
 
-  const chgColor = changePct == null ? "var(--text-muted)" : changePct >= 0 ? "var(--positive)" : "var(--negative)";
 
   return (
     <>
@@ -130,12 +130,11 @@ export default async function StockAnalysisPage({ params }: PageProps) {
 
       <StockVisitTracker code={tradingCode} />
 
-      <div className="max-w-3xl mx-auto py-4 sm:py-6">
+      <div className="page-narrow py-4 sm:py-6">
         {/* Breadcrumb / back to the full stock page */}
         <Link
           href={`/stock/${tradingCode}`}
-          className="inline-flex items-center gap-1.5 text-sm mb-4 hover:opacity-80"
-          style={{ color: "var(--text-muted)" }}
+          className="inline-flex min-h-10 items-center gap-1.5 text-sm mb-4 text-text-muted hover:text-text-main"
         >
           <span aria-hidden>←</span> {tradingCode} · {name}
         </Link>
@@ -143,12 +142,12 @@ export default async function StockAnalysisPage({ params }: PageProps) {
         {/* Live price header (falls back to name-only when the detail fetch fails) */}
         {ltp != null && (
           <div className="flex items-baseline gap-3 mb-6">
-            <span className="text-2xl font-bold tabular-nums" style={{ color: "var(--text)" }}>
-              ৳{ltp >= 100 ? Math.round(ltp).toLocaleString("en-US") : ltp.toFixed(1)}
+            <span className="text-2xl font-bold tabular-nums text-text-main">
+              {money(ltp)}
             </span>
             {changePct != null && (
-              <span className="text-sm font-semibold tabular-nums" style={{ color: chgColor }}>
-                {changePct >= 0 ? "+" : ""}{changePct.toFixed(2)}% today
+              <span className={`text-sm font-semibold tabular-nums ${changeTone(changePct)}`}>
+                {fmtChangePct(changePct)} today
               </span>
             )}
           </div>
@@ -159,8 +158,7 @@ export default async function StockAnalysisPage({ params }: PageProps) {
         {/* Back to the numbers */}
         <Link
           href={`/stock/${tradingCode}`}
-          className="inline-flex items-center gap-1.5 mt-10 rounded-full px-5 py-2.5 text-sm font-semibold"
-          style={{ background: "var(--surface-2)", color: "var(--text)", border: "1px solid var(--border)" }}
+          className="btn-quiet mt-10 whitespace-normal text-left"
         >
           See price chart, financials &amp; signals for {tradingCode}
           <span aria-hidden>→</span>

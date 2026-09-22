@@ -20,23 +20,23 @@ export default function SectorScoringNote({
         <span className="section-rule-text">How {sectorName} Companies Are Scored</span>
       </div>
 
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3.5 sm:p-4">
-        <span className="inline-flex items-center rounded-full border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+      <div className="rounded-xl border border-border bg-surface-2 p-3.5 sm:p-4">
+        <span className="inline-flex items-center rounded-full border border-border bg-surface px-2.5 py-1 text-xs font-extrabold uppercase tracking-[0.14em] text-text-muted">
           Scoring template · {note.label}
         </span>
 
-        <p className="mt-2.5 text-[0.86rem] font-medium leading-relaxed text-[var(--text)]">
+        <p className="mt-2.5 text-sm font-medium leading-relaxed text-text-main">
           {note.en}
         </p>
-        <Bn className="mt-2 text-[0.9rem] font-medium leading-[1.85] text-[var(--text-muted)]">
+        <Bn className="mt-2 text-sm font-medium leading-[1.85] text-text-muted">
           {note.bn}
         </Bn>
 
-        <p className="mt-3 text-[0.78rem] font-semibold text-[var(--text-muted)]">
+        <p className="mt-3 text-xs font-semibold text-text-muted">
           Every company gets one score out of 100 from five parts — earnings quality, financial
           health, efficiency, valuation and dividend. Where a company never reported a figure,
           that part&apos;s weight shifts to the parts it did report rather than counting as zero.{" "}
-          <Link href="/about" className="text-[var(--primary)] underline">
+          <Link href="/about" className="text-primary underline">
             See the full method
           </Link>
           .

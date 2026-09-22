@@ -19,11 +19,11 @@ export default function RecordDateBoard({ events }: { events: CorporateActionEve
         <span className="section-rule-text">Upcoming Record Dates</span>
       </div>
 
-      <p className="mb-1 text-[0.88rem] font-semibold text-[var(--text)]">
+      <p className="mb-1 text-sm font-semibold text-text-main">
         Own the share on the record date and the dividend is yours — the company pays
         whoever is on the register that day, not whoever holds it later.
       </p>
-      <Bn className="mb-4 text-[0.9rem] font-medium leading-[1.85] text-[var(--text-muted)]">
+      <Bn className="mb-4 text-sm font-medium leading-[1.85] text-text-muted">
         রেকর্ড ডেটের দিন যার নামে শেয়ার থাকবে, লভ্যাংশ সে-ই পাবে — পরে কিনলে এই লভ্যাংশ পাওয়া যাবে না।
       </Bn>
 
@@ -44,10 +44,10 @@ export default function RecordDateBoard({ events }: { events: CorporateActionEve
 
           {nonPaying.length > 0 && (
             <div className="mt-5">
-              <h3 className="mb-1 text-[0.82rem] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
+              <h3 className="mb-1 text-sm font-extrabold uppercase tracking-[0.13em] text-text-muted">
                 Record date, but no dividend declared
               </h3>
-              <p className="mb-3 text-[0.8rem] font-semibold text-[var(--text-muted)]">
+              <p className="mb-3 text-sm font-semibold text-text-muted">
                 These companies declared no dividend this time. The record date only fixes who
                 can attend and vote at the AGM.
               </p>

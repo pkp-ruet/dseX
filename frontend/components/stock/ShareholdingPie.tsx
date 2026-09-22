@@ -108,7 +108,7 @@ export default function ShareholdingPie({ shareholding, previous = null }: Props
                   <span className="text-sm flex-1 min-w-0" style={{ color: "var(--text-muted)" }}>{c.label}</span>
                   {delta != null && (
                     <span
-                      className="text-[11px] font-bold tabular-nums nums px-1.5 py-0.5 rounded-full"
+                      className="text-xs font-bold tabular-nums nums px-1.5 py-0.5 rounded-full"
                       title={prevAsOf ? `Change since ${prevAsOf}` : "Change since the previous report"}
                       style={{
                         color: delta > 0 ? "var(--positive)" : "var(--negative)",

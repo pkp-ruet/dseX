@@ -102,7 +102,7 @@ export default function PriceChart({ code }: Props) {
               {caption}
             </p>
           )}
-          <Bn className="text-[0.9rem] font-medium mt-1" >
+          <Bn className="text-sm font-medium mt-1" >
             <span style={{ color: "var(--text-muted)" }}>শেয়ারের দাম সময়ের সাথে কীভাবে বদলেছে, এক নজরে।</span>
           </Bn>
         </div>
@@ -134,7 +134,7 @@ export default function PriceChart({ code }: Props) {
           <div className="h-[320px] flex flex-col items-center justify-center gap-2 text-sm px-6 text-center">
             <span style={{ color: "var(--negative)" }}>Couldn't load price chart.</span>
             <span className="text-xs" style={{ color: "var(--text-muted)" }}>{error}</span>
-            <span className="text-[11px] mt-1" style={{ color: "var(--text-muted)" }}>
+            <span className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
               Check the browser console for details.
             </span>
           </div>
@@ -216,7 +216,7 @@ export default function PriceChart({ code }: Props) {
         )}
       </div>
       {hasVolume && (
-        <p className="text-[11px] mt-2 px-1" style={{ color: "var(--text-muted)" }}>
+        <p className="text-xs mt-2 px-1" style={{ color: "var(--text-muted)" }}>
           Gray bars along the bottom show how many shares changed hands each day.
         </p>
       )}

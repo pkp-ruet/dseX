@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { apiLogin, type AuthApiResponse } from "@/lib/api";
 import { loadWatchlist } from "@/lib/watchlist";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+import PageHeader from "@/components/ui/PageHeader";
 
 type Mode = "email" | "phone";
 
@@ -49,28 +50,28 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center py-12">
-      <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold mb-1 text-[var(--text)]">Sign In</h1>
-        <p className="text-sm text-[var(--text-muted)] mb-6">
-          Welcome back to TopStockBD
-        </p>
+    <div className="page-form pb-8">
+      <PageHeader
+        size="article"
+        title="Sign In"
+        bn="আবার স্বাগতম — লগইন করলে আপনার ওয়াচলিস্ট আর পোর্টফোলিও সব ডিভাইসে পাবেন।"
+        lead="Welcome back to TopStockBD"
+      />
+      <div>
 
         <GoogleSignInButton onSuccess={handleGoogleSuccess} onError={setError} />
         <div className="auth-divider my-5">or</div>
 
-        {/* Mode toggle */}
-        <div className="flex gap-1 mb-5 p-1 rounded-lg bg-[var(--surface)] border border-[var(--border)]">
+        {/* Mode toggle — segmented control, each member a 40px .btn-tab */}
+        <div className="flex gap-1 mb-5 p-1 rounded-lg bg-surface border border-border" role="tablist" aria-label="Sign-in method">
           {(["email", "phone"] as Mode[]).map((m) => (
             <button
               key={m}
               type="button"
+              role="tab"
+              aria-selected={mode === m}
               onClick={() => { setMode(m); setIdentifier(""); setError(""); }}
-              className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                mode === m
-                  ? "bg-[var(--accent)] text-white"
-                  : "text-[var(--text-muted)] hover:text-[var(--text)]"
-              }`}
+              className={`btn-tab flex-1 ${mode === m ? "is-active" : ""}`}
             >
               {m === "email" ? "Email" : "Phone"}
             </button>
@@ -79,7 +80,7 @@ export default function LoginForm() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <label htmlFor="login-1" className="text-sm font-medium text-[var(--text)]">
+            <label htmlFor="login-1" className="text-sm font-medium text-text-main">
               {mode === "email" ? "Email address" : "Phone number"}
             </label>
             <input id="login-1"
@@ -94,7 +95,7 @@ export default function LoginForm() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label htmlFor="login-2" className="text-sm font-medium text-[var(--text)]">Password</label>
+            <label htmlFor="login-2" className="text-sm font-medium text-text-main">Password</label>
             <div className="relative">
               <input id="login-2"
                 type={showPw ? "text" : "password"}
@@ -108,7 +109,7 @@ export default function LoginForm() {
               <button
                 type="button"
                 onClick={() => setShowPw(!showPw)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text)]"
+                className="absolute right-1 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md text-text-muted hover:text-text-main active:bg-surface-2"
                 aria-label={showPw ? "Hide password" : "Show password"}
               >
                 {showPw ? (
@@ -139,9 +140,9 @@ export default function LoginForm() {
           </button>
         </form>
 
-        <p className="mt-5 text-sm text-center text-[var(--text-muted)]">
+        <p className="mt-5 text-sm text-center text-text-muted">
           No account?{" "}
-          <Link href="/register" className="text-[var(--accent)] hover:underline font-medium">
+          <Link href="/register" className="text-primary hover:underline font-medium">
             Create one
           </Link>
         </p>

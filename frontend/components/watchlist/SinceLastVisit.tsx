@@ -105,7 +105,7 @@ export default function SinceLastVisit({ codes, rows, news, dividendSoon }: Prop
       role="status"
     >
       <span
-        className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg text-[var(--primary)]"
+        className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg text-primary"
         style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)" }}
         aria-hidden
       >
@@ -115,7 +115,7 @@ export default function SinceLastVisit({ codes, rows, news, dividendSoon }: Prop
         </svg>
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-sm leading-snug text-[var(--text)]">
+        <p className="text-sm leading-snug text-text-main">
           <span className="font-bold">Since {sinceLabel(prevMs)}:</span> {joinEn(en)}.
           {lead && (
             <>
@@ -124,7 +124,7 @@ export default function SinceLastVisit({ codes, rows, news, dividendSoon }: Prop
               <Link
                 prefetch={false}
                 href={`/stock/${lead.trading_code}`}
-                className="font-bold text-[var(--primary)] hover:underline"
+                className="font-bold text-primary hover:underline"
               >
                 {lead.trading_code}
               </Link>{" "}
@@ -139,7 +139,7 @@ export default function SinceLastVisit({ codes, rows, news, dividendSoon }: Prop
             </>
           )}
         </p>
-        <p lang="bn" className="font-bn mt-0.5 text-[13px] font-medium leading-snug text-[var(--text-muted)]">
+        <p lang="bn" className="font-bn mt-0.5 text-sm font-medium leading-snug text-text-muted">
           শেষবার দেখার পর: {bn.join(", ")}।
         </p>
       </div>

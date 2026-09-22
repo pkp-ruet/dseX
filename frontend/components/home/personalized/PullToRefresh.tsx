@@ -115,7 +115,7 @@ export default function PullToRefresh({
         }}
         aria-hidden
       >
-        <span className="mt-2 grid h-9 w-9 place-items-center rounded-full border border-[var(--border)] bg-[var(--surface)] shadow-md">
+        <span className="mt-2 grid h-9 w-9 place-items-center rounded-full border border-border bg-surface shadow-md">
           <svg
             className={refreshing ? "animate-spin" : ""}
             style={!refreshing ? { transform: `rotate(${progress * 270}deg)` } : undefined}

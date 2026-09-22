@@ -57,12 +57,12 @@ export default function TuneModal({
       onClick={() => !submitting && onClose()}
     >
       <div
-        className="w-full sm:max-w-xl max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-[var(--surface)] p-5 sm:p-6 shadow-xl"
+        className="w-full sm:max-w-xl max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-surface p-5 sm:p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4">
-          <h3 className="text-xl font-extrabold text-[var(--text)]">Tune your picks</h3>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">
+          <h3 className="text-xl font-extrabold text-text-main">Tune your picks</h3>
+          <p className="mt-1 text-sm text-text-muted">
             Answer a few questions — we&apos;ll match your daily picks to your goals.
           </p>
         </div>

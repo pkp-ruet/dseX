@@ -67,13 +67,13 @@ export default function PageSkeleton({ variant = "table", rows = 8 }: Props) {
       ) : (
         <div className="soft-card overflow-hidden">
           {variant === "table" && (
-            <div className="flex flex-wrap gap-2 border-b border-[var(--border)] p-3">
+            <div className="flex flex-wrap gap-2 border-b border-border p-3">
               <Skeleton width="40%" height={34} rounded="10px" />
               <Skeleton width={140} height={34} rounded="10px" />
               <Skeleton width={110} height={34} rounded="10px" />
             </div>
           )}
-          <div className="divide-y divide-[var(--border)]">
+          <div className="divide-y divide-border">
             {Array.from({ length: rows }).map((_, i) => (
               <div key={i} className="flex items-center gap-3 px-3 py-3">
                 <Skeleton width={28} height={28} rounded="8px" />

@@ -22,27 +22,27 @@ function NewsItem({ item }: { item: WatchlistNewsItem }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <Card padding="none" className="group relative flex flex-col gap-2 p-4 hover:shadow-md hover:border-[var(--primary)] transition-all duration-200">
+    <Card padding="none" className="group relative flex flex-col gap-2 p-4 hover:shadow-lift hover:border-primary transition-all duration-200">
       <div className="flex items-center justify-between gap-2">
         <Link
           prefetch={false} href={`/stock/${item.trading_code}`}
-          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide bg-[var(--primary)] text-white hover:opacity-80 transition-opacity"
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold tracking-wide bg-primary text-surface hover:opacity-80 transition-opacity"
         >
           {item.trading_code}
         </Link>
-        <span className="text-[11px] text-[var(--ink-muted)] shrink-0">
+        <span className="text-xs text-text-muted shrink-0">
           {formatDate(item.post_date)}
         </span>
       </div>
 
-      <p className="text-sm font-medium text-[var(--ink)] leading-snug">
+      <p className="text-sm font-medium text-text-main leading-snug">
         {item.title}
       </p>
 
       {item.body && (
         <>
           <p
-            className={`text-xs text-[var(--ink-muted)] leading-relaxed ${
+            className={`text-xs text-text-muted leading-relaxed ${
               expanded ? "" : "line-clamp-2"
             }`}
           >
@@ -50,10 +50,11 @@ function NewsItem({ item }: { item: WatchlistNewsItem }) {
           </p>
           {!expanded && (
             <button
+              type="button"
               onClick={() => setExpanded(true)}
-              className="self-start text-[11px] font-semibold text-[var(--primary)] hover:underline"
+              className="btn-link btn-sm self-start -ml-2"
             >
-              Read more →
+              Read more
             </button>
           )}
         </>
@@ -90,14 +91,14 @@ export default function WatchlistNews({ codes, news, loading, limit, compact = f
       {/* Header */}
       {!compact && (
         <div className="flex flex-col items-center text-center mb-6">
-          <span className="text-[11px] font-bold tracking-[0.15em] uppercase text-[var(--primary)] mb-1">
+          <span className="text-xs font-bold tracking-[0.15em] uppercase text-primary mb-1">
             Watchlist News
           </span>
-          <h2 className="text-xl font-bold text-[var(--ink)]">Last 30 Days</h2>
+          <h2 className="text-xl font-bold text-text-main">Last 30 Days</h2>
           <div className="mt-3 flex items-center gap-3 w-full max-w-xs">
-            <div className="h-px flex-1 bg-[var(--border)]" />
-            <div className="h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
-            <div className="h-px flex-1 bg-[var(--border)]" />
+            <div className="h-px flex-1 bg-border" />
+            <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+            <div className="h-px flex-1 bg-border" />
           </div>
         </div>
       )}
@@ -110,7 +111,7 @@ export default function WatchlistNews({ codes, news, loading, limit, compact = f
 
       {showEmpty && (
         <div className="text-center py-10">
-          <p className="text-sm text-[var(--ink-muted)]">No recent news.</p>
+          <p className="text-sm text-text-muted">No recent news.</p>
         </div>
       )}
 
@@ -123,7 +124,7 @@ export default function WatchlistNews({ codes, news, loading, limit, compact = f
       )}
 
       {compact && items.length > 0 && (
-        <Button href="/watchlist" variant="ghost" size="sm" className="mt-3 w-full">
+        <Button href="/watchlist" variant="quiet" size="sm" block className="mt-3">
           View all news →
         </Button>
       )}

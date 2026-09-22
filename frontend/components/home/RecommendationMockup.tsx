@@ -1,54 +1,55 @@
+import StockRow, { StockPill, StockRank, StockRowValue } from "@/components/ui/StockRow";
+
 const ANSWERS = ["Long-term", "Strong fundamentals", "Dividends"];
 
 const MATCHES = [
-  { medal: "🥇", code: "GP", name: "Grameenphone", match: 94, color: "#D97706" },
-  { medal: "🥈", code: "SQURPHARMA", name: "Square Pharma", match: 88, color: "#64748B" },
-  { medal: "🥉", code: "BATBC", name: "British American Tobacco", match: 81, color: "#B45309" },
+  { code: "GP", name: "Grameenphone", match: 94, color: "var(--gold)" },
+  { code: "SQURPHARMA", name: "Square Pharma", match: 88, color: "var(--text-muted)" },
+  { code: "BATBC", name: "British American Tobacco", match: 81, color: "var(--watch)" },
 ];
 
 /** Static, illustrative mockup of the recommendation result — answers in, 3 matched stocks out. */
 export default function RecommendationMockup() {
   return (
     <div className="soft-card overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] bg-[var(--surface-2)]">
-        <span className="text-[0.7rem] font-bold uppercase tracking-[0.12em] text-[var(--text)]">🎯 Your matches</span>
-        <span className="text-[0.68rem] text-[var(--text-muted)]">3 picks for you</span>
+      <div className="flex items-center justify-between border-b border-border bg-surface-2 px-4 py-3">
+        <span className="text-xs font-bold uppercase tracking-[0.12em] text-text-main">Your matches</span>
+        <span className="text-xs text-text-muted">3 picks for you</span>
       </div>
 
       {/* Answers recap */}
       <div className="flex flex-wrap gap-1.5 px-4 pt-3">
         {ANSWERS.map((a) => (
-          <span
-            key={a}
-            className="px-2 py-0.5 rounded-full text-[0.68rem] font-semibold"
-            style={{ background: "color-mix(in srgb, var(--np-cautious) 12%, transparent)", color: "var(--np-cautious)" }}
-          >
+          <StockPill key={a} tone="watch">
             {a}
-          </span>
+          </StockPill>
         ))}
       </div>
 
-      <div className="divide-y divide-[var(--cell-rule)] mt-1">
-        {MATCHES.map((m) => (
-          <div key={m.code} className="flex items-center gap-3 px-4 py-2.5">
-            <span className="text-base leading-none" aria-hidden="true">{m.medal}</span>
-            <span className="min-w-0 flex-1">
-              <span className="ticker-tag ticker-tag--static text-[0.8rem]">{m.code}</span>
-              <span className="block text-[0.68rem] text-[var(--text-muted)] truncate">{m.name}</span>
-            </span>
-            <span className="w-20 shrink-0">
-              <span className="flex items-center justify-between text-[0.68rem] font-semibold mb-0.5">
-                <span className="text-[var(--text-muted)]">match</span>
-                <span style={{ color: m.color }}>{m.match}%</span>
+      <div className="mt-1 divide-y divide-cell-rule">
+        {MATCHES.map((m, i) => (
+          <StockRow
+            key={m.code}
+            as="div"
+            href={null}
+            code={m.code}
+            name={m.name}
+            leading={<StockRank n={i + 1} accent={m.color} solid />}
+            right={
+              <span className="block w-20">
+                <StockRowValue value={`${m.match}%`} sub="match" tone="primary" />
+                <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-surface-2">
+                  <span
+                    className="block h-full rounded-full"
+                    style={{
+                      width: `${m.match}%`,
+                      background: `linear-gradient(90deg, ${m.color}, color-mix(in srgb, ${m.color} 65%, var(--surface)))`,
+                    }}
+                  />
+                </span>
               </span>
-              <span className="block h-1.5 rounded-full bg-[var(--surface-2)] overflow-hidden">
-                <span
-                  className="block h-full rounded-full"
-                  style={{ width: `${m.match}%`, background: `linear-gradient(90deg, ${m.color}, color-mix(in srgb, ${m.color} 65%, #fff))` }}
-                />
-              </span>
-            </span>
-          </div>
+            }
+          />
         ))}
       </div>
     </div>

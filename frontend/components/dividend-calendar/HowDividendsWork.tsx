@@ -64,19 +64,19 @@ export default function HowDividendsWork({ data }: { data: DividendCalendarData 
           >
             <div className="flex items-center gap-2.5">
               <span
-                className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-[0.82rem] font-extrabold text-white"
+                className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-sm font-extrabold text-white"
                 style={{ background: s.accent }}
               >
                 {s.n}
               </span>
-              <h3 className="text-[0.95rem] font-extrabold tracking-tight text-[var(--text)]">
+              <h3 className="text-base font-extrabold tracking-tight text-text-main">
                 {s.title}
               </h3>
             </div>
-            <p className="mt-2 text-[0.82rem] font-medium leading-relaxed text-[var(--text)]">
+            <p className="mt-2 text-sm font-medium leading-relaxed text-text-main">
               {s.body}
             </p>
-            <Bn className="mt-1.5 text-[0.85rem] font-medium leading-[1.85] text-[var(--text-muted)]">
+            <Bn className="mt-1.5 text-sm font-medium leading-[1.85] text-text-muted">
               {s.bn}
             </Bn>
           </div>
@@ -84,43 +84,43 @@ export default function HowDividendsWork({ data }: { data: DividendCalendarData 
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3.5">
-          <h3 className="text-[0.9rem] font-extrabold text-[var(--text)]">
+        <div className="rounded-xl border border-border bg-surface-2 p-3.5">
+          <h3 className="text-sm font-extrabold text-text-main">
             If I buy today, do I get the dividend?
           </h3>
-          <p className="mt-2 text-[0.82rem] font-medium leading-relaxed text-[var(--text)]">
+          <p className="mt-2 text-sm font-medium leading-relaxed text-text-main">
             Only if the shares are in your BO account on the record date. Normal-market
             trades settle on T+2, so buying about {lead} trading days before the record date
             is the safe side. In the last couple of days DSE switches the stock to the spot
             market, where settlement is faster — your broker can confirm the exact cut-off.
           </p>
-          <Bn className="mt-2 text-[0.85rem] font-medium leading-[1.85] text-[var(--text-muted)]">
+          <Bn className="mt-2 text-sm font-medium leading-[1.85] text-text-muted">
             রেকর্ড ডেটের দিন শেয়ার বিও অ্যাকাউন্টে থাকলেই লভ্যাংশ পাবেন। T+2 সেটেলমেন্টের কারণে
             রেকর্ড ডেটের অন্তত {lead} কার্যদিবস আগে কেনা নিরাপদ।
           </Bn>
         </div>
 
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3.5">
-          <h3 className="text-[0.9rem] font-extrabold text-[var(--text)]">
+        <div className="rounded-xl border border-border bg-surface-2 p-3.5">
+          <h3 className="text-sm font-extrabold text-text-main">
             Cash vs bonus, and what tax takes
           </h3>
-          <p className="mt-2 text-[0.82rem] font-medium leading-relaxed text-[var(--text)]">
+          <p className="mt-2 text-sm font-medium leading-relaxed text-text-main">
             A 25% cash dividend on a ৳10 face value pays ৳2.50 per share — it has nothing
             to do with the market price. A 25% bonus gives you 25 extra shares per 100 held and
             no money; the price adjusts down for the new shares. Cash dividends are taxed at
             10% with a TIN, 15% without.
           </p>
-          <Bn className="mt-2 text-[0.85rem] font-medium leading-[1.85] text-[var(--text-muted)]">
+          <Bn className="mt-2 text-sm font-medium leading-[1.85] text-text-muted">
             25% নগদ লভ্যাংশ মানে 10 টাকা ফেসভ্যালুতে প্রতি শেয়ারে 2.50 টাকা। 25% বোনাস মানে
             প্রতি 100 শেয়ারে 25টি নতুন শেয়ার, টাকা নয়।
           </Bn>
         </div>
       </div>
 
-      <p className="mt-3 text-[0.78rem] font-semibold text-[var(--text-muted)]">
+      <p className="mt-3 text-xs font-semibold text-text-muted">
         Dates come from DSE company announcements and can be revised by a later notice —
         always confirm with your broker before trading on one. New to this?{" "}
-        <Link href="/blog" className="text-[var(--primary)] underline">
+        <Link href="/blog" className="text-primary underline">
           Read the Bengali beginner guides
         </Link>
         .

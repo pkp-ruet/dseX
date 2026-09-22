@@ -81,16 +81,16 @@ export default function StockLookup({
   return (
     <div ref={wrapRef} className="relative">
       <label htmlFor="landing-lookup" className="mb-2 block">
-        <span className="text-[0.82rem] font-bold text-[var(--text)]">
+        <span className="text-sm font-bold text-text-main">
           Type any company name or code
         </span>
-        <Bn as="span" className="mt-0.5 block text-[0.78rem] font-medium text-[var(--text-muted)]">
+        <Bn as="span" className="mt-0.5 block text-xs font-medium text-text-muted">
           যেকোনো কোম্পানির নাম বা কোড লিখুন
         </Bn>
       </label>
 
-      <div className="flex items-center gap-2 rounded-xl border-2 border-[var(--border)] bg-[var(--surface)] px-3.5 py-3 transition-colors focus-within:border-[color-mix(in_srgb,var(--primary)_55%,var(--border))]">
-        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden className="shrink-0 text-[var(--text-muted)]">
+      <div className="flex items-center gap-2 rounded-xl border-2 border-border bg-surface px-3.5 py-3 transition-colors focus-within:border-[color-mix(in_srgb,var(--primary)_55%,var(--border))]">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden className="shrink-0 text-text-muted">
           <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.7" />
           <path d="M13.5 13.5L17 17" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
         </svg>
@@ -108,14 +108,14 @@ export default function StockLookup({
           aria-expanded={open}
           aria-controls="landing-lookup-list"
           aria-autocomplete="list"
-          className="min-w-0 flex-1 bg-transparent text-[0.95rem] font-semibold text-[var(--text)] outline-none placeholder:font-normal placeholder:text-[var(--text-muted)]"
+          className="min-w-0 flex-1 bg-transparent text-base font-semibold text-text-main outline-none placeholder:font-normal placeholder:text-text-muted"
         />
         {query && (
           <button
             type="button"
             onClick={() => setQuery("")}
             aria-label="Clear"
-            className="shrink-0 px-1 text-lg leading-none text-[var(--text-muted)] hover:text-[var(--text)]"
+            className="shrink-0 px-1 text-lg leading-none text-text-muted hover:text-text-main"
           >
             ×
           </button>
@@ -126,7 +126,7 @@ export default function StockLookup({
         <ul
           id="landing-lookup-list"
           role="listbox"
-          className="absolute z-30 mt-1.5 max-h-72 w-full overflow-auto rounded-xl border border-[var(--border)] bg-[var(--surface)] py-1 shadow-[var(--shadow-lift)]"
+          className="absolute z-30 mt-1.5 max-h-72 w-full overflow-auto rounded-xl border border-border bg-surface py-1 shadow-lift"
         >
           {matches.map((s, i) => (
             <li
@@ -139,17 +139,17 @@ export default function StockLookup({
               }}
               onMouseEnter={() => setActive(i)}
               className={`flex cursor-pointer items-center gap-2.5 px-3 py-2 ${
-                i === active ? "bg-[var(--surface-2)]" : ""
+                i === active ? "bg-surface-2" : ""
               }`}
             >
-              <span className="w-[5.5rem] shrink-0 font-mono text-[0.78rem] font-extrabold text-[var(--text)]">
+              <span className="w-[5.5rem] shrink-0 font-mono text-xs font-extrabold text-text-main">
                 {s.code}
               </span>
-              <span className="min-w-0 flex-1 truncate text-[0.78rem] text-[var(--text-muted)]">
+              <span className="min-w-0 flex-1 truncate text-xs text-text-muted">
                 {s.name ?? ""}
               </span>
               {s.score != null && (
-                <span className="shrink-0 text-[0.75rem] font-extrabold tabular-nums nums text-[var(--text)]">
+                <span className="shrink-0 text-xs font-extrabold tabular-nums nums text-text-main">
                   {Math.round(s.score)}
                 </span>
               )}
@@ -159,7 +159,7 @@ export default function StockLookup({
       )}
 
       {selected && (
-        <p className="mt-2 text-[0.72rem] text-[var(--text-muted)]">
+        <p className="mt-2 text-xs text-text-muted">
           Showing {selected} — type another name and it changes instantly.
         </p>
       )}

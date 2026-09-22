@@ -60,9 +60,9 @@ export default function ContributionStrip({ rows, lang = "en" }: Props) {
   const hidden = priced.length - shown.length;
 
   return (
-    <Card as="section" padding="none" className="rounded-2xl p-5 sm:p-6">
+    <Card as="section" padding="none" className="rounded-xl p-5 sm:p-6">
       <div className="flex items-center gap-2.5 mb-4">
-        <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--primary)]/15 border border-[var(--primary)]/30 text-[var(--primary)] shrink-0">
+        <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/15 border border-primary/30 text-primary shrink-0">
           <svg
             className="w-[18px] h-[18px]"
             viewBox="0 0 24 24"
@@ -78,10 +78,10 @@ export default function ContributionStrip({ rows, lang = "en" }: Props) {
           </svg>
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className={`text-sm sm:text-[15px] font-bold text-[var(--text)] leading-tight ${bnText}`}>
+          <h3 className={`text-sm sm:text-base font-bold text-text-main leading-tight ${bnText}`}>
             {t.title}
           </h3>
-          <p className={`text-xs sm:text-sm text-[var(--text-muted)] mt-0.5 leading-relaxed ${bnText}`}>
+          <p className={`text-xs sm:text-sm text-text-muted mt-0.5 leading-relaxed ${bnText}`}>
             {t.subtitle}
           </p>
         </div>
@@ -96,11 +96,11 @@ export default function ContributionStrip({ rows, lang = "en" }: Props) {
               <Link
                 prefetch={false}
                 href={`/stock/${r.holding.trading_code}`}
-                className="font-mono font-bold text-sm text-[var(--primary)] hover:underline w-20 sm:w-24 shrink-0 truncate"
+                className="font-mono font-bold text-sm text-primary hover:underline w-20 sm:w-24 shrink-0 truncate"
               >
                 {r.holding.trading_code}
               </Link>
-              <div className="flex-1 h-4 rounded bg-[var(--border)]/50 overflow-hidden">
+              <div className="flex-1 h-4 rounded bg-border/50 overflow-hidden">
                 <div
                   className="h-full rounded transition-all duration-500"
                   style={{ width: `${w}%`, background: c }}
@@ -119,11 +119,11 @@ export default function ContributionStrip({ rows, lang = "en" }: Props) {
       </div>
 
       {hidden > 0 && (
-        <p className={`text-xs text-[var(--text-muted)] mt-3 ${bnText}`}>{t.more(hidden)}</p>
+        <p className={`text-xs text-text-muted mt-3 ${bnText}`}>{t.more(hidden)}</p>
       )}
 
-      <div className="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-[var(--border)]">
-        <span className={`text-xs uppercase tracking-wider font-bold text-[var(--text-muted)] ${bnText}`}>
+      <div className="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-border">
+        <span className={`text-xs uppercase tracking-wider font-bold text-text-muted ${bnText}`}>
           {t.total}
         </span>
         <span className="text-base font-black tabular-nums nums" style={{ color: signColor(total) }}>

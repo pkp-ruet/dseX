@@ -92,36 +92,31 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onC
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-text-main/50"
       role="dialog"
       aria-modal="true"
       aria-labelledby="add-holding-title"
       onClick={() => !saving && onClose()}
     >
       <div
-        className="w-full sm:max-w-sm bg-[var(--surface)] border-t sm:border border-[var(--border)] rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 flex flex-col gap-4"
+        className="w-full sm:max-w-sm bg-surface border-t sm:border border-border rounded-t-xl sm:rounded-xl p-5 sm:p-6 flex flex-col gap-4"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <h3 id="add-holding-title" className="text-lg font-bold text-[var(--text)]">
+          <h3 id="add-holding-title" className="text-lg font-bold text-text-main">
             Add stock
           </h3>
-          <button
-            onClick={onClose}
-            className="text-[var(--text-muted)] hover:text-[var(--text)] p-1"
-            aria-label="Close"
-            disabled={saving}
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M18.3 5.71 12 12l6.3 6.29-1.42 1.42L12 13.41 5.71 19.7 4.29 18.3 10.59 12 4.29 5.71 5.71 4.29 12 10.59l6.29-6.3z" />
-            </svg>
-          </button>
+          <Button type="button" variant="link" size="sm" iconOnly onClick={onClose} aria-label="Close" disabled={saving} className="-mr-2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+          </Button>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {/* Stock code */}
           <div className="flex flex-col gap-1.5 relative">
-            <label htmlFor="ah-1" className="text-sm font-medium text-[var(--text)]">Stock Code</label>
+            <label htmlFor="ah-1" className="text-sm font-medium text-text-main">Stock Code</label>
             <input id="ah-1"
               ref={codeInputRef}
               type="text"
@@ -138,15 +133,15 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onC
             {suggestions.length > 0 && (
               // Opens UPWARD on phones (the sheet is pinned to the bottom, so a
               // downward list ran off-screen) and scrolls past ~4 rows.
-              <ul className="absolute bottom-full mb-1 sm:bottom-auto sm:top-full sm:mb-0 sm:mt-1 left-0 right-0 max-h-56 overflow-y-auto bg-[var(--surface)] border border-[var(--border)] rounded-lg shadow-lg z-20">
+              <ul className="absolute bottom-full mb-1 sm:bottom-auto sm:top-full sm:mb-0 sm:mt-1 left-0 right-0 max-h-56 overflow-y-auto bg-surface border border-border rounded-lg shadow-lift z-20">
                 {suggestions.map((code, i) => (
                   <li
                     key={code}
                     onMouseDown={() => selectSuggestion(code)}
                     className={`px-4 py-3 text-base cursor-pointer font-mono font-semibold transition-colors ${
                       i === activeSuggestion
-                        ? "bg-[var(--primary)] text-white"
-                        : "text-[var(--text)] hover:bg-[var(--border)]"
+                        ? "bg-primary text-surface"
+                        : "text-text-main hover:bg-border"
                     }`}
                   >
                     {code}
@@ -155,7 +150,7 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onC
               </ul>
             )}
             {isHeld && (
-              <p className="text-xs text-[var(--text-muted)]">
+              <p className="text-xs text-text-muted">
                 Already held — adding will blend into a weighted-average cost.
               </p>
             )}
@@ -164,7 +159,7 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onC
           {/* Price + Qty */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="ah-2" className="text-sm font-medium text-[var(--text)]">Buy Price (৳)</label>
+              <label htmlFor="ah-2" className="text-sm font-medium text-text-main">Buy Price (৳)</label>
               <input id="ah-2"
                 type="number"
                 placeholder="295.50"
@@ -178,7 +173,7 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onC
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="ah-3" className="text-sm font-medium text-[var(--text)]">Quantity</label>
+              <label htmlFor="ah-3" className="text-sm font-medium text-text-main">Quantity</label>
               <input id="ah-3"
                 type="number"
                 placeholder="100"
@@ -193,9 +188,9 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onC
             </div>
           </div>
 
-          {error && <p className="text-sm text-[var(--negative)] font-medium">{error}</p>}
+          {error && <p className="text-sm text-negative font-medium">{error}</p>}
 
-          <Button type="submit" disabled={saving} variant="primary" className="w-full">
+          <Button type="submit" disabled={saving} variant="primary" block>
             {saving ? "Saving…" : "Add to portfolio"}
           </Button>
         </form>

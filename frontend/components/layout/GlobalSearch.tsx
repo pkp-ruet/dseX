@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { getInsightScores } from "@/lib/api";
+import Bn from "@/components/i18n/Bn";
 
 interface Company {
   trading_code: string;
@@ -290,7 +291,7 @@ export default function GlobalSearch() {
             ref={inputRef}
             className="search-bar-input"
             type="text"
-            placeholder="Search a code, a company, or a page…"
+            placeholder="Search a stock… · শেয়ার খুঁজুন"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -364,6 +365,7 @@ export default function GlobalSearch() {
           <div className="global-search-hint">
             Type a code (e.g. <strong>GP</strong>, <strong>BATBC</strong>), a company name, or a page
             like <strong>market</strong> or <strong>dividend</strong>.
+            <Bn className="global-search-hint-bn">কোড, কোম্পানির নাম বা পেজের নাম লিখুন</Bn>
           </div>
         )}
       </div>

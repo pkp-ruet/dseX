@@ -126,7 +126,7 @@ export default function DailyBriefing({
             className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-white"
             style={{
               background:
-                "linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 66%, #000))",
+                "linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 66%, var(--text)))",
               boxShadow: "0 8px 18px -8px color-mix(in srgb, var(--primary) 70%, transparent)",
             }}
             aria-hidden
@@ -134,10 +134,10 @@ export default function DailyBriefing({
             {ICON_SETUP}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.16em] text-[var(--primary)]">
+            <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-primary">
               Finish setting up
             </p>
-            <p className="text-sm font-bold leading-tight text-[var(--text)]">
+            <p className="text-sm font-bold leading-tight text-text-main">
               {doneCount === 0
                 ? "Two quick steps to your daily check-in"
                 : remaining === 1
@@ -146,7 +146,7 @@ export default function DailyBriefing({
             </p>
           </div>
           <div className="relative flex shrink-0 items-center gap-1">
-            <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 text-[0.75rem] font-bold tabular-nums text-[var(--text-muted)]">
+            <span className="rounded-full border border-border bg-surface-2 px-2.5 py-1 text-xs font-bold tabular-nums text-text-muted">
               {doneCount}/{steps.length}
             </span>
             <button
@@ -154,7 +154,7 @@ export default function DailyBriefing({
               onClick={() => setMenuOpen((v) => !v)}
               aria-label="Dismiss setup"
               aria-expanded={menuOpen}
-              className="grid h-7 w-7 place-items-center rounded-lg text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+              className="grid h-7 w-7 place-items-center rounded-lg text-text-muted transition-colors hover:bg-surface-2 hover:text-text-main"
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
                 <path d="M6 6l12 12M18 6L6 18" />
@@ -163,18 +163,18 @@ export default function DailyBriefing({
             {menuOpen && (
               <>
                 <div className="fixed inset-0 z-10" aria-hidden onClick={() => setMenuOpen(false)} />
-                <div className="absolute right-0 top-full z-20 mt-1.5 w-44 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] py-1 shadow-lg">
+                <div className="absolute right-0 top-full z-20 mt-1.5 w-44 overflow-hidden rounded-xl border border-border bg-surface py-1 shadow-lg">
                   <button
                     type="button"
                     onClick={skipForNow}
-                    className="block w-full px-3 py-2 text-left text-xs font-semibold text-[var(--text)] transition-colors hover:bg-[var(--surface-2)]"
+                    className="block w-full px-3 py-2 text-left text-xs font-semibold text-text-main transition-colors hover:bg-surface-2"
                   >
                     Skip for now
                   </button>
                   <button
                     type="button"
                     onClick={dontShowAgain}
-                    className="block w-full px-3 py-2 text-left text-xs font-semibold text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-2)]"
+                    className="block w-full px-3 py-2 text-left text-xs font-semibold text-text-muted transition-colors hover:bg-surface-2"
                   >
                     Don&apos;t show again
                   </button>
@@ -185,7 +185,7 @@ export default function DailyBriefing({
         </div>
 
         {/* Progress bar */}
-        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[var(--surface-2)]">
+        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-surface-2">
           <div
             className="h-full rounded-full transition-[width] duration-500"
             style={{
@@ -199,7 +199,7 @@ export default function DailyBriefing({
         {/* Bengali guidance for a newly joined user — same steps, everyday Bangla. */}
         <p
           lang="bn"
-          className="font-bn mt-3 text-xs font-semibold leading-relaxed text-[var(--text-muted)]"
+          className="font-bn mt-3 text-xs font-semibold leading-relaxed text-text-muted"
         >
           নতুন এসেছেন? নিচের ধাপগুলো শেষ করুন — তাহলে প্রতিদিন আপনার জন্য সাজানো শেয়ারের তথ্য, খবর ও পরামর্শ এক জায়গায় পাবেন।
         </p>
@@ -225,21 +225,21 @@ export default function DailyBriefing({
                     {ICON_CHECK}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-semibold text-[var(--text-muted)] line-through">
+                    <span className="block text-sm font-semibold text-text-muted line-through">
                       {s.title}
                     </span>
-                    <span className="block text-xs font-bold text-[var(--positive)]">Done ✓</span>
+                    <span className="block text-xs font-bold text-positive">Done ✓</span>
                   </span>
                 </li>
               );
             }
 
             const rowClass =
-              "group flex w-full items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-3 text-left transition-all hover:border-[var(--primary)] hover:shadow-md";
+              "group flex w-full items-center gap-3 rounded-xl border border-border bg-surface px-3 py-3 text-left transition-all hover:border-primary hover:shadow-md";
             const body = (
               <>
                 <span
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-[var(--primary)]"
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-primary"
                   style={{
                     background: "color-mix(in srgb, var(--primary) 12%, transparent)",
                     border: "1px solid color-mix(in srgb, var(--primary) 22%, var(--border))",
@@ -249,17 +249,17 @@ export default function DailyBriefing({
                   {s.icon}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-bold text-[var(--text)]">{s.title}</span>
-                  <span className="block text-xs leading-snug text-[var(--text-muted)]">{s.desc}</span>
+                  <span className="block text-sm font-bold text-text-main">{s.title}</span>
+                  <span className="block text-xs leading-snug text-text-muted">{s.desc}</span>
                   <span
                     lang="bn"
-                    className="font-bn mt-0.5 block text-[0.75rem] font-semibold leading-snug text-[var(--text-muted)]"
+                    className="font-bn mt-0.5 block text-xs font-semibold leading-snug text-text-muted"
                   >
                     {s.descBn}
                   </span>
                 </span>
                 <span
-                  className="shrink-0 inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-[0.75rem] font-bold text-white transition-transform group-hover:translate-x-0.5"
+                  className="shrink-0 inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold text-white transition-transform group-hover:translate-x-0.5"
                   style={{ background: "var(--primary)" }}
                 >
                   {s.cta}

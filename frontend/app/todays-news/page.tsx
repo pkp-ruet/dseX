@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTodaysNews } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 import PersonalNewsFeed from "@/components/news/PersonalNewsFeed";
+import PageHeader from "@/components/ui/PageHeader";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
@@ -67,17 +68,18 @@ export default async function TodaysNewsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <header className="ms-pagehead">
-        <h1 className="ms-page-h1">
-          <span className="ms-page-kicker">Dhaka Stock Exchange</span>
-          <span className="ms-page-h1-main">Today&apos;s News</span>
-        </h1>
-        {dateLabel && (
-          <span className="ms-page-date">
-            {items.length} {items.length === 1 ? "story" : "stories"} · {dateLabel}
-          </span>
-        )}
-      </header>
+      <PageHeader
+        eyebrow="Dhaka Stock Exchange"
+        title={<>Today&apos;s News</>}
+        bn="শেষ লেনদেনের দিনে সব কোম্পানির খবর — এক পাতায়।"
+        actions={
+          dateLabel ? (
+            <span className="ms-page-date">
+              {items.length} {items.length === 1 ? "story" : "stories"} · {dateLabel}
+            </span>
+          ) : undefined
+        }
+      />
 
       {news === null && (
         <div className="ms-card">

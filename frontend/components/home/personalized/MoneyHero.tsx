@@ -59,7 +59,7 @@ function useCountUp(target: number, duration = 700): number {
   return display;
 }
 
-const CHIP_CLS = "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[0.68rem] font-bold";
+const CHIP_CLS = "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold";
 
 /** Dashboard hero: total portfolio value (animated), today's move, how it
  *  compares to DSEX, and the A–F grade — the "your money today" headline. */
@@ -118,20 +118,20 @@ export default function MoneyHero({
       lang={bn ? "bn" : undefined}
     >
       {greeting && (
-        <div className="border-b border-[var(--border)] px-4 pb-3 pt-4 sm:px-5">{greeting}</div>
+        <div className="border-b border-border px-4 pb-3 pt-4 sm:px-5">{greeting}</div>
       )}
       <div className="px-4 sm:px-5 pt-4 pb-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.18em] text-[var(--primary)]">
+            <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-primary">
               {t(lang, "yourMoneyToday")}
             </p>
-            <div className="mt-1 text-[clamp(1.6rem,7vw,2rem)] font-extrabold tabular-nums nums text-[var(--text)] leading-tight">
+            <div className="mt-1 text-[clamp(1.6rem,7vw,2rem)] font-extrabold tabular-nums nums text-text-main leading-tight">
               {hasPrice ? takaGroup(shownValue) : "—"}
             </div>
             {today && (
               <div
-                className="mt-0.5 text-[0.85rem] sm:text-sm font-bold tabular-nums nums leading-tight"
+                className="mt-0.5 text-sm sm:text-sm font-bold tabular-nums nums leading-tight"
                 style={{ color: todayUp ? "var(--positive)" : "var(--negative)" }}
               >
                 {todayUp ? "▲" : "▼"} {todayUp ? "+" : "−"}৳
@@ -140,7 +140,7 @@ export default function MoneyHero({
               </div>
             )}
             {/* Freshness — is this number live or last close? */}
-            <p className="mt-1 text-[0.68rem] font-medium text-[var(--text-muted)]">{freshness}</p>
+            <p className="mt-1 text-xs font-medium text-text-muted">{freshness}</p>
           </div>
 
           <Link
@@ -149,8 +149,8 @@ export default function MoneyHero({
             className="flex flex-col items-center justify-center gap-0.5 w-16 h-16 rounded-2xl border-2 shrink-0 transition active:scale-95"
             style={{ color: gradeColor, borderColor: gradeColor, background: "var(--surface-2)" }}
           >
-            <span className="text-[1.65rem] font-black leading-none">{analysis.grade}</span>
-            <span className="px-1 text-center text-[0.68rem] font-bold uppercase leading-none tracking-wide">
+            <span className="text-2xl font-black leading-none">{analysis.grade}</span>
+            <span className="px-1 text-center text-xs font-bold uppercase leading-none tracking-wide">
               {gradeLabel(lang, analysis.gradeLabel)}
             </span>
           </Link>
@@ -203,12 +203,12 @@ export default function MoneyHero({
           )}
         </div>
 
-        <p className="mt-3 text-[0.8rem] leading-relaxed text-[var(--text-muted)]">{analysis.headline}</p>
+        <p className="mt-3 text-sm leading-relaxed text-text-muted">{analysis.headline}</p>
       </div>
 
       <Link
         href="/portfolio"
-        className="block text-center px-4 py-3 text-xs font-semibold text-[var(--primary)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)] border-t border-[var(--border)] transition-colors"
+        className="block text-center px-4 py-3 text-xs font-semibold text-primary hover:bg-surface-2 active:bg-surface-2 border-t border-border transition-colors"
       >
         {t(lang, "seeFullPortfolio")} →
       </Link>
@@ -224,25 +224,25 @@ export function MoneyHeroSkeleton({ greeting }: { greeting?: ReactNode }) {
   return (
     <section className="soft-card overflow-hidden">
       {greeting && (
-        <div className="border-b border-[var(--border)] px-4 pb-3 pt-4 sm:px-5">{greeting}</div>
+        <div className="border-b border-border px-4 pb-3 pt-4 sm:px-5">{greeting}</div>
       )}
       <div className="px-4 sm:px-5 pt-4 pb-4" aria-hidden>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1 space-y-2.5">
-            <div className="h-3 w-24 animate-pulse rounded-full bg-[var(--surface-2)]" />
-            <div className="h-8 w-40 animate-pulse rounded-lg bg-[var(--surface-2)]" />
-            <div className="h-4 w-32 animate-pulse rounded-full bg-[var(--surface-2)]" />
-            <div className="h-3 w-28 animate-pulse rounded-full bg-[var(--surface-2)]" />
+            <div className="h-3 w-24 animate-pulse rounded-full bg-surface-2" />
+            <div className="h-8 w-40 animate-pulse rounded-lg bg-surface-2" />
+            <div className="h-4 w-32 animate-pulse rounded-full bg-surface-2" />
+            <div className="h-3 w-28 animate-pulse rounded-full bg-surface-2" />
           </div>
-          <div className="h-14 w-14 shrink-0 animate-pulse rounded-2xl bg-[var(--surface-2)] sm:h-16 sm:w-16" />
+          <div className="h-14 w-14 shrink-0 animate-pulse rounded-2xl bg-surface-2 sm:h-16 sm:w-16" />
         </div>
         <div className="mt-3 flex gap-1.5">
-          <div className="h-6 w-32 animate-pulse rounded-full bg-[var(--surface-2)]" />
-          <div className="h-6 w-24 animate-pulse rounded-full bg-[var(--surface-2)]" />
+          <div className="h-6 w-32 animate-pulse rounded-full bg-surface-2" />
+          <div className="h-6 w-24 animate-pulse rounded-full bg-surface-2" />
         </div>
-        <div className="mt-3 h-4 w-full max-w-xs animate-pulse rounded-full bg-[var(--surface-2)]" />
+        <div className="mt-3 h-4 w-full max-w-xs animate-pulse rounded-full bg-surface-2" />
       </div>
-      <div className="h-11 border-t border-[var(--border)]" />
+      <div className="h-11 border-t border-border" />
     </section>
   );
 }

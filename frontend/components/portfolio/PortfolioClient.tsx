@@ -49,6 +49,7 @@ import BuySellModal from "./BuySellModal";
 import WatchlistNews from "@/components/watchlist/WatchlistNews";
 import WatchlistAlertCell from "@/components/watchlist/WatchlistAlertCell";
 import ErrorState from "@/components/ui/ErrorState";
+import EmptyState from "@/components/ui/EmptyState";
 
 const LANG_KEY = "dsex.portfolio.lang";
 const lastSeenKey = (uid: string) => `dsex.portfolio.lastseen.${uid}`;
@@ -153,14 +154,14 @@ function signAccent(value: number | null): string {
 
 /** Tinted P&L pill for the compact mobile cards. */
 function PnlPill({ value, pct }: { value: number | null; pct: number | null }) {
-  if (value == null) return <span className="text-xs text-[var(--text-muted)]">—</span>;
+  if (value == null) return <span className="text-xs text-text-muted">—</span>;
   const accent = signAccent(value);
   return (
     <span
       className="pv inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold tabular-nums nums whitespace-nowrap"
       style={{ color: accent, background: `color-mix(in srgb, ${accent} 12%, transparent)` }}
     >
-      <span className="text-[11px] leading-none">{value > 0 ? "▲" : value < 0 ? "▼" : "•"}</span>
+      <span className="text-xs leading-none">{value > 0 ? "▲" : value < 0 ? "▼" : "•"}</span>
       {value > 0 ? "+" : ""}
       {taka(value, 0)}
       {pct != null && (
@@ -176,7 +177,7 @@ function PnlPill({ value, pct }: { value: number | null; pct: number | null }) {
 /** Where today's price sits between the 52-week low and high. */
 function RangeBar52({ ltp, high, low }: { ltp: number | null; high: number | null; low: number | null }) {
   if (ltp == null || high == null || low == null || high <= low) {
-    return <span className="text-[var(--text-muted)] text-xs">—</span>;
+    return <span className="text-text-muted text-xs">—</span>;
   }
   const pos = Math.max(0, Math.min(1, (ltp - low) / (high - low)));
   return (
@@ -184,13 +185,13 @@ function RangeBar52({ ltp, high, low }: { ltp: number | null; high: number | nul
       className="flex flex-col gap-1 min-w-[88px]"
       title={`52-week range: ৳${low.toFixed(1)} – ৳${high.toFixed(1)} · now ৳${ltp.toFixed(1)}`}
     >
-      <div className="relative h-1.5 rounded-full bg-[var(--border)]">
+      <div className="relative h-1.5 rounded-full bg-border">
         <div
-          className="absolute top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-[var(--primary)] border-2 border-[var(--surface)] shadow-sm"
+          className="absolute top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-primary border-2 border-surface shadow-soft"
           style={{ left: `calc(${(pos * 100).toFixed(1)}% - 5px)` }}
         />
       </div>
-      <div className="flex justify-between text-[11px] text-[var(--text-muted)] tabular-nums nums leading-none">
+      <div className="flex justify-between text-xs text-text-muted tabular-nums nums leading-none">
         <span>{low.toFixed(1)}</span>
         <span>{high.toFixed(1)}</span>
       </div>
@@ -312,7 +313,7 @@ function DividendIncomeCard({
     <Card padding="none" className="p-5 sm:p-6">
       <div className="flex items-center gap-2.5 mb-4">
         <span
-          className="grid place-items-center w-8 h-8 rounded-lg shrink-0 text-[var(--positive)]"
+          className="grid place-items-center w-8 h-8 rounded-lg shrink-0 text-positive"
           style={{ background: "color-mix(in srgb, var(--positive) 12%, transparent)" }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -320,10 +321,10 @@ function DividendIncomeCard({
           </svg>
         </span>
         <div>
-          <h2 className="text-base sm:text-lg font-semibold text-[var(--text)] uppercase tracking-wider leading-tight">
+          <h2 className="text-base sm:text-lg font-semibold text-text-main uppercase tracking-wider leading-tight">
             Dividend Income
           </h2>
-          <p className="text-xs text-[var(--text-muted)] mt-0.5">
+          <p className="text-xs text-text-muted mt-0.5">
             Cash your stocks pay you, on top of any price gains.
           </p>
         </div>
@@ -331,11 +332,11 @@ function DividendIncomeCard({
 
       {income > 0 && (
         <div className="mb-4">
-          <p className="pv text-2xl sm:text-3xl font-bold text-[var(--positive)] nums leading-none">
+          <p className="pv text-2xl sm:text-3xl font-bold text-positive nums leading-none">
             ≈ {taka(income, 0)}
-            <span className="text-sm sm:text-base text-[var(--text-muted)] font-semibold"> / year</span>
+            <span className="text-sm sm:text-base text-text-muted font-semibold"> / year</span>
           </p>
-          <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-1.5 leading-relaxed">
+          <p className="text-xs sm:text-sm text-text-muted mt-1.5 leading-relaxed">
             Rough estimate from {payers} of your {rows.length} stock{rows.length === 1 ? "" : "s"}, at
             today&apos;s dividend rates and prices. Actual payouts depend on what each company declares.
           </p>
@@ -343,15 +344,15 @@ function DividendIncomeCard({
       )}
 
       {upcoming.length > 0 && (
-        <div className={income > 0 ? "border-t border-[var(--border)] pt-3" : ""}>
+        <div className={income > 0 ? "border-t border-border pt-3" : ""}>
           <div className="flex items-baseline justify-between gap-2 mb-2">
-            <p className="text-[11px] uppercase tracking-wider font-semibold text-[var(--text-muted)]">
+            <p className="text-xs uppercase tracking-wider font-semibold text-text-muted">
               Coming up on your stocks
             </p>
             {totalPayout > 0 && (
-              <p className="pv text-sm font-bold text-[var(--positive)] nums whitespace-nowrap">
+              <p className="pv text-sm font-bold text-positive nums whitespace-nowrap">
                 ≈ {taka(totalPayout, 0)}
-                <span className="text-xs text-[var(--text-muted)] font-semibold"> on its way</span>
+                <span className="text-xs text-text-muted font-semibold"> on its way</span>
               </p>
             )}
           </div>
@@ -361,13 +362,13 @@ function DividendIncomeCard({
                 <Link
                   prefetch={false}
                   href={`/stock/${u.code}`}
-                  className="font-mono font-bold text-[var(--primary)] hover:underline shrink-0"
+                  className="font-mono font-bold text-primary hover:underline shrink-0"
                 >
                   {u.code}
                 </Link>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[var(--text)] leading-snug">{describeDividend(u)}</p>
-                  <p className="text-xs text-[var(--text-muted)] mt-0.5 leading-snug">
+                  <p className="text-text-main leading-snug">{describeDividend(u)}</p>
+                  <p className="text-xs text-text-muted mt-0.5 leading-snug">
                     {u.kind === "record" ? "record date" : "expected"}
                     {u.date ? ` · ${formatDate(u.date)}` : ""}
                     {daysLeftLabel(u.daysLeft)}
@@ -376,12 +377,12 @@ function DividendIncomeCard({
                 {(u.payout != null || (u.bonusShares != null && u.bonusShares > 0)) && (
                   <div className="text-right shrink-0">
                     {u.payout != null && (
-                      <p className="pv font-bold text-[var(--positive)] nums leading-tight">
+                      <p className="pv font-bold text-positive nums leading-tight">
                         ≈ {taka(u.payout, 0)}
                       </p>
                     )}
                     {u.bonusShares != null && u.bonusShares > 0 && (
-                      <p className="pv text-xs text-[var(--text-muted)] nums leading-tight mt-0.5">
+                      <p className="pv text-xs text-text-muted nums leading-tight mt-0.5">
                         +{u.bonusShares} shares
                       </p>
                     )}
@@ -391,7 +392,7 @@ function DividendIncomeCard({
             ))}
           </ul>
           {totalPayout > 0 && (
-            <p className="text-xs text-[var(--text-muted)] mt-3 leading-relaxed">
+            <p className="text-xs text-text-muted mt-3 leading-relaxed">
               Cash amounts are before tax. You must still hold the shares on the record date to
               receive them.
             </p>
@@ -402,16 +403,53 @@ function DividendIncomeCard({
   );
 }
 
-/** Deterministic tint per code — matches the hero/allocation palette family. */
+/** Deterministic tint per code — the same token palette as the hero / allocation donuts. */
 const MONO_COLORS = [
-  "var(--primary)", "var(--positive)", "#EA580C", "#6366F1", "#DB2777",
-  "#0891B2", "#CA8A04", "#9333EA", "#0D9488",
+  "var(--primary)", "var(--info)", "var(--gold)", "var(--warm)", "var(--navy-soft)",
+  "var(--positive)", "var(--primary-soft)", "var(--info-soft)", "var(--gold-soft)", "var(--text-muted)",
 ];
 
 function monoColor(code: string): string {
   let h = 0;
   for (let i = 0; i < code.length; i++) h = (h * 31 + code.charCodeAt(i)) >>> 0;
   return MONO_COLORS[h % MONO_COLORS.length];
+}
+
+/** The ONE loading shape for this page — hero + holdings rows — used for the auth
+ *  check and the data fetch alike so the page never flips between two placeholders. */
+function PortfolioSkeleton() {
+  return (
+    <div className="space-y-4" aria-busy="true" aria-label="Loading portfolio" role="status">
+      <Card padding="none" className="p-5 sm:p-7">
+        <div className="flex items-start justify-between gap-5">
+          <div className="flex-1">
+            <Skeleton width={130} height={12} className="mb-3" />
+            <Skeleton width="55%" height={40} className="mb-4" />
+            <div className="mb-3 flex gap-2">
+              <Skeleton width={120} height={26} rounded="999px" />
+              <Skeleton width={120} height={26} rounded="999px" />
+            </div>
+            <Skeleton width="40%" height={12} />
+          </div>
+          <Skeleton width={118} height={118} rounded="50%" className="hidden shrink-0 sm:block" />
+        </div>
+      </Card>
+      <Card padding="md">
+        <div className="skeleton-rows">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="skeleton-row">
+              <Skeleton width={34} height={34} rounded="12px" />
+              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                <Skeleton width={i % 2 === 0 ? "35%" : "28%"} height={14} />
+                <Skeleton width="50%" height={12} />
+              </div>
+              <Skeleton width={64} height={14} />
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
 }
 
 function Monogram({ code }: { code: string }) {
@@ -436,14 +474,14 @@ function SectionHeader({
 }) {
   return (
     <div className="flex items-center gap-2.5 mb-3">
-      <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--primary)]/15 border border-[var(--primary)]/30 text-[var(--primary)] shrink-0">
+      <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/15 border border-primary/30 text-primary shrink-0">
         {icon}
       </span>
       <div className="min-w-0 flex-1">
-        <h2 className="text-sm sm:text-[15px] uppercase tracking-wider font-bold text-[var(--text)] leading-tight">
+        <h2 className="text-sm sm:text-base uppercase tracking-wider font-bold text-text-main leading-tight">
           {title}
         </h2>
-        {subtitle && <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-0.5">{subtitle}</p>}
+        {subtitle && <p className="text-xs sm:text-sm text-text-muted mt-0.5">{subtitle}</p>}
       </div>
       {right && <div className="shrink-0 flex items-center gap-2">{right}</div>}
     </div>
@@ -825,29 +863,25 @@ export default function PortfolioClient() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-[40vh] flex items-center justify-center">
-        <p className="text-[var(--text-muted)]">Loading…</p>
-      </div>
-    );
+    return <PortfolioSkeleton />;
   }
 
   if (!isLoggedIn) {
     return (
       <div className="min-h-[40vh] flex items-center justify-center">
         <Card padding="none" className="p-8 text-center max-w-sm w-full">
-          <svg className="mx-auto mb-4 text-[var(--text-muted)]" width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+          <svg className="mx-auto mb-4 text-text-muted" width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
           </svg>
-          <p className="text-[var(--text)] font-semibold mb-1">Sign in to view your portfolio</p>
-          <p className="text-sm text-[var(--text-muted)] mb-5">
+          <p className="text-text-main font-semibold mb-1">Sign in to view your portfolio</p>
+          <p className="text-sm text-text-muted mb-5">
             Track your DSE holdings, P&amp;L, and returns in one place.
           </p>
           <div className="flex gap-3 justify-center">
             <Button href="/login" variant="primary" size="sm">
               Sign In
             </Button>
-            <Button href="/register" variant="ghost" size="sm">
+            <Button href="/register" variant="quiet" size="sm">
               Create Account
             </Button>
           </div>
@@ -857,35 +891,7 @@ export default function PortfolioClient() {
   }
 
   if (dataLoading) {
-    return (
-      <div className="space-y-4" aria-busy="true" aria-label="Loading portfolio">
-        {/* Hero skeleton */}
-        <Card padding="none" className="p-5 sm:p-7">
-          <div className="flex items-start justify-between gap-5">
-            <div className="flex-1">
-              <Skeleton width={130} height={12} className="mb-3" />
-              <Skeleton width="55%" height={40} className="mb-4" />
-              <div className="flex gap-2 mb-3">
-                <Skeleton width={120} height={26} rounded="999px" />
-                <Skeleton width={120} height={26} rounded="999px" />
-              </div>
-              <Skeleton width="40%" height={12} />
-            </div>
-            <Skeleton width={118} height={118} rounded="50%" className="hidden sm:block shrink-0" />
-          </div>
-        </Card>
-        {/* Holdings skeleton */}
-        <Card padding="md">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="flex items-center gap-3 py-2.5">
-              <Skeleton width={34} height={34} rounded="12px" />
-              <Skeleton width="35%" height={14} />
-              <Skeleton width="18%" height={14} className="ml-auto" />
-            </div>
-          ))}
-        </Card>
-      </div>
-    );
+    return <PortfolioSkeleton />;
   }
 
   if (error) {
@@ -937,67 +943,49 @@ export default function PortfolioClient() {
       {/* What's moving your money — per-stock gain/loss contribution */}
       {holdings.length > 0 && <ContributionStrip rows={rows} lang={lang} />}
 
-      {rowError && <p className="text-xs text-[var(--negative)] -mb-3">{rowError}</p>}
+      {rowError && <p className="text-xs text-negative -mb-3">{rowError}</p>}
 
       {/* Holdings */}
       {holdings.length === 0 ? (
-        <Card padding="none" className="pf-rise relative overflow-hidden p-8 sm:p-12 text-center ambient-panel">
-          {/* Simple bar-chart illustration */}
-          <div className="mx-auto mb-6 flex items-end justify-center gap-2 h-20" aria-hidden>
-            {[36, 56, 44, 72].map((h, i) => (
-              <span
-                key={i}
-                className="w-7 rounded-t-lg"
-                style={{
-                  height: h,
-                  background:
-                    i === 3
-                      ? "linear-gradient(180deg, var(--positive), color-mix(in srgb, var(--positive) 55%, transparent))"
-                      : `color-mix(in srgb, var(--primary) ${22 + i * 12}%, var(--surface-2))`,
-                }}
-              />
-            ))}
-          </div>
-          <h2 className="font-display text-xl sm:text-2xl font-bold text-[var(--text)] mb-2">
-            Start tracking your portfolio
-          </h2>
-          <p className="text-sm sm:text-base text-[var(--text-muted)] max-w-md mx-auto leading-relaxed">
-            Add the stocks you own once — after that, this page shows your profit &amp; loss,
-            dividends, news, and advice on every holding, every day.
-          </p>
-
-          {/* 3 steps */}
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center max-w-2xl mx-auto mt-7 text-left">
+        <EmptyState
+          className="pf-rise"
+          title="Start tracking your portfolio"
+          message="Add the stocks you own once — after that, this page shows your profit & loss, dividends, news, and advice on every holding, every day."
+          bn="আপনার শেয়ারগুলো একবার যোগ করুন — তারপর প্রতিদিন লাভ-ক্ষতি, ডিভিডেন্ড, খবর আর পরামর্শ এখানেই পাবেন।"
+          icon={
+            <span className="flex h-16 items-end justify-center gap-2" aria-hidden>
+              {[36, 56, 44, 64].map((h, i) => (
+                <span
+                  key={i}
+                  className={`w-6 rounded-t-md ${i === 3 ? "bg-positive" : "bg-primary/30"}`}
+                  style={{ height: h }}
+                />
+              ))}
+            </span>
+          }
+          actions={[
+            { label: "Add your first stock", onClick: () => setAddOpen(true) },
+            { href: "/sample-portfolio/diversified", label: "See a sample portfolio" },
+          ]}
+        >
+          <div className="mx-auto mt-7 flex max-w-2xl flex-col justify-center gap-3 text-left sm:flex-row sm:gap-4">
             {[
               ["Search your stock", "Type the code — like GP or BATBC."],
               ["Enter price & quantity", "What you paid and how many shares."],
               ["Get the full picture", "P&L, signals, and advice — updated daily."],
             ].map(([t, d], i) => (
-              <div key={i} className="flex items-start gap-3 flex-1">
-                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-[var(--primary)] text-white text-sm font-bold shrink-0">
+              <div key={i} className="flex flex-1 items-start gap-3">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-surface">
                   {i + 1}
                 </span>
                 <div>
-                  <p className="text-sm font-semibold text-[var(--text)] leading-tight">{t}</p>
-                  <p className="text-xs text-[var(--text-muted)] mt-0.5 leading-relaxed">{d}</p>
+                  <p className="text-sm font-semibold leading-tight text-text-main">{t}</p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-text-muted">{d}</p>
                 </div>
               </div>
             ))}
           </div>
-
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mt-8">
-            <Button variant="primary" onClick={() => setAddOpen(true)}>
-              + Add your first stock
-            </Button>
-            <Link
-              prefetch={false}
-              href="/sample-portfolio/diversified"
-              className="text-sm font-semibold text-[var(--primary)] hover:underline"
-            >
-              See a sample portfolio first →
-            </Link>
-          </div>
-        </Card>
+        </EmptyState>
       ) : (
        <div className="pf-rise flex flex-col gap-3">
         <SectionHeader
@@ -1013,7 +1001,7 @@ export default function PortfolioClient() {
           subtitle="Tap a stock for its full analysis."
           right={
             <div className="hidden sm:flex items-center gap-2">
-              <Button type="button" onClick={openEditPicker} variant="ghost" size="sm">
+              <Button type="button" onClick={openEditPicker} variant="quiet" size="sm">
                 Edit
               </Button>
               <Button type="button" onClick={() => setAddOpen(true)} variant="primary" size="sm">
@@ -1026,7 +1014,7 @@ export default function PortfolioClient() {
         {/* Sort — its own row so it never crowds the header on small screens */}
         {holdings.length > 1 && (
           <div className="flex items-center justify-end gap-1.5 -mt-1">
-            <label htmlFor="pf-sort" className="text-xs text-[var(--text-muted)]">
+            <label htmlFor="pf-sort" className="text-xs text-text-muted">
               Sort
             </label>
             <select
@@ -1052,15 +1040,19 @@ export default function PortfolioClient() {
               ))}
             </select>
             {sort && (
-              <button
+              <Button
                 type="button"
+                variant="link"
+                size="sm"
+                iconOnly
                 onClick={() => toggleSort(sort.key)}
-                className="px-1.5 py-1 rounded-md text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors"
                 aria-label="Toggle sort direction"
                 title={sort.dir === "asc" ? "Ascending" : "Descending"}
               >
-                {sort.dir === "asc" ? "▲" : "▼"}
-              </button>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  {sort.dir === "asc" ? <path d="M6 15l6-6 6 6" /> : <path d="M6 9l6 6 6-6" />}
+                </svg>
+              </Button>
             )}
           </div>
         )}
@@ -1081,11 +1073,11 @@ export default function PortfolioClient() {
                     <Link
                       prefetch={false}
                       href={`/stock/${row.holding.trading_code}`}
-                      className="block truncate text-[var(--primary)] font-mono font-bold text-base leading-tight"
+                      className="block truncate text-primary font-mono font-bold text-base leading-tight"
                     >
                       {row.holding.trading_code}
                     </Link>
-                    <p className="text-[11px] text-[var(--text-muted)] truncate leading-tight">
+                    <p className="text-xs text-text-muted truncate leading-tight">
                       {row.company_name ?? "—"}
                     </p>
                   </div>
@@ -1097,25 +1089,32 @@ export default function PortfolioClient() {
                     w52High={row.w52_high}
                     w52Low={row.w52_low}
                   />
-                  <button
+                  <Button
+                    type="button"
+                    variant="link"
+                    size="sm"
+                    iconOnly
                     onClick={() => startEdit(row.holding)}
-                    className="text-[var(--text-muted)] hover:text-[var(--text)] transition-colors p-1.5"
-                    aria-label="Edit"
+                    aria-label={`Edit ${row.holding.trading_code}`}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
                     </svg>
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="link"
+                    size="sm"
+                    iconOnly
                     onClick={() => handleDelete(row.holding.id)}
                     disabled={busyId === row.holding.id}
-                    className="text-[var(--text-muted)] hover:text-[var(--negative)] transition-colors p-1.5 disabled:opacity-40"
-                    aria-label="Delete"
+                    className="hover:text-negative"
+                    aria-label={`Remove ${row.holding.trading_code}`}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
                     </svg>
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -1128,28 +1127,28 @@ export default function PortfolioClient() {
               {/* Metric strip */}
               <div className="mt-2.5 grid grid-cols-4 gap-1 text-center rounded-lg py-2 px-1 bg-[color-mix(in_srgb,var(--primary)_5%,var(--surface))]">
                 <div>
-                  <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wide">Qty</p>
-                  <p className="pv text-xs text-[var(--text)] tabular-nums nums font-medium mt-0.5">{row.holding.qty.toLocaleString()}</p>
+                  <p className="text-xs text-text-muted uppercase tracking-wide">Qty</p>
+                  <p className="pv text-xs text-text-main tabular-nums nums font-medium mt-0.5">{row.holding.qty.toLocaleString()}</p>
                 </div>
-                <div className="border-l border-[var(--border)]">
-                  <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wide">Avg</p>
-                  <p className="pv text-xs text-[var(--text)] tabular-nums nums font-medium mt-0.5">{taka(row.holding.buy_price, 2)}</p>
+                <div className="border-l border-border">
+                  <p className="text-xs text-text-muted uppercase tracking-wide">Avg</p>
+                  <p className="pv text-xs text-text-main tabular-nums nums font-medium mt-0.5">{taka(row.holding.buy_price, 2)}</p>
                 </div>
-                <div className="border-l border-[var(--border)]">
-                  <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wide">LTP</p>
-                  <p className="text-xs text-[var(--text)] tabular-nums nums font-medium mt-0.5">{row.ltp != null ? taka(row.ltp, 1) : "—"}</p>
+                <div className="border-l border-border">
+                  <p className="text-xs text-text-muted uppercase tracking-wide">LTP</p>
+                  <p className="text-xs text-text-main tabular-nums nums font-medium mt-0.5">{row.ltp != null ? taka(row.ltp, 1) : "—"}</p>
                 </div>
-                <div className="border-l border-[var(--border)]">
-                  <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wide">Value</p>
+                <div className="border-l border-border">
+                  <p className="text-xs text-text-muted uppercase tracking-wide">Value</p>
                   {/* takaCompact: a ৳10-crore+ position was one unbreakable 11-char token crossing the divider */}
-                  <p className="pv text-xs text-[var(--text)] tabular-nums nums font-bold mt-0.5">{row.current_value != null ? takaCompact(row.current_value) : "—"}</p>
+                  <p className="pv text-xs text-text-main tabular-nums nums font-bold mt-0.5">{row.current_value != null ? takaCompact(row.current_value) : "—"}</p>
                 </div>
               </div>
 
               {/* 52-week position */}
               {row.w52_high != null && row.w52_low != null && row.w52_high > row.w52_low && (
                 <div className="mt-2.5 flex items-center gap-2 px-0.5">
-                  <span className="text-[11px] uppercase tracking-wide text-[var(--text-muted)] font-semibold shrink-0">
+                  <span className="text-xs uppercase tracking-wide text-text-muted font-semibold shrink-0">
                     52W
                   </span>
                   <div className="flex-1">
@@ -1160,28 +1159,32 @@ export default function PortfolioClient() {
 
               {/* Buy / Sell — bought or sold some shares */}
               <div className="mt-3 grid grid-cols-2 gap-2">
-                <button
+                <Button
                   type="button"
+                  variant="quiet"
+                  size="sm"
+                  block
                   onClick={() => openTx("buy", row)}
-                  className="tx-btn tx-buy"
                   aria-label={`Buy more ${row.holding.trading_code}`}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
                     <path d="M12 5v14M5 12h14" />
                   </svg>
                   Buy
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="quiet"
+                  size="sm"
+                  block
                   onClick={() => openTx("sell", row)}
-                  className="tx-btn tx-sell"
                   aria-label={`Sell ${row.holding.trading_code}`}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
                     <path d="M5 12h14" />
                   </svg>
                   Sell
-                </button>
+                </Button>
               </div>
             </div>
           ))}
@@ -1266,30 +1269,26 @@ export default function PortfolioClient() {
       {/* Edit holding — bottom-sheet on mobile, centered modal on desktop */}
       {editingHolding && (
         <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-text-main/50"
           onClick={() => !editSaving && setEditId(null)}
         >
           <div
-            className="w-full sm:max-w-sm bg-[var(--surface)] border-t sm:border border-[var(--border)] rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 flex flex-col gap-4"
+            className="w-full sm:max-w-sm bg-surface border-t sm:border border-border rounded-t-xl sm:rounded-xl p-5 sm:p-6 flex flex-col gap-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-[var(--text)]">
+              <h3 className="text-lg font-bold text-text-main">
                 Edit <span className="font-mono">{editingHolding.trading_code}</span>
               </h3>
-              <button
-                onClick={() => setEditId(null)}
-                className="text-[var(--text-muted)] hover:text-[var(--text)] p-1"
-                aria-label="Close"
-              >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18.3 5.71 12 12l6.3 6.29-1.42 1.42L12 13.41 5.71 19.7 4.29 18.3 10.59 12 4.29 5.71 5.71 4.29 12 10.59l6.29-6.3z" />
+              <Button type="button" variant="link" size="sm" iconOnly onClick={() => setEditId(null)} aria-label="Close" className="-mr-2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+                  <path d="M18 6 6 18M6 6l12 12" />
                 </svg>
-              </button>
+              </Button>
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="pf-1" className="text-sm font-medium text-[var(--text)]">Quantity</label>
+              <label htmlFor="pf-1" className="text-sm font-medium text-text-main">Quantity</label>
               <input id="pf-1"
                 type="number"
                 value={editForm.qty}
@@ -1303,7 +1302,7 @@ export default function PortfolioClient() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="pf-2" className="text-sm font-medium text-[var(--text)]">Avg Buy Price (৳)</label>
+              <label htmlFor="pf-2" className="text-sm font-medium text-text-main">Avg Buy Price (৳)</label>
               <input id="pf-2"
                 type="number"
                 value={editForm.price}
@@ -1316,24 +1315,21 @@ export default function PortfolioClient() {
               />
             </div>
 
-            {rowError && <p className="text-sm text-[var(--negative)] font-medium">{rowError}</p>}
+            {rowError && <p className="text-sm text-negative font-medium">{rowError}</p>}
 
             <div className="flex flex-col gap-2 mt-1">
-              <Button
-                onClick={handleEditSave}
-                disabled={editSaving}
-                variant="primary"
-                className="w-full"
-              >
+              <Button type="button" onClick={handleEditSave} disabled={editSaving} variant="primary" block>
                 {editSaving ? "Saving…" : "Save changes"}
               </Button>
-              <button
+              <Button
+                type="button"
+                variant="danger"
+                block
                 onClick={() => handleDelete(editingHolding.id)}
                 disabled={busyId === editingHolding.id || editSaving}
-                className="text-sm font-medium text-[var(--negative)] hover:opacity-80 py-2.5 w-full disabled:opacity-50"
               >
                 {busyId === editingHolding.id ? "Removing…" : "Remove holding"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -1342,29 +1338,25 @@ export default function PortfolioClient() {
       {/* Edit Portfolio — pick a holding from a dropdown, then edit qty/price */}
       {editPickerOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-text-main/50"
           onClick={() => !pickerSaving && setEditPickerOpen(false)}
         >
           <div
-            className="w-full sm:max-w-sm bg-[var(--surface)] border-t sm:border border-[var(--border)] rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 flex flex-col gap-4"
+            className="w-full sm:max-w-sm bg-surface border-t sm:border border-border rounded-t-xl sm:rounded-xl p-5 sm:p-6 flex flex-col gap-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-[var(--text)]">Edit Portfolio</h3>
-              <button
-                onClick={() => setEditPickerOpen(false)}
-                className="text-[var(--text-muted)] hover:text-[var(--text)] p-1"
-                aria-label="Close"
-              >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18.3 5.71 12 12l6.3 6.29-1.42 1.42L12 13.41 5.71 19.7 4.29 18.3 10.59 12 4.29 5.71 5.71 4.29 12 10.59l6.29-6.3z" />
+              <h3 className="text-lg font-bold text-text-main">Edit Portfolio</h3>
+              <Button type="button" variant="link" size="sm" iconOnly onClick={() => setEditPickerOpen(false)} aria-label="Close" className="-mr-2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+                  <path d="M18 6 6 18M6 6l12 12" />
                 </svg>
-              </button>
+              </Button>
             </div>
 
             {/* Stock selector */}
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="pf-3" className="text-sm font-medium text-[var(--text)]">Stock</label>
+              <label htmlFor="pf-3" className="text-sm font-medium text-text-main">Stock</label>
               <select id="pf-3"
                 value={pickerCode}
                 onChange={(e) => selectPickerCode(e.target.value)}
@@ -1381,7 +1373,7 @@ export default function PortfolioClient() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="pf-4" className="text-sm font-medium text-[var(--text)]">Quantity</label>
+                <label htmlFor="pf-4" className="text-sm font-medium text-text-main">Quantity</label>
                 <input id="pf-4"
                   type="number"
                   value={pickerForm.qty}
@@ -1394,7 +1386,7 @@ export default function PortfolioClient() {
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="pf-5" className="text-sm font-medium text-[var(--text)]">Avg Buy Price (৳)</label>
+                <label htmlFor="pf-5" className="text-sm font-medium text-text-main">Avg Buy Price (৳)</label>
                 <input id="pf-5"
                   type="number"
                   value={pickerForm.price}
@@ -1408,27 +1400,23 @@ export default function PortfolioClient() {
               </div>
             </div>
 
-            {pickerError && <p className="text-sm text-[var(--negative)] font-medium">{pickerError}</p>}
+            {pickerError && <p className="text-sm text-negative font-medium">{pickerError}</p>}
 
             <div className="flex flex-col gap-2 mt-1">
-              <button
+              <Button type="button" onClick={savePicker} disabled={pickerSaving} variant="primary" block>
+                {pickerSaving ? "Saving…" : "Save changes"}
+              </Button>
+              <Button
                 type="button"
+                variant="danger"
+                block
                 onClick={() => {
                   const h = holdings.find((x) => x.trading_code === pickerCode);
                   if (h) handleDelete(h.id);
                 }}
                 disabled={pickerSaving || busyId !== null}
-                className="text-sm font-medium text-[var(--negative)] hover:opacity-80 py-2.5 w-full disabled:opacity-50"
               >
                 {busyId !== null ? "Removing…" : `Remove ${pickerCode}`}
-              </button>
-              <Button
-                onClick={savePicker}
-                disabled={pickerSaving}
-                variant="primary"
-                className="w-full"
-              >
-                {pickerSaving ? "Saving…" : "Save changes"}
               </Button>
             </div>
           </div>
@@ -1438,21 +1426,21 @@ export default function PortfolioClient() {
       {/* Delete confirmation */}
       {confirmDeleteId && (
         <div
-          className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4"
+          className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-text-main/40 p-0 sm:p-4"
           onClick={() => setConfirmDeleteId(null)}
         >
           <div
-            className="w-full sm:max-w-sm bg-[var(--surface-2)] rounded-t-2xl sm:rounded-2xl border border-[var(--border)] p-5 sm:p-6 flex flex-col gap-4"
+            className="w-full sm:max-w-sm bg-surface-2 rounded-t-xl sm:rounded-xl border border-border p-5 sm:p-6 flex flex-col gap-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div>
-              <h3 className="text-lg font-bold text-[var(--text)]">Remove holding?</h3>
-              <p className="text-sm text-[var(--text-muted)] mt-1">
+              <h3 className="text-lg font-bold text-text-main">Remove holding?</h3>
+              <p className="text-sm text-text-muted mt-1">
                 {(() => {
                   const h = holdings.find((x) => x.id === confirmDeleteId);
                   return h ? (
                     <>
-                      Remove <span className="font-mono font-semibold text-[var(--text)]">{h.trading_code}</span> from your portfolio? This can’t be undone.
+                      Remove <span className="font-mono font-semibold text-text-main">{h.trading_code}</span> from your portfolio? This can’t be undone.
                     </>
                   ) : (
                     "This can’t be undone."
@@ -1461,15 +1449,12 @@ export default function PortfolioClient() {
               </p>
             </div>
             <div className="flex flex-col gap-2">
-              <Button onClick={confirmDelete} variant="primary" className="w-full bg-[var(--negative)] border-[var(--negative)]">
+              <Button type="button" onClick={confirmDelete} variant="danger" block>
                 Remove
               </Button>
-              <button
-                onClick={() => setConfirmDeleteId(null)}
-                className="text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text)] py-2.5 w-full"
-              >
+              <Button type="button" variant="quiet" block onClick={() => setConfirmDeleteId(null)}>
                 Cancel
-              </button>
+              </Button>
             </div>
           </div>
         </div>

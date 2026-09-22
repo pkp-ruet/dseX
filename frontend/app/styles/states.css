@@ -1,0 +1,67 @@
+/* states — page-area styles layered after globals.css (later import wins at equal specificity).
+   Tokens only: var(--fs-*), var(--radius*), var(--shadow-*), colour vars. */
+
+/* ===================================================================
+   Button system additions (2026-09-22 unification, components/ui/Button.tsx)
+   globals.css owns .btn-primary / .btn-quiet / .btn-link / .btn-tab and the
+   40px default height. This file adds the danger role, the square icon-only
+   modifier, the toggled "on" state for quiet buttons, and lifts the small
+   size to 36px (globals still says 32 — equal specificity, later import wins).
+   =================================================================== */
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  line-height: 1;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+  background: var(--negative);
+  color: var(--surface);
+}
+.btn-danger:hover { background: color-mix(in srgb, var(--negative) 85%, var(--text)); }
+.btn-danger:active { transform: scale(0.98); }
+.btn-danger:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+.btn-danger:focus-visible { outline: 2px solid var(--negative); outline-offset: 2px; }
+
+/* Sizes: sm 36 / md 40 (default) / lg 48 */
+.btn-sm { min-height: 36px; padding: 0 12px; font-size: var(--fs-xs); }
+.btn-link.btn-sm { padding: 0 8px; }
+
+/* Icon-only: a square the same height as the text button; caller must pass aria-label */
+.btn-icon { padding: 0; width: 40px; min-width: 40px; }
+.btn-icon.btn-sm { width: 36px; min-width: 36px; }
+.btn-icon.btn-lg { width: 48px; min-width: 48px; }
+.btn-link.btn-icon { color: var(--text-muted); }
+.btn-link.btn-icon:hover { color: var(--text); background: var(--surface-2); text-decoration: none; }
+
+/* Toggled-on quiet button (watch star on, alert armed, filter selected) */
+.btn-quiet.is-active {
+  color: var(--primary-ink);
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+}
+.btn-quiet.is-active:hover { background: color-mix(in srgb, var(--primary) 16%, var(--surface)); }
+.btn-quiet svg, .btn-primary svg, .btn-danger svg, .btn-link svg { flex-shrink: 0; }
+
+/* ===================================================================
+   Loading rows — a table/list card while its data is in flight.
+   .skeleton (shimmer + reduced-motion guard) lives in globals.css.
+   =================================================================== */
+.skeleton-rows { display: flex; flex-direction: column; }
+.skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+}
+.skeleton-row + .skeleton-row { border-top: 1px solid var(--cell-rule, var(--border)); }

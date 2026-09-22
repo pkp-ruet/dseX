@@ -34,15 +34,15 @@ export default function SectorsWeekCard({ sectors, lang = "en" }: { sectors: Mar
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
       <DashHeader title={t(lang, "sectorsTitle")} href="/sectors" linkLabel={t(lang, "allSectors")} accent={ACC.steel} icon={<IconList size={15} />} />
-      <p className="px-4 pt-2.5 text-[0.68rem] font-semibold text-[var(--text-muted)] sm:px-5">{t(lang, "weekDotLegend")}</p>
-      <ul className="mt-1 divide-y divide-[var(--cell-rule)]">
+      <p className="px-4 pt-2.5 text-xs font-semibold text-text-muted sm:px-5">{t(lang, "weekDotLegend")}</p>
+      <ul className="mt-1 divide-y divide-cell-rule">
         {shown.map((s) => {
           const up = s.ret_1w >= 0;
           const color = up ? "var(--positive)" : "var(--negative)";
           const inner = (
             <>
               <span
-                className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-[var(--text-muted)]"
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-text-muted"
                 style={{ background: "var(--surface-2)" }}
                 aria-hidden
               >
@@ -53,28 +53,28 @@ export default function SectorsWeekCard({ sectors, lang = "en" }: { sectors: Mar
                   name like "Pharmaceuticals & Chemicals" then made the whole
                   row wider than a 360px phone. Same 34% on screen. */}
               <span className="min-w-0 shrink basis-[34%]">
-                <span className="block truncate text-[0.84rem] font-bold leading-tight text-[var(--text)]">
+                <span className="block truncate text-sm font-bold leading-tight text-text-main">
                   {bn ? sectorBn(s.name) : s.name}
                 </span>
-                <span className="block text-[0.68rem] font-medium text-[var(--text-muted)]">
+                <span className="block text-xs font-medium text-text-muted">
                   {t(lang, "companiesN", { n: s.count })}
                 </span>
               </span>
-              <span className="relative h-2 min-w-0 flex-1 rounded-full bg-[var(--surface-2)]" aria-hidden>
-                <span className="absolute inset-y-0 left-1/2 w-px bg-[var(--border)]" />
+              <span className="relative h-2 min-w-0 flex-1 rounded-full bg-surface-2" aria-hidden>
+                <span className="absolute inset-y-0 left-1/2 w-px bg-border" />
                 <span
                   className="absolute inset-y-0 rounded-full"
                   style={up ? { left: "50%", width: half(s.ret_1w), background: color } : { right: "50%", width: half(s.ret_1w), background: color }}
                 />
                 {s.ret_1m != null && (
                   <span
-                    className="absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[var(--surface)]"
+                    className="absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface"
                     style={{ left: dotLeft(s.ret_1m), background: "var(--text)" }}
                     title={`${t(lang, "month")} ${s.ret_1m >= 0 ? "+" : ""}${s.ret_1m.toFixed(1)}%`}
                   />
                 )}
               </span>
-              <span className="w-14 shrink-0 text-right text-[0.84rem] font-bold tabular-nums nums" style={{ color }}>
+              <span className="w-14 shrink-0 text-right text-sm font-bold tabular-nums nums" style={{ color }}>
                 {up ? "+" : ""}
                 {s.ret_1w.toFixed(1)}%
               </span>
@@ -87,7 +87,7 @@ export default function SectorsWeekCard({ sectors, lang = "en" }: { sectors: Mar
                 <Link
                   prefetch={false}
                   href={`/sector/${s.slug}`}
-                  className={`${cls} transition-colors hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)]`}
+                  className={`${cls} transition-colors hover:bg-surface-2 active:bg-surface-2`}
                 >
                   {inner}
                 </Link>
@@ -103,7 +103,7 @@ export default function SectorsWeekCard({ sectors, lang = "en" }: { sectors: Mar
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          className="block w-full border-t border-[var(--border)] px-4 py-2.5 text-center text-xs font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)]"
+          className="block w-full border-t border-border px-4 py-2.5 text-center text-xs font-semibold text-primary transition-colors hover:bg-surface-2 active:bg-surface-2"
         >
           {open ? t(lang, "showFewer") : t(lang, "showAll", { n: rows.length })}
         </button>

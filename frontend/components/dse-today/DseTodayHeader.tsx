@@ -40,20 +40,20 @@ function IndexTile({ name, value, change, changePct, lead = false }: {
       }}
     >
       <span
-        className="text-[11px] font-extrabold uppercase tracking-[0.14em]"
+        className="text-xs font-extrabold uppercase tracking-[0.14em]"
         style={{ color: lead ? "var(--primary-ink)" : "var(--text-muted)" }}
       >
         {name}
       </span>
-      <span className="text-base sm:text-xl font-extrabold leading-none tabular-nums text-[var(--text)]">
+      <span className="text-base sm:text-xl font-extrabold leading-none tabular-nums text-text-main">
         {value != null ? value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—"}
       </span>
       {/* flex-wrap: "▲ +18.45 (+0.35%)" is ~100px but a 3-up tile is ~70px at 360px,
           so the percentage drops to its own line instead of running into DSES. */}
-      <span className="flex min-w-0 flex-wrap items-baseline gap-x-1 text-[11px] sm:text-xs font-bold tabular-nums" style={{ color }}>
+      <span className="flex min-w-0 flex-wrap items-baseline gap-x-1 text-xs sm:text-xs font-bold tabular-nums" style={{ color }}>
         {hasChange ? (
           <>
-            <span className="text-[11px]">{up ? "▲" : "▼"}</span>
+            <span className="text-xs">{up ? "▲" : "▼"}</span>
             {signed(change)}
             {changePct != null && <span className="opacity-75">({signed(changePct, 2)}%)</span>}
           </>
@@ -73,14 +73,14 @@ function StatTile({ label, value, sub, subColor }: {
   subColor?: string;
 }) {
   return (
-    <div className="flex flex-col gap-1 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-2.5 sm:p-3">
-      <span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+    <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface-2 p-2.5 sm:p-3">
+      <span className="text-xs font-extrabold uppercase tracking-[0.14em] text-text-muted">
         {label}
       </span>
-      <span className="text-sm sm:text-lg font-extrabold leading-none tabular-nums text-[var(--text)]">
+      <span className="text-sm sm:text-lg font-extrabold leading-none tabular-nums text-text-main">
         {value}
       </span>
-      <span className="text-[11px] font-bold tabular-nums" style={{ color: subColor || "var(--text-muted)" }}>
+      <span className="text-xs font-bold tabular-nums" style={{ color: subColor || "var(--text-muted)" }}>
         {sub || " "}
       </span>
     </div>
@@ -121,13 +121,13 @@ export default function DseTodayHeader({ header, condition }: Props) {
         {/* Top — date + condition */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[var(--text-muted)]">
+            <span className="text-xs font-extrabold uppercase tracking-[0.16em] text-text-muted">
               Trading Day
             </span>
-            <span className="text-sm font-bold text-[var(--text)]">{dateLabel}</span>
+            <span className="text-sm font-bold text-text-main">{dateLabel}</span>
           </div>
           <span
-            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider"
+            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-extrabold uppercase tracking-wider"
             style={{
               color: cond.color,
               background: `color-mix(in srgb, ${cond.color} 12%, var(--surface))`,
@@ -167,25 +167,25 @@ export default function DseTodayHeader({ header, condition }: Props) {
         </div>
 
         {/* Breadth */}
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3">
+        <div className="rounded-xl border border-border bg-surface-2 p-3">
           <div className="mb-2 flex items-center justify-between gap-2">
-            <span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+            <span className="text-xs font-extrabold uppercase tracking-[0.14em] text-text-muted">
               Market Breadth
             </span>
-            <span className="text-[11px] font-bold tabular-nums">
+            <span className="text-xs font-bold tabular-nums">
               <span style={{ color: "var(--positive)" }}>{up} up</span>
-              <span className="text-[var(--text-muted)]"> · </span>
+              <span className="text-text-muted"> · </span>
               <span style={{ color: "var(--negative)" }}>{down} down</span>
-              <span className="text-[var(--text-muted)]"> · {flat} flat</span>
+              <span className="text-text-muted"> · {flat} flat</span>
             </span>
           </div>
-          <div className="flex h-2.5 overflow-hidden rounded-full bg-[var(--bg)]">
+          <div className="flex h-2.5 overflow-hidden rounded-full bg-bg">
             <div style={{ width: `${upWidth}%`, background: "var(--positive)" }} />
             <div style={{ width: `${flatWidth}%`, background: flatColor }} />
             <div style={{ width: `${downWidth}%`, background: "var(--negative)" }} />
           </div>
           {breadthTotal > 0 && (
-            <div className="mt-1.5 text-[11px] font-semibold tabular-nums text-[var(--text-muted)]">
+            <div className="mt-1.5 text-xs font-semibold tabular-nums text-text-muted">
               {pct((up / breadthTotal) * 100)} advancing · {pct((down / breadthTotal) * 100)} declining
             </div>
           )}

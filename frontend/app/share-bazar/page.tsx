@@ -14,6 +14,7 @@ import { bnCroreTaka, bnDate, bnInt, bnSignedPct, sectorBn } from "@/lib/bn";
 import HtmlLang from "@/components/i18n/HtmlLang";
 import MarketRow from "@/components/market-analysis/MarketRow";
 import ErrorState from "@/components/ui/ErrorState";
+import PageHeader from "@/components/ui/PageHeader";
 
 export const revalidate = 900;
 
@@ -106,7 +107,7 @@ function answers(data: MarketStateData) {
           ? `${bnCroreTaka(s.turnover_mn)} · সাধারণত ${bnCroreTaka(s.turnover_avg_mn)}`
           : bnCroreTaka(s.turnover_mn),
       tone: "neutral",
-      accent: "#6D28D9",
+      accent: "var(--info)",
     });
   }
   return out;
@@ -181,12 +182,12 @@ export default async function ShareBazarPage() {
     return (
       <div lang="bn" className="font-bn">
         <HtmlLang lang="bn" />
-        <header className="ms-pagehead">
-          <h1 className="ms-page-h1">
-            <span className="ms-page-kicker">ঢাকা স্টক এক্সচেঞ্জ</span>
-            <span className="ms-page-h1-main">আজকের শেয়ার বাজার</span>
-          </h1>
-        </header>
+        <PageHeader
+          eyebrow="ঢাকা স্টক এক্সচেঞ্জ"
+          title="আজকের শেয়ার বাজার"
+          bn="Today's Dhaka stock market, told in everyday Bangla."
+          subLang="en"
+        />
         <ErrorState
           size="inline"
           title="আজকের বাজারের তথ্য আনা যাচ্ছে না"
@@ -244,13 +245,13 @@ export default async function ShareBazarPage() {
       <HtmlLang lang="bn" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <header className="ms-pagehead">
-        <h1 className="ms-page-h1">
-          <span className="ms-page-kicker">ঢাকা স্টক এক্সচেঞ্জ</span>
-          <span className="ms-page-h1-main">আজকের শেয়ার বাজার</span>
-        </h1>
-        {day && <span className="ms-page-date">{day} · বাজার বন্ধের পর আপডেট</span>}
-      </header>
+      <PageHeader
+        eyebrow="ঢাকা স্টক এক্সচেঞ্জ"
+        title="আজকের শেয়ার বাজার"
+        bn="Today's Dhaka stock market, told in everyday Bangla."
+        subLang="en"
+        actions={day ? <span className="ms-page-date">{day} · বাজার বন্ধের পর আপডেট</span> : undefined}
+      />
 
       {/* The day in one look */}
       <section className={`ms-hero ms-hero--${HERO_TONE[tone]}`}>
@@ -282,7 +283,7 @@ export default async function ShareBazarPage() {
             </div>
           )}
           {s.turnover_mn != null && (
-            <div className="ms-stat" style={{ "--ms-accent": "#6D28D9" } as CSSProperties}>
+            <div className="ms-stat" style={{ "--ms-accent": "var(--info)" } as CSSProperties}>
               <p className="ms-stat-label">আজকের লেনদেন</p>
               <p className="ms-stat-value">{bnCroreTaka(s.turnover_mn)}</p>
             </div>

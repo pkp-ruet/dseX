@@ -1,11 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { BAR_H, NAVBAR_H, STOCK_JUMP_EVENT } from "@/components/stock/StickyStackMeasure";
 
-/** Fired when a section chip is tapped. StickySummaryBar listens: on phones it
- *  hides for the jump so the sticky stack is as short as the offset assumes. */
-export const STOCK_JUMP_EVENT = "dsex:stock-jump";
-/** Fixed navbar height (layout.tsx `h-14`). */
-const NAVBAR_H = 56;
+export { STOCK_JUMP_EVENT };
 
 export interface NavSection {
   id: string;
@@ -16,6 +13,13 @@ interface Props {
   sections: NavSection[];
 }
 
+/**
+ * The section chip row — the second line of the stock page's one sticky
+ * element (StickySummaryBar renders it). Horizontally scrollable, every chip
+ * at least 40px tall. Tapping a chip scrolls the section title just under
+ * whatever the sticky stack measures right now and announces the jump
+ * (STOCK_JUMP_EVENT) so the summary line can hide for it on phones.
+ */
 export default function StockSectionNav({ sections }: Props) {
   const [active, setActive] = useState<string | null>(sections[0]?.id ?? null);
   const navRef = useRef<HTMLElement>(null);
@@ -43,10 +47,8 @@ export default function StockSectionNav({ sections }: Props) {
 
   // Keep the active chip scrolled into view *horizontally within the nav strip*.
   // Must NOT use chip.scrollIntoView — its block:"nearest" scrolls the whole
-  // page vertically too. The nav sits below the hero+chart, so on mobile it's
-  // off-screen on first paint and scrollIntoView yanks the page down on mount
-  // (opening the stock at "The Price Story" instead of the top). Adjust only
-  // the nav's own horizontal scroll, which never touches the page scroll.
+  // page vertically too (it yanked the page down on mount). Adjust only the
+  // nav's own horizontal scroll, which never touches the page scroll.
   useEffect(() => {
     const nav = navRef.current;
     if (!active || !nav) return;
@@ -70,19 +72,13 @@ export default function StockSectionNav({ sections }: Props) {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     // Land the section title just under the sticky stack, whatever it measures
-    // right now. `scroll-margin-top` alone was a fixed 112px while the stack is
-    // navbar + summary bar + this nav (~150–165px with the bar showing), so the
-    // heading ended up hidden behind the chips.
+    // right now. On phones the summary line hides for the jump (STOCK_JUMP_EVENT),
+    // so only the chip row counts; from sm up the line is always showing past
+    // the hero, so count its full height even if it is still collapsed at click time.
     window.dispatchEvent(new CustomEvent(STOCK_JUMP_EVENT));
-    const nav = navRef.current;
-    const stack = nav?.parentElement;
     const narrow = window.innerWidth < 640;
-    // On phones the summary bar hides for the jump (see STOCK_JUMP_EVENT); on
-    // wider screens it is always showing past the hero, so count its full height
-    // even if it is still collapsed at click time.
-    const bar = stack?.querySelector<HTMLElement>("[data-summary-inner]");
-    const barH = !narrow && bar ? bar.offsetHeight : 0;
-    const navH = nav?.offsetHeight ?? 0;
+    const barH = narrow ? 0 : BAR_H;
+    const navH = navRef.current?.offsetHeight ?? 0;
     const top = el.getBoundingClientRect().top + window.scrollY - (NAVBAR_H + barH + navH + 8);
     window.scrollTo({ top: Math.max(0, top), behavior: reduce ? "auto" : "smooth" });
     setActive(id);
@@ -92,12 +88,7 @@ export default function StockSectionNav({ sections }: Props) {
     <nav
       ref={navRef}
       aria-label="Jump to section"
-      className="flex gap-2 overflow-x-auto py-2.5 px-3 no-scrollbar"
-      style={{
-        background: "color-mix(in srgb, var(--surface) 92%, transparent)",
-        backdropFilter: "blur(8px)",
-        borderBottom: "1px solid var(--border)",
-      }}
+      className="stock-chip-row flex gap-2 overflow-x-auto px-3 py-1.5 no-scrollbar bg-surface/90 backdrop-blur border-b border-border"
     >
       {sections.map((s) => {
         const isActive = active === s.id;
@@ -107,13 +98,12 @@ export default function StockSectionNav({ sections }: Props) {
             href={`#${s.id}`}
             data-chip={s.id}
             onClick={(e) => handleClick(e, s.id)}
-            className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full whitespace-nowrap transition-colors"
-            style={{
-              minHeight: 32,
-              color: isActive ? "#fff" : "var(--text-muted)",
-              background: isActive ? "var(--primary)" : "var(--surface-2)",
-              border: "1px solid var(--border)",
-            }}
+            aria-current={isActive ? "true" : undefined}
+            className={`stock-chip shrink-0 inline-flex items-center text-xs font-semibold px-3 rounded-full whitespace-nowrap border transition-colors ${
+              isActive
+                ? "bg-primary border-primary text-surface"
+                : "bg-surface-2 border-border text-text-muted hover:text-text-main active:bg-border"
+            }`}
           >
             {s.label}
           </a>

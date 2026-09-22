@@ -80,33 +80,33 @@ export default function FeedbackPrompt() {
       role="dialog"
       aria-label="Feedback"
       data-bottom-card
-      className="above-bottom-bar fixed z-[45] inset-x-3 md:inset-x-auto md:right-5 md:w-[22rem] rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-xl shadow-black/10"
+      className="above-bottom-bar fixed z-[45] inset-x-3 md:inset-x-auto md:right-5 md:w-[22rem] rounded-2xl border border-border bg-surface shadow-xl shadow-black/10"
     >
       <div className="p-4 sm:p-5">
         {status === "done" ? (
           <div className="py-3 text-center">
             <p className="text-2xl">🙏</p>
-            <p className="mt-1 text-sm font-semibold text-[var(--text)]">Thank you!</p>
-            <p className="text-xs text-[var(--text-muted)]">We read every single message.</p>
+            <p className="mt-1 text-sm font-semibold text-text-main">Thank you!</p>
+            <p className="text-xs text-text-muted">We read every single message.</p>
           </div>
         ) : (
           <>
             <div className="flex items-start justify-between gap-3">
-              <h3 className="text-base font-bold leading-snug text-[var(--text)]">
+              <h3 className="text-base font-bold leading-snug text-text-main">
                 How&apos;s TopStockBD working for you?
               </h3>
               <button
                 type="button"
                 onClick={close}
                 aria-label="Close"
-                className="-mr-1 -mt-1 shrink-0 rounded-md p-1 text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+                className="-mr-1 -mt-1 shrink-0 rounded-md p-1 text-text-muted hover:bg-surface-2 hover:text-text-main"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
                 </svg>
               </button>
             </div>
-            <p className="mt-1 text-sm text-[var(--text-muted)]">
+            <p className="mt-1 text-sm text-text-muted">
               We&apos;d love to hear what you think. Takes less than a minute.
             </p>
 
@@ -120,16 +120,16 @@ export default function FeedbackPrompt() {
               rows={2}
               maxLength={2000}
               placeholder="Anything you'd like to add? (optional)"
-              className="mt-3 w-full resize-y rounded-xl border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
+              className="mt-3 w-full resize-y rounded-xl border border-border bg-bg px-3 py-2 text-sm text-text-main placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
 
-            {error && <p className="mt-2 text-xs text-[var(--negative)]">{error}</p>}
+            {error && <p className="mt-2 text-xs text-negative">{error}</p>}
 
             <div className="mt-3 flex items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={close}
-                className="text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text)]"
+                className="text-sm font-medium text-text-muted hover:text-text-main"
               >
                 No thanks
               </button>

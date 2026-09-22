@@ -24,11 +24,11 @@ export default function DonutCard({
   const total = data.reduce((a, s) => a + s.value, 0);
 
   return (
-    <Card padding="none" className="rounded-2xl p-4 sm:p-5">
-      <h3 className={`text-sm font-bold text-[var(--text)] ${subtitle ? "mb-1" : "mb-4"}`}>{title}</h3>
-      {subtitle && <p className="text-[11px] text-[var(--text-muted)] mb-4 leading-snug">{subtitle}</p>}
+    <Card padding="none" className="rounded-xl p-4 sm:p-5">
+      <h3 className={`text-sm font-bold text-text-main ${subtitle ? "mb-1" : "mb-4"}`}>{title}</h3>
+      {subtitle && <p className="text-xs text-text-muted mb-4 leading-snug">{subtitle}</p>}
       {data.length === 0 ? (
-        <p className="text-sm text-[var(--text-muted)] py-8 text-center">No data yet.</p>
+        <p className="text-sm text-text-muted py-8 text-center">No data yet.</p>
       ) : (
         <div className="flex items-center gap-4 sm:gap-6">
           <div className="shrink-0">
@@ -59,9 +59,9 @@ export default function DonutCard({
             {data.map((s) => (
               <div key={s.name} className="flex items-center gap-2.5">
                 <span className="w-3 h-3 rounded-full shrink-0" style={{ background: s.color }} />
-                <span className="text-xs flex-1 min-w-0 truncate text-[var(--text-muted)]">{s.name}</span>
-                <span className="text-xs font-bold tabular-nums text-[var(--text)]">{s.value}</span>
-                <span className="text-[11px] tabular-nums w-9 text-right text-[var(--text-muted)]">
+                <span className="text-xs flex-1 min-w-0 truncate text-text-muted">{s.name}</span>
+                <span className="text-xs font-bold tabular-nums text-text-main">{s.value}</span>
+                <span className="text-xs tabular-nums w-9 text-right text-text-muted">
                   {total ? `${((s.value / total) * 100).toFixed(0)}%` : "0%"}
                 </span>
               </div>

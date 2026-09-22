@@ -2,14 +2,11 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import Bn from "@/components/i18n/Bn";
 import SignalChip from "@/components/ui/SignalChip";
-import {
-  getTier,
-  TIER_VAR,
-  TIER_GRADES,
-  TIER_MEANINGS,
-  TIER_MEANINGS_BN,
-} from "@/lib/constants";
-import { PILLARS, pillarBand, PILLAR_BAND_COLOR } from "@/lib/landing";
+import ScoreBadge from "@/components/ui/ScoreBadge";
+import TierPill from "@/components/ui/TierPill";
+import { getTier, TIER_VAR, TIER_MEANINGS, TIER_MEANINGS_BN } from "@/lib/constants";
+import { PILLARS } from "@/lib/landing";
+import { pillarColor } from "@/lib/insight-utils";
 import { bdGroup } from "@/lib/formatters";
 import type { StoryStock, StoryKey } from "@/lib/home-stories";
 import type { ScoreItem } from "@/lib/api";
@@ -38,30 +35,44 @@ import type { ScoreItem } from "@/lib/api";
  */
 const SLOT: Record<
   StoryKey,
-  { label: string; unit: string; accent: string; ink: string; glyph: string }
+  { label: string; unit: string; accent: string; ink: string; glyph: "star" | "taka" | "up" }
 > = {
   strongest: {
     label: "Strongest overall",
     unit: "out of 100",
     accent: "var(--tier-excellent)",
     ink: "var(--tier-excellent)",
-    glyph: "★",
+    glyph: "star",
   },
   dividend: {
     label: "Biggest cash dividend",
     unit: "a year",
     accent: "var(--warm)",
     ink: "var(--warm-ink)",
-    glyph: "৳",
+    glyph: "taka",
   },
   growth: {
     label: "Fastest growing profit",
     unit: "in one year",
     accent: "var(--primary)",
     ink: "var(--primary-ink)",
-    glyph: "▲",
+    glyph: "up",
   },
 };
+
+/** Slot icon — stroked SVG (the taka sign is text; it has no emoji form). */
+function SlotGlyph({ kind }: { kind: "star" | "taka" | "up" }) {
+  if (kind === "taka") return <span aria-hidden>৳</span>;
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      {kind === "up" ? (
+        <path d="M12 4 21 19H3z" />
+      ) : (
+        <path d="m12 2.5 2.9 6.1 6.6.8-4.9 4.6 1.3 6.5L12 17.3 6.1 20.5l1.3-6.5L2.5 9.4l6.6-.8z" />
+      )}
+    </svg>
+  );
+}
 
 function fmt1(n: number): string {
   return Number.isInteger(n) ? String(n) : n.toFixed(1);
@@ -132,6 +143,8 @@ interface Stat {
   label: string;
   value: string;
   color: string;
+  /** Present → rendered as a ScoreBadge instead of text. */
+  score?: number | null;
 }
 
 /**
@@ -146,6 +159,7 @@ function stats(card: StoryStock): Stat[] {
     label: "Score",
     value: it.score == null ? "—" : String(Math.round(it.score)),
     color: TIER_VAR[getTier(it.score)],
+    score: it.score ?? null,
   };
   const dividend: Stat = {
     label: "Dividend",
@@ -178,23 +192,23 @@ function stats(card: StoryStock): Stat[] {
 
 /** One pillar as a small vertical bar — the hero's report card, shrunk. */
 function PillarBar({ label, value }: { label: string; value: number | null }) {
-  const color = PILLAR_BAND_COLOR[pillarBand(value)];
+  const color = pillarColor(value);
   const pct = value == null ? 0 : Math.max(6, Math.min(100, value * 10));
 
   return (
     <div className="flex min-w-0 flex-col items-center gap-1">
       <span
-        className="text-[0.68rem] font-extrabold leading-none tabular-nums nums"
+        className="text-xs font-extrabold leading-none tabular-nums nums"
         style={{ color: value == null ? "var(--text-muted)" : color }}
       >
         {value == null ? "—" : value.toFixed(1)}
       </span>
-      <span className="flex h-7 w-full items-end overflow-hidden rounded-[4px] bg-[var(--surface-2)]">
+      <span className="flex h-7 w-full items-end overflow-hidden rounded-sm bg-surface-2">
         {value != null && (
-          <span className="w-full rounded-[4px]" style={{ height: `${pct}%`, background: color }} />
+          <span className="w-full rounded-sm" style={{ height: `${pct}%`, background: color }} />
         )}
       </span>
-      <span className="w-full truncate text-center text-[0.68rem] font-bold leading-none text-[var(--text-muted)]">
+      <span className="w-full truncate text-center text-xs font-bold leading-none text-text-muted">
         {label}
       </span>
     </div>
@@ -225,11 +239,11 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
           background: `linear-gradient(180deg, color-mix(in srgb, ${meta.accent} 9%, transparent), transparent)`,
         }}
       >
-        <span className="icon-tile icon-tile-sm text-[0.95rem] font-extrabold leading-none" aria-hidden>
-          {meta.glyph}
+        <span className="icon-tile icon-tile-sm text-base font-extrabold leading-none" aria-hidden>
+          <SlotGlyph kind={meta.glyph} />
         </span>
         <span
-          className="min-w-0 flex-1 text-[0.68rem] font-extrabold uppercase leading-tight tracking-[0.1em]"
+          className="min-w-0 flex-1 text-xs font-extrabold uppercase leading-tight tracking-[0.1em]"
           style={{ color: meta.ink }}
         >
           {meta.label}
@@ -242,7 +256,7 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
         <div className="min-w-0">
           <span className="flex items-center gap-1.5">
             <span
-              className="inline-flex items-center rounded-md border px-1.5 py-0.5 font-mono text-[0.8rem] font-extrabold leading-none tracking-[0.03em]"
+              className="inline-flex items-center rounded-md border px-1.5 py-0.5 font-mono text-sm font-extrabold leading-none tracking-[0.03em]"
               style={{
                 color: tierColor,
                 background: `color-mix(in srgb, ${tierColor} 10%, transparent)`,
@@ -251,36 +265,36 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
             >
               {it.trading_code}
             </span>
-            <span
-              className="inline-flex h-[1.05rem] w-[1.05rem] shrink-0 items-center justify-center rounded text-[0.68rem] font-extrabold leading-none text-white"
-              style={{ background: tierColor }}
-              title={TIER_MEANINGS[tier]}
-            >
-              {TIER_GRADES[tier]}
-            </span>
+            <TierPill tier={tier} size="sm" />
           </span>
-          <p className="mt-1.5 line-clamp-2 text-[0.78rem] font-bold leading-snug text-[var(--text)]">
+          <p className="mt-1.5 line-clamp-2 text-xs font-bold leading-snug text-text-main">
             {it.company_name ?? it.trading_code}
           </p>
           {it.sector && (
-            <p className="mt-0.5 truncate text-[0.68rem] font-semibold text-[var(--text-muted)]">
+            <p className="mt-0.5 truncate text-xs font-semibold text-text-muted">
               {it.sector}
             </p>
           )}
         </div>
 
         <div className="shrink-0 text-right">
-          <span
-            className={`font-display block font-extrabold leading-none tabular-nums nums ${
-              value.length > 4 ? "text-[1.5rem]" : "text-[1.9rem]"
-            }`}
-            style={{ color: meta.accent }}
-          >
-            {value}
-          </span>
-          <span className="mt-1 block text-[0.68rem] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">
-            {meta.unit}
-          </span>
+          {card.key === "strongest" ? (
+            <ScoreBadge score={it.score} tier={tier} size="md" />
+          ) : (
+            <>
+              <span
+                className={`font-display block font-extrabold leading-none tabular-nums nums ${
+                  value.length > 4 ? "text-2xl" : "text-3xl"
+                }`}
+                style={{ color: meta.accent }}
+              >
+                {value}
+              </span>
+              <span className="mt-1 block text-xs font-bold uppercase tracking-[0.08em] text-text-muted">
+                {meta.unit}
+              </span>
+            </>
+          )}
         </div>
       </div>
 
@@ -292,9 +306,9 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
           background: `color-mix(in srgb, ${meta.accent} 7%, transparent)`,
         }}
       >
-        <p className="text-[0.76rem] font-bold leading-snug text-[var(--text)]">{card.shortLine}</p>
+        <p className="text-xs font-bold leading-snug text-text-main">{card.shortLine}</p>
         {sub && (
-          <p className="mt-0.5 text-[0.7rem] font-semibold leading-snug text-[var(--text-muted)]">
+          <p className="mt-0.5 text-xs font-semibold leading-snug text-text-muted">
             {sub}
           </p>
         )}
@@ -304,13 +318,17 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
       <div className="mt-3 grid grid-cols-4 gap-1.5 px-3.5 sm:px-4">
         {stats(card).map((s) => (
           <div key={s.label} className="min-w-0">
-            <span
-              className="block truncate text-[0.8rem] font-extrabold leading-none tabular-nums nums"
-              style={{ color: s.color }}
-            >
-              {s.value}
-            </span>
-            <span className="mt-1 block truncate text-[0.68rem] font-bold uppercase tracking-[0.06em] text-[var(--text-muted)]">
+            {s.score !== undefined ? (
+              <ScoreBadge score={s.score} size="sm" />
+            ) : (
+              <span
+                className="block truncate text-sm font-extrabold leading-none tabular-nums nums"
+                style={{ color: s.color }}
+              >
+                {s.value}
+              </span>
+            )}
+            <span className="mt-1 block truncate text-xs font-bold uppercase tracking-[0.06em] text-text-muted">
               {s.label}
             </span>
           </div>
@@ -319,7 +337,7 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
 
       {/* The five checks behind the score — the same method the hero card shows */}
       <div className="mt-3.5 px-3.5 sm:px-4">
-        <p className="text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)]">
+        <p className="text-xs font-bold uppercase tracking-[0.1em] text-text-muted">
           The five checks behind the score
         </p>
         <div className="mt-1.5 grid grid-cols-5 gap-1.5">
@@ -331,25 +349,25 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
 
       {/* The verdict in one line, English then Bengali */}
       <div className="mt-3 px-3.5 sm:px-4">
-        <p className="line-clamp-2 text-[0.72rem] font-semibold leading-snug text-[var(--text)]">
+        <p className="line-clamp-2 text-xs font-semibold leading-snug text-text-main">
           {card.reasonEn ?? TIER_MEANINGS[tier]}
         </p>
-        <Bn className="mt-0.5 line-clamp-2 text-[0.72rem] leading-snug text-[var(--text-muted)]">
+        <Bn className="mt-0.5 line-clamp-2 text-xs leading-snug text-text-muted">
           {card.reasonBn ?? TIER_MEANINGS_BN[tier]}
         </Bn>
       </div>
 
       {/* The card is one big link, so this is a styled affordance rather than a
           nested control — hidden from screen readers to avoid a double read. */}
-      <div className="mt-auto flex items-center justify-between gap-2 border-t border-[var(--border)] bg-[var(--surface-2)] px-3.5 py-2.5 sm:px-4">
-        <span className="truncate text-[0.68rem] font-semibold text-[var(--text-muted)]">
+      <div className="mt-auto flex items-center justify-between gap-2 border-t border-border bg-surface-2 px-3.5 py-2.5 sm:px-4">
+        <span className="truncate text-xs font-semibold text-text-muted">
           {it.last_reported_year
             ? `From the FY${it.last_reported_year} report`
             : "No annual report on file"}
         </span>
         <span
           aria-hidden
-          className="shrink-0 text-[0.72rem] font-extrabold"
+          className="shrink-0 text-xs font-extrabold"
           style={{ color: meta.ink }}
         >
           Full report{" "}

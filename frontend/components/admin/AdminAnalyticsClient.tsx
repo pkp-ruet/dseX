@@ -54,7 +54,7 @@ export default function AdminAnalyticsClient() {
   if (isLoading || (!isAdmin && !fetchError)) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <p className="text-[var(--text-muted)]">Loading…</p>
+        <p className="text-text-muted">Loading…</p>
       </div>
     );
   }
@@ -71,39 +71,39 @@ export default function AdminAnalyticsClient() {
         <div className="flex gap-2 flex-wrap">
           <a
             href="/admin/scores"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-border text-text-main hover:bg-border/30 transition-colors whitespace-nowrap"
           >
             Score Adjustments
           </a>
           <a
             href="/admin/daily-pick"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-border text-text-main hover:bg-border/30 transition-colors whitespace-nowrap"
           >
             <span aria-hidden="true">★</span> Today&apos;s Top Stock
           </a>
           <a
             href="/admin/tips"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-border text-text-main hover:bg-border/30 transition-colors whitespace-nowrap"
           >
             <span aria-hidden="true">💡</span> Edit Tips
           </a>
           <a
             href="/admin/feedback"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-border text-text-main hover:bg-border/30 transition-colors whitespace-nowrap"
           >
             <span aria-hidden="true">💬</span> Feedback
           </a>
           <a
             href="/admin/campaigns"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-border text-text-main hover:bg-border/30 transition-colors whitespace-nowrap"
           >
             <span aria-hidden="true">✉</span> Email Campaigns
           </a>
         </div>
       </div>
 
-      {fetchError && <p className="text-red-500 mb-4">{fetchError}</p>}
-      {!data && !fetchError && <p className="text-[var(--text-muted)]">Loading analytics…</p>}
+      {fetchError && <p className="form-error mb-4">{fetchError}</p>}
+      {!data && !fetchError && <p className="text-text-muted">Loading analytics…</p>}
 
       {data && (
         <>

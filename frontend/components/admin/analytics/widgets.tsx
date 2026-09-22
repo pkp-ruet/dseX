@@ -21,11 +21,11 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <Card padding="none" className={`rounded-2xl p-4 sm:p-5 ${className}`}>
+    <Card padding="none" className={`rounded-xl p-4 sm:p-5 ${className}`}>
       {(title || note) && (
         <div className="flex items-baseline justify-between gap-2 mb-3">
-          {title && <h3 className="text-sm font-bold text-[var(--text)]">{title}</h3>}
-          {note && <span className="text-[11px] text-[var(--text-muted)]">{note}</span>}
+          {title && <h3 className="text-sm font-bold text-text-main">{title}</h3>}
+          {note && <span className="text-xs text-text-muted">{note}</span>}
         </div>
       )}
       {children}
@@ -50,11 +50,11 @@ export function MetricRow({ metrics, cols }: { metrics: Metric[]; cols?: string 
       {metrics.map((m) => (
         <Card key={m.label} padding="none" className="rounded-xl p-4" >
           <div className="flex items-center gap-1.5">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+            <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
               {m.label}
             </p>
             {m.hint && (
-              <span className="text-[var(--text-muted)] cursor-help" title={m.hint} aria-label={m.hint}>
+              <span className="text-text-muted cursor-help" title={m.hint} aria-label={m.hint}>
                 ⓘ
               </span>
             )}
@@ -62,7 +62,7 @@ export function MetricRow({ metrics, cols }: { metrics: Metric[]; cols?: string 
           <p className="mt-1.5 text-3xl font-bold tabular-nums nums leading-none" style={{ color: m.accent ?? "var(--text)" }}>
             {m.value}
           </p>
-          {m.sub && <p className="mt-1.5 text-[11px] text-[var(--text-muted)] leading-tight">{m.sub}</p>}
+          {m.sub && <p className="mt-1.5 text-xs text-text-muted leading-tight">{m.sub}</p>}
         </Card>
       ))}
     </div>
@@ -93,7 +93,7 @@ export function BarList({
 }) {
   const max = items.reduce((a, i) => Math.max(a, i.value), 0) || 1;
   if (items.length === 0) {
-    return <p className="py-6 text-center text-xs text-[var(--text-muted)]">{emptyText}</p>;
+    return <p className="py-6 text-center text-xs text-text-muted">{emptyText}</p>;
   }
   return (
     <div className="flex flex-col gap-2.5">
@@ -102,20 +102,20 @@ export function BarList({
         const inner = (
           <>
             <div className="flex items-baseline justify-between gap-3 mb-1">
-              <span className="min-w-0 text-sm text-[var(--text)] truncate">{it.label}</span>
+              <span className="min-w-0 text-sm text-text-main truncate">{it.label}</span>
               <span className="shrink-0 text-sm font-bold tabular-nums nums" style={{ color }}>
                 {it.value.toLocaleString()}
-                {valueSuffix && <span className="text-[11px] font-normal text-[var(--text-muted)] ml-0.5">{valueSuffix}</span>}
+                {valueSuffix && <span className="text-xs font-normal text-text-muted ml-0.5">{valueSuffix}</span>}
               </span>
             </div>
-            <div className="h-2 rounded-full bg-[var(--surface-2)] overflow-hidden">
+            <div className="h-2 rounded-full bg-surface-2 overflow-hidden">
               <div className="h-full rounded-full" style={{ width: `${w}%`, background: color }} />
             </div>
-            {it.secondary && <p className="mt-1 text-[11px] text-[var(--text-muted)]">{it.secondary}</p>}
+            {it.secondary && <p className="mt-1 text-xs text-text-muted">{it.secondary}</p>}
           </>
         );
         return it.href ? (
-          <Link key={it.key} prefetch={false} href={it.href} className="block rounded-lg -mx-1 px-1 py-0.5 hover:bg-[var(--surface-2)] transition-colors">
+          <Link key={it.key} prefetch={false} href={it.href} className="block rounded-lg -mx-1 px-1 py-0.5 hover:bg-surface-2 transition-colors">
             {inner}
           </Link>
         ) : (
@@ -156,9 +156,9 @@ export function StockBarList({
           secondary: it.secondary,
           label: (
             <span className="flex items-baseline gap-2 min-w-0">
-              <span className="text-[11px] font-bold text-[var(--text-muted)] w-4 tabular-nums shrink-0">{i + 1}</span>
-              <span className="font-mono font-bold text-sm text-[var(--text)] shrink-0">{it.code}</span>
-              {name && <span className="text-[11px] text-[var(--text-muted)] truncate">{name}</span>}
+              <span className="text-xs font-bold text-text-muted w-4 tabular-nums shrink-0">{i + 1}</span>
+              <span className="font-mono font-bold text-sm text-text-main shrink-0">{it.code}</span>
+              {name && <span className="text-xs text-text-muted truncate">{name}</span>}
             </span>
           ),
         };
@@ -188,17 +188,17 @@ export function FunnelBars({
         return (
           <div key={s.label}>
             <div className="flex items-baseline justify-between gap-3 mb-1">
-              <span className="text-sm text-[var(--text)] flex items-center gap-1.5">
+              <span className="text-sm text-text-main flex items-center gap-1.5">
                 {s.label}
-                {s.hint && <span className="text-[var(--text-muted)] cursor-help" title={s.hint}>ⓘ</span>}
+                {s.hint && <span className="text-text-muted cursor-help" title={s.hint}>ⓘ</span>}
               </span>
-              <span className="text-xs text-[var(--text-muted)] tabular-nums">
-                <span className="font-bold text-[var(--text)] text-sm">{s.count.toLocaleString()}</span>
+              <span className="text-xs text-text-muted tabular-nums">
+                <span className="font-bold text-text-main text-sm">{s.count.toLocaleString()}</span>
                 <span className="ml-1.5">{Math.round(pctOfTop)}%</span>
-                {showConversion && i > 0 && <span className="ml-1.5 text-[11px]">({conv}% of prev)</span>}
+                {showConversion && i > 0 && <span className="ml-1.5 text-xs">({conv}% of prev)</span>}
               </span>
             </div>
-            <div className="h-6 rounded-lg bg-[var(--surface-2)] overflow-hidden">
+            <div className="h-6 rounded-lg bg-surface-2 overflow-hidden">
               <div
                 className="h-full rounded-lg transition-all"
                 style={{ width: `${Math.max(pctOfTop, 2)}%`, background: color, opacity: 0.85 }}
@@ -220,7 +220,7 @@ export function CohortGrid({
   rows: { cohort: string; size: number; cells: { week: number; pct: number; count: number }[] }[];
 }) {
   if (rows.length === 0) {
-    return <p className="py-6 text-center text-xs text-[var(--text-muted)]">Not enough signup history yet.</p>;
+    return <p className="py-6 text-center text-xs text-text-muted">Not enough signup history yet.</p>;
   }
   const maxWeek = rows.reduce((a, r) => Math.max(a, r.cells.length - 1), 0);
   const weekLabel = (iso: string) => {
@@ -237,11 +237,11 @@ export function CohortGrid({
       <table className="w-full border-separate" style={{ borderSpacing: "3px" }}>
         <thead>
           <tr>
-            <th className="text-left text-[11px] uppercase tracking-wide text-[var(--text-muted)] font-semibold px-2 whitespace-nowrap">
+            <th className="text-left text-xs uppercase tracking-wide text-text-muted font-semibold px-2 whitespace-nowrap">
               Signup week
             </th>
             {Array.from({ length: maxWeek + 1 }, (_, w) => (
-              <th key={w} className="text-[11px] text-[var(--text-muted)] font-semibold tabular-nums w-11">
+              <th key={w} className="text-xs text-text-muted font-semibold tabular-nums w-11">
                 W{w}
               </th>
             ))}
@@ -251,8 +251,8 @@ export function CohortGrid({
           {rows.map((r) => (
             <tr key={r.cohort}>
               <td className="px-2 whitespace-nowrap">
-                <span className="text-xs font-semibold text-[var(--text)]">{weekLabel(r.cohort)}</span>
-                <span className="ml-1.5 text-[11px] text-[var(--text-muted)] tabular-nums">n={r.size}</span>
+                <span className="text-xs font-semibold text-text-main">{weekLabel(r.cohort)}</span>
+                <span className="ml-1.5 text-xs text-text-muted tabular-nums">n={r.size}</span>
               </td>
               {Array.from({ length: maxWeek + 1 }, (_, w) => {
                 const cell = r.cells.find((c) => c.week === w);
@@ -264,7 +264,7 @@ export function CohortGrid({
                     style={{ background: shade(cell.pct) }}
                     title={`${cell.count} of ${r.size} active in week ${w}`}
                   >
-                    <span className="text-[11px] font-semibold tabular-nums text-[var(--text)]">
+                    <span className="text-xs font-semibold tabular-nums text-text-main">
                       {cell.pct}%
                     </span>
                   </td>
@@ -285,7 +285,7 @@ const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export function HoursHeatmap({ matrix, max }: { matrix: number[][]; max: number }) {
   if (!max) {
-    return <p className="py-6 text-center text-xs text-[var(--text-muted)]">No tracked activity yet.</p>;
+    return <p className="py-6 text-center text-xs text-text-muted">No tracked activity yet.</p>;
   }
   const shade = (v: number) => {
     if (!v) return "var(--surface-2)";
@@ -300,7 +300,7 @@ export function HoursHeatmap({ matrix, max }: { matrix: number[][]; max: number 
           <tr>
             <th />
             {Array.from({ length: 24 }, (_, h) => (
-              <th key={h} className="text-[11px] text-[var(--text-muted)] font-medium tabular-nums w-6 text-center">
+              <th key={h} className="text-xs text-text-muted font-medium tabular-nums w-6 text-center">
                 {h % 3 === 0 ? fmtHour(h) : ""}
               </th>
             ))}
@@ -309,7 +309,7 @@ export function HoursHeatmap({ matrix, max }: { matrix: number[][]; max: number 
         <tbody>
           {matrix.map((row, d) => (
             <tr key={d}>
-              <td className="text-[11px] text-[var(--text-muted)] font-semibold pr-1.5 text-right whitespace-nowrap">
+              <td className="text-xs text-text-muted font-semibold pr-1.5 text-right whitespace-nowrap">
                 {WEEKDAYS[d]}
               </td>
               {row.map((v, h) => (

@@ -69,7 +69,7 @@ export default function MomentumStrip({ momentum }: Props) {
         bn="গত এক সপ্তাহে শেয়ারের দাম কোন দিকে গেছে।"
       />
 
-      <Card padding="none" className="rounded-2xl p-5 mb-4">
+      <Card padding="none" className="rounded-xl p-5 mb-4">
         <div className="flex items-center gap-3">
           <span
             className="inline-flex items-center text-sm font-bold px-3 py-1.5 rounded-full"
@@ -89,9 +89,9 @@ export default function MomentumStrip({ momentum }: Props) {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {tiles.map((t) => (
-          <Card key={t.label} padding="none" className="rounded-2xl p-4">
+          <Card key={t.label} padding="none" className="rounded-xl p-4">
             <p
-              className="text-[11px] font-bold uppercase tracking-[0.15em] mb-2"
+              className="text-xs font-bold uppercase tracking-[0.15em] mb-2"
               style={{ color: "var(--text-muted)" }}
             >
               {t.label}

@@ -5,18 +5,22 @@ import Link from "next/link";
 import Card from "@/components/ui/Card";
 import { getBengaliSummaries } from "@/lib/api";
 import SignalChip from "@/components/ui/SignalChip";
+import ScoreBadge from "@/components/ui/ScoreBadge";
+import TierPill from "@/components/ui/TierPill";
+import type { TierKey } from "@/lib/constants";
 import type {
   AnalysisLang,
   PortfolioAnalysis,
   QualityWord,
 } from "@/lib/portfolio-analysis";
 
-const QUALITY_LABEL_BN: Record<QualityWord, string> = {
-  Strong: "শক্তিশালী কোম্পানি",
-  Solid: "ভালো কোম্পানি",
-  Average: "মাঝারি কোম্পানি",
-  Weak: "দুর্বল কোম্পানি",
-  Unrated: "রেটিং নেই",
+/** The portfolio's quality word is the DSEF tier under another name — render it
+ *  with the shared TierPill so it matches every other tier in the app. */
+const QUALITY_TIER: Record<Exclude<QualityWord, "Unrated">, TierKey> = {
+  Strong: "excellent",
+  Solid: "good",
+  Average: "average",
+  Weak: "weak",
 };
 
 const STR = {
@@ -35,37 +39,6 @@ const STR = {
     fullAnalysis: "পুরো বিশ্লেষণ",
   },
 } as const;
-
-const QUALITY_THEME: Record<
-  QualityWord,
-  { dot: string; chip: string; label: string }
-> = {
-  Strong: {
-    dot: "bg-[var(--positive)]",
-    chip: "bg-[color-mix(in_srgb,var(--positive)_15%,transparent)] text-[var(--positive)] border-[color-mix(in_srgb,var(--positive)_30%,transparent)]",
-    label: "Strong company",
-  },
-  Solid: {
-    dot: "bg-[var(--safe-buy)]",
-    chip: "bg-[color-mix(in_srgb,var(--safe-buy)_15%,transparent)] text-[var(--safe-buy)] border-[color-mix(in_srgb,var(--safe-buy)_30%,transparent)]",
-    label: "Solid company",
-  },
-  Average: {
-    dot: "bg-[var(--watch)]",
-    chip: "bg-[color-mix(in_srgb,var(--watch)_15%,transparent)] text-[var(--watch)] border-[color-mix(in_srgb,var(--watch)_30%,transparent)]",
-    label: "Average company",
-  },
-  Weak: {
-    dot: "bg-[var(--negative)]",
-    chip: "bg-[color-mix(in_srgb,var(--negative)_15%,transparent)] text-[var(--negative)] border-[color-mix(in_srgb,var(--negative)_30%,transparent)]",
-    label: "Weak company",
-  },
-  Unrated: {
-    dot: "bg-[var(--text-muted)]",
-    chip: "bg-[color-mix(in_srgb,var(--text-muted)_15%,transparent)] text-[var(--text-muted)] border-[color-mix(in_srgb,var(--text-muted)_30%,transparent)]",
-    label: "Unrated",
-  },
-};
 
 interface Props {
   analysis: PortfolioAnalysis;
@@ -103,7 +76,7 @@ export default function HoldingsDetailed({ analysis, lang = "en" }: Props) {
     <section className="flex flex-col gap-4">
       {/* Section header */}
       <div className="flex items-center gap-2.5">
-        <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--primary)]/15 border border-[var(--primary)]/30 text-[var(--primary)]">
+        <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/15 border border-primary/30 text-primary">
           <svg
             className="w-[18px] h-[18px]"
             viewBox="0 0 24 24"
@@ -122,37 +95,37 @@ export default function HoldingsDetailed({ analysis, lang = "en" }: Props) {
         </span>
         <div className="min-w-0 flex-1">
           <h3
-            className={`text-sm sm:text-[15px] uppercase tracking-wider font-bold text-[var(--text)] ${bnText}`}
+            className={`text-sm sm:text-base uppercase tracking-wider font-bold text-text-main ${bnText}`}
           >
             {t.title}
           </h3>
-          <p className={`text-xs sm:text-sm text-[var(--text-muted)] mt-0.5 leading-relaxed ${bnText}`}>
+          <p className={`text-xs sm:text-sm text-text-muted mt-0.5 leading-relaxed ${bnText}`}>
             {t.subtitle}
           </p>
         </div>
       </div>
 
       {sorted.map((h) => {
-        const qt = QUALITY_THEME[h.qualityWord];
+        const tier = h.qualityWord === "Unrated" ? null : QUALITY_TIER[h.qualityWord];
 
         return (
           <Card
             as="article"
             key={h.code}
             padding="none"
-            className="rounded-2xl overflow-hidden hover:border-[var(--primary)]/40 transition-colors"
+            className="rounded-xl overflow-hidden hover:border-primary/40 transition-colors"
           >
             {/* Header */}
-            <div className="flex items-start justify-between gap-3 p-4 sm:p-5 border-b border-[var(--border)]">
+            <div className="flex items-start justify-between gap-3 p-4 sm:p-5 border-b border-border">
               <div className="min-w-0 flex-1">
                 <Link
                   prefetch={false} href={`/stock/${h.code}`}
-                  className="font-mono font-black text-lg sm:text-xl text-[var(--primary)] hover:underline tracking-tight"
+                  className="font-mono font-black text-lg sm:text-xl text-primary hover:underline tracking-tight"
                 >
                   {h.code}
                 </Link>
                 {h.companyName && (
-                  <p className="text-sm sm:text-[15px] text-[var(--text)] mt-1 leading-snug truncate font-medium">
+                  <p className="text-sm sm:text-base text-text-main mt-1 leading-snug truncate font-medium">
                     {h.companyName}
                   </p>
                 )}
@@ -164,35 +137,31 @@ export default function HoldingsDetailed({ analysis, lang = "en" }: Props) {
                     size="md"
                     lang={bnMode ? "bn" : "en"}
                   />
-                  <span
-                    className={`inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-semibold px-2 py-1 rounded-full border ${qt.chip} ${bnText}`}
-                  >
-                    <span className={`w-1.5 h-1.5 rounded-full ${qt.dot}`} aria-hidden />
-                    {bnMode ? QUALITY_LABEL_BN[h.qualityWord] : qt.label}
-                  </span>
+                  {tier ? (
+                    <TierPill tier={tier} size="md" lang={bnMode ? "bn" : "en"} />
+                  ) : (
+                    <span
+                      className={`inline-flex items-center rounded-full border border-border bg-surface-2 px-2 py-1 text-xs font-semibold text-text-muted ${bnText}`}
+                    >
+                      {bnMode ? "রেটিং নেই" : "Unrated"}
+                    </span>
+                  )}
                   {h.sector && (
-                    <span className="text-xs sm:text-[13px] px-2 py-1 bg-[var(--border)]/40 border border-[var(--border)] rounded-full text-[var(--ink-2)] font-medium">
+                    <span className="text-xs sm:text-sm px-2 py-1 bg-border/40 border border-border rounded-full text-text-muted font-medium">
                       {h.sector}
                     </span>
                   )}
-                  <span className={`text-xs sm:text-[13px] text-[var(--text-muted)] font-medium ${bnText}`}>
+                  <span className={`text-xs sm:text-sm text-text-muted font-medium ${bnText}`}>
                     {t.ofPortfolio(h.weightPct.toFixed(0))}
                   </span>
                 </div>
               </div>
               {h.score != null && (
-                <div className="text-right shrink-0">
-                  <p
-                    className={`text-[11px] sm:text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-bold ${bnText}`}
-                  >
+                <div className="flex shrink-0 flex-col items-center gap-1">
+                  <p className={`text-xs uppercase tracking-wider text-text-muted font-bold ${bnText}`}>
                     {t.overall}
                   </p>
-                  <p className="text-2xl sm:text-3xl font-black text-[var(--text)] leading-none mt-1 tabular-nums nums">
-                    {h.score.toFixed(0)}
-                    <span className="text-xs sm:text-sm text-[var(--text-muted)] font-semibold">
-                      /100
-                    </span>
-                  </p>
+                  <ScoreBadge score={h.score} size="md" />
                 </div>
               )}
             </div>
@@ -200,18 +169,18 @@ export default function HoldingsDetailed({ analysis, lang = "en" }: Props) {
             {/* Finding + link */}
             <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
               <div className="flex-1 min-w-0">
-                <p className={`text-sm sm:text-[15px] text-[var(--text)] font-semibold leading-snug ${bnText}`}>
+                <p className={`text-sm sm:text-base text-text-main font-semibold leading-snug ${bnText}`}>
                   {h.descriptor}
                 </p>
-                <p className={`text-sm text-[var(--text-muted)] mt-1.5 leading-[1.6] ${bnText}`}>
+                <p className={`text-sm text-text-muted mt-1.5 leading-[1.6] ${bnText}`}>
                   {h.entryLabel}
                 </p>
                 {summariesBn[h.code] && (
-                  <div className="mt-3 pt-3 border-t border-dashed border-[var(--border)]">
-                    <p className="text-[11px] uppercase tracking-wider font-bold text-[var(--primary)] mb-1">
+                  <div className="mt-3 pt-3 border-t border-dashed border-border">
+                    <p className="text-xs uppercase tracking-wider font-bold text-primary mb-1">
                       এক নজরে
                     </p>
-                    <p lang="bn" className="font-bn text-sm text-[var(--text)]">
+                    <p lang="bn" className="font-bn text-sm text-text-main">
                       {summariesBn[h.code]}
                     </p>
                   </div>
@@ -219,7 +188,7 @@ export default function HoldingsDetailed({ analysis, lang = "en" }: Props) {
               </div>
               <Link
                 prefetch={false} href={`/stock/${h.code}`}
-                className={`inline-flex items-center justify-center gap-1 text-sm font-bold text-[var(--primary)] hover:underline shrink-0 px-3 py-1.5 rounded-lg border border-[var(--primary)]/30 bg-[var(--primary)]/5 hover:bg-[var(--primary)]/10 transition-colors self-start ${bnText}`}
+                className={`inline-flex items-center justify-center gap-1 text-sm font-bold text-primary hover:underline shrink-0 px-3 py-1.5 rounded-lg border border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors self-start ${bnText}`}
               >
                 {t.fullAnalysis}
                 <svg

@@ -56,14 +56,14 @@ export default function StartFromZero() {
               className="acc-card flex items-start gap-4 p-4 no-underline"
               style={{ "--acc": "var(--info)" } as CSSProperties}
             >
-              <span className="icon-tile icon-tile-sm font-display text-[0.85rem] font-extrabold tabular-nums nums" aria-hidden>
+              <span className="icon-tile icon-tile-sm font-display text-sm font-extrabold tabular-nums nums" aria-hidden>
                 {i + 1}
               </span>
               <span className="min-w-0">
-                <span className="block text-[0.92rem] font-bold leading-snug text-[var(--text)]">
+                <span className="block text-base font-bold leading-snug text-text-main">
                   {s.title}
                 </span>
-                <Bn as="span" className="mt-1 block text-[0.8rem] leading-relaxed text-[var(--text-muted)]">
+                <Bn as="span" className="mt-1 block text-sm leading-relaxed text-text-muted">
                   {s.bn}
                 </Bn>
               </span>
@@ -75,13 +75,13 @@ export default function StartFromZero() {
       <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2">
         <Link
           href="/blog"
-          className="text-[0.85rem] font-bold text-[var(--primary-ink)] underline-offset-4 hover:underline"
+          className="text-sm font-bold text-primary-ink underline-offset-4 hover:underline"
         >
           All Bengali guides →
         </Link>
         <Link
           href="/learn"
-          className="text-[0.85rem] font-bold text-[var(--primary-ink)] underline-offset-4 hover:underline"
+          className="text-sm font-bold text-primary-ink underline-offset-4 hover:underline"
         >
           Guides in English →
         </Link>

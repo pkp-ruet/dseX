@@ -8,7 +8,7 @@ export default function DseTodayPromo() {
   return (
     <Link
       href="/market-analysis"
-      className="group block mb-6 overflow-hidden rounded-2xl border transition hover:shadow-[var(--shadow-soft)]"
+      className="group block mb-6 overflow-hidden rounded-2xl border transition hover:shadow-soft"
       style={{
         borderColor: "color-mix(in srgb, var(--primary) 28%, var(--border))",
         background:
@@ -40,22 +40,22 @@ export default function DseTodayPromo() {
         {/* Copy */}
         <div className="min-w-0 flex-1">
           <span
-            className="text-[11px] font-extrabold uppercase tracking-[0.16em]"
+            className="text-xs font-extrabold uppercase tracking-[0.16em]"
             style={{ color: "var(--primary-ink)" }}
           >
             The bigger picture
           </span>
-          <p className="mt-0.5 text-sm font-bold leading-snug text-[var(--text)] sm:text-base">
+          <p className="mt-0.5 text-sm font-bold leading-snug text-text-main sm:text-base">
             Is the market up or down, cheap or expensive?
           </p>
-          <p className="mt-0.5 hidden text-[13px] leading-snug text-[var(--text-muted)] sm:block">
+          <p className="mt-0.5 hidden text-sm leading-snug text-text-muted sm:block">
             See where to look for good shares today — all in plain, simple words.
           </p>
         </div>
 
         {/* CTA */}
         <span
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-[12px] font-extrabold text-white transition-all group-hover:gap-2.5 sm:px-4 sm:text-sm"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-extrabold text-white transition-all group-hover:gap-2.5 sm:px-4 sm:text-sm"
           style={{ background: "var(--primary)" }}
         >
           <span className="hidden sm:inline">Market Analysis</span>

@@ -31,7 +31,7 @@ export default function StarRating({
           onMouseEnter={() => !disabled && setHover(n)}
           onMouseLeave={() => !disabled && setHover(0)}
           onClick={() => !disabled && onChange(n)}
-          className="rounded transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] disabled:cursor-default"
+          className="rounded transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-default"
         >
           <svg
             width={size}

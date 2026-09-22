@@ -2,9 +2,9 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import type { RelatedStock } from "@/lib/api";
-import { getTier, TIER_COLORS } from "@/lib/constants";
 import { peerStandingCaption } from "@/lib/plain-language";
 import Card from "@/components/ui/Card";
+import ScoreBadge from "@/components/ui/ScoreBadge";
 import SectionTitle from "@/components/stock/SectionTitle";
 
 export interface PeerRow {
@@ -110,7 +110,7 @@ export default function PeerComparison({ current, peers, sector }: Props) {
         bn="একই সেক্টরের সেরা কোম্পানিগুলোর সাথে তুলনা।"
       />
 
-      <Card padding="none" className="rounded-2xl overflow-hidden">
+      <Card padding="none" className="rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <thead>
@@ -136,7 +136,11 @@ export default function PeerComparison({ current, peers, sector }: Props) {
                       style={{ color: sortKey === c.key ? "var(--primary)" : "var(--text-muted)" }}
                     >
                       {c.label}
-                      {sortKey === c.key && <span aria-hidden="true">{asc ? "▲" : "▼"}</span>}
+                      {sortKey === c.key && (
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                          {asc ? <path d="M12 4 21 19H3z" /> : <path d="M12 20 3 5h18z" />}
+                        </svg>
+                      )}
                     </button>
                   </th>
                 ))}
@@ -144,7 +148,6 @@ export default function PeerComparison({ current, peers, sector }: Props) {
             </thead>
             <tbody>
               {sorted.map((r) => {
-                const tierColor = TIER_COLORS[getTier(r.score)];
                 return (
                   <tr
                     key={r.trading_code}
@@ -161,11 +164,6 @@ export default function PeerComparison({ current, peers, sector }: Props) {
                       }}
                     >
                       <span className="inline-flex items-center gap-2">
-                        <span
-                          className="inline-block rounded-full shrink-0"
-                          style={{ width: 8, height: 8, background: tierColor }}
-                          aria-hidden="true"
-                        />
                         {r.isCurrent ? (
                           <span className="font-bold" style={{ color: "var(--text)" }}>{r.trading_code}</span>
                         ) : (
@@ -181,6 +179,13 @@ export default function PeerComparison({ current, peers, sector }: Props) {
                     </th>
                     {cols.map((c) => {
                       const val = r[c.key];
+                      if (c.kind === "score") {
+                        return (
+                          <td key={c.key} className="px-3 py-1.5 text-right whitespace-nowrap">
+                            <ScoreBadge score={val} size="sm" />
+                          </td>
+                        );
+                      }
                       const color =
                         c.kind === "pct" && c.key === "change_pct" && val != null
                           ? val >= 0 ? "var(--positive)" : "var(--negative)"

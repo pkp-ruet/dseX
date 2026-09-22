@@ -27,7 +27,7 @@ export default function OwnerMark({
       {h && (
         <span
           title={t(lang, "inPortfolio")}
-          className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded-[5px] text-[0.68rem] font-extrabold"
+          className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded-sm text-xs font-extrabold"
           style={{
             color: "var(--primary)",
             background: "color-mix(in srgb, var(--primary) 12%, transparent)",
@@ -40,7 +40,7 @@ export default function OwnerMark({
       {w && (
         <span
           title={t(lang, "onWatchlist")}
-          className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded-[5px] text-[0.68rem] font-extrabold"
+          className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded-sm text-xs font-extrabold"
           style={{
             color: "var(--watch)",
             background: "color-mix(in srgb, var(--watch) 14%, transparent)",

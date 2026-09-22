@@ -21,14 +21,26 @@ interface Props {
   pageSlugs?: string[];
 }
 
+/** Heat ramp from the two locked market tokens, mixed toward the surface for the
+ *  softer stops; flat / unknown sectors take the muted ink. Legend uses the same
+ *  function so the swatches can never drift from the tiles. */
+const mix = (token: string, pct: number) => `color-mix(in srgb, var(${token}) ${pct}%, var(--surface))`;
+const FLAT = "var(--text-muted)";
+
 function sectorColor(pct: number | null): string {
-  if (pct == null) return "#a8a29e";
-  if (pct > 2) return "#047857";
-  if (pct > 0.5) return "#22c55e";
-  if (pct > 0) return "#86efac";
-  if (pct > -0.5) return "#fca5a5";
-  if (pct > -2) return "#f87171";
-  return "#b91c1c";
+  if (pct == null) return FLAT;
+  if (pct > 2) return mix("--positive", 100);
+  if (pct > 0.5) return mix("--positive", 60);
+  if (pct > 0) return mix("--positive", 30);
+  if (pct > -0.5) return mix("--negative", 30);
+  if (pct > -2) return mix("--negative", 60);
+  return mix("--negative", 100);
+}
+
+/** Light tiles (30% mixes) need dark text; the saturated ones take surface-white. */
+function tileInk(pct: number | null): string {
+  if (pct == null) return "var(--surface)";
+  return Math.abs(pct) > 0.5 || pct === 0 ? "var(--surface)" : "var(--text)";
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,6 +48,7 @@ function CustomContent(props: any) {
   const { x, y, width, height, name, avg_change_pct } = props;
   if (width < 30 || height < 20) return null;
   const color = sectorColor(avg_change_pct);
+  const ink = tileInk(avg_change_pct);
   const sign = (avg_change_pct ?? 0) >= 0 ? "+" : "";
   // SVG text never clips to its tile, so "Pharmaceuticals & Chemicals" bled across
   // neighbours on phones. Ellipsise the name to what fits (~0.6em per glyph).
@@ -57,7 +70,7 @@ function CustomContent(props: any) {
               x={x + width / 2}
               y={y + height / 2 - 6}
               textAnchor="middle"
-              fill="#ffffff"
+              fill={ink}
               fontSize={nameSize}
               fontWeight="700"
             >
@@ -69,7 +82,7 @@ function CustomContent(props: any) {
               x={x + width / 2}
               y={y + height / 2 + 10}
               textAnchor="middle"
-              fill="#ffffff"
+              fill={ink}
               fontSize={Math.min(11, width / 9)}
               fontWeight="600"
               opacity={0.92}
@@ -115,10 +128,11 @@ export default function SectorHeatmap({
   if (data.length === 0) return null;
 
   const legend: { c: string; label: string }[] = [
-    { c: "#b91c1c", label: "< -2%" },
-    { c: "#f87171", label: "-2 to 0%" },
-    { c: "#86efac", label: "0 to 0.5%" },
-    { c: "#047857", label: "> 2%" },
+    { c: sectorColor(-3), label: "< -2%" },
+    { c: sectorColor(-1), label: "-2 to 0%" },
+    { c: sectorColor(0.25), label: "0 to 0.5%" },
+    { c: sectorColor(1), label: "0.5 to 2%" },
+    { c: sectorColor(3), label: "> 2%" },
   ];
 
   return (
@@ -145,14 +159,14 @@ export default function SectorHeatmap({
                   if (!d) return null;
                   const sign = (d.avg_change_pct ?? 0) >= 0 ? "+" : "";
                   return (
-                    <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs shadow-[var(--shadow-soft)]">
-                      <div className="font-bold text-[var(--text)]">{d.name}</div>
+                    <div className="rounded-lg border border-border bg-surface px-3 py-2 text-xs shadow-soft">
+                      <div className="font-bold text-text-main">{d.name}</div>
                       {d.avg_change_pct != null && (
-                        <div className="font-semibold tabular-nums" style={{ color: d.avg_change_pct >= 0 ? "var(--positive)" : "var(--negative)" }}>
+                        <div className={`font-semibold tabular-nums ${d.avg_change_pct >= 0 ? "text-positive" : "text-negative"}`}>
                           {sign}{d.avg_change_pct.toFixed(2)}% avg
                         </div>
                       )}
-                      <div className="text-[var(--text-muted)]">{d.size} companies</div>
+                      <div className="text-text-muted">{d.size} companies</div>
                     </div>
                   );
                 }}
@@ -161,10 +175,10 @@ export default function SectorHeatmap({
           </ResponsiveContainer>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-medium text-[var(--text-muted)]">
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs font-medium text-text-muted">
           {legend.map((l) => (
             <span key={l.label} className="flex items-center gap-1.5">
-              <span className="inline-block h-3 w-3 rounded-[3px]" style={{ background: l.c }} />
+              <span className="inline-block h-3 w-3 rounded-sm" style={{ background: l.c }} />
               {l.label}
             </span>
           ))}

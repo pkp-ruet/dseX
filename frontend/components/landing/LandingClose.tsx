@@ -61,7 +61,7 @@ export default function LandingClose({ testimonials }: { testimonials: Testimoni
       {quotes.length > 0 && (
         <div className="mb-12">
           <span
-            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.14em]"
+            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-[0.14em]"
             style={{
               color: "var(--gold-ink)",
               background: "color-mix(in srgb, var(--gold) 15%, transparent)",
@@ -78,10 +78,10 @@ export default function LandingClose({ testimonials }: { testimonials: Testimoni
                 style={{ "--acc": "var(--gold)" } as CSSProperties}
               >
                 {q.rating != null && <Stars n={q.rating} />}
-                <p className="mt-2.5 flex-1 text-[0.85rem] leading-relaxed text-[var(--text)]">
+                <p className="mt-2.5 flex-1 text-sm leading-relaxed text-text-main">
                   {q.comment}
                 </p>
-                <p className="mt-3 text-[0.72rem] font-semibold text-[var(--text-muted)]">
+                <p className="mt-3 text-xs font-semibold text-text-muted">
                   {q.name ?? "A user"}
                 </p>
               </li>
@@ -91,7 +91,7 @@ export default function LandingClose({ testimonials }: { testimonials: Testimoni
       )}
 
       <div
-        className="relative overflow-hidden rounded-[var(--radius-xl)] border px-5 py-10 text-center sm:px-10 sm:py-14"
+        className="relative overflow-hidden rounded-3xl border px-5 py-10 text-center sm:px-10 sm:py-14"
         style={{
           borderColor: "color-mix(in srgb, var(--primary) 24%, var(--border))",
           background:
@@ -109,7 +109,7 @@ export default function LandingClose({ testimonials }: { testimonials: Testimoni
         />
         <h2
           id="close-title"
-          className="font-display text-[clamp(1.6rem,5.2vw,2.5rem)] font-bold leading-[1.1] tracking-tight text-[var(--text)]"
+          className="font-display text-[clamp(1.6rem,5.2vw,2.5rem)] font-bold leading-[1.1] tracking-tight text-text-main"
         >
           Check before your{" "}
           <span
@@ -119,14 +119,14 @@ export default function LandingClose({ testimonials }: { testimonials: Testimoni
             next buy.
           </span>
         </h2>
-        <Bn className="font-bn mx-auto mt-3 max-w-xl text-[1rem] font-semibold leading-relaxed text-[var(--text)]">
+        <Bn className="font-bn mx-auto mt-3 max-w-xl text-base font-semibold leading-relaxed text-text-main">
           পরের শেয়ারটা কেনার আগে একবার দেখে নিন।
         </Bn>
-        <p className="mx-auto mt-3 max-w-xl text-[0.9rem] leading-relaxed text-[var(--text-muted)]">
+        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-text-muted">
           No payment and no card. You can read every score and ranking without an account
           at all.
         </p>
-        <Bn className="mx-auto mt-1 max-w-xl text-[0.88rem] leading-relaxed text-[var(--text-muted)]">
+        <Bn className="mx-auto mt-1 max-w-xl text-sm leading-relaxed text-text-muted">
           কোনো টাকা লাগে না, কার্ড লাগে না। অ্যাকাউন্ট না খুলেও সব স্কোর আর র‍্যাঙ্কিং দেখতে পারবেন।
         </Bn>
 
@@ -136,7 +136,7 @@ export default function LandingClose({ testimonials }: { testimonials: Testimoni
               <Button href="/portfolio" variant="primary">
                 My portfolio
               </Button>
-              <Button href="/dsestockranking" variant="ghost">
+              <Button href="/dsestockranking" variant="quiet">
                 See the rankings
               </Button>
             </>
@@ -150,7 +150,7 @@ export default function LandingClose({ testimonials }: { testimonials: Testimoni
               </div>
               <Link
                 href="/dsestockranking"
-                className="w-full text-[0.88rem] font-bold text-[var(--primary-ink)] underline-offset-4 hover:underline sm:w-auto"
+                className="w-full text-sm font-bold text-primary-ink underline-offset-4 hover:underline sm:w-auto"
               >
                 Just look around first
               </Link>
@@ -158,7 +158,7 @@ export default function LandingClose({ testimonials }: { testimonials: Testimoni
           )}
         </div>
         {googleError && !isLoggedIn && (
-          <p className="mt-3 text-xs text-[var(--negative)]">{googleError}</p>
+          <p className="mt-3 text-xs text-negative">{googleError}</p>
         )}
       </div>
     </section>

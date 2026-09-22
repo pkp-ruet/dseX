@@ -42,20 +42,20 @@ export default function NewsPeek({
 
   return (
     <Card padding="none" className="overflow-hidden">
-      <ul className="divide-y divide-[var(--cell-rule)]">
+      <ul className="divide-y divide-cell-rule">
         {shown.map((n, i) => (
           <li key={`${n.trading_code}-${n.post_date}-${i}`}>
             <Link
               prefetch={false}
               href={`/stock/${n.trading_code}`}
-              className="flex items-start gap-2.5 px-4 py-3 transition-colors hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)]"
+              className="flex items-start gap-2.5 px-4 py-3 transition-colors hover:bg-surface-2 active:bg-surface-2"
             >
-              <span className="ticker-tag mt-0.5 shrink-0 text-[0.75rem]">{n.trading_code}</span>
+              <span className="ticker-tag mt-0.5 shrink-0 text-xs">{n.trading_code}</span>
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold leading-snug text-[var(--ink)] line-clamp-2">
+                <span className="block text-sm font-semibold leading-snug text-text-main line-clamp-2">
                   {n.title}
                 </span>
-                <span className="mt-0.5 block text-[0.68rem] font-medium text-[var(--text-muted)]">
+                <span className="mt-0.5 block text-xs font-medium text-text-muted">
                   {formatDate(n.post_date)}
                 </span>
               </span>
@@ -68,7 +68,7 @@ export default function NewsPeek({
                 strokeWidth="2.2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="mt-0.5 shrink-0 text-[var(--text-muted)]"
+                className="mt-0.5 shrink-0 text-text-muted"
                 aria-hidden
               >
                 <path d="M9 18l6-6-6-6" />
@@ -81,7 +81,7 @@ export default function NewsPeek({
       <Link
         href={moreHref}
         prefetch={false}
-        className="block border-t border-[var(--border)] px-4 py-2.5 text-center text-xs font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)]"
+        className="block border-t border-border px-4 py-2.5 text-center text-xs font-semibold text-primary transition-colors hover:bg-surface-2 active:bg-surface-2"
       >
         {moreLabel} →
       </Link>

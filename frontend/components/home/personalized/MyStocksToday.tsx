@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import {
   type ScoreItem,
   type NearExtremesData,
@@ -10,19 +9,22 @@ import {
   type PriceAlert,
 } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
-import { signed } from "@/lib/formatters";
+import { changePct, changeTone, money } from "@/lib/formatters";
 import { t } from "@/lib/home-copy";
 import TierPill from "@/components/ui/TierPill";
+import StockRow, { StockPill, type StockRowTone } from "@/components/ui/StockRow";
 import { ACC } from "@/components/home/personalized/accents";
 import { IconWallet } from "@/components/home/personalized/DashIcons";
 import DashHeader from "@/components/home/personalized/DashHeader";
+import OwnerMark from "@/components/home/personalized/OwnerMark";
 
 /**
  * Price + today's-change cell that flashes green/red for ~0.9s whenever a
  * background refetch changes the price — the "it's alive" cue of a native app.
- * Remounts via `key` on change so the CSS animation replays each tick.
+ * Remounts via `key` on change so the CSS animation replays each tick. Same
+ * two-line shape as StockRow's default price column (money + changePct).
  */
-function PriceCell({ ltp, chg, chgColor }: { ltp: number | null; chg: number | null; chgColor: string }) {
+function PriceCell({ ltp, chg }: { ltp: number | null; chg: number | null }) {
   const prev = useRef<number | null>(ltp);
   const idRef = useRef(0);
   const [flash, setFlash] = useState<{ dir: "up" | "down"; id: number } | null>(null);
@@ -43,12 +45,8 @@ function PriceCell({ ltp, chg, chgColor }: { ltp: number | null; chg: number | n
         flash ? (flash.dir === "up" ? "price-flash-up" : "price-flash-down") : ""
       }`}
     >
-      <span className="block text-sm font-semibold tabular-nums nums text-[var(--text)]">
-        {ltp != null ? `৳${ltp.toFixed(2)}` : "—"}
-      </span>
-      <span className="block text-xs font-bold tabular-nums nums" style={{ color: chgColor }}>
-        {chg == null ? "--" : `${signed(chg)}%`}
-      </span>
+      <span className="block text-sm font-semibold tabular-nums nums text-text-main">{money(ltp)}</span>
+      <span className={`block text-xs font-semibold tabular-nums nums ${changeTone(chg)}`}>{changePct(chg)}</span>
     </span>
   );
 }
@@ -57,7 +55,7 @@ const MAX_ROWS = 6;
 
 interface Chip {
   label: string;
-  color: string;
+  tone: StockRowTone;
 }
 
 function fmtTarget(n: number): string {
@@ -65,10 +63,11 @@ function fmtTarget(n: number): string {
 }
 
 /** Merged list: holdings and watchlist in one feed, sorted by today's move
- *  size, tagged H (holding) / ★ (watching), with the company name under the
- *  code (a first-time reader knows "Grameenphone", not "GP") and chips for
- *  52-week extremes, dividends, an armed price alert and a full report. The
- *  header carries the ▲up/▼down day pulse across everything followed. */
+ *  size, tagged H (holding) / ★ (watching), company name first with the code
+ *  small beside it (a first-time reader knows "Grameenphone", not "GP"), the
+ *  grade pill, and chips for 52-week extremes, dividends, an armed price alert
+ *  and a full report. The header carries the ▲up/▼down day pulse across
+ *  everything followed. */
 export default function MyStocksToday({
   holdings,
   codes,
@@ -124,12 +123,12 @@ export default function MyStocksToday({
   function chipsFor(code: string): Chip[] {
     const c = code.toUpperCase();
     const out: Chip[] = [];
-    if (nearHigh.has(c)) out.push({ label: t(lang, "near52wHigh"), color: "var(--positive)" });
-    if (nearLow.has(c)) out.push({ label: t(lang, "near52wLow"), color: "var(--negative)" });
-    if (divSoon.has(c)) out.push({ label: t(lang, "dividendSoon"), color: "var(--watch)" });
+    if (nearHigh.has(c)) out.push({ label: t(lang, "near52wHigh"), tone: "positive" });
+    if (nearLow.has(c)) out.push({ label: t(lang, "near52wLow"), tone: "negative" });
+    if (divSoon.has(c)) out.push({ label: t(lang, "dividendSoon"), tone: "watch" });
     const a = armed.get(c);
-    if (a) out.push({ label: t(lang, "alertAt", { n: fmtTarget(a.target_price) }), color: "var(--primary)" });
-    if (reports.has(c)) out.push({ label: t(lang, "fullReport"), color: "var(--text-muted)" });
+    if (a) out.push({ label: t(lang, "alertAt", { n: fmtTarget(a.target_price) }), tone: "primary" });
+    if (reports.has(c)) out.push({ label: t(lang, "fullReport"), tone: "muted" });
     return out;
   }
 
@@ -146,11 +145,11 @@ export default function MyStocksToday({
         chips={
           upCount + downCount > 0 ? (
             <span
-              className="shrink-0 whitespace-nowrap text-[0.68rem] font-bold tabular-nums nums"
+              className="shrink-0 whitespace-nowrap text-xs font-bold tabular-nums nums"
               title={`${upCount} up · ${downCount} down today`}
             >
-              <span style={{ color: "var(--positive)" }}>▲{upCount}</span>{" "}
-              <span style={{ color: "var(--negative)" }}>▼{downCount}</span>
+              <span className="text-positive">▲{upCount}</span>{" "}
+              <span className="text-negative">▼{downCount}</span>
             </span>
           ) : undefined
         }
@@ -158,76 +157,34 @@ export default function MyStocksToday({
         linkLabel={t(lang, "viewAll", { n: universe.length })}
       />
 
-      <div className="divide-y divide-[var(--cell-rule)]">
+      <ul className="divide-y divide-cell-rule">
         {rows.map((item) => {
           const code = item.trading_code.toUpperCase();
-          const chg = item.change_pct;
-          const chgColor = chg == null ? "var(--text-muted)" : chg >= 0 ? "var(--positive)" : "var(--negative)";
           const chips = chipsFor(code);
           return (
-            <Link
+            <StockRow
               key={item.trading_code}
-              prefetch={false}
-              href={`/stock/${item.trading_code}`}
-              className="flex items-center gap-3 px-4 py-2.5 hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)] transition-colors"
-            >
-              <span className="min-w-0 flex-1">
-                <span className="flex items-center gap-1.5">
-                  <span className="font-mono font-bold text-sm text-[var(--text)] tracking-wide max-w-[6.5rem] shrink-0 truncate">
-                    {item.trading_code}
-                  </span>
-                  <TierPill score={item.score} variant="solid" size="sm" />
-                  {showOwnerTags && held.has(code) && (
-                    <span
-                      title={t(lang, "inPortfolio")}
-                      className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded-[5px] text-[0.68rem] font-extrabold"
-                      style={{
-                        color: "var(--primary)",
-                        background: "color-mix(in srgb, var(--primary) 12%, transparent)",
-                        border: "1px solid color-mix(in srgb, var(--primary) 26%, var(--border))",
-                      }}
-                    >
-                      H
-                    </span>
-                  )}
-                  {showOwnerTags && watched.has(code) && (
-                    <span
-                      title={t(lang, "onWatchlist")}
-                      className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded-[5px] text-[0.68rem] font-extrabold"
-                      style={{
-                        color: "var(--watch)",
-                        background: "color-mix(in srgb, var(--watch) 14%, transparent)",
-                        border: "1px solid color-mix(in srgb, var(--watch) 30%, var(--border))",
-                      }}
-                    >
-                      ★
-                    </span>
-                  )}
-                </span>
-                {item.company_name && (
-                  <span className="mt-0.5 block truncate text-[0.75rem] font-medium text-[var(--text-muted)]">
-                    {item.company_name}
-                  </span>
-                )}
-                {chips.length > 0 && (
-                  <span className="mt-1 flex flex-wrap gap-1">
+              code={item.trading_code}
+              name={item.company_name}
+              lang={lang}
+              mark={showOwnerTags ? <OwnerMark code={code} held={held} watched={watched} lang={lang} /> : undefined}
+              tags={<TierPill score={item.score} variant="solid" size="sm" />}
+              detail={
+                chips.length > 0 ? (
+                  <span className="mt-0.5 flex flex-wrap gap-1">
                     {chips.map((a) => (
-                      <span
-                        key={a.label}
-                        className="text-[0.68rem] font-semibold px-1.5 py-0.5 rounded-full"
-                        style={{ color: a.color, background: "var(--surface-2)", border: "1px solid var(--border)" }}
-                      >
+                      <StockPill key={a.label} tone={a.tone}>
                         {a.label}
-                      </span>
+                      </StockPill>
                     ))}
                   </span>
-                )}
-              </span>
-              <PriceCell ltp={item.ltp} chg={chg} chgColor={chgColor} />
-            </Link>
+                ) : undefined
+              }
+              right={<PriceCell ltp={item.ltp} chg={item.change_pct} />}
+            />
           );
         })}
-      </div>
+      </ul>
     </section>
   );
 }

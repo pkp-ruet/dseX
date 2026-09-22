@@ -14,8 +14,8 @@ import { SegmentPill, SourcePill, FeatureBadges, fmtDateTime, fmtDate, timeAgo }
 function Fact({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
-      <dt className="text-[11px] uppercase tracking-wider text-[var(--text-muted)]">{label}</dt>
-      <dd className="text-sm text-[var(--text)] mt-0.5">{value}</dd>
+      <dt className="text-xs uppercase tracking-wider text-text-muted">{label}</dt>
+      <dd className="text-sm text-text-main mt-0.5">{value}</dd>
     </div>
   );
 }
@@ -66,29 +66,29 @@ export default function UserDrillDown({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-text-main/40 p-0 sm:p-4"
       onClick={onClose}
     >
       <div
-        className="bg-[var(--bg)] w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl max-h-[90vh] overflow-y-auto shadow-xl"
+        className="bg-bg w-full sm:max-w-2xl sm:rounded-xl rounded-t-xl max-h-[90vh] overflow-y-auto shadow-lift"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-[var(--surface)] border-b border-[var(--border)] px-5 py-4 flex items-start justify-between gap-3 z-10">
+        <div className="sticky top-0 bg-surface border-b border-border px-5 py-4 flex items-start justify-between gap-3 z-10">
           <div className="min-w-0">
-            <h2 className="text-lg font-bold text-[var(--text)] truncate">
+            <h2 className="text-lg font-bold text-text-main truncate">
               {user.display_name || user.email || user.phone || "User"}
             </h2>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
               <SegmentPill segment={user.segment} />
               <SourcePill source={user.signup_source} />
               <FeatureBadges user={user} />
-              <span className="text-[11px] text-[var(--text-muted)] font-mono">{user.user_id.slice(0, 8)}…</span>
+              <span className="text-xs text-text-muted font-mono">{user.user_id.slice(0, 8)}…</span>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="shrink-0 text-[var(--text-muted)] hover:text-[var(--text)] text-xl leading-none p-1"
+            className="shrink-0 text-text-muted hover:text-text-main text-xl leading-none p-1"
             aria-label="Close"
           >
             ✕
@@ -96,8 +96,8 @@ export default function UserDrillDown({
         </div>
 
         <div className="p-5 flex flex-col gap-6">
-          {loading && <p className="text-sm text-[var(--text-muted)] py-6 text-center">Loading…</p>}
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {loading && <p className="text-sm text-text-muted py-6 text-center">Loading…</p>}
+          {error && <p className="form-error">{error}</p>}
 
           {detail && (
             <>
@@ -116,7 +116,7 @@ export default function UserDrillDown({
               {/* Portfolio */}
               <section>
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-bold text-[var(--text)]">Portfolio ({holdings.length})</h3>
+                  <h3 className="text-sm font-bold text-text-main">Portfolio ({holdings.length})</h3>
                   {pnl != null && (
                     <span className="text-sm font-bold tabular-nums nums" style={{ color: pnl >= 0 ? "var(--positive)" : "var(--negative)" }}>
                       {pnl >= 0 ? "+" : ""}{taka(pnl, 0)} {pnlPct != null && `(${pnlPct >= 0 ? "+" : ""}${pnlPct.toFixed(1)}%)`}
@@ -124,12 +124,12 @@ export default function UserDrillDown({
                   )}
                 </div>
                 {holdings.length === 0 ? (
-                  <p className="text-xs text-[var(--text-muted)]">No holdings.</p>
+                  <p className="text-xs text-text-muted">No holdings.</p>
                 ) : (
-                  <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+                  <div className="overflow-x-auto rounded-xl border border-border">
                     <table className="w-full text-xs sm:text-sm">
                       <thead>
-                        <tr className="text-[var(--text-muted)] text-[11px] uppercase border-b border-[var(--border)]">
+                        <tr className="text-text-muted text-xs uppercase border-b border-border">
                           <th className="px-3 py-2 text-left">Code</th>
                           <th className="px-3 py-2 text-right">Qty</th>
                           <th className="px-3 py-2 text-right">Buy</th>
@@ -139,9 +139,9 @@ export default function UserDrillDown({
                       </thead>
                       <tbody>
                         {holdings.map((h) => (
-                          <tr key={h.id} className="border-b border-[var(--cell-rule)] last:border-0">
+                          <tr key={h.id} className="border-b border-cell-rule last:border-0">
                             <td className="px-3 py-2">
-                              <Link prefetch={false} href={`/stock/${h.trading_code}`} className="font-mono font-bold text-[var(--primary)] hover:underline">
+                              <Link prefetch={false} href={`/stock/${h.trading_code}`} className="font-mono font-bold text-primary hover:underline">
                                 {h.trading_code}
                               </Link>
                             </td>
@@ -161,16 +161,16 @@ export default function UserDrillDown({
 
               {/* Watchlist */}
               <section>
-                <h3 className="text-sm font-bold text-[var(--text)] mb-2">Watchlist ({detail.watchlist.length})</h3>
+                <h3 className="text-sm font-bold text-text-main mb-2">Watchlist ({detail.watchlist.length})</h3>
                 {detail.watchlist.length === 0 ? (
-                  <p className="text-xs text-[var(--text-muted)]">Empty.</p>
+                  <p className="text-xs text-text-muted">Empty.</p>
                 ) : (
                   <div className="flex flex-wrap gap-1.5">
                     {detail.watchlist.map((c) => (
                       <Link
                         key={c}
                         prefetch={false} href={`/stock/${c}`}
-                        className="text-xs font-mono font-semibold px-2 py-1 rounded-lg border border-[var(--border)] text-[var(--text)] hover:bg-[var(--surface-2)]"
+                        className="text-xs font-mono font-semibold px-2 py-1 rounded-lg border border-border text-text-main hover:bg-surface-2"
                       >
                         {c}
                       </Link>
@@ -181,15 +181,15 @@ export default function UserDrillDown({
 
               {/* Recent activity */}
               <section>
-                <h3 className="text-sm font-bold text-[var(--text)] mb-2">Recent page views</h3>
+                <h3 className="text-sm font-bold text-text-main mb-2">Recent page views</h3>
                 {detail.recent_events.length === 0 ? (
-                  <p className="text-xs text-[var(--text-muted)]">No tracked activity yet.</p>
+                  <p className="text-xs text-text-muted">No tracked activity yet.</p>
                 ) : (
-                  <div className="divide-y divide-[var(--cell-rule)] rounded-xl border border-[var(--border)]">
+                  <div className="divide-y divide-cell-rule rounded-xl border border-border">
                     {detail.recent_events.map((e, i) => (
                       <div key={i} className="flex items-center justify-between gap-3 px-3 py-2 text-xs">
-                        <span className="font-mono text-[var(--text)] truncate">{e.path}</span>
-                        <span className="text-[var(--text-muted)] whitespace-nowrap shrink-0">
+                        <span className="font-mono text-text-main truncate">{e.path}</span>
+                        <span className="text-text-muted whitespace-nowrap shrink-0">
                           {e.count > 1 && <span className="mr-2">×{e.count}</span>}
                           {fmtDateTime(e.ts)}
                         </span>

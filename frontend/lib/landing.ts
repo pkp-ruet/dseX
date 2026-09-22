@@ -114,17 +114,6 @@ export const PILLARS: PillarMeta[] = [
   { key: "p5_div", en: "Dividend reliability", short: "Dividend" },
 ];
 
-/** 0–10 pillar score → plain verdict. Thresholds match plain-language.ts. */
-export function pillarBand(v: number | null): "strong" | "fair" | "weak" | "none" {
-  if (v == null) return "none";
-  if (v >= 7) return "strong";
-  if (v >= 4) return "fair";
-  return "weak";
-}
-
-export const PILLAR_BAND_COLOR: Record<string, string> = {
-  strong: "var(--positive)",
-  fair: "var(--np-cautious)",
-  weak: "var(--negative)",
-  none: "var(--text-muted)",
-};
+// Pillar bar colour lives in ONE place: `pillarColor()` in lib/insight-utils.ts
+// (tier tokens). The old `pillarBand` / `PILLAR_BAND_COLOR` green/amber/red scale
+// was removed 2026-09-22.

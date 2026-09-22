@@ -13,10 +13,17 @@ import { toast } from "@/lib/toast";
 
 interface Props {
   code: string;
+  /** Icon size only — the hit area is 40×40 for sm/md and 44×44 for lg. */
   size?: "sm" | "md" | "lg";
   className?: string;
 }
 
+/**
+ * The save-to-watchlist star that sits in every stock row. Styled by `.star-btn`
+ * in app/styles/tables.css: a 40px square target (the audience taps on budget
+ * Android phones), hover / active / focus states, gold when saved.
+ * `aria-pressed` carries the saved state so the label can stay constant.
+ */
 export default function StarButton({ code, size = "sm", className = "" }: Props) {
   const router = useRouter();
   const pathname = usePathname();
@@ -49,13 +56,15 @@ export default function StarButton({ code, size = "sm", className = "" }: Props)
     });
   };
 
-  const dim = size === "lg" ? 22 : size === "md" ? 18 : 14;
+  const dim = size === "lg" ? 22 : size === "md" ? 18 : 16;
+  const upper = code.toUpperCase();
 
   return (
     <button
       type="button"
       onClick={handleClick}
-      aria-label={watched ? `Remove ${code} from watchlist` : `Add ${code} to watchlist`}
+      aria-pressed={watched}
+      aria-label={`Save ${upper} to watchlist`}
       title={
         mounted
           ? watched
@@ -65,10 +74,19 @@ export default function StarButton({ code, size = "sm", className = "" }: Props)
               : "Sign in to save"
           : undefined
       }
-      className={`star-btn ${watched ? "star-btn--on" : ""} ${className}`}
+      className={`star-btn${size === "lg" ? " star-btn--lg" : ""}${watched ? " star-btn--on" : ""}${className ? " " + className : ""}`}
       style={{ visibility: mounted ? "visible" : "hidden" }}
     >
-      <svg width={dim} height={dim} viewBox="0 0 24 24" fill={watched ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+      <svg
+        width={dim}
+        height={dim}
+        viewBox="0 0 24 24"
+        fill={watched ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
       </svg>
     </button>

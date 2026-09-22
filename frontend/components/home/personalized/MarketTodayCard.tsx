@@ -100,8 +100,8 @@ function IndexStat({ label, value, change }: { label: string; value: number | nu
   const color = change == null ? "var(--text-muted)" : up ? "var(--positive)" : "var(--negative)";
   return (
     <div className="flex min-w-0 flex-col">
-      <span className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">{label}</span>
-      <span className="text-[1.02rem] font-extrabold tabular-nums text-[var(--text)] leading-tight sm:text-xl">{num(value)}</span>
+      <span className="text-xs font-bold uppercase tracking-[0.14em] text-text-muted">{label}</span>
+      <span className="text-base font-extrabold tabular-nums text-text-main leading-tight sm:text-xl">{num(value)}</span>
       <span className="text-xs font-semibold tabular-nums" style={{ color }}>
         {change == null ? "--" : `${up ? "▲" : "▼"} ${signed(change)}`}
       </span>
@@ -124,12 +124,12 @@ function Tile({
     <Link
       href={href}
       prefetch={false}
-      className="flex flex-col rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 transition hover:border-[color-mix(in_srgb,var(--primary)_40%,var(--border))] hover:shadow-sm active:bg-[var(--surface-2)]"
+      className="flex flex-col rounded-xl border border-border bg-surface px-3 py-2.5 transition hover:border-[color-mix(in_srgb,var(--primary)_40%,var(--border))] hover:shadow-sm active:bg-surface-2"
     >
       <span className="font-display text-xl font-extrabold tabular-nums nums leading-none" style={{ color: valueColor }}>
         {value}
       </span>
-      <span className="mt-1 text-[0.75rem] font-semibold text-[var(--text-muted)] leading-tight">{label}</span>
+      <span className="mt-1 text-xs font-semibold text-text-muted leading-tight">{label}</span>
     </Link>
   );
 }
@@ -171,8 +171,8 @@ function Sparkline({ history, label }: { history: MarketHistory | null | undefin
         <polyline points={path} fill="none" stroke={color} strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" />
       </svg>
       <span className="min-w-0">
-        <span className="block text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)]">{label}</span>
-        <span className="block text-[0.9rem] font-extrabold tabular-nums nums leading-tight" style={{ color }}>
+        <span className="block text-xs font-bold uppercase tracking-[0.1em] text-text-muted">{label}</span>
+        <span className="block text-sm font-extrabold tabular-nums nums leading-tight" style={{ color }}>
           {up ? "▲" : "▼"} {Math.abs(chg).toFixed(1)}%
         </span>
       </span>
@@ -273,7 +273,7 @@ export default function MarketTodayCard({
             href="/dse-today"
             prefetch={false}
             aria-label="Today's index levels on DSE Today"
-            className="mt-3.5 -mx-2 grid grid-cols-3 gap-2 rounded-xl px-2 py-1.5 transition-colors hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)] sm:gap-4"
+            className="mt-3.5 -mx-2 grid grid-cols-3 gap-2 rounded-xl px-2 py-1.5 transition-colors hover:bg-surface-2 active:bg-surface-2 sm:gap-4"
           >
             <IndexStat label="DSEX" value={index.dsex} change={index.dsex_change} />
             <IndexStat label="DSES" value={index.dses} change={index.dses_change} />
@@ -283,15 +283,15 @@ export default function MarketTodayCard({
 
         {breadthTotal > 0 && (
           <div className="mt-4">
-            <div className="flex h-2 w-full rounded-full overflow-hidden bg-[var(--surface-2)]">
-              <span className="h-full bg-[var(--positive)]" style={{ width: `${(up / breadthTotal) * 100}%` }} />
-              <span className="h-full bg-[var(--text-muted)]" style={{ width: `${(flat / breadthTotal) * 100}%` }} />
-              <span className="h-full bg-[var(--negative)]" style={{ width: `${(down / breadthTotal) * 100}%` }} />
+            <div className="flex h-2 w-full rounded-full overflow-hidden bg-surface-2">
+              <span className="h-full bg-positive" style={{ width: `${(up / breadthTotal) * 100}%` }} />
+              <span className="h-full bg-text-muted" style={{ width: `${(flat / breadthTotal) * 100}%` }} />
+              <span className="h-full bg-negative" style={{ width: `${(down / breadthTotal) * 100}%` }} />
             </div>
             <div className="mt-2 flex items-center justify-between text-xs font-semibold tabular-nums">
-              <span className="text-[var(--positive)]">{t(lang, "advancing", { n: up })}</span>
-              <span className="text-[var(--text-muted)]">{t(lang, "unchanged", { n: flat })}</span>
-              <span className="text-[var(--negative)]">{t(lang, "declining", { n: down })}</span>
+              <span className="text-positive">{t(lang, "advancing", { n: up })}</span>
+              <span className="text-text-muted">{t(lang, "unchanged", { n: flat })}</span>
+              <span className="text-negative">{t(lang, "declining", { n: down })}</span>
             </div>
           </div>
         )}
@@ -312,13 +312,13 @@ export default function MarketTodayCard({
           <Link
             href={marketHref}
             prefetch={false}
-            className="mt-3 flex items-center gap-2.5 rounded-xl bg-[var(--surface-2)] px-3 py-2.5 transition-colors hover:bg-[color-mix(in_srgb,var(--primary)_10%,var(--surface-2))] active:opacity-80"
+            className="mt-3 flex items-center gap-2.5 rounded-xl bg-surface-2 px-3 py-2.5 transition-colors hover:bg-[color-mix(in_srgb,var(--primary)_10%,var(--surface-2))] active:opacity-80"
           >
-            <span className="shrink-0 rounded-full border border-[var(--border)] bg-[var(--surface)] px-2 py-0.5 text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)]">
+            <span className="shrink-0 rounded-full border border-border bg-surface px-2 py-0.5 text-xs font-bold uppercase tracking-[0.1em] text-text-muted">
               {t(lang, "sinceYesterday")}
             </span>
-            <span className="min-w-0 flex-1 text-[0.75rem] font-semibold leading-snug text-[var(--text)]">{line}</span>
-            <span className="shrink-0 text-[var(--primary)]" aria-hidden>
+            <span className="min-w-0 flex-1 text-xs font-semibold leading-snug text-text-main">{line}</span>
+            <span className="shrink-0 text-primary" aria-hidden>
               <IconChevron size={14} />
             </span>
           </Link>

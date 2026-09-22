@@ -39,7 +39,7 @@ export default function DashHeader({
 }) {
   return (
     <div
-      className="dash-head flex items-center justify-between gap-2 border-b border-[var(--border)] px-4 py-3 sm:px-5"
+      className="dash-head flex items-center justify-between gap-2 border-b border-border px-4 py-3 sm:px-5"
       style={accVars(accent)}
     >
       {/* The title is the one thing here that may shrink (ellipsis); chips stay
@@ -51,7 +51,7 @@ export default function DashHeader({
             {icon}
           </span>
         )}
-        <Tag className="min-w-0 truncate text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[var(--text)]">{title}</Tag>
+        <Tag className="min-w-0 truncate text-xs font-bold uppercase tracking-[0.12em] text-text-main">{title}</Tag>
         {chips}
       </span>
       {right ??
@@ -83,7 +83,7 @@ export function HeaderChip({
 }) {
   return tone === "accent" ? (
     <span
-      className={`shrink-0 rounded-full px-2 py-0.5 text-[0.68rem] font-extrabold ${className}`}
+      className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-extrabold ${className}`}
       style={{
         color: "var(--acc, var(--primary))",
         background: "color-mix(in srgb, var(--acc, var(--primary)) 13%, transparent)",
@@ -92,7 +92,7 @@ export function HeaderChip({
       {children}
     </span>
   ) : (
-    <span className={`shrink-0 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-0.5 text-[0.68rem] font-bold text-[var(--text-muted)] ${className}`}>
+    <span className={`shrink-0 rounded-full border border-border bg-surface-2 px-2 py-0.5 text-xs font-bold text-text-muted ${className}`}>
       {children}
     </span>
   );

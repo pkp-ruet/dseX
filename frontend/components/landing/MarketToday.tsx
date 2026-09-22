@@ -92,13 +92,13 @@ export default function MarketToday({
       <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
         <Link
           href="/dse-today"
-          className="text-[0.85rem] font-bold text-[var(--primary-ink)] underline-offset-4 hover:underline"
+          className="text-sm font-bold text-primary-ink underline-offset-4 hover:underline"
         >
           See every price today &rarr;
         </Link>
         <Link
           href="/market-analysis"
-          className="text-[0.85rem] font-bold text-[var(--primary-ink)] underline-offset-4 hover:underline"
+          className="text-sm font-bold text-primary-ink underline-offset-4 hover:underline"
         >
           Is the market up or down today? &rarr;
         </Link>

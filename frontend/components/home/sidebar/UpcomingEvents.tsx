@@ -26,7 +26,7 @@ export default function UpcomingEvents({ data }: Props) {
               className="sidebar-row"
             >
               <span className="sidebar-row-key">{d.trading_code}</span>
-              <span style={{ fontSize: "0.66rem", color: "var(--ink-muted)", flex: 1, textAlign: "center", padding: "0 4px" }}>
+              <span style={{ fontSize: "0.66rem", color: "var(--text-muted)", flex: 1, textAlign: "center", padding: "0 4px" }}>
                 {formatDate(d.projected_date)}
               </span>
               <span className="sidebar-row-val">
@@ -49,7 +49,7 @@ export default function UpcomingEvents({ data }: Props) {
               className="sidebar-row"
             >
               <span className="sidebar-row-key">{d.trading_code}</span>
-              <span style={{ fontSize: "0.66rem", color: "var(--ink-muted)", flex: 1, textAlign: "center", padding: "0 4px" }}>
+              <span style={{ fontSize: "0.66rem", color: "var(--text-muted)", flex: 1, textAlign: "center", padding: "0 4px" }}>
                 {formatDate(d.record_date)}
               </span>
               <span className="sidebar-row-val">

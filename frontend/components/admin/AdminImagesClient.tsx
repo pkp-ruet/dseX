@@ -122,7 +122,7 @@ export default function AdminImagesClient() {
   if (isLoading || (!isAdmin && isLoggedIn)) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <p className="text-[var(--text-muted)]">Loading…</p>
+        <p className="text-text-muted">Loading…</p>
       </div>
     );
   }
@@ -157,7 +157,7 @@ export default function AdminImagesClient() {
       <div className="rank-page-header mb-6">
         <p className="rank-page-eyebrow">// ADMIN</p>
         <h1 className="rank-page-title">Promo Images</h1>
-        <p className="text-sm text-[var(--text-muted)] mt-2">
+        <p className="text-sm text-text-muted mt-2">
           Portrait 1080×1350 and square 1080×1080 cards for Facebook. Each image
           bakes in <span className="font-semibold">topstockbd.com</span> so the
           URL travels with the share.
@@ -165,7 +165,7 @@ export default function AdminImagesClient() {
       </div>
 
       {error && (
-        <p className="text-[var(--negative)] mb-4 text-sm">{error}</p>
+        <p className="text-negative mb-4 text-sm">{error}</p>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -173,20 +173,20 @@ export default function AdminImagesClient() {
           <Card
             key={t.key}
             padding="none"
-            className="rounded-2xl p-4 flex flex-col"
+            className="rounded-xl p-4 flex flex-col"
           >
             <div className="flex items-start justify-between gap-3 mb-3">
               <div className="min-w-0">
-                <h2 className="text-lg font-bold text-[var(--text)]">
+                <h2 className="text-lg font-bold text-text-main">
                   {t.title}
                 </h2>
-                <p className="text-xs text-[var(--text-muted)] mt-1">
+                <p className="text-xs text-text-muted mt-1">
                   {t.description}
                 </p>
               </div>
               <Button
                 type="button"
-                variant="ghost"
+                variant="quiet"
                 size="sm"
                 onClick={() => reload(t.key)}
                 title="Re-render with latest data"
@@ -211,7 +211,7 @@ export default function AdminImagesClient() {
               </div>
             )}
 
-            <div className={`bg-white border border-[var(--border)] rounded-xl overflow-hidden ${t.aspect === "portrait" ? "aspect-[4/5]" : "aspect-square"} flex items-center justify-center`}>
+            <div className={`bg-surface border border-border rounded-xl overflow-hidden ${t.aspect === "portrait" ? "aspect-[4/5]" : "aspect-square"} flex items-center justify-center`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 key={urls[t.key]}
@@ -228,7 +228,7 @@ export default function AdminImagesClient() {
                 href={urls[t.key]}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-[var(--text-muted)] hover:underline truncate"
+                className="text-xs text-text-muted hover:underline truncate"
               >
                 Open full size ↗
               </a>
@@ -246,7 +246,7 @@ export default function AdminImagesClient() {
         ))}
       </div>
 
-      <p className="text-xs text-[var(--text-muted)] mt-6">
+      <p className="text-xs text-text-muted mt-6">
         Tip: each image takes a moment to render the first time. Hit
         <span className="font-semibold"> Refresh</span> to pull the latest data.
       </p>

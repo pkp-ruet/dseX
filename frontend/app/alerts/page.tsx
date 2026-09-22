@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import AlertsClient from "@/components/alerts/AlertsClient";
-import Bn from "@/components/i18n/Bn";
+import PageHeader from "@/components/ui/PageHeader";
 
 export const metadata: Metadata = {
   title: "My Price Alerts",
@@ -11,15 +11,13 @@ export const metadata: Metadata = {
 
 export default function AlertsPage() {
   return (
-    <main className="max-w-3xl mx-auto px-4 py-6">
-      <div className="rank-page-header">
-        <h1 className="rank-page-title">Price Alerts</h1>
-        <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-          Get pinged the day a stock reaches your target — by web push and in your alerts bell.
-        </p>
-        <Bn className="page-h1-bn">শেয়ারের দাম আপনার ঠিক করা দামে পৌঁছালেই জানিয়ে দেব।</Bn>
-      </div>
+    <div className="page-narrow">
+      <PageHeader
+        title="Price Alerts"
+        bn="শেয়ারের দাম আপনার ঠিক করা দামে পৌঁছালেই জানিয়ে দেব।"
+        lead="Get pinged the day a stock reaches your target — by web push and in your alerts bell."
+      />
       <AlertsClient />
-    </main>
+    </div>
   );
 }

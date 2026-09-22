@@ -8,7 +8,8 @@ import DseTodayNews from "@/components/dse-today/DseTodayNews";
 import MarketMovers from "@/components/home/MarketMovers";
 import SectorHeatmap from "@/components/market/SectorHeatmap";
 import ErrorState from "@/components/ui/ErrorState";
-import Bn from "@/components/i18n/Bn";
+import PageHeader from "@/components/ui/PageHeader";
+import HubLinks from "@/components/layout/HubLinks";
 import PageGuide from "@/components/seo/PageGuide";
 import Link from "next/link";
 
@@ -50,12 +51,11 @@ export default async function DseTodayPage() {
   if (!data) {
     return (
       <>
-        <header className="ms-pagehead">
-          <h1 className="ms-page-h1">
-            <span className="ms-page-kicker">Dhaka Stock Exchange</span>
-            <span className="ms-page-h1-main">DSE Today</span>
-          </h1>
-        </header>
+        <PageHeader
+          eyebrow="Dhaka Stock Exchange"
+          title="DSE Today"
+          bn="আজ বাজার কেমন গেল — সূচক, দাম বাড়া-কমা আর খবর এক পাতায়।"
+        />
         <ErrorState
           size="inline"
           title="Couldn't load today's market"
@@ -100,14 +100,12 @@ export default async function DseTodayPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <header className="ms-pagehead">
-        <h1 className="ms-page-h1">
-          <span className="ms-page-kicker">Dhaka Stock Exchange</span>
-          <span className="ms-page-h1-main">DSE Today</span>
-        </h1>
-        {dateLabel && <span className="ms-page-date">Last trading day · {dateLabel}</span>}
-              <Bn className="page-h1-bn">আজ বাজার কেমন গেল — সূচক, দাম বাড়া-কমা আর খবর এক পাতায়।</Bn>
-</header>
+      <PageHeader
+        eyebrow="Dhaka Stock Exchange"
+        title="DSE Today"
+        bn="আজ বাজার কেমন গেল — সূচক, দাম বাড়া-কমা আর খবর এক পাতায়।"
+        actions={dateLabel ? <span className="ms-page-date">Last trading day · {dateLabel}</span> : undefined}
+      />
 
       <DseTodayHeader header={data.header} condition={data.intelligence.market_condition} />
 
@@ -125,6 +123,8 @@ export default async function DseTodayPage() {
       <DseTodayTable rows={data.table} />
 
       <DseTodayNews items={data.news} />
+
+      <HubLinks group="today" exclude={["/dse-today"]} />
 
       <PageGuide
         title="About DSE Today"

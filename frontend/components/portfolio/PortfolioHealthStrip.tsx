@@ -112,7 +112,7 @@ export default function PortfolioHealthStrip({
 
   return (
     <section
-      className="relative overflow-hidden rounded-2xl border p-4 sm:p-5"
+      className="relative overflow-hidden rounded-xl border p-4 sm:p-5"
       style={{
         background: "var(--surface)",
         borderColor: `color-mix(in srgb, ${accent} 22%, var(--border))`,
@@ -129,19 +129,20 @@ export default function PortfolioHealthStrip({
           }}
         >
           <span className="text-2xl sm:text-3xl font-black leading-none">{analysis.grade}</span>
-          <span className={`text-[11px] sm:text-[11px] font-bold mt-0.5 ${bnText}`}>{gradeLabel}</span>
+          <span className={`text-xs sm:text-xs font-bold mt-0.5 ${bnText}`}>{gradeLabel}</span>
         </div>
 
         {/* Verdict */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <p className={`text-[11px] uppercase tracking-wider font-bold text-[var(--text-muted)] ${bnText}`}>
+            <p className={`text-xs uppercase tracking-wider font-bold text-text-muted ${bnText}`}>
               {t.health}
             </p>
             <button
               type="button"
               onClick={onSeeDetails}
-              className={`ml-auto inline-flex items-center gap-0.5 text-xs font-bold text-[var(--primary)] hover:underline shrink-0 ${bnText}`}
+              aria-label={t.see}
+              className={`btn-link btn-sm ml-auto -mr-2 shrink-0 ${bnText}`}
             >
               {t.see}
               <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -150,7 +151,7 @@ export default function PortfolioHealthStrip({
             </button>
           </div>
           <p
-            className={`text-sm sm:text-[15px] text-[var(--text)] font-medium leading-snug mt-1 ${bnText}`}
+            className={`text-sm sm:text-base text-text-main font-medium leading-snug mt-1 ${bnText}`}
             style={{
               display: "-webkit-box",
               WebkitLineClamp: 2,
@@ -170,14 +171,14 @@ export default function PortfolioHealthStrip({
           return (
             <div key={s.label} className="flex flex-col gap-1.5">
               <div className="flex items-baseline justify-between gap-1">
-                <span className={`text-[11px] uppercase tracking-wider font-bold text-[var(--text)] ${bnText}`}>
+                <span className={`text-xs uppercase tracking-wider font-bold text-text-main ${bnText}`}>
                   {s.label}
                 </span>
                 <span className="text-sm font-black tabular-nums nums" style={{ color: a }}>
                   {s.value.toFixed(1)}
                 </span>
               </div>
-              <div className="h-1.5 w-full rounded-full bg-[var(--border)]/50 overflow-hidden">
+              <div className="h-1.5 w-full rounded-full bg-border/50 overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-500"
                   style={{ width: `${Math.max(0, Math.min(100, (s.value / 10) * 100))}%`, background: a }}
@@ -191,11 +192,11 @@ export default function PortfolioHealthStrip({
 
       {/* What changed since last visit */}
       {showActivity && (
-        <div className="flex items-center gap-2 flex-wrap mt-4 pt-3 border-t border-[var(--border)]">
-          <svg className="w-4 h-4 text-[var(--primary)] shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+        <div className="flex items-center gap-2 flex-wrap mt-4 pt-3 border-t border-border">
+          <svg className="w-4 h-4 text-primary shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
             <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5S10.5 3.17 10.5 4v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" />
           </svg>
-          <span className={`text-xs sm:text-[13px] text-[var(--text-muted)] font-medium ${bnText}`}>
+          <span className={`text-xs sm:text-sm text-text-muted font-medium ${bnText}`}>
             {sinceLabel}:
           </span>
           {flips.map((e) => {
@@ -203,7 +204,7 @@ export default function PortfolioHealthStrip({
             return (
               <span
                 key={e.trading_code}
-                className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-bold px-2 py-0.5 rounded-full"
+                className="inline-flex items-center gap-1 text-xs sm:text-xs font-bold px-2 py-0.5 rounded-full"
                 style={{ color: c, background: `color-mix(in srgb, ${c} 13%, transparent)` }}
               >
                 <span className="font-mono">{e.trading_code}</span>
@@ -213,7 +214,7 @@ export default function PortfolioHealthStrip({
             );
           })}
           {flips.length === 0 && !hasDelta && (
-            <span className={`text-xs text-[var(--text-muted)] ${bnText}`}>{t.quiet}</span>
+            <span className={`text-xs text-text-muted ${bnText}`}>{t.quiet}</span>
           )}
           {hasDelta && (
             <span

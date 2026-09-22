@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import PageHeader from "@/components/ui/PageHeader";
 import { BLOG_CATEGORIES, BLOG_POSTS } from "@/lib/blog-bn";
 import CategoryNav from "@/components/learn/CategoryNav";
 
@@ -79,28 +80,25 @@ export default function BlogPage() {
       {/* Sticky jump bar — appears once you scroll past the index */}
       <CategoryNav categories={categories} />
 
-      <main lang="bn" className="font-bn max-w-3xl mx-auto px-4 py-10 sm:py-12 space-y-12">
-        {/* Hero */}
-        <section className="soft-card ambient-panel p-6 sm:p-8 text-center space-y-4">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-[color-mix(in_srgb,var(--primary)_22%,var(--border))] bg-[color-mix(in_srgb,var(--primary)_9%,var(--surface))] px-3 py-1 text-[0.78rem] font-bold tracking-wide text-[var(--primary-ink)]">
-            📚 বাংলা ব্লগ · {totalPosts}টি লেখা
-          </span>
-          <h1 className="text-[1.85rem] sm:text-[2.4rem] font-bold leading-[1.25] tracking-tight text-[var(--ink)]">
-            সহজ ভাষায় শেয়ার বাজার
-          </h1>
-          <p className="text-[1.0625rem] leading-[1.85] text-[var(--ink-2)] max-w-xl mx-auto">
-            বাংলাদেশে বিনিয়োগে একদম নতুন? কঠিন কোনো শব্দ ছাড়া, গল্পের মতো করে — এখান থেকেই শুরু করুন।
-          </p>
-          <p className="text-[0.95rem] font-semibold">
-            <Link href="/share-bazar" className="text-[var(--primary)] underline">
-              আজকের শেয়ার বাজার কেমন গেল — সহজ বাংলায় দেখুন →
-            </Link>
-          </p>
-        </section>
+      <div lang="bn" className="font-bn page-narrow space-y-12">
+        <PageHeader
+          eyebrow={<>বাংলা ব্লগ · {totalPosts}টি লেখা</>}
+          title="সহজ ভাষায় শেয়ার বাজার"
+          bn="The stock market in everyday Bangla — beginner guides, no jargon."
+          subLang="en"
+          lead={
+            <>
+              বাংলাদেশে বিনিয়োগে একদম নতুন? কঠিন কোনো শব্দ ছাড়া, গল্পের মতো করে — এখান থেকেই শুরু করুন।{" "}
+              <Link href="/share-bazar" className="font-semibold text-primary underline">
+                আজকের শেয়ার বাজার কেমন গেল — সহজ বাংলায় দেখুন
+              </Link>
+            </>
+          }
+        />
 
         {/* Category index — tap to jump to a section */}
         <section aria-label="বিষয় অনুযায়ী দেখুন" className="space-y-3">
-          <h2 className="text-center text-[0.85rem] font-bold tracking-wide text-[var(--ink-muted)]">
+          <h2 className="text-center text-sm font-bold tracking-wide text-text-muted">
             বিষয় অনুযায়ী দেখুন
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -114,14 +112,14 @@ export default function BlogPage() {
                   <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[color-mix(in_srgb,var(--primary)_8%,var(--surface-2))] text-lg">
                     {c.icon}
                   </span>
-                  <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5 text-[0.72rem] font-bold text-[var(--ink-muted)]">
+                  <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs font-bold text-text-muted">
                     {c.count}টি
                   </span>
                 </div>
-                <span className="font-bold text-[var(--ink)] text-[0.98rem] leading-snug group-hover:text-[var(--primary)] transition-colors">
+                <span className="font-bold text-text-main text-base leading-snug group-hover:text-primary transition-colors">
                   {c.label}
                 </span>
-                <span className="text-[0.82rem] leading-snug text-[var(--ink-2)] line-clamp-2">
+                <span className="text-sm leading-snug text-text-muted line-clamp-2">
                   {c.blurb}
                 </span>
               </a>
@@ -139,16 +137,16 @@ export default function BlogPage() {
                 <div className="flex items-center gap-3">
                   <span
                     aria-hidden="true"
-                    className="h-5 w-1 rounded-full bg-gradient-to-b from-[var(--primary)] to-[var(--primary-soft)]"
+                    className="h-5 w-1 rounded-full bg-gradient-to-b from-primary to-primary-soft"
                   />
-                  <h2 className="text-[1.4rem] font-bold tracking-tight text-[var(--ink)]">
+                  <h2 className="text-2xl font-bold tracking-tight text-text-main">
                     {category.label}
                   </h2>
-                  <span className="rounded-full bg-[var(--surface-2)] px-2.5 py-0.5 text-[0.74rem] font-bold text-[var(--ink-muted)]">
+                  <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-bold text-text-muted">
                     {postsInCategory.length}টি
                   </span>
                 </div>
-                <p className="text-[0.95rem] leading-relaxed text-[var(--ink-2)] pl-4">
+                <p className="text-base leading-relaxed text-text-muted pl-4">
                   {category.blurb}
                 </p>
               </div>
@@ -164,19 +162,19 @@ export default function BlogPage() {
                       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[color-mix(in_srgb,var(--primary)_8%,var(--surface-2))] text-2xl">
                         {post.icon}
                       </span>
-                      <span className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] px-2.5 py-0.5 text-[0.74rem] font-medium text-[var(--ink-muted)]">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-text-muted">
                         {post.readTime}
                       </span>
                     </div>
                     <div>
-                      <h3 className="font-bold text-[var(--ink)] text-[1.08rem] leading-snug group-hover:text-[var(--primary)] transition-colors">
+                      <h3 className="font-bold text-text-main text-lg leading-snug group-hover:text-primary transition-colors">
                         {post.title}
                       </h3>
-                      <p className="mt-1.5 text-[0.92rem] text-[var(--ink-2)] leading-[1.7]">
+                      <p className="mt-1.5 text-base text-text-muted leading-[1.7]">
                         {post.description}
                       </p>
                     </div>
-                    <span className="mt-auto inline-flex items-center gap-1 text-[0.86rem] font-semibold text-[var(--primary)]">
+                    <span className="mt-auto inline-flex items-center gap-1 text-sm font-semibold text-primary">
                       পড়ুন
                       <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">→</span>
                     </span>
@@ -189,7 +187,7 @@ export default function BlogPage() {
 
         {/* Footer CTA */}
         <section className="soft-card ambient-panel p-6 sm:p-7 text-center space-y-4">
-          <p className="text-[1.0625rem] font-semibold text-[var(--ink)]">
+          <p className="text-lg font-semibold text-text-main">
             শেখা শেষ? এবার কাজে লাগান।
           </p>
           <div className="flex flex-wrap justify-center gap-3">
@@ -201,7 +199,7 @@ export default function BlogPage() {
             </Link>
           </div>
         </section>
-      </main>
+      </div>
     </>
   );
 }

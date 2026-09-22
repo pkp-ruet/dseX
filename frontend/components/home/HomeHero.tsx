@@ -127,10 +127,10 @@ export default function HomeHero({
                 <Button href="/watchlist" variant="primary">
                   My Watchlist
                 </Button>
-                <Button href="/portfolio" variant="ghost">
+                <Button href="/portfolio" variant="quiet">
                   My Portfolio
                 </Button>
-                <Button href="/dsestockranking" variant="ghost">
+                <Button href="/dsestockranking" variant="quiet">
                   Rankings
                 </Button>
               </div>

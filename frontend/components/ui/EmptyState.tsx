@@ -23,6 +23,8 @@ interface Props {
   /** `card` = bordered surface; `bare` = no chrome (inside a table cell). */
   variant?: "card" | "bare";
   className?: string;
+  /** Extra content under the actions (e.g. a suggestion list). */
+  children?: ReactNode;
 }
 
 /**
@@ -38,6 +40,7 @@ export default function EmptyState({
   icon,
   variant = "card",
   className = "",
+  children,
 }: Props) {
   return (
     <div className={`empty-state ${variant === "card" ? "empty-state--card" : ""} ${className}`.trim()}>
@@ -61,6 +64,7 @@ export default function EmptyState({
           })}
         </div>
       )}
+      {children}
     </div>
   );
 }

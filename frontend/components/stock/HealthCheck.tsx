@@ -18,11 +18,28 @@ interface Props {
   detail: CompanyDetail;
 }
 
-const STATUS_TONE: Record<HealthStatus, { color: string; bg: string; border: string; icon: string }> = {
-  strong: { color: "var(--positive)", bg: "rgba(21,128,61,0.08)",  border: "rgba(21,128,61,0.25)",  icon: "✓" },
-  fair:   { color: "var(--watch)",    bg: "rgba(180,83,9,0.07)",   border: "rgba(180,83,9,0.2)",    icon: "•" },
-  weak:   { color: "var(--negative)", bg: "rgba(220,38,38,0.07)",  border: "rgba(220,38,38,0.22)",  icon: "⚠" },
-};
+// Status tones ride on the tier tokens — the same three bands `pillarColor`
+// paints the bars with, so a "strong" row and an Excellent pill read as one thing.
+function statusTone(status: HealthStatus) {
+  const color =
+    status === "strong" ? "var(--tier-excellent)" : status === "fair" ? "var(--tier-average)" : "var(--tier-weak)";
+  return {
+    color,
+    bg: `color-mix(in srgb, ${color} 7%, transparent)`,
+    border: `color-mix(in srgb, ${color} 22%, transparent)`,
+    glyph: status === "strong" ? "check" : status === "fair" ? "dash" : "bang",
+  } as const;
+}
+
+function StatusGlyph({ kind }: { kind: "check" | "dash" | "bang" }) {
+  const common = {
+    width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor",
+    strokeWidth: 3, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true,
+  } as const;
+  if (kind === "check") return <svg {...common}><path d="m5 12.5 4.5 4.5L19 7.5" /></svg>;
+  if (kind === "dash") return <svg {...common}><path d="M6 12h12" /></svg>;
+  return <svg {...common}><path d="M12 5v9" /><path d="M12 18.5h.01" /></svg>;
+}
 
 /** Short pillar names for the at-a-glance bars (English + Bengali). */
 const PILLAR_NAMES: Record<string, { en: string; bn: string }> = {
@@ -145,7 +162,7 @@ export default function HealthCheck({ scoreRow, detail }: Props) {
 
       {/* At-a-glance: the five pillars as bars, so the shape reads before anyone taps */}
       {bars.length > 0 && (
-        <Card padding="none" className="rounded-2xl p-4 sm:p-5 mb-3">
+        <Card padding="none" className="rounded-xl p-4 sm:p-5 mb-3">
           <div className="space-y-2.5">
             {bars.map((b) => {
               const v = b.value as number;
@@ -189,7 +206,7 @@ export default function HealthCheck({ scoreRow, detail }: Props) {
 
 function HealthRow({ row, scoreRow, detail, isBn }: { row: HealthCheckRow; scoreRow: ScoreRow; detail: CompanyDetail; isBn: boolean }) {
   const [open, setOpen] = useState(false);
-  const tone = STATUS_TONE[row.status];
+  const tone = statusTone(row.status);
 
   const subs = (PILLAR_SUBS[row.pillarKey] ?? [])
     .map((s) => ({ ...s, score: toNum(scoreRow[s.key] as number | null) }))
@@ -203,7 +220,7 @@ function HealthRow({ row, scoreRow, detail, isBn }: { row: HealthCheckRow; score
 
   return (
     <div
-      className="rounded-2xl transition-colors"
+      className="rounded-xl transition-colors"
       style={{ background: tone.bg, border: `1px solid ${tone.border}` }}
     >
       <button
@@ -219,11 +236,10 @@ function HealthRow({ row, scoreRow, detail, isBn }: { row: HealthCheckRow; score
             background: tone.bg,
             border: `1.5px solid ${tone.border}`,
             color: tone.color,
-            fontSize: 22, fontWeight: 800,
           }}
           aria-hidden="true"
         >
-          {tone.icon}
+          <StatusGlyph kind={tone.glyph} />
         </div>
         <div className={`flex-1 min-w-0 ${bnCls}`} lang={isBn ? "bn" : undefined}>
           <p className="text-base sm:text-lg font-bold leading-tight" style={{ color: "var(--text)" }}>
@@ -233,13 +249,12 @@ function HealthRow({ row, scoreRow, detail, isBn }: { row: HealthCheckRow; score
             {oneLine}
           </p>
         </div>
-        <span
-          className="shrink-0 transition-transform text-lg"
-          style={{ color: "var(--text-muted)", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
-          aria-hidden="true"
+        <svg
+          className={`shrink-0 text-text-muted transition-transform ${open ? "rotate-180" : ""}`}
+          width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"
         >
-          ▾
-        </span>
+          <path d="m6 9 6 6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
       </button>
       {open && (
         <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4">
@@ -255,7 +270,7 @@ function HealthRow({ row, scoreRow, detail, isBn }: { row: HealthCheckRow; score
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               {numbers.map((n) => (
                 <Card key={n.label} padding="none" className="rounded-xl p-3">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.12em] mb-1" style={{ color: "var(--text-muted)" }}>
+                  <p className="text-xs font-bold uppercase tracking-[0.12em] mb-1" style={{ color: "var(--text-muted)" }}>
                     {n.label}
                   </p>
                   <p className="text-lg font-bold tabular-nums nums" style={{ color: "var(--text)" }}>{n.value}</p>

@@ -94,10 +94,10 @@ export default function PushOptInPrompt() {
     // .above-bottom-bar keeps the card clear of the mobile bottom bar (it used to
     // sit at bottom-0 ON the bar); z-45 = above the bar, below modals / the menu.
     <div data-bottom-card className="above-bottom-bar fixed inset-x-0 z-[45] px-3 md:left-auto md:right-4 md:px-0">
-      <div className="mx-auto w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-xl">
+      <div className="mx-auto w-full max-w-sm rounded-2xl border border-border bg-surface p-4 shadow-xl">
         <div className="flex items-start gap-3">
           <span
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-[var(--primary)]"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-primary"
             style={{
               background: "color-mix(in srgb, var(--primary) 12%, transparent)",
               border: "1px solid color-mix(in srgb, var(--primary) 24%, var(--border))",
@@ -112,23 +112,23 @@ export default function PushOptInPrompt() {
           <div className="min-w-0 flex-1">
             {mode === "ios" ? (
               <>
-                <p className="text-sm font-bold text-[var(--text)]">
+                <p className="text-sm font-bold text-text-main">
                   Get a daily heads-up on your stocks
                 </p>
-                <p className="mt-1 text-xs leading-snug text-[var(--text-muted)]">
+                <p className="mt-1 text-xs leading-snug text-text-muted">
                   To turn on alerts on iPhone, tap{" "}
                   <span className="font-semibold">Share</span> then{" "}
                   <span className="font-semibold">Add to Home Screen</span>, and open
                   TopStockBD from there.
                 </p>
-                <p className="mt-1 text-xs leading-snug text-[var(--text-muted)] font-bn" lang="bn">
+                <p className="mt-1 text-xs leading-snug text-text-muted font-bn" lang="bn">
                   আইফোনে: Share → Add to Home Screen চাপুন, তারপর সেখান থেকে অ্যাপটি খুলুন।
                 </p>
                 <div className="mt-3 flex justify-end">
                   <button
                     type="button"
                     onClick={snooze}
-                    className="rounded-lg px-3 py-2 text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text)]"
+                    className="rounded-lg px-3 py-2 text-xs font-semibold text-text-muted hover:text-text-main"
                   >
                     Got it
                   </button>
@@ -136,18 +136,18 @@ export default function PushOptInPrompt() {
               </>
             ) : (
               <>
-                <p className="text-sm font-bold text-[var(--text)]">
+                <p className="text-sm font-bold text-text-main">
                   Your stocks, in one daily update
                 </p>
-                <p className="mt-1 text-xs leading-snug text-[var(--text-muted)]">
+                <p className="mt-1 text-xs leading-snug text-text-muted">
                   A quick look at your watchlist — movers, dividends and alerts.
                   One message, no spam.
                 </p>
-                <p className="mt-1 text-xs leading-snug text-[var(--text-muted)] font-bn" lang="bn">
+                <p className="mt-1 text-xs leading-snug text-text-muted font-bn" lang="bn">
                   প্রতিদিন আপনার শেয়ারের ছোট্ট আপডেট
                 </p>
                 {failed && (
-                  <p className="mt-2 text-xs leading-snug text-[var(--negative)]">
+                  <p className="mt-2 text-xs leading-snug text-negative">
                     Couldn&apos;t turn on alerts. If your browser blocked them, allow
                     notifications for this site and try again.
                   </p>

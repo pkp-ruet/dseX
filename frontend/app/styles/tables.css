@@ -1,0 +1,298 @@
+/* tables — page-area styles layered after globals.css (later import wins at equal specificity).
+   Tokens only: var(--fs-*), var(--radius*), var(--shadow-*), colour vars. */
+
+/* ==========================================================================
+   .data-table — THE stock table pattern (StocksTable, SectorStockTable,
+   DseTodayTable; components/ui/Table.tsx holds the matching React helpers).
+
+   Desktop (≥640px): an ordinary table. Row hairlines are var(--cell-rule),
+   headers are 12px uppercase muted text; a sortable header is a real <button>
+   filling the whole cell (≥40px tall) and the <th> carries aria-sort.
+
+   Phone (<640px): card-dissolve. The <thead> is hidden and every <tr> becomes
+   a card. Cells say where they go with data-cell:
+     rank   — small grey ordinal, line 1, far left (optional)
+     star   — StarButton, line 1
+     ident  — code + company name, line 1, takes the free width
+     score  — score ring / tier pill, line 1, right edge
+     price  — line 2, left
+     change — line 2, right
+     meta   — line 3, shared evenly; data-label prints a small caption above
+   Anything marked data-secondary is hidden on phones. Nothing scrolls
+   sideways and nothing is clipped — a column is either shown or a card line.
+   The three lines are forced with the row's ::before/::after flex breaks so
+   wrapping never depends on content width.
+   ========================================================================== */
+
+.data-table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+.data-table thead th {
+  padding: 0 12px;
+  height: 40px;
+  text-align: left;
+  vertical-align: middle;
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  user-select: none;
+}
+.data-table thead th.dt-num { text-align: right; }
+/* A sortable header's whole cell is the hit area: the <th> has no padding,
+   the button inside fills it. */
+.data-table thead th.dt-sortable { padding: 0; }
+.dt-sort {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.12s, background 0.12s;
+}
+.dt-num .dt-sort { justify-content: flex-end; }
+.dt-sort:hover { color: var(--text); background: color-mix(in srgb, var(--primary) 6%, transparent); }
+.dt-sort:active { background: color-mix(in srgb, var(--primary) 12%, transparent); }
+.dt-sort:focus-visible { outline: none; box-shadow: inset var(--ring); }
+.data-table thead th[aria-sort="ascending"] .dt-sort,
+.data-table thead th[aria-sort="descending"] .dt-sort { color: var(--primary-ink); }
+.dt-sort-icon { width: 12px; height: 12px; opacity: 0.45; flex: 0 0 auto; }
+th[aria-sort="ascending"] .dt-sort-icon,
+th[aria-sort="descending"] .dt-sort-icon { opacity: 1; }
+
+.data-table tbody td {
+  padding: 10px 12px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.data-table tbody tr + tr td { border-top: 1px solid var(--cell-rule); }
+.data-table tbody tr { transition: background 0.1s; }
+.data-table tbody tr:hover { background: var(--surface-2); }
+.data-table td.dt-num { text-align: right; font-variant-numeric: tabular-nums; }
+.data-table td[data-cell="rank"] {
+  width: 36px;
+  padding-right: 4px;
+  text-align: right;
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.data-table td[data-cell="star"] { width: 40px; padding: 4px 0 4px 6px; }
+.data-table td[data-cell="rank"] + td[data-cell="star"] { padding-left: 0; }
+.data-table td[data-cell="ident"] { min-width: 0; }
+/* Identity block: code on top, company name beneath, truncated on one line. */
+.dt-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-grotesk), Inter, system-ui, sans-serif;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  text-decoration: none;
+}
+.dt-code:hover { color: var(--primary-ink); text-decoration: underline; }
+.dt-ident-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.dt-name {
+  display: block;
+  margin-top: 1px;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-2xs);
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.dt-price { font-weight: 700; color: var(--text); }
+.dt-change { font-weight: 600; }
+.dt-muted { color: var(--text-muted); }
+.dt-score { display: inline-flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.dt-score .dt-tier { display: inline-flex; }
+/* Captions only exist on phones. */
+.data-table td[data-cell="meta"]::before { display: none; }
+/* Empty-state row spans the table. */
+.data-table td.dt-empty { padding: 0; white-space: normal; }
+.data-table tbody tr:has(> td.dt-empty):hover { background: transparent; }
+
+/* --- Toolbar above a table: search, select and filter pills, all 40px --- */
+.dt-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.dt-search,
+.dt-select {
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-sm);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.dt-search { flex: 1 1 200px; min-width: 0; }
+.dt-search::placeholder { color: var(--text-muted); opacity: 0.8; }
+.dt-select { flex: 0 1 220px; min-width: 0; cursor: pointer; }
+.dt-search:focus,
+.dt-select:focus { border-color: var(--primary); box-shadow: var(--ring); }
+.dt-pills { display: inline-flex; gap: 4px; }
+.dt-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.dt-pill:hover { color: var(--text); background: var(--surface-2); }
+.dt-pill:active { background: color-mix(in srgb, var(--primary) 12%, transparent); }
+.dt-pill:focus-visible { outline: none; box-shadow: var(--ring); }
+.dt-pill.is-active { background: var(--primary); color: var(--surface); border-color: var(--primary); }
+.dt-count {
+  margin-left: auto;
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* --- Card-dissolve below 640px --- */
+@media (max-width: 639.98px) {
+  .data-table-wrap { background: transparent; border: 0; border-radius: 0; overflow: visible; }
+  .data-table { display: block; }
+  .data-table thead { display: none; }
+  .data-table tbody { display: flex; flex-direction: column; gap: 8px; }
+  .data-table tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 8px;
+    row-gap: 0;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+  }
+  .data-table tbody tr:hover { background: var(--surface); }
+  .data-table tbody tr + tr td { border-top: 0; }
+  .data-table tbody td { display: block; padding: 0; width: auto; }
+  .data-table td.dt-num { text-align: left; }
+  /* Forced line breaks: ::before ends line 1, ::after ends line 2. */
+  .data-table tbody tr::before,
+  .data-table tbody tr::after { content: ""; display: block; flex: 0 0 100%; height: 0; }
+  .data-table tbody tr::before { order: 3; }
+  .data-table tbody tr::after { order: 6; }
+  .data-table td[data-cell="rank"] { order: 0; width: auto; padding: 0; text-align: left; }
+  .data-table td[data-cell="star"] { order: 1; width: 40px; margin-left: -8px; padding: 0; }
+  .data-table td[data-cell="rank"] + td[data-cell="star"] { margin-left: 0; }
+  .data-table td[data-cell="ident"] { order: 2; flex: 1 1 0; min-width: 0; }
+  .data-table td[data-cell="score"] { order: 2; flex: 0 0 auto; margin-left: auto; }
+  .data-table td[data-cell="price"] { order: 4; flex: 1 1 auto; margin-top: 8px; font-size: var(--fs-md); }
+  .data-table td[data-cell="change"] { order: 5; flex: 0 0 auto; margin-top: 8px; text-align: right; font-size: var(--fs-sm); }
+  .data-table td[data-cell="meta"] {
+    order: 7;
+    flex: 1 1 0;
+    min-width: 0;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--cell-rule);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .data-table td[data-cell="meta"]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 2px;
+    font-size: var(--fs-2xs);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .data-table td[data-secondary] { display: none; }
+  .data-table td.dt-empty { order: 0; flex: 0 0 100%; }
+  .data-table tbody tr:has(> td.dt-empty) { display: block; padding: 0; border: 0; background: transparent; }
+  .dt-name { max-width: 100%; }
+  .dt-score .dt-tier { display: none; }
+  .dt-toolbar { gap: 6px; }
+  .dt-search { flex: 1 1 100%; }
+  .dt-select { flex: 1 1 0; }
+  .dt-count { flex: 0 0 100%; margin-left: 0; }
+}
+
+/* ==========================================================================
+   .star-btn (components/ui/StarButton.tsx) — the save affordance in every stock
+   row. 40×40 hit area (the old 22px box was the smallest target in the app),
+   icon 16–22px, hover / active / pressed states. Class names are unchanged so
+   WatchlistTable's raw `star-btn star-btn--on` markup picks this up too.
+   Overrides the .star-btn rules in globals.css (same specificity, later file).
+   ========================================================================== */
+.star-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  margin: 0;
+  flex: 0 0 auto;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  cursor: pointer;
+  line-height: 0;
+  transition: color 0.15s, background 0.15s, transform 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.star-btn--lg { width: 44px; height: 44px; }
+.star-btn:hover { color: var(--gold-ink); background: color-mix(in srgb, var(--gold) 14%, transparent); }
+.star-btn:active { transform: scale(0.9); background: color-mix(in srgb, var(--gold) 22%, transparent); }
+.star-btn:focus-visible { outline: none; box-shadow: var(--ring); }
+.star-btn--on,
+.star-btn[aria-pressed="true"] { color: var(--gold); }
+.star-btn--on:hover,
+.star-btn[aria-pressed="true"]:hover { color: var(--gold-ink); background: color-mix(in srgb, var(--gold) 18%, transparent); }

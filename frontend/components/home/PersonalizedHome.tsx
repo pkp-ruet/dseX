@@ -70,7 +70,7 @@ function SectionLabel({ children, lang }: { children: React.ReactNode; lang: Lan
   return (
     <p
       lang={bn ? "bn" : undefined}
-      className={`mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[var(--text-muted)]${bn ? " font-bn" : ""}`}
+      className={`mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-text-muted${bn ? " font-bn" : ""}`}
     >
       {/* Standing in for a DashHeader's icon tile, so this label does not read
           as the one grey thing between two coloured cards. */}
@@ -89,14 +89,14 @@ function SectionLabel({ children, lang }: { children: React.ReactNode; lang: Lan
 function IdeasSkeleton() {
   return (
     <div className="soft-card overflow-hidden" aria-hidden>
-      <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3 sm:px-5">
-        <div className="h-3.5 w-40 animate-pulse rounded-full bg-[var(--surface-2)]" />
-        <div className="h-3.5 w-16 animate-pulse rounded-full bg-[var(--surface-2)]" />
+      <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5">
+        <div className="h-3.5 w-40 animate-pulse rounded-full bg-surface-2" />
+        <div className="h-3.5 w-16 animate-pulse rounded-full bg-surface-2" />
       </div>
-      <div className="mx-4 mt-3 h-3.5 w-3/4 animate-pulse rounded-full bg-[var(--surface-2)] sm:mx-5" />
+      <div className="mx-4 mt-3 h-3.5 w-3/4 animate-pulse rounded-full bg-surface-2 sm:mx-5" />
       <div className="space-y-px px-4 pb-2 pt-3 sm:px-5">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="h-16 animate-pulse rounded-xl bg-[var(--surface-2)]" />
+          <div key={i} className="h-16 animate-pulse rounded-xl bg-surface-2" />
         ))}
       </div>
     </div>

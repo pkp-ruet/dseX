@@ -48,21 +48,21 @@ export default function DailyFeed({ sectors }: { sectors: string[] }) {
         <div className="flex items-center gap-2.5 min-w-0">
           <span
             className="inline-flex items-center justify-center w-10 h-10 rounded-2xl shrink-0 text-white"
-            style={{ background: "linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 70%, #000))" }}
+            style={{ background: "linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 70%, var(--navy-ink)))" }}
             aria-hidden
           >
             {SPARKLE}
           </span>
           <div className="min-w-0">
-            <h2 className="text-lg font-extrabold text-[var(--text)] leading-tight">Picked for you today</h2>
-            <p className="text-[0.76rem] text-[var(--text-muted)]">
+            <h2 className="text-lg font-extrabold text-text-main leading-tight">Picked for you today</h2>
+            <p className="text-xs text-text-muted">
               {tuned ? "Tuned to your taste · refreshes daily" : "Top stocks today · refreshes daily"}
             </p>
           </div>
         </div>
         <Button
           type="button"
-          variant="ghost"
+          variant="quiet"
           onClick={() => setRetuneOpen(true)}
           className="shrink-0 min-h-[40px] px-4 text-sm"
         >
@@ -84,15 +84,15 @@ export default function DailyFeed({ sectors }: { sectors: string[] }) {
             {SPARKLE}
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-[0.9rem] font-bold text-[var(--text)] leading-tight">
+            <span className="block text-sm font-bold text-text-main leading-tight">
               These are today&apos;s top stocks — make them yours
             </span>
-            <span className="block text-[0.78rem] text-[var(--text-muted)] leading-snug">
+            <span className="block text-xs text-text-muted leading-snug">
               Answer 8 quick questions and every day&apos;s picks will match your goals.
             </span>
           </span>
           <span
-            className="shrink-0 inline-flex items-center gap-1 rounded-lg px-3.5 py-2 text-[0.78rem] font-bold text-white"
+            className="shrink-0 inline-flex items-center gap-1 rounded-lg px-3.5 py-2 text-xs font-bold text-white"
             style={{ background: "var(--primary)" }}
           >
             Start →
@@ -103,17 +103,17 @@ export default function DailyFeed({ sectors }: { sectors: string[] }) {
       {/* Picks */}
       {loading ? (
         <div className="py-10 flex justify-center">
-          <span className="w-8 h-8 rounded-full border-[3px] border-[var(--surface-2)] border-t-[var(--primary)] animate-spin" />
+          <span className="w-8 h-8 rounded-full border-[3px] border-surface-2 border-t-primary animate-spin" />
         </div>
       ) : picks && picks.length > 0 ? (
         <DailyPickList key={picks.map((p) => p.trading_code).join(",")} initialPicks={picks} />
       ) : (
-        <p className="text-center text-sm text-[var(--text-muted)] py-8">
+        <p className="text-center text-sm text-text-muted py-8">
           No picks right now — try tuning your preferences.
         </p>
       )}
 
-      <p className="text-center text-[0.72rem] text-[var(--text-muted)] leading-relaxed">
+      <p className="text-center text-xs text-text-muted leading-relaxed">
         Suggestions based on data, not financial advice. Always do your own research.
       </p>
 

@@ -16,6 +16,8 @@ import {
 } from "@/lib/price-alerts";
 import PriceAlertModal from "@/components/stock/PriceAlertModal";
 import EmptyState from "@/components/ui/EmptyState";
+import Skeleton from "@/components/ui/Skeleton";
+import Card from "@/components/ui/Card";
 
 function flatten(scores: ScoresResponse | null): ScoreItem[] {
   if (!scores) return [];
@@ -63,76 +65,46 @@ function AlertCard({
   }
 
   return (
-    <div
-      className="rounded-xl p-4 flex flex-col gap-2"
-      style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-    >
+    <div className="flex flex-col gap-2 rounded-xl border border-border bg-surface p-4">
       <div className="flex items-center justify-between gap-3">
-        <Link
-          href={`/stock/${alert.trading_code}`}
-          className="text-base font-bold"
-          style={{ color: "var(--primary)" }}
-        >
+        <Link href={`/stock/${alert.trading_code}`} className="text-base font-bold text-primary">
           {alert.trading_code}
         </Link>
         {alert.is_active ? (
-          <span
-            className="text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full"
-            style={{ color: "var(--watch)", background: "rgba(180,83,9,0.1)", border: "1px solid rgba(180,83,9,0.3)" }}
-          >
+          <span className="rounded-full border border-watch/30 bg-watch/10 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-watch">
             Armed
           </span>
         ) : (
-          <span
-            className="text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full"
-            style={{ color: "var(--text-muted)", background: "var(--surface-2)", border: "1px solid var(--border)" }}
-          >
+          <span className="rounded-full border border-border bg-surface-2 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-text-muted">
             Triggered {triggeredDate(alert.triggered_at)}
           </span>
         )}
       </div>
 
-      <p className="text-sm" style={{ color: "var(--text)" }}>
+      <p className="text-sm text-text-main">
         Alert me <b style={{ color: tone }}>{sentenceFor(alert)}</b>
       </p>
 
-      <div className="flex items-center gap-3 text-xs" style={{ color: "var(--text-muted)" }}>
+      <div className="flex items-center gap-3 text-xs text-text-muted">
         {ltp != null && <span className="tabular-nums">Now ৳{ltp.toFixed(1)}</span>}
         {!alert.is_active && alert.triggered_price != null && (
           <span className="tabular-nums">Hit at ৳{fmt(alert.triggered_price)}</span>
         )}
       </div>
 
-      <div className="flex gap-2 mt-1">
+      <div className="mt-1 flex flex-wrap gap-2">
         {alert.is_active ? (
-          <button
-            type="button"
-            onClick={() => onEdit(alert)}
-            className="atp-btn atp-btn-secondary"
-            style={{ flex: "0 0 auto", padding: "6px 14px" }}
-          >
+          <Button type="button" variant="quiet" size="sm" onClick={() => onEdit(alert)}>
             Edit / remove
-          </button>
+          </Button>
         ) : (
           <>
-            <button
-              type="button"
-              onClick={handleRearm}
-              disabled={busy}
-              className="atp-btn atp-btn-primary"
-              style={{ flex: "0 0 auto", padding: "6px 14px" }}
-            >
-              {busy ? "…" : "Set again"}
-            </button>
-            <button
-              type="button"
-              onClick={handleRemove}
-              disabled={busy}
-              className="atp-btn atp-btn-danger"
-              style={{ flex: "0 0 auto", padding: "6px 14px" }}
-            >
+            <Button type="button" variant="primary" size="sm" onClick={handleRearm} disabled={busy}>
+              {busy ? "Setting…" : "Set again"}
+            </Button>
+            <Button type="button" variant="danger" size="sm" onClick={handleRemove} disabled={busy}>
               Remove
-            </button>
+            </Button>
           </>
         )}
       </div>
@@ -178,7 +150,21 @@ export default function AlertsClient() {
   const active = alerts.filter((a) => a.is_active);
   const triggered = alerts.filter((a) => !a.is_active);
 
-  if (isLoading) return <div className="watchlist-loading">Loading…</div>;
+  if (isLoading) {
+    return (
+      <Card padding="md" aria-busy="true" aria-label="Loading alerts">
+        <div className="skeleton-rows" role="status">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="skeleton-row">
+              <Skeleton width={64} height={16} />
+              <Skeleton width="40%" height={14} />
+              <Skeleton width={72} height={22} rounded="999px" className="ml-auto" />
+            </div>
+          ))}
+        </div>
+      </Card>
+    );
+  }
 
   if (!isLoggedIn) {
     return (
@@ -192,7 +178,7 @@ export default function AlertsClient() {
           <Button href="/login?next=%2Falerts" variant="primary" size="sm">
             Sign In
           </Button>
-          <Button href="/register?next=%2Falerts" variant="ghost" size="sm">
+          <Button href="/register?next=%2Falerts" variant="quiet" size="sm">
             Create Account
           </Button>
         </div>
@@ -218,7 +204,7 @@ export default function AlertsClient() {
     <>
       {active.length > 0 && (
         <section className="mb-6">
-          <h2 className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: "var(--text-muted)" }}>
+          <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-text-muted">
             Armed ({active.length})
           </h2>
           <div className="flex flex-col gap-2.5">
@@ -231,7 +217,7 @@ export default function AlertsClient() {
 
       {triggered.length > 0 && (
         <section>
-          <h2 className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: "var(--text-muted)" }}>
+          <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-text-muted">
             Recently triggered
           </h2>
           <div className="flex flex-col gap-2.5">

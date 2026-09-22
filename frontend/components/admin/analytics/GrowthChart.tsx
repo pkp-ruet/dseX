@@ -26,18 +26,18 @@ export default function GrowthChart({ growth }: { growth: AdminGrowthPoint[] }) 
   const data = growth.slice(-range);
 
   return (
-    <Card padding="none" className="rounded-2xl p-4 sm:p-5">
+    <Card padding="none" className="rounded-xl p-4 sm:p-5">
       <div className="flex items-center justify-between gap-3 mb-4">
-        <h3 className="text-sm font-bold text-[var(--text)]">Signups &amp; active users</h3>
-        <div className="flex gap-1 rounded-lg border border-[var(--border)] p-0.5">
+        <h3 className="text-sm font-bold text-text-main">Signups &amp; active users</h3>
+        <div className="flex gap-1 rounded-lg border border-border p-0.5">
           {([30, 90] as const).map((r) => (
             <button
               key={r}
               onClick={() => setRange(r)}
               className={`text-xs font-semibold px-2.5 py-1 rounded-md transition-colors ${
                 range === r
-                  ? "bg-[var(--primary)] text-white"
-                  : "text-[var(--text-muted)] hover:bg-[var(--surface-2)]"
+                  ? "bg-primary text-surface"
+                  : "text-text-muted hover:bg-surface-2"
               }`}
             >
               {r}d
@@ -94,7 +94,7 @@ export default function GrowthChart({ growth }: { growth: AdminGrowthPoint[] }) 
           />
         </AreaChart>
       </ResponsiveContainer>
-      <p className="text-[11px] text-[var(--text-muted)] mt-2">
+      <p className="text-xs text-text-muted mt-2">
         Active = distinct users with tracked page views that day. Fills in over time as activity is recorded.
       </p>
     </Card>

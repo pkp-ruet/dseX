@@ -8,6 +8,7 @@ import {
   type PortfolioHolding,
 } from "@/lib/api";
 import { taka } from "@/lib/formatters";
+import Button from "@/components/ui/Button";
 
 type Mode = "buy" | "sell";
 
@@ -119,14 +120,14 @@ export default function BuySellModal({ mode, holding, ltp, companyName, onClose,
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-text-main/50"
       role="dialog"
       aria-modal="true"
       aria-labelledby="buysell-title"
       onClick={() => !saving && onClose()}
     >
       <div
-        className="w-full sm:max-w-sm bg-[var(--surface)] border-t sm:border border-[var(--border)] rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 flex flex-col gap-4"
+        className="w-full sm:max-w-sm bg-surface border-t sm:border border-border rounded-t-xl sm:rounded-xl p-5 sm:p-6 flex flex-col gap-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -140,30 +141,25 @@ export default function BuySellModal({ mode, holding, ltp, companyName, onClose,
               {isBuy ? "+" : "−"}
             </span>
             <div className="min-w-0">
-              <h3 id="buysell-title" className="text-lg font-bold text-[var(--text)] leading-tight">
+              <h3 id="buysell-title" className="text-lg font-bold text-text-main leading-tight">
                 {isBuy ? "Buy" : "Sell"} <span className="font-mono">{holding.trading_code}</span>
               </h3>
-              <p className="text-xs text-[var(--text-muted)] truncate leading-tight">
+              <p className="text-xs text-text-muted truncate leading-tight">
                 {companyName ?? "Adjust your shares"}
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-[var(--text-muted)] hover:text-[var(--text)] p-1 -mr-1 shrink-0"
-            aria-label="Close"
-            disabled={saving}
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M18.3 5.71 12 12l6.3 6.29-1.42 1.42L12 13.41 5.71 19.7 4.29 18.3 10.59 12 4.29 5.71 5.71 4.29 12 10.59l6.29-6.3z" />
-            </svg>
-          </button>
+          <Button type="button" variant="link" size="sm" iconOnly onClick={onClose} aria-label="Close" disabled={saving} className="-mr-2 shrink-0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+          </Button>
         </div>
 
         {/* Current position */}
         <div className="flex items-center justify-between rounded-lg bg-[color-mix(in_srgb,var(--primary)_5%,var(--surface-2))] px-3 py-2 text-sm">
-          <span className="text-[var(--text-muted)]">You own</span>
-          <span className="text-[var(--text)] font-semibold tabular-nums nums">
+          <span className="text-text-muted">You own</span>
+          <span className="text-text-main font-semibold tabular-nums nums">
             {holding.qty.toLocaleString()} sh @ {taka(holding.buy_price, 2)}
           </span>
         </div>
@@ -172,7 +168,7 @@ export default function BuySellModal({ mode, holding, ltp, companyName, onClose,
           {isBuy ? (
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="bs-1" className="text-sm font-medium text-[var(--text)]">Shares bought</label>
+                <label htmlFor="bs-1" className="text-sm font-medium text-text-main">Shares bought</label>
                 <input id="bs-1"
                   ref={qtyRef}
                   type="number"
@@ -187,7 +183,7 @@ export default function BuySellModal({ mode, holding, ltp, companyName, onClose,
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="bs-2" className="text-sm font-medium text-[var(--text)]">Buy price (৳)</label>
+                <label htmlFor="bs-2" className="text-sm font-medium text-text-main">Buy price (৳)</label>
                 <input id="bs-2"
                   type="number"
                   placeholder="295.50"
@@ -204,15 +200,16 @@ export default function BuySellModal({ mode, holding, ltp, companyName, onClose,
           ) : (
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <label htmlFor="bs-3" className="text-sm font-medium text-[var(--text)]">Shares sold</label>
-                <button
+                <label htmlFor="bs-3" className="text-sm font-medium text-text-main">Shares sold</label>
+                <Button
                   type="button"
+                  variant="link"
+                  size="sm"
                   onClick={() => setQty(String(holding.qty))}
-                  className="text-xs font-semibold hover:underline"
-                  style={{ color: accent }}
+                  className="-mr-2"
                 >
                   Sell all ({holding.qty.toLocaleString()})
-                </button>
+                </Button>
               </div>
               <input id="bs-3"
                 ref={qtyRef}
@@ -245,29 +242,29 @@ export default function BuySellModal({ mode, holding, ltp, companyName, onClose,
               }}
             >
               {preview.kind === "buy" && (
-                <p className="text-[var(--text)] leading-relaxed">
+                <p className="text-text-main leading-relaxed">
                   <span className="font-semibold">New position:</span>{" "}
                   <span className="tabular-nums nums font-semibold">
                     {preview.newQty.toLocaleString()} sh @ {taka(preview.newAvg, 2)} avg
                   </span>
-                  <span className="block text-xs text-[var(--text-muted)] mt-0.5">
+                  <span className="block text-xs text-text-muted mt-0.5">
                     was {holding.qty.toLocaleString()} @ {taka(holding.buy_price, 2)}
                   </span>
                 </p>
               )}
               {preview.kind === "sell-partial" && (
-                <p className="text-[var(--text)] leading-relaxed">
+                <p className="text-text-main leading-relaxed">
                   <span className="font-semibold">Remaining:</span>{" "}
                   <span className="tabular-nums nums font-semibold">
                     {preview.remaining.toLocaleString()} sh @ {taka(holding.buy_price, 2)} avg
                   </span>
-                  <span className="block text-xs text-[var(--text-muted)] mt-0.5">
+                  <span className="block text-xs text-text-muted mt-0.5">
                     Average cost stays the same.
                   </span>
                 </p>
               )}
               {preview.kind === "sell-all" && (
-                <p className="text-[var(--text)] leading-relaxed">
+                <p className="text-text-main leading-relaxed">
                   Sells everything and{" "}
                   <span className="font-semibold" style={{ color: "var(--negative)" }}>
                     removes {holding.trading_code} from your portfolio.
@@ -282,16 +279,11 @@ export default function BuySellModal({ mode, holding, ltp, companyName, onClose,
             </div>
           )}
 
-          {error && <p className="text-sm text-[var(--negative)] font-medium">{error}</p>}
+          {error && <p className="text-sm text-negative font-medium">{error}</p>}
 
-          <button
-            type="submit"
-            disabled={!canSubmit}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-white font-semibold text-base transition-opacity disabled:opacity-50"
-            style={{ background: accent }}
-          >
+          <Button type="submit" variant={isBuy ? "primary" : "danger"} size="lg" block disabled={!canSubmit}>
             {submitLabel}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

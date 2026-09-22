@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { pct, signed, taka } from "@/lib/formatters";
-import { TIER_GRADES, TIER_LABELS, TIER_VAR } from "@/lib/constants";
-import { PILLARS, pillarBand, PILLAR_BAND_COLOR } from "@/lib/landing";
+import { TIER_MEANINGS } from "@/lib/constants";
+import { PILLARS } from "@/lib/landing";
+import { pillarColor } from "@/lib/insight-utils";
 import ScoreBadge from "@/components/ui/ScoreBadge";
+import TierPill from "@/components/ui/TierPill";
 import type { RankedItem } from "@/components/ranking/FullRankTable";
 
 type PointKind = "good" | "bad" | "warn" | "neutral";
@@ -167,7 +169,7 @@ function PillarBar({
   short: string;
   value: number | null;
 }) {
-  const color = PILLAR_BAND_COLOR[pillarBand(value)];
+  const color = pillarColor(value);
   const width = value == null ? 0 : Math.max(4, Math.min(100, value * 10));
 
   return (
@@ -179,7 +181,7 @@ function PillarBar({
         </span>
         <span
           className="fr-pillar-value"
-          style={{ color: value == null ? "var(--ink-muted)" : color }}
+          style={{ color: value == null ? "var(--text-muted)" : color }}
         >
           {value == null ? "—" : value.toFixed(1)}
         </span>
@@ -207,19 +209,10 @@ export default function RankRowDetails({ item }: { item: RankedItem }) {
       <div className="fr-detail-head">
         <ScoreBadge score={item.score} tier={item.tier} size="md" />
         <div className="fr-detail-head-text">
-          <span className="fr-detail-tier" style={{ color: TIER_VAR[item.tier] }}>
-            <span
-              className="fr-detail-grade"
-              style={{ background: TIER_VAR[item.tier] }}
-              aria-hidden
-            >
-              {TIER_GRADES[item.tier]}
-            </span>
-            {TIER_LABELS[item.tier]}
+          <span className="fr-detail-tier">
+            <TierPill tier={item.tier} size="md" />
           </span>
-          <span className="fr-detail-score-sub">
-            Fundamental score {item.score != null ? Math.round(item.score) : "—"} / 100
-          </span>
+          <span className="fr-detail-score-sub">{TIER_MEANINGS[item.tier]}</span>
         </div>
       </div>
 

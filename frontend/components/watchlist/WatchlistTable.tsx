@@ -36,6 +36,8 @@ import SignalChip from "@/components/ui/SignalChip";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Skeleton from "@/components/ui/Skeleton";
+import EmptyState from "@/components/ui/EmptyState";
+import ErrorState from "@/components/ui/ErrorState";
 import WatchlistNews from "./WatchlistNews";
 import WatchlistAnalysis from "./WatchlistAnalysis";
 import WatchlistAlertCell from "./WatchlistAlertCell";
@@ -93,6 +95,28 @@ function shortDate(iso: string): string {
 }
 
 // ---------------------------------------------------------------------------
+// Loading — the ONE placeholder for this page (auth check, Suspense, data)
+// ---------------------------------------------------------------------------
+
+function WatchlistSkeleton({ rows = 6 }: { rows?: number }) {
+  return (
+    <Card padding="md" aria-busy="true" aria-label="Loading watchlist">
+      <div className="skeleton-rows" role="status">
+        {[...Array(rows)].map((_, i) => (
+          <div key={i} className="skeleton-row">
+            <Skeleton width={18} height={18} rounded="999px" />
+            <Skeleton width={56} height={16} rounded="999px" />
+            <Skeleton width={i % 2 === 0 ? "30%" : "24%"} height={14} />
+            <Skeleton width={52} height={14} className="ml-auto" />
+            <Skeleton width={44} height={14} />
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Logged-out CTA
 // ---------------------------------------------------------------------------
 
@@ -112,12 +136,12 @@ function SignInCTA({ pendingCodes }: { pendingCodes: string[] }) {
         <Button href={`/login?next=${encNext}`} variant="primary" size="sm">
           Sign In
         </Button>
-        <Button href={`/register?next=${encNext}`} variant="ghost" size="sm">
+        <Button href={`/register?next=${encNext}`} variant="quiet" size="sm">
           Create Account
         </Button>
       </div>
       {pendingCodes.length > 0 && (
-        <p className="mt-4 text-xs text-[var(--ink-muted)]">
+        <p className="mt-4 text-xs text-text-muted">
           We&apos;ll add {pendingCodes.length} shared{" "}
           {pendingCodes.length === 1 ? "stock" : "stocks"} to your list after sign-in.
         </p>
@@ -246,8 +270,8 @@ interface RowProps {
  *  (collapses on mobile) for codes followed before the price was recorded. */
 function SinceAddedCell({ item, meta }: { item: ScoreItem; meta: WatchlistMetaEntry | null }) {
   const pct = sinceAddedPct(item, meta);
-  if (pct == null || !meta) return <span className="text-[var(--ink-muted)] text-xs">—</span>;
-  const color = pct > 0 ? "var(--positive)" : pct < 0 ? "var(--negative)" : "var(--ink-2)";
+  if (pct == null || !meta) return <span className="text-text-muted text-xs">—</span>;
+  const color = pct > 0 ? "var(--positive)" : pct < 0 ? "var(--negative)" : "var(--text-muted)";
   return (
     <span
       className="wl-since inline-flex items-baseline gap-1.5 whitespace-nowrap"
@@ -257,7 +281,7 @@ function SinceAddedCell({ item, meta }: { item: ScoreItem; meta: WatchlistMetaEn
         {pct > 0 ? "+" : ""}
         {pct.toFixed(1)}%
       </span>
-      <span className="wl-since-date text-[11px] font-semibold text-[var(--ink-muted)]">
+      <span className="wl-since-date text-xs font-semibold text-text-muted">
         since {shortDate(meta.added_at)}
       </span>
     </span>
@@ -272,22 +296,22 @@ function formatDateLong(iso: string): string {
 
 function RangeBar({ ltp, high, low }: { ltp: number | null; high: number | null; low: number | null }) {
   if (ltp == null || high == null || low == null || high <= low) {
-    return <span className="text-[var(--ink-muted)] text-xs">—</span>;
+    return <span className="text-text-muted text-xs">—</span>;
   }
   const pos = Math.max(0, Math.min(1, (ltp - low) / (high - low)));
   return (
     <div className="wl-range flex flex-col gap-0.5 min-w-[80px]" title={`52w: ${low.toFixed(1)} – ${high.toFixed(1)}`}>
-      <div className="wl-range-track relative h-1.5 rounded-full bg-[var(--border)]">
+      <div className="wl-range-track relative h-1.5 rounded-full bg-border">
         <div
           className="absolute inset-y-0 left-0 rounded-full bg-[color-mix(in_srgb,var(--primary)_30%,transparent)]"
           style={{ width: `${pos * 100}%` }}
         />
         <div
-          className="absolute top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-[var(--primary)] border border-[var(--bg)]"
+          className="absolute top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-primary border border-bg"
           style={{ left: `calc(${pos * 100}% - 5px)` }}
         />
       </div>
-      <div className="wl-range-labels flex justify-between text-[11px] text-[var(--ink-muted)] tabular-nums">
+      <div className="wl-range-labels flex justify-between text-xs text-text-muted tabular-nums">
         <span>{low.toFixed(0)}</span>
         <span>{high.toFixed(0)}</span>
       </div>
@@ -321,7 +345,7 @@ function SignalPills({
     ) : null;
 
   if (!chip && pills.length === 0)
-    return <span className="text-[var(--ink-muted)] text-xs">—</span>;
+    return <span className="text-text-muted text-xs">—</span>;
 
   return (
     <div className="flex flex-wrap items-center gap-1">
@@ -329,14 +353,14 @@ function SignalPills({
       {pills.map((p) => {
         const cls =
           p.tone === "up"
-            ? "bg-[color-mix(in_srgb,var(--positive)_15%,transparent)] text-[var(--positive)]"
+            ? "bg-[color-mix(in_srgb,var(--positive)_15%,transparent)] text-positive"
             : p.tone === "dn"
-              ? "bg-[color-mix(in_srgb,var(--negative)_15%,transparent)] text-[var(--negative)]"
-              : "bg-[color-mix(in_srgb,var(--watch)_15%,transparent)] text-[var(--watch)]";
+              ? "bg-[color-mix(in_srgb,var(--negative)_15%,transparent)] text-negative"
+              : "bg-[color-mix(in_srgb,var(--watch)_15%,transparent)] text-watch";
         return (
           <span
             key={p.label}
-            className={`text-[11px] px-1.5 py-0.5 rounded font-semibold whitespace-nowrap ${cls}`}
+            className={`text-xs px-1.5 py-0.5 rounded font-semibold whitespace-nowrap ${cls}`}
           >
             {p.label}
           </span>
@@ -349,7 +373,7 @@ function SignalPills({
 function EpsPill({ value }: { value: number | null | undefined }) {
   if (value == null || Number.isNaN(value)) {
     return (
-      <span className="wl-eps wl-eps--none inline-flex items-center gap-1 text-[11px] text-[var(--ink-muted)] whitespace-nowrap">
+      <span className="wl-eps wl-eps--none inline-flex items-center gap-1 text-xs text-text-muted whitespace-nowrap">
         <span className="opacity-60">EPS</span>
         <span>—</span>
       </span>
@@ -359,7 +383,7 @@ function EpsPill({ value }: { value: number | null | undefined }) {
   const sign = value > 0 ? "+" : "";
   return (
     <span
-      className={`wl-eps wl-eps--${toneKey} inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold tabular-nums whitespace-nowrap border nums`}
+      className={`wl-eps wl-eps--${toneKey} inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-semibold tabular-nums whitespace-nowrap border nums`}
       title={`EPS year-on-year change: ${sign}${value.toFixed(1)}%`}
     >
       <span className="opacity-70 font-bold tracking-wider">EPS</span>
@@ -371,7 +395,7 @@ function EpsPill({ value }: { value: number | null | undefined }) {
 function YieldPill({ value }: { value: number | null | undefined }) {
   if (value == null || Number.isNaN(value)) {
     return (
-      <span className="wl-eps wl-eps--none inline-flex items-center gap-1 text-[11px] text-[var(--ink-muted)] whitespace-nowrap">
+      <span className="wl-eps wl-eps--none inline-flex items-center gap-1 text-xs text-text-muted whitespace-nowrap">
         <span className="opacity-60">DIV</span>
         <span>—</span>
       </span>
@@ -379,7 +403,7 @@ function YieldPill({ value }: { value: number | null | undefined }) {
   }
   return (
     <span
-      className="wl-eps wl-eps--flat inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold tabular-nums whitespace-nowrap border nums"
+      className="wl-eps wl-eps--flat inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-semibold tabular-nums whitespace-nowrap border nums"
       title={`Dividend yield: ${value.toFixed(2)}%`}
     >
       <span className="opacity-70 font-bold tracking-wider">DIV</span>
@@ -522,6 +546,7 @@ function WatchlistTableInner() {
     () => readCache<ScoresResponse>(cacheKeys.scores) === null,
   );
   const [error, setError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
   const [importPrompt, setImportPrompt] = useState(false);
   const [sort, setSort] = useState<SortKey>("az");
 
@@ -551,6 +576,8 @@ function WatchlistTableInner() {
   // Public data — SWR refresh in background. State already hydrated from cache.
   useEffect(() => {
     let cancelled = false;
+    setError(null);
+    if (retryKey > 0) setLoading(true);
     Promise.allSettled([getScores(), getNearExtremes(), getDividendsUpcoming()])
       .then(([s, e, d]) => {
         if (cancelled) return;
@@ -572,7 +599,9 @@ function WatchlistTableInner() {
           e.status === "rejected" &&
           d.status === "rejected"
         ) {
-          setError(String(s.reason));
+          // Logged to the console; the user sees ErrorState, never the raw message.
+          console.error("Watchlist data failed to load:", s.reason);
+          setError("failed");
         }
       })
       .finally(() => {
@@ -581,7 +610,7 @@ function WatchlistTableInner() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [retryKey]);
 
   // News — fires as soon as codes are known, parallel to scores/extremes/dividends.
   useEffect(() => {
@@ -685,7 +714,7 @@ function WatchlistTableInner() {
   }
 
   if (isLoading) {
-    return <div className="watchlist-loading">Loading…</div>;
+    return <WatchlistSkeleton />;
   }
 
   if (!isLoggedIn) {
@@ -695,12 +724,12 @@ function WatchlistTableInner() {
   return (
     <>
       {importPrompt && sharedCodes.length > 0 && (
-        <div className="mb-4 rounded-xl border border-[var(--primary)] bg-[var(--primary)]/10 p-4">
-          <p className="text-sm text-[var(--ink)] mb-3">
+        <div className="mb-4 rounded-xl border border-primary bg-primary/10 p-4">
+          <p className="text-sm text-text-main mb-3">
             Someone shared a watchlist with you. Import{" "}
             <span className="font-bold">{sharedCodes.length}</span>{" "}
             {sharedCodes.length === 1 ? "stock" : "stocks"}?
-            <span className="block mt-1 text-xs text-[var(--ink-muted)]">
+            <span className="block mt-1 text-xs text-text-muted">
               {sharedCodes.join(" · ")}
             </span>
           </p>
@@ -708,7 +737,7 @@ function WatchlistTableInner() {
             <Button type="button" onClick={handleImportShared} variant="primary" size="sm">
               Import
             </Button>
-            <Button type="button" onClick={handleDismissImport} variant="ghost" size="sm">
+            <Button type="button" onClick={handleDismissImport} variant="quiet" size="sm">
               Dismiss
             </Button>
           </div>
@@ -716,8 +745,8 @@ function WatchlistTableInner() {
       )}
 
       {codes.length > 0 && (
-        <p className="-mt-2 mb-4 text-sm font-medium text-[var(--text-muted)]">
-          <span className="font-bold text-[var(--text)] nums">{codes.length}</span>{" "}
+        <p className="-mt-2 mb-4 text-sm font-medium text-text-muted">
+          <span className="font-bold text-text-main nums">{codes.length}</span>{" "}
           {codes.length === 1 ? "stock" : "stocks"} followed
           {rows.length > 0 && rows.length < codes.length && (
             <> · {rows.length} scored</>
@@ -734,11 +763,7 @@ function WatchlistTableInner() {
       <div className="mb-4">
         <div className="mb-2.5 flex items-center gap-2.5">
           <span
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-[var(--primary)]"
-            style={{
-              background: "color-mix(in srgb, var(--primary) 12%, transparent)",
-              border: "1px solid color-mix(in srgb, var(--primary) 22%, var(--border))",
-            }}
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-primary/20 bg-primary/10 text-primary"
             aria-hidden
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -746,10 +771,10 @@ function WatchlistTableInner() {
             </svg>
           </span>
           <div className="min-w-0">
-            <h2 className="text-sm font-bold leading-tight text-[var(--text)]">
+            <h2 className="text-sm font-bold leading-tight text-text-main">
               Add to your watchlist
             </h2>
-            <p className="text-xs text-[var(--text-muted)]">
+            <p className="text-xs text-text-muted">
               Search any DSE stock and tap to follow it.
             </p>
           </div>
@@ -763,29 +788,23 @@ function WatchlistTableInner() {
       </div>
 
       {codes.length === 0 ? (
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-6">
-          <div className="text-center">
-            <h2 className="text-lg font-bold text-[var(--text)]">Your watchlist is empty</h2>
-            <p className="mx-auto mt-1 max-w-sm text-sm text-[var(--text-muted)]">
-              Search above to add any stock, or tap a suggestion below.
-            </p>
-          </div>
+        <EmptyState
+          title="Your watchlist is empty"
+          message="Search above to add any stock, or tap a suggestion below."
+          bn="উপরে সার্চ করে কোনো শেয়ার যোগ করুন, বা নিচের একটি বেছে নিন।"
+          actions={[{ href: "/dsestockranking", label: "See top-ranked stocks" }]}
+        >
           <EmptyStateActions />
-        </div>
+        </EmptyState>
       ) : loading ? (
-        <Card padding="md" aria-busy="true" aria-label="Loading watchlist">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="flex items-center gap-3 py-2.5">
-              <Skeleton width={18} height={18} rounded="999px" />
-              <Skeleton width={56} height={16} rounded="999px" />
-              <Skeleton width="30%" height={14} />
-              <Skeleton width={52} height={14} className="ml-auto" />
-              <Skeleton width={44} height={14} />
-            </div>
-          ))}
-        </Card>
+        <WatchlistSkeleton />
       ) : error ? (
-        <div className="watchlist-error">Failed to load: {error}</div>
+        <ErrorState
+          size="inline"
+          title="Couldn't load your watchlist"
+          bn="আপনার ওয়াচলিস্ট এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+          onRetry={() => setRetryKey((k) => k + 1)}
+        />
       ) : (
         <>
         <WatchlistAnalysis
@@ -797,7 +816,7 @@ function WatchlistTableInner() {
           meta={meta}
         />
         <div className="mb-3 flex flex-wrap items-center gap-1.5" role="group" aria-label="Sort watchlist">
-          <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+          <span className="text-xs font-bold uppercase tracking-[0.12em] text-text-muted">
             Sort
           </span>
           {SORT_OPTIONS.map((opt) => {
@@ -808,10 +827,10 @@ function WatchlistTableInner() {
                 type="button"
                 onClick={() => setSort(opt.key)}
                 aria-pressed={active}
-                className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-semibold whitespace-nowrap transition-colors ${
+                className={`shrink-0 rounded-full border px-3 min-h-[36px] text-xs font-semibold whitespace-nowrap transition-colors ${
                   active
-                    ? "border-[var(--primary)] bg-[color-mix(in_srgb,var(--primary)_12%,transparent)] text-[var(--primary)]"
-                    : "border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:text-[var(--text)]"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-surface text-text-muted hover:text-text-main active:bg-surface-2"
                 }`}
               >
                 {opt.label}
@@ -882,7 +901,7 @@ function WatchlistTableInner() {
 
 export default function WatchlistTable() {
   return (
-    <Suspense fallback={<div className="watchlist-loading">Loading…</div>}>
+    <Suspense fallback={<WatchlistSkeleton />}>
       <WatchlistTableInner />
     </Suspense>
   );

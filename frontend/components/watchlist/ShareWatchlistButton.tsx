@@ -1,6 +1,7 @@
 "use client";
 
 import { toast } from "@/lib/toast";
+import Button from "@/components/ui/Button";
 
 interface Props {
   codes: string[];
@@ -34,24 +35,22 @@ export default function ShareWatchlistButton({ codes }: Props) {
   if (codes.length === 0) return null;
 
   return (
-    <div className="relative inline-block">
-      <button
-        type="button"
-        onClick={handleShare}
-        className="text-xs px-3 py-1.5 rounded-md border border-[var(--border)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:border-[var(--primary)] transition-colors"
-        title="Copy a shareable link to this watchlist"
-      >
-        <span className="inline-flex items-center gap-1">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="18" cy="5" r="3" />
-            <circle cx="6" cy="12" r="3" />
-            <circle cx="18" cy="19" r="3" />
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-          </svg>
-          Share
-        </span>
-      </button>
-    </div>
+    <Button
+      type="button"
+      variant="quiet"
+      size="sm"
+      onClick={handleShare}
+      title="Copy a shareable link to this watchlist"
+      className="shrink-0"
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <circle cx="18" cy="5" r="3" />
+        <circle cx="6" cy="12" r="3" />
+        <circle cx="18" cy="19" r="3" />
+        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+      </svg>
+      Share
+    </Button>
   );
 }

@@ -98,52 +98,45 @@ export default function YourPosition({ code, ltp }: Props) {
     const valueNow = ltp != null ? qty * ltp : null;
     const pl = valueNow != null ? valueNow - cost : null;
     const plPct = pl != null && cost > 0 ? (pl / cost) * 100 : null;
-    const plColor = pl == null ? "var(--text-muted)" : pl >= 0 ? "var(--positive)" : "var(--negative)";
+    const plCls = pl == null ? "text-text-muted" : pl >= 0 ? "text-positive" : "text-negative";
     const rawSig = mine.find((h) => h.signal && h.signal.signal !== "none")?.signal ?? null;
     const sig = rawSig && rawSig.signal !== "none" ? { ...rawSig, signal: rawSig.signal } : null;
     const sigKind = sig?.signal as "buy_more" | "sell" | undefined;
 
     return (
       <div
-        className={`rounded-2xl p-4 ${isBn ? "font-bn" : ""}`}
+        className={`rounded-xl p-4 bg-primary/5 border border-primary/25 ${isBn ? "font-bn" : ""}`}
         lang={isBn ? "bn" : undefined}
-        style={{
-          background: "color-mix(in srgb, var(--primary) 6%, var(--surface))",
-          border: "1px solid color-mix(in srgb, var(--primary) 25%, transparent)",
-        }}
       >
         <div className="flex items-center justify-between gap-3 mb-3">
-          <span
-            className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.15em]"
-            style={{ color: "var(--primary)" }}
-          >
+          <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-primary-ink">
             <IconWallet size={14} />
             {T.position[lang]}
           </span>
-          <Link href="/portfolio" className="text-xs font-semibold hover:underline" style={{ color: "var(--primary)" }}>
+          <Link href="/portfolio" className="inline-flex items-center min-h-10 text-xs font-semibold text-primary-ink hover:underline">
             {T.portfolio[lang]} →
           </Link>
         </div>
         <dl className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div>
-            <dt className="text-[11px]" style={{ color: "var(--text-muted)" }}>{T.shares[lang]}</dt>
-            <dd className="text-base font-bold tabular-nums nums" style={{ color: "var(--text)" }}>
+            <dt className="text-xs text-text-muted">{T.shares[lang]}</dt>
+            <dd className="text-base font-bold tabular-nums nums text-text-main">
               {qty.toLocaleString("en-US")}
             </dd>
           </div>
           <div>
-            <dt className="text-[11px]" style={{ color: "var(--text-muted)" }}>{T.avgCost[lang]}</dt>
-            <dd className="text-base font-bold tabular-nums nums" style={{ color: "var(--text)" }}>{money(avg)}</dd>
+            <dt className="text-xs text-text-muted">{T.avgCost[lang]}</dt>
+            <dd className="text-base font-bold tabular-nums nums text-text-main">{money(avg)}</dd>
           </div>
           <div>
-            <dt className="text-[11px]" style={{ color: "var(--text-muted)" }}>{T.value[lang]}</dt>
-            <dd className="text-base font-bold tabular-nums nums" style={{ color: "var(--text)" }}>{money(valueNow)}</dd>
+            <dt className="text-xs text-text-muted">{T.value[lang]}</dt>
+            <dd className="text-base font-bold tabular-nums nums text-text-main">{money(valueNow)}</dd>
           </div>
           <div>
-            <dt className="text-[11px]" style={{ color: "var(--text-muted)" }}>{T.pl[lang]}</dt>
+            <dt className="text-xs text-text-muted">{T.pl[lang]}</dt>
             {/* flex-wrap gives "+৳1,234,567" and "(+12.3%)" a break between them —
                 as one unbreakable run they overflowed the 2-col grid cell */}
-            <dd className="flex min-w-0 flex-wrap items-baseline gap-x-1 text-base font-bold tabular-nums nums" style={{ color: plColor }}>
+            <dd className={`flex min-w-0 flex-wrap items-baseline gap-x-1 text-base font-bold tabular-nums nums ${plCls}`}>
               <span>{pl == null ? "--" : `${pl >= 0 ? "+" : "-"}${money(Math.abs(pl))}`}</span>
               {plPct != null && (
                 <span className="text-xs font-semibold">
@@ -154,9 +147,9 @@ export default function YourPosition({ code, ltp }: Props) {
           </div>
         </dl>
         {sig && sigKind && (
-          <p className="mt-3 flex flex-wrap items-center gap-2 text-sm leading-snug" style={{ color: "var(--text)" }}>
+          <p className="mt-3 flex flex-wrap items-center gap-2 text-sm leading-snug text-text-main">
             <span
-              className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-bold ${isBn ? "" : "uppercase tracking-wide"}`}
+              className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold ${isBn ? "" : "uppercase tracking-wide"}`}
               style={{
                 color: SIGNAL_VAR[sigKind],
                 background: `color-mix(in srgb, ${SIGNAL_VAR[sigKind]} 12%, transparent)`,
@@ -178,30 +171,29 @@ export default function YourPosition({ code, ltp }: Props) {
     const addedAt = m?.added_at ? formatDate(m.added_at) : null;
     const base = m?.price_at_add ?? null;
     const movePct = base != null && base > 0 && ltp != null ? ((ltp - base) / base) * 100 : null;
-    const moveColor = movePct == null ? "var(--text-muted)" : movePct >= 0 ? "var(--positive)" : "var(--negative)";
+    const moveCls = movePct == null ? "text-text-muted" : movePct >= 0 ? "text-positive" : "text-negative";
 
     return (
       <div
-        className={`flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl px-4 py-3 text-sm ${isBn ? "font-bn" : ""}`}
+        className={`flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl px-4 py-3 text-sm bg-surface-2 border border-border text-text-main ${isBn ? "font-bn" : ""}`}
         lang={isBn ? "bn" : undefined}
-        style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text)" }}
       >
-        <span className="inline-flex items-center gap-1.5 font-semibold" style={{ color: "var(--primary)" }}>
+        <span className="inline-flex items-center gap-1.5 font-semibold text-primary-ink">
           <IconStar size={14} />
           {T.watching[lang]}
         </span>
         {addedAt && (
-          <span style={{ color: "var(--text-muted)" }}>
+          <span className="text-text-muted">
             {T.since[lang]} {addedAt}
           </span>
         )}
         {movePct != null && (
-          <span className="font-bold tabular-nums nums" style={{ color: moveColor }}>
+          <span className={`font-bold tabular-nums nums ${moveCls}`}>
             {movePct >= 0 ? "+" : ""}{movePct.toFixed(1)}%{" "}
-            <span className="font-medium" style={{ color: "var(--text-muted)" }}>{T.sinceAdded[lang]}</span>
+            <span className="font-medium text-text-muted">{T.sinceAdded[lang]}</span>
           </span>
         )}
-        <Link href="/watchlist" className="ml-auto text-xs font-semibold hover:underline" style={{ color: "var(--primary)" }}>
+        <Link href="/watchlist" className="ml-auto inline-flex items-center min-h-10 text-xs font-semibold text-primary-ink hover:underline">
           {T.watchlist[lang]} →
         </Link>
       </div>

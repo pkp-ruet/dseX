@@ -10,7 +10,7 @@ export default function RecommendedListBlock({
   return (
     <div className="mt-1 space-y-2">
       {block.relaxations.length > 0 && (
-        <p className="text-[0.72rem] text-[var(--text-muted)]">
+        <p className="text-xs text-text-muted">
           {COPY.suggest.relaxedPrefix} {block.relaxations.join("; ")}.
         </p>
       )}

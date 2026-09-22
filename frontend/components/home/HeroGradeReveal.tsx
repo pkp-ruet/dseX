@@ -153,36 +153,36 @@ export default function HeroGradeReveal({ stocks }: { stocks: HeroStock[] }) {
       aria-label="Live example — how any DSE stock gets graded on TopStockBD"
     >
       {/* Faux search field — visibly a demo, distinct from the real search on the left */}
-      <div className="flex items-center gap-2.5 rounded-t-[var(--radius-lg)] border border-b-0 border-[var(--border)] bg-[var(--surface-2)] px-4 py-3">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0 text-[var(--text-muted)]">
+      <div className="flex items-center gap-2.5 rounded-t-xl border border-b-0 border-border bg-surface-2 px-4 py-3">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0 text-text-muted">
           <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
           <path d="m20 20-3-3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
-        <span className="flex-1 min-w-0 font-mono text-[0.9rem] font-bold tracking-[0.04em] text-[var(--text)]">
+        <span className="flex-1 min-w-0 font-mono text-sm font-bold tracking-[0.04em] text-text-main">
           {typed || cur.code}
           <m.span
             aria-hidden
-            className="inline-block w-[2px] -mb-[2px] h-[1.05em] ml-[1px] align-middle bg-[var(--primary)]"
+            className="inline-block w-[2px] -mb-[2px] h-[1.05em] ml-[1px] align-middle bg-primary"
             animate={{ opacity: [1, 1, 0, 0] }}
             transition={{ duration: 1, times: [0, 0.5, 0.5, 1], repeat: Infinity }}
           />
         </span>
-        <span className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-[color-mix(in_srgb,var(--primary)_12%,transparent)] px-2.5 py-0.5 text-[0.68rem] font-extrabold uppercase tracking-[0.12em] text-[var(--primary-ink)]">
+        <span className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-[color-mix(in_srgb,var(--primary)_12%,transparent)] px-2.5 py-0.5 text-xs font-extrabold uppercase tracking-[0.12em] text-primary-ink">
           <span className="relative flex h-1.5 w-1.5">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--primary)] opacity-75 animate-ping" />
-            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
+            <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-75 animate-ping" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
           </span>
           Live demo
         </span>
       </div>
 
       {/* Result panel — fixed min-height so cycling reasons don't shift layout */}
-      <div className="relative rounded-b-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)] overflow-hidden min-h-[268px]">
+      <div className="relative rounded-b-xl border border-border bg-surface shadow-soft overflow-hidden min-h-[268px]">
         {isTyping ? (
           <div className="flex h-[268px] flex-col items-center justify-center gap-3 px-6 text-center">
-            <div className="h-[76px] w-[76px] rounded-full border-4 border-[var(--surface-2)] border-t-[var(--primary)] animate-spin" />
-            <p className="text-sm font-semibold text-[var(--text-muted)]">
-              Reading <span className="font-mono font-bold text-[var(--text)]">{typed || cur.code}</span>&apos;s numbers…
+            <div className="h-[76px] w-[76px] rounded-full border-4 border-surface-2 border-t-primary animate-spin" />
+            <p className="text-sm font-semibold text-text-muted">
+              Reading <span className="font-mono font-bold text-text-main">{typed || cur.code}</span>&apos;s numbers…
             </p>
           </div>
         ) : (
@@ -196,10 +196,10 @@ export default function HeroGradeReveal({ stocks }: { stocks: HeroStock[] }) {
             {/* Identity + score ring */}
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <span className="inline-block text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)] mb-1">
+                <span className="inline-block text-xs font-bold uppercase tracking-[0.12em] text-text-muted mb-1">
                   Fundamental score · 0–100
                 </span>
-                <div className="font-extrabold text-base text-[var(--text)] leading-tight truncate">
+                <div className="font-extrabold text-base text-text-main leading-tight truncate">
                   {cur.name}
                 </div>
                 <div className="mt-1 flex items-center gap-2">
@@ -214,7 +214,7 @@ export default function HeroGradeReveal({ stocks }: { stocks: HeroStock[] }) {
                     {cur.code}
                   </span>
                   {cur.sector && (
-                    <span className="text-[0.68rem] text-[var(--text-muted)] truncate">{cur.sector}</span>
+                    <span className="text-xs text-text-muted truncate">{cur.sector}</span>
                   )}
                 </div>
               </div>
@@ -224,7 +224,7 @@ export default function HeroGradeReveal({ stocks }: { stocks: HeroStock[] }) {
             {/* Price + tier */}
             <div className="mt-4 flex items-center justify-between gap-3">
               <div className="flex items-baseline gap-2">
-                <span className="text-xl font-extrabold tabular-nums nums text-[var(--text)]">
+                <span className="text-xl font-extrabold tabular-nums nums text-text-main">
                   {cur.ltp != null ? `৳${cur.ltp.toFixed(2)}` : "--"}
                 </span>
                 {cur.changePct != null && (
@@ -245,7 +245,7 @@ export default function HeroGradeReveal({ stocks }: { stocks: HeroStock[] }) {
             </div>
 
             {/* Verdict — Buy chip + plain-Bangla reason (or tier meaning) */}
-            <div className="mt-4 rounded-[var(--radius)] bg-[var(--surface-2)] px-3.5 py-3 min-h-[64px]">
+            <div className="mt-4 rounded bg-surface-2 px-3.5 py-3 min-h-[64px]">
               {showSignal ? (
                 <m.div
                   initial={{ x: 14, opacity: 0 }}
@@ -257,20 +257,20 @@ export default function HeroGradeReveal({ stocks }: { stocks: HeroStock[] }) {
                       <SignalChip signal="buy" strength={cur.strength} size="md" lang="bn" />
                     ) : (
                       <span
-                        className="inline-flex items-center rounded-md px-2.5 py-1 text-[0.7rem] font-bold uppercase tracking-wide"
+                        className="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-bold uppercase tracking-wide"
                         style={{ color, background: `color-mix(in srgb, ${color} 12%, transparent)` }}
                       >
                         {TIER_MEANINGS_BN[cur.tier]}
                       </span>
                     )}
                   </div>
-                  <p lang="bn" className="font-bn mt-1.5 text-[0.86rem] leading-snug text-[var(--text)]">
+                  <p lang="bn" className="font-bn mt-1.5 text-sm leading-snug text-text-main">
                     {cur.reasonBn}
                   </p>
                 </m.div>
               ) : (
                 <div className="flex h-full items-center">
-                  <span className="text-[0.8rem] text-[var(--text-muted)]">Weighing the verdict…</span>
+                  <span className="text-sm text-text-muted">Weighing the verdict…</span>
                 </div>
               )}
             </div>
@@ -295,7 +295,7 @@ export default function HeroGradeReveal({ stocks }: { stocks: HeroStock[] }) {
         <Link
           prefetch={false}
           href={`/stock/${cur.code}`}
-          className="text-[0.72rem] font-semibold text-[var(--primary)] hover:underline underline-offset-2"
+          className="text-xs font-semibold text-primary hover:underline underline-offset-2"
         >
           See full analysis →
         </Link>

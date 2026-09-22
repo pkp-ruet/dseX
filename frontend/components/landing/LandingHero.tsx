@@ -54,14 +54,14 @@ export default function LandingHero({
         {/* Left — the promise */}
         <div className="flex flex-col">
           <span
-            className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--surface)] px-3 py-1.5 text-[0.68rem] font-extrabold uppercase tracking-[0.14em] shadow-sm"
+            className="inline-flex w-fit items-center gap-2 rounded-full bg-surface px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.14em] shadow-sm"
             style={{ border: "1px solid color-mix(in srgb, var(--positive) 28%, var(--border))" }}
           >
             <span className="live-dot" aria-hidden />
             <span style={{ color: "var(--positive)" }}>Updated every trading day</span>
           </span>
 
-          <h1 className="font-display mt-5 text-[clamp(2rem,6.5vw,3.1rem)] font-bold leading-[1.08] tracking-tight text-[var(--text)]">
+          <h1 className="font-display mt-5 text-[clamp(2rem,6.5vw,3.1rem)] font-bold leading-[1.08] tracking-tight text-text-main">
             See{" "}
             <span
               className="bg-clip-text text-transparent"
@@ -71,15 +71,15 @@ export default function LandingHero({
             </span>{" "}
             before you buy.
           </h1>
-          <Bn className="mt-3.5 max-w-xl text-[1.05rem] font-semibold leading-relaxed text-[var(--text)]">
+          <Bn className="mt-3.5 max-w-xl text-base font-semibold leading-relaxed text-text-main">
             কোন শেয়ার ভালো, কোনটা নয় — কোম্পানির নিজের হিসাব দেখে বুঝে নিন।
           </Bn>
 
-          <p className="mt-4 max-w-xl text-[0.92rem] leading-relaxed text-[var(--text-muted)]">
+          <p className="mt-4 max-w-xl text-base leading-relaxed text-text-muted">
             No tips, no rumours. Every score is built from what {totalCount} companies
             actually reported — updated each trading day, free for everyone.
           </p>
-          <Bn className="mt-2 max-w-xl text-[0.9rem] leading-relaxed text-[var(--text-muted)]">
+          <Bn className="mt-2 max-w-xl text-sm leading-relaxed text-text-muted">
             কারও টিপস নয়, গুজব নয়। {totalCount}টি কোম্পানির প্রকাশিত হিসাব থেকে তৈরি — প্রতি
             কার্যদিবসে আপডেট, পুরোপুরি ফ্রি।
           </Bn>
@@ -92,14 +92,14 @@ export default function LandingHero({
 
           {isLoggedIn ? (
             <div className="mt-7 flex flex-col gap-3">
-              <p className="text-[0.85rem] font-semibold text-[var(--text)]">
+              <p className="text-sm font-semibold text-text-main">
                 Welcome back{user?.display_name ? `, ${user.display_name}` : ""}.
               </p>
               <div className="flex flex-wrap gap-2.5">
                 <Button href="/portfolio" variant="primary" size="sm">
                   My portfolio
                 </Button>
-                <Button href="/watchlist" variant="ghost" size="sm">
+                <Button href="/watchlist" variant="quiet" size="sm">
                   My watchlist
                 </Button>
               </div>
@@ -112,7 +112,7 @@ export default function LandingHero({
                 </Button>
                 <Link
                   href="/register"
-                  className="text-[0.85rem] font-bold text-[var(--primary-ink)] underline-offset-4 hover:underline"
+                  className="text-sm font-bold text-primary-ink underline-offset-4 hover:underline"
                 >
                   Open a free account
                 </Link>
@@ -121,7 +121,7 @@ export default function LandingHero({
                 </div>
               </div>
               {googleError && (
-                <p className="text-xs text-[var(--negative)]">{googleError}</p>
+                <p className="text-xs text-negative">{googleError}</p>
               )}
             </div>
           )}
@@ -133,7 +133,7 @@ export default function LandingHero({
             <MiniReport stock={stock} />
           ) : (
             <div className="soft-card flex min-h-[18rem] items-center justify-center p-6 text-center">
-              <p className="text-[0.85rem] text-[var(--text-muted)]">
+              <p className="text-sm text-text-muted">
                 Today&apos;s data is loading — one moment.
               </p>
             </div>

@@ -25,7 +25,7 @@ export default function MoneyHeroGhost({ greeting, lang = "en" }: { greeting?: R
       lang={bn ? "bn" : undefined}
     >
       {greeting && (
-        <div className="border-b border-[var(--border)] px-4 pb-3 pt-4 sm:px-5">{greeting}</div>
+        <div className="border-b border-border px-4 pb-3 pt-4 sm:px-5">{greeting}</div>
       )}
       <div className="relative">
       {/* Ghost content — sample numbers, blurred + inert */}
@@ -33,50 +33,50 @@ export default function MoneyHeroGhost({ greeting, lang = "en" }: { greeting?: R
         <div className="px-4 sm:px-5 pt-4 pb-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.18em] text-[var(--primary)]">
+              <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-primary">
                 {t(lang, "yourMoneyToday")}
               </p>
-              <div className="mt-1 text-[clamp(1.6rem,7vw,2rem)] font-extrabold tabular-nums nums text-[var(--text)] leading-tight">
+              <div className="mt-1 text-[clamp(1.6rem,7vw,2rem)] font-extrabold tabular-nums nums text-text-main leading-tight">
                 ৳2,45,000
               </div>
-              <div className="mt-0.5 text-[0.85rem] sm:text-sm font-bold tabular-nums nums" style={{ color: "var(--positive)" }}>
+              <div className="mt-0.5 text-sm sm:text-sm font-bold tabular-nums nums" style={{ color: "var(--positive)" }}>
                 ▲ +৳3,200 (+1.32%) {t(lang, "today")}
               </div>
-              <p className="mt-1 text-[0.68rem] font-medium text-[var(--text-muted)]">{t(lang, "updatingLive")}</p>
+              <p className="mt-1 text-xs font-medium text-text-muted">{t(lang, "updatingLive")}</p>
             </div>
             <div
               className="flex h-16 w-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-2xl border-2"
               style={{ color: "var(--positive)", borderColor: "var(--positive)", background: "var(--surface-2)" }}
             >
-              <span className="text-[1.65rem] font-black leading-none">A</span>
-              <span className="text-[0.68rem] font-bold uppercase tracking-wide leading-none">{t(lang, "gradeExcellent")}</span>
+              <span className="text-2xl font-black leading-none">A</span>
+              <span className="text-xs font-bold uppercase tracking-wide leading-none">{t(lang, "gradeExcellent")}</span>
             </div>
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
-            <span className="rounded-full px-2.5 py-1 text-[0.68rem] font-bold" style={{ color: "var(--positive)", background: "color-mix(in srgb, var(--positive) 12%, transparent)" }}>
+            <span className="rounded-full px-2.5 py-1 text-xs font-bold" style={{ color: "var(--positive)", background: "color-mix(in srgb, var(--positive) 12%, transparent)" }}>
               ▲ {t(lang, "beatingDsex", { n: "0.74" })}
             </span>
-            <span className="rounded-full px-2.5 py-1 text-[0.68rem] font-bold" style={{ color: "var(--positive)", background: "var(--surface-2)" }}>
+            <span className="rounded-full px-2.5 py-1 text-xs font-bold" style={{ color: "var(--positive)", background: "var(--surface-2)" }}>
               {t(lang, "total")} +৳18,400 (+8.1%)
             </span>
           </div>
-          <p className="mt-3 text-[0.8rem] leading-relaxed text-[var(--text-muted)]">
+          <p className="mt-3 text-sm leading-relaxed text-text-muted">
             {bn
               ? "আপনার পোর্টফোলিও ভালোভাবে সাজানো — টাকা ছড়িয়ে আছে ভালো কোম্পানিতে, ঠিক দামে কেনা।"
               : "Your portfolio is well-built — money spread across strong companies bought at fair prices."}
           </p>
         </div>
-        <div className="h-11 border-t border-[var(--border)]" />
+        <div className="h-11 border-t border-border" />
       </div>
 
       {/* Glass CTA overlay */}
       <div className="absolute inset-0 grid place-items-center bg-[color-mix(in_srgb,var(--surface)_58%,transparent)] px-5 text-center">
         <div className="max-w-xs">
-          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--surface-2)] text-[var(--primary)]">
+          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-surface-2 text-primary">
             {BAG_ICON}
           </div>
-          <h3 className="mt-3 text-lg font-extrabold leading-tight text-[var(--text)]">{t(lang, "seeYourMoneyHere")}</h3>
-          <p className="mt-1.5 text-sm leading-relaxed text-[var(--text-muted)]">{t(lang, "ghostBlurb")}</p>
+          <h3 className="mt-3 text-lg font-extrabold leading-tight text-text-main">{t(lang, "seeYourMoneyHere")}</h3>
+          <p className="mt-1.5 text-sm leading-relaxed text-text-muted">{t(lang, "ghostBlurb")}</p>
           <Link
             href="/portfolio"
             className="btn-primary mt-4"

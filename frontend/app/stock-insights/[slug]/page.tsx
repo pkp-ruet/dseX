@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import PageHeader from "@/components/ui/PageHeader";
 import { notFound } from "next/navigation";
 import { STOCK_LISTS, getStockList, type StockListItem } from "@/lib/stock-lists";
 import { getStockLists, getInsightScores, type ScoreItem } from "@/lib/api";
@@ -144,19 +145,19 @@ export default async function StockInsightPage({ params }: Props) {
   );
 
   return (
-    <main className="ed-page">
+    <div className="page-narrow">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <Crumbs here={def.shortName} />
 
-      {/* Masthead */}
+      <PageHeader
+        size="article"
+        eyebrow={kicker}
+        title={displayTitle}
+        bn="এই তালিকার প্রতিটি শেয়ার আসল হিসাব দেখে বাছা — সহজ ভাষায় কেন, তাও লেখা আছে।"
+        lead={lede}
+      />
       <header>
-        <div className="ed-kicker">
-          <span className="dot" aria-hidden="true" />
-          {kicker}
-        </div>
-        <h1 className="ed-headline">{displayTitle}</h1>
-        <p className="ed-dek">{lede}</p>
         <div className="ed-byline">
           <span className="live">Live</span>
           <span className="b-item">Updated {getUpdatedLabel()}</span>
@@ -206,7 +207,7 @@ export default async function StockInsightPage({ params }: Props) {
       </section>
 
       <NavButtons />
-    </main>
+    </div>
   );
 }
 
@@ -227,10 +228,10 @@ function Crumbs({ here }: { here: string }) {
 function NavButtons() {
   return (
     <div className="ed-nav">
-      <Link href="/stock-insights" className="ed-btn ed-btn-ghost">
+      <Link href="/stock-insights" className="btn-quiet">
         ← All stock lists
       </Link>
-      <Link href="/dsestockranking" className="ed-btn ed-btn-primary">
+      <Link href="/dsestockranking" className="btn-primary">
         See full rankings
       </Link>
     </div>

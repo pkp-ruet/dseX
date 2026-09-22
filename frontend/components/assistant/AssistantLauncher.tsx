@@ -56,7 +56,7 @@ export default function AssistantLauncher() {
             type="button"
             onClick={() => setOpen(true)}
             aria-label={`Chat with ${PERSONA.name}, your stock helper`}
-            className="inline-flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg transition hover:brightness-110 active:scale-95 sm:h-12 sm:w-auto sm:justify-start sm:gap-2 sm:px-4"
+            className="inline-flex h-14 w-14 items-center justify-center rounded-full text-surface shadow-lift transition hover:brightness-110 active:scale-95 sm:h-12 sm:w-auto sm:justify-start sm:gap-2 sm:px-4"
             style={{ background: "var(--primary)" }}
           >
             {/* Sparkle = "AI". Icon-only circle on mobile; full pill on sm+. */}
@@ -64,14 +64,14 @@ export default function AssistantLauncher() {
               <path d="M10 4c.5 4 1.5 5.5 5.5 6-4 .5-5 2-5.5 6-.5-4-1.5-5.5-5.5-6 4-.5 5-2 5.5-6z" />
               <path d="M18 3c.2 1.9.6 2.3 2.5 2.5-1.9.2-2.3.6-2.5 2.5-.2-1.9-.6-2.3-2.5-2.5 1.9-.2 2.3-.6 2.5-2.5z" />
             </svg>
-            <span className="hidden text-[0.82rem] font-bold sm:inline">Ask {PERSONA.name}</span>
+            <span className="hidden text-sm font-bold sm:inline">Ask {PERSONA.name}</span>
           </button>
           <button
             type="button"
             onClick={dismiss}
             aria-label="Hide the chat button"
             title="Hide (still in the menu)"
-            className="absolute -right-1.5 -top-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] shadow-sm transition hover:text-[var(--negative)]"
+            className="absolute -right-1.5 -top-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full border border-border bg-surface text-text-muted shadow-soft transition hover:text-negative"
           >
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
               <path d="M18 6 6 18M6 6l12 12" />

@@ -10,42 +10,45 @@ import InstallAppButton from "@/components/pwa/InstallAppButton";
 
 const OPEN_DRAWER_EVENT = "dsex:open-drawer";
 
-/** Open the mobile nav drawer from anywhere (e.g. the bottom-bar Menu tab). */
+/** Open the nav drawer from anywhere (the bottom-bar Explore tab). */
 export function openMobileDrawer() {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent(OPEN_DRAWER_EVENT));
 }
 
-type NavItem = { href: string; label: string; sub?: string; icon?: string };
-type NavGroup = { id: string; label: string; accent?: string; items: NavItem[] };
+export type NavItem = { href: string; label: string; sub?: string; icon?: string; /** Bengali label → needs the Bengali webfont */ bn?: boolean };
+export type NavGroup = { id: string; label: string; accent?: string; items: NavItem[] };
 
-const NAV_GROUPS: NavGroup[] = [
+/**
+ * The ONE menu (mobile drawer = desktop panel = footer columns, same labels).
+ * Three groups + quick access; nothing else is in the global navigation.
+ * Secondary discovery pages (Today's News, Trending, Popular, Daily Tips, Find
+ * My Stocks, Top Picks, Market Intelligence) are reached through
+ * `components/layout/HubLinks.tsx` on the hub pages instead (2026-09-22).
+ */
+export const NAV_GROUPS: NavGroup[] = [
   {
     id: "markets",
     label: "Markets",
     accent: "info",
     items: [
       { href: "/dse-today", label: "DSE Today", sub: "Today's prices & movers", icon: "today" },
-      { href: "/todays-news", label: "Today's News", sub: "All company news, last day", icon: "news" },
       { href: "/market-analysis", label: "Market Analysis", sub: "Up or down, cheap or pricey", icon: "analysis" },
       { href: "/dividend-calendar", label: "Dividend Calendar", sub: "Record dates & AGMs", icon: "dividend" },
       { href: "/sectors", label: "Sectors", sub: "Compare whole industries", icon: "sectors" },
-      { href: "/dse-trending-stocks", label: "Trending Stocks", sub: "This week's top movers", icon: "top20" },
-      { href: "/dse-popular-stocks", label: "Popular Stocks", sub: "Most-traded today", icon: "popular" },
+      { href: "/share-bazar", label: "আজকের শেয়ার বাজার", sub: "Today's market in Bangla", icon: "bangla", bn: true },
     ],
   },
   {
-    id: "discover",
-    label: "Discover",
+    id: "find",
+    label: "Find stocks",
     accent: "clay",
     items: [
-      { href: "/assistant", label: "TopStock AI", sub: "Chat: picks, market & answers", icon: "ai" },
-      { href: "/buy-sell-signals", label: "Buy/Sell Signals", sub: "What to buy & sell now", icon: "signals" },
-      { href: "/dsestockranking", label: "Rankings", sub: "Scored leaderboard", icon: "rankings" },
-      { href: "/daily-tips", label: "Daily Tips", sub: "Fresh signals every day", icon: "tips" },
-      { href: "/stock-recommendation", label: "Find My Stocks", sub: "Personalized picker", icon: "find" },
-      { href: "/stock-insights", label: "Stock Lists", sub: "Ready-made lists", icon: "lists" },
+      { href: "/dsestockranking", label: "Rankings", sub: "Every company scored", icon: "rankings" },
       { href: "/stocks", label: "Browse All Stocks", sub: "Full A–Z table", icon: "browse" },
+      { href: "/buy-sell-signals", label: "Buy/Sell Signals", sub: "What to buy & sell now", icon: "signals" },
+      { href: "/stock-insights", label: "Stock Lists", sub: "Ready-made lists", icon: "lists" },
+      { href: "/assistant", label: "TopStock AI", sub: "Ask in plain words", icon: "ai" },
     ],
   },
   {
@@ -53,9 +56,9 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Learn",
     accent: "gold",
     items: [
-      { href: "/learn", label: "Blogs", sub: "English guides", icon: "blog" },
-      { href: "/blog", label: "বাংলা ব্লগ", sub: "Bangla guides", icon: "bangla" },
-      { href: "/about", label: "Behind the Score", sub: "How we rank stocks", icon: "about" },
+      { href: "/learn", label: "Guides", sub: "English guides", icon: "blog" },
+      { href: "/blog", label: "বাংলা ব্লগ", sub: "Bangla guides", icon: "bangla", bn: true },
+      { href: "/about", label: "How we score", sub: "The five checks, explained", icon: "about" },
     ],
   },
 ];
@@ -151,7 +154,7 @@ export default function Navbar() {
     return () => document.removeEventListener("keydown", onKey);
   }, [menuOpen]);
 
-  // Open the menu from an external trigger (bottom-bar Menu tab)
+  // Open the menu from an external trigger (bottom-bar Explore tab)
   useEffect(() => {
     const onOpen = () => setMenuOpen(true);
     window.addEventListener(OPEN_DRAWER_EVENT, onOpen);
@@ -311,15 +314,12 @@ export default function Navbar() {
           >
             <span>TopStock<b>BD</b></span>
           </Link>
-          {/* Desktop mega-panel shows an "Explore" heading instead of the brand */}
+          {/* Desktop panel shows "Menu" instead of the brand (the launcher button already says Explore) */}
           <span className="mobile-menu-title" aria-hidden="true">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <rect x="3" y="3" width="7" height="7" rx="1.5" />
-              <rect x="14" y="3" width="7" height="7" rx="1.5" />
-              <rect x="3" y="14" width="7" height="7" rx="1.5" />
-              <rect x="14" y="14" width="7" height="7" rx="1.5" />
+              <path d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-            Explore
+            Menu
           </span>
           <button
             className="mobile-menu-close"
@@ -424,7 +424,7 @@ export default function Navbar() {
             </div>
           </section>
 
-          {/* Grouped navigation — scannable tile grids (3-up columns on desktop) */}
+          {/* Markets · Find stocks · Learn — the whole global IA */}
           <div className="mobile-menu-groups">
             {NAV_GROUPS.map((g) => (
               <section className="mobile-menu-section" data-accent={g.accent} key={g.id}>
@@ -441,7 +441,7 @@ export default function Navbar() {
                         <MenuIcon name={it.icon} />
                       </span>
                       <span className="mobile-menu-tile-text">
-                        <span className="mobile-menu-tile-label">{it.label}</span>
+                        <span className={`mobile-menu-tile-label${it.bn ? " font-bn" : ""}`} lang={it.bn ? "bn" : undefined}>{it.label}</span>
                         {it.sub && <span className="mobile-menu-tile-sub">{it.sub}</span>}
                       </span>
                     </Link>

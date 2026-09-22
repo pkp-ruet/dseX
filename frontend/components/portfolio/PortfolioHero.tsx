@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { taka } from "@/lib/formatters";
+import Button from "@/components/ui/Button";
 
-/** Same palette as AllocationChart so the hero donut and the big chart agree. */
+/** Same token palette as AllocationChart so the hero donut and the big chart agree. */
 const DONUT_COLORS = [
-  "var(--primary)", "var(--positive)", "#EA580C", "#6366F1", "#DB2777",
-  "#0891B2", "#CA8A04", "#9333EA", "#DC2626", "#0D9488",
+  "var(--primary)", "var(--info)", "var(--gold)", "var(--warm)", "var(--navy-soft)",
+  "var(--positive)", "var(--primary-soft)", "var(--info-soft)", "var(--gold-soft)", "var(--text-muted)",
 ];
 const OTHERS_COLOR = "var(--text-muted)";
 
@@ -90,7 +91,7 @@ function MovePill({
       className="inline-flex items-center gap-1.5 rounded-full pl-2.5 pr-3 py-1 text-xs sm:text-sm font-bold tabular-nums nums whitespace-nowrap"
       style={{ color: accent, background: `color-mix(in srgb, ${accent} 12%, transparent)` }}
     >
-      <span className="text-[11px] leading-none" aria-hidden>
+      <span className="text-xs leading-none" aria-hidden>
         {up ? "▲" : down ? "▼" : "•"}
       </span>
       <span className="font-semibold opacity-80">{label}</span>
@@ -126,8 +127,8 @@ function MarketChip({
   const verdictAccent =
     ahead == null ? "var(--text-muted)" : ahead ? "var(--positive)" : "var(--negative)";
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full pl-2.5 pr-3 py-1 text-xs sm:text-sm font-bold tabular-nums nums whitespace-nowrap border border-[var(--border)]">
-      <span className="font-semibold text-[var(--text-muted)]">DSEX</span>
+    <span className="inline-flex items-center gap-1.5 rounded-full pl-2.5 pr-3 py-1 text-xs sm:text-sm font-bold tabular-nums nums whitespace-nowrap border border-border">
+      <span className="font-semibold text-text-muted">DSEX</span>
       <span style={{ color: dsexAccent }}>
         {dsexPct > 0 ? "+" : ""}
         {dsexPct.toFixed(2)}%
@@ -184,8 +185,8 @@ function HeroDonut({ slices, holdingsCount }: { slices: HeroSlice[]; holdingsCou
         })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-        <span className="text-xl font-black text-[var(--text)] leading-none nums">{holdingsCount}</span>
-        <span className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-bold mt-0.5">
+        <span className="text-xl font-black text-text-main leading-none nums">{holdingsCount}</span>
+        <span className="text-xs uppercase tracking-wider text-text-muted font-bold mt-0.5">
           {holdingsCount === 1 ? "stock" : "stocks"}
         </span>
       </div>
@@ -229,13 +230,16 @@ export default function PortfolioHero({
         <div className="min-w-0 flex-1">
           {/* Label + privacy toggle */}
           <div className="flex items-center gap-2">
-            <p className="text-[11px] sm:text-xs uppercase tracking-[0.16em] font-bold text-[var(--text-muted)]">
+            <p className="text-xs sm:text-xs uppercase tracking-[0.16em] font-bold text-text-muted">
               {hasValue ? "Portfolio Value" : "Invested So Far"}
             </p>
-            <button
+            <Button
               type="button"
+              variant="link"
+              size="sm"
+              iconOnly
               onClick={onTogglePrivacy}
-              className="text-[var(--text-muted)] hover:text-[var(--text)] transition-colors p-1 -my-1"
+              className="-my-2"
               aria-label={privacy ? "Show amounts" : "Hide amounts"}
               aria-pressed={privacy}
               title={privacy ? "Show amounts" : "Hide amounts"}
@@ -249,11 +253,11 @@ export default function PortfolioHero({
                   <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
                 </svg>
               )}
-            </button>
+            </Button>
           </div>
 
           {/* Big value */}
-          <p className="pv font-display text-4xl sm:text-5xl font-bold text-[var(--text)] nums tracking-tight mt-1.5 leading-none">
+          <p className="pv font-display text-4xl sm:text-5xl font-bold text-text-main nums tracking-tight mt-1.5 leading-none">
             {taka(animated, 0)}
           </p>
 
@@ -265,10 +269,10 @@ export default function PortfolioHero({
           </div>
 
           {/* Secondary line */}
-          <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-3">
+          <p className="text-xs sm:text-sm text-text-muted mt-3">
             {hasValue ? (
               <>
-                Invested <span className="pv font-semibold text-[var(--text)] nums">{taka(totalInvested, 0)}</span>
+                Invested <span className="pv font-semibold text-text-main nums">{taka(totalInvested, 0)}</span>
                 {" · "}
                 {holdingsCount} stock{holdingsCount === 1 ? "" : "s"}
               </>

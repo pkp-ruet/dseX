@@ -1,0 +1,24 @@
+/* stock — page-area styles layered after globals.css (later import wins at equal specificity).
+   Tokens only: var(--fs-*), var(--radius*), var(--shadow-*), colour vars. */
+
+/* ---- The stock page's ONE sticky element (components/stock/StickySummaryBar.tsx).
+   `.stock-sticky-stack` (globals.css) pins it under the navbar + `--stock-bar-h`.
+   Its in-flow height is the chip row; the summary line sits ABOVE it, out of
+   flow, so showing/hiding the line never shifts the page (see the component). ---- */
+.stock-summary-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 48px; /* = BAR_H in StickyStackMeasure.tsx */
+}
+
+/* Chip row: chips are the tap targets — at least 40px tall, 52px row. */
+.stock-chip-row {
+  min-height: 52px;
+  scrollbar-width: none;
+}
+.stock-chip-row::-webkit-scrollbar { display: none; }
+.stock-chip {
+  min-height: 40px;
+}

@@ -88,7 +88,7 @@ export default function AdminCampaignsClient() {
   if (isLoading || !isAdmin) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <p className="text-[var(--text-muted)]">Loading…</p>
+        <p className="text-text-muted">Loading…</p>
       </div>
     );
   }
@@ -126,7 +126,7 @@ export default function AdminCampaignsClient() {
     } finally { setBusy(false); }
   };
 
-  const card = "rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5";
+  const card = "rounded-xl border border-border bg-surface p-4 sm:p-5";
 
   return (
     <div className="max-w-5xl mx-auto py-8 px-3">
@@ -135,7 +135,7 @@ export default function AdminCampaignsClient() {
           <p className="rank-page-eyebrow">// ADMIN</p>
           <h1 className="rank-page-title">Daily Email</h1>
           {overview && (
-            <p className="text-xs text-[var(--text-muted)] mt-1">
+            <p className="text-xs text-text-muted mt-1">
               {overview.date_label}{overview.mood ? ` · ${overview.mood}` : ""}
             </p>
           )}
@@ -152,8 +152,8 @@ export default function AdminCampaignsClient() {
         {/* ---- Left: audience + controls ---- */}
         <div className="space-y-5">
           <div className={card}>
-            <h2 className="text-sm font-bold text-[var(--text)] mb-3">Who gets it today</h2>
-            {overviewErr && <p className="text-[var(--negative)] text-sm">{overviewErr}</p>}
+            <h2 className="text-sm font-bold text-text-main mb-3">Who gets it today</h2>
+            {overviewErr && <p className="text-negative text-sm">{overviewErr}</p>}
             {aud && (
               <>
                 <div className="grid grid-cols-3 gap-2 text-center mb-3">
@@ -161,12 +161,12 @@ export default function AdminCampaignsClient() {
                   <Metric label="In cooldown" value={aud.in_cooldown} muted />
                   <Metric label="Will send now" value={willSend} accent />
                 </div>
-                <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                <p className="text-xs text-text-muted leading-relaxed">
                   Power users (watchlist or portfolio) idle {aud.lapsed_days}+ days, minus anyone
                   emailed in the last {aud.cooldown_days} days.
-                  {alreadySent > 0 && <> <b className="text-[var(--text)]">{alreadySent}</b> already sent today.</>}
+                  {alreadySent > 0 && <> <b className="text-text-main">{alreadySent}</b> already sent today.</>}
                 </p>
-                <label className="flex items-center gap-2 text-sm text-[var(--text-muted)] mt-3">
+                <label className="flex items-center gap-2 text-sm text-text-muted mt-3">
                   Daily cap
                   <input
                     type="number"
@@ -174,7 +174,7 @@ export default function AdminCampaignsClient() {
                     max={1000}
                     value={cap}
                     onChange={(e) => setCap(Math.max(1, Math.min(1000, Number(e.target.value) || 1)))}
-                    className="w-24 px-2 py-1 rounded-md border border-[var(--border)] bg-[var(--bg)] text-[var(--text)]"
+                    className="w-24 px-2 py-1 rounded-md border border-border bg-bg text-text-main"
                   />
                   <span className="text-xs">max recipients / day</span>
                 </label>
@@ -186,7 +186,7 @@ export default function AdminCampaignsClient() {
               thing worth spotting before pressing Send. */}
           {overview && overview.blocks?.length > 0 && (
             <div className={card}>
-              <h2 className="text-sm font-bold text-[var(--text)] mb-3">What&apos;s in today&apos;s mail</h2>
+              <h2 className="text-sm font-bold text-text-main mb-3">What&apos;s in today&apos;s mail</h2>
               <div className="space-y-1.5">
                 {overview.blocks.map((b) => (
                   <div key={b.key} className="flex items-start justify-between gap-3 text-sm">
@@ -196,9 +196,9 @@ export default function AdminCampaignsClient() {
                         className="inline-block w-1.5 h-1.5 rounded-full shrink-0"
                         style={{ background: b.ok ? "var(--positive)" : "var(--border)" }}
                       />
-                      <span className={b.ok ? "text-[var(--text)]" : "text-[var(--text-muted)]"}>{b.label}</span>
+                      <span className={b.ok ? "text-text-main" : "text-text-muted"}>{b.label}</span>
                     </span>
-                    <span className="text-xs text-[var(--text-muted)] text-right">{b.detail}</span>
+                    <span className="text-xs text-text-muted text-right">{b.detail}</span>
                   </div>
                 ))}
               </div>
@@ -207,22 +207,22 @@ export default function AdminCampaignsClient() {
 
           {overview && overview.buys.length > 0 && (
             <div className={card}>
-              <h2 className="text-sm font-bold text-[var(--text)] mb-3">
+              <h2 className="text-sm font-bold text-text-main mb-3">
                 Featured buys ({overview.buys.length}
                 {overview.buys_total > overview.buys.length ? ` of ${overview.buys_total}` : ""})
               </h2>
               <div className="space-y-1.5">
                 {overview.buys.map((b) => (
                   <div key={b.code} className="flex items-center justify-between gap-2 text-sm">
-                    <span className="font-semibold text-[var(--text)]">
+                    <span className="font-semibold text-text-main">
                       {b.code}
-                      <span className="ml-2 text-xs font-normal text-[var(--text-muted)]">{b.name}</span>
+                      <span className="ml-2 text-xs font-normal text-text-muted">{b.name}</span>
                     </span>
                     <span className="flex items-center gap-2 whitespace-nowrap">
                       {b.is_new && (
                         <span
-                          className="text-[11px] font-bold px-2 py-0.5 rounded-full"
-                          style={{ background: "var(--positive)", color: "#fff" }}
+                          className="text-xs font-bold px-2 py-0.5 rounded-full"
+                          style={{ background: "var(--positive)", color: "var(--surface)" }}
                         >
                           New
                         </span>
@@ -233,8 +233,8 @@ export default function AdminCampaignsClient() {
                         </span>
                       )}
                       <span
-                        className="text-[11px] font-bold px-2 py-0.5 rounded-full"
-                        style={{ background: "var(--primary)", color: "#fff" }}
+                        className="text-xs font-bold px-2 py-0.5 rounded-full"
+                        style={{ background: "var(--primary)", color: "var(--surface)" }}
                       >
                         {b.strength === "strong" ? "Strong buy" : "Buy"}
                       </span>
@@ -246,15 +246,15 @@ export default function AdminCampaignsClient() {
           )}
 
           <div className={card}>
-            <h2 className="text-sm font-bold text-[var(--text)] mb-3">Send</h2>
+            <h2 className="text-sm font-bold text-text-main mb-3">Send</h2>
             <div className="space-y-3">
-              <label className="block text-xs text-[var(--text-muted)]">
+              <label className="block text-xs text-text-muted">
                 Subject line
                 <input
                   type="text"
                   value={subject}
                   onChange={(e) => { subjectDirty.current = true; setSubject(e.target.value); }}
-                  className="mt-1 w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--bg)] text-[var(--text)] text-sm"
+                  className="mt-1 w-full px-3 py-2 rounded-md border border-border bg-bg text-text-main text-sm"
                 />
               </label>
 
@@ -263,7 +263,7 @@ export default function AdminCampaignsClient() {
                 placeholder="Test to (blank = your account email)"
                 value={testEmail}
                 onChange={(e) => setTestEmail(e.target.value)}
-                className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--bg)] text-[var(--text)] text-sm"
+                className="w-full px-3 py-2 rounded-md border border-border bg-bg text-text-main text-sm"
               />
 
               <div className="flex gap-2 flex-wrap">
@@ -283,14 +283,14 @@ export default function AdminCampaignsClient() {
                 </button>
               </div>
 
-              {testMsg && <p className="text-xs text-[var(--text-muted)]">{testMsg}</p>}
-              {sendMsg && <p className="text-xs text-[var(--text-muted)]">{sendMsg}</p>}
+              {testMsg && <p className="text-xs text-text-muted">{testMsg}</p>}
+              {sendMsg && <p className="text-xs text-text-muted">{sendMsg}</p>}
             </div>
           </div>
 
           {(campaignId || stats) && (
             <div className={card}>
-              <h2 className="text-sm font-bold text-[var(--text)] mb-3">
+              <h2 className="text-sm font-bold text-text-main mb-3">
                 Progress {stats?.status === "done" ? "· done" : "· sending…"}
               </h2>
               <div className="grid grid-cols-3 gap-2 text-center">
@@ -298,20 +298,20 @@ export default function AdminCampaignsClient() {
                 <Metric label="Failed" value={stats?.failed ?? 0} color="var(--negative)" />
                 <Metric label="Opened" value={stats?.opened ?? 0} color="var(--primary)" />
               </div>
-              {campaignId && <p className="text-[11px] text-[var(--text-muted)] mt-3">id: {campaignId}</p>}
+              {campaignId && <p className="text-xs text-text-muted mt-3">id: {campaignId}</p>}
             </div>
           )}
         </div>
 
         {/* ---- Right: live preview of the exact email ---- */}
         <div className={card}>
-          <h2 className="text-sm font-bold text-[var(--text)] mb-3">Preview · the email everyone gets</h2>
-          {previewErr && <p className="text-[var(--negative)] text-sm">{previewErr}</p>}
+          <h2 className="text-sm font-bold text-text-main mb-3">Preview · the email everyone gets</h2>
+          {previewErr && <p className="text-negative text-sm">{previewErr}</p>}
           <iframe
             title="Daily email preview"
             srcDoc={previewHtml}
             sandbox=""
-            className="w-full h-[640px] rounded-lg border border-[var(--border)] bg-white"
+            className="w-full h-[640px] rounded-lg border border-border bg-surface"
           />
         </div>
       </div>
@@ -324,9 +324,9 @@ function Metric({
 }: { label: string; value: number; color?: string; muted?: boolean; accent?: boolean }) {
   const c = color ?? (accent ? "var(--primary)" : muted ? "var(--text-muted)" : "var(--text)");
   return (
-    <div className="rounded-lg border border-[var(--border)] p-2">
+    <div className="rounded-lg border border-border p-2">
       <div className="text-xl font-bold" style={{ color: c }}>{value}</div>
-      <div className="text-[11px] text-[var(--text-muted)] leading-tight mt-0.5">{label}</div>
+      <div className="text-xs text-text-muted leading-tight mt-0.5">{label}</div>
     </div>
   );
 }

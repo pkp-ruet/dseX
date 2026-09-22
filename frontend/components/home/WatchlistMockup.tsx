@@ -8,19 +8,19 @@ const ROWS = [
 export default function WatchlistMockup() {
   return (
     <div className="soft-card overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] bg-[var(--surface-2)]">
-        <span className="text-[0.7rem] font-bold uppercase tracking-[0.12em] text-[var(--text)]">★ My Watchlist</span>
-        <span className="text-[0.68rem] text-[var(--text-muted)]">3 stocks · 2 news today</span>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface-2">
+        <span className="text-xs font-bold uppercase tracking-[0.12em] text-text-main">★ My Watchlist</span>
+        <span className="text-xs text-text-muted">3 stocks · 2 news today</span>
       </div>
-      <div className="divide-y divide-[var(--cell-rule)]">
+      <div className="divide-y divide-cell-rule">
         {ROWS.map((r) => {
           const up = r.chg >= 0;
           return (
             <div key={r.code} className="flex items-center gap-3 px-4 py-3">
-              <span className="text-[var(--watch)]" aria-hidden="true">★</span>
+              <span className="text-watch" aria-hidden="true">★</span>
               <span className="min-w-0 flex-1">
-                <span className="ticker-tag ticker-tag--static text-[0.8rem]">{r.code}</span>
-                <span className="block text-[0.68rem] text-[var(--text-muted)] truncate">{r.note}</span>
+                <span className="ticker-tag ticker-tag--static text-sm">{r.code}</span>
+                <span className="block text-xs text-text-muted truncate">{r.note}</span>
               </span>
               <span
                 className="text-xs font-semibold tabular-nums"

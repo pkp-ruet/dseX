@@ -53,14 +53,14 @@ export default function LearnCard({ brandNew, lang = "en" }: { brandNew: boolean
         href={bn || brandNew ? "/blog" : "/learn"}
         linkLabel={t(lang, "allGuides")}
       />
-      <p className="px-4 pt-3 text-[0.8rem] leading-snug text-[var(--text-muted)] sm:px-5">{t(lang, brandNew ? "startHereSub" : "learnSub")}</p>
-      <ul className="mt-2 divide-y divide-[var(--cell-rule)]">
+      <p className="px-4 pt-3 text-sm leading-snug text-text-muted sm:px-5">{t(lang, brandNew ? "startHereSub" : "learnSub")}</p>
+      <ul className="mt-2 divide-y divide-cell-rule">
         {rows.map((r) => (
           <li key={r.href} lang={r.bn ? "bn" : "en"}>
             <Link
               prefetch={false}
               href={r.href}
-              className={`flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)] sm:px-5 ${r.bn ? "font-bn" : ""}`}
+              className={`flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-2 active:bg-surface-2 sm:px-5 ${r.bn ? "font-bn" : ""}`}
             >
               <span
                 className="grid h-9 w-9 shrink-0 place-items-center rounded-lg"
@@ -70,13 +70,13 @@ export default function LearnCard({ brandNew, lang = "en" }: { brandNew: boolean
                 <IconBook size={18} />
               </span>
               <span className="min-w-0 flex-1">
-                <span className={`block text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-[var(--text-muted)] ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : "en"}>
+                <span className={`block text-xs font-extrabold uppercase tracking-[0.08em] text-text-muted ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : "en"}>
                   {r.tag}
                 </span>
-                <span className="block text-[0.9rem] font-bold leading-snug text-[var(--text)]">{r.title}</span>
-                <span className="mt-0.5 block text-[0.75rem] leading-snug text-[var(--text-muted)] line-clamp-2">{r.description}</span>
+                <span className="block text-sm font-bold leading-snug text-text-main">{r.title}</span>
+                <span className="mt-0.5 block text-xs leading-snug text-text-muted line-clamp-2">{r.description}</span>
               </span>
-              <span className="shrink-0 text-[var(--text-muted)]" aria-hidden>
+              <span className="shrink-0 text-text-muted" aria-hidden>
                 <IconChevron size={15} />
               </span>
             </Link>

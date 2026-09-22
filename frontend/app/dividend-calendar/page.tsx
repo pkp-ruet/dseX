@@ -8,7 +8,7 @@ import TopCashDividends from "@/components/dividend-calendar/TopCashDividends";
 import RecentDeclarations from "@/components/dividend-calendar/RecentDeclarations";
 import HowDividendsWork from "@/components/dividend-calendar/HowDividendsWork";
 import ErrorState from "@/components/ui/ErrorState";
-import Bn from "@/components/i18n/Bn";
+import PageHeader from "@/components/ui/PageHeader";
 import PageGuide from "@/components/seo/PageGuide";
 import Link from "next/link";
 
@@ -62,12 +62,11 @@ export default async function DividendCalendarPage() {
   if (!data) {
     return (
       <>
-        <header className="ms-pagehead">
-          <h1 className="ms-page-h1">
-            <span className="ms-page-kicker">Dhaka Stock Exchange</span>
-            <span className="ms-page-h1-main">Dividend Calendar</span>
-          </h1>
-        </header>
+        <PageHeader
+          eyebrow="Dhaka Stock Exchange"
+          title="Dividend Calendar"
+          bn="কোন কোম্পানি কবে ডিভিডেন্ড দিচ্ছে — রেকর্ড ডেট, এজিএম আর শেষ কেনার দিন।"
+        />
         <ErrorState
           size="inline"
           title="Couldn't load the dividend calendar"
@@ -167,17 +166,17 @@ export default async function DividendCalendarPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <header className="ms-pagehead">
-        <h1 className="ms-page-h1">
-          <span className="ms-page-kicker">Dhaka Stock Exchange</span>
-          <span className="ms-page-h1-main">Dividend Calendar</span>
-        </h1>
-        <span className="ms-page-date">
-          {data.stats.declarations_tracked} declarations tracked · updated{" "}
-          {formatDate(data.today)}
-        </span>
-              <Bn className="page-h1-bn">কোন কোম্পানি কবে ডিভিডেন্ড দিচ্ছে — রেকর্ড ডেট, এজিএম আর শেষ কেনার দিন।</Bn>
-</header>
+      <PageHeader
+        eyebrow="Dhaka Stock Exchange"
+        title="Dividend Calendar"
+        bn="কোন কোম্পানি কবে ডিভিডেন্ড দিচ্ছে — রেকর্ড ডেট, এজিএম আর শেষ কেনার দিন।"
+        actions={
+          <span className="ms-page-date">
+            {data.stats.declarations_tracked} declarations tracked · updated{" "}
+            {formatDate(data.today)}
+          </span>
+        }
+      />
 
       <CalendarSummary data={data} />
 

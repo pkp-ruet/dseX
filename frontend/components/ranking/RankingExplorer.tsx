@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useUrlParams, useUrlSync } from "@/lib/use-url-state";
-import { TIER_GRADES, TIER_LABELS, TIER_VAR, type TierKey } from "@/lib/constants";
+import { TIER_LABELS, TIER_VAR, type TierKey } from "@/lib/constants";
+import TierPill from "@/components/ui/TierPill";
 import FullRankTable, { type RankedItem, type RankedRow } from "@/components/ranking/FullRankTable";
 
 const TIERS_ORDER: TierKey[] = ["excellent", "good", "average", "weak"];
@@ -125,8 +126,8 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
                 className={`rank-qseg${active ? " is-active" : ""}`}
                 style={{ flexGrow: count, ["--tier-color" as string]: TIER_COLOR[tier] }}
               >
-                <span className="rank-qseg-grade" aria-hidden>{TIER_GRADES[tier]}</span>
                 <span className="rank-qseg-count">{count}</span>
+                <span className="rank-qseg-share" aria-hidden>{share}%</span>
               </button>
             );
           })}
@@ -134,8 +135,8 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
         <div className="rank-qbar-legend">
           {TIERS_ORDER.map((tier) => (
             <span key={tier} className="rank-qbar-legend-item">
-              <b style={{ color: TIER_COLOR[tier] }}>{TIER_GRADES[tier]}</b>
-              {TIER_LABELS[tier]}
+              <TierPill tier={tier} size="sm" />
+              <span className="tabular-nums">{counts[tier] ?? 0}</span>
             </span>
           ))}
           <span className="rank-qbar-hint">tap a band to filter</span>

@@ -1,162 +1,82 @@
-import Link from "next/link";
 import type { Top20Item } from "@/lib/api";
-import { taka } from "@/lib/formatters";
+import { changePct, changeTone } from "@/lib/formatters";
 import StarButton from "@/components/ui/StarButton";
-import Card from "@/components/ui/Card";
+import StockRow, { StockPill, StockRank } from "@/components/ui/StockRow";
 
 interface Props {
   item: Top20Item;
 }
 
-const MEDAL_COLORS: Record<1 | 2 | 3, { bg: string; ring: string; text: string }> = {
-  1: { bg: "#F5D169", ring: "#B8860B", text: "#3B2A00" },
-  2: { bg: "#E0E0E0", ring: "#9A9A9A", text: "#2A2A2A" },
-  3: { bg: "#E0986A", ring: "#8C4A1F", text: "#3B1F00" },
-};
-
-function fmtSigned(val: number | null, decimals = 1): string {
-  if (val == null) return "—";
-  const sign = val > 0 ? "+" : "";
-  return `${sign}${val.toFixed(decimals)}%`;
-}
-
-function chgColor(val: number | null) {
-  if (val == null) return "var(--ink-muted)";
-  if (val > 0) return "var(--positive)";
-  if (val < 0) return "var(--negative)";
-  return "var(--ink-muted)";
-}
-
+/**
+ * One trending stock as the app-wide `StockRow`: rank chip (solid for the
+ * podium), company name + code, the "Sweet spot" / "Extended" position tag,
+ * the rationale, then price + the 7-day move on the right and a star to
+ * follow. The relative-strength, turnover and up-day facts sit on the detail
+ * line so nothing the old card said is lost.
+ */
 export default function Top20Card({ item }: Props) {
-  const medal = item.rank <= 3 ? MEDAL_COLORS[item.rank as 1 | 2 | 3] : null;
   const days = item.days_counted || 7;
-  const upBars = "▰".repeat(item.up_days_7d) + "▱".repeat(Math.max(0, days - item.up_days_7d));
-
   const sweetSpot =
     item.pct_in_52w_range != null && item.pct_in_52w_range >= 60 && item.pct_in_52w_range <= 90;
   const extended = item.pct_in_52w_range != null && item.pct_in_52w_range >= 95;
-
   const volPct = item.volume_ratio != null ? Math.round((item.volume_ratio - 1) * 100) : null;
 
+  const facts: React.ReactNode[] = [];
+  if (item.rs_vs_dsex_pct != null) {
+    facts.push(
+      <span key="rs">
+        vs DSEX <span className={`font-semibold ${changeTone(item.rs_vs_dsex_pct)}`}>{changePct(item.rs_vs_dsex_pct, 1)}</span>
+      </span>,
+    );
+  }
+  if (volPct != null) {
+    facts.push(
+      <span key="vol">
+        turnover <span className="font-semibold text-text-main">{changePct(volPct, 0)}</span> vs 30d
+      </span>,
+    );
+  }
+  facts.push(
+    <span key="up">
+      {item.up_days_7d}/{days} up days
+    </span>,
+  );
+
   return (
-    <Card as="article" padding="none" className="flex flex-col gap-4 p-4 sm:p-5">
-      {/* Header: rank + ticker + sector + star */}
-      <div className="flex items-start gap-3">
-        {medal ? (
-          <span
-            className="shrink-0 inline-flex items-center justify-center rounded-full font-extrabold"
-            style={{
-              width: 36,
-              height: 36,
-              background: medal.bg,
-              border: `2px solid ${medal.ring}`,
-              color: medal.text,
-              fontSize: 15,
-            }}
-          >
-            {item.rank}
-          </span>
-        ) : (
-          <span
-            className="shrink-0 inline-flex items-center justify-center rounded-full font-bold text-sm border border-[var(--border)] bg-[var(--bg)] text-[var(--ink-muted)]"
-            style={{ width: 36, height: 36 }}
-          >
-            {item.rank}
-          </span>
-        )}
-
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              prefetch={false} href={`/stock/${item.trading_code}`}
-              className="text-base font-bold hover:opacity-80 transition-opacity"
-              style={{ color: "var(--primary)" }}
-            >
-              {item.trading_code}
-            </Link>
-            {item.sector && (
-              <span className="text-xs text-[var(--ink-muted)] border border-[var(--border)] rounded-full px-2.5 py-0.5">
-                {item.sector}
-              </span>
-            )}
-            {sweetSpot && (
-              <span
-                className="text-[11px] font-semibold rounded-full px-2 py-0.5"
-                style={{ color: "var(--positive)", border: "1px solid color-mix(in srgb, var(--positive) 33%, transparent)", background: "color-mix(in srgb, var(--positive) 9%, transparent)" }}
-                title="Trading in the 60–90% range of its 52-week high — momentum sweet spot"
-              >
-                Sweet spot
-              </span>
-            )}
-            {extended && (
-              <span
-                className="text-[11px] font-semibold rounded-full px-2 py-0.5"
-                style={{ color: "var(--watch)", border: "1px solid color-mix(in srgb, var(--watch) 33%, transparent)", background: "color-mix(in srgb, var(--watch) 9%, transparent)" }}
-                title="Within 5% of 52-week high — extension risk"
-              >
-                Extended
-              </span>
-            )}
-          </div>
-          {item.company_name && (
-            <p className="mt-1 text-sm text-[var(--ink)]">{item.company_name}</p>
+    <StockRow
+      code={item.trading_code}
+      name={item.company_name}
+      leading={<StockRank n={item.rank} solid={item.rank <= 3} />}
+      tags={
+        <>
+          {item.sector && <span className="shrink-0 text-xs text-text-muted">{item.sector}</span>}
+          {sweetSpot && (
+            <StockPill tone="positive" className="cursor-help">
+              <span title="Trading in the 60–90% range of its 52-week high — momentum sweet spot">Sweet spot</span>
+            </StockPill>
           )}
-        </div>
-
-        <div className="shrink-0 flex items-start">
-          <StarButton code={item.trading_code} size="sm" />
-        </div>
-      </div>
-
-      {/* Key metrics */}
-      <div className="grid grid-cols-2 gap-3 text-sm">
-        <div>
-          <div className="text-xs text-[var(--ink-muted)] uppercase tracking-wide">LTP</div>
-          <div className="font-bold text-[var(--ink)] nums">{taka(item.ltp ?? null, 1)}</div>
-        </div>
-        <div>
-          <div className="text-xs text-[var(--ink-muted)] uppercase tracking-wide">7d Return</div>
-          <div className="font-bold nums" style={{ color: chgColor(item.return_7d_pct ?? null) }}>
-            {fmtSigned(item.return_7d_pct ?? null, 2)}
-          </div>
-        </div>
-        <div>
-          <div className="text-xs text-[var(--ink-muted)] uppercase tracking-wide">vs DSEX</div>
-          <div className="font-semibold nums" style={{ color: chgColor(item.rs_vs_dsex_pct ?? null) }}>
-            {fmtSigned(item.rs_vs_dsex_pct ?? null, 2)}
-          </div>
-        </div>
-        <div>
-          <div className="text-xs text-[var(--ink-muted)] uppercase tracking-wide">Turnover</div>
-          <div className="font-semibold text-[var(--ink)] nums">
-            {volPct != null ? (volPct >= 0 ? `+${volPct}%` : `${volPct}%`) : "—"}{" "}
-            <span className="text-xs text-[var(--ink-muted)]">vs 30d</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Up/down day bar */}
-      <div className="flex items-center gap-2 text-xs text-[var(--ink-muted)]">
-        <span className="font-mono tracking-tighter" style={{ color: "var(--positive)" }}>
-          {upBars}
+          {extended && (
+            <StockPill tone="watch" className="cursor-help">
+              <span title="Within 5% of 52-week high — extension risk">Extended</span>
+            </StockPill>
+          )}
+        </>
+      }
+      sub={item.rationale || undefined}
+      subClamp
+      detail={
+        <span className="flex flex-wrap gap-x-2 gap-y-0.5 tabular-nums nums">
+          {facts.map((f, i) => (
+            <span key={i} className="flex items-center gap-x-2">
+              {i > 0 && <span aria-hidden>·</span>}
+              {f}
+            </span>
+          ))}
         </span>
-        <span>
-          {item.up_days_7d}/{days} up days
-        </span>
-      </div>
-
-      {/* Rationale */}
-      <p className="text-sm text-[var(--ink)] leading-relaxed border-l-2 border-[var(--primary)] pl-3">
-        {item.rationale}
-      </p>
-
-      {/* CTA */}
-      <Link
-        prefetch={false} href={`/stock/${item.trading_code}`}
-        className="inline-block text-sm font-semibold text-[var(--primary)] hover:underline"
-      >
-        View full analysis →
-      </Link>
-    </Card>
+      }
+      price={item.ltp}
+      change={item.return_7d_pct}
+      action={<StarButton code={item.trading_code} size="sm" />}
+    />
   );
 }

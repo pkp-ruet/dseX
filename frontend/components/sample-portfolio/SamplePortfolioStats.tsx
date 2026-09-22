@@ -24,12 +24,12 @@ export default function SamplePortfolioStats({ rows, analysis }: Props) {
 
   const pnlColor =
     pnl == null
-      ? "text-[var(--text)]"
+      ? "text-text-main"
       : pnl > 0
-        ? "text-[var(--positive)]"
+        ? "text-positive"
         : pnl < 0
-          ? "text-[var(--negative)]"
-          : "text-[var(--text)]";
+          ? "text-negative"
+          : "text-text-main";
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -62,8 +62,8 @@ function Stat({
 }) {
   return (
     <Card padding="none" className="p-4">
-      <p className="text-xs text-[var(--text-muted)] uppercase tracking-wider mb-1">{label}</p>
-      <p className={`text-base sm:text-lg font-bold nums ${valueClass ?? "text-[var(--text)]"}`}>
+      <p className="text-xs text-text-muted uppercase tracking-wider mb-1">{label}</p>
+      <p className={`text-base sm:text-lg font-bold nums ${valueClass ?? "text-text-main"}`}>
         {value}
       </p>
     </Card>

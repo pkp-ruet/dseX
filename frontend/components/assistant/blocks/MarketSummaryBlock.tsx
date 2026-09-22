@@ -21,28 +21,28 @@ export default function MarketSummaryBlock({
   return (
     <div className="soft-card p-3.5 mt-1">
       {v.closedNote && (
-        <p className="text-[0.78rem] text-[var(--text-muted)] mb-2">{v.closedNote}</p>
+        <p className="text-xs text-text-muted mb-2">{v.closedNote}</p>
       )}
 
       <div className="flex items-center justify-between gap-3">
         <div>
-          <div className="text-[0.68rem] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+          <div className="text-xs font-semibold uppercase tracking-wide text-text-muted">
             DSEX Index
           </div>
-          <div className="text-xl font-extrabold nums text-[var(--text)]">
+          <div className="text-xl font-extrabold nums text-text-main">
             {v.dsex != null ? v.dsex.toFixed(2) : "—"}
           </div>
         </div>
         <div className="text-right">
           <span
-            className="inline-block rounded-full px-2 py-0.5 text-[0.68rem] font-bold"
+            className="inline-block rounded-full px-2 py-0.5 text-xs font-bold"
             style={{ background: `color-mix(in srgb, ${meta.color} 14%, transparent)`, color: meta.color }}
           >
             {meta.label}
           </span>
           {v.dsexChangePct != null && (
             <div
-              className="text-[0.85rem] font-bold nums mt-1"
+              className="text-sm font-bold nums mt-1"
               style={{ color: chgPos ? "var(--positive)" : "var(--negative)" }}
             >
               {signed(v.dsexChangePct, 2)}%
@@ -51,9 +51,9 @@ export default function MarketSummaryBlock({
         </div>
       </div>
 
-      <p className="text-[0.85rem] text-[var(--text)] mt-2.5">{v.line}</p>
+      <p className="text-sm text-text-main mt-2.5">{v.line}</p>
 
-      <div className="flex gap-3 mt-2 text-[0.72rem] text-[var(--text-muted)] nums">
+      <div className="flex gap-3 mt-2 text-xs text-text-muted nums">
         <span>🟢 {v.up ?? "—"} up</span>
         <span>🔴 {v.down ?? "—"} down</span>
         <span>⚪ {v.neutral ?? "—"} flat</span>
@@ -62,7 +62,7 @@ export default function MarketSummaryBlock({
       <Link
         prefetch={false}
         href="/dse-today"
-        className="mt-2.5 inline-block text-[0.72rem] font-semibold text-[var(--primary)] hover:underline"
+        className="mt-2.5 inline-block text-xs font-semibold text-primary hover:underline"
       >
         Full market today →
       </Link>

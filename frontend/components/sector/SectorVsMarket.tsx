@@ -43,28 +43,28 @@ export default function SectorVsMarket({
         <span className="section-rule-text">{summary.sector} vs the Whole Market</span>
       </div>
 
-      <p className="mb-1 text-[0.88rem] font-semibold text-[var(--text)]">
+      <p className="mb-1 text-sm font-semibold text-text-main">
         Median of the {summary.company_count} companies in this sector, against the median of
         all {marketCount} scored DSE companies.
       </p>
-      <Bn className="mb-4 text-[0.9rem] font-medium leading-[1.85] text-[var(--text-muted)]">
+      <Bn className="mb-4 text-sm font-medium leading-[1.85] text-text-muted">
         এই সেক্টরের মধ্যম মান বাজারের মধ্যম মানের সাথে তুলনা — সস্তা না দামি, তা এক নজরে।
       </Bn>
 
-      <div className="overflow-x-auto rounded-xl border border-[var(--border)] bg-[var(--surface)]">
+      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
         <table className="w-full min-w-[440px] border-collapse text-left">
           <thead>
-            <tr className="border-b border-[var(--border)] bg-[var(--surface-2)]">
-              <th className="px-3 py-2.5 text-[11px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
+            <tr className="border-b border-border bg-surface-2">
+              <th className="px-3 py-2.5 text-xs font-extrabold uppercase tracking-[0.13em] text-text-muted">
                 Measure
               </th>
-              <th className="px-3 py-2.5 text-right text-[11px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
+              <th className="px-3 py-2.5 text-right text-xs font-extrabold uppercase tracking-[0.13em] text-text-muted">
                 This sector
               </th>
-              <th className="px-3 py-2.5 text-right text-[11px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
+              <th className="px-3 py-2.5 text-right text-xs font-extrabold uppercase tracking-[0.13em] text-text-muted">
                 Whole market
               </th>
-              <th className="px-3 py-2.5 text-right text-[11px] font-extrabold uppercase tracking-[0.13em] text-[var(--text-muted)]">
+              <th className="px-3 py-2.5 text-right text-xs font-extrabold uppercase tracking-[0.13em] text-text-muted">
                 Difference
               </th>
             </tr>
@@ -73,16 +73,16 @@ export default function SectorVsMarket({
             {rows.map((r) => {
               const v = verdict(r);
               return (
-                <tr key={r.metric} className="border-b border-[var(--border)] last:border-0">
-                  <td className="px-3 py-2.5 text-[0.84rem] font-bold text-[var(--text)]">{r.label}</td>
-                  <td className="px-3 py-2.5 text-right text-[0.84rem] font-extrabold tabular-nums text-[var(--text)]">
+                <tr key={r.metric} className="border-b border-border last:border-0">
+                  <td className="px-3 py-2.5 text-sm font-bold text-text-main">{r.label}</td>
+                  <td className="px-3 py-2.5 text-right text-sm font-extrabold tabular-nums text-text-main">
                     {fmt(r, r.sector)}
                   </td>
-                  <td className="px-3 py-2.5 text-right text-[0.84rem] font-semibold tabular-nums text-[var(--text-muted)]">
+                  <td className="px-3 py-2.5 text-right text-sm font-semibold tabular-nums text-text-muted">
                     {fmt(r, r.market)}
                   </td>
                   <td
-                    className="px-3 py-2.5 text-right text-[0.8rem] font-extrabold tabular-nums"
+                    className="px-3 py-2.5 text-right text-sm font-extrabold tabular-nums"
                     style={{ color: v.color }}
                   >
                     {v.text}
@@ -94,7 +94,7 @@ export default function SectorVsMarket({
         </table>
       </div>
 
-      <p className="mt-2.5 text-[0.72rem] font-semibold text-[var(--text-muted)]">
+      <p className="mt-2.5 text-xs font-semibold text-text-muted">
         Green means the sector reads better than the market on that measure — a lower P/E, a
         higher yield. It says nothing about any single company in the list below.
       </p>

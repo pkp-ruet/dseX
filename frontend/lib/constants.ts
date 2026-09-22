@@ -28,12 +28,18 @@ export const TIER_LABELS_BN: Record<TierKey, string> = {
   weak:      "দুর্বল",
 };
 
-export const TIER_COLORS = {
-  excellent: "#047857",
-  good:      "#185FA5",   // true blue — distinct from emerald Excellent + indigo primary
-  average:   "#B45309",
-  weak:      "#B91C1C",
-} as const;
+/**
+ * Hex twins of the `--tier-*` tokens in `app/globals.css :root` — for the
+ * Satori OG-image routes ONLY (the opengraph-image.tsx routes), which cannot read
+ * CSS variables. Every UI component uses `TIER_VAR` or the `text-tier-*`
+ * utilities instead. Keep these four values in step with globals.css.
+ */
+export const TIER_COLORS: Record<TierKey, string> = {
+  excellent: "#047857", // Satori OG image only
+  good:      "#46687F", // Satori OG image only
+  average:   "#5A6577", // Satori OG image only
+  weak:      "#B91C1C", // Satori OG image only
+};
 
 /** Canonical tier → CSS-token color. Use this everywhere (badges, pills,
  *  tables, charts) so tier coloring stays consistent with the palette. */
@@ -49,14 +55,6 @@ export const TIER_SCORE_LABELS: Record<TierKey, string> = {
   good:      "Score 60–74",
   average:   "Score 45–59",
   weak:      "Score < 45",
-};
-
-/** Letter grade per tier — instantly readable, language-independent (A best → D worst). */
-export const TIER_GRADES: Record<TierKey, string> = {
-  excellent: "A",
-  good:      "B",
-  average:   "C",
-  weak:      "D",
 };
 
 /** One-line plain-English meaning of each tier — no finance jargon. */
@@ -116,7 +114,8 @@ export const SIGNAL_VAR: Record<AnySignalKind, string> = {
 };
 
 // Conviction — the backend upgrades a cheap Buy to "strong" when the stock is
-// deeply cheap AND still low in its 52-week range. The UI shows only Buy or
-// Strong Buy (Sell is computed but hidden for now).
+// deeply cheap AND still low in its 52-week range. The chip grammar is fixed in
+// components/ui/SignalChip.tsx: Strong Buy = filled, Buy = tinted positive,
+// Sell = tinted negative, `none` = nothing.
 export const STRONG_BUY_LABEL = "Strong Buy";
 export const STRONG_BUY_LABEL_BN = "জোরালো কেনা যায়";

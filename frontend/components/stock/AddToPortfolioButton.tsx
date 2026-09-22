@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { apiAddHolding } from "@/lib/api";
 import { toast } from "@/lib/toast";
+import Button from "@/components/ui/Button";
 
 interface Props {
   code: string;
@@ -66,17 +67,19 @@ export default function AddToPortfolioButton({ code, ltp }: Props) {
 
   return (
     <>
-      <button
+      <Button
         type="button"
+        variant="quiet"
+        size="sm"
         onClick={handleClick}
-        className="add-portfolio-btn"
         title="Add to portfolio"
+        aria-label={`Add ${code} to portfolio`}
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M12 5v14M5 12h14" />
         </svg>
         <span>Portfolio</span>
-      </button>
+      </Button>
 
       {open && (
         <div
@@ -89,15 +92,19 @@ export default function AddToPortfolioButton({ code, ltp }: Props) {
           <div className="atp-modal" onClick={(e) => e.stopPropagation()}>
             <div className="atp-modal-header">
               <h2 id="atp-title">Add {code} to portfolio</h2>
-              <button
+              <Button
                 type="button"
+                variant="link"
+                size="sm"
+                iconOnly
                 onClick={() => setOpen(false)}
-                className="atp-close"
                 aria-label="Close"
                 disabled={submitting}
               >
-                ×
-              </button>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              </Button>
             </div>
             <form onSubmit={handleSubmit} className="atp-form">
               <label className="atp-field">
@@ -124,23 +131,14 @@ export default function AddToPortfolioButton({ code, ltp }: Props) {
                   required
                 />
               </label>
-              {error && <p className="atp-error">{error}</p>}
-              <div className="atp-actions">
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  className="atp-btn atp-btn-secondary"
-                  disabled={submitting}
-                >
+              {error && <p className="form-error">{error}</p>}
+              <div className="mt-1 grid grid-cols-2 gap-2">
+                <Button type="button" variant="quiet" block onClick={() => setOpen(false)} disabled={submitting}>
                   Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="atp-btn atp-btn-primary"
-                  disabled={submitting}
-                >
+                </Button>
+                <Button type="submit" variant="primary" block disabled={submitting}>
                   {submitting ? "Adding…" : "Add to portfolio"}
-                </button>
+                </Button>
               </div>
             </form>
           </div>

@@ -38,7 +38,7 @@ function CodeChip({ code }: { code: string }) {
     <Link
       prefetch={false}
       href={`/stock/${code}`}
-      className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-bold tracking-wider bg-[var(--primary)]/15 text-[var(--primary)] hover:bg-[var(--primary)]/25 transition-colors mx-0.5"
+      className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold tracking-wider bg-primary/15 text-primary hover:bg-primary/25 transition-colors mx-0.5"
     >
       {code}
     </Link>
@@ -56,7 +56,7 @@ function inlineList(codes: string[], cap = 3): React.ReactNode {
         </span>
       ))}
       {codes.length > cap && (
-        <span className="text-[var(--text-muted)] text-xs"> +{codes.length - cap} more</span>
+        <span className="text-text-muted text-xs"> +{codes.length - cap} more</span>
       )}
     </>
   );
@@ -127,23 +127,23 @@ function Section({
           {icon}
         </span>
         <div className="min-w-0 flex-1 flex flex-wrap items-baseline gap-x-2">
-          <h3 className="text-sm sm:text-[15px] font-bold leading-tight text-[var(--text)]">
+          <h3 className="text-sm sm:text-base font-bold leading-tight text-text-main">
             {title}
           </h3>
-          <p lang="bn" className="font-bn text-xs font-semibold leading-snug text-[var(--text-muted)]">
+          <p lang="bn" className="font-bn text-xs font-semibold leading-snug text-text-muted">
             {titleBn}
           </p>
         </div>
         {count != null && count > 0 && (
           <span
-            className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold nums"
+            className="shrink-0 rounded-full px-2 py-0.5 text-xs font-bold nums"
             style={{ color: c, background: `color-mix(in srgb, ${c} 12%, transparent)` }}
           >
             {count}
           </span>
         )}
         <svg
-          className="wl-story-chevron shrink-0 text-[var(--text-muted)]"
+          className="wl-story-chevron shrink-0 text-text-muted"
           width="16"
           height="16"
           viewBox="0 0 24 24"
@@ -157,7 +157,7 @@ function Section({
           <path d="M6 9l6 6 6-6" />
         </svg>
       </summary>
-      <div className="border-t border-[var(--border)] px-4 py-4 sm:px-5">{children}</div>
+      <div className="border-t border-border px-4 py-4 sm:px-5">{children}</div>
     </details>
   );
 }
@@ -182,11 +182,11 @@ function StoryItem({
         aria-hidden
       />
       <div className="min-w-0">
-        <p className="text-sm leading-relaxed text-[var(--text)]">
+        <p className="text-sm leading-relaxed text-text-main">
           <span className="font-bold">{label}:</span> {children}
         </p>
         {bn && (
-          <p lang="bn" className="font-bn mt-0.5 text-[13px] font-medium leading-relaxed text-[var(--text-muted)]">
+          <p lang="bn" className="font-bn mt-0.5 text-sm font-medium leading-relaxed text-text-muted">
             {bn}
           </p>
         )}
@@ -207,14 +207,14 @@ function StatTile({
   color?: string;
 }) {
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5">
-      <div className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+    <div className="rounded-xl border border-border bg-surface-2 px-3 py-2.5">
+      <div className="text-xs font-bold uppercase tracking-[0.08em] text-text-muted">
         {label}
       </div>
       <div className="mt-0.5 text-xl font-bold nums leading-tight" style={color ? { color } : { color: "var(--text)" }}>
         {value}
       </div>
-      <div lang="bn" className="font-bn text-[11px] font-semibold leading-tight text-[var(--text-muted)]">
+      <div lang="bn" className="font-bn text-xs font-semibold leading-tight text-text-muted">
         {labelBn}
       </div>
     </div>
@@ -240,11 +240,11 @@ function MoodGauge({ value }: { value: number | null }) {
           }}
         >
           <div
-            className="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border-2 border-[var(--bg)] shadow-sm"
+            className="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border-2 border-bg shadow-soft"
             style={{ left: `calc(${pos}% - 7px)`, background: tone }}
           />
         </div>
-        <div className="mt-1 flex justify-between text-[11px] font-semibold text-[var(--text-muted)] nums">
+        <div className="mt-1 flex justify-between text-xs font-semibold text-text-muted nums">
           <span>−3%</span>
           <span>0</span>
           <span>+3%</span>
@@ -255,7 +255,7 @@ function MoodGauge({ value }: { value: number | null }) {
           {mood} {value > 0 ? "+" : ""}
           {value.toFixed(2)}%
         </div>
-        <div lang="bn" className="font-bn text-[11px] font-semibold text-[var(--text-muted)]">
+        <div lang="bn" className="font-bn text-xs font-semibold text-text-muted">
           {moodBn}
         </div>
       </div>
@@ -270,14 +270,14 @@ function TierMixBar({ counts, total }: { counts: Record<TierKey, number>; total:
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-x-2">
-        <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+        <span className="text-xs font-bold uppercase tracking-[0.08em] text-text-muted">
           Quality mix
         </span>
-        <span lang="bn" className="font-bn text-[11px] font-semibold text-[var(--text-muted)]">
+        <span lang="bn" className="font-bn text-xs font-semibold text-text-muted">
           কোন মানের স্টক কয়টা
         </span>
       </div>
-      <div className="mt-1.5 flex h-2.5 overflow-hidden rounded-full bg-[var(--border)]">
+      <div className="mt-1.5 flex h-2.5 overflow-hidden rounded-full bg-border">
         {TIER_ORDER.filter((t) => counts[t] > 0).map((t) => (
           <div
             key={t}
@@ -288,10 +288,10 @@ function TierMixBar({ counts, total }: { counts: Record<TierKey, number>; total:
       </div>
       <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
         {TIER_ORDER.filter((t) => counts[t] > 0).map((t) => (
-          <span key={t} className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[var(--text)]">
+          <span key={t} className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-main">
             <span className="h-2 w-2 rounded-full" style={{ background: TIER_VAR[t] }} aria-hidden />
             {TIER_LABELS[t]}
-            <span lang="bn" className="font-bn text-[var(--text-muted)]">
+            <span lang="bn" className="font-bn text-text-muted">
               ({TIER_LABELS_BN[t]})
             </span>
             <span className="nums">{counts[t]}</span>
@@ -549,14 +549,14 @@ export default function WatchlistAnalysis({
   const header = (
     <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-1">
       <div>
-        <h2 className="text-xs font-bold uppercase tracking-[0.15em] text-[var(--primary)]">
+        <h2 className="text-xs font-bold uppercase tracking-[0.15em] text-primary">
           Watchlist Story
         </h2>
-        <p lang="bn" className="font-bn text-[13px] font-semibold leading-snug text-[var(--text-muted)]">
+        <p lang="bn" className="font-bn text-sm font-semibold leading-snug text-text-muted">
           আপনার তালিকার আজকের গল্প — সহজ ভাষায়
         </p>
       </div>
-      <span className="text-[11px] text-[var(--text-muted)]">
+      <span className="text-xs text-text-muted">
         Auto-generated · not investment advice
       </span>
     </div>
@@ -567,8 +567,8 @@ export default function WatchlistAnalysis({
     return (
       <section className="mb-4 flex flex-col gap-3">
         <Card padding="none" className="p-5">
-          <p className="text-sm text-[var(--text)]">No scored stocks in your watchlist yet.</p>
-          <p lang="bn" className="font-bn mt-1 text-[13px] font-medium text-[var(--text-muted)]">
+          <p className="text-sm text-text-main">No scored stocks in your watchlist yet.</p>
+          <p lang="bn" className="font-bn mt-1 text-sm font-medium text-text-muted">
             আপনার তালিকার স্টকগুলোর স্কোর এখনো তৈরি হয়নি।
           </p>
         </Card>
@@ -581,15 +581,15 @@ export default function WatchlistAnalysis({
     <Card padding="none" className="p-4 sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-base sm:text-lg font-semibold leading-relaxed text-[var(--text)]">
+          <p className="text-base sm:text-lg font-semibold leading-relaxed text-text-main">
             {story.headline}
           </p>
-          <p lang="bn" className="font-bn mt-1.5 text-[15px] font-semibold leading-relaxed text-[var(--text)]">
+          <p lang="bn" className="font-bn mt-1.5 text-base font-semibold leading-relaxed text-text-main">
             {story.headlineBn}
           </p>
         </div>
         {mode === "snapshot" && (
-          <span className="hidden sm:block shrink-0 text-[11px] text-[var(--text-muted)]">
+          <span className="hidden sm:block shrink-0 text-xs text-text-muted">
             Auto-generated
           </span>
         )}
@@ -785,7 +785,7 @@ export default function WatchlistAnalysis({
     todayItems.push(
       <StoryItem key="best" tone="good" label="Best">
         <CodeChip code={story.topGainer.trading_code} /> led the gainers, up{" "}
-        <span className="font-bold text-[var(--positive)] nums">
+        <span className="font-bold text-positive nums">
           +{story.topGainer.change_pct!.toFixed(2)}%
         </span>
         .
@@ -796,7 +796,7 @@ export default function WatchlistAnalysis({
     todayItems.push(
       <StoryItem key="worst" tone="bad" label="Worst">
         <CodeChip code={story.topLoser.trading_code} /> dragged, off{" "}
-        <span className="font-bold text-[var(--negative)] nums">
+        <span className="font-bold text-negative nums">
           {story.topLoser.change_pct!.toFixed(2)}%
         </span>
         .
@@ -964,26 +964,26 @@ export default function WatchlistAnalysis({
       >
         {quietToday ? (
           <>
-            <p className="text-sm text-[var(--text)]">No price action recorded today.</p>
-            <p lang="bn" className="font-bn mt-1 text-[13px] font-medium text-[var(--text-muted)]">
+            <p className="text-sm text-text-main">No price action recorded today.</p>
+            <p lang="bn" className="font-bn mt-1 text-sm font-medium text-text-muted">
               আজ কোনো দামের নড়াচড়া রেকর্ড হয়নি।
             </p>
           </>
         ) : (
           <>
             <div className="mb-3 flex flex-wrap gap-1.5">
-              <span className="rounded-full bg-[color-mix(in_srgb,var(--positive)_12%,transparent)] px-2 py-0.5 text-[11px] font-bold text-[var(--positive)] nums">
+              <span className="rounded-full bg-[color-mix(in_srgb,var(--positive)_12%,transparent)] px-2 py-0.5 text-xs font-bold text-positive nums">
                 ▲ {story.upToday.length} up
               </span>
-              <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5 text-[11px] font-bold text-[var(--text-muted)] nums">
+              <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs font-bold text-text-muted nums">
                 {story.flatToday} flat
               </span>
-              <span className="rounded-full bg-[color-mix(in_srgb,var(--negative)_12%,transparent)] px-2 py-0.5 text-[11px] font-bold text-[var(--negative)] nums">
+              <span className="rounded-full bg-[color-mix(in_srgb,var(--negative)_12%,transparent)] px-2 py-0.5 text-xs font-bold text-negative nums">
                 ▼ {story.downToday.length} down
               </span>
             </div>
             <ul className="flex flex-col gap-3">{todayItems}</ul>
-            <p lang="bn" className="font-bn mt-3 border-t border-[var(--border)] pt-3 text-[13px] font-medium leading-relaxed text-[var(--text-muted)]">
+            <p lang="bn" className="font-bn mt-3 border-t border-border pt-3 text-sm font-medium leading-relaxed text-text-muted">
               {story.todayBn}
             </p>
           </>
@@ -1014,7 +1014,7 @@ export default function WatchlistAnalysis({
         </Section>
       )}
 
-      <p lang="bn" className="font-bn text-center text-[11px] font-medium text-[var(--text-muted)]">
+      <p lang="bn" className="font-bn text-center text-xs font-medium text-text-muted">
         এই বিশ্লেষণ স্বয়ংক্রিয়ভাবে তৈরি — বিনিয়োগের সিদ্ধান্তের আগে নিজে যাচাই করে নিন।
       </p>
     </section>

@@ -126,7 +126,7 @@ export default function NewsSlider({ news, loading }: Props) {
                       tabIndex={i === index ? 0 : -1}
                       className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide text-white shadow-sm hover:opacity-85 transition-opacity"
                       style={{
-                        background: `linear-gradient(135deg, ${slideAccent} 0%, color-mix(in srgb, ${slideAccent} 72%, #000) 100%)`,
+                        background: `linear-gradient(135deg, ${slideAccent} 0%, color-mix(in srgb, ${slideAccent} 72%, var(--text)) 100%)`,
                       }}
                     >
                       {n.trading_code}
@@ -250,7 +250,7 @@ export default function NewsSlider({ news, loading }: Props) {
               </button>
             </div>
           )}
-          <Button href="/todays-news" variant="ghost" size="sm">
+          <Button href="/todays-news" variant="quiet" size="sm">
             All news →
           </Button>
         </div>

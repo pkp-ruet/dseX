@@ -172,15 +172,15 @@ export default function RecommendationQuiz({
     <div className="space-y-5">
       {/* Progress */}
       <div>
-        <div className="flex items-center justify-between text-[0.7rem] font-semibold text-[var(--text-muted)] mb-1.5">
+        <div className="flex items-center justify-between text-xs font-semibold text-text-muted mb-1.5">
           <span>
             Question {step + 1} of {total}
           </span>
           <span>{Math.round(((step + 1) / total) * 100)}%</span>
         </div>
-        <div className="h-1.5 rounded-full bg-[var(--surface-2)] overflow-hidden">
+        <div className="h-1.5 rounded-full bg-surface-2 overflow-hidden">
           <div
-            className="h-full rounded-full bg-[var(--primary)] transition-all"
+            className="h-full rounded-full bg-primary transition-all"
             style={{ width: `${((step + 1) / total) * 100}%` }}
           />
         </div>
@@ -188,8 +188,8 @@ export default function RecommendationQuiz({
 
       {/* Question */}
       <div>
-        <h2 className="text-lg font-extrabold text-[var(--text)] leading-snug">{current.title}</h2>
-        <p className="mt-1 text-sm text-[var(--text-muted)]">{current.subtitle}</p>
+        <h2 className="text-lg font-extrabold text-text-main leading-snug">{current.title}</h2>
+        <p className="mt-1 text-sm text-text-muted">{current.subtitle}</p>
       </div>
 
       {/* Options */}
@@ -202,7 +202,7 @@ export default function RecommendationQuiz({
                 key={opt.value}
                 type="button"
                 onClick={() => pickSingle(current.key, opt.value)}
-                className="group w-full text-left rounded-xl border px-4 py-3.5 min-h-[56px] flex items-center gap-3 transition hover:border-[var(--primary)] active:scale-[0.99]"
+                className="group w-full text-left rounded-xl border px-4 py-3.5 min-h-[56px] flex items-center gap-3 transition hover:border-primary active:scale-[0.99]"
                 style={{
                   borderColor: selected ? "var(--primary)" : "var(--border)",
                   background: selected
@@ -213,13 +213,13 @@ export default function RecommendationQuiz({
               >
                 <span className="min-w-0 flex-1">
                   <span
-                    className="block font-semibold text-[0.92rem]"
+                    className="block font-semibold text-base"
                     style={{ color: selected ? "var(--primary)" : "var(--text)" }}
                   >
                     {opt.label}
                   </span>
                   {opt.desc && (
-                    <span className="block mt-0.5 text-[0.76rem] text-[var(--text-muted)]">{opt.desc}</span>
+                    <span className="block mt-0.5 text-xs text-text-muted">{opt.desc}</span>
                   )}
                 </span>
                 <span
@@ -243,17 +243,17 @@ export default function RecommendationQuiz({
       ) : (
         <div>
           {sectors.length === 0 && (
-            <p className="text-sm text-[var(--text-muted)]">No sectors available — you can skip this.</p>
+            <p className="text-sm text-text-muted">No sectors available — you can skip this.</p>
           )}
           {sectors.length > 0 && (
             <div className="mb-2.5 flex items-center justify-between">
-              <span className="text-[0.72rem] font-semibold text-[var(--text-muted)]">
+              <span className="text-xs font-semibold text-text-muted">
                 {answers.sectors.length} selected
               </span>
               <button
                 type="button"
                 onClick={toggleAllSectors}
-                className="text-[0.78rem] font-bold text-[var(--primary)] hover:underline"
+                className="text-xs font-bold text-primary hover:underline"
               >
                 {allSectorsSelected ? "Clear all" : "Select all"}
               </button>
@@ -267,7 +267,7 @@ export default function RecommendationQuiz({
                 key={s}
                 type="button"
                 onClick={() => toggleSector(s)}
-                className="rounded-full border px-3.5 py-2 text-[0.8rem] font-medium transition"
+                className="rounded-full border px-3.5 py-2 text-sm font-medium transition"
                 style={{
                   borderColor: selected ? "var(--primary)" : "var(--border)",
                   background: selected
@@ -289,7 +289,7 @@ export default function RecommendationQuiz({
         {step > 0 ? (
           <Button
             type="button"
-            variant="ghost"
+            variant="quiet"
             onClick={() => setStep((s) => s - 1)}
             disabled={submitting}
             className="min-h-[48px] px-5"
@@ -299,7 +299,7 @@ export default function RecommendationQuiz({
         ) : onCancel ? (
           <Button
             type="button"
-            variant="ghost"
+            variant="quiet"
             onClick={onCancel}
             disabled={submitting}
             className="min-h-[48px] px-5"

@@ -41,19 +41,19 @@ function MarketMoodLine({ mood }: { mood: MarketMood }) {
     >
       <div className="min-w-0 flex-1">
         <span
-          className="inline-flex items-center gap-2 text-[0.72rem] font-extrabold uppercase tracking-[0.14em]"
+          className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.14em]"
           style={{ color: acc }}
         >
           <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: acc }} aria-hidden />
           Right now: {mood.label.toLowerCase()}
         </span>
-        <p className="mt-1.5 text-[1rem] font-bold leading-snug text-[var(--text)] sm:text-[1.1rem]">
+        <p className="mt-1.5 text-base font-bold leading-snug text-text-main sm:text-lg">
           {mood.sentence}
         </p>
-        <Bn className="mt-1 text-[0.88rem] leading-relaxed text-[var(--text-muted)]">{MOOD_BN[mood.tone]}</Bn>
+        <Bn className="mt-1 text-sm leading-relaxed text-text-muted">{MOOD_BN[mood.tone]}</Bn>
       </div>
       <span
-        className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-full px-3.5 py-2 text-[0.8rem] font-extrabold text-white transition-all group-hover:gap-2.5 sm:self-center"
+        className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-full px-3.5 py-2 text-sm font-extrabold text-white transition-all group-hover:gap-2.5 sm:self-center"
         style={{ background: "var(--primary)" }}
       >
         Is the market up or down?
@@ -102,7 +102,7 @@ export default function LiveToday({
 
       {mood && <MarketMoodLine mood={mood} />}
 
-      <p className="mt-6 text-[0.7rem] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+      <p className="mt-6 text-xs font-bold uppercase tracking-[0.08em] text-text-muted">
         Picked from all {totalCount} companies · new three every day
       </p>
       {/* Dense cards, so they hold one column until the row is wide enough
@@ -116,7 +116,7 @@ export default function LiveToday({
       <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2">
         <Link
           href="/dse-today"
-          className="text-[0.85rem] font-bold text-[var(--primary-ink)] underline-offset-4 hover:underline"
+          className="text-sm font-bold text-primary-ink underline-offset-4 hover:underline"
         >
           See every price today →
         </Link>
@@ -125,7 +125,7 @@ export default function LiveToday({
         {!mood && (
           <Link
             href="/market-analysis"
-            className="text-[0.85rem] font-bold text-[var(--primary-ink)] underline-offset-4 hover:underline"
+            className="text-sm font-bold text-primary-ink underline-offset-4 hover:underline"
           >
             Is the market up or down today? →
           </Link>

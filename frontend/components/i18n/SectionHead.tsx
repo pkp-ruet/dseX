@@ -41,7 +41,7 @@ export default function SectionHead({
     <div className={className}>
       {eyebrow && (
         <span
-          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.14em]"
+          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-[0.14em]"
           style={{
             color: accent,
             background: `color-mix(in srgb, ${accent} 11%, transparent)`,
@@ -68,7 +68,7 @@ export default function SectionHead({
       )}
       <h2
         id={id}
-        className={`font-display text-[clamp(1.6rem,4.8vw,2.35rem)] font-bold leading-[1.12] tracking-tight text-[var(--text)] ${
+        className={`font-display text-[clamp(1.6rem,4.8vw,2.35rem)] font-bold leading-[1.12] tracking-tight text-text-main ${
           eyebrow ? "mt-3" : ""
         }`}
       >
@@ -82,7 +82,7 @@ export default function SectionHead({
       </h2>
       <p
         lang="bn"
-        className="font-bn mt-2.5 max-w-2xl text-[0.95rem] font-medium leading-relaxed text-[var(--text-muted)]"
+        className="font-bn mt-2.5 max-w-2xl text-base font-medium leading-relaxed text-text-muted"
       >
         {bn}
       </p>

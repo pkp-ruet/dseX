@@ -1,0 +1,79 @@
+/* lists — page-area styles layered after globals.css (later import wins at equal specificity).
+   Tokens only: var(--fs-*), var(--radius*), var(--shadow-*), colour vars. */
+
+/* =====================================================================
+   StockRow (components/ui/StockRow.tsx) — the ONE stock row.
+   Colour comes from `--acc` (the card's accent, see personalized/accents.ts)
+   and falls back to primary, so the same chip works on any page.
+   ===================================================================== */
+/* Hover background bleeds 10px past the text inside a padded card. */
+.stock-row--bleed {
+  margin-inline: -10px;
+  padding-inline: 10px;
+  border-radius: var(--radius-md);
+}
+/* Rank / serial chip in the leading slot. */
+.stock-rank {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--acc, var(--primary));
+  background: color-mix(in srgb, var(--acc, var(--primary)) 13%, transparent);
+}
+.stock-rank--solid {
+  color: var(--surface);
+  background: var(--acc, var(--primary));
+}
+/* Icon tile in the leading slot (sector glyph, coin, bulb). */
+.stock-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  font-weight: 800;
+  font-size: var(--fs-sm);
+  line-height: 1;
+  color: var(--acc, var(--primary));
+  background: color-mix(in srgb, var(--acc, var(--primary)) 12%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--acc, var(--primary)) 22%, transparent);
+}
+.stock-tile svg { width: 18px; height: 18px; }
+/* Small toned pill for tags / trailing metrics. Text colour comes from the
+   token utility on the element; the wash is 13% of the same colour. */
+.stock-pill {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--fs-2xs);
+  font-weight: 800;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  background: color-mix(in srgb, currentColor 13%, transparent);
+}
+/* Rows dropped straight into a market-analysis ShowMore list. */
+.ms-srow-list > * + * { border-top: 1px solid var(--cell-rule); }
+/* Flat list of rows on a full page (trending, popular): one card, hairlines. */
+.stock-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+.stock-list > * + * { border-top: 1px solid var(--cell-rule); }

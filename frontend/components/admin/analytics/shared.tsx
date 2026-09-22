@@ -2,16 +2,18 @@
 
 import type { EngagementSegment, SignupSource } from "@/lib/api";
 
-/** Token-aligned hex palette (Recharts needs concrete colors for fills). */
+/** Token palette — Recharts accepts CSS variable strings in fill/stroke. The old
+ *  indigo/orange/pink names stay as keys so callers compile; they now resolve to
+ *  the info / warm / gold roles. */
 export const COLORS = {
   primary: "var(--primary)",
   positive: "var(--positive)",
   negative: "var(--negative)",
   watch: "var(--watch)",
   muted: "var(--text-muted)",
-  indigo: "#6366F1",
-  orange: "#EA580C",
-  pink: "#DB2777",
+  indigo: "var(--info)",
+  orange: "var(--warm)",
+  pink: "var(--gold)",
 } as const;
 
 export const SEGMENT_META: Record<
@@ -85,7 +87,7 @@ export function SegmentPill({ segment }: { segment: EngagementSegment }) {
   const m = SEGMENT_META[segment];
   return (
     <span
-      className="text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full whitespace-nowrap"
+      className="text-xs font-bold uppercase tracking-wide px-2 py-0.5 rounded-full whitespace-nowrap"
       style={{ color: m.color, background: `${m.color}1a`, border: `1px solid ${m.color}40` }}
     >
       {m.label}
@@ -97,7 +99,7 @@ export function SourcePill({ source }: { source: SignupSource }) {
   const m = SIGNUP_META[source];
   return (
     <span
-      className="text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap"
+      className="text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap"
       style={{ color: m.color, background: `${m.color}14` }}
     >
       {m.label}
@@ -125,7 +127,7 @@ export function FeatureBadges({
     { on: user.ai_used, icon: "🤖", title: "Uses TopStock AI" },
   ].filter((i) => i.on);
   if (!items.length) {
-    return <span className={`text-xs text-[var(--text-muted)] ${className}`}>—</span>;
+    return <span className={`text-xs text-text-muted ${className}`}>—</span>;
   }
   return (
     <span className={`inline-flex items-center gap-1 ${className}`}>

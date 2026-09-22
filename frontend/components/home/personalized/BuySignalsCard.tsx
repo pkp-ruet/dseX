@@ -165,7 +165,7 @@ export default function BuySignalsCard({
                 onClick={() => switchTab(key)}
                 className="flex items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-xs font-bold transition active:scale-95"
                 style={{
-                  color: on ? "#fff" : "var(--text)",
+                  color: on ? "var(--surface)" : "var(--text)",
                   background: on ? POSITIVE : "var(--surface)",
                   borderColor: on ? POSITIVE : "var(--border)",
                 }}
@@ -175,8 +175,8 @@ export default function BuySignalsCard({
                 <span
                   className="tabular-nums"
                   style={{
-                    background: on ? "rgba(255,255,255,0.24)" : `color-mix(in srgb, ${POSITIVE} 12%, transparent)`,
-                    color: on ? "#fff" : POSITIVE,
+                    background: on ? "color-mix(in srgb, var(--surface) 24%, transparent)" : `color-mix(in srgb, ${POSITIVE} 12%, transparent)`,
+                    color: on ? "var(--surface)" : POSITIVE,
                     padding: "1px 7px",
                     borderRadius: 999,
                     fontSize: "0.68rem",

@@ -23,7 +23,7 @@ type TabKey = "picks" | "buys" | "tips";
 // Each tab owns a colour so the three idea types stay distinguishable.
 const PICKS_ACCENT = "var(--primary)"; // personalized
 const BUYS_ACCENT = "var(--positive)"; // action
-const TIPS_ACCENT = "#0D9488"; // learn
+const TIPS_ACCENT = "var(--positive)"; // learn
 
 // Per-signal identity for the daily tips (accent + short tag). Mirrors
 // components/daily-tips/DailyTipItem so the homepage teaser owns its own row.

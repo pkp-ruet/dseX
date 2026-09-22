@@ -66,7 +66,7 @@ export default function FindMyStocks() {
           done={result != null}
         />
         {error && (
-          <p className="mt-2 text-[0.8rem] font-semibold text-[var(--negative)]">{error}</p>
+          <p className="mt-2 text-sm font-semibold text-negative">{error}</p>
         )}
       </div>
 
@@ -82,14 +82,14 @@ export default function FindMyStocks() {
           />
         ) : (
           <div className="soft-card flex h-full flex-col justify-center p-5">
-            <span className="text-[0.7rem] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+            <span className="text-xs font-bold uppercase tracking-[0.14em] text-text-muted">
               Answer three questions
             </span>
-            <p className="mt-3 text-[0.88rem] leading-relaxed text-[var(--text-muted)]">
+            <p className="mt-3 text-sm leading-relaxed text-text-muted">
               How much you want to put in, for how long, and how much risk you can take —
               from those three we show which companies match.
             </p>
-            <Bn className="mt-2 text-[0.88rem] leading-relaxed text-[var(--text)]">
+            <Bn className="mt-2 text-sm leading-relaxed text-text-main">
               কত টাকা রাখতে চান, কত দিনের জন্য, আর কতটা ঝুঁকি নিতে পারবেন — এই তিনটে জেনে মিলিয়ে
               দেখাব।
             </Bn>

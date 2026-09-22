@@ -2,9 +2,10 @@
 
 import { Fragment, useMemo, useState, type MouseEvent } from "react";
 import Link from "next/link";
-import { TIER_GRADES, TIER_LABELS, TIER_MEANINGS, TIER_VAR, type TierKey } from "@/lib/constants";
+import { TIER_LABELS, TIER_MEANINGS, TIER_VAR, type TierKey } from "@/lib/constants";
 import StarButton from "@/components/ui/StarButton";
 import ScoreBadge from "@/components/ui/ScoreBadge";
+import TierPill from "@/components/ui/TierPill";
 import RankRowDetails from "@/components/ranking/RankRowDetails";
 import { signed } from "@/lib/formatters";
 import type { ScoreItem } from "@/lib/api";
@@ -102,7 +103,6 @@ export default function FullRankTable({ rows }: Props) {
                       className="fr-tier-sep"
                       style={{ ["--tier-color" as string]: tierColor }}
                     >
-                      <span className="fr-tier-sep-grade" aria-hidden>{TIER_GRADES[entry.tier]}</span>
                       <span className="fr-tier-sep-text">
                         <span className="fr-tier-sep-label">{TIER_LABELS[entry.tier]}</span>
                         <span className="fr-tier-sep-meaning">{TIER_MEANINGS[entry.tier]}</span>
@@ -168,7 +168,10 @@ export default function FullRankTable({ rows }: Props) {
                               aria-label="Stale financial data"
                               className="fr-stale-flag"
                             >
-                              ⚠️
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                                <path d="M12 3 2.5 20h19z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                                <path d="M12 9.5v5M12 17.5h.01" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+                              </svg>
                             </span>
                           )}
                         </span>
@@ -219,12 +222,7 @@ export default function FullRankTable({ rows }: Props) {
                   <td className="fr-td fr-td-score">
                     <div className="fr-score-cell">
                       <ScoreBadge score={item.score} tier={item.tier} size="sm" />
-                      <span className="fr-tier-tag">
-                        <span className="fr-tier-tag-grade" aria-hidden>
-                          {TIER_GRADES[item.tier]}
-                        </span>
-                        <span className="fr-tier-tag-word">{TIER_LABELS[item.tier]}</span>
-                      </span>
+                      <TierPill tier={item.tier} size="sm" className="fr-score-tier" />
                     </div>
                   </td>
 

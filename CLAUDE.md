@@ -12,7 +12,8 @@ Guidance for Claude Code when working in this repository.
 - **Frontend**: Next.js 15 App Router · React 19 · TypeScript · Tailwind CSS · Recharts
 - **Scrapers**: Python (requests + BeautifulSoup + lxml)
 - **Auth**: JWT (HS256) via `python-jose` · `bcrypt` for password hashing · Google Sign-In via `google-auth` (backend ID-token verification) and `@react-oauth/google` (frontend)
-- **Theme**: **light-only, mobile-first** (no dark mode). All colors are CSS custom properties in `app/globals.css :root` (`--bg`, `--surface`, `--surface-2`, `--text`, `--text-muted`, `--border`, `--primary` #2563EB, `--accent`, `--positive` #15803D, `--negative` #DC2626, tier vars `--strong-buy`/`--safe-buy`/`--watch`/`--avoid` + `--np-*`). Dark mode + `ThemeToggle` were removed. Use tokens (never hardcoded dark hex); components target ~360px first, enhance with `sm:`/`md:`.
+- **Theme**: **light-only, mobile-first** (no dark mode). Role-based palette, every value a CSS custom property in `app/globals.css :root`: cream canvas `--bg` #F6F1E7 · `--surface` #FFFFFF · `--surface-2` #EFEADF · `--border` #DED6C3 · ink `--text` #2E2B26 / `--text-muted` #5C554A · **clay primary `--primary` #B0714E** (+ `--primary-ink`, `--primary-soft`) · navy anchor `--navy` (navbar/footer) · steel `--info` (links, info chips) · `--gold` / `--gold-ink` (stars, dividends) · `--warm` (bronze) · **locked market semantics `--positive` #047857 / `--negative` #B91C1C** · `--watch` #B45309 · tier tokens `--tier-excellent|good|average|weak`. Each main token also has an `--x-rgb` triplet so Tailwind opacity modifiers work. Dark mode + `ThemeToggle` were removed; the old aliases (`--accent`, `--ink*`, `--rule*`, `--np-*`, `--safe-buy`, `--strong-buy`, `--avoid`) are gone (2026-09-22) — do not reintroduce them.
+  - **Design-system rules (2026-09-22 rework, enforced by `npm run lint` → `scripts/design-lint.mjs`)**: components use the Tailwind token utilities from `tailwind.config.ts` (`text-text-main`, `text-text-muted`, `bg-surface`, `bg-surface-2`, `border-border`, `text-primary`, `text-positive`, `text-tier-good`, …) — **never** `[var(--x)]` arbitrary classes, raw hex, Tailwind palette colours (`red-500`), `text-[…]` sizes, `shadow-[…]` or `rounded-[…]`. Type scale = the `--fs-*` tokens (12px floor, `text-xs`); radii = `--radius-sm/--radius/--radius-md/--radius-lg/--radius-xl` (8/10/12/16/20, mirrored by `rounded-md/DEFAULT/lg/xl/3xl`); shadows = `--shadow-soft` / `--shadow-lift` only. The two OG-image routes (`app/api/og/*`, `opengraph-image.tsx`) are the only hex exception (Satori has no CSS vars). `app/globals.css` holds tokens + shared primitives; page-area CSS lives in `app/styles/<area>.css` (imported after globals in `app/layout.tsx`, so an equal-specificity rule there wins). Shared primitives: `components/ui/PageHeader.tsx` (THE page h1 + Bengali line; pages never nest a second `<main>` or set their own `max-w-*` — the only width variants are `.page-narrow` for prose and `.page-form` for forms), `components/ui/StockRow.tsx` (THE list/card row: company name first, ticker small, price via `money()`, change via `changePct()`+`changeTone()`), `components/ui/ScoreBadge.tsx` (sm/md/lg ring — the only score visual besides `TierPill`), `components/ui/SignalChip.tsx` (renders buy / strong buy / **sell**), `components/ui/Button.tsx` (primary/quiet/link/danger, ≥40px), `components/layout/HubLinks.tsx` (secondary discovery pages are linked from the hub pages, not the global menu). Tables share the `.data-table` card-dissolve pattern below 640px (`app/styles/tables.css`) — no clipped columns, no forced horizontal scroll.
 - **Fonts**: Latin UI fonts (Inter / Playfair / Space Grotesk) are loaded in `app/layout.tsx` with the `latin` subset only — they carry **no Bengali glyphs**. Bengali (বাংলা) content uses **Hind Siliguri** (`--font-bengali`), opted into via the `.font-bn` utility class (sets the font + comfortable line-height). Wrap any Bengali page/region in `.font-bn` and set `lang="bn"` (see `/blog`). For a Bengali line inside otherwise-English copy use `components/i18n/Bn.tsx`, which sets both for you.
 - **Language**: ONE app-wide English/বাংলা switch — `context/LangContext.tsx` (`LangProvider` mounted in `app/layout.tsx`, `useLang()` → `{lang, setLang, bn}`), saved under `dsex.analysis.lang`, defaulting to Bengali for a Bengali-language browser. The stock page's `StockLangContext` is a shim over it. The dashboard's `HeroGreeting` and the stock page's `LangToggle` both drive it; flipping one flips the other. Server renders English; the saved choice applies after mount.
 - **Deployment**: Frontend on Vercel, Backend on Render, DB on MongoDB Atlas
@@ -174,22 +175,17 @@ When adding a code path that reads `stock_prices` directly, apply one of those t
 | `/admin/analytics` | `app/admin/analytics/page.tsx` | Admin user analytics (admin-only, gated by `ADMIN_EMAILS`) |
 | `/about`, `/contact`, `/disclaimer`, `/privacy-policy` | static legal/info pages |
 
-**Navigation (`components/layout/Navbar.tsx`):**
-- Brand → `/` (TopStockBD)
-- Watchlist (star icon) → `/watchlist`
-- Rankings → `/dsestockranking`
-- Market Analysis → `/market-analysis`
-- DSE Today → `/dse-today`
-- Dividend Calendar → `/dividend-calendar`
-- Sectors → `/sectors`
-- Browse Stocks → `/stocks`
-- Stock Insights → `/stock-insights`
-- Blogs → `/learn`
-- About → `/about`
-- Portfolio → `/portfolio`
-- When logged in: Profile pill (avatar + display name) → `/profile`
-- When logged out: Sign In → `/login`, Sign Up → `/register`
-- Mobile: hamburger drawer + portfolio shortcut; standalone `MobileBottomBar.tsx` is also rendered on small screens
+**Navigation (`components/layout/Navbar.tsx`, narrowed 2026-09-22 — ONE menu, three groups, same labels everywhere):**
+- Brand → `/` (TopStockBD); Watchlist (star) → `/watchlist`; Portfolio → `/portfolio`; logged in: Profile pill → `/profile`; logged out: Sign In → `/login`, Sign Up → `/register`.
+- The menu (`NAV_GROUPS`, exported; desktop panel titled "Menu", opened by the "Explore" button; the same groups fill the mobile drawer `#mobile-menu`):
+  - **Markets** — DSE Today `/dse-today` · Market Analysis `/market-analysis` · Dividend Calendar `/dividend-calendar` · Sectors `/sectors` · আজকের শেয়ার বাজার `/share-bazar`
+  - **Find stocks** — Rankings `/dsestockranking` · Browse All Stocks `/stocks` · Buy/Sell Signals `/buy-sell-signals` · Stock Lists `/stock-insights` · TopStock AI `/assistant`
+  - **Learn** — Guides `/learn` · বাংলা ব্লগ `/blog` · How we score `/about`
+  - Quick access: Watchlist, Portfolio, Price Alerts `/alerts`, Install app.
+- **Secondary discovery pages are NOT in the menu or footer**: Today's News, Trending, Popular, Daily Tips, Find My Stocks, Top Picks, Market Intelligence are reached through `components/layout/HubLinks.tsx` (`group="find"` on `/dsestockranking` + `/buy-sell-signals`, `group="today"` on `/dse-today` + `/market-analysis`). Adding a page to the global menu is a decision, not a default — put it in HubLinks first.
+- `Footer.tsx` mirrors the three groups exactly (one label per URL) + Account + Company columns.
+- **Mobile bottom bar (`MobileBottomBar.tsx`) has FIVE tabs**: Home · Explore (opens the drawer via `openMobileDrawer`) · Search (`GlobalSearch`, bilingual placeholder) · Watchlist · Portfolio. The old six-tab bar and the separate four-tile `ExploreSheet` are gone — never add a sixth tab or a second menu.
+- Every nav control is ≥40px (drawer rows 44px). `MarketDataBanner` is a 28px strip during market hours only.
 
 **Homepage (`app/page.tsx`) — two modes, one SSR page:**
 
@@ -215,7 +211,8 @@ When adding a code path that reads `stock_prices` directly, apply one of those t
   - Blocks with nothing to show render nothing (and their pair partner takes the full width), so a quiet day is a shorter page, not an empty one.
   - `lib/home-alerts.ts` universe is **holdings ∪ watchlist** (it was watchlist-only until 2026-09-16, so a portfolio-only user never saw a mover / 52w low / record date on what they own). The assistant's brief still calls it with codes only — every new param is optional.
   - Every link tap on the dashboard fires `home_card_tap` (`lib/track.ts`, GA event, no-op without GA) via one delegated listener on the root — cards are wrapped in `data-card="…"`. Read that before the next rework.
-  - **Visual system (2026-09-06 pass — still in force):** every card uses `personalized/DashHeader.tsx` (+ `HeaderChip`) and the `personalized/DashIcons.tsx` SVG set — **no emoji** anywhere on the dashboard. Small text is `text-[0.68rem]` for labels/chips and `text-[0.75rem]` for secondary lines, never smaller. Every tappable row pairs `hover:` with an `active:` state.
+  - **Visual system (2026-09-06 pass — still in force):** every card uses `personalized/DashHeader.tsx` (+ `HeaderChip`) and the `personalized/DashIcons.tsx` SVG set — **no emoji** anywhere on the dashboard. Small text is `text-xs` (12px, the app floor) for labels/chips and `text-sm` for secondary lines, never smaller. Every tappable row pairs `hover:` with an `active:` state.
+  - **Every stock row is `components/ui/StockRow.tsx` (2026-09-22).** Dashboard cards (`TopRankedCard`, `BuysTodayCard`, `TrendingCard`, `PopularCard`, `MyStocksToday`, `TodaysIdeas`, `TurningPointsCard`, `MoversCard`, `ListsRail`, `DividendBoardCard`, `TipsCard`), the market-analysis `MarketRow` (a thin wrapper), the Top-20 / Popular decks, the dividend-calendar boards and `RecommendedStockCard` all render it: company **name** first, ticker small, `OwnerMark`/`PersonalMark`, one toned `sub` line, `money(price)` over `changePct(change)` in `changeTone`, optional `trailing` (ScoreBadge / TierPill / SignalChip) inside the link and `action` (StarButton) outside it. Buys show `SignalChip` (which renders buy / strong buy / **sell**); nothing hand-rolls a signal or tier pill. The dashboard `<h1>` (the daily brief) is `text-xl sm:text-2xl`.
 
 **Market analysis page (`app/market-analysis/page.tsx`) — rebuilt 2026-09-12.** One job: the whole market in plain words, for a reader who will never look at a P/E. Everything on it comes from one `GET /api/market/state` bundle (`market_state_service`), ISR 900s. Order and rules:
 
@@ -346,10 +343,15 @@ components/
 │   │                                native share sheet, else copy link), price + 52w bar, then YourPosition
 │   │                                (signed-in holder: shares / avg cost / value / P/L / holding signal from
 │   │                                the portfolio GET; watcher: since-added move from watchlist_meta)
-│   ├── PriceChart.tsx, VerdictBlock.tsx (score ring + verdict word + Buy OR Sell chip WITH its reason +
+│   ├── PriceChart.tsx, VerdictBlock.tsx (`ScoreBadge size="lg"` + `TierPill` + `SignalChip` (buy OR sell) WITH its reason +
 │   │                                sector standing from `sector_context` + the take + deep-analysis hook;
 │   │                                does NOT repeat the company identity — the hero owns it)
-│   ├── StickySummaryBar.tsx (hides on scroll-down below 640px), StockSectionNav.tsx, FeaturedInStrip.tsx
+│   ├── StickySummaryBar.tsx       — the page's ONE sticky element (2026-09-22): line 1 = code · ScoreBadge+TierPill (sm+) ·
+│   │                                SignalChip (phones too) · star · price · change, absolutely positioned above line 2 and
+│   │                                hidden on scroll-down below 640px; line 2 = `StockSectionNav` chips (≥40px). Geometry
+│   │                                constants live in `StickyStackMeasure.tsx`. The EN/বাংলা `StockLangToggle` sits in the HERO
+│   │                                (top-right of the identity row), not in the verdict card
+│   ├── StockSectionNav.tsx, FeaturedInStrip.tsx
 │   ├── HealthCheck.tsx            — five pillar bars at a glance, then the five accordions (bilingual copy
 │   │                                lives in `lib/plain-language.ts` PILLAR_PHRASES `*Bn` fields)
 │   ├── ValueTodayBox.tsx, ValuationPanel.tsx (P/E + yield tiles live ONLY here)
@@ -381,8 +383,15 @@ components/
 │   └── AdminAnalyticsClient.tsx
 ├── analytics/
 │   └── PingTracker.tsx          — fires apiAuthPing on page transitions
-└── ui/
-    ├── ScoreBadge.tsx, TierPill.tsx, SignalChip.tsx, SectionLabel.tsx
+├── layout/HubLinks.tsx           — "more ways in" strip on the four hub pages (see Navigation)
+└── ui/                            — THE shared primitives (2026-09-22): PageHeader, StockRow, Table, Button, ScoreBadge,
+    │                                TierPill, SignalChip, Card (forwards role/aria-*), StarButton (40px hit area),
+    │                                ErrorState, EmptyState, Skeleton. `scripts/retired-components.txt` lists the 61
+    │                                component files nothing imports any more — delete them (the design lint flags them).
+    ├── PageHeader.tsx          — eyebrow + h1 + Bengali line + lead + actions; `.page-narrow` / `.page-form` widths
+    ├── StockRow.tsx            — the one list row (+ StockRank, StockTile, StockPill, StockRowSkeleton)
+    ├── Table.tsx               — DataTable / SortTh / StockIdent / Price / Change for the `.data-table` pattern
+    ├── ScoreBadge.tsx, TierPill.tsx, SignalChip.tsx
     ├── StarButton.tsx          (ThemeToggle removed — light-only)
     ├── PageSkeleton.tsx        — page-shaped placeholder (variants table / cards / hero). NOT wired to
     │                             any route: the per-route `loading.tsx` files were deleted 2026-09-15
@@ -399,13 +408,15 @@ components/
 ```
 
 **Shared UI rules (2026-09-06 consistency pass — keep them):**
-- **Buttons by role**: `.btn-primary` / `.btn-quiet` / `.btn-link` (+ `.btn-sm`, `.btn-block`) in `globals.css`. Never reuse `navbar-rank-btn` / `navbar-intel-btn` for page actions — those are navbar-only.
+- **Buttons by role**: `components/ui/Button.tsx` is THE button — variants `primary | quiet | link | danger | tab`, sizes `sm` 36px / `md` 40px / `lg` 48px, `block`, `iconOnly` (square, the type requires an `aria-label`), `active` (toggled quiet / selected tab). It emits `.btn-primary` / `.btn-quiet` / `.btn-link` / `.btn-danger` / `.btn-tab` (+ `.btn-sm`, `.btn-lg`, `.btn-block`, `.btn-icon`; rules in `globals.css` + `app/styles/states.css`). The old `.ed-btn*`, `.atp-btn*`, `.tx-btn*`, `.add-*-btn`, `.wl-alert-btn` systems are gone (2026-09-22). Never reuse `navbar-rank-btn` / `navbar-intel-btn` for page actions — those are navbar-only.
 - **Plain CSS in `globals.css` beats Tailwind utilities.** The file is ordinary CSS written after `@tailwind utilities`, so a component class that sets `padding` / `width` / `display` silently overrides `pr-10`, `w-auto`, `sm:hidden` on the same element (the password eye icon sat over the text; the mobile `.pf-fab` showed on desktop — both fixed 2026-09-14). `.input-field` now lives in `@layer components` for that reason; put any new "component" class that will be combined with per-use utilities in that layer too, or don't set the same property.
 - **Fixed chrome offsets (2026-09-14 overlap audit):** the mobile bottom bar is 60px + `env(safe-area-inset-bottom)`, z-40. The Footer carries the page's bottom clearance (`main` no longer does). Bottom-anchored prompt cards (push opt-in, install, feedback) all use `.above-bottom-bar` + `z-[45]` and mark themselves `data-bottom-card` so only one shows at a time; `.app-toast` sits higher (130px) so it never lands on `.pf-fab`. Stock-page sections use `.stock-anchor`, whose `scroll-margin-top` reads `--stock-sticky-h` (written live by `components/stock/StickyStackMeasure.tsx` from the sticky summary-bar + section-nav stack); `StockSectionNav` scrolls with the measured offset and fires `dsex:stock-jump` so `StickySummaryBar` stays hidden on phones during the jump. Never hardcode `scroll-mt-[112px]` there again.
 - **Dashboard rail + chapter nav CSS** live in `globals.css` (`@layer components`): `.dash-rail` (horizontal snap rail, hidden scrollbar), `.dash-section` (scroll-margin for the sticky stack), `.dash-nav` / `.dash-nav-row` / `.dash-chip`.
-- **Form errors** use `.form-error` (token-based); no `text-red-*` / `dark:` classes anywhere (light-only, tokens only).
+- **Form errors** use `.form-error` (token-based); no `text-red-*` / `dark:` classes anywhere (light-only, tokens only — `scripts/design-lint.mjs` fails the lint on any Tailwind palette colour outside the OG-image routes).
 - **Every `<label>` has `htmlFor`** and its control an `id` (or the label wraps the control).
-- **Text floor is 11px** (`text-[11px]` / `text-[0.68rem]` / `--fs-2xs`) app-wide. Nothing smaller — the audience reads on budget Android phones. `app/api/og/*` (Satori image routes) are exempt.
+- **Text floor is 12px** (`text-xs` / `--fs-2xs`) app-wide (raised from 11px 2026-09-22). Nothing smaller, and no `text-[…]` arbitrary sizes — the audience reads on budget Android phones. **Touch targets are ≥40px** (StarButton hit area, sort headers, chips, nav controls). `app/api/og/*` (Satori image routes) are exempt from the type rules.
+- **States**: every data route has an `error.tsx` rendering `components/ui/ErrorState.tsx` (never a raw error string); empty lists use `components/ui/EmptyState.tsx` (title, one line, Bengali line, ≤2 actions, optional children); client-fetched regions on noindex routes (watchlist, portfolio, alerts) show `Skeleton` rows while loading — never bare "Loading…" text.
+- **Tables**: `components/ui/Table.tsx` (`DataTable`, `SortTh` with a real `<button>` + `aria-sort`, `StockIdent`, `Price`, `Change`) + the `.data-table` pattern in `app/styles/tables.css`. Below 640px every table dissolves into cards (`data-cell` = rank / star / ident / score / price / change / meta; `data-secondary` cells hide) — no clipped columns, no forced horizontal scroll. `StocksTable`, `SectorStockTable`, `DseTodayTable` use it; the ranking's `FullRankTable` keeps its own `.fr-*` card-dissolve but shows the score ring on phones (`app/styles/misc.css`).
 - **Money**: `formatters.money(v)` → `৳1,234` at ≥100, `৳45.6` below. Always ৳ in UI copy, never "Tk" / "BDT" (OG image routes excepted — their font lacks the glyph).
 - **Dates**: `formatters.formatDate` → `6 Sep 2026` (en-GB, numeric day). No `en-US` dates.
 - **Feedback**: any silent success (added to watchlist, holding saved, alert set, link copied) fires `toast()`; undo windows use `toast({ action })`.

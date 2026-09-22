@@ -1,10 +1,11 @@
 "use client";
 import Link from "next/link";
-import { verdictHeadline, verdictTone } from "@/lib/plain-language";
-import { getTier, TIER_LABELS_BN, SIGNAL_LABELS, SIGNAL_LABELS_BN, SIGNAL_VAR } from "@/lib/constants";
+import { verdictTone } from "@/lib/plain-language";
+import { getTier, SIGNAL_VAR } from "@/lib/constants";
 import { sectorSlug } from "@/lib/sector";
+import ScoreBadge from "@/components/ui/ScoreBadge";
+import TierPill from "@/components/ui/TierPill";
 import SignalChip from "@/components/ui/SignalChip";
-import LangToggle from "@/components/stock/LangToggle";
 import { IconChartBars, IconTrophy } from "@/components/stock/StockIcons";
 import { useStockLang } from "@/context/StockLangContext";
 import type { CompanyDetail } from "@/lib/api";
@@ -40,19 +41,21 @@ function ordinal(n: number): string {
  *
  * The company name, code, sector and price are NOT repeated here — the hero
  * directly above already carries them, and on a phone the two stacked headers
- * used to fill a whole screen. The language toggle drives the whole page via
- * `StockLangContext`, not just this card. Both language blocks of the take are
- * rendered into the server HTML and toggled by visibility, so crawlers still
- * see the Bengali.
+ * used to fill a whole screen. The page-wide language toggle lives in the hero
+ * too; this card only reads `StockLangContext`. Score, tier and signal are the
+ * shared primitives (`ScoreBadge` lg / `TierPill` md / `SignalChip` md) — the
+ * same three the rank table and cards use, just bigger. Both language blocks
+ * of the take are rendered into the server HTML and toggled by visibility, so
+ * crawlers still see the Bengali.
  */
 export default function VerdictBlock({ detail }: Props) {
   const { score_row, profile, verdict, signal, bengali_summary, deep_analysis, sector_context } = detail;
-  const { lang, setLang } = useStockLang();
+  const { lang } = useStockLang();
   const isBn = lang === "bn";
 
   const score = (score_row?.score as number | null) ?? null;
   const tone = verdictTone(score);
-  const word = isBn ? TIER_LABELS_BN[getTier(score)] : verdictHeadline(score);
+  const tier = getTier(score);
   const code = profile.trading_code;
 
   const tagline = verdict?.tagline ?? null;
@@ -80,44 +83,27 @@ export default function VerdictBlock({ detail }: Props) {
   const deepHeadline = (isBn ? deep_analysis?.headline_bn : deep_analysis?.headline_en) ?? deep_analysis?.headline_en ?? "";
   const deepBottom = (isBn ? deep_analysis?.bottom_line_bn : deep_analysis?.bottom_line_en) ?? deep_analysis?.bottom_line_en ?? "";
 
-  // Ring geometry
-  const size = 140;
-  const stroke = 11;
-  const radius = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const fillPct = score != null ? Math.max(0, Math.min(100, score)) / 100 : 0;
-  const targetOffset = circumference * (1 - fillPct);
-  const animName = `vb_ring_${code.toLowerCase()}`;
-
   const eyebrowCls = (bn: boolean) =>
-    `text-[11px] font-bold tracking-[0.22em] ${bn ? "font-bn" : "uppercase"}`;
+    `text-xs font-bold tracking-[0.22em] ${bn ? "font-bn" : "uppercase"}`;
 
   return (
     <section
       className="relative rounded-3xl overflow-hidden mb-8"
       style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "var(--shadow-soft)" }}
     >
-      <style>{`
-        @keyframes ${animName} {
-          from { stroke-dashoffset: ${circumference}; }
-          to   { stroke-dashoffset: ${targetOffset}; }
-        }
-      `}</style>
-
       {/* Thin tone accent on the left edge */}
       <div aria-hidden style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: "3px", background: tone.color }} />
 
       <div className="relative p-5 sm:p-7">
-        {/* Brand strip + the page-wide language toggle */}
+        {/* Brand strip */}
         <div className="flex items-center justify-between gap-3 mb-5">
-          <span className="text-[11px] font-bold uppercase tracking-[0.22em] flex items-center gap-1.5">
+          <span className="text-xs font-bold uppercase tracking-[0.22em] flex items-center gap-1.5">
             <span className="inline-block w-2 h-2 rounded-full" style={{ background: tone.color }} />
-            <span style={{ color: "var(--text)" }}>TopStockBD</span>
-            <span className={isBn ? "font-bn normal-case tracking-normal" : ""} style={{ color: "var(--text-muted)" }}>
+            <span className="text-text-main">TopStockBD</span>
+            <span className={`text-text-muted ${isBn ? "font-bn normal-case tracking-normal" : ""}`}>
               {T.brand[lang]}
             </span>
           </span>
-          <LangToggle value={lang} onChange={setLang} size="sm" />
         </div>
 
         {/* Score ring + verdict word + signal */}
@@ -126,63 +112,21 @@ export default function VerdictBlock({ detail }: Props) {
             <span className={`${eyebrowCls(isBn)} mb-2`} style={{ color: "var(--text-muted)" }}>
               {T.score[lang]}
             </span>
-            <div className="relative" style={{ width: size, height: size }}>
-              <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-                <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="var(--surface-2)" strokeWidth={stroke} />
-                <circle
-                  cx={size / 2}
-                  cy={size / 2}
-                  r={radius}
-                  fill="none"
-                  stroke={tone.color}
-                  strokeWidth={stroke}
-                  strokeLinecap="round"
-                  strokeDasharray={circumference}
-                  strokeDashoffset={targetOffset}
-                  transform={`rotate(-90 ${size / 2} ${size / 2})`}
-                  style={{ animation: `${animName} 1.2s cubic-bezier(0.4, 0, 0.2, 1)` }}
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="font-black tabular-nums leading-none" style={{ color: tone.color, fontSize: "2.5rem" }}>
-                  {score != null ? score.toFixed(0) : "--"}
-                </span>
-                <span className="text-[11px] font-bold uppercase tracking-[0.2em] mt-0.5" style={{ color: "var(--text-muted)" }}>
-                  / 100
-                </span>
-              </div>
-            </div>
+            <ScoreBadge score={score} tier={tier} size="lg" />
           </div>
 
           <div className="text-left flex-1 w-full">
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <p
-                className={`font-black leading-none tracking-tight ${isBn ? "font-bn" : ""}`}
-                style={{ color: tone.color, fontSize: "clamp(1.75rem, 5vw, 2.75rem)" }}
-              >
-                {word}
-              </p>
-              {isBuy && signal && <SignalChip signal={signal.signal} strength={signal.strength} size="md" lang={lang} />}
-              {isSell && (
-                <span
-                  className={`inline-flex items-center gap-1 rounded-md font-bold whitespace-nowrap ${isBn ? "font-bn" : "uppercase tracking-wide"}`}
-                  style={{
-                    color: SIGNAL_VAR.sell,
-                    background: `color-mix(in srgb, ${SIGNAL_VAR.sell} 12%, transparent)`,
-                    border: `1px solid color-mix(in srgb, ${SIGNAL_VAR.sell} 28%, transparent)`,
-                    padding: "4px 12px",
-                    fontSize: "0.8rem",
-                  }}
-                >
-                  <span aria-hidden style={{ fontSize: 10, lineHeight: 1 }}>▼</span>
-                  {isBn ? SIGNAL_LABELS_BN.sell : SIGNAL_LABELS.sell}
-                </span>
+              <TierPill tier={tier} size="md" lang={lang} />
+              {(isBuy || isSell) && signal && (
+                <SignalChip signal={signal.signal} strength={signal.strength} size="md" lang={lang} />
               )}
             </div>
 
             {showReason && (
               <p
-                className={`text-sm sm:text-base font-semibold mt-2.5 leading-snug ${isBn ? "font-bn" : ""}`}
+                className={`text-base sm:text-xl font-bold mt-3 leading-snug ${isBn ? "font-bn" : ""}`}
+                lang={isBn ? "bn" : undefined}
                 style={{ color: isSell ? SIGNAL_VAR.sell : "var(--text)" }}
               >
                 {reason}
@@ -245,14 +189,14 @@ export default function VerdictBlock({ detail }: Props) {
                 {sentences.length > 0 ? (
                   <ul className="mt-2.5 space-y-1.5">
                     {sentences.map((line, i) => (
-                      <li key={i} className="flex gap-2.5 text-[13px] sm:text-sm leading-snug" style={{ color: "var(--text)" }}>
+                      <li key={i} className="flex gap-2.5 text-sm sm:text-sm leading-snug" style={{ color: "var(--text)" }}>
                         <span aria-hidden className="mt-[6px] h-1.5 w-1.5 rounded-full shrink-0" style={{ background: tone.color }} />
                         <span>{line}</span>
                       </li>
                     ))}
                   </ul>
                 ) : !tagline ? (
-                  <p className="text-[15px] sm:text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                  <p className="text-base sm:text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
                     {T.generic.en}
                   </p>
                 ) : null}
@@ -272,7 +216,7 @@ export default function VerdictBlock({ detail }: Props) {
                     </p>
                   </>
                 ) : (
-                  <p className="text-[15px] sm:text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                  <p className="text-base sm:text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
                     {T.generic.bn}
                   </p>
                 )}
@@ -284,7 +228,7 @@ export default function VerdictBlock({ detail }: Props) {
         {/* In-depth analysis hook — distinct premium panel → full report sub-page */}
         {hasDeep && (
           <div
-            className="mt-6 rounded-2xl overflow-hidden"
+            className="mt-6 rounded-xl overflow-hidden"
             style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
           >
             <div className="h-1 w-full" style={{ background: "linear-gradient(90deg, var(--primary), var(--accent, var(--primary)))" }} />
@@ -316,7 +260,7 @@ export default function VerdictBlock({ detail }: Props) {
 
         {/* Footer watermark — for shared screenshots */}
         <div
-          className="mt-5 pt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] font-bold uppercase tracking-[0.2em]"
+          className="mt-5 pt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs font-bold uppercase tracking-[0.2em]"
           style={{ borderTop: "1px solid var(--border)" }}
         >
           <span style={{ color: "var(--text-muted)" }}>topstockbd.com</span>

@@ -107,9 +107,9 @@ export default function SignUpStrip() {
               </svg>
             </span>
             <div className="min-w-0 flex-1">
-              <h3 className="text-[0.95rem] font-bold leading-snug text-[var(--text)]">{p.title}</h3>
-              <p className="mt-1 text-[0.82rem] leading-relaxed text-[var(--text-muted)]">{p.line}</p>
-              <Bn className="mt-1 text-[0.82rem] leading-relaxed text-[var(--text)]">{p.bn}</Bn>
+              <h3 className="text-base font-bold leading-snug text-text-main">{p.title}</h3>
+              <p className="mt-1 text-sm leading-relaxed text-text-muted">{p.line}</p>
+              <Bn className="mt-1 text-sm leading-relaxed text-text-main">{p.bn}</Bn>
             </div>
           </div>
         ))}
@@ -123,10 +123,10 @@ export default function SignUpStrip() {
           Keep looking around
         </Link>
       </div>
-      <p className="mt-2.5 text-[0.78rem] font-semibold text-[var(--text-muted)]">
+      <p className="mt-2.5 text-xs font-semibold text-text-muted">
         No payment, no tips by SMS, no phone calls.
       </p>
-      <Bn className="mt-0.5 text-[0.82rem] leading-relaxed text-[var(--text-muted)]">
+      <Bn className="mt-0.5 text-sm leading-relaxed text-text-muted">
         কোনো টাকা লাগে না, এসএমএসে টিপস আসে না, ফোনও করা হয় না।
       </Bn>
     </section>

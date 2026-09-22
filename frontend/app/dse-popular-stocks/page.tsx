@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getPopularStocks } from "@/lib/api";
 import PopularStocksDeck from "@/components/popular/PopularStocksDeck";
+import PageHeader from "@/components/ui/PageHeader";
 
 export const revalidate = 86400;
 
@@ -70,28 +71,17 @@ export default async function PopularStocksPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <div className="rank-page-header">
-        <div className="rank-page-eyebrow">Reader Interest</div>
-        <h1 className="rank-page-title">DSE Popular Stocks</h1>
-
-        <p
-          style={{
-            fontSize: "1.1rem",
-            lineHeight: 1.65,
-            maxWidth: "720px",
-            margin: "12px auto 0",
-            color: "var(--ink)",
-            fontWeight: 400,
-          }}
-        >
-          The 20 most-viewed DSE stocks on TopStockBD over the last 7 days.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Reader Interest"
+        title="DSE Popular Stocks"
+        bn="গত 7 দিনে TopStockBD-এ সবচেয়ে বেশি দেখা 20টি শেয়ার।"
+        lead="The 20 most-viewed DSE stocks on TopStockBD over the last 7 days."
+      />
 
       {data ? (
         <PopularStocksDeck items={data.items} />
       ) : (
-        <div className="text-center py-20 text-[var(--text-muted)]">
+        <div className="text-center py-20 text-text-muted">
           Unable to load popular stocks. Please try again shortly.
         </div>
       )}

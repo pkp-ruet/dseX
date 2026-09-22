@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import PageHeader from "@/components/ui/PageHeader";
 
 export const metadata: Metadata = {
   title: "Contact Us",
@@ -57,25 +58,17 @@ export default function ContactPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
       />
-      <main className="max-w-2xl mx-auto px-4 py-10 sm:py-12 space-y-10">
-
-        {/* Hero */}
-        <section className="soft-card ambient-panel p-6 sm:p-8 space-y-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-[color-mix(in_srgb,var(--primary)_22%,var(--border))] bg-[color-mix(in_srgb,var(--primary)_9%,var(--surface))] px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-[var(--primary-ink)]">
-            Contact
-          </span>
-          <h1 className="text-[1.85rem] sm:text-[2.4rem] font-bold leading-[1.1] tracking-tight text-[var(--ink)]">
-            Contact Us
-          </h1>
-          <p className="text-[1.0625rem] leading-[1.7] text-[var(--ink-2)]">
-            Have a question, found an error in the data, or want to share
-            feedback about TopStockBD? We&apos;re happy to hear from you.
-          </p>
-        </section>
+      <div className="page-narrow space-y-10">
+        <PageHeader
+          eyebrow="Contact"
+          title="Contact Us"
+          bn="প্রশ্ন, ভুল তথ্য বা মতামত — ইমেইলে জানান, আমরা উত্তর দেব।"
+          lead={<>Have a question, found an error in the data, or want to share feedback about TopStockBD? We&apos;re happy to hear from you.</>}
+        />
 
         <section className="soft-card p-6 space-y-4">
-          <h2 className="text-[1.15rem] font-bold text-[var(--ink)]">Email us</h2>
-          <p className="text-[1.0625rem] leading-[1.7] text-[var(--ink-2)]">
+          <h2 className="text-lg font-bold text-text-main">Email us</h2>
+          <p className="text-lg leading-[1.7] text-text-muted">
             The best way to reach us is by email. We typically respond within
             1–3 business days.
           </p>
@@ -85,40 +78,40 @@ export default function ContactPage() {
         </section>
 
         <section className="space-y-3.5">
-          <h2 className="text-[1.3rem] sm:text-[1.45rem] font-bold tracking-tight text-[var(--ink)]">What to include</h2>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-main">What to include</h2>
           <ul className="space-y-3">
-            <li className="flex gap-3 text-[1.0625rem] leading-[1.7] text-[var(--ink-2)]">
-              <span aria-hidden="true" className="mt-[0.62em] h-[7px] w-[7px] shrink-0 rounded-full bg-[var(--primary)]" />
-              <span><strong className="text-[var(--ink)]">Data issues:</strong> include the stock code and what looks wrong</span>
+            <li className="flex gap-3 text-lg leading-[1.7] text-text-muted">
+              <span aria-hidden="true" className="mt-[0.62em] h-[7px] w-[7px] shrink-0 rounded-full bg-primary" />
+              <span><strong className="text-text-main">Data issues:</strong> include the stock code and what looks wrong</span>
             </li>
-            <li className="flex gap-3 text-[1.0625rem] leading-[1.7] text-[var(--ink-2)]">
-              <span aria-hidden="true" className="mt-[0.62em] h-[7px] w-[7px] shrink-0 rounded-full bg-[var(--primary)]" />
-              <span><strong className="text-[var(--ink)]">Score questions:</strong> tell us which company and what specifically seems off</span>
+            <li className="flex gap-3 text-lg leading-[1.7] text-text-muted">
+              <span aria-hidden="true" className="mt-[0.62em] h-[7px] w-[7px] shrink-0 rounded-full bg-primary" />
+              <span><strong className="text-text-main">Score questions:</strong> tell us which company and what specifically seems off</span>
             </li>
-            <li className="flex gap-3 text-[1.0625rem] leading-[1.7] text-[var(--ink-2)]">
-              <span aria-hidden="true" className="mt-[0.62em] h-[7px] w-[7px] shrink-0 rounded-full bg-[var(--primary)]" />
-              <span><strong className="text-[var(--ink)]">General feedback:</strong> anything you&apos;d like to see added or improved</span>
+            <li className="flex gap-3 text-lg leading-[1.7] text-text-muted">
+              <span aria-hidden="true" className="mt-[0.62em] h-[7px] w-[7px] shrink-0 rounded-full bg-primary" />
+              <span><strong className="text-text-main">General feedback:</strong> anything you&apos;d like to see added or improved</span>
             </li>
           </ul>
         </section>
 
         <section className="space-y-3.5">
-          <h2 className="text-[1.3rem] sm:text-[1.45rem] font-bold tracking-tight text-[var(--ink)]">About this site</h2>
-          <p className="text-[1.0625rem] leading-[1.78] text-[var(--ink-2)]">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-main">About this site</h2>
+          <p className="text-lg leading-[1.78] text-text-muted">
             TopStockBD is an independent tool that analyzes publicly available
             financial data from the Dhaka Stock Exchange (DSE). We are not
             affiliated with DSE, BSEC, or any broker or financial institution.
           </p>
-          <p className="text-[1.0625rem] leading-[1.78] text-[var(--ink-2)]">
+          <p className="text-lg leading-[1.78] text-text-muted">
             For more background on the project and what we score, see{" "}
-            <Link href="/about" className="font-medium text-[var(--primary)] hover:underline">
+            <Link href="/about" className="font-medium text-primary hover:underline">
               About TopStockBD
             </Link>
             .
           </p>
         </section>
 
-      </main>
+      </div>
     </>
   );
 }

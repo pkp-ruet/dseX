@@ -61,8 +61,8 @@ export default function FeatureReachCards({ data }: { data: AdminFeatureReach })
   return (
     <div>
       <div className="flex items-baseline justify-between gap-2 mb-2">
-        <h3 className="text-sm font-bold text-[var(--text)]">Power features</h3>
-        <span className="text-[11px] text-[var(--text-muted)]">
+        <h3 className="text-sm font-bold text-text-main">Power features</h3>
+        <span className="text-xs text-text-muted">
           % of {total.toLocaleString()} registered users
         </span>
       </div>
@@ -73,19 +73,19 @@ export default function FeatureReachCards({ data }: { data: AdminFeatureReach })
             <Card key={c.key} padding="none" className="rounded-xl p-4">
               <div className="flex items-center gap-2">
                 <span aria-hidden="true" className="text-base leading-none">{c.icon}</span>
-                <span className="text-xs font-semibold text-[var(--text)]">{c.label}</span>
+                <span className="text-xs font-semibold text-text-main">{c.label}</span>
               </div>
               <p className="mt-2 text-2xl font-bold tabular-nums nums" style={{ color: c.color }}>
                 {c.users.toLocaleString()}
               </p>
-              <p className="text-[11px] text-[var(--text-muted)]">{p}% of users</p>
-              <span className="mt-2 block h-1.5 rounded-full bg-[var(--surface-2)] overflow-hidden">
+              <p className="text-xs text-text-muted">{p}% of users</p>
+              <span className="mt-2 block h-1.5 rounded-full bg-surface-2 overflow-hidden">
                 <span
                   className="block h-full rounded-full"
                   style={{ width: `${p}%`, background: c.color }}
                 />
               </span>
-              <p className="mt-2 text-[11px] text-[var(--text-muted)] truncate" title={c.secondary}>
+              <p className="mt-2 text-xs text-text-muted truncate" title={c.secondary}>
                 {c.secondary}
               </p>
             </Card>

@@ -15,17 +15,17 @@ export default function BanglaSnapshotCard({ summary }: { summary: string | null
     <section
       lang="bn"
       className="font-bn soft-card overflow-hidden"
-      style={{ background: "color-mix(in srgb, var(--accent) 6%, var(--surface))" }}
+      style={{ background: "color-mix(in srgb, var(--primary) 6%, var(--surface))" }}
     >
       <div
-        className="dash-head flex items-center justify-between gap-2 border-b border-[var(--border)] px-4 py-3 sm:px-5"
+        className="dash-head flex items-center justify-between gap-2 border-b border-border px-4 py-3 sm:px-5"
         style={accVars(ACC.navy)}
       >
         <span className="flex min-w-0 flex-1 items-center gap-2">
           <span className="dash-tile" aria-hidden>
             <IconNews size={15} />
           </span>
-          <h2 className="min-w-0 truncate text-[0.8rem] font-bold text-[var(--text)]">{t("bn", "snapshotTitle")}</h2>
+          <h2 className="min-w-0 truncate text-sm font-bold text-text-main">{t("bn", "snapshotTitle")}</h2>
         </span>
         <Link
           href="/share-bazar"
@@ -37,7 +37,7 @@ export default function BanglaSnapshotCard({ summary }: { summary: string | null
           <IconArrowRight size={13} />
         </Link>
       </div>
-      <p className="px-4 py-4 text-[0.95rem] leading-relaxed text-[var(--text)] sm:px-5">{text}</p>
+      <p className="px-4 py-4 text-base leading-relaxed text-text-main sm:px-5">{text}</p>
     </section>
   );
 }

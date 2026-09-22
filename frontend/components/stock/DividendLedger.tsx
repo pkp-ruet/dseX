@@ -43,7 +43,7 @@ export default function DividendLedger({ rows, face, initial = 6 }: Props) {
       <>
         <span className={`font-bold ${big ? "text-base" : ""}`} style={{ color: "var(--positive)" }}>{cash}%</span>
         {cashPerShare != null && (
-          <span className="block text-[11px]" style={MUTED}>{money(cashPerShare)} / share</span>
+          <span className="block text-xs" style={MUTED}>{money(cashPerShare)} / share</span>
         )}
       </>
     );
@@ -62,27 +62,27 @@ export default function DividendLedger({ rows, face, initial = 6 }: Props) {
           <li key={`${r.declaration_date}-${i}`} className="p-4" style={{ borderColor: "var(--border)" }}>
             <div className="flex items-baseline justify-between gap-3 mb-2.5">
               <span className="text-sm font-bold" style={INK}>{period}</span>
-              <span className="text-[11px] text-right" style={MUTED}>
+              <span className="text-xs text-right" style={MUTED}>
                 {r.dividend_type || "Final"} · declared {formatDate(r.declaration_date)}
               </span>
             </div>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
               <div>
-                <dt className="text-[11px] font-bold uppercase tracking-[0.12em] mb-0.5" style={MUTED}>Cash</dt>
+                <dt className="text-xs font-bold uppercase tracking-[0.12em] mb-0.5" style={MUTED}>Cash</dt>
                 <dd className="tabular-nums nums leading-tight">{cashCell(cash, stock, true)}</dd>
               </div>
               <div>
-                <dt className="text-[11px] font-bold uppercase tracking-[0.12em] mb-0.5" style={MUTED}>Bonus</dt>
+                <dt className="text-xs font-bold uppercase tracking-[0.12em] mb-0.5" style={MUTED}>Bonus</dt>
                 <dd className="tabular-nums nums leading-tight">{bonusCell(stock, true)}</dd>
               </div>
               <div>
-                <dt className="text-[11px] font-bold uppercase tracking-[0.12em] mb-0.5" style={MUTED}>Record date</dt>
+                <dt className="text-xs font-bold uppercase tracking-[0.12em] mb-0.5" style={MUTED}>Record date</dt>
                 <dd className="text-sm font-semibold tabular-nums nums" style={r.record_date ? INK : MUTED}>
                   {r.record_date ? formatDate(r.record_date) : "—"}
                 </dd>
               </div>
               <div>
-                <dt className="text-[11px] font-bold uppercase tracking-[0.12em] mb-0.5" style={MUTED}>AGM</dt>
+                <dt className="text-xs font-bold uppercase tracking-[0.12em] mb-0.5" style={MUTED}>AGM</dt>
                 <dd className="text-sm font-semibold tabular-nums nums" style={r.agm_date ? INK : MUTED}>
                   {r.agm_date ? formatDate(r.agm_date) : "—"}
                 </dd>
@@ -109,7 +109,7 @@ export default function DividendLedger({ rows, face, initial = 6 }: Props) {
               <tr key={`${r.declaration_date}-${i}`} style={{ borderTop: "1px solid var(--border)" }}>
                 <td className="px-3 py-2.5 whitespace-nowrap">
                   <span className="font-semibold" style={INK}>{period}</span>
-                  <span className="block text-[11px]" style={MUTED}>
+                  <span className="block text-xs" style={MUTED}>
                     {r.dividend_type || "Final"} · declared {formatDate(r.declaration_date)}
                   </span>
                 </td>
@@ -140,7 +140,7 @@ export default function DividendLedger({ rows, face, initial = 6 }: Props) {
         </button>
       )}
 
-      <p className="px-4 sm:px-3 py-2.5 text-[11px] leading-snug" style={{ ...MUTED, borderTop: "1px solid var(--border)" }}>
+      <p className="px-4 sm:px-3 py-2.5 text-xs leading-snug" style={{ ...MUTED, borderTop: "1px solid var(--border)" }}>
         Cash is a % of the ৳{face % 1 === 0 ? face.toFixed(0) : face.toFixed(2)} face value, not of the share price.
         Bonus = extra shares per 100 held.
       </p>

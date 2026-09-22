@@ -1,52 +1,28 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import Link from "next/link";
 import type { RecommendedStock, DailyTip, ScoreItem } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
-import { taka } from "@/lib/formatters";
 import { getListDelta, type ListDelta } from "@/lib/daily-delta";
 import { buildIdeas, IDEA_ROWS, type IdeaRow } from "@/lib/home-ideas";
-import { t, type CopyKey } from "@/lib/home-copy";
+import { t } from "@/lib/home-copy";
 import StarButton from "@/components/ui/StarButton";
+import StockRow, { StockPill, StockRank, type StockRowTone } from "@/components/ui/StockRow";
 import { ACC } from "@/components/home/personalized/accents";
 import { IconSparkle } from "@/components/home/personalized/DashIcons";
 import DashHeader from "@/components/home/personalized/DashHeader";
+import { KIND_TONE } from "@/components/home/personalized/TipsCard";
 
 const EMPTY_DELTA: ListDelta = { newCodes: new Set(), movedUp: new Map() };
 
-/** Colour per plain "kind" word. Market semantics stay locked: green = a good
- *  price / growth, amber = cash, primary = personal / structural. */
-const KIND_COLOR: Partial<Record<CopyKey, string>> = {
-  kindYouFollow: "var(--primary)",
-  kindMatched: "var(--primary)",
-  kindGoodPrice: "var(--positive)",
-  kindStrongBuy: "var(--positive)",
-  kindGrowing: "var(--positive)",
-  kindPaysCash: "var(--watch)",
-  kindSteady: "var(--primary)",
-  kindCheap: "var(--primary)",
-  kindNearLow: "var(--accent)",
-  kindStrong: "var(--tier-excellent)",
-  kindTip: "var(--text-muted)",
+const TONE_VAR: Record<StockRowTone, string> = {
+  positive: "var(--positive)",
+  negative: "var(--negative)",
+  watch: "var(--watch)",
+  info: "var(--info)",
+  primary: "var(--primary)",
+  muted: "var(--text-muted)",
 };
-
-/** Right-aligned price + today's move. */
-function PriceCell({ ltp, chg }: { ltp: number | null; chg: number | null }) {
-  const color = chg == null ? "var(--text-muted)" : chg >= 0 ? "var(--positive)" : "var(--negative)";
-  return (
-    <div className="shrink-0 text-right tabular-nums nums">
-      <div className="text-[0.86rem] font-bold text-[var(--text)]">
-        {ltp != null ? taka(ltp, ltp >= 100 ? 0 : 1) : "—"}
-      </div>
-      {chg != null && (
-        <div className="text-[0.75rem] font-semibold" style={{ color }}>
-          {chg >= 0 ? "▲" : "▼"} {Math.abs(chg).toFixed(1)}%
-        </div>
-      )}
-    </div>
-  );
-}
 
 /**
  * "3 stocks worth a look today" — ONE plain list, no tabs.
@@ -130,69 +106,34 @@ export default function TodaysIdeas({
         linkLabel={t(lang, "ideasSeeAll")}
       />
 
-      <p className="px-4 pt-3 text-[0.8rem] leading-snug text-[var(--text-muted)] sm:px-5">
+      <p className="px-4 pt-3 text-sm leading-snug text-text-muted sm:px-5">
         {t(lang, "ideasExplainer")}
       </p>
 
-      <ol className="mt-2 divide-y divide-[var(--cell-rule)]">
+      <ol className="mt-2 divide-y divide-cell-rule">
         {rows.map((r, i) => {
-          const color = KIND_COLOR[r.kind] ?? "var(--primary)";
+          const tone = KIND_TONE[r.kind] ?? "primary";
           return (
-            <li key={r.code} className="flex items-stretch gap-1 px-4 transition-colors hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)] sm:px-5">
-              <Link
-                prefetch={false}
-                href={r.href}
-                className="flex min-w-0 flex-1 items-start gap-3 py-3"
-              >
-                <span
-                  className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl text-[0.9rem] font-black tabular-nums"
-                  style={{ color, background: `color-mix(in srgb, ${color} 12%, transparent)` }}
-                  aria-hidden
-                >
-                  {i + 1}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
-                    <span className="truncate text-[0.95rem] font-bold leading-tight text-[var(--text)]">
-                      {r.name ?? r.code}
-                    </span>
-                    {r.name && (
-                      <span className="shrink-0 font-mono text-[0.68rem] font-bold tracking-wide text-[var(--text-muted)]">
-                        {r.code}
-                      </span>
-                    )}
-                    {r.isNew && (
-                      <span
-                        className="shrink-0 rounded-full px-1.5 py-0.5 text-[0.68rem] font-extrabold uppercase tracking-[0.06em]"
-                        style={{ color: "var(--positive)", background: "color-mix(in srgb, var(--positive) 14%, transparent)" }}
-                      >
-                        {t(lang, "newTag")}
-                      </span>
-                    )}
-                  </span>
-                  <span
-                    className="mt-0.5 block text-[0.68rem] font-extrabold uppercase tracking-[0.06em]"
-                    style={{ color }}
-                  >
-                    {t(lang, r.kind)}
-                  </span>
-                  {r.why && (
-                    <span className="mt-0.5 block text-[0.8rem] leading-snug text-[var(--text-muted)] line-clamp-2">
-                      {r.why}
-                    </span>
-                  )}
-                </span>
-                <PriceCell ltp={r.ltp} chg={r.chg} />
-              </Link>
-              <span className="flex items-center">
-                <StarButton code={r.code} size="sm" className="shrink-0" />
-              </span>
-            </li>
+            <StockRow
+              key={r.code}
+              code={r.code}
+              name={r.name}
+              href={r.href}
+              lang={lang}
+              leading={<StockRank n={i + 1} accent={TONE_VAR[tone]} />}
+              tags={r.isNew ? <StockPill tone="positive">{t(lang, "newTag")}</StockPill> : undefined}
+              sub={<span className="font-extrabold uppercase tracking-[0.06em]">{t(lang, r.kind)}</span>}
+              subTone={tone}
+              detail={r.why ? <span className="line-clamp-2">{r.why}</span> : undefined}
+              price={r.ltp}
+              change={r.chg}
+              action={<StarButton code={r.code} size="sm" />}
+            />
           );
         })}
       </ol>
 
-      <p className="border-t border-[var(--border)] px-4 py-2.5 text-center text-[0.75rem] font-medium text-[var(--text-muted)] sm:px-5">
+      <p className="border-t border-border px-4 py-2.5 text-center text-xs font-medium text-text-muted sm:px-5">
         {t(lang, "ideasFooter")}
       </p>
     </section>

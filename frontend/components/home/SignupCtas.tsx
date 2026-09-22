@@ -60,13 +60,13 @@ export default function SignupCtas({
       )}
 
       {error && (
-        <p className="text-xs text-[var(--negative)]">{error}</p>
+        <p className="text-xs text-negative">{error}</p>
       )}
 
       {showExplore && (
         <Link
           href="/dsestockranking"
-          className="mt-1 text-sm font-medium text-[var(--primary)] hover:underline"
+          className="mt-1 text-sm font-medium text-primary hover:underline"
         >
           or explore the rankings first →
         </Link>

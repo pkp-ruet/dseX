@@ -1,12 +1,11 @@
-import Link from "next/link";
 import type { MarketTurningStock, MarketUnusualStock } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
-import { money } from "@/lib/formatters";
 import { t } from "@/lib/home-copy";
 import { ACC } from "@/components/home/personalized/accents";
 import DashHeader from "@/components/home/personalized/DashHeader";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
 import { IconArrowDown, IconArrowUp, IconRocket, IconTarget } from "@/components/home/personalized/DashIcons";
+import StockRow, { type StockRowTone } from "@/components/ui/StockRow";
 
 const ROWS = 3;
 
@@ -20,7 +19,7 @@ interface Row {
 function Group({
   title,
   icon,
-  color,
+  tone,
   rows,
   held,
   watched,
@@ -28,41 +27,41 @@ function Group({
 }: {
   title: string;
   icon: React.ReactNode;
-  color: string;
+  tone: StockRowTone;
   rows: Row[];
   held: Set<string>;
   watched: Set<string>;
   lang: Lang;
 }) {
   if (rows.length === 0) return null;
+  const ico: Record<StockRowTone, string> = {
+    positive: "text-positive bg-positive/10",
+    negative: "text-negative bg-negative/10",
+    watch: "text-watch bg-watch/10",
+    info: "text-info bg-info/10",
+    primary: "text-primary bg-primary/10",
+    muted: "text-text-muted bg-surface-2",
+  };
   return (
     <div className="min-w-0 pb-1">
       <div className="flex items-center gap-2 px-4 pt-3 sm:px-5">
-        <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md" style={{ color, background: `color-mix(in srgb, ${color} 12%, transparent)` }} aria-hidden>
+        <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-md ${ico[tone]}`} aria-hidden>
           {icon}
         </span>
-        <h3 className="text-[0.75rem] font-extrabold uppercase tracking-[0.1em] text-[var(--text)]">{title}</h3>
+        <h3 className="text-xs font-extrabold uppercase tracking-[0.1em] text-text-main">{title}</h3>
       </div>
-      <ul className="mt-1 divide-y divide-[var(--cell-rule)]">
+      <ul className="mt-1 divide-y divide-cell-rule">
         {rows.map((r) => (
-          <li key={r.code}>
-            <Link
-              prefetch={false}
-              href={`/stock/${r.code}`}
-              className="flex items-center gap-3 px-4 py-2 transition-colors hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)] sm:px-5"
-            >
-              <span className="min-w-0 flex-1">
-                <span className="flex items-center gap-1.5">
-                  <span className="truncate text-[0.86rem] font-bold leading-tight text-[var(--text)]">{r.name ?? r.code}</span>
-                  <OwnerMark code={r.code} held={held} watched={watched} lang={lang} />
-                </span>
-                <span className="block text-[0.72rem] font-medium" style={{ color }}>
-                  {r.meta}
-                </span>
-              </span>
-              <span className="shrink-0 text-[0.84rem] font-bold tabular-nums nums text-[var(--text)]">{money(r.price)}</span>
-            </Link>
-          </li>
+          <StockRow
+            key={r.code}
+            code={r.code}
+            name={r.name}
+            lang={lang}
+            mark={<OwnerMark code={r.code} held={held} watched={watched} lang={lang} />}
+            sub={<span className="font-medium">{r.meta}</span>}
+            subTone={tone}
+            price={r.price}
+          />
         ))}
       </ul>
     </div>
@@ -115,10 +114,10 @@ export default function TurningPointsCard({
       <DashHeader title={t(lang, "turningTitle")} href="/market-analysis" linkLabel={t(lang, "fullPicture")} accent={ACC.amber} icon={<IconTarget size={15} />} />
       {/* Stacked on a phone the three groups ran together — a hairline between
           them replaces the column rules that only exist from md up. */}
-      <div className="grid grid-cols-1 divide-y divide-[var(--cell-rule)] pb-1 md:grid-cols-3 md:divide-x md:divide-y-0">
-        <Group title={t(lang, "nearHigh")} icon={<IconArrowUp size={14} />} color="var(--positive)" rows={hi} held={held} watched={watched} lang={lang} />
-        <Group title={t(lang, "nearLow")} icon={<IconArrowDown size={14} />} color="var(--negative)" rows={lo} held={held} watched={watched} lang={lang} />
-        <Group title={t(lang, "unusual")} icon={<IconRocket size={14} />} color="var(--primary)" rows={un} held={held} watched={watched} lang={lang} />
+      <div className="grid grid-cols-1 divide-y divide-cell-rule pb-1 md:grid-cols-3 md:divide-x md:divide-y-0">
+        <Group title={t(lang, "nearHigh")} icon={<IconArrowUp size={14} />} tone="positive" rows={hi} held={held} watched={watched} lang={lang} />
+        <Group title={t(lang, "nearLow")} icon={<IconArrowDown size={14} />} tone="negative" rows={lo} held={held} watched={watched} lang={lang} />
+        <Group title={t(lang, "unusual")} icon={<IconRocket size={14} />} tone="primary" rows={un} held={held} watched={watched} lang={lang} />
       </div>
     </section>
   );

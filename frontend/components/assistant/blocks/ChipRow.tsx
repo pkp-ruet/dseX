@@ -19,13 +19,13 @@ export default function ChipRow({
           key={`${c.label}-${i}`}
           type="button"
           onClick={() => onChip(c)}
-          className="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-[0.78rem] font-medium text-[var(--text)] transition hover:border-[var(--primary)] hover:text-[var(--primary)] active:scale-95"
+          className="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-main transition hover:border-primary hover:text-primary active:scale-95"
         >
           {c.emoji && <span aria-hidden>{c.emoji}</span>}
           <span className="leading-tight text-left">
             {c.label}
             {c.labelBn && (
-              <span lang="bn" className="font-bn block text-[0.68rem] text-[var(--text-muted)]">
+              <span lang="bn" className="font-bn block text-xs text-text-muted">
                 {c.labelBn}
               </span>
             )}

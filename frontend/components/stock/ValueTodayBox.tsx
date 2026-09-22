@@ -81,7 +81,7 @@ export default function ValueTodayBox({ fairValue, lang: langProp, className = "
       lang={isBn ? "bn" : undefined}
     >
       <div className="flex items-center justify-between gap-3 mb-3">
-        <p className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: "var(--text-muted)" }}>
+        <p className="text-xs font-bold uppercase tracking-[0.15em]" style={{ color: "var(--text-muted)" }}>
           {T.title[lang]}
         </p>
         <span
@@ -96,14 +96,14 @@ export default function ValueTodayBox({ fairValue, lang: langProp, className = "
       <div className="flex items-end gap-5 mb-4">
         {today != null && (
           <div>
-            <p className="text-[11px] mb-0.5" style={{ color: "var(--text-muted)" }}>{T.today[lang]}</p>
+            <p className="text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>{T.today[lang]}</p>
             <p className="text-2xl font-bold tabular-nums leading-none" style={{ color: "var(--text)" }}>
               {money(today)}
             </p>
           </div>
         )}
         <div>
-          <p className="text-[11px] mb-0.5" style={{ color: "var(--text-muted)" }}>{T.estimate[lang]}</p>
+          <p className="text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>{T.estimate[lang]}</p>
           <p className="text-2xl font-bold tabular-nums leading-none" style={{ color }}>
             {money(center)}
           </p>
@@ -126,7 +126,7 @@ export default function ValueTodayBox({ fairValue, lang: langProp, className = "
               />
             )}
           </div>
-          <div className="flex justify-between mt-1.5 text-[11px] tabular-nums" style={{ color: "var(--text-muted)" }}>
+          <div className="flex justify-between mt-1.5 text-xs tabular-nums" style={{ color: "var(--text-muted)" }}>
             <span>{money(low)}</span>
             <span>{T.range[lang]}</span>
             <span>{money(high)}</span>
@@ -156,7 +156,7 @@ export default function ValueTodayBox({ fairValue, lang: langProp, className = "
         </ul>
       )}
 
-      <p className="text-[11px] leading-snug" style={{ color: "var(--text-muted)" }}>
+      <p className="text-xs leading-snug" style={{ color: "var(--text-muted)" }}>
         {T.note[lang]}
       </p>
     </div>

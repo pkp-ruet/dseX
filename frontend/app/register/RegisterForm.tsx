@@ -8,6 +8,7 @@ import { apiRegister, type AuthApiResponse } from "@/lib/api";
 import { addToWatchlist, loadWatchlist } from "@/lib/watchlist";
 import { markJustSignedUp, looksNewlyCreated } from "@/lib/welcome";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+import PageHeader from "@/components/ui/PageHeader";
 
 type Mode = "email" | "phone";
 
@@ -85,16 +86,17 @@ export default function RegisterForm() {
   }
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center py-12">
-      <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold mb-1 text-[var(--text)]">Create Account</h1>
-        <p className="text-sm text-[var(--text-muted)] mb-6">
-          Free forever. Sync your watchlist across devices.
-        </p>
+    <div className="page-form pb-8">
+      <PageHeader
+        size="article"
+        title="Create Account"
+        bn="একদম ফ্রি — অ্যাকাউন্ট খুললে আপনার ওয়াচলিস্ট সব ডিভাইসে একসাথে থাকবে।"
+        lead="Free forever. Sync your watchlist across devices."
+      />
+      <div>
 
         {saveCode && (
-          <div className="mb-5 rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-3 py-2.5 text-xs sm:text-sm text-[var(--text)]">
-            <span className="text-[var(--accent)] font-bold">★</span>{" "}
+          <div className="mb-5 rounded-lg border border-primary/40 bg-primary/10 px-3 py-2.5 text-sm text-text-main">
             We&apos;ll save <span className="font-bold">{saveCode}</span> to your list right after sign-up.
           </div>
         )}
@@ -102,18 +104,16 @@ export default function RegisterForm() {
         <GoogleSignInButton onSuccess={handleGoogleSuccess} onError={setError} />
         <div className="auth-divider my-5">or</div>
 
-        {/* Mode toggle */}
-        <div className="flex gap-1 mb-5 p-1 rounded-lg bg-[var(--surface)] border border-[var(--border)]">
+        {/* Mode toggle — segmented control, each member a 40px .btn-tab */}
+        <div className="flex gap-1 mb-5 p-1 rounded-lg bg-surface border border-border" role="tablist" aria-label="Sign-in method">
           {(["email", "phone"] as Mode[]).map((m) => (
             <button
               key={m}
               type="button"
+              role="tab"
+              aria-selected={mode === m}
               onClick={() => { setMode(m); setIdentifier(""); setError(""); }}
-              className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                mode === m
-                  ? "bg-[var(--accent)] text-white"
-                  : "text-[var(--text-muted)] hover:text-[var(--text)]"
-              }`}
+              className={`btn-tab flex-1 ${mode === m ? "is-active" : ""}`}
             >
               {m === "email" ? "Email" : "Phone"}
             </button>
@@ -122,7 +122,7 @@ export default function RegisterForm() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <label htmlFor="login-1" className="text-sm font-medium text-[var(--text)]">
+            <label htmlFor="login-1" className="text-sm font-medium text-text-main">
               {mode === "email" ? "Email address" : "Phone number"}
             </label>
             <input id="login-1"
@@ -137,8 +137,8 @@ export default function RegisterForm() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label htmlFor="login-2" className="text-sm font-medium text-[var(--text)]">
-              Name <span className="text-[var(--text-muted)] font-normal">(optional)</span>
+            <label htmlFor="login-2" className="text-sm font-medium text-text-main">
+              Name <span className="text-text-muted font-normal">(optional)</span>
             </label>
             <input id="login-2"
               type="text"
@@ -151,7 +151,7 @@ export default function RegisterForm() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label htmlFor="login-3" className="text-sm font-medium text-[var(--text)]">Password</label>
+            <label htmlFor="login-3" className="text-sm font-medium text-text-main">Password</label>
             <div className="relative">
               <input id="login-3"
                 type={showPw ? "text" : "password"}
@@ -165,7 +165,7 @@ export default function RegisterForm() {
               <button
                 type="button"
                 onClick={() => setShowPw(!showPw)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text)]"
+                className="absolute right-1 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md text-text-muted hover:text-text-main active:bg-surface-2"
                 aria-label={showPw ? "Hide password" : "Show password"}
               >
                 {showPw ? (
@@ -182,7 +182,7 @@ export default function RegisterForm() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label htmlFor="login-4" className="text-sm font-medium text-[var(--text)]">Confirm password</label>
+            <label htmlFor="login-4" className="text-sm font-medium text-text-main">Confirm password</label>
             <input id="login-4"
               type={showPw ? "text" : "password"}
               value={confirmPw}
@@ -209,9 +209,9 @@ export default function RegisterForm() {
           </button>
         </form>
 
-        <p className="mt-5 text-sm text-center text-[var(--text-muted)]">
+        <p className="mt-5 text-sm text-center text-text-muted">
           Already have an account?{" "}
-          <Link href="/login" className="text-[var(--accent)] hover:underline font-medium">
+          <Link href="/login" className="text-primary hover:underline font-medium">
             Sign in
           </Link>
         </p>

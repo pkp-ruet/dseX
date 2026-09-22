@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import PageHeader from "@/components/ui/PageHeader";
 import { getDailyTips } from "@/lib/api";
 import DailyTipItem from "@/components/daily-tips/DailyTipItem";
 
@@ -68,20 +69,16 @@ export default async function DailyTipsPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <main className="max-w-2xl mx-auto px-4 py-8 sm:py-12 space-y-8">
-        <header className="text-center space-y-3">
-          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text)]">
-            Daily stock tips
-          </h1>
-          <p className="text-[var(--text-muted)] text-sm sm:text-base leading-relaxed">
-            A fresh handful of stocks worth a look, picked from the market every day. Each one comes
-            with a simple reason for why it stands out — growing profits, steady dividends, or a low
-            price versus its peers.
-          </p>
-        </header>
+      <div className="page-narrow space-y-8">
+        <PageHeader
+          eyebrow="Updated every trading day"
+          title="Daily stock tips"
+          bn="প্রতিদিন কয়েকটি শেয়ার, আর সহজ ভাষায় কেন সেগুলো নজরে রাখার মতো।"
+          lead="A fresh handful of stocks worth a look, picked from the market every day. Each one comes with a simple reason for why it stands out — growing profits, steady dividends, or a low price versus its peers."
+        />
 
         {tips.length === 0 ? (
-          <p className="text-center text-sm text-[var(--text-muted)] py-12">
+          <p className="text-center text-sm text-text-muted py-12">
             No tips to show right now — please check back soon.
           </p>
         ) : (
@@ -92,14 +89,14 @@ export default async function DailyTipsPage() {
           </div>
         )}
 
-        <p className="text-center text-[0.72rem] text-[var(--text-muted)] leading-relaxed">
+        <p className="text-center text-xs text-text-muted leading-relaxed">
           These are data-driven ideas, not financial advice. Always do your own research.{" "}
-          <Link href="/dsestockranking" className="text-[var(--primary)] hover:underline">
+          <Link href="/dsestockranking" className="text-primary hover:underline">
             See the full rankings
           </Link>
           .
         </p>
-      </main>
+      </div>
     </>
   );
 }

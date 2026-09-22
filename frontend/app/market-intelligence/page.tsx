@@ -6,6 +6,7 @@ import { formatDate } from "@/lib/formatters";
 import ConditionBanner from "@/components/market-intelligence/ConditionBanner";
 import SignalTable from "@/components/market-intelligence/SignalTable";
 import SectorMap from "@/components/market-intelligence/SectorMap";
+import PageHeader from "@/components/ui/PageHeader";
 
 export const revalidate = 86400;
 
@@ -31,13 +32,12 @@ export default async function MarketIntelligencePage() {
 
   if (!data) {
     return (
-      <div className="rank-page-header">
-        <div className="rank-page-eyebrow">Market Intelligence</div>
-        <h1 className="rank-page-title">No Data Available</h1>
-        <p className="rank-page-meta">
-          Could not reach the API. Please try again shortly.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Market Intelligence"
+        title="DSE Market Signals"
+        bn="বাজারের মেজাজ অনুযায়ী কোন শেয়ারে কী সংকেত — এক পাতায়।"
+        lead="Could not reach the API. Please try again shortly."
+      />
     );
   }
 
@@ -73,14 +73,12 @@ export default async function MarketIntelligencePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {/* Page header */}
-      <div className="rank-page-header">
-        <div className="rank-page-eyebrow">Market Intelligence</div>
-        <h1 className="rank-page-title">DSE Market Signals</h1>
-        <p className="rank-page-meta">
-          Auto-detected market state{dateLabel ? ` · ${dateLabel}` : ""}
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Market Intelligence"
+        title="DSE Market Signals"
+        bn="বাজারের মেজাজ অনুযায়ী কোন শেয়ারে কী সংকেত — এক পাতায়।"
+        lead={<>Auto-detected market state{dateLabel ? ` · ${dateLabel}` : ""}</>}
+      />
 
       {/* Condition banner */}
       <ConditionBanner condition={market_condition} summary={market_summary} />
@@ -106,7 +104,7 @@ export default async function MarketIntelligencePage() {
                 items={signals.accumulation_radar}
                 metricCol="volume_ratio"
                 metricLabel="Vol ×"
-                titleColor="#0D9488"
+                titleColor="var(--info)"
               />
             )}
             {signals.sector_strength && (
@@ -114,7 +112,7 @@ export default async function MarketIntelligencePage() {
                 sectors={signals.sector_strength}
                 condition={market_condition}
                 fullWidth={false}
-                titleColor="#185FA5"
+                titleColor="var(--primary)"
               />
             )}
           </div>
@@ -136,7 +134,7 @@ export default async function MarketIntelligencePage() {
                 items={signals.floor_watch}
                 metricCol="volume_ratio"
                 metricLabel="Vol ×"
-                titleColor="#D97706"
+                titleColor="var(--warm)"
               />
             )}
           </div>
@@ -155,7 +153,7 @@ export default async function MarketIntelligencePage() {
                 metricCol="volume_ratio"
                 metricLabel="Vol ×"
                 fullWidth
-                titleColor="#059669"
+                titleColor="var(--positive)"
               />
             </div>
           )}
@@ -167,7 +165,7 @@ export default async function MarketIntelligencePage() {
                 items={signals.momentum_leaders}
                 metricCol="change_pct"
                 metricLabel="Change"
-                titleColor="#0D9488"
+                titleColor="var(--info)"
               />
             )}
             {signals.quality_laggards && (
@@ -177,7 +175,7 @@ export default async function MarketIntelligencePage() {
                 items={signals.quality_laggards}
                 metricCol="score"
                 metricLabel="Score"
-                titleColor="#D97706"
+                titleColor="var(--warm)"
               />
             )}
           </div>
@@ -196,7 +194,7 @@ export default async function MarketIntelligencePage() {
                 metricCol="volume_ratio"
                 metricLabel="Vol ×"
                 fullWidth
-                titleColor="#185FA5"
+                titleColor="var(--primary)"
               />
             </div>
           )}
@@ -208,7 +206,7 @@ export default async function MarketIntelligencePage() {
                 items={signals.hidden_gems}
                 metricCol="score"
                 metricLabel="Score"
-                titleColor="#059669"
+                titleColor="var(--positive)"
               />
             )}
             {signals.dividend_capture && signals.dividend_capture.length > 0 && (
@@ -218,7 +216,7 @@ export default async function MarketIntelligencePage() {
                 items={signals.dividend_capture}
                 metricCol="score"
                 metricLabel="Score"
-                titleColor="#D97706"
+                titleColor="var(--warm)"
               />
             )}
           </div>
@@ -230,7 +228,7 @@ export default async function MarketIntelligencePage() {
         <SectorMap
           sectors={signals.sector_strength}
           condition={market_condition}
-          titleColor="#185FA5"
+          titleColor="var(--primary)"
         />
       )}
     </>

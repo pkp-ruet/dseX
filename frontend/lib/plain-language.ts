@@ -1,29 +1,39 @@
 import type { SignalFlags, MomentumSnapshot } from "@/lib/api";
-import { getTier, type TierKey } from "@/lib/constants";
+import { getTier, TIER_LABELS, TIER_LABELS_BN, TIER_VAR, type TierKey } from "@/lib/constants";
 
 // ---------------------------------------------------------------------------
 // Verdict
 // ---------------------------------------------------------------------------
 
-const VERDICT_WORDS: Record<TierKey, string> = {
-  excellent: "Excellent",
-  good:      "Good",
-  average:   "Average",
-  weak:      "Weak",
-};
+// The verdict word IS the tier word — the four strings live once, in
+// lib/constants.ts (TIER_LABELS / TIER_LABELS_BN), mirrored by the backend.
+const VERDICT_WORDS = TIER_LABELS;
 
-const VERDICT_TONES: Record<TierKey, { color: string; bg: string; border: string; soft: string }> = {
-  excellent: { color: "var(--tier-excellent)", bg: "color-mix(in srgb, var(--tier-excellent) 12%, transparent)", border: "color-mix(in srgb, var(--tier-excellent) 40%, transparent)", soft: "color-mix(in srgb, var(--tier-excellent) 6%, transparent)" },
-  good:      { color: "var(--tier-good)",      bg: "color-mix(in srgb, var(--tier-good) 12%, transparent)",      border: "color-mix(in srgb, var(--tier-good) 40%, transparent)",      soft: "color-mix(in srgb, var(--tier-good) 6%, transparent)" },
-  average:   { color: "var(--tier-average)",   bg: "color-mix(in srgb, var(--tier-average) 12%, transparent)",   border: "color-mix(in srgb, var(--tier-average) 40%, transparent)",   soft: "color-mix(in srgb, var(--tier-average) 6%, transparent)" },
-  weak:      { color: "var(--tier-weak)",      bg: "color-mix(in srgb, var(--tier-weak) 12%, transparent)",      border: "color-mix(in srgb, var(--tier-weak) 40%, transparent)",      soft: "color-mix(in srgb, var(--tier-weak) 6%, transparent)" },
-};
+type VerdictTone = { color: string; bg: string; border: string; soft: string };
 
-export function verdictHeadline(score: number | null): string {
-  return VERDICT_WORDS[getTier(score)];
+function toneFor(tier: TierKey): VerdictTone {
+  const c = TIER_VAR[tier];
+  return {
+    color: c,
+    bg: `color-mix(in srgb, ${c} 12%, transparent)`,
+    border: `color-mix(in srgb, ${c} 40%, transparent)`,
+    soft: `color-mix(in srgb, ${c} 6%, transparent)`,
+  };
 }
 
-export function verdictTone(score: number | null): typeof VERDICT_TONES[TierKey] {
+const VERDICT_TONES: Record<TierKey, VerdictTone> = {
+  excellent: toneFor("excellent"),
+  good: toneFor("good"),
+  average: toneFor("average"),
+  weak: toneFor("weak"),
+};
+
+export function verdictHeadline(score: number | null, lang: "en" | "bn" = "en"): string {
+  const t = getTier(score);
+  return lang === "bn" ? TIER_LABELS_BN[t] : VERDICT_WORDS[t];
+}
+
+export function verdictTone(score: number | null): VerdictTone {
   return VERDICT_TONES[getTier(score)];
 }
 

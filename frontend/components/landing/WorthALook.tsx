@@ -75,13 +75,13 @@ export default function WorthALook({
       <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
         <Link
           href="/dsestockranking"
-          className="text-[0.85rem] font-bold text-[var(--primary-ink)] underline-offset-4 hover:underline"
+          className="text-sm font-bold text-primary-ink underline-offset-4 hover:underline"
         >
           See the full ranking &rarr;
         </Link>
         <Link
           href="/stocks"
-          className="text-[0.85rem] font-bold text-[var(--primary-ink)] underline-offset-4 hover:underline"
+          className="text-sm font-bold text-primary-ink underline-offset-4 hover:underline"
         >
           Browse every company A&ndash;Z &rarr;
         </Link>

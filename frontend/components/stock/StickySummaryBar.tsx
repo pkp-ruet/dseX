@@ -1,20 +1,22 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { verdictHeadline, verdictTone } from "@/lib/plain-language";
+import ScoreBadge from "@/components/ui/ScoreBadge";
+import TierPill from "@/components/ui/TierPill";
 import SignalChip from "@/components/ui/SignalChip";
 import type { StockSignalInfo } from "@/lib/api";
-import { money } from "@/lib/formatters";
+import { money, changePct as fmtChange, changeTone } from "@/lib/formatters";
 import StarButton from "@/components/ui/StarButton";
-import { STOCK_JUMP_EVENT } from "@/components/stock/StockSectionNav";
+import StockSectionNav, { type NavSection } from "@/components/stock/StockSectionNav";
+import StickyStackMeasure, {
+  BAR_H,
+  NAVBAR_H,
+  STOCK_BAR_VAR,
+  STOCK_JUMP_EVENT,
+} from "@/components/stock/StickyStackMeasure";
 
-/** Fixed navbar height (layout.tsx `h-14`). */
-const NAVBAR_H = 56;
-/** The bar's fixed height. The sticky stack's `top` and `.stock-anchor`'s
- *  scroll margin both read it through STOCK_BAR_VAR. */
-export const BAR_H = 48;
-/** CSS custom property on <html>: `${BAR_H}px` while the bar shows, else 0px. */
-export const STOCK_BAR_VAR = "--stock-bar-h";
-/** Ignore scroll wobble smaller than this before flipping the bar on a phone. */
+export { BAR_H, STOCK_BAR_VAR };
+
+/** Ignore scroll wobble smaller than this before flipping the summary line on a phone. */
 const DIRECTION_SLACK = 10;
 
 interface Props {
@@ -25,31 +27,35 @@ interface Props {
   signal?: StockSignalInfo | null;
   ltp: number | null;
   changePct: number | null;
+  /** The section chips — the bar's second line. */
+  sections: NavSection[];
 }
 
 /**
- * The summary bar is `position: fixed` and OUT of the page flow on purpose.
+ * The stock page's ONE sticky element (2026-09-22 merge of the fixed summary
+ * bar + the sticky section nav).
  *
- * It used to be an in-flow child of the sticky stack that animated its
- * max-height 0↔56px. A sticky element still takes up space, so every toggle
- * pushed the whole page below it down or up by 56px. Worse, the browser's
- * scroll anchoring then corrected `scrollY` to keep the reader's text still,
- * that correction fired a scroll event, the direction check read it as the
- * reader scrolling the other way and flipped the bar again — the page
- * "kept jumping" on phones until the gesture ended.
+ *   line 1  code · verdict · Buy chip · rank · star · price · change
+ *   line 2  the section chips (StockSectionNav), always visible once pinned
  *
- * Now the bar overlays the viewport under the navbar, and the sticky stack
- * (`.stock-sticky-stack`) moves its `top` down by `--stock-bar-h` to make
- * room. Sticky `top` only changes where the stack pins, never its in-flow
- * position, so the content never shifts and nothing feeds back into scroll.
+ * The element's in-flow height is the chip row only. Line 1 is absolutely
+ * positioned ABOVE it (`.stock-summary-line`, bottom: 100%) and the element's
+ * sticky `top` moves down by `--stock-bar-h` (globals.css `.stock-sticky-stack`)
+ * to make room whenever line 1 shows. That keeps the earlier fix: a sticky
+ * element's height still occupies space, so a line that opened/closed in flow
+ * shifted the whole page and the browser's scroll anchoring turned that into a
+ * jumping loop on phones. Moving `top` never changes the in-flow position.
+ *
+ * From sm up line 1 shows whenever the element is pinned. Below 640px it hides
+ * while reading down and comes back on the first scroll up — the chips stay.
  */
 export default function StickySummaryBar({
-  code, score, rank, total, signal, ltp, changePct,
+  code, score, rank, total, signal, ltp, changePct, sections,
 }: Props) {
   const [show, setShow] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Publish the bar's live height so the sticky stack and hash jumps make room.
+  // Publish line 1's live height so the sticky top and hash jumps make room.
   useEffect(() => {
     const root = document.documentElement;
     root.style.setProperty(STOCK_BAR_VAR, `${show ? BAR_H : 0}px`);
@@ -59,18 +65,17 @@ export default function StickySummaryBar({
   }, [show]);
 
   useEffect(() => {
-    // The bar's parent is the sticky stack it sits above (page.tsx).
-    const stack = ref.current?.parentElement;
+    const stack = ref.current;
     let lastY = window.scrollY;
     // A section-chip jump on a phone scrolls "up" for upward targets, which
-    // would pop the bar in mid-scroll and push the heading under the chips.
+    // would pop line 1 in mid-scroll and push the heading under the chips.
     // StockSectionNav announces the jump; stay hidden until it settles.
     let holdHiddenUntil = 0;
     const onScroll = () => {
       const y = window.scrollY;
-      // Show only once the stack is pinned under the navbar. When pinned its
-      // top is exactly the sticky offset (with or without the bar's room), so
-      // this stays true through the bar's own open/close — no feedback.
+      // Show only once the element is pinned under the navbar. When pinned its
+      // top is exactly the sticky offset (with or without line 1's room), so
+      // this stays true through line 1's own open/close — no feedback.
       const pinned = stack
         ? stack.getBoundingClientRect().top <= NAVBAR_H + BAR_H + 1
         : y > 320;
@@ -82,8 +87,6 @@ export default function StickySummaryBar({
       } else if (Date.now() < holdHiddenUntil) {
         setShow(false);
       } else if (y < lastY - DIRECTION_SLACK) {
-        // Phones: the navbar + bar + chips is a lot of fixed chrome, so the bar
-        // hides while reading down and comes back on the first scroll up.
         setShow(true);
       } else if (y > lastY + DIRECTION_SLACK) {
         setShow(false);
@@ -107,68 +110,62 @@ export default function StickySummaryBar({
     };
   }, []);
 
-  const tone = verdictTone(score);
-  const word = verdictHeadline(score);
-  const chgColor = changePct == null ? "var(--text-muted)" : changePct >= 0 ? "var(--positive)" : "var(--negative)";
-
   return (
-    <div
-      ref={ref}
-      className="fixed left-0 right-0 top-14 z-40 transition-[transform,opacity] duration-200 motion-reduce:transition-none"
-      style={{
-        height: BAR_H,
-        transform: show ? "translateY(0)" : "translateY(-100%)",
-        opacity: show ? 1 : 0,
-        pointerEvents: show ? "auto" : "none",
-      }}
-      aria-hidden={!show}
-      inert={!show}
-    >
-      {/* max-w-5xl matches <main>, so the bar lines up with the chip row below it */}
+    <div ref={ref} className="stock-sticky-stack z-40 -mx-4 sm:-mx-6">
+      {/* Line 1 — overlays above the chip row while pinned */}
       <div
-        data-summary-inner
-        className="max-w-5xl mx-auto h-full flex items-center gap-2 sm:gap-3 px-3"
-        style={{
-          background: "color-mix(in srgb, var(--surface) 92%, transparent)",
-          backdropFilter: "blur(8px)",
-          borderBottom: "1px solid var(--border)",
-        }}
+        data-summary-line
+        className={`stock-summary-line transition-[transform,opacity] duration-200 motion-reduce:transition-none ${
+          show ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0 pointer-events-none"
+        }`}
+        aria-hidden={!show}
+        inert={!show}
       >
-        {/* everything in this bar is shrink-0, so the code is the one thing that ellipsises */}
-        <span className="font-bold text-sm shrink-0 max-w-[5.5rem] truncate" style={{ color: "var(--text)" }}>{code}</span>
-        <span
-          className="text-xs font-bold px-2 py-0.5 rounded-full shrink-0"
-          style={{ color: tone.color, background: tone.bg, border: `1px solid ${tone.border}` }}
+        <div
+          data-summary-inner
+          className="h-full flex items-center gap-2 sm:gap-3 px-3 bg-surface/90 backdrop-blur border-b border-border"
         >
-          {word}{score != null ? ` ${Math.round(score)}` : ""}
-        </span>
-        {signal && (
-          <SignalChip
-            signal={signal.signal}
-            strength={signal.strength}
-            reason={signal.reason_en}
-            /* phones: code + verdict + Strong Buy + star + price + % is ~440px at 360px,
-               so the bar clipped its own price. The hero and verdict already show the chip. */
-            className="hidden sm:inline-flex shrink-0"
-          />
-        )}
-
-        <div className="hidden sm:flex items-center gap-3 text-xs" style={{ color: "var(--text-muted)" }}>
-          {rank != null && total != null && (
-            <span>Rank <b style={{ color: "var(--text)" }}>#{rank}</b> of {total}</span>
-          )}
-        </div>
-
-        <div className="ml-auto flex items-center gap-2 shrink-0 tabular-nums">
-          <StarButton code={code} size="md" />
-          <span className="font-bold text-sm" style={{ color: "var(--text)" }}>{money(ltp)}</span>
-          {changePct != null && (
-            <span className="text-xs font-semibold" style={{ color: chgColor }}>
-              {changePct >= 0 ? "+" : ""}{changePct.toFixed(1)}%
+          {/* everything here is shrink-0, so the code is the one thing that ellipsises */}
+          <span className="font-bold text-sm shrink-0 max-w-[5.5rem] truncate text-text-main">{code}</span>
+          {/* score ring + tier word: from sm up — on a 360px phone code + Buy chip + star + price + % fills the line */}
+          {score != null && (
+            <span className="hidden sm:inline-flex items-center gap-1.5 shrink-0">
+              <ScoreBadge score={score} size="sm" />
+              <TierPill score={score} size="sm" />
             </span>
           )}
+          {signal && (
+            <SignalChip
+              signal={signal.signal}
+              strength={signal.strength}
+              reason={signal.reason_en}
+              size="sm"
+              className="shrink-0"
+            />
+          )}
+
+          {rank != null && total != null && (
+            <span className="hidden md:inline text-xs text-text-muted">
+              Rank <b className="text-text-main">#{rank}</b> of {total}
+            </span>
+          )}
+
+          <div className="ml-auto flex items-center gap-1.5 sm:gap-2 shrink-0 tabular-nums">
+            <StarButton code={code} size="md" />
+            <span className="font-bold text-sm text-text-main">{money(ltp)}</span>
+            {changePct != null && (
+              <span className={`text-xs font-semibold ${changeTone(changePct)}`}>
+                {fmtChange(changePct)}
+              </span>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Line 2 — the chips; this is the element's in-flow height */}
+      <StockSectionNav sections={sections} />
+      {/* writes the in-flow height to --stock-sticky-h for .stock-anchor */}
+      <StickyStackMeasure />
     </div>
   );
 }

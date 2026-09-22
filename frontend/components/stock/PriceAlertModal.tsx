@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createAlert, updateAlert, deleteAlert, type PriceAlert } from "@/lib/price-alerts";
 import { toast } from "@/lib/toast";
+import Button from "@/components/ui/Button";
 
 interface Props {
   code: string;
@@ -163,31 +164,21 @@ export default function PriceAlertModal({ code, ltp, w52High, w52Low, existing, 
             </p>
           )}
 
-          {error && <p className="atp-error">{error}</p>}
+          {error && <p className="form-error">{error}</p>}
 
-          <div className="atp-actions">
+          <div className="grid grid-cols-2 gap-2 mt-4">
             {existing ? (
-              <button
-                type="button"
-                onClick={handleRemove}
-                className="atp-btn atp-btn-danger"
-                disabled={submitting}
-              >
+              <Button type="button" variant="danger" block onClick={handleRemove} disabled={submitting}>
                 Remove
-              </button>
+              </Button>
             ) : (
-              <button
-                type="button"
-                onClick={onClose}
-                className="atp-btn atp-btn-secondary"
-                disabled={submitting}
-              >
+              <Button type="button" variant="quiet" block onClick={onClose} disabled={submitting}>
                 Cancel
-              </button>
+              </Button>
             )}
-            <button type="submit" className="atp-btn atp-btn-primary" disabled={submitting}>
+            <Button type="submit" variant="primary" block disabled={submitting}>
               {submitting ? "Saving…" : existing ? "Update alert" : "Set alert"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

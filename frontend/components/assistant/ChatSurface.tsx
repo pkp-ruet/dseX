@@ -44,7 +44,7 @@ export default function ChatSurface({
         <MessageList messages={messages} onChip={sendChip} />
       </div>
       {showSeed && (
-        <div className="border-t border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-2">
+        <div className="border-t border-border bg-surface-2 px-2.5 py-2">
           <button
             type="button"
             onClick={() => {
@@ -54,17 +54,17 @@ export default function ChatSurface({
               });
               setSeedUsed(true);
             }}
-            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--primary)] bg-[var(--surface)] px-3 py-1.5 text-[0.78rem] font-semibold text-[var(--primary)] transition active:scale-95"
+            className="inline-flex items-center gap-1.5 rounded-full border border-primary bg-surface px-3 py-1.5 text-xs font-semibold text-primary transition active:scale-95"
           >
-            💡 Ask about {seedCode}
+            Ask about {seedCode}
           </button>
         </div>
       )}
       {limited && !flowActive ? (
-        <div className="flex items-center justify-between gap-3 border-t border-[var(--border)] bg-[var(--surface-2)] px-3.5 py-3">
-          <p className="min-w-0 text-[0.8rem] font-medium text-[var(--text)]">
+        <div className="flex items-center justify-between gap-3 border-t border-border bg-surface-2 px-3.5 py-3">
+          <p className="min-w-0 text-sm font-medium text-text-main">
             {COPY.guestLimit.bar}
-            <span lang="bn" className="font-bn block text-[0.72rem] text-[var(--text-muted)]">
+            <span lang="bn" className="font-bn block text-xs text-text-muted">
               {COPY.guestLimit.barBn}
             </span>
           </p>

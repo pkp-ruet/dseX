@@ -151,7 +151,7 @@ export default function AdminScoresClient() {
   if (isLoading || (!isAdmin && !err)) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <p className="text-[var(--text-muted)]">Loading…</p>
+        <p className="text-text-muted">Loading…</p>
       </div>
     );
   }
@@ -163,21 +163,21 @@ export default function AdminScoresClient() {
         <div>
           <p className="rank-page-eyebrow">// ADMIN</p>
           <h1 className="rank-page-title">Score Adjustments</h1>
-          <p className="text-sm text-[var(--text-muted)] mt-1">
+          <p className="text-sm text-text-muted mt-1">
             Nudge any company&apos;s final score by a percentage. Range: −100% to +500%. Final score is always clamped to 0–100.
           </p>
         </div>
         <div className="flex gap-2">
-          <Button href="/admin/analytics" variant="ghost" size="sm" className="whitespace-nowrap">
+          <Button href="/admin/analytics" variant="quiet" size="sm" className="whitespace-nowrap">
             Users
           </Button>
-          <Button href="/admin/daily-pick" variant="ghost" size="sm" className="whitespace-nowrap">
+          <Button href="/admin/daily-pick" variant="quiet" size="sm" className="whitespace-nowrap">
             ★ Daily Pick
           </Button>
-          <Button href="/admin/tips" variant="ghost" size="sm" className="whitespace-nowrap">
+          <Button href="/admin/tips" variant="quiet" size="sm" className="whitespace-nowrap">
             💡 Edit Tips
           </Button>
-          <Button href="/admin/feedback" variant="ghost" size="sm" className="whitespace-nowrap">
+          <Button href="/admin/feedback" variant="quiet" size="sm" className="whitespace-nowrap">
             💬 Feedback
           </Button>
         </div>
@@ -185,16 +185,16 @@ export default function AdminScoresClient() {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
         <Card padding="none" className="rounded-xl p-4 text-center">
-          <p className="text-2xl font-bold text-[var(--text)] nums">{rows.length}</p>
-          <p className="text-xs text-[var(--text-muted)] mt-1">Total Companies</p>
+          <p className="text-2xl font-bold text-text-main nums">{rows.length}</p>
+          <p className="text-xs text-text-muted mt-1">Total Companies</p>
         </Card>
         <Card padding="none" className="rounded-xl p-4 text-center">
-          <p className="text-2xl font-bold text-[var(--text)] nums">{adjustedCount}</p>
-          <p className="text-xs text-[var(--text-muted)] mt-1">With Active Adjustment</p>
+          <p className="text-2xl font-bold text-text-main nums">{adjustedCount}</p>
+          <p className="text-xs text-text-muted mt-1">With Active Adjustment</p>
         </Card>
         <Card padding="none" className="rounded-xl p-4 text-center col-span-2 sm:col-span-1">
-          <p className="text-2xl font-bold text-[var(--text)] nums">{rows.length - adjustedCount}</p>
-          <p className="text-xs text-[var(--text-muted)] mt-1">Unmodified</p>
+          <p className="text-2xl font-bold text-text-main nums">{rows.length - adjustedCount}</p>
+          <p className="text-xs text-text-muted mt-1">Unmodified</p>
         </Card>
       </div>
 
@@ -206,7 +206,7 @@ export default function AdminScoresClient() {
           onChange={(e) => setSearch(e.target.value)}
           className="input-field w-full max-w-sm text-sm"
         />
-        <label className="inline-flex items-center gap-2 text-sm text-[var(--text-muted)] cursor-pointer">
+        <label className="inline-flex items-center gap-2 text-sm text-text-muted cursor-pointer">
           <input
             type="checkbox"
             checked={showOnlyAdjusted}
@@ -214,20 +214,20 @@ export default function AdminScoresClient() {
           />
           Show only adjusted
         </label>
-        <Button onClick={reload} variant="ghost" size="sm" className="ml-auto">
+        <Button onClick={reload} variant="quiet" size="sm" className="ml-auto">
           Reload
         </Button>
       </div>
 
-      {err && <p className="text-[var(--negative)] mb-4 text-sm">{err}</p>}
+      {err && <p className="text-negative mb-4 text-sm">{err}</p>}
       {loading && rows.length === 0 && (
-        <p className="text-[var(--text-muted)] text-sm mb-4">Loading scores…</p>
+        <p className="text-text-muted text-sm mb-4">Loading scores…</p>
       )}
 
-      <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+      <div className="overflow-x-auto rounded-xl border border-border">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-[var(--border)] text-[var(--text-muted)] text-xs uppercase">
+            <tr className="border-b border-border text-text-muted text-xs uppercase">
               <th className="px-3 py-3 text-left">Code</th>
               <th className="px-3 py-3 text-left hidden md:table-cell">Name</th>
               <th className="px-3 py-3 text-left hidden lg:table-cell">Sector</th>
@@ -256,28 +256,28 @@ export default function AdminScoresClient() {
               return (
                 <tr
                   key={code}
-                  className={`border-b border-[var(--cell-rule)] hover:bg-[var(--surface)] transition-colors ${currentPct ? "bg-[var(--surface)]/40" : ""}`}
+                  className={`border-b border-cell-rule hover:bg-surface transition-colors ${currentPct ? "bg-surface/40" : ""}`}
                 >
                   <td className="px-3 py-2 font-mono font-semibold">
                     <a href={`/stock/${code}`} className="hover:underline" target="_blank" rel="noreferrer">
                       {code}
                     </a>
                   </td>
-                  <td className="px-3 py-2 hidden md:table-cell text-[var(--text-muted)] truncate max-w-[200px]">
+                  <td className="px-3 py-2 hidden md:table-cell text-text-muted truncate max-w-[200px]">
                     {r.company_name ?? "—"}
                   </td>
-                  <td className="px-3 py-2 hidden lg:table-cell text-[var(--text-muted)] text-xs">
+                  <td className="px-3 py-2 hidden lg:table-cell text-text-muted text-xs">
                     {r.sector ?? "—"}
                   </td>
-                  <td className="px-3 py-2 text-right tabular-nums nums text-[var(--text-muted)]">
+                  <td className="px-3 py-2 text-right tabular-nums nums text-text-muted">
                     {baseScore != null ? baseScore.toFixed(1) : "—"}
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums nums">
-                    <span className="font-semibold text-[var(--text)]">
+                    <span className="font-semibold text-text-main">
                       {finalScore != null ? finalScore.toFixed(1) : "—"}
                     </span>
                     {delta != null && Math.abs(delta) >= 0.05 && (
-                      <span className="ml-1 text-[11px] nums" style={{ color: delta > 0 ? "var(--positive)" : "var(--negative)" }}>
+                      <span className="ml-1 text-xs nums" style={{ color: delta > 0 ? "var(--positive)" : "var(--negative)" }}>
                         ({delta > 0 ? "+" : ""}{delta.toFixed(1)})
                       </span>
                     )}
@@ -315,18 +315,25 @@ export default function AdminScoresClient() {
                         {isSaving ? "…" : "Save"}
                       </Button>
                       {currentPct !== 0 && (
-                        <button
+                        <Button
+                          type="button"
+                          variant="quiet"
+                          size="sm"
+                          iconOnly
                           disabled={isSaving}
                           onClick={() => handleDelete(code)}
-                          className="px-2 py-1 rounded text-xs font-semibold border border-[var(--border)] text-[var(--text-muted)] hover:bg-red-600/10 hover:text-red-500 hover:border-red-500/40 disabled:opacity-30"
+                          className="hover:border-negative/40 hover:bg-negative/10 hover:text-negative"
                           title="Clear adjustment"
+                          aria-label={`Clear adjustment for ${code}`}
                         >
-                          ✕
-                        </button>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+                            <path d="M18 6 6 18M6 6l12 12" />
+                          </svg>
+                        </Button>
                       )}
                     </div>
                     {r.updated_at && currentPct !== 0 && (
-                      <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
+                      <p className="text-xs text-text-muted mt-0.5">
                         {formatDate(r.updated_at)}{r.updated_by ? ` · ${r.updated_by}` : ""}
                       </p>
                     )}
@@ -336,7 +343,7 @@ export default function AdminScoresClient() {
             })}
             {filtered.length === 0 && !loading && (
               <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-[var(--text-muted)]">
+                <td colSpan={8} className="px-4 py-8 text-center text-text-muted">
                   No companies match.
                 </td>
               </tr>
@@ -345,12 +352,12 @@ export default function AdminScoresClient() {
         </table>
       </div>
 
-      <p className="text-xs text-[var(--text-muted)] mt-3">
+      <p className="text-xs text-text-muted mt-3">
         Showing {filtered.length} of {rows.length}. Empty / zero = no adjustment. Cached pages may take ~30s to refresh after save.
       </p>
 
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] px-4 py-2 rounded-xl shadow-lg text-sm">
+        <div className="fixed bottom-6 right-6 z-50 bg-surface border border-border text-text-main px-4 py-2 rounded-xl shadow-lift text-sm">
           {toast}
         </div>
       )}

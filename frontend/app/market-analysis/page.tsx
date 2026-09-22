@@ -12,7 +12,8 @@ import WhatCouldHappenNext from "@/components/market-analysis/WhatCouldHappenNex
 import WhereToLook from "@/components/market-analysis/WhereToLook";
 import { PersonalCodesProvider } from "@/components/market-analysis/PersonalCodes";
 import ErrorState from "@/components/ui/ErrorState";
-import Bn from "@/components/i18n/Bn";
+import PageHeader from "@/components/ui/PageHeader";
+import HubLinks from "@/components/layout/HubLinks";
 
 export const revalidate = 900;
 
@@ -122,14 +123,12 @@ export default async function MarketAnalysisPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <header className="ms-pagehead">
-        <h1 className="ms-page-h1">
-          <span className="ms-page-kicker">Dhaka Stock Exchange</span>
-          <span className="ms-page-h1-main">Market Analysis</span>
-        </h1>
-        {dateLabel && <span className="ms-page-date">{dateLabel}</span>}
-        <Bn className="page-h1-bn">বাজার এখন উপরে না নিচে, সস্তা না দামি — সহজ ভাষায়।</Bn>
-      </header>
+      <PageHeader
+        eyebrow="Dhaka Stock Exchange"
+        title="Market Analysis"
+        bn="বাজার এখন উপরে না নিচে, সস্তা না দামি — সহজ ভাষায়।"
+        actions={dateLabel ? <span className="ms-page-date">{dateLabel}</span> : undefined}
+      />
 
       {!data ? (
         <ErrorState
@@ -195,6 +194,8 @@ export default async function MarketAnalysisPage() {
           />
         </>
       )}
+
+      <HubLinks group="today" exclude={["/market-analysis"]} />
     </PersonalCodesProvider>
   );
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import PageHeader from "@/components/ui/PageHeader";
 import {
   GUIDES,
   GUIDE_CATEGORY_ORDER,
@@ -81,24 +82,17 @@ export default function LearnPage() {
       {/* Sticky jump bar — appears once you scroll past the index */}
       <CategoryNav categories={categories} />
 
-    <main className="max-w-3xl mx-auto px-4 py-10 sm:py-12 space-y-12">
-
-      {/* Hero */}
-      <section className="soft-card ambient-panel p-6 sm:p-8 text-center space-y-4">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-[color-mix(in_srgb,var(--primary)_22%,var(--border))] bg-[color-mix(in_srgb,var(--primary)_9%,var(--surface))] px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-[var(--primary-ink)]">
-          📚 Learn · {totalGuides} guides
-        </span>
-        <h1 className="text-[1.85rem] sm:text-[2.4rem] font-bold leading-[1.1] tracking-tight text-[var(--ink)]">
-          Beginner&apos;s Guide to the Stock Market
-        </h1>
-        <p className="text-[1.0625rem] leading-[1.7] text-[var(--ink-2)] max-w-xl mx-auto">
-          New to investing in Bangladesh? Start here.
-        </p>
-      </section>
+    <div className="page-narrow space-y-12">
+      <PageHeader
+        eyebrow={<>Learn · {totalGuides} guides</>}
+        title={<>Beginner&apos;s Guide to the Stock Market</>}
+        bn="শেয়ার বাজারে নতুন? একদম শুরু থেকে সহজ ভাষায় শিখুন।"
+        lead="New to investing in Bangladesh? Start here."
+      />
 
       {/* Category index — tap to jump to a section */}
       <section aria-label="Browse by topic" className="space-y-3">
-        <h2 className="text-center text-[0.72rem] font-bold uppercase tracking-[0.14em] text-[var(--ink-muted)]">
+        <h2 className="text-center text-xs font-bold uppercase tracking-[0.14em] text-text-muted">
           Browse by topic
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -112,14 +106,14 @@ export default function LearnPage() {
                 <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[color-mix(in_srgb,var(--primary)_8%,var(--surface-2))] text-lg">
                   {c.icon}
                 </span>
-                <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5 text-[0.68rem] font-bold text-[var(--ink-muted)]">
+                <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs font-bold text-text-muted">
                   {c.count}
                 </span>
               </div>
-              <span className="font-bold text-[var(--ink)] text-[0.92rem] leading-snug group-hover:text-[var(--primary)] transition-colors">
+              <span className="font-bold text-text-main text-base leading-snug group-hover:text-primary transition-colors">
                 {c.label}
               </span>
-              <span className="text-[0.78rem] leading-snug text-[var(--ink-2)] line-clamp-2">
+              <span className="text-xs leading-snug text-text-muted line-clamp-2">
                 {c.blurb}
               </span>
             </a>
@@ -137,16 +131,16 @@ export default function LearnPage() {
               <div className="flex items-center gap-3">
                 <span
                   aria-hidden="true"
-                  className="h-5 w-1 rounded-full bg-gradient-to-b from-[var(--primary)] to-[var(--primary-soft)]"
+                  className="h-5 w-1 rounded-full bg-gradient-to-b from-primary to-primary-soft"
                 />
-                <h2 className="text-[1.35rem] font-bold tracking-tight text-[var(--ink)]">
+                <h2 className="text-xl font-bold tracking-tight text-text-main">
                   {category}
                 </h2>
-                <span className="rounded-full bg-[var(--surface-2)] px-2.5 py-0.5 text-[0.7rem] font-bold text-[var(--ink-muted)]">
+                <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-bold text-text-muted">
                   {guidesInCategory.length}
                 </span>
               </div>
-              <p className="text-[0.95rem] leading-relaxed text-[var(--ink-2)] pl-4">
+              <p className="text-base leading-relaxed text-text-muted pl-4">
                 {GUIDE_CATEGORY_BLURB[category]}
               </p>
             </div>
@@ -162,19 +156,19 @@ export default function LearnPage() {
                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[color-mix(in_srgb,var(--primary)_8%,var(--surface-2))] text-2xl">
                       {guide.icon}
                     </span>
-                    <span className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] px-2.5 py-0.5 text-[0.7rem] font-medium text-[var(--ink-muted)]">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-text-muted">
                       {guide.readTime}
                     </span>
                   </div>
                   <div>
-                    <h3 className="font-bold text-[var(--ink)] text-[1.05rem] leading-snug group-hover:text-[var(--primary)] transition-colors">
+                    <h3 className="font-bold text-text-main text-base leading-snug group-hover:text-primary transition-colors">
                       {guide.title}
                     </h3>
-                    <p className="mt-1.5 text-[0.9rem] text-[var(--ink-2)] leading-relaxed">
+                    <p className="mt-1.5 text-sm text-text-muted leading-relaxed">
                       {guide.description}
                     </p>
                   </div>
-                  <span className="mt-auto inline-flex items-center gap-1 text-[0.82rem] font-semibold text-[var(--primary)]">
+                  <span className="mt-auto inline-flex items-center gap-1 text-sm font-semibold text-primary">
                     Read guide
                     <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">→</span>
                   </span>
@@ -187,7 +181,7 @@ export default function LearnPage() {
 
       {/* Footer CTA */}
       <section className="soft-card ambient-panel p-6 sm:p-7 text-center space-y-4">
-        <p className="text-[1.0625rem] font-semibold text-[var(--ink)]">
+        <p className="text-lg font-semibold text-text-main">
           Ready to put your knowledge to work?
         </p>
         <div className="flex flex-wrap justify-center gap-3">
@@ -200,7 +194,7 @@ export default function LearnPage() {
         </div>
       </section>
 
-    </main>
+    </div>
     </>
   );
 }

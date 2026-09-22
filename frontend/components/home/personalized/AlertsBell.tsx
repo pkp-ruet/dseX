@@ -80,7 +80,7 @@ export default function AlertsBell({ alerts }: { alerts: HomeAlert[] }) {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </svg>
         {newCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[var(--negative)] px-1 text-[0.68rem] font-extrabold leading-none text-white ring-2 ring-[var(--surface)]">
+          <span className="absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-negative px-1 text-xs font-extrabold leading-none text-white ring-2 ring-surface">
             {newCount > 9 ? "9+" : newCount}
           </span>
         )}
@@ -94,20 +94,20 @@ export default function AlertsBell({ alerts }: { alerts: HomeAlert[] }) {
             aria-hidden
           />
           <div
-            className={`absolute inset-x-0 bottom-0 flex max-h-[80vh] flex-col rounded-t-2xl border-t border-[var(--border)] bg-[var(--surface)] shadow-2xl transition-transform duration-200 ${open ? "translate-y-0" : "translate-y-full"}`}
+            className={`absolute inset-x-0 bottom-0 flex max-h-[80vh] flex-col rounded-t-2xl border-t border-border bg-surface shadow-2xl transition-transform duration-200 ${open ? "translate-y-0" : "translate-y-full"}`}
           >
             {/* Grab handle */}
             <div className="flex justify-center pt-2.5" aria-hidden>
-              <span className="h-1 w-10 rounded-full bg-[var(--border)]" />
+              <span className="h-1 w-10 rounded-full bg-border" />
             </div>
 
             <div className="flex items-center justify-between px-4 pb-2 pt-2">
-              <h2 className="text-base font-extrabold text-[var(--text)]">What&apos;s new</h2>
+              <h2 className="text-base font-extrabold text-text-main">What&apos;s new</h2>
               <button
                 type="button"
                 onClick={closeSheet}
                 aria-label="Close"
-                className="grid h-8 w-8 place-items-center rounded-full text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+                className="grid h-8 w-8 place-items-center rounded-full text-text-muted hover:bg-surface-2 hover:text-text-main"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                   <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
@@ -119,8 +119,8 @@ export default function AlertsBell({ alerts }: { alerts: HomeAlert[] }) {
               {alerts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center gap-1.5 py-12 text-center">
                   <span className="text-3xl" aria-hidden>✓</span>
-                  <p className="text-sm font-semibold text-[var(--text)]">You&apos;re all caught up</p>
-                  <p className="text-xs text-[var(--text-muted)]">No new alerts on your stocks today.</p>
+                  <p className="text-sm font-semibold text-text-main">You&apos;re all caught up</p>
+                  <p className="text-xs text-text-muted">No new alerts on your stocks today.</p>
                 </div>
               ) : (
                 <ul className="flex flex-col gap-1.5 py-1">
@@ -132,12 +132,12 @@ export default function AlertsBell({ alerts }: { alerts: HomeAlert[] }) {
                           ? "var(--negative)"
                           : "var(--text-muted)";
                     const row = (
-                      <div className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 transition hover:bg-[var(--surface-2)]">
-                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[var(--surface-2)] text-base" aria-hidden>
+                      <div className="flex items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2.5 transition hover:bg-surface-2">
+                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-surface-2 text-base" aria-hidden>
                           {a.emoji}
                         </span>
                         <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm font-semibold text-[var(--text)]">{a.title}</span>
+                          <span className="block truncate text-sm font-semibold text-text-main">{a.title}</span>
                           {a.detail && (
                             <span className="block truncate text-xs font-medium" style={{ color: toneColor }}>
                               {a.detail}
@@ -145,7 +145,7 @@ export default function AlertsBell({ alerts }: { alerts: HomeAlert[] }) {
                           )}
                         </span>
                         {a.href && (
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-[var(--text-muted)]" aria-hidden>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-text-muted" aria-hidden>
                             <path d="M9 18l6-6-6-6" />
                           </svg>
                         )}

@@ -28,8 +28,8 @@ export default function BehaviorTab({
     return () => { alive = false; };
   }, []);
 
-  if (error) return <p className="text-red-500 text-sm">{error}</p>;
-  if (!b) return <p className="text-[var(--text-muted)] text-sm">Loading behavior…</p>;
+  if (error) return <p className="form-error">{error}</p>;
+  if (!b) return <p className="text-text-muted text-sm">Loading behavior…</p>;
 
   const context = [
     { label: "Active users", value: b.active_users.toLocaleString(), sub: `page views in last ${b.window_days}d` },
@@ -87,7 +87,7 @@ export default function BehaviorTab({
           {attribution.length ? (
             <BarList items={attribution} color={COLORS.orange} />
           ) : (
-            <p className="py-6 text-center text-xs text-[var(--text-muted)]">
+            <p className="py-6 text-center text-xs text-text-muted">
               No tagged notification traffic yet. Push/email links carry a{" "}
               <code className="font-mono">?src=</code> tag that shows up here.
             </p>

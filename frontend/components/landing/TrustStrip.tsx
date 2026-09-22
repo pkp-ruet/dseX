@@ -30,16 +30,16 @@ const COLS: Record<number, string> = {
 function Item({ value, label, accent }: Figure) {
   return (
     <div
-      className="acc-top rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-3 sm:px-3.5"
+      className="acc-top rounded-xl border border-border bg-surface px-3 py-3 sm:px-3.5"
       style={{ "--acc": accent } as React.CSSProperties}
     >
       <span
-        className="font-display block text-[1.5rem] font-extrabold leading-none tabular-nums nums sm:text-[1.7rem]"
+        className="font-display block text-2xl font-extrabold leading-none tabular-nums nums sm:text-2xl"
         style={{ color: accent }}
       >
         {value}
       </span>
-      <span className="mt-1.5 block text-[0.68rem] font-semibold leading-tight text-[var(--text-muted)]">
+      <span className="mt-1.5 block text-xs font-semibold leading-tight text-text-muted">
         {label}
       </span>
     </div>
@@ -110,11 +110,11 @@ export default function TrustStrip({
           </svg>
         </span>
         <div className="min-w-0">
-          <p className="text-[0.85rem] font-semibold leading-relaxed text-[var(--text)]">
+          <p className="text-sm font-semibold leading-relaxed text-text-main">
             No tips, no rumours — every figure comes from what companies publish and from
             each day&apos;s market data.
           </p>
-          <Bn className="mt-1 text-[0.85rem] leading-relaxed text-[var(--text-muted)]">
+          <Bn className="mt-1 text-sm leading-relaxed text-text-muted">
             কোনো টিপস নয়, গুজব নয় — সব হিসাব কোম্পানির প্রকাশিত আর্থিক প্রতিবেদন আর প্রতিদিনের বাজার
             ডেটা থেকে।
           </Bn>

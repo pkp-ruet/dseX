@@ -33,10 +33,10 @@ function metricColor(item: MarketSignalItem, col: MetricCol): string | undefined
     return item.change_pct >= 0 ? "var(--positive)" : "var(--negative)";
   }
   if (col === "score" && item.score != null) {
-    if (item.score >= 75) return "var(--np-strong)";
-    if (item.score >= 55) return "var(--np-safe)";
-    if (item.score >= 35) return "var(--np-watch)";
-    return "var(--np-danger)";
+    if (item.score >= 75) return "var(--tier-excellent)";
+    if (item.score >= 55) return "var(--info)";
+    if (item.score >= 35) return "var(--watch)";
+    return "var(--negative)";
   }
   return undefined;
 }

@@ -70,7 +70,7 @@ const LENSES: Lens[] = [
     desc: "Dropped a lot, but still a decent company.",
     descBn: "অনেক পড়েছে, কিন্তু কোম্পানিটা খারাপ না।",
     ico: <IconTrendDown size={20} />,
-    color: "#6D28D9",
+    color: "var(--navy)",
     render: (s) => ({ meta: `${strengthWord(s.score)} · fell hard`, tone: "accent" }),
   },
 ];

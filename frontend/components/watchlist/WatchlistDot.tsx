@@ -90,7 +90,7 @@ export default function WatchlistDot() {
     <span
       aria-label="New activity in your watchlist"
       title="New activity in your watchlist"
-      className="absolute -top-0.5 -right-0.5 inline-block h-2 w-2 rounded-full bg-red-500 ring-2 ring-[var(--bg)]"
+      className="absolute -top-0.5 -right-0.5 inline-block h-2 w-2 rounded-full bg-negative ring-2 ring-bg"
     />
   );
 }

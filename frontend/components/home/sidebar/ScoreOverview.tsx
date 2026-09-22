@@ -18,7 +18,7 @@ export default function ScoreOverview({ counts, total, computedAt }: Props) {
   return (
     <div className="sidebar-widget">
       <div className="sidebar-widget-title">Score Overview</div>
-      <p style={{ fontSize: "0.68rem", color: "var(--ink-muted)", marginBottom: "10px" }}>
+      <p style={{ fontSize: "0.68rem", color: "var(--text-muted)", marginBottom: "10px" }}>
         {total} companies · DSEF Score
       </p>
       {TIERS.map(({ key, label, fillClass }) => {

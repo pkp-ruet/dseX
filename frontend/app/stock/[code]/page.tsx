@@ -24,8 +24,7 @@ import ProfitsAndDividends from "@/components/stock/ProfitsAndDividends";
 import ShareholdingPie from "@/components/stock/ShareholdingPie";
 import NewsSection from "@/components/stock/NewsSection";
 import StickySummaryBar from "@/components/stock/StickySummaryBar";
-import StickyStackMeasure from "@/components/stock/StickyStackMeasure";
-import StockSectionNav, { type NavSection } from "@/components/stock/StockSectionNav";
+import { type NavSection } from "@/components/stock/StockSectionNav";
 import StockVisitTracker from "@/components/analytics/StockVisitTracker";
 import { formatDate, money } from "@/lib/formatters";
 
@@ -304,23 +303,21 @@ export default async function StockDetailPage({ params }: PageProps) {
       {/* Our Verdict — one card, right below the price story (not a nav anchor) */}
       <VerdictBlock detail={detail} />
 
-      {/* Sticky stack: section jump-nav, with the fixed summary bar overlaid above it.
-          `.stock-sticky-stack` (globals.css) pins under navbar + the bar's live height
-          (--stock-bar-h), so the bar's open/close never changes the page's layout. */}
-      <div className="stock-sticky-stack z-40 -mx-4 sm:-mx-6">
-        <StickySummaryBar
-          code={profile.trading_code}
-          score={score}
-          rank={num(score_row?.overall_rank)}
-          total={num(score_row?.total_scored)}
-          signal={detail.signal ?? null}
-          ltp={num(detail.latest_price.ltp)}
-          changePct={num(detail.latest_price.change_pct)}
-        />
-        <StockSectionNav sections={sections} />
-        {/* writes the stack's live height to --stock-sticky-h for .stock-anchor */}
-        <StickyStackMeasure />
-      </div>
+      {/* The ONE sticky element: summary line (code · signal · price) above the
+          section chips. `.stock-sticky-stack` (globals.css) pins it under navbar +
+          the summary line's live height (--stock-bar-h), so the line's open/close
+          never changes the page's layout; the chip row's height is measured into
+          --stock-sticky-h for .stock-anchor. */}
+      <StickySummaryBar
+        code={profile.trading_code}
+        score={score}
+        rank={num(score_row?.overall_rank)}
+        total={num(score_row?.total_scored)}
+        signal={detail.signal ?? null}
+        ltp={num(detail.latest_price.ltp)}
+        changePct={num(detail.latest_price.change_pct)}
+        sections={sections}
+      />
 
       {/* Featured in our curated pick lists */}
       <FeaturedInStrip entries={featuredIn} />

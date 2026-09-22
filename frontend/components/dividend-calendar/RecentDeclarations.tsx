@@ -18,10 +18,10 @@ export default function RecentDeclarations({
         <span className="section-rule-text">Just Declared</span>
       </div>
 
-      <p className="mb-1 text-[0.88rem] font-semibold text-[var(--text)]">
+      <p className="mb-1 text-sm font-semibold text-text-main">
         The newest dividend announcements, with the record date each one carries.
       </p>
-      <Bn className="mb-4 text-[0.9rem] font-medium leading-[1.85] text-[var(--text-muted)]">
+      <Bn className="mb-4 text-sm font-medium leading-[1.85] text-text-muted">
         সদ্য ঘোষিত লভ্যাংশ এবং তার রেকর্ড ডেট।
       </Bn>
 

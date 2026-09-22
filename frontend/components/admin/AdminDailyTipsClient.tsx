@@ -91,7 +91,7 @@ export default function AdminDailyTipsClient() {
   if (isLoading || (!isAdmin && !loadError)) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <p className="text-[var(--text-muted)]">Loading…</p>
+        <p className="text-text-muted">Loading…</p>
       </div>
     );
   }
@@ -105,13 +105,13 @@ export default function AdminDailyTipsClient() {
       {/* Header / nav */}
       <div className="flex items-center justify-between mb-6 gap-2 flex-wrap">
         <div>
-          <p className="text-[11px] uppercase tracking-widest font-bold text-[var(--text-muted)] mb-1">
+          <p className="text-xs uppercase tracking-widest font-bold text-text-muted mb-1">
             Admin
           </p>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text)] leading-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-text-main leading-tight">
             Edit Daily Tips
           </h1>
-          <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-1">
+          <p className="text-xs sm:text-sm text-text-muted mt-1">
             Remove any tip you don&apos;t want on the homepage. Removing a stock blacklists it from
             all future tips until you restore it.
           </p>
@@ -119,7 +119,7 @@ export default function AdminDailyTipsClient() {
         <div className="flex items-center gap-2">
           <Button
             type="button"
-            variant="ghost"
+            variant="quiet"
             size="sm"
             onClick={refetch}
             disabled={busyCode != null}
@@ -127,47 +127,47 @@ export default function AdminDailyTipsClient() {
           >
             ⟳ Reload
           </Button>
-          <Link href="/admin/daily-pick" className="text-xs sm:text-sm text-[var(--accent)] hover:underline whitespace-nowrap">
+          <Link href="/admin/daily-pick" className="text-xs sm:text-sm text-primary hover:underline whitespace-nowrap">
             Picks
           </Link>
-          <Link href="/admin/scores" className="text-xs sm:text-sm text-[var(--accent)] hover:underline whitespace-nowrap">
+          <Link href="/admin/scores" className="text-xs sm:text-sm text-primary hover:underline whitespace-nowrap">
             Scores
           </Link>
-          <Link href="/admin/feedback" className="text-xs sm:text-sm text-[var(--accent)] hover:underline whitespace-nowrap">
+          <Link href="/admin/feedback" className="text-xs sm:text-sm text-primary hover:underline whitespace-nowrap">
             Feedback
           </Link>
-          <Link href="/admin/analytics" className="text-xs sm:text-sm text-[var(--accent)] hover:underline whitespace-nowrap">
+          <Link href="/admin/analytics" className="text-xs sm:text-sm text-primary hover:underline whitespace-nowrap">
             ← Analytics
           </Link>
         </div>
       </div>
 
       {loadError && (
-        <div className="mb-4 rounded-lg border px-3 py-2.5 text-sm text-[var(--negative)]" style={{ borderColor: "color-mix(in srgb, var(--negative) 40%, transparent)", background: "color-mix(in srgb, var(--negative) 10%, transparent)" }}>
+        <div className="mb-4 rounded-lg border px-3 py-2.5 text-sm text-negative" style={{ borderColor: "color-mix(in srgb, var(--negative) 40%, transparent)", background: "color-mix(in srgb, var(--negative) 10%, transparent)" }}>
           {loadError}
         </div>
       )}
       {actionNote && (
-        <div className="mb-4 rounded-lg border px-3 py-2.5 text-sm text-[var(--positive)]" style={{ borderColor: "color-mix(in srgb, var(--positive) 40%, transparent)", background: "color-mix(in srgb, var(--positive) 10%, transparent)" }}>
+        <div className="mb-4 rounded-lg border px-3 py-2.5 text-sm text-positive" style={{ borderColor: "color-mix(in srgb, var(--positive) 40%, transparent)", background: "color-mix(in srgb, var(--positive) 10%, transparent)" }}>
           {actionNote}
         </div>
       )}
       {actionError && (
-        <div className="mb-4 rounded-lg border px-3 py-2.5 text-sm text-[var(--negative)]" style={{ borderColor: "color-mix(in srgb, var(--negative) 40%, transparent)", background: "color-mix(in srgb, var(--negative) 10%, transparent)" }}>
+        <div className="mb-4 rounded-lg border px-3 py-2.5 text-sm text-negative" style={{ borderColor: "color-mix(in srgb, var(--negative) 40%, transparent)", background: "color-mix(in srgb, var(--negative) 10%, transparent)" }}>
           {actionError}
         </div>
       )}
 
       {/* Live tips */}
-      <Card as="section" padding="none" className="rounded-2xl overflow-hidden mb-5">
+      <Card as="section" padding="none" className="rounded-xl overflow-hidden mb-5">
         <div className="h-1.5 w-full" style={{ background: "linear-gradient(90deg, var(--primary-ink), var(--primary))" }} />
         <div className="p-4 sm:p-5">
-          <p className="text-[11px] uppercase tracking-widest font-bold mb-3 text-[var(--primary)]">
+          <p className="text-xs uppercase tracking-widest font-bold mb-3 text-primary">
             ★ Currently live on homepage · {tips.length} tips
           </p>
 
           {tips.length === 0 ? (
-            <p className="text-sm text-[var(--text-muted)]">
+            <p className="text-sm text-text-muted">
               No tips yet — they&apos;ll be generated on the next page load or daily scrape.
             </p>
           ) : (
@@ -175,22 +175,22 @@ export default function AdminDailyTipsClient() {
               {tips.map((tip) => (
                 <li
                   key={`${tip.category}-${tip.trading_code}`}
-                  className="flex items-start justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2.5"
+                  className="flex items-start justify-between gap-3 rounded-lg border border-border bg-bg px-3 py-2.5"
                 >
                   <div className="min-w-0">
                     <Link
                       prefetch={false} href={`/stock/${tip.trading_code}`}
-                      className="text-sm font-bold text-[var(--text)] hover:underline"
+                      className="text-sm font-bold text-text-main hover:underline"
                     >
                       {tip.trading_code}
                     </Link>
-                    <p className="text-xs text-[var(--text-muted)] leading-snug mt-0.5">{tip.text}</p>
+                    <p className="text-xs text-text-muted leading-snug mt-0.5">{tip.text}</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => handleExclude(tip)}
                     disabled={busyCode != null}
-                    className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold border-2 text-[var(--negative)] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                    className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold border-2 text-negative disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                     style={{ borderColor: "color-mix(in srgb, var(--negative) 40%, transparent)" }}
                   >
                     {busyCode === tip.trading_code ? "…" : "✕ Remove"}
@@ -200,7 +200,7 @@ export default function AdminDailyTipsClient() {
             </ul>
           )}
 
-          <p className="text-[11px] text-[var(--text-muted)] mt-4 leading-relaxed">
+          <p className="text-xs text-text-muted mt-4 leading-relaxed">
             Removing a tip blacklists the stock, regenerates the list (a new tip fills its place), and
             clears the homepage cache so visitors see the change immediately.
           </p>
@@ -208,37 +208,37 @@ export default function AdminDailyTipsClient() {
       </Card>
 
       {/* Excluded stocks */}
-      <Card as="section" padding="none" className="rounded-2xl p-4 sm:p-5">
+      <Card as="section" padding="none" className="rounded-xl p-4 sm:p-5">
         <div className="flex items-center justify-between mb-3 gap-2">
-          <h2 className="text-sm sm:text-base font-bold text-[var(--text)]">Excluded from tips</h2>
-          <span className="text-[11px] sm:text-xs text-[var(--text-muted)]">
+          <h2 className="text-sm sm:text-base font-bold text-text-main">Excluded from tips</h2>
+          <span className="text-xs sm:text-xs text-text-muted">
             {excludes.length} {excludes.length === 1 ? "stock" : "stocks"}
           </span>
         </div>
 
         {excludes.length === 0 ? (
-          <p className="text-xs sm:text-sm text-[var(--text-muted)]">No stocks excluded.</p>
+          <p className="text-xs sm:text-sm text-text-muted">No stocks excluded.</p>
         ) : (
           <ul className="flex flex-col gap-2">
             {excludes.map((ex) => (
               <li
                 key={ex.trading_code}
-                className="flex items-start justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2"
+                className="flex items-start justify-between gap-3 rounded-lg border border-border bg-bg px-3 py-2"
               >
                 <div className="min-w-0">
-                  <Link prefetch={false} href={`/stock/${ex.trading_code}`} className="text-sm font-bold text-[var(--text)] hover:underline">
+                  <Link prefetch={false} href={`/stock/${ex.trading_code}`} className="text-sm font-bold text-text-main hover:underline">
                     {ex.trading_code}
                   </Link>
                   {ex.company_name && (
-                    <p className="text-[11px] text-[var(--text-muted)] truncate">{ex.company_name}</p>
+                    <p className="text-xs text-text-muted truncate">{ex.company_name}</p>
                   )}
-                  <p className="text-[11px] text-[var(--text-muted)]">
+                  <p className="text-xs text-text-muted">
                     {ex.updated_by ? `by ${ex.updated_by} · ` : ""}{fmtTime(ex.updated_at)}
                   </p>
                 </div>
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="quiet"
                   size="sm"
                   onClick={() => handleRestore(ex.trading_code)}
                   disabled={busyCode != null}

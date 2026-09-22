@@ -65,7 +65,7 @@ export default function PulseTab({ data }: { data: AdminAnalyticsResponse }) {
 
       {/* Engagement segment strip */}
       <div>
-        <h3 className="text-sm font-bold text-[var(--text)] mb-2">Lifecycle</h3>
+        <h3 className="text-sm font-bold text-text-main mb-2">Lifecycle</h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {SEGMENT_ORDER.map((seg) => {
             const m = SEGMENT_META[seg];
@@ -73,9 +73,9 @@ export default function PulseTab({ data }: { data: AdminAnalyticsResponse }) {
             return (
               <div key={seg} className="soft-card rounded-xl p-4" style={{ borderTop: `3px solid ${m.color}` }}>
                 <p className="text-2xl font-bold tabular-nums nums" style={{ color: m.color }}>{count}</p>
-                <p className="text-[11px] text-[var(--text-muted)] tabular-nums">{Math.round((count / total) * 100)}% of users</p>
-                <p className="text-xs font-semibold text-[var(--text)] mt-1">{m.label}</p>
-                <p className="text-[11px] text-[var(--text-muted)] leading-tight">{m.blurb}</p>
+                <p className="text-xs text-text-muted tabular-nums">{Math.round((count / total) * 100)}% of users</p>
+                <p className="text-xs font-semibold text-text-main mt-1">{m.label}</p>
+                <p className="text-xs text-text-muted leading-tight">{m.blurb}</p>
               </div>
             );
           })}

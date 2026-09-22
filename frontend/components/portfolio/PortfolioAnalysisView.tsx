@@ -9,6 +9,7 @@ import AllocationChart from "./AllocationChart";
 import SectorBreakdownChart from "./SectorBreakdownChart";
 import HoldingsDetailed from "./HoldingsDetailed";
 import RebalanceHelper from "./RebalanceHelper";
+import Button from "@/components/ui/Button";
 
 /** Grade accents come from the site tokens — no raw palette colors. */
 const GRADE_ACCENT: Record<Grade, string> = {
@@ -105,7 +106,7 @@ export default function PortfolioAnalysisView({
     >
       {/* Verdict hero */}
       <section
-        className="relative overflow-hidden border rounded-2xl p-5 sm:p-7"
+        className="relative overflow-hidden border rounded-xl p-5 sm:p-7"
         style={{
           background: `
             radial-gradient(120% 130% at 0% 0%, color-mix(in srgb, ${accent} 10%, transparent) 0%, transparent 55%),
@@ -116,21 +117,20 @@ export default function PortfolioAnalysisView({
       >
         {/* English / বাংলা toggle */}
         {onLangChange && (
-          <div className="absolute top-3 right-3 sm:top-4 sm:right-4 inline-flex rounded-full border border-[var(--border)] bg-[var(--surface)] overflow-hidden text-xs shadow-sm z-10">
+          <div className="absolute right-3 top-3 z-10 inline-flex rounded-full border border-border bg-surface p-0.5 shadow-soft sm:right-4 sm:top-4" role="group" aria-label="Language">
             {(["bn", "en"] as AnalysisLang[]).map((l) => (
-              <button
+              <Button
                 key={l}
                 type="button"
-                onClick={() => onLangChange(l)}
+                variant="tab"
+                size="sm"
+                active={lang === l}
                 aria-pressed={lang === l}
-                className={`px-3 py-1.5 font-bold transition-colors ${l === "bn" ? "font-bn" : ""} ${
-                  lang === l
-                    ? "bg-[var(--primary)] text-white"
-                    : "bg-transparent text-[var(--text-muted)] hover:text-[var(--text)]"
-                }`}
+                onClick={() => onLangChange(l)}
+                className={l === "bn" ? "font-bn" : ""}
               >
                 {l === "en" ? "English" : "বাংলা"}
-              </button>
+              </Button>
             ))}
           </div>
         )}
@@ -138,7 +138,7 @@ export default function PortfolioAnalysisView({
         <div className="flex flex-col sm:flex-row items-start gap-5 sm:gap-6">
           {/* Grade badge */}
           <div
-            className="flex flex-col items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-2 shrink-0"
+            className="flex flex-col items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-xl border-2 shrink-0"
             style={{
               color: accent,
               background: `color-mix(in srgb, ${accent} 15%, transparent)`,
@@ -150,7 +150,7 @@ export default function PortfolioAnalysisView({
               {analysis.grade}
             </span>
             <span
-              className={`text-[11px] sm:text-xs uppercase tracking-wider mt-1.5 font-bold ${bnText}`}
+              className={`text-xs sm:text-xs uppercase tracking-wider mt-1.5 font-bold ${bnText}`}
             >
               {bnMode ? GRADE_LABEL_BN[analysis.gradeLabel] : analysis.gradeLabel}
             </span>
@@ -160,24 +160,24 @@ export default function PortfolioAnalysisView({
           {/* sm:pr reserves room for the absolute English/বাংলা toggle in the corner */}
           <div className={`flex-1 min-w-0 w-full ${onLangChange ? "sm:pr-36" : ""}`}>
             <p
-              className={`text-[11px] sm:text-xs uppercase tracking-[0.18em] font-bold mb-2 ${bnText}`}
+              className={`text-xs sm:text-xs uppercase tracking-[0.18em] font-bold mb-2 ${bnText}`}
               style={{ color: accent }}
             >
               {t.verdict}
             </p>
             <p
-              className={`text-base sm:text-lg text-[var(--text)] leading-relaxed font-medium ${bnText}`}
+              className={`text-base sm:text-lg text-text-main leading-relaxed font-medium ${bnText}`}
             >
               {analysis.headline}
             </p>
-            <p className={`text-sm sm:text-[15px] text-[var(--ink-2)] leading-relaxed mt-3 ${bnText}`}>
+            <p className={`text-sm sm:text-base text-text-muted leading-relaxed mt-3 ${bnText}`}>
               {analysis.gradeExplanation}
             </p>
           </div>
         </div>
 
         {/* Sub-score chips */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-5 sm:mt-6 pt-5 border-t border-[var(--border)]/60">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-5 sm:mt-6 pt-5 border-t border-border/60">
           <SubScore label={t.spread} value={spread} hint={t.spreadHint} bnMode={bnMode} />
           <SubScore label={t.quality} value={quality} hint={t.qualityHint} bnMode={bnMode} />
           <SubScore label={t.entry} value={entry} hint={t.entryHint} bnMode={bnMode} />
@@ -187,7 +187,7 @@ export default function PortfolioAnalysisView({
       {/* How to read the lists */}
       <div className="flex items-start gap-2.5 px-1">
         <svg
-          className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 text-[var(--primary)] shrink-0"
+          className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 text-primary shrink-0"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -199,7 +199,7 @@ export default function PortfolioAnalysisView({
           <circle cx="12" cy="12" r="10" />
           <path d="M12 16v-4M12 8h.01" />
         </svg>
-        <p className={`text-sm text-[var(--ink-2)] leading-relaxed ${bnText}`}>{t.howToRead}</p>
+        <p className={`text-sm text-text-muted leading-relaxed ${bnText}`}>{t.howToRead}</p>
       </div>
 
       {/* Good / Bad / Consider */}
@@ -241,7 +241,7 @@ export default function PortfolioAnalysisView({
 
       {showDisclaimer && (
         <p
-          className={`text-xs text-[var(--text-muted)] text-center mt-1 leading-relaxed px-2 ${bnText}`}
+          className={`text-xs text-text-muted text-center mt-1 leading-relaxed px-2 ${bnText}`}
         >
           {t.disclaimer}
         </p>
@@ -277,18 +277,18 @@ function SubScore({
       {/* Stacked on phones: "QUALITY" + "7.5/10" cannot share a 90px column */}
       <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-x-1">
         <span
-          className={`text-[11px] sm:text-xs uppercase tracking-wider font-bold text-[var(--text)] ${bnText}`}
+          className={`text-xs sm:text-xs uppercase tracking-wider font-bold text-text-main ${bnText}`}
         >
           {label}
         </span>
         <span className="text-base sm:text-lg font-black tabular-nums" style={{ color: accent }}>
           {value.toFixed(1)}
-          <span className="text-[11px] sm:text-xs text-[var(--text-muted)] font-semibold ml-0.5">
+          <span className="text-xs sm:text-xs text-text-muted font-semibold ml-0.5">
             /10
           </span>
         </span>
       </div>
-      <div className="h-1.5 w-full rounded-full bg-[var(--border)]/50 overflow-hidden">
+      <div className="h-1.5 w-full rounded-full bg-border/50 overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-500"
           style={{ width: `${pct}%`, background: accent }}
@@ -296,7 +296,7 @@ function SubScore({
         />
       </div>
       <span
-        className={`text-[11px] sm:text-[11px] text-[var(--text-muted)] leading-snug hidden sm:block ${bnText}`}
+        className={`text-xs sm:text-xs text-text-muted leading-snug hidden sm:block ${bnText}`}
       >
         {hint}
       </span>
@@ -355,7 +355,7 @@ function Section({ title, tone, items, emptyText, bnMode }: SectionProps) {
     background: `color-mix(in srgb, ${accent} 12%, transparent)`,
   };
   return (
-    <div className="flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5">
+    <div className="flex flex-col rounded-xl border border-border bg-surface p-4 sm:p-5">
       <div className="flex items-center gap-2.5 mb-4">
         <span
           className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0"
@@ -364,7 +364,7 @@ function Section({ title, tone, items, emptyText, bnMode }: SectionProps) {
           <span className="w-[18px] h-[18px]">{icon}</span>
         </span>
         <h3
-          className={`text-sm sm:text-[15px] font-bold text-[var(--text)] leading-tight ${bnText}`}
+          className={`text-sm sm:text-base font-bold text-text-main leading-tight ${bnText}`}
         >
           {title}
         </h3>
@@ -379,7 +379,7 @@ function Section({ title, tone, items, emptyText, bnMode }: SectionProps) {
       </div>
 
       {items.length === 0 ? (
-        <p className={`text-sm text-[var(--text-muted)] leading-relaxed ${bnText}`}>
+        <p className={`text-sm text-text-muted leading-relaxed ${bnText}`}>
           {emptyText}
         </p>
       ) : (
@@ -391,7 +391,7 @@ function Section({ title, tone, items, emptyText, bnMode }: SectionProps) {
                 style={{ background: accent }}
                 aria-hidden
               />
-              <span className={`text-sm sm:text-[15px] text-[var(--text)] leading-[1.65] ${bnText}`}>
+              <span className={`text-sm sm:text-base text-text-main leading-[1.65] ${bnText}`}>
                 {item}
               </span>
             </li>

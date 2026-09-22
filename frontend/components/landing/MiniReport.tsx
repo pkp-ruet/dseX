@@ -1,7 +1,11 @@
 import Link from "next/link";
-import { getTier, TIER_VAR, TIER_LABELS, TIER_GRADES, TIER_MEANINGS } from "@/lib/constants";
-import { PILLARS, pillarBand, PILLAR_BAND_COLOR, type LandingStock } from "@/lib/landing";
+import { getTier, TIER_VAR, TIER_MEANINGS } from "@/lib/constants";
+import { PILLARS, type LandingStock } from "@/lib/landing";
+import { pillarColor } from "@/lib/insight-utils";
 import Bn from "@/components/i18n/Bn";
+import ScoreBadge from "@/components/ui/ScoreBadge";
+import TierPill from "@/components/ui/TierPill";
+import SignalChip from "@/components/ui/SignalChip";
 
 /**
  * The report card the hero shows for whichever stock the visitor picks.
@@ -32,22 +36,21 @@ function moveColor(n: number | null | undefined): string {
 
 /** One pillar row: name, a 0–10 bar, and the number itself. */
 function PillarRow({ label, value }: { label: string; value: number | null }) {
-  const band = pillarBand(value);
-  const color = PILLAR_BAND_COLOR[band];
+  const color = pillarColor(value);
   const pct = value == null ? 0 : Math.max(0, Math.min(100, value * 10));
 
   return (
     <div className="flex items-center gap-2.5">
-      <span className="w-[7.5rem] shrink-0 text-[0.72rem] font-semibold leading-tight text-[var(--text-muted)]">
+      <span className="w-[7.5rem] shrink-0 text-xs font-semibold leading-tight text-text-muted">
         {label}
       </span>
-      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--surface-2)]">
+      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-2">
         {value != null && (
           <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
         )}
       </div>
       <span
-        className="w-7 shrink-0 text-right text-[0.7rem] font-extrabold tabular-nums nums"
+        className="w-7 shrink-0 text-right text-xs font-extrabold tabular-nums nums"
         style={{ color: value == null ? "var(--text-muted)" : color }}
       >
         {value == null ? "—" : value.toFixed(1)}
@@ -61,8 +64,6 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
   const tierColor = TIER_VAR[tier];
   const hasSignal = stock.sig !== "none";
   const signalColor = stock.sig === "buy" ? "var(--positive)" : "var(--negative)";
-  const signalLabel =
-    stock.sig === "buy" ? (stock.strong ? "Strong Buy" : "Buy") : "Sell";
 
   return (
     <article className="soft-card relative overflow-hidden">
@@ -83,7 +84,7 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span
-              className="inline-flex items-center rounded-md border px-2 py-0.5 font-mono text-[0.82rem] font-extrabold tracking-[0.03em]"
+              className="inline-flex items-center rounded-md border px-2 py-0.5 font-mono text-sm font-extrabold tracking-[0.03em]"
               style={{
                 color: tierColor,
                 background: `color-mix(in srgb, ${tierColor} 10%, transparent)`,
@@ -93,43 +94,24 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
               {stock.code}
             </span>
             {stock.category && (
-              <span className="text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)]">
+              <span className="text-xs font-bold uppercase tracking-[0.1em] text-text-muted">
                 Cat {stock.category}
               </span>
             )}
           </div>
-          <h3 className="mt-1.5 line-clamp-2 text-[0.9rem] font-bold leading-snug text-[var(--text)]">
+          <h3 className="mt-1.5 line-clamp-2 text-sm font-bold leading-snug text-text-main">
             {stock.name ?? stock.code}
           </h3>
           {stock.sector && (
-            <p className="mt-0.5 truncate text-[0.7rem] font-medium text-[var(--text-muted)]">
+            <p className="mt-0.5 truncate text-xs font-medium text-text-muted">
               {stock.sector}
             </p>
           )}
         </div>
 
-        <div className="shrink-0 text-right">
-          <div className="flex items-baseline justify-end gap-1">
-            <span
-              className="font-display text-[2.4rem] font-extrabold leading-none tabular-nums nums"
-              style={{ color: tierColor }}
-            >
-              {stock.score == null ? "—" : Math.round(stock.score)}
-            </span>
-            <span className="text-[0.7rem] font-bold text-[var(--text-muted)]">/100</span>
-          </div>
-          <div className="mt-1.5 flex items-center justify-end gap-1.5">
-            <span
-              className="inline-flex h-5 w-5 items-center justify-center rounded text-[0.7rem] font-extrabold text-white"
-              style={{ background: tierColor }}
-              aria-hidden
-            >
-              {TIER_GRADES[tier]}
-            </span>
-            <span className="text-[0.75rem] font-extrabold" style={{ color: tierColor }}>
-              {TIER_LABELS[tier]}
-            </span>
-          </div>
+        <div className="flex shrink-0 flex-col items-center gap-1.5">
+          <ScoreBadge score={stock.score} tier={tier} size="lg" />
+          <TierPill tier={tier} size="sm" />
         </div>
       </div>
 
@@ -146,19 +128,19 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
       >
         <div className="flex items-start gap-2.5">
           {hasSignal && (
-            <span
-              className="shrink-0 rounded-md px-2 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-white"
-              style={{ background: signalColor }}
-            >
-              {signalLabel}
-            </span>
+            <SignalChip
+              signal={stock.sig}
+              strength={stock.strong ? "strong" : null}
+              size="sm"
+              className="shrink-0"
+            />
           )}
-          <p className="text-[0.78rem] font-semibold leading-relaxed text-[var(--text)]">
+          <p className="text-xs font-semibold leading-relaxed text-text-main">
             {stock.reasonEn ?? TIER_MEANINGS[tier]}
           </p>
         </div>
         {stock.reasonBn && (
-          <Bn className="mt-1.5 text-[0.76rem] leading-relaxed text-[var(--text-muted)]">
+          <Bn className="mt-1.5 text-xs leading-relaxed text-text-muted">
             {stock.reasonBn}
           </Bn>
         )}
@@ -166,7 +148,7 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
 
       {/* The five pillars — this is the part that says "there is a method here" */}
       <div className="flex flex-col gap-2 px-4 py-3.5 sm:px-5">
-        <p className="mb-0.5 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+        <p className="mb-0.5 text-xs font-bold uppercase tracking-[0.12em] text-text-muted">
           The five checks behind the score
         </p>
         {PILLARS.map((p, i) => (
@@ -175,57 +157,57 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
       </div>
 
       {/* Hard numbers */}
-      <div className="grid grid-cols-4 gap-2 border-t border-[var(--border)] px-4 py-3 sm:px-5">
+      <div className="grid grid-cols-4 gap-2 border-t border-border px-4 py-3 sm:px-5">
         <div className="min-w-0">
-          <div className="text-[0.82rem] font-extrabold tabular-nums nums text-[var(--text)]">
+          <div className="text-sm font-extrabold tabular-nums nums text-text-main">
             ৳{fmt(stock.ltp)}
           </div>
-          <span className="mt-0.5 block truncate text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+          <span className="mt-0.5 block truncate text-xs font-semibold uppercase tracking-[0.08em] text-text-muted">
             Price
           </span>
         </div>
         <div className="min-w-0">
           <div
-            className="text-[0.82rem] font-extrabold tabular-nums nums"
+            className="text-sm font-extrabold tabular-nums nums"
             style={{ color: moveColor(stock.chg) }}
           >
             {fmtSigned(stock.chg)}
           </div>
-          <span className="mt-0.5 block truncate text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+          <span className="mt-0.5 block truncate text-xs font-semibold uppercase tracking-[0.08em] text-text-muted">
             Today
           </span>
         </div>
         <div className="min-w-0">
-          <div className="text-[0.82rem] font-extrabold tabular-nums nums text-[var(--text)]">
+          <div className="text-sm font-extrabold tabular-nums nums text-text-main">
             {stock.divY == null ? "—" : `${stock.divY.toFixed(1)}%`}
           </div>
-          <span className="mt-0.5 block truncate text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+          <span className="mt-0.5 block truncate text-xs font-semibold uppercase tracking-[0.08em] text-text-muted">
             Dividend
           </span>
         </div>
         <div className="min-w-0">
           <div
-            className="text-[0.82rem] font-extrabold tabular-nums nums"
+            className="text-sm font-extrabold tabular-nums nums"
             style={{ color: moveColor(stock.epsG) }}
           >
             {fmtSigned(stock.epsG)}
           </div>
-          <span className="mt-0.5 block truncate text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+          <span className="mt-0.5 block truncate text-xs font-semibold uppercase tracking-[0.08em] text-text-muted">
             Profit growth
           </span>
         </div>
       </div>
 
       {/* Provenance — the reader can see how old the underlying report is. */}
-      <div className="flex items-center justify-between gap-3 border-t border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 sm:px-5">
-        <span className="text-[0.68rem] font-semibold text-[var(--text-muted)]">
+      <div className="flex items-center justify-between gap-3 border-t border-border bg-surface-2 px-4 py-2.5 sm:px-5">
+        <span className="text-xs font-semibold text-text-muted">
           {stock.year ? `Based on the FY${stock.year} report` : "No annual report on file"}
-          {stock.stale && <span className="text-[var(--np-cautious)]"> · report is old</span>}
+          {stock.stale && <span className="text-watch"> · report is old</span>}
         </span>
         <Link
           href={`/stock/${stock.code}`}
           prefetch={false}
-          className="shrink-0 text-[0.7rem] font-bold text-[var(--primary-ink)] hover:underline"
+          className="shrink-0 text-xs font-bold text-primary-ink hover:underline"
         >
           Full report →
         </Link>

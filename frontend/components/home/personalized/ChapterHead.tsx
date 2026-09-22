@@ -30,7 +30,7 @@ export default function ChapterHead({
           </span>
         )}
         <h2
-          className="text-[0.8rem] font-extrabold uppercase tracking-[0.16em]"
+          className="text-sm font-extrabold uppercase tracking-[0.16em]"
           style={{ color: accent ? "var(--acc)" : "var(--text)" }}
         >
           {label}
@@ -44,7 +44,7 @@ export default function ChapterHead({
           }}
         />
       </div>
-      {sub && <p className="mt-1 text-[0.8rem] leading-snug text-[var(--text-muted)]">{sub}</p>}
+      {sub && <p className="mt-1 text-sm leading-snug text-text-muted">{sub}</p>}
     </div>
   );
 }

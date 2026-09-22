@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { ScoreItem } from "@/lib/api";
 import SignalChip from "@/components/ui/SignalChip";
 import TierPill from "@/components/ui/TierPill";
+import ScoreBadge from "@/components/ui/ScoreBadge";
 import StarButton from "@/components/ui/StarButton";
 import { taka } from "@/lib/formatters";
 
@@ -12,7 +13,7 @@ type Tab = "all" | "strong";
 type SortKey = "match" | "gainers" | "losers" | "dividend";
 
 interface Props {
-  /** Every buy signal (strong + normal). Sell is not shown in the UI. */
+  /** Every buy signal (strong + normal) — this page lists buys only. */
   buy: ScoreItem[];
   sectors: string[];
 }
@@ -94,7 +95,7 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
         <TabButton
           active={tab === "all"}
           tone="var(--positive)"
-          glyph="▲"
+          glyph="up"
           label="All buys"
           count={buy.length}
           onClick={() => setTab("all")}
@@ -102,7 +103,7 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
         <TabButton
           active={tab === "strong"}
           tone="var(--positive)"
-          glyph="★"
+          glyph="star"
           label="Strong buys"
           count={strongBuys.length}
           onClick={() => setTab("strong")}
@@ -130,7 +131,7 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search code or company…"
             aria-label="Search companies"
-            className="w-full rounded-xl pl-9 pr-3 py-2.5 text-sm outline-none transition-colors focus:border-[var(--primary)]"
+            className="w-full rounded-xl pl-9 pr-3 py-2.5 text-sm outline-none transition-colors focus:border-primary"
             style={{
               background: "var(--surface)",
               border: "1px solid var(--border)",
@@ -143,7 +144,7 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
           value={sector}
           onChange={(e) => setSector(e.target.value)}
           aria-label="Filter by sector"
-          className="rounded-xl px-3 py-2.5 text-sm outline-none cursor-pointer focus:border-[var(--primary)]"
+          className="rounded-xl px-3 py-2.5 text-sm outline-none cursor-pointer focus:border-primary"
           style={{
             background: "var(--surface)",
             border: "1px solid var(--border)",
@@ -162,7 +163,7 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
           value={sort}
           onChange={(e) => setSort(e.target.value as SortKey)}
           aria-label="Sort signals"
-          className="rounded-xl px-3 py-2.5 text-sm outline-none cursor-pointer focus:border-[var(--primary)]"
+          className="rounded-xl px-3 py-2.5 text-sm outline-none cursor-pointer focus:border-primary"
           style={{
             background: "var(--surface)",
             border: "1px solid var(--border)",
@@ -202,7 +203,7 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
       {/* Cards */}
       {shown.length === 0 ? (
         <div
-          className="text-center py-16 rounded-2xl mt-4"
+          className="text-center py-16 rounded-xl mt-4"
           style={{ background: "var(--surface)", border: "1px dashed var(--border)" }}
         >
           <p className="text-lg font-bold" style={{ color: "var(--text)" }}>
@@ -250,7 +251,7 @@ function TabButton({
 }: {
   active: boolean;
   tone: string;
-  glyph: string;
+  glyph: "up" | "star";
   label: string;
   count: number;
   onClick: () => void;
@@ -260,26 +261,29 @@ function TabButton({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className="flex items-center justify-center gap-2 rounded-2xl px-3 py-3 font-bold transition-all"
+      className="flex items-center justify-center gap-2 rounded-xl px-3 py-3 font-bold transition-all"
       style={{
-        color: active ? "#fff" : "var(--text)",
+        color: active ? "var(--surface)" : "var(--text)",
         background: active ? tone : "var(--surface)",
         border: `1px solid ${active ? tone : "var(--border)"}`,
         boxShadow: active ? "var(--shadow-soft)" : "none",
       }}
     >
-      <span aria-hidden style={{ fontSize: 10 }}>
-        {glyph}
-      </span>
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+        {glyph === "up" ? (
+          <path d="M12 4 21 19H3z" />
+        ) : (
+          <path d="m12 2.5 2.9 6.1 6.6.8-4.9 4.6 1.3 6.5L12 17.3 6.1 20.5l1.3-6.5L2.5 9.4l6.6-.8z" />
+        )}
+      </svg>
       <span className="text-sm sm:text-base">{label}</span>
       <span
-        className="tabular-nums"
+        className="rounded-full px-2 text-xs tabular-nums"
         style={{
-          background: active ? "rgba(255,255,255,0.22)" : `color-mix(in srgb, ${tone} 12%, transparent)`,
-          color: active ? "#fff" : tone,
-          padding: "1px 8px",
-          borderRadius: 999,
-          fontSize: "0.78rem",
+          background: active
+            ? "color-mix(in srgb, var(--surface) 22%, transparent)"
+            : `color-mix(in srgb, ${tone} 12%, transparent)`,
+          color: active ? "var(--surface)" : tone,
         }}
       >
         {count}
@@ -300,7 +304,7 @@ function SignalCard({ item }: { item: ScoreItem }) {
     <Link
       prefetch={false}
       href={`/stock/${item.trading_code}`}
-      className="group relative block rounded-2xl overflow-hidden transition-all hover:shadow-[0_16px_36px_-16px_rgba(28,25,23,0.22)]"
+      className="group relative block rounded-xl overflow-hidden transition-all hover:shadow-soft"
       style={{
         background: "var(--surface)",
         border: "1px solid var(--border)",
@@ -339,7 +343,7 @@ function SignalCard({ item }: { item: ScoreItem }) {
         <div className="mt-3 flex items-start gap-2.5">
           {sig && <SignalChip signal={sig.signal} strength={sig.strength} size="md" />}
           {sig?.reason_en && (
-            <p className="text-[13px] leading-snug font-medium flex-1" style={{ color: "var(--text)" }}>
+            <p className="text-sm leading-snug font-medium flex-1" style={{ color: "var(--text)" }}>
               {sig.reason_en}
             </p>
           )}
@@ -350,15 +354,7 @@ function SignalCard({ item }: { item: ScoreItem }) {
           className="mt-3.5 pt-3 flex items-center gap-4 text-sm"
           style={{ borderTop: "1px dashed var(--border)" }}
         >
-          <div className="tabular-nums shrink-0">
-            <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-              Score{" "}
-            </span>
-            <b style={{ color: "var(--text)" }}>{score != null ? Math.round(score) : "--"}</b>
-            <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-              /100
-            </span>
-          </div>
+          <ScoreBadge score={score} size="sm" />
           <div className="tabular-nums shrink-0">
             <b style={{ color: "var(--text)" }}>
               {taka(item.ltp, item.ltp != null && item.ltp >= 100 ? 0 : 1)}

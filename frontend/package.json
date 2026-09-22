@@ -14,7 +14,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint && node scripts/design-lint.mjs",
+    "lint:design": "node scripts/design-lint.mjs"
   },
   "dependencies": {
     "@next/third-parties": "^16.2.4",

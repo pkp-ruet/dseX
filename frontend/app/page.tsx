@@ -225,11 +225,11 @@ function HeroFallback() {
     <section className="pt-6 sm:pt-10">
       <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-[1fr_minmax(0,26rem)] md:gap-12">
         <div className="flex flex-col gap-4">
-          <div className="h-14 w-full animate-pulse rounded bg-[var(--surface-2)]" />
-          <div className="h-16 w-full animate-pulse rounded bg-[var(--surface-2)]" />
-          <div className="h-14 w-full animate-pulse rounded bg-[var(--surface-2)]" />
+          <div className="h-14 w-full animate-pulse rounded bg-surface-2" />
+          <div className="h-16 w-full animate-pulse rounded bg-surface-2" />
+          <div className="h-14 w-full animate-pulse rounded bg-surface-2" />
         </div>
-        <div className="h-80 w-full animate-pulse rounded-2xl bg-[var(--surface-2)]" />
+        <div className="h-80 w-full animate-pulse rounded-2xl bg-surface-2" />
       </div>
     </section>
   );

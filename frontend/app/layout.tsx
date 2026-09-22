@@ -2,6 +2,15 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Inter, Space_Grotesk, Hind_Siliguri } from "next/font/google";
 import "./globals.css";
+// Page-area styles, layered AFTER globals.css so an equal-specificity rule here
+// wins. One file per area; globals.css holds tokens + shared primitives only.
+import "./styles/page-shell.css";
+import "./styles/tables.css";
+import "./styles/lists.css";
+import "./styles/stock.css";
+import "./styles/nav.css";
+import "./styles/states.css";
+import "./styles/misc.css";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -29,7 +38,6 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import MobileBottomBar from "@/components/layout/MobileBottomBar";
 import GlobalSearch from "@/components/layout/GlobalSearch";
-import ExploreSheet from "@/components/layout/ExploreSheet";
 import MarketDataBanner from "@/components/layout/MarketDataBanner";
 import ConditionalAnalytics from "@/components/analytics/ConditionalAnalytics";
 import { AuthProvider } from "@/context/AuthContext";
@@ -125,7 +133,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <MobileBottomBar />
             <GlobalSearch />
             <Toaster />
-            <ExploreSheet />
             <FeedbackPrompt />
             <PushOptInPrompt />
             <InstallPrompt />

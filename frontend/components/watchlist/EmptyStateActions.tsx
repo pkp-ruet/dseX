@@ -5,6 +5,8 @@ import Link from "next/link";
 import { flattenTiers, getScores, type ScoresResponse, type ScoreItem } from "@/lib/api";
 import { addToWatchlist, getCachedWatchlist, subscribeWatchlist } from "@/lib/watchlist";
 import { taka } from "@/lib/formatters";
+import Button from "@/components/ui/Button";
+import Skeleton from "@/components/ui/Skeleton";
 
 interface Props {
   /** Tighter top spacing + no heading when embedded in another card (homepage first-run). */
@@ -68,18 +70,25 @@ export default function EmptyStateActions({ compact = false, onAdded }: Props = 
   return (
     <div className={`text-left ${compact ? "mt-3" : "mt-5"}`}>
       {!compact && (
-        <p className="mb-2.5 text-[0.7rem] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+        <p className="mb-2.5 text-xs font-bold uppercase tracking-[0.14em] text-text-muted">
           Suggested to follow
         </p>
       )}
 
       {scores === null ? (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-2" aria-busy="true" aria-label="Loading suggestions">
           {[...Array(4)].map((_, i) => (
-            <li
-              key={i}
-              className="h-[60px] animate-pulse rounded-xl border border-[var(--border)] bg-[var(--surface-2)]"
-            />
+            <li key={i} className="flex items-center gap-3 rounded-xl border border-border bg-surface p-2.5 pl-3.5">
+              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                <Skeleton width={64} height={14} />
+                <Skeleton width="55%" height={12} />
+              </div>
+              <div className="flex flex-col items-end gap-1.5">
+                <Skeleton width={48} height={14} />
+                <Skeleton width={36} height={12} />
+              </div>
+              <Skeleton width={64} height={36} rounded="999px" />
+            </li>
           ))}
         </ul>
       ) : (
@@ -88,60 +97,60 @@ export default function EmptyStateActions({ compact = false, onAdded }: Props = 
             const code = it.trading_code.toUpperCase();
             const isWatched = watched.includes(code);
             const chg = it.change_pct;
-            const chgColor =
+            const chgClass =
               chg == null || chg === 0
-                ? "var(--text-muted)"
+                ? "text-text-muted"
                 : chg > 0
-                  ? "var(--positive)"
-                  : "var(--negative)";
+                  ? "text-positive"
+                  : "text-negative";
             return (
               <li
                 key={code}
-                className="group flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5 pl-3.5 transition-all hover:border-[color-mix(in_srgb,var(--primary)_45%,var(--border))] hover:shadow-sm"
+                className="group flex items-center gap-3 rounded-xl border border-border bg-surface p-2.5 pl-3.5 transition-all hover:border-primary/40 hover:shadow-soft"
               >
                 <Link
                   href={`/stock/${code}`}
                   prefetch={false}
                   className="flex min-w-0 flex-1 flex-col"
                 >
-                  <span className="text-sm font-bold leading-tight text-[var(--text)] transition-colors group-hover:text-[var(--primary)]">
+                  <span className="text-sm font-bold leading-tight text-text-main transition-colors group-hover:text-primary">
                     {code}
                   </span>
-                  <span className="truncate text-xs text-[var(--text-muted)]">
+                  <span className="truncate text-xs text-text-muted">
                     {it.company_name ?? ""}
                   </span>
                 </Link>
 
                 {/* Latest price + today's move */}
                 <span className="flex shrink-0 flex-col items-end leading-tight">
-                  <span className="text-sm font-bold tabular-nums text-[var(--text)]">
+                  <span className="text-sm font-bold tabular-nums text-text-main">
                     {taka(it.ltp, 1)}
                   </span>
-                  <span className="text-xs font-semibold tabular-nums" style={{ color: chgColor }}>
+                  <span className={`text-xs font-semibold tabular-nums ${chgClass}`}>
                     {chg == null ? "—" : `${chg > 0 ? "+" : ""}${chg.toFixed(1)}%`}
                   </span>
                 </span>
 
-                <button
-                  type="button"
-                  onClick={() => handleAdd(code)}
-                  disabled={isWatched}
-                  aria-label={isWatched ? `${code} added` : `Add ${code} to watchlist`}
-                  className={`btn-sm shrink-0 ${isWatched ? "btn-quiet" : "btn-primary"}`}
-                  style={
-                    isWatched
-                      ? {
-                          cursor: "default",
-                          borderColor: "color-mix(in srgb, var(--positive) 30%, var(--border))",
-                          background: "color-mix(in srgb, var(--positive) 10%, transparent)",
-                          color: "var(--positive)",
-                        }
-                      : undefined
-                  }
-                >
-                  {isWatched ? ICON_CHECK : ICON_PLUS}
-                  {isWatched ? "Added" : "Add"}
-                </button>
+                {isWatched ? (
+                  <span
+                    className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full border border-positive/30 bg-positive/10 px-3 text-xs font-bold text-positive"
+                    aria-label={`${code} added`}
+                  >
+                    {ICON_CHECK}
+                    Added
+                  </span>
+                ) : (
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => handleAdd(code)}
+                    aria-label={`Add ${code} to watchlist`}
+                    className="shrink-0"
+                  >
+                    {ICON_PLUS}
+                    Add
+                  </Button>
+                )}
               </li>
             );
           })}

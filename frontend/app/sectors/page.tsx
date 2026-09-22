@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Bn from "@/components/i18n/Bn";
+import PageHeader from "@/components/ui/PageHeader";
 import SectorCard from "@/components/sector/SectorCard";
 import { getSectors } from "@/lib/api";
 import { crore, pct } from "@/lib/formatters";
@@ -42,11 +43,11 @@ export const metadata: Metadata = {
 
 function MarketStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col gap-1 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-2.5 sm:p-3">
-      <span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+    <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface-2 p-2.5 sm:p-3">
+      <span className="text-xs font-extrabold uppercase tracking-[0.14em] text-text-muted">
         {label}
       </span>
-      <span className="text-base font-extrabold leading-none tabular-nums text-[var(--text)] sm:text-lg">
+      <span className="text-base font-extrabold leading-none tabular-nums text-text-main sm:text-lg">
         {value}
       </span>
     </div>
@@ -59,12 +60,11 @@ export default async function SectorsPage() {
   if (!data || data.sectors.length === 0) {
     return (
       <>
-        <header className="ms-pagehead">
-          <h1 className="ms-page-h1">
-            <span className="ms-page-kicker">Dhaka Stock Exchange</span>
-            <span className="ms-page-h1-main">Sectors</span>
-          </h1>
-        </header>
+        <PageHeader
+          eyebrow="Dhaka Stock Exchange"
+          title="Sectors"
+          bn="কোম্পানি বাছার আগে পুরো সেক্টর দেখে নিন।"
+        />
         <ErrorState
           size="inline"
           title="Couldn't load the sectors"
@@ -123,23 +123,23 @@ export default async function SectorsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <header className="ms-pagehead">
-        <h1 className="ms-page-h1">
-          <span className="ms-page-kicker">Dhaka Stock Exchange</span>
-          <span className="ms-page-h1-main">Sectors</span>
-        </h1>
-        <span className="ms-page-date">
-          {sectors.length} sectors · {market.company_count} scored companies
-        </span>
-              <Bn className="page-h1-bn">কোম্পানি বাছার আগে পুরো সেক্টর দেখে নিন।</Bn>
-</header>
+      <PageHeader
+        eyebrow="Dhaka Stock Exchange"
+        title="Sectors"
+        bn="কোম্পানি বাছার আগে পুরো সেক্টর দেখে নিন।"
+        actions={
+          <span className="ms-page-date">
+            {sectors.length} sectors · {market.company_count} scored companies
+          </span>
+        }
+      />
 
       <section className="soft-card mb-6 p-4 sm:p-5">
-        <p className="text-[0.9rem] font-semibold text-[var(--text)]">
+        <p className="text-sm font-semibold text-text-main">
           Compare whole industries before picking a company. Every figure below is the median of
           the companies in that sector, so one giant listing can&apos;t drag the number around.
         </p>
-        <Bn className="mt-2 text-[0.92rem] font-medium leading-[1.85] text-[var(--text-muted)]">
+        <Bn className="mt-2 text-base font-medium leading-[1.85] text-text-muted">
           কোম্পানি বাছার আগে পুরো সেক্টর দেখে নিন — প্রতিটি সংখ্যা সেই সেক্টরের মধ্যম মান।
         </Bn>
 
@@ -174,11 +174,11 @@ export default async function SectorsPage() {
         ))}
       </div>
 
-      <p className="mb-8 text-[0.78rem] font-semibold text-[var(--text-muted)]">
+      <p className="mb-8 text-xs font-semibold text-text-muted">
         Sectors with fewer than three scored companies are left out, because a median of one or
         two listings describes nothing. Mutual funds are not scored and so have no sector page.
         Looking for one company instead?{" "}
-        <Link href="/stocks" className="text-[var(--primary)] underline">
+        <Link href="/stocks" className="text-primary underline">
           Browse all stocks A–Z
         </Link>
         .

@@ -144,14 +144,14 @@ export default function HeroMiniQuiz({ onComplete, busy = false, done = false, o
   // Results are on screen — shrink to a one-line record of what they answered.
   if (done) {
     return (
-      <div className="flex flex-wrap items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5">
-        <span className="text-[0.68rem] font-extrabold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+      <div className="flex flex-wrap items-center gap-2 rounded border border-border bg-surface-2 px-3 py-2.5">
+        <span className="text-xs font-extrabold uppercase tracking-[0.12em] text-text-muted">
           You said
         </span>
         {picked.map((o) => (
           <span
             key={o.label}
-            className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface)] px-2.5 py-0.5 text-[0.72rem] font-bold text-[var(--text)]"
+            className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-2.5 py-0.5 text-xs font-bold text-text-main"
           >
             <span aria-hidden>{o.glyph}</span>
             {o.label}
@@ -160,7 +160,7 @@ export default function HeroMiniQuiz({ onComplete, busy = false, done = false, o
         <button
           type="button"
           onClick={restart}
-          className="ml-auto text-[0.72rem] font-bold text-[var(--primary-ink)] hover:underline underline-offset-2"
+          className="ml-auto text-xs font-bold text-primary-ink hover:underline underline-offset-2"
         >
           Change
         </button>
@@ -169,19 +169,19 @@ export default function HeroMiniQuiz({ onComplete, busy = false, done = false, o
   }
 
   return (
-    <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow-soft)]">
+    <div className="rounded-xl border border-border bg-surface p-4 shadow-soft">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-[0.68rem] font-extrabold uppercase tracking-[0.13em] text-[var(--primary-ink)]">
+        <span className="text-xs font-extrabold uppercase tracking-[0.13em] text-primary-ink">
           Find your stocks — 3 taps
         </span>
-        <span className="shrink-0 text-[0.7rem] font-extrabold tabular-nums text-[var(--text-muted)]">
+        <span className="shrink-0 text-xs font-extrabold tabular-nums text-text-muted">
           {step + 1} / {total}
         </span>
       </div>
 
-      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--surface-2)]">
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-2">
         <m.div
-          className="h-full rounded-full bg-[var(--primary)]"
+          className="h-full rounded-full bg-primary"
           initial={false}
           animate={{ width: `${((step + 1) / total) * 100}%` }}
           transition={{ type: "spring", stiffness: 260, damping: 30 }}
@@ -198,11 +198,11 @@ export default function HeroMiniQuiz({ onComplete, busy = false, done = false, o
             belongs to its real sections, not to a rotating quiz prompt. */}
         <p
           id="hero-quiz-question"
-          className="mt-3.5 text-[1.02rem] font-extrabold leading-snug text-[var(--text)]"
+          className="mt-3.5 text-base font-extrabold leading-snug text-text-main"
         >
           {current.title}
         </p>
-        <p lang="bn" className="font-bn mt-0.5 text-[0.85rem] leading-snug text-[var(--text-muted)]">
+        <p lang="bn" className="font-bn mt-0.5 text-sm leading-snug text-text-muted">
           {current.bn}
         </p>
 
@@ -213,25 +213,25 @@ export default function HeroMiniQuiz({ onComplete, busy = false, done = false, o
               type="button"
               onClick={() => choose(opt)}
               disabled={busy}
-              className="group flex min-h-[54px] w-full items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3.5 py-2.5 text-left transition hover:border-[var(--primary)] hover:bg-[color-mix(in_srgb,var(--primary)_6%,var(--surface))] active:scale-[0.99] disabled:opacity-60"
+              className="group flex min-h-[54px] w-full items-center gap-3 rounded-xl border border-border bg-surface px-3.5 py-2.5 text-left transition hover:border-primary hover:bg-[color-mix(in_srgb,var(--primary)_6%,var(--surface))] active:scale-[0.99] disabled:opacity-60"
             >
-              <span aria-hidden className="shrink-0 text-[1.15rem] leading-none">
+              <span aria-hidden className="shrink-0 text-lg leading-none">
                 {opt.glyph}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-[0.9rem] font-bold leading-tight text-[var(--text)]">
+                <span className="block text-sm font-bold leading-tight text-text-main">
                   {opt.label}
                 </span>
                 <span
                   lang="bn"
-                  className="font-bn mt-0.5 block text-[0.76rem] leading-tight text-[var(--text-muted)]"
+                  className="font-bn mt-0.5 block text-xs leading-tight text-text-muted"
                 >
                   {opt.bn}
                 </span>
               </span>
               <span
                 aria-hidden
-                className="shrink-0 text-[var(--border)] transition group-hover:translate-x-0.5 group-hover:text-[var(--primary)]"
+                className="shrink-0 text-border transition group-hover:translate-x-0.5 group-hover:text-primary"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="m9 18 6-6-6-6" />
@@ -247,7 +247,7 @@ export default function HeroMiniQuiz({ onComplete, busy = false, done = false, o
           type="button"
           onClick={() => setStep((s) => s - 1)}
           disabled={busy}
-          className="mt-3 text-[0.75rem] font-semibold text-[var(--text-muted)] hover:text-[var(--text)] disabled:opacity-60"
+          className="mt-3 text-xs font-semibold text-text-muted hover:text-text-main disabled:opacity-60"
         >
           ← Back
         </button>

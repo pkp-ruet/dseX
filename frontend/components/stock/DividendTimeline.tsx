@@ -112,46 +112,46 @@ export default function DividendTimeline({ rows, faceValue, ltp }: Props) {
               </p>
               <DaysLeft
                 date={recordIso}
-                className="sm:ml-auto text-[11px] font-bold px-2 py-0.5 rounded-full tabular-nums nums whitespace-nowrap"
+                className="sm:ml-auto text-xs font-bold px-2 py-0.5 rounded-full tabular-nums nums whitespace-nowrap"
               />
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="min-w-0">
-                <p className="text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color: "var(--text-muted)" }}>Declared</p>
+                <p className="text-xs font-bold uppercase tracking-[0.12em]" style={{ color: "var(--text-muted)" }}>Declared</p>
                 <p className="text-base sm:text-lg font-bold tabular-nums nums leading-tight break-words" style={{ color: "var(--text)" }}>
                   {declared}
                 </p>
-                <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>{r.dividend_type || "Final"} · {periodLabel(r)}</p>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>{r.dividend_type || "Final"} · {periodLabel(r)}</p>
               </div>
               {cashPerShare != null && (
                 <div className="min-w-0">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color: "var(--text-muted)" }}>Cash per share</p>
+                  <p className="text-xs font-bold uppercase tracking-[0.12em]" style={{ color: "var(--text-muted)" }}>Cash per share</p>
                   <p className="text-base sm:text-lg font-bold tabular-nums nums leading-tight" style={{ color: "var(--positive)" }}>{money(cashPerShare)}</p>
                   {yieldPct != null && (
-                    <p className="text-[11px] leading-snug" style={{ color: "var(--text-muted)" }}>{yieldPct.toFixed(2)}% of today&apos;s price, before tax</p>
+                    <p className="text-xs leading-snug" style={{ color: "var(--text-muted)" }}>{yieldPct.toFixed(2)}% of today&apos;s price, before tax</p>
                   )}
                 </div>
               )}
               <div className="min-w-0">
-                <p className="text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color: "var(--text-muted)" }}>Buy by</p>
+                <p className="text-xs font-bold uppercase tracking-[0.12em]" style={{ color: "var(--text-muted)" }}>Buy by</p>
                 <p className="text-base sm:text-lg font-bold tabular-nums nums leading-tight" style={{ color: spotNow ? "var(--watch)" : "var(--text)" }}>
                   {formatDate(buyByIso)}
                 </p>
-                <p className="text-[11px] leading-snug" style={{ color: "var(--text-muted)" }}>
+                <p className="text-xs leading-snug" style={{ color: "var(--text-muted)" }}>
                   {spotNow ? "Spot market now — normal buys no longer qualify" : <DaysLeft date={buyByIso} suffix="left to buy" past="passed" />}
                 </p>
               </div>
               {r.agm_date && (
                 <div className="min-w-0">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color: "var(--text-muted)" }}>AGM</p>
+                  <p className="text-xs font-bold uppercase tracking-[0.12em]" style={{ color: "var(--text-muted)" }}>AGM</p>
                   <p className="text-base sm:text-lg font-bold tabular-nums nums leading-tight" style={{ color: "var(--text)" }}>{formatDate(r.agm_date)}</p>
-                  <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>Shareholders approve it here</p>
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>Shareholders approve it here</p>
                 </div>
               )}
             </div>
 
-            <p className="text-[11px] mt-3 leading-snug" style={{ color: "var(--text-muted)" }}>
+            <p className="text-xs mt-3 leading-snug" style={{ color: "var(--text-muted)" }}>
               Shares must be in your BO account on the record date. Normal-market trades settle on T+2 and DSE opens a spot window just before, so buying about 3 trading days early is the safe side. Confirm the cut-off with your broker.
             </p>
           </div>

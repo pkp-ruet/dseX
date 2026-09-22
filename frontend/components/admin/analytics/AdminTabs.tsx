@@ -19,15 +19,15 @@ export default function AdminTabs({
   onChange: (t: TabKey) => void;
 }) {
   return (
-    <div className="flex gap-1 border-b border-[var(--border)] overflow-x-auto">
+    <div className="flex gap-1 border-b border-border overflow-x-auto">
       {TABS.map((t) => (
         <button
           key={t.key}
           onClick={() => onChange(t.key)}
           className={`px-4 py-2.5 text-sm font-semibold whitespace-nowrap border-b-2 -mb-px transition-colors ${
             active === t.key
-              ? "border-[var(--primary)] text-[var(--primary)]"
-              : "border-transparent text-[var(--text-muted)] hover:text-[var(--text)]"
+              ? "border-primary text-primary"
+              : "border-transparent text-text-muted hover:text-text-main"
           }`}
         >
           {t.label}

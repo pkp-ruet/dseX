@@ -20,14 +20,14 @@ export default function LiveRankingPreview({
   return (
     <Card padding="none" className="overflow-hidden">
       <div
-        className={`grid ${cols} gap-3 px-4 py-3 border-b-2 border-[var(--border)] bg-[var(--surface-2)] text-[0.72rem] font-extrabold uppercase tracking-[0.14em] text-[var(--text)]`}
+        className={`grid ${cols} gap-3 px-4 py-3 border-b-2 border-border bg-surface-2 text-xs font-extrabold uppercase tracking-[0.14em] text-text-main`}
       >
         <span className="text-right">#</span>
         <span>Stock</span>
         <span className="text-right">Price</span>
         {showScore && <span className="text-right">Score</span>}
       </div>
-      <div className="divide-y divide-[var(--cell-rule)]">
+      <div className="divide-y divide-cell-rule">
         {rows.map((item, i) => {
           const tier = getTier(item.score);
           const color = TIER_VAR[tier];
@@ -35,15 +35,15 @@ export default function LiveRankingPreview({
             <Link
               key={item.trading_code}
               prefetch={false} href={`/stock/${item.trading_code}`}
-              className={`group grid ${cols} gap-3 items-center px-4 py-3 border-l-[3px] hover:bg-[var(--surface-2)] transition-colors`}
+              className={`group grid ${cols} gap-3 items-center px-4 py-3 border-l-[3px] hover:bg-surface-2 transition-colors`}
               style={{ borderLeftColor: `color-mix(in srgb, ${color} 26%, transparent)` }}
             >
-              <span className="text-right text-xs font-bold tabular-nums nums text-[var(--text-muted)]">{i + 1}</span>
+              <span className="text-right text-xs font-bold tabular-nums nums text-text-muted">{i + 1}</span>
               <span className="min-w-0">
                 {/* inline-block + truncate: a 10-char code in the 1fr column used to
                     overflow onto a 4-digit price; now it ellipsises instead. */}
                 <span
-                  className="inline-block max-w-full truncate align-bottom font-mono text-[0.8rem] font-extrabold tracking-[0.03em] px-2 py-0.5 rounded-md border group-hover:brightness-95 transition-all"
+                  className="inline-block max-w-full truncate align-bottom font-mono text-sm font-extrabold tracking-[0.03em] px-2 py-0.5 rounded-md border group-hover:brightness-95 transition-all"
                   style={{
                     color,
                     background: `color-mix(in srgb, ${color} 11%, transparent)`,
@@ -53,7 +53,7 @@ export default function LiveRankingPreview({
                   {item.trading_code}
                 </span>
                 <span
-                  className="block mt-0.5 text-[0.68rem] truncate group-hover:underline underline-offset-2 decoration-dotted"
+                  className="block mt-0.5 text-xs truncate group-hover:underline underline-offset-2 decoration-dotted"
                   style={{ color: `color-mix(in srgb, ${color} 38%, var(--text-muted))` }}
                 >
                   {item.company_name}
@@ -67,7 +67,7 @@ export default function LiveRankingPreview({
                 <span
                   className="justify-self-end inline-flex items-center justify-center min-w-[2.4rem] px-2 py-1 rounded-lg text-sm font-extrabold tabular-nums nums text-white"
                   style={{
-                    background: `linear-gradient(135deg, ${color} 0%, color-mix(in srgb, ${color} 78%, #000) 100%)`,
+                    background: `linear-gradient(135deg, ${color} 0%, color-mix(in srgb, ${color} 78%, var(--navy-ink)) 100%)`,
                   }}
                 >
                   {item.score == null ? "--" : Math.round(item.score)}
@@ -79,7 +79,7 @@ export default function LiveRankingPreview({
       </div>
       <Link
         href="/dsestockranking"
-        className="block text-center px-4 py-3 text-xs font-semibold text-[var(--primary)] hover:bg-[var(--surface-2)] border-t border-[var(--border)] transition-colors"
+        className="block text-center px-4 py-3 text-xs font-semibold text-primary hover:bg-surface-2 border-t border-border transition-colors"
       >
         See all {totalCount}+ ranked stocks →
       </Link>

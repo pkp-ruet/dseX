@@ -61,7 +61,7 @@ export default function StockListBlock({
         <Link
           prefetch={false}
           href={block.seeAllHref}
-          className="mt-2 inline-block text-[0.72rem] font-semibold text-[var(--primary)] hover:underline"
+          className="mt-2 inline-block text-xs font-semibold text-primary hover:underline"
         >
           {block.seeAllLabel ?? "See all"} →
         </Link>

@@ -21,15 +21,15 @@ function StatTile({ label, value, sub, accent }: {
       }}
     >
       <span
-        className="text-[11px] font-extrabold uppercase tracking-[0.14em]"
+        className="text-xs font-extrabold uppercase tracking-[0.14em]"
         style={{ color: accent ?? "var(--text-muted)" }}
       >
         {label}
       </span>
-      <span className="text-base sm:text-xl font-extrabold leading-none tabular-nums text-[var(--text)]">
+      <span className="text-base sm:text-xl font-extrabold leading-none tabular-nums text-text-main">
         {value}
       </span>
-      <span className="text-[11px] font-bold tabular-nums text-[var(--text-muted)]">
+      <span className="text-xs font-bold tabular-nums text-text-muted">
         {sub || " "}
       </span>
     </div>
@@ -54,14 +54,14 @@ export default function CalendarSummary({ data }: { data: DividendCalendarData }
       <div className="flex flex-col gap-4 p-4 sm:p-5">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[var(--text-muted)]">
+            <span className="text-xs font-extrabold uppercase tracking-[0.16em] text-text-muted">
               Updated
             </span>
-            <span className="text-sm font-bold text-[var(--text)]">{formatDate(data.today)}</span>
+            <span className="text-sm font-bold text-text-main">{formatDate(data.today)}</span>
           </div>
           {next?.record_date && (
             <span
-              className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-extrabold"
+              className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-extrabold"
               style={{
                 color: "var(--positive)",
                 background: "color-mix(in srgb, var(--positive) 12%, var(--surface))",
@@ -95,11 +95,11 @@ export default function CalendarSummary({ data }: { data: DividendCalendarData }
           />
         </div>
 
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-3">
-          <p className="text-[0.86rem] font-medium leading-relaxed text-[var(--text)]">
+        <div className="rounded-xl border border-border bg-surface-2 p-3">
+          <p className="text-sm font-medium leading-relaxed text-text-main">
             {data.note_en}
           </p>
-          <Bn className="mt-2 text-[0.9rem] font-medium leading-[1.85] text-[var(--text-muted)]">
+          <Bn className="mt-2 text-sm font-medium leading-[1.85] text-text-muted">
             {data.note_bn}
           </Bn>
         </div>

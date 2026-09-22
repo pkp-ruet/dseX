@@ -21,7 +21,7 @@ export default function ChartCard({
       </div>
       {pill && (
         <p
-          className="inline-block text-[11px] font-bold px-2.5 py-1 rounded-full mt-2 mb-1"
+          className="inline-block text-xs font-bold px-2.5 py-1 rounded-full mt-2 mb-1"
           style={{
             background: "color-mix(in srgb, var(--positive) 10%, transparent)",
             color: "var(--positive)",

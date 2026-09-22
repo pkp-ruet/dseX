@@ -22,11 +22,10 @@ function Column({
   if (!items.length) return null;
 
   const color = tone === "good" ? "var(--positive)" : "var(--negative)";
-  const icon = tone === "good" ? "✓" : "⚠";
   const shown = showAll ? items : items.slice(0, INITIAL);
 
   return (
-    <Card padding="none" className="rounded-2xl p-5">
+    <Card padding="none" className="rounded-xl p-5">
       <p className="text-sm font-bold mb-3" style={{ color }}>
         {title}
       </p>
@@ -42,7 +41,9 @@ function Column({
               }}
               aria-hidden="true"
             >
-              {icon}
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                {tone === "good" ? <path d="m5 12.5 4.5 4.5L19 7.5" /> : <><path d="M12 5v9" /><path d="M12 18.5h.01" /></>}
+              </svg>
             </span>
             <span className="text-sm leading-snug" style={{ color: "var(--text)" }}>
               {friendlyFlag(raw)}

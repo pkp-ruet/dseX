@@ -62,14 +62,14 @@ export default function InstallHomeBanner() {
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/icons/icon-192.png" alt="" width={28} height={28} className="h-7 w-7 shrink-0 rounded-lg" />
-        <p className="min-w-0 flex-1 truncate text-[0.8rem] font-semibold text-[var(--text)]">
+        <p className="min-w-0 flex-1 truncate text-sm font-semibold text-text-main">
           Install the app
         </p>
         <button
           type="button"
           onClick={handle}
           disabled={busy}
-          className="shrink-0 rounded-lg bg-[var(--warm)] px-3 py-1.5 text-xs font-bold text-white transition active:scale-[0.98] disabled:opacity-70"
+          className="shrink-0 rounded-lg bg-warm px-3 py-1.5 text-xs font-bold text-white transition active:scale-[0.98] disabled:opacity-70"
         >
           {ctaLabel}
         </button>
@@ -77,7 +77,7 @@ export default function InstallHomeBanner() {
           type="button"
           onClick={dismiss}
           aria-label="Dismiss"
-          className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+          className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-text-muted hover:bg-surface-2 hover:text-text-main"
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />

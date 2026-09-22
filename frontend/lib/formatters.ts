@@ -30,6 +30,24 @@ export function takaGroup(value: number | null | undefined): string {
   return `${value < 0 ? "−" : ""}৳${bdGroup(Math.abs(value))}`;
 }
 
+/**
+ * THE day-change printer for every stock row in the app: "+1.23%", "−0.45%", "0.00%".
+ * Proper minus sign, two decimals, explicit plus. Colour it with `changeTone()`.
+ */
+export function changePct(value: number | null | undefined, decimals = 2): string {
+  if (value == null || isNaN(value)) return "--";
+  const abs = Math.abs(value).toFixed(decimals);
+  if (value > 0) return `+${abs}%`;
+  if (value < 0) return `−${abs}%`;
+  return `${abs}%`;
+}
+
+/** Tailwind text colour class for a signed change (pairs with `changePct`). */
+export function changeTone(value: number | null | undefined): string {
+  if (value == null || isNaN(value) || value === 0) return "text-text-muted";
+  return value > 0 ? "text-positive" : "text-negative";
+}
+
 /** Format a percentage value */
 export function pct(value: number | null | undefined, decimals = 1): string {
   if (value == null) return "--";

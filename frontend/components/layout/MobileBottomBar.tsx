@@ -6,16 +6,30 @@ import { getCachedWatchlist, subscribeWatchlist, loadWatchlist } from "@/lib/wat
 import { isLoggedIn } from "@/lib/auth";
 import { openMobileDrawer } from "@/components/layout/Navbar";
 import { openGlobalSearch } from "@/components/layout/GlobalSearch";
-import { openExploreSheet } from "@/components/layout/ExploreSheet";
 
-// The Explore tab stays highlighted on any of its launcher destinations.
+/**
+ * FIVE tabs: Home · Explore · Search · Watchlist · Portfolio.
+ * "Explore" opens the ONE drawer (Navbar's menu) — the separate ExploreSheet
+ * launcher and the sixth "Menu" tab were retired 2026-09-22 (two buttons opened
+ * two different menus with the same title).
+ */
+
+// The Explore tab stays highlighted on any destination the drawer lists.
 const EXPLORE_PATHS = [
+  "/dse-today",
+  "/market-analysis",
+  "/dividend-calendar",
+  "/sectors",
+  "/sector",
+  "/share-bazar",
   "/dsestockranking",
   "/stocks",
-  "/market-analysis",
-  "/dse-today",
-  "/dse-trending-stocks",
-  "/dse-popular-stocks",
+  "/buy-sell-signals",
+  "/stock-insights",
+  "/assistant",
+  "/learn",
+  "/blog",
+  "/about",
 ];
 const matches = (pathname: string, paths: string[]) =>
   paths.some((p) => pathname === p || pathname.startsWith(p + "/"));
@@ -47,11 +61,6 @@ const WatchIcon = (
 const PortfolioIcon = (
   <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
     <path d="M9 4a2 2 0 0 0-2 2v1H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-3V6a2 2 0 0 0-2-2H9zm0 2h6v1H9V6z" />
-  </svg>
-);
-const MenuIcon = (
-  <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z" />
   </svg>
 );
 
@@ -116,13 +125,14 @@ export default function MobileBottomBar() {
     <nav className="mobile-bottom-bar" aria-label="Mobile navigation">
       {leftItems.map(renderItem)}
 
-      {/* Explore — opens the bottom-sheet launcher (Rankings, Browse, Analysis, DSE Today) */}
+      {/* Explore — opens the one drawer (Markets · Find stocks · Learn) */}
       <button
         type="button"
-        onClick={openExploreSheet}
+        onClick={openMobileDrawer}
         className={`mobile-bottom-bar-item${exploreActive ? " active" : ""}`}
-        aria-label="Explore"
+        aria-label="Explore — open menu"
         aria-haspopup="dialog"
+        aria-controls="mobile-menu"
       >
         <span className="mobile-bottom-bar-icon">
           <span className="mobile-bottom-bar-glyph">{ExploreIcon}</span>
@@ -147,18 +157,6 @@ export default function MobileBottomBar() {
       </button>
 
       {rightItems.map(renderItem)}
-
-      <button
-        type="button"
-        onClick={openMobileDrawer}
-        className="mobile-bottom-bar-item"
-        aria-label="Open menu"
-      >
-        <span className="mobile-bottom-bar-icon">
-          <span className="mobile-bottom-bar-glyph">{MenuIcon}</span>
-        </span>
-        <span className="mobile-bottom-bar-label">Menu</span>
-      </button>
     </nav>
   );
 }

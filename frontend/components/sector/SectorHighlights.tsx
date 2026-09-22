@@ -34,8 +34,8 @@ function List({ title, note, stocks, metric, accent }: {
         borderColor: `color-mix(in srgb, ${accent} 22%, var(--border))`,
       }}
     >
-      <h3 className="text-[0.9rem] font-extrabold tracking-tight text-[var(--text)]">{title}</h3>
-      <p className="mt-0.5 text-[0.72rem] font-semibold text-[var(--text-muted)]">{note}</p>
+      <h3 className="text-sm font-extrabold tracking-tight text-text-main">{title}</h3>
+      <p className="mt-0.5 text-xs font-semibold text-text-muted">{note}</p>
 
       <div className="mt-2.5 flex flex-col">
         {stocks.map((s) => {
@@ -43,22 +43,22 @@ function List({ title, note, stocks, metric, accent }: {
           return (
             <div
               key={s.trading_code}
-              className="flex items-center justify-between gap-2 border-t border-[var(--border)] py-2 first:border-0 first:pt-0"
+              className="flex items-center justify-between gap-2 border-t border-border py-2 first:border-0 first:pt-0"
             >
               <div className="flex min-w-0 items-center gap-2">
                 <Link
                   href={`/stock/${s.trading_code}`}
-                  className="font-display text-[0.86rem] font-extrabold tracking-tight text-[var(--text)] hover:text-[var(--primary)]"
+                  className="font-display text-sm font-extrabold tracking-tight text-text-main hover:text-primary"
                 >
                   {s.trading_code}
                 </Link>
                 {s.tier && <TierPill tier={s.tier} />}
               </div>
               <div className="flex flex-shrink-0 items-baseline gap-2.5 tabular-nums">
-                <span className="text-[0.76rem] font-semibold text-[var(--text-muted)]">
+                <span className="text-xs font-semibold text-text-muted">
                   {s.ltp != null ? taka(s.ltp) : "—"}
                 </span>
-                <span className="text-[0.84rem] font-extrabold" style={{ color: v.color }}>
+                <span className="text-sm font-extrabold" style={{ color: v.color }}>
                   {v.text}
                 </span>
               </div>

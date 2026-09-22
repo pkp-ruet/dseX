@@ -65,7 +65,7 @@ export default function MarketStatusPill({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-[0.68rem] font-bold ${className}`}
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-bold ${className}`}
       style={{
         color: cfg.color,
         background: `color-mix(in srgb, ${cfg.color} 10%, var(--surface))`,
@@ -86,7 +86,7 @@ export default function MarketStatusPill({
       />
       {cfg.label}
       {!compact && cfg.tail && (
-        <span className="font-semibold text-[var(--text-muted)]">· {cfg.tail}</span>
+        <span className="font-semibold text-text-muted">· {cfg.tail}</span>
       )}
     </span>
   );

@@ -10,7 +10,7 @@ import DashHeader from "@/components/home/personalized/DashHeader";
 import { IconBulb, IconCheck, IconCoin, IconTarget } from "@/components/home/personalized/DashIcons";
 
 const CASH_WINDOW_DAYS = 31;
-const SPREAD_COLORS = ["var(--primary)", "var(--positive)", "var(--watch)", "var(--accent)", "var(--text-muted)"];
+const SPREAD_COLORS = ["var(--primary)", "var(--positive)", "var(--watch)", "var(--primary)", "var(--text-muted)"];
 
 function compute(holding: PortfolioHolding, priceMap: Map<string, ScoreItem>): ComputedRow {
   const item = priceMap.get(holding.trading_code.toUpperCase());
@@ -76,53 +76,53 @@ export default function PortfolioGlanceCard({
       <DashHeader title={t(lang, "glanceTitle")} href="/portfolio" linkLabel={t(lang, "fullAnalysis")} accent={ACC.clay} icon={<IconTarget size={15} />} />
 
       {bullets.length > 0 && (
-        <ul className="divide-y divide-[var(--cell-rule)]">
+        <ul className="divide-y divide-cell-rule">
           {bullets.map((b) => (
             <li key={b.key} className="flex items-start gap-3 px-4 py-2.5 sm:px-5">
               <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg" style={{ color: b.color, background: `color-mix(in srgb, ${b.color} 12%, transparent)` }} aria-hidden>
                 {b.icon}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-[0.68rem] font-extrabold uppercase tracking-[0.08em]" style={{ color: b.color }}>{b.label}</span>
-                <span className="block text-[0.84rem] leading-snug text-[var(--text)]">{b.text}</span>
+                <span className="block text-xs font-extrabold uppercase tracking-[0.08em]" style={{ color: b.color }}>{b.label}</span>
+                <span className="block text-sm leading-snug text-text-main">{b.text}</span>
               </span>
             </li>
           ))}
         </ul>
       )}
 
-      <div className="grid grid-cols-1 gap-3 border-t border-[var(--border)] px-4 py-3 sm:grid-cols-2 sm:px-5">
-        <div className="flex items-center gap-3 rounded-xl bg-[var(--surface-2)] px-3 py-2.5">
+      <div className="grid grid-cols-1 gap-3 border-t border-border px-4 py-3 sm:grid-cols-2 sm:px-5">
+        <div className="flex items-center gap-3 rounded-xl bg-surface-2 px-3 py-2.5">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg" style={{ color: "var(--watch)", background: "color-mix(in srgb, var(--watch) 16%, transparent)" }} aria-hidden>
             <IconCoin size={18} />
           </span>
           <span className="min-w-0">
-            <span className="block text-[0.68rem] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">{t(lang, "cashComing")}</span>
+            <span className="block text-xs font-bold uppercase tracking-[0.08em] text-text-muted">{t(lang, "cashComing")}</span>
             {cash > 0 ? (
               <>
-                <span className="block text-[1.05rem] font-extrabold tabular-nums nums leading-tight text-[var(--text)]">৳{bdGroup(Math.round(cash))}</span>
-                <span className="block text-[0.72rem] text-[var(--text-muted)]">{payers === 1 ? t(lang, "cashComingOne") : t(lang, "cashComingSub", { n: payers })}</span>
+                <span className="block text-base font-extrabold tabular-nums nums leading-tight text-text-main">৳{bdGroup(Math.round(cash))}</span>
+                <span className="block text-xs text-text-muted">{payers === 1 ? t(lang, "cashComingOne") : t(lang, "cashComingSub", { n: payers })}</span>
               </>
             ) : (
-              <span className="block text-[0.8rem] leading-snug text-[var(--text-muted)]">{t(lang, "noCashSoon")}</span>
+              <span className="block text-sm leading-snug text-text-muted">{t(lang, "noCashSoon")}</span>
             )}
           </span>
         </div>
 
         {segments.length > 0 && (
           <div className="min-w-0">
-            <span className="block text-[0.68rem] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)]">{t(lang, "spread")}</span>
-            <div className="mt-1.5 flex h-2.5 w-full overflow-hidden rounded-full bg-[var(--surface-2)]" aria-hidden>
+            <span className="block text-xs font-bold uppercase tracking-[0.08em] text-text-muted">{t(lang, "spread")}</span>
+            <div className="mt-1.5 flex h-2.5 w-full overflow-hidden rounded-full bg-surface-2" aria-hidden>
               {segments.map((s, i) => (
                 <span key={s.name} className="h-full" style={{ width: `${Math.max(2, s.pct)}%`, background: SPREAD_COLORS[i % SPREAD_COLORS.length] }} />
               ))}
             </div>
             <ul className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5">
               {segments.slice(0, 3).map((s, i) => (
-                <li key={s.name} className="flex items-center gap-1 text-[0.72rem] font-semibold text-[var(--text-muted)]">
+                <li key={s.name} className="flex items-center gap-1 text-xs font-semibold text-text-muted">
                   <span className="h-2 w-2 rounded-full" style={{ background: SPREAD_COLORS[i % SPREAD_COLORS.length] }} aria-hidden />
                   <span className="truncate">{bn ? sectorBn(s.name) : s.name}</span>
-                  <span className="tabular-nums nums text-[var(--text)]">{Math.round(s.pct)}%</span>
+                  <span className="tabular-nums nums text-text-main">{Math.round(s.pct)}%</span>
                 </li>
               ))}
             </ul>

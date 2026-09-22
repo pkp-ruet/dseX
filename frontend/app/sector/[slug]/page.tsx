@@ -10,6 +10,7 @@ import SectorStockTable from "@/components/sector/SectorStockTable";
 import SectorScoringNote from "@/components/sector/SectorScoringNote";
 import SectorCard from "@/components/sector/SectorCard";
 import PageGuide from "@/components/seo/PageGuide";
+import PageHeader from "@/components/ui/PageHeader";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
@@ -79,12 +80,11 @@ export default async function SectorPage({ params }: Props) {
   if (!data) {
     return (
       <>
-        <header className="ms-pagehead">
-          <h1 className="ms-page-h1">
-            <span className="ms-page-kicker">DSE Sector</span>
-            <span className="ms-page-h1-main">Sector</span>
-          </h1>
-        </header>
+        <PageHeader
+          eyebrow="DSE Sector"
+          title="Sector"
+          bn="এই সেক্টরের সব কোম্পানি এক পাতায় — দাম, স্কোর আর তুলনা।"
+        />
         <div className="ms-card">
           <p className="ms-empty">
             We couldn&apos;t reach the sector data right now. Please refresh in a moment.
@@ -144,20 +144,21 @@ export default async function SectorPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <header className="ms-pagehead">
-        <h1 className="ms-page-h1">
-          <span className="ms-page-kicker">
-            <Link href="/sectors" className="hover:underline">
-              DSE Sectors
-            </Link>
+      <PageHeader
+        eyebrow={
+          <Link href="/sectors" className="hover:underline">
+            DSE Sectors
+          </Link>
+        }
+        title={s.sector}
+        bn="এই সেক্টরের সব কোম্পানি এক পাতায় — দাম, স্কোর আর বাজারের সঙ্গে তুলনা।"
+        actions={
+          <span className="ms-page-date">
+            {s.company_count} companies · {crore(s.total_mcap_mn)} · median score{" "}
+            {s.median_score != null ? s.median_score.toFixed(1) : "—"}
           </span>
-          <span className="ms-page-h1-main">{s.sector}</span>
-        </h1>
-        <span className="ms-page-date">
-          {s.company_count} companies · {crore(s.total_mcap_mn)} · median score{" "}
-          {s.median_score != null ? s.median_score.toFixed(1) : "—"}
-        </span>
-      </header>
+        }
+      />
 
       <SectorHero summary={s} />
 
@@ -259,8 +260,8 @@ export default async function SectorPage({ params }: Props) {
               <SectorCard key={o.slug} sector={o} />
             ))}
           </div>
-          <p className="mt-3 text-[0.78rem] font-semibold text-[var(--text-muted)]">
-            <Link href="/sectors" className="text-[var(--primary)] underline">
+          <p className="mt-3 text-xs font-semibold text-text-muted">
+            <Link href="/sectors" className="text-primary underline">
               See all {data.market.sector_count} sectors
             </Link>{" "}
             · market median P/E {data.market.median_pe != null ? data.market.median_pe.toFixed(1) : "—"},

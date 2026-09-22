@@ -18,7 +18,7 @@ const Q_ACCENT: Record<string, string> = {
   price: "var(--primary)",
   breadth: "var(--warm)",
   value: "var(--positive)",
-  activity: "#6D28D9",
+  activity: "var(--navy)",
 };
 
 function idx(n: number): string {

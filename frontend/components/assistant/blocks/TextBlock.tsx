@@ -3,10 +3,10 @@ import type { MessageBlock } from "@/lib/assistant/types";
 
 export default function TextBlock({ block }: { block: Extract<MessageBlock, { type: "text" }> }) {
   return (
-    <div className="text-[0.9rem] leading-relaxed text-[var(--text)]">
+    <div className="text-sm leading-relaxed text-text-main">
       {block.text && <p>{block.text}</p>}
       {block.bn && (
-        <p lang="bn" className="font-bn mt-1 text-[0.85rem] text-[var(--text-muted)]">
+        <p lang="bn" className="font-bn mt-1 text-sm text-text-muted">
           {block.bn}
         </p>
       )}
@@ -15,7 +15,7 @@ export default function TextBlock({ block }: { block: Extract<MessageBlock, { ty
           <Link
             href={block.link.href}
             prefetch={false}
-            className="text-[0.8rem] font-semibold text-[var(--primary)] hover:underline"
+            className="text-sm font-semibold text-primary hover:underline"
           >
             {block.link.label} →
           </Link>

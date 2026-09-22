@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import PageHeader from "@/components/ui/PageHeader";
 import { notFound } from "next/navigation";
 import { getScores } from "@/lib/api";
 import {
@@ -113,11 +114,11 @@ export default async function SamplePortfolioPage({ params }: Props) {
   const scores = await getScores().catch(() => null);
   if (!scores) {
     return (
-      <main className="max-w-3xl mx-auto px-4 py-12">
-        <p className="text-[var(--text-muted)] text-center">
+      <div className="page-narrow py-12">
+        <p className="text-text-muted text-center">
           Live data is unavailable right now. Please try again shortly.
         </p>
-      </main>
+      </div>
     );
   }
 
@@ -125,7 +126,7 @@ export default async function SamplePortfolioPage({ params }: Props) {
   const meta = META[portfolio.slug];
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-10 space-y-8">
+    <div className="space-y-8">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -136,54 +137,50 @@ export default async function SamplePortfolioPage({ params }: Props) {
       {/* Breadcrumb */}
       <nav
         aria-label="breadcrumb"
-        className="flex items-center gap-2 text-xs text-[var(--text-muted)]"
+        className="flex items-center gap-2 text-xs text-text-muted"
       >
-        <Link href="/" className="hover:text-[var(--primary)] transition-colors">
+        <Link href="/" className="hover:text-primary transition-colors">
           Home
         </Link>
         <span aria-hidden="true">/</span>
-        <span className="text-[var(--text)]">{portfolio.name}</span>
+        <span className="text-text-main">{portfolio.name}</span>
       </nav>
 
-      {/* Hero */}
-      <section className="space-y-3">
-        <p className="text-[11px] uppercase tracking-widest font-bold text-[var(--text-muted)]">
-          // SAMPLE PORTFOLIO ANALYSIS
-        </p>
-        <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text)] leading-snug">
-          {portfolio.name}
-        </h1>
-        <p className="text-sm text-[var(--text-muted)]">{portfolio.tagline}</p>
-        <p className="text-[var(--text)] leading-relaxed text-sm sm:text-base">
-          {portfolio.narrative}
-        </p>
-      </section>
+      <PageHeader
+        eyebrow="Sample portfolio analysis"
+        title={portfolio.name}
+        bn="একটি নমুনা পোর্টফোলিও — আসল স্কোর ও দাম দিয়ে বিশ্লেষণ করে দেখানো।"
+        lead={portfolio.tagline}
+      />
+      <p className="text-text-main leading-relaxed text-sm sm:text-base">
+        {portfolio.narrative}
+      </p>
 
       {/* Quick stats */}
       <SamplePortfolioStats rows={rows} analysis={analysis} />
 
-      <hr className="border-[var(--border)]" />
+      <hr className="border-border" />
 
       {/* Full analysis (verdict, good/bad/consider, sector chart, detailed holdings, disclaimer) */}
       <PortfolioAnalysisView analysis={analysis} />
 
-      <hr className="border-[var(--border)]" />
+      <hr className="border-border" />
 
       {/* CTA */}
       <section
-        className="relative overflow-hidden rounded-[14px] border border-[var(--border)] bg-[var(--surface)]"
+        className="relative overflow-hidden rounded-lg border border-border bg-surface"
         aria-label="Sign up CTA"
       >
         <div
           className="h-1 w-full"
-          style={{ background: "linear-gradient(90deg, var(--primary), var(--accent))" }}
+          style={{ background: "linear-gradient(90deg, var(--primary), var(--primary))" }}
         />
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5">
           <div>
-            <p className="text-sm sm:text-base font-semibold text-[var(--text)] leading-snug">
+            <p className="text-sm sm:text-base font-semibold text-text-main leading-snug">
               Want this analysis for your real portfolio?
             </p>
-            <p className="text-xs text-[var(--text-muted)] mt-0.5">
+            <p className="text-xs text-text-muted mt-0.5">
               Add your holdings and get the same plain-English report — free.
             </p>
           </div>
@@ -215,23 +212,23 @@ export default async function SamplePortfolioPage({ params }: Props) {
 
       {/* Other sample */}
       <section className="text-center">
-        <p className="text-xs text-[var(--text-muted)] mb-2">See the other sample portfolio</p>
+        <p className="text-xs text-text-muted mb-2">See the other sample portfolio</p>
         {portfolio.slug === "diversified" ? (
           <Link
             href="/sample-portfolio/risky"
-            className="text-sm font-semibold text-[var(--primary)] hover:underline"
+            className="text-sm font-semibold text-primary hover:underline"
           >
             View the Risky Portfolio analysis →
           </Link>
         ) : (
           <Link
             href="/sample-portfolio/diversified"
-            className="text-sm font-semibold text-[var(--primary)] hover:underline"
+            className="text-sm font-semibold text-primary hover:underline"
           >
             View the Diversified Portfolio analysis →
           </Link>
         )}
       </section>
-    </main>
+    </div>
   );
 }

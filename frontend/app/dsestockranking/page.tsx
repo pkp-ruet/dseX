@@ -7,6 +7,8 @@ import { PILLARS } from "@/lib/landing";
 import RankingExplorer from "@/components/ranking/RankingExplorer";
 import type { RankedItem } from "@/components/ranking/FullRankTable";
 import ErrorState from "@/components/ui/ErrorState";
+import PageHeader from "@/components/ui/PageHeader";
+import HubLinks from "@/components/layout/HubLinks";
 
 export const revalidate = 86400;
 
@@ -118,43 +120,30 @@ export default async function DseStockRankingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="max-w-6xl mx-auto px-4 py-8 md:py-10">
-      {/* Masthead — the flagship leaderboard header, with the numbers that
-          establish scale sitting beside the claim rather than under it */}
-      <header className="rank-masthead">
-        <div className="rank-masthead-main">
-          <span className="rank-hero-kicker">
-            <span className="rank-hero-kicker-bar" aria-hidden />
-            Dhaka Stock Exchange
-          </span>
-          <h1 className="rank-masthead-title">
-            DSE Stock <span className="rank-hero-accent">Rankings</span>
-          </h1>
-          <p className="rank-hero-lead">
-            Every company on the Dhaka Stock Exchange, scored on how strong its
-            business really is — then ranked from strongest to weakest.
-          </p>
-          <p className="rank-hero-lead-bn font-bn" lang="bn">
-            ঢাকা স্টক এক্সচেঞ্জের প্রতিটি কোম্পানিকে তার ব্যবসা কতটা শক্তিশালী সেই
-            অনুযায়ী নম্বর দিয়ে সেরা থেকে দুর্বল ক্রমে সাজানো হয়েছে।
-          </p>
-        </div>
-
-        <aside className="rank-credrail" aria-label="Coverage">
-          <div className="rank-cred">
-            <span className="rank-cred-num">{allRanked.length}</span>
-            <span className="rank-cred-label">Companies scored</span>
+      {/* Masthead — the flagship leaderboard header; the numbers that establish
+          scale sit beside the claim (actions slot) rather than under it */}
+      <PageHeader
+        eyebrow="Dhaka Stock Exchange"
+        title="DSE Stock Rankings"
+        bn="ঢাকা স্টক এক্সচেঞ্জের প্রতিটি কোম্পানিকে তার ব্যবসা কতটা শক্তিশালী সেই অনুযায়ী নম্বর দিয়ে সেরা থেকে দুর্বল ক্রমে সাজানো হয়েছে।"
+        lead="Every company on the Dhaka Stock Exchange, scored on how strong its business really is — then ranked from strongest to weakest."
+        actions={
+          <div className="flex flex-wrap gap-5 sm:gap-6" aria-label="Coverage">
+            <div className="rank-cred">
+              <span className="rank-cred-num">{allRanked.length}</span>
+              <span className="rank-cred-label">Companies scored</span>
+            </div>
+            <div className="rank-cred">
+              <span className="rank-cred-num">{sectors.length}</span>
+              <span className="rank-cred-label">Sectors covered</span>
+            </div>
+            <div className="rank-cred">
+              <span className="rank-cred-num">{PILLARS.length}</span>
+              <span className="rank-cred-label">Checks on every one</span>
+            </div>
           </div>
-          <div className="rank-cred">
-            <span className="rank-cred-num">{sectors.length}</span>
-            <span className="rank-cred-label">Sectors covered</span>
-          </div>
-          <div className="rank-cred">
-            <span className="rank-cred-num">{PILLARS.length}</span>
-            <span className="rank-cred-label">Checks on every one</span>
-          </div>
-        </aside>
-      </header>
+        }
+      />
 
       {/* Method + data vintage — what the score is made of and how fresh it is.
           The written-out method lives on /about; this only points at it. */}
@@ -245,6 +234,8 @@ export default async function DseStockRankingPage() {
         </p>
       </section>
 
+      <HubLinks group="find" exclude={["/dsestockranking"]} />
+
       <PageGuide
         title="How the DSE stock ranking works"
         intro={[
@@ -290,7 +281,6 @@ export default async function DseStockRankingPage() {
           },
         ]}
       />
-      </div>
     </>
   );
 }

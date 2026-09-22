@@ -40,7 +40,7 @@ export default function NewsSection({ news }: Props) {
       </div>
       {hasMore && !showAll && (
         <Button
-          variant="ghost"
+          variant="quiet"
           size="sm"
           onClick={() => setShowAll(true)}
           className="mt-4 rounded-full"

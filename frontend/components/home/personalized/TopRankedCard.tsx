@@ -1,20 +1,26 @@
-import Link from "next/link";
 import type { ScoreItem } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
-import { money } from "@/lib/formatters";
-import { getTier, TIER_LABELS, TIER_LABELS_BN, TIER_VAR } from "@/lib/constants";
+import { getTier, TIER_LABELS, TIER_LABELS_BN, TIER_VAR, type TierKey } from "@/lib/constants";
 import { t } from "@/lib/home-copy";
 import { ACC } from "@/components/home/personalized/accents";
 import { IconTrophy } from "@/components/home/personalized/DashIcons";
 import DashHeader, { HeaderChip } from "@/components/home/personalized/DashHeader";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
+import StockRow, { StockRank } from "@/components/ui/StockRow";
 
 const ROWS = 8;
+
+const TIER_TEXT: Record<TierKey, string> = {
+  excellent: "text-tier-excellent",
+  good: "text-tier-good",
+  average: "text-tier-average",
+  weak: "text-tier-weak",
+};
 
 /**
  * The top of the leaderboard, inline: rank, company name, the grade word in
  * the reader's language, the score out of 100, today's price. The first three
- * ranks wear the excellent tint. "Full ranking" opens the whole board.
+ * ranks wear a solid tier-coloured chip. "Full ranking" opens the whole board.
  */
 export default function TopRankedCard({
   stocks,
@@ -42,56 +48,30 @@ export default function TopRankedCard({
         href="/dsestockranking"
         linkLabel={t(lang, "fullRanking")}
       />
-      <ol className="divide-y divide-[var(--cell-rule)]">
+      <ol className="divide-y divide-cell-rule">
         {rows.map((s, i) => {
           const tier = getTier(s.score);
-          const tierColor = TIER_VAR[tier];
-          const top3 = i < 3;
-          const chg = s.change_pct;
-          const chgColor = chg == null ? "var(--text-muted)" : chg >= 0 ? "var(--positive)" : "var(--negative)";
           return (
-            <li key={s.trading_code}>
-              <Link
-                prefetch={false}
-                href={`/stock/${s.trading_code}`}
-                className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)] sm:px-5"
-              >
-                <span
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-xl text-[0.85rem] font-black tabular-nums"
-                  style={
-                    top3
-                      ? { color: "#fff", background: tierColor }
-                      : { color: "var(--text-muted)", background: "var(--surface-2)" }
-                  }
-                  aria-hidden
-                >
-                  {i + 1}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-1.5">
-                    <span className="truncate text-[0.9rem] font-bold leading-tight text-[var(--text)]">{s.company_name ?? s.trading_code}</span>
-                    <OwnerMark code={s.trading_code} held={held} watched={watched} lang={lang} />
+            <StockRow
+              key={s.trading_code}
+              code={s.trading_code}
+              name={s.company_name}
+              lang={lang}
+              leading={<StockRank n={i + 1} accent={i < 3 ? TIER_VAR[tier] : ACC.gold} solid={i < 3} />}
+              mark={<OwnerMark code={s.trading_code} held={held} watched={watched} lang={lang} />}
+              sub={
+                <>
+                  <span className={`font-bold ${TIER_TEXT[tier]}`}>{bn ? TIER_LABELS_BN[tier] : TIER_LABELS[tier]}</span>
+                  <span className="tabular-nums nums">
+                    {" · "}
+                    {Math.round(s.score ?? 0)}
+                    {t(lang, "outOf100")}
                   </span>
-                  {/* wraps rather than pushing the price cell off a 360px row */}
-                  <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[0.72rem] font-bold">
-                    <span style={{ color: tierColor }}>{bn ? TIER_LABELS_BN[tier] : TIER_LABELS[tier]}</span>
-                    <span className="tabular-nums nums text-[var(--text-muted)]">
-                      {Math.round(s.score ?? 0)}
-                      {t(lang, "outOf100")}
-                    </span>
-                    <span className="font-mono text-[0.68rem] tracking-wide text-[var(--text-muted)]">{s.trading_code}</span>
-                  </span>
-                </span>
-                <span className="shrink-0 text-right">
-                  <span className="block text-[0.86rem] font-bold tabular-nums nums text-[var(--text)]">{money(s.ltp)}</span>
-                  {chg != null && (
-                    <span className="block text-[0.75rem] font-semibold tabular-nums nums" style={{ color: chgColor }}>
-                      {chg >= 0 ? "▲" : "▼"} {Math.abs(chg).toFixed(1)}%
-                    </span>
-                  )}
-                </span>
-              </Link>
-            </li>
+                </>
+              }
+              price={s.ltp}
+              change={s.change_pct}
+            />
           );
         })}
       </ol>

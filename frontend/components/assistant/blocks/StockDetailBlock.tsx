@@ -20,15 +20,15 @@ export default function StockDetailBlock({
         <ScoreBadge score={v.score} size="md" />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-base font-extrabold text-[var(--text)]">{v.code}</span>
+            <span className="font-mono text-base font-extrabold text-text-main">{v.code}</span>
             <TierPill score={v.score} />
           </div>
-          {v.name && <div className="text-[0.74rem] text-[var(--text-muted)] truncate">{v.name}</div>}
-          <div className="text-[0.82rem] font-bold nums mt-0.5 text-[var(--text)]">
+          {v.name && <div className="text-xs text-text-muted truncate">{v.name}</div>}
+          <div className="text-sm font-bold nums mt-0.5 text-text-main">
             {v.ltp != null ? taka(v.ltp) : "—"}
             {v.changePct != null && (
               <span
-                className="ml-1.5 text-[0.74rem]"
+                className="ml-1.5 text-xs"
                 style={{ color: chgPos ? "var(--positive)" : "var(--negative)" }}
               >
                 {signed(v.changePct, 2)}%
@@ -38,14 +38,14 @@ export default function StockDetailBlock({
         </div>
       </div>
 
-      {v.tagline && <p className="text-[0.85rem] text-[var(--text)] mt-2.5">{v.tagline}</p>}
+      {v.tagline && <p className="text-sm text-text-main mt-2.5">{v.tagline}</p>}
 
       {v.facts.length > 0 && (
         <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mt-2.5">
           {v.facts.map((f, i) => (
-            <div key={i} className="flex justify-between gap-2 text-[0.76rem]">
-              <span className="text-[var(--text-muted)]">{f.label}</span>
-              <span className="font-semibold nums text-[var(--text)]">{f.value}</span>
+            <div key={i} className="flex justify-between gap-2 text-xs">
+              <span className="text-text-muted">{f.label}</span>
+              <span className="font-semibold nums text-text-main">{f.value}</span>
             </div>
           ))}
         </div>
@@ -54,13 +54,13 @@ export default function StockDetailBlock({
       {hasFlags && (
         <ul className="mt-2.5 space-y-1">
           {v.green.map((g, i) => (
-            <li key={`g${i}`} className="flex gap-1.5 text-[0.76rem] text-[var(--text)]">
+            <li key={`g${i}`} className="flex gap-1.5 text-xs text-text-main">
               <span style={{ color: "var(--positive)" }}>✓</span>
               <span>{g}</span>
             </li>
           ))}
           {v.red.map((r, i) => (
-            <li key={`r${i}`} className="flex gap-1.5 text-[0.76rem] text-[var(--text)]">
+            <li key={`r${i}`} className="flex gap-1.5 text-xs text-text-main">
               <span style={{ color: "var(--negative)" }}>!</span>
               <span>{r}</span>
             </li>
@@ -69,7 +69,7 @@ export default function StockDetailBlock({
       )}
 
       {v.stale && (
-        <p className="mt-2 text-[0.68rem] text-[var(--warm-ink)]">Note: based on slightly older data.</p>
+        <p className="mt-2 text-xs text-warm-ink">Note: based on slightly older data.</p>
       )}
 
       <Link

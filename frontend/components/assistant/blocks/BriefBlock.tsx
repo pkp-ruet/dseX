@@ -18,25 +18,25 @@ export default function BriefBlock({
   block: Extract<MessageBlock, { type: "brief" }>;
 }) {
   return (
-    <div className="soft-card mt-1 divide-y divide-[var(--border)] overflow-hidden">
+    <div className="soft-card mt-1 divide-y divide-border overflow-hidden">
       {block.rows.map((r, i) => {
         const inner = (
           <div className="flex items-start gap-2.5 px-3 py-2">
-            <span aria-hidden className="text-[0.95rem] leading-5">
+            <span aria-hidden className="text-base leading-5">
               {r.emoji}
             </span>
             <div className="min-w-0 flex-1">
-              <div className="text-[0.82rem] font-semibold leading-snug" style={{ color: toneColor(r.tone) }}>
+              <div className="text-sm font-semibold leading-snug" style={{ color: toneColor(r.tone) }}>
                 {r.title}
               </div>
               {r.detail && (
-                <div className="text-[0.72rem] text-[var(--text-muted)] truncate">{r.detail}</div>
+                <div className="text-xs text-text-muted truncate">{r.detail}</div>
               )}
             </div>
           </div>
         );
         return r.href ? (
-          <Link key={i} prefetch={false} href={r.href} className="block transition hover:bg-[var(--surface-2)]">
+          <Link key={i} prefetch={false} href={r.href} className="block transition hover:bg-surface-2">
             {inner}
           </Link>
         ) : (

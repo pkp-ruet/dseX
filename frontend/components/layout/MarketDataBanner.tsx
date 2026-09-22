@@ -14,12 +14,16 @@ import {
 const HIDE_KEY = "dsex.market-banner-hidden";
 
 /**
- * "Last updated" banner — only lives during the open session (10:00–2:30 BST):
+ * "Last updated" strip — only lives during the open session (10:00–2:30 BST):
  *  - At the open the site is still serving the previous session, so it reads
  *    "last updated <previous trading day> at 2:30 PM".
  *  - When the quick scrape lands today's data it flips to that actual run time
  *    ("last updated today at 2:05 PM"). Polled every minute, no reload needed.
  *  - Gone after the 2:30 close, before the open, and on non-trading days.
+ *
+ * It is a single 28px line (`.market-strip`, app/styles/nav.css), not a 36px
+ * bar — it shares the phone with a 56px navbar, the stock page's sticky stack
+ * and a 60px bottom bar. Dismiss removes it for the rest of the day.
  */
 export default function MarketDataBanner() {
   // Start hidden so SSR and the first client render match; the effect decides.
@@ -96,16 +100,12 @@ export default function MarketDataBanner() {
     <div
       role="status"
       aria-live="polite"
-      className="shrink-0 w-full"
-      style={{
-        background: "color-mix(in srgb, var(--primary) 8%, var(--surface))",
-        borderBottom: "1px solid color-mix(in srgb, var(--primary) 22%, transparent)",
-      }}
+      className="market-strip shrink-0 w-full bg-primary/10 border-b border-primary/20"
     >
-      <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-2 flex items-center gap-2.5">
+      <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 flex items-center gap-2">
         <svg
-          width="16"
-          height="16"
+          width="14"
+          height="14"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -113,24 +113,22 @@ export default function MarketDataBanner() {
           strokeLinecap="round"
           strokeLinejoin="round"
           aria-hidden="true"
-          className="shrink-0"
-          style={{ color: "var(--primary-ink)" }}
+          className="shrink-0 text-primary-ink"
         >
           <circle cx="12" cy="12" r="9" />
           <path d="M12 7v5l3 2" />
         </svg>
-        <p className="flex-1 text-xs sm:text-sm leading-snug" style={{ color: "var(--text)" }}>
-          Prices last updated <strong style={{ fontWeight: 600 }}>{label}</strong>. Price will be
-          updated soon.
+        <p className="flex-1 min-w-0 truncate text-xs leading-none text-text-main">
+          Prices last updated <strong className="font-semibold">{label}</strong>. Updating soon.
         </p>
+        {/* 40px tap target inside a 28px strip: negative vertical margin */}
         <button
           type="button"
           onClick={dismiss}
           aria-label="Dismiss notice"
-          className="shrink-0 inline-flex items-center justify-center rounded-md p-1 transition-colors hover:bg-black/5"
-          style={{ color: "var(--text-muted)" }}
+          className="shrink-0 inline-flex items-center justify-center w-10 h-10 -my-2 -mr-2 rounded-md text-text-muted hover:text-text-main hover:bg-primary/10 active:bg-primary/20 transition-colors"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M18 6 6 18M6 6l12 12" />
           </svg>
         </button>

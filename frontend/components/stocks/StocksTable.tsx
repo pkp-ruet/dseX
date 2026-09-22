@@ -2,55 +2,24 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useUrlParams, useUrlSync } from "@/lib/use-url-state";
-import Link from "next/link";
-import { pct, money } from "@/lib/formatters";
-import { getTier, TIER_VAR } from "@/lib/constants";
+import { pct } from "@/lib/formatters";
 import StarButton from "@/components/ui/StarButton";
-import type { ScoreItem } from "@/lib/api";
+import ScoreBadge from "@/components/ui/ScoreBadge";
+import TierPill from "@/components/ui/TierPill";
 import EmptyState from "@/components/ui/EmptyState";
+import { DataTable, SortTh, Th, StockIdent, Price, Change } from "@/components/ui/Table";
+import type { ScoreItem } from "@/lib/api";
 
 type SortCol =
   | "trading_code"
   | "company_name"
   | "sector"
   | "market_category"
+  | "score"
   | "ltp"
   | "change_pct"
   | "eps"
   | "div_yield_pct";
-
-const TIER_COLOR = TIER_VAR;
-
-function chgColor(v: number | null) {
-  if (v == null) return "var(--ink-muted)";
-  return v > 0 ? "var(--positive)" : v < 0 ? "var(--negative)" : "var(--ink-muted)";
-}
-function fmtChg(v: number | null) {
-  if (v == null) return "—";
-  return `${v > 0 ? "+" : ""}${pct(v)}`;
-}
-
-interface SortHeaderProps {
-  col: SortCol;
-  label: string;
-  active: SortCol;
-  dir: "asc" | "desc";
-  onSort: (col: SortCol) => void;
-  className?: string;
-}
-function SortHeader({ col, label, active, dir, onSort, className }: SortHeaderProps) {
-  const isActive = active === col;
-  return (
-    <th
-      className={`sl-th sl-th-sortable${className ? " " + className : ""}${isActive ? " sl-th-active" : ""}`}
-      onClick={() => onSort(col)}
-      aria-sort={isActive ? (dir === "asc" ? "ascending" : "descending") : "none"}
-    >
-      {label}
-      <span className="sl-sort-icon">{isActive ? (dir === "asc" ? " ↑" : " ↓") : " ↕"}</span>
-    </th>
-  );
-}
 
 interface Props {
   items: ScoreItem[];
@@ -58,8 +27,10 @@ interface Props {
 
 const CATEGORIES = ["A", "B", "N", "Z"] as const;
 const SORT_COLS: SortCol[] = [
-  "trading_code", "company_name", "sector", "market_category", "ltp", "change_pct", "eps", "div_yield_pct",
+  "trading_code", "company_name", "sector", "market_category", "score", "ltp", "change_pct", "eps", "div_yield_pct",
 ];
+const TEXT_COLS: SortCol[] = ["trading_code", "company_name", "sector"];
+const COL_COUNT = 10;
 
 export default function StocksTable({ items }: Props) {
   const [search, setSearch] = useState("");
@@ -107,7 +78,7 @@ export default function StocksTable({ items }: Props) {
       setSortDir(d => d === "asc" ? "desc" : "asc");
     } else {
       setSortCol(col);
-      setSortDir(col === "trading_code" || col === "company_name" || col === "sector" ? "asc" : "desc");
+      setSortDir(TEXT_COLS.includes(col) ? "asc" : "desc");
     }
   }
 
@@ -122,8 +93,9 @@ export default function StocksTable({ items }: Props) {
     if (activeCategory) r = r.filter(i => i.market_category === activeCategory);
 
     r.sort((a, b) => {
-      let av: string | number | null = a[sortCol] ?? null;
-      let bv: string | number | null = b[sortCol] ?? null;
+      const av: string | number | null = a[sortCol] ?? null;
+      const bv: string | number | null = b[sortCol] ?? null;
+      // Missing values sort last whichever direction is picked.
       if (av === null && bv === null) return 0;
       if (av === null) return 1;
       if (bv === null) return -1;
@@ -139,12 +111,14 @@ export default function StocksTable({ items }: Props) {
     return r;
   }, [items, search, activeSector, activeCategory, sortCol, sortDir]);
 
+  const th = { active: sortCol, dir: sortDir, onSort: handleSort };
+
   return (
-    <div className="sl-wrap">
+    <div className="pb-8">
       {/* Controls */}
-      <div className="sl-controls">
+      <div className="dt-toolbar">
         <input
-          className="sl-search"
+          className="dt-search"
           type="search"
           placeholder="Search code or company…"
           value={search}
@@ -153,123 +127,114 @@ export default function StocksTable({ items }: Props) {
         />
 
         <select
-          className="sl-sector-select"
+          className="dt-select"
           value={activeSector ?? ""}
           onChange={e => setActiveSector(e.target.value || null)}
+          aria-label="Filter by sector"
         >
           <option value="">All Sectors</option>
           {sectors.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
 
-        <div className="sl-cat-group">
+        <div className="dt-pills" role="group" aria-label="Market category">
           <button
-            className={`sl-cat-pill${activeCategory === null ? " sl-cat-pill--active" : ""}`}
+            type="button"
+            className={`dt-pill${activeCategory === null ? " is-active" : ""}`}
+            aria-pressed={activeCategory === null}
             onClick={() => setActiveCategory(null)}
           >All</button>
           {CATEGORIES.map(cat => (
             <button
               key={cat}
-              className={`sl-cat-pill${activeCategory === cat ? " sl-cat-pill--active" : ""}`}
+              type="button"
+              className={`dt-pill${activeCategory === cat ? " is-active" : ""}`}
+              aria-pressed={activeCategory === cat}
+              aria-label={`Category ${cat}`}
               onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
             >{cat}</button>
           ))}
         </div>
 
-        <span className="sl-count">{filtered.length} stocks</span>
+        <span className="dt-count" aria-live="polite">{filtered.length} stocks</span>
       </div>
 
       {/* Table */}
-      <div className="sl-table-wrap">
-        <table className="sl-table">
-          <thead className="sl-thead">
-            <tr>
-              <th className="sl-th sl-th-rank">#</th>
-              <th className="sl-th sl-th-star" aria-label="Watchlist"></th>
-              <SortHeader col="trading_code"   label="Code"      active={sortCol} dir={sortDir} onSort={handleSort} />
-              <SortHeader col="company_name"   label="Company"   active={sortCol} dir={sortDir} onSort={handleSort} className="sl-th-hide-sm" />
-              <SortHeader col="sector"         label="Sector"    active={sortCol} dir={sortDir} onSort={handleSort} className="sl-th-hide-md" />
-              <SortHeader col="market_category" label="Cat"      active={sortCol} dir={sortDir} onSort={handleSort} className="sl-th-hide-lg" />
-              <SortHeader col="ltp"            label="LTP"       active={sortCol} dir={sortDir} onSort={handleSort} className="sl-th-num" />
-              <SortHeader col="change_pct"     label="Chg%"      active={sortCol} dir={sortDir} onSort={handleSort} className="sl-th-num" />
-              <SortHeader col="eps"            label="EPS"       active={sortCol} dir={sortDir} onSort={handleSort} className="sl-th-num sl-th-hide-sm" />
-              <SortHeader col="div_yield_pct"  label="Div Yield" active={sortCol} dir={sortDir} onSort={handleSort} className="sl-th-num sl-th-hide-md" />
+      <DataTable>
+        <thead>
+          <tr>
+            <Th align="right">#</Th>
+            <Th srLabel="Watchlist" />
+            <SortTh col="trading_code"    label="Stock"  {...th} />
+            <SortTh col="sector"          label="Sector" {...th} secondary />
+            <SortTh col="market_category" label="Cat"    {...th} />
+            <SortTh col="score"           label="Score"  {...th} align="right" />
+            <SortTh col="ltp"             label="Price"  {...th} align="right" />
+            <SortTh col="change_pct"      label="Today"  {...th} align="right" />
+            <SortTh col="eps"             label="EPS"    {...th} align="right" />
+            <SortTh col="div_yield_pct"   label="Yield"  {...th} align="right" />
+          </tr>
+        </thead>
+        <tbody>
+          {filtered.map((item, idx) => (
+            <tr key={item.trading_code}>
+              <td data-cell="rank">{idx + 1}</td>
+
+              <td data-cell="star">
+                <StarButton code={item.trading_code} />
+              </td>
+
+              <td data-cell="ident">
+                <StockIdent code={item.trading_code} name={item.company_name} />
+              </td>
+
+              <td data-secondary className="dt-muted">
+                {item.sector ?? "—"}
+              </td>
+
+              <td data-cell="meta" data-label="Cat" className="dt-muted">
+                {item.market_category ?? "—"}
+              </td>
+
+              <td data-cell="score" className="dt-num">
+                <span className="dt-score">
+                  {item.score != null && (
+                    <span className="dt-tier"><TierPill score={item.score} /></span>
+                  )}
+                  <ScoreBadge score={item.score} size="sm" />
+                </span>
+              </td>
+
+              <td data-cell="price" className="dt-num">
+                <Price value={item.ltp} />
+              </td>
+
+              <td data-cell="change" className="dt-num">
+                <Change value={item.change_pct} />
+              </td>
+
+              <td data-cell="meta" data-label="EPS" className="dt-num nums">
+                {item.eps != null ? item.eps.toFixed(2) : "—"}
+              </td>
+
+              <td data-cell="meta" data-label="Yield" className="dt-num nums">
+                {item.div_yield_pct != null ? pct(item.div_yield_pct, 1) : "—"}
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {filtered.map((item, idx) => {
-              const tier = getTier(item.score);
-              const tierColor = TIER_COLOR[tier];
-              return (
-                <tr key={item.trading_code} className="sl-row">
-                  <td className="sl-td sl-td-rank nums">{idx + 1}</td>
-
-                  <td className="sl-td sl-td-star">
-                    <StarButton code={item.trading_code} />
-                  </td>
-
-                  <td className="sl-td sl-td-code">
-                    <Link
-                      prefetch={false} href={`/stock/${item.trading_code}`}
-                      className="sl-code-link"
-                      style={{ color: tierColor }}
-                    >
-                      {item.trading_code}
-                    </Link>
-                    <span className="sl-code-sub">{item.company_name ?? ""}</span>
-                  </td>
-
-                  <td className="sl-td sl-td-company sl-td-hide-sm">
-                    <div className="sl-cell-trunc">
-                      <Link prefetch={false} href={`/stock/${item.trading_code}`} className="sl-company-link">
-                        {item.company_name ?? item.trading_code}
-                      </Link>
-                    </div>
-                  </td>
-
-                  <td className="sl-td sl-td-sector sl-td-hide-md">
-                    <div className="sl-cell-trunc">
-                      {item.sector ?? "—"}
-                    </div>
-                  </td>
-
-                  <td className="sl-td sl-td-cat sl-td-hide-lg">
-                    {item.market_category ?? "—"}
-                  </td>
-
-                  <td className="sl-td sl-td-num nums">
-                    {/* money(): whole taka ≥ ৳100 — "৳12345.60" overflowed the 58px mobile column */}
-                    {item.ltp != null ? money(item.ltp) : "—"}
-                  </td>
-
-                  <td className="sl-td sl-td-num nums" style={{ color: chgColor(item.change_pct) }}>
-                    {fmtChg(item.change_pct)}
-                  </td>
-
-                  <td className="sl-td sl-td-num nums sl-td-hide-sm">
-                    {item.eps != null ? item.eps.toFixed(2) : "—"}
-                  </td>
-
-                  <td className="sl-td sl-td-num nums sl-td-hide-md">
-                    {item.div_yield_pct != null ? pct(item.div_yield_pct, 1) : "—"}
-                  </td>
-                </tr>
-              );
-            })}
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={11} className="sl-empty">
-                  <EmptyState
-                    variant="bare"
-                    title="No stocks match your filters"
-                    message="Try a shorter search, or clear the sector and category."
-                    bn="এই ফিল্টারে কোনো শেয়ার মিলছে না। সার্চ ছোট করুন বা ফিল্টার মুছে দেখুন।"
-                  />
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+          ))}
+          {filtered.length === 0 && (
+            <tr>
+              <td colSpan={COL_COUNT} className="dt-empty">
+                <EmptyState
+                  variant="bare"
+                  title="No stocks match your filters"
+                  message="Try a shorter search, or clear the sector and category."
+                  bn="এই ফিল্টারে কোনো শেয়ার মিলছে না। সার্চ ছোট করুন বা ফিল্টার মুছে দেখুন।"
+                />
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </DataTable>
     </div>
   );
 }

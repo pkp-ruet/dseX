@@ -56,7 +56,7 @@ export default function UsersTable({
           className="input-field flex-1 min-w-[12rem] max-w-sm text-sm"
         />
         <div className="flex items-center gap-1.5">
-          <span className="text-xs text-[var(--text-muted)]">Sort</span>
+          <span className="text-xs text-text-muted">Sort</span>
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as SortKey)}
@@ -70,10 +70,10 @@ export default function UsersTable({
       </div>
 
       {/* Desktop table */}
-      <div className="hidden md:block overflow-x-auto rounded-xl border border-[var(--border)]">
+      <div className="hidden md:block overflow-x-auto rounded-xl border border-border">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-[var(--border)] text-[var(--text-muted)] text-xs uppercase">
+            <tr className="border-b border-border text-text-muted text-xs uppercase">
               <th className="px-4 py-3 text-left">User</th>
               <th className="px-4 py-3 text-left">Segment</th>
               <th className="px-4 py-3 text-left">Source</th>
@@ -90,29 +90,29 @@ export default function UsersTable({
               <tr
                 key={u.user_id}
                 onClick={() => onSelect(u)}
-                className="border-b border-[var(--cell-rule)] hover:bg-[var(--surface-2)] transition-colors cursor-pointer"
+                className="border-b border-cell-rule hover:bg-surface-2 transition-colors cursor-pointer"
               >
                 <td className="px-4 py-3">
-                  <p className="font-medium text-[var(--text)]">
-                    {u.display_name ?? <span className="text-[var(--text-muted)] italic">No name</span>}
+                  <p className="font-medium text-text-main">
+                    {u.display_name ?? <span className="text-text-muted italic">No name</span>}
                   </p>
-                  <p className="text-[11px] text-[var(--text-muted)] truncate max-w-[200px]">
+                  <p className="text-xs text-text-muted truncate max-w-[200px]">
                     {u.email ?? u.phone ?? `${u.user_id.slice(0, 8)}…`}
                   </p>
                 </td>
                 <td className="px-4 py-3"><SegmentPill segment={u.segment} /></td>
                 <td className="px-4 py-3"><SourcePill source={u.signup_source} /></td>
-                <td className="px-4 py-3 text-[var(--text-muted)] whitespace-nowrap">{fmtDateTime(u.created_at)}</td>
-                <td className="px-4 py-3 text-[var(--text-muted)] whitespace-nowrap">{timeAgo(u.last_seen_at)}</td>
-                <td className="px-4 py-3 text-right tabular-nums nums text-[var(--text)]">{u.total_visits ?? 0}</td>
-                <td className="px-4 py-3 text-right tabular-nums nums text-[var(--text-muted)]">{u.watchlist_count}</td>
-                <td className="px-4 py-3 text-right tabular-nums nums text-[var(--text-muted)]">{u.portfolio_count}</td>
+                <td className="px-4 py-3 text-text-muted whitespace-nowrap">{fmtDateTime(u.created_at)}</td>
+                <td className="px-4 py-3 text-text-muted whitespace-nowrap">{timeAgo(u.last_seen_at)}</td>
+                <td className="px-4 py-3 text-right tabular-nums nums text-text-main">{u.total_visits ?? 0}</td>
+                <td className="px-4 py-3 text-right tabular-nums nums text-text-muted">{u.watchlist_count}</td>
+                <td className="px-4 py-3 text-right tabular-nums nums text-text-muted">{u.portfolio_count}</td>
                 <td className="px-4 py-3"><FeatureBadges user={u} /></td>
               </tr>
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={9} className="px-4 py-8 text-center text-[var(--text-muted)]">No users found.</td>
+                <td colSpan={9} className="px-4 py-8 text-center text-text-muted">No users found.</td>
               </tr>
             )}
           </tbody>
@@ -129,12 +129,12 @@ export default function UsersTable({
           >
             <div className="flex items-start justify-between gap-3 mb-2">
               <div className="min-w-0">
-                <p className="font-semibold text-[var(--text)] truncate">{u.display_name || "No name"}</p>
-                <p className="text-xs text-[var(--text-muted)] truncate">{u.email ?? u.phone ?? `${u.user_id.slice(0, 8)}…`}</p>
+                <p className="font-semibold text-text-main truncate">{u.display_name || "No name"}</p>
+                <p className="text-xs text-text-muted truncate">{u.email ?? u.phone ?? `${u.user_id.slice(0, 8)}…`}</p>
               </div>
               <SegmentPill segment={u.segment} />
             </div>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-[var(--text-muted)]">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-muted">
               <SourcePill source={u.signup_source} />
               <span>Seen {timeAgo(u.last_seen_at)}</span>
               <span>{u.total_visits ?? 0} visits</span>
@@ -145,13 +145,13 @@ export default function UsersTable({
           </button>
         ))}
         {rows.length === 0 && (
-          <div className="soft-card rounded-xl p-6 text-center text-[var(--text-muted)] text-sm">
+          <div className="soft-card rounded-xl p-6 text-center text-text-muted text-sm">
             No users found.
           </div>
         )}
       </div>
 
-      <p className="text-xs text-[var(--text-muted)]">Showing {rows.length} of {users.length} users</p>
+      <p className="text-xs text-text-muted">Showing {rows.length} of {users.length} users</p>
     </div>
   );
 }

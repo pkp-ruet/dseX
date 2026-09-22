@@ -42,7 +42,7 @@ export default function RecommendCard({
         aria-hidden
       />
       <header
-        className={`flex items-center border-b border-[var(--border)] bg-[var(--surface)] px-4 sm:px-5 ${
+        className={`flex items-center border-b border-border bg-surface px-4 sm:px-5 ${
           prominent ? "gap-3.5 py-4" : "gap-3 py-3.5"
         }`}
       >
@@ -51,7 +51,7 @@ export default function RecommendCard({
             prominent ? "h-11 w-11 rounded-2xl" : "h-9 w-9 rounded-xl"
           }`}
           style={{
-            background: `linear-gradient(135deg, ${accent}, color-mix(in srgb, ${accent} 62%, #000))`,
+            background: `linear-gradient(135deg, ${accent}, color-mix(in srgb, ${accent} 62%, var(--text)))`,
             boxShadow: `0 6px 16px -8px color-mix(in srgb, ${accent} 80%, transparent)`,
           }}
           aria-hidden
@@ -60,21 +60,21 @@ export default function RecommendCard({
         </span>
         <div className="min-w-0 flex-1">
           <h3
-            className={`font-extrabold tracking-tight text-[var(--text)] leading-tight truncate ${
-              prominent ? "text-[1.18rem]" : "text-[0.98rem]"
+            className={`font-extrabold tracking-tight text-text-main leading-tight truncate ${
+              prominent ? "text-lg" : "text-base"
             }`}
           >
             {title}
           </h3>
           {subtitle && (
-            <p className={`text-[var(--text-muted)] ${prominent ? "text-[0.76rem]" : "text-[0.72rem]"}`}>
+            <p className={`text-text-muted ${prominent ? "text-xs" : "text-xs"}`}>
               {subtitle}
             </p>
           )}
         </div>
         {headerRight}
       </header>
-      <div className="px-4 sm:px-5 py-4 bg-[var(--surface-2)]">{children}</div>
+      <div className="px-4 sm:px-5 py-4 bg-surface-2">{children}</div>
     </>
   );
 

@@ -1,5 +1,15 @@
 import type { Config } from "tailwindcss";
 
+/**
+ * Every colour utility resolves to a CSS token from `app/globals.css :root`.
+ * Tokens with an `--x-rgb` triplet support Tailwind opacity modifiers
+ * (`bg-primary/10`, `border-border/60`); the rest are plain `var()` colours.
+ * Components use these names — `text-text-muted`, `bg-surface-2`,
+ * `border-border` — never `[var(--…)]` arbitrary values and never raw hex
+ * (the two OG-image routes are the only exception; Satori has no CSS vars).
+ */
+const rgb = (name: string) => `rgb(var(--${name}-rgb) / <alpha-value>)`;
+
 const config: Config = {
   content: [
     "./app/**/*.{ts,tsx}",
@@ -9,41 +19,58 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: "var(--primary)",
+        // canvas + ink
+        bg: rgb("bg"),
+        surface: rgb("surface"),
+        "surface-2": rgb("surface-2"),
+        border: rgb("border"),
+        "cell-rule": "var(--cell-rule)",
+        "text-main": rgb("text"),
+        "text-muted": rgb("text-muted"),
+        // roles
+        primary: rgb("primary"),
+        "primary-ink": "var(--primary-ink)",
         "primary-soft": "var(--primary-soft)",
-        accent: "var(--accent)",
-        warm: "var(--warm)",
+        navy: rgb("navy"),
+        "navy-ink": "var(--navy-ink)",
+        "navy-soft": "var(--navy-soft)",
+        info: rgb("info"),
+        "info-ink": "var(--info-ink)",
+        "info-soft": "var(--info-soft)",
+        gold: rgb("gold"),
+        "gold-ink": "var(--gold-ink)",
+        "gold-soft": "var(--gold-soft)",
+        "gold-light": "var(--gold-light)",
+        warm: rgb("warm"),
+        "warm-ink": "var(--warm-ink)",
         "warm-soft": "var(--warm-soft)",
-        positive: "var(--positive)",
-        negative: "var(--negative)",
-        bg: "var(--bg)",
-        surface: "var(--surface)",
-        "surface-2": "var(--surface-2)",
-        border: "var(--border)",
-        "text-main": "var(--text)",
-        "text-muted": "var(--text-muted)",
+        // market semantics — locked, never decorative
+        positive: rgb("positive"),
+        negative: rgb("negative"),
+        watch: rgb("watch"),
+        // fundamental-strength tiers
         "tier-excellent": "var(--tier-excellent)",
         "tier-good": "var(--tier-good)",
         "tier-average": "var(--tier-average)",
         "tier-weak": "var(--tier-weak)",
-        "safe-buy": "var(--safe-buy)",
-        watch: "var(--watch)",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
         display: ["var(--font-grotesk)", "Inter", "system-ui", "sans-serif"],
       },
+      // Type scale mirrors the `--fs-*` tokens. 12px is the floor app-wide —
+      // the audience reads on budget Android phones. Nothing smaller than `text-xs`.
       fontSize: {
-        "2xs": ["var(--fs-2xs)", { lineHeight: "1.2" }],
+        "2xs": ["var(--fs-2xs)", { lineHeight: "1.25" }],
         display: ["var(--fs-display)", { lineHeight: "1.05" }],
       },
-      // One radius scale (2026-09-22): 8 controls-tight, 10 controls, 12 inputs/small cards,
-      // 16 cards, 20 hero panels. `2xl` used to be Tailwind's 16px while `lg` was 18 and
-      // `xl` 24, so cards on one page came out at three different radii.
+      // One radius scale: 6 chips, 8 controls-tight, 10 controls, 12 inputs/small
+      // cards, 16 cards, 20 hero panels. Mirrors `--radius-sm/--radius/--radius-md/
+      // --radius-lg/--radius-xl` in globals.css.
       borderRadius: {
         sm: "6px",
-        DEFAULT: "10px",
         md: "8px",
+        DEFAULT: "10px",
         lg: "12px",
         xl: "16px",
         "2xl": "16px",

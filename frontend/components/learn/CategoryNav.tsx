@@ -58,7 +58,7 @@ export default function CategoryNav({ categories }: { categories: LearnCategory[
   return (
     <nav
       aria-label="Guide categories"
-      className={`fixed inset-x-0 top-14 z-40 border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--surface)_88%,transparent)] backdrop-blur transition-all duration-200 ${
+      className={`fixed inset-x-0 top-14 z-40 border-b border-border bg-[color-mix(in_srgb,var(--surface)_88%,transparent)] backdrop-blur transition-all duration-200 ${
         visible
           ? "translate-y-0 opacity-100"
           : "pointer-events-none -translate-y-3 opacity-0"
@@ -77,17 +77,17 @@ export default function CategoryNav({ categories }: { categories: LearnCategory[
                 href={`#${c.anchor}`}
                 data-anchor={c.anchor}
                 aria-current={isActive ? "true" : undefined}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.8rem] font-semibold transition-colors ${
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors ${
                   isActive
-                    ? "border-transparent bg-[var(--primary)] text-white"
-                    : "border-[var(--border)] bg-[var(--surface)] text-[var(--ink-2)] hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                    ? "border-transparent bg-primary text-white"
+                    : "border-border bg-surface text-text-muted hover:border-primary hover:text-primary"
                 }`}
               >
                 <span aria-hidden="true">{c.icon}</span>
                 <span>{c.short}</span>
                 <span
-                  className={`text-[0.7rem] font-bold ${
-                    isActive ? "text-white/80" : "text-[var(--ink-muted)]"
+                  className={`text-xs font-bold ${
+                    isActive ? "text-white/80" : "text-text-muted"
                   }`}
                 >
                   {c.count}

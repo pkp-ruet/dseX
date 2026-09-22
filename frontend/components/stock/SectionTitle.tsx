@@ -33,7 +33,7 @@ export default function SectionTitle({ title, sub, bn, right, className = "" }: 
         </p>
       )}
       {bn && (
-        <Bn className="text-[0.9rem] font-medium mt-1" >
+        <Bn className="text-sm font-medium mt-1" >
           <span style={{ color: "var(--text-muted)" }}>{bn}</span>
         </Bn>
       )}

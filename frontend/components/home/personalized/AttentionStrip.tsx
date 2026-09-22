@@ -55,7 +55,7 @@ export default function AttentionStrip({ alerts, lang = "en" }: { alerts: HomeAl
         chips={<HeaderChip>{alerts.length > 9 ? "9+" : alerts.length}</HeaderChip>}
       />
 
-      <ul className="divide-y divide-[var(--cell-rule)]">
+      <ul className="divide-y divide-cell-rule">
         {shown.map((a) => {
           const toneColor =
             a.tone === "positive"
@@ -73,7 +73,7 @@ export default function AttentionStrip({ alerts, lang = "en" }: { alerts: HomeAl
                 <KindIcon kind={a.kind} tone={a.tone} />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-semibold text-[var(--text)]">{a.title}</span>
+                <span className="block truncate text-sm font-semibold text-text-main">{a.title}</span>
                 {a.detail && (
                   <span className="block truncate text-xs font-medium" style={{ color: toneColor }}>
                     {a.detail}
@@ -81,7 +81,7 @@ export default function AttentionStrip({ alerts, lang = "en" }: { alerts: HomeAl
                 )}
               </span>
               {a.href && (
-                <span className="shrink-0 text-[var(--text-muted)]">
+                <span className="shrink-0 text-text-muted">
                   <IconChevron size={15} />
                 </span>
               )}
@@ -93,7 +93,7 @@ export default function AttentionStrip({ alerts, lang = "en" }: { alerts: HomeAl
                 <Link
                   prefetch={false}
                   href={a.href}
-                  className="flex items-center gap-2.5 px-4 py-2.5 transition-colors hover:bg-[var(--surface-2)] active:bg-[var(--surface-2)]"
+                  className="flex items-center gap-2.5 px-4 py-2.5 transition-colors hover:bg-surface-2 active:bg-surface-2"
                 >
                   {inner}
                 </Link>
@@ -106,7 +106,7 @@ export default function AttentionStrip({ alerts, lang = "en" }: { alerts: HomeAl
       </ul>
 
       {alerts.length > MAX_ROWS && (
-        <p className="border-t border-[var(--border)] px-4 py-2 text-[0.68rem] font-semibold text-[var(--text-muted)]">
+        <p className="border-t border-border px-4 py-2 text-xs font-semibold text-text-muted">
           {t(lang, "moreOnYourStocks", { n: alerts.length - MAX_ROWS })}
         </p>
       )}

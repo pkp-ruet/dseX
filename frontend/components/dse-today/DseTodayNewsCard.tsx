@@ -51,12 +51,12 @@ export default function DseTodayNewsCard({
     >
       {/* Source row — ticker · your-stock pill · company · date */}
       <div className="flex items-center gap-2">
-        <Link prefetch={false} href={`/stock/${item.trading_code}`} className="ticker-tag text-[11px] shrink-0">
+        <Link prefetch={false} href={`/stock/${item.trading_code}`} className="ticker-tag text-xs shrink-0">
           {item.trading_code}
         </Link>
         {(isPortfolio || isWatchlist) && (
           <span
-            className="inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[11px] font-bold"
+            className="inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-bold"
             style={{
               color: pillColor,
               background: `color-mix(in srgb, ${isPortfolio ? "var(--positive)" : "var(--primary)"} 12%, transparent)`,
@@ -65,30 +65,30 @@ export default function DseTodayNewsCard({
             {isPortfolio ? "Portfolio" : "Watchlist"}
           </span>
         )}
-        <span className="min-w-0 flex-1 truncate text-[11px] font-medium text-[var(--text-muted)]">
+        <span className="min-w-0 flex-1 truncate text-xs font-medium text-text-muted">
           {item.company_name ?? ""}
         </span>
         {item.post_date && (
-          <span className="shrink-0 text-[11px] font-bold tabular-nums uppercase tracking-wide text-[var(--text-muted)]">
+          <span className="shrink-0 text-xs font-bold tabular-nums uppercase tracking-wide text-text-muted">
             {formatDate(item.post_date)}
           </span>
         )}
       </div>
 
       {/* Headline */}
-      <h3 className="text-sm font-semibold leading-snug text-[var(--text)]">{item.title}</h3>
+      <h3 className="text-sm font-semibold leading-snug text-text-main">{item.title}</h3>
 
       {/* Body */}
       {hasBody && (
         <>
           <p
-            className={`text-[13px] leading-relaxed text-[var(--text-muted)] ${expanded ? "" : "line-clamp-3"}`}
+            className={`text-sm leading-relaxed text-text-muted ${expanded ? "" : "line-clamp-3"}`}
           >
             {body}
           </p>
           <button
             onClick={() => setExpanded((v) => !v)}
-            className="self-start text-xs font-bold text-[var(--primary-ink)] transition-opacity hover:opacity-70"
+            className="self-start text-xs font-bold text-primary-ink transition-opacity hover:opacity-70"
           >
             {expanded ? "Show less" : "Read more →"}
           </button>

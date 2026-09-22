@@ -1,0 +1,79 @@
+/* misc — page-area styles layered after globals.css (later import wins at equal specificity).
+   Tokens only: var(--fs-*), var(--radius*), var(--shadow-*), colour vars. */
+
+/* ---- ScoreBadge — the arc draws in; still under reduced motion ---- */
+.score-ring-arc {
+  transition: stroke-dasharray 600ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .score-ring-arc { transition: none; }
+}
+
+/* ---- Rank table: score cell = ONE ScoreBadge (sm) + ONE TierPill (sm) ----
+   globals.css still styles the retired letter-grade tag (.fr-tier-tag*); the
+   cell now holds the shared primitives, so only the gap is ours to set. */
+.fr-score-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Quick-view toggle — 40px touch target on every screen (was 28px / 34px). */
+.fr-toggle {
+  min-height: 40px;
+  min-width: 40px;
+  height: 40px;
+}
+
+/* Tier separator — the letter block is gone; the coloured spine + label carry
+   the tier, so the row can breathe a little less on the left. */
+.fr-tier-sep { gap: 10px; }
+
+/* Tier quality bar (RankingExplorer) — the bands show count + share instead of
+   a letter; the legend below names each band with the shared TierPill. */
+.rank-qseg-share {
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  line-height: 1;
+  opacity: 0.85;
+  font-variant-numeric: tabular-nums;
+}
+.rank-qseg-count {
+  font-size: var(--fs-md);
+  font-weight: 800;
+}
+.rank-qbar-legend { gap: 8px 14px; }
+
+/* Quick-view head — tier pill + one plain meaning line, no letter. */
+.fr-detail-tier { display: inline-flex; align-items: center; }
+
+/* ---- Mobile cards: bring the score back onto the card ----
+   globals.css hides .fr-td-score with !important below 640px and pushes the
+   score behind the "More" toggle. Same specificity, later import → these win.
+   The card grid gains a `score` area so the ring sits right of the code/name
+   block, before the price; the tier word is dropped at this width (the ring
+   colour carries the tier, and the separator names it). */
+@media (max-width: 640px) {
+  .fr-td-score {
+    display: flex !important;
+    grid-area: score;
+    align-items: center;
+    justify-self: end;
+    white-space: nowrap;
+  }
+  .fr-row,
+  .fr-tier-sep-row + .fr-row {
+    grid-template-columns: auto minmax(0, 1fr) auto auto auto auto;
+    grid-template-areas: "rank code score ltp star tgl";
+    column-gap: 6px;
+  }
+  .fr-score-cell { gap: 0; }
+  .fr-score-tier { display: none; }
+  .fr-toggle {
+    width: 40px;
+    height: 40px;
+    box-shadow: none;
+    border: 1px solid var(--border);
+  }
+  .fr-toggle svg { width: 16px; height: 16px; }
+}

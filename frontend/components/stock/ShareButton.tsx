@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
 import { IconShare } from "@/components/stock/StockIcons";
+import Button from "@/components/ui/Button";
 
 interface Props {
   code: string;
@@ -48,16 +49,17 @@ export default function ShareButton({ code, companyName, score, ltp, className =
   }
 
   return (
-    <button
+    <Button
       type="button"
+      variant="quiet"
+      size="sm"
       onClick={handleShare}
-      className={`add-watchlist-btn ${className}`}
+      className={`${mounted ? "" : "invisible"} ${className}`.trim()}
       aria-label={`Share ${code}`}
       title="Share this stock"
-      style={{ visibility: mounted ? "visible" : "hidden" }}
     >
       <IconShare size={14} />
       <span>Share</span>
-    </button>
+    </Button>
   );
 }

@@ -103,14 +103,14 @@ export default function NotificationSettings() {
     }
   }
 
-  const card = "bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4";
-  const label = "text-xs text-[var(--text-muted)] uppercase tracking-wider";
+  const card = "bg-surface border border-border rounded-xl p-4";
+  const label = "text-xs text-text-muted uppercase tracking-wider";
 
   if (phase === "loading") {
     return (
       <div className={card}>
         <span className={label}>Notifications</span>
-        <p className="text-[var(--text-muted)] text-sm mt-2">Checking…</p>
+        <p className="text-text-muted text-sm mt-2">Checking…</p>
       </div>
     );
   }
@@ -119,7 +119,7 @@ export default function NotificationSettings() {
     return (
       <div className={card}>
         <span className={label}>Notifications</span>
-        <p className="text-[var(--text-muted)] text-sm mt-2">
+        <p className="text-text-muted text-sm mt-2">
           This browser doesn&apos;t support web notifications.
         </p>
       </div>
@@ -136,18 +136,18 @@ export default function NotificationSettings() {
           style={{ background: registered ? "var(--positive)" : "var(--text-muted)" }}
           aria-hidden
         />
-        <p className="text-[var(--text)] font-medium">
+        <p className="text-text-main font-medium">
           {registered ? "On for this device" : "Off for this device"}
         </p>
       </div>
 
       {!configured ? (
-        <p className="mt-2 text-xs text-[var(--text-muted)]">
+        <p className="mt-2 text-xs text-text-muted">
           Notifications aren&apos;t available right now.
         </p>
       ) : (
         <>
-          <p className="mt-1 text-xs leading-snug text-[var(--text-muted)]">
+          <p className="mt-1 text-xs leading-snug text-text-muted">
             {registered
               ? "You'll get your daily stock update and alerts on this device."
               : "Turn on to get your daily stock update and alerts on this device."}

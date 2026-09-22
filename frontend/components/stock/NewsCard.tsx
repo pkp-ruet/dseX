@@ -25,11 +25,11 @@ export default function NewsCard({ title, body, postDate }: Props) {
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full text-left px-4 py-3 flex items-start justify-between gap-3 transition-colors"
-        style={{ background: expanded ? "color-mix(in srgb, var(--accent) 6%, transparent)" : "transparent" }}
+        style={{ background: expanded ? "color-mix(in srgb, var(--primary) 6%, transparent)" : "transparent" }}
       >
         <span className="min-w-0">
           <span
-            className="inline-flex items-center text-[11px] font-bold uppercase tracking-[0.08em] px-2 py-0.5 rounded-full mb-1.5"
+            className="inline-flex items-center text-xs font-bold uppercase tracking-[0.08em] px-2 py-0.5 rounded-full mb-1.5"
             style={{
               color: kind.color,
               background: `color-mix(in srgb, ${kind.color} 10%, transparent)`,
@@ -43,8 +43,8 @@ export default function NewsCard({ title, body, postDate }: Props) {
           </span>
         </span>
         <span
-          className="text-[11px] font-bold shrink-0 mt-0.5 px-2.5 py-1 rounded-full whitespace-nowrap"
-          style={{ background: "color-mix(in srgb, var(--accent) 10%, transparent)", color: "var(--primary)", border: "1px solid color-mix(in srgb, var(--accent) 25%, transparent)" }}
+          className="text-xs font-bold shrink-0 mt-0.5 px-2.5 py-1 rounded-full whitespace-nowrap"
+          style={{ background: "color-mix(in srgb, var(--primary) 10%, transparent)", color: "var(--primary)", border: "1px solid color-mix(in srgb, var(--primary) 25%, transparent)" }}
         >
           {formatDate(postDate)}
         </span>
