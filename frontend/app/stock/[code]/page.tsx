@@ -304,8 +304,10 @@ export default async function StockDetailPage({ params }: PageProps) {
       {/* Our Verdict — one card, right below the price story (not a nav anchor) */}
       <VerdictBlock detail={detail} />
 
-      {/* Sticky stack: summary bar (on scroll) + section jump-nav */}
-      <div className="sticky top-14 z-40 -mx-4 sm:-mx-6">
+      {/* Sticky stack: section jump-nav, with the fixed summary bar overlaid above it.
+          `.stock-sticky-stack` (globals.css) pins under navbar + the bar's live height
+          (--stock-bar-h), so the bar's open/close never changes the page's layout. */}
+      <div className="stock-sticky-stack z-40 -mx-4 sm:-mx-6">
         <StickySummaryBar
           code={profile.trading_code}
           score={score}

@@ -5,11 +5,11 @@ import { useEffect, useRef } from "react";
 export const STICKY_STACK_VAR = "--stock-sticky-h";
 
 /**
- * Drop this inside the stock page's sticky stack (summary bar + section nav).
- * It measures the stack's live height — the summary bar animates between 0 and
- * ~45px — and publishes it as `--stock-sticky-h` on <html>, so hash jumps to a
- * `.stock-anchor` section land the heading just below the stack instead of a
- * fixed 112px that was ~50px short whenever the bar was showing.
+ * Drop this inside the stock page's sticky stack (the section chip nav).
+ * It measures the stack's live height and publishes it as `--stock-sticky-h`
+ * on <html>. The summary bar is position: fixed and publishes its own
+ * `--stock-bar-h` (StickySummaryBar.tsx); `.stock-anchor` adds navbar + both,
+ * so hash jumps land the heading just below the whole fixed stack.
  * Renders nothing visible.
  */
 export default function StickyStackMeasure() {

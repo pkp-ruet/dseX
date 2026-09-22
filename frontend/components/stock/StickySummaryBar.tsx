@@ -1,11 +1,21 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { verdictHeadline, verdictTone } from "@/lib/plain-language";
 import SignalChip from "@/components/ui/SignalChip";
 import type { StockSignalInfo } from "@/lib/api";
 import { money } from "@/lib/formatters";
 import StarButton from "@/components/ui/StarButton";
 import { STOCK_JUMP_EVENT } from "@/components/stock/StockSectionNav";
+
+/** Fixed navbar height (layout.tsx `h-14`). */
+const NAVBAR_H = 56;
+/** The bar's fixed height. The sticky stack's `top` and `.stock-anchor`'s
+ *  scroll margin both read it through STOCK_BAR_VAR. */
+export const BAR_H = 48;
+/** CSS custom property on <html>: `${BAR_H}px` while the bar shows, else 0px. */
+export const STOCK_BAR_VAR = "--stock-bar-h";
+/** Ignore scroll wobble smaller than this before flipping the bar on a phone. */
+const DIRECTION_SLACK = 10;
 
 interface Props {
   code: string;
@@ -17,15 +27,40 @@ interface Props {
   changePct: number | null;
 }
 
+/**
+ * The summary bar is `position: fixed` and OUT of the page flow on purpose.
+ *
+ * It used to be an in-flow child of the sticky stack that animated its
+ * max-height 0↔56px. A sticky element still takes up space, so every toggle
+ * pushed the whole page below it down or up by 56px. Worse, the browser's
+ * scroll anchoring then corrected `scrollY` to keep the reader's text still,
+ * that correction fired a scroll event, the direction check read it as the
+ * reader scrolling the other way and flipped the bar again — the page
+ * "kept jumping" on phones until the gesture ended.
+ *
+ * Now the bar overlays the viewport under the navbar, and the sticky stack
+ * (`.stock-sticky-stack`) moves its `top` down by `--stock-bar-h` to make
+ * room. Sticky `top` only changes where the stack pins, never its in-flow
+ * position, so the content never shifts and nothing feeds back into scroll.
+ */
 export default function StickySummaryBar({
   code, score, rank, total, signal, ltp, changePct,
 }: Props) {
   const [show, setShow] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
-  // Past the hero the bar appears. On a phone the navbar + this bar + the
-  // section nav is ~170px of fixed chrome, so there it also hides while the
-  // reader scrolls down and comes back the moment they scroll up.
+  // Publish the bar's live height so the sticky stack and hash jumps make room.
   useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty(STOCK_BAR_VAR, `${show ? BAR_H : 0}px`);
+    return () => {
+      root.style.removeProperty(STOCK_BAR_VAR);
+    };
+  }, [show]);
+
+  useEffect(() => {
+    // The bar's parent is the sticky stack it sits above (page.tsx).
+    const stack = ref.current?.parentElement;
     let lastY = window.scrollY;
     // A section-chip jump on a phone scrolls "up" for upward targets, which
     // would pop the bar in mid-scroll and push the heading under the chips.
@@ -33,17 +68,24 @@ export default function StickySummaryBar({
     let holdHiddenUntil = 0;
     const onScroll = () => {
       const y = window.scrollY;
-      const pastHero = y > 320;
+      // Show only once the stack is pinned under the navbar. When pinned its
+      // top is exactly the sticky offset (with or without the bar's room), so
+      // this stays true through the bar's own open/close — no feedback.
+      const pinned = stack
+        ? stack.getBoundingClientRect().top <= NAVBAR_H + BAR_H + 1
+        : y > 320;
       const narrow = window.innerWidth < 640;
-      if (!pastHero) {
+      if (!pinned) {
         setShow(false);
       } else if (!narrow) {
         setShow(true);
       } else if (Date.now() < holdHiddenUntil) {
         setShow(false);
-      } else if (y < lastY - 6) {
+      } else if (y < lastY - DIRECTION_SLACK) {
+        // Phones: the navbar + bar + chips is a lot of fixed chrome, so the bar
+        // hides while reading down and comes back on the first scroll up.
         setShow(true);
-      } else if (y > lastY + 6) {
+      } else if (y > lastY + DIRECTION_SLACK) {
         setShow(false);
       }
       lastY = y;
@@ -71,14 +113,21 @@ export default function StickySummaryBar({
 
   return (
     <div
-      className="overflow-hidden transition-all duration-200"
-      style={{ maxHeight: show ? 56 : 0, opacity: show ? 1 : 0 }}
+      ref={ref}
+      className="fixed left-0 right-0 top-14 z-40 transition-[transform,opacity] duration-200 motion-reduce:transition-none"
+      style={{
+        height: BAR_H,
+        transform: show ? "translateY(0)" : "translateY(-100%)",
+        opacity: show ? 1 : 0,
+        pointerEvents: show ? "auto" : "none",
+      }}
       aria-hidden={!show}
       inert={!show}
     >
+      {/* max-w-5xl matches <main>, so the bar lines up with the chip row below it */}
       <div
         data-summary-inner
-        className="flex items-center gap-2 sm:gap-3 py-2 px-3"
+        className="max-w-5xl mx-auto h-full flex items-center gap-2 sm:gap-3 px-3"
         style={{
           background: "color-mix(in srgb, var(--surface) 92%, transparent)",
           backdropFilter: "blur(8px)",

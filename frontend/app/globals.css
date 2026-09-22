@@ -8925,12 +8925,25 @@ a:hover .ticker-tag,
   .above-bottom-bar { bottom: 20px; }
 }
 
-/* ---- Stock page jump targets. The sticky stack under the navbar (summary bar
-   + section nav) is measured live into --stock-sticky-h by
-   components/stock/StickyStackMeasure.tsx, so a hash jump lands the section
-   title just below it whether or not the summary bar is showing. ---- */
+/* ---- Stock page sticky stack + jump targets.
+   Fixed chrome on the stock page, top to bottom: navbar (56px) → summary bar
+   (position: fixed, height published as --stock-bar-h by
+   components/stock/StickySummaryBar.tsx — 0px while hidden) → the section
+   chip nav (this sticky stack, height measured into --stock-sticky-h by
+   components/stock/StickyStackMeasure.tsx).
+   The stack pins BELOW the bar by moving its sticky `top`, not by holding the
+   bar in flow: a sticky element's height still occupies space, so an in-flow
+   bar shifted the whole page 56px on every open/close and scroll anchoring
+   turned that into a jumping loop on phones (fixed 2026-09-22). ---- */
+.stock-sticky-stack {
+  position: sticky;
+  top: calc(56px + var(--stock-bar-h, 0px));
+}
+@media (prefers-reduced-motion: no-preference) {
+  .stock-sticky-stack { transition: top 200ms; }
+}
 .stock-anchor {
-  scroll-margin-top: calc(56px + var(--stock-sticky-h, 56px) + 8px);
+  scroll-margin-top: calc(56px + var(--stock-bar-h, 0px) + var(--stock-sticky-h, 56px) + 8px);
 }
 
 /* ---- PageGuide: the "about this page" prose + FAQ under every hub table ---- */
