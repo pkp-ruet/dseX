@@ -13,9 +13,6 @@ import {
   type CampaignStats,
 } from "@/lib/api";
 
-const btnBase =
-  "inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
-
 export default function AdminCampaignsClient() {
   const router = useRouter();
   const { isLoading, isLoggedIn, isAdmin } = useAuth();
@@ -145,7 +142,7 @@ export default function AdminCampaignsClient() {
         </div>
         <a
           href="/admin/analytics"
-          className={`${btnBase} border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30`}
+          className="btn-quiet"
         >
           ← Analytics
         </a>
@@ -273,14 +270,14 @@ export default function AdminCampaignsClient() {
                 <button
                   onClick={onSendTest}
                   disabled={busy}
-                  className={`${btnBase} border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30`}
+                  className="btn-quiet"
                 >
                   ✉ Send test to me
                 </button>
                 <button
                   onClick={onSend}
                   disabled={busy || willSend === 0}
-                  className={`${btnBase} bg-[var(--primary)] text-white hover:opacity-90`}
+                  className="btn-primary"
                 >
                   ▶ Send to {willSend} users
                 </button>

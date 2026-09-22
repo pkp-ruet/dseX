@@ -23,7 +23,7 @@ export default function CoreFeatureTiles() {
     <div className="grid grid-cols-2 gap-3">
       <Link
         href="/stocks"
-        className="group flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[0_4px_16px_rgba(15,23,42,0.05)] transition-all hover:-translate-y-0.5 hover:border-[var(--primary)] hover:shadow-lg"
+        className="group flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[0_4px_16px_rgba(15,23,42,0.05)] transition-all hover:border-[var(--primary)] hover:shadow-lg"
       >
         <span
           className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-[var(--primary)]"
@@ -42,7 +42,7 @@ export default function CoreFeatureTiles() {
         href="/blog"
         lang="bn"
         aria-label="বাংলা ব্লগ — সহজ ভাষায় শেয়ার বাজার শিখুন"
-        className="font-bn group flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[0_4px_16px_rgba(15,23,42,0.05)] transition-all hover:-translate-y-0.5 hover:border-[var(--positive)] hover:shadow-lg"
+        className="font-bn group flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[0_4px_16px_rgba(15,23,42,0.05)] transition-all hover:border-[var(--positive)] hover:shadow-lg"
       >
         <span
           className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-[var(--positive)]"

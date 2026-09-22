@@ -146,8 +146,7 @@ export default function ForYouCard({
             <button
               type="button"
               onClick={() => setTuneOpen(true)}
-              className="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-extrabold text-white shadow-sm transition hover:brightness-110 active:scale-95"
-              style={{ background: "var(--primary)" }}
+              className="btn-primary btn-sm shrink-0"
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <line x1="4" y1="21" x2="4" y2="14" />

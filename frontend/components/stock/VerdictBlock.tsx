@@ -305,8 +305,7 @@ export default function VerdictBlock({ detail }: Props) {
               </div>
               <Link
                 href={`/stock/${code}/analysis`}
-                className={`inline-flex items-center gap-1.5 mt-4 rounded-full px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 ${isBn ? "font-bn" : ""}`}
-                style={{ background: "var(--primary)", color: "#fff" }}
+                className={`btn-primary mt-4 ${isBn ? "font-bn" : ""}`}
               >
                 {T.deepCta[lang]}
                 <span aria-hidden>→</span>

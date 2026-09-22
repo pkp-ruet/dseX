@@ -44,7 +44,7 @@ export default function SignupCtas({
     <div className={`flex flex-col gap-3 w-full max-w-[320px] ${alignCls}`}>
       <Link
         href={registerHref}
-        className="inline-flex items-center justify-center w-full min-h-[48px] px-7 rounded-xl font-semibold text-[0.95rem] text-white bg-[var(--primary)] shadow-sm hover:brightness-110 active:brightness-95 transition"
+        className="btn-primary btn-lg btn-block"
       >
         Get Started — Free
       </Link>

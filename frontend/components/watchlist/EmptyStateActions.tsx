@@ -127,12 +127,17 @@ export default function EmptyStateActions({ compact = false, onAdded }: Props = 
                   onClick={() => handleAdd(code)}
                   disabled={isWatched}
                   aria-label={isWatched ? `${code} added` : `Add ${code} to watchlist`}
-                  className={`shrink-0 inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-bold transition-all ${
+                  className={`btn-sm shrink-0 ${isWatched ? "btn-quiet" : "btn-primary"}`}
+                  style={
                     isWatched
-                      ? "cursor-default border border-[color-mix(in_srgb,var(--positive)_30%,var(--border))] bg-[color-mix(in_srgb,var(--positive)_10%,transparent)] text-[var(--positive)]"
-                      : "text-white hover:brightness-110 active:scale-95"
-                  }`}
-                  style={isWatched ? undefined : { background: "var(--primary)" }}
+                      ? {
+                          cursor: "default",
+                          borderColor: "color-mix(in srgb, var(--positive) 30%, var(--border))",
+                          background: "color-mix(in srgb, var(--positive) 10%, transparent)",
+                          color: "var(--positive)",
+                        }
+                      : undefined
+                  }
                 >
                   {isWatched ? ICON_CHECK : ICON_PLUS}
                   {isWatched ? "Added" : "Add"}

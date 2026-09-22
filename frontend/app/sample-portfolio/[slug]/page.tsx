@@ -190,7 +190,7 @@ export default async function SamplePortfolioPage({ params }: Props) {
           <div className="flex gap-2 shrink-0">
             <Link
               href="/register"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-[var(--primary)] text-white hover:opacity-90 transition-opacity"
+              className="btn-primary"
             >
               Sign up free
               <svg
@@ -205,7 +205,7 @@ export default async function SamplePortfolioPage({ params }: Props) {
             </Link>
             <Link
               href="/portfolio"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold border border-[var(--border)] text-[var(--text)] hover:bg-[var(--border)]/30 transition-colors"
+              className="btn-quiet"
             >
               I have an account
             </Link>

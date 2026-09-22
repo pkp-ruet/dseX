@@ -193,10 +193,10 @@ export default function BlogPage() {
             শেখা শেষ? এবার কাজে লাগান।
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <Link href="/dsestockranking" className="ui-btn ui-btn-md ui-btn-primary">
+            <Link href="/dsestockranking" className="btn-primary">
               সেরা স্কোরের শেয়ার দেখুন
             </Link>
-            <Link href="/learn" className="ui-btn ui-btn-md ui-btn-ghost">
+            <Link href="/learn" className="btn-quiet">
               English Guides
             </Link>
           </div>

@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { Inter, Playfair_Display, Space_Grotesk, Hind_Siliguri } from "next/font/google";
+import { Inter, Space_Grotesk, Hind_Siliguri } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -16,14 +16,6 @@ const hindSiliguri = Hind_Siliguri({
   subsets: ["bengali"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-bengali",
-  display: "swap",
-});
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["600", "700"],
-  style: ["normal", "italic"],
-  variable: "--font-playfair",
   display: "swap",
 });
 
@@ -109,7 +101,7 @@ const ORG_JSON_LD = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable} ${spaceGrotesk.variable} ${hindSiliguri.variable}`}>
+    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} ${hindSiliguri.variable}`}>
       <body className="min-h-screen flex flex-col">
         <a href="#main" className="skip-link">Skip to content</a>
         <script

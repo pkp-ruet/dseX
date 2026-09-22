@@ -157,10 +157,10 @@ export default function AboutPage() {
       <section className="soft-card ambient-panel p-6 sm:p-7 text-center space-y-4">
         <p className="text-[1.0625rem] font-semibold text-[var(--ink)]">Ready to explore the rankings?</p>
         <div className="flex flex-wrap justify-center gap-3">
-          <Link href="/dsestockranking" className="ui-btn ui-btn-md ui-btn-primary">
+          <Link href="/dsestockranking" className="btn-primary">
             View Score Leaderboard
           </Link>
-          <Link href="/" className="ui-btn ui-btn-md ui-btn-ghost">
+          <Link href="/" className="btn-quiet">
             Back to Home
           </Link>
         </div>

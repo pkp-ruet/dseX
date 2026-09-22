@@ -13,7 +13,7 @@ export default function ViewAnalysisButton() {
       type="button"
       onClick={handleClick}
       aria-label="View portfolio analysis"
-      className="group relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--primary)]"
+      className="group relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-white transition-all duration-200 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--primary)]"
       style={{
         background: "linear-gradient(95deg, var(--primary) 0%, var(--positive) 100%)",
         boxShadow: "0 6px 18px -5px color-mix(in srgb, var(--primary) 60%, transparent)",

@@ -125,8 +125,7 @@ export default function RecommendedStockCard({
               <Link
                 prefetch={false}
                 href={`/stock/${stock.trading_code}`}
-                className="inline-flex items-center min-h-[32px] px-3 rounded-lg text-[0.72rem] font-bold text-white transition hover:brightness-110"
-                style={{ background: "var(--primary)" }}
+                className="btn-primary btn-sm"
               >
                 Analysis →
               </Link>
@@ -263,8 +262,7 @@ export default function RecommendedStockCard({
             <StarButton code={stock.trading_code} size="md" />
             <Link
               prefetch={false} href={`/stock/${stock.trading_code}`}
-              className="inline-flex items-center min-h-[36px] px-3.5 rounded-lg text-[0.74rem] font-bold text-white transition hover:brightness-110"
-              style={{ background: "var(--primary)" }}
+              className="btn-primary btn-sm"
             >
               Analysis →
             </Link>

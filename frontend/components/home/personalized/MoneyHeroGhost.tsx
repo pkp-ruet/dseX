@@ -79,8 +79,7 @@ export default function MoneyHeroGhost({ greeting, lang = "en" }: { greeting?: R
           <p className="mt-1.5 text-sm leading-relaxed text-[var(--text-muted)]">{t(lang, "ghostBlurb")}</p>
           <Link
             href="/portfolio"
-            className="mt-4 inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110 active:scale-95"
-            style={{ background: "var(--primary)" }}
+            className="btn-primary mt-4"
           >
             {t(lang, "addHoldings")}
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

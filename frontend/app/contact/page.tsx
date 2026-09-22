@@ -79,7 +79,7 @@ export default function ContactPage() {
             The best way to reach us is by email. We typically respond within
             1–3 business days.
           </p>
-          <a href="mailto:topstockbd@gmail.com" className="ui-btn ui-btn-md ui-btn-primary">
+          <a href="mailto:topstockbd@gmail.com" className="btn-primary">
             topstockbd@gmail.com
           </a>
         </section>

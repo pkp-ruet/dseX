@@ -15,9 +15,18 @@ interface Props extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className
   className?: string;
 }
 
+const VARIANT_CLASS: Record<Variant, string> = {
+  primary: "btn-primary",
+  warm: "btn-primary", // the warm variant collapsed into primary in the 2026-09-22 button unification
+  ghost: "btn-quiet",
+  tab: "btn-tab",
+};
+
 /**
- * Shared button. Variants: primary (indigo), warm (amber accent — use sparingly),
- * ghost (outlined), tab (pill toggle). Renders an <a> when `href` is set.
+ * Shared button — emits the role-named `.btn-*` classes from globals.css so every
+ * button in the app shares one height scale, weight and focus ring.
+ * Variants: primary (filled clay), ghost (quiet outlined), tab (segmented pill).
+ * Renders an <a> when `href` is set.
  */
 export default function Button({
   children,
@@ -28,7 +37,7 @@ export default function Button({
   className = "",
   ...rest
 }: Props) {
-  const cls = `ui-btn ui-btn-${size} ui-btn-${variant} ${active ? "is-active" : ""} ${className}`.trim();
+  const cls = `${VARIANT_CLASS[variant]}${size === "sm" ? " btn-sm" : ""}${active ? " is-active" : ""} ${className}`.trim();
 
   if (href) {
     return (

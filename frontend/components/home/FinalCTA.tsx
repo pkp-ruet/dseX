@@ -21,7 +21,7 @@ export default function FinalCTA() {
         {isLoggedIn ? (
           <Link
             href="/dsestockranking"
-            className="inline-flex items-center justify-center min-h-[48px] px-8 rounded-xl font-semibold text-white bg-[var(--primary)] hover:brightness-110 transition"
+            className="btn-primary btn-lg"
           >
             Explore the rankings →
           </Link>

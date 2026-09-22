@@ -157,7 +157,7 @@ export default function PushOptInPrompt() {
                     type="button"
                     onClick={snooze}
                     disabled={busy}
-                    className="rounded-lg px-3 py-2 text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text)] disabled:opacity-50"
+                    className="btn-link btn-sm"
                   >
                     Not now
                   </button>
@@ -165,8 +165,7 @@ export default function PushOptInPrompt() {
                     type="button"
                     onClick={enable}
                     disabled={busy}
-                    className="rounded-lg px-3.5 py-2 text-xs font-bold text-white disabled:opacity-60"
-                    style={{ background: "var(--primary)" }}
+                    className="btn-primary btn-sm"
                   >
                     {busy ? "Turning on…" : failed ? "Try again" : "Turn on alerts"}
                   </button>

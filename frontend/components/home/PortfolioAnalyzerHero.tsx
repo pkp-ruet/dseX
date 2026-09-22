@@ -126,7 +126,7 @@ export default function PortfolioAnalyzerHero() {
           <div className="flex flex-wrap gap-2.5">
             <Link
               href={primaryCta.href}
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm sm:text-[15px] font-bold bg-[var(--primary)] text-white hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_24px_-6px_rgba(14,165,233,0.6)]"
+              className="btn-primary btn-lg"
             >
               {primaryCta.label}
               <svg
@@ -141,7 +141,7 @@ export default function PortfolioAnalyzerHero() {
             </Link>
             <Link
               href="/sample-portfolio/diversified"
-              className="inline-flex items-center justify-center gap-1.5 px-5 py-3 rounded-xl text-sm sm:text-[15px] font-bold border border-[var(--primary)]/30 bg-[var(--primary)]/5 text-[var(--text)] hover:bg-[var(--primary)]/10 transition-colors"
+              className="btn-quiet btn-lg"
             >
               See sample analysis
             </Link>

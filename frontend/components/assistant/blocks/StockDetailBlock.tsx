@@ -75,8 +75,7 @@ export default function StockDetailBlock({
       <Link
         prefetch={false}
         href={`/stock/${v.code}`}
-        className="mt-3 inline-flex items-center min-h-[34px] px-3.5 rounded-lg text-[0.74rem] font-bold text-white"
-        style={{ background: "var(--primary)" }}
+        className="btn-primary btn-sm mt-3"
       >
         {COPY.stock.fullAnalysis}
       </Link>

@@ -222,14 +222,13 @@ export default function HeroQuizResult({ picks, summary, relaxations, onRestart 
           <div className="mt-2.5 flex items-center justify-center gap-2">
             <Link
               href="/register"
-              className="inline-flex min-h-[42px] items-center rounded-lg px-5 text-[0.84rem] font-bold text-white transition hover:brightness-110"
-              style={{ background: "var(--primary)" }}
+              className="btn-primary"
             >
               Create free account
             </Link>
             <Link
               href="/login"
-              className="inline-flex min-h-[42px] items-center rounded-lg border border-[var(--border)] px-4 text-[0.84rem] font-semibold text-[var(--primary-ink)] transition hover:bg-[var(--surface-2)]"
+              className="btn-quiet"
             >
               Sign in
             </Link>

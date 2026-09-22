@@ -70,8 +70,7 @@ export default function ChatSurface({
           </p>
           <Link
             href="/register"
-            className="shrink-0 rounded-full px-4 py-2 text-[0.8rem] font-semibold text-white transition active:scale-95"
-            style={{ background: "var(--primary)" }}
+            className="btn-primary btn-sm shrink-0"
           >
             {COPY.guestLimit.cta}
           </Link>

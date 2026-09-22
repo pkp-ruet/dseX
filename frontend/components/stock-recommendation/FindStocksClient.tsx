@@ -91,14 +91,13 @@ function GuestQuiz({ sectors }: { sectors: string[] }) {
           <div className="mt-3 flex items-center justify-center gap-2">
             <Link
               href="/register"
-              className="inline-flex items-center min-h-[42px] px-5 rounded-lg text-sm font-bold text-white"
-              style={{ background: "var(--primary)" }}
+              className="btn-primary"
             >
               Create free account
             </Link>
             <Link
               href="/login"
-              className="inline-flex items-center min-h-[42px] px-5 rounded-lg text-sm font-semibold text-[var(--primary)] border border-[var(--border)]"
+              className="btn-quiet"
             >
               Sign in
             </Link>

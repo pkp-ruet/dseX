@@ -195,10 +195,10 @@ export default async function BlogPostPage({ params }: Props) {
           কোন কোম্পানিগুলো আসল হিসাবের দিক থেকে সবচেয়ে শক্তিশালী, এক নজরে দেখুন — কোনো স্প্রেডশিট বা বার্ষিক প্রতিবেদন ঘাঁটতে হবে না।
         </p>
         <div className="flex flex-wrap justify-center gap-3 pt-1">
-          <Link href="/dsestockranking" className="ui-btn ui-btn-md ui-btn-primary">
+          <Link href="/dsestockranking" className="btn-primary">
             সেরা স্কোরের শেয়ার দেখুন
           </Link>
-          <Link href="/blog" className="ui-btn ui-btn-md ui-btn-ghost">
+          <Link href="/blog" className="btn-quiet">
             ← সব ব্লগ
           </Link>
         </div>

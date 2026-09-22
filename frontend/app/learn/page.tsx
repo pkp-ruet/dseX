@@ -191,10 +191,10 @@ export default function LearnPage() {
           Ready to put your knowledge to work?
         </p>
         <div className="flex flex-wrap justify-center gap-3">
-          <Link href="/dsestockranking" className="ui-btn ui-btn-md ui-btn-primary">
+          <Link href="/dsestockranking" className="btn-primary">
             View Score Leaderboard
           </Link>
-          <Link href="/" className="ui-btn ui-btn-md ui-btn-ghost">
+          <Link href="/" className="btn-quiet">
             Back to Home
           </Link>
         </div>

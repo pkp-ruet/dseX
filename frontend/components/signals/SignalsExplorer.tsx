@@ -300,7 +300,7 @@ function SignalCard({ item }: { item: ScoreItem }) {
     <Link
       prefetch={false}
       href={`/stock/${item.trading_code}`}
-      className="group relative block rounded-2xl overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_36px_-16px_rgba(28,25,23,0.22)]"
+      className="group relative block rounded-2xl overflow-hidden transition-all hover:shadow-[0_16px_36px_-16px_rgba(28,25,23,0.22)]"
       style={{
         background: "var(--surface)",
         border: "1px solid var(--border)",

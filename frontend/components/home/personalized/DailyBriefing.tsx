@@ -235,7 +235,7 @@ export default function DailyBriefing({
             }
 
             const rowClass =
-              "group flex w-full items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-3 text-left transition-all hover:-translate-y-0.5 hover:border-[var(--primary)] hover:shadow-md";
+              "group flex w-full items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-3 text-left transition-all hover:border-[var(--primary)] hover:shadow-md";
             const body = (
               <>
                 <span

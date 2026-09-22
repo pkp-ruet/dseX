@@ -192,10 +192,10 @@ export default async function GuidePage({ params }: Props) {
           See which DSE companies score highest on real fundamentals — no spreadsheets, no annual reports.
         </p>
         <div className="flex flex-wrap justify-center gap-3 pt-1">
-          <Link href="/dsestockranking" className="ui-btn ui-btn-md ui-btn-primary">
+          <Link href="/dsestockranking" className="btn-primary">
             View Score Leaderboard
           </Link>
-          <Link href="/learn" className="ui-btn ui-btn-md ui-btn-ghost">
+          <Link href="/learn" className="btn-quiet">
             ← All Guides
           </Link>
         </div>

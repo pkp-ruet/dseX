@@ -175,12 +175,6 @@ export default function Navbar() {
             aria-label="TopStockBD — Home"
             title="Home"
           >
-            <span className="navbar-brand-home" aria-hidden="true">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 11.5L12 4l9 7.5" />
-                <path d="M5 10v9a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1v-9" />
-              </svg>
-            </span>
             <span className="navbar-brand-dse">TopStock</span>
             <span className="navbar-brand-score">BD</span>
           </Link>
@@ -239,13 +233,8 @@ export default function Navbar() {
             >
               Portfolio
             </Link>
-            <Link
-              href="/alerts"
-              className={`navbar-intel-btn${isAlerts ? " navbar-intel-btn-active" : ""}`}
-            >
-              Price Alerts
-            </Link>
-            <InstallAppButton className="navbar-intel-btn" />
+            {/* Price Alerts + Install app moved into the Explore drawer's "Quick access"
+                row (2026-09-22) — the bar carries five items, not eight. */}
             {isLoggedIn ? (
               <Link
                 href="/profile"
@@ -320,12 +309,6 @@ export default function Navbar() {
             onClick={() => setMenuOpen(false)}
             aria-label="TopStockBD — Home"
           >
-            <span className="mobile-menu-brand-home" aria-hidden="true">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 11.5L12 4l9 7.5" />
-                <path d="M5 10v9a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1v-9" />
-              </svg>
-            </span>
             <span>TopStock<b>BD</b></span>
           </Link>
           {/* Desktop mega-panel shows an "Explore" heading instead of the brand */}
