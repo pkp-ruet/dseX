@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 
-from config import DSE_BASE_URL
+from config import DSE_LIVE_MARKET_URL
 from db.connection import get_db
 from scrapers.base_scraper import BaseScraper
 from utils.parser_helpers import clean_numeric
@@ -11,24 +11,29 @@ logger = logging.getLogger(__name__)
 
 
 class MarketSummaryScraper(BaseScraper):
-    """Scrapes DSE homepage for index values (DSEX/DSES/DS30) and daily market totals.
+    """DSE index values (DSEX/DSES/DS30) and daily market totals.
 
-    Page structure (dsebd.org homepage):
-      Each index is a div.midrow with children:
-        div.m_col-1  — "DSEX Index" / "DSES Index" / "DS30 Index"  (font tag inside)
-        div.m_col-2  — index value
-        div.m_col-3  — change
-        div.m_col-4  — change % (includes "%" suffix)
-
-      Market totals are two consecutive div.midrow blocks:
-        Header row:  m_col-wid="Total Trade", m_col-wid1="Total Volume", m_col-wid2="Total Value in Taka (mn)"
-        Values row:  m_col-wid=222205, m_col-wid1=279933066, m_col-wid2=7934.264
+    Source: the relaunched dsebd.org's JSON feed `/api/live/market` (the old
+    homepage `div.midrow` markup is gone since 2026-09-24):
+      {"indices": [{"key": "DSEX", "value", "change", "percent", "prev"}, ...],
+       "totals":  {"trades", "volume", "turnover" (Tk mn), "marketCap", ...},
+       "session": {"tradingDay": bool, ...}}
     """
 
     def scrape(self) -> dict | None:
-        soup = self.fetch_soup(DSE_BASE_URL)
-        if soup is None:
-            logger.error("Failed to fetch DSE homepage")
+        resp = self.fetch(DSE_LIVE_MARKET_URL)
+        if resp is None:
+            logger.error("Failed to fetch DSE live market feed")
+            return None
+        try:
+            data = resp.json()
+        except ValueError as e:
+            logger.error("DSE live market feed is not JSON (%s) — API may have changed", e)
+            return None
+
+        session = data.get("session") or {}
+        if session.get("tradingDay") is False:
+            logger.warning("DSE reports no trading today — skipping market summary")
             return None
 
         doc = {
@@ -46,54 +51,35 @@ class MarketSummaryScraper(BaseScraper):
             "scraped_at": datetime.utcnow(),
         }
 
-        midrows = soup.find_all("div", class_="midrow")
+        def num(v):
+            if isinstance(v, (int, float)) and not isinstance(v, bool):
+                return float(v)
+            return clean_numeric(str(v)) if v is not None else None
 
-        for i, row in enumerate(midrows):
-            # ---- Index rows (m_col-1 / m_col-2 / m_col-3 / m_col-4) ----
-            label_el = row.find("div", class_="m_col-1")
-            if label_el:
-                label = label_el.get_text(strip=True).upper()
-                val_el  = row.find("div", class_="m_col-2")
-                chg_el  = row.find("div", class_="m_col-3")
-                pct_el  = row.find("div", class_="m_col-4")
+        for ix in data.get("indices") or []:
+            key = str(ix.get("key", "")).upper()
+            v = num(ix.get("value"))
+            # DSE indices are never legitimately 0 — treat 0 as missing
+            if v == 0:
+                v = None
+            c = num(ix.get("change"))
+            if key == "DSEX":
+                p = num(ix.get("percent"))
+                doc["dsex"], doc["dsex_change"] = v, c
+                doc["dsex_change_pct"] = round(p, 2) if p is not None else None
+            elif key == "DSES":
+                doc["dses"], doc["dses_change"] = v, c
+            elif key == "DS30":
+                doc["ds30"], doc["ds30_change"] = v, c
 
-                v = clean_numeric(val_el.get_text(strip=True)) if val_el else None
-                c = clean_numeric(chg_el.get_text(strip=True)) if chg_el else None
-                p = clean_numeric(pct_el.get_text(strip=True)) if pct_el else None
-
-                # DSE indices are never legitimately 0 — treat 0 as missing
-                # (the homepage shows 0.00 transiently in pre-market state)
-                if v == 0:
-                    v = None
-
-                if "DSEX" in label and doc["dsex"] is None:
-                    doc["dsex"], doc["dsex_change"], doc["dsex_change_pct"] = v, c, p
-
-                elif "DSES" in label and doc["dses"] is None:
-                    doc["dses"], doc["dses_change"] = v, c
-
-                elif "DS30" in label and doc["ds30"] is None:
-                    doc["ds30"], doc["ds30_change"] = v, c
-
-            # ---- Totals header row → next sibling row has the values ----
-            wid_el = row.find("div", class_="m_col-wid")
-            if wid_el and "TOTAL TRADE" in wid_el.get_text(strip=True).upper():
-                # The very next midrow contains the numeric values
-                if i + 1 < len(midrows):
-                    val_row = midrows[i + 1]
-                    t_el = val_row.find("div", class_="m_col-wid")
-                    v_el = val_row.find("div", class_="m_col-wid1")
-                    vl_el = val_row.find("div", class_="m_col-wid2")
-                    if doc["total_trades"] is None:
-                        doc["total_trades"]   = clean_numeric(t_el.get_text(strip=True)) if t_el else None
-                    if doc["total_volume"] is None:
-                        doc["total_volume"]   = clean_numeric(v_el.get_text(strip=True)) if v_el else None
-                    if doc["total_value_mn"] is None:
-                        # DSE reports "Total Value in Taka (mn)" — already in millions
-                        doc["total_value_mn"] = clean_numeric(vl_el.get_text(strip=True)) if vl_el else None
+        totals = data.get("totals") or {}
+        doc["total_trades"] = num(totals.get("trades"))
+        doc["total_volume"] = num(totals.get("volume"))
+        # "turnover" is Total Value in Taka (mn) — already in millions
+        doc["total_value_mn"] = num(totals.get("turnover"))
 
         if doc["dsex"] is None:
-            logger.error("Could not parse DSEX from DSE homepage — page structure may have changed.")
+            logger.error("Could not read DSEX from DSE live market feed — API may have changed.")
             return None
 
         logger.info(

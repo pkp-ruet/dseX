@@ -21,7 +21,10 @@ DSE_SSL_FALLBACK = os.getenv("DSE_SSL_FALLBACK", "true").lower() in ("1", "true"
 
 DSE_BASE_URL = "https://www.dsebd.org"
 DSE_COMPANY_LIST_URL = f"{DSE_BASE_URL}/company_listing.php"
-DSE_LATEST_PRICE_URL = f"{DSE_BASE_URL}/latest_share_price_scroll_l.php"
+# DSE relaunched dsebd.org on 2026-09-24 (Next.js); the old .php pages 404.
+# Prices + the market summary now come from the site's own JSON endpoints.
+DSE_LATEST_PRICE_URL = f"{DSE_BASE_URL}/api/live/prices"
+DSE_LIVE_MARKET_URL = f"{DSE_BASE_URL}/api/live/market"
 DSE_COMPANY_DETAILS_URL = f"{DSE_BASE_URL}/displayCompany.php"
 DSE_NEWS_URL = f"{DSE_BASE_URL}/old_news.php"
 
