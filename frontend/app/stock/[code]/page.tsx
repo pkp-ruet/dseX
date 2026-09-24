@@ -159,7 +159,7 @@ export default async function StockDetailPage({ params }: PageProps) {
     ...(profile.sector ? { industry: profile.sector } : {}),
     description: `${name} (${profile.trading_code}) is listed on the Dhaka Stock Exchange${profile.sector ? ` in the ${profile.sector} sector` : ""}. TopStockBD fundamental score: ${score ?? "--"}/100 (${tierLabel}).`,
     url: `${BASE}/stock/${code}`,
-    sameAs: `https://www.dsebd.org/displayCompany.php?name=${encodeURIComponent(profile.trading_code)}`,
+    sameAs: `https://www.dsebd.org/company/${encodeURIComponent(profile.trading_code)}`,
   };
 
   const breadcrumbLd = {
