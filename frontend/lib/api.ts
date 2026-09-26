@@ -1852,240 +1852,58 @@ export async function getTrust(): Promise<TrustStats> {
 // ---------------------------------------------------------------------------
 
 export type EngagementSegment = "new" | "active" | "at_risk" | "dormant";
-export type SignupSource = "google" | "password";
 
-export interface AdminUserRow {
-  user_id: string;
-  email: string | null;
-  phone: string | null;
-  display_name: string | null;
-  is_active: boolean;
-  created_at: string;
-  last_login_at: string | null;
-  last_seen_at: string | null;
-  total_visits: number;
-  has_portfolio: boolean;
-  // enriched
-  signup_source: SignupSource;
-  email_verified: boolean;
-  watchlist_count: number;
-  portfolio_count: number;
-  watchlist_last_visit_at: string | null;
-  updated_at: string | null;
-  segment: EngagementSegment;
-  // power-feature flags
-  push_enabled: boolean;
-  app_installed: boolean;
-  ai_used: boolean;
-  has_price_alert: boolean;
-  // engagement streaks
-  current_streak: number;
-  longest_streak: number;
-}
-
-export interface AdminAnalyticsStats {
-  total_users: number;
-  new_today: number;
-  new_this_week: number;
-  new_this_month: number;
-  active_today: number;
-  active_last_7d: number;
-  with_portfolio: number;
-}
-
-export interface AdminSegments {
-  new: number;
-  active: number;
-  at_risk: number;
-  dormant: number;
-}
-
-export interface AdminAdoption {
-  watchlist_only: number;
-  portfolio_only: number;
-  both: number;
-  neither: number;
-}
-
-export interface AdminSignupSource {
-  google: number;
-  password: number;
-}
-
-export interface AdminGrowthPoint {
-  date: string;     // YYYY-MM-DD
-  signups: number;
-  active: number;
-}
-
-export interface AdminPopularStock {
-  code: string;
-  count: number;
-  total_qty?: number;
-}
-
-export interface AdminPopularStocks {
-  most_watched: AdminPopularStock[];
-  most_held: AdminPopularStock[];
-}
-
-export interface AdminFeatureReach {
-  total_users: number;
-  push: { users: number; devices: number };
-  install: { users: number; platforms: Record<string, number> };
-  alerts: { users: number; active: number };
-  ai: { users: number; messages: number };
-}
-
-export interface AdminVisitBand {
-  label: string;
-  count: number;
-}
-
-export interface AdminVisitDistribution {
-  bands: AdminVisitBand[];
-  under_100: number;
-  total_users: number;
-}
-
-export interface AdminDauWauMau {
-  dau: number;
-  wau: number;
-  mau: number;
-  stickiness: number; // DAU/MAU %
-}
-
-export interface AdminActivation {
-  signed_up: number;
-  returned: number;
-  built_watchlist: number;
-  added_portfolio: number;
-  power_feature: number;
-}
-
-export interface AdminRouteToday {
-  category: string;
-  views: number;
-  users: number;
-}
-
-export interface AdminAnalyticsResponse {
-  stats: AdminAnalyticsStats;
-  segments: AdminSegments;
-  adoption: AdminAdoption;
-  signup_source: AdminSignupSource;
-  dau_wau_mau: AdminDauWauMau;
-  activation: AdminActivation;
-  top_routes_today: AdminRouteToday[];
-  feature_reach: AdminFeatureReach;
-  visit_distribution: AdminVisitDistribution;
-  popular_stocks: AdminPopularStocks;
-  growth: AdminGrowthPoint[];
-  users: AdminUserRow[];
-}
-
-// --- Behavior tab (lazy) ---
-export interface AdminCategoryStat {
-  category: string;
-  views: number;
-  users: number;
-}
-export interface AdminTopPage {
-  path: string;
-  views: number;
-}
-export interface AdminStockViewed {
-  code: string;
-  views: number;
-  users: number;
-}
-export interface AdminAttribution {
-  src: string;
-  views: number;
-  users: number;
-}
-export interface AdminBehaviorResponse {
-  window_days: number;
-  active_users: number;
-  total_views: number;
-  category_mix: AdminCategoryStat[];
-  top_pages: AdminTopPage[];
-  top_stocks_viewed: AdminStockViewed[];
-  attribution: AdminAttribution[];
-}
-
-// --- Retention tab (lazy) ---
 export interface AdminRetentionStat {
   eligible: number;
   retained: number;
   pct: number;
 }
-export interface AdminCohortCell {
-  week: number;
-  count: number;
-  pct: number;
-}
-export interface AdminCohortRow {
-  cohort: string; // YYYY-MM-DD (Monday of signup week)
-  size: number;
-  cells: AdminCohortCell[];
-}
-export interface AdminActiveHours {
-  matrix: number[][]; // [weekday 0=Sun..6=Sat][hour 0..23]
-  max: number;
-}
-export interface AdminRetentionResponse {
-  new_user_retention: { d1: AdminRetentionStat; d7: AdminRetentionStat; d30: AdminRetentionStat };
-  cohort_grid: AdminCohortRow[];
-  active_hours: AdminActiveHours;
+
+export interface AdminGrowthPoint {
+  date: string; // YYYY-MM-DD (Dhaka)
+  signups: number;
+  active: number;
 }
 
-export interface AdminUserEvent {
-  path: string;
-  ts: string;
-  count: number;
+export interface AdminStockCount {
+  code: string;
+  users: number;
+  views?: number;
 }
 
-export interface AdminPortfolioHolding {
-  id: string;
-  trading_code: string;
-  buy_price: number;
-  qty: number;
-  added_at: string | null;
-}
-
-export interface AdminUserDetail {
-  user_id: string;
-  display_name: string | null;
-  email: string | null;
-  phone: string | null;
-  signup_source: SignupSource;
-  email_verified: boolean;
-  created_at: string | null;
-  last_login_at: string | null;
-  last_seen_at: string | null;
-  watchlist_last_visit_at: string | null;
-  total_visits: number;
-  segment: EngagementSegment;
-  watchlist: string[];
-  portfolio: AdminPortfolioHolding[];
-  recent_events: AdminUserEvent[];
+/** GET /api/admin/analytics — the whole admin analytics page, aggregates only. */
+export interface AdminAnalyticsResponse {
+  generated_at: string;
+  headline: {
+    total_users: number;
+    new_today: number;
+    new_7d: number;
+    new_30d: number;
+    dau: number;
+    wau: number;
+    mau: number;
+    stickiness: number; // DAU / MAU %
+  };
+  growth: AdminGrowthPoint[]; // last 90 days, ascending
+  retention: { d1: AdminRetentionStat; d7: AdminRetentionStat; d30: AdminRetentionStat };
+  segments: Record<EngagementSegment, number>;
+  activation: {
+    signed_up: number;
+    returned: number;
+    built_watchlist: number;
+    added_portfolio: number;
+    power_feature: number;
+  };
+  features: { push: number; installed: number; alerts: number; ai: number };
+  sections: { category: string; views: number; users: number }[]; // last 30 days
+  stocks: { viewed: AdminStockCount[]; watched: AdminStockCount[]; held: AdminStockCount[] };
+  active_hours: { matrix: number[][]; max: number }; // [weekday 0=Sun..6=Sat][hour 0..23]
+  signup_source: { google: number; password: number };
+  notifications: { src: string; views: number; users: number }[]; // last 30 days
 }
 
 export async function apiGetAdminAnalytics(): Promise<AdminAnalyticsResponse> {
   return apiAuthFetch<AdminAnalyticsResponse>("/api/admin/analytics");
-}
-
-export async function apiGetAdminUser(userId: string): Promise<AdminUserDetail> {
-  return apiAuthFetch<AdminUserDetail>(`/api/admin/users/${encodeURIComponent(userId)}`);
-}
-
-export async function apiGetAdminBehavior(days = 30): Promise<AdminBehaviorResponse> {
-  return apiAuthFetch<AdminBehaviorResponse>(`/api/admin/analytics/behavior?days=${days}`);
-}
-
-export async function apiGetAdminRetention(): Promise<AdminRetentionResponse> {
-  return apiAuthFetch<AdminRetentionResponse>("/api/admin/analytics/retention");
 }
 
 // ---------------------------------------------------------------------------

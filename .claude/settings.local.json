@@ -76,7 +76,8 @@
       "Bash(where python3 *)",
       "Read(//c/Program Files/**)",
       "Bash(py --version)",
-      "Bash(py -c ' *)"
+      "Bash(py -c ' *)",
+      "PowerShell(py \"C:\\\\Users\\\\prito\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\D--Cursor-Projects-dseX\\\\dc114aa2-49c2-4c04-87ba-ef8245198ed7\\\\scratchpad\\\\time_analytics.py\")"
     ]
   }
 }

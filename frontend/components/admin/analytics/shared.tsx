@@ -1,6 +1,6 @@
 "use client";
 
-import type { EngagementSegment, SignupSource } from "@/lib/api";
+import type { EngagementSegment } from "@/lib/api";
 
 /** Token palette — Recharts accepts CSS variable strings in fill/stroke. The old
  *  indigo/orange/pink names stay as keys so callers compile; they now resolve to
@@ -28,11 +28,6 @@ export const SEGMENT_META: Record<
 
 export const SEGMENT_ORDER: EngagementSegment[] = ["new", "active", "at_risk", "dormant"];
 
-export const SIGNUP_META: Record<SignupSource, { label: string; color: string }> = {
-  google: { label: "Google", color: COLORS.orange },
-  password: { label: "Email / Phone", color: COLORS.primary },
-};
-
 export const TOOLTIP_STYLE = {
   fontSize: 12,
   borderRadius: "12px",
@@ -41,101 +36,3 @@ export const TOOLTIP_STYLE = {
   color: "var(--text)",
   boxShadow: "var(--shadow-soft)",
 } as const;
-
-/** "01 Jun 14:30" in Dhaka time. */
-export function fmtDateTime(iso: string | null | undefined): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleString("en-GB", {
-    timeZone: "Asia/Dhaka",
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-}
-
-/** "01 Jun 2026" in Dhaka time. */
-export function fmtDate(iso: string | null | undefined): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("en-GB", {
-    timeZone: "Asia/Dhaka",
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-/** Human "time ago" from an ISO timestamp. */
-export function timeAgo(iso: string | null | undefined): string {
-  if (!iso) return "never";
-  const then = new Date(iso).getTime();
-  if (Number.isNaN(then)) return "—";
-  const mins = Math.floor((Date.now() - then) / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  if (days < 30) return `${days}d ago`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `${months}mo ago`;
-  return `${Math.floor(months / 12)}y ago`;
-}
-
-export function SegmentPill({ segment }: { segment: EngagementSegment }) {
-  const m = SEGMENT_META[segment];
-  return (
-    <span
-      className="text-xs font-bold uppercase tracking-wide px-2 py-0.5 rounded-full whitespace-nowrap"
-      style={{ color: m.color, background: `${m.color}1a`, border: `1px solid ${m.color}40` }}
-    >
-      {m.label}
-    </span>
-  );
-}
-
-export function SourcePill({ source }: { source: SignupSource }) {
-  const m = SIGNUP_META[source];
-  return (
-    <span
-      className="text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap"
-      style={{ color: m.color, background: `${m.color}14` }}
-    >
-      {m.label}
-    </span>
-  );
-}
-
-/** Compact power-feature icons for a user — renders only the ones they have. */
-export function FeatureBadges({
-  user,
-  className = "",
-}: {
-  user: {
-    push_enabled?: boolean;
-    app_installed?: boolean;
-    has_price_alert?: boolean;
-    ai_used?: boolean;
-  };
-  className?: string;
-}) {
-  const items = [
-    { on: user.push_enabled, icon: "🔔", title: "Push enabled" },
-    { on: user.app_installed, icon: "📲", title: "Installed app" },
-    { on: user.has_price_alert, icon: "⏰", title: "Price alert set" },
-    { on: user.ai_used, icon: "🤖", title: "Uses TopStock AI" },
-  ].filter((i) => i.on);
-  if (!items.length) {
-    return <span className={`text-xs text-text-muted ${className}`}>—</span>;
-  }
-  return (
-    <span className={`inline-flex items-center gap-1 ${className}`}>
-      {items.map((i) => (
-        <span key={i.title} title={i.title} aria-label={i.title} className="text-xs leading-none">
-          {i.icon}
-        </span>
-      ))}
-    </span>
-  );
-}
