@@ -91,8 +91,43 @@ def sanitize_user(doc: dict) -> dict:
     return doc
 
 
+# `get_user_by_id` backs `get_current_user`, so it runs on every signed-in
+# request (incl. the per-navigation /api/auth/ping). Leave out the big cached
+# blobs — they have their own readers (`get_daily_picks`, `get_pick_feedback`,
+# `get_last_recommendation`); callers only read `last_recommendation.answers`.
+_SESSION_PROJECTION = {
+    "_id": 0,
+    "password_hash": 0,
+    "daily_picks": 0,
+    "pick_feedback": 0,
+    "last_recommendation.picks": 0,
+    "last_recommendation.relaxations": 0,
+}
+
+# What the browser gets back from /me and the login endpoints (mirrors the
+# frontend `AuthUser` type). The whole user document used to go out — cached
+# picks, portfolio, prefs — and was re-downloaded on every full page load.
+_PUBLIC_FIELDS = (
+    "user_id", "email", "phone", "display_name", "picture_url", "watchlist",
+    "created_at", "updated_at", "last_login_at", "last_seen_at",
+    "watchlist_last_visit_at", "total_visits", "is_active",
+    "current_streak", "longest_streak",
+)
+
+
+def public_user(user: dict) -> dict:
+    """The browser-facing slice of a sanitized user, plus `is_admin`."""
+    from backend.config import ADMIN_EMAILS
+
+    out = {k: user.get(k) for k in _PUBLIC_FIELDS}
+    out["watchlist"] = out["watchlist"] or []
+    out["total_visits"] = out["total_visits"] or 0
+    out["is_admin"] = (user.get("email") or "").lower() in ADMIN_EMAILS
+    return out
+
+
 def get_user_by_id(user_id: str) -> Optional[dict]:
-    doc = _users().find_one({"user_id": user_id})
+    doc = _users().find_one({"user_id": user_id}, _SESSION_PROJECTION)
     return sanitize_user(doc) if doc else None
 
 

@@ -17,6 +17,7 @@ from backend.services.auth_service import (
     normalize_phone,
     create_or_link_google_user,
     sanitize_user,
+    public_user,
     record_streak_checkin,
 )
 from backend.services.db_service import get_db
@@ -124,7 +125,7 @@ def register(body: RegisterRequest):
         raise HTTPException(status_code=400, detail=msg)
 
     token = create_access_token(user["user_id"])
-    return {"access_token": token, "token_type": "bearer", "user": user}
+    return {"access_token": token, "token_type": "bearer", "user": public_user(user)}
 
 
 @router.post("/login")
@@ -141,7 +142,7 @@ def login(body: LoginRequest):
         raise HTTPException(status_code=401, detail="Incorrect credentials.")
 
     token = create_access_token(user["user_id"])
-    return {"access_token": token, "token_type": "bearer", "user": user}
+    return {"access_token": token, "token_type": "bearer", "user": public_user(user)}
 
 
 @router.post("/google")
@@ -197,13 +198,12 @@ def google_sign_in(body: GoogleAuthRequest):
 
     user = sanitize_user(user_doc)
     token = create_access_token(user["user_id"])
-    return {"access_token": token, "token_type": "bearer", "user": user}
+    return {"access_token": token, "token_type": "bearer", "user": public_user(user)}
 
 
 @router.get("/me")
 def get_me(current_user: dict = Depends(get_current_user)):
-    email = (current_user.get("email") or "").lower()
-    return {"user": {**current_user, "is_admin": email in ADMIN_EMAILS}}
+    return {"user": public_user(current_user)}
 
 
 @router.post("/ping")

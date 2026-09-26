@@ -452,7 +452,11 @@ def compute_momentum_all(as_of: Optional[str] = None) -> dict[str, dict]:
     signal service; thin (weak_liquidity) codes are included on purpose.
     ``as_of`` is the backtest hook (see _market_window_raw).
     """
-    return {code: _momentum_dict(raw) for code, raw in _market_window_raw(as_of)["rows"].items()}
+    # Call with no argument in production: the TTL cache keys on the exact args,
+    # so `_market_window_raw(None)` and `_market_window_raw()` were two entries —
+    # the 30-day price window (~1.5 MB, the app's heaviest read) ran twice.
+    window = _market_window_raw(as_of) if as_of is not None else _market_window_raw()
+    return {code: _momentum_dict(raw) for code, raw in window["rows"].items()}
 
 
 def _momentum_dict(raw: dict) -> dict:
