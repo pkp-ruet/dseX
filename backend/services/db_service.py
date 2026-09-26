@@ -2,6 +2,7 @@
 MongoDB query helpers — cached loaders for FastAPI routes.
 All functions return plain Python dicts/lists (JSON-serialisable).
 """
+import threading
 import time
 from collections import OrderedDict
 from datetime import datetime, timedelta
@@ -25,7 +26,26 @@ _POOL_KWARGS = dict(
     maxIdleTimeMS=60_000,
     serverSelectionTimeoutMS=5_000,
     connectTimeoutMS=5_000,
+    # Without these a hung Atlas node blocks request threads forever and ten
+    # stuck operations exhaust the pool.
+    socketTimeoutMS=20_000,
+    waitQueueTimeoutMS=5_000,
 )
+
+
+# Delivery logs (push_sends / email_sends) auto-expire after this long. Every
+# campaign id is day-scoped (daily-YYYYMMDD, psig-<user>-<day>, pa-<alert>-<day>,
+# evt-…-<day>), so dropping old rows can never re-open a send.
+DELIVERY_LOG_TTL_SECONDS = 180 * 86_400
+
+
+def drop_index_if_exists(col, name: str) -> None:
+    """Remove an index an earlier version created; no-op when already gone."""
+    from pymongo.errors import OperationFailure
+    try:
+        col.drop_index(name)
+    except OperationFailure:
+        pass
 
 
 def get_db():
@@ -49,6 +69,15 @@ def close_db() -> None:
 # Simple TTL cache decorator
 # ---------------------------------------------------------------------------
 
+_ALL_CACHES: list = []
+
+
+def clear_all_caches() -> None:
+    """Drop every `_ttl_cache` entry in the process (post-scrape refresh)."""
+    for clear in _ALL_CACHES:
+        clear()
+
+
 def _ttl_cache(ttl_seconds: int = 300, max_entries: int = 50):
     """Module-level TTL cache keyed by function + args.
 
@@ -58,28 +87,53 @@ def _ttl_cache(ttl_seconds: int = 300, max_entries: int = 50):
     TTL window — on Render free tier this is the difference between a steady
     ~5 MB cache and unbounded growth toward OOM.
 
-    Behaviour is identical to the previous unbounded cache for any caller that
-    stays within ``max_entries`` distinct argument tuples, which covers every
-    no-arg function. Eviction only kicks in for fan-out callers like
-    ``load_financials(trading_code)``.
+    Thread-safe and single-flight: endpoints run on a 40-thread pool, so the
+    store is guarded by a lock (an unguarded evict could race a read into a
+    KeyError), and when a key is missing or expired only ONE thread computes it —
+    concurrent callers wait for that result instead of all hitting Mongo at once.
+
+    Keys are the exact call args: ``f()`` and ``f(None)`` are different entries.
     """
     def decorator(fn):
         _store: "OrderedDict[tuple, dict]" = OrderedDict()
+        _lock = threading.Lock()
+        _inflight: dict = {}
 
-        def wrapper(*args, **kwargs):
-            key = (args, tuple(sorted(kwargs.items())))
+        def _fresh(key):
             cached = _store.get(key)
             if cached and time.time() - cached["at"] < ttl_seconds:
                 _store.move_to_end(key)
-                return cached["val"]
-            val = fn(*args, **kwargs)
-            _store[key] = {"val": val, "at": time.time()}
-            _store.move_to_end(key)
-            while len(_store) > max_entries:
-                _store.popitem(last=False)
-            return val
+                return True, cached["val"]
+            return False, None
 
-        wrapper.cache_clear = lambda: _store.clear()
+        def wrapper(*args, **kwargs):
+            key = (args, tuple(sorted(kwargs.items())))
+            with _lock:
+                hit, val = _fresh(key)
+                if hit:
+                    return val
+                key_lock = _inflight.setdefault(key, threading.RLock())
+            with key_lock:
+                with _lock:
+                    hit, val = _fresh(key)
+                    if hit:
+                        return val
+                val = fn(*args, **kwargs)
+                with _lock:
+                    _store[key] = {"val": val, "at": time.time()}
+                    _store.move_to_end(key)
+                    while len(_store) > max_entries:
+                        _store.popitem(last=False)
+                    _inflight.pop(key, None)
+                return val
+
+        def cache_clear():
+            with _lock:
+                _store.clear()
+
+        wrapper.cache_clear = cache_clear
+        wrapper.__wrapped__ = fn
+        _ALL_CACHES.append(cache_clear)
         return wrapper
     return decorator
 
@@ -136,6 +190,11 @@ def use_official_close(doc: dict) -> dict:
 CLOSE_EXPR = {"$ifNull": ["$close_price", "$ltp"]}
 
 
+_LATEST_WINDOW_DAYS = 30
+_LATEST_FIELDS = ("date", "ltp", "close_price", "change", "change_pct", "high", "low",
+                  "volume", "value_mn", "trade_count", "ycp")
+
+
 @_ttl_cache(60)
 def load_latest_prices() -> dict[str, dict]:
     """Returns {trading_code: {ltp, change, change_pct, date, high, low, volume, ycp, ...}}
@@ -143,10 +202,16 @@ def load_latest_prices() -> dict[str, dict]:
     `ltp` carries DSE's official close — see `use_official_close`.
     """
     db = get_db()
+    # Group only the recent window (the whole collection is ~130k rows and grows
+    # ~8k a month); codes that haven't traded inside it are filled one by one below.
+    latest = db.stock_prices.find_one({}, {"date": 1}, sort=[("date", -1)])
+    if not latest:
+        return {}
+    since = (datetime.fromisoformat(str(latest["date"])[:10]) - timedelta(days=_LATEST_WINDOW_DAYS)).strftime("%Y-%m-%d")
     pipeline = [
         # Skip suspended / no-trade days (DSE reports 0 on dividend record dates)
         # so the latest snapshot is the most recent day with a real price.
-        {"$match": {"ltp": {"$gt": 0}}},
+        {"$match": {"date": {"$gte": since}, "ltp": {"$gt": 0}}},
         {"$sort": {"date": -1}},
         {"$group": {
             "_id": "$trading_code",
@@ -163,7 +228,34 @@ def load_latest_prices() -> dict[str, dict]:
             "ycp":        {"$first": "$ycp"},
         }},
     ]
-    return {doc["_id"]: use_official_close(doc) for doc in db.stock_prices.aggregate(pipeline)}
+    out = {doc["_id"]: use_official_close(doc) for doc in db.stock_prices.aggregate(pipeline)}
+    # Long-suspended codes: their last real price is older than the window.
+    for code in set(db.stock_prices.distinct("trading_code")) - out.keys():
+        doc = db.stock_prices.find_one(
+            {"trading_code": code, "ltp": {"$gt": 0}},
+            {"_id": 0, **{f: 1 for f in _LATEST_FIELDS}},
+            sort=[("date", -1)],
+        )
+        if doc:
+            # Same shape as a `$group` row: `_id` = code, absent fields = None.
+            row = {"_id": code, **{f: doc.get(f) for f in _LATEST_FIELDS}}
+            out[code] = use_official_close(row)
+    return out
+
+
+@_ttl_cache(900)
+def load_52w_ranges() -> dict[str, dict]:
+    """{code: {"hi", "lo"}} — official-close high/low over the last 365 calendar
+    days (ltp > 0 skips no-trade days).
+
+    ONE cached copy for near-extremes, stock lists, market state and daily tips.
+    Each used to run this same ~95k-row aggregation behind its own cache."""
+    one_year_ago = (datetime.utcnow() - timedelta(days=365)).strftime("%Y-%m-%d")
+    agg = get_db().stock_prices.aggregate([
+        {"$match": {"date": {"$gte": one_year_ago}, "ltp": {"$gt": 0}}},
+        {"$group": {"_id": "$trading_code", "hi": {"$max": CLOSE_EXPR}, "lo": {"$min": CLOSE_EXPR}}},
+    ])
+    return {d["_id"]: {"hi": d.get("hi"), "lo": d.get("lo")} for d in agg}
 
 
 @_ttl_cache(300)
@@ -185,7 +277,7 @@ def load_price_history(trading_code: str) -> list[dict]:
     return docs
 
 
-@_ttl_cache(300)
+@_ttl_cache(300, max_entries=500)
 def load_financials(trading_code: str) -> list[dict]:
     db = get_db()
     docs = list(
@@ -202,7 +294,7 @@ def load_financials(trading_code: str) -> list[dict]:
     return docs
 
 
-@_ttl_cache(300)
+@_ttl_cache(300, max_entries=500)
 def load_extended_financials(trading_code: str) -> list[dict]:
     db = get_db()
     return list(
@@ -212,7 +304,7 @@ def load_extended_financials(trading_code: str) -> list[dict]:
     )
 
 
-@_ttl_cache(300)
+@_ttl_cache(300, max_entries=500)
 def load_shareholdings(trading_code: str) -> list[dict]:
     db = get_db()
     docs = list(
@@ -226,7 +318,7 @@ def load_shareholdings(trading_code: str) -> list[dict]:
     return docs
 
 
-@_ttl_cache(300)
+@_ttl_cache(300, max_entries=500)
 def load_company_news(trading_code: str, limit: int = 20) -> list[dict]:
     db = get_db()
     docs = list(
@@ -319,11 +411,22 @@ def load_dse_today_table() -> list[dict]:
     return rows
 
 
-@_ttl_cache(300)
+_MARKET_NEWS_MAX = 300
+
+
 def load_market_news(limit: int = 50) -> list[dict]:
-    """Latest market-wide news. Anchors to the newest post_date in company_news; falls back to last 7 days."""
+    """Latest market-wide news. Anchors to the newest post_date in company_news; falls back to last 7 days.
+
+    One cached feed serves every caller: limits of 12 / 50 / 300 used to be three
+    separate cache entries, three queries and three copies of the news bodies."""
+    return _market_news_feed()[:limit]
+
+
+@_ttl_cache(300)
+def _market_news_feed() -> list[dict]:
+    limit = _MARKET_NEWS_MAX
     db = get_db()
-    latest = db.company_news.find_one({}, sort=[("post_date", -1)])
+    latest = db.company_news.find_one({}, {"post_date": 1}, sort=[("post_date", -1)])
     if not latest or not latest.get("post_date"):
         return []
 

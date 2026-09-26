@@ -22,7 +22,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from backend.config import VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT
-from backend.services.db_service import get_db
+from backend.services.db_service import DELIVERY_LOG_TTL_SECONDS, drop_index_if_exists, get_db
 
 log = logging.getLogger("push")
 
@@ -69,7 +69,10 @@ def ensure_push_indexes() -> None:
     sends.create_index(
         [("campaign_id", 1), ("user_id", 1)], unique=True, name="campaign_user_unique"
     )
-    sends.create_index([("campaign_id", 1), ("status", 1)], name="campaign_status")
+    # Delivery log, not a record: expire rows after 180 days (was kept forever).
+    sends.create_index("sent_at", expireAfterSeconds=DELIVERY_LOG_TTL_SECONDS, name="sent_at_ttl")
+    # Never used by any query — campaign lookups use the unique index's prefix.
+    drop_index_if_exists(sends, "campaign_status")
 
 
 # ---------------------------------------------------------------------------
@@ -198,6 +201,7 @@ def send_to_subscription(sub_doc: dict, payload: dict) -> str:
             vapid_private_key=VAPID_PRIVATE_KEY,
             vapid_claims={"sub": VAPID_SUBJECT},
             ttl=86400,
+            timeout=10,  # a hung push endpoint must not hold a request/job thread
         )
         return "sent"
     except WebPushException as exc:

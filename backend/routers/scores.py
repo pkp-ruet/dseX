@@ -1,8 +1,17 @@
+import hmac
 import math
+import os
+import threading
 from datetime import datetime, timezone
-from fastapi import APIRouter
-from backend.services.scoring_service import build_scores_df, invalidate_scores_cache
-from backend.services.db_service import load_companies
+from typing import Optional
+
+from fastapi import APIRouter, Depends, Header, HTTPException, Response
+from backend.config import ADMIN_EMAILS
+from backend.routers.auth import get_current_user_optional
+from backend.services.scoring_service import (
+    build_scores_df, invalidate_scores_cache, reload_after_scrape,
+)
+from backend.services.db_service import load_companies, load_latest_prices
 from backend.services.signal_service import build_signals, wire_fields
 from backend.services.tiers import TIER_KEYS, tier_key
 from backend.models.responses import ScoresResponse, ScoreItem, ScoreTiers, StockSignal
@@ -20,17 +29,56 @@ def _json_float(v):
 
 
 @router.post("/api/scores/refresh")
-def refresh_scores():
-    """Invalidate the scores cache so the next request recomputes from DB."""
-    invalidate_scores_cache()
-    return {"status": "cache cleared"}
+def refresh_scores(
+    recompute: bool = False,
+    x_revalidate_secret: Optional[str] = Header(default=None),
+    user: Optional[dict] = Depends(get_current_user_optional),
+):
+    """Drop every in-process cache so the next request reads fresh data.
+
+    Called by `scrape-all` after it stores the new snapshot (shared-secret
+    header `x-revalidate-secret` = REVALIDATE_SECRET), or by an admin.
+    `recompute=true` (admin only) also reruns the full scoring pipeline — use it
+    after deploying a scoring change. This used to be public and always
+    recomputed, so anyone could pin the web process's CPU and memory with it."""
+    is_admin = bool(user) and (user.get("email") or "").lower() in ADMIN_EMAILS
+    secret = os.getenv("REVALIDATE_SECRET")
+    by_secret = bool(secret and x_revalidate_secret
+                     and hmac.compare_digest(x_revalidate_secret, secret))
+    if not (is_admin or by_secret):
+        raise HTTPException(status_code=403, detail="Not allowed")
+    if recompute:
+        if not is_admin:
+            raise HTTPException(status_code=403, detail="Recompute is admin-only")
+        invalidate_scores_cache()
+    reload_after_scrape()
+    return {"status": "recomputed" if recompute else "caches cleared"}
+
+
+# The finished response, rebuilt only when one of its inputs is a new object
+# (every input is itself cached, so identity changes exactly when data changes).
+# Holding the inputs keeps their ids from being reused.
+_response_memo: dict = {"inputs": None, "resp": None}
+_response_lock = threading.Lock()
 
 
 @router.get("/api/scores", response_model=ScoresResponse)
-def get_scores():
-    df = build_scores_df()
-    companies = {c["trading_code"]: c for c in load_companies()}
-    signals = build_signals()
+def get_scores(response: Response):
+    # Browsers re-requested this ~250 KB payload on every client-side page.
+    response.headers["Cache-Control"] = "public, max-age=300"
+    inputs = (build_scores_df(), load_companies(), build_signals(), load_latest_prices())
+    with _response_lock:
+        memo = _response_memo
+        if memo["inputs"] is not None and all(a is b for a, b in zip(memo["inputs"], inputs)):
+            return memo["resp"]
+    resp = _build_scores_response(*inputs)
+    with _response_lock:
+        _response_memo.update(inputs=inputs, resp=resp)
+    return resp
+
+
+def _build_scores_response(df, companies_list, signals, prices) -> ScoresResponse:
+    companies = {c["trading_code"]: c for c in companies_list}
 
     tiers: dict[str, list[ScoreItem]] = {k: [] for k in TIER_KEYS}
 
@@ -69,8 +117,6 @@ def get_scores():
             tiers[tier_key(score)].append(item)
 
     # Inject latest price change_pct
-    from backend.services.db_service import load_latest_prices
-    prices = load_latest_prices()
     for tier_list in tiers.values():
         for item in tier_list:
             p = prices.get(item.trading_code, {})

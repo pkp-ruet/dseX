@@ -11,6 +11,8 @@ _POOL_KWARGS = dict(
     maxIdleTimeMS=60_000,
     serverSelectionTimeoutMS=5_000,
     connectTimeoutMS=5_000,
+    # Bulk jobs run long; this only stops a hung socket from blocking forever.
+    socketTimeoutMS=120_000,
 )
 
 

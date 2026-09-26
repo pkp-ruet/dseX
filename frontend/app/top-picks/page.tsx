@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
-import { changePct, changeTone, formatDate, money } from "@/lib/formatters";
+import { formatDate, money } from "@/lib/formatters";
 import {
   getDailyPickHistory,
   type DailyPickHistoryDay,
@@ -15,34 +15,24 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com
 export const metadata: Metadata = {
   title: "Daily Top 3 Stocks — DSE Picks History",
   description:
-    "Every day we pick 3 DSE stocks: 2 trending, 1 top quality. See the full history and how each pick performed the next trading day.",
+    "Every day we pick 3 DSE stocks: 2 trending, 1 top quality. See the full history of every day's picks.",
   keywords:
     "DSE top picks, daily stock picks Bangladesh, Dhaka Stock Exchange best stocks, DSE pick history, BD stock recommendation",
   alternates: { canonical: `${BASE_URL}/top-picks` },
   openGraph: {
     title: "Daily Top 3 Stocks — DSE Picks History | TopStockBD",
     description:
-      "Three stock picks a day from the Dhaka Stock Exchange — see the history and how each pick performed.",
+      "Three stock picks a day from the Dhaka Stock Exchange — see the full history.",
     url: `${BASE_URL}/top-picks`,
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Daily Top 3 Stocks — DSE Picks History",
-    description: "See every day's three DSE stock picks and their next-day performance.",
+    description: "See every day's three DSE stock picks.",
   },
 };
 
-
-function summarize(days: DailyPickHistoryDay[]) {
-  const all: DailyPickHistoryDayItem[] = [];
-  for (const day of days) all.push(...day.picks);
-  const tracked = all.filter((i) => i.next_day_return_pct != null);
-  const wins = tracked.filter((i) => (i.next_day_return_pct ?? 0) > 0).length;
-  const total = tracked.length;
-  const avg = total ? tracked.reduce((s, i) => s + (i.next_day_return_pct ?? 0), 0) / total : 0;
-  return { wins, total, avg };
-}
 
 function PickItemCard({ item }: { item: DailyPickHistoryDayItem }) {
   const sourceColor = item.source === "dsef" ? "var(--positive)" : "var(--primary)";
@@ -84,9 +74,6 @@ function PickItemCard({ item }: { item: DailyPickHistoryDayItem }) {
           {item.ltp_at_pick != null && (
             <span className="text-text-muted">{money(item.ltp_at_pick)}</span>
           )}
-          <span className={`font-bold ${changeTone(item.next_day_return_pct)}`}>
-            Next day: {changePct(item.next_day_return_pct)}
-          </span>
         </div>
       </div>
     </Link>
@@ -96,7 +83,6 @@ function PickItemCard({ item }: { item: DailyPickHistoryDayItem }) {
 export default async function TopPicksPage() {
   const data = await getDailyPickHistory(60).catch(() => ({ days: [] as DailyPickHistoryDay[] }));
   const days = data.days;
-  const { wins, total, avg } = summarize(days);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -120,37 +106,10 @@ export default async function TopPicksPage() {
             <>
               Each day we pick 3 stocks: 2 from the most active recent movers (<strong>Trending</strong>),
               and 1 from the strongest companies overall (<strong>Top Quality</strong>). Here&apos;s
-              the history with how each pick did the next trading day.
+              every day&apos;s picks.
             </>
           }
         />
-
-        {total > 0 && (
-          <section className="grid grid-cols-3 gap-2 sm:gap-3 mb-6 sm:mb-8">
-            <div className="rounded-xl border border-border bg-surface p-3 sm:p-4">
-              <p className="text-xs sm:text-xs uppercase tracking-wider text-text-muted font-semibold mb-1">
-                Picks tracked
-              </p>
-              <p className="text-xl sm:text-2xl font-extrabold text-text-main">{total}</p>
-            </div>
-            <div className="rounded-xl border border-border bg-surface p-3 sm:p-4">
-              <p className="text-xs sm:text-xs uppercase tracking-wider text-text-muted font-semibold mb-1">
-                Went up next day
-              </p>
-              <p className="text-xl sm:text-2xl font-extrabold text-positive">
-                {wins} <span className="text-sm sm:text-base text-text-muted font-semibold">/ {total}</span>
-              </p>
-            </div>
-            <div className="rounded-xl border border-border bg-surface p-3 sm:p-4">
-              <p className="text-xs sm:text-xs uppercase tracking-wider text-text-muted font-semibold mb-1">
-                Average next day
-              </p>
-              <p className={`text-xl sm:text-2xl font-extrabold ${changeTone(avg)}`}>
-                {changePct(avg)}
-              </p>
-            </div>
-          </section>
-        )}
 
         {days.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border p-8 text-center">
@@ -179,7 +138,7 @@ export default async function TopPicksPage() {
         )}
 
         <p className="text-xs sm:text-xs text-text-muted mt-6 leading-relaxed">
-          Past performance does not guarantee future results. This is research, not investment advice — always do your own homework.
+          This is research, not investment advice — always do your own homework.
         </p>
       </div>
     </>

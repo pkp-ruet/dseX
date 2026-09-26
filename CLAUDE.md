@@ -78,7 +78,7 @@ python main.py scrape-news --code GP
 py scripts/backfill_dividend_declarations.py            # dry run
 py scripts/backfill_dividend_declarations.py --write
 python main.py scrape-market-summary   # DSE index values + daily totals
-python main.py scrape-all              # run all 6 scrapers sequentially (POSTs to VERCEL_DEPLOY_HOOK_URL on success if set)
+python main.py scrape-all              # run all 6 scrapers sequentially, then clear backend caches + purge the frontend `market-data` tag (no Vercel rebuild)
 ```
 
 ## Architecture
@@ -101,7 +101,7 @@ DSE (Dhaka Stock Exchange) stock data pipeline with four components:
    - **Final-score multipliers**: staleness (2/3/4+ yr-old reports → ×0.8/0.5/0.25) and DSE market category (`_CATEGORY_MULT`: Z ×0.65, B ×0.90, A/N ×1.0, unknown ×0.95); `category_mult` is exposed on the row. The staleness **reference year is calendar-driven** (`_reference_year`: current year from July, previous year Jan–Jun), capped by the data maximum only when the scrape itself is 2+ years behind, and equal to `fin_max_year` in backtests. It used to be the freshest year seen anywhere in the data, which hung a ×0.8 for ~50 companies on whether two March-FY names had filed yet.
    - **Tiers (canonical, `backend/services/tiers.py`)**: excellent ≥75, good ≥60, average ≥45, weak <45 — labels "Excellent/Good/Average/Weak" (+ Bengali `TIER_WORDS_BN`), mirrored by frontend `lib/constants.ts`. Tiers describe fundamental strength ONLY — action advice lives in the signal service below. All consumers import `tier_key()`; the pre-2026-07 recommendation-language keys (`strong_buy`/`buy`/`keep_watching`/`avoid`) are gone (`LEGACY_TIER_KEYS` maps them at read time for old stored picks).
    - **Buy/Sell signal (canonical, `backend/services/signal_service.py`)**: single source of truth for action advice everywhere — `/api/scores` rows, company detail, recommendation/daily picks, portfolio, push sweep. The signal is only ever **buy** or **sell**; anything neutral is `none` (empty — the UI shows no chip). There is no "Hold". Rules: unrated→none; weak→sell; average→none; good/excellent blocked from buy by Z category, stale financials, thin trading (<Tk 1mn avg 7d turnover), or a latest-year EPS drop ≥25% YoY (`EARNINGS_DROP_PCT` value-trap guard — "cheap for a reason"; backtest-validated 2026-07) → none; else valuation forks it — p4_val ≥7 (cheap) → buy, <4 (expensive) → none, mid/unknown → buy only for excellent; ≥85% of the 52w range dampens any buy to none. Momentum comes from `top20_service.compute_momentum_all()` (shared bulk `_market_window_raw`). Every signal carries `reason_en`+`reason_bn` (kept even for `none`, so the stock's verdict prose can still explain the neutral stance). `holding_signal()` layers the owner's entry picture (buy_more/sell, else none — `portfolio_signals` enum stores `none` for neutral; the sell set is unchanged so no spurious "changed to Sell" pushes); portfolio GET returns it per holding and the frontend never derives buy/sell advice itself (old TS `computeHoldingSignal` deleted). Cached 300s; cleared via `invalidate_scores_cache()`.
-   - **Regression harness**: `py scripts/score_regression.py` (read-only) diffs working-tree scores vs the live `scores_snapshot` (or `--dump`/`--baseline` pickles) — tier transition matrix, top-30 turnover, movers with pillar attribution, coverage, downstream-gate counts. Run it before deploying any scoring change, then `POST /api/scores/refresh` after deploy.
+   - **Regression harness**: `py scripts/score_regression.py` (read-only) diffs working-tree scores vs the live `scores_snapshot` (or `--dump`/`--baseline` pickles) — tier transition matrix, top-30 turnover, movers with pillar attribution, coverage, downstream-gate counts. Run it before deploying any scoring change, then `POST /api/scores/refresh?recompute=true` with an **admin** Bearer token after deploy (the endpoint is no longer public; without `recompute` it only clears caches).
 
 ### Scrapers
 
@@ -132,6 +132,8 @@ Connection is a module-level singleton in `db/connection.py` (`get_db()` / `clos
 
 Scrapers must use upsert logic to avoid duplicates.
 
+`push_sends` / `email_sends` are delivery logs with a **180-day TTL** on `sent_at` (`db_service.DELIVERY_LOG_TTL_SECONDS`, created in `ensure_push_indexes` / `ensure_email_indexes`). That is safe only because every campaign id is day-scoped — keep new senders' ids day-scoped too. Finished email campaigns keep their totals on `email_campaigns.counts`. `user_events` has a 90-day TTL. `/top-picks` shows pick history only — the next-day return / win-rate feature was removed 2026-09-27 (no track-record claims).
+
 ### Official close (which price the app shows)
 
 DSE publishes two prices per stock per day and `stock_prices` stores both:
@@ -145,7 +147,7 @@ DSE publishes two prices per stock per day and `stock_prices` stores both:
 
 Every read path funnels raw `stock_prices` docs through **`db_service.use_official_close(doc)`**, which overwrites `ltp` with the close and re-derives `change`/`change_pct` from `close_price - ycp`. It is idempotent and no-ops when `close_price` is absent (then LTP is the best price available). **The `ltp` key name is deliberately kept** so no router, response model, or frontend component has to change — `ltp` in an API response means the official close. Inside aggregation pipelines (`$max`/`$min`/`$first` for 52-week ranges) use the **`db_service.CLOSE_EXPR`** constant instead.
 
-When adding a code path that reads `stock_prices` directly, apply one of those two — do not read `ltp` raw. Normalized paths: `load_latest_prices`, `load_price_history` (→ `compute_52w_range`), `load_market_movers`, `load_market_index` breadth counts, `compute_market_intelligence`, `top20_service._market_window_raw`, `market_state_service`, `daily_tips_service`, `daily_pick_service`, the `market_analysis` + `stock_lists` 52w aggregations, and `scripts/signal_backtest.py`.
+When adding a code path that reads `stock_prices` directly, apply one of those two — do not read `ltp` raw. Normalized paths: `load_latest_prices`, `load_price_history` (→ `compute_52w_range`), `load_market_movers`, `load_market_index` breadth counts, `compute_market_intelligence`, `top20_service._market_window_raw`, `market_state_service`, `daily_tips_service`, `daily_pick_service`, `db_service.load_52w_ranges` (the ONE shared 365-day hi/lo map — near-extremes, `/api/market/52w`, stock lists, market state and daily tips all read it; don't add another copy of that aggregation), and `scripts/signal_backtest.py`. `load_latest_prices` groups only the last 30 days and fills long-suspended codes one indexed lookup each — never go back to grouping the whole collection.
 
 ⚠️ **`stock_prices.date` AND `dse_market_summary.date` are ISO strings** (`"YYYY-MM-DD"`, stamped by `utils/market_hours.py:bst_today_iso`), not BSON dates. Range filters must compare against a **string** bound (`.strftime("%Y-%m-%d")`) — BSON sorts String before Date, so a `datetime` bound silently matches **zero** documents. Four 52-week pipelines shipped with this bug and returned empty for months (fixed 2026-08-20); `market_state_service._index_history` shipped with it too, so `/market-analysis` never knew where the index sat this year and could never say "Going down" (fixed 2026-09-12). `market_snapshots.date` is a string as well.
 
@@ -501,7 +503,7 @@ A 401 response from `apiAuthFetch` triggers `logout()` and throws `AUTH_EXPIRED`
 
 | File | Endpoint(s) | Purpose |
 |---|---|---|
-| `routers/scores.py` | `GET /api/scores`, `POST /api/scores/refresh` | DSEF tiers; refresh clears cache |
+| `routers/scores.py` | `GET /api/scores`, `POST /api/scores/refresh` | DSEF tiers (finished response memoized on its cached inputs, `Cache-Control: max-age=300`). Refresh = admin token or `x-revalidate-secret` header: clears every in-process cache and reloads the stored snapshot; `?recompute=true` (admin only) reruns the scoring pipeline. `scrape-all` / `scrape-quick` call it before purging the frontend tag |
 | `routers/companies.py` | `GET /api/companies/codes`, `GET /api/company/:code`, `GET /api/news/multi?codes=` | Company list + detail + multi-code news |
 | `routers/prices.py` | `GET /api/company/:code/prices?range=` | Price history |
 | `routers/market_movers.py` | `GET /api/market-movers` | Top 5 gainers / losers / most-traded |
@@ -536,7 +538,7 @@ Returns the same `{access_token, token_type, user}` envelope as `/login`, so fro
 
 **Service layer (`backend/services/`):**
 
-- `db_service.py` — cached query layer (`@_ttl_cache(300)`, 5-min in-memory TTL).
+- `db_service.py` — cached query layer (`@_ttl_cache(300)`, 5-min in-memory TTL). The cache is locked and single-flight (one thread computes an expired key; the rest wait) and keys on the exact args — `f()` and `f(None)` are separate entries (that bug made the 1.5 MB `_market_window_raw` read run twice). `clear_all_caches()` drops every entry. The Mongo client has `socketTimeoutMS=20s` / `waitQueueTimeoutMS=5s` so a hung Atlas can't pin request threads.
   Key functions: `load_companies`, `load_latest_prices`, `load_price_history`, `load_financials`, `load_extended_financials`, `load_shareholdings`, `load_company_news`, `load_dividend_declarations` (**latest declaration per company** — what every pre-existing caller means by "the current dividend"), `load_dividend_history` (the whole ledger, newest first), `load_market_movers`, `load_market_index`, `load_dse_today_table`, `load_market_news`, `load_news_for_codes`, `load_all_company_codes`, `compute_market_intelligence`, `compute_signal_flags`, `compute_52w_range`.
   Also owns `use_official_close(doc)` + `CLOSE_EXPR` — the canonical "which price" rule for the whole app (see **Official close** above). Every price a user sees is DSE's CLOSEP, exposed under the legacy `ltp` key.
 - `scoring_service.py` — DSEF scoring pipeline (`build_scores_df`), used by `scores.py` and `stock_lists.py`.
@@ -592,9 +594,9 @@ Both are sourced from `.env` via `python-dotenv`.
 | `ADMIN_EMAILS` | empty | CSV of emails granted access to `/api/admin/*` |
 | `GOOGLE_CLIENT_ID` | empty | Google OAuth Web Client ID. Required for `/api/auth/google`; backend uses it to verify the `aud` claim of incoming Google ID tokens. |
 | `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | empty | Same value as `GOOGLE_CLIENT_ID`, exposed to the browser so `@react-oauth/google` can request the ID token. Public per Google's design. |
-| `VERCEL_DEPLOY_HOOK_URL` | unset | Optional — `scrape-all` POSTs here on success to trigger a Vercel rebuild |
-| `FRONTEND_REVALIDATE_URL` | unset | Frontend `/api/revalidate` URL (e.g. `https://www.topstockbd.com/api/revalidate`). When set with `REVALIDATE_SECRET`, `scrape-all` purges the Next.js `market-data` tag so ISR pages (rankings + stock detail) refetch on the next request. Preferred over the deploy hook because Vercel's data cache survives rebuilds. |
-| `REVALIDATE_SECRET` | unset | Shared secret for `/api/revalidate`. Set the same value on the Next.js host and on whatever runs `scrape-all`. |
+| `FRONTEND_REVALIDATE_URL` | unset | Frontend `/api/revalidate` URL (e.g. `https://www.topstockbd.com/api/revalidate`). When set with `REVALIDATE_SECRET`, `scrape-all` purges the Next.js `market-data` tag so ISR pages (rankings + stock detail) refetch on the next request. The daily scrape no longer fires a Vercel deploy hook (removed 2026-09-27): Vercel's data cache survives rebuilds, so a rebuild added backend load without adding freshness. |
+| `REVALIDATE_SECRET` | unset | Shared secret for `/api/revalidate` **and** the backend's `POST /api/scores/refresh`. Set the same value on the Next.js host, the Render backend, and whatever runs `scrape-all`. |
+| `BACKEND_URL` | `https://dsex.onrender.com` | Where `scrape-all` / `scrape-quick` send the post-scrape backend cache clear |
 | `API_URL` / `NEXT_PUBLIC_API_URL` | `https://dsex.onrender.com` | Frontend → backend base URL (server-side / browser) |
 
 DSE URL constants also live in the root `config.py`.

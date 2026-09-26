@@ -63,7 +63,9 @@ export default async function DseStockRankingPage() {
   const updated = fmtDate(scores.computed_at);
 
   // Flatten all API tiers and re-classify client-side via getTier
-  const allRanked: RankedItem[] = flattenTiers(scores).map((i) => ({
+  // `signal` (with its English + Bengali reason text, ~half the payload) is
+  // dropped: the table never reads it, and every row is serialized into the HTML.
+  const allRanked: RankedItem[] = flattenTiers(scores).map(({ signal: _signal, ...i }) => ({
     ...i,
     tier: getTier(i.score),
   }));

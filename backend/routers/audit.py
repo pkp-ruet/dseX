@@ -1,4 +1,5 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from backend.routers.auth import get_current_admin_user
 from backend.services.db_service import get_db, load_companies, load_latest_prices
 from backend.models.responses import AuditResponse, AuditSummary, AuditCompanyRow
 
@@ -6,7 +7,8 @@ router = APIRouter()
 
 
 @router.get("/api/audit", response_model=AuditResponse)
-def get_audit():
+def get_audit(_: dict = Depends(get_current_admin_user)):
+    """Data-coverage report. Admin-only: it scans four whole collections."""
     db = get_db()
     companies = load_companies()
     prices = load_latest_prices()

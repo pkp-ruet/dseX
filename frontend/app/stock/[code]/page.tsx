@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
-  ApiNotFoundError, getCompanyDetail, getAllCodes, getInsightScores, getStockLists, getDividendHistory,
+  ApiNotFoundError, getCompanyDetail, getInsightScores, getStockLists, getDividendHistory,
   type DividendDeclarationRecord,
 } from "@/lib/api";
 import { getTier, TIER_LABELS } from "@/lib/constants";
@@ -40,10 +40,15 @@ export async function generateStaticParams() {
   // Tail-end codes still render on-demand (dynamicParams = true).
   // If the backend is cold (Render free tier), fall back to [] — never
   // bake 404s for codes we couldn't verify.
+  // "Top" = highest score, not the first 50 codes alphabetically (AAMRANET,
+  // AAMRATECH, …) that `getAllCodes()` returns.
   try {
-    const codes = await getAllCodes();
-    if (!Array.isArray(codes) || codes.length === 0) return [];
-    return codes.slice(0, 50).map((code) => ({ code }));
+    const items = await getInsightScores();
+    if (!Array.isArray(items) || items.length === 0) return [];
+    return [...items]
+      .sort((a, b) => (b.score ?? -1) - (a.score ?? -1))
+      .slice(0, 50)
+      .map((i) => ({ code: i.trading_code }));
   } catch {
     return [];
   }
@@ -114,6 +119,14 @@ function ordinal(n: number): string {
 
 export default async function StockDetailPage({ params }: PageProps) {
   const { code } = await params;
+  // Start the side fetches with the detail rather than after it — they only
+  // need the code, and waiting doubled the page's time on a slow backend. Each
+  // carries its own .catch, so a 404 below leaves no unhandled rejection.
+  const sideFetches = Promise.all([
+    getInsightScores().catch(() => []),
+    getStockLists().catch(() => null),
+    getDividendHistory(code.toUpperCase()).catch(() => [] as DividendDeclarationRecord[]),
+  ]);
   let detail: Awaited<ReturnType<typeof getCompanyDetail>>;
   try {
     detail = await getCompanyDetail(code);
@@ -135,11 +148,7 @@ export default async function StockDetailPage({ params }: PageProps) {
   let featuredIn: ReturnType<typeof computeFeaturedIn> = [];
   let dividendRows: DividendDeclarationRecord[] = [];
   try {
-    const [scores, stockLists, ledger] = await Promise.all([
-      getInsightScores().catch(() => []),
-      getStockLists().catch(() => null),
-      getDividendHistory(profile.trading_code).catch(() => [] as DividendDeclarationRecord[]),
-    ]);
+    const [scores, stockLists, ledger] = await sideFetches;
     featuredIn = computeFeaturedIn(profile.trading_code, scores, stockLists);
     dividendRows = Array.isArray(ledger) ? ledger : [];
   } catch {

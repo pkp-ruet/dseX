@@ -24,7 +24,6 @@ jobs:
       MONGODB_DB_NAME: ${{ secrets.MONGODB_DB_NAME }}
       FRONTEND_REVALIDATE_URL: ${{ secrets.FRONTEND_REVALIDATE_URL }}
       REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
-      VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
       # Web push (event alerts). Same VAPID keypair as the Render backend.
       VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
       VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}

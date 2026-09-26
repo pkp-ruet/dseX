@@ -622,3 +622,6 @@ def ensure_users_indexes() -> None:
     events = get_db()["user_events"]
     events.create_index("ts", expireAfterSeconds=7_776_000, name="ts_ttl_90d")
     events.create_index([("user_id", 1), ("ts", -1)], name="user_recent_events")
+    # Exact match for the per-page-view ping upsert ({user_id, path, ts_bucket});
+    # without it every ping read all of that user's 90-day events.
+    events.create_index([("user_id", 1), ("path", 1), ("ts_bucket", 1)], name="ping_upsert")

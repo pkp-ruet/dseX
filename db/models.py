@@ -1,4 +1,4 @@
-from pymongo import ASCENDING
+from pymongo import ASCENDING, DESCENDING
 from db.connection import get_db
 
 
@@ -38,6 +38,8 @@ def ensure_indexes():
     db.company_news.create_index(
         [("trading_code", ASCENDING), ("post_date", ASCENDING)],
     )
+    # Market-wide news reads sort by post_date alone (newest-first feed).
+    db.company_news.create_index([("post_date", DESCENDING)])
 
     # One doc per (company, declaration) so interim + final + prior-year
     # declarations all survive — the dividend calendar and dividend history

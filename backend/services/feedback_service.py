@@ -14,7 +14,7 @@ from bson import ObjectId
 from bson.errors import InvalidId
 from pymongo import ASCENDING, DESCENDING
 
-from backend.services.db_service import get_db, _ttl_cache
+from backend.services.db_service import drop_index_if_exists, get_db, _ttl_cache
 
 COLLECTION = "feedback"
 MAX_COMMENT_LEN = 2000
@@ -26,7 +26,7 @@ VALID_SOURCES = {"homepage", "popup"}
 def ensure_feedback_indexes() -> None:
     db = get_db()
     db[COLLECTION].create_index([("created_at", DESCENDING)])
-    db[COLLECTION].create_index([("user_id", ASCENDING)])
+    drop_index_if_exists(db[COLLECTION], "user_id_1")  # no query filters on user_id
     # Public testimonials read by (featured, created_at) on every landing render.
     db[COLLECTION].create_index([("featured", ASCENDING), ("created_at", DESCENDING)])
 

@@ -27,8 +27,15 @@ from utils.sector import normalize_sector
 _STRIP_FIELDS = {"_id", "seeded_at"}
 
 
-@_ttl_cache(3600, max_entries=400)
 def load_report(code: str) -> Optional[dict]:
+    """Uppercase before the cache so `gp` and `GP` share one entry."""
+    return _load_report((code or "").strip().upper())
+
+
+# ~45 KB per report — 400 entries could hold ~80 MB of Python objects on a
+# 512 MB instance; 120 covers every report written so far.
+@_ttl_cache(3600, max_entries=120)
+def _load_report(code: str) -> Optional[dict]:
     """The stored durable narrative for one code, or ``None`` if not written yet.
 
     One report per company (unique index on ``trading_code``). Returns a plain
@@ -107,5 +114,5 @@ def compute_fair_value(code: str) -> Optional[dict]:
 
 def invalidate_deep_analysis_cache() -> None:
     """Drop the report caches (call after seeding new/updated reports)."""
-    load_report.cache_clear()
+    _load_report.cache_clear()
     list_report_codes.cache_clear()

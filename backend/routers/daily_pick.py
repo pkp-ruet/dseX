@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from backend.services.daily_pick_service import get_today_picks, get_pick_history
 
 router = APIRouter()
@@ -18,6 +18,6 @@ def daily_pick():
 
 
 @router.get("/api/daily-pick/history")
-def daily_pick_history(days: int = 30):
-    """Last N pick days, each with its three picks and next-day returns."""
+def daily_pick_history(days: int = Query(30, ge=1, le=90)):
+    """Last N pick days, each with its three picks."""
     return {"days": get_pick_history(days)}

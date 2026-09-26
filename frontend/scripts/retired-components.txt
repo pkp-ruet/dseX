@@ -31,7 +31,6 @@ components/home/StatsCountUp.tsx
 components/home/StockListPreview.tsx
 components/home/ThreeStoriesSection.tsx
 components/home/TickerBand.tsx
-components/home/TodaysTopPicks.tsx
 components/home/Top20MomentumTeaser.tsx
 components/home/TopRankings.tsx
 components/home/personalized/BuySignalsCard.tsx

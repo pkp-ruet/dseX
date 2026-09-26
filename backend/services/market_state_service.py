@@ -23,6 +23,7 @@ All wording lives on the frontend; this service returns plain numbers + short
 status strings. No finance terms leak into the values we expose. The one
 exception is `summary_bn`, a template-rendered everyday-Bangla paragraph.
 """
+import logging
 import math
 from datetime import datetime, timedelta, timezone
 from typing import Optional
@@ -30,9 +31,9 @@ from typing import Optional
 from pymongo import ASCENDING
 
 from backend.services.db_service import (
-    CLOSE_EXPR,
     get_db,
     load_companies,
+    load_52w_ranges,
     load_latest_prices,
     load_market_index,
     use_official_close,
@@ -41,6 +42,8 @@ from backend.services.db_service import (
 from backend.services.scoring_service import build_scores_df
 from backend.services.sector_service import sector_slug, sector_slugs
 from backend.services.corporate_actions_service import build_dividend_calendar
+
+log = logging.getLogger(__name__)
 
 _SNAPSHOT_COLLECTION = "market_snapshots"
 
@@ -252,14 +255,7 @@ def _window_returns(db, codes: set) -> tuple[dict, dict]:
 
 def _near_extremes(db, companies: dict, prices: dict) -> tuple[list, list]:
     """Stocks within 5% of their 1-year high / low. Returns (near_high, near_low)."""
-    # `stock_prices.date` holds an ISO string, so the bound has to be a string
-    # too — BSON sorts String before Date, so a datetime bound matched nothing.
-    one_year_ago = (datetime.now(timezone.utc) - timedelta(days=365)).strftime("%Y-%m-%d")
-    agg = db.stock_prices.aggregate([
-        {"$match": {"date": {"$gte": one_year_ago}, "ltp": {"$gt": 0}}},
-        {"$group": {"_id": "$trading_code", "hi": {"$max": CLOSE_EXPR}, "lo": {"$min": CLOSE_EXPR}}},
-    ])
-    ext = {d["_id"]: d for d in agg}
+    ext = load_52w_ranges()
 
     near_high: list[dict] = []
     near_low: list[dict] = []
@@ -816,6 +812,16 @@ def _quality_trend(snaps_desc: list[dict], today: Optional[str], healthy_now: in
 # Main bundle
 # ---------------------------------------------------------------------------
 
+def _guard(name: str, fn, default):
+    """One section failing degrades that section, not the whole page — an
+    unguarded query error here used to 500 all of /market-analysis."""
+    try:
+        return fn()
+    except Exception:  # noqa: BLE001
+        log.exception("market state section %s failed", name)
+        return default
+
+
 def _compute(df=None) -> tuple[dict, dict]:
     """Build the public bundle plus a private `extras` dict the daily snapshot
     writer needs (uncapped code lists, medians the page doesn't show)."""
@@ -837,7 +843,7 @@ def _compute(df=None) -> tuple[dict, dict]:
     advancing_pct = round(up / traded * 100, 1) if traded else None
 
     # --- Prices high or low this year? (DSEX position in its 1-year range) ---
-    hist = _index_history(db)
+    hist = _guard("index_history", lambda: _index_history(db), [])
     price_pos_pct = None
     week_change_pct = None
     year_high = year_low = None
@@ -932,7 +938,7 @@ def _compute(df=None) -> tuple[dict, dict]:
 
     # --- Which businesses are doing well? (sector returns) ---
     code_to_sector = {c: (companies.get(c) or {}).get("sector") for c in companies}
-    ret_1w, ret_1m = _window_returns(db, set(companies.keys()))
+    ret_1w, ret_1m = _guard("window_returns", lambda: _window_returns(db, set(companies.keys())), ({}, {}))
     sectors = _sector_rows(companies, ret_1w, ret_1m)
     sector_status_now = {s["name"]: s["status"] for s in sectors}
 
@@ -953,10 +959,10 @@ def _compute(df=None) -> tuple[dict, dict]:
     healthy_now = quality["strong"] + quality["good"]
 
     # --- Turning points + dividends ---
-    near_high, near_low = _near_extremes(db, companies, prices)
+    near_high, near_low = _guard("near_extremes", lambda: _near_extremes(db, companies, prices), ([], []))
     near_low_codes = {x["trading_code"] for x in near_low}
     dividends = _upcoming_dividends()
-    unusual = _unusual_buying(db, companies, prices)
+    unusual = _guard("unusual_buying", lambda: _unusual_buying(db, companies, prices), [])
 
     # --- Opportunity lists ---
     def _name(code):
@@ -1007,7 +1013,7 @@ def _compute(df=None) -> tuple[dict, dict]:
             break
 
     # --- History: DSEX this year + the daily snapshot series ---
-    snaps_desc = _load_snapshots(db)
+    snaps_desc = _guard("snapshots", lambda: _load_snapshots(db), [])
     history = {
         "index": [
             {"date": h["date"], "dsex": h["dsex"], "turnover_mn": h["total_value_mn"]}

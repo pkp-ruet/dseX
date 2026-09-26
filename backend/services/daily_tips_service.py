@@ -35,6 +35,7 @@ from backend.services.db_service import (
     CLOSE_EXPR,
     get_db,
     load_companies,
+    load_52w_ranges,
     load_latest_prices,
     load_dividend_declarations,
 )
@@ -163,12 +164,7 @@ def _iso_days_ago(days: int) -> str:
 
 
 def _load_w52_low(db) -> dict[str, float]:
-    since = _iso_days_ago(365)
-    pipeline = [
-        {"$match": {"date": {"$gte": since}, "ltp": {"$gt": 0}}},
-        {"$group": {"_id": "$trading_code", "w52_low": {"$min": CLOSE_EXPR}}},
-    ]
-    return {d["_id"]: _safe(d.get("w52_low")) for d in db.stock_prices.aggregate(pipeline)}
+    return {code: _safe(r.get("lo")) for code, r in load_52w_ranges().items()}
 
 
 def _load_avg_turnover(db) -> dict[str, float]:
@@ -513,11 +509,22 @@ def compute_and_store_daily_tips() -> dict:
 # Public read path
 # ---------------------------------------------------------------------------
 
+def _older_than(ts, seconds: int) -> bool:
+    if not isinstance(ts, datetime):
+        return True
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=timezone.utc)
+    return (datetime.now(timezone.utc) - ts).total_seconds() > seconds
+
+
 def get_daily_tips() -> dict:
     """Newest stored tips. Self-heals on a fresh deploy by computing once."""
     db = get_db()
     doc = db.daily_tips.find_one({}, {"_id": 0}, sort=[("date", DESCENDING)])
-    if not doc or not doc.get("tips"):
+    # Recompute when nothing is stored, or when the stored list is empty and at
+    # least an hour old. An empty day used to trigger the full recompute (five
+    # price aggregations) on every request, including every dashboard load.
+    if not doc or (not doc.get("tips") and _older_than(doc.get("generated_at"), 3600)):
         doc = compute_and_store_daily_tips()
     return {"date": doc.get("date"), "tips": doc.get("tips") or []}
 

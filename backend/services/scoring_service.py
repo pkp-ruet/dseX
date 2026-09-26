@@ -973,6 +973,21 @@ def invalidate_scores_cache() -> None:
         pass
 
 
+def reload_after_scrape() -> None:
+    """Make a fresh scrape visible without recomputing in the web process.
+
+    `scrape-all` already computed and stored the snapshot; this drops every
+    in-process cache (scores frame, signals, prices, market state, …) so the next
+    request reads the new data instead of a pre-scrape copy that the frontend's
+    tag purge would otherwise re-cache for a day."""
+    global _scores_cache
+    from backend.services.db_service import clear_all_caches
+
+    with _scores_lock:
+        _scores_cache = {"df": None, "at": 0.0}
+    clear_all_caches()
+
+
 def build_scores_df() -> pd.DataFrame:
     """Return the scored DataFrame for all companies (reads the precomputed snapshot).
 

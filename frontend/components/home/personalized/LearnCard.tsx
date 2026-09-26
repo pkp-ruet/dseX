@@ -1,7 +1,8 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { Lang } from "@/context/LangContext";
-import { BLOG_POSTS } from "@/lib/blog-bn";
-import { GUIDES } from "@/lib/guides";
 import { t } from "@/lib/home-copy";
 import { ACC, accVars } from "@/components/home/personalized/accents";
 import DashHeader from "@/components/home/personalized/DashHeader";
@@ -13,6 +14,29 @@ interface Row {
   description: string;
   tag: string;
   bn: boolean;
+}
+
+type LinkSource = { slug: string; title: string; description: string };
+type BlogSource = LinkSource & { categoryId?: string };
+
+function pickRows(
+  posts: readonly BlogSource[],
+  guides: readonly LinkSource[],
+  brandNew: boolean,
+  lang: Lang,
+): Row[] {
+  if (brandNew) {
+    return posts.filter((p) => p.categoryId === "getting-started")
+      .slice(0, 3)
+      .map((p) => ({ href: `/blog/${p.slug}`, title: p.title, description: p.description, tag: t(lang, "guideBn"), bn: true }));
+  }
+  const d = dayIndex();
+  const post = posts[d % posts.length];
+  const guide = guides[(d + 3) % guides.length];
+  return [
+    post && { href: `/blog/${post.slug}`, title: post.title, description: post.description, tag: t(lang, "guideBn"), bn: true },
+    guide && { href: `/learn/${guide.slug}`, title: guide.title, description: guide.description, tag: t(lang, "guideEn"), bn: false },
+  ].filter((r): r is Row => !!r);
 }
 
 /** Whole days since the epoch — one step per calendar day, so the picks
@@ -29,21 +53,22 @@ function dayIndex(): number {
  */
 export default function LearnCard({ brandNew, lang = "en" }: { brandNew: boolean; lang?: Lang }) {
   const bn = lang === "bn";
-  let rows: Row[];
-  if (brandNew) {
-    rows = BLOG_POSTS.filter((p) => p.categoryId === "getting-started")
-      .slice(0, 3)
-      .map((p) => ({ href: `/blog/${p.slug}`, title: p.title, description: p.description, tag: t(lang, "guideBn"), bn: true }));
-  } else {
-    const d = dayIndex();
-    const post = BLOG_POSTS[d % BLOG_POSTS.length];
-    const guide = GUIDES[(d + 3) % GUIDES.length];
-    rows = [
-      post && { href: `/blog/${post.slug}`, title: post.title, description: post.description, tag: t(lang, "guideBn"), bn: true },
-      guide && { href: `/learn/${guide.slug}`, title: guide.title, description: guide.description, tag: t(lang, "guideEn"), bn: false },
-    ].filter((r): r is Row => !!r);
-  }
-  if (rows.length === 0) return null;
+  const [rows, setRows] = useState<Row[] | null>(null);
+
+  // The blog + guide modules carry every article body (~260 KB). Loading them
+  // on demand keeps them out of the dashboard bundle; the card appears once
+  // they arrive.
+  useEffect(() => {
+    let alive = true;
+    Promise.all([import("@/lib/blog-bn"), import("@/lib/guides")])
+      .then(([{ BLOG_POSTS }, { GUIDES }]) => {
+        if (alive) setRows(pickRows(BLOG_POSTS, GUIDES, brandNew, lang));
+      })
+      .catch(() => { if (alive) setRows([]); });
+    return () => { alive = false; };
+  }, [brandNew, lang]);
+
+  if (!rows || rows.length === 0) return null;
 
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>

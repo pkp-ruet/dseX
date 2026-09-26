@@ -630,6 +630,11 @@ def campaign_stats(campaign_id: str) -> dict:
         elif row["_id"] == "failed":
             failed = row["n"]
     camp = db["email_campaigns"].find_one({"campaign_id": campaign_id}, {"_id": 0})
+    # email_sends rows expire after 180 days; older campaigns fall back to the
+    # totals saved on the campaign when it finished (open counts are not kept).
+    if not (sent or failed) and (camp or {}).get("counts"):
+        sent = camp["counts"].get("sent", 0)
+        failed = camp["counts"].get("failed", 0)
     return {
         "campaign_id": campaign_id,
         "status": (camp or {}).get("status", "unknown"),

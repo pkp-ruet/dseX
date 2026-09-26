@@ -70,6 +70,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function StockAnalysisPage({ params }: PageProps) {
   const { code } = await params;
+  // Live price for the header, fetched alongside the report instead of after it.
+  const detailFetch = getCompanyDetail(code.toUpperCase()).catch(() => null);
 
   let data: Awaited<ReturnType<typeof getDeepAnalysis>>;
   try {
@@ -86,12 +88,10 @@ export default async function StockAnalysisPage({ params }: PageProps) {
   // Live header bits (name/price) are a nice-to-have — never block the report.
   let ltp: number | null = null;
   let changePct: number | null = null;
-  try {
-    const detail = await getCompanyDetail(tradingCode);
+  const detail = await detailFetch; // null → report-only header
+  if (detail) {
     ltp = detail.latest_price?.ltp ?? null;
     changePct = detail.latest_price?.change_pct ?? null;
-  } catch {
-    /* fall back to report-only header */
   }
 
   const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";

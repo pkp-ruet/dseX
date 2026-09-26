@@ -546,10 +546,18 @@ export class ApiNotFoundError extends Error {
   }
 }
 
+/** Per-attempt budget. A timed-out attempt is NOT retried: with the old 60 s
+ *  budget + retry a single slow call could hold a render for ~2 minutes. */
+const API_TIMEOUT_MS = 30_000;
+
 function apiFetchSignal(): AbortSignal | undefined {
   if (typeof AbortSignal === "undefined") return undefined;
   const ctor = AbortSignal as unknown as { timeout?: (ms: number) => AbortSignal };
-  return typeof ctor.timeout === "function" ? ctor.timeout(60_000) : undefined;
+  return typeof ctor.timeout === "function" ? ctor.timeout(API_TIMEOUT_MS) : undefined;
+}
+
+function isTimeout(err: unknown): boolean {
+  return err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError");
 }
 
 /**
@@ -580,10 +588,12 @@ async function apiFetch<T>(
         // 5xx and other non-ok statuses are transient — eligible for retry
         throw new Error(`API ${path} returned ${res.status}`);
       }
-      return res.json() as Promise<T>;
+      // Awaited here so a truncated / invalid body is retried like a 5xx.
+      return (await res.json()) as T;
     } catch (err) {
-      // Real 404s are terminal — never retry, never mask
-      if (err instanceof ApiNotFoundError) throw err;
+      // Real 404s are terminal — never retry, never mask. A timeout already
+      // spent the whole budget; retrying it only doubles the wait.
+      if (err instanceof ApiNotFoundError || isTimeout(err)) throw err;
       lastErr = err;
       if (attempt === 0) {
         await new Promise((r) => setTimeout(r, 1000));
@@ -594,8 +604,24 @@ async function apiFetch<T>(
   throw lastErr instanceof Error ? lastErr : new Error(`API ${path} failed`);
 }
 
+// In the browser `next: { revalidate }` does nothing, so every client component
+// that called getScores() re-downloaded the ~250 KB payload. Share one request
+// per tab for five minutes (a failed request is dropped so the next call retries).
+const CLIENT_SCORES_TTL_MS = 5 * 60_000;
+let clientScores: { at: number; promise: Promise<ScoresResponse> } | null = null;
+
 export async function getScores(): Promise<ScoresResponse> {
-  return apiFetch<ScoresResponse>("/api/scores", 86400);
+  if (typeof window === "undefined") {
+    return apiFetch<ScoresResponse>("/api/scores", 86400);
+  }
+  if (!clientScores || Date.now() - clientScores.at > CLIENT_SCORES_TTL_MS) {
+    const promise = apiFetch<ScoresResponse>("/api/scores", 86400);
+    clientScores = { at: Date.now(), promise };
+    promise.catch(() => {
+      if (clientScores?.promise === promise) clientScores = null;
+    });
+  }
+  return clientScores.promise;
 }
 
 export async function getAllCodes(): Promise<string[]> {
@@ -750,8 +776,8 @@ export async function getDseToday(): Promise<DseTodayData> {
 
 /** Every story from the latest news day, market-wide (same item shape as the
  *  dse-today bundle). Powers the /todays-news page. */
-export async function getTodaysNews(): Promise<DseTodayNewsItem[]> {
-  return apiFetch<DseTodayNewsItem[]>("/api/news/today", 900);
+export async function getTodaysNews(revalidate = 900): Promise<DseTodayNewsItem[]> {
+  return apiFetch<DseTodayNewsItem[]>("/api/news/today", revalidate);
 }
 
 export async function getStockLists(): Promise<import("@/lib/stock-lists").StockListsResponse> {
@@ -760,7 +786,7 @@ export async function getStockLists(): Promise<import("@/lib/stock-lists").Stock
 
 /** Flatten all tiers into a single array, including pillar scores. Used by insight pages. */
 export async function getInsightScores(): Promise<ScoreItem[]> {
-  const res = await apiFetch<ScoresResponse>("/api/scores", 86400);
+  const res = await getScores();
   return flattenTiers(res);
 }
 
@@ -1660,7 +1686,6 @@ export interface DailyPickYesterdayItem {
   slot: number;
   trading_code: string;
   company_name: string | null;
-  next_day_return_pct: number | null;
 }
 
 export interface DailyPickYesterday {
@@ -1688,7 +1713,6 @@ export interface DailyPickHistoryDayItem {
   score: number | null;
   ltp_at_pick: number | null;
   return_7d_pct: number | null;
-  next_day_return_pct: number | null;
   reasons: string[];
 }
 

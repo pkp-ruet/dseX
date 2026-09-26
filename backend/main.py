@@ -57,41 +57,51 @@ app.include_router(trust.router)
 app.include_router(home.router)
 
 
-@app.on_event("startup")
-def startup():
-    from backend.services.auth_service import ensure_users_indexes
-    ensure_users_indexes()
+def _startup_step(name, fn) -> None:
+    """Run one startup task; a failure is logged, never fatal. Unguarded, a slow
+    or briefly unreachable Atlas raised out of startup and Render crash-looped
+    the whole API over what are all idempotent index builds."""
+    import logging
+    try:
+        fn()
+    except Exception:  # noqa: BLE001
+        logging.getLogger("startup").exception("startup step %s failed", name)
 
-    from backend.services.feedback_service import ensure_feedback_indexes
-    ensure_feedback_indexes()
 
-    from backend.services.daily_pick_service import ensure_daily_picks_indexes
-    ensure_daily_picks_indexes()
-
-    from backend.services.daily_tips_service import ensure_daily_tips_indexes
-    ensure_daily_tips_indexes()
-
-    from backend.services.summaries_service import ensure_summaries_indexes
-    ensure_summaries_indexes()
-
-    from backend.services.score_adjustments_service import ensure_indexes as ensure_score_adj_indexes
-    ensure_score_adj_indexes()
-
-    from backend.services.email_service import ensure_email_indexes
-    ensure_email_indexes()
-
-    from backend.services.push_service import ensure_push_indexes
-    ensure_push_indexes()
-
-    from backend.services.price_alert_service import ensure_price_alert_indexes
-    ensure_price_alert_indexes()
-
+def _ensure_stock_visits():
     from backend.services.db_service import get_db
     from pymongo import ASCENDING
     db = get_db()
     _migrate_stock_visits_to_single_row(db)
     db.stock_visits.create_index([("trading_code", ASCENDING)], unique=True)
     db.stock_visits.create_index([("count", -1)])
+
+
+@app.on_event("startup")
+def startup():
+    from backend.services.auth_service import ensure_users_indexes
+    from backend.services.feedback_service import ensure_feedback_indexes
+    from backend.services.daily_pick_service import ensure_daily_picks_indexes
+    from backend.services.daily_tips_service import ensure_daily_tips_indexes
+    from backend.services.summaries_service import ensure_summaries_indexes
+    from backend.services.score_adjustments_service import ensure_indexes as ensure_score_adj_indexes
+    from backend.services.email_service import ensure_email_indexes
+    from backend.services.push_service import ensure_push_indexes
+    from backend.services.price_alert_service import ensure_price_alert_indexes
+
+    for name, fn in (
+        ("users", ensure_users_indexes),
+        ("feedback", ensure_feedback_indexes),
+        ("daily_picks", ensure_daily_picks_indexes),
+        ("daily_tips", ensure_daily_tips_indexes),
+        ("summaries", ensure_summaries_indexes),
+        ("score_adjustments", ensure_score_adj_indexes),
+        ("email", ensure_email_indexes),
+        ("push", ensure_push_indexes),
+        ("price_alerts", ensure_price_alert_indexes),
+        ("stock_visits", _ensure_stock_visits),
+    ):
+        _startup_step(name, fn)
 
 
 @app.on_event("shutdown")

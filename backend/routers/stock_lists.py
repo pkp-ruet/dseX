@@ -3,12 +3,11 @@ Pre-computed top-20 stock lists based on actual financial metrics.
 Used by the /stock-lists section of the frontend.
 """
 import math
-from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter
 from backend.services.db_service import (
-    CLOSE_EXPR,
     get_db,
     load_companies,
+    load_52w_ranges,
     load_latest_prices,
     _ttl_cache,
 )
@@ -76,21 +75,9 @@ def _compute_stock_lists() -> dict:
         }
 
     # --- 52-week high/low for return calculation ---
-    # `stock_prices.date` holds an ISO string, so the bound has to be a string
-    # too — BSON sorts String before Date, so a datetime bound matched nothing.
-    one_year_ago = (datetime.now(timezone.utc) - timedelta(days=365)).strftime("%Y-%m-%d")
-    pipeline_52w = [
-        {"$match": {"date": {"$gte": one_year_ago}, "ltp": {"$gt": 0}}},
-        {"$group": {
-            "_id": "$trading_code",
-            "w52_low": {"$min": CLOSE_EXPR},
-            "ltp_latest": {"$last": CLOSE_EXPR},
-        }},
-    ]
     perf_map: dict[str, dict] = {}
-    for doc in db.stock_prices.aggregate(pipeline_52w):
-        code = doc["_id"]
-        low = doc.get("w52_low")
+    for code, rng in load_52w_ranges().items():
+        low = rng.get("lo")
         ltp_now = prices.get(code, {}).get("ltp")
         if low and low > 0 and ltp_now:
             ret = (ltp_now - low) / low * 100

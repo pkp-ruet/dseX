@@ -77,11 +77,22 @@ export default function MarketDataBanner() {
       setVisible(true);
     };
 
+    // Every open tab polled once a minute, visible or not. The data changes at
+    // most a few times a session, so poll every 5 minutes, skip hidden tabs and
+    // catch up when the tab comes back.
+    const tick = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
     refresh();
-    const id = setInterval(refresh, 60_000);
+    const id = setInterval(tick, 5 * 60_000);
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
       clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
 

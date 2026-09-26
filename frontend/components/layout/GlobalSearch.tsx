@@ -145,9 +145,17 @@ export default function GlobalSearch() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // Lazy-fetch companies on first open
+  // Lazy-fetch companies on first open — once per open. Without the guard a
+  // failed or empty fetch flipped `loading` back and re-fired the effect in a
+  // loop, re-requesting the whole scores payload every second or two.
+  const fetchTriedRef = useRef(false);
   useEffect(() => {
-    if (!open || companies.length > 0 || loading) return;
+    if (!open) {
+      fetchTriedRef.current = false;
+      return;
+    }
+    if (companies.length > 0 || loading || fetchTriedRef.current) return;
+    fetchTriedRef.current = true;
     setLoading(true);
     getInsightScores()
       .then((items) => {

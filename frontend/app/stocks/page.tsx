@@ -53,7 +53,9 @@ export default async function StocksPage() {
     );
   }
 
-  const items = flattenTiers(scores);
+  // Drop `signal` (reason text in two languages): StocksTable never reads it and
+  // every row is serialized into the page HTML.
+  const items = flattenTiers(scores).map(({ signal: _signal, ...i }) => i);
   const dateLabel = marketIndex?.date ? formatDate(marketIndex.date) : null;
   const sectorCount = new Set(items.map((i) => i.sector).filter(Boolean)).size;
 

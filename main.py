@@ -179,18 +179,38 @@ def cmd_snapshot_signals(_args):
           f"(buy {res.get('buy', 0)}, sell {res.get('sell', 0)}, none {res.get('none', 0)}).")
 
 
-def _trigger_post_scrape_hooks(*, fire_deploy_hook: bool = False):
-    """Purge the Next.js market-data tag (and optionally fire the Vercel deploy hook).
+def _trigger_post_scrape_hooks():
+    """Clear the backend's caches, then purge the Next.js market-data tag.
 
     Called by `scrape-all` (full daily refresh) and `scrape-quick` (fast price/index
     refresh at market close), so each ISR page is rewritten at most twice daily on the
-    next request. `fire_deploy_hook=True` also triggers a full Vercel rebuild.
+    next request. There is no Vercel rebuild: the tag purge already refreshes every
+    ISR page, and a rebuild only re-ran generateStaticParams against the backend.
     """
     import os
     import urllib.request
 
     revalidate_url = os.getenv("FRONTEND_REVALIDATE_URL")
     revalidate_secret = os.getenv("REVALIDATE_SECRET")
+
+    # Backend first: its in-process caches (scores, prices, market state — up to
+    # 15 min) still hold pre-scrape data. Purging the frontend before they clear
+    # lets Next re-cache the old answer for a day. Needs REVALIDATE_SECRET on the
+    # Render service too; the call wakes a sleeping instance, hence the timeout.
+    backend_url = os.getenv("BACKEND_URL", "https://dsex.onrender.com")
+    if revalidate_secret:
+        try:
+            req = urllib.request.Request(
+                f"{backend_url.rstrip('/')}/api/scores/refresh",
+                method="POST",
+                headers={"x-revalidate-secret": revalidate_secret,
+                         "User-Agent": "dsex-scraper"},
+            )
+            urllib.request.urlopen(req, timeout=90)
+            print("Backend caches cleared.")
+        except Exception as e:
+            print(f"Warning: backend cache clear failed: {e}")
+
     if revalidate_url and revalidate_secret:
         try:
             req = urllib.request.Request(
@@ -217,15 +237,6 @@ def _trigger_post_scrape_hooks(*, fire_deploy_hook: bool = False):
         except Exception as e:
             print(f"Warning: frontend revalidate failed: {e}")
 
-    if fire_deploy_hook:
-        hook = os.getenv("VERCEL_DEPLOY_HOOK_URL")
-        if hook:
-            try:
-                urllib.request.urlopen(urllib.request.Request(hook, method="POST"), timeout=10)
-                print("Vercel deploy hook triggered.")
-            except Exception as e:
-                print(f"Warning: Vercel deploy hook failed: {e}")
-
 
 def cmd_scrape_quick(_args):
     """Fast market-close refresh — latest prices + DSE market summary only.
@@ -251,7 +262,7 @@ def cmd_scrape_quick(_args):
     # Only purge the cache when the price scrape actually produced data — a parser
     # break that silently returns 0 rows must not invalidate every ISR page.
     if len(prices) >= 200:
-        _trigger_post_scrape_hooks(fire_deploy_hook=False)
+        _trigger_post_scrape_hooks()
     else:
         print(f"Skipping revalidate — only {len(prices)} prices scraped (expected >=200).")
 
@@ -330,7 +341,7 @@ def cmd_generate_summaries(args):
 
 
 def cmd_scrape_all(args):
-    # Track per-step outcomes so the deploy hook only fires when the upstream
+    # Track per-step outcomes so the cache purge only fires when the upstream
     # scrape actually produced data. Without this, a parser break that
     # silently returns 0 rows would still purge the Vercel cache and
     # publish stale data.
@@ -442,7 +453,7 @@ def cmd_scrape_all(args):
     except Exception as e:
         print(f"  Warning: Bengali summary generation failed: {e}\n")
 
-    # Gate the deploy hook on the two scrapes most visible to users:
+    # Gate the cache purge on the two scrapes most visible to users:
     # company list (drives the universe) and prices (drives every chart/table).
     # If either looks empty, a parser broke — keep yesterday's cache rather
     # than purging it and serving stale-but-fresh data.
@@ -450,14 +461,14 @@ def cmd_scrape_all(args):
     if not healthy:
         print(
             f"WARNING: scrape-all looks unhealthy (companies={len(companies)}, "
-            f"prices={len(prices)}). Skipping deploy/revalidate hooks — "
+            f"prices={len(prices)}). Skipping cache-clear/revalidate hooks — "
             f"investigate parser before re-running."
         )
         print("All done.")
         return
 
     print("All done.")
-    _trigger_post_scrape_hooks(fire_deploy_hook=True)
+    _trigger_post_scrape_hooks()
 
 
 def main():

@@ -31,7 +31,7 @@ from backend.config import (
     RESEND_DAILY_CAP,
     BREVO_DAILY_CAP,
 )
-from backend.services.db_service import get_db
+from backend.services.db_service import DELIVERY_LOG_TTL_SECONDS, drop_index_if_exists, get_db
 
 log = logging.getLogger("email")
 
@@ -251,11 +251,15 @@ def ensure_email_indexes() -> None:
         unique=True,
         name="campaign_user_unique",
     )
-    sends.create_index([("campaign_id", 1), ("status", 1)], name="campaign_status")
+    # Delivery log, not a record: expire rows after 180 days (was kept forever).
+    # Final per-campaign counts live on `email_campaigns.counts`.
+    sends.create_index("sent_at", expireAfterSeconds=DELIVERY_LOG_TTL_SECONDS, name="sent_at_ttl")
+    # Never used by any query — campaign lookups use the unique index's prefix.
+    drop_index_if_exists(sends, "campaign_status")
 
     campaigns = db["email_campaigns"]
     campaigns.create_index("campaign_id", unique=True, name="campaign_id_unique")
-    campaigns.create_index([("created_at", -1)], name="campaign_created")
+    drop_index_if_exists(campaigns, "campaign_created")  # unused: lookups are by campaign_id
 
     # One row per day of Buy-signal codes, so the daily mail can tell the reader
     # which signals are actually new (see daily_email_service._prev_buy_codes).

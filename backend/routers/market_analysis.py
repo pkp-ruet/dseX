@@ -2,14 +2,12 @@
 Market Analysis endpoints — raw market data, no DSEF scoring.
 """
 import math
-from datetime import datetime, timedelta, timezone
 from typing import Optional
 from fastapi import APIRouter
 from pydantic import BaseModel
 from backend.services.db_service import (
-    CLOSE_EXPR,
-    get_db,
     load_companies,
+    load_52w_ranges,
     load_latest_prices,
     _ttl_cache,
 )
@@ -44,29 +42,13 @@ class NearExtremesResponse(BaseModel):
 
 @_ttl_cache(900)
 def _compute_near_extremes() -> dict:
-    db = get_db()
     companies = {c["trading_code"]: c for c in load_companies()}
     prices = load_latest_prices()
 
-    # `stock_prices.date` holds an ISO string, so the bound has to be a string
-    # too — BSON sorts String before Date, so a datetime bound matched nothing.
-    one_year_ago = (datetime.now(timezone.utc) - timedelta(days=365)).strftime("%Y-%m-%d")
-
-    pipeline = [
-        {"$match": {"date": {"$gte": one_year_ago}, "ltp": {"$gt": 0}}},
-        {"$group": {
-            "_id": "$trading_code",
-            "w52_high": {"$max": CLOSE_EXPR},
-            "w52_low": {"$min": CLOSE_EXPR},
-        }},
-    ]
-
-    extremes_map: dict[str, dict] = {}
-    for doc in db.stock_prices.aggregate(pipeline):
-        extremes_map[doc["_id"]] = {
-            "w52_high": doc.get("w52_high"),
-            "w52_low": doc.get("w52_low"),
-        }
+    extremes_map = {
+        code: {"w52_high": r["hi"], "w52_low": r["lo"]}
+        for code, r in load_52w_ranges().items()
+    }
 
     near_high: list[dict] = []
     near_low: list[dict] = []
@@ -143,31 +125,15 @@ class Range52wResponse(BaseModel):
     items: list[Range52wItem]
 
 
-@_ttl_cache(900)
 def _compute_52w_for(codes: tuple) -> list[dict]:
-    db = get_db()
-    # `stock_prices.date` holds an ISO string, so the bound has to be a string
-    # too — BSON sorts String before Date, so a datetime bound matched nothing.
-    one_year_ago = (datetime.now(timezone.utc) - timedelta(days=365)).strftime("%Y-%m-%d")
-    pipeline = [
-        {"$match": {
-            "trading_code": {"$in": list(codes)},
-            "date": {"$gte": one_year_ago},
-            "ltp": {"$gt": 0},
-        }},
-        {"$group": {
-            "_id": "$trading_code",
-            "w52_high": {"$max": CLOSE_EXPR},
-            "w52_low": {"$min": CLOSE_EXPR},
-        }},
-    ]
+    ranges = load_52w_ranges()
     return [
         {
-            "trading_code": doc["_id"],
-            "w52_high": _safe(doc.get("w52_high")),
-            "w52_low": _safe(doc.get("w52_low")),
+            "trading_code": code,
+            "w52_high": _safe(ranges[code].get("hi")),
+            "w52_low": _safe(ranges[code].get("lo")),
         }
-        for doc in db.stock_prices.aggregate(pipeline)
+        for code in codes if code in ranges
     ]
 
 

@@ -281,7 +281,9 @@ export default function HomePage() {
   // the scores so this page's ISR cadence doesn't tighten to 15 minutes.
   const marketPromise = getMarketState(3600).catch(() => null);
   const moversPromise = getMarketMovers().catch(() => null);
-  const newsPromise = getTodaysNews().catch(() => null);
+  // 3600, not the helper's 900: the shortest fetch TTL sets the page's real
+  // cadence, and 900 quietly made `/` rebuild every 15 minutes.
+  const newsPromise = getTodaysNews(3600).catch(() => null);
   const trendingPromise = getTop20()
     .then((d) => d.items)
     .catch(() => null);

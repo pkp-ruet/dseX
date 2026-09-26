@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from typing import Optional
 from pymongo import ASCENDING, DESCENDING
 
-from backend.services.db_service import get_db, load_latest_prices, load_companies
+from backend.services.db_service import drop_index_if_exists, get_db, load_latest_prices, load_companies, _ttl_cache
 from backend.services.scoring_service import build_scores_df
 from backend.services.top20_service import compute_top20
 
@@ -56,33 +56,8 @@ def ensure_daily_picks_indexes() -> None:
     db.daily_picks.delete_many({"slot": {"$exists": False}})
 
     db.daily_pick_skips.create_index([("date", ASCENDING), ("trading_code", ASCENDING)], unique=True)
-    db.daily_pick_skips.create_index([("date", DESCENDING)])
-
-
-# ---------------------------------------------------------------------------
-# Price helpers
-# ---------------------------------------------------------------------------
-
-def _next_day_return_pct(trading_code: str, pick_date: str) -> Optional[float]:
-    db = get_db()
-    try:
-        pick_dt = datetime.strptime(pick_date, "%Y-%m-%d")
-    except ValueError:
-        return None
-    docs = list(
-        db.stock_prices.find(
-            {"trading_code": trading_code, "date": {"$gte": pick_dt}},
-            {"_id": 0, "date": 1, "ltp": 1, "close_price": 1},
-        ).sort("date", ASCENDING).limit(2)
-    )
-    if len(docs) < 2:
-        return None
-    # Official close on both ends — see db_service.use_official_close.
-    base = docs[0].get("close_price") or docs[0].get("ltp")
-    nxt = docs[1].get("close_price") or docs[1].get("ltp")
-    if not base or not nxt or base <= 0:
-        return None
-    return round((nxt - base) / base * 100, 2)
+    # Reads filter on date equality, served by the unique (date, code) prefix.
+    drop_index_if_exists(db.daily_pick_skips, "date_-1")
 
 
 # ---------------------------------------------------------------------------
@@ -376,7 +351,6 @@ def _yesterday_payload() -> Optional[dict]:
             "slot": d.get("slot"),
             "trading_code": d.get("trading_code"),
             "company_name": d.get("company_name"),
-            "next_day_return_pct": _next_day_return_pct(d["trading_code"], last_date),
         })
     return {"date": last_date, "picks": items}
 
@@ -402,8 +376,11 @@ def get_today_picks(seed: Optional[int] = None) -> dict:
     }
 
 
+@_ttl_cache(1800, max_entries=5)
 def get_pick_history(days: int = 30) -> list[dict]:
-    """Returns picks grouped by date, newest first, for the public history page."""
+    """Returns picks grouped by date, newest first, for the public history page.
+
+    No performance numbers: next-day returns were removed (no track-record claims)."""
     db = get_db()
     docs = list(
         db.daily_picks.find({}, {"_id": 0}).sort([("date", DESCENDING), ("slot", ASCENDING)])
@@ -427,7 +404,6 @@ def get_pick_history(days: int = 30) -> list[dict]:
                 "score": d.get("score"),
                 "ltp_at_pick": d.get("ltp_at_pick"),
                 "return_7d_pct": d.get("return_7d_pct"),
-                "next_day_return_pct": _next_day_return_pct(d["trading_code"], dt),
                 "reasons": d.get("reasons") or [],
             })
         out.append({"date": dt, "picks": items})
@@ -519,6 +495,7 @@ def refresh_slot(slot: int, refreshed_by_user_id: Optional[str] = None) -> dict:
         )
 
     db.daily_picks.insert_one(dict(new_pick))
+    get_pick_history.cache_clear()
 
     return {
         "skipped": skipped_code,
