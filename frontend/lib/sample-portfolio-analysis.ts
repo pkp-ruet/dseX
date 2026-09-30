@@ -1,6 +1,7 @@
 import { flattenTiers, type ScoreItem, type ScoresResponse, type PortfolioHolding, type HoldingSignalInfo } from "@/lib/api";
 import {
   analyzePortfolio,
+  type AnalysisLang,
   type ComputedRow,
   type PortfolioAnalysis,
 } from "@/lib/portfolio-analysis";
@@ -50,6 +51,7 @@ export interface SampleAnalysisResult {
 export function buildSampleAnalysis(
   portfolio: SamplePortfolio,
   scores: ScoresResponse,
+  lang: AnalysisLang = "en",
 ): SampleAnalysisResult {
   const priceMap = flattenScores(scores);
   const rows: ComputedRow[] = portfolio.holdings.map((h, i) => {
@@ -66,6 +68,6 @@ export function buildSampleAnalysis(
       priceMap,
     );
   });
-  const analysis = analyzePortfolio(rows, priceMap);
+  const analysis = analyzePortfolio(rows, priceMap, lang);
   return { rows, priceMap, analysis };
 }

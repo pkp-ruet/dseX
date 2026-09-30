@@ -28,14 +28,16 @@ interface Perk {
 
 const PERKS: Perk[] = [
   {
-    title: "Your money at the top",
-    line: "Add what you bought. Profit or loss, every day, without a calculator.",
-    bn: "কী কিনেছেন লিখে রাখুন — প্রতিদিন লাভ-ক্ষতি নিজেই হিসেব হয়ে যাবে।",
-    accent: "var(--positive)",
+    // Was "Your money at the top" — the portfolio check now has its own
+    // section right above this strip, so this slot names the dividend side.
+    title: "Cash coming to you",
+    line: "See which of your shares pays a dividend soon, and how much reaches you.",
+    bn: "আপনার কোন শেয়ার শিগগির ডিভিডেন্ড দেবে, আর কত টাকা আসবে — আগেই দেখে নিন।",
+    accent: "var(--gold-ink)",
     icon: (
       <>
-        <path d="M3 17l5-5 4 3 5-7 4 4" />
-        <path d="M3 21h18" />
+        <rect x="3" y="6" width="18" height="12" rx="2" />
+        <circle cx="12" cy="12" r="2.5" />
       </>
     ),
   },

@@ -19,6 +19,7 @@ import {
 } from "@/lib/api";
 import { pickStoryStocks } from "@/lib/home-stories";
 import { toLandingStock, pickHeroCode, type LandingStock } from "@/lib/landing";
+import { buildLandingPortfolios } from "@/lib/landing-portfolio";
 import HomePersonalizationGate from "@/components/home/HomePersonalizationGate";
 import LandingHero from "@/components/landing/LandingHero";
 import TrustStrip from "@/components/landing/TrustStrip";
@@ -26,6 +27,7 @@ import ColourKey from "@/components/landing/ColourKey";
 import LiveToday from "@/components/landing/LiveToday";
 import MarketToday from "@/components/landing/MarketToday";
 import WorthALook from "@/components/landing/WorthALook";
+import PortfolioCheck from "@/components/landing/PortfolioCheck";
 import SignUpStrip from "@/components/landing/SignUpStrip";
 import StartFromZero from "@/components/landing/StartFromZero";
 import LandingClose from "@/components/landing/LandingClose";
@@ -210,6 +212,21 @@ async function LiveTodaySection({
   );
 }
 
+async function PortfolioCheckSection({ promise }: { promise: Promise<ScoresResponse | null> }) {
+  const scores = await promise;
+  if (!scores) return null;
+  // The real analysis engine on the two sample portfolios; any failure just
+  // drops the section.
+  let samples: ReturnType<typeof buildLandingPortfolios> = [];
+  try {
+    samples = buildLandingPortfolios(scores);
+  } catch {
+    return null;
+  }
+  if (samples.length === 0) return null;
+  return <PortfolioCheck samples={samples} />;
+}
+
 async function CloseSection({ promise }: { promise: Promise<TrustStats | null> }) {
   const trust = await promise;
   return <LandingClose testimonials={trust?.testimonials ?? []} />;
@@ -328,6 +345,10 @@ export default function HomePage() {
             tipsPromise={tipsPromise}
             marketPromise={marketPromise}
           />
+
+          {/* 5b — the portfolio check: what it does in four steps, beside the
+              real engine run on two sample portfolios */}
+          <PortfolioCheckSection promise={scoresPromise} />
 
           {/* 6 — the ask, after the proof: what an account adds */}
           <SignUpStrip />
