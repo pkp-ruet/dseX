@@ -24,6 +24,43 @@ const MOOD_BN: Record<MarketMood["tone"], string> = {
 };
 
 /**
+ * The mood as weather — understood at a glance, and still no number in it.
+ * up = sun, steady = sun behind a cloud, weak = cloud, down = rain.
+ */
+function MoodWeather({ tone }: { tone: MarketMood["tone"] }) {
+  const sun = (
+    <>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+    </>
+  );
+  const cloud = <path d="M17.5 19H8a5 5 0 1 1 1.1-9.9A6 6 0 0 1 20.5 12 3.5 3.5 0 0 1 17.5 19z" />;
+  const icon =
+    tone === "up" ? sun
+    : tone === "steady" ? (
+      <>
+        <path d="M8 3v1.5M3.8 4.8l1 1M2 9h1.5M12.2 4.8l-1 1" />
+        <path d="M5.2 11.5A3.5 3.5 0 0 1 11 7.2" />
+        <path d="M18 20H10a4 4 0 1 1 .9-7.9A5 5 0 0 1 20.6 14 3 3 0 0 1 18 20z" />
+      </>
+    )
+    : tone === "down" ? (
+      <>
+        <path d="M17.5 15H8a5 5 0 1 1 1.1-9.9A6 6 0 0 1 20.5 8 3.5 3.5 0 0 1 17.5 15z" />
+        <path d="M8 18l-1 3M12 18l-1 3M16 18l-1 3" />
+      </>
+    )
+    : cloud;
+  return (
+    <span className="icon-tile shrink-0" style={{ width: "3.5rem", height: "3.5rem" }} aria-hidden>
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+        {icon}
+      </svg>
+    </span>
+  );
+}
+
+/**
  * One tappable line: the market's mood in plain words, straight from the
  * `/market-analysis` bundle, phrased as the question that page answers.
  *
@@ -39,6 +76,8 @@ function MarketMoodLine({ mood }: { mood: MarketMood }) {
       className="acc-card group mt-6 flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-5 sm:p-5"
       style={{ "--acc": acc } as CSSProperties}
     >
+      <div className="flex min-w-0 flex-1 items-start gap-4">
+      <MoodWeather tone={mood.tone} />
       <div className="min-w-0 flex-1">
         <span
           className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.14em]"
@@ -51,6 +90,7 @@ function MarketMoodLine({ mood }: { mood: MarketMood }) {
           {mood.sentence}
         </p>
         <Bn className="mt-1 text-sm leading-relaxed text-text-muted">{MOOD_BN[mood.tone]}</Bn>
+      </div>
       </div>
       <span
         className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-full px-3.5 py-2 text-sm font-extrabold text-white transition-all group-hover:gap-2.5 sm:self-center"

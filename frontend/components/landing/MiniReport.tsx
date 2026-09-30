@@ -1,5 +1,13 @@
 import Link from "next/link";
-import { getTier, TIER_VAR, TIER_MEANINGS } from "@/lib/constants";
+import {
+  getTier,
+  TIER_VAR,
+  TIER_MEANINGS,
+  TIER_LABELS,
+  TIER_LABELS_BN,
+  TIER_THRESHOLDS,
+  type TierKey,
+} from "@/lib/constants";
 import { PILLARS, type LandingStock } from "@/lib/landing";
 import { pillarColor } from "@/lib/insight-utils";
 import Bn from "@/components/i18n/Bn";
@@ -59,6 +67,65 @@ function PillarRow({ label, value }: { label: string; value: number | null }) {
   );
 }
 
+/** The grade bands on a 0–100 line, low to high. Widths are the band sizes. */
+const BANDS: { tier: TierKey; from: number; to: number }[] = [
+  { tier: "weak", from: 0, to: TIER_THRESHOLDS.AVERAGE },
+  { tier: "average", from: TIER_THRESHOLDS.AVERAGE, to: TIER_THRESHOLDS.GOOD },
+  { tier: "good", from: TIER_THRESHOLDS.GOOD, to: TIER_THRESHOLDS.EXCELLENT },
+  { tier: "excellent", from: TIER_THRESHOLDS.EXCELLENT, to: 100 },
+];
+
+/**
+ * Where this score sits on the grade scale: four coloured bands with a marker,
+ * plus one line ("3 points from Excellent"). Reads without knowing what a 72
+ * means — the colour does the work.
+ */
+function GradeScale({ score }: { score: number }) {
+  const s = Math.max(0, Math.min(100, score));
+  const tier = getTier(s);
+  const idx = BANDS.findIndex((b) => b.tier === tier);
+  const next = BANDS[idx + 1];
+  const gap = next ? Math.ceil(next.from - s) : 0;
+
+  return (
+    <div className="px-4 pb-3.5 sm:px-5">
+      <div className="relative pt-1.5">
+        <div className="flex h-2 gap-0.5 overflow-hidden rounded-full">
+          {BANDS.map((b) => (
+            <span
+              key={b.tier}
+              className="h-full"
+              style={{
+                width: `${b.to - b.from}%`,
+                background: TIER_VAR[b.tier],
+                opacity: b.tier === tier ? 1 : 0.28,
+              }}
+            />
+          ))}
+        </div>
+        {/* Marker */}
+        <span
+          aria-hidden
+          className="absolute top-0 h-5 w-1 -translate-x-1/2 rounded-full border-2 border-surface"
+          style={{ left: `${s}%`, background: "var(--text)" }}
+        />
+      </div>
+      <p className="mt-2 text-xs font-semibold text-text-muted">
+        <span className="font-extrabold" style={{ color: TIER_VAR[tier] }}>
+          {TIER_LABELS[tier]}
+        </span>
+        {next && gap > 0 ? (
+          <> · {gap} point{gap === 1 ? "" : "s"} from {TIER_LABELS[next.tier]}</>
+        ) : null}
+        {!next && <> · the top grade</>}
+        <Bn as="span" className="ml-1.5">
+          ({TIER_LABELS_BN[tier]})
+        </Bn>
+      </p>
+    </div>
+  );
+}
+
 export default function MiniReport({ stock }: { stock: LandingStock }) {
   const tier = getTier(stock.score);
   const tierColor = TIER_VAR[tier];
@@ -114,6 +181,8 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
           <TierPill tier={tier} size="sm" />
         </div>
       </div>
+
+      {stock.score != null && <GradeScale score={stock.score} />}
 
       {/* Verdict — the signal when there is one, else the tier's meaning.
           Never empty, never invented. */}

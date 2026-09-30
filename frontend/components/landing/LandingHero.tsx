@@ -10,7 +10,7 @@ import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import MiniReport from "@/components/landing/MiniReport";
 import StockLookup from "@/components/landing/StockLookup";
 import type { AuthApiResponse } from "@/lib/api";
-import type { LandingStock } from "@/lib/landing";
+import { pickQuickCodes, shortName, type LandingStock } from "@/lib/landing";
 import { loadWatchlist } from "@/lib/watchlist";
 
 /**
@@ -44,15 +44,20 @@ export default function LandingHero({
 
   const byCode = useMemo(() => new Map(stocks.map((s) => [s.code, s])), [stocks]);
   const stock = code ? byCode.get(code) ?? null : null;
+  const quick = useMemo(() => pickQuickCodes(stocks, 5), [stocks]);
 
   return (
     <section className="relative pt-6 sm:pt-10">
       {/* Soft colour wash behind the first screen */}
       <div aria-hidden className="hero-glow" />
 
-      <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-[1fr_minmax(0,26rem)] md:gap-12">
-        {/* Left — the promise */}
-        <div className="flex flex-col">
+      {/* Three pieces in a grid. On a phone they stack promise → card → asks,
+          so the real report is on screen after one scroll instead of after
+          every paragraph and button; from md: the card takes the right column
+          beside both. */}
+      <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-[1fr_minmax(0,26rem)] md:grid-rows-[auto_1fr] md:gap-x-12 md:gap-y-7">
+        {/* Left, top — the promise */}
+        <div className="flex flex-col md:col-start-1 md:row-start-1">
           <span
             className="inline-flex w-fit items-center gap-2 rounded-full bg-surface px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.14em] shadow-sm"
             style={{ border: "1px solid color-mix(in srgb, var(--positive) 28%, var(--border))" }}
@@ -75,11 +80,12 @@ export default function LandingHero({
             কোন শেয়ার ভালো, কোনটা নয় — কোম্পানির নিজের হিসাব দেখে বুঝে নিন।
           </Bn>
 
-          <p className="mt-4 max-w-xl text-base leading-relaxed text-text-muted">
+          {/* The second pair repeats the trust strip, so phones skip it */}
+          <p className="mt-4 hidden max-w-xl text-base leading-relaxed text-text-muted sm:block">
             No tips, no rumours. Every score is built from what {totalCount} companies
             actually reported — updated each trading day, free for everyone.
           </p>
-          <Bn className="mt-2 max-w-xl text-sm leading-relaxed text-text-muted">
+          <Bn className="mt-2 hidden max-w-xl text-sm leading-relaxed text-text-muted sm:block">
             কারও টিপস নয়, গুজব নয়। {totalCount}টি কোম্পানির প্রকাশিত হিসাব থেকে তৈরি — প্রতি
             কার্যদিবসে আপডেট, পুরোপুরি ফ্রি।
           </Bn>
@@ -90,8 +96,40 @@ export default function LandingHero({
             <StockLookup stocks={stocks} selected={code} onSelect={setCode} />
           </div>
 
+          {/* One tap, no typing — most visitors won't type, but they will tap */}
+          {quick.length > 0 && (
+            <div className="mt-3">
+              <p className="text-xs font-semibold text-text-muted">
+                Or tap one <Bn as="span">· অথবা একটায় চাপ দিন</Bn>
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {quick.map((s) => {
+                  const on = s.code === code;
+                  return (
+                    <button
+                      key={s.code}
+                      type="button"
+                      onClick={() => setCode(s.code)}
+                      aria-pressed={on}
+                      className={`inline-flex min-h-10 max-w-[13rem] items-center rounded-full border px-3.5 text-sm font-bold transition-colors active:scale-95 ${
+                        on
+                          ? "border-primary bg-primary text-white"
+                          : "border-border bg-surface text-text-main hover:border-primary hover:text-primary-ink"
+                      }`}
+                    >
+                      <span className="truncate">{shortName(s)}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Left, bottom — the asks (below the card on a phone) */}
+        <div className="md:col-start-1 md:row-start-2">
           {isLoggedIn ? (
-            <div className="mt-7 flex flex-col gap-3">
+            <div className="flex flex-col gap-3">
               <p className="text-sm font-semibold text-text-main">
                 Welcome back{user?.display_name ? `, ${user.display_name}` : ""}.
               </p>
@@ -105,7 +143,7 @@ export default function LandingHero({
               </div>
             </div>
           ) : (
-            <div className="mt-7 flex flex-col gap-3">
+            <div className="flex flex-col gap-3">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
                 <Button href="/dsestockranking" variant="primary">
                   See every company ranked
@@ -128,7 +166,7 @@ export default function LandingHero({
         </div>
 
         {/* Right — the proof */}
-        <div className="w-full">
+        <div className="w-full md:col-start-2 md:row-span-2 md:row-start-1">
           {stock ? (
             <MiniReport stock={stock} />
           ) : (

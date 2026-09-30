@@ -92,6 +92,30 @@ export function pickHeroCode(stocks: LandingStock[]): string | null {
   return [...usable].sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0].code;
 }
 
+/**
+ * The one-tap chips under the hero lookup: up to `n` household names that are
+ * in the payload with a score, in FAMILIAR order. Most visitors won't type — a
+ * chip swaps the report card on tap, same as picking from the list.
+ */
+export function pickQuickCodes(stocks: LandingStock[], n = 5): LandingStock[] {
+  const byCode = new Map(
+    stocks.filter((s) => s.score != null && s.ltp != null).map((s) => [s.code, s]),
+  );
+  const out: LandingStock[] = [];
+  for (const code of FAMILIAR) {
+    const s = byCode.get(code);
+    if (s) out.push(s);
+    if (out.length >= n) break;
+  }
+  return out;
+}
+
+/** "Square Pharmaceuticals PLC." → "Square Pharmaceuticals" — for a chip label. */
+export function shortName(s: LandingStock): string {
+  const name = (s.name ?? "").replace(/\s+(Limited|Ltd\.?|PLC\.?|Company)\s*$/i, "").trim();
+  return name || s.code;
+}
+
 // ---------------------------------------------------------------------------
 // The five pillars — plain-language names for the hero report card's bars, in
 // P1..P5 order. Names only: the written-out method (weights, what each pillar
