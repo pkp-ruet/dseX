@@ -7,7 +7,7 @@ import DashHeader, { HeaderChip } from "@/components/home/personalized/DashHeade
 import OwnerMark from "@/components/home/personalized/OwnerMark";
 import StockRow, { StockRank } from "@/components/ui/StockRow";
 
-const ROWS = 5;
+const ROWS_DEFAULT = 5;
 
 /** This week's strongest movers with real trading behind them (the top-20
  *  momentum list), five rows: rank, name, one plain line, price + the 7-day
@@ -17,14 +17,18 @@ export default function TrendingCard({
   held,
   watched,
   lang = "en",
+  rows: limit,
 }: {
   items: Top20Item[];
   held: Set<string>;
   watched: Set<string>;
   lang?: Lang;
+  /** How many rows to show (the landing page passes 3). Defaults to the dashboard count. */
+  rows?: number;
 }) {
+  const maxRows = limit ?? ROWS_DEFAULT;
   const bn = lang === "bn";
-  const rows = items.slice(0, ROWS);
+  const rows = items.slice(0, maxRows);
   if (rows.length === 0) return null;
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>

@@ -1,10 +1,11 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import SectionHead from "@/components/i18n/SectionHead";
 import MoversCard from "@/components/home/personalized/MoversCard";
-import SectorsWeekCard from "@/components/home/personalized/SectorsWeekCard";
 import MarketNewsCard from "@/components/home/personalized/MarketNewsCard";
 import BanglaSnapshotCard from "@/components/home/personalized/BanglaSnapshotCard";
 import TurningPointsCard from "@/components/home/personalized/TurningPointsCard";
+import SectorMosaic from "@/components/landing/SectorMosaic";
 import type { MarketMoversData, DseTodayNewsItem, MarketStateData } from "@/lib/api";
 
 /** Nobody is signed in here, so no row can be marked as owned. */
@@ -16,6 +17,10 @@ const NONE: Set<string> = new Set();
 const PAIR = "grid grid-cols-1 gap-3 md:grid-cols-2 md:items-start [&>*:only-child]:md:col-span-2";
 
 /**
+ * Opens on `SectorMosaic` (the whole market as one coloured map), then three
+ * rows per card — the "See all" link on each carries the rest. The block sits
+ * on its own tinted band so the page reads as chapters, not one long list.
+ *
  * The market as it stands right now — the same cards the signed-in dashboard
  * shows, rendered from public endpoints so a first-time visitor sees the real
  * thing instead of a description of it.
@@ -52,8 +57,13 @@ export default function MarketToday({
   if (!hasMovers && sectors.length === 0 && news.length === 0 && !summaryBn && !hasTurning) return null;
 
   return (
-    <section aria-labelledby="market-today-title">
+    <section
+      aria-labelledby="market-today-title"
+      className="acc-panel px-2.5 py-6 sm:px-6 sm:py-8"
+      style={{ "--acc": "var(--info)" } as CSSProperties}
+    >
       <SectionHead
+        className="px-1.5 sm:px-0"
         eyebrow="Today's market"
         id="market-today-title"
         title="Who went up, who went down,"
@@ -64,32 +74,33 @@ export default function MarketToday({
       />
 
       <div className="mt-6 space-y-3">
-        {(hasMovers || sectors.length > 0) && (
+        {/* The map first — the one picture that says how the whole market did */}
+        {sectors.length > 0 && <SectorMosaic sectors={sectors} />}
+
+        {(hasMovers || news.length > 0) && (
           <div className={PAIR}>
-            {hasMovers && <MoversCard movers={movers} held={NONE} watched={NONE} />}
-            {sectors.length > 0 && <SectorsWeekCard sectors={sectors} />}
+            {hasMovers && <MoversCard movers={movers} held={NONE} watched={NONE} rows={3} />}
+            {news.length > 0 && <MarketNewsCard news={news} held={NONE} watched={NONE} rows={3} />}
           </div>
         )}
 
-        {(news.length > 0 || summaryBn) && (
+        {(summaryBn || hasTurning) && (
           <div className={PAIR}>
-            {news.length > 0 && <MarketNewsCard news={news} held={NONE} watched={NONE} />}
             {summaryBn && <BanglaSnapshotCard summary={summaryBn} />}
+            {hasTurning && (
+              <TurningPointsCard
+                nearHigh={next?.near_high ?? []}
+                nearLow={next?.near_low ?? []}
+                unusual={next?.unusual ?? []}
+                held={NONE}
+                watched={NONE}
+              />
+            )}
           </div>
-        )}
-
-        {hasTurning && (
-          <TurningPointsCard
-            nearHigh={next?.near_high ?? []}
-            nearLow={next?.near_low ?? []}
-            unusual={next?.unusual ?? []}
-            held={NONE}
-            watched={NONE}
-          />
         )}
       </div>
 
-      <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
+      <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 px-1.5 sm:px-0">
         <Link
           href="/dse-today"
           className="text-sm font-bold text-primary-ink underline-offset-4 hover:underline"

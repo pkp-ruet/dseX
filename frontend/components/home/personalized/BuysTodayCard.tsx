@@ -12,7 +12,7 @@ import SignalChip from "@/components/ui/SignalChip";
 import StarButton from "@/components/ui/StarButton";
 import StockRow from "@/components/ui/StockRow";
 
-const INITIAL = 6;
+const INITIAL_DEFAULT = 6;
 
 /** Followed first, then Strong, then by fundamental score. */
 function order(list: ScoreItem[], followed: Set<string>): ScoreItem[] {
@@ -35,17 +35,21 @@ export default function BuysTodayCard({
   held,
   watched,
   lang = "en",
+  rows: limit,
 }: {
   buys: ScoreItem[];
   held: Set<string>;
   watched: Set<string>;
   lang?: Lang;
+  /** How many rows to show (the landing page passes 3). Defaults to the dashboard count. */
+  rows?: number;
 }) {
+  const initial = limit ?? INITIAL_DEFAULT;
   const [open, setOpen] = useState(false);
   const bn = lang === "bn";
   const followed = new Set([...held, ...watched]);
   const rows = order(buys, followed);
-  const shown = open ? rows : rows.slice(0, INITIAL);
+  const shown = open ? rows : rows.slice(0, initial);
   const count = rows.length;
 
   return (
@@ -88,7 +92,7 @@ export default function BuysTodayCard({
         </ul>
       )}
 
-      {rows.length > INITIAL && (
+      {rows.length > initial && (
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}

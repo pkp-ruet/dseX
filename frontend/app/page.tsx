@@ -8,7 +8,6 @@ import {
   getTodaysNews,
   getTop20,
   getDailyTips,
-  getPopularStocks,
   type ScoresResponse,
   type ScoreItem,
   type TrustStats,
@@ -17,7 +16,6 @@ import {
   type DseTodayNewsItem,
   type Top20Item,
   type DailyTip,
-  type PopularStockItem,
 } from "@/lib/api";
 import { pickStoryStocks } from "@/lib/home-stories";
 import { toLandingStock, pickHeroCode, type LandingStock } from "@/lib/landing";
@@ -170,20 +168,17 @@ async function WorthALookSection({
   scoresPromise,
   trendingPromise,
   tipsPromise,
-  popularPromise,
   marketPromise,
 }: {
   scoresPromise: Promise<ScoresResponse | null>;
   trendingPromise: Promise<Top20Item[] | null>;
   tipsPromise: Promise<DailyTip[] | null>;
-  popularPromise: Promise<PopularStockItem[] | null>;
   marketPromise: Promise<MarketStateData | null>;
 }) {
-  const [scores, trending, tips, popular, market] = await Promise.all([
+  const [scores, trending, tips, market] = await Promise.all([
     scoresPromise,
     trendingPromise,
     tipsPromise,
-    popularPromise,
     marketPromise,
   ]);
   return (
@@ -191,7 +186,6 @@ async function WorthALookSection({
       stocks={scores ? sortedByScore(flattenTiers(scores)) : []}
       trending={trending ?? []}
       tips={tips ?? []}
-      popular={popular ?? []}
       chances={market?.chances ?? null}
     />
   );
@@ -291,9 +285,6 @@ export default function HomePage() {
   const tipsPromise = getDailyTips()
     .then((d) => d.tips)
     .catch(() => null);
-  const popularPromise = getPopularStocks()
-    .then((d) => d.items)
-    .catch(() => null);
 
   return (
     <>
@@ -330,12 +321,11 @@ export default function HomePage() {
           />
 
           {/* 5 — every way in that needs no account: buy signals, the top of
-              the ranking, trending, the ready-made lists, tips, popular */}
+              the ranking, trending, the ready-made lists, tips */}
           <WorthALookSection
             scoresPromise={scoresPromise}
             trendingPromise={trendingPromise}
             tipsPromise={tipsPromise}
-            popularPromise={popularPromise}
             marketPromise={marketPromise}
           />
 

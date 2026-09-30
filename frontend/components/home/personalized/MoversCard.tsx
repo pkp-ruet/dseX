@@ -14,7 +14,7 @@ import StockRow, { StockRank } from "@/components/ui/StockRow";
 
 type Tab = "gainers" | "losers" | "most_traded";
 
-const ROWS = 5;
+const ROWS_DEFAULT = 5;
 
 /**
  * Today's gainers, losers and most-traded as three tabs of five rows each —
@@ -27,12 +27,16 @@ export default function MoversCard({
   held,
   watched,
   lang = "en",
+  rows: limit,
 }: {
   movers: MarketMoversData | null | undefined;
   held: Set<string>;
   watched: Set<string>;
   lang?: Lang;
+  /** How many rows to show (the landing page passes 3). Defaults to the dashboard count. */
+  rows?: number;
 }) {
+  const maxRows = limit ?? ROWS_DEFAULT;
   const [tab, setTab] = useState<Tab>("gainers");
   const bn = lang === "bn";
   if (!movers) return null;
@@ -42,7 +46,7 @@ export default function MoversCard({
     most_traded: movers.most_traded ?? [],
   };
   if (!lists.gainers.length && !lists.losers.length && !lists.most_traded.length) return null;
-  const rows = lists[tab].slice(0, ROWS);
+  const rows = lists[tab].slice(0, maxRows);
   const tabs: { key: Tab; label: string; dot: string }[] = [
     { key: "gainers", label: t(lang, "gainers"), dot: "bg-positive" },
     { key: "losers", label: t(lang, "losers"), dot: "bg-negative" },

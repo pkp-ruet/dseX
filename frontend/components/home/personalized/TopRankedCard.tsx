@@ -8,7 +8,7 @@ import DashHeader, { HeaderChip } from "@/components/home/personalized/DashHeade
 import OwnerMark from "@/components/home/personalized/OwnerMark";
 import StockRow, { StockRank } from "@/components/ui/StockRow";
 
-const ROWS = 8;
+const ROWS_DEFAULT = 8;
 
 const TIER_TEXT: Record<TierKey, string> = {
   excellent: "text-tier-excellent",
@@ -27,16 +27,20 @@ export default function TopRankedCard({
   held,
   watched,
   lang = "en",
+  rows: limit,
 }: {
   /** Every scored stock (the /api/scores payload flattened). */
   stocks: ScoreItem[];
   held: Set<string>;
   watched: Set<string>;
   lang?: Lang;
+  /** How many rows to show (the landing page passes 3). Defaults to the dashboard count. */
+  rows?: number;
 }) {
+  const maxRows = limit ?? ROWS_DEFAULT;
   const bn = lang === "bn";
   const scored = stocks.filter((s) => s.score != null);
-  const rows = [...scored].sort((a, b) => (b.score ?? 0) - (a.score ?? 0)).slice(0, ROWS);
+  const rows = [...scored].sort((a, b) => (b.score ?? 0) - (a.score ?? 0)).slice(0, maxRows);
   if (rows.length === 0) return null;
 
   return (

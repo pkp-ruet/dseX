@@ -9,7 +9,7 @@ import { IconNews } from "@/components/home/personalized/DashIcons";
 import DashHeader from "@/components/home/personalized/DashHeader";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
 
-const ROWS = 5;
+const ROWS_DEFAULT = 5;
 
 /** Market-wide headlines of the day (DSE notices are English). Five rows, each
  *  tapping to the company; "All news" opens the full day. */
@@ -18,14 +18,18 @@ export default function MarketNewsCard({
   held,
   watched,
   lang = "en",
+  rows: limit,
 }: {
   news: DseTodayNewsItem[];
   held: Set<string>;
   watched: Set<string>;
   lang?: Lang;
+  /** How many rows to show (the landing page passes 3). Defaults to the dashboard count. */
+  rows?: number;
 }) {
+  const maxRows = limit ?? ROWS_DEFAULT;
   const bn = lang === "bn";
-  const rows = news.slice(0, ROWS);
+  const rows = news.slice(0, maxRows);
   if (rows.length === 0) return null;
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>

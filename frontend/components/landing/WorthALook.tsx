@@ -5,8 +5,8 @@ import TopRankedCard from "@/components/home/personalized/TopRankedCard";
 import TrendingCard from "@/components/home/personalized/TrendingCard";
 import TipsCard from "@/components/home/personalized/TipsCard";
 import ListsRail from "@/components/home/personalized/ListsRail";
-import PopularCard from "@/components/home/personalized/PopularCard";
-import type { ScoreItem, Top20Item, DailyTip, PopularStockItem, MarketStateData } from "@/lib/api";
+import type { CSSProperties } from "react";
+import type { ScoreItem, Top20Item, DailyTip, MarketStateData } from "@/lib/api";
 
 const NONE: Set<string> = new Set();
 
@@ -17,6 +17,10 @@ const PAIR = "grid grid-cols-1 gap-3 md:grid-cols-2 md:items-start [&>*:only-chi
  * the ranking, what is moving, the ready-made lists, the daily tips, and what
  * other readers are reading.
  *
+ * Order: the swipe lists first (the most inviting), then buys + ranking, then
+ * trending + tips, three rows each. Popular was dropped here (2026-09-30) — for
+ * a first visit it mostly repeated Trending; it stays on the dashboard.
+ *
  * This block replaced two written ones — `ReportAnatomy` (a list of the eight
  * sections on a stock page) and `WaysToFind` (a picker plus a row of links).
  * Both described what the site can do; these cards do it. Do not put a prose
@@ -26,14 +30,12 @@ export default function WorthALook({
   stocks,
   trending,
   tips,
-  popular,
   chances,
 }: {
   /** The flattened /api/scores payload — feeds both the buy list and the ranking. */
   stocks: ScoreItem[];
   trending: Top20Item[];
   tips: DailyTip[];
-  popular: PopularStockItem[];
   chances: MarketStateData["chances"] | null;
 }) {
   const buys = stocks.filter((s) => s.signal?.signal === "buy");
@@ -41,8 +43,13 @@ export default function WorthALook({
   if (stocks.length === 0 && trending.length === 0 && tips.length === 0 && !chances) return null;
 
   return (
-    <section aria-labelledby="worth-title">
+    <section
+      aria-labelledby="worth-title"
+      className="acc-panel px-2.5 py-6 sm:px-6 sm:py-8"
+      style={{ "--acc": "var(--warm)" } as CSSProperties}
+    >
       <SectionHead
+        className="px-1.5 sm:px-0"
         eyebrow="Worth a look"
         id="worth-title"
         title="Where to start when you have"
@@ -53,26 +60,25 @@ export default function WorthALook({
       />
 
       <div className="mt-6 space-y-3">
+        {/* The swipe cards first — the most inviting way in */}
+        {chances && <ListsRail chances={chances} held={NONE} watched={NONE} />}
+
         {stocks.length > 0 && (
           <div className={PAIR}>
-            <BuysTodayCard buys={buys} held={NONE} watched={NONE} />
-            <TopRankedCard stocks={stocks} held={NONE} watched={NONE} />
+            <BuysTodayCard buys={buys} held={NONE} watched={NONE} rows={3} />
+            <TopRankedCard stocks={stocks} held={NONE} watched={NONE} rows={3} />
           </div>
         )}
 
         {(trending.length > 0 || tips.length > 0) && (
           <div className={PAIR}>
-            {trending.length > 0 && <TrendingCard items={trending} held={NONE} watched={NONE} />}
-            {tips.length > 0 && <TipsCard tips={tips} held={NONE} watched={NONE} />}
+            {trending.length > 0 && <TrendingCard items={trending} held={NONE} watched={NONE} rows={3} />}
+            {tips.length > 0 && <TipsCard tips={tips} held={NONE} watched={NONE} rows={3} />}
           </div>
         )}
-
-        {chances && <ListsRail chances={chances} held={NONE} watched={NONE} />}
-
-        {popular.length > 0 && <PopularCard items={popular} held={NONE} watched={NONE} />}
       </div>
 
-      <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
+      <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 px-1.5 sm:px-0">
         <Link
           href="/dsestockranking"
           className="text-sm font-bold text-primary-ink underline-offset-4 hover:underline"

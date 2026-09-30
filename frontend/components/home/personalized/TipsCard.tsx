@@ -11,7 +11,7 @@ import OwnerMark from "@/components/home/personalized/OwnerMark";
 import { IconBulb } from "@/components/home/personalized/DashIcons";
 import StockRow, { StockPill, StockTile, type StockRowTone } from "@/components/ui/StockRow";
 
-const INITIAL = 5;
+const INITIAL_DEFAULT = 5;
 
 /** Plain "kind" word → row tone. Market semantics stay locked: green = growth,
  *  amber = cash, primary = personal / structural. */
@@ -54,16 +54,20 @@ export default function TipsCard({
   held,
   watched,
   lang = "en",
+  rows: limit,
 }: {
   tips: DailyTip[];
   held: Set<string>;
   watched: Set<string>;
   lang?: Lang;
+  /** How many rows to show (the landing page passes 3). Defaults to the dashboard count. */
+  rows?: number;
 }) {
+  const initial = limit ?? INITIAL_DEFAULT;
   const [open, setOpen] = useState(false);
   const bn = lang === "bn";
   if (tips.length === 0) return null;
-  const shown = open ? tips : tips.slice(0, INITIAL);
+  const shown = open ? tips : tips.slice(0, initial);
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
       <DashHeader title={t(lang, "tipsTitle")} chips={<HeaderChip>{tips.length}</HeaderChip>} href="/daily-tips" linkLabel={t(lang, "allTips")} accent={ACC.gold} icon={<IconBulb size={15} />} />
@@ -93,7 +97,7 @@ export default function TipsCard({
           );
         })}
       </ul>
-      {tips.length > INITIAL && (
+      {tips.length > initial && (
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
