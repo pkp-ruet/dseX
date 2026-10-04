@@ -390,12 +390,17 @@ export default async function StockDetailPage({ params }: PageProps) {
           current={currentPeerRow}
           peers={related_stocks}
           sector={profile.sector}
+          note={detail.peer_note ?? null}
         />
       )}
 
       {/* Who Owns It */}
       <div id="ownership" className="stock-anchor">
-        <ShareholdingPie shareholding={shareholding} previous={detail.shareholding_prev ?? null} />
+        <ShareholdingPie
+          shareholding={shareholding}
+          previous={detail.shareholding_prev ?? null}
+          ownership={detail.ownership ?? null}
+        />
       </div>
 
       {/* What's New */}

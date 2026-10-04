@@ -16,6 +16,10 @@ const T = {
   estimate: { en: "Rough estimate", bn: "আনুমানিক মূল্য" },
   range: { en: "Fair range", bn: "ন্যায্য সীমা" },
   based: { en: "How we judge it", bn: "যেভাবে বিচার করি" },
+  disagree: {
+    en: "Our yardsticks point different ways here, so we don't show one estimate. The verdict above is the one the whole page uses; the figures below are each yardstick on its own.",
+    bn: "এখানে আমাদের মাপকাঠিগুলো ভিন্ন দিকে ইঙ্গিত দিচ্ছে, তাই একটি অনুমান দেখাচ্ছি না। ওপরের মতটাই পুরো পাতায় ব্যবহার হয়; নিচে প্রতিটি মাপকাঠির হিসাব আলাদা করে দেওয়া হলো।",
+  },
   note: {
     en: "A rough, educational estimate from the figures we have — not a price target or advice.",
     bn: "আমাদের কাছে থাকা তথ্য থেকে একটি আনুমানিক, শিক্ষামূলক ধারণা — কোনো দামের লক্ষ্য বা পরামর্শ নয়।",
@@ -50,6 +54,9 @@ export default function ValueTodayBox({ fairValue, lang: langProp, className = "
   const lang: Lang = langProp ?? pageLang;
   if (!fairValue || fairValue.center == null) return null;
   const { low, high, center, today, stance, confidence, methods, basis_en, basis_bn } = fairValue;
+  // The badge is the page's one verdict; when the rough estimate points the other
+  // way, printing it beside the badge would contradict it — show the yardsticks only.
+  const disagree = fairValue.estimates_disagree === true;
   const isBn = lang === "bn";
   const color = stanceColor(stance);
   const stanceLabel = T.stance[lang][(stance ?? "none") as keyof typeof T.stance.en];
@@ -102,16 +109,24 @@ export default function ValueTodayBox({ fairValue, lang: langProp, className = "
             </p>
           </div>
         )}
-        <div>
-          <p className="text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>{T.estimate[lang]}</p>
-          <p className="text-2xl font-bold tabular-nums leading-none" style={{ color }}>
-            {money(center)}
-          </p>
-        </div>
+        {!disagree && (
+          <div>
+            <p className="text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>{T.estimate[lang]}</p>
+            <p className="text-2xl font-bold tabular-nums leading-none" style={{ color }}>
+              {money(center)}
+            </p>
+          </div>
+        )}
       </div>
 
+      {disagree && (
+        <p className="text-sm leading-snug mb-3" style={{ color: "var(--text-muted)" }}>
+          {T.disagree[lang]}
+        </p>
+      )}
+
       {/* Range bar */}
-      {haveBand && (
+      {haveBand && !disagree && (
         <div className="mb-4">
           <div className="relative h-2.5 rounded-full" style={{ background: "var(--surface-2)" }}>
             <div

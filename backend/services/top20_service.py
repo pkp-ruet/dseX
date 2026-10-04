@@ -18,9 +18,12 @@ from typing import Optional
 from backend.services.db_service import (
     CLOSE_EXPR,
     _ttl_cache,
+    adjusted_52w_ranges,
+    adjustment_factor_fn,
     compute_market_intelligence,
     get_db,
     load_companies,
+    load_corporate_actions,
 )
 
 
@@ -186,6 +189,11 @@ def _market_window_raw(as_of: Optional[str] = None) -> dict:
         }},
     ]))
     range_by_code = {r["_id"]: r for r in range_agg}
+    # Record dates inside the year: range on adjusted prices (db_service).
+    range_by_code.update(adjusted_52w_ranges(
+        cutoff_365 if isinstance(cutoff_365, str) else _date_str(cutoff_365), latest_date_str))
+    actions_by_code = load_corporate_actions()
+    ref_date_str = _date_str(ref_date)
 
     # --- 5. Per-code raw factors ---------------------------------------------
     rows: dict[str, dict] = {}
@@ -222,6 +230,21 @@ def _market_window_raw(as_of: Optional[str] = None) -> dict:
             ref_close = oldest.get("close_price") or oldest.get("ltp") or oldest.get("ycp")
         if not ref_close or ref_close <= 0:
             continue
+        raw_return_7d = (today_ltp / ref_close - 1.0)
+        # A dividend / bonus record date between the reference day and today
+        # drops the price by design — compare like with like.
+        corporate_action = None
+        acts = [a for a in actions_by_code.get(code, [])
+                if ref_date_str <= a["record_date"] < latest_date_str]
+        if acts:
+            ref_close = adjustment_factor_fn(acts)(ref_date_str, ref_close)
+            last = max(acts, key=lambda a: a["record_date"])
+            corporate_action = {
+                "record_date": last["record_date"],
+                "cash_pct": last["cash_pct"],
+                "stock_pct": last["stock_pct"],
+                "raw_return_7d_pct": round(raw_return_7d * 100.0, 2),
+            }
         return_7d = (today_ltp / ref_close - 1.0)
 
         # Relative strength vs DSEX (percentage points)
@@ -287,6 +310,7 @@ def _market_window_raw(as_of: Optional[str] = None) -> dict:
             "trend_factor": trend_factor,
             "pct_in_52w_range": pct_in_range,
             "sweet": sweet,
+            "corporate_action": corporate_action,
         }
 
     return {"as_of_date": latest_date_str, "dsex_7d_change_pct": dsex_7d_pct, "rows": rows}
@@ -471,6 +495,7 @@ def _momentum_dict(raw: dict) -> dict:
         "days_counted": raw["days_counted"],
         "pct_in_52w_range": round(raw["pct_in_52w_range"], 1) if raw["pct_in_52w_range"] is not None else None,
         "momentum_grade": _grade_momentum(return_7d_pct, raw["rs"], raw["volume_ratio"], raw["avg_turnover_7d"]),
+        "corporate_action": raw.get("corporate_action"),
     }
 
 

@@ -133,9 +133,27 @@ export interface LatestPrice {
   trade_count?: number | null;
 }
 
+/** One Good sign / Watch-out, already worded in both languages by the backend
+ *  (backend/services/stock_facts.py). */
+export interface SignalItem {
+  key: string;
+  tone: "good" | "watch";
+  en: string;
+  bn: string;
+}
+
 export interface SignalFlags {
+  /** English text — kept for the OG card and the assistant. */
   green: string[];
   red: string[];
+  /** What the stock page renders. Absent on responses from an older backend. */
+  items?: SignalItem[];
+}
+
+/** Text in both languages from the backend. */
+export interface BiText {
+  en: string;
+  bn: string;
 }
 
 export interface DividendDeclaration {
@@ -157,6 +175,7 @@ export interface RelatedStock {
   div_yield_pct?: number | null;
   roe_pct?: number | null;
   eps_yoy_pct?: number | null;
+  sub_industry?: string | null;
 }
 
 export interface ValuationContext {
@@ -168,6 +187,12 @@ export interface ValuationContext {
   sector_median_pb: number | null;
   eps: number | null;
   sector_implied_price: number | null;
+  /** Which EPS the P/E is on — "last 12 months to Jun 2026" (TTM) or "FY2025". */
+  eps_basis?: (BiText & { basis: "ttm" | "fy"; short_en: string }) | null;
+  /** "5-year average" / "average since listing (2022)". */
+  own_avg_pe_label?: (BiText & { short_en: string }) | null;
+  /** The page's ONE valuation verdict (P4 bands, same as the Buy/Sell signal). */
+  verdict?: "cheap" | "fair" | "expensive" | null;
 }
 
 export interface SectorContext {
@@ -187,6 +212,13 @@ export interface MomentumSnapshot {
   days_counted: number | null;
   pct_in_52w_range: number | null;
   momentum_grade: string;
+  /** A dividend / bonus record date inside the 7-day window; return_7d_pct is adjusted for it. */
+  corporate_action?: {
+    record_date: string;
+    cash_pct: number;
+    stock_pct: number;
+    raw_return_7d_pct: number;
+  } | null;
 }
 
 export interface StockVerdict {
@@ -210,7 +242,12 @@ export interface FairValue {
   high: number | null;
   center: number | null;
   today: number | null;
+  /** The page's ONE valuation verdict — the same word the Health Check uses. */
   stance: "cheap" | "fair" | "expensive" | null;
+  /** What the rough estimate alone would say. */
+  estimate_stance?: "cheap" | "fair" | "expensive" | null;
+  /** The estimate points elsewhere than the verdict — the box then hides the centre figure. */
+  estimates_disagree?: boolean;
   confidence: "low" | "medium" | "high" | null;
   methods: FairValueMethod[];
   basis_en: string | null;
@@ -290,6 +327,19 @@ export interface CompanyDetail {
   fair_value?: FairValue | null;
   /** Deep-analysis teaser (null when no report exists for this code). */
   deep_analysis?: DeepAnalysisTeaser | null;
+  /** Bilingual ownership read: who controls the company + who moved since the last report. */
+  ownership?: {
+    caption: (BiText & { tone: string }) | null;
+    change: (BiText & { tone: "positive" | "watch"; key: string }) | null;
+  } | null;
+  /** Health Check rows whose generic band wording would contradict the numbers. */
+  health_overrides?: Record<string, {
+    status: "strong" | "fair" | "weak";
+    headline: string; oneLine: string; learnMore: string;
+    headlineBn: string; oneLineBn: string; learnMoreBn: string;
+  }>;
+  /** Shown above the peer table when the peers are not the same kind of business. */
+  peer_note?: BiText | null;
 }
 
 export interface UpcomingDividend {
@@ -460,6 +510,9 @@ export interface DividendDeclarationRecord {
   stock_pct: number | null;
   title: string | null;
   amended_at?: string | null;
+  /** A final that "includes" an interim already paid: this row's cash_pct is the
+   *  remainder paid at this record date; this is the year's declared total. */
+  declared_total_cash_pct?: number | null;
 }
 
 export interface DividendCalendarMonth {

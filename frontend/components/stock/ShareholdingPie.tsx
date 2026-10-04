@@ -1,12 +1,17 @@
 "use client";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { ownershipCaption, ownershipChangeInfo } from "@/lib/plain-language";
+import type { CompanyDetail } from "@/lib/api";
 import Card from "@/components/ui/Card";
 import SectionTitle from "@/components/stock/SectionTitle";
+import { useStockLang } from "@/context/StockLangContext";
 
 interface Props {
   shareholding: Record<string, unknown> | null;
   previous?: Record<string, unknown> | null;
+  /** Backend's bilingual read (services/stock_facts.py) — government control,
+   *  sponsor-only "insiders buying", big-jump checks. Falls back to the local helpers. */
+  ownership?: CompanyDetail["ownership"];
 }
 
 const CATEGORIES = [
@@ -25,7 +30,9 @@ function monthYear(iso: unknown): string | null {
   return d.toLocaleDateString("en-GB", { month: "short", year: "numeric" });
 }
 
-export default function ShareholdingPie({ shareholding, previous = null }: Props) {
+export default function ShareholdingPie({ shareholding, previous = null, ownership = null }: Props) {
+  const { lang } = useStockLang();
+  const isBn = lang === "bn";
   if (!shareholding) return null;
 
   const data = CATEGORIES
@@ -34,12 +41,21 @@ export default function ShareholdingPie({ shareholding, previous = null }: Props
 
   if (data.length === 0) return null;
 
-  const sponsorPct = Number(shareholding.sponsor_director_pct ?? 0);
-  const caption = ownershipCaption(sponsorPct);
-
   const asOf = monthYear(shareholding.as_of_date);
   const prevAsOf = previous ? monthYear(previous.as_of_date) : null;
-  const change = ownershipChangeInfo(shareholding, previous ?? null, prevAsOf);
+
+  let caption: string | null;
+  let change: { caption: string; tone: string } | null;
+  if (ownership) {
+    caption = ownership.caption ? (isBn ? ownership.caption.bn : ownership.caption.en) : null;
+    change = ownership.change
+      ? { caption: isBn ? ownership.change.bn : ownership.change.en, tone: ownership.change.tone }
+      : null;
+  } else {
+    caption = ownershipCaption(Number(shareholding.sponsor_director_pct ?? 0));
+    change = ownershipChangeInfo(shareholding, previous ?? null, prevAsOf);
+  }
+  const textLang = ownership && isBn ? { className: "font-bn", lang: "bn" as const } : { className: "", lang: undefined };
   const changeColor = change?.tone === "positive" ? "var(--positive)" : "var(--watch)";
 
   const deltaFor = (key: string, deltaMatters: boolean): number | null => {
@@ -129,7 +145,8 @@ export default function ShareholdingPie({ shareholding, previous = null }: Props
 
         {change && (
           <p
-            className="text-sm mt-5 leading-snug font-medium rounded-xl px-3 py-2.5"
+            className={`text-sm mt-5 leading-snug font-medium rounded-xl px-3 py-2.5 ${textLang.className}`}
+            lang={textLang.lang}
             style={{
               color: changeColor,
               background: change.tone === "positive" ? "rgba(21,128,61,0.07)" : "rgba(180,83,9,0.08)",
@@ -141,7 +158,7 @@ export default function ShareholdingPie({ shareholding, previous = null }: Props
         )}
 
         {caption && (
-          <p className="text-sm mt-4 leading-snug" style={{ color: "var(--text-muted)" }}>
+          <p className={`text-sm mt-4 leading-snug ${textLang.className}`} lang={textLang.lang} style={{ color: "var(--text-muted)" }}>
             {caption}
           </p>
         )}

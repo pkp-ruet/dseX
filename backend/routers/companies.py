@@ -5,8 +5,14 @@ from backend.services.db_service import (
     load_financials, load_extended_financials, load_shareholdings,
     load_company_news, load_dividend_declarations, load_all_company_codes,
     compute_52w_range, compute_signal_flags, load_news_for_codes,
-    load_market_news,
+    load_market_news, load_corporate_actions, adjust_price_rows,
 )
+from backend.services.stock_facts import (
+    ownership_caption, ownership_change, health_overrides, valuation_verdict,
+    eps_basis_label, own_pe_label,
+)
+from backend.services.sub_industry import sub_industry, peer_group_key, peer_note
+from utils.sector import normalize_sector
 from backend.services.scoring_service import get_company_score_row, build_scores_df
 from backend.services.signal_service import get_signal, wire_fields
 from backend.services.top20_service import compute_momentum_for_code
@@ -87,7 +93,9 @@ def get_company_detail(code: str):
     latest = prices.get(trading_code, {})
 
     price_history = load_price_history(trading_code)
-    w52_high, w52_low = compute_52w_range(price_history)
+    # 52-week range on prices adjusted for dividend / bonus record dates.
+    w52_high, w52_low = compute_52w_range(
+        adjust_price_rows(price_history, load_corporate_actions().get(trading_code, [])))
 
     financials = load_financials(trading_code)
     ext_financials = load_extended_financials(trading_code)
@@ -124,8 +132,10 @@ def get_company_detail(code: str):
         if prior_vols:
             avg_volume_7d = round(sum(prior_vols) / len(prior_vols))
 
-    # Signal flags
-    flags = compute_signal_flags(score_row, holdings, financials, company)
+    # Signal flags — a year of news for the governance scan (the page shows 20).
+    sector_class = normalize_sector(company.get("sector") or "")
+    flags = compute_signal_flags(score_row, holdings, financials, company,
+                                 load_company_news(trading_code, limit=200))
 
     # Clean score_row NaN
     if score_row:
@@ -139,10 +149,34 @@ def get_company_detail(code: str):
             return None
         return v
 
+    def _month_year(raw):
+        """Shareholding 'Jun 30, 2025' -> ('Jun 2025', 'জুন 2025')."""
+        from datetime import datetime as _dt
+        from backend.services.interim_service import _MONTH_ABBR, _MONTH_BN
+        text = str(raw or "").strip()
+        for fmt, part in (("%b %d, %Y", text), ("%B %d, %Y", text), ("%Y-%m-%d", text[:10])):
+            try:
+                d = _dt.strptime(part, fmt)
+            except ValueError:
+                continue
+            return f"{_MONTH_ABBR[d.month]} {d.year}", f"{_MONTH_BN[d.month]} {d.year}"
+        return None, None
+
+    # Ownership read (bilingual) — who controls the company + who moved.
+    ownership = None
+    if shareholding:
+        since_en, since_bn = _month_year((shareholding_prev or {}).get("as_of_date"))
+        ownership = {
+            "caption": ownership_caption(shareholding),
+            "change": ownership_change(shareholding, shareholding_prev, since_en, since_bn),
+        }
+    overrides = health_overrides(score_row or {}, financials, sector_class)
+
     # Related stocks (same sector, top 5 by score excluding self) + sector context.
     # Both reuse the single scores_df build below — no extra DB work.
     related: list[RelatedStock] = []
     sector_context_model = None
+    peer_note_model = None
     sector = company.get("sector")
     if sector:
         scores_df = build_scores_df()
@@ -164,9 +198,14 @@ def get_company_detail(code: str):
             )
 
             # --- Related stocks (excludes self) -------------------------------
-            same_sector = sector_slice[
-                sector_slice["trading_code"] != trading_code
-            ].sort_values("score", ascending=False, na_position="last").head(5)
+            # Narrowed to the sub-industry when one is set and has peers
+            # (services/sub_industry.py), else the whole DSE sector + a note.
+            others = sector_slice[sector_slice["trading_code"] != trading_code]
+            group = peer_group_key(trading_code, sector)
+            same_group = others[others["trading_code"].map(lambda c: peer_group_key(c, sector)) == group]
+            peer_note_model = peer_note(trading_code, sector, int(len(same_group)))
+            pool = same_group if len(same_group) else others
+            same_sector = pool.sort_values("score", ascending=False, na_position="last").head(5)
 
             from backend.services.db_service import load_companies
             companies_by_code = {c["trading_code"]: c for c in load_companies()}
@@ -187,6 +226,7 @@ def get_company_detail(code: str):
                     div_yield_pct=_clean(r.get("div_yield_pct")),
                     roe_pct=_clean(r.get("roe_pct")),
                     eps_yoy_pct=_clean(r.get("eps_yoy_pct")),
+                    sub_industry=sub_industry(rc),
                 ))
 
     # Momentum snapshot + hybrid verdict
@@ -233,6 +273,11 @@ def get_company_detail(code: str):
             sector_median_pb=_clean(score_row.get("sector_median_pb")),
             eps=v_eps,
             sector_implied_price=implied,
+            eps_basis=eps_basis_label(score_row),
+            own_avg_pe_label=own_pe_label(score_row.get("own_avg_pe_years"),
+                                          score_row.get("listing_year"),
+                                          score_row.get("fy_eps_year")),
+            verdict=valuation_verdict(score_row.get("p4_val")),
         )
 
     # Live "value today" box + deep-analysis teaser. Both are best-effort — a
@@ -282,7 +327,7 @@ def get_company_detail(code: str):
             trade_count=_int_or_none(latest.get("trade_count")),
         ),
         score_row=score_row,
-        signal_flags=SignalFlags(green=flags["green"], red=flags["red"]),
+        signal_flags=SignalFlags(green=flags["green"], red=flags["red"], items=flags.get("items", [])),
         financials=financials,
         extended_financials=ext_financials,
         shareholding=shareholding,
@@ -298,6 +343,9 @@ def get_company_detail(code: str):
         bengali_summary=load_stock_summary(trading_code),
         fair_value=fair_value_model,
         deep_analysis=deep_analysis_model,
+        ownership=ownership,
+        health_overrides=overrides,
+        peer_note=peer_note_model,
     )
 
 

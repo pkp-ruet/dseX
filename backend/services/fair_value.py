@@ -68,6 +68,27 @@ _LABELS_BN = {
 }
 
 
+# Peer-P/E price kept within this factor of the own-history-P/E price.
+PEER_CAP = 1.5
+
+
+def _weighted_median(pairs: list[tuple[float, float]]) -> Optional[float]:
+    """Weighted median of (value, weight); the midpoint when the 50% mark falls
+    exactly between two values (so two equally weighted methods average)."""
+    pts = sorted((v, w) for v, w in pairs if w > 0)
+    if not pts:
+        return None
+    total = sum(w for _, w in pts)
+    acc = 0.0
+    for i, (v, w) in enumerate(pts):
+        acc += w
+        if abs(acc - total / 2) < 1e-9 and i + 1 < len(pts):
+            return (v + pts[i + 1][0]) / 2
+        if acc > total / 2:
+            return v
+    return pts[-1][0]
+
+
 def _pos(x) -> bool:
     """True for a real, finite, positive number."""
     return (
@@ -138,6 +159,8 @@ def estimate_fair_value(
         return None
 
     company = company or {}
+    # `eps` on the score row is the earnings the price is judged on — TTM when a
+    # quarterly report is newer than the audited year (scoring_service).
     eps = score_row.get("eps")
     own_pe = score_row.get("own_avg_pe")
     peer_pe = score_row.get("sector_median_pe")
@@ -146,17 +169,22 @@ def estimate_fair_value(
     cur_pb = score_row.get("current_pb")
     p5_consist = score_row.get("p5_consist")
 
-    # NAV per share (book value): prefer the reported figure, else back it out of
-    # today's price and the current price-to-book.
-    nav = _latest_fin_value(financials, "nav_per_share")
+    # NAV per share (book value): the latest one the score used (interim when
+    # newer), else the reported figure, else backed out of price / P/B.
+    nav = score_row.get("nav_ps")
+    if not _pos(nav):
+        nav = _latest_fin_value(financials, "nav_per_share")
     if not _pos(nav) and _pos(cur_pb) and _pos(ltp):
         nav = ltp / cur_pb
 
-    # Dividend per share from the most recent cash dividend %.
+    # Dividend per share: the latest fiscal year's total (interim + final), as
+    # scored; else the most recent cash dividend % in the audited table.
     face = company.get("face_value")
     face = face if _pos(face) else 10.0  # DSE face value is Tk 10 unless stated
-    cash_div_pct = _latest_fin_value(financials, "cash_dividend_pct")
-    dps = (cash_div_pct * face / 100.0) if _pos(cash_div_pct) else None
+    dps = score_row.get("div_latest_dps")
+    if not _pos(dps):
+        cash_div_pct = _latest_fin_value(financials, "cash_dividend_pct")
+        dps = (cash_div_pct * face / 100.0) if _pos(cash_div_pct) else None
 
     eligible = _ELIGIBLE_FINANCIAL if sector_class in _FINANCIAL_CLASSES else _ELIGIBLE_GENERAL
     methods: dict[str, float] = {}
@@ -176,13 +204,16 @@ def estimate_fair_value(
     if not methods:
         return None  # no sensible basis -> soft-language fallback in the UI
 
+    # The peer method is the outlier-maker: a sector median P/E of 20 on a fuel
+    # distributor that has always traded at 5 turned JAMUNAOIL into "worth
+    # ৳1,158". Keep it within PEER_CAP of the company's own-history figure.
+    if "peer_pe" in methods and "own_history_pe" in methods:
+        own = methods["own_history_pe"]
+        methods["peer_pe"] = max(own / PEER_CAP, min(own * PEER_CAP, methods["peer_pe"]))
+
     weights = _WEIGHTS_FINANCIAL if sector_class in _FINANCIAL_CLASSES else _WEIGHTS_GENERAL
-    num = den = 0.0
-    for name, price in methods.items():
-        w = weights.get(name, 0.5)
-        num += w * price
-        den += w
-    center = num / den if den else sum(methods.values()) / len(methods)
+    # Weighted MEDIAN, not mean: one wild method can no longer drag the centre.
+    center = _weighted_median([(price, weights.get(name, 0.5)) for name, price in methods.items()])
     if not _pos(center):
         return None
 
@@ -195,14 +226,23 @@ def estimate_fair_value(
     low = center * (1 - band)
     high = center * (1 + band)
 
-    stance = None
+    # What the estimate alone says…
+    estimate_stance = None
     if _pos(ltp):
         if ltp < low:
-            stance = "cheap"
+            estimate_stance = "cheap"
         elif ltp > high:
-            stance = "expensive"
+            estimate_stance = "expensive"
         else:
-            stance = "fair"
+            estimate_stance = "fair"
+    # …but the badge is the page's ONE valuation verdict (the P4 pillar, the same
+    # bands the Buy/Sell signal uses), so the Value box can never say "Looks
+    # cheap" beside a Health Check that says "Looks costly" (BATBC).
+    from backend.services.stock_facts import valuation_verdict
+    stance = valuation_verdict(score_row.get("p4_val")) or estimate_stance
+    # Any mismatch counts: "Around fair value" over an estimate 2.6x today's
+    # price (WALTONHIL ৳886 vs ৳337) reads as a contradiction just the same.
+    disagree = estimate_stance is not None and stance is not None and estimate_stance != stance
 
     # Confidence from how many methods agree (and how tightly), softened by data
     # completeness.
@@ -217,6 +257,8 @@ def estimate_fair_value(
     dc = score_row.get("data_completeness")
     if isinstance(dc, (int, float)) and dc < 0.5 and confidence == "high":
         confidence = "medium"
+    if disagree:
+        confidence = "low"
 
     # Human-readable basis (both languages) — which anchors were actually used.
     uses_en: list[str] = []
@@ -242,6 +284,11 @@ def estimate_fair_value(
         "center": _round_price(center),
         "today": _round_price(ltp) if _pos(ltp) else None,
         "stance": stance,
+        "estimate_stance": estimate_stance,
+        # True when the rough estimate points the opposite way to the verdict —
+        # the box then says the yardsticks disagree instead of printing a
+        # centre figure that contradicts its own badge.
+        "estimates_disagree": disagree,
         "confidence": confidence,
         "methods": [
             {

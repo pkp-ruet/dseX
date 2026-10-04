@@ -15,6 +15,7 @@ from typing import Optional
 from backend.services.db_service import (
     get_db, load_latest_prices, load_all_company_codes,
 )
+from backend.services.interim_service import load_interims, interim_facts
 from utils.sector import normalize_sector
 
 logger = logging.getLogger(__name__)
@@ -82,6 +83,43 @@ _RENORM_FLOOR = 0.60
 # marker — no penalty. Unknown/blank categories get a mild haircut.
 _CATEGORY_MULT = {"A": 1.00, "N": 1.00, "B": 0.90, "Z": 0.65}
 _CATEGORY_MULT_DEFAULT = 0.95
+
+# Cash-from-profit (p2_cfo) ceiling when this year's interim operating cash flow
+# per share is negative — the 3-year history can't vouch for cash the company is
+# not generating right now (LHB H1 2026 NOCFPS -2.59, JAMUNAOIL 9M -134.34).
+NEG_INTERIM_CFO_CAP = 3.0
+
+# Loan-load ceilings on the Financial Health pillar, from DSE's own company-page
+# "total loan" vs "reserve & surplus" and market cap. Amarstock's borrowings line
+# often misses short-term loans (ACMELAB: 7.1bn vs DSE's 24.8bn), so a balance
+# sheet could read "low debt" while the loans exceeded both the company's
+# retained savings and its whole market value. Not applied to banks / NBFIs
+# (their "loans" are the business) or insurers.
+DEBT_OVER_RESERVE_P2_CAP = 6.9   # never "Strong money health"
+DEBT_OVER_MCAP_P2_CAP = 3.9      # "Weak money health"
+
+
+def debt_load(loan_mn, reserve_mn, mcap_mn) -> dict:
+    """Ratios of DSE's total loan to reserve & surplus and to market cap, plus
+    the level they imply: "over_mcap" > "over_reserve" > "ok" (None when the
+    loan line is missing)."""
+    def num(v):
+        return None if _is_nanish(v) else float(v)
+    loan, res, mcap = num(loan_mn), num(reserve_mn), num(mcap_mn)
+    out = {"loan_to_reserve": None, "loan_to_mcap": None, "debt_level": None}
+    if loan is None:
+        return out
+    if res is not None and res > 0:
+        out["loan_to_reserve"] = round(loan / res, 2)
+    if mcap is not None and mcap > 0:
+        out["loan_to_mcap"] = round(loan / mcap, 2)
+    if out["loan_to_mcap"] is not None and out["loan_to_mcap"] > 1.0:
+        out["debt_level"] = "over_mcap"
+    elif out["loan_to_reserve"] is not None and out["loan_to_reserve"] > 1.0:
+        out["debt_level"] = "over_reserve"
+    else:
+        out["debt_level"] = "ok"
+    return out
 
 
 def _weighted_pillar(metrics: list[tuple[Optional[float], float]]) -> tuple[float, float]:
@@ -355,6 +393,21 @@ def _trajectory_score(pairs: list, anchors: list,
     return round(score, 4), round(stability, 4)
 
 
+def _roe_series(fin_rows: list[dict]) -> tuple[list[float], bool]:
+    """Year-ascending ROE % (EPS / NAV per share) from the audited table, plus
+    whether any year had both inputs (a non-positive NAV is distress, not a gap)."""
+    vals: list[float] = []
+    seen = False
+    for r in fin_rows:
+        eps, nav = r.get("eps"), r.get("nav_per_share")
+        if _is_nanish(eps) or _is_nanish(nav):
+            continue
+        seen = True
+        if float(nav) > 0:
+            vals.append(float(eps) / float(nav) * 100)
+    return vals, seen
+
+
 def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict],
                 is_financial: bool = False) -> tuple[float, dict]:
     # Pair (year, eps) so CAGR and trend computations use real time, not list position
@@ -393,15 +446,19 @@ def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict],
 
     # m3: ROE averaged over the reported years in the 5-year window (up to 5), with a
     # first-half vs last-half trend bonus/penalty and a light volatility haircut.
-    roe_vals = []
-    roe_inputs_seen = False  # any year with both NP and equity reported
-    for er in ext_last5:
-        np_v = er.get("net_profit")
-        eq_v = er.get("total_equity")
-        if not _is_nanish(np_v) and not _is_nanish(eq_v):
-            roe_inputs_seen = True
-            if float(eq_v) > 0:
-                roe_vals.append(float(np_v) / float(eq_v) * 100)
+    # ROE = EPS / NAV per share from DSE's own audited table (same source, same
+    # share count, same consolidation). Amarstock's net_profit / total_equity is
+    # only the fallback: for banks its lines don't match DSE's (EBL 2024: 12.1bn
+    # "net profit" vs 8.0bn implied by EPS, so ROE read 28% instead of ~16%).
+    roe_vals, roe_inputs_seen = _roe_series(fin_last5)
+    if not roe_inputs_seen:
+        for er in ext_last5:
+            np_v = er.get("net_profit")
+            eq_v = er.get("total_equity")
+            if not _is_nanish(np_v) and not _is_nanish(eq_v):
+                roe_inputs_seen = True
+                if float(eq_v) > 0:
+                    roe_vals.append(float(np_v) / float(eq_v) * 100)
     if roe_vals:
         m3 = _a2_roe_score(sum(roe_vals) / len(roe_vals))
         if len(roe_vals) >= 4:
@@ -458,7 +515,11 @@ def _a2_pillar1(fin_last5: list[dict], ext_last5: list[dict],
 
 
 def _a2_pillar2(ext_last5: list[dict], is_financial: bool = False,
-                is_insurance: bool = False) -> tuple[float, dict]:
+                is_insurance: bool = False,
+                interim_nocfps: Optional[float] = None) -> tuple[float, dict]:
+    """`interim_nocfps` is this year's year-to-date operating cash per share from
+    the latest quarterly report; when it is negative the company is burning cash
+    NOW, so the multi-year cash-from-profit metric is capped (industrials only)."""
     latest = ext_last5[-1] if ext_last5 else {}
 
     debt = latest.get("total_debt")
@@ -559,6 +620,13 @@ def _a2_pillar2(ext_last5: list[dict], is_financial: bool = False,
             m3 = 4.0
         else:
             m3 = 0.0
+
+    # Not for lenders (cash swings with the loan book) or insurers (claims and
+    # premium timing; their pillar is almost all this one metric, so one
+    # negative half-year took NORTHRNINS from 10 to 3). Both still get the
+    # watch-out on the stock page.
+    if not (is_financial or is_insurance) and interim_nocfps is not None and interim_nocfps < 0:
+        m3 = min(m3, NEG_INTERIM_CFO_CAP) if m3 is not None else NEG_INTERIM_CFO_CAP
 
     # Cash/Assets: not meaningful for banks (most assets are loans by design)
     # or insurers (assets are the investment float). Not-applicable — excluded
@@ -679,13 +747,23 @@ def _a2_pillar3(code: str, ext_last5: list[dict],
 def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
                 sector_median_pe: Optional[float] = None,
                 sector_median_pb: Optional[float] = None,
-                vol_damp: float = 1.0) -> tuple[float, dict]:
+                vol_damp: float = 1.0,
+                eps_override: Optional[float] = None,
+                nav_override: Optional[float] = None) -> tuple[float, dict]:
     """Valuation pillar. Sector medians passed in are already self-excluded by the caller.
     When self-historical data is missing, sector-relative is used at full weight (no 0.4 cap).
 
     vol_damp (<=1.0) mildly discounts the cheapness reward when earnings are volatile —
     a stock that's cheap *because* its earnings are erratic shouldn't get full credit for
-    looking cheap ('cheap for a reason'). Derived from EPS stability by the caller."""
+    looking cheap ('cheap for a reason'). Derived from EPS stability by the caller.
+
+    eps_override / nav_override carry the trailing-twelve-month EPS and the latest
+    interim NAV (interim_service) when a quarterly report is newer than the audited
+    year — the price is today's, so the earnings and book value should be too.
+
+    Own-history P/E and P/B are the MEDIAN of the years present, not the mean: one
+    low-EPS year (ENVOYTEX FY23 EPS 1.95 -> P/E 22.5, FY21 52.0) dragged the mean to
+    20.8 while the typical year sat near 15, so the stock looked cheaper than it was."""
     if ltp is None or ltp <= 0:
         return 0.0, {"p4_pe": 0.0, "p4_pb": 0.0}
 
@@ -695,6 +773,8 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
     # with a 9.96/10 P/E-value score on a negative EPS).
     curr_eps = next((float(r["eps"]) for r in reversed(fin_last5)
                      if not _is_nanish(r.get("eps"))), None)
+    if eps_override is not None:
+        curr_eps = float(eps_override)
     has_sector_pe = sector_median_pe is not None and sector_median_pe > 0
 
     # Raw ratios surfaced for the stock-detail valuation panel (not used in scoring).
@@ -718,7 +798,7 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
         ]
         has_self_pe = len(hist_pes) >= 2
         if has_self_pe:
-            avg_hist_pe = sum(hist_pes) / len(hist_pes)
+            avg_hist_pe = _median(hist_pes)
             own_avg_pe = avg_hist_pe
             self_pe = _a2_pe_pb_ratio_score(current_pe / avg_hist_pe) if avg_hist_pe > 0 else 0.0
         else:
@@ -739,6 +819,8 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
 
     curr_nav = next((r["nav_per_share"] for r in reversed(fin_last5)
                      if r.get("nav_per_share") is not None and r["nav_per_share"] > 0), None)
+    if nav_override is not None and nav_override > 0:
+        curr_nav = float(nav_override)
     has_sector_pb = sector_median_pb is not None and sector_median_pb > 0
 
     if curr_nav is None:
@@ -759,7 +841,7 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
                 hist_pbs.append(year_end_price / float(nav))
         has_self_pb = len(hist_pbs) >= 2
         if has_self_pb:
-            avg_hist_pb = sum(hist_pbs) / len(hist_pbs)
+            avg_hist_pb = _median(hist_pbs)
             own_avg_pb = avg_hist_pb
             self_pb = _a2_pe_pb_ratio_score(current_pb / avg_hist_pb) if avg_hist_pb > 0 else 0.0
         else:
@@ -785,6 +867,11 @@ def _a2_pillar4(fin_last5: list[dict], ltp: Optional[float],
         "current_pb": round(current_pb, 2) if current_pb is not None else None,
         "own_avg_pe": round(own_avg_pe, 2) if own_avg_pe is not None else None,
         "own_avg_pb": round(own_avg_pb, 2) if own_avg_pb is not None else None,
+        # How many years back the own-history P/E median, so the page can say
+        # "3-year" rather than a fixed "5-year" for a 2022 listing.
+        "own_avg_pe_years": (sum(1 for r in fin_last5
+                                 if r.get("pe_ratio_basic") and float(r["pe_ratio_basic"]) > 0)
+                             if own_avg_pe is not None else None),
     }
 
 
@@ -807,7 +894,8 @@ def _a2_pillar5(fin_last5: list[dict], ltp: Optional[float],
     means what DSE shows: no dividend.
     """
     empty = {"p5_dps_cagr": 0.0, "p5_consist": 0.0, "p5_yield": 0.0, "p5_payout": 0.0,
-             "div_yield_pct": None, "payout_pct": None}
+             "div_yield_pct": None, "payout_pct": None, "payout_latest_pct": None,
+             "div_latest_fy": None, "div_latest_dps": None}
     # Face value is required to convert "cash_dividend_pct" (% of face) into actual DPS.
     # Default of 10 silently understates DPS by 10× for face-100 stocks — bail out instead.
     if _is_nanish(face) or float(face) <= 0:
@@ -849,7 +937,15 @@ def _a2_pillar5(fin_last5: list[dict], ltp: Optional[float],
     else:           m2 = 0.0
 
     # m3: yield on the latest year's cash dividend at today's official close.
+    # A fiscal year already declared in the ledger (interim + final summed) but not
+    # yet in the audited table is the latest year — its total is what an investor
+    # is being paid now.
     latest_dps = dps_vals[-1] if dps_vals else 0.0
+    table_max_year = max((y for y, _, _ in years), default=None)
+    newer = {y: v for y, v in ledger.items()
+             if table_max_year is not None and y > table_max_year and v and v > 0}
+    if newer:
+        latest_dps = newer[max(newer)] * face_val / 100.0
     div_yield_pct = None
     if ltp and ltp > 0 and latest_dps > 0:
         div_yield_pct = round(latest_dps / ltp * 100, 1)
@@ -867,9 +963,19 @@ def _a2_pillar5(fin_last5: list[dict], ltp: Optional[float],
     payout_pct = _median(payouts) if payouts else None
     m4 = _a2_payout_score(payout_pct) if payout_pct is not None else 0.0
 
+    # Latest single year's payout (cash DPS / EPS of that same year) — the
+    # watch-out "paid more than it earned" reads this, not the 3-year median.
+    payout_latest_pct = None
+    if years and years[-1][1] > 0 and years[-1][2] is not None and years[-1][2] > 0:
+        payout_latest_pct = round(years[-1][1] / years[-1][2] * 100.0, 1)
+    div_latest_fy = max(newer) if newer else (years[-1][0] if years and years[-1][1] > 0 else None)
+
     score = m2 * 0.35 + m4 * 0.30 + m3 * 0.20 + m1 * 0.15
     return score, {"p5_dps_cagr": m1, "p5_consist": m2, "p5_yield": m3, "p5_payout": m4,
                    "div_yield_pct": div_yield_pct,
+                   "payout_latest_pct": payout_latest_pct,
+                   "div_latest_fy": div_latest_fy,
+                   "div_latest_dps": round(latest_dps, 2) if latest_dps else None,
                    # None when unknown OR when the sentinel fired (a % of a loss is not a number)
                    "payout_pct": round(payout_pct, 1) if payout_pct is not None and payout_pct < 999 else None}
 
@@ -1071,6 +1177,7 @@ def _compute_scores_df(
             {
                 "trading_code": 1, "total_shares": 1, "face_value": 1,
                 "market_category": 1, "sector": 1, "_id": 0,
+                "listing_year": 1, "total_loan_mn": 1, "reserve_surplus_mn": 1,
             },
         )
     }
@@ -1210,6 +1317,38 @@ def _compute_scores_df(
         logger.warning("dividend ledger unavailable for scoring: %s", e)
         ledger_by_code = {}
 
+    # Latest quarterly report per company (TTM EPS, latest NAV, this-year trend).
+    # Skipped in backtests: news posts carry no fiscal-year filter, so they would
+    # leak results that were not yet public.
+    interim_by_code: dict[str, dict] = {}
+    if fin_max_year is None:
+        try:
+            raw_interims = load_interims()
+            for code, raw in raw_interims.items():
+                f = interim_facts(raw, fin_by_code.get(code, []))
+                if f:
+                    interim_by_code[code] = f
+        except Exception as e:  # noqa: BLE001 — interim data refines, never blocks
+            logger.warning("interim results unavailable for scoring: %s", e)
+
+    def _effective_eps_nav(code: str) -> tuple[Optional[float], Optional[float], str]:
+        """(EPS, NAV, basis) the price is judged against: TTM + latest interim NAV
+        when a quarterly report is newer than the audited year, else the latest
+        audited year, whatever its sign."""
+        rows = fin_by_code.get(code, [])
+        eps_v = next((float(r["eps"]) for r in reversed(rows)
+                      if not _is_nanish(r.get("eps"))), None)
+        nav_v = next((float(r["nav_per_share"]) for r in reversed(rows)
+                      if not _is_nanish(r.get("nav_per_share"))), None)
+        basis = "fy"
+        f = interim_by_code.get(code)
+        if f:
+            if f.get("ttm_eps") is not None:
+                eps_v, basis = float(f["ttm_eps"]), "ttm"
+            if f.get("nav") is not None and f["nav"] > 0:
+                nav_v = float(f["nav"])
+        return eps_v, nav_v, basis
+
     # Pre-compute sector P/E and P/B values keyed by code so the per-company median
     # can exclude the company itself (otherwise a small sector's median is biased toward self).
     sector_pes: dict[str, list[tuple[str, float]]] = {}
@@ -1219,13 +1358,9 @@ def _compute_scores_df(
         p = (prices.get(code) or {}).get("ltp")
         if not p or p <= 0:
             continue
-        fin_rows_tmp = fin_by_code.get(code, [])
-        # Latest reported EPS / NAV, whatever the sign — a loss-maker has no P/E
+        # Same EPS / NAV the company itself is judged on — a loss-maker has no P/E
         # and must not enter the sector median on a stale positive figure.
-        eps_v = next((float(r["eps"]) for r in reversed(fin_rows_tmp)
-                      if not _is_nanish(r.get("eps"))), None)
-        nav_v = next((float(r["nav_per_share"]) for r in reversed(fin_rows_tmp)
-                      if not _is_nanish(r.get("nav_per_share"))), None)
+        eps_v, nav_v, _ = _effective_eps_nav(code)
         if eps_v is not None and eps_v > 0:
             sector_pes.setdefault(sector, []).append((code, p / eps_v))
         if nav_v is not None and nav_v > 0:
@@ -1256,13 +1391,29 @@ def _compute_scores_df(
         sect_pe_for_self = _sector_median_excluding(sector_pes.get(sector, []), code)
         sect_pb_for_self = _sector_median_excluding(sector_pbs.get(sector, []), code)
 
+        ifacts = interim_by_code.get(code)
+        eff_eps, eff_nav, eps_basis = _effective_eps_nav(code)
+
         p1, sub1 = _a2_pillar1(fin_rows, ext_last5, is_financial)
-        p2, sub2 = _a2_pillar2(ext_last5, is_financial, is_insurance)
+        p2, sub2 = _a2_pillar2(ext_last5, is_financial, is_insurance,
+                               interim_nocfps=(ifacts or {}).get("nocfps_cum"))
+        # Loan load from DSE's company page caps Financial Health for industrials
+        # (see DEBT_OVER_* above) so "Strong money health" can't sit beside loans
+        # bigger than the company's savings or its market value.
+        debt = debt_load(comp.get("total_loan_mn"), comp.get("reserve_surplus_mn"), mcap_mn)
+        if is_financial or is_insurance:
+            debt["debt_level"] = None
+        elif debt["debt_level"] == "over_mcap":
+            p2 = min(p2, DEBT_OVER_MCAP_P2_CAP)
+        elif debt["debt_level"] == "over_reserve":
+            p2 = min(p2, DEBT_OVER_RESERVE_P2_CAP)
         p3, sub3 = _a2_pillar3(code, ext_last5, sector_rank_score, is_financial, is_insurance)
         # Cheap-for-a-reason: mildly discount the valuation reward when EPS is volatile.
         eps_stability = sub1.get("eps_stability", 1.0)
         p4_vol_damp = 1.0 - 0.5 * (1.0 - eps_stability)
-        p4, sub4 = _a2_pillar4(fin_rows, ltp, sect_pe_for_self, sect_pb_for_self, vol_damp=p4_vol_damp)
+        p4, sub4 = _a2_pillar4(fin_rows, ltp, sect_pe_for_self, sect_pb_for_self, vol_damp=p4_vol_damp,
+                               eps_override=eff_eps if eps_basis == "ttm" else None,
+                               nav_override=(ifacts or {}).get("nav"))
         p5, sub5 = _a2_pillar5(fin_rows, ltp, face, is_financial,
                                ledger_cash_pct=ledger_by_code.get(code))
 
@@ -1319,17 +1470,33 @@ def _compute_scores_df(
             3,
         )
 
-        curr_eps = next((float(r["eps"]) for r in reversed(fin_rows)
-                         if not _is_nanish(r.get("eps"))), None)
+        fy_eps = next((float(r["eps"]) for r in reversed(fin_rows)
+                       if not _is_nanish(r.get("eps"))), None)
+        fy_eps_year = next((int(r["year"]) for r in reversed(fin_rows)
+                            if not _is_nanish(r.get("eps")) and r.get("year") is not None), None)
+        curr_eps = eff_eps
 
-        # Point-in-time ROE (%) from the latest extended-financials year — surfaced for
-        # the stock-detail peer table, not used in scoring.
+        # Point-in-time ROE (%) for the peer table: latest audited EPS / NAV per
+        # share (the same basis as P1's ROE), Amarstock only as the fallback.
         roe_pct: Optional[float] = None
-        if ext_last5:
+        _roe_vals, _ = _roe_series(fin_rows[-1:])
+        if _roe_vals:
+            roe_pct = round(_roe_vals[-1], 1)
+        elif ext_last5:
             _np = ext_last5[-1].get("net_profit")
             _eq = ext_last5[-1].get("total_equity")
             if _np is not None and _eq and not _is_nanish(_np) and not _is_nanish(_eq) and float(_eq) > 0:
                 roe_pct = round(float(_np) / float(_eq) * 100, 1)
+
+        # Data freshness: a dividend declared for a fiscal year the audited table
+        # does not have yet (WALTONHIL: FY2026 dividend, EPS still FY2025).
+        ledger_years = [y for y in (ledger_by_code.get(code) or {}) if y]
+        newer_dividend_fy = max(ledger_years) if ledger_years else None
+        if newer_dividend_fy is not None and (fy_eps_year is None or newer_dividend_fy <= fy_eps_year):
+            newer_dividend_fy = None
+        if newer_dividend_fy is not None:
+            logger.info("%s: FY%s dividend declared but audited EPS ends at FY%s",
+                        code, newer_dividend_fy, fy_eps_year)
 
         row = {
             "trading_code": code,
@@ -1342,8 +1509,32 @@ def _compute_scores_df(
             "adjustment_pct": adj_pct if adj_pct else 0.0,
             "category_mult":  cat_mult,
             "data_completeness": data_completeness,
+            # `eps` is what the price is judged on (TTM when a newer quarterly
+            # report exists — see eps_basis); fy_eps is the latest audited year.
             "eps":          curr_eps,
+            "eps_basis":    eps_basis,
+            "fy_eps":       fy_eps,
+            "fy_eps_year":  fy_eps_year,
+            "nav_ps":       eff_nav,
             "roe_pct":      roe_pct,
+            "listing_year": comp.get("listing_year"),
+            # Latest quarterly report (None when there is none newer than the audited year)
+            "interim_label_en":     (ifacts or {}).get("label_en"),
+            "interim_label_bn":     (ifacts or {}).get("label_bn"),
+            "interim_period_end":   (ifacts or {}).get("period_end"),
+            "interim_months":       (ifacts or {}).get("months"),
+            "interim_eps_cum":      (ifacts or {}).get("eps_cum"),
+            "interim_eps_cum_prev": (ifacts or {}).get("eps_cum_prev"),
+            "interim_eps_yoy_pct":  (ifacts or {}).get("eps_cum_yoy_pct"),
+            "interim_q_yoy_pct":    (ifacts or {}).get("eps_q_yoy_pct"),
+            "interim_nocfps":       (ifacts or {}).get("nocfps_cum"),
+            "interim_nocfps_prev":  (ifacts or {}).get("nocfps_cum_prev"),
+            "interim_nav":          (ifacts or {}).get("nav"),
+            "interim_nav_date":     (ifacts or {}).get("nav_date"),
+            "loan_to_reserve":      debt["loan_to_reserve"],
+            "loan_to_mcap":         debt["loan_to_mcap"],
+            "debt_level":           debt["debt_level"],
+            "newer_dividend_fy":    newer_dividend_fy,
             "sector_median_pe": round(sect_pe_for_self, 2) if sect_pe_for_self is not None else None,
             "sector_median_pb": round(sect_pb_for_self, 2) if sect_pb_for_self is not None else None,
             "p1_biz":       round(p1, 2),

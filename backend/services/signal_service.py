@@ -16,7 +16,10 @@ streak never flips advice):
     5. good/excellent + stale report  -> none  (cap)
     6. good/excellent + thin trading  -> none  (cap, < Tk 1mn avg 7d turnover)
     6b. good/excellent + latest EPS down >=25% YoY -> none (value-trap cap:
-        "cheap for a reason"; backtested worse returns + fatter downside)
+        "cheap for a reason"; backtested worse returns + fatter downside).
+        "Latest" = this year's interim year-to-date when a quarterly report is
+        newer than the audited year, else the last audited year.
+    6c. good/excellent + DSE total loan > market cap -> none (heavy debt)
     7. cheap (p4 >= 7): near 52w high -> none dampener, else -> buy
        (deeply cheap p4>=8 AND low in 52w range -> strength "strong")
     8. expensive (p4 < 4)             -> none  ("strong company, expensive price")
@@ -90,6 +93,10 @@ REASONS: dict[str, tuple[str, str]] = {
     "earnings_dropped": (
         "The price looks cheap, but the company's latest profit fell sharply — safer to wait until it recovers.",
         "দাম সস্তা মনে হলেও কোম্পানির সর্বশেষ মুনাফা অনেকটাই কমে গেছে — পরিস্থিতি ভালো না হওয়া পর্যন্ত অপেক্ষা করা নিরাপদ।",
+    ),
+    "heavy_debt": (
+        "Good numbers, but its loans are bigger than the whole company's market value — too risky to buy.",
+        "হিসাব ভালো, কিন্তু কোম্পানির ঋণ এর পুরো বাজারমূল্যের চেয়েও বেশি — কেনা ঝুঁকিপূর্ণ।",
     ),
     "quality_cheap": (
         "Strong company and the price looks cheap right now.",
@@ -174,7 +181,12 @@ def _signal_for_row(row: dict, momentum: Optional[dict]) -> dict:
     tier = tier_key(score)
     grade = (momentum or {}).get("momentum_grade") or "unknown"
     p4 = _f(row.get("p4_val"))
-    eps_yoy = _f(row.get("eps_yoy_pct"))
+    # This year's interim (year-to-date vs the same months last year) beats the
+    # last audited year — it is the newer news (JAMUNAOIL: FY25 +47%, 9M FY26 -27%).
+    eps_yoy = _f(row.get("interim_eps_yoy_pct"))
+    if eps_yoy is None:
+        eps_yoy = _f(row.get("eps_yoy_pct"))
+    heavy_debt = str(row.get("debt_level") or "") == "over_mcap"
     pct52 = _f((momentum or {}).get("pct_in_52w_range"))
     zcat = str(row.get("market_cat") or "").strip().upper() == "Z"
     stale = row.get("stale_data")
@@ -212,6 +224,12 @@ def _signal_for_row(row: dict, momentum: Optional[dict]) -> dict:
     #     with a fatter downside tail. Absence of the figure never blocks.
     if eps_yoy is not None and eps_yoy < EARNINGS_DROP_PCT:
         return mk(NONE, "earnings_dropped")
+    # 6c. Loans bigger than the whole market value block a buy — the shareholders'
+    #     stake is the thin slice on top of the lenders' (ACMELAB: loans 2,481 Cr
+    #     vs market cap ~1,650 Cr). Loans > reserves alone already cap the
+    #     Financial Health pillar in scoring; this is the harder line.
+    if heavy_debt:
+        return mk(NONE, "heavy_debt")
 
     # 7. Cheap: buy, unless the price already ran to the top of its 52w range.
     #    Deeply cheap + still low in the 52w range -> "strong" conviction.

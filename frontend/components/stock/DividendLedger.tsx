@@ -34,7 +34,7 @@ export default function DividendLedger({ rows, face, initial = 6 }: Props) {
   const visible = showAll ? rows : rows.slice(0, initial);
   const hidden = rows.length - visible.length;
 
-  const cashCell = (cash: number, stock: number, big = false) => {
+  const cashCell = (cash: number, stock: number, big = false, yearTotal?: number | null) => {
     const none = cash === 0 && stock === 0;
     const cashPerShare = cash > 0 ? (cash / 100) * face : null;
     if (none) return <span className="text-xs font-semibold" style={MUTED}>No dividend</span>;
@@ -44,6 +44,9 @@ export default function DividendLedger({ rows, face, initial = 6 }: Props) {
         <span className={`font-bold ${big ? "text-base" : ""}`} style={{ color: "var(--positive)" }}>{cash}%</span>
         {cashPerShare != null && (
           <span className="block text-xs" style={MUTED}>{money(cashPerShare)} / share</span>
+        )}
+        {yearTotal != null && yearTotal > cash && (
+          <span className="block text-xs" style={MUTED}>{yearTotal}% for the year, incl. interim</span>
         )}
       </>
     );
@@ -69,7 +72,7 @@ export default function DividendLedger({ rows, face, initial = 6 }: Props) {
             <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
               <div>
                 <dt className="text-xs font-bold uppercase tracking-[0.12em] mb-0.5" style={MUTED}>Cash</dt>
-                <dd className="tabular-nums nums leading-tight">{cashCell(cash, stock, true)}</dd>
+                <dd className="tabular-nums nums leading-tight">{cashCell(cash, stock, true, r.declared_total_cash_pct)}</dd>
               </div>
               <div>
                 <dt className="text-xs font-bold uppercase tracking-[0.12em] mb-0.5" style={MUTED}>Bonus</dt>
@@ -113,7 +116,7 @@ export default function DividendLedger({ rows, face, initial = 6 }: Props) {
                     {r.dividend_type || "Final"} · declared {formatDate(r.declaration_date)}
                   </span>
                 </td>
-                <td className="px-3 py-2.5 text-right tabular-nums nums whitespace-nowrap">{cashCell(cash, stock)}</td>
+                <td className="px-3 py-2.5 text-right tabular-nums nums whitespace-nowrap">{cashCell(cash, stock, false, r.declared_total_cash_pct)}</td>
                 <td className="px-3 py-2.5 text-right tabular-nums nums whitespace-nowrap">{bonusCell(stock)}</td>
                 <td className="px-3 py-2.5 text-right tabular-nums nums whitespace-nowrap" style={INK}>
                   {r.record_date ? formatDate(r.record_date) : "—"}

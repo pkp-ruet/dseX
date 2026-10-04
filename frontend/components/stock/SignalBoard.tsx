@@ -4,6 +4,7 @@ import type { SignalFlags } from "@/lib/api";
 import { friendlyFlag } from "@/lib/plain-language";
 import Card from "@/components/ui/Card";
 import SectionTitle from "@/components/stock/SectionTitle";
+import { useStockLang } from "@/context/StockLangContext";
 
 interface Props {
   flags: SignalFlags;
@@ -12,11 +13,12 @@ interface Props {
 const INITIAL = 4;
 
 function Column({
-  title, items, tone,
+  title, items, tone, isBn,
 }: {
   title: string;
   items: string[];
   tone: "good" | "watch";
+  isBn: boolean;
 }) {
   const [showAll, setShowAll] = useState(false);
   if (!items.length) return null;
@@ -26,7 +28,7 @@ function Column({
 
   return (
     <Card padding="none" className="rounded-xl p-5">
-      <p className="text-sm font-bold mb-3" style={{ color }}>
+      <p className={`text-sm font-bold mb-3 ${isBn ? "font-bn" : ""}`} lang={isBn ? "bn" : undefined} style={{ color }}>
         {title}
       </p>
       <ul className="space-y-2.5">
@@ -45,8 +47,12 @@ function Column({
                 {tone === "good" ? <path d="m5 12.5 4.5 4.5L19 7.5" /> : <><path d="M12 5v9" /><path d="M12 18.5h.01" /></>}
               </svg>
             </span>
-            <span className="text-sm leading-snug" style={{ color: "var(--text)" }}>
-              {friendlyFlag(raw)}
+            <span
+              className={`text-sm leading-snug ${isBn ? "font-bn" : ""}`}
+              lang={isBn ? "bn" : undefined}
+              style={{ color: "var(--text)" }}
+            >
+              {raw}
             </span>
           </li>
         ))}
@@ -58,7 +64,7 @@ function Column({
           className="text-xs font-semibold mt-3"
           style={{ color: "var(--primary)" }}
         >
-          {showAll ? "Show less" : `Show all ${items.length}`}
+          {isBn ? (showAll ? "কম দেখুন" : `সবগুলো দেখুন (${items.length})`) : (showAll ? "Show less" : `Show all ${items.length}`)}
         </button>
       )}
     </Card>
@@ -66,7 +72,17 @@ function Column({
 }
 
 export default function SignalBoard({ flags }: Props) {
+  const { lang } = useStockLang();
+  const isBn = lang === "bn";
   if (!flags.green.length && !flags.red.length) return null;
+
+  // The backend words every item in both languages (services/stock_facts.py);
+  // an older backend only sends the English lists, translated as before.
+  const items = flags.items;
+  const pick = (tone: "good" | "watch") =>
+    items
+      ? items.filter((i) => i.tone === tone).map((i) => (isBn ? i.bn : i.en))
+      : (tone === "good" ? flags.green : flags.red).map(friendlyFlag);
 
   return (
     <section id="signals" className="mb-8 stock-anchor">
@@ -79,8 +95,8 @@ export default function SignalBoard({ flags }: Props) {
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Column title="Good signs" items={flags.green} tone="good" />
-        <Column title="Watch-outs" items={flags.red} tone="watch" />
+        <Column title={isBn ? "ভালো লক্ষণ" : "Good signs"} items={pick("good")} tone="good" isBn={isBn} />
+        <Column title={isBn ? "সতর্ক থাকার দিক" : "Watch-outs"} items={pick("watch")} tone="watch" isBn={isBn} />
       </div>
     </section>
   );

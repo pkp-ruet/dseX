@@ -77,7 +77,9 @@ def main() -> int:
 
     news = list(
         db.company_news.find(
-            {"title": {"$regex": "Dividend Declaration"}},
+            # Same title rule as the scraper (scrapers/news.py:_DECLARATION_TITLE_RE).
+            {"title": {"$regex": r"Dividend\s+Declaration|Declaration\s+of\s+(?:\w+\s+){0,2}Dividend",
+                       "$options": "i"}},
             {"_id": 0, "trading_code": 1, "title": 1, "body": 1, "post_date": 1, "scraped_at": 1},
         ).sort("post_date", 1)
     )

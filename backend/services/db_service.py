@@ -255,7 +255,117 @@ def load_52w_ranges() -> dict[str, dict]:
         {"$match": {"date": {"$gte": one_year_ago}, "ltp": {"$gt": 0}}},
         {"$group": {"_id": "$trading_code", "hi": {"$max": CLOSE_EXPR}, "lo": {"$min": CLOSE_EXPR}}},
     ])
-    return {d["_id"]: {"hi": d.get("hi"), "lo": d.get("lo")} for d in agg}
+    out = {d["_id"]: {"hi": d.get("hi"), "lo": d.get("lo")} for d in agg}
+    # A dividend / bonus record date inside the year knocks the price down by
+    # design; re-derive those codes' range on adjusted prices.
+    out.update(adjusted_52w_ranges(one_year_ago))
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Corporate-action price adjustment (dividends + bonus shares on record dates)
+# ---------------------------------------------------------------------------
+#
+# After a record date the share trades without the cash dividend and with more
+# shares outstanding, so the price drops mechanically: WALTONHIL ৳392 -> ~৳340
+# on 180% cash + 10% bonus, ((392 - 18) / 1.1). Read raw, that drop looked like
+# "market mood against it" and moved the 52-week range. Every price on or before
+# a record date is put on today's footing:  (P - cash per share) / (1 + bonus%).
+
+def adjustment_factor_fn(actions: list[dict]):
+    """f(date_str, price) -> adjusted price, applying every action whose record
+    date is on/after that date (newest last, so they compound correctly)."""
+    acts = sorted(actions or [], key=lambda a: a["record_date"])
+
+    def f(date_str: str, price):
+        if price is None:
+            return None
+        p = float(price)
+        for a in acts:
+            if date_str[:10] <= a["record_date"]:
+                cash = a.get("cash_ps") or 0.0
+                bonus = a.get("stock_pct") or 0.0
+                if cash >= p * 0.9:  # a figure that would wipe out the price is bad data
+                    continue
+                p = (p - cash) / (1.0 + bonus / 100.0)
+        return p
+    return f
+
+
+def adjust_price_rows(rows: list[dict], actions: list[dict]) -> list[dict]:
+    """Copies of price-history rows with ltp/high/low/close/ycp adjusted for the
+    record dates in `actions`; rows changed carry ``adjusted: True``."""
+    if not actions:
+        return rows
+    f = adjustment_factor_fn(actions)
+    out = []
+    for r in rows:
+        d = str(r.get("date") or "")[:10]
+        if not any(d <= a["record_date"] for a in actions):
+            out.append(r)
+            continue
+        nr = dict(r)
+        for k in ("ltp", "high", "low", "close_price", "ycp"):
+            if nr.get(k) is not None:
+                nr[k] = round(f(d, nr[k]), 2)
+        nr["adjusted"] = True
+        out.append(nr)
+    return out
+
+
+@_ttl_cache(900)
+def load_corporate_actions(days: int = 400) -> dict[str, list[dict]]:
+    """{code: [{record_date 'YYYY-MM-DD', cash_pct, stock_pct, cash_ps}]} for
+    record dates in the last `days` days that have already passed. Cash per
+    share = cash % of face value (Tk 10 unless stated)."""
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    since = datetime.utcnow() - timedelta(days=days)
+    faces = {c["trading_code"]: c.get("face_value") for c in load_companies()}
+    out: dict[str, list[dict]] = {}
+    for d in get_db().dividend_declarations.find(
+        {"record_date": {"$gte": since}},
+        {"_id": 0, "trading_code": 1, "record_date": 1, "cash_pct": 1, "stock_pct": 1, "dividend_pct": 1},
+    ):
+        rd = d.get("record_date")
+        rd = rd.strftime("%Y-%m-%d") if hasattr(rd, "strftime") else str(rd or "")[:10]
+        if not rd or rd > today:
+            continue
+        cash = d.get("cash_pct")
+        if cash is None:
+            cash = d.get("dividend_pct")
+        cash = float(cash or 0.0)
+        stock = float(d.get("stock_pct") or 0.0)
+        if cash <= 0 and stock <= 0:
+            continue
+        face = faces.get(d["trading_code"])
+        face = float(face) if isinstance(face, (int, float)) and face > 0 else 10.0
+        out.setdefault(d["trading_code"], []).append({
+            "record_date": rd, "cash_pct": cash, "stock_pct": stock,
+            "cash_ps": round(cash * face / 100.0, 4),
+        })
+    return out
+
+
+def adjusted_52w_ranges(since: str, until: Optional[str] = None) -> dict[str, dict]:
+    """{code: {"hi", "lo"}} on adjusted official closes, only for codes with a
+    record date between `since` and `until` (the codes whose raw range is wrong)."""
+    acts = load_corporate_actions()
+    codes = [c for c, a in acts.items()
+             if any(x["record_date"] >= since and (until is None or x["record_date"] <= until) for x in a)]
+    if not codes:
+        return {}
+    q: dict = {"trading_code": {"$in": codes}, "ltp": {"$gt": 0}, "date": {"$gte": since}}
+    if until:
+        q["date"]["$lte"] = until
+    by_code: dict[str, list[dict]] = {}
+    for d in get_db().stock_prices.find(q, {"_id": 0, "trading_code": 1, "date": 1, "ltp": 1, "close_price": 1, "ycp": 1}):
+        by_code.setdefault(d["trading_code"], []).append(use_official_close(d))
+    out = {}
+    for code, rows in by_code.items():
+        vals = [r["ltp"] for r in adjust_price_rows(rows, acts.get(code, [])) if r.get("ltp")]
+        if vals:
+            out[code] = {"hi": max(vals), "lo": min(vals)}
+    return out
 
 
 @_ttl_cache(300)
@@ -934,67 +1044,17 @@ def compute_signal_flags(
     holdings: list[dict],
     financials: list[dict],
     company: dict,
-) -> dict[str, list[str]]:
-    green_flags: list[str] = []
-    red_flags: list[str] = []
+    news: Optional[list[dict]] = None,
+) -> dict:
+    """Good signs / Watch-outs for the stock page — see services/stock_facts.py.
 
-    # --- Green flags from score ---
-    if score_row:
-        if (score_row.get("p1_eps_consist") or 0) >= 8:
-            green_flags.append("EPS positive 4+ of 5 years")
-        if (score_row.get("p2_cfo") or 0) >= 4:
-            green_flags.append("CFO positive 3+ years")
-        if (score_row.get("p5_consist") or 0) >= 7:
-            green_flags.append("Consistent dividend payer (4+ years)")
-        if (score_row.get("p4_pe") or 0) >= 8:
-            green_flags.append("Currently cheap vs historical P/E")
+    Returns {"green": [en], "red": [en], "items": [{key, tone, en, bn}]}; the
+    English lists stay for older readers (OG card, assistant, dump_facts)."""
+    from backend.services.stock_facts import build_flags
+    from utils.sector import normalize_sector
 
-    # --- Sponsor holding green flag ---
-    if holdings:
-        spon_pct = holdings[0].get("sponsor_director_pct")
-        if spon_pct and spon_pct > 30:
-            green_flags.append(f"Sponsor holding {spon_pct:.1f}% (strong alignment)")
-
-    # --- Red flags ---
-    face_v    = company.get("face_value")
-    reserve_mn = company.get("reserve_surplus_mn")
-    loan_mn    = company.get("total_loan_mn")
-    market_cat = (company.get("market_category") or "").strip()
-
-    # Latest EPS
-    eps_latest = None
-    if financials:
-        for row in reversed(financials):
-            if row.get("eps") is not None:
-                eps_latest = row["eps"]
-                break
-
-    if eps_latest is not None and eps_latest < 0:
-        red_flags.append("Latest EPS is negative")
-
-    if reserve_mn and loan_mn and reserve_mn > 0 and loan_mn > 2 * reserve_mn:
-        red_flags.append("Total loan > 2× reserve surplus")
-
-    # Payout ratio
-    div_pct = None
-    if financials:
-        for row in reversed(financials):
-            if row.get("cash_dividend_pct") is not None:
-                div_pct = row["cash_dividend_pct"]
-                break
-    if div_pct is not None and face_v and eps_latest and eps_latest > 0:
-        dps = div_pct * face_v / 100.0
-        payout = dps / eps_latest * 100
-        if payout > 90:
-            red_flags.append(f"Payout ratio {payout:.0f}% — potentially unsustainable")
-
-    if score_row and (score_row.get("p4_pe") or 5) <= 1.0:
-        red_flags.append("P/E more than 20% above 5yr average")
-
-    if market_cat and market_cat.upper() != "A":
-        red_flags.append(f"Market category: {market_cat} (not 'A')")
-
-    return {"green": green_flags, "red": red_flags}
+    return build_flags(score_row, holdings, financials, company or {}, news,
+                       normalize_sector((company or {}).get("sector") or ""))
 
 
 # ---------------------------------------------------------------------------

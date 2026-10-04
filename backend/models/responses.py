@@ -118,6 +118,9 @@ class CompanyProfile(BaseModel):
 class SignalFlags(BaseModel):
     green: list[str]
     red: list[str]
+    # Bilingual {key, tone: good|watch, en, bn} — what the stock page renders
+    # (services/stock_facts.py). green/red keep the English text for older readers.
+    items: list[dict[str, Any]] = []
 
 
 class DividendDeclaration(BaseModel):
@@ -139,6 +142,7 @@ class RelatedStock(BaseModel):
     div_yield_pct: Optional[float] = None
     roe_pct: Optional[float] = None
     eps_yoy_pct: Optional[float] = None
+    sub_industry: Optional[str] = None
 
 
 class ValuationContext(BaseModel):
@@ -150,6 +154,12 @@ class ValuationContext(BaseModel):
     sector_median_pb: Optional[float] = None
     eps: Optional[float] = None
     sector_implied_price: Optional[float] = None
+    # Which EPS the P/E is on: {"basis": "ttm"|"fy", "en", "bn", "short_en"}
+    eps_basis: Optional[dict[str, Any]] = None
+    # "5-year average" / "average since listing (2022)" — {"en", "bn", "short_en"}
+    own_avg_pe_label: Optional[dict[str, Any]] = None
+    # The ONE valuation verdict for the page: cheap | fair | expensive (P4 bands)
+    verdict: Optional[str] = None
 
 
 class SectorContext(BaseModel):
@@ -169,6 +179,9 @@ class MomentumSnapshot(BaseModel):
     days_counted: Optional[int] = None
     pct_in_52w_range: Optional[float] = None
     momentum_grade: str  # hot|warm|flat|cold|weak_liquidity|unknown
+    # A record date inside the 7-day window: the return above is adjusted for it.
+    # {"record_date", "cash_pct", "stock_pct", "raw_return_7d_pct"}
+    corporate_action: Optional[dict[str, Any]] = None
 
 
 class StockVerdict(BaseModel):
@@ -192,7 +205,9 @@ class FairValue(BaseModel):
     high: Optional[float] = None
     center: Optional[float] = None
     today: Optional[float] = None
-    stance: Optional[str] = None          # cheap | fair | expensive
+    stance: Optional[str] = None          # cheap | fair | expensive — the page's ONE verdict (P4)
+    estimate_stance: Optional[str] = None  # what the rough estimate alone would say
+    estimates_disagree: bool = False      # estimate points the other way to the verdict
     confidence: Optional[str] = None      # low | medium | high
     methods: list[FairValueMethod] = []
     basis_en: Optional[str] = None
@@ -264,6 +279,12 @@ class CompanyDetailResponse(BaseModel):
     bengali_summary: Optional[str] = None  # plain-Bangla "এক নজরে" (cached, generated post-scrape)
     fair_value: Optional[FairValue] = None  # live "value today" box (services/fair_value.py)
     deep_analysis: Optional[DeepAnalysisTeaser] = None  # teaser only; full report on the /analysis sub-page
+    # Bilingual ownership read: {"caption": {tone,en,bn}, "change": {tone,key,en,bn} | None}
+    ownership: Optional[dict[str, Any]] = None
+    # Health Check rows whose generic wording would contradict the numbers, by pillar key
+    health_overrides: dict[str, Any] = {}
+    # {"en", "bn"} when the peer table mixes unlike businesses
+    peer_note: Optional[dict[str, Any]] = None
 
 
 class DeepAnalysisResponse(BaseModel):

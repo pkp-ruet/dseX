@@ -123,8 +123,10 @@ function pillarNumbers(pillarKey: string, detail: CompanyDetail): { label: strin
       const pe = toNum(sr.current_pe as number | null);
       const pb = toNum(sr.current_pb as number | null);
       const avgPe = toNum(sr.own_avg_pe as number | null);
-      push("Current P/E", pe != null ? pe.toFixed(1) : null);
-      push("5-year average P/E", avgPe != null ? avgPe.toFixed(1) : null);
+      const basis = detail.valuation?.eps_basis?.short_en;
+      const avgLabel = detail.valuation?.own_avg_pe_label?.en;
+      push(basis ? `Current P/E (${basis})` : "Current P/E", pe != null ? pe.toFixed(1) : null);
+      push(avgLabel ? `P/E, ${avgLabel}` : "Usual P/E", avgPe != null ? avgPe.toFixed(1) : null);
       push("Current P/B", pb != null ? pb.toFixed(1) : null);
       break;
     }
@@ -140,8 +142,16 @@ export default function HealthCheck({ scoreRow, detail }: Props) {
   const { lang } = useStockLang();
   const isBn = lang === "bn";
 
+  // The backend replaces a band's generic wording when it would contradict the
+  // numbers (profitable every year but "loses money", "low loans" beside loans
+  // bigger than the reserve, "strong dividend" at a 2% yield, banks and "loans").
+  const overrides = detail.health_overrides ?? {};
   const rows = HEALTH_PILLAR_ORDER
-    .map((key) => pillarHealthCheck(key, scoreRow[key] as number | null))
+    .map((key): HealthCheckRow | null => {
+      const base = pillarHealthCheck(key, scoreRow[key] as number | null);
+      const o = overrides[key];
+      return base && o ? { ...base, ...o, pillarKey: key } : base;
+    })
     .filter((r): r is HealthCheckRow => r != null);
 
   if (rows.length === 0) return null;

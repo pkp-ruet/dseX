@@ -1,7 +1,8 @@
 import type { MomentumSnapshot } from "@/lib/api";
 import { momentumSummary, type MomentumTone } from "@/lib/plain-language";
-import { crore } from "@/lib/formatters";
+import { crore, formatDate } from "@/lib/formatters";
 import Card from "@/components/ui/Card";
+import Bn from "@/components/i18n/Bn";
 import SectionTitle from "@/components/stock/SectionTitle";
 
 interface Props {
@@ -26,6 +27,12 @@ export default function MomentumStrip({ momentum }: Props) {
   if (!summary) return null;
 
   const toneColor = TONE_COLOR[summary.tone];
+  // A dividend / bonus record date inside the 7-day window (the return is adjusted for it).
+  const ca = momentum.corporate_action ?? null;
+  const caWhat = ca
+    ? [ca.cash_pct ? `${ca.cash_pct}% cash` : null, ca.stock_pct ? `${ca.stock_pct}% bonus` : null]
+        .filter(Boolean).join(" + ") || "dividend"
+    : "";
   const r7 = momentum.return_7d_pct;
   const rs = momentum.rs_vs_dsex_pct;
   const vr = momentum.volume_ratio;
@@ -85,6 +92,18 @@ export default function MomentumStrip({ momentum }: Props) {
         <p className="text-sm leading-snug mt-3" style={{ color: "var(--text-muted)" }}>
           {summary.line}
         </p>
+        {ca && (
+          <div className="mt-3 rounded-xl px-3 py-2.5 text-sm leading-snug" style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}>
+            <p>
+              Record date {formatDate(ca.record_date)} ({caWhat}) is inside this week. The drop after it is the
+              dividend leaving the price, not selling — the move above is adjusted for it
+              (unadjusted: {signedPct(ca.raw_return_7d_pct)}).
+            </p>
+            <Bn className="mt-1">
+              এই সপ্তাহে রেকর্ড ডেট ছিল ({caWhat})। এরপর দাম কমা মানে লভ্যাংশ দামের বাইরে যাওয়া, বিক্রির চাপ নয় — ওপরের হিসাব সেটা বাদ দিয়ে।
+            </Bn>
+          </div>
+        )}
       </Card>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

@@ -152,6 +152,61 @@ _MATRIX = {
 }
 
 
+# One plain clause per tier — used when the momentum line must be rewritten
+# because the 7-day grade alone would contradict what the price is doing.
+_TIER_SUBJECT = {
+    "excellent": ("Strong company", "The company is financially strong."),
+    "good": ("Good company", "The company is in good financial shape."),
+    "average": ("Average company", "The company's numbers are average — not strong, not weak."),
+    "weak": ("Weak company", "The company's numbers are weak."),
+    "unknown": ("No rating", "We do not have enough data to rate the company."),
+}
+
+# 52-week position (%) at or below which "price rising" must say it is still
+# near the yearly low (BRACBANK: "price slowly rising" at 12% of its range).
+NEAR_LOW_PCT = 20.0
+# A day move (%) against the weekly direction that the tagline must mention
+# (LHB: "price moving up steadily" on a -3.7% day at 2x volume).
+DAY_AGAINST_PCT = 2.0
+
+
+def _price_story(tier: str, grade: str, momentum: Optional[dict],
+                 latest_price: Optional[dict]) -> Optional[tuple[str, str]]:
+    """(tagline, lead) when the plain 7-day grade would mislead, else None.
+    Uses the same window the momentum strip shows (7 days, 52-week position)."""
+    m = momentum or {}
+    pct52 = m.get("pct_in_52w_range")
+    day = (latest_price or {}).get("change_pct")
+    r7 = m.get("return_7d_pct")
+    subj, lead = _TIER_SUBJECT.get(tier, _TIER_SUBJECT["unknown"])
+    rising = grade in ("hot", "warm")
+    if rising and isinstance(day, (int, float)) and day <= -DAY_AGAINST_PCT:
+        return (f"{subj}, price up this week but fell today",
+                f"{lead} The share price rose over the past week, but it fell {abs(day):.1f}% today.")
+    if grade == "cold" and isinstance(day, (int, float)) and day >= DAY_AGAINST_PCT:
+        return (f"{subj}, price down this week but rose today",
+                f"{lead} The share price fell over the past week, but it rose {day:.1f}% today.")
+    if rising and isinstance(pct52, (int, float)) and pct52 <= NEAR_LOW_PCT:
+        up = f" {r7:.1f}%" if isinstance(r7, (int, float)) else ""
+        return (f"{subj}, price bouncing near its 1-year low",
+                f"{lead} The share price rose{up} this week, but it is still near its lowest level of the past year.")
+    return None
+
+
+def _corporate_action_clause(momentum: Optional[dict]) -> Optional[str]:
+    ca = (momentum or {}).get("corporate_action")
+    if not ca:
+        return None
+    parts = []
+    if ca.get("cash_pct"):
+        parts.append(f"{ca['cash_pct']:g}% cash")
+    if ca.get("stock_pct"):
+        parts.append(f"{ca['stock_pct']:g}% bonus")
+    what = " and ".join(parts) or "a dividend"
+    return (f"The share passed its record date for {what} this week — the price drop that "
+            f"follows is the dividend leaving the price, not selling, and the weekly move here is adjusted for it.")
+
+
 def _supporting_clauses(tier: str,
                         score_row: Optional[dict],
                         signal_flags: Optional[dict],
@@ -161,6 +216,25 @@ def _supporting_clauses(tier: str,
     out: list[str] = []
     sr = score_row or {}
     flags = signal_flags or {"green": [], "red": []}
+
+    # Heavy loans lead — the tier lead can no longer claim a healthy balance sheet.
+    level = sr.get("debt_level")
+    if level == "over_mcap":
+        out.append("But its loans are bigger than the whole company's market value — a real risk.")
+    elif level == "over_reserve":
+        out.append("But its loans are bigger than the profit it has saved up over the years.")
+
+    # This year's interim trend leads when it cuts against last year's numbers.
+    iy = sr.get("interim_eps_yoy_pct")
+    label = sr.get("interim_label_en")
+    if isinstance(iy, (int, float)) and label and abs(iy) >= 10:
+        fy = sr.get("eps_yoy_pct")
+        if iy < 0 and isinstance(fy, (int, float)) and fy > 0:
+            out.append(f"Profit rose last year, but so far this year it is down {abs(iy):.0f}% ({label}).")
+        elif iy < 0:
+            out.append(f"Profit so far this year is down {abs(iy):.0f}% on the same months last year ({label}).")
+        else:
+            out.append(f"Profit so far this year is up {iy:.0f}% on the same months last year ({label}).")
 
     # Dividend clause
     p5 = sr.get("p5_div")
@@ -209,7 +283,17 @@ def build_verdict(score_row: Optional[dict],
         _MATRIX[(tier, "unknown")],
     )
 
+    story = _price_story(tier, grade, momentum, latest_price)
+    if story:
+        tagline, lead = story
+    if (score_row or {}).get("debt_level") in ("over_mcap", "over_reserve"):
+        lead = (lead.replace("profits and balance sheet are strong", "profits are strong")
+                    .replace("strong profits and a healthy balance sheet", "strong profits")
+                    .replace("The company's numbers are strong", "The company's profits are strong"))
     sentences = [lead] + _supporting_clauses(tier, score_row, signal_flags, momentum, financials)
+    ca = _corporate_action_clause(momentum)
+    if ca:
+        sentences.insert(1, ca)
 
     return {
         "headline": _TIER_WORD[tier],

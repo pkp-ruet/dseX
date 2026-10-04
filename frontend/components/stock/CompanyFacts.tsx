@@ -41,7 +41,12 @@ export default function CompanyFacts({ detail }: Props) {
   const shares = toNum(profile.total_shares);
   const mcapMn = ltp != null && shares != null && shares > 0 ? (ltp * shares) / 1e6 : null;
   const reserve = toNum(profile.reserve_surplus_mn);
-  const loan = toNum(profile.total_loan_mn);
+  // Banks / finance companies: borrowing (deposits, refinance) IS the business,
+  // so a "Total loan" figure next to the reserve reads as a debt problem it isn't.
+  const sr = detail.score_row ?? {};
+  const isLender = sr.p2_capital != null || /bank|financial institution|leasing/i.test(profile.sector ?? "");
+  const loan = isLender ? null : toNum(profile.total_loan_mn);
+  const debtLevel = typeof sr.debt_level === "string" ? sr.debt_level : null;
   const paidUp = toNum(profile.paid_up_capital_mn);
   const face = toNum(profile.face_value);
   const lot = toNum(profile.market_lot);
@@ -70,7 +75,8 @@ export default function CompanyFacts({ detail }: Props) {
     label: "Total loan",
     value: crore(loan),
     desc: "Debt the company carries",
-    tone: reserve != null && reserve > 0 && loan > 2 * reserve ? "var(--watch)" : undefined,
+    // Same rule as the Health Check and the Watch-outs (scoring_service.debt_load).
+    tone: debtLevel === "over_mcap" || debtLevel === "over_reserve" ? "var(--watch)" : undefined,
   } : null);
   push(shares != null && shares > 0 ? { label: "Shares", value: croreShares(shares), desc: "Total shares listed" } : null);
   push(face != null ? { label: "Face value", value: `৳${face % 1 === 0 ? face.toFixed(0) : face.toFixed(2)}`, desc: "Dividends are a % of this" } : null);

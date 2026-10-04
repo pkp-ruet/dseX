@@ -57,7 +57,8 @@ export function friendlyFlag(flag: string): string {
   if (cat) return `Listed in category ${cat[1]} — not the top tier (A)`;
 
   const map: Record<string, string> = {
-    "EPS positive 4+ of 5 years": "Made profits in 4 out of the last 5 years",
+    // Legacy backend string: it fired for 5-of-5 too, so say nothing it can't back.
+    "EPS positive 4+ of 5 years": "Made a profit in at least 4 of the last 5 years",
     "CFO positive 3+ years": "Generates real cash from its day-to-day business",
     "Consistent dividend payer (4+ years)": "Pays a dividend every year, like clockwork",
     "Currently cheap vs historical P/E": "Currently priced cheaper than its own history",
@@ -269,8 +270,12 @@ export const HEALTH_PILLAR_ORDER = ["p1_biz", "p2_health", "p3_moat", "p4_val", 
 // Profit chart caption
 // ---------------------------------------------------------------------------
 
+// Profit captions count the same 5-year window as the "Made a profit every year
+// for N years" signal (backend stock_facts.profit_years) so the two never disagree.
+const PROFIT_WINDOW = 5;
+
 export function profitTrendCaption(profits: (number | null)[]): string | null {
-  const valid = profits.filter((p): p is number => p != null);
+  const valid = profits.filter((p): p is number => p != null).slice(-PROFIT_WINDOW);
   if (valid.length < 2) return null;
   const positive = valid.filter((p) => p > 0).length;
   const total = valid.length;
@@ -290,7 +295,7 @@ export function profitTrendCaption(profits: (number | null)[]): string | null {
 // ---------------------------------------------------------------------------
 
 export function epsCaption(epsValues: (number | null)[]): string | null {
-  const valid = epsValues.filter((v): v is number => v != null);
+  const valid = epsValues.filter((v): v is number => v != null).slice(-PROFIT_WINDOW);
   if (!valid.length) return null;
   const latest = valid[valid.length - 1];
   const total = valid.length;
@@ -378,9 +383,12 @@ export function ownershipChangeInfo(
   const toS = best.to.toFixed(1);
 
   if (best.delta > 0) {
+    // "Insiders buying" only for the sponsors' own stake. (The backend's
+    // services/stock_facts.py is the primary source; this is the fallback.)
+    const insiders = best.who === "Owners (sponsors)" ? " People close to the company are buying." : "";
     return {
       tone: "positive",
-      caption: `Good sign — ${best.who.toLowerCase()} raised their stake from ${fromS}% to ${toS}%${since}. People close to the company are buying.`,
+      caption: `Good sign — ${best.who.toLowerCase()} raised their stake from ${fromS}% to ${toS}%${since}.${insiders}`,
     };
   }
   return {

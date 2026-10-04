@@ -37,6 +37,18 @@ _SUPPLEMENTARY_TITLE_RE = re.compile(
     r"\(|additional\s+information|correction|revised|clarification|reason\s+for\s+deviation",
     re.IGNORECASE,
 )
+# "Dividend Declaration", "Interim Dividend Declaration" — and GP's
+# "Declaration of Interim Dividend and Audited Q2 Financials", which the plain
+# substring test missed (so GP's 2026 interim never reached the ledger).
+_DECLARATION_TITLE_RE = re.compile(
+    r"Dividend\s+Declaration|Declaration\s+of\s+(?:\w+\s+){0,2}Dividend", re.IGNORECASE
+)
+# "40% Final Cash Dividend (including 18% interim cash dividend which has
+# already been paid ...)": the headline is the YEAR's total. Stored as is, the
+# ledger held 18 (interim) + 40 (final) = 58% for LHB FY2025 instead of 40%.
+_INCLUDES_INTERIM_RE = re.compile(
+    r"including\s+(\d+(?:\.\d+)?)\s*%\s*interim", re.IGNORECASE
+)
 _AMENDMENT_BODY_RE = re.compile(
     r"^\s*(?:refer(?:ring)?\s+to|with\s+reference\s+to)", re.IGNORECASE
 )
@@ -132,10 +144,14 @@ def parse_dividend_parts(body: str) -> tuple[float, float]:
     return cash or 0.0, stock or 0.0
 
 
+def is_declaration_title(title: str) -> bool:
+    return bool(_DECLARATION_TITLE_RE.search(title or ""))
+
+
 def is_declaration_news(item: dict) -> bool:
     """True for news that *is* a dividend declaration (not a follow-up notice)."""
     title = item.get("title") or ""
-    if "Dividend Declaration" not in title:
+    if not is_declaration_title(title):
         return False
     if _SUPPLEMENTARY_TITLE_RE.search(title):
         return False
@@ -147,6 +163,17 @@ def build_declaration_doc(item: dict) -> dict:
     title = item["title"]
     body = item.get("body") or ""
     cash_pct, stock_pct = parse_dividend_parts(body)
+
+    # A final that "includes" an interim already paid: the cash still to come
+    # at THIS record date is the remainder; the year's total is kept alongside.
+    # Interim + this row then sum to the year's total, as everywhere else.
+    declared_total = None
+    inc = _INCLUDES_INTERIM_RE.search(body)
+    if inc and cash_pct:
+        already = float(inc.group(1))
+        if 0 < already < cash_pct:
+            declared_total = cash_pct
+            cash_pct = round(cash_pct - already, 4)
 
     return {
         "trading_code": item["trading_code"],
@@ -160,6 +187,7 @@ def build_declaration_doc(item: dict) -> dict:
         "agm_date": _parse_labelled_date(body, _AGM_LABEL_RE),
         "period_end": _parse_labelled_date(body, _PERIOD_END_LABEL_RE),
         "dividend_type": "Interim" if "Interim" in title else "Final",
+        "declared_total_cash_pct": declared_total,
         "title": title,
         "scraped_at": item["scraped_at"],
     }
@@ -369,7 +397,7 @@ class NewsScraper(BaseScraper):
         """
         candidates = [
             item for item in news_items
-            if "Dividend Declaration" in item.get("title", "")
+            if is_declaration_title(item.get("title", ""))
         ]
         if not candidates:
             return

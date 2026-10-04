@@ -38,6 +38,7 @@ from pymongo import ASCENDING, UpdateOne
 
 from backend.services.db_service import get_db, load_companies, _ttl_cache
 from backend.services.scoring_service import build_scores_df
+from utils.sector import normalize_sector
 
 COLLECTION = "stock_summaries"
 
@@ -114,6 +115,12 @@ def _facts_from_row(rec: dict, company_name: str) -> dict:
         "area_value": _round(rec.get("p4_val")),
         "area_dividend": _round(rec.get("p5_div")),
         "stale_data": bool(rec.get("stale_data")),
+        # This year's interim (year-to-date vs same months last year)
+        "interim_eps_yoy_pct": _round(rec.get("interim_eps_yoy_pct"), 0),
+        "interim_label_bn": rec.get("interim_label_bn"),
+        "interim_nocfps": _round(rec.get("interim_nocfps"), 2),
+        "debt_level": rec.get("debt_level"),
+        "is_lender": normalize_sector(rec.get("sector") or "") in ("BANK", "NBFI"),
     }
 
 
@@ -209,46 +216,76 @@ def _render_bengali(f: dict) -> str:
     elif f.get("quality") == "unrated":
         parts.append("এই কোম্পানিকে পুরোপুরি মূল্যায়ন করার মতো যথেষ্ট তথ্য এখনো নেই।")
 
-    # 3) Profitability
+    # 3) Profitability — this year's interim leads when there is one, so the
+    #    summary never says "profit rose" while the current year is falling.
     eps = f.get("eps")
+    iy, ilab = f.get("interim_eps_yoy_pct"), f.get("interim_label_bn")
     if eps is not None:
         if eps > 0:
             yoy = f.get("eps_yoy_pct")
-            if yoy is not None and yoy >= 15:
+            if iy is not None and ilab and iy <= -10 and yoy is not None and yoy > 0:
+                parts.append(f"কোম্পানিটি লাভজনক; গত বছর মুনাফা বেড়েছিল, কিন্তু এ বছর ({ilab}) আগের বছরের একই সময়ের চেয়ে প্রায় {_num(abs(iy))}% কম।")
+            elif iy is not None and ilab and iy <= -10:
+                parts.append(f"কোম্পানিটি লাভ করছে, তবে এ বছর ({ilab}) মুনাফা আগের বছরের একই সময়ের চেয়ে প্রায় {_num(abs(iy))}% কম।")
+            elif iy is not None and ilab and iy >= 10:
+                parts.append(f"কোম্পানিটি লাভজনক, এবং এ বছর ({ilab}) মুনাফা আগের বছরের একই সময়ের চেয়ে প্রায় {_num(iy)}% বেশি।")
+            elif yoy is not None and yoy >= 15 and iy is None:
                 parts.append("কোম্পানিটি লাভজনক এবং গত বছরের তুলনায় এর মুনাফা বেড়েছে।")
-            elif yoy is not None and yoy <= -15:
+            elif yoy is not None and yoy <= -15 and iy is None:
                 parts.append("কোম্পানিটি লাভ করছে, তবে গত বছরের তুলনায় মুনাফা কিছুটা কমেছে।")
             else:
                 parts.append("কোম্পানিটি লাভজনক।")
         else:
             parts.append("সাম্প্রতিক বছরে কোম্পানিটি লোকসানে ছিল, তাই একটু সাবধানে দেখা ভালো।")
 
-    # 4) Valuation vs sector
-    pe, spe = f.get("pe"), f.get("sector_pe")
-    if pe is not None and spe is not None and spe > 0:
-        if pe <= 0.85 * spe:
-            parts.append("একই ধরনের অন্যান্য কোম্পানির তুলনায় এই শেয়ারটির দাম এখন তুলনামূলক কম।")
-        elif pe >= 1.15 * spe:
-            parts.append("একই ধরনের অন্যান্য কোম্পানির তুলনায় এই শেয়ারটির দাম এখন তুলনামূলক বেশি।")
+    # 4) Valuation — the page's ONE verdict (P4 bands, same as the Value box,
+    #    the Health Check and the Buy/Sell signal).
+    av = f.get("area_value")
+    if av is not None:
+        if av >= 7:
+            parts.append("নিজের অতীত আর একই ধরনের কোম্পানির তুলনায় শেয়ারটির দাম এখন তুলনামূলক কম।")
+        elif av < 4:
+            parts.append("নিজের অতীত আর একই ধরনের কোম্পানির তুলনায় শেয়ারটির দাম এখন তুলনামূলক বেশি।")
         else:
-            parts.append("একই ধরনের অন্যান্য কোম্পানির তুলনায় শেয়ারটির দাম মোটামুটি স্বাভাবিক পর্যায়ে আছে।")
+            parts.append("নিজের অতীত আর একই ধরনের কোম্পানির তুলনায় শেয়ারটির দাম মোটামুটি স্বাভাবিক পর্যায়ে আছে।")
 
-    # 5) Dividend
+    # 5) Financial health — debt wording follows the actual loan load, and
+    #    banks are not described by "loans" (lending is their business). A
+    #    warning goes BEFORE the dividend line so the 5-sentence cap can't cut
+    #    it; a reassurance goes after.
+    ah = f.get("area_health")
+    level = f.get("debt_level")
+    health, warn = None, False
+    if level == "over_mcap":
+        health, warn = "তবে কোম্পানির ঋণ এর পুরো বাজারমূল্যের চেয়েও বেশি, যা বড় ঝুঁকির দিক।", True
+    elif level == "over_reserve":
+        health, warn = "তবে কোম্পানির ঋণ এর জমানো মুনাফার চেয়ে বেশি, যা একটু ঝুঁকির দিক।", True
+    elif ah is not None and f.get("is_lender"):
+        if ah >= 7:
+            health = "ঋণ দেওয়ার পেছনে এর নিজের মূলধনের ভিত মজবুত।"
+        elif ah <= 4:
+            health, warn = "তবে ঋণ দেওয়ার পেছনে এর নিজের মূলধন তুলনামূলক কম, যা একটু ঝুঁকির দিক।", True
+    elif ah is not None:
+        if (f.get("interim_nocfps") or 0) < 0:
+            health, warn = "তবে এ বছর ব্যবসা থেকে যত নগদ এসেছে তার চেয়ে খরচ বেশি হয়েছে।", True
+        elif ah >= 7:
+            health = "এর আর্থিক ভিত মজবুত এবং ঋণের চাপ তুলনামূলক কম।"
+        elif ah <= 4:
+            health, warn = "তবে কোম্পানির ঋণের চাপ তুলনামূলক বেশি, যা একটু ঝুঁকির দিক।", True
+    if health and warn:
+        parts.append(health)
+
+    # 6) Dividend
     dy, adiv = f.get("div_yield_pct"), f.get("area_dividend")
     if dy is not None and dy >= 4:
         parts.append(f"কোম্পানিটি ভালো ডিভিডেন্ড দেয় — বর্তমান দামে বছরে প্রায় {_num(dy)}% রিটার্ন আসে।")
     elif adiv is not None and adiv >= 7:
-        parts.append("কোম্পানিটি নিয়মিতভাবে ডিভিডেন্ড দিয়ে আসছে।")
+        parts.append(f"কোম্পানিটি নিয়মিতভাবে ডিভিডেন্ড দেয়, তবে বর্তমান দামে অঙ্কটা ছোট (বছরে প্রায় {_num(dy)}%)।"
+                     if dy is not None else "কোম্পানিটি নিয়মিতভাবে ডিভিডেন্ড দিয়ে আসছে।")
     elif dy is not None and dy > 0:
         parts.append(f"কোম্পানিটি কিছুটা ডিভিডেন্ড দেয় (বছরে প্রায় {_num(dy)}%)।")
-
-    # 6) Financial health
-    ah = f.get("area_health")
-    if ah is not None:
-        if ah >= 7:
-            parts.append("এর আর্থিক ভিত মজবুত এবং ঋণের চাপ তুলনামূলক কম।")
-        elif ah <= 4:
-            parts.append("তবে কোম্পানির ঋণের চাপ তুলনামূলক বেশি, যা একটু ঝুঁকির দিক।")
+    if health and not warn:
+        parts.append(health)
 
     # 7) Stale-data caution
     if f.get("stale_data"):

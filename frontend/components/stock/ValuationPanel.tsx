@@ -84,7 +84,14 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
   // Ensure selected tab is available
   const activeTab = tabs.some((t) => t.key === tab) ? tab : tabs[0]?.key;
 
-  const caption = valuationCaption(p4);
+  // One verdict for the page — the backend's (P4 bands), which the Value box and
+  // the Health Check use too. The local band fallback is the same cut-offs.
+  const caption = valuationCaption(
+    valuation?.verdict === "cheap" ? 7 : valuation?.verdict === "fair" ? 5 : valuation?.verdict === "expensive" ? 0 : p4,
+  );
+  const epsBasis = valuation?.eps_basis ?? null;
+  const avgLabel = valuation?.own_avg_pe_label?.en ?? "usual level";
+  const avgShort = valuation?.own_avg_pe_label?.short_en ?? "avg";
 
   return (
     <section id="valuation" className="mb-8 stock-anchor">
@@ -101,7 +108,7 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
         {tile(
           "P/E Ratio",
           currentPe != null ? currentPe.toFixed(1) : "—",
-          "Price per ৳1 of yearly earnings",
+          epsBasis ? `Price per ৳1 of earnings, ${epsBasis.en}` : "Price per ৳1 of yearly earnings",
         )}
         {tile(
           "Dividend Yield",
@@ -150,7 +157,7 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
                       y={ownAvgPe}
                       stroke="var(--text-muted)"
                       strokeDasharray="4 4"
-                      label={{ value: `5y avg ${ownAvgPe.toFixed(1)}`, position: peLabelPosition(peData, ownAvgPe), fontSize: 10, fill: "var(--text-muted)" }}
+                      label={{ value: `${avgShort} ${ownAvgPe.toFixed(1)}`, position: peLabelPosition(peData, ownAvgPe), fontSize: 10, fill: "var(--text-muted)" }}
                     />
                   )}
                   <Line type="monotone" dataKey="pe" stroke="var(--primary)" strokeWidth={2.5} dot={{ r: 3 }} />
@@ -159,8 +166,9 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
               {currentPe != null && ownAvgPe != null && (
                 <p className="text-sm mt-3 leading-snug" style={{ color: "var(--text-muted)" }}>
                   {currentPe < ownAvgPe
-                    ? `Trading at ${currentPe.toFixed(1)} — below its 5-year average of ${ownAvgPe.toFixed(1)}.`
-                    : `Trading at ${currentPe.toFixed(1)} — above its 5-year average of ${ownAvgPe.toFixed(1)}.`}
+                    ? `Trading at ${currentPe.toFixed(1)} — below its ${avgLabel} of ${ownAvgPe.toFixed(1)}.`
+                    : `Trading at ${currentPe.toFixed(1)} — above its ${avgLabel} of ${ownAvgPe.toFixed(1)}.`}
+                  {epsBasis?.basis === "ttm" && " (Today's P/E uses the last 12 months of profit; past years use each year's own.)"}
                 </p>
               )}
             </>

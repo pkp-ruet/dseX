@@ -1,7 +1,8 @@
 "use client";
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import type { RelatedStock } from "@/lib/api";
+import type { BiText, RelatedStock } from "@/lib/api";
+import { useStockLang } from "@/context/StockLangContext";
 import { peerStandingCaption } from "@/lib/plain-language";
 import Card from "@/components/ui/Card";
 import ScoreBadge from "@/components/ui/ScoreBadge";
@@ -23,6 +24,8 @@ interface Props {
   current: PeerRow;
   peers: RelatedStock[];
   sector: string | null;
+  /** Shown when the peers are not the same kind of business (services/sub_industry.py). */
+  note?: BiText | null;
 }
 
 type SortKey = "score" | "ltp" | "change_pct" | "pe" | "div_yield_pct" | "roe_pct";
@@ -41,7 +44,9 @@ function fmt(v: number | null, kind: "score" | "price" | "pct" | "ratio"): strin
   }
 }
 
-export default function PeerComparison({ current, peers, sector }: Props) {
+export default function PeerComparison({ current, peers, sector, note = null }: Props) {
+  const { lang } = useStockLang();
+  const isBn = lang === "bn";
   const rows: PeerRow[] = useMemo(() => {
     const peerRows: PeerRow[] = peers.map((p) => ({
       trading_code: p.trading_code,
@@ -109,6 +114,16 @@ export default function PeerComparison({ current, peers, sector }: Props) {
         </>}
         bn="একই সেক্টরের সেরা কোম্পানিগুলোর সাথে তুলনা।"
       />
+
+      {note && (
+        <p
+          className={`text-sm leading-snug mb-3 rounded-xl px-3 py-2.5 ${isBn ? "font-bn" : ""}`}
+          lang={isBn ? "bn" : undefined}
+          style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
+        >
+          {isBn ? note.bn : note.en}
+        </p>
+      )}
 
       <Card padding="none" className="rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
