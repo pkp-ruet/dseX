@@ -5398,34 +5398,14 @@ h2.info-col-header { margin: 0; }
     color: #fff;
     box-shadow: var(--shadow-soft);
   }
-/* ── Dashboard colour system ──
-     Twenty identical white cards read as one grey wall, so every card carries a
-     chapter accent on `--acc`: a gradient hairline across the very top, a
-     whisper of that colour behind the header row, and a gradient icon tile.
-     All three live on the shared DashHeader, so a card opts in with one prop
-     and no card markup changes. Accents are decorative ONLY — green/red and
-     the tier colours stay locked to market meaning (see accents.ts). */
+/* ── Dashboard card header (2026-10 redesign) ──
+     The per-card accent hairline, tinted header row and gradient icon tile
+     were removed: colour is for meaning, not for telling cards apart. The
+     header is a plain row with a neutral icon; space and hairlines separate
+     the blocks. `--acc` is still set by DashHeader but nothing paints it. */
 .dash-head {
     position: relative;
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--acc, var(--primary)) 9%, transparent) 0%,
-      transparent 100%
-    );
   }
-.dash-head::before {
-    content: "";
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 3px;
-    background: linear-gradient(
-      90deg,
-      var(--acc, var(--primary)) 0%,
-      color-mix(in srgb, var(--acc, var(--primary)) 30%, transparent) 55%,
-      transparent 92%
-    );
-  }
-/* Small sibling of the landing page's .icon-tile, sized for a card header. */
 .dash-tile {
     display: inline-grid;
     place-items: center;
@@ -5433,20 +5413,32 @@ h2.info-col-header { margin: 0; }
     height: 1.6rem;
     border-radius: var(--radius);
     flex-shrink: 0;
-    color: #fff;
-    background: linear-gradient(
-      135deg,
-      var(--acc, var(--primary)),
-      color-mix(in srgb, var(--acc, var(--primary)) 62%, #000)
-    );
-    box-shadow: var(--shadow-soft);
+    color: var(--text-muted);
+    background: var(--surface-2);
   }
+/* Flat blocks on phones (2026-10 redesign, decision 5): every dashboard card
+   below 640px is a full-bleed section — no box, a hairline on top — so the
+   rich page reads as one daily read, not a wall of tiles. `.dash-box` keeps
+   the box (money hero, today's ideas, rail cards). `-16px` = the root
+   layout's px-4 gutter on phones. */
+@media (max-width: 639px) {
+  .dash-section .soft-card:not(.dash-box) {
+    background: transparent;
+    border: 0;
+    border-top: 1px solid var(--border);
+    border-radius: 0;
+    box-shadow: none;
+    margin-inline: -16px;
+  }
+  .dash-section .soft-card:not(.dash-box) .dash-head { border-bottom-color: transparent; }
+}
 .dash-tile-lg { width: 1.9rem; height: 1.9rem; border-radius: var(--radius); }
 /* Rank/serial pill tinted with the card's accent instead of flat grey. */
 /* Ambient wash behind the hero. Like .hero-glow it MUST stay inside its own
      box — `inset-inline: 0`, never a negative inset, or the page pans
      sideways on a phone. */
 .dash-glow {
+    display: none; /* 2026-10 redesign: no ambient wash behind the hero */
     position: absolute;
     inset-inline: 0;
     top: -3rem;

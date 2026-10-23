@@ -113,7 +113,7 @@ export default function MoneyHero({
 
   return (
     <section
-      className={`soft-card acc-top overflow-hidden ${bn ? "font-bn" : ""}`}
+      className={`soft-card dash-box overflow-hidden ${bn ? "font-bn" : ""}`}
       style={accVars(ACC.clay)}
       lang={bn ? "bn" : undefined}
     >
@@ -222,7 +222,7 @@ export default function MoneyHero({
  */
 export function MoneyHeroSkeleton({ greeting }: { greeting?: ReactNode }) {
   return (
-    <section className="soft-card overflow-hidden">
+    <section className="soft-card dash-box overflow-hidden">
       {greeting && (
         <div className="border-b border-border px-4 pb-3 pt-4 sm:px-5">{greeting}</div>
       )}

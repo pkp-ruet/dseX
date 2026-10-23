@@ -97,7 +97,7 @@ export default function TodaysIdeas({
   if (rows.length === 0) return null;
 
   return (
-    <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
+    <section className={`soft-card dash-box overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
       <DashHeader
         accent={ACC.clay} icon={<IconSparkle size={15} />}
         title={t(lang, tuned ? "ideasTitleTuned" : "ideasTitle")}

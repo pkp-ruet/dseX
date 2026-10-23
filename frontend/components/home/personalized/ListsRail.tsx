@@ -87,7 +87,7 @@ export default function ListsRail({
         {cards.map((c) => {
           const best = chances.best === c.key;
           return (
-            <article key={c.key} className="soft-card acc-top w-64 overflow-hidden sm:w-72" style={accVars(c.color)}>
+            <article key={c.key} className="soft-card dash-box w-64 overflow-hidden sm:w-72" style={accVars(c.color)}>
               <div className="flex items-start gap-2.5 px-4 pt-4">
                 <span className="dash-tile dash-tile-lg" aria-hidden>
                   {c.icon}

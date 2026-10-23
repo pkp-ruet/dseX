@@ -88,7 +88,7 @@ function SectionLabel({ children, lang }: { children: React.ReactNode; lang: Lan
  *  in flight so the section doesn't pop in. */
 function IdeasSkeleton() {
   return (
-    <div className="soft-card overflow-hidden" aria-hidden>
+    <div className="soft-card dash-box overflow-hidden" aria-hidden>
       <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5">
         <div className="h-3.5 w-40 animate-pulse rounded-full bg-surface-2" />
         <div className="h-3.5 w-16 animate-pulse rounded-full bg-surface-2" />

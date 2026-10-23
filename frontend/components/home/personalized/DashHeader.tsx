@@ -3,9 +3,9 @@ import Link from "next/link";
 import { accVars } from "@/components/home/personalized/accents";
 
 /**
- * The one card header used across the logged-in dashboard — gradient icon tile,
- * small uppercase title, optional chips beside it, optional right-hand link or
- * slot. Every card (money, attention, your stocks, ideas, market today) uses
+ * The one card header used across the logged-in dashboard — neutral icon,
+ * sentence-case title (2026-10 redesign; it was an uppercase label on a tinted
+ * row), optional chips beside it, optional right-hand link or slot. Every card (money, attention, your stocks, ideas, market today) uses
  * this so the page reads as one system instead of four header styles.
  *
  * It also carries the card's colour: `accent` sets `--acc`, which paints the
@@ -51,7 +51,7 @@ export default function DashHeader({
             {icon}
           </span>
         )}
-        <Tag className="min-w-0 truncate text-xs font-bold uppercase tracking-[0.12em] text-text-main">{title}</Tag>
+        <Tag className="min-w-0 truncate text-base font-bold text-text-main">{title}</Tag>
         {chips}
       </span>
       {right ??
@@ -59,8 +59,7 @@ export default function DashHeader({
           <Link
             href={href}
             prefetch={false}
-            className="shrink-0 text-xs font-semibold hover:underline active:opacity-70"
-            style={{ color: "var(--acc, var(--primary))" }}
+            className="inline-flex min-h-10 shrink-0 items-center text-sm font-semibold text-primary-ink hover:underline active:opacity-70"
           >
             {linkLabel} →
           </Link>
@@ -82,13 +81,7 @@ export function HeaderChip({
   className?: string;
 }) {
   return tone === "accent" ? (
-    <span
-      className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-extrabold ${className}`}
-      style={{
-        color: "var(--acc, var(--primary))",
-        background: "color-mix(in srgb, var(--acc, var(--primary)) 13%, transparent)",
-      }}
-    >
+    <span className={`shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary-ink ${className}`}>
       {children}
     </span>
   ) : (

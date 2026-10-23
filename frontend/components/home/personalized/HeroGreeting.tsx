@@ -50,14 +50,14 @@ export default function HeroGreeting({
   const greeting = isNew ? t(lang, "welcome") : greetingForHour(bstHour(), lang);
   const who = name ? (
     <>
-      , <span className="normal-case text-primary">{name}</span>
+      , <span className="text-text-main">{name}</span>
     </>
   ) : null;
 
   return (
     <div lang={bn ? "bn" : undefined} className={bn ? "font-bn" : undefined}>
       <div className="flex items-start justify-between gap-2">
-        <p className="min-w-0 flex-1 truncate pt-1 text-xs font-semibold uppercase tracking-[0.12em] text-text-muted">
+        <p className="min-w-0 flex-1 truncate pt-1 text-xs font-semibold text-text-muted">
           {dateStr} · {greeting}
           {who}
         </p>

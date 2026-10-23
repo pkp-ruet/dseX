@@ -20,7 +20,7 @@ export default function MoneyHeroGhost({ greeting, lang = "en" }: { greeting?: R
   const bn = lang === "bn";
   return (
     <section
-      className={`soft-card acc-top overflow-hidden ${bn ? "font-bn" : ""}`}
+      className={`soft-card dash-box overflow-hidden ${bn ? "font-bn" : ""}`}
       style={accVars(ACC.clay)}
       lang={bn ? "bn" : undefined}
     >
