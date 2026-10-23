@@ -53,11 +53,12 @@ export default function LoginForm() {
     <div className="page-form pb-8">
       <PageHeader
         size="article"
-        title="Sign In"
+        title="Sign in"
         bn="আবার স্বাগতম — লগইন করলে আপনার ওয়াচলিস্ট আর পোর্টফোলিও সব ডিভাইসে পাবেন।"
         lead="Welcome back to TopStockBD"
       />
-      <div>
+      {/* One centred form card (2026-10 redesign, step 9) */}
+      <div className="soft-card p-5 sm:p-6">
 
         <GoogleSignInButton onSuccess={handleGoogleSuccess} onError={setError} />
         <div className="auth-divider my-5">or</div>

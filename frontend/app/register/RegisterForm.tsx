@@ -89,11 +89,12 @@ export default function RegisterForm() {
     <div className="page-form pb-8">
       <PageHeader
         size="article"
-        title="Create Account"
+        title="Create your account"
         bn="একদম ফ্রি — অ্যাকাউন্ট খুললে আপনার ওয়াচলিস্ট সব ডিভাইসে একসাথে থাকবে।"
         lead="Free forever. Sync your watchlist across devices."
       />
-      <div>
+      {/* One centred form card (2026-10 redesign, step 9) */}
+      <div className="soft-card p-5 sm:p-6">
 
         {saveCode && (
           <div className="mb-5 rounded-lg border border-primary/40 bg-primary/10 px-3 py-2.5 text-sm text-text-main">
