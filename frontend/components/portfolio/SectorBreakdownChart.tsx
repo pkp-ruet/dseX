@@ -62,7 +62,7 @@ export default function SectorBreakdownChart({ analysis, lang = "en" }: Props) {
           </svg>
         </span>
         <h3
-          className={`text-sm sm:text-base uppercase tracking-wider font-bold text-text-main ${bnText}`}
+          className={`text-sm sm:text-base   font-bold text-text-main ${bnText}`}
         >
           {t.title}
         </h3>
@@ -88,7 +88,7 @@ export default function SectorBreakdownChart({ analysis, lang = "en" }: Props) {
                   <span className="font-semibold text-text-main truncate">{s.name}</span>
                   {isOver40 && (
                     <span
-                      className={`shrink-0 rounded-sm border border-watch/30 bg-watch/15 px-1.5 py-0.5 text-xs font-bold uppercase tracking-wider text-watch ${bnText}`}
+                      className={`shrink-0 rounded-sm border border-watch/30 bg-watch/15 px-1.5 py-0.5 text-xs font-bold   text-watch ${bnText}`}
                     >
                       {t.heavy}
                     </span>

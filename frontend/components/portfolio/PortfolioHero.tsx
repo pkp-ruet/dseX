@@ -186,7 +186,7 @@ function HeroDonut({ slices, holdingsCount }: { slices: HeroSlice[]; holdingsCou
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
         <span className="text-xl font-black text-text-main leading-none nums">{holdingsCount}</span>
-        <span className="text-xs uppercase tracking-wider text-text-muted font-bold mt-0.5">
+        <span className="text-xs   text-text-muted font-bold mt-0.5">
           {holdingsCount === 1 ? "stock" : "stocks"}
         </span>
       </div>
@@ -213,24 +213,16 @@ export default function PortfolioHero({
 
   const up = pnl != null && pnl > 0;
   const down = pnl != null && pnl < 0;
-  const accent = up ? "var(--positive)" : down ? "var(--negative)" : "var(--primary)";
 
   return (
     <section
       className="pf-rise soft-card relative overflow-hidden p-5 sm:p-7"
-      style={{
-        background: `
-          radial-gradient(120% 130% at 0% 0%, color-mix(in srgb, ${accent} 9%, transparent) 0%, transparent 55%),
-          radial-gradient(110% 120% at 100% 100%, color-mix(in srgb, ${accent} 5%, transparent) 0%, transparent 50%),
-          var(--surface)`,
-        borderColor: `color-mix(in srgb, ${accent} 22%, var(--border))`,
-      }}
     >
       <div className="flex items-start justify-between gap-5">
         <div className="min-w-0 flex-1">
           {/* Label + privacy toggle */}
           <div className="flex items-center gap-2">
-            <p className="text-xs sm:text-xs uppercase tracking-[0.16em] font-bold text-text-muted">
+            <p className="text-xs sm:text-xs   font-bold text-text-muted">
               {hasValue ? "Portfolio Value" : "Invested So Far"}
             </p>
             <Button

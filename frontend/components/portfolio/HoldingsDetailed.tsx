@@ -95,7 +95,7 @@ export default function HoldingsDetailed({ analysis, lang = "en" }: Props) {
         </span>
         <div className="min-w-0 flex-1">
           <h3
-            className={`text-sm sm:text-base uppercase tracking-wider font-bold text-text-main ${bnText}`}
+            className={`text-sm sm:text-base   font-bold text-text-main ${bnText}`}
           >
             {t.title}
           </h3>
@@ -158,7 +158,7 @@ export default function HoldingsDetailed({ analysis, lang = "en" }: Props) {
               </div>
               {h.score != null && (
                 <div className="flex shrink-0 flex-col items-center gap-1">
-                  <p className={`text-xs uppercase tracking-wider text-text-muted font-bold ${bnText}`}>
+                  <p className={`text-xs   text-text-muted font-bold ${bnText}`}>
                     {t.overall}
                   </p>
                   <ScoreBadge score={h.score} size="md" />
@@ -177,7 +177,7 @@ export default function HoldingsDetailed({ analysis, lang = "en" }: Props) {
                 </p>
                 {summariesBn[h.code] && (
                   <div className="mt-3 pt-3 border-t border-dashed border-border">
-                    <p className="text-xs uppercase tracking-wider font-bold text-primary mb-1">
+                    <p className="text-xs   font-bold text-primary mb-1">
                       এক নজরে
                     </p>
                     <p lang="bn" className="font-bn text-sm text-text-main">

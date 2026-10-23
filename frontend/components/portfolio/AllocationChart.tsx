@@ -116,7 +116,7 @@ export default function AllocationChart({ analysis, lang = "en" }: Props) {
           </svg>
         </span>
         <h3
-          className={`text-sm sm:text-base uppercase tracking-wider font-bold text-text-main ${bnText}`}
+          className={`text-sm sm:text-base   font-bold text-text-main ${bnText}`}
         >
           {t.title}
         </h3>
@@ -169,7 +169,7 @@ export default function AllocationChart({ analysis, lang = "en" }: Props) {
           </ResponsiveContainer>
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <span
-              className={`text-xs uppercase tracking-wider text-text-muted font-bold ${bnText}`}
+              className={`text-xs   text-text-muted font-bold ${bnText}`}
             >
               {basis === "invested" ? t.centerInvested : t.centerValue}
             </span>

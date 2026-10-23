@@ -3906,8 +3906,7 @@ a:hover .ticker-tag,
 .atp-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(4, 8, 18, 0.72);
-  backdrop-filter: blur(4px);
+  background: rgb(var(--text-rgb) / 0.45);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -3926,6 +3925,20 @@ a:hover .ticker-tag,
   max-height: calc(100dvh - 32px);
   overflow: hidden auto; /* x clipped for the rounded corners, y scrolls */
 }
+/* Phones: the stock-page dialogs (add to portfolio, price alert) open as a
+   bottom sheet, like components/ui/Sheet (2026-10 redesign, step 7). */
+@media (max-width: 639px) {
+  .atp-modal-backdrop { align-items: flex-end; padding: 0; }
+  .atp-modal {
+    max-width: none;
+    border-bottom: 0;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    max-height: calc(100dvh - 48px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    animation: sheet-up 0.18s ease-out;
+  }
+}
+@media (prefers-reduced-motion: reduce) { .atp-modal { animation: none; } }
 .atp-modal-header {
   display: flex;
   align-items: center;
@@ -3940,8 +3953,8 @@ a:hover .ticker-tag,
   margin: 0;
 }
 .atp-close {
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;

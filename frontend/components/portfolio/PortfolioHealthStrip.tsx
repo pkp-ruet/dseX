@@ -135,7 +135,7 @@ export default function PortfolioHealthStrip({
         {/* Verdict */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <p className={`text-xs uppercase tracking-wider font-bold text-text-muted ${bnText}`}>
+            <p className={`text-xs   font-bold text-text-muted ${bnText}`}>
               {t.health}
             </p>
             <button
@@ -171,7 +171,7 @@ export default function PortfolioHealthStrip({
           return (
             <div key={s.label} className="flex flex-col gap-1.5">
               <div className="flex items-baseline justify-between gap-1">
-                <span className={`text-xs uppercase tracking-wider font-bold text-text-main ${bnText}`}>
+                <span className={`text-xs   font-bold text-text-main ${bnText}`}>
                   {s.label}
                 </span>
                 <span className="text-sm font-black tabular-nums nums" style={{ color: a }}>

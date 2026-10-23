@@ -129,11 +129,11 @@ export default function PremiumPage() {
               <Bn className="text-sm text-text-muted mb-3">{r.bn}</Bn>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-text-muted">Free</p>
+                  <p className="text-xs font-bold   text-text-muted">Free</p>
                   <p className="text-sm text-text-main leading-relaxed">{r.free}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-primary">Premium</p>
+                  <p className="text-xs font-bold   text-primary">Premium</p>
                   <p className="text-sm text-text-main leading-relaxed">{r.premium}</p>
                 </div>
               </div>

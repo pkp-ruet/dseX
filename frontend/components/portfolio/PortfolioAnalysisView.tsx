@@ -112,14 +112,7 @@ export default function PortfolioAnalysisView({
     >
       {/* Verdict hero */}
       <section
-        className="relative overflow-hidden border rounded-xl p-5 sm:p-7"
-        style={{
-          background: `
-            radial-gradient(120% 130% at 0% 0%, color-mix(in srgb, ${accent} 10%, transparent) 0%, transparent 55%),
-            radial-gradient(110% 120% at 100% 100%, color-mix(in srgb, ${accent} 5%, transparent) 0%, transparent 50%),
-            var(--surface)`,
-          borderColor: `color-mix(in srgb, ${accent} 30%, var(--border))`,
-        }}
+        className="soft-card relative overflow-hidden p-5 sm:p-7"
       >
         {/* English / বাংলা toggle */}
         {onLangChange && (
@@ -156,7 +149,7 @@ export default function PortfolioAnalysisView({
               {analysis.grade}
             </span>
             <span
-              className={`text-xs sm:text-xs uppercase tracking-wider mt-1.5 font-bold ${bnText}`}
+              className={`text-xs sm:text-xs   mt-1.5 font-bold ${bnText}`}
             >
               {bnMode ? GRADE_LABEL_BN[analysis.gradeLabel] : analysis.gradeLabel}
             </span>
@@ -166,7 +159,7 @@ export default function PortfolioAnalysisView({
           {/* sm:pr reserves room for the absolute English/বাংলা toggle in the corner */}
           <div className={`flex-1 min-w-0 w-full ${onLangChange ? "sm:pr-36" : ""}`}>
             <p
-              className={`text-xs sm:text-xs uppercase tracking-[0.18em] font-bold mb-2 ${bnText}`}
+              className={`text-xs sm:text-xs   font-bold mb-2 ${bnText}`}
               style={{ color: accent }}
             >
               {t.verdict}
@@ -309,7 +302,7 @@ function SubScore({
       {/* Stacked on phones: "QUALITY" + "7.5/10" cannot share a 90px column */}
       <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-x-1">
         <span
-          className={`text-xs sm:text-xs uppercase tracking-wider font-bold text-text-main ${bnText}`}
+          className={`text-xs sm:text-xs   font-bold text-text-main ${bnText}`}
         >
           {label}
         </span>

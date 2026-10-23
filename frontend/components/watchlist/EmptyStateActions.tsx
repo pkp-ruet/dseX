@@ -70,7 +70,7 @@ export default function EmptyStateActions({ compact = false, onAdded }: Props = 
   return (
     <div className={`text-left ${compact ? "mt-3" : "mt-5"}`}>
       {!compact && (
-        <p className="mb-2.5 text-xs font-bold uppercase tracking-[0.14em] text-text-muted">
+        <p className="mb-2.5 text-xs font-bold   text-text-muted">
           Suggested to follow
         </p>
       )}

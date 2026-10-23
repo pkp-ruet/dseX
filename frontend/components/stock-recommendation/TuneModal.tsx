@@ -51,7 +51,7 @@ export default function TuneModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-text-main/40 p-0 sm:p-4"
       role="dialog"
       aria-modal="true"
       onClick={() => !submitting && onClose()}

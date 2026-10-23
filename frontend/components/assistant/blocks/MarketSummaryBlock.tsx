@@ -26,7 +26,7 @@ export default function MarketSummaryBlock({
 
       <div className="flex items-center justify-between gap-3">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+          <div className="text-xs font-semibold   text-text-muted">
             DSEX Index
           </div>
           <div className="text-xl font-extrabold nums text-text-main">

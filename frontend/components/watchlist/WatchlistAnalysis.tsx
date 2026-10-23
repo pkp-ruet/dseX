@@ -38,7 +38,7 @@ function CodeChip({ code }: { code: string }) {
     <Link
       prefetch={false}
       href={`/stock/${code}`}
-      className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold tracking-wider bg-primary/15 text-primary hover:bg-primary/25 transition-colors mx-0.5"
+      className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold  bg-primary/15 text-primary hover:bg-primary/25 transition-colors mx-0.5"
     >
       {code}
     </Link>
@@ -208,7 +208,7 @@ function StatTile({
 }) {
   return (
     <div className="rounded-xl border border-border bg-surface-2 px-3 py-2.5">
-      <div className="text-xs font-bold uppercase tracking-[0.08em] text-text-muted">
+      <div className="text-xs font-bold   text-text-muted">
         {label}
       </div>
       <div className="mt-0.5 text-xl font-bold nums leading-tight" style={color ? { color } : { color: "var(--text)" }}>
@@ -270,7 +270,7 @@ function TierMixBar({ counts, total }: { counts: Record<TierKey, number>; total:
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-x-2">
-        <span className="text-xs font-bold uppercase tracking-[0.08em] text-text-muted">
+        <span className="text-xs font-bold   text-text-muted">
           Quality mix
         </span>
         <span lang="bn" className="font-bn text-xs font-semibold text-text-muted">
@@ -549,7 +549,7 @@ export default function WatchlistAnalysis({
   const header = (
     <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-1">
       <div>
-        <h2 className="text-xs font-bold uppercase tracking-[0.15em] text-primary">
+        <h2 className="text-xs font-bold   text-primary">
           Watchlist Story
         </h2>
         <p lang="bn" className="font-bn text-sm font-semibold leading-snug text-text-muted">

@@ -95,73 +95,10 @@ export default function ProfileClient() {
       />
 
       <div className="flex flex-col gap-4">
-        {/* Display name */}
-        <div className="bg-surface border border-border rounded-xl p-4">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-text-muted uppercase tracking-wider">Name</span>
-            {!editingName && (
-              <button
-                type="button"
-                onClick={() => setEditingName(true)}
-                className="btn-link btn-sm -my-2"
-              >
-                Edit
-              </button>
-            )}
-          </div>
-
-          {editingName ? (
-            <div className="flex flex-col gap-2 mt-1">
-              <input
-                type="text"
-                value={nameInput}
-                onChange={(e) => setNameInput(e.target.value)}
-                className="input-field text-sm"
-                placeholder="Your name"
-                autoFocus
-              />
-              {saveError && <p className="text-xs font-semibold text-negative" role="alert">{saveError}</p>}
-              <div className="flex gap-2">
-                <button
-                  onClick={handleSaveName}
-                  disabled={saving}
-                  className="btn-primary btn-sm"
-                >
-                  {saving ? "Saving…" : "Save"}
-                </button>
-                <button
-                  onClick={() => { setEditingName(false); setNameInput(user.display_name ?? ""); setSaveError(""); }}
-                  className="btn-quiet btn-sm"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <p className="text-text-main font-medium mt-1">
-              {user.display_name || <span className="text-text-muted italic">Not set</span>}
-            </p>
-          )}
-        </div>
-
-        {/* Email / phone */}
-        <div className="bg-surface border border-border rounded-xl p-4">
-          <span className="text-xs text-text-muted uppercase tracking-wider">
-            {user.email ? "Email" : "Phone"}
-          </span>
-          <p className="text-text-main font-medium mt-1">{identifier}</p>
-        </div>
-
-        {/* Member since */}
-        <div className="bg-surface border border-border rounded-xl p-4">
-          <span className="text-xs text-text-muted uppercase tracking-wider">Member since</span>
-          <p className="text-text-main font-medium mt-1">{joinedDate}</p>
-        </div>
-
         {/* Your plan */}
-        <div className="bg-surface border border-border rounded-xl p-4">
+        <div className="soft-card p-4">
           <div className="flex items-center justify-between gap-3 mb-2">
-            <span className="text-xs text-text-muted uppercase tracking-wider">Your plan</span>
+            <span className="text-xs font-semibold text-text-muted">Your plan</span>
             <Link href={PREMIUM_PATH} className="text-sm font-semibold text-primary">
               What&apos;s in Premium
             </Link>
@@ -169,15 +106,81 @@ export default function ProfileClient() {
           <PremiumPlanCta />
         </div>
 
-        {/* Watchlist */}
-        <div className="bg-surface border border-border rounded-xl p-4 flex items-center justify-between">
-          <div>
-            <span className="text-xs text-text-muted uppercase tracking-wider">Watchlist</span>
-            <p className="text-text-main font-medium mt-1">{watchCount} stocks</p>
+        {/* Account — one grouped list (settings-app style), rows split by hairlines */}
+        <div className="soft-card divide-y divide-border overflow-hidden">
+          {/* Display name */}
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-semibold text-text-muted">Name</span>
+              {!editingName && (
+                <button
+                  type="button"
+                  onClick={() => setEditingName(true)}
+                  className="btn-link btn-sm -my-2"
+                >
+                  Edit
+                </button>
+              )}
+            </div>
+
+            {editingName ? (
+              <div className="flex flex-col gap-2 mt-1">
+                <input
+                  type="text"
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  className="input-field text-sm"
+                  placeholder="Your name"
+                  autoFocus
+                />
+                {saveError && <p className="text-xs font-semibold text-negative" role="alert">{saveError}</p>}
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSaveName}
+                    disabled={saving}
+                    className="btn-primary btn-sm"
+                  >
+                    {saving ? "Saving…" : "Save"}
+                  </button>
+                  <button
+                    onClick={() => { setEditingName(false); setNameInput(user.display_name ?? ""); setSaveError(""); }}
+                    className="btn-quiet btn-sm"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-text-main font-medium mt-1">
+                {user.display_name || <span className="text-text-muted italic">Not set</span>}
+              </p>
+            )}
           </div>
-          <Link href="/watchlist" className="btn-quiet btn-sm">
-            View
-          </Link>
+
+          {/* Email / phone */}
+          <div className="p-4">
+            <span className="text-xs font-semibold text-text-muted">
+              {user.email ? "Email" : "Phone"}
+            </span>
+            <p className="text-text-main font-medium mt-1">{identifier}</p>
+          </div>
+
+          {/* Member since */}
+          <div className="p-4">
+            <span className="text-xs font-semibold text-text-muted">Member since</span>
+            <p className="text-text-main font-medium mt-1">{joinedDate}</p>
+          </div>
+
+          {/* Watchlist */}
+          <div className="p-4 flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-text-muted">Watchlist</span>
+              <p className="text-text-main font-medium mt-1">{watchCount} stocks</p>
+            </div>
+            <Link href="/watchlist" className="btn-quiet btn-sm">
+              View
+            </Link>
+          </div>
         </div>
 
         {/* Notifications */}

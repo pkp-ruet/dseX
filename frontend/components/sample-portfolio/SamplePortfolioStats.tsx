@@ -62,7 +62,7 @@ function Stat({
 }) {
   return (
     <Card padding="none" className="p-4">
-      <p className="text-xs text-text-muted uppercase tracking-wider mb-1">{label}</p>
+      <p className="text-xs text-text-muted   mb-1">{label}</p>
       <p className={`text-base sm:text-lg font-bold nums ${valueClass ?? "text-text-main"}`}>
         {value}
       </p>

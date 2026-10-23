@@ -125,7 +125,7 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onC
               onChange={(e) => handleCodeInput(e.target.value)}
               onKeyDown={handleCodeKeyDown}
               onBlur={() => setTimeout(() => setSuggestions([]), 150)}
-              className="input-field text-base sm:text-lg uppercase font-mono py-2.5"
+              className="input-field text-base sm:text-lg  font-mono py-2.5"
               maxLength={20}
               autoComplete="off"
               required

@@ -56,7 +56,7 @@ export default function RebalanceHelper({ plan, lang = "en" }: Props) {
         </span>
         <div className="min-w-0 flex-1">
           <h3
-            className={`text-sm sm:text-base uppercase tracking-wider font-bold text-text-main ${bnText}`}
+            className={`text-sm sm:text-base   font-bold text-text-main ${bnText}`}
           >
             {t.title}
           </h3>

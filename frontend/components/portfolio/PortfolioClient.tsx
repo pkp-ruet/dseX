@@ -325,7 +325,7 @@ function DividendIncomeCard({
           </svg>
         </span>
         <div>
-          <h2 className="text-base sm:text-lg font-semibold text-text-main uppercase tracking-wider leading-tight">
+          <h2 className="text-base sm:text-lg font-semibold text-text-main   leading-tight">
             Dividend Income
           </h2>
           <p className="text-xs text-text-muted mt-0.5">
@@ -350,7 +350,7 @@ function DividendIncomeCard({
       {upcoming.length > 0 && (
         <div className={income > 0 ? "border-t border-border pt-3" : ""}>
           <div className="flex items-baseline justify-between gap-2 mb-2">
-            <p className="text-xs uppercase tracking-wider font-semibold text-text-muted">
+            <p className="text-xs   font-semibold text-text-muted">
               Coming up on your stocks
             </p>
             {totalPayout > 0 && (
@@ -482,7 +482,7 @@ function SectionHeader({
         {icon}
       </span>
       <div className="min-w-0 flex-1">
-        <h2 className="text-sm sm:text-base uppercase tracking-wider font-bold text-text-main leading-tight">
+        <h2 className="text-sm sm:text-base   font-bold text-text-main leading-tight">
           {title}
         </h2>
         {subtitle && <p className="text-xs sm:text-sm text-text-muted mt-0.5">{subtitle}</p>}
@@ -1133,19 +1133,19 @@ export default function PortfolioClient() {
               {/* Metric strip */}
               <div className="mt-2.5 grid grid-cols-4 gap-1 text-center rounded-lg py-2 px-1 bg-[color-mix(in_srgb,var(--primary)_5%,var(--surface))]">
                 <div>
-                  <p className="text-xs text-text-muted uppercase tracking-wide">Qty</p>
+                  <p className="text-xs text-text-muted  ">Qty</p>
                   <p className="pv text-xs text-text-main tabular-nums nums font-medium mt-0.5">{row.holding.qty.toLocaleString()}</p>
                 </div>
                 <div className="border-l border-border">
-                  <p className="text-xs text-text-muted uppercase tracking-wide">Avg</p>
+                  <p className="text-xs text-text-muted  ">Avg</p>
                   <p className="pv text-xs text-text-main tabular-nums nums font-medium mt-0.5">{taka(row.holding.buy_price, 2)}</p>
                 </div>
                 <div className="border-l border-border">
-                  <p className="text-xs text-text-muted uppercase tracking-wide">LTP</p>
+                  <p className="text-xs text-text-muted  ">LTP</p>
                   <p className="text-xs text-text-main tabular-nums nums font-medium mt-0.5">{row.ltp != null ? taka(row.ltp, 1) : "—"}</p>
                 </div>
                 <div className="border-l border-border">
-                  <p className="text-xs text-text-muted uppercase tracking-wide">Value</p>
+                  <p className="text-xs text-text-muted  ">Value</p>
                   {/* takaCompact: a ৳10-crore+ position was one unbreakable 11-char token crossing the divider */}
                   <p className="pv text-xs text-text-main tabular-nums nums font-bold mt-0.5">{row.current_value != null ? takaCompact(row.current_value) : "—"}</p>
                 </div>
@@ -1154,7 +1154,7 @@ export default function PortfolioClient() {
               {/* 52-week position */}
               {row.w52_high != null && row.w52_low != null && row.w52_high > row.w52_low && (
                 <div className="mt-2.5 flex items-center gap-2 px-0.5">
-                  <span className="text-xs uppercase tracking-wide text-text-muted font-semibold shrink-0">
+                  <span className="text-xs   text-text-muted font-semibold shrink-0">
                     52W
                   </span>
                   <div className="flex-1">

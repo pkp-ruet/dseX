@@ -387,7 +387,7 @@ function EpsPill({ value }: { value: number | null | undefined }) {
       className={`wl-eps wl-eps--${toneKey} inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-semibold tabular-nums whitespace-nowrap border nums`}
       title={`EPS year-on-year change: ${sign}${value.toFixed(1)}%`}
     >
-      <span className="opacity-70 font-bold tracking-wider">EPS</span>
+      <span className="opacity-70 font-bold ">EPS</span>
       <span>{sign}{value.toFixed(0)}%</span>
     </span>
   );
@@ -407,7 +407,7 @@ function YieldPill({ value }: { value: number | null | undefined }) {
       className="wl-eps wl-eps--flat inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-semibold tabular-nums whitespace-nowrap border nums"
       title={`Dividend yield: ${value.toFixed(2)}%`}
     >
-      <span className="opacity-70 font-bold tracking-wider">DIV</span>
+      <span className="opacity-70 font-bold ">DIV</span>
       <span>{value.toFixed(1)}%</span>
     </span>
   );
@@ -827,7 +827,7 @@ function WatchlistTableInner() {
           meta={meta}
         />
         <div className="mb-3 flex flex-wrap items-center gap-1.5" role="group" aria-label="Sort watchlist">
-          <span className="text-xs font-bold uppercase tracking-[0.12em] text-text-muted">
+          <span className="text-xs font-bold   text-text-muted">
             Sort
           </span>
           {SORT_OPTIONS.map((opt) => {

@@ -72,11 +72,11 @@ function AlertCard({
           {alert.trading_code}
         </Link>
         {alert.is_active ? (
-          <span className="rounded-full border border-watch/30 bg-watch/10 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-watch">
+          <span className="rounded-full border border-watch/30 bg-watch/10 px-2 py-0.5 text-xs font-bold   text-watch">
             Armed
           </span>
         ) : (
-          <span className="rounded-full border border-border bg-surface-2 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-text-muted">
+          <span className="rounded-full border border-border bg-surface-2 px-2 py-0.5 text-xs font-bold   text-text-muted">
             Triggered {triggeredDate(alert.triggered_at)}
           </span>
         )}
@@ -206,7 +206,7 @@ export default function AlertsClient() {
     <>
       {active.length > 0 && (
         <section className="mb-6">
-          <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-text-muted">
+          <h2 className="mb-2 text-xs font-bold   text-text-muted">
             Armed ({active.length}{alertLimit !== null ? ` of ${alertLimit}` : ""})
           </h2>
           <div className="flex flex-col gap-2.5">
@@ -219,7 +219,7 @@ export default function AlertsClient() {
 
       {triggered.length > 0 && (
         <section>
-          <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-text-muted">
+          <h2 className="mb-2 text-xs font-bold   text-text-muted">
             Recently triggered
           </h2>
           <div className="flex flex-col gap-2.5">

@@ -59,7 +59,7 @@ function Lines({ lines, bnText }: { lines: ProLine[]; bnText: string }) {
 function Block({ title, children, bnText }: { title: string; children: React.ReactNode; bnText: string }) {
   return (
     <div className="flex flex-col gap-3 border-t border-border pt-4 first:border-t-0 first:pt-0">
-      <h3 className={`text-sm font-bold uppercase tracking-wider text-text-muted ${bnText}`}>{title}</h3>
+      <h3 className={`text-sm font-bold   text-text-muted ${bnText}`}>{title}</h3>
       {children}
     </div>
   );

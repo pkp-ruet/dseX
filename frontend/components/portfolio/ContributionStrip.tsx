@@ -123,7 +123,7 @@ export default function ContributionStrip({ rows, lang = "en" }: Props) {
       )}
 
       <div className="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-border">
-        <span className={`text-xs uppercase tracking-wider font-bold text-text-muted ${bnText}`}>
+        <span className={`text-xs   font-bold text-text-muted ${bnText}`}>
           {t.total}
         </span>
         <span className="text-base font-black tabular-nums nums" style={{ color: signColor(total) }}>
