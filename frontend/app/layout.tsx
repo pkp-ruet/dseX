@@ -11,6 +11,7 @@ import "./styles/stock.css";
 import "./styles/nav.css";
 import "./styles/states.css";
 import "./styles/misc.css";
+import "./styles/ranking.css";
 import "./styles/premium.css";
 
 // One Latin family, three weights (2026-10 redesign): regular, semibold, bold.

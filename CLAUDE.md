@@ -290,7 +290,8 @@ components/
 │   ├── MarketMovers.tsx               — still used by /dse-today
 │   └── (every other legacy/retired homepage component was deleted in redesign step 0, 2026-10)
 ├── ranking/
-│   ├── FullRankTable.tsx, TierStatCards.tsx
+│   ├── RankingExplorer.tsx (grade chips + split bar, search, sector, sort — all in the URL),
+│   │   FullRankTable.tsx, RankRowDetails.tsx (quick view: best/weakest-check headline, points in the reader's language)
 ├── market-intelligence/
 │   ├── ConditionBanner.tsx, SignalTable.tsx, SectorMap.tsx
 ├── market-analysis/               — `/market-analysis`, in page order (server components unless noted)
@@ -413,7 +414,7 @@ components/
 - **Every `<label>` has `htmlFor`** and its control an `id` (or the label wraps the control).
 - **Text floor is 12px** (`text-xs` / `--fs-2xs`) app-wide (raised from 11px 2026-09-22). Nothing smaller, and no `text-[…]` arbitrary sizes — the audience reads on budget Android phones. **Touch targets are ≥40px** (StarButton hit area, sort headers, chips, nav controls). `app/api/og/*` (Satori image routes) are exempt from the type rules.
 - **States**: every data route has an `error.tsx` rendering `components/ui/ErrorState.tsx` (never a raw error string); empty lists use `components/ui/EmptyState.tsx` (title, one line, Bengali line, ≤2 actions, optional children); client-fetched regions on noindex routes (watchlist, portfolio, alerts) show `Skeleton` rows while loading — never bare "Loading…" text.
-- **Tables**: `components/ui/Table.tsx` (`DataTable`, `SortTh` with a real `<button>` + `aria-sort`, `StockIdent`, `Price`, `Change`) + the `.data-table` pattern in `app/styles/tables.css`. Below 640px every table dissolves into cards (`data-cell` = rank / star / ident / score / price / change / meta; `data-secondary` cells hide) — no clipped columns, no forced horizontal scroll. `StocksTable`, `SectorStockTable`, `DseTodayTable` use it; the ranking's `FullRankTable` keeps its own `.fr-*` card-dissolve but shows the score ring on phones (`app/styles/misc.css`).
+- **Tables**: `components/ui/Table.tsx` (`DataTable`, `SortTh` with a real `<button>` + `aria-sort`, `StockIdent`, `Price`, `Change`) + the `.data-table` pattern in `app/styles/tables.css`. Below 640px every table dissolves into cards (`data-cell` = rank / star / ident / score / price / change / meta; `data-secondary` cells hide) — no clipped columns, no forced horizontal scroll. `StocksTable`, `SectorStockTable`, `DseTodayTable` use it; the ranking's `FullRankTable` keeps its own `.rk-*` table (`app/styles/ranking.css`, redone 2026-10-24): company name first, five-check mini bars, score ring, a "Price today" word from `p4_val` (signal bands: ≥7 Good price, <4 Expensive), sortable headers; below 640px each grade's `<tbody>` becomes one card and a sub-line under the name carries growth · dividend · price word.
 - **Money**: `formatters.money(v)` → `৳1,234` at ≥100, `৳45.6` below. Always ৳ in UI copy, never "Tk" / "BDT" (OG image routes excepted — their font lacks the glyph).
 - **Dates**: `formatters.formatDate` → `6 Sep 2026` (en-GB, numeric day). No `en-US` dates.
 - **Feedback**: any silent success (added to watchlist, holding saved, alert set, link copied) fires `toast()`; undo windows use `toast({ action })`.

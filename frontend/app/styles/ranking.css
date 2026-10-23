@@ -1,0 +1,623 @@
+/* ranking — /dsestockranking (2026-10 redesign of the leaderboard).
+   Page header → one quiet method line → grade chips + split bar → the table
+   (name first, five-check bars, score ring, "Price today" word) → quick view.
+   Below 640px each grade's <tbody> becomes one card of rows.
+   `.rank-limits` (the "What this list covers" box) stays in globals.css —
+   PageGuide reuses it on the other hub pages. */
+
+/* ---- Method + data dates: one quiet line under the header ---- */
+.rk-method {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 24px;
+  margin: 0 0 var(--space-6);
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+.rk-method-checks {
+  flex: 1 1 520px;
+  margin: 0;
+  line-height: 1.5;
+}
+.rk-method-checks b {
+  font-weight: 600;
+  color: var(--text);
+}
+.rk-method-dates { margin: 0; }
+.rk-method-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  font-weight: 600;
+  color: var(--primary-ink);
+  text-decoration: none;
+}
+.rk-method-link:hover { text-decoration: underline; }
+
+/* ---- Filters: grade chips, search, sector, split bar ---- */
+.rk-explorer { margin-bottom: 40px; }
+.rk-filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.rk-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.rk-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-right: auto;
+}
+.rk-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+}
+.rk-search {
+  position: relative;
+  flex: 0 1 260px;
+}
+.rk-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.rk-search-input,
+.rk-select {
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font: inherit;
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+.rk-search-input {
+  width: 100%;
+  padding: 0 12px 0 36px;
+}
+.rk-select { padding: 0 10px; max-width: 220px; }
+.rk-search-input::placeholder { color: var(--text-muted); }
+.rk-search-input:focus,
+.rk-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+/* The column headers sort on desktop; the menu is for phones only */
+.rk-sort-select { display: none; }
+
+.rk-split-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.rk-split {
+  flex: 1 1 auto;
+  display: flex;
+  gap: 2px;
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.rk-split-seg {
+  min-width: 4px;
+  transition: opacity 0.15s ease;
+}
+.rk-split-seg.is-dim { opacity: 0.25; }
+.rk-showing {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.rk-showing strong { color: var(--text); }
+.rk-reset {
+  min-height: 40px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--primary-ink);
+  cursor: pointer;
+}
+.rk-reset:hover { text-decoration: underline; }
+
+/* ---- The table ---- */
+.rk-table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  /* clip (not hidden) keeps the rounded corners without making a scroll
+     container, so the sticky header still sticks to the page */
+  overflow: clip;
+}
+.rk-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.rk-th {
+  position: sticky;
+  top: 56px; /* = navbar height (h-14) */
+  z-index: 5;
+  height: 44px;
+  padding: 0 8px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-align: left;
+  white-space: nowrap;
+}
+.rk-th:first-child { padding-left: 16px; }
+.rk-num { text-align: right; }
+.rk-th-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.rk-th-btn:hover,
+.rk-th-btn.is-active { color: var(--text); }
+.rk-th-btn .dt-sort-icon { width: 12px; height: 12px; }
+
+/* Grade header — dot, word, meaning, count. Flat: the colour is the dot. */
+.rk-group-head > td { padding: 0; }
+.rk-group-head-inner {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  padding: 22px 16px 10px;
+  border-top: 1px solid var(--border);
+}
+.rk-thead + .rk-group .rk-group-head-inner { border-top: 0; }
+.rk-group-head-inner .rk-dot { align-self: center; }
+.rk-group-title {
+  margin: 0;
+  font-size: var(--fs-title);
+  font-weight: 700;
+  color: var(--text);
+}
+.rk-group-meaning {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+.rk-group-count {
+  margin-left: auto;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+.rk-group-count strong { color: var(--text); }
+
+/* Rows — hairline rules, soft hover; tap anywhere opens the quick view */
+.rk-row { cursor: pointer; transition: background 0.15s ease; }
+.rk-row:hover,
+.rk-row.is-open { background: color-mix(in srgb, var(--surface-2) 40%, var(--surface)); }
+.rk-row:active { background: color-mix(in srgb, var(--surface-2) 70%, var(--surface)); }
+.rk-td {
+  padding: 12px 8px;
+  border-top: 1px solid var(--cell-rule);
+  vertical-align: middle;
+  font-size: var(--fs-sm);
+  color: var(--text);
+  white-space: nowrap;
+}
+.rk-group-head + .rk-row > .rk-td { border-top: 0; }
+.rk-td:first-child { padding-left: 16px; }
+.rk-td:last-child { padding-right: 12px; }
+
+.rk-td-rank { text-align: right; width: 1%; }
+.rk-rank {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.rk-rank.is-top { color: var(--primary-ink); }
+
+/* Company — the name leads, ticker + sector small under it. max-width:1px +
+   width:100% lets the name ellipsize inside an auto-layout table. */
+.rk-td-company {
+  width: 100%;
+  max-width: 1px;
+  white-space: normal;
+}
+.rk-name-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  min-width: 0;
+}
+.rk-name {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+}
+.rk-name:hover { color: var(--primary-ink); text-decoration: underline; }
+.rk-meta {
+  display: block;
+  margin-top: 2px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--fs-2xs);
+  color: var(--text-muted);
+}
+.rk-meta b {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+/* Growth · dividend · price word — shown once those columns are hidden */
+.rk-mobile-sub {
+  display: none;
+  margin-top: 4px;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+/* Warning tags (Z / B category, old report) — tap to explain */
+.rk-flag {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid color-mix(in srgb, var(--watch) 35%, var(--surface));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--watch) 9%, var(--surface));
+  font: inherit;
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  color: var(--watch);
+  white-space: nowrap;
+  cursor: pointer;
+}
+/* 40px hit area around a 24px tag */
+.rk-flag::after {
+  content: "";
+  position: absolute;
+  inset: -8px -2px;
+}
+.rk-flag-note {
+  flex-basis: 100%;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  font-size: var(--fs-2xs);
+  line-height: 1.5;
+  color: var(--text);
+  white-space: normal;
+}
+
+/* Five checks — five tiny bars, 0–10 each */
+.rk-td-checks { width: 1%; }
+.rk-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 24px;
+  vertical-align: middle;
+}
+.rk-bar {
+  display: flex;
+  align-items: flex-end;
+  width: 7px;
+  height: 24px;
+  border-radius: 2px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.rk-bar-fill { width: 100%; }
+
+.rk-td-score { width: 1%; }
+.rk-td-value { width: 1%; }
+.rk-word {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+.rk-word-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.rk-td-price { width: 1%; }
+.rk-price {
+  display: block;
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+.rk-chg {
+  display: block;
+  margin-top: 1px;
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+}
+.rk-td-star,
+.rk-td-toggle { width: 1%; padding-left: 0; padding-right: 0; }
+.rk-td-toggle { padding-right: 12px; }
+.rk-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.rk-toggle:hover { background: var(--surface-2); color: var(--text); }
+.rk-toggle svg { transition: transform 0.2s ease; }
+.rk-toggle.is-open svg { transform: rotate(180deg); }
+
+/* ---- Quick view ---- */
+.rk-detail-td {
+  padding: 0;
+  background: color-mix(in srgb, var(--surface-2) 40%, var(--surface));
+  border-top: 1px solid var(--cell-rule);
+}
+.rk-detail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 48px;
+  padding: 20px 24px 24px 64px;
+}
+.rk-detail-main {
+  flex: 1 1 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.rk-detail-headline {
+  margin: 0;
+  font-size: var(--fs-title);
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text);
+}
+.rk-points {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rk-point {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: var(--fs-base);
+  line-height: 1.5;
+  color: var(--text);
+}
+.rk-point-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tier-average);
+  transform: translateY(-1px);
+}
+.rk-point-good .rk-point-dot { background: var(--positive); }
+.rk-point-bad .rk-point-dot { background: var(--negative); }
+.rk-point-warn .rk-point-dot { background: var(--watch); }
+.rk-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.rk-detail-star { display: none; }
+
+.rk-checks {
+  flex: 1 1 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.rk-checks-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.rk-checks-title {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text);
+}
+.rk-checks-scale {
+  font-size: var(--fs-2xs);
+  color: var(--text-muted);
+}
+.rk-check {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rk-check-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+.rk-check-track {
+  display: flex;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.rk-check-fill { border-radius: 999px; }
+.rk-checks-link {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--primary-ink);
+  text-decoration: none;
+}
+.rk-checks-link:hover { text-decoration: underline; }
+
+/* ---- Narrower screens: drop columns, bring their numbers under the name ---- */
+@media (max-width: 1024px) {
+  .rk-hide-lg { display: none; }
+  .rk-mobile-sub { display: block; }
+  /* the Price today column is still there at this width */
+  .rk-sub-word { display: none; }
+}
+@media (max-width: 860px) {
+  .rk-th:nth-child(3),
+  .rk-td-checks { display: none; }
+  .rk-detail { padding-left: 24px; }
+}
+
+/* ---- Phones: each grade becomes one card of rows ---- */
+@media (max-width: 640px) {
+  .rk-filter-row { gap: var(--space-2); }
+  .rk-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin: 0 -16px;
+    padding: 0 16px;
+    width: calc(100% + 32px);
+    scrollbar-width: none;
+  }
+  .rk-chips::-webkit-scrollbar { display: none; }
+  .rk-chips > * { flex: none; }
+  .rk-search { flex: 1 1 100%; }
+  .rk-search-input,
+  .rk-select { height: 44px; font-size: var(--fs-base); }
+  .rk-select { flex: 1 1 calc(50% - 4px); max-width: none; }
+  .rk-sort-select { display: block; }
+
+  .rk-table-wrap {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: visible;
+  }
+  .rk-table,
+  .rk-group { display: block; }
+  .rk-thead { display: none; }
+  .rk-group { margin-bottom: var(--space-6); }
+
+  .rk-group-head,
+  .rk-group-head > td { display: block; }
+  .rk-group-head-inner {
+    padding: 4px 2px 10px;
+    border-top: 0;
+  }
+
+  .rk-row,
+  .rk-detail-row {
+    display: block;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+  .rk-row {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) auto auto;
+    grid-template-areas: "rank company price score";
+    align-items: center;
+    column-gap: 10px;
+    padding: 14px;
+    border-top: 1px solid var(--cell-rule);
+  }
+  .rk-row:hover { background: var(--surface); }
+  .rk-row.is-open { background: color-mix(in srgb, var(--surface-2) 40%, var(--surface)); }
+  /* First row of a card: full border + top corners */
+  .rk-group-head + .rk-row,
+  .rk-group > .rk-row:first-child {
+    border-top: 1px solid var(--border);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+  }
+  .rk-group > tr:last-child {
+    border-bottom: 1px solid var(--border);
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+  }
+  .rk-group-head + .rk-row:last-child,
+  .rk-group > .rk-row:first-child:last-child { border-radius: var(--radius-md); }
+
+  .rk-td {
+    display: block;
+    padding: 0;
+    border: 0;
+  }
+  .rk-td:first-child { padding-left: 0; }
+  .rk-td:last-child { padding-right: 0; }
+  .rk-td-rank { grid-area: rank; text-align: left; width: auto; }
+  .rk-td-company { grid-area: company; width: auto; max-width: none; min-width: 0; }
+  .rk-td-price { grid-area: price; width: auto; text-align: right; }
+  .rk-td-score { grid-area: score; width: auto; }
+  .rk-td-checks,
+  .rk-td-value,
+  .rk-td-star,
+  .rk-td-toggle,
+  .rk-hide-lg { display: none; }
+  .rk-price { font-size: var(--fs-base); }
+  .rk-sub-word { display: inline; }
+
+  .rk-detail-row > .rk-detail-td {
+    display: block;
+    border-top: 0;
+    background: color-mix(in srgb, var(--surface-2) 40%, var(--surface));
+  }
+  .rk-group > .rk-detail-row:last-child > .rk-detail-td {
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+  }
+  .rk-detail {
+    gap: 18px;
+    padding: 4px 14px 18px;
+  }
+  .rk-detail-headline { font-size: var(--fs-md); }
+  .rk-detail-actions > a { flex: 1 1 auto; }
+  .rk-detail-star { display: inline-flex; }
+}

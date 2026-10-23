@@ -23,7 +23,7 @@ export function DataTable({ children, className = "" }: { children: ReactNode; c
   );
 }
 
-function SortIcon({ dir }: { dir: SortDir | null }) {
+export function SortIcon({ dir }: { dir: SortDir | null }) {
   // Two chevrons when unsorted, one (pointing the sort way) when active.
   if (dir === null) {
     return (

@@ -1,13 +1,15 @@
 "use client";
 
-import { Fragment, useMemo, useState, type MouseEvent } from "react";
+import { Fragment, useMemo, useState, type MouseEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { TIER_LABELS, TIER_MEANINGS, TIER_VAR, type TierKey } from "@/lib/constants";
 import StarButton from "@/components/ui/StarButton";
 import ScoreBadge from "@/components/ui/ScoreBadge";
-import TierPill from "@/components/ui/TierPill";
-import RankRowDetails from "@/components/ranking/RankRowDetails";
-import { signed } from "@/lib/formatters";
+import { SortIcon, type SortDir } from "@/components/ui/Table";
+import RankRowDetails, { pillarValues } from "@/components/ranking/RankRowDetails";
+import { changePct, changeTone, money } from "@/lib/formatters";
+import { pillarColor } from "@/lib/insight-utils";
+import { PILLARS } from "@/lib/landing";
 import type { ScoreItem } from "@/lib/api";
 import EmptyState from "@/components/ui/EmptyState";
 
@@ -20,48 +22,129 @@ export interface RankedRow {
   rank: number;
 }
 
-interface Props {
-  /** Already filtered + globally-ranked rows. Grouping by tier happens here. */
-  rows: RankedRow[];
+export type RankSortCol = "rank" | "name" | "value" | "growth" | "dividend";
+export interface RankSort {
+  col: RankSortCol;
+  dir: SortDir;
 }
 
-// Tier accent colors — canonical token map (shared with ScoreBadge / TierPill)
-const TIER_COLOR = TIER_VAR;
+interface Props {
+  /** Already filtered + globally-ranked rows, in display order. */
+  rows: RankedRow[];
+  /** Score order → rows sit under their grade's header. Any other sort → one flat list. */
+  grouped: boolean;
+  sort: RankSort;
+  onSort: (col: RankSortCol) => void;
+}
 
 const TIERS_ORDER: TierKey[] = ["excellent", "good", "average", "weak"];
 
-const COL_COUNT = 9;
+const COL_COUNT = 10;
 
-const CATEGORY_TITLES: Record<string, string> = {
-  Z: "Z category — irregular dividends, extra trading restrictions. High risk.",
-  B: "B category — dividend record below par.",
+/**
+ * "Price today" — the valuation check as one word. Same bands as the Buy/Sell
+ * signal's valuation fork (p4_val ≥7 cheap, <4 expensive), so the word never
+ * disagrees with a signal elsewhere on the site.
+ */
+export function priceWord(p4: number | null | undefined): { label: string; tone: string } | null {
+  if (p4 == null) return null;
+  if (p4 >= 7) return { label: "Good price", tone: "text-positive" };
+  if (p4 >= 4) return { label: "Fair price", tone: "text-tier-average" };
+  return { label: "Expensive", tone: "text-watch" };
+}
+
+/** Five tiny bars — what the score is made of, readable at a glance. */
+function CheckBars({ item }: { item: RankedItem }) {
+  const values = pillarValues(item);
+  if (values.every((v) => v == null)) return <span className="text-text-muted">—</span>;
+  const label = PILLARS.map((p, i) => `${p.short} ${values[i] == null ? "no data" : values[i]!.toFixed(1)}`).join(", ");
+  return (
+    <span className="rk-bars" role="img" aria-label={`Five checks out of 10: ${label}`}>
+      {values.map((v, i) => (
+        <span key={PILLARS[i].key} className="rk-bar">
+          {v != null && (
+            <span
+              className="rk-bar-fill"
+              style={{ height: `${Math.max(12, Math.min(100, v * 10))}%`, background: pillarColor(v) }}
+            />
+          )}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+const FLAG_NOTES = {
+  Z: "Z category — the company has paid irregular dividends or none, and its shares carry extra trading limits. Its score is pulled down for this.",
+  B: "B category — the dividend record is below par.",
 };
 
-export default function FullRankTable({ rows }: Props) {
+/**
+ * A warning tag beside the name. The explanation used to sit in a `title`
+ * tooltip, which never appears on a phone — so the tag is a button that opens
+ * one plain line under the name.
+ */
+function FlagTag({ label, note }: { label: string; note: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        type="button"
+        className="rk-flag"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        {label}
+      </button>
+      {open && <span className="rk-flag-note">{note}</span>}
+    </>
+  );
+}
+
+function HeadCell({
+  col,
+  label,
+  sort,
+  onSort,
+  className = "",
+}: {
+  col: RankSortCol;
+  label: string;
+  sort: RankSort;
+  onSort: (col: RankSortCol) => void;
+  className?: string;
+}) {
+  const active = sort.col === col;
+  return (
+    <th
+      scope="col"
+      className={`rk-th ${className}`.trim()}
+      aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
+    >
+      <button type="button" className={`rk-th-btn${active ? " is-active" : ""}`} onClick={() => onSort(col)}>
+        {label}
+        <SortIcon dir={active ? sort.dir : null} />
+      </button>
+    </th>
+  );
+}
+
+export default function FullRankTable({ rows, grouped, sort, onSort }: Props) {
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  type RowEntry =
-    | { type: "sep"; tier: TierKey; count: number }
-    | { type: "row"; item: RankedItem; rank: number };
+  // One <tbody> per grade (or one for a flat sort) — on phones each tbody
+  // becomes its own card, the grade header sitting above it.
+  const groups = useMemo(() => {
+    if (!grouped) return [{ tier: null as TierKey | null, rows }];
+    return TIERS_ORDER.map((tier) => ({ tier: tier as TierKey | null, rows: rows.filter((r) => r.item.tier === tier) })).filter(
+      (g) => g.rows.length > 0
+    );
+  }, [rows, grouped]);
 
-  const entries = useMemo((): RowEntry[] => {
-    const result: RowEntry[] = [];
-    for (const tier of TIERS_ORDER) {
-      const group = rows.filter((r) => r.item.tier === tier);
-      if (group.length === 0) continue;
-      result.push({ type: "sep", tier, count: group.length });
-      for (const r of group) {
-        result.push({ type: "row", item: r.item, rank: r.rank });
-      }
-    }
-    return result;
-  }, [rows]);
-
-  const toggle = (code: string) =>
-    setExpanded((prev) => (prev === code ? null : code));
+  const toggle = (code: string) => setExpanded((prev) => (prev === code ? null : code));
 
   const onRowClick = (e: MouseEvent<HTMLTableRowElement>, code: string) => {
-    // Links, star and the toggle button handle themselves.
+    // Links, the star, flags and the toggle button handle themselves.
     if ((e.target as HTMLElement).closest("a, button")) return;
     toggle(code);
   };
@@ -77,207 +160,193 @@ export default function FullRankTable({ rows }: Props) {
   }
 
   return (
-    <div className="full-rank-wrap">
-      <table className="full-rank-table">
-        <thead className="fr-thead">
+    <div className="rk-table-wrap">
+      <table className="rk-table">
+        <thead className="rk-thead">
           <tr>
-            <th className="fr-th fr-th-rank">#</th>
-            <th className="fr-th fr-th-star" aria-label="Watchlist"></th>
-            <th className="fr-th fr-th-code">Code</th>
-            <th className="fr-th fr-th-sector fr-th-hide-sm">Sector</th>
-            <th className="fr-th fr-th-num fr-th-hide-md">Profit Growth</th>
-            <th className="fr-th fr-th-num fr-th-hide-md">Dividend</th>
-            <th className="fr-th fr-th-score">Score</th>
-            <th className="fr-th fr-th-num">LTP</th>
-            <th className="fr-th fr-th-toggle" aria-label="Quick view"></th>
+            <th scope="col" className="rk-th rk-num">#</th>
+            <HeadCell col="name" label="Company" sort={sort} onSort={onSort} />
+            <th scope="col" className="rk-th">Five checks</th>
+            <HeadCell col="rank" label="Score" sort={sort} onSort={onSort} />
+            <HeadCell col="value" label="Price today" sort={sort} onSort={onSort} />
+            <HeadCell col="growth" label="Profit growth" sort={sort} onSort={onSort} className="rk-num rk-hide-lg" />
+            <HeadCell col="dividend" label="Dividend" sort={sort} onSort={onSort} className="rk-num rk-hide-lg" />
+            <th scope="col" className="rk-th rk-num">Price</th>
+            <th scope="col" className="rk-th"><span className="sr-only">Watchlist</span></th>
+            <th scope="col" className="rk-th"><span className="sr-only">Quick view</span></th>
           </tr>
         </thead>
-        <tbody>
-          {entries.map((entry) => {
-            if (entry.type === "sep") {
-              const tierColor = TIER_COLOR[entry.tier];
-              return (
-                <tr key={`sep-${entry.tier}`} className="fr-tier-sep-row">
-                  <td colSpan={COL_COUNT}>
-                    <div
-                      className="fr-tier-sep"
-                      style={{ ["--tier-color" as string]: tierColor }}
-                    >
-                      <span className="fr-tier-sep-text">
-                        <span className="fr-tier-sep-label">{TIER_LABELS[entry.tier]}</span>
-                        <span className="fr-tier-sep-meaning">{TIER_MEANINGS[entry.tier]}</span>
-                      </span>
-                      <span className="fr-tier-sep-count">
-                        <strong>{entry.count}</strong>
-                        <span className="fr-tier-sep-count-word">companies</span>
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              );
-            }
-
-            const { item, rank } = entry;
-            const tierColor = TIER_COLOR[item.tier];
-            const tierStyle = { ["--tier-color" as string]: tierColor };
-            const open = expanded === item.trading_code;
-            const category = item.market_category?.toUpperCase();
-            const riskyCategory = category === "Z" || category === "B" ? category : null;
-            const chg = item.change_pct;
-
-            return (
-              <Fragment key={item.trading_code}>
-                <tr
-                  className={`fr-row${open ? " is-open" : ""}`}
-                  style={tierStyle}
-                  onClick={(e) => onRowClick(e, item.trading_code)}
-                >
-                  <td className="fr-td fr-td-rank">
-                    <span className={`fr-rank-pill${rank <= 3 ? ` fr-rank-m${rank}` : ""}`}>
-                      {String(rank).padStart(2, "0")}
+        {groups.map((group) => (
+          <tbody key={group.tier ?? "all"} className="rk-group">
+            {group.tier && (
+              <tr className="rk-group-head">
+                <td colSpan={COL_COUNT}>
+                  <div className="rk-group-head-inner">
+                    <span className="rk-dot" style={{ background: TIER_VAR[group.tier] }} aria-hidden />
+                    <h2 className="rk-group-title">{TIER_LABELS[group.tier]}</h2>
+                    <span className="rk-group-meaning">{TIER_MEANINGS[group.tier]}</span>
+                    <span className="rk-group-count nums">
+                      <strong>{group.rows.length}</strong> {group.rows.length === 1 ? "company" : "companies"}
                     </span>
-                  </td>
-
-                  <td className="fr-td fr-td-star">
-                    <StarButton code={item.trading_code} />
-                  </td>
-
-                  <td className="fr-td fr-td-code">
-                    <Link
-                      prefetch={false} href={`/stock/${item.trading_code}`}
-                      className="fr-stock-btn"
-                      aria-label={`View ${item.trading_code} details`}
-                    >
-                      <span className="fr-stock-btn-text">
-                        <span className="fr-stock-btn-code">
-                          {item.trading_code}
-                          {riskyCategory && (
-                            <span
-                              className={`fr-cat-badge fr-cat-${riskyCategory.toLowerCase()}`}
-                              title={CATEGORY_TITLES[riskyCategory]}
-                              aria-label={CATEGORY_TITLES[riskyCategory]}
-                            >
-                              {riskyCategory}
-                            </span>
-                          )}
-                          {item.stale_data && (
-                            <span
-                              title={`Last reported: ${item.last_reported_year ?? "?"}${
-                                item.data_age_years != null ? ` (${item.data_age_years}y old)` : ""
-                              }`}
-                              aria-label="Stale financial data"
-                              className="fr-stale-flag"
-                            >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-                                <path d="M12 3 2.5 20h19z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-                                <path d="M12 9.5v5M12 17.5h.01" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-                              </svg>
-                            </span>
-                          )}
-                        </span>
-                        {item.company_name && (
-                          <span className="fr-stock-btn-name">{item.company_name}</span>
-                        )}
-                      </span>
-                      <span className="fr-stock-btn-chevron" aria-hidden>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                          <path
-                            d="m9 6 6 6-6 6"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </span>
-                    </Link>
-                  </td>
-
-                  <td className="fr-td fr-td-sector fr-td-hide-sm">
-                    {item.sector ?? "—"}
-                  </td>
-
-                  <td className="fr-td fr-td-num fr-td-hide-md">
-                    {item.eps_yoy_pct != null ? (
-                      <span
-                        className={`fr-metric${
-                          item.eps_yoy_pct > 0 ? " is-up" : item.eps_yoy_pct < 0 ? " is-down" : ""
-                        }`}
-                      >
-                        {signed(item.eps_yoy_pct, 1)}%
-                      </span>
-                    ) : (
-                      <span className="fr-metric-empty">—</span>
-                    )}
-                  </td>
-
-                  <td className="fr-td fr-td-num fr-td-hide-md">
-                    {item.div_yield_pct != null && item.div_yield_pct > 0 ? (
-                      <span className="fr-metric">{item.div_yield_pct.toFixed(1)}%</span>
-                    ) : (
-                      <span className="fr-metric-empty">—</span>
-                    )}
-                  </td>
-
-                  <td className="fr-td fr-td-score">
-                    <div className="fr-score-cell">
-                      <ScoreBadge score={item.score} tier={item.tier} size="sm" />
-                      <TierPill tier={item.tier} size="sm" className="fr-score-tier" />
-                    </div>
-                  </td>
-
-                  <td className="fr-td fr-td-num">
-                    {item.ltp != null ? (
-                      <span className="fr-price">
-                        <span className="fr-price-cur">৳</span>
-                        <span className="fr-price-val">{item.ltp.toFixed(2)}</span>
-                      </span>
-                    ) : (
-                      "—"
-                    )}
-                    {chg != null && (
-                      <span
-                        className={`fr-chg${chg > 0 ? " is-up" : chg < 0 ? " is-down" : ""}`}
-                      >
-                        {signed(chg, 2)}%
-                      </span>
-                    )}
-                  </td>
-
-                  <td className="fr-td fr-td-toggle">
-                    <button
-                      type="button"
-                      className={`fr-toggle${open ? " is-open" : ""}`}
-                      aria-expanded={open}
-                      aria-label={`${open ? "Hide" : "Show"} quick view for ${item.trading_code}`}
-                      onClick={() => toggle(item.trading_code)}
-                    >
-                      <span className="fr-toggle-label">{open ? "Less" : "More"}</span>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
-                        <path
-                          d="m6 9 6 6 6-6"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
-                  </td>
-                </tr>
-
-                {open && (
-                  <tr className="fr-expand-row" style={tierStyle}>
-                    <td colSpan={COL_COUNT} className="fr-expand-td">
-                      <RankRowDetails item={item} />
-                    </td>
-                  </tr>
-                )}
-              </Fragment>
-            );
-          })}
-        </tbody>
+                  </div>
+                </td>
+              </tr>
+            )}
+            {group.rows.map(({ item, rank }) => (
+              <RankRow
+                key={item.trading_code}
+                item={item}
+                rank={rank}
+                open={expanded === item.trading_code}
+                onToggle={() => toggle(item.trading_code)}
+                onRowClick={onRowClick}
+              />
+            ))}
+          </tbody>
+        ))}
       </table>
     </div>
+  );
+}
+
+function RankRow({
+  item,
+  rank,
+  open,
+  onToggle,
+  onRowClick,
+}: {
+  item: RankedItem;
+  rank: number;
+  open: boolean;
+  onToggle: () => void;
+  onRowClick: (e: MouseEvent<HTMLTableRowElement>, code: string) => void;
+}) {
+  const code = item.trading_code;
+  const category = item.market_category?.toUpperCase();
+  const word = priceWord(item.p4_val);
+  const growth = item.eps_yoy_pct;
+  const dy = item.div_yield_pct;
+
+  // Narrower screens drop the growth / dividend columns (and phones the
+  // price-today one too); one muted line under the name brings them back.
+  const subParts: ReactNode[] = [];
+  if (growth != null) {
+    subParts.push(
+      <span key="g" className={`font-semibold ${changeTone(growth)}`}>Profit {changePct(growth, 0)}</span>
+    );
+  }
+  if (dy != null && dy > 0) subParts.push(<span key="d">Pays {dy.toFixed(1)}%</span>);
+  const subWord = word && (
+    // Its own span (separator included) so CSS can show it only on phones,
+    // where the Price today column is gone.
+    <span className="rk-sub-word">
+      {subParts.length > 0 && " · "}
+      <span className={`font-semibold ${word.tone}`}>{word.label}</span>
+    </span>
+  );
+
+  return (
+    <Fragment>
+      <tr className={`rk-row${open ? " is-open" : ""}`} onClick={(e) => onRowClick(e, code)}>
+        <td className="rk-td rk-td-rank nums">
+          <span className={rank <= 3 ? "rk-rank is-top" : "rk-rank"}>{rank}</span>
+        </td>
+
+        <td className="rk-td rk-td-company">
+          <span className="rk-name-line">
+            <Link prefetch={false} href={`/stock/${code}`} className="rk-name">
+              {item.company_name ?? code}
+            </Link>
+            {(category === "Z" || category === "B") && (
+              <FlagTag label={`${category} category`} note={FLAG_NOTES[category]} />
+            )}
+            {item.stale_data && (
+              <FlagTag
+                label="Old report"
+                note={`The latest annual report on file is from ${item.last_reported_year ?? "an earlier year"}${
+                  item.data_age_years != null ? ` (${item.data_age_years} years old)` : ""
+                }. The score is pulled down until a new one is published.`}
+              />
+            )}
+          </span>
+          <span className="rk-meta">
+            <b>{code}</b>
+            {item.sector && <> · {item.sector}</>}
+          </span>
+          {(subParts.length > 0 || subWord) && (
+            <span className="rk-mobile-sub nums">
+              {subParts.map((p, i) => (
+                <Fragment key={i}>
+                  {i > 0 && " · "}
+                  {p}
+                </Fragment>
+              ))}
+              {subWord}
+            </span>
+          )}
+        </td>
+
+        <td className="rk-td rk-td-checks">
+          <CheckBars item={item} />
+        </td>
+
+        <td className="rk-td rk-td-score">
+          <ScoreBadge score={item.score} tier={item.tier} size="sm" />
+        </td>
+
+        <td className="rk-td rk-td-value">
+          {word ? (
+            <span className={`rk-word ${word.tone}`}>
+              <span className="rk-word-dot" aria-hidden />
+              {word.label}
+            </span>
+          ) : (
+            <span className="text-text-muted">—</span>
+          )}
+        </td>
+
+        <td className={`rk-td rk-num rk-hide-lg nums font-semibold ${changeTone(growth)}`}>
+          {growth != null ? changePct(growth, 1) : <span className="text-text-muted">—</span>}
+        </td>
+
+        <td className="rk-td rk-num rk-hide-lg nums">
+          {dy != null && dy > 0 ? `${dy.toFixed(1)}%` : <span className="text-text-muted">—</span>}
+        </td>
+
+        <td className="rk-td rk-num rk-td-price">
+          <span className="rk-price nums">{money(item.ltp)}</span>
+          {item.change_pct != null && (
+            <span className={`rk-chg nums ${changeTone(item.change_pct)}`}>{changePct(item.change_pct, 1)}</span>
+          )}
+        </td>
+
+        <td className="rk-td rk-td-star">
+          <StarButton code={code} />
+        </td>
+
+        <td className="rk-td rk-td-toggle">
+          <button
+            type="button"
+            className={`rk-toggle${open ? " is-open" : ""}`}
+            aria-expanded={open}
+            aria-label={`${open ? "Hide" : "Show"} quick view for ${item.company_name ?? code}`}
+            onClick={onToggle}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path d="m6 9 6 6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </td>
+      </tr>
+
+      {open && (
+        <tr className="rk-detail-row">
+          <td colSpan={COL_COUNT} className="rk-detail-td">
+            <RankRowDetails item={item} />
+          </td>
+        </tr>
+      )}
+    </Fragment>
   );
 }

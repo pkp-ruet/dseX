@@ -8,6 +8,7 @@ import RankingExplorer from "@/components/ranking/RankingExplorer";
 import type { RankedItem } from "@/components/ranking/FullRankTable";
 import ErrorState from "@/components/ui/ErrorState";
 import PageHeader from "@/components/ui/PageHeader";
+import Stat from "@/components/ui/Stat";
 import HubLinks from "@/components/layout/HubLinks";
 
 export const revalidate = 86400;
@@ -130,63 +131,34 @@ export default async function DseStockRankingPage() {
         bn="ঢাকা স্টক এক্সচেঞ্জের প্রতিটি কোম্পানিকে তার ব্যবসা কতটা শক্তিশালী সেই অনুযায়ী নম্বর দিয়ে সেরা থেকে দুর্বল ক্রমে সাজানো হয়েছে।"
         lead="Every company on the Dhaka Stock Exchange, scored on how strong its business really is — then ranked from strongest to weakest."
         actions={
-          <div className="flex flex-wrap gap-5 sm:gap-6" aria-label="Coverage">
-            <div className="rank-cred">
-              <span className="rank-cred-num">{allRanked.length}</span>
-              <span className="rank-cred-label">Companies scored</span>
-            </div>
-            <div className="rank-cred">
-              <span className="rank-cred-num">{sectors.length}</span>
-              <span className="rank-cred-label">Sectors covered</span>
-            </div>
-            <div className="rank-cred">
-              <span className="rank-cred-num">{PILLARS.length}</span>
-              <span className="rank-cred-label">Checks on every one</span>
-            </div>
+          <div className="flex gap-8 sm:gap-10" aria-label="Coverage">
+            <Stat value={allRanked.length} label="Companies scored" size="xl" />
+            <Stat value={sectors.length} label="Sectors" size="xl" />
           </div>
         }
       />
 
-      {/* Method + data vintage — what the score is made of and how fresh it is.
-          The written-out method lives on /about; this only points at it. */}
-      <section className="rank-method" aria-label="How the score is built">
-        <div className="rank-method-row">
-          <p className="rank-method-text">
-            Every company gets the same five checks —{" "}
-            <span className="rank-method-checks">
-              {PILLARS.map((p, i) => (
-                <span key={p.key} className="rank-method-check">
-                  {p.en}
-                  {/* Separator keeps normal whitespace — the one place each
-                      nowrap check name allows the line to break on phones */}
-                  {i < PILLARS.length - 1 && (
-                    <span className="rank-method-sep" aria-hidden>{" · "}</span>
-                  )}
-                </span>
-              ))}
-            </span>
+      {/* Method + data vintage on ONE quiet line — what the score is made of and
+          how fresh it is. The written-out method lives on /about. */}
+      <section className="rk-method" aria-label="How the score is built">
+        <p className="rk-method-checks">
+          Five checks on every company:{" "}
+          <b>{PILLARS.map((p) => p.en).join(" · ")}</b>
+        </p>
+        {(priceDate || latestFy || updated) && (
+          <p className="rk-method-dates nums">
+            {[
+              priceDate && `Prices ${priceDate}`,
+              latestFy && `Financials to FY${latestFy}`,
+              updated && `Rebuilt ${updated}`,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
           </p>
-          <Link prefetch={false} href="/about" className="rank-method-link">
-            How we score <span aria-hidden>→</span>
-          </Link>
-        </div>
-        <div className="rank-vintage">
-          {priceDate && (
-            <span className="rank-vintage-item">
-              Prices <b>{priceDate}</b>
-            </span>
-          )}
-          {latestFy && (
-            <span className="rank-vintage-item">
-              Financials through <b>FY{latestFy}</b>
-            </span>
-          )}
-          {updated && (
-            <span className="rank-vintage-item">
-              Scores rebuilt <b>{updated}</b>
-            </span>
-          )}
-        </div>
+        )}
+        <Link prefetch={false} href="/about" className="rk-method-link">
+          How we score <span aria-hidden>→</span>
+        </Link>
       </section>
 
       {/* Filters + ranked table */}
@@ -203,7 +175,8 @@ export default async function DseStockRankingPage() {
         <ul className="rank-limits-points">
           <li className="rank-limits-point">
             Companies are ranked on how strong the business is — <b>this is not a
-            buy list</b>. A strong company can still be a poor buy at today&apos;s price.
+            buy list</b>. A strong company can still be a poor buy at today&apos;s price;
+            the <b>Price today</b> column says which way the price leans.
           </li>
           <li className="rank-limits-point">
             Bonds, debentures, mutual funds and ETFs are not scored, so they do not
@@ -212,8 +185,8 @@ export default async function DseStockRankingPage() {
           {staleCount > 0 && (
             <li className="rank-limits-point">
               <b>{staleCount}</b> {staleCount === 1 ? "company has" : "companies have"} not
-              published a recent annual report. They are marked ⚠ and their score is
-              pulled down for it.
+              published a recent annual report. They carry an &ldquo;Old report&rdquo; tag and
+              their score is pulled down for it.
             </li>
           )}
           {zCount > 0 && (

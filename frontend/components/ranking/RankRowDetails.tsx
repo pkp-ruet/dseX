@@ -1,13 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { pct, signed, taka } from "@/lib/formatters";
-import { TIER_MEANINGS } from "@/lib/constants";
+import { useLang } from "@/context/LangContext";
 import { PILLARS } from "@/lib/landing";
 import { pillarColor } from "@/lib/insight-utils";
-import ScoreBadge from "@/components/ui/ScoreBadge";
-import TierPill from "@/components/ui/TierPill";
+import Button from "@/components/ui/Button";
+import StarButton from "@/components/ui/StarButton";
 import type { RankedItem } from "@/components/ranking/FullRankTable";
+
+/** The five checks in P1..P5 order, matching `PILLARS`. */
+export function pillarValues(item: RankedItem): (number | null)[] {
+  return [
+    item.p1_biz ?? null,
+    item.p2_health ?? null,
+    item.p3_moat ?? null,
+    item.p4_val ?? null,
+    item.p5_div ?? null,
+  ];
+}
 
 type PointKind = "good" | "bad" | "warn" | "neutral";
 
@@ -17,32 +27,49 @@ interface Point {
   kind: PointKind;
 }
 
-const TIER_POINTS: Record<RankedItem["tier"], Point> = {
-  excellent: {
-    en: "Excellent fundamentals — one of the healthiest companies on the DSE right now.",
-    bn: "ব্যবসার ভিত খুবই মজবুত — এই মুহূর্তে ডিএসইর সবচেয়ে ভালো শেয়ারগুলোর একটি।",
-    kind: "good",
-  },
-  good: {
-    en: "Good overall — the business is healthy on most measures.",
-    bn: "সার্বিকভাবে ভালো — বেশিরভাগ দিক থেকেই কোম্পানিটি ভালো অবস্থায় আছে।",
-    kind: "good",
-  },
-  average: {
-    en: "Average — some strengths, some weak spots. Look closer before you decide.",
-    bn: "মিশ্র অবস্থা — ভালো দিকও আছে, দুর্বলতাও আছে। সিদ্ধান্তের আগে আরেকটু দেখে নিন।",
-    kind: "neutral",
-  },
-  weak: {
-    en: "Weak fundamentals — the numbers show real risk here.",
-    bn: "ব্যবসার অবস্থা দুর্বল — এই শেয়ারে ঝুঁকি অনেক বেশি।",
-    kind: "bad",
-  },
-};
+/** The five checks in the reader's language, P1..P5 (bar labels). */
+const CHECK_BN = ["মুনাফার মান", "আর্থিক স্বাস্থ্য", "ব্যবসার শক্তি", "দাম কি ন্যায্য", "লভ্যাংশের ভরসা"];
+/** The same checks inside a sentence. */
+const CHECK_IN_SENTENCE_EN = ["profit quality", "financial health", "business strength", "price", "dividends"];
+const CHECK_IN_SENTENCE_BN = ["মুনাফার মান", "আর্থিক স্বাস্থ্য", "ব্যবসার শক্তি", "দাম", "লভ্যাংশ"];
+
+/**
+ * One headline sentence: which check carries the score and which holds it back.
+ * The score is the whole point of the page, so the row that opens under it has
+ * to say what the number is made of.
+ */
+function buildHeadline(values: (number | null)[]): { en: string; bn: string } | null {
+  const present = values
+    .map((v, i) => ({ v, i }))
+    .filter((x): x is { v: number; i: number } => x.v != null);
+  if (present.length < 2) return null;
+  const best = present.reduce((a, b) => (b.v > a.v ? b : a));
+  const worst = present.reduce((a, b) => (b.v < a.v ? b : a));
+  const be = CHECK_IN_SENTENCE_EN[best.i];
+  const we = CHECK_IN_SENTENCE_EN[worst.i];
+  const bb = CHECK_IN_SENTENCE_BN[best.i];
+  const wb = CHECK_IN_SENTENCE_BN[worst.i];
+  if (worst.v >= 7) {
+    return {
+      en: `Strong on every check — best on ${be}, lowest on ${we}.`,
+      bn: `সব দিকেই শক্ত — সবচেয়ে ভালো ${bb}, তুলনায় কম ${wb}।`,
+    };
+  }
+  if (best.v < 4) {
+    return {
+      en: `Weak on every check — even its best, ${be}, is low.`,
+      bn: `সব দিকেই দুর্বল — সবচেয়ে ভালো দিক ${bb}, সেটাও কম।`,
+    };
+  }
+  return {
+    en: `Best on ${be}, weakest on ${we}.`,
+    bn: `সবচেয়ে ভালো ${bb}, সবচেয়ে দুর্বল ${wb}।`,
+  };
+}
 
 /** Plain-language takeaways (English + Bengali) built from the row's own numbers. */
 function buildPoints(item: RankedItem): Point[] {
-  const points: Point[] = [TIER_POINTS[item.tier]];
+  const points: Point[] = [];
 
   const growth = item.eps_yoy_pct;
   if (growth != null) {
@@ -101,6 +128,28 @@ function buildPoints(item: RankedItem): Point[] {
     });
   }
 
+  // Same bands as the "Price today" word in the row.
+  const val = item.p4_val;
+  if (val != null && val >= 7) {
+    points.push({
+      en: "The share price looks good for a business this strong.",
+      bn: "এমন ব্যবসার তুলনায় শেয়ারের দামটা ভালো।",
+      kind: "good",
+    });
+  } else if (val != null && val >= 4) {
+    points.push({
+      en: "The share price is about fair.",
+      bn: "শেয়ারের দাম মোটামুটি ন্যায্য।",
+      kind: "neutral",
+    });
+  } else if (val != null) {
+    points.push({
+      en: "The share looks expensive right now.",
+      bn: "শেয়ারটির দাম এখন বেশি মনে হচ্ছে।",
+      kind: "warn",
+    });
+  }
+
   if (item.market_category === "Z") {
     points.push({
       en: "Z category on the DSE — irregular dividends and extra trading restrictions. Be careful.",
@@ -126,156 +175,70 @@ function buildPoints(item: RankedItem): Point[] {
   return points;
 }
 
-function Stat({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone?: "up" | "down";
-}) {
-  return (
-    <div className="fr-detail-stat">
-      <span className="fr-detail-stat-label">{label}</span>
-      <span className={`fr-detail-stat-value${tone ? ` is-${tone}` : ""}`}>{value}</span>
-    </div>
-  );
-}
-
-/** The five pillars in P1..P5 order, matching `PILLARS`. */
-function pillarValues(item: RankedItem): (number | null)[] {
-  return [
-    item.p1_biz ?? null,
-    item.p2_health ?? null,
-    item.p3_moat ?? null,
-    item.p4_val ?? null,
-    item.p5_div ?? null,
-  ];
-}
-
-/**
- * One check as a labelled 0–10 bar.
- *
- * The score is the whole point of the page, so the row that expands under it has
- * to show what the score is made of — otherwise the number is just an assertion.
- */
-function PillarBar({
-  label,
-  short,
-  value,
-}: {
-  label: string;
-  short: string;
-  value: number | null;
-}) {
-  const color = pillarColor(value);
-  const width = value == null ? 0 : Math.max(4, Math.min(100, value * 10));
-
-  return (
-    <div className="fr-pillar" title={label}>
-      <span className="fr-pillar-top">
-        <span className="fr-pillar-label">
-          <span className="fr-pillar-label-full">{label}</span>
-          <span className="fr-pillar-label-short">{short}</span>
-        </span>
-        <span
-          className="fr-pillar-value"
-          style={{ color: value == null ? "var(--text-muted)" : color }}
-        >
-          {value == null ? "—" : value.toFixed(1)}
-        </span>
-      </span>
-      <span className="fr-pillar-track">
-        {value != null && (
-          <span
-            className="fr-pillar-fill"
-            style={{ width: `${width}%`, background: color }}
-          />
-        )}
-      </span>
-    </div>
-  );
-}
-
 export default function RankRowDetails({ item }: { item: RankedItem }) {
+  const { bn } = useLang();
+  const values = pillarValues(item);
+  const hasChecks = values.some((v) => v != null);
+  const headline = buildHeadline(values);
   const points = buildPoints(item);
-  const chg = item.change_pct;
-  const pillars = pillarValues(item);
-  const hasPillars = pillars.some((p) => p != null);
+  const name = item.company_name ?? item.trading_code;
 
   return (
-    <div className="fr-detail">
-      <div className="fr-detail-head">
-        <ScoreBadge score={item.score} tier={item.tier} size="md" />
-        <div className="fr-detail-head-text">
-          <span className="fr-detail-tier">
-            <TierPill tier={item.tier} size="md" />
+    <div className={`rk-detail${bn ? " font-bn" : ""}`} lang={bn ? "bn" : undefined}>
+      <div className="rk-detail-main">
+        {headline && <p className="rk-detail-headline">{bn ? headline.bn : headline.en}</p>}
+        <ul className="rk-points">
+          {points.map((p) => (
+            <li key={p.en} className={`rk-point rk-point-${p.kind}`}>
+              <span className="rk-point-dot" aria-hidden />
+              <span>{bn ? p.bn : p.en}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="rk-detail-actions">
+          <Button href={`/stock/${item.trading_code}`}>
+            {bn ? "পুরো রিপোর্ট দেখুন" : `See the full report on ${item.trading_code}`}
+          </Button>
+          {/* The row's star column is hidden on phones — it lives here instead */}
+          <span className="rk-detail-star">
+            <StarButton code={item.trading_code} />
           </span>
-          <span className="fr-detail-score-sub">{TIER_MEANINGS[item.tier]}</span>
         </div>
       </div>
 
-      <div className="fr-detail-stats">
-        <Stat
-          label="Today"
-          value={chg != null ? `${signed(chg, 2)}%` : "—"}
-          tone={chg != null && chg !== 0 ? (chg > 0 ? "up" : "down") : undefined}
-        />
-        <Stat label="EPS" value={item.eps != null ? taka(item.eps) : "—"} />
-        <Stat
-          label="Profit growth"
-          value={item.eps_yoy_pct != null ? `${signed(item.eps_yoy_pct, 1)}%` : "—"}
-          tone={
-            item.eps_yoy_pct != null && item.eps_yoy_pct !== 0
-              ? item.eps_yoy_pct > 0
-                ? "up"
-                : "down"
-              : undefined
-          }
-        />
-        <Stat
-          label="Dividend yield"
-          value={item.div_yield_pct != null && item.div_yield_pct > 0 ? pct(item.div_yield_pct) : "—"}
-        />
-      </div>
-
-      {hasPillars && (
-        <div className="fr-pillars">
-          <div className="fr-pillars-head">
-            <span className="fr-pillars-title">
-              The five checks behind this score
+      {hasChecks && (
+        <div className="rk-checks" aria-label={`The five checks behind ${name}'s score`}>
+          <div className="rk-checks-head">
+            <span className="rk-checks-title">
+              {bn ? "স্কোরের পেছনের পাঁচটি যাচাই" : "The five checks behind this score"}
             </span>
-            <Link prefetch={false} href="/about" className="fr-pillars-link">
-              How we score <span aria-hidden>→</span>
-            </Link>
+            <span className="rk-checks-scale">{bn ? "প্রতিটি 10-এর মধ্যে" : "each out of 10"}</span>
           </div>
-          <div className="fr-pillars-grid">
-            {PILLARS.map((p, i) => (
-              <PillarBar key={p.key} label={p.en} short={p.short} value={pillars[i]} />
-            ))}
-          </div>
-          <p className="fr-pillars-scale">Each check is scored out of 10.</p>
+          {PILLARS.map((p, i) => {
+            const v = values[i];
+            const color = pillarColor(v);
+            return (
+              <div key={p.key} className="rk-check">
+                <span className="rk-check-top">
+                  <span>{bn ? CHECK_BN[i] : p.en}</span>
+                  <b className="nums" style={{ color }}>{v == null ? "—" : v.toFixed(1)}</b>
+                </span>
+                <span className="rk-check-track">
+                  {v != null && (
+                    <span
+                      className="rk-check-fill"
+                      style={{ width: `${Math.max(4, Math.min(100, v * 10))}%`, background: color }}
+                    />
+                  )}
+                </span>
+              </div>
+            );
+          })}
+          <Link prefetch={false} href="/about" className="rk-checks-link">
+            {bn ? "কীভাবে নম্বর দিই →" : "How we score →"}
+          </Link>
         </div>
       )}
-
-      <ul className="fr-detail-points">
-        {points.map((p) => (
-          <li key={p.en} className={`fr-point fr-point-${p.kind}`}>
-            <span className="fr-point-dot" aria-hidden />
-            <span className="fr-point-text">
-              <span className="fr-point-en">{p.en}</span>
-              <span className="fr-point-bn font-bn" lang="bn">
-                {p.bn}
-              </span>
-            </span>
-          </li>
-        ))}
-      </ul>
-
-      <Link prefetch={false} href={`/stock/${item.trading_code}`} className="fr-detail-link">
-        See full analysis of {item.trading_code} →
-      </Link>
     </div>
   );
 }
