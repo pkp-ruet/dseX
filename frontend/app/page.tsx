@@ -23,7 +23,6 @@ import { buildLandingPortfolios } from "@/lib/landing-portfolio";
 import HomePersonalizationGate from "@/components/home/HomePersonalizationGate";
 import LandingHero from "@/components/landing/LandingHero";
 import TrustStrip from "@/components/landing/TrustStrip";
-import ColourKey from "@/components/landing/ColourKey";
 import LiveToday from "@/components/landing/LiveToday";
 import MarketToday from "@/components/landing/MarketToday";
 import WorthALook from "@/components/landing/WorthALook";
@@ -311,16 +310,11 @@ export default function HomePage() {
         {/* 1 — the claim and its proof, side by side */}
         <HeroBlock promise={scoresPromise} />
 
-        {/* 2 — credibility as a thin strip, not a wall of prose. There is no
-            long-form version of this argument anywhere on the page any more;
-            the blocks below make the case by running. */}
+        {/* 2 — credibility + the colour key as ONE band, not a wall of prose.
+            There is no long-form version of this argument anywhere on the
+            page; the blocks below make the case by running. */}
         <div className="mt-8 sm:mt-10">
           <TrustStripSection scoresPromise={scoresPromise} trustPromise={trustPromise} />
-        </div>
-
-        {/* 2b — the colour key, read once, so every card below is readable */}
-        <div className="mt-4">
-          <ColourKey />
         </div>
 
         <div className="mt-14 flex flex-col gap-16 sm:mt-16 sm:gap-24">

@@ -2,9 +2,8 @@ import Link from "next/link";
 import type { HomeAlert, HomeAlertKind } from "@/lib/home-alerts";
 import type { Lang } from "@/context/LangContext";
 import { t } from "@/lib/home-copy";
-import { ACC } from "@/components/home/personalized/accents";
 import DashHeader, { HeaderChip } from "@/components/home/personalized/DashHeader";
-import { IconArrowDown, IconArrowUp, IconBell, IconChevron, IconCoin, IconNews, IconSparkle, IconTarget, IconTrendDown, IconTrendUp, IconWallet } from "@/components/home/personalized/DashIcons";
+import { IconArrowDown, IconArrowUp, IconChevron, IconCoin, IconNews, IconSparkle, IconTarget, IconTrendDown, IconTrendUp, IconWallet } from "@/components/home/personalized/DashIcons";
 
 const MAX_ROWS = 4;
 
@@ -50,7 +49,6 @@ export default function AttentionStrip({ alerts, lang = "en" }: { alerts: HomeAl
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
       <DashHeader
-        accent={ACC.amber} icon={<IconBell size={15} />}
         title={t(lang, "needsAttention")}
         chips={<HeaderChip>{alerts.length > 9 ? "9+" : alerts.length}</HeaderChip>}
       />
@@ -66,8 +64,8 @@ export default function AttentionStrip({ alerts, lang = "en" }: { alerts: HomeAl
           const inner = (
             <>
               <span
-                className="grid h-8 w-8 shrink-0 place-items-center rounded-lg"
-                style={{ color: toneColor, background: `color-mix(in srgb, ${toneColor} 11%, transparent)` }}
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-surface-2"
+                style={{ color: toneColor }}
                 aria-hidden
               >
                 <KindIcon kind={a.kind} tone={a.tone} />

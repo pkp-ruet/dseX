@@ -1,36 +1,41 @@
 import Link from "next/link";
 import { type WatchlistNewsItem } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
-import Card from "@/components/ui/Card";
+import DashHeader from "@/components/home/personalized/DashHeader";
 import Skeleton from "@/components/ui/Skeleton";
 
 const MAX_ROWS = 3;
 
 /**
- * Compact, scannable news peek for the dashboard — replaces the 5-second
- * auto-rotating single-headline carousel (NewsSlider) with a stacked list of
- * the latest few headlines on the user's stocks. No motion (reduced-motion
- * friendly), everything visible at once, each row taps straight to the stock.
+ * Compact, scannable news peek for the dashboard — the latest few headlines on
+ * the reader's stocks, each row tapping straight to the stock. The title sits
+ * inside the card in the same `DashHeader` every other card uses (it used to
+ * be a loose label above a headerless box).
  */
 export default function NewsPeek({
   news,
   loading,
+  title,
   moreHref = "/todays-news",
   moreLabel = "All market news",
 }: {
   news: WatchlistNewsItem[];
   loading: boolean;
-  /** Footer link — the parent points it at the watchlist page when the user
+  title: string;
+  /** Header link — the parent points it at the watchlist page when the user
    *  has one (news on *their* stocks), else at the whole-market news page. */
   moreHref?: string;
   moreLabel?: string;
 }) {
   if (loading && news.length === 0) {
     return (
-      <Card padding="none" className="p-4">
-        <Skeleton height={14} className="mb-2" />
-        <Skeleton width="70%" height={14} />
-      </Card>
+      <section className="soft-card overflow-hidden">
+        <DashHeader title={title} />
+        <div className="p-4">
+          <Skeleton height={14} className="mb-2" />
+          <Skeleton width="70%" height={14} />
+        </div>
+      </section>
     );
   }
 
@@ -41,50 +46,24 @@ export default function NewsPeek({
     .slice(0, MAX_ROWS);
 
   return (
-    <Card padding="none" className="overflow-hidden">
+    <section className="soft-card overflow-hidden">
+      <DashHeader title={title} href={moreHref} linkLabel={moreLabel} />
       <ul className="divide-y divide-cell-rule">
         {shown.map((n, i) => (
           <li key={`${n.trading_code}-${n.post_date}-${i}`}>
             <Link
               prefetch={false}
               href={`/stock/${n.trading_code}`}
-              className="flex items-start gap-2.5 px-4 py-3 transition-colors hover:bg-surface-2 active:bg-surface-2"
+              className="block px-4 py-3 transition-colors hover:bg-surface-2 active:bg-surface-2 sm:px-5"
             >
-              <span className="ticker-tag mt-0.5 shrink-0 text-xs">{n.trading_code}</span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold leading-snug text-text-main line-clamp-2">
-                  {n.title}
-                </span>
-                <span className="mt-0.5 block text-xs font-medium text-text-muted">
-                  {formatDate(n.post_date)}
-                </span>
+              <span className="block text-sm font-semibold leading-snug text-text-main line-clamp-2">{n.title}</span>
+              <span className="mt-0.5 block text-xs font-medium text-text-muted">
+                <span className="font-semibold uppercase tracking-wide">{n.trading_code}</span> · {formatDate(n.post_date)}
               </span>
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="mt-0.5 shrink-0 text-text-muted"
-                aria-hidden
-              >
-                <path d="M9 18l6-6-6-6" />
-              </svg>
             </Link>
           </li>
         ))}
       </ul>
-
-      <Link
-        href={moreHref}
-        prefetch={false}
-        className="block border-t border-border px-4 py-2.5 text-center text-xs font-semibold text-primary transition-colors hover:bg-surface-2 active:bg-surface-2"
-      >
-        {moreLabel} →
-      </Link>
-    </Card>
+    </section>
   );
 }

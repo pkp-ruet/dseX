@@ -4,14 +4,13 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { RecommendedStock, DailyTip, ScoreItem } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
 import { getListDelta, type ListDelta } from "@/lib/daily-delta";
-import { buildIdeas, IDEA_ROWS, type IdeaRow } from "@/lib/home-ideas";
+import { buildIdeas, IDEA_ROWS, KIND_TONE, type IdeaRow } from "@/lib/home-ideas";
 import { t } from "@/lib/home-copy";
 import StarButton from "@/components/ui/StarButton";
 import StockRow, { StockPill, StockRank, type StockRowTone } from "@/components/ui/StockRow";
 import { ACC } from "@/components/home/personalized/accents";
 import { IconSparkle } from "@/components/home/personalized/DashIcons";
 import DashHeader from "@/components/home/personalized/DashHeader";
-import { KIND_TONE } from "@/components/home/personalized/TipsCard";
 
 const EMPTY_DELTA: ListDelta = { newCodes: new Set(), movedUp: new Map() };
 

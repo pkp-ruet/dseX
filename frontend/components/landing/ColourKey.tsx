@@ -8,7 +8,8 @@ import { TIER_LABELS, TIER_LABELS_BN, TIER_VAR, type TierKey } from "@/lib/const
  * Buy / Sell chips are.
  *
  * A legend, not a method section: no weights, no pillars, no prose about how
- * the score is built (that lives on /about and stays off `/`).
+ * the score is built (that lives on /about and stays off `/`). It has no box
+ * of its own — it sits inside the TrustStrip band.
  */
 
 const TIERS: TierKey[] = ["excellent", "good", "average", "weak"];
@@ -26,10 +27,7 @@ function Group({ label, bn, children }: { label: string; bn: string; children: R
 
 export default function ColourKey() {
   return (
-    <section
-      aria-label="How to read the colours"
-      className="soft-card grid grid-cols-1 gap-4 px-4 py-4 sm:grid-cols-[1.6fr_1fr_1fr] sm:gap-6 sm:px-6"
-    >
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1.6fr_1fr_1fr] sm:gap-6">
       <Group label="Company grade" bn="কোম্পানির মান">
         {TIERS.map((t) => (
           <span key={t} className="inline-flex items-center gap-1.5">
@@ -69,6 +67,6 @@ export default function ColourKey() {
           <Bn as="span" className="text-xs text-text-muted">বিক্রির মতো</Bn>
         </span>
       </Group>
-    </section>
+    </div>
   );
 }

@@ -152,6 +152,26 @@ const COPY = {
   views: ["{n} views", "{n} বার দেখা"],
   seeAll: ["See all", "সব দেখুন"],
   tipsTitle: ["Today's tips", "আজকের টিপস"],
+  tipsSub: ["One fact worth knowing on each", "প্রতিটির একটি জানার মতো তথ্য"],
+  trendingSub: ["Moved the most in the last 7 days", "গত 7 দিনে সবচেয়ে বেশি নড়েছে"],
+  popularSub: ["Most opened by readers this week", "এ সপ্তাহে পাঠকেরা সবচেয়ে বেশি দেখছেন"],
+  discoverTitle: ["More ways to find stocks", "শেয়ার খোঁজার আরও উপায়"],
+
+  // Glance strip
+  glanceDsex: ["DSEX", "DSEX"],
+  glanceBreadth: ["Up · down today", "আজ বেড়েছে · কমেছে"],
+  glanceBreadthLast: ["Up · down last day", "শেষ দিনে বেড়েছে · কমেছে"],
+  glanceYourDay: ["Of your stocks rose today", "আপনার শেয়ার আজ বেড়েছে"],
+  glanceYourDayLast: ["Of your stocks rose last day", "আপনার শেয়ার শেষ দিনে বেড়েছে"],
+  glanceNextDividend: ["Next record date", "পরের রেকর্ড ডেট"],
+  glanceDaysLeft: ["in {n} days", "{n} দিন পর"],
+  glanceTomorrow: ["tomorrow", "আগামীকাল"],
+  glanceTodayWord: ["today", "আজ"],
+
+  // Money hero numbers
+  heroToday: ["Today", "আজ"],
+  heroTotal: ["Since you bought", "কেনার পর থেকে"],
+  heroVsDsex: ["Vs DSEX today", "আজ বাজারের তুলনায়"],
   allTips: ["All tips", "সব টিপস"],
 
   // Ideas

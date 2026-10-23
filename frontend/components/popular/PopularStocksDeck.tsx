@@ -9,7 +9,7 @@ interface Props {
 /**
  * The most-viewed stocks as one card of `StockRow`s: rank chip (solid for the
  * top three), company name + code, how many readers looked, price + today's
- * change, a star to follow. Same row as the dashboard's PopularCard.
+ * change, a star to follow. Same row as the dashboard rail cards.
  */
 export default function PopularStocksDeck({ items }: Props) {
   if (items.length === 0) {

@@ -1,8 +1,7 @@
-import type { ReactNode } from "react";
 import Link from "next/link";
 import type { Lang } from "@/context/LangContext";
 import { t } from "@/lib/home-copy";
-import { ACC, accVars } from "@/components/home/personalized/accents";
+import Stat from "@/components/ui/Stat";
 
 const BAG_ICON = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -16,49 +15,34 @@ const BAG_ICON = (
  * with a glass "Add your holdings" call-to-action floated on top. Replaces the
  * plain SetupCard so the empty state sells the feature instead of describing it.
  */
-export default function MoneyHeroGhost({ greeting, lang = "en" }: { greeting?: ReactNode; lang?: Lang }) {
+export default function MoneyHeroGhost({ lang = "en" }: { lang?: Lang }) {
   const bn = lang === "bn";
   return (
     <section
       className={`soft-card dash-box overflow-hidden ${bn ? "font-bn" : ""}`}
-      style={accVars(ACC.clay)}
       lang={bn ? "bn" : undefined}
     >
-      {greeting && (
-        <div className="border-b border-border px-4 pb-3 pt-4 sm:px-5">{greeting}</div>
-      )}
       <div className="relative">
       {/* Ghost content — sample numbers, blurred + inert */}
       <div className="pointer-events-none select-none blur-[3px] opacity-45" aria-hidden>
         <div className="px-4 sm:px-5 pt-4 pb-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-primary">
-                {t(lang, "yourMoneyToday")}
-              </p>
-              <div className="mt-1 text-[clamp(1.6rem,7vw,2rem)] font-extrabold tabular-nums nums text-text-main leading-tight">
-                ৳2,45,000
-              </div>
-              <div className="mt-0.5 text-sm sm:text-sm font-bold tabular-nums nums text-positive">
-                ▲ +৳3,200 (+1.32%) {t(lang, "today")}
-              </div>
+              <p className="text-sm font-semibold text-text-muted">{t(lang, "yourMoneyToday")}</p>
+              <div className="nums mt-1 text-3xl font-bold leading-tight text-text-main sm:text-4xl">৳2,45,000</div>
               <p className="mt-1 text-xs font-medium text-text-muted">{t(lang, "updatingLive")}</p>
             </div>
             <div
-              className="flex h-16 w-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-2xl border-2"
-              style={{ color: "var(--positive)", borderColor: "var(--positive)", background: "var(--surface-2)" }}
+              className="flex h-16 w-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg border-2 border-positive bg-surface-2 text-positive"
             >
-              <span className="text-2xl font-black leading-none">A</span>
+              <span className="text-2xl font-bold leading-none">A</span>
               <span className="text-xs font-semibold leading-none">{t(lang, "gradeExcellent")}</span>
             </div>
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-1.5">
-            <span className="rounded-full px-2.5 py-1 text-xs font-bold" style={{ color: "var(--positive)", background: "color-mix(in srgb, var(--positive) 12%, transparent)" }}>
-              ▲ {t(lang, "beatingDsex", { n: "0.74" })}
-            </span>
-            <span className="rounded-full px-2.5 py-1 text-xs font-bold" style={{ color: "var(--positive)", background: "var(--surface-2)" }}>
-              {t(lang, "total")} +৳18,400 (+8.1%)
-            </span>
+          <div className="mt-4 grid grid-cols-3 gap-3 border-t border-border pt-3">
+            <Stat size="sm" value="+৳3,200" tone="positive" label={t(lang, "heroToday")} sub="+1.32%" subTone="positive" />
+            <Stat size="sm" value="+৳18,400" tone="positive" label={t(lang, "heroTotal")} sub="+8.1%" subTone="positive" />
+            <Stat size="sm" value="+0.74%" tone="positive" label={t(lang, "heroVsDsex")} />
           </div>
           <p className="mt-3 text-sm leading-relaxed text-text-muted">
             {bn

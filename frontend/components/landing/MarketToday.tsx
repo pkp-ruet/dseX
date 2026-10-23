@@ -14,7 +14,7 @@ const NONE: Set<string> = new Set();
 /** Same two-up grid the dashboard uses. `grid-cols-1` is load-bearing on a
  *  phone — without it the implicit `auto` column cannot shrink below a card's
  *  min-content and one wide row widens the whole page. */
-const PAIR = "grid grid-cols-1 gap-3 md:grid-cols-2 md:items-start [&>*:only-child]:md:col-span-2";
+const PAIR = "grid grid-cols-1 gap-3 md:grid-cols-2 [&>*:only-child]:md:col-span-2";
 
 /**
  * Opens on `SectorMosaic` (the whole market as one coloured map), then three

@@ -3,15 +3,11 @@ import Link from "next/link";
 import { accVars } from "@/components/home/personalized/accents";
 
 /**
- * The one card header used across the logged-in dashboard — neutral icon,
- * sentence-case title (2026-10 redesign; it was an uppercase label on a tinted
- * row), optional chips beside it, optional right-hand link or slot. Every card (money, attention, your stocks, ideas, market today) uses
- * this so the page reads as one system instead of four header styles.
- *
- * It also carries the card's colour: `accent` sets `--acc`, which paints the
- * hairline across the top of the card, the soft tint behind this row and the
- * icon tile (`.dash-head` / `.dash-tile` in globals.css). Nothing in the card
- * body has to change — see accents.ts for the rhythm.
+ * The one card header used across the logged-in dashboard — sentence-case h3
+ * title (the chapter title above it is the h2), optional chips beside it,
+ * optional right-hand link or slot. No icon and no colour: the chapter title
+ * carries the icon, and colour is kept for meaning (up/down, Buy/Sell, grades).
+ * `accent` still sets `--acc` for the few chips that read it.
  */
 export default function DashHeader({
   title,
@@ -19,9 +15,8 @@ export default function DashHeader({
   href,
   linkLabel,
   right,
-  as: Tag = "h2",
+  as: Tag = "h3",
   accent,
-  icon,
 }: {
   title: string;
   /** Small pills rendered right after the title (counts, date, "N new"). */
@@ -34,7 +29,8 @@ export default function DashHeader({
   as?: "h2" | "h3";
   /** The card's colour, from `ACC` in accents.ts. Defaults to clay. */
   accent?: string;
-  /** Glyph for the gradient tile, from DashIcons (no emoji on this page). */
+  /** Accepted for old callers; not drawn. Icons sit on the chapter title only
+   *  (ChapterHead) — twenty grey tiles down the page were noise. */
   icon?: ReactNode;
 }) {
   return (
@@ -46,11 +42,6 @@ export default function DashHeader({
           whole and the right-hand link is shrink-0. Before, every child was
           shrink-0 and the chips painted over the link on 360px phones. */}
       <span className="flex min-w-0 flex-1 items-center gap-2">
-        {icon && (
-          <span className="dash-tile" aria-hidden>
-            {icon}
-          </span>
-        )}
         <Tag className="min-w-0 truncate text-base font-bold text-text-main">{title}</Tag>
         {chips}
       </span>

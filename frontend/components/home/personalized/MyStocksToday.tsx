@@ -13,8 +13,6 @@ import { changePct, changeTone, money } from "@/lib/formatters";
 import { t } from "@/lib/home-copy";
 import TierPill from "@/components/ui/TierPill";
 import StockRow, { StockPill, type StockRowTone } from "@/components/ui/StockRow";
-import { ACC } from "@/components/home/personalized/accents";
-import { IconWallet } from "@/components/home/personalized/DashIcons";
 import DashHeader from "@/components/home/personalized/DashHeader";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
 
@@ -52,6 +50,8 @@ function PriceCell({ ltp, chg }: { ltp: number | null; chg: number | null }) {
 }
 
 const MAX_ROWS = 6;
+/** The 320px desktop side column: fewer rows, no grade pill, one chip. */
+const COMPACT_ROWS = 5;
 
 interface Chip {
   label: string;
@@ -76,6 +76,7 @@ export default function MyStocksToday({
   dividends,
   alerts = [],
   reportCodes = [],
+  compact = false,
   lang = "en",
 }: {
   holdings: PortfolioHolding[];
@@ -87,6 +88,7 @@ export default function MyStocksToday({
   alerts?: PriceAlert[];
   /** Codes with a deep-analysis report — a "Full report" chip. */
   reportCodes?: string[];
+  compact?: boolean;
   lang?: Lang;
 }) {
   const bn = lang === "bn";
@@ -113,7 +115,7 @@ export default function MyStocksToday({
     .filter((x): x is ScoreItem => !!x);
   const rows = [...all]
     .sort((a, b) => Math.abs(b.change_pct ?? 0) - Math.abs(a.change_pct ?? 0))
-    .slice(0, MAX_ROWS);
+    .slice(0, compact ? COMPACT_ROWS : MAX_ROWS);
   if (rows.length === 0) return null;
 
   // Pulse counts every followed stock, not just the MAX_ROWS shown.
@@ -140,7 +142,6 @@ export default function MyStocksToday({
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
       <DashHeader
-        accent={ACC.clay} icon={<IconWallet size={15} />}
         title={t(lang, "yourStocksToday")}
         chips={
           upCount + downCount > 0 ? (
@@ -160,7 +161,7 @@ export default function MyStocksToday({
       <ul className="divide-y divide-cell-rule">
         {rows.map((item) => {
           const code = item.trading_code.toUpperCase();
-          const chips = chipsFor(code);
+          const chips = compact ? chipsFor(code).slice(0, 1) : chipsFor(code);
           return (
             <StockRow
               key={item.trading_code}
@@ -168,7 +169,7 @@ export default function MyStocksToday({
               name={item.company_name}
               lang={lang}
               mark={showOwnerTags ? <OwnerMark code={code} held={held} watched={watched} lang={lang} /> : undefined}
-              tags={<TierPill score={item.score} variant="solid" size="sm" />}
+              tags={compact ? undefined : <TierPill score={item.score} variant="solid" size="sm" />}
               detail={
                 chips.length > 0 ? (
                   <span className="mt-0.5 flex flex-wrap gap-1">

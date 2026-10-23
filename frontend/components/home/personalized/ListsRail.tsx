@@ -1,21 +1,19 @@
-import Link from "next/link";
 import type { MarketStateData, MarketChanceStock } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
 import { changePct, changeTone } from "@/lib/formatters";
 import { getTier, TIER_LABELS, TIER_LABELS_BN, type TierKey } from "@/lib/constants";
 import { t, type CopyKey } from "@/lib/home-copy";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
-import { ACC, accVars } from "@/components/home/personalized/accents";
-import { IconArrowRight, IconCoin, IconList, IconTag, IconTrendDown, IconTrendUp } from "@/components/home/personalized/DashIcons";
+import RailCard, { Rail, RailHeader } from "@/components/home/personalized/RailCard";
 import StockRow, { StockPill } from "@/components/ui/StockRow";
 
 type LensKey = "on_sale" | "income" | "rising" | "fallen";
 
-const LENSES: { key: LensKey; title: CopyKey; sub: CopyKey; color: string; icon: React.ReactNode }[] = [
-  { key: "on_sale", title: "lensOnSale", sub: "lensOnSaleSub", color: ACC.clay, icon: <IconTag size={16} /> },
-  { key: "income", title: "lensIncome", sub: "lensIncomeSub", color: ACC.amber, icon: <IconCoin size={16} /> },
-  { key: "rising", title: "lensRising", sub: "lensRisingSub", color: ACC.green, icon: <IconTrendUp size={16} /> },
-  { key: "fallen", title: "lensFallen", sub: "lensFallenSub", color: ACC.clay, icon: <IconTrendDown size={16} /> },
+const LENSES: { key: LensKey; title: CopyKey; sub: CopyKey }[] = [
+  { key: "on_sale", title: "lensOnSale", sub: "lensOnSaleSub" },
+  { key: "income", title: "lensIncome", sub: "lensIncomeSub" },
+  { key: "rising", title: "lensRising", sub: "lensRisingSub" },
+  { key: "fallen", title: "lensFallen", sub: "lensFallenSub" },
 ];
 
 const TIER_TEXT: Record<TierKey, string> = {
@@ -70,64 +68,34 @@ export default function ListsRail({
 
   return (
     <div className={bn ? "font-bn" : undefined} lang={bn ? "bn" : undefined}>
-      <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
-        <span className="flex min-w-0 items-center gap-2" style={accVars(ACC.navy)}>
-          <span className="dash-tile" aria-hidden>
-            <IconList size={15} />
-          </span>
-          <h3 className="min-w-0 truncate text-xs font-semibold text-text-main">
-            {t(lang, "listsTitle")}
-          </h3>
-        </span>
-        <Link href="/stock-insights" prefetch={false} className="shrink-0 text-xs font-semibold text-primary hover:underline active:opacity-70">
-          {t(lang, "allLists")} →
-        </Link>
-      </div>
-      <div className="dash-rail -mx-4 px-4 sm:mx-0 sm:px-0">
-        {cards.map((c) => {
-          const best = chances.best === c.key;
-          return (
-            <article key={c.key} className="soft-card dash-box w-64 overflow-hidden sm:w-72" style={accVars(c.color)}>
-              <div className="flex items-start gap-2.5 px-4 pt-4">
-                <span className="dash-tile dash-tile-lg" aria-hidden>
-                  {c.icon}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-1.5">
-                    <span className="truncate text-sm font-extrabold leading-tight text-text-main">{t(lang, c.title)}</span>
-                    {best && <StockPill tone="positive">{t(lang, "bestToday")}</StockPill>}
-                  </span>
-                  <span className="mt-0.5 block text-xs leading-snug text-text-muted">{t(lang, c.sub)}</span>
-                </span>
-              </div>
-              <ul className="mt-2 divide-y divide-cell-rule">
-                {c.rows.map((s) => {
-                  const m = metric(c.key, s, lang);
-                  return (
-                    <StockRow
-                      key={s.trading_code}
-                      size="sm"
-                      code={s.trading_code}
-                      name={s.company_name}
-                      lang={lang}
-                      mark={<OwnerMark code={s.trading_code} held={held} watched={watched} lang={lang} />}
-                      right={<span className={`block text-sm font-bold tabular-nums nums ${m.cls}`}>{m.text}</span>}
-                    />
-                  );
-                })}
-              </ul>
-              <Link
-                href="/market-analysis"
-                prefetch={false}
-                className="flex min-h-10 items-center justify-center gap-1 border-t border-border px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-surface-2 active:bg-surface-2"
-              >
-                {t(lang, "seeList")}
-                <IconArrowRight size={12} />
-              </Link>
-            </article>
-          );
-        })}
-      </div>
+      <RailHeader title={t(lang, "listsTitle")} href="/stock-insights" linkLabel={t(lang, "allLists")} />
+      <Rail>
+        {cards.map((c) => (
+          <RailCard
+            key={c.key}
+            title={t(lang, c.title)}
+            tag={chances.best === c.key ? <StockPill tone="positive">{t(lang, "bestToday")}</StockPill> : undefined}
+            sub={t(lang, c.sub)}
+            href="/market-analysis"
+            linkLabel={t(lang, "seeList")}
+          >
+            {c.rows.map((s) => {
+              const m = metric(c.key, s, lang);
+              return (
+                <StockRow
+                  key={s.trading_code}
+                  size="sm"
+                  code={s.trading_code}
+                  name={s.company_name}
+                  lang={lang}
+                  mark={<OwnerMark code={s.trading_code} held={held} watched={watched} lang={lang} />}
+                  right={<span className={`block text-sm font-bold tabular-nums nums ${m.cls}`}>{m.text}</span>}
+                />
+              );
+            })}
+          </RailCard>
+        ))}
+      </Rail>
     </div>
   );
 }

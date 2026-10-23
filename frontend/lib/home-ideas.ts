@@ -1,6 +1,7 @@
 import type { RecommendedStock, DailyTip, ScoreItem } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
 import type { CopyKey } from "@/lib/home-copy";
+import type { StockRowTone } from "@/components/ui/StockRow";
 
 /**
  * "3 stocks worth a look today" — one plain list for a reader who has never
@@ -48,6 +49,22 @@ export const TIP_KIND: Record<string, CopyKey> = {
   near_52w_low: "kindNearLow",
   high_roe: "kindStrong",
   rel_strength: "kindStrong",
+};
+
+/** Plain "kind" word → row tone. Market semantics stay locked: green = growth,
+ *  amber = cash, primary = personal / structural. */
+export const KIND_TONE: Record<string, StockRowTone> = {
+  kindYouFollow: "primary",
+  kindMatched: "primary",
+  kindGoodPrice: "positive",
+  kindStrongBuy: "positive",
+  kindGrowing: "positive",
+  kindPaysCash: "watch",
+  kindSteady: "primary",
+  kindCheap: "primary",
+  kindNearLow: "primary",
+  kindStrong: "positive",
+  kindTip: "muted",
 };
 
 /** First sentence of a Bengali "এক নজরে" summary (they end in the danda "।"). */

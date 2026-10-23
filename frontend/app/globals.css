@@ -4214,6 +4214,22 @@ h2.info-col-header { margin: 0; }
   }
 .dash-rail::-webkit-scrollbar { display: none; }
 .dash-rail > * { flex: 0 0 auto; scroll-snap-align: start; }
+.rail-card { width: 16rem; }
+@media (min-width: 640px) {
+.rail-card { width: 18rem; }
+}
+/* A hidden-scrollbar swipe rail can't be scrolled with a mouse, so from 768px
+   — or on any mouse/trackpad screen — the rail lays its cards out as a
+   wrapping grid instead: every card visible, nothing to swipe. */
+@media (min-width: 768px), (hover: hover) and (pointer: fine) {
+.dash-rail {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+.dash-rail > .rail-card { width: auto; }
+}
 .dash-section { scroll-margin-top: 112px; }
 .dash-nav {
     position: sticky;
@@ -4239,22 +4255,26 @@ h2.info-col-header { margin: 0; }
 .dash-nav-row::-webkit-scrollbar { display: none; }
 .dash-chip {
     flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.5rem;
     border: 1px solid var(--border);
     background: var(--surface);
     color: var(--text-muted);
     border-radius: 999px;
-    padding: 0.3rem 0.75rem;
+    padding: 0 0.9rem;
     font-size: var(--fs-2xs);
     font-weight: 700;
     white-space: nowrap;
     transition: background-color 120ms, color 120ms, border-color 120ms;
   }
 .dash-chip:active { background: var(--surface-2); }
+/* One ink fill for every chapter (2026-10-24): a colour per chapter made the
+   row read as decoration. */
 .dash-chip[aria-current="true"] {
-    background: var(--acc, var(--primary));
-    border-color: var(--acc, var(--primary));
-    color: #fff;
-    box-shadow: var(--shadow-soft);
+    background: var(--text);
+    border-color: var(--text);
+    color: var(--surface);
   }
 /* ── Dashboard card header (2026-10 redesign) ──
      The per-card accent hairline, tinted header row and gradient icon tile
@@ -4296,4 +4316,23 @@ h2.info-col-header { margin: 0; }
      box — `inset-inline: 0`, never a negative inset, or the page pans
      sideways on a phone. */
 .dash-glow { display: none; } /* off since the 2026-10 redesign */
+/* Card pairs end on one line (2026-10-24): every pair cell is a column and
+   its last card grows to the taller neighbour's height. */
+.dash-pair > * { display: flex; flex-direction: column; min-width: 0; }
+.dash-pair > * > :last-child { flex: 1 1 auto; }
+/* Wide dashboard (≥1024px): the chapters on the left, the reader's own
+   stocks in a column on the right. The column sticks under the chapter chips
+   when it fits; when it is taller than the screen, `top` goes negative so it
+   scrolls until its last card shows and sticks there — no inner scrollbar
+   (`--aside-h` is written by components/home/personalized/StickyAside.tsx). */
+.dash-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 21rem;
+    gap: 1.5rem;
+    align-items: start;
+  }
+.dash-aside {
+    position: sticky;
+    top: min(112px, calc(100vh - var(--aside-h, 0px) - 1rem));
+  }
 }

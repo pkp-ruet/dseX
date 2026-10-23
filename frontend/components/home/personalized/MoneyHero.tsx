@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { type PortfolioHolding, type ScoreItem, type MarketIndexData } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
@@ -9,7 +9,7 @@ import { bdGroup, takaGroup } from "@/lib/formatters";
 import { marketSession, formatBstDateLabel } from "@/lib/market-hours";
 import { bnDate } from "@/lib/bn";
 import { t, gradeLabel } from "@/lib/home-copy";
-import { ACC, accVars } from "@/components/home/personalized/accents";
+import Stat from "@/components/ui/Stat";
 
 const GRADE_COLOR: Record<Grade, string> = {
   A: "var(--positive)",
@@ -59,22 +59,18 @@ function useCountUp(target: number, duration = 700): number {
   return display;
 }
 
-const CHIP_CLS = "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold";
-
-/** Dashboard hero: total portfolio value (animated), today's move, how it
- *  compares to DSEX, and the A–F grade — the "your money today" headline. */
+/** Dashboard money card: total portfolio value (animated) beside the A–F
+ *  grade, then three numbers — today, since you bought, vs DSEX today. The
+ *  greeting + daily brief sit above it on the canvas (PersonalizedHome). */
 export default function MoneyHero({
   holdings,
   priceMap,
   marketIndex,
-  greeting,
   lang = "en",
 }: {
   holdings: PortfolioHolding[];
   priceMap: Map<string, ScoreItem>;
   marketIndex: MarketIndexData | null;
-  /** Slim greeting line folded into the top of the hero card (see HeroGreeting). */
-  greeting?: ReactNode;
   lang?: Lang;
 }) {
   const bn = lang === "bn";
@@ -114,31 +110,15 @@ export default function MoneyHero({
   return (
     <section
       className={`soft-card dash-box overflow-hidden ${bn ? "font-bn" : ""}`}
-      style={accVars(ACC.clay)}
       lang={bn ? "bn" : undefined}
     >
-      {greeting && (
-        <div className="border-b border-border px-4 pb-3 pt-4 sm:px-5">{greeting}</div>
-      )}
-      <div className="px-4 sm:px-5 pt-4 pb-4">
+      <div className="px-4 pb-4 pt-4 sm:px-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold text-primary">
-              {t(lang, "yourMoneyToday")}
-            </p>
-            <div className="mt-1 text-[clamp(1.6rem,7vw,2rem)] font-extrabold tabular-nums nums text-text-main leading-tight">
+            <p className="text-sm font-semibold text-text-muted">{t(lang, "yourMoneyToday")}</p>
+            <div className="nums mt-1 text-3xl font-bold leading-tight text-text-main sm:text-4xl">
               {hasPrice ? takaGroup(shownValue) : "—"}
             </div>
-            {today && (
-              <div
-                className="mt-0.5 text-sm sm:text-sm font-bold tabular-nums nums leading-tight"
-                style={{ color: todayUp ? "var(--positive)" : "var(--negative)" }}
-              >
-                {todayUp ? "▲" : "▼"} {todayUp ? "+" : "−"}৳
-                {bdGroup(Math.abs(today.delta))} ({todayUp ? "+" : ""}
-                {today.pct.toFixed(2)}%) {t(lang, "today")}
-              </div>
-            )}
             {/* Freshness — is this number live or last close? */}
             <p className="mt-1 text-xs font-medium text-text-muted">{freshness}</p>
           </div>
@@ -146,61 +126,46 @@ export default function MoneyHero({
           <Link
             href="/portfolio"
             aria-label={`Portfolio grade ${analysis.grade} — ${analysis.gradeLabel}. See full analysis`}
-            className="flex flex-col items-center justify-center gap-0.5 w-16 h-16 rounded-2xl border-2 shrink-0 transition active:scale-95"
-            style={{ color: gradeColor, borderColor: gradeColor, background: "var(--surface-2)" }}
+            className="flex h-16 w-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg border-2 bg-surface-2 transition active:scale-95"
+            style={{ color: gradeColor, borderColor: gradeColor }}
           >
-            <span className="text-2xl font-black leading-none">{analysis.grade}</span>
-            <span className="px-1 text-center text-xs font-bold leading-none ">
+            <span className="text-2xl font-bold leading-none">{analysis.grade}</span>
+            <span className="px-1 text-center text-xs font-bold leading-none">
               {gradeLabel(lang, analysis.gradeLabel)}
             </span>
           </Link>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-1.5">
-          {vsDsex != null &&
-            (Math.abs(vsDsex) < 0.1 ? (
-              <span
-                className={CHIP_CLS}
-                style={{ color: "var(--text-muted)", background: "var(--surface-2)", border: "1px solid var(--border)" }}
-              >
-                {t(lang, "trackingDsex")}
-              </span>
-            ) : vsDsex > 0 ? (
-              <span
-                className={CHIP_CLS}
-                style={{
-                  color: "var(--positive)",
-                  background: "color-mix(in srgb, var(--positive) 12%, transparent)",
-                  border: "1px solid color-mix(in srgb, var(--positive) 28%, var(--border))",
-                }}
-              >
-                ▲ {t(lang, "beatingDsex", { n: vsDsex.toFixed(2) })}
-              </span>
-            ) : (
-              <span
-                className={CHIP_CLS}
-                style={{
-                  color: "var(--negative)",
-                  background: "color-mix(in srgb, var(--negative) 9%, transparent)",
-                  border: "1px solid color-mix(in srgb, var(--negative) 24%, var(--border))",
-                }}
-              >
-                {t(lang, "trailingDsex", { n: Math.abs(vsDsex).toFixed(2) })}
-              </span>
-            ))}
-          {pnl != null && pnlPct != null && (
-            <span
-              className={`${CHIP_CLS} tabular-nums nums`}
-              style={{
-                color: up ? "var(--positive)" : "var(--negative)",
-                background: "var(--surface-2)",
-                border: "1px solid var(--border)",
-              }}
-            >
-              {t(lang, "total")} {up ? "+" : "−"}৳{bdGroup(Math.abs(pnl))} ({up ? "+" : ""}
-              {pnlPct.toFixed(1)}%)
-            </span>
-          )}
+        {/* Three numbers, label under each — they were three coloured pills. */}
+        <div className="mt-4 grid grid-cols-3 gap-3 border-t border-border pt-3">
+          <Stat
+            size="sm"
+            value={today ? `${todayUp ? "+" : "−"}৳${bdGroup(Math.abs(today.delta))}` : "—"}
+            tone={today ? (todayUp ? "positive" : "negative") : "muted"}
+            label={t(lang, "heroToday")}
+            sub={today ? `${todayUp ? "+" : ""}${today.pct.toFixed(2)}%` : undefined}
+            subTone={today ? (todayUp ? "positive" : "negative") : "muted"}
+          />
+          <Stat
+            size="sm"
+            value={pnl != null ? `${up ? "+" : "−"}৳${bdGroup(Math.abs(pnl))}` : "—"}
+            tone={pnl != null ? (up ? "positive" : "negative") : "muted"}
+            label={t(lang, "heroTotal")}
+            sub={pnlPct != null ? `${up ? "+" : ""}${pnlPct.toFixed(1)}%` : undefined}
+            subTone={pnl != null ? (up ? "positive" : "negative") : "muted"}
+          />
+          <Stat
+            size="sm"
+            value={
+              vsDsex == null
+                ? "—"
+                : Math.abs(vsDsex) < 0.1
+                  ? "="
+                  : `${vsDsex > 0 ? "+" : "−"}${Math.abs(vsDsex).toFixed(2)}%`
+            }
+            tone={vsDsex == null || Math.abs(vsDsex) < 0.1 ? "muted" : vsDsex > 0 ? "positive" : "negative"}
+            label={t(lang, "heroVsDsex")}
+          />
         </div>
 
         <p className="mt-3 text-sm leading-relaxed text-text-muted">{analysis.headline}</p>
@@ -208,7 +173,7 @@ export default function MoneyHero({
 
       <Link
         href="/portfolio"
-        className="block text-center px-4 py-3 text-xs font-semibold text-primary hover:bg-surface-2 active:bg-surface-2 border-t border-border transition-colors"
+        className="flex min-h-10 items-center justify-center border-t border-border px-4 py-3 text-sm font-semibold text-primary-ink transition-colors hover:bg-surface-2 active:bg-surface-2"
       >
         {t(lang, "seeFullPortfolio")} →
       </Link>
@@ -220,12 +185,9 @@ export default function MoneyHero({
  * Same footprint as MoneyHero — shown while the portfolio fetch is still in
  * flight (holdings unknown) so the sections below don't jump when it resolves.
  */
-export function MoneyHeroSkeleton({ greeting }: { greeting?: ReactNode }) {
+export function MoneyHeroSkeleton() {
   return (
     <section className="soft-card dash-box overflow-hidden">
-      {greeting && (
-        <div className="border-b border-border px-4 pb-3 pt-4 sm:px-5">{greeting}</div>
-      )}
       <div className="px-4 sm:px-5 pt-4 pb-4" aria-hidden>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1 space-y-2.5">
@@ -234,11 +196,12 @@ export function MoneyHeroSkeleton({ greeting }: { greeting?: ReactNode }) {
             <div className="h-4 w-32 animate-pulse rounded-full bg-surface-2" />
             <div className="h-3 w-28 animate-pulse rounded-full bg-surface-2" />
           </div>
-          <div className="h-14 w-14 shrink-0 animate-pulse rounded-2xl bg-surface-2 sm:h-16 sm:w-16" />
+          <div className="h-16 w-16 shrink-0 animate-pulse rounded-lg bg-surface-2" />
         </div>
-        <div className="mt-3 flex gap-1.5">
-          <div className="h-6 w-32 animate-pulse rounded-full bg-surface-2" />
-          <div className="h-6 w-24 animate-pulse rounded-full bg-surface-2" />
+        <div className="mt-4 grid grid-cols-3 gap-3 border-t border-border pt-3">
+          <div className="h-10 animate-pulse rounded-md bg-surface-2" />
+          <div className="h-10 animate-pulse rounded-md bg-surface-2" />
+          <div className="h-10 animate-pulse rounded-md bg-surface-2" />
         </div>
         <div className="mt-3 h-4 w-full max-w-xs animate-pulse rounded-full bg-surface-2" />
       </div>

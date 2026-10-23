@@ -25,6 +25,7 @@ import { marketSession, isTradingDay, bstDateStr } from "@/lib/market-hours";
 import { bnDate } from "@/lib/bn";
 import { t } from "@/lib/home-copy";
 import { trackHomeTap, trackEvent } from "@/lib/track";
+import { useMediaQuery } from "@/lib/use-media-query";
 
 import DailyBriefing from "@/components/home/personalized/DailyBriefing";
 import HeroGreeting from "@/components/home/personalized/HeroGreeting";
@@ -33,7 +34,6 @@ import MoneyHeroGhost from "@/components/home/personalized/MoneyHeroGhost";
 import AttentionStrip from "@/components/home/personalized/AttentionStrip";
 import PullToRefresh from "@/components/home/personalized/PullToRefresh";
 import MyStocksToday from "@/components/home/personalized/MyStocksToday";
-import PortfolioGlanceCard from "@/components/home/personalized/PortfolioGlanceCard";
 import TodaysIdeas from "@/components/home/personalized/TodaysIdeas";
 import TuneModal from "@/components/stock-recommendation/TuneModal";
 import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
@@ -42,20 +42,17 @@ import SectorsWeekCard from "@/components/home/personalized/SectorsWeekCard";
 import MarketNewsCard from "@/components/home/personalized/MarketNewsCard";
 import BanglaSnapshotCard from "@/components/home/personalized/BanglaSnapshotCard";
 import TurningPointsCard from "@/components/home/personalized/TurningPointsCard";
-import BuysTodayCard from "@/components/home/personalized/BuysTodayCard";
-import TopRankedCard from "@/components/home/personalized/TopRankedCard";
 import ListsRail from "@/components/home/personalized/ListsRail";
-import TrendingCard from "@/components/home/personalized/TrendingCard";
-import PopularCard from "@/components/home/personalized/PopularCard";
-import TipsCard from "@/components/home/personalized/TipsCard";
+import DiscoverRail from "@/components/home/personalized/DiscoverRail";
+import GlanceStrip from "@/components/home/personalized/GlanceStrip";
 import DividendBoardCard from "@/components/home/personalized/DividendBoardCard";
 import LearnCard from "@/components/home/personalized/LearnCard";
 import ExploreLinks from "@/components/home/personalized/ExploreLinks";
 import NewsPeek from "@/components/home/personalized/NewsPeek";
 import ChapterHead from "@/components/home/personalized/ChapterHead";
-import { CHAPTER_ACC } from "@/components/home/personalized/accents";
 import { IconBook, IconCoin, IconGrid, IconSparkle, IconWallet } from "@/components/home/personalized/DashIcons";
 import DashSectionNav, { type DashNavItem } from "@/components/home/personalized/DashSectionNav";
+import StickyAside from "@/components/home/personalized/StickyAside";
 import { HeaderChip } from "@/components/home/personalized/DashHeader";
 import InstallHomeBanner from "@/components/pwa/InstallHomeBanner";
 
@@ -63,25 +60,6 @@ function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
   if (!scores) return new Map();
   const all = Object.values(scores.tiers).flat();
   return new Map(all.map((s) => [s.trading_code.toUpperCase(), s]));
-}
-
-function SectionLabel({ children, lang }: { children: React.ReactNode; lang: Lang }) {
-  const bn = lang === "bn";
-  return (
-    <p
-      lang={bn ? "bn" : undefined}
-      className={`mb-2 flex items-center gap-2 text-xs font-semibold text-text-muted${bn ? " font-bn" : ""}`}
-    >
-      {/* Standing in for a DashHeader's icon tile, so this label does not read
-          as the one grey thing between two coloured cards. */}
-      <span
-        className="h-3.5 w-1 shrink-0 rounded-full"
-        aria-hidden
-        style={{ background: CHAPTER_ACC.money }}
-      />
-      {children}
-    </p>
-  );
 }
 
 /** Placeholder matching TodaysIdeas' shape — shown while the bundle is still
@@ -106,8 +84,14 @@ function IdeasSkeleton() {
 /** Two cards side by side from `md:` up; a lone card takes the full width.
  *  `grid-cols-1` is load-bearing on a phone: without it the implicit column is
  *  `auto`, which cannot shrink below a card's min-content, so one over-wide
- *  row would widen the whole page instead of being contained. */
-const PAIR = "grid grid-cols-1 gap-3 md:grid-cols-2 md:items-start [&>*:only-child]:md:col-span-2";
+ *  row would widen the whole page instead of being contained. `.dash-pair`
+ *  stretches both cards to the taller one's height so a pair ends on one line.
+ *  On a phone the flat sections get 24px between them (`gap-6`). */
+const PAIR = "dash-pair grid grid-cols-1 gap-6 sm:gap-3 md:grid-cols-2 [&>*:only-child]:md:col-span-2";
+/** The wide layout's main column is ~630px — one card per row there. */
+const STACK = "dash-pair grid grid-cols-1 gap-3";
+/** Space between the blocks inside one chapter. */
+const CHAPTER = "dash-section space-y-6 sm:space-y-3";
 
 /** Alerts that are NOT a price row — price moves and 52-week extremes live as
  *  chips on the "Your stocks today" rows, so they are not listed twice. */
@@ -313,14 +297,20 @@ export default function PersonalizedHome() {
     (marketState?.next?.near_high?.length ?? 0) + (marketState?.next?.near_low?.length ?? 0) + (marketState?.next?.unusual?.length ?? 0) > 0;
   const hasDividends = calendarRows.length > 0 || declared.length > 0;
 
+  // From 1024px the reader's own stocks move into a side column, so they stay
+  // in view while the market chapters scroll past. Market-wide blocks (the
+  // dividend board included) stay in the main column.
+  const isWide = useMediaQuery("(min-width: 1024px)");
+  const split = isWide && (hasPortfolio || hasWatchlist);
+
   const navItems = useMemo<DashNavItem[]>(() => {
     const items: DashNavItem[] = [
-      { id: "money", label: t(lang, "chMoney"), accent: CHAPTER_ACC.money },
-      { id: "market", label: t(lang, "chMarket"), accent: CHAPTER_ACC.market },
-      { id: "ideas", label: t(lang, "chIdeas"), accent: CHAPTER_ACC.ideas },
+      { id: "money", label: t(lang, "chMoney") },
+      { id: "market", label: t(lang, "chMarket") },
+      { id: "ideas", label: t(lang, "chIdeas") },
     ];
-    if (hasDividends) items.push({ id: "dividends", label: t(lang, "chDividends"), accent: CHAPTER_ACC.dividends });
-    items.push({ id: "learn", label: t(lang, "chLearn"), accent: CHAPTER_ACC.learn });
+    if (hasDividends) items.push({ id: "dividends", label: t(lang, "chDividends") });
+    items.push({ id: "learn", label: t(lang, "chLearn") });
     return items;
   }, [lang, hasDividends]);
 
@@ -339,268 +329,287 @@ export default function PersonalizedHome() {
     if (card) trackHomeTap(card, link.getAttribute("href") ?? undefined);
   }
 
-  const greeting = (
-    <HeroGreeting
-      name={user?.display_name}
-      dateStr={dateStr}
-      isNew={isNewUser}
-      brief={briefSegments}
-      lang={lang}
-      onLang={onLang}
-    />
+  const pair = split ? STACK : PAIR;
+  // Chapter title, with its Bengali line under it in English mode.
+  const head = (key: "chMoney" | "chMarket" | "chIdeas" | "chDividends" | "chLearn", icon: React.ReactNode) => (
+    <ChapterHead label={t(lang, key)} bn={bn ? undefined : t("bn", key)} lang={lang} icon={icon} />
+  );
+
+  // ── The reader's own blocks — a pair grid on phones/tablets, the sticky
+  //    side column from 1024px. ──
+  const stocksCard =
+    hasPortfolio || hasWatchlist ? (
+      <div data-card="stocks">
+        <MyStocksToday
+          holdings={holdings ?? []}
+          codes={codes}
+          priceMap={priceMap}
+          extremes={extremes}
+          dividends={dividends}
+          alerts={priceAlerts}
+          reportCodes={reportCodes}
+          compact={split}
+          lang={lang}
+        />
+      </div>
+    ) : null;
+  const attentionCard =
+    attention.length > 0 ? (
+      <div data-card="attention">
+        <AttentionStrip alerts={attention} lang={lang} />
+      </div>
+    ) : null;
+  const newsCard =
+    news.length > 0 ? (
+      <div data-card="news">
+        <NewsPeek
+          news={news}
+          loading={false}
+          title={t(lang, "newsOnYourStocks")}
+          moreHref={hasWatchlist ? "/watchlist" : "/todays-news"}
+          moreLabel={t(lang, "seeAll")}
+        />
+      </div>
+    ) : null;
+  // ── Chapter 4: Money coming — every record date in the next two weeks,
+  //    market-wide, plus the latest declarations. ──
+  const dividendsChapter = hasDividends ? (
+    <section id="dividends" className={CHAPTER}>
+      {head("chDividends", <IconCoin size={16} />)}
+      <div data-card="dividends">
+        <DividendBoardCard recordDates={calendarRows} declared={declared} held={heldSet} watched={watchedSet} lang={lang} />
+      </div>
+    </section>
+  ) : null;
+
+  // ── Chapter 2: Market today — the whole day without leaving the page:
+  //    mood + index + sparkline, movers, sectors, market news, the Bengali
+  //    paragraph, and what is near a turning point. ──
+  const marketChapter = (
+    <section id="market" className={CHAPTER}>
+      {head("chMarket", <IconGrid size={16} />)}
+      <div className={pair}>
+        <div data-card="market">
+          <MarketTodayCard
+            index={marketIndex}
+            dividends={dividends}
+            mood={marketState?.mood ?? null}
+            since={marketState?.since_yesterday ?? null}
+            stats={marketState?.stats ?? null}
+            quality={marketState?.now?.quality ?? null}
+            cheap={
+              marketState?.now?.questions?.find((q) =>
+                q.key === "value" || q.q.toLowerCase().startsWith("are shares cheap"),
+              ) ?? null
+            }
+            history={marketState?.history ?? null}
+            lang={lang}
+          />
+        </div>
+        {hasMovers && (
+          <div data-card="movers">
+            <MoversCard movers={movers} held={heldSet} watched={watchedSet} lang={lang} />
+          </div>
+        )}
+      </div>
+      {(sectorRows.length > 0 || marketNews.length > 0 || marketState?.summary_bn) && (
+        <div className={pair}>
+          {sectorRows.length > 0 && (
+            <div data-card="sectors">
+              <SectorsWeekCard sectors={sectorRows} lang={lang} />
+            </div>
+          )}
+          {(marketNews.length > 0 || marketState?.summary_bn) && (
+            <div className="space-y-6 sm:space-y-3">
+              {marketNews.length > 0 && (
+                <div data-card="marketnews">
+                  <MarketNewsCard news={marketNews} held={heldSet} watched={watchedSet} lang={lang} />
+                </div>
+              )}
+              {marketState?.summary_bn && (
+                <div data-card="bangla">
+                  <BanglaSnapshotCard summary={marketState.summary_bn} />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+      {hasTurning && (
+        <div data-card="turning">
+          <TurningPointsCard
+            nearHigh={marketState?.next?.near_high ?? []}
+            nearLow={marketState?.next?.near_low ?? []}
+            unusual={marketState?.next?.unusual ?? []}
+            held={heldSet}
+            watched={watchedSet}
+            lang={lang}
+          />
+        </div>
+      )}
+    </section>
+  );
+
+  // ── Chapter 3: Worth a look — the three-stock opener, then ONE swipe rail
+  //    for buy signals / top ranked / trending / tips / popular (five full
+  //    cards until 2026-10-24), then the ready-made lists rail. ──
+  const ideasChapter = (
+    <section id="ideas" className={CHAPTER}>
+      {head("chIdeas", <IconSparkle size={16} />)}
+      {(hasIdeas || ideasLoading) && (
+        <div id="intelligence" data-card="ideas">
+          {ideasLoading ? (
+            <IdeasSkeleton />
+          ) : (
+            <TodaysIdeas
+              picks={dailyPicks?.picks ?? []}
+              buys={buys}
+              tips={tips}
+              followed={followedCodes}
+              tuned={hasTuned}
+              newPickCodes={newPickCodes}
+              summariesBn={summariesBn}
+              lang={lang}
+              chips={
+                <>
+                  <HeaderChip className="hidden sm:inline">{shortDate}</HeaderChip>
+                  {newPickCodes.length > 0 && (
+                    <HeaderChip tone="accent">
+                      {newPickCodes.length} {t(lang, "newTag").toLowerCase()}
+                    </HeaderChip>
+                  )}
+                </>
+              }
+            />
+          )}
+        </div>
+      )}
+      <div data-card="discover">
+        <DiscoverRail
+          buys={buys}
+          stocks={allStocks}
+          trending={top20}
+          popular={popular}
+          tips={tips}
+          held={heldSet}
+          watched={watchedSet}
+          lang={lang}
+        />
+      </div>
+      {marketState?.chances && (
+        <div data-card="lists">
+          <ListsRail chances={marketState.chances} held={heldSet} watched={watchedSet} lang={lang} />
+        </div>
+      )}
+    </section>
+  );
+
+  // Onboarding checklist — build a watchlist + personalize picks. Sits below
+  // the money chapter so a returning user never meets "Finish setting up"
+  // before their own money. Renders nothing once done.
+  const setup = (
+    <div data-card="setup">
+      <DailyBriefing hasWatchlist={hasWatchlist} hasTuned={hasTuned} onPersonalize={() => setTuneOpen(true)} />
+    </div>
+  );
+
+  // ── Chapter 5: Learn — two short reads that rotate daily (three Bengali
+  //    beginner guides for a brand-new account) + the way out to every other
+  //    page. ──
+  const learnChapter = (
+    <section id="learn" className={CHAPTER}>
+      {head("chLearn", <IconBook size={16} />)}
+      <div className={pair}>
+        <div data-card="learn">
+          <LearnCard brandNew={isBrandNew} lang={lang} />
+        </div>
+        <div data-card="explore">
+          <ExploreLinks lang={lang} />
+        </div>
+      </div>
+    </section>
   );
 
   return (
     <PullToRefresh onRefresh={() => runFetches()}>
     <div className="pb-4" onClickCapture={onTap}>
-      {/* ── Chapter 1a: the hero — brief + value + grade. Always first. ── */}
-      <section id="money" className="dash-section relative mt-5" data-card="money">
-        {/* Soft clay/steel/gold wash behind the hero — the one place on the
-            page with ambience. `.dash-glow` is inset-inline: 0, never negative,
-            so it cannot make the page pan sideways on a phone. */}
-        <span className="dash-glow" aria-hidden />
+      {/* ── Chapter 1: the greeting + daily brief open on the canvas, then the
+          money card, then the four-number glance strip. ── */}
+      <section id="money" className="dash-section mt-5 space-y-4" data-card="money">
+        <HeroGreeting
+          name={user?.display_name}
+          dateStr={dateStr}
+          isNew={isNewUser}
+          brief={briefSegments}
+          lang={lang}
+          onLang={onLang}
+        />
         {holdings === null ? (
-          // Portfolio not known yet → hold the hero's space so nothing below
+          // Portfolio not known yet → hold the card's space so nothing below
           // jumps when it resolves (kills the ghost↔MoneyHero shift).
-          <MoneyHeroSkeleton greeting={greeting} />
+          <MoneyHeroSkeleton />
         ) : hasPortfolio ? (
-          <MoneyHero holdings={holdings} priceMap={priceMap} marketIndex={marketIndex} greeting={greeting} lang={lang} />
+          <MoneyHero holdings={holdings} priceMap={priceMap} marketIndex={marketIndex} lang={lang} />
         ) : (
-          <MoneyHeroGhost greeting={greeting} lang={lang} />
+          <MoneyHeroGhost lang={lang} />
         )}
+        <GlanceStrip
+          index={marketIndex}
+          followedCodes={followedCodes}
+          priceMap={priceMap}
+          dividends={dividends}
+          calendarRows={calendarRows}
+          when={when}
+          lang={lang}
+        />
       </section>
 
-      {/* Sticky chapter chips — the page is a long daily read now. */}
+      {/* Sticky chapter chips — the page is a long daily read. */}
       <DashSectionNav items={navItems} lang={lang} />
 
-      <div className="mt-4 space-y-9">
-        {/* ── Chapter 1b: the rest of "your money" — portfolio at a glance +
-            your stocks, then what needs attention + your news. ── */}
-        {(hasPortfolio || hasWatchlist) && (
-          <section className="space-y-3">
-            <div className={PAIR}>
-              {hasPortfolio && (
-                <div data-card="glance">
-                  <PortfolioGlanceCard holdings={holdings!} priceMap={priceMap} dividendCash={dividendCash} lang={lang} />
-                </div>
-              )}
-              <div data-card="stocks">
-                <MyStocksToday
-                  holdings={holdings ?? []}
-                  codes={codes}
-                  priceMap={priceMap}
-                  extremes={extremes}
-                  dividends={dividends}
-                  alerts={priceAlerts}
-                  reportCodes={reportCodes}
-                  lang={lang}
-                />
-              </div>
-            </div>
-            {(attention.length > 0 || news.length > 0) && (
-              <div className={PAIR}>
-                {attention.length > 0 && (
-                  <div data-card="attention">
-                    <AttentionStrip alerts={attention} lang={lang} />
-                  </div>
-                )}
-                {news.length > 0 && (
-                  <div data-card="news">
-                    <SectionLabel lang={lang}>{t(lang, "newsOnYourStocks")}</SectionLabel>
-                    <NewsPeek
-                      news={news}
-                      loading={false}
-                      moreHref={hasWatchlist ? "/watchlist" : "/todays-news"}
-                      moreLabel={hasWatchlist ? t(lang, "allNewsYourStocks") : t(lang, "allMarketNews")}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* ── Chapter 2: Market today — the whole day without leaving the page:
-            mood + index + sparkline, movers, sectors, market news, the Bengali
-            paragraph, and what is near a turning point. ── */}
-        <section id="market" className="dash-section space-y-3">
-          <ChapterHead label={t(lang, "chMarket")} lang={lang} accent={CHAPTER_ACC.market} icon={<IconGrid size={16} />} />
-          <div className={PAIR}>
-            <div data-card="market">
-              <MarketTodayCard
-                index={marketIndex}
-                dividends={dividends}
-                mood={marketState?.mood ?? null}
-                since={marketState?.since_yesterday ?? null}
-                stats={marketState?.stats ?? null}
-                quality={marketState?.now?.quality ?? null}
-                cheap={
-                  marketState?.now?.questions?.find((q) =>
-                    q.key === "value" || q.q.toLowerCase().startsWith("are shares cheap"),
-                  ) ?? null
-                }
-                history={marketState?.history ?? null}
-                lang={lang}
-              />
-            </div>
-            {hasMovers && (
-              <div data-card="movers">
-                <MoversCard movers={movers} held={heldSet} watched={watchedSet} lang={lang} />
-              </div>
-            )}
+      {split ? (
+        <div className="dash-split mt-4">
+          <div className="min-w-0 space-y-12">
+            {marketChapter}
+            {ideasChapter}
+            {dividendsChapter}
+            {setup}
+            {learnChapter}
           </div>
-          {(sectorRows.length > 0 || marketNews.length > 0 || marketState?.summary_bn) && (
-            <div className={PAIR}>
-              {sectorRows.length > 0 && (
-                <div data-card="sectors">
-                  <SectorsWeekCard sectors={sectorRows} lang={lang} />
-                </div>
-              )}
-              {(marketNews.length > 0 || marketState?.summary_bn) && (
-                <div className="space-y-3">
-                  {marketNews.length > 0 && (
-                    <div data-card="marketnews">
-                      <MarketNewsCard news={marketNews} held={heldSet} watched={watchedSet} lang={lang} />
-                    </div>
-                  )}
-                  {marketState?.summary_bn && (
-                    <div data-card="bangla">
-                      <BanglaSnapshotCard summary={marketState.summary_bn} />
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-          {hasTurning && (
-            <div data-card="turning">
-              <TurningPointsCard
-                nearHigh={marketState?.next?.near_high ?? []}
-                nearLow={marketState?.next?.near_low ?? []}
-                unusual={marketState?.next?.unusual ?? []}
-                held={heldSet}
-                watched={watchedSet}
-                lang={lang}
-              />
-            </div>
-          )}
-        </section>
-
-        {/* ── Chapter 3: Worth a look — the three-stock opener, then every buy
-            signal, the top of the ranking, the four lists, trending, tips,
-            and what other readers are viewing. ── */}
-        <section id="ideas" className="dash-section space-y-3">
-          <ChapterHead label={t(lang, "chIdeas")} lang={lang} accent={CHAPTER_ACC.ideas} icon={<IconSparkle size={16} />} />
-          <div className={PAIR}>
-            {(hasIdeas || ideasLoading) && (
-              <div id="intelligence" data-card="ideas">
-                {ideasLoading ? (
-                  <IdeasSkeleton />
-                ) : (
-                  <TodaysIdeas
-                    picks={dailyPicks?.picks ?? []}
-                    buys={buys}
-                    tips={tips}
-                    followed={followedCodes}
-                    tuned={hasTuned}
-                    newPickCodes={newPickCodes}
-                    summariesBn={summariesBn}
-                    lang={lang}
-                    chips={
-                      <>
-                        <HeaderChip className="hidden sm:inline">{shortDate}</HeaderChip>
-                        {newPickCodes.length > 0 && (
-                          <HeaderChip tone="accent">
-                            {newPickCodes.length} {t(lang, "newTag").toLowerCase()}
-                          </HeaderChip>
-                        )}
-                      </>
-                    }
-                  />
-                )}
-              </div>
-            )}
-            {allStocks.length > 0 && (
-              <div data-card="buys">
-                <BuysTodayCard buys={buys} held={heldSet} watched={watchedSet} lang={lang} />
-              </div>
-            )}
-          </div>
-          {(allStocks.length > 0 || top20.length > 0) && (
-            <div className={PAIR}>
-              {allStocks.length > 0 && (
-                <div data-card="ranked">
-                  <TopRankedCard stocks={allStocks} held={heldSet} watched={watchedSet} lang={lang} />
-                </div>
-              )}
-              {top20.length > 0 && (
-                <div data-card="trending">
-                  <TrendingCard items={top20} held={heldSet} watched={watchedSet} lang={lang} />
-                </div>
-              )}
-            </div>
-          )}
-          {marketState?.chances && (
-            <div data-card="lists">
-              <ListsRail chances={marketState.chances} held={heldSet} watched={watchedSet} lang={lang} />
-            </div>
-          )}
-          {(tips.length > 0 || popular.length > 0) && (
-            <div className={PAIR}>
-              {tips.length > 0 && (
-                <div data-card="tips">
-                  <TipsCard tips={tips} held={heldSet} watched={watchedSet} lang={lang} />
-                </div>
-              )}
-              {popular.length > 0 && (
-                <div data-card="popular">
-                  <PopularCard items={popular} held={heldSet} watched={watchedSet} lang={lang} />
-                </div>
-              )}
-            </div>
-          )}
-        </section>
-
-        {/* ── Chapter 4: Money coming — every record date in the next two
-            weeks, market-wide, plus the latest declarations. ── */}
-        {hasDividends && (
-          <section id="dividends" className="dash-section space-y-3">
-            <ChapterHead label={t(lang, "chDividends")} lang={lang} accent={CHAPTER_ACC.dividends} icon={<IconCoin size={16} />} />
-            <div data-card="dividends">
-              <DividendBoardCard recordDates={calendarRows} declared={declared} held={heldSet} watched={watchedSet} lang={lang} />
-            </div>
-          </section>
-        )}
-
-        {/* Onboarding checklist — build a watchlist + personalize picks. Sits
-            below the money chapter so a returning user never meets "Finish
-            setting up" before their own money. Renders nothing once done. */}
-        <div data-card="setup">
-          <DailyBriefing
-            hasWatchlist={hasWatchlist}
-            hasTuned={hasTuned}
-            onPersonalize={() => setTuneOpen(true)}
-          />
+          {/* Your stocks first (the reason to keep the column), then what
+              needs attention, your news. The title lines up with "Market
+              today" on the left. */}
+          <StickyAside label={t(lang, "chMoney")}>
+            {head("chMoney", <IconWallet size={16} />)}
+            {stocksCard}
+            {attentionCard}
+            {newsCard}
+          </StickyAside>
         </div>
-
-        {/* ── Chapter 5: Learn — two short reads that rotate daily (three
-            Bengali beginner guides for a brand-new account) + the way out to
-            every other page. ── */}
-        <section id="learn" className="dash-section space-y-3">
-          <ChapterHead label={t(lang, "chLearn")} lang={lang} accent={CHAPTER_ACC.learn} icon={<IconBook size={16} />} />
-          <div className={PAIR}>
-            <div data-card="learn">
-              <LearnCard brandNew={isBrandNew} lang={lang} />
-            </div>
-            <div data-card="explore">
-              <ExploreLinks lang={lang} />
-            </div>
-          </div>
-        </section>
-
-        {/* Mobile-only install CTA — auto-hides once installed / dismissed. */}
-        <InstallHomeBanner />
-      </div>
+      ) : (
+        <div className="mt-4 space-y-12 sm:space-y-10">
+          {/* The rest of "your money" — your stocks, then what needs
+              attention + your news. */}
+          {stocksCard && (
+            <section className="space-y-6 sm:space-y-3">
+              {stocksCard}
+              {(attentionCard || newsCard) && (
+                <div className={PAIR}>
+                  {attentionCard}
+                  {newsCard}
+                </div>
+              )}
+            </section>
+          )}
+          {marketChapter}
+          {ideasChapter}
+          {dividendsChapter}
+          {setup}
+          {learnChapter}
+          {/* Mobile-only install CTA — auto-hides once installed / dismissed. */}
+          <InstallHomeBanner />
+        </div>
+      )}
 
       {/* "Personalize your picks" quiz, opened from the setup checklist. */}
       <TuneModal

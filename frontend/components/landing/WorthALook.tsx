@@ -1,25 +1,21 @@
 import Link from "next/link";
 import SectionHead from "@/components/i18n/SectionHead";
-import BuysTodayCard from "@/components/home/personalized/BuysTodayCard";
-import TopRankedCard from "@/components/home/personalized/TopRankedCard";
-import TrendingCard from "@/components/home/personalized/TrendingCard";
-import TipsCard from "@/components/home/personalized/TipsCard";
 import ListsRail from "@/components/home/personalized/ListsRail";
+import DiscoverRail from "@/components/home/personalized/DiscoverRail";
 import type { CSSProperties } from "react";
 import type { ScoreItem, Top20Item, DailyTip, MarketStateData } from "@/lib/api";
 
 const NONE: Set<string> = new Set();
-
-const PAIR = "grid grid-cols-1 gap-3 md:grid-cols-2 md:items-start [&>*:only-child]:md:col-span-2";
 
 /**
  * Every way in that does not need an account: today's buy signals, the top of
  * the ranking, what is moving, the ready-made lists, the daily tips, and what
  * other readers are reading.
  *
- * Order: the swipe lists first (the most inviting), then buys + ranking, then
- * trending + tips, three rows each. Popular was dropped here (2026-09-30) — for
- * a first visit it mostly repeated Trending; it stays on the dashboard.
+ * Two swipe rails, three names per card: the ready-made lists first (the most
+ * inviting), then buy signals · top ranked · trending · tips (`DiscoverRail`,
+ * the same rail the dashboard uses). Popular was dropped here (2026-09-30) —
+ * for a first visit it mostly repeated Trending; it stays on the dashboard.
  *
  * This block replaced two written ones — `ReportAnatomy` (a list of the eight
  * sections on a stock page) and `WaysToFind` (a picker plus a row of links).
@@ -59,23 +55,20 @@ export default function WorthALook({
         bn="কোন শেয়ার কিনবেন বুঝতে পারছেন না? আজকের সিগন্যাল, র‍্যাঙ্কিং আর তৈরি করা তালিকা দেখে শুরু করুন।"
       />
 
-      <div className="mt-6 space-y-3">
-        {/* The swipe cards first — the most inviting way in */}
+      <div className="mt-6 space-y-6">
+        {/* Two swipe rails of same-shape cards: the ready-made lists, then
+            buy signals / top ranked / trending / tips (four full cards until
+            2026-10-24 — same names, half the scroll). */}
         {chances && <ListsRail chances={chances} held={NONE} watched={NONE} />}
-
-        {stocks.length > 0 && (
-          <div className={PAIR}>
-            <BuysTodayCard buys={buys} held={NONE} watched={NONE} rows={3} />
-            <TopRankedCard stocks={stocks} held={NONE} watched={NONE} rows={3} />
-          </div>
-        )}
-
-        {(trending.length > 0 || tips.length > 0) && (
-          <div className={PAIR}>
-            {trending.length > 0 && <TrendingCard items={trending} held={NONE} watched={NONE} rows={3} />}
-            {tips.length > 0 && <TipsCard tips={tips} held={NONE} watched={NONE} rows={3} />}
-          </div>
-        )}
+        <DiscoverRail
+          buys={buys}
+          stocks={stocks}
+          trending={trending}
+          popular={[]}
+          tips={tips}
+          held={NONE}
+          watched={NONE}
+        />
       </div>
 
       <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 px-1.5 sm:px-0">

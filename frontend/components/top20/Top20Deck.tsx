@@ -5,8 +5,8 @@ interface Props {
   items: Top20Item[];
 }
 
-/** The trending list as one card of `StockRow`s — the same row the dashboard's
- *  TrendingCard uses, so the "See all" page reads as more of the same. */
+/** The trending list as one card of `StockRow`s — the same row the
+ *  dashboard rail uses, so the "See all" page reads as more of the same. */
 export default function Top20Deck({ items }: Props) {
   if (items.length === 0) {
     return (

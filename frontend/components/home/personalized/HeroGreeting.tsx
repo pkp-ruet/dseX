@@ -68,7 +68,7 @@ export default function HeroGreeting({
       </div>
 
       {brief.length > 0 ? (
-        <h1 className="mt-1.5 text-xl font-bold leading-snug tracking-tight text-text-main sm:text-2xl">
+        <h1 className="mt-1.5 text-2xl font-bold leading-snug tracking-tight text-text-main sm:text-3xl">
           {brief.map((s, i) =>
             s.href ? (
               <Link
@@ -89,7 +89,7 @@ export default function HeroGreeting({
           )}
         </h1>
       ) : (
-        <h1 className="mt-1 text-xl font-extrabold leading-tight tracking-tight text-text-main sm:text-2xl">
+        <h1 className="mt-1 text-2xl font-bold leading-tight tracking-tight text-text-main sm:text-3xl">
           {greeting}
           {who}
         </h1>

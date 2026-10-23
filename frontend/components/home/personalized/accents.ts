@@ -1,19 +1,10 @@
 import type { CSSProperties } from "react";
 
 /**
- * The dashboard's colour rhythm.
- *
- * Twenty identical white cards read as one grey wall, so every card carries an
- * accent: a hairline across its top, a whisper of tint behind its header and a
- * gradient icon tile (all three come from `DashHeader` + `.dash-head` in
- * globals.css). Chapters set the base hue and a few cards vary inside it, the
- * same way the landing page varies accents inside a block.
- *
- * Only the warm/role palette is used for decoration — clay, steel, navy, gold
- * and the amber warn token. `--positive` / `--negative` / the tier colours stay
- * locked to market meaning and appear here ONLY where the card's subject really
- * is that thing (buy signals are green because they are buy signals, not
- * because green looked nice).
+ * Leftover of the 2026-09 "colour rhythm" (a hue per card and per chapter).
+ * Since the 2026-10 redesign nothing paints `--acc` on a card or a chapter —
+ * colour is kept for meaning (up/down, Buy/Sell, grades). `ACC` values still
+ * tint a few rank chips and row tiles; don't use them to tell cards apart.
  */
 export const ACC = {
   clay: "var(--primary)",
@@ -25,15 +16,6 @@ export const ACC = {
 } as const;
 
 export type AccentName = keyof typeof ACC;
-
-/** The five chapters, in page order. */
-export const CHAPTER_ACC = {
-  money: ACC.clay,
-  market: ACC.steel,
-  ideas: ACC.navy,
-  dividends: ACC.gold,
-  learn: ACC.clay,
-} as const;
 
 /** `style={accVars(ACC.steel)}` — sets the `--acc` custom property. */
 export function accVars(accent?: string): CSSProperties | undefined {
