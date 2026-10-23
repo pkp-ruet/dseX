@@ -1,7 +1,6 @@
 "use client";
 
-import { getStoredUser } from "@/lib/auth";
-import { FREE_LIMITS, PREMIUM_PATH, startFreeMonth, storedLimit, type LimitKind } from "@/lib/premium";
+import { FREE_LIMITS, PREMIUM_PATH, storedLimit, type LimitKind } from "@/lib/premium";
 import { toast } from "@/lib/toast";
 
 const MESSAGES: Record<LimitKind, (n: number) => string> = {
@@ -11,20 +10,16 @@ const MESSAGES: Record<LimitKind, (n: number) => string> = {
 };
 
 /**
- * "You've hit the free limit" — one toast, with the next step as its action:
- * start the free month if it's still available, else open the Premium page.
+ * "You've hit the free limit" — one toast whose action opens the Premium page
+ * (what's included + the planned price). It never starts the free month itself.
  * Callable from anywhere (StarButton, the alert modal, lib code).
  */
 export function showLimitNotice(kind: LimitKind): void {
   const n = storedLimit(kind) ?? FREE_LIMITS[kind];
-  const user = getStoredUser();
-  const canTrial = !!user && user.trial_available !== false;
   toast({
     message: `${MESSAGES[kind](n)}. Premium has no limit.`,
     tone: "neutral",
     duration: 7000,
-    action: canTrial
-      ? { label: "Try free", onClick: () => void startFreeMonth() }
-      : { label: "See Premium", onClick: () => { window.location.href = PREMIUM_PATH; } },
+    action: { label: "See Premium", onClick: () => { window.location.href = PREMIUM_PATH; } },
   });
 }

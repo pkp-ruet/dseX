@@ -103,7 +103,7 @@ export default function ProfileClient() {
               What&apos;s in Premium
             </Link>
           </div>
-          <PremiumPlanCta />
+          <PremiumPlanCta linkOnly />
         </div>
 
         {/* Account — one grouped list (settings-app style), rows split by hairlines */}

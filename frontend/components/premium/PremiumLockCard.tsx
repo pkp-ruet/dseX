@@ -8,8 +8,10 @@ import { PREMIUM_PATH, usePremium } from "@/lib/premium";
 
 /**
  * The one "this is Premium" card. What it asks depends on the reader:
- * guest → sign up free · free account → start the free month · month used →
- * paid plans are coming. `compact` is the one-line version for small spots
+ * guest → sign up free · free account → try it free for a month · month used →
+ * paid plans are coming. The button always opens /premium (what's included +
+ * the planned price); the month starts there, never from a lock.
+ * `compact` is the one-line version for small spots
  * ("+3 more good signs").
  */
 export default function PremiumLockCard({
@@ -21,7 +23,7 @@ export default function PremiumLockCard({
   compact?: boolean;
 }) {
   const { bn } = useLang();
-  const { state, startTrial, starting } = usePremium();
+  const { state } = usePremium();
 
   const title = bn
     ? "এটি প্রিমিয়ামের অংশ"
@@ -36,20 +38,13 @@ export default function PremiumLockCard({
         ? { en: "Open a free account, then try Premium free for 1 month.", bn: "বিনামূল্যে অ্যাকাউন্ট খুলুন, তারপর 1 মাস প্রিমিয়াম ফ্রি ব্যবহার করুন।" }
         : { en: "Try it free for 1 month. No payment needed.", bn: "1 মাস বিনামূল্যে ব্যবহার করুন। কোনো পেমেন্ট লাগবে না।" };
 
-  const action =
-    state === "guest" ? (
-      <Button href="/register" size={compact ? "sm" : "md"}>
-        {bn ? "ফ্রি অ্যাকাউন্ট খুলুন" : "Sign up free"}
-      </Button>
-    ) : state === "trial_available" ? (
-      <Button onClick={() => void startTrial()} disabled={starting} size={compact ? "sm" : "md"}>
-        {bn ? "ফ্রি মাস শুরু করুন" : "Start my free month"}
-      </Button>
-    ) : (
-      <Button href={PREMIUM_PATH} variant="quiet" size={compact ? "sm" : "md"}>
-        {bn ? "প্রিমিয়ামে কী আছে" : "What's in Premium"}
-      </Button>
-    );
+  // Always the Premium page first — what you get and what it will cost — never
+  // a button that switches the month on from here.
+  const action = (
+    <Button href={PREMIUM_PATH} variant={state === "ended" ? "quiet" : "primary"} size={compact ? "sm" : "md"}>
+      {bn ? "প্রিমিয়ামে কী আছে" : "See Premium"}
+    </Button>
+  );
 
   if (state === "premium") return null;
 
