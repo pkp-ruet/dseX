@@ -48,10 +48,10 @@ import PushOptInPrompt from "@/components/push/PushOptInPrompt";
 import PushAlertBanner from "@/components/push/PushAlertBanner";
 import InstallPrompt from "@/components/pwa/InstallPrompt";
 
-// Same navy as the manifest theme_color so the browser chrome matches the navbar
+// Same white as the manifest theme_color so the browser chrome matches the navbar
 // in a normal tab too, not only when installed.
 export const viewport: Viewport = {
-  themeColor: "#2A3644",
+  themeColor: "#FFFFFF",
 };
 
 export const metadata: Metadata = {

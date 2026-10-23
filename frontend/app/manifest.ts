@@ -14,7 +14,7 @@ export default function manifest(): MetadataRoute.Manifest {
     display: "standalone",
     orientation: "portrait",
     background_color: "#FAF8F4", // --bg: the splash matches the canvas instead of flashing white
-    theme_color: "#2A3644",      // --navy: the navbar colour, so the Android status bar continues it
+    theme_color: "#FFFFFF",      // the white navbar, so the Android status bar continues it
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
       { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },

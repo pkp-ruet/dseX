@@ -131,20 +131,8 @@ html {
     scroll-behavior: smooth;
   }
 }
-/* Top accent bar */
-body::before {
-  content: "";
-  display: block;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--info) 0%, var(--primary) 50%, var(--gold) 100%);
-  /* Above the fixed navbar (z-50) so the ribbon reads as the page's top edge,
-     but below dialogs and sheets — it used to sit at 1000, over every modal. */
-  z-index: 55;
-}
+/* (The 3px gradient ribbon across the top of every page was removed in the
+   2026-10 redesign: colour is for meaning, and the white navbar has its own edge.) */
 /* ---- Homepage refresh helpers (soft dusty-blue + slate) ---- */
 .font-display {
   font-family: var(--font-inter), system-ui, sans-serif;
@@ -1949,16 +1937,14 @@ a:hover .ticker-tag,
   margin-bottom: 12px;
   padding: 22px 20px 26px;
   border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, var(--navy) 0%, var(--navy-ink) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--navy);
   color: rgba(255, 255, 255, 0.72);
-  box-shadow: var(--shadow-soft);
 }
 .np-footer-brand {
   font-family: var(--font-inter), Inter, system-ui, sans-serif;
   font-size: var(--fs-base);
   font-weight: 700;
-  letter-spacing: 2px;
+  letter-spacing: -0.01em;
   color: #fff;
 }
 .np-footer-tagline {
@@ -2210,78 +2196,28 @@ a:hover .ticker-tag,
   margin: 0 6px;
 }
 /* ======================================
-   COLORED NAVBAR BAR (indigo) — contrast vs ivory page
-   Scoped overrides flip the bar's items to light text;
-   the dropdown popover is re-asserted light further down.
+   NAVBAR BAR — white with a hairline (2026-10 redesign, decision 2; it was a
+   navy bar). The base .navbar-* styles above are already the light versions;
+   only the bar itself and the Explore launcher are set here. Sign Up stays
+   the one clay button.
    ====================================== */
 .navbar-header {
-  background: var(--navy);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgb(var(--surface-rgb) / 0.94);
+  border-bottom: 1px solid var(--border);
+  -webkit-backdrop-filter: saturate(1.4) blur(10px);
+  backdrop-filter: saturate(1.4) blur(10px);
 }
-/* Brand */
-.navbar-header .navbar-brand-dse { color: #fff; }
-.navbar-header .navbar-brand-score { color: rgba(255, 255, 255, 0.64); }
-.navbar-header .navbar-brand:hover { background: rgba(255, 255, 255, 0.12); }
-/* Primary nav items, search + watch buttons */
-.navbar-header .navbar-intel-btn,
-.navbar-header .navbar-search-btn,
-.navbar-header .navbar-watch-btn {
-  color: rgba(255, 255, 255, 0.82);
-}
-.navbar-header .navbar-intel-btn:hover,
-.navbar-header .navbar-search-btn:hover,
-.navbar-header .navbar-watch-btn:hover,
-.navbar-header .navbar-intel-btn-active,
-.navbar-header .navbar-watch-btn-active {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.24);
-  color: #fff;
-}
-/* Explore launcher — a solid white chip so it reads as the primary browse action */
 .navbar-header .navbar-explore-btn {
-  background: rgba(255, 255, 255, 0.16);
-  border-color: rgba(255, 255, 255, 0.28);
-  color: #fff;
+  color: var(--text);
+  background: var(--surface);
+  border-color: var(--border);
 }
-.navbar-header .navbar-explore-btn svg { color: #fff; }
+.navbar-header .navbar-explore-btn svg { color: var(--text-muted); }
 .navbar-header .navbar-explore-btn:hover,
 .navbar-header .navbar-explore-btn-active {
-  background: rgba(255, 255, 255, 0.26);
-  border-color: rgba(255, 255, 255, 0.45);
-  color: #fff;
-}
-.navbar-header .navbar-nav-divider { background: rgba(255, 255, 255, 0.24); }
-/* Sign Up — the one clay CTA, popping against the navy bar */
-.navbar-header .navbar-rank-btn { background: var(--primary); color: #fff; }
-.navbar-header .navbar-rank-btn:hover { background: var(--primary-soft); color: #fff; }
-/* Profile pill */
-.navbar-header .navbar-profile-btn {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.30);
-  color: #fff;
-}
-.navbar-header .navbar-profile-btn:hover {
-  background: rgba(255, 255, 255, 0.20);
-  border-color: rgba(255, 255, 255, 0.5);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12);
-}
-.navbar-header .navbar-profile-btn-active {
-  background: rgba(255, 255, 255, 0.22);
-  border-color: rgba(255, 255, 255, 0.55);
-  color: #fff;
-}
-/* Watch count badge — gold (watchlist = gold), readable on dark */
-/* Mobile controls */
-.navbar-header .navbar-search-mobile-btn,
-.navbar-header .navbar-hamburger {
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.30);
-}
-.navbar-header .navbar-search-mobile-btn:hover,
-.navbar-header .navbar-hamburger:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.5);
+  background: var(--surface-2);
+  border-color: color-mix(in srgb, var(--text-muted) 40%, var(--border));
+  color: var(--text);
 }
 /* ======================================
    MARKET INTELLIGENCE PAGE
@@ -3246,7 +3182,7 @@ a:hover .ticker-tag,
 .mobile-menu,
   .mobile-menu-panel { transition: visibility 0s; }
 }
-/* ---- header (navy) ---- */
+/* ---- header (white, like the navbar since the 2026-10 redesign) ---- */
 .mobile-menu-header {
   flex-shrink: 0;
   height: 56px;
@@ -3254,46 +3190,47 @@ a:hover .ticker-tag,
   align-items: center;
   justify-content: space-between;
   padding: 0 14px;
-  background: var(--navy);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
 }
 .mobile-menu-brand {
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  color: #fff;
+  color: var(--text);
   font-family: var(--font-inter), system-ui, sans-serif;
   font-weight: 700;
   font-size: var(--fs-title);
   letter-spacing: -0.01em;
   text-decoration: none;
 }
-.mobile-menu-brand b { color: var(--gold-soft); font-weight: 700; }
+.mobile-menu-brand b { color: var(--primary-ink); font-weight: 700; }
 /* "Explore" heading — desktop mega-panel only (hidden on the mobile sheet) */
 .mobile-menu-title {
   display: none;
   align-items: center;
   gap: 8px;
-  color: #fff;
+  color: var(--text);
   font-family: var(--font-inter), system-ui, sans-serif;
   font-weight: 700;
   font-size: var(--fs-title);
   letter-spacing: -0.01em;
 }
-.mobile-menu-title svg { color: rgba(255, 255, 255, 0.9); }
+.mobile-menu-title svg { color: var(--text-muted); }
 .mobile-menu-close {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.06);
-  color: #fff;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
   cursor: pointer;
   transition: background 0.15s;
 }
-.mobile-menu-close:hover { background: rgba(255, 255, 255, 0.16); }
+.mobile-menu-close:hover { background: var(--surface-2); }
 /* ---- scrollable body ---- */
 .mobile-menu-body {
   flex: 1;
@@ -3345,7 +3282,7 @@ a:hover .ticker-tag,
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-ink) 100%);
+  background: var(--primary);
   color: #fff;
   font-weight: 700;
   font-size: var(--fs-md);
@@ -3387,10 +3324,9 @@ a:hover .ticker-tag,
 }
 .mobile-menu-auth-btn.ghost { background: var(--surface); color: var(--text); }
 .mobile-menu-auth-btn.solid {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-ink) 100%);
+  background: var(--primary);
   color: #fff;
   border-color: transparent;
-  box-shadow: var(--shadow-soft);
 }
 /* ---- section ---- */
 .mobile-menu-section {
