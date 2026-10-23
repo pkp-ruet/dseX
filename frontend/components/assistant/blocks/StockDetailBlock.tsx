@@ -55,13 +55,13 @@ export default function StockDetailBlock({
         <ul className="mt-2.5 space-y-1">
           {v.green.map((g, i) => (
             <li key={`g${i}`} className="flex gap-1.5 text-xs text-text-main">
-              <span style={{ color: "var(--positive)" }}>✓</span>
+              <span className="text-positive">✓</span>
               <span>{g}</span>
             </li>
           ))}
           {v.red.map((r, i) => (
             <li key={`r${i}`} className="flex gap-1.5 text-xs text-text-main">
-              <span style={{ color: "var(--negative)" }}>!</span>
+              <span className="text-negative">!</span>
               <span>{r}</span>
             </li>
           ))}

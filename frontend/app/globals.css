@@ -75,10 +75,6 @@
      a card is set off by its hairline border first, the shadow only hints at lift. */
   --shadow-soft: 0 1px 2px rgba(46, 43, 38, 0.05), 0 6px 16px -10px rgba(46, 43, 38, 0.10);
   --shadow-lift: 0 1px 2px rgba(46, 43, 38, 0.05), 0 22px 48px -16px rgba(46, 43, 38, 0.16);
-  /* Gentle ambient gradient for hero / closing panels — soft clay + steel on cream */
-  --ambient:
-    radial-gradient(120% 90% at 0% 0%, rgba(176, 113, 78, 0.06) 0%, transparent 55%),
-    radial-gradient(110% 90% at 100% 0%, rgba(78, 114, 146, 0.05) 0%, transparent 55%);
 
   /* Fundamental-strength tier colors (excellent/good/average/weak) */
   --tier-excellent: #047857;   /* emerald (= --positive) */
@@ -209,19 +205,7 @@ html {
    the fixed navbar / bottom bar stay pinned to the layout viewport — i.e. they
    visibly slide off screen (shipped bug, 2026-07-30). The radial stops are
    tuned to finish fading just inside both edges so the box needs no bleed. */
-.hero-glow {
-  display: none; /* 2026-10 redesign: no ambient wash */
-  position: absolute;
-  inset-inline: 0;
-  top: -14%;
-  height: 34rem;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(44% 60% at 26% 18%, color-mix(in srgb, var(--primary) 16%, transparent) 0%, transparent 58%),
-    radial-gradient(44% 58% at 72% 8%, color-mix(in srgb, var(--info) 15%, transparent) 0%, transparent 58%),
-    radial-gradient(40% 50% at 55% 52%, color-mix(in srgb, var(--gold) 11%, transparent) 0%, transparent 62%);
-}
+.hero-glow { display: none; } /* wash off since the 2026-10 redesign */
 /* Live dot — a quiet pulse that says "this updates". */
 .live-dot {
   position: relative;
@@ -288,7 +272,7 @@ html {
   box-shadow: var(--shadow-soft);
 }
 .ambient-panel {
-  background: var(--ambient), var(--surface);
+  background: var(--surface); /* the clay + steel wash (--ambient) was dropped in the 2026-10 redesign */
 }
 .hover-lift {
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
@@ -362,14 +346,14 @@ a:hover .ticker-tag,
   width: 4px;
   height: 1em;
   border-radius: 2px;
-  background: linear-gradient(180deg, var(--primary) 0%, var(--primary) 100%);
+  background: var(--primary);
   flex-shrink: 0;
 }
 .section-label::after {
   content: '';
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, var(--border) 0%, transparent 100%);
+  background: var(--border);
 }
 .section-label span {
   display: none;
@@ -432,7 +416,7 @@ a:hover .ticker-tag,
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-soft) 100%);
+  background: var(--primary);
   color: #fff;
   font-size: var(--fs-2xs);
   font-weight: 700;
@@ -887,13 +871,8 @@ a:hover .ticker-tag,
   gap: 14px;
   padding: 24px 18px 18px;
   border-top: 1px solid var(--border);
-  border-left: 5px solid var(--tier-color, var(--primary));
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--tier-color, var(--primary)) 15%, var(--surface)) 0%,
-    color-mix(in srgb, var(--tier-color, var(--primary)) 4%, var(--surface)) 42%,
-    var(--surface) 78%
-  );
+  border-left: 4px solid var(--tier-color, var(--primary));
+  background: color-mix(in srgb, var(--tier-color, var(--primary)) 6%, var(--surface));
 }
 .full-rank-table tbody tr:first-child .fr-tier-sep {
   border-top: none;
@@ -1625,8 +1604,8 @@ a:hover .ticker-tag,
   max-width: 420px;
   background:
     linear-gradient(var(--surface), var(--surface)) padding-box,
-    linear-gradient(135deg, var(--primary), var(--primary), var(--watch)) border-box;
-  border: 2px solid transparent;
+    linear-gradient(var(--border), var(--border)) border-box;
+  border: 1px solid transparent;
   border-radius: 999px;
   padding: 0 14px;
   gap: 8px;
@@ -1637,7 +1616,7 @@ a:hover .ticker-tag,
 .search-bar-open {
   background:
     linear-gradient(var(--surface), var(--surface)) padding-box,
-    linear-gradient(135deg, var(--primary), var(--primary), var(--watch)) border-box;
+    linear-gradient(var(--primary), var(--primary)) border-box;
   box-shadow: var(--ring), var(--shadow-soft);
 }
 .search-bar-open {
@@ -1684,8 +1663,8 @@ a:hover .ticker-tag,
   padding: 4px 0;
   background:
     linear-gradient(var(--surface), var(--surface)) padding-box,
-    linear-gradient(135deg, var(--primary), var(--watch)) border-box;
-  border: 2px solid transparent;
+    linear-gradient(var(--border), var(--border)) border-box;
+  border: 1px solid transparent;
   border-top: none;
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   box-shadow: var(--shadow-lift);
@@ -1701,7 +1680,7 @@ a:hover .ticker-tag,
 }
 .search-suggestion-item:hover,
 .search-suggestion-active {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--primary) 10%, transparent), rgba(242,140,0,0.06));
+  background: var(--surface-2);
 }
 .search-suggestion-code {
   font-size: var(--fs-xs);
@@ -2069,7 +2048,7 @@ a:hover .ticker-tag,
 .sector-bar-fill {
   height: 100%;
   border-radius: 2px;
-  background: linear-gradient(90deg, var(--primary) 0%, var(--primary) 100%);
+  background: var(--primary);
   opacity: 0.80;
   transition: width 0.3s ease;
 }
@@ -2613,7 +2592,7 @@ a:hover .ticker-tag,
 .global-search-hint {
   background:
     linear-gradient(var(--surface), var(--surface)) padding-box,
-    linear-gradient(135deg, var(--primary), var(--watch)) border-box;
+    linear-gradient(var(--border), var(--border)) border-box;
   border: 2px solid transparent;
   border-top: none;
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
@@ -3626,9 +3605,8 @@ a:hover .ticker-tag,
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary-soft) 0%, var(--primary) 55%, var(--primary-ink) 100%);
+  background: var(--primary);
   color: #fff;
-  box-shadow: var(--shadow-soft);
 }
 @media (max-width: 380px) {
 .mobile-bottom-bar-label {
@@ -3727,45 +3705,19 @@ a:hover .ticker-tag,
   display: flex;
   align-items: center;
   border-radius: 999px;
-  background: linear-gradient(
-    90deg,
-    rgba(148, 163, 184, 0.10) 0%,
-    rgba(148, 163, 184, 0.04) 100%
-  );
+  background: var(--surface);
   border: 1px solid var(--border);
   transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
 }
 .ps-row:hover {
-  background: linear-gradient(
-    90deg,
-    rgba(148, 163, 184, 0.16) 0%,
-    rgba(148, 163, 184, 0.06) 100%
-  );
-  border-color: var(--border-strong, var(--border));
+  background: var(--surface-2);
+  border-color: var(--border);
   transform: translateX(2px);
 }
-/* Top-3 tinted pills */
-.ps-row-rank-1 {
-  background: linear-gradient(90deg, rgba(245, 209, 105, 0.22) 0%, rgba(245, 209, 105, 0.06) 100%);
-  border-color: rgba(184, 134, 11, 0.4);
-}
-.ps-row-rank-1:hover {
-  background: linear-gradient(90deg, rgba(245, 209, 105, 0.32) 0%, rgba(245, 209, 105, 0.10) 100%);
-}
-.ps-row-rank-2 {
-  background: linear-gradient(90deg, rgba(224, 224, 224, 0.20) 0%, rgba(224, 224, 224, 0.05) 100%);
-  border-color: rgba(154, 154, 154, 0.4);
-}
-.ps-row-rank-2:hover {
-  background: linear-gradient(90deg, rgba(224, 224, 224, 0.30) 0%, rgba(224, 224, 224, 0.10) 100%);
-}
-.ps-row-rank-3 {
-  background: linear-gradient(90deg, rgba(224, 152, 106, 0.22) 0%, rgba(224, 152, 106, 0.06) 100%);
-  border-color: rgba(140, 74, 31, 0.4);
-}
-.ps-row-rank-3:hover {
-  background: linear-gradient(90deg, rgba(224, 152, 106, 0.32) 0%, rgba(224, 152, 106, 0.10) 100%);
-}
+/* Top 3: a gold / silver / bronze edge, no tinted wash (redesign step 6) */
+.ps-row-rank-1 { border-color: color-mix(in srgb, var(--gold) 60%, var(--border)); }
+.ps-row-rank-2 { border-color: color-mix(in srgb, var(--text-muted) 40%, var(--border)); }
+.ps-row-rank-3 { border-color: color-mix(in srgb, var(--warm) 55%, var(--border)); }
 .ps-row-link {
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr) 84px 74px;
@@ -4140,8 +4092,7 @@ a:hover .ticker-tag,
 .ed-byline {
   margin-top: 22px;
   padding-top: 16px;
-  border-top: 2px solid transparent;
-  border-image: linear-gradient(90deg, color-mix(in srgb, var(--primary) 55%, transparent), color-mix(in srgb, var(--watch) 45%, transparent), transparent) 1;
+  border-top: 1px solid var(--border);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -4192,24 +4143,15 @@ a:hover .ticker-tag,
   display: inline-flex; align-items: center; gap: 9px;
   font-family: var(--font-inter), system-ui, sans-serif;
   font-size: clamp(0.8rem, 2vw, 1rem); font-weight: 700;
-  letter-spacing: 0.14em; text-transform: uppercase; color: var(--primary-ink);
+  color: var(--text-muted);
 }
-.ms-page-kicker::before {
-  content: ""; width: 24px; height: 3px; border-radius: 2px; flex-shrink: 0;
-  background: linear-gradient(90deg, var(--primary), var(--primary-ink));
-}
+.ms-page-kicker::before { content: none; }
 .ms-page-h1-main {
   font-family: var(--font-inter), system-ui, sans-serif;
   font-size: clamp(2.1rem, 6vw, 3.3rem); font-weight: 800;
   letter-spacing: -0.035em; line-height: 1; color: var(--text);
 }
-@supports ((-webkit-background-clip: text) or (background-clip: text)) {
-.ms-page-h1-main {
-    background: linear-gradient(115deg, var(--primary) 0%, var(--primary-ink) 70%);
-    -webkit-background-clip: text; background-clip: text;
-    -webkit-text-fill-color: transparent; color: transparent;
-  }
-}
+/* (gradient-filled headline removed in redesign step 6) */
 .ms-page-date {
   display: inline-block; margin-top: 16px;
   font-size: var(--fs-sm); font-weight: 600; color: var(--text-muted);
@@ -4368,7 +4310,7 @@ a:hover .ticker-tag,
   display: block; text-decoration: none; color: inherit;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-.ms-divcard::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, var(--positive), color-mix(in srgb, var(--positive) 55%, transparent)); }
+/* (accent rail on dividend cards removed in redesign step 6) */
 .ms-divcard:hover { box-shadow: var(--shadow-lift); }
 .ms-divkind { display: inline-block; font-size: var(--fs-2xs); font-weight: 800; padding: 3px 9px; border-radius: 999px; letter-spacing: 0.02em; }
 .ms-divkind--record { background: color-mix(in srgb, var(--primary) 13%, var(--surface)); color: var(--primary-ink); }
@@ -4392,17 +4334,9 @@ a:hover .ticker-tag,
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .ms-lens-card > * { position: relative; z-index: 1; }
-.ms-lens-card::after {
-  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; z-index: 0;
-  background: linear-gradient(90deg, var(--lens, var(--primary)), color-mix(in srgb, var(--lens, var(--primary)) 35%, transparent));
-}
-.ms-lens-card::before {
-  content: ""; position: absolute; top: -50px; right: -50px; width: 150px; height: 150px;
-  border-radius: 50%; z-index: 0; pointer-events: none;
-  background: radial-gradient(circle, color-mix(in srgb, var(--lens, var(--primary)) 15%, transparent), transparent 70%);
-}
+/* (lens accent bar + corner glow removed in redesign step 6) */
 .ms-lens-card:hover { box-shadow: var(--shadow-lift); }
-.ms-lens-card--best { border: 2px solid transparent; background: linear-gradient(var(--surface), var(--surface)) padding-box, linear-gradient(135deg, var(--primary), var(--primary-ink)) border-box; }
+.ms-lens-card--best { border-color: var(--primary); }
 .ms-lens-head { display: flex; align-items: center; gap: 11px; margin-bottom: 4px; }
 .ms-lens-card--best .ms-lens-head { padding-right: 84px; }
 /* clears the absolute .ms-lens-best badge */
@@ -4411,11 +4345,10 @@ a:hover .ticker-tag,
   display: flex; align-items: center; justify-content: center;
   font-weight: 800; font-size: var(--fs-title);
   color: var(--lens, var(--primary));
-  background: color-mix(in srgb, var(--lens, var(--primary)) 14%, var(--surface));
-  box-shadow: var(--shadow-soft);
+  background: color-mix(in srgb, var(--lens, var(--primary)) 12%, var(--surface));
 }
 .ms-lens-title { font-size: var(--fs-base); font-weight: 800; color: var(--text); margin: 0; line-height: 1.15; letter-spacing: -0.01em; }
-.ms-lens-best { position: absolute; top: 0; right: 0; background: linear-gradient(135deg, var(--primary), var(--primary-ink)); color: #fff; font-size: var(--fs-2xs); font-weight: 800; padding: 4px 12px; border-bottom-left-radius: var(--radius); letter-spacing: 0.04em; }
+.ms-lens-best { position: absolute; top: 0; right: 0; background: var(--primary); color: #fff; font-size: var(--fs-2xs); font-weight: 800; padding: 4px 12px; border-bottom-left-radius: var(--radius); letter-spacing: 0.04em; }
 .ms-lens-desc { font-size: var(--fs-xs); color: var(--text-muted); margin: 10px 0 2px; }
 /* ---- Accent-tinted card ----
    The top accent bar and corner glow were removed in the 2026-10 redesign
@@ -4450,14 +4383,14 @@ a:hover .ticker-tag,
 .ed-section-label::before {
   content: "";
   width: 7px; height: 7px; border-radius: 999px;
-  background: linear-gradient(135deg, var(--primary), var(--watch));
+  background: var(--primary);
   flex-shrink: 0;
 }
 .ed-section-label::after {
   content: "";
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--primary) 38%, transparent), var(--border) 55%);
+  background: var(--border);
 }
 /* Spotlight entries (top picks) */
 .ed-spot {
@@ -4476,10 +4409,7 @@ a:hover .ticker-tag,
   font-size: var(--fs-display);
   font-weight: 700;
   line-height: 1;
-  background: linear-gradient(135deg, var(--primary), var(--watch));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--text-muted);
   flex-shrink: 0;
   min-width: 1.4em;
 }
@@ -4580,10 +4510,7 @@ a:hover .ticker-tag,
   font-family: var(--font-inter), Inter, system-ui, sans-serif;
   font-size: var(--fs-lg);
   font-weight: 700;
-  background: linear-gradient(135deg, var(--primary), var(--watch));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--text-muted);
 }
 .ed-run-main { min-width: 0; }
 .ed-run-name {
@@ -4660,8 +4587,7 @@ a:hover .ticker-tag,
   color: var(--text);
   margin-bottom: 14px;
   padding-bottom: 8px;
-  border-bottom: 3px solid transparent;
-  border-image: linear-gradient(90deg, var(--primary), var(--watch)) 1;
+  border-bottom: 1px solid var(--border);
   width: fit-content;
 }
 .ed-closer p {
@@ -4676,10 +4602,7 @@ a:hover .ticker-tag,
   float: left;
   line-height: 0.82;
   padding: 6px 10px 0 0;
-  background: linear-gradient(135deg, var(--primary), var(--watch));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--text);
 }
 .ed-faq { margin-top: 48px; }
 .ed-faq-item {
@@ -4741,10 +4664,9 @@ a:hover .ticker-tag,
   content: "";
   position: absolute;
   left: 0; top: 0; bottom: 0;
-  width: 4px;
-  background: linear-gradient(180deg, var(--c), color-mix(in srgb, var(--c) 55%, transparent));
+  width: 0;
 }
-.ed-hub-card:hover { background: color-mix(in srgb, var(--c) 7%, var(--surface)); }
+.ed-hub-card:hover { background: var(--surface-2); }
 .ed-hub-card:nth-child(6n+1) { --c: var(--tier-excellent); }
 .ed-hub-card:nth-child(6n+2) { --c: var(--info); }
 .ed-hub-card:nth-child(6n+3) { --c: var(--watch); }
@@ -4795,8 +4717,8 @@ a:hover .ticker-tag,
   --c: var(--primary);
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--c) 9%, var(--surface)), var(--surface) 62%);
-  border: 1px solid color-mix(in srgb, var(--c) 22%, var(--border));
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 26px;
   display: flex;
@@ -4808,8 +4730,7 @@ a:hover .ticker-tag,
   content: "";
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--c), var(--watch));
+  height: 0;
 }
 .ed-hub-feature:nth-child(2) { --c: var(--watch); }
 .ed-hub-feature:hover {
@@ -5402,17 +5323,5 @@ h2.info-col-header { margin: 0; }
 /* Ambient wash behind the hero. Like .hero-glow it MUST stay inside its own
      box — `inset-inline: 0`, never a negative inset, or the page pans
      sideways on a phone. */
-.dash-glow {
-    display: none; /* 2026-10 redesign: no ambient wash behind the hero */
-    position: absolute;
-    inset-inline: 0;
-    top: -3rem;
-    height: 22rem;
-    z-index: -1;
-    pointer-events: none;
-    background:
-      radial-gradient(42% 55% at 18% 16%, color-mix(in srgb, var(--primary) 15%, transparent) 0%, transparent 60%),
-      radial-gradient(45% 55% at 82% 4%, color-mix(in srgb, var(--info) 14%, transparent) 0%, transparent 60%),
-      radial-gradient(38% 46% at 52% 46%, color-mix(in srgb, var(--gold) 10%, transparent) 0%, transparent 64%);
-  }
+.dash-glow { display: none; } /* off since the 2026-10 redesign */
 }

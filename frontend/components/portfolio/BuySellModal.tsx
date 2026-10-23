@@ -266,13 +266,13 @@ export default function BuySellModal({ mode, holding, ltp, companyName, onClose,
               {preview.kind === "sell-all" && (
                 <p className="text-text-main leading-relaxed">
                   Sells everything and{" "}
-                  <span className="font-semibold" style={{ color: "var(--negative)" }}>
+                  <span className="font-semibold text-negative">
                     removes {holding.trading_code} from your portfolio.
                   </span>
                 </p>
               )}
               {preview.kind === "over-sell" && (
-                <p className="font-medium" style={{ color: "var(--negative)" }}>
+                <p className="font-medium text-negative">
                   You only hold {preview.held.toLocaleString()} shares.
                 </p>
               )}

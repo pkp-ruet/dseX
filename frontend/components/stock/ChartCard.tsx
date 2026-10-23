@@ -14,9 +14,9 @@ export default function ChartCard({
   return (
     <Card padding="none" className="rounded-2xl p-5">
       <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-0.5 sm:gap-3 mb-1">
-        <p className="text-base font-bold" style={{ color: "var(--text)" }}>{title}</p>
+        <p className="text-base font-bold text-text-main">{title}</p>
         {subtitle && (
-          <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>{subtitle}</p>
+          <p className="text-xs font-medium text-text-muted">{subtitle}</p>
         )}
       </div>
       {pill && (
@@ -33,7 +33,7 @@ export default function ChartCard({
       )}
       <div className="mt-3">{children}</div>
       {caption && (
-        <p className="text-sm mt-3 leading-snug" style={{ color: "var(--text-muted)" }}>
+        <p className="text-sm mt-3 leading-snug text-text-muted">
           {caption}
         </p>
       )}

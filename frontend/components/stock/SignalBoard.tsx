@@ -71,8 +71,7 @@ function Column({
             <button
               type="button"
               onClick={() => setShowAll((v) => !v)}
-              className="text-xs font-semibold mt-3"
-              style={{ color: "var(--primary)" }}
+              className="text-xs font-semibold mt-3 text-primary"
             >
               {isBn ? (showAll ? "কম দেখুন" : `সবগুলো দেখুন (${items.length})`) : (showAll ? "Show less" : `Show all ${items.length}`)}
             </button>

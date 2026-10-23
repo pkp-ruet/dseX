@@ -74,7 +74,7 @@ export default function DividendTimeline({ rows, faceValue, ltp }: Props) {
         sub={<>{streakLine ?? "Every dividend the company has declared, and the dates that matter if you want the next one."}</>}
         bn="কোম্পানি কবে কত লভ্যাংশ দিয়েছে, আর পরের লভ্যাংশ পেতে কোন তারিখ মনে রাখতে হবে।"
         right={
-          <Link href="/dividend-calendar" className="text-xs font-semibold hover:underline whitespace-nowrap" style={{ color: "var(--primary)" }}>
+          <Link href="/dividend-calendar" className="text-xs font-semibold hover:underline whitespace-nowrap text-primary">
             All record dates →
           </Link>
         }
@@ -107,7 +107,7 @@ export default function DividendTimeline({ rows, faceValue, ltp }: Props) {
               >
                 <IconCalendar size={15} />
               </span>
-              <p className="text-sm font-bold leading-snug min-w-0" style={{ color: "var(--text)" }}>
+              <p className="text-sm font-bold leading-snug min-w-0 text-text-main">
                 Next dividend — record date {formatDate(recordIso)}
               </p>
               <DaysLeft
@@ -118,40 +118,40 @@ export default function DividendTimeline({ rows, faceValue, ltp }: Props) {
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="min-w-0">
-                <p className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>Declared</p>
-                <p className="text-base sm:text-lg font-bold tabular-nums nums leading-tight break-words" style={{ color: "var(--text)" }}>
+                <p className="text-xs font-semibold text-text-muted">Declared</p>
+                <p className="text-base sm:text-lg font-bold tabular-nums nums leading-tight break-words text-text-main">
                   {declared}
                 </p>
-                <p className="text-xs" style={{ color: "var(--text-muted)" }}>{r.dividend_type || "Final"} · {periodLabel(r)}</p>
+                <p className="text-xs text-text-muted">{r.dividend_type || "Final"} · {periodLabel(r)}</p>
               </div>
               {cashPerShare != null && (
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>Cash per share</p>
-                  <p className="text-base sm:text-lg font-bold tabular-nums nums leading-tight" style={{ color: "var(--positive)" }}>{money(cashPerShare)}</p>
+                  <p className="text-xs font-semibold text-text-muted">Cash per share</p>
+                  <p className="text-base sm:text-lg font-bold tabular-nums nums leading-tight text-positive">{money(cashPerShare)}</p>
                   {yieldPct != null && (
-                    <p className="text-xs leading-snug" style={{ color: "var(--text-muted)" }}>{yieldPct.toFixed(2)}% of today&apos;s price, before tax</p>
+                    <p className="text-xs leading-snug text-text-muted">{yieldPct.toFixed(2)}% of today&apos;s price, before tax</p>
                   )}
                 </div>
               )}
               <div className="min-w-0">
-                <p className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>Buy by</p>
+                <p className="text-xs font-semibold text-text-muted">Buy by</p>
                 <p className="text-base sm:text-lg font-bold tabular-nums nums leading-tight" style={{ color: spotNow ? "var(--watch)" : "var(--text)" }}>
                   {formatDate(buyByIso)}
                 </p>
-                <p className="text-xs leading-snug" style={{ color: "var(--text-muted)" }}>
+                <p className="text-xs leading-snug text-text-muted">
                   {spotNow ? "Spot market now — normal buys no longer qualify" : <DaysLeft date={buyByIso} suffix="left to buy" past="passed" />}
                 </p>
               </div>
               {r.agm_date && (
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>AGM</p>
-                  <p className="text-base sm:text-lg font-bold tabular-nums nums leading-tight" style={{ color: "var(--text)" }}>{formatDate(r.agm_date)}</p>
-                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>Shareholders approve it here</p>
+                  <p className="text-xs font-semibold text-text-muted">AGM</p>
+                  <p className="text-base sm:text-lg font-bold tabular-nums nums leading-tight text-text-main">{formatDate(r.agm_date)}</p>
+                  <p className="text-xs text-text-muted">Shareholders approve it here</p>
                 </div>
               )}
             </div>
 
-            <p className="text-xs mt-3 leading-snug" style={{ color: "var(--text-muted)" }}>
+            <p className="text-xs mt-3 leading-snug text-text-muted">
               Shares must be in your BO account on the record date. Normal-market trades settle on T+2 and DSE opens a spot window just before, so buying about 3 trading days early is the safe side. Confirm the cut-off with your broker.
             </p>
           </div>

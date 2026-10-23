@@ -103,11 +103,10 @@ export default function CompanyFacts({ detail }: Props) {
         {hasRange && (
           <div className="mb-5">
             <div
-              className="flex items-center justify-between gap-3 text-xs font-medium mb-2 tabular-nums nums"
-              style={{ color: "var(--text-muted)" }}
+              className="flex items-center justify-between gap-3 text-xs font-medium mb-2 tabular-nums nums text-text-muted"
             >
               <span>Low {money(dayLow)}</span>
-              <span className="font-bold" style={{ color: "var(--text)" }}>Today&apos;s range</span>
+              <span className="font-bold text-text-main">Today&apos;s range</span>
               <span>High {money(dayHigh)}</span>
             </div>
             <div
@@ -136,7 +135,7 @@ export default function CompanyFacts({ detail }: Props) {
                 aria-hidden="true"
               />
             </div>
-            <p className="text-xs mt-2" style={{ color: "var(--text-muted)" }}>
+            <p className="text-xs mt-2 text-text-muted">
               Dot = today&apos;s close{ycp != null ? ` · thin bar = yesterday's close ${money(ycp)}` : ""}.
             </p>
           </div>
@@ -146,13 +145,13 @@ export default function CompanyFacts({ detail }: Props) {
           <dl className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-4">
             {facts.map((f) => (
               <div key={f.label} className="min-w-0">
-                <dt className="text-xs font-semibold mb-1" style={{ color: "var(--text-muted)" }}>
+                <dt className="text-xs font-semibold mb-1 text-text-muted">
                   {f.label}
                 </dt>
                 <dd className="text-lg font-bold tabular-nums nums leading-none truncate" style={{ color: f.tone ?? "var(--text)" }}>
                   {f.value}
                 </dd>
-                <dd className="text-xs mt-1 leading-snug" style={{ color: "var(--text-muted)" }}>
+                <dd className="text-xs mt-1 leading-snug text-text-muted">
                   {f.desc}
                 </dd>
               </div>

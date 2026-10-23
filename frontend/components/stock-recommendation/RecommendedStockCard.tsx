@@ -85,7 +85,7 @@ export default function RecommendedStockCard({
       <div className="p-4 pl-5 sm:p-5 sm:pl-6">
         {/* Rank pill */}
         <span
-          className="rec-pop inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-[0.06em]"
+          className="rec-pop inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
           style={{
             background: `color-mix(in srgb, ${color} 14%, var(--surface))`,
             color,

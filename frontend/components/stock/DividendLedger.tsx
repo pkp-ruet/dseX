@@ -41,7 +41,7 @@ export default function DividendLedger({ rows, face, initial = 6 }: Props) {
     if (cash <= 0) return <span style={MUTED}>—</span>;
     return (
       <>
-        <span className={`font-bold ${big ? "text-base" : ""}`} style={{ color: "var(--positive)" }}>{cash}%</span>
+        <span className={`font-bold ${big ? "text-base" : ""} text-positive`}>{cash}%</span>
         {cashPerShare != null && (
           <span className="block text-xs" style={MUTED}>{money(cashPerShare)} / share</span>
         )}
@@ -54,7 +54,7 @@ export default function DividendLedger({ rows, face, initial = 6 }: Props) {
 
   const bonusCell = (stock: number, big = false) =>
     stock > 0
-      ? <span className={`font-bold ${big ? "text-base" : ""}`} style={{ color: "var(--info)" }}>{stock}%</span>
+      ? <span className={`font-bold ${big ? "text-base" : ""} text-info`}>{stock}%</span>
       : <span style={MUTED}>—</span>;
 
   return (
@@ -99,7 +99,7 @@ export default function DividendLedger({ rows, face, initial = 6 }: Props) {
       <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-sm border-collapse">
           <thead>
-            <tr style={{ background: "var(--surface-2)" }}>
+            <tr className="bg-surface-2">
               <th scope="col" className="text-left font-bold px-3 py-2.5" style={MUTED}>Year</th>
               <th scope="col" className="text-right font-bold px-3 py-2.5" style={MUTED}>Cash</th>
               <th scope="col" className="text-right font-bold px-3 py-2.5" style={MUTED}>Bonus</th>

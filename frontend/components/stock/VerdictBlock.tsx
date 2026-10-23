@@ -103,7 +103,7 @@ export default function VerdictBlock({ detail }: Props) {
         {/* Score ring + verdict word + signal */}
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-7">
           <div className="flex flex-col items-center shrink-0">
-            <span className={`${eyebrowCls(isBn)} mb-2`} style={{ color: "var(--text-muted)" }}>
+            <span className={`${eyebrowCls(isBn)} mb-2 text-text-muted`}>
               {T.score[lang]}
             </span>
             <ScoreBadge score={score} tier={tier} size="lg" />
@@ -121,18 +121,18 @@ export default function VerdictBlock({ detail }: Props) {
                 Free: the first line of the take. Premium (PremiumGate, screen-only):
                 the signal's reason, the sector standing and the rest of the take. */}
             <div className="mt-4">
-              <p className={`${eyebrowCls(isBn)} mb-2`} style={{ color: "var(--text-muted)" }}>
+              <p className={`${eyebrowCls(isBn)} mb-2 text-text-muted`}>
                 {T.take[lang]}
               </p>
 
               {/* English lead: the tagline (or the first sentence) */}
               <div className={isBn ? "hidden" : "block"}>
                 {freeEn ? (
-                  <p className="text-sm sm:text-base font-semibold leading-snug" style={{ color: "var(--text)" }}>
+                  <p className="text-sm sm:text-base font-semibold leading-snug text-text-main">
                     {freeEn}
                   </p>
                 ) : (
-                  <p className="text-base sm:text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                  <p className="text-base sm:text-base leading-relaxed text-text-muted">
                     {T.generic.en}
                   </p>
                 )}
@@ -170,21 +170,19 @@ export default function VerdictBlock({ detail }: Props) {
                         <Link
                           href={`/sector/${sectorSlug(sectorName as string)}`}
                           prefetch={false}
-                          className="font-semibold hover:underline"
-                          style={{ color: "var(--text)" }}
+                          className="font-semibold hover:underline text-text-main"
                         >
                           {sectorName}
                         </Link>
-                        <span>খাতে {peers}টির মধ্যে <b style={{ color: "var(--text)" }}>{rank} নম্বরে</b></span>
+                        <span>খাতে {peers}টির মধ্যে <b className="text-text-main">{rank} নম্বরে</b></span>
                       </>
                     ) : (
                       <>
-                        <span>Ranked <b style={{ color: "var(--text)" }}>{ordinal(rank as number)}</b> of {peers} in</span>
+                        <span>Ranked <b className="text-text-main">{ordinal(rank as number)}</b> of {peers} in</span>
                         <Link
                           href={`/sector/${sectorSlug(sectorName as string)}`}
                           prefetch={false}
-                          className="font-semibold hover:underline"
-                          style={{ color: "var(--text)" }}
+                          className="font-semibold hover:underline text-text-main"
                         >
                           {sectorName}
                         </Link>
@@ -192,7 +190,7 @@ export default function VerdictBlock({ detail }: Props) {
                     )}
                     {sectorAvg != null && score != null && (
                       <span>
-                        · {T.sectorAvg[lang]} <b className="tabular-nums nums" style={{ color: "var(--text)" }}>{Math.round(sectorAvg)}</b>
+                        · {T.sectorAvg[lang]} <b className="tabular-nums nums text-text-main">{Math.round(sectorAvg)}</b>
                       </span>
                     )}
                   </p>
@@ -203,7 +201,7 @@ export default function VerdictBlock({ detail }: Props) {
                 {lockedSentences.length > 0 && (
                   <ul className={`mt-3 space-y-1.5 ${isBn ? "hidden" : "block"}`}>
                     {lockedSentences.map((line, i) => (
-                      <li key={i} className="flex gap-2.5 text-sm sm:text-sm leading-snug" style={{ color: "var(--text)" }}>
+                      <li key={i} className="flex gap-2.5 text-sm sm:text-sm leading-snug text-text-main">
                         <span aria-hidden className="mt-[6px] h-1.5 w-1.5 rounded-full shrink-0" style={{ background: tone.color }} />
                         <span>{line}</span>
                       </li>
@@ -214,12 +212,12 @@ export default function VerdictBlock({ detail }: Props) {
                 {/* Bengali: the rest of the এক নজরে prose */}
                 {bnParas.length > 1 && (
                   <div className={`font-bn mt-3 ${isBn ? "block" : "hidden"}`} lang="bn">
-                    <div className="space-y-3 leading-relaxed" style={{ color: "var(--text)" }}>
+                    <div className="space-y-3 leading-relaxed text-text-main">
                       {bnParas.slice(1).map((p, i) => (
                         <p key={i}>{p}</p>
                       ))}
                     </div>
-                    <p className="mt-3 text-sm" style={{ color: "var(--text-muted)" }}>
+                    <p className="mt-3 text-sm text-text-muted">
                       {T.eduNote.bn}
                     </p>
                   </div>
@@ -252,8 +250,8 @@ export default function VerdictBlock({ detail }: Props) {
         <div
           className="mt-5 pt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs font-semibold border-t border-border"
         >
-          <span style={{ color: "var(--text-muted)" }}>topstockbd.com</span>
-          <span style={{ color: "var(--text-muted)" }}>{code} · DSE Stock Analysis</span>
+          <span className="text-text-muted">topstockbd.com</span>
+          <span className="text-text-muted">{code} · DSE Stock Analysis</span>
         </div>
       </div>
     </section>

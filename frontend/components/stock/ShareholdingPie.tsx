@@ -115,7 +115,7 @@ export default function ShareholdingPie({ shareholding, previous = null, ownersh
               return (
                 <div key={c.key} className="flex items-center gap-3">
                   <span className="w-3 h-3 rounded-full shrink-0" style={{ background: c.color }} />
-                  <span className="text-sm flex-1 min-w-0" style={{ color: "var(--text-muted)" }}>{c.label}</span>
+                  <span className="text-sm flex-1 min-w-0 text-text-muted">{c.label}</span>
                   {delta != null && (
                     <span
                       className="text-xs font-bold tabular-nums nums px-1.5 py-0.5 rounded-full"

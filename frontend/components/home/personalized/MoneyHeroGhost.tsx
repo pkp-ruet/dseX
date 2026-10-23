@@ -39,7 +39,7 @@ export default function MoneyHeroGhost({ greeting, lang = "en" }: { greeting?: R
               <div className="mt-1 text-[clamp(1.6rem,7vw,2rem)] font-extrabold tabular-nums nums text-text-main leading-tight">
                 ৳2,45,000
               </div>
-              <div className="mt-0.5 text-sm sm:text-sm font-bold tabular-nums nums" style={{ color: "var(--positive)" }}>
+              <div className="mt-0.5 text-sm sm:text-sm font-bold tabular-nums nums text-positive">
                 ▲ +৳3,200 (+1.32%) {t(lang, "today")}
               </div>
               <p className="mt-1 text-xs font-medium text-text-muted">{t(lang, "updatingLive")}</p>

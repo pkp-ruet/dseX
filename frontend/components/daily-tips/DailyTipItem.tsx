@@ -97,13 +97,13 @@ export default function DailyTipItem({
             {tip.company_name && (
               <span className="shrink-0 text-xs font-medium uppercase tracking-wide text-text-muted">{tip.trading_code}</span>
             )}
-            <span className={`text-xs font-extrabold uppercase tracking-[0.08em] ${
+            <span className={`text-xs font-semibold ${
               meta.tone === "positive" ? "text-positive" : meta.tone === "watch" ? "text-watch" : meta.tone === "primary" ? "text-primary" : "text-text-muted"
             }`}>
               {meta.tag}
             </span>
             {typeof tip.conviction === "number" && tip.conviction >= 3 && (
-              <span className="text-xs font-bold uppercase tracking-[0.08em] text-text-muted">
+              <span className="text-xs font-semibold text-text-muted">
                 {tip.conviction} signals
               </span>
             )}

@@ -28,13 +28,13 @@ type Tab = "pe" | "pb" | "sector";
 function tile(label: string, value: string, sub: string, color?: string) {
   return (
     <Card key={label} padding="none" className="flex-1 rounded-2xl p-4">
-      <p className="text-xs font-semibold mb-2" style={{ color: "var(--text-muted)" }}>
+      <p className="text-xs font-semibold mb-2 text-text-muted">
         {label}
       </p>
       <p className="text-2xl font-bold tabular-nums nums leading-none" style={{ color: color ?? "var(--text)" }}>
         {value}
       </p>
-      <p className="text-xs mt-2 leading-snug" style={{ color: "var(--text-muted)" }}>{sub}</p>
+      <p className="text-xs mt-2 leading-snug text-text-muted">{sub}</p>
     </Card>
   );
 }
@@ -119,7 +119,7 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
       {/* Our verdict on the price is Premium (screen-only lock); the ratios above stay free. */}
       {caption && (
         <PremiumGate label="Our verdict on today's price" preview="blur" peek={28} compact className="mb-4">
-          <p className="text-sm font-semibold leading-snug" style={{ color: "var(--text)" }}>{caption}</p>
+          <p className="text-sm font-semibold leading-snug text-text-main">{caption}</p>
         </PremiumGate>
       )}
 
@@ -166,7 +166,7 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
               </ResponsiveContainer>
               {currentPe != null && ownAvgPe != null && (
                 <PremiumGate label="Today vs its usual P/E" preview="blur" peek={24} compact className="mt-3">
-                <p className="text-sm leading-snug" style={{ color: "var(--text-muted)" }}>
+                <p className="text-sm leading-snug text-text-muted">
                   {currentPe < ownAvgPe
                     ? `Trading at ${currentPe.toFixed(1)} — below its ${avgLabel} of ${ownAvgPe.toFixed(1)}.`
                     : `Trading at ${currentPe.toFixed(1)} — above its ${avgLabel} of ${ownAvgPe.toFixed(1)}.`}
@@ -188,7 +188,7 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
                   <Line type="monotone" dataKey="nav" stroke="var(--primary)" strokeWidth={2.5} dot={{ r: 3 }} />
                 </LineChart>
               </ResponsiveContainer>
-              <p className="text-sm mt-3 leading-snug" style={{ color: "var(--text-muted)" }}>
+              <p className="text-sm mt-3 leading-snug text-text-muted">
                 {currentPb != null
                   ? `Net assets per share over time. Today the price is ${currentPb.toFixed(1)}× book value.`
                   : "Net assets (book value) per share over time."}
@@ -204,7 +204,7 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
               </div>
               <PremiumGate label="How it compares with its sector" preview="blur" peek={28} compact>
               {currentPe != null && sectorPe != null && sectorPe > 0 && (
-                <p className="text-sm leading-snug mb-3" style={{ color: "var(--text-muted)" }}>
+                <p className="text-sm leading-snug mb-3 text-text-muted">
                   {currentPe < sectorPe
                     ? `Cheaper than the typical company in its sector (${(((sectorPe - currentPe) / sectorPe) * 100).toFixed(0)}% below the median).`
                     : `Pricier than the typical company in its sector (${(((currentPe - sectorPe) / sectorPe) * 100).toFixed(0)}% above the median).`}
@@ -216,7 +216,7 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
                   style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
                 >
                   At the sector-median P/E, this stock would be priced around{" "}
-                  <b style={{ color: "var(--text)" }}>৳{impliedPrice.toFixed(1)}</b> versus today&apos;s ৳{ltp.toFixed(1)}.{" "}
+                  <b className="text-text-main">৳{impliedPrice.toFixed(1)}</b> versus today&apos;s ৳{ltp.toFixed(1)}.{" "}
                   <span className="opacity-80">(A peer comparison, not a fair-value estimate.)</span>
                 </div>
               )}

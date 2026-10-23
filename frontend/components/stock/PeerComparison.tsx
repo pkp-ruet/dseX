@@ -124,7 +124,7 @@ export default function PeerComparison({ current, peers, sector, note = null }: 
           className="mb-3"
         >
           {caption && (
-            <p className="text-sm font-semibold leading-snug mb-2" style={{ color: "var(--text)" }}>{caption}</p>
+            <p className="text-sm font-semibold leading-snug mb-2 text-text-main">{caption}</p>
           )}
           {note && (
             <p
@@ -142,7 +142,7 @@ export default function PeerComparison({ current, peers, sector, note = null }: 
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr style={{ background: "var(--surface-2)" }}>
+              <tr className="bg-surface-2">
                 <th
                   scope="col"
                   className="text-left font-bold px-3 py-2.5 sticky left-0 z-10"
@@ -193,12 +193,11 @@ export default function PeerComparison({ current, peers, sector, note = null }: 
                     >
                       <span className="inline-flex items-center gap-2">
                         {r.isCurrent ? (
-                          <span className="font-bold" style={{ color: "var(--text)" }}>{r.trading_code}</span>
+                          <span className="font-bold text-text-main">{r.trading_code}</span>
                         ) : (
                           <Link
                             prefetch={false} href={`/stock/${r.trading_code}`}
-                            className="font-semibold hover:underline"
-                            style={{ color: "var(--primary)" }}
+                            className="font-semibold hover:underline text-primary"
                           >
                             {r.trading_code}
                           </Link>

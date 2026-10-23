@@ -180,20 +180,18 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
 
       {/* Result count */}
       <div
-        className="flex items-center justify-between mt-3 text-sm"
-        style={{ color: "var(--text-muted)" }}
+        className="flex items-center justify-between mt-3 text-sm text-text-muted"
       >
         <span>
           Showing{" "}
-          <b style={{ color: "var(--text)" }}>{Math.min(limit, filtered.length)}</b> of{" "}
+          <b className="text-text-main">{Math.min(limit, filtered.length)}</b> of{" "}
           {filtered.length}
         </span>
         {isFiltered && (
           <button
             type="button"
             onClick={reset}
-            className="font-semibold hover:underline"
-            style={{ color: "var(--primary)" }}
+            className="font-semibold hover:underline text-primary"
           >
             Reset
           </button>
@@ -206,10 +204,10 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
           className="text-center py-16 rounded-xl mt-4"
           style={{ background: "var(--surface)", border: "1px dashed var(--border)" }}
         >
-          <p className="text-lg font-bold" style={{ color: "var(--text)" }}>
+          <p className="text-lg font-bold text-text-main">
             No {tab === "strong" ? "strong buy" : "buy"} signals match
           </p>
-          <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
+          <p className="text-sm mt-1 text-text-muted">
             Try a different search or sector.
           </p>
         </div>
@@ -311,11 +309,6 @@ function SignalCard({ item }: { item: ScoreItem }) {
         boxShadow: "var(--shadow-soft)",
       }}
     >
-      {/* Signal-toned left accent */}
-      <span
-        aria-hidden
-        style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: 4, background: tone }}
-      />
 
       <div className="p-4 sm:p-5 pl-5 sm:pl-6">
         {/* Header: code + tier + star */}
@@ -323,15 +316,14 @@ function SignalCard({ item }: { item: ScoreItem }) {
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span
-                className="font-mono font-black text-lg leading-none group-hover:underline"
-                style={{ color: "var(--primary)" }}
+                className="font-mono font-black text-lg leading-none group-hover:underline text-primary"
               >
                 {item.trading_code}
               </span>
               {score != null && <TierPill score={score} size="sm" />}
             </div>
             {item.company_name && (
-              <p className="text-sm mt-1 truncate" style={{ color: "var(--text-muted)" }}>
+              <p className="text-sm mt-1 truncate text-text-muted">
                 {item.company_name}
               </p>
             )}
@@ -343,7 +335,7 @@ function SignalCard({ item }: { item: ScoreItem }) {
         <div className="mt-3 flex items-start gap-2.5">
           {sig && <SignalChip signal={sig.signal} strength={sig.strength} size="md" />}
           {sig?.reason_en && (
-            <p className="text-sm leading-snug font-medium flex-1" style={{ color: "var(--text)" }}>
+            <p className="text-sm leading-snug font-medium flex-1 text-text-main">
               {sig.reason_en}
             </p>
           )}
@@ -356,7 +348,7 @@ function SignalCard({ item }: { item: ScoreItem }) {
         >
           <ScoreBadge score={score} size="sm" />
           <div className="tabular-nums shrink-0">
-            <b style={{ color: "var(--text)" }}>
+            <b className="text-text-main">
               {taka(item.ltp, item.ltp != null && item.ltp >= 100 ? 0 : 1)}
             </b>
             {chg != null && (

@@ -89,7 +89,7 @@ export default function MomentumStrip({ momentum }: Props) {
             {summary.word}
           </span>
         </div>
-        <p className="text-sm leading-snug mt-3" style={{ color: "var(--text-muted)" }}>
+        <p className="text-sm leading-snug mt-3 text-text-muted">
           {summary.line}
         </p>
         {ca && (
@@ -110,8 +110,7 @@ export default function MomentumStrip({ momentum }: Props) {
         {tiles.map((t) => (
           <Card key={t.label} padding="none" className="rounded-xl p-4">
             <p
-              className="text-xs font-semibold mb-2"
-              style={{ color: "var(--text-muted)" }}
+              className="text-xs font-semibold mb-2 text-text-muted"
             >
               {t.label}
             </p>
@@ -121,7 +120,7 @@ export default function MomentumStrip({ momentum }: Props) {
             >
               {t.value}
             </p>
-            <p className="text-xs mt-2 leading-snug" style={{ color: "var(--text-muted)" }}>
+            <p className="text-xs mt-2 leading-snug text-text-muted">
               {t.sub}
             </p>
           </Card>
@@ -129,7 +128,7 @@ export default function MomentumStrip({ momentum }: Props) {
       </div>
 
       {turnover != null && (
-        <p className="text-xs mt-3" style={{ color: "var(--text-muted)" }}>
+        <p className="text-xs mt-3 text-text-muted">
           Trades around {crore(turnover)} a day on average over the past week.
         </p>
       )}

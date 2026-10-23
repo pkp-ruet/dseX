@@ -67,18 +67,17 @@ export default function FinancialTrends({ extFinancials }: Props) {
         className="w-full flex items-center justify-between text-left mb-1"
         aria-expanded={open}
       >
-        <span className="text-xl sm:text-2xl font-bold" style={{ color: "var(--text)" }}>
+        <span className="text-xl sm:text-2xl font-bold text-text-main">
           Financial Trends
         </span>
         <span
-          className="text-sm font-semibold flex items-center gap-1"
-          style={{ color: "var(--primary)" }}
+          className="text-sm font-semibold flex items-center gap-1 text-primary"
         >
           {open ? "Hide" : "Show"}
           <span className="transition-transform" style={{ transform: open ? "rotate(180deg)" : "none" }} aria-hidden="true">▾</span>
         </span>
       </button>
-      <p className="text-sm mb-5" style={{ color: "var(--text-muted)" }}>
+      <p className="text-sm mb-5 text-text-muted">
         The deeper numbers — revenue, margins, debt and cash quality over the years.
       </p>
 

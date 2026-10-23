@@ -42,8 +42,7 @@ export default function SectorsWeekCard({ sectors, lang = "en" }: { sectors: Mar
           const inner = (
             <>
               <span
-                className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-text-muted"
-                style={{ background: "var(--surface-2)" }}
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-text-muted bg-surface-2"
                 aria-hidden
               >
                 <SectorIcon sector={s.name} size={17} />

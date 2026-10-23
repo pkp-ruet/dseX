@@ -205,11 +205,11 @@ function StatTile({
         >
           {glyph}
         </span>
-        <span className="text-3xl font-black tabular-nums leading-none" style={{ color: tone }}>
+        <span className="nums text-3xl font-bold leading-none" style={{ color: tone }}>
           {count}
         </span>
       </div>
-      <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-text-muted">
+      <p className="mt-2 text-xs font-semibold text-text-muted">
         {label}
       </p>
     </div>

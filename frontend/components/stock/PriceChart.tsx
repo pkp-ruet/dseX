@@ -95,7 +95,7 @@ export default function PriceChart({ code }: Props) {
     <Card as="section" padding="none" className="rounded-3xl mb-8 p-5 sm:p-7">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold" style={{ color: "var(--text)" }}>
+          <h2 className="text-xl sm:text-2xl font-bold text-text-main">
             The Price Story
           </h2>
           {caption && (
@@ -104,7 +104,7 @@ export default function PriceChart({ code }: Props) {
             </p>
           )}
           <Bn className="text-sm font-medium mt-1" >
-            <span style={{ color: "var(--text-muted)" }}>শেয়ারের দাম সময়ের সাথে কীভাবে বদলেছে, এক নজরে।</span>
+            <span className="text-text-muted">শেয়ারের দাম সময়ের সাথে কীভাবে বদলেছে, এক নজরে।</span>
           </Bn>
         </div>
         <div
@@ -126,21 +126,21 @@ export default function PriceChart({ code }: Props) {
         </div>
       </div>
 
-      <div className="rounded-2xl" style={{ background: "var(--surface-2)" }}>
+      <div className="rounded-2xl bg-surface-2">
         {loading ? (
           <div className="p-4">
             <Skeleton height={288} rounded="12px" />
           </div>
         ) : error ? (
           <div className="h-[320px] flex flex-col items-center justify-center gap-2 text-sm px-6 text-center">
-            <span style={{ color: "var(--negative)" }}>Couldn't load price chart.</span>
-            <span className="text-xs" style={{ color: "var(--text-muted)" }}>{error}</span>
-            <span className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+            <span className="text-negative">Couldn't load price chart.</span>
+            <span className="text-xs text-text-muted">{error}</span>
+            <span className="text-xs mt-1 text-text-muted">
               Check the browser console for details.
             </span>
           </div>
         ) : data.length === 0 ? (
-          <div className="h-[320px] flex items-center justify-center text-sm" style={{ color: "var(--text-muted)" }}>
+          <div className="h-[320px] flex items-center justify-center text-sm text-text-muted">
             No price data available for this stock.
           </div>
         ) : (
@@ -210,7 +210,7 @@ export default function PriceChart({ code }: Props) {
         )}
       </div>
       {hasVolume && (
-        <p className="text-xs mt-2 px-1" style={{ color: "var(--text-muted)" }}>
+        <p className="text-xs mt-2 px-1 text-text-muted">
           Gray bars along the bottom show how many shares changed hands each day.
         </p>
       )}

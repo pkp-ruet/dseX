@@ -88,7 +88,7 @@ export default function ValueTodayBox({ fairValue, lang: langProp, className = "
       style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "var(--shadow-soft)" }}
       lang={isBn ? "bn" : undefined}
     >
-      <p className="text-xs font-semibold mb-3" style={{ color: "var(--text-muted)" }}>
+      <p className="text-xs font-semibold mb-3 text-text-muted">
         {T.title[lang]}
       </p>
 
@@ -105,15 +105,15 @@ export default function ValueTodayBox({ fairValue, lang: langProp, className = "
       <div className="flex items-end gap-5 mb-4">
         {today != null && (
           <div>
-            <p className="text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>{T.today[lang]}</p>
-            <p className="text-2xl font-bold tabular-nums leading-none" style={{ color: "var(--text)" }}>
+            <p className="text-xs mb-0.5 text-text-muted">{T.today[lang]}</p>
+            <p className="text-2xl font-bold tabular-nums leading-none text-text-main">
               {money(today)}
             </p>
           </div>
         )}
         {!disagree && (
           <div>
-            <p className="text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>{T.estimate[lang]}</p>
+            <p className="text-xs mb-0.5 text-text-muted">{T.estimate[lang]}</p>
             <p className="text-2xl font-bold tabular-nums leading-none" style={{ color }}>
               {money(center)}
             </p>
@@ -122,7 +122,7 @@ export default function ValueTodayBox({ fairValue, lang: langProp, className = "
       </div>
 
       {disagree && (
-        <p className="text-sm leading-snug mb-3" style={{ color: "var(--text-muted)" }}>
+        <p className="text-sm leading-snug mb-3 text-text-muted">
           {T.disagree[lang]}
         </p>
       )}
@@ -130,7 +130,7 @@ export default function ValueTodayBox({ fairValue, lang: langProp, className = "
       {/* Range bar */}
       {haveBand && !disagree && (
         <div className="mb-4">
-          <div className="relative h-2.5 rounded-full" style={{ background: "var(--surface-2)" }}>
+          <div className="relative h-2.5 rounded-full bg-surface-2">
             <div
               className="absolute top-0 h-2.5 rounded-full"
               style={{ left: `${bandLeft}%`, width: `${bandWidth}%`, background: color, opacity: 0.28 }}
@@ -143,7 +143,7 @@ export default function ValueTodayBox({ fairValue, lang: langProp, className = "
               />
             )}
           </div>
-          <div className="flex justify-between mt-1.5 text-xs tabular-nums" style={{ color: "var(--text-muted)" }}>
+          <div className="flex justify-between mt-1.5 text-xs tabular-nums text-text-muted">
             <span>{money(low)}</span>
             <span>{T.range[lang]}</span>
             <span>{money(high)}</span>
@@ -153,7 +153,7 @@ export default function ValueTodayBox({ fairValue, lang: langProp, className = "
 
       {/* Basis + confidence */}
       {basis && (
-        <p className="text-xs leading-snug mb-2" style={{ color: "var(--text-muted)" }}>
+        <p className="text-xs leading-snug mb-2 text-text-muted">
           {basis}
           {confidence && (
             <> · {T.conf[lang][confidence]}</>
@@ -166,8 +166,8 @@ export default function ValueTodayBox({ fairValue, lang: langProp, className = "
         <ul className="space-y-1 mb-3">
           {methods.map((m) => (
             <li key={m.name} className="flex items-center justify-between gap-3 text-xs">
-              <span style={{ color: "var(--text-muted)" }}>{isBn ? m.label_bn : m.label_en}</span>
-              <span className="tabular-nums font-semibold shrink-0" style={{ color: "var(--text)" }}>{money(m.price)}</span>
+              <span className="text-text-muted">{isBn ? m.label_bn : m.label_en}</span>
+              <span className="tabular-nums font-semibold shrink-0 text-text-main">{money(m.price)}</span>
             </li>
           ))}
         </ul>
@@ -175,7 +175,7 @@ export default function ValueTodayBox({ fairValue, lang: langProp, className = "
 
       </PremiumGate>
 
-      <p className="text-xs leading-snug mt-3" style={{ color: "var(--text-muted)" }}>
+      <p className="text-xs leading-snug mt-3 text-text-muted">
         {T.note[lang]}
       </p>
     </div>

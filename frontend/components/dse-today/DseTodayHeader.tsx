@@ -173,9 +173,9 @@ export default function DseTodayHeader({ header, condition }: Props) {
               Market Breadth
             </span>
             <span className="text-xs font-bold tabular-nums">
-              <span style={{ color: "var(--positive)" }}>{up} up</span>
+              <span className="text-positive">{up} up</span>
               <span className="text-text-muted"> · </span>
-              <span style={{ color: "var(--negative)" }}>{down} down</span>
+              <span className="text-negative">{down} down</span>
               <span className="text-text-muted"> · {flat} flat</span>
             </span>
           </div>

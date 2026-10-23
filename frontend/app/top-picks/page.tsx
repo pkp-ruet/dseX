@@ -56,7 +56,7 @@ function PickItemCard({ item }: { item: DailyPickHistoryDayItem }) {
             {item.trading_code}
           </p>
           <span
-            className="text-xs sm:text-xs font-bold uppercase tracking-wider whitespace-nowrap px-1.5 py-0.5 rounded-full"
+            className="text-xs sm:text-xs font-semibold whitespace-nowrap px-1.5 py-0.5 rounded-full"
             style={{ background: sourceBg, color: sourceColor }}
           >
             {item.source_label}

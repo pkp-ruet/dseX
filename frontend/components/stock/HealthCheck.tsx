@@ -189,8 +189,7 @@ export default function HealthCheck({ scoreRow, detail }: Props) {
                     {isBn ? name?.bn : name?.en}
                   </span>
                   <div
-                    className="h-2 flex-1 overflow-hidden rounded-full"
-                    style={{ background: "var(--surface-2)" }}
+                    className="h-2 flex-1 overflow-hidden rounded-full bg-surface-2"
                     role="img"
                     aria-label={`${name?.en ?? b.key}: ${v.toFixed(1)} out of 10`}
                   >
@@ -262,10 +261,10 @@ function HealthRow({ row, scoreRow, detail, isBn }: { row: HealthCheckRow; score
           <StatusGlyph kind={tone.glyph} />
         </div>
         <div className={`flex-1 min-w-0 ${bnCls}`} lang={isBn ? "bn" : undefined}>
-          <p className="text-base sm:text-lg font-bold leading-tight" style={{ color: "var(--text)" }}>
+          <p className="text-base sm:text-lg font-bold leading-tight text-text-main">
             {headline}
           </p>
-          <p className="text-sm leading-snug mt-0.5" style={{ color: "var(--text-muted)" }}>
+          <p className="text-sm leading-snug mt-0.5 text-text-muted">
             {oneLine}
           </p>
         </div>
@@ -290,10 +289,10 @@ function HealthRow({ row, scoreRow, detail, isBn }: { row: HealthCheckRow; score
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               {numbers.map((n) => (
                 <Card key={n.label} padding="none" className="rounded-xl p-3">
-                  <p className="text-xs font-semibold mb-1" style={{ color: "var(--text-muted)" }}>
+                  <p className="text-xs font-semibold mb-1 text-text-muted">
                     {n.label}
                   </p>
-                  <p className="text-lg font-bold tabular-nums nums" style={{ color: "var(--text)" }}>{n.value}</p>
+                  <p className="text-lg font-bold tabular-nums nums text-text-main">{n.value}</p>
                 </Card>
               ))}
             </div>
@@ -305,10 +304,9 @@ function HealthRow({ row, scoreRow, detail, isBn }: { row: HealthCheckRow; score
                 const score = s.score as number;
                 return (
                   <div key={s.key} className="flex items-center gap-3">
-                    <span className="text-xs w-32 shrink-0" style={{ color: "var(--text-muted)" }}>{s.label}</span>
+                    <span className="text-xs w-32 shrink-0 text-text-muted">{s.label}</span>
                     <div
-                      className="flex-1 h-2 rounded-full overflow-hidden"
-                      style={{ background: "var(--surface-2)" }}
+                      className="flex-1 h-2 rounded-full overflow-hidden bg-surface-2"
                       role="img"
                       aria-label={`${s.label}: ${score.toFixed(0)} out of 10`}
                     >
@@ -317,7 +315,7 @@ function HealthRow({ row, scoreRow, detail, isBn }: { row: HealthCheckRow; score
                         style={{ width: `${Math.max(2, Math.min(100, score * 10))}%`, background: pillarColor(score) }}
                       />
                     </div>
-                    <span className="text-xs font-semibold tabular-nums w-10 text-right" style={{ color: "var(--text)" }}>
+                    <span className="text-xs font-semibold tabular-nums w-10 text-right text-text-main">
                       {score.toFixed(0)}/10
                     </span>
                   </div>

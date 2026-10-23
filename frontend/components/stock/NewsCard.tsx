@@ -38,7 +38,7 @@ export default function NewsCard({ title, body, postDate }: Props) {
           >
             {kind.label}
           </span>
-          <span className="block text-sm font-semibold leading-snug" style={{ color: "var(--text)" }}>
+          <span className="block text-sm font-semibold leading-snug text-text-main">
             {title}
           </span>
         </span>
@@ -51,8 +51,7 @@ export default function NewsCard({ title, body, postDate }: Props) {
       </button>
       {body && (
         <div
-          className={`px-4 pb-3 text-sm leading-relaxed transition-all ${expanded ? "" : "line-clamp-2"}`}
-          style={{ color: "var(--text-muted)" }}
+          className={`px-4 pb-3 text-sm leading-relaxed transition-all ${expanded ? "" : "line-clamp-2"} text-text-muted`}
         >
           {body}
         </div>
@@ -60,8 +59,7 @@ export default function NewsCard({ title, body, postDate }: Props) {
       {body && !expanded && (
         <button
           onClick={() => setExpanded(true)}
-          className="w-full text-xs font-semibold px-4 pb-3 text-left transition-colors"
-          style={{ color: "var(--primary)" }}
+          className="w-full text-xs font-semibold px-4 pb-3 text-left transition-colors text-primary"
         >
           Read more →
         </button>
