@@ -83,7 +83,7 @@ export default function PortfolioGlanceCard({
                 {b.icon}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-xs font-extrabold uppercase tracking-[0.08em]" style={{ color: b.color }}>{b.label}</span>
+                <span className="block text-xs font-semibold" style={{ color: b.color }}>{b.label}</span>
                 <span className="block text-sm leading-snug text-text-main">{b.text}</span>
               </span>
             </li>
@@ -97,7 +97,7 @@ export default function PortfolioGlanceCard({
             <IconCoin size={18} />
           </span>
           <span className="min-w-0">
-            <span className="block text-xs font-bold uppercase tracking-[0.08em] text-text-muted">{t(lang, "cashComing")}</span>
+            <span className="block text-xs font-semibold text-text-muted">{t(lang, "cashComing")}</span>
             {cash > 0 ? (
               <>
                 <span className="block text-base font-extrabold tabular-nums nums leading-tight text-text-main">৳{bdGroup(Math.round(cash))}</span>
@@ -111,7 +111,7 @@ export default function PortfolioGlanceCard({
 
         {segments.length > 0 && (
           <div className="min-w-0">
-            <span className="block text-xs font-bold uppercase tracking-[0.08em] text-text-muted">{t(lang, "spread")}</span>
+            <span className="block text-xs font-semibold text-text-muted">{t(lang, "spread")}</span>
             <div className="mt-1.5 flex h-2.5 w-full overflow-hidden rounded-full bg-surface-2" aria-hidden>
               {segments.map((s, i) => (
                 <span key={s.name} className="h-full" style={{ width: `${Math.max(2, s.pct)}%`, background: SPREAD_COLORS[i % SPREAD_COLORS.length] }} />

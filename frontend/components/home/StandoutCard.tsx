@@ -290,7 +290,7 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
               >
                 {value}
               </span>
-              <span className="mt-1 block text-xs font-bold uppercase tracking-[0.08em] text-text-muted">
+              <span className="mt-1 block text-xs font-semibold text-text-muted">
                 {meta.unit}
               </span>
             </>
@@ -328,7 +328,7 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
                 {s.value}
               </span>
             )}
-            <span className="mt-1 block truncate text-xs font-bold uppercase tracking-[0.06em] text-text-muted">
+            <span className="mt-1 block truncate text-xs font-semibold text-text-muted">
               {s.label}
             </span>
           </div>
@@ -337,7 +337,7 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
 
       {/* The five checks behind the score — the same method the hero card shows */}
       <div className="mt-3.5 px-3.5 sm:px-4">
-        <p className="text-xs font-bold uppercase tracking-[0.1em] text-text-muted">
+        <p className="text-xs font-semibold text-text-muted">
           The five checks behind the score
         </p>
         <div className="mt-1.5 grid grid-cols-5 gap-1.5">

@@ -78,7 +78,7 @@ function SubBar({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
       <div className="flex items-baseline justify-between gap-1">
-        <span className="truncate text-xs font-bold uppercase tracking-wide text-text-muted">{label}</span>
+        <span className="truncate text-xs font-semibold text-text-muted">{label}</span>
         <span className="text-sm font-extrabold tabular-nums nums" style={{ color: tone }}>
           {value.toFixed(1)}
         </span>
@@ -119,12 +119,10 @@ function SampleCard({ view }: { view: SampleView }) {
   const acc = GRADE_ACCENT[view.grade];
   return (
     <article className="soft-card relative overflow-hidden">
-      <span aria-hidden className="absolute inset-x-0 top-0 h-1" style={{ background: `linear-gradient(90deg, ${acc}, transparent 88%)` }} />
 
       {/* Grade + the one-line verdict */}
       <div
         className="flex items-start gap-3.5 p-4 sm:p-5"
-        style={{ background: `linear-gradient(180deg, color-mix(in srgb, ${acc} 8%, transparent), transparent)` }}
       >
         <div
           className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-xl border-2"
@@ -134,7 +132,7 @@ function SampleCard({ view }: { view: SampleView }) {
           <span className="mt-0.5 text-xs font-bold">{view.gradeLabel}</span>
         </div>
         <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-[0.12em] text-text-muted">
+          <p className="text-xs font-semibold text-text-muted">
             Portfolio grade · {view.companies} {view.companies === 1 ? "company" : "companies"}
           </p>
           <p className="mt-1 text-sm font-semibold leading-snug text-text-main">{view.headline.en}</p>
@@ -154,7 +152,7 @@ function SampleCard({ view }: { view: SampleView }) {
       {/* Where the money sits */}
       {view.sectors.length > 0 && (
         <div className="px-4 py-3.5 sm:px-5">
-          <p className="text-xs font-bold uppercase tracking-[0.12em] text-text-muted">Where the money sits</p>
+          <p className="text-xs font-semibold text-text-muted">Where the money sits</p>
           <div className="mt-2 flex h-3 gap-0.5 overflow-hidden rounded-full">
             {view.sectors.map((s, i) => (
               <span

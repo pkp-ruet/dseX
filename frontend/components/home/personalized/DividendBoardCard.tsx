@@ -114,7 +114,7 @@ export default function DividendBoardCard({
 
       {decl.length > 0 && (
         <div className="border-t border-border">
-          <h3 className="px-4 pt-3 text-xs font-bold uppercase tracking-[0.12em] text-text-muted sm:px-5">{t(lang, "justDeclared")}</h3>
+          <h3 className="px-4 pt-3 text-xs font-semibold text-text-muted sm:px-5">{t(lang, "justDeclared")}</h3>
           <ul className="mt-1 divide-y divide-cell-rule">
             {decl.map((e) => {
               const parts: string[] = [];

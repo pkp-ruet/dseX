@@ -48,7 +48,7 @@ function Group({
         <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-md ${ico[tone]}`} aria-hidden>
           {icon}
         </span>
-        <h3 className="text-xs font-extrabold uppercase tracking-[0.1em] text-text-main">{title}</h3>
+        <h3 className="text-xs font-semibold text-text-main">{title}</h3>
       </div>
       <ul className="mt-1 divide-y divide-cell-rule">
         {rows.map((r) => (

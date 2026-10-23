@@ -16,7 +16,7 @@ const TIERS: TierKey[] = ["excellent", "good", "average", "weak"];
 function Group({ label, bn, children }: { label: string; bn: string; children: React.ReactNode }) {
   return (
     <div className="flex min-w-0 flex-col gap-2">
-      <p className="text-xs font-bold uppercase tracking-[0.12em] text-text-muted">
+      <p className="text-xs font-semibold text-text-muted">
         {label} <Bn as="span" className="normal-case tracking-normal">· {bn}</Bn>
       </p>
       <div className="flex flex-wrap items-center gap-x-3.5 gap-y-2">{children}</div>

@@ -134,7 +134,7 @@ export default function DailyBriefing({
             {ICON_SETUP}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-primary">
+            <p className="text-xs font-semibold text-primary">
               Finish setting up
             </p>
             <p className="text-sm font-bold leading-tight text-text-main">

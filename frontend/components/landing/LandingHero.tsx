@@ -58,23 +58,13 @@ export default function LandingHero({
       <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-[1fr_minmax(0,26rem)] md:grid-rows-[auto_1fr] md:gap-x-12 md:gap-y-7">
         {/* Left, top — the promise */}
         <div className="flex flex-col md:col-start-1 md:row-start-1">
-          <span
-            className="inline-flex w-fit items-center gap-2 rounded-full bg-surface px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.14em] shadow-sm"
-            style={{ border: "1px solid color-mix(in srgb, var(--positive) 28%, var(--border))" }}
-          >
+          <span className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-text-muted">
             <span className="live-dot" aria-hidden />
-            <span style={{ color: "var(--positive)" }}>Updated every trading day</span>
+            Updated every trading day
           </span>
 
           <h1 className="font-display mt-5 text-[clamp(2rem,6.5vw,3.1rem)] font-bold leading-[1.08] tracking-tight text-text-main">
-            See{" "}
-            <span
-              className="bg-clip-text text-transparent"
-              style={{ backgroundImage: "linear-gradient(100deg, var(--primary), var(--info) 85%)" }}
-            >
-              the real numbers
-            </span>{" "}
-            before you buy.
+            See the real numbers before you buy.
           </h1>
           <Bn className="mt-3.5 max-w-xl text-base font-semibold leading-relaxed text-text-main">
             কোন শেয়ার ভালো, কোনটা নয় — কোম্পানির নিজের হিসাব দেখে বুঝে নিন।

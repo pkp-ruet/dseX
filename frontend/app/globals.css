@@ -165,13 +165,8 @@ html {
   position: relative;
   overflow: hidden;
 }
-.acc-top::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--acc, var(--primary)), transparent 85%);
-}
+/* 2026-10 redesign (decision 6): no gradient hairline — colour lives in the data. */
+.acc-top::before { content: none; }
 /* Rounded icon tile — gradient fill, white glyph. The single biggest visual
    upgrade per line of CSS on this page. */
 .icon-tile {
@@ -181,9 +176,9 @@ html {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: var(--radius-md);
-  color: #fff;
-  background: linear-gradient(135deg, var(--acc, var(--primary)), color-mix(in srgb, var(--acc, var(--primary)) 68%, #000));
-  box-shadow: var(--shadow-soft);
+  /* Neutral since the 2026-10 redesign (was a gradient tile in the section accent). */
+  color: var(--text-muted);
+  background: var(--surface-2);
   flex-shrink: 0;
 }
 .icon-tile-sm {
@@ -198,15 +193,15 @@ html {
 }
 .acc-card:hover {
   box-shadow: var(--shadow-lift);
-  border-color: color-mix(in srgb, var(--acc, var(--primary)) 42%, var(--border));
+  border-color: color-mix(in srgb, var(--text-muted) 35%, var(--border));
 }
 /* Soft tinted panel — used for section bands that need to lift off the cream. */
+/* Since the 2026-10 redesign a band is just space: no tint, no border, so the
+   cards inside sit on the canvas instead of a box inside a box. */
 .acc-panel {
-  border: 1px solid color-mix(in srgb, var(--acc, var(--primary)) 20%, var(--border));
-  border-radius: var(--radius-lg);
-  background:
-    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--acc, var(--primary)) 9%, transparent) 0%, transparent 60%),
-    var(--surface);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 /* Hero ambience — a wide, very soft wash behind the first screen.
    MUST stay inside its own box: an absolutely-positioned element poking past
@@ -215,6 +210,7 @@ html {
    visibly slide off screen (shipped bug, 2026-07-30). The radial stops are
    tuned to finish fading just inside both edges so the box needs no bleed. */
 .hero-glow {
+  display: none; /* 2026-10 redesign: no ambient wash */
   position: absolute;
   inset-inline: 0;
   top: -14%;

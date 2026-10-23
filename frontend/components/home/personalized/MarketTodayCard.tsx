@@ -100,7 +100,7 @@ function IndexStat({ label, value, change }: { label: string; value: number | nu
   const color = change == null ? "var(--text-muted)" : up ? "var(--positive)" : "var(--negative)";
   return (
     <div className="flex min-w-0 flex-col">
-      <span className="text-xs font-bold uppercase tracking-[0.14em] text-text-muted">{label}</span>
+      <span className="text-xs font-semibold text-text-muted">{label}</span>
       <span className="text-base font-extrabold tabular-nums text-text-main leading-tight sm:text-xl">{num(value)}</span>
       <span className="text-xs font-semibold tabular-nums" style={{ color }}>
         {change == null ? "--" : `${up ? "▲" : "▼"} ${signed(change)}`}
@@ -171,7 +171,7 @@ function Sparkline({ history, label }: { history: MarketHistory | null | undefin
         <polyline points={path} fill="none" stroke={color} strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" />
       </svg>
       <span className="min-w-0">
-        <span className="block text-xs font-bold uppercase tracking-[0.1em] text-text-muted">{label}</span>
+        <span className="block text-xs font-semibold text-text-muted">{label}</span>
         <span className="block text-sm font-extrabold tabular-nums nums leading-tight" style={{ color }}>
           {up ? "▲" : "▼"} {Math.abs(chg).toFixed(1)}%
         </span>
@@ -314,7 +314,7 @@ export default function MarketTodayCard({
             prefetch={false}
             className="mt-3 flex items-center gap-2.5 rounded-xl bg-surface-2 px-3 py-2.5 transition-colors hover:bg-[color-mix(in_srgb,var(--primary)_10%,var(--surface-2))] active:opacity-80"
           >
-            <span className="shrink-0 rounded-full border border-border bg-surface px-2 py-0.5 text-xs font-bold uppercase tracking-[0.1em] text-text-muted">
+            <span className="shrink-0 rounded-full border border-border bg-surface px-2 py-0.5 text-xs font-semibold text-text-muted">
               {t(lang, "sinceYesterday")}
             </span>
             <span className="min-w-0 flex-1 text-xs font-semibold leading-snug text-text-main">{line}</span>

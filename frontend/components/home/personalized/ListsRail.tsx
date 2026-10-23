@@ -75,7 +75,7 @@ export default function ListsRail({
           <span className="dash-tile" aria-hidden>
             <IconList size={15} />
           </span>
-          <h3 className="min-w-0 truncate text-xs font-bold uppercase tracking-[0.12em] text-text-main">
+          <h3 className="min-w-0 truncate text-xs font-semibold text-text-main">
             {t(lang, "listsTitle")}
           </h3>
         </span>

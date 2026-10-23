@@ -80,7 +80,7 @@ function MarketMoodLine({ mood }: { mood: MarketMood }) {
       <MoodWeather tone={mood.tone} />
       <div className="min-w-0 flex-1">
         <span
-          className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.14em]"
+          className="inline-flex items-center gap-2 text-sm font-semibold"
           style={{ color: acc }}
         >
           <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: acc }} aria-hidden />
@@ -142,7 +142,7 @@ export default function LiveToday({
 
       {mood && <MarketMoodLine mood={mood} />}
 
-      <p className="mt-6 text-xs font-bold uppercase tracking-[0.08em] text-text-muted">
+      <p className="mt-6 text-xs font-semibold text-text-muted">
         Picked from all {totalCount} companies · new three every day
       </p>
       {/* Dense cards, so they hold one column until the row is wide enough

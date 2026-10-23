@@ -33,7 +33,7 @@ export default function MoneyHeroGhost({ greeting, lang = "en" }: { greeting?: R
         <div className="px-4 sm:px-5 pt-4 pb-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-primary">
+              <p className="text-xs font-semibold text-primary">
                 {t(lang, "yourMoneyToday")}
               </p>
               <div className="mt-1 text-[clamp(1.6rem,7vw,2rem)] font-extrabold tabular-nums nums text-text-main leading-tight">
@@ -49,7 +49,7 @@ export default function MoneyHeroGhost({ greeting, lang = "en" }: { greeting?: R
               style={{ color: "var(--positive)", borderColor: "var(--positive)", background: "var(--surface-2)" }}
             >
               <span className="text-2xl font-black leading-none">A</span>
-              <span className="text-xs font-bold uppercase tracking-wide leading-none">{t(lang, "gradeExcellent")}</span>
+              <span className="text-xs font-semibold leading-none">{t(lang, "gradeExcellent")}</span>
             </div>
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-1.5">

@@ -60,22 +60,12 @@ export default function LandingClose({ testimonials }: { testimonials: Testimoni
     <section aria-labelledby="close-title">
       {quotes.length > 0 && (
         <div className="mb-12">
-          <span
-            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-[0.14em]"
-            style={{
-              color: "var(--gold-ink)",
-              background: "color-mix(in srgb, var(--gold) 15%, transparent)",
-              border: "1px solid color-mix(in srgb, var(--gold) 32%, transparent)",
-            }}
-          >
-            What users say
-          </span>
+          <p className="text-sm font-semibold text-text-muted">What users say</p>
           <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
             {quotes.map((q, i) => (
               <li
                 key={`${q.name ?? "user"}-${i}`}
-                className="acc-card acc-top flex flex-col p-4"
-                style={{ "--acc": "var(--gold)" } as CSSProperties}
+                className="acc-card flex flex-col p-4"
               >
                 {q.rating != null && <Stars n={q.rating} />}
                 <p className="mt-2.5 flex-1 text-sm leading-relaxed text-text-main">
@@ -90,34 +80,12 @@ export default function LandingClose({ testimonials }: { testimonials: Testimoni
         </div>
       )}
 
-      <div
-        className="relative overflow-hidden rounded-3xl border px-5 py-10 text-center sm:px-10 sm:py-14"
-        style={{
-          borderColor: "color-mix(in srgb, var(--primary) 24%, var(--border))",
-          background:
-            "radial-gradient(90% 120% at 12% 0%, color-mix(in srgb, var(--primary) 13%, transparent) 0%, transparent 62%), radial-gradient(80% 110% at 92% 8%, color-mix(in srgb, var(--info) 13%, transparent) 0%, transparent 60%), var(--surface)",
-        }}
-      >
-        {/* Gradient hairline across the top */}
-        <span
-          aria-hidden
-          className="absolute inset-x-0 top-0 h-1"
-          style={{
-            background:
-              "linear-gradient(90deg, var(--primary), var(--gold) 45%, var(--info))",
-          }}
-        />
+      <div className="soft-card relative overflow-hidden px-5 py-10 text-center sm:px-10 sm:py-14">
         <h2
           id="close-title"
           className="font-display text-[clamp(1.6rem,5.2vw,2.5rem)] font-bold leading-[1.1] tracking-tight text-text-main"
         >
-          Check before your{" "}
-          <span
-            className="bg-clip-text text-transparent"
-            style={{ backgroundImage: "linear-gradient(100deg, var(--primary), var(--info) 90%)" }}
-          >
-            next buy.
-          </span>
+          Check before your next buy.
         </h2>
         <Bn className="font-bn mx-auto mt-3 max-w-xl text-base font-semibold leading-relaxed text-text-main">
           পরের শেয়ারটা কেনার আগে একবার দেখে নিন।

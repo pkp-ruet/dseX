@@ -161,7 +161,7 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
               {stock.code}
             </span>
             {stock.category && (
-              <span className="text-xs font-bold uppercase tracking-[0.1em] text-text-muted">
+              <span className="text-xs font-semibold text-text-muted">
                 Cat {stock.category}
               </span>
             )}
@@ -217,7 +217,7 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
 
       {/* The five pillars — this is the part that says "there is a method here" */}
       <div className="flex flex-col gap-2 px-4 py-3.5 sm:px-5">
-        <p className="mb-0.5 text-xs font-bold uppercase tracking-[0.12em] text-text-muted">
+        <p className="mb-0.5 text-xs font-semibold text-text-muted">
           The five checks behind the score
         </p>
         {PILLARS.map((p, i) => (
@@ -231,7 +231,7 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
           <div className="text-sm font-extrabold tabular-nums nums text-text-main">
             ৳{fmt(stock.ltp)}
           </div>
-          <span className="mt-0.5 block truncate text-xs font-semibold uppercase tracking-[0.08em] text-text-muted">
+          <span className="mt-0.5 block truncate text-xs font-semibold text-text-muted">
             Price
           </span>
         </div>
@@ -242,7 +242,7 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
           >
             {fmtSigned(stock.chg)}
           </div>
-          <span className="mt-0.5 block truncate text-xs font-semibold uppercase tracking-[0.08em] text-text-muted">
+          <span className="mt-0.5 block truncate text-xs font-semibold text-text-muted">
             Today
           </span>
         </div>
@@ -250,7 +250,7 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
           <div className="text-sm font-extrabold tabular-nums nums text-text-main">
             {stock.divY == null ? "—" : `${stock.divY.toFixed(1)}%`}
           </div>
-          <span className="mt-0.5 block truncate text-xs font-semibold uppercase tracking-[0.08em] text-text-muted">
+          <span className="mt-0.5 block truncate text-xs font-semibold text-text-muted">
             Dividend
           </span>
         </div>
@@ -261,7 +261,7 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
           >
             {fmtSigned(stock.epsG)}
           </div>
-          <span className="mt-0.5 block truncate text-xs font-semibold uppercase tracking-[0.08em] text-text-muted">
+          <span className="mt-0.5 block truncate text-xs font-semibold text-text-muted">
             Profit growth
           </span>
         </div>

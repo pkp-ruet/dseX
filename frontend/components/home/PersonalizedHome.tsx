@@ -70,7 +70,7 @@ function SectionLabel({ children, lang }: { children: React.ReactNode; lang: Lan
   return (
     <p
       lang={bn ? "bn" : undefined}
-      className={`mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-text-muted${bn ? " font-bn" : ""}`}
+      className={`mb-2 flex items-center gap-2 text-xs font-semibold text-text-muted${bn ? " font-bn" : ""}`}
     >
       {/* Standing in for a DashHeader's icon tile, so this label does not read
           as the one grey thing between two coloured cards. */}

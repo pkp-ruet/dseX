@@ -95,7 +95,7 @@ export default function LearnCard({ brandNew, lang = "en" }: { brandNew: boolean
                 <IconBook size={18} />
               </span>
               <span className="min-w-0 flex-1">
-                <span className={`block text-xs font-extrabold uppercase tracking-[0.08em] text-text-muted ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : "en"}>
+                <span className={`block text-xs font-semibold text-text-muted ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : "en"}>
                   {r.tag}
                 </span>
                 <span className="block text-sm font-bold leading-snug text-text-main">{r.title}</span>

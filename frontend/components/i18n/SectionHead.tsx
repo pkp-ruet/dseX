@@ -8,9 +8,9 @@ import type { ReactNode } from "react";
  * no language toggle. Small UI text (chips, buttons, table headers, metric
  * labels) stays English only.
  *
- * Each section passes its own `accent` so the page picks up a colour rhythm as
- * you scroll — the eyebrow becomes a tinted pill with an optional icon, and the
- * headline can carry one accented phrase via `highlight`.
+ * Since the 2026-10 redesign it draws the same plain heading as the shared
+ * `components/ui/SectionHeader` (sentence-case label, bold headline, Bengali
+ * line). The old accent props stay so callers don't change.
  */
 export default function SectionHead({
   eyebrow,
@@ -39,50 +39,22 @@ export default function SectionHead({
 }) {
   return (
     <div className={className}>
-      {eyebrow && (
-        <span
-          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-[0.14em]"
-          style={{
-            color: accent,
-            background: `color-mix(in srgb, ${accent} 11%, transparent)`,
-            border: `1px solid color-mix(in srgb, ${accent} 24%, transparent)`,
-          }}
-        >
-          {icon && (
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden
-            >
-              {icon}
-            </svg>
-          )}
-          {eyebrow}
-        </span>
-      )}
+      {/* 2026-10 redesign (decision 6): a plain sentence-case label and a plain
+          headline. `accent`, `icon` and `highlight` are accepted but no longer
+          paint anything — colour on the landing page lives in the data. */}
+      {eyebrow && <p className="text-sm font-semibold text-text-muted">{eyebrow}</p>}
       <h2
         id={id}
-        className={`font-display text-[clamp(1.6rem,4.8vw,2.35rem)] font-bold leading-[1.12] tracking-tight text-text-main ${
-          eyebrow ? "mt-3" : ""
+        className={`text-balance text-2xl font-bold leading-tight tracking-tight text-text-main sm:text-3xl ${
+          eyebrow ? "mt-1.5" : ""
         }`}
       >
         {title}
-        {highlight && (
-          <>
-            {" "}
-            <span style={{ color: accent }}>{highlight}</span>
-          </>
-        )}
+        {highlight && <> {highlight}</>}
       </h2>
       <p
         lang="bn"
-        className="font-bn mt-2.5 max-w-2xl text-base font-medium leading-relaxed text-text-muted"
+        className="font-bn mt-1.5 max-w-2xl text-base leading-relaxed text-text-muted"
       >
         {bn}
       </p>
