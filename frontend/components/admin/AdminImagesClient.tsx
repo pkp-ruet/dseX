@@ -203,7 +203,7 @@ export default function AdminImagesClient() {
                   onChange={(e) => setStockCodeDraft(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") applyCode(); }}
                   placeholder="Trading code (e.g. GP)"
-                  className="input-field flex-1 text-sm uppercase"
+                  className="input-field flex-1 text-sm "
                 />
                 <Button type="button" variant="primary" size="sm" onClick={applyCode}>
                   Render

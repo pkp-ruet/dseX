@@ -105,7 +105,7 @@ export default function AdminDailyTipsClient() {
       {/* Header / nav */}
       <div className="flex items-center justify-between mb-6 gap-2 flex-wrap">
         <div>
-          <p className="text-xs uppercase tracking-widest font-bold text-text-muted mb-1">
+          <p className="text-xs   font-bold text-text-muted mb-1">
             Admin
           </p>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-text-main leading-tight">
@@ -162,7 +162,7 @@ export default function AdminDailyTipsClient() {
       <Card as="section" padding="none" className="rounded-xl overflow-hidden mb-5">
         <div className="h-1.5 w-full" style={{ background: "linear-gradient(90deg, var(--primary-ink), var(--primary))" }} />
         <div className="p-4 sm:p-5">
-          <p className="text-xs uppercase tracking-widest font-bold mb-3 text-primary">
+          <p className="text-xs   font-bold mb-3 text-primary">
             ★ Currently live on homepage · {tips.length} tips
           </p>
 

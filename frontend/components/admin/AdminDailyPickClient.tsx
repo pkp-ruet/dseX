@@ -71,7 +71,7 @@ function PickCard({
           }}
         >
           <span className="text-2xl sm:text-3xl font-extrabold leading-none">{grade.letter}</span>
-          <span className="text-xs sm:text-xs uppercase tracking-wider mt-0.5 font-bold nums">
+          <span className="text-xs sm:text-xs   mt-0.5 font-bold nums">
             {pick.score != null ? Math.round(pick.score) : "—"}
           </span>
         </div>
@@ -84,7 +84,7 @@ function PickCard({
               {pick.trading_code}
             </Link>
             <span
-              className="text-xs font-bold uppercase tracking-wider whitespace-nowrap px-1.5 py-0.5 rounded-full"
+              className="text-xs font-bold   whitespace-nowrap px-1.5 py-0.5 rounded-full"
               style={{
                 background: pick.source === "dsef" ? "color-mix(in srgb, var(--positive) 12%, transparent)" : "color-mix(in srgb, var(--primary) 12%, transparent)",
                 color: pick.source === "dsef" ? "var(--positive)" : "var(--primary)",
@@ -225,7 +225,7 @@ export default function AdminDailyPickClient() {
       {/* Header / nav */}
       <div className="flex items-center justify-between mb-6 gap-2 flex-wrap">
         <div>
-          <p className="text-xs uppercase tracking-widest font-bold text-text-muted mb-1">
+          <p className="text-xs   font-bold text-text-muted mb-1">
             Admin
           </p>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-text-main leading-tight">
@@ -297,7 +297,7 @@ export default function AdminDailyPickClient() {
           style={{ background: "linear-gradient(90deg, var(--warm-soft), var(--warm))" }}
         />
         <div className="p-4 sm:p-5">
-          <p className="text-xs uppercase tracking-widest font-bold mb-3" style={{ color: "var(--warm)" }}>
+          <p className="text-xs   font-bold mb-3" style={{ color: "var(--warm)" }}>
             ★ Currently live on homepage
           </p>
 

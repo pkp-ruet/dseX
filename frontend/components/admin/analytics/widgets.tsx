@@ -50,7 +50,7 @@ export function MetricRow({ metrics, cols }: { metrics: Metric[]; cols?: string 
       {metrics.map((m) => (
         <Card key={m.label} padding="none" className="rounded-xl p-4" >
           <div className="flex items-center gap-1.5">
-            <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+            <p className="text-xs font-semibold   text-text-muted">
               {m.label}
             </p>
             {m.hint && (

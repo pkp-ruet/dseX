@@ -39,7 +39,7 @@ export default function FeedbackSection() {
   return (
     <section className="soft-card px-5 sm:px-8 py-8 sm:py-10" aria-labelledby="feedback-heading">
       <div className="max-w-2xl">
-        <p className="text-xs font-bold uppercase tracking-[0.14em] text-primary-ink">
+        <p className="text-xs font-bold   text-primary-ink">
           Your feedback
         </p>
         <h2

@@ -227,7 +227,7 @@ export default function AdminScoresClient() {
       <div className="overflow-x-auto rounded-xl border border-border">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-border text-text-muted text-xs uppercase">
+            <tr className="border-b border-border text-text-muted text-xs ">
               <th className="px-3 py-3 text-left">Code</th>
               <th className="px-3 py-3 text-left hidden md:table-cell">Name</th>
               <th className="px-3 py-3 text-left hidden lg:table-cell">Sector</th>
