@@ -4320,19 +4320,4 @@ h2.info-col-header { margin: 0; }
    its last card grows to the taller neighbour's height. */
 .dash-pair > * { display: flex; flex-direction: column; min-width: 0; }
 .dash-pair > * > :last-child { flex: 1 1 auto; }
-/* Wide dashboard (≥1024px): the chapters on the left, the reader's own
-   stocks in a column on the right. The column sticks under the chapter chips
-   when it fits; when it is taller than the screen, `top` goes negative so it
-   scrolls until its last card shows and sticks there — no inner scrollbar
-   (`--aside-h` is written by components/home/personalized/StickyAside.tsx). */
-.dash-split {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 21rem;
-    gap: 1.5rem;
-    align-items: start;
-  }
-.dash-aside {
-    position: sticky;
-    top: min(112px, calc(100vh - var(--aside-h, 0px) - 1rem));
-  }
 }

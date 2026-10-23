@@ -25,7 +25,6 @@ import { marketSession, isTradingDay, bstDateStr } from "@/lib/market-hours";
 import { bnDate } from "@/lib/bn";
 import { t } from "@/lib/home-copy";
 import { trackHomeTap, trackEvent } from "@/lib/track";
-import { useMediaQuery } from "@/lib/use-media-query";
 
 import DailyBriefing from "@/components/home/personalized/DailyBriefing";
 import HeroGreeting from "@/components/home/personalized/HeroGreeting";
@@ -50,9 +49,8 @@ import LearnCard from "@/components/home/personalized/LearnCard";
 import ExploreLinks from "@/components/home/personalized/ExploreLinks";
 import NewsPeek from "@/components/home/personalized/NewsPeek";
 import ChapterHead from "@/components/home/personalized/ChapterHead";
-import { IconBook, IconCoin, IconGrid, IconSparkle, IconWallet } from "@/components/home/personalized/DashIcons";
+import { IconBook, IconCoin, IconGrid, IconSparkle } from "@/components/home/personalized/DashIcons";
 import DashSectionNav, { type DashNavItem } from "@/components/home/personalized/DashSectionNav";
-import StickyAside from "@/components/home/personalized/StickyAside";
 import { HeaderChip } from "@/components/home/personalized/DashHeader";
 import InstallHomeBanner from "@/components/pwa/InstallHomeBanner";
 
@@ -88,8 +86,6 @@ function IdeasSkeleton() {
  *  stretches both cards to the taller one's height so a pair ends on one line.
  *  On a phone the flat sections get 24px between them (`gap-6`). */
 const PAIR = "dash-pair grid grid-cols-1 gap-6 sm:gap-3 md:grid-cols-2 [&>*:only-child]:md:col-span-2";
-/** The wide layout's main column is ~630px — one card per row there. */
-const STACK = "dash-pair grid grid-cols-1 gap-3";
 /** Space between the blocks inside one chapter. */
 const CHAPTER = "dash-section space-y-6 sm:space-y-3";
 
@@ -297,12 +293,6 @@ export default function PersonalizedHome() {
     (marketState?.next?.near_high?.length ?? 0) + (marketState?.next?.near_low?.length ?? 0) + (marketState?.next?.unusual?.length ?? 0) > 0;
   const hasDividends = calendarRows.length > 0 || declared.length > 0;
 
-  // From 1024px the reader's own stocks move into a side column, so they stay
-  // in view while the market chapters scroll past. Market-wide blocks (the
-  // dividend board included) stay in the main column.
-  const isWide = useMediaQuery("(min-width: 1024px)");
-  const split = isWide && (hasPortfolio || hasWatchlist);
-
   const navItems = useMemo<DashNavItem[]>(() => {
     const items: DashNavItem[] = [
       { id: "money", label: t(lang, "chMoney") },
@@ -329,14 +319,12 @@ export default function PersonalizedHome() {
     if (card) trackHomeTap(card, link.getAttribute("href") ?? undefined);
   }
 
-  const pair = split ? STACK : PAIR;
   // Chapter title, with its Bengali line under it in English mode.
-  const head = (key: "chMoney" | "chMarket" | "chIdeas" | "chDividends" | "chLearn", icon: React.ReactNode) => (
+  const head = (key: "chMarket" | "chIdeas" | "chDividends" | "chLearn", icon: React.ReactNode) => (
     <ChapterHead label={t(lang, key)} bn={bn ? undefined : t("bn", key)} lang={lang} icon={icon} />
   );
 
-  // ── The reader's own blocks — a pair grid on phones/tablets, the sticky
-  //    side column from 1024px. ──
+  // ── The reader's own blocks. ──
   const stocksCard =
     hasPortfolio || hasWatchlist ? (
       <div data-card="stocks">
@@ -348,7 +336,6 @@ export default function PersonalizedHome() {
           dividends={dividends}
           alerts={priceAlerts}
           reportCodes={reportCodes}
-          compact={split}
           lang={lang}
         />
       </div>
@@ -388,7 +375,7 @@ export default function PersonalizedHome() {
   const marketChapter = (
     <section id="market" className={CHAPTER}>
       {head("chMarket", <IconGrid size={16} />)}
-      <div className={pair}>
+      <div className={PAIR}>
         <div data-card="market">
           <MarketTodayCard
             index={marketIndex}
@@ -413,7 +400,7 @@ export default function PersonalizedHome() {
         )}
       </div>
       {(sectorRows.length > 0 || marketNews.length > 0 || marketState?.summary_bn) && (
-        <div className={pair}>
+        <div className={PAIR}>
           {sectorRows.length > 0 && (
             <div data-card="sectors">
               <SectorsWeekCard sectors={sectorRows} lang={lang} />
@@ -519,7 +506,7 @@ export default function PersonalizedHome() {
   const learnChapter = (
     <section id="learn" className={CHAPTER}>
       {head("chLearn", <IconBook size={16} />)}
-      <div className={pair}>
+      <div className={PAIR}>
         <div data-card="learn">
           <LearnCard brandNew={isBrandNew} lang={lang} />
         </div>
@@ -567,49 +554,28 @@ export default function PersonalizedHome() {
       {/* Sticky chapter chips — the page is a long daily read. */}
       <DashSectionNav items={navItems} lang={lang} />
 
-      {split ? (
-        <div className="dash-split mt-4">
-          <div className="min-w-0 space-y-12">
-            {marketChapter}
-            {ideasChapter}
-            {dividendsChapter}
-            {setup}
-            {learnChapter}
-          </div>
-          {/* Your stocks first (the reason to keep the column), then what
-              needs attention, your news. The title lines up with "Market
-              today" on the left. */}
-          <StickyAside label={t(lang, "chMoney")}>
-            {head("chMoney", <IconWallet size={16} />)}
+      <div className="mt-4 space-y-12 sm:space-y-10">
+        {/* The rest of "your money" — your stocks, then what needs
+            attention + your news. */}
+        {stocksCard && (
+          <section className="space-y-6 sm:space-y-3">
             {stocksCard}
-            {attentionCard}
-            {newsCard}
-          </StickyAside>
-        </div>
-      ) : (
-        <div className="mt-4 space-y-12 sm:space-y-10">
-          {/* The rest of "your money" — your stocks, then what needs
-              attention + your news. */}
-          {stocksCard && (
-            <section className="space-y-6 sm:space-y-3">
-              {stocksCard}
-              {(attentionCard || newsCard) && (
-                <div className={PAIR}>
-                  {attentionCard}
-                  {newsCard}
-                </div>
-              )}
-            </section>
-          )}
-          {marketChapter}
-          {ideasChapter}
-          {dividendsChapter}
-          {setup}
-          {learnChapter}
-          {/* Mobile-only install CTA — auto-hides once installed / dismissed. */}
-          <InstallHomeBanner />
-        </div>
-      )}
+            {(attentionCard || newsCard) && (
+              <div className={PAIR}>
+                {attentionCard}
+                {newsCard}
+              </div>
+            )}
+          </section>
+        )}
+        {marketChapter}
+        {ideasChapter}
+        {dividendsChapter}
+        {setup}
+        {learnChapter}
+        {/* Mobile-only install CTA — auto-hides once installed / dismissed. */}
+        <InstallHomeBanner />
+      </div>
 
       {/* "Personalize your picks" quiz, opened from the setup checklist. */}
       <TuneModal
