@@ -3,6 +3,7 @@ import EventCard from "@/components/dividend-calendar/EventCard";
 import PremiumGate from "@/components/premium/PremiumGate";
 import { splitFree } from "@/lib/free-share";
 import type { CorporateActionEvent } from "@/lib/api";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 /** What DSE companies announced in the last few weeks, newest first. */
 export default function RecentDeclarations({
@@ -20,9 +21,7 @@ export default function RecentDeclarations({
 
   return (
     <section className="mb-8" id="recent">
-      <div className="section-rule-modern">
-        <span className="section-rule-text">Just Declared</span>
-      </div>
+      <SectionHeader title={<>Just declared</>} className="mt-8" />
 
       <p className="mb-1 text-sm font-semibold text-text-main">
         The newest dividend announcements, with the record date each one carries.

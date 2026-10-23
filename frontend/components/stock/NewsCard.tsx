@@ -29,7 +29,7 @@ export default function NewsCard({ title, body, postDate }: Props) {
       >
         <span className="min-w-0">
           <span
-            className="inline-flex items-center text-xs font-bold uppercase tracking-[0.08em] px-2 py-0.5 rounded-full mb-1.5"
+            className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full mb-1.5"
             style={{
               color: kind.color,
               background: `color-mix(in srgb, ${kind.color} 10%, transparent)`,

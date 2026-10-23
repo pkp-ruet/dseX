@@ -7,6 +7,7 @@ import { getSectors } from "@/lib/api";
 import { crore, pct } from "@/lib/formatters";
 import ErrorState from "@/components/ui/ErrorState";
 import PageGuide from "@/components/seo/PageGuide";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
@@ -44,7 +45,7 @@ export const metadata: Metadata = {
 function MarketStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface-2 p-2.5 sm:p-3">
-      <span className="text-xs font-extrabold uppercase tracking-[0.14em] text-text-muted">
+      <span className="text-xs font-semibold text-text-muted">
         {label}
       </span>
       <span className="text-base font-extrabold leading-none tabular-nums text-text-main sm:text-lg">
@@ -164,9 +165,7 @@ export default async function SectorsPage() {
         </div>
       </section>
 
-      <div className="section-rule-modern">
-        <span className="section-rule-text">Every Sector — Largest First</span>
-      </div>
+      <SectionHeader title={<>Every sector — largest first</>} className="mt-8" />
 
       <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
         {sectors.map((s) => (

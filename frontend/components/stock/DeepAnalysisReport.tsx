@@ -79,7 +79,7 @@ export default function DeepAnalysisReport({ report, fairValue }: Props) {
     <article className={isBn ? "font-bn" : ""} lang={isBn ? "bn" : undefined}>
       {/* Header: eyebrow + language switch */}
       <div className="flex items-center justify-between gap-3 mb-4">
-        <span className="text-xs font-bold uppercase tracking-widest text-primary-ink">
+        <span className="text-xs font-semibold text-primary-ink">
           {T.eyebrow[lang]}
         </span>
         <LangToggle value={lang} onChange={setLang} size="sm" />

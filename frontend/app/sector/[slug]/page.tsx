@@ -11,6 +11,7 @@ import SectorScoringNote from "@/components/sector/SectorScoringNote";
 import SectorCard from "@/components/sector/SectorCard";
 import PageGuide from "@/components/seo/PageGuide";
 import PageHeader from "@/components/ui/PageHeader";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
@@ -252,9 +253,7 @@ export default async function SectorPage({ params }: Props) {
 
       {data.related_sectors.length > 0 && (
         <section className="mb-8">
-          <div className="section-rule-modern">
-            <span className="section-rule-text">Other Sectors</span>
-          </div>
+          <SectionHeader title={<>Other sectors</>} className="mt-8" />
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {data.related_sectors.map((o) => (
               <SectorCard key={o.slug} sector={o} />

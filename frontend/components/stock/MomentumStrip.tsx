@@ -110,7 +110,7 @@ export default function MomentumStrip({ momentum }: Props) {
         {tiles.map((t) => (
           <Card key={t.label} padding="none" className="rounded-xl p-4">
             <p
-              className="text-xs font-bold uppercase tracking-[0.15em] mb-2"
+              className="text-xs font-semibold mb-2"
               style={{ color: "var(--text-muted)" }}
             >
               {t.label}

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Bn from "@/components/i18n/Bn";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 /**
  * How this sector's companies were scored, and why it differs from other sectors.
@@ -16,12 +17,10 @@ export default function SectorScoringNote({
 }) {
   return (
     <section className="mb-8" id="how-scored">
-      <div className="section-rule-modern">
-        <span className="section-rule-text">How {sectorName} Companies Are Scored</span>
-      </div>
+      <SectionHeader title={<>How {sectorName} companies are scored</>} className="mt-8" />
 
       <div className="rounded-xl border border-border bg-surface-2 p-3.5 sm:p-4">
-        <span className="inline-flex items-center rounded-full border border-border bg-surface px-2.5 py-1 text-xs font-extrabold uppercase tracking-[0.14em] text-text-muted">
+        <span className="inline-flex items-center rounded-full border border-border bg-surface px-2.5 py-1 text-xs font-semibold text-text-muted">
           Scoring template · {note.label}
         </span>
 

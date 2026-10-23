@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Bn from "@/components/i18n/Bn";
 import type { DividendCalendarData } from "@/lib/api";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 const STEPS = [
   {
@@ -48,9 +49,7 @@ export default function HowDividendsWork({ data }: { data: DividendCalendarData 
 
   return (
     <section className="mb-8" id="how-it-works">
-      <div className="section-rule-modern">
-        <span className="section-rule-text">How a Dividend Reaches You</span>
-      </div>
+      <SectionHeader title={<>How a dividend reaches you</>} className="mt-8" />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {STEPS.map((s) => (

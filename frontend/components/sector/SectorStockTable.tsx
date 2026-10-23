@@ -8,6 +8,7 @@ import StarButton from "@/components/ui/StarButton";
 import { DataTable, SortTh, Th, StockIdent, Price, Change } from "@/components/ui/Table";
 import { pct } from "@/lib/formatters";
 import type { SectorStockRow } from "@/lib/api";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 type SortCol = "score" | "trading_code" | "ltp" | "change_pct" | "return_7d_pct" | "pe" | "div_yield_pct";
 
@@ -58,11 +59,7 @@ export default function SectorStockTable({
 
   return (
     <section className="mb-8" id="companies">
-      <div className="section-rule-modern">
-        <span className="section-rule-text">
-          All {stocks.length} {sectorName} Companies
-        </span>
-      </div>
+      <SectionHeader title={<>All {stocks.length} {sectorName} companies</>} className="mt-8" />
 
       <DataTable>
         <thead>
@@ -98,7 +95,7 @@ export default function SectorStockTable({
                       {s.stale_data && (
                         <span
                           title="Latest financials are more than two years old"
-                          className="text-xs font-bold uppercase tracking-wider text-text-muted"
+                          className="text-xs font-semibold text-text-muted"
                         >
                           stale
                         </span>

@@ -88,7 +88,7 @@ export default function ValueTodayBox({ fairValue, lang: langProp, className = "
       style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "var(--shadow-soft)" }}
       lang={isBn ? "bn" : undefined}
     >
-      <p className="text-xs font-bold uppercase tracking-[0.15em] mb-3" style={{ color: "var(--text-muted)" }}>
+      <p className="text-xs font-semibold mb-3" style={{ color: "var(--text-muted)" }}>
         {T.title[lang]}
       </p>
 

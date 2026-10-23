@@ -1790,26 +1790,8 @@ a:hover .ticker-tag,
     font-size: var(--fs-2xs);
   }
 }
-/* Section rule — re-skinned in the 2026-10 redesign to read like
-   components/ui/SectionHeader (left-aligned sentence-case title, no pill, no
-   gradient rules). The markup stays until each page moves to SectionHeader. */
-.section-rule-modern {
-  display: block;
-  margin: var(--space-8) 0 var(--space-2);
-}
-.section-rule-modern + .movers-strip {
-  margin-top: 0;
-}
-.section-rule-modern:has(+ .movers-strip) {
-  margin-bottom: 0;
-}
-.section-rule-modern .section-rule-text {
-  font-size: var(--fs-lg);
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--text);
-  text-wrap: balance;
-}
+/* (.section-rule-modern was retired in redesign step 5 — every use is now
+   components/ui/SectionHeader.) */
 /* Info strip */
 .info-col {
   padding: 0 16px;
@@ -4235,52 +4217,39 @@ a:hover .ticker-tag,
   padding: 5px 14px; box-shadow: var(--shadow-soft);
 }
 /* ---- Hero ---- */
+/* Calmed in redesign step 5: the one card style, no mood-coloured wash —
+   the mood pill and the answer tiles carry the tone. */
 .ms-hero {
   position: relative; overflow: hidden;
   border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  padding: 28px 26px 24px;
-  box-shadow: var(--shadow-lift);
+  border-radius: var(--radius-md);
+  padding: 24px 22px 20px;
+  box-shadow: var(--shadow-soft);
   background: var(--surface);
-}
-.ms-hero::before {
-  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
-  background: var(--ambient);
-}
-.ms-hero--up::before {
-  background:
-    radial-gradient(130% 95% at 0% 0%, rgba(4, 120, 87, 0.16) 0%, transparent 56%),
-    radial-gradient(120% 95% at 100% 0%, rgba(24, 95, 165, 0.08) 0%, transparent 56%);
-}
-.ms-hero--down::before, .ms-hero--weak::before {
-  background:
-    radial-gradient(130% 95% at 0% 0%, rgba(217, 119, 6, 0.18) 0%, transparent 56%),
-    radial-gradient(120% 95% at 100% 0%, rgba(220, 38, 38, 0.08) 0%, transparent 56%);
 }
 .ms-hero > * { position: relative; z-index: 1; }
 .ms-hero-eyebrow {
   display: inline-block;
   font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: var(--fs-2xs); font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
-  color: var(--primary-ink);
+  font-size: var(--fs-sm); font-weight: 600;
+  color: var(--text-muted);
 }
 .ms-mood-pill {
   display: inline-flex; align-items: center; gap: 8px; margin-top: 12px;
-  font-size: var(--fs-md); font-weight: 800; padding: 8px 16px; border-radius: 999px;
-  background: var(--surface); box-shadow: var(--shadow-soft);
-  border: 1px solid var(--border);
+  font-size: var(--fs-md); font-weight: 700; padding: 6px 14px; border-radius: 999px;
+  background: color-mix(in srgb, currentColor 8%, var(--surface));
+  border: 1px solid color-mix(in srgb, currentColor 22%, var(--border));
 }
 .ms-mood-pill .ms-dot {
-  width: 9px; height: 9px; border-radius: 999px; background: currentColor;
-  box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 24%, transparent);
+  width: 8px; height: 8px; border-radius: 999px; background: currentColor;
 }
 .ms-mood-pill--up { color: var(--positive); }
 .ms-mood-pill--down, .ms-mood-pill--weak { color: var(--warm-ink); }
 .ms-mood-pill--steady { color: var(--primary); }
 .ms-hero-headline {
   font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: clamp(1.55rem, 4vw, 2.15rem); font-weight: 800; line-height: 1.22;
-  letter-spacing: -0.025em; color: var(--text); margin: 16px 0 8px; max-width: 30ch;
+  font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 700; line-height: 1.2;
+  letter-spacing: -0.015em; color: var(--text); margin: 14px 0 8px; max-width: 30ch; text-wrap: balance;
 }
 .ms-hero-sub { font-size: var(--fs-md); color: var(--text-muted); line-height: 1.6; margin: 0 0 20px; max-width: 58ch; }
 .ms-hero-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
@@ -4297,19 +4266,19 @@ a:hover .ticker-tag,
 .ms-section-num {
   flex-shrink: 0; width: 42px; height: 42px; border-radius: var(--radius-md);
   display: flex; align-items: center; justify-content: center;
-  font-family: system-ui, sans-serif; font-weight: 800; font-size: var(--fs-lg); color: #fff;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-ink) 100%);
+  font-family: var(--font-inter), system-ui, sans-serif; font-weight: 700; font-size: var(--fs-lg); color: var(--text-muted);
+  background: var(--surface-2);
   box-shadow: none;
 }
 .ms-section-title {
   font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: clamp(1.35rem, 3.2vw, 1.7rem); font-weight: 800; letter-spacing: -0.025em;
-  color: var(--text); margin: 0; line-height: 1.08;
+  font-size: clamp(1.3rem, 3.2vw, 1.6rem); font-weight: 700; letter-spacing: -0.015em;
+  color: var(--text); margin: 0; line-height: 1.15;
 }
 .ms-section-sub { font-size: var(--fs-sm); color: var(--text-muted); margin: 4px 0 0; font-weight: 500; }
 /* ---- Cards ---- */
 .ms-card { padding: 18px; }
-.ms-card-title { font-size: var(--fs-md); font-weight: 800; margin: 0 0 14px; color: var(--text); letter-spacing: -0.01em; }
+.ms-card-title { font-size: var(--fs-md); font-weight: 700; margin: 0 0 14px; color: var(--text); }
 .ms-card-note { font-size: var(--fs-xs); color: var(--text-muted); margin: 0 0 12px; font-weight: 500; line-height: 1.5; }
 /* ---- Answer tiles (the Q&A) ---- */
 .ms-answers { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 12px; }
@@ -5111,8 +5080,8 @@ a:hover .ticker-tag,
 @media (min-width: 640px) {
 .ms-hero-answers { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 }
-.ms-hero-answers .ms-answer { position: relative; overflow: hidden; padding: 12px 13px 12px 16px; background: var(--surface); }
-.ms-hero-answers .ms-answer::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--ms-accent, var(--primary)); }
+.ms-hero-answers .ms-answer { position: relative; overflow: hidden; padding: 12px 14px; background: var(--surface); }
+/* (the 4px accent rail on each answer was removed in redesign step 5) */
 .ms-hero-answers .ms-answer--pos { background: color-mix(in srgb, var(--positive) 8%, var(--surface)); }
 .ms-hero-answers .ms-answer--neg { background: color-mix(in srgb, var(--negative) 7%, var(--surface)); }
 .ms-hero-answers .ms-answer-a { font-size: var(--fs-md); }

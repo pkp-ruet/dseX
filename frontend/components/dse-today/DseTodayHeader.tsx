@@ -40,7 +40,7 @@ function IndexTile({ name, value, change, changePct, lead = false }: {
       }}
     >
       <span
-        className="text-xs font-extrabold uppercase tracking-[0.14em]"
+        className="text-xs font-semibold"
         style={{ color: lead ? "var(--primary-ink)" : "var(--text-muted)" }}
       >
         {name}
@@ -74,7 +74,7 @@ function StatTile({ label, value, sub, subColor }: {
 }) {
   return (
     <div className="flex flex-col gap-1 rounded-xl border border-border bg-surface-2 p-2.5 sm:p-3">
-      <span className="text-xs font-extrabold uppercase tracking-[0.14em] text-text-muted">
+      <span className="text-xs font-semibold text-text-muted">
         {label}
       </span>
       <span className="text-sm sm:text-lg font-extrabold leading-none tabular-nums text-text-main">
@@ -121,13 +121,13 @@ export default function DseTodayHeader({ header, condition }: Props) {
         {/* Top — date + condition */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-extrabold uppercase tracking-[0.16em] text-text-muted">
+            <span className="text-xs font-semibold text-text-muted">
               Trading Day
             </span>
             <span className="text-sm font-bold text-text-main">{dateLabel}</span>
           </div>
           <span
-            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-extrabold uppercase tracking-wider"
+            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
             style={{
               color: cond.color,
               background: `color-mix(in srgb, ${cond.color} 12%, var(--surface))`,
@@ -169,7 +169,7 @@ export default function DseTodayHeader({ header, condition }: Props) {
         {/* Breadth */}
         <div className="rounded-xl border border-border bg-surface-2 p-3">
           <div className="mb-2 flex items-center justify-between gap-2">
-            <span className="text-xs font-extrabold uppercase tracking-[0.14em] text-text-muted">
+            <span className="text-xs font-semibold text-text-muted">
               Market Breadth
             </span>
             <span className="text-xs font-bold tabular-nums">

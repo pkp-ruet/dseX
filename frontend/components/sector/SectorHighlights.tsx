@@ -2,6 +2,7 @@ import Link from "next/link";
 import TierPill from "@/components/ui/TierPill";
 import { pct, taka } from "@/lib/formatters";
 import type { SectorStockRow } from "@/lib/api";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 type Metric = "change_pct" | "return_7d_pct" | "div_yield_pct";
 
@@ -90,9 +91,7 @@ export default function SectorHighlights({
 
   return (
     <section className="mb-8" id="standouts">
-      <div className="section-rule-modern">
-        <span className="section-rule-text">What Stands Out</span>
-      </div>
+      <SectionHeader title={<>What stands out</>} className="mt-8" />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <List

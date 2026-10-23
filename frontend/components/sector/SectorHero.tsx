@@ -32,7 +32,7 @@ function Stat({ label, value, sub, accent }: {
       }}
     >
       <span
-        className="text-xs font-extrabold uppercase tracking-[0.14em]"
+        className="text-xs font-semibold"
         style={{ color: accent ?? "var(--text-muted)" }}
       >
         {label}
@@ -89,7 +89,7 @@ export default function SectorHero({ summary: s }: { summary: SectorSummary }) {
       <div className="flex flex-col gap-4 p-4 sm:p-5">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <span
-            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-extrabold uppercase tracking-wider"
+            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
             style={{
               color: chip.color,
               background: `color-mix(in srgb, ${chip.color} 12%, var(--surface))`,
@@ -133,7 +133,7 @@ export default function SectorHero({ summary: s }: { summary: SectorSummary }) {
         {/* Tier mix */}
         <div className="rounded-xl border border-border bg-surface-2 p-3">
           <div className="mb-2 flex items-center justify-between gap-2">
-            <span className="text-xs font-extrabold uppercase tracking-[0.14em] text-text-muted">
+            <span className="text-xs font-semibold text-text-muted">
               Strength mix
             </span>
             <span className="text-xs font-bold tabular-nums text-text-muted">

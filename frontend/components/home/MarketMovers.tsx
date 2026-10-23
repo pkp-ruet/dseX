@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { taka, pct, formatDate, crore } from "@/lib/formatters";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 export interface MarketMoverItem {
   trading_code: string;
@@ -60,9 +61,7 @@ export default function MarketMovers({ data, compact }: { data: MarketMoversData
 
   return (
     <>
-      <div className="section-rule-modern">
-        <span className="section-rule-text">Market Movers — {dateLabel}</span>
-      </div>
+      <SectionHeader title={<>Market movers — {dateLabel}</>} className="mt-8" />
 
       <div className={compact ? "movers-strip movers-strip--compact" : "movers-strip"}>
         <div className="info-col info-col--gainers">

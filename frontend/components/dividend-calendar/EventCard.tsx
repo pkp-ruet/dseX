@@ -40,7 +40,7 @@ function daysLabel(days: number | null | undefined) {
 function Figure({ label, value, tone }: { label: string; value: string; tone?: "positive" | "muted" }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-xs font-extrabold uppercase tracking-[0.13em] text-text-muted">{label}</span>
+      <span className="text-xs font-semibold text-text-muted">{label}</span>
       <span
         className={`text-base font-extrabold leading-none tabular-nums ${
           tone === "positive" ? "text-positive" : tone === "muted" ? "text-text-muted" : "text-text-main"
@@ -89,7 +89,7 @@ export default function EventCard({
             <>
               {e.tier && <TierPill tier={e.tier} />}
               {e.dividend_type && (
-                <span className="text-xs font-bold uppercase tracking-wider text-text-muted">{e.dividend_type}</span>
+                <span className="text-xs font-semibold text-text-muted">{e.dividend_type}</span>
               )}
             </>
           }

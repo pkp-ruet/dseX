@@ -1,5 +1,6 @@
 import Bn from "@/components/i18n/Bn";
 import type { SectorComparisonRow, SectorSummary } from "@/lib/api";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 function fmt(row: SectorComparisonRow, value: number | null) {
   if (value == null) return "—";
@@ -39,9 +40,7 @@ export default function SectorVsMarket({
 }) {
   return (
     <section className="mb-8" id="vs-market">
-      <div className="section-rule-modern">
-        <span className="section-rule-text">{summary.sector} vs the Whole Market</span>
-      </div>
+      <SectionHeader title={<>{summary.sector} vs the whole market</>} className="mt-8" />
 
       <p className="mb-1 text-sm font-semibold text-text-main">
         Median of the {summary.company_count} companies in this sector, against the median of
@@ -55,16 +54,16 @@ export default function SectorVsMarket({
         <table className="w-full min-w-[440px] border-collapse text-left">
           <thead>
             <tr className="border-b border-border bg-surface-2">
-              <th className="px-3 py-2.5 text-xs font-extrabold uppercase tracking-[0.13em] text-text-muted">
+              <th className="px-3 py-2.5 text-xs font-semibold text-text-muted">
                 Measure
               </th>
-              <th className="px-3 py-2.5 text-right text-xs font-extrabold uppercase tracking-[0.13em] text-text-muted">
+              <th className="px-3 py-2.5 text-right text-xs font-semibold text-text-muted">
                 This sector
               </th>
-              <th className="px-3 py-2.5 text-right text-xs font-extrabold uppercase tracking-[0.13em] text-text-muted">
+              <th className="px-3 py-2.5 text-right text-xs font-semibold text-text-muted">
                 Whole market
               </th>
-              <th className="px-3 py-2.5 text-right text-xs font-extrabold uppercase tracking-[0.13em] text-text-muted">
+              <th className="px-3 py-2.5 text-right text-xs font-semibold text-text-muted">
                 Difference
               </th>
             </tr>

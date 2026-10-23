@@ -109,7 +109,7 @@ export default function YourPosition({ code, ltp }: Props) {
         lang={isBn ? "bn" : undefined}
       >
         <div className="flex items-center justify-between gap-3 mb-3">
-          <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-primary-ink">
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary-ink">
             <IconWallet size={14} />
             {T.position[lang]}
           </span>

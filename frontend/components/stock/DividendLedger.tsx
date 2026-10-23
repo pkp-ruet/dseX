@@ -71,21 +71,21 @@ export default function DividendLedger({ rows, face, initial = 6 }: Props) {
             </div>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
               <div>
-                <dt className="text-xs font-bold uppercase tracking-[0.12em] mb-0.5" style={MUTED}>Cash</dt>
+                <dt className="text-xs font-semibold mb-0.5" style={MUTED}>Cash</dt>
                 <dd className="tabular-nums nums leading-tight">{cashCell(cash, stock, true, r.declared_total_cash_pct)}</dd>
               </div>
               <div>
-                <dt className="text-xs font-bold uppercase tracking-[0.12em] mb-0.5" style={MUTED}>Bonus</dt>
+                <dt className="text-xs font-semibold mb-0.5" style={MUTED}>Bonus</dt>
                 <dd className="tabular-nums nums leading-tight">{bonusCell(stock, true)}</dd>
               </div>
               <div>
-                <dt className="text-xs font-bold uppercase tracking-[0.12em] mb-0.5" style={MUTED}>Record date</dt>
+                <dt className="text-xs font-semibold mb-0.5" style={MUTED}>Record date</dt>
                 <dd className="text-sm font-semibold tabular-nums nums" style={r.record_date ? INK : MUTED}>
                   {r.record_date ? formatDate(r.record_date) : "—"}
                 </dd>
               </div>
               <div>
-                <dt className="text-xs font-bold uppercase tracking-[0.12em] mb-0.5" style={MUTED}>AGM</dt>
+                <dt className="text-xs font-semibold mb-0.5" style={MUTED}>AGM</dt>
                 <dd className="text-sm font-semibold tabular-nums nums" style={r.agm_date ? INK : MUTED}>
                   {r.agm_date ? formatDate(r.agm_date) : "—"}
                 </dd>

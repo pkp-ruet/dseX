@@ -6,6 +6,7 @@ import Button from "@/components/ui/Button";
 import StarButton from "@/components/ui/StarButton";
 import { DataTable, Th, StockIdent, Price, Change } from "@/components/ui/Table";
 import type { DseTodayTableItem } from "@/lib/api";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 type Axis = "volume" | "value" | "price" | "change";
 
@@ -49,9 +50,7 @@ export default function DseTodayTable({ rows }: { rows: DseTodayTableItem[] }) {
 
   return (
     <section className="mb-6">
-      <div className="section-rule-modern">
-        <span className="section-rule-text">Top 30 by {AXES.find((a) => a.key === axis)?.label}</span>
-      </div>
+      <SectionHeader title={<>Top 30 by {AXES.find((a) => a.key === axis)?.label}</>} className="mt-8" />
 
       {/* Sort tabs */}
       <div className="mb-3 flex flex-wrap gap-1.5" role="group" aria-label="Rank by">

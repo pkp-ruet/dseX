@@ -21,7 +21,7 @@ function StatTile({ label, value, sub, accent }: {
       }}
     >
       <span
-        className="text-xs font-extrabold uppercase tracking-[0.14em]"
+        className="text-xs font-semibold"
         style={{ color: accent ?? "var(--text-muted)" }}
       >
         {label}
@@ -54,7 +54,7 @@ export default function CalendarSummary({ data }: { data: DividendCalendarData }
       <div className="flex flex-col gap-4 p-4 sm:p-5">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-extrabold uppercase tracking-[0.16em] text-text-muted">
+            <span className="text-xs font-semibold text-text-muted">
               Updated
             </span>
             <span className="text-sm font-bold text-text-main">{formatDate(data.today)}</span>

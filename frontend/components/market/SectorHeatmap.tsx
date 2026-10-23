@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { Treemap, ResponsiveContainer, Tooltip } from "recharts";
 import { sectorSlug } from "@/lib/sector";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 export interface SectorHeatmapItem {
   sector: string;
@@ -138,9 +139,7 @@ export default function SectorHeatmap({
   return (
     <section className="mb-6">
       {withHeader && (
-        <div className="section-rule-modern">
-          <span className="section-rule-text">Sector Heatmap</span>
-        </div>
+        <SectionHeader title={<>Sector heatmap</>} className="mt-8" />
       )}
 
       <div className="soft-card p-4">

@@ -5,6 +5,7 @@ import { formatDate, money, pct } from "@/lib/formatters";
 import PremiumGate from "@/components/premium/PremiumGate";
 import { splitFree } from "@/lib/free-share";
 import type { CorporateActionEvent } from "@/lib/api";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 /**
  * Biggest cash dividends declared in the last 12 months, ranked by what the
@@ -47,9 +48,7 @@ export default function TopCashDividends({ events }: { events: CorporateActionEv
 
   return (
     <section className="mb-8" id="top-payers">
-      <div className="section-rule-modern">
-        <span className="section-rule-text">Biggest Cash Dividends — Last 12 Months</span>
-      </div>
+      <SectionHeader title={<>Biggest cash dividends — last 12 months</>} className="mt-8" />
 
       <p className="mb-1 text-sm font-semibold text-text-main">
         Declared cash, measured against today&apos;s price. A very high yield often means

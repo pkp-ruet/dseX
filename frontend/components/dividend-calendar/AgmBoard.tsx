@@ -4,6 +4,7 @@ import { formatDate, pct } from "@/lib/formatters";
 import PremiumGate from "@/components/premium/PremiumGate";
 import { splitFree } from "@/lib/free-share";
 import type { CorporateActionEvent } from "@/lib/api";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 function dividendLabel(e: CorporateActionEvent) {
   const parts: string[] = [];
@@ -43,9 +44,7 @@ export default function AgmBoard({ events }: { events: CorporateActionEvent[] })
 
   return (
     <section className="mb-8" id="agms">
-      <div className="section-rule-modern">
-        <span className="section-rule-text">Upcoming AGMs</span>
-      </div>
+      <SectionHeader title={<>Upcoming AGMs</>} className="mt-8" />
 
       <p className="mb-1 text-sm font-semibold text-text-main">
         A final dividend is only a recommendation until shareholders approve it at the

@@ -28,7 +28,7 @@ export function TierBar({ counts, total }: { counts: Record<string, number>; tot
 function Metric({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-xs font-extrabold uppercase tracking-[0.13em] text-text-muted">
+      <span className="text-xs font-semibold text-text-muted">
         {label}
       </span>
       <span className="text-sm font-extrabold leading-none tabular-nums text-text-main">

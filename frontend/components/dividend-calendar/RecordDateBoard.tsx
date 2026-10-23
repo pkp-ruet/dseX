@@ -3,6 +3,7 @@ import EventCard from "@/components/dividend-calendar/EventCard";
 import PremiumGate from "@/components/premium/PremiumGate";
 import { splitFree } from "@/lib/free-share";
 import type { CorporateActionEvent } from "@/lib/api";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 /**
  * Upcoming record dates — the section that answers "can I still get this one?".
@@ -24,9 +25,7 @@ export default function RecordDateBoard({ events }: { events: CorporateActionEve
 
   return (
     <section className="mb-8" id="record-dates">
-      <div className="section-rule-modern">
-        <span className="section-rule-text">Upcoming Record Dates</span>
-      </div>
+      <SectionHeader title={<>Upcoming record dates</>} className="mt-8" />
 
       <p className="mb-1 text-sm font-semibold text-text-main">
         Own the share on the record date and the dividend is yours — the company pays

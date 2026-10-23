@@ -290,7 +290,7 @@ function HealthRow({ row, scoreRow, detail, isBn }: { row: HealthCheckRow; score
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               {numbers.map((n) => (
                 <Card key={n.label} padding="none" className="rounded-xl p-3">
-                  <p className="text-xs font-bold uppercase tracking-[0.12em] mb-1" style={{ color: "var(--text-muted)" }}>
+                  <p className="text-xs font-semibold mb-1" style={{ color: "var(--text-muted)" }}>
                     {n.label}
                   </p>
                   <p className="text-lg font-bold tabular-nums nums" style={{ color: "var(--text)" }}>{n.value}</p>
