@@ -63,3 +63,15 @@
   color: var(--primary-ink);
   background: rgb(var(--primary-rgb) / 0.14);
 }
+
+/* Yearly portfolio statement (/portfolio/statement): print only the statement. */
+@media print {
+  .navbar-header,
+  .site-footer,
+  .mobile-bottom-bar,
+  .print-hide,
+  [data-bottom-card] { display: none !important; }
+  body { background: var(--surface); }
+  main { padding: 0 !important; }
+  .statement-sheet { box-shadow: none !important; border: 0 !important; }
+}

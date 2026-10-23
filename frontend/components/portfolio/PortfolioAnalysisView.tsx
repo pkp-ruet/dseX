@@ -9,7 +9,6 @@ import AllocationChart from "./AllocationChart";
 import SectorBreakdownChart from "./SectorBreakdownChart";
 import HoldingsDetailed from "./HoldingsDetailed";
 import RebalanceHelper from "./RebalanceHelper";
-import Button from "@/components/ui/Button";
 import PremiumGate from "@/components/premium/PremiumGate";
 
 /** Grade accents come from the site tokens — no raw palette colors. */
@@ -76,8 +75,6 @@ interface Props {
   rebalance?: RebalancePlan | null;
   /** Language of the copy — must match the lang the analysis was built with. */
   lang?: AnalysisLang;
-  /** When provided, an English/বাংলা toggle is rendered in the verdict hero. */
-  onLangChange?: (lang: AnalysisLang) => void;
   showSectorSpread?: boolean;
   showHoldingsList?: boolean;
   showDisclaimer?: boolean;
@@ -91,7 +88,6 @@ export default function PortfolioAnalysisView({
   analysis,
   rebalance = null,
   lang = "en",
-  onLangChange,
   showSectorSpread = true,
   showHoldingsList = true,
   showDisclaimer = true,
@@ -114,26 +110,6 @@ export default function PortfolioAnalysisView({
       <section
         className="soft-card relative overflow-hidden p-5 sm:p-7"
       >
-        {/* English / বাংলা toggle */}
-        {onLangChange && (
-          <div className="absolute right-3 top-3 z-10 inline-flex rounded-full border border-border bg-surface p-0.5 shadow-soft sm:right-4 sm:top-4" role="group" aria-label="Language">
-            {(["bn", "en"] as AnalysisLang[]).map((l) => (
-              <Button
-                key={l}
-                type="button"
-                variant="tab"
-                size="sm"
-                active={lang === l}
-                aria-pressed={lang === l}
-                onClick={() => onLangChange(l)}
-                className={l === "bn" ? "font-bn" : ""}
-              >
-                {l === "en" ? "English" : "বাংলা"}
-              </Button>
-            ))}
-          </div>
-        )}
-
         <div className="flex flex-col sm:flex-row items-start gap-5 sm:gap-6">
           {/* Grade badge */}
           <div
@@ -156,8 +132,7 @@ export default function PortfolioAnalysisView({
           </div>
 
           {/* Headline + explanation */}
-          {/* sm:pr reserves room for the absolute English/বাংলা toggle in the corner */}
-          <div className={`flex-1 min-w-0 w-full ${onLangChange ? "sm:pr-36" : ""}`}>
+          <div className="flex-1 min-w-0 w-full">
             <p
               className={`text-xs sm:text-xs   font-bold mb-2 ${bnText}`}
               style={{ color: accent }}

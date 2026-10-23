@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   apiAddHolding,
-  apiUpdateHolding,
-  apiDeleteHolding,
+  apiSellHolding,
   type PortfolioHolding,
+  type PortfolioLogEntry,
 } from "@/lib/api";
 import { taka } from "@/lib/formatters";
 import Button from "@/components/ui/Button";
@@ -19,8 +19,10 @@ interface Props {
   ltp: number | null;
   companyName?: string | null;
   onClose: () => void;
-  /** Called with the server's authoritative holdings list after the trade. */
-  onDone: (holdings: PortfolioHolding[]) => void;
+  /** Called with the server's authoritative holdings (and log) after the trade. */
+  onDone: (holdings: PortfolioHolding[], log?: PortfolioLogEntry[]) => void;
+  /** Which portfolio (absent = the main one). */
+  pid?: string;
 }
 
 type Preview =
@@ -30,19 +32,21 @@ type Preview =
   | { kind: "over-sell"; held: number };
 
 /**
- * Buy / Sell a holding in transaction terms — no realized profit/loss, no ledger.
+ * Buy / Sell a holding. Both are written to the portfolio log.
  *
- * Buy re-uses the backend's weighted-average merge (POST /holdings). Sell just
- * lowers the share count: a partial sale PUTs the reduced qty (average cost is
- * unchanged), selling everything DELETEs the holding. A live preview spells out
- * the resulting position so the outcome is never a surprise.
+ * Buy re-uses the backend's weighted-average merge (POST /holdings). Sell goes
+ * through POST /holdings/:id/sell with the sale price, so the profit
+ * (price − average cost) is kept in the history instead of vanishing with the
+ * shares; the average cost of what is left is unchanged, and selling
+ * everything removes the holding. A live preview spells out the resulting
+ * position and the profit, so the outcome is never a surprise.
  */
-export default function BuySellModal({ mode, holding, ltp, companyName, onClose, onDone }: Props) {
+export default function BuySellModal({ mode, holding, ltp, companyName, onClose, onDone, pid }: Props) {
   const isBuy = mode === "buy";
   const accent = isBuy ? "var(--positive)" : "var(--negative)";
 
   const [qty, setQty] = useState("");
-  const [price, setPrice] = useState(() => (isBuy && ltp != null ? String(ltp) : ""));
+  const [price, setPrice] = useState(() => (ltp != null ? String(ltp) : ""));
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const qtyRef = useRef<HTMLInputElement>(null);
@@ -76,7 +80,11 @@ export default function BuySellModal({ mode, holding, ltp, companyName, onClose,
   }, [isBuy, qtyValid, priceValid, qtyNum, priceNum, holding.qty, holding.buy_price]);
 
   const canSubmit =
-    !saving && preview != null && preview.kind !== "over-sell";
+    !saving && preview != null && preview.kind !== "over-sell" && priceValid;
+  // Profit on this sale: shares sold × (sale price − average cost), before fees.
+  const saleProfit = !isBuy && qtyValid && priceValid && qtyNum <= holding.qty
+    ? qtyNum * (priceNum - holding.buy_price)
+    : null;
 
   const submitLabel = (() => {
     if (saving) return "Saving…";
@@ -92,25 +100,22 @@ export default function BuySellModal({ mode, holding, ltp, companyName, onClose,
     if (!qtyValid) {
       return setError(isBuy ? "Enter how many shares you bought." : "Enter how many shares you sold.");
     }
-    if (isBuy && !priceValid) return setError("Enter the price you bought at.");
+    if (!priceValid) return setError(isBuy ? "Enter the price you bought at." : "Enter the price you sold at.");
     if (!isBuy && qtyNum > holding.qty) {
       return setError(`You only hold ${holding.qty.toLocaleString()} shares.`);
     }
     setSaving(true);
     try {
-      let holdings: PortfolioHolding[];
       if (isBuy) {
-        ({ holdings } = await apiAddHolding({
-          trading_code: holding.trading_code,
-          buy_price: priceNum,
-          qty: qtyNum,
-        }));
-      } else if (qtyNum >= holding.qty) {
-        ({ holdings } = await apiDeleteHolding(holding.id));
+        const res = await apiAddHolding(
+          { trading_code: holding.trading_code, buy_price: priceNum, qty: qtyNum },
+          pid,
+        );
+        onDone(res.holdings, res.log);
       } else {
-        ({ holdings } = await apiUpdateHolding(holding.id, { qty: holding.qty - qtyNum }));
+        const res = await apiSellHolding(holding.id, { qty: qtyNum, price: priceNum }, pid);
+        onDone(res.holdings, res.log);
       }
-      onDone(holdings);
       onClose();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -224,6 +229,18 @@ export default function BuySellModal({ mode, holding, ltp, companyName, onClose,
                 className="input-field text-lg w-full tabular-nums py-3"
                 aria-label="Shares sold"
               />
+              <label htmlFor="bs-4" className="text-sm font-medium text-text-main mt-2">Sale price (৳)</label>
+              <input id="bs-4"
+                type="number"
+                placeholder="295.50"
+                min="0.01"
+                step="0.01"
+                inputMode="decimal"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                className="input-field text-lg w-full tabular-nums py-3"
+                aria-label="Sale price"
+              />
             </div>
           )}
 
@@ -260,6 +277,17 @@ export default function BuySellModal({ mode, holding, ltp, companyName, onClose,
                   </span>
                   <span className="block text-xs text-text-muted mt-0.5">
                     Average cost stays the same.
+                  </span>
+                </p>
+              )}
+              {saleProfit != null && (
+                <p className="text-text-main leading-relaxed mt-1">
+                  <span className="font-semibold">{saleProfit >= 0 ? "Profit on this sale:" : "Loss on this sale:"}</span>{" "}
+                  <span className={`tabular-nums nums font-bold ${saleProfit >= 0 ? "text-positive" : "text-negative"}`}>
+                    {saleProfit >= 0 ? "+" : "−"}{taka(Math.abs(saleProfit), 0)}
+                  </span>
+                  <span className="block text-xs text-text-muted mt-0.5">
+                    Kept in your history, before brokerage fees.
                   </span>
                 </p>
               )}

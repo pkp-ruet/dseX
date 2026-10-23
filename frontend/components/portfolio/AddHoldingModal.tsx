@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { apiAddHolding, type PortfolioHolding, type ScoreItem } from "@/lib/api";
+import { apiAddHolding, type PortfolioHolding, type PortfolioLogEntry, type ScoreItem } from "@/lib/api";
 import Button from "@/components/ui/Button";
 
 interface Props {
@@ -9,8 +9,10 @@ interface Props {
   priceMap: Map<string, ScoreItem>;
   existingCodes: Set<string>;
   onClose: () => void;
-  /** Called with the server's authoritative holdings list after a successful add. */
-  onAdded: (holdings: PortfolioHolding[]) => void;
+  /** Called with the server's authoritative holdings (and log) after a successful add. */
+  onAdded: (holdings: PortfolioHolding[], log?: PortfolioLogEntry[]) => void;
+  /** Which portfolio (absent = the main one). */
+  pid?: string;
 }
 
 const emptyForm = () => ({ trading_code: "", price: "", qty: "" });
@@ -20,7 +22,7 @@ const emptyForm = () => ({ trading_code: "", price: "", qty: "" });
  * Same fields as the old inline form: code with type-ahead, price (prefilled
  * with the live price), quantity.
  */
-export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onClose, onAdded }: Props) {
+export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onClose, onAdded, pid }: Props) {
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -81,8 +83,8 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onC
     if (isNaN(qty) || qty <= 0) return setError("Enter a valid quantity.");
     setSaving(true);
     try {
-      const res = await apiAddHolding({ trading_code: code, buy_price: price, qty });
-      onAdded(res.holdings);
+      const res = await apiAddHolding({ trading_code: code, buy_price: price, qty }, pid);
+      onAdded(res.holdings, res.log);
       onClose();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to add.");

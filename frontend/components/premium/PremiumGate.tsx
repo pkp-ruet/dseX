@@ -19,6 +19,7 @@ export default function PremiumGate({
   preview = "fade",
   peek,
   compact = false,
+  stakes,
   className = "",
 }: {
   children: ReactNode;
@@ -30,6 +31,8 @@ export default function PremiumGate({
   peek?: number;
   /** One-line lock card. */
   compact?: boolean;
+  /** The reader's own stakes, shown on the lock card (see PremiumLockCard). */
+  stakes?: string[];
   className?: string;
 }) {
   const { isPremium } = usePremium();
@@ -48,7 +51,7 @@ export default function PremiumGate({
       >
         {children}
       </div>
-      {locked && <PremiumLockCard label={label} compact={compact} />}
+      {locked && <PremiumLockCard label={label} compact={compact} stakes={stakes} />}
     </div>
   );
 }

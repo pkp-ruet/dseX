@@ -325,6 +325,21 @@ def cmd_notify_portfolio_signals(args):
     print(f"Portfolio signals done: {counts}")
 
 
+def cmd_portfolio_daily(args):
+    """End-of-day portfolio sweep: apply passed bonus issues + cash dividends to
+    holdings (logged, undoable), store one value snapshot per portfolio (the
+    history chart — no backfill, so this must run every trading day), build the
+    watcher events (record dates, results, category, big drops, yearly lows)
+    and push them to premium readers, plus the trial-ending recap.
+
+    Run after `scrape-quick`. Gated to 2 PM Dhaka; idempotent per trading day."""
+    from backend.services.portfolio_daily import run_portfolio_daily
+
+    not_before = None if getattr(args, "force", False) else 14  # 2 PM Dhaka
+    counts = run_portfolio_daily(not_before_dhaka_hour=not_before)
+    print(f"Portfolio daily done: {counts}")
+
+
 def cmd_generate_summaries(args):
     """Generate plain-Bangla 'এক নজরে' stock summaries into `stock_summaries`.
 
@@ -585,6 +600,16 @@ def main():
         help="Bypass the 2 PM Dhaka market-close gate (manual testing)",
     )
 
+    portfolio_daily_parser = sub.add_parser(
+        "portfolio-daily",
+        help="Apply bonus/dividends to holdings, snapshot portfolio values, run the Premium watcher",
+    )
+    portfolio_daily_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Bypass the 2 PM Dhaka market-close gate (manual testing)",
+    )
+
     summaries_parser = sub.add_parser(
         "generate-summaries",
         help="Generate plain-Bangla 'এক নজরে' stock summaries (cached; regenerates only changed stocks)",
@@ -629,6 +654,7 @@ def main():
         "notify-events":         cmd_notify_events,
         "notify-price-alerts":   cmd_notify_price_alerts,
         "notify-portfolio-signals": cmd_notify_portfolio_signals,
+        "portfolio-daily":       cmd_portfolio_daily,
         "generate-summaries":    cmd_generate_summaries,
         "scrape-all":            cmd_scrape_all,
     }

@@ -24,7 +24,7 @@ export interface AuthUser {
   premium_source?: "trial" | "admin" | null;
   trial_available?: boolean;
   /** null = unlimited. */
-  limits?: { watchlist: number | null; alerts: number | null; ai_daily: number | null };
+  limits?: { watchlist: number | null; alerts: number | null; ai_daily: number | null; portfolios?: number | null };
 }
 
 /** Fired after something outside AuthContext stored a fresh user (e.g. the

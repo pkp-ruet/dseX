@@ -71,3 +71,12 @@ jobs:
         if: ${{ success() }}
         continue-on-error: true
         run: python main.py notify-portfolio-signals
+
+      # Portfolio end-of-day: apply passed bonus issues + cash dividends to
+      # holdings, store today's value snapshot per portfolio (the history chart
+      # has no backfill, so a missed day is gone), and run the Premium watcher.
+      # Gated to 2 PM Dhaka + idempotent per trading day.
+      - name: Portfolio daily (corrections, snapshots, watcher)
+        if: ${{ success() }}
+        continue-on-error: true
+        run: python main.py portfolio-daily

@@ -89,6 +89,7 @@ def startup():
     from backend.services.email_service import ensure_email_indexes
     from backend.services.push_service import ensure_push_indexes
     from backend.services.price_alert_service import ensure_price_alert_indexes
+    from backend.services.portfolio_daily import ensure_indexes as ensure_portfolio_daily_indexes
 
     for name, fn in (
         ("users", ensure_users_indexes),
@@ -100,6 +101,7 @@ def startup():
         ("email", ensure_email_indexes),
         ("push", ensure_push_indexes),
         ("price_alerts", ensure_price_alert_indexes),
+        ("portfolio_daily", ensure_portfolio_daily_indexes),
         ("stock_visits", _ensure_stock_visits),
     ):
         _startup_step(name, fn)

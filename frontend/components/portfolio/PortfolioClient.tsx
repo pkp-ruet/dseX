@@ -23,7 +23,19 @@ import {
   apiUpdateHolding,
   apiDeleteHolding,
   apiGetSignalEvents,
+  apiGetPortfolioHistory,
+  apiGetWatchEvents,
+  apiPortfolioAction,
+  apiDeleteLogEntry,
+  MAIN_PORTFOLIO_ID,
   type PortfolioSignalEvent,
+  type PortfolioLogEntry,
+  type PortfolioResponse,
+  type CorporateActionSuggestion,
+  type PortfolioSettings,
+  type PortfolioListItem,
+  type PortfolioHistory,
+  type PortfolioWatchEvent,
 } from "@/lib/api";
 import { taka, formatDate, takaCompact } from "@/lib/formatters";
 import {
@@ -44,7 +56,22 @@ import PortfolioAnalysisView from "./PortfolioAnalysisView";
 import ProInsights from "./ProInsights";
 import PremiumGate from "@/components/premium/PremiumGate";
 import { buildProInsights } from "@/lib/portfolio-pro";
-import { usePremium } from "@/lib/premium";
+import { usePremium, isLimitError, PREMIUM_PATH } from "@/lib/premium";
+import { moneyMade, DEFAULT_PORTFOLIO_SETTINGS } from "@/lib/portfolio-ledger";
+import { savePremiumContext } from "@/lib/premium-context";
+import { toast } from "@/lib/toast";
+import { trackEvent } from "@/lib/track";
+import { showLimitNotice } from "@/components/premium/LimitNotice";
+import MoneyMadeCard from "./MoneyMadeCard";
+import ValueHistoryCard from "./ValueHistoryCard";
+import CorrectionsCard from "./CorrectionsCard";
+import HistoryCard from "./HistoryCard";
+import WatchCard from "./WatchCard";
+import WhatIfCard from "./WhatIfCard";
+import TrialEndingBanner from "./TrialEndingBanner";
+import PortfolioSwitcher from "./PortfolioSwitcher";
+import PortfolioSettingsSheet from "./PortfolioSettingsSheet";
+import PortfolioLangToggle from "./PortfolioLangToggle";
 import PortfolioHealthStrip from "./PortfolioHealthStrip";
 import ContributionStrip from "./ContributionStrip";
 import PortfolioHero from "./PortfolioHero";
@@ -56,6 +83,8 @@ import ErrorState from "@/components/ui/ErrorState";
 import EmptyState from "@/components/ui/EmptyState";
 
 const LANG_KEY = "dsex.portfolio.lang";
+const pidKey = (uid: string) => `dsex.portfolio.pid.${uid}`;
+const nudgeKey = (uid: string) => `dsex.portfolio.nudge3.${uid}`;
 const lastSeenKey = (uid: string) => `dsex.portfolio.lastseen.${uid}`;
 /** Only surface a "since last visit" delta when the prior visit is at least this old. */
 const LAST_SEEN_MIN_AGE_MS = 60 * 60 * 1000;
@@ -530,9 +559,54 @@ export default function PortfolioClient() {
   const [lastSeen, setLastSeen] = useState<{ value: number; ts: string } | null>(null);
   const wroteLastSeen = useRef(false);
 
-  function applyHoldings(next: PortfolioHolding[]) {
+  // Which portfolio is open (main unless the reader picked another), plus the
+  // history log, waiting corporate actions, cost rates and the list.
+  const [pid, setPid] = useState<string>(MAIN_PORTFOLIO_ID);
+  const [log, setLog] = useState<PortfolioLogEntry[]>([]);
+  const [suggestions, setSuggestions] = useState<CorporateActionSuggestion[]>([]);
+  const [settings, setSettings] = useState<PortfolioSettings>(DEFAULT_PORTFOLIO_SETTINGS);
+  const [portfolios, setPortfolios] = useState<PortfolioListItem[]>([]);
+  const [history, setHistory] = useState<PortfolioHistory | null>(null);
+  const [watchEvents, setWatchEvents] = useState<PortfolioWatchEvent[]>([]);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const isMain = pid === MAIN_PORTFOLIO_ID;
+
+  function applyHoldings(next: PortfolioHolding[], nextLog?: PortfolioLogEntry[]) {
     setHoldings(next);
-    if (userId) writeCache(cacheKeys.portfolio(userId), next);
+    if (nextLog) setLog(nextLog);
+    if (userId && isMain) writeCache(cacheKeys.portfolio(userId), next);
+  }
+
+  /** A full portfolio response (GET, or an action endpoint that returns the whole state). */
+  function applyResponse(res: PortfolioResponse) {
+    applyHoldings(res.holdings, res.log ?? []);
+    setSuggestions(res.suggestions ?? []);
+    if (res.settings) setSettings(res.settings);
+    if (res.portfolios) setPortfolios(res.portfolios);
+  }
+
+  // Restore the last-open portfolio for this reader.
+  useEffect(() => {
+    if (!userId) return;
+    try {
+      const saved = localStorage.getItem(pidKey(userId));
+      if (saved && saved !== MAIN_PORTFOLIO_ID) {
+        setPid(saved);
+        setDataLoading(true);
+      }
+    } catch {}
+  }, [userId]);
+
+  function selectPortfolio(next: string) {
+    if (next === pid) return;
+    setPid(next);
+    setDataLoading(true);
+    setHistory(null);
+    setLog([]);
+    setSuggestions([]);
+    try {
+      if (userId) localStorage.setItem(pidKey(userId), next);
+    } catch {}
   }
 
   // Analysis language — restored from localStorage, Bengali-first.
@@ -563,7 +637,7 @@ export default function PortfolioClient() {
   // Add-stock sheet
   const [addOpen, setAddOpen] = useState(false);
 
-  // Buy / Sell a specific holding — transaction-style, no realized P&L.
+  // Buy / Sell a specific holding — written to the history log.
   const [tx, setTx] = useState<{
     mode: "buy" | "sell";
     holding: PortfolioHolding;
@@ -611,7 +685,7 @@ export default function PortfolioClient() {
     if (!isLoggedIn) return;
     let cancelled = false;
     Promise.allSettled([
-      apiGetPortfolio(),
+      apiGetPortfolio(pid),
       getScores(),
       getAllCodes(),
       getDividendsUpcoming(),
@@ -622,7 +696,11 @@ export default function PortfolioClient() {
       .then(([p, s, c, d, e, m, cal]) => {
         if (cancelled) return;
         if (p.status === "fulfilled") {
-          applyHoldings(p.value.holdings);
+          applyResponse(p.value);
+        } else if (pid !== MAIN_PORTFOLIO_ID && (p.reason as { status?: number })?.status === 404) {
+          // The saved portfolio was deleted elsewhere — fall back to the main one.
+          selectPortfolio(MAIN_PORTFOLIO_ID);
+          return;
         }
         if (e.status === "fulfilled") {
           setEvents(e.value.events);
@@ -659,7 +737,31 @@ export default function PortfolioClient() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn, pid]);
+
+  // What the watcher spotted (all the reader's stocks, any portfolio).
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    apiGetWatchEvents()
+      .then((r) => setWatchEvents(r.events ?? []))
+      .catch(() => {});
   }, [isLoggedIn]);
+
+  // Value history — refetched when the holdings change shape (codes or share counts).
+  const historyKey = useMemo(
+    () => holdings.map((h) => `${h.trading_code}:${h.qty}`).sort().join(","),
+    [holdings],
+  );
+  useEffect(() => {
+    if (!isLoggedIn || !historyKey) return;
+    let cancelled = false;
+    apiGetPortfolioHistory(pid)
+      .then((h) => !cancelled && setHistory(h))
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoggedIn, pid, historyKey]);
 
   // 52-week ranges + news for the held codes — refetch when the set changes.
   const holdingCodesKey = useMemo(
@@ -743,7 +845,84 @@ export default function PortfolioClient() {
   const analysis = useMemo(() => analyzePortfolio(rows, priceMap, lang), [rows, priceMap, lang]);
   const rebalance = useMemo(() => buildRebalancePlan(analysis, priceMap), [analysis, priceMap]);
   const proInsights = useMemo(() => buildProInsights(analysis, priceMap, lang), [analysis, priceMap, lang]);
-  const { isPremium } = usePremium();
+  const { isPremium, state: planState, premiumUntil } = usePremium();
+  // An extra portfolio kept from a free month that has ended: readable, not editable.
+  const readOnly = !isMain && !isPremium;
+  const made = useMemo(() => moneyMade(holdings, priceMap, log, settings), [holdings, priceMap, log, settings]);
+  const caughtThisTrial = useMemo(() => {
+    if (!premiumUntil) return watchEvents.length;
+    const start = new Date(new Date(premiumUntil).getTime() - 30 * 86_400_000).toISOString();
+    return watchEvents.filter((e) => e.created_at >= start).length;
+  }, [watchEvents, premiumUntil]);
+
+  // The reader's own stakes for the "in depth" lock — counts are free, details aren't.
+  const proStakes = useMemo(() => {
+    const bnMode = lang === "bn";
+    const out: string[] = [];
+    const urgent = proInsights.actions.filter((a) => a.kind === "sell" || a.kind === "trim").length;
+    const warnings = [...proInsights.risk, ...proInsights.paid, ...proInsights.vsMarket].filter((l) => l.level !== "good").length;
+    if (warnings > 0) out.push(bnMode ? `আপনার পোর্টফোলিওতে ${warnings}টি সতর্কতা` : `${warnings} warning${warnings === 1 ? "" : "s"} on your portfolio`);
+    if (urgent > 0) out.push(bnMode ? `${urgent}টি শেয়ারে এখনই সিদ্ধান্ত নেওয়ার আছে` : `${urgent} stock${urgent === 1 ? "" : "s"} on your action list need${urgent === 1 ? "s" : ""} a decision`);
+    const cash = proInsights.income.yearlyCash;
+    if (cash != null && cash > 0) out.push(bnMode ? `বছরে প্রায় ${taka(cash, 0)} নগদ — কবে কত আসবে` : `About ${taka(cash, 0)} a year in cash — and when it lands`);
+    return out;
+  }, [proInsights, lang]);
+
+  // Moment of value: the reader just reached 3 stocks — tell them what Premium
+  // adds, once. Opens /premium (the month only ever starts there).
+  const prevCount = useRef<number | null>(null);
+  useEffect(() => {
+    if (dataLoading) return;
+    const n = holdings.length;
+    const before = prevCount.current;
+    prevCount.current = n;
+    if (before == null || !userId || !isMain || planState !== "trial_available") return;
+    if (before >= 3 || n < 3) return;
+    try {
+      if (localStorage.getItem(nudgeKey(userId))) return;
+      localStorage.setItem(nudgeKey(userId), "1");
+    } catch {}
+    trackEvent("premium_nudge", { area: "portfolio", why: "third_holding" });
+    toast({
+      message: lang === "bn"
+        ? `${n}টি শেয়ার! প্রিমিয়াম প্রতিদিন সবগুলো পাহারা দেয় — 1 মাস ফ্রি।`
+        : `${n} stocks in! Premium watches every one of them daily — free for a month.`,
+      duration: 8000,
+      action: {
+        label: lang === "bn" ? "দেখুন" : "See Premium",
+        onClick: () => {
+          savePremiumContext({
+            from: "portfolio",
+            label: lang === "bn" ? "আপনার শেয়ারের পাহারা" : "A watcher on every stock you own",
+            stakes: proStakes,
+          });
+          window.location.href = PREMIUM_PATH;
+        },
+      },
+    });
+  }, [holdings.length, dataLoading, userId, isMain, planState, lang, proStakes]);
+
+  async function runAction(verb: "apply" | "dismiss" | "undo", id: string) {
+    try {
+      applyResponse(await apiPortfolioAction(verb, id, pid));
+      toast({
+        message: verb === "apply" ? "Added to your holding" : verb === "undo" ? "Undone" : "Hidden",
+        tone: verb === "dismiss" ? "neutral" : "success",
+      });
+    } catch (err) {
+      if (isLimitError(err, "portfolios")) return showLimitNotice("portfolios");
+      toast({ message: "Couldn't save — try again", tone: "error" });
+    }
+  }
+
+  async function removeLogEntry(id: string) {
+    try {
+      applyResponse(await apiDeleteLogEntry(id, pid));
+    } catch (err) {
+      if (isLimitError(err, "portfolios")) return showLimitNotice("portfolios");
+      toast({ message: "Couldn't remove it — try again", tone: "error" });
+    }
+  }
 
   // Snapshot this visit's value once data has settled, so the *next* visit can
   // show the change since now. Written once per mount.
@@ -790,7 +969,7 @@ export default function PortfolioClient() {
     if (isNaN(qty) || qty <= 0) return setRowError("Invalid qty.");
     setEditSaving(true);
     try {
-      const res = await apiUpdateHolding(editId, { buy_price: price, qty });
+      const res = await apiUpdateHolding(editId, { buy_price: price, qty }, pid);
       applyHoldings(res.holdings);
       setEditId(null);
     } catch (err: unknown) {
@@ -826,7 +1005,7 @@ export default function PortfolioClient() {
     if (isNaN(qty) || qty <= 0) return setPickerError("Invalid qty.");
     setPickerSaving(true);
     try {
-      const res = await apiUpdateHolding(h.id, { buy_price: price, qty });
+      const res = await apiUpdateHolding(h.id, { buy_price: price, qty }, pid);
       applyHoldings(res.holdings);
       setEditPickerOpen(false);
     } catch (err: unknown) {
@@ -848,7 +1027,7 @@ export default function PortfolioClient() {
     setBusyId(id);
     setRowError(null);
     try {
-      const res = await apiDeleteHolding(id);
+      const res = await apiDeleteHolding(id, pid);
       applyHoldings(res.holdings);
       setEditId(null);
       // Keep the Edit Portfolio picker in sync when the selected stock is removed.
@@ -916,6 +1095,35 @@ export default function PortfolioClient() {
 
   return (
     <div className="flex flex-col gap-6" data-privacy={privacy ? "on" : "off"}>
+      {/* Top row: which portfolio (main + any extra, Premium) · English / বাংলা */}
+      {(portfolios.length > 1 || holdings.length > 0) && (
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <PortfolioSwitcher
+              portfolios={portfolios.length ? portfolios : [{ id: MAIN_PORTFOLIO_ID, name: "My portfolio", count: holdings.length }]}
+              active={pid}
+              lang={lang}
+              onSelect={selectPortfolio}
+              onChanged={(list, select) => {
+                setPortfolios(list);
+                if (select) selectPortfolio(select);
+              }}
+            />
+          </div>
+          <PortfolioLangToggle lang={lang} onChange={changeLang} />
+        </div>
+      )}
+
+      {readOnly && (
+        <p className={`rounded-lg bg-surface-2 px-4 py-3 text-sm text-text-main ${lang === "bn" ? "font-bn" : ""}`}>
+          {lang === "bn"
+            ? "এই বাড়তি পোর্টফোলিওটি এখন শুধু দেখা যাবে। বদলাতে প্রিমিয়াম লাগবে।"
+            : "This extra portfolio is read-only now. Premium lets you change it again."}
+        </p>
+      )}
+
+      <TrialEndingBanner caught={caughtThisTrial} extraPortfolios={Math.max(0, portfolios.length - 1)} lang={lang} />
+
       {/* Hero — value first */}
       {holdings.length > 0 && (
         <PortfolioHero
@@ -948,6 +1156,16 @@ export default function PortfolioClient() {
 
       {/* What's moving your money — per-stock gain/loss contribution */}
       {holdings.length > 0 && <ContributionStrip rows={rows} lang={lang} />}
+
+      {/* Bonus shares + cash dividends kept right on the holding (with Undo) */}
+      <CorrectionsCard
+        log={log}
+        suggestions={suggestions}
+        holdings={holdings}
+        lang={lang}
+        readOnly={readOnly}
+        onAction={runAction}
+      />
 
       {rowError && <p className="text-xs text-negative -mb-3">{rowError}</p>}
 
@@ -1006,14 +1224,16 @@ export default function PortfolioClient() {
           title={`Holdings (${holdings.length})`}
           subtitle="Tap a stock for its full analysis."
           right={
-            <div className="hidden sm:flex items-center gap-2">
-              <Button type="button" onClick={openEditPicker} variant="quiet" size="sm">
-                Edit
-              </Button>
-              <Button type="button" onClick={() => setAddOpen(true)} variant="primary" size="sm">
-                + Add stock
-              </Button>
-            </div>
+            !readOnly && (
+              <div className="hidden sm:flex items-center gap-2">
+                <Button type="button" onClick={openEditPicker} variant="quiet" size="sm">
+                  Edit
+                </Button>
+                <Button type="button" onClick={() => setAddOpen(true)} variant="primary" size="sm">
+                  + Add stock
+                </Button>
+              </div>
+            )
           }
         />
 
@@ -1088,7 +1308,7 @@ export default function PortfolioClient() {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-0.5 shrink-0 -mr-1">
+                <div className={`flex items-center gap-0.5 shrink-0 -mr-1 ${readOnly ? "hidden" : ""}`}>
                   <WatchlistAlertCell
                     code={row.holding.trading_code}
                     ltp={row.ltp}
@@ -1163,8 +1383,8 @@ export default function PortfolioClient() {
                 </div>
               )}
 
-              {/* Buy / Sell — bought or sold some shares */}
-              <div className="mt-3 grid grid-cols-2 gap-2">
+              {/* Buy / Sell — bought or sold some shares (both go in the history) */}
+              <div className={`mt-3 grid grid-cols-2 gap-2 ${readOnly ? "hidden" : ""}`}>
                 <Button
                   type="button"
                   variant="quiet"
@@ -1198,6 +1418,12 @@ export default function PortfolioClient() {
        </div>
       )}
 
+      {/* Your money over time — own daily snapshots, or a replay of today's shares */}
+      {holdings.length > 0 && <ValueHistoryCard history={history} lang={lang} />}
+
+      {/* Money made so far — on paper + sales + dividends (net figures are Premium) */}
+      <MoneyMadeCard made={made} settings={settings} lang={lang} onEditSettings={() => setSettingsOpen(true)} />
+
       {/* Dividend income — estimated yearly cash + upcoming dates on held stocks */}
       {holdings.length > 0 && (
         <DividendIncomeCard
@@ -1208,12 +1434,14 @@ export default function PortfolioClient() {
         />
       )}
 
+      {/* What the watcher spotted on your stocks (details are Premium) */}
+      {holdings.length > 0 && <WatchCard events={watchEvents} lang={lang} />}
+
       {holdings.length > 0 && (
         <PortfolioAnalysisView
           analysis={analysis}
           rebalance={rebalance}
           lang={lang}
-          onLangChange={changeLang}
           locked={!isPremium}
         />
       )}
@@ -1226,11 +1454,24 @@ export default function PortfolioClient() {
           <PremiumGate
             label={lang === "bn" ? "বিস্তারিত পোর্টফোলিও বিশ্লেষণ" : "Your portfolio in depth"}
             peek={260}
+            stakes={proStakes}
           >
             <ProInsights insights={proInsights} lang={lang} />
           </PremiumGate>
         )
       )}
+
+      {/* What if I sell / buy — the grade before acting (Premium) */}
+      {holdings.length > 0 && <WhatIfCard rows={rows} priceMap={priceMap} allCodes={allCodes} lang={lang} />}
+
+      {/* Everything that happened: buys, sales with profit, dividends, bonus shares */}
+      <HistoryCard
+        log={log}
+        lang={lang}
+        readOnly={readOnly}
+        statementHref={isMain ? "/portfolio/statement" : `/portfolio/statement?pid=${encodeURIComponent(pid)}`}
+        onRemove={removeLogEntry}
+      />
 
       {/* News on held stocks */}
       {holdings.length > 0 && (
@@ -1255,7 +1496,7 @@ export default function PortfolioClient() {
       )}
 
       {/* Floating add button — mobile only */}
-      {holdings.length > 0 && (
+      {holdings.length > 0 && !readOnly && (
         <button type="button" className="pf-fab sm:hidden" onClick={() => setAddOpen(true)}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
             <path d="M12 5v14M5 12h14" />
@@ -1272,10 +1513,11 @@ export default function PortfolioClient() {
           existingCodes={existingCodes}
           onClose={() => setAddOpen(false)}
           onAdded={applyHoldings}
+          pid={pid}
         />
       )}
 
-      {/* Buy / Sell a holding — transaction-style, no realized P&L */}
+      {/* Buy / Sell a holding — both written to the history; a sale keeps its profit */}
       {tx && (
         <BuySellModal
           mode={tx.mode}
@@ -1284,8 +1526,16 @@ export default function PortfolioClient() {
           companyName={tx.companyName}
           onClose={() => setTx(null)}
           onDone={applyHoldings}
+          pid={pid}
         />
       )}
+
+      <PortfolioSettingsSheet
+        open={settingsOpen}
+        settings={settings}
+        onClose={() => setSettingsOpen(false)}
+        onSaved={setSettings}
+      />
 
       {/* Edit holding — bottom-sheet on mobile, centered modal on desktop */}
       {editingHolding && (

@@ -1269,6 +1269,8 @@ export interface NotificationPrefs {
   /** Present on newer backends: price-target hits + portfolio signal flips. */
   price_alerts?: boolean;
   portfolio_signals?: boolean;
+  /** Premium watcher on held stocks (record dates, results, category, big drops, yearly lows). */
+  portfolio_watch?: boolean;
   /** Digest copy language — Bengali by default. */
   language?: "bn" | "en";
 }
@@ -1447,20 +1449,71 @@ export interface PortfolioHolding {
   signal?: HoldingSignalInfo | null;
 }
 
+/** One row of the portfolio's history log (`backend/services/portfolio_ledger.py`). */
+export type PortfolioLogEntry =
+  | { id: string; kind: "buy"; code: string; date: string; qty: number; price: number }
+  | { id: string; kind: "sell"; code: string; date: string; qty: number; price: number; avg_cost: number }
+  | {
+      id: string; kind: "bonus"; code: string; date: string; record_date: string; pct: number;
+      qty_before?: number; shares_added?: number; avg_before?: number;
+      status: "applied" | "undone" | "dismissed"; auto: boolean;
+    }
+  | {
+      id: string; kind: "dividend"; code: string; date: string; record_date: string; cash_ps: number;
+      qty?: number; amount?: number;
+      status: "applied" | "undone" | "dismissed"; auto: boolean;
+    };
+
+/** An older bonus issue / cash dividend the holding was owed, waiting for the reader's OK. */
+export interface CorporateActionSuggestion {
+  id: string;
+  kind: "bonus" | "dividend";
+  code: string;
+  record_date: string;
+  pct?: number;
+  cash_ps?: number;
+  auto: boolean;
+}
+
+export interface PortfolioSettings {
+  /** Brokerage + levies, % of trade value, one side. */
+  fee_pct: number;
+  /** Tax withheld on cash dividends, %. */
+  div_tax_pct: number;
+}
+
+export interface PortfolioListItem {
+  id: string;
+  name: string;
+  count: number;
+}
+
+export const MAIN_PORTFOLIO_ID = "main";
+
 export interface PortfolioResponse {
   holdings: PortfolioHolding[];
+  /** Newer backends only — every field below is optional so an older API never blanks the page. */
+  pid?: string;
+  name?: string;
+  log?: PortfolioLogEntry[];
+  suggestions?: CorporateActionSuggestion[];
+  settings?: PortfolioSettings;
+  portfolios?: PortfolioListItem[];
 }
 
-export async function apiGetPortfolio(): Promise<PortfolioResponse> {
-  return apiAuthFetch<PortfolioResponse>("/api/user/portfolio");
+function pidQuery(pid?: string | null): string {
+  return pid && pid !== MAIN_PORTFOLIO_ID ? `?pid=${encodeURIComponent(pid)}` : "";
 }
 
-export async function apiAddHolding(data: {
-  trading_code: string;
-  buy_price: number;
-  qty: number;
-}): Promise<{ holding: PortfolioHolding; holdings: PortfolioHolding[] }> {
-  return apiAuthFetch("/api/user/portfolio/holdings", {
+export async function apiGetPortfolio(pid?: string | null): Promise<PortfolioResponse> {
+  return apiAuthFetch<PortfolioResponse>(`/api/user/portfolio${pidQuery(pid)}`);
+}
+
+export async function apiAddHolding(
+  data: { trading_code: string; buy_price: number; qty: number },
+  pid?: string | null,
+): Promise<{ holding: PortfolioHolding; holdings: PortfolioHolding[]; log?: PortfolioLogEntry[] }> {
+  return apiAuthFetch(`/api/user/portfolio/holdings${pidQuery(pid)}`, {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -1469,17 +1522,100 @@ export async function apiAddHolding(data: {
 export async function apiUpdateHolding(
   id: string,
   data: { buy_price?: number; qty?: number },
+  pid?: string | null,
 ): Promise<{ holding: PortfolioHolding; holdings: PortfolioHolding[] }> {
-  return apiAuthFetch(`/api/user/portfolio/holdings/${id}`, {
+  return apiAuthFetch(`/api/user/portfolio/holdings/${encodeURIComponent(id)}${pidQuery(pid)}`, {
     method: "PUT",
     body: JSON.stringify(data),
   });
 }
 
-export async function apiDeleteHolding(id: string): Promise<{ holdings: PortfolioHolding[] }> {
-  return apiAuthFetch(`/api/user/portfolio/holdings/${id}`, {
+export async function apiDeleteHolding(id: string, pid?: string | null): Promise<{ holdings: PortfolioHolding[] }> {
+  return apiAuthFetch(`/api/user/portfolio/holdings/${encodeURIComponent(id)}${pidQuery(pid)}`, {
     method: "DELETE",
   });
+}
+
+/** Sell some or all shares — the sale's profit is kept in the log. */
+export async function apiSellHolding(
+  id: string,
+  data: { qty: number; price: number },
+  pid?: string | null,
+): Promise<{ holdings: PortfolioHolding[]; log: PortfolioLogEntry[]; entry: PortfolioLogEntry }> {
+  return apiAuthFetch(`/api/user/portfolio/holdings/${encodeURIComponent(id)}/sell${pidQuery(pid)}`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function apiDeleteLogEntry(entryId: string, pid?: string | null): Promise<PortfolioResponse> {
+  return apiAuthFetch(`/api/user/portfolio/log/${encodeURIComponent(entryId)}${pidQuery(pid)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function apiPortfolioAction(
+  verb: "apply" | "dismiss" | "undo",
+  id: string,
+  pid?: string | null,
+): Promise<PortfolioResponse> {
+  return apiAuthFetch(`/api/user/portfolio/actions/${encodeURIComponent(id)}/${verb}${pidQuery(pid)}`, {
+    method: "POST",
+  });
+}
+
+export async function apiPutPortfolioSettings(data: Partial<PortfolioSettings>): Promise<{ settings: PortfolioSettings }> {
+  return apiAuthFetch("/api/user/portfolio/settings", { method: "PUT", body: JSON.stringify(data) });
+}
+
+export interface PortfolioHistoryPoint {
+  date: string;
+  value: number;
+  cost?: number;
+}
+
+export interface PortfolioHistory {
+  /** One row per trading day the daily job ran — grows forward, never backfilled. */
+  snapshots: PortfolioHistoryPoint[];
+  /** Today's shares priced over the last ~4 months (adjusted closes). */
+  replay: PortfolioHistoryPoint[];
+  dsex: PortfolioHistoryPoint[];
+}
+
+export async function apiGetPortfolioHistory(pid?: string | null): Promise<PortfolioHistory> {
+  return apiAuthFetch<PortfolioHistory>(`/api/user/portfolio/history${pidQuery(pid)}`);
+}
+
+export interface PortfolioWatchEvent {
+  id: string;
+  kind: "record" | "results" | "category" | "drop" | "low52";
+  code: string;
+  level: "good" | "watch" | "bad";
+  title_en: string;
+  title_bn: string;
+  body_en: string;
+  body_bn: string;
+  day: string;
+  created_at: string;
+}
+
+export async function apiGetWatchEvents(): Promise<{ events: PortfolioWatchEvent[] }> {
+  return apiAuthFetch<{ events: PortfolioWatchEvent[] }>("/api/user/portfolio/watch-events");
+}
+
+export async function apiCreatePortfolio(name: string): Promise<{ portfolio: PortfolioListItem; portfolios: PortfolioListItem[] }> {
+  return apiAuthFetch("/api/user/portfolio/portfolios", { method: "POST", body: JSON.stringify({ name }) });
+}
+
+export async function apiRenamePortfolio(pid: string, name: string): Promise<{ portfolios: PortfolioListItem[] }> {
+  return apiAuthFetch(`/api/user/portfolio/portfolios/${encodeURIComponent(pid)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ name }),
+  });
+}
+
+export async function apiDeletePortfolio(pid: string): Promise<{ portfolios: PortfolioListItem[] }> {
+  return apiAuthFetch(`/api/user/portfolio/portfolios/${encodeURIComponent(pid)}`, { method: "DELETE" });
 }
 
 export interface PortfolioSignalEvent {

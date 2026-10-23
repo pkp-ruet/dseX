@@ -42,6 +42,14 @@ export default function Sheet({
 
   useEffect(() => setMounted(true), []);
 
+  // Latest handlers in refs: callers pass inline `onClose` arrows, and an effect
+  // keyed on them re-ran on every parent render — pulling focus back to the
+  // panel after each keystroke in a field inside the sheet.
+  const onCloseRef = useRef(onClose);
+  const dismissibleRef = useRef(dismissible);
+  onCloseRef.current = onClose;
+  dismissibleRef.current = dismissible;
+
   useEffect(() => {
     if (!open) return;
     const opener = document.activeElement as HTMLElement | null;
@@ -49,7 +57,7 @@ export default function Sheet({
     document.body.style.overflow = "hidden";
     panelRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && dismissible) onClose();
+      if (e.key === "Escape" && dismissibleRef.current) onCloseRef.current();
     };
     window.addEventListener("keydown", onKey);
     return () => {
@@ -57,7 +65,7 @@ export default function Sheet({
       window.removeEventListener("keydown", onKey);
       opener?.focus?.();
     };
-  }, [open, onClose, dismissible]);
+  }, [open]);
 
   if (!mounted || !open) return null;
 

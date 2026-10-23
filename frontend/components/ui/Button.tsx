@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ReactNode, ButtonHTMLAttributes } from "react";
+import type { ReactNode, ButtonHTMLAttributes, MouseEventHandler } from "react";
 
 /**
  * Roles: primary (filled clay) · quiet (outlined) · link (text only) · danger
@@ -65,9 +65,13 @@ export default function Button({
     .join(" ");
 
   if (href) {
-    const { "aria-label": ariaLabel, title } = rest as { "aria-label"?: string; title?: string };
+    const { "aria-label": ariaLabel, title, onClick } = rest as {
+      "aria-label"?: string;
+      title?: string;
+      onClick?: MouseEventHandler<HTMLElement>;
+    };
     return (
-      <Link href={href} className={cls} aria-label={ariaLabel} title={title}>
+      <Link href={href} className={cls} aria-label={ariaLabel} title={title} onClick={onClick}>
         {children}
       </Link>
     );

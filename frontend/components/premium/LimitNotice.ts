@@ -7,6 +7,7 @@ const MESSAGES: Record<LimitKind, (n: number) => string> = {
   watchlist: (n) => `A free account can follow ${n} stocks`,
   alerts: (n) => `A free account can keep ${n} price alerts on`,
   ai_daily: (n) => `A free account can ask ${n} questions a day`,
+  portfolios: () => "A free account has one portfolio",
 };
 
 /**

@@ -4,13 +4,14 @@ import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
 import Bn from "@/components/i18n/Bn";
 import PremiumPlanCta from "@/components/premium/PremiumPlanCta";
+import PremiumContextCard from "@/components/premium/PremiumContextCard";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 export const metadata: Metadata = {
   title: "Premium — Full Stock Analysis, Free for a Month",
   description:
-    "TopStockBD Premium: the full analysis on every DSE stock page, a deeper portfolio check with an action list, unlimited watchlist, price alerts and TopStock AI. Try it free for one month — no payment.",
+    "TopStockBD Premium: the full analysis on every DSE stock page, a deeper portfolio check with an action list, a watcher on every stock you own, your full portfolio history, a what-if tool, a yearly statement, more than one portfolio, unlimited watchlist, price alerts and TopStock AI. Try it free for one month — no payment.",
   keywords: [
     "TopStockBD Premium",
     "DSE stock analysis",
@@ -47,6 +48,36 @@ const ROWS: { what: string; bn: string; free: string; premium: string }[] = [
     bn: "পোর্টফোলিও পরীক্ষা",
     free: "Grade, headline and the first point of each list",
     premium: "Everything, plus a risk check, the price you paid, cash income, you vs the market and an action list for every stock",
+  },
+  {
+    what: "Portfolio watcher",
+    bn: "পোর্টফোলিও পাহারা",
+    free: "How many things we spotted on your stocks this month",
+    premium: "What they were, plus a phone alert for each: record date coming, new results, category change, a big fall, a yearly low",
+  },
+  {
+    what: "Portfolio history",
+    bn: "পোর্টফোলিওর ইতিহাস",
+    free: "Your value over the last month, money made from sales and cash dividends",
+    premium: "Your whole history next to DSEX, and every figure after fees and dividend tax",
+  },
+  {
+    what: "What-if check",
+    bn: "যদি এমন করি",
+    free: "—",
+    premium: "Try a sale or a buy and see your portfolio grade before you act",
+  },
+  {
+    what: "Yearly statement",
+    bn: "বার্ষিক হিসাব",
+    free: "—",
+    premium: "Every buy, sale, cash dividend and bonus share for the year — print it or download it",
+  },
+  {
+    what: "Portfolios",
+    bn: "পোর্টফোলিও সংখ্যা",
+    free: "One",
+    premium: "Up to six — keep a parent's or spouse's BO account apart from yours",
   },
   {
     what: "Dividend calendar",
@@ -144,6 +175,8 @@ export default function PremiumPage() {
         lead="Prices and numbers stay free for everyone. Premium opens the reasons behind them — on every stock and on your own portfolio."
       />
 
+      <PremiumContextCard />
+
       <section aria-labelledby="compare-h">
         <h2 id="compare-h" className="text-xl font-bold text-text-main">Free vs Premium</h2>
         <Bn className="text-sm text-text-muted mb-4">ফ্রি আর প্রিমিয়ামে কী পাবেন।</Bn>
@@ -193,7 +226,7 @@ export default function PremiumPage() {
         <Bn className="text-sm text-text-muted">পেইড প্ল্যান এখনো চালু হয়নি — এখন কোনো টাকা লাগবে না। নিচে ফ্রি মাস দিয়ে শুরু করুন।</Bn>
       </section>
 
-      <Card padding="none" className="p-5 sm:p-6">
+      <Card id="start" padding="none" className="p-5 sm:p-6 scroll-mt-24">
         <p className="font-semibold text-text-main">Try everything free for 1 month</p>
         <Bn className="text-sm text-text-muted mb-3">1 মাস সব সুবিধা বিনামূল্যে ব্যবহার করুন।</Bn>
         <PremiumPlanCta />

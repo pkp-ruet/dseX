@@ -22,7 +22,7 @@ import { toast } from "@/lib/toast";
 
 /** Mirrors backend `FREE_LIMITS` — used only when a cached user predates the
  *  plan fields; the server value always wins once /me has refreshed. */
-export const FREE_LIMITS = { watchlist: 10, alerts: 3, ai_daily: 10 } as const;
+export const FREE_LIMITS = { watchlist: 10, alerts: 3, ai_daily: 10, portfolios: 1 } as const;
 
 export type LimitKind = keyof typeof FREE_LIMITS;
 
@@ -110,6 +110,7 @@ export function usePremium() {
       watchlist: limitFor(user, "watchlist"),
       alerts: limitFor(user, "alerts"),
       ai_daily: limitFor(user, "ai_daily"),
+      portfolios: limitFor(user, "portfolios"),
     }),
     [user],
   );
