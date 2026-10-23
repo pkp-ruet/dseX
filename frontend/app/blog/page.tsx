@@ -98,7 +98,7 @@ export default function BlogPage() {
 
         {/* Category index — tap to jump to a section */}
         <section aria-label="বিষয় অনুযায়ী দেখুন" className="space-y-3">
-          <h2 className="text-center text-sm font-bold tracking-wide text-text-muted">
+          <h2 className="text-center text-sm font-bold  text-text-muted">
             বিষয় অনুযায়ী দেখুন
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">

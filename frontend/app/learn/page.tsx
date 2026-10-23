@@ -92,7 +92,7 @@ export default function LearnPage() {
 
       {/* Category index — tap to jump to a section */}
       <section aria-label="Browse by topic" className="space-y-3">
-        <h2 className="text-center text-xs font-bold uppercase tracking-[0.14em] text-text-muted">
+        <h2 className="text-center text-xs font-bold   text-text-muted">
           Browse by topic
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">

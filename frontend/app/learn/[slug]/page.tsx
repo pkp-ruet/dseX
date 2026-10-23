@@ -4,6 +4,7 @@ import PageHeader from "@/components/ui/PageHeader";
 import { notFound } from "next/navigation";
 import { GUIDES, getGuide } from "@/lib/guides";
 import { guideLanguages } from "@/lib/i18n-pairs";
+import ArticleContents, { sectionId } from "@/components/learn/ArticleContents";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
@@ -107,10 +108,13 @@ export default async function GuidePage({ params }: Props) {
         lead={guide.description}
       />
 
+      {/* Contents for long pieces (numbered — the sections are read in order) */}
+      <ArticleContents headings={guide.sections.map((x) => x.heading)} label="In this guide" />
+
       {/* Article body */}
       <article className="space-y-9">
-        {guide.sections.map((section) => (
-          <section key={section.heading} className="space-y-3.5">
+        {guide.sections.map((section, si) => (
+          <section key={section.heading} id={sectionId(section.heading, si)} className="space-y-3.5 scroll-mt-24">
             <h2 className="text-xl sm:text-2xl font-bold leading-snug tracking-tight text-text-main">
               {section.heading}
             </h2>
@@ -119,7 +123,7 @@ export default async function GuidePage({ params }: Props) {
                 {section.body.map((item, i) => (
                   <li
                     key={i}
-                    className="flex gap-3 text-lg leading-[1.7] text-text-muted"
+                    className="flex gap-3 text-lg leading-[1.7] text-text-main"
                   >
                     <span
                       aria-hidden="true"
@@ -130,7 +134,7 @@ export default async function GuidePage({ params }: Props) {
                 ))}
               </ul>
             ) : (
-              <p className="text-lg leading-[1.78] text-text-muted">
+              <p className="text-lg leading-[1.78] text-text-main">
                 {section.body}
               </p>
             )}
@@ -141,7 +145,7 @@ export default async function GuidePage({ params }: Props) {
       {/* More in this category */}
       {related.length > 0 && (
         <section className="space-y-4 pt-2">
-          <h2 className="text-base font-bold uppercase tracking-[0.08em] text-text-main">
+          <h2 className="text-lg font-bold text-text-main">
             More in {guide.category}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -166,7 +170,7 @@ export default async function GuidePage({ params }: Props) {
       )}
 
       {/* Closing CTA */}
-      <section className="soft-card ambient-panel p-6 sm:p-7 text-center space-y-4">
+      <section className="soft-card p-6 sm:p-7 text-center space-y-4">
         <p className="text-lg font-semibold text-text-main">
           Ready to put this into practice?
         </p>
