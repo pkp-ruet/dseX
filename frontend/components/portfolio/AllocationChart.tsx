@@ -6,6 +6,7 @@ import type { AnalysisLang, PortfolioAnalysis } from "@/lib/portfolio-analysis";
 import { taka, takaCompact } from "@/lib/formatters";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
+import { CHART } from "@/lib/chart-theme";
 
 // Numbers inside Bengali prose stay Western (9, 6.1%) — matches the rest of the
 // site and avoids webfont glyph issues with Bengali numerals on some devices.
@@ -161,14 +162,7 @@ export default function AllocationChart({ analysis, lang = "en" }: Props) {
                 ))}
               </Pie>
               <Tooltip
-                contentStyle={{
-                  fontSize: 12,
-                  borderRadius: "12px",
-                  border: "1px solid var(--border)",
-                  background: "var(--surface)",
-                  color: "var(--text)",
-                  boxShadow: "var(--shadow-soft)",
-                }}
+                contentStyle={CHART.tooltip.contentStyle}
                 formatter={(v: number) => [`${taka(v, 0)} (${((v / total) * 100).toFixed(1)}%)`, ""]}
               />
             </PieChart>

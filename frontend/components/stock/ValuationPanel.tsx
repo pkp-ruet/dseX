@@ -10,6 +10,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import SectionTitle from "@/components/stock/SectionTitle";
 import PremiumGate from "@/components/premium/PremiumGate";
+import { CHART } from "@/lib/chart-theme";
 
 interface Props {
   financials: Record<string, unknown>[];
@@ -18,15 +19,9 @@ interface Props {
   valuation?: ValuationContext | null;
 }
 
-const TICK = { fontSize: 11, fill: "var(--text-muted)" };
-const TIP_STYLE = {
-  fontSize: 12,
-  borderRadius: "12px",
-  border: "1px solid var(--border)",
-  background: "var(--surface)",
-  color: "var(--text)",
-  boxShadow: "var(--shadow-soft)",
-};
+// Shared chart style (lib/chart-theme.ts) — 12px ticks, one tooltip look.
+const TICK = CHART.xAxis.tick;
+const TIP_STYLE = CHART.tooltip.contentStyle;
 
 type Tab = "pe" | "pb" | "sector";
 
@@ -163,7 +158,7 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
                       y={ownAvgPe}
                       stroke="var(--text-muted)"
                       strokeDasharray="4 4"
-                      label={{ value: `${avgShort} ${ownAvgPe.toFixed(1)}`, position: peLabelPosition(peData, ownAvgPe), fontSize: 10, fill: "var(--text-muted)" }}
+                      label={{ value: `${avgShort} ${ownAvgPe.toFixed(1)}`, position: peLabelPosition(peData, ownAvgPe), fontSize: 12, fill: "var(--text-muted)" }}
                     />
                   )}
                   <Line type="monotone" dataKey="pe" stroke="var(--primary)" strokeWidth={2.5} dot={{ r: 3 }} />

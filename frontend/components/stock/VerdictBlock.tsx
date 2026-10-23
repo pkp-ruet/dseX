@@ -16,7 +16,7 @@ interface Props {
 }
 
 const T = {
-  brand: { en: "Analysis", bn: "বিশ্লেষণ" },
+  brand: { en: "TopStockBD analysis", bn: "TopStockBD বিশ্লেষণ" },
   score: { en: "Fundamental Score", bn: "মৌলিক স্কোর" },
   take: { en: "Our take", bn: "এক নজরে" },
   generic: {
@@ -24,7 +24,7 @@ const T = {
     bn: "এই শেয়ার নিয়ে আমাদের মত — এর আর্থিক অবস্থা আর বাজারের বর্তমান আচরণ মিলিয়ে।",
   },
   eduNote: { en: "Educational information, not investment advice.", bn: "এটি শিক্ষামূলক তথ্য, বিনিয়োগ পরামর্শ নয়।" },
-  deepEyebrow: { en: "In-depth analysis", bn: "গভীর বিশ্লেষণ" },
+  deepEyebrow: { en: "In-depth report", bn: "গভীর বিশ্লেষণ" },
   deepCta: { en: "Read the full analysis", bn: "সম্পূর্ণ বিশ্লেষণ পড়ুন" },
   sectorAvg: { en: "sector average", bn: "খাতের গড়" },
   lockLabel: { en: "The full reasoning", bn: "পুরো ব্যাখ্যা" },
@@ -90,28 +90,15 @@ export default function VerdictBlock({ detail }: Props) {
   const deepHeadline = (isBn ? deep_analysis?.headline_bn : deep_analysis?.headline_en) ?? deep_analysis?.headline_en ?? "";
   const deepBottom = (isBn ? deep_analysis?.bottom_line_bn : deep_analysis?.bottom_line_en) ?? deep_analysis?.bottom_line_en ?? "";
 
-  const eyebrowCls = (bn: boolean) =>
-    `text-xs font-bold tracking-[0.22em] ${bn ? "font-bn" : "uppercase"}`;
+  // Small sentence-case labels (2026-10 redesign: no uppercase tracked eyebrows).
+  const eyebrowCls = (bn: boolean) => `text-xs font-semibold ${bn ? "font-bn" : ""}`;
 
   return (
-    <section
-      className="relative rounded-3xl overflow-hidden mb-8"
-      style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "var(--shadow-soft)" }}
-    >
-      {/* Thin tone accent on the left edge */}
-      <div aria-hidden style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: "3px", background: tone.color }} />
-
+    <section className="soft-card relative mb-8 overflow-hidden">
       <div className="relative p-5 sm:p-7">
-        {/* Brand strip */}
-        <div className="flex items-center justify-between gap-3 mb-5">
-          <span className="text-xs font-bold uppercase tracking-[0.22em] flex items-center gap-1.5">
-            <span className="inline-block w-2 h-2 rounded-full" style={{ background: tone.color }} />
-            <span className="text-text-main">TopStockBD</span>
-            <span className={`text-text-muted ${isBn ? "font-bn normal-case tracking-normal" : ""}`}>
-              {T.brand[lang]}
-            </span>
-          </span>
-        </div>
+        <p className={`mb-4 text-sm font-semibold text-text-muted ${isBn ? "font-bn" : ""}`} lang={isBn ? "bn" : undefined}>
+          {T.brand[lang]}
+        </p>
 
         {/* Score ring + verdict word + signal */}
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-7">
@@ -242,43 +229,28 @@ export default function VerdictBlock({ detail }: Props) {
           </div>
         </div>
 
-        {/* In-depth analysis hook — distinct premium panel → full report sub-page */}
+        {/* In-depth report — a plain link row under the take (no nested panel) */}
         {hasDeep && (
-          <div
-            className="mt-6 rounded-xl overflow-hidden"
-            style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+          <Link
+            href={`/stock/${code}/analysis`}
+            className={`mt-6 flex items-start gap-3 border-t border-border pt-4 hover:opacity-90 active:opacity-70 ${isBn ? "font-bn" : ""}`}
+            lang={isBn ? "bn" : undefined}
           >
-            <div className="h-1 w-full" style={{ background: "linear-gradient(90deg, var(--primary), var(--accent, var(--primary)))" }} />
-            <div className="p-4 sm:p-5">
-              <div className="flex items-center gap-2 mb-2" style={{ color: "var(--primary)" }}>
-                <IconChartBars size={16} />
-                <span className={eyebrowCls(isBn)}>
-                  {T.deepEyebrow[lang]}
-                </span>
-              </div>
-              <div className={isBn ? "font-bn" : ""} lang={isBn ? "bn" : undefined}>
-                <h3 className="text-base sm:text-xl font-bold leading-snug mb-1.5" style={{ color: "var(--text)" }}>
-                  {deepHeadline}
-                </h3>
-                <p className="text-sm leading-relaxed line-clamp-3" style={{ color: "var(--text-muted)" }}>
-                  {deepBottom}
-                </p>
-              </div>
-              <Link
-                href={`/stock/${code}/analysis`}
-                className={`btn-primary mt-4 ${isBn ? "font-bn" : ""}`}
-              >
-                {T.deepCta[lang]}
-                <span aria-hidden>→</span>
-              </Link>
-            </div>
-          </div>
+            <span className="mt-0.5 inline-flex shrink-0 text-primary-ink" aria-hidden="true"><IconChartBars size={18} /></span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-xs font-semibold text-text-muted">{T.deepEyebrow[lang]}</span>
+              <span className="block text-base font-bold leading-snug text-text-main">{deepHeadline}</span>
+              {deepBottom && <span className="mt-0.5 block text-sm leading-relaxed text-text-muted line-clamp-2">{deepBottom}</span>}
+              <span className="mt-2 inline-flex min-h-10 items-center gap-1 text-sm font-semibold text-primary-ink">
+                {T.deepCta[lang]} <span aria-hidden="true">→</span>
+              </span>
+            </span>
+          </Link>
         )}
 
         {/* Footer watermark — for shared screenshots */}
         <div
-          className="mt-5 pt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs font-bold uppercase tracking-[0.2em]"
-          style={{ borderTop: "1px solid var(--border)" }}
+          className="mt-5 pt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs font-semibold border-t border-border"
         >
           <span style={{ color: "var(--text-muted)" }}>topstockbd.com</span>
           <span style={{ color: "var(--text-muted)" }}>{code} · DSE Stock Analysis</span>

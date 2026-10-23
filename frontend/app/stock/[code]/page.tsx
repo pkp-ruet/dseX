@@ -26,6 +26,7 @@ import NewsSection from "@/components/stock/NewsSection";
 import StickySummaryBar from "@/components/stock/StickySummaryBar";
 import { type NavSection } from "@/components/stock/StockSectionNav";
 import StockVisitTracker from "@/components/analytics/StockVisitTracker";
+import StockChapter from "@/components/stock/StockChapter";
 import { formatDate, money } from "@/lib/formatters";
 
 export const revalidate = 86400;
@@ -266,20 +267,44 @@ export default async function StockDetailPage({ params }: PageProps) {
   const hasSignals = (signal_flags?.green?.length ?? 0) + (signal_flags?.red?.length ?? 0) > 0;
   const hasPeers = (related_stocks?.length ?? 0) > 0;
 
-  // The verdict card sits above the sticky nav (right under the price story),
-  // so it is intentionally NOT a jump-nav anchor.
+  // Five chapters (2026-10 redesign) instead of ten jump targets. The hero,
+  // chart and verdict form the Overview, above the sticky chip row.
+  const hasCompany = true; // ownership + news always render (with their own empty states)
   const sections: NavSection[] = [
-    ...(hasHealth ? [{ id: "health", label: "Health" }] : []),
-    ...(hasValuation ? [{ id: "valuation", label: "Value" }] : []),
-    ...(hasFacts ? [{ id: "numbers", label: "Facts" }] : []),
-    ...(hasFinancials ? [{ id: "financials", label: "Financials" }] : []),
-    ...(hasDividends ? [{ id: "dividends", label: "Dividends" }] : []),
-    ...(hasMomentum ? [{ id: "momentum", label: "Momentum" }] : []),
-    ...(hasSignals ? [{ id: "signals", label: "Signals" }] : []),
-    ...(hasPeers ? [{ id: "peers", label: "Peers" }] : []),
-    { id: "ownership", label: "Owners" },
-    { id: "news", label: "News" },
+    { id: "ch-overview", label: "Overview" },
+    ...(hasHealth || hasSignals ? [{ id: "ch-health", label: "Health" }] : []),
+    ...(hasValuation || hasMomentum || hasPeers ? [{ id: "ch-value", label: "Price & value" }] : []),
+    ...(hasFinancials || hasDividends ? [{ id: "ch-money", label: "Profits & dividends" }] : []),
+    ...(hasCompany ? [{ id: "ch-company", label: "Company & news" }] : []),
   ];
+
+  // One plain line of facts under each chapter title — numbers that are free
+  // everywhere, never the locked analysis.
+  const pillarKeys = ["p1_biz", "p2_health", "p3_moat", "p4_val", "p5_div"] as const;
+  const pillarVals = pillarKeys.map((k) => num(score_row?.[k])).filter((v): v is number => v != null);
+  const healthyCount = pillarVals.filter((v) => v >= 6).length;
+  const healthLead = pillarVals.length
+    ? `${healthyCount} of ${pillarVals.length} checks look healthy.`
+    : undefined;
+  const peNow = valuation?.current_pe ?? num(score_row?.current_pe);
+  const valueBits = [
+    peNow != null && peNow > 0 ? `P/E ${peNow.toFixed(1)}` : null,
+    divYield != null && divYield > 0 ? `dividend yield ${divYield.toFixed(1)}%` : null,
+  ].filter(Boolean);
+  const valueLead = valueBits.length ? `${valueBits.join(" · ")} at today's price.` : undefined;
+  const epsLatest = num(latestFin?.eps);
+  const moneyBits = [
+    epsLatest != null ? `earnings ${money(epsLatest)} a share` : null,
+    lastCashPct != null && lastCashPct > 0 ? `${lastCashPct}% cash dividend` : null,
+  ].filter(Boolean);
+  const moneyLead =
+    moneyBits.length && latestFin?.year ? `In ${latestFin.year}: ${moneyBits.join(" · ")}.` : undefined;
+  const companyBits = [
+    profile.market_category ? `Category ${String(profile.market_category).toUpperCase()}` : null,
+    profile.listing_year ? `listed since ${profile.listing_year}` : null,
+    news.length ? `${news.length} news ${news.length === 1 ? "item" : "items"}` : null,
+  ].filter(Boolean);
+  const companyLead = companyBits.length ? `${companyBits.join(" · ")}.` : undefined;
 
   // Current stock as the highlighted first row of the peer comparison.
   const currentPeerRow = {
@@ -317,17 +342,15 @@ export default async function StockDetailPage({ params }: PageProps) {
 
       <StockVisitTracker code={profile.trading_code} />
 
-      {/* The Stock at a Glance */}
+      {/* Chapter 1 · Overview — hero (id ch-overview), the price story, the verdict
+          and the lists it appears in. Above the sticky chip row. */}
       <HeroSection detail={detail} />
-
-      {/* The Price Story */}
       <PriceChart code={profile.trading_code} />
-
-      {/* Our Verdict — one card, right below the price story (not a nav anchor) */}
       <VerdictBlock detail={detail} />
+      <FeaturedInStrip entries={featuredIn} />
 
       {/* The ONE sticky element: summary line (code · signal · price) above the
-          section chips. `.stock-sticky-stack` (globals.css) pins it under navbar +
+          chapter chips. `.stock-sticky-stack` (globals.css) pins it under navbar +
           the summary line's live height (--stock-bar-h), so the line's open/close
           never changes the page's layout; the chip row's height is measured into
           --stock-sticky-h for .stock-anchor. */}
@@ -342,85 +365,82 @@ export default async function StockDetailPage({ params }: PageProps) {
         sections={sections}
       />
 
-      {/* Featured in our curated pick lists */}
-      <FeaturedInStrip entries={featuredIn} />
+      {/* Chapter 2 · Health */}
+      {(hasHealth || hasSignals) && (
+        <StockChapter id="ch-health" title="Health" bn="কোম্পানিটি কতটা সুস্থ" lead={healthLead}>
+          {hasHealth && score_row && <HealthCheck scoreRow={score_row} detail={detail} />}
+          {hasSignals && <SignalBoard flags={signal_flags} />}
+        </StockChapter>
+      )}
 
-      {/* The Health Check */}
-      {hasHealth && score_row && <HealthCheck scoreRow={score_row} detail={detail} />}
-
-      {/* Is the Price Right? — live "value today" box, then the P/E history panel */}
-      {hasValuation && (
-        <>
-          {detail.fair_value && (
-            <ValueTodayBox fairValue={detail.fair_value} className="mb-4" />
+      {/* Chapter 3 · Price and value */}
+      {(hasValuation || hasMomentum || hasPeers) && (
+        <StockChapter id="ch-value" title="Price and value" bn="দাম সস্তা না দামি" lead={valueLead}>
+          {hasValuation && (
+            <>
+              {detail.fair_value && <ValueTodayBox fairValue={detail.fair_value} className="mb-8" />}
+              <ValuationPanel
+                financials={financials}
+                latestPrice={detail.latest_price}
+                scoreRow={score_row}
+                valuation={valuation}
+              />
+            </>
           )}
-          <ValuationPanel
-            financials={financials}
-            latestPrice={detail.latest_price}
-            scoreRow={score_row}
-            valuation={valuation}
+          {hasMomentum && <MomentumStrip momentum={momentum} />}
+          {hasPeers && (
+            <PeerComparison
+              current={currentPeerRow}
+              peers={related_stocks}
+              sector={profile.sector}
+              note={detail.peer_note ?? null}
+            />
+          )}
+        </StockChapter>
+      )}
+
+      {/* Chapter 4 · Profits and dividends */}
+      {(hasFinancials || hasDividends) && (
+        <StockChapter id="ch-money" title="Profits and dividends" bn="লাভ আর লভ্যাংশ" lead={moneyLead}>
+          {hasFinancials && (
+            <div id="financials" className="stock-anchor">
+              <ProfitsAndDividends
+                financials={financials}
+                extFinancials={extended_financials}
+                declaration={dividend_declaration}
+              />
+              <FinancialTrends extFinancials={extended_financials} />
+            </div>
+          )}
+          {hasDividends && (
+            <DividendTimeline
+              code={profile.trading_code}
+              rows={dividendRows}
+              faceValue={num(profile.face_value)}
+              ltp={num(detail.latest_price.ltp)}
+            />
+          )}
+        </StockChapter>
+      )}
+
+      {/* Chapter 5 · Company and news */}
+      <StockChapter id="ch-company" title="Company and news" bn="কোম্পানির তথ্য, মালিকানা আর খবর" lead={companyLead}>
+        {hasFacts && (
+          <div id="numbers" className="stock-anchor">
+            <CompanyFacts detail={detail} />
+          </div>
+        )}
+        <div id="ownership" className="stock-anchor">
+          <ShareholdingPie
+            shareholding={shareholding}
+            previous={detail.shareholding_prev ?? null}
+            ownership={detail.ownership ?? null}
           />
-        </>
-      )}
-
-      {/* Company Facts — size, balance-sheet basics, listing facts, today's tape */}
-      {hasFacts && (
-        <div id="numbers" className="stock-anchor">
-          <CompanyFacts detail={detail} />
         </div>
-      )}
-
-      {/* Profits & Dividends + Financial Trends */}
-      {hasFinancials && (
-        <div id="financials" className="stock-anchor">
-          <ProfitsAndDividends
-            financials={financials}
-            extFinancials={extended_financials}
-            declaration={dividend_declaration}
-          />
-          <FinancialTrends extFinancials={extended_financials} />
+        <div id="news" className="stock-anchor">
+          <NewsSection news={news} />
         </div>
-      )}
-
-      {/* Dividend Timeline — every declaration + the next record date countdown */}
-      {hasDividends && (
-        <DividendTimeline
-          code={profile.trading_code}
-          rows={dividendRows}
-          faceValue={num(profile.face_value)}
-          ltp={num(detail.latest_price.ltp)}
-        />
-      )}
-
-      {/* Recent Momentum */}
-      {hasMomentum && <MomentumStrip momentum={momentum} />}
-
-      {/* Signals at a Glance */}
-      {hasSignals && <SignalBoard flags={signal_flags} />}
-
-      {/* How It Stacks Up */}
-      {hasPeers && (
-        <PeerComparison
-          current={currentPeerRow}
-          peers={related_stocks}
-          sector={profile.sector}
-          note={detail.peer_note ?? null}
-        />
-      )}
-
-      {/* Who Owns It */}
-      <div id="ownership" className="stock-anchor">
-        <ShareholdingPie
-          shareholding={shareholding}
-          previous={detail.shareholding_prev ?? null}
-          ownership={detail.ownership ?? null}
-        />
-      </div>
-
-      {/* What's New */}
-      <div id="news" className="stock-anchor">
-        <NewsSection news={news} />
-      </div>
+      </StockChapter>
     </StockLangProvider>
   );
 }

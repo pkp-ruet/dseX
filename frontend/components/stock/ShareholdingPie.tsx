@@ -5,6 +5,7 @@ import type { CompanyDetail } from "@/lib/api";
 import Card from "@/components/ui/Card";
 import SectionTitle from "@/components/stock/SectionTitle";
 import { useStockLang } from "@/context/StockLangContext";
+import { CHART } from "@/lib/chart-theme";
 
 interface Props {
   shareholding: Record<string, unknown> | null;
@@ -99,14 +100,7 @@ export default function ShareholdingPie({ shareholding, previous = null, ownersh
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{
-                    fontSize: 12,
-                    borderRadius: "12px",
-                    border: "1px solid var(--border)",
-                    background: "var(--surface)",
-                    color: "var(--text)",
-                    boxShadow: "var(--shadow-soft)",
-                  }}
+                  contentStyle={CHART.tooltip.contentStyle}
                   formatter={(v: number) => [`${v.toFixed(1)}%`, ""]}
                 />
               </PieChart>

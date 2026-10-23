@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import Bn from "@/components/i18n/Bn";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 interface Props {
   /** English section headline, plain words (e.g. "The Health Check"). */
@@ -14,29 +14,11 @@ interface Props {
 }
 
 /**
- * The one heading block for every section on `/stock/[code]`. English headline,
- * one English line, one Bengali line — the same rhythm the landing page uses.
- * Keeps the eleven section components from each hand-rolling their own <h2>.
+ * A section heading inside a stock-page chapter. Since the 2026-10 redesign the
+ * page is five chapters (`StockChapter`, h2) and every section in them is an
+ * h3 drawn by the shared `SectionHeader`. The props stay the same so the
+ * section components don't change.
  */
 export default function SectionTitle({ title, sub, bn, right, className = "" }: Props) {
-  return (
-    <div className={`mb-5 ${className}`.trim()}>
-      <div className="flex items-start justify-between gap-3">
-        <h2 className="text-xl sm:text-2xl font-bold" style={{ color: "var(--text)" }}>
-          {title}
-        </h2>
-        {right && <div className="shrink-0">{right}</div>}
-      </div>
-      {sub && (
-        <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-          {sub}
-        </p>
-      )}
-      {bn && (
-        <Bn className="text-sm font-medium mt-1" >
-          <span style={{ color: "var(--text-muted)" }}>{bn}</span>
-        </Bn>
-      )}
-    </div>
-  );
+  return <SectionHeader as="h3" title={title} bn={bn} lead={sub} action={right} className={className} />;
 }

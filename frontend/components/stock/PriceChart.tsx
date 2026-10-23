@@ -9,6 +9,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
 import Bn from "@/components/i18n/Bn";
+import { CHART } from "@/lib/chart-theme";
 
 interface Props {
   code: string;
@@ -152,10 +153,10 @@ export default function PriceChart({ code }: Props) {
                   <stop offset="100%" stopColor={fillBottom} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="2 4" stroke="var(--border)" strokeOpacity={0.8} vertical={false} />
+              <CartesianGrid {...CHART.grid} />
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 11, fill: "var(--text-muted)" }}
+                tick={CHART.xAxis.tick}
                 tickFormatter={formatDateTick}
                 interval="preserveStartEnd"
                 axisLine={false}
@@ -163,7 +164,7 @@ export default function PriceChart({ code }: Props) {
               />
               <YAxis
                 yAxisId="price"
-                tick={{ fontSize: 11, fill: "var(--text-muted)" }}
+                tick={CHART.xAxis.tick}
                 tickFormatter={(v: number) => `৳${v}`}
                 width={56}
                 axisLine={false}
@@ -183,14 +184,7 @@ export default function PriceChart({ code }: Props) {
                     : [`৳${val.toFixed(2)}`, "Price"]
                 }
                 labelFormatter={(label: string) => formatTooltipDate(label)}
-                contentStyle={{
-                  fontSize: 12,
-                  borderRadius: "12px",
-                  border: "1px solid var(--border)",
-                  background: "var(--surface)",
-                  color: "var(--text)",
-                  boxShadow: "var(--shadow-soft)",
-                }}
+                contentStyle={CHART.tooltip.contentStyle}
               />
               {hasVolume && (
                 <Bar

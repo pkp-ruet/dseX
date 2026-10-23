@@ -7,6 +7,7 @@ import { formatDate, crore } from "@/lib/formatters";
 import type { DividendDeclaration } from "@/lib/api";
 import ChartCard from "@/components/stock/ChartCard";
 import SectionTitle from "@/components/stock/SectionTitle";
+import { CHART } from "@/lib/chart-theme";
 
 /**
  * Bar value labels that know when to stay quiet. Recharts' LabelList has no
@@ -55,15 +56,9 @@ function fmtEps(v: number | null | undefined): string {
   return `${sign}৳${abs >= 100 ? abs.toFixed(0) : abs.toFixed(1)}`;
 }
 
-const TICK = { fontSize: 11, fill: "var(--text-muted)" };
-const TIP_STYLE = {
-  fontSize: 12,
-  borderRadius: "12px",
-  border: "1px solid var(--border)",
-  background: "var(--surface)",
-  color: "var(--text)",
-  boxShadow: "var(--shadow-soft)",
-};
+// Shared chart style (lib/chart-theme.ts) — 12px ticks, one tooltip look.
+const TICK = CHART.xAxis.tick;
+const TIP_STYLE = CHART.tooltip.contentStyle;
 
 export default function ProfitsAndDividends({ financials, extFinancials, declaration }: Props) {
   const extMap = Object.fromEntries(

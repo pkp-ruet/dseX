@@ -113,6 +113,22 @@ export default function DeepAnalysisReport({ report, fairValue }: Props) {
         </div>
       )}
 
+      {/* Contents — the sections are a real sequence, so they're numbered */}
+      {report.sections.length > 2 && (
+        <nav aria-label={isBn ? "সূচিপত্র" : "Contents"} className={`mb-8 border-y border-border py-4 ${isBn ? "font-bn" : ""}`}>
+          <p className="mb-1 text-xs font-semibold text-text-muted">{isBn ? "এই রিপোর্টে" : "In this report"}</p>
+          <ol className="grid list-decimal gap-x-6 pl-5 text-sm sm:grid-cols-2">
+            {report.sections.map((s) => (
+              <li key={s.key} className="marker:text-text-muted">
+                <a href={`#sec-${s.key}`} className="inline-flex min-h-10 items-center text-text-main hover:text-primary-ink">
+                  {sectionTitle(s)}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )}
+
       {/* The 10 durable sections, all expanded, takeaway as the lead line.
           The first is free; the rest are Premium (screen-only PremiumGate). */}
       <div className="space-y-8">

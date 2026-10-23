@@ -7,6 +7,7 @@ import CategoryChip from "@/components/stock/CategoryChip";
 import YourPosition from "@/components/stock/YourPosition";
 import { StockLangToggle } from "@/components/stock/LangToggle";
 import { IconAlert, IconFlame } from "@/components/stock/StockIcons";
+import Chip from "@/components/ui/Chip";
 import { taka, signed } from "@/lib/formatters";
 import { range52wInfo } from "@/lib/plain-language";
 import { sectorSlug } from "@/lib/sector";
@@ -52,15 +53,6 @@ export default function HeroSection({ detail }: Props) {
   const isPositive = chg != null && chg > 0;
   const isNegative = chg != null && chg < 0;
 
-  const changeCls =
-    chg == null
-      ? "text-text-muted bg-text-muted/10 border-text-muted/25"
-      : isPositive
-        ? "text-positive bg-positive/10 border-positive/30"
-        : isNegative
-          ? "text-negative bg-negative/10 border-negative/30"
-          : "text-text-muted bg-text-muted/10 border-text-muted/25";
-
   const range = range52wInfo(ltp, latest_price.w52_high, latest_price.w52_low);
   const rangeTextCls =
     range?.tone === "high" ? "text-positive" : range?.tone === "low" ? "text-negative" : "text-info";
@@ -91,132 +83,106 @@ export default function HeroSection({ detail }: Props) {
         </ol>
       </nav>
 
-      <div className="relative rounded-3xl overflow-hidden mb-8 bg-surface border border-border shadow-soft">
-        <div className="p-5 sm:p-8">
-          <div className="flex flex-col gap-6">
-
-            {/* Identity row: name + chips + actions (left), language toggle then price (right) */}
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5">
-
-              <div className="flex-1 min-w-0">
-                {/* Name and the page-wide EN / বাংলা switch share the top line; on a phone the
-                    switch sits top-right and the name wraps beside it. */}
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  {profile.company_name && (
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight break-words text-text-main">
-                      {profile.company_name}
-                    </h1>
-                  )}
-                  <StockLangToggle size="sm" className="shrink-0 sm:hidden" />
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 text-sm font-bold px-3 py-1 rounded-full bg-primary/10 text-primary-ink border border-primary/30">
-                    {code}
-                  </span>
-                  {profile.sector && (
-                    <Link
-                      href={`/sector/${sectorSlug(profile.sector)}`}
-                      prefetch={false}
-                      title={`See every ${profile.sector} company`}
-                      className="inline-flex items-center text-xs font-semibold px-3 py-1 rounded-full text-watch bg-watch/10 border border-watch/25 transition-opacity hover:opacity-80"
-                    >
-                      {profile.sector} →
-                    </Link>
-                  )}
-                  {categoryInfo && (
-                    <CategoryChip
-                      category={category}
-                      note={categoryInfo.note}
-                      color={categoryInfo.color}
-                      bg={categoryInfo.bg}
-                      border={categoryInfo.border}
-                    />
-                  )}
-                  {staleData && lastReportedYear != null && (
-                    <span
-                      title="Score penalized — financials haven't been updated in 2+ years"
-                      className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full text-watch bg-watch/10 border border-watch/30"
-                    >
-                      <IconAlert size={12} />
-                      Last reported: {lastReportedYear}
-                      {dataAgeYears != null && dataAgeYears >= 2 ? ` — ${dataAgeYears}y stale` : ""}
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 mt-3">
-                  <WatchlistButton code={code} />
-                  <AddToPortfolioButton code={code} ltp={ltp} />
-                  <PriceAlertButton
-                    code={code}
-                    ltp={ltp}
-                    w52High={latest_price.w52_high}
-                    w52Low={latest_price.w52_low}
-                  />
-                  <ShareButton code={code} companyName={profile.company_name} score={score} ltp={ltp} />
-                </div>
-              </div>
-
-              <div className="text-left sm:text-right shrink-0 sm:flex sm:flex-col sm:items-end">
-                {/* From sm up the switch is the top-right corner of the card */}
-                <StockLangToggle size="sm" className="hidden sm:inline-flex mb-3" />
-                <p className="text-xs font-bold uppercase tracking-widest mb-2 text-text-muted">
-                  Last Price
-                </p>
-                <div className="flex items-baseline gap-3 sm:justify-end">
-                  <span className="text-5xl font-black tabular-nums leading-none tracking-tight text-text-main">
-                    {ltp != null ? ltp.toFixed(1) : "--"}
-                  </span>
-                  <span className="text-xl sm:text-2xl font-semibold text-text-muted">৳</span>
-                </div>
-                {chg != null && (
-                  <span className={`inline-flex items-center gap-1.5 mt-3 text-base font-bold px-4 py-1.5 rounded-full border ${changeCls}`}>
-                    <span aria-hidden="true">{isPositive ? "▲" : isNegative ? "▼" : "—"}</span>
-                    {signed(chg)}% today
-                  </span>
-                )}
-                {busyLabel && (
-                  <div className="mt-2">
-                    <span
-                      className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full text-watch bg-watch/10 border border-watch/30"
-                      title="Compared with its average over the previous 7 trading days"
-                    >
-                      <IconFlame size={12} />
-                      {busyLabel}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {range && latest_price.w52_high != null && latest_price.w52_low != null && (
-              <div className="pt-2">
-                {/* Grid, not justify-between: at 360px the caption wraps in the middle
-                    cell while Low / High stay pinned to the bar's two ends. */}
-                <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 mb-2 text-xs font-medium text-text-muted">
-                  <span className="tabular-nums whitespace-nowrap">Low {taka(latest_price.w52_low, 1)}</span>
-                  <span className={`text-center leading-tight font-bold ${rangeTextCls}`}>{range.caption}</span>
-                  <span className="tabular-nums whitespace-nowrap">High {taka(latest_price.w52_high, 1)}</span>
-                </div>
-                <div className="relative h-2 rounded-full bg-surface-2 border border-border">
-                  <div
-                    className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full w-3.5 h-3.5 ring-[3px] ring-surface ${rangeDotCls}`}
-                    style={{ left: `${range.position * 100}%` }}
-                  />
-                </div>
-                <p className="text-xs mt-2 text-center sm:text-left text-text-muted">
-                  Where today&apos;s price sits in its 52-week range
-                </p>
-              </div>
-            )}
-
-            {/* The reader's own stake — renders only for a signed-in holder / watcher */}
-            <YourPosition code={code} ltp={ltp} />
-
-          </div>
+      {/* Hero — open on the canvas, no box (2026-10 redesign: space before boxes).
+          The price is the biggest thing on the page. */}
+      <header id="ch-overview" className="stock-anchor mb-6 flex flex-col gap-5">
+        {/* Identity: name + the page-wide EN / বাংলা switch, then quiet chips */}
+        <div className="flex items-start justify-between gap-3">
+          {profile.company_name && (
+            <h1 className="min-w-0 break-words text-2xl font-bold leading-tight tracking-tight text-text-main text-balance sm:text-4xl">
+              {profile.company_name}
+            </h1>
+          )}
+          <StockLangToggle size="sm" className="shrink-0" />
         </div>
-      </div>
+
+        <div className="-mt-2 flex flex-wrap items-center gap-2">
+          <Chip>{code}</Chip>
+          {profile.sector && (
+            <Link
+              href={`/sector/${sectorSlug(profile.sector)}`}
+              prefetch={false}
+              title={`See every ${profile.sector} company`}
+              className="inline-flex min-h-6 items-center gap-1 rounded-full border border-border bg-surface px-2.5 text-xs font-semibold text-text-main hover:border-text-muted"
+            >
+              {profile.sector} <span aria-hidden="true">→</span>
+            </Link>
+          )}
+          {categoryInfo && (
+            <CategoryChip
+              category={category}
+              note={categoryInfo.note}
+              color={categoryInfo.color}
+              bg={categoryInfo.bg}
+              border={categoryInfo.border}
+            />
+          )}
+          {staleData && lastReportedYear != null && (
+            <Chip tone="watch" icon={<IconAlert size={12} />}>
+              Last reported {lastReportedYear}
+              {dataAgeYears != null && dataAgeYears >= 2 ? ` · ${dataAgeYears} years old` : ""}
+            </Chip>
+          )}
+        </div>
+
+        {/* Price — number first, change under it, coloured text only */}
+        <div className="flex flex-col gap-1.5">
+          <span className="nums text-4xl font-bold leading-none tracking-tight text-text-main sm:text-5xl">
+            {ltp != null ? taka(ltp, 1) : "--"}
+          </span>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            {chg != null && (
+              <span className={`nums text-base font-bold ${isPositive ? "text-positive" : isNegative ? "text-negative" : "text-text-muted"}`}>
+                <span aria-hidden="true">{isPositive ? "▲ " : isNegative ? "▼ " : ""}</span>
+                {signed(chg)}% today
+              </span>
+            )}
+            <span className="text-xs font-semibold text-text-muted">Official closing price</span>
+          </div>
+          {busyLabel && (
+            <div className="mt-1">
+              <Chip tone="watch" icon={<IconFlame size={12} />}>
+                <span title="Compared with its average over the previous 7 trading days">{busyLabel}</span>
+              </Chip>
+            </div>
+          )}
+        </div>
+
+        {/* Actions — one quiet row */}
+        <div className="flex flex-wrap items-center gap-2">
+          <WatchlistButton code={code} />
+          <AddToPortfolioButton code={code} ltp={ltp} />
+          <PriceAlertButton
+            code={code}
+            ltp={ltp}
+            w52High={latest_price.w52_high}
+            w52Low={latest_price.w52_low}
+          />
+          <ShareButton code={code} companyName={profile.company_name} score={score} ltp={ltp} />
+        </div>
+
+        {range && latest_price.w52_high != null && latest_price.w52_low != null && (
+          <div>
+            {/* Grid, not justify-between: at 360px the caption wraps in the middle
+                cell while Low / High stay pinned to the bar's two ends. */}
+            <div className="mb-2 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 text-xs font-semibold text-text-muted">
+              <span className="nums whitespace-nowrap">Low {taka(latest_price.w52_low, 1)}</span>
+              <span className={`text-center font-bold leading-tight ${rangeTextCls}`}>{range.caption}</span>
+              <span className="nums whitespace-nowrap">High {taka(latest_price.w52_high, 1)}</span>
+            </div>
+            <div className="relative h-1.5 rounded-full bg-surface-2">
+              <div
+                className={`absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-[3px] ring-bg ${rangeDotCls}`}
+                style={{ left: `${range.position * 100}%` }}
+              />
+            </div>
+            <p className="mt-2 text-xs text-text-muted">Where today&apos;s price sits in its 52-week range</p>
+          </div>
+        )}
+
+        {/* The reader's own stake — renders only for a signed-in holder / watcher */}
+        <YourPosition code={code} ltp={ltp} />
+      </header>
     </>
   );
 }

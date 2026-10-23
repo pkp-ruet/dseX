@@ -8,20 +8,15 @@ import {
   normalizeExtFinancials, revenueSeries, marginSeries, debtEquitySeries, cashQualitySeries,
 } from "@/lib/stock-metrics";
 import { crore } from "@/lib/formatters";
+import { CHART } from "@/lib/chart-theme";
 
 interface Props {
   extFinancials: Record<string, unknown>[];
 }
 
-const TICK = { fontSize: 11, fill: "var(--text-muted)" };
-const TIP_STYLE = {
-  fontSize: 12,
-  borderRadius: "12px",
-  border: "1px solid var(--border)",
-  background: "var(--surface)",
-  color: "var(--text)",
-  boxShadow: "var(--shadow-soft)",
-};
+// Shared chart style (lib/chart-theme.ts) — 12px ticks, one tooltip look.
+const TICK = CHART.xAxis.tick;
+const TIP_STYLE = CHART.tooltip.contentStyle;
 
 export default function FinancialTrends({ extFinancials }: Props) {
   const [open, setOpen] = useState(false);
@@ -111,7 +106,7 @@ export default function FinancialTrends({ extFinancials }: Props) {
                   <XAxis dataKey="year" tick={TICK} axisLine={false} tickLine={false} />
                   <YAxis tick={TICK} axisLine={false} tickLine={false} width={32} unit="%" />
                   <Tooltip contentStyle={TIP_STYLE} formatter={(v: number, n: string) => [`${v.toFixed(1)}%`, n === "gross" ? "Gross" : "Net"]} />
-                  <Legend wrapperStyle={{ fontSize: 11 }} formatter={(v) => (v === "gross" ? "Gross margin" : "Net margin")} />
+                  <Legend wrapperStyle={{ fontSize: 12 }} formatter={(v) => (v === "gross" ? "Gross margin" : "Net margin")} />
                   <Line type="monotone" dataKey="gross" stroke="var(--positive)" strokeWidth={2.5} dot={{ r: 2.5 }} connectNulls />
                   <Line type="monotone" dataKey="net" stroke="var(--primary)" strokeWidth={2.5} dot={{ r: 2.5 }} connectNulls />
                 </LineChart>
@@ -127,7 +122,7 @@ export default function FinancialTrends({ extFinancials }: Props) {
                   <XAxis dataKey="year" tick={TICK} axisLine={false} tickLine={false} />
                   <YAxis hide />
                   <Tooltip contentStyle={TIP_STYLE} formatter={(v: number, n: string) => [crore(v), n === "debt" ? "Debt" : "Equity"]} />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
                   <Bar dataKey="equity" radius={[6, 6, 0, 0]} fill="var(--positive)" />
                   <Bar dataKey="debt" radius={[6, 6, 0, 0]} fill="var(--negative)" />
                 </BarChart>

@@ -22,3 +22,15 @@
 .stock-chip {
   min-height: 40px;
 }
+
+/* ===================================================================
+   Stock page chapters (2026-10 redesign, step 1) — components/stock/StockChapter.
+   Chapters are separated by space and one hairline, not boxes. Sections
+   inside keep their own spacing (`mb-8` on each section root).
+   =================================================================== */
+.stock-chapter {
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-8);
+  margin-top: var(--space-4);
+}
+.stock-chapter-body > :last-child { margin-bottom: var(--space-4); }

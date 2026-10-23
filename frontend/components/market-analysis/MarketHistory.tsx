@@ -14,6 +14,7 @@ import Bn from "@/components/i18n/Bn";
 import { IconTrendUp } from "@/components/home/personalized/DashIcons";
 import type { MarketHistory as MarketHistoryData } from "@/lib/api";
 import { formatDate, signed } from "@/lib/formatters";
+import { CHART } from "@/lib/chart-theme";
 
 type TabKey = "index" | "healthy" | "cheap";
 
@@ -185,14 +186,14 @@ export default function MarketHistory({ history }: { history: MarketHistoryData 
             <XAxis
               dataKey="date"
               tickFormatter={shortDate}
-              tick={{ fontSize: 11, fill: "var(--text-muted)" }}
+              tick={CHART.xAxis.tick}
               tickLine={false}
               axisLine={{ stroke: "var(--border)" }}
               minTickGap={28}
             />
             <YAxis
               domain={tab.domain}
-              tick={{ fontSize: 11, fill: "var(--text-muted)" }}
+              tick={CHART.xAxis.tick}
               tickLine={false}
               axisLine={false}
               width={tab.key === "index" ? 44 : 34}

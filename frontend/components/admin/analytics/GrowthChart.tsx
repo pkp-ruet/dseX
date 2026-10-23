@@ -61,14 +61,14 @@ export default function GrowthChart({ growth }: { growth: AdminGrowthPoint[] }) 
           <CartesianGrid strokeDasharray="2 4" stroke="var(--border)" strokeOpacity={0.8} vertical={false} />
           <XAxis
             dataKey="date"
-            tick={{ fontSize: 11, fill: COLORS.muted }}
+            tick={{ fontSize: 12, fill: COLORS.muted }}
             tickFormatter={tickDate}
             interval="preserveStartEnd"
             minTickGap={28}
             axisLine={false}
             tickLine={false}
           />
-          <YAxis tick={{ fontSize: 11, fill: COLORS.muted }} allowDecimals={false} width={36} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fontSize: 12, fill: COLORS.muted }} allowDecimals={false} width={36} axisLine={false} tickLine={false} />
           <Tooltip
             contentStyle={TOOLTIP_STYLE}
             labelFormatter={(d: string) => tickDate(d)}
