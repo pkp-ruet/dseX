@@ -22,9 +22,9 @@ export default async function OgImage({ params }: { params: Promise<{ code: stri
   const tierLabel = TIER_LABELS[tier];
   const tierColor = TIER_COLORS[tier];
 
-  const positive = "#4CAF7D";
-  const negative = "#D45B5B";
-  const changeColor = changePct != null ? (changePct >= 0 ? positive : negative) : "#6B7280";
+  const positive = "#047857";
+  const negative = "#B91C1C";
+  const changeColor = changePct != null ? (changePct >= 0 ? positive : negative) : "#5C554A";
 
   return new ImageResponse(
     (
@@ -34,29 +34,29 @@ export default async function OgImage({ params }: { params: Promise<{ code: stri
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          background: "#FEFDF7",
+          background: "#FAF8F4",
           padding: "60px",
           fontFamily: "sans-serif",
-          borderTop: "12px solid #1A6B5A",
+          borderTop: "12px solid #8F5638",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <div style={{ fontSize: 20, color: "#1A6B5A", fontWeight: 700, marginBottom: 8 }}>
+            <div style={{ fontSize: 20, color: "#8F5638", fontWeight: 700, marginBottom: 8 }}>
               TopStockBD
             </div>
-            <div style={{ fontSize: 56, fontWeight: 800, color: "#0D0A04", lineHeight: 1.1 }}>
+            <div style={{ fontSize: 56, fontWeight: 800, color: "#2E2B26", lineHeight: 1.1 }}>
               {code}
             </div>
-            <div style={{ fontSize: 24, color: "#6B7280", marginTop: 8 }}>
+            <div style={{ fontSize: 24, color: "#5C554A", marginTop: 8 }}>
               {name}
             </div>
             {sector && (
               <div style={{
                 fontSize: 14,
-                color: "#6B7280",
+                color: "#5C554A",
                 marginTop: 8,
-                background: "#F3F0E8",
+                background: "#EFEADF",
                 padding: "4px 12px",
                 borderRadius: 999,
                 alignSelf: "flex-start",
@@ -88,7 +88,7 @@ export default async function OgImage({ params }: { params: Promise<{ code: stri
         <div style={{ display: "flex", gap: 32, marginTop: 48, flexWrap: "wrap" }}>
           {ltp != null && (
             <div style={{ display: "flex", flexDirection: "column" }}>
-              <div style={{ fontSize: 14, color: "#6B7280" }}>Last Price</div>
+              <div style={{ fontSize: 14, color: "#5C554A" }}>Last Price</div>
               <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
                 <span style={{ fontSize: 28, fontWeight: 700 }}>৳{ltp.toFixed(2)}</span>
                 {changePct != null && (
@@ -101,7 +101,7 @@ export default async function OgImage({ params }: { params: Promise<{ code: stri
           )}
           {epsYoy != null && (
             <div style={{ display: "flex", flexDirection: "column" }}>
-              <div style={{ fontSize: 14, color: "#6B7280" }}>EPS YoY</div>
+              <div style={{ fontSize: 14, color: "#5C554A" }}>EPS YoY</div>
               <div style={{ fontSize: 28, fontWeight: 700, color: epsYoy >= 0 ? positive : negative }}>
                 {epsYoy >= 0 ? "+" : ""}{epsYoy.toFixed(1)}%
               </div>
@@ -109,13 +109,13 @@ export default async function OgImage({ params }: { params: Promise<{ code: stri
           )}
           {divYield != null && (
             <div style={{ display: "flex", flexDirection: "column" }}>
-              <div style={{ fontSize: 14, color: "#6B7280" }}>Div Yield</div>
+              <div style={{ fontSize: 14, color: "#5C554A" }}>Div Yield</div>
               <div style={{ fontSize: 28, fontWeight: 700 }}>{divYield.toFixed(1)}%</div>
             </div>
           )}
         </div>
 
-        <div style={{ marginTop: "auto", fontSize: 14, color: "#6B7280" }}>
+        <div style={{ marginTop: "auto", fontSize: 14, color: "#5C554A" }}>
           topstockbd.com · Driven by fundamentals · Dhaka Stock Exchange
         </div>
       </div>

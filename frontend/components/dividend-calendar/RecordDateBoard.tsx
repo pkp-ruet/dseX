@@ -66,7 +66,7 @@ export default function RecordDateBoard({ events }: { events: CorporateActionEve
 
               {lockedNonPaying.length > 0 && (
                 <div className={lockedPaying.length > 0 ? "mt-5" : ""}>
-                  <h3 className="mb-1 text-sm font-extrabold uppercase tracking-[0.13em] text-text-muted">
+                  <h3 className="mb-1 text-sm font-bold text-text-muted">
                     Record date, but no dividend declared
                   </h3>
                   <p className="mb-3 text-sm font-semibold text-text-muted">

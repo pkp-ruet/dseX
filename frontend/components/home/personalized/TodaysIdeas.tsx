@@ -122,7 +122,7 @@ export default function TodaysIdeas({
               lang={lang}
               leading={<StockRank n={i + 1} accent={TONE_VAR[tone]} />}
               tags={r.isNew ? <StockPill tone="positive">{t(lang, "newTag")}</StockPill> : undefined}
-              sub={<span className="font-extrabold uppercase tracking-[0.06em]">{t(lang, r.kind)}</span>}
+              sub={<span className="font-bold ">{t(lang, r.kind)}</span>}
               subTone={tone}
               detail={r.why ? <span className="line-clamp-2">{r.why}</span> : undefined}
               price={r.ltp}

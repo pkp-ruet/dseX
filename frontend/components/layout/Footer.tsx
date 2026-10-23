@@ -46,7 +46,7 @@ const legalLinks: FootLink[] = [
 function Column({ title, links }: { title: string; links: FootLink[] }) {
   return (
     <div>
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted mb-2">{title}</h3>
+      <h3 className="text-xs font-semibold text-text-muted mb-2">{title}</h3>
       <ul>
         {links.map((l) => (
           <li key={l.href}>

@@ -59,7 +59,7 @@ export default function ScoreBadge({ score, size = "md", tier, className = "" }:
           {display}
         </span>
         {size === "lg" && (
-          <span className="mt-1 text-xs font-bold uppercase tracking-widest text-text-muted">/ 100</span>
+          <span className="mt-1 text-xs font-bold text-text-muted">/ 100</span>
         )}
       </span>
     </div>

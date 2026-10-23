@@ -243,7 +243,7 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
           <SlotGlyph kind={meta.glyph} />
         </span>
         <span
-          className="min-w-0 flex-1 text-xs font-extrabold uppercase leading-tight tracking-[0.1em]"
+          className="min-w-0 flex-1 text-xs font-bold leading-tight "
           style={{ color: meta.ink }}
         >
           {meta.label}

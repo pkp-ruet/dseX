@@ -150,7 +150,7 @@ export default function MoneyHero({
             style={{ color: gradeColor, borderColor: gradeColor, background: "var(--surface-2)" }}
           >
             <span className="text-2xl font-black leading-none">{analysis.grade}</span>
-            <span className="px-1 text-center text-xs font-bold uppercase leading-none tracking-wide">
+            <span className="px-1 text-center text-xs font-bold leading-none ">
               {gradeLabel(lang, analysis.gradeLabel)}
             </span>
           </Link>

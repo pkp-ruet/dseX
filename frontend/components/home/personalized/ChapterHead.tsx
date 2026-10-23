@@ -30,7 +30,7 @@ export default function ChapterHead({
           </span>
         )}
         <h2
-          className="text-sm font-extrabold uppercase tracking-[0.16em]"
+          className="text-sm font-bold "
           style={{ color: accent ? "var(--acc)" : "var(--text)" }}
         >
           {label}

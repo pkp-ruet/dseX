@@ -70,7 +70,7 @@ export default function DailyTipItem({
         code={tip.trading_code}
         name={tip.company_name}
         leading={<StockTile accent={TONE_VAR[meta.tone]}>{meta.icon}</StockTile>}
-        sub={<span className="font-extrabold uppercase tracking-[0.07em]">{meta.tag}</span>}
+        sub={<span className="font-bold ">{meta.tag}</span>}
         subTone={meta.tone}
         detail={<span className="line-clamp-2 text-text-main">{summary}</span>}
         trailing={facts[0] ? <StockPill tone={meta.tone}>{facts[0].value}</StockPill> : undefined}

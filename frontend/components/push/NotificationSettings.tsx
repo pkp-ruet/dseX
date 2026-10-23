@@ -104,7 +104,7 @@ export default function NotificationSettings() {
   }
 
   const card = "bg-surface border border-border rounded-xl p-4";
-  const label = "text-xs text-text-muted uppercase tracking-wider";
+  const label = "text-xs text-text-muted ";
 
   if (phase === "loading") {
     return (

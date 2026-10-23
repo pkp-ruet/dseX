@@ -89,7 +89,7 @@ export default function TipsCard({
                 </StockTile>
               }
               mark={<OwnerMark code={tip.trading_code} held={held} watched={watched} lang={lang} />}
-              sub={<span className="font-extrabold uppercase tracking-[0.06em]">{t(lang, kind)}</span>}
+              sub={<span className="font-bold ">{t(lang, kind)}</span>}
               subTone={tone}
               detail={line ? <span className="line-clamp-2">{line}</span> : undefined}
               trailing={metric ? <StockPill tone={tone}>{metric}</StockPill> : undefined}

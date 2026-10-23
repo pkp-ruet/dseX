@@ -69,7 +69,7 @@ export default function DseTodayNewsCard({
           {item.company_name ?? ""}
         </span>
         {item.post_date && (
-          <span className="shrink-0 text-xs font-bold tabular-nums uppercase tracking-wide text-text-muted">
+          <span className="shrink-0 text-xs font-bold tabular-nums text-text-muted">
             {formatDate(item.post_date)}
           </span>
         )}
