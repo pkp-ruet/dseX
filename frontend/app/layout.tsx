@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { Inter, Space_Grotesk, Hind_Siliguri } from "next/font/google";
+import { Inter, Hind_Siliguri } from "next/font/google";
 import "./globals.css";
 // Page-area styles, layered AFTER globals.css so an equal-specificity rule here
 // wins. One file per area; globals.css holds tokens + shared primitives only.
@@ -13,9 +13,12 @@ import "./styles/states.css";
 import "./styles/misc.css";
 import "./styles/premium.css";
 
+// One Latin family, three weights (2026-10 redesign): regular, semibold, bold.
+// font-medium renders as regular and font-extrabold/black as bold — fewer font
+// files for budget phones.
 const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "600", "700"],
   variable: "--font-inter",
   display: "swap",
 });
@@ -29,12 +32,6 @@ const hindSiliguri = Hind_Siliguri({
   display: "swap",
 });
 
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-  variable: "--font-grotesk",
-  display: "swap",
-});
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import MobileBottomBar from "@/components/layout/MobileBottomBar";
@@ -110,7 +107,7 @@ const ORG_JSON_LD = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} ${hindSiliguri.variable}`}>
+    <html lang="en" className={`${inter.variable} ${hindSiliguri.variable}`}>
       <body className="min-h-screen flex flex-col">
         <a href="#main" className="skip-link">Skip to content</a>
         <script

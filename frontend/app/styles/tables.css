@@ -109,7 +109,7 @@ th[aria-sort="descending"] .dt-sort-icon { opacity: 1; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--font-grotesk), Inter, system-ui, sans-serif;
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
   font-size: var(--fs-sm);
   font-weight: 700;
   letter-spacing: 0.02em;

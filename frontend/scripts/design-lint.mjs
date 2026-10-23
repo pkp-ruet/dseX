@@ -16,8 +16,11 @@
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = new URL("..", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
+// fileURLToPath decodes %20 etc. — the old `.pathname` slice broke on any
+// checkout path with a space in it ("D:/Cursor Projects/…").
+const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const SRC_DIRS = ["app", "components", "lib"];
 const EXEMPT = [/app[\\/]api[\\/]og[\\/]/, /opengraph-image\.tsx$/, /twitter-image\.tsx$/, /manifest\./];
 

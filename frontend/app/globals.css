@@ -31,7 +31,7 @@
 
   --positive: #047857;      /* emerald — gain / buy (LOCKED market semantic) */
   --negative: #B91C1C;      /* red — loss / sell (LOCKED market semantic; one step deeper than #DC2626 so it clears AA on --surface-2) */
-  --bg: #F6F1E7;            /* warm cream canvas — one step deeper than the old #FAF7F0 so white cards lift off it */
+  --bg: #FAF8F4;            /* warm white canvas (2026-10 redesign, decision 1 — was cream #F6F1E7). Cards lift off it by border + shadow, not by contrast */
   --border: #DED6C3;        /* warm hairline (deepened with the canvas so it still reads) */
   --text: #2E2B26;          /* charcoal ink */
   --text-muted: #5C554A;    /* warm stone — strong secondary text, no washed-out gray */
@@ -60,8 +60,20 @@
   --fs-2xl: 2rem;        /* 32px — page h1 */
   --fs-display: 2.75rem; /* 44px — landing hero */
 
+  /* Spacing scale (2026-10 redesign) — THE gaps/paddings for CSS in app/styles/*.
+     Components use the matching Tailwind steps (1 2 3 4 6 8 12 = 4…48px). */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
   /* Soft, layered depth — warm charcoal-tinted shadow */
-  --shadow-soft: 0 1px 2px rgba(46, 43, 38, 0.04), 0 12px 32px -12px rgba(46, 43, 38, 0.12);
+  /* Resting shadow calmed in the 2026-10 redesign (was 0 12px 32px -12px @ .12):
+     a card is set off by its hairline border first, the shadow only hints at lift. */
+  --shadow-soft: 0 1px 2px rgba(46, 43, 38, 0.05), 0 6px 16px -10px rgba(46, 43, 38, 0.10);
   --shadow-lift: 0 1px 2px rgba(46, 43, 38, 0.05), 0 22px 48px -16px rgba(46, 43, 38, 0.16);
   /* Gentle ambient gradient for hero / closing panels — soft clay + steel on cream */
   --ambient:
@@ -82,7 +94,7 @@
 
   /* RGB triplets of the tokens above, so Tailwind opacity modifiers work
      (`bg-primary/10`, `border-border/60`). Keep in step with the hex values. */
-  --bg-rgb: 246 241 231;
+  --bg-rgb: 250 248 244;
   --surface-rgb: 255 255 255;
   --surface-2-rgb: 239 234 223;
   --border-rgb: 222 214 195;
@@ -135,7 +147,7 @@ body::before {
 }
 /* ---- Homepage refresh helpers (soft dusty-blue + slate) ---- */
 .font-display {
-  font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   letter-spacing: -0.02em;
 }
 /* Bengali (বাংলা) — opt-in font + comfortable line-height for the /blog section.
@@ -286,7 +298,9 @@ body::before {
 .ms-lens-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  /* 12px (was 16) — 2026-10 redesign: one calmer card radius site-wide. Plain
+     CSS, so it also wins over a rounded-xl/2xl utility on the same element. */
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-soft);
 }
 .ambient-panel {
@@ -505,7 +519,7 @@ a:hover .ticker-tag,
   min-width: 116px;
 }
 .rank-cred-num {
-  font-family: var(--font-grotesk), Inter, system-ui, sans-serif;
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
   font-size: var(--fs-2xl);
   font-weight: 700;
   line-height: 1;
@@ -1576,7 +1590,7 @@ a:hover .ticker-tag,
 }
 .navbar-brand-dse,
 .navbar-brand-score {
-  font-family: var(--font-grotesk), Inter, system-ui, sans-serif;
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
   font-size: var(--fs-title);
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -1792,42 +1806,25 @@ a:hover .ticker-tag,
     font-size: var(--fs-2xs);
   }
 }
-/* Section rule */
+/* Section rule — re-skinned in the 2026-10 redesign to read like
+   components/ui/SectionHeader (left-aligned sentence-case title, no pill, no
+   gradient rules). The markup stays until each page moves to SectionHeader. */
 .section-rule-modern {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  margin: 36px 0 26px;
+  display: block;
+  margin: var(--space-8) 0 var(--space-2);
 }
-/* First section rule in the main column aligns with the sidebar search bar */
-/* No gap between section rule header and the movers strip below it */
 .section-rule-modern + .movers-strip {
   margin-top: 0;
 }
 .section-rule-modern:has(+ .movers-strip) {
   margin-bottom: 0;
 }
-.section-rule-modern::before,
-.section-rule-modern::after {
-  content: "";
-  flex: 1;
-  height: 2px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, transparent 0%, var(--border) 30%, var(--border) 60%, transparent 100%);
-  opacity: 0.8;
-}
 .section-rule-modern .section-rule-text {
-  font-size: var(--fs-2xs);
-  font-weight: 800;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  white-space: nowrap;
-  padding: 8px 20px;
-  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
-  color: var(--text-muted);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  box-shadow: var(--shadow-soft);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text);
+  text-wrap: balance;
 }
 /* Info strip */
 .info-col {
@@ -1842,7 +1839,7 @@ a:hover .ticker-tag,
   padding-right: 2px;
 }
 .info-col-header {
-  font-family: var(--font-grotesk), Inter, system-ui, sans-serif;
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
   font-size: var(--fs-2xs);
   font-weight: 700;
   letter-spacing: 1.2px;
@@ -1958,7 +1955,7 @@ a:hover .ticker-tag,
   box-shadow: var(--shadow-soft);
 }
 .np-footer-brand {
-  font-family: var(--font-grotesk), Inter, system-ui, sans-serif;
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
   font-size: var(--fs-base);
   font-weight: 700;
   letter-spacing: 2px;
@@ -3264,7 +3261,7 @@ a:hover .ticker-tag,
   align-items: center;
   gap: 9px;
   color: #fff;
-  font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-weight: 700;
   font-size: var(--fs-title);
   letter-spacing: -0.01em;
@@ -3277,7 +3274,7 @@ a:hover .ticker-tag,
   align-items: center;
   gap: 8px;
   color: #fff;
-  font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-weight: 700;
   font-size: var(--fs-title);
   letter-spacing: -0.01em;
@@ -3967,6 +3964,79 @@ a:hover .ticker-tag,
 /* ======================================
    ADD TO PORTFOLIO (stock hero)
    ====================================== */
+/* ======================================
+   SHEET — components/ui/Sheet.tsx (2026-10 redesign): bottom sheet on phones,
+   centred dialog from 640px. The one overlay for new code.
+   ====================================== */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgb(var(--text-rgb) / 0.45);
+  animation: sheet-fade 0.15s ease-out;
+}
+.sheet-panel {
+  width: 100%;
+  max-height: calc(100dvh - 48px);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  box-shadow: var(--shadow-lift);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  outline: none;
+  animation: sheet-up 0.18s ease-out;
+}
+.sheet-grip {
+  width: 40px;
+  height: 4px;
+  margin: var(--space-2) auto 0;
+  border-radius: 999px;
+  background: var(--border);
+}
+.sheet-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4) var(--space-2);
+}
+.sheet-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-2) var(--space-4) var(--space-4);
+}
+.sheet-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border-top: 1px solid var(--border);
+}
+@media (min-width: 640px) {
+  .sheet-backdrop { align-items: center; padding: var(--space-6); }
+  .sheet-panel {
+    max-width: 440px;
+    max-height: calc(100dvh - 64px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding-bottom: 0;
+    animation: sheet-fade 0.15s ease-out;
+  }
+  .sheet-panel--lg { max-width: 600px; }
+  .sheet-grip { display: none; }
+  .sheet-head { padding-top: var(--space-4); }
+}
+@keyframes sheet-up { from { transform: translateY(24px); opacity: 0.6; } to { transform: none; opacity: 1; } }
+@keyframes sheet-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .sheet-backdrop, .sheet-panel { animation: none; }
+}
+
 .atp-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -4183,7 +4253,7 @@ a:hover .ticker-tag,
 }
 /* Section heading inside the story */
 .ed-section-label {
-  font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-size: var(--fs-2xs);
   font-weight: 700;
   letter-spacing: 1.8px;
@@ -4206,7 +4276,7 @@ a:hover .ticker-tag,
 .ms-page-h1 { margin: 0; display: flex; flex-direction: column; gap: 9px; }
 .ms-page-kicker {
   display: inline-flex; align-items: center; gap: 9px;
-  font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-size: clamp(0.8rem, 2vw, 1rem); font-weight: 700;
   letter-spacing: 0.14em; text-transform: uppercase; color: var(--primary-ink);
 }
@@ -4215,7 +4285,7 @@ a:hover .ticker-tag,
   background: linear-gradient(90deg, var(--primary), var(--primary-ink));
 }
 .ms-page-h1-main {
-  font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-size: clamp(2.1rem, 6vw, 3.3rem); font-weight: 800;
   letter-spacing: -0.035em; line-height: 1; color: var(--text);
 }
@@ -4258,7 +4328,7 @@ a:hover .ticker-tag,
 .ms-hero > * { position: relative; z-index: 1; }
 .ms-hero-eyebrow {
   display: inline-block;
-  font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-size: var(--fs-2xs); font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
   color: var(--primary-ink);
 }
@@ -4276,7 +4346,7 @@ a:hover .ticker-tag,
 .ms-mood-pill--down, .ms-mood-pill--weak { color: var(--warm-ink); }
 .ms-mood-pill--steady { color: var(--primary); }
 .ms-hero-headline {
-  font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-size: clamp(1.55rem, 4vw, 2.15rem); font-weight: 800; line-height: 1.22;
   letter-spacing: -0.025em; color: var(--text); margin: 16px 0 8px; max-width: 30ch;
 }
@@ -4295,12 +4365,12 @@ a:hover .ticker-tag,
 .ms-section-num {
   flex-shrink: 0; width: 42px; height: 42px; border-radius: var(--radius-md);
   display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-grotesk), system-ui, sans-serif; font-weight: 800; font-size: var(--fs-lg); color: #fff;
+  font-family: system-ui, sans-serif; font-weight: 800; font-size: var(--fs-lg); color: #fff;
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-ink) 100%);
   box-shadow: none;
 }
 .ms-section-title {
-  font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-size: clamp(1.35rem, 3.2vw, 1.7rem); font-weight: 800; letter-spacing: -0.025em;
   color: var(--text); margin: 0; line-height: 1.08;
 }
@@ -4350,7 +4420,7 @@ a:hover .ticker-tag,
 .ms-srow-tkr {
   width: 42px; height: 42px; flex-shrink: 0; border-radius: var(--radius-md);
   display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-grotesk), system-ui, sans-serif;
+  font-family: system-ui, sans-serif;
   font-weight: 800; font-size: var(--fs-title); line-height: 1; letter-spacing: -0.02em;
   color: var(--row-accent, var(--primary));
   background: color-mix(in srgb, var(--row-accent, var(--primary)) 12%, var(--surface));
@@ -4360,7 +4430,7 @@ a:hover .ticker-tag,
 .ms-srow-id { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .ms-srow-code {
   display: flex; align-items: center; min-width: 0;
-  font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-weight: 800; font-size: var(--fs-md); letter-spacing: -0.01em;
   color: var(--text); line-height: 1.15; transition: color 0.16s ease;
 }
@@ -4373,7 +4443,7 @@ a:hover .ticker-tag,
 }
 .ms-srow-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; text-align: right; }
 .ms-srow-price {
-  font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-weight: 800; font-size: var(--fs-sm); color: var(--text);
   letter-spacing: -0.01em; font-variant-numeric: tabular-nums; line-height: 1.1;
 }
@@ -4406,13 +4476,13 @@ a:hover .ticker-tag,
 .ms-divcard-tkr {
   width: 32px; height: 32px; flex-shrink: 0; border-radius: var(--radius);
   display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-grotesk), system-ui, sans-serif; font-weight: 800; font-size: var(--fs-md); line-height: 1; letter-spacing: -0.02em;
+  font-family: system-ui, sans-serif; font-weight: 800; font-size: var(--fs-md); line-height: 1; letter-spacing: -0.02em;
   color: var(--positive); background: color-mix(in srgb, var(--positive) 13%, var(--surface));
   box-shadow: var(--shadow-soft);
 }
-.ms-divcard-code { font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif; font-weight: 800; font-size: var(--fs-md); letter-spacing: -0.01em; color: var(--text); line-height: 1.1; }
+.ms-divcard-code { font-family: var(--font-inter), system-ui, sans-serif; font-weight: 800; font-size: var(--fs-md); letter-spacing: -0.01em; color: var(--text); line-height: 1.1; }
 .ms-divcard-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 9px; font-size: var(--fs-xs); color: var(--text-muted); font-weight: 600; }
-.ms-divcard-price { font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+.ms-divcard-price { font-family: var(--font-inter), system-ui, sans-serif; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
 .ms-divcash { font-size: var(--fs-md); font-weight: 800; color: var(--positive); margin-top: 8px; }
 /* ---- Opportunity lenses (each card carries its own --lens accent colour) ---- */
 .ms-lens-card {
@@ -4446,18 +4516,10 @@ a:hover .ticker-tag,
 .ms-lens-title { font-size: var(--fs-base); font-weight: 800; color: var(--text); margin: 0; line-height: 1.15; letter-spacing: -0.01em; }
 .ms-lens-best { position: absolute; top: 0; right: 0; background: linear-gradient(135deg, var(--primary), var(--primary-ink)); color: #fff; font-size: var(--fs-2xs); font-weight: 800; padding: 4px 12px; border-bottom-left-radius: var(--radius); letter-spacing: 0.04em; }
 .ms-lens-desc { font-size: var(--fs-xs); color: var(--text-muted); margin: 10px 0 2px; }
-/* ---- Accent-tinted card (top accent bar + soft corner glow, keyed off --card-accent) ---- */
-.ms-card--tint { position: relative; overflow: hidden; }
-.ms-card--tint > * { position: relative; z-index: 1; }
-.ms-card--tint::after {
-  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; z-index: 0;
-  background: linear-gradient(90deg, var(--card-accent, var(--primary)), color-mix(in srgb, var(--card-accent, var(--primary)) 35%, transparent));
-}
-.ms-card--tint::before {
-  content: ""; position: absolute; top: -50px; right: -50px; width: 150px; height: 150px;
-  border-radius: 50%; z-index: 0; pointer-events: none;
-  background: radial-gradient(circle, color-mix(in srgb, var(--card-accent, var(--primary)) 13%, transparent), transparent 70%);
-}
+/* ---- Accent-tinted card ----
+   The top accent bar and corner glow were removed in the 2026-10 redesign
+   ("colour means something"); the class now renders as the plain card. */
+.ms-card--tint { position: relative; }
 .ms-empty { font-size: var(--fs-sm); color: var(--text-muted); padding: 10px 0; }
 /* ---- Bengali (বাংলা) accents — paired with .font-bn + lang="bn" ---- */
 .ms-hero-bn {
@@ -4509,7 +4571,7 @@ a:hover .ticker-tag,
   margin-bottom: 4px;
 }
 .ed-rank {
-  font-family: var(--font-grotesk), Inter, system-ui, sans-serif;
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
   font-size: var(--fs-display);
   font-weight: 700;
   line-height: 1;
@@ -4521,7 +4583,7 @@ a:hover .ticker-tag,
   min-width: 1.4em;
 }
 .ed-spot-title {
-  font-family: var(--font-grotesk), Inter, system-ui, sans-serif;
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
   font-size: clamp(1.4rem, 4vw, 1.85rem);
   font-weight: 700;
   line-height: 1.15;
@@ -4614,7 +4676,7 @@ a:hover .ticker-tag,
   border-top: 1px solid var(--border);
 }
 .ed-run-rank {
-  font-family: var(--font-grotesk), Inter, system-ui, sans-serif;
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
   font-size: var(--fs-lg);
   font-weight: 700;
   background: linear-gradient(135deg, var(--primary), var(--watch));
@@ -4691,7 +4753,7 @@ a:hover .ticker-tag,
 }
 .ed-closer h2,
 .ed-faq h2 {
-  font-family: var(--font-grotesk), Inter, system-ui, sans-serif;
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
   font-size: var(--fs-xl);
   font-weight: 700;
   color: var(--text);
@@ -4707,7 +4769,7 @@ a:hover .ticker-tag,
   color: var(--text);
 }
 .ed-closer p.first::first-letter {
-  font-family: var(--font-grotesk), Inter, system-ui, sans-serif;
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
   font-size: var(--fs-display);
   font-weight: 700;
   float: left;
@@ -4808,7 +4870,7 @@ a:hover .ticker-tag,
   flex-shrink: 0;
 }
 .ed-hub-title {
-  font-family: var(--font-grotesk), Inter, system-ui, sans-serif;
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
   font-size: var(--fs-lg);
   font-weight: 700;
   line-height: 1.18;
@@ -5080,7 +5142,7 @@ a:hover .ticker-tag,
 /* ---- Keyboard hint inside the navbar search pill ---- */
 .kbd-hint {
   display: none;
-  font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-size: var(--fs-2xs);
   font-weight: 700;
   line-height: 1;
@@ -5173,7 +5235,7 @@ a:hover .ticker-tag,
 .ms-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
 .ms-chip {
   display: inline-flex; align-items: center; gap: 4px;
-  font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-size: var(--fs-2xs); font-weight: 800; padding: 4px 10px; border-radius: 999px; text-decoration: none;
   color: var(--primary-ink); background: color-mix(in srgb, var(--primary) 11%, var(--surface));
   border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
@@ -5236,7 +5298,7 @@ a:hover .ticker-tag,
 .ms-tab:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
 .ms-hist-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin: 0 0 6px; }
 .ms-hist-now {
-  font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-size: var(--fs-xl); font-weight: 800; letter-spacing: -0.02em; color: var(--text);
   font-variant-numeric: tabular-nums; line-height: 1;
 }
