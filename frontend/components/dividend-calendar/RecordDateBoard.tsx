@@ -1,5 +1,7 @@
 import Bn from "@/components/i18n/Bn";
 import EventCard from "@/components/dividend-calendar/EventCard";
+import PremiumGate from "@/components/premium/PremiumGate";
+import { splitFree } from "@/lib/free-share";
 import type { CorporateActionEvent } from "@/lib/api";
 
 /**
@@ -12,6 +14,13 @@ import type { CorporateActionEvent } from "@/lib/api";
 export default function RecordDateBoard({ events }: { events: CorporateActionEvent[] }) {
   const paying = events.filter((e) => !e.is_no_dividend);
   const nonPaying = events.filter((e) => e.is_no_dividend);
+  // The free share is taken from the whole list, paying dates first.
+  const [freeRows, lockedRows] = splitFree([...paying, ...nonPaying]);
+  const lockedPaying = lockedRows.filter((e) => !e.is_no_dividend);
+  const lockedNonPaying = lockedRows.filter((e) => e.is_no_dividend);
+  const card = (e: CorporateActionEvent) => (
+    <EventCard key={`${e.trading_code}-${e.record_date}`} event={e} mode="record" />
+  );
 
   return (
     <section className="mb-8" id="record-dates">
@@ -36,27 +45,41 @@ export default function RecordDateBoard({ events }: { events: CorporateActionEve
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {paying.map((e) => (
-              <EventCard key={`${e.trading_code}-${e.record_date}`} event={e} mode="record" />
-            ))}
-          </div>
-
-          {nonPaying.length > 0 && (
-            <div className="mt-5">
-              <h3 className="mb-1 text-sm font-extrabold uppercase tracking-[0.13em] text-text-muted">
-                Record date, but no dividend declared
-              </h3>
-              <p className="mb-3 text-sm font-semibold text-text-muted">
-                These companies declared no dividend this time. The record date only fixes who
-                can attend and vote at the AGM.
-              </p>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {nonPaying.map((e) => (
-                  <EventCard key={`${e.trading_code}-${e.record_date}`} event={e} mode="record" />
-                ))}
-              </div>
+          {/* Free readers see the first quarter of the list (paying dates first);
+              the rest sits behind the premium lock (screen-only). */}
+          {freeRows.length > 0 && (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {freeRows.map(card)}
             </div>
+          )}
+
+          {(lockedPaying.length > 0 || lockedNonPaying.length > 0) && (
+            <PremiumGate
+              label={`${lockedPaying.length + lockedNonPaying.length} more record dates`}
+              peek={180}
+              className="mt-3"
+            >
+              {lockedPaying.length > 0 && (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {lockedPaying.map(card)}
+                </div>
+              )}
+
+              {lockedNonPaying.length > 0 && (
+                <div className={lockedPaying.length > 0 ? "mt-5" : ""}>
+                  <h3 className="mb-1 text-sm font-extrabold uppercase tracking-[0.13em] text-text-muted">
+                    Record date, but no dividend declared
+                  </h3>
+                  <p className="mb-3 text-sm font-semibold text-text-muted">
+                    These companies declared no dividend this time. The record date only fixes who
+                    can attend and vote at the AGM.
+                  </p>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {lockedNonPaying.map(card)}
+                  </div>
+                </div>
+              )}
+            </PremiumGate>
           )}
         </>
       )}

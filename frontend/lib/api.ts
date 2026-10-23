@@ -1203,6 +1203,11 @@ export async function apiGetMe(): Promise<{ user: AuthUser }> {
   return apiAuthFetch<{ user: AuthUser }>("/api/auth/me");
 }
 
+/** Start the account's one free month of premium. 409 "trial_used" after that. */
+export async function apiStartTrial(): Promise<{ user: AuthUser }> {
+  return apiAuthFetch<{ user: AuthUser }>("/api/user/premium/start-trial", { method: "POST" });
+}
+
 /** Per-code watchlist metadata: when the user followed it and the official
  *  close that day. Codes followed before this existed have no entry. */
 export interface WatchlistMetaEntry {
@@ -1631,16 +1636,21 @@ export async function apiAuthPing(
  * no-ops for logged-out users (so the assistant stays usable anonymously and
  * adoption is counted against registered users only).
  */
-export async function apiMarkAiUsed(): Promise<void> {
+export async function apiMarkAiUsed(): Promise<{ count_today: number; limit: number | null } | null> {
   const token = getToken();
-  if (!token) return;
+  if (!token) return null;
   try {
-    await fetch(`${getApiUrl()}/api/user/ai-used`, {
+    const res = await fetch(`${getApiUrl()}/api/user/ai-used`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });
+    if (!res.ok) return null;
+    const body = await res.json();
+    return typeof body?.count_today === "number"
+      ? { count_today: body.count_today, limit: body.limit ?? null }
+      : null;
   } catch {
-    // fire-and-forget
+    return null; // fire-and-forget
   }
 }
 

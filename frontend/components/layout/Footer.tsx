@@ -33,6 +33,7 @@ const accountLinks: FootLink[] = [
   { href: "/watchlist", label: "Watchlist" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/alerts", label: "Price Alerts" },
+  { href: "/premium", label: "Premium" },
 ];
 
 // /about is already "How we score" under Learn — one label per URL.

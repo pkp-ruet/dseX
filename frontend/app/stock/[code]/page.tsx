@@ -111,12 +111,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-function ordinal(n: number): string {
-  const s = ["th", "st", "nd", "rd"];
-  const v = n % 100;
-  return `${n}${s[(v - 20) % 10] || s[v] || s[0]}`;
-}
-
 export default async function StockDetailPage({ params }: PageProps) {
   const { code } = await params;
   // Start the side fetches with the detail rather than after it — they only
@@ -139,7 +133,7 @@ export default async function StockDetailPage({ params }: PageProps) {
 
   const { profile, score_row, financials, extended_financials,
           shareholding, dividend_declaration, news, signal_flags,
-          related_stocks, momentum, verdict, valuation, sector_context } = detail;
+          related_stocks, momentum, valuation } = detail;
 
   const score = score_row?.score as number | null;
 
@@ -171,6 +165,22 @@ export default async function StockDetailPage({ params }: PageProps) {
     sameAs: `https://www.dsebd.org/company/${encodeURIComponent(profile.trading_code)}`,
   };
 
+  // Paywall markup: part of the page (every `.premium-locked` block —
+  // components/premium/PremiumGate.tsx) is in the HTML but shown in full only
+  // to Premium readers. Google's structured-data way of saying so.
+  const webPageLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: `${name} (${profile.trading_code}) share price and analysis`,
+    url: `${BASE}/stock/${code}`,
+    isAccessibleForFree: false,
+    hasPart: {
+      "@type": "WebPageElement",
+      isAccessibleForFree: false,
+      cssSelector: ".premium-locked",
+    },
+  };
+
   const breadcrumbLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -197,15 +207,17 @@ export default async function StockDetailPage({ params }: PageProps) {
 
   if (score != null) {
     const sig = detail.signal?.signal;
+    // The signal word is free; its reason and the verdict prose are Premium, so
+    // neither goes into a rich-result answer.
     const sigText =
       sig === "buy"
-        ? ` Our rules currently show a ${detail.signal?.strength === "strong" ? "Strong Buy" : "Buy"} signal: ${detail.signal?.reason_en ?? ""}`.trimEnd()
+        ? ` Our rules currently show a ${detail.signal?.strength === "strong" ? "Strong Buy" : "Buy"} signal.`
         : sig === "sell"
-          ? ` Our rules currently show a Sell signal: ${detail.signal?.reason_en ?? ""}`.trimEnd()
+          ? " Our rules currently show a Sell signal."
           : " Our rules show no buy or sell signal right now.";
     faqs.push({
       q: `Is ${name} (${code}) a good stock to buy?`,
-      a: `TopStockBD scores ${code} ${Math.round(score)} out of 100 on fundamentals, which we call "${tierLabel}".${verdict?.tagline ? ` ${verdict.tagline}` : ""}${sigText} This is educational information, not investment advice.`,
+      a: `TopStockBD scores ${code} ${Math.round(score)} out of 100 on fundamentals, which we call "${tierLabel}".${sigText} This is educational information, not investment advice.`,
     });
   }
   if (ltpNum != null) {
@@ -225,11 +237,9 @@ export default async function StockDetailPage({ params }: PageProps) {
     });
   }
   if (profile.sector) {
-    const rank = sector_context?.rank_in_sector ?? null;
-    const peers = sector_context?.peer_count ?? null;
     faqs.push({
       q: `Which sector is ${code} in?`,
-      a: `${name} is listed in the ${profile.sector} sector of the Dhaka Stock Exchange${profile.market_category ? `, category ${String(profile.market_category).toUpperCase()}` : ""}.${rank != null && peers != null ? ` On fundamentals it ranks ${ordinal(rank)} of ${peers} companies in that sector on TopStockBD.` : ""}`,
+      a: `${name} is listed in the ${profile.sector} sector of the Dhaka Stock Exchange${profile.market_category ? `, category ${String(profile.market_category).toUpperCase()}` : ""}.`,
     });
   }
   const faqLd = faqs.length
@@ -293,6 +303,10 @@ export default async function StockDetailPage({ params }: PageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageLd) }}
       />
       {faqLd && (
         <script

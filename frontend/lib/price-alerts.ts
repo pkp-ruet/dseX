@@ -20,6 +20,8 @@ import {
   type PriceAlert,
 } from "@/lib/api";
 import { cacheKeys, clearCachePrefix, readCache, writeCache } from "@/lib/swr-cache";
+import { isLimitError, storedLimit } from "@/lib/premium";
+import { showLimitNotice } from "@/components/premium/LimitNotice";
 
 export type { PriceAlert };
 
@@ -112,7 +114,14 @@ export async function loadAlerts(): Promise<PriceAlert[]> {
 // Mutations — each replaces the cache from the server's authoritative list
 // ---------------------------------------------------------------------------
 
-export async function createAlert(code: string, targetPrice: number): Promise<PriceAlert | null> {
+/** Armed alerts the account has right now (for the free-account cap). */
+export function activeAlertCount(): number {
+  return (_cache ?? []).filter((a) => a.is_active).length;
+}
+
+/** `"limit"` = a free account already has its maximum armed alerts (the
+ *  backend refused; the caller shows the premium prompt). */
+export async function createAlert(code: string, targetPrice: number): Promise<PriceAlert | null | "limit"> {
   if (!isLoggedIn()) return null;
   try {
     const res = await apiCreateAlert({ trading_code: code.toUpperCase(), target_price: targetPrice });
@@ -120,8 +129,8 @@ export async function createAlert(code: string, targetPrice: number): Promise<Pr
     persist(_cache);
     emit();
     return res.alert;
-  } catch {
-    return null;
+  } catch (err) {
+    return isLimitError(err, "alerts") ? "limit" : null;
   }
 }
 
@@ -140,13 +149,19 @@ export async function updateAlert(id: string, targetPrice: number): Promise<Pric
 
 export async function rearmAlert(id: string): Promise<PriceAlert | null> {
   if (!isLoggedIn()) return null;
+  const limit = storedLimit("alerts");
+  if (limit !== null && activeAlertCount() >= limit) {
+    showLimitNotice("alerts");
+    return null;
+  }
   try {
     const res = await apiRearmAlert(id);
     _cache = res.alerts ?? [];
     persist(_cache);
     emit();
     return res.alert;
-  } catch {
+  } catch (err) {
+    if (isLimitError(err, "alerts")) showLimitNotice("alerts");
     return null;
   }
 }

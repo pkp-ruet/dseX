@@ -41,6 +41,10 @@ import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
 import SignalChip from "@/components/ui/SignalChip";
 import PortfolioAnalysisView from "./PortfolioAnalysisView";
+import ProInsights from "./ProInsights";
+import PremiumGate from "@/components/premium/PremiumGate";
+import { buildProInsights } from "@/lib/portfolio-pro";
+import { usePremium } from "@/lib/premium";
 import PortfolioHealthStrip from "./PortfolioHealthStrip";
 import ContributionStrip from "./ContributionStrip";
 import PortfolioHero from "./PortfolioHero";
@@ -738,6 +742,8 @@ export default function PortfolioClient() {
 
   const analysis = useMemo(() => analyzePortfolio(rows, priceMap, lang), [rows, priceMap, lang]);
   const rebalance = useMemo(() => buildRebalancePlan(analysis, priceMap), [analysis, priceMap]);
+  const proInsights = useMemo(() => buildProInsights(analysis, priceMap, lang), [analysis, priceMap, lang]);
+  const { isPremium } = usePremium();
 
   // Snapshot this visit's value once data has settled, so the *next* visit can
   // show the change since now. Written once per mount.
@@ -1208,7 +1214,22 @@ export default function PortfolioClient() {
           rebalance={rebalance}
           lang={lang}
           onLangChange={changeLang}
+          locked={!isPremium}
         />
+      )}
+
+      {/* Premium portfolio read — risk, price paid, cash, vs market, action list */}
+      {holdings.length > 0 && (
+        isPremium ? (
+          <ProInsights insights={proInsights} lang={lang} />
+        ) : (
+          <PremiumGate
+            label={lang === "bn" ? "বিস্তারিত পোর্টফোলিও বিশ্লেষণ" : "Your portfolio in depth"}
+            peek={260}
+          >
+            <ProInsights insights={proInsights} lang={lang} />
+          </PremiumGate>
+        )
       )}
 
       {/* News on held stocks */}

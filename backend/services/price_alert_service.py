@@ -121,9 +121,30 @@ def list_alerts(user_id: str) -> list[dict]:
     return out
 
 
-def create_alert(user_id: str, trading_code: str, target_price: float) -> dict:
+class AlertLimitReached(Exception):
+    """A free account already has its maximum number of armed alerts."""
+
+
+def _check_alert_limit(user_id: str, limit: Optional[int]) -> None:
+    from backend.services.entitlements import alerts_blocked
+
+    if limit is None:
+        return
+    active = _alerts().count_documents({"user_id": user_id, "is_active": True})
+    if alerts_blocked(active, limit):
+        raise AlertLimitReached()
+
+
+def create_alert(
+    user_id: str,
+    trading_code: str,
+    target_price: float,
+    limit: Optional[int] = None,
+) -> dict:
     """Arm an alert. Re-uses an existing armed alert for the same code+direction
-    (so tapping 'set alert' twice updates the target instead of stacking dupes)."""
+    (so tapping 'set alert' twice updates the target instead of stacking dupes).
+    `limit` = the account's armed-alert cap (None = unlimited); re-using an
+    existing armed alert never counts against it."""
     code = trading_code.strip().upper()
     target = round(float(target_price), 4)
     direction = _infer_direction(target, _ltp_for(code))
@@ -139,6 +160,7 @@ def create_alert(user_id: str, trading_code: str, target_price: float) -> dict:
         )
         return _normalize({**existing, "target_price": target, "created_at": now})
 
+    _check_alert_limit(user_id, limit)
     doc = {
         "id": uuid.uuid4().hex,
         "user_id": user_id,
@@ -173,12 +195,14 @@ def delete_alert(user_id: str, alert_id: str) -> bool:
     return res.deleted_count > 0
 
 
-def rearm_alert(user_id: str, alert_id: str) -> Optional[dict]:
+def rearm_alert(user_id: str, alert_id: str, limit: Optional[int] = None) -> Optional[dict]:
     """Reset a triggered alert back to armed, re-inferring direction from the
     current price (the price has moved since it last fired)."""
     doc = _alerts().find_one({"user_id": user_id, "id": alert_id})
     if not doc:
         return None
+    if not doc.get("is_active"):
+        _check_alert_limit(user_id, limit)
     direction = _infer_direction(
         float(doc.get("target_price") or 0), _ltp_for(doc.get("trading_code") or "")
     )

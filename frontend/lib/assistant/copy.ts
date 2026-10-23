@@ -158,6 +158,15 @@ export const COPY = {
     ctaBn: "ফ্রি সাইন আপ",
   },
 
+  // --- Signed-in free account daily limit (Premium has none) ---
+  freeLimit: {
+    text: (n: number) => `You've used today's ${n} free questions. Premium has no daily limit — try it free for a month.`,
+    bn: (n: number) => `আজকের ${n}টি ফ্রি প্রশ্ন শেষ। প্রিমিয়ামে কোনো দৈনিক সীমা নেই — 1 মাস ফ্রি ব্যবহার করে দেখুন।`,
+    bar: "Today's free questions are used up.",
+    barBn: "আজকের ফ্রি প্রশ্ন শেষ।",
+    cta: "See Premium",
+  },
+
   // --- In-chat actions ---
   actions: {
     added: (code: string) => `Added ${code} to your watchlist ⭐`,

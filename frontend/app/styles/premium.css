@@ -1,0 +1,65 @@
+/* premium — the screen-only lock (components/premium/PremiumGate.tsx) and the
+   lock card. Tokens only. `.premium-locked` is also the cssSelector the paywall
+   JSON-LD names (stock page + deep-analysis page) — keep the class name. */
+
+.premium-locked { position: relative; }
+
+.premium-locked[data-locked="true"] > .premium-locked-body {
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  -webkit-mask-image: linear-gradient(to bottom, #000 35%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 35%, transparent 100%);
+}
+.premium-locked[data-locked="true"][data-preview="blur"] > .premium-locked-body {
+  filter: blur(6px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+}
+
+.premium-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  padding: 14px 16px;
+  border: 1px solid rgb(var(--primary-rgb) / 0.35);
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgb(var(--primary-rgb) / 0.08), rgb(var(--surface-rgb)));
+}
+.premium-card-compact {
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+}
+.premium-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  color: var(--primary-ink);
+  background: rgb(var(--primary-rgb) / 0.14);
+}
+.premium-card-compact .premium-card-icon { width: 26px; height: 26px; }
+.premium-card-action { flex: none; align-self: center; }
+@media (max-width: 479px) {
+  .premium-card-action { width: 100%; }
+  .premium-card-action > * { width: 100%; }
+}
+
+/* "Premium" word chip (profile, premium page). */
+.premium-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--primary-ink);
+  background: rgb(var(--primary-rgb) / 0.14);
+}

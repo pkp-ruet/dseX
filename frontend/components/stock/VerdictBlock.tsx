@@ -9,6 +9,7 @@ import SignalChip from "@/components/ui/SignalChip";
 import { IconChartBars, IconTrophy } from "@/components/stock/StockIcons";
 import { useStockLang } from "@/context/StockLangContext";
 import type { CompanyDetail } from "@/lib/api";
+import PremiumGate from "@/components/premium/PremiumGate";
 
 interface Props {
   detail: CompanyDetail;
@@ -26,6 +27,7 @@ const T = {
   deepEyebrow: { en: "In-depth analysis", bn: "গভীর বিশ্লেষণ" },
   deepCta: { en: "Read the full analysis", bn: "সম্পূর্ণ বিশ্লেষণ পড়ুন" },
   sectorAvg: { en: "sector average", bn: "খাতের গড়" },
+  lockLabel: { en: "The full reasoning", bn: "পুরো ব্যাখ্যা" },
 } as const;
 
 function ordinal(n: number): string {
@@ -79,6 +81,11 @@ export default function VerdictBlock({ detail }: Props) {
   const sectorName = sector_context?.sector ?? profile.sector ?? null;
   const hasStanding = rank != null && peers != null && peers >= 2 && !!sectorName;
 
+  // Free lead line vs what sits behind the premium lock.
+  const freeEn = tagline ?? sentences[0] ?? null;
+  const lockedSentences = tagline ? sentences : sentences.slice(1);
+  const hasLocked = showReason || hasStanding || lockedSentences.length > 0 || bnParas.length > 1;
+
   const hasDeep = !!deep_analysis?.available;
   const deepHeadline = (isBn ? deep_analysis?.headline_bn : deep_analysis?.headline_en) ?? deep_analysis?.headline_en ?? "";
   const deepBottom = (isBn ? deep_analysis?.bottom_line_bn : deep_analysis?.bottom_line_en) ?? deep_analysis?.bottom_line_en ?? "";
@@ -123,105 +130,115 @@ export default function VerdictBlock({ detail }: Props) {
               )}
             </div>
 
-            {showReason && (
-              <p
-                className={`text-base sm:text-xl font-bold mt-3 leading-snug ${isBn ? "font-bn" : ""}`}
-                lang={isBn ? "bn" : undefined}
-                style={{ color: isSell ? SIGNAL_VAR.sell : "var(--text)" }}
-              >
-                {reason}
-              </p>
-            )}
-
-            {hasStanding && (
-              <p
-                className={`mt-3 inline-flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm ${isBn ? "font-bn" : ""}`}
-                lang={isBn ? "bn" : undefined}
-                style={{ color: "var(--text-muted)" }}
-              >
-                <span className="inline-flex" style={{ color: tone.color }}><IconTrophy size={15} /></span>
-                {isBn ? (
-                  <>
-                    <Link
-                      href={`/sector/${sectorSlug(sectorName as string)}`}
-                      prefetch={false}
-                      className="font-semibold hover:underline"
-                      style={{ color: "var(--text)" }}
-                    >
-                      {sectorName}
-                    </Link>
-                    <span>খাতে {peers}টির মধ্যে <b style={{ color: "var(--text)" }}>{rank} নম্বরে</b></span>
-                  </>
-                ) : (
-                  <>
-                    <span>Ranked <b style={{ color: "var(--text)" }}>{ordinal(rank as number)}</b> of {peers} in</span>
-                    <Link
-                      href={`/sector/${sectorSlug(sectorName as string)}`}
-                      prefetch={false}
-                      className="font-semibold hover:underline"
-                      style={{ color: "var(--text)" }}
-                    >
-                      {sectorName}
-                    </Link>
-                  </>
-                )}
-                {sectorAvg != null && score != null && (
-                  <span>
-                    · {T.sectorAvg[lang]} <b className="tabular-nums nums" style={{ color: "var(--text)" }}>{Math.round(sectorAvg)}</b>
-                  </span>
-                )}
-              </p>
-            )}
-
-            {/* The take — language-aware. Both blocks live in the DOM (SEO); one is hidden. */}
+            {/* The take — language-aware. Both blocks live in the DOM (SEO); one is hidden.
+                Free: the first line of the take. Premium (PremiumGate, screen-only):
+                the signal's reason, the sector standing and the rest of the take. */}
             <div className="mt-4">
               <p className={`${eyebrowCls(isBn)} mb-2`} style={{ color: "var(--text-muted)" }}>
                 {T.take[lang]}
               </p>
 
-              {/* English take: verdict tagline + sentences */}
+              {/* English lead: the tagline (or the first sentence) */}
               <div className={isBn ? "hidden" : "block"}>
-                {tagline && (
+                {freeEn ? (
                   <p className="text-sm sm:text-base font-semibold leading-snug" style={{ color: "var(--text)" }}>
-                    {tagline}
+                    {freeEn}
+                  </p>
+                ) : (
+                  <p className="text-base sm:text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                    {T.generic.en}
                   </p>
                 )}
-                {sentences.length > 0 ? (
-                  <ul className="mt-2.5 space-y-1.5">
-                    {sentences.map((line, i) => (
+              </div>
+
+              {/* Bengali lead: the first এক নজরে paragraph */}
+              <div className={`font-bn ${isBn ? "block" : "hidden"}`} lang="bn">
+                <p className="leading-relaxed" style={{ color: bnParas[0] ? "var(--text)" : "var(--text-muted)" }}>
+                  {bnParas[0] ?? T.generic.bn}
+                </p>
+              </div>
+            </div>
+
+            {hasLocked && (
+              <PremiumGate label={T.lockLabel[lang]} peek={96} className="mt-1">
+                {showReason && (
+                  <p
+                    className={`text-base sm:text-xl font-bold mt-3 leading-snug ${isBn ? "font-bn" : ""}`}
+                    lang={isBn ? "bn" : undefined}
+                    style={{ color: isSell ? SIGNAL_VAR.sell : "var(--text)" }}
+                  >
+                    {reason}
+                  </p>
+                )}
+
+                {hasStanding && (
+                  <p
+                    className={`mt-3 inline-flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm ${isBn ? "font-bn" : ""}`}
+                    lang={isBn ? "bn" : undefined}
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    <span className="inline-flex" style={{ color: tone.color }}><IconTrophy size={15} /></span>
+                    {isBn ? (
+                      <>
+                        <Link
+                          href={`/sector/${sectorSlug(sectorName as string)}`}
+                          prefetch={false}
+                          className="font-semibold hover:underline"
+                          style={{ color: "var(--text)" }}
+                        >
+                          {sectorName}
+                        </Link>
+                        <span>খাতে {peers}টির মধ্যে <b style={{ color: "var(--text)" }}>{rank} নম্বরে</b></span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Ranked <b style={{ color: "var(--text)" }}>{ordinal(rank as number)}</b> of {peers} in</span>
+                        <Link
+                          href={`/sector/${sectorSlug(sectorName as string)}`}
+                          prefetch={false}
+                          className="font-semibold hover:underline"
+                          style={{ color: "var(--text)" }}
+                        >
+                          {sectorName}
+                        </Link>
+                      </>
+                    )}
+                    {sectorAvg != null && score != null && (
+                      <span>
+                        · {T.sectorAvg[lang]} <b className="tabular-nums nums" style={{ color: "var(--text)" }}>{Math.round(sectorAvg)}</b>
+                      </span>
+                    )}
+                  </p>
+                )}
+
+
+                {/* English: the rest of the verdict sentences */}
+                {lockedSentences.length > 0 && (
+                  <ul className={`mt-3 space-y-1.5 ${isBn ? "hidden" : "block"}`}>
+                    {lockedSentences.map((line, i) => (
                       <li key={i} className="flex gap-2.5 text-sm sm:text-sm leading-snug" style={{ color: "var(--text)" }}>
                         <span aria-hidden className="mt-[6px] h-1.5 w-1.5 rounded-full shrink-0" style={{ background: tone.color }} />
                         <span>{line}</span>
                       </li>
                     ))}
                   </ul>
-                ) : !tagline ? (
-                  <p className="text-base sm:text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                    {T.generic.en}
-                  </p>
-                ) : null}
-              </div>
+                )}
 
-              {/* Bengali take: cached এক নজরে prose (falls back to a generic line) */}
-              <div className={`font-bn ${isBn ? "block" : "hidden"}`} lang="bn">
-                {bnParas.length > 0 ? (
-                  <>
+                {/* Bengali: the rest of the এক নজরে prose */}
+                {bnParas.length > 1 && (
+                  <div className={`font-bn mt-3 ${isBn ? "block" : "hidden"}`} lang="bn">
                     <div className="space-y-3 leading-relaxed" style={{ color: "var(--text)" }}>
-                      {bnParas.map((p, i) => (
+                      {bnParas.slice(1).map((p, i) => (
                         <p key={i}>{p}</p>
                       ))}
                     </div>
                     <p className="mt-3 text-sm" style={{ color: "var(--text-muted)" }}>
                       {T.eduNote.bn}
                     </p>
-                  </>
-                ) : (
-                  <p className="text-base sm:text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                    {T.generic.bn}
-                  </p>
+                  </div>
                 )}
-              </div>
-            </div>
+              </PremiumGate>
+            )}
           </div>
         </div>
 

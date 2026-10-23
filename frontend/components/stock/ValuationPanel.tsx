@@ -9,6 +9,7 @@ import { peHistory, peRatio, pbRatio, toNum, avgIgnoringNulls } from "@/lib/stoc
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import SectionTitle from "@/components/stock/SectionTitle";
+import PremiumGate from "@/components/premium/PremiumGate";
 
 interface Props {
   financials: Record<string, unknown>[];
@@ -97,9 +98,7 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
     <section id="valuation" className="mb-8 stock-anchor">
       <SectionTitle
         title="Is the Price Right?"
-        sub={<>
-            {caption ?? "How today's price compares to the company's earnings and its own history."}
-        </>}
+        sub={<>How today&apos;s price compares to the company&apos;s earnings and its own history.</>}
         bn="আজকের দাম কোম্পানির আয়ের তুলনায় সস্তা না দামি।"
       />
 
@@ -121,6 +120,13 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
           "Price per ৳1 of net assets",
         )}
       </div>
+
+      {/* Our verdict on the price is Premium (screen-only lock); the ratios above stay free. */}
+      {caption && (
+        <PremiumGate label="Our verdict on today's price" preview="blur" peek={28} compact className="mb-4">
+          <p className="text-sm font-semibold leading-snug" style={{ color: "var(--text)" }}>{caption}</p>
+        </PremiumGate>
+      )}
 
       {tabs.length > 0 && activeTab && (
         <Card padding="none" className="rounded-2xl p-5">
@@ -164,12 +170,14 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
                 </LineChart>
               </ResponsiveContainer>
               {currentPe != null && ownAvgPe != null && (
-                <p className="text-sm mt-3 leading-snug" style={{ color: "var(--text-muted)" }}>
+                <PremiumGate label="Today vs its usual P/E" preview="blur" peek={24} compact className="mt-3">
+                <p className="text-sm leading-snug" style={{ color: "var(--text-muted)" }}>
                   {currentPe < ownAvgPe
                     ? `Trading at ${currentPe.toFixed(1)} — below its ${avgLabel} of ${ownAvgPe.toFixed(1)}.`
                     : `Trading at ${currentPe.toFixed(1)} — above its ${avgLabel} of ${ownAvgPe.toFixed(1)}.`}
                   {epsBasis?.basis === "ttm" && " (Today's P/E uses the last 12 months of profit; past years use each year's own.)"}
                 </p>
+                </PremiumGate>
               )}
             </>
           )}
@@ -199,8 +207,9 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
                 {tile("This stock P/E", currentPe != null ? currentPe.toFixed(1) : "—", "Current price-to-earnings")}
                 {tile("Sector median P/E", sectorPe != null ? sectorPe.toFixed(1) : "—", "Typical peer in its sector")}
               </div>
+              <PremiumGate label="How it compares with its sector" preview="blur" peek={28} compact>
               {currentPe != null && sectorPe != null && sectorPe > 0 && (
-                <p className="text-sm leading-snug" style={{ color: "var(--text-muted)" }}>
+                <p className="text-sm leading-snug mb-3" style={{ color: "var(--text-muted)" }}>
                   {currentPe < sectorPe
                     ? `Cheaper than the typical company in its sector (${(((sectorPe - currentPe) / sectorPe) * 100).toFixed(0)}% below the median).`
                     : `Pricier than the typical company in its sector (${(((currentPe - sectorPe) / sectorPe) * 100).toFixed(0)}% above the median).`}
@@ -216,6 +225,7 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
                   <span className="opacity-80">(A peer comparison, not a fair-value estimate.)</span>
                 </div>
               )}
+              </PremiumGate>
             </div>
           )}
         </Card>

@@ -95,6 +95,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     content("/assistant", "monthly", 0.6),
     content("/learn", "monthly", 0.8),
     content("/blog", "monthly", 0.8),
+    content("/premium", "monthly", 0.5),
     content("/about", "yearly", 0.3),
     content("/contact", "yearly", 0.3),
     content("/privacy-policy", "yearly", 0.3),

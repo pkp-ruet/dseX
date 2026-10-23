@@ -16,6 +16,7 @@ import {
   setStoredUser,
   logout as authLogout,
   isTokenExpired,
+  AUTH_USER_UPDATED_EVENT,
 } from "@/lib/auth";
 
 interface AuthContextValue {
@@ -61,6 +62,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       .catch(() => {})
       .finally(() => setIsLoading(false));
+  }, []);
+
+  useEffect(() => {
+    const onUpdated = () => {
+      const fresh = getStoredUser();
+      if (fresh) setUser(fresh);
+    };
+    window.addEventListener(AUTH_USER_UPDATED_EVENT, onUpdated);
+    return () => window.removeEventListener(AUTH_USER_UPDATED_EVENT, onUpdated);
   }, []);
 
   const login = useCallback((token: string, u: AuthUser) => {

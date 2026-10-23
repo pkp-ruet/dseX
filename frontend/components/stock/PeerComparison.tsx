@@ -7,6 +7,7 @@ import { peerStandingCaption } from "@/lib/plain-language";
 import Card from "@/components/ui/Card";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import SectionTitle from "@/components/stock/SectionTitle";
+import PremiumGate from "@/components/premium/PremiumGate";
 
 export interface PeerRow {
   trading_code: string;
@@ -109,20 +110,32 @@ export default function PeerComparison({ current, peers, sector, note = null }: 
     <section id="peers" className="mb-8 stock-anchor">
       <SectionTitle
         title="How It Stacks Up"
-        sub={<>
-            {caption ?? `${current.trading_code} versus the strongest names in ${sector ?? "its sector"}.`}
-        </>}
+        sub={<>{current.trading_code} versus the strongest names in {sector ?? "its sector"}.</>}
         bn="একই সেক্টরের সেরা কোম্পানিগুলোর সাথে তুলনা।"
       />
 
-      {note && (
-        <p
-          className={`text-sm leading-snug mb-3 rounded-xl px-3 py-2.5 ${isBn ? "font-bn" : ""}`}
-          lang={isBn ? "bn" : undefined}
-          style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
+      {/* Where it stands among them is Premium (screen-only lock); the table stays free. */}
+      {(caption || note) && (
+        <PremiumGate
+          label={isBn ? "এটি কোথায় দাঁড়িয়ে" : "Where it stands among them"}
+          preview="blur"
+          peek={36}
+          compact
+          className="mb-3"
         >
-          {isBn ? note.bn : note.en}
-        </p>
+          {caption && (
+            <p className="text-sm font-semibold leading-snug mb-2" style={{ color: "var(--text)" }}>{caption}</p>
+          )}
+          {note && (
+            <p
+              className={`text-sm leading-snug rounded-xl px-3 py-2.5 ${isBn ? "font-bn" : ""}`}
+              lang={isBn ? "bn" : undefined}
+              style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
+            >
+              {isBn ? note.bn : note.en}
+            </p>
+          )}
+        </PremiumGate>
       )}
 
       <Card padding="none" className="rounded-xl overflow-hidden">

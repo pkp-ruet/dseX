@@ -46,6 +46,7 @@ import EmptyStateActions from "./EmptyStateActions";
 import ShareWatchlistButton from "./ShareWatchlistButton";
 import SinceLastVisit from "./SinceLastVisit";
 import { toast } from "@/lib/toast";
+import { PREMIUM_PATH, usePremium } from "@/lib/premium";
 
 function flatten(scores: ScoresResponse | null): ScoreItem[] {
   if (!scores) return [];
@@ -518,6 +519,7 @@ function dividendsToSet(data: DividendsUpcoming): Set<string> {
 
 function WatchlistTableInner() {
   const { isLoggedIn, isLoading } = useAuth();
+  const { limits } = usePremium();
   const searchParams = useSearchParams();
   const router = useRouter();
   const sharedCodes = useMemo(() => parseCodesParam(searchParams.get("codes")), [searchParams]);
@@ -746,10 +748,19 @@ function WatchlistTableInner() {
 
       {codes.length > 0 && (
         <p className="-mt-2 mb-4 text-sm font-medium text-text-muted">
-          <span className="font-bold text-text-main nums">{codes.length}</span>{" "}
-          {codes.length === 1 ? "stock" : "stocks"} followed
+          <span className="font-bold text-text-main nums">{codes.length}</span>
+          {limits.watchlist !== null && <span className="nums"> of {limits.watchlist}</span>}{" "}
+          {codes.length === 1 && limits.watchlist === null ? "stock" : "stocks"} followed
           {rows.length > 0 && rows.length < codes.length && (
             <> · {rows.length} scored</>
+          )}
+          {limits.watchlist !== null && codes.length >= limits.watchlist && (
+            <>
+              {" · "}
+              <Link href={PREMIUM_PATH} className="text-primary font-semibold">
+                Follow more with Premium
+              </Link>
+            </>
           )}
         </p>
       )}

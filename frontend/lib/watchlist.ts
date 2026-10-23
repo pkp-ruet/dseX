@@ -24,6 +24,8 @@ import {
   type WatchlistResponse,
 } from "@/lib/api";
 import { cacheKeys, clearCachePrefix, readCache, writeCache } from "@/lib/swr-cache";
+import { isLimitError, storedLimit } from "@/lib/premium";
+import { showLimitNotice } from "@/components/premium/LimitNotice";
 
 function currentUserId(): string | null {
   return getStoredUser()?.user_id ?? null;
@@ -146,17 +148,36 @@ export async function loadWatchlist(): Promise<string[]> {
   return _loadPromise;
 }
 
+/** Result of an add: `"limit"` = a free account is at its cap (the limit
+ *  notice has already been shown), nothing changed. */
+export type AddResult = "added" | "limit" | "noop" | "error";
+
+/** Would adding `extra` new codes take a free account past its cap? */
+function overLimit(extra: number): boolean {
+  const limit = storedLimit("watchlist");
+  return limit !== null && extra > 0 && (_cache?.length ?? 0) + extra > limit;
+}
+
 /** Add a code. Pass `restore` (the meta captured before a remove) when undoing
  *  so the original added-on date and price survive. */
-export async function addToWatchlist(code: string, restore?: WatchlistMeta): Promise<void> {
-  if (!isLoggedIn()) return;
+export async function addToWatchlist(code: string, restore?: WatchlistMeta): Promise<AddResult> {
+  if (!isLoggedIn()) return "noop";
   const upper = code.toUpperCase();
-  if (_cache?.includes(upper)) return;
+  if (_cache?.includes(upper)) return "noop";
+  if (overLimit(1)) {
+    showLimitNotice("watchlist");
+    return "limit";
+  }
   try {
     applyResponse(await apiAddToWatchlist([upper], restore));
     emit();
-  } catch {
-    // swallow — UI keeps prior state
+    return "added";
+  } catch (err) {
+    if (isLimitError(err, "watchlist")) {
+      showLimitNotice("watchlist");
+      return "limit";
+    }
+    return "error"; // UI keeps prior state
   }
 }
 
@@ -171,22 +192,33 @@ export async function removeFromWatchlist(code: string): Promise<void> {
   }
 }
 
-export async function toggleWatchlist(code: string): Promise<boolean> {
+/** Returns whether the code is followed now, or `"limit"` when a free
+ *  account hit its cap (still not followed; the notice is already up). */
+export async function toggleWatchlist(code: string): Promise<boolean | "limit"> {
   if (isWatched(code)) {
     await removeFromWatchlist(code);
     return false;
   }
-  await addToWatchlist(code);
+  if ((await addToWatchlist(code)) === "limit") return "limit";
   return _cache?.includes(code.toUpperCase()) ?? false;
 }
 
 export async function setWatchlist(codes: string[]): Promise<string[]> {
   if (!isLoggedIn()) return [];
+  const next = normalize(codes);
+  const have = new Set(_cache ?? []);
+  const limit = storedLimit("watchlist");
+  // Same rule as the backend: blocked only when it adds codes AND ends over the cap.
+  if (limit !== null && next.some((c) => !have.has(c)) && next.length > limit) {
+    showLimitNotice("watchlist");
+    return _cache ?? [];
+  }
   try {
-    applyResponse(await apiSetWatchlist(normalize(codes)));
+    applyResponse(await apiSetWatchlist(next));
     emit();
     return _cache ?? [];
-  } catch {
+  } catch (err) {
+    if (isLimitError(err, "watchlist")) showLimitNotice("watchlist");
     return _cache ?? [];
   }
 }

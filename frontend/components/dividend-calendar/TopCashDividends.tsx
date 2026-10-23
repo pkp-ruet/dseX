@@ -2,6 +2,8 @@ import Bn from "@/components/i18n/Bn";
 import TierPill from "@/components/ui/TierPill";
 import StockRow, { StockRowValue } from "@/components/ui/StockRow";
 import { formatDate, money, pct } from "@/lib/formatters";
+import PremiumGate from "@/components/premium/PremiumGate";
+import { splitFree } from "@/lib/free-share";
 import type { CorporateActionEvent } from "@/lib/api";
 
 /**
@@ -16,6 +18,32 @@ import type { CorporateActionEvent } from "@/lib/api";
  */
 export default function TopCashDividends({ events }: { events: CorporateActionEvent[] }) {
   if (events.length === 0) return null;
+  const [free, locked] = splitFree(events);
+  const row = (e: CorporateActionEvent) => {
+    const cash = e.cash_pct ? pct(e.cash_pct, e.cash_pct % 1 ? 2 : 0) : null;
+    const perShare = e.cash_per_share != null ? money(e.cash_per_share) : null;
+    const sub = [cash ? `${cash} cash` : null, perShare ? `${perShare} per share` : null]
+      .filter(Boolean)
+      .join(" · ");
+    return (
+      <StockRow
+        key={`${e.trading_code}-${e.declaration_date}`}
+        code={e.trading_code}
+        name={e.company_name}
+        tags={e.tier ? <TierPill tier={e.tier} /> : undefined}
+        sub={sub ? <span className="font-semibold tabular-nums nums">{sub}</span> : undefined}
+        subTone="watch"
+        detail={e.declaration_date ? `Declared ${formatDate(e.declaration_date)}` : undefined}
+        right={
+          <StockRowValue
+            value={e.yield_pct != null ? `${pct(e.yield_pct, 2)} yield` : "—"}
+            tone="positive"
+            sub={e.ltp != null ? `at ${money(e.ltp)}` : undefined}
+          />
+        }
+      />
+    );
+  };
 
   return (
     <section className="mb-8" id="top-payers">
@@ -31,33 +59,13 @@ export default function TopCashDividends({ events }: { events: CorporateActionEv
         অনেক বেশি ইল্ড মানে প্রায়ই দাম পড়ে গেছে — পাশের রেটিং দেখে কোম্পানির শক্তি যাচাই করুন।
       </Bn>
 
-      <ol className="stock-list">
-        {events.map((e) => {
-          const cash = e.cash_pct ? pct(e.cash_pct, e.cash_pct % 1 ? 2 : 0) : null;
-          const perShare = e.cash_per_share != null ? money(e.cash_per_share) : null;
-          const sub = [cash ? `${cash} cash` : null, perShare ? `${perShare} per share` : null]
-            .filter(Boolean)
-            .join(" · ");
-          return (
-            <StockRow
-              key={`${e.trading_code}-${e.declaration_date}`}
-              code={e.trading_code}
-              name={e.company_name}
-              tags={e.tier ? <TierPill tier={e.tier} /> : undefined}
-              sub={sub ? <span className="font-semibold tabular-nums nums">{sub}</span> : undefined}
-              subTone="watch"
-              detail={e.declaration_date ? `Declared ${formatDate(e.declaration_date)}` : undefined}
-              right={
-                <StockRowValue
-                  value={e.yield_pct != null ? `${pct(e.yield_pct, 2)} yield` : "—"}
-                  tone="positive"
-                  sub={e.ltp != null ? `at ${money(e.ltp)}` : undefined}
-                />
-              }
-            />
-          );
-        })}
-      </ol>
+      {/* Free readers see the top quarter; the rest is Premium (screen-only lock). */}
+      <ol className="stock-list">{free.map(row)}</ol>
+      {locked.length > 0 && (
+        <PremiumGate label={`${locked.length} more big cash dividends`} peek={120} className="mt-2">
+          <ol className="stock-list" start={free.length + 1}>{locked.map(row)}</ol>
+        </PremiumGate>
+      )}
 
       <p className="mt-2.5 text-xs font-semibold text-text-muted">
         Yields are gross, before the 10% dividend tax (15% without a TIN) and any AIT

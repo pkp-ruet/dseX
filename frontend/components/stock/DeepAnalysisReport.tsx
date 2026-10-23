@@ -4,6 +4,7 @@ import Markdown from "@/lib/markdown";
 import LangToggle from "@/components/stock/LangToggle";
 import ValueTodayBox from "@/components/stock/ValueTodayBox";
 import { useStockLang } from "@/context/StockLangContext";
+import PremiumGate from "@/components/premium/PremiumGate";
 
 interface Props {
   report: Report;
@@ -38,6 +39,41 @@ export default function DeepAnalysisReport({ report, fairValue }: Props) {
   const sectionTitle = (s: DeepAnalysisSection) => pick(s.title_en, s.title_bn);
   const sectionTakeaway = (s: DeepAnalysisSection) => pick(s.takeaway_en, s.takeaway_bn);
   const sectionBody = (s: DeepAnalysisSection) => pick(s.body_en, s.body_bn);
+
+  const renderSection = (s: (typeof report.sections)[number], i: number) => {
+    const accent = accentFor(s.key);
+    const isValuation = s.key === "valuation";
+    return (
+      <section key={s.key} className="stock-anchor" id={`sec-${s.key}`}>
+        <div className="flex items-baseline gap-2.5 mb-2">
+          <span className="text-xs font-bold tabular-nums shrink-0 text-text-muted">
+            {String(i + 1).padStart(2, "0")}
+          </span>
+          <h2 className="text-lg sm:text-xl font-bold leading-snug text-text-main">
+            {sectionTitle(s)}
+          </h2>
+        </div>
+
+        {/* Takeaway — the one line a skimmer should remember */}
+        <p className={`text-base font-semibold leading-snug mb-3 pl-3 border-l-[3px] text-text-main ${accent}`}>
+          {sectionTakeaway(s)}
+        </p>
+
+        {isValuation ? (
+          <div className="grid gap-5 lg:grid-cols-[1fr_320px] lg:items-start">
+            <Markdown text={sectionBody(s)} className="text-base" />
+            {fairValue && (
+              <div className="hidden lg:block lg:sticky lg:top-28">
+                <ValueTodayBox fairValue={fairValue} lang={lang} />
+              </div>
+            )}
+          </div>
+        ) : (
+          <Markdown text={sectionBody(s)} className="text-base" />
+        )}
+      </section>
+    );
+  };
 
   return (
     <article className={isBn ? "font-bn" : ""} lang={isBn ? "bn" : undefined}>
@@ -77,43 +113,22 @@ export default function DeepAnalysisReport({ report, fairValue }: Props) {
         </div>
       )}
 
-      {/* The 10 durable sections, all expanded, takeaway as the lead line */}
+      {/* The 10 durable sections, all expanded, takeaway as the lead line.
+          The first is free; the rest are Premium (screen-only PremiumGate). */}
       <div className="space-y-8">
-        {report.sections.map((s, i) => {
-          const accent = accentFor(s.key);
-          const isValuation = s.key === "valuation";
-          return (
-            <section key={s.key} className="stock-anchor" id={`sec-${s.key}`}>
-              <div className="flex items-baseline gap-2.5 mb-2">
-                <span className="text-xs font-bold tabular-nums shrink-0 text-text-muted">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <h2 className="text-lg sm:text-xl font-bold leading-snug text-text-main">
-                  {sectionTitle(s)}
-                </h2>
-              </div>
-
-              {/* Takeaway — the one line a skimmer should remember */}
-              <p className={`text-base font-semibold leading-snug mb-3 pl-3 border-l-[3px] text-text-main ${accent}`}>
-                {sectionTakeaway(s)}
-              </p>
-
-              {isValuation ? (
-                <div className="grid gap-5 lg:grid-cols-[1fr_320px] lg:items-start">
-                  <Markdown text={sectionBody(s)} className="text-base" />
-                  {fairValue && (
-                    <div className="hidden lg:block lg:sticky lg:top-28">
-                      <ValueTodayBox fairValue={fairValue} lang={lang} />
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <Markdown text={sectionBody(s)} className="text-base" />
-              )}
-            </section>
-          );
-        })}
+        {report.sections.slice(0, 1).map((s, i) => renderSection(s, i))}
       </div>
+      {report.sections.length > 1 && (
+        <PremiumGate
+          label={lang === "bn" ? "বাকি বিশ্লেষণ" : "The rest of this report"}
+          peek={220}
+          className="mt-8"
+        >
+          <div className="space-y-8">
+            {report.sections.slice(1).map((s, i) => renderSection(s, i + 1))}
+          </div>
+        </PremiumGate>
+      )}
 
       {/* Fine print */}
       {disclaimer && (

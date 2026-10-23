@@ -11,6 +11,7 @@ import "./styles/stock.css";
 import "./styles/nav.css";
 import "./styles/states.css";
 import "./styles/misc.css";
+import "./styles/premium.css";
 
 const inter = Inter({
   subsets: ["latin"],

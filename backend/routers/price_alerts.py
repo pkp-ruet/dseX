@@ -3,6 +3,7 @@ from pydantic import BaseModel, field_validator
 
 from backend.routers.auth import get_current_user
 from backend.services import price_alert_service
+from backend.services.entitlements import LIMIT_ALERTS, limits_for
 
 router = APIRouter(prefix="/api/user/alerts", tags=["price-alerts"])
 
@@ -53,7 +54,13 @@ def get_alerts(current_user: dict = Depends(get_current_user)):
 @router.post("", status_code=201)
 def create_alert(body: CreateAlertBody, current_user: dict = Depends(get_current_user)):
     user_id = current_user["user_id"]
-    alert = price_alert_service.create_alert(user_id, body.trading_code, body.target_price)
+    try:
+        alert = price_alert_service.create_alert(
+            user_id, body.trading_code, body.target_price,
+            limit=limits_for(current_user)["alerts"],
+        )
+    except price_alert_service.AlertLimitReached:
+        raise HTTPException(status_code=403, detail=LIMIT_ALERTS)
     return {"alert": alert, "alerts": price_alert_service.list_alerts(user_id)}
 
 
@@ -73,7 +80,12 @@ def update_alert(
 @router.post("/{alert_id}/rearm")
 def rearm_alert(alert_id: str, current_user: dict = Depends(get_current_user)):
     user_id = current_user["user_id"]
-    alert = price_alert_service.rearm_alert(user_id, alert_id)
+    try:
+        alert = price_alert_service.rearm_alert(
+            user_id, alert_id, limit=limits_for(current_user)["alerts"],
+        )
+    except price_alert_service.AlertLimitReached:
+        raise HTTPException(status_code=403, detail=LIMIT_ALERTS)
     if alert is None:
         raise HTTPException(status_code=404, detail="Alert not found")
     return {"alert": alert, "alerts": price_alert_service.list_alerts(user_id)}

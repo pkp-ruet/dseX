@@ -1,10 +1,11 @@
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from backend.routers.auth import get_current_user
+from utils.market_hours import bst_today_iso
 from backend.services.auth_service import (
     get_user_watchlist,
     get_user_watchlist_meta,
@@ -18,6 +19,11 @@ from backend.services.auth_service import (
     clear_last_recommendation,
     set_pick_feedback,
     clear_daily_picks,
+)
+from backend.services.entitlements import (
+    LIMIT_WATCHLIST,
+    limits_for,
+    watchlist_add_blocked,
 )
 from backend.services.daily_picks_service import (
     get_or_compute_daily_picks,
@@ -55,14 +61,24 @@ def get_watchlist(current_user: dict = Depends(get_current_user)):
     return {"codes": codes, "meta": get_user_watchlist_meta(user_id)}
 
 
+def _check_watchlist_limit(user: dict, new_codes: list[str]) -> None:
+    """403 when a free account would follow more than its limit."""
+    current = get_user_watchlist(user["user_id"])
+    if watchlist_add_blocked(current, new_codes, limits_for(user)["watchlist"]):
+        raise HTTPException(status_code=403, detail=LIMIT_WATCHLIST)
+
+
 @router.put("/watchlist")
 def set_watchlist(body: WatchlistBody, current_user: dict = Depends(get_current_user)):
+    _check_watchlist_limit(current_user, body.codes)
     codes, meta = update_user_watchlist(current_user["user_id"], body.codes)
     return {"codes": codes, "meta": meta}
 
 
 @router.patch("/watchlist/add")
 def add_to_watchlist(body: WatchlistBody, current_user: dict = Depends(get_current_user)):
+    current = get_user_watchlist(current_user["user_id"])
+    _check_watchlist_limit(current_user, current + body.codes)
     codes, meta = add_to_user_watchlist(current_user["user_id"], body.codes, restore=body.meta)
     return {"codes": codes, "meta": meta}
 
@@ -126,15 +142,20 @@ def mark_ai_used(current_user: dict = Depends(get_current_user)):
     Sets first/last-used timestamps + increments a message counter. Fired
     fire-and-forget from the assistant on every user message; best-effort."""
     now = datetime.now(timezone.utc)
+    # Per-Dhaka-day counter beside the lifetime one; the frontend blocks a free
+    # account at `limits.ai_daily` and re-syncs its own count from this reply.
+    today = bst_today_iso()
+    day = current_user.get("ai_day") or {}
+    count_today = (day.get("count", 0) if day.get("date") == today else 0) + 1
     get_db()["users"].update_one(
         {"user_id": current_user["user_id"]},
         {
-            "$set": {"ai_last_used_at": now},
+            "$set": {"ai_last_used_at": now, "ai_day": {"date": today, "count": count_today}},
             "$min": {"ai_first_used_at": now},
             "$inc": {"ai_query_count": 1},
         },
     )
-    return {"ok": True}
+    return {"ok": True, "count_today": count_today, "limit": limits_for(current_user)["ai_daily"]}
 
 
 # ---------------------------------------------------------------------------

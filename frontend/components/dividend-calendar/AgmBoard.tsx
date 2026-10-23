@@ -1,6 +1,8 @@
 import Bn from "@/components/i18n/Bn";
 import StockRow, { StockRowValue } from "@/components/ui/StockRow";
 import { formatDate, pct } from "@/lib/formatters";
+import PremiumGate from "@/components/premium/PremiumGate";
+import { splitFree } from "@/lib/free-share";
 import type { CorporateActionEvent } from "@/lib/api";
 
 function dividendLabel(e: CorporateActionEvent) {
@@ -20,6 +22,24 @@ function daysLabel(days: number | null | undefined) {
 /** Announced AGM dates — where the dividend gets approved before it's paid. */
 export default function AgmBoard({ events }: { events: CorporateActionEvent[] }) {
   if (events.length === 0) return null;
+  // Free readers see the first quarter; the rest is Premium (screen-only lock).
+  const [free, locked] = splitFree(events);
+  const row = (e: CorporateActionEvent) => (
+    <StockRow
+      key={`${e.trading_code}-${e.agm_date}`}
+      code={e.trading_code}
+      name={e.company_name}
+      sub={<span className="font-semibold">{dividendLabel(e)} up for approval</span>}
+      subTone={e.cash_pct ? "positive" : "muted"}
+      right={
+        <StockRowValue
+          value={<span className="text-xs">AGM {formatDate(e.agm_date)}</span>}
+          sub={daysLabel(e.agm_days_left)}
+          subTone={e.agm_days_left != null && e.agm_days_left <= 1 ? "watch" : "muted"}
+        />
+      }
+      />
+  );
 
   return (
     <section className="mb-8" id="agms">
@@ -35,24 +55,12 @@ export default function AgmBoard({ events }: { events: CorporateActionEvent[] })
         AGM-তে শেয়ারহোল্ডাররা অনুমোদন দিলেই চূড়ান্ত লভ্যাংশ পাওয়া যায় — এরপর সাধারণত 30 দিনের মধ্যে টাকা আসে।
       </Bn>
 
-      <ul className="stock-list">
-        {events.map((e) => (
-          <StockRow
-            key={`${e.trading_code}-${e.agm_date}`}
-            code={e.trading_code}
-            name={e.company_name}
-            sub={<span className="font-semibold">{dividendLabel(e)} up for approval</span>}
-            subTone={e.cash_pct ? "positive" : "muted"}
-            right={
-              <StockRowValue
-                value={<span className="text-xs">AGM {formatDate(e.agm_date)}</span>}
-                sub={daysLabel(e.agm_days_left)}
-                subTone={e.agm_days_left != null && e.agm_days_left <= 1 ? "watch" : "muted"}
-              />
-            }
-          />
-        ))}
-      </ul>
+      <ul className="stock-list">{free.map(row)}</ul>
+      {locked.length > 0 && (
+        <PremiumGate label={`${locked.length} more AGMs`} peek={120} className="mt-2">
+          <ul className="stock-list">{locked.map(row)}</ul>
+        </PremiumGate>
+      )}
     </section>
   );
 }

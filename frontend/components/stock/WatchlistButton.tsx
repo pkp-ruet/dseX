@@ -40,6 +40,7 @@ export default function WatchlistButton({ code, className = "" }: Props) {
       return;
     }
     toggleWatchlist(code).then((nowWatched) => {
+      if (nowWatched === "limit") return; // free cap — the limit notice is already up
       setWatched(nowWatched);
       toast({
         message: nowWatched ? `${code.toUpperCase()} added to your watchlist` : `${code.toUpperCase()} removed from watchlist`,

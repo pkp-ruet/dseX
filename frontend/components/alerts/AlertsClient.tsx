@@ -18,6 +18,7 @@ import PriceAlertModal from "@/components/stock/PriceAlertModal";
 import EmptyState from "@/components/ui/EmptyState";
 import Skeleton from "@/components/ui/Skeleton";
 import Card from "@/components/ui/Card";
+import { usePremium } from "@/lib/premium";
 
 function flatten(scores: ScoresResponse | null): ScoreItem[] {
   if (!scores) return [];
@@ -147,6 +148,7 @@ export default function AlertsClient() {
     return m;
   }, [scores]);
 
+  const alertLimit = usePremium().limits.alerts;
   const active = alerts.filter((a) => a.is_active);
   const triggered = alerts.filter((a) => !a.is_active);
 
@@ -205,7 +207,7 @@ export default function AlertsClient() {
       {active.length > 0 && (
         <section className="mb-6">
           <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-text-muted">
-            Armed ({active.length})
+            Armed ({active.length}{alertLimit !== null ? ` of ${alertLimit}` : ""})
           </h2>
           <div className="flex flex-col gap-2.5">
             {active.map((a) => (

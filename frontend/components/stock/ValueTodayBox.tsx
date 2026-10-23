@@ -2,6 +2,7 @@
 import type { FairValue } from "@/lib/api";
 import type { Lang } from "@/components/stock/LangToggle";
 import { useStockLang } from "@/context/StockLangContext";
+import PremiumGate from "@/components/premium/PremiumGate";
 
 interface Props {
   fairValue: FairValue | null | undefined;
@@ -87,17 +88,18 @@ export default function ValueTodayBox({ fairValue, lang: langProp, className = "
       style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "var(--shadow-soft)" }}
       lang={isBn ? "bn" : undefined}
     >
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <p className="text-xs font-bold uppercase tracking-[0.15em]" style={{ color: "var(--text-muted)" }}>
-          {T.title[lang]}
-        </p>
-        <span
-          className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold"
-          style={{ background: color, color: "#fff" }}
-        >
-          {stanceLabel}
-        </span>
-      </div>
+      <p className="text-xs font-bold uppercase tracking-[0.15em] mb-3" style={{ color: "var(--text-muted)" }}>
+        {T.title[lang]}
+      </p>
+
+      {/* Everything below the title is Premium (screen-only lock, blurred preview). */}
+      <PremiumGate label={isBn ? "ন্যায্য দামের হিসাব" : "The fair-value estimate"} preview="blur">
+      <span
+        className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold mb-3"
+        style={{ background: color, color: "#fff" }}
+      >
+        {stanceLabel}
+      </span>
 
       {/* Headline figures: today's price + our rough estimate */}
       <div className="flex items-end gap-5 mb-4">
@@ -171,7 +173,9 @@ export default function ValueTodayBox({ fairValue, lang: langProp, className = "
         </ul>
       )}
 
-      <p className="text-xs leading-snug" style={{ color: "var(--text-muted)" }}>
+      </PremiumGate>
+
+      <p className="text-xs leading-snug mt-3" style={{ color: "var(--text-muted)" }}>
         {T.note[lang]}
       </p>
     </div>

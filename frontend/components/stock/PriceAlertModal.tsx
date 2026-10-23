@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createAlert, updateAlert, deleteAlert, type PriceAlert } from "@/lib/price-alerts";
 import { toast } from "@/lib/toast";
 import Button from "@/components/ui/Button";
+import PremiumLockCard from "@/components/premium/PremiumLockCard";
 
 interface Props {
   code: string;
@@ -31,6 +32,7 @@ export default function PriceAlertModal({ code, ltp, w52High, w52Low, existing, 
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [atLimit, setAtLimit] = useState(false);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -69,6 +71,11 @@ export default function PriceAlertModal({ code, ltp, w52High, w52Low, existing, 
       const ok = existing
         ? await updateAlert(existing.id, target)
         : await createAlert(code, target);
+      if (ok === "limit") {
+        setAtLimit(true);
+        setSubmitting(false);
+        return;
+      }
       if (!ok) {
         setError("Couldn't save the alert. Try again.");
         setSubmitting(false);
@@ -165,6 +172,9 @@ export default function PriceAlertModal({ code, ltp, w52High, w52Low, existing, 
           )}
 
           {error && <p className="form-error">{error}</p>}
+          {atLimit && (
+            <PremiumLockCard label="More than 3 price alerts" compact />
+          )}
 
           <div className="grid grid-cols-2 gap-2 mt-4">
             {existing ? (

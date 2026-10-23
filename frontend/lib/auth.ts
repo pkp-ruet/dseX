@@ -16,7 +16,20 @@ export interface AuthUser {
   is_admin: boolean;
   current_streak?: number;
   longest_streak?: number;
+  // Plan (backend `entitlements.plan_fields`). Optional: a user cached before
+  // premium shipped has none of these until the next /me refresh.
+  is_premium?: boolean;
+  premium_until?: string | null;
+  trial_started_at?: string | null;
+  premium_source?: "trial" | "admin" | null;
+  trial_available?: boolean;
+  /** null = unlimited. */
+  limits?: { watchlist: number | null; alerts: number | null; ai_daily: number | null };
 }
+
+/** Fired after something outside AuthContext stored a fresh user (e.g. the
+ *  free month started from a toast). AuthContext listens and re-reads it. */
+export const AUTH_USER_UPDATED_EVENT = "dsex:auth-user-updated";
 
 // ---------------------------------------------------------------------------
 // Token

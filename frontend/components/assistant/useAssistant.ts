@@ -19,7 +19,8 @@ import {
 } from "@/lib/assistant/responders";
 import { briefBlocks } from "@/lib/assistant/responders/brief";
 import { runSuggest } from "@/lib/assistant/responders/suggestFlow";
-import { isLoggedIn } from "@/lib/auth";
+import { getStoredUser, isLoggedIn } from "@/lib/auth";
+import { storedLimit } from "@/lib/premium";
 import { loadWatchlist, toggleWatchlist } from "@/lib/watchlist";
 import {
   SLOT_ORDER,
@@ -63,9 +64,21 @@ function markBriefSeen(): void {
   }
 }
 
-function guestCountToday(): number {
+// Guests count under one device key; a signed-in free account counts per user
+// (Dhaka-day reset is close enough to the local day here). Premium = no cap.
+function countKey(): string {
+  const uid = isLoggedIn() ? getStoredUser()?.user_id : null;
+  return uid ? `disha:user:count:${uid}` : GUEST_COUNT_KEY;
+}
+
+/** Today's question cap for this reader, or null when unlimited. */
+function dailyLimit(): number | null {
+  return isLoggedIn() ? storedLimit("ai_daily") : GUEST_LIMIT;
+}
+
+function countToday(): number {
   try {
-    const raw = localStorage.getItem(GUEST_COUNT_KEY);
+    const raw = localStorage.getItem(countKey());
     if (!raw) return 0;
     const data = JSON.parse(raw) as { date: string; count: number };
     return data.date === todayKey() ? data.count : 0;
@@ -74,17 +87,33 @@ function guestCountToday(): number {
   }
 }
 
-function bumpGuestCount(): number {
-  const next = guestCountToday() + 1;
+function bumpCount(): number {
+  const next = countToday() + 1;
   try {
-    localStorage.setItem(GUEST_COUNT_KEY, JSON.stringify({ date: todayKey(), count: next }));
+    localStorage.setItem(countKey(), JSON.stringify({ date: todayKey(), count: next }));
   } catch {
     /* private mode — ignore */
   }
   return next;
 }
 
-function guestLimitBlocks(): MessageBlock[] {
+function atDailyLimit(): boolean {
+  const limit = dailyLimit();
+  return limit !== null && countToday() >= limit;
+}
+
+function limitBlocks(): MessageBlock[] {
+  if (isLoggedIn()) {
+    const n = storedLimit("ai_daily") ?? 0;
+    return [
+      {
+        type: "text",
+        text: COPY.freeLimit.text(n),
+        bn: COPY.freeLimit.bn(n),
+        link: { href: "/premium", label: COPY.freeLimit.cta },
+      },
+    ];
+  }
   return [
     {
       type: "text",
@@ -102,7 +131,7 @@ interface State {
   status: Status;
   /** Reactive mirror of the suggest flow's active flag — drives the quick-action bar. */
   flowActive: boolean;
-  /** True when a logged-out visitor has used up today's free questions. */
+  /** True when a guest or free account has used up today's free questions. */
   limited: boolean;
 }
 
@@ -223,8 +252,8 @@ export function useAssistant(): UseAssistant {
       dispatch({ type: "add", message: mkMessage("bot", greetingBlocks()) });
     }
 
-    // Re-lock a guest who already spent today's free questions.
-    if (!isLoggedIn() && guestCountToday() >= GUEST_LIMIT) {
+    // Re-lock a reader who already spent today's free questions.
+    if (atDailyLimit()) {
       dispatch({ type: "limited", value: true });
     }
 
@@ -287,8 +316,9 @@ export function useAssistant(): UseAssistant {
    * question, flag the next bot reply to carry the sign-up nudge.
    */
   const countGuestMessage = useCallback(() => {
-    if (isLoggedIn()) return;
-    if (bumpGuestCount() >= GUEST_LIMIT) limitPendingRef.current = true;
+    const limit = dailyLimit();
+    if (limit === null) return;
+    if (bumpCount() >= limit) limitPendingRef.current = true;
   }, []);
 
   /** Push a "typing" bubble, then swap in the produced blocks after a short delay. */
@@ -310,9 +340,9 @@ export function useAssistant(): UseAssistant {
       dispatch({ type: "replace", id, blocks });
       dispatch({ type: "status", status: "idle" });
       // Guest just spent their last free question — suggest signing up and lock input.
-      if (limitPendingRef.current && !isLoggedIn()) {
+      if (limitPendingRef.current && dailyLimit() !== null) {
         limitPendingRef.current = false;
-        dispatch({ type: "add", message: mkMessage("bot", guestLimitBlocks()) });
+        dispatch({ type: "add", message: mkMessage("bot", limitBlocks()) });
         dispatch({ type: "limited", value: true });
       }
     }, delay);
@@ -421,6 +451,14 @@ export function useAssistant(): UseAssistant {
           if (kind === "watchlist_toggle") {
             await loadWatchlist(); // ensure current state before toggling
             const nowWatched = await toggleWatchlist(code);
+            if (nowWatched === "limit") {
+              return [{
+                type: "text",
+                text: "A free account can follow 10 stocks. Premium has no limit.",
+                bn: "ফ্রি অ্যাকাউন্টে 10টি শেয়ার ফলো করা যায়। প্রিমিয়ামে কোনো সীমা নেই।",
+                link: { href: "/premium", label: "See Premium" },
+              }];
+            }
             return nowWatched
               ? [{ type: "text", text: COPY.actions.added(code), bn: COPY.actions.addedBn(code) }]
               : [{ type: "text", text: COPY.actions.removed(code), bn: COPY.actions.removedBn(code) }];

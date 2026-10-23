@@ -86,6 +86,13 @@ def _top_codes(col, array_field: str, limit: int = 10) -> list[dict]:
         return []
 
 
+def _count(coll, query: dict) -> int:
+    try:
+        return coll.count_documents(query)
+    except Exception:  # noqa: BLE001 — best-effort panel
+        return 0
+
+
 @router.get("/analytics")
 def get_analytics(_: dict = Depends(get_current_admin_user)):
     """The whole admin analytics page in one response: headline numbers, daily
@@ -291,6 +298,8 @@ def get_analytics(_: dict = Depends(get_current_admin_user)):
             "installed": installed,
             "alerts": len(alert_user_ids),
             "ai": ai,
+            "premium_active": _count(db["users"], {"premium_until": {"$gt": now}}),
+            "trials_started": _count(db["users"], {"trial_started_at": {"$exists": True}}),
         },
         "sections": sections,
         "stocks": {
@@ -485,3 +494,24 @@ def admin_feature_feedback(
     # The public block is TTL-cached; drop it so moderation takes effect at once.
     public_trust_stats.cache_clear()
     return {"ok": True, "id": feedback_id, "featured": payload.featured}
+
+
+# ---------------------------------------------------------------------------
+# Premium (v1: no billing — the free month, plus manual grants for support)
+# ---------------------------------------------------------------------------
+
+class PremiumGrantBody(BaseModel):
+    email: str
+    days: int = Field(..., ge=0, le=3650)  # 0 = revoke now
+
+
+@router.post("/premium")
+def grant_premium_endpoint(body: PremiumGrantBody, _: dict = Depends(get_current_admin_user)):
+    from backend.services.auth_service import normalize_email
+    from backend.services.entitlements import grant_premium
+
+    doc = get_db()["users"].find_one({"email": normalize_email(body.email)}, {"user_id": 1})
+    if not doc:
+        raise HTTPException(status_code=404, detail="User not found")
+    until = grant_premium(doc["user_id"], body.days)
+    return {"user_id": doc["user_id"], "premium_until": until.isoformat() if until else None}

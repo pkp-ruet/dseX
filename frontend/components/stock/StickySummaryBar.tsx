@@ -6,6 +6,7 @@ import SignalChip from "@/components/ui/SignalChip";
 import type { StockSignalInfo } from "@/lib/api";
 import { money, changePct as fmtChange, changeTone } from "@/lib/formatters";
 import StarButton from "@/components/ui/StarButton";
+import { usePremium } from "@/lib/premium";
 import StockSectionNav, { type NavSection } from "@/components/stock/StockSectionNav";
 import StickyStackMeasure, {
   BAR_H,
@@ -52,6 +53,8 @@ interface Props {
 export default function StickySummaryBar({
   code, score, rank, total, signal, ltp, changePct, sections,
 }: Props) {
+  // The signal's reason is Premium; free readers get the chip without the tooltip.
+  const { isPremium } = usePremium();
   const [show, setShow] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -138,7 +141,7 @@ export default function StickySummaryBar({
             <SignalChip
               signal={signal.signal}
               strength={signal.strength}
-              reason={signal.reason_en}
+              reason={isPremium ? signal.reason_en : null}
               size="sm"
               className="shrink-0"
             />

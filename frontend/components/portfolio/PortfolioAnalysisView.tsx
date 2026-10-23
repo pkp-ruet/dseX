@@ -10,6 +10,7 @@ import SectorBreakdownChart from "./SectorBreakdownChart";
 import HoldingsDetailed from "./HoldingsDetailed";
 import RebalanceHelper from "./RebalanceHelper";
 import Button from "@/components/ui/Button";
+import PremiumGate from "@/components/premium/PremiumGate";
 
 /** Grade accents come from the site tokens — no raw palette colors. */
 const GRADE_ACCENT: Record<Grade, string> = {
@@ -80,6 +81,10 @@ interface Props {
   showSectorSpread?: boolean;
   showHoldingsList?: boolean;
   showDisclaimer?: boolean;
+  /** Free account on /portfolio: grade + headline + the first point of each
+   *  list stay open, the rest sits behind PremiumGate (screen-only). Sample
+   *  portfolios and the landing never pass it. */
+  locked?: boolean;
 }
 
 export default function PortfolioAnalysisView({
@@ -90,6 +95,7 @@ export default function PortfolioAnalysisView({
   showSectorSpread = true,
   showHoldingsList = true,
   showDisclaimer = true,
+  locked = false,
 }: Props) {
   const accent = GRADE_ACCENT[analysis.grade];
   const { spread, quality, entry } = analysis.subScores;
@@ -177,11 +183,20 @@ export default function PortfolioAnalysisView({
         </div>
 
         {/* Sub-score chips */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-5 sm:mt-6 pt-5 border-t border-border/60">
-          <SubScore label={t.spread} value={spread} hint={t.spreadHint} bnMode={bnMode} />
-          <SubScore label={t.quality} value={quality} hint={t.qualityHint} bnMode={bnMode} />
-          <SubScore label={t.entry} value={entry} hint={t.entryHint} bnMode={bnMode} />
-        </div>
+        {(() => {
+          const chips = (
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-5 sm:mt-6 pt-5 border-t border-border/60">
+              <SubScore label={t.spread} value={spread} hint={t.spreadHint} bnMode={bnMode} />
+              <SubScore label={t.quality} value={quality} hint={t.qualityHint} bnMode={bnMode} />
+              <SubScore label={t.entry} value={entry} hint={t.entryHint} bnMode={bnMode} />
+            </div>
+          );
+          return locked ? (
+            <PremiumGate label={bnMode ? "তিনটি স্কোরের হিসাব" : "The three scores behind the grade"} preview="blur" peek={90}>
+              {chips}
+            </PremiumGate>
+          ) : chips;
+        })()}
       </section>
 
       {/* How to read the lists */}
@@ -208,6 +223,7 @@ export default function PortfolioAnalysisView({
           title={t.goodTitle}
           tone="good"
           items={analysis.good}
+          locked={locked}
           emptyText={t.goodEmpty}
           bnMode={bnMode}
         />
@@ -215,6 +231,7 @@ export default function PortfolioAnalysisView({
           title={t.badTitle}
           tone="bad"
           items={analysis.bad}
+          locked={locked}
           emptyText={t.badEmpty}
           bnMode={bnMode}
         />
@@ -222,22 +239,37 @@ export default function PortfolioAnalysisView({
           title={t.considerTitle}
           tone="consider"
           items={analysis.consider}
+          locked={locked}
           emptyText={t.considerEmpty}
           bnMode={bnMode}
         />
       </div>
 
-      {/* What to buy next — concrete ideas for the gaps above */}
-      {rebalance && <RebalanceHelper plan={rebalance} lang={lang} />}
+      {(() => {
+        const deeper = (
+          <div className="flex flex-col gap-5 sm:gap-6">
+            {/* What to buy next — concrete ideas for the gaps above */}
+            {rebalance && <RebalanceHelper plan={rebalance} lang={lang} />}
 
-      {/* Allocation per company */}
-      {showSectorSpread && <AllocationChart analysis={analysis} lang={lang} />}
+            {/* Allocation per company */}
+            {showSectorSpread && <AllocationChart analysis={analysis} lang={lang} />}
 
-      {/* Sector breakdown */}
-      {showSectorSpread && <SectorBreakdownChart analysis={analysis} lang={lang} />}
+            {/* Sector breakdown */}
+            {showSectorSpread && <SectorBreakdownChart analysis={analysis} lang={lang} />}
 
-      {/* Holdings */}
-      {showHoldingsList && <HoldingsDetailed analysis={analysis} lang={lang} />}
+            {/* Holdings */}
+            {showHoldingsList && <HoldingsDetailed analysis={analysis} lang={lang} />}
+          </div>
+        );
+        return locked ? (
+          <PremiumGate
+            label={bnMode ? "কী কিনবেন, ভাগ আর প্রতিটি শেয়ারের বিশ্লেষণ" : "Buy-next ideas, your spread and each holding's read"}
+            peek={200}
+          >
+            {deeper}
+          </PremiumGate>
+        ) : deeper;
+      })()}
 
       {showDisclaimer && (
         <p
@@ -310,6 +342,8 @@ interface SectionProps {
   items: string[];
   emptyText: string;
   bnMode: boolean;
+  /** Show the first point; the rest go behind a compact premium lock. */
+  locked?: boolean;
 }
 
 const TONE_THEME: Record<
@@ -347,7 +381,7 @@ const TONE_THEME: Record<
   },
 };
 
-function Section({ title, tone, items, emptyText, bnMode }: SectionProps) {
+function Section({ title, tone, items, emptyText, bnMode, locked = false }: SectionProps) {
   const { accent, icon } = TONE_THEME[tone];
   const bnText = bnMode ? "font-bn" : "";
   const chipStyle = {
@@ -383,20 +417,39 @@ function Section({ title, tone, items, emptyText, bnMode }: SectionProps) {
           {emptyText}
         </p>
       ) : (
-        <ul className="flex flex-col gap-3">
-          {items.map((item, i) => (
-            <li key={i} className="flex items-start gap-2.5 leading-relaxed">
-              <span
-                className="shrink-0 mt-[7px] w-1.5 h-1.5 rounded-full"
-                style={{ background: accent }}
-                aria-hidden
-              />
-              <span className={`text-sm sm:text-base text-text-main leading-[1.65] ${bnText}`}>
-                {item}
-              </span>
-            </li>
-          ))}
-        </ul>
+        (() => {
+          const list = (rows: string[]) => (
+            <ul className="flex flex-col gap-3">
+              {rows.map((item, i) => (
+                <li key={i} className="flex items-start gap-2.5 leading-relaxed">
+                  <span
+                    className="shrink-0 mt-[7px] w-1.5 h-1.5 rounded-full"
+                    style={{ background: accent }}
+                    aria-hidden
+                  />
+                  <span className={`text-sm sm:text-base text-text-main leading-[1.65] ${bnText}`}>
+                    {item}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          );
+          if (!locked || items.length <= 1) return list(items);
+          const more = items.length - 1;
+          return (
+            <>
+              {list(items.slice(0, 1))}
+              <PremiumGate
+                label={bnMode ? `আরও ${more}টি পয়েন্ট` : `${more} more ${more === 1 ? "point" : "points"}`}
+                peek={48}
+                compact
+                className="mt-3"
+              >
+                {list(items.slice(1))}
+              </PremiumGate>
+            </>
+          );
+        })()
       )}
     </div>
   );

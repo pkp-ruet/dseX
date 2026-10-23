@@ -110,6 +110,13 @@ export default async function StockAnalysisPage({ params }: PageProps) {
       "@type": "FinancialProduct",
       name: `${name} (${tradingCode})`,
     },
+    // Paywall markup: sections after the first are Premium (PremiumGate).
+    isAccessibleForFree: false,
+    hasPart: {
+      "@type": "WebPageElement",
+      isAccessibleForFree: false,
+      cssSelector: ".premium-locked",
+    },
   };
   const breadcrumbLd = {
     "@context": "https://schema.org",

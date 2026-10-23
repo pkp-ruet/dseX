@@ -93,6 +93,13 @@ export default async function DividendCalendarPage() {
         inLanguage: "en",
         isPartOf: { "@id": BASE_URL },
         dateModified: data.today,
+        // Paywall markup: each list past its first quarter is Premium (PremiumGate).
+        isAccessibleForFree: false,
+        hasPart: {
+          "@type": "WebPageElement",
+          isAccessibleForFree: false,
+          cssSelector: ".premium-locked",
+        },
       },
       {
         "@type": "BreadcrumbList",

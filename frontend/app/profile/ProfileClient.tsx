@@ -9,6 +9,8 @@ import { getToken } from "@/lib/auth";
 import NotificationSettings from "@/components/push/NotificationSettings";
 import PageHeader from "@/components/ui/PageHeader";
 import { formatDate } from "@/lib/formatters";
+import PremiumPlanCta from "@/components/premium/PremiumPlanCta";
+import { PREMIUM_PATH } from "@/lib/premium";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "https://dsex.onrender.com";
@@ -154,6 +156,17 @@ export default function ProfileClient() {
         <div className="bg-surface border border-border rounded-xl p-4">
           <span className="text-xs text-text-muted uppercase tracking-wider">Member since</span>
           <p className="text-text-main font-medium mt-1">{joinedDate}</p>
+        </div>
+
+        {/* Your plan */}
+        <div className="bg-surface border border-border rounded-xl p-4">
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <span className="text-xs text-text-muted uppercase tracking-wider">Your plan</span>
+            <Link href={PREMIUM_PATH} className="text-sm font-semibold text-primary">
+              What&apos;s in Premium
+            </Link>
+          </div>
+          <PremiumPlanCta />
         </div>
 
         {/* Watchlist */}

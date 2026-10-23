@@ -8,6 +8,7 @@ import {
 } from "@/lib/stock-metrics";
 import type { CompanyDetail } from "@/lib/api";
 import Card from "@/components/ui/Card";
+import PremiumGate from "@/components/premium/PremiumGate";
 import SectionTitle from "@/components/stock/SectionTitle";
 import { useStockLang } from "@/context/StockLangContext";
 
@@ -205,10 +206,19 @@ export default function HealthCheck({ scoreRow, detail }: Props) {
         </Card>
       )}
 
+      {/* The first check is free; the other four sit behind the premium lock
+          (screen-only — the bars above stay free for everyone). */}
       <div className="space-y-2.5">
-        {rows.map((row) => (
-          <HealthRow key={row.pillarKey} row={row} scoreRow={scoreRow} detail={detail} isBn={isBn} />
-        ))}
+        <HealthRow row={rows[0]} scoreRow={scoreRow} detail={detail} isBn={isBn} />
+        {rows.length > 1 && (
+          <PremiumGate label={isBn ? "বাকি চারটি পরীক্ষা" : "The other four checks"} peek={150}>
+            <div className="space-y-2.5">
+              {rows.slice(1).map((row) => (
+                <HealthRow key={row.pillarKey} row={row} scoreRow={scoreRow} detail={detail} isBn={isBn} />
+              ))}
+            </div>
+          </PremiumGate>
+        )}
       </div>
     </section>
   );

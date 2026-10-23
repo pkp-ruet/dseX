@@ -6,6 +6,7 @@ import MessageList from "./MessageList";
 import ChatComposer from "./ChatComposer";
 import QuickActionsBar from "./QuickActionsBar";
 import { COPY } from "@/lib/assistant/copy";
+import { useAuth } from "@/context/AuthContext";
 
 /**
  * The shared chat surface used by both the floating panel and the /assistant
@@ -23,6 +24,7 @@ export default function ChatSurface({
   seedCode?: string;
 }) {
   const { messages, status, flowActive, limited, sendText, sendChip, cancelFlow } = useAssistant();
+  const signedIn = useAuth().isLoggedIn;
   const inputRef = useRef<HTMLInputElement>(null);
   const [seedUsed, setSeedUsed] = useState(false);
 
@@ -63,16 +65,16 @@ export default function ChatSurface({
       {limited && !flowActive ? (
         <div className="flex items-center justify-between gap-3 border-t border-border bg-surface-2 px-3.5 py-3">
           <p className="min-w-0 text-sm font-medium text-text-main">
-            {COPY.guestLimit.bar}
+            {signedIn ? COPY.freeLimit.bar : COPY.guestLimit.bar}
             <span lang="bn" className="font-bn block text-xs text-text-muted">
-              {COPY.guestLimit.barBn}
+              {signedIn ? COPY.freeLimit.barBn : COPY.guestLimit.barBn}
             </span>
           </p>
           <Link
-            href="/register"
+            href={signedIn ? "/premium" : "/register"}
             className="btn-primary btn-sm shrink-0"
           >
-            {COPY.guestLimit.cta}
+            {signedIn ? COPY.freeLimit.cta : COPY.guestLimit.cta}
           </Link>
         </div>
       ) : (
