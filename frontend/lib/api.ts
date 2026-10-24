@@ -2581,3 +2581,59 @@ export async function apiAdminExcludeTip(trading_code: string, reason?: string):
 export async function apiAdminRestoreTip(trading_code: string): Promise<AdminDailyTipsState> {
   return adminEditTips("DELETE", `/api/admin/edit-tips?trading_code=${encodeURIComponent(trading_code)}`);
 }
+
+// ---- Watchlist glance board (Premium screen; the payload ships to everyone) ----
+
+export interface GlanceRisk {
+  key: string;
+  en: string;
+  bn: string;
+}
+
+export interface GlanceRow {
+  code: string;
+  name: string;
+  price: number | null;
+  change_pct: number | null;
+  score: number | null;
+  fair: {
+    low: number | null;
+    high: number | null;
+    /** null when the yardsticks disagree with the verdict. */
+    center: number | null;
+    stance: "cheap" | "fair" | "expensive" | null;
+    confidence: "low" | "medium" | "high" | null;
+    /** Price vs the estimate's centre, %: below 0 = under the estimate. */
+    gap_pct: number | null;
+    estimates_disagree: boolean;
+  } | null;
+  signal: {
+    signal: "buy" | "sell" | "none";
+    strength: "strong" | "normal" | null;
+    reason_key: string | null;
+    reason_en: string | null;
+    reason_bn: string | null;
+    /** Set only when the stock is held back for sitting near its yearly high. */
+    buy_below: number | null;
+  };
+  event: {
+    kind: "record" | "agm";
+    date: string;
+    days_left: number | null;
+    buy_by?: string | null;
+    buy_days_left?: number | null;
+    cash_per_share?: number | null;
+    yield_pct?: number | null;
+    stock_pct?: number | null;
+    more: number;
+  } | null;
+  risks: GlanceRisk[];
+}
+
+export async function getWatchlistGlance(codes: string[]): Promise<GlanceRow[]> {
+  if (!codes.length) return [];
+  const res = await fetch(`${getApiUrl()}/api/watchlist/glance?codes=${encodeURIComponent(codes.join(","))}`);
+  if (!res.ok) throw new Error(`glance ${res.status}`);
+  const data = (await res.json()) as { rows: GlanceRow[] };
+  return data.rows ?? [];
+}

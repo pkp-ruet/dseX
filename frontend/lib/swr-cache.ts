@@ -97,6 +97,8 @@ export const cacheKeys = {
   marketState: `${CACHE_PREFIX}marketState`,
   watchlistCodes: (userId: string) => `${CACHE_PREFIX}watchlistCodes.${userId}`,
   watchlistMeta: (userId: string) => `${CACHE_PREFIX}watchlistMeta.${userId}`,
+  watchlistGlance: (codes: string[]) =>
+    `${CACHE_PREFIX}watchlistGlance.${[...codes].map((c) => c.toUpperCase()).sort().join(",")}`,
   watchlistNews: (codes: string[]) =>
     `${CACHE_PREFIX}watchlistNews.${[...codes].map((c) => c.toUpperCase()).sort().join(",")}`,
   alerts: (userId: string) => `${CACHE_PREFIX}alerts.${userId}`,

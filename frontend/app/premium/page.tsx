@@ -11,7 +11,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com
 export const metadata: Metadata = {
   title: "Premium — Full Stock Analysis, Free for a Month",
   description:
-    "TopStockBD Premium: the full analysis on every DSE stock page, a deeper portfolio check with an action list, a watcher on every stock you own, your full portfolio history, a what-if tool, a yearly statement, more than one portfolio, unlimited watchlist, price alerts and TopStock AI. Try it free for one month — no payment.",
+    "TopStockBD Premium: the full analysis on every DSE stock page, a deeper portfolio check with an action list, a watcher on every stock you own, your full portfolio history, a what-if tool, a yearly statement, more than one portfolio, unlimited watchlist with a glance board, price alerts and TopStock AI. Try it free for one month — no payment.",
   keywords: [
     "TopStockBD Premium",
     "DSE stock analysis",
@@ -91,7 +91,12 @@ const ROWS: { what: string; bn: string; free: string; premium: string }[] = [
     free: "The first quarter of each list: record dates, AGMs, biggest cash dividends, just declared",
     premium: "Every list in full",
   },
-  { what: "Watchlist", bn: "ওয়াচলিস্ট", free: "10 stocks", premium: "No limit" },
+  {
+    what: "Watchlist",
+    bn: "ওয়াচলিস্ট",
+    free: "10 stocks, and how many trade under fair value, have a record date soon or carry a risk flag",
+    premium: "No limit, and a board with every stock's price against its fair value, what stops a Buy, its next record date or AGM, and its risk flags",
+  },
   { what: "Price alerts", bn: "প্রাইস অ্যালার্ট", free: "3 at a time", premium: "No limit" },
   { what: "TopStock AI", bn: "টপস্টক এআই", free: "10 questions a day", premium: "No limit" },
 ];

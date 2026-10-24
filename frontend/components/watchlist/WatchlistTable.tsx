@@ -45,6 +45,7 @@ import PriceAlertTip from "./PriceAlertTip";
 import EmptyStateActions from "./EmptyStateActions";
 import ShareWatchlistButton from "./ShareWatchlistButton";
 import SinceLastVisit from "./SinceLastVisit";
+import GlanceBoard from "./GlanceBoard";
 import { toast } from "@/lib/toast";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
 
@@ -519,7 +520,7 @@ function dividendsToSet(data: DividendsUpcoming): Set<string> {
 
 function WatchlistTableInner() {
   const { isLoggedIn, isLoading } = useAuth();
-  const { limits } = usePremium();
+  const { limits, isPremium } = usePremium();
   const searchParams = useSearchParams();
   const router = useRouter();
   const sharedCodes = useMemo(() => parseCodesParam(searchParams.get("codes")), [searchParams]);
@@ -826,6 +827,9 @@ function WatchlistTableInner() {
           dividends={dividendsData}
           meta={meta}
         />
+        {/* Premium readers get the board as their main view; free readers see
+            its counts + the lock under the table, so the table stays on top. */}
+        {isPremium && <GlanceBoard codes={codes} />}
         <div className="mb-3 flex flex-wrap items-center gap-1.5" role="group" aria-label="Sort watchlist">
           <span className="text-xs font-bold   text-text-muted">
             Sort
@@ -889,6 +893,7 @@ function WatchlistTableInner() {
             </p>
           )}
         </div>
+        {!isPremium && <GlanceBoard codes={codes} />}
         </>
       )}
 
