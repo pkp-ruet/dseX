@@ -36,6 +36,11 @@ EXPENSIVE_P4 = 4.0
 
 GOVT_CONTROL_PCT = 50.0
 
+# The ownership read compares the latest shareholding report with the newest
+# one at least this many days older. DSE posts these monthly now; one month's
+# move is mostly noise, and consecutive reports are usually identical.
+OWNERSHIP_LOOKBACK_DAYS = 150
+
 _LENDER_CLASSES = {"BANK", "NBFI"}
 _NO_DEBT_FLAG_CLASSES = {"BANK", "NBFI", "INSURANCE"}
 
@@ -104,6 +109,27 @@ def profit_years_item(financials: list[dict]) -> Optional[dict]:
 # ---------------------------------------------------------------------------
 # Ownership
 # ---------------------------------------------------------------------------
+
+def ownership_baseline(holdings: list[dict]) -> Optional[dict]:
+    """The report the latest one (``holdings[0]``, newest first) is compared
+    with: the newest at least OWNERSHIP_LOOKBACK_DAYS older, else the oldest."""
+    if not holdings or len(holdings) < 2:
+        return None
+
+    def day(rec):
+        try:
+            return datetime.strptime(str((rec or {}).get("as_of_date") or "")[:10], "%Y-%m-%d")
+        except ValueError:
+            return None
+
+    latest = day(holdings[0])
+    if latest is not None:
+        for rec in holdings[1:]:
+            d = day(rec)
+            if d is not None and (latest - d).days >= OWNERSHIP_LOOKBACK_DAYS:
+                return rec
+    return holdings[-1]
+
 
 def _pct(rec: Optional[dict], key: str) -> Optional[float]:
     return _f((rec or {}).get(key))
@@ -539,12 +565,16 @@ def build_items(score_row: Optional[dict], holdings: list[dict], financials: lis
             out.append(item("sponsor_alignment", "good",
                             f"Owners (sponsors) hold {round(spon)}% — they have skin in the game",
                             f"উদ্যোক্তাদের হাতে {round(spon)}% শেয়ার — কোম্পানিতে তাদের নিজের স্বার্থ আছে"))
-        chg = ownership_change(sh, holdings[1] if len(holdings) > 1 else None)
+        base = ownership_baseline(holdings)
+        chg = ownership_change(sh, base)
         if chg and chg.get("key") == "sponsor_jump":
-            a, b = _pct(holdings[1], "sponsor_director_pct"), _pct(sh, "sponsor_director_pct")
+            a, b = _pct(base, "sponsor_director_pct"), _pct(sh, "sponsor_director_pct")
+            # A big move either way is flagged; the verb follows the direction
+            # (a 42% -> 32% fall used to read "jumped").
+            up = a is not None and b is not None and b > a
             out.append(item("sponsor_jump", "watch",
-                            f"Owners' stake jumped from {_r(a)}% to {_r(b)}% — unusually large, check whether holders were reclassified",
-                            f"উদ্যোক্তাদের শেয়ার {_r(a)}% থেকে {_r(b)}% — অস্বাভাবিক বড় পরিবর্তন, শেয়ারধারীর শ্রেণি বদল কিনা যাচাই করুন"))
+                            f"Owners' stake {'jumped' if up else 'dropped'} from {_r(a)}% to {_r(b)}% — unusually large, check whether holders were reclassified",
+                            f"উদ্যোক্তাদের শেয়ার {_r(a)}% থেকে {'বেড়ে' if up else 'কমে'} {_r(b)}% — অস্বাভাবিক বড় পরিবর্তন, শেয়ারধারীর শ্রেণি বদল কিনা যাচাই করুন"))
 
     # ---- Debt (not for lenders / insurers) -------------------------------
     if sector_class not in _NO_DEBT_FLAG_CLASSES:
@@ -563,7 +593,8 @@ def build_items(score_row: Optional[dict], holdings: list[dict], financials: lis
 
     # ---- Category, governance, data freshness ----------------------------
     cat = (company.get("market_category") or "").strip()
-    if cat and cat.upper() != "A":
+    # "-" is DSE's blank (no category shown), not a tier below A.
+    if cat and cat != "-" and cat.upper() != "A":
         out.append(item("category_not_a", "watch",
                         f"Listed in category {cat} — not the top tier (A)",
                         f"{cat} ক্যাটাগরিতে তালিকাভুক্ত — সেরা স্তর (A) নয়"))

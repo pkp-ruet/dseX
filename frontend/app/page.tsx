@@ -4,6 +4,7 @@ import {
   getScores,
   getTrust,
   getMarketState,
+  getResearchLists,
   getMarketMovers,
   getTodaysNews,
   getTop20,
@@ -16,6 +17,7 @@ import {
   type DseTodayNewsItem,
   type Top20Item,
   type DailyTip,
+  type ResearchListSummary,
 } from "@/lib/api";
 import { pickStoryStocks } from "@/lib/home-stories";
 import { toLandingStock, pickHeroCode, type LandingStock } from "@/lib/landing";
@@ -169,25 +171,25 @@ async function WorthALookSection({
   scoresPromise,
   trendingPromise,
   tipsPromise,
-  marketPromise,
+  researchPromise,
 }: {
   scoresPromise: Promise<ScoresResponse | null>;
   trendingPromise: Promise<Top20Item[] | null>;
   tipsPromise: Promise<DailyTip[] | null>;
-  marketPromise: Promise<MarketStateData | null>;
+  researchPromise: Promise<ResearchListSummary[] | null>;
 }) {
-  const [scores, trending, tips, market] = await Promise.all([
+  const [scores, trending, tips, research] = await Promise.all([
     scoresPromise,
     trendingPromise,
     tipsPromise,
-    marketPromise,
+    researchPromise,
   ]);
   return (
     <WorthALook
       stocks={scores ? sortedByScore(flattenTiers(scores)) : []}
       trending={trending ?? []}
       tips={tips ?? []}
-      chances={market?.chances ?? null}
+      research={research}
     />
   );
 }
@@ -288,7 +290,7 @@ export default function HomePage() {
   const scoresPromise = getScores().catch(() => null);
   const trustPromise = getTrust().catch(() => null);
   // Carries the mood sentence (block 3), the sector rows and Bangla snapshot
-  // (block 4) and the ready-made lists (block 5). Fetched at the same 3600s as
+  // (block 4). Fetched at the same 3600s as
   // the scores so this page's ISR cadence doesn't tighten to 15 minutes.
   const marketPromise = getMarketState(3600).catch(() => null);
   const moversPromise = getMarketMovers().catch(() => null);
@@ -300,6 +302,10 @@ export default function HomePage() {
     .catch(() => null);
   const tipsPromise = getDailyTips()
     .then((d) => d.tips)
+    .catch(() => null);
+  // The six research lists — counts only on this page (visitors aren't Premium).
+  const researchPromise = getResearchLists()
+    .then((d) => d.lists)
     .catch(() => null);
 
   return (
@@ -332,12 +338,12 @@ export default function HomePage() {
           />
 
           {/* 5 — every way in that needs no account: buy signals, the top of
-              the ranking, trending, the ready-made lists, tips */}
+              the ranking, trending, tips — and the research lists (Premium) */}
           <WorthALookSection
             scoresPromise={scoresPromise}
             trendingPromise={trendingPromise}
             tipsPromise={tipsPromise}
-            marketPromise={marketPromise}
+            researchPromise={researchPromise}
           />
 
           {/* 5b — the portfolio check: what it does in four steps, beside the

@@ -129,18 +129,19 @@ const COPY = {
   outOf100: ["/100", "/100"],
 
   // Lists rail
-  listsTitle: ["Ready-made lists", "তৈরি তালিকা"],
-  lensOnSale: ["On sale", "কম দামে"],
-  lensOnSaleSub: ["Strong companies, cheap right now", "ভালো কোম্পানি, এখন দাম কম"],
-  lensIncome: ["Pays the most cash", "সবচেয়ে বেশি নগদ দেয়"],
-  lensIncomeSub: ["Highest dividends among strong companies", "ভালো কোম্পানির মধ্যে সর্বোচ্চ ডিভিডেন্ড"],
-  lensRising: ["Rising", "বাড়ছে"],
-  lensRisingSub: ["Best week among quality names", "ভালো কোম্পানির মধ্যে সপ্তাহের সেরা"],
-  lensFallen: ["Fallen, still strong", "পড়েছে, তবু শক্ত"],
-  lensFallenSub: ["Down this month, business still solid", "এ মাসে কমেছে, ব্যবসা এখনও ঠিক"],
-  seeList: ["See list", "তালিকা দেখুন"],
-  bestToday: ["Best today", "আজ সেরা"],
+  // Research lists (homepage rail — full for Premium, a promotion card for everyone else)
+  researchTitle: ["Research lists", "গবেষণা তালিকা"],
   allLists: ["All lists", "সব তালিকা"],
+  researchSeeAll: ["See all {n}", "সব {n}টি দেখুন"],
+  researchPromoHead: ["Six lists that do the research for you", "আপনার হয়ে গবেষণা করা ছয়টি তালিকা"],
+  researchPromoSub: [
+    "Every company goes through the same plain checks. Premium shows each stock that passes, with its numbers and its main risk.",
+    "প্রতিটি কোম্পানি একই সহজ যাচাই পার হয়। প্রিমিয়ামে দেখবেন কোন শেয়ার পাস করেছে — তার সংখ্যা আর মূল ঝুঁকিসহ।",
+  ],
+  researchPass: ["{n} stocks pass today", "আজ {n}টি শেয়ার পাস"],
+  researchCtaFree: ["Try Premium free for 1 month", "1 মাস ফ্রি প্রিমিয়াম ব্যবহার করুন"],
+  researchCtaGuest: ["Sign up free, then try Premium", "ফ্রি অ্যাকাউন্ট খুলে প্রিমিয়াম দেখুন"],
+  researchCtaEnded: ["See Premium plans", "প্রিমিয়াম প্ল্যান দেখুন"],
 
   // Trending / popular / tips
   trendingTitle: ["Trending this week", "এই সপ্তাহে আলোচনায়"],

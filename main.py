@@ -161,6 +161,24 @@ def cmd_compute_scores(_args):
     except Exception as e:
         print(f"Warning: market snapshot store failed: {e}")
 
+    _snapshot_research_lists()
+
+
+def _snapshot_research_lists():
+    """Store today's members of every research list (who joined / who left).
+    Best-effort — a failure here never fails the score job."""
+    try:
+        from backend.services.research_lists_service import store_snapshots
+        res = store_snapshots()
+        print(f"  Stored research-list snapshots for {res['date']} ({res['lists']} lists).")
+    except Exception as e:
+        print(f"  Warning: research-list snapshot failed: {e}")
+
+
+def cmd_snapshot_research_lists(_args):
+    """Store today's research-list members (also run by compute-scores and scrape-all)."""
+    _snapshot_research_lists()
+
 
 def cmd_snapshot_signals(_args):
     """Persist today's Buy/Sell signal for every scored company to
@@ -435,6 +453,9 @@ def cmd_scrape_all(args):
     except Exception as e:
         print(f"  Warning: score recompute failed: {e}\n")
 
+    print("=== Post-scrape: Snapshotting research lists ===")
+    _snapshot_research_lists()
+
     # Persist today's Buy/Sell signals (one row per company per day) so the
     # signal backtest gets a growing, exact history. Best-effort.
     print("=== Post-scrape: Snapshotting Buy/Sell signals ===")
@@ -561,6 +582,11 @@ def main():
     )
 
     sub.add_parser(
+        "snapshot-research-lists",
+        help="Store today's research-list members (who joined / who left)",
+    )
+
+    sub.add_parser(
         "snapshot-signals",
         help="Persist today's Buy/Sell signal per company to signal_snapshots (backtest history)",
     )
@@ -650,6 +676,7 @@ def main():
         "scrape-quick":          cmd_scrape_quick,
         "compute-scores":        cmd_compute_scores,
         "snapshot-signals":      cmd_snapshot_signals,
+        "snapshot-research-lists": cmd_snapshot_research_lists,
         "notify-digest":         cmd_notify_digest,
         "notify-events":         cmd_notify_events,
         "notify-price-alerts":   cmd_notify_price_alerts,

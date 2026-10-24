@@ -414,18 +414,37 @@ def load_extended_financials(trading_code: str) -> list[dict]:
     )
 
 
+def order_shareholdings(docs: list[dict]) -> list[dict]:
+    """Newest first, one row per date, `as_of_date` as ISO.
+
+    The collection still holds rows from before the scraper normalized its
+    dates ("Mar 31, 2026" beside "2026-03-31" for the same report). Sorted as
+    text, letters land after digits, so a March row outranked September's and
+    the stock page compared the wrong two reports. Same date twice → the ISO
+    row wins (it is the scraper's current write)."""
+    from utils.parser_helpers import normalize_as_of_date
+
+    best: dict[str, tuple[bool, dict]] = {}
+    undated: list[dict] = []
+    for d in docs:
+        raw = d.get("as_of_date")
+        if hasattr(raw, "isoformat"):
+            raw = raw.isoformat()[:10]
+        iso = normalize_as_of_date(str(raw)) if raw else None
+        if not iso:
+            undated.append(d)
+            continue
+        is_iso = str(raw)[:10] == iso
+        if iso not in best or (is_iso and not best[iso][0]):
+            best[iso] = (is_iso, {**d, "as_of_date": iso})
+    return [best[k][1] for k in sorted(best, reverse=True)] + undated
+
+
 @_ttl_cache(300, max_entries=500)
 def load_shareholdings(trading_code: str) -> list[dict]:
     db = get_db()
-    docs = list(
-        db.shareholdings.find(
-            {"trading_code": trading_code}, {"_id": 0}
-        ).sort("as_of_date", -1)
-    )
-    for d in docs:
-        if "as_of_date" in d and hasattr(d["as_of_date"], "isoformat"):
-            d["as_of_date"] = d["as_of_date"].isoformat()
-    return docs
+    docs = list(db.shareholdings.find({"trading_code": trading_code}, {"_id": 0}))
+    return order_shareholdings(docs)
 
 
 @_ttl_cache(300, max_entries=500)

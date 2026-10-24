@@ -3,58 +3,52 @@ import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import { notFound } from "next/navigation";
 import { STOCK_LISTS, getStockList, type StockListItem } from "@/lib/stock-lists";
-import { getStockLists, getInsightScores, type ScoreItem } from "@/lib/api";
+import { getStockLists, getResearchList, type ResearchListDetail } from "@/lib/api";
+import { RESEARCH_LISTS, getResearchListDef, DEEPER, type ResearchListDef } from "@/lib/research-lists";
+import ResearchListView from "@/components/research/ResearchListView";
+import ErrorState from "@/components/ui/ErrorState";
 import { StorySpotlight, StoryRundown } from "@/components/stock-insights/StoryEntries";
-import {
-  filterInsightItems,
-  buildInsightEntries,
-  buildClassicEntries,
-  buildSectorEntries,
-  generateLede,
-  generateClassicLede,
-  generateSectorLede,
-  getSectorInsights,
-  getCurrentMonthYear,
-  getCurrentMonthKeywords,
-  getUpdatedLabel,
-  type StoryEntry,
-} from "@/lib/insight-utils";
+import { buildClassicEntries, generateClassicLede, getUpdatedLabel } from "@/lib/insight-utils";
 
 export const revalidate = 86400;
 export const dynamicParams = false;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
-const MONTHLY_SLUGS = new Set(["best-stocks-this-month", "best-sector-this-month"]);
-
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateStaticParams() {
-  return STOCK_LISTS.map((l) => ({ slug: l.slug }));
+  return [...STOCK_LISTS, ...RESEARCH_LISTS].map((l) => ({ slug: l.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
+  const research = getResearchListDef(slug);
+  if (research) {
+    return {
+      title: research.seoTitle,
+      description: research.description,
+      keywords: research.keywords,
+      alternates: { canonical: `${BASE_URL}/stock-insights/${slug}` },
+      openGraph: {
+        title: `${research.seoTitle} | TopStockBD`,
+        description: research.description,
+        url: `${BASE_URL}/stock-insights/${slug}`,
+        type: "website",
+      },
+    };
+  }
   const def = getStockList(slug);
   if (!def) return {};
 
-  const isMonthly = MONTHLY_SLUGS.has(slug);
-  const monthYear = isMonthly ? ` — ${getCurrentMonthYear()}` : "";
-  const title = `${def.displayName}${monthYear}`;
-  const description = isMonthly
-    ? def.description.replace("This Month", getCurrentMonthYear())
-    : def.description;
-
-  const extraKeywords = isMonthly ? getCurrentMonthKeywords() : [];
-
   return {
-    title: `${title}`,
-    description,
-    keywords: [...def.keywords, ...extraKeywords],
+    title: def.displayName,
+    description: def.description,
+    keywords: def.keywords,
     alternates: { canonical: `${BASE_URL}/stock-insights/${slug}` },
     openGraph: {
-      title: `${title} | TopStockBD`,
-      description,
+      title: `${def.displayName} | TopStockBD`,
+      description: def.description,
       url: `${BASE_URL}/stock-insights/${slug}`,
       type: "article",
     },
@@ -94,45 +88,80 @@ function buildJsonLd(
   ];
 }
 
+function buildResearchJsonLd(def: ResearchListDef, data: ResearchListDetail) {
+  const url = `${BASE_URL}/stock-insights/${def.slug}`;
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name: def.seoTitle,
+      description: def.description,
+      url,
+      // Paywall markup: every stock on a research list is Premium (PremiumGate).
+      isAccessibleForFree: false,
+      hasPart: { "@type": "WebPageElement", isAccessibleForFree: false, cssSelector: ".premium-locked" },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: def.seoTitle,
+      url,
+      numberOfItems: data.stocks.length,
+      itemListElement: data.stocks.map((s, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        name: `${s.code}${s.name ? ` — ${s.name}` : ""}`,
+        url: `${BASE_URL}/stock/${s.code}`,
+      })),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: def.faqs.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
+        { "@type": "ListItem", position: 2, name: "Stock Lists", item: `${BASE_URL}/stock-insights` },
+        { "@type": "ListItem", position: 3, name: def.shortName, item: url },
+      ],
+    },
+  ];
+}
+
+async function ResearchPage({ def }: { def: ResearchListDef }) {
+  const data = await getResearchList(def.slug).catch(() => null);
+  if (!data) {
+    return <ErrorState reload />;
+  }
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildResearchJsonLd(def, data)) }} />
+      <ResearchListView data={data} def={def} />
+    </>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default async function StockInsightPage({ params }: Props) {
   const { slug } = await params;
+  const research = getResearchListDef(slug);
+  if (research) return <ResearchPage def={research} />;
   const def = getStockList(slug);
   if (!def) notFound();
 
-  const isMonthly = MONTHLY_SLUGS.has(slug);
-  const monthYear = isMonthly ? getCurrentMonthYear() : null;
-  const displayTitle = monthYear
-    ? def.displayName.replace("This Month", monthYear)
-    : def.displayName;
-
-  let entries: StoryEntry[] = [];
-  let lede = "";
-  let kicker = "DSE Stock Lists";
-  let unit = "companies";
-
-  if (def.insightMode) {
-    const allItems = await getInsightScores().catch(() => [] as ScoreItem[]);
-    if (def.isSectorPage) {
-      const sectors = getSectorInsights(allItems);
-      entries = buildSectorEntries(sectors);
-      lede = generateSectorLede(sectors);
-      kicker = "Sector Watch";
-      unit = "sectors";
-    } else {
-      const items = filterInsightItems(allItems, slug);
-      entries = buildInsightEntries(items);
-      lede = generateLede(slug, items);
-      kicker = "The Shortlist";
-    }
-  } else {
-    const lists = await getStockLists().catch(() => null);
-    const classicItems: StockListItem[] = lists && def.apiKey ? (lists[def.apiKey] ?? []) : [];
-    entries = buildClassicEntries(classicItems, def);
-    lede = generateClassicLede(def, classicItems);
-    kicker = "The Rankings";
-  }
+  const displayTitle = def.displayName;
+  const lists = await getStockLists().catch(() => null);
+  const items: StockListItem[] = lists?.[def.apiKey] ?? [];
+  const entries = buildClassicEntries(items, def);
+  const lede = generateClassicLede(def, items);
 
   const spotlight = entries.slice(0, 3);
   const rundown = entries.slice(3);
@@ -152,7 +181,7 @@ export default async function StockInsightPage({ params }: Props) {
 
       <PageHeader
         size="article"
-        eyebrow={kicker}
+        eyebrow="Free stock list"
         title={displayTitle}
         bn="এই তালিকার প্রতিটি শেয়ার আসল হিসাব দেখে বাছা — সহজ ভাষায় কেন, তাও লেখা আছে।"
         lead={lede}
@@ -163,7 +192,7 @@ export default async function StockInsightPage({ params }: Props) {
           <span className="b-item">Updated {getUpdatedLabel()}</span>
           <span className="b-dot" aria-hidden="true" />
           <span className="b-item">
-            {entries.length} {unit}
+            {entries.length} companies
           </span>
           <span className="b-dot" aria-hidden="true" />
           <span className="b-item">From official Dhaka Stock Exchange filings</span>
@@ -175,12 +204,12 @@ export default async function StockInsightPage({ params }: Props) {
         <p className="ed-empty">Fresh data is loading — check back in a moment.</p>
       ) : (
         <>
-          <div className="ed-section-label">{def.isSectorPage ? "Leading sectors" : "The standouts"}</div>
+          <div className="ed-section-label">The standouts</div>
           <StorySpotlight entries={spotlight} />
 
           {rundown.length > 0 && (
             <>
-              <div className="ed-section-label">{def.isSectorPage ? "The rest of the field" : "Also making the cut"}</div>
+              <div className="ed-section-label">Also making the cut</div>
               <StoryRundown entries={rundown} />
             </>
           )}
@@ -206,8 +235,35 @@ export default async function StockInsightPage({ params }: Props) {
         </dl>
       </section>
 
+      <DeeperLink slug={slug} />
+
       <NavButtons />
     </div>
+  );
+}
+
+/** The way from a free list to the Premium research: the matching list when
+ * there is one, else the research lists on the hub. */
+function DeeperLink({ slug }: { slug: string }) {
+  const target = DEEPER[slug] ? getResearchListDef(DEEPER[slug]) : undefined;
+  if (target) {
+    return (
+      <Link href={`/stock-insights/${target.slug}`} className="soft-card rl-deeper">
+        <span className="rl-deeper-eyebrow">Go deeper · Premium research list</span>
+        <span className="rl-deeper-title">{target.shortName}</span>
+        <span className="rl-deeper-desc">{target.description}</span>
+      </Link>
+    );
+  }
+  return (
+    <Link href="/stock-insights#research" className="soft-card rl-deeper">
+      <span className="rl-deeper-eyebrow">Go deeper · Premium</span>
+      <span className="rl-deeper-title">Six research lists</span>
+      <span className="rl-deeper-desc">
+        Each one tests every rated company against plain checks and explains every stock that passes — with its own
+        numbers and the one thing that could go wrong.
+      </span>
+    </Link>
   );
 }
 

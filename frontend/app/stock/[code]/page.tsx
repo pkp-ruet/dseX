@@ -118,7 +118,6 @@ export default async function StockDetailPage({ params }: PageProps) {
   // need the code, and waiting doubled the page's time on a slow backend. Each
   // carries its own .catch, so a 404 below leaves no unhandled rejection.
   const sideFetches = Promise.all([
-    getInsightScores().catch(() => []),
     getStockLists().catch(() => null),
     getDividendHistory(code.toUpperCase()).catch(() => [] as DividendDeclarationRecord[]),
   ]);
@@ -138,13 +137,13 @@ export default async function StockDetailPage({ params }: PageProps) {
 
   const score = score_row?.score as number | null;
 
-  // Which curated pick lists does this stock appear in, plus the full dividend
-  // ledger. All three sources are cached (ISR 24h) and each is best-effort.
+  // Which free stock lists does this stock appear in, plus the full dividend
+  // ledger. Both sources are cached and each is best-effort.
   let featuredIn: ReturnType<typeof computeFeaturedIn> = [];
   let dividendRows: DividendDeclarationRecord[] = [];
   try {
-    const [scores, stockLists, ledger] = await sideFetches;
-    featuredIn = computeFeaturedIn(profile.trading_code, scores, stockLists);
+    const [stockLists, ledger] = await sideFetches;
+    featuredIn = computeFeaturedIn(profile.trading_code, stockLists);
     dividendRows = Array.isArray(ledger) ? ledger : [];
   } catch {
     featuredIn = [];

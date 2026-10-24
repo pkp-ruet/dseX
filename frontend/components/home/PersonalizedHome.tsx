@@ -41,7 +41,7 @@ import SectorsWeekCard from "@/components/home/personalized/SectorsWeekCard";
 import MarketNewsCard from "@/components/home/personalized/MarketNewsCard";
 import BanglaSnapshotCard from "@/components/home/personalized/BanglaSnapshotCard";
 import TurningPointsCard from "@/components/home/personalized/TurningPointsCard";
-import ListsRail from "@/components/home/personalized/ListsRail";
+import ResearchRail from "@/components/home/personalized/ResearchRail";
 import DiscoverRail from "@/components/home/personalized/DiscoverRail";
 import GlanceStrip from "@/components/home/personalized/GlanceStrip";
 import DividendBoardCard from "@/components/home/personalized/DividendBoardCard";
@@ -483,11 +483,9 @@ export default function PersonalizedHome() {
           lang={lang}
         />
       </div>
-      {marketState?.chances && (
-        <div data-card="lists">
-          <ListsRail chances={marketState.chances} held={heldSet} watched={watchedSet} lang={lang} />
-        </div>
-      )}
+      <div data-card="research-lists">
+        <ResearchRail lists={bundle?.research_lists} held={heldSet} watched={watchedSet} lang={lang} />
+      </div>
     </section>
   );
 

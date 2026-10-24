@@ -28,6 +28,7 @@ from backend.routers.portfolio import get_portfolio
 from backend.services import price_alert_service
 from backend.services.auth_service import get_user_watchlist, get_user_watchlist_meta
 from backend.services.corporate_actions_service import build_dividend_calendar
+from backend.services.research_lists_service import list_index
 from backend.services.daily_picks_service import get_or_compute_daily_picks
 from backend.services.daily_tips_service import get_daily_tips
 from backend.services.db_service import (
@@ -131,6 +132,9 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
     market_news = _safe("market_news", _market_news, [])
     top20 = _safe("top20", lambda: ((compute_top20() or {}).get("items") or [])[:TOP20_LIMIT], [])
     popular = _safe("popular", lambda: ((load_popular_stocks(limit=POPULAR_LIMIT) or {}).get("items") or []), [])
+    # The six research lists (homepage rail): names for Premium readers, the
+    # counts alone in the promotion card for everyone else — the page decides.
+    research_lists = _safe("research_lists", list_index, [])
 
     near = _safe("near_extremes", lambda: _dump(get_near_extremes()), None)
     market_index = _safe("market_index", load_market_index, None)
@@ -169,4 +173,5 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
         "top20": top20,
         "popular": popular,
         "calendar": calendar,
+        "research_lists": research_lists,
     }

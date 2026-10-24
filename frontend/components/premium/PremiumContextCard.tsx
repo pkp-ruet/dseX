@@ -11,6 +11,8 @@ const FROM: Record<string, { en: string; bn: string }> = {
   stock: { en: "From the stock page", bn: "শেয়ারের পাতা থেকে" },
   "stock-analysis": { en: "From the in-depth report", bn: "গভীর রিপোর্ট থেকে" },
   "dividend-calendar": { en: "From the dividend calendar", bn: "ডিভিডেন্ড ক্যালেন্ডার থেকে" },
+  "stock-insights": { en: "From the research lists", bn: "গবেষণা তালিকা থেকে" },
+  "home-research": { en: "From the research lists on your homepage", bn: "হোমপেজের গবেষণা তালিকা থেকে" },
 };
 
 /**

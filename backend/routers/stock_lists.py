@@ -1,13 +1,23 @@
 """
-Pre-computed top-20 stock lists based on actual financial metrics.
-Used by the /stock-lists section of the frontend.
+The four FREE stock lists (`/stock-insights/[slug]`): top 20 on one plain
+number each — dividend yield, market value, money traded, 1-year return.
+The six Premium research lists are a separate service (research_lists.py).
+
+Guards (2026-10-24): the dividend list drops Z-category, stale and
+paid-from-a-loss dividends; the 1-year return is measured from the price a
+year ago (adjusted for dividends and bonus shares), not from the yearly low;
+"most traded" is money traded, not share count. The EPS, profit, growth and
+sector lists this used to serve were removed with their pages.
 """
 import math
+from datetime import datetime, timedelta
 from fastapi import APIRouter
 from backend.services.db_service import (
+    CLOSE_EXPR,
+    adjustment_factor_fn,
     get_db,
     load_companies,
-    load_52w_ranges,
+    load_corporate_actions,
     load_latest_prices,
     _ttl_cache,
 )
@@ -34,110 +44,99 @@ def _item(code: str, name: str | None, sector: str | None, ltp: float | None, me
     }
 
 
+def _safe_dividend(sc: dict) -> bool:
+    """A yield worth ranking: not category Z, accounts not stale, and not paid
+    out of a loss or out of more than the year's profit (payout_pct is None
+    when a dividend was paid in a loss year)."""
+    if (sc.get("market_cat") or "").strip().upper() == "Z" or sc.get("stale_data"):
+        return False
+    if sc.get("payout_pct") is None:
+        return False
+    latest = sc.get("payout_latest_pct")
+    return latest is None or latest <= 100
+
+
+def _one_year_returns(db, prices: dict) -> dict[str, float]:
+    """{code: % change from the official close about a year ago}, with the old
+    price put on today's footing for dividends and bonus shares since then
+    (a 20% bonus otherwise reads as a 17% loss)."""
+    latest = max((p.get("date") for p in prices.values() if p.get("date")), default=None)
+    if not latest:
+        return {}
+    start = datetime.fromisoformat(str(latest)[:10]) - timedelta(days=365)
+    lo, hi = start.strftime("%Y-%m-%d"), (start + timedelta(days=10)).strftime("%Y-%m-%d")
+    then: dict[str, tuple[str, float]] = {}
+    for d in db.stock_prices.aggregate([
+        # String bounds: stock_prices.date is an ISO string, not a BSON date.
+        {"$match": {"date": {"$gte": lo, "$lte": hi}, "ltp": {"$gt": 0}}},
+        {"$sort": {"date": 1}},
+        {"$group": {"_id": "$trading_code", "date": {"$first": "$date"}, "close": {"$first": CLOSE_EXPR}}},
+    ]):
+        if d.get("close"):
+            then[d["_id"]] = (str(d["date"])[:10], float(d["close"]))
+    actions = load_corporate_actions(days=400)
+    out: dict[str, float] = {}
+    for code, (day, close) in then.items():
+        now = (prices.get(code) or {}).get("ltp")
+        base = adjustment_factor_fn(actions.get(code, []))(day, close)
+        if now and base and base > 0:
+            out[code] = round((float(now) - base) / base * 100, 2)
+    return out
+
+
 @_ttl_cache(300)
 def _compute_stock_lists() -> dict:
     db = get_db()
-
-    # --- Base data ---
     companies = {c["trading_code"]: c for c in load_companies()}
     prices = load_latest_prices()
 
-    # --- Scores DF (div_yield_pct, eps_yoy_pct) ---
-    scores_df = build_scores_df()
+    # Yield + the dividend guards come from the score snapshot.
     scores_map: dict[str, dict] = {}
+    scores_df = build_scores_df()
     if not scores_df.empty:
         for row in scores_df.to_dict("records"):
-            code = row["trading_code"]
-            scores_map[code] = {
+            scores_map[row["trading_code"]] = {
                 "div_yield_pct": _safe(row.get("div_yield_pct")),
-                "eps_yoy_pct": _safe(row.get("eps_yoy_pct")),
+                "payout_pct": _safe(row.get("payout_pct")),
+                "payout_latest_pct": _safe(row.get("payout_latest_pct")),
+                "market_cat": row.get("market_cat"),
+                "stale_data": bool(row.get("stale_data")),
             }
 
-    # --- Bulk latest financials (latest year per company) ---
-    fin_pipeline = [
-        {"$sort": {"year": -1}},
-        {"$group": {
-            "_id": "$trading_code",
-            "eps_cont_basic": {"$first": "$eps_cont_basic"},
-            "eps_basic": {"$first": "$eps_basic"},
-            "profit_mn": {"$first": "$profit_mn"},
-            "cash_dividend_pct": {"$first": "$cash_dividend_pct"},
-        }},
-    ]
-    fin_map: dict[str, dict] = {}
-    for doc in db.financials.aggregate(fin_pipeline):
-        code = doc["_id"]
-        eps = doc.get("eps_cont_basic") or doc.get("eps_basic")
-        fin_map[code] = {
-            "eps": _safe(eps),
-            "profit_mn": _safe(doc.get("profit_mn")),
-            "cash_dividend_pct": _safe(doc.get("cash_dividend_pct")),
-        }
+    returns_1y = _one_year_returns(db, prices)
 
-    # --- 52-week high/low for return calculation ---
-    perf_map: dict[str, dict] = {}
-    for code, rng in load_52w_ranges().items():
-        low = rng.get("lo")
-        ltp_now = prices.get(code, {}).get("ltp")
-        if low and low > 0 and ltp_now:
-            ret = (ltp_now - low) / low * 100
-            perf_map[code] = {"return_52w": _safe(ret)}
-
-    # --- Build flat list of all companies with all metrics ---
-    all_codes = set(companies.keys())
     rows = []
-    for code in all_codes:
-        comp = companies[code]
-        name = comp.get("company_name")
-        sector = comp.get("sector")
+    for code, comp in companies.items():
         price_data = prices.get(code, {})
         ltp = _safe(price_data.get("ltp"))
-        volume = _safe(price_data.get("volume"))
         total_shares = _safe(comp.get("total_shares"))
-        market_cap = _safe(total_shares * ltp) if (total_shares and ltp) else None
-        fin = fin_map.get(code, {})
         sc = scores_map.get(code, {})
-        perf = perf_map.get(code, {})
-
         rows.append({
             "trading_code": code,
-            "company_name": name,
-            "sector": sector,
+            "company_name": comp.get("company_name"),
+            "sector": comp.get("sector"),
             "ltp": ltp,
-            "volume": volume,
-            "market_cap": market_cap,
-            "eps": fin.get("eps"),
-            "profit_mn": fin.get("profit_mn"),
+            "turnover_mn": _safe(price_data.get("value_mn")),
+            "market_cap": _safe(total_shares * ltp) if (total_shares and ltp) else None,
             "div_yield_pct": sc.get("div_yield_pct"),
-            "eps_yoy_pct": sc.get("eps_yoy_pct"),
-            "return_52w": perf.get("return_52w"),
+            "safe_dividend": _safe_dividend(sc) if sc else False,
+            "return_1y": returns_1y.get(code),
         })
 
     def top20(key: str, filter_fn=None, min_val: float | None = None) -> list[dict]:
-        subset = rows
-        if filter_fn:
-            subset = [r for r in subset if filter_fn(r)]
+        subset = [r for r in rows if r.get(key) is not None and (filter_fn is None or filter_fn(r))]
         if min_val is not None:
-            subset = [r for r in subset if r.get(key) is not None and r[key] > min_val]
-        else:
-            subset = [r for r in subset if r.get(key) is not None]
+            subset = [r for r in subset if r[key] > min_val]
         subset = sorted(subset, key=lambda r: r[key], reverse=True)[:20]
         return [_item(r["trading_code"], r["company_name"], r["sector"], r["ltp"], r[key]) for r in subset]
 
-    def sector_top20(sector_kw: str, key: str) -> list[dict]:
-        return top20(key, filter_fn=lambda r: sector_kw.lower() in (r.get("sector") or "").lower())
-
     return {
-        "top_dividend":    top20("div_yield_pct", min_val=0),
-        "top_eps":         top20("eps", min_val=0),
-        "top_profitable":  top20("profit_mn", min_val=0),
-        "top_market_cap":  top20("market_cap"),
-        "top_eps_growth":  top20("eps_yoy_pct", min_val=0),
-        "top_volume":      top20("volume"),
-        "top_52w_return":  top20("return_52w", min_val=0),
-        "bank_stocks":     sector_top20("bank", "eps"),
-        "pharma_stocks":   sector_top20("pharma", "eps"),
-        "it_stocks":       sector_top20("it", "eps"),
+        "top_dividend":   top20("div_yield_pct", filter_fn=lambda r: r["safe_dividend"], min_val=0),
+        "top_market_cap": top20("market_cap"),
+        # Key names are historical: ranked by money traded (৳ mn) and by the
+        # 1-year return.
+        "top_volume":     top20("turnover_mn", min_val=0),
+        "top_52w_return": top20("return_1y", min_val=0),
     }
 
 

@@ -10,6 +10,7 @@ import {
 import { GUIDES } from "@/lib/guides";
 import { BLOG_POSTS } from "@/lib/blog-bn";
 import { STOCK_LISTS } from "@/lib/stock-lists";
+import { RESEARCH_LISTS } from "@/lib/research-lists";
 import { SAMPLE_SLUGS } from "@/lib/sample-portfolios";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
@@ -73,6 +74,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const guidePages = GUIDES.map((g) => content(`/learn/${g.slug}`, "monthly", 0.7));
   const blogPages = BLOG_POSTS.map((p) => content(`/blog/${p.slug}`, "monthly", 0.7));
   const stockListPages = STOCK_LISTS.map((l) => data(`/stock-insights/${l.slug}`, "daily", 0.8));
+  const researchListPages = RESEARCH_LISTS.map((l) => data(`/stock-insights/${l.slug}`, "daily", 0.8));
   const samplePortfolioPages = SAMPLE_SLUGS.map((slug) => content(`/sample-portfolio/${slug}`, "weekly", 0.7));
 
   return [
@@ -103,6 +105,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...sectorPages,
     ...samplePortfolioPages,
     ...stockListPages,
+    ...researchListPages,
     ...guidePages,
     ...blogPages,
     ...stockPages,

@@ -80,6 +80,12 @@ const ROWS: { what: string; bn: string; free: string; premium: string }[] = [
     premium: "Up to six — keep a parent's or spouse's BO account apart from yours",
   },
   {
+    what: "Research lists",
+    bn: "গবেষণা তালিকা",
+    free: "What each of the six lists looks for, and how many companies pass its checks",
+    premium: "Every stock on all six lists: a research card with its fair-value range and main risk, all of them side by side, and who joined or left this month",
+  },
+  {
     what: "Dividend calendar",
     bn: "ডিভিডেন্ড ক্যালেন্ডার",
     free: "The first quarter of each list: record dates, AGMs, biggest cash dividends, just declared",

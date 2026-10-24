@@ -8,6 +8,7 @@ from backend.services.db_service import (
     load_market_news, load_corporate_actions, adjust_price_rows,
 )
 from backend.services.stock_facts import (
+    ownership_baseline,
     ownership_caption, ownership_change, health_overrides, valuation_verdict,
     eps_basis_label, own_pe_label,
 )
@@ -116,10 +117,11 @@ def get_company_detail(code: str):
             dividend_type=div_decl.get("dividend_type"),
         )
 
-    # Latest shareholding + the snapshot before it (holdings are unique per
-    # as_of_date, sorted desc) so the frontend can show who bought/sold.
+    # Latest shareholding + the report it is compared with (about six months
+    # back — see stock_facts.ownership_baseline) so the frontend can show who
+    # bought/sold. Holdings are one row per date, newest first.
     shareholding = holdings[0] if holdings else None
-    shareholding_prev = holdings[1] if len(holdings) > 1 else None
+    shareholding_prev = ownership_baseline(holdings)
 
     # "Usual" volume baseline: mean of the last 7 traded days before the
     # latest one (price_history is sorted asc and already ltp > 0 filtered).

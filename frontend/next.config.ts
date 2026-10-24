@@ -38,6 +38,35 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        // Retired 2026-10-24: same market-cap data as largest-companies-dse, stale year in the title.
+        source: "/stock-insights/top-stocks-bangladesh-2025",
+        destination: "/stock-insights/largest-companies-dse",
+        permanent: true,
+      },
+      {
+        source: "/stock-lists/top-stocks-bangladesh-2025",
+        destination: "/stock-insights/largest-companies-dse",
+        permanent: true,
+      },
+      // Retired 2026-10-24: twelve overlapping lists cut to 4 free rankings + 6
+      // Premium research lists. Each old URL goes to the closest page left.
+      ...([
+        ["highest-eps-stocks-bangladesh", "/stock-insights"],
+        ["most-profitable-companies-bangladesh", "/stock-insights/largest-companies-dse"],
+        ["best-growth-stocks-bangladesh", "/stock-insights/profits-rising-stocks-dse"],
+        ["high-growth-stocks-2026", "/stock-insights/profits-rising-stocks-dse"],
+        ["undervalued-stocks-2026", "/stock-insights/cheap-quality-stocks-dse"],
+        ["best-bank-stocks-bangladesh", "/sector/bank"],
+        ["best-bank-stocks-2026", "/sector/bank"],
+        ["best-pharma-stocks-bangladesh", "/sector/pharmaceuticals-and-chemicals"],
+        ["best-dse-stocks-2026", "/dsestockranking"],
+        ["best-stocks-this-month", "/dsestockranking"],
+        ["best-sector-this-month", "/sectors"],
+      ] as const).flatMap(([slug, destination]) => [
+        { source: `/stock-insights/${slug}`, destination, permanent: true },
+        { source: `/stock-lists/${slug}`, destination, permanent: true },
+      ]),
+      {
         source: "/stock-lists/:slug*",
         destination: "/stock-insights/:slug*",
         permanent: true,

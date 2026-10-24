@@ -837,6 +837,110 @@ export async function getStockLists(): Promise<import("@/lib/stock-lists").Stock
   return apiFetch("/api/stock-lists", 86400);
 }
 
+// ── Research lists (Premium; backend services/research_lists.py) ─────────────
+
+export interface ResearchFunnelStep {
+  key: string;
+  label_en: string;
+  label_bn: string;
+  /** Companies still in after this check. */
+  left: number;
+}
+
+export interface ResearchCheck {
+  key: string;
+  label_en: string;
+  label_bn: string;
+  ok: boolean;
+  /** This company's own figure on the check. */
+  value_en: string;
+  value_bn: string;
+}
+
+export interface ResearchColumn {
+  key: string;
+  label_en: string;
+  label_bn: string;
+  fmt: "pct" | "x" | "pp" | "score" | "num" | "taka";
+}
+
+export interface ResearchStock {
+  rank: number;
+  code: string;
+  name: string | null;
+  sector: string | null;
+  price: number | null;
+  change_pct: number | null;
+  score: number | null;
+  signal: "buy" | "sell" | "none";
+  strength: "strong" | "normal" | null;
+  headline_en: string;
+  headline_bn: string;
+  checks: ResearchCheck[];
+  risk: { en: string; bn: string; more: number } | null;
+  fair_value: {
+    low: number | null;
+    high: number | null;
+    center: number | null;
+    today: number | null;
+    stance: string | null;
+    estimates_disagree: boolean | null;
+  } | null;
+  quarter: { label_en: string | null; label_bn: string | null; eps_yoy_pct: number | null; q_yoy_pct: number | null } | null;
+  owners: { prev: number | null; now: number | null; delta: number | null; since: string | null; date: string | null } | null;
+  cash_per_10k: number | null;
+  has_report: boolean;
+  metrics: Record<string, number | null>;
+}
+
+export interface ResearchChanges {
+  /** Snapshot date compared against; null until the list has history. */
+  since: string | null;
+  tracking_since: string | null;
+  joined: { code: string; name: string | null }[];
+  left: { code: string; name: string | null; reason_en: string; reason_bn: string }[];
+}
+
+export interface ResearchListDetail {
+  id: string;
+  slug: string;
+  title_en: string;
+  title_bn: string;
+  idea_en: string;
+  idea_bn: string;
+  as_of: string | null;
+  universe: number;
+  funnel: ResearchFunnelStep[];
+  passed: number;
+  columns: ResearchColumn[];
+  stocks: ResearchStock[];
+  changes: ResearchChanges;
+}
+
+export interface ResearchListSummary {
+  id: string;
+  slug: string;
+  title_en: string;
+  title_bn: string;
+  idea_en: string;
+  idea_bn: string;
+  universe: number;
+  passed: number;
+  checks: number;
+  /** The list's key number (its first comparison column) — what `top[].metric` is. */
+  metric: ResearchColumn | null;
+  /** Today's top three. Premium readers see these; the page shows free readers counts only. */
+  top: { code: string; name: string | null; price?: number | null; change_pct?: number | null; metric?: number | null }[];
+}
+
+export async function getResearchLists(): Promise<{ lists: ResearchListSummary[] }> {
+  return apiFetch("/api/research-lists", 3600);
+}
+
+export async function getResearchList(slug: string): Promise<ResearchListDetail> {
+  return apiFetch(`/api/research-lists/${encodeURIComponent(slug)}`, 3600);
+}
+
 /** Flatten all tiers into a single array, including pillar scores. Used by insight pages. */
 export async function getInsightScores(): Promise<ScoreItem[]> {
   const res = await getScores();
@@ -1665,6 +1769,8 @@ export interface HomeBundle {
     record_dates: CorporateActionEvent[];
     recent_declarations: CorporateActionEvent[];
   };
+  /** The six Premium research lists (2026-10-24): counts + top three each. */
+  research_lists?: ResearchListSummary[];
 }
 
 /** Auth-only. The dashboard paints from this + `/api/scores` + `/api/market/state`. */

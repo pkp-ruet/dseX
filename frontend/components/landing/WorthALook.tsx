@@ -1,20 +1,20 @@
 import Link from "next/link";
 import SectionHead from "@/components/i18n/SectionHead";
-import ListsRail from "@/components/home/personalized/ListsRail";
+import ResearchRail from "@/components/home/personalized/ResearchRail";
 import DiscoverRail from "@/components/home/personalized/DiscoverRail";
 import type { CSSProperties } from "react";
-import type { ScoreItem, Top20Item, DailyTip, MarketStateData } from "@/lib/api";
+import type { ScoreItem, Top20Item, DailyTip, ResearchListSummary } from "@/lib/api";
 
 const NONE: Set<string> = new Set();
 
 /**
  * Every way in that does not need an account: today's buy signals, the top of
- * the ranking, what is moving, the ready-made lists, the daily tips, and what
- * other readers are reading.
+ * the ranking, what is moving and the daily tips — then the research lists.
  *
- * Two swipe rails, three names per card: the ready-made lists first (the most
- * inviting), then buy signals · top ranked · trending · tips (`DiscoverRail`,
- * the same rail the dashboard uses). Popular was dropped here (2026-09-30) —
+ * The swipe rail of buy signals · top ranked · trending · tips (`DiscoverRail`,
+ * the same rail the dashboard uses), then `ResearchRail`: on this page always
+ * the promotion card (visitors aren't Premium), counts only, no names. It
+ * replaced the four "Ready-made lists" lenses (2026-10-24). Popular was dropped here (2026-09-30) —
  * for a first visit it mostly repeated Trending; it stays on the dashboard.
  *
  * This block replaced two written ones — `ReportAnatomy` (a list of the eight
@@ -26,17 +26,17 @@ export default function WorthALook({
   stocks,
   trending,
   tips,
-  chances,
+  research,
 }: {
   /** The flattened /api/scores payload — feeds both the buy list and the ranking. */
   stocks: ScoreItem[];
   trending: Top20Item[];
   tips: DailyTip[];
-  chances: MarketStateData["chances"] | null;
+  research: ResearchListSummary[] | null;
 }) {
   const buys = stocks.filter((s) => s.signal?.signal === "buy");
 
-  if (stocks.length === 0 && trending.length === 0 && tips.length === 0 && !chances) return null;
+  if (stocks.length === 0 && trending.length === 0 && tips.length === 0 && !research) return null;
 
   return (
     <section
@@ -56,10 +56,9 @@ export default function WorthALook({
       />
 
       <div className="mt-6 space-y-6">
-        {/* Two swipe rails of same-shape cards: the ready-made lists, then
-            buy signals / top ranked / trending / tips (four full cards until
-            2026-10-24 — same names, half the scroll). */}
-        {chances && <ListsRail chances={chances} held={NONE} watched={NONE} />}
+        {/* Buy signals / top ranked / trending / tips (four full cards until
+            2026-10-24 — same names, half the scroll), then the research
+            lists' promotion card. */}
         <DiscoverRail
           buys={buys}
           stocks={stocks}
@@ -69,6 +68,7 @@ export default function WorthALook({
           held={NONE}
           watched={NONE}
         />
+        <ResearchRail lists={research} held={NONE} watched={NONE} />
       </div>
 
       <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 px-1.5 sm:px-0">

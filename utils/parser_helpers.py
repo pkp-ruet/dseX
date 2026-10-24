@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 
 
 def clean_numeric(text):
@@ -117,3 +118,33 @@ def extract_table_rows(table):
         if cells:
             rows.append(cells)
     return rows
+
+
+# DSE shareholding "as on" dates have shown up in several formats over time.
+# Always normalize to ISO (YYYY-MM-DD) before writing — the unique index on
+# (trading_code, as_of_date) treats different string formats as different keys.
+AS_OF_DATE_FORMATS = [
+    "%b %d, %Y",      # "Dec 31, 2024"
+    "%B %d, %Y",      # "December 31, 2024"
+    "%d %b, %Y",      # "31 Dec, 2024"
+    "%d %B, %Y",      # "31 December, 2024"
+    "%d %b %Y",       # "31 Dec 2024"
+    "%d %B %Y",       # "31 December 2024"
+    "%d-%b-%Y",       # "31-Dec-2024"
+    "%d-%B-%Y",       # "31-December-2024"
+    "%d/%m/%Y",
+    "%Y-%m-%d",
+]
+
+
+def normalize_as_of_date(raw: str | None) -> str | None:
+    """Parse a DSE 'as on' date string and return canonical ISO (YYYY-MM-DD)."""
+    if not raw:
+        return None
+    cleaned = re.sub(r"\s+", " ", raw).strip().rstrip(".")
+    for fmt in AS_OF_DATE_FORMATS:
+        try:
+            return datetime.strptime(cleaned, fmt).date().isoformat()
+        except ValueError:
+            continue
+    return None

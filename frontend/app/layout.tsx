@@ -13,6 +13,7 @@ import "./styles/states.css";
 import "./styles/misc.css";
 import "./styles/ranking.css";
 import "./styles/premium.css";
+import "./styles/research.css";
 
 // One Latin family, three weights (2026-10 redesign): regular, semibold, bold.
 // font-medium renders as regular and font-extrabold/black as bold — fewer font
