@@ -159,9 +159,39 @@ function Dashboard({ data, priceMap }: { data: AdminAnalyticsResponse; priceMap:
   const { d1, d7, d30 } = data.retention;
   const a = data.activation;
   const f = data.features;
+  const p = data.premium;
 
   return (
     <div className="flex flex-col gap-8">
+      {p && (
+        <Section title="Premium" note="admins not counted">
+          <MetricRow
+            cols="grid-cols-2 md:grid-cols-3"
+            metrics={[
+              {
+                label: "Premium now",
+                value: n(p.active),
+                accent: COLORS.primary,
+                sub: `${n(p.on_trial)} on the free month · ${n(p.granted)} given by admin`,
+                hint: "Accounts whose premium end date is still in the future.",
+              },
+              {
+                label: "Started the free month",
+                value: n(p.trials_started),
+                sub: `+${n(p.trials_7d)} this week · ${pctOf(p.trials_started, total)}% of all users`,
+                hint: "Everyone who has ever pressed \"Start my free month\" on /premium.",
+              },
+              {
+                label: "Free month ended",
+                value: n(p.trials_ended),
+                sub: `${pctOf(p.trials_ended, p.trials_started)}% of those who started`,
+                hint: "Used the free month and are not premium today.",
+              },
+            ]}
+          />
+        </Section>
+      )}
+
       <Section title="The numbers">
         <MetricRow
           metrics={[

@@ -2118,6 +2118,15 @@ export interface AdminAnalyticsResponse {
     power_feature: number;
   };
   features: { push: number; installed: number; alerts: number; ai: number };
+  /** Optional so a frontend deploy that lands before the backend still renders. */
+  premium?: {
+    active: number;          // premium_until in the future (admins not counted)
+    on_trial: number;        // …of those, on their free month
+    granted: number;         // …of those, given days by an admin
+    trials_started: number;  // ever pressed "Start my free month"
+    trials_7d: number;       // started in the last 7 days
+    trials_ended: number;    // used the month and are no longer premium
+  };
   sections: { category: string; views: number; users: number }[]; // last 30 days
   stocks: { viewed: AdminStockCount[]; watched: AdminStockCount[]; held: AdminStockCount[] };
   active_hours: { matrix: number[][]; max: number }; // [weekday 0=Sun..6=Sat][hour 0..23]

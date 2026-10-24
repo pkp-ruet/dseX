@@ -298,8 +298,18 @@ def get_analytics(_: dict = Depends(get_current_admin_user)):
             "installed": installed,
             "alerts": len(alert_user_ids),
             "ai": ai,
-            "premium_active": _count(db["users"], {"premium_until": {"$gt": now}}),
+        },
+        # Admins (ADMIN_EMAILS) are premium without a premium_until, so they are not counted.
+        "premium": {
+            "active": _count(db["users"], {"premium_until": {"$gt": now}}),
+            "on_trial": _count(db["users"], {"premium_until": {"$gt": now}, "premium_source": "trial"}),
+            "granted": _count(db["users"], {"premium_until": {"$gt": now}, "premium_source": "admin"}),
             "trials_started": _count(db["users"], {"trial_started_at": {"$exists": True}}),
+            "trials_7d": _count(db["users"], {"trial_started_at": {"$gte": now - timedelta(days=7)}}),
+            "trials_ended": _count(db["users"], {
+                "trial_started_at": {"$exists": True},
+                "premium_until": {"$lte": now},
+            }),
         },
         "sections": sections,
         "stocks": {
