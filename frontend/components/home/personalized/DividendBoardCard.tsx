@@ -11,6 +11,9 @@ import DashHeader, { HeaderChip } from "@/components/home/personalized/DashHeade
 import OwnerMark from "@/components/home/personalized/OwnerMark";
 import { IconCoin } from "@/components/home/personalized/DashIcons";
 import StockRow, { StockRowValue, StockTile } from "@/components/ui/StockRow";
+import DividendPromo from "@/components/premium/DividendPromo";
+import { FREE_CALENDAR_ROWS } from "@/lib/free-share";
+import { usePremium } from "@/lib/premium";
 
 const INITIAL = 6;
 const DECLARED_ROWS = 3;
@@ -25,6 +28,10 @@ function fmtDate(iso: string | null | undefined, bn: boolean): string {
  * with the cash per share, the yield on today's price, the record date with
  * days left, and the last day to buy so the dividend lands on you. Then the
  * latest declarations. The reader's own stocks wear the H / ★ marks.
+ *
+ * Free readers get a glimpse (the nearest two dates) and `DividendPromo`:
+ * what the full calendar does + how many more dates, and how many of their
+ * own stocks, sit behind it. The declarations list is Premium-only here.
  */
 export default function DividendBoardCard({
   recordDates,
@@ -40,11 +47,24 @@ export default function DividendBoardCard({
   lang?: Lang;
 }) {
   const [open, setOpen] = useState(false);
+  const { isPremium } = usePremium();
   const bn = lang === "bn";
   const rows = recordDates.filter((e) => !e.is_no_dividend);
-  const shown = open ? rows : rows.slice(0, INITIAL);
-  const decl = declared.filter((e) => !e.is_no_dividend).slice(0, DECLARED_ROWS);
-  if (rows.length === 0 && decl.length === 0) return null;
+  const declAll = declared.filter((e) => !e.is_no_dividend);
+  if (rows.length === 0 && declAll.length === 0) return null;
+
+  const free = !isPremium;
+  const shown = free ? rows.slice(0, FREE_CALENDAR_ROWS.dashboard) : open ? rows : rows.slice(0, INITIAL);
+  const decl = free ? [] : declAll.slice(0, DECLARED_ROWS);
+  const more = rows.length - shown.length;
+  const mine = rows.filter((e) => held.has(e.trading_code) || watched.has(e.trading_code)).length;
+  const stakes = free
+    ? [
+        more > 0 ? t(lang, "divPromoMore", { n: more }) : "",
+        mine > 0 ? t(lang, "divPromoMine", { n: mine }) : "",
+        declAll.length > 0 ? t(lang, "divPromoDeclared", { n: declAll.length }) : "",
+      ]
+    : [];
 
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
@@ -101,7 +121,7 @@ export default function DividendBoardCard({
         </ul>
       )}
 
-      {rows.length > INITIAL && (
+      {!free && rows.length > INITIAL && (
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
@@ -135,6 +155,8 @@ export default function DividendBoardCard({
           </ul>
         </div>
       )}
+
+      {free && <DividendPromo variant="card" stakes={stakes} />}
     </section>
   );
 }

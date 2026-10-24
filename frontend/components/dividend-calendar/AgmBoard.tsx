@@ -2,7 +2,7 @@ import Bn from "@/components/i18n/Bn";
 import StockRow, { StockRowValue } from "@/components/ui/StockRow";
 import { formatDate, pct } from "@/lib/formatters";
 import PremiumGate from "@/components/premium/PremiumGate";
-import { splitFree } from "@/lib/free-share";
+import { FREE_CALENDAR_ROWS, splitFree } from "@/lib/free-share";
 import type { CorporateActionEvent } from "@/lib/api";
 import SectionHeader from "@/components/ui/SectionHeader";
 
@@ -23,8 +23,8 @@ function daysLabel(days: number | null | undefined) {
 /** Announced AGM dates — where the dividend gets approved before it's paid. */
 export default function AgmBoard({ events }: { events: CorporateActionEvent[] }) {
   if (events.length === 0) return null;
-  // Free readers see the first quarter; the rest is Premium (screen-only lock).
-  const [free, locked] = splitFree(events);
+  // Free readers see the next AGM; the rest is Premium (screen-only lock).
+  const [free, locked] = splitFree(events, FREE_CALENDAR_ROWS.agms);
   const row = (e: CorporateActionEvent) => (
     <StockRow
       key={`${e.trading_code}-${e.agm_date}`}
@@ -56,7 +56,7 @@ export default function AgmBoard({ events }: { events: CorporateActionEvent[] })
 
       <ul className="stock-list">{free.map(row)}</ul>
       {locked.length > 0 && (
-        <PremiumGate label={`${locked.length} more AGMs`} peek={120} className="mt-2">
+        <PremiumGate label={`${locked.length} more AGMs`} preview="blur" peek={120} compact className="mt-2">
           <ul className="stock-list">{locked.map(row)}</ul>
         </PremiumGate>
       )}

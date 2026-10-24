@@ -1,7 +1,7 @@
 import Bn from "@/components/i18n/Bn";
 import EventCard from "@/components/dividend-calendar/EventCard";
 import PremiumGate from "@/components/premium/PremiumGate";
-import { splitFree } from "@/lib/free-share";
+import { FREE_CALENDAR_ROWS, splitFree } from "@/lib/free-share";
 import type { CorporateActionEvent } from "@/lib/api";
 import SectionHeader from "@/components/ui/SectionHeader";
 
@@ -15,10 +15,13 @@ import SectionHeader from "@/components/ui/SectionHeader";
 export default function RecordDateBoard({ events }: { events: CorporateActionEvent[] }) {
   const paying = events.filter((e) => !e.is_no_dividend);
   const nonPaying = events.filter((e) => e.is_no_dividend);
-  // The free share is taken from the whole list, paying dates first.
-  const [freeRows, lockedRows] = splitFree([...paying, ...nonPaying]);
+  // The free glimpse is taken from the whole list, paying dates first.
+  const [freeRows, lockedRows] = splitFree([...paying, ...nonPaying], FREE_CALENDAR_ROWS.recordDates);
   const lockedPaying = lockedRows.filter((e) => !e.is_no_dividend);
   const lockedNonPaying = lockedRows.filter((e) => e.is_no_dividend);
+  const weekLocked = lockedPaying.filter(
+    (e) => e.record_days_left != null && e.record_days_left <= 7,
+  ).length;
   const card = (e: CorporateActionEvent) => (
     <EventCard key={`${e.trading_code}-${e.record_date}`} event={e} mode="record" />
   );
@@ -44,8 +47,8 @@ export default function RecordDateBoard({ events }: { events: CorporateActionEve
         </div>
       ) : (
         <>
-          {/* Free readers see the first quarter of the list (paying dates first);
-              the rest sits behind the premium lock (screen-only). */}
+          {/* Free readers get a glimpse — the nearest dates, paying first; the
+              rest sits behind the premium lock (screen-only, blurred). */}
           {freeRows.length > 0 && (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {freeRows.map(card)}
@@ -55,7 +58,12 @@ export default function RecordDateBoard({ events }: { events: CorporateActionEve
           {(lockedPaying.length > 0 || lockedNonPaying.length > 0) && (
             <PremiumGate
               label={`${lockedPaying.length + lockedNonPaying.length} more record dates`}
-              peek={180}
+              preview="blur"
+              peek={160}
+              stakes={[
+                lockedPaying.length > 0 ? `${lockedPaying.length} more companies paying a dividend` : "",
+                weekLocked > 0 ? `${weekLocked} of them inside the next 7 days` : "",
+              ]}
               className="mt-3"
             >
               {lockedPaying.length > 0 && (

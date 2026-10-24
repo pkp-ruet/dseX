@@ -7,6 +7,7 @@ import AgmBoard from "@/components/dividend-calendar/AgmBoard";
 import TopCashDividends from "@/components/dividend-calendar/TopCashDividends";
 import RecentDeclarations from "@/components/dividend-calendar/RecentDeclarations";
 import HowDividendsWork from "@/components/dividend-calendar/HowDividendsWork";
+import DividendPromo from "@/components/premium/DividendPromo";
 import ErrorState from "@/components/ui/ErrorState";
 import PageHeader from "@/components/ui/PageHeader";
 import PageGuide from "@/components/seo/PageGuide";
@@ -93,7 +94,7 @@ export default async function DividendCalendarPage() {
         inLanguage: "en",
         isPartOf: { "@id": BASE_URL },
         dateModified: data.today,
-        // Paywall markup: each list past its first quarter is Premium (PremiumGate).
+        // Paywall markup: each list past its first row or two is Premium (PremiumGate).
         isAccessibleForFree: false,
         hasPart: {
           "@type": "WebPageElement",
@@ -186,6 +187,9 @@ export default async function DividendCalendarPage() {
       />
 
       <CalendarSummary data={data} />
+
+      {/* Free readers: what the full calendar does; the lists below are a glimpse. */}
+      <DividendPromo />
 
       <RecordDateBoard events={data.record_dates} />
 

@@ -3,7 +3,7 @@ import TierPill from "@/components/ui/TierPill";
 import StockRow, { StockRowValue } from "@/components/ui/StockRow";
 import { formatDate, money, pct } from "@/lib/formatters";
 import PremiumGate from "@/components/premium/PremiumGate";
-import { splitFree } from "@/lib/free-share";
+import { FREE_CALENDAR_ROWS, splitFree } from "@/lib/free-share";
 import type { CorporateActionEvent } from "@/lib/api";
 import SectionHeader from "@/components/ui/SectionHeader";
 
@@ -19,7 +19,7 @@ import SectionHeader from "@/components/ui/SectionHeader";
  */
 export default function TopCashDividends({ events }: { events: CorporateActionEvent[] }) {
   if (events.length === 0) return null;
-  const [free, locked] = splitFree(events);
+  const [free, locked] = splitFree(events, FREE_CALENDAR_ROWS.topCash);
   const row = (e: CorporateActionEvent) => {
     const cash = e.cash_pct ? pct(e.cash_pct, e.cash_pct % 1 ? 2 : 0) : null;
     const perShare = e.cash_per_share != null ? money(e.cash_per_share) : null;
@@ -58,10 +58,10 @@ export default function TopCashDividends({ events }: { events: CorporateActionEv
         অনেক বেশি ইল্ড মানে প্রায়ই দাম পড়ে গেছে — পাশের রেটিং দেখে কোম্পানির শক্তি যাচাই করুন।
       </Bn>
 
-      {/* Free readers see the top quarter; the rest is Premium (screen-only lock). */}
+      {/* Free readers see the top payer; the rest is Premium (screen-only lock). */}
       <ol className="stock-list">{free.map(row)}</ol>
       {locked.length > 0 && (
-        <PremiumGate label={`${locked.length} more big cash dividends`} peek={120} className="mt-2">
+        <PremiumGate label={`${locked.length} more big cash dividends`} preview="blur" peek={120} compact className="mt-2">
           <ol className="stock-list" start={free.length + 1}>{locked.map(row)}</ol>
         </PremiumGate>
       )}

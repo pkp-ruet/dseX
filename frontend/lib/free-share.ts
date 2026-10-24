@@ -4,17 +4,23 @@
  * client module and can't be called during a server render.
  */
 
-/** Dividend calendar: free readers see the first quarter of each list. */
-export const FREE_CALENDAR_SHARE = 0.25;
+/**
+ * Dividend calendar: free readers get a glimpse, not a share — the first rows
+ * of each list, next to `DividendPromo` saying what the full calendar does.
+ * (Was the first 25% of every list until 2026-10-24, which left most of the
+ * calendar open.)
+ */
+export const FREE_CALENDAR_ROWS = {
+  recordDates: 2,
+  agms: 1,
+  topCash: 1,
+  declared: 1,
+  /** The dashboard's "Money coming" card. */
+  dashboard: 2,
+} as const;
 
-/** Rows a free reader sees out of `n` — at least one, so no list opens empty. */
-export function freeCount(n: number, share = FREE_CALENDAR_SHARE): number {
-  if (n <= 0) return 0;
-  return Math.min(n, Math.max(1, Math.ceil(n * share)));
-}
-
-/** Split a list into the free head and the locked rest. */
-export function splitFree<T>(items: T[], share = FREE_CALENDAR_SHARE): [T[], T[]] {
-  const n = freeCount(items.length, share);
-  return [items.slice(0, n), items.slice(n)];
+/** Split a list into the free head (`n` rows) and the locked rest. */
+export function splitFree<T>(items: T[], n: number): [T[], T[]] {
+  const k = Math.max(0, Math.min(items.length, n));
+  return [items.slice(0, k), items.slice(k)];
 }
