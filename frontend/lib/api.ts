@@ -1312,6 +1312,76 @@ export async function apiStartTrial(): Promise<{ user: AuthUser }> {
   return apiAuthFetch<{ user: AuthUser }>("/api/user/premium/start-trial", { method: "POST" });
 }
 
+// Premium payments (bKash / Nagad Send Money — backend services/payments.py)
+export type PayMethod = "bkash" | "nagad";
+export interface PremiumPlansResponse {
+  plans: { key: string; amount: number; days: number }[];
+  /** Only methods that have a receiving number set. */
+  methods: { key: PayMethod; number: string }[];
+}
+export interface PremiumPayment {
+  id: string;
+  plan: string;
+  amount: number;
+  days: number;
+  method: PayMethod;
+  sender: string;
+  status: "pending" | "accepted" | "revoked";
+  /** False while a payment waits for an admin before its days are added. */
+  granted: boolean;
+  created_at: string | null;
+  reviewed_at: string | null;
+}
+
+export async function getPremiumPlans(): Promise<PremiumPlansResponse> {
+  const res = await fetch(`${getApiUrl()}/api/premium/plans`);
+  if (!res.ok) throw new Error(`Plans fetch failed: ${res.status}`);
+  return res.json() as Promise<PremiumPlansResponse>;
+}
+
+export async function apiSubmitPayment(body: {
+  plan: string;
+  method: PayMethod;
+  sender: string;
+}): Promise<{ payment: PremiumPayment; user: AuthUser }> {
+  return apiAuthFetch("/api/user/premium/payments", { method: "POST", body: JSON.stringify(body) });
+}
+
+export async function apiGetMyPayments(): Promise<{ ref_code: string; items: PremiumPayment[] }> {
+  return apiAuthFetch("/api/user/premium/payments");
+}
+
+export interface AdminPayment extends PremiumPayment {
+  user_id: string;
+  email: string | null;
+  phone: string | null;
+  name: string | null;
+  ref_code: string;
+  reason: string | null;
+  premium_until_after: string | null;
+}
+export interface AdminPaymentsResponse {
+  items: AdminPayment[];
+  counts: { pending: number; accepted: number; revoked: number };
+  /** Taka this Dhaka calendar month, by status. */
+  month: { pending: number; accepted: number };
+}
+
+export async function apiGetAdminPayments(status: string): Promise<AdminPaymentsResponse> {
+  return apiAuthFetch(`/api/admin/payments?status=${encodeURIComponent(status)}`);
+}
+
+export async function apiAcceptPayment(id: string): Promise<{ ok: boolean }> {
+  return apiAuthFetch(`/api/admin/payments/${id}/accept`, { method: "POST" });
+}
+
+export async function apiRevokePayment(id: string, reason: string): Promise<{ ok: boolean }> {
+  return apiAuthFetch(`/api/admin/payments/${id}/revoke`, {
+    method: "POST",
+    body: JSON.stringify({ reason }),
+  });
+}
+
 /** Per-code watchlist metadata: when the user followed it and the official
  *  close that day. Codes followed before this existed have no entry. */
 export interface WatchlistMetaEntry {
@@ -2232,6 +2302,8 @@ export interface AdminAnalyticsResponse {
     trials_started: number;  // ever pressed "Start my free month"
     trials_7d: number;       // started in the last 7 days
     trials_ended: number;    // used the month and are no longer premium
+    paid?: number;           // …of the active ones, on a bKash / Nagad plan
+    payments_pending?: number; // payments waiting to be checked in /admin/payments
   };
   sections: { category: string; views: number; users: number }[]; // last 30 days
   stocks: { viewed: AdminStockCount[]; watched: AdminStockCount[]; held: AdminStockCount[] };

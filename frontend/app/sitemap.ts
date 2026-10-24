@@ -102,6 +102,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     content("/contact", "yearly", 0.3),
     content("/privacy-policy", "yearly", 0.3),
     content("/disclaimer", "yearly", 0.3),
+    content("/refund-policy", "yearly", 0.3),
     ...sectorPages,
     ...samplePortfolioPages,
     ...stockListPages,

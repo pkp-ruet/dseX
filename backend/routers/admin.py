@@ -304,6 +304,8 @@ def get_analytics(_: dict = Depends(get_current_admin_user)):
             "active": _count(db["users"], {"premium_until": {"$gt": now}}),
             "on_trial": _count(db["users"], {"premium_until": {"$gt": now}, "premium_source": "trial"}),
             "granted": _count(db["users"], {"premium_until": {"$gt": now}, "premium_source": "admin"}),
+            "paid": _count(db["users"], {"premium_until": {"$gt": now}, "premium_source": "paid"}),
+            "payments_pending": _count(db["payments"], {"status": "pending"}),
             "trials_started": _count(db["users"], {"trial_started_at": {"$exists": True}}),
             "trials_7d": _count(db["users"], {"trial_started_at": {"$gte": now - timedelta(days=7)}}),
             "trials_ended": _count(db["users"], {
@@ -525,3 +527,40 @@ def grant_premium_endpoint(body: PremiumGrantBody, _: dict = Depends(get_current
         raise HTTPException(status_code=404, detail="User not found")
     until = grant_premium(doc["user_id"], body.days)
     return {"user_id": doc["user_id"], "premium_until": until.isoformat() if until else None}
+
+
+# ---------------------------------------------------------------------------
+# Payments (bKash / Nagad — Premium starts on submit, checked here afterwards)
+# ---------------------------------------------------------------------------
+
+class RevokePaymentBody(BaseModel):
+    reason: str = Field("", max_length=200)
+
+
+@router.get("/payments")
+def admin_payments(status: str = "pending", _: dict = Depends(get_current_admin_user)):
+    from backend.services import payments
+
+    return payments.admin_list(None if status == "all" else status)
+
+
+@router.post("/payments/{payment_id}/accept")
+def admin_accept_payment(payment_id: str, admin: dict = Depends(get_current_admin_user)):
+    from backend.services import payments
+
+    doc = payments.accept(payment_id, admin.get("email") or "")
+    if not doc:
+        raise HTTPException(status_code=409, detail="not_pending")
+    return {"ok": True, "id": payment_id, "status": "accepted"}
+
+
+@router.post("/payments/{payment_id}/revoke")
+def admin_revoke_payment(
+    payment_id: str, body: RevokePaymentBody, admin: dict = Depends(get_current_admin_user)
+):
+    from backend.services import payments
+
+    doc = payments.revoke(payment_id, admin.get("email") or "", body.reason)
+    if not doc:
+        raise HTTPException(status_code=409, detail="already_revoked")
+    return {"ok": True, "id": payment_id, "status": "revoked"}

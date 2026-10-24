@@ -309,6 +309,9 @@ def run_portfolio_daily(not_before_dhaka_hour: Optional[int] = None) -> dict:
         )
 
     counts["recaps"] = _send_trial_recaps(now, day, push_ok)
+    from backend.services.payments import send_renewal_reminders
+
+    counts["renewals"] = send_renewal_reminders(now, day, push_ok)
     log.info("portfolio daily done: %s", counts)
     return counts
 

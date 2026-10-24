@@ -19,6 +19,7 @@ import { BarList, FunnelBars, HoursHeatmap, MetricRow, Panel, StockBarList } fro
 import { COLORS, SEGMENT_META, SEGMENT_ORDER } from "./analytics/shared";
 
 const ADMIN_LINKS = [
+  { href: "/admin/payments", label: "Payments" },
   { href: "/admin/scores", label: "Score Adjustments" },
   { href: "/admin/daily-pick", label: "Today's Top Stock" },
   { href: "/admin/tips", label: "Edit Tips" },
@@ -172,8 +173,14 @@ function Dashboard({ data, priceMap }: { data: AdminAnalyticsResponse; priceMap:
                 label: "Premium now",
                 value: n(p.active),
                 accent: COLORS.primary,
-                sub: `${n(p.on_trial)} on the free month · ${n(p.granted)} given by admin`,
+                sub: `${n(p.paid ?? 0)} paid · ${n(p.on_trial)} on the free month · ${n(p.granted)} given by admin`,
                 hint: "Accounts whose premium end date is still in the future.",
+              },
+              {
+                label: "Payments to check",
+                value: n(p.payments_pending ?? 0),
+                sub: "bKash / Nagad — open Payments to accept or revoke",
+                hint: "Premium already started for these; check each against the bKash / Nagad statement.",
               },
               {
                 label: "Started the free month",

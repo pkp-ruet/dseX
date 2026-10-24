@@ -5,13 +5,14 @@ import Card from "@/components/ui/Card";
 import Bn from "@/components/i18n/Bn";
 import PremiumPlanCta from "@/components/premium/PremiumPlanCta";
 import PremiumContextCard from "@/components/premium/PremiumContextCard";
+import PayBox from "@/components/premium/PayBox";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 export const metadata: Metadata = {
   title: "Premium — Full Stock Analysis, Free for a Month",
   description:
-    "TopStockBD Premium: the full analysis on every DSE stock page, a deeper portfolio check with an action list, a watcher on every stock you own, your full portfolio history, a what-if tool, a yearly statement, more than one portfolio, unlimited watchlist with a glance board, price alerts and TopStock AI. Try it free for one month — no payment.",
+    "TopStockBD Premium: the full analysis on every DSE stock page, a deeper portfolio check with an action list, a watcher on every stock you own, your full portfolio history, a what-if tool, a yearly statement, more than one portfolio, unlimited watchlist with a glance board, price alerts and TopStock AI. Try it free for one month, then from ৳199 by bKash or Nagad.",
   keywords: [
     "TopStockBD Premium",
     "DSE stock analysis",
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/premium" },
   openGraph: {
     title: "TopStockBD Premium — free for one month",
-    description: "The full analysis behind every DSE stock and your portfolio. One free month, no payment.",
+    description: "The full analysis behind every DSE stock and your portfolio. One free month, then from ৳199 by bKash or Nagad.",
     url: `${BASE_URL}/premium`,
     type: "website",
   },
@@ -101,50 +102,41 @@ const ROWS: { what: string; bn: string; free: string; premium: string }[] = [
   { what: "TopStock AI", bn: "টপস্টক এআই", free: "10 questions a day", premium: "No limit" },
 ];
 
-// Planned prices — shown so readers know what Premium will cost after the free
-// month. Nothing is charged yet (no billing in v1); change them here.
-const PLANS: { name: string; bn: string; price: string; per: string; perBn: string; note: string; noteBn: string; best?: boolean }[] = [
-  {
-    name: "Monthly",
-    bn: "মাসিক",
-    price: "৳199",
-    per: "a month",
-    perBn: "প্রতি মাসে",
-    note: "Stop any month.",
-    noteBn: "যেকোনো মাসে বন্ধ করা যাবে।",
-  },
-  {
-    name: "Yearly",
-    bn: "বার্ষিক",
-    price: "৳1,449",
-    per: "a year",
-    perBn: "প্রতি বছরে",
-    note: "About ৳121 a month — you save ৳939 a year.",
-    noteBn: "মাসে প্রায় ৳121 — বছরে ৳939 সাশ্রয়।",
-    best: true,
-  },
-];
-
 const FAQS: { q: string; a: string; bn: string }[] = [
   {
-    q: "What does the free month cost?",
-    a: "Nothing. Tap “Start my free month” on this page while signed in and Premium is on for 30 days. There is no card and no payment.",
-    bn: "কিছুই না। সাইন ইন করে এই পাতায় “Start my free month” চাপলেই 30 দিন প্রিমিয়াম চালু। কোনো কার্ড বা পেমেন্ট লাগবে না।",
+    q: "How much does Premium cost?",
+    a: "৳199 for 1 month, ৳499 for 3 months or ৳1,499 for a year. Every account can also try it free for one month first.",
+    bn: "1 মাস ৳199, 3 মাস ৳499, 1 বছর ৳1,499। প্রতিটি অ্যাকাউন্ট প্রথমে 1 মাস ফ্রিতেও ব্যবহার করতে পারে।",
   },
   {
-    q: "How much will Premium cost?",
-    a: "The plan is ৳199 a month or ৳1,449 a year. Paid plans aren't open yet, so nobody is charged today — the free month is the only way in for now.",
-    bn: "পরিকল্পিত দাম মাসে ৳199 বা বছরে ৳1,449। পেইড প্ল্যান এখনো চালু হয়নি, তাই এখন কারও টাকা কাটা হচ্ছে না — আপাতত শুধু ফ্রি মাস।",
+    q: "How do I pay?",
+    a: "With bKash or Nagad. Pick a plan, use Send Money to send the amount to the number shown on this page, then type the number you sent it from and tap the button. Premium starts straight away.",
+    bn: "bKash বা Nagad দিয়ে। প্ল্যান বেছে নিন, এই পাতার নম্বরে Send Money করে টাকা পাঠান, তারপর যে নম্বর থেকে পাঠিয়েছেন সেটি লিখে বোতাম চাপুন। প্রিমিয়াম সঙ্গে সঙ্গে চালু হবে।",
   },
   {
-    q: "What happens when the month ends?",
-    a: "Your account goes back to free on its own. Nothing is charged. Stocks you already follow and alerts you already set stay — you just can't add more than the free limits.",
-    bn: "মাস শেষে অ্যাকাউন্ট নিজে থেকেই ফ্রি হয়ে যাবে, কোনো টাকা কাটা হবে না। আগের ওয়াচলিস্ট আর অ্যালার্ট থেকে যাবে, শুধু ফ্রি সীমার বেশি যোগ করা যাবে না।",
+    q: "What if you can't find my payment?",
+    a: "We check every payment against our bKash and Nagad statements. If no money came from the number you typed, Premium is switched off and the days are taken back. Typed the wrong number by mistake? Contact us and we'll sort it out.",
+    bn: "প্রতিটি পেমেন্ট আমরা bKash ও Nagad-এর হিসাবের সাথে মিলিয়ে দেখি। আপনার লেখা নম্বর থেকে টাকা না এলে প্রিমিয়াম বন্ধ হবে। ভুল নম্বর লিখে ফেললে আমাদের সাথে যোগাযোগ করুন।",
+  },
+  {
+    q: "Does it renew by itself?",
+    a: "No. Nothing is taken from your account automatically. A few days before your plan ends we remind you, and you pay again only if you want to keep it.",
+    bn: "না। আপনার অ্যাকাউন্ট থেকে নিজে থেকে কোনো টাকা কাটা হয় না। প্ল্যান শেষ হওয়ার কয়েক দিন আগে মনে করিয়ে দেব; চাইলে আবার পেমেন্ট করবেন।",
+  },
+  {
+    q: "Can I get my money back?",
+    a: "Yes — ask within 7 days of paying and we send the full amount back to the number you paid from. See the refund policy for the details.",
+    bn: "হ্যাঁ — পেমেন্টের 7 দিনের মধ্যে জানালে পুরো টাকা যে নম্বর থেকে দিয়েছেন সেখানে ফেরত দেব। বিস্তারিত রিফান্ড নীতিতে।",
+  },
+  {
+    q: "What happens when my plan or free month ends?",
+    a: "Your account goes back to free on its own. Stocks you already follow and alerts you already set stay — you just can't add more than the free limits.",
+    bn: "মেয়াদ শেষে অ্যাকাউন্ট নিজে থেকেই ফ্রি হয়ে যাবে। আগের ওয়াচলিস্ট আর অ্যালার্ট থেকে যাবে, শুধু ফ্রি সীমার বেশি যোগ করা যাবে না।",
   },
   {
     q: "Can I take the free month twice?",
-    a: "One free month per account. Paid plans are coming soon.",
-    bn: "প্রতি অ্যাকাউন্টে একবার। পেইড প্ল্যান শিগগিরই আসছে।",
+    a: "One free month per account. After that, pick any plan above.",
+    bn: "প্রতি অ্যাকাউন্টে একবার। এরপর উপরের যেকোনো প্ল্যান নিতে পারেন।",
   },
   {
     q: "Is this investment advice?",
@@ -211,37 +203,21 @@ export default function PremiumPage() {
         </div>
       </section>
 
-      <section aria-labelledby="price-h">
-        <h2 id="price-h" className="text-xl font-bold text-text-main">What it will cost</h2>
-        <Bn className="text-sm text-text-muted mb-4">দাম কত হবে।</Bn>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {PLANS.map((p) => (
-            <Card key={p.name} padding="none" className={`p-4 ${p.best ? "border-primary" : ""}`}>
-              <div className="flex items-center justify-between gap-2">
-                <p className="font-semibold text-text-main">{p.name}</p>
-                {p.best && <span className="premium-chip">Best value</span>}
-              </div>
-              <Bn className="text-sm text-text-muted">{p.bn}</Bn>
-              <p className="mt-3 tabular-nums">
-                <span className="text-3xl font-bold text-text-main">{p.price}</span>{" "}
-                <span className="text-sm text-text-muted">{p.per}</span>
-              </p>
-              <p className="mt-1 text-sm text-text-main">{p.note}</p>
-              <Bn className="text-sm text-text-muted">{p.perBn} {p.price} · {p.noteBn}</Bn>
-            </Card>
-          ))}
-        </div>
-        <p className="mt-3 text-sm text-text-main">
-          Paid plans aren&apos;t open yet — nobody is charged today. Start with the free month below.
-        </p>
-        <Bn className="text-sm text-text-muted">পেইড প্ল্যান এখনো চালু হয়নি — এখন কোনো টাকা লাগবে না। নিচে ফ্রি মাস দিয়ে শুরু করুন।</Bn>
-      </section>
-
       <Card id="start" padding="none" className="p-5 sm:p-6 scroll-mt-24">
         <p className="font-semibold text-text-main">Try everything free for 1 month</p>
         <Bn className="text-sm text-text-muted mb-3">1 মাস সব সুবিধা বিনামূল্যে ব্যবহার করুন।</Bn>
         <PremiumPlanCta />
       </Card>
+
+      <section id="pay" aria-labelledby="price-h" className="scroll-mt-24">
+        <h2 id="price-h" className="text-xl font-bold text-text-main">Plans and prices</h2>
+        <Bn className="text-sm text-text-muted mb-1">প্ল্যান ও দাম।</Bn>
+        <p className="text-sm text-text-main mb-4">
+          Pay by bKash or Nagad. Nothing renews by itself.{" "}
+          <Link href="/refund-policy" className="font-semibold text-primary">Refund policy</Link>
+        </p>
+        <PayBox />
+      </section>
 
       <section aria-labelledby="faq-h">
         <h2 id="faq-h" className="text-xl font-bold text-text-main">Questions</h2>

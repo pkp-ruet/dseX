@@ -64,6 +64,40 @@
   background: rgb(var(--primary-rgb) / 0.14);
 }
 
+/* Plan picker + steps on /premium (components/premium/PayBox.tsx). */
+.pay-plan {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 16px;
+  text-align: left;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.pay-plan:hover { border-color: rgb(var(--primary-rgb) / 0.5); }
+.pay-plan:focus-visible { outline: none; box-shadow: var(--ring); }
+.pay-plan-on {
+  border-color: var(--primary);
+  background: rgb(var(--primary-rgb) / 0.06);
+}
+.pay-step { display: flex; align-items: flex-start; gap: 12px; }
+.pay-step-n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--primary-ink);
+  background: rgb(var(--primary-rgb) / 0.14);
+}
+
 /* Yearly portfolio statement (/portfolio/statement): print only the statement. */
 @media print {
   .navbar-header,

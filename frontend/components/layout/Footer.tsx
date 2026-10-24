@@ -41,6 +41,7 @@ const legalLinks: FootLink[] = [
   { href: "/contact", label: "Contact" },
   { href: "/privacy-policy", label: "Privacy Policy" },
   { href: "/disclaimer", label: "Disclaimer" },
+  { href: "/refund-policy", label: "Refund Policy" },
 ];
 
 function Column({ title, links }: { title: string; links: FootLink[] }) {

@@ -56,6 +56,7 @@ app.include_router(price_alerts.router)
 app.include_router(trust.router)
 app.include_router(home.router)
 app.include_router(premium.router)
+app.include_router(premium.public_router)
 app.include_router(research_lists.router)
 app.include_router(watchlist_glance.router)
 
@@ -92,6 +93,7 @@ def startup():
     from backend.services.push_service import ensure_push_indexes
     from backend.services.price_alert_service import ensure_price_alert_indexes
     from backend.services.portfolio_daily import ensure_indexes as ensure_portfolio_daily_indexes
+    from backend.services.payments import ensure_payment_indexes
 
     for name, fn in (
         ("users", ensure_users_indexes),
@@ -104,6 +106,7 @@ def startup():
         ("push", ensure_push_indexes),
         ("price_alerts", ensure_price_alert_indexes),
         ("portfolio_daily", ensure_portfolio_daily_indexes),
+        ("payments", ensure_payment_indexes),
         ("stock_visits", _ensure_stock_visits),
     ):
         _startup_step(name, fn)

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Bn from "@/components/i18n/Bn";
 import { readPremiumContext, type PremiumContext } from "@/lib/premium-context";
 import { usePremium } from "@/lib/premium";
+import { LOWEST_PRICE } from "@/lib/premium-plans";
 import { trackEvent } from "@/lib/track";
 
 const FROM: Record<string, { en: string; bn: string }> = {
@@ -54,8 +55,10 @@ export default function PremiumContextCard() {
         )}
         {state === "ended" ? (
           <>
-            <p className="mt-2 text-sm text-text-muted">Premium opens all of it. Paid plans are coming soon.</p>
-            <Bn className="text-sm text-text-muted">প্রিমিয়ামে সবটা খোলা। পেইড প্ল্যান শিগগিরই আসছে।</Bn>
+            <p className="mt-2 text-sm text-text-muted">
+              Premium opens all of it — plans from ৳{LOWEST_PRICE}, paid by bKash or Nagad.
+            </p>
+            <Bn className="text-sm text-text-muted">প্রিমিয়ামে সবটা খোলা — ৳{LOWEST_PRICE} থেকে প্ল্যান, bKash বা Nagad দিয়ে।</Bn>
           </>
         ) : (
           <>
@@ -66,11 +69,13 @@ export default function PremiumContextCard() {
           </>
         )}
       </div>
-      {state !== "ended" && (
-        <div className="premium-card-action">
+      <div className="premium-card-action">
+        {state === "ended" ? (
+          <a href="#pay" className="btn-primary btn-sm">Choose a plan</a>
+        ) : (
           <a href="#start" className="btn-primary btn-sm">Go to the free month</a>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

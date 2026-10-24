@@ -21,7 +21,9 @@ export interface AuthUser {
   is_premium?: boolean;
   premium_until?: string | null;
   trial_started_at?: string | null;
-  premium_source?: "trial" | "admin" | null;
+  premium_source?: "trial" | "admin" | "paid" | null;
+  /** The last plan bought (`lib/premium-plans.ts` key). */
+  paid_plan?: string | null;
   trial_available?: boolean;
   /** null = unlimited. */
   limits?: { watchlist: number | null; alerts: number | null; ai_daily: number | null; portfolios?: number | null };

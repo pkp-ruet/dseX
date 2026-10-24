@@ -7,14 +7,15 @@ import Bn from "@/components/i18n/Bn";
 import { IconLock } from "@/components/home/personalized/DashIcons";
 import { useLang } from "@/context/LangContext";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
+import { LOWEST_PRICE } from "@/lib/premium-plans";
 import { areaOf, savePremiumContext } from "@/lib/premium-context";
 import { trackEvent } from "@/lib/track";
 
 /**
  * The one "this is Premium" card. What it asks depends on the reader:
  * guest → sign up free · free account → try it free for a month · month used →
- * paid plans are coming. The button always opens /premium (what's included +
- * the planned price); the month starts there, never from a lock.
+ * the plans (bKash / Nagad). The button always opens /premium (what's included +
+ * the prices, `#pay` once the month is used); nothing starts from a lock.
  * `compact` is the one-line version for small spots
  * ("+3 more good signs").
  *
@@ -70,7 +71,7 @@ export default function PremiumLockCard({
 
   const line =
     state === "ended"
-      ? { en: "Your free month has ended. Paid plans are coming soon.", bn: "আপনার ফ্রি মাস শেষ হয়েছে। পেইড প্ল্যান শিগগিরই আসছে।" }
+      ? { en: `Plans from ৳${LOWEST_PRICE}, paid by bKash or Nagad.`, bn: `৳${LOWEST_PRICE} থেকে প্ল্যান — bKash বা Nagad দিয়ে পেমেন্ট।` }
       : state === "guest"
         ? { en: "Open a free account, then try Premium free for 1 month.", bn: "বিনামূল্যে অ্যাকাউন্ট খুলুন, তারপর 1 মাস প্রিমিয়াম ফ্রি ব্যবহার করুন।" }
         : { en: "Try it free for 1 month. No payment needed.", bn: "1 মাস বিনামূল্যে ব্যবহার করুন। কোনো পেমেন্ট লাগবে না।" };
@@ -84,12 +85,11 @@ export default function PremiumLockCard({
   // a button that switches the month on from here.
   const action = (
     <Button
-      href={PREMIUM_PATH}
+      href={state === "ended" ? `${PREMIUM_PATH}#pay` : PREMIUM_PATH}
       onClick={onTap}
-      variant={state === "ended" ? "quiet" : "primary"}
       size={compact ? "sm" : "md"}
     >
-      {bn ? "প্রিমিয়ামে কী আছে" : "See Premium"}
+      {state === "ended" ? (bn ? "প্ল্যান দেখুন" : "See plans") : bn ? "প্রিমিয়ামে কী আছে" : "See Premium"}
     </Button>
   );
 

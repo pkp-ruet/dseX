@@ -70,3 +70,8 @@ PUBLIC_API_BASE_URL = os.getenv("PUBLIC_API_BASE_URL", "https://dsex.onrender.co
 VAPID_PUBLIC_KEY = os.getenv("VAPID_PUBLIC_KEY", "")
 VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY", "")
 VAPID_SUBJECT = os.getenv("VAPID_SUBJECT", "mailto:hello@topstockbd.com")
+
+# Premium payments (v1: bKash / Nagad Send Money to a personal number). Shown on
+# /premium by GET /api/premium/plans; a method with no number is hidden.
+PAY_BKASH_NUMBER = os.getenv("PAY_BKASH_NUMBER", "").strip()
+PAY_NAGAD_NUMBER = os.getenv("PAY_NAGAD_NUMBER", "").strip()

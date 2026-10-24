@@ -1,7 +1,8 @@
 """Premium plan + free-account limits — the one place that decides who is premium.
 
-v1 has no billing: every account can start ONE free month (`start_trial`), and
-admins can grant or revoke days by hand. A user is premium while
+Every account can start ONE free month (`start_trial`), buy days by bKash /
+Nagad (`payments.py` — the days start at once, an admin accepts or revokes
+later), and admins can grant or revoke days by hand. A user is premium while
 `users.premium_until` is in the future (admins always are, so locked screens
 can be checked without a trial).
 
@@ -88,6 +89,7 @@ def plan_fields(user: dict) -> dict:
         "premium_until": until.isoformat() if until else None,
         "trial_started_at": started.isoformat() if started else None,
         "premium_source": user.get("premium_source"),
+        "paid_plan": user.get("paid_plan"),
         "trial_available": trial_available(user),
         "limits": limits_for(user),
     }
@@ -107,12 +109,17 @@ def start_trial(user_id: str) -> bool:
     """Start the one free month. Atomic: a second call (double tap, second tab)
     matches nothing and returns False."""
     now = datetime.now(timezone.utc)
+    doc = _users().find_one({"user_id": user_id}, {"premium_until": 1, "premium_source": 1})
+    current = _as_utc((doc or {}).get("premium_until"))
+    # Someone who paid first keeps their paid days; the month goes on top.
+    paid_ahead = bool(current and current > now and (doc or {}).get("premium_source") == "paid")
+    base = current if paid_ahead else now
     res = _users().update_one(
         {"user_id": user_id, "trial_started_at": {"$exists": False}},
         {"$set": {
             "trial_started_at": now,
-            "premium_until": now + timedelta(days=TRIAL_DAYS),
-            "premium_source": "trial",
+            "premium_until": base + timedelta(days=TRIAL_DAYS),
+            "premium_source": "paid" if paid_ahead else "trial",
             "updated_at": now,
         }},
     )

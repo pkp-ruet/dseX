@@ -4,6 +4,7 @@ import Button from "@/components/ui/Button";
 import Bn from "@/components/i18n/Bn";
 import { formatDate } from "@/lib/formatters";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
+import { LOWEST_PRICE, planByKey } from "@/lib/premium-plans";
 
 /** The plan's call to action — what the reader can do next, by account state.
  *  Used on /premium and in the profile "Your plan" card. Only /premium (the
@@ -16,27 +17,40 @@ export default function PremiumPlanCta({
   align?: "start" | "center";
   linkOnly?: boolean;
 }) {
-  const { state, daysLeft, premiumUntil, premiumSource, startTrial, starting } = usePremium();
+  const { state, daysLeft, premiumUntil, premiumSource, paidPlan, startTrial, starting } = usePremium();
   const justify = align === "center" ? "items-center text-center" : "items-start";
+  const payHref = linkOnly ? `${PREMIUM_PATH}#pay` : "#pay";
 
   if (state === "premium") {
+    const name =
+      premiumSource === "trial"
+        ? "Your free month"
+        : premiumSource === "paid"
+          ? `Premium · ${planByKey(paidPlan)?.name ?? "paid"} plan`
+          : "Premium";
     return (
       <div className={`flex flex-col gap-1 ${justify}`}>
         <span className="premium-chip">Premium</span>
         <p className="text-sm font-semibold text-text-main">
-          {premiumSource === "trial" ? "Your free month" : "Premium"}
+          {name}
           {premiumUntil ? ` · ${daysLeft} ${daysLeft === 1 ? "day" : "days"} left (until ${formatDate(premiumUntil)})` : ""}
         </p>
         <Bn className="text-sm text-text-muted">সব প্রিমিয়াম সুবিধা চালু আছে।</Bn>
+        {linkOnly && premiumUntil && (
+          <Button href={payHref} variant="link" size="sm">Add more days</Button>
+        )}
       </div>
     );
   }
 
   if (state === "ended") {
     return (
-      <div className={`flex flex-col gap-1 ${justify}`}>
-        <p className="text-sm font-semibold text-text-main">Your free month has ended. Paid plans are coming soon.</p>
-        <Bn className="text-sm text-text-muted">আপনার ফ্রি মাস শেষ হয়েছে। পেইড প্ল্যান শিগগিরই আসছে।</Bn>
+      <div className={`flex flex-col gap-2 ${justify}`}>
+        <p className="text-sm font-semibold text-text-main">Premium is off on your account.</p>
+        <Bn className="text-sm text-text-muted">আপনার অ্যাকাউন্টে প্রিমিয়াম এখন বন্ধ।</Bn>
+        <Button href={payHref}>Choose a plan — from ৳{LOWEST_PRICE}</Button>
+        <p className="text-sm text-text-muted">Pay by bKash or Nagad. Premium starts straight away.</p>
+        <Bn className="text-sm text-text-muted">bKash বা Nagad দিয়ে পেমেন্ট — প্রিমিয়াম সঙ্গে সঙ্গে চালু।</Bn>
       </div>
     );
   }
@@ -55,8 +69,8 @@ export default function PremiumPlanCta({
       <div className={`flex flex-col gap-2 ${justify}`}>
         <p className="text-sm font-semibold text-text-main">Free plan</p>
         <Button href={PREMIUM_PATH}>See Premium</Button>
-        <p className="text-sm text-text-muted">See what it adds and what it will cost. Your first month is free.</p>
-        <Bn className="text-sm text-text-muted">কী কী পাবেন আর দাম কত হবে দেখুন। প্রথম মাস ফ্রি।</Bn>
+        <p className="text-sm text-text-muted">See what it adds and the prices. Your first month is free.</p>
+        <Bn className="text-sm text-text-muted">কী কী পাবেন আর দাম দেখুন। প্রথম মাস ফ্রি।</Bn>
       </div>
     );
   }

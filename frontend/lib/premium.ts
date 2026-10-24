@@ -122,6 +122,7 @@ export function usePremium() {
     trialAvailable: state === "trial_available",
     premiumUntil: user?.premium_until ?? null,
     premiumSource: user?.premium_source ?? null,
+    paidPlan: user?.paid_plan ?? null,
     daysLeft: daysLeft(user),
     limits,
     startTrial,
