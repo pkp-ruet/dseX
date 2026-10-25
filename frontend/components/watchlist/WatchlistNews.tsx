@@ -6,6 +6,7 @@ import { type WatchlistNewsItem } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
+import SectionHeader from "@/components/ui/SectionHeader";
 import Skeleton from "@/components/ui/Skeleton";
 
 interface Props {
@@ -14,113 +15,100 @@ interface Props {
   loading: boolean;
   /** Cap how many items render (data is already newest-first). */
   limit?: number;
-  /** Drop the centered "Last 30 Days" header + wide wrapper (for embedding e.g. on the homepage). */
+  /** Drop the section header (for embedding, e.g. on the portfolio page). */
   compact?: boolean;
 }
+
+/** Rows shown before "Show all" on the watchlist page. */
+const FIRST_ROWS = 6;
 
 function NewsItem({ item }: { item: WatchlistNewsItem }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <Card padding="none" className="group relative flex flex-col gap-2 p-4 hover:shadow-lift hover:border-primary transition-all duration-200">
-      <div className="flex items-center justify-between gap-2">
-        <Link
-          prefetch={false} href={`/stock/${item.trading_code}`}
-          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold  bg-primary text-surface hover:opacity-80 transition-opacity"
-        >
+    <li className="wl-news-item">
+      <div className="wl-news-top">
+        <Link prefetch={false} href={`/stock/${item.trading_code}`} className="wl-news-code">
           {item.trading_code}
         </Link>
-        <span className="text-xs text-text-muted shrink-0">
-          {formatDate(item.post_date)}
-        </span>
+        <span className="wl-news-date">{formatDate(item.post_date)}</span>
       </div>
-
-      <p className="text-sm font-medium text-text-main leading-snug">
-        {item.title}
-      </p>
-
+      <p className="wl-news-title">{item.title}</p>
       {item.body && (
         <>
-          <p
-            className={`text-xs text-text-muted leading-relaxed ${
-              expanded ? "" : "line-clamp-2"
-            }`}
-          >
-            {item.body}
-          </p>
+          <p className={`wl-news-body ${expanded ? "" : "line-clamp-2"}`}>{item.body}</p>
           {!expanded && (
             <button
               type="button"
               onClick={() => setExpanded(true)}
-              className="btn-link btn-sm self-start -ml-2"
+              className="btn-link btn-sm -ml-2"
             >
               Read more
             </button>
           )}
         </>
       )}
-    </Card>
+    </li>
   );
 }
 
-function SkeletonCard() {
+function SkeletonRow() {
   return (
-    <Card padding="none" className="p-4">
-      <div className="flex items-center justify-between mb-3">
-        <Skeleton width={48} height={16} rounded="999px" />
+    <li className="wl-news-item">
+      <div className="mb-3 flex items-center justify-between">
+        <Skeleton width={48} height={12} />
         <Skeleton width={64} height={12} />
       </div>
       <Skeleton height={14} className="mb-2" />
-      <Skeleton width="75%" height={14} />
-    </Card>
+      <Skeleton width="70%" height={14} />
+    </li>
   );
 }
 
 export default function WatchlistNews({ codes, news, loading, limit, compact = false }: Props) {
+  const [showAll, setShowAll] = useState(false);
   if (!codes.length) return null;
 
   // Show cached/fresh news whenever we have any; only fall back to skeleton
   // when we genuinely have nothing yet.
   const showSkeleton = loading && news.length === 0;
   const showEmpty = !loading && news.length === 0;
-  const items = limit != null ? news.slice(0, limit) : news;
+  const capped = limit != null ? news.slice(0, limit) : news;
+  const fold = !compact && !showAll && capped.length > FIRST_ROWS;
+  const items = fold ? capped.slice(0, FIRST_ROWS) : capped;
   const skeletonCount = Math.min(limit ?? 4, 4);
 
-  return (
-    <section className={compact ? "" : "mt-12 mx-auto max-w-3xl"}>
-      {/* Header */}
-      {!compact && (
-        <div className="flex flex-col items-center text-center mb-6">
-          <span className="text-xs font-bold   text-primary mb-1">
-            Watchlist News
-          </span>
-          <h2 className="text-xl font-bold text-text-main">Last 30 Days</h2>
-          <div className="mt-3 flex items-center gap-3 w-full max-w-xs">
-            <div className="h-px flex-1 bg-border" />
-            <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-            <div className="h-px flex-1 bg-border" />
-          </div>
-        </div>
-      )}
-
+  const body = (
+    <>
       {showSkeleton && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {[...Array(skeletonCount)].map((_, i) => <SkeletonCard key={i} />)}
-        </div>
+        <Card padding="none" className="wl-news" aria-busy="true">
+          <ul>
+            {[...Array(skeletonCount)].map((_, i) => <SkeletonRow key={i} />)}
+          </ul>
+        </Card>
       )}
 
       {showEmpty && (
-        <div className="text-center py-10">
-          <p className="text-sm text-text-muted">No recent news.</p>
-        </div>
+        <Card padding="md">
+          <p className="text-sm text-text-muted">No news on your stocks in the last 30 days.</p>
+        </Card>
       )}
 
       {items.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {items.map((item, i) => (
-            <NewsItem key={i} item={item} />
-          ))}
-        </div>
+        <Card padding="none" className="wl-news">
+          <ul>
+            {items.map((item, i) => (
+              <NewsItem key={`${item.trading_code}-${item.post_date}-${i}`} item={item} />
+            ))}
+          </ul>
+          {fold && (
+            <div className="wl-news-more">
+              <button type="button" onClick={() => setShowAll(true)}>
+                Show all {capped.length} news items
+              </button>
+            </div>
+          )}
+        </Card>
       )}
 
       {compact && items.length > 0 && (
@@ -128,6 +116,20 @@ export default function WatchlistNews({ codes, news, loading, limit, compact = f
           View all news →
         </Button>
       )}
+    </>
+  );
+
+  if (compact) return <section>{body}</section>;
+
+  return (
+    <section className="wl-section" aria-labelledby="wl-news">
+      <SectionHeader
+        id="wl-news"
+        title="News on your stocks"
+        bn="আপনার শেয়ারগুলোর খবর"
+        lead="Announcements from the last 30 days, newest first."
+      />
+      {body}
     </section>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { loadAlerts, getCachedAlerts } from "@/lib/price-alerts";
 import Button from "@/components/ui/Button";
+import Bn from "@/components/i18n/Bn";
 
 const FLAG = "dsex.alerts.tip";
 
@@ -35,22 +36,18 @@ export default function PriceAlertTip() {
   if (!visible) return null;
 
   return (
-    <div className="mb-4 flex items-start gap-3 rounded-xl border border-watch/30 bg-watch/10 p-4">
-      <span
-        className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-watch/15 text-watch"
-        aria-hidden
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-        </svg>
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-bold text-text-main">New: price alerts</p>
-        <p className="mt-0.5 text-xs text-text-muted">
-          Tap the <b>Alert</b> button on any stock to set a target price. We&apos;ll watch it and
-          ping you the day it&apos;s hit.
+    <div className="soft-card wl-note">
+      <svg className="wl-note-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+      </svg>
+      <div className="wl-note-body">
+        <p className="wl-note-title">Get told when a price is hit</p>
+        <p className="wl-note-text text-text-muted">
+          Tap <b className="text-text-main">Alert</b> on any stock to set a target price. We&apos;ll
+          watch it and tell you the day it&apos;s reached.
         </p>
+        <Bn className="wl-note-bn">যেকোনো শেয়ারে Alert চেপে দাম ঠিক করুন — সেই দামে পৌঁছালে আমরা জানাব।</Bn>
       </div>
       <Button type="button" variant="link" size="sm" onClick={dismiss} className="shrink-0">
         Got it

@@ -3,6 +3,8 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import Card from "@/components/ui/Card";
+import Bn from "@/components/i18n/Bn";
+import SectionHeader from "@/components/ui/SectionHeader";
 import {
   flattenTiers,
   type ScoreItem,
@@ -11,17 +13,14 @@ import {
   type DividendsUpcoming,
   type WatchlistMeta,
 } from "@/lib/api";
+import { changePct, changeTone } from "@/lib/formatters";
 import { getTier, TIER_LABELS, TIER_LABELS_BN, TIER_VAR, type TierKey } from "@/lib/constants";
-
-// ---------------------------------------------------------------------------
-// Bengali helpers
-// ---------------------------------------------------------------------------
 
 // Bengali tier words come from the canonical map in lib/constants
 // (Numbers inside Bengali prose stay Western — 9, 6.1% — per site convention.)
 
 // ---------------------------------------------------------------------------
-// Small building blocks
+// Small building blocks (styles: app/styles/watchlist.css, `wl-*`)
 // ---------------------------------------------------------------------------
 
 type Tone = "primary" | "good" | "warn" | "bad";
@@ -35,11 +34,7 @@ const TONE_COLOR: Record<Tone, string> = {
 
 function CodeChip({ code }: { code: string }) {
   return (
-    <Link
-      prefetch={false}
-      href={`/stock/${code}`}
-      className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold  bg-primary/15 text-primary hover:bg-primary/25 transition-colors mx-0.5"
-    >
+    <Link prefetch={false} href={`/stock/${code}`} className="wl-code-link">
       {code}
     </Link>
   );
@@ -52,104 +47,51 @@ function inlineList(codes: string[], cap = 3): React.ReactNode {
       {shown.map((c, i) => (
         <span key={c}>
           <CodeChip code={c} />
-          {i < shown.length - 1 ? " " : ""}
+          {i < shown.length - 1 ? ", " : ""}
         </span>
       ))}
       {codes.length > cap && (
-        <span className="text-text-muted text-xs"> +{codes.length - cap} more</span>
+        <span className="text-text-muted"> and {codes.length - cap} more</span>
       )}
     </>
   );
 }
 
-const ICONS = {
-  pulse: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 12h4l3-8 4 16 3-8h4" />
-    </svg>
-  ),
-  basket: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
-      <path d="M22 12A10 10 0 0 0 12 2v10z" />
-    </svg>
-  ),
-  eye: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  ),
-  alert: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-      <line x1="12" y1="9" x2="12" y2="13" />
-      <line x1="12" y1="17" x2="12.01" y2="17" />
-    </svg>
-  ),
-};
-
-/** Collapsible card: tinted header strip (icon chip + English title + Bengali
- *  subtitle + item count) is the <summary>; body opens on tap. */
-function Section({
-  tone = "primary",
-  icon,
+/** One fold inside the "What stands out" card: title + Bengali line + count
+ *  is the <summary>; the body opens on tap. Hairlines, no tinted header. */
+function Fold({
   title,
   titleBn,
   count,
-  defaultOpen = false,
+  countTone,
   children,
 }: {
-  tone?: Tone;
-  icon: React.ReactNode;
   title: string;
   titleBn: string;
   count?: number;
-  defaultOpen?: boolean;
+  countTone?: "good" | "bad";
   children: React.ReactNode;
 }) {
-  const c = TONE_COLOR[tone];
   return (
-    <details className="soft-card wl-story-section overflow-hidden" open={defaultOpen || undefined}>
-      <summary
-        className="wl-story-summary flex cursor-pointer select-none items-center gap-2.5 px-4 py-3 sm:px-5"
-        style={{ background: `color-mix(in srgb, ${c} 5%, var(--surface))` }}
-      >
-        <span
-          className="grid h-7 w-7 shrink-0 place-items-center rounded-lg"
-          style={{
-            color: c,
-            background: `color-mix(in srgb, ${c} 12%, transparent)`,
-            border: `1px solid color-mix(in srgb, ${c} 22%, var(--border))`,
-          }}
-          aria-hidden
-        >
-          {icon}
-        </span>
-        <div className="min-w-0 flex-1 flex flex-wrap items-baseline gap-x-2">
-          <h3 className="text-sm sm:text-base font-bold leading-tight text-text-main">
-            {title}
-          </h3>
-          <p lang="bn" className="font-bn text-xs font-semibold leading-snug text-text-muted">
-            {titleBn}
-          </p>
+    <details className="wl-fold">
+      <summary>
+        <div className="min-w-0 flex-1">
+          <h3 className="wl-fold-title">{title}</h3>
+          <Bn className="wl-fold-bn">{titleBn}</Bn>
         </div>
         {count != null && count > 0 && (
-          <span
-            className="shrink-0 rounded-full px-2 py-0.5 text-xs font-bold nums"
-            style={{ color: c, background: `color-mix(in srgb, ${c} 12%, transparent)` }}
-          >
+          <span className={`wl-fold-count${countTone ? ` wl-fold-count--${countTone}` : ""}`}>
             {count}
           </span>
         )}
         <svg
-          className="wl-story-chevron shrink-0 text-text-muted"
-          width="16"
-          height="16"
+          className="wl-fold-chev"
+          width="18"
+          height="18"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2.2"
+          strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
           aria-hidden
@@ -157,7 +99,7 @@ function Section({
           <path d="M6 9l6 6 6-6" />
         </svg>
       </summary>
-      <div className="border-t border-border px-4 py-4 sm:px-5">{children}</div>
+      <div className="wl-fold-body">{children}</div>
     </details>
   );
 }
@@ -175,129 +117,67 @@ function StoryItem({
   children: React.ReactNode;
 }) {
   return (
-    <li className="flex gap-2.5">
-      <span
-        className="mt-[7px] h-2 w-2 shrink-0 rounded-full"
-        style={{ background: TONE_COLOR[tone] }}
-        aria-hidden
-      />
+    <li className="flex gap-3">
+      <span className="wl-story-dot" style={{ background: TONE_COLOR[tone] }} aria-hidden />
       <div className="min-w-0">
         <p className="text-sm leading-relaxed text-text-main">
-          <span className="font-bold">{label}:</span> {children}
+          <span className="font-semibold">{label}:</span> {children}
         </p>
-        {bn && (
-          <p lang="bn" className="font-bn mt-0.5 text-sm font-medium leading-relaxed text-text-muted">
-            {bn}
-          </p>
-        )}
+        {bn && <Bn className="mt-0.5 text-sm leading-relaxed text-text-muted">{bn}</Bn>}
       </div>
     </li>
   );
 }
 
-function StatTile({
-  label,
-  labelBn,
-  value,
-  color,
+/** One cell of the hero's answer grid: question, the number, one small line. */
+function Answer({
+  q,
+  qBn,
+  children,
+  x,
 }: {
-  label: string;
-  labelBn: string;
-  value: string;
-  color?: string;
+  q: string;
+  qBn: string;
+  children: React.ReactNode;
+  x?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-surface-2 px-3 py-2.5">
-      <div className="text-xs font-bold   text-text-muted">
-        {label}
-      </div>
-      <div className="mt-0.5 text-xl font-bold nums leading-tight" style={color ? { color } : { color: "var(--text)" }}>
-        {value}
-      </div>
-      <div lang="bn" className="font-bn text-xs font-semibold leading-tight text-text-muted">
-        {labelBn}
-      </div>
-    </div>
-  );
-}
-
-function MoodGauge({ value }: { value: number | null }) {
-  if (value == null) return null;
-  const clamp = Math.max(-3, Math.min(3, value));
-  const pos = ((clamp + 3) / 6) * 100;
-  const tone =
-    value > 0.5 ? "var(--positive)" : value < -0.5 ? "var(--negative)" : "var(--watch)";
-  const mood = value > 0.5 ? "Bullish" : value < -0.5 ? "Bearish" : "Mixed";
-  const moodBn = value > 0.5 ? "চাঙা ভাব" : value < -0.5 ? "চাপের মধ্যে" : "মিশ্র অবস্থা";
-  return (
-    <div className="flex items-center gap-3">
-      <div className="min-w-0 flex-1">
-        <div
-          className="relative h-2 rounded-full"
-          style={{
-            background:
-              "linear-gradient(to right, color-mix(in srgb, var(--negative) 40%, transparent), color-mix(in srgb, var(--watch) 40%, transparent), color-mix(in srgb, var(--positive) 40%, transparent))",
-          }}
-        >
-          <div
-            className="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border-2 border-bg shadow-soft"
-            style={{ left: `calc(${pos}% - 7px)`, background: tone }}
-          />
-        </div>
-        <div className="mt-1 flex justify-between text-xs font-semibold text-text-muted nums">
-          <span>−3%</span>
-          <span>0</span>
-          <span>+3%</span>
-        </div>
-      </div>
-      <div className="shrink-0 text-right">
-        <div className="text-sm font-bold nums" style={{ color: tone }}>
-          {mood} {value > 0 ? "+" : ""}
-          {value.toFixed(2)}%
-        </div>
-        <div lang="bn" className="font-bn text-xs font-semibold text-text-muted">
-          {moodBn}
-        </div>
-      </div>
+    <div className="wl-answer">
+      <p className="wl-answer-q">
+        {q} <Bn as="span" className="font-normal">· {qBn}</Bn>
+      </p>
+      <p className="wl-answer-a">{children}</p>
+      {x && <p className="wl-answer-x">{x}</p>}
     </div>
   );
 }
 
 const TIER_ORDER: TierKey[] = ["excellent", "good", "average", "weak"];
 
-function TierMixBar({ counts, total }: { counts: Record<TierKey, number>; total: number }) {
+function TierMix({ counts, total }: { counts: Record<TierKey, number>; total: number }) {
   if (total === 0) return null;
+  const shown = TIER_ORDER.filter((t) => counts[t] > 0);
   return (
-    <div>
-      <div className="flex flex-wrap items-baseline justify-between gap-x-2">
-        <span className="text-xs font-bold   text-text-muted">
-          Quality mix
-        </span>
-        <span lang="bn" className="font-bn text-xs font-semibold text-text-muted">
-          কোন মানের স্টক কয়টা
-        </span>
+    <div className="wl-mix">
+      <div className="wl-mix-head">
+        <p className="wl-mix-title">Quality mix</p>
+        <Bn className="text-xs text-text-muted">কোন মানের শেয়ার কয়টা</Bn>
       </div>
-      <div className="mt-1.5 flex h-2.5 overflow-hidden rounded-full bg-border">
-        {TIER_ORDER.filter((t) => counts[t] > 0).map((t) => (
-          <div
-            key={t}
-            style={{ width: `${(counts[t] / total) * 100}%`, background: TIER_VAR[t] }}
-            title={`${TIER_LABELS[t]}: ${counts[t]}`}
-          />
+      <div className="wl-mix-bar" role="img" aria-label={shown.map((t) => `${TIER_LABELS[t]} ${counts[t]}`).join(", ")}>
+        {shown.map((t) => (
+          <span key={t} style={{ width: `${(counts[t] / total) * 100}%`, background: TIER_VAR[t] }} />
         ))}
       </div>
-      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
-        {TIER_ORDER.filter((t) => counts[t] > 0).map((t) => (
-          <span key={t} className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-main">
-            <span className="h-2 w-2 rounded-full" style={{ background: TIER_VAR[t] }} aria-hidden />
+      <ul className="wl-mix-legend">
+        {shown.map((t) => (
+          <li key={t}>
+            <span className="wl-swatch" style={{ background: TIER_VAR[t] }} aria-hidden />
             {TIER_LABELS[t]}
-            <span lang="bn" className="font-bn text-text-muted">
-              ({TIER_LABELS_BN[t]})
-            </span>
-            <span className="nums">{counts[t]}</span>
-          </span>
+            <Bn as="span">({TIER_LABELS_BN[t]})</Bn>
+            <b>{counts[t]}</b>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }
@@ -314,9 +194,9 @@ interface Props {
   /** Per-code "added on" meta — powers the "since you added" stat. */
   meta?: WatchlistMeta;
   /**
-   * `snapshot` = the one-card summary (headline, mood, stat tiles, quality mix)
-   * meant to sit above the table. `details` = the collapsible deep-dive
-   * sections meant to sit below it. `all` = both (legacy).
+   * `snapshot` = the hero (mood word, one sentence, the four answers + quality mix)
+   * meant to sit above the list. `details` = the "What stands out" folds
+   * meant to sit below it. `all` = both (legacy).
    */
   mode?: "snapshot" | "details" | "all";
 }
@@ -505,6 +385,7 @@ export default function WatchlistAnalysis({
 
     return {
       headline,
+      leaning,
       headlineBn,
       todayBn,
       avgScore,
@@ -546,105 +427,92 @@ export default function WatchlistAnalysis({
   const showSnapshot = mode === "snapshot" || mode === "all";
   const showDetails = mode === "details" || mode === "all";
 
-  const header = (
-    <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-1">
-      <div>
-        <h2 className="text-xs font-bold   text-primary">
-          Watchlist Story
-        </h2>
-        <p lang="bn" className="font-bn text-sm font-semibold leading-snug text-text-muted">
-          আপনার তালিকার আজকের গল্প — সহজ ভাষায়
-        </p>
-      </div>
-      <span className="text-xs text-text-muted">
-        Auto-generated · not investment advice
-      </span>
-    </div>
-  );
-
   if (!rows.length || !story) {
     if (!showSnapshot) return null;
     return (
-      <section className="mb-4 flex flex-col gap-3">
-        <Card padding="none" className="p-5">
-          <p className="text-sm text-text-main">No scored stocks in your watchlist yet.</p>
-          <p lang="bn" className="font-bn mt-1 text-sm font-medium text-text-muted">
-            আপনার তালিকার স্টকগুলোর স্কোর এখনো তৈরি হয়নি।
-          </p>
-        </Card>
-      </section>
+      <Card padding="md">
+        <p className="text-sm text-text-main">No scored stocks in your watchlist yet.</p>
+        <Bn className="mt-1 text-sm text-text-muted">
+          আপনার তালিকার শেয়ারগুলোর স্কোর এখনো তৈরি হয়নি।
+        </Bn>
+      </Card>
     );
   }
 
-  // ---- Snapshot card ------------------------------------------------------
+  // ---- Hero: mood word, one sentence, then the four answers in one card ----
+  const moodCls =
+    story.avgChg == null || Math.abs(story.avgChg) <= 0.5
+      ? "wl-mood--flat"
+      : story.avgChg > 0
+        ? "wl-mood--up"
+        : "wl-mood--down";
+  const moodLabel =
+    story.avgChg == null
+      ? "Quiet today"
+      : story.avgChg > 0.5
+        ? "Rising today"
+        : story.avgChg < -0.5
+          ? "Falling today"
+          : "Flat today";
+  const avgTier = story.avgScore != null ? getTier(story.avgScore) : null;
+
   const snapshot = (
-    <Card padding="none" className="p-4 sm:p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-base sm:text-lg font-semibold leading-relaxed text-text-main">
-            {story.headline}
-          </p>
-          <p lang="bn" className="font-bn mt-1.5 text-base font-semibold leading-relaxed text-text-main">
-            {story.headlineBn}
-          </p>
+    <section aria-labelledby="wl-hero-title">
+      <span className={`wl-mood ${moodCls}`}>
+        <span className="wl-mood-dot" aria-hidden />
+        {moodLabel}
+      </span>
+      <h2 id="wl-hero-title" className="wl-headline">
+        Your {rows.length} {rows.length === 1 ? "stock looks" : "stocks look"} {story.leaning}.
+      </h2>
+      <Bn className="wl-lead-bn">{story.headlineBn}</Bn>
+
+      <Card padding="none" className="wl-answers">
+        <div className="wl-answer-grid">
+          {sinceAdded ? (
+            <Answer
+              q="Since you followed"
+              qBn="যোগ করার পর"
+              x={`Average of ${sinceAdded.n} ${sinceAdded.n === 1 ? "stock" : "stocks"}`}
+            >
+              <span className={changeTone(sinceAdded.avg)}>{changePct(sinceAdded.avg, 1)}</span>
+            </Answer>
+          ) : (
+            <Answer q="Stocks followed" qBn="মোট শেয়ার">
+              {rows.length}
+            </Answer>
+          )}
+          <Answer q="Today" qBn="আজ" x="Average move">
+            <span className={changeTone(story.avgChg)}>
+              {story.avgChg != null ? changePct(story.avgChg) : "—"}
+            </span>
+          </Answer>
+          <Answer
+            q="Up · down"
+            qBn="বেড়েছে · কমেছে"
+            x={story.flatToday > 0 ? `${story.flatToday} unchanged` : "Every stock moved"}
+          >
+            <span className="text-positive">{story.upToday.length}</span>
+            <span className="px-1.5 font-normal text-text-muted">·</span>
+            <span className="text-negative">{story.downToday.length}</span>
+          </Answer>
+          <Answer
+            q="Average score"
+            qBn="গড় স্কোর"
+            x={avgTier ? TIER_LABELS[avgTier] : undefined}
+          >
+            <span style={avgTier ? { color: TIER_VAR[avgTier] } : undefined}>
+              {story.avgScore != null ? Math.round(story.avgScore) : "—"}
+            </span>
+          </Answer>
         </div>
-        {mode === "snapshot" && (
-          <span className="hidden sm:block shrink-0 text-xs text-text-muted">
-            Auto-generated
-          </span>
-        )}
-      </div>
-
-      <div className="mt-4">
-        <MoodGauge value={story.avgChg} />
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {sinceAdded ? (
-          <StatTile
-            label="Since added"
-            labelBn={`যোগ করার পর (${sinceAdded.n}টি)`}
-            value={`${sinceAdded.avg > 0 ? "+" : ""}${sinceAdded.avg.toFixed(1)}%`}
-            color={
-              sinceAdded.avg > 0
-                ? "var(--positive)"
-                : sinceAdded.avg < 0
-                  ? "var(--negative)"
-                  : undefined
-            }
-          />
-        ) : (
-          <StatTile label="Stocks" labelBn="মোট স্টক" value={String(rows.length)} />
-        )}
-        <StatTile
-          label="Avg score"
-          labelBn="গড় স্কোর"
-          value={story.avgScore != null ? String(Math.round(story.avgScore)) : "—"}
-          color={story.avgScore != null ? TIER_VAR[getTier(story.avgScore)] : undefined}
-        />
-        <StatTile
-          label="Up today"
-          labelBn="আজ বেড়েছে"
-          value={String(story.upToday.length)}
-          color="var(--positive)"
-        />
-        <StatTile
-          label="Down today"
-          labelBn="আজ কমেছে"
-          value={String(story.downToday.length)}
-          color="var(--negative)"
-        />
-      </div>
-
-      <div className="mt-4">
-        <TierMixBar counts={story.tierCounts} total={rows.length} />
-      </div>
-    </Card>
+        <TierMix counts={story.tierCounts} total={rows.length} />
+      </Card>
+    </section>
   );
 
-  if (!showDetails) {
-    return <section className="mb-4">{snapshot}</section>;
-  }
+  if (!showDetails) return snapshot;
+
 
   // ---- Detail sections (each built as an item list so the header can show
   //      a count while collapsed) -------------------------------------------
@@ -941,82 +809,71 @@ export default function WatchlistAnalysis({
     );
   }
 
-  return (
-    <section className="mt-8 flex flex-col gap-3">
-      {header}
+  const details = (
+    <section className="wl-section" aria-labelledby="wl-standout">
+      <SectionHeader
+        id="wl-standout"
+        title="What stands out"
+        bn="আপনার তালিকায় যা চোখে পড়ার মতো — সহজ ভাষায়"
+        lead="Written from today's scores and prices. Tap a line to open it."
+      />
+      <Card padding="none" className="wl-folds">
+        <Fold title="What's in your list" titleBn="আপনার তালিকায় কী আছে" count={basketItems.length}>
+          <ul className="wl-story">{basketItems}</ul>
+        </Fold>
 
-      {showSnapshot && snapshot}
+        <Fold
+          title="What moved today"
+          titleBn="আজ কী নড়ল"
+          count={quietToday ? undefined : todayItems.length}
+        >
+          {quietToday ? (
+            <>
+              <p className="text-sm text-text-main">No price moves recorded today.</p>
+              <Bn className="mt-1 text-sm text-text-muted">আজ কোনো দামের নড়াচড়া রেকর্ড হয়নি।</Bn>
+            </>
+          ) : (
+            <>
+              <p className="mb-3 text-sm font-semibold nums">
+                <span className="text-positive">▲ {story.upToday.length} up</span>
+                <span className="px-2 text-text-muted">·</span>
+                <span className="text-text-muted">{story.flatToday} unchanged</span>
+                <span className="px-2 text-text-muted">·</span>
+                <span className="text-negative">▼ {story.downToday.length} down</span>
+              </p>
+              <ul className="wl-story">{todayItems}</ul>
+              <Bn className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-text-muted">
+                {story.todayBn}
+              </Bn>
+            </>
+          )}
+        </Fold>
 
-      <Section
-        icon={ICONS.basket}
-        title="What's in your basket"
-        titleBn="আপনার ঝুড়িতে কী আছে"
-        count={basketItems.length}
-      >
-        <ul className="flex flex-col gap-3">{basketItems}</ul>
-      </Section>
-
-      <Section
-        icon={ICONS.pulse}
-        title="What moved today"
-        titleBn="আজ কী নড়ল"
-        count={quietToday ? undefined : todayItems.length}
-      >
-        {quietToday ? (
-          <>
-            <p className="text-sm text-text-main">No price action recorded today.</p>
-            <p lang="bn" className="font-bn mt-1 text-sm font-medium text-text-muted">
-              আজ কোনো দামের নড়াচড়া রেকর্ড হয়নি।
-            </p>
-          </>
-        ) : (
-          <>
-            <div className="mb-3 flex flex-wrap gap-1.5">
-              <span className="rounded-full bg-[color-mix(in_srgb,var(--positive)_12%,transparent)] px-2 py-0.5 text-xs font-bold text-positive nums">
-                ▲ {story.upToday.length} up
-              </span>
-              <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs font-bold text-text-muted nums">
-                {story.flatToday} flat
-              </span>
-              <span className="rounded-full bg-[color-mix(in_srgb,var(--negative)_12%,transparent)] px-2 py-0.5 text-xs font-bold text-negative nums">
-                ▼ {story.downToday.length} down
-              </span>
-            </div>
-            <ul className="flex flex-col gap-3">{todayItems}</ul>
-            <p lang="bn" className="font-bn mt-3 border-t border-border pt-3 text-sm font-medium leading-relaxed text-text-muted">
-              {story.todayBn}
-            </p>
-          </>
+        {lookItems.length > 0 && (
+          <Fold
+            title="Worth a second look"
+            titleBn="নজরে রাখার মতো"
+            count={lookItems.length}
+            countTone="good"
+          >
+            <ul className="wl-story">{lookItems}</ul>
+          </Fold>
         )}
-      </Section>
 
-      {lookItems.length > 0 && (
-        <Section
-          tone="good"
-          icon={ICONS.eye}
-          title="Worth a second look"
-          titleBn="নজরে রাখার মতো"
-          count={lookItems.length}
-        >
-          <ul className="flex flex-col gap-3">{lookItems}</ul>
-        </Section>
-      )}
-
-      {riskItems.length > 0 && (
-        <Section
-          tone="bad"
-          icon={ICONS.alert}
-          title="Heads up"
-          titleBn="একটু সাবধান"
-          count={riskItems.length}
-        >
-          <ul className="flex flex-col gap-3">{riskItems}</ul>
-        </Section>
-      )}
-
-      <p lang="bn" className="font-bn text-center text-xs font-medium text-text-muted">
-        এই বিশ্লেষণ স্বয়ংক্রিয়ভাবে তৈরি — বিনিয়োগের সিদ্ধান্তের আগে নিজে যাচাই করে নিন।
-      </p>
+        {riskItems.length > 0 && (
+          <Fold title="Heads up" titleBn="একটু সাবধান" count={riskItems.length} countTone="bad">
+            <ul className="wl-story">{riskItems}</ul>
+          </Fold>
+        )}
+      </Card>
     </section>
+  );
+
+  if (!showSnapshot) return details;
+  return (
+    <>
+      {snapshot}
+      {details}
+    </>
   );
 }

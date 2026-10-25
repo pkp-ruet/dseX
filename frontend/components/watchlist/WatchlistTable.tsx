@@ -19,7 +19,7 @@ import {
   type WatchlistMetaEntry,
 } from "@/lib/api";
 import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
-import { taka } from "@/lib/formatters";
+import { changePct, changeTone, money, taka } from "@/lib/formatters";
 import {
   getCachedWatchlist,
   getCachedWatchlistMeta,
@@ -35,9 +35,12 @@ import TierPill from "@/components/ui/TierPill";
 import SignalChip from "@/components/ui/SignalChip";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import Chip from "@/components/ui/Chip";
+import SectionHeader from "@/components/ui/SectionHeader";
 import Skeleton from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
+import Bn from "@/components/i18n/Bn";
 import WatchlistNews from "./WatchlistNews";
 import WatchlistAnalysis from "./WatchlistAnalysis";
 import WatchlistAlertCell from "./WatchlistAlertCell";
@@ -48,6 +51,15 @@ import SinceLastVisit from "./SinceLastVisit";
 import GlanceBoard from "./GlanceBoard";
 import { toast } from "@/lib/toast";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
+
+/*
+ * /watchlist, redesigned clean 2026-10-25 (styles: app/styles/watchlist.css,
+ * `wl-*`). Order: count + share → hero (mood, one sentence, four answers) →
+ * since-last-visit note → "Your stocks" (search, sort chips, the list) →
+ * glance board → "What stands out" folds → news. Company name leads every
+ * row (its Buy / near-high / dividend tags sit under it), numbers are plain (no tinted pills), colour only for up / down,
+ * grade and Buy.
+ */
 
 function flatten(scores: ScoresResponse | null): ScoreItem[] {
   if (!scores) return [];
@@ -77,7 +89,7 @@ type SortKey = "az" | "recent" | "move" | "score" | "yield" | "since";
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: "az", label: "A–Z" },
   { key: "recent", label: "Recently added" },
-  { key: "move", label: "Top movers" },
+  { key: "move", label: "Biggest move today" },
   { key: "since", label: "Since added" },
   { key: "score", label: "Best score" },
   { key: "yield", label: "Dividend yield" },
@@ -96,6 +108,12 @@ function shortDate(iso: string): string {
   return d.toLocaleDateString("en-GB", sameYear ? { day: "numeric", month: "short" } : { month: "short", year: "2-digit" });
 }
 
+function formatDateLong(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
 // ---------------------------------------------------------------------------
 // Loading — the ONE placeholder for this page (auth check, Suspense, data)
 // ---------------------------------------------------------------------------
@@ -106,10 +124,8 @@ function WatchlistSkeleton({ rows = 6 }: { rows?: number }) {
       <div className="skeleton-rows" role="status">
         {[...Array(rows)].map((_, i) => (
           <div key={i} className="skeleton-row">
-            <Skeleton width={18} height={18} rounded="999px" />
-            <Skeleton width={56} height={16} rounded="999px" />
-            <Skeleton width={i % 2 === 0 ? "30%" : "24%"} height={14} />
-            <Skeleton width={52} height={14} className="ml-auto" />
+            <Skeleton width={i % 2 === 0 ? "34%" : "26%"} height={14} />
+            <Skeleton width={56} height={14} className="ml-auto" />
             <Skeleton width={44} height={14} />
           </div>
         ))}
@@ -128,32 +144,27 @@ function SignInCTA({ pendingCodes }: { pendingCodes: string[] }) {
     : "/watchlist";
   const encNext = encodeURIComponent(nextHref);
   return (
-    <div className="watchlist-empty">
-      <h2>Sign in to use your watchlist</h2>
-      <p>
-        Save your favorite stocks across devices. We&apos;ll surface fresh news, price moves, and
-        dividend events on your list.
-      </p>
-      <div className="mt-4 flex gap-2 justify-center">
-        <Button href={`/login?next=${encNext}`} variant="primary" size="sm">
-          Sign In
-        </Button>
-        <Button href={`/register?next=${encNext}`} variant="quiet" size="sm">
-          Create Account
-        </Button>
-      </div>
+    <EmptyState
+      title="Sign in to use your watchlist"
+      message="Follow stocks on every device. We'll show their price moves, news and dividend dates in one place."
+      bn="আপনার পছন্দের শেয়ারগুলো অনুসরণ করতে সাইন ইন করুন।"
+      actions={[
+        { href: `/login?next=${encNext}`, label: "Sign in" },
+        { href: `/register?next=${encNext}`, label: "Create account" },
+      ]}
+    >
       {pendingCodes.length > 0 && (
         <p className="mt-4 text-xs text-text-muted">
           We&apos;ll add {pendingCodes.length} shared{" "}
           {pendingCodes.length === 1 ? "stock" : "stocks"} to your list after sign-in.
         </p>
       )}
-    </div>
+    </EmptyState>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Add bar
+// Add search
 // ---------------------------------------------------------------------------
 
 function AddBar({ scores }: { scores: ScoresResponse | null }) {
@@ -198,15 +209,19 @@ function AddBar({ scores }: { scores: ScoresResponse | null }) {
   }
 
   return (
-    <div className="watchlist-add-bar" ref={wrapRef}>
-      <div className="watchlist-add-input-wrap">
-        <svg className="watchlist-add-icon" viewBox="0 0 20 20" fill="none">
-          <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.8" />
-          <path d="M14 14l3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    <div className="wl-add" ref={wrapRef}>
+      <div className="wl-add-field">
+        <svg className="wl-add-icon" viewBox="0 0 20 20" fill="none" aria-hidden>
+          <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="2" />
+          <path d="M14 14l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
+        <label htmlFor="wl-add-input" className="sr-only">
+          Add a company to your watchlist
+        </label>
         <input
-          className="watchlist-add-input"
-          placeholder="Add company to watchlist…"
+          id="wl-add-input"
+          className="wl-add-input"
+          placeholder="Add a company — name or code"
           value={query}
           autoComplete="off"
           onChange={(e) => {
@@ -217,47 +232,50 @@ function AddBar({ scores }: { scores: ScoresResponse | null }) {
         />
         {query && (
           <button
-            className="watchlist-add-clear"
+            type="button"
+            className="wl-add-clear"
             onClick={() => {
               setQuery("");
               setOpen(false);
             }}
-            aria-label="Clear"
+            aria-label="Clear search"
           >
-            ×
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
           </button>
         )}
       </div>
       {open && filtered.length > 0 && (
-        <ul className="watchlist-add-dropdown">
+        <ul className="wl-add-list">
           {filtered.map((it) => {
             const watched = watchedCodes.includes(it.trading_code.toUpperCase());
             return (
               <li
                 key={it.trading_code}
-                className={`watchlist-add-item${watched ? " watched" : ""}`}
+                className={`wl-add-item${watched ? " is-watched" : ""}`}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => handleSelect(it.trading_code)}
               >
-                <span className="watchlist-add-code">{it.trading_code}</span>
-                <span className="watchlist-add-name">{it.company_name ?? ""}</span>
-                <span className={`watchlist-add-badge ${watched ? "done" : "add"}`}>
-                  {watched ? "✓ Added" : "+ Add"}
+                <span className="wl-add-who">
+                  <span className="wl-add-name">{it.company_name ?? it.trading_code}</span>
+                  <span className="wl-add-code">{it.trading_code}</span>
                 </span>
+                <span className="wl-add-state">{watched ? "Following" : "+ Follow"}</span>
               </li>
             );
           })}
         </ul>
       )}
       {open && query.trim() && filtered.length === 0 && scores && (
-        <div className="watchlist-add-empty">No match for &quot;{query}&quot;</div>
+        <div className="wl-add-empty">No company matches &quot;{query}&quot;</div>
       )}
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Enriched row
+// One row of the list (a table row on desktop, a block in the card on phones)
 // ---------------------------------------------------------------------------
 
 interface RowProps {
@@ -268,60 +286,25 @@ interface RowProps {
   onRemove: (code: string) => void;
 }
 
-/** "Since you added" cell: signed % (coloured) + the added-on date. Empty
- *  (collapses on mobile) for codes followed before the price was recorded. */
-function SinceAddedCell({ item, meta }: { item: ScoreItem; meta: WatchlistMetaEntry | null }) {
-  const pct = sinceAddedPct(item, meta);
-  if (pct == null || !meta) return <span className="text-text-muted text-xs">—</span>;
-  const color = pct > 0 ? "var(--positive)" : pct < 0 ? "var(--negative)" : "var(--text-muted)";
-  return (
-    <span
-      className="wl-since inline-flex items-baseline gap-1.5 whitespace-nowrap"
-      title={`Added ${formatDateLong(meta.added_at)} at ${taka(meta.price_at_add, 1)}`}
-    >
-      <span className="text-sm font-bold tabular-nums nums" style={{ color }}>
-        {pct > 0 ? "+" : ""}
-        {pct.toFixed(1)}%
-      </span>
-      <span className="wl-since-date text-xs font-semibold text-text-muted">
-        since {shortDate(meta.added_at)}
-      </span>
-    </span>
-  );
-}
-
-function formatDateLong(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-}
-
 function RangeBar({ ltp, high, low }: { ltp: number | null; high: number | null; low: number | null }) {
   if (ltp == null || high == null || low == null || high <= low) {
-    return <span className="text-text-muted text-xs">—</span>;
+    return <span className="wl-dash">—</span>;
   }
   const pos = Math.max(0, Math.min(1, (ltp - low) / (high - low)));
   return (
-    <div className="wl-range flex flex-col gap-0.5 min-w-[80px]" title={`52w: ${low.toFixed(1)} – ${high.toFixed(1)}`}>
-      <div className="wl-range-track relative h-1.5 rounded-full bg-border">
-        <div
-          className="absolute inset-y-0 left-0 rounded-full bg-[color-mix(in_srgb,var(--primary)_30%,transparent)]"
-          style={{ width: `${pos * 100}%` }}
-        />
-        <div
-          className="absolute top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-primary border border-bg"
-          style={{ left: `calc(${pos * 100}% - 5px)` }}
-        />
+    <div className="wl-range" title={`52-week range: ${money(low)} – ${money(high)}`}>
+      <div className="wl-range-track">
+        <span className="wl-range-dot" style={{ left: `${pos * 100}%` }} />
       </div>
-      <div className="wl-range-labels flex justify-between text-xs text-text-muted tabular-nums">
-        <span>{low.toFixed(0)}</span>
-        <span>{high.toFixed(0)}</span>
+      <div className="wl-range-ends">
+        <span>{money(low)}</span>
+        <span>{money(high)}</span>
       </div>
     </div>
   );
 }
 
-function SignalPills({
+function Notes({
   signal,
   extreme,
   hasDividendSoon,
@@ -330,159 +313,106 @@ function SignalPills({
   extreme: ExtremeInfo | null;
   hasDividendSoon: boolean;
 }) {
-  const pills: { label: string; tone: "up" | "dn" | "info" }[] = [];
-  if (extreme) {
-    pills.push(
-      extreme.side === "high"
-        ? { label: "Near 52w high", tone: "up" }
-        : { label: "Near 52w low", tone: "dn" },
-    );
-  }
-  if (hasDividendSoon) pills.push({ label: "Dividend soon", tone: "info" });
-
-  // Only Buy/Strong Buy is shown; Sell is hidden from the UI for now.
-  const chip =
-    signal && signal.signal === "buy" ? (
-      <SignalChip signal={signal.signal} strength={signal.strength} reason={signal.reason_en} />
-    ) : null;
-
-  if (!chip && pills.length === 0)
-    return <span className="text-text-muted text-xs">—</span>;
-
+  // Only Buy is shown on the watchlist; Sell lives on the stock page.
+  const buy = signal != null && signal.signal === "buy";
+  if (!buy && !extreme && !hasDividendSoon) return null;
   return (
-    <div className="flex flex-wrap items-center gap-1">
-      {chip}
-      {pills.map((p) => {
-        const cls =
-          p.tone === "up"
-            ? "bg-[color-mix(in_srgb,var(--positive)_15%,transparent)] text-positive"
-            : p.tone === "dn"
-              ? "bg-[color-mix(in_srgb,var(--negative)_15%,transparent)] text-negative"
-              : "bg-[color-mix(in_srgb,var(--watch)_15%,transparent)] text-watch";
-        return (
-          <span
-            key={p.label}
-            className={`text-xs px-1.5 py-0.5 rounded font-semibold whitespace-nowrap ${cls}`}
-          >
-            {p.label}
-          </span>
-        );
-      })}
+    <div className="wl-notes">
+      {buy && <SignalChip signal={signal.signal} strength={signal.strength} reason={signal.reason_en} />}
+      {extreme && (
+        <Chip tone={extreme.side === "high" ? "positive" : "negative"}>
+          {extreme.side === "high" ? "Near yearly high" : "Near yearly low"}
+        </Chip>
+      )}
+      {hasDividendSoon && <Chip tone="info">Dividend soon</Chip>}
     </div>
-  );
-}
-
-function EpsPill({ value }: { value: number | null | undefined }) {
-  if (value == null || Number.isNaN(value)) {
-    return (
-      <span className="wl-eps wl-eps--none inline-flex items-center gap-1 text-xs text-text-muted whitespace-nowrap">
-        <span className="opacity-60">EPS</span>
-        <span>—</span>
-      </span>
-    );
-  }
-  const toneKey = value > 10 ? "up" : value < -10 ? "dn" : "flat";
-  const sign = value > 0 ? "+" : "";
-  return (
-    <span
-      className={`wl-eps wl-eps--${toneKey} inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-semibold tabular-nums whitespace-nowrap border nums`}
-      title={`EPS year-on-year change: ${sign}${value.toFixed(1)}%`}
-    >
-      <span className="opacity-70 font-bold ">EPS</span>
-      <span>{sign}{value.toFixed(0)}%</span>
-    </span>
-  );
-}
-
-function YieldPill({ value }: { value: number | null | undefined }) {
-  if (value == null || Number.isNaN(value)) {
-    return (
-      <span className="wl-eps wl-eps--none inline-flex items-center gap-1 text-xs text-text-muted whitespace-nowrap">
-        <span className="opacity-60">DIV</span>
-        <span>—</span>
-      </span>
-    );
-  }
-  return (
-    <span
-      className="wl-eps wl-eps--flat inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-semibold tabular-nums whitespace-nowrap border nums"
-      title={`Dividend yield: ${value.toFixed(2)}%`}
-    >
-      <span className="opacity-70 font-bold ">DIV</span>
-      <span>{value.toFixed(1)}%</span>
-    </span>
   );
 }
 
 function EnrichedRow({ item, extreme, hasDividendSoon, meta, onRemove }: RowProps) {
   const chg = item.change_pct;
-  const chgCls = chg == null ? "" : chg > 0 ? "up" : chg < 0 ? "dn" : "flat";
-  const tier = getTier(item.score);
   const ex = extreme?.item ?? null;
-  // wl-empty cells collapse on the mobile card layout instead of showing "—"
+  // wl-empty cells collapse on the phone layout instead of showing "—"
   const hasRange = ex?.w52_high != null && ex?.w52_low != null;
-  // Only Buy counts as a shown signal now — Sell is hidden from the UI.
-  const hasBuySell = item.signal != null && item.signal.signal === "buy";
-  const hasSignals = extreme != null || hasDividendSoon || hasBuySell;
-  const hasSince = sinceAddedPct(item, meta) != null;
+  const hasNotes =
+    extreme != null || hasDividendSoon || (item.signal != null && item.signal.signal === "buy");
+  const since = sinceAddedPct(item, meta);
+  const eps = item.eps_yoy_pct;
+  const yld = item.div_yield_pct;
   return (
     <tr>
-      <td>
-        <button
-          type="button"
-          onClick={() => onRemove(item.trading_code)}
-          aria-label={`Remove ${item.trading_code}`}
-          title="Remove from watchlist"
-          className="star-btn star-btn--on"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-          </svg>
-        </button>
-      </td>
-      <td>
-        <Link prefetch={false} href={`/stock/${item.trading_code}`} className="watchlist-ticker">
-          {item.trading_code}
-        </Link>
-        {item.company_name && (
-          <span className="watchlist-company block mt-1 text-xs font-medium" title={item.company_name}>
-            {item.company_name}
+      <td data-cell="who">
+        <Link prefetch={false} href={`/stock/${item.trading_code}`} className="wl-who">
+          <span className="wl-name" title={item.company_name ?? undefined}>
+            {item.company_name ?? item.trading_code}
           </span>
+        </Link>
+        <span className="wl-meta">
+          <span className="wl-code">{item.trading_code}</span>
+          <TierPill tier={getTier(item.score)} />
+        </span>
+        {hasNotes && <Notes signal={item.signal} extreme={extreme} hasDividendSoon={hasDividendSoon} />}
+      </td>
+      <td data-cell="price" className="wl-num">
+        <span className="wl-price nums">{item.ltp != null ? money(item.ltp) : "—"}</span>
+      </td>
+      <td data-cell="chg" className="wl-num">
+        <span className={`wl-chg nums ${changeTone(chg)}`}>{chg != null ? changePct(chg) : "—"}</span>
+      </td>
+      <td data-cell="since" data-label="Since added" className="wl-num">
+        {since != null && meta ? (
+          <span title={`Added ${formatDateLong(meta.added_at)} at ${taka(meta.price_at_add, 1)}`}>
+            <span className={`font-semibold nums ${changeTone(since)}`}>{changePct(since, 1)}</span>
+            <span className="wl-sub">since {shortDate(meta.added_at)}</span>
+          </span>
+        ) : (
+          <span className="wl-dash">—</span>
         )}
       </td>
-      <td>
-        <TierPill tier={tier} />
+      <td data-cell="eps" data-label="Profit growth" className="wl-num">
+        {eps != null && !Number.isNaN(eps) ? (
+          <span
+            className={`font-semibold nums ${changeTone(eps)}`}
+            title={`Earnings per share, change on last year: ${changePct(eps, 1)}`}
+          >
+            {changePct(eps, 0)}
+          </span>
+        ) : (
+          <span className="wl-dash">—</span>
+        )}
       </td>
-      <td className="num">{item.ltp != null ? taka(item.ltp, 1) : "—"}</td>
-      <td className={`num watchlist-chg ${chgCls}`}>
-        {chg == null ? "—" : `${chg > 0 ? "+" : ""}${chg.toFixed(1)}%`}
+      <td data-cell="yld" data-label="Yield" className="wl-num">
+        {yld != null && !Number.isNaN(yld) ? (
+          <span className="font-semibold nums" title={`Dividend yield: ${yld.toFixed(2)}%`}>
+            {yld.toFixed(1)}%
+          </span>
+        ) : (
+          <span className="wl-dash">—</span>
+        )}
       </td>
-      <td className={hasSince ? "num" : "num wl-empty"}>
-        <SinceAddedCell item={item} meta={meta} />
+      <td data-cell="range" className={hasRange ? undefined : "wl-empty"}>
+        <RangeBar ltp={ex?.ltp ?? item.ltp} high={ex?.w52_high ?? null} low={ex?.w52_low ?? null} />
       </td>
-      <td>
-        <EpsPill value={item.eps_yoy_pct} />
-      </td>
-      <td className={item.div_yield_pct != null ? undefined : "wl-empty"}>
-        <YieldPill value={item.div_yield_pct} />
-      </td>
-      <td className={hasRange ? undefined : "wl-empty"}>
-        <RangeBar
-          ltp={ex?.ltp ?? item.ltp}
-          high={ex?.w52_high ?? null}
-          low={ex?.w52_low ?? null}
-        />
-      </td>
-      <td className={hasSignals ? undefined : "wl-empty"}>
-        <SignalPills signal={item.signal} extreme={extreme} hasDividendSoon={hasDividendSoon} />
-      </td>
-      <td className="text-center">
-        <WatchlistAlertCell
-          code={item.trading_code}
-          ltp={ex?.ltp ?? item.ltp}
-          w52High={ex?.w52_high ?? null}
-          w52Low={ex?.w52_low ?? null}
-        />
+      <td data-cell="act">
+        <div className="wl-actions">
+          <WatchlistAlertCell
+            code={item.trading_code}
+            ltp={ex?.ltp ?? item.ltp}
+            w52High={ex?.w52_high ?? null}
+            w52Low={ex?.w52_low ?? null}
+          />
+          <button
+            type="button"
+            onClick={() => onRemove(item.trading_code)}
+            aria-label={`Stop following ${item.trading_code}`}
+            title="Stop following"
+            className="star-btn star-btn--on"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden>
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+            </svg>
+          </button>
+        </div>
       </td>
     </tr>
   );
@@ -724,101 +654,51 @@ function WatchlistTableInner() {
     return <SignInCTA pendingCodes={sharedCodes} />;
   }
 
+  const ready = codes.length > 0 && !loading && !error;
+  const missing = codes.length - rows.length;
+
   return (
     <>
       {importPrompt && sharedCodes.length > 0 && (
-        <div className="mb-4 rounded-xl border border-primary bg-primary/10 p-4">
-          <p className="text-sm text-text-main mb-3">
-            Someone shared a watchlist with you. Import{" "}
-            <span className="font-bold">{sharedCodes.length}</span>{" "}
-            {sharedCodes.length === 1 ? "stock" : "stocks"}?
-            <span className="block mt-1 text-xs text-text-muted">
-              {sharedCodes.join(" · ")}
-            </span>
-          </p>
-          <div className="flex gap-2">
-            <Button type="button" onClick={handleImportShared} variant="primary" size="sm">
-              Import
-            </Button>
-            <Button type="button" onClick={handleDismissImport} variant="quiet" size="sm">
-              Dismiss
-            </Button>
+        <Card padding="none" className="wl-note mb-6">
+          <div className="wl-note-body">
+            <p className="wl-note-title">
+              Someone shared a watchlist with you. Follow {sharedCodes.length}{" "}
+              {sharedCodes.length === 1 ? "stock" : "stocks"}?
+            </p>
+            <p className="wl-note-text text-text-muted">{sharedCodes.join(" · ")}</p>
+            <div className="mt-3 flex gap-2">
+              <Button type="button" onClick={handleImportShared} variant="primary" size="sm">
+                Follow them
+              </Button>
+              <Button type="button" onClick={handleDismissImport} variant="quiet" size="sm">
+                Not now
+              </Button>
+            </div>
           </div>
-        </div>
+        </Card>
       )}
 
       {codes.length > 0 && (
-        <p className="-mt-2 mb-4 text-sm font-medium text-text-muted">
-          <span className="font-bold text-text-main nums">{codes.length}</span>
-          {limits.watchlist !== null && <span className="nums"> of {limits.watchlist}</span>}{" "}
-          {codes.length === 1 && limits.watchlist === null ? "stock" : "stocks"} followed
-          {rows.length > 0 && rows.length < codes.length && (
-            <> · {rows.length} scored</>
-          )}
-          {limits.watchlist !== null && codes.length >= limits.watchlist && (
-            <>
-              {" · "}
-              <Link href={PREMIUM_PATH} className="text-primary font-semibold">
-                Follow more with Premium
-              </Link>
-            </>
-          )}
-        </p>
+        <div className="wl-bar">
+          <p className="wl-count">
+            <strong>{codes.length}</strong>
+            {limits.watchlist !== null && <span className="nums"> of {limits.watchlist}</span>}{" "}
+            {codes.length === 1 && limits.watchlist === null ? "stock" : "stocks"} followed
+            {limits.watchlist !== null && codes.length >= limits.watchlist && (
+              <>
+                {" · "}
+                <Link href={PREMIUM_PATH} className="font-semibold text-primary-ink hover:underline">
+                  Follow more with Premium
+                </Link>
+              </>
+            )}
+          </p>
+          <ShareWatchlistButton codes={codes} />
+        </div>
       )}
 
-      {codes.length > 0 && !loading && (
-        <SinceLastVisit codes={codes} rows={rows} news={news} dividendSoon={dividends} />
-      )}
-
-      {codes.length > 0 && <PriceAlertTip />}
-
-      <div className="mb-4">
-        <div className="mb-2.5 flex items-center gap-2.5">
-          <span
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-primary/20 bg-primary/10 text-primary"
-            aria-hidden
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-            </svg>
-          </span>
-          <div className="min-w-0">
-            <h2 className="text-sm font-bold leading-tight text-text-main">
-              Add to your watchlist
-            </h2>
-            <p className="text-xs text-text-muted">
-              Search any DSE stock and tap to follow it.
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex-1">
-            <AddBar scores={scores} />
-          </div>
-          {codes.length > 0 && <ShareWatchlistButton codes={codes} />}
-        </div>
-      </div>
-
-      {codes.length === 0 ? (
-        <EmptyState
-          title="Your watchlist is empty"
-          message="Search above to add any stock, or tap a suggestion below."
-          bn="উপরে সার্চ করে কোনো শেয়ার যোগ করুন, বা নিচের একটি বেছে নিন।"
-          actions={[{ href: "/dsestockranking", label: "See top-ranked stocks" }]}
-        >
-          <EmptyStateActions />
-        </EmptyState>
-      ) : loading ? (
-        <WatchlistSkeleton />
-      ) : error ? (
-        <ErrorState
-          size="inline"
-          title="Couldn't load your watchlist"
-          bn="আপনার ওয়াচলিস্ট এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
-          onRetry={() => setRetryKey((k) => k + 1)}
-        />
-      ) : (
-        <>
+      {ready && (
         <WatchlistAnalysis
           mode="snapshot"
           codes={codes}
@@ -827,77 +707,115 @@ function WatchlistTableInner() {
           dividends={dividendsData}
           meta={meta}
         />
-        {/* Premium readers get the board as their main view; free readers see
-            its counts + the lock under the table, so the table stays on top. */}
-        {isPremium && <GlanceBoard codes={codes} />}
-        <div className="mb-3 flex flex-wrap items-center gap-1.5" role="group" aria-label="Sort watchlist">
-          <span className="text-xs font-bold   text-text-muted">
-            Sort
-          </span>
-          {SORT_OPTIONS.map((opt) => {
-            const active = sort === opt.key;
-            return (
-              <button
-                key={opt.key}
-                type="button"
-                onClick={() => setSort(opt.key)}
-                aria-pressed={active}
-                className={`shrink-0 rounded-full border px-3 min-h-[36px] text-xs font-semibold whitespace-nowrap transition-colors ${
-                  active
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border bg-surface text-text-muted hover:text-text-main active:bg-surface-2"
-                }`}
-              >
-                {opt.label}
-              </button>
-            );
-          })}
-        </div>
-        <div className="watchlist-wrap">
-          <table className="watchlist-table">
-            <thead>
-              <tr>
-                <th></th>
-                <th>Code</th>
-                <th>Tier</th>
-                <th className="num">LTP</th>
-                <th className="num">Chg %</th>
-                <th className="num">Since added</th>
-                <th>EPS YoY</th>
-                <th>Div yield</th>
-                <th>52w range</th>
-                <th>Signals</th>
-                <th>Alert</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((it) => {
-                const code = it.trading_code.toUpperCase();
-                return (
-                  <EnrichedRow
-                    key={code}
-                    item={it}
-                    extreme={extremes.get(code) ?? null}
-                    hasDividendSoon={dividends.has(code)}
-                    meta={meta[code] ?? null}
-                    onRemove={handleRemove}
-                  />
-                );
-              })}
-            </tbody>
-          </table>
-          {codes.length - rows.length > 0 && (
-            <p className="watchlist-missing">
-              {codes.length - rows.length} ticker{codes.length - rows.length > 1 ? "s" : ""} not
-              found in current scores (may be delisted or unscored).
-            </p>
-          )}
-        </div>
-        {!isPremium && <GlanceBoard codes={codes} />}
-        </>
       )}
 
-      {codes.length > 0 && !loading && !error && (
+      {ready && (
+        <div className="wl-stack mt-6 empty:hidden">
+          <SinceLastVisit codes={codes} rows={rows} news={news} dividendSoon={dividends} />
+          <PriceAlertTip />
+        </div>
+      )}
+
+      {/* Premium readers get the board as their main view; free readers see
+          its counts + the lock under the list, so the list stays on top. */}
+      {ready && isPremium && (
+        <div className="wl-section">
+          <GlanceBoard codes={codes} />
+        </div>
+      )}
+
+      <section className={codes.length > 0 ? "wl-section" : undefined} aria-labelledby="wl-stocks">
+        <SectionHeader
+          id="wl-stocks"
+          title={codes.length > 0 ? "Your stocks" : "Start your watchlist"}
+          bn={codes.length > 0 ? "আপনার শেয়ারগুলো" : "আপনার পছন্দের শেয়ার যোগ করুন"}
+          lead="Search any DSE company to follow it. Tap a name for its full report."
+        />
+        <AddBar scores={scores} />
+
+        {codes.length === 0 ? (
+          <div className="mt-4">
+            <EmptyState
+              title="Your watchlist is empty"
+              message="Search above to add any stock, or pick one of these."
+              bn="উপরে সার্চ করে কোনো শেয়ার যোগ করুন, বা নিচের একটি বেছে নিন।"
+              actions={[{ href: "/dsestockranking", label: "See top-ranked stocks" }]}
+            >
+              <EmptyStateActions />
+            </EmptyState>
+          </div>
+        ) : loading ? (
+          <div className="mt-4">
+            <WatchlistSkeleton />
+          </div>
+        ) : error ? (
+          <div className="mt-4">
+            <ErrorState
+              size="inline"
+              title="Couldn't load your watchlist"
+              bn="আপনার ওয়াচলিস্ট এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+              onRetry={() => setRetryKey((k) => k + 1)}
+            />
+          </div>
+        ) : (
+          <>
+            <div className="wl-chips" role="group" aria-label="Sort your stocks">
+              {SORT_OPTIONS.map((opt) => (
+                <Chip key={opt.key} active={sort === opt.key} onClick={() => setSort(opt.key)}>
+                  {opt.label}
+                </Chip>
+              ))}
+            </div>
+            <Card padding="none" className="wl-list">
+              <table className="wl-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Company</th>
+                    <th scope="col" className="wl-num">Price</th>
+                    <th scope="col" className="wl-num">Today</th>
+                    <th scope="col" className="wl-num">Since added</th>
+                    <th scope="col" className="wl-num">Profit growth</th>
+                    <th scope="col" className="wl-num">Yield</th>
+                    <th scope="col">52-week range</th>
+                    <th scope="col">
+                      <span className="sr-only">Alert and remove</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((it) => {
+                    const code = it.trading_code.toUpperCase();
+                    return (
+                      <EnrichedRow
+                        key={code}
+                        item={it}
+                        extreme={extremes.get(code) ?? null}
+                        hasDividendSoon={dividends.has(code)}
+                        meta={meta[code] ?? null}
+                        onRemove={handleRemove}
+                      />
+                    );
+                  })}
+                </tbody>
+              </table>
+              {missing > 0 && (
+                <p className="wl-missing">
+                  {missing} {missing === 1 ? "code isn't" : "codes aren't"} in today&apos;s scores
+                  (delisted or not rated yet).
+                </p>
+              )}
+            </Card>
+          </>
+        )}
+      </section>
+
+      {ready && !isPremium && (
+        <div className="wl-section">
+          <GlanceBoard codes={codes} />
+        </div>
+      )}
+
+      {ready && (
         <WatchlistAnalysis
           mode="details"
           codes={codes}
@@ -907,10 +825,17 @@ function WatchlistTableInner() {
           meta={meta}
         />
       )}
+
       {codes.length > 0 && !error && (
         <WatchlistNews codes={codes} news={news} loading={newsLoading} />
       )}
 
+      {ready && (
+        <p className="wl-footnote">
+          Written automatically from today&apos;s scores and prices — not investment advice.{" "}
+          <Bn as="span">নিজে যাচাই করে সিদ্ধান্ত নিন।</Bn>
+        </p>
+      )}
     </>
   );
 }

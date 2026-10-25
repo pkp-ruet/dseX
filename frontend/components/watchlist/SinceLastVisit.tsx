@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { apiVisitWatchlist, type ScoreItem, type WatchlistNewsItem } from "@/lib/api";
+import { changePct, changeTone } from "@/lib/formatters";
+import Bn from "@/components/i18n/Bn";
 
 interface Props {
   codes: string[];
@@ -96,27 +98,14 @@ export default function SinceLastVisit({ codes, rows, news, dividendSoon }: Prop
   const lead = movers[0];
 
   return (
-    <div
-      className="mb-4 flex items-start gap-3 rounded-xl border px-4 py-3"
-      style={{
-        borderColor: "color-mix(in srgb, var(--primary) 25%, var(--border))",
-        background: "color-mix(in srgb, var(--primary) 6%, var(--surface))",
-      }}
-      role="status"
-    >
-      <span
-        className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg text-primary"
-        style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)" }}
-        aria-hidden
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="9" />
-          <path d="M12 7v5l3 2" />
-        </svg>
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm leading-snug text-text-main">
-          <span className="font-bold">Since {sinceLabel(prevMs)}:</span> {joinEn(en)}.
+    <div className="soft-card wl-note" role="status">
+      <svg className="wl-note-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5l3 2" />
+      </svg>
+      <div className="wl-note-body">
+        <p className="wl-note-text">
+          <span className="font-semibold">Since {sinceLabel(prevMs)}:</span> {joinEn(en)}.
           {lead && (
             <>
               {" "}
@@ -124,24 +113,18 @@ export default function SinceLastVisit({ codes, rows, news, dividendSoon }: Prop
               <Link
                 prefetch={false}
                 href={`/stock/${lead.trading_code}`}
-                className="font-bold text-primary hover:underline"
+                className="font-semibold text-primary-ink hover:underline"
               >
                 {lead.trading_code}
               </Link>{" "}
-              <span
-                className="font-bold nums"
-                style={{ color: lead.change_pct! > 0 ? "var(--positive)" : "var(--negative)" }}
-              >
-                {lead.change_pct! > 0 ? "+" : ""}
-                {lead.change_pct!.toFixed(1)}%
+              <span className={`font-semibold nums ${changeTone(lead.change_pct)}`}>
+                {changePct(lead.change_pct, 1)}
               </span>
               .
             </>
           )}
         </p>
-        <p lang="bn" className="font-bn mt-0.5 text-sm font-medium leading-snug text-text-muted">
-          শেষবার দেখার পর: {bn.join(", ")}।
-        </p>
+        <Bn className="wl-note-bn">শেষবার দেখার পর: {bn.join(", ")}।</Bn>
       </div>
     </div>
   );

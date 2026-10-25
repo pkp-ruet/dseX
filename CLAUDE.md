@@ -377,13 +377,20 @@ components/
 │   ├── StockIcons.tsx             — stroked SVG icons for this page; no emoji on the stock page
 │   └── (analysis sub-page: DeepAnalysisReport.tsx, LangToggle.tsx)
 ├── watchlist/
-│   ├── WatchlistTable.tsx     — page body: "N stocks followed" line → SinceLastVisit →
-│   │                            WatchlistAnalysis mode="snapshot" (headline + mood + tiles)
-│   │                            → sort chips → table → WatchlistAnalysis mode="details"
-│   │                            (collapsed <details> sections with counts) → WatchlistNews.
-│   │                            Rows show code + company name and a "since added" %
-│   │                            (from `watchlist_meta`); undo-remove restores the meta.
-│   ├── WatchlistAnalysis.tsx  — the bilingual "Watchlist Story"; `mode` = snapshot | details | all
+│   ├── WatchlistTable.tsx     — page body, redesigned clean 2026-10-25 like /market-analysis
+│   │                            (styles `wl-*` in `app/styles/watchlist.css`; the old
+│   │                            `.watchlist-table` / `.watchlist-add-*` CSS is gone): count + Share
+│   │                            → hero (WatchlistAnalysis snapshot) → SinceLastVisit + PriceAlertTip
+│   │                            as quiet notes → "Your stocks" (search, sort `Chip`s, ONE card list:
+│   │                            company name first, code + TierPill under it, Buy / near-high /
+│   │                            dividend tags under that, then price · today · since added · profit
+│   │                            growth · yield · 52w dot bar · alert + remove; a block per stock
+│   │                            below 1024px) → GlanceBoard (above the list for Premium) →
+│   │                            "What stands out" folds → WatchlistNews. "Since added" comes from
+│   │                            `watchlist_meta`; undo-remove restores the meta.
+│   ├── WatchlistAnalysis.tsx  — `mode` = snapshot (mood word, one-sentence h2, ONE card with four
+│   │                            answers + quality mix — no gauge, no tinted tiles) | details (the
+│   │                            "What stands out" folds in one card) | all
 │   ├── SinceLastVisit.tsx     — POSTs /api/user/watchlist/visit on mount and shows one line of
 │   │                            what changed since the previous visit (news / ≥3% movers /
 │   │                            dividend dates). That same visit timestamp is what the navbar

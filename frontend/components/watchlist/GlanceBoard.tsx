@@ -314,7 +314,7 @@ export default function GlanceBoard({ codes }: { codes: string[] }) {
   return (
     <section
       aria-labelledby="wl-glance"
-      className={`mb-6 ${bn ? "font-bn" : ""}`.trim()}
+      className={bn ? "font-bn" : undefined}
       lang={bn ? "bn" : undefined}
     >
       <SectionHeader
