@@ -24,6 +24,15 @@ export const FREE_CALENDAR_ROWS = {
  *  2026-10-25 — "free user can also see the full page"). */
 export const FREE_RESULTS_ROWS = 5;
 
+/** `/buy-sell-signals`: the first buy signals of the current view a free
+ *  reader sees (Strong buys lead the default order); the rest is Premium
+ *  (user decision 2026-10-25). */
+export const FREE_SIGNAL_ROWS = 3;
+
+/** `/dsestockranking`: the first rows of the current view a free reader
+ *  sees; the rest of the leaderboard is Premium (user decision 2026-10-25). */
+export const FREE_RANKING_ROWS = 5;
+
 /** Split a list into the free head (`n` rows) and the locked rest. */
 export function splitFree<T>(items: T[], n: number): [T[], T[]] {
   const k = Math.max(0, Math.min(items.length, n));

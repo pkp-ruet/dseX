@@ -82,6 +82,9 @@ export default async function BuySellSignalsPage() {
         description: DESC,
         inLanguage: "en",
         isPartOf: { "@id": BASE_URL },
+        // Past the free head the list is Premium (screen-only lock).
+        isAccessibleForFree: false,
+        hasPart: { "@type": "WebPageElement", isAccessibleForFree: false, cssSelector: ".premium-locked" },
       },
       {
         "@type": "BreadcrumbList",

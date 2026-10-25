@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useUrlParams, useUrlSync } from "@/lib/use-url-state";
 import { TIER_LABELS, TIER_VAR, type TierKey } from "@/lib/constants";
 import Chip from "@/components/ui/Chip";
+import PremiumGate from "@/components/premium/PremiumGate";
+import { FREE_RANKING_ROWS, splitFree } from "@/lib/free-share";
+import { usePremium } from "@/lib/premium";
 import FullRankTable, {
   type RankSort,
   type RankSortCol,
@@ -56,6 +59,11 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
   // Empty = every grade shown. Picking chips narrows to just those grades.
   const [picked, setPicked] = useState<Set<TierKey>>(() => new Set());
   const [sort, setSort] = useState<RankSort>(DEFAULT_SORT);
+  const { isPremium } = usePremium();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  // Server render + first paint are locked, like PremiumGate.
+  const unlocked = mounted && isPremium;
 
   // ---- URL ⇄ state: ?q=…&sector=…&tiers=excellent,good&sort=growth&dir=desc ----
   // Defaults render on the server; the query string is applied once after
@@ -149,6 +157,14 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
         : { col, dir: col === "rank" || col === "name" ? "asc" : "desc" }
     );
   };
+
+  // Free readers see the first FREE_RANKING_ROWS of the view; the rest of the
+  // leaderboard sits behind the Premium lock (screen-only — rows stay in the HTML).
+  const [free, locked] = unlocked ? [filtered, []] : splitFree(filtered, FREE_RANKING_ROWS);
+  const viewCounts: Partial<Record<TierKey, number>> = {};
+  for (const { item } of filtered) viewCounts[item.tier] = (viewCounts[item.tier] ?? 0) + 1;
+  const lockedStrong = locked.filter(({ item }) => item.tier === "excellent" || item.tier === "good").length;
+  const lockedCheap = locked.filter(({ item }) => (item.p4_val ?? 0) >= 7).length;
 
   const isFiltered =
     query.trim() !== "" || sector !== "all" || picked.size > 0 || !isDefaultSort;
@@ -248,7 +264,29 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
         </div>
       </div>
 
-      <FullRankTable rows={filtered} grouped={isDefaultSort} sort={sort} onSort={onSort} />
+      <FullRankTable rows={free} grouped={isDefaultSort} sort={sort} onSort={onSort} groupCounts={viewCounts} />
+      {locked.length > 0 && (
+        <PremiumGate
+          label="The full ranking"
+          preview="blur"
+          peek={220}
+          stakes={[
+            `${locked.length} more ${locked.length === 1 ? "company" : "companies"} ranked, with all five checks`,
+            lockedStrong > 0 ? `${lockedStrong} of them graded Good or Excellent` : "",
+            lockedCheap > 0 ? `${lockedCheap} of them at a good price today` : "",
+          ]}
+          className="mt-4"
+        >
+          <FullRankTable
+            rows={locked}
+            grouped={isDefaultSort}
+            sort={sort}
+            onSort={onSort}
+            groupCounts={viewCounts}
+            continues={free[free.length - 1]?.item.tier ?? null}
+          />
+        </PremiumGate>
+      )}
     </div>
   );
 }

@@ -7,7 +7,10 @@ import SignalChip from "@/components/ui/SignalChip";
 import TierPill from "@/components/ui/TierPill";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import StarButton from "@/components/ui/StarButton";
+import PremiumGate from "@/components/premium/PremiumGate";
 import { taka } from "@/lib/formatters";
+import { FREE_SIGNAL_ROWS, splitFree } from "@/lib/free-share";
+import { getCachedWatchlist, subscribeWatchlist } from "@/lib/watchlist";
 
 type Tab = "all" | "strong";
 type SortKey = "match" | "gainers" | "losers" | "dividend";
@@ -56,6 +59,13 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
   const [sector, setSector] = useState("all");
   const [sort, setSort] = useState<SortKey>("match");
   const [limit, setLimit] = useState(PAGE);
+  const [followed, setFollowed] = useState<string[]>([]);
+
+  // The reader's followed codes, for the lock card's stakes only.
+  useEffect(() => {
+    setFollowed(getCachedWatchlist());
+    return subscribeWatchlist(() => setFollowed(getCachedWatchlist()));
+  }, []);
 
   // Any change to the view resets pagination to the top.
   useEffect(() => {
@@ -81,6 +91,13 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
   }, [base, query, sector, sort]);
 
   const shown = filtered.slice(0, limit);
+  // Free readers see the first FREE_SIGNAL_ROWS of the view; the rest sits
+  // behind the Premium lock (screen-only — the cards stay in the HTML).
+  const [free, locked] = splitFree(shown, FREE_SIGNAL_ROWS);
+  const rest = filtered.slice(FREE_SIGNAL_ROWS);
+  const restStrong = rest.filter(isStrong).length;
+  const followedSet = new Set(followed);
+  const restMine = rest.filter((i) => followedSet.has(i.trading_code)).length;
   const isFiltered = query.trim() !== "" || sector !== "all";
 
   const reset = () => {
@@ -213,27 +230,46 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 mt-4">
-          {shown.map((item) => (
+          {free.map((item) => (
             <SignalCard key={item.trading_code} item={item} />
           ))}
         </div>
       )}
 
-      {filtered.length > limit && (
-        <div className="flex justify-center mt-6">
-          <button
-            type="button"
-            onClick={() => setLimit((l) => l + PAGE)}
-            className="rounded-full px-6 py-2.5 text-sm font-bold transition-colors hover:opacity-85"
-            style={{
-              background: `color-mix(in srgb, ${tone} 8%, var(--surface))`,
-              border: `1px solid ${tone}`,
-              color: tone,
-            }}
-          >
-            Show {Math.min(PAGE, filtered.length - limit)} more
-          </button>
-        </div>
+      {locked.length > 0 && (
+        <PremiumGate
+          label="Every buy signal"
+          preview="blur"
+          peek={220}
+          stakes={[
+            `${rest.length} more buy ${rest.length === 1 ? "signal" : "signals"} today, each with its reason`,
+            restStrong > 0 ? `${restStrong} of them ${restStrong === 1 ? "is a Strong buy" : "are Strong buys"}` : "",
+            restMine > 0 ? `${restMine} of them ${restMine === 1 ? "is a stock" : "are stocks"} you follow` : "",
+          ]}
+          className="mt-3 sm:mt-4"
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+            {locked.map((item) => (
+              <SignalCard key={item.trading_code} item={item} />
+            ))}
+          </div>
+          {filtered.length > limit && (
+            <div className="flex justify-center mt-6">
+              <button
+                type="button"
+                onClick={() => setLimit((l) => l + PAGE)}
+                className="rounded-full px-6 py-2.5 text-sm font-bold transition-colors hover:opacity-85"
+                style={{
+                  background: `color-mix(in srgb, ${tone} 8%, var(--surface))`,
+                  border: `1px solid ${tone}`,
+                  color: tone,
+                }}
+              >
+                Show {Math.min(PAGE, filtered.length - limit)} more
+              </button>
+            </div>
+          )}
+        </PremiumGate>
       )}
     </div>
   );

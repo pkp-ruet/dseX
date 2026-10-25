@@ -35,6 +35,11 @@ interface Props {
   grouped: boolean;
   sort: RankSort;
   onSort: (col: RankSortCol) => void;
+  /** Companies per grade in the whole view — when the table holds only part
+   *  of it (the free head), so a grade header doesn't count just its rows. */
+  groupCounts?: Partial<Record<TierKey, number>>;
+  /** The grade carried over from the table above: no second header for it. */
+  continues?: TierKey | null;
 }
 
 const TIERS_ORDER: TierKey[] = ["excellent", "good", "average", "weak"];
@@ -129,7 +134,7 @@ function HeadCell({
   );
 }
 
-export default function FullRankTable({ rows, grouped, sort, onSort }: Props) {
+export default function FullRankTable({ rows, grouped, sort, onSort, groupCounts, continues }: Props) {
   const [expanded, setExpanded] = useState<string | null>(null);
 
   // One <tbody> per grade (or one for a flat sort) — on phones each tbody
@@ -178,7 +183,7 @@ export default function FullRankTable({ rows, grouped, sort, onSort }: Props) {
         </thead>
         {groups.map((group) => (
           <tbody key={group.tier ?? "all"} className="rk-group">
-            {group.tier && (
+            {group.tier && group.tier !== continues && (
               <tr className="rk-group-head">
                 <td colSpan={COL_COUNT}>
                   <div className="rk-group-head-inner">
@@ -186,7 +191,8 @@ export default function FullRankTable({ rows, grouped, sort, onSort }: Props) {
                     <h2 className="rk-group-title">{TIER_LABELS[group.tier]}</h2>
                     <span className="rk-group-meaning">{TIER_MEANINGS[group.tier]}</span>
                     <span className="rk-group-count nums">
-                      <strong>{group.rows.length}</strong> {group.rows.length === 1 ? "company" : "companies"}
+                      <strong>{groupCounts?.[group.tier] ?? group.rows.length}</strong>{" "}
+                      {(groupCounts?.[group.tier] ?? group.rows.length) === 1 ? "company" : "companies"}
                     </span>
                   </div>
                 </td>
