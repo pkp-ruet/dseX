@@ -20,7 +20,7 @@ import { IconLock } from "@/components/ui/icons";
  * one card per list, its top three names with the number that put them there,
  * "See all N". Everyone else gets ONE promotion card: what the lists are, how
  * many stocks pass each today (no names — the lists are fully Premium) and a
- * button to /premium. The free month starts only there.
+ * button to /premium.
  *
  * Server render + first paint are the promotion (the server knows no user),
  * so the landing page's HTML never carries a locked list's names.
@@ -85,9 +85,7 @@ export default function ResearchRail({
   }
 
   const cta =
-    state === "guest" ? t(lang, "researchCtaGuest")
-      : state === "ended" ? t(lang, "researchCtaEnded")
-        : t(lang, "researchCtaFree");
+    state === "guest" ? t(lang, "researchCtaGuest") : t(lang, "researchCtaFree");
 
   const onCta = () => {
     trackEvent("premium_lock_tap", { area: "home-research", lock: "Research lists", state, stakes: 0 });

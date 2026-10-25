@@ -139,9 +139,8 @@ const COPY = {
     "প্রতিটি কোম্পানি একই সহজ যাচাই পার হয়। প্রিমিয়ামে দেখবেন কোন শেয়ার পাস করেছে — তার সংখ্যা আর মূল ঝুঁকিসহ।",
   ],
   researchPass: ["{n} stocks pass today", "আজ {n}টি শেয়ার পাস"],
-  researchCtaFree: ["Try Premium free for 1 month", "1 মাস ফ্রি প্রিমিয়াম ব্যবহার করুন"],
-  researchCtaGuest: ["Sign up free, then try Premium", "ফ্রি অ্যাকাউন্ট খুলে প্রিমিয়াম দেখুন"],
-  researchCtaEnded: ["See Premium plans", "প্রিমিয়াম প্ল্যান দেখুন"],
+  researchCtaFree: ["See Premium plans", "প্রিমিয়াম প্ল্যান দেখুন"],
+  researchCtaGuest: ["Sign up free, then see Premium", "ফ্রি অ্যাকাউন্ট খুলে প্রিমিয়াম দেখুন"],
 
   // Trending / popular / tips
   trendingTitle: ["Trending this week", "এই সপ্তাহে আলোচনায়"],

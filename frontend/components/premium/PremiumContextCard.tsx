@@ -53,28 +53,13 @@ export default function PremiumContextCard() {
             ))}
           </ul>
         )}
-        {state === "ended" ? (
-          <>
-            <p className="mt-2 text-sm text-text-muted">
-              Premium opens all of it — plans from ৳{LOWEST_PRICE}, paid by bKash or Nagad.
-            </p>
-            <Bn className="text-sm text-text-muted">প্রিমিয়ামে সবটা খোলা — ৳{LOWEST_PRICE} থেকে প্ল্যান, bKash বা Nagad দিয়ে।</Bn>
-          </>
-        ) : (
-          <>
-            <p className="mt-2 text-sm text-text-muted">
-              Premium opens all of it. The free month is at the bottom of this page.
-            </p>
-            <Bn className="text-sm text-text-muted">প্রিমিয়ামে সবটা খোলা। ফ্রি মাসের বোতাম এই পাতার নিচে।</Bn>
-          </>
-        )}
+        <p className="mt-2 text-sm text-text-muted">
+          Premium opens all of it — plans from ৳{LOWEST_PRICE}, paid by bKash or Nagad.
+        </p>
+        <Bn className="text-sm text-text-muted">প্রিমিয়ামে সবটা খোলা — ৳{LOWEST_PRICE} থেকে প্ল্যান, bKash বা Nagad দিয়ে।</Bn>
       </div>
       <div className="premium-card-action">
-        {state === "ended" ? (
-          <a href="#pay" className="btn-primary btn-sm">Choose a plan</a>
-        ) : (
-          <a href="#start" className="btn-primary btn-sm">Go to the free month</a>
-        )}
+        <a href="#pay" className="btn-primary btn-sm">Choose a plan</a>
       </div>
     </div>
   );

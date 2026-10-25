@@ -12,7 +12,7 @@ const MESSAGES: Record<LimitKind, (n: number) => string> = {
 
 /**
  * "You've hit the free limit" — one toast whose action opens the Premium page
- * (what's included + the planned price). It never starts the free month itself.
+ * (what's included + the prices).
  * Callable from anywhere (StarButton, the alert modal, lib code).
  */
 export function showLimitNotice(kind: LimitKind): void {

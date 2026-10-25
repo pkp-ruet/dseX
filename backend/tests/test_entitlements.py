@@ -10,7 +10,6 @@ from backend.services.entitlements import (
     is_premium,
     limits_for,
     plan_fields,
-    trial_available,
     watchlist_add_blocked,
 )
 
@@ -52,12 +51,6 @@ def test_limits():
     }
 
 
-def test_trial_available_once():
-    assert trial_available({"user_id": "u"})
-    assert not trial_available({"user_id": "u", "trial_started_at": NOW})
-    assert not trial_available(None)
-
-
 def test_watchlist_cap():
     nine = [f"C{i}" for i in range(9)]
     ten = nine + ["C9"]
@@ -84,6 +77,6 @@ def test_plan_fields_shape(monkeypatch):
     monkeypatch.setattr(ent, "is_premium", lambda u, now=None: False)
     out = plan_fields({"user_id": "u"})
     assert out["is_premium"] is False
-    assert out["trial_available"] is True
+    assert "trial_available" not in out
     assert out["premium_until"] is None
     assert set(out["limits"]) == {"watchlist", "alerts", "ai_daily", "portfolios"}

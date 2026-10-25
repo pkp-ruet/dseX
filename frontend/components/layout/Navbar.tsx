@@ -117,6 +117,8 @@ function MenuIcon({ name }: { name?: string }) {
       return <svg {...p}><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18" /></svg>;
     case "bell":
       return <svg {...p}><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7 2.5 7h-17S6 15 6 9Z" /><path d="M10.5 20a1.8 1.8 0 0 0 3 0" /></svg>;
+    case "premium":
+      return <svg {...p}><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5L3 8Z" /></svg>;
     case "search":
       return <svg {...p}><circle cx="11" cy="11" r="7" /><path d="m20 20-3-3" /></svg>;
     case "chevron":
@@ -415,6 +417,16 @@ export default function Navbar() {
                   <MenuIcon name="bell" />
                 </span>
                 Price Alerts
+              </Link>
+              <Link
+                href="/premium"
+                className={`mobile-menu-quick-item${pathname === "/premium" ? " active" : ""}`}
+                onClick={() => setMenuOpen(false)}
+              >
+                <span className="mobile-menu-quick-icon">
+                  <MenuIcon name="premium" />
+                </span>
+                Premium
               </Link>
               <InstallAppButton
                 className="mobile-menu-quick-item"

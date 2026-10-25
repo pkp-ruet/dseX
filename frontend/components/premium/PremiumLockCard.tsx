@@ -13,9 +13,8 @@ import { trackEvent } from "@/lib/track";
 
 /**
  * The one "this is Premium" card. What it asks depends on the reader:
- * guest → sign up free · free account → try it free for a month · month used →
- * the plans (bKash / Nagad). The button always opens /premium (what's included +
- * the prices, `#pay` once the month is used); nothing starts from a lock.
+ * guest → sign up free, then Premium · free account → the plans (bKash /
+ * Nagad). The button always opens /premium (what's included + the prices).
  * `compact` is the one-line version for small spots
  * ("+3 more good signs").
  *
@@ -70,26 +69,23 @@ export default function PremiumLockCard({
       : "This is part of Premium";
 
   const line =
-    state === "ended"
-      ? { en: `Plans from ৳${LOWEST_PRICE}, paid by bKash or Nagad.`, bn: `৳${LOWEST_PRICE} থেকে প্ল্যান — bKash বা Nagad দিয়ে পেমেন্ট।` }
-      : state === "guest"
-        ? { en: "Open a free account, then try Premium free for 1 month.", bn: "বিনামূল্যে অ্যাকাউন্ট খুলুন, তারপর 1 মাস প্রিমিয়াম ফ্রি ব্যবহার করুন।" }
-        : { en: "Try it free for 1 month. No payment needed.", bn: "1 মাস বিনামূল্যে ব্যবহার করুন। কোনো পেমেন্ট লাগবে না।" };
+    state === "guest"
+      ? { en: `Open a free account, then get Premium from ৳${LOWEST_PRICE}.`, bn: `বিনামূল্যে অ্যাকাউন্ট খুলুন, তারপর ৳${LOWEST_PRICE} থেকে প্রিমিয়াম নিন।` }
+      : { en: `Premium from ৳${LOWEST_PRICE} — pay by bKash or Nagad.`, bn: `৳${LOWEST_PRICE} থেকে প্রিমিয়াম — bKash বা Nagad দিয়ে পেমেন্ট।` };
 
   const onTap = () => {
     trackEvent("premium_lock_tap", { area, lock: label ?? "premium", state, stakes: lines.length });
     savePremiumContext({ from: area, label, stakes: lines });
   };
 
-  // Always the Premium page first — what you get and what it will cost — never
-  // a button that switches the month on from here.
+  // Always the Premium page first — what you get and what it costs.
   const action = (
     <Button
-      href={state === "ended" ? `${PREMIUM_PATH}#pay` : PREMIUM_PATH}
+      href={PREMIUM_PATH}
       onClick={onTap}
       size={compact ? "sm" : "md"}
     >
-      {state === "ended" ? (bn ? "প্ল্যান দেখুন" : "See plans") : bn ? "প্রিমিয়ামে কী আছে" : "See Premium"}
+      {bn ? "প্রিমিয়াম দেখুন" : "See Premium"}
     </Button>
   );
 

@@ -1307,10 +1307,6 @@ export async function apiGetMe(): Promise<{ user: AuthUser }> {
   return apiAuthFetch<{ user: AuthUser }>("/api/auth/me");
 }
 
-/** Start the account's one free month of premium. 409 "trial_used" after that. */
-export async function apiStartTrial(): Promise<{ user: AuthUser }> {
-  return apiAuthFetch<{ user: AuthUser }>("/api/user/premium/start-trial", { method: "POST" });
-}
 
 // Premium payments (bKash / Nagad Send Money — backend services/payments.py)
 export type PayMethod = "bkash" | "nagad";

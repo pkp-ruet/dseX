@@ -869,14 +869,14 @@ export default function PortfolioClient() {
   }, [proInsights, lang]);
 
   // Moment of value: the reader just reached 3 stocks — tell them what Premium
-  // adds, once. Opens /premium (the month only ever starts there).
+  // adds, once. Opens /premium (Premium is bought there).
   const prevCount = useRef<number | null>(null);
   useEffect(() => {
     if (dataLoading) return;
     const n = holdings.length;
     const before = prevCount.current;
     prevCount.current = n;
-    if (before == null || !userId || !isMain || planState !== "trial_available") return;
+    if (before == null || !userId || !isMain || planState !== "free") return;
     if (before >= 3 || n < 3) return;
     try {
       if (localStorage.getItem(nudgeKey(userId))) return;
@@ -885,8 +885,8 @@ export default function PortfolioClient() {
     trackEvent("premium_nudge", { area: "portfolio", why: "third_holding" });
     toast({
       message: lang === "bn"
-        ? `${n}টি শেয়ার! প্রিমিয়াম প্রতিদিন সবগুলো পাহারা দেয় — 1 মাস ফ্রি।`
-        : `${n} stocks in! Premium watches every one of them daily — free for a month.`,
+        ? `${n}টি শেয়ার! প্রিমিয়াম প্রতিদিন সবগুলো পাহারা দেয়।`
+        : `${n} stocks in! Premium watches every one of them daily.`,
       duration: 8000,
       action: {
         label: lang === "bn" ? "দেখুন" : "See Premium",

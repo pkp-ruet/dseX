@@ -24,13 +24,12 @@ export interface AuthUser {
   premium_source?: "trial" | "admin" | "paid" | null;
   /** The last plan bought (`lib/premium-plans.ts` key). */
   paid_plan?: string | null;
-  trial_available?: boolean;
   /** null = unlimited. */
   limits?: { watchlist: number | null; alerts: number | null; ai_daily: number | null; portfolios?: number | null };
 }
 
-/** Fired after something outside AuthContext stored a fresh user (e.g. the
- *  free month started from a toast). AuthContext listens and re-reads it. */
+/** Fired after something outside AuthContext stored a fresh user (e.g. a
+ *  Premium payment on /premium). AuthContext listens and re-reads it. */
 export const AUTH_USER_UPDATED_EVENT = "dsex:auth-user-updated";
 
 // ---------------------------------------------------------------------------

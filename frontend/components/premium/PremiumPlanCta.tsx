@@ -7,9 +7,8 @@ import { PREMIUM_PATH, usePremium } from "@/lib/premium";
 import { LOWEST_PRICE, planByKey } from "@/lib/premium-plans";
 
 /** The plan's call to action — what the reader can do next, by account state.
- *  Used on /premium and in the profile "Your plan" card. Only /premium (the
- *  page that shows what's included and the price) starts the month; anywhere
- *  else passes `linkOnly` and the button opens /premium. */
+ *  Used in the /premium hero and in the profile "Your plan" card (`linkOnly`,
+ *  where the buttons point at /premium instead of the plan picker below). */
 export default function PremiumPlanCta({
   align = "start",
   linkOnly = false,
@@ -17,7 +16,7 @@ export default function PremiumPlanCta({
   align?: "start" | "center";
   linkOnly?: boolean;
 }) {
-  const { state, daysLeft, premiumUntil, premiumSource, paidPlan, startTrial, starting } = usePremium();
+  const { state, daysLeft, premiumUntil, premiumSource, paidPlan } = usePremium();
   const justify = align === "center" ? "items-center text-center" : "items-start";
   const payHref = linkOnly ? `${PREMIUM_PATH}#pay` : "#pay";
 
@@ -36,21 +35,9 @@ export default function PremiumPlanCta({
           {premiumUntil ? ` · ${daysLeft} ${daysLeft === 1 ? "day" : "days"} left (until ${formatDate(premiumUntil)})` : ""}
         </p>
         <Bn className="text-sm text-text-muted">সব প্রিমিয়াম সুবিধা চালু আছে।</Bn>
-        {linkOnly && premiumUntil && (
+        {premiumUntil && (
           <Button href={payHref} variant="link" size="sm">Add more days</Button>
         )}
-      </div>
-    );
-  }
-
-  if (state === "ended") {
-    return (
-      <div className={`flex flex-col gap-2 ${justify}`}>
-        <p className="text-sm font-semibold text-text-main">Premium is off on your account.</p>
-        <Bn className="text-sm text-text-muted">আপনার অ্যাকাউন্টে প্রিমিয়াম এখন বন্ধ।</Bn>
-        <Button href={payHref}>Choose a plan — from ৳{LOWEST_PRICE}</Button>
-        <p className="text-sm text-text-muted">Pay by bKash or Nagad. Premium starts straight away.</p>
-        <Bn className="text-sm text-text-muted">bKash বা Nagad দিয়ে পেমেন্ট — প্রিমিয়াম সঙ্গে সঙ্গে চালু।</Bn>
       </div>
     );
   }
@@ -58,8 +45,12 @@ export default function PremiumPlanCta({
   if (state === "guest") {
     return (
       <div className={`flex flex-col gap-2 ${justify}`}>
-        <Button href="/register" size="lg">Sign up free</Button>
-        <p className="text-sm text-text-muted">Then start your free month — no payment needed.</p>
+        <div className="flex flex-wrap gap-2">
+          <Button href="/register" size="lg">Sign up free</Button>
+          {!linkOnly && <Button href="#pay" size="lg" variant="quiet">See the plans</Button>}
+        </div>
+        <p className="text-sm text-text-muted">A free account first, then pick a plan from ৳{LOWEST_PRICE}.</p>
+        <Bn className="text-sm text-text-muted">আগে একটি ফ্রি অ্যাকাউন্ট, তারপর ৳{LOWEST_PRICE} থেকে প্ল্যান।</Bn>
       </div>
     );
   }
@@ -69,19 +60,17 @@ export default function PremiumPlanCta({
       <div className={`flex flex-col gap-2 ${justify}`}>
         <p className="text-sm font-semibold text-text-main">Free plan</p>
         <Button href={PREMIUM_PATH}>See Premium</Button>
-        <p className="text-sm text-text-muted">See what it adds and the prices. Your first month is free.</p>
-        <Bn className="text-sm text-text-muted">কী কী পাবেন আর দাম দেখুন। প্রথম মাস ফ্রি।</Bn>
+        <p className="text-sm text-text-muted">See what it adds. Plans from ৳{LOWEST_PRICE}, by bKash or Nagad.</p>
+        <Bn className="text-sm text-text-muted">কী কী পাবেন দেখুন। ৳{LOWEST_PRICE} থেকে প্ল্যান, bKash বা Nagad দিয়ে।</Bn>
       </div>
     );
   }
 
   return (
     <div className={`flex flex-col gap-2 ${justify}`}>
-      <Button size="lg" onClick={() => void startTrial()} disabled={starting}>
-        Start my free month
-      </Button>
-      <p className="text-sm text-text-muted">30 days of everything. No payment, no card.</p>
-      <Bn className="text-sm text-text-muted">30 দিন সব সুবিধা। কোনো পেমেন্ট বা কার্ড লাগবে না।</Bn>
+      <Button href={payHref} size="lg">Choose a plan — from ৳{LOWEST_PRICE}</Button>
+      <p className="text-sm text-text-muted">Pay by bKash or Nagad. Premium starts straight away.</p>
+      <Bn className="text-sm text-text-muted">bKash বা Nagad দিয়ে পেমেন্ট — প্রিমিয়াম সঙ্গে সঙ্গে চালু।</Bn>
     </div>
   );
 }

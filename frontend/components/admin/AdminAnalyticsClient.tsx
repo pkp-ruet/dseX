@@ -186,7 +186,7 @@ function Dashboard({ data, priceMap }: { data: AdminAnalyticsResponse; priceMap:
                 label: "Started the free month",
                 value: n(p.trials_started),
                 sub: `+${n(p.trials_7d)} this week · ${pctOf(p.trials_started, total)}% of all users`,
-                hint: "Everyone who has ever pressed \"Start my free month\" on /premium.",
+                hint: "Everyone who took the free month before it was removed (2026-10-25).",
               },
               {
                 label: "Free month ended",

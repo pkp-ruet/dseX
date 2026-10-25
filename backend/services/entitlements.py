@@ -1,10 +1,11 @@
 """Premium plan + free-account limits — the one place that decides who is premium.
 
-Every account can start ONE free month (`start_trial`), buy days by bKash /
+There is no free month (removed 2026-10-25): readers buy days by bKash /
 Nagad (`payments.py` — the days start at once, an admin accepts or revokes
 later), and admins can grant or revoke days by hand. A user is premium while
-`users.premium_until` is in the future (admins always are, so locked screens
-can be checked without a trial).
+`users.premium_until` is in the future (admins always are). Accounts that
+started the old free month keep its days until they run out
+(`premium_source="trial"`).
 
 Limits are enforced server-side for the watchlist and price alerts; the
 TopStock AI cap is counted by the frontend (the assistant runs in the browser).
@@ -15,7 +16,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 FREE_LIMITS = {"watchlist": 10, "alerts": 3, "ai_daily": 10, "portfolios": 1}
-TRIAL_DAYS = 30
 
 # HTTPException detail strings the frontend matches (`lib/premium.ts:isLimitError`).
 LIMIT_WATCHLIST = "limit_reached:watchlist"
@@ -60,10 +60,6 @@ def limits_for(user: Optional[dict], now: Optional[datetime] = None) -> dict:
     return dict(FREE_LIMITS)
 
 
-def trial_available(user: Optional[dict]) -> bool:
-    return bool(user) and not user.get("trial_started_at")
-
-
 def watchlist_add_blocked(current: list[str], new: list[str], limit: Optional[int]) -> bool:
     """True when `new` adds a code AND ends up over the limit. Removing always
     works, and a list already over the cap (followed before limits existed)
@@ -90,7 +86,6 @@ def plan_fields(user: dict) -> dict:
         "trial_started_at": started.isoformat() if started else None,
         "premium_source": user.get("premium_source"),
         "paid_plan": user.get("paid_plan"),
-        "trial_available": trial_available(user),
         "limits": limits_for(user),
     }
 
@@ -103,27 +98,6 @@ def _users():
     from backend.services.db_service import get_db
 
     return get_db()["users"]
-
-
-def start_trial(user_id: str) -> bool:
-    """Start the one free month. Atomic: a second call (double tap, second tab)
-    matches nothing and returns False."""
-    now = datetime.now(timezone.utc)
-    doc = _users().find_one({"user_id": user_id}, {"premium_until": 1, "premium_source": 1})
-    current = _as_utc((doc or {}).get("premium_until"))
-    # Someone who paid first keeps their paid days; the month goes on top.
-    paid_ahead = bool(current and current > now and (doc or {}).get("premium_source") == "paid")
-    base = current if paid_ahead else now
-    res = _users().update_one(
-        {"user_id": user_id, "trial_started_at": {"$exists": False}},
-        {"$set": {
-            "trial_started_at": now,
-            "premium_until": base + timedelta(days=TRIAL_DAYS),
-            "premium_source": "paid" if paid_ahead else "trial",
-            "updated_at": now,
-        }},
-    )
-    return res.modified_count > 0
 
 
 def grant_premium(user_id: str, days: int) -> Optional[datetime]:

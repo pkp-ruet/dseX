@@ -1,24 +1,18 @@
 "use client";
 
 /**
- * Premium v1 on the client: who is premium, the free-account limits, and the
- * one free month. The backend decides (`backend/services/entitlements.py`) and
+ * Premium on the client: who is premium and the free-account limits. There
+ * is no free month (removed 2026-10-25) — Premium is bought by bKash / Nagad
+ * on /premium. The backend decides (`backend/services/entitlements.py`) and
  * ships the plan on the user from /me; this file only reads it.
  *
  * The stock-page and portfolio locks are screen-only by design (see CLAUDE.md
  * "Premium"): the data ships, `PremiumGate` hides it.
  */
 
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
-import {
-  type AuthUser,
-  AUTH_USER_UPDATED_EVENT,
-  getStoredUser,
-  setStoredUser,
-} from "@/lib/auth";
-import { apiStartTrial } from "@/lib/api";
-import { toast } from "@/lib/toast";
+import { type AuthUser, getStoredUser } from "@/lib/auth";
 
 /** Mirrors backend `FREE_LIMITS` — used only when a cached user predates the
  *  plan fields; the server value always wins once /me has refreshed. */
@@ -60,50 +54,12 @@ export function daysLeft(user: AuthUser | null | undefined): number {
   return ms > 0 ? Math.ceil(ms / 86_400_000) : 0;
 }
 
-/**
- * Start the free month from anywhere (a hook, a toast action). Stores the
- * fresh user and tells AuthContext, so every lock on the page opens at once.
- */
-export async function startFreeMonth(): Promise<boolean> {
-  try {
-    const { user } = await apiStartTrial();
-    setStoredUser(user);
-    window.dispatchEvent(new CustomEvent(AUTH_USER_UPDATED_EVENT));
-    toast({ message: "Your free month of Premium has started", tone: "success" });
-    return true;
-  } catch (err) {
-    const e = err as { status?: number };
-    toast({
-      message: e?.status === 409 ? "You've already used your free month" : "Couldn't start it — try again",
-      tone: "error",
-    });
-    return false;
-  }
-}
-
-export type PlanState = "guest" | "trial_available" | "premium" | "ended";
+export type PlanState = "guest" | "free" | "premium";
 
 export function usePremium() {
   const { user, isLoggedIn, isLoading } = useAuth();
-  const [starting, setStarting] = useState(false);
-
   const isPremium = userIsPremium(user);
-  const state: PlanState = !isLoggedIn
-    ? "guest"
-    : isPremium
-      ? "premium"
-      : user?.trial_available === false
-        ? "ended"
-        : "trial_available";
-
-  const startTrial = useCallback(async () => {
-    setStarting(true);
-    try {
-      return await startFreeMonth();
-    } finally {
-      setStarting(false);
-    }
-  }, []);
+  const state: PlanState = !isLoggedIn ? "guest" : isPremium ? "premium" : "free";
 
   const limits = useMemo(
     () => ({
@@ -119,13 +75,10 @@ export function usePremium() {
     isPremium,
     isLoading,
     state,
-    trialAvailable: state === "trial_available",
     premiumUntil: user?.premium_until ?? null,
     premiumSource: user?.premium_source ?? null,
     paidPlan: user?.paid_plan ?? null,
     daysLeft: daysLeft(user),
     limits,
-    startTrial,
-    starting,
   };
 }

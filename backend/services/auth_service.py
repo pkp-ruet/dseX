@@ -123,7 +123,7 @@ def public_user(user: dict) -> dict:
     out["watchlist"] = out["watchlist"] or []
     out["total_visits"] = out["total_visits"] or 0
     out["is_admin"] = (user.get("email") or "").lower() in ADMIN_EMAILS
-    # Plan: is_premium, premium_until, trial_available, limits (entitlements.py).
+    # Plan: is_premium, premium_until, limits (entitlements.py).
     from backend.services.entitlements import plan_fields
 
     out.update(plan_fields(user))

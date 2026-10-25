@@ -31,8 +31,7 @@ const SUB = {
 };
 const CTA = {
   guest: { en: "Sign up free, then try Premium", bn: "ফ্রি অ্যাকাউন্ট খুলে প্রিমিয়াম দেখুন" },
-  ended: { en: "See Premium plans", bn: "প্রিমিয়াম প্ল্যান দেখুন" },
-  free: { en: "Try Premium free for 1 month", bn: "1 মাস ফ্রি প্রিমিয়াম ব্যবহার করুন" },
+  free: { en: "See Premium plans", bn: "প্রিমিয়াম প্ল্যান দেখুন" },
 };
 
 export default function DividendPromo({
@@ -55,7 +54,7 @@ export default function DividendPromo({
   const area = variant === "card" ? "home-dividends" : "dividend-calendar";
   const lines = (stakes ?? []).filter(Boolean).slice(0, 3);
   const features = variant === "card" ? FEATURES.slice(0, 3) : FEATURES;
-  const cta = state === "guest" ? CTA.guest : state === "ended" ? CTA.ended : CTA.free;
+  const cta = state === "guest" ? CTA.guest : CTA.free;
 
   const onCta = () => {
     trackEvent("premium_lock_tap", { area, lock: "Dividend calendar", state, stakes: lines.length });
