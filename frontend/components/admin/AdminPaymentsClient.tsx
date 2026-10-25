@@ -114,7 +114,7 @@ export default function AdminPaymentsClient() {
           <h1 className="text-2xl sm:text-3xl font-extrabold text-text-main leading-tight">Payments</h1>
           <p className="text-sm text-text-muted mt-1">
             Premium started when the reader tapped &ldquo;I&apos;ve paid&rdquo;. Find each payment in the
-            bKash / Nagad app by the sender number, amount and reference code, then accept it — or revoke it
+            bKash / Nagad app by the sender number, amount and time, then accept it — or revoke it
             to take the days back.
           </p>
         </div>
@@ -181,7 +181,7 @@ export default function AdminPaymentsClient() {
                 <span className="text-xs text-text-muted">{fmtTime(p.created_at)}</span>
               </div>
               <p className="mt-1 text-sm text-text-main tabular-nums">
-                From <strong>{p.sender}</strong> · ref <strong>{p.ref_code}</strong>
+                From <strong>{p.sender}</strong>
               </p>
               <p className="text-sm text-text-muted break-words">
                 {p.name || "—"}{p.email ? ` · ${p.email}` : ""}{p.phone ? ` · ${p.phone}` : ""}

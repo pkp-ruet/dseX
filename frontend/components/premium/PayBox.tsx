@@ -47,7 +47,7 @@ export default function PayBox() {
   const [sender, setSender] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<{ en: string; bn: string } | null>(null);
-  const [mine, setMine] = useState<{ ref_code: string; items: PremiumPayment[] } | null>(null);
+  const [mine, setMine] = useState<{ items: PremiumPayment[] } | null>(null);
 
   useEffect(() => {
     getPremiumPlans()
@@ -207,19 +207,8 @@ export default function PayBox() {
                 )}
               </div>
             </li>
-            {mine?.ref_code && (
-              <li className="pay-step">
-                <span className="pay-step-n" aria-hidden>2</span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm text-text-main">
-                    In <strong>Reference</strong>, write <strong className="tabular-nums">{mine.ref_code}</strong> (helps us find it faster)
-                  </p>
-                  <Bn className="text-sm text-text-muted">Reference ঘরে {mine.ref_code} লিখুন — তাহলে দ্রুত খুঁজে পাব।</Bn>
-                </div>
-              </li>
-            )}
             <li className="pay-step">
-              <span className="pay-step-n" aria-hidden>{mine?.ref_code ? 3 : 2}</span>
+              <span className="pay-step-n" aria-hidden>2</span>
               <div className="min-w-0 flex-1">
                 <label htmlFor="pay-sender" className="text-sm text-text-main">
                   Type the {METHOD_LABEL[method]} number you sent it from
