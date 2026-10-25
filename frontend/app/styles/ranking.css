@@ -520,16 +520,6 @@
 /* ---- Phones: each grade becomes one card of rows ---- */
 @media (max-width: 640px) {
   .rk-filter-row { gap: var(--space-2); }
-  .rk-chips {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    margin: 0 -16px;
-    padding: 0 16px;
-    width: calc(100% + 32px);
-    scrollbar-width: none;
-  }
-  .rk-chips::-webkit-scrollbar { display: none; }
-  .rk-chips > * { flex: none; }
   .rk-search { flex: 1 1 100%; }
   .rk-search-input,
   .rk-select { height: 44px; font-size: var(--fs-base); }

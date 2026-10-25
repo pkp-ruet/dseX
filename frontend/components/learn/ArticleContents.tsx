@@ -31,7 +31,7 @@ export default function ArticleContents({
       className={`border-y border-border py-4 ${bn ? "font-bn" : ""}`}
     >
       <p className="mb-1 text-xs font-semibold text-text-muted">{label}</p>
-      <ol className="grid list-decimal gap-x-6 pl-5 text-sm sm:grid-cols-2">
+      <ol className="grid grid-cols-1 list-decimal gap-x-6 pl-5 text-sm sm:grid-cols-2">
         {headings.map((h, i) => (
           <li key={h} className="marker:text-text-muted">
             <a href={`#${sectionId(h, i)}`} className="inline-flex min-h-10 items-center text-text-main hover:text-primary-ink">

@@ -18,7 +18,7 @@ export type FindTab = (typeof TABS)[number]["href"];
 
 export default function FindTabs({ current }: { current: FindTab }) {
   return (
-    <nav aria-label="Ways to find a stock" className="mb-5 -mx-1 flex gap-1 overflow-x-auto px-1 no-scrollbar">
+    <nav aria-label="Ways to find a stock" className="mb-5 flex flex-wrap gap-1">
       {TABS.map((t) => (
         <Link
           key={t.href}

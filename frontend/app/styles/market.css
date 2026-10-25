@@ -5,11 +5,15 @@
    Every class here is `mk-*` and belongs to components/market-analysis/*.
    =================================================================== */
 
-/* ---- Sections ---- */
+/* ---- Sections ----
+   Every grid here names its phone column as `minmax(0, 1fr)`. A grid with no
+   template (or a bare `1fr`) sizes its track to the widest unbreakable line
+   inside — a long company name, a no-wrap figure — and the card then runs
+   past the screen, making the whole page scroll sideways on a phone. */
 .mk-section { margin-top: 40px; }
 @media (min-width: 768px) { .mk-section { margin-top: var(--space-12); } }
 .mk-stack > * + * { margin-top: var(--space-4); }
-.mk-pair { display: grid; gap: var(--space-4); }
+.mk-pair { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
 @media (min-width: 768px) { .mk-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* ---- The one card ---- */
@@ -80,16 +84,16 @@
 .mk-why[open] > summary svg { transform: rotate(180deg); }
 .mk-why-body { padding: 4px 16px 18px; }
 @media (min-width: 640px) { .mk-why-body { padding: 4px 22px 22px; } }
-.mk-why-list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 0; }
-@media (min-width: 768px) { .mk-why-list { grid-template-columns: 1fr 1fr; column-gap: 32px; } }
-.mk-why-row { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 12px 0; border-top: 1px solid var(--cell-rule); }
+.mk-why-list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; }
+@media (min-width: 768px) { .mk-why-list { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; } }
+.mk-why-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding: 12px 0; border-top: 1px solid var(--cell-rule); }
 .mk-why-k { font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
 .mk-why-v { font-size: var(--fs-sm); font-weight: 700; color: var(--text); text-align: right; font-variant-numeric: tabular-nums; }
 .mk-why-rule { grid-column: 1 / -1; font-size: var(--fs-2xs); line-height: 1.5; color: var(--text-muted); }
 
 /* ---- Since yesterday ---- */
-.mk-since-list { list-style: none; margin: 0; padding: 0; display: grid; }
-@media (min-width: 768px) { .mk-since-list { grid-template-columns: 1fr 1fr; column-gap: 32px; } }
+.mk-since-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 768px) { .mk-since-list { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; } }
 .mk-since-item { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid var(--cell-rule); }
 .mk-since-dot { flex-shrink: 0; width: 8px; height: 8px; margin-top: 7px; border-radius: 999px; background: var(--text-muted); }
 .mk-since-item--pos .mk-since-dot { background: var(--positive); }
@@ -110,8 +114,8 @@
 .mk-chip-note { font-weight: 500; letter-spacing: 0; color: var(--text-muted); }
 
 /* ---- Your stocks in this picture ---- */
-.mk-yours-row { display: grid; gap: 6px; padding: 12px 0; border-top: 1px solid var(--cell-rule); }
-@media (min-width: 640px) { .mk-yours-row { grid-template-columns: 190px 1fr; align-items: center; } }
+.mk-yours-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 12px 0; border-top: 1px solid var(--cell-rule); }
+@media (min-width: 640px) { .mk-yours-row { grid-template-columns: 190px minmax(0, 1fr); align-items: center; } }
 .mk-yours-row .mk-chips { margin-top: 0; }
 .mk-yours-k { font-size: var(--fs-sm); font-weight: 600; color: var(--text-muted); }
 
@@ -157,9 +161,9 @@ a.mk-sector:hover .mk-sector-name, a.mk-sector:active .mk-sector-name { color: v
 .mk-hist-num { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin: 16px 0 4px; }
 
 /* ---- Research lists ---- */
-.mk-rl-lead { display: grid; gap: var(--space-6); border-color: rgb(var(--primary-rgb) / 0.45); }
+.mk-rl-lead { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-6); border-color: rgb(var(--primary-rgb) / 0.45); }
 @media (min-width: 900px) { .mk-rl-lead { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
-.mk-rl-grid { display: grid; gap: var(--space-4); margin-top: var(--space-4); }
+.mk-rl-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); margin-top: var(--space-4); }
 @media (min-width: 640px) { .mk-rl-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 1024px) { .mk-rl-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .mk-rl-card { display: flex; flex-direction: column; }

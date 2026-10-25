@@ -96,15 +96,19 @@ export default function PeerComparison({ current, peers, sector, note = null }: 
     else { setSortKey(key); setAsc(false); }
   }
 
-  type Col = { key: SortKey; label: string; kind: "score" | "price" | "pct" | "ratio"; show: boolean };
+  // `wide`: shown from 640px only. Price and today's move are on each peer's
+  // own page; dropping them on a phone lets the comparison fit the screen
+  // instead of scrolling sideways.
+  type Col = { key: SortKey; label: string; kind: "score" | "price" | "pct" | "ratio"; show: boolean; wide?: boolean };
   const cols: Col[] = ([
     { key: "score", label: "Score", kind: "score", show: true },
-    { key: "ltp", label: "Price", kind: "price", show: true },
-    { key: "change_pct", label: "Today", kind: "pct", show: true },
+    { key: "ltp", label: "Price", kind: "price", show: true, wide: true },
+    { key: "change_pct", label: "Today", kind: "pct", show: true, wide: true },
     { key: "pe", label: "P/E", kind: "ratio", show: showPe },
     { key: "div_yield_pct", label: "Yield", kind: "pct", show: showYield },
     { key: "roe_pct", label: "ROE", kind: "pct", show: showRoe },
   ] as Col[]).filter((c) => c.show);
+  const cell = (c: Col) => `px-2 sm:px-3 ${c.wide ? "hidden sm:table-cell" : ""}`;
 
   return (
     <section id="peers" className="mb-8 stock-anchor">
@@ -145,7 +149,7 @@ export default function PeerComparison({ current, peers, sector, note = null }: 
               <tr className="bg-surface-2">
                 <th
                   scope="col"
-                  className="text-left font-bold px-3 py-2.5 sticky left-0 z-10"
+                  className="text-left font-bold px-2 sm:px-3 py-2.5 sticky left-0 z-10"
                   style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
                 >
                   Stock
@@ -155,7 +159,7 @@ export default function PeerComparison({ current, peers, sector, note = null }: 
                     key={c.key}
                     scope="col"
                     aria-sort={sortKey === c.key ? (asc ? "ascending" : "descending") : "none"}
-                    className="px-3 py-2.5 text-right whitespace-nowrap"
+                    className={`${cell(c)} py-2.5 text-right whitespace-nowrap`}
                   >
                     <button
                       type="button"
@@ -186,7 +190,7 @@ export default function PeerComparison({ current, peers, sector, note = null }: 
                   >
                     <th
                       scope="row"
-                      className="text-left px-3 py-2.5 sticky left-0 z-10"
+                      className="text-left px-2 sm:px-3 py-2.5 sticky left-0 z-10"
                       style={{
                         background: r.isCurrent ? "color-mix(in srgb, var(--primary) 8%, var(--surface))" : "var(--surface)",
                       }}
@@ -208,7 +212,7 @@ export default function PeerComparison({ current, peers, sector, note = null }: 
                       const val = r[c.key];
                       if (c.kind === "score") {
                         return (
-                          <td key={c.key} className="px-3 py-1.5 text-right whitespace-nowrap">
+                          <td key={c.key} className={`${cell(c)} py-1.5 text-right whitespace-nowrap`}>
                             <ScoreBadge score={val} size="sm" />
                           </td>
                         );
@@ -220,7 +224,7 @@ export default function PeerComparison({ current, peers, sector, note = null }: 
                       return (
                         <td
                           key={c.key}
-                          className="px-3 py-2.5 text-right tabular-nums nums whitespace-nowrap"
+                          className={`${cell(c)} py-2.5 text-right tabular-nums nums whitespace-nowrap`}
                           style={{ color }}
                         >
                           {fmt(val, c.kind)}

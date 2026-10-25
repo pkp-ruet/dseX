@@ -50,20 +50,20 @@ export default function SectorVsMarket({
         এই সেক্টরের মধ্যম মান বাজারের মধ্যম মানের সাথে তুলনা — সস্তা না দামি, তা এক নজরে।
       </Bn>
 
-      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-        <table className="w-full min-w-[440px] border-collapse text-left">
+      <div className="overflow-hidden rounded-xl border border-border bg-surface">
+        <table className="w-full border-collapse text-left">
           <thead>
             <tr className="border-b border-border bg-surface-2">
-              <th className="px-3 py-2.5 text-xs font-semibold text-text-muted">
+              <th className="px-2 py-2.5 sm:px-3 text-xs font-semibold text-text-muted">
                 Measure
               </th>
-              <th className="px-3 py-2.5 text-right text-xs font-semibold text-text-muted">
+              <th className="px-2 py-2.5 sm:px-3 text-right text-xs font-semibold text-text-muted">
                 This sector
               </th>
-              <th className="px-3 py-2.5 text-right text-xs font-semibold text-text-muted">
+              <th className="px-2 py-2.5 sm:px-3 text-right text-xs font-semibold text-text-muted">
                 Whole market
               </th>
-              <th className="px-3 py-2.5 text-right text-xs font-semibold text-text-muted">
+              <th className="px-2 py-2.5 sm:px-3 text-right text-xs font-semibold text-text-muted">
                 Difference
               </th>
             </tr>
@@ -73,15 +73,15 @@ export default function SectorVsMarket({
               const v = verdict(r);
               return (
                 <tr key={r.metric} className="border-b border-border last:border-0">
-                  <td className="px-3 py-2.5 text-sm font-bold text-text-main">{r.label}</td>
-                  <td className="px-3 py-2.5 text-right text-sm font-extrabold tabular-nums text-text-main">
+                  <td className="px-2 py-2.5 sm:px-3 text-sm font-bold text-text-main">{r.label}</td>
+                  <td className="px-2 py-2.5 sm:px-3 text-right text-sm font-extrabold tabular-nums text-text-main">
                     {fmt(r, r.sector)}
                   </td>
-                  <td className="px-3 py-2.5 text-right text-sm font-semibold tabular-nums text-text-muted">
+                  <td className="px-2 py-2.5 sm:px-3 text-right text-sm font-semibold tabular-nums text-text-muted">
                     {fmt(r, r.market)}
                   </td>
                   <td
-                    className="px-3 py-2.5 text-right text-sm font-extrabold tabular-nums"
+                    className="px-2 py-2.5 sm:px-3 text-right text-sm font-extrabold tabular-nums"
                     style={{ color: v.color }}
                   >
                     {v.text}

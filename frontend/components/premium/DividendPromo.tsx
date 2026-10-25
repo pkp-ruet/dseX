@@ -84,7 +84,7 @@ export default function DividendPromo({
         </ul>
       )}
 
-      <ul className={`mt-1 grid gap-2 ${variant === "page" ? "sm:grid-cols-2" : ""}`}>
+      <ul className={`mt-1 grid grid-cols-1 gap-2 ${variant === "page" ? "sm:grid-cols-2" : ""}`}>
         {features.map((f) => (
           <li key={f.en} className="flex items-start gap-2 text-sm text-text-main">
             <span className="mt-0.5 shrink-0 text-positive" aria-hidden>

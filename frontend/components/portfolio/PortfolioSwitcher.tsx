@@ -94,7 +94,7 @@ export default function PortfolioSwitcher({
 
   return (
     <>
-      <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1" role="group" aria-label={L("Your portfolios", "আপনার পোর্টফোলিও")}>
+      <div className="flex flex-wrap gap-2" role="group" aria-label={L("Your portfolios", "আপনার পোর্টফোলিও")}>
         {portfolios.map((p) => (
           <Chip key={p.id} active={p.id === active} onClick={() => onSelect(p.id)}>
             {p.id === MAIN_PORTFOLIO_ID ? L("My portfolio", "আমার পোর্টফোলিও") : p.name}

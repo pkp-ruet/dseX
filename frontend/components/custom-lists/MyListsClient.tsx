@@ -212,7 +212,7 @@ export default function MyListsClient() {
       {isLoggedIn && lists.length > 0 && (
         <section className="mb-10">
           <SectionHeader as="h2" title={t("Your lists", "আপনার তালিকা")} />
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {lists.map((l) => (
               <SavedListCard
                 key={l.id}
@@ -243,7 +243,7 @@ export default function MyListsClient() {
         {!catalog ? (
           <div className="space-y-3"><Skeleton height={40} /><Skeleton height={120} /><Skeleton height={200} /></div>
         ) : (
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <div>
               {/* Templates */}
               <p className="mb-2 text-sm font-semibold text-text-main">{t("Start from", "যেখান থেকে শুরু")}</p>

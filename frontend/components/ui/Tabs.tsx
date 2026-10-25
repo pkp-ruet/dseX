@@ -7,7 +7,8 @@ import Button from "@/components/ui/Button";
  * THE segmented tabs (2026-10 redesign, step 0): a row of `Button variant="tab"`
  * with tablist semantics and arrow-key movement. It only switches; the caller
  * renders the active panel (give it `role="tabpanel"` + `aria-labelledby` =
- * `${idBase}-${key}`).
+ * `${idBase}-${key}`). The row wraps on a narrow phone rather than scrolling
+ * sideways, so every tab is always in view.
  */
 export default function Tabs<K extends string>({
   tabs,
@@ -41,7 +42,7 @@ export default function Tabs<K extends string>({
       role="tablist"
       aria-label={ariaLabel}
       onKeyDown={onKey}
-      className={`no-scrollbar flex gap-2 overflow-x-auto ${className}`.trim()}
+      className={`flex flex-wrap gap-2 ${className}`.trim()}
     >
       {tabs.map((t) => {
         const on = t.key === value;

@@ -111,16 +111,8 @@
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
 }
 
-/* ---- Sort chips: one row, scrolls sideways on phones ---- */
-.wl-chips { display: flex; gap: 8px; margin-top: var(--space-3); }
-@media (max-width: 639.98px) {
-  .wl-chips {
-    overflow-x: auto; scrollbar-width: none;
-    margin-inline: -16px; padding-inline: 16px;
-  }
-  .wl-chips::-webkit-scrollbar { display: none; }
-  .wl-chips > * { flex: 0 0 auto; }
-}
+/* ---- Sort chips: wrap onto a second line on phones, never scroll sideways ---- */
+.wl-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: var(--space-3); }
 
 /* ---- The list ---- */
 .wl-list { margin-top: var(--space-3); padding: 0; overflow: hidden; }

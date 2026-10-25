@@ -93,7 +93,7 @@ export default function PaymentHelp() {
             />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor="pay-help-sender" className="text-sm text-text-main">
                 {L("Number you paid from (if any)", "যে নম্বর থেকে টাকা পাঠিয়েছেন (যদি থাকে)")}

@@ -146,7 +146,7 @@ export default function PremiumBody() {
               <li key={r.what.en} className="px-4 py-4">
                 <p className="font-semibold text-text-main">{t(r.what)}</p>
                 {!bn && <Bn className="text-sm text-text-muted mb-2">{r.what.bn}</Bn>}
-                <div className={`grid gap-2 sm:grid-cols-2 ${bn ? "mt-2" : ""}`}>
+                <div className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${bn ? "mt-2" : ""}`}>
                   <div>
                     <p className="text-xs font-bold text-text-muted">{t(SECTIONS.free)}</p>
                     <p className="text-sm text-text-muted leading-relaxed">{t(r.free)}</p>

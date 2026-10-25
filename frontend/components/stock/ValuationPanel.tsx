@@ -126,7 +126,7 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
       {tabs.length > 0 && activeTab && (
         <Card padding="none" className="rounded-2xl p-5">
           {/* Tab pills */}
-          <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar">
+          <div className="flex flex-wrap gap-2 mb-4">
             {tabs.map((t) => {
               const isActive = activeTab === t.key;
               return (

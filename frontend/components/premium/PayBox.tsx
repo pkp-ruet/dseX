@@ -111,7 +111,7 @@ export default function PayBox() {
   return (
     <div className="flex flex-col gap-5">
       {/* Plans */}
-      <div role="radiogroup" aria-label={L("Choose a plan", "প্ল্যান বেছে নিন")} className="grid gap-3 sm:grid-cols-3">
+      <div role="radiogroup" aria-label={L("Choose a plan", "প্ল্যান বেছে নিন")} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {PAID_PLANS.map((p) => {
           const on = p.key === plan;
           return (

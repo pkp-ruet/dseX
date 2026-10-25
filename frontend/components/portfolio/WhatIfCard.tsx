@@ -123,7 +123,7 @@ export default function WhatIfCard({
 
   const body = (
     <div className="flex flex-col gap-4">
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <fieldset className="flex flex-col gap-2 rounded-lg bg-surface-2 p-3">
           <legend className={`text-sm font-semibold text-text-main ${bn ? "font-bn" : ""}`}>{L("1. Sell", "1. বিক্রি")}</legend>
           <label htmlFor={`${ids}-sc`} className="sr-only">{L("Stock to sell", "যে শেয়ার বিক্রি")}</label>

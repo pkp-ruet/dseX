@@ -15,12 +15,12 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
+  display: grid; grid-template-columns: minmax(0, 1fr);
   gap: var(--space-3);
 }
 .rl-step {
   display: grid;
-  grid-template-columns: 24px 1fr;
+  grid-template-columns: 24px minmax(0, 1fr);
   gap: var(--space-3);
   align-items: start;
 }
@@ -223,7 +223,7 @@
   transition: transform 0.15s;
 }
 .rl-checks[open] summary::after { transform: rotate(-135deg); margin-bottom: -3px; }
-.rl-checks ul { list-style: none; margin: 0 0 var(--space-3); padding: 0; display: grid; gap: 10px; }
+.rl-checks ul { list-style: none; margin: 0 0 var(--space-3); padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
 .rl-checks li {
   display: flex;
   flex-direction: column;
@@ -245,7 +245,7 @@
 .rl-card-foot a { display: inline-flex; align-items: center; gap: 4px; min-height: 40px; }
 
 /* ---- What changed ------------------------------------------------------- */
-.rl-changes { display: grid; gap: var(--space-4); }
+.rl-changes { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
 .rl-changes-head {
   display: flex;
   align-items: center;
@@ -254,7 +254,7 @@
   font-size: var(--fs-sm);
   font-weight: 700;
 }
-.rl-changes-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.rl-changes-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); }
 .rl-changes-list li {
   display: flex;
   flex-wrap: wrap;

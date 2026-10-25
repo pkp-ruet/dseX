@@ -60,7 +60,7 @@ export default function DeepAnalysisReport({ report, fairValue }: Props) {
         </p>
 
         {isValuation ? (
-          <div className="grid gap-5 lg:grid-cols-[1fr_320px] lg:items-start">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
             <Markdown text={sectionBody(s)} className="text-base" />
             {fairValue && (
               <div className="hidden lg:block lg:sticky lg:top-28">
@@ -117,7 +117,7 @@ export default function DeepAnalysisReport({ report, fairValue }: Props) {
       {report.sections.length > 2 && (
         <nav aria-label={isBn ? "সূচিপত্র" : "Contents"} className={`mb-8 border-y border-border py-4 ${isBn ? "font-bn" : ""}`}>
           <p className="mb-1 text-xs font-semibold text-text-muted">{isBn ? "এই রিপোর্টে" : "In this report"}</p>
-          <ol className="grid list-decimal gap-x-6 pl-5 text-sm sm:grid-cols-2">
+          <ol className="grid grid-cols-1 list-decimal gap-x-6 pl-5 text-sm sm:grid-cols-2">
             {report.sections.map((s) => (
               <li key={s.key} className="marker:text-text-muted">
                 <a href={`#sec-${s.key}`} className="inline-flex min-h-10 items-center text-text-main hover:text-primary-ink">
