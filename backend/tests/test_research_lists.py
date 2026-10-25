@@ -153,3 +153,41 @@ def test_dividend_list_guard():
     assert not _safe_dividend({**ok, "stale_data": True})
     assert not _safe_dividend({**ok, "payout_pct": None})          # paid out of a loss
     assert not _safe_dividend({**ok, "payout_latest_pct": 140.0})  # paid more than it earned
+
+
+# --- market page: which list leads ------------------------------------------
+
+def test_market_case_follows_the_mood():
+    assert rl.market_case("up", "cheap") == "rising"
+    assert rl.market_case("steady", "cheap") == "low"
+    assert rl.market_case("down", "normal") == "low"
+    assert rl.market_case("weak", None) == "low"
+    assert rl.market_case("steady", "expensive") == "steady"
+    assert rl.market_case(None, None) == "steady"
+
+
+def test_market_order_leads_with_the_case_list_and_keeps_all_six():
+    passed = {l.id: 5 for l in rl.LISTS}
+    order = rl.market_order("low", passed)
+    assert order[0] == "cheap_not_broken"
+    assert sorted(order) == sorted(l.id for l in rl.LISTS)
+
+
+def test_market_order_skips_an_empty_lead():
+    passed = {l.id: 5 for l in rl.LISTS} | {"profits_rising": 0}
+    order = rl.market_order("rising", passed)
+    assert order[0] == "debt_free_growing"
+    assert "profits_rising" in order and len(order) == 6
+
+
+def test_count_then_prefers_a_month_back():
+    series = [{"date": "2026-09-01", "n": 4}, {"date": "2026-09-20", "n": 7},
+              {"date": "2026-10-20", "n": 9}]
+    assert rl.count_then(series, "2026-10-25") == {"date": "2026-09-20", "n": 7}
+
+
+def test_count_then_falls_back_to_a_week_old_point_then_none():
+    series = [{"date": "2026-10-10", "n": 3}, {"date": "2026-10-24", "n": 5}]
+    assert rl.count_then(series, "2026-10-25") == {"date": "2026-10-10", "n": 3}
+    assert rl.count_then([{"date": "2026-10-24", "n": 5}], "2026-10-25") is None
+    assert rl.count_then([], "2026-10-25") is None

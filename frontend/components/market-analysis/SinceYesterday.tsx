@@ -1,14 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import Bn from "@/components/i18n/Bn";
-import {
-  IconArrowDown,
-  IconArrowUp,
-  IconSparkle,
-  IconTag,
-  IconTrendDown,
-  IconTrendUp,
-} from "@/components/home/personalized/DashIcons";
+import MkCard from "./MkCard";
 import type { MarketNewName, MarketSinceYesterday, MarketStats } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 
@@ -17,7 +9,6 @@ type Tone = "pos" | "neg" | "neutral" | "accent";
 interface Item {
   key: string;
   tone: Tone;
-  icon: ReactNode;
   text: ReactNode;
   chips?: MarketNewName[];
 }
@@ -28,9 +19,9 @@ function plural(n: number, one: string, many: string): string {
 
 function Chips({ names }: { names: MarketNewName[] }) {
   return (
-    <span className="ms-chips">
+    <span className="mk-chips">
       {names.map((n) => (
-        <Link key={n.trading_code} href={`/stock/${n.trading_code}`} className="ms-chip">
+        <Link key={n.trading_code} href={`/stock/${n.trading_code}`} className="mk-chip">
           {n.trading_code}
         </Link>
       ))}
@@ -46,7 +37,6 @@ function buildItems(since: MarketSinceYesterday, stats: MarketStats): Item[] {
     items.push({
       key: "index",
       tone: up ? "pos" : "neg",
-      icon: up ? <IconTrendUp size={16} /> : <IconTrendDown size={16} />,
       text: (
         <>
           The market index is <b>{up ? "up" : "down"} {Math.abs(stats.dsex_change_pct).toFixed(1)}%</b>{" "}
@@ -62,7 +52,6 @@ function buildItems(since: MarketSinceYesterday, stats: MarketStats): Item[] {
     items.push({
       key: "breadth",
       tone: better ? "pos" : "neg",
-      icon: better ? <IconArrowUp size={16} /> : <IconArrowDown size={16} />,
       text: better ? (
         <>
           <b>More shares rose today</b> than on {br.better_than} of the last {br.of} trading days.
@@ -80,7 +69,6 @@ function buildItems(since: MarketSinceYesterday, stats: MarketStats): Item[] {
     items.push({
       key: "healthy",
       tone: up ? "pos" : "neg",
-      icon: up ? <IconArrowUp size={16} /> : <IconArrowDown size={16} />,
       text: (
         <>
           <b>{plural(Math.abs(since.healthy_delta), "company", "companies")} {up ? "more" : "fewer"}</b> look
@@ -95,7 +83,6 @@ function buildItems(since: MarketSinceYesterday, stats: MarketStats): Item[] {
     items.push({
       key: "cheap",
       tone: more ? "pos" : "neg",
-      icon: <IconTag size={16} />,
       text: (
         <>
           <b>{more ? "More" : "Fewer"} shares are cheap</b> than yesterday — about {Math.round(stats.cheap_pct)}% of
@@ -109,7 +96,6 @@ function buildItems(since: MarketSinceYesterday, stats: MarketStats): Item[] {
     items.push({
       key: "sectors-up",
       tone: "pos",
-      icon: <IconTrendUp size={16} />,
       text: (
         <>
           <b>Now doing well:</b> {since.sectors_up.join(", ")}.
@@ -121,7 +107,6 @@ function buildItems(since: MarketSinceYesterday, stats: MarketStats): Item[] {
     items.push({
       key: "sectors-down",
       tone: "neg",
-      icon: <IconTrendDown size={16} />,
       text: (
         <>
           <b>Now struggling:</b> {since.sectors_down.join(", ")}.
@@ -130,20 +115,10 @@ function buildItems(since: MarketSinceYesterday, stats: MarketStats): Item[] {
     });
   }
 
-  if (since.new_on_sale.length) {
-    items.push({
-      key: "new-on-sale",
-      tone: "accent",
-      icon: <IconTag size={16} />,
-      text: <b>New on the &ldquo;good companies on sale&rdquo; list</b>,
-      chips: since.new_on_sale,
-    });
-  }
   if (since.new_near_high.length) {
     items.push({
       key: "new-high",
       tone: "pos",
-      icon: <IconArrowUp size={16} />,
       text: <b>New at a one-year high</b>,
       chips: since.new_near_high,
     });
@@ -152,7 +127,6 @@ function buildItems(since: MarketSinceYesterday, stats: MarketStats): Item[] {
     items.push({
       key: "new-low",
       tone: "neg",
-      icon: <IconArrowDown size={16} />,
       text: <b>New at a one-year low</b>,
       chips: since.new_near_low,
     });
@@ -161,7 +135,6 @@ function buildItems(since: MarketSinceYesterday, stats: MarketStats): Item[] {
     items.push({
       key: "new-unusual",
       tone: "accent",
-      icon: <IconSparkle size={16} />,
       text: <b>Unusual buying just started</b>,
       chips: since.new_unusual,
     });
@@ -185,29 +158,24 @@ export default function SinceYesterday({
   const items = buildItems(since, stats);
   if (items.length === 0) return null;
   return (
-    <section className="ms-card ms-since" aria-labelledby="ms-since-title">
-      <div className="ms-since-head">
-        <div>
-          <p className="ms-card-title" id="ms-since-title" style={{ marginBottom: 2 }}>
-            Since yesterday
-          </p>
-          <Bn className="ms-since-bn">গতকালের তুলনায় আজ কী বদলেছে</Bn>
-        </div>
-        {since.prev_date && <span className="ms-since-vs">vs {formatDate(since.prev_date)}</span>}
-      </div>
-      <ul className="ms-since-list">
+    <MkCard
+      className="mt-6"
+      id="mk-since-title"
+      title="Since yesterday"
+      bn="গতকালের তুলনায় আজ কী বদলেছে"
+      right={since.prev_date ? <span className="mk-since-vs">vs {formatDate(since.prev_date)}</span> : undefined}
+    >
+      <ul className="mk-since-list">
         {items.map((it) => (
-          <li className={`ms-since-item ms-since-item--${it.tone}`} key={it.key}>
-            <span className="ms-since-ico" aria-hidden="true">
-              {it.icon}
-            </span>
-            <span className="ms-since-text">
+          <li className={`mk-since-item mk-since-item--${it.tone}`} key={it.key}>
+            <span className="mk-since-dot" aria-hidden="true" />
+            <span className="mk-since-text">
               {it.text}
               {it.chips && it.chips.length > 0 && <Chips names={it.chips} />}
             </span>
           </li>
         ))}
       </ul>
-    </section>
+    </MkCard>
   );
 }

@@ -21,6 +21,11 @@ export function useLockScope(): Scope | null {
   return useContext(Ctx);
 }
 
+/** Any other page with one Premium section (`/market-analysis` → `#ma-premium`). */
+export function PageLockScope({ anchor, children }: { anchor: string; children: ReactNode }) {
+  return <Ctx.Provider value={{ anchor }}>{children}</Ctx.Provider>;
+}
+
 /** The stock page's scope: one Premium section, and the whole page opens when
  *  this is today's free report (decided after mount — the page is ISR). */
 export default function StockLockScope({ code, anchor, children }: { code: string; anchor?: string; children: ReactNode }) {

@@ -1187,6 +1187,25 @@ export interface MarketHistory {
   index: MarketHistoryIndexPoint[];
   /** The stored daily market snapshots, oldest first. */
   daily: MarketHistoryDailyPoint[];
+  /** How many companies passed "Good companies at a low price" each day, oldest first
+   *  (from `research_list_snapshots`, today's live count last). */
+  bargains?: { date: string; n: number }[];
+}
+
+/** One research list on /market-analysis: the hub row plus today's top-20 codes
+ *  (to count the reader's own stocks) and the pass count about a month ago. */
+export interface MarketResearchList extends ResearchListSummary {
+  codes: string[];
+  then: { date: string; n: number } | null;
+}
+
+/** The six research lists, the one that fits today's market first. */
+export interface MarketResearch {
+  case: "rising" | "low" | "steady";
+  lead: string;
+  reason_en: string;
+  reason_bn: string;
+  lists: MarketResearchList[];
 }
 
 export interface MarketNewName {
@@ -1307,6 +1326,8 @@ export interface MarketStateData {
     rising: MarketChanceStock[];
     fallen: MarketChanceStock[];
   };
+  /** Absent when the backend is behind or the lists failed — the section then hides. */
+  research?: MarketResearch | null;
   stats: MarketStats;
 }
 

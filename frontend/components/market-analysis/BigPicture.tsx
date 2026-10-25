@@ -1,6 +1,5 @@
-import type { CSSProperties } from "react";
 import Bn from "@/components/i18n/Bn";
-import { IconChevron } from "@/components/home/personalized/DashIcons";
+import { IconChevronDown } from "@/components/ui/icons";
 import type { MarketMood, MarketQuestion, MarketStats } from "@/lib/api";
 import { crore, signed } from "@/lib/formatters";
 
@@ -10,15 +9,6 @@ const MOOD_BN: Record<string, string> = {
   down: "বাজার আজ পড়তির দিকে — তাড়াহুড়ো করবেন না।",
   weak: "বাজার কিছুটা দুর্বল — ভালো কোম্পানি বেছে নেওয়ার সময়।",
   steady: "বাজার আজ শান্ত — ধীরে-সুস্থে দেখে নিন।",
-};
-
-// Accent per answer tile — decoration only; the answer text keeps the market
-// semantics (--positive / --negative) through the .ms-answer--{tone} classes.
-const Q_ACCENT: Record<string, string> = {
-  price: "var(--primary)",
-  breadth: "var(--warm)",
-  value: "var(--positive)",
-  activity: "var(--navy)",
 };
 
 function idx(n: number): string {
@@ -99,12 +89,11 @@ function whyRows(s: MarketStats): WhyRow[] {
 }
 
 /**
- * The big picture — the mood, a large headline, the friendly takeaway, the
- * four answer tiles (prices this year · up or down today · cheap or expensive ·
- * busy or quiet) and a fold-out "why we say this" with the raw numbers.
- *
- * The tiles used to live twice: as bare chips here AND as a separate Q&A card
- * below. One home now, with numbers.
+ * The big picture — open on the canvas: the mood word, the headline sentence,
+ * the takeaway and its Bengali line. Under it ONE card: the four answers
+ * (prices this year · up or down today · cheap or expensive · busy or quiet)
+ * in a hairline grid, and a fold-out "How we decide" with every raw number
+ * and the cut-off that turns it into a word.
  */
 export default function BigPicture({
   mood,
@@ -117,61 +106,58 @@ export default function BigPicture({
 }) {
   const why = whyRows(stats);
   return (
-    <section className={`ms-hero ms-hero--${mood.tone}`}>
-      <span className="ms-hero-eyebrow">The big picture</span>
-      <div>
-        <span className={`ms-mood-pill ms-mood-pill--${mood.tone}`}>
-          <span className="ms-dot" aria-hidden="true" />
-          Right now: {mood.label.toLowerCase()}
-        </span>
-      </div>
-      <h2 className="ms-hero-headline">{mood.sentence}</h2>
-      {mood.sentence2 && <p className="ms-hero-sub">{mood.sentence2}</p>}
-      {MOOD_BN[mood.tone] && (
-        <p lang="bn" className="font-bn ms-hero-bn">
-          {MOOD_BN[mood.tone]}
-        </p>
+    <section className="mk-hero" aria-labelledby="mk-headline">
+      <p className={`mk-mood mk-mood--${mood.tone}`}>
+        <span className="mk-mood-dot" aria-hidden="true" />
+        Market mood: {mood.label.toLowerCase()}
+      </p>
+      <h2 className="mk-headline" id="mk-headline">
+        {mood.sentence}
+      </h2>
+      {mood.sentence2 && <p className="mk-lead">{mood.sentence2}</p>}
+      {MOOD_BN[mood.tone] && <Bn className="mk-lead-bn">{MOOD_BN[mood.tone]}</Bn>}
+
+      {questions.length > 0 && (
+        <div className="soft-card mk-answers">
+          <div className="mk-answer-grid">
+            {questions.map((q) => {
+              const extra = tileExtra(q, stats);
+              return (
+                <div className={`mk-answer mk-answer--${q.tone}`} key={q.key ?? q.q}>
+                  <p className="mk-answer-q">{q.q}</p>
+                  <p className="mk-answer-a">{q.a}</p>
+                  {extra ? <p className="mk-answer-x">{extra}</p> : null}
+                </div>
+              );
+            })}
+          </div>
+
+          {why.length > 0 && (
+            <details className="mk-why">
+              <summary>
+                How we decide
+                <IconChevronDown size={16} />
+              </summary>
+              <div className="mk-why-body">
+                <p className="mk-card-note">
+                  Six plain checks, refreshed after every trading day — today&apos;s numbers and the cut-offs
+                  that turn them into words.
+                </p>
+                <Bn className="mk-card-bn">আমরা কীসের ভিত্তিতে এই কথা বলছি — আজকের সংখ্যাগুলো এখানে।</Bn>
+                <ul className="mk-why-list">
+                  {why.map((r) => (
+                    <li className="mk-why-row" key={r.k}>
+                      <span className="mk-why-k">{r.k}</span>
+                      <span className="mk-why-v">{r.v}</span>
+                      <span className="mk-why-rule">{r.rule}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </details>
+          )}
+        </div>
       )}
-
-      <div className="ms-hero-answers">
-        {questions.map((q) => {
-          const extra = tileExtra(q, stats);
-          return (
-            <div
-              className={`ms-answer ms-answer--${q.tone}`}
-              key={q.key ?? q.q}
-              style={{ "--ms-accent": Q_ACCENT[q.key ?? ""] ?? "var(--primary)" } as CSSProperties}
-            >
-              <p className="ms-answer-q">{q.q}</p>
-              <p className="ms-answer-a">{q.a}</p>
-              {extra ? <p className="ms-answer-x">{extra}</p> : null}
-            </div>
-          );
-        })}
-      </div>
-
-      <details className="ms-why">
-        <summary>
-          <IconChevron size={14} />
-          Why we say this
-        </summary>
-        <p className="ms-why-intro">
-          Six plain checks, refreshed after every trading day. These are today&apos;s numbers and the
-          cut-offs that turn them into words.
-        </p>
-        <Bn className="ms-why-intro-bn">
-          আমরা কীসের ভিত্তিতে এই কথা বলছি — আজকের সংখ্যাগুলো এখানে।
-        </Bn>
-        <ul className="ms-why-list">
-          {why.map((r) => (
-            <li className="ms-why-row" key={r.k}>
-              <span className="ms-why-k">{r.k}</span>
-              <span className="ms-why-v">{r.v}</span>
-              <span className="ms-why-rule">{r.rule}</span>
-            </li>
-          ))}
-        </ul>
-      </details>
     </section>
   );
 }

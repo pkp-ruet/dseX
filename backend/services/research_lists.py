@@ -719,3 +719,60 @@ def diff_codes(then: list[str], now: list[str]) -> tuple[list[str], list[str]]:
     """(joined, left) between two snapshots, each in the order it appears."""
     t, n = set(then), set(now)
     return [c for c in now if c not in t], [c for c in then if c not in n]
+
+
+# ---------------------------------------------------------------------------
+# The lists on /market-analysis — which one fits today's market
+# ---------------------------------------------------------------------------
+
+# The market page's mood (market_state_service) decides which list leads.
+# Same three cases the old "Best now" lens used: a rising market → profits
+# growing faster than the price; a cheap / weak / falling one → good
+# companies at a low price; anything else → steady cash payers.
+MARKET_ORDER: dict[str, tuple[str, ...]] = {
+    "rising": ("profits_rising", "debt_free_growing", "owners_buying",
+               "cash_machines", "cheap_not_broken", "fallen_strong"),
+    "low": ("cheap_not_broken", "fallen_strong", "cash_machines",
+            "owners_buying", "profits_rising", "debt_free_growing"),
+    "steady": ("cash_machines", "profits_rising", "cheap_not_broken",
+               "debt_free_growing", "owners_buying", "fallen_strong"),
+}
+
+MARKET_REASON: dict[str, tuple[str, str]] = {
+    "rising": ("More shares are rising. Look for companies whose profit is growing faster than their price.",
+               "বেশিরভাগ শেয়ারের দাম বাড়ছে। এমন কোম্পানি খুঁজুন যাদের লাভ দামের চেয়ে দ্রুত বাড়ছে।"),
+    "low": ("Prices are low and many shares cost less than usual. A good time to look at strong companies at a low price, not at shares that are jumping fast.",
+            "দাম কম, অনেক শেয়ার স্বাভাবিকের চেয়ে সস্তা। দ্রুত লাফানো শেয়ার নয়, কম দামে ভালো কোম্পানি দেখার সময়।"),
+    "steady": ("Prices look about normal. Companies that pay cash every year are a calm place to start.",
+               "দাম মোটামুটি স্বাভাবিক। প্রতি বছর নগদ লভ্যাংশ দেয় এমন কোম্পানি দিয়ে শুরু করা নিরাপদ।"),
+}
+
+
+def market_case(tone: Optional[str], value_band: Optional[str]) -> str:
+    """The market mood → "rising" | "low" | "steady"."""
+    if tone == "up":
+        return "rising"
+    if value_band == "cheap" or tone in ("weak", "down"):
+        return "low"
+    return "steady"
+
+
+def market_order(case: str, passed: dict[str, int]) -> list[str]:
+    """List ids in the order the market page shows them. The case's first
+    list leads unless nothing passes it today — then the first one in the
+    case's order that has passers moves to the front."""
+    order = list(MARKET_ORDER.get(case) or MARKET_ORDER["steady"])
+    lead = next((i for i in order if passed.get(i, 0) > 0), order[0])
+    return [lead] + [i for i in order if i != lead]
+
+
+def count_then(series: list[dict], today: str, days: int = 30) -> Optional[dict]:
+    """The pass count to compare today's with: the latest point at least
+    `days` old, else the oldest point a week or more old (the record is
+    younger than a month). `series` is [{date, n}] oldest first."""
+    old = [p for p in series if p.get("date") and _days_between(p["date"], today) is not None]
+    month = [p for p in old if _days_between(p["date"], today) >= days]
+    if month:
+        return month[-1]
+    week = [p for p in old if _days_between(p["date"], today) >= 7]
+    return week[0] if week else None

@@ -9,10 +9,13 @@ import YourStocksHere from "@/components/market-analysis/YourStocksHere";
 import WhatsHappeningNow from "@/components/market-analysis/WhatsHappeningNow";
 import MarketHistory from "@/components/market-analysis/MarketHistory";
 import WhatCouldHappenNext from "@/components/market-analysis/WhatCouldHappenNext";
-import WhereToLook from "@/components/market-analysis/WhereToLook";
+import MarketResearchLists from "@/components/market-analysis/MarketResearchLists";
+import MarketDividends from "@/components/market-analysis/MarketDividends";
 import { PersonalCodesProvider } from "@/components/market-analysis/PersonalCodes";
 import ErrorState from "@/components/ui/ErrorState";
 import PageHeader from "@/components/ui/PageHeader";
+import SectionHeader from "@/components/ui/SectionHeader";
+import Bn from "@/components/i18n/Bn";
 import HubLinks from "@/components/layout/HubLinks";
 
 export const revalidate = 900;
@@ -62,23 +65,6 @@ export const metadata: Metadata = {
   },
 };
 
-function SectionHead({ n, title, sub, subBn }: { n: number; title: string; sub: string; subBn?: string }) {
-  return (
-    <div className="ms-section-head">
-      <span className="ms-section-num" aria-hidden="true">{n}</span>
-      <div>
-        <h2 className="ms-section-title">{title}</h2>
-        <p className="ms-section-sub">{sub}</p>
-        {subBn && (
-          <p lang="bn" className="font-bn ms-section-sub-bn">
-            {subBn}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
-
 const EMPTY_QUALITY = { total: 0, strong: 0, good: 0, soso: 0, risky: 0, median_score: null };
 const EMPTY_CHANCES = { best: "", on_sale: [], income: [], rising: [], fallen: [] };
 const EMPTY_HISTORY = { index: [], daily: [] };
@@ -101,6 +87,13 @@ export default async function MarketAnalysisPage() {
         isPartOf: { "@id": BASE_URL },
         primaryImageOfPage: OG_IMAGE,
         ...(data?.date ? { dateModified: data.date } : {}),
+        // Paywall markup: which companies pass each research list is Premium (PremiumGate).
+        ...(data?.research
+          ? {
+              isAccessibleForFree: false,
+              hasPart: { "@type": "WebPageElement", isAccessibleForFree: false, cssSelector: ".premium-locked" },
+            }
+          : {}),
       },
       {
         "@type": "BreadcrumbList",
@@ -144,54 +137,78 @@ export default async function MarketAnalysisPage() {
             <BigPicture mood={data.mood} questions={data.now?.questions ?? []} stats={data.stats} />
           )}
           {data.since_yesterday && <SinceYesterday since={data.since_yesterday} stats={data.stats} />}
-          {data.summary_bn && <BanglaSnapshot text={data.summary_bn} />}
           <YourStocksHere
             lists={{
-              onSale: codes(chances.on_sale),
-              income: codes(chances.income),
               rising: codes(chances.rising),
-              fallen: codes(chances.fallen),
               nearHigh: codes(next?.near_high),
               nearLow: codes(next?.near_low),
               unusual: codes(next?.unusual),
               dividends: (next?.dividends ?? []).map((d) => ({ code: d.trading_code, date: d.date, kind: d.kind })),
             }}
           />
+          {data.summary_bn && <BanglaSnapshot text={data.summary_bn} />}
 
-          <SectionHead
-            n={1}
-            title="The Market Right Now"
-            sub="Which businesses are doing well, how many companies are healthy, and how we got here."
-            subBn="কোন ব্যবসা ভালো করছে, কতটি কোম্পানি সুস্থ, আর বাজার কীভাবে এখানে এলো।"
-          />
-          <WhatsHappeningNow
-            sectors={data.now?.sectors ?? []}
-            quality={data.now?.quality ?? EMPTY_QUALITY}
-          />
-          <div style={{ marginTop: 16 }}>
-            <MarketHistory history={data.history ?? EMPTY_HISTORY} />
-          </div>
+          <section className="mk-section" aria-labelledby="mk-now">
+            <SectionHeader
+              id="mk-now"
+              size="lg"
+              title="The market right now"
+              bn="কোন ব্যবসা ভালো করছে, কতটি কোম্পানি ভালো অবস্থায়, আর বাজার কীভাবে এখানে এলো।"
+            />
+            <div className="mk-stack">
+              <WhatsHappeningNow
+                sectors={data.now?.sectors ?? []}
+                quality={data.now?.quality ?? EMPTY_QUALITY}
+              />
+              <MarketHistory history={data.history ?? EMPTY_HISTORY} />
+            </div>
+          </section>
 
-          <SectionHead
-            n={2}
-            title="Where to Invest Today"
-            sub="Four simple places to start looking for good shares."
-            subBn="আজ কোথায় ভালো শেয়ার খুঁজবেন।"
-          />
-          <WhereToLook chances={chances} />
+          {data.research && data.research.lists.length > 0 && (
+            <section className="mk-section" aria-labelledby="mk-invest">
+              <SectionHeader
+                id="mk-invest"
+                size="lg"
+                title="Where to invest today"
+                bn="ছয়টি ধারণা, প্রতিটি কয়েকটি সহজ যাচাই। আজকের বাজারে যেটি মানায়, সেটি আগে।"
+                lead="Six ideas, each a set of plain checks. The one that fits today's market comes first."
+                action={{ href: "/stock-insights#research", label: "All lists" }}
+              />
+              <MarketResearchLists research={data.research} />
+            </section>
+          )}
 
-          <SectionHead
-            n={3}
-            title="Stocks to Watch Next"
-            sub="Big moves building up, and cash payouts on the way."
-            subBn="কোন শেয়ারে সামনে কিছু হতে পারে।"
-          />
-          <WhatCouldHappenNext
-            unusual={next?.unusual ?? []}
-            nearHigh={next?.near_high ?? []}
-            nearLow={next?.near_low ?? []}
-            dividends={next?.dividends ?? []}
-          />
+          <section className="mk-section" aria-labelledby="mk-next">
+            <SectionHeader
+              id="mk-next"
+              size="lg"
+              title="Stocks to watch next"
+              bn="কোন শেয়ারে সামনে কিছু হতে পারে।"
+              lead="Big moves building up, fast risers, and shares at a one-year edge."
+            />
+            <WhatCouldHappenNext
+              unusual={next?.unusual ?? []}
+              rising={chances.rising}
+              nearHigh={next?.near_high ?? []}
+              nearLow={next?.near_low ?? []}
+            />
+          </section>
+
+          <section className="mk-section" aria-labelledby="mk-money">
+            <SectionHeader
+              id="mk-money"
+              size="lg"
+              title="Money coming"
+              bn="সামনে যেসব কোম্পানি লভ্যাংশ দেবে।"
+              action={{ href: "/dividend-calendar", label: "Dividend calendar" }}
+            />
+            <MarketDividends items={next?.dividends ?? []} />
+          </section>
+
+          <p className="mk-disclaimer">
+            Educational information, not investment advice. Read the full stock page before you decide.
+            <Bn as="span" className="block">এগুলো শিক্ষামূলক তথ্য, বিনিয়োগ পরামর্শ নয়।</Bn>
+          </p>
         </>
       )}
 

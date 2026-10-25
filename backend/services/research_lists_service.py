@@ -207,6 +207,22 @@ def _baseline(list_id: str, today: str) -> Optional[dict]:
     return col.find_one({"list_id": list_id, "date": {"$lt": today}}, sort=[("date", 1)])
 
 
+@_ttl_cache(900)
+def pass_history(days: int = 365) -> dict[str, list[dict]]:
+    """{list_id: [{date, n}]} — how many companies passed each list on every
+    stored trading day, oldest first. Feeds the market page's "Bargains" chart
+    and its "was N a month ago" lines."""
+    cutoff = (date.fromisoformat(bst_today_iso()) - timedelta(days=days)).isoformat()
+    out: dict[str, list[dict]] = {l.id: [] for l in rl.LISTS}
+    docs = get_db()[SNAPSHOT_COLLECTION].find(
+        {"date": {"$gte": cutoff}}, {"_id": 0, "list_id": 1, "date": 1, "passed": 1},
+    ).sort("date", 1)
+    for d in docs:
+        if d.get("list_id") in out and d.get("passed") is not None:
+            out[d["list_id"]].append({"date": d["date"], "n": int(d["passed"])})
+    return out
+
+
 def _first_tracked(list_id: str) -> Optional[str]:
     doc = get_db()[SNAPSHOT_COLLECTION].find_one({"list_id": list_id}, sort=[("date", 1)])
     return doc.get("date") if doc else None
@@ -280,6 +296,34 @@ def list_index() -> list[dict]:
             "top": top,
         })
     return out
+
+
+def market_lists(tone: Optional[str], value_band: Optional[str], today: Optional[str]) -> dict:
+    """The six lists for /market-analysis, the one that fits today's market
+    first. Each row is a `list_index()` row plus `codes` (today's top
+    LIST_CAP, so the page can count the reader's own stocks) and `then` (the
+    pass count about a month ago). Names are screen-locked by the page."""
+    rows = {r["id"]: r for r in list_index()}
+    runs = run_all()
+    try:
+        hist = pass_history()
+    except Exception:  # noqa: BLE001 — the "was N" line is optional
+        logger.exception("research lists: pass history failed")
+        hist = {}
+    case = rl.market_case(tone, value_band)
+    order = rl.market_order(case, {i: r["passed"] for i, r in rows.items()})
+    reason_en, reason_bn = rl.MARKET_REASON[case]
+    lists = []
+    for lid in order:
+        if lid not in rows:
+            continue
+        lists.append({
+            **rows[lid],
+            "codes": (runs.get(lid) or {}).get("codes", []),
+            "then": rl.count_then(hist.get(lid) or [], today) if today else None,
+        })
+    return {"case": case, "lead": order[0], "reason_en": reason_en, "reason_bn": reason_bn,
+            "lists": lists, "history": hist}
 
 
 def _risk(f: dict) -> Optional[dict]:

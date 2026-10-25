@@ -1,9 +1,9 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import Bn from "@/components/i18n/Bn";
-import { IconArrowDown, IconArrowUp } from "@/components/home/personalized/DashIcons";
 import type { MarketSectorRow, MarketQuality } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
+import MkCard from "./MkCard";
 
 /** Bar + marker scale: ±5% fills the half-track. */
 const SCALE_PCT = 5;
@@ -15,78 +15,79 @@ function halfWidth(pct: number): number {
 function Sectors({ sectors }: { sectors: MarketSectorRow[] }) {
   const top = sectors.slice(0, 8);
   return (
-    <div className="ms-card">
-      <p className="ms-card-title">Which businesses are doing well?</p>
+    <MkCard
+      id="mk-sectors-title"
+      title="Which businesses are doing well?"
+      bn="কোন ব্যবসা ভালো করছে"
+      right={<Link href="/sectors" className="mk-link">All sectors →</Link>}
+    >
       {top.length === 0 ? (
-        <p className="ms-empty">Not enough trading to tell yet.</p>
+        <p className="mk-empty">Not enough trading to tell yet.</p>
       ) : (
         <>
-          {top.map((s) => {
-            const pos = s.ret_1w >= 0;
-            const fill: CSSProperties = pos
-              ? { left: "50%", width: `${halfWidth(s.ret_1w)}%`, background: "var(--positive)" }
-              : { right: "50%", width: `${halfWidth(s.ret_1w)}%`, background: "var(--negative)" };
-            const mark =
-              s.ret_1m != null
-                ? // 4–96%: the 8px dot has a 4px half-width, so at 0% / 100% it poked past the track
-                  { left: `${Math.min(96, Math.max(4, 50 + Math.max(-1, Math.min(1, s.ret_1m / SCALE_PCT)) * 50))}%` }
-                : null;
-            const body = (
-              <>
-                <span className="ms-sector-name">
-                  {s.name}
-                  <small>
-                    {s.count} companies
-                    {s.ret_1m != null ? ` · month ${s.ret_1m >= 0 ? "+" : ""}${s.ret_1m.toFixed(1)}%` : ""}
-                  </small>
-                </span>
-                <span className="ms-sector-track">
-                  <span className="ms-sector-fill" style={fill} />
-                  {mark && <span className="ms-sector-mark" style={mark} aria-hidden="true" />}
-                </span>
-                <span className={`ms-sector-val ${pos ? "ms-pos" : "ms-neg"}`}>
-                  {pos ? "+" : ""}
-                  {s.ret_1w.toFixed(1)}%
-                </span>
-              </>
-            );
-            return s.slug ? (
-              <Link className="ms-sector ms-sector--link" href={`/sector/${s.slug}`} key={s.name}>
-                {body}
-              </Link>
-            ) : (
-              <div className="ms-sector" key={s.name}>
-                {body}
-              </div>
-            );
-          })}
-          <p className="ms-sector-legend">
+          <div>
+            {top.map((s) => {
+              const pos = s.ret_1w >= 0;
+              const fill: CSSProperties = pos
+                ? { left: "50%", width: `${halfWidth(s.ret_1w)}%` }
+                : { right: "50%", width: `${halfWidth(s.ret_1w)}%` };
+              const mark =
+                s.ret_1m != null
+                  ? { left: `${Math.min(99, Math.max(1, 50 + Math.max(-1, Math.min(1, s.ret_1m / SCALE_PCT)) * 50))}%` }
+                  : null;
+              const body = (
+                <>
+                  <span className="min-w-0">
+                    <span className="mk-sector-name">{s.name}</span>
+                    <span className="mk-sector-sub">
+                      {s.count} companies
+                      {s.ret_1m != null ? ` · month ${s.ret_1m >= 0 ? "+" : ""}${s.ret_1m.toFixed(1)}%` : ""}
+                    </span>
+                  </span>
+                  <span className="mk-track" aria-hidden="true">
+                    <span className={`mk-track-fill ${pos ? "bg-positive" : "bg-negative"}`} style={fill} />
+                    {mark && <span className="mk-track-mark" style={mark} />}
+                  </span>
+                  <span className={`mk-sector-val ${pos ? "text-positive" : "text-negative"}`}>
+                    {pos ? "+" : ""}
+                    {s.ret_1w.toFixed(1)}%
+                  </span>
+                </>
+              );
+              return s.slug ? (
+                <Link className="mk-sector" href={`/sector/${s.slug}`} key={s.name}>
+                  {body}
+                </Link>
+              ) : (
+                <div className="mk-sector" key={s.name}>
+                  {body}
+                </div>
+              );
+            })}
+          </div>
+          <p className="mk-legend">
             <span>
-              <i className="i-bar" />
+              <i className="k-bar" />
               this week
             </span>
             <span>
-              <i className="i-dot" />
+              <i className="k-mark" />
               this month
             </span>
-            <span>Tap a sector to see every company in it.</span>
           </p>
-          <Bn className="ms-note-bn">বার = এই সপ্তাহ, ছোট বিন্দু = এই মাস। কোনো খাতে চাপ দিলে তার সব কোম্পানি দেখবেন।</Bn>
-          <Link href="/sectors" className="ms-bloglink">
-            See all sectors →
-          </Link>
+          <Bn className="mk-card-bn">বার = এই সপ্তাহ, দাগ = এই মাস। কোনো খাতে চাপ দিলে তার সব কোম্পানি দেখবেন।</Bn>
         </>
       )}
-    </div>
+    </MkCard>
   );
 }
 
 function Quality({ quality }: { quality: MarketQuality }) {
   const segs = [
-    { label: "Strong", n: quality.strong, bg: "var(--tier-excellent)" },
-    { label: "Good", n: quality.good, bg: "var(--tier-good)" },
-    { label: "So-so", n: quality.soso, bg: "var(--tier-average)" },
-    { label: "Weak", n: quality.risky, bg: "var(--tier-weak)" },
+    { label: "Strong", n: quality.strong, bg: "bg-tier-excellent" },
+    { label: "Good", n: quality.good, bg: "bg-tier-good" },
+    { label: "So-so", n: quality.soso, bg: "bg-tier-average" },
+    { label: "Weak", n: quality.risky, bg: "bg-tier-weak" },
   ];
   const healthy = quality.strong + quality.good;
   const healthyPct = quality.total ? (healthy / quality.total) * 100 : 0;
@@ -121,56 +122,54 @@ function Quality({ quality }: { quality: MarketQuality }) {
   }
 
   return (
-    <div className="ms-card">
-      <p className="ms-card-title">How many companies are healthy?</p>
+    <MkCard
+      id="mk-quality-title"
+      title="How many companies are healthy?"
+      bn="কতটি কোম্পানি ভালো অবস্থায় আছে"
+      right={<Link href="/dsestockranking" className="mk-link">Ranking →</Link>}
+    >
       {quality.total > 0 ? (
         <>
-          <p className="ms-quality-lead">
-            <b>{healthy}</b> of {quality.total} companies look healthy.
+          <div className="mk-bignum">
+            <span className="mk-bignum-n">{healthy}</span>
+            <span className="mk-bignum-of">of {quality.total} companies look healthy</span>
             {delta != null && (
               <span
-                className={`ms-trend-pill ${delta > 0 ? "ms-trend-pill--up" : delta < 0 ? "ms-trend-pill--down" : ""}`}
+                className={`mk-delta ${delta > 0 ? "mk-delta--up" : delta < 0 ? "mk-delta--down" : ""}`}
                 title={since ? `Compared with ${formatDate(since)}` : undefined}
               >
-                {delta > 0 ? <IconArrowUp size={11} /> : delta < 0 ? <IconArrowDown size={11} /> : null}
                 {delta > 0 ? "+" : ""}
                 {delta} in a week
               </span>
             )}
-          </p>
-          <div className="ms-tierbar">
+          </div>
+          <div className="mk-tierbar" role="img" aria-label={segs.map((s) => `${s.label} ${s.n}`).join(", ")}>
             {segs
               .filter((s) => s.n > 0)
               .map((s) => (
-                <div key={s.label} style={{ flexGrow: s.n, background: s.bg }}>
-                  {s.n}
-                </div>
+                <span key={s.label} className={s.bg} style={{ flexGrow: s.n }} />
               ))}
           </div>
-          <div className="ms-tier-legend">
+          <ul className="mk-tier-legend">
             {segs.map((s) => (
-              <span key={s.label}>
-                <span
-                  style={{ width: 9, height: 9, borderRadius: 999, background: s.bg, display: "inline-block" }}
-                />
-                {s.label}
-              </span>
+              <li key={s.label}>
+                <b>{s.n}</b>
+                <span>
+                  <i className={s.bg} />
+                  {s.label}
+                </span>
+              </li>
             ))}
+          </ul>
+          <div className="mk-card-foot">
+            <p className="m-0 text-sm text-text-main">{takeaway}</p>
+            <Bn className="mk-card-bn">{takeawayBn}</Bn>
           </div>
-          <p className="ms-card-note" style={{ marginTop: 12, marginBottom: 0 }}>
-            {takeaway}
-          </p>
-          <p lang="bn" className="font-bn ms-note-bn">
-            {takeawayBn}
-          </p>
-          <Link href="/dsestockranking" className="ms-bloglink">
-            See every company ranked →
-          </Link>
         </>
       ) : (
-        <p className="ms-empty">Company scores are being prepared.</p>
+        <p className="mk-empty">Company scores are being prepared.</p>
       )}
-    </div>
+    </MkCard>
   );
 }
 
@@ -183,7 +182,7 @@ export default function WhatsHappeningNow({
   quality: MarketQuality;
 }) {
   return (
-    <div className="intel-grid">
+    <div className="mk-pair">
       <Sectors sectors={sectors} />
       <Quality quality={quality} />
     </div>

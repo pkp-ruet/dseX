@@ -164,7 +164,6 @@ function MoverList({ title, items, metric }: { title: string; items: MarketMover
             price={m.ltp}
             meta={metric === "change" ? bnSignedPct(m.change_pct) : bnCroreTaka(m.value_mn)}
             tone={metric === "change" ? moveTone(m.change_pct) : "accent"}
-            accent={metric === "change" ? (m.change_pct != null && m.change_pct < 0 ? "var(--negative)" : "var(--positive)") : "var(--primary)"}
           />
         ))}
       </div>
@@ -381,7 +380,6 @@ export default async function ShareBazarPage() {
                 price={d.last_price}
                 meta={d.dividend_pct != null ? `নগদ ${d.dividend_pct}%` : d.stock_pct != null ? `বোনাস ${d.stock_pct}%` : "ডিভিডেন্ড"}
                 tone="accent"
-                accent="var(--gold)"
                 sub={
                   <>
                     রেকর্ড ডেট {bnDate(d.date)}

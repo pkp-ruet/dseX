@@ -31,7 +31,7 @@ export default function ShowMore({
       {hidden > 0 && (
         <button
           type="button"
-          className="btn-quiet btn-sm btn-block ms-more"
+          className="btn-quiet btn-sm btn-block mk-more"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
         >

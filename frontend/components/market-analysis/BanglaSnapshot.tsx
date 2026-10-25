@@ -1,4 +1,3 @@
-import type { CSSProperties } from "react";
 import Link from "next/link";
 
 /**
@@ -8,17 +7,16 @@ import Link from "next/link";
  */
 export default function BanglaSnapshot({ text }: { text: string }) {
   return (
-    <section
-      lang="bn"
-      className="font-bn ms-card ms-card--tint"
-      style={{ marginTop: 16, "--card-accent": "var(--primary)" } as CSSProperties}
-    >
-      <p className="ms-card-title">আজকের বাজার এক নজরে</p>
-      <p className="ms-bn-text">{text}</p>
-      <p className="ms-bn-note">
-        <Link href="/share-bazar" className="ms-bloglink">আজকের পুরো বাজার বাংলায় পড়ুন →</Link>
-      </p>
-      <p className="ms-bn-note">এটি শিক্ষামূলক তথ্য, বিনিয়োগ পরামর্শ নয়।</p>
+    <section lang="bn" className="font-bn soft-card mk-card mt-4" aria-labelledby="mk-bn-title">
+      <h3 className="mk-card-title" id="mk-bn-title">
+        আজকের বাজার এক নজরে
+      </h3>
+      <p className="mk-bn-text mt-3">{text}</p>
+      <div className="mk-card-foot">
+        <Link href="/share-bazar" className="mk-link">
+          আজকের পুরো বাজার বাংলায় পড়ুন →
+        </Link>
+      </div>
     </section>
   );
 }
