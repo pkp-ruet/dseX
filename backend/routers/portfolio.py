@@ -226,8 +226,9 @@ def get_history(current_user: dict = Depends(get_current_user), pid: Optional[st
 @router.get("/watch-events")
 def get_watch_events(current_user: dict = Depends(get_current_user)):
     """What the watcher spotted on the reader's stocks in the last 30 days.
-    Shipped to every reader (the page shows a free reader the count, behind the
-    lock); only premium readers get the push."""
+    Shipped to every reader (the page shows a free reader the count and the
+    week's `free` event, the rest behind the lock); premium readers get the
+    full push, free readers a capped teaser."""
     from backend.services.portfolio_daily import recent_events
 
     return {"events": recent_events(current_user["user_id"])}

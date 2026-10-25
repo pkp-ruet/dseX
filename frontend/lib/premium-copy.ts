@@ -152,11 +152,11 @@ export const ROWS: { what: Bi; free: Bi; premium: Bi }[] = [
   {
     what: { en: "Portfolio watcher", bn: "পোর্টফোলিও পাহারা" },
     free: {
-      en: "How many things we spotted on your stocks, and what kind — on your homepage and portfolio",
-      bn: "আপনার শেয়ারে কতগুলো জিনিস ধরা পড়েছে আর কী ধরনের — হোমপেজ আর পোর্টফোলিওতে",
+      en: "How many things we spotted on your stocks, and what kind — plus the first one each week in full, with a phone note",
+      bn: "আপনার শেয়ারে কতগুলো জিনিস ধরা পড়েছে আর কী ধরনের — সাথে প্রতি সপ্তাহের প্রথমটি পুরোটা, ফোনে নোটিফিকেশনসহ",
     },
     premium: {
-      en: "What they were, plus a phone alert for each: record date coming, new results, category change, a big fall, a yearly low",
+      en: "What every one was, plus a phone alert the same day: record date coming, new results, category change, a big fall, a yearly low",
       bn: "সেগুলো কী, আর প্রতিটির জন্য ফোনে নোটিফিকেশন: রেকর্ড ডেট আসছে, নতুন ফল, ক্যাটাগরি বদল, বড় পতন, বছরের সর্বনিম্ন দাম",
     },
   },

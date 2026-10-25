@@ -16,7 +16,11 @@ Six things, each an *event* with English + Bengali copy:
 
 Events are built for every reader who holds the stock and stored in
 ``portfolio_watch_events`` (so a free reader's portfolio can say how many
-things Premium spotted for them), but only **premium** readers get the push.
+things Premium spotted for them). **Premium** readers get the full push. A free
+reader gets the first event of each trading week in full (``free: True`` on the
+stored event — the pages show it open) and a **teaser** push (``teaser_payload``:
+that free event, or how many things of what kind on which stocks), at most
+``TEASER_WEEKLY_CAP`` in 7 days.
 The builders here are pure; ``portfolio_daily`` does the reads and writes.
 
 Event ids are day- or date-scoped (``record-GP-2026-11-02``), so a re-run of
@@ -205,6 +209,75 @@ def push_payload(events: list[dict], lang: str = "bn", url: str = "/portfolio?sr
     return {"title": title, "body": body, "url": url, "tag": "pwatch"}
 
 
+# --------------------------------------------------------------------------- #
+# Free readers — one event a week in full, and a daily teaser push
+# --------------------------------------------------------------------------- #
+
+# Teaser pushes a free reader gets in any 7 days, however busy their stocks are.
+TEASER_WEEKLY_CAP = 3
+
+
+def week_start(day: str) -> str:
+    """The Sunday on or before `day` — DSE trades Sunday to Thursday."""
+    from datetime import date, timedelta
+
+    d = date.fromisoformat(day[:10])
+    return (d - timedelta(days=(d.weekday() + 1) % 7)).isoformat()
+
+
+def pick_free(events: list[dict]) -> Optional[dict]:
+    """The event a free reader gets in full this week: the most serious of the
+    first day anything happened (worst level first, then the order built)."""
+    if not events:
+        return None
+    return min(enumerate(events), key=lambda ie: (_LEVEL_ORDER.get(ie[1].get("level"), 3), ie[0]))[1]
+
+
+def _kinds_of(events: list[dict]) -> list[dict]:
+    by_kind: dict[str, int] = {}
+    for e in events:
+        if e.get("kind") in KIND_WORDS:
+            by_kind[e["kind"]] = by_kind.get(e["kind"], 0) + 1
+    return [{"kind": k, "count": by_kind[k]} for k in _KIND_ORDER if k in by_kind]
+
+
+def teaser_payload(events: list[dict], free: Optional[dict], lang: str = "bn",
+                   url: str = "/portfolio?src=watch-teaser#pf-premium") -> Optional[dict]:
+    """A free reader's push for the day's events on their own stocks. When this
+    week's free event is among them it is told in full (and the rest counted);
+    otherwise the push says how many things, of what kind, on which stocks —
+    what they were is in Premium."""
+    if not events:
+        return None
+    bn = lang != "en"
+    others = [e for e in events if free is None or e.get("id") != free.get("id")]
+    if free is not None:
+        title = free["title_bn"] if bn else free["title_en"]
+        body = free["body_bn"] if bn else free["body_en"]
+        if others:
+            n = len(others)
+            body += (f" আজ আপনার শেয়ারে আরও {n}টি খবর — প্রিমিয়ামে দেখুন।" if bn
+                     else f" {n} more {'thing' if n == 1 else 'things'} on your stocks today — see {'it' if n == 1 else 'them'} with Premium.")
+        else:
+            anchor = _STOCK_ANCHOR.get(free.get("kind"))
+            if anchor and free.get("code"):
+                url = f"/stock/{free['code']}?src=watch-teaser#{anchor}"
+        return {"title": title, "body": body, "url": url, "tag": "pwatch"}
+
+    n = len(events)
+    codes = sorted({e["code"] for e in events if e.get("code")})
+    shown = ", ".join(codes[:3]) + ("…" if len(codes) > 3 else "")
+    phrase = kinds_phrase(_kinds_of(events), "bn" if bn else "en")
+    if bn:
+        title = f"আজ {codes[0]}-এ একটি খবর" if n == 1 and codes else f"আজ আপনার শেয়ারে {n}টি খবর"
+        body = f"{shown}-এ {phrase}। কী হয়েছে আর এর মানে কী, প্রিমিয়ামে দেখুন।"
+    else:
+        title = (f"Something happened on {codes[0]} today" if n == 1 and codes
+                 else f"{n} things on your stocks today")
+        body = f"{phrase[:1].upper()}{phrase[1:]} on {shown}. See what happened and what it means with Premium."
+    return {"title": title, "body": body, "url": url, "tag": "pwatch"}
+
+
 def trial_recap_payload(caught: int, days_left: int, lang: str = "bn") -> dict:
     bn = lang != "en"
     if caught > 0:
@@ -254,6 +327,8 @@ def digest(events: list[dict]) -> dict:
         "codes": sorted({e["code"] for e in ranked if e.get("code")}),
         "bad": sum(1 for e in ranked if e.get("level") == "bad"),
         "items": ranked[:DIGEST_ITEMS],
+        # The week's free event(s) — open to a free reader whatever the cut above.
+        "free_items": [e for e in ranked if e.get("free")],
     }
 
 

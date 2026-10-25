@@ -10,7 +10,8 @@ every user who owns anything, across all their portfolios:
    no backfill: a day that was not snapshotted is gone, so this runs daily.
 3. **Watcher events** — `portfolio_watch.build_events` for the stocks they
    hold (and, for results + grade changes, the stocks they follow), stored in
-   `portfolio_watch_events`; premium readers get one push.
+   `portfolio_watch_events`; premium readers get one push, free readers a
+   capped teaser (the week's first event in full, else the count + kinds).
 4. **Trial recap** — 3–6 days before a free month ends, one push saying what
    Premium caught for them during the month.
 
@@ -249,6 +250,33 @@ def _trade_day(prices: dict) -> Optional[str]:
     return max(days) if days else None
 
 
+def _mark_free(uid: str, fresh: list[dict], day: str) -> Optional[dict]:
+    """Flag this trading week's free event — the first thing the watcher spots
+    for a reader each week is open to them on every page. Returns it when it is
+    one of today's `fresh` events (the teaser push then tells it in full)."""
+    taken = _events().find_one(
+        {"user_id": uid, "free": True, "day": {"$gte": watch.week_start(day)}}, {"_id": 1}
+    )
+    if taken:
+        return None
+    pick = watch.pick_free(fresh)
+    if pick is None:
+        return None
+    _events().update_one({"user_id": uid, "id": pick["id"]}, {"$set": {"free": True}})
+    pick["free"] = True
+    return pick
+
+
+def _teasers_this_week(sends, uid: str, now: datetime) -> int:
+    """Teaser pushes sent to a free reader in the last 7 days."""
+    return sends.count_documents({
+        "user_id": uid,
+        "campaign_id": {"$regex": "^pteaser-"},
+        "status": "sent",
+        "sent_at": {"$gte": now - timedelta(days=7)},
+    })
+
+
 def run_portfolio_daily(not_before_dhaka_hour: Optional[int] = None) -> dict:
     from backend.services import entitlements, push_service
     from backend.services.auth_service import _DHAKA_TZ, _dhaka_day
@@ -274,7 +302,7 @@ def run_portfolio_daily(not_before_dhaka_hour: Optional[int] = None) -> dict:
          "notification_prefs": 1, "watchlist": 1},
     ))
     counts = {"users": len(users), "actions": 0, "snapshots": 0, "events": 0,
-              "pushed": 0, "recaps": 0}
+              "pushed": 0, "teasers": 0, "recaps": 0}
     if not users:
         return counts
 
@@ -343,20 +371,32 @@ def run_portfolio_daily(not_before_dhaka_hour: Optional[int] = None) -> dict:
             if res.upserted_id is not None:
                 fresh.append(e)
         counts["events"] += len(fresh)
+        free = _mark_free(uid, fresh, day) if fresh else None
 
-        if not (fresh and push_ok and entitlements.is_premium(u, now)):
+        if not (fresh and push_ok):
             continue
         prefs = {**push_service.DEFAULT_PREFS, **(u.get("notification_prefs") or {})}
         if not (u.get("push_enabled") and prefs.get("portfolio_watch", True)):
             continue
-        campaign_id = f"pwatch-{uid}-{day}"
-        if sends.find_one({"campaign_id": campaign_id, "user_id": uid}, {"_id": 1}):
+        lang = prefs.get("language", "bn")
+        if entitlements.is_premium(u, now):
+            campaign_id = f"pwatch-{uid}-{day}"
+            payload = watch.push_payload(fresh, lang, "/portfolio?src=watch" if held else "/watchlist?src=watch")
+        else:
+            # Free reader: a teaser — this week's free event in full, or the
+            # count + kinds + codes — capped so the watcher never nags.
+            campaign_id = f"pteaser-{uid}-{day}"
+            if _teasers_this_week(sends, uid, now) >= watch.TEASER_WEEKLY_CAP:
+                continue
+            payload = watch.teaser_payload(
+                fresh, free, lang,
+                "/portfolio?src=watch-teaser#pf-premium" if held else "/?src=watch-teaser",
+            )
+        if not payload or sends.find_one({"campaign_id": campaign_id, "user_id": uid}, {"_id": 1}):
             continue
-        payload = watch.push_payload(fresh, prefs.get("language", "bn"),
-                                     "/portfolio?src=watch" if held else "/watchlist?src=watch")
         result = push_service.send_to_user(uid, payload)
         if result["sent"] > 0:
-            counts["pushed"] += 1
+            counts["teasers" if campaign_id.startswith("pteaser-") else "pushed"] += 1
         sends.update_one(
             {"campaign_id": campaign_id, "user_id": uid},
             {"$set": {"campaign_id": campaign_id, "user_id": uid,

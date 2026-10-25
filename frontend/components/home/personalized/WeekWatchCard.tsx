@@ -34,7 +34,9 @@ const ANCHOR: Partial<Record<PortfolioWatchEvent["kind"], string>> = {
  *
  * Every reader sees the count and the kinds (that something happened on THEIR
  * stocks is free); the list itself is Premium — a free reader gets it blurred
- * behind one lock with their own stakes. Renders nothing on a quiet week.
+ * behind one lock with their own stakes, except the week's free event (the
+ * first thing the watcher spotted this trading week, `free` on the event),
+ * which is open above the lock. Renders nothing on a quiet week.
  */
 export default function WeekWatchCard({
   week,
@@ -57,9 +59,17 @@ export default function WeekWatchCard({
     `গত 7 দিনে আপনার ${stocks}টি শেয়ারে ${week.total}টি জিনিস ধরা পড়েছে।`,
   );
 
-  const list = (
+  // A free reader gets the first thing of each trading week in full; the rest
+  // stays behind the lock (never repeated inside it).
+  const free = premium ? [] : week.free_items ?? week.items.filter((e) => e.free);
+  const freeIds = new Set(free.map((e) => e.id));
+  const locked = week.items.filter((e) => !freeIds.has(e.id));
+  const lockedTotal = week.total - free.length;
+  const lockedBad = week.bad - free.filter((e) => e.level === "bad").length;
+
+  const list = (items: PortfolioWatchEvent[]) => (
     <ul className="divide-y divide-border">
-      {week.items.map((e) => (
+      {items.map((e) => (
         <li key={e.id}>
           <Link
             href={`/stock/${e.code}${ANCHOR[e.kind] ?? ""}`}
@@ -97,24 +107,38 @@ export default function WeekWatchCard({
       </div>
       <div className="mt-2 pb-2">
         {premium ? (
-          list
+          list(week.items)
         ) : (
-          <div className="px-4 sm:px-5">
-            <PremiumGate
-              label={L("What happened, stock by stock", "কোন শেয়ারে কী হয়েছে")}
-              preview="blur"
-              peek={120}
-              stakes={[
-                L(`${week.total} things on ${stocks} of your stocks this week`, `এই সপ্তাহে আপনার ${stocks}টি শেয়ারে ${week.total}টি জিনিস`),
-                ...(week.bad > 0
-                  ? [L(`${week.bad} of them may need you to act`, `এর মধ্যে ${week.bad}টিতে আপনার নজর দরকার`)]
-                  : []),
-                L("Premium also sends them to your phone the same day", "প্রিমিয়ামে একই দিনে ফোনে নোটিফিকেশন যায়"),
-              ]}
-            >
-              {list}
-            </PremiumGate>
-          </div>
+          <>
+            {free.length > 0 && (
+              <div className="mb-2">
+                <p className={`px-4 pt-1 text-xs font-semibold text-primary sm:px-5 ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
+                  {L("Open for you this week", "এই সপ্তাহে আপনার জন্য খোলা")}
+                </p>
+                {list(free)}
+              </div>
+            )}
+            {lockedTotal > 0 && locked.length > 0 && (
+              <div className="px-4 sm:px-5">
+                <PremiumGate
+                  label={L("What happened, stock by stock", "কোন শেয়ারে কী হয়েছে")}
+                  preview="blur"
+                  peek={120}
+                  stakes={[
+                    free.length > 0
+                      ? L(`${lockedTotal} more ${lockedTotal === 1 ? "thing" : "things"} on your stocks this week`, `এই সপ্তাহে আপনার শেয়ারে আরও ${lockedTotal}টি জিনিস`)
+                      : L(`${week.total} things on ${stocks} of your stocks this week`, `এই সপ্তাহে আপনার ${stocks}টি শেয়ারে ${week.total}টি জিনিস`),
+                    ...(lockedBad > 0
+                      ? [L(`${lockedBad} of them may need you to act`, `এর মধ্যে ${lockedBad}টিতে আপনার নজর দরকার`)]
+                      : []),
+                    L("Premium also sends them to your phone the same day", "প্রিমিয়ামে একই দিনে ফোনে নোটিফিকেশন যায়"),
+                  ]}
+                >
+                  {list(locked)}
+                </PremiumGate>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

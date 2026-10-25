@@ -860,10 +860,13 @@ export default function PortfolioClient() {
     return watchEvents.filter((e) => e.created_at >= start).length;
   }, [watchEvents, premiumUntil]);
 
+  const lockedWatchCount = useMemo(() => watchEvents.filter((e) => !e.free).length, [watchEvents]);
+
   // The reader's own stakes for the page's one Premium lock, in taka.
   const proStakes = useMemo(
-    () => buildPremiumStakes(analysis, proInsights, watchEvents.length, lang),
-    [analysis, proInsights, watchEvents.length, lang],
+    // The week's free events are open above the lock, so they aren't stakes.
+    () => buildPremiumStakes(analysis, proInsights, lockedWatchCount, lang),
+    [analysis, proInsights, lockedWatchCount, lang],
   );
 
   // Moment of value: the reader just reached 3 stocks — tell them what Premium

@@ -1879,6 +1879,8 @@ export interface PortfolioWatchEvent {
   body_bn: string;
   day: string;
   created_at: string;
+  /** This trading week's free event — open to a free reader (one a week). */
+  free?: boolean;
 }
 
 export async function apiGetWatchEvents(): Promise<{ events: PortfolioWatchEvent[] }> {
@@ -1972,6 +1974,8 @@ export interface WeekWatch {
   bad: number;
   /** Worst first, at most 8. */
   items: PortfolioWatchEvent[];
+  /** The week's free event(s), open to a free reader whatever the cut above. */
+  free_items?: PortfolioWatchEvent[];
 }
 
 /** Auth-only. The dashboard paints from this + `/api/scores` + `/api/market/state`. */

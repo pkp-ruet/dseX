@@ -36,12 +36,13 @@ const TONE: Record<PortfolioWatchEvent["level"], "positive" | "watch" | "negativ
  *
  * Premium (`mode="full"`): the count, the kinds and the full list, plus a
  * phone alert the same day. Free (`mode="summary"`): the count and kinds stay
- * open — the reader sees that something happened on *their* stocks — with a
+ * open — the reader sees that something happened on *their* stocks — plus the
+ * first event of each trading week in full (`free` on the event), with a
  * link down to `detailsHref`, the page's one Premium lock, which renders the
- * list as `mode="details"` (screen-only).
+ * rest as `mode="details"` (screen-only).
  */
 export default function WatchCard({
-  events,
+  events: all,
   lang,
   mode,
   detailsHref,
@@ -53,6 +54,9 @@ export default function WatchCard({
 }) {
   const bn = lang === "bn";
   const L = (en: string, b: string) => (bn ? b : en);
+  // The lock never repeats what is already open: the week's free events show
+  // in the summary, so the details list leaves them out.
+  const events = mode === "details" ? all.filter((e) => !e.free) : all;
   if (!events.length) {
     if (mode !== "full") return null;
     return (
@@ -70,6 +74,7 @@ export default function WatchCard({
     );
   }
 
+  const free = events.filter((e) => e.free);
   const counts = new Map<PortfolioWatchEvent["kind"], number>();
   for (const e of events) counts.set(e.kind, (counts.get(e.kind) ?? 0) + 1);
   const headline = L(
@@ -77,9 +82,9 @@ export default function WatchCard({
     `গত 30 দিনে আপনার শেয়ারে ${events.length}টি খবর`,
   );
 
-  const list = (
+  const list = (items: PortfolioWatchEvent[]) => (
     <ul className="flex flex-col divide-y divide-border">
-      {events.map((e) => (
+      {items.map((e) => (
         <li key={e.id} className="flex items-start gap-3 py-3">
           <span className={`mt-2 h-2 w-2 shrink-0 rounded-full ${DOT[e.level]}`} aria-hidden />
           <div className="min-w-0 flex-1">
@@ -106,7 +111,7 @@ export default function WatchCard({
     return (
       <Card padding="none" className="p-5 sm:p-6" data-card="watch-details">
         {title}
-        <div className="mt-2">{list}</div>
+        <div className="mt-2">{list(events)}</div>
       </Card>
     );
   }
@@ -130,7 +135,7 @@ export default function WatchCard({
       <div className="mt-3">
         {mode === "full" ? (
           <>
-            {list}
+            {list(events)}
             <p className={`mt-1 text-xs text-text-muted ${bn ? "font-bn" : ""}`}>
               {L(
                 "You get a phone alert the same day when notifications are on.",
@@ -138,15 +143,29 @@ export default function WatchCard({
               )}
             </p>
           </>
-        ) : detailsHref ? (
-          <Link
-            prefetch={false}
-            href={detailsHref}
-            className={`inline-flex min-h-10 items-center text-sm font-semibold text-primary hover:underline ${bn ? "font-bn" : ""}`}
-          >
-            {L("What each one is, in your daily check below", "প্রতিটি কী, নিচের দৈনিক যাচাইয়ে")}
-          </Link>
-        ) : null}
+        ) : (
+          <>
+            {free.length > 0 && (
+              <div className="mb-1">
+                <p className={`text-xs font-semibold text-primary ${bn ? "font-bn" : ""}`}>
+                  {L("Open for you — the first thing we spot each week", "আপনার জন্য খোলা — প্রতি সপ্তাহে প্রথম খবরটি")}
+                </p>
+                {list(free)}
+              </div>
+            )}
+            {detailsHref && free.length < events.length && (
+              <Link
+                prefetch={false}
+                href={detailsHref}
+                className={`inline-flex min-h-10 items-center text-sm font-semibold text-primary hover:underline ${bn ? "font-bn" : ""}`}
+              >
+                {free.length
+                  ? L("The rest, in your daily check below", "বাকিগুলো, নিচের দৈনিক যাচাইয়ে")
+                  : L("What each one is, in your daily check below", "প্রতিটি কী, নিচের দৈনিক যাচাইয়ে")}
+              </Link>
+            )}
+          </>
+        )}
       </div>
     </Card>
   );
