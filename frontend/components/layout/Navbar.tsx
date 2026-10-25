@@ -7,6 +7,8 @@ import { useAuth } from "@/context/AuthContext";
 import { openGlobalSearch } from "@/components/layout/GlobalSearch";
 import WatchlistDot from "@/components/watchlist/WatchlistDot";
 import InstallAppButton from "@/components/pwa/InstallAppButton";
+import { IconCrown } from "@/components/ui/icons";
+import { userIsPremium } from "@/lib/premium";
 
 const OPEN_DRAWER_EVENT = "dsex:open-drawer";
 
@@ -134,6 +136,7 @@ function MenuIcon({ name }: { name?: string }) {
 export default function Navbar() {
   const pathname = usePathname();
   const { user, isLoggedIn } = useAuth();
+  const premium = isLoggedIn && userIsPremium(user);
 
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -247,10 +250,16 @@ export default function Navbar() {
               <Link
                 href="/profile"
                 className={`navbar-profile-btn${pathname === "/profile" ? " navbar-profile-btn-active" : ""}`}
-                aria-label="My Profile"
+                aria-label={premium ? "My Profile (Premium)" : "My Profile"}
               >
                 <span className="navbar-profile-avatar">
                   {(user?.display_name ?? "U")[0].toUpperCase()}
+                  {/* Members see their membership on every page. */}
+                  {premium && (
+                    <span className="navbar-premium-badge" aria-hidden="true">
+                      <IconCrown size={10} />
+                    </span>
+                  )}
                 </span>
                 <span className="navbar-profile-name">{user?.display_name ?? "Profile"}</span>
               </Link>
@@ -363,7 +372,9 @@ export default function Navbar() {
               </span>
               <span className="mobile-menu-account-text">
                 <span className="mobile-menu-account-name">{user?.display_name ?? "My Profile"}</span>
-                <span className="mobile-menu-account-sub">View profile &amp; settings</span>
+                <span className="mobile-menu-account-sub">
+                  {premium ? "Premium · profile & settings" : "View profile & settings"}
+                </span>
               </span>
               <MenuIcon name="chevron" />
             </Link>

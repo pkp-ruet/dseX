@@ -51,6 +51,9 @@ import ExploreLinks from "@/components/home/personalized/ExploreLinks";
 import NewsPeek from "@/components/home/personalized/NewsPeek";
 import NewResultsCard from "@/components/home/personalized/NewResultsCard";
 import ResultsPromoCard from "@/components/home/personalized/ResultsPromoCard";
+import WeekWatchCard from "@/components/home/personalized/WeekWatchCard";
+import FreeReportCard from "@/components/home/FreeReportCard";
+import { freeReportCode } from "@/lib/free-report";
 import ChapterHead from "@/components/home/personalized/ChapterHead";
 import { IconBook, IconCoin, IconGrid, IconSparkle } from "@/components/home/personalized/DashIcons";
 import DashSectionNav, { type DashNavItem } from "@/components/home/personalized/DashSectionNav";
@@ -363,6 +366,24 @@ export default function PersonalizedHome() {
         />
       </div>
     ) : null;
+  // What the watcher caught on the reader's stocks this week — counts free,
+  // the list Premium.
+  const weekWatch = bundle?.week_watch ?? null;
+  const weekCard =
+    weekWatch && weekWatch.total > 0 ? (
+      <div data-card="week-watch">
+        <WeekWatchCard week={weekWatch} premium={planState === "premium"} lang={lang} />
+      </div>
+    ) : null;
+  // Today's free full report (lib/free-report.ts) — the whole Premium stock
+  // page, open for everyone, one familiar company a day.
+  const freeItem = priceMap.get(freeReportCode());
+  const freeReportCard =
+    freeItem && freeItem.score != null ? (
+      <div data-card="free-report">
+        <FreeReportCard item={freeItem} lang={lang} premium={planState === "premium"} />
+      </div>
+    ) : null;
   const resultsCard =
     newResults.length > 0 ? (
       <div data-card="results">
@@ -495,6 +516,7 @@ export default function PersonalizedHome() {
           )}
         </div>
       )}
+      {freeReportCard}
       <div data-card="discover">
         <DiscoverRail
           buys={buys}
@@ -588,6 +610,7 @@ export default function PersonalizedHome() {
                 {newsCard}
               </div>
             )}
+            {weekCard}
             {resultsCard}
           </section>
         )}

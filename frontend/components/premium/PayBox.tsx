@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import Bn from "@/components/i18n/Bn";
 import { useAuth } from "@/context/AuthContext";
+import { useLang } from "@/context/LangContext";
 import {
   apiGetMyPayments,
   apiSubmitPayment,
@@ -41,6 +42,9 @@ const ERRORS: Record<string, { en: string; bn: string }> = {
 export default function PayBox() {
   const { isLoggedIn, isLoading } = useAuth();
   const { premiumUntil, isPremium } = usePremium();
+  const { bn } = useLang();
+  // English mode: English + the Bengali line under it. Bengali mode: Bengali only.
+  const L = (en: string, b: string) => (bn ? b : en);
   const [plan, setPlan] = useState<PlanKey>("yearly");
   const [info, setInfo] = useState<PremiumPlansResponse | null>(null);
   const [method, setMethod] = useState<PayMethod>("bkash");
@@ -74,9 +78,9 @@ export default function PayBox() {
   const copy = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      toast({ message: "Copied", tone: "success" });
+      toast({ message: L("Copied", "কপি হয়েছে"), tone: "success" });
     } catch {
-      toast({ message: "Couldn't copy — write it down instead", tone: "error" });
+      toast({ message: L("Couldn't copy — write it down instead", "কপি হয়নি — নম্বরটি লিখে নিন"), tone: "error" });
     }
   };
 
@@ -89,7 +93,9 @@ export default function PayBox() {
       window.dispatchEvent(new CustomEvent(AUTH_USER_UPDATED_EVENT));
       trackEvent("premium_payment_submit", { plan, method, granted: payment.granted ? 1 : 0 });
       toast({
-        message: payment.granted ? "Premium is on — thank you!" : "Thanks — we'll switch Premium on once we find your payment",
+        message: payment.granted
+          ? L("Premium is on — thank you!", "প্রিমিয়াম চালু হয়েছে — ধন্যবাদ!")
+          : L("Thanks — we'll switch Premium on once we find your payment", "ধন্যবাদ — পেমেন্ট পেলেই প্রিমিয়াম চালু করব"),
         tone: "success",
       });
       setSender("");
@@ -105,7 +111,7 @@ export default function PayBox() {
   return (
     <div className="flex flex-col gap-5">
       {/* Plans */}
-      <div role="radiogroup" aria-label="Choose a plan" className="grid gap-3 sm:grid-cols-3">
+      <div role="radiogroup" aria-label={L("Choose a plan", "প্ল্যান বেছে নিন")} className="grid gap-3 sm:grid-cols-3">
         {PAID_PLANS.map((p) => {
           const on = p.key === plan;
           return (
@@ -118,16 +124,16 @@ export default function PayBox() {
               className={`pay-plan ${on ? "pay-plan-on" : ""}`}
             >
               <span className="flex items-center justify-between gap-2">
-                <span className="font-semibold text-text-main">{p.name}</span>
-                {p.best && <span className="premium-chip">Best value</span>}
+                <span className="font-semibold text-text-main">{L(p.name, p.bn)}</span>
+                {p.best && <span className="premium-chip">{L("Best value", "সবচেয়ে সাশ্রয়ী")}</span>}
               </span>
-              <Bn as="span" className="block text-sm text-text-muted">{p.bn}</Bn>
+              {!bn && <Bn as="span" className="block text-sm text-text-muted">{p.bn}</Bn>}
               <span className="mt-2 block tabular-nums">
                 <span className="text-3xl font-bold text-text-main">৳{p.amount.toLocaleString("en-IN")}</span>{" "}
-                <span className="text-sm text-text-muted">{p.per}</span>
+                <span className="text-sm text-text-muted">{L(p.per, p.perBn)}</span>
               </span>
-              <span className="mt-1 block text-sm text-text-main">{p.note}</span>
-              <Bn as="span" className="block text-sm text-text-muted">{p.noteBn}</Bn>
+              <span className="mt-1 block text-sm text-text-main">{L(p.note, p.noteBn)}</span>
+              {!bn && <Bn as="span" className="block text-sm text-text-muted">{p.noteBn}</Bn>}
             </button>
           );
         })}
@@ -135,40 +141,48 @@ export default function PayBox() {
 
       {isLoading ? null : !isLoggedIn ? (
         <div className="flex flex-col items-start gap-2">
-          <Button href="/register" size="lg">Sign up free to buy</Button>
-          <p className="text-sm text-text-muted">You need an account so Premium has somewhere to go.</p>
-          <Bn className="text-sm text-text-muted">প্রিমিয়াম চালু করতে একটি ফ্রি অ্যাকাউন্ট লাগবে।</Bn>
+          <Button href="/register" size="lg">{L("Sign up free to buy", "কিনতে ফ্রি অ্যাকাউন্ট খুলুন")}</Button>
+          <p className="text-sm text-text-muted">
+            {L("You need an account so Premium has somewhere to go.", "প্রিমিয়াম চালু করতে একটি ফ্রি অ্যাকাউন্ট লাগবে।")}
+          </p>
+          {!bn && <Bn className="text-sm text-text-muted">প্রিমিয়াম চালু করতে একটি ফ্রি অ্যাকাউন্ট লাগবে।</Bn>}
         </div>
       ) : pending ? (
         <div className="premium-card" role="status">
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-text-main">We&apos;re checking your payment</p>
-            <Bn className="text-sm text-text-muted">আপনার পেমেন্ট যাচাই করা হচ্ছে।</Bn>
+            <p className="font-semibold text-text-main">{L("We're checking your payment", "আপনার পেমেন্ট যাচাই করা হচ্ছে")}</p>
+            {!bn && <Bn className="text-sm text-text-muted">আপনার পেমেন্ট যাচাই করা হচ্ছে।</Bn>}
             <p className="mt-2 text-sm text-text-main tabular-nums">
-              ৳{pending.amount.toLocaleString("en-IN")} by {METHOD_LABEL[pending.method]} from {pending.sender}
+              ৳{pending.amount.toLocaleString("en-IN")} · {METHOD_LABEL[pending.method]} · {pending.sender}
               {pending.created_at ? ` · ${formatDate(pending.created_at)}` : ""}
             </p>
             {pending.granted ? (
               <>
                 <p className="mt-1 text-sm text-text-main">
-                  Premium is already on{premiumUntil && isPremium ? ` until ${formatDate(premiumUntil)}` : ""}. If we can&apos;t find the payment, it will be switched off.
+                  {bn
+                    ? "প্রিমিয়াম চালু আছে। পেমেন্ট খুঁজে না পেলে বন্ধ হয়ে যাবে।"
+                    : `Premium is already on${premiumUntil && isPremium ? ` until ${formatDate(premiumUntil)}` : ""}. If we can't find the payment, it will be switched off.`}
                 </p>
-                <Bn className="text-sm text-text-muted">প্রিমিয়াম চালু আছে। পেমেন্ট খুঁজে না পেলে বন্ধ হয়ে যাবে।</Bn>
+                {!bn && <Bn className="text-sm text-text-muted">প্রিমিয়াম চালু আছে। পেমেন্ট খুঁজে না পেলে বন্ধ হয়ে যাবে।</Bn>}
               </>
             ) : (
               <>
-                <p className="mt-1 text-sm text-text-main">Premium switches on as soon as we find it, usually within a day.</p>
-                <Bn className="text-sm text-text-muted">পেমেন্ট পেলেই প্রিমিয়াম চালু হবে, সাধারণত এক দিনের মধ্যে।</Bn>
+                <p className="mt-1 text-sm text-text-main">
+                  {L("Premium switches on as soon as we find it, usually within a day.", "পেমেন্ট পেলেই প্রিমিয়াম চালু হবে, সাধারণত এক দিনের মধ্যে।")}
+                </p>
+                {!bn && <Bn className="text-sm text-text-muted">পেমেন্ট পেলেই প্রিমিয়াম চালু হবে, সাধারণত এক দিনের মধ্যে।</Bn>}
               </>
             )}
           </div>
         </div>
       ) : info && info.methods.length === 0 ? (
-        <p className="text-sm text-text-muted">Payments aren&apos;t open right now — please check back soon.</p>
+        <p className="text-sm text-text-muted">
+          {L("Payments aren't open right now — please check back soon.", "এখন পেমেন্ট বন্ধ আছে — একটু পরে আবার দেখুন।")}
+        </p>
       ) : (
         <div className="soft-card p-4 sm:p-5 flex flex-col gap-4">
           {info && info.methods.length > 1 && (
-            <div role="radiogroup" aria-label="Pay with" className="flex gap-2">
+            <div role="radiogroup" aria-label={L("Pay with", "যেভাবে পেমেন্ট করবেন")} className="flex gap-2">
               {info.methods.map((m) => (
                 <Button
                   key={m.key}
@@ -190,20 +204,29 @@ export default function PayBox() {
             <li className="pay-step">
               <span className="pay-step-n" aria-hidden>1</span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm text-text-main">
-                  Open {METHOD_LABEL[method]}, choose <strong>Send Money</strong> and send{" "}
-                  <strong className="tabular-nums">৳{chosen.amount.toLocaleString("en-IN")}</strong> to
-                </p>
-                <Bn className="text-sm text-text-muted">
-                  {METHOD_LABEL[method]} অ্যাপে Send Money দিয়ে ৳{chosen.amount} পাঠান এই নম্বরে:
-                </Bn>
+                {bn ? (
+                  <p className="text-sm text-text-main">
+                    {METHOD_LABEL[method]} অ্যাপে <strong>Send Money</strong> দিয়ে{" "}
+                    <strong className="tabular-nums">৳{chosen.amount.toLocaleString("en-IN")}</strong> পাঠান এই নম্বরে:
+                  </p>
+                ) : (
+                  <>
+                    <p className="text-sm text-text-main">
+                      Open {METHOD_LABEL[method]}, choose <strong>Send Money</strong> and send{" "}
+                      <strong className="tabular-nums">৳{chosen.amount.toLocaleString("en-IN")}</strong> to
+                    </p>
+                    <Bn className="text-sm text-text-muted">
+                      {METHOD_LABEL[method]} অ্যাপে Send Money দিয়ে ৳{chosen.amount} পাঠান এই নম্বরে:
+                    </Bn>
+                  </>
+                )}
                 {number ? (
                   <div className="mt-2 flex items-center gap-2">
                     <span className="text-xl font-bold text-text-main tabular-nums">{number}</span>
-                    <Button type="button" variant="quiet" size="sm" onClick={() => void copy(number)}>Copy</Button>
+                    <Button type="button" variant="quiet" size="sm" onClick={() => void copy(number)}>{L("Copy", "কপি")}</Button>
                   </div>
                 ) : (
-                  <p className="mt-2 text-sm text-text-muted">Loading the number…</p>
+                  <p className="mt-2 text-sm text-text-muted">{L("Loading the number…", "নম্বর আসছে…")}</p>
                 )}
               </div>
             </li>
@@ -211,9 +234,11 @@ export default function PayBox() {
               <span className="pay-step-n" aria-hidden>2</span>
               <div className="min-w-0 flex-1">
                 <label htmlFor="pay-sender" className="text-sm text-text-main">
-                  Type the {METHOD_LABEL[method]} number you sent it from
+                  {bn
+                    ? `যে ${METHOD_LABEL[method]} নম্বর থেকে টাকা পাঠিয়েছেন সেটি লিখুন`
+                    : `Type the ${METHOD_LABEL[method]} number you sent it from`}
                 </label>
-                <Bn className="text-sm text-text-muted">যে নম্বর থেকে টাকা পাঠিয়েছেন সেটি লিখুন।</Bn>
+                {!bn && <Bn className="text-sm text-text-muted">যে নম্বর থেকে টাকা পাঠিয়েছেন সেটি লিখুন।</Bn>}
                 <input
                   id="pay-sender"
                   type="tel"
@@ -231,21 +256,26 @@ export default function PayBox() {
 
           {error && (
             <div className="form-error" role="alert">
-              <p>{error.en}</p>
-              <Bn>{error.bn}</Bn>
+              {bn ? <p>{error.bn}</p> : <><p>{error.en}</p><Bn>{error.bn}</Bn></>}
             </div>
           )}
 
           <div className="flex flex-col items-start gap-1">
             <Button size="lg" onClick={() => void submit()} disabled={busy || sender.trim().length < 11}>
-              {busy ? "Starting…" : `I've paid ৳${chosen.amount.toLocaleString("en-IN")} — start Premium`}
+              {busy
+                ? L("Starting…", "চালু হচ্ছে…")
+                : bn
+                  ? `৳${chosen.amount.toLocaleString("en-IN")} পাঠিয়েছি — প্রিমিয়াম চালু করুন`
+                  : `I've paid ৳${chosen.amount.toLocaleString("en-IN")} — start Premium`}
             </Button>
-            <p className="text-sm text-text-muted">
-              {isPremium
-                ? "The new days are added after the days you have left. "
-                : "Premium starts straight away. "}
-              We check every payment; if we can&apos;t find yours, Premium is switched off.
-            </p>
+            {!bn && (
+              <p className="text-sm text-text-muted">
+                {isPremium
+                  ? "The new days are added after the days you have left. "
+                  : "Premium starts straight away. "}
+                We check every payment; if we can&apos;t find yours, Premium is switched off.
+              </p>
+            )}
             <Bn className="text-sm text-text-muted">
               {isPremium ? "নতুন দিনগুলো আপনার বাকি দিনের পরে যোগ হবে। " : "প্রিমিয়াম সঙ্গে সঙ্গে চালু হবে। "}
               প্রতিটি পেমেন্ট আমরা যাচাই করি; খুঁজে না পেলে প্রিমিয়াম বন্ধ হয়ে যাবে।
@@ -256,18 +286,18 @@ export default function PayBox() {
 
       {mine && mine.items.length > 0 && (
         <div>
-          <p className="text-sm font-semibold text-text-main">Your payments</p>
-          <Bn className="text-xs text-text-muted mb-2">আপনার পেমেন্ট।</Bn>
+          <p className="text-sm font-semibold text-text-main">{L("Your payments", "আপনার পেমেন্ট")}</p>
+          {!bn && <Bn className="text-xs text-text-muted mb-2">আপনার পেমেন্ট।</Bn>}
           <ul className="soft-card divide-y divide-border overflow-hidden">
             {mine.items.map((p) => {
               const s = STATUS[p.status];
               return (
                 <li key={p.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 py-3 text-sm">
                   <span className="text-text-main tabular-nums">
-                    {p.created_at ? formatDate(p.created_at) : "—"} · {planByKey(p.plan)?.name ?? p.plan} · ৳{p.amount.toLocaleString("en-IN")} · {METHOD_LABEL[p.method]}
+                    {p.created_at ? formatDate(p.created_at) : "—"} · {(bn ? planByKey(p.plan)?.bn : planByKey(p.plan)?.name) ?? p.plan} · ৳{p.amount.toLocaleString("en-IN")} · {METHOD_LABEL[p.method]}
                   </span>
                   <span className={`font-semibold ${s.tone}`}>
-                    {s.en} <Bn as="span" className="font-normal text-text-muted">· {s.bn}</Bn>
+                    {bn ? s.bn : <>{s.en} <Bn as="span" className="font-normal text-text-muted">· {s.bn}</Bn></>}
                   </span>
                 </li>
               );

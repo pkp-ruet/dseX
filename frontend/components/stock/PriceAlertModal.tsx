@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { createAlert, updateAlert, deleteAlert, type PriceAlert } from "@/lib/price-alerts";
 import { toast } from "@/lib/toast";
 import Button from "@/components/ui/Button";
+import Sheet from "@/components/ui/Sheet";
 import PremiumLockCard from "@/components/premium/PremiumLockCard";
 
 interface Props {
@@ -33,14 +34,6 @@ export default function PriceAlertModal({ code, ltp, w52High, w52Low, existing, 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [atLimit, setAtLimit] = useState(false);
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape" && !submitting) onClose();
-    }
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [onClose, submitting]);
 
   const target = parseFloat(price);
   const targetValid = !isNaN(target) && target > 0;
@@ -102,96 +95,81 @@ export default function PriceAlertModal({ code, ltp, w52High, w52Low, existing, 
   }
 
   return (
-    <div
-      className="atp-modal-backdrop"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="pa-title"
-      onClick={() => !submitting && onClose()}
+    <Sheet
+      open
+      onClose={onClose}
+      title={existing ? `Edit ${code} alert` : `Set ${code} price alert`}
+      bn={`${code}-এর দামের অ্যালার্ট`}
+      dismissible={!submitting}
     >
-      <div className="atp-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="atp-modal-header">
-          <h2 id="pa-title">{existing ? `Edit ${code} alert` : `Set ${code} price alert`}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="atp-close"
-            aria-label="Close"
-            disabled={submitting}
-          >
-            ×
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="atp-form">
-          {ltp != null && (
-            <div className="pa-current">
-              <span>Now</span>
-              <b>৳{ltp.toFixed(1)}</b>
-            </div>
-          )}
-
-          <label className="atp-field">
-            <span>Target price (৳)</span>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              autoFocus
-              required
-            />
-          </label>
-
-          {chips.length > 0 && (
-            <div className="pa-chips">
-              {chips.map((c) => (
-                <button
-                  type="button"
-                  key={c.label}
-                  className={`pa-chip ${c.tone === "up" ? "pa-chip--up" : c.tone === "down" ? "pa-chip--down" : ""}`}
-                  onClick={() => setPrice(fmt(c.value))}
-                >
-                  {c.label} · ৳{fmt(c.value)}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {targetValid && (
-            <p className="pa-sentence">
-              {direction == null ? (
-                <>Alert me when <b>{code}</b> reaches <b>৳{fmt(target)}</b></>
-              ) : direction === "above" ? (
-                <>Alert me when <b>{code}</b> rises to <b>৳{fmt(target)}</b></>
-              ) : (
-                <>Alert me when <b>{code}</b> drops to <b>৳{fmt(target)}</b></>
-              )}
-            </p>
-          )}
-
-          {error && <p className="form-error">{error}</p>}
-          {atLimit && (
-            <PremiumLockCard label="More than 3 price alerts" compact />
-          )}
-
-          <div className="grid grid-cols-2 gap-2 mt-4">
-            {existing ? (
-              <Button type="button" variant="danger" block onClick={handleRemove} disabled={submitting}>
-                Remove
-              </Button>
-            ) : (
-              <Button type="button" variant="quiet" block onClick={onClose} disabled={submitting}>
-                Cancel
-              </Button>
-            )}
-            <Button type="submit" variant="primary" block disabled={submitting}>
-              {submitting ? "Saving…" : existing ? "Update alert" : "Set alert"}
-            </Button>
+      <form onSubmit={handleSubmit} className="atp-form">
+        {ltp != null && (
+          <div className="pa-current">
+            <span>Now</span>
+            <b>৳{ltp.toFixed(1)}</b>
           </div>
-        </form>
-      </div>
-    </div>
+        )}
+
+        <label className="atp-field">
+          <span>Target price (৳)</span>
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            autoFocus
+            required
+          />
+        </label>
+
+        {chips.length > 0 && (
+          <div className="pa-chips">
+            {chips.map((c) => (
+              <button
+                type="button"
+                key={c.label}
+                className={`pa-chip ${c.tone === "up" ? "pa-chip--up" : c.tone === "down" ? "pa-chip--down" : ""}`}
+                onClick={() => setPrice(fmt(c.value))}
+              >
+                {c.label} · ৳{fmt(c.value)}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {targetValid && (
+          <p className="pa-sentence">
+            {direction == null ? (
+              <>Alert me when <b>{code}</b> reaches <b>৳{fmt(target)}</b></>
+            ) : direction === "above" ? (
+              <>Alert me when <b>{code}</b> rises to <b>৳{fmt(target)}</b></>
+            ) : (
+              <>Alert me when <b>{code}</b> drops to <b>৳{fmt(target)}</b></>
+            )}
+          </p>
+        )}
+
+        {error && <p className="form-error">{error}</p>}
+        {atLimit && (
+          <PremiumLockCard label="More than 3 price alerts" compact />
+        )}
+
+        <div className="grid grid-cols-2 gap-2 mt-4">
+          {existing ? (
+            <Button type="button" variant="danger" block onClick={handleRemove} disabled={submitting}>
+              Remove
+            </Button>
+          ) : (
+            <Button type="button" variant="quiet" block onClick={onClose} disabled={submitting}>
+              Cancel
+            </Button>
+          )}
+          <Button type="submit" variant="primary" block disabled={submitting}>
+            {submitting ? "Saving…" : existing ? "Update alert" : "Set alert"}
+          </Button>
+        </div>
+      </form>
+    </Sheet>
   );
 }

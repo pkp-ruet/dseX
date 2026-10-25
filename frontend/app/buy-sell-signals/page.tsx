@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
-import { flattenTiers, getScores, type ScoreItem } from "@/lib/api";
+import { flattenTiers, getDailyTips, getScores, type ScoreItem } from "@/lib/api";
+import DailyTipItem from "@/components/daily-tips/DailyTipItem";
+import SectionHeader from "@/components/ui/SectionHeader";
 import SignalsExplorer from "@/components/signals/SignalsExplorer";
 import { formatDate } from "@/lib/formatters";
 import PageHeader from "@/components/ui/PageHeader";
+import FindTabs from "@/components/layout/FindTabs";
 import HubLinks from "@/components/layout/HubLinks";
 
 export const revalidate = 3600;
@@ -11,7 +14,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com
 
 const TITLE = "DSE Buy Signals — What to Buy Today";
 const DESC =
-  "Daily Buy and Strong Buy signals for Dhaka Stock Exchange (DSE) stocks — which shares look worth buying right now, each with a plain-English reason. Strong Buy flags the cheapest, highest-conviction picks.";
+  "Daily Buy and Strong Buy signals for Dhaka Stock Exchange (DSE) stocks — which shares look worth buying right now, each with a plain-English reason — plus today's stock tips. Strong Buy flags the cheapest, highest-conviction picks.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -26,6 +29,9 @@ export const metadata: Metadata = {
     "high conviction stocks DSE",
     "Dhaka Stock Exchange signals",
     "DSE stocks to buy today",
+    "DSE stock tips",
+    "daily stock tips Bangladesh",
+    "DSE top picks today",
   ],
   alternates: { canonical: "/buy-sell-signals" },
   openGraph: {
@@ -42,7 +48,13 @@ export const metadata: Metadata = {
 };
 
 export default async function BuySellSignalsPage() {
-  const scores = await getScores().catch(() => null);
+  // The daily tips live here since 2026-10-25 (/daily-tips and /top-picks
+  // 301 to this page) — fetched beside the scores, not after them.
+  const [scores, tipsData] = await Promise.all([
+    getScores().catch(() => null),
+    getDailyTips().catch(() => null),
+  ]);
+  const tips = tipsData?.tips ?? [];
 
   if (!scores) {
     return (
@@ -108,6 +120,7 @@ export default async function BuySellSignalsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div>
+        <FindTabs current="/buy-sell-signals" />
         <PageHeader
           eyebrow="Daily Signals · Dhaka Stock Exchange"
           title="Buy Signals"
@@ -158,6 +171,24 @@ export default async function BuySellSignalsPage() {
 
         {/* Interactive explorer */}
         <SignalsExplorer buy={buy} sectors={sectors} />
+
+        {/* Today's tips — a handful of names that stand out for one plain
+            reason each (growing profits, steady dividends, a low price). */}
+        {tips.length > 0 && (
+          <section id="tips" aria-labelledby="tips-h" className="mt-12 scroll-mt-24">
+            <SectionHeader
+              id="tips-h"
+              title="Today's tips"
+              bn="প্রতিদিন কয়েকটি শেয়ার, আর সহজ ভাষায় কেন সেগুলো নজরে রাখার মতো।"
+              lead="A fresh handful of stocks worth a look, each with one simple reason it stands out."
+            />
+            <div className="flex flex-col gap-3.5">
+              {tips.map((tip) => (
+                <DailyTipItem key={`${tip.category}-${tip.trading_code}`} tip={tip} />
+              ))}
+            </div>
+          </section>
+        )}
 
         <HubLinks group="find" exclude={["/buy-sell-signals"]} />
 

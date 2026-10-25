@@ -80,11 +80,11 @@ export default function SignUpStrip() {
       <SectionHead
         eyebrow="Free account"
         id="account-title"
-        title="Everything above is free. Sign up and it becomes"
+        title="The data above is free. Sign up and it becomes"
         highlight="yours."
         accent="var(--primary)"
         icon={<><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></>}
-        bn="উপরের সবকিছু ফ্রি — অ্যাকাউন্ট খুললে এই পাতাটাই হয়ে যাবে আপনার নিজের।"
+        bn="উপরের তথ্য ফ্রি — অ্যাকাউন্ট খুললে এই পাতাটাই হয়ে যাবে আপনার নিজের।"
       />
 
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -126,10 +126,11 @@ export default function SignUpStrip() {
         </Link>
       </div>
       <p className="mt-2.5 text-xs font-semibold text-text-muted">
-        No payment, no tips by SMS, no phone calls.
+        The account is free — no tips by SMS, no phone calls. The full reasoning on every
+        stock is Premium, if you ever want it.
       </p>
       <Bn className="mt-0.5 text-sm leading-relaxed text-text-muted">
-        কোনো টাকা লাগে না, এসএমএসে টিপস আসে না, ফোনও করা হয় না।
+        অ্যাকাউন্ট ফ্রি — এসএমএসে টিপস আসে না, ফোনও করা হয় না। প্রতিটি শেয়ারের পুরো ব্যাখ্যা প্রিমিয়ামে, চাইলে।
       </Bn>
     </section>
   );

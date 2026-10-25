@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Bn from "@/components/i18n/Bn";
 import { readPremiumContext, type PremiumContext } from "@/lib/premium-context";
+import { useLang } from "@/context/LangContext";
 import { usePremium } from "@/lib/premium";
 import { LOWEST_PRICE } from "@/lib/premium-plans";
 import { trackEvent } from "@/lib/track";
@@ -24,6 +25,7 @@ const FROM: Record<string, { en: string; bn: string }> = {
 export default function PremiumContextCard() {
   const [ctx, setCtx] = useState<PremiumContext | null>(null);
   const { state } = usePremium();
+  const { bn } = useLang();
 
   useEffect(() => {
     const c = readPremiumContext();
@@ -38,8 +40,14 @@ export default function PremiumContextCard() {
   return (
     <div className="premium-card" role="note">
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-text-muted">{from.en}</p>
-        <Bn className="text-xs text-text-muted">{from.bn}</Bn>
+        {bn ? (
+          <Bn className="text-xs font-semibold text-text-muted">{from.bn}</Bn>
+        ) : (
+          <>
+            <p className="text-xs font-semibold text-text-muted">{from.en}</p>
+            <Bn className="text-xs text-text-muted">{from.bn}</Bn>
+          </>
+        )}
         {ctx.label && <p className="mt-1 font-semibold text-text-main">{ctx.label}</p>}
         {stakes.length > 0 && (
           <ul className="mt-2 flex flex-col gap-1.5">
@@ -53,13 +61,15 @@ export default function PremiumContextCard() {
             ))}
           </ul>
         )}
-        <p className="mt-2 text-sm text-text-muted">
-          Premium opens all of it — plans from ৳{LOWEST_PRICE}, paid by bKash or Nagad.
-        </p>
+        {!bn && (
+          <p className="mt-2 text-sm text-text-muted">
+            Premium opens all of it — plans from ৳{LOWEST_PRICE}, paid by bKash or Nagad.
+          </p>
+        )}
         <Bn className="text-sm text-text-muted">প্রিমিয়ামে সবটা খোলা — ৳{LOWEST_PRICE} থেকে প্ল্যান, bKash বা Nagad দিয়ে।</Bn>
       </div>
       <div className="premium-card-action">
-        <a href="#pay" className="btn-primary btn-sm">Choose a plan</a>
+        <a href="#pay" className={`btn-primary btn-sm ${bn ? "font-bn" : ""}`}>{bn ? "প্ল্যান বেছে নিন" : "Choose a plan"}</a>
       </div>
     </div>
   );

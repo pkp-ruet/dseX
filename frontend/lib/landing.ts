@@ -66,7 +66,7 @@ export function toLandingStock(s: ScoreItem): LandingStock {
 /** Household names a Bangladeshi visitor will recognise on sight. The hero
  *  opens on one of these so the first thing on screen is a real report for a
  *  company they know — not a stock they have to look up to care about. */
-const FAMILIAR = [
+export const FAMILIAR = [
   "GP", "SQURPHARMA", "BATBC", "BRACBANK", "BEXIMCO", "WALTONHIL",
   "ROBI", "LHBL", "RENATA", "CITYBANK", "OLYMPIC", "BSCCL", "TITASGAS",
 ];

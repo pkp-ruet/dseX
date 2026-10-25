@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { apiAddHolding } from "@/lib/api";
 import { toast } from "@/lib/toast";
 import Button from "@/components/ui/Button";
+import Sheet from "@/components/ui/Sheet";
 
 interface Props {
   code: string;
@@ -28,15 +29,6 @@ export default function AddToPortfolioButton({ code, ltp }: Props) {
       setError("");
     }
   }, [open, ltp]);
-
-  useEffect(() => {
-    if (!open) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
-    }
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open]);
 
   function handleClick() {
     if (isLoading) return;
@@ -81,69 +73,49 @@ export default function AddToPortfolioButton({ code, ltp }: Props) {
         <span>Portfolio</span>
       </Button>
 
-      {open && (
-        <div
-          className="atp-modal-backdrop"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="atp-title"
-          onClick={() => !submitting && setOpen(false)}
-        >
-          <div className="atp-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="atp-modal-header">
-              <h2 id="atp-title">Add {code} to portfolio</h2>
-              <Button
-                type="button"
-                variant="link"
-                size="sm"
-                iconOnly
-                onClick={() => setOpen(false)}
-                aria-label="Close"
-                disabled={submitting}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
-                  <path d="M18 6 6 18M6 6l12 12" />
-                </svg>
-              </Button>
-            </div>
-            <form onSubmit={handleSubmit} className="atp-form">
-              <label className="atp-field">
-                <span>Buy price (৳)</span>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  autoFocus
-                  required
-                />
-              </label>
-              <label className="atp-field">
-                <span>Quantity</span>
-                <input
-                  type="number"
-                  step="1"
-                  min="1"
-                  value={qty}
-                  onChange={(e) => setQty(e.target.value)}
-                  placeholder="e.g. 100"
-                  required
-                />
-              </label>
-              {error && <p className="form-error">{error}</p>}
-              <div className="mt-1 grid grid-cols-2 gap-2">
-                <Button type="button" variant="quiet" block onClick={() => setOpen(false)} disabled={submitting}>
-                  Cancel
-                </Button>
-                <Button type="submit" variant="primary" block disabled={submitting}>
-                  {submitting ? "Adding…" : "Add to portfolio"}
-                </Button>
-              </div>
-            </form>
+      <Sheet
+        open={open}
+        onClose={() => setOpen(false)}
+        title={`Add ${code} to portfolio`}
+        bn={`${code} পোর্টফোলিওতে যোগ করুন`}
+        dismissible={!submitting}
+      >
+        <form onSubmit={handleSubmit} className="atp-form">
+          <label className="atp-field">
+            <span>Buy price (৳)</span>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              autoFocus
+              required
+            />
+          </label>
+          <label className="atp-field">
+            <span>Quantity</span>
+            <input
+              type="number"
+              step="1"
+              min="1"
+              value={qty}
+              onChange={(e) => setQty(e.target.value)}
+              placeholder="e.g. 100"
+              required
+            />
+          </label>
+          {error && <p className="form-error">{error}</p>}
+          <div className="mt-1 grid grid-cols-2 gap-2">
+            <Button type="button" variant="quiet" block onClick={() => setOpen(false)} disabled={submitting}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" block disabled={submitting}>
+              {submitting ? "Adding…" : "Add to portfolio"}
+            </Button>
           </div>
-        </div>
-      )}
+        </form>
+      </Sheet>
     </>
   );
 }

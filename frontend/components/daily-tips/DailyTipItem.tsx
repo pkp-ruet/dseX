@@ -17,7 +17,7 @@ import {
 
 // Per-signal visual identity: tone + stroked SVG icon (no emoji — they render
 // differently on every phone) + chip label. Keyed by the tip's lead signal
-// (`category`). Shared by the homepage teaser (compact) and /daily-tips.
+// (`category`). Shared by the homepage teaser (compact) and the tips on /buy-sell-signals.
 const CAT_META: Record<string, { tone: StockRowTone; icon: ReactNode; tag: string }> = {
   profit_growth: { tone: "positive", icon: <IconTrendUp size={16} />, tag: "Growth" },
   profit_streak: { tone: "positive", icon: <IconCheck size={16} />, tag: "Consistent" },

@@ -29,6 +29,8 @@ import StockVisitTracker from "@/components/analytics/StockVisitTracker";
 import StockChapter from "@/components/stock/StockChapter";
 import ScoreHistory from "@/components/stock/ScoreHistory";
 import ResultsExplained from "@/components/stock/ResultsExplained";
+import StockPremium, { type PremiumItem } from "@/components/stock/StockPremium";
+import StockLockScope from "@/components/premium/LockScope";
 import { formatDate, money } from "@/lib/formatters";
 
 export const revalidate = 86400;
@@ -309,6 +311,42 @@ export default async function StockDetailPage({ params }: PageProps) {
   ].filter(Boolean);
   const companyLead = companyBits.length ? `${companyBits.join(" · ")}.` : undefined;
 
+  // What is locked on THIS stock — the list in the page's one Premium
+  // section (every lock below blurs in place and links to it).
+  const sig = detail.signal?.signal;
+  const pillarCount = pillarVals.length;
+  const flagsLocked =
+    Math.max(0, (signal_flags?.green?.length ?? 0) - 1) + Math.max(0, (signal_flags?.red?.length ?? 0) - 1);
+  const premiumItems: PremiumItem[] = [
+    ...(sig === "buy" || sig === "sell"
+      ? [{
+          en: `Why it is a ${sig === "buy" ? "Buy" : "Sell"} right now, in full`,
+          bn: `কেন এখন ${sig === "buy" ? "কেনার" : "বিক্রির"} সংকেত — পুরো কারণ`,
+        }]
+      : [{ en: "Our full take on this stock", bn: "এই শেয়ার নিয়ে আমাদের পুরো মত" }]),
+    ...(detail.fair_value
+      ? [{ en: "Fair value: what the price should be", bn: "ন্যায্য দাম: দাম কত হওয়া উচিত" }]
+      : []),
+    ...(pillarCount > 1
+      ? [{ en: `The other ${pillarCount - 1} health checks, explained`, bn: `বাকি ${pillarCount - 1}টি স্বাস্থ্য পরীক্ষার ব্যাখ্যা` }]
+      : []),
+    ...(flagsLocked > 0
+      ? [{ en: `${flagsLocked} more good signs and watch-outs`, bn: `আরও ${flagsLocked}টি ভালো লক্ষণ ও সতর্কতা` }]
+      : []),
+    ...(hasResults
+      ? [{ en: "What the latest quarterly report means", bn: "সর্বশেষ ত্রৈমাসিক ফলের মানে" }]
+      : []),
+    ...(hasScoreHistory
+      ? [{ en: "Score chart and why the grade changed", bn: "স্কোরের চার্ট আর গ্রেড বদলের কারণ" }]
+      : []),
+    ...(hasValuation
+      ? [{ en: "Is today's price cheap or dear — our verdict", bn: "আজকের দাম সস্তা না দামি — আমাদের রায়" }]
+      : []),
+    ...(hasPeers
+      ? [{ en: "Where it stands in its sector", bn: "খাতের মধ্যে এর অবস্থান" }]
+      : []),
+  ];
+
   // Current stock as the highlighted first row of the peer comparison.
   const currentPeerRow = {
     trading_code: profile.trading_code,
@@ -345,12 +383,17 @@ export default async function StockDetailPage({ params }: PageProps) {
 
       <StockVisitTracker code={profile.trading_code} />
 
+      {/* Every PremiumGate below blurs in place and points at #ch-premium; on
+          the free report of the day they all open. */}
+      <StockLockScope code={profile.trading_code} anchor="ch-premium">
+
       {/* Chapter 1 · Overview — hero (id ch-overview), the price story, the verdict
           and the lists it appears in. Above the sticky chip row. */}
       <HeroSection detail={detail} />
       <PriceChart code={profile.trading_code} />
       <VerdictBlock detail={detail} />
       <FeaturedInStrip entries={featuredIn} />
+      {score != null && <StockPremium code={profile.trading_code} name={name} items={premiumItems} />}
 
       {/* The ONE sticky element: summary line (code · signal · price) above the
           chapter chips. `.stock-sticky-stack` (globals.css) pins it under navbar +
@@ -450,6 +493,7 @@ export default async function StockDetailPage({ params }: PageProps) {
           <NewsSection news={news} />
         </div>
       </StockChapter>
+      </StockLockScope>
     </StockLangProvider>
   );
 }

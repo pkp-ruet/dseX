@@ -12,7 +12,7 @@ export async function tipsResponder(): Promise<MessageBlock[]> {
   for (const t of tips) {
     blocks.push({ type: "text", text: `• ${t.text}` });
   }
-  blocks.push({ type: "text", text: "", link: { href: "/daily-tips", label: COPY.tips.seeAll } });
+  blocks.push({ type: "text", text: "", link: { href: "/buy-sell-signals#tips", label: COPY.tips.seeAll } });
   blocks.push({ type: "disclaimer" });
   return blocks;
 }

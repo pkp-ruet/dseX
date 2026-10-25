@@ -70,7 +70,6 @@
   --space-8: 32px;
   --space-12: 48px;
 
-  /* Soft, layered depth — warm charcoal-tinted shadow */
   /* Resting shadow calmed in the 2026-10 redesign (was 0 12px 32px -12px @ .12):
      a card is set off by its hairline border first, the shadow only hints at lift. */
   --shadow-soft: 0 1px 2px rgba(46, 43, 38, 0.05), 0 6px 16px -10px rgba(46, 43, 38, 0.10);
@@ -147,11 +146,6 @@ html {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
 }
-/* ---- Bilingual copy ----
-   There is no language switch. English headlines carry a simple Bengali
-   explanation directly underneath (components/i18n/SectionHead.tsx +
-   components/i18n/Bn.tsx); Bengali text only needs `lang="bn"` + `.font-bn`,
-   both of which those components apply. */
 /* ---- Landing-page accents ----
    Colour is carried by a per-section `--acc` custom property so one card style
    works for every accent. Set `--acc` on the element (inline style is fine) and
@@ -182,7 +176,6 @@ html {
   height: 2rem;
   border-radius: var(--radius);
 }
-/* Card that tints toward its accent on hover, instead of only lifting. */
 /* .acc-card = .soft-card (declared below) + an accent-tinted hover. */
 .acc-card {
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
@@ -191,7 +184,6 @@ html {
   box-shadow: var(--shadow-lift);
   border-color: color-mix(in srgb, var(--text-muted) 35%, var(--border));
 }
-/* Soft tinted panel — used for section bands that need to lift off the cream. */
 /* Since the 2026-10 redesign a band is just space: no tint, no border, so the
    cards inside sit on the canvas instead of a box inside a box. */
 .acc-panel {
@@ -238,7 +230,6 @@ html {
     animation: none;
   }
 }
-/* ---- Button primitive (components/ui/Button.tsx) ---- */
 /* .ui-btn-* retired 2026-09-22: components/ui/Button.tsx emits .btn-* now (see the shared primitives block). */
 /* ---- Skeleton primitive (components/ui/Skeleton.tsx) ---- */
 .skeleton {
@@ -356,7 +347,6 @@ a:hover .ticker-tag,
 .section-label span {
   display: none;
 }
-/* Score pill */
 /* ---- Form input ---- */
 /* In the components layer so per-field utilities (pr-10, py-3, text-lg, w-auto)
    override it — as plain CSS after `@tailwind utilities` it used to win instead. */
@@ -408,6 +398,7 @@ a:hover .ticker-tag,
   color: var(--primary);
 }
 .navbar-profile-avatar {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -420,6 +411,21 @@ a:hover .ticker-tag,
   font-weight: 700;
   letter-spacing: 0;
   flex-shrink: 0;
+}
+/* Premium members: a small gold crown on the avatar corner. */
+.navbar-premium-badge {
+  position: absolute;
+  right: -5px;
+  bottom: -4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--gold-ink);
+  box-shadow: 0 0 0 1.5px var(--surface);
 }
 .navbar-profile-name {
   max-width: 80px;
@@ -558,43 +564,10 @@ a:hover .ticker-tag,
   color: var(--text);
 }
 .navbar-brand-score { color: var(--text-muted); }
-/* ---- Masthead v2 ---- */
-/* ---- Ticker Band ---- */
-/* Cycle 6 vibrant colors across company codes */
-/* ---- Market Index Banner ---- */
-/* ---- LIVE pill ---- */
-/* ---- Hero DSEX ---- */
-/* ---- Mini DSES + DS30 ---- */
-/* ---- Breadth bar ---- */
-/* ---- Stat chips ---- */
-/* ---- Tablet ---- */
-/* ---- Mobile ---- */
 /* ---- Homepage (parity with views/home.py + styles.py) ---- */
-/* ---- Search Bar ---- */
-.search-bar-wrap {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 10px 0 14px;
-  z-index: 40;
-}
+
 /* Sidebar variant — full width, no centering, card-style radius */
-.search-bar-wrap--sidebar {
-  margin: 0;
-  align-items: stretch;
-}
-.search-bar-wrap--sidebar .search-bar-box {
-  max-width: none;
-  border-radius: var(--radius-md);
-}
-.search-bar-wrap--sidebar .search-bar-open {
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
-}
-.search-bar-wrap--sidebar .search-suggestions {
-  max-width: none;
-  border-radius: 0 0 var(--radius-md) var(--radius-md);
-}
+
 .search-bar-box {
   display: flex;
   align-items: center;
@@ -639,20 +612,7 @@ a:hover .ticker-tag,
 .search-bar-input::placeholder {
   color: var(--text-muted);
 }
-.search-bar-clear {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: var(--fs-title);
-  line-height: 1;
-  color: var(--text-muted);
-  padding: 0 2px;
-  display: flex;
-  align-items: center;
-}
-.search-bar-clear:hover {
-  color: var(--primary);
-}
+
 .search-suggestions {
   width: 100%;
   max-width: 420px;
@@ -694,79 +654,7 @@ a:hover .ticker-tag,
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.hero-modern {
-  padding: 22px 16px 24px;
-  margin-bottom: 26px;
-  border-radius: var(--radius-lg);
-  background: rgba(15, 26, 46, 0.90);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid color-mix(in srgb, var(--info) 20%, transparent);
-  box-shadow: var(--shadow-lift);
-}
-.hero-modern .hero-pills {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-.hero-score-pill {
-  font-size: var(--fs-2xs);
-  font-weight: 700;
-  padding: 9px 18px;
-  border-radius: 999px;
-  box-shadow: var(--shadow-soft);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-.hero-score-pill:hover {
-  box-shadow: var(--shadow-soft);
-}
-.hero-pill-top {
-  background: rgba(74, 222, 128, 0.12);
-  color: var(--tier-excellent);
-  border: 1px solid rgba(74, 222, 128, 0.30);
-}
-.hero-pill-mid {
-  background: rgba(96, 165, 250, 0.12);
-  color: var(--info);
-  border: 1px solid rgba(96, 165, 250, 0.30);
-}
-.hero-pill-watch {
-  background: rgba(251, 191, 36, 0.12);
-  color: var(--watch);
-  border: 1px solid rgba(251, 191, 36, 0.30);
-}
-.hero-pill-danger {
-  background: rgba(248, 113, 113, 0.12);
-  color: var(--negative);
-  border: 1px solid rgba(248, 113, 113, 0.30);
-}
-/* Tier column headers (legacy np layout) */
-/* Crown icon — gold, glowing */
-/* Header right slot (badge + score label) */
-/* Forest Green — Excellent tier (dark inverted, premium) */
-/* Shimmer accent line across the top */
-/* Bright Green — Good Buy (vivid, dark bg) */
-/* Rank tables */
-.rank-table {
-  display: table;
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 8px;
-}
-@media (max-width: 640px) {
-.rank-table {
-    display: block;
-    width: 100%;
-  }
-.hero-modern {
-    padding: 18px 12px 20px;
-  }
-.hero-score-pill {
-    padding: 7px 14px;
-    font-size: var(--fs-2xs);
-  }
-}
+
 /* (.section-rule-modern was retired in redesign step 5 — every use is now
    components/ui/SectionHeader.) */
 /* Info strip */
@@ -818,8 +706,6 @@ a:hover .ticker-tag,
 .info-col--losers  .icr-key { color: var(--negative); }
 /* red     — losses */
 .info-col--traded  .icr-key { color: var(--primary); }
-/* cyan    — volume */
-/* amber  — yield */
 /* violet — growth */
 .icr-sub {
   color: var(--text-muted);
@@ -843,7 +729,6 @@ a:hover .ticker-tag,
     margin-bottom: 16px;
   }
 }
-/* Filter bar */
 /* Market movers strip */
 .movers-strip {
   display: grid;
@@ -883,7 +768,6 @@ a:hover .ticker-tag,
     margin-bottom: 16px;
   }
 }
-/* How we score */
 /* Footer */
 .np-footer-modern {
   margin-top: 22px;
@@ -912,151 +796,10 @@ a:hover .ticker-tag,
 .np-footer-modern a:hover { color: var(--gold); }
 .np-footer-modern p { color: rgba(255, 255, 255, 0.66); }
 .np-footer-modern strong { color: rgba(255, 255, 255, 0.86); font-weight: 600; }
-/* Pillar score bar */
-/* Flag chips */
 /* =======================================================
    Two-column homepage layout
    ======================================================= */
-/* Sidebar widget card */
-.sidebar-widget {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 14px 16px;
-  background: var(--surface);
-  box-shadow: var(--shadow-soft);
-}
-.sidebar-widget-title {
-  font-size: var(--fs-2xs);
-  font-weight: 800;
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--cell-rule);
-  padding-bottom: 8px;
-  margin-bottom: 10px;
-}
-/* Generic sidebar data row */
-.sidebar-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 5px 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--info) 10%, transparent);
-  font-size: var(--fs-2xs);
-  text-decoration: none;
-  color: inherit;
-  transition: background 0.1s ease;
-}
-.sidebar-row:last-child {
-  border-bottom: none;
-}
-.sidebar-row:hover {
-  background: color-mix(in srgb, var(--info) 7%, transparent);
-}
-.sidebar-row-key {
-  font-weight: 700;
-  color: var(--primary);
-  flex-shrink: 0;
-}
-.sidebar-row-val {
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: var(--text);
-  flex-shrink: 0;
-}
-/* Score overview tier bars */
-.score-bar-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--info) 10%, transparent);
-  font-size: var(--fs-2xs);
-}
-.score-bar-row:last-child {
-  border-bottom: none;
-}
-.score-bar-label {
-  width: 72px;
-  flex-shrink: 0;
-  font-weight: 600;
-  color: var(--text);
-}
-.score-bar-track {
-  flex: 1;
-  height: 4px;
-  background: var(--cell-rule);
-  border-radius: 2px;
-  overflow: hidden;
-}
-.score-bar-fill {
-  height: 100%;
-  border-radius: 2px;
-  transition: width 0.3s ease;
-}
-.score-bar-fill-excellent { background: var(--tier-excellent); }
-.score-bar-fill-good { background: var(--tier-good); }
-.score-bar-fill-average { background: var(--tier-average); }
-.score-bar-fill-weak { background: var(--tier-weak); }
-.score-bar-count {
-  width: 60px;
-  text-align: right;
-  flex-shrink: 0;
-  color: var(--text-muted);
-  font-size: var(--fs-2xs);
-  font-variant-numeric: tabular-nums;
-}
-.sidebar-widget-footer {
-  font-size: var(--fs-2xs);
-  color: var(--text-muted);
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px solid var(--cell-rule);
-}
-.score-overview-rank-btn {
-  display: block;
-  margin-top: 10px;
-  padding: 7px 12px;
-  text-align: center;
-  font-size: var(--fs-2xs);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--primary);
-  background: color-mix(in srgb, var(--info) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--info) 25%, transparent);
-  border-radius: var(--radius-sm);
-  text-decoration: none;
-  transition: background 0.15s, border-color 0.15s;
-}
-.score-overview-rank-btn:hover {
-  background: color-mix(in srgb, var(--info) 15%, transparent);
-  border-color: color-mix(in srgb, var(--info) 45%, transparent);
-  color: var(--primary);
-}
-/* Sector leaderboard bars */
-.sector-bar-track {
-  flex: 1;
-  height: 4px;
-  background: var(--cell-rule);
-  border-radius: 2px;
-  overflow: hidden;
-}
-.sector-bar-fill {
-  height: 100%;
-  border-radius: 2px;
-  background: var(--primary);
-  opacity: 0.80;
-  transition: width 0.3s ease;
-}
-/* Upcoming dividends sub-section labels */
-.sidebar-sub-header {
-  font-size: var(--fs-2xs);
-  font-weight: 700;
-  color: var(--text-muted);
-  margin-top: 8px;
-  margin-bottom: 4px;
-}
-.sidebar-sub-header:first-of-type {
-  margin-top: 0;
-}
+
 /* ---- Navbar nav group ---- */
 .navbar-nav {
   display: none;
@@ -1172,79 +915,7 @@ a:hover .ticker-tag,
 /* ======================================
    MARKET INTELLIGENCE PAGE
    ====================================== */
-/* Condition banner */
-.intel-condition-banner {
-  border-radius: var(--radius-md);
-  padding: 16px 20px;
-  margin-bottom: 24px;
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-.intel-condition-banner--falling {
-  background: rgba(239, 68, 68, 0.07);
-  border: 1px solid rgba(239, 68, 68, 0.22);
-}
-.intel-condition-banner--rising {
-  background: rgba(16, 185, 129, 0.07);
-  border: 1px solid rgba(16, 185, 129, 0.22);
-}
-.intel-condition-banner--sideways {
-  background: rgba(245, 158, 11, 0.07);
-  border: 1px solid rgba(245, 158, 11, 0.22);
-}
-.intel-condition-icon {
-  font-size: var(--fs-xl);
-  font-weight: 900;
-  line-height: 1;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-.intel-condition-icon--falling { color: var(--negative); }
-.intel-condition-icon--rising { color: var(--positive); }
-.intel-condition-icon--sideways { color: #F59E0B; }
-.intel-condition-text { flex: 1; min-width: 0; }
-.intel-condition-label {
-  font-size: var(--fs-md);
-  font-weight: 800;
-  color: var(--text);
-  letter-spacing: 0.01em;
-}
-.intel-condition-meta {
-  font-size: var(--fs-2xs);
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-.intel-condition-desc {
-  font-size: var(--fs-2xs);
-  color: var(--text-muted);
-  margin-top: 5px;
-  line-height: 1.45;
-  max-width: 480px;
-}
-.intel-breadth-stats {
-  display: flex;
-  gap: 16px;
-  flex-shrink: 0;
-  align-items: center;
-}
-.intel-breadth-stat { text-align: center; }
-.intel-breadth-val {
-  font-size: var(--fs-title);
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.1;
-}
-.intel-breadth-val--up { color: var(--positive); }
-.intel-breadth-val--down { color: var(--negative); }
-.intel-breadth-val--flat { color: var(--text-muted); }
-.intel-breadth-key {
-  font-size: var(--fs-2xs);
-  font-weight: 700;
-  color: var(--text-muted);
-  margin-top: 1px;
-}
+
 /* Signal grid */
 .intel-grid {
   display: grid;
@@ -1252,9 +923,7 @@ a:hover .ticker-tag,
   gap: 16px;
   margin-bottom: 16px;
 }
-.intel-grid--full {
-  grid-template-columns: 1fr;
-}
+
 @media (max-width: 640px) {
 .intel-grid { grid-template-columns: 1fr; }
 }
@@ -1265,9 +934,7 @@ a:hover .ticker-tag,
   border-radius: var(--radius);
   padding: 10px 12px;
 }
-.intel-signal-card--full {
-  grid-column: 1 / -1;
-}
+
 .intel-signal-title {
   font-size: var(--fs-2xs);
   font-weight: 800;
@@ -1340,65 +1007,7 @@ a:hover .ticker-tag,
   justify-self: end;
   width: 100%;
 }
-.intel-empty {
-  text-align: center;
-  padding: 20px 0;
-  font-size: var(--fs-2xs);
-  color: var(--text-muted);
-}
-/* Sector map */
-.intel-sector-grid { margin-top: 4px; }
-.intel-sector-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 0;
-  border-bottom: 1px solid var(--cell-rule);
-  font-size: var(--fs-2xs);
-}
-.intel-sector-row:last-child { border-bottom: none; }
-.intel-sector-name {
-  width: 130px;
-  flex-shrink: 0;
-  color: var(--text);
-  font-weight: 500;
-  font-size: var(--fs-2xs);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.intel-sector-bar-track {
-  flex: 1;
-  height: 5px;
-  background: var(--cell-rule);
-  border-radius: 3px;
-  overflow: hidden;
-}
-.intel-sector-bar-fill--pos {
-  height: 100%;
-  border-radius: 3px;
-  background: var(--positive);
-  opacity: 0.7;
-}
-.intel-sector-bar-fill--neg {
-  height: 100%;
-  border-radius: 3px;
-  background: var(--negative);
-  opacity: 0.7;
-}
-.intel-sector-val {
-  width: 46px;
-  text-align: right;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  font-size: var(--fs-2xs);
-}
-.intel-sector-count {
-  width: 24px;
-  text-align: right;
-  color: var(--text-muted);
-  font-size: var(--fs-2xs);
-}
+
 /* ===== Watchlist (Star button + page) ===== */
 .star-btn {
   display: inline-flex;
@@ -1428,12 +1037,7 @@ a:hover .ticker-tag,
 .star-btn:active {
   transform: scale(0.92);
 }
-/* Hero star spacing */
-.hero-star {
-  display: inline-flex;
-  align-items: center;
-  margin-left: -4px;
-}
+
 /* Navbar watchlist button */
 .navbar-watch-btn {
   display: inline-flex;
@@ -1470,7 +1074,6 @@ a:hover .ticker-tag,
     padding: 5px 8px;
   }
 }
-/* Mobile portfolio button — eye-catching, label always visible */
 /* Navbar search button (desktop) — matches watchlist button styling */
 .navbar-search-btn {
   display: inline-flex;
@@ -1594,29 +1197,9 @@ a:hover .ticker-tag,
   color: var(--primary);
   font-weight: 700;
 }
-/* ── Navigation loading (search → stock page) ─────────────────────────── */
 /* Instant feedback while the destination page's data is fetched, so a slow
    backend never leaves the user on a frozen screen. */
-.nav-loading-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 120;
-  background: rgba(7, 14, 28, 0.62);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  /* Delayed reveal: near-instant navigations (prefetched routes) resolve
-     before the overlay becomes visible, avoiding a jarring flash. */
-  animation: nav-loading-appear 0.28s ease-out both;
-}
-@keyframes nav-loading-appear {
-  0%   { opacity: 0; }
-  55%  { opacity: 0; }
-  100% { opacity: 1; }
-}
+
 .nav-loading-card {
   display: flex;
   flex-direction: column;
@@ -1662,7 +1245,7 @@ a:hover .ticker-tag,
   margin-top: -4px;
 }
 @media (prefers-reduced-motion: reduce) {
-.nav-loading-overlay { animation: none; }
+
 .nav-loading-spinner { animation-duration: 1.4s; }
 }
 /* Watchlist add bar */
@@ -2008,7 +1591,6 @@ a:hover .ticker-tag,
   }
 .watchlist-table td.wl-empty { display: none; }
 .watchlist-ticker { font-size: var(--fs-sm); padding: 4px 11px; }
-/* Alert button: icon-only on mobile (full label stays on desktop). */
 /* Range strip: hairline track, no number labels (exact range lives on the
      stock page). */
 .watchlist-table .wl-range { gap: 0; }
@@ -2025,12 +1607,6 @@ a:hover .ticker-tag,
 .wl-story-summary:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
 .wl-story-chevron { transition: transform 0.2s ease; }
 .wl-story-section[open] .wl-story-chevron { transform: rotate(180deg); }
-/* Pulse strip */
-/* Panels */
-/* Movers grid */
-/* Near-extremes grid */
-/* Code link inside panels */
-/* Takeaways */
 /* ======================================
    THEME TOGGLE
    ====================================== */
@@ -2612,19 +2188,9 @@ a:hover .ticker-tag,
 }
 .mobile-bottom-bar-badge { box-shadow: 0 0 0 2px var(--surface); }
 /* ======================================
-   EXPLORE — bottom-sheet launcher (mobile "Explore" tab)
-   ====================================== */
-/* ======================================
    DISHA — chat assistant (FAB, panel, typing dots, scrollbar)
    ====================================== */
 /* FAB clears the 60px mobile bottom bar; drops to the corner on desktop. */
-@keyframes disha-rise-in {
-  from { transform: translateY(16px); opacity: 0; }
-  to   { transform: translateY(0); opacity: 1; }
-}
-.disha-rise {
-  animation: disha-rise-in 220ms ease-out;
-}
 .disha-typing span {
   display: inline-block;
   width: 6px;
@@ -2646,135 +2212,10 @@ a:hover .ticker-tag,
 .disha-qbar { scrollbar-width: none; -ms-overflow-style: none; }
 .disha-qbar::-webkit-scrollbar { display: none; }
 @media (prefers-reduced-motion: reduce) {
-.disha-rise { animation: none; }
+
 .disha-typing span { animation: none; opacity: 0.6; }
 }
-/* ─── TopRankings ───────────────────────────────────────────── */
-/* ===== All Stocks Page ===== */
-/* ================================================================
-   Popular stocks leaderboard — /dse-popular-stocks
-   ================================================================ */
-.ps-leaderboard {
-  margin: 28px auto 56px;
-  max-width: 920px;
-  padding: 22px 18px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface, transparent);
-  box-shadow: var(--shadow-lift);
-}
-.ps-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-/* ---------- Row pill ---------- */
-.ps-row {
-  position: relative;
-  display: flex;
-  align-items: center;
-  border-radius: 999px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
-}
-.ps-row:hover {
-  background: var(--surface-2);
-  border-color: var(--border);
-  transform: translateX(2px);
-}
-/* Top 3: a gold / silver / bronze edge, no tinted wash (redesign step 6) */
-.ps-row-rank-1 { border-color: color-mix(in srgb, var(--gold) 60%, var(--border)); }
-.ps-row-rank-2 { border-color: color-mix(in srgb, var(--text-muted) 40%, var(--border)); }
-.ps-row-rank-3 { border-color: color-mix(in srgb, var(--warm) 55%, var(--border)); }
-.ps-row-link {
-  display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) 84px 74px;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-  padding: 8px 14px 8px 8px;
-  text-decoration: none;
-  color: var(--text);
-  min-width: 0;
-}
-/* ---------- Rank cell ---------- */
-.ps-rank-cell {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-}
-.ps-rank-plain {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: rgba(148, 163, 184, 0.12);
-  color: var(--text-muted);
-  font-weight: 700;
-  font-size: var(--fs-base);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
-}
-.ps-medal-svg {
-  display: block;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.18));
-}
-/* ---------- Identity ---------- */
-.ps-ticker {
-  font-size: var(--fs-md);
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--text);
-  min-width: 0;
-}
-/* ---------- Numeric cells ---------- */
-.ps-ltp,
-.ps-chg {
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  font-weight: 700;
-  font-size: var(--fs-base);
-}
-/* ---------- Star ---------- */
-.ps-star {
-  padding-right: 14px;
-  display: inline-flex;
-  align-items: center;
-}
-/* ---------- Mobile ---------- */
-@media (max-width: 640px) {
-.ps-leaderboard {
-    margin: 18px 8px 40px;
-    padding: 12px 8px;
-    border-radius: var(--radius-md);
-  }
-.ps-list { gap: 8px; }
-.ps-row-link {
-    grid-template-columns: 36px minmax(80px, 1fr) 64px 60px;
-    gap: 8px;
-    padding: 6px 4px 6px 4px;
-  }
-.ps-rank-cell { width: 36px; }
-.ps-rank-plain { width: 28px; height: 28px; font-size: var(--fs-xs); }
-.ps-medal-svg { width: 30px; height: 36px; }
-.ps-ticker { font-size: var(--fs-base); letter-spacing: 0.02em; }
-.ps-ltp, .ps-chg { font-size: var(--fs-xs); }
-.ps-star { padding-right: 6px; }
-}
-/* ================================================================
-   Homepage popular teaser — between rankings and "Explore" cards
-   ================================================================ */
+
 /* ---------- Card ---------- */
 /* =========================================================
    Auth — "or" divider between Google button and email/phone form
@@ -2794,9 +2235,6 @@ a:hover .ticker-tag,
   height: 1px;
   background: var(--border);
 }
-/* ================================================================
-   Homepage Top 20 Momentum teaser — between rankings and popular
-   ================================================================ */
 /* ======================================
    ADD TO PORTFOLIO (stock hero)
    ====================================== */
@@ -2873,72 +2311,8 @@ a:hover .ticker-tag,
   .sheet-backdrop, .sheet-panel { animation: none; }
 }
 
-.atp-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgb(var(--text-rgb) / 0.45);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  animation: atp-fade-in 0.15s ease-out;
-}
-@keyframes atp-fade-in { from { opacity: 0; } to { opacity: 1; } }
-.atp-modal {
-  width: 100%;
-  max-width: 380px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lift);
-  max-height: calc(100dvh - 32px);
-  overflow: hidden auto; /* x clipped for the rounded corners, y scrolls */
-}
-/* Phones: the stock-page dialogs (add to portfolio, price alert) open as a
-   bottom sheet, like components/ui/Sheet (2026-10 redesign, step 7). */
-@media (max-width: 639px) {
-  .atp-modal-backdrop { align-items: flex-end; padding: 0; }
-  .atp-modal {
-    max-width: none;
-    border-bottom: 0;
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    max-height: calc(100dvh - 48px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    animation: sheet-up 0.18s ease-out;
-  }
-}
-@media (prefers-reduced-motion: reduce) { .atp-modal { animation: none; } }
-.atp-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
-}
-.atp-modal-header h2 {
-  font-size: var(--fs-md);
-  font-weight: 700;
-  color: var(--text);
-  margin: 0;
-}
-.atp-close {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--fs-xl);
-  color: var(--text-muted);
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  line-height: 1;
-}
-.atp-close:hover { color: var(--text); background: var(--surface-2); }
-.atp-close:disabled { opacity: 0.4; cursor: not-allowed; }
-.atp-form { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 14px; }
+/* Form fields of the stock-page sheets (add to portfolio, price alert). */
+.atp-form { display: flex; flex-direction: column; gap: 14px; }
 .atp-field { display: flex; flex-direction: column; gap: 6px; }
 .atp-field span {
   font-size: var(--fs-2xs);
@@ -2963,10 +2337,6 @@ a:hover .ticker-tag,
   background: var(--surface);
   box-shadow: var(--ring);
 }
-/* ======================================
-   PRICE ALERT (stock hero + watchlist)
-   ====================================== */
-/* Watchlist-row alert chip — warm + higher-impact than a bare icon */
 /* Current price line inside the alert modal */
 .pa-current {
   display: flex;
@@ -3027,29 +2397,12 @@ a:hover .ticker-tag,
   100% { opacity: 1; transform: scale(1); }
 }
 .rec-pop { animation: rec-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
-@keyframes rec-sheen {
-  0%   { transform: translateX(-120%); }
-  100% { transform: translateX(220%); }
-}
 @media (prefers-reduced-motion: reduce) {
-.rec-rise, .rec-pop, .rec-sheen::after, .rec-bar-fill, .rec-ring-fill {
+  .rec-rise,
+  .rec-pop {
     animation: none;
     opacity: 1;
   }
-}
-/* ===========================================================================
-   Homepage hero — score-row staggered reveal
-   ========================================================================= */
-@keyframes hero-row-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.hero-row-in {
-  opacity: 0;
-  animation: hero-row-in 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
-}
-@media (prefers-reduced-motion: reduce) {
-.hero-row-in { animation: none; opacity: 1; }
 }
 /* ════════════════════════════════════════════════════════════════════════
    Editorial Stock Insights — premium, light, plain-language story layout
@@ -3114,22 +2467,7 @@ a:hover .ticker-tag,
    =================================================================== */
 .ms-pos { color: var(--positive); }
 .ms-neg { color: var(--negative); }
-.ms-neutral { color: var(--text-muted); }
-/* Page header — single heading shown as two eye-catching lines */
-.ms-pagehead { position: relative; padding: clamp(22px, 4vw, 40px) 0 22px; }
-.ms-page-h1 { margin: 0; display: flex; flex-direction: column; gap: 9px; }
-.ms-page-kicker {
-  display: inline-flex; align-items: center; gap: 9px;
-  font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: clamp(0.8rem, 2vw, 1rem); font-weight: 700;
-  color: var(--text-muted);
-}
-.ms-page-kicker::before { content: none; }
-.ms-page-h1-main {
-  font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: clamp(2.1rem, 6vw, 3.3rem); font-weight: 800;
-  letter-spacing: -0.035em; line-height: 1; color: var(--text);
-}
+
 /* (gradient-filled headline removed in redesign step 6) */
 .ms-page-date {
   display: inline-block; margin-top: 16px;
@@ -3202,7 +2540,7 @@ a:hover .ticker-tag,
 .ms-card-title { font-size: var(--fs-md); font-weight: 700; margin: 0 0 14px; color: var(--text); }
 .ms-card-note { font-size: var(--fs-xs); color: var(--text-muted); margin: 0 0 12px; font-weight: 500; line-height: 1.5; }
 /* ---- Answer tiles (the Q&A) ---- */
-.ms-answers { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 12px; }
+
 .ms-answer { border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; background: var(--surface-2); }
 .ms-answer-q { font-size: var(--fs-xs); color: var(--text-muted); margin: 0 0 6px; font-weight: 700; }
 .ms-answer-a { font-size: var(--fs-lg); font-weight: 800; margin: 0; letter-spacing: -0.01em; line-height: 1.15; color: var(--text); }
@@ -3248,27 +2586,9 @@ a:hover .ticker-tag,
   background: color-mix(in srgb, var(--row-accent, var(--primary)) 12%, var(--surface));
   box-shadow: var(--shadow-soft);
 }
-.ms-srow-tkr--icon { font-size: var(--fs-lg); }
-.ms-srow-id { display: flex; flex-direction: column; min-width: 0; flex: 1; }
-.ms-srow-code {
-  display: flex; align-items: center; min-width: 0;
-  font-family: var(--font-inter), system-ui, sans-serif;
-  font-weight: 800; font-size: var(--fs-md); letter-spacing: -0.01em;
-  color: var(--text); line-height: 1.15; transition: color 0.16s ease;
-}
+
 /* The code text itself ellipsises; the H/★ mark beside it never gets pushed out. */
-.ms-srow-code-txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ms-srow:hover .ms-srow-code { color: var(--row-accent, var(--primary)); }
-.ms-srow-name {
-  font-size: var(--fs-xs); color: var(--text-muted); font-weight: 500; margin-top: 1px;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.ms-srow-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; text-align: right; }
-.ms-srow-price {
-  font-family: var(--font-inter), system-ui, sans-serif;
-  font-weight: 800; font-size: var(--fs-sm); color: var(--text);
-  letter-spacing: -0.01em; font-variant-numeric: tabular-nums; line-height: 1.1;
-}
+
 .ms-srow-meta { font-size: var(--fs-2xs); font-weight: 800; white-space: nowrap; padding: 2px 9px; border-radius: 999px; line-height: 1.5; }
 .ms-srow-meta--pos { color: var(--positive); background: color-mix(in srgb, var(--positive) 12%, var(--surface)); }
 .ms-srow-meta--neg { color: var(--negative); background: color-mix(in srgb, var(--negative) 11%, var(--surface)); }
@@ -3280,32 +2600,7 @@ a:hover .ticker-tag,
 .ms-edge-ico--up { background: color-mix(in srgb, var(--positive) 15%, var(--surface)); color: var(--positive); }
 .ms-edge-ico--down { background: color-mix(in srgb, var(--negative) 14%, var(--surface)); color: var(--negative); }
 .ms-edge-title { font-size: var(--fs-base); font-weight: 800; margin: 0; line-height: 1.15; }
-/* ---- Dividends ---- */
-.ms-divgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-.ms-divcard {
-  position: relative; overflow: hidden;
-  border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 12px 12px 15px;
-  background: var(--surface); box-shadow: var(--shadow-soft);
-  display: block; text-decoration: none; color: inherit;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-/* (accent rail on dividend cards removed in redesign step 6) */
-.ms-divcard:hover { box-shadow: var(--shadow-lift); }
-.ms-divkind { display: inline-block; font-size: var(--fs-2xs); font-weight: 800; padding: 3px 9px; border-radius: 999px; letter-spacing: 0.02em; }
-.ms-divkind--record { background: color-mix(in srgb, var(--primary) 13%, var(--surface)); color: var(--primary-ink); }
-.ms-divkind--declared { background: color-mix(in srgb, var(--warm) 16%, var(--surface)); color: var(--warm-ink); }
-.ms-divcard-id { display: flex; align-items: center; gap: 9px; margin-top: 10px; }
-.ms-divcard-tkr {
-  width: 32px; height: 32px; flex-shrink: 0; border-radius: var(--radius);
-  display: flex; align-items: center; justify-content: center;
-  font-family: system-ui, sans-serif; font-weight: 800; font-size: var(--fs-md); line-height: 1; letter-spacing: -0.02em;
-  color: var(--positive); background: color-mix(in srgb, var(--positive) 13%, var(--surface));
-  box-shadow: var(--shadow-soft);
-}
-.ms-divcard-code { font-family: var(--font-inter), system-ui, sans-serif; font-weight: 800; font-size: var(--fs-md); letter-spacing: -0.01em; color: var(--text); line-height: 1.1; }
-.ms-divcard-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 9px; font-size: var(--fs-xs); color: var(--text-muted); font-weight: 600; }
-.ms-divcard-price { font-family: var(--font-inter), system-ui, sans-serif; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
-.ms-divcash { font-size: var(--fs-md); font-weight: 800; color: var(--positive); margin-top: 8px; }
+
 /* ---- Opportunity lenses (each card carries its own --lens accent colour) ---- */
 .ms-lens-card {
   position: relative; overflow: hidden;
@@ -3345,12 +2640,7 @@ a:hover .ticker-tag,
 .ms-note-bn { font-size: var(--fs-sm); color: var(--text-muted); font-weight: 600; margin: 6px 0 0; line-height: 1.7; }
 .ms-bn-text { font-size: var(--fs-md); color: var(--text); font-weight: 500; line-height: 1.9; margin: 0; max-width: 72ch; }
 .ms-bn-note { font-size: var(--fs-xs); color: var(--text-muted); font-weight: 500; margin: 12px 0 0; }
-.ms-divcard-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.ms-divdays {
-  font-size: var(--fs-2xs); font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap;
-  background: color-mix(in srgb, var(--positive) 12%, var(--surface)); color: var(--positive);
-}
-.ms-divdays--soon { background: color-mix(in srgb, var(--warm) 16%, var(--surface)); color: var(--warm-ink); }
+
 .ms-bloglink {
   display: inline-block; margin-top: 14px;
   font-size: var(--fs-sm); font-weight: 700; color: var(--primary); text-decoration: none;
@@ -3613,107 +2903,7 @@ a:hover .ticker-tag,
   color: var(--text-muted);
   font-size: var(--fs-md);
 }
-/* ── Hub / index page ───────────────────────────────────────────────────── */
-.ed-hub-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1px;
-  background: var(--border);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  margin-top: 4px;
-}
-@media (min-width: 640px) {
-.ed-hub-grid { grid-template-columns: 1fr 1fr; }
-}
-.ed-hub-card {
-  --c: var(--primary);
-  position: relative;
-  background: var(--surface);
-  padding: 22px 22px 24px 26px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  transition: background 0.15s;
-}
-.ed-hub-card::before {
-  content: "";
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 0;
-}
-.ed-hub-card:hover { background: var(--surface-2); }
-.ed-hub-card:nth-child(6n+1) { --c: var(--tier-excellent); }
-.ed-hub-card:nth-child(6n+2) { --c: var(--info); }
-.ed-hub-card:nth-child(6n+3) { --c: var(--watch); }
-.ed-hub-card:nth-child(6n+4) { --c: var(--watch); }
-.ed-hub-card:nth-child(6n+5) { --c: var(--positive); }
-.ed-hub-card:nth-child(6n+6) { --c: var(--primary); }
-.ed-hub-eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: var(--fs-2xs);
-  font-weight: 700;
-  color: var(--primary-ink);
-}
-.ed-hub-card .ed-hub-eyebrow {
-  color: color-mix(in srgb, var(--c) 78%, #000);
-}
-.ed-hub-card .ed-hub-eyebrow::before {
-  content: "";
-  width: 6px; height: 6px; border-radius: 999px;
-  background: var(--c);
-  flex-shrink: 0;
-}
-.ed-hub-title {
-  font-family: var(--font-inter), Inter, system-ui, sans-serif;
-  font-size: var(--fs-lg);
-  font-weight: 700;
-  line-height: 1.18;
-  color: var(--text);
-}
-.ed-hub-card:hover .ed-hub-title { color: color-mix(in srgb, var(--c) 80%, #000); }
-.ed-hub-card .ed-hub-cta { color: color-mix(in srgb, var(--c) 80%, #000); }
-.ed-hub-desc {
-  font-size: var(--fs-md);
-  line-height: 1.55;
-  color: var(--text-muted);
-}
-.ed-hub-cta {
-  margin-top: auto;
-  padding-top: 6px;
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  color: var(--primary-ink);
-}
-.ed-hub-feature {
-  --c: var(--primary);
-  position: relative;
-  overflow: hidden;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 26px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
-}
-.ed-hub-feature::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 0;
-}
-.ed-hub-feature:nth-child(2) { --c: var(--watch); }
-.ed-hub-feature:hover {
-  border-color: color-mix(in srgb, var(--c) 45%, var(--border));
-  box-shadow: var(--shadow-lift);
-}
-.ed-hub-feature .ed-hub-eyebrow { color: color-mix(in srgb, var(--c) 80%, #000); }
-.ed-hub-feature .ed-hub-cta { color: color-mix(in srgb, var(--c) 80%, #000); }
+
 /* ---------------------------------------------------------------------------
    Portfolio — premium pass
    --------------------------------------------------------------------------- */
@@ -3775,12 +2965,6 @@ a:hover .ticker-tag,
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .pf-fab:active { transform: scale(0.96); }
-/* ── Portfolio Buy / Sell action buttons (PortfolioClient rows + cards) ─────
-   Transaction-style shortcuts. Green = buy more, red = sell. Base size suits
-   the mobile card footer; .tx-btn-sm shrinks them to desktop-row pills. */
-/* ── Homepage news slider (NewsSlider.tsx) ─────────────────────────────────
-   Auto-advance progress bar — fills over the slide duration in the slide's
-   accent color; paused while the story is expanded or hovered. */
 /* ===================================================================
    Shared app primitives (2026-09-06 consistency pass)
    Role-named buttons, toast, empty/error states, skip link, kbd hint.
@@ -3828,7 +3012,6 @@ a:hover .ticker-tag,
 .btn-sm { min-height: 36px; padding: 0 12px; font-size: var(--fs-xs); }
 .btn-lg { min-height: 48px; padding: 0 22px; font-size: var(--fs-base); }
 .btn-block { width: 100%; }
-/* Icon-only: square, same heights */
 /* ---- Inline form error (auth forms, modals) ---- */
 .form-error {
   font-size: var(--fs-sm);
@@ -4312,11 +3495,7 @@ h2.info-col-header { margin: 0; }
   .dash-section .soft-card:not(.dash-box) .dash-head { border-bottom-color: transparent; }
 }
 .dash-tile-lg { width: 1.9rem; height: 1.9rem; border-radius: var(--radius); }
-/* Rank/serial pill tinted with the card's accent instead of flat grey. */
-/* Ambient wash behind the hero. Like .hero-glow it MUST stay inside its own
-     box — `inset-inline: 0`, never a negative inset, or the page pans
-     sideways on a phone. */
-.dash-glow { display: none; } /* off since the 2026-10 redesign */
+ /* off since the 2026-10 redesign */
 /* Card pairs end on one line (2026-10-24): every pair cell is a column and
    its last card grows to the taller neighbour's height. */
 .dash-pair > * { display: flex; flex-direction: column; min-width: 0; }

@@ -1938,6 +1938,19 @@ export interface HomeBundle {
     total: number;
     latest: LatestResultRow[];
   } | null;
+  /** What the watcher spotted on the reader's stocks in the last 7 days
+   *  (`portfolio_watch.digest`). Free readers see the counts, Premium the list. */
+  week_watch?: WeekWatch | null;
+}
+
+export interface WeekWatch {
+  total: number;
+  kinds: { kind: PortfolioWatchEvent["kind"]; count: number }[];
+  codes: string[];
+  /** How many of them are bad news (Z category, big fall, weak results…). */
+  bad: number;
+  /** Worst first, at most 8. */
+  items: PortfolioWatchEvent[];
 }
 
 /** Auth-only. The dashboard paints from this + `/api/scores` + `/api/market/state`. */
@@ -2175,31 +2188,6 @@ export async function getDailyPick(): Promise<DailyPickResponse> {
   return apiFetch<DailyPickResponse>("/api/daily-pick", 86400);
 }
 
-export interface DailyPickHistoryDayItem {
-  slot: number;
-  source: DailyPickSource;
-  source_label: string;
-  trading_code: string;
-  company_name: string | null;
-  sector: string | null;
-  score: number | null;
-  ltp_at_pick: number | null;
-  return_7d_pct: number | null;
-  reasons: string[];
-}
-
-export interface DailyPickHistoryDay {
-  date: string;
-  picks: DailyPickHistoryDayItem[];
-}
-
-export interface DailyPickHistoryResponse {
-  days: DailyPickHistoryDay[];
-}
-
-export async function getDailyPickHistory(days = 30): Promise<DailyPickHistoryResponse> {
-  return apiFetch<DailyPickHistoryResponse>(`/api/daily-pick/history?days=${days}`, 86400);
-}
 
 // ---------------------------------------------------------------------------
 // TopStockBD Tips — ~10 plain-English fundamental tips, refreshed daily

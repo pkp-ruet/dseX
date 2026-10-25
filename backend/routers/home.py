@@ -41,7 +41,9 @@ from backend.services.db_service import (
 )
 from backend.services.top20_service import compute_top20
 from backend.services.deep_analysis_service import list_report_codes
+from backend.services.portfolio_daily import recent_events
 from backend.services.portfolio_signal_service import list_recent_events
+from backend.services.portfolio_watch import digest
 from backend.services.summaries_service import load_stock_summaries
 
 logger = logging.getLogger(__name__)
@@ -57,6 +59,8 @@ POPULAR_LIMIT = 8
 CALENDAR_DAYS = 14
 CALENDAR_LIMIT = 12
 DECLARED_LIMIT = 5
+# "This week on your stocks": watcher events from the last N days.
+WATCH_DAYS = 7
 
 
 def _safe(label: str, fn: Callable[[], T], default: T) -> T:
@@ -147,6 +151,9 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
     tips = _safe("tips", get_daily_tips, {"date": None, "tips": []})
     alerts = _safe("alerts", lambda: price_alert_service.list_alerts(user_id), [])
     signal_events = _safe("signal_events", lambda: list_recent_events(user_id), [])
+    # What the watcher spotted on the reader's stocks this week. Free readers
+    # see the counts, Premium readers the list (screen-only lock, like the rest).
+    week_watch = _safe("week_watch", lambda: digest(recent_events(user_id, days=WATCH_DAYS)), None)
 
     report_codes = _safe(
         "report_codes",
@@ -182,4 +189,5 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
         "research_lists": research_lists,
         "new_results": new_results,
         "results_week": results_week,
+        "week_watch": week_watch,
     }

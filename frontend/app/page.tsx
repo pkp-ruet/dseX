@@ -33,6 +33,9 @@ import SignUpStrip from "@/components/landing/SignUpStrip";
 import StartFromZero from "@/components/landing/StartFromZero";
 import LandingClose from "@/components/landing/LandingClose";
 import FeedbackSection from "@/components/feedback/FeedbackSection";
+import FreeReportCard from "@/components/home/FreeReportCard";
+import SectionHead from "@/components/i18n/SectionHead";
+import { freeReportCode } from "@/lib/free-report";
 
 // Hourly, not daily: the page now renders today's movers, buy signals,
 // trending and tips, so day-old HTML would show yesterday's market. Matches the
@@ -213,6 +216,28 @@ async function LiveTodaySection({
   );
 }
 
+/** 3b — today's free full report: one familiar company's page fully open,
+ *  so a visitor sees the whole product before anyone asks them to pay. */
+async function FreeReportSection({ promise }: { promise: Promise<ScoresResponse | null> }) {
+  const scores = await promise;
+  const code = freeReportCode();
+  const item = scores ? flattenTiers(scores).find((s) => s.trading_code === code && s.score != null) : null;
+  if (!item) return null;
+  return (
+    <section aria-labelledby="free-report-head">
+      <SectionHead
+        id="free-report-head"
+        eyebrow="Free today"
+        title="Read one full report, free"
+        bn="প্রতিদিন একটি পরিচিত কোম্পানির পুরো বিশ্লেষণ সবার জন্য খোলা — কোনো অ্যাকাউন্ট লাগবে না।"
+      />
+      <div className="mt-6 max-w-2xl">
+        <FreeReportCard item={item} />
+      </div>
+    </section>
+  );
+}
+
 async function PortfolioCheckSection({ promise }: { promise: Promise<ScoresResponse | null> }) {
   const scores = await promise;
   if (!scores) return null;
@@ -328,6 +353,9 @@ export default function HomePage() {
               /market-analysis), then the three companies today's numbers
               single out */}
           <LiveTodaySection promise={scoresPromise} marketPromise={marketPromise} />
+
+          {/* 3b — today's free full report (one stock page fully open) */}
+          <FreeReportSection promise={scoresPromise} />
 
           {/* 4 — the day itself: movers, sectors this week, today's headlines,
               and the Bangla paragraph */}

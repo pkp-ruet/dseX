@@ -90,6 +90,7 @@ async function legacyBundle(): Promise<HomeBundle> {
     research_lists: research.lists,
     new_results: [],
     results_week: null,
+    week_watch: null,
   };
 }
 

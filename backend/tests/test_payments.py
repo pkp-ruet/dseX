@@ -57,3 +57,13 @@ def test_payloads_are_bilingual_and_link_to_premium():
     assert "1 day" in renewal_payload(1, "en")["title"]
     assert "3 days" in renewal_payload(3, "en")["title"]
     assert renewal_payload(3, "bn")["url"].endswith("#pay")
+
+
+def test_renewal_reminder_says_what_premium_caught():
+    caught = [{"kind": "results", "count": 2}, {"kind": "record", "count": 1}]
+    body = renewal_payload(3, "en", caught)["body"]
+    assert body.startswith("This month it flagged 2 quarterly results and 1 record date on your stocks.")
+    assert "bKash" in body
+    assert "২" not in renewal_payload(3, "bn", caught)["body"]  # Western digits in Bengali copy
+    # Nothing caught → the plain reminder.
+    assert renewal_payload(3, "en", [])["body"] == "Pick a plan again by bKash or Nagad to keep it on."

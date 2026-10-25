@@ -2,6 +2,9 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import PremiumLockCard from "@/components/premium/PremiumLockCard";
+import { useLockScope } from "@/components/premium/LockScope";
+import { IconLock } from "@/components/ui/icons";
+import { useLang } from "@/context/LangContext";
 import { usePremium } from "@/lib/premium";
 
 /**
@@ -12,6 +15,10 @@ import { usePremium } from "@/lib/premium";
  *
  * Server render and first client paint are locked (the server knows no user);
  * premium readers unlock right after mount.
+ *
+ * Inside a `StockLockScope` (the stock page) there is no lock card here: the
+ * content blurs in place with one quiet line pointing at the page's single
+ * Premium section, and the free report of the day unlocks it for everyone.
  */
 export default function PremiumGate({
   children,
@@ -36,9 +43,11 @@ export default function PremiumGate({
   className?: string;
 }) {
   const { isPremium } = usePremium();
+  const scope = useLockScope();
+  const { bn } = useLang();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  const locked = !(mounted && isPremium);
+  const locked = !(mounted && (isPremium || scope?.unlocked));
 
   return (
     <div className={`premium-locked ${className}`.trim()} data-locked={locked ? "true" : "false"} data-preview={preview}>
@@ -51,7 +60,20 @@ export default function PremiumGate({
       >
         {children}
       </div>
-      {locked && <PremiumLockCard label={label} compact={compact} stakes={stakes} />}
+      {locked &&
+        (scope?.anchor ? (
+          <a
+            href={`#${scope.anchor}`}
+            className={`premium-inline-link ${bn ? "font-bn" : ""}`}
+            lang={bn ? "bn" : undefined}
+          >
+            <IconLock size={14} />
+            <span className="min-w-0 truncate">{label ?? (bn ? "বাকিটা" : "The rest")}</span>
+            <span className="shrink-0 font-semibold text-primary-ink">{bn ? "প্রিমিয়ামে" : "In Premium"}</span>
+          </a>
+        ) : (
+          <PremiumLockCard label={label} compact={compact} stakes={stakes} />
+        ))}
     </div>
   );
 }

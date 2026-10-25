@@ -204,3 +204,18 @@
 @media (max-width: 479px) {
   .pm-hero { padding: var(--space-6) var(--space-4); }
 }
+
+/* Inside a lock scope (the stock page): one quiet line under the blurred
+   preview, pointing at the page's single Premium section (#ch-premium). */
+.premium-inline-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  margin-top: 4px;
+  padding: 0 4px;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+.premium-inline-link:hover span:last-child { text-decoration: underline; }
+.premium-inline-link:active { opacity: 0.7; }

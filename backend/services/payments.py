@@ -81,13 +81,36 @@ def revoke_until(current, days: int, now: datetime) -> datetime:
     return max(now, cur - timedelta(days=days))
 
 
-def renewal_payload(days_left: int, lang: str = "bn") -> dict:
+def renewal_payload(days_left: int, lang: str = "bn", caught: Optional[list[dict]] = None) -> dict:
+    """The renewal reminder. Plans never renew by themselves, so the reminder
+    says what Premium did this period — `caught` is the watcher's counts by
+    kind on the reader's stocks (``portfolio_watch.digest()["kinds"]``)."""
+    from backend.services.portfolio_watch import kinds_phrase
+
     bn = lang != "en"
     title = (f"আপনার প্রিমিয়াম শেষ হতে আর {days_left} দিন" if bn
              else f"Your Premium ends in {days_left} day{'' if days_left == 1 else 's'}")
-    body = ("চালু রাখতে bKash বা Nagad দিয়ে আবার প্ল্যান নিন।" if bn
-            else "Pick a plan again by bKash or Nagad to keep it on.")
+    again = ("চালু রাখতে bKash বা Nagad দিয়ে আবার প্ল্যান নিন।" if bn
+             else "Pick a plan again by bKash or Nagad to keep it on.")
+    phrase = kinds_phrase(caught or [], "bn" if bn else "en")
+    if phrase:
+        did = (f"এই মাসে আপনার শেয়ারে ধরেছে {phrase}। " if bn
+               else f"This month it flagged {phrase} on your stocks. ")
+        body = did + again
+    else:
+        body = again
     return {"title": title, "body": body, "url": "/premium?src=renew#pay", "tag": "premium-renew"}
+
+
+def _caught_this_period(user_id: str, now: datetime) -> list[dict]:
+    """The watcher's counts on this reader's stocks over the last 30 days."""
+    from backend.services.portfolio_watch import digest
+
+    rows = list(_db()["portfolio_watch_events"].find(
+        {"user_id": user_id, "created_at": {"$gte": now - timedelta(days=30)}},
+        {"_id": 0, "kind": 1, "code": 1, "level": 1},
+    ))
+    return digest(rows)["kinds"]
 
 
 def revoked_payload(lang: str = "bn") -> dict:
@@ -342,7 +365,12 @@ def send_renewal_reminders(now: datetime, day: str, push_ok: bool) -> int:
             continue
         prefs = {**push_service.DEFAULT_PREFS, **(u.get("notification_prefs") or {})}
         days_left = max(1, (until - now).days)
-        result = push_service.send_to_user(uid, renewal_payload(days_left, prefs.get("language", "bn")))
+        try:
+            caught = _caught_this_period(uid, now)
+        except Exception:  # noqa: BLE001 — the recap line is a nice-to-have
+            caught = []
+        result = push_service.send_to_user(
+            uid, renewal_payload(days_left, prefs.get("language", "bn"), caught))
         campaign_id = f"premiumrenew-{uid}-{day}"
         _db()["push_sends"].update_one(
             {"campaign_id": campaign_id, "user_id": uid},

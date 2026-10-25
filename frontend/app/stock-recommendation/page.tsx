@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
+import FindTabs from "@/components/layout/FindTabs";
 import { getInsightScores } from "@/lib/api";
 import FindStocksClient from "@/components/stock-recommendation/FindStocksClient";
 
@@ -72,6 +73,7 @@ export default async function StockRecommendationPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className="page-narrow space-y-8">
+        <FindTabs current="/stock-recommendation" />
         <PageHeader
           eyebrow="Three questions"
           title="Find stocks that fit you"

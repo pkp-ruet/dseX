@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getPopularStocks } from "@/lib/api";
 import PopularStocksDeck from "@/components/popular/PopularStocksDeck";
 import PageHeader from "@/components/ui/PageHeader";
+import FindTabs from "@/components/layout/FindTabs";
 
 export const revalidate = 86400;
 
@@ -70,6 +71,8 @@ export default async function PopularStocksPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+
+      <FindTabs current="/dse-popular-stocks" />
 
       <PageHeader
         eyebrow="Reader Interest"

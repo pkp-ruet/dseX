@@ -73,11 +73,12 @@ export default function LandingHero({
           {/* The second pair repeats the trust strip, so phones skip it */}
           <p className="mt-4 hidden max-w-xl text-base leading-relaxed text-text-muted sm:block">
             No tips, no rumours. Every score is built from what {totalCount} companies
-            actually reported — updated each trading day, free for everyone.
+            actually reported — updated each trading day. The data is free for
+            everyone; the full reasoning on every stock is Premium.
           </p>
           <Bn className="mt-2 hidden max-w-xl text-sm leading-relaxed text-text-muted sm:block">
             কারও টিপস নয়, গুজব নয়। {totalCount}টি কোম্পানির প্রকাশিত হিসাব থেকে তৈরি — প্রতি
-            কার্যদিবসে আপডেট, পুরোপুরি ফ্রি।
+            কার্যদিবসে আপডেট। তথ্য সবার জন্য ফ্রি; প্রতিটি শেয়ারের পুরো ব্যাখ্যা প্রিমিয়ামে।
           </Bn>
 
           {/* The lookup is the primary action. It costs nothing and proves

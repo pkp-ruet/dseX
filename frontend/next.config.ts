@@ -66,6 +66,12 @@ const nextConfig: NextConfig = {
         { source: `/stock-insights/${slug}`, destination, permanent: true },
         { source: `/stock-lists/${slug}`, destination, permanent: true },
       ]),
+      // Merged 2026-10-25: five "what should I buy?" pages became Buy signals
+      // (tips folded in) + the Trending / Popular / Find-my-stocks tabs, and
+      // Market Intelligence's condition tables overlapped /market-analysis.
+      { source: "/top-picks", destination: "/buy-sell-signals", permanent: true },
+      { source: "/daily-tips", destination: "/buy-sell-signals", permanent: true },
+      { source: "/market-intelligence", destination: "/market-analysis", permanent: true },
       {
         source: "/stock-lists/:slug*",
         destination: "/stock-insights/:slug*",

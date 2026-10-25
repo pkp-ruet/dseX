@@ -11,8 +11,8 @@ import Bn from "@/components/i18n/Bn";
  * it; page scroll is locked while open; focus moves in on open and back to
  * the opener on close. Styles: `.sheet-*` in globals.css.
  *
- * Replaces the per-feature modal classes (`.atp-modal*` and friends) as each
- * page is redone.
+ * Every dialog in the app uses it — the last `.atp-modal` ones (add to
+ * portfolio, price alert) moved over 2026-10-25.
  */
 export default function Sheet({
   open,

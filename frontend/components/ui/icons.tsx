@@ -231,3 +231,9 @@ export const IconChevronDown = (p: { size?: number }) => (
 );
 /** Right-pointing; `IconChevron` is the same icon under its old dashboard name. */
 export const IconChevronRight = IconChevron;
+export const IconCrown = (p: { size?: number }) => (
+  <I {...p}>
+    <path d="M3.5 8.5l4.5 4 4-6.5 4 6.5 4.5-4-1.8 10H5.3z" />
+    <path d="M5.5 21h13" />
+  </I>
+);

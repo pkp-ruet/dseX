@@ -34,3 +34,27 @@
   margin-top: var(--space-4);
 }
 .stock-chapter-body > :last-child { margin-bottom: var(--space-4); }
+
+/* Folded chapters on phones (StockChapter, 2026-10-25): title + the one-line
+   lead are the summary; the body stays in the HTML. Nothing folds from 640px. */
+.stock-chapter-toggle {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text);
+}
+.stock-chapter-toggle:active { opacity: 0.7; }
+.stock-chapter-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+@media (max-width: 639px) {
+  .stock-chapter-toggle { display: inline-flex; }
+  .stock-chapter[data-folded="true"] { padding-top: var(--space-6); }
+  .stock-chapter[data-folded="true"] > .stock-chapter-body { display: none; }
+  .stock-chapter[data-folded="true"] > div:first-child { margin-bottom: var(--space-1); }
+}

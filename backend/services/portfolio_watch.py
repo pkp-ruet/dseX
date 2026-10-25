@@ -215,3 +215,58 @@ def trial_recap_payload(caught: int, days_left: int, lang: str = "bn") -> dict:
     body = (f"ফ্রি মাস শেষ হতে আর {days_left} দিন। কী কী পেয়েছেন দেখে নিন।" if bn
             else f"Your free month ends in {days_left} days. See what it found for you.")
     return {"title": title, "body": body, "url": "/portfolio?src=trial-recap", "tag": "trialrecap"}
+
+
+# --------------------------------------------------------------------------- #
+# Summaries — the dashboard's "this week on your stocks" and the renewal recap
+# --------------------------------------------------------------------------- #
+
+# Plain words per kind: (English one, English many, Bengali).
+KIND_WORDS = {
+    "results": ("quarterly result", "quarterly results", "ত্রৈমাসিক ফল"),
+    "grade": ("grade change", "grade changes", "গ্রেড বদল"),
+    "record": ("record date", "record dates", "রেকর্ড ডেট"),
+    "category": ("category change", "category changes", "ক্যাটাগরি বদল"),
+    "drop": ("big one-day fall", "big one-day falls", "একদিনের বড় পতন"),
+    "low52": ("fall to a yearly low", "falls to a yearly low", "বছরের সর্বনিম্ন দাম"),
+}
+_KIND_ORDER = list(KIND_WORDS)
+DIGEST_ITEMS = 8
+
+
+def digest(events: list[dict]) -> dict:
+    """Counts by kind (most serious kinds first), the codes involved and the
+    events themselves, worst first. Every reader gets all of it — the page
+    shows a free reader only the counts (screen-only lock, like every lock)."""
+    by_kind: dict[str, int] = {}
+    for e in events:
+        k = e.get("kind")
+        if k in KIND_WORDS:
+            by_kind[k] = by_kind.get(k, 0) + 1
+    kinds = [{"kind": k, "count": by_kind[k]} for k in _KIND_ORDER if k in by_kind]
+    ranked = sorted(
+        (e for e in events if e.get("kind") in KIND_WORDS),
+        key=lambda e: (_LEVEL_ORDER.get(e.get("level"), 3), str(e.get("created_at") or "")),
+    )
+    return {
+        "total": sum(by_kind.values()),
+        "kinds": kinds,
+        "codes": sorted({e["code"] for e in ranked if e.get("code")}),
+        "bad": sum(1 for e in ranked if e.get("level") == "bad"),
+        "items": ranked[:DIGEST_ITEMS],
+    }
+
+
+def _join(parts: list[str], last: str) -> str:
+    if len(parts) < 2:
+        return "".join(parts)
+    return ", ".join(parts[:-1]) + last + parts[-1]
+
+
+def kinds_phrase(kinds: list[dict], lang: str = "bn", limit: int = 3) -> str:
+    """"2 quarterly results, 1 grade change and 1 record date" — the biggest
+    counts first, at most `limit` kinds."""
+    top = sorted(kinds, key=lambda k: -k["count"])[:limit]
+    if lang != "en":
+        return _join([f"{k['count']}টি {KIND_WORDS[k['kind']][2]}" for k in top], " ও ")
+    return _join([f"{k['count']} {KIND_WORDS[k['kind']][0 if k['count'] == 1 else 1]}" for k in top], " and ")

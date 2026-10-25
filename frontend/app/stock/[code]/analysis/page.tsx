@@ -6,6 +6,7 @@ import {
 } from "@/lib/api";
 import { money, changePct as fmtChangePct, changeTone } from "@/lib/formatters";
 import DeepAnalysisReport from "@/components/stock/DeepAnalysisReport";
+import StockLockScope from "@/components/premium/LockScope";
 import StockVisitTracker from "@/components/analytics/StockVisitTracker";
 
 export const revalidate = 86400;
@@ -160,7 +161,11 @@ export default async function StockAnalysisPage({ params }: PageProps) {
           </div>
         )}
 
-        <DeepAnalysisReport report={report} fairValue={fair_value} />
+        {/* No anchor: the report keeps its own lock card; the free report of
+            the day opens it for everyone. */}
+        <StockLockScope code={code}>
+          <DeepAnalysisReport report={report} fairValue={fair_value} />
+        </StockLockScope>
 
         {/* Back to the numbers */}
         <Link
