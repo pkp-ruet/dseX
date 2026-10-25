@@ -5,8 +5,9 @@
  * already hold; no request of its own. Bilingual like the analysis (Western
  * digits inside Bengali prose).
  *
- * Rendered by `components/portfolio/ProInsights.tsx`, behind PremiumGate for
- * free accounts.
+ * Rendered by `components/portfolio/ProInsights.tsx`, inside the portfolio
+ * page's one PremiumGate for free accounts (`buildPremiumStakes` writes its
+ * stakes).
  */
 
 import type { AnalysisLang, HoldingInsight, PortfolioAnalysis } from "@/lib/portfolio-analysis";
@@ -296,4 +297,77 @@ export function buildProInsights(
     .sort((a, b) => ORDER[a.kind] - ORDER[b.kind]);
 
   return { risk, paid, income, vsMarket, actions };
+}
+
+const valueOf = (h: HoldingInsight) => h.qty * (h.ltp ?? h.buyPrice);
+
+/**
+ * The reader's own stakes for the portfolio page's one Premium lock: up to
+ * three lines, in taka where there is a figure, most pressing first. Each line
+ * names money the reader already has at stake — the *what* stays free on the
+ * page (Sell chips, the warnings list, the allocation chart); the plan for it
+ * is what sits behind the lock.
+ */
+export function buildPremiumStakes(
+  analysis: PortfolioAnalysis,
+  insights: ProInsights,
+  watchCount: number,
+  lang: AnalysisLang = "en",
+): string[] {
+  const bn = lang === "bn";
+  const L = (en: string, bnText: string) => (bn ? bnText : en);
+  const hs = analysis.holdings;
+  const out: string[] = [];
+
+  const sells = hs.filter((h) => h.signal.signal === "sell");
+  if (sells.length) {
+    const v = sells.reduce((a, h) => a + valueOf(h), 0);
+    out.push(L(
+      `${money(v)} of your money is in ${sells.length === 1 ? `${sells[0].code}, marked Sell` : `${sells.length} stocks marked Sell`} — what to do about it`,
+      `আপনার ${money(v)} ${sells.length === 1 ? `${sells[0].code}-এ, যেটি এখন Sell` : `${sells.length}টি Sell শেয়ারে`} — এখন কী করবেন`,
+    ));
+  }
+
+  const top = [...hs].sort((a, b) => b.weightPct - a.weightPct)[0];
+  if (top && hs.length > 1 && top.weightPct > TRIM_WEIGHT_PCT) {
+    out.push(L(
+      `${money(valueOf(top))} — ${pct(top.weightPct)} of your money — sits in ${top.code} alone`,
+      `${money(valueOf(top))} — আপনার টাকার ${pct(top.weightPct)} — শুধু ${top.code}-এ`,
+    ));
+  }
+
+  const shaky = hs.filter((h) => h.marketCategory === "Z" || h.tierKey === "weak");
+  if (shaky.length) {
+    const v = shaky.reduce((a, h) => a + valueOf(h), 0);
+    out.push(L(
+      `${money(v)} is in weak or Z-category companies`,
+      `${money(v)} দুর্বল বা Z ক্যাটাগরির কোম্পানিতে`,
+    ));
+  }
+
+  const over = hs.filter((h) => h.entryValuation === "expensive");
+  if (over.length) {
+    const v = over.reduce((a, h) => a + h.qty * h.buyPrice, 0);
+    out.push(L(
+      `You paid above the usual price on ${money(v)} of shares`,
+      `${money(v)}-এর শেয়ার স্বাভাবিকের চেয়ে বেশি দামে কিনেছেন`,
+    ));
+  }
+
+  if (watchCount > 0) {
+    out.push(L(
+      `${watchCount} thing${watchCount === 1 ? "" : "s"} spotted on your stocks in 30 days`,
+      `গত 30 দিনে আপনার শেয়ারে ${watchCount}টি খবর`,
+    ));
+  }
+
+  const cash = insights.income.yearlyCash;
+  if (cash != null && cash > 0) {
+    out.push(L(
+      `About ${money(cash)} a year in dividends — and when each one lands`,
+      `বছরে প্রায় ${money(cash)} ডিভিডেন্ড — কোনটা কবে আসবে`,
+    ));
+  }
+
+  return out.slice(0, 3);
 }

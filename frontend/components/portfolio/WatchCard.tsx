@@ -4,9 +4,7 @@ import Link from "next/link";
 import Card from "@/components/ui/Card";
 import Chip from "@/components/ui/Chip";
 import Bn from "@/components/i18n/Bn";
-import PremiumGate from "@/components/premium/PremiumGate";
 import { formatDate } from "@/lib/formatters";
-import { usePremium } from "@/lib/premium";
 import type { PortfolioWatchEvent } from "@/lib/api";
 import type { AnalysisLang } from "@/lib/portfolio-analysis";
 
@@ -35,16 +33,27 @@ const TONE: Record<PortfolioWatchEvent["level"], "positive" | "watch" | "negativ
  * coming, new quarterly results, category changes, big one-day falls, yearly
  * lows), built every trading day by the backend job.
  *
- * Premium: the full list here plus a phone alert the same day. Free: the
- * count and kinds stay open — the reader sees that something happened on
- * *their* stocks — and the details sit behind the lock (screen-only).
+ * Premium (`mode="full"`): the count, the kinds and the full list, plus a
+ * phone alert the same day. Free (`mode="summary"`): the count and kinds stay
+ * open — the reader sees that something happened on *their* stocks — with a
+ * link down to `detailsHref`, the page's one Premium lock, which renders the
+ * list as `mode="details"` (screen-only).
  */
-export default function WatchCard({ events, lang }: { events: PortfolioWatchEvent[]; lang: AnalysisLang }) {
-  const { isPremium } = usePremium();
+export default function WatchCard({
+  events,
+  lang,
+  mode,
+  detailsHref,
+}: {
+  events: PortfolioWatchEvent[];
+  lang: AnalysisLang;
+  mode: "full" | "summary" | "details";
+  detailsHref?: string;
+}) {
   const bn = lang === "bn";
   const L = (en: string, b: string) => (bn ? b : en);
   if (!events.length) {
-    if (!isPremium) return null;
+    if (mode !== "full") return null;
     return (
       <Card padding="none" className="p-5 sm:p-6" data-card="watch">
         <h2 className={`text-lg font-bold text-text-main ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
@@ -62,7 +71,6 @@ export default function WatchCard({ events, lang }: { events: PortfolioWatchEven
 
   const counts = new Map<PortfolioWatchEvent["kind"], number>();
   for (const e of events) counts.set(e.kind, (counts.get(e.kind) ?? 0) + 1);
-  const bad = events.filter((e) => e.level === "bad").length;
   const headline = L(
     `${events.length} thing${events.length === 1 ? "" : "s"} on your stocks in the last 30 days`,
     `গত 30 দিনে আপনার শেয়ারে ${events.length}টি খবর`,
@@ -87,11 +95,24 @@ export default function WatchCard({ events, lang }: { events: PortfolioWatchEven
     </ul>
   );
 
+  const title = (
+    <h2 className={`text-lg font-bold text-text-main ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
+      {L("What we spotted on your stocks", "আপনার শেয়ারে যা চোখে পড়েছে")}
+    </h2>
+  );
+
+  if (mode === "details") {
+    return (
+      <Card padding="none" className="p-5 sm:p-6" data-card="watch-details">
+        {title}
+        <div className="mt-2">{list}</div>
+      </Card>
+    );
+  }
+
   return (
     <Card padding="none" className="p-5 sm:p-6" data-card="watch">
-      <h2 className={`text-lg font-bold text-text-main ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
-        {L("What we spotted on your stocks", "আপনার শেয়ারে যা চোখে পড়েছে")}
-      </h2>
+      {title}
       {!bn && <Bn className="text-sm text-text-muted">প্রতিদিন বাজার বন্ধের পর আপনার শেয়ারগুলো আমরা দেখি।</Bn>}
       <p className={`mt-3 text-base font-semibold text-text-main ${bn ? "font-bn" : ""}`}>{headline}</p>
       <div className="mt-2 flex flex-wrap gap-2">
@@ -106,7 +127,7 @@ export default function WatchCard({ events, lang }: { events: PortfolioWatchEven
       </div>
 
       <div className="mt-3">
-        {isPremium ? (
+        {mode === "full" ? (
           <>
             {list}
             <p className={`mt-1 text-xs text-text-muted ${bn ? "font-bn" : ""}`}>
@@ -116,20 +137,15 @@ export default function WatchCard({ events, lang }: { events: PortfolioWatchEven
               )}
             </p>
           </>
-        ) : (
-          <PremiumGate
-            preview="blur"
-            peek={140}
-            label={L("What we spotted", "যা চোখে পড়েছে")}
-            stakes={[
-              headline,
-              ...(bad > 0 ? [L(`${bad} of them need a look`, `এর ${bad}টি একবার দেখা দরকার`)] : []),
-              L("Premium sends each one to your phone the same day", "প্রিমিয়ামে প্রতিটি একই দিনে ফোনে আসে"),
-            ]}
+        ) : detailsHref ? (
+          <Link
+            prefetch={false}
+            href={detailsHref}
+            className={`inline-flex min-h-10 items-center text-sm font-semibold text-primary hover:underline ${bn ? "font-bn" : ""}`}
           >
-            {list}
-          </PremiumGate>
-        )}
+            {L("What each one is, in your daily check below", "প্রতিটি কী, নিচের দৈনিক যাচাইয়ে")}
+          </Link>
+        ) : null}
       </div>
     </Card>
   );

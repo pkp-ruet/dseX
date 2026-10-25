@@ -15,11 +15,8 @@ import Card from "@/components/ui/Card";
 import Tabs from "@/components/ui/Tabs";
 import Chip from "@/components/ui/Chip";
 import Bn from "@/components/i18n/Bn";
-import PremiumGate from "@/components/premium/PremiumGate";
-import { IconLock } from "@/components/ui/icons";
 import { CHART } from "@/lib/chart-theme";
 import { formatDate, takaCompact, takaGroup } from "@/lib/formatters";
-import { usePremium } from "@/lib/premium";
 import type { PortfolioHistory } from "@/lib/api";
 import type { AnalysisLang } from "@/lib/portfolio-analysis";
 
@@ -51,9 +48,10 @@ function shortDate(d: string): string {
  * - before that, a replay: the shares they hold today, priced over the last
  *   ~4 months on adjusted closes (labelled as such — it ignores past trades).
  *
- * Free: the last month. Premium (screen-only lock): 3 months, a year, all,
- * and the DSEX line rebased to the same starting value. The DSEX line is the
- * reader's own result next to the market — not a claim about our signals.
+ * Free for everyone (2026-10-25: the page keeps one Premium lock, not nine):
+ * every range and the DSEX line rebased to the same starting value. The DSEX
+ * line is the reader's own result next to the market — not a claim about our
+ * signals.
  */
 export default function ValueHistoryCard({
   history,
@@ -64,7 +62,6 @@ export default function ValueHistoryCard({
 }) {
   const bn = lang === "bn";
   const L = (en: string, b: string) => (bn ? b : en);
-  const { isPremium } = usePremium();
   const [range, setRange] = useState<RangeKey>("1m");
   const [withDsex, setWithDsex] = useState(false);
 
@@ -106,7 +103,6 @@ export default function ValueHistoryCard({
   const dsexChangePct =
     withDsex && first?.dsex != null && last?.dsex != null ? ((last.dsex - first.dsex) / first.dsex) * 100 : null;
 
-  const lockedView = !isPremium && (range !== "1m" || withDsex);
   const chart = (
     <div style={{ width: "100%", height: CHART.height.md }}>
       <ResponsiveContainer>
@@ -173,11 +169,7 @@ export default function ValueHistoryCard({
             { key: "all", label: L("All", "সব") },
           ]}
         />
-        <Chip
-          active={withDsex}
-          onClick={() => setWithDsex((v) => !v)}
-          icon={isPremium ? undefined : <IconLock size={14} />}
-        >
+        <Chip active={withDsex} onClick={() => setWithDsex((v) => !v)}>
           {L("Compare with DSEX", "DSEX-এর সাথে তুলনা")}
         </Chip>
       </div>
@@ -206,24 +198,7 @@ export default function ValueHistoryCard({
         </p>
       )}
 
-      <div className="mt-3">
-        {lockedView ? (
-          <PremiumGate
-            preview="blur"
-            peek={200}
-            label={L("Your full history", "আপনার পুরো ইতিহাস")}
-            stakes={[
-              withDsex
-                ? L("See whether your stocks beat the market", "আপনার শেয়ার বাজারের চেয়ে ভালো করছে কিনা দেখুন")
-                : L("Every day of your portfolio, not just the last month", "শুধু গত মাস নয়, আপনার পোর্টফোলিওর প্রতিটি দিন"),
-            ]}
-          >
-            {chart}
-          </PremiumGate>
-        ) : (
-          chart
-        )}
-      </div>
+      <div className="mt-3">{chart}</div>
 
       <p className={`mt-2 text-xs text-text-muted ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
         {useOwn

@@ -83,8 +83,8 @@ const ROWS: { what: string; bn: string; free: string; premium: string }[] = [
   {
     what: "Portfolio check",
     bn: "পোর্টফোলিও পরীক্ষা",
-    free: "Grade, headline and the first point of each list",
-    premium: "Everything, plus a risk check, the price you paid, cash income, you vs the market and an action list for every stock",
+    free: "Grade, its three scores, the first point of what's working, and your spread by company and sector",
+    premium: "Every point, including what needs your attention and what to consider, plus what to do with each stock, what to buy next, each holding's full read, a risk check, the price you paid, cash income and you vs the market",
   },
   {
     what: "Portfolio watcher",
@@ -95,8 +95,8 @@ const ROWS: { what: string; bn: string; free: string; premium: string }[] = [
   {
     what: "Portfolio history",
     bn: "পোর্টফোলিওর ইতিহাস",
-    free: "Your value over the last month, money made from sales and cash dividends",
-    premium: "Your whole history next to DSEX, and every figure after fees and dividend tax",
+    free: "Your value over time next to DSEX, and money made from sales and dividends — before and after fees and tax",
+    premium: "The same, plus a yearly statement (below)",
   },
   { what: "What-if check", bn: "যদি এমন করি", free: "—", premium: "Try a sale or a buy and see your portfolio grade before you act" },
   {

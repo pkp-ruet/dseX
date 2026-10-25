@@ -4,7 +4,6 @@ import Card from "@/components/ui/Card";
 import Stat from "@/components/ui/Stat";
 import Button from "@/components/ui/Button";
 import Bn from "@/components/i18n/Bn";
-import PremiumGate from "@/components/premium/PremiumGate";
 import { takaGroup } from "@/lib/formatters";
 import type { MoneyMade } from "@/lib/portfolio-ledger";
 import type { AnalysisLang } from "@/lib/portfolio-analysis";
@@ -20,8 +19,8 @@ const TONE_CLS = { default: "text-text-main", positive: "text-positive", negativ
 /**
  * "Money you've made so far" — the three ways a portfolio pays you, added up:
  * on paper (shares still held) + sold (profit locked in by sales) + cash
- * dividends received. Free. The same figures after the reader's fee and
- * dividend-tax settings sit behind the Premium lock.
+ * dividends received, then the same figures after the reader's fee and
+ * dividend-tax settings. All free.
  *
  * Renders nothing until there is a sale or a dividend in the log — before that
  * it would only repeat the hero's profit line.
@@ -81,32 +80,25 @@ export default function MoneyMadeCard({
         />
       </div>
 
-      <PremiumGate
-        className="mt-4"
-        compact
-        label={L("After fees and tax", "খরচ ও কর বাদে")}
-        stakes={[L("What you actually take home, after fees and tax", "খরচ ও কর বাদে আসলে যা হাতে আসে")]}
-      >
-        <div className="rounded-lg bg-surface-2 p-3">
-          <div className="flex items-baseline justify-between gap-3">
-            <p className={`text-sm font-semibold text-text-main ${bn ? "font-bn" : ""}`}>
-              {L("What you take home", "হাতে যা আসে")}
-            </p>
-            <p className={`pv nums text-lg font-bold ${TONE_CLS[tone(made.net.total)]}`}>
-              {signed(made.net.total)}
-            </p>
-          </div>
-          <p className={`mt-1 text-sm text-text-muted ${bn ? "font-bn" : ""}`}>
-            {L(
-              `After about ${takaGroup(made.net.fees)} in brokerage fees (${settings.fee_pct}% a side, including selling what you hold today) and ${takaGroup(made.net.tax)} dividend tax (${settings.div_tax_pct}%).`,
-              `প্রায় ${takaGroup(made.net.fees)} ব্রোকারেজ খরচ (প্রতি লেনদেনে ${settings.fee_pct}%, আজ সব বিক্রি ধরে) আর ${takaGroup(made.net.tax)} ডিভিডেন্ড কর (${settings.div_tax_pct}%) বাদে।`,
-            )}
+      <div className="mt-4 rounded-lg bg-surface-2 p-3">
+        <div className="flex items-baseline justify-between gap-3">
+          <p className={`text-sm font-semibold text-text-main ${bn ? "font-bn" : ""}`}>
+            {L("What you take home", "হাতে যা আসে")}
           </p>
-          <Button type="button" variant="link" size="sm" onClick={onEditSettings} className="-ml-2 mt-1">
-            {L("Change my fee and tax rates", "আমার খরচ ও করের হার বদলান")}
-          </Button>
+          <p className={`pv nums text-lg font-bold ${TONE_CLS[tone(made.net.total)]}`}>
+            {signed(made.net.total)}
+          </p>
         </div>
-      </PremiumGate>
+        <p className={`mt-1 text-sm text-text-muted ${bn ? "font-bn" : ""}`}>
+          {L(
+            `After about ${takaGroup(made.net.fees)} in brokerage fees (${settings.fee_pct}% a side, including selling what you hold today) and ${takaGroup(made.net.tax)} dividend tax (${settings.div_tax_pct}%).`,
+            `প্রায় ${takaGroup(made.net.fees)} ব্রোকারেজ খরচ (প্রতি লেনদেনে ${settings.fee_pct}%, আজ সব বিক্রি ধরে) আর ${takaGroup(made.net.tax)} ডিভিডেন্ড কর (${settings.div_tax_pct}%) বাদে।`,
+          )}
+        </p>
+        <Button type="button" variant="link" size="sm" onClick={onEditSettings} className="-ml-2 mt-1">
+          {L("Change my fee and tax rates", "আমার খরচ ও করের হার বদলান")}
+        </Button>
+      </div>
     </Card>
   );
 }

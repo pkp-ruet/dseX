@@ -54,8 +54,13 @@ import Skeleton from "@/components/ui/Skeleton";
 import SignalChip from "@/components/ui/SignalChip";
 import PortfolioAnalysisView from "./PortfolioAnalysisView";
 import ProInsights from "./ProInsights";
+import RebalanceHelper from "./RebalanceHelper";
+import HoldingsDetailed from "./HoldingsDetailed";
+import AllocationChart from "./AllocationChart";
+import SectorBreakdownChart from "./SectorBreakdownChart";
 import PremiumGate from "@/components/premium/PremiumGate";
-import { buildProInsights } from "@/lib/portfolio-pro";
+import Bn from "@/components/i18n/Bn";
+import { buildProInsights, buildPremiumStakes } from "@/lib/portfolio-pro";
 import { usePremium, isLimitError, PREMIUM_PATH } from "@/lib/premium";
 import { moneyMade, DEFAULT_PORTFOLIO_SETTINGS } from "@/lib/portfolio-ledger";
 import { savePremiumContext } from "@/lib/premium-context";
@@ -855,18 +860,11 @@ export default function PortfolioClient() {
     return watchEvents.filter((e) => e.created_at >= start).length;
   }, [watchEvents, premiumUntil]);
 
-  // The reader's own stakes for the "in depth" lock — counts are free, details aren't.
-  const proStakes = useMemo(() => {
-    const bnMode = lang === "bn";
-    const out: string[] = [];
-    const urgent = proInsights.actions.filter((a) => a.kind === "sell" || a.kind === "trim").length;
-    const warnings = [...proInsights.risk, ...proInsights.paid, ...proInsights.vsMarket].filter((l) => l.level !== "good").length;
-    if (warnings > 0) out.push(bnMode ? `আপনার পোর্টফোলিওতে ${warnings}টি সতর্কতা` : `${warnings} warning${warnings === 1 ? "" : "s"} on your portfolio`);
-    if (urgent > 0) out.push(bnMode ? `${urgent}টি শেয়ারে এখনই সিদ্ধান্ত নেওয়ার আছে` : `${urgent} stock${urgent === 1 ? "" : "s"} on your action list need${urgent === 1 ? "s" : ""} a decision`);
-    const cash = proInsights.income.yearlyCash;
-    if (cash != null && cash > 0) out.push(bnMode ? `বছরে প্রায় ${taka(cash, 0)} নগদ — কবে কত আসবে` : `About ${taka(cash, 0)} a year in cash — and when it lands`);
-    return out;
-  }, [proInsights, lang]);
+  // The reader's own stakes for the page's one Premium lock, in taka.
+  const proStakes = useMemo(
+    () => buildPremiumStakes(analysis, proInsights, watchEvents.length, lang),
+    [analysis, proInsights, watchEvents.length, lang],
+  );
 
   // Moment of value: the reader just reached 3 stocks — tell them what Premium
   // adds, once. Opens /premium (Premium is bought there).
@@ -1418,6 +1416,14 @@ export default function PortfolioClient() {
        </div>
       )}
 
+      {/* Where your money sits + sector breakdown — right under the holdings (free) */}
+      {holdings.length > 0 && (
+        <>
+          <AllocationChart analysis={analysis} lang={lang} />
+          <SectorBreakdownChart analysis={analysis} lang={lang} />
+        </>
+      )}
+
       {/* Your money over time — own daily snapshots, or a replay of today's shares */}
       {holdings.length > 0 && <ValueHistoryCard history={history} lang={lang} />}
 
@@ -1434,35 +1440,72 @@ export default function PortfolioClient() {
         />
       )}
 
-      {/* What the watcher spotted on your stocks (details are Premium) */}
-      {holdings.length > 0 && <WatchCard events={watchEvents} lang={lang} />}
+      {/* What the watcher spotted on your stocks — free readers get the count, details sit in the lock below */}
+      {holdings.length > 0 && (
+        <WatchCard
+          events={watchEvents}
+          lang={lang}
+          mode={isPremium ? "full" : "summary"}
+          detailsHref="#pf-premium"
+        />
+      )}
 
+      {/* Grade, scores and the first point of "what's working" are free (the rest
+          is blurred in place; the spread charts sit under the holdings above);
+          buy-next ideas and the per-holding read are Premium (the lock below) */}
       {holdings.length > 0 && (
         <PortfolioAnalysisView
           analysis={analysis}
           rebalance={rebalance}
           lang={lang}
           locked={!isPremium}
+          moreHref="#pf-premium"
+          showSectorSpread={false}
         />
       )}
 
-      {/* Premium portfolio read — risk, price paid, cash, vs market, action list */}
       {holdings.length > 0 && (
         isPremium ? (
-          <ProInsights insights={proInsights} lang={lang} />
-        ) : (
-          <PremiumGate
-            label={lang === "bn" ? "বিস্তারিত পোর্টফোলিও বিশ্লেষণ" : "Your portfolio in depth"}
-            peek={260}
-            stakes={proStakes}
-          >
+          <>
+            {/* Premium portfolio read — risk, price paid, cash, vs market, action list */}
             <ProInsights insights={proInsights} lang={lang} />
-          </PremiumGate>
+            {/* What if I sell / buy — the grade before acting */}
+            <WhatIfCard rows={rows} priceMap={priceMap} allCodes={allCodes} lang={lang} />
+          </>
+        ) : (
+          // THE one Premium lock on this page (2026-10-25: was up to nine).
+          // Everything Premium adds to a portfolio sits here, under the
+          // reader's own stakes in taka; the warnings above stay free.
+          <section id="pf-premium" className="scroll-mt-20" aria-labelledby="pf-premium-title">
+            <h2
+              id="pf-premium-title"
+              className={`text-lg font-bold text-text-main ${lang === "bn" ? "font-bn" : ""}`}
+              lang={lang === "bn" ? "bn" : undefined}
+            >
+              {lang === "bn" ? "আপনার পোর্টফোলিওর দৈনিক যাচাই" : "Your portfolio, checked every day"}
+            </h2>
+            {lang !== "bn" && <Bn className="text-sm text-text-muted">আপনার পোর্টফোলিওর দৈনিক যাচাই।</Bn>}
+            <p className={`mb-3 mt-1 text-sm text-text-muted ${lang === "bn" ? "font-bn" : ""}`}>
+              {lang === "bn"
+                ? "প্রতিটি শেয়ারে কী করবেন, এরপর কী কিনবেন, প্রতিটির পুরো বিশ্লেষণ, যা চোখে পড়েছে তার বিস্তারিত আর যদি-এমন-করি যাচাই — এক জায়গায়।"
+                : "What to do with each stock, what to buy next, each holding's full read, what the watcher spotted, and the what-if check — in one place."}
+            </p>
+            <PremiumGate
+              label={lang === "bn" ? "দৈনিক যাচাই" : "Your daily portfolio check"}
+              peek={260}
+              stakes={proStakes}
+            >
+              <div className="flex flex-col gap-5 sm:gap-6">
+                <ProInsights insights={proInsights} lang={lang} />
+                {rebalance && <RebalanceHelper plan={rebalance} lang={lang} />}
+                <HoldingsDetailed analysis={analysis} lang={lang} />
+                <WatchCard events={watchEvents} lang={lang} mode="details" />
+                <WhatIfCard rows={rows} priceMap={priceMap} allCodes={allCodes} lang={lang} />
+              </div>
+            </PremiumGate>
+          </section>
         )
       )}
-
-      {/* What if I sell / buy — the grade before acting (Premium) */}
-      {holdings.length > 0 && <WhatIfCard rows={rows} priceMap={priceMap} allCodes={allCodes} lang={lang} />}
 
       {/* Everything that happened: buys, sales with profit, dividends, bonus shares */}
       <HistoryCard

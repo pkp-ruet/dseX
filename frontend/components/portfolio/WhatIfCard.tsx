@@ -3,7 +3,6 @@
 import { useId, useMemo, useState } from "react";
 import Card from "@/components/ui/Card";
 import Bn from "@/components/i18n/Bn";
-import PremiumGate from "@/components/premium/PremiumGate";
 import { takaGroup } from "@/lib/formatters";
 import { analyzePortfolio, type AnalysisLang, type ComputedRow, type PortfolioAnalysis } from "@/lib/portfolio-analysis";
 import type { ScoreItem } from "@/lib/api";
@@ -80,7 +79,8 @@ function Delta({ before, after, label, fmt = (v: number) => String(Math.round(v)
  * "What if I…" — try a sale and/or a buy and see the portfolio grade, its
  * three sub-scores, the spread and the biggest position before acting. Runs
  * the same `analyzePortfolio` engine as the grade above, on a copy of the
- * holdings priced at today's close. Nothing is saved. Premium (screen-only lock).
+ * holdings priced at today's close. Nothing is saved. Premium: for free readers
+ * PortfolioClient renders it inside the page's one lock.
  */
 export default function WhatIfCard({
   rows,
@@ -260,19 +260,7 @@ export default function WhatIfCard({
           "একটি বিক্রি বা কেনা চেষ্টা করে দেখুন, কিছু করার আগেই গ্রেড জানুন।",
         )}
       </p>
-      <PremiumGate
-        preview="blur"
-        peek={180}
-        label={L("The what-if check", "যদি-এমন-করি যাচাই")}
-        stakes={[
-          L(
-            `See if selling your biggest stock moves your ${before.grade} grade up`,
-            `সবচেয়ে বড় শেয়ার বেচলে আপনার ${before.grade} গ্রেড বাড়ে কিনা দেখুন`,
-          ),
-        ]}
-      >
-        {body}
-      </PremiumGate>
+      {body}
     </Card>
   );
 }
