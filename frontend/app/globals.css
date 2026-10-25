@@ -1089,7 +1089,8 @@ a:hover .ticker-tag,
 }
 /* ---- Navbar Market Intelligence button ---- */
 .navbar-intel-btn {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   font-size: var(--fs-2xs);
   font-weight: 600;
   letter-spacing: 0.02em;
