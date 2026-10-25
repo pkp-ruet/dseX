@@ -10,6 +10,7 @@ import { IconBulb, IconCheck, IconList, IconSparkle, IconWallet } from "@/compon
 import PremiumPlanCta from "@/components/premium/PremiumPlanCta";
 import PremiumContextCard from "@/components/premium/PremiumContextCard";
 import PayBox from "@/components/premium/PayBox";
+import PaymentHelp from "@/components/premium/PaymentHelp";
 import { useLang } from "@/context/LangContext";
 import {
   BENEFITS, FAQS, HERO, PER_MONTH, PROMISES, ROWS, SECTIONS, STEPS, type Bi,
@@ -122,6 +123,12 @@ export default function PremiumBody() {
           }
         />
         <PayBox />
+      </section>
+
+      {/* 4b · Something went wrong with a payment */}
+      <section id="payment-help" aria-labelledby="help-h" className="scroll-mt-24">
+        <SectionHeader id="help-h" title={t(SECTIONS.help)} bn={sub(SECTIONS.help)} lead={t(SECTIONS.helpLead)} />
+        <PaymentHelp />
       </section>
 
       {/* 5 · Every difference, for readers who want the detail */}

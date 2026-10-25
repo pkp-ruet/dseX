@@ -85,6 +85,11 @@ export const SECTIONS = {
   plan: { en: "Choose your plan", bn: "আপনার প্ল্যান বেছে নিন" },
   planLead: { en: "The longer the plan, the less you pay a month.", bn: "প্ল্যান যত লম্বা, মাসে খরচ তত কম।" },
   refund: { en: "Refund policy", bn: "রিফান্ড নীতি" },
+  help: { en: "Problem with a payment?", bn: "পেমেন্টে কোনো সমস্যা?" },
+  helpLead: {
+    en: "Sent money but Premium didn't start, paid the wrong amount, or something else? Tell us here or email us.",
+    bn: "টাকা পাঠিয়েছেন কিন্তু প্রিমিয়াম চালু হয়নি, ভুল পরিমাণ পাঠিয়েছেন, বা অন্য কিছু? এখানে লিখুন বা ইমেইল করুন।",
+  },
   compare: { en: "Free and Premium, side by side", bn: "ফ্রি আর প্রিমিয়াম পাশাপাশি" },
   seeAll: { en: "See every difference", bn: "সব পার্থক্য দেখুন" },
   free: { en: "Free", bn: "ফ্রি" },

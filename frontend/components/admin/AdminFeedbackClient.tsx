@@ -239,7 +239,9 @@ export default function AdminFeedbackClient() {
                       Live on landing
                     </span>
                   )}
-                  {f.comment ? (
+                  {f.source === "payment" ? (
+                    <span className="opacity-60">Payment report — private</span>
+                  ) : f.comment ? (
                     <button
                       type="button"
                       onClick={() => toggleFeatured(f)}

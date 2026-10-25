@@ -20,7 +20,10 @@ COLLECTION = "feedback"
 MAX_COMMENT_LEN = 2000
 # Public quotes are trimmed so one long review can't dominate the trust block.
 PUBLIC_COMMENT_LEN = 280
-VALID_SOURCES = {"homepage", "popup"}
+VALID_SOURCES = {"homepage", "popup", "payment"}
+# Payment problem reports from /premium share the admin inbox but are private:
+# they can never be featured on the landing page.
+PRIVATE_SOURCES = {"payment"}
 
 
 def ensure_feedback_indexes() -> None:
@@ -114,7 +117,10 @@ def set_featured(feedback_id: str, featured: bool) -> bool:
         oid = ObjectId(feedback_id)
     except (InvalidId, TypeError):
         return False
-    res = get_db()[COLLECTION].update_one({"_id": oid}, {"$set": {"featured": bool(featured)}})
+    res = get_db()[COLLECTION].update_one(
+        {"_id": oid, "source": {"$nin": list(PRIVATE_SOURCES)}},
+        {"$set": {"featured": bool(featured)}},
+    )
     return res.matched_count > 0
 
 
@@ -135,7 +141,7 @@ def _public_testimonials(limit: int) -> list[dict]:
     """Admin-approved reviews that actually carry a comment, newest first."""
     cur = (
         get_db()[COLLECTION]
-        .find({"featured": True, "comment": {"$ne": None}})
+        .find({"featured": True, "comment": {"$ne": None}, "source": {"$nin": list(PRIVATE_SOURCES)}})
         .sort("created_at", DESCENDING)
         .limit(int(limit))
     )
