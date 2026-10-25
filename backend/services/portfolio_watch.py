@@ -1,12 +1,18 @@
 """The portfolio watcher — what changed on the stocks a reader owns today.
 
-Five things, each an *event* with English + Bengali copy:
+Six things, each an *event* with English + Bengali copy:
 
     record    a record date 1–3 days away (with the cash it pays on their shares)
-    results   a quarterly result posted in the last 3 days (profit up / down)
+    results   a quarterly result posted in the last 3 days, explained
+              (``results_explainer``: profit, cash, price, what it means)
+    grade     our grade for the stock changed (``score_history``: the pillar
+              that moved it)
     category  the stock moved to a different DSE category (to Z is the alarm)
     drop      the price fell 5% or more today
     low52     the price closed at its lowest in a year
+
+``results`` and ``grade`` also cover the stocks a reader only follows
+(watchlist); the other four are about shares they hold.
 
 Events are built for every reader who holds the stock and stored in
 ``portfolio_watch_events`` (so a free reader's portfolio can say how many
@@ -58,30 +64,25 @@ def _record_event(code: str, qty: int, row: dict) -> Optional[dict]:
     }
 
 
-def _results_event(code: str, interim: dict) -> Optional[dict]:
-    cur, prev = interim.get("eps_cum"), interim.get("eps_cum_prev")
+def _results_event(code: str, interim: dict, row: Optional[dict] = None,
+                   score_before: Optional[float] = None, sector_class: str = "GENERAL") -> Optional[dict]:
+    from backend.services.results_explainer import explain
+
     end = interim.get("period_end")
     end_s = end.isoformat() if hasattr(end, "isoformat") else str(end or "")[:10]
     months = interim.get("months") or 3
-    if cur is None or prev is None or not end_s:
+    if not end_s or not interim.get("eps_cum_prev"):
         return None
-    if prev == 0:
+    ex = explain(interim, row, score_before, sector_class)
+    if not ex:
         return None
-    pct = round((cur - prev) / abs(prev) * 100.0)
-    if cur < 0 <= prev:
-        en, bn, level = "turned to a loss", "লোকসানে পড়েছে", "bad"
-    elif pct >= 10:
-        en, bn, level = f"profit is up {pct}%", f"মুনাফা {pct}% বেড়েছে", "good"
-    elif pct <= -10:
-        en, bn, level = f"profit is down {abs(pct)}%", f"মুনাফা {abs(pct)}% কমেছে", "bad"
-    else:
-        en, bn, level = "profit is about the same", "মুনাফা প্রায় আগের মতোই", "watch"
     return {
-        "id": f"results-{code}-{end_s}-{months}", "kind": "results", "code": code, "level": level,
-        "title_en": f"{code} posted new results: {en}",
-        "title_bn": f"{code}-এর নতুন ফল: {bn}",
-        "body_en": f"Earnings per share for {months} months: ৳{cur:.2f} vs ৳{prev:.2f} a year ago.",
-        "body_bn": f"{months} মাসে শেয়ারপ্রতি আয় ৳{cur:.2f}, গত বছর একই সময়ে ৳{prev:.2f}।",
+        "id": f"results-{code}-{end_s}-{months}", "kind": "results", "code": code,
+        "level": "watch" if ex["level"] == "neutral" else ex["level"],
+        "title_en": f"{code} {ex['headline_en']}",
+        "title_bn": f"{code} {ex['headline_bn']}",
+        "body_en": ex["meaning_en"],
+        "body_bn": ex["meaning_bn"],
     }
 
 
@@ -124,24 +125,37 @@ def _low_event(code: str, ltp: float, day: str) -> dict:
     }
 
 
-def build_events(held: dict[str, int], facts: dict, day: str) -> list[dict]:
-    """Events for one reader. `held` = {code: qty} across all their portfolios.
+def build_events(held: dict[str, int], facts: dict, day: str,
+                 watched: Optional[set[str]] = None) -> list[dict]:
+    """Events for one reader. `held` = {code: qty} across all their portfolios;
+    `watched` = codes they follow without holding (results + grade only).
     `facts` = {record: {code: calendar row}, results: {code: interim},
-    category: {code: (old, new)}, prices: {code: price row},
-    lows: {code: 52w low}}."""
+    rows: {code: score row}, score_before: {code: score}, sector_class: {code: …},
+    grades: {code: score_history.explain()}, category: {code: (old, new)},
+    prices: {code: price row}, lows: {code: 52w low}}."""
+    from backend.services.score_history import grade_event
+
     out: list[dict] = []
     prices = facts.get("prices") or {}
-    for code, qty in sorted(held.items()):
+    for code in sorted(set(held) | set(watched or ())):
+        qty = held.get(code) or 0
         row = (facts.get("record") or {}).get(code)
-        if row:
+        if row and qty:
             e = _record_event(code, qty, row)
             if e:
                 out.append(e)
         interim = (facts.get("results") or {}).get(code)
         if interim:
-            e = _results_event(code, interim)
+            e = _results_event(code, interim, (facts.get("rows") or {}).get(code),
+                               (facts.get("score_before") or {}).get(code),
+                               (facts.get("sector_class") or {}).get(code) or "GENERAL")
             if e:
                 out.append(e)
+        ch = (facts.get("grades") or {}).get(code)
+        if ch:
+            out.append(grade_event(code, ch, day))
+        if not qty:
+            continue
         cat = (facts.get("category") or {}).get(code)
         if cat:
             e = _category_event(code, cat[0], cat[1], day)
@@ -166,8 +180,13 @@ def build_events(held: dict[str, int], facts: dict, day: str) -> list[dict]:
 _LEVEL_ORDER = {"bad": 0, "watch": 1, "good": 2}
 
 
-def push_payload(events: list[dict], lang: str = "bn") -> Optional[dict]:
-    """One notification for the day's events, the most serious first."""
+# Where a single event of each kind opens on the stock page.
+_STOCK_ANCHOR = {"results": "results", "grade": "score-history"}
+
+
+def push_payload(events: list[dict], lang: str = "bn", url: str = "/portfolio?src=watch") -> Optional[dict]:
+    """One notification for the day's events, the most serious first. A lone
+    result or grade change opens its explainer on the stock page."""
     if not events:
         return None
     bn = lang != "en"
@@ -176,11 +195,14 @@ def push_payload(events: list[dict], lang: str = "bn") -> Optional[dict]:
     if len(ranked) == 1:
         title = top["title_bn"] if bn else top["title_en"]
         body = top["body_bn"] if bn else top["body_en"]
+        anchor = _STOCK_ANCHOR.get(top.get("kind"))
+        if anchor and top.get("code"):
+            url = f"/stock/{top['code']}?src=watch#{anchor}"
     else:
         title = (f"আজ আপনার শেয়ারে {len(ranked)}টি খবর" if bn
                  else f"{len(ranked)} things on your stocks today")
         body = " · ".join((e["title_bn"] if bn else e["title_en"]) for e in ranked[:3])
-    return {"title": title, "body": body, "url": "/portfolio?src=watch", "tag": "pwatch"}
+    return {"title": title, "body": body, "url": url, "tag": "pwatch"}
 
 
 def trial_recap_payload(caught: int, days_left: int, lang: str = "bn") -> dict:

@@ -11,6 +11,7 @@ const marketsLinks: FootLink[] = [
   { href: "/dse-today", label: "DSE Today" },
   { href: "/market-analysis", label: "Market Analysis" },
   { href: "/dividend-calendar", label: "Dividend Calendar" },
+  { href: "/results", label: "Quarterly Results" },
   { href: "/sectors", label: "Sectors" },
   { href: "/share-bazar", label: "আজকের শেয়ার বাজার", bn: true },
 ];

@@ -25,7 +25,7 @@ export interface AuthUser {
   /** The last plan bought (`lib/premium-plans.ts` key). */
   paid_plan?: string | null;
   /** null = unlimited. */
-  limits?: { watchlist: number | null; alerts: number | null; ai_daily: number | null; portfolios?: number | null };
+  limits?: { watchlist: number | null; alerts: number | null; ai_daily: number | null; portfolios?: number | null; custom_lists?: number | null };
 }
 
 /** Fired after something outside AuthContext stored a fresh user (e.g. a

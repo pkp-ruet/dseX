@@ -16,7 +16,7 @@ import { type AuthUser, getStoredUser } from "@/lib/auth";
 
 /** Mirrors backend `FREE_LIMITS` — used only when a cached user predates the
  *  plan fields; the server value always wins once /me has refreshed. */
-export const FREE_LIMITS = { watchlist: 10, alerts: 3, ai_daily: 10, portfolios: 1 } as const;
+export const FREE_LIMITS = { watchlist: 10, alerts: 3, ai_daily: 10, portfolios: 1, custom_lists: 0 } as const;
 
 export type LimitKind = keyof typeof FREE_LIMITS;
 

@@ -375,9 +375,13 @@ def snapshot_signals_today(date: Optional[str] = None) -> dict:
 
     db = get_db()
     col = db[_SNAPSHOT_COLLECTION]
-    if "date_1_trading_code_1" not in {ix["name"] for ix in col.list_indexes()}:
+    existing = {ix["name"] for ix in col.list_indexes()}
+    if "date_1_trading_code_1" not in existing:
         col.create_index([("date", ASCENDING), ("trading_code", ASCENDING)],
                          unique=True, name="date_1_trading_code_1")
+    if "trading_code_1_date_1" not in existing:  # one company's score history
+        col.create_index([("trading_code", ASCENDING), ("date", ASCENDING)],
+                         name="trading_code_1_date_1")
 
     now = datetime.now(timezone.utc)
     ops, counts = [], {"buy": 0, "sell": 0, "none": 0}
@@ -405,6 +409,12 @@ def snapshot_signals_today(date: Optional[str] = None) -> dict:
             "momentum_grade": sig.get("momentum_grade"),
             "score": _f(row.get("score")),
             "p4_val": _f(row.get("p4_val")),
+            # The other pillars (since 2026-10-25) — score_history explains a
+            # grade change by the pillar that moved it.
+            "p1_biz": _f(row.get("p1_biz")),
+            "p2_health": _f(row.get("p2_health")),
+            "p3_moat": _f(row.get("p3_moat")),
+            "p5_div": _f(row.get("p5_div")),
             "pct_in_52w_range": (mom or {}).get("pct_in_52w_range"),
             "market_cat": (str(row.get("market_cat")).strip().upper()
                            if row.get("market_cat") is not None else None),

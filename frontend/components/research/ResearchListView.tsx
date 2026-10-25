@@ -114,6 +114,10 @@ export default function ResearchListView({ data, def }: { data: ResearchListDeta
           company on this list passed every check today; it is not a buy call. Read the risk on each card and the full
           stock page before you decide.
         </p>
+        <p>
+          Want different checks? <Link href="/my-lists">Build your own list</Link> — pick the checks and settings
+          yourself, and we tell you the day a new stock passes them.
+        </p>
       </section>
 
       <section className="ed-faq">

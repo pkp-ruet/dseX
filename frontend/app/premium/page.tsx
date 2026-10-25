@@ -49,13 +49,13 @@ const BENEFITS: { icon: ReactNode; title: string; bn: string; points: string[] }
     icon: <IconWallet size={20} />,
     title: "Your portfolio, watched daily",
     bn: "আপনার পোর্টফোলিও, প্রতিদিন পাহারায়",
-    points: ["An alert when your stock needs attention", "Buy more or sell, for each holding", "Full history and a yearly statement"],
+    points: ["An alert when your stock needs attention", "New results and grade changes, explained", "Full history and a yearly statement"],
   },
   {
     icon: <IconList size={20} />,
     title: "Research, done for you",
     bn: "গবেষণা আমরা করে দিই",
-    points: ["Six research lists in full", "The complete dividend calendar", "A glance board for your watchlist"],
+    points: ["Six research lists in full", "Your own lists, checked every day", "The complete dividend calendar"],
   },
   {
     icon: <IconSparkle size={20} />,
@@ -80,6 +80,18 @@ const ROWS: { what: string; bn: string; free: string; premium: string }[] = [
     premium: "Also the reasons: fair-value estimate, all five health checks, every good sign and watch-out, price verdict, sector standing",
   },
   { what: "In-depth reports", bn: "গভীর বিশ্লেষণ রিপোর্ট", free: "Headline, bottom line and the first section", premium: "The whole report" },
+  {
+    what: "Results day, explained",
+    bn: "ত্রৈমাসিক ফল, সহজ ভাষায়",
+    free: "The headline and the profit figures of each stock's latest quarterly report, and the newest 5 reports on the results page",
+    premium: "Every company's latest results in one list, and on each stock the latest quarter alone, cash from the business, what the price costs on the last 12 months' profit, how our score moved, and what it means — plus a phone alert the day results come out for a stock you own or follow",
+  },
+  {
+    what: "Score history",
+    bn: "স্কোরের ইতিহাস",
+    free: "Today's score and how many times the grade changed",
+    premium: "The score on every trading day, each grade change with the reason behind it, and a phone alert when the grade of a stock you own or follow changes",
+  },
   {
     what: "Portfolio check",
     bn: "পোর্টফোলিও পরীক্ষা",
@@ -111,6 +123,12 @@ const ROWS: { what: string; bn: string; free: string; premium: string }[] = [
     bn: "গবেষণা তালিকা",
     free: "What each of the six lists looks for, and how many companies pass its checks",
     premium: "Every stock on all six lists: a research card with its fair-value range and main risk, all of them side by side, and who joined or left this month",
+  },
+  {
+    what: "Your own lists",
+    bn: "নিজের তালিকা",
+    free: "Build a list from 23 checks and see how many companies pass",
+    premium: "Which companies pass, and up to 5 saved lists checked every trading day — with a phone alert when a new stock passes",
   },
   {
     what: "Dividend calendar",

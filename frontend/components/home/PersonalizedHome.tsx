@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type MouseEvent } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useLang, type Lang } from "@/context/LangContext";
+import { usePremium } from "@/lib/premium";
 import {
   getScores,
   getMarketState,
@@ -48,6 +49,8 @@ import DividendBoardCard from "@/components/home/personalized/DividendBoardCard"
 import LearnCard from "@/components/home/personalized/LearnCard";
 import ExploreLinks from "@/components/home/personalized/ExploreLinks";
 import NewsPeek from "@/components/home/personalized/NewsPeek";
+import NewResultsCard from "@/components/home/personalized/NewResultsCard";
+import ResultsPromoCard from "@/components/home/personalized/ResultsPromoCard";
 import ChapterHead from "@/components/home/personalized/ChapterHead";
 import { IconBook, IconCoin, IconGrid, IconSparkle } from "@/components/home/personalized/DashIcons";
 import DashSectionNav, { type DashNavItem } from "@/components/home/personalized/DashSectionNav";
@@ -99,6 +102,7 @@ const EMPTY_SET = new Set<string>();
 export default function PersonalizedHome() {
   const { user } = useAuth();
   const { lang, setLang } = useLang();
+  const { state: planState } = usePremium();
   const bn = lang === "bn";
 
   // SWR hydrate from localStorage for an instant first paint. Background
@@ -186,6 +190,7 @@ export default function PersonalizedHome() {
   // holdings: null while unknown (skeleton), [] once we know there are none.
   const holdings = bundle ? bundle.holdings : bundleSettled ? [] : null;
   const news = bundle?.news ?? [];
+  const newResults = bundle?.new_results ?? [];
   const tips = bundle?.tips?.tips ?? [];
   const dailyPicks = bundle?.daily_picks ?? null;
   const extremes = bundle?.near_extremes ?? null;
@@ -358,6 +363,12 @@ export default function PersonalizedHome() {
         />
       </div>
     ) : null;
+  const resultsCard =
+    newResults.length > 0 ? (
+      <div data-card="results">
+        <NewResultsCard rows={newResults} held={heldSet} watched={watchedSet} lang={lang} />
+      </div>
+    ) : null;
   // ── Chapter 4: Money coming — every record date in the next two weeks,
   //    market-wide, plus the latest declarations. ──
   const dividendsChapter = hasDividends ? (
@@ -420,6 +431,19 @@ export default function PersonalizedHome() {
               )}
             </div>
           )}
+        </div>
+      )}
+      {/* The market's quarterly results — every reader; only free readers
+          get the Premium line under it. */}
+      {bundle?.results_week && (
+        <div data-card="results-promo">
+          <ResultsPromoCard
+            week={bundle.results_week}
+            held={heldSet}
+            watched={watchedSet}
+            lang={lang}
+            premium={planState === "premium"}
+          />
         </div>
       )}
       {hasTurning && (
@@ -564,6 +588,7 @@ export default function PersonalizedHome() {
                 {newsCard}
               </div>
             )}
+            {resultsCard}
           </section>
         )}
         {marketChapter}

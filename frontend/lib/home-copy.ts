@@ -76,6 +76,8 @@ const COPY = {
 
   // News
   newsOnYourStocks: ["News on your stocks", "আপনার শেয়ারের খবর"],
+  newResults: ["New results on your stocks", "আপনার শেয়ারের নতুন ফল"],
+  resultsPromoTitle: ["Quarterly results, in plain words", "ত্রৈমাসিক ফল, সহজ ভাষায়"],
   allNewsYourStocks: ["All news on your stocks", "আপনার শেয়ারের সব খবর"],
   allMarketNews: ["All market news", "বাজারের সব খবর"],
   marketNewsTitle: ["Today's market news", "আজকের বাজারের খবর"],

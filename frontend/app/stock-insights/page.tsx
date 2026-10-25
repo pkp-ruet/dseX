@@ -133,6 +133,16 @@ export default async function StockInsightsPage() {
               </Link>
             );
           })}
+          <Link prefetch={false} href="/my-lists" className="soft-card rl-hub-card">
+            <h3 className="rl-hub-title">Build your own list</h3>
+            <Bn className="rl-hub-title-bn">নিজের তালিকা বানান</Bn>
+            <Txt
+              as="p"
+              className="rl-hub-idea"
+              en="Pick your own checks — dividend, price, profit, loans, sector — and get told the day a new stock passes them."
+              bn="নিজের শর্ত বেছে নিন — লভ্যাংশ, দাম, লাভ, ঋণ, খাত — নতুন কোনো শেয়ার পাস করলেই জানিয়ে দেব।"
+            />
+          </Link>
         </div>
       </section>
 

@@ -285,6 +285,10 @@ class CompanyDetailResponse(BaseModel):
     health_overrides: dict[str, Any] = {}
     # {"en", "bn"} when the peer table mixes unlike businesses
     peer_note: Optional[dict[str, Any]] = None
+    # Daily score / grade timeline + what changed (services/score_history.py)
+    score_history: Optional[dict[str, Any]] = None
+    # Latest quarterly report in plain words (services/results_explainer.py)
+    results_explained: Optional[dict[str, Any]] = None
 
 
 class DeepAnalysisResponse(BaseModel):

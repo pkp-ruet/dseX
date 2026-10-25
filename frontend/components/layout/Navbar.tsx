@@ -35,6 +35,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/dse-today", label: "DSE Today", sub: "Today's prices & movers", icon: "today" },
       { href: "/market-analysis", label: "Market Analysis", sub: "Up or down, cheap or pricey", icon: "analysis" },
       { href: "/dividend-calendar", label: "Dividend Calendar", sub: "Record dates & AGMs", icon: "dividend" },
+      { href: "/results", label: "Quarterly Results", sub: "Every company's latest profit", icon: "results" },
       { href: "/sectors", label: "Sectors", sub: "Compare whole industries", icon: "sectors" },
       { href: "/share-bazar", label: "আজকের শেয়ার বাজার", sub: "Today's market in Bangla", icon: "bangla", bn: true },
     ],
@@ -97,6 +98,8 @@ function MenuIcon({ name }: { name?: string }) {
       return <svg {...p}><path d="M9 18h6M10 21h4" /><path d="M15 14c.2-1 .8-1.7 1.5-2.4A5 5 0 1 0 7.5 11.6c.7.7 1.3 1.4 1.5 2.4" /></svg>;
     case "sectors":
       return <svg {...p}><rect x="3" y="3" width="8" height="8" rx="1.5" /><rect x="13" y="3" width="8" height="5" rx="1.5" /><rect x="3" y="13" width="8" height="8" rx="1.5" /><rect x="13" y="10" width="8" height="11" rx="1.5" /></svg>;
+    case "results":
+      return <svg {...p}><path d="M6 3h9l4 4v14H6Z" /><path d="M15 3v4h4" /><path d="m9 16 2.5-3 2 2 2.5-3.5" /></svg>;
     case "dividend":
       return <svg {...p}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /><path d="M12 13.5v4M10.6 14.2h2.2a1.1 1.1 0 0 1 0 2.2h-1.5a1.1 1.1 0 0 0 0 2.2h2.3" /></svg>;
     case "find":

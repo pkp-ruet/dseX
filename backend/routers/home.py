@@ -29,6 +29,7 @@ from backend.services import price_alert_service
 from backend.services.auth_service import get_user_watchlist, get_user_watchlist_meta
 from backend.services.corporate_actions_service import build_dividend_calendar
 from backend.services.research_lists_service import list_index
+from backend.services.results_explainer import results_for, results_summary
 from backend.services.daily_picks_service import get_or_compute_daily_picks
 from backend.services.daily_tips_service import get_daily_tips
 from backend.services.db_service import (
@@ -135,6 +136,11 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
     # The six research lists (homepage rail): names for Premium readers, the
     # counts alone in the promotion card for everyone else — the page decides.
     research_lists = _safe("research_lists", list_index, [])
+    # Quarterly results on the reader's own stocks, posted in the last three
+    # weeks — headline + profit line (the rest is on the stock page).
+    new_results = _safe("new_results", lambda: results_for(mine), [])
+    # The market's week of results — the dashboard promotes /results with it.
+    results_week = _safe("results_week", results_summary, None)
 
     near = _safe("near_extremes", lambda: _dump(get_near_extremes()), None)
     market_index = _safe("market_index", load_market_index, None)
@@ -174,4 +180,6 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
         "popular": popular,
         "calendar": calendar,
         "research_lists": research_lists,
+        "new_results": new_results,
+        "results_week": results_week,
     }

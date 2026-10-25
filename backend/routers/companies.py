@@ -299,6 +299,20 @@ def get_company_detail(code: str):
     except Exception:
         deep_analysis_model = None
 
+    # Score timeline + results-day explainer. Best-effort, like the two above.
+    score_history = None
+    try:
+        from backend.services.score_history_service import company_history
+        score_history = company_history(trading_code)
+    except Exception:
+        score_history = None
+    results_explained = None
+    try:
+        from backend.services.results_explainer import company_results
+        results_explained = company_results(trading_code, score_row, sector_class)
+    except Exception:
+        results_explained = None
+
     return CompanyDetailResponse(
         profile=CompanyProfile(
             trading_code=trading_code,
@@ -348,6 +362,8 @@ def get_company_detail(code: str):
         ownership=ownership,
         health_overrides=overrides,
         peer_note=peer_note_model,
+        score_history=score_history,
+        results_explained=results_explained,
     )
 
 

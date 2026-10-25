@@ -27,6 +27,8 @@ import StickySummaryBar from "@/components/stock/StickySummaryBar";
 import { type NavSection } from "@/components/stock/StockSectionNav";
 import StockVisitTracker from "@/components/analytics/StockVisitTracker";
 import StockChapter from "@/components/stock/StockChapter";
+import ScoreHistory from "@/components/stock/ScoreHistory";
+import ResultsExplained from "@/components/stock/ResultsExplained";
 import { formatDate, money } from "@/lib/formatters";
 
 export const revalidate = 86400;
@@ -265,15 +267,17 @@ export default async function StockDetailPage({ params }: PageProps) {
   const hasMomentum = !!momentum && momentum.momentum_grade !== "unknown";
   const hasSignals = (signal_flags?.green?.length ?? 0) + (signal_flags?.red?.length ?? 0) > 0;
   const hasPeers = (related_stocks?.length ?? 0) > 0;
+  const hasScoreHistory = (detail.score_history?.points.length ?? 0) >= 2;
+  const hasResults = !!detail.results_explained;
 
   // Five chapters (2026-10 redesign) instead of ten jump targets. The hero,
   // chart and verdict form the Overview, above the sticky chip row.
   const hasCompany = true; // ownership + news always render (with their own empty states)
   const sections: NavSection[] = [
     { id: "ch-overview", label: "Overview" },
-    ...(hasHealth || hasSignals ? [{ id: "ch-health", label: "Health" }] : []),
+    ...(hasHealth || hasSignals || hasScoreHistory ? [{ id: "ch-health", label: "Health" }] : []),
     ...(hasValuation || hasMomentum || hasPeers ? [{ id: "ch-value", label: "Price & value" }] : []),
-    ...(hasFinancials || hasDividends ? [{ id: "ch-money", label: "Profits & dividends" }] : []),
+    ...(hasFinancials || hasDividends || hasResults ? [{ id: "ch-money", label: "Profits & dividends" }] : []),
     ...(hasCompany ? [{ id: "ch-company", label: "Company & news" }] : []),
   ];
 
@@ -365,9 +369,12 @@ export default async function StockDetailPage({ params }: PageProps) {
       />
 
       {/* Chapter 2 · Health */}
-      {(hasHealth || hasSignals) && (
+      {(hasHealth || hasSignals || hasScoreHistory) && (
         <StockChapter id="ch-health" title="Health" bn="কোম্পানিটি কতটা সুস্থ" lead={healthLead}>
           {hasHealth && score_row && <HealthCheck scoreRow={score_row} detail={detail} />}
+          {hasScoreHistory && detail.score_history && (
+            <ScoreHistory history={detail.score_history} code={profile.trading_code} />
+          )}
           {hasSignals && <SignalBoard flags={signal_flags} />}
         </StockChapter>
       )}
@@ -399,8 +406,11 @@ export default async function StockDetailPage({ params }: PageProps) {
       )}
 
       {/* Chapter 4 · Profits and dividends */}
-      {(hasFinancials || hasDividends) && (
+      {(hasFinancials || hasDividends || hasResults) && (
         <StockChapter id="ch-money" title="Profits and dividends" bn="লাভ আর লভ্যাংশ" lead={moneyLead}>
+          {hasResults && detail.results_explained && (
+            <ResultsExplained results={detail.results_explained} code={profile.trading_code} />
+          )}
           {hasFinancials && (
             <div id="financials" className="stock-anchor">
               <ProfitsAndDividends

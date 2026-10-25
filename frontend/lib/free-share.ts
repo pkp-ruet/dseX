@@ -19,6 +19,11 @@ export const FREE_CALENDAR_ROWS = {
   dashboard: 2,
 } as const;
 
+/** `/results`: the newest reports a free reader sees (of whichever filter is
+ *  on); the rest of every company's results is Premium (user decision
+ *  2026-10-25 — "free user can also see the full page"). */
+export const FREE_RESULTS_ROWS = 5;
+
 /** Split a list into the free head (`n` rows) and the locked rest. */
 export function splitFree<T>(items: T[], n: number): [T[], T[]] {
   const k = Math.max(0, Math.min(items.length, n));

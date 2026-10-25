@@ -88,6 +88,8 @@ async function legacyBundle(): Promise<HomeBundle> {
       recent_declarations: (calendar?.recent_declarations ?? []).slice(0, 5),
     },
     research_lists: research.lists,
+    new_results: [],
+    results_week: null,
   };
 }
 

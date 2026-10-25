@@ -15,12 +15,13 @@ ships, the UI hides it (see CLAUDE.md "Premium").
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-FREE_LIMITS = {"watchlist": 10, "alerts": 3, "ai_daily": 10, "portfolios": 1}
+FREE_LIMITS = {"watchlist": 10, "alerts": 3, "ai_daily": 10, "portfolios": 1, "custom_lists": 0}
 
 # HTTPException detail strings the frontend matches (`lib/premium.ts:isLimitError`).
 LIMIT_WATCHLIST = "limit_reached:watchlist"
 LIMIT_ALERTS = "limit_reached:alerts"
 LIMIT_PORTFOLIOS = "limit_reached:portfolios"
+LIMIT_CUSTOM_LISTS = "limit_reached:custom_lists"
 
 
 def _as_utc(value) -> Optional[datetime]:

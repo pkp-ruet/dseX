@@ -39,6 +39,7 @@ const GROUPS: Record<HubGroup, { title: string; bn: string; links: HubLink[] }> 
       { href: "/market-analysis", label: "Market analysis", sub: "Up or down, cheap or pricey", bn: "বাজার উঠছে না নামছে" },
       { href: "/share-bazar", label: "আজকের শেয়ার বাজার", sub: "Today's market in Bangla", bn: "বাংলায় আজকের বাজার" },
       { href: "/todays-news", label: "Today's news", sub: "All company news, last day", bn: "সব কোম্পানির খবর" },
+      { href: "/results", label: "Quarterly results", sub: "Every company's latest EPS", bn: "সব কোম্পানির ত্রৈমাসিক ফল" },
       { href: "/market-intelligence", label: "Market intelligence", sub: "Signal tables for this market mood", bn: "বাজারের মেজাজ অনুযায়ী সংকেত" },
       { href: "/dividend-calendar", label: "Dividend calendar", sub: "Record dates and AGMs", bn: "রেকর্ড ডেট ও এজিএম" },
       { href: "/sectors", label: "Sectors", sub: "Compare whole industries", bn: "খাত ধরে তুলনা" },

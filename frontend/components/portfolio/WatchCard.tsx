@@ -11,6 +11,7 @@ import type { AnalysisLang } from "@/lib/portfolio-analysis";
 const KIND: Record<PortfolioWatchEvent["kind"], { en: [string, string]; bn: string }> = {
   record: { en: ["record date", "record dates"], bn: "রেকর্ড ডেট" },
   results: { en: ["new result", "new results"], bn: "নতুন ফল" },
+  grade: { en: ["grade change", "grade changes"], bn: "গ্রেড বদল" },
   category: { en: ["category change", "category changes"], bn: "ক্যাটাগরি বদল" },
   drop: { en: ["big fall", "big falls"], bn: "বড় পতন" },
   low52: { en: ["yearly low", "yearly lows"], bn: "বছরের সর্বনিম্ন" },

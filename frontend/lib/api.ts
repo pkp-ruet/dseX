@@ -340,6 +340,65 @@ export interface CompanyDetail {
   }>;
   /** Shown above the peer table when the peers are not the same kind of business. */
   peer_note?: BiText | null;
+  /** Daily score / grade timeline + what changed (backend services/score_history.py). */
+  score_history?: ScoreHistory | null;
+  /** The latest quarterly report in plain words (backend services/results_explainer.py). */
+  results_explained?: ResultsExplained | null;
+}
+
+export type ScoreTierKey = "excellent" | "good" | "average" | "weak" | "unknown";
+
+export interface ScoreChangeReason extends BiText {
+  pillar?: string;
+  key?: string;
+  name_en?: string;
+  name_bn?: string;
+  /** Score points this pillar moved the score by (before the category / staleness cuts). */
+  points?: number;
+}
+
+export interface ScoreChange extends BiText {
+  date: string;
+  /** The day the old grade began — the change is measured from there. */
+  since: string;
+  from_score: number | null;
+  to_score: number | null;
+  from_tier: ScoreTierKey;
+  to_tier: ScoreTierKey;
+  drivers: ScoreChangeReason[];
+  notes: ScoreChangeReason[];
+  /** False for changes before the pillars were stored: no "why". */
+  explained: boolean;
+  /** A day we changed the scoring rules — not news about the company. */
+  method: boolean;
+}
+
+export interface ScoreHistory {
+  points: { date: string; score: number; tier: ScoreTierKey }[];
+  first_date: string | null;
+  last_date: string | null;
+  changes: ScoreChange[];
+  /** Grade changes, not counting the days we changed the rules. */
+  grade_changes: number;
+}
+
+export interface ResultsExplained {
+  quarter: number | null;
+  months: number;
+  period_end: string | null;
+  post_date: string | null;
+  period_en: string;
+  period_bn: string;
+  eps_cum: number;
+  eps_cum_prev: number;
+  eps_yoy_pct: number | null;
+  eps_q_yoy_pct: number | null;
+  level: "good" | "watch" | "bad" | "neutral";
+  headline_en: string;
+  headline_bn: string;
+  lines: (BiText & { key: "profit" | "quarter" | "cash" | "price" | "score"; tone: "good" | "bad" | "neutral" })[];
+  meaning_en: string;
+  meaning_bn: string;
 }
 
 export interface UpcomingDividend {
@@ -726,6 +785,38 @@ export async function getSectorDetail(slug: string): Promise<SectorDetailData> {
 /** Record dates, AGMs and recent declarations for /dividend-calendar. */
 export async function getDividendCalendar(): Promise<DividendCalendarData> {
   return apiFetch<DividendCalendarData>("/api/dividend-calendar", 86400);
+}
+
+/** One company's latest quarterly report — the free part of the explainer
+ *  (backend services/results_explainer.py `feed_row`). */
+export interface LatestResultRow {
+  code: string;
+  name: string;
+  sector: string | null;
+  price: number | null;
+  change_pct: number | null;
+  score: number | null;
+  post_date: string;
+  quarter: number | null;
+  months: number;
+  period_end: string | null;
+  level: "good" | "watch" | "bad" | "neutral";
+  eps_yoy_pct: number | null;
+  headline_en: string;
+  headline_bn: string;
+  profit_en: string | null;
+  profit_bn: string | null;
+}
+
+export interface LatestResults {
+  as_of: string | null;
+  counts: Record<LatestResultRow["level"], number>;
+  results: LatestResultRow[];
+}
+
+/** Every company's latest quarterly results, newest first (`/results`). */
+export async function getLatestResults(): Promise<LatestResults> {
+  return apiFetch<LatestResults>("/api/results", 900);
 }
 
 /** Every declaration stored for one company, newest first (raw ledger rows —
@@ -1758,7 +1849,7 @@ export async function apiGetPortfolioHistory(pid?: string | null): Promise<Portf
 
 export interface PortfolioWatchEvent {
   id: string;
-  kind: "record" | "results" | "category" | "drop" | "low52";
+  kind: "record" | "results" | "grade" | "category" | "drop" | "low52";
   code: string;
   level: "good" | "watch" | "bad";
   title_en: string;
@@ -1837,6 +1928,16 @@ export interface HomeBundle {
   };
   /** The six Premium research lists (2026-10-24): counts + top three each. */
   research_lists?: ResearchListSummary[];
+  /** Quarterly results on the reader's own stocks, posted in the last three weeks. */
+  new_results?: LatestResultRow[];
+  /** The market's week of quarterly results (the free readers' /results promotion). */
+  results_week?: {
+    days: number;
+    recent: number;
+    counts: Record<LatestResultRow["level"], number>;
+    total: number;
+    latest: LatestResultRow[];
+  } | null;
 }
 
 /** Auth-only. The dashboard paints from this + `/api/scores` + `/api/market/state`. */
@@ -2704,4 +2805,110 @@ export async function getWatchlistGlance(codes: string[]): Promise<GlanceRow[]> 
   if (!res.ok) throw new Error(`glance ${res.status}`);
   const data = (await res.json()) as { rows: GlanceRow[] };
   return data.rows ?? [];
+}
+
+// ---------------------------------------------------------------------------
+// Your own research lists (backend services/custom_lists.py). The menu and a
+// live run are public; saving is Premium (403 limit_reached:custom_lists).
+// ---------------------------------------------------------------------------
+
+export type CustomCheckValue = string | number | boolean;
+
+export interface CustomCheckDef {
+  key: string;
+  group: string;
+  name_en: string;
+  name_bn: string;
+  /** Empty = a plain on/off check. */
+  options: { value: CustomCheckValue; label_en: string; label_bn: string }[];
+  default: CustomCheckValue | null;
+  /** The full check sentence, for on/off checks. */
+  label_en: string | null;
+  label_bn: string | null;
+}
+
+export interface CustomListSpec {
+  checks: { key: string; value: CustomCheckValue }[];
+  sort?: string;
+}
+
+export interface CustomListCatalog {
+  groups: { key: string; en: string; bn: string }[];
+  checks: CustomCheckDef[];
+  sorts: { key: string; en: string; bn: string }[];
+  templates: { id: string; title_en: string; title_bn: string; spec: CustomListSpec }[];
+  max_checks: number;
+  max_lists: number;
+}
+
+export interface CustomListStock {
+  rank: number;
+  code: string;
+  name: string | null;
+  sector: string | null;
+  price: number | null;
+  change_pct: number | null;
+  score: number | null;
+  signal: "buy" | "sell" | "none";
+  checks: { key: string; value_en: string; value_bn: string }[];
+}
+
+export interface CustomListResult {
+  spec: CustomListSpec;
+  universe: number;
+  funnel: { key: string; label_en: string; label_bn: string; left: number }[];
+  passed: number;
+  stocks: CustomListStock[];
+}
+
+export interface SavedCustomList {
+  id: string;
+  name: string;
+  spec: CustomListSpec;
+  summary: { key: string; en: string; bn: string }[];
+  alerts: boolean;
+  joined: { code: string; name: string }[];
+  left: { code: string; name: string }[];
+  changed_on: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  passed?: number;
+  top?: Pick<CustomListStock, "code" | "name" | "price" | "change_pct" | "score" | "signal">[];
+  /** Its sector left the DSE list — the reader has to edit it. */
+  broken?: boolean;
+}
+
+export async function getCustomListCatalog(): Promise<CustomListCatalog> {
+  const res = await fetch(`${getApiUrl()}/api/custom-lists/catalog`);
+  if (!res.ok) throw new Error(`catalog ${res.status}`);
+  return res.json() as Promise<CustomListCatalog>;
+}
+
+export async function runCustomList(spec: CustomListSpec): Promise<CustomListResult> {
+  const res = await fetch(`${getApiUrl()}/api/custom-lists/run`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(spec),
+  });
+  if (!res.ok) throw new Error(`run ${res.status}`);
+  return res.json() as Promise<CustomListResult>;
+}
+
+export async function apiGetCustomLists(): Promise<{ lists: SavedCustomList[]; can_save: boolean }> {
+  return apiAuthFetch("/api/user/custom-lists");
+}
+
+export async function apiCreateCustomList(name: string, spec: CustomListSpec, alerts = true): Promise<{ list: SavedCustomList }> {
+  return apiAuthFetch("/api/user/custom-lists", { method: "POST", body: JSON.stringify({ name, spec, alerts }) });
+}
+
+export async function apiUpdateCustomList(
+  id: string,
+  patch: { name?: string; spec?: CustomListSpec; alerts?: boolean },
+): Promise<{ list: SavedCustomList }> {
+  return apiAuthFetch(`/api/user/custom-lists/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(patch) });
+}
+
+export async function apiDeleteCustomList(id: string): Promise<{ ok: boolean }> {
+  return apiAuthFetch(`/api/user/custom-lists/${encodeURIComponent(id)}`, { method: "DELETE" });
 }

@@ -47,7 +47,7 @@ def test_admin_is_always_premium():
 def test_limits():
     assert limits_for({}, NOW) == FREE_LIMITS
     assert limits_for({"premium_until": NOW + timedelta(days=1)}, NOW) == {
-        "watchlist": None, "alerts": None, "ai_daily": None, "portfolios": None,
+        "watchlist": None, "alerts": None, "ai_daily": None, "portfolios": None, "custom_lists": None,
     }
 
 
@@ -79,4 +79,4 @@ def test_plan_fields_shape(monkeypatch):
     assert out["is_premium"] is False
     assert "trial_available" not in out
     assert out["premium_until"] is None
-    assert set(out["limits"]) == {"watchlist", "alerts", "ai_daily", "portfolios"}
+    assert set(out["limits"]) == {"watchlist", "alerts", "ai_daily", "portfolios", "custom_lists"}
