@@ -2,33 +2,33 @@
 
 import Button from "@/components/ui/Button";
 
+/**
+ * The page header's one action: jump to the analysis chapter. Quiet and
+ * plain (2026-10-26 redesign): no sparkle icon, no primary fill — the page's
+ * only filled buttons are the ones that change something ("+ Add stock").
+ */
 export default function ViewAnalysisButton() {
   function handleClick() {
     const el = document.getElementById("pf-analysis") ?? document.getElementById("portfolio-analysis");
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   return (
-    <Button type="button" variant="primary" onClick={handleClick} aria-label="View portfolio analysis" className="group">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M11 2 9 7 4 9l5 2 2 5 2-5 5-2-5-2-2-5zm8 11-1 3-3 1 3 1 1 3 1-3 3-1-3-1-1-3z" />
-      </svg>
-      <span>View Analysis</span>
+    <Button type="button" variant="quiet" onClick={handleClick} className="group">
+      <span>See the analysis</span>
       <svg
-        width="14"
-        height="14"
+        width="16"
+        height="16"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2.6"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
         className="transition-transform duration-200 group-hover:translate-y-0.5"
         aria-hidden="true"
       >
-        <path d="M6 9l6 6 6-6" />
+        <path d="M12 5v14M6 13l6 6 6-6" />
       </svg>
     </Button>
   );

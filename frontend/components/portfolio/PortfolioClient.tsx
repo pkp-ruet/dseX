@@ -89,7 +89,7 @@ import PortfolioHero from "./PortfolioHero";
 import AddHoldingModal from "./AddHoldingModal";
 import BuySellModal from "./BuySellModal";
 import PortfolioNews from "./PortfolioNews";
-import NextMoveCard from "./NextMoveCard";
+import AnalysisTop from "./AnalysisTop";
 import GradeLiftCard from "./GradeLiftCard";
 import HowWeDecide from "./HowWeDecide";
 import { buildNextMove, gradeLifts } from "@/lib/portfolio-next";
@@ -1205,9 +1205,9 @@ export default function PortfolioClient() {
               lead={L("How your portfolio stands, and the next steps.", "আপনার পোর্টফোলিও কেমন, আর পরের পদক্ষেপ।")}
               lang={lang}
             />
-            {/* The one thing to act on first — free, ranked by the taka at stake */}
-            <NextMoveCard first={nextMove.first} more={nextMove.more} lang={lang} />
-            {/* The grade + the three lists (the rest of each list blurs in place) */}
+            {/* The grade, its three scores and the one thing to act on first — free */}
+            <AnalysisTop analysis={analysis} next={nextMove} lang={lang} />
+            {/* The three lists (the rest of each list blurs in place) */}
             <PortfolioAnalysisView
               analysis={analysis}
               lang={lang}
@@ -1216,6 +1216,7 @@ export default function PortfolioClient() {
               showSectorSpread={false}
               showHoldingsList={false}
               showDisclaimer={false}
+              showGrade={false}
             />
             {/* What to do next — every card shows for everyone; for free readers
                 only the data inside blurs, with one "Unlock with Premium" button */}

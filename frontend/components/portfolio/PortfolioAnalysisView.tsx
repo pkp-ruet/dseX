@@ -86,6 +86,8 @@ interface Props {
   showSectorSpread?: boolean;
   showHoldingsList?: boolean;
   showDisclaimer?: boolean;
+  /** The grade card. /portfolio passes false — `AnalysisTop` shows the grade there. */
+  showGrade?: boolean;
   /** Free account on /portfolio: the grade, its three scores and the spread
    *  charts stay open; each of the three lists shows its first FREE_POINTS
    *  points and the rest blurred in place, with a link to the page's one
@@ -107,6 +109,7 @@ export default function PortfolioAnalysisView({
   showSectorSpread = true,
   showHoldingsList = true,
   showDisclaimer = true,
+  showGrade = true,
   locked = false,
   moreHref,
 }: Props) {
@@ -119,12 +122,13 @@ export default function PortfolioAnalysisView({
 
   return (
     <div
-      id="portfolio-analysis"
+      id={showGrade ? "portfolio-analysis" : undefined}
       lang={langAttr}
       className={`flex flex-col gap-4 sm:gap-5 scroll-mt-20 ${bnText}`}
     >
       {/* The grade: letter in its colour, label word, headline, then the three
           sub-scores in a hairline grid (the BigPicture "answers" pattern). */}
+      {showGrade && (
       <PfCard title={t.verdict} bn={STR.bn.verdict} lang={lang} flush dataCard="portfolio-grade">
         <div className="px-4 pb-5 sm:px-6 sm:pb-6">
           <div className="flex items-start gap-4 sm:gap-5">
@@ -154,6 +158,7 @@ export default function PortfolioAnalysisView({
           <SubScore label={t.entry} value={entry} hint={t.entryHint} />
         </div>
       </PfCard>
+      )}
 
       {/* Good / Bad / Consider — one card, three hairline-separated lists
           (stacked on phones, three columns from md). */}

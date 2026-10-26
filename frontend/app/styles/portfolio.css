@@ -233,3 +233,38 @@ a.pf-hold-name:hover { color: var(--primary-ink); }
 }
 .pf-blur-btn:hover { border-color: var(--primary); }
 .pf-blur-btn:active { opacity: 0.8; }
+
+/* ---- Top of the analysis chapter (AnalysisTop) ----
+   Open on the canvas like the money hero: the grade ring + its word + the
+   headline, then ONE card with the three scores and the next move. */
+.pf-an-head { display: flex; align-items: center; gap: 16px; }
+@media (min-width: 640px) { .pf-an-head { gap: 22px; } }
+.pf-ring { position: relative; flex-shrink: 0; width: 84px; height: 84px; }
+@media (min-width: 640px) { .pf-ring { width: 104px; height: 104px; } }
+.pf-ring-letter {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font-size: var(--fs-2xl); font-weight: 700; line-height: 1; letter-spacing: -0.02em;
+}
+@media (min-width: 640px) { .pf-ring-letter { font-size: var(--fs-display); } }
+.pf-an-grade {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px;
+  margin: 0; font-size: var(--fs-sm); font-weight: 700;
+}
+.pf-an-of { font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.pf-an-headline {
+  margin: 6px 0 0; max-width: 34ch;
+  font-size: clamp(1.25rem, 3.6vw, 1.75rem); font-weight: 700; line-height: 1.2;
+  letter-spacing: -0.015em; color: var(--text); text-wrap: balance;
+}
+.pf-an-explain { margin: 14px 0 0; max-width: 64ch; font-size: var(--fs-md); line-height: 1.6; color: var(--text-muted); }
+
+.pf-an-scores { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--cell-rule); }
+.pf-an-scores .pf-answer { padding: 14px 12px; }
+@media (min-width: 640px) { .pf-an-scores .pf-answer { padding: 20px 22px; } }
+.pf-an-scores .pf-bar { margin-top: 2px; }
+
+.pf-an-next { padding: 16px; border-top: 1px solid var(--cell-rule); background: var(--surface); }
+@media (min-width: 640px) { .pf-an-next { padding: 20px 22px 22px; } }
+.pf-an-eyebrow { display: flex; align-items: center; gap: 8px; margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--primary-ink); }
+.pf-an-move { margin: 8px 0 0; font-size: var(--fs-lg); font-weight: 700; line-height: 1.3; color: var(--text); }
+.pf-an-line { margin: 6px 0 0; max-width: 66ch; font-size: var(--fs-md); line-height: 1.6; color: var(--text); }
