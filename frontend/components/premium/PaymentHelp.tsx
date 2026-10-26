@@ -57,7 +57,7 @@ export default function PaymentHelp() {
   const mailto = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Premium payment problem")}`;
 
   return (
-    <div className="soft-card p-4 sm:p-5 flex flex-col gap-4">
+    <div className="flex flex-col gap-4">
       {sent ? (
         <div role="status">
           <p className="font-semibold text-text-main">{L("Thanks — we got your report", "ধন্যবাদ — আপনার অভিযোগ পেয়েছি")}</p>

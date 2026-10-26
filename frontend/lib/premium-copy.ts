@@ -21,6 +21,7 @@ export const HERO = {
   },
   from: { en: "From", bn: "মাত্র" },
   perMonth: { en: "a month on the yearly plan", bn: "মাসে, বছরের প্ল্যানে" },
+  orMonthly: { en: `or ৳${LOWEST_PRICE} for a single month`, bn: `অথবা এক মাসের জন্য ৳${LOWEST_PRICE}` },
 } as const;
 
 export const PROMISES: Bi[] = [
@@ -91,10 +92,15 @@ export const SECTIONS = {
     bn: "টাকা পাঠিয়েছেন কিন্তু প্রিমিয়াম চালু হয়নি, ভুল পরিমাণ পাঠিয়েছেন, বা অন্য কিছু? এখানে লিখুন বা ইমেইল করুন।",
   },
   compare: { en: "Free and Premium, side by side", bn: "ফ্রি আর প্রিমিয়াম পাশাপাশি" },
-  seeAll: { en: "See every difference", bn: "সব পার্থক্য দেখুন" },
   free: { en: "Free", bn: "ফ্রি" },
   premium: { en: "Premium", bn: "প্রিমিয়াম" },
   faq: { en: "Questions", bn: "সাধারণ প্রশ্ন" },
+  closing: { en: "See the reasons on every stock", bn: "প্রতিটি শেয়ারের কারণ দেখুন" },
+  closingLead: {
+    en: "Pick a plan, pay by bKash or Nagad, and Premium starts straight away.",
+    bn: "প্ল্যান বেছে নিন, bKash বা Nagad দিয়ে পেমেন্ট করুন — প্রিমিয়াম সঙ্গে সঙ্গে চালু।",
+  },
+  feature: { en: "What you get", bn: "যা পাবেন" },
   howWeScore: {
     en: ["Want to see how the score works first? Read ", "how we score", "."],
     bn: ["আগে দেখতে চান স্কোর কীভাবে হয়? পড়ুন ", "আমরা কীভাবে স্কোর করি", "।"],

@@ -64,40 +64,6 @@
   background: rgb(var(--primary-rgb) / 0.14);
 }
 
-/* Plan picker + steps on /premium (components/premium/PayBox.tsx). */
-.pay-plan {
-  display: block;
-  width: 100%;
-  min-height: 44px;
-  padding: 16px;
-  text-align: left;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  box-shadow: var(--shadow-soft);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-.pay-plan:hover { border-color: rgb(var(--primary-rgb) / 0.5); }
-.pay-plan:focus-visible { outline: none; box-shadow: var(--ring); }
-.pay-plan-on {
-  border-color: var(--primary);
-  background: rgb(var(--primary-rgb) / 0.06);
-}
-.pay-step { display: flex; align-items: flex-start; gap: 12px; }
-.pay-step-n {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  font-size: var(--fs-sm);
-  font-weight: 700;
-  color: var(--primary-ink);
-  background: rgb(var(--primary-rgb) / 0.14);
-}
-
 /* Yearly portfolio statement (/portfolio/statement): print only the statement. */
 @media print {
   .navbar-header,
@@ -111,99 +77,343 @@
 }
 
 
-/* /premium page (app/premium/page.tsx): calm hero, airy benefit grid,
-   three plain steps, collapsed comparison. Lines, not boxes in boxes.
-   Spacing tokens are 1 2 3 4 6 8 12 only — there is no --space-5. */
-.pm-hero {
-  padding: var(--space-8) var(--space-6);
-  border: 1px solid rgb(var(--primary-rgb) / 0.22);
-  border-radius: var(--radius-xl);
-  background: rgb(var(--primary-rgb) / 0.05);
+/* /premium page (components/premium/PremiumBody.tsx + PayBox.tsx), redesigned
+   clean 2026-10-27: the hero open on the canvas, ONE card per block, hairlines
+   instead of boxes in boxes, clay only where you act, the crown in gold (the
+   navbar member badge's colour). Spacing tokens are 1 2 3 4 6 8 12 only —
+   there is no --space-5. */
+.pm-page { padding-bottom: var(--space-8); }
+.pm-section { margin-top: var(--space-12); }
+@media (min-width: 640px) { .pm-section { margin-top: calc(var(--space-12) + var(--space-4)); } }
+
+/* Hero */
+.pm-hero { position: relative; padding-top: var(--space-2); }
+.pm-hero-lang { display: flex; justify-content: flex-end; margin-bottom: var(--space-2); }
+.pm-hero .page-header { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
+.pm-hero .page-eyebrow {
+  color: var(--gold-ink);
+  background: var(--gold-light);
+  border-color: rgb(var(--gold-rgb) / 0.45);
 }
-.pm-hero .page-header { margin-bottom: var(--space-4); }
-.pm-price { margin-top: var(--space-2); }
+.pm-eyebrow { display: inline-flex; align-items: center; gap: 6px; }
+@media (min-width: 640px) {
+  .pm-hero .page-h1 { font-size: var(--fs-display); line-height: 1.08; letter-spacing: -0.02em; }
+}
+.pm-hero .page-lead { font-size: var(--fs-md); max-width: 36rem; }
+
+.pm-price { margin-top: var(--space-6); }
+.pm-price-from,
+.pm-price-per { font-size: var(--fs-sm); color: var(--text-muted); }
+.pm-price-num {
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.pm-price-alt { margin-top: 2px; font-size: var(--fs-sm); color: var(--text-muted); }
+
 .pm-promises {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2) var(--space-6);
-  margin-top: var(--space-6);
-  padding-top: var(--space-6);
-  border-top: 1px solid rgb(var(--primary-rgb) / 0.18);
+  gap: var(--space-3) var(--space-6);
+  margin-top: var(--space-8);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
 }
-.pm-promises li { display: flex; align-items: center; gap: var(--space-2); }
-
-.pm-benefits { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
-@media (min-width: 640px) { .pm-benefits { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-6); } }
-.pm-benefit {
-  padding: var(--space-6);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  background: var(--surface);
-  transition: border-color 0.15s ease;
+.pm-promises li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text);
 }
-.pm-benefit:hover { border-color: rgb(var(--primary-rgb) / 0.45); }
-.pm-benefit-icon {
+.pm-tick {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 44px;
-  height: 44px;
+  width: 22px;
+  height: 22px;
   border-radius: 999px;
-  color: var(--primary-ink);
-  background: rgb(var(--primary-rgb) / 0.1);
+  color: var(--positive);
+  background: rgb(var(--positive-rgb) / 0.1);
 }
-.pm-points {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  margin-top: var(--space-6);
-  padding-top: var(--space-6);
-  border-top: 1px solid var(--border);
+
+/* Benefits: ONE card, four cells split by hairlines */
+.pm-benefits {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
 }
+.pm-benefit { padding: var(--space-6); }
+.pm-benefit + .pm-benefit { border-top: 1px solid var(--border); }
+@media (min-width: 640px) {
+  .pm-benefits { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .pm-benefit { padding: var(--space-8) var(--space-6); }
+  .pm-benefit + .pm-benefit { border-top: 0; }
+  .pm-benefit:nth-child(n + 3) { border-top: 1px solid var(--border); }
+  .pm-benefit:nth-child(2n) { border-left: 1px solid var(--border); }
+}
+.pm-benefit-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  color: var(--text);
+  background: var(--surface-2);
+}
+.pm-points { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-4); }
 .pm-points li {
   display: flex;
   align-items: flex-start;
-  gap: var(--space-3);
+  gap: var(--space-2);
   font-size: var(--fs-sm);
   line-height: 1.45;
   color: var(--text);
 }
-.pm-points li > span:first-child { flex: none; margin-top: 2px; }
+.pm-points-tick { flex: none; margin-top: 2px; color: var(--primary); }
+.pm-note { margin-top: var(--space-4); font-size: var(--fs-sm); color: var(--text-muted); }
 
-.pm-steps { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-6); }
-@media (min-width: 640px) { .pm-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+/* The three pay steps — a slim guide row above the plan cards */
+.pm-steps {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  margin: var(--space-2) 0 var(--space-6);
+}
+@media (min-width: 640px) {
+  .pm-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+}
+.pm-steps li { display: flex; align-items: center; gap: var(--space-3); }
 .pm-step-n {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  flex: none;
+  width: 28px;
+  height: 28px;
   border-radius: 999px;
+  font-size: var(--fs-sm);
   font-weight: 700;
-  color: var(--surface);
-  background: var(--primary);
+  color: var(--text);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
 }
 
-.pm-compare {
+/* Plan picker (PayBox) */
+.pay-plans { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
+@media (min-width: 640px) {
+  .pay-plans { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); padding-top: var(--space-3); }
+}
+.pay-plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-6) var(--space-4) var(--space-4);
+  text-align: left;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+.pay-plan:hover { border-color: rgb(var(--primary-rgb) / 0.5); }
+.pay-plan:active { transform: scale(0.99); }
+.pay-plan:focus-visible { outline: none; box-shadow: var(--ring); }
+.pay-plan-on {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-lift);
+}
+.pay-plan-best { padding-top: var(--space-8); }
+.pay-plan-flag {
+  position: absolute;
+  top: -1px;
+  left: var(--space-4);
+  padding: 3px 10px;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  color: var(--gold-ink);
+  background: var(--gold-light);
+  border: 1px solid rgb(var(--gold-rgb) / 0.45);
+  border-top: 0;
+}
+.pay-radio {
+  position: relative;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  transition: border-color 0.15s ease;
+}
+.pay-plan-on .pay-radio { border-color: var(--primary); }
+.pay-plan-on .pay-radio::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 999px;
+  background: var(--primary);
+}
+.pay-plan-price {
+  display: block;
+  margin-top: var(--space-4);
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.pay-plan-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: auto;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+/* Space between "for N days" and the footer; the footer itself sits at the
+   bottom (margin-top: auto) so the three cards line up. */
+.pay-plan-price + span { margin-bottom: var(--space-4); }
+.pay-plan-save {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  color: var(--positive);
+  background: rgb(var(--positive-rgb) / 0.1);
+}
+
+/* Pay form */
+.pay-form { padding: var(--space-6) var(--space-4); }
+@media (min-width: 640px) { .pay-form { padding: var(--space-6); } }
+.pay-step { display: flex; align-items: flex-start; gap: var(--space-3); }
+.pay-step-n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--primary-ink);
+  background: rgb(var(--primary-rgb) / 0.12);
+}
+.pay-number {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+.pay-submit { padding-top: var(--space-4); border-top: 1px solid var(--border); }
+
+/* Folding rows: comparison, FAQ, payment help */
+.pm-fold-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 56px;
+  padding: var(--space-4);
+  cursor: pointer;
+  list-style: none;
+}
+.pm-fold-summary::-webkit-details-marker { display: none; }
+.pm-fold-summary:hover .pm-fold-chev { color: var(--text); }
+.pm-fold-chev { flex: none; color: var(--text-muted); transition: transform 0.2s ease; }
+details[open] > .pm-fold-summary .pm-fold-chev { transform: rotate(180deg); }
+@media (min-width: 640px) { .pm-fold-summary { padding: var(--space-4) var(--space-6); } }
+
+.pm-compare,
+.pm-faq,
+.pm-help {
+  overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);
-  overflow: hidden;
+  box-shadow: var(--shadow-soft);
 }
-.pm-compare-summary {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
+
+/* Free | Premium grid, always open: three columns from 640px, stacked below with labels */
+.pm-compare-head { display: none; }
+.pm-compare-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-2);
-  min-height: 48px;
-  padding: var(--space-3) var(--space-4);
-  cursor: pointer;
+  padding: var(--space-4);
+  border-top: 1px solid var(--border);
 }
-.pm-compare[open] > .pm-compare-summary { border-bottom: 1px solid var(--border); }
-@media (max-width: 479px) {
-  .pm-hero { padding: var(--space-6) var(--space-4); }
+/* Phones: no header row, so the first row is the card's top edge. */
+.pm-compare li:first-child { border-top: 0; }
+.pm-compare-label { font-size: var(--fs-2xs); font-weight: 700; color: var(--text-muted); }
+.pm-compare-label-pm { color: var(--primary-ink); }
+.pm-compare-pm {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: rgb(var(--primary-rgb) / 0.05);
 }
+@media (min-width: 640px) {
+  .pm-compare-head,
+  .pm-compare-row { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) minmax(0, 1.2fr); gap: var(--space-4); }
+  .pm-compare-head {
+    display: grid;
+    padding: var(--space-3) var(--space-6);
+    font-size: var(--fs-2xs);
+    font-weight: 700;
+    color: var(--text-muted);
+    background: var(--surface-2);
+  }
+  .pm-compare-head-pm { display: inline-flex; align-items: center; gap: 4px; color: var(--gold-ink); }
+  .pm-compare-row { padding: var(--space-4) var(--space-6); }
+  .pm-compare li:first-child { border-top: 1px solid var(--border); }
+  .pm-compare-label { display: none; }
+  .pm-compare-pm { margin: calc(-1 * var(--space-2)) 0; }
+}
+
+.pm-faq-item + .pm-faq-item { border-top: 1px solid var(--border); }
+.pm-faq-body { padding: 0 var(--space-4) var(--space-4); }
+@media (min-width: 640px) { .pm-faq-body { padding: 0 var(--space-6) var(--space-6); } }
+
+.pm-help-body { padding: var(--space-4); border-top: 1px solid var(--border); }
+@media (min-width: 640px) { .pm-help-body { padding: var(--space-6); } }
+
+/* Closing ask */
+.pm-close {
+  margin-top: var(--space-12);
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+.pm-close-crown {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  color: var(--gold-ink);
+  background: var(--gold-light);
+}
+.pm-foot { margin-top: var(--space-6); font-size: var(--fs-sm); color: var(--text-muted); }
 
 /* Inside a lock scope with an anchor (/market-analysis → #ma-premium): one
    quiet line under the blurred preview, pointing at the page's single

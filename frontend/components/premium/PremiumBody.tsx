@@ -1,17 +1,20 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import SectionHeader from "@/components/ui/SectionHeader";
 import Bn from "@/components/i18n/Bn";
 import LangToggle from "@/components/stock/LangToggle";
-import { IconBulb, IconCheck, IconList, IconSparkle, IconWallet } from "@/components/ui/icons";
+import {
+  IconBulb, IconCheck, IconChevronDown, IconCrown, IconList, IconSparkle, IconWallet,
+} from "@/components/ui/icons";
 import PremiumPlanCta from "@/components/premium/PremiumPlanCta";
 import PremiumContextCard from "@/components/premium/PremiumContextCard";
 import PayBox from "@/components/premium/PayBox";
 import PaymentHelp from "@/components/premium/PaymentHelp";
 import { useLang } from "@/context/LangContext";
+import { usePremium } from "@/lib/premium";
 import {
   BENEFITS, FAQS, HERO, PER_MONTH, PROMISES, ROWS, SECTIONS, STEPS, type Bi,
 } from "@/lib/premium-copy";
@@ -24,7 +27,10 @@ const ICON: Record<(typeof BENEFITS)[number]["key"], ReactNode> = {
 };
 
 /**
- * The /premium page body (2026-10-25: follows the app-wide language switch).
+ * The /premium page body (2026-10-25: follows the app-wide language switch;
+ * 2026-10-27: redesigned clean — hero open on the canvas, the four benefits in
+ * ONE card, the three pay steps inside the plan section, a Free | Premium
+ * grid (always open — user decision), ONE FAQ card, payment help folded, a closing call to action).
  * English mode keeps the Bengali line under each heading, as everywhere else;
  * Bengali mode is Bengali only. The server renders English (the saved choice
  * applies after mount) — the page's metadata and FAQ JSON-LD stay in
@@ -32,34 +38,57 @@ const ICON: Record<(typeof BENEFITS)[number]["key"], ReactNode> = {
  */
 export default function PremiumBody() {
   const { lang, setLang, bn } = useLang();
+  const { state } = usePremium();
   const t = (b: Bi) => (bn ? b.bn : b.en);
   // A heading's Bengali line — only in English mode (Bengali mode IS Bengali).
   const sub = (b: Bi) => (bn ? undefined : b.bn);
   const bnCls = bn ? "font-bn" : "";
   const langAttr = bn ? "bn" : undefined;
 
+  // Payment help is folded; a link to #payment-help opens it.
+  const helpRef = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    const open = () => {
+      if (window.location.hash === "#payment-help" && helpRef.current) helpRef.current.open = true;
+    };
+    open();
+    window.addEventListener("hashchange", open);
+    return () => window.removeEventListener("hashchange", open);
+  }, []);
+
   return (
-    <div className={`page-narrow space-y-14 ${bnCls}`} lang={langAttr}>
-      {/* 1 · The promise, the price, the next step */}
+    <div className={`page-narrow pm-page ${bnCls}`} lang={langAttr}>
+      {/* 1 · The promise, the price, the next step — open on the canvas */}
       <section className="pm-hero">
-        <div className="mb-2 flex justify-end">
+        <div className="pm-hero-lang">
           <LangToggle value={lang} onChange={setLang} size="sm" />
         </div>
-        <PageHeader eyebrow={t(HERO.eyebrow)} title={t(HERO.title)} bn={sub(HERO.title)} lead={t(HERO.lead)} />
-        <p className="pm-price">
-          <span className="text-sm text-text-muted">{t(HERO.from)}</span>{" "}
-          <span className="text-3xl font-bold text-text-main tabular-nums">৳{PER_MONTH}</span>{" "}
-          <span className="text-sm text-text-muted">{t(HERO.perMonth)}</span>
-        </p>
-        {!bn && <Bn className="text-sm text-text-muted">বছরের প্ল্যানে মাসে মাত্র ৳{PER_MONTH}।</Bn>}
-        <div className="mt-4">
+        <PageHeader
+          eyebrow={
+            <span className="pm-eyebrow">
+              <IconCrown size={14} /> {t(HERO.eyebrow)}
+            </span>
+          }
+          title={t(HERO.title)}
+          bn={sub(HERO.title)}
+          lead={t(HERO.lead)}
+        />
+        <div className="pm-price">
+          <p>
+            <span className="pm-price-from">{t(HERO.from)}</span>{" "}
+            <span className="pm-price-num">৳{PER_MONTH}</span>{" "}
+            <span className="pm-price-per">{t(HERO.perMonth)}</span>
+          </p>
+          <p className="pm-price-alt">{t(HERO.orMonthly)}</p>
+        </div>
+        <div className="mt-6">
           <PremiumPlanCta />
         </div>
         <ul className="pm-promises" aria-label={bn ? "আমাদের প্রতিশ্রুতি" : "Our promises"}>
           {PROMISES.map((p) => (
             <li key={p.en}>
-              <span className="text-primary" aria-hidden><IconCheck size={16} /></span>
-              <span className="text-sm text-text-main">{t(p)}</span>
+              <span className="pm-tick" aria-hidden><IconCheck size={14} /></span>
+              <span>{t(p)}</span>
             </li>
           ))}
         </ul>
@@ -67,23 +96,19 @@ export default function PremiumBody() {
 
       <PremiumContextCard />
 
-      {/* 2 · What you get, in four plain ideas */}
-      <section aria-labelledby="get-h" id="what" className="scroll-mt-24">
-        <SectionHeader id="get-h" title={t(SECTIONS.what)} bn={sub(SECTIONS.what)} />
+      {/* 2 · What you get, in four plain ideas — one card, hairline grid */}
+      <section aria-labelledby="get-h" id="what" className="pm-section scroll-mt-24">
+        <SectionHeader id="get-h" size="lg" title={t(SECTIONS.what)} bn={sub(SECTIONS.what)} />
         <div className="pm-benefits">
           {BENEFITS.map((b) => (
             <article key={b.key} className="pm-benefit">
-              <div className="flex items-center gap-3">
-                <span className="pm-benefit-icon" aria-hidden>{ICON[b.key]}</span>
-                <div className="min-w-0">
-                  <h3 className="text-base font-bold text-text-main">{t(b.title)}</h3>
-                  {!bn && <Bn className="text-sm text-text-muted">{b.title.bn}</Bn>}
-                </div>
-              </div>
+              <span className="pm-benefit-icon" aria-hidden>{ICON[b.key]}</span>
+              <h3 className="mt-4 text-base font-bold text-text-main">{t(b.title)}</h3>
+              {!bn && <Bn className="text-sm text-text-muted">{b.title.bn}</Bn>}
               <ul className="pm-points">
                 {b.points.map((pt) => (
                   <li key={pt.en}>
-                    <span className="text-primary" aria-hidden><IconCheck size={14} /></span>
+                    <span className="pm-points-tick" aria-hidden><IconCheck size={14} /></span>
                     <span>{t(pt)}</span>
                   </li>
                 ))}
@@ -91,94 +116,121 @@ export default function PremiumBody() {
             </article>
           ))}
         </div>
-        <p className="mt-5 text-sm text-text-muted">{t(SECTIONS.stayFree)}</p>
+        <p className="pm-note">{t(SECTIONS.stayFree)}</p>
       </section>
 
-      {/* 3 · How to pay, before the plan picker */}
-      <section aria-labelledby="how-h">
-        <SectionHeader id="how-h" title={t(SECTIONS.how)} bn={sub(SECTIONS.how)} />
-        <ol className="pm-steps">
-          {STEPS.map((st, i) => (
-            <li key={st.title.en}>
-              <span className="pm-step-n" aria-hidden>{i + 1}</span>
-              <p className="mt-3 font-semibold text-text-main">{t(st.title)}</p>
-              {!bn && <Bn className="text-sm text-text-muted">{st.title.bn}</Bn>}
-              <p className="mt-1 text-sm text-text-muted">{t(st.sub)}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      {/* 4 · Plans + pay */}
-      <section id="pay" aria-labelledby="price-h" className="scroll-mt-24">
+      {/* 3 · Plans + pay, with the three steps as the section's guide */}
+      <section id="pay" aria-labelledby="price-h" className="pm-section scroll-mt-24">
         <SectionHeader
           id="price-h"
+          size="lg"
           title={t(SECTIONS.plan)}
           bn={sub(SECTIONS.plan)}
           lead={
             <>
               {t(SECTIONS.planLead)}{" "}
-              <Link href="/refund-policy" className="font-semibold text-primary">{t(SECTIONS.refund)}</Link>
+              <Link href="/refund-policy" className="font-semibold text-primary-ink hover:underline">
+                {t(SECTIONS.refund)}
+              </Link>
             </>
           }
         />
+        <ol className="pm-steps" aria-label={t(SECTIONS.how)}>
+          {STEPS.map((st, i) => (
+            <li key={st.title.en}>
+              <span className="pm-step-n" aria-hidden>{i + 1}</span>
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold text-text-main">{t(st.title)}</span>
+                <span className="block text-xs text-text-muted">{t(st.sub)}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
         <PayBox />
       </section>
 
-      {/* 4b · Something went wrong with a payment */}
-      <section id="payment-help" aria-labelledby="help-h" className="scroll-mt-24">
-        <SectionHeader id="help-h" title={t(SECTIONS.help)} bn={sub(SECTIONS.help)} lead={t(SECTIONS.helpLead)} />
-        <PaymentHelp />
-      </section>
-
-      {/* 5 · Every difference, for readers who want the detail */}
-      <section aria-labelledby="compare-h">
-        <SectionHeader id="compare-h" title={t(SECTIONS.compare)} bn={sub(SECTIONS.compare)} />
-        <details className="pm-compare">
-          <summary className="pm-compare-summary">
-            <span className="font-semibold text-text-main">
-              {t(SECTIONS.seeAll)} ({ROWS.length})
-            </span>
-            {!bn && <Bn as="span" className="text-sm text-text-muted">{SECTIONS.seeAll.bn}</Bn>}
-          </summary>
-          <ul className="divide-y divide-border">
+      {/* 4 · Every difference, for readers who want the detail */}
+      <section aria-labelledby="compare-h" className="pm-section">
+        <SectionHeader id="compare-h" size="lg" title={t(SECTIONS.compare)} bn={sub(SECTIONS.compare)} />
+        <div className="pm-compare">
+          <div className="pm-compare-head" aria-hidden>
+            <span>{t(SECTIONS.feature)}</span>
+            <span>{t(SECTIONS.free)}</span>
+            <span className="pm-compare-head-pm"><IconCrown size={12} /> {t(SECTIONS.premium)}</span>
+          </div>
+          <ul>
             {ROWS.map((r) => (
-              <li key={r.what.en} className="px-4 py-4">
-                <p className="font-semibold text-text-main">{t(r.what)}</p>
-                {!bn && <Bn className="text-sm text-text-muted mb-2">{r.what.bn}</Bn>}
-                <div className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${bn ? "mt-2" : ""}`}>
-                  <div>
-                    <p className="text-xs font-bold text-text-muted">{t(SECTIONS.free)}</p>
-                    <p className="text-sm text-text-muted leading-relaxed">{t(r.free)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-primary">{t(SECTIONS.premium)}</p>
-                    <p className="text-sm text-text-main leading-relaxed">{t(r.premium)}</p>
-                  </div>
+              <li key={r.what.en} className="pm-compare-row">
+                <div>
+                  <p className="font-semibold text-text-main">{t(r.what)}</p>
+                  {!bn && <Bn className="text-sm text-text-muted">{r.what.bn}</Bn>}
+                </div>
+                <div>
+                  <p className="pm-compare-label">{t(SECTIONS.free)}</p>
+                  <p className="text-sm leading-relaxed text-text-muted">{t(r.free)}</p>
+                </div>
+                <div className="pm-compare-pm">
+                  <p className="pm-compare-label pm-compare-label-pm">{t(SECTIONS.premium)}</p>
+                  <p className="text-sm leading-relaxed text-text-main">{t(r.premium)}</p>
                 </div>
               </li>
             ))}
           </ul>
-        </details>
+        </div>
       </section>
 
-      {/* 6 · Questions */}
-      <section aria-labelledby="faq-h">
-        <SectionHeader id="faq-h" title={t(SECTIONS.faq)} bn={sub(SECTIONS.faq)} />
-        <div className="flex flex-col gap-2">
+      {/* 5 · Questions — one card */}
+      <section aria-labelledby="faq-h" className="pm-section">
+        <SectionHeader id="faq-h" size="lg" title={t(SECTIONS.faq)} bn={sub(SECTIONS.faq)} />
+        <div className="pm-faq">
           {FAQS.map((f) => (
-            <details key={f.q.en} className="rounded-lg border border-border bg-surface p-4">
-              <summary className="cursor-pointer font-semibold text-text-main">{t(f.q)}</summary>
-              <p className="mt-2 text-sm leading-relaxed text-text-main">{t(f.a)}</p>
-              {!bn && <Bn className="mt-1 text-sm leading-relaxed text-text-muted">{f.a.bn}</Bn>}
+            <details key={f.q.en} className="pm-faq-item">
+              <summary className="pm-fold-summary">
+                <span className="min-w-0 font-semibold text-text-main">{t(f.q)}</span>
+                <span className="pm-fold-chev" aria-hidden><IconChevronDown size={18} /></span>
+              </summary>
+              <div className="pm-faq-body">
+                <p className="text-sm leading-relaxed text-text-main">{t(f.a)}</p>
+                {!bn && <Bn className="mt-1 text-sm leading-relaxed text-text-muted">{f.a.bn}</Bn>}
+              </div>
             </details>
           ))}
         </div>
       </section>
 
-      <p className="text-sm text-text-muted">
+      {/* 6 · Something went wrong with a payment — folded until needed */}
+      <section aria-labelledby="help-h" className="pm-section">
+        <details ref={helpRef} id="payment-help" className="pm-help scroll-mt-24">
+          <summary className="pm-fold-summary">
+            <span className="min-w-0">
+              <span id="help-h" className="block font-semibold text-text-main">{t(SECTIONS.help)}</span>
+              {!bn && <Bn as="span" className="block text-sm text-text-muted">{SECTIONS.help.bn}</Bn>}
+              <span className="mt-1 block text-sm text-text-muted">{t(SECTIONS.helpLead)}</span>
+            </span>
+            <span className="pm-fold-chev" aria-hidden><IconChevronDown size={18} /></span>
+          </summary>
+          <div className="pm-help-body">
+            <PaymentHelp />
+          </div>
+        </details>
+      </section>
+
+      {/* 7 · One last, calm ask — not for readers who already have Premium */}
+      {state !== "premium" && (
+        <section className="pm-close" aria-labelledby="close-h">
+          <span className="pm-close-crown" aria-hidden><IconCrown size={22} /></span>
+          <h2 id="close-h" className="mt-3 text-xl font-bold text-text-main sm:text-2xl">{t(SECTIONS.closing)}</h2>
+          {!bn && <Bn className="text-sm text-text-muted">{SECTIONS.closing.bn}</Bn>}
+          <p className="mt-2 text-sm text-text-muted">{t(SECTIONS.closingLead)}</p>
+          <div className="mt-5 flex justify-center">
+            <PremiumPlanCta align="center" />
+          </div>
+        </section>
+      )}
+
+      <p className="pm-foot">
         {(bn ? SECTIONS.howWeScore.bn : SECTIONS.howWeScore.en)[0]}
-        <Link href="/about" className="font-semibold text-primary">
+        <Link href="/about" className="font-semibold text-primary-ink hover:underline">
           {(bn ? SECTIONS.howWeScore.bn : SECTIONS.howWeScore.en)[1]}
         </Link>
         {(bn ? SECTIONS.howWeScore.bn : SECTIONS.howWeScore.en)[2]}

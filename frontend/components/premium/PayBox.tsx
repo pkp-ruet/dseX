@@ -20,6 +20,8 @@ import { METHOD_LABEL, PAID_PLANS, planByKey, type PlanKey } from "@/lib/premium
 import { toast } from "@/lib/toast";
 import { trackEvent } from "@/lib/track";
 
+const BASE_MONTHLY = PAID_PLANS.find((p) => p.key === "monthly")?.amount ?? PAID_PLANS[0].amount;
+
 const STATUS: Record<PremiumPayment["status"], { en: string; bn: string; tone: string }> = {
   pending: { en: "Checking", bn: "যাচাই চলছে", tone: "text-text-muted" },
   accepted: { en: "Received", bn: "পেয়েছি", tone: "text-positive" },
@@ -111,9 +113,14 @@ export default function PayBox() {
   return (
     <div className="flex flex-col gap-5">
       {/* Plans */}
-      <div role="radiogroup" aria-label={L("Choose a plan", "প্ল্যান বেছে নিন")} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div role="radiogroup" aria-label={L("Choose a plan", "প্ল্যান বেছে নিন")} className="pay-plans">
         {PAID_PLANS.map((p) => {
           const on = p.key === plan;
+          // 30 / 90 / 365 days → 1 / 3 / 12 months; the saving is against
+          // paying the one-month price that many times (matches each note).
+          const months = Math.max(1, Math.round(p.days / 30));
+          const perMonth = Math.round(p.amount / months);
+          const save = BASE_MONTHLY * months - p.amount;
           return (
             <button
               key={p.key}
@@ -121,19 +128,29 @@ export default function PayBox() {
               role="radio"
               aria-checked={on}
               onClick={() => setPlan(p.key)}
-              className={`pay-plan ${on ? "pay-plan-on" : ""}`}
+              className={`pay-plan ${on ? "pay-plan-on" : ""} ${p.best ? "pay-plan-best" : ""}`}
             >
-              <span className="flex items-center justify-between gap-2">
+              {p.best && <span className="pay-plan-flag">{L("Best value", "সবচেয়ে সাশ্রয়ী")}</span>}
+              <span className="flex items-center gap-2">
+                <span className="pay-radio" aria-hidden />
                 <span className="font-semibold text-text-main">{L(p.name, p.bn)}</span>
-                {p.best && <span className="premium-chip">{L("Best value", "সবচেয়ে সাশ্রয়ী")}</span>}
               </span>
-              {!bn && <Bn as="span" className="block text-sm text-text-muted">{p.bn}</Bn>}
-              <span className="mt-2 block tabular-nums">
-                <span className="text-3xl font-bold text-text-main">৳{p.amount.toLocaleString("en-IN")}</span>{" "}
-                <span className="text-sm text-text-muted">{L(p.per, p.perBn)}</span>
+              <span className="pay-plan-price tabular-nums">৳{p.amount.toLocaleString("en-IN")}</span>
+              <span className="block text-sm text-text-muted">{L(p.per, p.perBn)}</span>
+              <span className="pay-plan-foot">
+                {months > 1 ? (
+                  <>
+                    <span className="text-sm font-semibold text-text-main tabular-nums">
+                      {L(`৳${perMonth} a month`, `মাসে ৳${perMonth}`)}
+                    </span>
+                    {save > 0 && (
+                      <span className="pay-plan-save tabular-nums">{L(`Save ৳${save}`, `৳${save} সাশ্রয়`)}</span>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-sm text-text-muted">{L(p.note, p.noteBn)}</span>
+                )}
               </span>
-              <span className="mt-1 block text-sm text-text-main">{L(p.note, p.noteBn)}</span>
-              {!bn && <Bn as="span" className="block text-sm text-text-muted">{p.noteBn}</Bn>}
             </button>
           );
         })}
@@ -180,7 +197,7 @@ export default function PayBox() {
           {L("Payments aren't open right now — please check back soon.", "এখন পেমেন্ট বন্ধ আছে — একটু পরে আবার দেখুন।")}
         </p>
       ) : (
-        <div className="soft-card p-4 sm:p-5 flex flex-col gap-4">
+        <div className="soft-card pay-form flex flex-col gap-5">
           {info && info.methods.length > 1 && (
             <div role="radiogroup" aria-label={L("Pay with", "যেভাবে পেমেন্ট করবেন")} className="flex gap-2">
               {info.methods.map((m) => (
@@ -200,7 +217,7 @@ export default function PayBox() {
             </div>
           )}
 
-          <ol className="flex flex-col gap-3">
+          <ol className="flex flex-col gap-5">
             <li className="pay-step">
               <span className="pay-step-n" aria-hidden>1</span>
               <div className="min-w-0 flex-1">
@@ -221,8 +238,11 @@ export default function PayBox() {
                   </>
                 )}
                 {number ? (
-                  <div className="mt-2 flex items-center gap-2">
-                    <span className="text-xl font-bold text-text-main tabular-nums">{number}</span>
+                  <div className="pay-number">
+                    <span className="min-w-0">
+                      <span className="block text-xs text-text-muted">{METHOD_LABEL[method]} · Send Money</span>
+                      <span className="block text-xl font-bold text-text-main tabular-nums">{number}</span>
+                    </span>
                     <Button type="button" variant="quiet" size="sm" onClick={() => void copy(number)}>{L("Copy", "কপি")}</Button>
                   </div>
                 ) : (
@@ -260,7 +280,7 @@ export default function PayBox() {
             </div>
           )}
 
-          <div className="flex flex-col items-start gap-1">
+          <div className="pay-submit flex flex-col items-start gap-1">
             <Button size="lg" onClick={() => void submit()} disabled={busy || sender.trim().length < 11}>
               {busy
                 ? L("Starting…", "চালু হচ্ছে…")
