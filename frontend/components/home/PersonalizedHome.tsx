@@ -436,7 +436,7 @@ export default function PersonalizedHome() {
     </section>
   );
 
-  // ── Chapter 3: Worth a look — the screener card (goal chips + top three),
+  // ── Chapter 3: Find stocks — the screener card (goal chips + top three),
   //    then ONE swipe rail for buy signals / top ranked / trending / tips /
   //    popular, then the research lists. The "3 stocks worth a look / picked
   //    for you" opener (TodaysIdeas) was removed 2026-10-26 (user decision).

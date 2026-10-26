@@ -52,7 +52,7 @@ export default function WorthALook({
     >
       <SectionHead
         className="px-1.5 sm:px-0"
-        eyebrow="Worth a look"
+        eyebrow="Find stocks"
         id="worth-title"
         title="Where to start when you have"
         highlight="no company in mind."

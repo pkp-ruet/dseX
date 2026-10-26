@@ -1,6 +1,6 @@
 import type { DailyTip, PopularStockItem, ScoreItem, Top20Item } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
-import { changePct, changeTone } from "@/lib/formatters";
+import { changePct, changeTone, companyShort } from "@/lib/formatters";
 import { getTier, type TierKey } from "@/lib/constants";
 import { KIND_TONE, TIP_KIND } from "@/lib/home-ideas";
 import { t } from "@/lib/home-copy";
@@ -33,8 +33,8 @@ function orderBuys(list: ScoreItem[], followed: Set<string>): ScoreItem[] {
  * (buy signals, top ranked, trending, popular, tips: ~40 rows down the page)
  * as ONE swipe rail of same-shape cards, three names each with the one number
  * that put them there, and a "See all" into each full page. Same data, half
- * the scroll. Used by the dashboard's "Worth a look" chapter and the landing
- * page's "Worth a look" block.
+ * the scroll. Used by the dashboard's "Find stocks" chapter and the landing
+ * page's "Find stocks" block (WorthALook).
  */
 export default function DiscoverRail({
   buys,
@@ -85,8 +85,9 @@ export default function DiscoverRail({
               <StockRow
                 key={s.trading_code}
                 size="sm"
+                stack
                 code={s.trading_code}
-                name={s.company_name}
+                name={companyShort(s.company_name) || s.company_name}
                 lang={lang}
                 mark={mark(s.trading_code)}
                 right={<SignalChip signal="buy" strength={s.signal?.strength === "strong" ? "strong" : "normal"} lang={lang} />}
@@ -106,8 +107,9 @@ export default function DiscoverRail({
               <StockRow
                 key={s.trading_code}
                 size="sm"
+                stack
                 code={s.trading_code}
-                name={s.company_name}
+                name={companyShort(s.company_name) || s.company_name}
                 lang={lang}
                 mark={mark(s.trading_code)}
                 right={
@@ -132,8 +134,9 @@ export default function DiscoverRail({
               <StockRow
                 key={it.trading_code}
                 size="sm"
+                stack
                 code={it.trading_code}
-                name={it.company_name}
+                name={companyShort(it.company_name) || it.company_name}
                 lang={lang}
                 mark={mark(it.trading_code)}
                 right={
@@ -156,8 +159,9 @@ export default function DiscoverRail({
                 <StockRow
                   key={`${tip.category}-${tip.trading_code}`}
                   size="sm"
+                  stack
                   code={tip.trading_code}
-                  name={tip.company_name}
+                  name={companyShort(tip.company_name) || tip.company_name}
                   lang={lang}
                   mark={mark(tip.trading_code)}
                   sub={t(lang, kind)}
@@ -180,8 +184,9 @@ export default function DiscoverRail({
               <StockRow
                 key={it.trading_code}
                 size="sm"
+                stack
                 code={it.trading_code}
-                name={it.company_name}
+                name={companyShort(it.company_name) || it.company_name}
                 lang={lang}
                 mark={mark(it.trading_code)}
                 right={

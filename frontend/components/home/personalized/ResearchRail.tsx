@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { ResearchListSummary } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
 import { t } from "@/lib/home-copy";
+import { companyShort } from "@/lib/formatters";
 import { RESEARCH_LISTS, formatResearchMetric } from "@/lib/research-lists";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
 import { savePremiumContext } from "@/lib/premium-context";
@@ -62,6 +63,8 @@ export default function ResearchRail({
               sub={bn ? def.hookBn : def.hook}
               href={`/stock-insights/${def.slug}`}
               linkLabel={t(lang, "researchSeeAll", { n: l!.passed })}
+              listLabel={t(lang, "topN", { n: l!.top.length })}
+              valueLabel={l!.metric ? (bn ? l!.metric.label_bn : l!.metric.label_en) : undefined}
             >
               {l!.top.map((s) => {
                 const m = l!.metric ? formatResearchMetric(l!.metric, s.metric) : null;
@@ -69,15 +72,13 @@ export default function ResearchRail({
                   <StockRow
                     key={s.code}
                     size="sm"
+                    stack
                     code={s.code}
-                    name={s.name}
+                    name={companyShort(s.name) || s.name}
                     lang={lang}
                     mark={<OwnerMark code={s.code} held={held} watched={watched} lang={lang} />}
                     right={m ? (
-                      <span className="flex flex-col items-end">
-                        <span className={`block text-sm font-bold tabular-nums nums ${m.cls || "text-text-main"}`}>{m.text}</span>
-                        <span className="text-xs text-text-muted">{bn ? l!.metric!.label_bn : l!.metric!.label_en}</span>
-                      </span>
+                      <span className={`block text-base font-bold tabular-nums nums ${m.cls || "text-text-main"}`}>{m.text}</span>
                     ) : undefined}
                   />
                 );

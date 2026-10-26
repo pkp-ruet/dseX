@@ -63,6 +63,9 @@ export interface StockRowProps {
   href?: string | null;
   lang?: "en" | "bn";
   size?: "md" | "sm";
+  /** Ticker (+ mark) always on its own line under the name, instead of beside
+   *  it when it fits — keeps a narrow card's rows the same shape. */
+  stack?: boolean;
   /** `card` = the dashboard card gutter (px-4 sm:px-5); `bleed` = hover bg bleeds
    *  10px past the text (market-analysis cards); `none` = flush. */
   inset?: "card" | "bleed" | "none";
@@ -96,6 +99,7 @@ export default function StockRow({
   href,
   lang = "en",
   size = "md",
+  stack = false,
   inset = "card",
   as: Tag = "li",
   className = "",
@@ -112,16 +116,31 @@ export default function StockRow({
     <>
       {leading && <span className="flex shrink-0 items-center">{leading}</span>}
       <span className="min-w-0 flex-1">
-        <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-          <span className="min-w-0 max-w-full truncate text-sm font-semibold leading-tight text-text-main">
-            {name || code}
+        {stack ? (
+          <>
+            <span className="flex items-center gap-1.5">
+              <span className="min-w-0 truncate text-sm font-semibold leading-tight text-text-main">{name || code}</span>
+              {tags}
+            </span>
+            {(name || mark) && (
+              <span className="mt-0.5 flex items-center gap-1.5">
+                {name && <span className="text-xs font-medium uppercase tracking-wide text-text-muted">{code}</span>}
+                {mark}
+              </span>
+            )}
+          </>
+        ) : (
+          <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+            <span className="min-w-0 max-w-full truncate text-sm font-semibold leading-tight text-text-main">
+              {name || code}
+            </span>
+            {name && (
+              <span className="shrink-0 text-xs font-medium uppercase tracking-wide text-text-muted">{code}</span>
+            )}
+            {mark}
+            {tags}
           </span>
-          {name && (
-            <span className="shrink-0 text-xs font-medium uppercase tracking-wide text-text-muted">{code}</span>
-          )}
-          {mark}
-          {tags}
-        </span>
+        )}
         {sub && (
           <span
             className={`mt-0.5 block text-xs leading-snug ${TONE_TEXT[subTone]} ${

@@ -44,9 +44,11 @@ export function Rail({ children }: { children: ReactNode }) {
 
 /**
  * One card in a swipe rail: a short title (+ optional tag), one plain line
- * saying what the list is, three stock rows, and a "See …" link pinned to the
- * bottom. Every rail card is the same width and the same shape, so a rail
- * reads as a set — the reason the five separate list cards became one rail.
+ * saying what the list is, three stock rows, and a "See …" link at the bottom.
+ * Every rail card is the same width and the same shape, so a rail reads as a
+ * set — the reason the five separate list cards became one rail. When every
+ * row shows the same kind of number, pass `valueLabel` so it is named ONCE
+ * over the column instead of under every value.
  */
 export default function RailCard({
   title,
@@ -54,6 +56,8 @@ export default function RailCard({
   sub,
   href,
   linkLabel,
+  listLabel,
+  valueLabel,
   children,
 }: {
   title: string;
@@ -61,26 +65,37 @@ export default function RailCard({
   sub?: string;
   href: string;
   linkLabel: string;
+  /** Small label over the rows, left ("Top 3"). */
+  listLabel?: string;
+  /** Small label over the value column, right ("Cash yield"). */
+  valueLabel?: string;
   /** StockRow size="sm" rows. */
   children: ReactNode;
 }) {
+  const labels = listLabel || valueLabel;
   return (
     <article className="soft-card dash-box rail-card flex flex-col overflow-hidden">
-      <div className="px-4 pt-4">
+      <div className="px-4 pt-4 sm:px-5 sm:pt-5">
         <span className="flex items-center gap-1.5">
-          <h4 className="truncate text-sm font-bold leading-tight text-text-main">{title}</h4>
+          <h4 className="truncate text-base font-bold leading-tight text-text-main">{title}</h4>
           {tag}
         </span>
-        {sub && <span className="mt-0.5 block text-xs leading-snug text-text-muted">{sub}</span>}
+        {sub && <p className="mt-1 line-clamp-2 text-sm leading-snug text-text-muted">{sub}</p>}
       </div>
-      <ul className="mt-2 flex-1 divide-y divide-cell-rule">{children}</ul>
+      {labels && (
+        <div className="mt-4 flex items-end justify-between gap-3 border-b border-cell-rule px-4 pb-1.5 text-xs text-text-muted sm:px-5">
+          <span>{listLabel}</span>
+          <span className="text-right">{valueLabel}</span>
+        </div>
+      )}
+      <ul className={`${labels ? "" : "mt-3 "}flex-1 divide-y divide-cell-rule`}>{children}</ul>
       <Link
         href={href}
         prefetch={false}
-        className="flex min-h-10 items-center justify-center gap-1 border-t border-border px-4 py-2 text-xs font-semibold text-primary-ink transition-colors hover:bg-surface-2 active:bg-surface-2"
+        className="mx-4 mb-2 mt-1 inline-flex min-h-10 items-center gap-1 self-start text-sm font-semibold text-primary-ink hover:underline active:opacity-70 sm:mx-5"
       >
         {linkLabel}
-        <IconArrowRight size={12} />
+        <IconArrowRight size={14} />
       </Link>
     </article>
   );

@@ -129,6 +129,12 @@ export function money(value: number | null | undefined): string {
   return `৳${body}`;
 }
 
+/** "Square Pharmaceuticals PLC." → "Square Pharmaceuticals": drops the legal
+ *  suffix so a name fits a narrow card without truncating. */
+export function companyShort(name: string | null | undefined): string {
+  return (name ?? "").replace(/\s+(Limited|Ltd\.?|PLC\.?)\.?\s*$/i, "").trim();
+}
+
 /**
  * Big taka amounts in a tight cell (portfolio metric strip, donut centre): from
  * one crore up compress to `৳1.25 Cr`, otherwise plain `taka()`. Ungrouped

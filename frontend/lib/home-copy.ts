@@ -40,7 +40,7 @@ const COPY = {
   // Chapters
   chMoney: ["Your money", "আপনার টাকা"],
   chMarket: ["Market today", "আজকের বাজার"],
-  chIdeas: ["Worth a look", "দেখার মতো"],
+  chIdeas: ["Find stocks", "শেয়ার খুঁজুন"],
   chIdeasSub: [
     "Ready-made ways to find stocks today. Pick one, see the names, tap for the full list.",
     "আজ শেয়ার খোঁজার তৈরি উপায়। একটি বেছে নিন, নামগুলো দেখুন, পুরো তালিকার জন্য ট্যাপ করুন।",
@@ -150,6 +150,7 @@ const COPY = {
   screenerPass: ["{n} pass", "{n}টি পাস"],
   allLists: ["All lists", "সব তালিকা"],
   researchSeeAll: ["See all {n}", "সব {n}টি দেখুন"],
+  topN: ["Top {n}", "সেরা {n}টি"],
   researchPromoHead: ["Six lists that do the research for you", "আপনার হয়ে গবেষণা করা ছয়টি তালিকা"],
   researchPromoSub: [
     "Every company goes through the same plain checks. Premium shows each stock that passes, with its numbers and its main risk.",
