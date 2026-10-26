@@ -1,0 +1,137 @@
+/* ===================================================================
+   /buy-sell-signals — the clean redesign (2026-10-26), same language as
+   /market-analysis and /watchlist: one card style (.soft-card), hairlines
+   instead of tinted boxes, numbers lead, company name first, colour only
+   where it means something (Buy, up / down, grade). Every class here is
+   `sg-*` and belongs to app/buy-sell-signals, components/signals/* and
+   components/daily-tips/*.
+
+   Every grid names its phone column as `minmax(0, 1fr)` — a bare `1fr`
+   sizes to the longest company name and pushes the card past the screen.
+   =================================================================== */
+
+/* ---- Sections ---- */
+/* Generous on purpose (2026-10-26, "needs breathing space"): the space
+   between blocks is what separates them — no rules, no boxes. */
+.sg-section { margin-top: 56px; }
+@media (min-width: 768px) { .sg-section { margin-top: 72px; } }
+.sg-section > div:first-child { margin-bottom: var(--space-6); }
+
+/* ---- Summary: four numbers in a hairline grid, the rule folded under ---- */
+.sg-summary { padding: 0; overflow: hidden; }
+.sg-summary-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px; background: var(--cell-rule);
+}
+@media (min-width: 900px) { .sg-summary-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.sg-cell { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 20px 18px; background: var(--surface); }
+@media (min-width: 640px) { .sg-cell { padding: 26px 28px; } }
+.sg-cell-v {
+  margin: 0; font-size: var(--fs-xl); font-weight: 700; line-height: 1.1;
+  letter-spacing: -0.01em; font-variant-numeric: tabular-nums;
+}
+.sg-cell-k { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
+.sg-cell-x { margin: 0; font-size: var(--fs-2xs); color: var(--text-muted); }
+
+.sg-why { border-top: 1px solid var(--cell-rule); }
+.sg-why > summary {
+  display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 18px;
+  list-style: none; cursor: pointer;
+  font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink);
+}
+@media (min-width: 640px) { .sg-why > summary { min-height: 56px; padding: 0 28px; } }
+.sg-why > summary::-webkit-details-marker { display: none; }
+.sg-why > summary:hover { background: var(--surface-2); }
+.sg-why > summary svg { transition: transform 0.18s ease; }
+.sg-why[open] > summary svg { transform: rotate(180deg); }
+.sg-why-body { padding: 0 18px 22px; }
+@media (min-width: 640px) { .sg-why-body { padding: 0 28px 28px; } }
+.sg-why-list { margin: 0; }
+.sg-why-row {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px;
+  padding: 16px 0; border-top: 1px solid var(--cell-rule);
+}
+@media (min-width: 640px) { .sg-why-row { grid-template-columns: 150px minmax(0, 1fr); gap: 16px; align-items: baseline; } }
+.sg-why-row dt { margin: 0; }
+.sg-why-row dd { margin: 0; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
+.sg-why-k { font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.sg-why-bn { margin: 4px 0 0; padding-top: 16px; border-top: 1px solid var(--cell-rule); font-size: var(--fs-sm); line-height: 1.7; color: var(--text-muted); }
+
+.sg-updated { margin: 14px 2px 0; font-size: var(--fs-2xs); color: var(--text-muted); }
+
+/* ---- Filter bar ---- */
+.sg-filters {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 20px;
+}
+.sg-search { position: relative; grid-column: 1 / -1; }
+@media (min-width: 768px) {
+  .sg-filters { grid-template-columns: minmax(0, 1fr) 190px 170px; }
+  .sg-search { grid-column: auto; }
+}
+.sg-search svg {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--text-muted); pointer-events: none;
+}
+.sg-input {
+  width: 100%; min-height: 44px; padding: 0 12px;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface); color: var(--text);
+  font-size: var(--fs-sm); outline: none; transition: border-color 0.15s;
+}
+.sg-search .sg-input { padding-left: 36px; }
+.sg-input::placeholder { color: var(--text-muted); }
+.sg-input:focus { border-color: var(--primary); box-shadow: var(--ring); }
+.sg-select { cursor: pointer; text-overflow: ellipsis; }
+
+.sg-count {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  min-height: 40px; margin: 16px 2px 10px; font-size: var(--fs-sm); color: var(--text-muted);
+}
+.sg-count strong { font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+
+/* ---- The list card: hairline rows ----
+   One column on every screen: the signal list is the free head plus the
+   locked rest in two <ul>s inside ONE card, and a two-column grid would
+   leave a hole wherever the free head ends on an odd row. */
+.sg-card { padding: 4px 18px; }
+@media (min-width: 640px) { .sg-card { padding: 8px 32px; } }
+.sg-rows {
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  margin: 0; padding: 0; list-style: none;
+}
+.sg-rows > .sg-row { border-top: 1px solid var(--cell-rule); }
+.sg-rows > .sg-row:first-child { border-top: 0; }
+.sg-rows > .sg-row > a { padding-block: 18px; gap: 16px; }
+@media (min-width: 640px) { .sg-rows > .sg-row > a { padding-block: 22px; } }
+/* Inside a signal row (StockRow): air between the name line and the reason,
+   and the reason at reading size — it is the point of the row. */
+.sg-rows > .sg-row > a > .min-w-0 > span + span {
+  margin-top: 6px; font-size: var(--fs-sm); line-height: 1.55; color: var(--text-muted);
+}
+/* The locked rest continues the same list: hairline across the seam, and the
+   lock card sits inside the list card as its last row. */
+.sg-locked .sg-rows > .sg-row:first-child { border-top: 1px solid var(--cell-rule); }
+.sg-locked > .premium-card { margin: 8px 0 18px; }
+
+/* Today's tips are one open list (no lock), so they can pair up on a wide
+   screen without leaving a hole. */
+@media (min-width: 1024px) {
+  .sg-rows--two { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 64px; }
+  .sg-rows--two > .sg-row:nth-child(2) { border-top: 0; }
+}
+
+/* A tip is text-led, so its row is a block, not the StockRow flex line. */
+.sg-tip {
+  display: block; margin-inline: -12px; padding: 20px 12px;
+  border-radius: var(--radius-md); color: inherit; text-decoration: none;
+}
+.sg-tip:hover, .sg-tip:active { background: var(--surface-2); }
+
+.sg-empty-title { margin: 0; padding-top: 18px; font-size: var(--fs-md); font-weight: 700; color: var(--text); }
+.sg-empty { margin: 4px 0 0; padding-bottom: 18px; font-size: var(--fs-sm); color: var(--text-muted); }
+
+/* ---- Footer note ---- */
+.sg-note {
+  margin: 64px 0 0; padding-top: 20px; border-top: 1px solid var(--cell-rule);
+  max-width: 72ch; font-size: var(--fs-2xs); line-height: 1.6; color: var(--text-muted);
+}

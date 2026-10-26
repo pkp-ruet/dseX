@@ -4,7 +4,6 @@ import { getTop20 } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 import Top20Deck from "@/components/top20/Top20Deck";
 import PageHeader from "@/components/ui/PageHeader";
-import FindTabs from "@/components/layout/FindTabs";
 
 export const revalidate = 86400;
 
@@ -161,7 +160,6 @@ export default async function DseTrendingStocksPage() {
   if (!data) {
     return (
       <>
-        <FindTabs current="/dse-trending-stocks" />
         <PageHeader
           eyebrow="TopStockBD · DSE Momentum"
           title="Trending Stocks"
@@ -201,7 +199,6 @@ export default async function DseTrendingStocksPage() {
       />
 
       <div>
-        <FindTabs current="/dse-trending-stocks" />
         <PageHeader
           eyebrow="TopStockBD · DSE Momentum"
           title="Trending Stocks"

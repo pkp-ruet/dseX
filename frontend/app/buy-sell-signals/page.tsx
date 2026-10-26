@@ -4,8 +4,10 @@ import DailyTipItem from "@/components/daily-tips/DailyTipItem";
 import SectionHeader from "@/components/ui/SectionHeader";
 import SignalsExplorer from "@/components/signals/SignalsExplorer";
 import { formatDate } from "@/lib/formatters";
+import Bn from "@/components/i18n/Bn";
+import ErrorState from "@/components/ui/ErrorState";
+import SignalChip from "@/components/ui/SignalChip";
 import PageHeader from "@/components/ui/PageHeader";
-import FindTabs from "@/components/layout/FindTabs";
 import HubLinks from "@/components/layout/HubLinks";
 
 export const revalidate = 3600;
@@ -56,13 +58,7 @@ export default async function BuySellSignalsPage() {
   ]);
   const tips = tipsData?.tips ?? [];
 
-  if (!scores) {
-    return (
-      <div className="text-center py-20 text-text-muted">
-        Unable to load signals. Please try again shortly.
-      </div>
-    );
-  }
+  if (!scores) return <ErrorState title="Buy signals didn't load" reload />;
 
   const all = flattenTiers(scores);
   // Buys only — Strong Buys first, then by fundamental score. The explorer
@@ -120,72 +116,87 @@ export default async function BuySellSignalsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div>
-        <FindTabs current="/buy-sell-signals" />
         <PageHeader
-          eyebrow="Daily Signals · Dhaka Stock Exchange"
-          title="Buy Signals"
-          bn="প্রতিদিন কেনার মতো শেয়ারের পরিষ্কার তালিকা — সাশ্রয়ী দামে শক্তিশালী কোম্পানি। কেনার জোরালো কারণ না থাকলে শেয়ারটি এখানে দেখানো হয় না।"
-          lead={
-            <>
-              A clear, daily list of the DSE stocks worth buying — strong companies at a sensible
-              price. <strong>Strong Buy</strong> marks the cheapest, highest-conviction picks. When
-              there is no clear reason to buy, a stock simply doesn&apos;t appear here — we stay
-              quiet rather than guess.
-            </>
-          }
-          actions={
-            <div className="grid grid-cols-2 gap-3 w-full sm:w-auto sm:min-w-[16rem]">
-              <StatTile tone="var(--positive)" glyph="▲" count={buy.length} label="Buy signals" />
-              <StatTile tone="var(--positive)" glyph="★" count={strongCount} label="Strong buys" />
-            </div>
-          }
+          title="Buy signals"
+          bn="প্রতিদিন কেনার মতো শেয়ার — ভালো কোম্পানি, ঠিকঠাক দামে। জোরালো কারণ না থাকলে শেয়ারটি এখানে আসে না।"
+          lead="Good companies at a sensible price, checked every trading day. When there is no clear reason to buy, a stock simply doesn't appear here."
         />
 
+        {/* Summary: the numbers first, the rule folded underneath. */}
+        <section aria-label="Today's buy signals in numbers" className="soft-card sg-summary">
+          <div className="sg-summary-grid">
+            <SummaryCell value={buy.length} label="Buy signals today" tone="positive" />
+            <SummaryCell value={strongCount} label="Strong buys" note="The cheapest of the lot" />
+            <SummaryCell value={sectors.length} label="Sectors" note="with at least one buy" />
+            <SummaryCell value={tips.length} label="Today's tips" note={tips.length > 0 ? "One reason each" : "None today"} />
+          </div>
+          <details className="sg-why">
+            <summary>
+              How a stock gets a Buy
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="m6 9 6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </summary>
+            <div className="sg-why-body">
+              <dl className="sg-why-list">
+                <div className="sg-why-row">
+                  <dt><SignalChip signal="buy" strength="strong" /></dt>
+                  <dd>A Good or Excellent company that is clearly cheap and still low in its yearly price range.</dd>
+                </div>
+                <div className="sg-why-row">
+                  <dt><SignalChip signal="buy" /></dt>
+                  <dd>A Good or Excellent company at a cheap or fair price — worth a closer look.</dd>
+                </div>
+                <div className="sg-why-row">
+                  <dt className="sg-why-k">Kept off the list</dt>
+                  <dd>
+                    Average or Weak companies, Z category, old financial reports, thin trading (under ৳10 lakh a
+                    day), profit down 25% or more on last year, or a price already near the top of its yearly range.
+                  </dd>
+                </div>
+              </dl>
+              <Bn className="sg-why-bn">
+                ভালো বা খুব ভালো কোম্পানি, যার দাম সস্তা বা ন্যায্য — শুধু সেগুলোই এখানে আসে। দুর্বল, Z ক্যাটাগরির,
+                কম লেনদেনের বা লাভ কমে যাওয়া কোম্পানি বাদ পড়ে।
+              </Bn>
+            </div>
+          </details>
+        </section>
+
         {updated && (
-          <p className="text-xs -mt-3 mb-5 text-text-muted">
-            Updated {updated} · based on fundamentals, price &amp; how actively each share trades
+          <p className="sg-updated">
+            Updated {updated} · from company results, today&apos;s price and how actively each share trades
           </p>
         )}
 
-        {/* How to read */}
-        <section className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5">
-          <HowCard
-            tone="var(--positive)"
-            glyph="★"
-            title="Strong Buy"
-            body="A strong company that is deeply cheap and still low in its 52-week range — the highest-conviction picks."
+        <section aria-labelledby="signals-h" className="sg-section">
+          <SectionHeader
+            id="signals-h"
+            size="lg"
+            title="Today's buy signals"
+            bn="আজকের কেনার সংকেত, প্রতিটির সহজ কারণসহ।"
+            lead="Strong buys first, then by score. Each one carries the plain reason behind it."
           />
-          <HowCard
-            tone="var(--positive)"
-            glyph="▲"
-            title="Buy"
-            body="A strong company trading at a sensible or cheap price — worth a closer look to buy."
-          />
-          <HowCard
-            tone="var(--text-muted)"
-            glyph="•"
-            title="No signal"
-            body="Nothing decisive to buy. Those stocks simply don't appear here — no guessing."
-          />
+          <SignalsExplorer buy={buy} sectors={sectors} />
         </section>
-
-        {/* Interactive explorer */}
-        <SignalsExplorer buy={buy} sectors={sectors} />
 
         {/* Today's tips — a handful of names that stand out for one plain
             reason each (growing profits, steady dividends, a low price). */}
         {tips.length > 0 && (
-          <section id="tips" aria-labelledby="tips-h" className="mt-12 scroll-mt-24">
+          <section id="tips" aria-labelledby="tips-h" className="sg-section scroll-mt-24">
             <SectionHeader
               id="tips-h"
+              size="lg"
               title="Today's tips"
               bn="প্রতিদিন কয়েকটি শেয়ার, আর সহজ ভাষায় কেন সেগুলো নজরে রাখার মতো।"
               lead="A fresh handful of stocks worth a look, each with one simple reason it stands out."
             />
-            <div className="flex flex-col gap-3.5">
-              {tips.map((tip) => (
-                <DailyTipItem key={`${tip.category}-${tip.trading_code}`} tip={tip} />
-              ))}
+            <div className="soft-card sg-card">
+              <ul className="sg-rows sg-rows--two">
+                {tips.map((tip) => (
+                  <DailyTipItem key={`${tip.category}-${tip.trading_code}`} tip={tip} />
+                ))}
+              </ul>
             </div>
           </section>
         )}
@@ -193,11 +204,10 @@ export default async function BuySellSignalsPage() {
         <HubLinks group="find" exclude={["/buy-sell-signals"]} />
 
         {/* Responsible-use note */}
-        <p className="mt-10 border-t border-border pt-5 text-xs leading-relaxed text-text-muted">
-          Signals are generated from company fundamentals, current price, and trading activity —
-          they are not predictions or guaranteed outcomes, and they are not investment advice.
-          Always do your own research before buying or selling. See our{" "}
-          <a href="/disclaimer" className="font-semibold text-primary hover:underline">
+        <p className="sg-note">
+          Signals come from company results, today&apos;s price and trading activity. They are not predictions
+          and not investment advice — always do your own research before buying or selling. See our{" "}
+          <a href="/disclaimer" className="font-semibold text-primary-ink hover:underline">
             disclaimer
           </a>
           .
@@ -207,85 +217,22 @@ export default async function BuySellSignalsPage() {
   );
 }
 
-function StatTile({
-  tone,
-  glyph,
-  count,
+function SummaryCell({
+  value,
   label,
+  note,
+  tone = "default",
 }: {
-  tone: string;
-  glyph: string;
-  count: number;
+  value: number;
   label: string;
+  note?: string;
+  tone?: "default" | "positive";
 }) {
   return (
-    <div
-      className="rounded-2xl p-4"
-      style={{
-        background: `color-mix(in srgb, ${tone} 8%, var(--surface))`,
-        border: `1px solid color-mix(in srgb, ${tone} 28%, transparent)`,
-      }}
-    >
-      <div className="flex items-center gap-2">
-        <span
-          className="inline-flex items-center justify-center rounded-lg text-xs"
-          style={{
-            width: 26,
-            height: 26,
-            background: `color-mix(in srgb, ${tone} 16%, transparent)`,
-            color: tone,
-          }}
-          aria-hidden
-        >
-          {glyph}
-        </span>
-        <span className="nums text-3xl font-bold leading-none" style={{ color: tone }}>
-          {count}
-        </span>
-      </div>
-      <p className="mt-2 text-xs font-semibold text-text-muted">
-        {label}
-      </p>
-    </div>
-  );
-}
-
-function HowCard({
-  tone,
-  glyph,
-  title,
-  body,
-}: {
-  tone: string;
-  glyph: string;
-  title: string;
-  body: string;
-}) {
-  return (
-    <div
-      className="rounded-2xl p-4"
-      style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-    >
-      <div className="flex items-center gap-2">
-        <span
-          className="inline-flex items-center justify-center rounded-md text-xs"
-          style={{
-            width: 22,
-            height: 22,
-            background: `color-mix(in srgb, ${tone} 14%, transparent)`,
-            color: tone,
-          }}
-          aria-hidden
-        >
-          {glyph}
-        </span>
-        <span className="text-sm font-bold text-text-main">
-          {title}
-        </span>
-      </div>
-      <p className="mt-2 text-sm leading-snug text-text-muted">
-        {body}
-      </p>
+    <div className="sg-cell">
+      <p className={`sg-cell-v ${tone === "positive" && value > 0 ? "text-positive" : "text-text-main"}`}>{value}</p>
+      <p className="sg-cell-k">{label}</p>
+      {note && <p className="sg-cell-x">{note}</p>}
     </div>
   );
 }
