@@ -1,6 +1,5 @@
 "use client";
 
-import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { usePremium, PREMIUM_PATH } from "@/lib/premium";
 import { savePremiumContext } from "@/lib/premium-context";
@@ -38,8 +37,8 @@ export default function TrialEndingBanner({
   ];
 
   return (
-    <Card padding="none" className="border-primary p-5 sm:p-6" data-card="trial-ending">
-      <p className={`text-lg font-bold text-text-main ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
+    <section className="soft-card pf-card pf-premium mb-4" data-card="trial-ending">
+      <p className={`pf-card-title ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
         {L(
           `Your free month ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`,
           `আপনার ফ্রি মাস শেষ হতে আর ${daysLeft} দিন`,
@@ -50,8 +49,8 @@ export default function TrialEndingBanner({
       </p>
       <ul className={`mt-2 flex flex-col gap-1.5 ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
         {lines.map((l, i) => (
-          <li key={i} className="flex items-start gap-2 text-sm font-semibold text-text-main">
-            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
+          <li key={i} className="flex items-start gap-2 text-sm text-text-main">
+            <span className="pf-dot pf-dot--good mt-1.5" aria-hidden />
             <span>{l}</span>
           </li>
         ))}
@@ -69,6 +68,6 @@ export default function TrialEndingBanner({
           {L("See plans and prices", "প্ল্যান ও দাম দেখুন")}
         </Button>
       </div>
-    </Card>
+    </section>
   );
 }

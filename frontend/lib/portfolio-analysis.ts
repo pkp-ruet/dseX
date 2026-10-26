@@ -159,6 +159,17 @@ export interface PortfolioAnalysis {
   subScores: { spread: number; quality: number; entry: number; overall: number };
   /** Herfindahl-based "effective number of stocks" — concentration-honest count. */
   effectiveStocks: number;
+  /** The inputs behind the three sub-scores, for the page's "How we decide". */
+  breakdown: {
+    sectorPenalty: number;
+    baseQuality: number;
+    weakPenalty: number;
+    strugglingPenalty: number;
+    categoryPenalty: number;
+    stalePenalty: number;
+    /** Share of the money whose price paid could be judged (has a positive EPS). */
+    judgeablePct: number;
+  };
   /** Biggest single concentration risk: a large position in a below-good company. */
   topRisk: {
     code: string;
@@ -169,6 +180,12 @@ export interface PortfolioAnalysis {
 }
 
 // ── helpers ────────────────────────────────────────────────────────────────
+
+/** Banks, NBFIs / leasing and insurers — they move together with interest
+ *  rates and regulation, so the analysis treats them as one group. */
+export function isFinancialSector(sec: string | null | undefined): boolean {
+  return !!sec && /bank|financ|nbfi|leasing|insuranc/.test(sec.toLowerCase());
+}
 
 function sectorBucketOf(sector: string | null): SectorBucket {
   if (!sector) return "OTHER";
@@ -796,18 +813,21 @@ export function analyzePortfolio(
   const goodEntryCount = insights.filter(
     (i) => i.entryValuation === "cheap" || i.entryValuation === "fair",
   ).length;
-  // Up nicely AND expensive today → "book some profit" idea.
+  // Up nicely AND expensive today → "book some profit" idea (never on a stock
+  // its own signal says to buy more of, nor one already marked Sell).
   const upExpensiveItems = insights.filter(
-    (i) => i.pnlPct != null && i.pnlPct >= 5 && i.valuationNow === "expensive",
-  );
-  // Down, cheap today, and still a good/excellent business → "average down" idea.
-  const averageDownCandidates = insights.filter(
     (i) =>
       i.pnlPct != null &&
-      i.pnlPct <= -5 &&
-      i.valuationNow === "cheap" &&
-      (i.tierKey === "good" || i.tierKey === "excellent"),
+      i.pnlPct >= 5 &&
+      i.valuationNow === "expensive" &&
+      i.signal.signal === "none",
   );
+  // The per-holding signal (backend `holding_signal`) is THE buy-more / sell
+  // advice — the lists read it instead of re-deriving their own, so a list can
+  // never say "buy more" about a stock whose card shows no Buy (2026-10-26).
+  const sellItems = insights.filter((i) => i.signal.signal === "sell");
+  const sellWeightPct = sellItems.reduce((acc, i) => acc + i.weightPct, 0);
+  const buyMoreItems = insights.filter((i) => i.signal.signal === "buy_more");
   // DSE market category — Z is the exchange's own warning label.
   const zItems = insights.filter((i) => i.flags.zCategory);
   const zWeightPct = zItems.reduce((acc, i) => acc + i.weightPct, 0);
@@ -819,9 +839,6 @@ export function analyzePortfolio(
   const staleWeightPct = staleItems.reduce((acc, i) => acc + i.weightPct, 0);
 
   const performersWithPnl = insights.filter((i) => i.pnlPct != null);
-  const winners = performersWithPnl.filter((i) => (i.pnlPct as number) > 0);
-  const winRatePct =
-    performersWithPnl.length > 0 ? (winners.length / performersWithPnl.length) * 100 : null;
   const best =
     performersWithPnl.length > 0
       ? [...performersWithPnl].sort((a, b) => (b.pnlPct as number) - (a.pnlPct as number))[0]
@@ -847,9 +864,7 @@ export function analyzePortfolio(
   // Financials (banks + NBFIs + insurers) move together with rates/regulation,
   // so a heavy combined weight is a hidden concentration even when it's split
   // across those sub-sectors.
-  const isFinancial = (sec: string | null) =>
-    !!sec && /bank|financ|nbfi|leasing|insuranc/.test(sec.toLowerCase());
-  const financialInsights = insights.filter((i) => isFinancial(i.sector));
+  const financialInsights = insights.filter((i) => isFinancialSector(i.sector));
   const financialsWeight = financialInsights.reduce((acc, i) => acc + i.weightPct, 0);
   const financialSectorCount = new Set(financialInsights.map((i) => i.sector)).size;
   const financialsOverweight =
@@ -866,8 +881,8 @@ export function analyzePortfolio(
   if (holdingCount >= 5 && distinctSectors >= 3) {
     good.push(
       bnMode
-        ? `আপনার কাছে ${distinctSectors}টি খাতের ${holdingCount}টি আলাদা শেয়ার আছে — এটা স্বাস্থ্যকর বণ্টন। একটি খাতের সময় খারাপ গেলেও বাকিগুলো আপনার পোর্টফোলিও ধরে রাখতে পারে। লম্বা সময়ের বিনিয়োগকারীরা ঠিক এই নিরাপত্তাই চান।`
-        : `You own ${holdingCount} different stocks across ${distinctSectors} sectors — that's a healthy spread. If one sector goes through a rough patch, the others can still hold your portfolio up. This is exactly the safety net long-term investors aim for.`,
+        ? `আপনার কাছে ${distinctSectors}টি খাতের ${holdingCount}টি আলাদা শেয়ার আছে — এটা স্বাস্থ্যকর বণ্টন। একটি খাতের সময় খারাপ গেলেও বাকিগুলো আপনার পোর্টফোলিও ধরে রাখতে পারে।`
+        : `You own ${holdingCount} different stocks across ${distinctSectors} sectors — that's a healthy spread. If one sector goes through a rough patch, the others can still hold your portfolio up.`,
     );
   }
   if (scored.length >= 2) {
@@ -875,8 +890,8 @@ export function analyzePortfolio(
     if (strongCount / scored.length >= 0.6) {
       good.push(
         bnMode
-          ? `আপনার বেশিরভাগ কোম্পানিই শক্তিশালী বাছাই (${scored.length}টির মধ্যে ${strongCount}টি)। এগুলোর আয় ভালো আর আর্থিক অবস্থাও মজবুত — বাজার খারাপ হলেও এই ধরনের শেয়ার তুলনামূলক ভালো টিকে থাকে।`
-          : `Most of the companies you own are strong picks (${strongCount} out of ${scored.length}). These are businesses with solid earnings and healthy finances — the kind of stocks that hold up better when the market gets rough.`,
+          ? `আপনার বেশিরভাগ কোম্পানির স্কোর 70 বা তার বেশি (${scored.length}টির মধ্যে ${strongCount}টি) — আয় আর আর্থিক অবস্থা দুটোই ভালো।`
+          : `Most of the companies you own score 70 or more (${strongCount} out of ${scored.length}) — their earnings and finances both look healthy.`,
       );
     }
   }
@@ -884,15 +899,15 @@ export function analyzePortfolio(
     const upPct = (best.pnlPct as number).toFixed(1);
     good.push(
       bnMode
-        ? `${best.code} দারুণ বাছাই ছিল — কেনার পর থেকে ${upPct}% বেড়েছে। শুধু দাম বেড়েছে বলেই বিক্রি করবেন না; কোম্পানিটি এখনো শক্তিশালী কি না দেখুন, আর দাম ব্যবসার চেয়ে অনেক এগিয়ে গেলে তবেই কিছু লাভ তুলুন।`
-        : `${best.code} has been a great pick — it's up ${upPct}% since you bought it. Don't sell just because it's up; check whether the company is still strong, and only book profit if the price has run far ahead of the business.`,
+        ? `${best.code} কেনার পর থেকে ${upPct}% বেড়েছে। শুধু দাম বেড়েছে বলেই বিক্রি করতে হবে না; কোম্পানিটি এখনো শক্তিশালী কি না আর দাম ব্যবসার চেয়ে অনেক এগিয়ে গেছে কি না, সেটা দেখুন।`
+        : `${best.code} is up ${upPct}% since you bought it. Being up is not a reason to sell by itself; check whether the company is still strong and whether the price has run far ahead of the business.`,
     );
   }
   if (judgeableEntryCount > 0 && goodEntryCount / judgeableEntryCount >= 0.6) {
     good.push(
       bnMode
-        ? `আপনার বেশিরভাগ শেয়ারই ন্যায্য দামে কেনা (${judgeableEntryCount}টির মধ্যে ${goodEntryCount}টি)। শেয়ারবাজারে ন্যায্য দামে কেনাটাই অর্ধেক জেতা — আপনি বাড়তি দাম দেননি, তাই পরে দুশ্চিন্তাও অনেক কম।`
-        : `You paid a fair price for most of your stocks (${goodEntryCount} out of ${judgeableEntryCount}). Buying at a fair price is half the battle in the stock market — you've avoided overpaying, which means a lot less stress later.`,
+        ? `আজকের আয়ের হিসাবে আপনার বেশিরভাগ শেয়ারের কেনার দাম ন্যায্য (${judgeableEntryCount}টির মধ্যে ${goodEntryCount}টি) — একই খাতের অন্য কোম্পানির চেয়ে বেশি দাম দেননি।`
+        : `At today's earnings, the price you paid looks fair for most of your stocks (${goodEntryCount} out of ${judgeableEntryCount}) — no more than similar companies cost.`,
     );
   }
   if (reliableDividend.length >= 2) {
@@ -902,15 +917,24 @@ export function analyzePortfolio(
         : `You earn reliable dividends from ${reliableDividend.length} of your companies. That means cash returning to you every year on top of any price gains — like rent from a property you own. Reinvesting these dividends quietly grows your portfolio over time.`,
     );
   }
-  if (winRatePct != null && winRatePct >= 70 && performersWithPnl.length >= 3) {
-    good.push(
-      bnMode
-        ? `আপনার বেশিরভাগ শেয়ার এখন লাভে আছে (${performersWithPnl.length}টির মধ্যে ${winners.length}টি)। এটা বোঝায় আপনার শেয়ার বাছাই কাজ করছে — যেভাবে বাছছেন সেভাবেই বাছুন, আর লাভের শেয়ার খুব তাড়াতাড়ি বিক্রির লোভ সামলান।`
-        : `Most of your stocks are currently in profit (${winners.length} out of ${performersWithPnl.length}). That's a sign your stock-picking is working — keep your process the same and resist the urge to sell winners too quickly.`,
-    );
-  }
-
   // Bad
+  if (sellItems.length > 0) {
+    const pct = sellWeightPct.toFixed(0);
+    const first = sellItems[0];
+    if (sellItems.length === 1) {
+      bad.push(
+        bnMode
+          ? `${first.code} এখন বিক্রির সংকেতে — আপনার টাকার ${pct}%। কারণ: ${first.signal.reason} সিদ্ধান্তের আগে শেয়ারের পাতায় পুরো কারণটা দেখুন।`
+          : `${first.code} is marked Sell — ${pct}% of your money. Why: ${first.signal.reason} Read the full reason on its page before you decide.`,
+      );
+    } else {
+      bad.push(
+        bnMode
+          ? `${nameList(sellItems.map((i) => i.code), 2, "bn")} এখন বিক্রির সংকেতে — একসাথে আপনার টাকার ${pct}%। প্রতিটির কারণ তার কার্ডে আর শেয়ারের পাতায় আছে; একটা একটা করে দেখে সিদ্ধান্ত নিন।`
+          : `${nameList(sellItems.map((i) => i.code))} are marked Sell — ${pct}% of your money together. Each card and stock page says why; go through them one by one before you decide.`,
+      );
+    }
+  }
   if (holdingCount === 1) {
     bad.push(
       bnMode
@@ -972,7 +996,15 @@ export function analyzePortfolio(
         : `About ${pct}% of your money is in financial companies — banks, NBFIs, and insurers combined. They may look like different sectors, but they mostly move together with interest rates and regulation. A shock to the financial sector would hit most of your portfolio at once. Adding a non-financial sector (pharma, food, telecom) would balance this.`,
     );
   }
-  if (largestPos && largestPos.weightPct > 40 && holdingCount > 1 && largestPos.code !== topRiskCode) {
+  const largestIsTheSector =
+    !!largestPos && maxSectorPct > 50 && largestPos.sector === maxSectorName && largestPos.weightPct >= maxSectorPct - 1;
+  if (
+    largestPos &&
+    largestPos.weightPct > 40 &&
+    holdingCount > 1 &&
+    largestPos.code !== topRiskCode &&
+    !largestIsTheSector
+  ) {
     const w = largestPos.weightPct.toFixed(0);
     const hit = (largestPos.weightPct * 0.2).toFixed(0);
     bad.push(
@@ -999,15 +1031,15 @@ export function analyzePortfolio(
     const yrs = s.dataAgeYears != null ? `${s.dataAgeYears}` : "2+";
     bad.push(
       bnMode
-        ? `${s.code}-এর সর্বশেষ হিসাব ${yrs} বছরের পুরোনো, তাই এর স্কোর পুরোনো সংখ্যার ওপর দাঁড়িয়ে — আজকের ব্যবসার ছবি এতে না-ও থাকতে পারে। যে কোম্পানি হিসাব প্রকাশে চুপ হয়ে যায়, তার ভেতরে প্রায়ই কোনো সমস্যা থাকে। রেটিংয়ে ভরসা করার আগে শেয়ারের পাতায় সাম্প্রতিক খবর দেখুন।`
-        : `${s.code}'s latest accounts are ${yrs} years old, so its score rests on stale numbers and may not reflect the business today. Companies that go quiet on reporting are often hiding a problem. Check the stock page for recent news before trusting the rating.`,
+        ? `${s.code}-এর সর্বশেষ হিসাব ${yrs} বছরের পুরোনো, তাই এর স্কোর পুরোনো সংখ্যার ওপর দাঁড়িয়ে — আজকের ব্যবসার ছবি এতে না-ও থাকতে পারে, আর আমাদের স্কোরও তাই কেটে কম রাখা হয়েছে। রেটিংয়ে ভরসা করার আগে শেয়ারের পাতায় সাম্প্রতিক খবর দেখুন।`
+        : `${s.code}'s latest accounts are ${yrs} years old, so its score rests on old numbers and may not reflect the business today — which is why we mark its score down. Check the stock page for recent news before trusting the rating.`,
     );
   } else if (staleItems.length > 1) {
     const codes = staleItems.map((i) => i.code);
     bad.push(
       bnMode
-        ? `${nameList(codes, 2, "bn")} 2 বছরের বেশি নতুন হিসাব প্রকাশ করেনি — এদের স্কোর পুরোনো সংখ্যার ওপর দাঁড়িয়ে, আজকের ব্যবসার ছবি এতে না-ও থাকতে পারে। যে কোম্পানি হিসাব প্রকাশে চুপ হয়ে যায়, তার ভেতরে প্রায়ই সমস্যা থাকে। রেটিংয়ে ভরসার আগে এদের পাতায় সাম্প্রতিক খবর দেখুন।`
-        : `${nameList(codes)} haven't published fresh accounts in 2 or more years — their scores rest on stale numbers and may not reflect the businesses today. Companies that go quiet on reporting are often hiding a problem. Check their pages for recent news before trusting the ratings.`,
+        ? `${nameList(codes, 2, "bn")} 2 বছরের বেশি নতুন হিসাব প্রকাশ করেনি — এদের স্কোর পুরোনো সংখ্যার ওপর দাঁড়িয়ে, তাই কেটে কম রাখা হয়েছে। রেটিংয়ে ভরসার আগে এদের পাতায় সাম্প্রতিক খবর দেখুন।`
+        : `${nameList(codes)} haven't published fresh accounts in 2 or more years — their scores rest on old numbers, which is why we mark them down. Check their pages for recent news before trusting the ratings.`,
     );
   }
   // The top-risk name is already called out above (big-and-weak) — don't repeat it here.
@@ -1053,12 +1085,12 @@ export function analyzePortfolio(
     if (bnMode) {
       const more = extra > 0 ? ` এবং আরও ${extra}টি` : "";
       bad.push(
-        `আপনি ${head}${more} বেশি দামে কিনেছেন — সে সময় কোম্পানির আয় এত দামের সমর্থন করত না। শেয়ারবাজারে সবচেয়ে বেশি ক্ষতি করে এই বাড়তি দাম দেওয়াটাই, কারণ ভালো কোম্পানিরও বেশি দামের যোগ্য হতে বছরের পর বছর লাগে। ধরে রাখবেন, আরও কিনবেন, না সরে আসবেন — সিদ্ধান্তের আগে শেয়ারের পাতায় আজকের দাম-মূল্যায়ন দেখে নিন।`,
+        `কোম্পানিগুলোর সর্বশেষ বার্ষিক আয়ের হিসাবে ${head}${more}-এর কেনার দাম বেশি দেখাচ্ছে — একই খাতের কোম্পানির চেয়ে অনেক বেশি দিয়েছেন। বেশি দামে কেনা শেয়ারকে সেই দামের যোগ্য হতে সময় লাগে। ধরে রাখবেন, আরও কিনবেন, না সরে আসবেন — সিদ্ধান্তের আগে শেয়ারের পাতায় আজকের দাম-মূল্যায়ন দেখে নিন।`,
       );
     } else {
       const more = extra > 0 ? ` and ${extra} more` : "";
       bad.push(
-        `You paid a high price for ${head}${more} — more than the company's earnings justified at the time. Overpaying is the mistake that hurts most on the DSE, because even a good company needs years to grow into a high price. Check today's valuation on the stock page before deciding to hold, add, or exit.`,
+        `Measured against the companies' latest yearly earnings, the price you paid for ${head}${more} looks high — well above what similar companies cost. A stock bought dear needs time to grow into its price. Check today's valuation on the stock page before deciding to hold, add, or exit.`,
       );
     }
   }
@@ -1080,26 +1112,15 @@ export function analyzePortfolio(
         : `Trim your ${maxSectorName} exposure — it's currently ${pct}% of your portfolio. The simplest fix is to stop adding to it and direct your next investments into a different sector. Over time the balance will even out without you having to sell anything.`,
     );
   }
-  if (averageDownCandidates.length > 0) {
-    const c = averageDownCandidates[0];
+  if (buyMoreItems.length > 0) {
+    const c = buyMoreItems[0];
+    const others = buyMoreItems.length - 1;
     consider.push(
       bnMode
-        ? `${c.code}-এর দাম কমেছে, কিন্তু কোম্পানিটি এখনো শক্তিশালী আর দাম এখন আপনার কেনার সময়ের চেয়েও সস্তা। হাতে বাড়তি টাকা থাকলে আর ব্যবসায় ভরসা থাকলে এখানে আরেকটু কিনলে আপনার গড় খরচ কমবে — দাম ফিরলে লোকসানও তাড়াতাড়ি উঠে আসবে।`
-        : `${c.code} is down, but the company is still strong and the price is now cheaper than when you bought. If you have spare money and still believe in the business, buying a little more here lowers your average cost — so when it recovers, you make back the loss faster.`,
+        ? `${c.code} এখন "আরও কিনুন" সংকেতে${others > 0 ? ` (আরও ${others}টিও)` : ""}। কারণ: ${c.signal.reason} হাতে বাড়তি টাকা থাকলে এখানে আরেকটু কেনা যায় — তবে কোনো একটি শেয়ার যেন আপনার টাকার 25%-এর বেশি না হয়।`
+        : `${c.code} is marked Buy more${others > 0 ? ` (and ${others} more)` : ""}. Why: ${c.signal.reason} If you have spare money, adding a little here fits — just keep any one stock under about 25% of your money.`,
     );
   }
-  // Sell advice is hidden from the UI for now (we only surface Buy / Strong Buy).
-  // The logic is kept here, commented out, to restore easily when Sell returns.
-  // const sellCandidates = insights.filter(
-  //   (i) => i.tierKey === "weak" && i.entryTag === "expensive_expensive",
-  // );
-  // if (sellCandidates.length > 0) {
-  //   consider.push(
-  //     bnMode
-  //       ? `${nameList(sellCandidates.map((s) => s.code), 2, "bn")} বিক্রি বা কমানোর কথা ভাবুন — ...`
-  //       : `Consider selling or reducing ${nameList(sellCandidates.map((s) => s.code))} — ...`,
-  //   );
-  // }
   if (upExpensiveItems.length > 0) {
     const c = upExpensiveItems[0];
     consider.push(
@@ -1165,12 +1186,15 @@ export function analyzePortfolio(
   // staleness multipliers have already pulled those companies' own scores down).
   const categoryPenalty = Math.min(2, zWeightPct / 15);
   const stalePenalty = Math.min(2, staleWeightPct / 15);
+  // Weak-rated and weak-finance holdings dent Quality by the money in them
+  // (2026-10-26: it used to be 2 points per name, so a 1% position cost as
+  // much as a 40% one). A third of the portfolio in weak names costs the full 3.
+  const weakWeightPct = insights.filter((i) => i.tierKey === "weak").reduce((acc, i) => acc + i.weightPct, 0);
+  const strugglingWeightPct = insights.filter((i) => i.flags.weakFinances).reduce((acc, i) => acc + i.weightPct, 0);
+  const weakPenalty = weakWeightPct > 0 ? Math.min(3, 0.5 + weakWeightPct / 12) : 0;
+  const strugglingPenalty = strugglingWeightPct > 0 ? Math.min(2, 0.3 + strugglingWeightPct / 20) : 0;
   const qualityScore = clamp(
-    baseQuality -
-      2 * avoidNames.length -
-      1 * strugglingNames.length -
-      categoryPenalty -
-      stalePenalty,
+    baseQuality - weakPenalty - strugglingPenalty - categoryPenalty - stalePenalty,
     0,
     10,
   );
@@ -1222,6 +1246,15 @@ export function analyzePortfolio(
     sectorSpread,
     subScores: { spread: spreadScore, quality: qualityScore, entry: entryScore, overall },
     effectiveStocks,
+    breakdown: {
+      sectorPenalty,
+      baseQuality,
+      weakPenalty,
+      strugglingPenalty,
+      categoryPenalty,
+      stalePenalty,
+      judgeablePct: judgeableWeight,
+    },
     topRisk: topRiskInsight
       ? {
           code: topRiskInsight.code,
@@ -1234,6 +1267,24 @@ export function analyzePortfolio(
 }
 
 // ── Rebalance helper ("what to buy next") ──────────────────────────────────
+//
+// Rebuilt 2026-10-26 so a buy idea can never contradict a stock page:
+// - only stocks the canonical signal (backend signal_service) marks **Buy**
+//   today are ever named — that gate already covers price (valuation pillar),
+//   the near-yearly-high dampener, thin trading, Z category, stale accounts
+//   and a 25%+ profit drop;
+// - each gap gets its own kind of idea: a better company in the same sector
+//   for a weak holding (swap), a steady payer when nothing pays a dividend,
+//   a sector the reader doesn't own when the portfolio is thin or lopsided;
+// - banks + NBFIs + insurers count as one group (they move together);
+// - ideas rank on price first, then quality, so readers with the same gaps
+//   don't all get the same three names off the top of the rankings;
+// - every idea carries its numbers, the signal's own reason, one watch-out
+//   and an example amount (about 10% of the reader's money, whole shares).
+// When gaps exist but nothing passes, the plan says so instead of lowering
+// the bar.
+
+export type RebalanceKind = "swap" | "dividend" | "new_sector" | "spread";
 
 export interface RebalancePick {
   code: string;
@@ -1242,109 +1293,281 @@ export interface RebalancePick {
   score: number | null;
   ltp: number | null;
   divYieldPct: number | null;
+  kind: RebalanceKind;
+  /** The holding this one could replace (swap ideas only). */
+  replaces: string | null;
+  /** The headline reason — what gap it fills. */
   why: string;
+  /** Plain number lines: score, P/E vs similar companies, dividend, profit trend. */
+  evidence: string[];
+  /** The Buy signal's own reason, in the reader's language. */
+  signalReason: string | null;
+  /** Strong buy (the signal's conviction). */
+  strong: boolean;
+  /** One honest thing to watch, or null. */
+  watch: string | null;
+  /** Example size: whole shares at today's price. */
+  suggest: { shares: number; amount: number; targetPct: number } | null;
 }
 
 export interface RebalancePlan {
   /** Plain-English gaps this plan addresses; empty = portfolio looks balanced. */
   gaps: string[];
   picks: RebalancePick[];
+  /** How many stocks carry a Buy signal today (the pool the ideas come from). */
+  buyPool: number;
+  /** Set when there are gaps but no stock passed every check today. */
+  noneReason: string | null;
 }
 
-/**
- * Turn the analysis' diversification gaps into concrete next-buy ideas from the
- * rankings: strong companies (score ≥ 65) the user doesn't own, preferring
- * sectors missing from the portfolio and skipping the overweight sector.
- * Returns no picks when the portfolio already looks balanced.
- */
+/** A holding's value today (cost when there is no price yet). */
+function holdingValue(h: HoldingInsight): number {
+  return h.qty * (h.ltp ?? h.buyPrice);
+}
+
 export function buildRebalancePlan(
   analysis: PortfolioAnalysis,
   priceMap: Map<string, ScoreItem>,
   maxPicks = 3,
 ): RebalancePlan {
-  const held = new Set(analysis.holdings.map((h) => h.code.toUpperCase()));
-  const heldSectors = new Set(
-    analysis.holdings.map((h) => h.sector).filter((s): s is string => !!s),
-  );
-  const holdingCount = analysis.holdings.length;
+  const lang = analysis.lang ?? "en";
+  const bnMode = lang === "bn";
+  const L = (en: string, bn: string) => (bnMode ? bn : en);
+
+  const holdings = analysis.holdings;
+  const held = new Set(holdings.map((h) => h.code.toUpperCase()));
+  const heldSectors = new Set(holdings.map((h) => h.sector).filter((s): s is string => !!s));
+  const holdingCount = holdings.length;
+  const totalValue = holdings.reduce((acc, h) => acc + holdingValue(h), 0);
+
   const maxSector = analysis.sectorSpread[0];
   const overweightSector =
     maxSector && maxSector.weightPct > 40 && holdingCount > 1 ? maxSector.name : null;
-  const avoidHoldings = analysis.holdings.filter((h) => h.tierKey === "weak");
-  const lang = analysis.lang ?? "en";
-  const bnMode = lang === "bn";
+  const financialsPct = holdings
+    .filter((h) => isFinancialSector(h.sector))
+    .reduce((acc, h) => acc + h.weightPct, 0);
+  const financialsHeavy = financialsPct > 50 && holdingCount > 1;
+  // Weak-rated or Z-category holdings, largest first — each could be swapped.
+  const swapTargets = holdings
+    .filter((h) => h.tierKey === "weak" || h.flags.zCategory)
+    .sort((a, b) => b.weightPct - a.weightPct);
+  const noDividendPayer =
+    holdingCount >= 3 && !holdings.some((h) => (h.pillars.p5_div ?? 0) >= 7);
 
+  // ── Gaps ───────────────────────────────────────────────────────────────
   const gaps: string[] = [];
   if (holdingCount > 0 && holdingCount < 5) {
     gaps.push(
-      bnMode
-        ? `আপনার কাছে ${holdingCount}টি শেয়ার আছে — 5–8টি রাখার চেষ্টা করুন, যাতে একটি খারাপ কোম্পানি পুরো পোর্টফোলিও টেনে নামাতে না পারে।`
-        : `You own ${holdingCount} stock${holdingCount === 1 ? "" : "s"} — aim for 5–8 so one bad company can't drag your whole portfolio down.`,
+      L(
+        `You own ${holdingCount} stock${holdingCount === 1 ? "" : "s"} — aim for 5–8 so one bad company can't drag your whole portfolio down.`,
+        `আপনার কাছে ${holdingCount}টি শেয়ার আছে — 5–8টি রাখার চেষ্টা করুন, যাতে একটি খারাপ কোম্পানি পুরো পোর্টফোলিও টেনে নামাতে না পারে।`,
+      ),
     );
   }
   if (overweightSector) {
-    const pct = maxSector!.weightPct.toFixed(0);
     gaps.push(
-      bnMode
-        ? `আপনার টাকার ${pct}% আছে ${overweightSector} খাতে — পরের কেনাটা অন্য কোনো খাত থেকে হওয়া উচিত।`
-        : `${pct}% of your money is in ${overweightSector} — your next buy should come from a different sector.`,
+      L(
+        `${maxSector!.weightPct.toFixed(0)}% of your money is in ${overweightSector} — your next buy should come from a different sector.`,
+        `আপনার টাকার ${maxSector!.weightPct.toFixed(0)}% আছে ${overweightSector} খাতে — পরের কেনাটা অন্য কোনো খাত থেকে হওয়া উচিত।`,
+      ),
     );
   }
-  if (avoidHoldings.length > 0) {
+  if (financialsHeavy && financialsPct - (overweightSector && isFinancialSector(overweightSector) ? maxSector!.weightPct : 0) > 5) {
     gaps.push(
-      bnMode
-        ? `${nameList(avoidHoldings.map((h) => h.code), 2, "bn")} ঝুঁকিপূর্ণ রেটিং পেয়েছে — সেই টাকা আরও শক্তিশালী কোনো শেয়ারে কাজে লাগতে পারে।`
-        : `${nameList(avoidHoldings.map((h) => h.code))} ${avoidHoldings.length === 1 ? "is" : "are"} rated Risky — a stronger stock could take that money instead.`,
+      L(
+        `${financialsPct.toFixed(0)}% of your money is in banks, finance companies and insurers — they move together, so these ideas leave them out.`,
+        `আপনার টাকার ${financialsPct.toFixed(0)}% আছে ব্যাংক, আর্থিক প্রতিষ্ঠান আর বিমায় — এরা একসাথে ওঠানামা করে, তাই এই আইডিয়াগুলোতে এদের রাখা হয়নি।`,
+      ),
+    );
+  }
+  const swapGapAt = swapTargets.length > 0 ? gaps.length : -1;
+  if (swapTargets.length > 0) {
+    gaps.push(
+      L(
+        `${nameList(swapTargets.map((h) => h.code))} ${swapTargets.length === 1 ? "is" : "are"} rated weak or in DSE's Z category — a stronger company in the same line of business could take that money.`,
+        `${nameList(swapTargets.map((h) => h.code), 2, "bn")} দুর্বল রেটিং বা ডিএসই-র Z ক্যাটাগরিতে — একই ধরনের ব্যবসার কোনো শক্তিশালী কোম্পানি সেই টাকা নিতে পারে।`,
+      ),
+    );
+  }
+  if (noDividendPayer) {
+    gaps.push(
+      L(
+        "None of your stocks pays a steady dividend — one steady payer brings cash in every year.",
+        "আপনার কোনো শেয়ার নিয়মিত ডিভিডেন্ড দেয় না — একটি নিয়মিত দাতা প্রতি বছর নগদ টাকা আনে।",
+      ),
     );
   }
 
-  if (gaps.length === 0) return { gaps, picks: [] };
-
-  const candidates = Array.from(priceMap.values()).filter(
-    (s) =>
-      s.score != null &&
-      s.score >= 65 &&
-      s.ltp != null &&
-      s.sector != null &&
-      !held.has(s.trading_code.toUpperCase()) &&
-      (overweightSector == null || s.sector !== overweightSector),
+  // ── The pool: today's Buy signals only ─────────────────────────────────
+  const buys = Array.from(priceMap.values()).filter(
+    (s) => s.signal?.signal === "buy" && s.ltp != null && s.ltp > 0 && s.sector != null,
   );
-  // Sectors the user doesn't own yet come first; within a group, best score wins.
-  candidates.sort((a, b) => {
-    const aNew = heldSectors.has(a.sector!) ? 0 : 1;
-    const bNew = heldSectors.has(b.sector!) ? 0 : 1;
-    if (aNew !== bNew) return bNew - aNew;
-    return (b.score ?? 0) - (a.score ?? 0);
-  });
+  const buyPool = buys.length;
+  if (gaps.length === 0) return { gaps, picks: [], buyPool, noneReason: null };
+
+  const allowed = buys.filter(
+    (s) =>
+      !held.has(s.trading_code.toUpperCase()) &&
+      (overweightSector == null || s.sector !== overweightSector) &&
+      !(financialsHeavy && isFinancialSector(s.sector)),
+  );
+  // Price first, then quality: p4 (0–10) plus score / 10 (0–10).
+  const rank = (s: ScoreItem) => (s.p4_val ?? 5) + (s.score ?? 0) / 10;
+  allowed.sort((a, b) => rank(b) - rank(a));
+
+  const peMap = sectorMedianPeMap(priceMap);
+  // About 10% of the money in the new name — more when the portfolio is thin
+  // (an equal share of n + 1 stocks, at most 20%).
+  const targetPct =
+    holdingCount > 0 && holdingCount < 5 ? Math.min(20, 100 / (holdingCount + 1)) : 10;
 
   const picks: RebalancePick[] = [];
   const usedSectors = new Set<string>();
-  for (const c of candidates) {
-    if (picks.length >= maxPicks) break;
-    if (usedSectors.has(c.sector!)) continue; // one idea per sector
-    usedSectors.add(c.sector!);
-    const isNewSector = !heldSectors.has(c.sector!);
-    const cheap = (c.p4_val ?? 0) >= 7;
-    const why = bnMode
-      ? isNewSector
-        ? `এমন একটি খাত যোগ করে যা আপনার এখনো নেই (${c.sector})।`
-        : cheap
-          ? "শক্তিশালী কোম্পানি, আর দামও এখন সস্তা মনে হচ্ছে।"
-          : "আপনার সবচেয়ে বড় খাতের বাইরের অন্যতম শক্তিশালী কোম্পানি।"
-      : isNewSector
-        ? `Adds a sector you don't own yet (${c.sector}).`
-        : cheap
-          ? "Strong company, and the price looks cheap right now."
-          : "One of the strongest companies outside your biggest sector.";
-    picks.push({
-      code: c.trading_code,
-      companyName: c.company_name,
-      sector: c.sector,
-      score: c.score,
-      ltp: c.ltp,
-      divYieldPct: c.div_yield_pct,
+  const usedCodes = new Set<string>();
+
+  const make = (s: ScoreItem, kind: RebalanceKind, why: string, replaces: string | null, amountHint?: number): RebalancePick => {
+    const sectorPe = (s.sector ? peMap.bySector.get(s.sector) : undefined) ?? peMap.market;
+    const evidence: string[] = [];
+    if (s.score != null) {
+      evidence.push(L(`Score ${Math.round(s.score)} out of 100`, `স্কোর 100-এর মধ্যে ${Math.round(s.score)}`));
+    }
+    if (s.eps != null && s.eps > 0 && s.ltp) {
+      const pe = s.ltp / s.eps;
+      evidence.push(
+        sectorPe
+          ? L(
+              `Costs ${fmtPe(pe)} times its yearly profit — similar companies cost ${fmtPe(sectorPe)}`,
+              `দাম তার বার্ষিক লাভের ${fmtPe(pe)} গুণ — একই ধরনের কোম্পানি ${fmtPe(sectorPe)} গুণ`,
+            )
+          : L(`Costs ${fmtPe(pe)} times its yearly profit`, `দাম তার বার্ষিক লাভের ${fmtPe(pe)} গুণ`),
+      );
+    }
+    if (s.div_yield_pct != null && s.div_yield_pct >= 1) {
+      evidence.push(
+        L(`Pays about ${s.div_yield_pct.toFixed(1)}% a year in cash at today's price`, `আজকের দামে বছরে প্রায় ${s.div_yield_pct.toFixed(1)}% নগদ ডিভিডেন্ড`),
+      );
+    }
+    if (s.eps_yoy_pct != null && s.eps_yoy_pct >= 10) {
+      evidence.push(L(`Profit up ${s.eps_yoy_pct.toFixed(0)}% last year`, `গত বছর লাভ ${s.eps_yoy_pct.toFixed(0)}% বেড়েছে`));
+    }
+
+    // One honest watch-out, most serious first.
+    let watch: string | null = null;
+    if ((s.p2_health ?? 10) < 5) watch = L("Its finances are only average — check its loans on the stock page.", "আর্থিক অবস্থা মাঝারি — শেয়ারের পাতায় ঋণ দেখে নিন।");
+    else if (s.eps_yoy_pct != null && s.eps_yoy_pct <= -10) watch = L(`Profit fell ${Math.abs(s.eps_yoy_pct).toFixed(0)}% last year.`, `গত বছর লাভ ${Math.abs(s.eps_yoy_pct).toFixed(0)}% কমেছে।`);
+    else if ((s.market_category ?? "").toUpperCase() === "B") watch = L("B category — it paid under a 10% dividend last year.", "B ক্যাটাগরি — গত বছর 10%-এর কম ডিভিডেন্ড দিয়েছে।");
+    else if ((s.p5_div ?? 10) < 3) watch = L("It pays little or no dividend.", "ডিভিডেন্ড কম দেয় বা দেয় না।");
+    else if ((s.p3_moat ?? 10) < 4) watch = L("A small player in its sector.", "নিজের খাতে ছোট কোম্পানি।");
+    else if (s.last_reported_year != null && (s.data_age_years ?? 0) >= 1) watch = L(`Its latest yearly accounts are for ${s.last_reported_year}.`, `সর্বশেষ বার্ষিক হিসাব ${s.last_reported_year} সালের।`);
+
+    let suggest: RebalancePick["suggest"] = null;
+    if (s.ltp && totalValue > 0) {
+      const amount = amountHint ?? (totalValue * targetPct) / (100 - targetPct);
+      const shares = Math.max(1, Math.floor(amount / s.ltp));
+      suggest = { shares, amount: shares * s.ltp, targetPct: amountHint != null ? 0 : targetPct };
+    }
+
+    return {
+      code: s.trading_code,
+      companyName: s.company_name,
+      sector: s.sector,
+      score: s.score,
+      ltp: s.ltp,
+      divYieldPct: s.div_yield_pct,
+      kind,
+      replaces,
       why,
-    });
+      evidence,
+      signalReason: s.signal ? (bnMode ? s.signal.reason_bn : s.signal.reason_en) || s.signal.reason_en : null,
+      strong: s.signal?.strength === "strong",
+      watch,
+      suggest,
+    };
+  };
+  const take = (p: RebalancePick) => {
+    picks.push(p);
+    usedCodes.add(p.code);
+    if (p.sector) usedSectors.add(p.sector);
+  };
+  const free = (s: ScoreItem) => !usedCodes.has(s.trading_code) && !usedSectors.has(s.sector!);
+
+  // 1. Swaps — a clearly stronger company in the same sector as a weak holding.
+  for (const h of swapTargets) {
+    if (picks.length >= maxPicks) break;
+    const c = allowed.find(
+      (s) => free(s) && s.sector === h.sector && (s.score ?? 0) >= (h.score ?? 0) + 10,
+    );
+    if (!c) continue;
+    take(
+      make(
+        c,
+        "swap",
+        L(
+          `A stronger company in the same business as ${h.code} — it could take that money.`,
+          `${h.code}-এর একই ধরনের ব্যবসার শক্তিশালী কোম্পানি — সেই টাকা এখানে আসতে পারে।`,
+        ),
+        h.code,
+        holdingValue(h),
+      ),
+    );
   }
-  return { gaps, picks };
+
+  // 2. A steady dividend payer.
+  if (noDividendPayer && picks.length < maxPicks) {
+    const c = allowed.find((s) => free(s) && (s.p5_div ?? 0) >= 7 && (s.div_yield_pct ?? 0) >= 4);
+    if (c) {
+      take(
+        make(c, "dividend", L("Pays a steady dividend it can afford — cash in every year.", "সামর্থ্যের মধ্যে নিয়মিত ডিভিডেন্ড দেয় — প্রতি বছর নগদ টাকা।"), null),
+      );
+    }
+  }
+
+  // 3. Sectors the reader doesn't own (thin or lopsided portfolios).
+  const wantsSpread = holdingCount < 5 || overweightSector != null || financialsHeavy;
+  if (wantsSpread) {
+    for (const c of allowed) {
+      if (picks.length >= maxPicks) break;
+      if (!free(c) || heldSectors.has(c.sector!)) continue;
+      take(make(c, "new_sector", L(`Adds a sector you don't own yet: ${c.sector}.`, `এমন একটি খাত যোগ করে যা আপনার এখনো নেই: ${c.sector}।`), null));
+    }
+    // 4. Still short: the best-priced strong names outside the heavy sector.
+    for (const c of allowed) {
+      if (picks.length >= maxPicks) break;
+      if (!free(c)) continue;
+      take(
+        make(
+          c,
+          "spread",
+          overweightSector
+            ? L(`Outside ${overweightSector}, where most of your money is.`, `${overweightSector}-এর বাইরে, যেখানে আপনার বেশিরভাগ টাকা।`)
+            : L("A good company at a good price, outside what you already own.", "ভালো দামে ভালো কোম্পানি, আপনার যা আছে তার বাইরে।"),
+          null,
+        ),
+      );
+    }
+  }
+
+  // No same-sector swap passed (often because that sector is the heavy one):
+  // don't promise one — point at the ideas instead.
+  if (swapGapAt >= 0 && !picks.some((p) => p.kind === "swap")) {
+    gaps[swapGapAt] = L(
+      `${nameList(swapTargets.map((h) => h.code))} ${swapTargets.length === 1 ? "is" : "are"} rated weak or in DSE's Z category — the money in ${swapTargets.length === 1 ? "it" : "them"} could work harder in a stronger company.`,
+      `${nameList(swapTargets.map((h) => h.code), 2, "bn")} দুর্বল রেটিং বা ডিএসই-র Z ক্যাটাগরিতে — এই টাকা কোনো শক্তিশালী কোম্পানিতে বেশি কাজে লাগতে পারে।`,
+    );
+  }
+
+  const noneReason =
+    picks.length === 0
+      ? buyPool === 0
+        ? L(
+            "No stock carries a Buy signal today, so there is nothing to suggest. When good companies get cheaper, ideas appear here.",
+            "আজ কোনো শেয়ারে কেনার সংকেত নেই, তাই কিছু বলার নেই। ভালো কোম্পানির দাম কমলে এখানে আইডিয়া আসবে।",
+          )
+        : L(
+            `${buyPool} stocks carry a Buy signal today, but none of them fills these gaps without adding to what you already have too much of. Waiting is fine.`,
+            `আজ ${buyPool}টি শেয়ারে কেনার সংকেত আছে, কিন্তু আপনার যা বেশি আছে তা না বাড়িয়ে এই ফাঁক ভরে এমন কোনোটি নেই। অপেক্ষা করাও ঠিক আছে।`,
+          )
+      : null;
+
+  return { gaps, picks, buyPool, noneReason };
 }

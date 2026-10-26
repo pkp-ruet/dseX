@@ -7,15 +7,17 @@ import {
   type PortfolioHolding,
   type PortfolioLogEntry,
 } from "@/lib/api";
-import { taka } from "@/lib/formatters";
+import { taka, takaGroup } from "@/lib/formatters";
 import Button from "@/components/ui/Button";
+import Sheet from "@/components/ui/Sheet";
+import type { AnalysisLang } from "@/lib/portfolio-analysis";
 
 type Mode = "buy" | "sell";
 
 interface Props {
   mode: Mode;
   holding: PortfolioHolding;
-  /** Live price — prefills the Buy price and colours the preview. */
+  /** Live price — prefills the price field. */
   ltp: number | null;
   companyName?: string | null;
   onClose: () => void;
@@ -23,6 +25,7 @@ interface Props {
   onDone: (holdings: PortfolioHolding[], log?: PortfolioLogEntry[]) => void;
   /** Which portfolio (absent = the main one). */
   pid?: string;
+  lang?: AnalysisLang;
 }
 
 type Preview =
@@ -31,19 +34,25 @@ type Preview =
   | { kind: "sell-all" }
   | { kind: "over-sell"; held: number };
 
+const n = (v: number) => v.toLocaleString("en-IN");
+
 /**
- * Buy / Sell a holding. Both are written to the portfolio log.
+ * "Bought more" / "Sold" on a holding — both are written to the portfolio log.
+ * On the shared `ui/Sheet` (2026-10-26 redesign): bottom sheet on phones,
+ * dialog from 640px.
  *
  * Buy re-uses the backend's weighted-average merge (POST /holdings). Sell goes
  * through POST /holdings/:id/sell with the sale price, so the profit
  * (price − average cost) is kept in the history instead of vanishing with the
  * shares; the average cost of what is left is unchanged, and selling
- * everything removes the holding. A live preview spells out the resulting
- * position and the profit, so the outcome is never a surprise.
+ * everything removes the holding. A live "after this" panel spells out the
+ * resulting position and the profit, so the outcome is never a surprise.
  */
-export default function BuySellModal({ mode, holding, ltp, companyName, onClose, onDone, pid }: Props) {
+export default function BuySellModal({ mode, holding, ltp, companyName, onClose, onDone, pid, lang = "en" }: Props) {
   const isBuy = mode === "buy";
-  const accent = isBuy ? "var(--positive)" : "var(--negative)";
+  const bn = lang === "bn";
+  const L = (en: string, b: string) => (bn ? b : en);
+  const bnCls = bn ? "font-bn" : "";
 
   const [qty, setQty] = useState("");
   const [price, setPrice] = useState(() => (ltp != null ? String(ltp) : ""));
@@ -51,14 +60,10 @@ export default function BuySellModal({ mode, holding, ltp, companyName, onClose,
   const [saving, setSaving] = useState(false);
   const qtyRef = useRef<HTMLInputElement>(null);
 
+  // The Sheet focuses its panel on open; move focus to the first field after it.
   useEffect(() => {
-    qtyRef.current?.focus();
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const t = setTimeout(() => qtyRef.current?.focus(), 0);
+    return () => clearTimeout(t);
   }, []);
 
   const qtyNum = parseInt(qty, 10);
@@ -79,38 +84,33 @@ export default function BuySellModal({ mode, holding, ltp, companyName, onClose,
     return { kind: "sell-partial", remaining: holding.qty - qtyNum };
   }, [isBuy, qtyValid, priceValid, qtyNum, priceNum, holding.qty, holding.buy_price]);
 
-  const canSubmit =
-    !saving && preview != null && preview.kind !== "over-sell" && priceValid;
+  const canSubmit = !saving && preview != null && preview.kind !== "over-sell" && priceValid;
   // Profit on this sale: shares sold × (sale price − average cost), before fees.
-  const saleProfit = !isBuy && qtyValid && priceValid && qtyNum <= holding.qty
-    ? qtyNum * (priceNum - holding.buy_price)
-    : null;
+  const saleProfit =
+    !isBuy && qtyValid && priceValid && qtyNum <= holding.qty ? qtyNum * (priceNum - holding.buy_price) : null;
 
   const submitLabel = (() => {
-    if (saving) return "Saving…";
-    if (!preview || preview.kind === "over-sell") return isBuy ? "Buy" : "Sell";
-    if (preview.kind === "buy") return `Buy ${qtyNum.toLocaleString()} shares`;
-    if (preview.kind === "sell-all") return "Sell all & remove";
-    return `Sell ${qtyNum.toLocaleString()} shares`;
+    if (saving) return L("Saving…", "সেভ হচ্ছে…");
+    if (!preview || preview.kind === "over-sell") return isBuy ? L("Save the buy", "কেনা সেভ করুন") : L("Save the sale", "বিক্রি সেভ করুন");
+    if (preview.kind === "buy") return L(`Save: bought ${n(qtyNum)} shares`, `সেভ: ${n(qtyNum)}টি কেনা`);
+    if (preview.kind === "sell-all") return L("Save: sold all", "সেভ: সব বিক্রি");
+    return L(`Save: sold ${n(qtyNum)} shares`, `সেভ: ${n(qtyNum)}টি বিক্রি`);
   })();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     if (!qtyValid) {
-      return setError(isBuy ? "Enter how many shares you bought." : "Enter how many shares you sold.");
+      return setError(isBuy ? L("Enter how many shares you bought.", "কয়টি শেয়ার কিনেছেন লিখুন।") : L("Enter how many shares you sold.", "কয়টি শেয়ার বিক্রি করেছেন লিখুন।"));
     }
-    if (!priceValid) return setError(isBuy ? "Enter the price you bought at." : "Enter the price you sold at.");
+    if (!priceValid) return setError(isBuy ? L("Enter the price you bought at.", "কেনার দাম লিখুন।") : L("Enter the price you sold at.", "বিক্রির দাম লিখুন।"));
     if (!isBuy && qtyNum > holding.qty) {
-      return setError(`You only hold ${holding.qty.toLocaleString()} shares.`);
+      return setError(L(`You only hold ${n(holding.qty)} shares.`, `আপনার কাছে মাত্র ${n(holding.qty)}টি শেয়ার আছে।`));
     }
     setSaving(true);
     try {
       if (isBuy) {
-        const res = await apiAddHolding(
-          { trading_code: holding.trading_code, buy_price: priceNum, qty: qtyNum },
-          pid,
-        );
+        const res = await apiAddHolding({ trading_code: holding.trading_code, buy_price: priceNum, qty: qtyNum }, pid);
         onDone(res.holdings, res.log);
       } else {
         const res = await apiSellHolding(holding.id, { qty: qtyNum, price: priceNum }, pid);
@@ -118,202 +118,123 @@ export default function BuySellModal({ mode, holding, ltp, companyName, onClose,
       }
       onClose();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(err instanceof Error ? err.message : L("Something went wrong.", "কিছু একটা ভুল হয়েছে।"));
       setSaving(false);
     }
   }
 
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-text-main/50"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="buysell-title"
-      onClick={() => !saving && onClose()}
-    >
-      <div
-        className="w-full sm:max-w-sm bg-surface border-t sm:border border-border rounded-t-xl sm:rounded-xl p-5 sm:p-6 flex flex-col gap-4"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span
-              className="grid place-items-center w-9 h-9 rounded-lg shrink-0 font-bold text-lg leading-none"
-              style={{ color: accent, background: `color-mix(in srgb, ${accent} 14%, transparent)` }}
-              aria-hidden
-            >
-              {isBuy ? "+" : "−"}
-            </span>
-            <div className="min-w-0">
-              <h3 id="buysell-title" className="text-lg font-bold text-text-main leading-tight">
-                {isBuy ? "Buy" : "Sell"} <span className="font-mono">{holding.trading_code}</span>
-              </h3>
-              <p className="text-xs text-text-muted truncate leading-tight">
-                {companyName ?? "Adjust your shares"}
-              </p>
-            </div>
-          </div>
-          <Button type="button" variant="link" size="sm" iconOnly onClick={onClose} aria-label="Close" disabled={saving} className="-mr-2 shrink-0">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
-                  <path d="M18 6 6 18M6 6l12 12" />
-                </svg>
-          </Button>
-        </div>
+  const title = isBuy
+    ? L(`You bought more ${holding.trading_code}`, `আরও ${holding.trading_code} কিনেছেন`)
+    : L(`You sold ${holding.trading_code}`, `${holding.trading_code} বিক্রি করেছেন`);
 
-        {/* Current position */}
-        <div className="flex items-center justify-between rounded-lg bg-[color-mix(in_srgb,var(--primary)_5%,var(--surface-2))] px-3 py-2 text-sm">
-          <span className="text-text-muted">You own</span>
-          <span className="text-text-main font-semibold tabular-nums nums">
-            {holding.qty.toLocaleString()} sh @ {taka(holding.buy_price, 2)}
+  return (
+    <Sheet open onClose={onClose} dismissible={!saving} title={title} bn={!bn ? (companyName ?? undefined) : undefined}>
+      <form onSubmit={handleSubmit} className={`flex flex-col gap-4 ${bnCls}`} lang={bn ? "bn" : undefined}>
+        {/* What they hold now */}
+        <div className="flex items-baseline justify-between gap-3 border-b border-cell-rule pb-3 text-sm">
+          <span className="text-text-muted">{L("You own now", "এখন আছে")}</span>
+          <span className="pv nums font-semibold text-text-main">
+            {L(`${n(holding.qty)} shares at ${taka(holding.buy_price, 2)}`, `${n(holding.qty)}টি, গড় ${taka(holding.buy_price, 2)}`)}
           </span>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {isBuy ? (
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="bs-1" className="text-sm font-medium text-text-main">Shares bought</label>
-                <input id="bs-1"
-                  ref={qtyRef}
-                  type="number"
-                  placeholder="100"
-                  min="1"
-                  step="1"
-                  inputMode="numeric"
-                  value={qty}
-                  onChange={(e) => setQty(e.target.value)}
-                  className="input-field text-lg w-full tabular-nums py-3"
-                  aria-label="Shares bought"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="bs-2" className="text-sm font-medium text-text-main">Buy price (৳)</label>
-                <input id="bs-2"
-                  type="number"
-                  placeholder="295.50"
-                  min="0.01"
-                  step="0.01"
-                  inputMode="decimal"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  className="input-field text-lg w-full tabular-nums py-3"
-                  aria-label="Buy price"
-                />
-              </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex min-h-6 items-center justify-between gap-2">
+              <label htmlFor="bs-qty" className="text-sm font-semibold text-text-main">
+                {isBuy ? L("Shares bought", "কয়টি কিনেছেন") : L("Shares sold", "কয়টি বিক্রি")}
+              </label>
             </div>
-          ) : (
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between">
-                <label htmlFor="bs-3" className="text-sm font-medium text-text-main">Shares sold</label>
-                <Button
-                  type="button"
-                  variant="link"
-                  size="sm"
-                  onClick={() => setQty(String(holding.qty))}
-                  className="-mr-2"
-                >
-                  Sell all ({holding.qty.toLocaleString()})
-                </Button>
-              </div>
-              <input id="bs-3"
-                ref={qtyRef}
-                type="number"
-                placeholder="50"
-                min="1"
-                step="1"
-                max={holding.qty}
-                inputMode="numeric"
-                value={qty}
-                onChange={(e) => setQty(e.target.value)}
-                className="input-field text-lg w-full tabular-nums py-3"
-                aria-label="Shares sold"
-              />
-              <label htmlFor="bs-4" className="text-sm font-medium text-text-main mt-2">Sale price (৳)</label>
-              <input id="bs-4"
-                type="number"
-                placeholder="295.50"
-                min="0.01"
-                step="0.01"
-                inputMode="decimal"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="input-field text-lg w-full tabular-nums py-3"
-                aria-label="Sale price"
-              />
+            <input
+              id="bs-qty"
+              ref={qtyRef}
+              type="number"
+              placeholder={isBuy ? "100" : "50"}
+              min="1"
+              step="1"
+              max={isBuy ? undefined : holding.qty}
+              inputMode="numeric"
+              value={qty}
+              onChange={(e) => setQty(e.target.value)}
+              className="input-field w-full py-3 text-lg tabular-nums"
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <div className="flex min-h-6 items-center">
+              <label htmlFor="bs-price" className="text-sm font-semibold text-text-main">
+                {isBuy ? L("Price paid (৳)", "কেনার দাম (৳)") : L("Price sold at (৳)", "বিক্রির দাম (৳)")}
+              </label>
             </div>
-          )}
-
-          {/* Live preview of the resulting position */}
-          {preview && (
-            <div
-              className="rounded-lg px-3 py-2.5 text-sm"
-              style={{
-                background:
-                  preview.kind === "over-sell"
-                    ? "color-mix(in srgb, var(--negative) 8%, transparent)"
-                    : `color-mix(in srgb, ${accent} 8%, transparent)`,
-                border: `1px solid color-mix(in srgb, ${
-                  preview.kind === "over-sell" ? "var(--negative)" : accent
-                } 25%, transparent)`,
-              }}
-            >
-              {preview.kind === "buy" && (
-                <p className="text-text-main leading-relaxed">
-                  <span className="font-semibold">New position:</span>{" "}
-                  <span className="tabular-nums nums font-semibold">
-                    {preview.newQty.toLocaleString()} sh @ {taka(preview.newAvg, 2)} avg
-                  </span>
-                  <span className="block text-xs text-text-muted mt-0.5">
-                    was {holding.qty.toLocaleString()} @ {taka(holding.buy_price, 2)}
-                  </span>
-                </p>
-              )}
-              {preview.kind === "sell-partial" && (
-                <p className="text-text-main leading-relaxed">
-                  <span className="font-semibold">Remaining:</span>{" "}
-                  <span className="tabular-nums nums font-semibold">
-                    {preview.remaining.toLocaleString()} sh @ {taka(holding.buy_price, 2)} avg
-                  </span>
-                  <span className="block text-xs text-text-muted mt-0.5">
-                    Average cost stays the same.
-                  </span>
-                </p>
-              )}
-              {saleProfit != null && (
-                <p className="text-text-main leading-relaxed mt-1">
-                  <span className="font-semibold">{saleProfit >= 0 ? "Profit on this sale:" : "Loss on this sale:"}</span>{" "}
-                  <span className={`tabular-nums nums font-bold ${saleProfit >= 0 ? "text-positive" : "text-negative"}`}>
-                    {saleProfit >= 0 ? "+" : "−"}{taka(Math.abs(saleProfit), 0)}
-                  </span>
-                  <span className="block text-xs text-text-muted mt-0.5">
-                    Kept in your history, before brokerage fees.
-                  </span>
-                </p>
-              )}
-              {preview.kind === "sell-all" && (
-                <p className="text-text-main leading-relaxed">
-                  Sells everything and{" "}
-                  <span className="font-semibold text-negative">
-                    removes {holding.trading_code} from your portfolio.
-                  </span>
-                </p>
-              )}
-              {preview.kind === "over-sell" && (
-                <p className="font-medium text-negative">
-                  You only hold {preview.held.toLocaleString()} shares.
-                </p>
-              )}
-            </div>
-          )}
-
-          {error && <p className="text-sm text-negative font-medium">{error}</p>}
-
-          <Button type="submit" variant={isBuy ? "primary" : "danger"} size="lg" block disabled={!canSubmit}>
-            {submitLabel}
+            <input
+              id="bs-price"
+              type="number"
+              placeholder="295.50"
+              min="0.01"
+              step="0.01"
+              inputMode="decimal"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              className="input-field w-full py-3 text-lg tabular-nums"
+            />
+          </div>
+        </div>
+        {!isBuy && (
+          <Button type="button" variant="link" size="sm" onClick={() => setQty(String(holding.qty))} className="-mt-2 self-start -ml-2">
+            {L(`Sold all ${n(holding.qty)}`, `সব ${n(holding.qty)}টি বিক্রি`)}
           </Button>
-        </form>
-      </div>
-    </div>
+        )}
+
+        {/* After this — the resulting position, in one quiet panel */}
+        {preview && (
+          <div className="rounded-lg bg-surface-2 px-4 py-3 text-sm">
+            <p className="text-xs font-semibold text-text-muted">{L("After this", "এরপর")}</p>
+            {preview.kind === "buy" && (
+              <p className="mt-1 text-text-main">
+                <span className="pv nums font-bold">
+                  {L(`${n(preview.newQty)} shares at ${taka(preview.newAvg, 2)} average`, `${n(preview.newQty)}টি, গড় দাম ${taka(preview.newAvg, 2)}`)}
+                </span>
+                <span className="block text-text-muted">
+                  {L(`Was ${n(holding.qty)} at ${taka(holding.buy_price, 2)}.`, `আগে ছিল ${n(holding.qty)}টি, ${taka(holding.buy_price, 2)}।`)}
+                </span>
+              </p>
+            )}
+            {preview.kind === "sell-partial" && (
+              <p className="mt-1 text-text-main">
+                <span className="pv nums font-bold">
+                  {L(`${n(preview.remaining)} shares left`, `${n(preview.remaining)}টি থাকবে`)}
+                </span>
+                <span className="block text-text-muted">{L("The average price you paid stays the same.", "কেনার গড় দাম একই থাকবে।")}</span>
+              </p>
+            )}
+            {preview.kind === "sell-all" && (
+              <p className="mt-1 font-semibold text-text-main">
+                {L(`${holding.trading_code} comes off your portfolio.`, `${holding.trading_code} পোর্টফোলিও থেকে সরে যাবে।`)}
+              </p>
+            )}
+            {preview.kind === "over-sell" && (
+              <p className="mt-1 font-semibold text-negative">
+                {L(`You only hold ${n(preview.held)} shares.`, `আপনার কাছে মাত্র ${n(preview.held)}টি শেয়ার আছে।`)}
+              </p>
+            )}
+            {saleProfit != null && (
+              <p className="mt-2 border-t border-border pt-2 text-text-main">
+                {saleProfit >= 0 ? L("Profit on this sale", "এই বিক্রিতে লাভ") : L("Loss on this sale", "এই বিক্রিতে লোকসান")}{" "}
+                <b className={`pv nums ${saleProfit >= 0 ? "text-positive" : "text-negative"}`}>
+                  {saleProfit >= 0 ? "+" : "−"}
+                  {takaGroup(Math.abs(saleProfit))}
+                </b>
+                <span className="block text-text-muted">{L("Kept in your history, before brokerage fees.", "ইতিহাসে থাকবে, ব্রোকারেজ খরচ বাদের আগে।")}</span>
+              </p>
+            )}
+          </div>
+        )}
+
+        {error && <p className="form-error">{error}</p>}
+
+        <Button type="submit" variant="primary" size="lg" block disabled={!canSubmit}>
+          {submitLabel}
+        </Button>
+      </form>
+    </Sheet>
   );
 }

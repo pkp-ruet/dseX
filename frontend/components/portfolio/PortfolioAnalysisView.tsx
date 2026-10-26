@@ -9,15 +9,22 @@ import AllocationChart from "./AllocationChart";
 import SectorBreakdownChart from "./SectorBreakdownChart";
 import HoldingsDetailed from "./HoldingsDetailed";
 import RebalanceHelper from "./RebalanceHelper";
+import PremiumBlur from "@/components/premium/PremiumBlur";
+import PfCard from "./PfCard";
 
-/** Grade accents come from the site tokens — no raw palette colors. */
-const GRADE_ACCENT: Record<Grade, string> = {
-  A: "var(--positive)",
-  B: "var(--positive)",
-  C: "var(--watch)",
-  D: "color-mix(in srgb, var(--watch) 55%, var(--negative))",
-  F: "var(--negative)",
+/** Grade colour classes (app/styles/portfolio.css) — the one place a grade is coloured. */
+const GRADE_CLASS: Record<Grade, string> = {
+  A: "pf-g-A",
+  B: "pf-g-B",
+  C: "pf-g-C",
+  D: "pf-g-D",
+  F: "pf-g-F",
 };
+
+/** A sub-score out of 10 wears the colour of the grade it would earn. */
+function scoreClass(value: number): string {
+  return value >= 7 ? "pf-g-B" : value >= 5 ? "pf-g-C" : value >= 3.5 ? "pf-g-D" : "pf-g-F";
+}
 
 const GRADE_LABEL_BN: Record<GradeLabel, string> = {
   Excellent: "চমৎকার",
@@ -29,34 +36,36 @@ const GRADE_LABEL_BN: Record<GradeLabel, string> = {
 
 const STR = {
   en: {
-    verdict: "Portfolio Verdict",
+    verdict: "Your portfolio's grade",
     spread: "Spread",
     spreadHint: "How well your money is split",
     quality: "Quality",
     qualityHint: "How strong your companies are",
-    entry: "Entry",
+    entry: "Price paid",
     entryHint: "Whether you bought at fair prices",
+    listsTitle: "What we found",
     howToRead:
-      "Three quick lists below: what's already working, what needs your attention, and what to think about next. Each point explains what it means and what you can do about it.",
-    goodTitle: "What's Working Well",
+      "What's already working, what needs your attention, and what to think about next. Each point says what it means and what you can do.",
+    goodTitle: "What's working well",
     goodEmpty: "Positive signals will appear as your portfolio grows.",
-    badTitle: "Needs Your Attention",
+    badTitle: "Needs your attention",
     badEmpty: "No major red flags spotted.",
-    considerTitle: "Things To Consider",
+    considerTitle: "Things to consider",
     considerEmpty: "Nothing pressing right now.",
     disclaimer:
       "This analysis is for guidance only. Always do your own research before making investment decisions.",
   },
   bn: {
-    verdict: "পোর্টফোলিওর রায়",
+    verdict: "আপনার পোর্টফোলিওর গ্রেড",
     spread: "বণ্টন",
     spreadHint: "টাকা কতটা ভাগ করে রেখেছেন",
     quality: "মান",
     qualityHint: "আপনার কোম্পানিগুলো কতটা শক্তিশালী",
     entry: "কেনার দাম",
     entryHint: "ন্যায্য দামে কিনেছেন কি না",
+    listsTitle: "আমরা যা পেলাম",
     howToRead:
-      "নিচে তিনটি ছোট তালিকা: কোনটা ভালো চলছে, কোথায় নজর দরকার, আর এরপরে কী নিয়ে ভাববেন। প্রতিটি পয়েন্টে লেখা আছে এর মানে কী আর আপনি কী করতে পারেন।",
+      "তিনটি ছোট তালিকা: কোনটা ভালো চলছে, কোথায় নজর দরকার, আর এরপরে কী নিয়ে ভাববেন। প্রতিটি পয়েন্টে লেখা আছে এর মানে কী আর আপনি কী করতে পারেন।",
     goodTitle: "যা ভালো চলছে",
     goodEmpty: "পোর্টফোলিও বড় হলে ভালো দিকগুলো এখানে দেখা যাবে।",
     badTitle: "যেখানে নজর দরকার",
@@ -101,119 +110,84 @@ export default function PortfolioAnalysisView({
   locked = false,
   moreHref,
 }: Props) {
-  const accent = GRADE_ACCENT[analysis.grade];
   const { spread, quality, entry } = analysis.subScores;
   const t = STR[lang];
   const bnMode = lang === "bn";
   const bnText = bnMode ? "font-bn" : "";
   const langAttr = bnMode ? "bn" : undefined;
+  const gradeCls = GRADE_CLASS[analysis.grade];
 
   return (
     <div
       id="portfolio-analysis"
       lang={langAttr}
-      className="flex flex-col gap-5 sm:gap-6 scroll-mt-20"
+      className={`flex flex-col gap-4 sm:gap-5 scroll-mt-20 ${bnText}`}
     >
-      {/* Verdict hero */}
-      <section
-        className="soft-card relative overflow-hidden p-5 sm:p-7"
-      >
-        <div className="flex flex-col sm:flex-row items-start gap-5 sm:gap-6">
-          {/* Grade badge */}
-          <div
-            className="flex flex-col items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-xl border-2 shrink-0"
-            style={{
-              color: accent,
-              background: `color-mix(in srgb, ${accent} 15%, transparent)`,
-              borderColor: `color-mix(in srgb, ${accent} 45%, transparent)`,
-              boxShadow: `0 0 30px -8px color-mix(in srgb, ${accent} 55%, transparent)`,
-            }}
-          >
-            <span className="text-5xl sm:text-6xl font-black leading-none">
+      {/* The grade: letter in its colour, label word, headline, then the three
+          sub-scores in a hairline grid (the BigPicture "answers" pattern). */}
+      <PfCard title={t.verdict} bn={STR.bn.verdict} lang={lang} flush dataCard="portfolio-grade">
+        <div className="px-4 pb-5 sm:px-6 sm:pb-6">
+          <div className="flex items-start gap-4 sm:gap-5">
+            <span
+              className={`${gradeCls} grid h-16 w-16 shrink-0 place-items-center rounded-xl border-2 border-current text-3xl font-bold leading-none sm:h-20 sm:w-20 sm:text-4xl`}
+              aria-hidden
+            >
               {analysis.grade}
             </span>
-            <span
-              className={`text-xs sm:text-xs   mt-1.5 font-bold ${bnText}`}
-            >
-              {bnMode ? GRADE_LABEL_BN[analysis.gradeLabel] : analysis.gradeLabel}
-            </span>
+            <div className="min-w-0 flex-1">
+              <p className={`${gradeCls} text-sm font-bold`}>
+                <span className="sr-only">
+                  {bnMode ? "গ্রেড " : "Grade "}
+                  {analysis.grade}:{" "}
+                </span>
+                {bnMode ? GRADE_LABEL_BN[analysis.gradeLabel] : analysis.gradeLabel}
+              </p>
+              <p className="mt-1 text-lg font-bold leading-snug text-text-main sm:text-xl">{analysis.headline}</p>
+            </div>
           </div>
-
-          {/* Headline + explanation */}
-          <div className="flex-1 min-w-0 w-full">
-            <p
-              className={`text-xs sm:text-xs   font-bold mb-2 ${bnText}`}
-              style={{ color: accent }}
-            >
-              {t.verdict}
-            </p>
-            <p
-              className={`text-base sm:text-lg text-text-main leading-relaxed font-medium ${bnText}`}
-            >
-              {analysis.headline}
-            </p>
-            <p className={`text-sm sm:text-base text-text-muted leading-relaxed mt-3 ${bnText}`}>
-              {analysis.gradeExplanation}
-            </p>
-          </div>
+          <p className="mt-4 text-sm leading-relaxed text-text-muted sm:text-base">{analysis.gradeExplanation}</p>
         </div>
 
-        {/* Sub-score chips */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-5 sm:mt-6 pt-5 border-t border-border/60">
-          <SubScore label={t.spread} value={spread} hint={t.spreadHint} bnMode={bnMode} />
-          <SubScore label={t.quality} value={quality} hint={t.qualityHint} bnMode={bnMode} />
-          <SubScore label={t.entry} value={entry} hint={t.entryHint} bnMode={bnMode} />
+        <div className="grid grid-cols-1 gap-px border-t border-border bg-border sm:grid-cols-3">
+          <SubScore label={t.spread} value={spread} hint={t.spreadHint} />
+          <SubScore label={t.quality} value={quality} hint={t.qualityHint} />
+          <SubScore label={t.entry} value={entry} hint={t.entryHint} />
         </div>
-      </section>
+      </PfCard>
 
-      {/* How to read the lists */}
-      <div className="flex items-start gap-2.5 px-1">
-        <svg
-          className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 text-primary shrink-0"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden
-        >
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 16v-4M12 8h.01" />
-        </svg>
-        <p className={`text-sm text-text-muted leading-relaxed ${bnText}`}>{t.howToRead}</p>
-      </div>
-
-      {/* Good / Bad / Consider */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
-        <Section
-          title={t.goodTitle}
-          tone="good"
-          items={analysis.good}
-          emptyText={t.goodEmpty}
-          bnMode={bnMode}
-          limit={locked ? FREE_POINTS.good : undefined}
-          moreHref={moreHref}
-        />
-        <Section
-          title={t.badTitle}
-          tone="bad"
-          items={analysis.bad}
-          emptyText={t.badEmpty}
-          bnMode={bnMode}
-          limit={locked ? FREE_POINTS.bad : undefined}
-          moreHref={moreHref}
-        />
-        <Section
-          title={t.considerTitle}
-          tone="consider"
-          items={analysis.consider}
-          emptyText={t.considerEmpty}
-          bnMode={bnMode}
-          limit={locked ? FREE_POINTS.consider : undefined}
-          moreHref={moreHref}
-        />
-      </div>
+      {/* Good / Bad / Consider — one card, three hairline-separated lists
+          (stacked on phones, three columns from md). */}
+      <PfCard title={t.listsTitle} bn={STR.bn.listsTitle} note={t.howToRead} lang={lang} flush dataCard="portfolio-lists">
+        <div className="grid grid-cols-1 divide-y divide-border border-t border-border md:grid-cols-3 md:divide-x md:divide-y-0">
+          <Section
+            title={t.goodTitle}
+            tone="good"
+            items={analysis.good}
+            emptyText={t.goodEmpty}
+            bnMode={bnMode}
+            limit={locked ? FREE_POINTS.good : undefined}
+            moreHref={moreHref}
+          />
+          <Section
+            title={t.badTitle}
+            tone="bad"
+            items={analysis.bad}
+            emptyText={t.badEmpty}
+            bnMode={bnMode}
+            limit={locked ? FREE_POINTS.bad : undefined}
+            moreHref={moreHref}
+          />
+          <Section
+            title={t.considerTitle}
+            tone="consider"
+            items={analysis.consider}
+            emptyText={t.considerEmpty}
+            bnMode={bnMode}
+            limit={locked ? FREE_POINTS.consider : undefined}
+            moreHref={moreHref}
+          />
+        </div>
+      </PfCard>
 
       {/* What to buy next — concrete ideas for the gaps above */}
       {rebalance && !locked && <RebalanceHelper plan={rebalance} lang={lang} />}
@@ -227,67 +201,26 @@ export default function PortfolioAnalysisView({
       {/* Holdings */}
       {showHoldingsList && !locked && <HoldingsDetailed analysis={analysis} lang={lang} />}
 
-      {showDisclaimer && (
-        <p
-          className={`text-xs text-text-muted text-center mt-1 leading-relaxed px-2 ${bnText}`}
-        >
-          {t.disclaimer}
-        </p>
-      )}
+      {showDisclaimer && <p className="pf-disclaimer mt-1 px-2">{t.disclaimer}</p>}
     </div>
   );
 }
 
-function SubScore({
-  label,
-  value,
-  hint,
-  bnMode,
-}: {
-  label: string;
-  value: number;
-  hint: string;
-  bnMode: boolean;
-}) {
+function SubScore({ label, value, hint }: { label: string; value: number; hint: string }) {
   const pct = Math.max(0, Math.min(100, (value / 10) * 100));
-  const accent =
-    value >= 7
-      ? "var(--positive)"
-      : value >= 5
-        ? "var(--watch)"
-        : value >= 3.5
-          ? "color-mix(in srgb, var(--watch) 55%, var(--negative))"
-          : "var(--negative)";
-  const bnText = bnMode ? "font-bn" : "";
-
   return (
-    <div className="flex flex-col gap-1.5">
-      {/* Stacked on phones: "QUALITY" + "7.5/10" cannot share a 90px column */}
-      <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-x-1">
-        <span
-          className={`text-xs sm:text-xs   font-bold text-text-main ${bnText}`}
-        >
-          {label}
-        </span>
-        <span className="text-base sm:text-lg font-black tabular-nums" style={{ color: accent }}>
+    <div className="flex min-w-0 flex-col gap-2 bg-surface px-4 py-4 sm:px-6 sm:py-5">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-sm font-semibold text-text-main">{label}</span>
+        <span className="nums text-xl font-bold leading-none text-text-main">
           {value.toFixed(1)}
-          <span className="text-xs sm:text-xs text-text-muted font-semibold ml-0.5">
-            /10
-          </span>
+          <span className="ml-0.5 text-xs font-semibold text-text-muted">/10</span>
         </span>
       </div>
-      <div className="h-1.5 w-full rounded-full bg-border/50 overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-500"
-          style={{ width: `${pct}%`, background: accent }}
-          aria-hidden
-        />
+      <div className="pf-bar" aria-hidden>
+        <div className={`${scoreClass(value)} absolute inset-y-0 left-0 rounded-full bg-current`} style={{ width: `${pct}%` }} />
       </div>
-      <span
-        className={`text-xs sm:text-xs text-text-muted leading-snug hidden sm:block ${bnText}`}
-      >
-        {hint}
-      </span>
+      <span className="text-xs leading-snug text-text-muted">{hint}</span>
     </div>
   );
 }
@@ -299,117 +232,54 @@ interface SectionProps {
   emptyText: string;
   bnMode: boolean;
   /** Show only this many points; the rest stay in place, blurred, with a
-   *  "+N more with Premium" link to `moreHref` (no lock card of their own). */
+   *  with one "Unlock with Premium" button (`PremiumBlur`). `moreHref` is kept
+   *  for callers; the button follows the page's PageLockScope anchor. */
   limit?: number;
   moreHref?: string;
 }
 
-const TONE_THEME: Record<
-  SectionProps["tone"],
-  {
-    accent: string;
-    icon: React.ReactNode;
-  }
-> = {
-  good: {
-    accent: "var(--positive)",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d="M20 6L9 17l-5-5" />
-      </svg>
-    ),
-  },
-  bad: {
-    accent: "var(--negative)",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d="M12 9v4M12 17h.01" />
-        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-      </svg>
-    ),
-  },
-  consider: {
-    accent: "var(--watch)",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d="M9 18h6M10 22h4" />
-        <path d="M15.09 14A6.5 6.5 0 1012 2a6.5 6.5 0 00-3.09 12c.34.36.59.78.74 1.24l.04.13c.16.5.6.86 1.12.86h2.38c.52 0 .96-.36 1.12-.86l.04-.13c.15-.46.4-.88.74-1.24z" />
-      </svg>
-    ),
-  },
+/** The meaning dot for each list (`.pf-dot--*`). */
+const TONE_DOT: Record<SectionProps["tone"], string> = {
+  good: "pf-dot pf-dot--good",
+  bad: "pf-dot pf-dot--bad",
+  consider: "pf-dot pf-dot--watch",
 };
 
 function Section({ title, tone, items, emptyText, bnMode, limit, moreHref }: SectionProps) {
   const shown = limit != null ? items.slice(0, limit) : items;
   const more = items.length - shown.length;
-  const { accent, icon } = TONE_THEME[tone];
-  const bnText = bnMode ? "font-bn" : "";
-  const chipStyle = {
-    color: accent,
-    background: `color-mix(in srgb, ${accent} 12%, transparent)`,
-  };
+  const dot = TONE_DOT[tone];
   const list = (rows: string[]) => (
     <ul className="flex flex-col gap-3">
       {rows.map((item, i) => (
-        <li key={i} className="flex items-start gap-2.5 leading-relaxed">
-          <span
-            className="shrink-0 mt-[7px] w-1.5 h-1.5 rounded-full"
-            style={{ background: accent }}
-            aria-hidden
-          />
-          <span className={`text-sm sm:text-base text-text-main leading-[1.65] ${bnText}`}>
-            {item}
-          </span>
+        <li key={i} className="flex items-start gap-3">
+          <span className={`${dot} mt-2`} aria-hidden />
+          <span className="min-w-0 text-sm leading-relaxed text-text-main sm:text-base">{item}</span>
         </li>
       ))}
     </ul>
   );
   return (
-    <div className="flex flex-col rounded-xl border border-border bg-surface p-4 sm:p-5">
-      <div className="flex items-center gap-2.5 mb-4">
-        <span
-          className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0"
-          style={chipStyle}
-        >
-          <span className="w-[18px] h-[18px]">{icon}</span>
-        </span>
-        <h3
-          className={`text-sm sm:text-base font-bold text-text-main leading-tight ${bnText}`}
-        >
-          {title}
-        </h3>
-        {items.length > 0 && (
-          <span
-            className="ml-auto grid place-items-center min-w-[22px] h-[22px] px-1.5 text-xs font-bold rounded-full tabular-nums"
-            style={chipStyle}
-          >
-            {items.length}
-          </span>
-        )}
-      </div>
+    <div className="flex min-w-0 flex-col px-4 py-5 sm:px-6">
+      <h4 className="mb-3 flex items-center gap-2 text-base font-bold leading-tight text-text-main">
+        <span className={dot} aria-hidden />
+        <span className="min-w-0">{title}</span>
+        {items.length > 0 && <span className="nums font-semibold text-text-muted">{items.length}</span>}
+      </h4>
 
       {items.length === 0 ? (
-        <p className={`text-sm text-text-muted leading-relaxed ${bnText}`}>
-          {emptyText}
-        </p>
+        <p className="text-sm leading-relaxed text-text-muted">{emptyText}</p>
       ) : (
         <>
           {shown.length > 0 && list(shown)}
           {more > 0 && (
             <>
-              {/* Screen-only like PremiumGate (same .premium-locked blur), but
-                  without a lock card — the page has one, at `moreHref`. */}
-              <div className={`premium-locked ${shown.length ? "mt-3" : ""}`} data-locked="true" data-preview="blur">
-                <div className="premium-locked-body" aria-hidden style={{ maxHeight: "72px" }} inert>
-                  {list(items.slice(shown.length))}
-                </div>
-              </div>
-              <a
-                href={moreHref ?? "/premium"}
-                className={`mt-1 inline-flex min-h-10 items-center text-sm font-semibold text-primary hover:underline ${bnText}`}
-              >
-                {bnMode ? `প্রিমিয়ামে আরও ${more}টি পয়েন্ট` : `${more} more ${more === 1 ? "point" : "points"} with Premium`}
-              </a>
+              {/* The rest of the points, blurred in place at full height with
+                  one "Unlock with Premium" button (the page's PageLockScope
+                  points it at #pf-premium). */}
+              <PremiumBlur lang={bnMode ? "bn" : "en"} className={shown.length ? "mt-3" : ""}>
+                {list(items.slice(shown.length))}
+              </PremiumBlur>
             </>
           )}
         </>

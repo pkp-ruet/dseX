@@ -1,8 +1,8 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
-import Card from "@/components/ui/Card";
-import Bn from "@/components/i18n/Bn";
+import PfCard from "./PfCard";
+import PremiumBlur from "@/components/premium/PremiumBlur";
 import { takaGroup } from "@/lib/formatters";
 import { analyzePortfolio, type AnalysisLang, type ComputedRow, type PortfolioAnalysis } from "@/lib/portfolio-analysis";
 import type { ScoreItem } from "@/lib/api";
@@ -65,13 +65,32 @@ function Delta({ before, after, label, fmt = (v: number) => String(Math.round(v)
   const d = after - before;
   const tone = Math.abs(d) < 0.05 ? "text-text-muted" : d > 0 ? "text-positive" : "text-negative";
   return (
-    <div className="flex items-baseline justify-between gap-3 py-2">
-      <span className="text-sm text-text-main">{label}</span>
-      <span className="nums text-sm font-semibold">
-        <span className="text-text-muted">{fmt(before)}</span> <span aria-hidden>→</span>{" "}
-        <span className={tone}>{fmt(after)}</span>
+    <li className="flex items-baseline justify-between gap-3 py-2.5">
+      <span className="min-w-0 text-sm text-text-main">{label}</span>
+      <span className="nums shrink-0 text-sm font-semibold">
+        <span className="text-text-muted">{fmt(before)}</span> <span className="text-text-muted" aria-hidden>→</span>{" "}
+        <span className={`font-bold ${tone}`}>{fmt(after)}</span>
       </span>
-    </div>
+    </li>
+  );
+}
+
+const GRADE_CLASS: Record<PortfolioAnalysis["grade"], string> = {
+  A: "pf-g-A",
+  B: "pf-g-B",
+  C: "pf-g-C",
+  D: "pf-g-D",
+  F: "pf-g-F",
+};
+
+/** A grade letter in an outlined square, in its grade colour (or muted for "before"). */
+function GradeBox({ grade, muted = false }: { grade: PortfolioAnalysis["grade"]; muted?: boolean }) {
+  return (
+    <span
+      className={`${muted ? "text-text-muted" : GRADE_CLASS[grade]} grid h-11 w-11 shrink-0 place-items-center rounded-lg border-2 border-current text-xl font-bold leading-none`}
+    >
+      {grade}
+    </span>
   );
 }
 
@@ -79,8 +98,8 @@ function Delta({ before, after, label, fmt = (v: number) => String(Math.round(v)
  * "What if I…" — try a sale and/or a buy and see the portfolio grade, its
  * three sub-scores, the spread and the biggest position before acting. Runs
  * the same `analyzePortfolio` engine as the grade above, on a copy of the
- * holdings priced at today's close. Nothing is saved. Premium: for free readers
- * PortfolioClient renders it inside the page's one lock.
+ * holdings priced at today's close. Nothing is saved. Premium: free readers can fill
+ * the form; the result blurs in place (`PremiumBlur`).
  */
 export default function WhatIfCard({
   rows,
@@ -119,148 +138,174 @@ export default function WhatIfCard({
     [changed, afterRows, priceMap, lang],
   );
 
+
   if (rows.length === 0) return null;
 
-  const body = (
-    <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <fieldset className="flex flex-col gap-2 rounded-lg bg-surface-2 p-3">
-          <legend className={`text-sm font-semibold text-text-main ${bn ? "font-bn" : ""}`}>{L("1. Sell", "1. বিক্রি")}</legend>
-          <label htmlFor={`${ids}-sc`} className="sr-only">{L("Stock to sell", "যে শেয়ার বিক্রি")}</label>
-          <select
-            id={`${ids}-sc`}
-            value={sellCode}
-            onChange={(e) => {
-              setSellCode(e.target.value);
-              const r = rows.find((x) => x.holding.trading_code === e.target.value);
-              setSellQty(r ? String(r.holding.qty) : "");
-            }}
-            className="input-field font-mono"
-          >
-            <option value="">{L("Nothing", "কিছু না")}</option>
-            {rows.map((r) => (
-              <option key={r.holding.trading_code} value={r.holding.trading_code}>
-                {r.holding.trading_code} ({r.holding.qty.toLocaleString()})
-              </option>
-            ))}
-          </select>
-          {sellRow && (
-            <>
-              <label htmlFor={`${ids}-sq`} className="text-xs font-semibold text-text-muted">{L("Shares", "শেয়ার")}</label>
-              <input
-                id={`${ids}-sq`}
-                type="number"
-                inputMode="numeric"
-                min={1}
-                max={sellRow.holding.qty}
-                value={sellQty}
-                onChange={(e) => setSellQty(e.target.value)}
-                className="input-field tabular-nums"
-              />
-              <p className="nums text-xs text-text-muted">
-                {L("At today's price ≈", "আজকের দামে ≈")} {takaGroup(proceeds)}
-              </p>
-            </>
-          )}
-        </fieldset>
-
-        <fieldset className="flex flex-col gap-2 rounded-lg bg-surface-2 p-3">
-          <legend className={`text-sm font-semibold text-text-main ${bn ? "font-bn" : ""}`}>{L("2. Buy", "2. কেনা")}</legend>
-          <label htmlFor={`${ids}-bc`} className="sr-only">{L("Stock to buy", "যে শেয়ার কিনবেন")}</label>
-          <input
-            id={`${ids}-bc`}
-            list={`${ids}-codes`}
-            value={buyCode}
-            onChange={(e) => setBuyCode(e.target.value)}
-            placeholder={L("Stock code, e.g. GP", "শেয়ারের কোড, যেমন GP")}
-            className="input-field font-mono uppercase"
-            autoComplete="off"
-          />
-          <datalist id={`${ids}-codes`}>
-            {allCodes.slice(0, 800).map((c) => (
-              <option key={c} value={c} />
-            ))}
-          </datalist>
-          <label htmlFor={`${ids}-ba`} className="text-xs font-semibold text-text-muted">{L("Amount (৳)", "টাকা (৳)")}</label>
-          <input
-            id={`${ids}-ba`}
-            type="number"
-            inputMode="decimal"
-            min={0}
-            value={buyAmount}
-            placeholder={proceeds > 0 ? String(Math.round(proceeds)) : "10000"}
-            onChange={(e) => setBuyAmount(e.target.value)}
-            className="input-field tabular-nums"
-          />
-          {buyNorm && !buyItem && <p className="text-xs text-negative">{L("No price for that code.", "এই কোডের দাম নেই।")}</p>}
-          {buyItem?.ltp != null && amountNum > 0 && (
-            <p className="nums text-xs text-text-muted">
-              ≈ {Math.floor(amountNum / buyItem.ltp).toLocaleString()} {L("shares at", "টি শেয়ার,")} {takaGroup(buyItem.ltp)}
-            </p>
-          )}
-        </fieldset>
-      </div>
-
-      {after ? (
-        <div className="rounded-lg border border-border p-3">
-          <div className="flex items-center justify-between gap-3">
-            <p className={`text-sm font-semibold text-text-main ${bn ? "font-bn" : ""}`}>{L("Your grade", "আপনার গ্রেড")}</p>
-            <p className="nums text-2xl font-bold">
-              <span className="text-text-muted">{before.grade}</span> <span aria-hidden>→</span>{" "}
-              <span className={after.subScores.overall >= before.subScores.overall ? "text-positive" : "text-negative"}>{after.grade}</span>
-            </p>
-          </div>
-          <div className={`divide-y divide-border ${bn ? "font-bn" : ""}`}>
-            <Delta label={L("Spread", "ছড়ানো")} before={before.subScores.spread} after={after.subScores.spread} />
-            <Delta label={L("Company quality", "কোম্পানির মান")} before={before.subScores.quality} after={after.subScores.quality} />
-            <Delta label={L("Price paid", "কেনার দাম")} before={before.subScores.entry} after={after.subScores.entry} />
-            <Delta
-              label={L("Behaves like this many stocks", "যত শেয়ারের মতো আচরণ")}
-              before={before.effectiveStocks}
-              after={after.effectiveStocks}
-              fmt={(v) => v.toFixed(1)}
-            />
-            <Delta
-              label={L(`Biggest holding (${biggest(after)?.code ?? "—"})`, `সবচেয়ে বড় শেয়ার (${biggest(after)?.code ?? "—"})`)}
-              before={biggest(before)?.weightPct ?? 0}
-              after={biggest(after)?.weightPct ?? 0}
-              fmt={(v) => `${Math.round(v)}%`}
-            />
-          </div>
-          {after.bad[0] && (
-            <p className={`mt-2 text-sm text-text-main ${bn ? "font-bn" : ""}`}>
-              <span className="font-semibold">{L("Still to watch: ", "এখনো খেয়াল রাখুন: ")}</span>
-              {after.bad[0]}
-            </p>
-          )}
-          <p className={`mt-2 text-xs text-text-muted ${bn ? "font-bn" : ""}`}>
-            {L(
-              "Priced at today's close, before fees. Nothing is saved — this is only a check, not advice.",
-              "আজকের ক্লোজ দামে, খরচ বাদের আগে। কিছুই সেভ হয় না — এটি শুধু যাচাই, পরামর্শ নয়।",
-            )}
-          </p>
-        </div>
-      ) : (
-        <p className={`text-sm text-text-muted ${bn ? "font-bn" : ""}`}>
-          {L("Pick a stock to sell, a stock to buy, or both.", "বিক্রি বা কেনার জন্য একটি শেয়ার বাছুন, বা দুটোই।")}
-        </p>
-      )}
-    </div>
-  );
+  const better = after ? after.subScores.overall - before.subScores.overall : 0;
+  const verdict =
+    Math.abs(better) < 0.05
+      ? { text: L("About the same", "প্রায় একই"), cls: "text-text-muted" }
+      : better > 0
+        ? { text: L("Better", "ভালো হবে"), cls: "text-positive" }
+        : { text: L("Worse", "খারাপ হবে"), cls: "text-negative" };
 
   return (
-    <Card padding="none" className="p-5 sm:p-6" data-card="what-if">
-      <h2 className={`text-lg font-bold text-text-main ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
-        {L("What if I…", "যদি আমি…")}
-      </h2>
-      {!bn && <Bn className="text-sm text-text-muted">কিছু বেচা বা কেনার আগে দেখে নিন গ্রেড কেমন হবে।</Bn>}
-      <p className={`mb-4 mt-1 text-sm text-text-muted ${bn ? "font-bn" : ""}`}>
-        {L(
-          "Try a sale or a buy and see your grade before you act.",
-          "একটি বিক্রি বা কেনা চেষ্টা করে দেখুন, কিছু করার আগেই গ্রেড জানুন।",
+    <PfCard
+      title={L("What if I…", "যদি আমি…")}
+      bn="কিছু বেচা বা কেনার আগে দেখে নিন গ্রেড কেমন হবে।"
+      note={L(
+        "Try a sale or a buy and see your grade before you act.",
+        "একটি বিক্রি বা কেনা চেষ্টা করে দেখুন, কিছু করার আগেই গ্রেড জানুন।",
+      )}
+      lang={lang}
+      dataCard="what-if"
+    >
+      <div className={`flex flex-col gap-5 ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
+        <div className="grid grid-cols-1 gap-5 border-t border-border pt-5 sm:grid-cols-2 sm:gap-6">
+          <fieldset className="flex min-w-0 flex-col gap-2">
+            <legend className="mb-2 text-sm font-bold text-text-main">{L("1. Sell", "1. বিক্রি")}</legend>
+            <label htmlFor={`${ids}-sc`} className="text-xs font-semibold text-text-muted">
+              {L("Stock to sell", "যে শেয়ার বিক্রি করবেন")}
+            </label>
+            <select
+              id={`${ids}-sc`}
+              value={sellCode}
+              onChange={(e) => {
+                setSellCode(e.target.value);
+                const r = rows.find((x) => x.holding.trading_code === e.target.value);
+                setSellQty(r ? String(r.holding.qty) : "");
+              }}
+              className="input-field"
+            >
+              <option value="">{L("Nothing", "কিছু না")}</option>
+              {rows.map((r) => (
+                <option key={r.holding.trading_code} value={r.holding.trading_code}>
+                  {r.holding.trading_code} ({r.holding.qty.toLocaleString()})
+                </option>
+              ))}
+            </select>
+            {sellRow && (
+              <>
+                <label htmlFor={`${ids}-sq`} className="mt-1 text-xs font-semibold text-text-muted">
+                  {L("Shares", "শেয়ার")}
+                </label>
+                <input
+                  id={`${ids}-sq`}
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={sellRow.holding.qty}
+                  value={sellQty}
+                  onChange={(e) => setSellQty(e.target.value)}
+                  className="input-field tabular-nums"
+                />
+                <p className="nums text-sm text-text-muted">
+                  {L("At today's price ≈ ", "আজকের দামে ≈ ")}
+                  <span className="pv font-semibold text-text-main">{takaGroup(proceeds)}</span>
+                </p>
+              </>
+            )}
+          </fieldset>
+
+          <fieldset className="flex min-w-0 flex-col gap-2">
+            <legend className="mb-2 text-sm font-bold text-text-main">{L("2. Buy", "2. কেনা")}</legend>
+            <label htmlFor={`${ids}-bc`} className="text-xs font-semibold text-text-muted">
+              {L("Stock to buy", "যে শেয়ার কিনবেন")}
+            </label>
+            <input
+              id={`${ids}-bc`}
+              list={`${ids}-codes`}
+              value={buyCode}
+              onChange={(e) => setBuyCode(e.target.value)}
+              placeholder={L("Stock code, e.g. GP", "শেয়ারের কোড, যেমন GP")}
+              className="input-field uppercase"
+              autoComplete="off"
+            />
+            <datalist id={`${ids}-codes`}>
+              {allCodes.slice(0, 800).map((c) => (
+                <option key={c} value={c} />
+              ))}
+            </datalist>
+            <label htmlFor={`${ids}-ba`} className="mt-1 text-xs font-semibold text-text-muted">
+              {L("Amount (৳)", "টাকা (৳)")}
+            </label>
+            <input
+              id={`${ids}-ba`}
+              type="number"
+              inputMode="decimal"
+              min={0}
+              value={buyAmount}
+              placeholder={proceeds > 0 ? String(Math.round(proceeds)) : "10000"}
+              onChange={(e) => setBuyAmount(e.target.value)}
+              className="input-field tabular-nums"
+            />
+            {buyNorm && !buyItem && <p className="form-error">{L("No price for that code.", "এই কোডের দাম নেই।")}</p>}
+            {buyItem?.ltp != null && amountNum > 0 && (
+              <p className="nums text-sm text-text-muted">
+                ≈ {Math.floor(amountNum / buyItem.ltp).toLocaleString()} {L("shares at", "টি শেয়ার,")} {takaGroup(buyItem.ltp)}
+              </p>
+            )}
+          </fieldset>
+        </div>
+
+        {after ? (
+          <PremiumBlur lang={lang}>
+          <div className="rounded-lg bg-surface-2 p-4" aria-live="polite">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <h4 className="text-sm font-bold text-text-main">{L("Your grade", "আপনার গ্রেড")}</h4>
+                <p className={`text-sm font-semibold ${verdict.cls}`}>{verdict.text}</p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <GradeBox grade={before.grade} muted />
+                <span className="text-text-muted" aria-hidden>→</span>
+                <GradeBox grade={after.grade} />
+                <span className="sr-only">
+                  {L(`From ${before.grade} to ${after.grade}`, `${before.grade} থেকে ${after.grade}`)}
+                </span>
+              </div>
+            </div>
+            <ul className="pf-rows mt-3 border-t border-border">
+              <Delta label={L("Spread", "বণ্টন")} before={before.subScores.spread} after={after.subScores.spread} />
+              <Delta label={L("Company quality", "কোম্পানির মান")} before={before.subScores.quality} after={after.subScores.quality} />
+              <Delta label={L("Price paid", "কেনার দাম")} before={before.subScores.entry} after={after.subScores.entry} />
+              <Delta
+                label={L("Behaves like this many stocks", "যত শেয়ারের মতো আচরণ")}
+                before={before.effectiveStocks}
+                after={after.effectiveStocks}
+                fmt={(v) => v.toFixed(1)}
+              />
+              <Delta
+                label={L(`Biggest holding (${biggest(after)?.code ?? "—"})`, `সবচেয়ে বড় শেয়ার (${biggest(after)?.code ?? "—"})`)}
+                before={biggest(before)?.weightPct ?? 0}
+                after={biggest(after)?.weightPct ?? 0}
+                fmt={(v) => `${Math.round(v)}%`}
+              />
+            </ul>
+            {after.bad[0] && (
+              <p className="mt-3 flex items-start gap-3 border-t border-border pt-3 text-sm leading-relaxed text-text-main">
+                <span className="pf-dot pf-dot--bad mt-2" aria-hidden />
+                <span className="min-w-0">
+                  <span className="font-semibold">{L("Still to watch: ", "এখনো খেয়াল রাখুন: ")}</span>
+                  {after.bad[0]}
+                </span>
+              </p>
+            )}
+          </div>
+          </PremiumBlur>
+        ) : (
+          <p className="text-sm text-text-muted">
+            {L("Pick a stock to sell, a stock to buy, or both.", "বিক্রি বা কেনার জন্য একটি শেয়ার বাছুন, বা দুটোই।")}
+          </p>
         )}
-      </p>
-      {body}
-    </Card>
+
+        <p className="text-xs leading-relaxed text-text-muted">
+          {L(
+            "Priced at today's close, before fees. Nothing is saved — this is only a check, not advice.",
+            "আজকের ক্লোজ দামে, খরচ বাদের আগে। কিছুই সেভ হয় না — এটি শুধু যাচাই, পরামর্শ নয়।",
+          )}
+        </p>
+      </div>
+    </PfCard>
   );
 }

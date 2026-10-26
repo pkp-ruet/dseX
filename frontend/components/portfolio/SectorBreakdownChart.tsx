@@ -1,25 +1,26 @@
 import type { AnalysisLang, PortfolioAnalysis } from "@/lib/portfolio-analysis";
-import Card from "@/components/ui/Card";
+import PfCard from "./PfCard";
 
 // Numbers inside Bengali prose stay Western (9, 6.1%) — matches the rest of the
 // site and avoids webfont glyph issues with Bengali numerals on some devices.
 
 const STR = {
   en: {
-    title: "Sector Breakdown",
+    title: "Your money by sector",
     counts: (sectors: number, stocks: number) =>
-      `${sectors} sector${sectors === 1 ? "" : "s"} · ${stocks} stock${stocks === 1 ? "" : "s"}`,
-    desc: "How your money is split across different industries. If you own only bank stocks and banks have a bad year, your whole portfolio falls together — owning a mix (say bank, pharma, and telecom) means one weak sector doesn't drag everything down. As a rule of thumb, no single sector should hold more than about 40% of your portfolio.",
-    heavy: "Heavy",
-    stockCount: (n: number) => `· ${n} stock${n === 1 ? "" : "s"}`,
+      `${stocks} stock${stocks === 1 ? "" : "s"} in ${sectors} sector${sectors === 1 ? "" : "s"}, biggest first.`,
+    heavy: "Over 40%",
+    stockCount: (n: number) => `${n} stock${n === 1 ? "" : "s"}`,
+    line: "The small mark on each bar is the 40% line.",
+    desc: "Why it matters: if you own only bank stocks and banks have a bad year, everything falls together. A mix (say bank, medicine and telecom) means one weak sector can't drag it all down. A simple rule: keep any one sector under about 40%.",
   },
   bn: {
     title: "খাতভিত্তিক ভাগ",
-    counts: (sectors: number, stocks: number) =>
-      `${sectors}টি খাত · ${stocks}টি শেয়ার`,
-    desc: "আপনার টাকা কোন কোন শিল্পে ভাগ হয়ে আছে। শুধু ব্যাংকের শেয়ার থাকলে ব্যাংকের বছর খারাপ গেলে পুরো পোর্টফোলিও একসাথে পড়ে — কিন্তু ব্যাংক, ওষুধ, টেলিকম মিলিয়ে রাখলে একটি দুর্বল খাত সব টেনে নামাতে পারে না। মোটামুটি নিয়ম: কোনো একটি খাতে পোর্টফোলিওর 40%-এর বেশি না রাখা ভালো।",
-    heavy: "বেশি ভার",
-    stockCount: (n: number) => `· ${n}টি শেয়ার`,
+    counts: (sectors: number, stocks: number) => `${sectors}টি খাতে ${stocks}টি শেয়ার, বড়টা আগে।`,
+    heavy: "40%-এর বেশি",
+    stockCount: (n: number) => `${n}টি শেয়ার`,
+    line: "প্রতিটি বারের ছোট খাড়া দাগটি 40%-এর সীমা।",
+    desc: "কেন জরুরি: শুধু ব্যাংকের শেয়ার থাকলে ব্যাংকের বছর খারাপ গেলে সব একসাথে পড়ে। ব্যাংক, ওষুধ, টেলিকম মিলিয়ে রাখলে একটি দুর্বল খাত সব টেনে নামাতে পারে না। সহজ নিয়ম: কোনো একটি খাতে 40%-এর বেশি না রাখা ভালো।",
   },
 } as const;
 
@@ -28,95 +29,67 @@ interface Props {
   lang?: AnalysisLang;
 }
 
-/** Same token palette as the allocation donut — one sector, one colour, everywhere. */
-const SECTOR_COLORS = [
-  "var(--primary)", "var(--info)", "var(--gold)", "var(--warm)", "var(--navy-soft)",
-  "var(--positive)", "var(--primary-soft)", "var(--info-soft)", "var(--gold-soft)", "var(--text-muted)",
-];
+/** The share above which one sector is called heavy. */
+const HEAVY_PCT = 40;
 
+/**
+ * Money per sector as a ranked list with thin ink bars — each bar is the
+ * sector's share of the whole, with a faint tick at 40%. A sector over that
+ * line is the one coloured thing on the card: a warning dot, a "Over 40%"
+ * word and a warning-coloured bar.
+ */
 export default function SectorBreakdownChart({ analysis, lang = "en" }: Props) {
   if (analysis.sectorSpread.length === 0) return null;
 
   const t = STR[lang];
-  const bnText = lang === "bn" ? "font-bn" : "";
-  const max = Math.max(...analysis.sectorSpread.map((s) => s.weightPct));
+  const bn = lang === "bn";
+  const bnText = bn ? "font-bn" : "";
   const totalStocks = analysis.sectorSpread.reduce((acc, s) => acc + s.count, 0);
 
   return (
-    <Card as="section" padding="none" className="rounded-xl p-5 sm:p-6">
-      {/* Header */}
-      <div className="flex items-center gap-2.5 mb-3">
-        <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/15 border border-primary/30 text-primary">
-          <svg
-            className="w-[18px] h-[18px]"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden
-          >
-            <path d="M21 15.9A10 10 0 1 1 8 3" />
-            <path d="M22 12A10 10 0 0 0 12 2v10z" />
-          </svg>
-        </span>
-        <h3
-          className={`text-sm sm:text-base   font-bold text-text-main ${bnText}`}
-        >
-          {t.title}
-        </h3>
-        <span className={`ml-auto text-xs sm:text-sm text-text-muted font-medium ${bnText}`}>
-          {t.counts(analysis.sectorSpread.length, totalStocks)}
-        </span>
-      </div>
-
-      <p className={`text-sm text-text-muted mb-5 leading-relaxed ${bnText}`}>{t.desc}</p>
-
-      <ul className="flex flex-col gap-4">
-        {analysis.sectorSpread.map((s, i) => {
-          const isOver40 = s.weightPct > 40;
+    <PfCard
+      title={t.title}
+      bn="খাতভিত্তিক ভাগ"
+      note={t.counts(analysis.sectorSpread.length, totalStocks)}
+      lang={lang}
+      dataCard="sectors"
+    >
+      <ul className="pf-rows border-t border-cell-rule">
+        {analysis.sectorSpread.map((s) => {
+          const heavy = s.weightPct > HEAVY_PCT;
           return (
-            <li key={s.name} className="flex flex-col gap-2">
-              <div className="flex items-center justify-between gap-3 text-sm sm:text-base">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span
-                    className="h-2.5 w-2.5 shrink-0 rounded-full"
-                    style={{ background: SECTOR_COLORS[i % SECTOR_COLORS.length] }}
-                    aria-hidden
-                  />
-                  <span className="font-semibold text-text-main truncate">{s.name}</span>
-                  {isOver40 && (
-                    <span
-                      className={`shrink-0 rounded-sm border border-watch/30 bg-watch/15 px-1.5 py-0.5 text-xs font-bold   text-watch ${bnText}`}
-                    >
-                      {t.heavy}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-baseline gap-2 shrink-0">
-                  <span className="text-base sm:text-lg font-black text-text-main tabular-nums nums">
-                    {s.weightPct.toFixed(0)}%
-                  </span>
-                  <span className={`text-xs sm:text-sm text-text-muted ${bnText}`}>
+            <li key={s.name} className="py-3">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+                <div className="min-w-0">
+                  <p className="flex min-w-0 items-center gap-2">
+                    {heavy && <span className="pf-dot pf-dot--watch" aria-hidden="true" />}
+                    <span className="truncate text-sm font-semibold text-text-main">{s.name}</span>
+                  </p>
+                  <p className={`text-xs font-semibold text-text-muted ${bnText}`} lang={bn ? "bn" : undefined}>
                     {t.stockCount(s.count)}
-                  </span>
+                    {heavy && <span className="text-watch"> · {t.heavy}</span>}
+                  </p>
                 </div>
+                <span className="pf-num text-base font-bold text-text-main">{s.weightPct.toFixed(0)}%</span>
               </div>
-              <div className="h-2.5 w-full rounded-full bg-border/50 overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-500"
+              <div className="pf-bar mt-1.5" aria-hidden="true">
+                <span
                   style={{
-                    width: `${(s.weightPct / max) * 100}%`,
-                    background: SECTOR_COLORS[i % SECTOR_COLORS.length],
+                    width: `${Math.max(1, Math.min(100, s.weightPct))}%`,
+                    ...(heavy ? { background: "var(--watch)" } : {}),
                   }}
-                  aria-hidden
                 />
+                <i className="absolute inset-y-0 w-px bg-border" style={{ left: `${HEAVY_PCT}%` }} />
               </div>
             </li>
           );
         })}
       </ul>
-    </Card>
+
+      <div className={`pf-card-foot ${bnText}`} lang={bn ? "bn" : undefined}>
+        <p className="m-0 text-sm leading-relaxed text-text-muted">{t.desc}</p>
+        <p className="pf-fine">{t.line}</p>
+      </div>
+    </PfCard>
   );
 }

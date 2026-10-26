@@ -1,13 +1,16 @@
 import Link from "next/link";
-import Card from "@/components/ui/Card";
+import Chip from "@/components/ui/Chip";
+import { IconCrown } from "@/components/ui/icons";
+import PfCard from "./PfCard";
+import PremiumBlur from "@/components/premium/PremiumBlur";
 import type { AnalysisLang } from "@/lib/portfolio-analysis";
-import type { ProActionKind, ProInsights as Insights, ProLevel, ProLine } from "@/lib/portfolio-pro";
+import type { ProActionKind, ProInsights as Insights, ProLine } from "@/lib/portfolio-pro";
 
 const STR = {
   en: {
     eyebrow: "Premium",
-    title: "Your portfolio, in depth",
-    sub: "Five checks that go further than the grade.",
+    title: "Five deeper checks",
+    sub: "They go further than the grade and end with what to do with each stock.",
     risk: "Risk check",
     paid: "The price you paid",
     income: "Cash coming to you",
@@ -18,8 +21,8 @@ const STR = {
   },
   bn: {
     eyebrow: "প্রিমিয়াম",
-    title: "আপনার পোর্টফোলিও, বিস্তারিত",
-    sub: "গ্রেডের বাইরে আরও পাঁচটি পরীক্ষা।",
+    title: "আরও পাঁচটি গভীর যাচাই",
+    sub: "গ্রেডের চেয়ে গভীরে যায়, শেষে প্রতিটি শেয়ারে কী করবেন।",
     risk: "ঝুঁকি পরীক্ষা",
     paid: "যে দামে কিনেছেন",
     income: "যে নগদ টাকা আসবে",
@@ -30,91 +33,116 @@ const STR = {
   },
 } as const;
 
-const LEVEL_CLASS: Record<ProLevel, string> = {
-  good: "bg-positive",
-  watch: "bg-watch",
-  bad: "bg-negative",
+/** The action word as a static `Chip` — its tone is its meaning. */
+const ACTION_TONE: Record<ProActionKind, "negative" | "watch" | "positive" | "neutral"> = {
+  sell: "negative",
+  trim: "watch",
+  buy_more: "positive",
+  hold: "neutral",
 };
 
-const ACTION_CLASS: Record<ProActionKind, string> = {
-  sell: "text-negative bg-negative/10",
-  trim: "text-watch bg-watch/10",
-  buy_more: "text-positive bg-positive/10",
-  hold: "text-text-muted bg-surface-2",
-};
-
-function Lines({ lines, bnText }: { lines: ProLine[]; bnText: string }) {
+function Lines({ lines }: { lines: ProLine[] }) {
   return (
     <ul className="flex flex-col gap-2.5">
       {lines.map((l, i) => (
-        <li key={i} className="flex items-start gap-2.5">
-          <span className={`mt-[7px] h-2 w-2 shrink-0 rounded-full ${LEVEL_CLASS[l.level]}`} aria-hidden />
-          <span className={`text-sm sm:text-base leading-relaxed text-text-main ${bnText}`}>{l.text}</span>
+        <li key={i} className="flex items-start gap-3">
+          <span className={`pf-dot pf-dot--${l.level} mt-2`} aria-hidden />
+          <span className="min-w-0 text-sm leading-relaxed text-text-main sm:text-base">{l.text}</span>
         </li>
       ))}
     </ul>
   );
 }
 
-function Block({ title, children, bnText }: { title: string; children: React.ReactNode; bnText: string }) {
+/** One check: its title on the left from md (a definition-list look), the lines beside it. */
+function Block({
+  title,
+  sub,
+  children,
+  lang,
+  cta = false,
+}: {
+  title: string;
+  sub?: string;
+  children: React.ReactNode;
+  lang: AnalysisLang;
+  /** The one "Unlock with Premium" button of the card goes on the first block. */
+  cta?: boolean;
+}) {
   return (
-    <div className="flex flex-col gap-3 border-t border-border pt-4 first:border-t-0 first:pt-0">
-      <h3 className={`text-sm font-bold   text-text-muted ${bnText}`}>{title}</h3>
-      {children}
+    <div className="grid grid-cols-1 gap-3 py-5 first:pt-0 last:pb-0 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-6">
+      <div className="min-w-0">
+        <h4 className="text-sm font-bold text-text-main sm:text-base">{title}</h4>
+        {sub && <p className="mt-1 text-sm leading-relaxed text-text-muted">{sub}</p>}
+      </div>
+      <div className="min-w-0">
+        {/* The title stays readable; only the findings blur for free readers. */}
+        <PremiumBlur lang={lang} cta={cta}>{children}</PremiumBlur>
+      </div>
     </div>
   );
 }
 
-/** The premium portfolio read (lib/portfolio-pro.ts). Wrapped in PremiumGate
- *  by PortfolioClient for free accounts. */
+/** The premium portfolio read (lib/portfolio-pro.ts). Free readers see every
+ *  check's title with its findings blurred in place (`PremiumBlur`). */
 export default function ProInsights({ insights, lang = "en" }: { insights: Insights; lang?: AnalysisLang }) {
   const t = STR[lang];
-  const bnText = lang === "bn" ? "font-bn" : "";
+  const bn = lang === "bn";
   const { risk, paid, income, vsMarket, actions } = insights;
+  const first = risk.length ? "risk" : paid.length ? "paid" : income.lines.length ? "income" : vsMarket.length ? "vs" : "actions";
 
   return (
-    <Card padding="none" className="p-4 sm:p-6">
-      <span className={`premium-chip mb-2 ${bnText}`}>{t.eyebrow}</span>
-      <h2 className={`text-lg sm:text-xl font-bold text-text-main ${bnText}`}>{t.title}</h2>
-      <p className={`text-sm text-text-muted mb-5 ${bnText}`}>{t.sub}</p>
-
-      <div className="flex flex-col gap-5">
-        {risk.length > 0 && (
-          <Block title={t.risk} bnText={bnText}><Lines lines={risk} bnText={bnText} /></Block>
-        )}
-        {paid.length > 0 && (
-          <Block title={t.paid} bnText={bnText}><Lines lines={paid} bnText={bnText} /></Block>
-        )}
-        {income.lines.length > 0 && (
-          <Block title={t.income} bnText={bnText}><Lines lines={income.lines} bnText={bnText} /></Block>
-        )}
-        {vsMarket.length > 0 && (
-          <Block title={t.vs} bnText={bnText}><Lines lines={vsMarket} bnText={bnText} /></Block>
-        )}
-        {actions.length > 0 && (
-          <Block title={t.actions} bnText={bnText}>
-            <p className={`-mt-1 text-sm text-text-muted ${bnText}`}>{t.actionsSub}</p>
-            <ul className="flex flex-col divide-y divide-border">
-              {actions.map((a) => (
-                <li key={a.code} className="flex flex-col gap-1 py-3 first:pt-0 sm:flex-row sm:items-start sm:gap-3">
-                  <span className={`inline-flex w-fit shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-bold ${ACTION_CLASS[a.kind]} ${bnText}`}>
-                    {a.label}
-                  </span>
-                  <span className="min-w-0">
-                    <Link href={`/stock/${a.code}`} className="font-semibold text-text-main hover:underline">
-                      {a.companyName ?? a.code}
-                    </Link>{" "}
-                    <span className="text-xs text-text-muted">{a.code}</span>
-                    <span className={`block text-sm leading-relaxed text-text-muted ${bnText}`}>{a.reason}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </Block>
-        )}
+    <PfCard
+      title={t.title}
+      bn={STR.bn.title}
+      note={t.sub}
+      lang={lang}
+      dataCard="pro-insights"
+      right={
+        <Chip icon={<IconCrown size={14} />}>
+          <span className={bn ? "font-bn" : ""}>{t.eyebrow}</span>
+        </Chip>
+      }
+    >
+      <div className={bn ? "font-bn" : ""} lang={bn ? "bn" : undefined}>
+        <div className="pf-rows border-t border-border pt-5">
+          {risk.length > 0 && (
+            <Block title={t.risk} lang={lang} cta={first === "risk"}><Lines lines={risk} /></Block>
+          )}
+          {paid.length > 0 && (
+            <Block title={t.paid} lang={lang} cta={first === "paid"}><Lines lines={paid} /></Block>
+          )}
+          {income.lines.length > 0 && (
+            <Block title={t.income} lang={lang} cta={first === "income"}><Lines lines={income.lines} /></Block>
+          )}
+          {vsMarket.length > 0 && (
+            <Block title={t.vs} lang={lang} cta={first === "vs"}><Lines lines={vsMarket} /></Block>
+          )}
+          {actions.length > 0 && (
+            <Block title={t.actions} sub={t.actionsSub} lang={lang} cta={first === "actions"}>
+              <ul className="pf-rows">
+                {actions.map((a) => (
+                  <li key={a.code} className="py-3 first:pt-0">
+                    <div className="flex items-center justify-between gap-3">
+                      <Link
+                        prefetch={false}
+                        href={`/stock/${a.code}`}
+                        className="min-w-0 truncate font-semibold text-text-main hover:text-primary-ink hover:underline active:opacity-70"
+                      >
+                        {a.companyName ?? a.code}
+                      </Link>
+                      <Chip tone={ACTION_TONE[a.kind]} className="shrink-0">{a.label}</Chip>
+                    </div>
+                    {a.companyName && <p className="text-xs font-semibold text-text-muted">{a.code}</p>}
+                    <p className="mt-1 text-sm leading-relaxed text-text-muted">{a.reason}</p>
+                  </li>
+                ))}
+              </ul>
+            </Block>
+          )}
+        </div>
+        <p className="pf-fine pf-card-foot">{t.footer}</p>
       </div>
-
-      <p className={`mt-5 text-xs leading-relaxed text-text-muted ${bnText}`}>{t.footer}</p>
-    </Card>
+    </PfCard>
   );
 }

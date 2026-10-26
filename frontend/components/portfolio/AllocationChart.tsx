@@ -1,48 +1,50 @@
 "use client";
 
 import { useState } from "react";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import Link from "next/link";
 import type { AnalysisLang, PortfolioAnalysis } from "@/lib/portfolio-analysis";
-import { taka, takaCompact } from "@/lib/formatters";
-import Card from "@/components/ui/Card";
+import { takaGroup } from "@/lib/formatters";
+import PfCard from "./PfCard";
+import Stat from "@/components/ui/Stat";
 import Button from "@/components/ui/Button";
-import { CHART } from "@/lib/chart-theme";
 
 // Numbers inside Bengali prose stay Western (9, 6.1%) — matches the rest of the
 // site and avoids webfont glyph issues with Bengali numerals on some devices.
 
 const STR = {
   en: {
-    title: "Where Your Money Sits",
-    invested: "Invested",
-    market: "Market value",
+    title: "Where your money sits",
+    invested: "What you paid",
+    market: "Worth today",
+    basisLabel: "Count by",
     desc: (basis: "invested" | "market") =>
-      `How much of your ${basis === "invested" ? "cost" : "current value"} is in each stock.`,
-    centerInvested: "Invested",
-    centerValue: "Value",
-    more: (n: number) => `+${n} more`,
+      `How much of your ${basis === "invested" ? "money paid" : "money today"} is in each stock, biggest first.`,
+    totalInvested: "You paid in total",
+    totalValue: "Worth in total today",
+    more: (n: number) => `${n} more ${n === 1 ? "stock" : "stocks"}`,
     noteBig: (code: string, pct: string) =>
-      `${code} is ${pct}% of your money — a big single bet. If it stumbles, the whole portfolio feels it. Spreading across more names softens that.`,
+      `${code} is ${pct}% of your money — one big bet. If it falls, your whole portfolio feels it. Spreading across more stocks softens that.`,
     noteOk: (code: string, pct: string) =>
-      `Your largest position is ${code} at ${pct}% — a balanced split, no single stock dominates.`,
+      `Your biggest stock is ${code} at ${pct}% — a good balance, no single stock takes over.`,
     effective: (eff: string, n: number) =>
-      `Even though you hold ${n} stocks, the split is uneven — your money is effectively concentrated in about ${eff} of them. The rest are small positions that barely move your total.`,
+      `You hold ${n} stocks, but the split is uneven: your money really sits in about ${eff} of them. The rest are small and barely move your total.`,
   },
   bn: {
     title: "আপনার টাকা কোথায় আছে",
-    invested: "বিনিয়োগ",
-    market: "বাজারমূল্য",
+    invested: "কেনা দামে",
+    market: "আজকের দামে",
+    basisLabel: "হিসাব",
     desc: (basis: "invested" | "market") =>
-      `প্রতিটি শেয়ারে আপনার ${basis === "invested" ? "কেনা টাকার" : "বর্তমান মূল্যের"} কত অংশ আছে।`,
-    centerInvested: "বিনিয়োগ",
-    centerValue: "মূল্য",
-    more: (n: number) => `+আরও ${n}টি`,
+      `প্রতিটি শেয়ারে আপনার ${basis === "invested" ? "কেনা টাকার" : "আজকের মূল্যের"} কত অংশ আছে, বড়টা আগে।`,
+    totalInvested: "মোট কেনা দাম",
+    totalValue: "আজ মোট মূল্য",
+    more: (n: number) => `আরও ${n}টি শেয়ার`,
     noteBig: (code: string, pct: string) =>
-      `${code} একাই আপনার টাকার ${pct}% — একটাই বড় বাজি। এটি হোঁচট খেলে পুরো পোর্টফোলিও টের পায়। আরও কয়েকটি শেয়ারে ছড়িয়ে দিলে ধাক্কাটা নরম হয়।`,
+      `${code} একাই আপনার টাকার ${pct}% — একটাই বড় বাজি। এটি পড়লে পুরো পোর্টফোলিও টের পায়। আরও কয়েকটি শেয়ারে ছড়িয়ে দিলে ধাক্কাটা নরম হয়।`,
     noteOk: (code: string, pct: string) =>
-      `আপনার সবচেয়ে বড় অবস্থান ${code}, মোট ${pct}% — ভারসাম্য ভালো, কোনো একটি শেয়ার একচেটিয়া নয়।`,
+      `আপনার সবচেয়ে বড় শেয়ার ${code}, মোট ${pct}% — ভারসাম্য ভালো, কোনো একটি শেয়ার একাই সব নয়।`,
     effective: (eff: string, n: number) =>
-      `আপনি ${n}টি শেয়ার রাখলেও ভাগটা অসম — আপনার টাকা কার্যত ${eff}টির মতো শেয়ারে জমে আছে। বাকিগুলো ছোট, মোট মূল্যে তেমন প্রভাব ফেলে না।`,
+      `আপনি ${n}টি শেয়ার রাখলেও ভাগটা অসম — আপনার টাকা আসলে ${eff}টির মতো শেয়ারে জমে আছে। বাকিগুলো ছোট, মোট মূল্যে তেমন প্রভাব ফেলে না।`,
   },
 } as const;
 
@@ -51,18 +53,23 @@ interface Props {
   lang?: AnalysisLang;
 }
 
-const COLORS = [
-  "var(--primary)", "var(--info)", "var(--gold)", "var(--warm)", "var(--navy-soft)",
-  "var(--positive)", "var(--primary-soft)", "var(--info-soft)", "var(--gold-soft)", "var(--text-muted)",
-];
-const OTHERS_COLOR = "var(--text-muted)";
-
 type Basis = "invested" | "market";
 
+/** Show this many stocks as rows; the rest fold into one "N more" row. */
+const TOP = 8;
+
+/**
+ * "Where your money sits" — money per company as a ranked list (biggest
+ * first) with thin ink bars, not a donut: a list reads better on a phone and
+ * needs no colour key. The total leads as one big number; a toggle switches
+ * between what was paid and what it is worth today. The one warning colour is
+ * the dot on the note when one stock holds over 25%.
+ */
 export default function AllocationChart({ analysis, lang = "en" }: Props) {
   const [basis, setBasis] = useState<Basis>("invested");
   const t = STR[lang];
-  const bnText = lang === "bn" ? "font-bn" : "";
+  const bn = lang === "bn";
+  const bnText = bn ? "font-bn" : "";
 
   const holdings = analysis.holdings;
   if (holdings.length === 0) return null;
@@ -70,34 +77,24 @@ export default function AllocationChart({ analysis, lang = "en" }: Props) {
   const raw = holdings.map((h) => {
     const invested = h.qty * h.buyPrice;
     const market = h.ltp != null ? h.qty * h.ltp : invested;
-    return { code: h.code, invested, market };
+    return { code: h.code, name: h.companyName, invested, market };
   });
-  const valueOf = (r: { invested: number; market: number }) =>
-    basis === "invested" ? r.invested : r.market;
+  const valueOf = (r: { invested: number; market: number }) => (basis === "invested" ? r.invested : r.market);
 
   const sorted = [...raw].sort((a, b) => valueOf(b) - valueOf(a));
-  const total = sorted.reduce((s, r) => s + valueOf(r), 0) || 1;
+  const sum = sorted.reduce((s, r) => s + valueOf(r), 0);
+  const total = sum || 1;
 
-  // Keep the pie readable: show top 8, fold the rest into "more".
-  const TOP = 8;
-  let slices: { name: string; value: number; color: string }[];
-  if (sorted.length > TOP + 1) {
-    const rest = sorted.slice(TOP);
-    const restVal = rest.reduce((s, r) => s + valueOf(r), 0);
-    slices = [
-      ...sorted.slice(0, TOP).map((r, i) => ({ name: r.code, value: valueOf(r), color: COLORS[i % COLORS.length] })),
-      { name: t.more(rest.length), value: restVal, color: OTHERS_COLOR },
-    ];
-  } else {
-    slices = sorted.map((r, i) => ({ name: r.code, value: valueOf(r), color: COLORS[i % COLORS.length] }));
-  }
+  // Keep the list short: top 8, the rest folded into one row.
+  const fold = sorted.length > TOP + 1;
+  const shown = fold ? sorted.slice(0, TOP) : sorted;
+  const rest = fold ? sorted.slice(TOP) : [];
+  const restVal = rest.reduce((s, r) => s + valueOf(r), 0);
 
   const top = sorted[0];
   const topShare = (valueOf(top) / total) * 100;
-  const note =
-    topShare > 25
-      ? t.noteBig(top.code, topShare.toFixed(0))
-      : t.noteOk(top.code, topShare.toFixed(0));
+  const big = topShare > 25;
+  const note = big ? t.noteBig(top.code, topShare.toFixed(0)) : t.noteOk(top.code, topShare.toFixed(0));
 
   // Effective (concentration-honest) count — only worth calling out when the
   // split is meaningfully lopsided, otherwise it just restates the count.
@@ -105,22 +102,20 @@ export default function AllocationChart({ analysis, lang = "en" }: Props) {
   const n = holdings.length;
   const showEff = n >= 3 && eff > 0 && eff < n - 0.75;
 
+  const pct = (v: number) => (v / total) * 100;
+
   return (
-    <Card as="section" padding="none" className="rounded-xl p-5 sm:p-6">
-      {/* Header + toggle */}
-      <div className="flex items-center gap-2.5 mb-1 flex-wrap">
-        <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/15 border border-primary/30 text-primary">
-          <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M21 15.9A10 10 0 1 1 8 3" />
-            <path d="M22 12A10 10 0 0 0 12 2v10z" />
-          </svg>
-        </span>
-        <h3
-          className={`text-sm sm:text-base   font-bold text-text-main ${bnText}`}
-        >
-          {t.title}
-        </h3>
-        <div className="ml-auto inline-flex rounded-full bg-surface-2 p-0.5" role="group" aria-label="Allocation basis">
+    <PfCard title={t.title} bn="আপনার টাকা কোথায় আছে" note={t.desc(basis)} lang={lang} dataCard="allocation">
+      <div
+        className={`flex flex-wrap items-end justify-between gap-3 ${bnText}`}
+        lang={bn ? "bn" : undefined}
+      >
+        <Stat
+          size="lg"
+          value={<span className="pv">{takaGroup(sum)}</span>}
+          label={basis === "invested" ? t.totalInvested : t.totalValue}
+        />
+        <div className="flex gap-1" role="group" aria-label={t.basisLabel}>
           {(["invested", "market"] as Basis[]).map((b) => (
             <Button
               key={b}
@@ -130,79 +125,65 @@ export default function AllocationChart({ analysis, lang = "en" }: Props) {
               active={basis === b}
               aria-pressed={basis === b}
               onClick={() => setBasis(b)}
-              className={bnText}
+              className={`whitespace-nowrap ${bnText}`}
             >
               {b === "invested" ? t.invested : t.market}
             </Button>
           ))}
         </div>
       </div>
-      <p className={`text-sm text-text-muted mb-5 leading-relaxed ${bnText}`}>
-        {t.desc(basis)}
-      </p>
 
-      <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start">
-        {/* Donut with centered total */}
-        <div className="relative shrink-0" style={{ width: 200, height: 200 }}>
-          <ResponsiveContainer width={200} height={200}>
-            <PieChart>
-              <Pie
-                data={slices}
-                cx="50%"
-                cy="50%"
-                innerRadius={58}
-                outerRadius={92}
-                dataKey="value"
-                strokeWidth={0}
-                isAnimationActive
-                animationDuration={500}
-              >
-                {slices.map((s, i) => (
-                  <Cell key={i} fill={s.color} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={CHART.tooltip.contentStyle}
-                formatter={(v: number) => [`${taka(v, 0)} (${((v / total) * 100).toFixed(1)}%)`, ""]}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span
-              className={`text-xs   text-text-muted font-bold ${bnText}`}
-            >
-              {basis === "invested" ? t.centerInvested : t.centerValue}
-            </span>
-            {/* takaCompact: the 116px donut hole cannot hold an ungrouped 11-digit total */}
-            <span className="text-base font-black text-text-main tabular-nums leading-tight">
-              {takaCompact(total)}
-            </span>
-          </div>
-        </div>
-
-        {/* Legend */}
-        <div className="flex-1 w-full space-y-2.5">
-          {slices.map((s) => (
-            <div key={s.name} className="flex items-center gap-3">
-              <span className="w-3 h-3 rounded-full shrink-0" style={{ background: s.color }} />
-              <span className="text-sm font-semibold flex-1 min-w-0 truncate text-text-main">
-                {s.name}
+      <ul className="pf-rows mt-4 border-t border-cell-rule">
+        {shown.map((r) => {
+          const share = pct(valueOf(r));
+          const name = r.name || r.code;
+          return (
+            <li key={r.code} className="py-3">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+                <Link
+                  prefetch={false}
+                  href={`/stock/${r.code}`}
+                  className="flex min-h-10 min-w-0 flex-col justify-center hover:text-primary-ink active:opacity-70"
+                >
+                  <span className="truncate text-sm font-semibold text-text-main">{name}</span>
+                  {name !== r.code && <span className="text-xs font-semibold text-text-muted">{r.code}</span>}
+                </Link>
+                <div className="text-right">
+                  <span className="pf-num block text-sm font-bold text-text-main">{share.toFixed(0)}%</span>
+                  <span className="pv pf-num block text-xs font-semibold text-text-muted">{takaGroup(valueOf(r))}</span>
+                </div>
+              </div>
+              <div className="pf-bar mt-1.5" aria-hidden="true">
+                <span style={{ width: `${Math.max(1, share)}%` }} />
+              </div>
+            </li>
+          );
+        })}
+        {rest.length > 0 && (
+          <li className="py-3">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+              <span className={`text-sm font-semibold text-text-muted ${bnText}`} lang={bn ? "bn" : undefined}>
+                {t.more(rest.length)}
               </span>
-              <span className="text-sm text-text-muted tabular-nums">{taka(s.value, 0)}</span>
-              <span className="text-sm font-black tabular-nums w-12 text-right" style={{ color: s.color }}>
-                {((s.value / total) * 100).toFixed(0)}%
-              </span>
+              <div className="text-right">
+                <span className="pf-num block text-sm font-bold text-text-main">{pct(restVal).toFixed(0)}%</span>
+                <span className="pv pf-num block text-xs font-semibold text-text-muted">{takaGroup(restVal)}</span>
+              </div>
             </div>
-          ))}
-        </div>
-      </div>
+            <div className="pf-bar mt-1.5" aria-hidden="true">
+              <span className="opacity-40" style={{ width: `${Math.max(1, pct(restVal))}%` }} />
+            </div>
+          </li>
+        )}
+      </ul>
 
-      <p className={`text-sm text-text-muted mt-5 leading-relaxed ${bnText}`}>{note}</p>
-      {showEff && (
-        <p className={`text-xs text-text-muted mt-2 leading-relaxed ${bnText}`}>
-          {t.effective(eff.toFixed(1), n)}
+      <div className={`pf-card-foot ${bnText}`} lang={bn ? "bn" : undefined}>
+        <p className="flex items-start gap-2.5 text-sm leading-relaxed text-text-main">
+          <span className={`pf-dot mt-1.5 ${big ? "pf-dot--watch" : "pf-dot--good"}`} aria-hidden="true" />
+          <span className="min-w-0">{note}</span>
         </p>
-      )}
-    </Card>
+        {showEff && <p className="pf-fine">{t.effective(eff.toFixed(1), n)}</p>}
+      </div>
+    </PfCard>
   );
 }

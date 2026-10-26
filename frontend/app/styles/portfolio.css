@@ -1,0 +1,235 @@
+/* ===================================================================
+   /portfolio — the clean redesign (2026-10-26), same language as
+   /market-analysis and /watchlist: one card style (.soft-card), hairlines
+   instead of tinted boxes, numbers lead, company name first, colour only
+   where it means something (up / down, grade, Buy / Sell, a warning).
+   Every class here is `pf-*` and belongs to components/portfolio/*.
+
+   Phone columns are always `minmax(0, 1fr)`: a bare `1fr` track grows to
+   its widest unbreakable line (a long company name, a no-wrap figure) and
+   pushes the card past the screen.
+   =================================================================== */
+
+/* ---- Chapters ---- */
+.pf-chapter { margin-top: 48px; display: flex; flex-direction: column; gap: var(--space-4); }
+@media (min-width: 768px) { .pf-chapter { margin-top: 64px; gap: 20px; } }
+.pf-chapter--first { margin-top: var(--space-2); }
+@media (min-width: 768px) { .pf-chapter--first { margin-top: var(--space-2); } }
+.pf-chapter-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.pf-chapter-title {
+  margin: 0; font-size: var(--fs-xl); font-weight: 700; line-height: 1.15;
+  letter-spacing: -0.015em; color: var(--text);
+}
+@media (min-width: 640px) { .pf-chapter-title { font-size: var(--fs-2xl); } }
+.pf-chapter-bn { margin: 4px 0 0; font-size: var(--fs-sm); line-height: 1.6; color: var(--text-muted); }
+.pf-chapter-lead { margin: 6px 0 0; max-width: 60ch; font-size: var(--fs-sm); line-height: 1.55; color: var(--text-muted); }
+
+.pf-pair { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+@media (min-width: 768px) {
+  .pf-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+  .pf-pair > :only-child { grid-column: 1 / -1; }
+}
+
+/* ---- The one card ---- */
+.pf-card { padding: 18px 16px; }
+@media (min-width: 640px) { .pf-card { padding: 22px 24px; } }
+.pf-card--flush { padding: 0; overflow: hidden; }
+.pf-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.pf-card--flush .pf-card-head { padding: 18px 16px 0; }
+@media (min-width: 640px) { .pf-card--flush .pf-card-head { padding: 22px 24px 0; } }
+.pf-card-title { margin: 0; font-size: var(--fs-md); font-weight: 700; line-height: 1.3; color: var(--text); }
+.pf-card-bn { margin: 2px 0 0; font-size: var(--fs-sm); line-height: 1.6; color: var(--text-muted); }
+.pf-card-note { margin: 4px 0 0; max-width: 62ch; font-size: var(--fs-sm); line-height: 1.55; color: var(--text-muted); }
+.pf-card-foot { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--cell-rule); }
+.pf-fine { margin: 10px 0 0; font-size: var(--fs-2xs); line-height: 1.6; color: var(--text-muted); }
+
+.pf-link {
+  display: inline-flex; align-items: center; gap: 4px; min-height: 40px;
+  font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink); text-decoration: none;
+  background: none; border: 0; padding: 0; cursor: pointer;
+}
+.pf-link:hover { text-decoration: underline; }
+.pf-link:active { opacity: 0.7; }
+
+/* Hairline-separated rows inside a card */
+.pf-rows { display: flex; flex-direction: column; }
+.pf-rows > * + * { border-top: 1px solid var(--cell-rule); }
+
+/* A meaning dot (good / watch / bad) */
+.pf-dot { flex-shrink: 0; width: 8px; height: 8px; border-radius: 999px; background: var(--text-muted); }
+.pf-dot--good { background: var(--positive); }
+.pf-dot--watch { background: var(--watch); }
+.pf-dot--bad { background: var(--negative); }
+
+/* Numbers */
+.pf-num { font-variant-numeric: tabular-nums; }
+.pf-up { color: var(--positive); }
+.pf-down { color: var(--negative); }
+.pf-flat { color: var(--text-muted); }
+
+/* A thin bar (share of the whole, a score out of 10) */
+.pf-bar { position: relative; height: 6px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.pf-bar > span { position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: var(--text); }
+
+/* ---- Top bar: portfolio switcher · language ---- */
+.pf-topbar { display: flex; align-items: center; gap: 12px; }
+
+/* ---- Hero: open on the canvas, the answers in one card ---- */
+.pf-hero { padding-top: 4px; }
+.pf-hero-label {
+  display: flex; align-items: center; gap: 4px;
+  margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text-muted);
+}
+.pf-hero-value {
+  margin: 6px 0 0; font-size: clamp(2.25rem, 8vw, 3.25rem); font-weight: 700; line-height: 1.05;
+  letter-spacing: -0.025em; color: var(--text); font-variant-numeric: tabular-nums;
+}
+.pf-hero-change { margin: 10px 0 0; font-size: var(--fs-md); font-weight: 600; line-height: 1.5; color: var(--text-muted); }
+.pf-hero-change b { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.pf-answers { margin-top: var(--space-6); padding: 0; overflow: hidden; }
+.pf-answer-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--cell-rule); }
+@media (min-width: 900px) { .pf-answer-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.pf-answer { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 16px; background: var(--surface); }
+@media (min-width: 640px) { .pf-answer { padding: 20px 22px; } }
+.pf-answer-q { margin: 0; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); }
+.pf-answer-a {
+  margin: 0; font-size: var(--fs-title); font-weight: 700; line-height: 1.2;
+  letter-spacing: -0.01em; color: var(--text); font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
+}
+.pf-answer-x { margin: 0; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+.pf-grade-row {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 10px 16px;
+  border: 0; border-top: 1px solid var(--cell-rule); background: var(--surface);
+  text-align: left; cursor: pointer; color: var(--text); font: inherit;
+}
+@media (min-width: 640px) { .pf-grade-row { padding: 10px 22px; } }
+.pf-grade-row:hover { background: var(--surface-2); }
+.pf-grade-row:active { opacity: 0.8; }
+.pf-grade-letter {
+  display: grid; place-items: center; flex-shrink: 0; width: 36px; height: 36px;
+  border-radius: var(--radius-md); border: 1.5px solid currentColor;
+  font-size: var(--fs-md); font-weight: 700; line-height: 1;
+}
+.pf-grade-text { min-width: 0; flex: 1 1 auto; font-size: var(--fs-sm); line-height: 1.45; }
+.pf-grade-text b { display: block; font-weight: 700; }
+.pf-grade-text span { color: var(--text-muted); }
+.pf-grade-go { flex-shrink: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink); }
+
+/* Grade colours (A–F) — the one place a grade is coloured */
+.pf-g-A, .pf-g-B { color: var(--positive); }
+.pf-g-C { color: var(--watch); }
+.pf-g-D { color: color-mix(in srgb, var(--watch) 55%, var(--negative)); }
+.pf-g-F { color: var(--negative); }
+
+/* ---- Holdings: one card, one row per stock ---- */
+.pf-hold-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
+.pf-hold-count { margin: 0; font-size: var(--fs-sm); color: var(--text-muted); }
+.pf-hold-count strong { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
+.pf-hold-tools { display: flex; align-items: center; gap: 8px; }
+.pf-sort {
+  height: 40px; padding: 0 32px 0 12px; border: 1px solid var(--border); border-radius: 999px;
+  background-color: var(--surface); color: var(--text); font: inherit; font-size: var(--fs-sm); font-weight: 600; cursor: pointer;
+}
+.pf-sort:hover { border-color: var(--text-muted); }
+.pf-sort:focus-visible { outline: none; border-color: var(--primary); box-shadow: var(--ring); }
+
+.pf-holds { padding: 0; overflow: hidden; }
+.pf-hold { padding: 16px; }
+@media (min-width: 640px) { .pf-hold { padding: 18px 24px; } }
+.pf-holds > .pf-hold + .pf-hold { border-top: 1px solid var(--cell-rule); }
+.pf-hold-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; align-items: start; }
+.pf-hold-name {
+  display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: var(--fs-md); font-weight: 700; line-height: 1.3; color: var(--text); text-decoration: none;
+}
+a.pf-hold-name:hover { color: var(--primary-ink); }
+.pf-hold-sub { margin: 2px 0 0; font-size: var(--fs-sm); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.pf-hold-code { font-weight: 700; color: var(--text); }
+.pf-hold-val { text-align: right; }
+.pf-hold-val b { display: block; font-size: var(--fs-md); font-weight: 700; line-height: 1.3; color: var(--text); font-variant-numeric: tabular-nums; }
+.pf-hold-val span { display: block; margin-top: 2px; font-size: var(--fs-sm); font-weight: 700; font-variant-numeric: tabular-nums; }
+.pf-hold-mid { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 10px; }
+.pf-hold-facts {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;
+  margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--cell-rule);
+}
+@media (min-width: 768px) { .pf-hold-facts { grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.4fr); } }
+.pf-fact { min-width: 0; }
+.pf-fact-k { display: block; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); }
+.pf-fact-v { display: block; margin-top: 2px; font-size: var(--fs-sm); font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pf-fact--range { grid-column: 1 / -1; }
+@media (min-width: 768px) { .pf-fact--range { grid-column: auto; } }
+.pf-range { position: relative; height: 4px; margin-top: 10px; border-radius: 999px; background: var(--surface-2); }
+.pf-range > i {
+  position: absolute; top: 50%; width: 12px; height: 12px; margin-left: -6px; transform: translateY(-50%);
+  border-radius: 999px; background: var(--text); border: 2px solid var(--surface);
+}
+.pf-range-ends { display: flex; justify-content: space-between; margin-top: 6px; font-size: var(--fs-2xs); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.pf-hold-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+.pf-hold-actions .pf-spacer { flex: 1 1 auto; }
+
+/* ---- Quiet note (read-only, trial ending) ---- */
+.pf-note { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; }
+.pf-note-icon { flex: 0 0 auto; margin-top: 2px; color: var(--text-muted); }
+.pf-note-body { min-width: 0; flex: 1 1 auto; }
+.pf-note-title { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.pf-note-text { margin: 2px 0 0; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
+
+/* ---- Empty portfolio ---- */
+.pf-empty { padding: 28px 20px; text-align: center; }
+@media (min-width: 640px) { .pf-empty { padding: 44px 32px; } }
+.pf-empty-title { margin: 0; font-size: var(--fs-xl); font-weight: 700; line-height: 1.2; letter-spacing: -0.015em; color: var(--text); }
+.pf-empty-text { margin: 10px auto 0; max-width: 46ch; font-size: var(--fs-md); line-height: 1.6; color: var(--text-muted); }
+.pf-steps { list-style: none; margin: 28px auto 0; padding: 0; max-width: 640px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; text-align: left; }
+@media (min-width: 640px) { .pf-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.pf-step { display: flex; gap: 12px; align-items: flex-start; }
+.pf-step-n {
+  display: grid; place-items: center; flex-shrink: 0; width: 28px; height: 28px; border-radius: 999px;
+  border: 1.5px solid var(--text); font-size: var(--fs-2xs); font-weight: 700; color: var(--text);
+}
+.pf-step-t { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.pf-step-d { margin: 2px 0 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text-muted); }
+.pf-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 28px; }
+
+/* ---- The one Premium card ---- */
+.pf-premium { border-color: rgb(var(--primary-rgb) / 0.4); }
+.pf-premium-stakes { list-style: none; margin: 16px 0 0; padding: 0; }
+.pf-premium-stakes li {
+  display: flex; gap: 10px; padding: 10px 0; border-top: 1px solid var(--cell-rule);
+  font-size: var(--fs-md); font-weight: 600; line-height: 1.45; color: var(--text);
+}
+.pf-premium-stakes li:last-child { border-bottom: 1px solid var(--cell-rule); }
+.pf-premium-adds { list-style: none; margin: 16px 0 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px 24px; }
+@media (min-width: 640px) { .pf-premium-adds { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.pf-premium-adds li { display: flex; align-items: flex-start; gap: 8px; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.pf-premium-adds svg { flex-shrink: 0; margin-top: 3px; color: var(--positive); }
+
+/* ---- Disclaimer ---- */
+.pf-disclaimer { margin: var(--space-6) 0 0; font-size: var(--fs-2xs); line-height: 1.6; color: var(--text-muted); text-align: center; }
+
+/* ---- Premium data blurred in place (PremiumBlur) ----
+   The card around it stays readable; only the data region blurs, at its full
+   height, with one "Unlock with Premium" button over it. */
+.pf-blur { position: relative; }
+.pf-blur[data-locked="true"] > .pf-blur-body {
+  filter: blur(5px);
+  user-select: none;
+  pointer-events: none;
+}
+.pf-blur-cta {
+  position: absolute; inset: 0; z-index: 1;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding-top: clamp(12px, 18%, 64px);
+  pointer-events: none;
+}
+.pf-blur-btn {
+  pointer-events: auto;
+  display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px;
+  border: 1px solid var(--border); border-radius: 999px; background: var(--surface);
+  box-shadow: var(--shadow-lift);
+  font-size: var(--fs-sm); font-weight: 700; color: var(--primary-ink); text-decoration: none;
+}
+.pf-blur-btn:hover { border-color: var(--primary); }
+.pf-blur-btn:active { opacity: 0.8; }

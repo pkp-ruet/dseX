@@ -2,7 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { apiAddHolding, type PortfolioHolding, type PortfolioLogEntry, type ScoreItem } from "@/lib/api";
+import { taka } from "@/lib/formatters";
 import Button from "@/components/ui/Button";
+import Sheet from "@/components/ui/Sheet";
+import type { AnalysisLang } from "@/lib/portfolio-analysis";
 
 interface Props {
   allCodes: string[];
@@ -13,16 +16,19 @@ interface Props {
   onAdded: (holdings: PortfolioHolding[], log?: PortfolioLogEntry[]) => void;
   /** Which portfolio (absent = the main one). */
   pid?: string;
+  lang?: AnalysisLang;
 }
 
 const emptyForm = () => ({ trading_code: "", price: "", qty: "" });
 
 /**
- * "Add stock" sheet — bottom-sheet on mobile, centered modal on desktop.
- * Same fields as the old inline form: code with type-ahead, price (prefilled
- * with the live price), quantity.
+ * "Add a stock" — on the shared `ui/Sheet` (2026-10-26 redesign): bottom
+ * sheet on phones, dialog from 640px. Code with type-ahead (company name
+ * beside each code), price prefilled with today's price, quantity.
  */
-export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onClose, onAdded, pid }: Props) {
+export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onClose, onAdded, pid, lang = "en" }: Props) {
+  const bn = lang === "bn";
+  const L = (en: string, b: string) => (bn ? b : en);
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -30,14 +36,10 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onC
   const [saving, setSaving] = useState(false);
   const codeInputRef = useRef<HTMLInputElement>(null);
 
+  // The Sheet focuses its panel on open; move focus to the code field after it.
   useEffect(() => {
-    codeInputRef.current?.focus();
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const t = setTimeout(() => codeInputRef.current?.focus(), 0);
+    return () => clearTimeout(t);
   }, []);
 
   function handleCodeInput(value: string) {
@@ -66,137 +68,146 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onC
       e.preventDefault();
       selectSuggestion(suggestions[activeSuggestion]);
     } else if (e.key === "Escape") {
+      e.stopPropagation();
       setSuggestions([]);
     }
   }
 
-  const isHeld = existingCodes.has(form.trading_code.trim().toUpperCase());
+  const code = form.trading_code.trim().toUpperCase();
+  const isHeld = existingCodes.has(code);
+  const picked = priceMap.get(code);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    const code = form.trading_code.trim().toUpperCase();
     const price = parseFloat(form.price);
     const qty = parseInt(form.qty, 10);
-    if (!code) return setError("Stock code required.");
-    if (isNaN(price) || price <= 0) return setError("Enter a valid buy price.");
-    if (isNaN(qty) || qty <= 0) return setError("Enter a valid quantity.");
+    if (!code) return setError(L("Type the stock code.", "শেয়ারের কোড লিখুন।"));
+    if (isNaN(price) || price <= 0) return setError(L("Enter the price you paid.", "কেনার দাম লিখুন।"));
+    if (isNaN(qty) || qty <= 0) return setError(L("Enter how many shares.", "কয়টি শেয়ার লিখুন।"));
     setSaving(true);
     try {
       const res = await apiAddHolding({ trading_code: code, buy_price: price, qty }, pid);
       onAdded(res.holdings, res.log);
       onClose();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to add.");
+      setError(err instanceof Error ? err.message : L("Couldn't add it — try again.", "যোগ করা গেল না — আবার চেষ্টা করুন।"));
       setSaving(false);
     }
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-text-main/50"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="add-holding-title"
-      onClick={() => !saving && onClose()}
+    <Sheet
+      open
+      onClose={onClose}
+      dismissible={!saving}
+      title={L("Add a stock you own", "আপনার একটি শেয়ার যোগ করুন")}
+      bn={!bn ? "আপনার একটি শেয়ার যোগ করুন" : undefined}
     >
-      <div
-        className="w-full sm:max-w-sm bg-surface border-t sm:border border-border rounded-t-xl sm:rounded-xl p-5 sm:p-6 flex flex-col gap-4"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between">
-          <h3 id="add-holding-title" className="text-lg font-bold text-text-main">
-            Add stock
-          </h3>
-          <Button type="button" variant="link" size="sm" iconOnly onClick={onClose} aria-label="Close" disabled={saving} className="-mr-2">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
-                  <path d="M18 6 6 18M6 6l12 12" />
-                </svg>
-          </Button>
+      <form onSubmit={handleSubmit} className={`flex flex-col gap-4 ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
+        {/* Stock code */}
+        <div className="relative flex flex-col gap-1.5">
+          <label htmlFor="ah-1" className="text-sm font-semibold text-text-main">
+            {L("Stock code", "শেয়ারের কোড")}
+          </label>
+          <input
+            id="ah-1"
+            ref={codeInputRef}
+            type="text"
+            placeholder={L("e.g. GP", "যেমন GP")}
+            value={form.trading_code}
+            onChange={(e) => handleCodeInput(e.target.value)}
+            onKeyDown={handleCodeKeyDown}
+            onBlur={() => setTimeout(() => setSuggestions([]), 150)}
+            className="input-field py-3 text-lg font-semibold"
+            maxLength={20}
+            autoComplete="off"
+            role="combobox"
+            aria-expanded={suggestions.length > 0}
+            aria-controls="ah-list"
+            required
+          />
+          {suggestions.length > 0 && (
+            // Opens UPWARD on phones (the sheet is pinned to the bottom, so a
+            // downward list ran off-screen) and scrolls past ~4 rows.
+            <ul
+              id="ah-list"
+              role="listbox"
+              className="absolute bottom-full left-0 right-0 z-20 mb-1 max-h-56 overflow-y-auto rounded-lg border border-border bg-surface p-1 shadow-lift sm:bottom-auto sm:top-full sm:mb-0 sm:mt-1"
+            >
+              {suggestions.map((c, i) => (
+                <li
+                  key={c}
+                  role="option"
+                  aria-selected={i === activeSuggestion}
+                  onMouseDown={() => selectSuggestion(c)}
+                  className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-3 py-2 transition-colors ${
+                    i === activeSuggestion ? "bg-surface-2" : "hover:bg-surface-2"
+                  }`}
+                >
+                  <span className="text-sm font-bold text-text-main">{c}</span>
+                  <span className="min-w-0 flex-1 truncate text-sm text-text-muted">{priceMap.get(c)?.company_name ?? ""}</span>
+                  {existingCodes.has(c) && <span className="text-xs font-semibold text-text-muted">{L("You own it", "আছে")}</span>}
+                </li>
+              ))}
+            </ul>
+          )}
+          {picked?.company_name && (
+            <p className="text-sm text-text-muted">
+              {picked.company_name}
+              {picked.ltp != null ? ` · ${L("price today", "আজকের দাম")} ${taka(picked.ltp, 2)}` : ""}
+            </p>
+          )}
+          {isHeld && (
+            <p className="text-sm text-text-muted">
+              {L(
+                "You already own this. The new shares join the old ones at one average price.",
+                "এটি আগে থেকেই আছে। নতুন শেয়ার পুরোনোগুলোর সাথে এক গড় দামে যোগ হবে।",
+              )}
+            </p>
+          )}
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {/* Stock code */}
-          <div className="flex flex-col gap-1.5 relative">
-            <label htmlFor="ah-1" className="text-sm font-medium text-text-main">Stock Code</label>
-            <input id="ah-1"
-              ref={codeInputRef}
-              type="text"
-              placeholder="e.g. GP"
-              value={form.trading_code}
-              onChange={(e) => handleCodeInput(e.target.value)}
-              onKeyDown={handleCodeKeyDown}
-              onBlur={() => setTimeout(() => setSuggestions([]), 150)}
-              className="input-field text-base sm:text-lg  font-mono py-2.5"
-              maxLength={20}
-              autoComplete="off"
+        {/* Price + Qty */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="ah-2" className="text-sm font-semibold text-text-main">{L("Price you paid (৳)", "কেনার দাম (৳)")}</label>
+            <input
+              id="ah-2"
+              type="number"
+              placeholder="295.50"
+              min="0.01"
+              step="0.01"
+              inputMode="decimal"
+              value={form.price}
+              onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
+              className="input-field w-full py-3 text-lg tabular-nums"
               required
             />
-            {suggestions.length > 0 && (
-              // Opens UPWARD on phones (the sheet is pinned to the bottom, so a
-              // downward list ran off-screen) and scrolls past ~4 rows.
-              <ul className="absolute bottom-full mb-1 sm:bottom-auto sm:top-full sm:mb-0 sm:mt-1 left-0 right-0 max-h-56 overflow-y-auto bg-surface border border-border rounded-lg shadow-lift z-20">
-                {suggestions.map((code, i) => (
-                  <li
-                    key={code}
-                    onMouseDown={() => selectSuggestion(code)}
-                    className={`px-4 py-3 text-base cursor-pointer font-mono font-semibold transition-colors ${
-                      i === activeSuggestion
-                        ? "bg-primary text-surface"
-                        : "text-text-main hover:bg-border"
-                    }`}
-                  >
-                    {code}
-                  </li>
-                ))}
-              </ul>
-            )}
-            {isHeld && (
-              <p className="text-xs text-text-muted">
-                Already held — adding will blend into a weighted-average cost.
-              </p>
-            )}
           </div>
-
-          {/* Price + Qty */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="ah-2" className="text-sm font-medium text-text-main">Buy Price (৳)</label>
-              <input id="ah-2"
-                type="number"
-                placeholder="295.50"
-                min="0.01"
-                step="0.01"
-                inputMode="decimal"
-                value={form.price}
-                onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-                className="input-field text-base sm:text-lg w-full tabular-nums py-2.5"
-                required
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="ah-3" className="text-sm font-medium text-text-main">Quantity</label>
-              <input id="ah-3"
-                type="number"
-                placeholder="100"
-                min="1"
-                step="1"
-                inputMode="numeric"
-                value={form.qty}
-                onChange={(e) => setForm((f) => ({ ...f, qty: e.target.value }))}
-                className="input-field text-base sm:text-lg w-full tabular-nums py-2.5"
-                required
-              />
-            </div>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="ah-3" className="text-sm font-semibold text-text-main">{L("Shares", "শেয়ারের সংখ্যা")}</label>
+            <input
+              id="ah-3"
+              type="number"
+              placeholder="100"
+              min="1"
+              step="1"
+              inputMode="numeric"
+              value={form.qty}
+              onChange={(e) => setForm((f) => ({ ...f, qty: e.target.value }))}
+              className="input-field w-full py-3 text-lg tabular-nums"
+              required
+            />
           </div>
+        </div>
 
-          {error && <p className="text-sm text-negative font-medium">{error}</p>}
+        {error && <p className="form-error">{error}</p>}
 
-          <Button type="submit" disabled={saving} variant="primary" block>
-            {saving ? "Saving…" : "Add to portfolio"}
-          </Button>
-        </form>
-      </div>
-    </div>
+        <Button type="submit" disabled={saving} variant="primary" size="lg" block>
+          {saving ? L("Saving…", "সেভ হচ্ছে…") : L("Add to my portfolio", "পোর্টফোলিওতে যোগ করুন")}
+        </Button>
+      </form>
+    </Sheet>
   );
 }

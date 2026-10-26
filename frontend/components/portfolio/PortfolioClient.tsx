@@ -37,7 +37,7 @@ import {
   type PortfolioHistory,
   type PortfolioWatchEvent,
 } from "@/lib/api";
-import { taka, formatDate, takaCompact } from "@/lib/formatters";
+import { taka, takaCompact, takaGroup } from "@/lib/formatters";
 import {
   signalInfoFromApi,
   portfolioTodayMove,
@@ -45,21 +45,26 @@ import {
   buildRebalancePlan,
   type SignalInfo,
   type AnalysisLang,
+  type Grade,
+  type GradeLabel,
 } from "@/lib/portfolio-analysis";
 import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
 import { getStoredUser } from "@/lib/auth";
-import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
+import Sheet from "@/components/ui/Sheet";
 import SignalChip from "@/components/ui/SignalChip";
 import PortfolioAnalysisView from "./PortfolioAnalysisView";
 import ProInsights from "./ProInsights";
 import RebalanceHelper from "./RebalanceHelper";
-import HoldingsDetailed from "./HoldingsDetailed";
 import AllocationChart from "./AllocationChart";
 import SectorBreakdownChart from "./SectorBreakdownChart";
-import PremiumGate from "@/components/premium/PremiumGate";
+import { PageLockScope } from "@/components/premium/LockScope";
+import Chip from "@/components/ui/Chip";
+import DashSectionNav from "@/components/home/personalized/DashSectionNav";
+import PfCard, { PfChapterHead } from "./PfCard";
 import Bn from "@/components/i18n/Bn";
+import { IconLock } from "@/components/ui/icons";
 import { buildProInsights, buildPremiumStakes } from "@/lib/portfolio-pro";
 import { usePremium, isLimitError, PREMIUM_PATH } from "@/lib/premium";
 import { moneyMade, DEFAULT_PORTFOLIO_SETTINGS } from "@/lib/portfolio-ledger";
@@ -71,21 +76,25 @@ import MoneyMadeCard from "./MoneyMadeCard";
 import ValueHistoryCard from "./ValueHistoryCard";
 import CorrectionsCard from "./CorrectionsCard";
 import HistoryCard from "./HistoryCard";
-import WatchCard from "./WatchCard";
+import StockUpdates, { KIND_TAG, LEVEL_TONE } from "./StockUpdates";
+import PortfolioPremium from "./PortfolioPremium";
 import WhatIfCard from "./WhatIfCard";
 import TrialEndingBanner from "./TrialEndingBanner";
 import PortfolioSwitcher from "./PortfolioSwitcher";
 import PortfolioSettingsSheet from "./PortfolioSettingsSheet";
 import PortfolioLangToggle from "./PortfolioLangToggle";
-import PortfolioHealthStrip from "./PortfolioHealthStrip";
 import ContributionStrip from "./ContributionStrip";
+import DividendIncomeCard from "./DividendIncomeCard";
 import PortfolioHero from "./PortfolioHero";
 import AddHoldingModal from "./AddHoldingModal";
 import BuySellModal from "./BuySellModal";
-import WatchlistNews from "@/components/watchlist/WatchlistNews";
+import PortfolioNews from "./PortfolioNews";
+import NextMoveCard from "./NextMoveCard";
+import GradeLiftCard from "./GradeLiftCard";
+import HowWeDecide from "./HowWeDecide";
+import { buildNextMove, gradeLifts } from "@/lib/portfolio-next";
 import WatchlistAlertCell from "@/components/watchlist/WatchlistAlertCell";
 import ErrorState from "@/components/ui/ErrorState";
-import EmptyState from "@/components/ui/EmptyState";
 
 const LANG_KEY = "dsex.portfolio.lang";
 const pidKey = (uid: string) => `dsex.portfolio.pid.${uid}`;
@@ -93,6 +102,25 @@ const nudgeKey = (uid: string) => `dsex.portfolio.nudge3.${uid}`;
 const lastSeenKey = (uid: string) => `dsex.portfolio.lastseen.${uid}`;
 /** Only surface a "since last visit" delta when the prior visit is at least this old. */
 const LAST_SEEN_MIN_AGE_MS = 60 * 60 * 1000;
+
+/** Two cards side by side from `md:`; a lone card takes the full width. */
+const PAIR = "grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 [&>*:only-child]:md:col-span-2";
+
+const GRADE_TEXT: Record<Grade, string> = {
+  A: "text-positive",
+  B: "text-positive",
+  C: "text-watch",
+  D: "text-watch",
+  F: "text-negative",
+};
+
+const GRADE_LABEL_BN: Record<GradeLabel, string> = {
+  Excellent: "চমৎকার",
+  Good: "ভালো",
+  Okay: "মোটামুটি",
+  Risky: "ঝুঁকিপূর্ণ",
+  "Very Risky": "খুব ঝুঁকিপূর্ণ",
+};
 
 function flattenScores(scores: ScoresResponse | null): Map<string, ScoreItem> {
   if (!scores) return new Map();
@@ -147,16 +175,39 @@ function rangePosition(row: ComputedRow): number | null {
 
 type SortKey = "code" | "qty" | "avgcost" | "invested" | "ltp" | "curvalue" | "pnl" | "range" | "signal";
 
-const COLUMNS: { key: SortKey; label: string; align: "left" | "right" }[] = [
-  { key: "code", label: "Code", align: "left" },
-  { key: "qty", label: "Qty", align: "right" },
-  { key: "avgcost", label: "Avg Cost", align: "right" },
-  { key: "invested", label: "Invested", align: "right" },
-  { key: "ltp", label: "LTP", align: "right" },
-  { key: "curvalue", label: "Cur. Value", align: "right" },
-  { key: "pnl", label: "P&L", align: "right" },
-  { key: "range", label: "52W", align: "right" },
-  { key: "signal", label: "Signal", align: "right" },
+const COLUMNS: { key: SortKey; label: string }[] = [
+  { key: "code", label: "Code" },
+  { key: "qty", label: "Shares" },
+  { key: "avgcost", label: "Price you paid" },
+  { key: "invested", label: "Money put in" },
+  { key: "ltp", label: "Price now" },
+  { key: "curvalue", label: "Value" },
+  { key: "pnl", label: "Profit" },
+  { key: "range", label: "Place in yearly range" },
+  { key: "signal", label: "Signal" },
+];
+
+const SORT_LABEL_BN: Record<SortKey, string> = {
+  code: "কোড",
+  qty: "শেয়ারের সংখ্যা",
+  avgcost: "কেনার দাম",
+  invested: "বিনিয়োগ",
+  ltp: "এখনকার দাম",
+  curvalue: "মূল্য",
+  pnl: "লাভ-ক্ষতি",
+  range: "বছরের সীমায় অবস্থান",
+  signal: "সংকেত",
+};
+
+/** The sort menu: the useful orders, each in the direction a reader means. */
+const SORT_OPTIONS: { key: SortKey; dir: "asc" | "desc" }[] = [
+  { key: "curvalue", dir: "desc" },
+  { key: "pnl", dir: "desc" },
+  { key: "pnl", dir: "asc" },
+  { key: "invested", dir: "desc" },
+  { key: "range", dir: "asc" },
+  { key: "signal", dir: "asc" },
+  { key: "code", dir: "asc" },
 ];
 
 const SIGNAL_RANK: Record<SignalInfo["signal"], number> = { sell: 0, none: 1, buy_more: 2 };
@@ -184,344 +235,43 @@ function sortValue(row: ComputedRow, key: SortKey): string | number | null {
   }
 }
 
-/** Sign-aware accent color used for tints, pills and accent edges. */
-function signAccent(value: number | null): string {
-  if (value == null || value === 0) return "var(--text-muted)";
-  return value > 0 ? "var(--positive)" : "var(--negative)";
-}
-
-/** Tinted P&L pill for the compact mobile cards. */
-function PnlPill({ value, pct }: { value: number | null; pct: number | null }) {
-  if (value == null) return <span className="text-xs text-text-muted">—</span>;
-  const accent = signAccent(value);
-  return (
-    <span
-      className="pv inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold tabular-nums nums whitespace-nowrap"
-      style={{ color: accent, background: `color-mix(in srgb, ${accent} 12%, transparent)` }}
-    >
-      <span className="text-xs leading-none">{value > 0 ? "▲" : value < 0 ? "▼" : "•"}</span>
-      {value > 0 ? "+" : ""}
-      {taka(value, 0)}
-      {pct != null && (
-        <span className="opacity-75 font-semibold">
-          {pct > 0 ? "+" : ""}
-          {pct.toFixed(1)}%
-        </span>
-      )}
-    </span>
-  );
-}
-
-/** Where today's price sits between the 52-week low and high. */
-function RangeBar52({ ltp, high, low }: { ltp: number | null; high: number | null; low: number | null }) {
-  if (ltp == null || high == null || low == null || high <= low) {
-    return <span className="text-text-muted text-xs">—</span>;
-  }
-  const pos = Math.max(0, Math.min(1, (ltp - low) / (high - low)));
-  return (
-    <div
-      className="flex flex-col gap-1 min-w-[88px]"
-      title={`52-week range: ৳${low.toFixed(1)} – ৳${high.toFixed(1)} · now ৳${ltp.toFixed(1)}`}
-    >
-      <div className="relative h-1.5 rounded-full bg-border">
-        <div
-          className="absolute top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-primary border-2 border-surface shadow-soft"
-          style={{ left: `calc(${(pos * 100).toFixed(1)}% - 5px)` }}
-        />
-      </div>
-      <div className="flex justify-between text-xs text-text-muted tabular-nums nums leading-none">
-        <span>{low.toFixed(1)}</span>
-        <span>{high.toFixed(1)}</span>
-      </div>
-    </div>
-  );
-}
-
-/** One dividend event on a held stock, sized to the user's position. */
-interface UpcomingPayout {
-  code: string;
-  kind: "record" | "declared";
-  date: string | null;
-  daysLeft: number | null;
-  cashPct: number | null;
-  stockPct: number | null;
-  /** qty × cash per share — the taka that lands in the account (before tax). */
-  payout: number | null;
-  /** qty × bonus % — roughly how many new shares a stock dividend adds. */
-  bonusShares: number | null;
-  /** Headline % when the calendar has no cash/stock split for this row. */
-  pct: number | null;
-}
-
-function daysLeftLabel(n: number | null): string {
-  if (n == null) return "";
-  if (n <= 0) return " · today";
-  if (n === 1) return " · tomorrow";
-  return ` · in ${n} days`;
-}
-
-function describeDividend(u: UpcomingPayout): string {
-  const parts: string[] = [];
-  if (u.cashPct != null && u.cashPct > 0) parts.push(`${u.cashPct}% cash`);
-  if (u.stockPct != null && u.stockPct > 0) parts.push(`${u.stockPct}% bonus shares`);
-  if (parts.length > 0) return parts.join(" + ");
-  return u.pct != null ? `${u.pct}% dividend` : "dividend";
-}
-
-/**
- * Estimated yearly dividend income, plus the dividends about to land on held
- * stocks in taka: qty × cash per share from the corporate-action calendar
- * (`/api/dividend-calendar`), with the record date the user must still be a
- * shareholder on. Falls back to the headline % from `/api/dividends/upcoming`
- * for anything the calendar doesn't carry.
- */
-function DividendIncomeCard({
-  rows,
-  priceMap,
-  dividends,
-  calendar,
-}: {
-  rows: ComputedRow[];
-  priceMap: Map<string, ScoreItem>;
-  dividends: DividendsUpcoming | null;
-  calendar: Pick<DividendCalendarData, "record_dates"> | null;
-}) {
-  let income = 0;
-  let payers = 0;
-  for (const r of rows) {
-    const y = priceMap.get(r.holding.trading_code)?.div_yield_pct;
-    const value = r.current_value ?? r.cost_basis;
-    if (y != null && y > 0 && value > 0) {
-      income += (y / 100) * value;
-      payers += 1;
-    }
-  }
-
-  const qtyByCode = new Map(
-    rows.map((r) => [r.holding.trading_code.toUpperCase(), r.holding.qty] as const),
-  );
-  const seen = new Set<string>();
-  const upcoming: UpcomingPayout[] = [];
-
-  // Record dates inside the calendar's window, sized to the position. One row
-  // per code — the calendar is sorted by record date, so the nearest wins.
-  for (const e of calendar?.record_dates ?? []) {
-    const code = e.trading_code.toUpperCase();
-    const qty = qtyByCode.get(code);
-    if (qty == null || seen.has(code) || !e.record_date) continue;
-    seen.add(code);
-    const cps = e.cash_per_share;
-    upcoming.push({
-      code,
-      kind: "record",
-      date: e.record_date,
-      daysLeft: e.record_days_left,
-      cashPct: e.cash_pct,
-      stockPct: e.stock_pct,
-      payout: cps != null && cps > 0 ? qty * cps : null,
-      bonusShares:
-        e.stock_pct != null && e.stock_pct > 0 ? Math.floor((qty * e.stock_pct) / 100) : null,
-      pct: null,
-    });
-  }
-  // Fallback rows (headline % only) for anything the calendar didn't cover.
-  const fallback = (kind: UpcomingPayout["kind"], code: string, date: string | null, pct: number | null) =>
-    upcoming.push({
-      code, kind, date, daysLeft: null, cashPct: null, stockPct: null,
-      payout: null, bonusShares: null, pct,
-    });
-  for (const d of dividends?.upcoming_record_dates ?? []) {
-    const code = d.trading_code.toUpperCase();
-    if (!qtyByCode.has(code) || seen.has(code)) continue;
-    seen.add(code);
-    fallback("record", code, d.record_date, d.dividend_pct);
-  }
-  for (const d of dividends?.upcoming_declarations ?? []) {
-    const code = d.trading_code.toUpperCase();
-    if (!qtyByCode.has(code) || seen.has(code)) continue;
-    seen.add(code);
-    fallback("declared", code, d.projected_date, d.dividend_pct);
-  }
-  upcoming.sort((a, b) => (a.date ?? "9999").localeCompare(b.date ?? "9999"));
-  const totalPayout = upcoming.reduce((acc, u) => acc + (u.payout ?? 0), 0);
-
-  if (income <= 0 && upcoming.length === 0) return null;
-
-  return (
-    <Card padding="none" className="p-5 sm:p-6">
-      <div className="flex items-center gap-2.5 mb-4">
-        <span
-          className="grid place-items-center w-8 h-8 rounded-lg shrink-0 text-positive"
-          style={{ background: "color-mix(in srgb, var(--positive) 12%, transparent)" }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-            <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1H6.32c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z" />
-          </svg>
-        </span>
-        <div>
-          <h2 className="text-base sm:text-lg font-semibold text-text-main   leading-tight">
-            Dividend Income
-          </h2>
-          <p className="text-xs text-text-muted mt-0.5">
-            Cash your stocks pay you, on top of any price gains.
-          </p>
-        </div>
-      </div>
-
-      {income > 0 && (
-        <div className="mb-4">
-          <p className="pv text-2xl sm:text-3xl font-bold text-positive nums leading-none">
-            ≈ {taka(income, 0)}
-            <span className="text-sm sm:text-base text-text-muted font-semibold"> / year</span>
-          </p>
-          <p className="text-xs sm:text-sm text-text-muted mt-1.5 leading-relaxed">
-            Rough estimate from {payers} of your {rows.length} stock{rows.length === 1 ? "" : "s"}, at
-            today&apos;s dividend rates and prices. Actual payouts depend on what each company declares.
-          </p>
-        </div>
-      )}
-
-      {upcoming.length > 0 && (
-        <div className={income > 0 ? "border-t border-border pt-3" : ""}>
-          <div className="flex items-baseline justify-between gap-2 mb-2">
-            <p className="text-xs   font-semibold text-text-muted">
-              Coming up on your stocks
-            </p>
-            {totalPayout > 0 && (
-              <p className="pv text-sm font-bold text-positive nums whitespace-nowrap">
-                ≈ {taka(totalPayout, 0)}
-                <span className="text-xs text-text-muted font-semibold"> on its way</span>
-              </p>
-            )}
-          </div>
-          <ul className="flex flex-col gap-2.5">
-            {upcoming.slice(0, 5).map((u) => (
-              <li key={u.code} className="flex items-start gap-2 text-sm">
-                <Link
-                  prefetch={false}
-                  href={`/stock/${u.code}`}
-                  className="font-mono font-bold text-primary hover:underline shrink-0"
-                >
-                  {u.code}
-                </Link>
-                <div className="min-w-0 flex-1">
-                  <p className="text-text-main leading-snug">{describeDividend(u)}</p>
-                  <p className="text-xs text-text-muted mt-0.5 leading-snug">
-                    {u.kind === "record" ? "record date" : "expected"}
-                    {u.date ? ` · ${formatDate(u.date)}` : ""}
-                    {daysLeftLabel(u.daysLeft)}
-                  </p>
-                </div>
-                {(u.payout != null || (u.bonusShares != null && u.bonusShares > 0)) && (
-                  <div className="text-right shrink-0">
-                    {u.payout != null && (
-                      <p className="pv font-bold text-positive nums leading-tight">
-                        ≈ {taka(u.payout, 0)}
-                      </p>
-                    )}
-                    {u.bonusShares != null && u.bonusShares > 0 && (
-                      <p className="pv text-xs text-text-muted nums leading-tight mt-0.5">
-                        +{u.bonusShares} shares
-                      </p>
-                    )}
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-          {totalPayout > 0 && (
-            <p className="text-xs text-text-muted mt-3 leading-relaxed">
-              Cash amounts are before tax. You must still hold the shares on the record date to
-              receive them.
-            </p>
-          )}
-        </div>
-      )}
-    </Card>
-  );
-}
-
-/** Deterministic tint per code — the same token palette as the hero / allocation donuts. */
-const MONO_COLORS = [
-  "var(--primary)", "var(--info)", "var(--gold)", "var(--warm)", "var(--navy-soft)",
-  "var(--positive)", "var(--primary-soft)", "var(--info-soft)", "var(--gold-soft)", "var(--text-muted)",
-];
-
-function monoColor(code: string): string {
-  let h = 0;
-  for (let i = 0; i < code.length; i++) h = (h * 31 + code.charCodeAt(i)) >>> 0;
-  return MONO_COLORS[h % MONO_COLORS.length];
-}
-
-/** The ONE loading shape for this page — hero + holdings rows — used for the auth
- *  check and the data fetch alike so the page never flips between two placeholders. */
+/** The ONE loading shape for this page — the hero and the stock list — used
+ *  for the auth check and the data fetch alike, so the page never flips
+ *  between two placeholders. */
 function PortfolioSkeleton() {
   return (
-    <div className="space-y-4" aria-busy="true" aria-label="Loading portfolio" role="status">
-      <Card padding="none" className="p-5 sm:p-7">
-        <div className="flex items-start justify-between gap-5">
-          <div className="flex-1">
-            <Skeleton width={130} height={12} className="mb-3" />
-            <Skeleton width="55%" height={40} className="mb-4" />
-            <div className="mb-3 flex gap-2">
-              <Skeleton width={120} height={26} rounded="999px" />
-              <Skeleton width={120} height={26} rounded="999px" />
-            </div>
-            <Skeleton width="40%" height={12} />
-          </div>
-          <Skeleton width={118} height={118} rounded="50%" className="hidden shrink-0 sm:block" />
-        </div>
-      </Card>
-      <Card padding="md">
-        <div className="skeleton-rows">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="skeleton-row">
-              <Skeleton width={34} height={34} rounded="12px" />
-              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                <Skeleton width={i % 2 === 0 ? "35%" : "28%"} height={14} />
-                <Skeleton width="50%" height={12} />
-              </div>
-              <Skeleton width={64} height={14} />
+    <div className="flex flex-col gap-4" aria-busy="true" aria-label="Loading portfolio" role="status">
+      <div className="pt-1">
+        <Skeleton width={150} height={14} className="mb-3" />
+        <Skeleton width="60%" height={48} className="mb-3" />
+        <Skeleton width="45%" height={16} />
+      </div>
+      <div className="soft-card pf-answers">
+        <div className="pf-answer-grid">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="pf-answer">
+              <Skeleton width={70} height={12} />
+              <Skeleton width="70%" height={20} />
             </div>
           ))}
         </div>
-      </Card>
-    </div>
-  );
-}
-
-function Monogram({ code }: { code: string }) {
-  return (
-    <span className="pf-mono" style={{ "--mono-c": monoColor(code) } as React.CSSProperties} aria-hidden>
-      {code.slice(0, 2)}
-    </span>
-  );
-}
-
-/** Uniform section header — icon chip + title + one-line subtitle (+ actions). */
-function SectionHeader({
-  icon,
-  title,
-  subtitle,
-  right,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  subtitle?: string;
-  right?: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center gap-2.5 mb-3">
-      <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/15 border border-primary/30 text-primary shrink-0">
-        {icon}
-      </span>
-      <div className="min-w-0 flex-1">
-        <h2 className="text-sm sm:text-base   font-bold text-text-main leading-tight">
-          {title}
-        </h2>
-        {subtitle && <p className="text-xs sm:text-sm text-text-muted mt-0.5">{subtitle}</p>}
       </div>
-      {right && <div className="shrink-0 flex items-center gap-2">{right}</div>}
+      <div className="soft-card pf-holds">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="pf-hold">
+            <div className="pf-hold-top">
+              <div className="flex flex-col gap-2">
+                <Skeleton width={i % 2 ? "45%" : "60%"} height={16} />
+                <Skeleton width="35%" height={12} />
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <Skeleton width={90} height={16} />
+                <Skeleton width={70} height={12} />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -560,6 +310,10 @@ export default function PortfolioClient() {
   const [error, setError] = useState<string | null>(null);
   const [events, setEvents] = useState<PortfolioSignalEvent[]>([]);
   const [dsexPct, setDsexPct] = useState<number | null>(null);
+  // When the scores this page reads were computed — the "How we decide" date.
+  const [scoresAt, setScoresAt] = useState<string | null>(
+    () => readCache<ScoresResponse>(cacheKeys.scores)?.computed_at ?? null,
+  );
   const [lang, setLang] = useState<AnalysisLang>("bn");
   const [lastSeen, setLastSeen] = useState<{ value: number; ts: string } | null>(null);
   const wroteLastSeen = useRef(false);
@@ -715,6 +469,7 @@ export default function PortfolioClient() {
         }
         if (s.status === "fulfilled") {
           setPriceMap(flattenScores(s.value));
+          setScoresAt(s.value.computed_at ?? null);
           writeCache(cacheKeys.scores, s.value);
         }
         if (c.status === "fulfilled") {
@@ -808,14 +563,6 @@ export default function PortfolioClient() {
 
   const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" } | null>(null);
 
-  function toggleSort(key: SortKey) {
-    setSort((s) =>
-      s && s.key === key
-        ? { key, dir: s.dir === "asc" ? "desc" : "asc" }
-        : { key, dir: "asc" },
-    );
-  }
-
   const sortedRows = useMemo(() => {
     if (!sort) return rows;
     const dir = sort.dir === "asc" ? 1 : -1;
@@ -849,6 +596,11 @@ export default function PortfolioClient() {
 
   const analysis = useMemo(() => analyzePortfolio(rows, priceMap, lang), [rows, priceMap, lang]);
   const rebalance = useMemo(() => buildRebalancePlan(analysis, priceMap), [analysis, priceMap]);
+  const nextMove = useMemo(() => buildNextMove(analysis, rebalance, lang), [analysis, rebalance, lang]);
+  const lifts = useMemo(
+    () => gradeLifts(rows, priceMap, analysis, rebalance, lang),
+    [rows, priceMap, analysis, rebalance, lang],
+  );
   const proInsights = useMemo(() => buildProInsights(analysis, priceMap, lang), [analysis, priceMap, lang]);
   const { isPremium, state: planState, premiumUntil } = usePremium();
   // An extra portfolio kept from a free month that has ended: readable, not editable.
@@ -860,7 +612,33 @@ export default function PortfolioClient() {
     return watchEvents.filter((e) => e.created_at >= start).length;
   }, [watchEvents, premiumUntil]);
 
-  const lockedWatchCount = useMemo(() => watchEvents.filter((e) => !e.free).length, [watchEvents]);
+  // Updates on the stocks in the open portfolio only — chapter 2 is about these.
+  const heldUpper = useMemo(
+    () => new Set(holdings.map((h) => h.trading_code.toUpperCase())),
+    [holdings],
+  );
+  const myWatch = useMemo(
+    () => watchEvents.filter((e) => heldUpper.has(e.code.toUpperCase())),
+    [watchEvents, heldUpper],
+  );
+  const myFlips = useMemo(
+    () => events.filter((e) => heldUpper.has(e.trading_code.toUpperCase())),
+    [events, heldUpper],
+  );
+  // Each holding card's own update tags: one per kind, worst first, two at most.
+  const updateTags = useMemo(() => {
+    const rank = { bad: 0, watch: 1, good: 2 } as const;
+    const by = new Map<string, PortfolioWatchEvent[]>();
+    for (const e of [...myWatch].sort((a, b) => rank[a.level] - rank[b.level] || b.day.localeCompare(a.day))) {
+      const code = e.code.toUpperCase();
+      const list = by.get(code) ?? [];
+      if (list.length < 2 && !list.some((x) => x.kind === e.kind)) list.push(e);
+      by.set(code, list);
+    }
+    return by;
+  }, [myWatch]);
+
+  const lockedWatchCount = useMemo(() => myWatch.filter((e) => !e.free).length, [myWatch]);
 
   // The reader's own stakes for the page's one Premium lock, in taka.
   const proStakes = useMemo(
@@ -944,11 +722,20 @@ export default function PortfolioClient() {
     return { delta: summary.totalValue - lastSeen.value, since: lastSeen.ts };
   }, [lastSeen, summary.totalValue]);
 
-  function scrollToAnalysis() {
-    document
-      .getElementById("portfolio-analysis")
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  function goTo(id: string) {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
+
+  const bn = lang === "bn";
+  const navItems = useMemo(
+    () => [
+      { id: "pf-money", label: lang === "bn" ? "টাকা" : "Money" },
+      { id: "pf-analysis", label: lang === "bn" ? "বিশ্লেষণ" : "Analysis" },
+      { id: "pf-stocks", label: lang === "bn" ? "শেয়ার" : "Stocks" },
+    ],
+    [lang],
+  );
+  const statementHref = isMain ? "/portfolio/statement" : `/portfolio/statement?pid=${encodeURIComponent(pid)}`;
 
   const existingCodes = useMemo(
     () => new Set(holdings.map((h) => h.trading_code)),
@@ -1054,25 +841,15 @@ export default function PortfolioClient() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-[40vh] flex items-center justify-center">
-        <Card padding="none" className="p-8 text-center max-w-sm w-full">
-          <svg className="mx-auto mb-4 text-text-muted" width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
-          </svg>
-          <p className="text-text-main font-semibold mb-1">Sign in to view your portfolio</p>
-          <p className="text-sm text-text-muted mb-5">
-            Track your DSE holdings, P&amp;L, and returns in one place.
-          </p>
-          <div className="flex gap-3 justify-center">
-            <Button href="/login" variant="primary" size="sm">
-              Sign In
-            </Button>
-            <Button href="/register" variant="quiet" size="sm">
-              Create Account
-            </Button>
-          </div>
-        </Card>
-      </div>
+      <section className="soft-card pf-empty mx-auto mt-4 w-full max-w-md">
+        <h2 className="pf-empty-title">Sign in to see your portfolio</h2>
+        <Bn className="pf-card-bn mt-1">আপনার পোর্টফোলিও দেখতে সাইন ইন করুন</Bn>
+        <p className="pf-empty-text">Your stocks, your profit and loss and your dividends, in one place.</p>
+        <div className="pf-empty-actions">
+          <Button href="/login" variant="primary">Sign in</Button>
+          <Button href="/register" variant="quiet">Create an account</Button>
+        </div>
+      </section>
     );
   }
 
@@ -1094,11 +871,15 @@ export default function PortfolioClient() {
 
   const editingHolding = holdings.find((h) => h.id === editId) ?? null;
 
+  const bnCls = bn ? "font-bn" : "";
+  const L = (en: string, b: string) => (bn ? b : en);
+  const sortLabel = (key: SortKey) => (bn ? SORT_LABEL_BN[key] : COLUMNS.find((c) => c.key === key)?.label ?? key);
+
   return (
-    <div className="flex flex-col gap-6" data-privacy={privacy ? "on" : "off"}>
+    <div className="flex flex-col" data-privacy={privacy ? "on" : "off"}>
       {/* Top row: which portfolio (main + any extra, Premium) · English / বাংলা */}
       {(portfolios.length > 1 || holdings.length > 0) && (
-        <div className="flex items-center gap-3">
+        <div className="pf-topbar mb-4">
           <div className="min-w-0 flex-1">
             <PortfolioSwitcher
               portfolios={portfolios.length ? portfolios : [{ id: MAIN_PORTFOLIO_ID, name: "My portfolio", count: holdings.length }]}
@@ -1116,429 +897,387 @@ export default function PortfolioClient() {
       )}
 
       {readOnly && (
-        <p className={`rounded-lg bg-surface-2 px-4 py-3 text-sm text-text-main ${lang === "bn" ? "font-bn" : ""}`}>
-          {lang === "bn"
-            ? "এই বাড়তি পোর্টফোলিওটি এখন শুধু দেখা যাবে। বদলাতে প্রিমিয়াম লাগবে।"
-            : "This extra portfolio is read-only now. Premium lets you change it again."}
-        </p>
+        <div className="soft-card pf-note mb-4">
+          <span className="pf-note-icon"><IconLock size={16} /></span>
+          <p className={`pf-note-text ${bnCls}`}>
+            {L(
+              "This extra portfolio is read-only now. Premium lets you change it again.",
+              "এই বাড়তি পোর্টফোলিওটি এখন শুধু দেখা যাবে। বদলাতে প্রিমিয়াম লাগবে।",
+            )}
+          </p>
+        </div>
       )}
 
       <TrialEndingBanner caught={caughtThisTrial} extraPortfolios={Math.max(0, portfolios.length - 1)} lang={lang} />
 
-      {/* Hero — value first */}
-      {holdings.length > 0 && (
-        <PortfolioHero
-          totalInvested={summary.totalInvested}
-          totalValue={summary.totalValue}
-          pnl={summary.pnl}
-          pnlPct={summary.pnl_pct}
-          todayMove={todayMove}
-          dsexPct={dsexPct}
-          holdingsCount={holdings.length}
-          slices={rows.map((r) => ({
-            code: r.holding.trading_code,
-            value: r.current_value ?? r.cost_basis,
-          }))}
-          privacy={privacy}
-          onTogglePrivacy={togglePrivacy}
-        />
-      )}
+      {rowError && <p className="form-error mb-3">{rowError}</p>}
 
-      {/* Health summary — verdict + what changed since your last visit */}
-      {holdings.length > 0 && (
-        <PortfolioHealthStrip
-          analysis={analysis}
-          lang={lang}
-          events={events}
-          valueDelta={valueDelta}
-          onSeeDetails={scrollToAnalysis}
-        />
-      )}
-
-      {/* What's moving your money — per-stock gain/loss contribution */}
-      {holdings.length > 0 && <ContributionStrip rows={rows} lang={lang} />}
-
-      {/* Bonus shares + cash dividends kept right on the holding (with Undo) */}
-      <CorrectionsCard
-        log={log}
-        suggestions={suggestions}
-        holdings={holdings}
-        lang={lang}
-        readOnly={readOnly}
-        onAction={runAction}
-      />
-
-      {rowError && <p className="text-xs text-negative -mb-3">{rowError}</p>}
-
-      {/* Holdings */}
       {holdings.length === 0 ? (
-        <EmptyState
-          className="pf-rise"
-          title="Start tracking your portfolio"
-          message="Add the stocks you own once — after that, this page shows your profit & loss, dividends, news, and advice on every holding, every day."
-          bn="আপনার শেয়ারগুলো একবার যোগ করুন — তারপর প্রতিদিন লাভ-ক্ষতি, ডিভিডেন্ড, খবর আর পরামর্শ এখানেই পাবেন।"
-          icon={
-            <span className="flex h-16 items-end justify-center gap-2" aria-hidden>
-              {[36, 56, 44, 64].map((h, i) => (
-                <span
-                  key={i}
-                  className={`w-6 rounded-t-md ${i === 3 ? "bg-positive" : "bg-primary/30"}`}
-                  style={{ height: h }}
-                />
-              ))}
-            </span>
-          }
-          actions={[
-            { label: "Add your first stock", onClick: () => setAddOpen(true) },
-            { href: "/sample-portfolio/diversified", label: "See a sample portfolio" },
-          ]}
-        >
-          <div className="mx-auto mt-7 flex max-w-2xl flex-col justify-center gap-3 text-left sm:flex-row sm:gap-4">
-            {[
-              ["Search your stock", "Type the code — like GP or BATBC."],
-              ["Enter price & quantity", "What you paid and how many shares."],
-              ["Get the full picture", "P&L, signals, and advice — updated daily."],
-            ].map(([t, d], i) => (
-              <div key={i} className="flex flex-1 items-start gap-3">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-surface">
-                  {i + 1}
-                </span>
-                <div>
-                  <p className="text-sm font-semibold leading-tight text-text-main">{t}</p>
-                  <p className="mt-0.5 text-xs leading-relaxed text-text-muted">{d}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </EmptyState>
-      ) : (
-       <div className="pf-rise flex flex-col gap-3">
-        <SectionHeader
-          icon={
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <rect x="3" y="3" width="7" height="7" rx="1.5" />
-              <rect x="14" y="3" width="7" height="7" rx="1.5" />
-              <rect x="3" y="14" width="7" height="7" rx="1.5" />
-              <rect x="14" y="14" width="7" height="7" rx="1.5" />
-            </svg>
-          }
-          title={`Holdings (${holdings.length})`}
-          subtitle="Tap a stock for its full analysis."
-          right={
-            !readOnly && (
-              <div className="hidden sm:flex items-center gap-2">
-                <Button type="button" onClick={openEditPicker} variant="quiet" size="sm">
-                  Edit
-                </Button>
-                <Button type="button" onClick={() => setAddOpen(true)} variant="primary" size="sm">
-                  + Add stock
-                </Button>
-              </div>
-            )
-          }
-        />
-
-        {/* Sort — its own row so it never crowds the header on small screens */}
-        {holdings.length > 1 && (
-          <div className="flex items-center justify-end gap-1.5 -mt-1">
-            <label htmlFor="pf-sort" className="text-xs text-text-muted">
-              Sort
-            </label>
-            <select
-              id="pf-sort"
-              value={sort?.key ?? ""}
-              onChange={(e) => {
-                const key = e.target.value;
-                if (!key) return setSort(null);
-                setSort((s) =>
-                  s && s.key === key
-                    ? s
-                    : { key: key as SortKey, dir: key === "code" ? "asc" : "desc" },
-                );
-              }}
-              className="input-field text-xs py-1.5 pl-2 pr-6 w-auto cursor-pointer"
-              aria-label="Sort holdings"
-            >
-              <option value="">Default</option>
-              {COLUMNS.map((c) => (
-                <option key={c.key} value={c.key}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
-            {sort && (
-              <Button
-                type="button"
-                variant="link"
-                size="sm"
-                iconOnly
-                onClick={() => toggleSort(sort.key)}
-                aria-label="Toggle sort direction"
-                title={sort.dir === "asc" ? "Ascending" : "Descending"}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  {sort.dir === "asc" ? <path d="M6 15l6-6 6 6" /> : <path d="M6 9l6 6 6-6" />}
-                </svg>
-              </Button>
-            )}
-          </div>
-        )}
-
-        {/* Holdings — cards on every breakpoint: one column on mobile, two-up on desktop */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-          {sortedRows.map((row) => (
-            <div
-              key={row.holding.id}
-              className="soft-card p-3 pl-3.5 sm:p-4 sm:pl-4 transition-transform active:scale-[0.99]"
-              style={{ borderLeft: `3px solid ${signAccent(row.pnl)}` }}
-            >
-              {/* Row 1: monogram + code + name | icon actions */}
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  <Monogram code={row.holding.trading_code} />
-                  <div className="min-w-0">
-                    <Link
-                      prefetch={false}
-                      href={`/stock/${row.holding.trading_code}`}
-                      className="block truncate text-primary font-mono font-bold text-base leading-tight"
-                    >
-                      {row.holding.trading_code}
-                    </Link>
-                    <p className="text-xs text-text-muted truncate leading-tight">
-                      {row.company_name ?? "—"}
-                    </p>
-                  </div>
-                </div>
-                <div className={`flex items-center gap-0.5 shrink-0 -mr-1 ${readOnly ? "hidden" : ""}`}>
-                  <WatchlistAlertCell
-                    code={row.holding.trading_code}
-                    ltp={row.ltp}
-                    w52High={row.w52_high}
-                    w52Low={row.w52_low}
-                  />
-                  <Button
-                    type="button"
-                    variant="link"
-                    size="sm"
-                    iconOnly
-                    onClick={() => startEdit(row.holding)}
-                    aria-label={`Edit ${row.holding.trading_code}`}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
-                    </svg>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="link"
-                    size="sm"
-                    iconOnly
-                    onClick={() => handleDelete(row.holding.id)}
-                    disabled={busyId === row.holding.id}
-                    className="hover:text-negative"
-                    aria-label={`Remove ${row.holding.trading_code}`}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
-                    </svg>
-                  </Button>
-                </div>
-              </div>
-
-              {/* Row 2: signal | P&L */}
-              <div className="mt-2 flex items-center justify-between gap-2">
-                <SignalChip signal={row.signal.signal} reason={row.signal.reason} muted={row.signal.muted} />
-                <PnlPill value={row.pnl} pct={row.pnl_pct} />
-              </div>
-
-              {/* Metric strip */}
-              <div className="mt-2.5 grid grid-cols-4 gap-1 text-center rounded-lg py-2 px-1 bg-[color-mix(in_srgb,var(--primary)_5%,var(--surface))]">
-                <div>
-                  <p className="text-xs text-text-muted  ">Qty</p>
-                  <p className="pv text-xs text-text-main tabular-nums nums font-medium mt-0.5">{row.holding.qty.toLocaleString()}</p>
-                </div>
-                <div className="border-l border-border">
-                  <p className="text-xs text-text-muted  ">Avg</p>
-                  <p className="pv text-xs text-text-main tabular-nums nums font-medium mt-0.5">{taka(row.holding.buy_price, 2)}</p>
-                </div>
-                <div className="border-l border-border">
-                  <p className="text-xs text-text-muted  ">LTP</p>
-                  <p className="text-xs text-text-main tabular-nums nums font-medium mt-0.5">{row.ltp != null ? taka(row.ltp, 1) : "—"}</p>
-                </div>
-                <div className="border-l border-border">
-                  <p className="text-xs text-text-muted  ">Value</p>
-                  {/* takaCompact: a ৳10-crore+ position was one unbreakable 11-char token crossing the divider */}
-                  <p className="pv text-xs text-text-main tabular-nums nums font-bold mt-0.5">{row.current_value != null ? takaCompact(row.current_value) : "—"}</p>
-                </div>
-              </div>
-
-              {/* 52-week position */}
-              {row.w52_high != null && row.w52_low != null && row.w52_high > row.w52_low && (
-                <div className="mt-2.5 flex items-center gap-2 px-0.5">
-                  <span className="text-xs   text-text-muted font-semibold shrink-0">
-                    52W
-                  </span>
-                  <div className="flex-1">
-                    <RangeBar52 ltp={row.ltp} high={row.w52_high} low={row.w52_low} />
-                  </div>
-                </div>
+        <div className="flex flex-col gap-4">
+          <section className={`soft-card pf-empty pf-rise ${bnCls}`} lang={bn ? "bn" : undefined}>
+            <h2 className="pf-empty-title">{L("Start tracking your portfolio", "আপনার পোর্টফোলিও শুরু করুন")}</h2>
+            {!bn && <Bn className="pf-card-bn mt-1">আপনার পোর্টফোলিও শুরু করুন</Bn>}
+            <p className="pf-empty-text">
+              {L(
+                "Add the stocks you own once. After that, this page shows your profit and loss, dividends, news and what to do with every stock, every day.",
+                "আপনার শেয়ারগুলো একবার যোগ করুন। তারপর প্রতিদিন লাভ-ক্ষতি, ডিভিডেন্ড, খবর আর প্রতিটি শেয়ারে কী করবেন — সব এখানে।",
               )}
+            </p>
+            <ol className="pf-steps">
+              {[
+                [L("Search your stock", "শেয়ার খুঁজুন"), L("Type the code, like GP or BATBC.", "কোড লিখুন, যেমন GP বা BATBC।")],
+                [L("Enter price and quantity", "দাম ও পরিমাণ দিন"), L("What you paid and how many shares.", "কত দামে কিনেছেন, কয়টি শেয়ার।")],
+                [L("Get the full picture", "পুরো ছবি পান"), L("Profit, dividends and advice, updated daily.", "লাভ, ডিভিডেন্ড আর পরামর্শ — প্রতিদিন।")],
+              ].map(([t, d], i) => (
+                <li key={i} className="pf-step">
+                  <span className="pf-step-n">{i + 1}</span>
+                  <span>
+                    <p className="pf-step-t">{t}</p>
+                    <p className="pf-step-d">{d}</p>
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <div className="pf-empty-actions">
+              <Button type="button" variant="primary" size="lg" onClick={() => setAddOpen(true)}>
+                {L("Add your first stock", "প্রথম শেয়ার যোগ করুন")}
+              </Button>
+              <Button href="/sample-portfolio/diversified" variant="quiet" size="lg">
+                {L("See a sample portfolio", "নমুনা পোর্টফোলিও দেখুন")}
+              </Button>
+            </div>
+          </section>
 
-              {/* Buy / Sell — bought or sold some shares (both go in the history) */}
-              <div className={`mt-3 grid grid-cols-2 gap-2 ${readOnly ? "hidden" : ""}`}>
-                <Button
-                  type="button"
-                  variant="quiet"
-                  size="sm"
-                  block
-                  onClick={() => openTx("buy", row)}
-                  aria-label={`Buy more ${row.holding.trading_code}`}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
-                    <path d="M12 5v14M5 12h14" />
-                  </svg>
-                  Buy
-                </Button>
-                <Button
-                  type="button"
-                  variant="quiet"
-                  size="sm"
-                  block
-                  onClick={() => openTx("sell", row)}
-                  aria-label={`Sell ${row.holding.trading_code}`}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
-                    <path d="M5 12h14" />
-                  </svg>
-                  Sell
-                </Button>
+          {/* A reader who sold everything still has their records */}
+          <CorrectionsCard
+            log={log}
+            suggestions={suggestions}
+            holdings={holdings}
+            lang={lang}
+            readOnly={readOnly}
+            onAction={runAction}
+          />
+          <MoneyMadeCard made={made} settings={settings} lang={lang} onEditSettings={() => setSettingsOpen(true)} />
+          <HistoryCard
+            log={log}
+            lang={lang}
+            readOnly={readOnly}
+            statementHref={statementHref}
+            onRemove={removeLogEntry}
+          />
+        </div>
+      ) : (
+        // Three chapters (2026-10-26): your money · your stocks · analysis &
+        // next steps. Every block lives in exactly one of them; the Premium
+        // parts blur where they belong and link to the one card at the end.
+        <PageLockScope anchor="pf-premium">
+          <DashSectionNav items={navItems} lang={lang} />
+
+          {/* ── 1 · Your money ── */}
+          <section id="pf-money" className="dash-section pf-chapter pf-chapter--first" aria-labelledby="pf-money-h">
+            <PortfolioHero
+              totalInvested={summary.totalInvested}
+              totalValue={summary.totalValue}
+              pnl={summary.pnl}
+              pnlPct={summary.pnl_pct}
+              todayMove={todayMove}
+              dsexPct={dsexPct}
+              holdingsCount={holdings.length}
+              privacy={privacy}
+              onTogglePrivacy={togglePrivacy}
+              lang={lang}
+              grade={{
+                letter: analysis.grade,
+                title: L(
+                  `Grade ${analysis.grade} · ${analysis.gradeLabel}`,
+                  `গ্রেড ${analysis.grade} · ${GRADE_LABEL_BN[analysis.gradeLabel]}`,
+                ),
+                line:
+                  analysis.bad.length > 0
+                    ? L(
+                        `${analysis.bad.length} thing${analysis.bad.length === 1 ? " needs" : "s need"} your attention — see the analysis`,
+                        `${analysis.bad.length}টি বিষয়ে নজর দরকার — বিশ্লেষণ দেখুন`,
+                      )
+                    : L("See what's working and what to do next", "কী ভালো চলছে আর এরপর কী করবেন, দেখুন"),
+                onOpen: () => goTo("pf-analysis"),
+              }}
+            />
+            <h2 id="pf-money-h" className="sr-only">{L("Your money", "আপনার টাকা")}</h2>
+
+            {/* The stocks you own — one card, one row per stock */}
+            <div className="mt-4 flex flex-col gap-3">
+              <div className="pf-hold-bar">
+                <h3 className={`text-lg font-bold text-text-main ${bnCls}`} lang={bn ? "bn" : undefined}>
+                  {L("Your stocks", "আপনার শেয়ারগুলো")}{" "}
+                  <span className="pf-num font-semibold text-text-muted">{holdings.length}</span>
+                </h3>
+                <div className="pf-hold-tools">
+                  {holdings.length > 1 && (
+                    <>
+                      <label htmlFor="pf-sort" className="sr-only">{L("Sort your stocks", "সাজান")}</label>
+                      <select
+                        id="pf-sort"
+                        value={sort ? `${sort.key}:${sort.dir}` : ""}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          if (!v) return setSort(null);
+                          const [key, dir] = v.split(":") as [SortKey, "asc" | "desc"];
+                          setSort({ key, dir });
+                        }}
+                        className={`pf-sort ${bnCls}`}
+                      >
+                        <option value="">{L("Sort: as added", "সাজানো: যোগের ক্রমে")}</option>
+                        {SORT_OPTIONS.map((o) => (
+                          <option key={`${o.key}:${o.dir}`} value={`${o.key}:${o.dir}`}>
+                            {L("Sort: ", "সাজানো: ")}
+                            {sortLabel(o.key)}
+                            {o.key === "code" ? "" : o.dir === "desc" ? L(" (high first)", " (বেশি আগে)") : L(" (low first)", " (কম আগে)")}
+                          </option>
+                        ))}
+                      </select>
+                    </>
+                  )}
+                  {!readOnly && (
+                    <span className="hidden items-center gap-2 sm:flex">
+                      <Button type="button" onClick={openEditPicker} variant="quiet" size="sm">
+                        {L("Edit", "বদলান")}
+                      </Button>
+                      <Button type="button" onClick={() => setAddOpen(true)} variant="primary" size="sm">
+                        {L("+ Add stock", "+ শেয়ার যোগ")}
+                      </Button>
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div id="pf-holds" className="dash-section soft-card pf-holds pf-rise">
+                {sortedRows.map((row) => {
+                  const code = row.holding.trading_code;
+                  const tags = updateTags.get(code.toUpperCase()) ?? [];
+                  const pos =
+                    row.ltp != null && row.w52_high != null && row.w52_low != null && row.w52_high > row.w52_low
+                      ? Math.max(0, Math.min(1, (row.ltp - row.w52_low) / (row.w52_high - row.w52_low)))
+                      : null;
+                  return (
+                    <article key={row.holding.id} className="pf-hold">
+                      <div className="pf-hold-top">
+                        <div className="min-w-0">
+                          <Link prefetch={false} href={`/stock/${code}`} className="pf-hold-name">
+                            {row.company_name ?? code}
+                          </Link>
+                          <p className={`pf-hold-sub ${bnCls}`}>
+                            <span className="pf-hold-code">{code}</span>
+                            {" · "}
+                            <span className="pv">
+                              {bn
+                                ? `${row.holding.qty.toLocaleString("en-IN")}টি শেয়ার`
+                                : `${row.holding.qty.toLocaleString("en-IN")} share${row.holding.qty === 1 ? "" : "s"}`}
+                            </span>
+                          </p>
+                        </div>
+                        <div className="pf-hold-val">
+                          <b className="pv">{row.current_value != null ? takaGroup(row.current_value) : "—"}</b>
+                          {row.pnl != null && (
+                            <span className={`pv ${row.pnl > 0 ? "pf-up" : row.pnl < 0 ? "pf-down" : "pf-flat"}`}>
+                              {row.pnl > 0 ? "+" : row.pnl < 0 ? "−" : ""}
+                              {takaGroup(Math.abs(row.pnl))}
+                              {row.pnl_pct != null ? ` · ${row.pnl_pct > 0 ? "+" : row.pnl_pct < 0 ? "−" : ""}${Math.abs(row.pnl_pct).toFixed(1)}%` : ""}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {(row.signal.signal !== "none" || tags.length > 0) && (
+                        <div className="pf-hold-mid">
+                          <SignalChip
+                            signal={row.signal.signal}
+                            reason={row.signal.reason}
+                            muted={row.signal.muted}
+                            lang={bn ? "bn" : "en"}
+                          />
+                          {/* This stock's own updates, from chapter 2's list */}
+                          {tags.map((e) => (
+                            <Chip key={e.kind} tone={LEVEL_TONE[e.level]}>
+                              <span className={bnCls}>{bn ? KIND_TAG[e.kind].bn : KIND_TAG[e.kind].en}</span>
+                            </Chip>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className={`pf-hold-facts ${bnCls}`}>
+                        <div className="pf-fact">
+                          <span className="pf-fact-k">{L("You paid", "কেনার দাম")}</span>
+                          <span className="pf-fact-v pv">{taka(row.holding.buy_price, 2)}</span>
+                        </div>
+                        <div className="pf-fact">
+                          <span className="pf-fact-k">{L("Price now", "এখনকার দাম")}</span>
+                          <span className="pf-fact-v">{row.ltp != null ? taka(row.ltp, 2) : "—"}</span>
+                        </div>
+                        <div className="pf-fact">
+                          <span className="pf-fact-k">{L("You put in", "বিনিয়োগ")}</span>
+                          <span className="pf-fact-v pv">{takaCompact(row.cost_basis)}</span>
+                        </div>
+                        {pos != null && (
+                          <div
+                            className="pf-fact pf-fact--range"
+                            title={`${L("Yearly range", "বছরের সীমা")}: ৳${row.w52_low!.toFixed(1)} – ৳${row.w52_high!.toFixed(1)}`}
+                          >
+                            <span className="pf-fact-k">{L("Where the price sits this year", "এ বছরে দাম কোথায়")}</span>
+                            <div className="pf-range" aria-hidden>
+                              <i style={{ left: `${(pos * 100).toFixed(1)}%` }} />
+                            </div>
+                            <div className="pf-range-ends">
+                              <span>{L("Low", "সর্বনিম্ন")} {row.w52_low!.toFixed(1)}</span>
+                              <span>{L("High", "সর্বোচ্চ")} {row.w52_high!.toFixed(1)}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {!readOnly && (
+                        <div className="pf-hold-actions">
+                          <Button type="button" variant="quiet" size="sm" onClick={() => openTx("buy", row)} aria-label={`${L("Bought more", "আরও কিনেছি")} ${code}`}>
+                            {L("Bought more", "আরও কিনেছি")}
+                          </Button>
+                          <Button type="button" variant="quiet" size="sm" onClick={() => openTx("sell", row)} aria-label={`${L("Sold", "বিক্রি করেছি")} ${code}`}>
+                            {L("Sold", "বিক্রি করেছি")}
+                          </Button>
+                          <span className="pf-spacer" />
+                          <WatchlistAlertCell code={code} ltp={row.ltp} w52High={row.w52_high} w52Low={row.w52_low} />
+                          <Button type="button" variant="link" size="sm" iconOnly onClick={() => startEdit(row.holding)} aria-label={`${L("Edit", "বদলান")} ${code}`}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                              <path d="M12 20h9" />
+                              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+                            </svg>
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="link"
+                            size="sm"
+                            iconOnly
+                            onClick={() => handleDelete(row.holding.id)}
+                            disabled={busyId === row.holding.id}
+                            className="hover:text-negative"
+                            aria-label={`${L("Remove", "সরান")} ${code}`}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                              <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+                            </svg>
+                          </Button>
+                        </div>
+                      )}
+                    </article>
+                  );
+                })}
               </div>
             </div>
-          ))}
-        </div>
-       </div>
-      )}
 
-      {/* Where your money sits + sector breakdown — right under the holdings (free) */}
-      {holdings.length > 0 && (
-        <>
-          <AllocationChart analysis={analysis} lang={lang} />
-          <SectorBreakdownChart analysis={analysis} lang={lang} />
-        </>
-      )}
-
-      {/* Your money over time — own daily snapshots, or a replay of today's shares */}
-      {holdings.length > 0 && <ValueHistoryCard history={history} lang={lang} />}
-
-      {/* Money made so far — on paper + sales + dividends (net figures are Premium) */}
-      <MoneyMadeCard made={made} settings={settings} lang={lang} onEditSettings={() => setSettingsOpen(true)} />
-
-      {/* Dividend income — estimated yearly cash + upcoming dates on held stocks */}
-      {holdings.length > 0 && (
-        <DividendIncomeCard
-          rows={rows}
-          priceMap={priceMap}
-          dividends={dividends}
-          calendar={calendar}
-        />
-      )}
-
-      {/* What the watcher spotted on your stocks — free readers get the count, details sit in the lock below */}
-      {holdings.length > 0 && (
-        <WatchCard
-          events={watchEvents}
-          lang={lang}
-          mode={isPremium ? "full" : "summary"}
-          detailsHref="#pf-premium"
-        />
-      )}
-
-      {/* Grade, scores and the first point of "what's working" are free (the rest
-          is blurred in place; the spread charts sit under the holdings above);
-          buy-next ideas and the per-holding read are Premium (the lock below) */}
-      {holdings.length > 0 && (
-        <PortfolioAnalysisView
-          analysis={analysis}
-          rebalance={rebalance}
-          lang={lang}
-          locked={!isPremium}
-          moreHref="#pf-premium"
-          showSectorSpread={false}
-        />
-      )}
-
-      {holdings.length > 0 && (
-        isPremium ? (
-          <>
-            {/* Premium portfolio read — risk, price paid, cash, vs market, action list */}
-            <ProInsights insights={proInsights} lang={lang} />
-            {/* What if I sell / buy — the grade before acting */}
-            <WhatIfCard rows={rows} priceMap={priceMap} allCodes={allCodes} lang={lang} />
-          </>
-        ) : (
-          // THE one Premium lock on this page (2026-10-25: was up to nine).
-          // Everything Premium adds to a portfolio sits here, under the
-          // reader's own stakes in taka; the warnings above stay free.
-          <section id="pf-premium" className="scroll-mt-20" aria-labelledby="pf-premium-title">
-            <h2
-              id="pf-premium-title"
-              className={`text-lg font-bold text-text-main ${lang === "bn" ? "font-bn" : ""}`}
-              lang={lang === "bn" ? "bn" : undefined}
-            >
-              {lang === "bn" ? "আপনার পোর্টফোলিওর দৈনিক যাচাই" : "Your portfolio, checked every day"}
-            </h2>
-            {lang !== "bn" && <Bn className="text-sm text-text-muted">আপনার পোর্টফোলিওর দৈনিক যাচাই।</Bn>}
-            <p className={`mb-3 mt-1 text-sm text-text-muted ${lang === "bn" ? "font-bn" : ""}`}>
-              {lang === "bn"
-                ? "প্রতিটি শেয়ারে কী করবেন, এরপর কী কিনবেন, প্রতিটির পুরো বিশ্লেষণ, যা চোখে পড়েছে তার বিস্তারিত আর যদি-এমন-করি যাচাই — এক জায়গায়।"
-                : "What to do with each stock, what to buy next, each holding's full read, what the watcher spotted, and the what-if check — in one place."}
-            </p>
-            <PremiumGate
-              label={lang === "bn" ? "দৈনিক যাচাই" : "Your daily portfolio check"}
-              peek={260}
-              stakes={proStakes}
-            >
-              <div className="flex flex-col gap-5 sm:gap-6">
-                <ProInsights insights={proInsights} lang={lang} />
-                {rebalance && <RebalanceHelper plan={rebalance} lang={lang} />}
-                <HoldingsDetailed analysis={analysis} lang={lang} />
-                <WatchCard events={watchEvents} lang={lang} mode="details" />
-                <WhatIfCard rows={rows} priceMap={priceMap} allCodes={allCodes} lang={lang} />
-              </div>
-            </PremiumGate>
+            {/* How it's moving — own daily snapshots, or a replay of today's shares */}
+            <ValueHistoryCard history={history} lang={lang} />
+            {/* What moved it — per-stock share of the gain / loss */}
+            <ContributionStrip rows={rows} lang={lang} />
+            {/* Where it sits — per company, per sector */}
+            <div className="pf-pair">
+              <AllocationChart analysis={analysis} lang={lang} />
+              <SectorBreakdownChart analysis={analysis} lang={lang} />
+            </div>
+            {/* Money made so far · cash coming */}
+            <div className="pf-pair">
+              <MoneyMadeCard made={made} settings={settings} lang={lang} onEditSettings={() => setSettingsOpen(true)} />
+              <DividendIncomeCard rows={rows} priceMap={priceMap} dividends={dividends} calendar={calendar} lang={lang} />
+            </div>
+            {/* Every buy, sale, dividend and bonus — the records */}
+            <HistoryCard
+              log={log}
+              lang={lang}
+              readOnly={readOnly}
+              statementHref={statementHref}
+              onRemove={removeLogEntry}
+            />
           </section>
-        )
-      )}
 
-      {/* Everything that happened: buys, sales with profit, dividends, bonus shares */}
-      <HistoryCard
-        log={log}
-        lang={lang}
-        readOnly={readOnly}
-        statementHref={isMain ? "/portfolio/statement" : `/portfolio/statement?pid=${encodeURIComponent(pid)}`}
-        onRemove={removeLogEntry}
-      />
+          {/* ── 2 · Analysis & next steps ── */}
+          <section id="pf-analysis" className="dash-section pf-chapter" aria-labelledby="pf-analysis-h">
+            <PfChapterHead
+              id="pf-analysis-h"
+              title={L("Analysis and what to do next", "বিশ্লেষণ ও এরপর কী করবেন")}
+              bn="বিশ্লেষণ ও এরপর কী করবেন"
+              lead={L("How your portfolio stands, and the next steps.", "আপনার পোর্টফোলিও কেমন, আর পরের পদক্ষেপ।")}
+              lang={lang}
+            />
+            {/* The one thing to act on first — free, ranked by the taka at stake */}
+            <NextMoveCard first={nextMove.first} more={nextMove.more} lang={lang} />
+            {/* The grade + the three lists (the rest of each list blurs in place) */}
+            <PortfolioAnalysisView
+              analysis={analysis}
+              lang={lang}
+              locked={!isPremium}
+              moreHref="#pf-premium"
+              showSectorSpread={false}
+              showHoldingsList={false}
+              showDisclaimer={false}
+            />
+            {/* What to do next — every card shows for everyone; for free readers
+                only the data inside blurs, with one "Unlock with Premium" button */}
+            {lifts.length > 0 && <GradeLiftCard lifts={lifts} lang={lang} />}
+            {rebalance.gaps.length > 0 && <RebalanceHelper plan={rebalance} lang={lang} />}
+            <ProInsights insights={proInsights} lang={lang} />
+            <div id="pf-whatif" className="dash-section">
+              <WhatIfCard rows={rows} priceMap={priceMap} allCodes={allCodes} lang={lang} />
+            </div>
+            {/* THE one Premium card on this page — nothing for Premium readers */}
+            <PortfolioPremium stakes={proStakes} lang={lang} />
+            {/* Every input and cut-off behind this chapter — free */}
+            <HowWeDecide analysis={analysis} scoresAt={scoresAt} lang={lang} />
+            <p className={`pf-disclaimer ${bnCls}`}>
+              {L(
+                "This analysis is for guidance only. Always do your own research before making investment decisions.",
+                "এই বিশ্লেষণ শুধু ধারণা দেওয়ার জন্য। বিনিয়োগের সিদ্ধান্ত নেওয়ার আগে সবসময় নিজে যাচাই করুন।",
+              )}
+            </p>
+          </section>
 
-      {/* News on held stocks */}
-      {holdings.length > 0 && (
-        <section>
-          <SectionHeader
-            icon={
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                <path d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 14H6v-2h6v2zm6-4H6v-2h12v2zm0-4H6V7h12v2z" />
-              </svg>
-            }
-            title="News On Your Stocks"
-            subtitle="Announcements from the companies you own."
-          />
-          <WatchlistNews
-            codes={holdings.map((h) => h.trading_code)}
-            news={news}
-            loading={newsLoading}
-            limit={6}
-            compact
-          />
-        </section>
+          {/* ── 3 · Your stocks ── */}
+          <section id="pf-stocks" className="dash-section pf-chapter" aria-labelledby="pf-stocks-h">
+            <PfChapterHead
+              id="pf-stocks-h"
+              title={L("What's new on your stocks", "আপনার শেয়ারে নতুন কী")}
+              bn="আপনার শেয়ারে নতুন কী"
+              lead={L("Everything that happened on the stocks you own, and their news.", "আপনার শেয়ারে যা ঘটেছে, আর তাদের খবর।")}
+              lang={lang}
+            />
+            <StockUpdates
+              flips={myFlips}
+              watchEvents={myWatch}
+              valueDelta={valueDelta}
+              isPremium={isPremium}
+              lang={lang}
+            />
+            {/* Bonus shares + cash dividends kept right on the holding (with Undo) */}
+            <CorrectionsCard
+              log={log}
+              suggestions={suggestions}
+              holdings={holdings}
+              lang={lang}
+              readOnly={readOnly}
+              onAction={runAction}
+            />
+            <PfCard
+              title={L("News on your stocks", "আপনার শেয়ারের খবর")}
+              bn="আপনার শেয়ারের খবর"
+              note={L("Announcements from the companies you own.", "আপনার কোম্পানিগুলোর ঘোষণা।")}
+              lang={lang}
+              dataCard="news"
+            >
+              <PortfolioNews
+                news={news}
+                loading={newsLoading}
+                names={new Map(rows.map((r) => [r.holding.trading_code.toUpperCase(), r.company_name]))}
+                lang={lang}
+              />
+            </PfCard>
+          </section>
+        </PageLockScope>
       )}
 
       {/* Floating add button — mobile only */}
@@ -1547,7 +1286,7 @@ export default function PortfolioClient() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
             <path d="M12 5v14M5 12h14" />
           </svg>
-          Add stock
+          <span className={bnCls}>{L("Add stock", "শেয়ার যোগ")}</span>
         </button>
       )}
 
@@ -1560,6 +1299,7 @@ export default function PortfolioClient() {
           onClose={() => setAddOpen(false)}
           onAdded={applyHoldings}
           pid={pid}
+          lang={lang}
         />
       )}
 
@@ -1573,6 +1313,7 @@ export default function PortfolioClient() {
           onClose={() => setTx(null)}
           onDone={applyHoldings}
           pid={pid}
+          lang={lang}
         />
       )}
 
@@ -1583,60 +1324,18 @@ export default function PortfolioClient() {
         onSaved={setSettings}
       />
 
-      {/* Edit holding — bottom-sheet on mobile, centered modal on desktop */}
-      {editingHolding && (
-        <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-text-main/50"
-          onClick={() => !editSaving && setEditId(null)}
-        >
-          <div
-            className="w-full sm:max-w-sm bg-surface border-t sm:border border-border rounded-t-xl sm:rounded-xl p-5 sm:p-6 flex flex-col gap-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-text-main">
-                Edit <span className="font-mono">{editingHolding.trading_code}</span>
-              </h3>
-              <Button type="button" variant="link" size="sm" iconOnly onClick={() => setEditId(null)} aria-label="Close" className="-mr-2">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
-                  <path d="M18 6 6 18M6 6l12 12" />
-                </svg>
-              </Button>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="pf-1" className="text-sm font-medium text-text-main">Quantity</label>
-              <input id="pf-1"
-                type="number"
-                value={editForm.qty}
-                min="1"
-                step="1"
-                inputMode="numeric"
-                onChange={(e) => setEditForm((f) => ({ ...f, qty: e.target.value }))}
-                className="input-field text-lg w-full tabular-nums py-3"
-                aria-label="Quantity"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="pf-2" className="text-sm font-medium text-text-main">Avg Buy Price (৳)</label>
-              <input id="pf-2"
-                type="number"
-                value={editForm.price}
-                min="0.01"
-                step="0.01"
-                inputMode="decimal"
-                onChange={(e) => setEditForm((f) => ({ ...f, price: e.target.value }))}
-                className="input-field text-lg w-full tabular-nums py-3"
-                aria-label="Avg buy price"
-              />
-            </div>
-
-            {rowError && <p className="text-sm text-negative font-medium">{rowError}</p>}
-
-            <div className="flex flex-col gap-2 mt-1">
+      {/* Edit holding — the shared Sheet (bottom sheet on phones, dialog from 640px) */}
+      <Sheet
+        open={editingHolding != null}
+        onClose={() => setEditId(null)}
+        dismissible={!editSaving}
+        title={editingHolding ? L(`Edit ${editingHolding.trading_code}`, `${editingHolding.trading_code} বদলান`) : ""}
+        bn={!bn && editingHolding ? "শেয়ারের সংখ্যা বা কেনার দাম ঠিক করুন" : undefined}
+        footer={
+          editingHolding && (
+            <div className="flex flex-col gap-2">
               <Button type="button" onClick={handleEditSave} disabled={editSaving} variant="primary" block>
-                {editSaving ? "Saving…" : "Save changes"}
+                {editSaving ? L("Saving…", "সেভ হচ্ছে…") : L("Save changes", "সেভ করুন")}
               </Button>
               <Button
                 type="button"
@@ -1645,137 +1344,150 @@ export default function PortfolioClient() {
                 onClick={() => handleDelete(editingHolding.id)}
                 disabled={busyId === editingHolding.id || editSaving}
               >
-                {busyId === editingHolding.id ? "Removing…" : "Remove holding"}
+                {busyId === editingHolding.id ? L("Removing…", "সরানো হচ্ছে…") : L("Remove this stock", "এই শেয়ার সরান")}
               </Button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Portfolio — pick a holding from a dropdown, then edit qty/price */}
-      {editPickerOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-text-main/50"
-          onClick={() => !pickerSaving && setEditPickerOpen(false)}
-        >
-          <div
-            className="w-full sm:max-w-sm bg-surface border-t sm:border border-border rounded-t-xl sm:rounded-xl p-5 sm:p-6 flex flex-col gap-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-text-main">Edit Portfolio</h3>
-              <Button type="button" variant="link" size="sm" iconOnly onClick={() => setEditPickerOpen(false)} aria-label="Close" className="-mr-2">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
-                  <path d="M18 6 6 18M6 6l12 12" />
-                </svg>
-              </Button>
-            </div>
-
-            {/* Stock selector */}
+          )
+        }
+      >
+        <div className={`flex flex-col gap-4 ${bnCls}`}>
+          <p className="text-sm text-text-muted">
+            {L(
+              "Fixing a mistake? Change it here. If you bought or sold shares, use “Bought more” or “Sold” instead, so your history stays right.",
+              "ভুল ঠিক করছেন? এখানে বদলান। শেয়ার কিনলে বা বেচলে “আরও কিনেছি” বা “বিক্রি করেছি” ব্যবহার করুন, তাহলে ইতিহাস ঠিক থাকবে।",
+            )}
+          </p>
+          <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="pf-3" className="text-sm font-medium text-text-main">Stock</label>
-              <select id="pf-3"
-                value={pickerCode}
-                onChange={(e) => selectPickerCode(e.target.value)}
-                className="input-field text-base w-full py-2.5 font-mono"
-                aria-label="Select holding to edit"
-              >
-                {holdings.map((h) => (
-                  <option key={h.id} value={h.trading_code}>
-                    {h.trading_code}
-                  </option>
-                ))}
-              </select>
+              <label htmlFor="pf-1" className="text-sm font-semibold text-text-main">{L("Shares", "শেয়ারের সংখ্যা")}</label>
+              <input
+                id="pf-1"
+                type="number"
+                value={editForm.qty}
+                min="1"
+                step="1"
+                inputMode="numeric"
+                onChange={(e) => setEditForm((f) => ({ ...f, qty: e.target.value }))}
+                className="input-field w-full py-3 text-lg tabular-nums"
+              />
             </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="pf-4" className="text-sm font-medium text-text-main">Quantity</label>
-                <input id="pf-4"
-                  type="number"
-                  value={pickerForm.qty}
-                  min="1"
-                  step="1"
-                  inputMode="numeric"
-                  onChange={(e) => setPickerForm((f) => ({ ...f, qty: e.target.value }))}
-                  className="input-field text-lg w-full tabular-nums py-3"
-                  aria-label="Quantity"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="pf-5" className="text-sm font-medium text-text-main">Avg Buy Price (৳)</label>
-                <input id="pf-5"
-                  type="number"
-                  value={pickerForm.price}
-                  min="0.01"
-                  step="0.01"
-                  inputMode="decimal"
-                  onChange={(e) => setPickerForm((f) => ({ ...f, price: e.target.value }))}
-                  className="input-field text-lg w-full tabular-nums py-3"
-                  aria-label="Avg buy price"
-                />
-              </div>
-            </div>
-
-            {pickerError && <p className="text-sm text-negative font-medium">{pickerError}</p>}
-
-            <div className="flex flex-col gap-2 mt-1">
-              <Button type="button" onClick={savePicker} disabled={pickerSaving} variant="primary" block>
-                {pickerSaving ? "Saving…" : "Save changes"}
-              </Button>
-              <Button
-                type="button"
-                variant="danger"
-                block
-                onClick={() => {
-                  const h = holdings.find((x) => x.trading_code === pickerCode);
-                  if (h) handleDelete(h.id);
-                }}
-                disabled={pickerSaving || busyId !== null}
-              >
-                {busyId !== null ? "Removing…" : `Remove ${pickerCode}`}
-              </Button>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="pf-2" className="text-sm font-semibold text-text-main">{L("Price you paid (৳)", "কেনার গড় দাম (৳)")}</label>
+              <input
+                id="pf-2"
+                type="number"
+                value={editForm.price}
+                min="0.01"
+                step="0.01"
+                inputMode="decimal"
+                onChange={(e) => setEditForm((f) => ({ ...f, price: e.target.value }))}
+                className="input-field w-full py-3 text-lg tabular-nums"
+              />
             </div>
           </div>
+          {rowError && <p className="form-error">{rowError}</p>}
         </div>
-      )}
+      </Sheet>
 
-      {/* Delete confirmation */}
-      {confirmDeleteId && (
-        <div
-          className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-text-main/40 p-0 sm:p-4"
-          onClick={() => setConfirmDeleteId(null)}
-        >
-          <div
-            className="w-full sm:max-w-sm bg-surface-2 rounded-t-xl sm:rounded-xl border border-border p-5 sm:p-6 flex flex-col gap-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div>
-              <h3 className="text-lg font-bold text-text-main">Remove holding?</h3>
-              <p className="text-sm text-text-muted mt-1">
-                {(() => {
-                  const h = holdings.find((x) => x.id === confirmDeleteId);
-                  return h ? (
-                    <>
-                      Remove <span className="font-mono font-semibold text-text-main">{h.trading_code}</span> from your portfolio? This can’t be undone.
-                    </>
-                  ) : (
-                    "This can’t be undone."
-                  );
-                })()}
-              </p>
+      {/* Edit portfolio — pick a stock, then fix its shares / price */}
+      <Sheet
+        open={editPickerOpen}
+        onClose={() => setEditPickerOpen(false)}
+        dismissible={!pickerSaving}
+        title={L("Edit your stocks", "আপনার শেয়ার বদলান")}
+        bn={!bn ? "আপনার শেয়ার বদলান" : undefined}
+        footer={
+          <div className="flex flex-col gap-2">
+            <Button type="button" onClick={savePicker} disabled={pickerSaving} variant="primary" block>
+              {pickerSaving ? L("Saving…", "সেভ হচ্ছে…") : L("Save changes", "সেভ করুন")}
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              block
+              onClick={() => {
+                const h = holdings.find((x) => x.trading_code === pickerCode);
+                if (h) handleDelete(h.id);
+              }}
+              disabled={pickerSaving || busyId !== null}
+            >
+              {busyId !== null ? L("Removing…", "সরানো হচ্ছে…") : L(`Remove ${pickerCode}`, `${pickerCode} সরান`)}
+            </Button>
+          </div>
+        }
+      >
+        <div className={`flex flex-col gap-4 ${bnCls}`}>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="pf-3" className="text-sm font-semibold text-text-main">{L("Stock", "শেয়ার")}</label>
+            <select
+              id="pf-3"
+              value={pickerCode}
+              onChange={(e) => selectPickerCode(e.target.value)}
+              className="input-field w-full py-2.5 text-base"
+            >
+              {holdings.map((h) => (
+                <option key={h.id} value={h.trading_code}>
+                  {h.trading_code}
+                  {priceMap.get(h.trading_code)?.company_name ? ` — ${priceMap.get(h.trading_code)?.company_name}` : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="pf-4" className="text-sm font-semibold text-text-main">{L("Shares", "শেয়ারের সংখ্যা")}</label>
+              <input
+                id="pf-4"
+                type="number"
+                value={pickerForm.qty}
+                min="1"
+                step="1"
+                inputMode="numeric"
+                onChange={(e) => setPickerForm((f) => ({ ...f, qty: e.target.value }))}
+                className="input-field w-full py-3 text-lg tabular-nums"
+              />
             </div>
-            <div className="flex flex-col gap-2">
-              <Button type="button" onClick={confirmDelete} variant="danger" block>
-                Remove
-              </Button>
-              <Button type="button" variant="quiet" block onClick={() => setConfirmDeleteId(null)}>
-                Cancel
-              </Button>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="pf-5" className="text-sm font-semibold text-text-main">{L("Price you paid (৳)", "কেনার গড় দাম (৳)")}</label>
+              <input
+                id="pf-5"
+                type="number"
+                value={pickerForm.price}
+                min="0.01"
+                step="0.01"
+                inputMode="decimal"
+                onChange={(e) => setPickerForm((f) => ({ ...f, price: e.target.value }))}
+                className="input-field w-full py-3 text-lg tabular-nums"
+              />
             </div>
           </div>
+          {pickerError && <p className="form-error">{pickerError}</p>}
         </div>
-      )}
+      </Sheet>
+
+      {/* Remove a stock — confirm first */}
+      <Sheet
+        open={confirmDeleteId != null}
+        onClose={() => setConfirmDeleteId(null)}
+        title={L("Remove this stock?", "এই শেয়ার সরাবেন?")}
+        footer={
+          <div className="flex flex-col gap-2">
+            <Button type="button" onClick={confirmDelete} variant="danger" block>
+              {L("Remove", "সরান")}
+            </Button>
+            <Button type="button" variant="quiet" block onClick={() => setConfirmDeleteId(null)}>
+              {L("Cancel", "বাতিল")}
+            </Button>
+          </div>
+        }
+      >
+        <p className={`text-sm text-text-main ${bnCls}`}>
+          {L(
+            `${holdings.find((x) => x.id === confirmDeleteId)?.trading_code ?? "This stock"} comes off your portfolio. This can’t be undone. If you sold the shares, use “Sold” instead so the profit is kept.`,
+            `${holdings.find((x) => x.id === confirmDeleteId)?.trading_code ?? "এই শেয়ার"} আপনার পোর্টফোলিও থেকে সরে যাবে, ফেরানো যাবে না। শেয়ার বিক্রি করে থাকলে “বিক্রি করেছি” ব্যবহার করুন, তাহলে লাভ হিসাবে থাকবে।`,
+          )}
+        </p>
+      </Sheet>
     </div>
   );
 }

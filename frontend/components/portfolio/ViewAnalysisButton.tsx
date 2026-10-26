@@ -4,7 +4,7 @@ import Button from "@/components/ui/Button";
 
 export default function ViewAnalysisButton() {
   function handleClick() {
-    const el = document.getElementById("portfolio-analysis");
+    const el = document.getElementById("pf-analysis") ?? document.getElementById("portfolio-analysis");
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     }

@@ -1,20 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { taka } from "@/lib/formatters";
+import { takaGroup } from "@/lib/formatters";
 import Button from "@/components/ui/Button";
-
-/** Same token palette as AllocationChart so the hero donut and the big chart agree. */
-const DONUT_COLORS = [
-  "var(--primary)", "var(--info)", "var(--gold)", "var(--warm)", "var(--navy-soft)",
-  "var(--positive)", "var(--primary-soft)", "var(--info-soft)", "var(--gold-soft)", "var(--text-muted)",
-];
-const OTHERS_COLOR = "var(--text-muted)";
-
-export interface HeroSlice {
-  code: string;
-  value: number;
-}
+import type { AnalysisLang, Grade } from "@/lib/portfolio-analysis";
 
 interface Props {
   /** Sum of buy cost across holdings. */
@@ -24,177 +12,27 @@ interface Props {
   pnl: number | null;
   pnlPct: number | null;
   todayMove: { delta: number; pct: number } | null;
-  /** DSEX index change % today — powers the "ahead of / behind the market" chip. */
+  /** DSEX index change % today — the "you vs the market" answer. */
   dsexPct: number | null;
   holdingsCount: number;
-  /** Per-holding value for the donut (current value, falling back to cost). */
-  slices: HeroSlice[];
   privacy: boolean;
   onTogglePrivacy: () => void;
+  lang?: AnalysisLang;
+  /** The one line to the grade (the full card lives in chapter 3). */
+  grade?: { letter: Grade; title: string; line: string; onOpen: () => void };
 }
 
-/** Animate a number toward `target` with an ease-out curve. Snaps for
- *  prefers-reduced-motion and for the very first paint from cache. */
-function useCountUp(target: number, duration = 700): number {
-  const [display, setDisplay] = useState(target);
-  const fromRef = useRef(target);
-  const rafRef = useRef<number | null>(null);
+const signedTaka = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${takaGroup(Math.abs(v))}`;
+const signedPct = (v: number, d = 1) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(d)}%`;
+const tone = (v: number | null | undefined) => (v == null || v === 0 ? "pf-flat" : v > 0 ? "pf-up" : "pf-down");
 
-  useEffect(() => {
-    const from = fromRef.current;
-    if (from === target) return;
-    const reduced =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduced) {
-      fromRef.current = target;
-      setDisplay(target);
-      return;
-    }
-    const start = performance.now();
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - t, 3);
-      const value = from + (target - from) * eased;
-      setDisplay(value);
-      if (t < 1) {
-        rafRef.current = requestAnimationFrame(tick);
-      } else {
-        fromRef.current = target;
-      }
-    };
-    rafRef.current = requestAnimationFrame(tick);
-    return () => {
-      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
-      fromRef.current = target;
-    };
-  }, [target, duration]);
-
-  return display;
-}
-
-function MovePill({
-  label,
-  delta,
-  pct,
-}: {
-  label: string;
-  delta: number | null;
-  pct: number | null;
-}) {
-  if (delta == null) return null;
-  const up = delta > 0;
-  const down = delta < 0;
-  const accent = up ? "var(--positive)" : down ? "var(--negative)" : "var(--text-muted)";
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 rounded-full pl-2.5 pr-3 py-1 text-xs sm:text-sm font-bold tabular-nums nums whitespace-nowrap"
-      style={{ color: accent, background: `color-mix(in srgb, ${accent} 12%, transparent)` }}
-    >
-      <span className="text-xs leading-none" aria-hidden>
-        {up ? "▲" : down ? "▼" : "•"}
-      </span>
-      <span className="font-semibold opacity-80">{label}</span>
-      <span className="pv">
-        {up ? "+" : ""}
-        {taka(delta, 0)}
-        {pct != null && (
-          <span className="opacity-80 font-semibold">
-            {" "}
-            ({pct > 0 ? "+" : ""}
-            {pct.toFixed(2)}%)
-          </span>
-        )}
-      </span>
-    </span>
-  );
-}
-
-/** "Ahead of / behind the market today" — portfolio's move vs the DSEX index. */
-function MarketChip({
-  portfolioPct,
-  dsexPct,
-}: {
-  portfolioPct: number | null;
-  dsexPct: number | null;
-}) {
-  if (portfolioPct == null || dsexPct == null) return null;
-  const dsexAccent =
-    dsexPct > 0 ? "var(--positive)" : dsexPct < 0 ? "var(--negative)" : "var(--text-muted)";
-  // A hair's-width tie counts as neither ahead nor behind.
-  const diff = portfolioPct - dsexPct;
-  const ahead = Math.abs(diff) < 0.05 ? null : diff > 0;
-  const verdictAccent =
-    ahead == null ? "var(--text-muted)" : ahead ? "var(--positive)" : "var(--negative)";
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full pl-2.5 pr-3 py-1 text-xs sm:text-sm font-bold tabular-nums nums whitespace-nowrap border border-border">
-      <span className="font-semibold text-text-muted">DSEX</span>
-      <span style={{ color: dsexAccent }}>
-        {dsexPct > 0 ? "+" : ""}
-        {dsexPct.toFixed(2)}%
-      </span>
-      <span className="font-semibold" style={{ color: verdictAccent }}>
-        {ahead == null ? "· level" : ahead ? "· you're ahead" : "· you're behind"}
-      </span>
-    </span>
-  );
-}
-
-/** Lightweight SVG donut of the portfolio split (top 5 + rest). */
-function HeroDonut({ slices, holdingsCount }: { slices: HeroSlice[]; holdingsCount: number }) {
-  const total = slices.reduce((s, x) => s + x.value, 0);
-  if (total <= 0 || slices.length === 0) return null;
-
-  const sorted = [...slices].sort((a, b) => b.value - a.value);
-  const TOP = 5;
-  const shown = sorted.slice(0, TOP).map((s, i) => ({ ...s, color: DONUT_COLORS[i % DONUT_COLORS.length] }));
-  const rest = sorted.slice(TOP);
-  if (rest.length > 0) {
-    shown.push({ code: "rest", value: rest.reduce((s, x) => s + x.value, 0), color: OTHERS_COLOR });
-  }
-
-  const R = 42;
-  const STROKE = 13;
-  const C = 2 * Math.PI * R;
-  const GAP = shown.length > 1 ? 2.5 : 0; // px gap between segments
-  let offset = 0;
-
-  return (
-    <div className="relative shrink-0" style={{ width: 118, height: 118 }} aria-hidden>
-      <svg width={118} height={118} viewBox="0 0 118 118" style={{ transform: "rotate(-90deg)" }}>
-        {shown.map((s) => {
-          const frac = s.value / total;
-          const len = Math.max(0, frac * C - GAP);
-          const el = (
-            <circle
-              key={s.code}
-              cx={59}
-              cy={59}
-              r={R}
-              fill="none"
-              stroke={s.color}
-              strokeWidth={STROKE}
-              strokeLinecap="round"
-              strokeDasharray={`${len} ${C - len}`}
-              strokeDashoffset={-offset}
-              style={{ transition: "stroke-dasharray 600ms ease, stroke-dashoffset 600ms ease" }}
-            />
-          );
-          offset += frac * C;
-          return el;
-        })}
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-        <span className="text-xl font-black text-text-main leading-none nums">{holdingsCount}</span>
-        <span className="text-xs   text-text-muted font-bold mt-0.5">
-          {holdingsCount === 1 ? "stock" : "stocks"}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-/** Value-first portfolio hero — the "how am I doing" answer in one glance. */
+/**
+ * The money hero (2026-10-26 redesign, the market-analysis hero shape): open
+ * on the canvas — what the portfolio is worth and what it has made — then
+ * ONE card with four answers in a hairline grid (today · since you bought ·
+ * you vs the market · what you put in) and the grade line as its footer.
+ * No pills, no donut: the money is the picture.
+ */
 export default function PortfolioHero({
   totalInvested,
   totalValue,
@@ -203,84 +41,121 @@ export default function PortfolioHero({
   todayMove,
   dsexPct,
   holdingsCount,
-  slices,
   privacy,
   onTogglePrivacy,
+  lang = "en",
+  grade,
 }: Props) {
+  const bn = lang === "bn";
+  const L = (en: string, b: string) => (bn ? b : en);
+  const bnCls = bn ? "font-bn" : "";
   const hasValue = totalValue != null;
-  const headline = hasValue ? totalValue : totalInvested;
-  const animated = useCountUp(headline);
 
-  const up = pnl != null && pnl > 0;
-  const down = pnl != null && pnl < 0;
+  // You vs the market today: a hair's width either way counts as level.
+  const diff = todayMove != null && dsexPct != null ? todayMove.pct - dsexPct : null;
+  const vs =
+    diff == null
+      ? null
+      : Math.abs(diff) < 0.05
+        ? { word: L("Level with it", "বাজারের সমান"), cls: "pf-flat" }
+        : diff > 0
+          ? { word: L("Ahead of it", "বাজারের চেয়ে ভালো"), cls: "pf-up" }
+          : { word: L("Behind it", "বাজারের চেয়ে পিছিয়ে"), cls: "pf-down" };
+
+  const answers: { q: string; a: React.ReactNode; x: React.ReactNode; cls?: string }[] = [
+    {
+      q: L("Today", "আজ"),
+      a: todayMove ? <span className="pv">{signedTaka(todayMove.delta)}</span> : "—",
+      x: todayMove ? signedPct(todayMove.pct, 2) : L("No prices yet", "এখনো দাম আসেনি"),
+      cls: tone(todayMove?.delta),
+    },
+    {
+      q: L("Since you bought", "কেনার পর থেকে"),
+      a: pnl != null ? <span className="pv">{signedTaka(pnl)}</span> : "—",
+      x: pnlPct != null ? signedPct(pnlPct) : "",
+      cls: tone(pnl),
+    },
+    {
+      q: L("You vs the market today", "আজ বাজারের তুলনায়"),
+      a: vs ? vs.word : "—",
+      x: dsexPct != null ? `DSEX ${signedPct(dsexPct, 2)}` : "",
+      cls: vs?.cls,
+    },
+    {
+      q: L("What you put in", "আপনি দিয়েছেন"),
+      a: <span className="pv">{takaGroup(totalInvested)}</span>,
+      x: L(`${holdingsCount} stock${holdingsCount === 1 ? "" : "s"}`, `${holdingsCount}টি শেয়ার`),
+    },
+  ];
 
   return (
-    <section
-      className="pf-rise soft-card relative overflow-hidden p-5 sm:p-7"
-    >
-      <div className="flex items-start justify-between gap-5">
-        <div className="min-w-0 flex-1">
-          {/* Label + privacy toggle */}
-          <div className="flex items-center gap-2">
-            <p className="text-xs sm:text-xs   font-bold text-text-muted">
-              {hasValue ? "Portfolio Value" : "Invested So Far"}
-            </p>
-            <Button
-              type="button"
-              variant="link"
-              size="sm"
-              iconOnly
-              onClick={onTogglePrivacy}
-              className="-my-2"
-              aria-label={privacy ? "Show amounts" : "Hide amounts"}
-              aria-pressed={privacy}
-              title={privacy ? "Show amounts" : "Hide amounts"}
-            >
-              {privacy ? (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                  <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78 3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z" />
-                </svg>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                  <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
-                </svg>
-              )}
-            </Button>
-          </div>
+    <section className="pf-hero" aria-label={L("Your portfolio value", "আপনার পোর্টফোলিওর মূল্য")}>
+      <p className={`pf-hero-label ${bnCls}`}>
+        {hasValue ? L("Your portfolio is worth", "আপনার পোর্টফোলিওর মূল্য") : L("You have put in", "আপনি দিয়েছেন")}
+        <Button
+          type="button"
+          variant="link"
+          size="sm"
+          iconOnly
+          onClick={onTogglePrivacy}
+          className="-my-2"
+          aria-label={privacy ? L("Show amounts", "টাকা দেখান") : L("Hide amounts", "টাকা লুকান")}
+          aria-pressed={privacy}
+          title={privacy ? L("Show amounts", "টাকা দেখান") : L("Hide amounts", "টাকা লুকান")}
+        >
+          {privacy ? (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24M1 1l22 22" />
+            </svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          )}
+        </Button>
+      </p>
 
-          {/* Big value */}
-          <p className="pv font-display text-4xl sm:text-5xl font-bold text-text-main nums tracking-tight mt-1.5 leading-none">
-            {taka(animated, 0)}
-          </p>
+      <p className="pf-hero-value pv">{takaGroup(hasValue ? totalValue : totalInvested)}</p>
 
-          {/* Move pills */}
-          <div className="flex items-center gap-2 flex-wrap mt-3.5">
-            <MovePill label="Today" delta={todayMove?.delta ?? null} pct={todayMove?.pct ?? null} />
-            <MovePill label="Total" delta={pnl} pct={pnlPct} />
-            <MarketChip portfolioPct={todayMove?.pct ?? null} dsexPct={dsexPct} />
-          </div>
+      <p className={`pf-hero-change ${bnCls}`}>
+        {pnl != null ? (
+          <>
+            <b className={`pv ${tone(pnl)}`}>
+              {signedTaka(pnl)}
+              {pnlPct != null ? ` (${signedPct(pnlPct)})` : ""}
+            </b>{" "}
+            {pnl >= 0 ? L("profit since you bought", "কেনার পর থেকে লাভ") : L("loss since you bought", "কেনার পর থেকে লোকসান")}
+          </>
+        ) : (
+          L("Live prices arrive when the market updates.", "বাজারের দাম এলে এখানে দেখা যাবে।")
+        )}
+      </p>
 
-          {/* Secondary line */}
-          <p className="text-xs sm:text-sm text-text-muted mt-3">
-            {hasValue ? (
-              <>
-                Invested <span className="pv font-semibold text-text-main nums">{taka(totalInvested, 0)}</span>
-                {" · "}
-                {holdingsCount} stock{holdingsCount === 1 ? "" : "s"}
-              </>
-            ) : (
-              <>
-                {holdingsCount} stock{holdingsCount === 1 ? "" : "s"} · live prices arrive when the
-                market updates
-              </>
-            )}
-          </p>
+      <div className="soft-card pf-answers">
+        <div className="pf-answer-grid">
+          {answers.map((a) => (
+            <div key={a.q} className={`pf-answer ${bnCls}`}>
+              <p className="pf-answer-q">{a.q}</p>
+              <p className={`pf-answer-a ${a.cls ?? ""}`}>{a.a}</p>
+              {a.x ? <p className="pf-answer-x">{a.x}</p> : null}
+            </div>
+          ))}
         </div>
-
-        {/* Allocation donut */}
-        <div className="hidden sm:block">
-          <HeroDonut slices={slices} holdingsCount={holdingsCount} />
-        </div>
+        {grade && (
+          <button type="button" className={`pf-grade-row ${bnCls}`} onClick={grade.onOpen}>
+            <span className={`pf-grade-letter pf-g-${grade.letter}`} aria-hidden>
+              {grade.letter}
+            </span>
+            <span className="pf-grade-text">
+              <b>{grade.title}</b>
+              <span>{grade.line}</span>
+            </span>
+            <span className="pf-grade-go" aria-hidden>
+              →
+            </span>
+          </button>
+        )}
       </div>
     </section>
   );
