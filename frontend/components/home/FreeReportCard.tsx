@@ -19,18 +19,16 @@ const OPEN = [
  * Today's free full report (`lib/free-report.ts`): one familiar company whose
  * stock page is fully open for everyone today — a free reader sees exactly
  * what Premium is before paying. Used on the landing page (server) and in the
- * dashboard's "Worth a look" chapter (client); no hooks, so it renders in both.
+ * dashboard (client, free readers only — Premium has every report open); no
+ * hooks, so it renders in both.
  * `#free-report` is what the stock page's Premium section links to.
  */
 export default function FreeReportCard({
   item,
   lang = "en",
-  premium = false,
 }: {
   item: ScoreItem;
   lang?: "en" | "bn";
-  /** Premium readers have every report open — the card says "featured" instead. */
-  premium?: boolean;
 }) {
   const bn = lang === "bn";
   const code = item.trading_code;
@@ -43,7 +41,7 @@ export default function FreeReportCard({
     <section id="free-report" aria-labelledby="free-report-h" className="soft-card dash-box p-5 sm:p-6">
       <p className={`flex items-center gap-2 text-sm font-semibold text-primary-ink ${textCls}`} lang={langAttr}>
         <IconCrown size={16} />
-        {premium ? t("Today's featured report", "আজকের বিশেষ রিপোর্ট") : t("Today's free full report", "আজকের ফ্রি পূর্ণ রিপোর্ট")}
+        {t("Today's free full report", "আজকের ফ্রি পূর্ণ রিপোর্ট")}
       </p>
 
       <div className="mt-3 flex items-center gap-4">
@@ -67,24 +65,20 @@ export default function FreeReportCard({
       </div>
 
       <p className={`mt-4 text-sm text-text-muted ${textCls}`} lang={langAttr}>
-        {premium
-          ? t("Every report is open for you. Today we picked this one.", "আপনার জন্য সব রিপোর্ট খোলা। আজ আমরা এটি বেছে নিয়েছি।")
-          : t(
-              "Every part of this stock's page is open for everyone today — the parts Premium opens on every stock:",
-              "আজ এই শেয়ারের পুরো পাতা সবার জন্য খোলা — প্রিমিয়ামে যা প্রতিটি শেয়ারে খোলা থাকে:",
-            )}
+        {t(
+          "Every part of this stock's page is open for everyone today — the parts Premium opens on every stock:",
+          "আজ এই শেয়ারের পুরো পাতা সবার জন্য খোলা — প্রিমিয়ামে যা প্রতিটি শেয়ারে খোলা থাকে:",
+        )}
       </p>
-      {!premium && (
-        <ul className={`mt-2 grid grid-cols-1 gap-1.5 sm:grid-cols-2 ${textCls}`} lang={langAttr}>
-          {OPEN.map((o) => (
-            <li key={o.en} className="flex items-start gap-2 text-sm text-text-main">
-              <span className="mt-0.5 shrink-0 text-positive"><IconCheck size={14} /></span>
-              <span>{bn ? o.bn : o.en}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-      {!bn && !premium && <Bn className="mt-2 text-sm text-text-muted">প্রতিদিন একটি পরিচিত কোম্পানির পুরো রিপোর্ট সবার জন্য ফ্রি।</Bn>}
+      <ul className={`mt-2 grid grid-cols-1 gap-1.5 sm:grid-cols-2 ${textCls}`} lang={langAttr}>
+        {OPEN.map((o) => (
+          <li key={o.en} className="flex items-start gap-2 text-sm text-text-main">
+            <span className="mt-0.5 shrink-0 text-positive"><IconCheck size={14} /></span>
+            <span>{bn ? o.bn : o.en}</span>
+          </li>
+        ))}
+      </ul>
+      {!bn && <Bn className="mt-2 text-sm text-text-muted">প্রতিদিন একটি পরিচিত কোম্পানির পুরো রিপোর্ট সবার জন্য ফ্রি।</Bn>}
 
       <div className="mt-4">
         <Button href={`/stock/${code}?src=free`} block>

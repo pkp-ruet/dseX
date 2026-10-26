@@ -329,12 +329,13 @@ export default function PersonalizedHome() {
       </div>
     ) : null;
   // Today's free full report (lib/free-report.ts) — the whole Premium stock
-  // page, open for everyone, one familiar company a day.
+  // page, open for everyone, one familiar company a day. Free readers only —
+  // Premium readers have every report open already.
   const freeItem = priceMap.get(freeReportCode());
   const freeReportCard =
-    freeItem && freeItem.score != null ? (
+    planState !== "premium" && freeItem && freeItem.score != null ? (
       <div data-card="free-report">
-        <FreeReportCard item={freeItem} lang={lang} premium={planState === "premium"} />
+        <FreeReportCard item={freeItem} lang={lang} />
       </div>
     ) : null;
   const resultsCard =

@@ -2956,22 +2956,9 @@ h2.info-col-header { margin: 0; }
     color: var(--text-muted);
     background: var(--surface-2);
   }
-/* Flat blocks on phones (2026-10 redesign, decision 5): every dashboard card
-   below 640px is a full-bleed section — no box, a hairline on top — so the
-   rich page reads as one daily read, not a wall of tiles. `.dash-box` keeps
-   the box (money hero, today's ideas, rail cards). `-16px` = the root
-   layout's px-4 gutter on phones. */
-@media (max-width: 639px) {
-  .dash-section .soft-card:not(.dash-box) {
-    background: transparent;
-    border: 0;
-    border-top: 1px solid var(--border);
-    border-radius: 0;
-    box-shadow: none;
-    margin-inline: -16px;
-  }
-  .dash-section .soft-card:not(.dash-box) .dash-head { border-bottom-color: transparent; }
-}
+/* Dashboard cards keep their box on phones too (2026-10-26, user decision):
+   the full-bleed flat sections of the 2026-10 redesign read as loose text
+   with no edges. `.dash-box` on a card is now a no-op. */
 .dash-tile-lg { width: 1.9rem; height: 1.9rem; border-radius: var(--radius); }
  /* off since the 2026-10 redesign */
 /* Card pairs end on one line (2026-10-24): every pair cell is a column and
