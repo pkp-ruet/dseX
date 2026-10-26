@@ -111,6 +111,22 @@
   color: var(--text);
   font-variant-numeric: tabular-nums;
 }
+/* "Limited-time offer" tag — on the hero price and on each offer plan card. */
+.pm-offer,
+.pay-plan-offer {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  color: var(--primary-ink);
+  background: rgb(var(--primary-rgb) / 0.1);
+}
+.pm-offer { margin-bottom: var(--space-2); }
+.pay-plan-offer { margin-top: var(--space-4); }
+.pay-plan-offer + .pay-plan-price { margin-top: var(--space-2); }
 .pm-price-alt { margin-top: 2px; font-size: var(--fs-sm); color: var(--text-muted); }
 
 .pm-promises {
@@ -274,6 +290,13 @@
   line-height: 1.1;
   letter-spacing: -0.02em;
   color: var(--text);
+}
+.pay-plan-was {
+  margin-left: var(--space-2);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--text-muted);
 }
 .pay-plan-foot {
   display: flex;

@@ -16,7 +16,7 @@ import {
 import { AUTH_USER_UPDATED_EVENT, setStoredUser } from "@/lib/auth";
 import { formatDate } from "@/lib/formatters";
 import { usePremium } from "@/lib/premium";
-import { METHOD_LABEL, PAID_PLANS, planByKey, type PlanKey } from "@/lib/premium-plans";
+import { METHOD_LABEL, OFFER, PAID_PLANS, planByKey, type PlanKey } from "@/lib/premium-plans";
 import { toast } from "@/lib/toast";
 import { trackEvent } from "@/lib/track";
 
@@ -116,11 +116,12 @@ export default function PayBox() {
       <div role="radiogroup" aria-label={L("Choose a plan", "প্ল্যান বেছে নিন")} className="pay-plans">
         {PAID_PLANS.map((p) => {
           const on = p.key === plan;
-          // 30 / 90 / 365 days → 1 / 3 / 12 months; the saving is against
-          // paying the one-month price that many times (matches each note).
+          // 30 / 180 / 365 days → 1 / 6 / 12 months. On an offer plan the
+          // saving is the discount off its regular price; otherwise it is
+          // against paying the one-month price that many times.
           const months = Math.max(1, Math.round(p.days / 30));
           const perMonth = Math.round(p.amount / months);
-          const save = BASE_MONTHLY * months - p.amount;
+          const save = p.listAmount ? p.listAmount - p.amount : BASE_MONTHLY * months - p.amount;
           return (
             <button
               key={p.key}
@@ -135,7 +136,16 @@ export default function PayBox() {
                 <span className="pay-radio" aria-hidden />
                 <span className="font-semibold text-text-main">{L(p.name, p.bn)}</span>
               </span>
-              <span className="pay-plan-price tabular-nums">৳{p.amount.toLocaleString("en-IN")}</span>
+              {p.listAmount && <span className="pay-plan-offer">{bn ? OFFER.label.bn : OFFER.label.en}</span>}
+              <span className="pay-plan-price tabular-nums">
+                ৳{p.amount.toLocaleString("en-IN")}
+                {p.listAmount && (
+                  <s className="pay-plan-was">
+                    <span className="sr-only">{L("Regular price ", "আগের দাম ")}</span>
+                    ৳{p.listAmount.toLocaleString("en-IN")}
+                  </s>
+                )}
+              </span>
               <span className="block text-sm text-text-muted">{L(p.per, p.perBn)}</span>
               <span className="pay-plan-foot">
                 {months > 1 ? (

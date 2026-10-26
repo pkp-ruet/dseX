@@ -17,8 +17,15 @@ NOW = datetime(2026, 10, 25, 6, 0, tzinfo=timezone.utc)
 
 def test_plans_are_the_advertised_prices():
     assert {k: (v["amount"], v["days"]) for k, v in PAID_PLANS.items()} == {
-        "monthly": (199, 30), "quarterly": (499, 90), "yearly": (1499, 365),
+        "monthly": (199, 30), "halfyearly": (999, 180), "yearly": (1899, 365),
     }
+
+
+def test_offer_prices_sit_below_the_regular_price():
+    assert {k: v.get("list_amount") for k, v in PAID_PLANS.items()} == {
+        "monthly": None, "halfyearly": 1149, "yearly": 2199,
+    }
+    assert all(v["amount"] < v["list_amount"] for v in PAID_PLANS.values() if "list_amount" in v)
 
 
 def test_sender_number_forms():

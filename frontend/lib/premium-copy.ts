@@ -71,7 +71,7 @@ export const BENEFITS: { key: "why" | "portfolio" | "research" | "limits"; title
 ];
 
 export const STEPS: { title: Bi; sub: Bi }[] = [
-  { title: { en: "Pick a plan", bn: "প্ল্যান বেছে নিন" }, sub: { en: "1 month, 3 months or 1 year", bn: "1 মাস, 3 মাস বা 1 বছর" } },
+  { title: { en: "Pick a plan", bn: "প্ল্যান বেছে নিন" }, sub: { en: "1 month, 6 months or 1 year", bn: "1 মাস, 6 মাস বা 1 বছর" } },
   { title: { en: "Send Money", bn: "Send Money করুন" }, sub: { en: "By bKash or Nagad", bn: "bKash বা Nagad দিয়ে" } },
   { title: { en: "Type your number", bn: "নম্বর লিখুন" }, sub: { en: "Premium starts at once", bn: "প্রিমিয়াম সঙ্গে সঙ্গে চালু" } },
 ];
@@ -255,8 +255,8 @@ export const FAQS: { q: Bi; a: Bi }[] = [
   {
     q: { en: "How much does Premium cost?", bn: "প্রিমিয়ামের দাম কত?" },
     a: {
-      en: "৳199 for 1 month, ৳499 for 3 months or ৳1,499 for a year (about ৳125 a month).",
-      bn: "1 মাস ৳199, 3 মাস ৳499, 1 বছর ৳1,499 (মাসে প্রায় ৳125)।",
+      en: "৳199 for 1 month. For a limited time, 6 months are ৳999 instead of ৳1,149, and a year is ৳1,899 instead of ৳2,199 (about ৳158 a month).",
+      bn: "1 মাস ৳199। সীমিত সময়ের অফারে 6 মাস ৳1,149-এর বদলে ৳999, আর 1 বছর ৳2,199-এর বদলে ৳1,899 (মাসে প্রায় ৳158)।",
     },
   },
   {

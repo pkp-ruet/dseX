@@ -22,11 +22,16 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-# plan → (taka, days). Mirrored by frontend `lib/premium-plans.ts`.
+# plan → (taka charged, days). `list_amount` is the regular price shown struck
+# through while a limited-time offer runs (2026-10-27: 6 months ৳1,149 → ৳999,
+# 1 year ৳2,199 → ৳1,899); the reader always pays `amount`. Mirrored by
+# frontend `lib/premium-plans.ts`. The 3-month plan ("quarterly", ৳499 / 90
+# days) was replaced by the 6-month one on 2026-10-27 — old payments keep that
+# key with their own amount + days stored on the payment row.
 PAID_PLANS: dict[str, dict] = {
     "monthly": {"amount": 199, "days": 30},
-    "quarterly": {"amount": 499, "days": 90},
-    "yearly": {"amount": 1499, "days": 365},
+    "halfyearly": {"amount": 999, "days": 180, "list_amount": 1149},
+    "yearly": {"amount": 1899, "days": 365, "list_amount": 2199},
 }
 METHODS = ("bkash", "nagad")
 STATUSES = ("pending", "accepted", "revoked")

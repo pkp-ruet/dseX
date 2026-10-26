@@ -15,6 +15,7 @@ import PayBox from "@/components/premium/PayBox";
 import PaymentHelp from "@/components/premium/PaymentHelp";
 import { useLang } from "@/context/LangContext";
 import { usePremium } from "@/lib/premium";
+import { OFFER } from "@/lib/premium-plans";
 import {
   BENEFITS, FAQS, HERO, PER_MONTH, PROMISES, ROWS, SECTIONS, STEPS, type Bi,
 } from "@/lib/premium-copy";
@@ -74,6 +75,7 @@ export default function PremiumBody() {
           lead={t(HERO.lead)}
         />
         <div className="pm-price">
+          <p className="pm-offer">{t(OFFER.label)}</p>
           <p>
             <span className="pm-price-from">{t(HERO.from)}</span>{" "}
             <span className="pm-price-num">৳{PER_MONTH}</span>{" "}
@@ -128,6 +130,7 @@ export default function PremiumBody() {
           bn={sub(SECTIONS.plan)}
           lead={
             <>
+              <span className="block font-semibold text-text-main">{t(OFFER.line)}</span>
               {t(SECTIONS.planLead)}{" "}
               <Link href="/refund-policy" className="font-semibold text-primary-ink hover:underline">
                 {t(SECTIONS.refund)}

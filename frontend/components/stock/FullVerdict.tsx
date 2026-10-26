@@ -381,7 +381,10 @@ function VerdictOffer({
         <b className="tabular-nums">৳{LOWEST_PRICE}</b> {t("a month", "মাসে")}
         {YEARLY_MONTH != null && (
           <span className="text-text-muted">
-            {t(` · about ৳${YEARLY_MONTH} a month on the yearly plan`, ` · বছরের প্ল্যানে মাসে প্রায় ৳${YEARLY_MONTH}`)}
+            {t(
+              ` · about ৳${YEARLY_MONTH} a month on the yearly plan (limited-time offer)`,
+              ` · বছরের প্ল্যানে মাসে প্রায় ৳${YEARLY_MONTH} (সীমিত সময়ের অফার)`,
+            )}
           </span>
         )}
       </p>
