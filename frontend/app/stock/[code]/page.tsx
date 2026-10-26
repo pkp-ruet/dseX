@@ -11,14 +11,11 @@ import FeaturedInStrip from "@/components/stock/FeaturedInStrip";
 import HeroSection from "@/components/stock/HeroSection";
 import PriceChart from "@/components/stock/PriceChart";
 import VerdictBlock from "@/components/stock/VerdictBlock";
-import ValueTodayBox from "@/components/stock/ValueTodayBox";
-import HealthCheck from "@/components/stock/HealthCheck";
 import ValuationPanel from "@/components/stock/ValuationPanel";
 import CompanyFacts from "@/components/stock/CompanyFacts";
 import FinancialTrends from "@/components/stock/FinancialTrends";
 import DividendTimeline from "@/components/stock/DividendTimeline";
 import MomentumStrip from "@/components/stock/MomentumStrip";
-import SignalBoard from "@/components/stock/SignalBoard";
 import PeerComparison from "@/components/stock/PeerComparison";
 import ProfitsAndDividends from "@/components/stock/ProfitsAndDividends";
 import ShareholdingPie from "@/components/stock/ShareholdingPie";
@@ -27,9 +24,7 @@ import StickySummaryBar from "@/components/stock/StickySummaryBar";
 import { type NavSection } from "@/components/stock/StockSectionNav";
 import StockVisitTracker from "@/components/analytics/StockVisitTracker";
 import StockChapter from "@/components/stock/StockChapter";
-import ScoreHistory from "@/components/stock/ScoreHistory";
-import ResultsExplained from "@/components/stock/ResultsExplained";
-import StockPremium, { type PremiumItem } from "@/components/stock/StockPremium";
+import FullVerdict from "@/components/stock/FullVerdict";
 import StockLockScope from "@/components/premium/LockScope";
 import { formatDate, money } from "@/lib/formatters";
 
@@ -259,7 +254,10 @@ export default async function StockDetailPage({ params }: PageProps) {
     : null;
 
   // --- Decide which sections render, then build the jump-nav from that ---------
-  const hasHealth = !!score_row;
+  // "Facts are free, our verdict is Premium" (2026-10-27): every judgement on
+  // the stock lives in ONE chapter (FullVerdict); the other chapters carry
+  // only public numbers and have no locks.
+  const hasVerdict = !!score_row;
   const hasValuation = financials.length > 0;
   const hasFinancials = financials.length > 0;
   const hasFacts =
@@ -267,30 +265,19 @@ export default async function StockDetailPage({ params }: PageProps) {
     profile.reserve_surplus_mn != null || profile.paid_up_capital_mn != null || financials.length > 0;
   const hasDividends = dividendRows.length > 0;
   const hasMomentum = !!momentum && momentum.momentum_grade !== "unknown";
-  const hasSignals = (signal_flags?.green?.length ?? 0) + (signal_flags?.red?.length ?? 0) > 0;
   const hasPeers = (related_stocks?.length ?? 0) > 0;
-  const hasScoreHistory = (detail.score_history?.points.length ?? 0) >= 2;
-  const hasResults = !!detail.results_explained;
 
-  // Five chapters (2026-10 redesign) instead of ten jump targets. The hero,
-  // chart and verdict form the Overview, above the sticky chip row.
   const hasCompany = true; // ownership + news always render (with their own empty states)
   const sections: NavSection[] = [
     { id: "ch-overview", label: "Overview" },
-    ...(hasHealth || hasSignals || hasScoreHistory ? [{ id: "ch-health", label: "Health" }] : []),
+    ...(hasVerdict ? [{ id: "ch-verdict", label: "Full verdict" }] : []),
     ...(hasValuation || hasMomentum || hasPeers ? [{ id: "ch-value", label: "Price & value" }] : []),
-    ...(hasFinancials || hasDividends || hasResults ? [{ id: "ch-money", label: "Profits & dividends" }] : []),
+    ...(hasFinancials || hasDividends ? [{ id: "ch-money", label: "Profits & dividends" }] : []),
     ...(hasCompany ? [{ id: "ch-company", label: "Company & news" }] : []),
   ];
 
   // One plain line of facts under each chapter title — numbers that are free
   // everywhere, never the locked analysis.
-  const pillarKeys = ["p1_biz", "p2_health", "p3_moat", "p4_val", "p5_div"] as const;
-  const pillarVals = pillarKeys.map((k) => num(score_row?.[k])).filter((v): v is number => v != null);
-  const healthyCount = pillarVals.filter((v) => v >= 6).length;
-  const healthLead = pillarVals.length
-    ? `${healthyCount} of ${pillarVals.length} checks look healthy.`
-    : undefined;
   const peNow = valuation?.current_pe ?? num(score_row?.current_pe);
   const valueBits = [
     peNow != null && peNow > 0 ? `P/E ${peNow.toFixed(1)}` : null,
@@ -310,42 +297,6 @@ export default async function StockDetailPage({ params }: PageProps) {
     news.length ? `${news.length} news ${news.length === 1 ? "item" : "items"}` : null,
   ].filter(Boolean);
   const companyLead = companyBits.length ? `${companyBits.join(" · ")}.` : undefined;
-
-  // What is locked on THIS stock — the list in the page's one Premium
-  // section (every lock below blurs in place and links to it).
-  const sig = detail.signal?.signal;
-  const pillarCount = pillarVals.length;
-  const flagsLocked =
-    Math.max(0, (signal_flags?.green?.length ?? 0) - 1) + Math.max(0, (signal_flags?.red?.length ?? 0) - 1);
-  const premiumItems: PremiumItem[] = [
-    ...(sig === "buy" || sig === "sell"
-      ? [{
-          en: `Why it is a ${sig === "buy" ? "Buy" : "Sell"} right now, in full`,
-          bn: `কেন এখন ${sig === "buy" ? "কেনার" : "বিক্রির"} সংকেত — পুরো কারণ`,
-        }]
-      : [{ en: "Our full take on this stock", bn: "এই শেয়ার নিয়ে আমাদের পুরো মত" }]),
-    ...(detail.fair_value
-      ? [{ en: "Fair value: what the price should be", bn: "ন্যায্য দাম: দাম কত হওয়া উচিত" }]
-      : []),
-    ...(pillarCount > 1
-      ? [{ en: `The other ${pillarCount - 1} health checks, explained`, bn: `বাকি ${pillarCount - 1}টি স্বাস্থ্য পরীক্ষার ব্যাখ্যা` }]
-      : []),
-    ...(flagsLocked > 0
-      ? [{ en: `${flagsLocked} more good signs and watch-outs`, bn: `আরও ${flagsLocked}টি ভালো লক্ষণ ও সতর্কতা` }]
-      : []),
-    ...(hasResults
-      ? [{ en: "What the latest quarterly report means", bn: "সর্বশেষ ত্রৈমাসিক ফলের মানে" }]
-      : []),
-    ...(hasScoreHistory
-      ? [{ en: "Score chart and why the grade changed", bn: "স্কোরের চার্ট আর গ্রেড বদলের কারণ" }]
-      : []),
-    ...(hasValuation
-      ? [{ en: "Is today's price cheap or dear — our verdict", bn: "আজকের দাম সস্তা না দামি — আমাদের রায়" }]
-      : []),
-    ...(hasPeers
-      ? [{ en: "Where it stands in its sector", bn: "খাতের মধ্যে এর অবস্থান" }]
-      : []),
-  ];
 
   // Current stock as the highlighted first row of the peer comparison.
   const currentPeerRow = {
@@ -383,17 +334,16 @@ export default async function StockDetailPage({ params }: PageProps) {
 
       <StockVisitTracker code={profile.trading_code} />
 
-      {/* Every PremiumGate below blurs in place and points at #ch-premium; on
-          the free report of the day they all open. */}
-      <StockLockScope code={profile.trading_code} anchor="ch-premium">
+      {/* The free report of the day opens every lock for everyone. */}
+      <StockLockScope code={profile.trading_code}>
 
-      {/* Chapter 1 · Overview — hero (id ch-overview), the price story, the verdict
-          and the lists it appears in. Above the sticky chip row. */}
+      {/* Chapter 1 · Overview — hero (id ch-overview), the price story, the
+          "At a glance" card (score, grade, signal, take, five bars) and the
+          lists it appears in. Above the sticky chip row. */}
       <HeroSection detail={detail} />
       <PriceChart code={profile.trading_code} />
       <VerdictBlock detail={detail} />
       <FeaturedInStrip entries={featuredIn} />
-      {score != null && <StockPremium code={profile.trading_code} name={name} items={premiumItems} />}
 
       {/* The ONE sticky element: summary line (code · signal · price) above the
           chapter chips. `.stock-sticky-stack` (globals.css) pins it under navbar +
@@ -411,28 +361,20 @@ export default async function StockDetailPage({ params }: PageProps) {
         sections={sections}
       />
 
-      {/* Chapter 2 · Health */}
-      {(hasHealth || hasSignals || hasScoreHistory) && (
-        <StockChapter id="ch-health" title="Health" bn="কোম্পানিটি কতটা সুস্থ" lead={healthLead}>
-          {hasHealth && score_row && <HealthCheck scoreRow={score_row} detail={detail} />}
-          {hasScoreHistory && detail.score_history && (
-            <ScoreHistory history={detail.score_history} code={profile.trading_code} />
-          )}
-          {hasSignals && <SignalBoard flags={signal_flags} />}
-        </StockChapter>
-      )}
+      {/* Chapter 2 · The full verdict — the page's one Premium chapter. */}
+      {hasVerdict && <FullVerdict detail={detail} />}
 
       {/* Chapter 3 · Price and value */}
       {(hasValuation || hasMomentum || hasPeers) && (
         <StockChapter id="ch-value" title="Price and value" bn="দাম সস্তা না দামি" lead={valueLead}>
           {hasValuation && (
             <>
-              {detail.fair_value && <ValueTodayBox fairValue={detail.fair_value} className="mb-8" />}
               <ValuationPanel
                 financials={financials}
                 latestPrice={detail.latest_price}
                 scoreRow={score_row}
                 valuation={valuation}
+                verdictHref={hasVerdict ? "#v-price" : undefined}
               />
             </>
           )}
@@ -449,11 +391,8 @@ export default async function StockDetailPage({ params }: PageProps) {
       )}
 
       {/* Chapter 4 · Profits and dividends */}
-      {(hasFinancials || hasDividends || hasResults) && (
+      {(hasFinancials || hasDividends) && (
         <StockChapter id="ch-money" title="Profits and dividends" bn="লাভ আর লভ্যাংশ" lead={moneyLead}>
-          {hasResults && detail.results_explained && (
-            <ResultsExplained results={detail.results_explained} code={profile.trading_code} />
-          )}
           {hasFinancials && (
             <div id="financials" className="stock-anchor">
               <ProfitsAndDividends

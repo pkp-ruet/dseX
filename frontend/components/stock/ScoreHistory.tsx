@@ -8,8 +8,6 @@ import { CHART } from "@/lib/chart-theme";
 import { TIER_LABELS, TIER_LABELS_BN, TIER_THRESHOLDS } from "@/lib/constants";
 import { formatDate } from "@/lib/formatters";
 import Card from "@/components/ui/Card";
-import SectionTitle from "@/components/stock/SectionTitle";
-import PremiumGate from "@/components/premium/PremiumGate";
 import { useStockLang } from "@/context/StockLangContext";
 
 const LINES = [
@@ -81,13 +79,27 @@ function ChangeRow({ c, isBn }: { c: ScoreChange; isBn: boolean }) {
   );
 }
 
+/** The free line: today's score + grade, since when we track it, how often
+ *  the grade changed. */
+export function scoreHistorySummary(history: ScoreHistoryData, isBn: boolean): string | null {
+  const pts = history.points;
+  if (pts.length < 2) return null;
+  const now = pts[pts.length - 1];
+  const first = pts[0];
+  const n = history.grade_changes;
+  return isBn
+    ? `আজ ${now.score.toFixed(0)} (${tierWord(now.tier, true)}) · ${formatDate(first.date)} থেকে প্রতিদিন দেখা হচ্ছে · গ্রেড বদলেছে ${n} বার`
+    : `${now.score.toFixed(0)} today (${tierWord(now.tier, false)}) · tracked every trading day since ${formatDate(first.date)} · grade changed ${n} ${n === 1 ? "time" : "times"}`;
+}
+
 /**
  * "How the score has moved" — our score for this company on every trading
  * day since we started keeping it (9 Jul 2026), and each grade change with
- * the pillar that caused it (backend services/score_history.py). The summary
- * line is free; the chart and the reasons are Premium (screen-only lock).
+ * the pillar that caused it (backend services/score_history.py). Rendered in
+ * the stock page's full verdict, whose question row carries the free summary
+ * line (`scoreHistorySummary`) and wraps this in `PremiumMask`.
  */
-export default function ScoreHistory({ history, code }: { history: ScoreHistoryData; code: string }) {
+export default function ScoreHistory({ history }: { history: ScoreHistoryData }) {
   const { lang } = useStockLang();
   const isBn = lang === "bn";
   const pts = history.points;
@@ -95,78 +107,51 @@ export default function ScoreHistory({ history, code }: { history: ScoreHistoryD
 
   const now = pts[pts.length - 1];
   const first = pts[0];
-  const n = history.grade_changes;
   const scores = pts.map((p) => p.score);
   const lo = Math.max(0, Math.floor((Math.min(...scores) - 5) / 5) * 5);
   const hi = Math.min(100, Math.ceil((Math.max(...scores) + 5) / 5) * 5);
 
-  const summary = isBn
-    ? `আজ ${now.score.toFixed(0)} (${tierWord(now.tier, true)}) · ${formatDate(first.date)} থেকে প্রতিদিন দেখা হচ্ছে · গ্রেড বদলেছে ${n} বার`
-    : `${now.score.toFixed(0)} today (${tierWord(now.tier, false)}) · tracked every trading day since ${formatDate(first.date)} · grade changed ${n} ${n === 1 ? "time" : "times"}`;
-
-  const stakes = n
-    ? [isBn ? `${code}-এর গ্রেড ${n} বার বদলেছে — কেন, দেখুন` : `${code}'s grade changed ${n} ${n === 1 ? "time" : "times"} — see why`]
-    : [isBn ? `${code}-এর প্রতিদিনের স্কোর` : `${code}'s score on every trading day`];
-
   return (
-    <section id="score-history" className="mb-8 stock-anchor">
-      <SectionTitle
-        title="How the score has moved"
-        sub="Our score for this company on every trading day, and why the grade changed."
-        bn="প্রতিদিনের স্কোর — গ্রেড কবে আর কেন বদলেছে।"
-      />
-      <Card padding="lg">
-        <p className={`text-sm text-text-main ${isBn ? "font-bn" : ""}`} lang={isBn ? "bn" : undefined}>
-          {summary}
-        </p>
-        <PremiumGate
-          label={isBn ? "স্কোরের চার্ট আর গ্রেড বদলের কারণ" : "The score chart and why the grade changed"}
-          preview="blur"
-          peek={180}
-          stakes={stakes}
-          className="mt-4"
-        >
-          <div className="h-[220px]" aria-label={isBn ? "স্কোরের চার্ট" : "Score chart"} role="img">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={pts} margin={CHART.margin}>
-                <CartesianGrid {...CHART.grid} />
-                <XAxis dataKey="date" tickFormatter={shortDate} {...CHART.xAxis} />
-                <YAxis domain={[lo, hi]} {...CHART.yAxis} width={32} allowDecimals={false} />
-                <Tooltip
-                  {...CHART.tooltip}
-                  labelFormatter={(l) => formatDate(String(l))}
-                  formatter={(v) => [Number(v).toFixed(1), isBn ? "স্কোর" : "Score"]}
-                />
-                {LINES.filter((l) => l.y > lo && l.y < hi).map((l) => (
-                  <ReferenceLine
-                    key={l.y}
-                    y={l.y}
-                    {...CHART.reference}
-                    label={{ value: isBn ? l.bn : l.en, position: "insideTopLeft", fontSize: 12, fill: "var(--text-muted)" }}
-                  />
-                ))}
-                <Line type="stepAfter" dataKey="score" stroke={CHART.color.primary} {...CHART.line} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-          <div className={`mt-5 ${isBn ? "font-bn" : ""}`} lang={isBn ? "bn" : undefined}>
-            <h4 className="text-sm font-bold text-text-main mb-3">
-              {isBn ? "গ্রেড যখন বদলেছে" : "When the grade changed"}
-            </h4>
-            {history.changes.length ? (
-              <ol className="space-y-4">
-                {history.changes.map((c) => <ChangeRow key={`${c.date}-${c.to_tier}`} c={c} isBn={isBn} />)}
-              </ol>
-            ) : (
-              <p className="text-sm text-text-muted">
-                {isBn
-                  ? `${formatDate(first.date)} থেকে গ্রেড একই আছে: ${tierWord(now.tier, true)}।`
-                  : `The grade has stayed ${tierWord(now.tier, false)} since ${formatDate(first.date)}.`}
-              </p>
-            )}
-          </div>
-        </PremiumGate>
-      </Card>
-    </section>
+    <Card padding="lg">
+      <div className="h-[220px]" aria-label={isBn ? "স্কোরের চার্ট" : "Score chart"} role="img">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={pts} margin={CHART.margin}>
+            <CartesianGrid {...CHART.grid} />
+            <XAxis dataKey="date" tickFormatter={shortDate} {...CHART.xAxis} />
+            <YAxis domain={[lo, hi]} {...CHART.yAxis} width={32} allowDecimals={false} />
+            <Tooltip
+              {...CHART.tooltip}
+              labelFormatter={(l) => formatDate(String(l))}
+              formatter={(v) => [Number(v).toFixed(1), isBn ? "স্কোর" : "Score"]}
+            />
+            {LINES.filter((l) => l.y > lo && l.y < hi).map((l) => (
+              <ReferenceLine
+                key={l.y}
+                y={l.y}
+                {...CHART.reference}
+                label={{ value: isBn ? l.bn : l.en, position: "insideTopLeft", fontSize: 12, fill: "var(--text-muted)" }}
+              />
+            ))}
+            <Line type="stepAfter" dataKey="score" stroke={CHART.color.primary} {...CHART.line} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      <div className={`mt-5 ${isBn ? "font-bn" : ""}`} lang={isBn ? "bn" : undefined}>
+        <h4 className="text-sm font-bold text-text-main mb-3">
+          {isBn ? "গ্রেড যখন বদলেছে" : "When the grade changed"}
+        </h4>
+        {history.changes.length ? (
+          <ol className="space-y-4">
+            {history.changes.map((c) => <ChangeRow key={`${c.date}-${c.to_tier}`} c={c} isBn={isBn} />)}
+          </ol>
+        ) : (
+          <p className="text-sm text-text-muted">
+            {isBn
+              ? `${formatDate(first.date)} থেকে গ্রেড একই আছে: ${tierWord(now.tier, true)}।`
+              : `The grade has stayed ${tierWord(now.tier, false)} since ${formatDate(first.date)}.`}
+          </p>
+        )}
+      </div>
+    </Card>
   );
 }

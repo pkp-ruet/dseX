@@ -5,8 +5,7 @@ import type { ResultsExplained as ResultsData } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 import { RESULT_LEVEL } from "@/lib/results";
 import Card from "@/components/ui/Card";
-import SectionTitle from "@/components/stock/SectionTitle";
-import PremiumGate from "@/components/premium/PremiumGate";
+import PremiumMask from "@/components/premium/PremiumMask";
 import { useStockLang } from "@/context/StockLangContext";
 
 const TONE: Record<ResultsData["lines"][number]["tone"], string> = {
@@ -20,10 +19,10 @@ const TONE: Record<ResultsData["lines"][number]["tone"], string> = {
  * post) in plain words: profit so far this year, the latest quarter alone,
  * cash from the business, what the price costs on the last 12 months'
  * profit, how our score moved, and one sentence on what it means (backend
- * services/results_explainer.py). The headline and the profit line are free;
- * the rest is Premium (screen-only lock).
+ * services/results_explainer.py). Lives in the stock page's full verdict: the
+ * headline and the profit line are free, the rest sits behind `PremiumMask`.
  */
-export default function ResultsExplained({ results, code }: { results: ResultsData; code: string }) {
+export default function ResultsExplained({ results }: { results: ResultsData }) {
   const { lang } = useStockLang();
   const isBn = lang === "bn";
   const level = RESULT_LEVEL[results.level];
@@ -38,13 +37,7 @@ export default function ResultsExplained({ results, code }: { results: ResultsDa
   );
 
   return (
-    <section id="results" className="mb-8 stock-anchor">
-      <SectionTitle
-        title="Latest results, explained"
-        sub="The newest quarterly report in plain words."
-        bn="সর্বশেষ ত্রৈমাসিক ফল, সহজ ভাষায়।"
-      />
-      <Card padding="lg" className={isBn ? "font-bn" : ""}>
+    <Card padding="lg" className={isBn ? "font-bn" : ""}>
         <div lang={isBn ? "bn" : undefined}>
           <div className="flex flex-wrap items-center gap-2">
             <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${level.pill}`}>
@@ -59,18 +52,12 @@ export default function ResultsExplained({ results, code }: { results: ResultsDa
           <p className="mt-3 text-lg font-bold text-text-main">{t(results.headline_en, results.headline_bn)}</p>
           {first && <ul className="mt-3 space-y-2">{line(first)}</ul>}
           {rest.length > 0 && (
-            <PremiumGate
-              label={t("What this report means", "এই ফলের মানে কী")}
-              peek={56}
-              stakes={[t(`${rest.length} more points on ${code}'s report, and what it means`,
-                         `${code}-এর ফল নিয়ে আরও ${rest.length}টি কথা, আর এর মানে কী`)]}
-              className="mt-2"
-            >
+            <PremiumMask lines={3} className="mt-3">
               <ul className="space-y-2">{rest.map(line)}</ul>
               <p className="mt-4 rounded-lg bg-surface-2 p-3 text-sm font-semibold text-text-main">
                 {t(results.meaning_en, results.meaning_bn)}
               </p>
-            </PremiumGate>
+            </PremiumMask>
           )}
           <p className="mt-3 text-xs text-text-muted">
             {t("From the company's own quarterly post on DSE. Quarterly figures are not audited.",
@@ -80,7 +67,6 @@ export default function ResultsExplained({ results, code }: { results: ResultsDa
             </Link>
           </p>
         </div>
-      </Card>
-    </section>
+    </Card>
   );
 }

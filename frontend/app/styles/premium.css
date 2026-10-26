@@ -205,8 +205,9 @@
   .pm-hero { padding: var(--space-6) var(--space-4); }
 }
 
-/* Inside a lock scope (the stock page): one quiet line under the blurred
-   preview, pointing at the page's single Premium section (#ch-premium). */
+/* Inside a lock scope with an anchor (/market-analysis → #ma-premium): one
+   quiet line under the blurred preview, pointing at the page's single
+   Premium section. */
 .premium-inline-link {
   display: flex;
   align-items: center;
@@ -219,3 +220,19 @@
 }
 .premium-inline-link:hover span:last-child { text-decoration: underline; }
 .premium-inline-link:active { opacity: 0.7; }
+
+/* PremiumMask (the stock page's full verdict, 2026-10-27): the answer is
+   hidden for free readers and a few placeholder bars stand in for it. */
+.premium-locked[data-locked="true"][data-preview="mask"] > .premium-locked-body { display: none; }
+.premium-mask {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+}
+.premium-mask-line {
+  display: block;
+  height: 10px;
+  border-radius: 999px;
+  background: rgb(var(--primary-rgb) / 0.12);
+}

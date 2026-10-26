@@ -3,11 +3,9 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import type { BiText, RelatedStock } from "@/lib/api";
 import { useStockLang } from "@/context/StockLangContext";
-import { peerStandingCaption } from "@/lib/plain-language";
 import Card from "@/components/ui/Card";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import SectionTitle from "@/components/stock/SectionTitle";
-import PremiumGate from "@/components/premium/PremiumGate";
 
 export interface PeerRow {
   trading_code: string;
@@ -83,12 +81,6 @@ export default function PeerComparison({ current, peers, sector, note = null }: 
     return copy;
   }, [rows, sortKey, asc]);
 
-  const caption = peerStandingCaption(
-    current.trading_code,
-    current.score,
-    peers.map((p) => num(p.score)),
-  );
-
   if (peers.length === 0) return null;
 
   function toggleSort(key: SortKey) {
@@ -118,28 +110,16 @@ export default function PeerComparison({ current, peers, sector, note = null }: 
         bn="একই সেক্টরের সেরা কোম্পানিগুলোর সাথে তুলনা।"
       />
 
-      {/* Where it stands among them is Premium (screen-only lock); the table stays free. */}
-      {(caption || note) && (
-        <PremiumGate
-          label={isBn ? "এটি কোথায় দাঁড়িয়ে" : "Where it stands among them"}
-          preview="blur"
-          peek={36}
-          compact
-          className="mb-3"
+      {/* The table is free facts; where it stands among them (peerStandingCaption)
+          is part of the full verdict's price question. The note is a caveat about
+          the table itself, so it stays here. */}
+      {note && (
+        <p
+          className={`mb-3 text-sm leading-snug rounded-xl px-3 py-2.5 bg-surface-2 text-text-muted ${isBn ? "font-bn" : ""}`}
+          lang={isBn ? "bn" : undefined}
         >
-          {caption && (
-            <p className="text-sm font-semibold leading-snug mb-2 text-text-main">{caption}</p>
-          )}
-          {note && (
-            <p
-              className={`text-sm leading-snug rounded-xl px-3 py-2.5 ${isBn ? "font-bn" : ""}`}
-              lang={isBn ? "bn" : undefined}
-              style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
-            >
-              {isBn ? note.bn : note.en}
-            </p>
-          )}
-        </PremiumGate>
+          {isBn ? note.bn : note.en}
+        </p>
       )}
 
       <Card padding="none" className="rounded-xl overflow-hidden">

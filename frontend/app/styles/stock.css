@@ -58,3 +58,41 @@
   .stock-chapter[data-folded="true"] > .stock-chapter-body { display: none; }
   .stock-chapter[data-folded="true"] > div:first-child { margin-bottom: var(--space-1); }
 }
+
+/* ===================================================================
+   The full verdict (components/stock/FullVerdict, 2026-10-27) — the stock
+   page's one Premium chapter: numbered questions split by hairlines on the
+   canvas, then one offer card. No boxes around the questions themselves.
+   =================================================================== */
+.verdict-list { margin: 0; padding: 0; list-style: none; }
+.verdict-q { padding: var(--space-6) 0; }
+.verdict-q:first-child { padding-top: 0; }
+.verdict-list > .verdict-q + .verdict-q { border-top: 1px solid var(--border); }
+.verdict-q-n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--primary-ink);
+  background: rgb(var(--primary-rgb) / 0.12);
+}
+.verdict-q-body { margin-top: var(--space-4); }
+@media (min-width: 640px) {
+  .verdict-q-body { padding-left: 44px; }
+}
+.verdict-offer {
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-8);
+  padding: var(--space-6);
+  border: 1px solid rgb(var(--primary-rgb) / 0.3);
+  border-radius: var(--radius-xl);
+  background: rgb(var(--primary-rgb) / 0.05);
+}
+@media (max-width: 479px) {
+  .verdict-offer { padding: var(--space-6) var(--space-4); }
+}

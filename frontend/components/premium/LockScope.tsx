@@ -26,8 +26,9 @@ export function PageLockScope({ anchor, children }: { anchor: string; children: 
   return <Ctx.Provider value={{ anchor }}>{children}</Ctx.Provider>;
 }
 
-/** The stock page's scope: one Premium section, and the whole page opens when
- *  this is today's free report (decided after mount — the page is ISR). */
+/** The stock page's scope: the whole page opens when this is today's free
+ *  report (decided after mount — the page is ISR). The stock page's locks are
+ *  `PremiumMask`s inside its full verdict, so it passes no anchor. */
 export default function StockLockScope({ code, anchor, children }: { code: string; anchor?: string; children: ReactNode }) {
   const [unlocked, setUnlocked] = useState(false);
   useEffect(() => setUnlocked(isFreeReport(code)), [code]);

@@ -3,9 +3,8 @@ import { useState } from "react";
 import type { SignalFlags } from "@/lib/api";
 import { friendlyFlag } from "@/lib/plain-language";
 import Card from "@/components/ui/Card";
-import SectionTitle from "@/components/stock/SectionTitle";
 import { useStockLang } from "@/context/StockLangContext";
-import PremiumGate from "@/components/premium/PremiumGate";
+import PremiumMask from "@/components/premium/PremiumMask";
 
 interface Props {
   flags: SignalFlags;
@@ -25,13 +24,10 @@ function Column({
   if (!items.length) return null;
 
   const color = tone === "good" ? "var(--positive)" : "var(--negative)";
-  // The first item is free; the rest sit behind the premium lock (screen-only).
+  // The first item is free; the rest sit behind the premium mask (screen-only).
   const [first, ...rest] = items;
   const shown = showAll ? rest : rest.slice(0, INITIAL - 1);
   const more = rest.length;
-  const moreLabel = isBn
-    ? `আরও ${more}টি ${tone === "good" ? "ভালো লক্ষণ" : "সতর্কতা"}`
-    : `${more} more ${tone === "good" ? (more === 1 ? "good sign" : "good signs") : (more === 1 ? "watch-out" : "watch-outs")}`;
 
   const row = (raw: string, i: number) => (
     <li key={i} className="flex items-start gap-2.5">
@@ -65,7 +61,7 @@ function Column({
       </p>
       <ul className="space-y-2.5">{row(first, 0)}</ul>
       {more > 0 && (
-        <PremiumGate label={moreLabel} peek={44} compact className="mt-2.5">
+        <PremiumMask lines={Math.min(more, 3)} className="mt-2.5">
           <ul className="space-y-2.5">{shown.map((raw, i) => row(raw, i + 1))}</ul>
           {rest.length > INITIAL - 1 && (
             <button
@@ -76,12 +72,16 @@ function Column({
               {isBn ? (showAll ? "কম দেখুন" : `সবগুলো দেখুন (${items.length})`) : (showAll ? "Show less" : `Show all ${items.length}`)}
             </button>
           )}
-        </PremiumGate>
+        </PremiumMask>
       )}
     </Card>
   );
 }
 
+/**
+ * Good signs and watch-outs (backend services/stock_facts.py), in the stock
+ * page's full verdict: the top one of each is free, the rest are Premium.
+ */
 export default function SignalBoard({ flags }: Props) {
   const { lang } = useStockLang();
   const isBn = lang === "bn";
@@ -96,19 +96,9 @@ export default function SignalBoard({ flags }: Props) {
       : (tone === "good" ? flags.green : flags.red).map(friendlyFlag);
 
   return (
-    <section id="signals" className="mb-8 stock-anchor">
-      <SectionTitle
-        title="Signals at a Glance"
-        sub={<>
-            The good signs and the things to keep an eye on.
-        </>}
-        bn="ভালো লক্ষণ আর যেগুলোতে নজর রাখা দরকার।"
-      />
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Column title={isBn ? "ভালো লক্ষণ" : "Good signs"} items={pick("good")} tone="good" isBn={isBn} />
-        <Column title={isBn ? "সতর্ক থাকার দিক" : "Watch-outs"} items={pick("watch")} tone="watch" isBn={isBn} />
-      </div>
-    </section>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <Column title={isBn ? "ভালো লক্ষণ" : "Good signs"} items={pick("good")} tone="good" isBn={isBn} />
+      <Column title={isBn ? "সতর্ক থাকার দিক" : "Watch-outs"} items={pick("watch")} tone="watch" isBn={isBn} />
+    </div>
   );
 }

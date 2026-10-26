@@ -19,7 +19,7 @@ const TICK = CHART.xAxis.tick;
 const TIP_STYLE = CHART.tooltip.contentStyle;
 
 export default function FinancialTrends({ extFinancials }: Props) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
 
   const rows = normalizeExtFinancials(extFinancials);
   if (rows.length < 2) return null;

@@ -8,8 +8,7 @@ import {
 } from "@/lib/stock-metrics";
 import type { CompanyDetail } from "@/lib/api";
 import Card from "@/components/ui/Card";
-import PremiumGate from "@/components/premium/PremiumGate";
-import SectionTitle from "@/components/stock/SectionTitle";
+import PremiumMask from "@/components/premium/PremiumMask";
 import { useStockLang } from "@/context/StockLangContext";
 
 type ScoreRow = Record<string, number | string | boolean | null>;
@@ -139,6 +138,53 @@ function pillarNumbers(pillarKey: string, detail: CompanyDetail): { label: strin
   return out;
 }
 
+/** The five pillar scores as bars — free, the shape of the company at a
+ *  glance (the "At a glance" card at the top of the stock page). */
+export function PillarBars({ scoreRow }: { scoreRow: ScoreRow }) {
+  const { lang } = useStockLang();
+  const isBn = lang === "bn";
+  const bars = HEALTH_PILLAR_ORDER
+    .map((key) => ({ key, value: toNum(scoreRow[key] as number | null) }))
+    .filter((b) => b.value != null);
+  if (bars.length === 0) return null;
+
+  return (
+    <div className="space-y-2.5">
+      {bars.map((b) => {
+        const v = b.value as number;
+        const color = pillarColor(v);
+        const name = PILLAR_NAMES[b.key];
+        return (
+          <div key={b.key} className="flex items-center gap-3">
+            <span
+              className={`w-[8.5rem] sm:w-[10rem] shrink-0 text-xs font-semibold leading-tight text-text-muted ${isBn ? "font-bn" : ""}`}
+              lang={isBn ? "bn" : undefined}
+            >
+              {isBn ? name?.bn : name?.en}
+            </span>
+            <div
+              className="h-2 flex-1 overflow-hidden rounded-full bg-surface-2"
+              role="img"
+              aria-label={`${name?.en ?? b.key}: ${v.toFixed(1)} out of 10`}
+            >
+              <div className="h-full rounded-full" style={{ width: `${Math.max(2, Math.min(100, v * 10))}%`, background: color }} />
+            </div>
+            <span className="w-8 shrink-0 text-right text-xs font-extrabold tabular-nums nums" style={{ color }}>
+              {v.toFixed(1)}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * The five checks, explained — one row per pillar that opens to the plain
+ * explanation, the real figures and the sub-scores. Lives in the stock page's
+ * full verdict (2026-10-27): the first check is free, the other four sit
+ * behind `PremiumMask`.
+ */
 export default function HealthCheck({ scoreRow, detail }: Props) {
   const { lang } = useStockLang();
   const isBn = lang === "bn";
@@ -157,69 +203,19 @@ export default function HealthCheck({ scoreRow, detail }: Props) {
 
   if (rows.length === 0) return null;
 
-  const bars = HEALTH_PILLAR_ORDER
-    .map((key) => ({ key, value: toNum(scoreRow[key] as number | null) }))
-    .filter((b) => b.value != null);
-
   return (
-    <section id="health" className="mb-8 stock-anchor">
-      <SectionTitle
-        title="The Health Check"
-        sub={<>
-            Five quick checks that tell you whether this company is healthy, fairly priced, and worth holding.
-        </>}
-        bn="পাঁচটি সহজ পরীক্ষায় দেখুন কোম্পানিটি কতটা সুস্থ।"
-      />
-
-      {/* At-a-glance: the five pillars as bars, so the shape reads before anyone taps */}
-      {bars.length > 0 && (
-        <Card padding="none" className="rounded-xl p-4 sm:p-5 mb-3">
+    <div className="space-y-2.5">
+      <HealthRow row={rows[0]} scoreRow={scoreRow} detail={detail} isBn={isBn} />
+      {rows.length > 1 && (
+        <PremiumMask lines={3}>
           <div className="space-y-2.5">
-            {bars.map((b) => {
-              const v = b.value as number;
-              const color = pillarColor(v);
-              const name = PILLAR_NAMES[b.key];
-              return (
-                <div key={b.key} className="flex items-center gap-3">
-                  <span
-                    className={`w-[8.5rem] sm:w-[10rem] shrink-0 text-xs font-semibold leading-tight ${isBn ? "font-bn" : ""}`}
-                    lang={isBn ? "bn" : undefined}
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    {isBn ? name?.bn : name?.en}
-                  </span>
-                  <div
-                    className="h-2 flex-1 overflow-hidden rounded-full bg-surface-2"
-                    role="img"
-                    aria-label={`${name?.en ?? b.key}: ${v.toFixed(1)} out of 10`}
-                  >
-                    <div className="h-full rounded-full" style={{ width: `${Math.max(2, Math.min(100, v * 10))}%`, background: color }} />
-                  </div>
-                  <span className="w-8 shrink-0 text-right text-xs font-extrabold tabular-nums nums" style={{ color }}>
-                    {v.toFixed(1)}
-                  </span>
-                </div>
-              );
-            })}
+            {rows.slice(1).map((row) => (
+              <HealthRow key={row.pillarKey} row={row} scoreRow={scoreRow} detail={detail} isBn={isBn} />
+            ))}
           </div>
-        </Card>
+        </PremiumMask>
       )}
-
-      {/* The first check is free; the other four sit behind the premium lock
-          (screen-only — the bars above stay free for everyone). */}
-      <div className="space-y-2.5">
-        <HealthRow row={rows[0]} scoreRow={scoreRow} detail={detail} isBn={isBn} />
-        {rows.length > 1 && (
-          <PremiumGate label={isBn ? "বাকি চারটি পরীক্ষা" : "The other four checks"} peek={150}>
-            <div className="space-y-2.5">
-              {rows.slice(1).map((row) => (
-                <HealthRow key={row.pillarKey} row={row} scoreRow={scoreRow} detail={detail} isBn={isBn} />
-              ))}
-            </div>
-          </PremiumGate>
-        )}
-      </div>
-    </section>
+    </div>
   );
 }
 

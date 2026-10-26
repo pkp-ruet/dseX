@@ -1,94 +1,63 @@
 "use client";
-import Link from "next/link";
-import { verdictTone } from "@/lib/plain-language";
-import { getTier, SIGNAL_VAR } from "@/lib/constants";
-import { sectorSlug } from "@/lib/sector";
+import { getTier } from "@/lib/constants";
+import { HEALTH_PILLAR_ORDER } from "@/lib/plain-language";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import TierPill from "@/components/ui/TierPill";
 import SignalChip from "@/components/ui/SignalChip";
-import { IconChartBars, IconTrophy } from "@/components/stock/StockIcons";
+import { PillarBars } from "@/components/stock/HealthCheck";
 import { useStockLang } from "@/context/StockLangContext";
 import type { CompanyDetail } from "@/lib/api";
-import PremiumGate from "@/components/premium/PremiumGate";
 
 interface Props {
   detail: CompanyDetail;
 }
 
 const T = {
-  brand: { en: "TopStockBD analysis", bn: "TopStockBD বিশ্লেষণ" },
+  brand: { en: "At a glance", bn: "এক নজরে" },
   score: { en: "Fundamental Score", bn: "মৌলিক স্কোর" },
-  take: { en: "Our take", bn: "এক নজরে" },
+  take: { en: "Our take", bn: "আমাদের মত" },
+  checks: { en: "Five checks, out of 10", bn: "পাঁচটি পরীক্ষা, 10-এর মধ্যে" },
+  whyBuy: { en: "Why a Buy? Read the full verdict", bn: "কেন কেনার সংকেত? পুরো বিশ্লেষণ পড়ুন" },
+  whySell: { en: "Why a Sell? Read the full verdict", bn: "কেন বিক্রির সংকেত? পুরো বিশ্লেষণ পড়ুন" },
+  why: { en: "Read the full verdict", bn: "পুরো বিশ্লেষণ পড়ুন" },
   generic: {
     en: "Our take on this stock — combining its financial health with how the market is treating it right now.",
     bn: "এই শেয়ার নিয়ে আমাদের মত — এর আর্থিক অবস্থা আর বাজারের বর্তমান আচরণ মিলিয়ে।",
   },
-  eduNote: { en: "Educational information, not investment advice.", bn: "এটি শিক্ষামূলক তথ্য, বিনিয়োগ পরামর্শ নয়।" },
-  deepEyebrow: { en: "In-depth report", bn: "গভীর বিশ্লেষণ" },
-  deepCta: { en: "Read the full analysis", bn: "সম্পূর্ণ বিশ্লেষণ পড়ুন" },
-  sectorAvg: { en: "sector average", bn: "খাতের গড়" },
-  lockLabel: { en: "The full reasoning", bn: "পুরো ব্যাখ্যা" },
 } as const;
 
-function ordinal(n: number): string {
-  const s = ["th", "st", "nd", "rd"];
-  const v = n % 100;
-  return `${n}${s[(v - 20) % 10] || s[v] || s[0]}`;
-}
-
 /**
- * The single "Our Verdict" card: score ring + verdict word + the Buy / Sell
- * signal with its reason, the sector standing, the take (English verdict prose
- * or the cached Bengali এক নজরে), and the in-depth-analysis hook.
+ * "At a glance" (2026-10-27) — everything free about our view of a stock in
+ * one card: score ring, grade, the Buy / Sell chip, the one-line take and the
+ * five checks as bars, then one link down to the full verdict chapter, where
+ * the reasons live (FullVerdict). No locks in this card.
  *
  * The company name, code, sector and price are NOT repeated here — the hero
- * directly above already carries them, and on a phone the two stacked headers
- * used to fill a whole screen. The page-wide language toggle lives in the hero
- * too; this card only reads `StockLangContext`. Score, tier and signal are the
- * shared primitives (`ScoreBadge` lg / `TierPill` md / `SignalChip` md) — the
- * same three the rank table and cards use, just bigger. Both language blocks
- * of the take are rendered into the server HTML and toggled by visibility, so
- * crawlers still see the Bengali.
+ * directly above already carries them. Score, tier and signal are the shared
+ * primitives (`ScoreBadge` lg / `TierPill` md / `SignalChip` md). Both
+ * language blocks of the take are rendered into the server HTML and toggled
+ * by visibility, so crawlers still see the Bengali.
  */
 export default function VerdictBlock({ detail }: Props) {
-  const { score_row, profile, verdict, signal, bengali_summary, deep_analysis, sector_context } = detail;
+  const { score_row, profile, verdict, signal, bengali_summary } = detail;
   const { lang } = useStockLang();
   const isBn = lang === "bn";
 
   const score = (score_row?.score as number | null) ?? null;
-  const tone = verdictTone(score);
   const tier = getTier(score);
   const code = profile.trading_code;
 
   const tagline = verdict?.tagline ?? null;
   const sentences = (verdict?.sentences ?? []).filter(Boolean);
 
-  // Bengali "এক নজরে" prose — split blank-line-separated paragraphs.
+  // Bengali "এক নজরে" prose — the first paragraph is the free lead.
   const bnSummary = bengali_summary?.trim() || "";
   const bnParas = bnSummary ? bnSummary.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean) : [];
 
-  // The reason rides with both Buy and Sell — a Sell is exactly where the reader
-  // most needs the why. Neutral (`none`) shows no chip and no reason.
   const isSell = signal?.signal === "sell";
   const isBuy = signal?.signal === "buy";
-  const reason = isBn ? signal?.reason_bn : signal?.reason_en;
-  const showReason = (isBuy || isSell) && !!reason;
-
-  // Sector standing — the API has always returned this; nothing rendered it.
-  const rank = sector_context?.rank_in_sector ?? null;
-  const peers = sector_context?.peer_count ?? null;
-  const sectorAvg = sector_context?.sector_avg_score ?? null;
-  const sectorName = sector_context?.sector ?? profile.sector ?? null;
-  const hasStanding = rank != null && peers != null && peers >= 2 && !!sectorName;
-
-  // Free lead line vs what sits behind the premium lock.
   const freeEn = tagline ?? sentences[0] ?? null;
-  const lockedSentences = tagline ? sentences : sentences.slice(1);
-  const hasLocked = showReason || hasStanding || lockedSentences.length > 0 || bnParas.length > 1;
-
-  const hasDeep = !!deep_analysis?.available;
-  const deepHeadline = (isBn ? deep_analysis?.headline_bn : deep_analysis?.headline_en) ?? deep_analysis?.headline_en ?? "";
-  const deepBottom = (isBn ? deep_analysis?.bottom_line_bn : deep_analysis?.bottom_line_en) ?? deep_analysis?.bottom_line_en ?? "";
+  const hasBars = HEALTH_PILLAR_ORDER.some((k) => score_row?.[k] != null);
 
   // Small sentence-case labels (2026-10 redesign: no uppercase tracked eyebrows).
   const eyebrowCls = (bn: boolean) => `text-xs font-semibold ${bn ? "font-bn" : ""}`;
@@ -117,9 +86,7 @@ export default function VerdictBlock({ detail }: Props) {
               )}
             </div>
 
-            {/* The take — language-aware. Both blocks live in the DOM (SEO); one is hidden.
-                Free: the first line of the take. Premium (PremiumGate, screen-only):
-                the signal's reason, the sector standing and the rest of the take. */}
+            {/* The take — language-aware. Both blocks live in the DOM (SEO); one is hidden. */}
             <div className="mt-4">
               <p className={`${eyebrowCls(isBn)} mb-2 text-text-muted`}>
                 {T.take[lang]}
@@ -146,105 +113,25 @@ export default function VerdictBlock({ detail }: Props) {
               </div>
             </div>
 
-            {hasLocked && (
-              <PremiumGate label={T.lockLabel[lang]} peek={96} className="mt-1">
-                {showReason && (
-                  <p
-                    className={`text-base sm:text-xl font-bold mt-3 leading-snug ${isBn ? "font-bn" : ""}`}
-                    lang={isBn ? "bn" : undefined}
-                    style={{ color: isSell ? SIGNAL_VAR.sell : "var(--text)" }}
-                  >
-                    {reason}
-                  </p>
-                )}
-
-                {hasStanding && (
-                  <p
-                    className={`mt-3 inline-flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm ${isBn ? "font-bn" : ""}`}
-                    lang={isBn ? "bn" : undefined}
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    <span className="inline-flex" style={{ color: tone.color }}><IconTrophy size={15} /></span>
-                    {isBn ? (
-                      <>
-                        <Link
-                          href={`/sector/${sectorSlug(sectorName as string)}`}
-                          prefetch={false}
-                          className="font-semibold hover:underline text-text-main"
-                        >
-                          {sectorName}
-                        </Link>
-                        <span>খাতে {peers}টির মধ্যে <b className="text-text-main">{rank} নম্বরে</b></span>
-                      </>
-                    ) : (
-                      <>
-                        <span>Ranked <b className="text-text-main">{ordinal(rank as number)}</b> of {peers} in</span>
-                        <Link
-                          href={`/sector/${sectorSlug(sectorName as string)}`}
-                          prefetch={false}
-                          className="font-semibold hover:underline text-text-main"
-                        >
-                          {sectorName}
-                        </Link>
-                      </>
-                    )}
-                    {sectorAvg != null && score != null && (
-                      <span>
-                        · {T.sectorAvg[lang]} <b className="tabular-nums nums text-text-main">{Math.round(sectorAvg)}</b>
-                      </span>
-                    )}
-                  </p>
-                )}
-
-
-                {/* English: the rest of the verdict sentences */}
-                {lockedSentences.length > 0 && (
-                  <ul className={`mt-3 space-y-1.5 ${isBn ? "hidden" : "block"}`}>
-                    {lockedSentences.map((line, i) => (
-                      <li key={i} className="flex gap-2.5 text-sm sm:text-sm leading-snug text-text-main">
-                        <span aria-hidden className="mt-[6px] h-1.5 w-1.5 rounded-full shrink-0" style={{ background: tone.color }} />
-                        <span>{line}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                {/* Bengali: the rest of the এক নজরে prose */}
-                {bnParas.length > 1 && (
-                  <div className={`font-bn mt-3 ${isBn ? "block" : "hidden"}`} lang="bn">
-                    <div className="space-y-3 leading-relaxed text-text-main">
-                      {bnParas.slice(1).map((p, i) => (
-                        <p key={i}>{p}</p>
-                      ))}
-                    </div>
-                    <p className="mt-3 text-sm text-text-muted">
-                      {T.eduNote.bn}
-                    </p>
-                  </div>
-                )}
-              </PremiumGate>
-            )}
           </div>
         </div>
 
-        {/* In-depth report — a plain link row under the take (no nested panel) */}
-        {hasDeep && (
-          <Link
-            href={`/stock/${code}/analysis`}
-            className={`mt-6 flex items-start gap-3 border-t border-border pt-4 hover:opacity-90 active:opacity-70 ${isBn ? "font-bn" : ""}`}
-            lang={isBn ? "bn" : undefined}
-          >
-            <span className="mt-0.5 inline-flex shrink-0 text-primary-ink" aria-hidden="true"><IconChartBars size={18} /></span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-xs font-semibold text-text-muted">{T.deepEyebrow[lang]}</span>
-              <span className="block text-base font-bold leading-snug text-text-main">{deepHeadline}</span>
-              {deepBottom && <span className="mt-0.5 block text-sm leading-relaxed text-text-muted line-clamp-2">{deepBottom}</span>}
-              <span className="mt-2 inline-flex min-h-10 items-center gap-1 text-sm font-semibold text-primary-ink">
-                {T.deepCta[lang]} <span aria-hidden="true">→</span>
-              </span>
-            </span>
-          </Link>
+        {/* The five checks as bars — the shape of the company, free. */}
+        {score_row && hasBars && (
+          <div className="mt-6 border-t border-border pt-5">
+            <p className={`${eyebrowCls(isBn)} mb-3 text-text-muted`}>{T.checks[lang]}</p>
+            <PillarBars scoreRow={score_row} />
+          </div>
         )}
+
+        {/* Why — the one way into the full verdict chapter below. */}
+        <a
+          href="#ch-verdict"
+          className={`mt-5 flex min-h-10 items-center gap-1 text-sm font-semibold text-primary-ink hover:underline active:opacity-70 ${isBn ? "font-bn" : ""}`}
+          lang={isBn ? "bn" : undefined}
+        >
+          {isBuy ? T.whyBuy[lang] : isSell ? T.whySell[lang] : T.why[lang]} <span aria-hidden="true">↓</span>
+        </a>
 
         {/* Footer watermark — for shared screenshots */}
         <div

@@ -26,6 +26,8 @@ export default function StockChapter({
   title,
   bn,
   lead,
+  fold = true,
+  action,
   children,
 }: {
   id: string;
@@ -33,6 +35,9 @@ export default function StockChapter({
   bn: string;
   /** One sentence of plain facts about this stock for the chapter. */
   lead?: ReactNode;
+  /** false = never folds on phones (the full verdict), and `action` takes the toggle's place. */
+  fold?: boolean;
+  action?: ReactNode;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -84,9 +89,9 @@ export default function StockChapter({
       id={id}
       aria-labelledby={`${id}-h`}
       className="stock-anchor stock-chapter"
-      data-folded={open ? "false" : "true"}
+      data-folded={open || !fold ? "false" : "true"}
     >
-      <SectionHeader id={`${id}-h`} title={title} bn={bn} lead={lead} size="lg" action={toggle} className="mb-5" />
+      <SectionHeader id={`${id}-h`} title={title} bn={bn} lead={lead} size="lg" action={fold ? toggle : action} className="mb-5" />
       <div id={`${id}-body`} className="stock-chapter-body">{children}</div>
     </section>
   );

@@ -1,4 +1,5 @@
 "use client";
+import type { ReactNode } from "react";
 import type { FairValue } from "@/lib/api";
 import type { Lang } from "@/components/stock/LangToggle";
 import { useStockLang } from "@/context/StockLangContext";
@@ -8,6 +9,8 @@ interface Props {
   fairValue: FairValue | null | undefined;
   /** Explicit language (the /analysis sub-page). Omit on the stock page to follow the page-wide toggle. */
   lang?: Lang;
+  /** false = no lock of its own (the stock page's full verdict masks the whole answer). */
+  gated?: boolean;
   className?: string;
 }
 
@@ -35,6 +38,10 @@ const T = {
   },
 } as const;
 
+function Gate({ on, label, children }: { on: boolean; label: string; children: ReactNode }) {
+  return on ? <PremiumGate label={label} preview="blur">{children}</PremiumGate> : <>{children}</>;
+}
+
 function stanceColor(stance: string | null | undefined): string {
   if (stance === "cheap") return "var(--positive)";
   if (stance === "expensive") return "var(--negative)";
@@ -50,7 +57,7 @@ function money(v: number | null | undefined): string {
   return `৳${v.toFixed(2)}`;
 }
 
-export default function ValueTodayBox({ fairValue, lang: langProp, className = "" }: Props) {
+export default function ValueTodayBox({ fairValue, lang: langProp, gated = true, className = "" }: Props) {
   const { lang: pageLang } = useStockLang();
   const lang: Lang = langProp ?? pageLang;
   if (!fairValue || fairValue.center == null) return null;
@@ -93,7 +100,7 @@ export default function ValueTodayBox({ fairValue, lang: langProp, className = "
       </p>
 
       {/* Everything below the title is Premium (screen-only lock, blurred preview). */}
-      <PremiumGate label={isBn ? "ন্যায্য দামের হিসাব" : "The fair-value estimate"} preview="blur">
+      <Gate on={gated} label={isBn ? "ন্যায্য দামের হিসাব" : "The fair-value estimate"}>
       <span
         className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold mb-3"
         style={{ background: color, color: "#fff" }}
@@ -173,7 +180,7 @@ export default function ValueTodayBox({ fairValue, lang: langProp, className = "
         </ul>
       )}
 
-      </PremiumGate>
+      </Gate>
 
       <p className="text-xs leading-snug mt-3 text-text-muted">
         {T.note[lang]}

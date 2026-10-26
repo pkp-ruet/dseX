@@ -4,12 +4,10 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine,
 } from "recharts";
 import type { LatestPrice, ValuationContext } from "@/lib/api";
-import { valuationCaption } from "@/lib/plain-language";
 import { peHistory, peRatio, pbRatio, toNum, avgIgnoringNulls } from "@/lib/stock-metrics";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import SectionTitle from "@/components/stock/SectionTitle";
-import PremiumGate from "@/components/premium/PremiumGate";
 import { CHART } from "@/lib/chart-theme";
 
 interface Props {
@@ -17,6 +15,8 @@ interface Props {
   latestPrice: LatestPrice;
   scoreRow: Record<string, number | string | boolean | null> | null;
   valuation?: ValuationContext | null;
+  /** Where our verdict on the price lives (the full verdict's price question). */
+  verdictHref?: string;
 }
 
 // Shared chart style (lib/chart-theme.ts) — 12px ticks, one tooltip look.
@@ -39,11 +39,10 @@ function tile(label: string, value: string, sub: string, color?: string) {
   );
 }
 
-export default function ValuationPanel({ financials, latestPrice, scoreRow, valuation }: Props) {
+export default function ValuationPanel({ financials, latestPrice, scoreRow, valuation, verdictHref }: Props) {
   const [tab, setTab] = useState<Tab>("pe");
 
   const ltp = latestPrice.ltp;
-  const p4 = toNum(scoreRow?.p4_val as number | null);
   const divYield = toNum(scoreRow?.div_yield_pct as number | null);
 
   // P/E series + own average
@@ -80,13 +79,7 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
   // Ensure selected tab is available
   const activeTab = tabs.some((t) => t.key === tab) ? tab : tabs[0]?.key;
 
-  // One verdict for the page — the backend's (P4 bands), which the Value box and
-  // the Health Check use too. The local band fallback is the same cut-offs.
-  const caption = valuationCaption(
-    valuation?.verdict === "cheap" ? 7 : valuation?.verdict === "fair" ? 5 : valuation?.verdict === "expensive" ? 0 : p4,
-  );
   const epsBasis = valuation?.eps_basis ?? null;
-  const avgLabel = valuation?.own_avg_pe_label?.en ?? "usual level";
   const avgShort = valuation?.own_avg_pe_label?.short_en ?? "avg";
 
   return (
@@ -116,11 +109,15 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
         )}
       </div>
 
-      {/* Our verdict on the price is Premium (screen-only lock); the ratios above stay free. */}
-      {caption && (
-        <PremiumGate label="Our verdict on today's price" preview="blur" peek={28} compact className="mb-4">
-          <p className="text-sm font-semibold leading-snug text-text-main">{caption}</p>
-        </PremiumGate>
+      {/* The ratios are free facts; our verdict on the price lives in the
+          full verdict (FullVerdict → PriceVerdict), one link away. */}
+      {verdictHref && (
+        <p className="mb-4 text-sm text-text-muted">
+          Cheap or dear at this price?{" "}
+          <a href={verdictHref} className="font-semibold text-primary-ink hover:underline">
+            See our verdict on the price
+          </a>
+        </p>
       )}
 
       {tabs.length > 0 && activeTab && (
@@ -164,15 +161,10 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
                   <Line type="monotone" dataKey="pe" stroke="var(--primary)" strokeWidth={2.5} dot={{ r: 3 }} />
                 </LineChart>
               </ResponsiveContainer>
-              {currentPe != null && ownAvgPe != null && (
-                <PremiumGate label="Today vs its usual P/E" preview="blur" peek={24} compact className="mt-3">
-                <p className="text-sm leading-snug text-text-muted">
-                  {currentPe < ownAvgPe
-                    ? `Trading at ${currentPe.toFixed(1)} — below its ${avgLabel} of ${ownAvgPe.toFixed(1)}.`
-                    : `Trading at ${currentPe.toFixed(1)} — above its ${avgLabel} of ${ownAvgPe.toFixed(1)}.`}
-                  {epsBasis?.basis === "ttm" && " (Today's P/E uses the last 12 months of profit; past years use each year's own.)"}
+              {epsBasis?.basis === "ttm" && (
+                <p className="text-sm leading-snug mt-3 text-text-muted">
+                  Today&apos;s P/E uses the last 12 months of profit; past years use each year&apos;s own.
                 </p>
-                </PremiumGate>
               )}
             </>
           )}
@@ -202,25 +194,6 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
                 {tile("This stock P/E", currentPe != null ? currentPe.toFixed(1) : "—", "Current price-to-earnings")}
                 {tile("Sector median P/E", sectorPe != null ? sectorPe.toFixed(1) : "—", "Typical peer in its sector")}
               </div>
-              <PremiumGate label="How it compares with its sector" preview="blur" peek={28} compact>
-              {currentPe != null && sectorPe != null && sectorPe > 0 && (
-                <p className="text-sm leading-snug mb-3 text-text-muted">
-                  {currentPe < sectorPe
-                    ? `Cheaper than the typical company in its sector (${(((sectorPe - currentPe) / sectorPe) * 100).toFixed(0)}% below the median).`
-                    : `Pricier than the typical company in its sector (${(((currentPe - sectorPe) / sectorPe) * 100).toFixed(0)}% above the median).`}
-                </p>
-              )}
-              {impliedPrice != null && ltp != null && (
-                <div
-                  className="rounded-xl p-3 text-sm leading-snug"
-                  style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
-                >
-                  At the sector-median P/E, this stock would be priced around{" "}
-                  <b className="text-text-main">৳{impliedPrice.toFixed(1)}</b> versus today&apos;s ৳{ltp.toFixed(1)}.{" "}
-                  <span className="opacity-80">(A peer comparison, not a fair-value estimate.)</span>
-                </div>
-              )}
-              </PremiumGate>
             </div>
           )}
         </Card>
