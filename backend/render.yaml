@@ -11,3 +11,9 @@ services:
         sync: false
       - key: ALLOWED_ORIGINS
         sync: false
+      # glibc gives every thread its own malloc arena; a threaded Python server
+      # then holds far more RSS than it uses. Two arenas is the usual cure.
+      - key: MALLOC_ARENA_MAX
+        value: "2"
+      - key: THREADPOOL_SIZE
+        value: "20"

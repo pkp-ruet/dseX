@@ -22,6 +22,7 @@ from backend.services.db_service import (
     adjustment_factor_fn,
     compute_market_intelligence,
     get_db,
+    load_52w_ranges,
     load_companies,
     load_corporate_actions,
 )
@@ -175,23 +176,28 @@ def _market_window_raw(as_of: Optional[str] = None) -> dict:
     if today_dsex and ref_dsex and ref_dsex > 0:
         dsex_7d_pct = (today_dsex / ref_dsex - 1.0) * 100.0
 
-    # --- 4. 52-week min/max per code (one grouped aggregation) --------------
-    cutoff_365 = _date_str_minus_days(latest_date, 365)
-    range_agg = list(db.stock_prices.aggregate([
-        {"$match": {
-            "date": {"$gte": cutoff_365 if isinstance(cutoff_365, str) else cutoff_365},
-            "ltp": {"$gt": 0},
-        }},
-        {"$group": {
-            "_id": "$trading_code",
-            "hi": {"$max": CLOSE_EXPR},
-            "lo": {"$min": CLOSE_EXPR},
-        }},
-    ]))
-    range_by_code = {r["_id"]: r for r in range_agg}
-    # Record dates inside the year: range on adjusted prices (db_service).
-    range_by_code.update(adjusted_52w_ranges(
-        cutoff_365 if isinstance(cutoff_365, str) else _date_str(cutoff_365), latest_date_str))
+    # --- 4. 52-week min/max per code -----------------------------------------
+    if as_of is None:
+        # Live: the one shared, cached map (a second copy of this year-long
+        # pass ran here behind its own cache and doubled the memory spike).
+        range_by_code = load_52w_ranges()
+    else:
+        cutoff_365 = _date_str_minus_days(latest_date, 365)
+        range_agg = list(db.stock_prices.aggregate([
+            {"$match": {
+                "date": {"$gte": cutoff_365 if isinstance(cutoff_365, str) else cutoff_365},
+                "ltp": {"$gt": 0},
+            }},
+            {"$group": {
+                "_id": "$trading_code",
+                "hi": {"$max": CLOSE_EXPR},
+                "lo": {"$min": CLOSE_EXPR},
+            }},
+        ]))
+        range_by_code = {r["_id"]: r for r in range_agg}
+        # Record dates inside the year: range on adjusted prices (db_service).
+        range_by_code.update(adjusted_52w_ranges(
+            cutoff_365 if isinstance(cutoff_365, str) else _date_str(cutoff_365), latest_date_str))
     actions_by_code = load_corporate_actions()
     ref_date_str = _date_str(ref_date)
 

@@ -114,6 +114,15 @@ def startup():
         _startup_step(name, fn)
 
 
+@app.on_event("startup")
+async def limit_threadpool():
+    """Sync endpoints run on anyio's pool, 40 threads by default. On a 512 MB
+    instance that lets 40 heavy rebuilds overlap right after a cache clear, and
+    every thread can grow its own malloc arena. 20 still covers Mongo waits."""
+    from anyio import to_thread
+    to_thread.current_default_thread_limiter().total_tokens = int(os.getenv("THREADPOOL_SIZE", "20"))
+
+
 @app.on_event("shutdown")
 def shutdown():
     from backend.services.db_service import close_db

@@ -24,7 +24,8 @@ def method_days() -> frozenset[str]:
     """Dates we changed the scoring rules (a market-wide grade or score shift).
     One small read of every snapshot's grade and score, cached for six hours."""
     by_date: dict[str, dict[str, dict]] = {}
-    for d in get_db()[_COLLECTION].find({}, {"_id": 0, "date": 1, "trading_code": 1, "tier": 1, "score": 1}):
+    for d in get_db()[_COLLECTION].find(
+            {}, {"_id": 0, "date": 1, "trading_code": 1, "tier": 1, "score": 1}).batch_size(1000):
         day, code = d.get("date"), d.get("trading_code")
         if day and code:
             by_date.setdefault(str(day)[:10], {})[code] = {"tier": d.get("tier"), "score": d.get("score")}

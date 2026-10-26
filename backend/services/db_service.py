@@ -118,13 +118,24 @@ def _ttl_cache(ttl_seconds: int = 300, max_entries: int = 50):
                     hit, val = _fresh(key)
                     if hit:
                         return val
-                val = fn(*args, **kwargs)
+                try:
+                    val = fn(*args, **kwargs)
+                except BaseException:
+                    with _lock:
+                        _inflight.pop(key, None)
+                    raise
                 with _lock:
-                    _store[key] = {"val": val, "at": time.time()}
+                    _inflight.pop(key, None)
+                    now = time.time()
+                    # Expired entries were only ever dropped by LRU overflow, so
+                    # a crawl over every stock page kept ~360 dead per-code
+                    # payloads resident until the next one pushed them out.
+                    for k in [k for k, v in _store.items() if now - v["at"] >= ttl_seconds]:
+                        del _store[k]
+                    _store[key] = {"val": val, "at": now}
                     _store.move_to_end(key)
                     while len(_store) > max_entries:
                         _store.popitem(last=False)
-                    _inflight.pop(key, None)
                 return val
 
         def cache_clear():
@@ -357,14 +368,40 @@ def adjusted_52w_ranges(since: str, until: Optional[str] = None) -> dict[str, di
     q: dict = {"trading_code": {"$in": codes}, "ltp": {"$gt": 0}, "date": {"$gte": since}}
     if until:
         q["date"]["$lte"] = until
-    by_code: dict[str, list[dict]] = {}
-    for d in get_db().stock_prices.find(q, {"_id": 0, "trading_code": 1, "date": 1, "ltp": 1, "close_price": 1, "ycp": 1}):
-        by_code.setdefault(d["trading_code"], []).append(use_official_close(d))
-    out = {}
-    for code, rows in by_code.items():
-        vals = [r["ltp"] for r in adjust_price_rows(rows, acts.get(code, [])) if r.get("ltp")]
-        if vals:
-            out[code] = {"hi": max(vals), "lo": min(vals)}
+    # Streamed in small batches: a running hi/lo per code. Collecting the year
+    # of rows first (~60k dicts) peaked at ~34 MB per rebuild, twice over with
+    # the momentum window's copy; with the default batches pymongo decodes
+    # ~16 MB of rows at once anyway, so the batch size is what cuts it (~1 MB).
+    cursor = get_db().stock_prices.find(
+        q, {"_id": 0, "trading_code": 1, "date": 1, "ltp": 1, "close_price": 1}).batch_size(1000)
+    return _stream_adjusted_ranges(cursor, acts)
+
+
+def _stream_adjusted_ranges(rows, acts: dict[str, list[dict]]) -> dict[str, dict]:
+    """{code: {"hi", "lo"}} over price rows, each adjusted exactly as
+    `adjust_price_rows` would (rounded, only on/before a record date)."""
+    fns: dict[str, tuple] = {}
+    out: dict[str, dict] = {}
+    for d in rows:
+        code = d["trading_code"]
+        if code not in fns:
+            a = acts.get(code, [])
+            fns[code] = (a, adjustment_factor_fn(a) if a else None)
+        a, f = fns[code]
+        close = d.get("close_price")
+        p = close if close is not None and close > 0 else d.get("ltp")
+        day = str(d.get("date") or "")[:10]
+        if f and p is not None and any(day <= x["record_date"] for x in a):
+            p = round(f(day, p), 2)
+        if not p:
+            continue
+        r = out.get(code)
+        if r is None:
+            out[code] = {"hi": p, "lo": p}
+        elif p > r["hi"]:
+            r["hi"] = p
+        elif p < r["lo"]:
+            r["lo"] = p
     return out
 
 
