@@ -2061,25 +2061,19 @@ export async function apiDeleteAlert(id: string): Promise<{ alerts: PriceAlert[]
 // Visit tracking
 // ---------------------------------------------------------------------------
 
-export interface StreakInfo {
-  current_streak: number;
-  longest_streak: number;
-  milestone_hit: number | null; // 7 / 30 / 100 when a milestone is reached this check-in
-}
-
 export async function apiAuthPing(
   path?: string,
   extra?: { standalone?: boolean; platform?: string },
-): Promise<{ streak: StreakInfo | null } | null> {
+): Promise<void> {
   const token = getToken();
-  if (!token) return null;
+  if (!token) return;
   const body: Record<string, unknown> = {};
   if (path) body.path = path;
   if (extra?.standalone) body.standalone = true;
   if (extra?.platform) body.platform = extra.platform;
   const hasBody = Object.keys(body).length > 0;
   try {
-    const res = await fetch(`${getApiUrl()}/api/auth/ping`, {
+    await fetch(`${getApiUrl()}/api/auth/ping`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -2087,11 +2081,8 @@ export async function apiAuthPing(
       },
       ...(hasBody ? { body: JSON.stringify(body) } : {}),
     });
-    if (!res.ok) return null;
-    return (await res.json()) as { streak: StreakInfo | null };
   } catch {
     // fire-and-forget
-    return null;
   }
 }
 

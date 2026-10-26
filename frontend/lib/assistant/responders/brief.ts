@@ -20,7 +20,6 @@ import { loadWatchlist } from "@/lib/watchlist";
 import { loadAlerts } from "@/lib/price-alerts";
 import { buildHomeAlerts } from "@/lib/home-alerts";
 import { portfolioTodayMove } from "@/lib/portfolio-analysis";
-import { getStreak } from "@/lib/streak";
 import { loadScoreUniverse, indexByCode } from "../company-index";
 import { marketPulseResponder } from "./marketPulse";
 import { STARTER_CHIPS } from "../chips";
@@ -66,15 +65,6 @@ export async function briefBlocks(): Promise<MessageBlock[]> {
   const blocks: MessageBlock[] = [
     { type: "text", text: COPY.brief.headline, bn: COPY.brief.headlineBn },
   ];
-
-  const streak = getStreak();
-  if (streak && streak.current_streak >= 2) {
-    blocks.push({
-      type: "text",
-      text: COPY.brief.streak(streak.current_streak),
-      bn: COPY.brief.streakBn(streak.current_streak),
-    });
-  }
 
   // Logged-out: market + tip + a sign-in nudge.
   if (!loggedIn) {

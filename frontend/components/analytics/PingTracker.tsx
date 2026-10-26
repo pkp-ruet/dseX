@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { apiAuthPing } from "@/lib/api";
 import { isStandalone, isIOS } from "@/lib/push";
-import { publishStreak } from "@/lib/streak";
 
 /** Coarse install platform, reported only when running as an installed PWA. */
 function detectPlatform(): string {
@@ -47,9 +46,7 @@ export default function PingTracker() {
     apiAuthPing(
       pingPath,
       standalone ? { standalone: true, platform: detectPlatform() } : undefined,
-    ).then((r) => {
-      if (r?.streak) publishStreak(r.streak);
-    });
+    );
   }, [isLoggedIn, pathname]);
 
   return null;

@@ -14,8 +14,6 @@ export interface AuthUser {
   total_visits: number;
   is_active: boolean;
   is_admin: boolean;
-  current_streak?: number;
-  longest_streak?: number;
   // Plan (backend `entitlements.plan_fields`). Optional: a user cached before
   // premium shipped has none of these until the next /me refresh.
   is_premium?: boolean;

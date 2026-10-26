@@ -105,8 +105,6 @@ export const COPY = {
   brief: {
     headline: "Here's your quick brief for today 👋",
     headlineBn: "আজকের সংক্ষিপ্ত খবর — আপনার জন্য 👋",
-    streak: (n: number) => `Day ${n} 🔥 — nice, you've checked in ${n} days running.`,
-    streakBn: (n: number) => `${n} দিন 🔥 — বাহ, টানা ${n} দিন এসেছেন।`,
     nothingPersonal:
       "Your watchlist and portfolio are quiet today — nothing big moved. Here's the market instead:",
     nothingPersonalBn:

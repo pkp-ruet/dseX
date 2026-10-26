@@ -26,7 +26,7 @@ log = logging.getLogger("push-digest")
 
 _DIGEST_PROJECTION = {
     "_id": 0, "user_id": 1, "display_name": 1, "watchlist": 1,
-    "portfolio": 1, "current_streak": 1, "last_checkin_date": 1,
+    "portfolio": 1,
     "notification_prefs": 1, "digest_state": 1,
 }
 
@@ -228,19 +228,6 @@ def _near_alert_angle(ctx: dict, user: dict, lang: str) -> Optional[dict]:
 # ---------------------------------------------------------------------------
 # Render one user → {title, body, url, tag, v} | None
 # ---------------------------------------------------------------------------
-
-def _with_streak(user: dict, payload: dict, lang: str) -> dict:
-    """Append a loss-aversion streak nudge when they have a run going and haven't
-    checked in yet today."""
-    streak = int(user.get("current_streak") or 0)
-    today = _dhaka_day(datetime.now(timezone.utc))
-    if streak >= 2 and user.get("last_checkin_date") != today:
-        if lang == "bn":
-            payload["body"] += f" — টানা {streak} দিন 🔥"
-        else:
-            payload["body"] += f" — Day {streak} 🔥 keep it going"
-    return payload
-
 
 def _portfolio_angle(
     pf: dict, state: dict, ctx: dict, held: list[str],
@@ -473,7 +460,7 @@ def render_digest_for_user(user: dict, ctx: dict) -> Optional[dict]:
     payload["tag"] = "daily-digest"
     if state_update:
         payload["_state"] = state_update
-    return _with_streak(user, payload, lang)
+    return payload
 
 
 # ---------------------------------------------------------------------------

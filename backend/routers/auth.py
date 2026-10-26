@@ -18,7 +18,6 @@ from backend.services.auth_service import (
     create_or_link_google_user,
     sanitize_user,
     public_user,
-    record_streak_checkin,
 )
 from backend.services.db_service import get_db
 
@@ -233,13 +232,6 @@ def ping(
             )
         except Exception:  # noqa: BLE001 — install flag must never break the ping
             logging.getLogger("auth").warning("install flag write failed", exc_info=True)
-    # Daily check-in streak (any app visit counts). Best-effort: a streak write
-    # failure must never break the ping.
-    streak = None
-    try:
-        streak = record_streak_checkin(uid)
-    except Exception:  # noqa: BLE001 — streak must never fail the request
-        logging.getLogger("auth").warning("streak update failed", exc_info=True)
     # Best-effort page-view event. Collapses repeats of the same path within a
     # minute into one row (count++) to bound write volume. Never break the ping.
     if body and body.path:
@@ -253,4 +245,4 @@ def ping(
             )
         except Exception:  # noqa: BLE001 — analytics write must never fail the request
             logging.getLogger("auth").warning("user_events write failed", exc_info=True)
-    return {"streak": streak}
+    return {"ok": True}

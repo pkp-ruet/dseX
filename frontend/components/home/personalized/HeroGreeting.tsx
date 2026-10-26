@@ -1,19 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { bstHour } from "@/lib/market-hours";
 import type { Lang } from "@/context/LangContext";
-import type { BriefSegment } from "@/lib/daily-brief";
 import { t } from "@/lib/home-copy";
 import MarketStatusPill from "@/components/home/personalized/MarketStatusPill";
-import StreakBadge from "@/components/home/personalized/StreakBadge";
 import LangToggle from "@/components/stock/LangToggle";
-
-const TONE_CLASS: Record<NonNullable<BriefSegment["tone"]>, string> = {
-  pos: "text-positive",
-  neg: "text-negative",
-  accent: "text-primary",
-};
+import { IconChevron } from "@/components/home/personalized/DashIcons";
 
 /** Time-of-day greeting on the BST wall clock (client-rendered subtree). */
 function greetingForHour(h: number, lang: Lang): string {
@@ -23,17 +15,16 @@ function greetingForHour(h: number, lang: Lang): string {
 }
 
 /**
- * The top of the money hero: a quiet eyebrow (date · greeting · name) with the
- * language switch and the live market pill on the right, then the ONE sentence
- * that answers "what should I know today" — the daily brief — as the page's
- * headline. The greeting used to be the headline; a sentence about the
- * reader's own stocks earns that slot better than "Good morning".
+ * The top of the money hero: a quiet eyebrow (date) with the language switch
+ * and the live market pill on the right, the greeting as the page's headline,
+ * then one quiet line — how many things need attention on the reader's
+ * stocks (a jump to the "Needs your attention" card), or "All quiet".
  */
 export default function HeroGreeting({
   name,
   dateStr,
   isNew = false,
-  brief,
+  updates = null,
   lang,
   onLang,
 }: {
@@ -41,8 +32,8 @@ export default function HeroGreeting({
   dateStr: string;
   /** First render right after signup — greet as new instead of time-of-day. */
   isNew?: boolean;
-  /** The daily brief, as coloured runs. Empty → the greeting is the headline. */
-  brief: BriefSegment[];
+  /** Rows in "Needs your attention". null → no line (still loading, or no stocks yet). */
+  updates?: number | null;
   lang: Lang;
   onLang: (l: Lang) => void;
 }) {
@@ -58,8 +49,7 @@ export default function HeroGreeting({
     <div lang={bn ? "bn" : undefined} className={bn ? "font-bn" : undefined}>
       <div className="flex items-start justify-between gap-2">
         <p className="min-w-0 flex-1 truncate pt-1 text-xs font-semibold text-text-muted">
-          {dateStr} · {greeting}
-          {who}
+          {dateStr}
         </p>
         <div className="flex shrink-0 items-center gap-1.5">
           <LangToggle value={lang} onChange={onLang} size="sm" />
@@ -67,38 +57,29 @@ export default function HeroGreeting({
         </div>
       </div>
 
-      {brief.length > 0 ? (
-        <h1 className="mt-1.5 text-2xl font-bold leading-snug tracking-tight text-text-main sm:text-3xl">
-          {brief.map((s, i) =>
-            s.href ? (
-              <Link
-                key={i}
-                href={s.href}
-                prefetch={false}
-                className={`underline decoration-current/30 underline-offset-[3px] hover:decoration-current active:opacity-70 ${
-                  s.tone ? TONE_CLASS[s.tone] : ""
-                }`}
-              >
-                {s.text}
-              </Link>
-            ) : (
-              <span key={i} className={s.tone ? TONE_CLASS[s.tone] : undefined}>
-                {s.text}
-              </span>
-            ),
-          )}
-        </h1>
-      ) : (
-        <h1 className="mt-1 text-2xl font-bold leading-tight tracking-tight text-text-main sm:text-3xl">
-          {greeting}
-          {who}
-        </h1>
-      )}
+      <h1 className="mt-1 text-2xl font-bold leading-tight tracking-tight text-text-main sm:text-3xl">
+        {greeting}
+        {who}
+      </h1>
 
-      {/* Only the streak, and only when there is one. */}
-      <div className="mt-1 flex flex-wrap items-center text-sm text-text-muted empty:hidden">
-        <StreakBadge />
-      </div>
+      {updates != null &&
+        (updates > 0 ? (
+          <a
+            href="#attention"
+            className="mt-1 inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-text-main hover:text-primary active:opacity-70"
+          >
+            <span className="h-2 w-2 rounded-full bg-watch" aria-hidden />
+            {updates === 1 ? t(lang, "updatesOne") : t(lang, "updatesMany", { n: updates })}
+            <span className="text-text-muted" aria-hidden>
+              <IconChevron size={16} />
+            </span>
+          </a>
+        ) : (
+          <p className="mt-1 flex min-h-10 items-center gap-2 text-sm text-text-muted">
+            <span className="h-2 w-2 rounded-full bg-positive" aria-hidden />
+            {t(lang, "allQuiet")}
+          </p>
+        ))}
     </div>
   );
 }

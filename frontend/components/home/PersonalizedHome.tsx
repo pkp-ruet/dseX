@@ -20,7 +20,6 @@ import { getStoredUser } from "@/lib/auth";
 import { consumeJustSignedUp } from "@/lib/welcome";
 import { portfolioTodayMove } from "@/lib/portfolio-analysis";
 import { buildHomeAlerts, type HomeAlertKind } from "@/lib/home-alerts";
-import { buildDailyBrief } from "@/lib/daily-brief";
 import { marketSession, isTradingDay, bstDateStr } from "@/lib/market-hours";
 import { bnDate } from "@/lib/bn";
 import { t } from "@/lib/home-copy";
@@ -206,26 +205,12 @@ export default function PersonalizedHome() {
   const followedCodes = Array.from(new Set([...watchedSet, ...heldSet])).sort();
 
 
-  // Portfolio move today — feeds the money hero + the daily brief.
+  // Portfolio move today — feeds the attention strip.
   const todayMove = hasPortfolio ? portfolioTodayMove(holdings!, priceMap) : null;
 
   // Before the open (or on a non-trading day) the prices are the previous
-  // close — the brief must not say "today" at 9 AM.
+  // close — the glance strip must not say "today" at 9 AM.
   const when = marketSession() === "pre" || !isTradingDay() ? "last" : "today";
-
-  // The one sentence at the top of the page.
-  const briefSegments = buildDailyBrief({
-    holdings: holdings ?? [],
-    codes,
-    priceMap,
-    todayMove,
-    extremes,
-    dividends,
-    marketIndex,
-    marketMood: marketState?.mood ?? null,
-    lang,
-    when,
-  });
 
   // "What needs attention" — built from data already loaded. News is excluded
   // (headlines live in NewsPeek); price rows are excluded (they are chips on
@@ -303,7 +288,7 @@ export default function PersonalizedHome() {
     ) : null;
   const attentionCard =
     attention.length > 0 ? (
-      <div data-card="attention">
+      <div id="attention" className="dash-section" data-card="attention">
         <AttentionStrip alerts={attention} lang={lang} />
       </div>
     ) : null;
@@ -506,14 +491,14 @@ export default function PersonalizedHome() {
   return (
     <PullToRefresh onRefresh={() => runFetches()}>
     <div className="pb-4" onClickCapture={onTap}>
-      {/* ── Chapter 1: the greeting + daily brief open on the canvas, then the
+      {/* ── Chapter 1: the greeting open on the canvas, then the
           money card, then the four-number glance strip. ── */}
       <section id="money" className="dash-section mt-5 space-y-4" data-card="money">
         <HeroGreeting
           name={user?.display_name}
           dateStr={dateStr}
           isNew={isNewUser}
-          brief={briefSegments}
+          updates={bundleSettled && (hasPortfolio || hasWatchlist) ? attention.length : null}
           lang={lang}
           onLang={onLang}
         />

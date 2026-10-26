@@ -76,6 +76,9 @@ const COPY = {
 
   // Attention
   needsAttention: ["Needs your attention", "আজ খেয়াল করুন"],
+  updatesOne: ["1 update on your stocks", "আপনার শেয়ারে 1টি আপডেট"],
+  updatesMany: ["{n} updates on your stocks", "আপনার শেয়ারে {n}টি আপডেট"],
+  allQuiet: ["All quiet on your stocks", "আপনার শেয়ারে নতুন কিছু নেই"],
   moreOnYourStocks: ["+{n} more on your stocks today", "আপনার শেয়ারে আরও {n}টি"],
 
   // News
