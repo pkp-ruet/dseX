@@ -6,11 +6,15 @@ later finds the payment in the bKash / Nagad app and **accepts** it, or
 **revokes** it, which takes those days back. There is no transaction ID — the
 admin matches on sender number, amount, time and the reader's reference code.
 
+An admin can also **change the plan** of a pending or accepted payment when
+the reader picked one plan but sent the money for another: amount and days
+follow the new plan and a granted end date moves by the difference.
+
 Guards: one unchecked (`pending`) payment per account at a time (unique
 partial index), and an account with a revoked payment no longer gets the days
 up front — its next payment waits for an admin to accept it.
 
-The rules (`normalize_sender`, `ref_code`, `revoke_until`, payloads) are pure
+The rules (`normalize_sender`, `ref_code`, `revoke_until`, `shift_until`, payloads) are pure
 and tested in `backend/tests/test_payments.py`; the rest is storage.
 """
 import re
@@ -32,6 +36,7 @@ ERR_PENDING = "payment_pending"
 ERR_PLAN = "bad_plan"
 ERR_METHOD = "bad_method"
 ERR_SENDER = "bad_sender"
+ERR_SAME_PLAN = "same_plan"
 
 RENEW_WINDOW_DAYS = (2, 5)  # remind once, 2–5 days before a paid plan ends
 
@@ -79,6 +84,15 @@ def revoke_until(current, days: int, now: datetime) -> datetime:
     """Take `days` back off the end date, never past now."""
     cur = _as_utc(current) or now
     return max(now, cur - timedelta(days=days))
+
+
+def shift_until(current, delta_days: int, now: datetime) -> datetime:
+    """Move an end date by `delta_days` after an admin corrects the plan: more
+    days are added like a payment (after any days left), fewer are taken back
+    like a revoke (never past now)."""
+    if delta_days >= 0:
+        return extend_until(current, delta_days, now)
+    return revoke_until(current, -delta_days, now)
 
 
 def renewal_payload(days_left: int, lang: str = "bn", caught: Optional[list[dict]] = None) -> dict:
@@ -276,6 +290,10 @@ def admin_list(status: Optional[str], limit: int = 200) -> dict:
             "name": d.get("name"),
             "ref_code": d.get("ref_code"),
             "reason": d.get("reason"),
+            "plan_changes": [
+                {"from": c.get("from"), "to": c.get("to"), "at": iso(c.get("at"))}
+                for c in d.get("plan_changes") or []
+            ],
             "premium_until_after": iso(d.get("premium_until_after")),
         })
     return {"items": out, "counts": counts, "month": month}
@@ -296,6 +314,49 @@ def accept(payment_id: str, admin_email: str) -> Optional[dict]:
         _grant(doc, now)
         _notify(doc["user_id"], accepted_payload)
     doc["status"] = "accepted"
+    return doc
+
+
+def change_plan(payment_id: str, plan: str, admin_email: str) -> Optional[dict]:
+    """Correct the plan of a pending / accepted payment (the reader picked one
+    plan but sent the money for another). Amount and days follow the plan; if
+    the days were already granted, the reader's end date moves by the
+    difference. Status is unchanged. Returns the payment, or None when it is
+    revoked or doesn't exist. Raises ValueError(ERR_PLAN / ERR_SAME_PLAN)."""
+    if plan not in PAID_PLANS:
+        raise ValueError(ERR_PLAN)
+    now = datetime.now(timezone.utc)
+    spec = PAID_PLANS[plan]
+    old = _payments().find_one(
+        {"payment_id": payment_id, "status": {"$in": ["pending", "accepted"]}}, {"_id": 0})
+    if not old:
+        return None
+    if old.get("plan") == plan:
+        raise ValueError(ERR_SAME_PLAN)
+    doc = _payments().find_one_and_update(
+        # Matching the old plan makes a double submit a no-op instead of
+        # moving the end date twice.
+        {"payment_id": payment_id, "plan": old.get("plan"),
+         "status": {"$in": ["pending", "accepted"]}},
+        {"$set": {"plan": plan, "amount": spec["amount"], "days": spec["days"],
+                  "plan_changed_at": now, "plan_changed_by": admin_email},
+         "$push": {"plan_changes": {"from": old.get("plan"), "from_amount": old.get("amount"),
+                                    "to": plan, "at": now, "by": admin_email}}},
+        projection={"_id": 0},
+        return_document=True,
+    )
+    if not doc:
+        return None
+    if doc.get("granted"):
+        delta = spec["days"] - int(old.get("days") or 0)
+        users = _db()["users"]
+        u = users.find_one({"user_id": doc["user_id"]}, {"premium_until": 1})
+        until = shift_until((u or {}).get("premium_until"), delta, now)
+        users.update_one({"user_id": doc["user_id"]},
+                         {"$set": {"premium_until": until, "paid_plan": plan, "updated_at": now}})
+        _payments().update_one({"payment_id": payment_id},
+                               {"$set": {"premium_until_after": until}})
+        doc["premium_until_after"] = until
     return doc
 
 

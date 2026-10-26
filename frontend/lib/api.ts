@@ -1466,6 +1466,8 @@ export interface AdminPayment extends PremiumPayment {
   name: string | null;
   ref_code: string;
   reason: string | null;
+  /** Admin corrections of the plan, oldest first. */
+  plan_changes?: { from: string; to: string; at: string | null }[];
   premium_until_after: string | null;
 }
 export interface AdminPaymentsResponse {
@@ -1481,6 +1483,18 @@ export async function apiGetAdminPayments(status: string): Promise<AdminPayments
 
 export async function apiAcceptPayment(id: string): Promise<{ ok: boolean }> {
   return apiAuthFetch(`/api/admin/payments/${id}/accept`, { method: "POST" });
+}
+
+/** Correct the plan of a pending / accepted payment — amount and days follow
+ *  it, and granted days move by the difference. */
+export async function apiChangePaymentPlan(
+  id: string,
+  plan: string,
+): Promise<{ ok: boolean; plan: string; amount: number; days: number }> {
+  return apiAuthFetch(`/api/admin/payments/${id}/plan`, {
+    method: "POST",
+    body: JSON.stringify({ plan }),
+  });
 }
 
 export async function apiRevokePayment(id: string, reason: string): Promise<{ ok: boolean }> {

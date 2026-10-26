@@ -554,6 +554,27 @@ def admin_accept_payment(payment_id: str, admin: dict = Depends(get_current_admi
     return {"ok": True, "id": payment_id, "status": "accepted"}
 
 
+class ChangePlanBody(BaseModel):
+    plan: str = Field(..., max_length=20)
+
+
+@router.post("/payments/{payment_id}/plan")
+def admin_change_payment_plan(
+    payment_id: str, body: ChangePlanBody, admin: dict = Depends(get_current_admin_user)
+):
+    """Correct the plan (and so the amount + days) of a pending / accepted payment."""
+    from backend.services import payments
+
+    try:
+        doc = payments.change_plan(payment_id, body.plan, admin.get("email") or "")
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    if not doc:
+        raise HTTPException(status_code=409, detail="already_revoked")
+    return {"ok": True, "id": payment_id, "plan": doc["plan"],
+            "amount": doc["amount"], "days": doc["days"]}
+
+
 @router.post("/payments/{payment_id}/revoke")
 def admin_revoke_payment(
     payment_id: str, body: RevokePaymentBody, admin: dict = Depends(get_current_admin_user)

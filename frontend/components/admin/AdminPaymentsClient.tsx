@@ -6,12 +6,13 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import {
   apiAcceptPayment,
+  apiChangePaymentPlan,
   apiGetAdminPayments,
   apiRevokePayment,
   type AdminPayment,
   type AdminPaymentsResponse,
 } from "@/lib/api";
-import { METHOD_LABEL, planByKey } from "@/lib/premium-plans";
+import { METHOD_LABEL, PAID_PLANS, planByKey } from "@/lib/premium-plans";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Tabs from "@/components/ui/Tabs";
@@ -48,7 +49,9 @@ const STATUS_TONE: Record<AdminPayment["status"], string> = {
  * against the bKash / Nagad statement (sender number, amount, time, reference
  * code) and Accept it, or Revoke it — which takes the plan's days back. A
  * "held" row (the account had a payment revoked before) only gets its days on
- * Accept.
+ * Accept. When the reader picked one plan but sent the money for another,
+ * "Change plan" corrects it (before or after accepting): amount and days follow
+ * the plan, and days already granted move by the difference.
  */
 export default function AdminPaymentsClient() {
   const router = useRouter();
@@ -58,6 +61,7 @@ export default function AdminPaymentsClient() {
   const [loadError, setLoadError] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [reasons, setReasons] = useState<Record<string, string>>({});
+  const [plans, setPlans] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (isLoading) return;
@@ -89,6 +93,36 @@ export default function AdminPaymentsClient() {
       refetch();
     } catch (err) {
       toast({ message: err instanceof Error ? err.message : "Could not update", tone: "error" });
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const changePlan = async (p: AdminPayment) => {
+    const next = planByKey(plans[p.id]);
+    if (!next || next.key === p.plan) return;
+    const diff = next.days - p.days;
+    const effect = p.granted
+      ? `Their Premium ${diff > 0 ? "gains" : "loses"} ${Math.abs(diff)} days.`
+      : "No days are granted yet — the new plan's days come on Accept.";
+    if (!window.confirm(
+      `Change ${p.sender}'s payment from ${planByKey(p.plan)?.name ?? p.plan} (৳${p.amount}) ` +
+      `to ${next.name} (৳${next.amount})?
+
+${effect}`,
+    )) return;
+    setBusyId(p.id);
+    try {
+      await apiChangePaymentPlan(p.id, next.key);
+      toast({ message: `Plan changed to ${next.name} · ৳${next.amount}`, tone: "success" });
+      setPlans((m) => {
+        const rest = { ...m };
+        delete rest[p.id];
+        return rest;
+      });
+      refetch();
+    } catch (err) {
+      toast({ message: err instanceof Error ? err.message : "Could not change the plan", tone: "error" });
     } finally {
       setBusyId(null);
     }
@@ -196,6 +230,12 @@ export default function AdminPaymentsClient() {
                   </span>
                 )}
                 {p.reason && <span className="text-text-muted">· {p.reason}</span>}
+                {p.plan_changes?.map((c, i) => (
+                  <span key={i} className="text-text-muted">
+                    · plan changed from {planByKey(c.from)?.name ?? c.from}
+                    {c.at ? ` on ${fmtTime(c.at)}` : ""}
+                  </span>
+                ))}
                 {p.reviewed_at && <span className="text-text-muted">· checked {fmtTime(p.reviewed_at)}</span>}
               </div>
               {p.status !== "revoked" && (
@@ -205,6 +245,26 @@ export default function AdminPaymentsClient() {
                       Accept
                     </Button>
                   )}
+                  <label htmlFor={`plan-${p.id}`} className="sr-only">Plan</label>
+                  <select
+                    id={`plan-${p.id}`}
+                    className="input-field w-auto text-sm"
+                    value={plans[p.id] ?? p.plan}
+                    onChange={(e) => setPlans((m) => ({ ...m, [p.id]: e.target.value }))}
+                  >
+                    {PAID_PLANS.map((pl) => (
+                      <option key={pl.key} value={pl.key}>{pl.name} · ৳{pl.amount}</option>
+                    ))}
+                  </select>
+                  <Button
+                    type="button"
+                    variant="quiet"
+                    size="sm"
+                    onClick={() => void changePlan(p)}
+                    disabled={busyId === p.id || !plans[p.id] || plans[p.id] === p.plan}
+                  >
+                    Change plan
+                  </Button>
                   <label htmlFor={`reason-${p.id}`} className="sr-only">Reason to revoke</label>
                   <select
                     id={`reason-${p.id}`}

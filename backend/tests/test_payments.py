@@ -67,3 +67,16 @@ def test_renewal_reminder_says_what_premium_caught():
     assert "২" not in renewal_payload(3, "bn", caught)["body"]  # Western digits in Bengali copy
     # Nothing caught → the plain reminder.
     assert renewal_payload(3, "en", [])["body"] == "Pick a plan again by bKash or Nagad to keep it on."
+
+
+def test_plan_change_moves_the_end_date_by_the_difference():
+    from backend.services.payments import shift_until
+
+    # Picked a year, paid for a month: 335 days come back off.
+    until = NOW + timedelta(days=365)
+    assert shift_until(until, 30 - 365, NOW) == NOW + timedelta(days=30)
+    # Picked a month, paid for a year: 335 more days.
+    assert shift_until(NOW + timedelta(days=30), 335, NOW) == NOW + timedelta(days=365)
+    # Never past now; an expired date grows from now.
+    assert shift_until(NOW + timedelta(days=10), -335, NOW) == NOW
+    assert shift_until(NOW - timedelta(days=5), 60, NOW) == NOW + timedelta(days=60)
