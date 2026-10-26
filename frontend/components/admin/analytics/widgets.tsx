@@ -21,7 +21,7 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <Card padding="none" className={`rounded-xl p-4 sm:p-5 ${className}`}>
+    <Card padding="none" className={`min-w-0 rounded-xl p-4 sm:p-5 ${className}`}>
       {(title || note) && (
         <div className="flex items-baseline justify-between gap-2 mb-3">
           {title && <h3 className="text-sm font-bold text-text-main">{title}</h3>}
@@ -48,7 +48,7 @@ export function MetricRow({ metrics, cols }: { metrics: Metric[]; cols?: string 
   return (
     <div className={`grid gap-3 ${cols ?? "grid-cols-2 lg:grid-cols-4"}`}>
       {metrics.map((m) => (
-        <Card key={m.label} padding="none" className="rounded-xl p-4" >
+        <Card key={m.label} padding="none" className="min-w-0 rounded-xl p-4">
           <div className="flex items-center gap-1.5">
             <p className="text-xs font-semibold   text-text-muted">
               {m.label}
@@ -227,13 +227,15 @@ export function HoursHeatmap({ matrix, max }: { matrix: number[][]; max: number 
   };
   const fmtHour = (h: number) => (h === 0 ? "12a" : h === 12 ? "12p" : h < 12 ? `${h}a` : `${h - 12}p`);
   return (
-    <div className="overflow-x-auto -mx-1 px-1">
-      <table className="border-separate" style={{ borderSpacing: "2px" }}>
+    // Fixed layout + full width: the 24 hour columns share the card's width, so
+    // the grid fits a phone instead of pushing the page sideways.
+    <div className="overflow-x-auto">
+      <table className="w-full table-fixed border-separate" style={{ borderSpacing: "2px" }}>
         <thead>
           <tr>
-            <th />
+            <th className="w-8" />
             {Array.from({ length: 24 }, (_, h) => (
-              <th key={h} className="text-xs text-text-muted font-medium tabular-nums w-6 text-center">
+              <th key={h} className="text-xs text-text-muted font-medium tabular-nums text-center overflow-visible whitespace-nowrap">
                 {h % 3 === 0 ? fmtHour(h) : ""}
               </th>
             ))}
@@ -248,7 +250,7 @@ export function HoursHeatmap({ matrix, max }: { matrix: number[][]; max: number 
               {row.map((v, h) => (
                 <td
                   key={h}
-                  className="w-6 h-5 rounded"
+                  className="h-5 rounded"
                   style={{ background: shade(v) }}
                   title={`${WEEKDAYS[d]} ${fmtHour(h)} — ${v.toLocaleString()} views`}
                 />

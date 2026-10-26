@@ -150,7 +150,7 @@ export default function AdminCampaignsClient() {
 
       <div className="grid gap-5 md:grid-cols-2">
         {/* ---- Left: audience + controls ---- */}
-        <div className="space-y-5">
+        <div className="min-w-0 space-y-5">
           <div className={card}>
             <h2 className="text-sm font-bold text-text-main mb-3">Who gets it today</h2>
             {overviewErr && <p className="text-negative text-sm">{overviewErr}</p>}
@@ -298,13 +298,13 @@ export default function AdminCampaignsClient() {
                 <Metric label="Failed" value={stats?.failed ?? 0} color="var(--negative)" />
                 <Metric label="Opened" value={stats?.opened ?? 0} color="var(--primary)" />
               </div>
-              {campaignId && <p className="text-xs text-text-muted mt-3">id: {campaignId}</p>}
+              {campaignId && <p className="text-xs text-text-muted mt-3 break-all">id: {campaignId}</p>}
             </div>
           )}
         </div>
 
         {/* ---- Right: live preview of the exact email ---- */}
-        <div className={card}>
+        <div className={`min-w-0 ${card}`}>
           <h2 className="text-sm font-bold text-text-main mb-3">Preview · the email everyone gets</h2>
           {previewErr && <p className="text-negative text-sm">{previewErr}</p>}
           <iframe
