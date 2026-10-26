@@ -41,6 +41,10 @@ const COPY = {
   chMoney: ["Your money", "আপনার টাকা"],
   chMarket: ["Market today", "আজকের বাজার"],
   chIdeas: ["Worth a look", "দেখার মতো"],
+  chIdeasSub: [
+    "Ready-made ways to find stocks today. Pick one, see the names, tap for the full list.",
+    "আজ শেয়ার খোঁজার তৈরি উপায়। একটি বেছে নিন, নামগুলো দেখুন, পুরো তালিকার জন্য ট্যাপ করুন।",
+  ],
   chDividends: ["Money coming", "টাকা আসছে"],
   chLearn: ["Learn", "শিখুন"],
 
@@ -133,8 +137,10 @@ const COPY = {
   // Lists rail
   // Research lists (homepage rail — full for Premium, a promotion card for everyone else)
   researchTitle: ["Research lists", "গবেষণা তালিকা"],
+  researchSub: ["Six ideas, each tested on every company with plain checks.", "ছয়টি আইডিয়া — প্রতিটি কোম্পানিকে সহজ যাচাইয়ে পরীক্ষা করা।"],
   // Screener card
   screenerTitle: ["Find stocks your way", "নিজের মতো শেয়ার খুঁজুন"],
+  screenerSub: ["Choose a goal and see which companies pass it today.", "একটি লক্ষ্য বেছে নিন — আজ কোন কোম্পানি পাস করছে দেখুন।"],
   screenerOpen: ["Screener", "স্ক্রিনার"],
   screenerSeeAll: ["See all {n} in the screener", "স্ক্রিনারে সব {n}টি দেখুন"],
   screenerChange: ["Change the checks", "শর্ত বদলান"],
@@ -167,6 +173,7 @@ const COPY = {
   trendingSub: ["Moved the most in the last 7 days", "গত 7 দিনে সবচেয়ে বেশি নড়েছে"],
   popularSub: ["Most opened by readers this week", "এ সপ্তাহে পাঠকেরা সবচেয়ে বেশি দেখছেন"],
   discoverTitle: ["More ways to find stocks", "শেয়ার খোঁজার আরও উপায়"],
+  discoverSub: ["Short lists from today's market — three names each.", "আজকের বাজারের ছোট তালিকা — প্রতিটিতে তিনটি নাম।"],
 
   // Glance strip
   glanceDsex: ["DSEX", "DSEX"],

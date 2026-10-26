@@ -72,7 +72,7 @@ export default function DiscoverRail({
 
   return (
     <div className={bn ? "font-bn" : undefined} lang={bn ? "bn" : undefined}>
-      <RailHeader title={t(lang, "discoverTitle")} />
+      <RailHeader title={t(lang, "discoverTitle")} sub={t(lang, "discoverSub")} />
       <Rail>
         {buyRows.length > 0 && (
           <RailCard

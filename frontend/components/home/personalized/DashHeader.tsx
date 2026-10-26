@@ -11,6 +11,7 @@ import { accVars } from "@/components/home/personalized/accents";
  */
 export default function DashHeader({
   title,
+  sub,
   chips,
   href,
   linkLabel,
@@ -19,6 +20,8 @@ export default function DashHeader({
   accent,
 }: {
   title: string;
+  /** One short line under the title saying what the card is for. */
+  sub?: string;
   /** Small pills rendered right after the title (counts, date, "N new"). */
   chips?: ReactNode;
   /** Right-aligned quiet link ("View all 12 →"). */
@@ -41,9 +44,12 @@ export default function DashHeader({
       {/* The title is the one thing here that may shrink (ellipsis); chips stay
           whole and the right-hand link is shrink-0. Before, every child was
           shrink-0 and the chips painted over the link on 360px phones. */}
-      <span className="flex min-w-0 flex-1 items-center gap-2">
-        <Tag className="min-w-0 truncate text-base font-bold text-text-main">{title}</Tag>
-        {chips}
+      <span className="min-w-0 flex-1">
+        <span className="flex min-w-0 items-center gap-2">
+          <Tag className="min-w-0 truncate text-base font-bold text-text-main">{title}</Tag>
+          {chips}
+        </span>
+        {sub && <p className="mt-0.5 text-sm leading-snug text-text-muted">{sub}</p>}
       </span>
       {right ??
         (href && linkLabel ? (

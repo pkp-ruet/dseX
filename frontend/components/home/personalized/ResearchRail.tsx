@@ -48,7 +48,12 @@ export default function ResearchRail({
   if (full) {
     return (
       <div className={bn ? "font-bn" : undefined} lang={bn ? "bn" : undefined}>
-        <RailHeader title={t(lang, "researchTitle")} href="/stock-insights#research" linkLabel={t(lang, "allLists")} />
+        <RailHeader
+          title={t(lang, "researchTitle")}
+          sub={t(lang, "researchSub")}
+          href="/stock-insights#research"
+          linkLabel={t(lang, "allLists")}
+        />
         <Rail>
           {rows.filter((r) => r.l && r.l.top.length > 0).map(({ def, l }) => (
             <RailCard
@@ -94,7 +99,12 @@ export default function ResearchRail({
 
   return (
     <div className={bn ? "font-bn" : undefined} lang={bn ? "bn" : undefined}>
-      <RailHeader title={t(lang, "researchTitle")} href="/stock-insights#research" linkLabel={t(lang, "allLists")} />
+      <RailHeader
+        title={t(lang, "researchTitle")}
+        sub={t(lang, "researchSub")}
+        href="/stock-insights#research"
+        linkLabel={t(lang, "allLists")}
+      />
       <article className="soft-card dash-box rl-promo">
         <span className="rl-promo-tag">
           <IconLock size={12} /> Premium

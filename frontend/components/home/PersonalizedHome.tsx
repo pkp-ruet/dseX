@@ -281,8 +281,8 @@ export default function PersonalizedHome() {
   }
 
   // Chapter title, with its Bengali line under it in English mode.
-  const head = (key: "chMarket" | "chIdeas" | "chDividends" | "chLearn", icon: React.ReactNode) => (
-    <ChapterHead label={t(lang, key)} bn={bn ? undefined : t("bn", key)} lang={lang} icon={icon} />
+  const head = (key: "chMarket" | "chIdeas" | "chDividends" | "chLearn", icon: React.ReactNode, sub?: string) => (
+    <ChapterHead label={t(lang, key)} bn={bn ? undefined : t("bn", key)} sub={sub} lang={lang} icon={icon} />
   );
 
   // ── The reader's own blocks. ──
@@ -439,37 +439,40 @@ export default function PersonalizedHome() {
   // ── Chapter 3: Worth a look — the screener card (goal chips + top three),
   //    then ONE swipe rail for buy signals / top ranked / trending / tips /
   //    popular, then the research lists. The "3 stocks worth a look / picked
-  //    for you" opener (TodaysIdeas) was removed 2026-10-26 (user decision). ──
+  //    for you" opener (TodaysIdeas) was removed 2026-10-26 (user decision).
+  //    Three different kinds of block, so they get more air between them than
+  //    the other chapters' card pairs, and each says in one line what it is. ──
   const ideasChapter = (
-    <section id="ideas" className={CHAPTER}>
-      {head("chIdeas", <IconSparkle size={16} />)}
-      {freeReportCard}
-
-      {(bundle?.screener?.goals?.length ?? 0) > 0 && (
-        <div data-card="screener">
-          <ScreenerCard
-            goals={bundle?.screener?.goals}
-            saved={bundle?.screener?.saved}
+    <section id="ideas" className="dash-section space-y-5">
+      {head("chIdeas", <IconSparkle size={16} />, t(lang, "chIdeasSub"))}
+      <div className="space-y-10">
+        {freeReportCard}
+        {(bundle?.screener?.goals?.length ?? 0) > 0 && (
+          <div data-card="screener">
+            <ScreenerCard
+              goals={bundle?.screener?.goals}
+              saved={bundle?.screener?.saved}
+              held={heldSet}
+              watched={watchedSet}
+              lang={lang}
+            />
+          </div>
+        )}
+        <div data-card="discover">
+          <DiscoverRail
+            buys={buys}
+            stocks={allStocks}
+            trending={top20}
+            popular={popular}
+            tips={tips}
             held={heldSet}
             watched={watchedSet}
             lang={lang}
           />
         </div>
-      )}
-      <div data-card="discover">
-        <DiscoverRail
-          buys={buys}
-          stocks={allStocks}
-          trending={top20}
-          popular={popular}
-          tips={tips}
-          held={heldSet}
-          watched={watchedSet}
-          lang={lang}
-        />
-      </div>
-      <div data-card="research-lists">
-        <ResearchRail lists={bundle?.research_lists} held={heldSet} watched={watchedSet} lang={lang} />
+        <div data-card="research-lists">
+          <ResearchRail lists={bundle?.research_lists} held={heldSet} watched={watchedSet} lang={lang} />
+        </div>
       </div>
     </section>
   );

@@ -53,7 +53,12 @@ export default function ScreenerCard({
 
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
-      <DashHeader title={t(lang, "screenerTitle")} href="/screener" linkLabel={t(lang, "screenerOpen")} />
+      <DashHeader
+        title={t(lang, "screenerTitle")}
+        sub={t(lang, "screenerSub")}
+        href="/screener"
+        linkLabel={t(lang, "screenerOpen")}
+      />
 
       {screens.length > 0 && (
         <div className="border-b border-border px-4 py-3 sm:px-5">

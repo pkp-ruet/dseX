@@ -2,12 +2,25 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { IconArrowRight } from "@/components/home/personalized/DashIcons";
 
-/** Title row over a swipe rail — an h3 like every card title, with one
- *  "See all" link at 40px. */
-export function RailHeader({ title, href, linkLabel }: { title: string; href?: string; linkLabel?: string }) {
+/** Title row over a swipe rail — an h3 like every card title, an optional
+ *  one-line explanation under it, and one "See all" link at 40px. */
+export function RailHeader({
+  title,
+  sub,
+  href,
+  linkLabel,
+}: {
+  title: string;
+  sub?: string;
+  href?: string;
+  linkLabel?: string;
+}) {
   return (
-    <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
-      <h3 className="min-w-0 truncate text-base font-bold text-text-main">{title}</h3>
+    <div className="mb-3 flex items-center justify-between gap-2 px-0.5">
+      <span className="min-w-0">
+        <h3 className="truncate text-base font-bold text-text-main">{title}</h3>
+        {sub && <p className="mt-0.5 text-sm leading-snug text-text-muted">{sub}</p>}
+      </span>
       {href && linkLabel && (
         <Link
           href={href}
