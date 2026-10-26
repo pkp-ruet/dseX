@@ -1978,6 +1978,9 @@ export interface HomeBundle {
   /** What the watcher spotted on the reader's stocks in the last 7 days
    *  (`portfolio_watch.digest`). Free readers see the counts, Premium the list. */
   week_watch?: WeekWatch | null;
+  /** The screener card (2026-10-26): goal starts with counts + top three, and
+   *  the reader's saved screens as of the last daily check. */
+  screener?: { goals: ScreenerGoal[]; saved: ScreenerSaved[] } | null;
 }
 
 export interface WeekWatch {
@@ -2852,6 +2855,21 @@ export interface CustomCheckDef {
   /** The full check sentence, for on/off checks. */
   label_en: string | null;
   label_bn: string | null;
+  /** A power check: anyone can switch it on and see the count; which stocks
+   *  pass is Premium (screen-only). */
+  premium: boolean;
+}
+
+export interface CustomListTemplate {
+  id: string;
+  /** goal = one-tap starting point · research = one of the six research lists, rebuilt from menu checks. */
+  kind: "goal" | "research";
+  title_en: string;
+  title_bn: string;
+  blurb_en: string;
+  blurb_bn: string;
+  research_slug?: string;
+  spec: CustomListSpec;
 }
 
 export interface CustomListSpec {
@@ -2863,7 +2881,7 @@ export interface CustomListCatalog {
   groups: { key: string; en: string; bn: string }[];
   checks: CustomCheckDef[];
   sorts: { key: string; en: string; bn: string }[];
-  templates: { id: string; title_en: string; title_bn: string; spec: CustomListSpec }[];
+  templates: CustomListTemplate[];
   max_checks: number;
   max_lists: number;
 }
@@ -2909,6 +2927,44 @@ export async function getCustomListCatalog(): Promise<CustomListCatalog> {
   const res = await fetch(`${getApiUrl()}/api/custom-lists/catalog`);
   if (!res.ok) throw new Error(`catalog ${res.status}`);
   return res.json() as Promise<CustomListCatalog>;
+}
+
+/** One goal start, run — the homepage "Find stocks your way" card. `top` is
+ *  the screener's free rows, so nothing on the card is locked. */
+export interface ScreenerGoal {
+  id: string;
+  title_en: string;
+  title_bn: string;
+  blurb_en: string;
+  blurb_bn: string;
+  passed: number;
+  universe: number;
+  top: CustomListStock[];
+}
+
+/** A saved screen as of its last daily check (no live run). */
+export interface ScreenerSaved {
+  id: string;
+  name: string;
+  /** Companies passing at the last check; null before the first one. */
+  passed: number | null;
+  checked_on: string | null;
+  /** Who joined at that check. */
+  new_today: { code: string; name: string }[];
+}
+
+export async function getScreenerGoals(): Promise<{ goals: ScreenerGoal[] }> {
+  return apiFetch("/api/custom-lists/goals", 900);
+}
+
+/** The screener's menu for the server render (ISR). */
+export async function getScreenerCatalog(): Promise<CustomListCatalog> {
+  return apiFetch("/api/custom-lists/catalog", 3600);
+}
+
+/** One ready-made starting point, run — the screener's server-rendered first view. */
+export async function getScreenerStart(templateId: string): Promise<CustomListResult> {
+  return apiFetch(`/api/custom-lists/templates/${encodeURIComponent(templateId)}`, 900);
 }
 
 export async function runCustomList(spec: CustomListSpec): Promise<CustomListResult> {

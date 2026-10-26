@@ -28,6 +28,7 @@ from backend.routers.portfolio import get_portfolio
 from backend.services import price_alert_service
 from backend.services.auth_service import get_user_watchlist, get_user_watchlist_meta
 from backend.services.corporate_actions_service import build_dividend_calendar
+from backend.services import custom_lists_service
 from backend.services.research_lists_service import list_index
 from backend.services.results_explainer import results_for, results_summary
 from backend.services.daily_picks_service import get_or_compute_daily_picks
@@ -140,6 +141,12 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
     # The six research lists (homepage rail): names for Premium readers, the
     # counts alone in the promotion card for everyone else — the page decides.
     research_lists = _safe("research_lists", list_index, [])
+    # The screener card: the goal starts (counts + top three, all free) and the
+    # reader's saved screens with who joined at the last daily check.
+    screener = {
+        "goals": _safe("screener_goals", custom_lists_service.goals_summary, []),
+        "saved": _safe("screener_saved", lambda: custom_lists_service.saved_news(user_id), []),
+    }
     # Quarterly results on the reader's own stocks, posted in the last three
     # weeks — headline + profit line (the rest is on the stock page).
     new_results = _safe("new_results", lambda: results_for(mine), [])
@@ -190,4 +197,5 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
         "new_results": new_results,
         "results_week": results_week,
         "week_watch": week_watch,
+        "screener": screener,
     }

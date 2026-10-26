@@ -84,5 +84,47 @@ def test_push_names_the_newcomers():
     p = push_payload([({"id": "x1", "name": "Cheap banks"}, ["CITYBANK", "EBL"])], "en")
     assert p["title"] == "2 new on your list 'Cheap banks'"
     assert p["body"] == "Passed every check today: CITYBANK, EBL"
-    assert p["url"] == "/my-lists?list=x1&src=alert"
+    assert p["url"] == "/screener?tab=saved&list=x1&src=alert"
     assert push_payload([({"id": "x1", "name": "a"}, [])], "en") is None
+
+
+def test_templates_are_goals_then_research_lists():
+    kinds = [t["kind"] for t in cl.TEMPLATES]
+    assert kinds == sorted(kinds, key=lambda k: k != "goal")
+    slugs = {t["research_slug"] for t in cl.TEMPLATES if t["kind"] == "research"}
+    assert slugs == {lst.slug for lst in rl.LISTS}
+    assert cl.DEFAULT_TEMPLATE in cl.TEMPLATE_BY_ID
+
+
+def test_catalog_marks_power_checks():
+    cat = cl.catalog(SECTORS)
+    power = {c["key"] for c in cat["checks"] if c["premium"]}
+    assert {"buy_today", "quarter_better", "cash_backed", "steady", "owners_buying"} <= power
+    assert not ({"grade", "yield_min", "pe_max", "sector"} & power)
+
+
+def test_quarter_better_reads_the_interim_report():
+    chk = cl.BY_KEY["quarter_better"].make(True)
+    ok, en, _ = chk.fn(_f("A", interim_eps_yoy_pct=12.0, interim_label_en="Q2"), None)
+    assert ok and "up 12%" in en
+    ok, _, _ = chk.fn(_f("B", interim_eps_yoy_pct=-5.0), None)
+    assert not ok
+    ok, en, _ = chk.fn(_f("C"), None)
+    assert not ok and "No quarterly report" in en
+
+
+def test_saved_news_names_joiners_only_from_the_last_check(monkeypatch):
+    from backend.services import custom_lists_service as svc
+    docs = [
+        {"id": "a", "name": "Cheap banks", "members": ["X", "Y"], "joined": ["Y"],
+         "changed_on": "2026-10-26", "checked_on": "2026-10-26"},
+        {"id": "b", "name": "Old news", "members": ["Z"], "joined": ["Z"],
+         "changed_on": "2026-10-20", "checked_on": "2026-10-26"},
+        {"id": "c", "name": "Never checked", "members": None},
+    ]
+    monkeypatch.setattr(svc, "_docs", lambda uid: docs)
+    monkeypatch.setattr(svc, "facts", lambda: {"Y": {"name": "Y Bank"}})
+    out = {d["id"]: d for d in svc.saved_news("u1")}
+    assert out["a"]["passed"] == 2 and out["a"]["new_today"] == [{"code": "Y", "name": "Y Bank"}]
+    assert out["b"]["new_today"] == []
+    assert out["c"]["passed"] is None and out["c"]["new_today"] == []

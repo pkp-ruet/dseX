@@ -23,7 +23,7 @@ const GROUPS: Record<HubGroup, { title: string; bn: string; links: HubLink[] }> 
       { href: "/stocks", label: "Browse all stocks", sub: "Full A–Z table", bn: "সব শেয়ারের তালিকা" },
       { href: "/buy-sell-signals", label: "Buy signals & tips", sub: "What to buy now, and today's tips", bn: "এখন কী কিনবেন, আর আজকের টিপস" },
       { href: "/stock-insights", label: "Stock lists", sub: "Ready-made lists", bn: "তৈরি করা তালিকা" },
-      { href: "/stock-recommendation", label: "Find my stocks", sub: "Three questions, your picks", bn: "তিনটি প্রশ্ন, আপনার শেয়ার" },
+      { href: "/screener", label: "Stock screener", sub: "Your checks, every company", bn: "নিজের শর্তে শেয়ার খুঁজুন" },
       { href: "/dse-trending-stocks", label: "Trending stocks", sub: "This week's top movers", bn: "এই সপ্তাহে যেগুলো বেশি বেড়েছে" },
       { href: "/dse-popular-stocks", label: "Popular stocks", sub: "Most traded today", bn: "আজ সবচেয়ে বেশি লেনদেন" },
       { href: "/assistant", label: "TopStock AI", sub: "Ask in plain words", bn: "সহজ ভাষায় প্রশ্ন করুন" },

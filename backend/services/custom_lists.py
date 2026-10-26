@@ -48,6 +48,9 @@ class CheckDef:
     make: Callable[[Any], Check]
     options: list[Option] = field(default_factory=list)  # empty = a plain on/off check
     default: Any = True
+    # A "power check" (crown in the screener): anyone can switch it on and see
+    # the count; which stocks pass is Premium. Screen-only, like every lock.
+    premium: bool = False
 
 
 GROUPS = [
@@ -217,26 +220,35 @@ def _lower_half(f, ctx):
     return rl._price_quiet(f, ctx)
 
 
+def _quarter_better(f, ctx):
+    ok, en, bn = rl._has_quarter(f, ctx)
+    if not ok:
+        return ok, en, bn
+    v = _n(f.get("interim_eps_yoy_pct")) or 0.0
+    word, word_bn = ("up", "বেশি") if v >= 0 else ("down", "কম")
+    return v >= 0, f"Profit so far this year {word} {_r(abs(v), 0)}% on last year ({en})",         f"এ বছর এ পর্যন্ত লাভ গত বছরের চেয়ে {_r(abs(v), 0)}% {word_bn} ({bn})"
+
+
 CATALOG: list[CheckDef] = [
     # Quality
     CheckDef("grade", "quality", "Our grade", "আমাদের গ্রেড", _grade,
              [Option(45, "Average+", "মাঝারি+"), Option(60, "Good+", "ভালো+"), Option(75, "Excellent", "চমৎকার")], 60),
     CheckDef("buy_today", "quality", "A Buy signal today", "আজ 'কিনুন' সংকেত",
-             _ok_fn(Check("buy_today", "Has a Buy signal today", "আজ 'কিনুন' সংকেত আছে", _buy_today))),
+             _ok_fn(Check("buy_today", "Has a Buy signal today", "আজ 'কিনুন' সংকেত আছে", _buy_today)), premium=True),
     CheckDef("roe_min", "quality", "Return on shareholders' money", "শেয়ারহোল্ডারদের টাকায় আয়", _roe_min,
              [Option(10, "10%+", "10%+"), Option(15, "15%+", "15%+"), Option(20, "20%+", "20%+")], 15),
     CheckDef("no_governance", "quality", "No auditor or regulator warnings", "নিরীক্ষক বা নিয়ন্ত্রকের সতর্কতা নেই",
-             _ok_fn(rl.NO_GOVERNANCE)),
+             _ok_fn(rl.NO_GOVERNANCE), premium=True),
     # Price
     CheckDef("not_expensive", "price", "Price not expensive", "দাম বেশি নয়", _ok_fn(rl.NOT_EXPENSIVE)),
     CheckDef("pe_max", "price", "Price ÷ profit at most", "দাম ÷ লাভ সর্বোচ্চ", _pe_max,
              [Option(8, "8", "8"), Option(10, "10", "10"), Option(15, "15", "15"), Option(20, "20", "20")], 10),
     CheckDef("cheaper_than_own", "price", "Cheaper than its usual", "নিজের স্বাভাবিকের চেয়ে কম দামে",
              _ok_fn(Check("cheaper_than_own", "Priced below its own usual level", "নিজের স্বাভাবিক দামের চেয়ে কম",
-                          rl._cheaper_than_own))),
+                          rl._cheaper_than_own)), premium=True),
     CheckDef("cheaper_than_sector", "price", "Cheaper than its sector", "খাতের চেয়ে কম দামে",
              _ok_fn(Check("cheaper_than_sector", "Priced below its sector", "খাতের চেয়ে কম দামে",
-                          rl._cheaper_than_sector))),
+                          rl._cheaper_than_sector)), premium=True),
     CheckDef("below_high", "price", "Fallen from its 1-year high", "এক বছরের সর্বোচ্চ থেকে নেমেছে", _below_high,
              [Option(10, "10%+", "10%+"), Option(20, "20%+", "20%+"), Option(30, "30%+", "30%+")], 20),
     CheckDef("lower_half", "price", "Price in the lower half of its year", "দাম বছরের নিচের অর্ধেকে",
@@ -250,15 +262,24 @@ CATALOG: list[CheckDef] = [
     CheckDef("affordable", "dividends", "Dividend is affordable", "লভ্যাংশ সামর্থ্যের মধ্যে",
              _ok_fn(Check("affordable", "Pays out no more than 70% of its profit", "লাভের 70%-এর বেশি লভ্যাংশ দেয় না",
                           rl._affordable))),
+    CheckDef("cash_backed", "dividends", "Dividend backed by real cash", "লভ্যাংশের পেছনে সত্যিকারের নগদ",
+             _ok_fn(Check("cash_backed", "The dividend is backed by real cash", "লভ্যাংশের পেছনে সত্যিকারের নগদ আছে",
+                          rl._cash_backed)), premium=True),
     # Profit
     CheckDef("profitable", "growth", "Makes a profit", "লাভে আছে", _ok_fn(rl.PROFITABLE)),
     CheckDef("profit_min", "growth", "Profit change this year", "এ বছর লাভের পরিবর্তন", _profit_min,
              [Option(0, "Not down", "কমেনি"), Option(10, "Up 10%+", "10%+ বেশি"), Option(25, "Up 25%+", "25%+ বেশি")], 10),
     CheckDef("growing", "growth", "Profit grew over 5 years", "5 বছরে লাভ বেড়েছে",
              _ok_fn(Check("growing", "Profit has grown over the last 5 years", "গত 5 বছরে লাভ বেড়েছে", rl._growing))),
+    CheckDef("steady", "growth", "No big fall in profit", "লাভ বড় করে কমেনি",
+             _ok_fn(Check("steady", "No big fall in profit along the way", "পথে লাভ বড় করে কমেনি", rl._steady)),
+             premium=True),
+    CheckDef("quarter_better", "growth", "Latest quarterly report better", "সর্বশেষ ত্রৈমাসিক প্রতিবেদন ভালো",
+             _ok_fn(Check("quarter_better", "Profit so far this year is above the same months last year",
+                          "এ বছর এ পর্যন্ত লাভ গত বছরের একই সময়ের চেয়ে বেশি", _quarter_better)), premium=True),
     CheckDef("owners_buying", "growth", "Owners are buying", "উদ্যোক্তারা কিনছেন",
              _ok_fn(Check("owners_buying", "Owners raised their stake in the latest report",
-                          "সর্বশেষ প্রতিবেদনে উদ্যোক্তারা শেয়ার বাড়িয়েছেন", _owners_buying))),
+                          "সর্বশেষ প্রতিবেদনে উদ্যোক্তারা শেয়ার বাড়িয়েছেন", _owners_buying)), premium=True),
     # Safety
     CheckDef("debt", "safety", "Loans", "ঋণ", _debt,
              [Option("ok", "Below savings", "সঞ্চয়ের কম"), Option("none", "Almost none", "প্রায় নেই")], "ok"),
@@ -287,22 +308,65 @@ SORTS = {
 }
 DEFAULT_SORT = "score"
 
-# Ready-made starting points on the builder ("start from …").
+def _c(key, value=True):
+    return {"key": key, "value": value}
+
+
+def _goal(id_, title_en, title_bn, blurb_en, blurb_bn, checks, sort):
+    return {"id": id_, "kind": "goal", "title_en": title_en, "title_bn": title_bn,
+            "blurb_en": blurb_en, "blurb_bn": blurb_bn, "spec": {"checks": checks, "sort": sort}}
+
+
+def _from_list(id_, lst: ResearchList, checks, sort):
+    """The screener's take on one of the six research lists, built from menu
+    checks so the reader can change it. Close to the list, not identical — the
+    blurb says so, and links the list itself."""
+    return {"id": id_, "kind": "research", "title_en": lst.title_en, "title_bn": lst.title_bn,
+            "blurb_en": "Our research list, rebuilt from the checks here so you can change it",
+            "blurb_bn": "আমাদের গবেষণা তালিকা, এখানের শর্ত দিয়ে বানানো — যাতে আপনি বদলাতে পারেন",
+            "research_slug": lst.slug, "spec": {"checks": checks, "sort": sort}}
+
+
+# Ready-made starting points in the screener: goals first (one tap for a
+# beginner — they replaced the three-question quiz), then the research lists.
 TEMPLATES = [
-    {"id": "steady_payers", "title_en": "Steady cash payers", "title_bn": "নিয়মিত নগদ দেয়",
-     "spec": {"checks": [{"key": "yield_min", "value": 4}, {"key": "paid_years", "value": 5},
-                         {"key": "affordable", "value": True}, {"key": "category", "value": "not_z"},
-                         {"key": "turnover", "value": 1}], "sort": "yield"}},
-    {"id": "good_cheap", "title_en": "Good and cheap", "title_bn": "ভালো আর সস্তা",
-     "spec": {"checks": [{"key": "grade", "value": 60}, {"key": "pe_max", "value": 10},
-                         {"key": "debt", "value": "ok"}, {"key": "category", "value": "not_z"}], "sort": "cheap"}},
-    {"id": "big_growing", "title_en": "Big and growing", "title_bn": "বড় আর বাড়ছে",
-     "spec": {"checks": [{"key": "mcap", "value": 5000}, {"key": "profit_min", "value": 10},
-                         {"key": "grade", "value": 45}, {"key": "fresh", "value": True}], "sort": "growth"}},
-    {"id": "strong_banks", "title_en": "Strong banks", "title_bn": "শক্তিশালী ব্যাংক",
-     "spec": {"checks": [{"key": "sector", "value": "Bank"}, {"key": "grade", "value": 60},
-                         {"key": "not_expensive", "value": True}], "sort": "score"}},
+    _goal("steady_payers", "Cash every year", "প্রতি বছর নগদ",
+          "A good cash dividend, paid year after year", "ভালো নগদ লভ্যাংশ, বছরের পর বছর",
+          [_c("yield_min", 4), _c("paid_years", 5), _c("affordable"), _c("category", "not_z"), _c("turnover", 1)],
+          "yield"),
+    _goal("good_cheap", "Good and cheap", "ভালো আর সস্তা",
+          "Graded Good or better at a low price ÷ profit", "ভালো গ্রেড, কম দাম ÷ লাভ",
+          [_c("grade", 60), _c("pe_max", 10), _c("debt", "ok"), _c("category", "not_z")], "cheap"),
+    _goal("beginner", "Safe for a beginner", "নতুনদের জন্য নিরাপদ",
+          "Big, busy, category A companies with up-to-date accounts", "বড়, নিয়মিত লেনদেন, A ক্যাটাগরি, হালনাগাদ হিসাব",
+          [_c("grade", 60), _c("category", "a_only"), _c("mcap", 5000), _c("turnover", 5), _c("debt", "ok"),
+           _c("fresh")], "score"),
+    _goal("big_growing", "Big and growing", "বড় আর বাড়ছে",
+          "Large companies whose profit is rising", "বড় কোম্পানি, লাভ বাড়ছে",
+          [_c("mcap", 5000), _c("profit_min", 10), _c("grade", 45), _c("fresh")], "growth"),
+    _goal("fallen_good", "Fallen, still good", "দাম পড়েছে, কোম্পানি ভালো",
+          "Price well off its high while the company stays strong", "দাম সর্বোচ্চ থেকে অনেক নিচে, কোম্পানি এখনো ভালো",
+          [_c("below_high", 20), _c("grade", 60), _c("profitable"), _c("fresh")], "score"),
+    _goal("strong_banks", "Strong banks", "শক্তিশালী ব্যাংক",
+          "Banks graded Good or better, not expensive", "ভালো গ্রেডের ব্যাংক, দাম বেশি নয়",
+          [_c("sector", "Bank"), _c("grade", 60), _c("not_expensive")], "score"),
+    _from_list("rl_cash_machines", rl.CASH_MACHINES,
+               [_c("paid_years", 5), _c("affordable"), _c("cash_backed"), _c("yield_min", 4), _c("not_expensive")],
+               "yield"),
+    _from_list("rl_cheap_not_broken", rl.CHEAP_NOT_BROKEN,
+               [_c("profitable"), _c("cheaper_than_own"), _c("cheaper_than_sector"), _c("grade", 60),
+                _c("debt", "ok")], "cheap"),
+    _from_list("rl_profits_rising", rl.PROFITS_RISING,
+               [_c("quarter_better"), _c("lower_half"), _c("fresh")], "growth"),
+    _from_list("rl_debt_free", rl.DEBT_FREE_GROWING,
+               [_c("debt", "none"), _c("roe_min", 10), _c("growing"), _c("steady")], "score"),
+    _from_list("rl_fallen_strong", rl.FALLEN_STRONG,
+               [_c("below_high", 20), _c("grade", 60), _c("profitable"), _c("no_governance")], "score"),
+    _from_list("rl_owners_buying", rl.OWNERS_BUYING,
+               [_c("owners_buying"), _c("profitable"), _c("category", "not_z")], "score"),
 ]
+TEMPLATE_BY_ID = {t["id"]: t for t in TEMPLATES}
+DEFAULT_TEMPLATE = "good_cheap"
 
 
 # ---------------------------------------------------------------------------
@@ -322,6 +386,7 @@ def catalog(sectors: list[str]) -> dict:
             "default": (opts[0].value if c.key == "sector" and opts else c.default),
             "label_en": None if c.options or c.key == "sector" else c.make(True).label_en,
             "label_bn": None if c.options or c.key == "sector" else c.make(True).label_bn,
+            "premium": c.premium,
         })
     return {
         "groups": [{"key": k, "en": en, "bn": bn} for k, en, bn in GROUPS],

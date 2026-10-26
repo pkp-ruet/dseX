@@ -133,9 +133,9 @@ export default async function StockInsightsPage() {
               </Link>
             );
           })}
-          <Link prefetch={false} href="/my-lists" className="soft-card rl-hub-card">
-            <h3 className="rl-hub-title">Build your own list</h3>
-            <Bn className="rl-hub-title-bn">নিজের তালিকা বানান</Bn>
+          <Link prefetch={false} href="/screener" className="soft-card rl-hub-card">
+            <h3 className="rl-hub-title">Build your own in the screener</h3>
+            <Bn className="rl-hub-title-bn">স্ক্রিনারে নিজের তালিকা বানান</Bn>
             <Txt
               as="p"
               className="rl-hub-idea"

@@ -7,7 +7,7 @@ import type { RecommendationAnswers } from "@/lib/api";
 import type { Chip, MessageBlock, SlotKey } from "./types";
 import { COPY, ANY_SECTOR } from "./copy";
 
-/** Mirrors RecommendationQuiz.tsx DEFAULTS (frontend/components/stock-recommendation). */
+/** The quiz defaults (the RecommendationQuiz component they mirrored was removed 2026-10-26). */
 export const SUGGEST_DEFAULTS: RecommendationAnswers = {
   timeline: "long",
   strategy: "fundamental_strong",

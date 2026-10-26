@@ -115,7 +115,7 @@ export default function ResearchListView({ data, def }: { data: ResearchListDeta
           stock page before you decide.
         </p>
         <p>
-          Want different checks? <Link href="/my-lists">Build your own list</Link> — pick the checks and settings
+          Want different checks? <Link href="/screener">Build your own in the screener</Link> — pick the checks and settings
           yourself, and we tell you the day a new stock passes them.
         </p>
       </section>

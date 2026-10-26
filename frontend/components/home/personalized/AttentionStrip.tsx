@@ -3,7 +3,7 @@ import type { HomeAlert, HomeAlertKind } from "@/lib/home-alerts";
 import type { Lang } from "@/context/LangContext";
 import { t } from "@/lib/home-copy";
 import DashHeader, { HeaderChip } from "@/components/home/personalized/DashHeader";
-import { IconArrowDown, IconArrowUp, IconChevron, IconCoin, IconNews, IconSparkle, IconTarget, IconTrendDown, IconTrendUp, IconWallet } from "@/components/home/personalized/DashIcons";
+import { IconArrowDown, IconArrowUp, IconChevron, IconCoin, IconList, IconNews, IconSparkle, IconTarget, IconTrendDown, IconTrendUp, IconWallet } from "@/components/home/personalized/DashIcons";
 
 const MAX_ROWS = 4;
 
@@ -25,6 +25,8 @@ function KindIcon({ kind, tone }: { kind: HomeAlertKind; tone: HomeAlert["tone"]
       return <IconArrowDown size={16} />;
     case "dividend":
       return <IconCoin size={16} />;
+    case "screen":
+      return <IconList size={16} />;
     case "news":
     default:
       return <IconNews size={16} />;

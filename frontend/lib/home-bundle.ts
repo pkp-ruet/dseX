@@ -24,6 +24,7 @@ import {
   getPopularStocks,
   getDividendCalendar,
   getResearchLists,
+  getScreenerGoals,
   type HomeBundle,
 } from "@/lib/api";
 
@@ -53,7 +54,7 @@ async function legacyBundle(): Promise<HomeBundle> {
       ...(portfolio.holdings ?? []).map((h) => h.trading_code.toUpperCase()),
     ]),
   ).sort();
-  const [news, movers, marketNews, top20, popular, calendar, research] = await Promise.all([
+  const [news, movers, marketNews, top20, popular, calendar, research, goals] = await Promise.all([
     codes.length ? settle(getWatchlistNews(codes), []) : Promise.resolve([]),
     settle(getMarketMovers(), null),
     settle(getTodaysNews(), []),
@@ -61,6 +62,7 @@ async function legacyBundle(): Promise<HomeBundle> {
     settle(getPopularStocks(), null),
     settle(getDividendCalendar(), null),
     settle(getResearchLists(), { lists: [] }),
+    settle(getScreenerGoals(), { goals: [] }),
   ]);
   return {
     generated_at: new Date().toISOString(),
@@ -91,6 +93,7 @@ async function legacyBundle(): Promise<HomeBundle> {
     new_results: [],
     results_week: null,
     week_watch: null,
+    screener: { goals: goals.goals, saved: [] },
   };
 }
 

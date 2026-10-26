@@ -72,6 +72,11 @@ const nextConfig: NextConfig = {
       { source: "/top-picks", destination: "/buy-sell-signals", permanent: true },
       { source: "/daily-tips", destination: "/buy-sell-signals", permanent: true },
       { source: "/market-intelligence", destination: "/market-analysis", permanent: true },
+      // The quiz gave way to the screener's goal starts and the list builder
+      // became its Saved tab (2026-10-26). The incoming query rides along, so a
+      // saved-list push's ?list= still opens it.
+      { source: "/stock-recommendation", destination: "/screener", permanent: true },
+      { source: "/my-lists", destination: "/screener?tab=saved", permanent: true },
       {
         source: "/stock-lists/:slug*",
         destination: "/stock-insights/:slug*",

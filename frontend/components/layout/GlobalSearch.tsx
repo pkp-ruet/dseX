@@ -55,6 +55,13 @@ const PAGES: PageShortcut[] = [
     keys: ["ranking", "rank", "best stocks", "top stocks", "score"],
   },
   {
+    href: "/screener",
+    label: "Stock Screener",
+    sub: "Find stocks by dividend, price, profit, sector",
+    keys: ["screener", "screen", "filter", "find", "cheap", "low pe", "dividend", "high dividend", "safe",
+      "beginner", "growing", "বাছাই", "স্ক্রিনার", "খুঁজুন", "সস্তা", "লভ্যাংশ"],
+  },
+  {
     href: "/sectors",
     label: "Sectors",
     sub: "Compare whole industries",

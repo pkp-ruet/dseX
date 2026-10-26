@@ -7,7 +7,6 @@ import { usePremium } from "@/lib/premium";
 import {
   getScores,
   getMarketState,
-  getDailyPicks,
   type HomeBundle,
   type ScoreItem,
   type ScoresResponse,
@@ -34,8 +33,6 @@ import MoneyHeroGhost from "@/components/home/personalized/MoneyHeroGhost";
 import AttentionStrip from "@/components/home/personalized/AttentionStrip";
 import PullToRefresh from "@/components/home/personalized/PullToRefresh";
 import MyStocksToday from "@/components/home/personalized/MyStocksToday";
-import TodaysIdeas from "@/components/home/personalized/TodaysIdeas";
-import TuneModal from "@/components/stock-recommendation/TuneModal";
 import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
 import MoversCard from "@/components/home/personalized/MoversCard";
 import SectorsWeekCard from "@/components/home/personalized/SectorsWeekCard";
@@ -44,6 +41,7 @@ import BanglaSnapshotCard from "@/components/home/personalized/BanglaSnapshotCar
 import TurningPointsCard from "@/components/home/personalized/TurningPointsCard";
 import ResearchRail from "@/components/home/personalized/ResearchRail";
 import DiscoverRail from "@/components/home/personalized/DiscoverRail";
+import ScreenerCard from "@/components/home/personalized/ScreenerCard";
 import GlanceStrip from "@/components/home/personalized/GlanceStrip";
 import DividendBoardCard from "@/components/home/personalized/DividendBoardCard";
 import LearnCard from "@/components/home/personalized/LearnCard";
@@ -57,32 +55,12 @@ import { freeReportCode } from "@/lib/free-report";
 import ChapterHead from "@/components/home/personalized/ChapterHead";
 import { IconBook, IconCoin, IconGrid, IconSparkle } from "@/components/home/personalized/DashIcons";
 import DashSectionNav, { type DashNavItem } from "@/components/home/personalized/DashSectionNav";
-import { HeaderChip } from "@/components/home/personalized/DashHeader";
 import InstallHomeBanner from "@/components/pwa/InstallHomeBanner";
 
 function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
   if (!scores) return new Map();
   const all = Object.values(scores.tiers).flat();
   return new Map(all.map((s) => [s.trading_code.toUpperCase(), s]));
-}
-
-/** Placeholder matching TodaysIdeas' shape — shown while the bundle is still
- *  in flight so the section doesn't pop in. */
-function IdeasSkeleton() {
-  return (
-    <div className="soft-card dash-box overflow-hidden" aria-hidden>
-      <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5">
-        <div className="h-3.5 w-40 animate-pulse rounded-full bg-surface-2" />
-        <div className="h-3.5 w-16 animate-pulse rounded-full bg-surface-2" />
-      </div>
-      <div className="mx-4 mt-3 h-3.5 w-3/4 animate-pulse rounded-full bg-surface-2 sm:mx-5" />
-      <div className="space-y-px px-4 pb-2 pt-3 sm:px-5">
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="h-16 animate-pulse rounded-xl bg-surface-2" />
-        ))}
-      </div>
-    </div>
-  );
 }
 
 /** Two cards side by side from `md:` up; a lone card takes the full width.
@@ -97,7 +75,7 @@ const CHAPTER = "dash-section space-y-6 sm:space-y-3";
 
 /** Alerts that are NOT a price row — price moves and 52-week extremes live as
  *  chips on the "Your stocks today" rows, so they are not listed twice. */
-const ATTENTION_KINDS = new Set<HomeAlertKind>(["target", "signal", "dividend"]);
+const ATTENTION_KINDS = new Set<HomeAlertKind>(["target", "signal", "screen", "dividend"]);
 
 const EMPTY_DIVIDENDS = { upcoming_declarations: [], upcoming_record_dates: [] };
 const EMPTY_SET = new Set<string>();
@@ -124,7 +102,6 @@ export default function PersonalizedHome() {
   const [marketState, setMarketState] = useState<MarketStateData | null>(
     () => readCache<MarketStateData>(cacheKeys.marketState),
   );
-  const [tuneOpen, setTuneOpen] = useState(false);
   // True only on the first dashboard render right after signup (one-shot flag).
   const [isNewUser, setIsNewUser] = useState(false);
 
@@ -150,7 +127,6 @@ export default function PersonalizedHome() {
               writeCache(cacheKeys.homeBundle(userId), b);
               // Keep the per-piece caches the portfolio / watchlist pages read warm.
               writeCache(cacheKeys.portfolio(userId), b.holdings);
-              if (b.daily_picks) writeCache(cacheKeys.dailyPicks(userId), b.daily_picks);
             }
             if (b.market_index) writeCache(cacheKeys.marketIndex, b.market_index);
             if (b.near_extremes) writeCache(cacheKeys.extremes, b.near_extremes);
@@ -195,13 +171,11 @@ export default function PersonalizedHome() {
   const news = bundle?.news ?? [];
   const newResults = bundle?.new_results ?? [];
   const tips = bundle?.tips?.tips ?? [];
-  const dailyPicks = bundle?.daily_picks ?? null;
   const extremes = bundle?.near_extremes ?? null;
   const dividends = bundle?.dividends ?? EMPTY_DIVIDENDS;
   const marketIndex = bundle?.market_index ?? null;
   const dividendCash = bundle?.dividend_cash ?? [];
   const reportCodes = bundle?.report_codes ?? [];
-  const summariesBn = bundle?.summaries_bn ?? {};
   const signalEvents = bundle?.signal_events ?? [];
   const movers = bundle?.movers ?? null;
   const marketNews = bundle?.market_news ?? [];
@@ -212,7 +186,6 @@ export default function PersonalizedHome() {
 
   const hasWatchlist = codes.length > 0;
   const hasPortfolio = (holdings?.length ?? 0) > 0;
-  const hasTuned = !!dailyPicks?.tuned;
   const isBrandNew = holdings !== null && !hasPortfolio && !hasWatchlist;
 
   const heldSet = useMemo(
@@ -225,28 +198,13 @@ export default function PersonalizedHome() {
   const dateStr = bn
     ? bnDate(isoToday, true)
     : new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
-  const shortDate = bn
-    ? bnDate(isoToday)
-    : new Date().toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
 
   const allStocks = useMemo(() => Array.from(priceMap.values()), [priceMap]);
   // Buy signals ride along on the scores already in priceMap — no extra fetch.
   const buys = useMemo(() => allStocks.filter((s) => s.signal?.signal === "buy"), [allStocks]);
-  const sectors = useMemo(
-    () => Array.from(new Set(allStocks.map((s) => s.sector).filter((x): x is string => Boolean(x)))).sort(),
-    [allStocks],
-  );
 
   const followedCodes = Array.from(new Set([...watchedSet, ...heldSet])).sort();
 
-  function refreshDailyPicks() {
-    return getDailyPicks()
-      .then((d) => {
-        setBundle((b) => (b ? { ...b, daily_picks: d } : b));
-        if (userId) writeCache(cacheKeys.dailyPicks(userId), d);
-      })
-      .catch(() => {});
-  }
 
   // Portfolio move today — feeds the money hero + the daily brief.
   const todayMove = hasPortfolio ? portfolioTodayMove(holdings!, priceMap) : null;
@@ -282,18 +240,13 @@ export default function PersonalizedHome() {
     dividendCash,
     triggeredAlerts: priceAlerts,
     signalEvents,
+    // Saved screens are re-checked only while Premium — a lapsed plan's news is stale.
+    savedScreens: planState === "premium" ? bundle?.screener?.saved ?? [] : [],
     dateKey: new Date().toDateString(),
     includeNews: false,
     lang,
   }).filter((a) => ATTENTION_KINDS.has(a.kind));
 
-  // "New since you last looked" — server-computed diff, filtered to picks still
-  // on today's feed (skip-backfill replacements aren't in new_codes).
-  const pickCodes = new Set((dailyPicks?.picks ?? []).map((p) => p.trading_code.toUpperCase()));
-  const newPickCodes = (dailyPicks?.new_codes ?? []).filter((c) => pickCodes.has(c.toUpperCase()));
-
-  const hasIdeas = (dailyPicks?.picks?.length ?? 0) > 0 || tips.length > 0 || buys.length > 0;
-  const ideasLoading = !hasIdeas && !bundleSettled;
 
   const hasMovers = !!movers && ((movers.gainers?.length ?? 0) + (movers.losers?.length ?? 0) + (movers.most_traded?.length ?? 0) > 0);
   const sectorRows = marketState?.now?.sectors ?? [];
@@ -482,41 +435,26 @@ export default function PersonalizedHome() {
     </section>
   );
 
-  // ── Chapter 3: Worth a look — the three-stock opener, then ONE swipe rail
-  //    for buy signals / top ranked / trending / tips / popular (five full
-  //    cards until 2026-10-24), then the ready-made lists rail. ──
+  // ── Chapter 3: Worth a look — the screener card (goal chips + top three),
+  //    then ONE swipe rail for buy signals / top ranked / trending / tips /
+  //    popular, then the research lists. The "3 stocks worth a look / picked
+  //    for you" opener (TodaysIdeas) was removed 2026-10-26 (user decision). ──
   const ideasChapter = (
     <section id="ideas" className={CHAPTER}>
       {head("chIdeas", <IconSparkle size={16} />)}
-      {(hasIdeas || ideasLoading) && (
-        <div id="intelligence" data-card="ideas">
-          {ideasLoading ? (
-            <IdeasSkeleton />
-          ) : (
-            <TodaysIdeas
-              picks={dailyPicks?.picks ?? []}
-              buys={buys}
-              tips={tips}
-              followed={followedCodes}
-              tuned={hasTuned}
-              newPickCodes={newPickCodes}
-              summariesBn={summariesBn}
-              lang={lang}
-              chips={
-                <>
-                  <HeaderChip className="hidden sm:inline">{shortDate}</HeaderChip>
-                  {newPickCodes.length > 0 && (
-                    <HeaderChip tone="accent">
-                      {newPickCodes.length} {t(lang, "newTag").toLowerCase()}
-                    </HeaderChip>
-                  )}
-                </>
-              }
-            />
-          )}
+      {freeReportCard}
+
+      {(bundle?.screener?.goals?.length ?? 0) > 0 && (
+        <div data-card="screener">
+          <ScreenerCard
+            goals={bundle?.screener?.goals}
+            saved={bundle?.screener?.saved}
+            held={heldSet}
+            watched={watchedSet}
+            lang={lang}
+          />
         </div>
       )}
-      {freeReportCard}
       <div data-card="discover">
         <DiscoverRail
           buys={buys}
@@ -535,12 +473,12 @@ export default function PersonalizedHome() {
     </section>
   );
 
-  // Onboarding checklist — build a watchlist + personalize picks. Sits below
+  // Onboarding checklist — build a watchlist. Sits below
   // the money chapter so a returning user never meets "Finish setting up"
   // before their own money. Renders nothing once done.
   const setup = (
     <div data-card="setup">
-      <DailyBriefing hasWatchlist={hasWatchlist} hasTuned={hasTuned} onPersonalize={() => setTuneOpen(true)} />
+      <DailyBriefing hasWatchlist={hasWatchlist} />
     </div>
   );
 
@@ -622,14 +560,6 @@ export default function PersonalizedHome() {
         {/* Mobile-only install CTA — auto-hides once installed / dismissed. */}
         <InstallHomeBanner />
       </div>
-
-      {/* "Personalize your picks" quiz, opened from the setup checklist. */}
-      <TuneModal
-        open={tuneOpen}
-        sectors={sectors}
-        onClose={() => setTuneOpen(false)}
-        onComplete={refreshDailyPicks}
-      />
     </div>
     </PullToRefresh>
   );

@@ -419,7 +419,7 @@ def _cold_angle(ctx: dict, lang: str) -> dict:
              else "today's top stock picks are ready — take a look")
     body = f"DSEX আজ {mkt:+.1f}% · {tease}" if (bn and mkt is not None) else \
            f"DSEX {mkt:+.1f}% today · {tease}" if mkt is not None else tease
-    return {"v": "pick", "url": "/stock-recommendation", "body": body,
+    return {"v": "pick", "url": "/buy-sell-signals", "body": body,
             "title": "আজকের বাজার" if bn else "DSE today"}
 
 

@@ -23,40 +23,20 @@ const ICON_CHECK = (
     <path d="M20 6L9 17l-5-5" />
   </svg>
 );
-const ICON_TUNE = (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <line x1="4" y1="21" x2="4" y2="14" />
-    <line x1="4" y1="10" x2="4" y2="3" />
-    <line x1="12" y1="21" x2="12" y2="12" />
-    <line x1="12" y1="8" x2="12" y2="3" />
-    <line x1="20" y1="21" x2="20" y2="16" />
-    <line x1="20" y1="12" x2="20" y2="3" />
-    <line x1="1" y1="14" x2="7" y2="14" />
-    <line x1="9" y1="8" x2="15" y2="8" />
-    <line x1="17" y1="16" x2="23" y2="16" />
-  </svg>
-);
 
 interface Props {
   hasWatchlist: boolean;
-  /** True once the user has taken the personalize-picks quiz. */
-  hasTuned?: boolean;
-  /** Opens the "personalize your picks" quiz. */
-  onPersonalize?: () => void;
 }
 
 /**
  * Setup checklist shown under the dashboard hero while onboarding is
- * incomplete. Covers the two steps the money hero doesn't already drive —
- * build a watchlist and personalize picks (adding a portfolio is sold by the
- * MoneyHeroGhost hero itself, so it's intentionally not repeated here). Once
- * both are done (or the card is dismissed), this renders nothing.
+ * incomplete. Covers the step the money hero doesn't already drive — build a
+ * watchlist (adding a portfolio is sold by the MoneyHeroGhost hero itself, so
+ * it's intentionally not repeated here). The "personalize your picks" step
+ * went with the dashboard's picks card (2026-10-26). Once done (or the card is
+ * dismissed), this renders nothing.
  */
-export default function DailyBriefing({
-  hasWatchlist,
-  hasTuned = false,
-  onPersonalize,
-}: Props) {
+export default function DailyBriefing({ hasWatchlist }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dismissed, setDismissed] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
@@ -86,10 +66,10 @@ export default function DailyBriefing({
   }
 
   // ── Setup incomplete → polished onboarding card (persists until done) ──────
-  // Shows from first sign-in (empty watchlist) through personalize, then renders
-  // nothing once both steps are done or it's dismissed. (Adding a portfolio is
+  // Shows from first sign-in (empty watchlist), then renders nothing once a
+  // stock is followed or it's dismissed. (Adding a portfolio is
   // handled by the MoneyHeroGhost hero, so it isn't a step here.)
-  if ((!hasWatchlist || !hasTuned) && !dismissed) {
+  if (!hasWatchlist && !dismissed) {
     const steps = [
       {
         key: "watchlist",
@@ -101,17 +81,6 @@ export default function DailyBriefing({
         href: "/watchlist" as string | undefined,
         onClick: undefined as (() => void) | undefined,
         cta: "Add stocks",
-      },
-      {
-        key: "personalize",
-        done: hasTuned,
-        icon: ICON_TUNE,
-        title: "Personalize your picks",
-        desc: "Answer a few quick questions → daily picks matched to you.",
-        descBn: "কয়েকটি সহজ প্রশ্নের উত্তর দিন — আপনার জন্য বাছাই করা পরামর্শ পান।",
-        href: onPersonalize ? undefined : "/stock-recommendation",
-        onClick: onPersonalize,
-        cta: "Personalize",
       },
     ].sort((a, b) => Number(a.done) - Number(b.done)); // incomplete steps first
     const doneCount = steps.filter((s) => s.done).length;
@@ -139,7 +108,7 @@ export default function DailyBriefing({
             </p>
             <p className="text-sm font-bold leading-tight text-text-main">
               {doneCount === 0
-                ? "Two quick steps to your daily check-in"
+                ? "One quick step to your daily check-in"
                 : remaining === 1
                   ? "Almost there — one step to go"
                   : `${remaining} steps left to set up`}
@@ -201,7 +170,7 @@ export default function DailyBriefing({
           lang="bn"
           className="font-bn mt-3 text-xs font-semibold leading-relaxed text-text-muted"
         >
-          নতুন এসেছেন? নিচের ধাপগুলো শেষ করুন — তাহলে প্রতিদিন আপনার জন্য সাজানো শেয়ারের তথ্য, খবর ও পরামর্শ এক জায়গায় পাবেন।
+          নতুন এসেছেন? নিচের ধাপটি শেষ করুন — তাহলে প্রতিদিন আপনার জন্য সাজানো শেয়ারের তথ্য, খবর ও পরামর্শ এক জায়গায় পাবেন।
         </p>
 
         {/* Steps */}

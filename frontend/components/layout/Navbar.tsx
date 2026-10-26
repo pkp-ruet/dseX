@@ -50,6 +50,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/dsestockranking", label: "Rankings", sub: "Every company scored", icon: "rankings" },
       { href: "/stocks", label: "Browse All Stocks", sub: "Full A–Z table", icon: "browse" },
       { href: "/buy-sell-signals", label: "Buy/Sell Signals", sub: "What to buy & sell now", icon: "signals" },
+      { href: "/screener", label: "Stock Screener", sub: "Find stocks your way", icon: "find" },
       { href: "/stock-insights", label: "Stock Lists", sub: "Ready-made lists", icon: "lists" },
       { href: "/assistant", label: "TopStock AI", sub: "Ask in plain words", icon: "ai" },
     ],

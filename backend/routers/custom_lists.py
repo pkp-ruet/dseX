@@ -1,5 +1,5 @@
 """
-Your own research lists (services/custom_lists.py).
+The stock screener (`/screener`) — your own lists (services/custom_lists.py).
 
 The menu and the live result are public — the builder shows a free reader how
 many companies pass and screen-locks which ones, like every other lock. Saving
@@ -47,6 +47,21 @@ def custom_list_run(body: SpecBody):
         return svc.run(body.model_dump())
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/api/custom-lists/goals")
+def custom_list_goals():
+    """The goal starts with today's pass count and top three (homepage card)."""
+    return {"goals": svc.goals_summary()}
+
+
+@router.get("/api/custom-lists/templates/{template_id}")
+def custom_list_template(template_id: str):
+    """One ready-made starting point, run (the screener's first paint)."""
+    try:
+        return svc.run_template(template_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Template not found")
 
 
 @router.get("/api/user/custom-lists")

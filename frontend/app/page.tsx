@@ -5,6 +5,7 @@ import {
   getTrust,
   getMarketState,
   getResearchLists,
+  getScreenerGoals,
   getMarketMovers,
   getTodaysNews,
   getTop20,
@@ -18,6 +19,7 @@ import {
   type Top20Item,
   type DailyTip,
   type ResearchListSummary,
+  type ScreenerGoal,
 } from "@/lib/api";
 import { pickStoryStocks } from "@/lib/home-stories";
 import { toLandingStock, pickHeroCode, type LandingStock } from "@/lib/landing";
@@ -175,17 +177,20 @@ async function WorthALookSection({
   trendingPromise,
   tipsPromise,
   researchPromise,
+  goalsPromise,
 }: {
   scoresPromise: Promise<ScoresResponse | null>;
   trendingPromise: Promise<Top20Item[] | null>;
   tipsPromise: Promise<DailyTip[] | null>;
   researchPromise: Promise<ResearchListSummary[] | null>;
+  goalsPromise: Promise<ScreenerGoal[] | null>;
 }) {
-  const [scores, trending, tips, research] = await Promise.all([
+  const [scores, trending, tips, research, goals] = await Promise.all([
     scoresPromise,
     trendingPromise,
     tipsPromise,
     researchPromise,
+    goalsPromise,
   ]);
   return (
     <WorthALook
@@ -193,6 +198,7 @@ async function WorthALookSection({
       trending={trending ?? []}
       tips={tips ?? []}
       research={research}
+      goals={goals}
     />
   );
 }
@@ -332,6 +338,10 @@ export default function HomePage() {
   const researchPromise = getResearchLists()
     .then((d) => d.lists)
     .catch(() => null);
+  // The screener's goal starts — counts + top three, all free.
+  const goalsPromise = getScreenerGoals()
+    .then((d) => d.goals)
+    .catch(() => null);
 
   return (
     <>
@@ -366,12 +376,14 @@ export default function HomePage() {
           />
 
           {/* 5 — every way in that needs no account: buy signals, the top of
-              the ranking, trending, tips — and the research lists (Premium) */}
+              the ranking, trending, tips, the screener's goals — and the
+              research lists (Premium) */}
           <WorthALookSection
             scoresPromise={scoresPromise}
             trendingPromise={trendingPromise}
             tipsPromise={tipsPromise}
             researchPromise={researchPromise}
+            goalsPromise={goalsPromise}
           />
 
           {/* 5b — the portfolio check: what it does in four steps, beside the

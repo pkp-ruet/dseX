@@ -33,6 +33,11 @@ export const FREE_SIGNAL_ROWS = 3;
  *  sees; the rest of the leaderboard is Premium (user decision 2026-10-25). */
 export const FREE_RANKING_ROWS = 5;
 
+/** `/screener`: the first stocks that pass a screen a free reader sees; none
+ *  when the screen uses a power check. The rest is Premium (user decision
+ *  2026-10-26). */
+export const FREE_SCREENER_ROWS = 3;
+
 /** Split a list into the free head (`n` rows) and the locked rest. */
 export function splitFree<T>(items: T[], n: number): [T[], T[]] {
   const k = Math.max(0, Math.min(items.length, n));

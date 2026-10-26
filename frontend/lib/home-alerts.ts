@@ -7,6 +7,7 @@ import type {
   PortfolioSignalEvent,
   PortfolioHolding,
   CorporateActionEvent,
+  ScreenerSaved,
 } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
 import { bdGroup, formatDate } from "@/lib/formatters";
@@ -23,7 +24,8 @@ export type HomeAlertKind =
   | "high"
   | "low"
   | "dividend"
-  | "news";
+  | "news"
+  | "screen";
 
 export interface HomeAlert {
   /** Stable per-day id — also the key for read/seen state. */
@@ -79,6 +81,9 @@ export function buildHomeAlerts(opts: {
   news?: WatchlistNewsItem[];
   triggeredAlerts?: PriceAlert[];
   signalEvents?: PortfolioSignalEvent[];
+  /** Saved screens (Premium readers only — a lapsed plan's screens aren't
+   *  re-checked): one row per screen a stock joined at the last daily check. */
+  savedScreens?: ScreenerSaved[];
   dateKey: string;
   /** Include latest news as 📰 rows. Default true. */
   includeNews?: boolean;
@@ -95,6 +100,7 @@ export function buildHomeAlerts(opts: {
     news = [],
     triggeredAlerts,
     signalEvents,
+    savedScreens = [],
     dateKey,
     includeNews = true,
   } = opts;
@@ -122,6 +128,22 @@ export function buildHomeAlerts(opts: {
       detail: reached ? (bn ? `৳${reached}-এ পৌঁছেছে` : `Reached ৳${reached}`) : undefined,
       href: `/stock/${a.trading_code}`,
       tone: a.direction === "above" ? "positive" : "negative",
+    });
+  }
+
+  // 0.25 — New stocks on the reader's saved screens (same news as the push).
+  for (const s of savedScreens) {
+    if (!s.new_today.length) continue;
+    const n = s.new_today.length;
+    const codes3 = s.new_today.slice(0, 3).map((x) => x.code).join(", ") + (n > 3 ? "…" : "");
+    alerts.push({
+      id: `sc:${s.id}:${s.checked_on ?? dateKey}`,
+      kind: "screen",
+      emoji: "🔎",
+      title: bn ? `"${s.name}" স্ক্রিনে নতুন ${n}টি শেয়ার` : `${n} new on your screen "${s.name}"`,
+      detail: codes3,
+      href: `/screener?tab=saved&list=${encodeURIComponent(s.id)}`,
+      tone: "neutral",
     });
   }
 

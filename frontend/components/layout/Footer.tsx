@@ -20,6 +20,7 @@ const findLinks: FootLink[] = [
   { href: "/dsestockranking", label: "Rankings" },
   { href: "/stocks", label: "Browse All Stocks" },
   { href: "/buy-sell-signals", label: "Buy/Sell Signals" },
+  { href: "/screener", label: "Stock Screener" },
   { href: "/stock-insights", label: "Stock Lists" },
   { href: "/assistant", label: "TopStock AI" },
 ];

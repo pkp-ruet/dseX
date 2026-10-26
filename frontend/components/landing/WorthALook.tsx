@@ -2,8 +2,9 @@ import Link from "next/link";
 import SectionHead from "@/components/i18n/SectionHead";
 import ResearchRail from "@/components/home/personalized/ResearchRail";
 import DiscoverRail from "@/components/home/personalized/DiscoverRail";
+import ScreenerCard from "@/components/home/personalized/ScreenerCard";
 import type { CSSProperties } from "react";
-import type { ScoreItem, Top20Item, DailyTip, ResearchListSummary } from "@/lib/api";
+import type { ScoreItem, Top20Item, DailyTip, ResearchListSummary, ScreenerGoal } from "@/lib/api";
 
 const NONE: Set<string> = new Set();
 
@@ -12,7 +13,9 @@ const NONE: Set<string> = new Set();
  * the ranking, what is moving and the daily tips — then the research lists.
  *
  * The swipe rail of buy signals · top ranked · trending · tips (`DiscoverRail`,
- * the same rail the dashboard uses), then `ResearchRail`: on this page always
+ * the same rail the dashboard uses), then the screener's goal card
+ * (`ScreenerCard`, the dashboard's — counts + top three, fully open), then
+ * `ResearchRail`: on this page always
  * the promotion card (visitors aren't Premium), counts only, no names. It
  * replaced the four "Ready-made lists" lenses (2026-10-24). Popular was dropped here (2026-09-30) —
  * for a first visit it mostly repeated Trending; it stays on the dashboard.
@@ -27,12 +30,15 @@ export default function WorthALook({
   trending,
   tips,
   research,
+  goals,
 }: {
   /** The flattened /api/scores payload — feeds both the buy list and the ranking. */
   stocks: ScoreItem[];
   trending: Top20Item[];
   tips: DailyTip[];
   research: ResearchListSummary[] | null;
+  /** The screener's goal starts (null when the endpoint failed — the card drops out). */
+  goals: ScreenerGoal[] | null;
 }) {
   const buys = stocks.filter((s) => s.signal?.signal === "buy");
 
@@ -68,6 +74,7 @@ export default function WorthALook({
           held={NONE}
           watched={NONE}
         />
+        <ScreenerCard goals={goals} held={NONE} watched={NONE} />
         <ResearchRail lists={research} held={NONE} watched={NONE} />
       </div>
 

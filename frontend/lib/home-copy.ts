@@ -133,6 +133,15 @@ const COPY = {
   // Lists rail
   // Research lists (homepage rail — full for Premium, a promotion card for everyone else)
   researchTitle: ["Research lists", "গবেষণা তালিকা"],
+  // Screener card
+  screenerTitle: ["Find stocks your way", "নিজের মতো শেয়ার খুঁজুন"],
+  screenerOpen: ["Screener", "স্ক্রিনার"],
+  screenerSeeAll: ["See all {n} in the screener", "স্ক্রিনারে সব {n}টি দেখুন"],
+  screenerChange: ["Change the checks", "শর্ত বদলান"],
+  screenerNone: ["None pass today. Try another goal.", "আজ কোনোটি পাস করেনি। অন্য লক্ষ্য দেখুন।"],
+  screenerYours: ["Your screens", "আপনার স্ক্রিন"],
+  screenerNew: ["{n} new", "{n}টি নতুন"],
+  screenerPass: ["{n} pass", "{n}টি পাস"],
   allLists: ["All lists", "সব তালিকা"],
   researchSeeAll: ["See all {n}", "সব {n}টি দেখুন"],
   researchPromoHead: ["Six lists that do the research for you", "আপনার হয়ে গবেষণা করা ছয়টি তালিকা"],
@@ -176,15 +185,7 @@ const COPY = {
   heroVsDsex: ["Vs DSEX today", "আজ বাজারের তুলনায়"],
   allTips: ["All tips", "সব টিপস"],
 
-  // Ideas
-  ideasTitle: ["3 stocks worth a look today", "আজ দেখার মতো 3টি শেয়ার"],
-  ideasTitleTuned: ["3 stocks picked for you today", "আজ আপনার জন্য বাছাই 3টি শেয়ার"],
-  ideasExplainer: [
-    "Strong companies at a fair price, refreshed every day. Not advice — a place to start looking.",
-    "ভালো কোম্পানি, ঠিকঠাক দামে — প্রতিদিন নতুন। এটা পরামর্শ নয়, দেখা শুরু করার জায়গা।",
-  ],
-  ideasSeeAll: ["More ideas", "আরও আইডিয়া"],
-  ideasFooter: ["Tap a stock to see its full checkup.", "পুরো যাচাই দেখতে শেয়ারে ট্যাপ করুন।"],
+  // Plain "kind" words (DiscoverRail rows)
   kindYouFollow: ["You follow this", "আপনি ফলো করেন"],
   kindMatched: ["Matched to you", "আপনার পছন্দের মতো"],
   kindGoodPrice: ["Good price now", "এখন দাম ভালো"],

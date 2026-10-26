@@ -54,7 +54,7 @@ export const BENEFITS: { key: "why" | "portfolio" | "research" | "limits"; title
     title: { en: "Research, done for you", bn: "গবেষণা আমরা করে দিই" },
     points: [
       { en: "Six research lists in full", bn: "ছয়টি গবেষণা তালিকা পুরোটা" },
-      { en: "Your own lists, checked every day", bn: "নিজের তালিকা, প্রতিদিন যাচাই" },
+      { en: "The full stock screener, your screens checked every day", bn: "পুরো স্টক স্ক্রিনার, আপনার স্ক্রিন প্রতিদিন যাচাই" },
       { en: "The complete dividend calendar", bn: "পুরো ডিভিডেন্ড ক্যালেন্ডার" },
     ],
   },
@@ -204,14 +204,14 @@ export const ROWS: { what: Bi; free: Bi; premium: Bi }[] = [
     },
   },
   {
-    what: { en: "Your own lists", bn: "নিজের তালিকা" },
+    what: { en: "Stock screener", bn: "স্টক স্ক্রিনার" },
     free: {
-      en: "Build a list from 23 checks and see how many companies pass",
-      bn: "23টি পরীক্ষা থেকে তালিকা বানান, দেখুন কতগুলো কোম্পানি পাস করে",
+      en: "Every check and goal, how many companies pass, and the first 3 stocks",
+      bn: "সব শর্ত আর লক্ষ্য, কতগুলো কোম্পানি পাস করে, আর প্রথম 3টি শেয়ার",
     },
     premium: {
-      en: "Which companies pass, and up to 5 saved lists checked every trading day — with a phone alert when a new stock passes",
-      bn: "কোন কোম্পানিগুলো পাস করে, আর 5টি পর্যন্ত তালিকা সেভ করে প্রতিদিন যাচাই — নতুন শেয়ার এলে ফোনে নোটিফিকেশন",
+      en: "Every stock that passes, the power checks (a Buy today, a better quarter, owners buying …), and up to 5 saved screens checked every trading day — with a phone alert when a new stock passes",
+      bn: "পাস করা প্রতিটি শেয়ার, পাওয়ার শর্ত (আজ 'কিনুন', ভালো প্রান্তিক, উদ্যোক্তারা কিনছেন …), আর 5টি পর্যন্ত স্ক্রিন সেভ করে প্রতিদিন যাচাই — নতুন শেয়ার এলে ফোনে নোটিফিকেশন",
     },
   },
   {

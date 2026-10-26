@@ -11,8 +11,9 @@ until the first check), ``joined`` / ``left`` what changed on ``changed_on``.
 The daily job (``run_alerts``, called from ``portfolio-daily``) re-runs every
 Premium reader's lists and sends one push a day naming the newcomers.
 
-Running a spec (``run``) is open to everyone — the builder shows a free reader
-how many companies pass; which ones is screen-locked, like every other lock.
+Running a spec (``run``) is open to everyone — the screener (``/screener``)
+shows a free reader how many companies pass and the first few; the rest is
+screen-locked, like every other lock.
 Saving is Premium and enforced here.
 """
 from __future__ import annotations
@@ -28,7 +29,8 @@ from backend.services.db_service import _ttl_cache, get_db
 
 logger = logging.getLogger(__name__)
 
-RESULT_CAP = 30
+RESULT_CAP = 50
+GOAL_TOP = 3  # = the screener's free rows, so the homepage card needs no lock
 
 
 def _users():
@@ -69,6 +71,12 @@ def _run(spec: dict, ctx: Optional[rl.Ctx] = None) -> dict:
     return rl.run_list(lst, list(facts().values()), ctx or _ctx()) | {"_list": lst}
 
 
+def run_template(template_id: str) -> dict:
+    """A ready-made starting point, run — the screener's server-rendered view.
+    KeyError on an unknown id."""
+    return run(cl.TEMPLATE_BY_ID[template_id]["spec"])
+
+
 def run(spec_in: dict) -> dict:
     """The builder's live result: funnel, pass count, the first RESULT_CAP
     stocks with their own figure on every check. Raises ValueError on a bad spec."""
@@ -87,6 +95,29 @@ def run(spec_in: dict) -> dict:
         })
     return {"spec": spec, "universe": res["universe"], "funnel": res["funnel"],
             "passed": len(res["passed"]), "stocks": stocks}
+
+
+@_ttl_cache(900)
+def goals_summary() -> list[dict]:
+    """The goal starts, run — the homepage "Find stocks your way" card: each
+    goal's pass count and its top ``GOAL_TOP`` stocks. Goals use no power
+    checks and the top three are the screener's free rows, so nothing here is
+    locked. A goal that no longer runs (its sector left the DSE) is skipped."""
+    out = []
+    for tp in cl.TEMPLATES:
+        if tp["kind"] != "goal":
+            continue
+        try:
+            res = run(tp["spec"])
+        except ValueError:
+            continue
+        out.append({
+            "id": tp["id"], "title_en": tp["title_en"], "title_bn": tp["title_bn"],
+            "blurb_en": tp["blurb_en"], "blurb_bn": tp["blurb_bn"],
+            "passed": res["passed"], "universe": res["universe"],
+            "top": [s | {"checks": s["checks"][:2]} for s in res["stocks"][:GOAL_TOP]],
+        })
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -129,6 +160,25 @@ def list_for_user(user_id: str) -> list[dict]:
         except ValueError:
             live = None  # a sector that left the DSE — the card says so
         out.append(_public(d, live) | {"broken": live is None})
+    return out
+
+
+def saved_news(user_id: str) -> list[dict]:
+    """The reader's saved screens as of the last daily check — no live run, so
+    it is cheap enough for the home bundle. ``new_today`` = the codes that
+    joined at that check (empty when the last check changed nothing)."""
+    out = []
+    for d in _docs(user_id):
+        members = d.get("members")
+        changed = bool(d.get("changed_on")) and d.get("changed_on") == d.get("checked_on")
+        joined = (d.get("joined") or []) if changed else []
+        names = {c: (facts().get(c) or {}).get("name") or c for c in joined}
+        out.append({
+            "id": d["id"], "name": d.get("name"),
+            "passed": len(members) if members is not None else None,
+            "checked_on": d.get("checked_on"),
+            "new_today": [{"code": c, "name": names[c]} for c in joined],
+        })
     return out
 
 
@@ -195,13 +245,13 @@ def push_payload(changes: list[tuple[dict, list[str]]], lang: str = "bn") -> Opt
         names = ", ".join(joined[:3]) + ("…" if len(joined) > 3 else "")
         title = (f"'{d['name']}' তালিকায় নতুন {len(joined)}টি শেয়ার" if bn
                  else f"{len(joined)} new on your list '{d['name']}'")
-        url = f"/my-lists?list={d['id']}&src=alert"
+        url = f"/screener?tab=saved&list={d['id']}&src=alert"
     else:
         total = sum(len(j) for _, j in changes)
         title = (f"আপনার {len(changes)}টি তালিকায় নতুন {total}টি শেয়ার" if bn
                  else f"{total} new stocks on {len(changes)} of your lists")
         names = " · ".join(f"{d['name']}: {', '.join(j[:2])}" for d, j in changes[:3])
-        url = "/my-lists?src=alert"
+        url = "/screener?tab=saved&src=alert"
     body = (f"আজ সব শর্ত পূরণ করেছে: {names}" if bn else f"Passed every check today: {names}")
     return {"title": title, "body": body, "url": url, "tag": "customlists"}
 
