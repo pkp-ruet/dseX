@@ -9,12 +9,12 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com
 export const metadata: Metadata = {
   title: "Refund Policy — Premium Payments",
   description:
-    "How TopStockBD Premium payments by bKash and Nagad work: what you pay, how we check it, nothing renews by itself, and a full refund within 7 days.",
-  keywords: ["TopStockBD refund policy", "TopStockBD Premium payment", "bKash payment", "Nagad payment", "DSE stock analysis subscription"],
+    "How TopStockBD Premium payments by bKash, Nagad and bank transfer work: what you pay, how we check it, nothing renews by itself, and a full refund within 7 days.",
+  keywords: ["TopStockBD refund policy", "TopStockBD Premium payment", "bKash payment", "Nagad payment", "bank transfer payment", "DSE stock analysis subscription"],
   alternates: { canonical: "/refund-policy" },
   openGraph: {
     title: "Refund Policy — TopStockBD Premium",
-    description: "Pay by bKash or Nagad, nothing renews by itself, full refund within 7 days.",
+    description: "Pay by bKash, Nagad or bank transfer, nothing renews by itself, full refund within 7 days.",
     url: `${BASE_URL}/refund-policy`,
     type: "website",
   },
@@ -53,8 +53,8 @@ const SECTIONS: { key: string; h: string; hBn: string; body: { en: string; bn: s
         bn: PAID_PLANS.map((p) => `${p.bn}: ৳${p.amount.toLocaleString("en-IN")} (${p.days} দিন)`).join(" · ") + "।",
       },
       {
-        en: "You pay once, by bKash or Nagad Send Money, to the number shown on the Premium page. Prices are in taka and include everything, so there are no extra charges from us. bKash or Nagad may charge their own Send Money fee.",
-        bn: "আপনি একবারই পেমেন্ট করেন, বিকাশ বা নগদের সেন্ড মানি দিয়ে, প্রিমিয়াম পেজে দেখানো নম্বরে। দাম টাকায়, আর এতেই সব ধরা আছে, তাই আমাদের দিক থেকে কোনো বাড়তি খরচ নেই। বিকাশ বা নগদ তাদের নিজস্ব সেন্ড মানি চার্জ নিতে পারে।",
+        en: "You pay once, by bKash or Nagad Send Money to the number shown on the Premium page, or by bank transfer (NPSB or BEFTN) to the bank account shown there. Prices are in taka and include everything, so there are no extra charges from us. bKash, Nagad or your bank may charge their own fee.",
+        bn: "আপনি একবারই পেমেন্ট করেন, বিকাশ বা নগদের সেন্ড মানি দিয়ে প্রিমিয়াম পেজে দেখানো নম্বরে, অথবা ব্যাংক ট্রান্সফারে (NPSB বা BEFTN) সেখানে দেখানো ব্যাংক অ্যাকাউন্টে। দাম টাকায়, আর এতেই সব ধরা আছে, তাই আমাদের দিক থেকে কোনো বাড়তি খরচ নেই। বিকাশ, নগদ বা আপনার ব্যাংক তাদের নিজস্ব চার্জ নিতে পারে।",
       },
     ],
   },
@@ -64,12 +64,12 @@ const SECTIONS: { key: string; h: string; hBn: string; body: { en: string; bn: s
     hBn: "প্রিমিয়াম কখন চালু হয়",
     body: [
       {
-        en: "Premium starts as soon as you type the number you paid from and tap the button. If you still have Premium days left, the new days are added after them.",
-        bn: "যে নম্বর থেকে পেমেন্ট করেছেন সেটি লিখে বোতামে চাপ দিলেই প্রিমিয়াম চালু হয়। আপনার প্রিমিয়ামের দিন বাকি থাকলে নতুন দিনগুলো সেগুলোর পরে যোগ হয়।",
+        en: "Premium starts as soon as you tell us how you paid and tap the button. For bKash or Nagad, that is the number you paid from. For a bank transfer, it is NPSB or BEFTN, the last 4 digits of your account, and the reference if you wrote one. If you still have Premium days left, the new days are added after them.",
+        bn: "কীভাবে পেমেন্ট করেছেন জানিয়ে বোতামে চাপ দিলেই প্রিমিয়াম চালু হয়। বিকাশ বা নগদে হলে যে নম্বর থেকে পেমেন্ট করেছেন। ব্যাংক ট্রান্সফারে হলে NPSB না BEFTN, আপনার অ্যাকাউন্টের শেষ 4টি সংখ্যা, আর রেফারেন্স লিখে থাকলে সেটি। আপনার প্রিমিয়ামের দিন বাকি থাকলে নতুন দিনগুলো সেগুলোর পরে যোগ হয়।",
       },
       {
-        en: "We check every payment against our bKash and Nagad statements. If no matching payment came from the number you typed, Premium is switched off and those days are taken back.",
-        bn: "প্রতিটি পেমেন্ট আমরা আমাদের বিকাশ ও নগদের স্টেটমেন্টের সঙ্গে মিলিয়ে দেখি। আপনার লেখা নম্বর থেকে মিল থাকা কোনো পেমেন্ট না এলে প্রিমিয়াম বন্ধ করা হয়, আর সেই দিনগুলো ফিরিয়ে নেওয়া হয়।",
+        en: "We check every payment against our bKash, Nagad and bank statements. If no matching payment came in, Premium is switched off and those days are taken back. A BEFTN transfer can take until the next working day to reach us, so we wait for it before we decide.",
+        bn: "প্রতিটি পেমেন্ট আমরা আমাদের বিকাশ, নগদ ও ব্যাংকের স্টেটমেন্টের সঙ্গে মিলিয়ে দেখি। মিল থাকা কোনো পেমেন্ট না এলে প্রিমিয়াম বন্ধ করা হয়, আর সেই দিনগুলো ফিরিয়ে নেওয়া হয়। BEFTN-এ টাকা পৌঁছাতে পরের কার্যদিবস পর্যন্ত লাগতে পারে, তাই সিদ্ধান্ত নেওয়ার আগে আমরা অপেক্ষা করি।",
       },
     ],
   },
@@ -90,8 +90,8 @@ const SECTIONS: { key: string; h: string; hBn: string; body: { en: string; bn: s
     hBn: "টাকা ফেরত",
     body: [
       {
-        en: "Ask within 7 days of paying and we send the full amount back to the bKash or Nagad number you paid from, usually within 3 working days. Premium is switched off when the refund is sent.",
-        bn: "পেমেন্টের 7 দিনের মধ্যে জানালে আমরা পুরো টাকা যে বিকাশ বা নগদ নম্বর থেকে পেমেন্ট করেছেন সেখানে ফেরত পাঠাই, সাধারণত 3 কার্যদিবসের মধ্যে। টাকা ফেরত পাঠানোর সময় প্রিমিয়াম বন্ধ করা হয়।",
+        en: "Ask within 7 days of paying and we send the full amount back to the bKash or Nagad number you paid from, usually within 3 working days. If you paid by bank transfer, we send it back to your bank account, and we will ask you for its details. Premium is switched off when the refund is sent.",
+        bn: "পেমেন্টের 7 দিনের মধ্যে জানালে আমরা পুরো টাকা যে বিকাশ বা নগদ নম্বর থেকে পেমেন্ট করেছেন সেখানে ফেরত পাঠাই, সাধারণত 3 কার্যদিবসের মধ্যে। ব্যাংক ট্রান্সফারে পেমেন্ট করলে টাকা আপনার ব্যাংক অ্যাকাউন্টে ফেরত পাঠাই, আর সেজন্য অ্যাকাউন্টের তথ্য আপনার কাছে চেয়ে নেব। টাকা ফেরত পাঠানোর সময় প্রিমিয়াম বন্ধ করা হয়।",
       },
       {
         en: "After 7 days, we do not refund the part of a plan you have not used, but Premium stays on until the plan ends.",

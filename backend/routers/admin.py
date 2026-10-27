@@ -531,7 +531,7 @@ def grant_premium_endpoint(body: PremiumGrantBody, _: dict = Depends(get_current
 
 
 # ---------------------------------------------------------------------------
-# Payments (bKash / Nagad — Premium starts on submit, checked here afterwards)
+# Payments (bKash / Nagad / bank — Premium starts on submit, checked here afterwards)
 # ---------------------------------------------------------------------------
 
 class RevokePaymentBody(BaseModel):

@@ -24,7 +24,7 @@ export const HERO = {
 } as const;
 
 export const PROMISES: Bi[] = [
-  { en: "Pay by bKash or Nagad", bn: "বিকাশ বা নগদে পেমেন্ট" },
+  { en: "Pay by bKash, Nagad or bank", bn: "বিকাশ, নগদ বা ব্যাংকে পেমেন্ট" },
   { en: "It never renews by itself", bn: "নিজে থেকে নবায়ন হয় না" },
   { en: "Full refund within 7 days", bn: "7 দিনের মধ্যে পুরো টাকা ফেরত" },
 ];
@@ -71,8 +71,8 @@ export const BENEFITS: { key: "why" | "portfolio" | "research" | "limits"; title
 
 export const STEPS: { title: Bi; sub: Bi }[] = [
   { title: { en: "Choose a plan", bn: "প্ল্যান বেছে নিন" }, sub: { en: "1 month, 6 months or 1 year", bn: "1 মাস, 6 মাস বা 1 বছর" } },
-  { title: { en: "Send Money", bn: "Send Money করুন" }, sub: { en: "By bKash or Nagad", bn: "বিকাশ বা নগদে" } },
-  { title: { en: "Type your number", bn: "আপনার নম্বর লিখুন" }, sub: { en: "Premium starts at once", bn: "প্রিমিয়াম সঙ্গে সঙ্গে চালু হয়" } },
+  { title: { en: "Send the money", bn: "টাকা পাঠান" }, sub: { en: "By bKash, Nagad or bank transfer", bn: "বিকাশ, নগদ বা ব্যাংক ট্রান্সফারে" } },
+  { title: { en: "Tell us how you paid", bn: "কীভাবে পাঠিয়েছেন জানান" }, sub: { en: "Premium starts at once", bn: "প্রিমিয়াম সঙ্গে সঙ্গে চালু হয়" } },
 ];
 
 export const SECTIONS = {
@@ -96,8 +96,8 @@ export const SECTIONS = {
   faq: { en: "Common questions", bn: "সাধারণ প্রশ্ন" },
   closing: { en: "See the reasons on every share", bn: "প্রতিটি শেয়ারের কারণ দেখুন" },
   closingLead: {
-    en: "Choose a plan and pay by bKash or Nagad. Premium starts straight away.",
-    bn: "প্ল্যান বেছে নিন আর বিকাশ বা নগদে পেমেন্ট করুন। প্রিমিয়াম সঙ্গে সঙ্গে চালু হবে।",
+    en: "Choose a plan and pay by bKash, Nagad or bank transfer. Premium starts straight away.",
+    bn: "প্ল্যান বেছে নিন আর বিকাশ, নগদ বা ব্যাংক ট্রান্সফারে পেমেন্ট করুন। প্রিমিয়াম সঙ্গে সঙ্গে চালু হবে।",
   },
   feature: { en: "What you get", bn: "যা পাবেন" },
   promises: { en: "Our promises", bn: "আমাদের প্রতিশ্রুতি" },
@@ -262,15 +262,15 @@ export const FAQS: { q: Bi; a: Bi }[] = [
   {
     q: { en: "How do I pay?", bn: "কীভাবে পেমেন্ট করব?" },
     a: {
-      en: "By bKash or Nagad. Choose a plan, use Send Money to send the amount to the number shown on this page, then type the number you sent it from and tap the button. Premium starts straight away.",
-      bn: "বিকাশ বা নগদে। একটি প্ল্যান বেছে নিন, এই পেজে দেখানো নম্বরে Send Money করে টাকা পাঠান, তারপর যে নম্বর থেকে পাঠিয়েছেন সেটি লিখে বোতাম চাপুন। প্রিমিয়াম সঙ্গে সঙ্গে চালু হবে।",
+      en: "By bKash or Nagad Send Money, or by bank transfer (NPSB or BEFTN). Choose a plan and send the amount to the number or bank account shown on this page. Then tell us how you paid. For bKash or Nagad, that is the number you sent it from. For a bank transfer, it is NPSB or BEFTN, the last 4 digits of your account, and the reference if you wrote one. Tap the button and Premium starts straight away.",
+      bn: "বিকাশ বা নগদে Send Money করে, অথবা ব্যাংক ট্রান্সফারে (NPSB বা BEFTN)। একটি প্ল্যান বেছে নিন, আর এই পেজে দেখানো নম্বরে বা ব্যাংক অ্যাকাউন্টে টাকা পাঠান। তারপর জানান কীভাবে পাঠিয়েছেন। বিকাশ বা নগদে হলে যে নম্বর থেকে পাঠিয়েছেন সেটি লিখুন। ব্যাংক ট্রান্সফারে হলে NPSB না BEFTN, আপনার অ্যাকাউন্টের শেষ 4টি সংখ্যা, আর রেফারেন্স লিখে থাকলে সেটি দিন। বোতাম চাপলেই প্রিমিয়াম সঙ্গে সঙ্গে চালু হবে।",
     },
   },
   {
     q: { en: "What if you cannot find my payment?", bn: "আমার পেমেন্ট খুঁজে না পেলে কী হবে?" },
     a: {
-      en: "We check every payment against our bKash and Nagad statements. If no money came from the number you typed, Premium is switched off and the days are taken back. If you typed the wrong number by mistake, please contact us and we will sort it out.",
-      bn: "প্রতিটি পেমেন্ট আমরা বিকাশ ও নগদের হিসাবের সঙ্গে মিলিয়ে দেখি। আপনার লেখা নম্বর থেকে টাকা না এলে প্রিমিয়াম বন্ধ হয় আর দিনগুলো ফিরিয়ে নেওয়া হয়। ভুল করে অন্য নম্বর লিখে থাকলে আমাদের জানান, আমরা ঠিক করে দেব।",
+      en: "We check every payment against our bKash, Nagad and bank statements. If no matching money came in, Premium is switched off and the days are taken back. A BEFTN transfer can take until the next working day, so we wait for it before we decide. If you typed something wrong by mistake, please contact us and we will sort it out.",
+      bn: "প্রতিটি পেমেন্ট আমরা বিকাশ, নগদ ও ব্যাংকের হিসাবের সঙ্গে মিলিয়ে দেখি। মিলে যায় এমন টাকা না এলে প্রিমিয়াম বন্ধ হয় আর দিনগুলো ফিরিয়ে নেওয়া হয়। BEFTN-এ টাকা পৌঁছাতে পরের কার্যদিবস পর্যন্ত লাগতে পারে, তাই সিদ্ধান্ত নেওয়ার আগে আমরা অপেক্ষা করি। ভুল করে অন্য কিছু লিখে থাকলে আমাদের জানান, আমরা ঠিক করে দেব।",
     },
   },
   {

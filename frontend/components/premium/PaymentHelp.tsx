@@ -99,11 +99,14 @@ export default function PaymentHelp() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor="pay-help-sender" className="text-sm text-text-main">
-                <T en="The number you paid from, if any" bn="যে নম্বর থেকে টাকা পাঠিয়েছেন, যদি থাকে" />
+                <T
+                  en="The number or bank account (last 4 digits) you paid from, if any"
+                  bn="যে নম্বর বা ব্যাংক অ্যাকাউন্ট (শেষ 4 সংখ্যা) থেকে পাঠিয়েছেন, যদি থাকে"
+                />
               </label>
               <input
                 id="pay-help-sender"
-                type="tel"
+                type="text"
                 inputMode="numeric"
                 placeholder="01XXXXXXXXX"
                 value={sender}

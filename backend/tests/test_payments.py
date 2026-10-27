@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from backend.services.payments import (
     PAID_PLANS,
     accepted_payload,
+    bank_details,
     extend_until,
     gift_payload,
     manual_spec,
@@ -41,6 +42,21 @@ def test_sender_number_forms():
     assert normalize_sender("") is None
 
 
+def test_bank_transfer_details():
+    import pytest
+
+    assert bank_details("NPSB", " 12 34 ", "") == {
+        "transfer": "npsb", "account_last4": "1234", "reference": None}
+    assert bank_details("beftn", "০৫৬৭", "  Rahim   premium ") == {
+        "transfer": "beftn", "account_last4": "0567", "reference": "Rahim premium"}
+    assert len(bank_details("npsb", "1234", "x" * 200)["reference"]) == 50
+    for args, err in ((("rtgs", "1234"), "bad_transfer"), (("", "1234"), "bad_transfer"),
+                      (("npsb", "123"), "bad_account_last4"), (("npsb", "12345"), "bad_account_last4"),
+                      (("npsb", "12a4"), "bad_account_last4"), (("npsb", ""), "bad_account_last4")):
+        with pytest.raises(ValueError, match=err):
+            bank_details(*args)
+
+
 def test_ref_code_is_six_upper_chars():
     assert ref_code("3f2a9c1e-77b0-4c1d-9e0a-1b2c3d4e5f60") == "3F2A9C"
 
@@ -73,10 +89,11 @@ def test_renewal_reminder_says_what_premium_caught():
     caught = [{"kind": "results", "count": 2}, {"kind": "record", "count": 1}]
     body = renewal_payload(3, "en", caught)["body"]
     assert body.startswith("This month it found 2 quarterly results and 1 record date on your shares.")
-    assert "bKash" in body
+    assert "bKash" in body and "bank transfer" in body
     assert "২" not in renewal_payload(3, "bn", caught)["body"]  # Western digits in Bengali copy
     # Nothing caught → the plain reminder.
-    assert renewal_payload(3, "en", [])["body"] == "To keep it on, choose a plan again and pay by bKash or Nagad."
+    assert renewal_payload(3, "en", [])["body"] == (
+        "To keep it on, choose a plan again and pay by bKash, Nagad or bank transfer.")
 
 
 def test_plan_change_moves_the_end_date_by_the_difference():

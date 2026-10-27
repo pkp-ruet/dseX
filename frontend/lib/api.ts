@@ -1445,12 +1445,24 @@ export async function apiGetMe(): Promise<{ user: AuthUser }> {
 }
 
 
-// Premium payments (bKash / Nagad Send Money — backend services/payments.py)
-export type PayMethod = "bkash" | "nagad";
+// Premium payments (bKash / Nagad Send Money, or a bank transfer by NPSB /
+// BEFTN — backend services/payments.py)
+export type PayMethod = "bkash" | "nagad" | "bank";
+export type BankTransfer = "npsb" | "beftn";
+export interface PayMethodInfo {
+  key: PayMethod;
+  /** The bKash / Nagad number, or the bank account number. */
+  number: string;
+  /** Bank only. */
+  bank_name?: string;
+  branch?: string | null;
+  account_name?: string | null;
+  routing?: string | null;
+}
 export interface PremiumPlansResponse {
   plans: { key: string; amount: number; days: number }[];
-  /** Only methods that have a receiving number set. */
-  methods: { key: PayMethod; number: string }[];
+  /** Only methods that are set up on the backend. */
+  methods: PayMethodInfo[];
 }
 export interface PremiumPayment {
   id: string;
@@ -1458,7 +1470,12 @@ export interface PremiumPayment {
   amount: number;
   days: number;
   method: PayMethod;
-  sender: string;
+  /** bKash / Nagad: the number it came from. Null on a bank transfer. */
+  sender: string | null;
+  /** Bank transfer only. */
+  transfer?: BankTransfer | null;
+  account_last4?: string | null;
+  reference?: string | null;
   status: "pending" | "accepted" | "revoked";
   /** False while a payment waits for an admin before its days are added. */
   granted: boolean;
@@ -1475,7 +1492,10 @@ export async function getPremiumPlans(): Promise<PremiumPlansResponse> {
 export async function apiSubmitPayment(body: {
   plan: string;
   method: PayMethod;
-  sender: string;
+  sender?: string;
+  transfer?: BankTransfer;
+  account_last4?: string;
+  reference?: string;
 }): Promise<{ payment: PremiumPayment; user: AuthUser }> {
   return apiAuthFetch("/api/user/premium/payments", { method: "POST", body: JSON.stringify(body) });
 }

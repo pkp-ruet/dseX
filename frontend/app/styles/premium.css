@@ -348,6 +348,37 @@
 }
 .pay-submit { padding-top: var(--space-4); border-top: 1px solid var(--border); }
 
+/* Bank transfer (PayBox): the account plate and the NPSB / BEFTN choice */
+.pay-bank { align-items: flex-start; }
+.pay-bank-rows { display: grid; gap: var(--space-2); min-width: 0; margin: 0; }
+.pay-bank-rows dt { font-size: var(--fs-2xs); color: var(--text-muted); }
+.pay-bank-rows dd { margin: 0; font-weight: 600; color: var(--text); overflow-wrap: anywhere; }
+.pay-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-3);
+  text-align: left;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  transition: border-color 0.15s ease;
+}
+.pay-choice:hover { border-color: rgb(var(--primary-rgb) / 0.5); }
+.pay-choice:focus-visible { outline: none; box-shadow: var(--ring); }
+.pay-choice .pay-radio { margin-top: 2px; }
+.pay-choice-on { border-color: var(--primary); }
+.pay-choice-on .pay-radio { border-color: var(--primary); }
+.pay-choice-on .pay-radio::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 999px;
+  background: var(--primary);
+}
+
 /* Folding rows: comparison, FAQ, payment help */
 .pm-fold-summary {
   display: flex;

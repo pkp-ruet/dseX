@@ -75,3 +75,10 @@ VAPID_SUBJECT = os.getenv("VAPID_SUBJECT", "mailto:hello@topstockbd.com")
 # /premium by GET /api/premium/plans; a method with no number is hidden.
 PAY_BKASH_NUMBER = os.getenv("PAY_BKASH_NUMBER", "").strip()
 PAY_NAGAD_NUMBER = os.getenv("PAY_NAGAD_NUMBER", "").strip()
+# Bank transfer (NPSB / BEFTN). Shown only when the bank name and account
+# number are both set; the account name and routing number are optional lines.
+PAY_BANK_NAME = os.getenv("PAY_BANK_NAME", "").strip()
+PAY_BANK_ACCOUNT = os.getenv("PAY_BANK_ACCOUNT", "").strip()
+PAY_BANK_BRANCH = os.getenv("PAY_BANK_BRANCH", "").strip()
+PAY_BANK_ACCOUNT_NAME = os.getenv("PAY_BANK_ACCOUNT_NAME", "").strip()
+PAY_BANK_ROUTING = os.getenv("PAY_BANK_ROUTING", "").strip()

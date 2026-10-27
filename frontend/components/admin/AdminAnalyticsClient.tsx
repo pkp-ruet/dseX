@@ -179,8 +179,8 @@ function Dashboard({ data, priceMap }: { data: AdminAnalyticsResponse; priceMap:
               {
                 label: "Payments to check",
                 value: n(p.payments_pending ?? 0),
-                sub: "bKash / Nagad — open Payments to accept or revoke",
-                hint: "Premium already started for these; check each against the bKash / Nagad statement.",
+                sub: "bKash / Nagad / bank — open Payments to accept or revoke",
+                hint: "Premium already started for these; check each against the bKash / Nagad or bank statement.",
               },
               {
                 label: "Started the free month",

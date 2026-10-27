@@ -7,7 +7,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com
 
 export const metadata: Metadata = {
   title: "Premium — The Full Analysis on Every DSE Stock",
-  description: `TopStockBD Premium: the reasons behind every DSE stock score, a daily watcher and action list for your portfolio, six research lists in full, the full dividend calendar, and no limits on watchlist, price alerts or TopStock AI. From ৳${LOWEST_PRICE}, paid by bKash or Nagad. No auto-renewal, 7-day refund.`,
+  description: `TopStockBD Premium: the reasons behind every DSE stock score, a daily watcher and action list for your portfolio, six research lists in full, the full dividend calendar, and no limits on watchlist, price alerts or TopStock AI. From ৳${LOWEST_PRICE}, paid by bKash, Nagad or bank transfer. No auto-renewal, 7-day refund.`,
   keywords: [
     "TopStockBD Premium",
     "DSE stock analysis",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/premium" },
   openGraph: {
     title: "TopStockBD Premium — see the reasons behind every number",
-    description: `The full analysis behind every DSE stock and your portfolio. From ৳${LOWEST_PRICE} by bKash or Nagad.`,
+    description: `The full analysis behind every DSE stock and your portfolio. From ৳${LOWEST_PRICE} by bKash, Nagad or bank transfer.`,
     url: `${BASE_URL}/premium`,
     type: "website",
   },

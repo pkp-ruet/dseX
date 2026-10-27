@@ -12,7 +12,7 @@ import {
   type AdminPayment,
   type AdminPaymentsResponse,
 } from "@/lib/api";
-import { METHOD_LABEL, PAID_PLANS, planByKey } from "@/lib/premium-plans";
+import { METHOD_LABEL, PAID_PLANS, TRANSFER_LABEL, planByKey } from "@/lib/premium-plans";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Tabs from "@/components/ui/Tabs";
@@ -21,7 +21,13 @@ import { toast } from "@/lib/toast";
 
 type StatusTab = "pending" | "accepted" | "revoked" | "all";
 
-const REASONS = ["No payment from this number", "Wrong amount", "Already counted", "Refunded"];
+const REASONS = ["No payment from this number", "No bank transfer with these details", "Wrong amount", "Already counted", "Refunded"];
+
+/** Who paid, for confirm dialogs: the sender number, or the bank account ending. */
+function payer(p: AdminPayment): string {
+  if (p.method === "bank" && p.account_last4) return `account ending ${p.account_last4}`;
+  return p.sender || p.name || p.email || "this account";
+}
 
 function fmtTime(iso: string | null): string {
   if (!iso) return "—";
@@ -45,10 +51,12 @@ const STATUS_TONE: Record<AdminPayment["status"], string> = {
 };
 
 /**
- * /admin/payments — every bKash / Nagad payment (backend services/payments.py).
- * Premium already started when the reader submitted; here you match each one
- * against the bKash / Nagad statement (sender number, amount, time, reference
- * code) and Accept it, or Revoke it — which takes the plan's days back. A
+ * /admin/payments — every bKash / Nagad / bank-transfer payment (backend
+ * services/payments.py). Premium already started when the reader submitted;
+ * here you match each one against the bKash / Nagad statement (sender number,
+ * amount, time) or the bank statement (NPSB / BEFTN, the sending account's last
+ * 4 digits, the reference, amount) and Accept it, or Revoke it — which takes
+ * the plan's days back. A
  * "held" row (the account had a payment revoked before) only gets its days on
  * Accept. When the reader picked one plan but sent the money for another,
  * "Change plan" corrects it (before or after accepting): amount and days follow
@@ -86,7 +94,7 @@ export default function AdminPaymentsClient() {
   const act = async (p: AdminPayment, kind: "accept" | "revoke") => {
     if (kind === "revoke") {
       const reason = reasons[p.id] || REASONS[0];
-      if (!window.confirm(`Revoke ৳${p.amount} from ${p.sender || p.name || p.email || "this account"}? Their ${p.days} days are taken back.\n\nReason: ${reason}`)) return;
+      if (!window.confirm(`Revoke ৳${p.amount} from ${payer(p)}? Their ${p.days} days are taken back.\n\nReason: ${reason}`)) return;
     }
     setBusyId(p.id);
     try {
@@ -109,7 +117,7 @@ export default function AdminPaymentsClient() {
       ? `Their Premium ${diff > 0 ? "gains" : "loses"} ${Math.abs(diff)} days.`
       : "No days are granted yet — the new plan's days come on Accept.";
     if (!window.confirm(
-      `Change ${p.sender || p.name || p.email || "this"}'s payment from ${planByKey(p.plan)?.name ?? p.plan} (৳${p.amount}) ` +
+      `Change ${payer(p)}'s payment from ${planByKey(p.plan)?.name ?? p.plan} (৳${p.amount}) ` +
       `to ${next.name} (৳${next.amount})?
 
 ${effect}`,
@@ -151,7 +159,8 @@ ${effect}`,
           <h1 className="text-2xl sm:text-3xl font-extrabold text-text-main leading-tight">Payments</h1>
           <p className="text-sm text-text-muted mt-1">
             Premium started when the reader tapped &ldquo;I&apos;ve paid&rdquo;. Find each payment in the
-            bKash / Nagad app by the sender number, amount and time, then accept it — or revoke it
+            bKash / Nagad app by the sender number, amount and time — or, for a bank transfer, in the
+            bank statement by the account ending, reference and amount — then accept it, or revoke it
             to take the days back.
           </p>
         </div>
@@ -220,7 +229,17 @@ ${effect}`,
                 <span className="text-xs text-text-muted">{fmtTime(p.created_at)}</span>
               </div>
               <p className="mt-1 text-sm text-text-main tabular-nums">
-                {p.sender ? <>From <strong>{p.sender}</strong></> : "No sender number"}
+                {p.method === "bank" && p.account_last4 ? (
+                  <>
+                    {TRANSFER_LABEL[p.transfer ?? ""] ?? "Transfer"} from account ending{" "}
+                    <strong>{p.account_last4}</strong>
+                    {p.reference ? <> · reference <strong className="break-all">{p.reference}</strong></> : " · no reference"}
+                  </>
+                ) : p.sender ? (
+                  <>From <strong>{p.sender}</strong></>
+                ) : (
+                  "No sender number"
+                )}
                 {p.manual && (
                   <span className="text-text-muted">
                     {" "}· added by hand{p.created_by ? ` by ${p.created_by}` : ""}
@@ -233,6 +252,9 @@ ${effect}`,
               </p>
               <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                 <span className={`font-bold capitalize ${STATUS_TONE[p.status]}`}>{p.status}</span>
+                {p.status === "pending" && p.transfer === "beftn" && (
+                  <span className="text-text-muted">BEFTN can take until the next working day to arrive ·</span>
+                )}
                 {p.status === "pending" && (
                   <span className="text-text-muted">
                     {p.granted

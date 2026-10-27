@@ -1,10 +1,14 @@
-"""Premium payments, v1: bKash / Nagad Send Money to a personal number.
+"""Premium payments, v1: bKash / Nagad Send Money to a personal number, or a
+bank transfer (NPSB / BEFTN) to our account.
 
-The reader picks a plan, sends the money, and types the number they sent it
-from. Premium starts at once (the days are added on top of any left); an admin
-later finds the payment in the bKash / Nagad app and **accepts** it, or
-**revokes** it, which takes those days back. There is no transaction ID — the
-admin matches on sender number, amount, time and the reader's reference code.
+The reader picks a plan, sends the money, and tells us how: for bKash / Nagad
+the number they sent it from; for a bank transfer whether it went by NPSB or
+BEFTN, the last 4 digits of the account it came from and the reference they
+wrote, if any. Premium starts at once (the days are added on top of any left);
+an admin later finds the payment in the bKash / Nagad app or the bank statement
+and **accepts** it, or **revokes** it, which takes those days back. There is no
+transaction ID — the admin matches on sender number (or account ending +
+reference), amount and time.
 
 An admin can also **change the plan** of a pending or accepted payment when
 the reader picked one plan but sent the money for another: amount and days
@@ -14,7 +18,8 @@ Guards: one unchecked (`pending`) payment per account at a time (unique
 partial index), and an account with a revoked payment no longer gets the days
 up front — its next payment waits for an admin to accept it.
 
-The rules (`normalize_sender`, `ref_code`, `revoke_until`, `shift_until`, payloads) are pure
+The rules (`normalize_sender`, `bank_details`, `ref_code`, `revoke_until`, `shift_until`,
+payloads) are pure
 and tested in `backend/tests/test_payments.py`; the rest is storage.
 """
 import re
@@ -33,7 +38,12 @@ PAID_PLANS: dict[str, dict] = {
     "halfyearly": {"amount": 999, "days": 180, "list_amount": 1149},
     "yearly": {"amount": 1899, "days": 365, "list_amount": 2199},
 }
-METHODS = ("bkash", "nagad")
+MOBILE_METHODS = ("bkash", "nagad")
+METHODS = (*MOBILE_METHODS, "bank")
+# How a bank transfer was sent: NPSB lands in seconds, BEFTN by the next
+# working day.
+TRANSFERS = ("npsb", "beftn")
+REFERENCE_MAX = 50
 # An admin can also record money taken outside the pay box (cash, a bank
 # transfer, a payment the reader never submitted) — `manual_payment` below.
 MANUAL_METHODS = ("bkash", "nagad", "cash", "bank", "other")
@@ -46,6 +56,8 @@ ERR_PENDING = "payment_pending"
 ERR_PLAN = "bad_plan"
 ERR_METHOD = "bad_method"
 ERR_SENDER = "bad_sender"
+ERR_TRANSFER = "bad_transfer"
+ERR_LAST4 = "bad_account_last4"
 ERR_SAME_PLAN = "same_plan"
 ERR_DAYS = "bad_days"
 ERR_AMOUNT = "bad_amount"
@@ -72,6 +84,22 @@ def normalize_sender(raw: str) -> Optional[str]:
     if s.startswith("880"):
         s = s[2:]
     return s if _SENDER_RE.match(s) else None
+
+
+def bank_details(transfer: str, last4_raw: str, reference_raw: str = "") -> dict:
+    """What the reader tells us about a bank transfer: NPSB or BEFTN, the last
+    4 digits of the account it came from (Bengali digits and spaces are
+    fine) and an optional reference. Raises ValueError(ERR_TRANSFER /
+    ERR_LAST4)."""
+    t = (transfer or "").strip().lower()
+    if t not in TRANSFERS:
+        raise ValueError(ERR_TRANSFER)
+    last4 = re.sub(r"[\s\-]", "", str(last4_raw or "")).translate(
+        str.maketrans("০১২৩৪৫৬৭৮৯", "0123456789"))
+    if not re.fullmatch(r"[0-9]{4}", last4):
+        raise ValueError(ERR_LAST4)
+    ref = re.sub(r"\s+", " ", str(reference_raw or "")).strip()[:REFERENCE_MAX]
+    return {"transfer": t, "account_last4": last4, "reference": ref or None}
 
 
 def ref_code(user_id: str) -> str:
@@ -161,8 +189,8 @@ def renewal_payload(days_left: int, lang: str = "bn", caught: Optional[list[dict
     bn = lang != "en"
     title = (f"আপনার প্রিমিয়াম শেষ হতে আর {days_left} দিন বাকি" if bn
              else f"Your Premium ends in {days_left} day{'' if days_left == 1 else 's'}")
-    again = ("চালু রাখতে চাইলে বিকাশ বা নগদে আবার একটি প্ল্যান নিন।" if bn
-             else "To keep it on, choose a plan again and pay by bKash or Nagad.")
+    again = ("চালু রাখতে চাইলে বিকাশ, নগদ বা ব্যাংক ট্রান্সফারে আবার একটি প্ল্যান নিন।" if bn
+             else "To keep it on, choose a plan again and pay by bKash, Nagad or bank transfer.")
     phrase = kinds_phrase(caught or [], "bn" if bn else "en")
     if phrase:
         did = (f"এই মাসে প্রিমিয়াম আপনার শেয়ারে পেয়েছে {phrase}। " if bn
@@ -212,6 +240,9 @@ def public_payment(doc: dict) -> dict:
         "days": doc.get("days"),
         "method": doc.get("method"),
         "sender": doc.get("sender"),
+        "transfer": doc.get("transfer"),
+        "account_last4": doc.get("account_last4"),
+        "reference": doc.get("reference"),
         "status": doc.get("status"),
         "granted": bool(doc.get("granted")),
         "created_at": iso(doc.get("created_at")),
@@ -246,11 +277,23 @@ def ensure_payment_indexes() -> None:
     )
 
 
-def receiving_numbers() -> dict:
-    from backend.config import PAY_BKASH_NUMBER, PAY_NAGAD_NUMBER
+def receiving_methods() -> list[dict]:
+    """Where to send the money, one row per open method: bKash / Nagad with a
+    number set, and the bank account when its name and number are set."""
+    from backend import config
 
-    nums = {"bkash": PAY_BKASH_NUMBER, "nagad": PAY_NAGAD_NUMBER}
-    return {k: v for k, v in nums.items() if v}
+    out = [{"key": k, "number": v} for k, v in
+           (("bkash", config.PAY_BKASH_NUMBER), ("nagad", config.PAY_NAGAD_NUMBER)) if v]
+    if config.PAY_BANK_NAME and config.PAY_BANK_ACCOUNT:
+        out.append({
+            "key": "bank",
+            "number": config.PAY_BANK_ACCOUNT,
+            "bank_name": config.PAY_BANK_NAME,
+            "branch": config.PAY_BANK_BRANCH or None,
+            "account_name": config.PAY_BANK_ACCOUNT_NAME or None,
+            "routing": config.PAY_BANK_ROUTING or None,
+        })
+    return out
 
 
 def user_payments(user_id: str, limit: int = 20) -> list[dict]:
@@ -258,19 +301,26 @@ def user_payments(user_id: str, limit: int = 20) -> list[dict]:
             _payments().find({"user_id": user_id}, {"_id": 0}).sort("created_at", -1).limit(limit)]
 
 
-def submit_payment(user: dict, plan: str, method: str, sender_raw: str) -> dict:
+def submit_payment(user: dict, plan: str, method: str, sender_raw: str = "",
+                   transfer: str = "", last4_raw: str = "", reference_raw: str = "") -> dict:
     """Record a payment and, unless this account has had one revoked, add the
-    plan's days now. Raises ValueError(<ERR_*>) on bad input or a payment
-    already waiting."""
+    plan's days now. bKash / Nagad need the sender number; a bank transfer
+    needs NPSB / BEFTN and the account's last 4 digits (reference optional).
+    Raises ValueError(<ERR_*>) on bad input or a payment already waiting."""
     from pymongo.errors import DuplicateKeyError
 
     if plan not in PAID_PLANS:
         raise ValueError(ERR_PLAN)
-    if method not in METHODS or method not in receiving_numbers():
+    if method not in METHODS or method not in {m["key"] for m in receiving_methods()}:
         raise ValueError(ERR_METHOD)
-    sender = normalize_sender(sender_raw)
-    if not sender:
-        raise ValueError(ERR_SENDER)
+    if method == "bank":
+        sender = None
+        bank = bank_details(transfer, last4_raw, reference_raw)
+    else:
+        sender = normalize_sender(sender_raw)
+        if not sender:
+            raise ValueError(ERR_SENDER)
+        bank = {}
 
     uid = user["user_id"]
     now = datetime.now(timezone.utc)
@@ -288,6 +338,7 @@ def submit_payment(user: dict, plan: str, method: str, sender_raw: str) -> dict:
         "days": spec["days"],
         "method": method,
         "sender": sender,
+        **bank,
         "status": "pending",
         "granted": False,
         "created_at": now,

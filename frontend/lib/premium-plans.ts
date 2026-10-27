@@ -98,8 +98,18 @@ export function planByKey(key: string | null | undefined): PaidPlan | undefined 
 export const METHOD_LABEL: Record<string, string> = {
   bkash: "bKash",
   nagad: "Nagad",
+  bank: "Bank transfer",
   // Only on payments an admin recorded by hand.
   cash: "Cash",
-  bank: "Bank",
   other: "Other",
 };
+
+/** The Bengali words where they differ from `METHOD_LABEL`. */
+export const METHOD_BN: Record<string, string> = {
+  bkash: "বিকাশ",
+  nagad: "নগদ",
+  bank: "ব্যাংক ট্রান্সফার",
+};
+
+/** How a bank transfer was sent (backend `payments.TRANSFERS`). */
+export const TRANSFER_LABEL: Record<string, string> = { npsb: "NPSB", beftn: "BEFTN" };

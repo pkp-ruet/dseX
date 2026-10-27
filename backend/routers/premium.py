@@ -11,18 +11,24 @@ public_router = APIRouter(prefix="/api/premium", tags=["premium"])
 
 @public_router.get("/plans")
 def plans():
-    """The paid plans and where to send the money (only methods with a number)."""
-    nums = payments.receiving_numbers()
+    """The paid plans and where to send the money (only methods that are set
+    up: bKash / Nagad with a number, the bank with its name + account)."""
     return {
         "plans": [{"key": k, **v} for k, v in payments.PAID_PLANS.items()],
-        "methods": [{"key": k, "number": v} for k, v in nums.items()],
+        "methods": payments.receiving_methods(),
     }
 
 
 class PaymentBody(BaseModel):
     plan: str = Field(..., max_length=20)
     method: str = Field(..., max_length=10)
-    sender: str = Field(..., max_length=30)
+    # bKash / Nagad: the number the money came from.
+    sender: str = Field("", max_length=30)
+    # Bank transfer: npsb / beftn, the sending account's last 4 digits, and
+    # the reference written on the transfer (optional).
+    transfer: str = Field("", max_length=10)
+    account_last4: str = Field("", max_length=10)
+    reference: str = Field("", max_length=80)
 
 
 @router.post("/payments")
@@ -31,7 +37,8 @@ def submit_payment(body: PaymentBody, current_user: dict = Depends(get_current_u
     payment of theirs was revoked); an admin checks it later. 409 while an
     earlier payment is still waiting to be checked, 422 on bad input."""
     try:
-        doc = payments.submit_payment(current_user, body.plan, body.method, body.sender)
+        doc = payments.submit_payment(current_user, body.plan, body.method, body.sender,
+                                      body.transfer, body.account_last4, body.reference)
     except ValueError as e:
         code = str(e)
         raise HTTPException(status_code=409 if code == payments.ERR_PENDING else 422, detail=code)

@@ -1,7 +1,7 @@
 """Premium plan + free-account limits — the one place that decides who is premium.
 
 There is no free month (removed 2026-10-25): readers buy days by bKash /
-Nagad (`payments.py` — the days start at once, an admin accepts or revokes
+Nagad or bank transfer (`payments.py` — the days start at once, an admin accepts or revokes
 later), and admins can grant or revoke days by hand. A user is premium while
 `users.premium_until` is in the future (admins always are). Accounts that
 started the old free month keep its days until they run out
