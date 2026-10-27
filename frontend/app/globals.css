@@ -2512,28 +2512,6 @@ a:hover .ticker-tag,
   background: color-mix(in srgb, var(--mono-c, var(--primary)) 12%, var(--surface));
   border: 1px solid color-mix(in srgb, var(--mono-c, var(--primary)) 26%, transparent);
 }
-/* Floating "+ Add" action button (mobile) — sits above the bottom bar. */
-.pf-fab {
-  position: fixed;
-  /* Bottom-LEFT so it clears the site-wide assistant launcher (.disha-fab),
-     which owns the bottom-right corner. The two are independent (the assistant
-     is dismissible), so opposite corners keep both correct regardless of state. */
-  left: calc(16px + env(safe-area-inset-left, 0px));
-  bottom: calc(76px + env(safe-area-inset-bottom, 0px));
-  z-index: 40;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 13px 18px;
-  border-radius: 999px;
-  background: var(--primary);
-  color: #fff;
-  font-weight: 700;
-  font-size: var(--fs-sm);
-  box-shadow: var(--shadow-lift);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-.pf-fab:active { transform: scale(0.96); }
 /* ===================================================================
    Shared app primitives (2026-09-06 consistency pass)
    Role-named buttons, toast, empty/error states, skip link, kbd hint.
@@ -2595,7 +2573,7 @@ a:hover .ticker-tag,
 .app-toast {
   position: fixed;
   left: 50%;
-  /* Above the bottom bar (60px) AND the .pf-fab / .disha-fab row that sits
+  /* Above the bottom bar (60px) AND the .disha-fab that sits
      just over it, so a toast never lands on a floating button. */
   bottom: calc(130px + env(safe-area-inset-bottom, 0px));
   z-index: 90;
@@ -2767,12 +2745,6 @@ a:hover .ticker-tag,
   font-size: var(--fs-2xs); font-weight: 800;
   color: var(--primary); background: color-mix(in srgb, var(--primary) 11%, var(--surface));
   padding: 2px 7px; border-radius: 999px;
-}
-/* ---- Mobile-only FAB: `.pf-fab { display }` used to beat `sm:hidden` (plain CSS
-   after the utilities layer), so the "+ Add stock" button floated over desktop
-   content too. Hide it explicitly from the sm breakpoint up. ---- */
-@media (min-width: 640px) {
-.pf-fab { display: none; }
 }
 /* ---- Bottom-anchored prompt cards (push opt-in, install, feedback). One home
    for the offset so every card clears the 60px mobile bottom bar + the iOS home

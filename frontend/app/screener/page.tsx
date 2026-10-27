@@ -9,7 +9,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com
 const START = "good_cheap";
 const TITLE = "Stock Screener — Find DSE Stocks Your Way";
 const DESCRIPTION =
-  "Screen every Dhaka Stock Exchange (DSE) company with plain checks — dividend, price ÷ profit, profit growth, loans, category, sector — and see which stocks pass, refreshed every trading day.";
+  "Screen every Dhaka Stock Exchange (DSE) company by answering six plain questions — how strong, how cheap, dividends, profit growth, safety, trading — and see which stocks match, refreshed every trading day.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -82,8 +82,8 @@ export default async function ScreenerPage() {
         <PageHeader
           eyebrow="Stock screener"
           title="Find DSE stocks your way"
-          bn="কী খুঁজছেন বেছে নিন, শর্ত বদলান — সঙ্গে সঙ্গে দেখুন কোন শেয়ার পাস করে।"
-          lead="Pick what you're looking for, change the checks if you like, and see which stocks pass."
+          bn="ছয়টি সহজ প্রশ্নের উত্তর দিন — প্রতিটি উত্তরের নিচে দেখুন কতগুলো শেয়ার মেলে।"
+          lead="Answer six plain questions. The number under each answer shows how many stocks you'd get."
         />
         {catalog ? (
           <ScreenerClient catalog={catalog} initial={start} initialTemplate={START} />

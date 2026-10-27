@@ -18,7 +18,12 @@ router = APIRouter(tags=["custom-lists"])
 
 
 class SpecBody(BaseModel):
-    checks: list[dict[str, Any]]
+    """Either exact ``checks`` (a fine-tune screen) or the six ``answers``
+    ({question: 0|1|2}) + optional ``sectors`` (``sector`` = one, older clients)."""
+    checks: list[dict[str, Any]] = []
+    answers: Optional[dict[str, Any]] = None
+    sectors: Optional[list[str]] = None
+    sector: Optional[str] = None
     sort: Optional[str] = None
 
 

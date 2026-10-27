@@ -64,7 +64,7 @@ import Chip from "@/components/ui/Chip";
 import DashSectionNav from "@/components/home/personalized/DashSectionNav";
 import PfCard, { PfChapterHead } from "./PfCard";
 import Bn from "@/components/i18n/Bn";
-import { IconLock } from "@/components/ui/icons";
+import { IconLock, IconPlus } from "@/components/ui/icons";
 import { buildProInsights, buildPremiumStakes } from "@/lib/portfolio-pro";
 import { usePremium, isLimitError, PREMIUM_PATH } from "@/lib/premium";
 import { moneyMade, DEFAULT_PORTFOLIO_SETTINGS } from "@/lib/portfolio-ledger";
@@ -1012,6 +1012,15 @@ export default function PortfolioClient() {
                   <span className="pf-num font-semibold text-text-muted">{holdings.length}</span>
                 </h3>
                 <div className="pf-hold-tools">
+                  {/* Phones: Add on the title line, the sort full width under it (the Edit + Add pair below is 640px+) */}
+                  {!readOnly && (
+                    <span className="sm:hidden">
+                      <Button type="button" onClick={() => setAddOpen(true)} variant="quiet" size="md" className="pf-add">
+                        <span className="pf-add-dot"><IconPlus size={14} /></span>
+                        <span className={bnCls}>{L("Add stock", "শেয়ার যোগ")}</span>
+                      </Button>
+                    </span>
+                  )}
                   {holdings.length > 1 && (
                     <>
                       <label htmlFor="pf-sort" className="sr-only">{L("Sort your stocks", "সাজান")}</label>
@@ -1042,8 +1051,9 @@ export default function PortfolioClient() {
                       <Button type="button" onClick={openEditPicker} variant="quiet" size="sm">
                         {L("Edit", "বদলান")}
                       </Button>
-                      <Button type="button" onClick={() => setAddOpen(true)} variant="primary" size="sm">
-                        {L("+ Add stock", "+ শেয়ার যোগ")}
+                      <Button type="button" onClick={() => setAddOpen(true)} variant="quiet" size="md" className="pf-add">
+                        <span className="pf-add-dot"><IconPlus size={14} /></span>
+                        <span className={bnCls}>{L("Add stock", "শেয়ার যোগ")}</span>
                       </Button>
                     </span>
                   )}
@@ -1279,16 +1289,6 @@ export default function PortfolioClient() {
             </PfCard>
           </section>
         </PageLockScope>
-      )}
-
-      {/* Floating add button — mobile only */}
-      {holdings.length > 0 && !readOnly && (
-        <button type="button" className="pf-fab sm:hidden" onClick={() => setAddOpen(true)}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-          <span className={bnCls}>{L("Add stock", "শেয়ার যোগ")}</span>
-        </button>
       )}
 
       {/* Add stock — bottom-sheet on mobile, centered modal on desktop */}

@@ -147,6 +147,11 @@ export const IconCheck = (p: { size?: number }) => (
     <path d="M20 6L9 17l-5-5" />
   </I>
 );
+export const IconPlus = (p: { size?: number }) => (
+  <I {...p} sw={2.6}>
+    <path d="M12 5v14M5 12h14" />
+  </I>
+);
 export const IconChevron = (p: { size?: number }) => (
   <I {...p}>
     <path d="M9 18l6-6-6-6" />

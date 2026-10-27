@@ -212,12 +212,12 @@ export const ROWS: { what: Bi; free: Bi; premium: Bi }[] = [
   {
     what: { en: "Stock screener", bn: "স্টক স্ক্রিনার" },
     free: {
-      en: "Every check and goal, how many companies pass, and the first 3 stocks",
-      bn: "সব শর্ত আর লক্ষ্য, কতগুলো কোম্পানি পাস করে, আর প্রথম 3টি শেয়ার",
+      en: "The six quick picks, the count under every answer, the first 3 stocks, and which answer holds back the most",
+      bn: "ছয়টি দ্রুত বাছাই, প্রতিটি উত্তরের নিচের সংখ্যা, প্রথম 3টি শেয়ার, আর কোন উত্তরে সবচেয়ে বেশি আটকায়",
     },
     premium: {
-      en: "Every stock that passes, the power checks (a Buy today, a better quarter, owners buying …), and up to 5 saved screens checked every trading day — with a phone alert when a new stock passes",
-      bn: "পাস করা প্রতিটি শেয়ার, পাওয়ার শর্ত (আজ 'কিনুন', ভালো প্রান্তিক, উদ্যোক্তারা কিনছেন …), আর 5টি পর্যন্ত স্ক্রিন সেভ করে প্রতিদিন যাচাই — নতুন শেয়ার এলে ফোনে নোটিফিকেশন",
+      en: "Your own answers to the six questions, one or several sectors, every stock that passes, the stocks that miss by just one answer, changing the exact rules, extra checks (a Buy today, a better quarter, owners buying …), and up to 5 saved screens checked every trading day — with a phone alert when a new stock passes",
+      bn: "ছয়টি প্রশ্নে নিজের উত্তর, এক বা একাধিক খাত, পাস করা প্রতিটি শেয়ার, মাত্র একটি উত্তরে বাদ পড়া শেয়ার, নিয়ম বদলানো, আরও শর্ত (আজ 'কিনুন', ভালো প্রান্তিক, উদ্যোক্তারা কিনছেন …), আর 5টি পর্যন্ত স্ক্রিন সেভ করে প্রতিদিন যাচাই — নতুন শেয়ার এলে ফোনে নোটিফিকেশন",
     },
   },
   {

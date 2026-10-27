@@ -12,8 +12,12 @@ export const SCREENER_ANCHOR = "sc-premium";
 const FEATURES = [
   { en: "Every stock that passes your screen, with its figure on each check",
     bn: "আপনার স্ক্রিন পেরোনো প্রতিটি শেয়ার, প্রতিটি শর্তে তার সংখ্যাসহ" },
-  { en: "Power checks: a Buy today, a better quarter, cash-backed dividends, owners buying",
-    bn: "পাওয়ার শর্ত: আজ 'কিনুন', ভালো প্রান্তিক, নগদে সমর্থিত লভ্যাংশ, উদ্যোক্তারা কিনছেন" },
+  { en: "Your own answers to the six questions, and one or several sectors",
+    bn: "ছয়টি প্রশ্নে নিজের উত্তর, আর এক বা একাধিক খাত" },
+  { en: "The stocks that almost passed, and the one check each misses",
+    bn: "প্রায় পাস করা শেয়ার, আর প্রতিটি কোন একটি শর্তে বাদ পড়েছে" },
+  { en: "Change the exact rules behind each answer, and add extra checks: a Buy today, a better quarter, owners buying",
+    bn: "প্রতিটি উত্তরের নিয়ম বদলান, আরও শর্ত যোগ করুন: আজ 'কিনুন', ভালো প্রান্তিক, উদ্যোক্তারা কিনছেন" },
   { en: "Save up to 5 screens", bn: "সর্বোচ্চ 5টি স্ক্রিন সেভ" },
   { en: "A push the day a new stock passes", bn: "নতুন শেয়ার পাস করলে সেদিনই নোটিফিকেশন" },
 ];
@@ -68,8 +72,8 @@ export default function ScreenerPremium({
         {t("See every stock your screen finds", "আপনার স্ক্রিনের প্রতিটি শেয়ার দেখুন")}
       </h2>
       <p className="rl-promo-sub">
-        {t("Every check and the count are free, and so are the first few stocks. Premium shows the whole list and keeps watching it for you.",
-           "সব শর্ত আর সংখ্যা ফ্রি, প্রথম কয়েকটি শেয়ারও। প্রিমিয়ামে পুরো তালিকা, আর আপনার হয়ে তালিকাটির ওপর নজর রাখা।")}
+        {t("The quick picks, every count and the first few stocks are free. Premium lets you set your own answers and sectors, shows the whole list and keeps watching it for you.",
+           "দ্রুত বাছাই, সব সংখ্যা আর প্রথম কয়েকটি শেয়ার ফ্রি। প্রিমিয়ামে নিজের উত্তর আর খাত, পুরো তালিকা, আর আপনার হয়ে নজর রাখা।")}
       </p>
 
       {stakes.length > 0 && (

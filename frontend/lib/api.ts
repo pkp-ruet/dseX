@@ -694,7 +694,16 @@ async function apiFetch<T>(
   let lastErr: unknown;
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const res = await fetch(url, { signal: apiFetchSignal(), next: nextOpts });
+      // In development every request reads the backend fresh: Next's data
+      // cache otherwise keeps a response for up to an hour on disk
+      // (.next/cache/fetch-cache), so a backend change stayed invisible
+      // locally until the entry expired. Production keeps ISR.
+      const res = await fetch(
+        url,
+        process.env.NODE_ENV === "development"
+          ? { signal: apiFetchSignal(), cache: "no-store" }
+          : { signal: apiFetchSignal(), next: nextOpts },
+      );
       if (res.status === 404) throw new ApiNotFoundError(path);
       if (!res.ok) {
         // 5xx and other non-ok statuses are transient — eligible for retry
@@ -2833,15 +2842,22 @@ export async function getWatchlistGlance(codes: string[]): Promise<GlanceRow[]> 
 // live run are public; saving is Premium (403 limit_reached:custom_lists).
 // ---------------------------------------------------------------------------
 
-export type CustomCheckValue = string | number | boolean;
+/** A check setting; the sector check takes a list when several sectors are picked. */
+export type CustomCheckValue = string | number | boolean | string[];
 
 export interface CustomCheckDef {
   key: string;
   group: string;
   name_en: string;
   name_bn: string;
-  /** Empty = a plain on/off check. */
-  options: { value: CustomCheckValue; label_en: string; label_bn: string }[];
+  /** One plain sentence: what the check means and why it is there. */
+  help_en?: string;
+  help_bn?: string;
+  /** Empty = a plain on/off check. `sentence_*` = the whole check at that setting. */
+  options: {
+    value: CustomCheckValue; label_en: string; label_bn: string;
+    sentence_en?: string; sentence_bn?: string;
+  }[];
   default: CustomCheckValue | null;
   /** The full check sentence, for on/off checks. */
   label_en: string | null;
@@ -2861,6 +2877,9 @@ export interface CustomListTemplate {
   blurb_bn: string;
   research_slug?: string;
   spec: CustomListSpec;
+  /** Goal starts only: the six answers (+ sectors, [] = all) the start sets. */
+  answers?: ScreenerAnswers;
+  sectors?: string[];
 }
 
 export interface CustomListSpec {
@@ -2868,7 +2887,32 @@ export interface CustomListSpec {
   sort?: string;
 }
 
+/** {question key: 0 any · 1 · 2} — the screener's six questions. */
+export type ScreenerAnswers = Record<string, number>;
+
+/** What the screener runs or saves: the six answers, or exact checks (fine-tune). */
+export type ScreenerRequest =
+  | CustomListSpec
+  | { answers: ScreenerAnswers; sectors?: string[]; sort?: string };
+
+export interface ScreenerQuestion {
+  key: string;
+  title_en: string;
+  title_bn: string;
+  blurb_en: string;
+  blurb_bn: string;
+  /** Three choices: [any, 1, 2]. `tag_*` = the strength word on a result row (null for "any");
+   *  `means_*` = what the choice checks, in one line. */
+  levels: {
+    label_en: string; label_bn: string;
+    tag_en: string | null; tag_bn: string | null;
+    means_en: string; means_bn: string;
+  }[];
+}
+
 export interface CustomListCatalog {
+  /** The six questions (absent from a backend older than 2026-10-27). */
+  questions?: ScreenerQuestion[];
   groups: { key: string; en: string; bn: string }[];
   checks: CustomCheckDef[];
   sorts: { key: string; en: string; bn: string }[];
@@ -2887,6 +2931,23 @@ export interface CustomListStock {
   score: number | null;
   signal: "buy" | "sell" | "none";
   checks: { key: string; value_en: string; value_bn: string }[];
+  /** The strongest choice it meets on each of the six questions — its strengths. */
+  levels?: ScreenerAnswers | null;
+}
+
+/** A stock that fails exactly one check of the screen, and the figure that missed. */
+export interface CustomListNearStock extends Omit<CustomListStock, "checks"> {
+  miss: { key: string; label_en: string; label_bn: string; value_en: string; value_bn: string };
+}
+
+/** Stocks one check away from the screen (never a miss on a sector check). */
+export interface CustomListNear {
+  /** question = misses one of the six answers (`key` = question key) · check = misses one exact check. */
+  by?: "question" | "check";
+  total: number;
+  /** How many each check (or question) holds back, most first. */
+  by_check: { key: string; label_en: string; label_bn: string; count: number }[];
+  stocks: CustomListNearStock[];
 }
 
 export interface CustomListResult {
@@ -2895,6 +2956,14 @@ export interface CustomListResult {
   funnel: { key: string; label_en: string; label_bn: string; left: number }[];
   passed: number;
   stocks: CustomListStock[];
+  /** Null on the homepage goals; absent from a backend older than 2026-10-27. */
+  near?: CustomListNear | null;
+  /** The screen read as six answers, or null for a fine-tune screen. */
+  answers?: ScreenerAnswers | null;
+  /** The sectors the screen keeps ([] = every sector); null for a fine-tune screen. */
+  sectors?: string[] | null;
+  /** How many stocks each choice would leave, the other answers held: {question: [any, 1, 2]}. */
+  facets?: Record<string, number[]> | null;
 }
 
 export interface SavedCustomList {
@@ -2950,7 +3019,7 @@ export async function getScreenerGoals(): Promise<{ goals: ScreenerGoal[] }> {
 
 /** The screener's menu for the server render (ISR). */
 export async function getScreenerCatalog(): Promise<CustomListCatalog> {
-  return apiFetch("/api/custom-lists/catalog", 3600);
+  return apiFetch("/api/custom-lists/catalog", 900);
 }
 
 /** One ready-made starting point, run — the screener's server-rendered first view. */
@@ -2958,7 +3027,7 @@ export async function getScreenerStart(templateId: string): Promise<CustomListRe
   return apiFetch(`/api/custom-lists/templates/${encodeURIComponent(templateId)}`, 900);
 }
 
-export async function runCustomList(spec: CustomListSpec): Promise<CustomListResult> {
+export async function runCustomList(spec: ScreenerRequest): Promise<CustomListResult> {
   const res = await fetch(`${getApiUrl()}/api/custom-lists/run`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -2972,13 +3041,13 @@ export async function apiGetCustomLists(): Promise<{ lists: SavedCustomList[]; c
   return apiAuthFetch("/api/user/custom-lists");
 }
 
-export async function apiCreateCustomList(name: string, spec: CustomListSpec, alerts = true): Promise<{ list: SavedCustomList }> {
+export async function apiCreateCustomList(name: string, spec: ScreenerRequest, alerts = true): Promise<{ list: SavedCustomList }> {
   return apiAuthFetch("/api/user/custom-lists", { method: "POST", body: JSON.stringify({ name, spec, alerts }) });
 }
 
 export async function apiUpdateCustomList(
   id: string,
-  patch: { name?: string; spec?: CustomListSpec; alerts?: boolean },
+  patch: { name?: string; spec?: ScreenerRequest; alerts?: boolean },
 ): Promise<{ list: SavedCustomList }> {
   return apiAuthFetch(`/api/user/custom-lists/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(patch) });
 }

@@ -30,6 +30,7 @@ from backend.services.db_service import _ttl_cache, get_db
 logger = logging.getLogger(__name__)
 
 RESULT_CAP = 50
+NEAR_CAP = 20  # stocks that miss exactly one check, shown under the passers
 GOAL_TOP = 3  # = the screener's free rows, so the homepage card needs no lock
 
 
@@ -73,28 +74,108 @@ def _run(spec: dict, ctx: Optional[rl.Ctx] = None) -> dict:
 
 def run_template(template_id: str) -> dict:
     """A ready-made starting point, run — the screener's server-rendered view.
-    KeyError on an unknown id."""
+    KeyError on an unknown id (a retired one resolves to its replacement)."""
+    template_id = cl.TEMPLATE_ALIASES.get(template_id, template_id)
     return run(cl.TEMPLATE_BY_ID[template_id]["spec"])
 
 
-def run(spec_in: dict) -> dict:
+@_ttl_cache(900)
+def question_table() -> dict[str, dict[str, list[bool]]]:
+    """{code: {question: [True, choice 1, choice 2]}} for every rated company —
+    the six questions' counts and each stock's strengths read off this."""
+    ctx = _ctx()
+    return {code: cl.question_sat(f, ctx) for code, f in facts().items() if rl._n(f.get("score")) is not None}
+
+
+def _row(f: dict, rank: int) -> dict:
+    return {
+        "rank": rank, "code": f["code"], "name": f.get("name"), "sector": f.get("sector"),
+        "price": rl._n(f.get("ltp")), "change_pct": rl._n(f.get("change_pct")),
+        "score": rl._n(f.get("score")), "signal": f.get("signal") or "none",
+    }
+
+
+def _near_questions(answers: dict, sectors: list[str], lst: rl.ResearchList, ctx: rl.Ctx) -> dict:
+    """Near misses for a screen built from the six questions: the stocks that
+    meet every answer but one, counted per question."""
+    table, fx = question_table(), facts()
+    want = set(sectors)
+    rows = [(fx[c], not want or fx[c].get("sector") in want, sat) for c, sat in table.items() if c in fx]
+    misses = cl.question_misses(rows, answers)
+    misses.sort(key=lambda m: lst.rank(m[0]), reverse=True)
+
+    def label(qk):
+        q = cl.Q_BY_KEY[qk]
+        lvl = q.levels[answers[qk] - 1]
+        return f"{q.title_en} ({lvl.label_en})", f"{q.title_bn} ({lvl.label_bn})"
+
+    held: dict[str, int] = {}
+    for _f, qk in misses:
+        held[qk] = held.get(qk, 0) + 1
+    order = [q.key for q in cl.QUESTIONS]
+    by = []
+    for qk, n in sorted(held.items(), key=lambda kv: (-kv[1], order.index(kv[0]))):
+        en, bn = label(qk)
+        by.append({"key": qk, "label_en": en, "label_bn": bn, "count": n})
+    stocks = []
+    for r, (f, qk) in enumerate(misses[:NEAR_CAP]):
+        en, bn = label(qk)
+        ven, vbn = cl.miss_value(f, qk, answers[qk], ctx)
+        stocks.append(_row(f, r + 1) | {"levels": cl.best_levels(table[f["code"]]),
+                                         "miss": {"key": qk, "label_en": en, "label_bn": bn,
+                                                  "value_en": ven, "value_bn": vbn}})
+    return {"by": "question", "total": len(misses), "by_check": by, "stocks": stocks}
+
+
+def _near(spec: dict, lst: rl.ResearchList, ctx: rl.Ctx) -> dict:
+    """The stocks that miss exactly one check: how many, how many each check
+    holds back (keyed by the spec's check key, so the page can open that
+    check's settings) and the first NEAR_CAP with the figure that missed."""
+    keys = [c["key"] for c in spec["checks"]]
+    skip = frozenset(i for i, k in enumerate(keys) if k == "sector")
+    misses = rl.near_misses(lst, list(facts().values()), ctx, skip)
+    held: dict[int, int] = {}
+    for _f, i, _en, _bn in misses:
+        held[i] = held.get(i, 0) + 1
+    by_check = [{"key": keys[i], "label_en": lst.checks[i].label_en, "label_bn": lst.checks[i].label_bn,
+                 "count": n} for i, n in sorted(held.items(), key=lambda kv: (-kv[1], kv[0]))]
+    stocks = [_row(f, r + 1) | {"miss": {"key": keys[i], "label_en": lst.checks[i].label_en,
+                                         "label_bn": lst.checks[i].label_bn, "value_en": en, "value_bn": bn}}
+              for r, (f, i, en, bn) in enumerate(misses[:NEAR_CAP])]
+    return {"by": "check", "total": len(misses), "by_check": by_check, "stocks": stocks}
+
+
+def run(spec_in: dict, near: bool = True) -> dict:
     """The builder's live result: funnel, pass count, the first RESULT_CAP
-    stocks with their own figure on every check. Raises ValueError on a bad spec."""
-    spec = cl.normalize_spec(spec_in, sectors())
+    stocks with their own figure on every check and their strengths on the six
+    questions, and (``near``) the stocks that miss by one. A spec that reads
+    as six answers also gets ``answers`` + ``facets`` (how many each choice
+    would leave); any other spec is a fine-tune screen (``answers`` None).
+    Raises ValueError on a bad spec."""
+    spec = cl.normalize_spec(spec_in, sectors(), allow_empty=True)
     ctx = _ctx()
     res = _run(spec, ctx)
     lst = res["_list"]
+    table = question_table()
     stocks = []
     for i, f in enumerate(res["passed"][:RESULT_CAP]):
-        stocks.append({
-            "rank": i + 1, "code": f["code"], "name": f.get("name"), "sector": f.get("sector"),
-            "price": rl._n(f.get("ltp")), "change_pct": rl._n(f.get("change_pct")),
-            "score": rl._n(f.get("score")), "signal": f.get("signal") or "none",
+        stocks.append(_row(f, i + 1) | {
+            "levels": cl.best_levels(table[f["code"]]) if f["code"] in table else None,
             "checks": [{"key": c["key"], "value_en": c["value_en"], "value_bn": c["value_bn"]}
                        for c in rl.check_values(lst, f, ctx)],
         })
-    return {"spec": spec, "universe": res["universe"], "funnel": res["funnel"],
-            "passed": len(res["passed"]), "stocks": stocks}
+    read = cl.answers_from_spec(spec)
+    facets = None
+    if read:
+        fx, want = facts(), set(read["sectors"])
+        rows = [(not want or (fx.get(c) or {}).get("sector") in want, sat) for c, sat in table.items()]
+        facets = cl.facet_counts(rows, read["answers"])
+    near_out = None
+    if near:
+        near_out = _near_questions(read["answers"], read["sectors"], lst, ctx) if read else _near(spec, lst, ctx)
+    return {"spec": spec, "answers": read["answers"] if read else None, "sectors": read["sectors"] if read else None,
+            "facets": facets, "universe": res["universe"], "funnel": res["funnel"],
+            "passed": len(res["passed"]), "stocks": stocks, "near": near_out}
 
 
 @_ttl_cache(900)
@@ -108,7 +189,7 @@ def goals_summary() -> list[dict]:
         if tp["kind"] != "goal":
             continue
         try:
-            res = run(tp["spec"])
+            res = run(tp["spec"], near=False)
         except ValueError:
             continue
         out.append({
@@ -156,7 +237,7 @@ def list_for_user(user_id: str) -> list[dict]:
     out = []
     for d in _docs(user_id):
         try:
-            live = run(d.get("spec") or {})
+            live = run(d.get("spec") or {}, near=False)
         except ValueError:
             live = None  # a sector that left the DSE — the card says so
         out.append(_public(d, live) | {"broken": live is None})

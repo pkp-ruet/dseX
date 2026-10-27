@@ -4,28 +4,32 @@ import { useState } from "react";
 import Chip from "@/components/ui/Chip";
 import Button from "@/components/ui/Button";
 import Sheet from "@/components/ui/Sheet";
-import { IconCrown } from "@/components/ui/icons";
-import ScreenerStep from "./ScreenerStep";
+import { IconChevronRight, IconCrown, IconLock, IconPlus } from "@/components/ui/icons";
 import type {
   CustomCheckDef, CustomCheckValue, CustomListCatalog, CustomListSpec, ResearchFunnelStep,
 } from "@/lib/api";
 
-const Crown = () => <span className="inline-flex text-gold-ink"><IconCrown size={14} /></span>;
+const Crown = () => <span className="inline-flex align-middle text-gold-ink"><IconCrown size={14} /></span>;
 
 /**
- * Step 2: the screen as one row of chips — "Grade: Good+", "Pays 4%+" — so it
- * reads at a glance. Tapping a chip opens a small sheet with that check's
- * settings and Remove; "+ Add a check" opens the menu by group. Power checks
- * wear a crown: anyone can switch one on and see the count, the stocks are
- * Premium.
+ * Fine-tune: the exact rules behind the screen, one check per row — the whole
+ * check as a sentence ("Price ÷ profit is 10 or less"), one line on what it
+ * means, and how many companies are still in after it. Everyone can read
+ * them; changing them is Premium (`readOnly` for everyone else). A row opens
+ * a sheet with that check's settings and Remove; "Add a check" opens the menu
+ * by group. Power checks wear a crown: the count is free, the stocks Premium.
  */
 export default function ScreenerChecks({
   catalog,
   byKey,
   spec,
   funnel,
-  editingName,
-  onStartFresh,
+  funnelKeys,
+  universe,
+  running,
+  readOnly,
+  open,
+  onOpen: setOpen,
   onAdd,
   onSet,
   onRemove,
@@ -34,71 +38,117 @@ export default function ScreenerChecks({
   catalog: CustomListCatalog;
   byKey: Map<string, CustomCheckDef>;
   spec: CustomListSpec;
-  /** The last run's funnel — its labels are each check's full sentence. */
+  /** The last run's funnel. */
   funnel: ResearchFunnelStep[] | null;
-  /** Set while a saved screen is open. */
-  editingName: string | null;
-  onStartFresh: () => void;
+  /** The check keys that run used, in order — counts show only while they match the screen. */
+  funnelKeys: string[] | null;
+  /** Rated companies the screen starts from. */
+  universe: number | null;
+  running: boolean;
+  /** Read the rules, don't change them (free readers). */
+  readOnly: boolean;
+  /** The check whose settings sheet is open — the page holds it, so the
+   *  near-miss block can open a check too. */
+  open: string | null;
+  onOpen: (key: string | null) => void;
   onAdd: (c: CustomCheckDef) => void;
   onSet: (key: string, value: CustomCheckValue) => void;
   onRemove: (key: string) => void;
   t: (en: string, bn: string) => string;
 }) {
   const [adding, setAdding] = useState(false);
-  const [open, setOpen] = useState<string | null>(null);
   const chosen = new Set(spec.checks.map((c) => c.key));
   const atMax = spec.checks.length >= catalog.max_checks;
+  const countsFit = !!funnel && !!funnelKeys && funnelKeys.length === spec.checks.length
+    && funnelKeys.every((k, i) => spec.checks[i]?.key === k);
 
-  const chipText = (key: string, value: CustomCheckValue) => {
+  /** The whole check at its current setting, as one sentence. */
+  const sentence = (key: string, value: CustomCheckValue | undefined) => {
     const def = byKey.get(key);
     if (!def) return key;
+    if (Array.isArray(value)) {
+      return value.length > 3
+        ? t(`In one of ${value.length} sectors: ${value.join(", ")}`, `${value.length}টি খাতের একটিতে: ${value.join(", ")}`)
+        : t(`In the ${value.join(" or ")} sectors`, `${value.join(" বা ")} খাতে`);
+    }
     const opt = def.options.find((o) => o.value === value);
-    if (key === "sector" && opt) return t(opt.label_en, opt.label_bn);
+    if (opt?.sentence_en) return t(opt.sentence_en, opt.sentence_bn ?? opt.sentence_en);
+    if (def.label_en) return t(def.label_en, def.label_bn ?? def.label_en);
     return opt ? `${t(def.name_en, def.name_bn)}: ${t(opt.label_en, opt.label_bn)}` : t(def.name_en, def.name_bn);
   };
+  const help = (def: CustomCheckDef | undefined) => (def?.help_en ? t(def.help_en, def.help_bn ?? def.help_en) : null);
 
-  const openDef = open ? byKey.get(open) : undefined;
+  const openDef = open && !readOnly ? byKey.get(open) : undefined;
   const openValue = spec.checks.find((c) => c.key === open)?.value;
-  const openIndex = spec.checks.findIndex((c) => c.key === open);
-  const sentence = openDef
-    ? (funnel?.[openIndex] && funnel.length === spec.checks.length
-        ? t(funnel[openIndex].label_en, funnel[openIndex].label_bn)
-        : openDef.label_en ? t(openDef.label_en, openDef.label_bn ?? openDef.label_en) : null)
-    : null;
 
   return (
-    <ScreenerStep
-      n={2}
-      title={t("Your checks", "আপনার শর্ত")}
-      note={editingName
-        ? <>{t(`Editing your saved screen "${editingName}".`, `সেভ করা স্ক্রিন "${editingName}" বদলাচ্ছেন।`)}{" "}
-            <button type="button" onClick={onStartFresh} className="font-semibold text-primary hover:underline">
-              {t("Start fresh", "নতুন করে শুরু")}
-            </button></>
-        : t("Every stock must pass all of them. Tap one to change it.", "প্রতিটি শেয়ারকে সবগুলো পেরোতে হবে। বদলাতে একটিতে চাপুন।")}
-    >
-      <div className="flex flex-wrap gap-2">
-        {spec.checks.map((c) => {
-          const def = byKey.get(c.key);
-          return (
-            <Chip
-              key={c.key}
-              onClick={() => setOpen(c.key)}
-              icon={def?.premium ? <Crown /> : undefined}
-              aria-label={t(`Change: ${chipText(c.key, c.value)}`, `বদলান: ${chipText(c.key, c.value)}`)}
-            >
-              {chipText(c.key, c.value)}
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-text-muted" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
-            </Chip>
-          );
-        })}
-        {!atMax && (
+    <div>
+      <div className="soft-card overflow-hidden">
+        {universe != null && (
+          <div className="flex items-center justify-between gap-3 border-b border-border bg-surface-2 px-4 py-2.5">
+            <p className="text-sm text-text-muted">{t("All rated companies", "রেটিং পাওয়া সব কোম্পানি")}</p>
+            <p className="text-sm font-semibold tabular-nums text-text-main">{universe}</p>
+          </div>
+        )}
+        <ol>
+          {spec.checks.map((c, i) => {
+            const def = byKey.get(c.key);
+            const left = countsFit ? funnel![i]?.left : undefined;
+            const line = help(def);
+            return (
+              <li key={c.key} className="border-b border-border last:border-b-0">
+                {(() => {
+                  const body = (
+                    <>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-text-main">
+                          {sentence(c.key, c.value)}
+                          {def?.premium && <> <Crown /></>}
+                        </p>
+                        {line && <p className="mt-0.5 text-sm text-text-muted">{line}</p>}
+                      </div>
+                      {left != null && (
+                        <div className={`shrink-0 text-right ${running ? "opacity-60" : ""}`}>
+                          <p className={`text-sm font-semibold tabular-nums ${left === 0 ? "text-negative" : "text-text-main"}`}>{left}</p>
+                          <p className="text-xs text-text-muted">{t("left", "বাকি")}</p>
+                        </div>
+                      )}
+                    </>
+                  );
+                  return readOnly ? (
+                    <div className="flex min-h-14 items-center gap-3 px-4 py-3">{body}</div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setOpen(c.key)}
+                      className="flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left hover:bg-surface-2 active:bg-surface-2"
+                      aria-label={t(`Change: ${sentence(c.key, c.value)}`, `বদলান: ${sentence(c.key, c.value)}`)}
+                    >
+                      {body}
+                      <span className="shrink-0 text-text-muted" aria-hidden><IconChevronRight size={16} /></span>
+                    </button>
+                  );
+                })()}
+              </li>
+            );
+          })}
+        </ol>
+        {readOnly ? (
+          <a
+            href="#sc-premium"
+            className="flex min-h-12 w-full items-center gap-2 border-t border-border px-4 text-sm font-semibold text-primary hover:bg-surface-2 active:bg-surface-2"
+          >
+            <IconLock size={16} />
+            {t("Change the exact rules with Premium", "প্রিমিয়ামে নিয়মগুলো বদলান")}
+          </a>
+        ) : !atMax && (
           <button
             type="button"
             onClick={() => setAdding(true)}
-            className="inline-flex min-h-10 items-center rounded-full border border-dashed border-text-muted px-3.5 text-sm font-semibold text-primary hover:bg-surface-2 active:bg-surface-2"
+            className="flex min-h-12 w-full items-center gap-2 border-t border-border px-4 text-sm font-semibold text-primary hover:bg-surface-2 active:bg-surface-2"
           >
-            {t("+ Add a check", "+ শর্ত যোগ করুন")}
+            <IconPlus size={16} />
+            {t("Add a check", "শর্ত যোগ করুন")}
           </button>
         )}
       </div>
@@ -129,21 +179,60 @@ export default function ScreenerChecks({
       >
         {openDef && (
           <div className="space-y-4">
-            {sentence && <p className="text-sm text-text-muted">{sentence}</p>}
+            {help(openDef) && <p className="text-sm text-text-muted">{help(openDef)}</p>}
             {openDef.premium && (
               <p className="flex items-center gap-1.5 text-sm text-text-main">
                 <Crown />
                 {t("Power check: the count is free, the stocks are Premium.", "পাওয়ার শর্ত: সংখ্যা ফ্রি, শেয়ারগুলো প্রিমিয়ামে।")}
               </p>
             )}
-            {openDef.options.length > 0 && (
+            {openDef.key === "sector" ? (
               <div className="flex flex-wrap gap-2">
-                {openDef.options.map((o) => (
-                  <Chip key={String(o.value)} active={openValue === o.value} onClick={() => open && onSet(open, o.value)}>
-                    {t(o.label_en, o.label_bn)}
-                  </Chip>
-                ))}
+                {openDef.options.map((o) => {
+                  // Several sectors: each chip toggles; at least one stays on.
+                  const cur = Array.isArray(openValue) ? openValue : typeof openValue === "string" ? [openValue] : [];
+                  const name = String(o.value);
+                  const on = cur.includes(name);
+                  const next = on ? cur.filter((x) => x !== name) : [...cur, name];
+                  return (
+                    <Chip
+                      key={name}
+                      active={on}
+                      onClick={() => open && next.length && onSet(open, next.length === 1 ? next[0] : next)}
+                    >
+                      {t(o.label_en, o.label_bn)}
+                    </Chip>
+                  );
+                })}
               </div>
+            ) : openDef.options.length > 0 ? (
+              <div role="radiogroup" aria-label={t(openDef.name_en, openDef.name_bn)} className="soft-card overflow-hidden">
+                {openDef.options.map((o) => {
+                  const on = openValue === o.value;
+                  return (
+                    <button
+                      key={String(o.value)}
+                      type="button"
+                      role="radio"
+                      aria-checked={on}
+                      onClick={() => open && onSet(open, o.value)}
+                      className={`flex min-h-12 w-full items-center gap-3 border-b border-border px-4 py-2.5 text-left last:border-b-0 hover:bg-surface-2 active:bg-surface-2 ${on ? "bg-primary-soft" : ""}`}
+                    >
+                      <span
+                        className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${on ? "border-primary" : "border-border"}`}
+                        aria-hidden
+                      >
+                        {on && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
+                      </span>
+                      <span className="text-sm text-text-main">
+                        {o.sentence_en ? t(o.sentence_en, o.sentence_bn ?? o.sentence_en) : t(o.label_en, o.label_bn)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm font-semibold text-text-main">{sentence(openDef.key, true)}</p>
             )}
           </div>
         )}
@@ -158,22 +247,31 @@ export default function ScreenerChecks({
             return (
               <div key={g.key}>
                 <p className="mb-2 text-sm font-semibold text-text-muted">{t(g.en, g.bn)}</p>
-                <div className="flex flex-wrap gap-2">
+                <ul className="soft-card overflow-hidden">
                   {items.map((c) => (
-                    <Chip
-                      key={c.key}
-                      icon={c.premium ? <Crown /> : undefined}
-                      onClick={() => {
-                        onAdd(c);
-                        setAdding(false);
-                        // A check with settings opens straight away, so the reader sees them.
-                        if (c.options.length) setOpen(c.key);
-                      }}
-                    >
-                      {t(c.name_en, c.name_bn)}
-                    </Chip>
+                    <li key={c.key} className="border-b border-border last:border-b-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onAdd(c);
+                          setAdding(false);
+                          // A check with settings opens straight away, so the reader sees them.
+                          if (c.options.length) setOpen(c.key);
+                        }}
+                        className="flex min-h-12 w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-surface-2 active:bg-surface-2"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-text-main">
+                            {t(c.name_en, c.name_bn)}
+                            {c.premium && <> <Crown /></>}
+                          </p>
+                          {help(c) && <p className="mt-0.5 text-sm text-text-muted">{help(c)}</p>}
+                        </div>
+                        <span className="shrink-0 text-primary" aria-hidden><IconPlus size={16} /></span>
+                      </button>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
             );
           })}
@@ -183,6 +281,6 @@ export default function ScreenerChecks({
           </p>
         </div>
       </Sheet>
-    </ScreenerStep>
+    </div>
   );
 }

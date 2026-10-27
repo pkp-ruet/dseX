@@ -704,6 +704,34 @@ def check_values(rl: ResearchList, f: dict, ctx: Ctx) -> list[dict]:
     return out
 
 
+def near_misses(rl: ResearchList, facts: list[dict], ctx: Ctx,
+                skip: frozenset[int] = frozenset()) -> list[tuple[dict, int, str, str]]:
+    """Rated companies that fail exactly one check, best first by the list's
+    rank: ``[(facts, index of the missed check, value_en, value_bn)]``. A miss
+    on a check index in ``skip`` doesn't count (a sector check — another
+    sector's company is not "almost" on the list). Needs two checks or more."""
+    if len(rl.checks) < 2:
+        return []
+    out = []
+    for f in facts:
+        if _n(f.get("score")) is None:
+            continue
+        miss = None
+        for i, c in enumerate(rl.checks):
+            ok, en, bn = run_check(c, f, ctx)
+            if ok:
+                continue
+            if miss is not None or i in skip:
+                miss = None
+                break
+            miss = (i, en, bn)
+        else:
+            if miss is not None:
+                out.append((f, *miss))
+    out.sort(key=lambda m: rl.rank(m[0]), reverse=True)
+    return out
+
+
 def first_failure(rl: ResearchList, f: Optional[dict], ctx: Ctx) -> tuple[str, str]:
     """Why a company is not on the list today, in one line."""
     if not f or _n(f.get("score")) is None:
