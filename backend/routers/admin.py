@@ -1,5 +1,6 @@
 from collections import Counter
 from datetime import date, datetime, timezone, timedelta
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
@@ -585,3 +586,43 @@ def admin_revoke_payment(
     if not doc:
         raise HTTPException(status_code=409, detail="already_revoked")
     return {"ok": True, "id": payment_id, "status": "revoked"}
+
+
+# ---------------------------------------------------------------------------
+# Manual subscriptions (cash, a transfer the reader never submitted, a gift)
+# ---------------------------------------------------------------------------
+
+@router.get("/users/search")
+def admin_search_users(q: str = "", _: dict = Depends(get_current_admin_user)):
+    """Accounts by email, phone or name, with their Premium state."""
+    from backend.services import payments
+
+    return {"items": payments.admin_search_users(q)}
+
+
+class ManualPaymentBody(BaseModel):
+    user_id: str = Field(..., max_length=64)
+    plan: str = Field(..., max_length=20)  # a PAID_PLANS key or "custom"
+    days: Optional[int] = Field(None, ge=1, le=3650)
+    amount: Optional[int] = Field(None, ge=0, le=100_000)
+    method: str = Field("cash", max_length=10)
+    sender: str = Field("", max_length=20)
+    note: str = Field("", max_length=200)
+
+
+@router.post("/payments/manual")
+def admin_manual_payment(body: ManualPaymentBody, admin: dict = Depends(get_current_admin_user)):
+    """Give an account Premium and record the taka as an accepted payment, so
+    it counts in the month's total and can be revoked like any other."""
+    from backend.services import payments
+
+    try:
+        doc = payments.manual_payment(
+            body.user_id, body.plan, body.days, body.amount, body.method,
+            body.sender, body.note, admin.get("email") or "",
+        )
+    except ValueError as exc:
+        code = str(exc)
+        raise HTTPException(status_code=404 if code == payments.ERR_USER else 422, detail=code)
+    return {"ok": True, "id": doc["payment_id"], "plan": doc["plan"], "amount": doc["amount"],
+            "days": doc["days"], "premium_until": doc["premium_until_after"].isoformat()}

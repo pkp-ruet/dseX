@@ -16,6 +16,7 @@ import { METHOD_LABEL, PAID_PLANS, planByKey } from "@/lib/premium-plans";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Tabs from "@/components/ui/Tabs";
+import AdminGrantPremium from "@/components/admin/AdminGrantPremium";
 import { toast } from "@/lib/toast";
 
 type StatusTab = "pending" | "accepted" | "revoked" | "all";
@@ -51,7 +52,9 @@ const STATUS_TONE: Record<AdminPayment["status"], string> = {
  * "held" row (the account had a payment revoked before) only gets its days on
  * Accept. When the reader picked one plan but sent the money for another,
  * "Change plan" corrects it (before or after accepting): amount and days follow
- * the plan, and days already granted move by the difference.
+ * the plan, and days already granted move by the difference. "Give Premium
+ * by hand" (AdminGrantPremium) records a payment taken outside the pay box —
+ * it lands here already accepted.
  */
 export default function AdminPaymentsClient() {
   const router = useRouter();
@@ -83,7 +86,7 @@ export default function AdminPaymentsClient() {
   const act = async (p: AdminPayment, kind: "accept" | "revoke") => {
     if (kind === "revoke") {
       const reason = reasons[p.id] || REASONS[0];
-      if (!window.confirm(`Revoke ৳${p.amount} from ${p.sender}? Their ${p.days} days are taken back.\n\nReason: ${reason}`)) return;
+      if (!window.confirm(`Revoke ৳${p.amount} from ${p.sender || p.name || p.email || "this account"}? Their ${p.days} days are taken back.\n\nReason: ${reason}`)) return;
     }
     setBusyId(p.id);
     try {
@@ -106,7 +109,7 @@ export default function AdminPaymentsClient() {
       ? `Their Premium ${diff > 0 ? "gains" : "loses"} ${Math.abs(diff)} days.`
       : "No days are granted yet — the new plan's days come on Accept.";
     if (!window.confirm(
-      `Change ${p.sender}'s payment from ${planByKey(p.plan)?.name ?? p.plan} (৳${p.amount}) ` +
+      `Change ${p.sender || p.name || p.email || "this"}'s payment from ${planByKey(p.plan)?.name ?? p.plan} (৳${p.amount}) ` +
       `to ${next.name} (৳${next.amount})?
 
 ${effect}`,
@@ -183,6 +186,8 @@ ${effect}`,
         </Card>
       )}
 
+      <AdminGrantPremium onDone={refetch} />
+
       <Tabs<StatusTab>
         ariaLabel="Payment status"
         idBase="pay-tab"
@@ -209,14 +214,20 @@ ${effect}`,
                 <p className="text-lg font-bold text-text-main tabular-nums">
                   ৳{p.amount.toLocaleString("en-IN")}{" "}
                   <span className="text-sm font-semibold text-text-muted">
-                    {METHOD_LABEL[p.method]} · {planByKey(p.plan)?.name ?? p.plan}
+                    {METHOD_LABEL[p.method] ?? p.method} · {planByKey(p.plan)?.name ?? (p.plan === "custom" ? `${p.days} days` : p.plan)}
                   </span>
                 </p>
                 <span className="text-xs text-text-muted">{fmtTime(p.created_at)}</span>
               </div>
               <p className="mt-1 text-sm text-text-main tabular-nums">
-                From <strong>{p.sender}</strong>
+                {p.sender ? <>From <strong>{p.sender}</strong></> : "No sender number"}
+                {p.manual && (
+                  <span className="text-text-muted">
+                    {" "}· added by hand{p.created_by ? ` by ${p.created_by}` : ""}
+                  </span>
+                )}
               </p>
+              {p.note && <p className="text-sm text-text-muted break-words">Note: {p.note}</p>}
               <p className="text-sm text-text-muted break-words">
                 {p.name || "—"}{p.email ? ` · ${p.email}` : ""}{p.phone ? ` · ${p.phone}` : ""}
               </p>

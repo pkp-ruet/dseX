@@ -5,11 +5,14 @@ from backend.services.payments import (
     PAID_PLANS,
     accepted_payload,
     extend_until,
+    gift_payload,
+    manual_spec,
     normalize_sender,
     ref_code,
     renewal_payload,
     revoke_until,
     revoked_payload,
+    user_search_query,
 )
 
 NOW = datetime(2026, 10, 25, 6, 0, tzinfo=timezone.utc)
@@ -87,3 +90,31 @@ def test_plan_change_moves_the_end_date_by_the_difference():
     # Never past now; an expired date grows from now.
     assert shift_until(NOW + timedelta(days=10), -335, NOW) == NOW
     assert shift_until(NOW - timedelta(days=5), 60, NOW) == NOW + timedelta(days=60)
+
+
+def test_account_search_reads_phone_email_or_name():
+    assert user_search_query("a") is None
+    full = user_search_query("01712-345678")["$or"]
+    assert {"phone": {"$regex": "1712345678$"}} in full
+    part = user_search_query("345678")["$or"]
+    assert {"phone": {"$regex": "345678"}} in part
+    words = user_search_query("Rahim.k@")["$or"]
+    assert {"email": {"$regex": "Rahim\.k@", "$options": "i"}} in words
+    assert any("display_name" in c for c in words)
+    assert {"user_id": "Rahim.k@"} in words
+
+
+def test_manual_payment_spec():
+    import pytest
+
+    assert manual_spec("monthly", None, None) == {"plan": "monthly", "days": 30, "amount": 199}
+    assert manual_spec("yearly", None, 1500) == {"plan": "yearly", "days": 365, "amount": 1500}
+    assert manual_spec("custom", 45, 0) == {"plan": "custom", "days": 45, "amount": 0}
+    for args in (("custom", None, 100), ("weekly", 7, 50), ("monthly", 0, None), ("monthly", None, -1)):
+        with pytest.raises(ValueError):
+            manual_spec(*args)
+
+
+def test_gift_push_does_not_mention_a_payment():
+    assert "payment" not in gift_payload("en")["body"].lower()
+    assert gift_payload("bn")["url"].startswith("/premium")

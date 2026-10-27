@@ -34,6 +34,11 @@ PAID_PLANS: dict[str, dict] = {
     "yearly": {"amount": 1899, "days": 365, "list_amount": 2199},
 }
 METHODS = ("bkash", "nagad")
+# An admin can also record money taken outside the pay box (cash, a bank
+# transfer, a payment the reader never submitted) — `manual_payment` below.
+MANUAL_METHODS = ("bkash", "nagad", "cash", "bank", "other")
+MANUAL_MAX_DAYS = 3650
+MANUAL_MAX_AMOUNT = 100_000
 STATUSES = ("pending", "accepted", "revoked")
 
 # HTTPException details the frontend matches.
@@ -42,6 +47,9 @@ ERR_PLAN = "bad_plan"
 ERR_METHOD = "bad_method"
 ERR_SENDER = "bad_sender"
 ERR_SAME_PLAN = "same_plan"
+ERR_DAYS = "bad_days"
+ERR_AMOUNT = "bad_amount"
+ERR_USER = "user_not_found"
 
 RENEW_WINDOW_DAYS = (2, 5)  # remind once, 2–5 days before a paid plan ends
 
@@ -98,6 +106,50 @@ def shift_until(current, delta_days: int, now: datetime) -> datetime:
     if delta_days >= 0:
         return extend_until(current, delta_days, now)
     return revoke_until(current, -delta_days, now)
+
+
+def user_search_query(q: str) -> Optional[dict]:
+    """The Mongo filter for the admin's account search: a phone number (any
+    form, or 4+ of its digits), else part of the email or name, or an exact
+    user id. None for a query too short to search on."""
+    q = (q or "").strip()
+    if len(q) < 2:
+        return None
+    ors: list[dict] = [{"user_id": q}]
+    digits = re.sub(r"[\s\-()+]", "", q).translate(str.maketrans("০১২৩৪৫৬৭৮৯", "0123456789"))
+    if digits.isdigit() and len(digits) >= 4:
+        full = normalize_sender(digits)
+        # Phones are stored as +880XXXXXXXXXX (auth_service.normalize_phone).
+        tail = full[1:] if full else digits.lstrip("0") or digits
+        ors.append({"phone": {"$regex": re.escape(tail) + ("$" if full else "")}})
+    else:
+        pat = {"$regex": re.escape(q), "$options": "i"}
+        ors += [{"email": pat}, {"display_name": pat}]
+    return {"$or": ors}
+
+
+def manual_spec(plan: str, days: Optional[int], amount: Optional[int]) -> dict:
+    """Plan, days and taka of an admin-recorded payment. A known plan fills in
+    its own days and price; either can be overridden (a discount, extra days).
+    `custom` needs days. Raises ValueError(ERR_PLAN / ERR_DAYS / ERR_AMOUNT)."""
+    if plan != "custom" and plan not in PAID_PLANS:
+        raise ValueError(ERR_PLAN)
+    base = PAID_PLANS.get(plan, {})
+    d = days if days is not None else base.get("days")
+    a = amount if amount is not None else base.get("amount", 0)
+    if not isinstance(d, int) or not 1 <= d <= MANUAL_MAX_DAYS:
+        raise ValueError(ERR_DAYS)
+    if not isinstance(a, int) or not 0 <= a <= MANUAL_MAX_AMOUNT:
+        raise ValueError(ERR_AMOUNT)
+    return {"plan": plan, "days": d, "amount": a}
+
+
+def gift_payload(lang: str = "bn") -> dict:
+    bn = lang != "en"
+    title = "আপনার প্রিমিয়াম চালু হয়েছে" if bn else "Your Premium is on"
+    body = ("আমরা আপনার অ্যাকাউন্টে প্রিমিয়াম চালু করে দিয়েছি। সব সুবিধা এখন খোলা।" if bn
+            else "We switched Premium on for your account. Everything in Premium is open now.")
+    return {"title": title, "body": body, "url": "/premium?src=granted", "tag": "premium-payment"}
 
 
 def renewal_payload(days_left: int, lang: str = "bn", caught: Optional[list[dict]] = None) -> dict:
@@ -264,6 +316,7 @@ def _grant(doc: dict, now: datetime) -> None:
         {"$set": {"granted": True, "granted_at": now, "premium_until_after": until}},
     )
     doc["granted"] = True
+    doc["premium_until_after"] = until
 
 
 def admin_list(status: Optional[str], limit: int = 200) -> dict:
@@ -295,6 +348,9 @@ def admin_list(status: Optional[str], limit: int = 200) -> dict:
             "name": d.get("name"),
             "ref_code": d.get("ref_code"),
             "reason": d.get("reason"),
+            "manual": bool(d.get("manual")),
+            "note": d.get("note"),
+            "created_by": d.get("created_by"),
             "plan_changes": [
                 {"from": c.get("from"), "to": c.get("to"), "at": iso(c.get("at"))}
                 for c in d.get("plan_changes") or []
@@ -302,6 +358,84 @@ def admin_list(status: Optional[str], limit: int = 200) -> dict:
             "premium_until_after": iso(d.get("premium_until_after")),
         })
     return {"items": out, "counts": counts, "month": month}
+
+
+def admin_search_users(q: str, limit: int = 10) -> list[dict]:
+    """Accounts matching `q` (email, phone or name), with their Premium state."""
+    query = user_search_query(q)
+    if query is None:
+        return []
+    now = datetime.now(timezone.utc)
+
+    def iso(v):
+        v = _as_utc(v)
+        return v.isoformat() if v else None
+    out = []
+    for u in _db()["users"].find(
+        query,
+        {"_id": 0, "user_id": 1, "email": 1, "phone": 1, "display_name": 1, "created_at": 1,
+         "premium_until": 1, "premium_source": 1, "paid_plan": 1},
+    ).sort("created_at", -1).limit(limit):
+        until = _as_utc(u.get("premium_until"))
+        out.append({
+            "user_id": u["user_id"],
+            "email": u.get("email"),
+            "phone": u.get("phone"),
+            "name": u.get("display_name"),
+            "created_at": iso(u.get("created_at")),
+            "premium_until": iso(until),
+            "is_premium": bool(until and until > now),
+            "premium_source": u.get("premium_source"),
+            "paid_plan": u.get("paid_plan"),
+            "payments": _payments().count_documents({"user_id": u["user_id"]}),
+        })
+    return out
+
+
+def manual_payment(user_id: str, plan: str, days: Optional[int], amount: Optional[int],
+                   method: str, sender_raw: str, note: str, admin_email: str) -> dict:
+    """Record a payment taken outside the pay box and give its days at once.
+    It is stored already accepted, so its taka count in the month's total, and
+    it can be revoked or re-planned like any other payment. Raises
+    ValueError(<ERR_*>)."""
+    spec = manual_spec(plan, days, amount)
+    if method not in MANUAL_METHODS:
+        raise ValueError(ERR_METHOD)
+    sender = None
+    if (sender_raw or "").strip():
+        sender = normalize_sender(sender_raw)
+        if not sender:
+            raise ValueError(ERR_SENDER)
+    user = _db()["users"].find_one(
+        {"user_id": user_id}, {"_id": 0, "user_id": 1, "email": 1, "phone": 1, "display_name": 1})
+    if not user:
+        raise ValueError(ERR_USER)
+
+    now = datetime.now(timezone.utc)
+    doc = {
+        "payment_id": uuid.uuid4().hex,
+        "user_id": user_id,
+        "email": user.get("email"),
+        "phone": user.get("phone"),
+        "name": user.get("display_name"),
+        "ref_code": ref_code(user_id),
+        **spec,
+        "method": method,
+        "sender": sender,
+        "status": "accepted",
+        "granted": False,
+        "manual": True,
+        "note": (note or "").strip()[:200] or None,
+        "created_at": now,
+        "created_by": admin_email,
+        "reviewed_at": now,
+        "reviewed_by": admin_email,
+    }
+    _payments().insert_one(doc)
+    doc.pop("_id", None)
+    _grant(doc, now)
+    _notify(user_id, accepted_payload if spec["amount"] > 0 else gift_payload)
+    return doc
 
 
 def accept(payment_id: str, admin_email: str) -> Optional[dict]:

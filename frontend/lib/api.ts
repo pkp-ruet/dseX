@@ -1484,7 +1484,11 @@ export async function apiGetMyPayments(): Promise<{ ref_code: string; items: Pre
   return apiAuthFetch("/api/user/premium/payments");
 }
 
-export interface AdminPayment extends PremiumPayment {
+export interface AdminPayment extends Omit<PremiumPayment, "method" | "sender"> {
+  /** bkash / nagad from the pay box; an admin-recorded payment may also be cash / bank / other. */
+  method: string;
+  /** Empty on an admin-recorded payment with no sender number. */
+  sender: string | null;
   user_id: string;
   email: string | null;
   phone: string | null;
@@ -1494,6 +1498,10 @@ export interface AdminPayment extends PremiumPayment {
   /** Admin corrections of the plan, oldest first. */
   plan_changes?: { from: string; to: string; at: string | null }[];
   premium_until_after: string | null;
+  /** Recorded by an admin from "Give Premium", not submitted by the reader. */
+  manual?: boolean;
+  note?: string | null;
+  created_by?: string | null;
 }
 export interface AdminPaymentsResponse {
   items: AdminPayment[];
@@ -1520,6 +1528,37 @@ export async function apiChangePaymentPlan(
     method: "POST",
     body: JSON.stringify({ plan }),
   });
+}
+
+export interface AdminUserHit {
+  user_id: string;
+  email: string | null;
+  phone: string | null;
+  name: string | null;
+  created_at: string | null;
+  premium_until: string | null;
+  is_premium: boolean;
+  premium_source: string | null;
+  paid_plan: string | null;
+  payments: number;
+}
+
+/** Accounts by email, phone or name (admin). */
+export async function apiAdminSearchUsers(q: string): Promise<{ items: AdminUserHit[] }> {
+  return apiAuthFetch(`/api/admin/users/search?q=${encodeURIComponent(q)}`);
+}
+
+/** Give an account Premium and record the taka as an accepted payment. */
+export async function apiAdminManualPayment(body: {
+  user_id: string;
+  plan: string;
+  days?: number;
+  amount?: number;
+  method: string;
+  sender?: string;
+  note?: string;
+}): Promise<{ ok: boolean; id: string; plan: string; amount: number; days: number; premium_until: string }> {
+  return apiAuthFetch("/api/admin/payments/manual", { method: "POST", body: JSON.stringify(body) });
 }
 
 export async function apiRevokePayment(id: string, reason: string): Promise<{ ok: boolean }> {

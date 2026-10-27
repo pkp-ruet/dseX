@@ -95,4 +95,11 @@ export function planByKey(key: string | null | undefined): PaidPlan | undefined 
   return PAID_PLANS.find((p) => p.key === key) ?? RETIRED_PLANS.find((p) => p.key === key);
 }
 
-export const METHOD_LABEL: Record<string, string> = { bkash: "bKash", nagad: "Nagad" };
+export const METHOD_LABEL: Record<string, string> = {
+  bkash: "bKash",
+  nagad: "Nagad",
+  // Only on payments an admin recorded by hand.
+  cash: "Cash",
+  bank: "Bank",
+  other: "Other",
+};
