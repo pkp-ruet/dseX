@@ -33,9 +33,6 @@ import PullToRefresh from "@/components/home/personalized/PullToRefresh";
 import MyStocksToday, { buildStocksToday } from "@/components/home/personalized/MyStocksToday";
 import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
 import MoversCard from "@/components/home/personalized/MoversCard";
-import SectorsWeekCard from "@/components/home/personalized/SectorsWeekCard";
-import MarketNewsCard from "@/components/home/personalized/MarketNewsCard";
-import BanglaSnapshotCard from "@/components/home/personalized/BanglaSnapshotCard";
 import TurningPointsCard from "@/components/home/personalized/TurningPointsCard";
 import ResearchRail from "@/components/home/personalized/ResearchRail";
 import DiscoverRail from "@/components/home/personalized/DiscoverRail";
@@ -169,7 +166,6 @@ export default function PersonalizedHome() {
   const dividendCash = bundle?.dividend_cash ?? [];
   const signalEvents = bundle?.signal_events ?? [];
   const movers = bundle?.movers ?? null;
-  const marketNews = bundle?.market_news ?? [];
   const top20 = bundle?.top20 ?? [];
   const popular = bundle?.popular ?? [];
   const calendarRows = bundle?.calendar?.record_dates ?? [];
@@ -237,7 +233,6 @@ export default function PersonalizedHome() {
 
 
   const hasMovers = !!movers && ((movers.gainers?.length ?? 0) + (movers.losers?.length ?? 0) + (movers.most_traded?.length ?? 0) > 0);
-  const sectorRows = marketState?.now?.sectors ?? [];
   const hasTurning =
     (marketState?.next?.near_high?.length ?? 0) + (marketState?.next?.near_low?.length ?? 0) + (marketState?.next?.unusual?.length ?? 0) > 0;
   const hasDividends = calendarRows.length > 0 || declared.length > 0;
@@ -314,9 +309,10 @@ export default function PersonalizedHome() {
     </section>
   ) : null;
 
-  // ── Chapter 2: Market today — the whole day without leaving the page:
-  //    mood + index + sparkline, movers, sectors, market news, the Bengali
-  //    paragraph, and what is near a turning point. ──
+  // ── Chapter 2: Market today — mood + index + sparkline, movers, the
+  //    week's quarterly results, and what is near a turning point. Sectors
+  //    this week, today's market news and the Bengali snapshot were removed
+  //    2026-10-27 (user decision). ──
   const marketChapter = (
     <section id="market" className={CHAPTER}>
       {head("chMarket", <IconGrid size={16} />)}
@@ -344,29 +340,6 @@ export default function PersonalizedHome() {
           </div>
         )}
       </div>
-      {(sectorRows.length > 0 || marketNews.length > 0 || marketState?.summary_bn) && (
-        <div className={PAIR}>
-          {sectorRows.length > 0 && (
-            <div data-card="sectors">
-              <SectorsWeekCard sectors={sectorRows} lang={lang} />
-            </div>
-          )}
-          {(marketNews.length > 0 || marketState?.summary_bn) && (
-            <div className="space-y-6 sm:space-y-3">
-              {marketNews.length > 0 && (
-                <div data-card="marketnews">
-                  <MarketNewsCard news={marketNews} held={heldSet} watched={watchedSet} lang={lang} />
-                </div>
-              )}
-              {marketState?.summary_bn && (
-                <div data-card="bangla">
-                  <BanglaSnapshotCard summary={marketState.summary_bn} />
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
       {/* The market's quarterly results — every reader; only free readers
           get the Premium line under it. */}
       {bundle?.results_week && (

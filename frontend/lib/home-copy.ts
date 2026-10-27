@@ -114,14 +114,6 @@ const COPY = {
   allMovers: ["Whole market", "পুরো বাজার"],
   traded: ["traded", "লেনদেন"],
 
-  // Sectors
-  sectorsTitle: ["Sectors this week", "এই সপ্তাহে খাতগুলো"],
-  week: ["week", "সপ্তাহ"],
-  month: ["month", "মাস"],
-  allSectors: ["All sectors", "সব খাত"],
-  companiesN: ["{n} companies", "{n}টি কোম্পানি"],
-  weekDotLegend: ["Bar = this week · dot = this month", "বার = এই সপ্তাহ · বিন্দু = এই মাস"],
-
   // Bengali snapshot
   snapshotTitle: ["আজকের বাজার এক নজরে", "আজকের বাজার এক নজরে"],
   readFull: ["পুরোটা পড়ুন", "পুরোটা পড়ুন"],
