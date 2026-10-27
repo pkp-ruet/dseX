@@ -8,8 +8,11 @@ export type SampleSlug = "diversified" | "risky";
 export interface SamplePortfolio {
   slug: SampleSlug;
   name: string;
+  nameBn: string;
   tagline: string;
+  taglineBn: string;
   narrative: string;
+  narrativeBn: string;
   holdings: { trading_code: string; qty: number; buy_price: number }[];
 }
 
@@ -19,10 +22,14 @@ export interface SamplePortfolio {
 // prices drift.
 const DIVERSIFIED: SamplePortfolio = {
   slug: "diversified",
-  name: "Diversified DSE Portfolio",
-  tagline: "Spread across 6 sectors with strong-rated DSE blue chips.",
+  name: "Diversified DSE portfolio",
+  nameBn: "ছড়ানো ডিএসই পোর্টফোলিও",
+  tagline: "Spread across 6 sectors, with strong, well-rated DSE companies.",
+  taglineBn: "6টি সেক্টরে ছড়ানো, ভালো রেটিংয়ের শক্তিশালী ডিএসই কোম্পানি নিয়ে।",
   narrative:
-    "This sample portfolio demonstrates what a well-built holding looks like for a Bangladeshi retail investor. Seven blue-chip companies are spread across telecom, pharma, FMCG, paints, banking, and consumer goods — no single stock dominates and no single sector controls the outcome. Buy prices were placed close to fair value, so the analysis flags a healthy mix of strong companies and reasonable entry points.",
+    "This sample shows what a well-built portfolio can look like for an investor in Bangladesh. Seven large, established companies are spread across telecom, medicine, consumer goods, paints and banking. No single share dominates, and no single sector decides the outcome. The buy prices are close to fair value, so the check finds strong companies bought at sensible prices.",
+  narrativeBn:
+    "এই নমুনাটি দেখায়, বাংলাদেশের একজন বিনিয়োগকারীর জন্য একটি ভালোভাবে সাজানো পোর্টফোলিও কেমন হতে পারে। সাতটি বড়, প্রতিষ্ঠিত কোম্পানি টেলিকম, ওষুধ, ভোগ্যপণ্য, রং আর ব্যাংক সেক্টরে ছড়ানো। কোনো একটি শেয়ার বা সেক্টর একাই ফল ঠিক করে না। কেনার দাম ন্যায্য দামের কাছাকাছি, তাই যাচাইয়ে দেখা যায় শক্তিশালী কোম্পানি যুক্তিসংগত দামে কেনা হয়েছে।",
   holdings: [
     { trading_code: "GP",         qty: 80,  buy_price: 280 },  // Telecom
     { trading_code: "SQURPHARMA", qty: 60,  buy_price: 200 },  // Pharma
@@ -40,10 +47,14 @@ const DIVERSIFIED: SamplePortfolio = {
 // buy_price, which it almost always will be for a mid-tier name purchased at a peak.
 const RISKY: SamplePortfolio = {
   slug: "risky",
-  name: "Risky DSE Portfolio",
-  tagline: "Everything in one mid-tier stock, bought at the peak.",
+  name: "Risky DSE portfolio",
+  nameBn: "ঝুঁকিপূর্ণ ডিএসই পোর্টফোলিও",
+  tagline: "Everything in one average company, bought near its peak price.",
+  taglineBn: "সব টাকা একটি মাঝারি কোম্পানিতে, সর্বোচ্চ দামের কাছাকাছি কেনা।",
   narrative:
-    "This sample portfolio mirrors a common Bangladeshi retail mistake: putting almost everything into a single mid-tier stock at a price near its recent peak. There's no diversification, no fallback, and the entry price leaves little room for upside. The analyzer reads this exactly the way it should — concentrated, fragile, and vulnerable to a single bad quarter.",
+    "This sample shows a common mistake: putting almost all the money into one average company, at a price near its recent high. Nothing else holds the portfolio up, and the buy price leaves little room to gain. The check reads it as it should: everything in one place, and easily hurt by a single bad quarter.",
+  narrativeBn:
+    "এই নমুনাটি একটি সাধারণ ভুল দেখায়: প্রায় সব টাকা একটি মাঝারি কোম্পানিতে, সাম্প্রতিক সর্বোচ্চ দামের কাছাকাছি রাখা। পোর্টফোলিওকে ধরে রাখার মতো আর কিছু নেই, আর কেনার দামে লাভের সুযোগও কম। যাচাইয়েও তা-ই দেখা যায়: সব টাকা এক জায়গায়, আর একটি খারাপ প্রান্তিকেই বড় ক্ষতির ঝুঁকি।",
   holdings: [
     { trading_code: "BEACONPHAR", qty: 1500, buy_price: 380 }, // Mid-tier pharma, intentionally inflated entry
   ],

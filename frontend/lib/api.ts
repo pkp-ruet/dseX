@@ -188,9 +188,9 @@ export interface ValuationContext {
   eps: number | null;
   sector_implied_price: number | null;
   /** Which EPS the P/E is on — "last 12 months to Jun 2026" (TTM) or "FY2025". */
-  eps_basis?: (BiText & { basis: "ttm" | "fy"; short_en: string }) | null;
+  eps_basis?: (BiText & { basis: "ttm" | "fy"; short_en: string; short_bn?: string }) | null;
   /** "5-year average" / "average since listing (2022)". */
-  own_avg_pe_label?: (BiText & { short_en: string }) | null;
+  own_avg_pe_label?: (BiText & { short_en: string; short_bn?: string }) | null;
   /** The page's ONE valuation verdict (P4 bands, same as the Buy/Sell signal). */
   verdict?: "cheap" | "fair" | "expensive" | null;
 }
@@ -226,6 +226,10 @@ export interface StockVerdict {
   headline: string;
   tagline: string;
   sentences: string[];
+  /** Bengali twins (2026-10-27); absent from an older backend. */
+  headline_bn?: string;
+  tagline_bn?: string;
+  sentences_bn?: string[];
 }
 
 /** Live "value today" box — grounded, price-relative (backend/services/fair_value.py).
@@ -547,7 +551,7 @@ export interface SectorDetailData {
   summary: SectorSummary;
   market: MarketMedians;
   comparison: SectorComparisonRow[];
-  scoring_note: { label: string; en: string; bn: string };
+  scoring_note: { label: string; label_bn?: string; en: string; bn: string };
   stocks: SectorStockRow[];
   top_dividend: SectorStockRow[];
   gainers: SectorStockRow[];
@@ -1136,6 +1140,10 @@ export interface MarketMood {
   sentence2: string;
   best_lens: string;
   bands?: MarketMoodBands;
+  /** Bengali twins (2026-10-27); absent from an older backend. */
+  label_bn?: string;
+  sentence_bn?: string;
+  sentence2_bn?: string;
 }
 
 export type MarketQuestionKey = "price" | "breadth" | "value" | "activity";
@@ -1145,6 +1153,10 @@ export interface MarketQuestion {
   q: string;
   a: string;
   extra?: string | null;
+  /** Bengali twins (2026-10-28); absent from an older backend. */
+  q_bn?: string;
+  a_bn?: string;
+  extra_bn?: string | null;
   tone: CellTone;
 }
 
@@ -1153,6 +1165,8 @@ export interface MarketSectorRow {
   /** Set only when `/sector/[slug]` exists for this sector. */
   slug?: string | null;
   status: string;
+  /** Bengali twin of `status` (2026-10-28). */
+  status_bn?: string;
   tone: CellTone;
   ret_1w: number;
   ret_1m: number | null;
@@ -1314,6 +1328,8 @@ export interface MarketStateData {
   date: string | null;
   /** Plain-Bangla "আজকের বাজার এক নজরে" paragraph (template-rendered on the backend). */
   summary_bn?: string | null;
+  /** English twin of `summary_bn` (2026-10-27). */
+  summary_en?: string | null;
   mood: MarketMood;
   now: {
     questions: MarketQuestion[];

@@ -3,13 +3,36 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Button from "@/components/ui/Button";
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
 import { IconLock } from "@/components/home/personalized/DashIcons";
 import { useLang } from "@/context/LangContext";
+import type { Lang } from "@/lib/lang";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
 import { LOWEST_PRICE } from "@/lib/premium-plans";
 import { areaOf, savePremiumContext } from "@/lib/premium-context";
 import { trackEvent } from "@/lib/track";
+
+/**
+ * Lock text: an `{en, bn}` pair (rendered as `<T>`, so the server HTML is
+ * right for both languages and nothing flashes) or a plain string a caller
+ * already picked for the reader's language.
+ */
+export type LockText = string | { en: string; bn: string };
+
+/** The English of a lock text — for tracking labels. */
+export function lockEn(t: LockText): string {
+  return typeof t === "string" ? t : t.en;
+}
+
+/** A lock text as one plain string in `lang` — for sessionStorage. */
+export function lockString(t: LockText, lang: Lang): string {
+  return typeof t === "string" ? t : t[lang];
+}
+
+/** A lock text on screen. */
+export function LockLine({ text }: { text: LockText }) {
+  return typeof text === "string" ? <>{text}</> : <T en={text.en} bn={text.bn} />;
+}
 
 /**
  * The one "this is Premium" card. What it asks depends on the reader:
@@ -20,9 +43,10 @@ import { trackEvent } from "@/lib/track";
  *
  * `stakes` are the reader's own numbers ("2 of your stocks have a warning")
  * — shown on the card, and handed to /premium (sessionStorage, see
- * lib/premium-context.ts) so that page opens on their reason. Every card
- * fires `premium_lock_view` once when it scrolls into view and
- * `premium_lock_tap` on the button, with the lock's label and page area.
+ * lib/premium-context.ts) in the reader's language at tap time, so that page
+ * opens on their reason. Every card fires `premium_lock_view` once when it
+ * scrolls into view and `premium_lock_tap` on the button, with the lock's
+ * English label and page area.
  */
 export default function PremiumLockCard({
   label,
@@ -30,18 +54,19 @@ export default function PremiumLockCard({
   stakes,
 }: {
   /** What sits behind the lock, e.g. "The fair-value estimate". */
-  label?: string;
+  label?: LockText;
   compact?: boolean;
-  /** Up to three short lines about what this reader is missing, in their language. */
-  stakes?: string[];
+  /** Up to three short lines about what this reader is missing. */
+  stakes?: LockText[];
 }) {
-  const { bn } = useLang();
+  const { lang } = useLang();
   const { state } = usePremium();
   const pathname = usePathname() || "/";
   const area = areaOf(pathname);
   const ref = useRef<HTMLDivElement>(null);
   const seen = useRef(false);
-  const lines = (stakes ?? []).filter(Boolean).slice(0, 3);
+  const lines = (stakes ?? []).filter((s) => (typeof s === "string" ? s : s.en)).slice(0, 3);
+  const lockName = label ? lockEn(label) : "premium";
 
   useEffect(() => {
     const el = ref.current;
@@ -50,7 +75,7 @@ export default function PremiumLockCard({
       (entries) => {
         if (seen.current || !entries.some((e) => e.isIntersecting)) return;
         seen.current = true;
-        trackEvent("premium_lock_view", { area, lock: label ?? "premium", state, stakes: lines.length });
+        trackEvent("premium_lock_view", { area, lock: lockName, state, stakes: lines.length });
         io.disconnect();
       },
       { threshold: 0.5 },
@@ -58,34 +83,44 @@ export default function PremiumLockCard({
     io.observe(el);
     return () => io.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state, area, label]);
+  }, [state, area, lockName]);
 
   if (state === "premium") return null;
 
-  const title = bn
-    ? "এটি প্রিমিয়ামের অংশ"
-    : label
-      ? `${label} is part of Premium`
-      : "This is part of Premium";
+  const title = !label ? (
+    <T en="This is part of Premium" bn="এটি প্রিমিয়ামের অংশ" />
+  ) : typeof label === "string" ? (
+    <T en={`${label} is part of Premium`} bn="এটি প্রিমিয়ামের অংশ" />
+  ) : (
+    <T en={`${label.en} is part of Premium`} bn={`${label.bn} প্রিমিয়ামের অংশ`} />
+  );
 
   const line =
-    state === "guest"
-      ? { en: `Open a free account, then get Premium from ৳${LOWEST_PRICE}.`, bn: `বিনামূল্যে অ্যাকাউন্ট খুলুন, তারপর ৳${LOWEST_PRICE} থেকে প্রিমিয়াম নিন।` }
-      : { en: `Premium from ৳${LOWEST_PRICE} — pay by bKash or Nagad.`, bn: `৳${LOWEST_PRICE} থেকে প্রিমিয়াম — bKash বা Nagad দিয়ে পেমেন্ট।` };
+    state === "guest" ? (
+      <T
+        en={`Open a free account, then choose Premium from ৳${LOWEST_PRICE}.`}
+        bn={`একটি ফ্রি অ্যাকাউন্ট খুলুন, তারপর ৳${LOWEST_PRICE} থেকে প্রিমিয়াম নিন।`}
+      />
+    ) : (
+      <T
+        en={`Premium starts at ৳${LOWEST_PRICE}, paid by bKash or Nagad.`}
+        bn={`প্রিমিয়াম ৳${LOWEST_PRICE} থেকে, বিকাশ বা নগদে পেমেন্ট।`}
+      />
+    );
 
   const onTap = () => {
-    trackEvent("premium_lock_tap", { area, lock: label ?? "premium", state, stakes: lines.length });
-    savePremiumContext({ from: area, label, stakes: lines });
+    trackEvent("premium_lock_tap", { area, lock: lockName, state, stakes: lines.length });
+    savePremiumContext({
+      from: area,
+      label: label ? lockString(label, lang) : undefined,
+      stakes: lines.map((s) => lockString(s, lang)),
+    });
   };
 
   // Always the Premium page first — what you get and what it costs.
   const action = (
-    <Button
-      href={PREMIUM_PATH}
-      onClick={onTap}
-      size={compact ? "sm" : "md"}
-    >
-      {bn ? "প্রিমিয়াম দেখুন" : "See Premium"}
+    <Button href={PREMIUM_PATH} onClick={onTap} size={compact ? "sm" : "md"}>
+      <T en="See Premium" bn="প্রিমিয়াম দেখুন" />
     </Button>
   );
 
@@ -93,8 +128,19 @@ export default function PremiumLockCard({
     return (
       <div ref={ref} className="premium-card premium-card-compact">
         <span className="premium-card-icon" aria-hidden="true"><IconLock size={14} /></span>
-        <p className={`flex-1 text-sm text-text-main ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
-          {lines[0] ? `${lines[0]} · ` : label && !bn ? `${label} · ` : ""}{bn ? line.bn : line.en}
+        <p className="flex-1 text-sm text-text-main">
+          {lines[0] ? (
+            <>
+              <LockLine text={lines[0]} />
+              {" · "}
+            </>
+          ) : label ? (
+            <>
+              <LockLine text={label} />
+              {" · "}
+            </>
+          ) : null}
+          {line}
         </p>
         {action}
       </div>
@@ -105,27 +151,20 @@ export default function PremiumLockCard({
     <div ref={ref} className="premium-card" role="note">
       <span className="premium-card-icon" aria-hidden="true"><IconLock size={18} /></span>
       <div className="flex-1 min-w-0">
-        <p className={`font-semibold text-text-main ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
-          {title}
-        </p>
+        <p className="font-semibold text-text-main">{title}</p>
         {lines.length > 0 && (
-          <ul className={`mt-1.5 mb-1 flex flex-col gap-1 ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
+          <ul className="mt-1.5 mb-1 flex flex-col gap-1">
             {lines.map((s, i) => (
               <li key={i} className="flex items-start gap-2 text-sm font-semibold text-text-main">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
-                <span>{s}</span>
+                <span>
+                  <LockLine text={s} />
+                </span>
               </li>
             ))}
           </ul>
         )}
-        {bn ? (
-          <Bn className="text-sm text-text-muted">{line.bn}</Bn>
-        ) : (
-          <>
-            <p className="text-sm text-text-muted">{line.en}</p>
-            <Bn className="text-sm text-text-muted">{line.bn}</Bn>
-          </>
-        )}
+        <p className="text-sm text-text-muted">{line}</p>
       </div>
       <div className="premium-card-action">{action}</div>
     </div>

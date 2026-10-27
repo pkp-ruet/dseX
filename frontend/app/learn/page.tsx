@@ -10,6 +10,7 @@ import {
   categoryAnchor,
 } from "@/lib/guides";
 import CategoryNav from "@/components/learn/CategoryNav";
+import ArticleLangNote from "@/components/i18n/ArticleLangNote";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
@@ -85,9 +86,15 @@ export default function LearnPage() {
     <div className="page-narrow space-y-12">
       <PageHeader
         eyebrow={<>Learn · {totalGuides} guides</>}
-        title={<>Beginner&apos;s Guide to the Stock Market</>}
-        bn="শেয়ার বাজারে নতুন? একদম শুরু থেকে সহজ ভাষায় শিখুন।"
+        title={<>A beginner&apos;s guide to the stock market</>}
         lead="New to investing in Bangladesh? Start here."
+      />
+
+      <ArticleLangNote
+        articleLang="en"
+        pairHref="/blog"
+        lead="এই গাইডগুলো ইংরেজিতে লেখা। বাংলায় লেখা গাইড আছে আমাদের বাংলা ব্লগে।"
+        pairLabel="বাংলা ব্লগ পড়ুন"
       />
 
       {/* Category index — tap to jump to a section */}
@@ -186,10 +193,10 @@ export default function LearnPage() {
         </p>
         <div className="flex flex-wrap justify-center gap-3">
           <Link href="/dsestockranking" className="btn-primary">
-            View Score Leaderboard
+            See the rankings
           </Link>
           <Link href="/" className="btn-quiet">
-            Back to Home
+            Back to home
           </Link>
         </div>
       </section>

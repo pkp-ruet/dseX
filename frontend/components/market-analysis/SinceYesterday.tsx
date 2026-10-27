@@ -3,6 +3,8 @@ import Link from "next/link";
 import MkCard from "./MkCard";
 import type { MarketNewName, MarketSinceYesterday, MarketStats } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
+import { bnDate, sectorBn } from "@/lib/bn";
+import { T } from "@/components/i18n/T";
 
 type Tone = "pos" | "neg" | "neutral" | "accent";
 
@@ -38,10 +40,19 @@ function buildItems(since: MarketSinceYesterday, stats: MarketStats): Item[] {
       key: "index",
       tone: up ? "pos" : "neg",
       text: (
-        <>
-          The market index is <b>{up ? "up" : "down"} {Math.abs(stats.dsex_change_pct).toFixed(1)}%</b>{" "}
-          since yesterday&apos;s close.
-        </>
+        <T
+          en={
+            <>
+              The market index is <b>{up ? "up" : "down"} {Math.abs(stats.dsex_change_pct).toFixed(1)}%</b>{" "}
+              since yesterday&apos;s close.
+            </>
+          }
+          bn={
+            <>
+              গতকালের সমাপনীর পর সূচক <b>{Math.abs(stats.dsex_change_pct).toFixed(1)}% {up ? "বেড়েছে" : "কমেছে"}</b>।
+            </>
+          }
+        />
       ),
     });
   }
@@ -53,13 +64,31 @@ function buildItems(since: MarketSinceYesterday, stats: MarketStats): Item[] {
       key: "breadth",
       tone: better ? "pos" : "neg",
       text: better ? (
-        <>
-          <b>More shares rose today</b> than on {br.better_than} of the last {br.of} trading days.
-        </>
+        <T
+          en={
+            <>
+              <b>More shares rose today</b> than on {br.better_than} of the last {br.of} trading days.
+            </>
+          }
+          bn={
+            <>
+              গত {br.of}টি লেনদেনের দিনের {br.better_than}টির চেয়ে <b>আজ বেশি শেয়ারের দাম বেড়েছে</b>।
+            </>
+          }
+        />
       ) : (
-        <>
-          <b>Fewer shares rose today</b> than on {br.of - br.better_than} of the last {br.of} trading days.
-        </>
+        <T
+          en={
+            <>
+              <b>Fewer shares rose today</b> than on {br.of - br.better_than} of the last {br.of} trading days.
+            </>
+          }
+          bn={
+            <>
+              গত {br.of}টি লেনদেনের দিনের {br.of - br.better_than}টির চেয়ে <b>আজ কম শেয়ারের দাম বেড়েছে</b>।
+            </>
+          }
+        />
       ),
     });
   }
@@ -70,10 +99,20 @@ function buildItems(since: MarketSinceYesterday, stats: MarketStats): Item[] {
       key: "healthy",
       tone: up ? "pos" : "neg",
       text: (
-        <>
-          <b>{plural(Math.abs(since.healthy_delta), "company", "companies")} {up ? "more" : "fewer"}</b> look
-          healthy than yesterday — {since.healthy_now} now.
-        </>
+        <T
+          en={
+            <>
+              <b>{plural(Math.abs(since.healthy_delta), "company", "companies")} {up ? "more" : "fewer"}</b> look
+              healthy than yesterday. There are {since.healthy_now} now.
+            </>
+          }
+          bn={
+            <>
+              গতকালের চেয়ে <b>{Math.abs(since.healthy_delta)}টি কোম্পানি {up ? "বেশি" : "কম"}</b> ভালো অবস্থায় আছে।
+              এখন মোট {since.healthy_now}টি।
+            </>
+          }
+        />
       ),
     });
   }
@@ -84,10 +123,20 @@ function buildItems(since: MarketSinceYesterday, stats: MarketStats): Item[] {
       key: "cheap",
       tone: more ? "pos" : "neg",
       text: (
-        <>
-          <b>{more ? "More" : "Fewer"} shares are cheap</b> than yesterday — about {Math.round(stats.cheap_pct)}% of
-          the market now.
-        </>
+        <T
+          en={
+            <>
+              <b>{more ? "More" : "Fewer"} shares are cheap</b> than yesterday. That is about{" "}
+              {Math.round(stats.cheap_pct)}% of the market now.
+            </>
+          }
+          bn={
+            <>
+              গতকালের চেয়ে <b>{more ? "বেশি" : "কম"} শেয়ারের দাম কম</b>। এখন বাজারের প্রায়{" "}
+              {Math.round(stats.cheap_pct)}%।
+            </>
+          }
+        />
       ),
     });
   }
@@ -97,9 +146,18 @@ function buildItems(since: MarketSinceYesterday, stats: MarketStats): Item[] {
       key: "sectors-up",
       tone: "pos",
       text: (
-        <>
-          <b>Now doing well:</b> {since.sectors_up.join(", ")}.
-        </>
+        <T
+          en={
+            <>
+              <b>Now doing well:</b> {since.sectors_up.join(", ")}.
+            </>
+          }
+          bn={
+            <>
+              <b>এখন ভালো করছে:</b> {since.sectors_up.map((s) => sectorBn(s)).join(", ")}।
+            </>
+          }
+        />
       ),
     });
   }
@@ -108,9 +166,18 @@ function buildItems(since: MarketSinceYesterday, stats: MarketStats): Item[] {
       key: "sectors-down",
       tone: "neg",
       text: (
-        <>
-          <b>Now struggling:</b> {since.sectors_down.join(", ")}.
-        </>
+        <T
+          en={
+            <>
+              <b>Now under pressure:</b> {since.sectors_down.join(", ")}.
+            </>
+          }
+          bn={
+            <>
+              <b>এখন চাপে আছে:</b> {since.sectors_down.map((s) => sectorBn(s)).join(", ")}।
+            </>
+          }
+        />
       ),
     });
   }
@@ -119,7 +186,11 @@ function buildItems(since: MarketSinceYesterday, stats: MarketStats): Item[] {
     items.push({
       key: "new-high",
       tone: "pos",
-      text: <b>New at a one-year high</b>,
+      text: (
+        <b>
+          <T en="Newly near their highest price of the year" bn="নতুন করে বছরের সর্বোচ্চ দামের কাছে" />
+        </b>
+      ),
       chips: since.new_near_high,
     });
   }
@@ -127,7 +198,11 @@ function buildItems(since: MarketSinceYesterday, stats: MarketStats): Item[] {
     items.push({
       key: "new-low",
       tone: "neg",
-      text: <b>New at a one-year low</b>,
+      text: (
+        <b>
+          <T en="Newly near their lowest price of the year" bn="নতুন করে বছরের সর্বনিম্ন দামের কাছে" />
+        </b>
+      ),
       chips: since.new_near_low,
     });
   }
@@ -135,7 +210,11 @@ function buildItems(since: MarketSinceYesterday, stats: MarketStats): Item[] {
     items.push({
       key: "new-unusual",
       tone: "accent",
-      text: <b>Unusual buying just started</b>,
+      text: (
+        <b>
+          <T en="Unusual buying has just started" bn="অস্বাভাবিক কেনাকাটা সবে শুরু হয়েছে" />
+        </b>
+      ),
       chips: since.new_unusual,
     });
   }
@@ -161,9 +240,15 @@ export default function SinceYesterday({
     <MkCard
       className="mt-6"
       id="mk-since-title"
-      title="Since yesterday"
-      bn="গতকালের তুলনায় আজ কী বদলেছে"
-      right={since.prev_date ? <span className="mk-since-vs">vs {formatDate(since.prev_date)}</span> : undefined}
+      title={<T en="Since yesterday" bn="গতকালের পর থেকে" />}
+      note={<T en="What changed today, compared with the last trading day." bn="আগের লেনদেনের দিনের তুলনায় আজ কী বদলেছে।" />}
+      right={
+        since.prev_date ? (
+          <span className="mk-since-vs">
+            <T en={`vs ${formatDate(since.prev_date)}`} bn={`${bnDate(since.prev_date)}-এর তুলনায়`} />
+          </span>
+        ) : undefined
+      }
     >
       <ul className="mk-since-list">
         {items.map((it) => (

@@ -23,7 +23,7 @@ import { buildHomeAlerts } from "@/lib/home-alerts";
 import { marketSession, isTradingDay, bstDateStr } from "@/lib/market-hours";
 import { bnDate } from "@/lib/bn";
 import { t } from "@/lib/home-copy";
-import { trackHomeTap, trackEvent } from "@/lib/track";
+import { trackHomeTap } from "@/lib/track";
 
 import DailyBriefing from "@/components/home/personalized/DailyBriefing";
 import HeroGreeting from "@/components/home/personalized/HeroGreeting";
@@ -70,7 +70,7 @@ const EMPTY_SET = new Set<string>();
 
 export default function PersonalizedHome() {
   const { user } = useAuth();
-  const { lang, setLang } = useLang();
+  const { lang } = useLang();
   const { state: planState } = usePremium();
   const bn = lang === "bn";
 
@@ -242,11 +242,6 @@ export default function PersonalizedHome() {
     return items;
   }, [lang, hasDividends]);
 
-  function onLang(l: Lang) {
-    setLang(l);
-    trackEvent("home_lang", { lang: l });
-  }
-
   // One delegated listener: any link tapped inside a `[data-card]` wrapper
   // records which card it came from. No per-component wiring.
   function onTap(e: MouseEvent<HTMLDivElement>) {
@@ -259,7 +254,7 @@ export default function PersonalizedHome() {
 
   // Chapter title, with its Bengali line under it in English mode.
   const head = (key: "chMarket" | "chIdeas" | "chDividends" | "chLearn", icon: React.ReactNode, sub?: string) => (
-    <ChapterHead label={t(lang, key)} bn={bn ? undefined : t("bn", key)} sub={sub} lang={lang} icon={icon} />
+    <ChapterHead label={t(lang, key)} sub={sub} icon={icon} />
   );
 
   // ── The reader's own blocks. ──
@@ -432,7 +427,6 @@ export default function PersonalizedHome() {
           isNew={isNewUser}
           updates={bundleSettled && (hasPortfolio || hasWatchlist) ? updatesCount : null}
           lang={lang}
-          onLang={onLang}
         />
         {holdings === null ? (
           // Portfolio not known yet → hold the card's space so nothing below

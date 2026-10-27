@@ -3,7 +3,8 @@ import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import { notFound } from "next/navigation";
 import { BLOG_POSTS, getBlogPost, getBlogCategory } from "@/lib/blog-bn";
-import { blogLanguages } from "@/lib/i18n-pairs";
+import { BLOG_TO_LEARN, blogLanguages } from "@/lib/i18n-pairs";
+import ArticleLangNote from "@/components/i18n/ArticleLangNote";
 import ArticleContents, { sectionId } from "@/components/learn/ArticleContents";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
@@ -107,9 +108,12 @@ export default async function BlogPostPage({ params }: Props) {
         size="article"
         eyebrow={<>{category?.label ?? "বাংলা ব্লগ"} · {post.readTime}</>}
         title={post.title}
-        bn="A beginner guide in everyday Bangla."
-        subLang="en"
         lead={post.description}
+      />
+
+      <ArticleLangNote
+        articleLang="bn"
+        pairHref={BLOG_TO_LEARN[slug] ? `/learn/${BLOG_TO_LEARN[slug]}` : undefined}
       />
 
       {/* Contents for long pieces (numbered — the sections are read in order) */}

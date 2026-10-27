@@ -6,6 +6,8 @@ import { apiSubmitFeedback } from "@/lib/api";
 import { isFeedbackDismissed, dismissFeedback } from "@/lib/feedback";
 import StarRating from "@/components/feedback/StarRating";
 import Button from "@/components/ui/Button";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
 
 // Hold off a few seconds after load so the popup doesn't feel jarring.
 const SHOW_DELAY_MS = 6000;
@@ -30,6 +32,7 @@ export default function FeedbackPrompt() {
   const [comment, setComment] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "done">("idle");
   const [error, setError] = useState("");
+  const { bn } = useLang();
 
   useEffect(() => {
     if (isLoading || !isLoggedIn || !userId) return;
@@ -68,7 +71,13 @@ export default function FeedbackPrompt() {
       dismissFeedback(userId);
       setTimeout(() => setVisible(false), 1800);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong. Please try again.");
+      setError(
+        e instanceof Error
+          ? e.message
+          : bn
+            ? "পাঠানো যায়নি। একটু পরে আবার চেষ্টা করুন।"
+            : "We couldn't send that. Please try again in a moment.",
+      );
       setStatus("idle");
     }
   }
@@ -78,7 +87,7 @@ export default function FeedbackPrompt() {
   return (
     <div
       role="dialog"
-      aria-label="Feedback"
+      aria-label={bn ? "মতামত" : "Feedback"}
       data-bottom-card
       className="above-bottom-bar fixed z-[45] inset-x-3 md:inset-x-auto md:right-5 md:w-[22rem] rounded-2xl border border-border bg-surface shadow-xl shadow-black/10"
     >
@@ -86,19 +95,23 @@ export default function FeedbackPrompt() {
         {status === "done" ? (
           <div className="py-3 text-center">
             <p className="text-2xl">🙏</p>
-            <p className="mt-1 text-sm font-semibold text-text-main">Thank you!</p>
-            <p className="text-xs text-text-muted">We read every single message.</p>
+            <p className="mt-1 text-sm font-semibold text-text-main">
+              <T en="Thank you" bn="ধন্যবাদ" />
+            </p>
+            <p className="text-xs text-text-muted">
+              <T en="We read every message we receive." bn="আমরা প্রতিটি বার্তা পড়ি।" />
+            </p>
           </div>
         ) : (
           <>
             <div className="flex items-start justify-between gap-3">
               <h3 className="text-base font-bold leading-snug text-text-main">
-                How&apos;s TopStockBD working for you?
+                <T en="How is TopStockBD working for you?" bn="TopStockBD আপনার কেমন লাগছে?" />
               </h3>
               <button
                 type="button"
                 onClick={close}
-                aria-label="Close"
+                aria-label={bn ? "বন্ধ করুন" : "Close"}
                 className="-mr-1 -mt-1 shrink-0 rounded-md p-1 text-text-muted hover:bg-surface-2 hover:text-text-main"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -107,7 +120,10 @@ export default function FeedbackPrompt() {
               </button>
             </div>
             <p className="mt-1 text-sm text-text-muted">
-              We&apos;d love to hear what you think. Takes less than a minute.
+              <T
+                en="We would like to hear what you think. It takes less than a minute."
+                bn="আপনার মতামত জানতে চাই। এক মিনিটও লাগবে না।"
+              />
             </p>
 
             <div className="mt-3 flex justify-center sm:justify-start">
@@ -119,7 +135,7 @@ export default function FeedbackPrompt() {
               onChange={(e) => setComment(e.target.value)}
               rows={2}
               maxLength={2000}
-              placeholder="Anything you'd like to add? (optional)"
+              placeholder={bn ? "আর কিছু বলতে চান? (না লিখলেও চলবে)" : "Anything else you would like to tell us? (optional)"}
               className="mt-3 w-full resize-y rounded-xl border border-border bg-bg px-3 py-2 text-sm text-text-main placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
 
@@ -131,7 +147,7 @@ export default function FeedbackPrompt() {
                 onClick={close}
                 className="text-sm font-medium text-text-muted hover:text-text-main"
               >
-                No thanks
+                <T en="No, thanks" bn="এখন না" />
               </button>
               <Button
                 type="button"
@@ -139,7 +155,11 @@ export default function FeedbackPrompt() {
                 onClick={submit}
                 disabled={!canSubmit || status === "sending"}
               >
-                {status === "sending" ? "Sending…" : "Share feedback"}
+                {status === "sending" ? (
+                  <T en="Sending…" bn="পাঠানো হচ্ছে…" />
+                ) : (
+                  <T en="Send feedback" bn="মতামত পাঠান" />
+                )}
               </Button>
             </div>
           </>

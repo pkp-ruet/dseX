@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import ErrorState from "@/components/ui/ErrorState";
+import { T } from "@/components/i18n/T";
 
 /** Route error boundary — same surface as app/error.tsx, route-specific copy. */
 export default function LearnError({
@@ -17,10 +18,9 @@ export default function LearnError({
 
   return (
     <ErrorState
-      title="Couldn't load this guide"
-      bn="এই গাইডটি এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+      title={<T en="We couldn't load this guide" bn="এই গাইডটি এখন লোড করা যাচ্ছে না" />}
       onRetry={reset}
-      links={[{ href: "/learn", label: "All guides" }]}
+      links={[{ href: "/learn", label: <T en="All guides" bn="সব গাইড" /> }]}
     />
   );
 }

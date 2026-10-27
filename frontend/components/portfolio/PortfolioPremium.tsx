@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Button from "@/components/ui/Button";
-import Bn from "@/components/i18n/Bn";
 import { IconCheck, IconLock } from "@/components/ui/icons";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
 import { LOWEST_PRICE } from "@/lib/premium-plans";
@@ -76,11 +75,10 @@ export default function PortfolioPremium({ stakes, lang }: { stakes: string[]; l
       <h3 id="pf-premium-h" className={`mt-1 text-xl font-bold leading-tight text-text-main sm:text-2xl ${textCls}`} lang={langAttr}>
         {t("Your portfolio, checked every day", "আপনার পোর্টফোলিওর দৈনিক যাচাই")}
       </h3>
-      {!bn && <Bn className="pf-card-bn">আপনার পোর্টফোলিওর দৈনিক যাচাই</Bn>}
       <p className={`pf-card-note ${textCls}`} lang={langAttr}>
         {t(
           "Every locked part on this page opens, and we watch your stocks after every close.",
-          "এই পাতার সব বন্ধ অংশ খুলে যায়, আর প্রতিদিন বাজার বন্ধের পর আমরা আপনার শেয়ার দেখি।",
+          "এই পেজের সব বন্ধ অংশ খুলে যায়, আর প্রতিদিন বাজার বন্ধের পর আমরা আপনার শেয়ার দেখি।",
         )}
       </p>
 
@@ -110,8 +108,8 @@ export default function PortfolioPremium({ stakes, lang }: { stakes: string[]; l
         </Button>
         <p className={`text-sm text-text-muted ${textCls}`} lang={langAttr}>
           {t(
-            `From ৳${LOWEST_PRICE} a month — pay by bKash or Nagad. No auto-renewal.`,
-            `মাসে ৳${LOWEST_PRICE} থেকে — bKash বা Nagad দিয়ে। নিজে থেকে টাকা কাটে না।`,
+            `From ৳${LOWEST_PRICE} a month, paid by bKash or Nagad. It never renews by itself.`,
+            `মাসে ৳${LOWEST_PRICE} থেকে, বিকাশ বা নগদে। নিজে থেকে নবায়ন হয় না।`,
           )}
         </p>
       </div>

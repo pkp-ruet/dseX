@@ -22,6 +22,7 @@ import { buildHomeAlerts } from "@/lib/home-alerts";
 import { portfolioTodayMove } from "@/lib/portfolio-analysis";
 import { loadScoreUniverse, indexByCode } from "../company-index";
 import { marketPulseResponder } from "./marketPulse";
+import { tipLine } from "./tips";
 import { STARTER_CHIPS } from "../chips";
 import { COPY } from "../copy";
 import type { BriefRow, Chip, MessageBlock, MetricTone } from "../types";
@@ -33,7 +34,14 @@ function todayKey(): string {
 async function appendTip(blocks: MessageBlock[]): Promise<void> {
   try {
     const tip = (await getDailyTips()).tips?.[0];
-    if (tip?.text) blocks.push({ type: "text", text: `💡 ${tip.text}` });
+    if (tip?.text) {
+      const line = tipLine(tip);
+      blocks.push({
+        type: "text",
+        text: `${COPY.brief.tipPrefix} ${line.en}`,
+        bn: line.bn ? `${COPY.brief.tipPrefixBn} ${line.bn}` : undefined,
+      });
+    }
   } catch {
     /* tips are optional */
   }
@@ -42,10 +50,10 @@ async function appendTip(blocks: MessageBlock[]): Promise<void> {
 function briefFollowUps(hasPortfolio: boolean, hasWatchlist: boolean): Chip[] {
   const F = COPY.followups;
   const chips: Chip[] = [];
-  if (hasPortfolio) chips.push({ label: F.myPortfolio.label, labelBn: F.myPortfolio.bn, emoji: "📂", action: { intentId: "my_portfolio" } });
-  if (hasWatchlist) chips.push({ label: F.myWatchlist.label, labelBn: F.myWatchlist.bn, emoji: "⭐", action: { intentId: "my_watchlist" } });
-  if (hasWatchlist) chips.push({ label: F.myNews.label, labelBn: F.myNews.bn, emoji: "📰", action: { intentId: "my_news" } });
-  chips.push({ label: F.market.label, labelBn: F.market.bn, emoji: "📊", action: { intentId: "market_pulse" } });
+  if (hasPortfolio) chips.push({ label: F.myPortfolio.label, labelBn: F.myPortfolio.bn, action: { intentId: "my_portfolio" } });
+  if (hasWatchlist) chips.push({ label: F.myWatchlist.label, labelBn: F.myWatchlist.bn, action: { intentId: "my_watchlist" } });
+  if (hasWatchlist) chips.push({ label: F.myNews.label, labelBn: F.myNews.bn, action: { intentId: "my_news" } });
+  chips.push({ label: F.market.label, labelBn: F.market.bn, action: { intentId: "market_pulse" } });
   return chips;
 }
 
@@ -74,7 +82,7 @@ export async function briefBlocks(): Promise<MessageBlock[]> {
       type: "text",
       text: COPY.brief.loggedOut,
       bn: COPY.brief.loggedOutBn,
-      link: { href: "/login", label: COPY.brief.signIn },
+      link: { href: "/login", label: COPY.brief.signIn, labelBn: COPY.brief.signInBn },
     });
     blocks.push({ type: "chips", chips: STARTER_CHIPS, layout: "wrap" });
     return blocks;
@@ -103,7 +111,7 @@ export async function briefBlocks(): Promise<MessageBlock[]> {
     return blocks;
   }
 
-  const alertRows = buildHomeAlerts({
+  const alertOpts = {
     codes,
     priceMap,
     todayMove,
@@ -112,16 +120,23 @@ export async function briefBlocks(): Promise<MessageBlock[]> {
     news,
     triggeredAlerts: alerts,
     dateKey: todayKey(),
-  });
+  };
+  // The same rows in both languages; ids are shared, so the Bengali twin is found by id.
+  const alertRows = buildHomeAlerts(alertOpts);
+  const alertRowsBn = new Map(buildHomeAlerts({ ...alertOpts, lang: "bn" }).map((a) => [a.id, a]));
 
   if (alertRows.length) {
-    const rows: BriefRow[] = alertRows.slice(0, 6).map((a) => ({
-      emoji: a.emoji,
-      title: a.title,
-      detail: a.detail,
-      href: a.href,
-      tone: toneOf(a.tone),
-    }));
+    const rows: BriefRow[] = alertRows.slice(0, 6).map((a) => {
+      const b = alertRowsBn.get(a.id);
+      return {
+        title: a.title,
+        titleBn: b?.title,
+        detail: a.detail,
+        detailBn: b?.detail,
+        href: a.href,
+        tone: toneOf(a.tone),
+      };
+    });
     blocks.push({ type: "brief", rows });
   } else {
     blocks.push({ type: "text", text: COPY.brief.nothingPersonal, bn: COPY.brief.nothingPersonalBn });

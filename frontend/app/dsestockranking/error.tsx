@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import ErrorState from "@/components/ui/ErrorState";
+import { T } from "@/components/i18n/T";
 
 /** Route error boundary — same surface as app/error.tsx, route-specific copy. */
 export default function RankingError({
@@ -17,10 +18,9 @@ export default function RankingError({
 
   return (
     <ErrorState
-      title="Couldn't load the rankings"
-      bn="র‍্যাঙ্কিং এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+      title={<T en="We couldn't load the rankings" bn="র‍্যাঙ্কিং এখন লোড করা যাচ্ছে না" />}
       onRetry={reset}
-      links={[{ href: "/stocks", label: "Browse all stocks" }]}
+      links={[{ href: "/stocks", label: <T en="Browse all stocks" bn="সব শেয়ার দেখুন" /> }]}
     />
   );
 }

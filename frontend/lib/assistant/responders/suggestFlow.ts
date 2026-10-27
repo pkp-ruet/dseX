@@ -11,7 +11,7 @@ export async function runSuggest(
   const res = await getStockRecommendations(answers);
 
   if (!res.picks?.length) {
-    return [{ type: "text", text: COPY.empty.text }];
+    return [{ type: "text", text: COPY.empty.text, bn: COPY.empty.bn }];
   }
 
   const relaxed = (res.relaxations?.length ?? 0) > 0;

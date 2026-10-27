@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { getApiUrl } from "@/lib/api";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
+import { bnDate } from "@/lib/bn";
 import {
   isMarketOpen,
   bstDateStr,
@@ -28,7 +31,8 @@ const HIDE_KEY = "dsex.market-banner-hidden";
 export default function MarketDataBanner() {
   // Start hidden so SSR and the first client render match; the effect decides.
   const [visible, setVisible] = useState(false);
-  const [label, setLabel] = useState<string | null>(null);
+  const [label, setLabel] = useState<{ en: string; bn: string } | null>(null);
+  const { bn } = useLang();
 
   useEffect(() => {
     let cancelled = false;
@@ -63,15 +67,18 @@ export default function MarketDataBanner() {
       }
       if (cancelled) return;
 
-      let when: string;
+      let when: { en: string; bn: string };
       if (marketDate && marketDate === today && scrapedAt) {
         const t = formatBstTimeLabel(scrapedAt);
-        when = t ? `today at ${t}` : "today";
+        when = t ? { en: `today at ${t}`, bn: `আজ ${t}-এ` } : { en: "today", bn: "আজ" };
       } else if (marketDate) {
         // Still serving the previous session — present it as that day's 2:30 close.
-        when = `${formatBstDateLabel(marketDate)} at 2:30 PM`;
+        when = {
+          en: `${formatBstDateLabel(marketDate)} at 2:30 PM`,
+          bn: `${bnDate(marketDate) || formatBstDateLabel(marketDate)}, বেলা 2:30-এ`,
+        };
       } else {
-        when = "at the last market close";
+        when = { en: "at the last market close", bn: "বাজারের শেষ সময়ে" };
       }
       setLabel(when);
       setVisible(true);
@@ -130,13 +137,26 @@ export default function MarketDataBanner() {
           <path d="M12 7v5l3 2" />
         </svg>
         <p className="flex-1 min-w-0 truncate text-xs leading-none text-text-main">
-          Prices last updated <strong className="font-semibold">{label}</strong>. Updating soon.
+          <T
+            en={
+              <>
+                Prices were last updated <strong className="font-semibold">{label.en}</strong>. New prices are on
+                the way.
+              </>
+            }
+            bn={
+              <>
+                দাম সর্বশেষ হালনাগাদ হয়েছে <strong className="font-semibold">{label.bn}</strong>। নতুন দাম শিগগিরই
+                আসছে।
+              </>
+            }
+          />
         </p>
         {/* 40px tap target inside a 28px strip: negative vertical margin */}
         <button
           type="button"
           onClick={dismiss}
-          aria-label="Dismiss notice"
+          aria-label={bn ? "বার্তাটি বন্ধ করুন" : "Close this notice"}
           className="shrink-0 inline-flex items-center justify-center w-10 h-10 -my-2 -mr-2 rounded-md text-text-muted hover:text-text-main hover:bg-primary/10 active:bg-primary/20 transition-colors"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

@@ -6,13 +6,13 @@ const BASE_URL =
   process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 export const metadata: Metadata = {
-  title: "Create Account",
+  title: "Create an account",
   description:
     "Create a free TopStockBD account to sync your DSE stock watchlist across all your devices.",
   alternates: { canonical: `${BASE_URL}/register` },
   robots: { index: false, follow: false },
   openGraph: {
-    title: "Create Account — TopStockBD",
+    title: "Create an account — TopStockBD",
     description:
       "Create a free account to sync your DSE watchlist across devices.",
     url: `${BASE_URL}/register`,

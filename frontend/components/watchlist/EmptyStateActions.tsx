@@ -7,6 +7,8 @@ import { addToWatchlist, getCachedWatchlist, subscribeWatchlist } from "@/lib/wa
 import { taka } from "@/lib/formatters";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
 
 interface Props {
   /** Tighter top spacing + no heading when embedded in another card (homepage first-run). */
@@ -38,6 +40,8 @@ const ICON_CHECK = (
 export default function EmptyStateActions({ compact = false, onAdded }: Props = {}) {
   const [scores, setScores] = useState<ScoresResponse | null>(null);
   const [watched, setWatched] = useState<string[]>([]);
+  const { lang } = useLang();
+  const L = (en: string, bn: string) => (lang === "bn" ? bn : en);
 
   useEffect(() => {
     let cancelled = false;
@@ -71,12 +75,12 @@ export default function EmptyStateActions({ compact = false, onAdded }: Props = 
     <div className={`text-left ${compact ? "mt-3" : "mt-5"}`}>
       {!compact && (
         <p className="mb-2.5 text-xs font-bold   text-text-muted">
-          Suggested to follow
+          <T en="Suggested to follow" bn="অনুসরণ করার মতো" />
         </p>
       )}
 
       {scores === null ? (
-        <ul className="flex flex-col gap-2" aria-busy="true" aria-label="Loading suggestions">
+        <ul className="flex flex-col gap-2" aria-busy="true" aria-label={L("Loading suggestions", "প্রস্তাব লোড হচ্ছে")}>
           {[...Array(4)].map((_, i) => (
             <li key={i} className="flex items-center gap-3 rounded-xl border border-border bg-surface p-2.5 pl-3.5">
               <div className="flex min-w-0 flex-1 flex-col gap-1.5">
@@ -134,21 +138,21 @@ export default function EmptyStateActions({ compact = false, onAdded }: Props = 
                 {isWatched ? (
                   <span
                     className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full border border-positive/30 bg-positive/10 px-3 text-xs font-bold text-positive"
-                    aria-label={`${code} added`}
+                    aria-label={L(`${code} added`, `${code} যোগ হয়েছে`)}
                   >
                     {ICON_CHECK}
-                    Added
+                    <T en="Added" bn="যোগ হয়েছে" />
                   </span>
                 ) : (
                   <Button
                     type="button"
                     size="sm"
                     onClick={() => handleAdd(code)}
-                    aria-label={`Add ${code} to watchlist`}
+                    aria-label={L(`Add ${code} to your watchlist`, `${code} ওয়াচলিস্টে যোগ করুন`)}
                     className="shrink-0"
                   >
                     {ICON_PLUS}
-                    Add
+                    <T en="Add" bn="যোগ করুন" />
                   </Button>
                 )}
               </li>

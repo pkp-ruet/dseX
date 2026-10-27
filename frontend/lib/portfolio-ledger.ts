@@ -187,7 +187,7 @@ export function statementCsv(st: YearStatement, holdings: PortfolioHolding[], po
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   const rows: (string | number)[][] = [
-    [`${portfolioName} — statement for ${st.year}`],
+    [`${portfolioName}: statement for ${st.year}`],
     [],
     ["Date", "Type", "Stock", "Shares", "Price (Tk)", "Amount (Tk)", "Profit (Tk)"],
   ];

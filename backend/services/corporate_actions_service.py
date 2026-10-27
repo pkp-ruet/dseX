@@ -38,15 +38,17 @@ UPCOMING_WINDOW_DAYS = 120
 RECENT_DECLARATION_DAYS = 45
 
 NOTE_EN = (
-    "To receive a dividend your shares must be in your BO account on the record "
-    "date. DSE settles normal-market trades on T+2 and opens a short spot-market "
-    "window just before the record date, so buying about three trading days early "
-    "is the safe side. Confirm the exact cut-off with your broker."
+    "To receive a dividend, your shares must be in your BO account on the record "
+    "date. DSE settles normal-market trades two working days after the trade, and "
+    "opens a short spot-market window just before the record date, so buying about "
+    "three trading days early is the safe choice. Please confirm the exact cut-off "
+    "with your broker."
 )
 NOTE_BN = (
-    "লভ্যাংশ পেতে রেকর্ড ডেটের দিন শেয়ার আপনার বিও অ্যাকাউন্টে থাকতে হবে। "
-    "সাধারণ মার্কেটে লেনদেন T+2 তে সেটেল হয়, তাই রেকর্ড ডেটের অন্তত তিন কার্যদিবস "
-    "আগে কেনা নিরাপদ। সঠিক সময়সীমা ব্রোকারের কাছে জেনে নিন।"
+    "ডিভিডেন্ড পেতে রেকর্ড ডেটের দিন শেয়ার আপনার বিও অ্যাকাউন্টে থাকতে হবে। "
+    "সাধারণ মার্কেটের লেনদেন নিষ্পত্তি হয় কেনার দুই কার্যদিবস পরে, আর রেকর্ড ডেটের ঠিক আগে "
+    "অল্প কয়েক দিনের জন্য স্পট মার্কেট চলে। তাই রেকর্ড ডেটের অন্তত তিন কার্যদিবস আগে কেনাই "
+    "নিরাপদ। সঠিক শেষ দিনটি আপনার ব্রোকারের কাছে জেনে নিন।"
 )
 
 

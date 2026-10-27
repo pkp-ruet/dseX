@@ -333,15 +333,15 @@ def push_payload(changes: list[tuple[dict, list[str]]], lang: str = "bn") -> Opt
         d, joined = changes[0]
         names = ", ".join(joined[:3]) + ("…" if len(joined) > 3 else "")
         title = (f"'{d['name']}' তালিকায় নতুন {len(joined)}টি শেয়ার" if bn
-                 else f"{len(joined)} new on your list '{d['name']}'")
+                 else f"{len(joined)} new {'share' if len(joined) == 1 else 'shares'} on your list '{d['name']}'")
         url = f"/screener?tab=saved&list={d['id']}&src=alert"
     else:
         total = sum(len(j) for _, j in changes)
         title = (f"আপনার {len(changes)}টি তালিকায় নতুন {total}টি শেয়ার" if bn
-                 else f"{total} new stocks on {len(changes)} of your lists")
+                 else f"{total} new shares on {len(changes)} of your lists")
         names = " · ".join(f"{d['name']}: {', '.join(j[:2])}" for d, j in changes[:3])
         url = "/screener?tab=saved&src=alert"
-    body = (f"আজ সব শর্ত পূরণ করেছে: {names}" if bn else f"Passed every check today: {names}")
+    body = (f"আজ সবগুলো যাচাইয়ে পাস করেছে: {names}" if bn else f"Passed every check today: {names}")
     return {"title": title, "body": body, "url": url, "tag": "customlists"}
 
 

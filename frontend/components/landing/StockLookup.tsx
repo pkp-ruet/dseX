@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
 import type { LandingStock } from "@/lib/landing";
 
 /**
@@ -82,11 +82,8 @@ export default function StockLookup({
     <div ref={wrapRef} className="relative">
       <label htmlFor="landing-lookup" className="mb-2 block">
         <span className="text-sm font-bold text-text-main">
-          Type any company name or code
+          <T en="Type any company name or code" bn="যেকোনো কোম্পানির নাম বা কোড লিখুন" />
         </span>
-        <Bn as="span" className="mt-0.5 block text-xs font-medium text-text-muted">
-          যেকোনো কোম্পানির নাম বা কোড লিখুন
-        </Bn>
       </label>
 
       <div className="flex items-center gap-2 rounded-xl border-2 border-border bg-surface px-3.5 py-3 transition-colors focus-within:border-[color-mix(in_srgb,var(--primary)_55%,var(--border))]">

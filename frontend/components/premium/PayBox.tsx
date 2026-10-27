@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
 import { useAuth } from "@/context/AuthContext";
 import { useLang } from "@/context/LangContext";
 import {
@@ -15,23 +15,26 @@ import {
 } from "@/lib/api";
 import { AUTH_USER_UPDATED_EVENT, setStoredUser } from "@/lib/auth";
 import { formatDate } from "@/lib/formatters";
+import { bnDate } from "@/lib/bn";
 import { usePremium } from "@/lib/premium";
 import { METHOD_LABEL, OFFER, PAID_PLANS, planByKey, type PlanKey } from "@/lib/premium-plans";
 import { toast } from "@/lib/toast";
 import { trackEvent } from "@/lib/track";
 
+const METHOD_BN: Record<string, string> = { bkash: "বিকাশ", nagad: "নগদ" };
+
 const BASE_MONTHLY = PAID_PLANS.find((p) => p.key === "monthly")?.amount ?? PAID_PLANS[0].amount;
 
 const STATUS: Record<PremiumPayment["status"], { en: string; bn: string; tone: string }> = {
-  pending: { en: "Checking", bn: "যাচাই চলছে", tone: "text-text-muted" },
-  accepted: { en: "Received", bn: "পেয়েছি", tone: "text-positive" },
-  revoked: { en: "Not found — Premium removed", bn: "পাওয়া যায়নি — প্রিমিয়াম বন্ধ", tone: "text-negative" },
+  pending: { en: "Being checked", bn: "যাচাই চলছে", tone: "text-text-muted" },
+  accepted: { en: "Received", bn: "পাওয়া গেছে", tone: "text-positive" },
+  revoked: { en: "Not found, so Premium was switched off", bn: "পাওয়া যায়নি, তাই প্রিমিয়াম বন্ধ করা হয়েছে", tone: "text-negative" },
 };
 
 const ERRORS: Record<string, { en: string; bn: string }> = {
-  bad_sender: { en: "That doesn't look like a mobile number. Use the 11 digits, like 01712345678.", bn: "মোবাইল নম্বরটি ঠিক নেই। 11 সংখ্যায় লিখুন, যেমন 01712345678।" },
-  payment_pending: { en: "We're still checking your last payment. You can buy again once it's done.", bn: "আপনার আগের পেমেন্ট এখনো যাচাই হচ্ছে। শেষ হলে আবার কিনতে পারবেন।" },
-  bad_method: { en: "That payment method isn't open right now. Pick the other one.", bn: "এই মাধ্যম এখন বন্ধ। অন্যটি বেছে নিন।" },
+  bad_sender: { en: "That does not look like a mobile number. Please type all 11 digits, such as 01712345678.", bn: "মোবাইল নম্বরটি ঠিক মনে হচ্ছে না। পুরো 11টি সংখ্যা লিখুন, যেমন 01712345678।" },
+  payment_pending: { en: "We are still checking your last payment. You can buy again once that is done.", bn: "আপনার আগের পেমেন্ট এখনো যাচাই হচ্ছে। তা শেষ হলে আবার কিনতে পারবেন।" },
+  bad_method: { en: "That payment method is not open right now. Please choose the other one.", bn: "এই মাধ্যমটি এখন বন্ধ। অন্যটি বেছে নিন।" },
 };
 
 /**
@@ -45,7 +48,7 @@ export default function PayBox() {
   const { isLoggedIn, isLoading } = useAuth();
   const { premiumUntil, isPremium } = usePremium();
   const { bn } = useLang();
-  // English mode: English + the Bengali line under it. Bengali mode: Bengali only.
+  // For attributes only; visible text uses <T>.
   const L = (en: string, b: string) => (bn ? b : en);
   const [plan, setPlan] = useState<PlanKey>("yearly");
   const [info, setInfo] = useState<PremiumPlansResponse | null>(null);
@@ -80,9 +83,9 @@ export default function PayBox() {
   const copy = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      toast({ message: L("Copied", "কপি হয়েছে"), tone: "success" });
+      toast({ message: <T en="Copied" bn="কপি হয়েছে" />, tone: "success" });
     } catch {
-      toast({ message: L("Couldn't copy — write it down instead", "কপি হয়নি — নম্বরটি লিখে নিন"), tone: "error" });
+      toast({ message: <T en="We could not copy it. Please write the number down." bn="কপি করা যায়নি। নম্বরটি লিখে নিন।" />, tone: "error" });
     }
   };
 
@@ -95,16 +98,18 @@ export default function PayBox() {
       window.dispatchEvent(new CustomEvent(AUTH_USER_UPDATED_EVENT));
       trackEvent("premium_payment_submit", { plan, method, granted: payment.granted ? 1 : 0 });
       toast({
-        message: payment.granted
-          ? L("Premium is on — thank you!", "প্রিমিয়াম চালু হয়েছে — ধন্যবাদ!")
-          : L("Thanks — we'll switch Premium on once we find your payment", "ধন্যবাদ — পেমেন্ট পেলেই প্রিমিয়াম চালু করব"),
+        message: payment.granted ? (
+          <T en="Premium is on. Thank you." bn="প্রিমিয়াম চালু হয়েছে। ধন্যবাদ।" />
+        ) : (
+          <T en="Thank you. We will switch Premium on once we find your payment." bn="ধন্যবাদ। পেমেন্ট পেলেই প্রিমিয়াম চালু করব।" />
+        ),
         tone: "success",
       });
       setSender("");
       loadMine();
     } catch (err) {
       const e = err as { status?: number; message?: string };
-      setError(ERRORS[e?.message ?? ""] ?? { en: "Couldn't send that — try again.", bn: "পাঠানো যায়নি — আবার চেষ্টা করুন।" });
+      setError(ERRORS[e?.message ?? ""] ?? { en: "We could not send that. Please try again.", bn: "পাঠানো যায়নি। আবার চেষ্টা করুন।" });
     } finally {
       setBusy(false);
     }
@@ -131,34 +136,52 @@ export default function PayBox() {
               onClick={() => setPlan(p.key)}
               className={`pay-plan ${on ? "pay-plan-on" : ""} ${p.best ? "pay-plan-best" : ""}`}
             >
-              {p.best && <span className="pay-plan-flag">{L("Best value", "সবচেয়ে সাশ্রয়ী")}</span>}
+              {p.best && (
+                <span className="pay-plan-flag">
+                  <T en="Best value" bn="সবচেয়ে সাশ্রয়ী" />
+                </span>
+              )}
               <span className="flex items-center gap-2">
                 <span className="pay-radio" aria-hidden />
-                <span className="font-semibold text-text-main">{L(p.name, p.bn)}</span>
+                <span className="font-semibold text-text-main">
+                  <T en={p.name} bn={p.bn} />
+                </span>
               </span>
-              {p.listAmount && <span className="pay-plan-offer">{bn ? OFFER.label.bn : OFFER.label.en}</span>}
+              {p.listAmount && (
+                <span className="pay-plan-offer">
+                  <T en={OFFER.label.en} bn={OFFER.label.bn} />
+                </span>
+              )}
               <span className="pay-plan-price tabular-nums">
                 ৳{p.amount.toLocaleString("en-IN")}
                 {p.listAmount && (
                   <s className="pay-plan-was">
-                    <span className="sr-only">{L("Regular price ", "আগের দাম ")}</span>
+                    <span className="sr-only">
+                      <T en="Regular price " bn="আগের দাম " />
+                    </span>
                     ৳{p.listAmount.toLocaleString("en-IN")}
                   </s>
                 )}
               </span>
-              <span className="block text-sm text-text-muted">{L(p.per, p.perBn)}</span>
+              <span className="block text-sm text-text-muted">
+                <T en={p.per} bn={p.perBn} />
+              </span>
               <span className="pay-plan-foot">
                 {months > 1 ? (
                   <>
                     <span className="text-sm font-semibold text-text-main tabular-nums">
-                      {L(`৳${perMonth} a month`, `মাসে ৳${perMonth}`)}
+                      <T en={`৳${perMonth} a month`} bn={`মাসে ৳${perMonth}`} />
                     </span>
                     {save > 0 && (
-                      <span className="pay-plan-save tabular-nums">{L(`Save ৳${save}`, `৳${save} সাশ্রয়`)}</span>
+                      <span className="pay-plan-save tabular-nums">
+                        <T en={`Save ৳${save}`} bn={`৳${save} সাশ্রয়`} />
+                      </span>
                     )}
                   </>
                 ) : (
-                  <span className="text-sm text-text-muted">{L(p.note, p.noteBn)}</span>
+                  <span className="text-sm text-text-muted">
+                    <T en={p.note} bn={p.noteBn} />
+                  </span>
                 )}
               </span>
             </button>
@@ -168,43 +191,49 @@ export default function PayBox() {
 
       {isLoading ? null : !isLoggedIn ? (
         <div className="flex flex-col items-start gap-2">
-          <Button href="/register" size="lg">{L("Sign up free to buy", "কিনতে ফ্রি অ্যাকাউন্ট খুলুন")}</Button>
+          <Button href="/register" size="lg">
+            <T en="Sign up free to buy" bn="কিনতে ফ্রি অ্যাকাউন্ট খুলুন" />
+          </Button>
           <p className="text-sm text-text-muted">
-            {L("You need an account so Premium has somewhere to go.", "প্রিমিয়াম চালু করতে একটি ফ্রি অ্যাকাউন্ট লাগবে।")}
+            <T
+              en="Premium needs an account to belong to, so please open a free one first."
+              bn="প্রিমিয়াম চালু করতে একটি অ্যাকাউন্ট লাগবে, তাই আগে একটি ফ্রি অ্যাকাউন্ট খুলুন।"
+            />
           </p>
-          {!bn && <Bn className="text-sm text-text-muted">প্রিমিয়াম চালু করতে একটি ফ্রি অ্যাকাউন্ট লাগবে।</Bn>}
         </div>
       ) : pending ? (
         <div className="premium-card" role="status">
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-text-main">{L("We're checking your payment", "আপনার পেমেন্ট যাচাই করা হচ্ছে")}</p>
-            {!bn && <Bn className="text-sm text-text-muted">আপনার পেমেন্ট যাচাই করা হচ্ছে।</Bn>}
+            <p className="font-semibold text-text-main">
+              <T en="We are checking your payment" bn="আপনার পেমেন্ট যাচাই করা হচ্ছে" />
+            </p>
             <p className="mt-2 text-sm text-text-main tabular-nums">
               ৳{pending.amount.toLocaleString("en-IN")} · {METHOD_LABEL[pending.method]} · {pending.sender}
-              {pending.created_at ? ` · ${formatDate(pending.created_at)}` : ""}
+              {pending.created_at ? (
+                <T en={` · ${formatDate(pending.created_at)}`} bn={` · ${bnDate(pending.created_at)}`} />
+              ) : null}
             </p>
-            {pending.granted ? (
-              <>
-                <p className="mt-1 text-sm text-text-main">
-                  {bn
-                    ? "প্রিমিয়াম চালু আছে। পেমেন্ট খুঁজে না পেলে বন্ধ হয়ে যাবে।"
-                    : `Premium is already on${premiumUntil && isPremium ? ` until ${formatDate(premiumUntil)}` : ""}. If we can't find the payment, it will be switched off.`}
-                </p>
-                {!bn && <Bn className="text-sm text-text-muted">প্রিমিয়াম চালু আছে। পেমেন্ট খুঁজে না পেলে বন্ধ হয়ে যাবে।</Bn>}
-              </>
-            ) : (
-              <>
-                <p className="mt-1 text-sm text-text-main">
-                  {L("Premium switches on as soon as we find it, usually within a day.", "পেমেন্ট পেলেই প্রিমিয়াম চালু হবে, সাধারণত এক দিনের মধ্যে।")}
-                </p>
-                {!bn && <Bn className="text-sm text-text-muted">পেমেন্ট পেলেই প্রিমিয়াম চালু হবে, সাধারণত এক দিনের মধ্যে।</Bn>}
-              </>
-            )}
+            <p className="mt-1 text-sm text-text-main">
+              {pending.granted ? (
+                <T
+                  en={`Premium is already on${premiumUntil && isPremium ? ` until ${formatDate(premiumUntil)}` : ""}. If we cannot find the payment, it will be switched off.`}
+                  bn={`প্রিমিয়াম চালু আছে${premiumUntil && isPremium ? `, ${bnDate(premiumUntil)} পর্যন্ত` : ""}। পেমেন্ট খুঁজে না পেলে এটি বন্ধ হয়ে যাবে।`}
+                />
+              ) : (
+                <T
+                  en="Premium switches on as soon as we find it, usually within a day."
+                  bn="পেমেন্ট পেলেই প্রিমিয়াম চালু হবে, সাধারণত এক দিনের মধ্যে।"
+                />
+              )}
+            </p>
           </div>
         </div>
       ) : info && info.methods.length === 0 ? (
         <p className="text-sm text-text-muted">
-          {L("Payments aren't open right now — please check back soon.", "এখন পেমেন্ট বন্ধ আছে — একটু পরে আবার দেখুন।")}
+          <T
+            en="Payments are not open right now. Please check again soon."
+            bn="এখন পেমেন্ট বন্ধ আছে। একটু পরে আবার দেখুন।"
+          />
         </p>
       ) : (
         <div className="soft-card pay-form flex flex-col gap-5">
@@ -231,32 +260,36 @@ export default function PayBox() {
             <li className="pay-step">
               <span className="pay-step-n" aria-hidden>1</span>
               <div className="min-w-0 flex-1">
-                {bn ? (
-                  <p className="text-sm text-text-main">
-                    {METHOD_LABEL[method]} অ্যাপে <strong>Send Money</strong> দিয়ে{" "}
-                    <strong className="tabular-nums">৳{chosen.amount.toLocaleString("en-IN")}</strong> পাঠান এই নম্বরে:
-                  </p>
-                ) : (
-                  <>
-                    <p className="text-sm text-text-main">
-                      Open {METHOD_LABEL[method]}, choose <strong>Send Money</strong> and send{" "}
-                      <strong className="tabular-nums">৳{chosen.amount.toLocaleString("en-IN")}</strong> to
-                    </p>
-                    <Bn className="text-sm text-text-muted">
-                      {METHOD_LABEL[method]} অ্যাপে Send Money দিয়ে ৳{chosen.amount} পাঠান এই নম্বরে:
-                    </Bn>
-                  </>
-                )}
+                <p className="text-sm text-text-main">
+                  <T
+                    en={
+                      <>
+                        Open {METHOD_LABEL[method]}, choose <strong>Send Money</strong> and send{" "}
+                        <strong className="tabular-nums">৳{chosen.amount.toLocaleString("en-IN")}</strong> to this number:
+                      </>
+                    }
+                    bn={
+                      <>
+                        {METHOD_BN[method] ?? METHOD_LABEL[method]} অ্যাপে <strong>Send Money</strong> দিয়ে{" "}
+                        <strong className="tabular-nums">৳{chosen.amount.toLocaleString("en-IN")}</strong> পাঠান এই নম্বরে:
+                      </>
+                    }
+                  />
+                </p>
                 {number ? (
                   <div className="pay-number">
                     <span className="min-w-0">
                       <span className="block text-xs text-text-muted">{METHOD_LABEL[method]} · Send Money</span>
                       <span className="block text-xl font-bold text-text-main tabular-nums">{number}</span>
                     </span>
-                    <Button type="button" variant="quiet" size="sm" onClick={() => void copy(number)}>{L("Copy", "কপি")}</Button>
+                    <Button type="button" variant="quiet" size="sm" onClick={() => void copy(number)}>
+                      <T en="Copy" bn="কপি" />
+                    </Button>
                   </div>
                 ) : (
-                  <p className="mt-2 text-sm text-text-muted">{L("Loading the number…", "নম্বর আসছে…")}</p>
+                  <p className="mt-2 text-sm text-text-muted">
+                    <T en="Loading the number…" bn="নম্বর আসছে…" />
+                  </p>
                 )}
               </div>
             </li>
@@ -264,11 +297,11 @@ export default function PayBox() {
               <span className="pay-step-n" aria-hidden>2</span>
               <div className="min-w-0 flex-1">
                 <label htmlFor="pay-sender" className="text-sm text-text-main">
-                  {bn
-                    ? `যে ${METHOD_LABEL[method]} নম্বর থেকে টাকা পাঠিয়েছেন সেটি লিখুন`
-                    : `Type the ${METHOD_LABEL[method]} number you sent it from`}
+                  <T
+                    en={`Type the ${METHOD_LABEL[method]} number you sent it from`}
+                    bn={`যে ${METHOD_BN[method] ?? METHOD_LABEL[method]} নম্বর থেকে টাকা পাঠিয়েছেন, সেটি লিখুন`}
+                  />
                 </label>
-                {!bn && <Bn className="text-sm text-text-muted">যে নম্বর থেকে টাকা পাঠিয়েছেন সেটি লিখুন।</Bn>}
                 <input
                   id="pay-sender"
                   type="tel"
@@ -286,48 +319,53 @@ export default function PayBox() {
 
           {error && (
             <div className="form-error" role="alert">
-              {bn ? <p>{error.bn}</p> : <><p>{error.en}</p><Bn>{error.bn}</Bn></>}
+              <p>
+                <T en={error.en} bn={error.bn} />
+              </p>
             </div>
           )}
 
           <div className="pay-submit flex flex-col items-start gap-1">
             <Button size="lg" onClick={() => void submit()} disabled={busy || sender.trim().length < 11}>
-              {busy
-                ? L("Starting…", "চালু হচ্ছে…")
-                : bn
-                  ? `৳${chosen.amount.toLocaleString("en-IN")} পাঠিয়েছি — প্রিমিয়াম চালু করুন`
-                  : `I've paid ৳${chosen.amount.toLocaleString("en-IN")} — start Premium`}
+              {busy ? (
+                <T en="Starting…" bn="চালু হচ্ছে…" />
+              ) : (
+                <T
+                  en={`I have paid ৳${chosen.amount.toLocaleString("en-IN")}. Start Premium`}
+                  bn={`৳${chosen.amount.toLocaleString("en-IN")} পাঠিয়েছি। প্রিমিয়াম চালু করুন`}
+                />
+              )}
             </Button>
-            {!bn && (
-              <p className="text-sm text-text-muted">
-                {isPremium
-                  ? "The new days are added after the days you have left. "
-                  : "Premium starts straight away. "}
-                We check every payment; if we can&apos;t find yours, Premium is switched off.
-              </p>
-            )}
-            <Bn className="text-sm text-text-muted">
-              {isPremium ? "নতুন দিনগুলো আপনার বাকি দিনের পরে যোগ হবে। " : "প্রিমিয়াম সঙ্গে সঙ্গে চালু হবে। "}
-              প্রতিটি পেমেন্ট আমরা যাচাই করি; খুঁজে না পেলে প্রিমিয়াম বন্ধ হয়ে যাবে।
-            </Bn>
+            <p className="text-sm text-text-muted">
+              <T
+                en={`${isPremium ? "The new days are added after the days you have left." : "Premium starts straight away."} We check every payment, and if we cannot find yours, Premium is switched off.`}
+                bn={`${isPremium ? "নতুন দিনগুলো আপনার বাকি দিনের পরে যোগ হবে।" : "প্রিমিয়াম সঙ্গে সঙ্গে চালু হবে।"} প্রতিটি পেমেন্ট আমরা যাচাই করি, আর খুঁজে না পেলে প্রিমিয়াম বন্ধ হয়ে যায়।`}
+              />
+            </p>
           </div>
         </div>
       )}
 
       {mine && mine.items.length > 0 && (
         <div>
-          <p className="text-sm font-semibold text-text-main">{L("Your payments", "আপনার পেমেন্ট")}</p>
-          {!bn && <Bn className="text-xs text-text-muted mb-2">আপনার পেমেন্ট।</Bn>}
+          <p className="mb-2 text-sm font-semibold text-text-main">
+            <T en="Your payments" bn="আপনার পেমেন্ট" />
+          </p>
           <ul className="soft-card divide-y divide-border overflow-hidden">
             {mine.items.map((p) => {
               const s = STATUS[p.status];
+              const pl = planByKey(p.plan);
               return (
                 <li key={p.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 py-3 text-sm">
                   <span className="text-text-main tabular-nums">
-                    {p.created_at ? formatDate(p.created_at) : "—"} · {(bn ? planByKey(p.plan)?.bn : planByKey(p.plan)?.name) ?? p.plan} · ৳{p.amount.toLocaleString("en-IN")} · {METHOD_LABEL[p.method]}
+                    <T
+                      en={`${p.created_at ? formatDate(p.created_at) : "—"} · ${pl?.name ?? p.plan}`}
+                      bn={`${p.created_at ? bnDate(p.created_at) : "—"} · ${pl?.bn ?? p.plan}`}
+                    />
+                    {` · ৳${p.amount.toLocaleString("en-IN")} · ${METHOD_LABEL[p.method]}`}
                   </span>
                   <span className={`font-semibold ${s.tone}`}>
-                    {bn ? s.bn : <>{s.en} <Bn as="span" className="font-normal text-text-muted">· {s.bn}</Bn></>}
+                    <T en={s.en} bn={s.bn} />
                   </span>
                 </li>
               );

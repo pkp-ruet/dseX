@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getCachedWatchlist } from "@/lib/watchlist";
 import { isPushOptInPending } from "@/lib/push";
 import { useInstallPrompt, INSTALL_SHOW_EVENT } from "@/lib/install";
+import { T } from "@/components/i18n/T";
 
 const DISMISS_KEY = "dsex.install.dismissed";
 
@@ -106,15 +107,25 @@ export default function InstallPrompt() {
             {ios && !canInstall ? (
               <>
                 <p className="text-sm font-bold text-text-main">
-                  Add TopStockBD to your home screen
+                  <T en="Add TopStockBD to your home screen" bn="TopStockBD হোম স্ক্রিনে যোগ করুন" />
                 </p>
                 <p className="mt-1 text-xs leading-snug text-text-muted">
-                  Tap <span className="font-semibold">Share</span> then{" "}
-                  <span className="font-semibold">Add to Home Screen</span> to open
-                  it like an app — full screen, one tap away.
-                </p>
-                <p className="mt-1 text-xs leading-snug text-text-muted font-bn" lang="bn">
-                  Share → Add to Home Screen চাপুন — অ্যাপের মতো খুলবে।
+                  <T
+                    en={
+                      <>
+                        Tap <span className="font-semibold">Share</span>, then{" "}
+                        <span className="font-semibold">Add to Home Screen</span>. It will open like an app, in
+                        one tap.
+                      </>
+                    }
+                    bn={
+                      <>
+                        <span className="font-semibold">Share</span>, তারপর{" "}
+                        <span className="font-semibold">Add to Home Screen</span> চাপুন। এক ট্যাপে অ্যাপের মতো
+                        খুলবে।
+                      </>
+                    }
+                  />
                 </p>
                 <div className="mt-3 flex justify-end">
                   <button
@@ -122,21 +133,20 @@ export default function InstallPrompt() {
                     onClick={dismiss}
                     className="rounded-lg px-3 py-2 text-xs font-semibold text-text-muted hover:text-text-main"
                   >
-                    Got it
+                    <T en="Got it" bn="বুঝেছি" />
                   </button>
                 </div>
               </>
             ) : (
               <>
                 <p className="text-sm font-bold text-text-main">
-                  Install TopStockBD as an app
+                  <T en="Install TopStockBD as an app" bn="TopStockBD অ্যাপ হিসেবে ইনস্টল করুন" />
                 </p>
                 <p className="mt-1 text-xs leading-snug text-text-muted">
-                  Add it to your home screen — opens full screen, loads faster, one
-                  tap to your stocks.
-                </p>
-                <p className="mt-1 text-xs leading-snug text-text-muted font-bn" lang="bn">
-                  হোম স্ক্রিনে যোগ করুন — অ্যাপের মতো দ্রুত খুলবে।
+                  <T
+                    en="It opens full screen, loads faster and puts your stocks one tap away."
+                    bn="এটি পুরো স্ক্রিনে খোলে, দ্রুত লোড হয়, আর আপনার শেয়ার থাকে এক ট্যাপ দূরে।"
+                  />
                 </p>
                 <div className="mt-3 flex items-center justify-end gap-2">
                   <button
@@ -145,7 +155,7 @@ export default function InstallPrompt() {
                     disabled={busy}
                     className="btn-link btn-sm"
                   >
-                    Not now
+                    <T en="Not now" bn="এখন না" />
                   </button>
                   <button
                     type="button"
@@ -153,7 +163,7 @@ export default function InstallPrompt() {
                     disabled={busy}
                     className="btn-primary btn-sm"
                   >
-                    {busy ? "Installing…" : "Install now"}
+                    {busy ? <T en="Installing…" bn="ইনস্টল হচ্ছে…" /> : <T en="Install now" bn="এখনই ইনস্টল করুন" />}
                   </button>
                 </div>
               </>

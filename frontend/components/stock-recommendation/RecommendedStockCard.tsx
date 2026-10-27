@@ -5,12 +5,14 @@ import Link from "next/link";
 import { type RecommendedStock } from "@/lib/api";
 import StarButton from "@/components/ui/StarButton";
 import StockRow, { StockPill, StockRank, StockRowValue } from "@/components/ui/StockRow";
+import { T } from "@/components/i18n/T";
+import { sectorBn } from "@/lib/bn";
 
 /** Podium colours from the role palette (gold · muted steel · amber). */
 const RANK = [
-  { label: "Top match", color: "var(--gold)" },
-  { label: "2nd match", color: "var(--text-muted)" },
-  { label: "3rd match", color: "var(--watch)" },
+  { en: "Best match", bn: "সবচেয়ে বেশি মেলে", color: "var(--gold)" },
+  { en: "Second match", bn: "দ্বিতীয়", color: "var(--text-muted)" },
+  { en: "Third match", bn: "তৃতীয়", color: "var(--watch)" },
 ];
 
 export default function RecommendedStockCard({
@@ -33,7 +35,13 @@ export default function RecommendedStockCard({
   /** Pick wasn't in the user's previous feed — shows a small "New" chip. */
   isNew?: boolean;
 }) {
-  const r = RANK[rank] ?? { label: `Match ${rank + 1}`, color: "var(--primary)" };
+  const r = RANK[rank] ?? { en: `Match ${rank + 1}`, bn: `${rank + 1} নম্বর`, color: "var(--primary)" };
+  const reason = (i: number) => <T en={stock.reasons[i]} bn={stock.reasons_bn?.[i] ?? stock.reasons[i]} />;
+  const isNewPill = (
+    <StockPill tone="positive">
+      <T en="New" bn="নতুন" />
+    </StockPill>
+  );
   const color = r.color;
   const match = Math.max(0, Math.min(100, Math.round(stock.match_score)));
   const revealDelay = rank * 120;
@@ -46,7 +54,7 @@ export default function RecommendedStockCard({
   }, [revealDelay]);
 
   if (compact) {
-    const topReason = stock.reasons[0];
+    const topReason = stock.reasons[0] ? reason(0) : null;
     return (
       <div className="rec-rise soft-card overflow-hidden" style={{ animationDelay: `${revealDelay}ms` }}>
         <StockRow
@@ -56,8 +64,10 @@ export default function RecommendedStockCard({
           leading={<StockRank n={rank + 1} accent={color} solid={rank < 3} />}
           tags={
             <>
-              <StockPill tone="primary">{match}% match</StockPill>
-              {isNew && <StockPill tone="positive">New</StockPill>}
+              <StockPill tone="primary">
+                <T en={`${match}% match`} bn={`${match}% মেলে`} />
+              </StockPill>
+              {isNew && isNewPill}
             </>
           }
           sub={topReason || undefined}
@@ -94,7 +104,7 @@ export default function RecommendedStockCard({
           }}
         >
           <StockRank n={rank + 1} accent={color} solid className="h-5 w-5 rounded-full" />
-          {r.label}
+          <T en={r.en} bn={r.bn} />
         </span>
 
         {/* Identity + price — the app-wide row */}
@@ -107,22 +117,28 @@ export default function RecommendedStockCard({
             name={stock.company_name}
             tags={
               <>
-                {stock.sector && <span className="shrink-0 text-xs text-text-muted">{stock.sector}</span>}
-                {isNew && <StockPill tone="positive">New</StockPill>}
+                {stock.sector && (
+                  <span className="shrink-0 text-xs text-text-muted">
+                    <T en={stock.sector} bn={sectorBn(stock.sector)} />
+                  </span>
+                )}
+                {isNew && isNewPill}
               </>
             }
             price={stock.ltp}
             change={stock.change_pct}
-            trailing={<StockRowValue value={`${match}%`} sub="match" tone="primary" />}
+            trailing={<StockRowValue value={`${match}%`} sub={<T en="match" bn="মেলে" />} tone="primary" />}
           />
         </div>
 
         {/* Match strength bar */}
         <div className="mt-3">
           <div className="mb-1 flex items-center justify-between text-xs font-semibold">
-            <span className="text-text-muted">How well it fits you</span>
+            <span className="text-text-muted">
+              <T en="How well it fits you" bn="আপনার সঙ্গে কতটা মেলে" />
+            </span>
             <span className="tabular-nums nums" style={{ color }}>
-              {match}% match
+              <T en={`${match}% match`} bn={`${match}% মেলে`} />
             </span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-surface-2">
@@ -139,7 +155,7 @@ export default function RecommendedStockCard({
         {/* Reasons */}
         {stock.reasons.length > 0 && (
           <ul className="mt-3.5 space-y-1.5">
-            {stock.reasons.map((reason, i) => (
+            {stock.reasons.map((_, i) => (
               <li key={i} className="flex gap-2 text-sm leading-snug text-text-main">
                 <span
                   className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-xs"
@@ -148,7 +164,7 @@ export default function RecommendedStockCard({
                 >
                   ✓
                 </span>
-                <span>{reason}</span>
+                <span>{reason(i)}</span>
               </li>
             ))}
           </ul>
@@ -168,7 +184,8 @@ export default function RecommendedStockCard({
                     : "border-border bg-surface text-text-muted hover:border-positive hover:text-positive"
                 }`}
               >
-                {liked ? "More like this ✓" : "More like this"}
+                <T en="More like this" bn="এমন আরও দেখান" />
+                {liked && " ✓"}
               </button>
             )}
             {onSkip && (
@@ -177,7 +194,7 @@ export default function RecommendedStockCard({
                 onClick={onSkip}
                 className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-text-muted transition hover:border-negative hover:text-negative active:scale-95"
               >
-                ✕ Skip
+                ✕ <T en="Skip" bn="বাদ দিন" />
               </button>
             )}
           </div>
@@ -187,7 +204,7 @@ export default function RecommendedStockCard({
         <div className="mt-4 flex items-center justify-end gap-2 border-t border-border pt-3">
           <StarButton code={stock.trading_code} size="md" />
           <Link prefetch={false} href={`/stock/${stock.trading_code}`} className="btn-primary btn-sm">
-            Analysis →
+            <T en="See the analysis →" bn="বিশ্লেষণ দেখুন →" />
           </Link>
         </div>
       </div>

@@ -5,6 +5,7 @@ import { useLockScope } from "@/components/premium/LockScope";
 import { IconLock } from "@/components/ui/icons";
 import { usePremium, PREMIUM_PATH } from "@/lib/premium";
 import { trackEvent } from "@/lib/track";
+import { T } from "@/components/i18n/T";
 
 /**
  * Blur ONLY the data, in place (2026-10-26, user decision: "they must see all
@@ -20,12 +21,12 @@ import { trackEvent } from "@/lib/track";
  */
 export default function PremiumBlur({
   children,
-  lang = "en",
   cta = true,
   area = "portfolio",
   className = "",
 }: {
   children: ReactNode;
+  /** Ignored since 2026-10-28: the button carries both languages. */
   lang?: "en" | "bn";
   cta?: boolean;
   /** For the tap event. */
@@ -37,7 +38,6 @@ export default function PremiumBlur({
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const locked = !(mounted && (isPremium || scope?.unlocked));
-  const bn = lang === "bn";
 
   return (
     <div className={`premium-locked pf-blur ${className}`.trim()} data-locked={locked ? "true" : "false"}>
@@ -53,12 +53,11 @@ export default function PremiumBlur({
         <div className="pf-blur-cta">
           <a
             href={scope?.anchor ? `#${scope.anchor}` : PREMIUM_PATH}
-            className={`pf-blur-btn ${bn ? "font-bn" : ""}`}
-            lang={bn ? "bn" : undefined}
+            className="pf-blur-btn"
             onClick={() => trackEvent("premium_lock_tap", { area, lock: "blur", state })}
           >
             <IconLock size={14} />
-            {bn ? "প্রিমিয়ামে খুলুন" : "Unlock with Premium"}
+            <T en="Unlock with Premium" bn="প্রিমিয়ামে খুলুন" />
           </a>
         </div>
       )}

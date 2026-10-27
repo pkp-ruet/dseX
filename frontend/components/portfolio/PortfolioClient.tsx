@@ -46,7 +46,7 @@ import {
   type SignalInfo,
   type AnalysisLang,
   type Grade,
-  type GradeLabel,
+  GRADE_WORDS,
 } from "@/lib/portfolio-analysis";
 import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
 import { getStoredUser } from "@/lib/auth";
@@ -63,7 +63,6 @@ import { PageLockScope } from "@/components/premium/LockScope";
 import Chip from "@/components/ui/Chip";
 import DashSectionNav from "@/components/home/personalized/DashSectionNav";
 import PfCard, { PfChapterHead } from "./PfCard";
-import Bn from "@/components/i18n/Bn";
 import { IconLock, IconPlus } from "@/components/ui/icons";
 import { buildProInsights, buildPremiumStakes } from "@/lib/portfolio-pro";
 import { usePremium, isLimitError, PREMIUM_PATH } from "@/lib/premium";
@@ -82,7 +81,6 @@ import WhatIfCard from "./WhatIfCard";
 import TrialEndingBanner from "./TrialEndingBanner";
 import PortfolioSwitcher from "./PortfolioSwitcher";
 import PortfolioSettingsSheet from "./PortfolioSettingsSheet";
-import PortfolioLangToggle from "./PortfolioLangToggle";
 import ContributionStrip from "./ContributionStrip";
 import DividendIncomeCard from "./DividendIncomeCard";
 import PortfolioHero from "./PortfolioHero";
@@ -95,8 +93,9 @@ import HowWeDecide from "./HowWeDecide";
 import { buildNextMove, gradeLifts } from "@/lib/portfolio-next";
 import WatchlistAlertCell from "@/components/watchlist/WatchlistAlertCell";
 import ErrorState from "@/components/ui/ErrorState";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
 
-const LANG_KEY = "dsex.portfolio.lang";
 const pidKey = (uid: string) => `dsex.portfolio.pid.${uid}`;
 const nudgeKey = (uid: string) => `dsex.portfolio.nudge3.${uid}`;
 const lastSeenKey = (uid: string) => `dsex.portfolio.lastseen.${uid}`;
@@ -112,14 +111,6 @@ const GRADE_TEXT: Record<Grade, string> = {
   C: "text-watch",
   D: "text-watch",
   F: "text-negative",
-};
-
-const GRADE_LABEL_BN: Record<GradeLabel, string> = {
-  Excellent: "চমৎকার",
-  Good: "ভালো",
-  Okay: "মোটামুটি",
-  Risky: "ঝুঁকিপূর্ণ",
-  "Very Risky": "খুব ঝুঁকিপূর্ণ",
 };
 
 function flattenScores(scores: ScoresResponse | null): Map<string, ScoreItem> {
@@ -314,7 +305,8 @@ export default function PortfolioClient() {
   const [scoresAt, setScoresAt] = useState<string | null>(
     () => readCache<ScoresResponse>(cacheKeys.scores)?.computed_at ?? null,
   );
-  const [lang, setLang] = useState<AnalysisLang>("bn");
+  // The page follows the one navbar language switch (docs/voice.md).
+  const { lang } = useLang();
   const [lastSeen, setLastSeen] = useState<{ value: number; ts: string } | null>(null);
   const wroteLastSeen = useRef(false);
 
@@ -365,20 +357,6 @@ export default function PortfolioClient() {
     setSuggestions([]);
     try {
       if (userId) localStorage.setItem(pidKey(userId), next);
-    } catch {}
-  }
-
-  // Analysis language — restored from localStorage, Bengali-first.
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(LANG_KEY);
-      if (saved === "bn" || saved === "en") setLang(saved);
-    } catch {}
-  }, []);
-  function changeLang(next: AnalysisLang) {
-    setLang(next);
-    try {
-      localStorage.setItem(LANG_KEY, next);
     } catch {}
   }
 
@@ -664,15 +642,15 @@ export default function PortfolioClient() {
     trackEvent("premium_nudge", { area: "portfolio", why: "third_holding" });
     toast({
       message: lang === "bn"
-        ? `${n}টি শেয়ার! প্রিমিয়াম প্রতিদিন সবগুলো পাহারা দেয়।`
-        : `${n} stocks in! Premium watches every one of them daily.`,
+        ? `আপনার পোর্টফোলিওতে এখন ${n}টি শেয়ার। প্রিমিয়াম প্রতিদিন সবগুলোর ওপর নজর রাখে।`
+        : `You now have ${n} shares in your portfolio. Premium keeps an eye on every one of them each day.`,
       duration: 8000,
       action: {
         label: lang === "bn" ? "দেখুন" : "See Premium",
         onClick: () => {
           savePremiumContext({
             from: "portfolio",
-            label: lang === "bn" ? "আপনার শেয়ারের পাহারা" : "A watcher on every stock you own",
+            label: lang === "bn" ? "আপনার প্রতিটি শেয়ারের ওপর নজর" : "A daily check on every share you own",
             stakes: proStakes,
           });
           window.location.href = PREMIUM_PATH;
@@ -685,12 +663,19 @@ export default function PortfolioClient() {
     try {
       applyResponse(await apiPortfolioAction(verb, id, pid));
       toast({
-        message: verb === "apply" ? "Added to your holding" : verb === "undo" ? "Undone" : "Hidden",
+        message:
+          verb === "apply" ? (
+            <T en="Added to your holding" bn="আপনার শেয়ারে যোগ হয়েছে" />
+          ) : verb === "undo" ? (
+            <T en="Undone" bn="আগের অবস্থায় ফেরানো হয়েছে" />
+          ) : (
+            <T en="Hidden" bn="লুকানো হয়েছে" />
+          ),
         tone: verb === "dismiss" ? "neutral" : "success",
       });
     } catch (err) {
       if (isLimitError(err, "portfolios")) return showLimitNotice("portfolios");
-      toast({ message: "Couldn't save — try again", tone: "error" });
+      toast({ message: <T en="We couldn't save that. Please try again." bn="সেভ করা যায়নি। আবার চেষ্টা করুন।" />, tone: "error" });
     }
   }
 
@@ -699,7 +684,7 @@ export default function PortfolioClient() {
       applyResponse(await apiDeleteLogEntry(id, pid));
     } catch (err) {
       if (isLimitError(err, "portfolios")) return showLimitNotice("portfolios");
-      toast({ message: "Couldn't remove it — try again", tone: "error" });
+      toast({ message: <T en="We couldn't remove it. Please try again." bn="সরানো যায়নি। আবার চেষ্টা করুন।" />, tone: "error" });
     }
   }
 
@@ -842,12 +827,22 @@ export default function PortfolioClient() {
   if (!isLoggedIn) {
     return (
       <section className="soft-card pf-empty mx-auto mt-4 w-full max-w-md">
-        <h2 className="pf-empty-title">Sign in to see your portfolio</h2>
-        <Bn className="pf-card-bn mt-1">আপনার পোর্টফোলিও দেখতে সাইন ইন করুন</Bn>
-        <p className="pf-empty-text">Your stocks, your profit and loss and your dividends, in one place.</p>
+        <h2 className="pf-empty-title">
+          <T en="Sign in to see your portfolio" bn="পোর্টফোলিও দেখতে সাইন ইন করুন" />
+        </h2>
+        <p className="pf-empty-text">
+          <T
+            en="Your shares, your profit or loss and your dividends, all in one place."
+            bn="আপনার শেয়ার, মুনাফা বা লোকসান আর ডিভিডেন্ড, সব এক জায়গায়।"
+          />
+        </p>
         <div className="pf-empty-actions">
-          <Button href="/login" variant="primary">Sign in</Button>
-          <Button href="/register" variant="quiet">Create an account</Button>
+          <Button href="/login" variant="primary">
+            <T en="Sign in" bn="সাইন ইন" />
+          </Button>
+          <Button href="/register" variant="quiet">
+            <T en="Create an account" bn="অ্যাকাউন্ট খুলুন" />
+          </Button>
         </div>
       </section>
     );
@@ -861,8 +856,7 @@ export default function PortfolioClient() {
     return (
       <ErrorState
         size="inline"
-        title="Couldn't load your portfolio"
-        bn="আপনার পোর্টফোলিও এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+        title={<T en="We couldn't load your portfolio" bn="আপনার পোর্টফোলিও এখন লোড করা যাচ্ছে না" />}
         reload
         className="mt-4"
       />
@@ -877,7 +871,7 @@ export default function PortfolioClient() {
 
   return (
     <div className="flex flex-col" data-privacy={privacy ? "on" : "off"}>
-      {/* Top row: which portfolio (main + any extra, Premium) · English / বাংলা */}
+      {/* Top row: which portfolio (main + any extra, Premium) */}
       {(portfolios.length > 1 || holdings.length > 0) && (
         <div className="pf-topbar mb-4">
           <div className="min-w-0 flex-1">
@@ -892,7 +886,6 @@ export default function PortfolioClient() {
               }}
             />
           </div>
-          <PortfolioLangToggle lang={lang} onChange={changeLang} />
         </div>
       )}
 
@@ -916,18 +909,17 @@ export default function PortfolioClient() {
         <div className="flex flex-col gap-4">
           <section className={`soft-card pf-empty pf-rise ${bnCls}`} lang={bn ? "bn" : undefined}>
             <h2 className="pf-empty-title">{L("Start tracking your portfolio", "আপনার পোর্টফোলিও শুরু করুন")}</h2>
-            {!bn && <Bn className="pf-card-bn mt-1">আপনার পোর্টফোলিও শুরু করুন</Bn>}
             <p className="pf-empty-text">
               {L(
-                "Add the stocks you own once. After that, this page shows your profit and loss, dividends, news and what to do with every stock, every day.",
-                "আপনার শেয়ারগুলো একবার যোগ করুন। তারপর প্রতিদিন লাভ-ক্ষতি, ডিভিডেন্ড, খবর আর প্রতিটি শেয়ারে কী করবেন — সব এখানে।",
+                "Add the shares you own once. After that, this page shows your profit and loss, dividends, news and what to do with each share, every day.",
+                "আপনার শেয়ারগুলো একবার যোগ করুন। এরপর প্রতিদিন এই পেজে আপনার লাভ-লোকসান, ডিভিডেন্ড, খবর আর প্রতিটি শেয়ার নিয়ে কী করবেন, তা দেখবেন।",
               )}
             </p>
             <ol className="pf-steps">
               {[
-                [L("Search your stock", "শেয়ার খুঁজুন"), L("Type the code, like GP or BATBC.", "কোড লিখুন, যেমন GP বা BATBC।")],
-                [L("Enter price and quantity", "দাম ও পরিমাণ দিন"), L("What you paid and how many shares.", "কত দামে কিনেছেন, কয়টি শেয়ার।")],
-                [L("Get the full picture", "পুরো ছবি পান"), L("Profit, dividends and advice, updated daily.", "লাভ, ডিভিডেন্ড আর পরামর্শ — প্রতিদিন।")],
+                [L("Find your share", "শেয়ার খুঁজুন"), L("Type the code, such as GP or BATBC.", "কোড লিখুন, যেমন GP বা BATBC।")],
+                [L("Enter the price and number", "দাম ও সংখ্যা দিন"), L("What you paid, and how many shares you bought.", "কত দামে কিনেছেন, আর কতগুলো শেয়ার।")],
+                [L("See the full picture", "পুরো চিত্র দেখুন"), L("Profit, dividends and next steps, updated every day.", "লাভ, ডিভিডেন্ড আর পরের পদক্ষেপ, প্রতিদিন হালনাগাদ।")],
               ].map(([t, d], i) => (
                 <li key={i} className="pf-step">
                   <span className="pf-step-n">{i + 1}</span>
@@ -940,7 +932,7 @@ export default function PortfolioClient() {
             </ol>
             <div className="pf-empty-actions">
               <Button type="button" variant="primary" size="lg" onClick={() => setAddOpen(true)}>
-                {L("Add your first stock", "প্রথম শেয়ার যোগ করুন")}
+                {L("Add your first share", "প্রথম শেয়ার যোগ করুন")}
               </Button>
               <Button href="/sample-portfolio/diversified" variant="quiet" size="lg">
                 {L("See a sample portfolio", "নমুনা পোর্টফোলিও দেখুন")}
@@ -989,14 +981,14 @@ export default function PortfolioClient() {
               grade={{
                 letter: analysis.grade,
                 title: L(
-                  `Grade ${analysis.grade} · ${analysis.gradeLabel}`,
-                  `গ্রেড ${analysis.grade} · ${GRADE_LABEL_BN[analysis.gradeLabel]}`,
+                  `Grade ${analysis.grade} · ${GRADE_WORDS[analysis.gradeLabel].en}`,
+                  `গ্রেড ${analysis.grade} · ${GRADE_WORDS[analysis.gradeLabel].bn}`,
                 ),
                 line:
                   analysis.bad.length > 0
                     ? L(
-                        `${analysis.bad.length} thing${analysis.bad.length === 1 ? " needs" : "s need"} your attention — see the analysis`,
-                        `${analysis.bad.length}টি বিষয়ে নজর দরকার — বিশ্লেষণ দেখুন`,
+                        `${analysis.bad.length} thing${analysis.bad.length === 1 ? " needs" : "s need"} your attention. See the analysis.`,
+                        `${analysis.bad.length}টি বিষয়ে নজর দেওয়া দরকার। বিশ্লেষণ দেখুন।`,
                       )
                     : L("See what's working and what to do next", "কী ভালো চলছে আর এরপর কী করবেন, দেখুন"),
                 onOpen: () => goTo("pf-analysis"),
@@ -1008,7 +1000,7 @@ export default function PortfolioClient() {
             <div className="mt-4 flex flex-col gap-3">
               <div className="pf-hold-bar">
                 <h3 className={`text-lg font-bold text-text-main ${bnCls}`} lang={bn ? "bn" : undefined}>
-                  {L("Your stocks", "আপনার শেয়ারগুলো")}{" "}
+                  {L("Your shares", "আপনার শেয়ারগুলো")}{" "}
                   <span className="pf-num font-semibold text-text-muted">{holdings.length}</span>
                 </h3>
                 <div className="pf-hold-tools">
@@ -1023,7 +1015,7 @@ export default function PortfolioClient() {
                   )}
                   {holdings.length > 1 && (
                     <>
-                      <label htmlFor="pf-sort" className="sr-only">{L("Sort your stocks", "সাজান")}</label>
+                      <label htmlFor="pf-sort" className="sr-only">{L("Sort your shares", "শেয়ারগুলো সাজান")}</label>
                       <select
                         id="pf-sort"
                         value={sort ? `${sort.key}:${sort.dir}` : ""}
@@ -1211,9 +1203,8 @@ export default function PortfolioClient() {
             <PfChapterHead
               id="pf-analysis-h"
               title={L("Analysis and what to do next", "বিশ্লেষণ ও এরপর কী করবেন")}
-              bn="বিশ্লেষণ ও এরপর কী করবেন"
+
               lead={L("How your portfolio stands, and the next steps.", "আপনার পোর্টফোলিও কেমন, আর পরের পদক্ষেপ।")}
-              lang={lang}
             />
             {/* The grade, its three scores and the one thing to act on first — free */}
             <AnalysisTop analysis={analysis} next={nextMove} lang={lang} />
@@ -1252,10 +1243,9 @@ export default function PortfolioClient() {
           <section id="pf-stocks" className="dash-section pf-chapter" aria-labelledby="pf-stocks-h">
             <PfChapterHead
               id="pf-stocks-h"
-              title={L("What's new on your stocks", "আপনার শেয়ারে নতুন কী")}
-              bn="আপনার শেয়ারে নতুন কী"
-              lead={L("Everything that happened on the stocks you own, and their news.", "আপনার শেয়ারে যা ঘটেছে, আর তাদের খবর।")}
-              lang={lang}
+              title={L("What's new on your shares", "আপনার শেয়ারে নতুন কী")}
+
+              lead={L("Everything that happened on the shares you own, and their news.", "আপনার শেয়ারে যা ঘটেছে, আর সেগুলোর খবর।")}
             />
             <StockUpdates
               flips={myFlips}
@@ -1274,8 +1264,8 @@ export default function PortfolioClient() {
               onAction={runAction}
             />
             <PfCard
-              title={L("News on your stocks", "আপনার শেয়ারের খবর")}
-              bn="আপনার শেয়ারের খবর"
+              title={L("News on your shares", "আপনার শেয়ারের খবর")}
+
               note={L("Announcements from the companies you own.", "আপনার কোম্পানিগুলোর ঘোষণা।")}
               lang={lang}
               dataCard="news"
@@ -1331,7 +1321,7 @@ export default function PortfolioClient() {
         onClose={() => setEditId(null)}
         dismissible={!editSaving}
         title={editingHolding ? L(`Edit ${editingHolding.trading_code}`, `${editingHolding.trading_code} বদলান`) : ""}
-        bn={!bn && editingHolding ? "শেয়ারের সংখ্যা বা কেনার দাম ঠিক করুন" : undefined}
+
         footer={
           editingHolding && (
             <div className="flex flex-col gap-2">
@@ -1345,7 +1335,7 @@ export default function PortfolioClient() {
                 onClick={() => handleDelete(editingHolding.id)}
                 disabled={busyId === editingHolding.id || editSaving}
               >
-                {busyId === editingHolding.id ? L("Removing…", "সরানো হচ্ছে…") : L("Remove this stock", "এই শেয়ার সরান")}
+                {busyId === editingHolding.id ? L("Removing…", "সরানো হচ্ছে…") : L("Remove this share", "এই শেয়ার সরান")}
               </Button>
             </div>
           )
@@ -1395,8 +1385,8 @@ export default function PortfolioClient() {
         open={editPickerOpen}
         onClose={() => setEditPickerOpen(false)}
         dismissible={!pickerSaving}
-        title={L("Edit your stocks", "আপনার শেয়ার বদলান")}
-        bn={!bn ? "আপনার শেয়ার বদলান" : undefined}
+        title={L("Edit your shares", "আপনার শেয়ার বদলান")}
+
         footer={
           <div className="flex flex-col gap-2">
             <Button type="button" onClick={savePicker} disabled={pickerSaving} variant="primary" block>
@@ -1419,7 +1409,7 @@ export default function PortfolioClient() {
       >
         <div className={`flex flex-col gap-4 ${bnCls}`}>
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="pf-3" className="text-sm font-semibold text-text-main">{L("Stock", "শেয়ার")}</label>
+            <label htmlFor="pf-3" className="text-sm font-semibold text-text-main">{L("Share", "শেয়ার")}</label>
             <select
               id="pf-3"
               value={pickerCode}
@@ -1429,7 +1419,7 @@ export default function PortfolioClient() {
               {holdings.map((h) => (
                 <option key={h.id} value={h.trading_code}>
                   {h.trading_code}
-                  {priceMap.get(h.trading_code)?.company_name ? ` — ${priceMap.get(h.trading_code)?.company_name}` : ""}
+                  {priceMap.get(h.trading_code)?.company_name ? ` · ${priceMap.get(h.trading_code)?.company_name}` : ""}
                 </option>
               ))}
             </select>
@@ -1470,7 +1460,7 @@ export default function PortfolioClient() {
       <Sheet
         open={confirmDeleteId != null}
         onClose={() => setConfirmDeleteId(null)}
-        title={L("Remove this stock?", "এই শেয়ার সরাবেন?")}
+        title={L("Remove this share?", "এই শেয়ার সরাবেন?")}
         footer={
           <div className="flex flex-col gap-2">
             <Button type="button" onClick={confirmDelete} variant="danger" block>

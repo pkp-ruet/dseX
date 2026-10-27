@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import PageHeader from "@/components/ui/PageHeader";
 import ErrorState from "@/components/ui/ErrorState";
+import { T } from "@/components/i18n/T";
 import ScreenerClient from "@/components/screener/ScreenerClient";
 import { getScreenerCatalog, getScreenerStart } from "@/lib/api";
 import { FREE_SCREENER_ROWS } from "@/lib/free-share";
@@ -80,19 +81,22 @@ export default async function ScreenerPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <div className="page-narrow">
         <PageHeader
-          eyebrow="Stock screener"
-          title="Find DSE stocks your way"
-          bn="ছয়টি সহজ প্রশ্নের উত্তর দিন — প্রতিটি উত্তরের নিচে দেখুন কতগুলো শেয়ার মেলে।"
-          lead="Answer six plain questions. The number under each answer shows how many stocks you'd get."
+          eyebrow={<T en="Stock screener" bn="শেয়ার স্ক্রিনার" />}
+          title={<T en="Find DSE shares your way" bn="নিজের মতো করে ডিএসইর শেয়ার খুঁজুন" />}
+          lead={
+            <T
+              en="Answer six plain questions. The number under each answer shows how many shares you would get."
+              bn="ছয়টি সহজ প্রশ্নের উত্তর দিন। প্রতিটি উত্তরের নিচের সংখ্যা দেখায়, কতগুলো শেয়ার পাবেন।"
+            />
+          }
         />
         {catalog ? (
           <ScreenerClient catalog={catalog} initial={start} initialTemplate={START} />
         ) : (
           <ErrorState
-            title="Couldn't load the screener"
-            bn="স্ক্রিনার এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+            title={<T en="We couldn't load the screener" bn="স্ক্রিনার এখন লোড করা যাচ্ছে না" />}
             reload
-            links={[{ href: "/dsestockranking", label: "Stock rankings" }]}
+            links={[{ href: "/dsestockranking", label: <T en="Stock rankings" bn="শেয়ার র‍্যাঙ্কিং" /> }]}
           />
         )}
       </div>

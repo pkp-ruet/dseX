@@ -1,5 +1,6 @@
 import Link from "next/link";
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
+import { sectorBn } from "@/lib/bn";
 import { SectorIcon } from "@/lib/sector-icons";
 import type { MarketSectorRow } from "@/lib/api";
 
@@ -42,11 +43,11 @@ function span(rank: number): string {
   return "";
 }
 
-const LEGEND: { pct: number; label: string }[] = [
-  { pct: -5, label: "Down a lot" },
-  { pct: -1, label: "A little down" },
-  { pct: 1, label: "A little up" },
-  { pct: 5, label: "Up a lot" },
+const LEGEND: { pct: number; label: string; labelBn: string }[] = [
+  { pct: -5, label: "Down a lot", labelBn: "অনেক কমেছে" },
+  { pct: -1, label: "Down a little", labelBn: "সামান্য কমেছে" },
+  { pct: 1, label: "Up a little", labelBn: "সামান্য বেড়েছে" },
+  { pct: 5, label: "Up a lot", labelBn: "অনেক বেড়েছে" },
 ];
 
 export default function SectorMosaic({ sectors }: { sectors: MarketSectorRow[] }) {
@@ -62,16 +63,24 @@ export default function SectorMosaic({ sectors }: { sectors: MarketSectorRow[] }
     <section className="soft-card overflow-hidden p-3 sm:p-4" aria-labelledby="sector-map-title">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-1">
         <h3 id="sector-map-title" className="text-base font-bold text-text-main">
-          This week, sector by sector
+          <T en="This week, sector by sector" bn="এ সপ্তাহে, সেক্টর ধরে ধরে" />
         </h3>
         <p className="text-sm font-semibold text-text-muted">
-          <span className="text-positive">{up} up</span> ·{" "}
-          <span className="text-negative">{rows.length - up} down</span>
+          <span className="text-positive">
+            <T en={`${up} up`} bn={`${up}টি বেড়েছে`} />
+          </span>{" "}
+          ·{" "}
+          <span className="text-negative">
+            <T en={`${rows.length - up} down`} bn={`${rows.length - up}টি কমেছে`} />
+          </span>
         </p>
       </div>
-      <Bn className="px-1 text-sm text-text-muted">
-        বড় ঘর মানে বড় খাত · সবুজ মানে এই সপ্তাহে দাম বেড়েছে, লাল মানে কমেছে
-      </Bn>
+      <p className="px-1 text-sm text-text-muted">
+        <T
+          en="A bigger tile means a bigger sector. Green means prices rose this week; red means they fell."
+          bn="বড় ঘর মানে বড় সেক্টর। সবুজ মানে এ সপ্তাহে দাম বেড়েছে, লাল মানে কমেছে।"
+        />
+      </p>
 
       <ul className="mt-3 grid grid-flow-dense auto-rows-[4.25rem] grid-cols-4 gap-1.5 sm:grid-cols-6 lg:grid-cols-8">
         {shown.map((s, i) => {
@@ -83,7 +92,7 @@ export default function SectorMosaic({ sectors }: { sectors: MarketSectorRow[] }
                 <span
                   className={`min-w-0 font-bold leading-tight ${big ? "line-clamp-2 text-sm" : "line-clamp-2 text-xs"}`}
                 >
-                  {s.name}
+                  <T en={s.name} bn={sectorBn(s.name)} />
                 </span>
                 {big && (
                   <span className="shrink-0 opacity-80" aria-hidden>
@@ -127,12 +136,16 @@ export default function SectorMosaic({ sectors }: { sectors: MarketSectorRow[] }
           {LEGEND.map((l) => (
             <span key={l.label} className="inline-flex items-center gap-1.5">
               <span className="h-3 w-3 rounded-sm" style={{ background: tileColor(l.pct) }} aria-hidden />
-              {l.label}
+              <T en={l.label} bn={l.labelBn} />
             </span>
           ))}
         </div>
         <Link href="/sectors" className="text-sm font-bold text-primary-ink hover:underline">
-          {more > 0 ? `All ${rows.length} sectors →` : "All sectors →"}
+          {more > 0 ? (
+            <T en={`All ${rows.length} sectors →`} bn={`সব ${rows.length}টি সেক্টর →`} />
+          ) : (
+            <T en="All sectors →" bn="সব সেক্টর →" />
+          )}
         </Link>
       </div>
     </section>

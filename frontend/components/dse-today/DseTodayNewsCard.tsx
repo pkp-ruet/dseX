@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { formatDate } from "@/lib/formatters";
 import type { DseTodayNewsItem } from "@/lib/api";
+import { T } from "@/components/i18n/T";
+import { bnDate } from "@/lib/bn";
 
 /**
  * Where a story sits relative to the signed-in user:
@@ -62,7 +64,7 @@ export default function DseTodayNewsCard({
               background: `color-mix(in srgb, ${isPortfolio ? "var(--positive)" : "var(--primary)"} 12%, transparent)`,
             }}
           >
-            {isPortfolio ? "Portfolio" : "Watchlist"}
+            {isPortfolio ? <T en="Portfolio" bn="পোর্টফোলিও" /> : <T en="Watchlist" bn="ওয়াচলিস্ট" />}
           </span>
         )}
         <span className="min-w-0 flex-1 truncate text-xs font-medium text-text-muted">
@@ -70,7 +72,7 @@ export default function DseTodayNewsCard({
         </span>
         {item.post_date && (
           <span className="shrink-0 text-xs font-bold tabular-nums text-text-muted">
-            {formatDate(item.post_date)}
+            <T en={formatDate(item.post_date)} bn={bnDate(item.post_date)} />
           </span>
         )}
       </div>
@@ -90,7 +92,7 @@ export default function DseTodayNewsCard({
             onClick={() => setExpanded((v) => !v)}
             className="self-start text-xs font-bold text-primary-ink transition-opacity hover:opacity-70"
           >
-            {expanded ? "Show less" : "Read more →"}
+            {expanded ? <T en="Show less" bn="কম দেখান" /> : <T en="Read more →" bn="আরও পড়ুন →" />}
           </button>
         </>
       )}

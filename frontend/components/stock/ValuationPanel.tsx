@@ -9,6 +9,11 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import SectionTitle from "@/components/stock/SectionTitle";
 import { CHART } from "@/lib/chart-theme";
+import type { Bi } from "@/lib/plain-language";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
+
+const tx = (b: Bi) => <T en={b.en} bn={b.bn} />;
 
 interface Props {
   financials: Record<string, unknown>[];
@@ -25,22 +30,21 @@ const TIP_STYLE = CHART.tooltip.contentStyle;
 
 type Tab = "pe" | "pb" | "sector";
 
-function tile(label: string, value: string, sub: string, color?: string) {
+function tile(label: Bi, value: string, sub: Bi, color?: string) {
   return (
-    <Card key={label} padding="none" className="flex-1 rounded-2xl p-4">
-      <p className="text-xs font-semibold mb-2 text-text-muted">
-        {label}
-      </p>
+    <Card key={label.en} padding="none" className="flex-1 rounded-2xl p-4">
+      <p className="text-xs font-semibold mb-2 text-text-muted">{tx(label)}</p>
       <p className="text-2xl font-bold tabular-nums nums leading-none" style={{ color: color ?? "var(--text)" }}>
         {value}
       </p>
-      <p className="text-xs mt-2 leading-snug text-text-muted">{sub}</p>
+      <p className="text-xs mt-2 leading-snug text-text-muted">{tx(sub)}</p>
     </Card>
   );
 }
 
 export default function ValuationPanel({ financials, latestPrice, scoreRow, valuation, verdictHref }: Props) {
   const [tab, setTab] = useState<Tab>("pe");
+  const { bn } = useLang();
 
   const ltp = latestPrice.ltp;
   const divYield = toNum(scoreRow?.div_yield_pct as number | null);
@@ -69,43 +73,51 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
   const sectorPe = valuation?.sector_median_pe ?? null;
   const hasSector = sectorPe != null && (currentPe != null || impliedPrice != null);
 
-  type TabDef = { key: Tab; label: string; show: boolean };
+  type TabDef = { key: Tab; label: Bi; show: boolean };
   const tabs: TabDef[] = ([
-    { key: "pe", label: "P/E history", show: peData.length >= 2 },
-    { key: "pb", label: "P/B & NAV", show: hasNav },
-    { key: "sector", label: "vs Sector", show: hasSector },
+    { key: "pe", label: { en: "P/E over the years", bn: "বছরভিত্তিক পিই" }, show: peData.length >= 2 },
+    { key: "pb", label: { en: "P/B and NAV", bn: "পিবি ও এনএভি" }, show: hasNav },
+    { key: "sector", label: { en: "Against its sector", bn: "সেক্টরের তুলনায়" }, show: hasSector },
   ] as TabDef[]).filter((t) => t.show);
 
   // Ensure selected tab is available
   const activeTab = tabs.some((t) => t.key === tab) ? tab : tabs[0]?.key;
 
   const epsBasis = valuation?.eps_basis ?? null;
-  const avgShort = valuation?.own_avg_pe_label?.short_en ?? "avg";
+  const avgShort = bn
+    ? valuation?.own_avg_pe_label?.short_bn ?? valuation?.own_avg_pe_label?.bn ?? "গড়"
+    : valuation?.own_avg_pe_label?.short_en ?? "average";
 
   return (
     <section id="valuation" className="mb-8 stock-anchor">
       <SectionTitle
-        title="Is the Price Right?"
-        sub={<>How today&apos;s price compares to the company&apos;s earnings and its own history.</>}
-        bn="আজকের দাম কোম্পানির আয়ের তুলনায় সস্তা না দামি।"
+        title={<T en="Price compared with profit and assets" bn="মুনাফা ও সম্পদের তুলনায় দাম" />}
+        sub={
+          <T
+            en="How today's price compares with the company's profit, its assets and its own past."
+            bn="কোম্পানির মুনাফা, সম্পদ আর নিজের অতীতের তুলনায় আজকের দাম কেমন।"
+          />
+        }
       />
 
       {/* Headline tiles */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         {tile(
-          "P/E Ratio",
+          { en: "P/E", bn: "পিই" },
           currentPe != null ? currentPe.toFixed(1) : "—",
-          epsBasis ? `Price per ৳1 of earnings, ${epsBasis.en}` : "Price per ৳1 of yearly earnings",
+          epsBasis
+            ? { en: `Price for each ৳1 of profit (${epsBasis.en})`, bn: `প্রতি ৳1 মুনাফার জন্য দাম (${epsBasis.bn})` }
+            : { en: "Price for each ৳1 of yearly profit", bn: "প্রতি ৳1 বার্ষিক মুনাফার জন্য দাম" },
         )}
         {tile(
-          "Dividend Yield",
+          { en: "Dividend yield", bn: "ডিভিডেন্ড ইল্ড" },
           divYield != null ? `${divYield.toFixed(2)}%` : "—",
-          "Annual cash return on the price",
+          { en: "Yearly cash dividend as a share of the price", bn: "দামের তুলনায় বছরে নগদ ডিভিডেন্ড" },
         )}
         {tile(
-          "P/B Ratio",
+          { en: "P/B", bn: "পিবি" },
           currentPb != null ? currentPb.toFixed(1) : "—",
-          "Price per ৳1 of net assets",
+          { en: "Price for each ৳1 of net assets", bn: "প্রতি ৳1 নিট সম্পদের জন্য দাম" },
         )}
       </div>
 
@@ -113,9 +125,9 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
           full verdict (FullVerdict → PriceVerdict), one link away. */}
       {verdictHref && (
         <p className="mb-4 text-sm text-text-muted">
-          Cheap or dear at this price?{" "}
+          <T en="Is this price low or high? " bn="এই দাম কম না বেশি? " />
           <a href={verdictHref} className="font-semibold text-primary-ink hover:underline">
-            See our verdict on the price
+            <T en="See our view on the price" bn="দাম নিয়ে আমাদের মত দেখুন" />
           </a>
         </p>
       )}
@@ -136,7 +148,7 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
                   onClick={() => setTab(t.key)}
                   className="shrink-0 whitespace-nowrap"
                 >
-                  {t.label}
+                  {tx(t.label)}
                 </Button>
               );
             })}
@@ -149,7 +161,7 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
                   <CartesianGrid vertical={false} stroke="var(--border)" strokeOpacity={0.8} />
                   <XAxis dataKey="year" tick={TICK} axisLine={false} tickLine={false} />
                   <YAxis tick={TICK} axisLine={false} tickLine={false} width={32} />
-                  <Tooltip contentStyle={TIP_STYLE} formatter={(v: number) => [v.toFixed(1), "P/E"]} />
+                  <Tooltip contentStyle={TIP_STYLE} formatter={(v: number) => [v.toFixed(1), bn ? "পিই" : "P/E"]} />
                   {ownAvgPe != null && (
                     <ReferenceLine
                       y={ownAvgPe}
@@ -163,7 +175,10 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
               </ResponsiveContainer>
               {epsBasis?.basis === "ttm" && (
                 <p className="text-sm leading-snug mt-3 text-text-muted">
-                  Today&apos;s P/E uses the last 12 months of profit; past years use each year&apos;s own.
+                  <T
+                    en="Today's P/E uses the last 12 months of profit. Each past year uses that year's own profit."
+                    bn="আজকের পিই শেষ 12 মাসের মুনাফা দিয়ে হিসাব করা। আগের প্রতিটি বছরে সেই বছরের মুনাফা ধরা হয়েছে।"
+                  />
                 </p>
               )}
             </>
@@ -176,14 +191,22 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
                   <CartesianGrid vertical={false} stroke="var(--border)" strokeOpacity={0.8} />
                   <XAxis dataKey="year" tick={TICK} axisLine={false} tickLine={false} />
                   <YAxis tick={TICK} axisLine={false} tickLine={false} width={40} />
-                  <Tooltip contentStyle={TIP_STYLE} formatter={(v: number) => [`৳${v.toFixed(1)}`, "NAV / share"]} />
+                  <Tooltip
+                    contentStyle={TIP_STYLE}
+                    formatter={(v: number) => [`৳${v.toFixed(1)}`, bn ? "শেয়ারপ্রতি এনএভি" : "NAV per share"]}
+                  />
                   <Line type="monotone" dataKey="nav" stroke="var(--primary)" strokeWidth={2.5} dot={{ r: 3 }} />
                 </LineChart>
               </ResponsiveContainer>
               <p className="text-sm mt-3 leading-snug text-text-muted">
-                {currentPb != null
-                  ? `Net assets per share over time. Today the price is ${currentPb.toFixed(1)}× book value.`
-                  : "Net assets (book value) per share over time."}
+                {currentPb != null ? (
+                  <T
+                    en={`Net assets per share over the years. Today the price is ${currentPb.toFixed(1)} times the net assets.`}
+                    bn={`বছরভিত্তিক শেয়ারপ্রতি নিট সম্পদ। আজকের দাম নিট সম্পদের ${currentPb.toFixed(1)} গুণ।`}
+                  />
+                ) : (
+                  <T en="Net assets per share over the years." bn="বছরভিত্তিক শেয়ারপ্রতি নিট সম্পদ।" />
+                )}
               </p>
             </>
           )}
@@ -191,8 +214,16 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
           {activeTab === "sector" && (
             <div className="space-y-3">
               <div className="flex flex-col sm:flex-row gap-3">
-                {tile("This stock P/E", currentPe != null ? currentPe.toFixed(1) : "—", "Current price-to-earnings")}
-                {tile("Sector median P/E", sectorPe != null ? sectorPe.toFixed(1) : "—", "Typical peer in its sector")}
+                {tile(
+                  { en: "This share's P/E", bn: "এই শেয়ারের পিই" },
+                  currentPe != null ? currentPe.toFixed(1) : "—",
+                  { en: "Price compared with profit today", bn: "আজ মুনাফার তুলনায় দাম" },
+                )}
+                {tile(
+                  { en: "Sector's typical P/E", bn: "সেক্টরের সাধারণ পিই" },
+                  sectorPe != null ? sectorPe.toFixed(1) : "—",
+                  { en: "The middle company in its sector", bn: "সেক্টরের মাঝামাঝি কোম্পানি" },
+                )}
               </div>
             </div>
           )}

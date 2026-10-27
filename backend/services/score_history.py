@@ -30,26 +30,26 @@ from backend.services.tiers import TIER_WORDS, TIER_WORDS_BN, tier_key
 # (key, weight in the final score, English name, Bengali name) — the order and
 # weights of scoring_service's final sum.
 PILLARS: list[tuple[str, float, str, str]] = [
-    ("p1_biz", 0.30, "Profit quality", "লাভের মান"),
-    ("p2_health", 0.20, "Financial health", "আর্থিক স্বাস্থ্য"),
-    ("p3_moat", 0.20, "Business strength", "ব্যবসার শক্তি"),
-    ("p4_val", 0.15, "Is the price fair", "দাম কি ন্যায্য"),
-    ("p5_div", 0.15, "Dividend reliability", "লভ্যাংশের ভরসা"),
+    ("p1_biz", 0.30, "Profit", "মুনাফা"),
+    ("p2_health", 0.20, "Finances", "আর্থিক অবস্থা"),
+    ("p3_moat", 0.20, "Business", "ব্যবসার শক্তি"),
+    ("p4_val", 0.15, "Price", "দাম"),
+    ("p5_div", 0.15, "Dividend", "ডিভিডেন্ড"),
 ]
 PILLAR_KEYS = [p[0] for p in PILLARS]
 
 # What a move in each pillar means, in plain words: (up_en, up_bn, down_en, down_bn).
 _PILLAR_MOVES = {
-    "p1_biz": ("Profit got stronger", "লাভ আরও মজবুত হয়েছে",
-               "Profit got weaker", "লাভ দুর্বল হয়েছে"),
-    "p2_health": ("Its money health improved", "আর্থিক অবস্থা ভালো হয়েছে",
-                  "Its money health got weaker (loans, cash or interest)", "আর্থিক অবস্থা দুর্বল হয়েছে (ঋণ, নগদ বা সুদ)"),
+    "p1_biz": ("Profit became stronger", "মুনাফা আরও শক্ত হয়েছে",
+               "Profit became weaker", "মুনাফা দুর্বল হয়েছে"),
+    "p2_health": ("Its finances improved", "আর্থিক অবস্থার উন্নতি হয়েছে",
+                  "Its finances became weaker (debt, cash or interest)", "আর্থিক অবস্থা দুর্বল হয়েছে (ঋণ, নগদ বা সুদ)"),
     "p3_moat": ("The business looks stronger", "ব্যবসা আরও শক্ত দেখাচ্ছে",
                 "The business looks weaker", "ব্যবসা দুর্বল দেখাচ্ছে"),
-    "p4_val": ("The price got cheaper for what it earns", "আয়ের তুলনায় দাম কমেছে",
-               "The price got more expensive for what it earns", "আয়ের তুলনায় দাম বেড়েছে"),
-    "p5_div": ("Dividends look more reliable", "লভ্যাংশ আরও ভরসাযোগ্য দেখাচ্ছে",
-               "Dividends look less reliable", "লভ্যাংশ কম ভরসাযোগ্য দেখাচ্ছে"),
+    "p4_val": ("The price became lower compared with profit", "মুনাফার তুলনায় দাম কমেছে",
+               "The price became higher compared with profit", "মুনাফার তুলনায় দাম বেড়েছে"),
+    "p5_div": ("Dividends look more reliable", "ডিভিডেন্ড আরও নির্ভরযোগ্য দেখাচ্ছে",
+               "Dividends look less reliable", "ডিভিডেন্ড কম নির্ভরযোগ্য দেখাচ্ছে"),
 }
 
 # A pillar move smaller than this many score points is not worth a line.
@@ -155,19 +155,19 @@ def _multiplier_notes(prev: dict, cur: dict) -> list[dict]:
     b_cat = (cur.get("market_cat") or "").strip().upper()
     if a_cat and b_cat and a_cat != b_cat:
         if b_cat == "Z":
-            notes.append({"key": "to_z", "en": "Moved to category Z, which cuts the score",
+            notes.append({"key": "to_z", "en": "It moved to category Z, which lowers the score",
                           "bn": "Z ক্যাটাগরিতে গেছে, তাই স্কোর কমেছে"})
         elif a_cat == "Z":
-            notes.append({"key": "from_z", "en": f"Left category Z (now {b_cat})",
+            notes.append({"key": "from_z", "en": f"It left category Z (now {b_cat})",
                           "bn": f"Z ক্যাটাগরি থেকে বেরিয়েছে (এখন {b_cat})"})
         else:
-            notes.append({"key": "category", "en": f"Category changed from {a_cat} to {b_cat}",
+            notes.append({"key": "category", "en": f"Its category changed from {a_cat} to {b_cat}",
                           "bn": f"ক্যাটাগরি {a_cat} থেকে {b_cat} হয়েছে"})
     if prev.get("stale_data") is False and cur.get("stale_data") is True:
-        notes.append({"key": "stale", "en": "Its yearly accounts are now out of date, which cuts the score",
+        notes.append({"key": "stale", "en": "Its yearly accounts are now out of date, which lowers the score",
                       "bn": "বার্ষিক হিসাব পুরোনো হয়ে গেছে, তাই স্কোর কমেছে"})
     elif prev.get("stale_data") is True and cur.get("stale_data") is False:
-        notes.append({"key": "fresh", "en": "New yearly accounts are out", "bn": "নতুন বার্ষিক হিসাব এসেছে"})
+        notes.append({"key": "fresh", "en": "New yearly accounts have been published", "bn": "নতুন বার্ষিক হিসাব প্রকাশিত হয়েছে"})
     return notes
 
 
@@ -331,7 +331,7 @@ def grade_event(code: str, ch: dict, day: str) -> dict:
     better = ch.get("to_tier") in _ORDER and ch.get("from_tier") in _ORDER and         _ORDER.index(ch["to_tier"]) > _ORDER.index(ch["from_tier"])
     why = (ch.get("notes") or []) + (ch.get("drivers") or [])
     body_en = f"Main reason: {why[0]['en'].lower()}." if why else "See what changed on the stock page."
-    body_bn = f"মূল কারণ: {why[0]['bn']}।" if why else "স্টক পেজে দেখুন কী বদলেছে।"
+    body_bn = f"মূল কারণ: {why[0]['bn']}।" if why else "কী বদলেছে, তা শেয়ারের পেজে দেখুন।"
     return {
         "id": f"grade-{code}-{day}", "kind": "grade", "code": code,
         "level": "good" if better else ("bad" if ch.get("to_tier") == "weak" else "watch"),

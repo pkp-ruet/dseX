@@ -4,7 +4,6 @@ import { bstHour } from "@/lib/market-hours";
 import type { Lang } from "@/context/LangContext";
 import { t } from "@/lib/home-copy";
 import MarketStatusPill from "@/components/home/personalized/MarketStatusPill";
-import LangToggle from "@/components/stock/LangToggle";
 import { IconChevron } from "@/components/home/personalized/DashIcons";
 
 /** Time-of-day greeting on the BST wall clock (client-rendered subtree). */
@@ -15,8 +14,8 @@ function greetingForHour(h: number, lang: Lang): string {
 }
 
 /**
- * The top of the money hero: a quiet eyebrow (date) with the language switch
- * and the live market pill on the right, the greeting as the page's headline,
+ * The top of the money hero: a quiet eyebrow (date and the live market
+ * pill), the greeting as the page's headline,
  * then one quiet line — how many key points "Your stocks today" lists on the
  * reader's stocks (a jump to that card), or "All quiet".
  */
@@ -26,7 +25,6 @@ export default function HeroGreeting({
   isNew = false,
   updates = null,
   lang,
-  onLang,
 }: {
   name?: string | null;
   dateStr: string;
@@ -35,7 +33,6 @@ export default function HeroGreeting({
   /** Key points in "Your stocks today". null → no line (still loading, or no stocks yet). */
   updates?: number | null;
   lang: Lang;
-  onLang: (l: Lang) => void;
 }) {
   const bn = lang === "bn";
   const greeting = isNew ? t(lang, "welcome") : greetingForHour(bstHour(), lang);
@@ -47,15 +44,14 @@ export default function HeroGreeting({
 
   return (
     <div lang={bn ? "bn" : undefined} className={bn ? "font-bn" : undefined}>
-      {/* One centred row: the date and the market state as a single quiet
-          line on the left, the language switch on the right. */}
+      {/* One quiet line: the date and the market state. The language switch
+          lives in the navbar. */}
       <div className="flex items-center justify-between gap-3">
         <p className="flex min-w-0 flex-1 items-center gap-2 text-xs font-semibold text-text-muted">
           <span className="truncate">{dateStr}</span>
           <span className="h-3 w-px shrink-0 bg-border" aria-hidden />
           <MarketStatusPill compact lang={lang} className="shrink-0" />
         </p>
-        <LangToggle value={lang} onChange={onLang} size="sm" tone="quiet" className="shrink-0" />
       </div>
 
       <h1 className="mt-2 text-2xl font-bold leading-tight tracking-tight text-text-main sm:text-3xl">

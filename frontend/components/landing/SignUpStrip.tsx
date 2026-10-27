@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode, CSSProperties } from "react";
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
 import SectionHead from "@/components/i18n/SectionHead";
 
 /**
@@ -20,6 +20,7 @@ import SectionHead from "@/components/i18n/SectionHead";
 
 interface Perk {
   title: string;
+  titleBn: string;
   line: string;
   bn: string;
   accent: string;
@@ -30,9 +31,10 @@ const PERKS: Perk[] = [
   {
     // Was "Your money at the top" — the portfolio check now has its own
     // section right above this strip, so this slot names the dividend side.
-    title: "Cash coming to you",
-    line: "See which of your shares pays a dividend soon, and how much reaches you.",
-    bn: "আপনার কোন শেয়ার শিগগির ডিভিডেন্ড দেবে, আর কত টাকা আসবে — আগেই দেখে নিন।",
+    title: "Dividends coming to you",
+    titleBn: "আপনার কাছে আসা ডিভিডেন্ড",
+    line: "See which of your shares will pay a dividend soon, and how much will reach you.",
+    bn: "আপনার কোন শেয়ার শিগগির ডিভিডেন্ড দেবে, আর কত টাকা আসবে, আগেই দেখে নিন।",
     accent: "var(--gold-ink)",
     icon: (
       <>
@@ -42,16 +44,18 @@ const PERKS: Perk[] = [
     ),
   },
   {
-    title: "Your stocks, marked everywhere",
+    title: "Your shares, marked everywhere",
+    titleBn: "আপনার শেয়ার, সব জায়গায় চিহ্নিত",
     line: "Follow a company and it stands out in every list on the site.",
-    bn: "যে শেয়ার নজরে রাখবেন, সাইটের সব তালিকায় সেটা আলাদা করে দেখাবে।",
+    bn: "যে কোম্পানি অনুসরণ করবেন, সাইটের প্রতিটি তালিকায় সেটি আলাদা করে দেখা যাবে।",
     accent: "var(--warm)",
     icon: <path d="M12 3.5l2.7 5.5 6 .9-4.35 4.24 1.03 6L12 17.3 6.62 20.14l1.03-6L3.3 9.9l6-.9z" />,
   },
   {
     title: "A price alert that finds you",
-    line: "Pick a price. We tell you the day the stock reaches it.",
-    bn: "একটা দাম ঠিক করে দিন — সেই দামে পৌঁছালেই জানিয়ে দেব।",
+    titleBn: "প্রাইস অ্যালার্ট, সময়মতো",
+    line: "Choose a price, and we will tell you on the day the share reaches it.",
+    bn: "একটি দাম ঠিক করে দিন। শেয়ারটি সেই দামে পৌঁছালেই আমরা জানাব।",
     accent: "var(--primary)",
     icon: (
       <>
@@ -61,14 +65,15 @@ const PERKS: Perk[] = [
     ),
   },
   {
-    title: "The whole thing in Bangla",
-    line: "One switch turns every sentence on your page into Bangla.",
-    bn: "একটা বোতামে আপনার পুরো পাতা বাংলায় — খবর, কারণ, সবকিছু।",
+    title: "One short daily update",
+    titleBn: "দিনে একটি ছোট আপডেট",
+    line: "Turn on alerts and get one message a day about your shares: price moves, dividends and your alerts.",
+    bn: "অ্যালার্ট চালু করলে দিনে একটি বার্তায় পাবেন আপনার শেয়ারের খবর: দামের ওঠানামা, ডিভিডেন্ড আর অ্যালার্ট।",
     accent: "var(--info)",
     icon: (
       <>
-        <path d="M3 5h11M9 3v2c0 5-2.5 8-6 9" />
-        <path d="M6 10c1.5 3 4 5 8 6M13 21l4.5-11 4.5 11M15 17h6" />
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <path d="M3 7l9 6 9-6" />
       </>
     ),
   },
@@ -78,13 +83,14 @@ export default function SignUpStrip() {
   return (
     <section aria-labelledby="account-title">
       <SectionHead
-        eyebrow="Free account"
+        eyebrow={<T en="Free account" bn="ফ্রি অ্যাকাউন্ট" />}
         id="account-title"
-        title="The data above is free. Sign up and it becomes"
-        highlight="yours."
-        accent="var(--primary)"
-        icon={<><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></>}
-        bn="উপরের তথ্য ফ্রি — অ্যাকাউন্ট খুললে এই পাতাটাই হয়ে যাবে আপনার নিজের।"
+        title={
+          <T
+            en="The data above is free. With an account, it becomes yours."
+            bn="ওপরের তথ্য ফ্রি। অ্যাকাউন্ট খুললে এটি হয়ে যায় আপনার নিজের।"
+          />
+        }
       />
 
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -109,9 +115,12 @@ export default function SignUpStrip() {
               </svg>
             </span>
             <div className="min-w-0 flex-1">
-              <h3 className="text-base font-bold leading-snug text-text-main">{p.title}</h3>
-              <p className="mt-1 text-sm leading-relaxed text-text-muted">{p.line}</p>
-              <Bn className="mt-1 text-sm leading-relaxed text-text-main">{p.bn}</Bn>
+              <h3 className="text-base font-bold leading-snug text-text-main">
+                <T en={p.title} bn={p.titleBn} />
+              </h3>
+              <p className="mt-1 text-sm leading-relaxed text-text-muted">
+                <T en={p.line} bn={p.bn} />
+              </p>
             </div>
           </div>
         ))}
@@ -119,19 +128,18 @@ export default function SignUpStrip() {
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <Link href="/register" className="btn-primary">
-          Create a free account
+          <T en="Create a free account" bn="ফ্রি অ্যাকাউন্ট খুলুন" />
         </Link>
         <Link href="/dsestockranking" className="btn-quiet">
-          Keep looking around
+          <T en="Keep looking around" bn="আরও ঘুরে দেখুন" />
         </Link>
       </div>
       <p className="mt-2.5 text-xs font-semibold text-text-muted">
-        The account is free — no tips by SMS, no phone calls. The full reasoning on every
-        stock is Premium, if you ever want it.
+        <T
+          en="The account is free. We send no tips by SMS and make no phone calls. The full reasoning on every share is part of Premium, if you ever want it."
+          bn="অ্যাকাউন্ট ফ্রি। আমরা এসএমএসে টিপস পাঠাই না, ফোনও করি না। প্রতিটি শেয়ারের পূর্ণ ব্যাখ্যা প্রিমিয়ামে, যদি কখনো চান।"
+        />
       </p>
-      <Bn className="mt-0.5 text-sm leading-relaxed text-text-muted">
-        অ্যাকাউন্ট ফ্রি — এসএমএসে টিপস আসে না, ফোনও করা হয় না। প্রতিটি শেয়ারের পুরো ব্যাখ্যা প্রিমিয়ামে, চাইলে।
-      </Bn>
     </section>
   );
 }

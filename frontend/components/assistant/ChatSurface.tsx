@@ -7,6 +7,7 @@ import ChatComposer from "./ChatComposer";
 import QuickActionsBar from "./QuickActionsBar";
 import { COPY } from "@/lib/assistant/copy";
 import { useAuth } from "@/context/AuthContext";
+import { T } from "@/components/i18n/T";
 
 /**
  * The shared chat surface used by both the floating panel and the /assistant
@@ -52,29 +53,35 @@ export default function ChatSurface({
             onClick={() => {
               sendChip({
                 label: `About ${seedCode}`,
+                labelBn: `${seedCode} সম্পর্কে`,
                 action: { intentId: "stock_detail", entities: { code: seedCode } },
               });
               setSeedUsed(true);
             }}
-            className="inline-flex items-center gap-1.5 rounded-full border border-primary bg-surface px-3 py-1.5 text-xs font-semibold text-primary transition active:scale-95"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-primary bg-surface px-3 py-1.5 text-xs font-semibold text-primary transition active:scale-95"
           >
-            Ask about {seedCode}
+            <T en={`Ask about ${seedCode}`} bn={`${seedCode} নিয়ে জিজ্ঞেস করুন`} />
           </button>
         </div>
       )}
       {limited && !flowActive ? (
         <div className="flex items-center justify-between gap-3 border-t border-border bg-surface-2 px-3.5 py-3">
           <p className="min-w-0 text-sm font-medium text-text-main">
-            {signedIn ? COPY.freeLimit.bar : COPY.guestLimit.bar}
-            <span lang="bn" className="font-bn block text-xs text-text-muted">
-              {signedIn ? COPY.freeLimit.barBn : COPY.guestLimit.barBn}
-            </span>
+            {signedIn ? (
+              <T en={COPY.freeLimit.bar} bn={COPY.freeLimit.barBn} />
+            ) : (
+              <T en={COPY.guestLimit.bar} bn={COPY.guestLimit.barBn} />
+            )}
           </p>
           <Link
             href={signedIn ? "/premium" : "/register"}
             className="btn-primary btn-sm shrink-0"
           >
-            {signedIn ? COPY.freeLimit.cta : COPY.guestLimit.cta}
+            {signedIn ? (
+              <T en={COPY.freeLimit.cta} bn={COPY.freeLimit.ctaBn} />
+            ) : (
+              <T en={COPY.guestLimit.cta} bn={COPY.guestLimit.ctaBn} />
+            )}
           </Link>
         </div>
       ) : (

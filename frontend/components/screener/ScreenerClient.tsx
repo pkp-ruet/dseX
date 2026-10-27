@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Chip from "@/components/ui/Chip";
@@ -19,6 +19,7 @@ import ScreenerResults from "./ScreenerResults";
 import ScreenerPremium, { SCREENER_ANCHOR } from "./ScreenerPremium";
 import ScreenerPreview from "./ScreenerPreview";
 import { trackEvent } from "@/lib/track";
+import { T } from "@/components/i18n/T";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useLang } from "@/context/LangContext";
@@ -46,14 +47,17 @@ const SORT_HELP: Record<string, { en: string; bn: string }> = {
   score: { en: "For quality: the strongest companies on our grade come first",
            bn: "মানের জন্য: আমাদের গ্রেডে সবচেয়ে শক্তিশালী কোম্পানি আগে" },
   yield: { en: "For income: the most cash dividend for the price comes first",
-           bn: "আয়ের জন্য: দামের তুলনায় সবচেয়ে বেশি নগদ লভ্যাংশ আগে" },
+           bn: "আয়ের জন্য: দামের তুলনায় সবচেয়ে বেশি নগদ ডিভিডেন্ড আগে" },
   cheap: { en: "For bargains: the lowest price for the profit comes first",
-           bn: "সস্তার জন্য: লাভের তুলনায় সবচেয়ে কম দাম আগে" },
+           bn: "কম দামের জন্য: মুনাফার তুলনায় সবচেয়ে কম দাম আগে" },
   size: { en: "For safety: the biggest companies come first",
           bn: "নিরাপত্তার জন্য: সবচেয়ে বড় কোম্পানি আগে" },
   growth: { en: "For growth: the fastest-rising profit comes first",
-            bn: "বৃদ্ধির জন্য: সবচেয়ে দ্রুত বাড়া লাভ আগে" },
+            bn: "বৃদ্ধির জন্য: সবচেয়ে দ্রুত বাড়া মুনাফা আগে" },
 };
+
+/** Visible copy as both languages, so the server HTML needs no re-render to switch. */
+const tt = (en: string, bn: string) => <T en={en} bn={bn} />;
 
 /** A locked change a free reader tapped — previewed, not applied. */
 type Preview = { kind: "answer"; key: string; level: number } | { kind: "order"; sort: string };
@@ -369,7 +373,7 @@ export default function ScreenerClient({
         const { list } = await apiCreateCustomList(name, spec, alerts);
         setEditingId(list.id);
         toast({
-          message: t("Screen saved. We'll tell you when a new stock passes.", "স্ক্রিন সেভ হয়েছে। নতুন কোনো শেয়ার পাস করলে জানিয়ে দেব।"),
+          message: t("Screen saved. We will tell you when a new share passes.", "স্ক্রিন সেভ হয়েছে। নতুন কোনো শেয়ার পাস করলে জানিয়ে দেব।"),
           tone: "success",
         });
       }
@@ -383,7 +387,7 @@ export default function ScreenerClient({
           message: msg === "too_many_lists"
             ? t(`You can keep ${catalog.max_lists} screens. Delete one to add another.`,
                 `সর্বোচ্চ ${catalog.max_lists}টি স্ক্রিন রাখা যায়। নতুন যোগ করতে একটি মুছুন।`)
-            : t("Couldn't save the screen. Try again.", "স্ক্রিন সেভ হয়নি। আবার চেষ্টা করুন।"),
+            : t("We couldn't save the screen. Please try again.", "স্ক্রিন সেভ হয়নি। আবার চেষ্টা করুন।"),
           tone: "error",
         });
       }
@@ -410,7 +414,7 @@ export default function ScreenerClient({
       if (editingId === l.id) setEditingId(null);
       toast({ message: t("Screen deleted.", "স্ক্রিন মুছে ফেলা হয়েছে।"), tone: "neutral" });
     } catch {
-      toast({ message: t("Couldn't delete the screen.", "স্ক্রিন মোছা যায়নি।"), tone: "error" });
+      toast({ message: t("We couldn't delete the screen.", "স্ক্রিন মোছা যায়নি।"), tone: "error" });
     }
   };
 
@@ -425,14 +429,14 @@ export default function ScreenerClient({
   const facets = screen.kind === "q" && result?.answers ? result.facets ?? null : null;
   const fineShown = isFine || fineOpen;
 
-  const tabLabel: Record<Tab, string> = {
-    build: t("Build a screen", "স্ক্রিন বানান"),
-    saved: lists.length ? t(`Saved (${lists.length})`, `সেভ করা (${lists.length})`) : t("Saved", "সেভ করা"),
+  const tabLabel: Record<Tab, ReactNode> = {
+    build: tt("Build a screen", "স্ক্রিন বানান"),
+    saved: lists.length ? tt(`Saved (${lists.length})`, `সেভ করা (${lists.length})`) : tt("Saved", "সেভ করা"),
   };
 
   return (
     <PageLockScope anchor={SCREENER_ANCHOR}>
-      <div className={bn ? "font-bn" : ""} lang={bn ? "bn" : undefined}>
+      <div>
         <Tabs
           tabs={TABS.map((k) => ({ key: k, label: tabLabel[k] }))}
           value={tab}
@@ -447,9 +451,9 @@ export default function ScreenerClient({
             <section aria-label={t("Find stocks", "শেয়ার খুঁজুন")}>
               {editingId && (
                 <p className="mb-3 text-sm text-text-muted">
-                  {t(`Editing your saved screen "${name}".`, `সেভ করা স্ক্রিন "${name}" বদলাচ্ছেন।`)}{" "}
+                  {tt(`You are changing your saved screen "${name}".`, `আপনি সেভ করা স্ক্রিন "${name}" বদলাচ্ছেন।`)}{" "}
                   <button type="button" onClick={startOver} className="font-semibold text-primary hover:underline">
-                    {t("Start fresh", "নতুন করে শুরু")}
+                    {tt("Start fresh", "নতুন করে শুরু করুন")}
                   </button>
                 </p>
               )}
@@ -458,14 +462,14 @@ export default function ScreenerClient({
                   questions.length > 0 && (
                     <Card>
                       <p className="text-base font-semibold text-text-main">
-                        {t("This screen uses exact rules", "এই স্ক্রিনে নির্দিষ্ট নিয়ম")}
+                        {tt("This screen uses exact rules", "এই স্ক্রিনে নির্দিষ্ট নিয়ম ব্যবহার হয়েছে")}
                       </p>
                       <p className="mt-1 text-sm text-text-muted">
-                        {t("It doesn't fit the six questions, so its rules are listed below.",
+                        {tt("It does not fit the six questions, so its rules are listed below.",
                            "এটি ছয়টি প্রশ্নে মেলে না, তাই নিয়মগুলো নিচে দেওয়া হলো।")}
                       </p>
                       <Button variant="quiet" className="mt-3" onClick={startOver}>
-                        {t("Use the six questions instead", "বরং ছয়টি প্রশ্ন দিয়ে খুঁজুন")}
+                        {tt("Use the six questions instead", "বরং ছয়টি প্রশ্ন দিয়ে খুঁজুন")}
                       </Button>
                     </Card>
                   )
@@ -507,7 +511,7 @@ export default function ScreenerClient({
                       className="flex min-h-12 w-full items-center gap-2 rounded-lg px-1 text-left text-sm font-semibold text-primary hover:bg-surface-2 active:bg-surface-2"
                     >
                       <IconTune size={16} />
-                      <span className="flex-1">{t("See the exact rules", "ঠিক কী যাচাই হচ্ছে দেখুন")}</span>
+                      <span className="flex-1">{tt("See the exact rules", "ঠিক কী যাচাই হচ্ছে দেখুন")}</span>
                       <span className={`text-text-muted transition-transform ${fineOpen ? "rotate-180" : ""}`} aria-hidden>
                         <IconChevronDown size={16} />
                       </span>
@@ -517,10 +521,10 @@ export default function ScreenerClient({
                     <div id={`${FINE_ID}-body`} className={isFine ? undefined : "mt-2"}>
                       <p className="mb-2 text-sm text-text-muted">
                         {canTune
-                          ? t("A stock must pass every one of these. Tap one to change it or take it out.",
-                              "একটি শেয়ারকে এর প্রতিটি পেরোতে হবে। বদলাতে বা বাদ দিতে একটিতে চাপুন।")
-                          : t("This is exactly what your answers check. A stock must pass every one.",
-                              "আপনার উত্তরগুলো ঠিক এগুলোই যাচাই করে। একটি শেয়ারকে প্রতিটি পেরোতে হবে।")}
+                          ? tt("A share must pass every one of these. Tap one to change it or take it out.",
+                              "একটি শেয়ারকে এর প্রতিটিতে পাস করতে হবে। বদলাতে বা বাদ দিতে একটিতে চাপুন।")
+                          : tt("This is exactly what your answers check. A share must pass every one.",
+                              "আপনার উত্তরগুলো ঠিক এগুলোই যাচাই করে। একটি শেয়ারকে প্রতিটিতে পাস করতে হবে।")}
                       </p>
                       {checks.length > 0 ? (
                         <ScreenerChecks
@@ -541,8 +545,8 @@ export default function ScreenerClient({
                         />
                       ) : (
                         <p className="text-sm text-text-muted">
-                          {t("No rules yet — every rated company is in. Answer a question above.",
-                             "এখনো কোনো নিয়ম নেই — রেটিং পাওয়া সব কোম্পানি আছে। ওপরে একটি প্রশ্নের উত্তর দিন।")}
+                          {tt("There are no rules yet, so every rated company is in. Answer a question above to begin.",
+                             "এখনো কোনো নিয়ম নেই, তাই রেটিং পাওয়া সব কোম্পানি আছে। শুরু করতে ওপরে একটি প্রশ্নের উত্তর দিন।")}
                         </p>
                       )}
                     </div>
@@ -560,7 +564,6 @@ export default function ScreenerClient({
               questions={questions}
               followed={followed}
               onChangeCheck={changeMissed}
-              bn={bn}
               t={t}
               toolbar={
                 <>
@@ -569,10 +572,10 @@ export default function ScreenerClient({
                     onClick={() => setSortOpen(true)}
                     icon={locked ? <IconLock size={14} /> : <IconList size={14} />}
                   >
-                    {t(sortDef?.en ?? "Best score first", sortDef?.bn ?? "সবচেয়ে বেশি স্কোর আগে")}
+                    {tt(sortDef?.en ?? "Best score first", sortDef?.bn ?? "বেশি স্কোর আগে")}
                   </Chip>
                   <Chip onClick={() => setSaveOpen(true)} icon={<IconBell size={14} />}>
-                    {editingId ? t("Save changes", "বদল সেভ করুন") : t("Save screen", "স্ক্রিন সেভ করুন")}
+                    {editingId ? tt("Save changes", "বদল সেভ করুন") : tt("Save screen", "স্ক্রিন সেভ করুন")}
                   </Chip>
                 </>
               }
@@ -584,9 +587,9 @@ export default function ScreenerClient({
               className="flex min-h-12 items-center justify-between gap-3 rounded-lg border border-border bg-surface px-4 py-3 text-sm hover:bg-surface-2 active:bg-surface-2"
             >
               <span>
-                <span className="block font-semibold text-text-main">{t("Our six research lists", "আমাদের ছয়টি গবেষণা তালিকা")}</span>
+                <span className="block font-semibold text-text-main">{tt("Our six research lists", "আমাদের ছয়টি গবেষণা তালিকা")}</span>
                 <span className="block text-text-muted">
-                  {t("Ideas we test in the open, with every step shown", "যে আইডিয়াগুলো আমরা খোলাখুলি যাচাই করি, প্রতিটি ধাপসহ")}
+                  {tt("Ideas we test in the open, with every step shown", "যে ধারণাগুলো আমরা খোলাখুলি যাচাই করি, প্রতিটি ধাপসহ")}
                 </span>
               </span>
               <span className="text-primary" aria-hidden>→</span>
@@ -596,23 +599,23 @@ export default function ScreenerClient({
             <Sheet
               open={lockOpen}
               onClose={() => setLockOpen(false)}
-              title={t("Set up your own screen with Premium", "প্রিমিয়ামে নিজের মতো স্ক্রিন সাজান")}
+              title={tt("Set up your own screen with Premium", "প্রিমিয়ামে নিজের মতো স্ক্রিন সাজান")}
               footer={
                 <div className="flex w-full gap-2">
                   <Button variant="quiet" className="flex-1" onClick={() => setLockOpen(false)}>
-                    {t("Not now", "এখন না")}
+                    {tt("Not now", "এখন না")}
                   </Button>
                   <Button href={`#${SCREENER_ANCHOR}`} variant="primary" className="flex-1" onClick={() => setLockOpen(false)}>
-                    {t("See Premium", "প্রিমিয়াম দেখুন")}
+                    {tt("See Premium", "প্রিমিয়াম দেখুন")}
                   </Button>
                 </div>
               }
             >
               <ul className="space-y-2 text-sm text-text-main">
-                <li>{t("Free: the six quick picks, the count under every answer and the first 3 stocks.",
+                <li>{tt("Free: the six quick picks, the count under every answer and the first 3 shares.",
                        "ফ্রি: ছয়টি দ্রুত বাছাই, প্রতিটি উত্তরের নিচের সংখ্যা আর প্রথম 3টি শেয়ার।")}</li>
-                <li>{t("Premium: change any answer, pick one or several sectors, change the order, see every stock and save your screens.",
-                       "প্রিমিয়াম: যেকোনো উত্তর বদলান, এক বা একাধিক খাত বাছুন, ক্রম বদলান, সব শেয়ার দেখুন, স্ক্রিন সেভ করুন।")}</li>
+                <li>{tt("Premium: change any answer, pick one or several sectors, change the order, see every share and save your screens.",
+                       "প্রিমিয়াম: যেকোনো উত্তর বদলান, এক বা একাধিক সেক্টর বাছুন, ক্রম বদলান, সব শেয়ার দেখুন আর স্ক্রিন সেভ করুন।")}</li>
               </ul>
             </Sheet>
 
@@ -620,12 +623,14 @@ export default function ScreenerClient({
             <Sheet
               open={sortOpen}
               onClose={() => setSortOpen(false)}
-              title={t("Order the stocks", "শেয়ার সাজান")}
-              bn={locked
-                ? t("Changing the order is Premium. Tap one to see which stocks it puts on top.",
-                    "ক্রম বদলানো প্রিমিয়ামে। কোন শেয়ার ওপরে আসে দেখতে একটিতে চাপুন।")
-                : undefined}
+              title={tt("Order the shares", "শেয়ার সাজান")}
             >
+              {locked && (
+                <p className="mb-2 text-sm text-text-muted">
+                  {tt("Changing the order is part of Premium. Tap one to see which shares it puts on top.",
+                      "ক্রম বদলানো প্রিমিয়ামের অংশ। কোন শেয়ার ওপরে আসে, তা দেখতে একটিতে চাপুন।")}
+                </p>
+              )}
               <ul className="divide-y divide-border">
                 {catalog.sorts.map((so) => {
                   const on = screen.sort === so.key;
@@ -644,8 +649,8 @@ export default function ScreenerClient({
                         className="flex min-h-14 w-full items-center justify-between gap-3 py-3 text-left active:bg-surface-2"
                       >
                         <span className="min-w-0">
-                          <span className={`block text-base text-text-main ${on ? "font-semibold" : ""}`}>{t(so.en, so.bn)}</span>
-                          {help && <span className="block text-sm text-text-muted">{t(help.en, help.bn)}</span>}
+                          <span className={`block text-base text-text-main ${on ? "font-semibold" : ""}`}>{tt(so.en, so.bn)}</span>
+                          {help && <span className="block text-sm text-text-muted">{tt(help.en, help.bn)}</span>}
                         </span>
                         {on ? (
                           <span className="shrink-0 text-primary"><IconCheck size={18} /></span>
@@ -684,7 +689,6 @@ export default function ScreenerClient({
                 trackEvent("premium_lock_tap", { area: "screener", lock: preview?.kind === "order" ? "Screener order" : "Screener answer", state });
                 setPreview(null);
               }}
-              bn={bn}
               t={t}
             />
 
@@ -693,29 +697,31 @@ export default function ScreenerClient({
               open={saveOpen}
               onClose={() => setSaveOpen(false)}
               dismissible={!saving}
-              title={editingId ? t(`Save "${name}"`, `"${name}" সেভ করুন`) : t("Keep this screen", "স্ক্রিনটি রেখে দিন")}
-              bn={t("We run it every trading day and tell you when a new stock passes.",
-                    "প্রতি লেনদেনের দিন চালাব, নতুন কোনো শেয়ার পাস করলে জানাব।")}
+              title={editingId ? tt(`Save "${name}"`, `"${name}" সেভ করুন`) : tt("Keep this screen", "স্ক্রিনটি রেখে দিন")}
               footer={
                 state === "guest" ? (
                   <Button href="/login?next=%2Fscreener" variant="primary" block>
-                    {t("Sign in to save", "সেভ করতে সাইন ইন করুন")}
+                    {tt("Sign in to save", "সেভ করতে সাইন ইন করুন")}
                   </Button>
                 ) : !isPremium ? (
                   <Button href="#sc-premium" variant="primary" block onClick={() => setSaveOpen(false)}>
-                    {t("Saving is part of Premium", "সেভ করা প্রিমিয়ামের অংশ")}
+                    {tt("Saving is part of Premium", "সেভ করা প্রিমিয়ামের অংশ")}
                   </Button>
                 ) : (
                   <Button variant="primary" block onClick={async () => { if (await save()) setSaveOpen(false); }} disabled={saving}>
-                    {saving ? t("Saving…", "সেভ হচ্ছে…") : editingId ? t("Save changes", "বদল সেভ করুন") : t("Save this screen", "স্ক্রিন সেভ করুন")}
+                    {saving ? tt("Saving…", "সেভ হচ্ছে…") : editingId ? tt("Save changes", "বদল সেভ করুন") : tt("Save this screen", "স্ক্রিন সেভ করুন")}
                   </Button>
                 )
               }
             >
               <div className="space-y-3">
+                <p className="text-sm text-text-muted">
+                  {tt("We run it every trading day and tell you when a new share passes.",
+                      "প্রতি লেনদেনের দিন আমরা এটি চালাই, আর নতুন কোনো শেয়ার পাস করলে জানাই।")}
+                </p>
                 <div>
                   <label htmlFor="sc-name" className="mb-1.5 block text-sm font-semibold text-text-main">
-                    {t("Name", "নাম")}
+                    {tt("Name", "নাম")}
                   </label>
                   <input
                     id="sc-name"
@@ -728,17 +734,17 @@ export default function ScreenerClient({
                 </div>
                 <label htmlFor="sc-alerts" className="flex min-h-10 items-center gap-2 text-sm text-text-main">
                   <input id="sc-alerts" type="checkbox" checked={alerts} onChange={(e) => setAlerts(e.target.checked)} />
-                  {t("Tell me when a new stock passes every check", "নতুন কোনো শেয়ার সব শর্ত পূরণ করলে জানান")}
+                  {tt("Tell me when a new share passes every check", "নতুন কোনো শেয়ার সব যাচাইয়ে পাস করলে জানান")}
                 </label>
                 {editingId && isPremium && (
                   <Button variant="link" onClick={() => { setEditingId(null); setName(""); }}>
-                    {t("Save as a new screen instead", "বরং নতুন স্ক্রিন হিসেবে সেভ করুন")}
+                    {tt("Save as a new screen instead", "বরং নতুন স্ক্রিন হিসেবে সেভ করুন")}
                   </Button>
                 )}
                 {!isPremium && (
                   <p className="text-sm text-text-muted">
-                    {t(`Premium keeps up to ${catalog.max_lists} screens, each checked every trading day.`,
-                       `প্রিমিয়ামে সর্বোচ্চ ${catalog.max_lists}টি স্ক্রিন রাখা যায়, প্রতি লেনদেনের দিন যাচাই হয়।`)}
+                    {tt(`Premium keeps up to ${catalog.max_lists} screens, each checked every trading day.`,
+                       `প্রিমিয়ামে সর্বোচ্চ ${catalog.max_lists}টি স্ক্রিন রাখা যায়, আর প্রতি লেনদেনের দিন সেগুলো যাচাই হয়।`)}
                   </p>
                 )}
               </div>
@@ -747,8 +753,8 @@ export default function ScreenerClient({
             <ScreenerPremium passed={result?.passed ?? null} hidden={hidden} yours={yours} t={t} />
 
             <p className="text-xs text-text-muted">
-              {t("A screen is a starting point for your own research, not advice to buy.",
-                 "স্ক্রিন নিজের যাচাইয়ের শুরু — কেনার পরামর্শ নয়।")}
+              {tt("A screen is a starting point for your own research, not advice to buy.",
+                 "স্ক্রিন আপনার নিজের যাচাইয়ের শুরু মাত্র, কেনার পরামর্শ নয়।")}
             </p>
           </div>
         )}
@@ -757,19 +763,19 @@ export default function ScreenerClient({
           <div role="tabpanel" aria-labelledby="sc-tab-saved">
             {!isLoggedIn && !authLoading ? (
               <EmptyState
-                title={t("Sign in to keep your screens", "স্ক্রিন রাখতে সাইন ইন করুন")}
-                message={t("Saved screens run every trading day and tell you when a new stock passes.",
-                           "সেভ করা স্ক্রিন প্রতি লেনদেনের দিন চলে, নতুন শেয়ার পাস করলে জানায়।")}
-                actions={[{ href: "/login?next=%2Fscreener%3Ftab%3Dsaved", label: t("Sign in", "সাইন ইন") }]}
+                title={tt("Sign in to keep your screens", "স্ক্রিন রাখতে সাইন ইন করুন")}
+                message={tt("Saved screens run every trading day and tell you when a new share passes.",
+                           "সেভ করা স্ক্রিন প্রতি লেনদেনের দিন চলে, আর নতুন শেয়ার পাস করলে জানায়।")}
+                actions={[{ href: "/login?next=%2Fscreener%3Ftab%3Dsaved", label: tt("Sign in", "সাইন ইন") }]}
               />
             ) : saved === null ? (
               <div className="space-y-4"><Skeleton height={160} /><Skeleton height={160} /></div>
             ) : lists.length === 0 ? (
               <EmptyState
-                title={t("No saved screens yet", "এখনো কোনো স্ক্রিন সেভ করা নেই")}
-                message={t("Build a screen, then save it — we'll watch it for you every trading day.",
-                           "একটি স্ক্রিন বানিয়ে সেভ করুন — প্রতি লেনদেনের দিন আমরা নজর রাখব।")}
-                actions={[{ onClick: () => setTab("build"), label: t("Build a screen", "স্ক্রিন বানান") }]}
+                title={tt("No saved screens yet", "এখনো কোনো স্ক্রিন সেভ করা নেই")}
+                message={tt("Build a screen and save it. We will check it for you every trading day.",
+                           "একটি স্ক্রিন বানিয়ে সেভ করুন। প্রতি লেনদেনের দিন আমরা সেটি যাচাই করব।")}
+                actions={[{ onClick: () => setTab("build"), label: tt("Build a screen", "স্ক্রিন বানান") }]}
               />
             ) : (
               <div className="space-y-4">

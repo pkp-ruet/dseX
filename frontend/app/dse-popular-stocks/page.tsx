@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getPopularStocks } from "@/lib/api";
 import PopularStocksDeck from "@/components/popular/PopularStocksDeck";
 import PageHeader from "@/components/ui/PageHeader";
+import { T } from "@/components/i18n/T";
 
 export const revalidate = 86400;
 
@@ -72,17 +73,24 @@ export default async function PopularStocksPage() {
       />
 
       <PageHeader
-        eyebrow="Reader Interest"
-        title="DSE Popular Stocks"
-        bn="গত 7 দিনে TopStockBD-এ সবচেয়ে বেশি দেখা 20টি শেয়ার।"
-        lead="The 20 most-viewed DSE stocks on TopStockBD over the last 7 days."
+        eyebrow={<T en="What readers are looking at" bn="পাঠকেরা যা দেখছেন" />}
+        title={<T en="DSE popular stocks" bn="ডিএসইর জনপ্রিয় শেয়ার" />}
+        lead={
+          <T
+            en="The 20 DSE shares viewed most on TopStockBD over the last 7 days."
+            bn="গত 7 দিনে TopStockBD-তে সবচেয়ে বেশি দেখা ডিএসইর 20টি শেয়ার।"
+          />
+        }
       />
 
       {data ? (
         <PopularStocksDeck items={data.items} />
       ) : (
         <div className="text-center py-20 text-text-muted">
-          Unable to load popular stocks. Please try again shortly.
+          <T
+            en="We couldn't load the popular list right now. Please try again shortly."
+            bn="এই মুহূর্তে জনপ্রিয় তালিকা লোড করা যাচ্ছে না। একটু পরে আবার চেষ্টা করুন।"
+          />
         </div>
       )}
     </>

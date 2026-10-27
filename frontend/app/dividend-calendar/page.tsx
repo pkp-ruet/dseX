@@ -6,9 +6,11 @@ import RecordDateBoard from "@/components/dividend-calendar/RecordDateBoard";
 import AgmBoard from "@/components/dividend-calendar/AgmBoard";
 import TopCashDividends from "@/components/dividend-calendar/TopCashDividends";
 import RecentDeclarations from "@/components/dividend-calendar/RecentDeclarations";
-import HowDividendsWork from "@/components/dividend-calendar/HowDividendsWork";
+import HowDividendsWork, { buyTodayAnswer } from "@/components/dividend-calendar/HowDividendsWork";
+import { bnDate } from "@/lib/bn";
 import DividendPromo from "@/components/premium/DividendPromo";
 import ErrorState from "@/components/ui/ErrorState";
+import { T } from "@/components/i18n/T";
 import PageHeader from "@/components/ui/PageHeader";
 import PageGuide from "@/components/seo/PageGuide";
 import Link from "next/link";
@@ -64,16 +66,14 @@ export default async function DividendCalendarPage() {
     return (
       <>
         <PageHeader
-          eyebrow="Dhaka Stock Exchange"
-          title="Dividend Calendar"
-          bn="কোন কোম্পানি কবে ডিভিডেন্ড দিচ্ছে — রেকর্ড ডেট, এজিএম আর শেষ কেনার দিন।"
+          eyebrow={<T en="Dhaka Stock Exchange" bn="ঢাকা স্টক এক্সচেঞ্জ" />}
+          title={<T en="Dividend calendar" bn="ডিভিডেন্ড ক্যালেন্ডার" />}
         />
         <ErrorState
           size="inline"
-          title="Couldn't load the dividend calendar"
-          bn="ডিভিডেন্ড ক্যালেন্ডার এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+          title={<T en="We couldn't load the dividend calendar" bn="ডিভিডেন্ড ক্যালেন্ডার এখন লোড করা যাচ্ছে না" />}
           reload
-          links={[{ href: "/dsestockranking", label: "Stock rankings" }]}
+          links={[{ href: "/dsestockranking", label: <T en="Stock rankings" bn="শেয়ার র‍্যাঙ্কিং" /> }]}
         />
       </>
     );
@@ -122,8 +122,7 @@ export default async function DividendCalendarPage() {
             name: "If I buy a DSE share today, will I get the dividend?",
             acceptedAnswer: {
               "@type": "Answer",
-              text:
-                `Only if the shares are in your BO account on the record date. Normal-market trades on DSE settle on T+2, so buying about ${lead} trading days before the record date is the safe side. In the final days DSE moves the stock to the spot market, where settlement is faster — confirm the exact cut-off with your broker.`,
+              text: buyTodayAnswer(lead),
             },
           },
           {
@@ -175,13 +174,20 @@ export default async function DividendCalendarPage() {
       />
 
       <PageHeader
-        eyebrow="Dhaka Stock Exchange"
-        title="Dividend Calendar"
-        bn="কোন কোম্পানি কবে ডিভিডেন্ড দিচ্ছে — রেকর্ড ডেট, এজিএম আর শেষ কেনার দিন।"
+        eyebrow={<T en="Dhaka Stock Exchange" bn="ঢাকা স্টক এক্সচেঞ্জ" />}
+        title={<T en="Dividend calendar" bn="ডিভিডেন্ড ক্যালেন্ডার" />}
+        lead={
+          <T
+            en="Which company pays a dividend and when: record dates, AGMs and the last day to buy."
+            bn="কোন কোম্পানি কবে ডিভিডেন্ড দিচ্ছে: রেকর্ড ডেট, এজিএম আর কেনার শেষ দিন।"
+          />
+        }
         actions={
           <span className="ms-page-date">
-            {data.stats.declarations_tracked} declarations tracked · updated{" "}
-            {formatDate(data.today)}
+            <T
+              en={`${data.stats.declarations_tracked} declarations tracked · updated ${formatDate(data.today)}`}
+              bn={`${data.stats.declarations_tracked}টি ঘোষণা দেখা হচ্ছে · হালনাগাদ ${bnDate(data.today)}`}
+            />
           </span>
         }
       />
@@ -205,6 +211,7 @@ export default async function DividendCalendarPage() {
           so this block is prose only (faqSchema off, no faq). */}
       <PageGuide
         title="About this dividend calendar"
+        titleBn="এই ডিভিডেন্ড ক্যালেন্ডার সম্পর্কে"
         faqSchema={false}
         intro={[
           <>
@@ -221,13 +228,33 @@ export default async function DividendCalendarPage() {
             for T+2 settlement and DSE&apos;s spot-market window just before it.
           </>,
           <>
-            A high yield alone is not a reason to buy: the share often drops by roughly the dividend on the
-            ex-date, and a company paying out more than it earns will not keep it up. Open the company for its
-            dividend history and fundamental score, or start from the{" "}
+            A high yield alone is not a reason to buy. The share price often drops by about the dividend after
+            the record date, and a company that pays out more than it earns cannot keep it up. Open the company
+            for its dividend history and fundamental score, or start from the{" "}
             <Link href="/stock-insights/top-dividend-stocks-bangladesh">best dividend shares list</Link>.
           </>,
         ]}
-        bn="রেকর্ড ডেটের আগে শেষ কোন দিনে কিনলে ডিভিডেন্ড পাবেন — সেটাই এখানে শেষ কেনার দিন।"
+        introBn={[
+          <>
+            এটি <b>ঢাকা স্টক এক্সচেঞ্জের সামনের সব ডিভিডেন্ডের ক্যালেন্ডার</b>, যতটা আমরা আগে থেকে দেখতে পাই:
+            আসন্ন রেকর্ড ডেট, এজিএমের তারিখ, প্রতিটি বোর্ডের ঘোষিত নগদ আর বোনাস শতাংশ, আর গত এক বছরের সবচেয়ে
+            বড় নগদ ডিভিডেন্ড। প্রতিটি লেনদেনের দিনে ডিএসইতে কোম্পানির নিজের ঘোষণা থেকে এটি নতুন করে তৈরি হয়; এখন{" "}
+            {data.stats.declarations_tracked}টি ঘোষণা দেখা হচ্ছে।
+          </>,
+          <>
+            প্রতিটি সারির দুটি সংখ্যা আসল কাজ করে। <b>শেয়ারপ্রতি নগদ</b> ডিএসইর শতাংশকে (৳10 ফেস ভ্যালুর ওপর)
+            টাকায় দেখায়, আর <b>ডিভিডেন্ড ইল্ড</b> সেটিকে আজকের সমাপনী দাম দিয়ে ভাগ করে। তাই ৳300 দামের শেয়ারে
+            &ldquo;30% ডিভিডেন্ড&rdquo; আসলে 1%। <b>কেনার শেষ দিন</b> হলো সাধারণ বাজারের সেই শেষ দিন, যেদিন কিনলে
+            T+2 নিষ্পত্তি আর তার ঠিক আগের স্পট মার্কেটের সময় মিলিয়েও রেকর্ড ডেটের মধ্যে শেয়ার আপনার বিও
+            অ্যাকাউন্টে পৌঁছায়।
+          </>,
+          <>
+            শুধু বেশি ইল্ড দেখে কেনা ঠিক নয়। রেকর্ড ডেটের পর শেয়ারের দাম প্রায়ই ডিভিডেন্ডের সমান কমে যায়, আর যে
+            কোম্পানি আয়ের চেয়ে বেশি ডিভিডেন্ড দেয়, সে তা ধরে রাখতে পারে না। কোম্পানির ডিভিডেন্ডের ইতিহাস আর স্কোর
+            দেখতে তার পেজ খুলুন, অথবা শুরু করুন{" "}
+            <Link href="/stock-insights/top-dividend-stocks-bangladesh">সেরা ডিভিডেন্ড শেয়ারের তালিকা</Link> থেকে।
+          </>,
+        ]}
       />
     </>
   );

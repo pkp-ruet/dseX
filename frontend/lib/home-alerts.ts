@@ -59,8 +59,8 @@ function fmtPrice(n: number): string {
 /** "Now ৳412 · yearly high ৳420" — the 52-week rows' detail line. */
 function rangeDetail(ltp: number | null, mark: number | null, side: "high" | "low", bn: boolean): string | undefined {
   if (ltp == null || mark == null) return undefined;
-  if (bn) return `এখন ৳${fmtPrice(ltp)} · বছরের ${side === "high" ? "সর্বোচ্চ" : "সর্বনিম্ন"} ৳${fmtPrice(mark)}`;
-  return `Now ৳${fmtPrice(ltp)} · yearly ${side} ৳${fmtPrice(mark)}`;
+  if (bn) return `এখন ৳${fmtPrice(ltp)} · এ বছরের ${side === "high" ? "সর্বোচ্চ" : "সর্বনিম্ন"} ৳${fmtPrice(mark)}`;
+  return `Now ৳${fmtPrice(ltp)} · this year's ${side} ৳${fmtPrice(mark)}`;
 }
 
 /**
@@ -138,7 +138,7 @@ export function buildHomeAlerts(opts: {
       kind: "target",
       code: a.trading_code,
       emoji: "🎯",
-      title: bn ? `${a.trading_code} আপনার ৳${target} লক্ষ্যে পৌঁছেছে` : `${a.trading_code} hit your ৳${target} target`,
+      title: bn ? `${a.trading_code} আপনার ৳${target} টার্গেটে পৌঁছেছে` : `${a.trading_code} reached your ৳${target} target`,
       detail: reached ? (bn ? `৳${reached}-এ পৌঁছেছে` : `Reached ৳${reached}`) : undefined,
       href: `/stock/${a.trading_code}`,
       tone: a.direction === "above" ? "positive" : "negative",
@@ -203,20 +203,20 @@ export function buildHomeAlerts(opts: {
       emoji: sell ? "🔴" : "🟢",
       title: sell
         ? bn
-          ? `${ev.trading_code} এখন বিক্রির মতো দেখাচ্ছে`
-          : `${ev.trading_code} now looks like a Sell`
+          ? `${ev.trading_code}-এ এখন বিক্রির সংকেত`
+          : `${ev.trading_code} now has a Sell signal`
         : bn
-          ? `${ev.trading_code} এখন আরও কেনার মতো দেখাচ্ছে`
-          : `${ev.trading_code} now looks like a Buy More`,
+          ? `${ev.trading_code}-এ এখন আরও কেনার সংকেত`
+          : `${ev.trading_code} now has a Buy more signal`,
       detail:
         reason ??
         (sell
           ? bn
-            ? "আবার ভেবে দেখার সময়"
-            : "Time to take another look"
+            ? "আরেকবার ভেবে দেখার সময়।"
+            : "It is a good time to take another look."
           : bn
-            ? "ভালো কোম্পানি, দাম এখন কম"
-            : "Strong company at a cheap price"),
+            ? "শক্তিশালী কোম্পানি, এখন দামও কম।"
+            : "A strong company at a low price."),
       href: `/stock/${ev.trading_code}`,
       tone: sell ? "negative" : "positive",
     });
@@ -272,7 +272,7 @@ export function buildHomeAlerts(opts: {
       kind: "high",
       code: e.trading_code,
       emoji: "🔼",
-      title: bn ? `${e.trading_code} বছরের সর্বোচ্চ দামের কাছে` : `${e.trading_code} near its 52-week high`,
+      title: bn ? `${e.trading_code} এ বছরের সর্বোচ্চ দামের কাছে` : `${e.trading_code} is close to this year's high`,
       detail: rangeDetail(e.ltp, e.w52_high, "high", bn),
       href: `/stock/${e.trading_code}`,
       tone: "positive",
@@ -287,7 +287,7 @@ export function buildHomeAlerts(opts: {
       kind: "low",
       code: e.trading_code,
       emoji: "🔽",
-      title: bn ? `${e.trading_code} বছরের সর্বনিম্ন দামের কাছে` : `${e.trading_code} near its 52-week low`,
+      title: bn ? `${e.trading_code} এ বছরের সর্বনিম্ন দামের কাছে` : `${e.trading_code} is close to this year's low`,
       detail: rangeDetail(e.ltp, e.w52_low, "low", bn),
       href: `/stock/${e.trading_code}`,
       tone: "negative",
@@ -320,8 +320,8 @@ export function buildHomeAlerts(opts: {
         kind: "dividend",
         code: e.trading_code,
         emoji: "💰",
-        title: bn ? `${e.trading_code} আপনাকে ৳${bdGroup(payout)} দেবে` : `${e.trading_code} pays you ৳${bdGroup(payout)}`,
-        detail: bn ? `রেকর্ড ডেট ${when}${daysStr}` : `Record date ${when}${daysStr}`,
+        title: bn ? `${e.trading_code} থেকে আপনি ৳${bdGroup(payout)} ডিভিডেন্ড পাবেন` : `${e.trading_code} will pay you ৳${bdGroup(payout)}`,
+        detail: bn ? `রেকর্ড ডেট: ${when}${daysStr}` : `Record date: ${when}${daysStr}`,
         href: `/stock/${e.trading_code}`,
         tone: "positive",
       });
@@ -332,8 +332,8 @@ export function buildHomeAlerts(opts: {
         kind: "dividend",
         code: e.trading_code,
         emoji: "💰",
-        title: bn ? `${e.trading_code} ${e.stock_pct}% বোনাস শেয়ার দিচ্ছে` : `${e.trading_code} gives ${e.stock_pct}% bonus shares`,
-        detail: bn ? `রেকর্ড ডেট ${when}${daysStr}` : `Record date ${when}${daysStr}`,
+        title: bn ? `${e.trading_code} ${e.stock_pct}% বোনাস শেয়ার দিচ্ছে` : `${e.trading_code} is giving ${e.stock_pct}% bonus shares`,
+        detail: bn ? `রেকর্ড ডেট: ${when}${daysStr}` : `Record date: ${when}${daysStr}`,
         href: `/stock/${e.trading_code}`,
         tone: "neutral",
       });
@@ -349,7 +349,7 @@ export function buildHomeAlerts(opts: {
       kind: "dividend",
       code: d.trading_code,
       emoji: "💰",
-      title: bn ? `${d.trading_code} — ${pct}ডিভিডেন্ড ঘোষণা` : `${d.trading_code} — ${pct}dividend declared`,
+      title: bn ? `${d.trading_code} ${pct}ডিভিডেন্ড ঘোষণা করেছে` : `${d.trading_code} declared a ${pct}dividend`,
       href: `/stock/${d.trading_code}`,
       tone: "neutral",
     });
@@ -362,15 +362,15 @@ export function buildHomeAlerts(opts: {
     const detail =
       info && d.record_date
         ? bn
-          ? `রেকর্ড ডেট ${bnDate(d.record_date)} · ${info.recordDaysLeft} দিন বাকি`
-          : `Record date ${formatDate(d.record_date)} · ${info.recordDaysLeft} ${info.recordDaysLeft === 1 ? "day" : "days"} left`
+          ? `রেকর্ড ডেট: ${bnDate(d.record_date)} · আর ${info.recordDaysLeft} দিন`
+          : `Record date: ${formatDate(d.record_date)} · ${info.recordDaysLeft} ${info.recordDaysLeft === 1 ? "day" : "days"} left`
         : undefined;
     alerts.push({
       id: `dv:${code}`,
       kind: "dividend",
       code: d.trading_code,
       emoji: "💰",
-      title: bn ? `${d.trading_code} — ডিভিডেন্ডের রেকর্ড ডেট আসছে` : `${d.trading_code} — dividend record date soon`,
+      title: bn ? `${d.trading_code}-এর ডিভিডেন্ডের রেকর্ড ডেট কাছে` : `${d.trading_code}'s dividend record date is close`,
       detail,
       href: `/stock/${d.trading_code}`,
       tone: "neutral",

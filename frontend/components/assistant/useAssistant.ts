@@ -35,7 +35,7 @@ import { COPY } from "@/lib/assistant/copy";
 
 // Bump the version when the greeting/chips change so stale transcripts are dropped.
 // localStorage (not sessionStorage) so a returning visitor sees continuity.
-const STORAGE_KEY = "disha:chat:v3";
+const STORAGE_KEY = "disha:chat:v4"; // v4 (2026-10-28): one language per message
 // Per-day flag (dateString) so the personalized brief greets at most once a day.
 const BRIEF_SEEN_KEY = "disha:brief:seen";
 // Cap the persisted transcript so localStorage doesn't grow without bound.
@@ -110,7 +110,7 @@ function limitBlocks(): MessageBlock[] {
         type: "text",
         text: COPY.freeLimit.text(n),
         bn: COPY.freeLimit.bn(n),
-        link: { href: "/premium", label: COPY.freeLimit.cta },
+        link: { href: "/premium", label: COPY.freeLimit.cta, labelBn: COPY.freeLimit.ctaBn },
       },
     ];
   }
@@ -119,7 +119,7 @@ function limitBlocks(): MessageBlock[] {
       type: "text",
       text: COPY.guestLimit.text,
       bn: COPY.guestLimit.bn,
-      link: { href: "/register", label: COPY.guestLimit.cta },
+      link: { href: "/register", label: COPY.guestLimit.cta, labelBn: COPY.guestLimit.ctaBn },
     },
   ];
 }
@@ -304,8 +304,9 @@ export function useAssistant(): UseAssistant {
     dispatch({ type: "flow", active: next.active });
   }, []);
 
-  const addUser = useCallback((text: string) => {
-    dispatch({ type: "add", message: mkMessage("user", [{ type: "text", text }]) });
+  /** A typed message is stored as typed; a tapped chip also carries its Bengali label. */
+  const addUser = useCallback((text: string, bn?: string) => {
+    dispatch({ type: "add", message: mkMessage("user", [{ type: "text", text, bn }]) });
     // Adoption signal — fire-and-forget; no-ops when logged out.
     void apiMarkAiUsed();
   }, []);
@@ -390,7 +391,7 @@ export function useAssistant(): UseAssistant {
           }
           const cur = Math.min(flowRef.current.stepIndex, SLOT_ORDER.length - 1);
           return [
-            { type: "text", text: "Tap one of these to continue 👇", bn: "চালিয়ে যেতে নিচের একটাতে চাপ দিন 👇" },
+            { type: "text", text: COPY.suggest.continue, bn: COPY.suggest.continueBn },
             ...slotQuestion(SLOT_ORDER[cur], sectorsRef.current),
           ];
         });
@@ -406,9 +407,9 @@ export function useAssistant(): UseAssistant {
   );
 
   const onSlotAnswer = useCallback(
-    (key: Chip["slot"], label: string) => {
+    (key: Chip["slot"], label: string, labelBn?: string) => {
       if (!key) return;
-      addUser(label);
+      addUser(label, labelBn);
       const collected = applySlot(flowRef.current.collected, key.key, key.value);
       const nextIdx = nextSlotIndex(collected, flowRef.current.stepIndex + 1);
       if (nextIdx < SLOT_ORDER.length) {
@@ -430,12 +431,12 @@ export function useAssistant(): UseAssistant {
       if (state.status === "thinking") return;
       // Slot answers stay free so a guest can finish a flow they already started.
       if (chip.slot) {
-        onSlotAnswer(chip.slot, chip.label);
+        onSlotAnswer(chip.slot, chip.label, chip.labelBn);
         return;
       }
       if (state.limited) return;
       if (chip.client) {
-        addUser(chip.label);
+        addUser(chip.label, chip.labelBn);
         const { kind, code } = chip.client;
         botRespond(async () => {
           if (!isLoggedIn()) {
@@ -444,7 +445,7 @@ export function useAssistant(): UseAssistant {
                 type: "text",
                 text: COPY.actions.signInToSave,
                 bn: COPY.actions.signInToSaveBn,
-                link: { href: "/login", label: COPY.brief.signIn },
+                link: { href: "/login", label: COPY.brief.signIn, labelBn: COPY.brief.signInBn },
               },
             ];
           }
@@ -454,9 +455,9 @@ export function useAssistant(): UseAssistant {
             if (nowWatched === "limit") {
               return [{
                 type: "text",
-                text: "A free account can follow 10 stocks. Premium has no limit.",
-                bn: "ফ্রি অ্যাকাউন্টে 10টি শেয়ার ফলো করা যায়। প্রিমিয়ামে কোনো সীমা নেই।",
-                link: { href: "/premium", label: "See Premium" },
+                text: COPY.actions.watchLimit,
+                bn: COPY.actions.watchLimitBn,
+                link: { href: "/premium", label: COPY.freeLimit.cta, labelBn: COPY.freeLimit.ctaBn },
               }];
             }
             return nowWatched
@@ -468,7 +469,7 @@ export function useAssistant(): UseAssistant {
         return;
       }
       if (chip.action) {
-        addUser(chip.label);
+        addUser(chip.label, chip.labelBn);
         countGuestMessage();
         const { intentId, entities } = chip.action;
         botRespond(async () => {

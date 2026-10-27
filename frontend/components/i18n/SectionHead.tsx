@@ -1,35 +1,32 @@
 import type { ReactNode } from "react";
 
 /**
- * Standard landing-page section heading.
- *
- * Copy rule, applied everywhere on `/`: the headline is **English in easy words**,
- * and directly under it sits **one simple Bengali line** explaining it. There is
- * no language toggle. Small UI text (chips, buttons, table headers, metric
- * labels) stays English only.
+ * Standard landing-page section heading: an optional small label, the headline
+ * and one line under it. Pass `<T en bn />` for each so the page reads in one
+ * language (docs/voice.md).
  *
  * Since the 2026-10 redesign it draws the same plain heading as the shared
- * `components/ui/SectionHeader` (sentence-case label, bold headline, Bengali
- * line). The old accent props stay so callers don't change.
+ * `components/ui/SectionHeader` (sentence-case label, bold headline, one
+ * line under it). The old accent props stay so callers don't change.
  */
 export default function SectionHead({
   eyebrow,
   title,
   highlight,
-  bn,
+  sub,
   id,
   accent = "var(--primary)",
   icon,
   className = "",
 }: {
   /** Small label above the headline, e.g. "How the score is built". */
-  eyebrow?: string;
-  /** The headline. English, plain words, no jargon. */
-  title: string;
+  eyebrow?: ReactNode;
+  /** The headline, in plain words. */
+  title: ReactNode;
   /** Optional trailing phrase of the headline, painted in the accent colour. */
   highlight?: string;
-  /** One simple Bengali sentence explaining the headline. */
-  bn: string;
+  /** One line under the headline (`<T>`). */
+  sub?: ReactNode;
   id?: string;
   /** Section accent colour — a CSS token, e.g. "var(--info)". */
   accent?: string;
@@ -52,12 +49,7 @@ export default function SectionHead({
         {title}
         {highlight && <> {highlight}</>}
       </h2>
-      <p
-        lang="bn"
-        className="font-bn mt-1.5 max-w-2xl text-base leading-relaxed text-text-muted"
-      >
-        {bn}
-      </p>
+      {sub && <p className="mt-1.5 max-w-2xl text-base leading-relaxed text-text-muted">{sub}</p>}
     </div>
   );
 }

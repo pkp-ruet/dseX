@@ -3,7 +3,8 @@ import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import { notFound } from "next/navigation";
 import { GUIDES, getGuide } from "@/lib/guides";
-import { guideLanguages } from "@/lib/i18n-pairs";
+import { LEARN_TO_BLOG, guideLanguages } from "@/lib/i18n-pairs";
+import ArticleLangNote from "@/components/i18n/ArticleLangNote";
 import ArticleContents, { sectionId } from "@/components/learn/ArticleContents";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
@@ -104,8 +105,12 @@ export default async function GuidePage({ params }: Props) {
         size="article"
         eyebrow={<>{guide.category} · {guide.readTime}</>}
         title={guide.title}
-        bn="সহজ ভাষায় লেখা একটি গাইড — ধীরে ধীরে পড়ুন, উদাহরণগুলো দেখুন।"
         lead={guide.description}
+      />
+
+      <ArticleLangNote
+        articleLang="en"
+        pairHref={LEARN_TO_BLOG[slug] ? `/blog/${LEARN_TO_BLOG[slug]}` : undefined}
       />
 
       {/* Contents for long pieces (numbered — the sections are read in order) */}

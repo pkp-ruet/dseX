@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { toast } from "@/lib/toast";
 import { IconShare } from "@/components/stock/StockIcons";
 import Button from "@/components/ui/Button";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
 
 interface Props {
   code: string;
@@ -22,6 +24,7 @@ interface Props {
 export default function ShareButton({ code, companyName, score, ltp, className = "" }: Props) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  const { bn } = useLang();
 
   async function handleShare() {
     const url = typeof window !== "undefined" ? window.location.origin + `/stock/${code}` : `/stock/${code}`;
@@ -42,9 +45,9 @@ export default function ShareButton({ code, companyName, score, ltp, className =
     }
     try {
       await navigator.clipboard.writeText(url);
-      toast({ message: "Link copied", tone: "success" });
+      toast({ message: <T en="Link copied" bn="লিংক কপি হয়েছে" />, tone: "success" });
     } catch {
-      toast({ message: "Could not copy the link", tone: "error" });
+      toast({ message: <T en="We couldn't copy the link" bn="লিংক কপি করা যায়নি" />, tone: "error" });
     }
   }
 
@@ -55,11 +58,13 @@ export default function ShareButton({ code, companyName, score, ltp, className =
       size="sm"
       onClick={handleShare}
       className={`${mounted ? "" : "invisible"} ${className}`.trim()}
-      aria-label={`Share ${code}`}
-      title="Share this stock"
+      aria-label={bn ? `${code} শেয়ার করুন` : `Share ${code}`}
+      title={bn ? "এই শেয়ারের লিংক পাঠান" : "Share this stock"}
     >
       <IconShare size={14} />
-      <span>Share</span>
+      <span>
+        <T en="Share" bn="শেয়ার করুন" />
+      </span>
     </Button>
   );
 }

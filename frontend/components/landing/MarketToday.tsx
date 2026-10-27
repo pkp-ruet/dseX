@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import SectionHead from "@/components/i18n/SectionHead";
+import { T } from "@/components/i18n/T";
 import MoversCard from "@/components/home/personalized/MoversCard";
 import MarketNewsCard from "@/components/home/personalized/MarketNewsCard";
 import BanglaSnapshotCard from "@/components/home/personalized/BanglaSnapshotCard";
@@ -28,22 +29,22 @@ const PAIR = "grid grid-cols-1 gap-3 md:grid-cols-2 [&>*:only-child]:md:col-span
  * Why the dashboard's own components and not landing-specific ones: what a
  * visitor sees here has to *be* the product, not an artist's impression of it.
  * They are client components, but Next server-renders them, so every row is in
- * the HTML Google receives. `held` / `watched` are empty sets (no account), and
- * `lang` stays "en" — this page has no toggle. The Bengali snapshot paragraph
- * is the exception and is meant to be: it is the one place on the landing that
- * shows, rather than claims, that the whole product speaks Bangla.
+ * the HTML Google receives. `held` / `watched` are empty sets (no account).
+ * Every card carries both languages (`<T>`); the navbar switch picks one.
  */
 export default function MarketToday({
   movers,
   sectors,
   news,
   summaryBn,
+  summaryEn,
   next,
 }: {
   movers: MarketMoversData | null;
   sectors: MarketStateData["now"]["sectors"];
   news: DseTodayNewsItem[];
   summaryBn: string | null | undefined;
+  summaryEn?: string | null;
   next: MarketStateData["next"] | null;
 }) {
   const hasMovers =
@@ -64,13 +65,15 @@ export default function MarketToday({
     >
       <SectionHead
         className="px-1.5 sm:px-0"
-        eyebrow="Today's market"
+        eyebrow={<T en="Today's market" bn="আজকের বাজার" />}
         id="market-today-title"
-        title="Who went up, who went down,"
-        highlight="and why."
-        accent="var(--info)"
-        icon={<><path d="M3 17l6-6 4 3 8-8" /><path d="M15 6h6v6" /></>}
-        bn="আজ কোন শেয়ারের দাম বাড়ল, কোনটা কমল, কোন খাত এগিয়ে — সব এক জায়গায়।"
+        title={<T en="What rose, what fell, and why." bn="কোনটির দাম বাড়ল, কোনটির কমল, আর কেন।" />}
+        sub={
+          <T
+            en="Today's biggest moves, the sectors leading the week and the day's news, all in one place."
+            bn="আজকের বড় ওঠানামা, এ সপ্তাহে এগিয়ে থাকা সেক্টর আর দিনের খবর, সব এক জায়গায়।"
+          />
+        }
       />
 
       <div className="mt-6 space-y-3">
@@ -86,7 +89,7 @@ export default function MarketToday({
 
         {(summaryBn || hasTurning) && (
           <div className={PAIR}>
-            {summaryBn && <BanglaSnapshotCard summary={summaryBn} />}
+            {summaryBn && <BanglaSnapshotCard summary={summaryBn} summaryEn={summaryEn} />}
             {hasTurning && (
               <TurningPointsCard
                 nearHigh={next?.near_high ?? []}
@@ -105,13 +108,13 @@ export default function MarketToday({
           href="/dse-today"
           className="text-sm font-bold text-primary-ink underline-offset-4 hover:underline"
         >
-          See every price today &rarr;
+          <T en="See every price today →" bn="আজকের সব দাম দেখুন →" />
         </Link>
         <Link
           href="/market-analysis"
           className="text-sm font-bold text-primary-ink underline-offset-4 hover:underline"
         >
-          Is the market up or down today? &rarr;
+          <T en="Is the market up or down today? →" bn="আজ বাজার বাড়ছে না কমছে? →" />
         </Link>
       </div>
     </section>

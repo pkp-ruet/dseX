@@ -4,10 +4,12 @@ import { getLatestResults } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 import PageHeader from "@/components/ui/PageHeader";
 import ErrorState from "@/components/ui/ErrorState";
+import { T } from "@/components/i18n/T";
 import ResultsFeed from "@/components/results/ResultsFeed";
 import PageGuide from "@/components/seo/PageGuide";
 import HubLinks from "@/components/layout/HubLinks";
 import { FREE_RESULTS_ROWS } from "@/lib/free-share";
+import { bnDate } from "@/lib/bn";
 
 export const revalidate = 900;
 
@@ -58,11 +60,10 @@ export default async function ResultsPage() {
   if (!data) {
     return (
       <>
-        <PageHeader title="Latest quarterly results" bn="সব কোম্পানির সর্বশেষ ত্রৈমাসিক ফল" />
+        <PageHeader title={<T en="Latest quarterly results" bn="সর্বশেষ প্রান্তিকের ফল" />} />
         <ErrorState
-          title="Couldn't load the latest results"
-          bn="সর্বশেষ ফল এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
-          links={[{ href: "/dse-today", label: "DSE Today" }]}
+          title={<T en="We couldn't load the latest results" bn="সর্বশেষ ফল এখন লোড করা যাচ্ছে না" />}
+          links={[{ href: "/dse-today", label: <T en="DSE today" bn="আজকের ডিএসই" /> }]}
         />
       </>
     );
@@ -108,23 +109,34 @@ export default async function ResultsPage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <PageHeader
-        eyebrow="Dhaka Stock Exchange"
-        title="Latest quarterly results"
-        bn="সব কোম্পানির সর্বশেষ ত্রৈমাসিক ফল — গত বছরের একই সময়ের সঙ্গে তুলনা করে।"
-        lead={`${rows.length} companies' latest reports, newest first. ${good} earned clearly more than a year earlier, ${bad} clearly less. The newest ${FREE_RESULTS_ROWS} are free; every company's is in Premium.`}
-        actions={data.as_of ? <span className="ms-page-date">Latest report {formatDate(data.as_of)}</span> : undefined}
+        eyebrow={<T en="Dhaka Stock Exchange" bn="ঢাকা স্টক এক্সচেঞ্জ" />}
+        title={<T en="Latest quarterly results" bn="সর্বশেষ প্রান্তিকের ফল" />}
+        lead={
+          <T
+            en={`The latest reports of ${rows.length} companies, newest first. ${good} earned clearly more than a year earlier, and ${bad} clearly less. The newest ${FREE_RESULTS_ROWS} are free; every company's report is in Premium.`}
+            bn={`${rows.length}টি কোম্পানির সর্বশেষ প্রতিবেদন, নতুনগুলো আগে। ${good}টি গত বছরের একই সময়ের চেয়ে স্পষ্টভাবে বেশি মুনাফা করেছে, আর ${bad}টি স্পষ্টভাবে কম। নতুন ${FREE_RESULTS_ROWS}টি ফ্রি; সব কোম্পানির প্রতিবেদন প্রিমিয়ামে।`}
+          />
+        }
+        actions={
+          data.as_of ? (
+            <span className="ms-page-date">
+              <T en={`Latest report ${formatDate(data.as_of)}`} bn={`সর্বশেষ প্রতিবেদন ${bnDate(data.as_of)}`} />
+            </span>
+          ) : undefined
+        }
       />
 
       <ResultsFeed rows={rows} counts={data.counts} />
 
       <PageGuide
         title="About these results"
+        titleBn="এই ফলগুলো সম্পর্কে"
         intro={[
           <>
             Every company on the Dhaka Stock Exchange posts its <b>un-audited quarterly results</b> on DSE in one
             fixed form: earnings per share (EPS) for the quarter and for the year so far, each against the same
-            months a year earlier. This page reads every company&apos;s latest post and puts it in one line —
-            better, weaker or about the same — newest first.
+            months a year earlier. This page reads every company&apos;s latest post and sums it up in one line:
+            better, weaker or about the same, newest first.
           </>,
           <>
             &ldquo;Better&rdquo; means profit per share is up 10% or more on the same months last year (or the company is
@@ -140,19 +152,45 @@ export default async function ResultsPage() {
             <Link href="/dsestockranking">fundamental score</Link> before you decide.
           </>,
         ]}
-        bn="ত্রৈমাসিক ফল নিরীক্ষিত নয় — একটি প্রান্তিক দিয়ে কোম্পানি বিচার করবেন না।"
+        introBn={[
+          <>
+            ঢাকা স্টক এক্সচেঞ্জের প্রতিটি কোম্পানি একটি নির্দিষ্ট ছকে ডিএসইতে তাদের <b>অনিরীক্ষিত প্রান্তিক
+            ফল</b> প্রকাশ করে: প্রান্তিকের এবং বছরের শুরু থেকে এখন পর্যন্ত শেয়ারপ্রতি আয় (ইপিএস), প্রতিটি গত বছরের
+            একই সময়ের পাশে রেখে। এই পেজ প্রতিটি কোম্পানির সর্বশেষ প্রতিবেদন পড়ে এক লাইনে জানায়: ভালো, দুর্বল,
+            নাকি প্রায় আগের মতো। নতুনগুলো আগে থাকে।
+          </>,
+          <>
+            &ldquo;ভালো&rdquo; মানে গত বছরের একই সময়ের চেয়ে শেয়ারপ্রতি মুনাফা 10% বা তার বেশি বেড়েছে, অথবা কোম্পানি
+            আবার মুনাফায় ফিরেছে। &ldquo;দুর্বল&rdquo; মানে 10% বা তার বেশি কমেছে, অথবা লোকসান হয়েছে। &ldquo;মিশ্র&rdquo; মানে
+            মুনাফা বেড়েছে কিন্তু নগদ টাকা আসেনি, অথবা সর্বশেষ প্রান্তিকে গতি কমেছে। কোম্পানির সেই বছরের নিরীক্ষিত
+            বার্ষিক হিসাব প্রকাশ না হওয়া পর্যন্ত প্রতিবেদনটি এখানে থাকে। পুরো ব্যাখ্যা দেখতে কোম্পানিতে চাপ দিন:
+            শুধু সর্বশেষ প্রান্তিক, ব্যবসা থেকে আসা নগদ টাকা, গত 12 মাসের মুনাফায় দাম কত, আর আমাদের স্কোর কীভাবে
+            বদলেছে।
+          </>,
+          <>
+            একটি প্রান্তিক দিয়ে কোম্পানি বিচার করা যায় না। প্রান্তিকের হিসাব নিরীক্ষিত নয়, আর একবারের কোনো লাভ বা
+            ক্ষতি এগুলোকে অনেকটা বদলে দিতে পারে। সিদ্ধান্তের আগে কোম্পানির বছরে বছরে গতি আর তার{" "}
+            <Link href="/dsestockranking">স্কোর</Link> দেখে নিন।
+          </>,
+        ]}
         faq={[
           {
             q: "When do DSE companies post quarterly results?",
-            a: "Usually within one to two months of each quarter's end: Q1 (the first three months), Q2 (the half year) and Q3 (nine months). There is no Q4 post — the fourth quarter is part of the audited yearly accounts.",
+            a: "Usually within one to two months of each quarter's end: Q1 (the first three months), Q2 (the half year) and Q3 (nine months). There is no Q4 post, because the fourth quarter is part of the audited yearly accounts.",
+            qBn: "ডিএসইর কোম্পানিগুলো কখন প্রান্তিকের ফল প্রকাশ করে?",
+            aBn: "সাধারণত প্রতিটি প্রান্তিক শেষ হওয়ার এক থেকে দুই মাসের মধ্যে: প্রথম প্রান্তিক (প্রথম তিন মাস), দ্বিতীয় প্রান্তিক (অর্ধবছর) আর তৃতীয় প্রান্তিক (নয় মাস)। চতুর্থ প্রান্তিকের আলাদা প্রতিবেদন নেই, কারণ সেটি নিরীক্ষিত বার্ষিক হিসাবের অংশ।",
           },
           {
             q: "What does EPS mean?",
             a: "Earnings per share: the company's profit divided by its number of shares. EPS of ৳5 means each share earned ৳5 of profit in that period.",
+            qBn: "ইপিএস মানে কী?",
+            aBn: "শেয়ারপ্রতি আয়: কোম্পানির মুনাফাকে মোট শেয়ারের সংখ্যা দিয়ে ভাগ করলে যা হয়। ইপিএস ৳5 মানে ওই সময়ে প্রতিটি শেয়ার ৳5 মুনাফা করেছে।",
           },
           {
             q: "Are quarterly results audited?",
             a: "No. Q1, Q2 and Q3 figures are un-audited; only the yearly accounts are checked by an auditor.",
+            qBn: "প্রান্তিকের ফল কি নিরীক্ষিত?",
+            aBn: "না। প্রথম, দ্বিতীয় ও তৃতীয় প্রান্তিকের হিসাব অনিরীক্ষিত; শুধু বার্ষিক হিসাব নিরীক্ষক যাচাই করেন।",
           },
         ]}
       />

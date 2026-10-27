@@ -14,6 +14,8 @@ import OwnerMark from "@/components/home/personalized/OwnerMark";
 import RailCard, { Rail, RailHeader } from "@/components/home/personalized/RailCard";
 import StockRow from "@/components/ui/StockRow";
 import { IconLock } from "@/components/ui/icons";
+import { tt } from "@/components/home/tt";
+import { T } from "@/components/i18n/T";
 
 /**
  * The six research lists on the homepage (replaced the four "Ready-made
@@ -48,23 +50,23 @@ export default function ResearchRail({
 
   if (full) {
     return (
-      <div className={bn ? "font-bn" : undefined} lang={bn ? "bn" : undefined}>
+      <div>
         <RailHeader
-          title={t(lang, "researchTitle")}
-          sub={t(lang, "researchSub")}
+          title={tt("researchTitle")}
+          sub={tt("researchSub")}
           href="/stock-insights#research"
-          linkLabel={t(lang, "allLists")}
+          linkLabel={tt("allLists")}
         />
         <Rail>
           {rows.filter((r) => r.l && r.l.top.length > 0).map(({ def, l }) => (
             <RailCard
               key={def.slug}
-              title={bn ? def.shortNameBn : def.shortName}
-              sub={bn ? def.hookBn : def.hook}
+              title={<T en={def.shortName} bn={def.shortNameBn} />}
+              sub={<T en={def.hook} bn={def.hookBn} />}
               href={`/stock-insights/${def.slug}`}
-              linkLabel={t(lang, "researchSeeAll", { n: l!.passed })}
-              listLabel={t(lang, "topN", { n: l!.top.length })}
-              valueLabel={l!.metric ? (bn ? l!.metric.label_bn : l!.metric.label_en) : undefined}
+              linkLabel={tt("researchSeeAll", { n: l!.passed })}
+              listLabel={tt("topN", { n: l!.top.length })}
+              valueLabel={l!.metric ? <T en={l!.metric.label_en} bn={l!.metric.label_bn} /> : undefined}
             >
               {l!.top.map((s) => {
                 const m = l!.metric ? formatResearchMetric(l!.metric, s.metric) : null;
@@ -91,7 +93,7 @@ export default function ResearchRail({
   }
 
   const cta =
-    state === "guest" ? t(lang, "researchCtaGuest") : t(lang, "researchCtaFree");
+    state === "guest" ? tt("researchCtaGuest") : tt("researchCtaFree");
 
   const onCta = () => {
     trackEvent("premium_lock_tap", { area: "home-research", lock: "Research lists", state, stakes: 0 });
@@ -99,25 +101,25 @@ export default function ResearchRail({
   };
 
   return (
-    <div className={bn ? "font-bn" : undefined} lang={bn ? "bn" : undefined}>
+    <div>
       <RailHeader
-        title={t(lang, "researchTitle")}
-        sub={t(lang, "researchSub")}
+        title={tt("researchTitle")}
+        sub={tt("researchSub")}
         href="/stock-insights#research"
-        linkLabel={t(lang, "allLists")}
+        linkLabel={tt("allLists")}
       />
       <article className="soft-card dash-box rl-promo">
         <span className="rl-promo-tag">
           <IconLock size={12} /> Premium
         </span>
-        <h4 className="rl-promo-head">{t(lang, "researchPromoHead")}</h4>
-        <p className="rl-promo-sub">{t(lang, "researchPromoSub")}</p>
+        <h4 className="rl-promo-head">{tt("researchPromoHead")}</h4>
+        <p className="rl-promo-sub">{tt("researchPromoSub")}</p>
         <ul className="rl-promo-grid">
           {rows.map(({ def, l }) => (
             <li key={def.slug}>
               <Link prefetch={false} href={`/stock-insights/${def.slug}`} className="rl-promo-item">
-                <span className="rl-promo-name">{bn ? def.shortNameBn : def.shortName}</span>
-                {l && <span className="rl-promo-count">{t(lang, "researchPass", { n: l.passed })}</span>}
+                <span className="rl-promo-name"><T en={def.shortName} bn={def.shortNameBn} /></span>
+                {l && <span className="rl-promo-count">{tt("researchPass", { n: l.passed })}</span>}
               </Link>
             </li>
           ))}

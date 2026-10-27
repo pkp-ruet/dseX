@@ -3,19 +3,6 @@ import { isMarketOpen, secondsToOpen, formatCountdown } from "@/lib/market-hours
 import { COPY } from "../copy";
 import type { MarketSummaryView, MessageBlock } from "../types";
 
-function summaryLine(condition: MarketSummaryView["condition"]): string {
-  switch (condition) {
-    case "rising":
-      return "Buyers are in control — most stocks are up today. 🟢";
-    case "falling":
-      return "A soft day — more stocks are down than up. 🔴";
-    case "sideways":
-      return "A quiet, mixed day — no strong direction either way.";
-    default:
-      return "Here's the latest market snapshot.";
-  }
-}
-
 export async function marketPulseResponder(): Promise<MessageBlock[]> {
   const [idx, intel] = await Promise.all([
     getMarketIndex(),
@@ -23,7 +10,9 @@ export async function marketPulseResponder(): Promise<MessageBlock[]> {
   ]);
 
   const open = isMarketOpen();
-  const condition = intel?.market_condition ?? "unknown";
+  const condition: MarketSummaryView["condition"] = intel?.market_condition ?? "unknown";
+  const countdown = open ? "" : formatCountdown(secondsToOpen());
+  const line = COPY.marketLine[condition] ?? COPY.marketLine.unknown;
 
   const view: MarketSummaryView = {
     date: idx.date,
@@ -34,8 +23,10 @@ export async function marketPulseResponder(): Promise<MessageBlock[]> {
     down: idx.down_count,
     neutral: idx.neutral_count,
     marketOpen: open,
-    closedNote: open ? undefined : COPY.marketClosed(formatCountdown(secondsToOpen())),
-    line: summaryLine(condition),
+    closedNote: open ? undefined : COPY.marketClosed(countdown),
+    closedNoteBn: open ? undefined : COPY.marketClosedBn(countdown),
+    line: line.text,
+    lineBn: line.bn,
   };
 
   return [{ type: "market-summary", view }];

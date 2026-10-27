@@ -4,7 +4,9 @@ import DailyTipItem from "@/components/daily-tips/DailyTipItem";
 import SectionHeader from "@/components/ui/SectionHeader";
 import SignalsExplorer from "@/components/signals/SignalsExplorer";
 import { formatDate } from "@/lib/formatters";
-import Bn from "@/components/i18n/Bn";
+import { bnDate } from "@/lib/bn";
+import type { ReactNode } from "react";
+import { T } from "@/components/i18n/T";
 import ErrorState from "@/components/ui/ErrorState";
 import SignalChip from "@/components/ui/SignalChip";
 import PageHeader from "@/components/ui/PageHeader";
@@ -58,7 +60,10 @@ export default async function BuySellSignalsPage() {
   ]);
   const tips = tipsData?.tips ?? [];
 
-  if (!scores) return <ErrorState title="Buy signals didn't load" reload />;
+  if (!scores)
+    return (
+      <ErrorState title={<T en="We couldn't load the buy signals" bn="কেনার সংকেত এখন লোড করা যাচ্ছে না" />} reload />
+    );
 
   const all = flattenTiers(scores);
   // Buys only — Strong Buys first, then by fundamental score. The explorer
@@ -78,6 +83,7 @@ export default async function BuySellSignalsPage() {
   ).sort((a, b) => a.localeCompare(b));
 
   const updated = scores.computed_at ? formatDate(scores.computed_at) : null;
+  const updatedBn = scores.computed_at ? bnDate(scores.computed_at) : null;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -117,22 +123,44 @@ export default async function BuySellSignalsPage() {
       />
       <div>
         <PageHeader
-          title="Buy signals"
-          bn="প্রতিদিন কেনার মতো শেয়ার — ভালো কোম্পানি, ঠিকঠাক দামে। জোরালো কারণ না থাকলে শেয়ারটি এখানে আসে না।"
-          lead="Good companies at a sensible price, checked every trading day. When there is no clear reason to buy, a stock simply doesn't appear here."
+          title={<T en="Buy signals" bn="কেনার সংকেত" />}
+          lead={
+            <T
+              en="Good companies at a sensible price, checked every trading day. When there is no clear reason to buy, a share does not appear here."
+              bn="ভালো কোম্পানি, যুক্তিসংগত দামে, প্রতি লেনদেনের দিন যাচাই করা। কেনার স্পষ্ট কারণ না থাকলে শেয়ারটি এখানে আসে না।"
+            />
+          }
         />
 
         {/* Summary: the numbers first, the rule folded underneath. */}
-        <section aria-label="Today's buy signals in numbers" className="soft-card sg-summary">
+        <section aria-label="Today's buy signals" className="soft-card sg-summary">
           <div className="sg-summary-grid">
-            <SummaryCell value={buy.length} label="Buy signals today" tone="positive" />
-            <SummaryCell value={strongCount} label="Strong buys" note="The cheapest of the lot" />
-            <SummaryCell value={sectors.length} label="Sectors" note="with at least one buy" />
-            <SummaryCell value={tips.length} label="Today's tips" note={tips.length > 0 ? "One reason each" : "None today"} />
+            <SummaryCell value={buy.length} label={<T en="Buy signals today" bn="আজকের কেনার সংকেত" />} tone="positive" />
+            <SummaryCell
+              value={strongCount}
+              label={<T en="Strong buys" bn="কেনার ভালো সুযোগ" />}
+              note={<T en="The cheapest of them" bn="এদের মধ্যে সবচেয়ে কম দামের" />}
+            />
+            <SummaryCell
+              value={sectors.length}
+              label={<T en="Sectors" bn="সেক্টর" />}
+              note={<T en="with at least one buy" bn="অন্তত একটি কেনার সংকেতসহ" />}
+            />
+            <SummaryCell
+              value={tips.length}
+              label={<T en="Today's tips" bn="আজকের টিপস" />}
+              note={
+                tips.length > 0 ? (
+                  <T en="One reason each" bn="প্রতিটির একটি কারণ" />
+                ) : (
+                  <T en="None today" bn="আজ নেই" />
+                )
+              }
+            />
           </div>
           <details className="sg-why">
             <summary>
-              How a stock gets a Buy
+              <T en="How a share gets a Buy signal" bn="কীভাবে একটি শেয়ার কেনার সংকেত পায়" />
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="m6 9 6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -141,31 +169,44 @@ export default async function BuySellSignalsPage() {
               <dl className="sg-why-list">
                 <div className="sg-why-row">
                   <dt><SignalChip signal="buy" strength="strong" /></dt>
-                  <dd>A Good or Excellent company that is clearly cheap and still low in its yearly price range.</dd>
+                  <dd>
+                    <T
+                      en="A Good or Excellent company that is clearly cheap and still low in its price range for the year."
+                      bn="ভালো বা চমৎকার গ্রেডের কোম্পানি, যার দাম স্পষ্টভাবে কম, আর এ বছরের দামের সীমায় এখনো নিচের দিকে।"
+                    />
+                  </dd>
                 </div>
                 <div className="sg-why-row">
                   <dt><SignalChip signal="buy" /></dt>
-                  <dd>A Good or Excellent company at a cheap or fair price — worth a closer look.</dd>
+                  <dd>
+                    <T
+                      en="A Good or Excellent company at a low or fair price. It is worth a closer look."
+                      bn="ভালো বা চমৎকার গ্রেডের কোম্পানি, কম বা ন্যায্য দামে। এটি ভালো করে দেখে নেওয়ার মতো।"
+                    />
+                  </dd>
                 </div>
                 <div className="sg-why-row">
-                  <dt className="sg-why-k">Kept off the list</dt>
+                  <dt className="sg-why-k">
+                    <T en="Kept off the list" bn="যারা তালিকায় আসে না" />
+                  </dt>
                   <dd>
-                    Average or Weak companies, Z category, old financial reports, thin trading (under ৳10 lakh a
-                    day), profit down 25% or more on last year, or a price already near the top of its yearly range.
+                    <T
+                      en="Average or Weak companies, Z category shares, companies with old financial reports, shares that trade under ৳10 lakh a day, profit down 25% or more on last year, or a price already near the top of its range for the year."
+                      bn="মাঝারি বা দুর্বল গ্রেডের কোম্পানি, Z ক্যাটাগরির শেয়ার, পুরোনো আর্থিক রিপোর্টের কোম্পানি, দিনে ৳10 লাখের কম লেনদেন হওয়া শেয়ার, গত বছরের চেয়ে 25% বা তার বেশি কমে যাওয়া মুনাফা, অথবা এ বছরের সর্বোচ্চ দামের কাছাকাছি থাকা শেয়ার।"
+                    />
                   </dd>
                 </div>
               </dl>
-              <Bn className="sg-why-bn">
-                ভালো বা খুব ভালো কোম্পানি, যার দাম সস্তা বা ন্যায্য — শুধু সেগুলোই এখানে আসে। দুর্বল, Z ক্যাটাগরির,
-                কম লেনদেনের বা লাভ কমে যাওয়া কোম্পানি বাদ পড়ে।
-              </Bn>
             </div>
           </details>
         </section>
 
         {updated && (
           <p className="sg-updated">
-            Updated {updated} · from company results, today&apos;s price and how actively each share trades
+            <T
+              en={`Updated ${updated}. Built from company results, today's price and how actively each share trades.`}
+              bn={`হালনাগাদ ${updatedBn ?? updated}। কোম্পানির ফলাফল, আজকের দাম আর প্রতিটি শেয়ারের লেনদেন দেখে তৈরি।`}
+            />
           </p>
         )}
 
@@ -173,9 +214,13 @@ export default async function BuySellSignalsPage() {
           <SectionHeader
             id="signals-h"
             size="lg"
-            title="Today's buy signals"
-            bn="আজকের কেনার সংকেত, প্রতিটির সহজ কারণসহ।"
-            lead="Strong buys first, then by score. Each one carries the plain reason behind it."
+            title={<T en="Today's buy signals" bn="আজকের কেনার সংকেত" />}
+            lead={
+              <T
+                en="Strong buys come first, then the rest by score. Each one carries the plain reason behind it."
+                bn="আগে কেনার ভালো সুযোগগুলো, তারপর বাকিগুলো স্কোর অনুযায়ী। প্রতিটির সঙ্গে সহজ ভাষায় কারণ দেওয়া আছে।"
+              />
+            }
           />
           <SignalsExplorer buy={buy} sectors={sectors} />
         </section>
@@ -187,9 +232,13 @@ export default async function BuySellSignalsPage() {
             <SectionHeader
               id="tips-h"
               size="lg"
-              title="Today's tips"
-              bn="প্রতিদিন কয়েকটি শেয়ার, আর সহজ ভাষায় কেন সেগুলো নজরে রাখার মতো।"
-              lead="A fresh handful of stocks worth a look, each with one simple reason it stands out."
+              title={<T en="Today's tips" bn="আজকের টিপস" />}
+              lead={
+                <T
+                  en="A few shares worth a look today, each with one simple reason it stands out."
+                  bn="আজ দেখে নেওয়ার মতো কয়েকটি শেয়ার, প্রতিটি কেন আলাদা তার একটি সহজ কারণসহ।"
+                />
+              }
             />
             <div className="soft-card sg-card">
               <ul className="sg-rows sg-rows--two">
@@ -205,12 +254,29 @@ export default async function BuySellSignalsPage() {
 
         {/* Responsible-use note */}
         <p className="sg-note">
-          Signals come from company results, today&apos;s price and trading activity. They are not predictions
-          and not investment advice — always do your own research before buying or selling. See our{" "}
-          <a href="/disclaimer" className="font-semibold text-primary-ink hover:underline">
-            disclaimer
-          </a>
-          .
+          <T
+            en={
+              <>
+                Signals come from company results, today&apos;s price and trading activity. They are not
+                predictions and not investment advice, so please do your own research before you buy or sell.
+                See our{" "}
+                <a href="/disclaimer" className="font-semibold text-primary-ink hover:underline">
+                  disclaimer
+                </a>
+                .
+              </>
+            }
+            bn={
+              <>
+                সংকেতগুলো কোম্পানির ফলাফল, আজকের দাম আর লেনদেন দেখে তৈরি। এগুলো ভবিষ্যদ্বাণী নয়, বিনিয়োগ
+                পরামর্শও নয়, তাই কেনা বা বেচার আগে নিজে যাচাই করে নিন। আরও জানতে{" "}
+                <a href="/disclaimer" className="font-semibold text-primary-ink hover:underline">
+                  দায়মুক্তি
+                </a>{" "}
+                দেখুন।
+              </>
+            }
+          />
         </p>
       </div>
     </>
@@ -224,8 +290,8 @@ function SummaryCell({
   tone = "default",
 }: {
   value: number;
-  label: string;
-  note?: string;
+  label: ReactNode;
+  note?: ReactNode;
   tone?: "default" | "positive";
 }) {
   return (

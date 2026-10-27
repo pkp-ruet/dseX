@@ -29,8 +29,9 @@ const inter = Inter({
   display: "swap",
 });
 
-// Bengali web font for the বাংলা ব্লগ (/blog). Latin-only fonts above carry no
-// Bengali glyphs, so Bengali text is opted into this via the `.font-bn` utility.
+// Bengali web font. Inter (latin subset) has no Bengali glyphs, so the global
+// font stack falls back to this one for every Bengali character; `.font-bn`
+// only adds the taller line height.
 const hindSiliguri = Hind_Siliguri({
   subsets: ["bengali"],
   weight: ["400", "500", "600", "700"],
@@ -46,7 +47,9 @@ import MarketDataBanner from "@/components/layout/MarketDataBanner";
 import ConditionalAnalytics from "@/components/analytics/ConditionalAnalytics";
 import { AuthProvider } from "@/context/AuthContext";
 import { LangProvider } from "@/context/LangContext";
+import { DEFAULT_LANG, LANG_BOOT_SCRIPT } from "@/lib/lang";
 import GoogleAuthProvider from "@/components/auth/GoogleAuthProvider";
+import { T } from "@/components/i18n/T";
 import Toaster from "@/components/ui/Toaster";
 import PingTracker from "@/components/analytics/PingTracker";
 import FeedbackPrompt from "@/components/feedback/FeedbackPrompt";
@@ -113,9 +116,21 @@ const ORG_JSON_LD = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${hindSiliguri.variable}`}>
+    // Bengali is the default; the boot script swaps in the reader's saved
+    // choice before first paint, so the server value is only a starting point.
+    <html
+      lang={DEFAULT_LANG}
+      data-lang={DEFAULT_LANG}
+      suppressHydrationWarning
+      className={`${inter.variable} ${hindSiliguri.variable}`}
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: LANG_BOOT_SCRIPT }} />
+      </head>
       <body className="min-h-screen flex flex-col">
-        <a href="#main" className="skip-link">Skip to content</a>
+        <a href="#main" className="skip-link">
+          <T en="Skip to content" bn="মূল অংশে যান" />
+        </a>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSON_LD) }}

@@ -11,7 +11,8 @@ import {
 } from "@/lib/api";
 import { money } from "@/lib/formatters";
 import { bnCroreTaka, bnDate, bnInt, bnSignedPct, sectorBn } from "@/lib/bn";
-import HtmlLang from "@/components/i18n/HtmlLang";
+import ArticleLangNote from "@/components/i18n/ArticleLangNote";
+import { T } from "@/components/i18n/T";
 import MarketRow from "@/components/market-analysis/MarketRow";
 import ErrorState from "@/components/ui/ErrorState";
 import PageHeader from "@/components/ui/PageHeader";
@@ -180,20 +181,16 @@ export default async function ShareBazarPage() {
   if (!state) {
     return (
       <div lang="bn" className="font-bn">
-        <HtmlLang lang="bn" />
         <PageHeader
           eyebrow="ঢাকা স্টক এক্সচেঞ্জ"
           title="আজকের শেয়ার বাজার"
-          bn="Today's Dhaka stock market, told in everyday Bangla."
-          subLang="en"
+          lead="ঢাকা স্টক এক্সচেঞ্জের আজকের বাজার, সহজ বাংলায়।"
         />
         <ErrorState
           size="inline"
-          title="আজকের বাজারের তথ্য আনা যাচ্ছে না"
-          message="ডেটা সার্ভার সাড়া দিতে একটু দেরি করছে। কিছুক্ষণ পর আবার চেষ্টা করুন।"
-          bn="সাধারণত এটা কয়েক সেকেন্ডের ব্যাপার।"
+          title={<T en="We couldn't load today's market" bn="আজকের বাজারের তথ্য এখন লোড করা যাচ্ছে না" />}
           reload
-          links={[{ href: "/market-analysis", label: "Market analysis (English)" }]}
+          links={[{ href: "/market-analysis", label: <T en="Market analysis" bn="বাজার বিশ্লেষণ" /> }]}
         />
       </div>
     );
@@ -241,15 +238,19 @@ export default async function ShareBazarPage() {
 
   return (
     <div lang="bn" className="font-bn">
-      <HtmlLang lang="bn" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <PageHeader
         eyebrow="ঢাকা স্টক এক্সচেঞ্জ"
         title="আজকের শেয়ার বাজার"
-        bn="Today's Dhaka stock market, told in everyday Bangla."
-        subLang="en"
+        lead="ঢাকা স্টক এক্সচেঞ্জের আজকের বাজার, সহজ বাংলায়।"
         actions={day ? <span className="ms-page-date">{day} · বাজার বন্ধের পর আপডেট</span> : undefined}
+      />
+
+      <ArticleLangNote
+        articleLang="bn"
+        pairHref="/market-analysis"
+        pairLabel="See today's market in English"
       />
 
       {/* The day in one look */}
@@ -277,7 +278,7 @@ export default async function ShareBazarPage() {
           )}
           {hdr?.ds30 != null && (
             <div className="ms-stat" style={{ "--ms-accent": "var(--warm)" } as CSSProperties}>
-              <p className="ms-stat-label">ডিএস৩০ (DS30)</p>
+              <p className="ms-stat-label">DS30</p>
               <p className="ms-stat-value">{idxLine(hdr.ds30, hdr.ds30_change)}</p>
             </div>
           )}
@@ -401,13 +402,13 @@ export default async function ShareBazarPage() {
       <section className="ms-card ms-card--tint" style={{ marginTop: 16, "--card-accent": "var(--primary)" } as CSSProperties}>
         <p className="ms-card-title">আরও দেখুন</p>
         <ul className="ms-links" style={{ marginTop: 8 }}>
-          <li><Link href="/market-analysis">বাজারের বিস্তারিত বিশ্লেষণ (ইংরেজিতে, সংখ্যাসহ)</Link></li>
+          <li><Link href="/market-analysis">বাজারের বিস্তারিত বিশ্লেষণ, সংখ্যাসহ</Link></li>
           <li><Link href="/stocks">সব শেয়ারের আজকের দাম</Link></li>
-          <li><Link href="/dsestockranking">কোন কোম্পানির ব্যবসা সবচেয়ে শক্ত — র‍্যাঙ্কিং</Link></li>
+          <li><Link href="/dsestockranking">র‍্যাঙ্কিং: কোন কোম্পানির ব্যবসা সবচেয়ে শক্ত</Link></li>
           <li><Link href="/blog">শেয়ার বাজার শেখার বাংলা ব্লগ</Link></li>
         </ul>
         <p className="ms-bn-note" style={{ marginTop: 12 }}>
-          এই পাতাটি প্রতিটি লেনদেনের দিন বাজার বন্ধের পর ডিএসই-র প্রকাশিত দাম থেকে স্বয়ংক্রিয়ভাবে তৈরি হয়। এটি শিক্ষামূলক তথ্য, বিনিয়োগ পরামর্শ নয়।
+          এই পেজটি প্রতিটি লেনদেনের দিন বাজার বন্ধের পর ডিএসই-র প্রকাশিত দাম থেকে স্বয়ংক্রিয়ভাবে তৈরি হয়। এটি শিক্ষামূলক তথ্য, বিনিয়োগ পরামর্শ নয়।
         </p>
       </section>
     </div>

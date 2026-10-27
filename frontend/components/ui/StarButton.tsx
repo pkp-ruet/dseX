@@ -10,6 +10,8 @@ import {
 } from "@/lib/watchlist";
 import { isLoggedIn } from "@/lib/auth";
 import { toast } from "@/lib/toast";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
 
 interface Props {
   code: string;
@@ -29,6 +31,7 @@ export default function StarButton({ code, size = "sm", className = "" }: Props)
   const pathname = usePathname();
   const [watched, setWatched] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const { bn } = useLang();
 
   useEffect(() => {
     setMounted(true);
@@ -49,10 +52,17 @@ export default function StarButton({ code, size = "sm", className = "" }: Props)
     toggleWatchlist(code).then((nowWatched) => {
       if (nowWatched === "limit") return; // free cap — the limit notice is already up
       setWatched(nowWatched);
+      const c = code.toUpperCase();
       toast({
-        message: nowWatched ? `${code.toUpperCase()} added to your watchlist` : `${code.toUpperCase()} removed from watchlist`,
+        message: nowWatched ? (
+          <T en={`${c} is now on your watchlist`} bn={`${c} আপনার ওয়াচলিস্টে যোগ হয়েছে`} />
+        ) : (
+          <T en={`${c} is off your watchlist`} bn={`${c} ওয়াচলিস্ট থেকে সরানো হয়েছে`} />
+        ),
         tone: nowWatched ? "success" : "neutral",
-        action: nowWatched ? { label: "View", onClick: () => router.push("/watchlist") } : undefined,
+        action: nowWatched
+          ? { label: <T en="View" bn="দেখুন" />, onClick: () => router.push("/watchlist") }
+          : undefined,
       });
     });
   };
@@ -65,14 +75,20 @@ export default function StarButton({ code, size = "sm", className = "" }: Props)
       type="button"
       onClick={handleClick}
       aria-pressed={watched}
-      aria-label={`Save ${upper} to watchlist`}
+      aria-label={bn ? `${upper} ওয়াচলিস্টে রাখুন` : `Save ${upper} to your watchlist`}
       title={
         mounted
           ? watched
-            ? "Remove from watchlist"
+            ? bn
+              ? "ওয়াচলিস্ট থেকে সরান"
+              : "Remove from your watchlist"
             : isLoggedIn()
-              ? "Add to watchlist"
-              : "Sign in to save"
+              ? bn
+                ? "ওয়াচলিস্টে যোগ করুন"
+                : "Add to your watchlist"
+              : bn
+                ? "সেভ করতে সাইন ইন করুন"
+                : "Sign in to save"
           : undefined
       }
       className={`star-btn${size === "lg" ? " star-btn--lg" : ""}${watched ? " star-btn--on" : ""}${className ? " " + className : ""}`}

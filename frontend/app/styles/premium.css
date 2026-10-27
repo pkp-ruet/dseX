@@ -88,7 +88,6 @@
 
 /* Hero */
 .pm-hero { position: relative; padding-top: var(--space-2); }
-.pm-hero-lang { display: flex; justify-content: flex-end; margin-bottom: var(--space-2); }
 .pm-hero .page-header { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
 .pm-hero .page-eyebrow {
   color: var(--gold-ink);

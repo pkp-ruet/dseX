@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
 import Button from "@/components/ui/Button";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import MiniReport from "@/components/landing/MiniReport";
@@ -16,8 +16,8 @@ import { loadWatchlist } from "@/lib/watchlist";
 /**
  * Block 1 — the hero.
  *
- * The claim and its proof sit side by side: a plain English promise with its
- * Bengali explanation on the left, and on the right a real report for a company
+ * The claim and its proof sit side by side: a plain promise on the left (in
+ * the page language, `<T>`), and on the right a real report for a company
  * the visitor recognises, already on screen before they do anything. Typing a
  * different name swaps the card on the same keystroke. No quiz, no signup wall —
  * the page's first move is to answer a question, not ask one.
@@ -60,26 +60,26 @@ export default function LandingHero({
         <div className="flex flex-col md:col-start-1 md:row-start-1">
           <span className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-text-muted">
             <span className="live-dot" aria-hidden />
-            Updated every trading day
+            <T en="Updated every trading day" bn="প্রতি কার্যদিবসে হালনাগাদ" />
           </span>
 
           <h1 className="font-display mt-5 text-[clamp(2rem,6.5vw,3.1rem)] font-bold leading-[1.08] tracking-tight text-text-main">
-            See the real numbers before you buy.
+            <T en="See the real numbers before you buy." bn="কেনার আগে আসল হিসাব দেখে নিন।" />
           </h1>
-          <Bn className="mt-3.5 max-w-xl text-base font-semibold leading-relaxed text-text-main">
-            কোন শেয়ার ভালো, কোনটা নয় — কোম্পানির নিজের হিসাব দেখে বুঝে নিন।
-          </Bn>
+          <p className="mt-3.5 max-w-xl text-base font-semibold leading-relaxed text-text-main">
+            <T
+              en="Find out which shares are sound and which are not, from each company's own accounts."
+              bn="কোম্পানির নিজের হিসাব দেখে বুঝে নিন কোন শেয়ার ভালো, আর কোনটি নয়।"
+            />
+          </p>
 
           {/* The second pair repeats the trust strip, so phones skip it */}
           <p className="mt-4 hidden max-w-xl text-base leading-relaxed text-text-muted sm:block">
-            No tips, no rumours. Every score is built from what {totalCount} companies
-            actually reported — updated each trading day. The data is free for
-            everyone; the full reasoning on every stock is Premium.
+            <T
+              en={`No tips and no rumours. Every score is built from what ${totalCount} companies have actually reported, and it is updated each trading day. The data is free for everyone; the full reasoning on every share is part of Premium.`}
+              bn={`কোনো টিপস বা গুজব নয়। প্রতিটি স্কোর ${totalCount}টি কোম্পানির প্রকাশিত হিসাব থেকে তৈরি, আর প্রতি কার্যদিবসে হালনাগাদ হয়। তথ্য সবার জন্য ফ্রি; প্রতিটি শেয়ারের পূর্ণ ব্যাখ্যা প্রিমিয়ামে।`}
+            />
           </p>
-          <Bn className="mt-2 hidden max-w-xl text-sm leading-relaxed text-text-muted sm:block">
-            কারও টিপস নয়, গুজব নয়। {totalCount}টি কোম্পানির প্রকাশিত হিসাব থেকে তৈরি — প্রতি
-            কার্যদিবসে আপডেট। তথ্য সবার জন্য ফ্রি; প্রতিটি শেয়ারের পুরো ব্যাখ্যা প্রিমিয়ামে।
-          </Bn>
 
           {/* The lookup is the primary action. It costs nothing and proves
               everything, so it comes before any ask. */}
@@ -91,7 +91,7 @@ export default function LandingHero({
           {quick.length > 0 && (
             <div className="mt-3">
               <p className="text-xs font-semibold text-text-muted">
-                Or tap one <Bn as="span">· অথবা একটায় চাপ দিন</Bn>
+                <T en="Or tap one" bn="অথবা একটিতে চাপ দিন" />
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {quick.map((s) => {
@@ -122,14 +122,15 @@ export default function LandingHero({
           {isLoggedIn ? (
             <div className="flex flex-col gap-3">
               <p className="text-sm font-semibold text-text-main">
-                Welcome back{user?.display_name ? `, ${user.display_name}` : ""}.
+                <T en="Welcome back" bn="আবার স্বাগতম" />
+                {user?.display_name ? `, ${user.display_name}` : ""}.
               </p>
               <div className="flex flex-wrap gap-2.5">
                 <Button href="/portfolio" variant="primary" size="sm">
-                  My portfolio
+                  <T en="My portfolio" bn="আমার পোর্টফোলিও" />
                 </Button>
                 <Button href="/watchlist" variant="quiet" size="sm">
-                  My watchlist
+                  <T en="My watchlist" bn="আমার ওয়াচলিস্ট" />
                 </Button>
               </div>
             </div>
@@ -137,13 +138,13 @@ export default function LandingHero({
             <div className="flex flex-col gap-3">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
                 <Button href="/dsestockranking" variant="primary">
-                  See every company ranked
+                  <T en="See every company ranked" bn="সব কোম্পানির র‍্যাঙ্কিং দেখুন" />
                 </Button>
                 <Link
                   href="/register"
                   className="text-sm font-bold text-primary-ink underline-offset-4 hover:underline"
                 >
-                  Open a free account
+                  <T en="Open a free account" bn="ফ্রি অ্যাকাউন্ট খুলুন" />
                 </Link>
                 <div className="[color-scheme:light]">
                   <GoogleSignInButton onSuccess={handleGoogleSuccess} onError={setGoogleError} />
@@ -163,7 +164,7 @@ export default function LandingHero({
           ) : (
             <div className="soft-card flex min-h-[18rem] items-center justify-center p-6 text-center">
               <p className="text-sm text-text-muted">
-                Today&apos;s data is loading — one moment.
+                <T en="Today's data is loading. One moment, please." bn="আজকের তথ্য আসছে। একটু অপেক্ষা করুন।" />
               </p>
             </div>
           )}

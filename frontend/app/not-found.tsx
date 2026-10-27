@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
 
 export const metadata: Metadata = {
   title: "Page Not Found",
   description:
-    "The page you're looking for doesn't exist. Browse DSE stock rankings and DSEF scores on TopStockBD.",
+    "The page you're looking for doesn't exist. Browse DSE stock rankings and company scores on TopStockBD.",
   robots: { index: false, follow: true },
 };
 
@@ -13,17 +13,21 @@ export default function NotFound() {
   return (
     <div className="page-narrow text-center py-20">
       <p className="page-eyebrow">404</p>
-      <h1 className="page-h1">Page not found</h1>
-      <Bn className="page-h1-bn mx-auto">এই পাতাটি নেই, বা সরিয়ে নেওয়া হয়েছে।</Bn>
+      <h1 className="page-h1">
+        <T en="We couldn't find this page" bn="পেজটি খুঁজে পাওয়া যায়নি" />
+      </h1>
       <p className="page-lead mx-auto">
-        The page you&apos;re looking for doesn&apos;t exist or has been moved.
+        <T
+          en="The page may have moved, or the link may have a small mistake in it."
+          bn="পেজটি হয়তো সরানো হয়েছে, অথবা লিংকে ছোট কোনো ভুল আছে।"
+        />
       </p>
       <div className="mt-8 flex flex-wrap justify-center gap-3">
         <Link href="/" className="btn-primary">
-          Home
+          <T en="Home" bn="হোম" />
         </Link>
         <Link href="/dsestockranking" className="btn-quiet">
-          Stock Rankings
+          <T en="Stock rankings" bn="শেয়ার র‍্যাঙ্কিং" />
         </Link>
       </div>
     </div>

@@ -60,7 +60,7 @@ export default function CorrectionsCard({
   return (
     <PfCard
       title={L("Bonus shares and dividends", "বোনাস শেয়ার ও ডিভিডেন্ড")}
-      bn="বোনাস শেয়ার ও ডিভিডেন্ড"
+
       note={L(
         "We add them to your holdings, so a bonus issue never looks like a loss.",
         "এগুলো আপনার হিসাবে যোগ হয়, তাই বোনাস শেয়ারকে কখনো লোকসান মনে হয় না।",
@@ -73,8 +73,8 @@ export default function CorrectionsCard({
           <div className="rounded-lg bg-surface-2 p-4">
             <h4 className="text-sm font-bold text-text-main">
               {L(
-                `${suggestions.length} from before — did you get ${suggestions.length === 1 ? "this" : "these"}?`,
-                `আগের ${suggestions.length}টি — আপনি কি এগুলো পেয়েছিলেন?`,
+                `${suggestions.length} from before. Did you receive ${suggestions.length === 1 ? "this" : "these"}?`,
+                `আগের ${suggestions.length}টি। আপনি কি এগুলো পেয়েছিলেন?`,
               )}
             </h4>
             <p className="mt-1 text-sm leading-relaxed text-text-muted">
@@ -97,8 +97,8 @@ export default function CorrectionsCard({
                       <p className="mt-1 text-sm text-text-main">
                         {s.kind === "bonus" ? (
                           L(
-                            `${s.pct}% bonus — about ${newShares} new shares`,
-                            `${s.pct}% বোনাস — প্রায় ${newShares}টি নতুন শেয়ার`,
+                            `${s.pct}% bonus, about ${newShares} new shares`,
+                            `${s.pct}% বোনাস, প্রায় ${newShares}টি নতুন শেয়ার`,
                           )
                         ) : (
                           <>
@@ -151,7 +151,7 @@ export default function CorrectionsCard({
                           <span className="pv nums font-semibold">{takaGroup(e.amount ?? 0)}</span>
                           {L(
                             ` on ${(e.qty ?? 0).toLocaleString()} shares`,
-                            ` — ${(e.qty ?? 0).toLocaleString()}টি শেয়ারে`,
+                            `, ${(e.qty ?? 0).toLocaleString()}টি শেয়ারে`,
                           )}
                         </>
                       )}

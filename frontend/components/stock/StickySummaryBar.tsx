@@ -14,6 +14,8 @@ import StickyStackMeasure, {
   STOCK_BAR_VAR,
   STOCK_JUMP_EVENT,
 } from "@/components/stock/StickyStackMeasure";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
 
 export { BAR_H, STOCK_BAR_VAR };
 
@@ -55,6 +57,7 @@ export default function StickySummaryBar({
 }: Props) {
   // The signal's reason is Premium; free readers get the chip without the tooltip.
   const { isPremium } = usePremium();
+  const { bn } = useLang();
   const [show, setShow] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -141,7 +144,7 @@ export default function StickySummaryBar({
             <SignalChip
               signal={signal.signal}
               strength={signal.strength}
-              reason={isPremium ? signal.reason_en : null}
+              reason={isPremium ? (bn ? signal.reason_bn : signal.reason_en) : null}
               size="sm"
               className="shrink-0"
             />
@@ -149,7 +152,10 @@ export default function StickySummaryBar({
 
           {rank != null && total != null && (
             <span className="hidden md:inline text-xs text-text-muted">
-              Rank <b className="text-text-main">#{rank}</b> of {total}
+              <T
+                en={<>Rank <b className="text-text-main">#{rank}</b> of {total}</>}
+                bn={<>{total}টির মধ্যে <b className="text-text-main">{rank}</b> নম্বর</>}
+              />
             </span>
           )}
 

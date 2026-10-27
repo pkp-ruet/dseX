@@ -134,7 +134,7 @@ export default function AdminAnalyticsClient() {
       <PageHeader
         eyebrow="Admin"
         title="User analytics"
-        bn="ব্যবহারকারীরা কারা, কতজন ফিরে আসে, কী দেখে"
+
         lead={updated ? `Updated ${updated} Dhaka time. Behaviour panels cover the last 30 days.` : undefined}
       />
 

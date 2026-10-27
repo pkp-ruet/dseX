@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { IconAlert, IconChevron } from "@/components/stock/StockIcons";
+import { T } from "@/components/i18n/T";
 
 interface Props {
   category: string;
-  note: string;
+  note: ReactNode;
   color: string;
   bg: string;
   border: string;
@@ -29,7 +30,7 @@ export default function CategoryChip({ category, note, color, bg, border }: Prop
         style={{ color, background: bg, border: `1px solid ${border}` }}
       >
         {category === "Z" && <IconAlert size={12} />}
-        Category {category}
+        <T en={`Category ${category}`} bn={`${category} ক্যাটাগরি`} />
         <span style={{ transform: open ? "rotate(180deg)" : "none", display: "inline-flex", transition: "transform .15s" }}>
           <IconChevron size={12} />
         </span>

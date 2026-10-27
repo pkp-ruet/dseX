@@ -82,8 +82,8 @@ export function buildProInsights(
             `${nameOf(top)} আপনার টাকার ${pct(w)}। ${TRIM_WEIGHT_PCT}%-এর বেশি হলে একটি কোম্পানির খারাপ ফল পুরো পোর্টফোলিওতে লাগে।`,
           )
         : L(
-            `Your biggest stock, ${nameOf(top)}, is ${pct(w)} of your money — no single company can sink you.`,
-            `আপনার সবচেয়ে বড় শেয়ার ${nameOf(top)}, টাকার ${pct(w)} — একটি কোম্পানি একা বড় ক্ষতি করতে পারবে না।`,
+            `Your biggest share, ${nameOf(top)}, is ${pct(w)} of your money, so no single company can sink you.`,
+            `আপনার সবচেয়ে বড় শেয়ার ${nameOf(top)}, যাতে টাকার ${pct(w)}। তাই একটি কোম্পানি একা বড় ক্ষতি করতে পারবে না।`,
           ),
     });
   }
@@ -103,8 +103,8 @@ export function buildProInsights(
     risk.push({
       level: "bad",
       text: L(
-        `${pct(zW)} of your money is in Z-category stocks — companies that skipped dividends or AGMs. They are the riskiest on the DSE.`,
-        `আপনার টাকার ${pct(zW)} Z ক্যাটাগরির শেয়ারে — যারা ডিভিডেন্ড বা AGM বাদ দিয়েছে। DSE-তে এগুলো সবচেয়ে ঝুঁকিপূর্ণ।`,
+        `${pct(zW)} of your money is in Z category shares, companies that skipped a dividend or an AGM. They carry the most risk on the DSE.`,
+        `আপনার টাকার ${pct(zW)} Z ক্যাটাগরির শেয়ারে, অর্থাৎ যারা ডিভিডেন্ড দেয়নি বা এজিএম করেনি। ডিএসইতে এগুলোর ঝুঁকি সবচেয়ে বেশি।`,
       ),
     });
   } else if (bW > 30) {
@@ -131,8 +131,8 @@ export function buildProInsights(
     risk.push({
       level: "watch",
       text: L(
-        `${pct(staleW)} of your money is in companies whose latest accounts are 2+ years old — their grade rests on old numbers.`,
-        `আপনার টাকার ${pct(staleW)} এমন কোম্পানিতে যাদের সর্বশেষ হিসাব 2 বছরের বেশি পুরনো।`,
+        `${pct(staleW)} of your money is in companies whose latest accounts are 2 or more years old, so their grade rests on old numbers.`,
+        `আপনার টাকার ${pct(staleW)} এমন কোম্পানিতে, যাদের সর্বশেষ আর্থিক হিসাব 2 বছরের বেশি পুরোনো। তাই এদের গ্রেড পুরোনো সংখ্যার ওপর নির্ভর করে।`,
       ),
     });
   }
@@ -141,8 +141,8 @@ export function buildProInsights(
     risk.push({
       level: "watch",
       text: L(
-        `${pct(highW)} of your money sits near its 52-week high. Good for you so far — but a pullback would hit a big part at once.`,
-        `আপনার টাকার ${pct(highW)} 52 সপ্তাহের সর্বোচ্চ দামের কাছে। এখন পর্যন্ত ভালো — তবে দাম কমলে বড় অংশ একসাথে কমবে।`,
+        `${pct(highW)} of your money is in shares near their highest price of the past year. That has helped so far, but a fall would hit a big part of your money at once.`,
+        `আপনার টাকার ${pct(highW)} এমন শেয়ারে, যাদের দাম গত এক বছরের সর্বোচ্চের কাছে। এখন পর্যন্ত এটি ভালো গেছে, তবে দাম কমলে টাকার বড় অংশ একসঙ্গে কমবে।`,
       ),
     });
   }
@@ -157,7 +157,7 @@ export function buildProInsights(
       level: "watch",
       text: L(
         `You paid more than usual for ${nameOf(h)}: ${fix1(h.entryPe as number)} times its yearly profit, where its sector usually trades at ${fix1(h.sectorPe as number)}.`,
-        `${nameOf(h)}-এর জন্য বেশি দাম দিয়েছেন: বছরের লাভের ${fix1(h.entryPe as number)} গুণ, যেখানে খাতে সাধারণত ${fix1(h.sectorPe as number)} গুণ।`,
+        `${nameOf(h)}-এর জন্য বেশি দাম দিয়েছেন: বছরের লাভের ${fix1(h.entryPe as number)} গুণ, যেখানে সেক্টরে সাধারণত ${fix1(h.sectorPe as number)} গুণ।`,
       ),
     });
   }
@@ -166,7 +166,7 @@ export function buildProInsights(
       level: "good",
       text: L(
         `Good buy on ${nameOf(h)}: ${fix1(h.entryPe as number)} times profit against ${fix1(h.sectorPe as number)} for its sector.`,
-        `${nameOf(h)} ভালো দামে কিনেছেন: লাভের ${fix1(h.entryPe as number)} গুণ, খাতে ${fix1(h.sectorPe as number)} গুণ।`,
+        `${nameOf(h)} ভালো দামে কিনেছেন: লাভের ${fix1(h.entryPe as number)} গুণ, সেক্টরে ${fix1(h.sectorPe as number)} গুণ।`,
       ),
     });
   }
@@ -174,8 +174,8 @@ export function buildProInsights(
     paid.push({
       level: "good",
       text: L(
-        "Nothing stands out — you paid around normal prices for what these companies earn.",
-        "বিশেষ কিছু নেই — কোম্পানিগুলোর আয়ের তুলনায় স্বাভাবিক দামেই কিনেছেন।",
+        "Nothing stands out. You paid about normal prices for what these companies earn.",
+        "বিশেষ কিছু নেই। কোম্পানিগুলোর মুনাফার তুলনায় স্বাভাবিক দামেই কিনেছেন।",
       ),
     });
   }
@@ -201,8 +201,8 @@ export function buildProInsights(
     income.lines.push({
       level: "good",
       text: L(
-        `At last year's dividends you'd get about ${money(cash)} a year in cash${yocAll != null ? ` — ${yocAll.toFixed(1)}% on what you paid` : ""}, before tax.`,
-        `গত বছরের ডিভিডেন্ড ধরে বছরে প্রায় ${money(cash)} নগদ পাবেন${yocAll != null ? ` — কেনা দামের ${yocAll.toFixed(1)}%` : ""}, কর বাদ দেওয়ার আগে।`,
+        `At last year's dividends you would get about ${money(cash)} a year in cash${yocAll != null ? `, or ${yocAll.toFixed(1)}% of what you paid` : ""}, before tax.`,
+        `গত বছরের ডিভিডেন্ড ধরে বছরে প্রায় ${money(cash)} নগদ পাবেন${yocAll != null ? `, যা কেনা দামের ${yocAll.toFixed(1)}%` : ""}, কর কাটার আগে।`,
       ),
     });
     if (best && best.yoc > 0) {
@@ -289,7 +289,7 @@ export function buildProInsights(
         kind === "trim"
           ? L(
               `It is ${pct(h.weightPct)} of your money. Moving some into another sector lowers the risk.`,
-              `এটি আপনার টাকার ${pct(h.weightPct)}। কিছু অংশ অন্য খাতে সরালে ঝুঁকি কমে।`,
+              `এটি আপনার টাকার ${pct(h.weightPct)}। কিছু অংশ অন্য সেক্টরে সরালে ঝুঁকি কমে।`,
             )
           : (kind === "hold" ? h.oneLiner : h.signal.reason) || h.oneLiner;
       return { code: h.code, companyName: h.companyName, kind, label: LABEL[kind], reason };
@@ -323,16 +323,16 @@ export function buildPremiumStakes(
   if (sells.length) {
     const v = sells.reduce((a, h) => a + valueOf(h), 0);
     out.push(L(
-      `${money(v)} of your money is in ${sells.length === 1 ? `${sells[0].code}, marked Sell` : `${sells.length} stocks marked Sell`} — what to do about it`,
-      `আপনার ${money(v)} ${sells.length === 1 ? `${sells[0].code}-এ, যেটি এখন Sell` : `${sells.length}টি Sell শেয়ারে`} — এখন কী করবেন`,
+      `${money(v)} of your money is in ${sells.length === 1 ? `${sells[0].code}, marked Sell` : `${sells.length} shares marked Sell`}: what to do about it`,
+      `আপনার ${money(v)} ${sells.length === 1 ? `${sells[0].code}-এ, যেটিতে এখন বিক্রির সংকেত` : `বিক্রির সংকেতে থাকা ${sells.length}টি শেয়ারে`}: এখন কী করবেন`,
     ));
   }
 
   const top = [...hs].sort((a, b) => b.weightPct - a.weightPct)[0];
   if (top && hs.length > 1 && top.weightPct > TRIM_WEIGHT_PCT) {
     out.push(L(
-      `${money(valueOf(top))} — ${pct(top.weightPct)} of your money — sits in ${top.code} alone`,
-      `${money(valueOf(top))} — আপনার টাকার ${pct(top.weightPct)} — শুধু ${top.code}-এ`,
+      `${money(valueOf(top))}, or ${pct(top.weightPct)} of your money, sits in ${top.code} alone`,
+      `${money(valueOf(top))}, অর্থাৎ আপনার টাকার ${pct(top.weightPct)}, শুধু ${top.code}-এ`,
     ));
   }
 
@@ -364,8 +364,8 @@ export function buildPremiumStakes(
   const cash = insights.income.yearlyCash;
   if (cash != null && cash > 0) {
     out.push(L(
-      `About ${money(cash)} a year in dividends — and when each one lands`,
-      `বছরে প্রায় ${money(cash)} ডিভিডেন্ড — কোনটা কবে আসবে`,
+      `About ${money(cash)} a year in dividends, and when each one arrives`,
+      `বছরে প্রায় ${money(cash)} ডিভিডেন্ড, আর কোনটি কবে আসবে`,
     ));
   }
 

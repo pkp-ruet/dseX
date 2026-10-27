@@ -8,6 +8,8 @@ import OwnerMark from "@/components/home/personalized/OwnerMark";
 import RailCard, { Rail, RailHeader } from "@/components/home/personalized/RailCard";
 import SignalChip from "@/components/ui/SignalChip";
 import StockRow, { TONE_TEXT } from "@/components/ui/StockRow";
+import { tt } from "@/components/home/tt";
+import { T } from "@/components/i18n/T";
 
 const ROWS = 3;
 
@@ -73,15 +75,15 @@ export default function DiscoverRail({
   if (!buyRows.length && !ranked.length && !trendRows.length && !popularRows.length && !tipRows.length) return null;
 
   return (
-    <div className={bn ? "font-bn" : undefined} lang={bn ? "bn" : undefined}>
-      <RailHeader title={t(lang, "discoverTitle")} sub={t(lang, "discoverSub")} />
+    <div>
+      <RailHeader title={tt("discoverTitle")} sub={tt("discoverSub")} />
       <Rail>
         {buyRows.length > 0 && (
           <RailCard
-            title={t(lang, "buysTitle")}
-            sub={buys.length === 1 ? t(lang, "buysOne") : t(lang, "buysCount", { n: buys.length })}
+            title={tt("buysTitle")}
+            sub={buys.length === 1 ? tt("buysOne") : tt("buysCount", { n: buys.length })}
             href="/buy-sell-signals"
-            linkLabel={t(lang, "allBuys")}
+            linkLabel={tt("allBuys")}
           >
             {buyRows.map((s) => (
               <StockRow
@@ -100,10 +102,10 @@ export default function DiscoverRail({
 
         {ranked.length > 0 && (
           <RailCard
-            title={t(lang, "rankedTitle")}
-            sub={t(lang, "ofN", { n: scored.length })}
+            title={tt("rankedTitle")}
+            sub={tt("ofN", { n: scored.length })}
             href="/dsestockranking"
-            linkLabel={t(lang, "fullRanking")}
+            linkLabel={tt("fullRanking")}
           >
             {ranked.map((s) => (
               <StockRow
@@ -117,7 +119,7 @@ export default function DiscoverRail({
                 right={
                   <span className={`block text-sm font-bold tabular-nums nums ${TIER_TEXT[getTier(s.score)]}`}>
                     {Math.round(s.score ?? 0)}
-                    <span className="text-xs font-semibold text-text-muted">{t(lang, "outOf100")}</span>
+                    <span className="text-xs font-semibold text-text-muted">{tt("outOf100")}</span>
                   </span>
                 }
               />
@@ -127,10 +129,10 @@ export default function DiscoverRail({
 
         {trendRows.length > 0 && (
           <RailCard
-            title={t(lang, "trendingTitle")}
-            sub={t(lang, "trendingSub")}
+            title={tt("trendingTitle")}
+            sub={tt("trendingSub")}
             href="/dse-trending-stocks"
-            linkLabel={t(lang, "allTrending")}
+            linkLabel={tt("allTrending")}
           >
             {trendRows.map((it) => (
               <StockRow
@@ -152,7 +154,7 @@ export default function DiscoverRail({
         )}
 
         {tipRows.length > 0 && (
-          <RailCard title={t(lang, "tipsTitle")} sub={t(lang, "tipsSub")} href="/buy-sell-signals#tips" linkLabel={t(lang, "allTips")}>
+          <RailCard title={tt("tipsTitle")} sub={tt("tipsSub")} href="/buy-sell-signals#tips" linkLabel={tt("allTips")}>
             {tipRows.map((tip) => {
               const kind = TIP_KIND[tip.category] ?? "kindTip";
               const tone = KIND_TONE[kind] ?? "primary";
@@ -166,7 +168,7 @@ export default function DiscoverRail({
                   name={companyShort(tip.company_name) || tip.company_name}
                   lang={lang}
                   mark={mark(tip.trading_code)}
-                  sub={t(lang, kind)}
+                  sub={tt(kind)}
                   subTone={tone}
                   right={metric ? <span className={`block text-sm font-bold tabular-nums nums ${TONE_TEXT[tone]}`}>{metric}</span> : undefined}
                 />
@@ -177,10 +179,10 @@ export default function DiscoverRail({
 
         {popularRows.length > 0 && (
           <RailCard
-            title={t(lang, "popularTitle")}
-            sub={t(lang, "popularSub")}
+            title={tt("popularTitle")}
+            sub={tt("popularSub")}
             href="/dse-popular-stocks"
-            linkLabel={t(lang, "seeAll")}
+            linkLabel={tt("seeAll")}
           >
             {popularRows.map((it) => (
               <StockRow
@@ -193,7 +195,7 @@ export default function DiscoverRail({
                 mark={mark(it.trading_code)}
                 right={
                   <span className="block text-xs font-semibold tabular-nums nums text-text-muted">
-                    {t(lang, "views", { n: it.visits_total.toLocaleString("en-US") })}
+                    {tt("views", { n: it.visits_total.toLocaleString("en-US") })}
                   </span>
                 }
               />

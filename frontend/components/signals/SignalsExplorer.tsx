@@ -11,6 +11,9 @@ import Button from "@/components/ui/Button";
 import PremiumGate from "@/components/premium/PremiumGate";
 import { FREE_SIGNAL_ROWS, splitFree } from "@/lib/free-share";
 import { getCachedWatchlist, subscribeWatchlist } from "@/lib/watchlist";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
+import { sectorBn } from "@/lib/bn";
 
 type Tab = "all" | "strong";
 type SortKey = "match" | "gainers" | "losers" | "dividend";
@@ -21,11 +24,12 @@ interface Props {
   sectors: string[];
 }
 
-const SORT_LABELS: Record<SortKey, string> = {
-  match: "Best match",
-  gainers: "Today's gainers",
-  losers: "Today's losers",
-  dividend: "Dividend yield",
+/** `<option>` holds plain text only, so the menu reads the language through `useLang()`. */
+const SORT_LABELS: Record<SortKey, { en: string; bn: string }> = {
+  match: { en: "Best match", bn: "সবচেয়ে উপযুক্ত" },
+  gainers: { en: "Rose most today", bn: "আজ সবচেয়ে বেশি বেড়েছে" },
+  losers: { en: "Fell most today", bn: "আজ সবচেয়ে বেশি কমেছে" },
+  dividend: { en: "Dividend yield", bn: "ডিভিডেন্ড ইল্ড" },
 };
 
 const PAGE = 48;
@@ -60,6 +64,9 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
   const [sort, setSort] = useState<SortKey>("match");
   const [limit, setLimit] = useState(PAGE);
   const [followed, setFollowed] = useState<string[]>([]);
+  const { lang } = useLang();
+  const bn = lang === "bn";
+  const L = (en: string, b: string) => (bn ? b : en);
 
   // The reader's followed codes, for the lock card's stakes only.
   useEffect(() => {
@@ -108,13 +115,16 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
     <div>
       {/* All buys / Strong buys, then one quiet filter bar */}
       <Tabs
-        ariaLabel="Which buy signals"
+        ariaLabel={L("Which buy signals", "কোন কেনার সংকেত")}
         idBase="sg-tab"
         value={tab}
         onChange={setTab}
         tabs={[
-          { key: "all", label: `All buys · ${buy.length}` },
-          { key: "strong", label: `Strong buys · ${strongBuys.length}` },
+          { key: "all", label: <T en={`All buys · ${buy.length}`} bn={`সব কেনার সংকেত · ${buy.length}`} /> },
+          {
+            key: "strong",
+            label: <T en={`Strong buys · ${strongBuys.length}`} bn={`কেনার ভালো সুযোগ · ${strongBuys.length}`} />,
+          },
         ]}
       />
 
@@ -129,33 +139,33 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search company or code"
-              aria-label="Search companies"
+              placeholder={L("Search company or code", "কোম্পানি বা কোড খুঁজুন")}
+              aria-label={L("Search companies", "কোম্পানি খুঁজুন")}
               className="sg-input"
             />
           </div>
           <select
             value={sector}
             onChange={(e) => setSector(e.target.value)}
-            aria-label="Filter by sector"
+            aria-label={L("Filter by sector", "সেক্টর অনুযায়ী বাছুন")}
             className="sg-input sg-select"
           >
-            <option value="all">All sectors</option>
+            <option value="all">{L("All sectors", "সব সেক্টর")}</option>
             {sectors.map((s) => (
               <option key={s} value={s}>
-                {s}
+                {bn ? sectorBn(s) : s}
               </option>
             ))}
           </select>
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as SortKey)}
-            aria-label="Sort signals"
+            aria-label={L("Sort signals", "সংকেত সাজান")}
             className="sg-input sg-select"
           >
             {(Object.keys(SORT_LABELS) as SortKey[]).map((k) => (
               <option key={k} value={k}>
-                {SORT_LABELS[k]}
+                {SORT_LABELS[k][bn ? "bn" : "en"]}
               </option>
             ))}
           </select>
@@ -163,20 +173,38 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
 
         <div className="sg-count">
           <span>
-            <strong>{filtered.length}</strong> {filtered.length === 1 ? "stock" : "stocks"}
-            {isFiltered ? " match" : ""}
+            <T
+              en={
+                <>
+                  <strong>{filtered.length}</strong> {filtered.length === 1 ? "share" : "shares"}
+                  {isFiltered ? (filtered.length === 1 ? " matches" : " match") : ""}
+                </>
+              }
+              bn={
+                <>
+                  <strong>{filtered.length}</strong>টি শেয়ার{isFiltered ? " মিলেছে" : ""}
+                </>
+              }
+            />
           </span>
           {isFiltered && (
             <Button variant="link" size="sm" onClick={reset}>
-              Clear filters
+              <T en="Clear filters" bn="ফিল্টার মুছুন" />
             </Button>
           )}
         </div>
 
         {shown.length === 0 ? (
           <div className="soft-card sg-card">
-            <p className="sg-empty-title">No {tab === "strong" ? "strong buy" : "buy"} signals match</p>
-            <p className="sg-empty">Try another search or sector.</p>
+            <p className="sg-empty-title">
+              <T
+                en={`No ${tab === "strong" ? "strong buy" : "buy"} signals match`}
+                bn={tab === "strong" ? "কোনো কেনার ভালো সুযোগ মেলেনি" : "কোনো কেনার সংকেত মেলেনি"}
+              />
+            </p>
+            <p className="sg-empty">
+              <T en="Try another search or sector." bn="অন্য কিছু খুঁজে দেখুন, বা অন্য সেক্টর বেছে নিন।" />
+            </p>
           </div>
         ) : (
           // ONE list card: the free rows, then the rest of the same list
@@ -190,13 +218,17 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
             </ul>
             {locked.length > 0 && (
               <PremiumGate
-                label="Every buy signal"
+                label={{ en: "Every buy signal", bn: "সব কেনার সংকেত" }}
                 preview="blur"
                 peek={220}
                 stakes={[
-                  `${rest.length} more buy ${rest.length === 1 ? "signal" : "signals"} today, each with its reason`,
-                  restStrong > 0 ? `${restStrong} of them ${restStrong === 1 ? "is a Strong buy" : "are Strong buys"}` : "",
-                  restMine > 0 ? `${restMine} of them ${restMine === 1 ? "is a stock" : "are stocks"} you follow` : "",
+                  { en: `${rest.length} more buy ${rest.length === 1 ? "signal" : "signals"} today, each with its reason`, bn: `আজ আরও ${rest.length}টি কেনার সংকেত, প্রতিটির কারণসহ` },
+                  restStrong > 0
+                    ? { en: `${restStrong} of them ${restStrong === 1 ? "is a Strong buy" : "are Strong buys"}`, bn: `এদের ${restStrong}টি কেনার ভালো সুযোগ` }
+                    : "",
+                  restMine > 0
+                    ? { en: `${restMine} of them ${restMine === 1 ? "is a share" : "are shares"} you follow`, bn: `এদের ${restMine}টি আপনার অনুসরণ করা শেয়ার` }
+                    : "",
                 ]}
                 className="sg-locked"
               >
@@ -208,7 +240,10 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
                 {filtered.length > limit && (
                   <div className="flex justify-center pb-3 pt-2">
                     <Button variant="quiet" onClick={() => setLimit((l) => l + PAGE)}>
-                      Show {Math.min(PAGE, filtered.length - limit)} more
+                      <T
+                        en={`Show ${Math.min(PAGE, filtered.length - limit)} more`}
+                        bn={`আরও ${Math.min(PAGE, filtered.length - limit)}টি দেখুন`}
+                      />
                     </Button>
                   </div>
                 )}
@@ -235,7 +270,7 @@ function SignalRow({ item }: { item: ScoreItem }) {
       inset="bleed"
       className="sg-row"
       tags={sig ? <SignalChip signal={sig.signal} strength={sig.strength} /> : undefined}
-      sub={sig?.reason_en}
+      sub={sig ? <T en={sig.reason_en} bn={sig.reason_bn || sig.reason_en} /> : undefined}
       subClamp
       price={item.ltp}
       change={item.change_pct}

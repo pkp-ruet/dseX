@@ -1,5 +1,8 @@
 import { abbrev, crore, croreShares, formatDate, pct, signed } from "@/lib/formatters";
 import type { MarketIndexData } from "@/lib/api";
+import type { ReactNode } from "react";
+import { T } from "@/components/i18n/T";
+import { bnDate, croreBn } from "@/lib/bn";
 
 type Condition = "falling" | "rising" | "sideways" | "unknown";
 
@@ -8,11 +11,11 @@ interface Props {
   condition: Condition;
 }
 
-const CONDITION_META: Record<Condition, { label: string; color: string }> = {
-  rising:   { label: "Market Rising",   color: "var(--positive)" },
-  falling:  { label: "Market Falling",  color: "var(--negative)" },
-  sideways: { label: "Market Sideways", color: "var(--warm)" },
-  unknown:  { label: "No Data",         color: "var(--text-muted)" },
+const CONDITION_META: Record<Condition, { en: string; bn: string; color: string }> = {
+  rising:   { en: "Market rising",       bn: "বাজার বাড়ছে",        color: "var(--positive)" },
+  falling:  { en: "Market falling",      bn: "বাজার কমছে",         color: "var(--negative)" },
+  sideways: { en: "Market flat",         bn: "বাজার স্থির",         color: "var(--warm)" },
+  unknown:  { en: "No data yet",         bn: "এখনো তথ্য নেই",      color: "var(--text-muted)" },
 };
 
 /** A single index quote (DSEX / DSES / DS30). DSEX is emphasised as the lead. */
@@ -67,9 +70,9 @@ function IndexTile({ name, value, change, changePct, lead = false }: {
 
 /** A market-total stat (volume / turnover / trades) with optional day-over-day sub. */
 function StatTile({ label, value, sub, subColor }: {
-  label: string;
-  value: string;
-  sub?: string;
+  label: ReactNode;
+  value: ReactNode;
+  sub?: ReactNode;
   subColor?: string;
 }) {
   return (
@@ -89,7 +92,14 @@ function StatTile({ label, value, sub, subColor }: {
 
 export default function DseTodayHeader({ header, condition }: Props) {
   const cond = CONDITION_META[condition];
-  const dateLabel = header.date ? formatDate(header.date) : "Latest";
+  const dateLabel = header.date ? (
+    <T en={formatDate(header.date)} bn={bnDate(header.date)} />
+  ) : (
+    <T en="Latest" bn="সর্বশেষ" />
+  );
+  // "% vs the day before" in both languages.
+  const dod = (v: number | null | undefined) =>
+    v != null ? <T en={`${signed(v, 1)}% vs day before`} bn={`আগের দিনের চেয়ে ${signed(v, 1)}%`} /> : undefined;
 
   const up = header.up_count ?? 0;
   const down = header.down_count ?? 0;
@@ -122,7 +132,7 @@ export default function DseTodayHeader({ header, condition }: Props) {
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-text-muted">
-              Trading Day
+              <T en="Trading day" bn="লেনদেনের দিন" />
             </span>
             <span className="text-sm font-bold text-text-main">{dateLabel}</span>
           </div>
@@ -135,7 +145,7 @@ export default function DseTodayHeader({ header, condition }: Props) {
             }}
           >
             <span className="h-1.5 w-1.5 rounded-full" style={{ background: cond.color }} />
-            {cond.label}
+            <T en={cond.en} bn={cond.bn} />
           </span>
         </div>
 
@@ -149,19 +159,34 @@ export default function DseTodayHeader({ header, condition }: Props) {
         {/* Totals */}
         <div className="grid grid-cols-3 gap-2 sm:gap-3">
           <StatTile
-            label="Volume"
-            value={header.total_volume != null ? croreShares(header.total_volume) : "—"}
-            sub={header.volume_change_pct != null ? `${signed(header.volume_change_pct, 1)}% DoD` : undefined}
+            label={<T en="Shares traded" bn="শেয়ার হাতবদল" />}
+            value={
+              header.total_volume != null ? (
+                <T
+                  en={croreShares(header.total_volume)}
+                  bn={croreShares(header.total_volume).replace(" Cr", " কোটি")}
+                />
+              ) : (
+                "—"
+              )
+            }
+            sub={dod(header.volume_change_pct)}
             subColor={volSubColor}
           />
           <StatTile
-            label="Turnover"
-            value={header.total_value_mn != null ? crore(header.total_value_mn) : "—"}
-            sub={header.turnover_change_pct != null ? `${signed(header.turnover_change_pct, 1)}% DoD` : undefined}
+            label={<T en="Value traded" bn="লেনদেনের পরিমাণ" />}
+            value={
+              header.total_value_mn != null ? (
+                <T en={crore(header.total_value_mn)} bn={croreBn(header.total_value_mn)} />
+              ) : (
+                "—"
+              )
+            }
+            sub={dod(header.turnover_change_pct)}
             subColor={turnSubColor}
           />
           <StatTile
-            label="Trades"
+            label={<T en="Trades" bn="লেনদেন সংখ্যা" />}
             value={header.total_trades != null ? abbrev(header.total_trades) : "—"}
           />
         </div>
@@ -170,13 +195,20 @@ export default function DseTodayHeader({ header, condition }: Props) {
         <div className="rounded-xl border border-border bg-surface-2 p-3">
           <div className="mb-2 flex items-center justify-between gap-2">
             <span className="text-xs font-semibold text-text-muted">
-              Market Breadth
+              <T en="Rises and falls" bn="দাম বাড়া ও কমা" />
             </span>
             <span className="text-xs font-bold tabular-nums">
-              <span className="text-positive">{up} up</span>
+              <span className="text-positive">
+                <T en={`${up} up`} bn={`${up}টি বেড়েছে`} />
+              </span>
               <span className="text-text-muted"> · </span>
-              <span className="text-negative">{down} down</span>
-              <span className="text-text-muted"> · {flat} flat</span>
+              <span className="text-negative">
+                <T en={`${down} down`} bn={`${down}টি কমেছে`} />
+              </span>
+              <span className="text-text-muted">
+                {" · "}
+                <T en={`${flat} unchanged`} bn={`${flat}টি অপরিবর্তিত`} />
+              </span>
             </span>
           </div>
           <div className="flex h-2.5 overflow-hidden rounded-full bg-bg">
@@ -186,7 +218,10 @@ export default function DseTodayHeader({ header, condition }: Props) {
           </div>
           {breadthTotal > 0 && (
             <div className="mt-1.5 text-xs font-semibold tabular-nums text-text-muted">
-              {pct((up / breadthTotal) * 100)} advancing · {pct((down / breadthTotal) * 100)} declining
+              <T
+                en={`${pct((up / breadthTotal) * 100)} rose · ${pct((down / breadthTotal) * 100)} fell`}
+                bn={`${pct((up / breadthTotal) * 100)} বেড়েছে · ${pct((down / breadthTotal) * 100)} কমেছে`}
+              />
             </div>
           )}
         </div>

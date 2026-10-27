@@ -6,6 +6,7 @@ import {
   STRONG_BUY_LABEL_BN,
   type AnySignalKind,
 } from "@/lib/constants";
+import { T } from "@/components/i18n/T";
 
 interface Props {
   /** buy | sell (stock) or buy_more | sell (holding). null / undefined / "none" renders nothing. */
@@ -16,6 +17,7 @@ interface Props {
   reason?: string | null;
   /** sm = 12px (rows, cards) · md = 13px (the verdict, holding heads). */
   size?: "sm" | "md";
+  /** Ignored — the label follows the page language (`<T>`). Kept so old callers compile. */
   lang?: "en" | "bn";
   /** Dim the chip when the signal is a data-poor fallback. */
   muted?: boolean;
@@ -47,7 +49,6 @@ export default function SignalChip({
   strength = null,
   reason,
   size = "sm",
-  lang = "en",
   muted = false,
   className = "",
 }: Props) {
@@ -56,13 +57,8 @@ export default function SignalChip({
   const isSell = signal === "sell";
   const isStrong = signal === "buy" && strength === "strong";
   const color = muted ? "var(--text-muted)" : SIGNAL_VAR[signal];
-  const label = isStrong
-    ? lang === "bn"
-      ? STRONG_BUY_LABEL_BN
-      : STRONG_BUY_LABEL
-    : lang === "bn"
-      ? SIGNAL_LABELS_BN[signal]
-      : SIGNAL_LABELS[signal];
+  const labelEn = isStrong ? STRONG_BUY_LABEL : SIGNAL_LABELS[signal];
+  const labelBn = isStrong ? STRONG_BUY_LABEL_BN : SIGNAL_LABELS_BN[signal];
 
   const bg = isStrong ? color : `color-mix(in srgb, ${color} 12%, transparent)`;
   const textColor = isStrong ? "var(--surface)" : color;
@@ -73,8 +69,7 @@ export default function SignalChip({
       title={reason ?? undefined}
       className={`inline-flex items-center gap-1 rounded-md font-bold whitespace-nowrap leading-tight ${
         reason ? "cursor-help" : ""
-      } ${lang === "bn" ? "font-bn" : "uppercase tracking-wide"} ${className}`}
-      lang={lang === "bn" ? "bn" : undefined}
+      } ${className}`}
       style={{
         color: textColor,
         background: bg,
@@ -85,7 +80,8 @@ export default function SignalChip({
       }}
     >
       <Glyph kind={isSell ? "down" : isStrong ? "star" : "up"} />
-      {label}
+      {/* Uppercase is an English-only treatment; Bengali has no case. */}
+      <T en={<span className="uppercase tracking-wide">{labelEn}</span>} bn={labelBn} />
     </span>
   );
 }

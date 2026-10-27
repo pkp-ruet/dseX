@@ -1,44 +1,34 @@
 "use client";
 import type { ReactNode } from "react";
 import type { FairValue } from "@/lib/api";
-import type { Lang } from "@/components/stock/LangToggle";
-import { useStockLang } from "@/context/StockLangContext";
+import type { Lang } from "@/lib/lang";
+import { useLang } from "@/context/LangContext";
 import PremiumGate from "@/components/premium/PremiumGate";
+import { T } from "@/components/i18n/T";
 
 interface Props {
   fairValue: FairValue | null | undefined;
-  /** Explicit language (the /analysis sub-page). Omit on the stock page to follow the page-wide toggle. */
+  /** Ignored — the box follows the page language (`<T>`). Kept so old callers compile. */
   lang?: Lang;
   /** false = no lock of its own (the stock page's full verdict masks the whole answer). */
   gated?: boolean;
   className?: string;
 }
 
-const T = {
-  title: { en: "Value today", bn: "আজকের মূল্য" },
-  today: { en: "Today", bn: "আজ" },
-  estimate: { en: "Rough estimate", bn: "আনুমানিক মূল্য" },
-  range: { en: "Fair range", bn: "ন্যায্য সীমা" },
-  based: { en: "How we judge it", bn: "যেভাবে বিচার করি" },
-  disagree: {
-    en: "Our yardsticks point different ways here, so we don't show one estimate. The verdict above is the one the whole page uses; the figures below are each yardstick on its own.",
-    bn: "এখানে আমাদের মাপকাঠিগুলো ভিন্ন দিকে ইঙ্গিত দিচ্ছে, তাই একটি অনুমান দেখাচ্ছি না। ওপরের মতটাই পুরো পাতায় ব্যবহার হয়; নিচে প্রতিটি মাপকাঠির হিসাব আলাদা করে দেওয়া হলো।",
-  },
-  note: {
-    en: "A rough, educational estimate from the figures we have — not a price target or advice.",
-    bn: "আমাদের কাছে থাকা তথ্য থেকে একটি আনুমানিক, শিক্ষামূলক ধারণা — কোনো দামের লক্ষ্য বা পরামর্শ নয়।",
-  },
-  conf: {
-    en: { low: "low confidence", medium: "medium confidence", high: "high confidence" },
-    bn: { low: "কম আস্থা", medium: "মাঝারি আস্থা", high: "উচ্চ আস্থা" },
-  },
-  stance: {
-    en: { cheap: "Looks cheap", fair: "Around fair value", expensive: "Looks pricey", none: "Not enough to say" },
-    bn: { cheap: "সস্তা মনে হচ্ছে", fair: "মোটামুটি ন্যায্য দাম", expensive: "দামি মনে হচ্ছে", none: "বলার মতো যথেষ্ট নয়" },
-  },
-} as const;
+const STANCE: Record<string, { en: string; bn: string }> = {
+  cheap: { en: "Price looks low", bn: "দাম কম মনে হচ্ছে" },
+  fair: { en: "Close to a fair price", bn: "ন্যায্য দামের কাছাকাছি" },
+  expensive: { en: "Price looks high", bn: "দাম বেশি মনে হচ্ছে" },
+  none: { en: "Not enough information", bn: "যথেষ্ট তথ্য নেই" },
+};
 
-function Gate({ on, label, children }: { on: boolean; label: string; children: ReactNode }) {
+const CONF: Record<"low" | "medium" | "high", { en: string; bn: string }> = {
+  low: { en: "low confidence", bn: "আস্থা কম" },
+  medium: { en: "medium confidence", bn: "আস্থা মাঝারি" },
+  high: { en: "high confidence", bn: "আস্থা বেশি" },
+};
+
+function Gate({ on, label, children }: { on: boolean; label: { en: string; bn: string }; children: ReactNode }) {
   return on ? <PremiumGate label={label} preview="blur">{children}</PremiumGate> : <>{children}</>;
 }
 
@@ -57,18 +47,15 @@ function money(v: number | null | undefined): string {
   return `৳${v.toFixed(2)}`;
 }
 
-export default function ValueTodayBox({ fairValue, lang: langProp, gated = true, className = "" }: Props) {
-  const { lang: pageLang } = useStockLang();
-  const lang: Lang = langProp ?? pageLang;
+export default function ValueTodayBox({ fairValue, gated = true, className = "" }: Props) {
+  const { bn } = useLang();
   if (!fairValue || fairValue.center == null) return null;
   const { low, high, center, today, stance, confidence, methods, basis_en, basis_bn } = fairValue;
   // The badge is the page's one verdict; when the rough estimate points the other
   // way, printing it beside the badge would contradict it — show the yardsticks only.
   const disagree = fairValue.estimates_disagree === true;
-  const isBn = lang === "bn";
   const color = stanceColor(stance);
-  const stanceLabel = T.stance[lang][(stance ?? "none") as keyof typeof T.stance.en];
-  const basis = isBn ? basis_bn : basis_en;
+  const stanceLabel = STANCE[stance ?? "none"] ?? STANCE.none;
 
   // Range bar geometry — widen the domain so an outside-the-band "today" marker
   // (cheap = below low, pricey = above high) still shows within the track.
@@ -91,36 +78,37 @@ export default function ValueTodayBox({ fairValue, lang: langProp, gated = true,
 
   return (
     <div
-      className={`rounded-2xl p-4 sm:p-5 ${isBn ? "font-bn" : ""} ${className}`}
+      className={`rounded-2xl p-4 sm:p-5 ${className}`}
       style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "var(--shadow-soft)" }}
-      lang={isBn ? "bn" : undefined}
     >
       <p className="text-xs font-semibold mb-3 text-text-muted">
-        {T.title[lang]}
+        <T en="Fair price today" bn="আজকের ন্যায্য দাম" />
       </p>
 
       {/* Everything below the title is Premium (screen-only lock, blurred preview). */}
-      <Gate on={gated} label={isBn ? "ন্যায্য দামের হিসাব" : "The fair-value estimate"}>
+      <Gate on={gated} label={{ en: "The fair price estimate", bn: "ন্যায্য দামের হিসাব" }}>
       <span
-        className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold mb-3"
-        style={{ background: color, color: "#fff" }}
+        className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold mb-3 text-surface"
+        style={{ background: color }}
       >
-        {stanceLabel}
+        <T en={stanceLabel.en} bn={stanceLabel.bn} />
       </span>
 
       {/* Headline figures: today's price + our rough estimate */}
       <div className="flex items-end gap-5 mb-4">
         {today != null && (
           <div>
-            <p className="text-xs mb-0.5 text-text-muted">{T.today[lang]}</p>
-            <p className="text-2xl font-bold tabular-nums leading-none text-text-main">
-              {money(today)}
+            <p className="text-xs mb-0.5 text-text-muted">
+              <T en="Price today" bn="আজকের দাম" />
             </p>
+            <p className="text-2xl font-bold tabular-nums leading-none text-text-main">{money(today)}</p>
           </div>
         )}
         {!disagree && (
           <div>
-            <p className="text-xs mb-0.5 text-text-muted">{T.estimate[lang]}</p>
+            <p className="text-xs mb-0.5 text-text-muted">
+              <T en="Our estimate" bn="আমাদের হিসাব" />
+            </p>
             <p className="text-2xl font-bold tabular-nums leading-none" style={{ color }}>
               {money(center)}
             </p>
@@ -130,7 +118,10 @@ export default function ValueTodayBox({ fairValue, lang: langProp, gated = true,
 
       {disagree && (
         <p className="text-sm leading-snug mb-3 text-text-muted">
-          {T.disagree[lang]}
+          <T
+            en="Our measures point in different directions here, so we do not show a single estimate. The verdict above is the one used across this page. Each measure is listed below on its own."
+            bn="এখানে আমাদের মাপকাঠিগুলো ভিন্ন দিকে ইঙ্গিত দিচ্ছে, তাই একটি হিসাব দেখাচ্ছি না। ওপরের মূল্যায়নটিই পুরো পেজে ব্যবহার হয়। নিচে প্রতিটি মাপকাঠির হিসাব আলাদা করে দেওয়া হলো।"
+          />
         </p>
       )}
 
@@ -152,19 +143,21 @@ export default function ValueTodayBox({ fairValue, lang: langProp, gated = true,
           </div>
           <div className="flex justify-between mt-1.5 text-xs tabular-nums text-text-muted">
             <span>{money(low)}</span>
-            <span>{T.range[lang]}</span>
+            <span>
+              <T en="Fair range" bn="ন্যায্য দামের সীমা" />
+            </span>
             <span>{money(high)}</span>
           </div>
         </div>
       )}
 
       {/* Basis + confidence */}
-      {basis && (
+      {(basis_en || basis_bn) && (
         <p className="text-xs leading-snug mb-2 text-text-muted">
-          {basis}
-          {confidence && (
-            <> · {T.conf[lang][confidence]}</>
-          )}
+          <T
+            en={`${basis_en ?? basis_bn}${confidence ? ` · ${CONF[confidence].en}` : ""}`}
+            bn={`${basis_bn ?? basis_en}${confidence ? ` · ${CONF[confidence].bn}` : ""}`}
+          />
         </p>
       )}
 
@@ -173,7 +166,9 @@ export default function ValueTodayBox({ fairValue, lang: langProp, gated = true,
         <ul className="space-y-1 mb-3">
           {methods.map((m) => (
             <li key={m.name} className="flex items-center justify-between gap-3 text-xs">
-              <span className="text-text-muted">{isBn ? m.label_bn : m.label_en}</span>
+              <span className="text-text-muted">
+                <T en={m.label_en} bn={m.label_bn} />
+              </span>
               <span className="tabular-nums font-semibold shrink-0 text-text-main">{money(m.price)}</span>
             </li>
           ))}
@@ -183,7 +178,10 @@ export default function ValueTodayBox({ fairValue, lang: langProp, gated = true,
       </Gate>
 
       <p className="text-xs leading-snug mt-3 text-text-muted">
-        {T.note[lang]}
+        <T
+          en="This is a rough estimate from the figures we have, to help you understand the price. It is not a price target or advice."
+          bn="আমাদের কাছে থাকা তথ্য থেকে করা একটি আনুমানিক হিসাব, দাম বুঝতে সাহায্য করার জন্য। এটি দামের লক্ষ্য বা পরামর্শ নয়।"
+        />
       </p>
     </div>
   );

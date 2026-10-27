@@ -76,7 +76,7 @@ def _period(interim: dict) -> tuple[str, str]:
 def _move_words(pct: Optional[float], cur: float, prev: float) -> tuple[str, str]:
     """'up 17%' / 'down 5%' / 'about the same' / 'turned to a loss' …"""
     if prev <= 0 < cur:
-        return "back to a profit", "আবার লাভে ফিরেছে"
+        return "back to a profit", "আবার মুনাফায় ফিরেছে"
     if cur < 0 <= prev:
         return "turned to a loss", "লোকসানে পড়েছে"
     if cur < 0 and prev < 0:
@@ -112,8 +112,8 @@ def explain(interim: dict, row: Optional[dict] = None, score_before: Optional[fl
         "bad" if (pct or 0) <= -MOVE_PCT or cur < 0 else "neutral"
     lines.append({
         "key": "profit", "tone": tone,
-        "en": f"Profit in {per_en}: {_tk(cur)} a share, against {_tk(prev)} a year earlier — {move_en}.",
-        "bn": f"{per_bn} শেয়ারপ্রতি লাভ {_tk(cur)}, এক বছর আগে ছিল {_tk(prev)} — {move_bn}।",
+        "en": f"Profit in {per_en} was {_tk(cur)} a share, compared with {_tk(prev)} a year earlier ({move_en}).",
+        "bn": f"{per_bn} শেয়ারপ্রতি মুনাফা {_tk(cur)}, এক বছর আগে ছিল {_tk(prev)} ({move_bn})।",
     })
 
     # The latest quarter on its own (only when the year-to-date covers more).
@@ -124,8 +124,8 @@ def explain(interim: dict, row: Optional[dict] = None, score_before: Optional[fl
         q_tone = "good" if (q_pct or 0) >= MOVE_PCT else "bad" if (q_pct or 0) <= -MOVE_PCT or q < 0 else "neutral"
         lines.append({
             "key": "quarter", "tone": q_tone,
-            "en": f"The latest 3 months on their own: {_tk(q)} against {_tk(qp)} — {q_en}.",
-            "bn": f"শুধু সর্বশেষ 3 মাসে: {_tk(q)}, আগে ছিল {_tk(qp)} — {q_bn}।",
+            "en": f"In the latest 3 months alone, it was {_tk(q)} a share, compared with {_tk(qp)} ({q_en}).",
+            "bn": f"শুধু সর্বশেষ 3 মাসে শেয়ারপ্রতি মুনাফা {_tk(q)}, এক বছর আগে ছিল {_tk(qp)} ({q_bn})।",
         })
 
     # Cash from the business.
@@ -138,14 +138,14 @@ def explain(interim: dict, row: Optional[dict] = None, score_before: Optional[fl
             cash_bad = True
             lines.append({
                 "key": "cash", "tone": "bad",
-                "en": f"The business used more cash than it brought in: {_tk(nocf)} a share{prev_en}.",
-                "bn": f"ব্যবসা যত নগদ এনেছে তার চেয়ে বেশি খরচ করেছে: শেয়ারপ্রতি {_tk(nocf)}{prev_bn}।",
+                "en": f"The business spent more cash than it brought in: {_tk(nocf)} a share{prev_en}.",
+                "bn": f"ব্যবসায় যত নগদ এসেছে তার চেয়ে বেশি খরচ হয়েছে: শেয়ারপ্রতি {_tk(nocf)}{prev_bn}।",
             })
         else:
             lines.append({
                 "key": "cash", "tone": "good" if cur > 0 and nocf >= cur * 0.8 else "neutral",
-                "en": f"Cash from the business: {_tk(nocf)} a share so far{prev_en}.",
-                "bn": f"ব্যবসা থেকে নগদ: এ পর্যন্ত শেয়ারপ্রতি {_tk(nocf)}{prev_bn}।",
+                "en": f"Cash from the business so far: {_tk(nocf)} a share{prev_en}.",
+                "bn": f"এ পর্যন্ত ব্যবসা থেকে নগদ এসেছে শেয়ারপ্রতি {_tk(nocf)}{prev_bn}।",
             })
 
     # What the price costs now, on the last 12 months' profit.
@@ -156,17 +156,17 @@ def explain(interim: dict, row: Optional[dict] = None, score_before: Optional[fl
             fy_bit_en = fy_bit_bn = ""
             if fy_eps and fy_eps > 0 and abs(ltp / fy_eps - pe) >= 0.5:
                 fy_bit_en = f" ({_x(ltp / fy_eps)}× on last year's audited profit)"
-                fy_bit_bn = f" (গত বছরের নিরীক্ষিত লাভে {_x(ltp / fy_eps)} গুণ)"
+                fy_bit_bn = f" (গত বছরের নিরীক্ষিত মুনাফায় {_x(ltp / fy_eps)} গুণ)"
             lines.append({
                 "key": "price", "tone": "neutral",
-                "en": f"At today's ৳{ltp:,.1f} the share costs {_x(pe)}× its profit over the last 12 months{fy_bit_en}.",
-                "bn": f"আজকের ৳{ltp:,.1f} দামে শেয়ারটি গত 12 মাসের লাভের {_x(pe)} গুণ{fy_bit_bn}।",
+                "en": f"At today's price of ৳{ltp:,.1f}, the share costs {_x(pe)}× its profit over the last 12 months{fy_bit_en}.",
+                "bn": f"আজকের ৳{ltp:,.1f} দামে শেয়ারটির দাম গত 12 মাসের মুনাফার {_x(pe)} গুণ{fy_bit_bn}।",
             })
         else:
             lines.append({
                 "key": "price", "tone": "bad",
-                "en": "Over the last 12 months it made a loss, so the price can't be judged on profit.",
-                "bn": "গত 12 মাসে লোকসান হয়েছে, তাই লাভ দিয়ে দাম বিচার করা যায় না।",
+                "en": "It made a loss over the last 12 months, so the price cannot be compared with profit.",
+                "bn": "গত 12 মাসে লোকসান হয়েছে, তাই মুনাফার সঙ্গে দাম তুলনা করা যায় না।",
             })
 
     # How our score moved since the report.
@@ -177,55 +177,56 @@ def explain(interim: dict, row: Optional[dict] = None, score_before: Optional[fl
             up = s_now > score_before
             lines.append({
                 "key": "score", "tone": "good" if up else "bad",
-                "en": f"Our score moved from {score_before:.0f} to {s_now:.0f} ({t_en}) since the report came out.",
-                "bn": f"প্রতিবেদনের পর আমাদের স্কোর {score_before:.0f} থেকে {s_now:.0f} ({t_bn}) হয়েছে।",
+                "en": f"Since the report came out, our score has moved from {score_before:.0f} to {s_now:.0f} ({t_en}).",
+                "bn": f"প্রতিবেদন প্রকাশের পর আমাদের স্কোর {score_before:.0f} থেকে {s_now:.0f} ({t_bn}) হয়েছে।",
             })
         else:
             lines.append({
                 "key": "score", "tone": "neutral",
-                "en": f"Our score: {s_now:.0f}/100 ({t_en}).",
-                "bn": f"আমাদের স্কোর: {s_now:.0f}/100 ({t_bn})।",
+                "en": f"Our score is {s_now:.0f}/100 ({t_en}).",
+                "bn": f"আমাদের স্কোর {s_now:.0f}/100 ({t_bn})।",
             })
 
     # One sentence on what it means.
     if cur < 0:
         level = "bad"
-        m_en = "It is losing money this year. Be careful until profit comes back."
-        m_bn = "এ বছর কোম্পানিটি লোকসানে আছে। লাভে না ফেরা পর্যন্ত সাবধান থাকুন।"
+        m_en = "The company is making a loss this year. It is wise to be careful until profit returns."
+        m_bn = "এ বছর কোম্পানিটি লোকসানে আছে। মুনাফায় না ফেরা পর্যন্ত সাবধান থাকাই ভালো।"
     elif pct is not None and pct <= BIG_DROP_PCT:
         level = "bad"
-        m_en = "Profit fell by a quarter or more. Our Buy rules hold off on a stock like this until profit recovers."
-        m_bn = "লাভ এক-চতুর্থাংশ বা তার বেশি কমেছে। লাভ না ফেরা পর্যন্ত আমাদের নিয়মে এমন শেয়ারে 'কিনুন' সংকেত আসে না।"
+        m_en = "Profit fell by a quarter or more. Our Buy rules hold off on a share like this until profit recovers."
+        m_bn = "মুনাফা এক-চতুর্থাংশ বা তার বেশি কমেছে। মুনাফা না ফেরা পর্যন্ত আমাদের নিয়মে এমন শেয়ারে কেনার সংকেত দেওয়া হয় না।"
     elif (pct is not None and pct >= MOVE_PCT) or prev <= 0 < cur:
         if cash_bad:
             level = "watch"
-            m_en = "Profit is up, but the cash didn't come in. Check whether customers are paying on time."
-            m_bn = "লাভ বেড়েছে, কিন্তু নগদ আসেনি। গ্রাহকরা সময়মতো টাকা দিচ্ছে কি না দেখে নিন।"
+            m_en = "Profit is up, but the cash didn't come in. It is worth checking whether customers are paying on time."
+            m_bn = "মুনাফা বেড়েছে, তবে নগদ আসেনি। ক্রেতারা সময়মতো টাকা দিচ্ছেন কি না, তা দেখে নেওয়া ভালো।"
         else:
             level = "good"
             m_en = "The business is doing better than a year ago."
             m_bn = "এক বছর আগের চেয়ে ব্যবসা ভালো চলছে।"
         if q_pct is not None and q_pct <= -MOVE_PCT:
             level = "watch"
-            m_en += " But the latest quarter slowed down — watch the next report."
-            m_bn += " তবে সর্বশেষ প্রান্তিকে গতি কমেছে — পরের প্রতিবেদনে নজর রাখুন।"
+            m_en += " However, the latest quarter was slower, so the next report is worth watching."
+            m_bn += " তবে সর্বশেষ প্রান্তিকে গতি কমেছে, তাই পরের প্রতিবেদনের দিকে নজর রাখা ভালো।"
     elif pct is not None and pct <= -MOVE_PCT:
         level = "watch"
-        m_en = "Profit is lower than last year. Worth watching the next report."
-        m_bn = "লাভ গত বছরের চেয়ে কম। পরের প্রতিবেদনে নজর রাখা দরকার।"
+        m_en = "Profit is lower than last year. The next report is worth watching."
+        m_bn = "মুনাফা গত বছরের চেয়ে কম। পরের প্রতিবেদনের দিকে নজর রাখা ভালো।"
     else:
         level = "watch" if cash_bad else "neutral"
-        m_en = "Profit is about where it was a year ago."
-        m_bn = "লাভ এক বছর আগের মতোই আছে।"
+        m_en = "Profit is about the same as a year ago."
+        m_bn = "মুনাফা এক বছর আগের মতোই আছে।"
         if cash_bad:
             m_en += " The cash going out is the thing to watch."
-            m_bn += " নগদ বেরিয়ে যাওয়াটাই নজর রাখার বিষয়।"
+            m_bn += " নগদ বেরিয়ে যাওয়ার দিকটি নজরে রাখার মতো।"
 
     q_label = f"Q{quarter}" if quarter else f"{months}-month"
+    q_label_bn = f"Q{quarter}" if quarter else f"{months} মাসের"
     if move_en.startswith(("up", "down")):
-        head_en, head_bn = f"profit {move_en} on last year", f"লাভ {move_bn}"
+        head_en, head_bn = f"profit {move_en} on last year", f"মুনাফা আগের বছরের চেয়ে {move_bn}"
     elif move_en == "about the same":
-        head_en, head_bn = "profit about the same as last year", f"লাভ {move_bn}"
+        head_en, head_bn = "profit about the same as last year", f"মুনাফা {move_bn}"
     elif move_en.startswith("a "):
         head_en, head_bn = f"{move_en} than last year", move_bn
     else:
@@ -238,7 +239,7 @@ def explain(interim: dict, row: Optional[dict] = None, score_before: Optional[fl
         "eps_cum": cur, "eps_cum_prev": prev, "eps_yoy_pct": pct, "eps_q_yoy_pct": q_pct,
         "level": level,
         "headline_en": f"{q_label} results: {head_en}",
-        "headline_bn": f"{q_label} ফল: {head_bn}",
+        "headline_bn": f"{q_label_bn} ফল: {head_bn}",
         "lines": lines,
         "meaning_en": m_en, "meaning_bn": m_bn,
     }

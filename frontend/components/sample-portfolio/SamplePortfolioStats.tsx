@@ -1,6 +1,8 @@
 import type { ComputedRow, PortfolioAnalysis } from "@/lib/portfolio-analysis";
 import { taka } from "@/lib/formatters";
 import Card from "@/components/ui/Card";
+import { T } from "@/components/i18n/T";
+import type { ReactNode } from "react";
 
 interface Props {
   rows: ComputedRow[];
@@ -33,11 +35,11 @@ export default function SamplePortfolioStats({ rows, analysis }: Props) {
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      <Stat label="Holdings" value={String(rows.length)} />
-      <Stat label="Sectors" value={String(distinctSectors)} />
-      <Stat label="Invested" value={taka(totalCost, 0)} />
+      <Stat label={<T en="Shares" bn="শেয়ার" />} value={String(rows.length)} />
+      <Stat label={<T en="Sectors" bn="সেক্টর" />} value={String(distinctSectors)} />
+      <Stat label={<T en="Money put in" bn="বিনিয়োগ" />} value={taka(totalCost, 0)} />
       <Stat
-        label="Current P&L"
+        label={<T en="Profit or loss now" bn="এখন লাভ বা লোকসান" />}
         value={
           pnl == null
             ? "—"
@@ -56,7 +58,7 @@ function Stat({
   value,
   valueClass,
 }: {
-  label: string;
+  label: ReactNode;
   value: string;
   valueClass?: string;
 }) {

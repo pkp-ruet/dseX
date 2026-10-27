@@ -2,12 +2,14 @@
 import { useEffect, useRef, useState } from "react";
 import { BAR_H, NAVBAR_H, STOCK_JUMP_EVENT } from "@/components/stock/StickyStackMeasure";
 import { OPEN_CHAPTER_EVENT } from "@/components/stock/StockChapter";
+import { T } from "@/components/i18n/T";
 
 export { STOCK_JUMP_EVENT };
 
 export interface NavSection {
   id: string;
   label: string;
+  labelBn: string;
 }
 
 interface Props {
@@ -90,7 +92,7 @@ export default function StockSectionNav({ sections }: Props) {
   return (
     <nav
       ref={navRef}
-      aria-label="Jump to section"
+      aria-label="Jump to section / অংশে যান"
       className="stock-chip-row flex gap-2 overflow-x-auto px-3 py-1.5 no-scrollbar bg-surface/90 backdrop-blur border-b border-border"
     >
       {sections.map((s) => {
@@ -108,7 +110,7 @@ export default function StockSectionNav({ sections }: Props) {
                 : "bg-surface-2 border-border text-text-muted hover:text-text-main active:bg-border"
             }`}
           >
-            {s.label}
+            <T en={s.label} bn={s.labelBn} />
           </a>
         );
       })}

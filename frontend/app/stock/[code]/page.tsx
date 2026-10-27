@@ -6,7 +6,6 @@ import {
 } from "@/lib/api";
 import { getTier, TIER_LABELS } from "@/lib/constants";
 import { computeFeaturedIn } from "@/lib/featured-lists";
-import { StockLangProvider } from "@/context/StockLangContext";
 import FeaturedInStrip from "@/components/stock/FeaturedInStrip";
 import HeroSection from "@/components/stock/HeroSection";
 import PriceChart from "@/components/stock/PriceChart";
@@ -27,6 +26,7 @@ import StockChapter from "@/components/stock/StockChapter";
 import FullVerdict from "@/components/stock/FullVerdict";
 import StockLockScope from "@/components/premium/LockScope";
 import { formatDate, money } from "@/lib/formatters";
+import { T } from "@/components/i18n/T";
 
 export const revalidate = 86400;
 export const dynamicParams = true;
@@ -269,34 +269,73 @@ export default async function StockDetailPage({ params }: PageProps) {
 
   const hasCompany = true; // ownership + news always render (with their own empty states)
   const sections: NavSection[] = [
-    { id: "ch-overview", label: "Overview" },
-    ...(hasVerdict ? [{ id: "ch-verdict", label: "Full verdict" }] : []),
-    ...(hasValuation || hasMomentum || hasPeers ? [{ id: "ch-value", label: "Price & value" }] : []),
-    ...(hasFinancials || hasDividends ? [{ id: "ch-money", label: "Profits & dividends" }] : []),
-    ...(hasCompany ? [{ id: "ch-company", label: "Company & news" }] : []),
+    { id: "ch-overview", label: "Overview", labelBn: "এক নজরে" },
+    ...(hasVerdict ? [{ id: "ch-verdict", label: "Full verdict", labelBn: "পূর্ণ মূল্যায়ন" }] : []),
+    ...(hasValuation || hasMomentum || hasPeers
+      ? [{ id: "ch-value", label: "Price and value", labelBn: "দাম ও মূল্যায়ন" }]
+      : []),
+    ...(hasFinancials || hasDividends
+      ? [{ id: "ch-money", label: "Profit and dividends", labelBn: "মুনাফা ও ডিভিডেন্ড" }]
+      : []),
+    ...(hasCompany ? [{ id: "ch-company", label: "Company and news", labelBn: "কোম্পানি ও খবর" }] : []),
   ];
 
   // One plain line of facts under each chapter title — numbers that are free
   // everywhere, never the locked analysis.
+  const joinBits = (bits: (string | null)[], sep: string) => bits.filter(Boolean).join(sep);
   const peNow = valuation?.current_pe ?? num(score_row?.current_pe);
-  const valueBits = [
-    peNow != null && peNow > 0 ? `P/E ${peNow.toFixed(1)}` : null,
-    divYield != null && divYield > 0 ? `dividend yield ${divYield.toFixed(1)}%` : null,
-  ].filter(Boolean);
-  const valueLead = valueBits.length ? `${valueBits.join(" · ")} at today's price.` : undefined;
+  const hasPe = peNow != null && peNow > 0;
+  const hasYield = divYield != null && divYield > 0;
+  const valueLead =
+    hasPe || hasYield ? (
+      <T
+        en={`At today's price: ${joinBits(
+          [hasPe ? `P/E ${peNow!.toFixed(1)}` : null, hasYield ? `dividend yield ${divYield!.toFixed(1)}%` : null],
+          ", ",
+        )}.`}
+        bn={`আজকের দামে: ${joinBits(
+          [hasPe ? `পিই ${peNow!.toFixed(1)}` : null, hasYield ? `ডিভিডেন্ড ইল্ড ${divYield!.toFixed(1)}%` : null],
+          ", ",
+        )}।`}
+      />
+    ) : undefined;
   const epsLatest = num(latestFin?.eps);
-  const moneyBits = [
-    epsLatest != null ? `earnings ${money(epsLatest)} a share` : null,
-    lastCashPct != null && lastCashPct > 0 ? `${lastCashPct}% cash dividend` : null,
-  ].filter(Boolean);
+  const hasCash = lastCashPct != null && lastCashPct > 0;
   const moneyLead =
-    moneyBits.length && latestFin?.year ? `In ${latestFin.year}: ${moneyBits.join(" · ")}.` : undefined;
-  const companyBits = [
-    profile.market_category ? `Category ${String(profile.market_category).toUpperCase()}` : null,
-    profile.listing_year ? `listed since ${profile.listing_year}` : null,
-    news.length ? `${news.length} news ${news.length === 1 ? "item" : "items"}` : null,
-  ].filter(Boolean);
-  const companyLead = companyBits.length ? `${companyBits.join(" · ")}.` : undefined;
+    (epsLatest != null || hasCash) && latestFin?.year ? (
+      <T
+        en={`In ${latestFin.year}: ${joinBits(
+          [epsLatest != null ? `EPS ${money(epsLatest)}` : null, hasCash ? `cash dividend ${lastCashPct}%` : null],
+          ", ",
+        )}.`}
+        bn={`${latestFin.year} সালে: ${joinBits(
+          [epsLatest != null ? `ইপিএস ${money(epsLatest)}` : null, hasCash ? `নগদ ডিভিডেন্ড ${lastCashPct}%` : null],
+          ", ",
+        )}।`}
+      />
+    ) : undefined;
+  const cat = profile.market_category ? String(profile.market_category).toUpperCase() : null;
+  const companyLead =
+    cat || profile.listing_year || news.length ? (
+      <T
+        en={`${joinBits(
+          [
+            cat ? `Category ${cat}` : null,
+            profile.listing_year ? `listed since ${profile.listing_year}` : null,
+            news.length ? `${news.length} news ${news.length === 1 ? "item" : "items"}` : null,
+          ],
+          ", ",
+        )}.`}
+        bn={`${joinBits(
+          [
+            cat ? `${cat} ক্যাটাগরি` : null,
+            profile.listing_year ? `${profile.listing_year} সাল থেকে তালিকাভুক্ত` : null,
+            news.length ? `${news.length}টি খবর` : null,
+          ],
+          ", ",
+        )}।`}
+      />
+    ) : undefined;
 
   // Current stock as the highlighted first row of the peer comparison.
   const currentPeerRow = {
@@ -312,7 +351,7 @@ export default async function StockDetailPage({ params }: PageProps) {
   };
 
   return (
-    <StockLangProvider>
+    <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -366,7 +405,7 @@ export default async function StockDetailPage({ params }: PageProps) {
 
       {/* Chapter 3 · Price and value */}
       {(hasValuation || hasMomentum || hasPeers) && (
-        <StockChapter id="ch-value" title="Price and value" bn="দাম সস্তা না দামি" lead={valueLead}>
+        <StockChapter id="ch-value" title={<T en="Price and value" bn="দাম ও মূল্যায়ন" />} lead={valueLead}>
           {hasValuation && (
             <>
               <ValuationPanel
@@ -392,7 +431,7 @@ export default async function StockDetailPage({ params }: PageProps) {
 
       {/* Chapter 4 · Profits and dividends */}
       {(hasFinancials || hasDividends) && (
-        <StockChapter id="ch-money" title="Profits and dividends" bn="লাভ আর লভ্যাংশ" lead={moneyLead}>
+        <StockChapter id="ch-money" title={<T en="Profit and dividends" bn="মুনাফা ও ডিভিডেন্ড" />} lead={moneyLead}>
           {hasFinancials && (
             <div id="financials" className="stock-anchor">
               <ProfitsAndDividends
@@ -415,7 +454,7 @@ export default async function StockDetailPage({ params }: PageProps) {
       )}
 
       {/* Chapter 5 · Company and news */}
-      <StockChapter id="ch-company" title="Company and news" bn="কোম্পানির তথ্য, মালিকানা আর খবর" lead={companyLead}>
+      <StockChapter id="ch-company" title={<T en="Company and news" bn="কোম্পানি ও খবর" />} lead={companyLead}>
         {hasFacts && (
           <div id="numbers" className="stock-anchor">
             <CompanyFacts detail={detail} />
@@ -433,6 +472,6 @@ export default async function StockDetailPage({ params }: PageProps) {
         </div>
       </StockChapter>
       </StockLockScope>
-    </StockLangProvider>
+    </>
   );
 }

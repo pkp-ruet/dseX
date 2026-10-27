@@ -1,4 +1,6 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
+import { T } from "@/components/i18n/T";
 import TierPill from "@/components/ui/TierPill";
 import { pct, taka } from "@/lib/formatters";
 import type { SectorStockRow } from "@/lib/api";
@@ -19,8 +21,8 @@ function value(s: SectorStockRow, metric: Metric) {
 }
 
 function List({ title, note, stocks, metric, accent }: {
-  title: string;
-  note: string;
+  title: ReactNode;
+  note: ReactNode;
   stocks: SectorStockRow[];
   metric: Metric;
   accent: string;
@@ -91,33 +93,38 @@ export default function SectorHighlights({
 
   return (
     <section className="mb-8" id="standouts">
-      <SectionHeader title={<>What stands out</>} className="mt-8" />
+      <SectionHeader title={<T en="What stands out" bn="যা চোখে পড়ার মতো" />} className="mt-8" />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <List
-          title="Up most today"
-          note="Latest trading day"
+          title={<T en="Up most today" bn="আজ সবচেয়ে বেড়েছে" />}
+          note={<T en="Latest trading day" bn="সর্বশেষ লেনদেনের দিন" />}
           stocks={gainers}
           metric="change_pct"
           accent="var(--positive)"
         />
         <List
-          title="Down most today"
-          note="Latest trading day"
+          title={<T en="Down most today" bn="আজ সবচেয়ে কমেছে" />}
+          note={<T en="Latest trading day" bn="সর্বশেষ লেনদেনের দিন" />}
           stocks={losers}
           metric="change_pct"
           accent="var(--negative)"
         />
         <List
-          title="Strongest week"
-          note="Last 7 trading days"
+          title={<T en="Strongest week" bn="সপ্তাহে সবচেয়ে ভালো" />}
+          note={<T en="Last 7 trading days" bn="গত 7টি লেনদেনের দিন" />}
           stocks={weekLeaders}
           metric="return_7d_pct"
           accent="var(--info)"
         />
         <List
-          title="Highest dividend yield"
-          note="Gross, before tax — a high yield often means a fallen price"
+          title={<T en="Highest dividend yield" bn="সবচেয়ে বেশি ডিভিডেন্ড ইল্ড" />}
+          note={
+            <T
+              en="Before tax. A high yield often means the price has fallen."
+              bn="কর কাটার আগে। বেশি ইল্ড মানে প্রায়ই দাম কমে গেছে।"
+            />
+          }
           stocks={topDividend}
           metric="div_yield_pct"
           accent="var(--gold)"

@@ -6,20 +6,21 @@ import { IconCheck, IconLock } from "@/components/ui/icons";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
 import { savePremiumContext } from "@/lib/premium-context";
 import { trackEvent } from "@/lib/track";
+import { T } from "@/components/i18n/T";
 
 export const SCREENER_ANCHOR = "sc-premium";
 
 const FEATURES = [
-  { en: "Every stock that passes your screen, with its figure on each check",
-    bn: "আপনার স্ক্রিন পেরোনো প্রতিটি শেয়ার, প্রতিটি শর্তে তার সংখ্যাসহ" },
+  { en: "Every share that passes your screen, with its figure on each check",
+    bn: "আপনার স্ক্রিনে পাস করা প্রতিটি শেয়ার, প্রতিটি যাচাইয়ে তার সংখ্যাসহ" },
   { en: "Your own answers to the six questions, and one or several sectors",
-    bn: "ছয়টি প্রশ্নে নিজের উত্তর, আর এক বা একাধিক খাত" },
-  { en: "The stocks that almost passed, and the one check each misses",
-    bn: "প্রায় পাস করা শেয়ার, আর প্রতিটি কোন একটি শর্তে বাদ পড়েছে" },
-  { en: "Change the exact rules behind each answer, and add extra checks: a Buy today, a better quarter, owners buying",
-    bn: "প্রতিটি উত্তরের নিয়ম বদলান, আরও শর্ত যোগ করুন: আজ 'কিনুন', ভালো প্রান্তিক, উদ্যোক্তারা কিনছেন" },
-  { en: "Save up to 5 screens", bn: "সর্বোচ্চ 5টি স্ক্রিন সেভ" },
-  { en: "A push the day a new stock passes", bn: "নতুন শেয়ার পাস করলে সেদিনই নোটিফিকেশন" },
+    bn: "ছয়টি প্রশ্নে নিজের উত্তর, আর এক বা একাধিক সেক্টর" },
+  { en: "The shares that almost passed, and the one check each misses",
+    bn: "প্রায় পাস করা শেয়ার, আর প্রতিটি কোন যাচাইয়ে বাদ পড়েছে" },
+  { en: "Change the exact rules behind each answer, and add extra checks such as a Buy signal today, a better quarter or owners buying",
+    bn: "প্রতিটি উত্তরের নিয়ম বদলান, আর আরও যাচাই যোগ করুন, যেমন আজ কেনার সংকেত, ভালো প্রান্তিক বা উদ্যোক্তা-পরিচালকদের কেনা" },
+  { en: "Save up to 5 screens", bn: "সর্বোচ্চ 5টি স্ক্রিন সেভ করুন" },
+  { en: "A notification on the day a new share passes", bn: "নতুন শেয়ার পাস করলে সেদিনই নোটিফিকেশন" },
 ];
 
 /**
@@ -45,18 +46,22 @@ export default function ScreenerPremium({
   useEffect(() => setMounted(true), []);
   if (mounted && isPremium) return null;
 
-  const stakes = [
+  const stakePairs = [
     passed != null && passed > 0
-      ? t(`${passed} companies pass your screen today`, `আজ ${passed}টি কোম্পানি আপনার স্ক্রিন পেরিয়েছে`)
+      ? { en: `${passed} companies pass your screen today`, bn: `আজ ${passed}টি কোম্পানি আপনার স্ক্রিনে পাস করেছে` }
       : null,
-    hidden > 0 ? t(`${hidden} of them are hidden`, `এর মধ্যে ${hidden}টি লুকানো`) : null,
+    hidden > 0 ? { en: `${hidden} of them are hidden`, bn: `এর মধ্যে ${hidden}টি লুকানো` } : null,
     yours > 0
-      ? t(`${yours} ${yours === 1 ? "is a stock" : "are stocks"} you follow`, `${yours}টি আপনার অনুসরণ করা শেয়ার`)
+      ? { en: `${yours} ${yours === 1 ? "is a share" : "are shares"} you follow`, bn: `${yours}টি আপনার অনুসরণ করা শেয়ার` }
       : null,
-  ].filter((s): s is string => !!s);
-  const cta = state === "guest"
-    ? t("Sign up free, then try Premium", "ফ্রি সাইন আপ করে প্রিমিয়াম নিন")
-    : t("See Premium plans", "প্রিমিয়াম প্ল্যান দেখুন");
+  ].filter((s): s is { en: string; bn: string } => !!s);
+  // The stakes travel to /premium as plain lines in the reader's language.
+  const stakes = stakePairs.map((s) => t(s.en, s.bn));
+  const cta = state === "guest" ? (
+    <T en="Sign up free, then try Premium" bn="ফ্রি অ্যাকাউন্ট খুলে প্রিমিয়াম নিন" />
+  ) : (
+    <T en="See Premium plans" bn="প্রিমিয়াম প্ল্যান দেখুন" />
+  );
 
   const onCta = () => {
     trackEvent("premium_lock_tap", { area: "screener", lock: "Screener results", state, stakes: stakes.length });
@@ -69,19 +74,23 @@ export default function ScreenerPremium({
         <IconLock size={12} /> Premium
       </span>
       <h2 className="rl-promo-head" id="sc-premium-title">
-        {t("See every stock your screen finds", "আপনার স্ক্রিনের প্রতিটি শেয়ার দেখুন")}
+        <T en="See every share your screen finds" bn="আপনার স্ক্রিনের প্রতিটি শেয়ার দেখুন" />
       </h2>
       <p className="rl-promo-sub">
-        {t("The quick picks, every count and the first few stocks are free. Premium lets you set your own answers and sectors, shows the whole list and keeps watching it for you.",
-           "দ্রুত বাছাই, সব সংখ্যা আর প্রথম কয়েকটি শেয়ার ফ্রি। প্রিমিয়ামে নিজের উত্তর আর খাত, পুরো তালিকা, আর আপনার হয়ে নজর রাখা।")}
+        <T
+          en="The quick picks, every count and the first few shares are free. With Premium you set your own answers and sectors, see the whole list, and we keep checking it for you."
+          bn="দ্রুত বাছাই, সব সংখ্যা আর প্রথম কয়েকটি শেয়ার ফ্রি। প্রিমিয়ামে আপনি নিজের উত্তর আর সেক্টর ঠিক করেন, পুরো তালিকা দেখেন, আর আমরা আপনার হয়ে তালিকাটি যাচাই করতে থাকি।"
+        />
       </p>
 
-      {stakes.length > 0 && (
+      {stakePairs.length > 0 && (
         <ul className="mt-1 flex flex-col gap-1">
-          {stakes.map((s) => (
-            <li key={s} className="flex items-start gap-2 text-sm font-semibold text-text-main">
+          {stakePairs.map((s) => (
+            <li key={s.en} className="flex items-start gap-2 text-sm font-semibold text-text-main">
               <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
-              <span>{s}</span>
+              <span>
+                <T en={s.en} bn={s.bn} />
+              </span>
             </li>
           ))}
         </ul>
@@ -93,7 +102,9 @@ export default function ScreenerPremium({
             <span className="mt-0.5 shrink-0 text-positive" aria-hidden>
               <IconCheck size={16} />
             </span>
-            <span>{t(f.en, f.bn)}</span>
+            <span>
+              <T en={f.en} bn={f.bn} />
+            </span>
           </li>
         ))}
       </ul>

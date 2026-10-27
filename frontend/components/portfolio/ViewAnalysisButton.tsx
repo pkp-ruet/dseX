@@ -1,6 +1,7 @@
 "use client";
 
 import Button from "@/components/ui/Button";
+import { T } from "@/components/i18n/T";
 
 /**
  * The page header's one action: jump to the analysis chapter. Quiet and
@@ -15,7 +16,7 @@ export default function ViewAnalysisButton() {
 
   return (
     <Button type="button" variant="quiet" onClick={handleClick} className="group">
-      <span>See the analysis</span>
+      <T en="See the analysis" bn="বিশ্লেষণ দেখুন" />
       <svg
         width="16"
         height="16"

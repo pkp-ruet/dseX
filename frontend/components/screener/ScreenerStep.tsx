@@ -14,7 +14,7 @@ export default function ScreenerStep({
 }: {
   /** Optional — the screener is one card and its results, so it shows none now. */
   n?: number;
-  title: string;
+  title: ReactNode;
   note?: ReactNode;
   action?: ReactNode;
   children: ReactNode;

@@ -2,6 +2,7 @@
 
 import Chip from "@/components/ui/Chip";
 import { IconLock } from "@/components/ui/icons";
+import { T } from "@/components/i18n/T";
 import type { CustomListTemplate } from "@/lib/api";
 
 /**
@@ -35,20 +36,23 @@ export default function ScreenerStarts({
       <p className="mb-2 text-sm text-text-muted">
         {locked ? (
           <>
-            {t("Pick one — it's free. To set your own answers, sectors and order, ", "একটি বাছুন — ফ্রি। নিজের উত্তর, খাত আর ক্রম বেছে নিতে ")}
+            <T
+              en="Quick picks are free. To set your own answers, sectors and order, "
+              bn="দ্রুত বাছাইগুলো ফ্রি। নিজের উত্তর, সেক্টর আর ক্রম ঠিক করতে "
+            />
             <button type="button" onClick={() => onLocked()} className="inline-flex items-center gap-1 font-semibold text-primary hover:underline">
               <IconLock size={12} />
-              {t("get Premium", "প্রিমিয়াম নিন")}
+              <T en="get Premium" bn="প্রিমিয়াম নিন" />
             </button>
           </>
         ) : (
-          t("Quick picks — or answer the questions yourself", "এক চাপে বাছুন — বা নিজেই প্রশ্নের উত্তর দিন")
+          <T en="Choose a quick pick, or answer the questions yourself." bn="একটি দ্রুত বাছাই নিন, বা নিজেই প্রশ্নগুলোর উত্তর দিন।" />
         )}
       </p>
       <div className="flex flex-wrap gap-2">
         {goals.map((tp) => (
           <Chip key={tp.id} active={tp.id === active} onClick={() => onPick(tp)}>
-            {t(tp.title_en, tp.title_bn)}
+            <T en={tp.title_en} bn={tp.title_bn} />
           </Chip>
         ))}
       </div>

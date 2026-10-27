@@ -5,10 +5,10 @@ import Card from "@/components/ui/Card";
 export default function ChartCard({
   title, subtitle, caption, pill, children,
 }: {
-  title: string;
-  subtitle?: string;
-  caption?: string | null;
-  pill?: string | null;
+  title: ReactNode;
+  subtitle?: ReactNode;
+  caption?: ReactNode;
+  pill?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -28,7 +28,7 @@ export default function ChartCard({
             border: "1px solid color-mix(in srgb, var(--positive) 30%, transparent)",
           }}
         >
-          📢 {pill}
+          {pill}
         </p>
       )}
       <div className="mt-3">{children}</div>

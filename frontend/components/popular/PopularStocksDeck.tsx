@@ -1,6 +1,8 @@
 import type { PopularStockItem } from "@/lib/api";
 import StarButton from "@/components/ui/StarButton";
 import StockRow, { StockRank } from "@/components/ui/StockRow";
+import { T } from "@/components/i18n/T";
+import { sectorBn } from "@/lib/bn";
 
 interface Props {
   items: PopularStockItem[];
@@ -13,7 +15,11 @@ interface Props {
  */
 export default function PopularStocksDeck({ items }: Props) {
   if (items.length === 0) {
-    return <div className="py-16 text-center text-text-muted">No visit data yet — check back soon.</div>;
+    return (
+      <div className="py-16 text-center text-text-muted">
+        <T en="There is no visit data yet. Please check back soon." bn="এখনো দেখার কোনো তথ্য নেই। কিছুদিন পর আবার দেখুন।" />
+      </div>
+    );
   }
 
   return (
@@ -26,8 +32,10 @@ export default function PopularStocksDeck({ items }: Props) {
           leading={<StockRank n={item.rank} solid={item.rank >= 1 && item.rank <= 3} />}
           sub={
             <span className="tabular-nums nums">
-              {item.visits_total.toLocaleString("en-US")} views
-              {item.sector ? ` · ${item.sector}` : ""}
+              <T
+                en={`${item.visits_total.toLocaleString("en-US")} views${item.sector ? ` · ${item.sector}` : ""}`}
+                bn={`${item.visits_total.toLocaleString("en-US")} বার দেখা${item.sector ? ` · ${sectorBn(item.sector)}` : ""}`}
+              />
             </span>
           }
           price={item.ltp}

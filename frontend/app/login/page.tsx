@@ -5,13 +5,13 @@ const BASE_URL =
   process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
 export const metadata: Metadata = {
-  title: "Sign In",
+  title: "Sign in",
   description:
     "Sign in to your TopStockBD account to sync your DSE watchlist across all your devices.",
   alternates: { canonical: `${BASE_URL}/login` },
   robots: { index: false, follow: false },
   openGraph: {
-    title: "Sign In — TopStockBD",
+    title: "Sign in — TopStockBD",
     description:
       "Sign in to sync your DSE stock watchlist across devices.",
     url: `${BASE_URL}/login`,

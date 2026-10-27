@@ -9,6 +9,9 @@ import { getToken } from "@/lib/auth";
 import NotificationSettings from "@/components/push/NotificationSettings";
 import PageHeader from "@/components/ui/PageHeader";
 import { formatDate } from "@/lib/formatters";
+import { bnDate } from "@/lib/bn";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
 import PremiumPlanCta from "@/components/premium/PremiumPlanCta";
 import { PREMIUM_PATH } from "@/lib/premium";
 
@@ -25,13 +28,15 @@ async function updateProfile(displayName: string) {
     },
     body: JSON.stringify({ display_name: displayName }),
   });
-  if (!res.ok) throw new Error("Failed to update profile.");
+  if (!res.ok) throw new Error("profile_update_failed");
   return res.json();
 }
 
 export default function ProfileClient() {
   const router = useRouter();
   const { user, isLoading, isLoggedIn, logout, refreshUser } = useAuth();
+  const { lang } = useLang();
+  const L = (en: string, bn: string) => (lang === "bn" ? bn : en);
 
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState("");
@@ -63,7 +68,7 @@ export default function ProfileClient() {
       await refreshUser();
       setEditingName(false);
     } catch {
-      setSaveError("Failed to save. Try again.");
+      setSaveError(L("We couldn't save your name. Please try again.", "নাম সেভ করা যায়নি। আবার চেষ্টা করুন।"));
     } finally {
       setSaving(false);
     }
@@ -77,30 +82,42 @@ export default function ProfileClient() {
   if (isLoading || !user) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <p className="text-text-muted">Loading…</p>
+        <p className="text-text-muted">
+          <T en="Loading…" bn="লোড হচ্ছে…" />
+        </p>
       </div>
     );
   }
 
   const identifier = user.email ?? user.phone ?? "—";
-  const joinedDate = user.created_at ? formatDate(user.created_at) : "—";
+  const joinedDate = user.created_at ? (
+    <T en={formatDate(user.created_at)} bn={bnDate(String(user.created_at).slice(0, 10))} />
+  ) : (
+    "—"
+  );
 
   return (
     <div className="page-form pb-8">
       <PageHeader
         size="article"
-        title="My Profile"
-        bn="আপনার নাম, ইমেইল বা ফোন, ওয়াচলিস্ট আর নোটিফিকেশন — সব এক জায়গায়।"
-        lead="Manage your account"
+        title={<T en="My profile" bn="আমার প্রোফাইল" />}
+        lead={
+          <T
+            en="Your name, email or phone, watchlist and notifications, all in one place."
+            bn="আপনার নাম, ইমেইল বা ফোন, ওয়াচলিস্ট আর নোটিফিকেশন, সব এক জায়গায়।"
+          />
+        }
       />
 
       <div className="flex flex-col gap-4">
         {/* Your plan */}
         <div className="soft-card p-4">
           <div className="flex items-center justify-between gap-3 mb-2">
-            <span className="text-xs font-semibold text-text-muted">Your plan</span>
+            <span className="text-xs font-semibold text-text-muted">
+              <T en="Your plan" bn="আপনার প্ল্যান" />
+            </span>
             <Link href={PREMIUM_PATH} className="text-sm font-semibold text-primary">
-              What&apos;s in Premium
+              <T en="What Premium includes" bn="প্রিমিয়ামে যা আছে" />
             </Link>
           </div>
           <PremiumPlanCta linkOnly />
@@ -111,14 +128,16 @@ export default function ProfileClient() {
           {/* Display name */}
           <div className="p-4">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-semibold text-text-muted">Name</span>
+              <span className="text-xs font-semibold text-text-muted">
+                <T en="Name" bn="নাম" />
+              </span>
               {!editingName && (
                 <button
                   type="button"
                   onClick={() => setEditingName(true)}
                   className="btn-link btn-sm -my-2"
                 >
-                  Edit
+                  <T en="Edit" bn="বদলান" />
                 </button>
               )}
             </div>
@@ -130,7 +149,7 @@ export default function ProfileClient() {
                   value={nameInput}
                   onChange={(e) => setNameInput(e.target.value)}
                   className="input-field text-sm"
-                  placeholder="Your name"
+                  placeholder={L("Your name", "আপনার নাম")}
                   autoFocus
                 />
                 {saveError && <p className="text-xs font-semibold text-negative" role="alert">{saveError}</p>}
@@ -140,19 +159,21 @@ export default function ProfileClient() {
                     disabled={saving}
                     className="btn-primary btn-sm"
                   >
-                    {saving ? "Saving…" : "Save"}
+                    {saving ? <T en="Saving…" bn="সেভ হচ্ছে…" /> : <T en="Save" bn="সেভ করুন" />}
                   </button>
                   <button
                     onClick={() => { setEditingName(false); setNameInput(user.display_name ?? ""); setSaveError(""); }}
                     className="btn-quiet btn-sm"
                   >
-                    Cancel
+                    <T en="Cancel" bn="বাতিল" />
                   </button>
                 </div>
               </div>
             ) : (
               <p className="text-text-main font-medium mt-1">
-                {user.display_name || <span className="text-text-muted italic">Not set</span>}
+                {user.display_name || <span className="text-text-muted italic">
+                    <T en="Not set" bn="দেওয়া হয়নি" />
+                  </span>}
               </p>
             )}
           </div>
@@ -160,25 +181,31 @@ export default function ProfileClient() {
           {/* Email / phone */}
           <div className="p-4">
             <span className="text-xs font-semibold text-text-muted">
-              {user.email ? "Email" : "Phone"}
+              {user.email ? <T en="Email" bn="ইমেইল" /> : <T en="Phone" bn="ফোন" />}
             </span>
             <p className="text-text-main font-medium mt-1">{identifier}</p>
           </div>
 
           {/* Member since */}
           <div className="p-4">
-            <span className="text-xs font-semibold text-text-muted">Member since</span>
+            <span className="text-xs font-semibold text-text-muted">
+              <T en="Member since" bn="সদস্য হয়েছেন" />
+            </span>
             <p className="text-text-main font-medium mt-1">{joinedDate}</p>
           </div>
 
           {/* Watchlist */}
           <div className="p-4 flex items-center justify-between">
             <div>
-              <span className="text-xs font-semibold text-text-muted">Watchlist</span>
-              <p className="text-text-main font-medium mt-1">{watchCount} stocks</p>
+              <span className="text-xs font-semibold text-text-muted">
+                <T en="Watchlist" bn="ওয়াচলিস্ট" />
+              </span>
+              <p className="text-text-main font-medium mt-1">
+                <T en={`${watchCount} ${watchCount === 1 ? "share" : "shares"}`} bn={`${watchCount}টি শেয়ার`} />
+              </p>
             </div>
             <Link href="/watchlist" className="btn-quiet btn-sm">
-              View
+              <T en="Open" bn="খুলুন" />
             </Link>
           </div>
         </div>
@@ -192,7 +219,7 @@ export default function ProfileClient() {
           onClick={handleLogout}
           className="mt-2 inline-flex min-h-10 items-center self-start text-sm font-semibold text-negative hover:underline"
         >
-          Sign out
+          <T en="Sign out" bn="সাইন আউট" />
         </button>
       </div>
     </div>

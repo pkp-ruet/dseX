@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import ErrorState from "@/components/ui/ErrorState";
+import { T } from "@/components/i18n/T";
 
 /** Route error boundary — same surface as app/error.tsx, route-specific copy. */
 export default function SectorError({
@@ -17,10 +18,9 @@ export default function SectorError({
 
   return (
     <ErrorState
-      title="Couldn't load this sector"
-      bn="এই খাতের তথ্য এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+      title={<T en="We couldn't load this sector" bn="এই সেক্টরের তথ্য এখন লোড করা যাচ্ছে না" />}
       onRetry={reset}
-      links={[{ href: "/sectors", label: "All sectors" }]}
+      links={[{ href: "/sectors", label: <T en="All sectors" bn="সব সেক্টর" /> }]}
     />
   );
 }

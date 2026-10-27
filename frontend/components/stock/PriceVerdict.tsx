@@ -1,10 +1,10 @@
-"use client";
-
 import Link from "next/link";
 import type { CompanyDetail } from "@/lib/api";
 import { money } from "@/lib/formatters";
 import { sectorSlug } from "@/lib/sector";
+import { sectorBn } from "@/lib/bn";
 import { toNum } from "@/lib/stock-metrics";
+import { T } from "@/components/i18n/T";
 
 type Tone = "good" | "bad" | "neutral";
 type Line = { key: string; tone: Tone; en: string; bn: string; strong?: boolean; href?: string };
@@ -18,18 +18,18 @@ function ordinal(n: number): string {
 const VERDICT: Record<"cheap" | "fair" | "expensive", { tone: Tone; en: string; bn: string }> = {
   cheap: {
     tone: "good",
-    en: "Looks cheap right now — priced below its usual level.",
-    bn: "এখন সস্তা মনে হচ্ছে — স্বাভাবিকের চেয়ে কম দামে।",
+    en: "The price is low right now, below its usual level.",
+    bn: "এখন দাম কম, স্বাভাবিক মাত্রার নিচে।",
   },
   fair: {
     tone: "neutral",
-    en: "Priced about fairly — neither a bargain nor expensive.",
-    bn: "দাম মোটামুটি ন্যায্য — খুব সস্তাও না, দামিও না।",
+    en: "The price is about fair. It is neither low nor high.",
+    bn: "দাম মোটামুটি ন্যায্য। কমও নয়, বেশিও নয়।",
   },
   expensive: {
     tone: "bad",
-    en: "Looks pricey right now — costs more than usual for what you get.",
-    bn: "এখন দামি মনে হচ্ছে — যা পাচ্ছেন তার তুলনায় স্বাভাবিকের চেয়ে বেশি দাম।",
+    en: "The price is high right now. You would pay more than usual for each taka of profit.",
+    bn: "এখন দাম বেশি। প্রতি টাকা মুনাফার জন্য স্বাভাবিকের চেয়ে বেশি দাম দিতে হবে।",
   },
 };
 
@@ -37,8 +37,7 @@ const VERDICT: Record<"cheap" | "fair" | "expensive", { tone: Tone; en: string; 
  * Our verdict on today's price, as plain lines: the page's ONE valuation
  * verdict (backend P4 bands, same as the signal), today's P/E against its own
  * usual level, against its sector, and where the company ranks in its sector.
- * These were captions scattered through the price section; since 2026-10-27
- * they answer one question in the full verdict.
+ * They answer one question in the full verdict (2026-10-27).
  */
 export function priceVerdictLines(detail: CompanyDetail): Line[] {
   const { valuation, score_row, sector_context, latest_price, profile } = detail;
@@ -59,8 +58,8 @@ export function priceVerdictLines(detail: CompanyDetail): Line[] {
     out.push({
       key: "own",
       tone: below ? "good" : "bad",
-      en: `P/E ${pe.toFixed(1)} today — ${below ? "below" : "above"} its ${en} of ${avg.toFixed(1)}.`,
-      bn: `আজ P/E ${pe.toFixed(1)} — এর ${bn} ${avg.toFixed(1)}-এর চেয়ে ${below ? "কম" : "বেশি"}।`,
+      en: `Its P/E today is ${pe.toFixed(1)}, ${below ? "lower" : "higher"} than its ${en} of ${avg.toFixed(1)}.`,
+      bn: `আজ এর পিই ${pe.toFixed(1)}, যা এর ${bn} ${avg.toFixed(1)}-এর চেয়ে ${below ? "কম" : "বেশি"}।`,
     });
   }
 
@@ -71,8 +70,8 @@ export function priceVerdictLines(detail: CompanyDetail): Line[] {
     out.push({
       key: "sector",
       tone: cheaper ? "good" : "bad",
-      en: `${cheaper ? "Cheaper" : "Pricier"} than the typical company in its sector — ${gap}% ${cheaper ? "below" : "above"} the sector's P/E of ${sectorPe.toFixed(1)}.`,
-      bn: `খাতের সাধারণ কোম্পানির চেয়ে ${cheaper ? "সস্তা" : "দামি"} — খাতের P/E ${sectorPe.toFixed(1)}-এর চেয়ে ${gap}% ${cheaper ? "কম" : "বেশি"}।`,
+      en: `It is ${cheaper ? "cheaper" : "more expensive"} than a typical company in its sector. Its P/E is ${gap}% ${cheaper ? "below" : "above"} the sector's ${sectorPe.toFixed(1)}.`,
+      bn: `সেক্টরের সাধারণ কোম্পানির চেয়ে এর দাম ${cheaper ? "কম" : "বেশি"}। এর পিই সেক্টরের ${sectorPe.toFixed(1)}-এর চেয়ে ${gap}% ${cheaper ? "কম" : "বেশি"}।`,
     });
   }
 
@@ -82,8 +81,8 @@ export function priceVerdictLines(detail: CompanyDetail): Line[] {
     out.push({
       key: "implied",
       tone: "neutral",
-      en: `At its sector's usual P/E it would cost about ${money(implied)}, against ${money(ltp)} today. A comparison with peers, not a fair-value estimate.`,
-      bn: `খাতের স্বাভাবিক P/E-তে এর দাম হতো প্রায় ${money(implied)}, আজ ${money(ltp)}। এটি প্রতিযোগীদের সাথে তুলনা, ন্যায্য দামের হিসাব নয়।`,
+      en: `At its sector's usual P/E, it would cost about ${money(implied)}. Today it costs ${money(ltp)}. This compares it with similar companies; it is not our fair price.`,
+      bn: `সেক্টরের স্বাভাবিক পিই ধরলে এর দাম হতো প্রায় ${money(implied)}। আজকের দাম ${money(ltp)}। এটি একই ধরনের কোম্পানির সঙ্গে তুলনা, আমাদের ন্যায্য দাম নয়।`,
     });
   }
 
@@ -92,13 +91,13 @@ export function priceVerdictLines(detail: CompanyDetail): Line[] {
   const sector = sector_context?.sector ?? profile.sector ?? null;
   const sectorAvg = sector_context?.sector_avg_score ?? null;
   if (rank != null && peers != null && peers >= 2 && sector) {
-    const avgEn = sectorAvg != null ? ` (sector average ${Math.round(sectorAvg)})` : "";
-    const avgBn = sectorAvg != null ? ` (খাতের গড় ${Math.round(sectorAvg)})` : "";
+    const avgEn = sectorAvg != null ? ` The sector's average score is ${Math.round(sectorAvg)}.` : "";
+    const avgBn = sectorAvg != null ? ` সেক্টরের গড় স্কোর ${Math.round(sectorAvg)}।` : "";
     out.push({
       key: "rank",
       tone: rank <= Math.ceil(peers / 3) ? "good" : rank > peers - Math.ceil(peers / 3) ? "bad" : "neutral",
-      en: `Ranked ${ordinal(rank)} of ${peers} in ${sector} on our score${avgEn}.`,
-      bn: `আমাদের স্কোরে ${sector} খাতে ${peers}টির মধ্যে ${rank} নম্বরে${avgBn}।`,
+      en: `On our score it ranks ${ordinal(rank)} of ${peers} companies in ${sector}.${avgEn}`,
+      bn: `আমাদের স্কোরে ${sectorBn(sector)} সেক্টরের ${peers}টি কোম্পানির মধ্যে এর অবস্থান ${rank}।${avgBn}`,
       href: `/sector/${sectorSlug(sector)}`,
     });
   }
@@ -107,20 +106,20 @@ export function priceVerdictLines(detail: CompanyDetail): Line[] {
 
 const DOT: Record<Tone, string> = { good: "bg-positive", bad: "bg-negative", neutral: "bg-border" };
 
-export default function PriceVerdict({ lines, isBn }: { lines: Line[]; isBn: boolean }) {
+export default function PriceVerdict({ lines }: { lines: Line[] }) {
   if (!lines.length) return null;
   return (
-    <ul className={`space-y-2.5 ${isBn ? "font-bn" : ""}`} lang={isBn ? "bn" : undefined}>
+    <ul className="space-y-2.5">
       {lines.map((l) => (
         <li key={l.key} className="flex gap-2.5">
           <span aria-hidden="true" className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${DOT[l.tone]}`} />
           <span className={`text-sm leading-relaxed text-text-main ${l.strong ? "font-semibold" : ""}`}>
-            {isBn ? l.bn : l.en}
+            <T en={l.en} bn={l.bn} />
             {l.href && (
               <>
                 {" "}
                 <Link href={l.href} prefetch={false} className="font-semibold text-primary-ink hover:underline">
-                  {isBn ? "খাত দেখুন" : "See the sector"}
+                  <T en="See the sector" bn="সেক্টর দেখুন" />
                 </Link>
               </>
             )}

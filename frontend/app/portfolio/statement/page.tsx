@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import PageHeader from "@/components/ui/PageHeader";
 import StatementClient from "@/components/portfolio/StatementClient";
+import { T } from "@/components/i18n/T";
 
 export const metadata: Metadata = {
   title: "Yearly Portfolio Statement",
@@ -13,8 +14,13 @@ export default function PortfolioStatementPage() {
     <div className="page-narrow">
       <div className="print-hide">
         <PageHeader
-          title="Yearly statement"
-          bn="বছরের সব কেনা-বেচা, ডিভিডেন্ড আর বোনাস — এক পাতায়।"
+          title={<T en="Yearly statement" bn="বার্ষিক হিসাব" />}
+          lead={
+            <T
+              en="Every buy, sale, dividend and bonus share for the year, on one page."
+              bn="বছরের সব কেনা, বিক্রি, ডিভিডেন্ড আর বোনাস শেয়ার, এক পেজে।"
+            />
+          }
         />
       </div>
       <StatementClient />

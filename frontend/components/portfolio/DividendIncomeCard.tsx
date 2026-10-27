@@ -144,7 +144,7 @@ export default function DividendIncomeCard({
   return (
     <PfCard
       title={L("Dividend income", "ডিভিডেন্ড আয়")}
-      bn="ডিভিডেন্ড আয়"
+
       note={L("Cash your stocks pay you, on top of any price gains.", "দামের লাভের বাইরে, আপনার শেয়ার আপনাকে যে নগদ টাকা দেয়।")}
       lang={lang}
       dataCard="dividend-income"

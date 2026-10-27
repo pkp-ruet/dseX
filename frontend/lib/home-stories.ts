@@ -40,6 +40,8 @@ export interface StoryStock {
   headline: string;
   /** Same claim as `headline`, trimmed for the narrow dashboard card. */
   shortLine: string;
+  headlineBn: string;
+  shortLineBn: string;
   highlight: StoryMetric;
   /** Signal reason, or null when a card above already used this exact sentence. */
   reasonEn: string | null;
@@ -134,16 +136,19 @@ function pct(n: number): string {
   return Number.isInteger(n) ? String(n) : n.toFixed(1);
 }
 
-function growthHeadline(yoy: number): string {
-  if (yoy >= 200) return "Earnings tripled in a single year.";
-  if (yoy >= 100) return "Earnings more than doubled in a single year.";
-  return `Earnings jumped ${Math.round(yoy)}% in a single year.`;
+function growthHeadline(yoy: number): [string, string] {
+  if (yoy >= 200) return ["Profit per share tripled in a single year.", "এক বছরেই শেয়ারপ্রতি মুনাফা তিন গুণ হয়েছে।"];
+  if (yoy >= 100) return ["Profit per share more than doubled in a single year.", "এক বছরেই শেয়ারপ্রতি মুনাফা দ্বিগুণের বেশি হয়েছে।"];
+  return [
+    `Profit per share rose ${Math.round(yoy)}% in a single year.`,
+    `এক বছরে শেয়ারপ্রতি মুনাফা ${Math.round(yoy)}% বেড়েছে।`,
+  ];
 }
 
-function growthShort(yoy: number): string {
-  if (yoy >= 200) return "Earnings tripled in one year.";
-  if (yoy >= 100) return "Earnings more than doubled in one year.";
-  return `Earnings up ${Math.round(yoy)}% in one year.`;
+function growthShort(yoy: number): [string, string] {
+  if (yoy >= 200) return ["Profit tripled in one year.", "এক বছরে মুনাফা তিন গুণ।"];
+  if (yoy >= 100) return ["Profit more than doubled in one year.", "এক বছরে মুনাফা দ্বিগুণের বেশি।"];
+  return [`Profit up ${Math.round(yoy)}% in one year.`, `এক বছরে মুনাফা ${Math.round(yoy)}% বেড়েছে।`];
 }
 
 /**
@@ -179,12 +184,20 @@ export function pickStoryStocks(
       item: strongest,
       headline:
         rank === 0
-          ? `The highest score of all ${totalCount} companies we track.`
-          : `Ranked #${rank + 1} for overall strength out of all ${totalCount} companies we track.`,
+          ? `The highest score of all ${totalCount} companies we follow.`
+          : `Ranked ${rank + 1} for overall strength among the ${totalCount} companies we follow.`,
       shortLine:
         rank === 0
           ? `Highest score of all ${totalCount} companies.`
-          : `#${rank + 1} strongest of ${totalCount} companies.`,
+          : `Ranked ${rank + 1} of ${totalCount} companies.`,
+      headlineBn:
+        rank === 0
+          ? `আমরা যে ${totalCount}টি কোম্পানি দেখি, তার মধ্যে সর্বোচ্চ স্কোর।`
+          : `আমরা যে ${totalCount}টি কোম্পানি দেখি, সামগ্রিক শক্তিতে তার মধ্যে ${rank + 1} নম্বরে।`,
+      shortLineBn:
+        rank === 0
+          ? `${totalCount}টি কোম্পানির মধ্যে সর্বোচ্চ স্কোর।`
+          : `${totalCount}টি কোম্পানির মধ্যে ${rank + 1} নম্বরে।`,
       highlight: "score",
       reasonEn: null,
       reasonBn: null,
@@ -199,12 +212,18 @@ export function pickStoryStocks(
     out.push({
       key: "dividend",
       item: dividend,
-      headline: `Pays ${pct(dividend.div_yield_pct as number)}% a year in cash — ${
-        isTop ? "the biggest of any strong company" : "one of the biggest among strong companies"
+      headline: `It pays ${pct(dividend.div_yield_pct as number)}% a year in cash, ${
+        isTop ? "the most of any strong company" : "one of the highest among strong companies"
       }.`,
       shortLine: isTop
-        ? "Biggest cash payout of any strong company."
-        : "One of the biggest cash payouts around.",
+        ? "The highest cash dividend of any strong company."
+        : "One of the highest cash dividends among strong companies.",
+      headlineBn: `বছরে দামের ${pct(dividend.div_yield_pct as number)}% নগদ ডিভিডেন্ড দেয়, ${
+        isTop ? "শক্তিশালী কোম্পানিগুলোর মধ্যে সবচেয়ে বেশি" : "শক্তিশালী কোম্পানিগুলোর মধ্যে অন্যতম সর্বোচ্চ"
+      }।`,
+      shortLineBn: isTop
+        ? "শক্তিশালী কোম্পানিগুলোর মধ্যে সবচেয়ে বেশি নগদ ডিভিডেন্ড।"
+        : "শক্তিশালী কোম্পানিগুলোর মধ্যে অন্যতম বেশি নগদ ডিভিডেন্ড।",
       highlight: "yield",
       reasonEn: null,
       reasonBn: null,
@@ -218,8 +237,10 @@ export function pickStoryStocks(
     out.push({
       key: "growth",
       item: growth,
-      headline: growthHeadline(growth.eps_yoy_pct as number),
-      shortLine: growthShort(growth.eps_yoy_pct as number),
+      headline: growthHeadline(growth.eps_yoy_pct as number)[0],
+      shortLine: growthShort(growth.eps_yoy_pct as number)[0],
+      headlineBn: growthHeadline(growth.eps_yoy_pct as number)[1],
+      shortLineBn: growthShort(growth.eps_yoy_pct as number)[1],
       highlight: "growth",
       reasonEn: null,
       reasonBn: null,

@@ -2,12 +2,10 @@ import type { ReactNode } from "react";
 import SectionHeader from "@/components/ui/SectionHeader";
 
 interface Props {
-  /** English section headline, plain words (e.g. "The Health Check"). */
-  title: string;
-  /** One English sentence under it. */
+  /** Section headline, plain words — `<T en bn />`. */
+  title: ReactNode;
+  /** One sentence under it. */
   sub?: ReactNode;
-  /** One simple Bengali line explaining the section. */
-  bn?: string;
   /** Right-hand slot (a toggle, a link). */
   right?: ReactNode;
   className?: string;
@@ -19,6 +17,6 @@ interface Props {
  * h3 drawn by the shared `SectionHeader`. The props stay the same so the
  * section components don't change.
  */
-export default function SectionTitle({ title, sub, bn, right, className = "" }: Props) {
-  return <SectionHeader as="h3" title={title} bn={bn} lead={sub} action={right} className={className} />;
+export default function SectionTitle({ title, sub, right, className = "" }: Props) {
+  return <SectionHeader as="h3" title={title} lead={sub} action={right} className={className} />;
 }

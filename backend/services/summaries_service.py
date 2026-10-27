@@ -135,7 +135,7 @@ def _source_hash(facts: dict) -> str:
 # ---------------------------------------------------------------------------
 
 # DSE sector free-text → Bangla, matched by keyword so variants resolve
-# ("General Insurance" / "Life Insurance" → বীমা). First match wins.
+# ("General Insurance" / "Life Insurance" → বিমা). First match wins.
 _SECTOR_BN = [
     ("bank", "ব্যাংক"),
     ("cement", "সিমেন্ট"),
@@ -147,7 +147,7 @@ _SECTOR_BN = [
     ("food", "খাদ্য ও আনুষঙ্গিক"),
     ("fuel", "জ্বালানি ও বিদ্যুৎ"),
     ("power", "জ্বালানি ও বিদ্যুৎ"),
-    ("insurance", "বীমা"),
+    ("insurance", "বিমা"),
     ("jute", "পাট"),
     ("mutual fund", "মিউচুয়াল ফান্ড"),
     ("paper", "কাগজ ও মুদ্রণ"),

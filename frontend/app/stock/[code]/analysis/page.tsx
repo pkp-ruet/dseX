@@ -8,6 +8,7 @@ import { money, changePct as fmtChangePct, changeTone } from "@/lib/formatters";
 import DeepAnalysisReport from "@/components/stock/DeepAnalysisReport";
 import StockLockScope from "@/components/premium/LockScope";
 import StockVisitTracker from "@/components/analytics/StockVisitTracker";
+import { T } from "@/components/i18n/T";
 
 export const revalidate = 86400;
 export const dynamicParams = true;
@@ -155,7 +156,7 @@ export default async function StockAnalysisPage({ params }: PageProps) {
             </span>
             {changePct != null && (
               <span className={`text-sm font-semibold tabular-nums ${changeTone(changePct)}`}>
-                {fmtChangePct(changePct)} today
+                {fmtChangePct(changePct)} <T en="today" bn="আজ" />
               </span>
             )}
           </div>
@@ -172,7 +173,10 @@ export default async function StockAnalysisPage({ params }: PageProps) {
           href={`/stock/${tradingCode}`}
           className="btn-quiet mt-10 whitespace-normal text-left"
         >
-          See price chart, financials &amp; signals for {tradingCode}
+          <T
+            en={`See the price chart, financials and signals for ${tradingCode}`}
+            bn={`${tradingCode}-এর দামের চার্ট, আর্থিক হিসাব আর সংকেত দেখুন`}
+          />
           <span aria-hidden>→</span>
         </Link>
       </div>

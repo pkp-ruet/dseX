@@ -51,7 +51,7 @@ export default function HoldingsDetailed({ analysis, lang = "en" }: Props) {
   const bnMode = lang === "bn";
   const bnText = bnMode ? "font-bn" : "";
 
-  // Cached Bengali "এক নজরে" one-liners — best-effort, cards render without them.
+  // Cached Bengali "এক নজরে" one-liners — Bengali mode only, best-effort.
   const codesKey = useMemo(
     () => analysis.holdings.map((h) => h.code).sort().join(","),
     [analysis.holdings],
@@ -175,7 +175,7 @@ export default function HoldingsDetailed({ analysis, lang = "en" }: Props) {
                 <p className={`text-sm text-text-muted mt-1.5 leading-[1.6] ${bnText}`}>
                   {h.entryLabel}
                 </p>
-                {summariesBn[h.code] && (
+                {bnMode && summariesBn[h.code] && (
                   <div className="mt-3 pt-3 border-t border-dashed border-border">
                     <p className="text-xs   font-bold text-primary mb-1">
                       এক নজরে

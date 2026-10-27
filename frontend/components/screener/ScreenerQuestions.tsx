@@ -5,6 +5,7 @@ import Button from "@/components/ui/Button";
 import Chip from "@/components/ui/Chip";
 import Sheet from "@/components/ui/Sheet";
 import { IconChevronDown, IconLock } from "@/components/ui/icons";
+import { T } from "@/components/i18n/T";
 import type { ScreenerAnswers, ScreenerQuestion } from "@/lib/api";
 
 /** The DOM id of one question, so "Almost passed" can jump to it. */
@@ -57,16 +58,21 @@ export default function ScreenerQuestions({
 }) {
   const [sectorOpen, setSectorOpen] = useState(false);
   const [draft, setDraft] = useState<string[]>(picked);
-  const label = (v: string) => {
+  const label = (v: string, lang: "en" | "bn") => {
     const d = sectors.find((s) => s.value === v);
-    return d ? t(d.label_en, d.label_bn) : v;
+    return d ? (lang === "bn" ? d.label_bn : d.label_en) : v;
   };
-  const pickedLine = !picked.length
-    ? t("All sectors", "সব খাত")
-    : picked.length <= 3
-      ? picked.map(label).join(", ")
-      : t(`${picked.length} sectors: ${picked.slice(0, 2).map(label).join(", ")} and more`,
-          `${picked.length}টি খাত: ${picked.slice(0, 2).map(label).join(", ")} ও আরও`);
+  const names = (lang: "en" | "bn", n: number) => picked.slice(0, n).map((v) => label(v, lang)).join(", ");
+  const pickedLine = !picked.length ? (
+    <T en="All sectors" bn="সব সেক্টর" />
+  ) : picked.length <= 3 ? (
+    <T en={names("en", 3)} bn={names("bn", 3)} />
+  ) : (
+    <T
+      en={`${picked.length} sectors: ${names("en", 2)} and more`}
+      bn={`${picked.length}টি সেক্টর: ${names("bn", 2)} ও আরও`}
+    />
+  );
   const openSectors = () => {
     if (locked) return onLocked();
     setDraft(picked);
@@ -85,9 +91,11 @@ export default function ScreenerQuestions({
           return (
             <li key={q.key} id={questionId(q.key)} className="scroll-mt-32 border-b border-border px-4 py-4 sm:px-5">
               <p className="text-base font-semibold text-text-main" id={`${questionId(q.key)}-t`}>
-                {t(q.title_en, q.title_bn)}
+                <T en={q.title_en} bn={q.title_bn} />
               </p>
-              <p className="mt-0.5 min-h-5 text-sm text-text-muted">{t(lvl.means_en, lvl.means_bn)}</p>
+              <p className="mt-0.5 min-h-5 text-sm text-text-muted">
+                <T en={lvl.means_en} bn={lvl.means_bn} />
+              </p>
               <div
                 role="radiogroup"
                 aria-labelledby={`${questionId(q.key)}-t`}
@@ -113,11 +121,11 @@ export default function ScreenerQuestions({
                       }`}
                     >
                       <span className={`text-sm leading-tight ${sel ? "font-semibold" : ""} ${empty ? "text-text-muted" : ""}`}>
-                        {t(l.label_en, l.label_bn)}
+                        <T en={l.label_en} bn={l.label_bn} />
                       </span>
                       <span
                         className={`inline-flex min-h-4 items-center gap-1 text-xs tabular-nums ${sel ? "text-primary" : empty ? "text-negative" : "text-text-muted"} ${running ? "opacity-60" : ""}`}
-                        aria-label={n == null ? undefined : t(`${n} stocks`, `${n}টি শেয়ার`)}
+                        aria-label={n == null ? undefined : t(`${n} shares`, `${n}টি শেয়ার`)}
                       >
                         {locked && !sel && <IconLock size={12} />}
                         {n ?? ""}
@@ -137,7 +145,9 @@ export default function ScreenerQuestions({
         className="flex min-h-14 w-full items-center justify-between gap-3 px-4 text-left hover:bg-surface-2 active:bg-surface-2 sm:px-5"
       >
         <span className="min-w-0">
-          <span className="block text-base font-semibold text-text-main">{t("Which business sectors?", "কোন খাতের ব্যবসা?")}</span>
+          <span className="block text-base font-semibold text-text-main">
+            <T en="Which business sectors?" bn="কোন সেক্টরের ব্যবসা?" />
+          </span>
           <span className="block text-sm text-text-muted">{pickedLine}</span>
         </span>
         <span className="shrink-0 text-text-muted" aria-hidden>
@@ -148,26 +158,30 @@ export default function ScreenerQuestions({
       <Sheet
         open={sectorOpen}
         onClose={() => setSectorOpen(false)}
-        title={t("Which business sectors?", "কোন খাতের ব্যবসা?")}
-        bn={t("Pick one or several. Pick none for every sector.", "এক বা একাধিক বাছুন। কোনোটি না বাছলে সব খাত।")}
+        title={<T en="Which business sectors?" bn="কোন সেক্টরের ব্যবসা?" />}
         size="lg"
         footer={
           <div className="flex w-full gap-2">
             <Button variant="quiet" className="flex-1" onClick={() => setDraft([])}>
-              {t("All sectors", "সব খাত")}
+              <T en="All sectors" bn="সব সেক্টর" />
             </Button>
             <Button variant="primary" className="flex-1" onClick={() => { onSectors(draft); setSectorOpen(false); }}>
-              {draft.length
-                ? t(`Use ${draft.length} ${draft.length === 1 ? "sector" : "sectors"}`, `${draft.length}টি খাত নিন`)
-                : t("Use all sectors", "সব খাত নিন")}
+              {draft.length ? (
+                <T en={`Use ${draft.length} ${draft.length === 1 ? "sector" : "sectors"}`} bn={`${draft.length}টি সেক্টর নিন`} />
+              ) : (
+                <T en="Use all sectors" bn="সব সেক্টর নিন" />
+              )}
             </Button>
           </div>
         }
       >
-        <div className="flex flex-wrap gap-2" role="group" aria-label={t("Sectors", "খাত")}>
+        <p className="mb-3 text-sm text-text-muted">
+          <T en="Pick one or several. Pick none to keep every sector." bn="এক বা একাধিক বাছুন। কোনোটি না বাছলে সব সেক্টর থাকবে।" />
+        </p>
+        <div className="flex flex-wrap gap-2" role="group" aria-label={t("Sectors", "সেক্টর")}>
           {sectors.map((s) => (
             <Chip key={s.value} active={draft.includes(s.value)} onClick={() => toggle(s.value)}>
-              {t(s.label_en, s.label_bn)}
+              <T en={s.label_en} bn={s.label_bn} />
             </Chip>
           ))}
         </div>

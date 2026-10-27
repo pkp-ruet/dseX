@@ -2,12 +2,17 @@
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid, LabelList,
 } from "recharts";
-import { profitTrendCaption, epsCaption, dividendStreakCaption } from "@/lib/plain-language";
+import { profitTrendCaption, epsCaption, dividendStreakCaption, type Bi } from "@/lib/plain-language";
 import { formatDate, crore } from "@/lib/formatters";
 import type { DividendDeclaration } from "@/lib/api";
 import ChartCard from "@/components/stock/ChartCard";
 import SectionTitle from "@/components/stock/SectionTitle";
 import { CHART } from "@/lib/chart-theme";
+import { bnDate, croreBn } from "@/lib/bn";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
+
+const tx = (b: Bi | null) => (b ? <T en={b.en} bn={b.bn} /> : null);
 
 /**
  * Bar value labels that know when to stay quiet. Recharts' LabelList has no
@@ -61,6 +66,7 @@ const TICK = CHART.xAxis.tick;
 const TIP_STYLE = CHART.tooltip.contentStyle;
 
 export default function ProfitsAndDividends({ financials, extFinancials, declaration }: Props) {
+  const { bn } = useLang();
   const extMap = Object.fromEntries(
     extFinancials.map((r) => [(r as Record<string, unknown>).year, r])
   );
@@ -109,19 +115,21 @@ export default function ProfitsAndDividends({ financials, extFinancials, declara
   return (
     <section className="mb-8">
       <SectionTitle
-        title="Profits & Dividends"
-        sub={<>
-            Are they making money — and do they share it with shareholders?
-        </>}
-        bn="কোম্পানি লাভ করছে কি না, আর শেয়ারহোল্ডারদের সাথে ভাগ করছে কি না।"
+        title={<T en="Profit and dividends" bn="মুনাফা ও ডিভিডেন্ড" />}
+        sub={
+          <T
+            en="Is the company making money, and does it share it with shareholders?"
+            bn="কোম্পানি মুনাফা করছে কি না, আর শেয়ারহোল্ডারদের সঙ্গে তা ভাগ করছে কি না।"
+          />
+        }
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {hasProfit && (
           <ChartCard
-            title="Yearly Profit"
-            subtitle="Net profit per year"
-            caption={profitCap}
+            title={<T en="Profit each year" bn="প্রতি বছরের মুনাফা" />}
+            subtitle={<T en="Net profit" bn="নিট মুনাফা" />}
+            caption={tx(profitCap)}
           >
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={profitData} margin={{ top: 28, right: 8, left: 8, bottom: 0 }} barCategoryGap="30%">
@@ -131,10 +139,10 @@ export default function ProfitsAndDividends({ financials, extFinancials, declara
                 <Tooltip
                   contentStyle={TIP_STYLE}
                   cursor={{ fill: "rgba(15,23,42,0.05)" }}
-                  formatter={(v: number) => [crore(v), "Profit"]}
+                  formatter={(v: number) => [bn ? croreBn(v) : crore(v), bn ? "মুনাফা" : "Profit"]}
                 />
                 <Bar dataKey="profit" radius={[6, 6, 0, 0]}>
-                  <LabelList dataKey="profit" content={fitLabel(crore)} />
+                  <LabelList dataKey="profit" content={fitLabel(bn ? croreBn : crore)} />
                   {profitData.map((d, i) => (
                     <Cell
                       key={i}
@@ -149,9 +157,9 @@ export default function ProfitsAndDividends({ financials, extFinancials, declara
 
         {hasEps && (
           <ChartCard
-            title="Earnings Per Share"
-            subtitle="Profit you earn per share"
-            caption={epsCap}
+            title={<T en="Earnings per share (EPS)" bn="শেয়ারপ্রতি আয় (ইপিএস)" />}
+            subtitle={<T en="Profit for each share you own" bn="প্রতিটি শেয়ারের ভাগের মুনাফা" />}
+            caption={tx(epsCap)}
           >
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={epsData} margin={{ top: 28, right: 8, left: 8, bottom: 0 }} barCategoryGap="30%">
@@ -161,7 +169,7 @@ export default function ProfitsAndDividends({ financials, extFinancials, declara
                 <Tooltip
                   contentStyle={TIP_STYLE}
                   cursor={{ fill: "rgba(15,23,42,0.05)" }}
-                  formatter={(v: number) => [fmtEps(v), "EPS"]}
+                  formatter={(v: number) => [fmtEps(v), bn ? "ইপিএস" : "EPS"]}
                 />
                 <Bar dataKey="eps" radius={[6, 6, 0, 0]}>
                   <LabelList dataKey="eps" content={fitLabel(fmtEps)} />
@@ -180,15 +188,22 @@ export default function ProfitsAndDividends({ financials, extFinancials, declara
         {hasDividend && (
           <div className="sm:col-span-2">
             <ChartCard
-              title="Yearly Cash Dividend"
-              subtitle="% of face value"
-              caption={divCap}
+              title={<T en="Cash dividend each year" bn="প্রতি বছরের নগদ ডিভিডেন্ড" />}
+              subtitle={<T en="As a % of face value" bn="অভিহিত মূল্যের শতাংশ হিসেবে" />}
+              caption={tx(divCap)}
               pill={
-                declaration && declaration.dividend_pct != null
-                  ? `New ${declaration.dividend_pct}% dividend just declared${
-                      declaration.record_date ? ` — record ${formatDate(declaration.record_date)}` : ""
-                    }`
-                  : null
+                declaration && declaration.dividend_pct != null ? (
+                  <T
+                    en={`A ${declaration.dividend_pct}% dividend has just been declared${
+                      declaration.record_date ? `. Record date: ${formatDate(declaration.record_date)}` : ""
+                    }`}
+                    bn={`সম্প্রতি ${declaration.dividend_pct}% ডিভিডেন্ড ঘোষণা হয়েছে${
+                      declaration.record_date
+                        ? `। রেকর্ড ডেট: ${bnDate(declaration.record_date) || formatDate(declaration.record_date)}`
+                        : ""
+                    }`}
+                  />
+                ) : null
               }
             >
               <ResponsiveContainer width="100%" height={220}>
@@ -199,7 +214,7 @@ export default function ProfitsAndDividends({ financials, extFinancials, declara
                   <Tooltip
                     contentStyle={TIP_STYLE}
                     cursor={{ fill: "rgba(15,23,42,0.05)" }}
-                    formatter={(v: number) => [`${v}%`, "Cash Dividend"]}
+                    formatter={(v: number) => [`${v}%`, bn ? "নগদ ডিভিডেন্ড" : "Cash dividend"]}
                   />
                   <Bar dataKey="cash" fill="var(--positive)" radius={[6, 6, 0, 0]}>
                     <LabelList dataKey="cash" content={fitLabel((v: number) => (v > 0 ? `${v}%` : ""))} />

@@ -9,7 +9,7 @@ import {
 import type { CompanyDetail } from "@/lib/api";
 import Card from "@/components/ui/Card";
 import PremiumMask from "@/components/premium/PremiumMask";
-import { useStockLang } from "@/context/StockLangContext";
+import { T } from "@/components/i18n/T";
 
 type ScoreRow = Record<string, number | string | boolean | null>;
 
@@ -41,65 +41,69 @@ function StatusGlyph({ kind }: { kind: "check" | "dash" | "bang" }) {
   return <svg {...common}><path d="M12 5v9" /><path d="M12 18.5h.01" /></svg>;
 }
 
-/** Short pillar names for the at-a-glance bars (English + Bengali). */
+/** Short pillar names for the at-a-glance bars. */
 const PILLAR_NAMES: Record<string, { en: string; bn: string }> = {
-  p1_biz:    { en: "Profit quality",       bn: "লাভের মান" },
-  p2_health: { en: "Financial health",     bn: "আর্থিক স্বাস্থ্য" },
-  p3_moat:   { en: "Business strength",    bn: "ব্যবসার শক্তি" },
-  p4_val:    { en: "Is the price fair",    bn: "দাম ন্যায্য কি" },
-  p5_div:    { en: "Dividend reliability", bn: "লভ্যাংশের ভরসা" },
+  p1_biz:    { en: "Profit",           bn: "মুনাফা" },
+  p2_health: { en: "Finances",         bn: "আর্থিক অবস্থা" },
+  p3_moat:   { en: "Business",         bn: "ব্যবসার শক্তি" },
+  p4_val:    { en: "Price",            bn: "দাম" },
+  p5_div:    { en: "Dividend",         bn: "ডিভিডেন্ড" },
 };
 
-// Sub-metric keys per pillar + plain-English labels (small UI text stays English).
-const PILLAR_SUBS: Record<string, { key: string; label: string }[]> = {
+// Sub-metric keys per pillar, with their names in both languages.
+const PILLAR_SUBS: Record<string, { key: string; en: string; bn: string }[]> = {
   p1_biz: [
-    { key: "p1_eps_consist", label: "Profitable years" },
-    { key: "p1_eps_cagr", label: "Earnings growth" },
-    { key: "p1_roe", label: "Return on equity" },
-    { key: "p1_npm_trend", label: "Margin trend" },
+    { key: "p1_eps_consist", en: "Years with a profit", bn: "মুনাফার বছর" },
+    { key: "p1_eps_cagr", en: "Growth in EPS", bn: "ইপিএস বৃদ্ধি" },
+    { key: "p1_roe", en: "Return on equity", bn: "নিজস্ব মূলধনে আয়" },
+    { key: "p1_npm_trend", en: "Profit margin trend", bn: "মুনাফার হারের ধারা" },
   ],
   p2_health: [
     // p2_de is null for banks / NBFIs and p2_capital is null for everyone else,
     // so exactly one leverage bar renders per company (rows with null hide).
-    { key: "p2_de", label: "Low debt" },
-    { key: "p2_capital", label: "Capital cushion" },
-    { key: "p2_ic", label: "Covers interest" },
-    { key: "p2_cfo", label: "Cash from profit" },
-    { key: "p2_cash", label: "Cash cushion" },
+    { key: "p2_de", en: "Low debt", bn: "কম ঋণ" },
+    { key: "p2_capital", en: "Own capital", bn: "নিজস্ব মূলধন" },
+    { key: "p2_ic", en: "Can pay its interest", bn: "সুদ দেওয়ার সামর্থ্য" },
+    { key: "p2_cfo", en: "Cash from profit", bn: "মুনাফা থেকে নগদ" },
+    { key: "p2_cash", en: "Cash in hand", bn: "হাতে নগদ" },
   ],
   p3_moat: [
-    { key: "p3_margin", label: "Profit margin" },
-    { key: "p3_rev_vol", label: "Steady sales" },
-    { key: "p3_sector_rank", label: "Sector standing" },
-    { key: "p3_capex", label: "Capital spending" },
+    { key: "p3_margin", en: "Profit margin", bn: "মুনাফার হার" },
+    { key: "p3_rev_vol", en: "Steady sales", bn: "স্থির বিক্রি" },
+    { key: "p3_sector_rank", en: "Size in its sector", bn: "সেক্টরে আকার" },
+    { key: "p3_capex", en: "Spending on growth", bn: "প্রবৃদ্ধিতে বিনিয়োগ" },
   ],
   p4_val: [
-    { key: "p4_pe", label: "P/E value" },
-    { key: "p4_pb", label: "P/B value" },
+    { key: "p4_pe", en: "Price against profit (P/E)", bn: "মুনাফার তুলনায় দাম (পিই)" },
+    { key: "p4_pb", en: "Price against assets (P/B)", bn: "সম্পদের তুলনায় দাম (পিবি)" },
   ],
   p5_div: [
-    { key: "p5_consist", label: "Pays consistently" },
-    { key: "p5_payout", label: "Payout affordable" },
-    { key: "p5_yield", label: "Dividend yield" },
-    { key: "p5_dps_cagr", label: "Dividend growth" },
+    { key: "p5_consist", en: "Pays every year", bn: "প্রতি বছর দেয়" },
+    { key: "p5_payout", en: "Dividend it can afford", bn: "সামর্থ্যের মধ্যে ডিভিডেন্ড" },
+    { key: "p5_yield", en: "Dividend yield", bn: "ডিভিডেন্ড ইল্ড" },
+    { key: "p5_dps_cagr", en: "Dividend growth", bn: "ডিভিডেন্ড বৃদ্ধি" },
   ],
 };
 
+type Fig = { en: string; bn: string; value: string };
+
 /** Real computed figures shown alongside the sub-score bars. */
-function pillarNumbers(pillarKey: string, detail: CompanyDetail): { label: string; value: string }[] {
+function pillarNumbers(pillarKey: string, detail: CompanyDetail): Fig[] {
   const rows = normalizeExtFinancials(detail.extended_financials);
   const last = rows[rows.length - 1];
   const sr = detail.score_row ?? {};
-  const out: { label: string; value: string }[] = [];
+  const out: Fig[] = [];
   const pct = (v: number | null) => (v == null ? null : `${v.toFixed(1)}%`);
   const x = (v: number | null) => (v == null ? null : `${v.toFixed(1)}×`);
 
-  const push = (label: string, val: string | null) => { if (val != null) out.push({ label, value: val }); };
+  const push = (en: string, bn: string, val: string | null) => {
+    if (val != null) out.push({ en, bn, value: val });
+  };
 
   switch (pillarKey) {
     case "p1_biz":
-      push("Return on equity (3y avg)", pct(roe3yAvg(rows)));
-      push("Net margin", last ? pct(netMargin(last.net_profit, last.revenue ?? last.net_interest_income)) : null);
+      push("Return on equity (3-year average)", "নিজস্ব মূলধনে আয় (3 বছরের গড়)", pct(roe3yAvg(rows)));
+      push("Net profit margin", "নিট মুনাফার হার", last ? pct(netMargin(last.net_profit, last.revenue ?? last.net_interest_income)) : null);
       break;
     case "p2_health": {
       // Banks / NBFIs are scored on a capital cushion (equity / assets); the
@@ -108,31 +112,39 @@ function pillarNumbers(pillarKey: string, detail: CompanyDetail): { label: strin
       if (isLender) {
         const eq = toNum(last?.total_equity ?? null);
         const ta = toNum(last?.total_assets ?? null);
-        push("Equity as % of assets", eq != null && ta != null && ta > 0 ? pct((eq / ta) * 100) : null);
+        push("Own capital as % of assets", "সম্পদের তুলনায় নিজস্ব মূলধন", eq != null && ta != null && ta > 0 ? pct((eq / ta) * 100) : null);
       } else {
-        push("Debt to equity", last ? x(debtToEquity(last.total_debt, last.total_equity)) : null);
-        push("Interest coverage", last ? x(interestCoverage(last.ebit, last.interest_expense)) : null);
+        push("Debt to equity", "ঋণ ও নিজস্ব মূলধনের অনুপাত", last ? x(debtToEquity(last.total_debt, last.total_equity)) : null);
+        push("Times it can cover interest", "সুদের কত গুণ আয়", last ? x(interestCoverage(last.ebit, last.interest_expense)) : null);
       }
-      push("Cash flow vs profit", last ? x(cashFlowQuality(last.operating_cf, last.net_profit)) : null);
+      push("Cash compared with profit", "মুনাফার তুলনায় নগদ", last ? x(cashFlowQuality(last.operating_cf, last.net_profit)) : null);
       break;
     }
     case "p3_moat":
-      push("Gross margin", last ? pct(grossMargin(last.gross_profit, last.revenue ?? last.net_interest_income)) : null);
+      push("Gross margin", "মোট মুনাফার হার", last ? pct(grossMargin(last.gross_profit, last.revenue ?? last.net_interest_income)) : null);
       break;
     case "p4_val": {
       const pe = toNum(sr.current_pe as number | null);
       const pb = toNum(sr.current_pb as number | null);
       const avgPe = toNum(sr.own_avg_pe as number | null);
-      const basis = detail.valuation?.eps_basis?.short_en;
-      const avgLabel = detail.valuation?.own_avg_pe_label?.en;
-      push(basis ? `Current P/E (${basis})` : "Current P/E", pe != null ? pe.toFixed(1) : null);
-      push(avgLabel ? `P/E, ${avgLabel}` : "Usual P/E", avgPe != null ? avgPe.toFixed(1) : null);
-      push("Current P/B", pb != null ? pb.toFixed(1) : null);
+      const basis = detail.valuation?.eps_basis;
+      const avg = detail.valuation?.own_avg_pe_label;
+      push(
+        basis ? `P/E now (${basis.short_en})` : "P/E now",
+        basis ? `এখনকার পিই (${basis.short_bn ?? basis.bn})` : "এখনকার পিই",
+        pe != null ? pe.toFixed(1) : null,
+      );
+      push(
+        avg ? `P/E, ${avg.en}` : "Usual P/E",
+        avg ? `পিই, ${avg.bn}` : "সাধারণ পিই",
+        avgPe != null ? avgPe.toFixed(1) : null,
+      );
+      push("P/B now", "এখনকার পিবি", pb != null ? pb.toFixed(1) : null);
       break;
     }
     case "p5_div":
-      push("Dividend yield", pct(toNum(sr.div_yield_pct as number | null)));
-      push("Paid out of profit", pct(toNum(sr.payout_pct as number | null)));
+      push("Dividend yield", "ডিভিডেন্ড ইল্ড", pct(toNum(sr.div_yield_pct as number | null)));
+      push("Share of profit paid out", "মুনাফার যত অংশ দেয়", pct(toNum(sr.payout_pct as number | null)));
       break;
   }
   return out;
@@ -141,8 +153,6 @@ function pillarNumbers(pillarKey: string, detail: CompanyDetail): { label: strin
 /** The five pillar scores as bars — free, the shape of the company at a
  *  glance (the "At a glance" card at the top of the stock page). */
 export function PillarBars({ scoreRow }: { scoreRow: ScoreRow }) {
-  const { lang } = useStockLang();
-  const isBn = lang === "bn";
   const bars = HEALTH_PILLAR_ORDER
     .map((key) => ({ key, value: toNum(scoreRow[key] as number | null) }))
     .filter((b) => b.value != null);
@@ -153,19 +163,16 @@ export function PillarBars({ scoreRow }: { scoreRow: ScoreRow }) {
       {bars.map((b) => {
         const v = b.value as number;
         const color = pillarColor(v);
-        const name = PILLAR_NAMES[b.key];
+        const name = PILLAR_NAMES[b.key] ?? { en: b.key, bn: b.key };
         return (
           <div key={b.key} className="flex items-center gap-3">
-            <span
-              className={`w-[8.5rem] sm:w-[10rem] shrink-0 text-xs font-semibold leading-tight text-text-muted ${isBn ? "font-bn" : ""}`}
-              lang={isBn ? "bn" : undefined}
-            >
-              {isBn ? name?.bn : name?.en}
+            <span className="w-[8.5rem] sm:w-[10rem] shrink-0 text-xs font-semibold leading-tight text-text-muted">
+              <T en={name.en} bn={name.bn} />
             </span>
             <div
               className="h-2 flex-1 overflow-hidden rounded-full bg-surface-2"
               role="img"
-              aria-label={`${name?.en ?? b.key}: ${v.toFixed(1)} out of 10`}
+              aria-label={`${name.en}: ${v.toFixed(1)} out of 10`}
             >
               <div className="h-full rounded-full" style={{ width: `${Math.max(2, Math.min(100, v * 10))}%`, background: color }} />
             </div>
@@ -186,9 +193,6 @@ export function PillarBars({ scoreRow }: { scoreRow: ScoreRow }) {
  * behind `PremiumMask`.
  */
 export default function HealthCheck({ scoreRow, detail }: Props) {
-  const { lang } = useStockLang();
-  const isBn = lang === "bn";
-
   // The backend replaces a band's generic wording when it would contradict the
   // numbers (profitable every year but "loses money", "low loans" beside loans
   // bigger than the reserve, "strong dividend" at a 2% yield, banks and "loans").
@@ -205,12 +209,12 @@ export default function HealthCheck({ scoreRow, detail }: Props) {
 
   return (
     <div className="space-y-2.5">
-      <HealthRow row={rows[0]} scoreRow={scoreRow} detail={detail} isBn={isBn} />
+      <HealthRow row={rows[0]} scoreRow={scoreRow} detail={detail} />
       {rows.length > 1 && (
         <PremiumMask lines={3}>
           <div className="space-y-2.5">
             {rows.slice(1).map((row) => (
-              <HealthRow key={row.pillarKey} row={row} scoreRow={scoreRow} detail={detail} isBn={isBn} />
+              <HealthRow key={row.pillarKey} row={row} scoreRow={scoreRow} detail={detail} />
             ))}
           </div>
         </PremiumMask>
@@ -219,7 +223,7 @@ export default function HealthCheck({ scoreRow, detail }: Props) {
   );
 }
 
-function HealthRow({ row, scoreRow, detail, isBn }: { row: HealthCheckRow; scoreRow: ScoreRow; detail: CompanyDetail; isBn: boolean }) {
+function HealthRow({ row, scoreRow, detail }: { row: HealthCheckRow; scoreRow: ScoreRow; detail: CompanyDetail }) {
   const [open, setOpen] = useState(false);
   const tone = statusTone(row.status);
 
@@ -227,11 +231,6 @@ function HealthRow({ row, scoreRow, detail, isBn }: { row: HealthCheckRow; score
     .map((s) => ({ ...s, score: toNum(scoreRow[s.key] as number | null) }))
     .filter((s) => s.score != null);
   const numbers = pillarNumbers(row.pillarKey, detail);
-
-  const headline = isBn ? row.headlineBn : row.headline;
-  const oneLine = isBn ? row.oneLineBn : row.oneLine;
-  const learnMore = isBn ? row.learnMoreBn : row.learnMore;
-  const bnCls = isBn ? "font-bn" : "";
 
   return (
     <div
@@ -256,12 +255,12 @@ function HealthRow({ row, scoreRow, detail, isBn }: { row: HealthCheckRow; score
         >
           <StatusGlyph kind={tone.glyph} />
         </div>
-        <div className={`flex-1 min-w-0 ${bnCls}`} lang={isBn ? "bn" : undefined}>
+        <div className="flex-1 min-w-0">
           <p className="text-base sm:text-lg font-bold leading-tight text-text-main">
-            {headline}
+            <T en={row.headline} bn={row.headlineBn} />
           </p>
           <p className="text-sm leading-snug mt-0.5 text-text-muted">
-            {oneLine}
+            <T en={row.oneLine} bn={row.oneLineBn} />
           </p>
         </div>
         <svg
@@ -274,19 +273,18 @@ function HealthRow({ row, scoreRow, detail, isBn }: { row: HealthCheckRow; score
       {open && (
         <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4">
           <div
-            className={`rounded-xl p-4 text-sm leading-relaxed ${bnCls}`}
-            lang={isBn ? "bn" : undefined}
+            className="rounded-xl p-4 text-sm leading-relaxed"
             style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
           >
-            {learnMore}
+            <T en={row.learnMore} bn={row.learnMoreBn} />
           </div>
 
           {numbers.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               {numbers.map((n) => (
-                <Card key={n.label} padding="none" className="rounded-xl p-3">
+                <Card key={n.en} padding="none" className="rounded-xl p-3">
                   <p className="text-xs font-semibold mb-1 text-text-muted">
-                    {n.label}
+                    <T en={n.en} bn={n.bn} />
                   </p>
                   <p className="text-lg font-bold tabular-nums nums text-text-main">{n.value}</p>
                 </Card>
@@ -300,11 +298,13 @@ function HealthRow({ row, scoreRow, detail, isBn }: { row: HealthCheckRow; score
                 const score = s.score as number;
                 return (
                   <div key={s.key} className="flex items-center gap-3">
-                    <span className="text-xs w-32 shrink-0 text-text-muted">{s.label}</span>
+                    <span className="text-xs w-32 shrink-0 text-text-muted">
+                      <T en={s.en} bn={s.bn} />
+                    </span>
                     <div
                       className="flex-1 h-2 rounded-full overflow-hidden bg-surface-2"
                       role="img"
-                      aria-label={`${s.label}: ${score.toFixed(0)} out of 10`}
+                      aria-label={`${s.en}: ${score.toFixed(0)} out of 10`}
                     >
                       <div
                         className="h-full rounded-full"

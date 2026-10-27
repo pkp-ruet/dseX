@@ -1,26 +1,27 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
+import { croreBn } from "@/lib/bn";
 import TierPill from "@/components/ui/TierPill";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import { TierBar } from "@/components/sector/SectorCard";
-import { TIER_LABELS, type TierKey } from "@/lib/constants";
+import type { TierKey } from "@/lib/constants";
 import { crore, pct, taka } from "@/lib/formatters";
 import type { SectorSummary } from "@/lib/api";
 
 const TIER_ORDER: TierKey[] = ["excellent", "good", "average", "weak"];
 
-const CLASS_CHIP: Record<string, { label: string; color: string }> = {
-  BANK: { label: "Bank", color: "var(--info)" },
-  NBFI: { label: "Financial institution", color: "var(--info)" },
-  INSURANCE: { label: "Insurance", color: "var(--primary)" },
-  GENERAL: { label: "General industry", color: "var(--text-muted)" },
+const CLASS_CHIP: Record<string, { label: string; labelBn: string; color: string }> = {
+  BANK: { label: "a bank", labelBn: "ব্যাংক", color: "var(--info)" },
+  NBFI: { label: "a finance company", labelBn: "আর্থিক প্রতিষ্ঠান", color: "var(--info)" },
+  INSURANCE: { label: "an insurer", labelBn: "বিমা কোম্পানি", color: "var(--primary)" },
+  GENERAL: { label: "a general company", labelBn: "সাধারণ কোম্পানি", color: "var(--text-muted)" },
 };
 
 function Stat({ label, value, sub, accent }: {
-  label: string;
+  label: ReactNode;
   value: ReactNode;
-  sub?: string;
+  sub?: ReactNode;
   accent?: string;
 }) {
   return (
@@ -48,7 +49,7 @@ function Stat({ label, value, sub, accent }: {
 }
 
 function MoverLine({ label, brief }: {
-  label: string;
+  label: ReactNode;
   brief: SectorSummary["best_today"];
 }) {
   if (!brief) return null;
@@ -76,6 +77,7 @@ export default function SectorHero({ summary: s }: { summary: SectorSummary }) {
   const chgColor =
     chg == null ? "var(--text-muted)" : chg > 0 ? "var(--positive)" : chg < 0 ? "var(--negative)" : "var(--text-muted)";
   const rs = s.avg_rs_vs_dsex_pct;
+  const good = s.tier_counts.excellent + s.tier_counts.good;
 
   return (
     <section className="soft-card overflow-hidden mb-6">
@@ -97,34 +99,52 @@ export default function SectorHero({ summary: s }: { summary: SectorSummary }) {
             }}
           >
             <span className="h-1.5 w-1.5 rounded-full" style={{ background: chip.color }} />
-            Scored as {chip.label}
+            <T en={`Scored as ${chip.label}`} bn={`${chip.labelBn} হিসেবে স্কোর করা`} />
           </span>
           <span className="text-sm font-bold tabular-nums text-text-muted">
-            {s.company_count} companies · {crore(s.total_mcap_mn)} market value
+            <T
+              en={`${s.company_count} companies · ${crore(s.total_mcap_mn)} market value`}
+              bn={`${s.company_count}টি কোম্পানি · বাজার মূলধন ${croreBn(s.total_mcap_mn)}`}
+            />
           </span>
         </div>
 
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
           <Stat
-            label="Median score"
+            label={<T en="Middle score" bn="মধ্যম স্কোর" />}
             value={<ScoreBadge score={s.median_score} size="sm" />}
-            sub="the middle company"
+            sub={<T en="the middle company" bn="মাঝের কোম্পানির" />}
             accent="var(--primary)"
           />
-          <Stat label="Median P/E" value={s.median_pe != null ? s.median_pe.toFixed(1) : "—"} sub={s.median_pb != null ? `P/B ${s.median_pb.toFixed(2)}` : undefined} />
           <Stat
-            label="Median yield"
+            label={<T en="Middle P/E" bn="মধ্যম পিই" />}
+            value={s.median_pe != null ? s.median_pe.toFixed(1) : "—"}
+            sub={
+              s.median_pb != null ? (
+                <T en={`P/B ${s.median_pb.toFixed(2)}`} bn={`পিবি ${s.median_pb.toFixed(2)}`} />
+              ) : undefined
+            }
+          />
+          <Stat
+            label={<T en="Middle yield" bn="মধ্যম ইল্ড" />}
             value={s.median_yield_pct != null ? pct(s.median_yield_pct, 1) : "—"}
-            sub={s.median_roe_pct != null ? `ROE ${pct(s.median_roe_pct, 1)}` : undefined}
+            sub={
+              s.median_roe_pct != null ? (
+                <T en={`ROE ${pct(s.median_roe_pct, 1)}`} bn={`আরওই ${pct(s.median_roe_pct, 1)}`} />
+              ) : undefined
+            }
             accent="var(--positive)"
           />
           <Stat
-            label="Today"
+            label={<T en="Today" bn="আজ" />}
             value={chg != null ? `${chg > 0 ? "+" : ""}${pct(chg, 2)}` : "—"}
             sub={
-              s.avg_return_7d_pct != null
-                ? `${s.avg_return_7d_pct > 0 ? "+" : ""}${pct(s.avg_return_7d_pct, 1)} in 7 days`
-                : undefined
+              s.avg_return_7d_pct != null ? (
+                <T
+                  en={`${s.avg_return_7d_pct > 0 ? "+" : ""}${pct(s.avg_return_7d_pct, 1)} in 7 days`}
+                  bn={`7 দিনে ${s.avg_return_7d_pct > 0 ? "+" : ""}${pct(s.avg_return_7d_pct, 1)}`}
+                />
+              ) : undefined
             }
             accent={chgColor}
           />
@@ -134,10 +154,10 @@ export default function SectorHero({ summary: s }: { summary: SectorSummary }) {
         <div className="rounded-xl border border-border bg-surface-2 p-3">
           <div className="mb-2 flex items-center justify-between gap-2">
             <span className="text-xs font-semibold text-text-muted">
-              Strength mix
+              <T en="Grade mix" bn="গ্রেডের ভাগ" />
             </span>
             <span className="text-xs font-bold tabular-nums text-text-muted">
-              {s.buy_signals} with a buy signal
+              <T en={`${s.buy_signals} with a Buy signal`} bn={`${s.buy_signals}টিতে কেনার সংকেত`} />
             </span>
           </div>
           <TierBar counts={s.tier_counts} total={s.company_count} />
@@ -153,11 +173,13 @@ export default function SectorHero({ summary: s }: { summary: SectorSummary }) {
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5 rounded-xl border border-border bg-surface-2 p-3">
-            <MoverLine label="Best today" brief={s.best_today} />
-            <MoverLine label="Worst today" brief={s.worst_today} />
+            <MoverLine label={<T en="Best today" bn="আজ সবচেয়ে বেড়েছে" />} brief={s.best_today} />
+            <MoverLine label={<T en="Worst today" bn="আজ সবচেয়ে কমেছে" />} brief={s.worst_today} />
             {s.top_ranked && (
               <div className="flex items-center justify-between gap-2 text-sm font-semibold">
-                <span className="text-text-muted">Top ranked</span>
+                <span className="text-text-muted">
+                  <T en="Top ranked" bn="শীর্ষ র‍্যাঙ্ক" />
+                </span>
                 <span className="inline-flex items-center gap-2 tabular-nums">
                   <Link
                     href={`/stock/${s.top_ranked.trading_code}`}
@@ -176,17 +198,25 @@ export default function SectorHero({ summary: s }: { summary: SectorSummary }) {
 
           <div className="rounded-xl border border-border bg-surface-2 p-3">
             <p className="text-sm font-medium leading-relaxed text-text-main">
-              {rs != null
-                ? `Over the last 7 days this sector ran ${Math.abs(rs).toFixed(1)}% ${rs >= 0 ? "ahead of" : "behind"} DSEX on average. `
-                : ""}
-              {s.tier_counts.excellent + s.tier_counts.good > 0
-                ? `${s.tier_counts.excellent + s.tier_counts.good} of ${s.company_count} companies here score ${TIER_LABELS.good} or better.`
-                : `No company here currently scores ${TIER_LABELS.good} or better.`}
+              <T
+                en={
+                  (rs != null
+                    ? `Over the last 7 days this sector moved ${Math.abs(rs).toFixed(1)}% ${rs >= 0 ? "ahead of" : "behind"} DSEX on average. `
+                    : "") +
+                  (good > 0
+                    ? `${good} of its ${s.company_count} companies are graded Good or better.`
+                    : "No company here is graded Good or better right now.")
+                }
+                bn={
+                  (rs != null
+                    ? `গত 7 দিনে এই সেক্টর গড়ে ডিএসইএক্সের চেয়ে ${Math.abs(rs).toFixed(1)}% ${rs >= 0 ? "এগিয়ে" : "পিছিয়ে"} ছিল। `
+                    : "") +
+                  (good > 0
+                    ? `এর ${s.company_count}টি কোম্পানির মধ্যে ${good}টির গ্রেড ভালো বা তার ওপরে।`
+                    : "এখন এখানে কোনো কোম্পানির গ্রেড ভালো বা তার ওপরে নেই।")
+                }
+              />
             </p>
-            <Bn className="mt-2 text-sm font-medium leading-[1.85] text-text-muted">
-              এই সেক্টরে {s.company_count}টি কোম্পানির মধ্যে{" "}
-              {s.tier_counts.excellent + s.tier_counts.good}টি ভালো বা তার উপরে স্কোর করেছে।
-            </Bn>
           </div>
         </div>
       </div>

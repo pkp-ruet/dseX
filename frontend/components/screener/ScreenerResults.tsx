@@ -8,7 +8,8 @@ import Skeleton from "@/components/ui/Skeleton";
 import PremiumGate from "@/components/premium/PremiumGate";
 import ScreenerStep from "./ScreenerStep";
 import ScreenerNearMisses from "./ScreenerNearMisses";
-import { strengthLine } from "@/lib/screener";
+import { T } from "@/components/i18n/T";
+import { strengthPair } from "@/lib/screener";
 import type { CustomListResult, CustomListStock, ScreenerQuestion } from "@/lib/api";
 
 /**
@@ -33,7 +34,6 @@ export default function ScreenerResults({
   questions,
   followed,
   onChangeCheck,
-  bn,
   t,
 }: {
   result: CustomListResult | null;
@@ -48,18 +48,22 @@ export default function ScreenerResults({
   followed: string[];
   /** "Change" on the near-miss block: a question key, or a check key on a fine-tune screen. */
   onChangeCheck: (key: string, by: "question" | "check") => void;
-  bn: boolean;
   t: (en: string, bn: string) => string;
 }) {
-  const title = result
-    ? t(`${result.passed} ${result.passed === 1 ? "stock passes" : "stocks pass"}`, `${result.passed}টি শেয়ার পাস করেছে`)
-    : t("Stocks that pass", "যে শেয়ারগুলো পাস করেছে");
+  const title = result ? (
+    <T en={`${result.passed} ${result.passed === 1 ? "share passes" : "shares pass"}`} bn={`${result.passed}টি শেয়ার পাস করেছে`} />
+  ) : (
+    <T en="Shares that pass" bn="যে শেয়ারগুলো পাস করেছে" />
+  );
 
   if (error && !result) {
     return (
       <ScreenerStep title={title}>
         <p className="text-sm text-text-muted">
-          {t("Couldn't run this screen. Change a check or try again.", "স্ক্রিনটি চালানো যায়নি। একটি শর্ত বদলান বা আবার চেষ্টা করুন।")}
+          <T
+            en="We couldn't run this screen. Please change an answer or try again."
+            bn="স্ক্রিনটি চালানো যায়নি। একটি উত্তর বদলান বা আবার চেষ্টা করুন।"
+          />
         </p>
       </ScreenerStep>
     );
@@ -77,10 +81,10 @@ export default function ScreenerResults({
   const more = result.passed - open.length;
 
   // What's hidden, in up to three lines (free readers only — for Premium freeRows is Infinity).
-  const hiddenLines: string[] = [];
+  const hiddenLines: { en: string; bn: string }[] = [];
   if (locked.length && Number.isFinite(freeRows)) {
     const buys = locked.filter((x) => x.signal === "buy").length;
-    if (buys) hiddenLines.push(t(`${buys} ${buys === 1 ? "has" : "have"} a Buy signal today`, `${buys}টিতে আজ 'কিনুন' সংকেত`));
+    if (buys) hiddenLines.push({ en: `${buys} ${buys === 1 ? "has" : "have"} a Buy signal today`, bn: `${buys}টিতে আজ কেনার সংকেত আছে` });
     // The top-level strength most hidden stocks share, skipping one the answers already require.
     let best: { n: number; en: string; bn: string } | null = null;
     for (const q of questions) {
@@ -90,11 +94,14 @@ export default function ScreenerResults({
       const n = locked.filter((x) => (x.levels?.[q.key] ?? 0) >= 2).length;
       if (n && (!best || n > best.n)) best = { n, en: lvl.tag_en, bn: lvl.tag_bn ?? lvl.tag_en };
     }
-    if (best) hiddenLines.push(t(`${best.n} marked "${best.en}"`, `${best.n}টি "${best.bn}"`));
+    if (best) hiddenLines.push({ en: `${best.n} marked "${best.en}"`, bn: `${best.n}টি "${best.bn}"` });
     const mine = locked.filter((x) => followed.includes(x.code)).length;
-    if (mine) hiddenLines.push(t(`${mine} ${mine === 1 ? "is a stock" : "are stocks"} you follow`, `${mine}টি আপনার অনুসরণ করা শেয়ার`));
+    if (mine) hiddenLines.push({ en: `${mine} ${mine === 1 ? "is a share" : "are shares"} you follow`, bn: `${mine}টি আপনার অনুসরণ করা শেয়ার` });
   }
-  const row = (s: CustomListStock) => (
+  const row = (s: CustomListStock) => {
+    const strong = strengthPair(s.levels, questions);
+    const figures = s.checks.slice(0, 2);
+    return (
     <StockRow
       key={s.code}
       as="li"
@@ -103,17 +110,23 @@ export default function ScreenerResults({
       name={s.name}
       price={s.price}
       change={s.change_pct}
-      sub={strengthLine(s.levels, questions, t) || s.checks.slice(0, 2).map((c) => t(c.value_en, c.value_bn)).join(" · ")}
+      sub={
+        strong.en ? (
+          <T en={strong.en} bn={strong.bn} />
+        ) : (
+          <T en={figures.map((c) => c.value_en).join(" · ")} bn={figures.map((c) => c.value_bn).join(" · ")} />
+        )
+      }
       subClamp
       trailing={s.signal !== "none" ? <SignalChip signal={s.signal} size="sm" /> : undefined}
-      lang={bn ? "bn" : "en"}
     />
-  );
+    );
+  };
 
   return (
     <ScreenerStep
       title={title}
-      note={t(`out of ${result.universe} rated companies`, `রেটিং পাওয়া ${result.universe}টির মধ্যে`)}
+      note={<T en={`out of ${result.universe} rated companies`} bn={`রেটিং পাওয়া ${result.universe}টি কোম্পানির মধ্যে`} />}
     >
       <div aria-live="polite" className={running ? "opacity-60 transition-opacity" : "transition-opacity"}>
         <div className="mb-3 flex flex-wrap items-center gap-2">{toolbar}</div>
@@ -121,14 +134,20 @@ export default function ScreenerResults({
         {result.passed === 0 ? (
           <Card>
             <p className="text-sm text-text-main">
-              {t("No company passes every check today.", "আজ কোনো কোম্পানি সব শর্ত পূরণ করছে না।")}
+              <T en="No company passes every check today." bn="আজ কোনো কোম্পানি সব যাচাইয়ে পাস করেনি।" />
             </p>
             <p className="mt-1 text-sm text-text-muted">
-              {result.answers
-                ? t("Pick an easier choice on one question — the number under each choice shows how many you'd get.",
-                    "একটি প্রশ্নে সহজ উত্তর বাছুন — প্রতিটি উত্তরের নিচের সংখ্যা দেখায় কতগুলো পাবেন।")
-                : t("Loosen one setting or remove a rule — the counts beside each rule show where the list ran out.",
-                    "একটি মাত্রা কমান বা একটি নিয়ম বাদ দিন — প্রতিটি নিয়মের পাশের সংখ্যা দেখায় কোথায় তালিকা শেষ হয়েছে।")}
+              {result.answers ? (
+                <T
+                  en="Try an easier choice on one question. The number under each choice shows how many you would get."
+                  bn="একটি প্রশ্নে সহজ কোনো উত্তর বাছুন। প্রতিটি উত্তরের নিচের সংখ্যা দেখায় কতগুলো পাবেন।"
+                />
+              ) : (
+                <T
+                  en="Loosen one setting or remove a rule. The count beside each rule shows where the list ran out."
+                  bn="একটি মাত্রা শিথিল করুন বা একটি নিয়ম বাদ দিন। প্রতিটি নিয়মের পাশের সংখ্যা দেখায় তালিকা কোথায় শেষ হয়েছে।"
+                />
+              )}
             </p>
           </Card>
         ) : (
@@ -138,10 +157,10 @@ export default function ScreenerResults({
               <PremiumGate
                 label={
                   open.length
-                    ? t(`${more} more that pass`, `আরও ${more}টি পাস করেছে`)
+                    ? { en: `${more} more that pass`, bn: `আরও ${more}টি পাস করেছে` }
                     : powerOn
-                      ? t("Stocks that pass a power check", "পাওয়ার শর্ত পেরোনো শেয়ার")
-                      : t("The stocks that pass", "যে শেয়ারগুলো পাস করেছে")
+                      ? { en: "Shares that pass a special check", bn: "বিশেষ যাচাইয়ে পাস করা শেয়ার" }
+                      : { en: "The shares that pass", bn: "যে শেয়ারগুলো পাস করেছে" }
                 }
                 preview="blur"
                 peek={open.length ? 140 : 200}
@@ -153,14 +172,21 @@ export default function ScreenerResults({
               <a
                 href="#sc-premium"
                 className="block border-t border-border px-4 py-3 hover:bg-surface-2 active:bg-surface-2"
-                aria-label={t(`What's hidden: ${hiddenLines.join(", ")}. See Premium.`, `যা লুকানো: ${hiddenLines.join(", ")}। প্রিমিয়াম দেখুন।`)}
+                aria-label={t(
+                  `What is hidden: ${hiddenLines.map((l) => l.en).join(", ")}. See Premium.`,
+                  `যা লুকানো: ${hiddenLines.map((l) => l.bn).join(", ")}। প্রিমিয়াম দেখুন।`,
+                )}
               >
-                <p className="text-sm text-text-muted">{t("Among the hidden ones:", "লুকানোগুলোর মধ্যে:")}</p>
+                <p className="text-sm text-text-muted">
+                  <T en="Among the hidden ones:" bn="লুকানোগুলোর মধ্যে:" />
+                </p>
                 <ul className="mt-1 flex flex-col gap-1">
                   {hiddenLines.map((line) => (
-                    <li key={line} className="flex items-start gap-2 text-sm font-semibold text-text-main">
+                    <li key={line.en} className="flex items-start gap-2 text-sm font-semibold text-text-main">
                       <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
-                      <span>{line}</span>
+                      <span>
+                        <T en={line.en} bn={line.bn} />
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -168,14 +194,16 @@ export default function ScreenerResults({
             )}
             {result.passed > result.stocks.length && (
               <p className="border-t border-border p-4 text-sm text-text-muted">
-                {t(`Showing the first ${result.stocks.length} of ${result.passed}. Add a check to narrow it down.`,
-                   `${result.passed}টির মধ্যে প্রথম ${result.stocks.length}টি দেখানো হচ্ছে। আরও শর্ত যোগ করে ছোট করুন।`)}
+                <T
+                  en={`Showing the first ${result.stocks.length} of ${result.passed}. A stricter answer narrows it down.`}
+                  bn={`${result.passed}টির মধ্যে প্রথম ${result.stocks.length}টি দেখানো হচ্ছে। আরও কড়া উত্তর দিলে তালিকা ছোট হবে।`}
+                />
               </p>
             )}
           </Card>
         )}
 
-        {result.near && <ScreenerNearMisses near={result.near} questions={questions} onChange={onChangeCheck} bn={bn} t={t} />}
+        {result.near && <ScreenerNearMisses near={result.near} questions={questions} onChange={onChangeCheck} t={t} />}
       </div>
     </ScreenerStep>
   );

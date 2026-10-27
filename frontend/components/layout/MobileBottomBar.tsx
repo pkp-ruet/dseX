@@ -6,6 +6,8 @@ import { getCachedWatchlist, subscribeWatchlist, loadWatchlist } from "@/lib/wat
 import { isLoggedIn } from "@/lib/auth";
 import { openMobileDrawer } from "@/components/layout/Navbar";
 import { openGlobalSearch } from "@/components/layout/GlobalSearch";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
 
 /**
  * FIVE tabs: Home · Explore · Search · Watchlist · Portfolio.
@@ -37,6 +39,7 @@ const matches = (pathname: string, paths: string[]) =>
 type BarItem = {
   href: string;
   label: string;
+  labelBn: string;
   active: boolean;
   badge: number | null;
   icon: React.ReactNode;
@@ -80,8 +83,10 @@ export default function MobileBottomBar() {
     return subscribeWatchlist(update);
   }, []);
 
+  const { bn } = useLang();
+
   const leftItems: BarItem[] = [
-    { href: "/", label: "Home", active: pathname === "/", badge: null, icon: HomeIcon },
+    { href: "/", label: "Home", labelBn: "হোম", active: pathname === "/", badge: null, icon: HomeIcon },
   ];
 
   const exploreActive = matches(pathname, EXPLORE_PATHS);
@@ -90,6 +95,7 @@ export default function MobileBottomBar() {
     {
       href: "/watchlist",
       label: "Watchlist",
+      labelBn: "ওয়াচলিস্ট",
       active: pathname === "/watchlist",
       badge: mounted && watchCount > 0 ? watchCount : null,
       icon: WatchIcon,
@@ -97,6 +103,7 @@ export default function MobileBottomBar() {
     {
       href: "/portfolio",
       label: "Portfolio",
+      labelBn: "পোর্টফোলিও",
       active: pathname === "/portfolio" || pathname.startsWith("/portfolio/"),
       badge: null,
       icon: PortfolioIcon,
@@ -117,12 +124,14 @@ export default function MobileBottomBar() {
           )}
         </span>
       </span>
-      <span className="mobile-bottom-bar-label">{item.label}</span>
+      <span className="mobile-bottom-bar-label">
+        <T en={item.label} bn={item.labelBn} />
+      </span>
     </Link>
   );
 
   return (
-    <nav className="mobile-bottom-bar" aria-label="Mobile navigation">
+    <nav className="mobile-bottom-bar" aria-label={bn ? "নিচের মেনু" : "Mobile navigation"}>
       {leftItems.map(renderItem)}
 
       {/* Explore — opens the one drawer (Markets · Find stocks · Learn) */}
@@ -130,14 +139,16 @@ export default function MobileBottomBar() {
         type="button"
         onClick={openMobileDrawer}
         className={`mobile-bottom-bar-item${exploreActive ? " active" : ""}`}
-        aria-label="Explore — open menu"
+        aria-label={bn ? "মেনু খুলুন" : "Explore — open the menu"}
         aria-haspopup="dialog"
         aria-controls="mobile-menu"
       >
         <span className="mobile-bottom-bar-icon">
           <span className="mobile-bottom-bar-glyph">{ExploreIcon}</span>
         </span>
-        <span className="mobile-bottom-bar-label">Explore</span>
+        <span className="mobile-bottom-bar-label">
+          <T en="Explore" bn="মেনু" />
+        </span>
       </button>
 
       {/* Accented primary action — search any stock */}
@@ -145,7 +156,7 @@ export default function MobileBottomBar() {
         type="button"
         onClick={openGlobalSearch}
         className="mobile-bottom-bar-item mobile-bottom-bar-search"
-        aria-label="Search stocks"
+        aria-label={bn ? "শেয়ার খুঁজুন" : "Search stocks"}
       >
         <span className="mobile-bottom-bar-search-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" aria-hidden="true">
@@ -153,7 +164,9 @@ export default function MobileBottomBar() {
             <path d="m20 20-3.2-3.2" />
           </svg>
         </span>
-        <span className="mobile-bottom-bar-label">Search</span>
+        <span className="mobile-bottom-bar-label">
+          <T en="Search" bn="খুঁজুন" />
+        </span>
       </button>
 
       {rightItems.map(renderItem)}

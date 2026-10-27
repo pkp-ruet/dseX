@@ -64,7 +64,7 @@ export default function ContributionStrip({ rows, lang = "en" }: Props) {
   const hidden = priced.length - shown.length;
 
   return (
-    <PfCard title={t.title} bn="কোন শেয়ার টাকা বাড়াচ্ছে-কমাচ্ছে" note={t.subtitle} lang={lang} dataCard="contribution">
+    <PfCard title={t.title} note={t.subtitle} lang={lang} dataCard="contribution">
       <div className={bnText} lang={bn ? "bn" : undefined}>
         <Stat
           size="lg"

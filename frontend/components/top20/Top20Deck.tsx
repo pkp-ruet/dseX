@@ -1,5 +1,6 @@
 import type { Top20Item } from "@/lib/api";
 import Top20Card from "./Top20Card";
+import { T } from "@/components/i18n/T";
 
 interface Props {
   items: Top20Item[];
@@ -11,7 +12,10 @@ export default function Top20Deck({ items }: Props) {
   if (items.length === 0) {
     return (
       <div className="py-16 text-center text-text-muted">
-        Not enough recent market data to build the Trending Stocks list right now. Check back after the next scrape.
+        <T
+          en="There is not enough recent market data to build the trending list right now. Please check back after the next trading day."
+          bn="ট্রেন্ডিং তালিকা তৈরির মতো যথেষ্ট সাম্প্রতিক তথ্য এখন নেই। পরের লেনদেনের দিনের পর আবার দেখুন।"
+        />
       </div>
     );
   }

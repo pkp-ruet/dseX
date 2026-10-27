@@ -6,6 +6,7 @@
 import type { RecommendationAnswers } from "@/lib/api";
 import type { Chip, MessageBlock, SlotKey } from "./types";
 import { COPY, ANY_SECTOR } from "./copy";
+import { sectorBn } from "@/lib/bn";
 
 /** The quiz defaults (the RecommendationQuiz component they mirrored was removed 2026-10-26). */
 export const SUGGEST_DEFAULTS: RecommendationAnswers = {
@@ -45,10 +46,9 @@ export function slotQuestion(key: SlotKey, sectors: string[]): MessageBlock[] {
       {
         label: COPY.slots.sectors.anyLabel,
         labelBn: COPY.slots.sectors.anyLabelBn,
-        emoji: "🌐",
         slot: { key: "sectors", value: ANY_SECTOR },
       },
-      ...sectors.map((s) => ({ label: s, slot: { key: "sectors" as SlotKey, value: s } })),
+      ...sectors.map((s) => ({ label: s, labelBn: sectorBn(s), slot: { key: "sectors" as SlotKey, value: s } })),
     ];
     return [
       { type: "text", text: COPY.slots.sectors.q, bn: COPY.slots.sectors.qBn },

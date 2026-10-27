@@ -40,7 +40,9 @@ import SectionHeader from "@/components/ui/SectionHeader";
 import Skeleton from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
+import { bnDate } from "@/lib/bn";
 import WatchlistNews from "./WatchlistNews";
 import WatchlistAnalysis from "./WatchlistAnalysis";
 import WatchlistAlertCell from "./WatchlistAlertCell";
@@ -86,14 +88,22 @@ interface ExtremeInfo {
 
 type SortKey = "az" | "recent" | "move" | "score" | "yield" | "since";
 
-const SORT_OPTIONS: { key: SortKey; label: string }[] = [
-  { key: "az", label: "A–Z" },
-  { key: "recent", label: "Recently added" },
-  { key: "move", label: "Biggest move today" },
-  { key: "since", label: "Since added" },
-  { key: "score", label: "Best score" },
-  { key: "yield", label: "Dividend yield" },
+const SORT_OPTIONS: { key: SortKey; en: string; bn: string }[] = [
+  { key: "az", en: "A–Z", bn: "A–Z" },
+  { key: "recent", en: "Recently added", bn: "সম্প্রতি যোগ করা" },
+  { key: "move", en: "Biggest move today", bn: "আজ সবচেয়ে বেশি ওঠানামা" },
+  { key: "since", en: "Since added", bn: "যোগ করার পর থেকে" },
+  { key: "score", en: "Best score", bn: "সেরা স্কোর" },
+  { key: "yield", en: "Dividend yield", bn: "ডিভিডেন্ড ইল্ড" },
 ];
+
+/** A Bengali date from a timestamp, Western digits ("6 সেপ্টেম্বর 2026"). */
+function bnDateOf(iso: string, withYear = true): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const s = bnDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
+  return withYear ? s : s.replace(/\s\d{4}$/, "");
+}
 
 /** % move from the close on the day the stock was followed to today. */
 function sinceAddedPct(item: ScoreItem, m: WatchlistMetaEntry | null | undefined): number | null {
@@ -119,8 +129,9 @@ function formatDateLong(iso: string): string {
 // ---------------------------------------------------------------------------
 
 function WatchlistSkeleton({ rows = 6 }: { rows?: number }) {
+  const { lang } = useLang();
   return (
-    <Card padding="md" aria-busy="true" aria-label="Loading watchlist">
+    <Card padding="md" aria-busy="true" aria-label={lang === "bn" ? "ওয়াচলিস্ট লোড হচ্ছে" : "Loading your watchlist"}>
       <div className="skeleton-rows" role="status">
         {[...Array(rows)].map((_, i) => (
           <div key={i} className="skeleton-row">
@@ -145,18 +156,24 @@ function SignInCTA({ pendingCodes }: { pendingCodes: string[] }) {
   const encNext = encodeURIComponent(nextHref);
   return (
     <EmptyState
-      title="Sign in to use your watchlist"
-      message="Follow stocks on every device. We'll show their price moves, news and dividend dates in one place."
-      bn="আপনার পছন্দের শেয়ারগুলো অনুসরণ করতে সাইন ইন করুন।"
+      title={<T en="Sign in to use your watchlist" bn="ওয়াচলিস্ট ব্যবহার করতে সাইন ইন করুন" />}
+      message={
+        <T
+          en="Follow shares on any device. We show their price moves, news and dividend dates in one place."
+          bn="যেকোনো ডিভাইস থেকে শেয়ার অনুসরণ করুন। তাদের দামের ওঠানামা, খবর আর ডিভিডেন্ডের তারিখ এক জায়গায় দেখাই।"
+        />
+      }
       actions={[
-        { href: `/login?next=${encNext}`, label: "Sign in" },
-        { href: `/register?next=${encNext}`, label: "Create account" },
+        { href: `/login?next=${encNext}`, label: <T en="Sign in" bn="সাইন ইন" /> },
+        { href: `/register?next=${encNext}`, label: <T en="Create an account" bn="অ্যাকাউন্ট খুলুন" /> },
       ]}
     >
       {pendingCodes.length > 0 && (
         <p className="mt-4 text-xs text-text-muted">
-          We&apos;ll add {pendingCodes.length} shared{" "}
-          {pendingCodes.length === 1 ? "stock" : "stocks"} to your list after sign-in.
+          <T
+            en={`We will add ${pendingCodes.length} shared ${pendingCodes.length === 1 ? "share" : "shares"} to your list after you sign in.`}
+            bn={`সাইন ইন করার পর শেয়ার করা ${pendingCodes.length}টি শেয়ার আপনার তালিকায় যোগ হবে।`}
+          />
         </p>
       )}
     </EmptyState>
@@ -172,6 +189,8 @@ function AddBar({ scores }: { scores: ScoresResponse | null }) {
   const [open, setOpen] = useState(false);
   const [watchedCodes, setWatchedCodes] = useState<string[]>([]);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const { lang } = useLang();
+  const L = (en: string, bn: string) => (lang === "bn" ? bn : en);
 
   useEffect(() => {
     setWatchedCodes(getCachedWatchlist());
@@ -216,12 +235,12 @@ function AddBar({ scores }: { scores: ScoresResponse | null }) {
           <path d="M14 14l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
         <label htmlFor="wl-add-input" className="sr-only">
-          Add a company to your watchlist
+          <T en="Add a company to your watchlist" bn="ওয়াচলিস্টে একটি কোম্পানি যোগ করুন" />
         </label>
         <input
           id="wl-add-input"
           className="wl-add-input"
-          placeholder="Add a company — name or code"
+          placeholder={L("Add a company by name or code", "নাম বা কোড লিখে কোম্পানি যোগ করুন")}
           value={query}
           autoComplete="off"
           onChange={(e) => {
@@ -238,7 +257,7 @@ function AddBar({ scores }: { scores: ScoresResponse | null }) {
               setQuery("");
               setOpen(false);
             }}
-            aria-label="Clear search"
+            aria-label={L("Clear the search", "খোঁজা মুছুন")}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
               <path d="M6 6l12 12M18 6L6 18" />
@@ -261,14 +280,18 @@ function AddBar({ scores }: { scores: ScoresResponse | null }) {
                   <span className="wl-add-name">{it.company_name ?? it.trading_code}</span>
                   <span className="wl-add-code">{it.trading_code}</span>
                 </span>
-                <span className="wl-add-state">{watched ? "Following" : "+ Follow"}</span>
+                <span className="wl-add-state">
+                  {watched ? <T en="Following" bn="অনুসরণ করছেন" /> : <T en="+ Follow" bn="+ অনুসরণ" />}
+                </span>
               </li>
             );
           })}
         </ul>
       )}
       {open && query.trim() && filtered.length === 0 && scores && (
-        <div className="wl-add-empty">No company matches &quot;{query}&quot;</div>
+        <div className="wl-add-empty">
+          <T en={`No company matches "${query}"`} bn={`"${query}" নামে কোনো কোম্পানি পাওয়া যায়নি`} />
+        </div>
       )}
     </div>
   );
@@ -287,12 +310,20 @@ interface RowProps {
 }
 
 function RangeBar({ ltp, high, low }: { ltp: number | null; high: number | null; low: number | null }) {
+  const { lang } = useLang();
   if (ltp == null || high == null || low == null || high <= low) {
     return <span className="wl-dash">—</span>;
   }
   const pos = Math.max(0, Math.min(1, (ltp - low) / (high - low)));
   return (
-    <div className="wl-range" title={`52-week range: ${money(low)} – ${money(high)}`}>
+    <div
+      className="wl-range"
+      title={
+        lang === "bn"
+          ? `গত এক বছরের দামের সীমা: ${money(low)} থেকে ${money(high)}`
+          : `Price range over the past year: ${money(low)} to ${money(high)}`
+      }
+    >
       <div className="wl-range-track">
         <span className="wl-range-dot" style={{ left: `${pos * 100}%` }} />
       </div>
@@ -313,23 +344,38 @@ function Notes({
   extreme: ExtremeInfo | null;
   hasDividendSoon: boolean;
 }) {
+  const { lang } = useLang();
   // Only Buy is shown on the watchlist; Sell lives on the stock page.
   const buy = signal != null && signal.signal === "buy";
   if (!buy && !extreme && !hasDividendSoon) return null;
   return (
     <div className="wl-notes">
-      {buy && <SignalChip signal={signal.signal} strength={signal.strength} reason={signal.reason_en} />}
+      {buy && <SignalChip
+          signal={signal.signal}
+          strength={signal.strength}
+          reason={(lang === "bn" ? signal.reason_bn : signal.reason_en) || signal.reason_en}
+        />}
       {extreme && (
         <Chip tone={extreme.side === "high" ? "positive" : "negative"}>
-          {extreme.side === "high" ? "Near yearly high" : "Near yearly low"}
+          {extreme.side === "high" ? (
+            <T en="Near its yearly high" bn="বছরের সর্বোচ্চের কাছে" />
+          ) : (
+            <T en="Near its yearly low" bn="বছরের সর্বনিম্নের কাছে" />
+          )}
         </Chip>
       )}
-      {hasDividendSoon && <Chip tone="info">Dividend soon</Chip>}
+      {hasDividendSoon && (
+        <Chip tone="info">
+          <T en="Dividend soon" bn="শিগগির ডিভিডেন্ড" />
+        </Chip>
+      )}
     </div>
   );
 }
 
 function EnrichedRow({ item, extreme, hasDividendSoon, meta, onRemove }: RowProps) {
+  const { lang } = useLang();
+  const L = (en: string, bn: string) => (lang === "bn" ? bn : en);
   const chg = item.change_pct;
   const ex = extreme?.item ?? null;
   // wl-empty cells collapse on the phone layout instead of showing "—"
@@ -359,21 +405,31 @@ function EnrichedRow({ item, extreme, hasDividendSoon, meta, onRemove }: RowProp
       <td data-cell="chg" className="wl-num">
         <span className={`wl-chg nums ${changeTone(chg)}`}>{chg != null ? changePct(chg) : "—"}</span>
       </td>
-      <td data-cell="since" data-label="Since added" className="wl-num">
+      <td data-cell="since" data-label={L("Since added", "যোগ করার পর")} className="wl-num">
         {since != null && meta ? (
-          <span title={`Added ${formatDateLong(meta.added_at)} at ${taka(meta.price_at_add, 1)}`}>
+          <span
+            title={L(
+              `Added on ${formatDateLong(meta.added_at)} at ${taka(meta.price_at_add, 1)}`,
+              `${bnDateOf(meta.added_at)} তারিখে ${taka(meta.price_at_add, 1)} দামে যোগ করা`,
+            )}
+          >
             <span className={`font-semibold nums ${changeTone(since)}`}>{changePct(since, 1)}</span>
-            <span className="wl-sub">since {shortDate(meta.added_at)}</span>
+            <span className="wl-sub">
+              <T en={`since ${shortDate(meta.added_at)}`} bn={`${bnDateOf(meta.added_at, false)} থেকে`} />
+            </span>
           </span>
         ) : (
           <span className="wl-dash">—</span>
         )}
       </td>
-      <td data-cell="eps" data-label="Profit growth" className="wl-num">
+      <td data-cell="eps" data-label={L("Profit growth", "মুনাফা বৃদ্ধি")} className="wl-num">
         {eps != null && !Number.isNaN(eps) ? (
           <span
             className={`font-semibold nums ${changeTone(eps)}`}
-            title={`Earnings per share, change on last year: ${changePct(eps, 1)}`}
+            title={L(
+              `Earnings per share against last year: ${changePct(eps, 1)}`,
+              `গত বছরের তুলনায় ইপিএস: ${changePct(eps, 1)}`,
+            )}
           >
             {changePct(eps, 0)}
           </span>
@@ -381,9 +437,9 @@ function EnrichedRow({ item, extreme, hasDividendSoon, meta, onRemove }: RowProp
           <span className="wl-dash">—</span>
         )}
       </td>
-      <td data-cell="yld" data-label="Yield" className="wl-num">
+      <td data-cell="yld" data-label={L("Yield", "ইল্ড")} className="wl-num">
         {yld != null && !Number.isNaN(yld) ? (
-          <span className="font-semibold nums" title={`Dividend yield: ${yld.toFixed(2)}%`}>
+          <span className="font-semibold nums" title={L(`Dividend yield: ${yld.toFixed(2)}%`, `ডিভিডেন্ড ইল্ড: ${yld.toFixed(2)}%`)}>
             {yld.toFixed(1)}%
           </span>
         ) : (
@@ -404,8 +460,8 @@ function EnrichedRow({ item, extreme, hasDividendSoon, meta, onRemove }: RowProp
           <button
             type="button"
             onClick={() => onRemove(item.trading_code)}
-            aria-label={`Stop following ${item.trading_code}`}
-            title="Stop following"
+            aria-label={L(`Stop following ${item.trading_code}`, `${item.trading_code} অনুসরণ বন্ধ করুন`)}
+            title={L("Stop following", "অনুসরণ বন্ধ করুন")}
             className="star-btn star-btn--on"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden>
@@ -451,6 +507,7 @@ function dividendsToSet(data: DividendsUpcoming): Set<string> {
 function WatchlistTableInner() {
   const { isLoggedIn, isLoading } = useAuth();
   const { limits, isPremium } = usePremium();
+  const { lang } = useLang();
   const searchParams = useSearchParams();
   const router = useRouter();
   const sharedCodes = useMemo(() => parseCodesParam(searchParams.get("codes")), [searchParams]);
@@ -628,8 +685,8 @@ function WatchlistTableInner() {
     const restore: WatchlistMeta | undefined = m ? { [upper]: m } : undefined;
     removeFromWatchlist(upper);
     toast({
-      message: `Removed ${upper} from your watchlist`,
-      action: { label: "Undo", onClick: () => addToWatchlist(upper, restore) },
+      message: <T en={`${upper} was removed from your watchlist`} bn={`${upper} ওয়াচলিস্ট থেকে সরানো হয়েছে`} />,
+      action: { label: <T en="Undo" bn="ফিরিয়ে আনুন" />, onClick: () => addToWatchlist(upper, restore) },
     });
   }
 
@@ -663,16 +720,18 @@ function WatchlistTableInner() {
         <Card padding="none" className="wl-note mb-6">
           <div className="wl-note-body">
             <p className="wl-note-title">
-              Someone shared a watchlist with you. Follow {sharedCodes.length}{" "}
-              {sharedCodes.length === 1 ? "stock" : "stocks"}?
+              <T
+                en={`Someone shared a watchlist with you. Would you like to follow ${sharedCodes.length} ${sharedCodes.length === 1 ? "share" : "shares"}?`}
+                bn={`কেউ আপনার সঙ্গে একটি ওয়াচলিস্ট শেয়ার করেছেন। ${sharedCodes.length}টি শেয়ার অনুসরণ করবেন?`}
+              />
             </p>
             <p className="wl-note-text text-text-muted">{sharedCodes.join(" · ")}</p>
             <div className="mt-3 flex gap-2">
               <Button type="button" onClick={handleImportShared} variant="primary" size="sm">
-                Follow them
+                <T en="Follow them" bn="অনুসরণ করুন" />
               </Button>
               <Button type="button" onClick={handleDismissImport} variant="quiet" size="sm">
-                Not now
+                <T en="Not now" bn="এখন না" />
               </Button>
             </div>
           </div>
@@ -682,14 +741,27 @@ function WatchlistTableInner() {
       {codes.length > 0 && (
         <div className="wl-bar">
           <p className="wl-count">
-            <strong>{codes.length}</strong>
-            {limits.watchlist !== null && <span className="nums"> of {limits.watchlist}</span>}{" "}
-            {codes.length === 1 && limits.watchlist === null ? "stock" : "stocks"} followed
+            <T
+              en={
+                <>
+                  <strong>{codes.length}</strong>
+                  {limits.watchlist !== null && <span className="nums"> of {limits.watchlist}</span>}{" "}
+                  {codes.length === 1 && limits.watchlist === null ? "share" : "shares"} followed
+                </>
+              }
+              bn={
+                <>
+                  <strong>{codes.length}</strong>
+                  {limits.watchlist !== null && <span className="nums">/{limits.watchlist}</span>}টি শেয়ার
+                  অনুসরণ করছেন
+                </>
+              }
+            />
             {limits.watchlist !== null && codes.length >= limits.watchlist && (
               <>
                 {" · "}
                 <Link href={PREMIUM_PATH} className="font-semibold text-primary-ink hover:underline">
-                  Follow more with Premium
+                  <T en="Follow more with Premium" bn="প্রিমিয়ামে আরও অনুসরণ করুন" />
                 </Link>
               </>
             )}
@@ -727,19 +799,33 @@ function WatchlistTableInner() {
       <section className={codes.length > 0 ? "wl-section" : undefined} aria-labelledby="wl-stocks">
         <SectionHeader
           id="wl-stocks"
-          title={codes.length > 0 ? "Your stocks" : "Start your watchlist"}
-          bn={codes.length > 0 ? "আপনার শেয়ারগুলো" : "আপনার পছন্দের শেয়ার যোগ করুন"}
-          lead="Search any DSE company to follow it. Tap a name for its full report."
+          title={
+            codes.length > 0 ? (
+              <T en="Your shares" bn="আপনার শেয়ারগুলো" />
+            ) : (
+              <T en="Start your watchlist" bn="আপনার ওয়াচলিস্ট শুরু করুন" />
+            )
+          }
+          lead={
+            <T
+              en="Search any DSE company to follow it. Tap a name to see its full report."
+              bn="ডিএসইর যেকোনো কোম্পানি খুঁজে অনুসরণ করুন। পুরো রিপোর্ট দেখতে নামে চাপুন।"
+            />
+          }
         />
         <AddBar scores={scores} />
 
         {codes.length === 0 ? (
           <div className="mt-4">
             <EmptyState
-              title="Your watchlist is empty"
-              message="Search above to add any stock, or pick one of these."
-              bn="উপরে সার্চ করে কোনো শেয়ার যোগ করুন, বা নিচের একটি বেছে নিন।"
-              actions={[{ href: "/dsestockranking", label: "See top-ranked stocks" }]}
+              title={<T en="Your watchlist is empty" bn="আপনার ওয়াচলিস্ট এখনো খালি" />}
+              message={
+                <T
+                  en="Search above to add any share, or choose one of these."
+                  bn="ওপরে খুঁজে যেকোনো শেয়ার যোগ করুন, অথবা নিচের একটি বেছে নিন।"
+                />
+              }
+              actions={[{ href: "/dsestockranking", label: <T en="See the top-ranked shares" bn="সেরা র‍্যাংকের শেয়ার দেখুন" /> }]}
             >
               <EmptyStateActions />
             </EmptyState>
@@ -752,17 +838,16 @@ function WatchlistTableInner() {
           <div className="mt-4">
             <ErrorState
               size="inline"
-              title="Couldn't load your watchlist"
-              bn="আপনার ওয়াচলিস্ট এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+              title={<T en="We couldn't load your watchlist" bn="আপনার ওয়াচলিস্ট এখন লোড করা যাচ্ছে না" />}
               onRetry={() => setRetryKey((k) => k + 1)}
             />
           </div>
         ) : (
           <>
-            <div className="wl-chips" role="group" aria-label="Sort your stocks">
+            <div className="wl-chips" role="group" aria-label={lang === "bn" ? "শেয়ারগুলো সাজান" : "Sort your shares"}>
               {SORT_OPTIONS.map((opt) => (
                 <Chip key={opt.key} active={sort === opt.key} onClick={() => setSort(opt.key)}>
-                  {opt.label}
+                  <T en={opt.en} bn={opt.bn} />
                 </Chip>
               ))}
             </div>
@@ -770,15 +855,17 @@ function WatchlistTableInner() {
               <table className="wl-table">
                 <thead>
                   <tr>
-                    <th scope="col">Company</th>
-                    <th scope="col" className="wl-num">Price</th>
-                    <th scope="col" className="wl-num">Today</th>
-                    <th scope="col" className="wl-num">Since added</th>
-                    <th scope="col" className="wl-num">Profit growth</th>
-                    <th scope="col" className="wl-num">Yield</th>
-                    <th scope="col">52-week range</th>
+                    <th scope="col"><T en="Company" bn="কোম্পানি" /></th>
+                    <th scope="col" className="wl-num"><T en="Price" bn="দাম" /></th>
+                    <th scope="col" className="wl-num"><T en="Today" bn="আজ" /></th>
+                    <th scope="col" className="wl-num"><T en="Since added" bn="যোগ করার পর" /></th>
+                    <th scope="col" className="wl-num"><T en="Profit growth" bn="মুনাফা বৃদ্ধি" /></th>
+                    <th scope="col" className="wl-num"><T en="Yield" bn="ইল্ড" /></th>
+                    <th scope="col"><T en="Yearly range" bn="বছরের সীমা" /></th>
                     <th scope="col">
-                      <span className="sr-only">Alert and remove</span>
+                      <span className="sr-only">
+                        <T en="Alert and remove" bn="অ্যালার্ট ও সরানো" />
+                      </span>
                     </th>
                   </tr>
                 </thead>
@@ -800,8 +887,10 @@ function WatchlistTableInner() {
               </table>
               {missing > 0 && (
                 <p className="wl-missing">
-                  {missing} {missing === 1 ? "code isn't" : "codes aren't"} in today&apos;s scores
-                  (delisted or not rated yet).
+                  <T
+                    en={`${missing} ${missing === 1 ? "code is" : "codes are"} not in today's scores. ${missing === 1 ? "It may have been" : "They may have been"} delisted, or not rated yet.`}
+                    bn={`${missing}টি কোড আজকের স্কোরে নেই। হয়তো তালিকা থেকে বাদ পড়েছে, বা এখনো রেটিং হয়নি।`}
+                  />
                 </p>
               )}
             </Card>
@@ -832,8 +921,10 @@ function WatchlistTableInner() {
 
       {ready && (
         <p className="wl-footnote">
-          Written automatically from today&apos;s scores and prices — not investment advice.{" "}
-          <Bn as="span">নিজে যাচাই করে সিদ্ধান্ত নিন।</Bn>
+          <T
+            en="Written automatically from today's scores and prices. It is not investment advice, so please check for yourself before you decide."
+            bn="আজকের স্কোর আর দাম থেকে নিজে থেকে লেখা। এটি বিনিয়োগ পরামর্শ নয়, তাই নিজে যাচাই করে সিদ্ধান্ত নিন।"
+          />
         </p>
       )}
     </>

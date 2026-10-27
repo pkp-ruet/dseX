@@ -78,10 +78,10 @@ export default function HistoryCard({
   return (
     <PfCard
       title={L("History", "লেনদেনের ইতিহাস")}
-      bn="লেনদেনের ইতিহাস"
+
       note={L(
         "Every buy, sale, dividend and bonus, newest first.",
-        "কেনা, বেচা, ডিভিডেন্ড আর বোনাস — সব এক জায়গায়, নতুনগুলো আগে।",
+        "প্রতিটি কেনা, বেচা, ডিভিডেন্ড আর বোনাস, নতুনগুলো আগে।",
       )}
       right={
         <Link href={statementHref} className={`pf-link ${bnText}`} lang={bn ? "bn" : undefined}>

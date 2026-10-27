@@ -3,7 +3,6 @@
 import type { ReactNode } from "react";
 import PremiumGate from "@/components/premium/PremiumGate";
 import { usePersonalCodesCtx } from "@/components/market-analysis/PersonalCodes";
-import { useLang } from "@/context/LangContext";
 
 /**
  * The research list's Premium lock: the rest of the cards, the comparison
@@ -19,17 +18,16 @@ export default function ResearchLock({ children, passed, codes, checks }: {
   codes: string[];
   checks: number;
 }) {
-  const { bn } = useLang();
   const { portfolio, watchlist } = usePersonalCodesCtx();
   const mine = codes.filter((c) => portfolio.has(c) || watchlist.has(c)).length;
   const stakes = [
-    bn ? `${passed}টি শেয়ার ${checks}টি যাচাইয়েই পাস করেছে` : `${passed} stocks passed all ${checks} checks`,
-    mine > 0 ? (bn ? `এর মধ্যে ${mine}টি আপনার কেনা বা নজরে রাখা` : `${mine} of them you own or follow`) : "",
-    bn ? "সবার সংখ্যা পাশাপাশি, আর কে যোগ হলো, কে বাদ পড়ল" : "Every stock side by side, and who joined or left",
-  ].filter(Boolean);
+    { en: `${passed} shares passed all ${checks} checks`, bn: `${passed}টি শেয়ার ${checks}টি যাচাইয়েই পাস করেছে` },
+    mine > 0 ? { en: `You own or follow ${mine} of them`, bn: `এর মধ্যে ${mine}টি আপনার কেনা বা ওয়াচলিস্টে আছে` } : null,
+    { en: "Every share side by side, and who joined or left", bn: "সব শেয়ার পাশাপাশি, আর কে যোগ হলো ও কে বাদ পড়ল" },
+  ].filter((s): s is { en: string; bn: string } => s != null);
 
   return (
-    <PremiumGate label={bn ? "পুরো গবেষণা তালিকা" : "The full research list"} preview="blur" peek={220} stakes={stakes}>
+    <PremiumGate label={{ en: "The full research list", bn: "পুরো গবেষণা তালিকা" }} preview="blur" peek={220} stakes={stakes}>
       {children}
     </PremiumGate>
   );

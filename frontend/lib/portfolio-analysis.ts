@@ -143,6 +143,15 @@ export interface HoldingInsight {
 export type Grade = "A" | "B" | "C" | "D" | "F";
 export type GradeLabel = "Excellent" | "Good" | "Okay" | "Risky" | "Very Risky";
 
+/** What each grade label reads as on screen, in both languages. */
+export const GRADE_WORDS: Record<GradeLabel, { en: string; bn: string }> = {
+  Excellent: { en: "Excellent", bn: "চমৎকার" },
+  Good: { en: "Good", bn: "ভালো" },
+  Okay: { en: "Fair", bn: "মোটামুটি" },
+  Risky: { en: "Risky", bn: "ঝুঁকিপূর্ণ" },
+  "Very Risky": { en: "Very risky", bn: "খুব ঝুঁকিপূর্ণ" },
+};
+
 export interface PortfolioAnalysis {
   /** Language all generated copy is written in. */
   lang: AnalysisLang;
@@ -360,25 +369,25 @@ const ENTRY_SITUATION: Record<AnalysisLang, Record<EntryTag, string>> = {
     no_data:
       "We don't have enough financial data on this company to judge whether the price you paid was fair. Be a bit more careful with this one until more numbers are available.",
     loss_making:
-      "This company isn't making a profit right now, so there are no earnings to judge your buying price against. Be extra careful with it — a loss-making company can look cheap for a very long time.",
+      "This company isn't making a profit right now, so there are no earnings to judge your buying price against. Be extra careful with it, because a company making a loss can look cheap for a very long time.",
     cheap_up:
-      "That was a cheap price, and it has paid off — you're up {n}%. Nothing to fix here; let the company keep working for you.",
+      "You bought at a low price, and it has paid off: you are up {n}%. There is nothing to fix here.",
     cheap_flat:
-      "That was a cheap price. The market hasn't rewarded it yet, but you didn't overpay — give it time.",
+      "You bought at a low price. The market has not rewarded it yet, but you did not overpay, so give it time.",
     cheap_down:
-      "That was a cheap price, yet the stock still fell {n}%. The price wasn't the problem — check whether something changed in the business before you decide anything.",
+      "You bought at a low price, yet the share has fallen {n}%. The price was not the problem. Check whether something has changed in the business before you decide.",
     fair_up:
-      "That's a fair price, and you're up {n}%. A good, ordinary result — hold and let the business grow.",
+      "You paid a fair price, and you are up {n}%. That is a sound result. Holding on lets the business keep growing.",
     fair_flat:
-      "That's a fair price. Nothing urgent to do — hold and let the business grow.",
+      "You paid a fair price. There is nothing urgent to do; holding on lets the business grow.",
     fair_down:
-      "That's a fair price, so this {n}% loss isn't from overpaying. Don't panic-sell — give the company time to recover.",
+      "You paid a fair price, so this {n}% loss is not from overpaying. Selling in a hurry is rarely wise; give the company time to recover.",
     expensive_up:
-      "That was a high price, but it has worked out so far — you're up {n}%. This gain leans on the market staying generous, so think about booking part of it.",
+      "You paid a high price, but it has worked out so far: you are up {n}%. This gain depends on the market staying generous, so you may want to take part of it.",
     expensive_flat:
-      "That was a high price, and the stock hasn't moved. The company has to grow a lot just to justify what you paid, so keep your expectations modest.",
+      "You paid a high price, and the share has not moved. The company has to grow a lot to justify that price, so keep your expectations modest.",
     expensive_down:
-      "That was a high price, and the stock has fallen {n}%. This is the classic overpaying mistake. Look at today's valuation on the stock page before deciding to hold, add, or exit.",
+      "You paid a high price, and the share has fallen {n}%. Overpaying is a common mistake. Before you decide to hold, buy more or sell, check today's price verdict on the share's page.",
   },
   bn: {
     no_price:
@@ -386,25 +395,25 @@ const ENTRY_SITUATION: Record<AnalysisLang, Record<EntryTag, string>> = {
     no_data:
       "এই কোম্পানির যথেষ্ট আর্থিক তথ্য আমাদের কাছে নেই, তাই আপনার কেনা দাম ঠিক ছিল কি না বলা কঠিন। আরও তথ্য না আসা পর্যন্ত এটি নিয়ে একটু সাবধানে থাকুন।",
     loss_making:
-      "এই কোম্পানি এখন মুনাফা করছে না, তাই আপনার কেনার দাম যাচাই করার মতো কোনো আয় নেই। এটি নিয়ে বাড়তি সাবধান থাকুন — লোকসানি কোম্পানি অনেক দিন সস্তা দেখাতে পারে।",
+      "এই কোম্পানি এখন মুনাফা করছে না, তাই আপনার কেনার দাম যাচাই করার মতো কোনো মুনাফা নেই। এটি নিয়ে বাড়তি সাবধান থাকুন, কারণ লোকসানি কোম্পানি অনেক দিন সস্তা দেখাতে পারে।",
     cheap_up:
-      "এটা সস্তা দাম ছিল, আর তার ফলও পেয়েছেন — {n}% লাভে আছেন। এখানে কিছু করার নেই; কোম্পানিকে আপনার জন্য কাজ করতে দিন।",
+      "আপনি কম দামে কিনেছিলেন, আর তার ফলও পেয়েছেন: {n}% লাভে আছেন। এখানে কিছু ঠিক করার নেই।",
     cheap_flat:
-      "এটা সস্তা দাম ছিল। বাজার এখনো এর দাম দেয়নি, তবে আপনি বাড়তি দাম দেননি — সময় দিন।",
+      "আপনি কম দামে কিনেছিলেন। বাজার এখনো তার মূল্য দেয়নি, তবে আপনি বাড়তি দাম দেননি, তাই সময় দিন।",
     cheap_down:
-      "এটা সস্তা দাম ছিল, তবু শেয়ারটি {n}% পড়েছে। দাম সমস্যা ছিল না — কিছু ঠিক করার আগে দেখুন ব্যবসায় কিছু বদলেছে কি না।",
+      "আপনি কম দামে কিনেছিলেন, তবু শেয়ারটির দাম {n}% কমেছে। সমস্যা দামে ছিল না। সিদ্ধান্তের আগে দেখুন ব্যবসায় কিছু বদলেছে কি না।",
     fair_up:
-      "এটা ন্যায্য দাম, আর আপনি {n}% লাভে আছেন। ভালো, স্বাভাবিক ফল — ধরে রাখুন, ব্যবসাকে বাড়তে দিন।",
+      "আপনি ন্যায্য দামে কিনেছেন, আর {n}% লাভে আছেন। এটি ভালো ফল। ধরে রাখলে ব্যবসা বাড়ার সুযোগ পায়।",
     fair_flat:
-      "এটা ন্যায্য দাম। জরুরি কিছু করার নেই — ধরে রাখুন, ব্যবসাকে বাড়তে দিন।",
+      "আপনি ন্যায্য দামে কিনেছেন। জরুরি কিছু করার নেই; ধরে রাখলে ব্যবসা বাড়ার সুযোগ পায়।",
     fair_down:
-      "এটা ন্যায্য দাম, তাই এই {n}% লোকসান বাড়তি দাম দেওয়ার জন্য নয়। ভয়ে বিক্রি করবেন না — কোম্পানিকে ঘুরে দাঁড়ানোর সময় দিন।",
+      "আপনি ন্যায্য দামে কিনেছেন, তাই এই {n}% লোকসান বাড়তি দাম দেওয়ার কারণে নয়। তাড়াহুড়ো করে বিক্রি করা খুব কমই ভালো হয়; কোম্পানিকে ঘুরে দাঁড়ানোর সময় দিন।",
     expensive_up:
-      "এটা বেশি দাম ছিল, তবু এখন পর্যন্ত কাজে লেগেছে — {n}% লাভে আছেন। এই লাভ বাজারের উদারতার ওপর দাঁড়িয়ে, তাই কিছুটা লাভ তুলে নেওয়ার কথা ভাবুন।",
+      "আপনি বেশি দামে কিনেছিলেন, তবু এখন পর্যন্ত ভালো গেছে: {n}% লাভে আছেন। এই লাভ বাজার চাঙা থাকার ওপর নির্ভর করছে, তাই কিছুটা লাভ তুলে নেওয়ার কথা ভাবতে পারেন।",
     expensive_flat:
-      "এটা বেশি দাম ছিল, আর শেয়ারটি নড়েনি। আপনার দেওয়া দামের যোগ্য হতেই কোম্পানিকে অনেক বাড়তে হবে, তাই আশা কমই রাখুন।",
+      "আপনি বেশি দামে কিনেছিলেন, আর শেয়ারটির দাম তেমন নড়েনি। এই দামের যোগ্য হতে কোম্পানিকে অনেক বাড়তে হবে, তাই প্রত্যাশা সীমিত রাখুন।",
     expensive_down:
-      "এটা বেশি দাম ছিল, আর শেয়ারটি {n}% পড়েছে। এটাই বাড়তি দাম দেওয়ার চেনা ভুল। ধরে রাখবেন, আরও কিনবেন, না সরে আসবেন — সিদ্ধান্তের আগে শেয়ারের পাতায় আজকের দাম-মূল্যায়ন দেখুন।",
+      "আপনি বেশি দামে কিনেছিলেন, আর শেয়ারটির দাম {n}% কমেছে। বাড়তি দামে কেনা একটি সাধারণ ভুল। ধরে রাখবেন, আরও কিনবেন, নাকি বিক্রি করবেন, তা ঠিক করার আগে শেয়ারের পেজে আজকের দামের মূল্যায়ন দেখুন।",
   },
 };
 
@@ -449,8 +458,8 @@ export function signalInfoFromApi(
       reason: sig
         ? (lang === "bn" ? sig.reason_bn : sig.reason_en) || sig.reason_en
         : lang === "bn"
-          ? "এই শেয়ারের সংকেত এখনো তৈরি হয়নি — পরের আপডেটে চলে আসবে।"
-          : "No signal for this holding yet — it arrives with the next data update.",
+          ? "এই শেয়ারের সংকেত এখনো তৈরি হয়নি। পরের আপডেটে চলে আসবে।"
+          : "There is no signal for this share yet. It will arrive with the next data update.",
       muted: true,
     };
   }
@@ -554,9 +563,9 @@ function buildDescriptor(insight: HoldingInsight, lang: AnalysisLang = "en"): st
 }
 
 function buildOneLiner(insight: HoldingInsight, lang: AnalysisLang = "en"): string {
-  const sectorPart = insight.sector ?? (lang === "bn" ? "অজানা খাত" : "Unknown sector");
+  const sectorPart = insight.sector ?? (lang === "bn" ? "অজানা সেক্টর" : "Unknown sector");
   const weightStr = `${insight.weightPct.toFixed(0)}%`;
-  return `${insight.code} — ${sectorPart} · ${weightStr} · ${insight.descriptor}`;
+  return `${insight.code} · ${sectorPart} · ${weightStr} · ${insight.descriptor}`;
 }
 
 function composeHeadline(
@@ -583,7 +592,7 @@ function composeHeadline(
     const pct = args.maxSectorPct.toFixed(0);
     issues.push(
       bnMode
-        ? `${pct}% আছে ${args.maxSectorName} খাতে`
+        ? `${pct}% আছে ${args.maxSectorName} সেক্টরে`
         : `${pct}% is in ${args.maxSectorName}`,
     );
   }
@@ -612,71 +621,71 @@ function composeHeadline(
     issues.push(
       bnMode
         ? `${args.expensiveCount}টি শেয়ার বেশি দামে কেনা`
-        : `${args.expensiveCount} stock${args.expensiveCount === 1 ? "" : "s"} bought too expensive`,
+        : `${args.expensiveCount} stock${args.expensiveCount === 1 ? "" : "s"} bought at a high price`,
     );
   }
   const issueStr = issues.slice(0, 2).join(bnMode ? " আর " : " and ");
 
   if (bnMode) {
     if (args.grade === "A") {
-      return "আপনার পোর্টফোলিও সুন্দরভাবে সাজানো — আপনার টাকা শক্তিশালী কোম্পানিগুলোতে ছড়ানো, আর কিনেছেনও ন্যায্য দামে। যেভাবে চলছেন সেভাবেই চলুন, কয়েক মাস পর পর একবার দেখে নিন।";
+      return "আপনার পোর্টফোলিও ভালোভাবে সাজানো। টাকা শক্তিশালী কোম্পানিগুলোতে ছড়ানো, আর কিনেছেনও ন্যায্য দামে। এভাবেই চালিয়ে যান, আর কয়েক মাস পর পর একবার দেখে নিন।";
     }
     if (args.grade === "B") {
       if (!issueStr)
-        return "আপনার পোর্টফোলিও ভালো অবস্থায় আছে, শুধু ছোটখাটো কিছু বিষয় নজরে রাখুন। জরুরি কোনো বদল দরকার নেই — নিচের পয়েন্টগুলো দেখে রাখুন।";
-      return `আপনার পোর্টফোলিও ভালো অবস্থায় আছে, তবে খেয়াল রাখুন: ${issueStr}। এই ছোট বিষয়গুলো ঠিক করলেই আপনি শক্ত অবস্থানে।`;
+        return "আপনার পোর্টফোলিও ভালো অবস্থায় আছে, শুধু ছোটখাটো কিছু বিষয় নজরে রাখুন। জরুরি কোনো বদল দরকার নেই, শুধু নিচের বিষয়গুলো দেখে রাখুন।";
+      return `আপনার পোর্টফোলিও ভালো অবস্থায় আছে, তবে খেয়াল রাখুন: ${issueStr}। এই ছোট বিষয়গুলো ঠিক করলে অবস্থান আরও শক্ত হবে।`;
     }
     if (args.grade === "C") {
       if (!issueStr)
-        return "আপনার পোর্টফোলিও মোটামুটি ঠিক আছে, তবে কিছু দুর্বল জায়গা আছে। নিচের পয়েন্টগুলো পড়ুন — এখনই ছোট ছোট বদল আনলে পরে বড় লোকসান থেকে বাঁচতে পারেন।";
-      return `আপনার পোর্টফোলিও মোটামুটি চলছে, কিন্তু ${issueStr} — এগুলো আপনার লাভ কমিয়ে দিচ্ছে। ঝুঁকিটা আরেকটু ছড়িয়ে দিলে আপনার টাকা বেশি নিরাপদ থাকবে।`;
+        return "আপনার পোর্টফোলিও মোটামুটি ঠিক আছে, তবে কিছু দুর্বল জায়গা আছে। নিচের বিষয়গুলো পড়ুন। এখন ছোট কিছু বদল আনলে পরে বড় লোকসান এড়ানো যায়।";
+      return `আপনার পোর্টফোলিও মোটামুটি চলছে, তবে কিছু দুর্বলতা আছে: ${issueStr}। এগুলো আপনার লাভ কমিয়ে দিচ্ছে। ঝুঁকি আরেকটু ছড়িয়ে দিলে টাকা বেশি নিরাপদ থাকবে।`;
     }
     if (args.grade === "D") {
-      return `আপনার পোর্টফোলিও নড়বড়ে — ${issueStr || "টাকা এক জায়গায় জমে আছে আর ভাগটাও অসম"}। এখনই সাজিয়ে না নিলে বাজারের একটা খারাপ সময় আপনাকে বড় ধাক্কা দিতে পারে।`;
+      return `আপনার পোর্টফোলিও দুর্বল অবস্থায় আছে: ${issueStr || "টাকা অল্প কয়েক জায়গায় জমে আছে আর ভাগটাও অসম"}। এখনই সাজিয়ে না নিলে বাজারের একটি খারাপ সময় বড় ক্ষতি করতে পারে।`;
     }
-    return `আপনার পোর্টফোলিও খুবই ঝুঁকিপূর্ণ — ${issueStr || "এটিকে নতুন করে সাজানো দরকার"}। নতুন টাকা ঢালার আগে একটু থামুন, নিচের পরামর্শগুলো মেনে শক্ত ভিতের ওপর আবার সাজান।`;
+    return `আপনার পোর্টফোলিও বেশ ঝুঁকিতে আছে: ${issueStr || "এটিকে নতুন করে সাজানো দরকার"}। নতুন টাকা দেওয়ার আগে নিচের পরামর্শগুলো দেখে পোর্টফোলিওটি নতুন করে সাজানোর কথা ভাবুন।`;
   }
 
   if (args.grade === "A") {
-    return "Your portfolio is well-built — your money is spread across strong companies that you bought at fair prices. Keep doing what you're doing and check back every few months.";
+    return "Your portfolio is well built. Your money is spread across strong companies, bought at fair prices. Carry on as you are and review it every few months.";
   }
   if (args.grade === "B") {
     if (!issueStr)
-      return "Your portfolio is in good shape, with just a few small things to watch. No urgent changes needed — keep an eye on the points below.";
-    return `Your portfolio is in good shape, but watch out for ${issueStr}. Fix these small issues and you're on solid ground.`;
+      return "Your portfolio is in good shape, with just a few small things to watch. No urgent change is needed; just keep an eye on the points below.";
+    return `Your portfolio is in good shape. A few things are worth watching: ${issueStr}. Sorting these out will make it stronger.`;
   }
   if (args.grade === "C") {
     if (!issueStr)
-      return "Your portfolio is okay but has a few weak spots. Read the points below — small adjustments now can save you from bigger losses later.";
-    return `Your portfolio is okay, but ${issueStr} are pulling your returns down. Spreading the risk a bit more will make your money safer.`;
+      return "Your portfolio is in fair shape but has a few weak spots. Small changes now, using the points below, can prevent bigger losses later.";
+    return `Your portfolio is in fair shape, but a few things are holding it back: ${issueStr}. Spreading the risk a little more would make your money safer.`;
   }
   if (args.grade === "D") {
-    return `Your portfolio is shaky — ${issueStr || "your money is too concentrated and the mix is uneven"}. Without a rebalance, one bad stretch in the market could hurt you a lot.`;
+    return `Your portfolio is in a weak position: ${issueStr || "your money sits in too few places and the mix is uneven"}. Without some changes, one bad stretch in the market could hurt it a lot.`;
   }
-  return `Your portfolio is very risky — ${issueStr || "it needs a serious rebalance"}. Step back, follow the actions below, and rebuild on a stronger base before adding any more money.`;
+  return `Your portfolio carries a lot of risk: ${issueStr || "it needs to be rebuilt"}. Before you add more money, read the points below and consider rebuilding it on a stronger base.`;
 }
 
 const GRADE_EXPLANATION: Record<AnalysisLang, { intro: string; byGrade: Record<Grade, string> }> = {
   en: {
     intro:
-      "We grade your portfolio on three simple things: how well you've spread your money so one bad stock doesn't sink everything, how strong the companies you own actually are, and whether you bought at a fair price. ",
+      "We grade your portfolio on three things: how well your money is spread, so one bad share cannot sink everything; how strong the companies you own are; and whether you bought at a fair price. ",
     byGrade: {
-      A: "An 'A' means all three are in good shape — this is what a healthy long-term portfolio looks like.",
-      B: "A 'B' means most things are working, with a few small things to watch — nothing urgent.",
-      C: "A 'C' means at least one of these three is weak. Fix it now while the issue is still small.",
-      D: "A 'D' means two of these three are weak. Don't add more money until you sort out the issues below.",
-      F: "An 'F' means all three are weak. This is a high-risk setup — read the action points below before doing anything else.",
+      A: "An A means all three are in good shape. This is what a healthy long-term portfolio looks like.",
+      B: "A B means most things are working well, with a few small points to watch. Nothing is urgent.",
+      C: "A C means at least one of the three is weak. It is easier to fix while the problem is still small.",
+      D: "A D means two of the three are weak. It is wise to sort out the points below before adding more money.",
+      F: "An F means all three are weak. This carries high risk, so please read the points below before doing anything else.",
     },
   },
   bn: {
     intro:
-      "আমরা আপনার পোর্টফোলিওকে তিনটি সহজ বিষয় দিয়ে মাপি: আপনার টাকা কতটা ছড়িয়ে আছে (যাতে একটা খারাপ শেয়ার সব ডুবিয়ে না দেয়), আপনার কোম্পানিগুলো আসলে কতটা শক্তিশালী, আর আপনি ন্যায্য দামে কিনেছেন কি না। ",
+      "আমরা তিনটি বিষয় দেখে আপনার পোর্টফোলিওর গ্রেড দিই: টাকা কতটা ছড়িয়ে আছে, যাতে একটি খারাপ শেয়ার সব ডুবিয়ে দিতে না পারে; কোম্পানিগুলো কতটা শক্তিশালী; আর আপনি ন্যায্য দামে কিনেছেন কি না। ",
     byGrade: {
-      A: "'A' মানে তিনটিই ভালো অবস্থায় আছে — লম্বা সময়ের জন্য স্বাস্থ্যকর পোর্টফোলিও দেখতে এমনই হয়।",
-      B: "'B' মানে বেশিরভাগ জিনিস ঠিক চলছে, শুধু ছোট কিছু বিষয় নজরে রাখতে হবে — জরুরি কিছু নয়।",
+      A: "'A' মানে তিনটিই ভালো অবস্থায় আছে। দীর্ঘমেয়াদের জন্য একটি ভালো পোর্টফোলিও এমনই হয়।",
+      B: "'B' মানে বেশিরভাগ জিনিস ঠিক চলছে, শুধু ছোট কিছু বিষয় নজরে রাখতে হবে। জরুরি কিছু নেই।",
       C: "'C' মানে এই তিনটির মধ্যে অন্তত একটি দুর্বল। সমস্যা ছোট থাকতে থাকতেই ঠিক করে ফেলুন।",
-      D: "'D' মানে তিনটির মধ্যে দুটিই দুর্বল। নিচের সমস্যাগুলো না মেটানো পর্যন্ত নতুন টাকা যোগ করবেন না।",
-      F: "'F' মানে তিনটিই দুর্বল। এটি বেশ ঝুঁকির অবস্থা — অন্য কিছু করার আগে নিচের পরামর্শগুলো পড়ুন।",
+      D: "'D' মানে তিনটির মধ্যে দুটিই দুর্বল। নতুন টাকা যোগ করার আগে নিচের বিষয়গুলো ঠিক করে নেওয়াই ভালো।",
+      F: "'F' মানে তিনটিই দুর্বল। এটি বেশ ঝুঁকির অবস্থা, তাই অন্য কিছু করার আগে নিচের পরামর্শগুলো পড়ুন।",
     },
   },
 };
@@ -881,8 +890,8 @@ export function analyzePortfolio(
   if (holdingCount >= 5 && distinctSectors >= 3) {
     good.push(
       bnMode
-        ? `আপনার কাছে ${distinctSectors}টি খাতের ${holdingCount}টি আলাদা শেয়ার আছে — এটা স্বাস্থ্যকর বণ্টন। একটি খাতের সময় খারাপ গেলেও বাকিগুলো আপনার পোর্টফোলিও ধরে রাখতে পারে।`
-        : `You own ${holdingCount} different stocks across ${distinctSectors} sectors — that's a healthy spread. If one sector goes through a rough patch, the others can still hold your portfolio up.`,
+        ? `আপনার কাছে ${distinctSectors}টি সেক্টরের ${holdingCount}টি আলাদা শেয়ার আছে, যা ভালোভাবে ছড়ানো। একটি সেক্টরের সময় খারাপ গেলেও বাকিগুলো পোর্টফোলিওকে ধরে রাখতে পারে।`
+        : `You own ${holdingCount} different stocks across ${distinctSectors} sectors. That is a healthy spread: if one sector has a hard time, the others can hold your portfolio up.`,
     );
   }
   if (scored.length >= 2) {
@@ -890,8 +899,8 @@ export function analyzePortfolio(
     if (strongCount / scored.length >= 0.6) {
       good.push(
         bnMode
-          ? `আপনার বেশিরভাগ কোম্পানির স্কোর 70 বা তার বেশি (${scored.length}টির মধ্যে ${strongCount}টি) — আয় আর আর্থিক অবস্থা দুটোই ভালো।`
-          : `Most of the companies you own score 70 or more (${strongCount} out of ${scored.length}) — their earnings and finances both look healthy.`,
+          ? `আপনার ${scored.length}টি কোম্পানির মধ্যে ${strongCount}টির স্কোর 70 বা তার বেশি। এদের মুনাফা আর আর্থিক অবস্থা দুটোই ভালো।`
+          : `${strongCount} of the ${scored.length} companies you own score 70 or more. Their profits and finances both look healthy.`,
       );
     }
   }
@@ -906,15 +915,15 @@ export function analyzePortfolio(
   if (judgeableEntryCount > 0 && goodEntryCount / judgeableEntryCount >= 0.6) {
     good.push(
       bnMode
-        ? `আজকের আয়ের হিসাবে আপনার বেশিরভাগ শেয়ারের কেনার দাম ন্যায্য (${judgeableEntryCount}টির মধ্যে ${goodEntryCount}টি) — একই খাতের অন্য কোম্পানির চেয়ে বেশি দাম দেননি।`
-        : `At today's earnings, the price you paid looks fair for most of your stocks (${goodEntryCount} out of ${judgeableEntryCount}) — no more than similar companies cost.`,
+        ? `আজকের মুনাফার হিসাবে আপনার ${judgeableEntryCount}টির মধ্যে ${goodEntryCount}টি শেয়ার ন্যায্য দামে কেনা। একই সেক্টরের অন্য কোম্পানির চেয়ে বেশি দাম দেননি।`
+        : `Measured on today's profits, you paid a fair price for ${goodEntryCount} of your ${judgeableEntryCount} shares, no more than similar companies cost.`,
     );
   }
   if (reliableDividend.length >= 2) {
     good.push(
       bnMode
-        ? `আপনার ${reliableDividend.length}টি কোম্পানি নিয়মিত ডিভিডেন্ড দেয়। মানে দাম বাড়ার লাভের পাশাপাশি প্রতি বছর নগদ টাকাও আপনার হাতে আসছে — অনেকটা নিজের সম্পত্তির ভাড়ার মতো। এই ডিভিডেন্ড আবার বিনিয়োগ করলে পোর্টফোলিও চুপচাপ বড় হতে থাকে।`
-        : `You earn reliable dividends from ${reliableDividend.length} of your companies. That means cash returning to you every year on top of any price gains — like rent from a property you own. Reinvesting these dividends quietly grows your portfolio over time.`,
+        ? `আপনার ${reliableDividend.length}টি কোম্পানি নিয়মিত ডিভিডেন্ড দেয়। মানে দাম বাড়ার লাভের পাশাপাশি প্রতি বছর নগদ টাকাও আপনার হাতে আসছে, অনেকটা নিজের বাড়ির ভাড়ার মতো। এই ডিভিডেন্ড আবার বিনিয়োগ করলে পোর্টফোলিও ধীরে ধীরে বড় হয়।`
+        : `You earn reliable dividends from ${reliableDividend.length} of your companies. That is cash coming to you every year on top of any rise in price, much like rent from a property you own. Reinvesting it grows your portfolio steadily over time.`,
     );
   }
   // Bad
@@ -924,28 +933,28 @@ export function analyzePortfolio(
     if (sellItems.length === 1) {
       bad.push(
         bnMode
-          ? `${first.code} এখন বিক্রির সংকেতে — আপনার টাকার ${pct}%। কারণ: ${first.signal.reason} সিদ্ধান্তের আগে শেয়ারের পাতায় পুরো কারণটা দেখুন।`
-          : `${first.code} is marked Sell — ${pct}% of your money. Why: ${first.signal.reason} Read the full reason on its page before you decide.`,
+          ? `${first.code}-এ এখন বিক্রির সংকেত আছে, আর এতে আপনার টাকার ${pct}%। কারণ: ${first.signal.reason} সিদ্ধান্তের আগে শেয়ারের পেজে পুরো কারণটি দেখুন।`
+          : `${first.code} is marked Sell, and it holds ${pct}% of your money. Why: ${first.signal.reason} Please read the full reason on its page before you decide.`,
       );
     } else {
       bad.push(
         bnMode
-          ? `${nameList(sellItems.map((i) => i.code), 2, "bn")} এখন বিক্রির সংকেতে — একসাথে আপনার টাকার ${pct}%। প্রতিটির কারণ তার কার্ডে আর শেয়ারের পাতায় আছে; একটা একটা করে দেখে সিদ্ধান্ত নিন।`
-          : `${nameList(sellItems.map((i) => i.code))} are marked Sell — ${pct}% of your money together. Each card and stock page says why; go through them one by one before you decide.`,
+          ? `${nameList(sellItems.map((i) => i.code), 2, "bn")} -এ এখন বিক্রির সংকেত আছে, আর এগুলোতে একসঙ্গে আপনার টাকার ${pct}%। প্রতিটির কারণ তার কার্ডে আর শেয়ারের পেজে আছে; একটি একটি করে দেখে সিদ্ধান্ত নিন।`
+          : `${nameList(sellItems.map((i) => i.code))} are marked Sell, and together they hold ${pct}% of your money. Each card and share page explains why; it is best to go through them one by one before you decide.`,
       );
     }
   }
   if (holdingCount === 1) {
     bad.push(
       bnMode
-        ? "আপনার কাছে মাত্র 1টি শেয়ার আছে, মানে আপনার পুরো টাকা একটি কোম্পানির সাথে বাঁধা। সেই কোম্পানির একটা বছর খারাপ গেলেই — দুর্বল ফলাফল, কোনো কেলেঙ্কারি, যা-ই হোক — আপনার পুরো পোর্টফোলিও পড়ে যাবে। যত তাড়াতাড়ি পারেন, আলাদা আলাদা খাত থেকে আরও 4–7টি শেয়ার যোগ করুন।"
-        : "You only own 1 stock, which means your entire money is tied to a single company. If that one company has a bad year — weak results, a scandal, anything — your whole portfolio falls with it. Add 4–7 more stocks from different sectors as soon as you can.",
+        ? "আপনার কাছে মাত্র 1টি শেয়ার আছে, তাই আপনার সব টাকা একটি কোম্পানির ওপর নির্ভর করছে। যেকোনো কারণে সেই কোম্পানির একটি খারাপ বছর গেলে পুরো পোর্টফোলিওর দাম কমে যাবে। সুযোগমতো আলাদা সেক্টর থেকে আরও 4–7টি শেয়ার যোগ করার কথা ভাবুন।"
+        : "You own only 1 share, so all your money depends on a single company. If that company has a bad year, for any reason, your whole portfolio falls with it. When you can, consider adding 4–7 more shares from different sectors.",
     );
   } else if (holdingCount === 2) {
     bad.push(
       bnMode
-        ? "আপনার কাছে মাত্র 2টি শেয়ার — এখনো খুব বেশি এক জায়গায় জমা। যেকোনো একটির একটা খারাপ দিন আপনার পোর্টফোলিওতে বড় ধাক্কা দেয়, কারণ আপনার অর্ধেক টাকা প্রতিটি শেয়ারের সাথে ওঠানামা করে। অন্তত 3টি খাতে 5টি শেয়ার রাখার চেষ্টা করুন।"
-        : "You only own 2 stocks — that's still too concentrated. A bad day for either one hits your portfolio hard, because half your money moves with each stock. Aim for at least 5 stocks across 3 different sectors.",
+        ? "আপনার কাছে মাত্র 2টি শেয়ার আছে, যা এখনো খুব কম। যেকোনো একটির খারাপ দিন পোর্টফোলিওতে বড় ধাক্কা দেয়, কারণ আপনার অর্ধেক টাকা প্রতিটি শেয়ারের সঙ্গে ওঠানামা করে। অন্তত 3টি সেক্টরে 5টি শেয়ার রাখার চেষ্টা করুন।"
+        : "You own only 2 shares, which is still too few. A bad day for either one hits your portfolio hard, because half your money moves with each. Aim for at least 5 shares across 3 different sectors.",
     );
   }
   if (topRiskInsight) {
@@ -953,8 +962,8 @@ export function analyzePortfolio(
     const qBn = QUALITY_WORD_BN[topRiskInsight.qualityWord];
     bad.push(
       bnMode
-        ? `${topRiskInsight.code} আপনার পোর্টফোলিওর ${w}%, অথচ এর মান ${qBn} — এটাই আপনার সবচেয়ে বড় ঝুঁকি। দুর্বল কোম্পানিতে বড় বাজি রাখলে বাকি সব শেয়ারের লাভ এক ধাক্কায় মুছে যেতে পারে। এটি কমিয়ে 10%-এর কাছাকাছি আনার কথা ভাবুন, বা কিছু টাকা আরও শক্তিশালী কোনো শেয়ারে সরান।`
-        : `${topRiskInsight.code} is ${w}% of your portfolio but only rated ${topRiskInsight.qualityWord.toLowerCase()} — that's your single biggest risk. A large bet on a weaker company can wipe out the gains from everything else you own. Consider trimming it toward 10%, or moving some of that money into a stronger name.`,
+        ? `${topRiskInsight.code} আপনার পোর্টফোলিওর ${w}%, অথচ এর মান ${qBn}। এটিই আপনার সবচেয়ে বড় ঝুঁকি। দুর্বল কোম্পানিতে বেশি টাকা রাখলে বাকি শেয়ারের লাভ একবারেই মুছে যেতে পারে। এটি কমিয়ে 10%-এর কাছাকাছি আনা, বা কিছু টাকা আরও শক্তিশালী কোনো শেয়ারে সরানোর কথা ভাবুন।`
+        : `${topRiskInsight.code} is ${w}% of your portfolio but is rated only ${topRiskInsight.qualityWord.toLowerCase()}. That is your biggest single risk: a large amount in a weaker company can wipe out the gains from everything else you own. Consider bringing it down toward 10%, or moving some of that money into a stronger company.`,
     );
   }
   if (zItems.length > 0) {
@@ -963,14 +972,14 @@ export function analyzePortfolio(
     if (codes.length === 1) {
       bad.push(
         bnMode
-          ? `${codes[0]} একটি Z ক্যাটাগরির শেয়ার — আপনার টাকার ${pct}%। কোম্পানি এজিএম না করলে বা ডিভিডেন্ড না দিলে ডিএসই তাকে Z-এ পাঠায় — এটা স্টক এক্সচেঞ্জের নিজের সতর্ক সংকেত। Z শেয়ারের লেনদেন নিষ্পত্তিও দেরিতে হয়, তাড়াহুড়োয় বেচা কঠিন। আর কিনবেন না, আর ধরে রাখার একটা স্পষ্ট কারণ থাকা চাই।`
-          : `${codes[0]} is a Z-category share — ${pct}% of your money. DSE puts a company in Z when it skips its AGM or pays no dividend, so this is the exchange's own warning label. Z shares also settle slowly and are hard to sell in a hurry. Don't add more, and have a clear reason for keeping it.`,
+          ? `${codes[0]} একটি Z ক্যাটাগরির শেয়ার, আর এতে আপনার টাকার ${pct}%। কোম্পানি এজিএম না করলে বা ডিভিডেন্ড না দিলে ডিএসই তাকে Z ক্যাটাগরিতে পাঠায়। এটি স্টক এক্সচেঞ্জের নিজের সতর্কবার্তা। Z শেয়ারের লেনদেন নিষ্পত্তিও দেরিতে হয়, তাই দ্রুত বিক্রি করা কঠিন। এতে আর টাকা না বাড়ানোই ভালো, আর ধরে রাখার একটি স্পষ্ট কারণ থাকা দরকার।`
+          : `${codes[0]} is a Z category share, and it holds ${pct}% of your money. DSE moves a company to Z when it skips its AGM or pays no dividend, so this is the exchange's own warning. Z shares also settle slowly and are hard to sell in a hurry. It is safer not to add more, and to have a clear reason for keeping it.`,
       );
     } else {
       bad.push(
         bnMode
-          ? `${nameList(codes, 2, "bn")} Z ক্যাটাগরির শেয়ার — একসাথে আপনার টাকার ${pct}%। কোম্পানি এজিএম না করলে বা ডিভিডেন্ড না দিলে ডিএসই তাকে Z-এ পাঠায় — এটা স্টক এক্সচেঞ্জের নিজের সতর্ক সংকেত। Z শেয়ারের লেনদেন নিষ্পত্তিও দেরিতে হয়, তাড়াহুড়োয় বেচা কঠিন। আর কিনবেন না, আর প্রতিটি ধরে রাখার একটা স্পষ্ট কারণ থাকা চাই।`
-          : `${nameList(codes)} are Z-category shares — ${pct}% of your money together. DSE puts a company in Z when it skips its AGM or pays no dividend, so this is the exchange's own warning label. Z shares also settle slowly and are hard to sell in a hurry. Don't add more, and have a clear reason for keeping each one.`,
+          ? `${nameList(codes, 2, "bn")} Z ক্যাটাগরির শেয়ার, আর এগুলোতে একসঙ্গে আপনার টাকার ${pct}%। কোম্পানি এজিএম না করলে বা ডিভিডেন্ড না দিলে ডিএসই তাকে Z ক্যাটাগরিতে পাঠায়। এটি স্টক এক্সচেঞ্জের নিজের সতর্কবার্তা। Z শেয়ারের লেনদেন নিষ্পত্তিও দেরিতে হয়, তাই দ্রুত বিক্রি করা কঠিন। এতে আর টাকা না বাড়ানোই ভালো, আর প্রতিটি ধরে রাখার একটি স্পষ্ট কারণ থাকা দরকার।`
+          : `${nameList(codes)} are Z category shares, and together they hold ${pct}% of your money. DSE moves a company to Z when it skips its AGM or pays no dividend, so this is the exchange's own warning. Z shares also settle slowly and are hard to sell in a hurry. It is safer not to add more, and to have a clear reason for keeping each one.`,
       );
     }
   }
@@ -978,13 +987,13 @@ export function analyzePortfolio(
     const pct = maxSectorPct.toFixed(0);
     bad.push(
       bnMode
-        ? `আপনার টাকার ${pct}% আছে ${maxSectorName} খাতের শেয়ারে। এই খাতের একটা কোয়ার্টার খারাপ গেলে — সুদের হার বদল, নতুন নিয়ম, দুর্বল আয় — আপনার পোর্টফোলিওর বড় অংশ একসাথে পড়বে। ঝুঁকি ছড়াতে কিছু টাকা অন্য খাতে সরানোর চেষ্টা করুন।`
-        : `${pct}% of your money is sitting in ${maxSectorName} stocks. If that sector has a bad quarter — interest-rate changes, regulation, weak earnings — most of your portfolio falls together. Try moving some money into a different sector to spread the risk.`,
+        ? `আপনার টাকার ${pct}% আছে ${maxSectorName} সেক্টরের শেয়ারে। সুদের হার, নতুন নিয়ম বা দুর্বল মুনাফার কারণে এই সেক্টরের একটি প্রান্তিক খারাপ গেলে পোর্টফোলিওর বড় অংশের দাম একসঙ্গে কমবে। ঝুঁকি ছড়াতে কিছু টাকা অন্য সেক্টরে সরানোর কথা ভাবুন।`
+        : `${pct}% of your money is in ${maxSectorName} shares. If that sector has a bad quarter, from interest rates, new rules or weak profits, most of your portfolio falls together. Moving some money into a different sector would spread the risk.`,
     );
   } else if (distinctSectors === 1 && holdingCount >= 2) {
     bad.push(
       bnMode
-        ? `আপনার সব শেয়ার একটি খাতেই (${maxSectorName}), তাই আপনার পোর্টফোলিও ওই একটি শিল্পের সাথেই ওঠে আর নামে। ওই খাত বিপদে পড়লে লোকসান সামলানোর আর কিছু থাকে না। এটা ঠিক করতে অন্তত আরও 2টি খাত থেকে শেয়ার যোগ করুন।`
+        ? `আপনার সব শেয়ার একটি সেক্টরেই (${maxSectorName}), তাই আপনার পোর্টফোলিও ওই একটি শিল্পের সাথেই ওঠে আর নামে। ওই সেক্টর বিপদে পড়লে লোকসান সামলানোর আর কিছু থাকে না। এটা ঠিক করতে অন্তত আরও 2টি সেক্টর থেকে শেয়ার যোগ করুন।`
         : `All your stocks are in one sector (${maxSectorName}), so your portfolio rises and falls with that single industry. When that sector is in trouble, you have nothing else to balance the loss. Add stocks from at least 2 other sectors to fix this.`,
     );
   }
@@ -992,8 +1001,8 @@ export function analyzePortfolio(
     const pct = financialsWeight.toFixed(0);
     bad.push(
       bnMode
-        ? `আপনার প্রায় ${pct}% টাকা আর্থিক খাতের কোম্পানিতে — ব্যাংক, এনবিএফআই আর বিমা মিলিয়ে। এগুলো আলাদা খাত মনে হলেও বেশিরভাগ সময় একসাথেই ওঠানামা করে (সুদের হার আর নিয়মকানুন বদলালে)। আর্থিক খাতে বড় ধাক্কা এলে আপনার পোর্টফোলিওর বেশিরভাগ একসাথে পড়বে। ভারসাম্যের জন্য অন্তত একটি অ-আর্থিক খাত (ওষুধ, খাদ্য, টেলিকম) যোগ করুন।`
-        : `About ${pct}% of your money is in financial companies — banks, NBFIs, and insurers combined. They may look like different sectors, but they mostly move together with interest rates and regulation. A shock to the financial sector would hit most of your portfolio at once. Adding a non-financial sector (pharma, food, telecom) would balance this.`,
+        ? `ব্যাংক, এনবিএফআই আর বিমা মিলিয়ে আপনার প্রায় ${pct}% টাকা আর্থিক কোম্পানিতে। এগুলো আলাদা সেক্টর মনে হলেও সুদের হার আর নিয়মকানুন বদলালে সাধারণত একসঙ্গে ওঠানামা করে। আর্থিক সেক্টরে বড় ধাক্কা এলে পোর্টফোলিওর বেশির ভাগের দাম একসঙ্গে কমবে। ভারসাম্যের জন্য ওষুধ, খাদ্য বা টেলিকমের মতো অন্তত একটি অ-আর্থিক সেক্টর যোগ করার কথা ভাবুন।`
+        : `About ${pct}% of your money is in banks, finance companies and insurers. They look like different sectors, but they mostly move together when interest rates or rules change. A shock to the financial sector would hit most of your portfolio at once. Adding a non-financial sector, such as medicine, food or telecom, would balance this.`,
     );
   }
   const largestIsTheSector =
@@ -1009,21 +1018,21 @@ export function analyzePortfolio(
     const hit = (largestPos.weightPct * 0.2).toFixed(0);
     bad.push(
       bnMode
-        ? `শুধু ${largestPos.code}-ই আপনার পোর্টফোলিওর ${w}%। এই একটি শেয়ার 20% পড়লে আপনার পুরো পোর্টফোলিও প্রায় ${hit}% পড়ে যাবে — একটা কোম্পানির জন্য এটা বড় ধাক্কা। এটি কিছুটা কমান বা অন্য শেয়ারগুলো বাড়ান, যাতে কোনো একটি শেয়ার একাই সব না হয়ে যায়।`
-        : `${largestPos.code} alone is ${w}% of your portfolio. If that one stock drops 20%, your whole portfolio drops nearly ${hit}% — that's a big hit from a single company. Trim it down or grow your other positions so no one stock dominates.`,
+        ? `শুধু ${largestPos.code}-ই আপনার পোর্টফোলিওর ${w}%। এই একটি শেয়ারের দাম 20% কমলে পুরো পোর্টফোলিও প্রায় ${hit}% কমবে, যা একটি কোম্পানির জন্য বড় ধাক্কা। এটি কিছুটা কমানো বা অন্য শেয়ারগুলো বাড়ানোর কথা ভাবুন, যাতে একটি শেয়ার একাই বেশি প্রভাব না ফেলে।`
+        : `${largestPos.code} alone is ${w}% of your portfolio. If that one share drops 20%, your whole portfolio drops nearly ${hit}%. That is a big hit from a single company. Consider trimming it, or growing your other shares, so that no one share dominates.`,
     );
   }
   if (strugglingNames.length === 1) {
     bad.push(
       bnMode
-        ? `${strugglingNames[0]}-এর আর্থিক অবস্থা দুর্বল দেখাচ্ছে — সম্ভবত বেশি ঋণ বা দুর্বল নগদ প্রবাহ। এমন অবস্থার কোম্পানি ডিভিডেন্ড দিতে, এমনকি খারাপ সময় টিকে থাকতেও হিমশিম খায়। পরের কোয়ার্টারের ফলাফল ভালো করে দেখুন, উন্নতি না হলে সরে আসার জন্য তৈরি থাকুন।`
-        : `${strugglingNames[0]}'s finances look weak — likely heavy debt or weak cash flow. Companies in this shape can struggle to pay dividends or even survive a downturn. Watch the next quarterly result closely and be ready to step out if things don't improve.`,
+        ? `${strugglingNames[0]}-এর আর্থিক অবস্থা দুর্বল, সম্ভবত বেশি ঋণ বা কম নগদ প্রবাহের কারণে। এমন কোম্পানির ডিভিডেন্ড দিতে, এমনকি খারাপ সময়ে টিকে থাকতেও কষ্ট হয়। পরের প্রান্তিকের ফলাফল ভালো করে দেখুন, আর উন্নতি না হলে বিক্রির কথা ভাবতে পারেন।`
+        : `${strugglingNames[0]}'s finances look weak, most likely from heavy loans or little cash coming in. Companies like this can struggle to pay dividends, or even to get through a downturn. Watch the next quarterly result closely, and consider selling if things do not improve.`,
     );
   } else if (strugglingNames.length > 1) {
     bad.push(
       bnMode
-        ? `${nameList(strugglingNames, 2, "bn")}-এর আর্থিক অবস্থা দুর্বল — সম্ভবত বেশি ঋণ বা দুর্বল নগদ প্রবাহ। এমন কোম্পানি ডিভিডেন্ড দিতে, এমনকি খারাপ সময় টিকে থাকতেও কষ্ট পায়। এদের পরের কোয়ার্টারের ফলাফল ভালো করে দেখুন।`
-        : `${nameList(strugglingNames)} have weak finances — likely heavy debt or weak cash flow. Companies in this shape can struggle to pay dividends or even survive a downturn. Watch their next quarterly results closely.`,
+        ? `${nameList(strugglingNames, 2, "bn")}-এর আর্থিক অবস্থা দুর্বল, সম্ভবত বেশি ঋণ বা কম নগদ প্রবাহের কারণে। এমন কোম্পানির ডিভিডেন্ড দিতে, এমনকি খারাপ সময়ে টিকে থাকতেও কষ্ট হয়। এদের পরের প্রান্তিকের ফলাফল ভালো করে দেখুন।`
+        : `${nameList(strugglingNames)} have weak finances, most likely from heavy loans or little cash coming in. Companies like this can struggle to pay dividends, or even to get through a downturn. Watch their next quarterly results closely.`,
     );
   }
   if (staleItems.length === 1) {
@@ -1031,15 +1040,15 @@ export function analyzePortfolio(
     const yrs = s.dataAgeYears != null ? `${s.dataAgeYears}` : "2+";
     bad.push(
       bnMode
-        ? `${s.code}-এর সর্বশেষ হিসাব ${yrs} বছরের পুরোনো, তাই এর স্কোর পুরোনো সংখ্যার ওপর দাঁড়িয়ে — আজকের ব্যবসার ছবি এতে না-ও থাকতে পারে, আর আমাদের স্কোরও তাই কেটে কম রাখা হয়েছে। রেটিংয়ে ভরসা করার আগে শেয়ারের পাতায় সাম্প্রতিক খবর দেখুন।`
-        : `${s.code}'s latest accounts are ${yrs} years old, so its score rests on old numbers and may not reflect the business today — which is why we mark its score down. Check the stock page for recent news before trusting the rating.`,
+        ? `${s.code}-এর সর্বশেষ আর্থিক হিসাব ${yrs} বছরের পুরোনো, তাই এর স্কোর পুরোনো সংখ্যার ওপর নির্ভর করে এবং আজকের ব্যবসার ছবি না-ও দেখাতে পারে। এ কারণেই আমরা এর স্কোর কমিয়ে রাখি। রেটিংয়ের ওপর ভরসা করার আগে শেয়ারের পেজে সাম্প্রতিক খবর দেখুন।`
+        : `${s.code}'s latest accounts are ${yrs} years old, so its score rests on old numbers and may not reflect the business today. That is why we mark its score down. Check the share's page for recent news before relying on the rating.`,
     );
   } else if (staleItems.length > 1) {
     const codes = staleItems.map((i) => i.code);
     bad.push(
       bnMode
-        ? `${nameList(codes, 2, "bn")} 2 বছরের বেশি নতুন হিসাব প্রকাশ করেনি — এদের স্কোর পুরোনো সংখ্যার ওপর দাঁড়িয়ে, তাই কেটে কম রাখা হয়েছে। রেটিংয়ে ভরসার আগে এদের পাতায় সাম্প্রতিক খবর দেখুন।`
-        : `${nameList(codes)} haven't published fresh accounts in 2 or more years — their scores rest on old numbers, which is why we mark them down. Check their pages for recent news before trusting the ratings.`,
+        ? `${nameList(codes, 2, "bn")} 2 বছরের বেশি সময় নতুন আর্থিক হিসাব প্রকাশ করেনি। এদের স্কোর পুরোনো সংখ্যার ওপর নির্ভর করে, তাই আমরা তা কমিয়ে রাখি। রেটিংয়ের ওপর ভরসা করার আগে এদের পেজে সাম্প্রতিক খবর দেখুন।`
+        : `${nameList(codes)} have not published new accounts in 2 or more years. Their scores rest on old numbers, which is why we mark them down. Check their pages for recent news before relying on the ratings.`,
     );
   }
   // The top-risk name is already called out above (big-and-weak) — don't repeat it here.
@@ -1049,8 +1058,8 @@ export function analyzePortfolio(
   if (avoidForBullet.length === 1) {
     bad.push(
       bnMode
-        ? `${avoidForBullet[0]} সার্বিক মানে কম স্কোর পেয়েছে, মানে মৌলিক দিকগুলো সব মিলিয়ে দুর্বল। দুর্বল কোম্পানি ধরে রাখলে সময়ের সাথে সাধারণত হতাশ হতে হয়। নিজেকে সৎভাবে জিজ্ঞেস করুন কেন এটি ধরে রেখেছেন — শক্ত কারণ না থাকলে ভালো রেটিংয়ের শেয়ারে বদলে নেওয়ার কথা ভাবুন।`
-        : `${avoidForBullet[0]} is rated low on overall quality, meaning weak fundamentals across the board. Holding weak companies usually leads to disappointing returns over time. Honestly ask yourself why you're holding it — and if there's no strong reason, consider switching to a better-rated stock.`,
+        ? `${avoidForBullet[0]}-এর সার্বিক স্কোর কম, অর্থাৎ ব্যবসার মূল দিকগুলো সব মিলিয়ে দুর্বল। দুর্বল কোম্পানি ধরে রাখলে সময়ের সঙ্গে সাধারণত আশানুরূপ ফল পাওয়া যায় না। কেন এটি ধরে রেখেছেন, তা একবার ভেবে দেখুন। শক্ত কারণ না থাকলে ভালো রেটিংয়ের কোনো শেয়ারে বদলে নেওয়ার কথা ভাবতে পারেন।`
+        : `${avoidForBullet[0]} is rated low overall, which means the business is weak on most counts. Weak companies usually disappoint over time. It is worth asking yourself why you hold it. If there is no strong reason, consider moving to a better-rated share.`,
     );
   } else if (avoidForBullet.length > 1) {
     bad.push(
@@ -1066,14 +1075,14 @@ export function analyzePortfolio(
         : null;
     bad.push(
       bnMode
-        ? `${shrinkingItems[0].code}-এর আয় গত বছরের চেয়ে ${dropPct ? dropPct : "অনেকটা"} কমেছে — ব্যবসাটা ছোট হচ্ছে। কোম্পানির লাভ কমলে শেয়ারের দামও সাধারণত পিছু পিছু কমে। পরের কোয়ার্টারের ফলাফল দেখুন; আয় কমতেই থাকলে সরে আসার সময় হতে পারে।`
-        : `${shrinkingItems[0].code}'s earnings have dropped ${dropPct ?? "double digits"} from last year — the business is shrinking. When a company's profit shrinks, the share price usually follows. Watch the next quarterly result; if earnings keep falling, it may be time to step out.`,
+        ? `${shrinkingItems[0].code}-এর মুনাফা গত বছরের চেয়ে ${dropPct ? dropPct : "অনেকটা"} কমেছে, অর্থাৎ ব্যবসাটি ছোট হচ্ছে। মুনাফা কমলে শেয়ারের দামও সাধারণত কমে। পরের প্রান্তিকের ফলাফল দেখুন; মুনাফা কমতেই থাকলে বিক্রির কথা ভাবার সময় হতে পারে।`
+        : `${shrinkingItems[0].code}'s profit has dropped ${dropPct ?? "sharply"} from last year, which means the business is shrinking. When profit shrinks, the share price usually follows. Watch the next quarterly result; if profit keeps falling, it may be time to sell.`,
     );
   } else if (shrinkingItems.length > 1) {
     bad.push(
       bnMode
-        ? `${nameList(shrinkingItems.map((s) => s.code), 2, "bn")} — সবগুলোরই আয় কমছে, ব্যবসাগুলো ছোট হচ্ছে। লাভ কমলে শেয়ারের দামও সময়ের সাথে নামে, তাই এটা এড়িয়ে যাবেন না। এদের পরের ফলাফল মন দিয়ে দেখুন আর পদক্ষেপ নিতে তৈরি থাকুন।`
-        : `${nameList(shrinkingItems.map((s) => s.code))} have all seen falling earnings — these businesses are shrinking. Share prices usually follow profits down over time, so don't ignore this. Watch their next quarterly results carefully and be ready to act.`,
+        ? `${nameList(shrinkingItems.map((s) => s.code), 2, "bn")}-এর মুনাফা কমছে, অর্থাৎ ব্যবসাগুলো ছোট হচ্ছে। মুনাফা কমলে সময়ের সঙ্গে শেয়ারের দামও সাধারণত কমে, তাই বিষয়টি নজরে রাখুন। এদের পরের ফলাফল মন দিয়ে দেখুন।`
+        : `${nameList(shrinkingItems.map((s) => s.code))} have all seen profit fall, which means these businesses are shrinking. Share prices usually follow profit down over time, so this is worth watching. Look closely at their next quarterly results.`,
     );
   }
   if (expensiveItems.length > 0) {
@@ -1085,12 +1094,12 @@ export function analyzePortfolio(
     if (bnMode) {
       const more = extra > 0 ? ` এবং আরও ${extra}টি` : "";
       bad.push(
-        `কোম্পানিগুলোর সর্বশেষ বার্ষিক আয়ের হিসাবে ${head}${more}-এর কেনার দাম বেশি দেখাচ্ছে — একই খাতের কোম্পানির চেয়ে অনেক বেশি দিয়েছেন। বেশি দামে কেনা শেয়ারকে সেই দামের যোগ্য হতে সময় লাগে। ধরে রাখবেন, আরও কিনবেন, না সরে আসবেন — সিদ্ধান্তের আগে শেয়ারের পাতায় আজকের দাম-মূল্যায়ন দেখে নিন।`,
+        `কোম্পানিগুলোর সর্বশেষ বার্ষিক মুনাফার হিসাবে ${head}${more}-এর কেনার দাম বেশি, একই সেক্টরের কোম্পানির চেয়ে অনেক বেশি। বেশি দামে কেনা শেয়ারের সেই দামের যোগ্য হতে সময় লাগে। ধরে রাখবেন, আরও কিনবেন, নাকি বিক্রি করবেন, তা ঠিক করার আগে শেয়ারের পেজে আজকের দামের মূল্যায়ন দেখে নিন।`,
       );
     } else {
       const more = extra > 0 ? ` and ${extra} more` : "";
       bad.push(
-        `Measured against the companies' latest yearly earnings, the price you paid for ${head}${more} looks high — well above what similar companies cost. A stock bought dear needs time to grow into its price. Check today's valuation on the stock page before deciding to hold, add, or exit.`,
+        `Measured against the companies' latest yearly profit, the price you paid for ${head}${more} looks high, well above what similar companies cost. A share bought at a high price needs time to grow into it. Before you decide to hold, buy more or sell, check today's price verdict on the share's page.`,
       );
     }
   }
@@ -1100,16 +1109,16 @@ export function analyzePortfolio(
     const need = Math.max(5 - holdingCount, 1);
     consider.push(
       bnMode
-        ? `আলাদা খাত থেকে আরও ${need}টি শেয়ার যোগ করুন। মাত্র কয়েকটি শেয়ার রাখা মানে সব সঞ্চয় একটা দোকানে ঢালা — দোকানটার বছর খারাপ গেলে ভরসার আর কিছু থাকে না। অন্তত 3টি খাতে 5–8টি শেয়ার রাখুন, যাতে কোনো একটি কোম্পানি বা শিল্প আপনাকে বেশি কষ্ট দিতে না পারে।`
-        : `Add ${need} more stock${need === 1 ? "" : "s"} from different sectors. Owning just a couple of stocks is like putting all your savings into one shop — if that shop has a bad year, you have nothing else to fall back on. Aim for 5–8 stocks across at least 3 sectors so no single company or industry can hurt you too much.`,
+        ? `আলাদা সেক্টর থেকে আরও ${need}টি শেয়ার যোগ করার কথা ভাবুন। মাত্র কয়েকটি শেয়ার রাখা মানে সব সঞ্চয় একটি দোকানে রাখা; দোকানটির বছর খারাপ গেলে আর কোনো ভরসা থাকে না। অন্তত 3টি সেক্টরে 5–8টি শেয়ার রাখুন, যাতে কোনো একটি কোম্পানি বা সেক্টর বেশি ক্ষতি করতে না পারে।`
+        : `Consider adding ${need} more share${need === 1 ? "" : "s"} from different sectors. Owning only a few shares is like putting all your savings into one shop: if that shop has a bad year, there is nothing else to fall back on. Aim for 5–8 shares across at least 3 sectors, so no single company or sector can hurt you too much.`,
     );
   }
   if (maxSectorPct > 50 && holdingCount > 1) {
     const pct = maxSectorPct.toFixed(0);
     consider.push(
       bnMode
-        ? `${maxSectorName} খাতে ভর কমান — এখন এটি আপনার পোর্টফোলিওর ${pct}%। সবচেয়ে সহজ উপায়: এই খাতে নতুন করে আর টাকা না ঢেলে পরের বিনিয়োগগুলো অন্য খাতে করুন। সময়ের সাথে ভারসাম্য এমনিতেই ঠিক হয়ে যাবে, কিছু বিক্রিও করতে হবে না।`
-        : `Trim your ${maxSectorName} exposure — it's currently ${pct}% of your portfolio. The simplest fix is to stop adding to it and direct your next investments into a different sector. Over time the balance will even out without you having to sell anything.`,
+        ? `${maxSectorName} সেক্টর এখন আপনার পোর্টফোলিওর ${pct}%, যা কমানো ভালো। সবচেয়ে সহজ উপায় হলো এই সেক্টরে আর টাকা না বাড়িয়ে পরের বিনিয়োগগুলো অন্য সেক্টরে করা। সময়ের সঙ্গে ভারসাম্য এমনিতেই ঠিক হয়ে যাবে, কিছু বিক্রিও করতে হবে না।`
+        : `${maxSectorName} is now ${pct}% of your portfolio, which is worth bringing down. The simplest way is to stop adding to it and put your next investments into a different sector. Over time the balance evens out without your having to sell anything.`,
     );
   }
   if (buyMoreItems.length > 0) {
@@ -1117,16 +1126,16 @@ export function analyzePortfolio(
     const others = buyMoreItems.length - 1;
     consider.push(
       bnMode
-        ? `${c.code} এখন "আরও কিনুন" সংকেতে${others > 0 ? ` (আরও ${others}টিও)` : ""}। কারণ: ${c.signal.reason} হাতে বাড়তি টাকা থাকলে এখানে আরেকটু কেনা যায় — তবে কোনো একটি শেয়ার যেন আপনার টাকার 25%-এর বেশি না হয়।`
-        : `${c.code} is marked Buy more${others > 0 ? ` (and ${others} more)` : ""}. Why: ${c.signal.reason} If you have spare money, adding a little here fits — just keep any one stock under about 25% of your money.`,
+        ? `${c.code}-এ এখন "আরও কেনা যায়" সংকেত আছে${others > 0 ? ` (আরও ${others}টিও)` : ""}। কারণ: ${c.signal.reason} হাতে বাড়তি টাকা থাকলে এখানে আরেকটু কেনা যায়, তবে কোনো একটি শেয়ার যেন আপনার টাকার 25%-এর বেশি না হয়।`
+        : `${c.code} is marked Buy more${others > 0 ? ` (and ${others} more)` : ""}. Why: ${c.signal.reason} If you have spare money, adding a little here makes sense. Just keep any one share under about 25% of your money.`,
     );
   }
   if (upExpensiveItems.length > 0) {
     const c = upExpensiveItems[0];
     consider.push(
       bnMode
-        ? `${c.code} অনেকটা বেড়ে গেছে — কোম্পানির আসল আয়ের তুলনায় দাম এখন বেশি মনে হচ্ছে। কিছু লাভ তুলে নিলে (অংশ বিক্রি করলে) লাভটা নিরাপদ হয়, আবার বাকিটা রেখে দিলে দাম আরও বাড়ার সুযোগও থাকে। পুরোটা বিক্রি করতে হবে না।`
-        : `${c.code} has run up sharply — the stock now looks expensive compared to what the company actually earns. Booking some profit (selling part of your position) lets you lock in your gains while still keeping some shares for further upside. You don't have to sell all of it.`,
+        ? `${c.code}-এর দাম অনেকটা বেড়েছে, আর কোম্পানির আসল মুনাফার তুলনায় এখন বেশি মনে হচ্ছে। কিছু শেয়ার বিক্রি করে লাভ তুলে নিলে সেই লাভ নিরাপদ হয়, আর বাকিগুলো রাখলে দাম আরও বাড়ার সুযোগও থাকে। পুরোটা বিক্রি করতে হবে না।`
+        : `${c.code} has risen sharply, and the price now looks high next to what the company earns. Selling part of it locks in some of the gain, while the shares you keep can still rise further. You do not have to sell all of it.`,
     );
   }
   if (nearHighItems.length > 0) {
@@ -1134,14 +1143,14 @@ export function analyzePortfolio(
     if (codes.length === 1) {
       consider.push(
         bnMode
-          ? `${codes[0]} তার গত 52 সপ্তাহের সর্বোচ্চ দামের কাছাকাছি চলছে। এটা শক্তির লক্ষণ, তবে এখান থেকে আরও ওপরে যাওয়ার জায়গা কম আর একটু পিছিয়ে আসার ঝুঁকি বেশি। ভালো কোম্পানি বিক্রি করার দরকার নেই — শুধু এই দামে আরও কেনার আগে দুবার ভাবুন।`
-          : `${codes[0]} is trading near its 52-week high. That's a sign of strength, but it also means limited room left to run and a higher chance of a pullback. No need to sell a good company — just think twice before buying more at this level.`,
+          ? `${codes[0]} গত এক বছরের সর্বোচ্চ দামের কাছাকাছি আছে। এটি শক্তির লক্ষণ, তবে এখান থেকে আরও বাড়ার জায়গা কম আর কিছুটা কমে আসার ঝুঁকি বেশি। ভালো কোম্পানি বিক্রি করার দরকার নেই, তবে এই দামে আরও কেনার আগে ভালো করে ভেবে নিন।`
+          : `${codes[0]} is trading near its highest price of the past year. That is a sign of strength, but it leaves less room to rise and a higher chance of a fall back. There is no need to sell a good company; just think carefully before buying more at this level.`,
       );
     } else {
       consider.push(
         bnMode
-          ? `${nameList(codes, 2, "bn")} তাদের 52 সপ্তাহের সর্বোচ্চ দামের কাছাকাছি — আরও ওপরে ওঠার জায়গা কম আর পিছিয়ে আসার ঝুঁকি বেশি। ভালোগুলো ধরে রাখুন, তবে এই দামে নতুন করে কেনায় সাবধান।`
-          : `${nameList(codes)} are trading near their 52-week highs — limited room left to run and more prone to a pullback. Hold your good ones, but be cautious about buying more at these levels.`,
+          ? `${nameList(codes, 2, "bn")} গত এক বছরের সর্বোচ্চ দামের কাছাকাছি আছে, তাই আরও বাড়ার জায়গা কম আর কিছুটা কমে আসার ঝুঁকি বেশি। ভালোগুলো ধরে রাখতে পারেন, তবে এই দামে নতুন করে কেনার আগে সাবধান থাকুন।`
+          : `${nameList(codes)} are trading near their highest prices of the past year, so they have less room to rise and a higher chance of falling back. You can keep the good ones, but be careful about buying more at these levels.`,
       );
     }
   }
@@ -1149,22 +1158,22 @@ export function analyzePortfolio(
     const pct = bWeightPct.toFixed(0);
     consider.push(
       bnMode
-        ? `আপনার টাকার ${pct}% আছে B ক্যাটাগরির শেয়ারে — যে কোম্পানিগুলো গত বছর 10%-এর কম ডিভিডেন্ড দিয়েছে। এটা নিজে থেকে বিপদ সংকেত নয়, তবে এই ব্যবসাগুলো এখনো আপনার সাথে মুনাফা তেমন ভাগ করছে না। নিয়মিত ডিভিডেন্ড দেয় এমন কয়েকটি A ক্যাটাগরির শেয়ার দিয়ে ভারসাম্য আনুন।`
-        : `${pct}% of your money is in B-category shares — companies that paid less than a 10% dividend last year. Not a red flag by itself, but these businesses aren't sharing much profit with you yet. Balance them with a few A-category names that pay regular dividends.`,
+        ? `আপনার টাকার ${pct}% আছে B ক্যাটাগরির শেয়ারে, অর্থাৎ যে কোম্পানিগুলো গত বছর 10%-এর কম ডিভিডেন্ড দিয়েছে। এটি নিজে বিপদের সংকেত নয়, তবে এই কোম্পানিগুলো এখনো আপনার সঙ্গে মুনাফা তেমন ভাগ করছে না। নিয়মিত ডিভিডেন্ড দেয় এমন কয়েকটি A ক্যাটাগরির শেয়ার দিয়ে ভারসাম্য আনার কথা ভাবুন।`
+        : `${pct}% of your money is in B category shares, companies that paid less than a 10% dividend last year. That is not a warning by itself, but these companies are not sharing much of their profit with you yet. A few A category shares that pay regular dividends would balance them.`,
     );
   }
   if (reliableDividend.length === 0 && holdingCount >= 3) {
     consider.push(
       bnMode
-        ? "আপনার কোনো শেয়ারই শক্ত, নিয়মিত ডিভিডেন্ড দেয় না। 1–2টি ভালো ডিভিডেন্ড শেয়ার যোগ করলে প্রতি বছর নগদ টাকা হাতে আসে — দাম বাড়ার লাভের ওপর যেন বাড়তি ভাড়া। লম্বা সময়ের বৃদ্ধির পাশাপাশি নিয়মিত আয় চাইলে এটা খুব কাজের।"
-        : "None of your stocks pay a strong, reliable dividend. Adding 1–2 good dividend stocks gives you cash returning to you every year, which feels like rent on top of any price gains. This is especially useful if you want steady income alongside long-term growth.",
+        ? "আপনার কোনো শেয়ারই নিয়মিত ভালো ডিভিডেন্ড দেয় না। নিয়মিত ডিভিডেন্ড দেয় এমন 1–2টি শেয়ার যোগ করলে দাম বাড়ার লাভের পাশাপাশি প্রতি বছর নগদ টাকাও হাতে আসে। দীর্ঘমেয়াদি বৃদ্ধির সঙ্গে নিয়মিত আয় চাইলে এটি বেশ কাজের।"
+        : "None of your shares pays a strong, reliable dividend. Adding 1–2 shares that do would bring cash to you every year, on top of any rise in price. This is especially useful if you want steady income alongside long-term growth.",
     );
   }
   if (good.length === 0 && bad.length === 0 && consider.length === 0) {
     consider.push(
       bnMode
-        ? "আপনার পোর্টফোলিও ভালো অবস্থায় আছে, জরুরি ঠিক করার কিছু নেই। কোয়ার্টারে একবার, কোম্পানির ফলাফল বের হলে, একবার দেখে নিন — শেয়ার পর্যালোচনার জন্য ওটাই স্বাভাবিক সময়।"
-        : "Your portfolio looks healthy and there's nothing urgent to fix. Check back once a quarter when company results come out — that's the natural time to review your holdings.",
+        ? "আপনার পোর্টফোলিও ভালো অবস্থায় আছে, জরুরি ঠিক করার কিছু নেই। প্রতি প্রান্তিকে কোম্পানির ফলাফল বের হলে একবার দেখে নিন। শেয়ারগুলো যাচাই করার জন্য সেটিই স্বাভাবিক সময়।"
+        : "Your portfolio looks healthy and there's nothing urgent to fix. Check back once a quarter, when company results come out. That is the natural time to review your shares.",
     );
   }
 
@@ -1359,24 +1368,24 @@ export function buildRebalancePlan(
   if (holdingCount > 0 && holdingCount < 5) {
     gaps.push(
       L(
-        `You own ${holdingCount} stock${holdingCount === 1 ? "" : "s"} — aim for 5–8 so one bad company can't drag your whole portfolio down.`,
-        `আপনার কাছে ${holdingCount}টি শেয়ার আছে — 5–8টি রাখার চেষ্টা করুন, যাতে একটি খারাপ কোম্পানি পুরো পোর্টফোলিও টেনে নামাতে না পারে।`,
+        `You own ${holdingCount} share${holdingCount === 1 ? "" : "s"}. Aim for 5–8, so one bad company cannot drag your whole portfolio down.`,
+        `আপনার কাছে ${holdingCount}টি শেয়ার আছে। 5–8টি রাখার চেষ্টা করুন, যাতে একটি খারাপ কোম্পানি পুরো পোর্টফোলিওকে নিচে টেনে নামাতে না পারে।`,
       ),
     );
   }
   if (overweightSector) {
     gaps.push(
       L(
-        `${maxSector!.weightPct.toFixed(0)}% of your money is in ${overweightSector} — your next buy should come from a different sector.`,
-        `আপনার টাকার ${maxSector!.weightPct.toFixed(0)}% আছে ${overweightSector} খাতে — পরের কেনাটা অন্য কোনো খাত থেকে হওয়া উচিত।`,
+        `${maxSector!.weightPct.toFixed(0)}% of your money is in ${overweightSector}, so your next buy is best made in a different sector.`,
+        `আপনার টাকার ${maxSector!.weightPct.toFixed(0)}% আছে ${overweightSector} সেক্টরে, তাই পরের কেনাটি অন্য কোনো সেক্টরে হলে ভালো।`,
       ),
     );
   }
   if (financialsHeavy && financialsPct - (overweightSector && isFinancialSector(overweightSector) ? maxSector!.weightPct : 0) > 5) {
     gaps.push(
       L(
-        `${financialsPct.toFixed(0)}% of your money is in banks, finance companies and insurers — they move together, so these ideas leave them out.`,
-        `আপনার টাকার ${financialsPct.toFixed(0)}% আছে ব্যাংক, আর্থিক প্রতিষ্ঠান আর বিমায় — এরা একসাথে ওঠানামা করে, তাই এই আইডিয়াগুলোতে এদের রাখা হয়নি।`,
+        `${financialsPct.toFixed(0)}% of your money is in banks, finance companies and insurers. They move together, so these ideas leave them out.`,
+        `আপনার টাকার ${financialsPct.toFixed(0)}% আছে ব্যাংক, আর্থিক প্রতিষ্ঠান আর বিমায়। এরা একসঙ্গে ওঠানামা করে, তাই এই প্রস্তাবগুলোতে এদের রাখা হয়নি।`,
       ),
     );
   }
@@ -1384,16 +1393,16 @@ export function buildRebalancePlan(
   if (swapTargets.length > 0) {
     gaps.push(
       L(
-        `${nameList(swapTargets.map((h) => h.code))} ${swapTargets.length === 1 ? "is" : "are"} rated weak or in DSE's Z category — a stronger company in the same line of business could take that money.`,
-        `${nameList(swapTargets.map((h) => h.code), 2, "bn")} দুর্বল রেটিং বা ডিএসই-র Z ক্যাটাগরিতে — একই ধরনের ব্যবসার কোনো শক্তিশালী কোম্পানি সেই টাকা নিতে পারে।`,
+        `${nameList(swapTargets.map((h) => h.code))} ${swapTargets.length === 1 ? "is" : "are"} rated weak or in DSE's Z category. A stronger company in the same line of business could put that money to better use.`,
+        `${nameList(swapTargets.map((h) => h.code), 2, "bn")} দুর্বল রেটিং বা ডিএসই-র Z ক্যাটাগরিতে আছে। একই ধরনের ব্যবসার কোনো শক্তিশালী কোম্পানিতে সেই টাকা বেশি কাজে লাগতে পারে।`,
       ),
     );
   }
   if (noDividendPayer) {
     gaps.push(
       L(
-        "None of your stocks pays a steady dividend — one steady payer brings cash in every year.",
-        "আপনার কোনো শেয়ার নিয়মিত ডিভিডেন্ড দেয় না — একটি নিয়মিত দাতা প্রতি বছর নগদ টাকা আনে।",
+        "None of your shares pays a steady dividend. One steady payer would bring in cash every year.",
+        "আপনার কোনো শেয়ার নিয়মিত ডিভিডেন্ড দেয় না। নিয়মিত ডিভিডেন্ড দেয় এমন একটি শেয়ার প্রতি বছর নগদ টাকা আনবে।",
       ),
     );
   }
@@ -1436,8 +1445,8 @@ export function buildRebalancePlan(
       evidence.push(
         sectorPe
           ? L(
-              `Costs ${fmtPe(pe)} times its yearly profit — similar companies cost ${fmtPe(sectorPe)}`,
-              `দাম তার বার্ষিক লাভের ${fmtPe(pe)} গুণ — একই ধরনের কোম্পানি ${fmtPe(sectorPe)} গুণ`,
+              `Costs ${fmtPe(pe)} times its yearly profit; similar companies cost ${fmtPe(sectorPe)}`,
+              `দাম বার্ষিক মুনাফার ${fmtPe(pe)} গুণ; একই ধরনের কোম্পানির ${fmtPe(sectorPe)} গুণ`,
             )
           : L(`Costs ${fmtPe(pe)} times its yearly profit`, `দাম তার বার্ষিক লাভের ${fmtPe(pe)} গুণ`),
       );
@@ -1453,11 +1462,11 @@ export function buildRebalancePlan(
 
     // One honest watch-out, most serious first.
     let watch: string | null = null;
-    if ((s.p2_health ?? 10) < 5) watch = L("Its finances are only average — check its loans on the stock page.", "আর্থিক অবস্থা মাঝারি — শেয়ারের পাতায় ঋণ দেখে নিন।");
+    if ((s.p2_health ?? 10) < 5) watch = L("Its finances are only average. Check its loans on the share's page.", "আর্থিক অবস্থা মাঝারি। শেয়ারের পেজে ঋণের তথ্য দেখে নিন।");
     else if (s.eps_yoy_pct != null && s.eps_yoy_pct <= -10) watch = L(`Profit fell ${Math.abs(s.eps_yoy_pct).toFixed(0)}% last year.`, `গত বছর লাভ ${Math.abs(s.eps_yoy_pct).toFixed(0)}% কমেছে।`);
-    else if ((s.market_category ?? "").toUpperCase() === "B") watch = L("B category — it paid under a 10% dividend last year.", "B ক্যাটাগরি — গত বছর 10%-এর কম ডিভিডেন্ড দিয়েছে।");
+    else if ((s.market_category ?? "").toUpperCase() === "B") watch = L("It is in B category, which means it paid under a 10% dividend last year.", "এটি B ক্যাটাগরিতে, অর্থাৎ গত বছর 10%-এর কম ডিভিডেন্ড দিয়েছে।");
     else if ((s.p5_div ?? 10) < 3) watch = L("It pays little or no dividend.", "ডিভিডেন্ড কম দেয় বা দেয় না।");
-    else if ((s.p3_moat ?? 10) < 4) watch = L("A small player in its sector.", "নিজের খাতে ছোট কোম্পানি।");
+    else if ((s.p3_moat ?? 10) < 4) watch = L("A small player in its sector.", "নিজের সেক্টরে ছোট কোম্পানি।");
     else if (s.last_reported_year != null && (s.data_age_years ?? 0) >= 1) watch = L(`Its latest yearly accounts are for ${s.last_reported_year}.`, `সর্বশেষ বার্ষিক হিসাব ${s.last_reported_year} সালের।`);
 
     let suggest: RebalancePick["suggest"] = null;
@@ -1503,8 +1512,8 @@ export function buildRebalancePlan(
         c,
         "swap",
         L(
-          `A stronger company in the same business as ${h.code} — it could take that money.`,
-          `${h.code}-এর একই ধরনের ব্যবসার শক্তিশালী কোম্পানি — সেই টাকা এখানে আসতে পারে।`,
+          `A stronger company in the same business as ${h.code}, where that money could work harder.`,
+          `${h.code}-এর মতো একই ব্যবসার একটি শক্তিশালী কোম্পানি, যেখানে সেই টাকা বেশি কাজে লাগতে পারে।`,
         ),
         h.code,
         holdingValue(h),
@@ -1517,7 +1526,7 @@ export function buildRebalancePlan(
     const c = allowed.find((s) => free(s) && (s.p5_div ?? 0) >= 7 && (s.div_yield_pct ?? 0) >= 4);
     if (c) {
       take(
-        make(c, "dividend", L("Pays a steady dividend it can afford — cash in every year.", "সামর্থ্যের মধ্যে নিয়মিত ডিভিডেন্ড দেয় — প্রতি বছর নগদ টাকা।"), null),
+        make(c, "dividend", L("Pays a steady dividend it can afford, so cash comes in every year.", "সামর্থ্যের মধ্যে নিয়মিত ডিভিডেন্ড দেয়, তাই প্রতি বছর নগদ টাকা আসে।"), null),
       );
     }
   }
@@ -1528,7 +1537,7 @@ export function buildRebalancePlan(
     for (const c of allowed) {
       if (picks.length >= maxPicks) break;
       if (!free(c) || heldSectors.has(c.sector!)) continue;
-      take(make(c, "new_sector", L(`Adds a sector you don't own yet: ${c.sector}.`, `এমন একটি খাত যোগ করে যা আপনার এখনো নেই: ${c.sector}।`), null));
+      take(make(c, "new_sector", L(`Adds a sector you don't own yet: ${c.sector}.`, `এমন একটি সেক্টর যোগ করে যা আপনার এখনো নেই: ${c.sector}।`), null));
     }
     // 4. Still short: the best-priced strong names outside the heavy sector.
     for (const c of allowed) {
@@ -1551,8 +1560,8 @@ export function buildRebalancePlan(
   // don't promise one — point at the ideas instead.
   if (swapGapAt >= 0 && !picks.some((p) => p.kind === "swap")) {
     gaps[swapGapAt] = L(
-      `${nameList(swapTargets.map((h) => h.code))} ${swapTargets.length === 1 ? "is" : "are"} rated weak or in DSE's Z category — the money in ${swapTargets.length === 1 ? "it" : "them"} could work harder in a stronger company.`,
-      `${nameList(swapTargets.map((h) => h.code), 2, "bn")} দুর্বল রেটিং বা ডিএসই-র Z ক্যাটাগরিতে — এই টাকা কোনো শক্তিশালী কোম্পানিতে বেশি কাজে লাগতে পারে।`,
+      `${nameList(swapTargets.map((h) => h.code))} ${swapTargets.length === 1 ? "is" : "are"} rated weak or in DSE's Z category. The money in ${swapTargets.length === 1 ? "it" : "them"} could work harder in a stronger company.`,
+      `${nameList(swapTargets.map((h) => h.code), 2, "bn")} দুর্বল রেটিং বা ডিএসই-র Z ক্যাটাগরিতে আছে। এই টাকা কোনো শক্তিশালী কোম্পানিতে বেশি কাজে লাগতে পারে।`,
     );
   }
 

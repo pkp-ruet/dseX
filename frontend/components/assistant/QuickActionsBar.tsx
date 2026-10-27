@@ -1,6 +1,8 @@
 "use client";
+import { T } from "@/components/i18n/T";
 import type { Chip } from "@/lib/assistant/types";
 import { STARTER_CHIPS } from "@/lib/assistant/chips";
+import { COPY } from "@/lib/assistant/copy";
 
 /**
  * Always-visible quick-action strip pinned above the composer, so a new query
@@ -25,7 +27,7 @@ export default function QuickActionsBar({
           onClick={onCancel}
           className="btn-quiet btn-sm shrink-0 hover:border-negative hover:text-negative"
         >
-          Start over
+          <T en={COPY.suggest.startOver} bn={COPY.suggest.startOverBn} />
         </button>
       ) : (
         STARTER_CHIPS.map((c, i) => (
@@ -33,16 +35,10 @@ export default function QuickActionsBar({
             key={`${c.label}-${i}`}
             type="button"
             onClick={() => onChip(c)}
-            className="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-main transition hover:border-primary hover:text-primary active:scale-95"
+            className="shrink-0 inline-flex min-h-10 items-center rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-main transition hover:border-primary hover:text-primary active:scale-95"
           >
-            {c.emoji && <span aria-hidden>{c.emoji}</span>}
             <span className="leading-tight text-left">
-              {c.label}
-              {c.labelBn && (
-                <span lang="bn" className="font-bn block text-xs text-text-muted">
-                  {c.labelBn}
-                </span>
-              )}
+              <T en={c.label} bn={c.labelBn ?? c.label} />
             </span>
           </button>
         ))

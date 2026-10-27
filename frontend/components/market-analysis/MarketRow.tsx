@@ -25,7 +25,7 @@ export default function MarketRow({
   name?: string | null;
   sector?: string | null;
   price?: number | null;
-  meta: string;
+  meta: ReactNode;
   /** Optional detail line under the name (e.g. "record 20 Sep · buy by 15 Sep"). */
   sub?: ReactNode;
   tone?: RowTone;

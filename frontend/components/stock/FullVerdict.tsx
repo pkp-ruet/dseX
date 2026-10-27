@@ -12,19 +12,20 @@ import ResultsExplained from "@/components/stock/ResultsExplained";
 import ScoreHistory, { scoreHistorySummary } from "@/components/stock/ScoreHistory";
 import ValueTodayBox from "@/components/stock/ValueTodayBox";
 import PriceVerdict, { priceVerdictLines } from "@/components/stock/PriceVerdict";
-import { useStockLang } from "@/context/StockLangContext";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
 import type { CompanyDetail } from "@/lib/api";
 import { SIGNAL_VAR } from "@/lib/constants";
 import { formatDate, money } from "@/lib/formatters";
+import { bnDate } from "@/lib/bn";
 import { freeReportCode } from "@/lib/free-report";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
 import { PAID_PLANS, LOWEST_PRICE } from "@/lib/premium-plans";
 import { savePremiumContext } from "@/lib/premium-context";
-import { HEALTH_PILLAR_ORDER } from "@/lib/plain-language";
+import { HEALTH_PILLAR_ORDER, type Bi } from "@/lib/plain-language";
 import { toNum } from "@/lib/stock-metrics";
 import { trackEvent } from "@/lib/track";
 
-type Bi = { en: string; bn: string };
 type Question = {
   id: string;
   title: Bi;
@@ -37,6 +38,8 @@ type Question = {
 const YEARLY = PAID_PLANS.find((p) => p.key === "yearly");
 const YEARLY_MONTH = YEARLY ? Math.round(YEARLY.amount / 12) : null;
 
+const tx = (b: Bi) => <T en={b.en} bn={b.bn} />;
+
 /**
  * The stock page's ONE Premium chapter (2026-10-27) — "facts are free, our
  * verdict is Premium". Everything where we judge or explain a stock lives
@@ -44,19 +47,17 @@ const YEARLY_MONTH = YEARLY ? Math.round(YEARLY.amount / 12) : null;
  * public numbers and have no locks.
  *
  * A free reader sees every question with a free hint (counts, dates), a real
- * taste (the first health check, the top good sign and watch-out, the
+ * taste (the first health check, the top good sign and thing to watch, the
  * results headline) and calm placeholder bars where each answer goes
  * (`PremiumMask`), then ONE offer (`#ch-premium`). A Premium reader sees the
  * same questions answered. On the free report of the day it opens for
  * everyone and the offer becomes "get this on every stock".
  */
 export default function FullVerdict({ detail }: { detail: CompanyDetail }) {
-  const { lang } = useStockLang();
-  const isBn = lang === "bn";
+  const { bn } = useLang();
   const { state, isPremium } = usePremium();
   const open = usePremiumOpen();
   const mode = open ? (isPremium ? "premium" : "free-today") : "locked";
-  const t = (b: Bi) => (isBn ? b.bn : b.en);
 
   const { profile, score_row, signal, verdict, bengali_summary, fair_value, signal_flags,
           results_explained, score_history, deep_analysis, latest_price } = detail;
@@ -67,11 +68,25 @@ export default function FullVerdict({ detail }: { detail: CompanyDetail }) {
 
   // 1 · Why Buy / Sell / neither — the signal's reason + the rest of our take.
   const sig = signal?.signal;
-  const reason = isBn ? signal?.reason_bn : signal?.reason_en;
   const sentences = (verdict?.sentences ?? []).filter(Boolean);
   const restEn = verdict?.tagline ? sentences : sentences.slice(1);
+  const sentencesBn = (verdict?.sentences_bn ?? []).filter(Boolean);
+  const restBnFromVerdict = verdict?.tagline_bn ? sentencesBn : sentencesBn.slice(1);
   const bnParas = (bengali_summary?.trim() || "").split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
-  if (reason || restEn.length || bnParas.length > 1) {
+  // Older backend: no Bengali verdict yet — the এক নজরে summary stands in.
+  const restBn = restBnFromVerdict.length ? restBnFromVerdict : bnParas.slice(1);
+  const hasReason = !!(signal?.reason_en || signal?.reason_bn);
+  if (hasReason || restEn.length || restBn.length) {
+    const bullets = (lines: string[]) => (
+      <ul className="mt-3 space-y-1.5">
+        {lines.map((line, i) => (
+          <li key={i} className="flex gap-2.5 text-sm leading-snug text-text-main">
+            <span aria-hidden="true" className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+            <span>{line}</span>
+          </li>
+        ))}
+      </ul>
+    );
     questions.push({
       id: "v-why",
       title:
@@ -79,52 +94,38 @@ export default function FullVerdict({ detail }: { detail: CompanyDetail }) {
           ? { en: "Why is it a Buy right now?", bn: "এখন কেন কেনার সংকেত?" }
           : sig === "sell"
             ? { en: "Why is it a Sell right now?", bn: "এখন কেন বিক্রির সংকেত?" }
-            : { en: "Why no Buy or Sell today?", bn: "আজ কেন কেনা-বেচার সংকেত নেই?" },
-      hint: { en: "The full reason, and our whole take on the stock.", bn: "পুরো কারণ, আর শেয়ারটি নিয়ে আমাদের পুরো মত।" },
+            : { en: "Why is there no Buy or Sell signal today?", bn: "আজ কেন কেনা বা বিক্রির সংকেত নেই?" },
+      hint: { en: "The full reason, and our complete view of this share.", bn: "পুরো কারণ, আর এই শেয়ার নিয়ে আমাদের পূর্ণ মত।" },
       locked: true,
       body: (
         <PremiumMask lines={3}>
-          {reason && (
+          {hasReason && (
             <p
-              className={`text-base font-bold leading-snug sm:text-lg ${isBn ? "font-bn" : ""}`}
-              lang={isBn ? "bn" : undefined}
+              className="text-base font-bold leading-snug sm:text-lg"
               style={{ color: sig === "sell" ? SIGNAL_VAR.sell : "var(--text)" }}
             >
-              {reason}
+              <T en={signal?.reason_en ?? ""} bn={signal?.reason_bn ?? signal?.reason_en ?? ""} />
             </p>
           )}
-          {/* Both languages stay in the HTML (search engines read the Bengali too). */}
-          {restEn.length > 0 && (
-            <ul className={`mt-3 space-y-1.5 ${isBn ? "hidden" : "block"}`}>
-              {restEn.map((line, i) => (
-                <li key={i} className="flex gap-2.5 text-sm leading-snug text-text-main">
-                  <span aria-hidden="true" className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                  <span>{line}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-          {bnParas.length > 1 && (
-            <div className={`font-bn mt-3 space-y-3 leading-relaxed text-text-main ${isBn ? "block" : "hidden"}`} lang="bn">
-              {bnParas.slice(1).map((p, i) => <p key={i}>{p}</p>)}
-            </div>
+          {(restEn.length > 0 || restBn.length > 0) && (
+            <T en={restEn.length ? bullets(restEn) : null} bn={restBn.length ? bullets(restBn) : null} />
           )}
         </PremiumMask>
       ),
     });
   }
 
-  // 2 · What should the price be — the fair-value estimate.
+  // 2 · What price would be fair — the fair-value estimate.
   if (fair_value && fair_value.center != null) {
     const ltp = toNum(latest_price?.ltp);
     const n = fair_value.methods?.length ?? 0;
-    const today: Bi = ltp != null ? { en: `Today ${money(ltp)}. `, bn: `আজ ${money(ltp)}। ` } : { en: "", bn: "" };
+    const today: Bi = ltp != null ? { en: `Today ${money(ltp)}. `, bn: `আজকের দাম ${money(ltp)}। ` } : { en: "", bn: "" };
     questions.push({
       id: "v-fair",
-      title: { en: "What should the price be?", bn: "দাম কত হওয়া উচিত?" },
+      title: { en: "What price would be fair?", bn: "ন্যায্য দাম কত?" },
       hint: n > 1
-        ? { en: `${today.en}Our fair-value range, from ${n} ways of measuring it.`, bn: `${today.bn}${n}টি মাপকাঠি থেকে আমাদের ন্যায্য দামের সীমা।` }
-        : { en: `${today.en}Our fair-value range and how we got it.`, bn: `${today.bn}আমাদের ন্যায্য দামের সীমা আর হিসাবটা।` },
+        ? { en: `${today.en}Our fair price range, worked out in ${n} ways.`, bn: `${today.bn}${n}টি উপায়ে হিসাব করা আমাদের ন্যায্য দামের সীমা।` }
+        : { en: `${today.en}Our fair price range and how we worked it out.`, bn: `${today.bn}আমাদের ন্যায্য দামের সীমা, আর কীভাবে হিসাব করেছি।` },
       locked: true,
       body: (
         <PremiumMask lines={2}>
@@ -134,17 +135,17 @@ export default function FullVerdict({ detail }: { detail: CompanyDetail }) {
     });
   }
 
-  // 3 · Cheap or dear — the price verdict, against its past, sector and rank.
+  // 3 · Low or high — the price verdict, against its past, sector and rank.
   const priceLines = priceVerdictLines(detail);
   if (priceLines.length) {
     questions.push({
       id: "v-price",
-      title: { en: "Is today's price cheap or dear?", bn: "আজকের দাম সস্তা না দামি?" },
-      hint: { en: "Against its own past, its sector and its rivals.", bn: "নিজের অতীত, খাত আর প্রতিযোগীদের তুলনায়।" },
+      title: { en: "Is today's price low or high?", bn: "আজকের দাম কম না বেশি?" },
+      hint: { en: "Compared with its own past, its sector and similar companies.", bn: "নিজের অতীত, সেক্টর আর একই ধরনের কোম্পানির তুলনায়।" },
       locked: true,
       body: (
         <PremiumMask lines={Math.min(priceLines.length, 4)}>
-          <PriceVerdict lines={priceLines} isBn={isBn} />
+          <PriceVerdict lines={priceLines} />
         </PremiumMask>
       ),
     });
@@ -157,17 +158,17 @@ export default function FullVerdict({ detail }: { detail: CompanyDetail }) {
   if (score_row && pillarVals.length) {
     const healthy = pillarVals.filter((v) => v >= 6).length;
     const total = pillarVals.length;
-    const base: Bi = { en: `${healthy} of ${total} checks look healthy.`, bn: `${total}টির মধ্যে ${healthy}টি পরীক্ষা ভালো।` };
+    const base: Bi = { en: `${healthy} of ${total} checks look healthy.`, bn: `${total}টির মধ্যে ${healthy}টি যাচাই ভালো।` };
     questions.push({
       id: "health",
-      title: { en: "The five checks, explained", bn: "পাঁচটি পরীক্ষা, ব্যাখ্যাসহ" },
-      hint: open || total < 2 ? base : { en: `${base.en} The first is explained free.`, bn: `${base.bn} প্রথমটির ব্যাখ্যা ফ্রি।` },
+      title: { en: "The five checks, explained", bn: "পাঁচটি যাচাই, ব্যাখ্যাসহ" },
+      hint: open || total < 2 ? base : { en: `${base.en} The first one is explained for free.`, bn: `${base.bn} প্রথমটির ব্যাখ্যা ফ্রি।` },
       locked: total > 1,
       body: <HealthCheck scoreRow={score_row} detail={detail} />,
     });
   }
 
-  // 5 · Good signs and watch-outs — the top one of each free.
+  // 5 · Good signs and things to watch — the top one of each free.
   const greens = signal_flags?.items
     ? signal_flags.items.filter((i) => i.tone === "good").length
     : signal_flags?.green?.length ?? 0;
@@ -176,14 +177,14 @@ export default function FullVerdict({ detail }: { detail: CompanyDetail }) {
     : signal_flags?.red?.length ?? 0;
   if (signal_flags && greens + reds > 0) {
     const base: Bi = {
-      en: `${greens} good ${greens === 1 ? "sign" : "signs"} · ${reds} ${reds === 1 ? "watch-out" : "watch-outs"}.`,
-      bn: `${greens}টি ভালো লক্ষণ · ${reds}টি সতর্কতা।`,
+      en: `${greens} good ${greens === 1 ? "sign" : "signs"} and ${reds} ${reds === 1 ? "thing" : "things"} to watch.`,
+      bn: `${greens}টি ভালো দিক আর ${reds}টি সতর্কতার দিক।`,
     };
     const hasMore = greens > 1 || reds > 1;
     questions.push({
       id: "signals",
-      title: { en: "Good signs and watch-outs", bn: "ভালো লক্ষণ ও সতর্কতা" },
-      hint: open || !hasMore ? base : { en: `${base.en} The top one of each is free.`, bn: `${base.bn} প্রতিটির প্রথমটি ফ্রি।` },
+      title: { en: "Good signs and things to watch", bn: "ভালো দিক ও সতর্কতার দিক" },
+      hint: open || !hasMore ? base : { en: `${base.en} The first of each is free.`, bn: `${base.bn} প্রতিটির প্রথমটি ফ্রি।` },
       locked: hasMore,
       body: <SignalBoard flags={signal_flags} />,
     });
@@ -191,11 +192,12 @@ export default function FullVerdict({ detail }: { detail: CompanyDetail }) {
 
   // 6 · The latest quarterly report — headline and profit line free.
   if (results_explained) {
+    const pd = results_explained.post_date;
     questions.push({
       id: "results",
-      title: { en: "What the latest quarter means", bn: "সর্বশেষ ত্রৈমাসিক ফলের মানে" },
-      hint: results_explained.post_date
-        ? { en: `Report posted ${formatDate(results_explained.post_date)}.`, bn: `ফল প্রকাশ ${formatDate(results_explained.post_date)}।` }
+      title: { en: "What the latest quarter means", bn: "সর্বশেষ প্রান্তিকের ফলের অর্থ" },
+      hint: pd
+        ? { en: `Results published ${formatDate(pd)}.`, bn: `ফল প্রকাশ: ${bnDate(pd) || formatDate(pd)}।` }
         : undefined,
       locked: results_explained.lines.length > 1,
       body: <ResultsExplained results={results_explained} />,
@@ -205,13 +207,12 @@ export default function FullVerdict({ detail }: { detail: CompanyDetail }) {
   // 7 · How the score moved and why the grade changed.
   if (score_history && score_history.points.length >= 2) {
     const changed = score_history.grade_changes > 0;
-    const summary = scoreHistorySummary(score_history, isBn);
     questions.push({
       id: "score-history",
       title: changed
         ? { en: "Why the grade changed", bn: "গ্রেড কেন বদলেছে" }
         : { en: "How the score has moved", bn: "স্কোর কীভাবে বদলেছে" },
-      hint: summary ? { en: summary, bn: summary } : undefined,
+      hint: scoreHistorySummary(score_history) ?? undefined,
       locked: true,
       body: (
         <PremiumMask lines={2}>
@@ -223,24 +224,29 @@ export default function FullVerdict({ detail }: { detail: CompanyDetail }) {
 
   // 8 · The in-depth report (its own page opens its first section for free).
   if (deep_analysis?.available) {
-    const headline = (isBn ? deep_analysis.headline_bn : deep_analysis.headline_en) ?? deep_analysis.headline_en ?? "";
-    const bottom = (isBn ? deep_analysis.bottom_line_bn : deep_analysis.bottom_line_en) ?? deep_analysis.bottom_line_en ?? "";
+    const hEn = deep_analysis.headline_en ?? "";
+    const hBn = deep_analysis.headline_bn ?? hEn;
+    const bEn = deep_analysis.bottom_line_en ?? "";
+    const bBn = deep_analysis.bottom_line_bn ?? bEn;
     questions.push({
       id: "v-report",
-      title: { en: "The in-depth report", bn: "গভীর বিশ্লেষণ রিপোর্ট" },
-      hint: headline ? { en: headline, bn: headline } : undefined,
+      title: { en: "The in-depth report", bn: "বিস্তারিত বিশ্লেষণ রিপোর্ট" },
+      hint: hEn || hBn ? { en: hEn, bn: hBn } : undefined,
       locked: false,
       body: (
         <Link
           href={`/stock/${code}/analysis`}
-          className={`flex items-start gap-3 rounded-lg bg-surface-2 p-4 hover:opacity-90 active:opacity-70 ${isBn ? "font-bn" : ""}`}
-          lang={isBn ? "bn" : undefined}
+          className="flex items-start gap-3 rounded-lg bg-surface-2 p-4 hover:opacity-90 active:opacity-70"
         >
           <span className="mt-0.5 inline-flex shrink-0 text-primary-ink" aria-hidden="true"><IconChartBars size={18} /></span>
           <span className="min-w-0 flex-1">
-            {bottom && <span className="block text-sm leading-relaxed text-text-main line-clamp-3">{bottom}</span>}
+            {(bEn || bBn) && (
+              <span className="block text-sm leading-relaxed text-text-main line-clamp-3">
+                <T en={bEn} bn={bBn} />
+              </span>
+            )}
             <span className="mt-2 inline-flex min-h-10 items-center gap-1 text-sm font-semibold text-primary-ink">
-              {isBn ? "পুরো রিপোর্ট পড়ুন" : "Read the full report"} <span aria-hidden="true">→</span>
+              <T en="Read the full report" bn="পুরো রিপোর্ট পড়ুন" /> <span aria-hidden="true">→</span>
             </span>
           </span>
         </Link>
@@ -254,31 +260,34 @@ export default function FullVerdict({ detail }: { detail: CompanyDetail }) {
   const lead: Bi =
     mode === "locked"
       ? {
-          en: `${questions.length} questions on ${code}, answered in plain words. The questions are free; the full answers are Premium.`,
-          bn: `${code} নিয়ে ${questions.length}টি প্রশ্নের উত্তর, সহজ ভাষায়। প্রশ্নগুলো ফ্রি; পুরো উত্তর প্রিমিয়ামে।`,
+          en: `${questions.length} questions about ${code}, answered in plain words. Anyone can read the questions; the full answers are part of Premium.`,
+          bn: `${code} নিয়ে ${questions.length}টি প্রশ্ন, সহজ ভাষায় উত্তরসহ। প্রশ্নগুলো সবার জন্য খোলা; পুরো উত্তর প্রিমিয়ামে।`,
         }
       : { en: `Our analysis of ${code}, in plain words.`, bn: `${code} নিয়ে আমাদের বিশ্লেষণ, সহজ ভাষায়।` };
 
   return (
     <StockChapter
       id="ch-verdict"
-      title="The full verdict"
-      bn="আমাদের পুরো বিশ্লেষণ"
-      lead={<span className={isBn ? "font-bn" : undefined} lang={isBn ? "bn" : undefined}>{t(lead)}</span>}
+      title={<T en="The full verdict" bn="পূর্ণ মূল্যায়ন" />}
+      lead={tx(lead)}
       fold={false}
-      action={<span className="premium-chip"><IconCrown size={14} /> Premium</span>}
+      action={
+        <span className="premium-chip">
+          <IconCrown size={14} /> <T en="Premium" bn="প্রিমিয়াম" />
+        </span>
+      }
     >
       <ol className="verdict-list">
         {questions.map((q, i) => (
           <li key={q.id} id={q.id} className="verdict-q stock-anchor">
             <div className="flex items-start gap-3">
               <span className="verdict-q-n" aria-hidden="true">{i + 1}</span>
-              <div className={`min-w-0 flex-1 ${isBn ? "font-bn" : ""}`} lang={isBn ? "bn" : undefined}>
-                <h3 className="text-base font-bold leading-snug text-text-main sm:text-lg">{t(q.title)}</h3>
-                {q.hint && <p className="mt-0.5 text-sm text-text-muted">{t(q.hint)}</p>}
+              <div className="min-w-0 flex-1">
+                <h3 className="text-base font-bold leading-snug text-text-main sm:text-lg">{tx(q.title)}</h3>
+                {q.hint && <p className="mt-0.5 text-sm text-text-muted">{tx(q.hint)}</p>}
               </div>
               {mode === "locked" && q.locked && (
-                <span className="mt-1 inline-flex shrink-0 text-primary-ink" title={isBn ? "প্রিমিয়াম" : "Premium"}>
+                <span className="mt-1 inline-flex shrink-0 text-primary-ink" title={bn ? "প্রিমিয়াম" : "Premium"}>
                   <IconLock size={16} />
                 </span>
               )}
@@ -289,8 +298,14 @@ export default function FullVerdict({ detail }: { detail: CompanyDetail }) {
       </ol>
 
       {mode !== "premium" && (
-        <VerdictOffer code={code} name={name} count={lockedCount} freeToday={mode === "free-today"}
-          guest={state === "guest"} stakes={questions.filter((q) => q.locked).slice(0, 3).map((q) => t(q.title))} />
+        <VerdictOffer
+          code={code}
+          name={name}
+          count={lockedCount}
+          freeToday={mode === "free-today"}
+          guest={state === "guest"}
+          stakes={questions.filter((q) => q.locked).slice(0, 3).map((q) => (bn ? q.title.bn : q.title.en))}
+        />
       )}
     </StockChapter>
   );
@@ -307,10 +322,8 @@ function VerdictOffer({
   guest: boolean;
   stakes: string[];
 }) {
-  const { lang } = useStockLang();
-  const isBn = lang === "bn";
+  const { bn } = useLang();
   const { state } = usePremium();
-  const t = (en: string, bn: string) => (isBn ? bn : en);
   const ref = useRef<HTMLDivElement>(null);
   const seen = useRef(false);
   const [sample, setSample] = useState<string | null>(null);
@@ -334,77 +347,88 @@ function VerdictOffer({
 
   const onTap = () => {
     trackEvent("premium_lock_tap", { area: "stock", lock: "stock-verdict", state, stakes: count });
-    savePremiumContext({ from: "stock", label: `The full verdict on ${code}`, stakes });
+    savePremiumContext({ from: "stock", label: bn ? `${code}-এর পূর্ণ মূল্যায়ন` : `The full verdict on ${code}`, stakes });
   };
 
-  const perks = [
-    t("The full verdict on every DSE stock", "প্রতিটি DSE শেয়ারের পুরো বিশ্লেষণ"),
-    t("Your portfolio checked every trading day", "প্রতি কার্যদিবসে আপনার পোর্টফোলিও যাচাই"),
-    t("No limits on watchlist, alerts and TopStock AI", "ওয়াচলিস্ট, অ্যালার্ট আর TopStock AI-তে কোনো সীমা নেই"),
+  const perks: Bi[] = [
+    { en: "The full verdict on every DSE share", bn: "DSE-এর প্রতিটি শেয়ারের পূর্ণ মূল্যায়ন" },
+    { en: "Your portfolio checked every trading day", bn: "প্রতি কার্যদিবসে আপনার পোর্টফোলিও যাচাই" },
+    { en: "No limits on your watchlist, alerts or TopStock AI", bn: "ওয়াচলিস্ট, অ্যালার্ট আর TopStock AI-তে কোনো সীমা নেই" },
   ];
 
   return (
-    <div
-      ref={ref}
-      id="ch-premium"
-      className={`verdict-offer stock-anchor ${isBn ? "font-bn" : ""}`}
-      lang={isBn ? "bn" : undefined}
-    >
+    <div ref={ref} id="ch-premium" className="verdict-offer stock-anchor">
       <p className="flex items-center gap-2 text-sm font-semibold text-primary-ink">
         <IconCrown size={16} />
-        {freeToday ? t("Today's free full report", "আজকের ফ্রি পূর্ণ রিপোর্ট") : "Premium"}
+        {freeToday ? <T en="Today's free full report" bn="আজকের ফ্রি পূর্ণ রিপোর্ট" /> : <T en="Premium" bn="প্রিমিয়াম" />}
       </p>
       <h3 className="mt-1 text-xl font-bold leading-tight text-text-main sm:text-2xl">
-        {freeToday
-          ? t(`Every answer on ${name} is open today`, `আজ ${name}-এর সব উত্তর খোলা`)
-          : t(`Unlock the full verdict on ${name}`, `${name}-এর পুরো বিশ্লেষণ খুলুন`)}
+        {freeToday ? (
+          <T en={`Every answer on ${name} is open today`} bn={`আজ ${name}-এর সব উত্তর সবার জন্য খোলা`} />
+        ) : (
+          <T en={`Read the full verdict on ${name}`} bn={`${name}-এর পূর্ণ মূল্যায়ন পড়ুন`} />
+        )}
       </h3>
       <p className="mt-1 text-sm text-text-muted">
-        {freeToday
-          ? t("Premium opens the same answers on every stock, every day.", "প্রিমিয়ামে প্রতিদিন প্রতিটি শেয়ারে একই উত্তর খোলা থাকে।")
-          : t(
-              `${count} ${count === 1 ? "answer" : "answers"} on ${code} above, and the same on every other stock.`,
-              `ওপরে ${code}-এর ${count}টি উত্তর, আর অন্য প্রতিটি শেয়ারেও একই।`,
-            )}
+        {freeToday ? (
+          <T
+            en="With Premium, the same answers are open on every share, every day."
+            bn="প্রিমিয়ামে প্রতিদিন প্রতিটি শেয়ারের একই উত্তর খোলা থাকে।"
+          />
+        ) : (
+          <T
+            en={`${count} ${count === 1 ? "answer" : "answers"} about ${code} above, and the same for every other share.`}
+            bn={`ওপরে ${code} নিয়ে ${count}টি উত্তর, আর অন্য প্রতিটি শেয়ারেরও একই।`}
+          />
+        )}
       </p>
 
       <ul className="mt-4 space-y-2">
         {perks.map((p) => (
-          <li key={p} className="flex items-start gap-2 text-sm text-text-main">
+          <li key={p.en} className="flex items-start gap-2 text-sm text-text-main">
             <span className="mt-0.5 shrink-0 text-positive"><IconCheck size={14} /></span>
-            <span>{p}</span>
+            <span>{tx(p)}</span>
           </li>
         ))}
       </ul>
 
       <p className="mt-5 text-base text-text-main">
-        <b className="tabular-nums">৳{LOWEST_PRICE}</b> {t("a month", "মাসে")}
+        <T
+          en={<><b className="tabular-nums">৳{LOWEST_PRICE}</b> a month</>}
+          bn={<>মাসে <b className="tabular-nums">৳{LOWEST_PRICE}</b></>}
+        />
         {YEARLY_MONTH != null && (
           <span className="text-text-muted">
-            {t(
-              ` · about ৳${YEARLY_MONTH} a month on the yearly plan (limited-time offer)`,
-              ` · বছরের প্ল্যানে মাসে প্রায় ৳${YEARLY_MONTH} (সীমিত সময়ের অফার)`,
-            )}
+            <T
+              en={` · about ৳${YEARLY_MONTH} a month on the yearly plan (limited-time offer)`}
+              bn={` · বছরের প্ল্যানে মাসে প্রায় ৳${YEARLY_MONTH} (সীমিত সময়ের অফার)`}
+            />
           </span>
         )}
       </p>
       <div className="mt-3">
         <Button href={PREMIUM_PATH} onClick={onTap} size="lg" block>
-          {freeToday ? t("Get this on every stock", "প্রতিটি শেয়ারে এটি পান") : t("See Premium plans", "প্রিমিয়াম প্ল্যান দেখুন")}
+          {freeToday ? <T en="Get this on every share" bn="সব শেয়ারে এটি পান" /> : <T en="See Premium plans" bn="প্রিমিয়াম প্ল্যান দেখুন" />}
         </Button>
       </div>
       <p className="mt-3 text-sm text-text-muted">
-        {guest
-          ? t("Free account first, then pay by bKash or Nagad. No auto-renewal · 7-day refund.",
-              "আগে ফ্রি অ্যাকাউন্ট, তারপর bKash বা Nagad দিয়ে। নিজে থেকে টাকা কাটে না · 7 দিনে ফেরত।")
-          : t("Pay by bKash or Nagad. No auto-renewal · 7-day refund.",
-              "bKash বা Nagad দিয়ে। নিজে থেকে টাকা কাটে না · 7 দিনে ফেরত।")}
+        {guest ? (
+          <T
+            en="Create a free account first, then pay by bKash or Nagad. Nothing renews by itself, and you can get a refund within 7 days."
+            bn="আগে একটি ফ্রি অ্যাকাউন্ট খুলুন, তারপর bKash বা Nagad দিয়ে পেমেন্ট করুন। নিজে থেকে নবায়ন হয় না, আর 7 দিনের মধ্যে টাকা ফেরত নিতে পারবেন।"
+          />
+        ) : (
+          <T
+            en="Pay by bKash or Nagad. Nothing renews by itself, and you can get a refund within 7 days."
+            bn="bKash বা Nagad দিয়ে পেমেন্ট করুন। নিজে থেকে নবায়ন হয় না, আর 7 দিনের মধ্যে টাকা ফেরত নিতে পারবেন।"
+          />
+        )}
       </p>
       {!freeToday && sample && sample !== code && (
         <p className="mt-2 text-sm text-text-muted">
-          {t("Not sure yet? ", "এখনো নিশ্চিত নন? ")}
+          <T en="Not sure yet? " bn="এখনো ঠিক করেননি? " />
           <Link href={`/stock/${sample}#ch-verdict`} className="font-semibold text-primary-ink hover:underline">
-            {t(`Read today's free full report: ${sample}`, `আজকের ফ্রি পূর্ণ রিপোর্ট পড়ুন: ${sample}`)}
+            <T en={`Read today's free full report: ${sample}`} bn={`আজকের ফ্রি পূর্ণ রিপোর্ট পড়ুন: ${sample}`} />
           </Link>
         </p>
       )}

@@ -3,6 +3,8 @@ import { getTodaysNews } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 import PersonalNewsFeed from "@/components/news/PersonalNewsFeed";
 import PageHeader from "@/components/ui/PageHeader";
+import { T } from "@/components/i18n/T";
+import { bnDate } from "@/lib/bn";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
@@ -60,6 +62,7 @@ export default async function TodaysNewsPage() {
 
   const items = news ?? [];
   const dateLabel = items[0]?.post_date ? formatDate(items[0].post_date) : null;
+  const dateLabelBn = items[0]?.post_date ? bnDate(items[0].post_date) : null;
 
   return (
     <>
@@ -69,13 +72,21 @@ export default async function TodaysNewsPage() {
       />
 
       <PageHeader
-        eyebrow="Dhaka Stock Exchange"
-        title={<>Today&apos;s News</>}
-        bn="শেষ লেনদেনের দিনে সব কোম্পানির খবর — এক পাতায়।"
+        eyebrow={<T en="Dhaka Stock Exchange" bn="ঢাকা স্টক এক্সচেঞ্জ" />}
+        title={<T en="Today's news" bn="আজকের খবর" />}
+        lead={
+          <T
+            en="Every company announcement from the last news day, on one page. Company news is shown as DSE published it, in English."
+            bn="শেষ খবরের দিনে সব কোম্পানির ঘোষণা, এক পেজে। কোম্পানির খবর ডিএসই যেভাবে প্রকাশ করেছে, সেভাবেই ইংরেজিতে দেখানো হয়।"
+          />
+        }
         actions={
           dateLabel ? (
             <span className="ms-page-date">
-              {items.length} {items.length === 1 ? "story" : "stories"} · {dateLabel}
+              <T
+                en={`${items.length} ${items.length === 1 ? "story" : "stories"} · ${dateLabel}`}
+                bn={`${items.length}টি খবর · ${dateLabelBn}`}
+              />
             </span>
           ) : undefined
         }
@@ -84,14 +95,19 @@ export default async function TodaysNewsPage() {
       {news === null && (
         <div className="ms-card">
           <p className="ms-empty">
-            We couldn&apos;t load the news right now. Please refresh in a moment.
+            <T
+              en="We couldn't load the news right now. Please refresh in a moment."
+              bn="এই মুহূর্তে খবর লোড করা যাচ্ছে না। একটু পরে আবার রিফ্রেশ করুন।"
+            />
           </p>
         </div>
       )}
 
       {news !== null && items.length === 0 && (
         <div className="ms-card">
-          <p className="ms-empty">No news was published on the latest trading day.</p>
+          <p className="ms-empty">
+            <T en="No news was published on the last trading day." bn="শেষ লেনদেনের দিনে কোনো খবর প্রকাশিত হয়নি।" />
+          </p>
         </div>
       )}
 

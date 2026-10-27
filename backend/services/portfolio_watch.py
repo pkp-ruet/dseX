@@ -39,6 +39,21 @@ def _money(v: float) -> str:
     return f"৳{v:,.0f}" if abs(v) >= 100 else f"৳{v:,.1f}"
 
 
+_MONTHS_EN = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+_MONTHS_BN = ("জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট",
+              "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর")
+
+
+def _day(iso: str, lang: str) -> str:
+    """"28 Oct 2026" / "28 অক্টোবর 2026" for an ISO date; the raw text otherwise."""
+    try:
+        y, m, d = (int(x) for x in str(iso)[:10].split("-"))
+        months = _MONTHS_BN if lang == "bn" else _MONTHS_EN
+        return f"{d} {months[m - 1]} {y}"
+    except (ValueError, IndexError):
+        return str(iso)
+
+
 def _record_event(code: str, qty: int, row: dict) -> Optional[dict]:
     days = row.get("record_days_left")
     rd = row.get("record_date")
@@ -63,8 +78,8 @@ def _record_event(code: str, qty: int, row: dict) -> Optional[dict]:
         "id": f"record-{code}-{rd}", "kind": "record", "code": code, "level": "good",
         "title_en": f"{code} record date {when_en}",
         "title_bn": f"{code}-এর রেকর্ড ডেট {when_bn}",
-        "body_en": f"Keep the shares until {rd} to get {' and '.join(parts_en)}.",
-        "body_bn": f"{rd} পর্যন্ত শেয়ার রাখলে পাবেন {' ও '.join(parts_bn)}।",
+        "body_en": f"If you still hold the shares on {_day(rd, 'en')}, you will receive {' and '.join(parts_en)}.",
+        "body_bn": f"{_day(rd, 'bn')} তারিখে শেয়ারগুলো আপনার কাছে থাকলে পাবেন {' ও '.join(parts_bn)}।",
     }
 
 
@@ -99,23 +114,25 @@ def _category_event(code: str, old: str, new: str, day: str) -> Optional[dict]:
         "level": "bad" if to_z or (old == "A" and new == "B") else "good" if new == "A" else "watch",
         "title_en": f"{code} moved from {old} to {new} category",
         "title_bn": f"{code} {old} থেকে {new} ক্যাটাগরিতে গেছে",
-        "body_en": ("Z is for companies that skipped dividends or AGMs — the riskiest on the DSE."
+        "body_en": ("DSE moves a company to Z when it skips a dividend or an AGM. "
+                    "These shares carry the most risk on the DSE."
                     if to_z else "DSE changed its category after the latest dividend or AGM."),
-        "body_bn": ("Z ক্যাটাগরি মানে ডিভিডেন্ড বা AGM বাদ দেওয়া কোম্পানি — সবচেয়ে ঝুঁকিপূর্ণ।"
-                    if to_z else "সর্বশেষ ডিভিডেন্ড বা AGM-এর পর DSE ক্যাটাগরি বদলেছে।"),
+        "body_bn": ("ডিভিডেন্ড না দিলে বা এজিএম না করলে ডিএসই কোম্পানিকে Z ক্যাটাগরিতে পাঠায়। "
+                    "ডিএসইতে এই শেয়ারগুলোর ঝুঁকি সবচেয়ে বেশি।"
+                    if to_z else "সর্বশেষ ডিভিডেন্ড বা এজিএমের পর ডিএসই এর ক্যাটাগরি বদলেছে।"),
     }
 
 
 def _drop_event(code: str, qty: int, change_pct: float, change: Optional[float], day: str) -> dict:
     lost = abs(change or 0) * qty if change is not None else None
-    lost_en = f" — about {_money(lost)} off your shares" if lost else ""
-    lost_bn = f" — আপনার শেয়ারে প্রায় {_money(lost)} কম" if lost else ""
+    lost_en = f", about {_money(lost)} off the value of your shares" if lost else ""
+    lost_bn = f", আপনার শেয়ারের মূল্য প্রায় {_money(lost)} কমেছে" if lost else ""
     return {
         "id": f"drop-{code}-{day}", "kind": "drop", "code": code, "level": "bad",
         "title_en": f"{code} fell {abs(change_pct):.1f}% today",
         "title_bn": f"{code} আজ {abs(change_pct):.1f}% কমেছে",
-        "body_en": f"A big one-day fall{lost_en}. Check the news before you act.",
-        "body_bn": f"একদিনে বড় পতন{lost_bn}। কিছু করার আগে খবর দেখে নিন।",
+        "body_en": f"A big fall in one day{lost_en}. It is worth checking the news before you act.",
+        "body_bn": f"একদিনে বড় দরপতন হয়েছে{lost_bn}। কিছু করার আগে খবর দেখে নিন।",
     }
 
 
@@ -123,9 +140,9 @@ def _low_event(code: str, ltp: float, day: str) -> dict:
     return {
         "id": f"low52-{code}-{day}", "kind": "low52", "code": code, "level": "watch",
         "title_en": f"{code} is at its lowest price in a year",
-        "title_bn": f"{code} এক বছরের সবচেয়ে কম দামে",
-        "body_en": f"It closed at ৳{ltp:,.1f}. A low price is a reason to look again, not a reason on its own.",
-        "body_bn": f"আজ ৳{ltp:,.1f}-এ শেষ হয়েছে। কম দাম মানেই কেনার কারণ নয় — আবার দেখে নিন।",
+        "title_bn": f"{code} এক বছরের সর্বনিম্ন দামে",
+        "body_en": f"It closed at ৳{ltp:,.1f}. A low price is a reason to look again, not a reason to buy on its own.",
+        "body_bn": f"আজ দাম ৳{ltp:,.1f}-এ শেষ হয়েছে। কম দাম নিজে কেনার কারণ নয়, তবে আবার দেখে নেওয়ার কারণ।",
     }
 
 
@@ -203,8 +220,8 @@ def push_payload(events: list[dict], lang: str = "bn", url: str = "/portfolio?sr
         if anchor and top.get("code"):
             url = f"/stock/{top['code']}?src=watch#{anchor}"
     else:
-        title = (f"আজ আপনার শেয়ারে {len(ranked)}টি খবর" if bn
-                 else f"{len(ranked)} things on your stocks today")
+        title = (f"আজ আপনার শেয়ারে {len(ranked)}টি আপডেট" if bn
+                 else f"{len(ranked)} updates on your shares today")
         body = " · ".join((e["title_bn"] if bn else e["title_en"]) for e in ranked[:3])
     return {"title": title, "body": body, "url": url, "tag": "pwatch"}
 
@@ -256,8 +273,8 @@ def teaser_payload(events: list[dict], free: Optional[dict], lang: str = "bn",
         body = free["body_bn"] if bn else free["body_en"]
         if others:
             n = len(others)
-            body += (f" আজ আপনার শেয়ারে আরও {n}টি খবর — প্রিমিয়ামে দেখুন।" if bn
-                     else f" {n} more {'thing' if n == 1 else 'things'} on your stocks today — see {'it' if n == 1 else 'them'} with Premium.")
+            body += (f" আজ আপনার শেয়ারে আরও {n}টি আপডেট আছে, যা প্রিমিয়ামে দেখা যাবে।" if bn
+                     else f" {n} more {'update' if n == 1 else 'updates'} on your shares today, which you can see with Premium.")
         else:
             anchor = _STOCK_ANCHOR.get(free.get("kind"))
             if anchor and free.get("code"):
@@ -269,11 +286,11 @@ def teaser_payload(events: list[dict], free: Optional[dict], lang: str = "bn",
     shown = ", ".join(codes[:3]) + ("…" if len(codes) > 3 else "")
     phrase = kinds_phrase(_kinds_of(events), "bn" if bn else "en")
     if bn:
-        title = f"আজ {codes[0]}-এ একটি খবর" if n == 1 and codes else f"আজ আপনার শেয়ারে {n}টি খবর"
-        body = f"{shown}-এ {phrase}। কী হয়েছে আর এর মানে কী, প্রিমিয়ামে দেখুন।"
+        title = f"আজ {codes[0]}-এ একটি আপডেট" if n == 1 and codes else f"আজ আপনার শেয়ারে {n}টি আপডেট"
+        body = f"{shown}-এ {phrase}। কী হয়েছে আর এর মানে কী, তা প্রিমিয়ামে দেখুন।"
     else:
-        title = (f"Something happened on {codes[0]} today" if n == 1 and codes
-                 else f"{n} things on your stocks today")
+        title = (f"One update on {codes[0]} today" if n == 1 and codes
+                 else f"{n} updates on your shares today")
         body = f"{phrase[:1].upper()}{phrase[1:]} on {shown}. See what happened and what it means with Premium."
     return {"title": title, "body": body, "url": url, "tag": "pwatch"}
 
@@ -281,8 +298,8 @@ def teaser_payload(events: list[dict], free: Optional[dict], lang: str = "bn",
 def trial_recap_payload(caught: int, days_left: int, lang: str = "bn") -> dict:
     bn = lang != "en"
     if caught > 0:
-        title = (f"প্রিমিয়াম এই মাসে আপনার শেয়ারে {caught}টি জিনিস ধরেছে" if bn
-                 else f"Premium caught {caught} things on your stocks this month")
+        title = (f"এই মাসে প্রিমিয়াম আপনার শেয়ারে {caught}টি আপডেট পেয়েছে" if bn
+                 else f"This month Premium found {caught} updates on your shares")
     else:
         title = "আপনার প্রিমিয়াম ফ্রি মাস" if bn else "Your free month of Premium"
     body = (f"ফ্রি মাস শেষ হতে আর {days_left} দিন। কী কী পেয়েছেন দেখে নিন।" if bn
@@ -296,11 +313,11 @@ def trial_recap_payload(caught: int, days_left: int, lang: str = "bn") -> dict:
 
 # Plain words per kind: (English one, English many, Bengali).
 KIND_WORDS = {
-    "results": ("quarterly result", "quarterly results", "ত্রৈমাসিক ফল"),
+    "results": ("quarterly result", "quarterly results", "প্রান্তিকের ফল"),
     "grade": ("grade change", "grade changes", "গ্রেড বদল"),
     "record": ("record date", "record dates", "রেকর্ড ডেট"),
     "category": ("category change", "category changes", "ক্যাটাগরি বদল"),
-    "drop": ("big one-day fall", "big one-day falls", "একদিনের বড় পতন"),
+    "drop": ("big one-day fall", "big one-day falls", "একদিনে বড় দরপতন"),
     "low52": ("fall to a yearly low", "falls to a yearly low", "বছরের সর্বনিম্ন দাম"),
 }
 _KIND_ORDER = list(KIND_WORDS)

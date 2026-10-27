@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { T } from "@/components/i18n/T";
 import { subscribeWatchlist, getCachedWatchlist } from "@/lib/watchlist";
 import {
   isPushSupported,
@@ -113,16 +114,25 @@ export default function PushOptInPrompt() {
             {mode === "ios" ? (
               <>
                 <p className="text-sm font-bold text-text-main">
-                  Get a daily heads-up on your stocks
+                  <T en="Get a short daily update on your stocks" bn="প্রতিদিন আপনার শেয়ারের ছোট্ট আপডেট পান" />
                 </p>
                 <p className="mt-1 text-xs leading-snug text-text-muted">
-                  To turn on alerts on iPhone, tap{" "}
-                  <span className="font-semibold">Share</span> then{" "}
-                  <span className="font-semibold">Add to Home Screen</span>, and open
-                  TopStockBD from there.
-                </p>
-                <p className="mt-1 text-xs leading-snug text-text-muted font-bn" lang="bn">
-                  আইফোনে: Share → Add to Home Screen চাপুন, তারপর সেখান থেকে অ্যাপটি খুলুন।
+                  <T
+                    en={
+                      <>
+                        To turn on alerts on an iPhone, tap <span className="font-semibold">Share</span>, then{" "}
+                        <span className="font-semibold">Add to Home Screen</span>, and open TopStockBD from
+                        there.
+                      </>
+                    }
+                    bn={
+                      <>
+                        আইফোনে অ্যালার্ট চালু করতে <span className="font-semibold">Share</span>, তারপর{" "}
+                        <span className="font-semibold">Add to Home Screen</span> চাপুন। এরপর সেখান থেকে
+                        TopStockBD খুলুন।
+                      </>
+                    }
+                  />
                 </p>
                 <div className="mt-3 flex justify-end">
                   <button
@@ -130,26 +140,27 @@ export default function PushOptInPrompt() {
                     onClick={snooze}
                     className="rounded-lg px-3 py-2 text-xs font-semibold text-text-muted hover:text-text-main"
                   >
-                    Got it
+                    <T en="Got it" bn="বুঝেছি" />
                   </button>
                 </div>
               </>
             ) : (
               <>
                 <p className="text-sm font-bold text-text-main">
-                  Your stocks, in one daily update
+                  <T en="Your stocks in one daily update" bn="প্রতিদিন একটি আপডেটে আপনার শেয়ার" />
                 </p>
                 <p className="mt-1 text-xs leading-snug text-text-muted">
-                  A quick look at your watchlist — movers, dividends and alerts.
-                  One message, no spam.
-                </p>
-                <p className="mt-1 text-xs leading-snug text-text-muted font-bn" lang="bn">
-                  প্রতিদিন আপনার শেয়ারের ছোট্ট আপডেট
+                  <T
+                    en="A short look at your watchlist: price moves, dividends and your alerts. One message a day, nothing more."
+                    bn="আপনার ওয়াচলিস্টের ছোট্ট খবর: দামের ওঠানামা, ডিভিডেন্ড আর অ্যালার্ট। দিনে একটি বার্তা, এর বেশি নয়।"
+                  />
                 </p>
                 {failed && (
                   <p className="mt-2 text-xs leading-snug text-negative">
-                    Couldn&apos;t turn on alerts. If your browser blocked them, allow
-                    notifications for this site and try again.
+                    <T
+                      en="We couldn't turn on alerts. If your browser blocked them, allow notifications for this site and try again."
+                      bn="অ্যালার্ট চালু করা যায়নি। আপনার ব্রাউজার আটকে দিলে এই সাইটের নোটিফিকেশন চালু করে আবার চেষ্টা করুন।"
+                    />
                   </p>
                 )}
                 <div className="mt-3 flex items-center justify-end gap-2">
@@ -159,7 +170,7 @@ export default function PushOptInPrompt() {
                     disabled={busy}
                     className="btn-link btn-sm"
                   >
-                    Not now
+                    <T en="Not now" bn="এখন না" />
                   </button>
                   <button
                     type="button"
@@ -167,7 +178,13 @@ export default function PushOptInPrompt() {
                     disabled={busy}
                     className="btn-primary btn-sm"
                   >
-                    {busy ? "Turning on…" : failed ? "Try again" : "Turn on alerts"}
+                    {busy ? (
+                      <T en="Turning on…" bn="চালু হচ্ছে…" />
+                    ) : failed ? (
+                      <T en="Try again" bn="আবার চেষ্টা করুন" />
+                    ) : (
+                      <T en="Turn on alerts" bn="অ্যালার্ট চালু করুন" />
+                    )}
                   </button>
                 </div>
               </>

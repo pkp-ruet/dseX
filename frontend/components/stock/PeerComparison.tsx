@@ -2,7 +2,8 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import type { BiText, RelatedStock } from "@/lib/api";
-import { useStockLang } from "@/context/StockLangContext";
+import { T } from "@/components/i18n/T";
+import { sectorBn } from "@/lib/bn";
 import Card from "@/components/ui/Card";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import SectionTitle from "@/components/stock/SectionTitle";
@@ -44,8 +45,6 @@ function fmt(v: number | null, kind: "score" | "price" | "pct" | "ratio"): strin
 }
 
 export default function PeerComparison({ current, peers, sector, note = null }: Props) {
-  const { lang } = useStockLang();
-  const isBn = lang === "bn";
   const rows: PeerRow[] = useMemo(() => {
     const peerRows: PeerRow[] = peers.map((p) => ({
       trading_code: p.trading_code,
@@ -91,34 +90,35 @@ export default function PeerComparison({ current, peers, sector, note = null }: 
   // `wide`: shown from 640px only. Price and today's move are on each peer's
   // own page; dropping them on a phone lets the comparison fit the screen
   // instead of scrolling sideways.
-  type Col = { key: SortKey; label: string; kind: "score" | "price" | "pct" | "ratio"; show: boolean; wide?: boolean };
+  type Col = { key: SortKey; en: string; bn: string; kind: "score" | "price" | "pct" | "ratio"; show: boolean; wide?: boolean };
   const cols: Col[] = ([
-    { key: "score", label: "Score", kind: "score", show: true },
-    { key: "ltp", label: "Price", kind: "price", show: true, wide: true },
-    { key: "change_pct", label: "Today", kind: "pct", show: true, wide: true },
-    { key: "pe", label: "P/E", kind: "ratio", show: showPe },
-    { key: "div_yield_pct", label: "Yield", kind: "pct", show: showYield },
-    { key: "roe_pct", label: "ROE", kind: "pct", show: showRoe },
+    { key: "score", en: "Score", bn: "স্কোর", kind: "score", show: true },
+    { key: "ltp", en: "Price", bn: "দাম", kind: "price", show: true, wide: true },
+    { key: "change_pct", en: "Today", bn: "আজ", kind: "pct", show: true, wide: true },
+    { key: "pe", en: "P/E", bn: "পিই", kind: "ratio", show: showPe },
+    { key: "div_yield_pct", en: "Yield", bn: "ইল্ড", kind: "pct", show: showYield },
+    { key: "roe_pct", en: "ROE", bn: "আরওই", kind: "pct", show: showRoe },
   ] as Col[]).filter((c) => c.show);
   const cell = (c: Col) => `px-2 sm:px-3 ${c.wide ? "hidden sm:table-cell" : ""}`;
 
   return (
     <section id="peers" className="mb-8 stock-anchor">
       <SectionTitle
-        title="How It Stacks Up"
-        sub={<>{current.trading_code} versus the strongest names in {sector ?? "its sector"}.</>}
-        bn="একই সেক্টরের সেরা কোম্পানিগুলোর সাথে তুলনা।"
+        title={<T en="Compared with similar companies" bn="একই ধরনের কোম্পানির সঙ্গে তুলনা" />}
+        sub={
+          <T
+            en={`${current.trading_code} next to the strongest companies in ${sector ?? "its sector"}.`}
+            bn={`${sector ? `${sectorBn(sector)} সেক্টরের` : "একই সেক্টরের"} সবচেয়ে শক্ত কোম্পানিগুলোর পাশে ${current.trading_code}।`}
+          />
+        }
       />
 
       {/* The table is free facts; where it stands among them (peerStandingCaption)
           is part of the full verdict's price question. The note is a caveat about
           the table itself, so it stays here. */}
       {note && (
-        <p
-          className={`mb-3 text-sm leading-snug rounded-xl px-3 py-2.5 bg-surface-2 text-text-muted ${isBn ? "font-bn" : ""}`}
-          lang={isBn ? "bn" : undefined}
-        >
-          {isBn ? note.bn : note.en}
+        <p className="mb-3 text-sm leading-snug rounded-xl px-3 py-2.5 bg-surface-2 text-text-muted">
+          <T en={note.en} bn={note.bn} />
         </p>
       )}
 
@@ -132,7 +132,7 @@ export default function PeerComparison({ current, peers, sector, note = null }: 
                   className="text-left font-bold px-2 sm:px-3 py-2.5 sticky left-0 z-10"
                   style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
                 >
-                  Stock
+                  <T en="Share" bn="শেয়ার" />
                 </th>
                 {cols.map((c) => (
                   <th
@@ -147,7 +147,7 @@ export default function PeerComparison({ current, peers, sector, note = null }: 
                       className="font-bold inline-flex items-center gap-1"
                       style={{ color: sortKey === c.key ? "var(--primary)" : "var(--text-muted)" }}
                     >
-                      {c.label}
+                      <T en={c.en} bn={c.bn} />
                       {sortKey === c.key && (
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                           {asc ? <path d="M12 4 21 19H3z" /> : <path d="M12 20 3 5h18z" />}

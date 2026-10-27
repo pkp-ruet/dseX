@@ -41,7 +41,8 @@ export function SortIcon({ dir }: { dir: SortDir | null }) {
 
 interface SortThProps<C extends string> {
   col: C;
-  label: string;
+  /** Plain text or a `<T en bn />` pair. */
+  label: ReactNode;
   active: C;
   dir: SortDir;
   onSort: (col: C) => void;

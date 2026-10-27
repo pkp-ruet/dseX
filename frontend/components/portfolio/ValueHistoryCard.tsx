@@ -124,7 +124,7 @@ export default function ValueHistoryCard({
   return (
     <PfCard
       title={L("Your money over time", "সময়ের সাথে আপনার টাকা")}
-      bn="সময়ের সাথে আপনার টাকা"
+
       lang={lang}
       dataCard="value-history"
     >

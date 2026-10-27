@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
+import { T, TBlock } from "@/components/i18n/T";
 import { notFound } from "next/navigation";
 import { getScores } from "@/lib/api";
 import {
@@ -116,13 +117,17 @@ export default async function SamplePortfolioPage({ params }: Props) {
     return (
       <div className="page-narrow py-12">
         <p className="text-text-muted text-center">
-          Live data is unavailable right now. Please try again shortly.
+          <T
+            en="Live data is not available right now. Please try again shortly."
+            bn="এই মুহূর্তে লাইভ তথ্য পাওয়া যাচ্ছে না। একটু পরে আবার চেষ্টা করুন।"
+          />
         </p>
       </div>
     );
   }
 
   const { rows, analysis } = buildSampleAnalysis(portfolio, scores);
+  const { analysis: analysisBn } = buildSampleAnalysis(portfolio, scores, "bn");
   const meta = META[portfolio.slug];
 
   return (
@@ -140,20 +145,21 @@ export default async function SamplePortfolioPage({ params }: Props) {
         className="flex items-center gap-2 text-xs text-text-muted"
       >
         <Link href="/" className="hover:text-primary transition-colors">
-          Home
+          <T en="Home" bn="হোম" />
         </Link>
         <span aria-hidden="true">/</span>
-        <span className="text-text-main">{portfolio.name}</span>
+        <span className="text-text-main">
+          <T en={portfolio.name} bn={portfolio.nameBn} />
+        </span>
       </nav>
 
       <PageHeader
-        eyebrow="Sample portfolio analysis"
-        title={portfolio.name}
-        bn="একটি নমুনা পোর্টফোলিও — আসল স্কোর ও দাম দিয়ে বিশ্লেষণ করে দেখানো।"
-        lead={portfolio.tagline}
+        eyebrow={<T en="Sample portfolio check" bn="নমুনা পোর্টফোলিও যাচাই" />}
+        title={<T en={portfolio.name} bn={portfolio.nameBn} />}
+        lead={<T en={portfolio.tagline} bn={portfolio.taglineBn} />}
       />
       <p className="text-text-main leading-relaxed text-sm sm:text-base">
-        {portfolio.narrative}
+        <T en={portfolio.narrative} bn={portfolio.narrativeBn} />
       </p>
 
       {/* Quick stats */}
@@ -162,7 +168,10 @@ export default async function SamplePortfolioPage({ params }: Props) {
       <hr className="border-border" />
 
       {/* Full analysis (verdict, good/bad/consider, sector chart, detailed holdings, disclaimer) */}
-      <PortfolioAnalysisView analysis={analysis} />
+      <TBlock
+        en={<PortfolioAnalysisView analysis={analysis} />}
+        bn={<PortfolioAnalysisView analysis={analysisBn} lang="bn" />}
+      />
 
       <hr className="border-border" />
 
@@ -178,10 +187,13 @@ export default async function SamplePortfolioPage({ params }: Props) {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5">
           <div>
             <p className="text-sm sm:text-base font-semibold text-text-main leading-snug">
-              Want this analysis for your real portfolio?
+              <T en="Would you like this check on your own portfolio?" bn="নিজের পোর্টফোলিওতে এই যাচাই চান?" />
             </p>
             <p className="text-xs text-text-muted mt-0.5">
-              Add your holdings and get the same plain-English report — free.
+              <T
+                en="Add your shares and get the same plain report, free."
+                bn="আপনার শেয়ার যোগ করুন, আর ফ্রিতে একই সহজ রিপোর্ট পান।"
+              />
             </p>
           </div>
           <div className="flex gap-2 shrink-0">
@@ -189,7 +201,7 @@ export default async function SamplePortfolioPage({ params }: Props) {
               href="/register"
               className="btn-primary"
             >
-              Sign up free
+              <T en="Sign up free" bn="ফ্রি অ্যাকাউন্ট খুলুন" />
               <svg
                 width="14"
                 height="14"
@@ -204,7 +216,7 @@ export default async function SamplePortfolioPage({ params }: Props) {
               href="/portfolio"
               className="btn-quiet"
             >
-              I have an account
+              <T en="I have an account" bn="আমার অ্যাকাউন্ট আছে" />
             </Link>
           </div>
         </div>
@@ -212,20 +224,22 @@ export default async function SamplePortfolioPage({ params }: Props) {
 
       {/* Other sample */}
       <section className="text-center">
-        <p className="text-xs text-text-muted mb-2">See the other sample portfolio</p>
+        <p className="text-xs text-text-muted mb-2">
+          <T en="See the other sample portfolio" bn="অন্য নমুনা পোর্টফোলিওটি দেখুন" />
+        </p>
         {portfolio.slug === "diversified" ? (
           <Link
             href="/sample-portfolio/risky"
             className="text-sm font-semibold text-primary hover:underline"
           >
-            View the Risky Portfolio analysis →
+            <T en="See the risky portfolio check →" bn="ঝুঁকিপূর্ণ পোর্টফোলিওর যাচাই দেখুন →" />
           </Link>
         ) : (
           <Link
             href="/sample-portfolio/diversified"
             className="text-sm font-semibold text-primary hover:underline"
           >
-            View the Diversified Portfolio analysis →
+            <T en="See the diversified portfolio check →" bn="ছড়ানো পোর্টফোলিওর যাচাই দেখুন →" />
           </Link>
         )}
       </section>

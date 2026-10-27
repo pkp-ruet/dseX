@@ -1,18 +1,40 @@
-import { t } from "@/lib/home-copy";
+import Link from "next/link";
+import { tt } from "@/components/home/tt";
+import { T } from "@/components/i18n/T";
 import DashHeader from "@/components/home/personalized/DashHeader";
 
 /**
- * "আজকের বাজার এক নজরে" — the backend's everyday-Bengali paragraph on the day,
- * shown in BOTH language modes (the audience reads Bengali; English mode is a
- * UI preference, not a reading preference). Links to the Bengali daily article.
+ * "Today's market at a glance" — the backend's plain paragraph on the day
+ * (`summary_bn`, and its English twin `summary_en` from 2026-10-27). The card
+ * follows the page language; with an older backend that sends only Bengali it
+ * shows in Bengali mode only. Bengali readers go on to the daily Bengali
+ * article, English readers to Market analysis.
  */
-export default function BanglaSnapshotCard({ summary }: { summary: string | null | undefined }) {
-  const text = (summary ?? "").trim();
-  if (!text) return null;
+export default function BanglaSnapshotCard({
+  summary,
+  summaryEn,
+}: {
+  summary: string | null | undefined;
+  summaryEn?: string | null;
+}) {
+  const bn = (summary ?? "").trim();
+  const en = (summaryEn ?? "").trim();
+  if (!bn && !en) return null;
+  const link = "inline-flex min-h-10 shrink-0 items-center text-sm font-semibold text-primary-ink hover:underline active:opacity-70";
   return (
-    <section lang="bn" className="font-bn soft-card overflow-hidden">
-      <DashHeader title={t("bn", "snapshotTitle")} href="/share-bazar" linkLabel={t("bn", "readFull")} />
-      <p className="px-4 py-4 text-base leading-relaxed text-text-main sm:px-5">{text}</p>
+    <section className="soft-card overflow-hidden" data-l={en && bn ? undefined : en ? "en" : "bn"}>
+      <DashHeader
+        title={tt("snapshotTitle")}
+        right={
+          <T
+            en={<Link prefetch={false} href="/market-analysis" className={link}>{tt("fullPicture")} →</Link>}
+            bn={<Link prefetch={false} href="/share-bazar" className={link}>{tt("readFull")} →</Link>}
+          />
+        }
+      />
+      <p className="px-4 py-4 text-base leading-relaxed text-text-main sm:px-5">
+        <T en={en || bn} bn={bn || en} />
+      </p>
     </section>
   );
 }

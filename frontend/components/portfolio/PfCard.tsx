@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import Bn from "@/components/i18n/Bn";
 import type { AnalysisLang } from "@/lib/portfolio-analysis";
 
 /**
@@ -9,12 +8,11 @@ import type { AnalysisLang } from "@/lib/portfolio-analysis";
  * on the right. No icon tiles, no tinted header rows, no coloured edges; the
  * numbers and the meaning dots carry the colour.
  *
- * `title` and `note` arrive already in the reader's language; `bn` is the
- * Bengali title, shown as a sub-line only when the page is in English.
+ * `title` and `note` arrive already in the reader's language (one language
+ * per page, 2026-10-27).
  */
 export default function PfCard({
   title,
-  bn,
   note,
   right,
   id,
@@ -26,7 +24,6 @@ export default function PfCard({
   children,
 }: {
   title?: ReactNode;
-  bn?: ReactNode;
   note?: ReactNode;
   right?: ReactNode;
   /** Put on the title, for aria-labelledby. */
@@ -39,7 +36,6 @@ export default function PfCard({
   dataCard?: string;
   children: ReactNode;
 }) {
-  const isBn = lang === "bn";
   return (
     <Tag
       className={`soft-card pf-card ${flush ? "pf-card--flush" : ""} ${className}`.replace(/\s+/g, " ").trim()}
@@ -48,11 +44,10 @@ export default function PfCard({
     >
       {title && (
         <div className="pf-card-head">
-          <div className={`min-w-0 ${isBn ? "font-bn" : ""}`} lang={isBn ? "bn" : undefined}>
+          <div className="min-w-0">
             <h3 className="pf-card-title" id={id}>
               {title}
             </h3>
-            {bn && !isBn && <Bn className="pf-card-bn">{bn}</Bn>}
             {note && <p className="pf-card-note">{note}</p>}
           </div>
           {right && <div className="shrink-0">{right}</div>}
@@ -63,29 +58,23 @@ export default function PfCard({
   );
 }
 
-/** A chapter heading: title, Bengali line (English mode), one lead line. */
+/** A chapter heading: title and one lead line, in the reader's language. */
 export function PfChapterHead({
   id,
   title,
-  bn,
   lead,
-  lang = "en",
   right,
 }: {
   /** Put on the h2, for the chapter's aria-labelledby. */
   id?: string;
-  title: string;
-  bn: string;
-  lead?: string;
-  lang?: AnalysisLang;
+  title: ReactNode;
+  lead?: ReactNode;
   right?: ReactNode;
 }) {
-  const isBn = lang === "bn";
   return (
     <div className="pf-chapter-head">
-      <div className={`min-w-0 ${isBn ? "font-bn" : ""}`} lang={isBn ? "bn" : undefined}>
+      <div className="min-w-0">
         <h2 className="pf-chapter-title" id={id}>{title}</h2>
-        {!isBn && <Bn className="pf-chapter-bn">{bn}</Bn>}
         {lead && <p className="pf-chapter-lead">{lead}</p>}
       </div>
       {right && <div className="shrink-0">{right}</div>}

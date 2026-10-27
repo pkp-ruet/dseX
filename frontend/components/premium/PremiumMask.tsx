@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { useLockScope } from "@/components/premium/LockScope";
-import { useLang } from "@/context/LangContext";
+import { T } from "@/components/i18n/T";
 import { usePremium } from "@/lib/premium";
 
 /** True once the reader may see Premium content here: a Premium reader, or a
@@ -35,7 +35,6 @@ export default function PremiumMask({
   className?: string;
 }) {
   const open = usePremiumOpen();
-  const { bn } = useLang();
   const locked = !open;
 
   return (
@@ -49,7 +48,9 @@ export default function PremiumMask({
       </div>
       {locked && (
         <div className="premium-mask">
-          <span className="sr-only">{bn ? "প্রিমিয়ামে" : "In Premium"}</span>
+          <span className="sr-only">
+            <T en="In Premium" bn="প্রিমিয়ামে" />
+          </span>
           {Array.from({ length: lines }, (_, i) => (
             <span key={i} aria-hidden="true" className="premium-mask-line" style={{ width: WIDTHS[i % WIDTHS.length] }} />
           ))}

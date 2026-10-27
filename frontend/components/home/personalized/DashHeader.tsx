@@ -19,14 +19,14 @@ export default function DashHeader({
   as: Tag = "h3",
   accent,
 }: {
-  title: string;
+  title: ReactNode;
   /** One short line under the title saying what the card is for. */
-  sub?: string;
+  sub?: ReactNode;
   /** Small pills rendered right after the title (counts, date, "N new"). */
   chips?: ReactNode;
   /** Right-aligned quiet link ("View all 12 →"). */
   href?: string;
-  linkLabel?: string;
+  linkLabel?: ReactNode;
   /** Custom right slot — wins over href/linkLabel. */
   right?: ReactNode;
   as?: "h2" | "h3";

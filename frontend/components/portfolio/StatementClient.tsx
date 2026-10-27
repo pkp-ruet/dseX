@@ -7,9 +7,10 @@ import Button from "@/components/ui/Button";
 import Chip from "@/components/ui/Chip";
 import Skeleton from "@/components/ui/Skeleton";
 import ErrorState from "@/components/ui/ErrorState";
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
 import PremiumGate from "@/components/premium/PremiumGate";
 import { useAuth } from "@/context/AuthContext";
+import { useLang } from "@/context/LangContext";
 import { apiGetPortfolio, MAIN_PORTFOLIO_ID, type PortfolioResponse } from "@/lib/api";
 import { formatDate, takaGroup } from "@/lib/formatters";
 import {
@@ -21,13 +22,12 @@ import {
 } from "@/lib/portfolio-ledger";
 import { trackEvent } from "@/lib/track";
 
-function Row({ label, value, tone = "text-text-main", bn }: { label: string; value: string; tone?: string; bn?: string }) {
+function Row({ label, value, tone = "text-text-main", bn }: { label: string; value: string; tone?: string; bn: string }) {
   return (
     <div className="flex items-baseline justify-between gap-3 py-2">
-      <div>
-        <p className="text-sm text-text-main">{label}</p>
-        {bn && <Bn className="text-xs text-text-muted">{bn}</Bn>}
-      </div>
+      <p className="text-sm text-text-main">
+        <T en={label} bn={bn} />
+      </p>
       <p className={`nums shrink-0 text-sm font-bold ${tone}`}>{value}</p>
     </div>
   );
@@ -44,6 +44,8 @@ function Row({ label, value, tone = "text-text-main", bn }: { label: string; val
  */
 export default function StatementClient() {
   const { isLoggedIn, isLoading } = useAuth();
+  const { lang } = useLang();
+  const L = (en: string, bn: string) => (lang === "bn" ? bn : en);
   const [pid, setPid] = useState(MAIN_PORTFOLIO_ID);
   const [data, setData] = useState<PortfolioResponse | null>(null);
   const [error, setError] = useState(false);
@@ -85,16 +87,22 @@ export default function StatementClient() {
   if (!isLoggedIn) {
     return (
       <Card padding="md" className="text-center">
-        <p className="font-semibold text-text-main">Sign in to see your statement</p>
+        <p className="font-semibold text-text-main">
+          <T en="Sign in to see your statement" bn="আপনার বার্ষিক হিসাব দেখতে সাইন ইন করুন" />
+        </p>
         <div className="mt-4 flex justify-center gap-3">
-          <Button href="/login" size="sm">Sign in</Button>
-          <Button href="/register" variant="quiet" size="sm">Create account</Button>
+          <Button href="/login" size="sm">
+            <T en="Sign in" bn="সাইন ইন" />
+          </Button>
+          <Button href="/register" variant="quiet" size="sm">
+            <T en="Create an account" bn="অ্যাকাউন্ট খুলুন" />
+          </Button>
         </div>
       </Card>
     );
   }
   if (error) {
-    return <ErrorState size="inline" title="Couldn't load your statement" bn="হিসাব এখন লোড হচ্ছে না।" reload />;
+    return <ErrorState size="inline" title={<T en="We couldn't load your statement" bn="আপনার বার্ষিক হিসাব এখন লোড করা যাচ্ছে না" />} reload />;
   }
 
   function download() {
@@ -124,57 +132,68 @@ export default function StatementClient() {
       <PremiumGate
         preview="blur"
         peek={220}
-        label="Your yearly statement"
+        label={{ en: "Your yearly statement", bn: "আপনার বার্ষিক হিসাব" }}
         stakes={[
           entries.length
-            ? `${entries.length} entries for ${year}, with totals, fees and dividend tax`
-            : `Every buy, sale and dividend for ${year}, ready to print`,
+            ? { en: `${entries.length} entries for ${year}, with totals, fees and dividend tax`, bn: `${year} সালের ${entries.length}টি লেনদেন, মোট হিসাব, খরচ আর ডিভিডেন্ডের করসহ` }
+            : { en: `Every buy, sale and dividend for ${year}, ready to print`, bn: `${year} সালের প্রতিটি কেনা, বেচা আর ডিভিডেন্ড, প্রিন্টের জন্য তৈরি` },
         ]}
       >
         <Card padding="none" className="statement-sheet p-5 sm:p-6">
           <p className="text-xs font-semibold text-text-muted">TopStockBD · {name}</p>
-          <h2 className="mt-1 text-xl font-bold text-text-main">Statement for {year}</h2>
-          <Bn className="text-sm text-text-muted">{year} সালের হিসাব</Bn>
+          <h2 className="mt-1 text-xl font-bold text-text-main">
+            <T en={`Statement for ${year}`} bn={`${year} সালের হিসাব`} />
+          </h2>
 
           <div className="mt-4 divide-y divide-border border-y border-border">
-            <Row label="Money put in (buys)" bn="কেনায় খরচ" value={takaGroup(st.bought)} />
-            <Row label="Money taken out (sales)" bn="বিক্রিতে পাওয়া" value={takaGroup(st.soldValue)} />
+            <Row label="Money put in (buys)" bn="কেনায় দেওয়া টাকা" value={takaGroup(st.bought)} />
+            <Row label="Money taken out (sales)" bn="বিক্রি থেকে পাওয়া টাকা" value={takaGroup(st.soldValue)} />
             <Row
               label="Profit from sales"
-              bn="বিক্রি থেকে লাভ"
+              bn="বিক্রি থেকে মুনাফা"
               value={`${st.profit >= 0 ? "+" : "−"}${takaGroup(Math.abs(st.profit))}`}
               tone={st.profit >= 0 ? "text-positive" : "text-negative"}
             />
-            <Row label={`Fees, estimated at ${settings.fee_pct}% a side`} bn="আনুমানিক ব্রোকারেজ খরচ" value={`−${takaGroup(st.fees)}`} />
+            <Row label={`Fees, estimated at ${settings.fee_pct}% a side`} bn={`ব্রোকারেজ খরচ, প্রতি লেনদেনে আনুমানিক ${settings.fee_pct}%`} value={`−${takaGroup(st.fees)}`} />
             <Row label="Cash dividends (before tax)" bn="নগদ ডিভিডেন্ড (কর বাদের আগে)" value={takaGroup(st.dividendsGross)} />
-            <Row label={`Tax withheld, estimated at ${settings.div_tax_pct}%`} bn="আনুমানিক কর" value={`−${takaGroup(st.dividendsTax)}`} />
+            <Row label={`Tax withheld, estimated at ${settings.div_tax_pct}%`} bn={`কেটে রাখা কর, আনুমানিক ${settings.div_tax_pct}%`} value={`−${takaGroup(st.dividendsTax)}`} />
             <Row label="Cash dividends you received" bn="হাতে পাওয়া ডিভিডেন্ড" value={takaGroup(st.dividendsNet)} tone="text-positive" />
             <Row label="Bonus shares received" bn="বোনাস শেয়ার" value={st.bonusShares.toLocaleString()} />
           </div>
 
-          <h3 className="mt-6 text-base font-bold text-text-main">Every entry</h3>
+          <h3 className="mt-6 text-base font-bold text-text-main">
+            <T en="Every entry" bn="প্রতিটি লেনদেন" />
+          </h3>
           {entries.length === 0 ? (
-            <p className="mt-2 text-sm text-text-muted">Nothing logged for {year}.</p>
+            <p className="mt-2 text-sm text-text-muted">
+              <T en={`Nothing was logged for ${year}.`} bn={`${year} সালে কিছু লেখা হয়নি।`} />
+            </p>
           ) : (
             <table className="mt-2 w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-left text-xs text-text-muted">
-                  <th className="py-2 pr-2 font-semibold">Date</th>
-                  <th className="py-2 pr-2 font-semibold">Stock</th>
-                  <th className="py-2 pr-2 font-semibold">What</th>
-                  <th className="py-2 text-right font-semibold">Amount</th>
+                  <th className="py-2 pr-2 font-semibold"><T en="Date" bn="তারিখ" /></th>
+                  <th className="py-2 pr-2 font-semibold"><T en="Share" bn="শেয়ার" /></th>
+                  <th className="py-2 pr-2 font-semibold"><T en="What" bn="বিবরণ" /></th>
+                  <th className="py-2 text-right font-semibold"><T en="Amount" bn="পরিমাণ" /></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {entries.map((e) => {
                   const what =
                     e.kind === "buy"
-                      ? `Bought ${e.qty.toLocaleString()} @ ${takaGroup(e.price)}`
+                      ? L(`Bought ${e.qty.toLocaleString()} @ ${takaGroup(e.price)}`, `${e.qty.toLocaleString()}টি কেনা @ ${takaGroup(e.price)}`)
                       : e.kind === "sell"
-                        ? `Sold ${e.qty.toLocaleString()} @ ${takaGroup(e.price)} (profit ${takaGroup(sellProfit(e))})`
+                        ? L(
+                            `Sold ${e.qty.toLocaleString()} @ ${takaGroup(e.price)} (profit ${takaGroup(sellProfit(e))})`,
+                            `${e.qty.toLocaleString()}টি বিক্রি @ ${takaGroup(e.price)} (মুনাফা ${takaGroup(sellProfit(e))})`,
+                          )
                         : e.kind === "dividend"
-                          ? `Cash dividend on ${(e.qty ?? 0).toLocaleString()} shares`
-                          : `${e.pct}% bonus: +${(e.shares_added ?? 0).toLocaleString()} shares`;
+                          ? L(`Cash dividend on ${(e.qty ?? 0).toLocaleString()} shares`, `${(e.qty ?? 0).toLocaleString()}টি শেয়ারে নগদ ডিভিডেন্ড`)
+                          : L(
+                              `${e.pct}% bonus: +${(e.shares_added ?? 0).toLocaleString()} shares`,
+                              `${e.pct}% বোনাস: +${(e.shares_added ?? 0).toLocaleString()}টি শেয়ার`,
+                            );
                   const amount =
                     e.kind === "buy" || e.kind === "sell"
                       ? takaGroup(e.qty * e.price)
@@ -196,7 +215,9 @@ export default function StatementClient() {
             </table>
           )}
 
-          <h3 className="mt-6 text-base font-bold text-text-main">Holdings today</h3>
+          <h3 className="mt-6 text-base font-bold text-text-main">
+            <T en="Your shares today" bn="আজ আপনার শেয়ার" />
+          </h3>
           <ul className="mt-2 divide-y divide-border text-sm">
             {(data?.holdings ?? []).map((h) => (
               <li key={h.id} className="flex justify-between gap-3 py-2">
@@ -209,12 +230,11 @@ export default function StatementClient() {
           </ul>
 
           <p className="mt-6 text-xs text-text-muted">
-            Built from what you logged in TopStockBD. Fees and tax are estimates from your own rates — your broker&apos;s
-            statement and dividend slips are the official record. Not tax advice.
+            <T
+              en="Built from what you logged in TopStockBD. Fees and tax are estimates from your own rates. Your broker's statement and dividend slips are the official record. This is not tax advice."
+              bn="TopStockBD-তে আপনি যা লিখেছেন, তা থেকে তৈরি। খরচ ও কর আপনার নিজের হার ধরে আনুমানিক। আসল হিসাব আপনার ব্রোকারের স্টেটমেন্ট আর ডিভিডেন্ড স্লিপ। এটি কর পরামর্শ নয়।"
+            />
           </p>
-          <Bn className="text-xs text-text-muted">
-            TopStockBD-তে আপনি যা লিখেছেন তা থেকে তৈরি। খরচ ও কর আনুমানিক — আসল হিসাব আপনার ব্রোকারের স্টেটমেন্ট।
-          </Bn>
         </Card>
 
         <div className="print-hide mt-3 flex flex-wrap gap-2">
@@ -225,16 +245,16 @@ export default function StatementClient() {
               window.print();
             }}
           >
-            Print or save as PDF
+            <T en="Print or save as PDF" bn="প্রিন্ট করুন বা PDF সেভ করুন" />
           </Button>
           <Button type="button" variant="quiet" onClick={download}>
-            Download CSV
+            <T en="Download CSV" bn="CSV ডাউনলোড করুন" />
           </Button>
         </div>
       </PremiumGate>
 
       <Link href="/portfolio" className="print-hide text-sm font-semibold text-primary-ink hover:underline">
-        ← Back to your portfolio
+        <T en="← Back to your portfolio" bn="← আপনার পোর্টফোলিওতে ফিরুন" />
       </Link>
     </div>
   );

@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { isPushSupported, getPermission, subscribeToPush } from "@/lib/push";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
 
 /**
  * Full-width "Turn on alerts" strip that sits just below the navbar (next to
@@ -26,6 +28,7 @@ const CLOSED_KEY = "dsex.pushalert.closed"; // this session — "Close for now"
 export default function PushAlertBanner() {
   const { isLoggedIn } = useAuth();
   const [show, setShow] = useState(false);
+  const { bn } = useLang();
   const [busy, setBusy] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -99,7 +102,7 @@ export default function PushAlertBanner() {
   return (
     <div
       role="region"
-      aria-label="Turn on alerts"
+      aria-label={bn ? "অ্যালার্ট চালু করুন" : "Turn on alerts"}
       className="shrink-0 w-full"
       style={{
         background: "color-mix(in srgb, var(--warm) 10%, var(--surface))",
@@ -124,13 +127,13 @@ export default function PushAlertBanner() {
 
         <div className="min-w-0 flex-1">
           <p className="text-xs sm:text-sm font-bold leading-snug text-text-main">
-            Turn on alerts
+            <T en="Turn on alerts" bn="অ্যালার্ট চালু করুন" />
           </p>
-          <p className="text-xs sm:text-xs leading-snug text-text-muted">
-            Price moves, dividends &amp; your price targets — straight to your phone.
-          </p>
-          <p className="text-xs sm:text-xs leading-snug text-text-muted font-bn" lang="bn">
-            আপনার শেয়ারের আপডেট পান — এক ট্যাপে।
+          <p className="text-xs leading-snug text-text-muted">
+            <T
+              en="We will tell you on your phone about big price moves, dividends and your price targets."
+              bn="দামের বড় ওঠানামা, ডিভিডেন্ড আর আপনার টার্গেট দামের খবর আমরা ফোনে জানাব।"
+            />
           </p>
         </div>
 
@@ -141,14 +144,14 @@ export default function PushAlertBanner() {
           className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold text-white transition active:scale-[0.98] disabled:opacity-60"
           style={{ background: "var(--warm)" }}
         >
-          {busy ? "Turning on…" : "Turn on"}
+          {busy ? <T en="Turning on…" bn="চালু হচ্ছে…" /> : <T en="Turn on" bn="চালু করুন" />}
         </button>
 
         <div className="relative shrink-0" ref={menuRef}>
           <button
             type="button"
             onClick={() => setMenuOpen((o) => !o)}
-            aria-label="Close options"
+            aria-label={bn ? "বন্ধ করার উপায়" : "Close options"}
             aria-haspopup="menu"
             aria-expanded={menuOpen}
             className="grid h-7 w-7 place-items-center rounded-md text-text-muted transition-colors hover:bg-black/5 hover:text-text-main"
@@ -169,7 +172,7 @@ export default function PushAlertBanner() {
                 onClick={closeForNow}
                 className="block w-full px-3 py-2 text-left text-xs font-semibold text-text-main hover:bg-surface-2"
               >
-                Close for now
+                <T en="Close for now" bn="এখনকার মতো বন্ধ করুন" />
               </button>
               <button
                 type="button"
@@ -177,7 +180,7 @@ export default function PushAlertBanner() {
                 onClick={dontShowAgain}
                 className="block w-full px-3 py-2 text-left text-xs font-semibold text-text-muted hover:bg-surface-2 hover:text-text-main"
               >
-                Don&apos;t show again
+                <T en="Don't show this again" bn="আর দেখাবেন না" />
               </button>
             </div>
           )}

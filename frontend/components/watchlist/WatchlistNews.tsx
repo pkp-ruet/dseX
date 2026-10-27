@@ -8,6 +8,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import SectionHeader from "@/components/ui/SectionHeader";
 import Skeleton from "@/components/ui/Skeleton";
+import { T } from "@/components/i18n/T";
 
 interface Props {
   codes: string[];
@@ -43,7 +44,7 @@ function NewsItem({ item }: { item: WatchlistNewsItem }) {
               onClick={() => setExpanded(true)}
               className="btn-link btn-sm -ml-2"
             >
-              Read more
+              <T en="Read more" bn="আরও পড়ুন" />
             </button>
           )}
         </>
@@ -90,7 +91,12 @@ export default function WatchlistNews({ codes, news, loading, limit, compact = f
 
       {showEmpty && (
         <Card padding="md">
-          <p className="text-sm text-text-muted">No news on your stocks in the last 30 days.</p>
+          <p className="text-sm text-text-muted">
+            <T
+              en="There has been no news on your shares in the last 30 days."
+              bn="গত 30 দিনে আপনার শেয়ারগুলো নিয়ে কোনো খবর আসেনি।"
+            />
+          </p>
         </Card>
       )}
 
@@ -104,7 +110,7 @@ export default function WatchlistNews({ codes, news, loading, limit, compact = f
           {fold && (
             <div className="wl-news-more">
               <button type="button" onClick={() => setShowAll(true)}>
-                Show all {capped.length} news items
+                <T en={`Show all ${capped.length} news items`} bn={`সব ${capped.length}টি খবর দেখুন`} />
               </button>
             </div>
           )}
@@ -113,7 +119,7 @@ export default function WatchlistNews({ codes, news, loading, limit, compact = f
 
       {compact && items.length > 0 && (
         <Button href="/watchlist" variant="quiet" size="sm" block className="mt-3">
-          View all news →
+          <T en="See all news →" bn="সব খবর দেখুন →" />
         </Button>
       )}
     </>
@@ -125,9 +131,13 @@ export default function WatchlistNews({ codes, news, loading, limit, compact = f
     <section className="wl-section" aria-labelledby="wl-news">
       <SectionHeader
         id="wl-news"
-        title="News on your stocks"
-        bn="আপনার শেয়ারগুলোর খবর"
-        lead="Announcements from the last 30 days, newest first."
+        title={<T en="News on your shares" bn="আপনার শেয়ারের খবর" />}
+        lead={
+          <T
+            en="Announcements from the last 30 days, newest first."
+            bn="গত 30 দিনের ঘোষণা, নতুনগুলো আগে।"
+          />
+        }
       />
       {body}
     </section>

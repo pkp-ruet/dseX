@@ -16,6 +16,17 @@ export function strengthLine(
     .join(" · ");
 }
 
+/** `strengthLine` in both languages, for a `<T>` that switches without a re-render. */
+export function strengthPair(
+  levels: ScreenerAnswers | null | undefined,
+  questions: ScreenerQuestion[],
+): { en: string; bn: string } {
+  return {
+    en: strengthLine(levels, questions, (en) => en),
+    bn: strengthLine(levels, questions, (_en, bn) => bn),
+  };
+}
+
 /** Every question at "any". */
 export function noAnswers(questions: ScreenerQuestion[]): ScreenerAnswers {
   return Object.fromEntries(questions.map((q) => [q.key, 0]));

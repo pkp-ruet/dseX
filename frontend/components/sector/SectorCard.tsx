@@ -4,6 +4,8 @@ import { TIER_VAR, type TierKey } from "@/lib/constants";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import { crore, pct } from "@/lib/formatters";
 import type { SectorSummary } from "@/lib/api";
+import { T } from "@/components/i18n/T";
+import { croreBn, sectorBn } from "@/lib/bn";
 
 const TIER_ORDER: TierKey[] = ["excellent", "good", "average", "weak"];
 
@@ -25,7 +27,7 @@ export function TierBar({ counts, total }: { counts: Record<string, number>; tot
   );
 }
 
-function Metric({ label, value }: { label: string; value: ReactNode }) {
+function Metric({ label, value }: { label: ReactNode; value: ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
       <span className="text-xs font-semibold text-text-muted">
@@ -52,10 +54,13 @@ export default function SectorCard({ sector: s }: { sector: SectorSummary }) {
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <h3 className="text-base font-extrabold leading-tight tracking-tight text-text-main">
-            {s.sector}
+            <T en={s.sector} bn={sectorBn(s.sector)} />
           </h3>
           <p className="mt-1 text-xs font-semibold text-text-muted">
-            {s.company_count} companies · {crore(s.total_mcap_mn)}
+            <T
+              en={`${s.company_count} companies · ${crore(s.total_mcap_mn)}`}
+              bn={`${s.company_count}টি কোম্পানি · ${croreBn(s.total_mcap_mn)}`}
+            />
           </p>
         </div>
         <span className="text-sm font-extrabold tabular-nums" style={{ color: chgColor }}>
@@ -66,19 +71,19 @@ export default function SectorCard({ sector: s }: { sector: SectorSummary }) {
       <TierBar counts={s.tier_counts} total={s.company_count} />
 
       <div className="grid grid-cols-4 gap-2">
-        <Metric label="Score" value={<ScoreBadge score={s.median_score} size="sm" />} />
-        <Metric label="P/E" value={s.median_pe != null ? s.median_pe.toFixed(1) : "—"} />
+        <Metric label={<T en="Score" bn="স্কোর" />} value={<ScoreBadge score={s.median_score} size="sm" />} />
+        <Metric label={<T en="P/E" bn="পিই" />} value={s.median_pe != null ? s.median_pe.toFixed(1) : "—"} />
         <Metric
-          label="Yield"
+          label={<T en="Yield" bn="ইল্ড" />}
           value={s.median_yield_pct != null ? pct(s.median_yield_pct, 1) : "—"}
         />
-        <Metric label="Buy" value={String(s.buy_signals)} />
+        <Metric label={<T en="Buy" bn="কেনা যায়" />} value={String(s.buy_signals)} />
       </div>
 
       {s.top_ranked && (
         <p className="flex items-center gap-2 text-xs font-semibold text-text-muted">
           <span className="min-w-0 truncate">
-            Top ranked:{" "}
+            <T en="Top ranked:" bn="শীর্ষে:" />{" "}
             <span className="font-extrabold text-text-main">{s.top_ranked.trading_code}</span>
           </span>
           <ScoreBadge score={s.top_ranked.score} size="sm" />

@@ -15,11 +15,11 @@ export interface NewsKind {
 }
 
 const KINDS: Record<NewsKindKey, NewsKind> = {
-  dividend:  { key: "dividend",  label: "Dividend",        labelBn: "লভ্যাংশ",         color: "var(--positive)" },
-  earnings:  { key: "earnings",  label: "Results",         labelBn: "ফলাফল",           color: "var(--info)" },
-  agm:       { key: "agm",       label: "AGM",             labelBn: "বার্ষিক সভা",      color: "var(--navy-soft)" },
+  dividend:  { key: "dividend",  label: "Dividend",        labelBn: "ডিভিডেন্ড",       color: "var(--positive)" },
+  earnings:  { key: "earnings",  label: "Results",         labelBn: "ফল",              color: "var(--info)" },
+  agm:       { key: "agm",       label: "AGM",             labelBn: "এজিএম",           color: "var(--navy-soft)" },
   record:    { key: "record",    label: "Record date",     labelBn: "রেকর্ড ডেট",       color: "var(--warm)" },
-  sensitive: { key: "sensitive", label: "Price sensitive", labelBn: "দাম-সংবেদনশীল",  color: "var(--negative)" },
+  sensitive: { key: "sensitive", label: "Price-sensitive", labelBn: "মূল্য সংবেদনশীল",  color: "var(--negative)" },
   board:     { key: "board",     label: "Board meeting",   labelBn: "বোর্ড মিটিং",      color: "var(--text-muted)" },
   trading:   { key: "trading",   label: "Trading",         labelBn: "লেনদেন",          color: "var(--text-muted)" },
   other:     { key: "other",     label: "Notice",          labelBn: "বিজ্ঞপ্তি",         color: "var(--text-muted)" },

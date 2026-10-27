@@ -1,5 +1,5 @@
 import type { ScoresResponse } from "@/lib/api";
-import type { Grade, GradeLabel } from "@/lib/portfolio-analysis";
+import { GRADE_WORDS, type Grade } from "@/lib/portfolio-analysis";
 import { buildSampleAnalysis } from "@/lib/sample-portfolio-analysis";
 import { SAMPLE_PORTFOLIOS, type SampleSlug } from "@/lib/sample-portfolios";
 
@@ -25,7 +25,7 @@ export interface SampleView {
   /** Tab label. */
   tab: Line;
   grade: Grade;
-  gradeLabel: GradeLabel;
+  gradeLabel: string;
   gradeLabelBn: string;
   headline: Line;
   sub: { spread: number; quality: number; entry: number };
@@ -35,14 +35,6 @@ export interface SampleView {
   watch: Line | null;
   next: Line | null;
 }
-
-const GRADE_LABEL_BN: Record<GradeLabel, string> = {
-  Excellent: "চমৎকার",
-  Good: "ভালো",
-  Okay: "মোটামুটি",
-  Risky: "ঝুঁকিপূর্ণ",
-  "Very Risky": "খুব ঝুঁকিপূর্ণ",
-};
 
 const TABS: Record<SampleSlug, Line> = {
   diversified: { en: "Well spread", bn: "ছড়ানো পোর্টফোলিও" },
@@ -76,8 +68,8 @@ export function buildLandingPortfolios(scores: ScoresResponse): SampleView[] {
       slug,
       tab: TABS[slug],
       grade: a.grade,
-      gradeLabel: a.gradeLabel,
-      gradeLabelBn: GRADE_LABEL_BN[a.gradeLabel],
+      gradeLabel: GRADE_WORDS[a.gradeLabel].en,
+      gradeLabelBn: GRADE_WORDS[a.gradeLabel].bn,
       headline: { en: firstSentence(a.headline), bn: firstSentence(bn.headline) },
       sub: { spread: a.subScores.spread, quality: a.subScores.quality, entry: a.subScores.entry },
       sectors: a.sectorSpread.map((s) => ({ name: s.name, weightPct: s.weightPct })),

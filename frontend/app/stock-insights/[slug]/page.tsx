@@ -1,14 +1,24 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import { notFound } from "next/navigation";
-import { STOCK_LISTS, getStockList, type StockListItem } from "@/lib/stock-lists";
+import {
+  STOCK_LISTS,
+  classicLede,
+  classicLine,
+  formatMetric,
+  getStockList,
+  type StockListItem,
+} from "@/lib/stock-lists";
 import { getStockLists, getResearchList, type ResearchListDetail } from "@/lib/api";
 import { RESEARCH_LISTS, getResearchListDef, DEEPER, type ResearchListDef } from "@/lib/research-lists";
 import ResearchListView from "@/components/research/ResearchListView";
 import ErrorState from "@/components/ui/ErrorState";
-import { StorySpotlight, StoryRundown } from "@/components/stock-insights/StoryEntries";
-import { buildClassicEntries, generateClassicLede, getUpdatedLabel } from "@/lib/insight-utils";
+import { StorySpotlight, StoryRundown, type StoryEntryView } from "@/components/stock-insights/StoryEntries";
+import { T } from "@/components/i18n/T";
+import { formatDate } from "@/lib/formatters";
+import { bnDate } from "@/lib/bn";
 
 export const revalidate = 86400;
 export const dynamicParams = false;
@@ -157,59 +167,95 @@ export default async function StockInsightPage({ params }: Props) {
   const def = getStockList(slug);
   if (!def) notFound();
 
-  const displayTitle = def.displayName;
   const lists = await getStockLists().catch(() => null);
   const items: StockListItem[] = lists?.[def.apiKey] ?? [];
-  const entries = buildClassicEntries(items, def);
-  const lede = generateClassicLede(def, items);
+  const entries: StoryEntryView[] = items.map((item, i) => {
+    const line = classicLine(item, def);
+    return {
+      rank: i + 1,
+      title: item.company_name?.trim() || item.trading_code,
+      code: item.trading_code,
+      href: `/stock/${item.trading_code}`,
+      sector: item.sector,
+      body: <T en={line.en} bn={line.bn} />,
+      stat:
+        item.metric_value != null
+          ? {
+              label: <T en={def.metricLabel} bn={def.metricLabelBn} />,
+              value: (
+                <T
+                  en={formatMetric(item.metric_value, def.metricFormat)}
+                  bn={formatMetric(item.metric_value, def.metricFormat, "bn")}
+                />
+              ),
+            }
+          : undefined,
+    };
+  });
+  const lede = classicLede(def, items);
+  const today = new Date().toISOString().slice(0, 10);
 
   const spotlight = entries.slice(0, 3);
   const rundown = entries.slice(3);
 
   const jsonLd = buildJsonLd(
     slug,
-    displayTitle,
+    def.displayName,
     def.description,
-    entries.map((e) => ({ trading_code: e.code ?? e.title, company_name: e.title }))
+    items.map((item) => ({ trading_code: item.trading_code, company_name: item.company_name })),
   );
 
   return (
     <div className="page-narrow">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <Crumbs here={def.shortName} />
+      <Crumbs here={<T en={def.shortName} bn={def.shortNameBn} />} />
 
       <PageHeader
         size="article"
-        eyebrow="Free stock list"
-        title={displayTitle}
-        bn="এই তালিকার প্রতিটি শেয়ার আসল হিসাব দেখে বাছা — সহজ ভাষায় কেন, তাও লেখা আছে।"
-        lead={lede}
+        eyebrow={<T en="Free stock list" bn="ফ্রি শেয়ারের তালিকা" />}
+        title={<T en={def.heading} bn={def.headingBn} />}
+        lead={<T en={lede.en} bn={lede.bn} />}
       />
       <header>
         <div className="ed-byline">
-          <span className="live">Live</span>
-          <span className="b-item">Updated {getUpdatedLabel()}</span>
-          <span className="b-dot" aria-hidden="true" />
+          <span className="live">
+            <T en="Live" bn="লাইভ" />
+          </span>
           <span className="b-item">
-            {entries.length} companies
+            <T en={`Updated ${formatDate(today)}`} bn={`হালনাগাদ ${bnDate(today)}`} />
           </span>
           <span className="b-dot" aria-hidden="true" />
-          <span className="b-item">From official Dhaka Stock Exchange filings</span>
+          <span className="b-item">
+            <T en={`${entries.length} companies`} bn={`${entries.length}টি কোম্পানি`} />
+          </span>
+          <span className="b-dot" aria-hidden="true" />
+          <span className="b-item">
+            <T en="From official Dhaka Stock Exchange data" bn="ঢাকা স্টক এক্সচেঞ্জের অফিসিয়াল তথ্য থেকে" />
+          </span>
         </div>
       </header>
 
       {/* Story body */}
       {entries.length === 0 ? (
-        <p className="ed-empty">Fresh data is loading — check back in a moment.</p>
+        <p className="ed-empty">
+          <T
+            en="The latest figures are not in yet. Please check again in a moment."
+            bn="সর্বশেষ তথ্য এখনো আসেনি। একটু পরে আবার দেখুন।"
+          />
+        </p>
       ) : (
         <>
-          <div className="ed-section-label">The standouts</div>
+          <div className="ed-section-label">
+            <T en="The top three" bn="শীর্ষ তিনটি" />
+          </div>
           <StorySpotlight entries={spotlight} />
 
           {rundown.length > 0 && (
             <>
-              <div className="ed-section-label">Also making the cut</div>
+              <div className="ed-section-label">
+                <T en="The rest of the list" bn="তালিকার বাকিগুলো" />
+              </div>
               <StoryRundown entries={rundown} />
             </>
           )}
@@ -218,18 +264,28 @@ export default async function StockInsightPage({ params }: Props) {
 
       {/* Closing explainer */}
       <section className="ed-closer">
-        <h2>How to read this list</h2>
-        <p className="first">{def.intro}</p>
+        <h2>
+          <T en="How to read this list" bn="এই তালিকা কীভাবে পড়বেন" />
+        </h2>
+        <p className="first">
+          <T en={def.intro} bn={def.introBn} />
+        </p>
       </section>
 
       {/* FAQ */}
       <section className="ed-faq">
-        <h2>Common questions</h2>
+        <h2>
+          <T en="Common questions" bn="সাধারণ প্রশ্ন" />
+        </h2>
         <dl>
           {def.faqs.map((faq) => (
             <div key={faq.q} className="ed-faq-item">
-              <dt>{faq.q}</dt>
-              <dd>{faq.a}</dd>
+              <dt>
+                <T en={faq.q} bn={faq.qBn} />
+              </dt>
+              <dd>
+                <T en={faq.a} bn={faq.aBn} />
+              </dd>
             </div>
           ))}
         </dl>
@@ -249,19 +305,31 @@ function DeeperLink({ slug }: { slug: string }) {
   if (target) {
     return (
       <Link href={`/stock-insights/${target.slug}`} className="soft-card rl-deeper">
-        <span className="rl-deeper-eyebrow">Go deeper · Premium research list</span>
-        <span className="rl-deeper-title">{target.shortName}</span>
-        <span className="rl-deeper-desc">{target.description}</span>
+        <span className="rl-deeper-eyebrow">
+          <T en="Go deeper · Premium research list" bn="আরও গভীরে · প্রিমিয়াম গবেষণা তালিকা" />
+        </span>
+        <span className="rl-deeper-title">
+          <T en={target.shortName} bn={target.shortNameBn} />
+        </span>
+        <span className="rl-deeper-desc">
+          <T en={target.hook} bn={target.hookBn} />
+        </span>
       </Link>
     );
   }
   return (
     <Link href="/stock-insights#research" className="soft-card rl-deeper">
-      <span className="rl-deeper-eyebrow">Go deeper · Premium</span>
-      <span className="rl-deeper-title">Six research lists</span>
+      <span className="rl-deeper-eyebrow">
+        <T en="Go deeper · Premium" bn="আরও গভীরে · প্রিমিয়াম" />
+      </span>
+      <span className="rl-deeper-title">
+        <T en="Six research lists" bn="ছয়টি গবেষণা তালিকা" />
+      </span>
       <span className="rl-deeper-desc">
-        Each one tests every rated company against plain checks and explains every stock that passes — with its own
-        numbers and the one thing that could go wrong.
+        <T
+          en="Each one tests every rated company against plain checks, and explains every share that passes with its own numbers and the one thing that could go wrong."
+          bn="প্রতিটি তালিকা রেটিং পাওয়া সব কোম্পানিকে সহজ কিছু যাচাইয়ের মধ্য দিয়ে নেয়, আর যে শেয়ার পাস করে, তার নিজের সংখ্যা আর ঝুঁকির কথা খুলে বলে।"
+        />
       </span>
     </Link>
   );
@@ -269,12 +337,16 @@ function DeeperLink({ slug }: { slug: string }) {
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
-function Crumbs({ here }: { here: string }) {
+function Crumbs({ here }: { here: ReactNode }) {
   return (
     <nav aria-label="breadcrumb" className="ed-crumbs">
-      <Link href="/">Home</Link>
+      <Link href="/">
+        <T en="Home" bn="হোম" />
+      </Link>
       <span className="sep" aria-hidden="true">/</span>
-      <Link href="/stock-insights">Stock Lists</Link>
+      <Link href="/stock-insights">
+        <T en="Stock lists" bn="শেয়ারের তালিকা" />
+      </Link>
       <span className="sep" aria-hidden="true">/</span>
       <span className="here">{here}</span>
     </nav>
@@ -285,10 +357,10 @@ function NavButtons() {
   return (
     <div className="ed-nav">
       <Link href="/stock-insights" className="btn-quiet">
-        ← All stock lists
+        <T en="← All stock lists" bn="← সব তালিকা" />
       </Link>
       <Link href="/dsestockranking" className="btn-primary">
-        See full rankings
+        <T en="See the full rankings" bn="পুরো র‍্যাঙ্কিং দেখুন" />
       </Link>
     </div>
   );

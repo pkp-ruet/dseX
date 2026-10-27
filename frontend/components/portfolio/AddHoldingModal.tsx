@@ -91,7 +91,7 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onC
       onAdded(res.holdings, res.log);
       onClose();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : L("Couldn't add it — try again.", "যোগ করা গেল না — আবার চেষ্টা করুন।"));
+      setError(err instanceof Error ? err.message : L("We couldn't add it. Please try again.", "যোগ করা যায়নি। আবার চেষ্টা করুন।"));
       setSaving(false);
     }
   }
@@ -102,7 +102,7 @@ export default function AddHoldingModal({ allCodes, priceMap, existingCodes, onC
       onClose={onClose}
       dismissible={!saving}
       title={L("Add a stock you own", "আপনার একটি শেয়ার যোগ করুন")}
-      bn={!bn ? "আপনার একটি শেয়ার যোগ করুন" : undefined}
+
     >
       <form onSubmit={handleSubmit} className={`flex flex-col gap-4 ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
         {/* Stock code */}

@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
+import { bnDate } from "@/lib/bn";
 import PremiumGate from "@/components/premium/PremiumGate";
 import { PageLockScope } from "@/components/premium/LockScope";
 import { IconArrowRight, IconCheck, IconLock, IconStar } from "@/components/ui/icons";
@@ -58,6 +60,7 @@ function names(list: MarketResearchList) {
     name: def?.shortName ?? list.title_en,
     nameBn: def?.shortNameBn ?? list.title_bn,
     hook: def?.hook ?? list.idea_en,
+    hookBn: def?.hookBn ?? list.idea_bn,
     href: `/stock-insights/${list.slug}`,
   };
 }
@@ -70,18 +73,26 @@ function Count({ list, yours }: { list: MarketResearchList; yours: number }) {
       <div className="mk-rl-count">
         <span className="mk-bignum-n">{list.passed}</span>
         <span className="mk-bignum-of">
-          {list.passed === 1 ? "company passes" : "companies pass"} all {list.checks} checks today
+          <T
+            en={`${list.passed === 1 ? "company passes" : "companies pass"} all ${list.checks} checks today`}
+            bn={`টি কোম্পানি আজ ${list.checks}টি যাচাইয়ের সবগুলো পেরিয়েছে`}
+          />
         </span>
         {list.then && diff != null && (
           <span className={`mk-delta ${diff > 0 ? "mk-delta--up" : diff < 0 ? "mk-delta--down" : ""}`}>
-            was {list.then.n} on {formatDate(list.then.date)}
+            <T
+              en={`was ${list.then.n} on ${formatDate(list.then.date)}`}
+              bn={`${bnDate(list.then.date)}-এ ছিল ${list.then.n}টি`}
+            />
           </span>
         )}
       </div>
-      <Bn className="mk-card-bn">আজ {list.passed}টি কোম্পানি সব যাচাই পেরিয়েছে</Bn>
       {yours > 0 && (
         <p className="m-0 mt-1 text-sm font-semibold text-primary-ink">
-          {yours} of your stocks {yours === 1 ? "is" : "are"} on it
+          <T
+            en={`${yours} of your shares ${yours === 1 ? "is" : "are"} on it`}
+            bn={`আপনার ${yours}টি শেয়ার এই তালিকায় আছে`}
+          />
         </p>
       )}
     </>
@@ -90,16 +101,40 @@ function Count({ list, yours }: { list: MarketResearchList; yours: number }) {
 
 /** The list's top three — blurred for anyone not Premium (one line points at `#ma-premium`). */
 function Names({ list }: { list: MarketResearchList }) {
-  if (list.top.length === 0) return <p className="mk-empty">No company passes every check today.</p>;
+  const { lang } = useLang();
+  if (list.top.length === 0)
+    return (
+      <p className="mk-empty">
+        <T en="No company passes every check today." bn="আজ কোনো কোম্পানি সব যাচাই পেরোয়নি।" />
+      </p>
+    );
   return (
     <div className="mk-rl-names">
-      {list.metric && <p className="mk-rl-by">Top {list.top.length} by {list.metric.label_en.toLowerCase()}</p>}
-      <PremiumGate label="Which companies pass" preview="blur" peek={120}>
+      {list.metric && (
+        <p className="mk-rl-by">
+          <T
+            en={`Top ${list.top.length} by ${list.metric.label_en.toLowerCase()}`}
+            bn={`${list.metric.label_bn} অনুযায়ী শীর্ষ ${list.top.length}টি`}
+          />
+        </p>
+      )}
+      <PremiumGate
+        label={{ en: "Which companies pass", bn: "কোন কোম্পানি পেরিয়েছে" }}
+        preview="blur"
+        peek={120}
+      >
         <div className="mk-rows">
           {list.top.map((s) => {
             const m = list.metric ? formatResearchMetric(list.metric, s.metric) : null;
             return (
-              <MarketRow key={s.code} code={s.code} name={s.name} price={s.price} meta={m?.text ?? "passes"} tone="accent" />
+              <MarketRow
+                key={s.code}
+                code={s.code}
+                name={s.name}
+                price={s.price}
+                meta={m?.text ?? <T en="passes" bn="পেরিয়েছে" />}
+                tone="accent"
+              />
             );
           })}
         </div>
@@ -112,7 +147,11 @@ function SeeAll({ list, href }: { list: MarketResearchList; href: string }) {
   return (
     <div className="mk-card-foot">
       <Link href={href} prefetch={false} className="mk-link">
-        {list.passed > 3 ? `See all ${list.passed} and every check` : "See every check"}
+        {list.passed > 3 ? (
+          <T en={`See all ${list.passed} and every check`} bn={`সব ${list.passed}টি আর প্রতিটি যাচাই দেখুন`} />
+        ) : (
+          <T en="See every check" bn="প্রতিটি যাচাই দেখুন" />
+        )}
         <IconArrowRight size={14} />
       </Link>
     </div>
@@ -126,18 +165,18 @@ function LeadCard({ list, yours, reason }: { list: MarketResearchList; yours: nu
     <article className="soft-card mk-card mk-rl-lead" aria-labelledby={`mk-rl-${list.id}`}>
       <div>
         <span className="mk-tag">
-          <IconStar size={12} /> Fits today&apos;s market
+          <IconStar size={12} /> <T en="Fits today's market" bn="আজকের বাজারে মানানসই" />
         </span>
         <h3 className="mk-rl-name mt-3" id={`mk-rl-${list.id}`}>
           <Link href={n.href} prefetch={false}>
-            {n.name}
+            <T en={n.name} bn={n.nameBn} />
           </Link>
         </h3>
-        <Bn className="mk-card-bn">{n.nameBn}</Bn>
-        <p className="mk-rl-hook">{n.hook}</p>
+        <p className="mk-rl-hook">
+          <T en={n.hook} bn={n.hookBn} />
+        </p>
         <div className="mk-rl-reason">
-          {reason[0]}
-          <Bn className="mk-card-bn">{reason[1]}</Bn>
+          <T en={reason[0]} bn={reason[1]} />
         </div>
         <Count list={list} yours={yours} />
       </div>
@@ -155,11 +194,12 @@ function ListCard({ list, yours }: { list: MarketResearchList; yours: number }) 
     <article className="soft-card mk-card mk-rl-card" aria-labelledby={`mk-rl-${list.id}`}>
       <h3 className="mk-rl-name" id={`mk-rl-${list.id}`}>
         <Link href={n.href} prefetch={false}>
-          {n.name}
+          <T en={n.name} bn={n.nameBn} />
         </Link>
       </h3>
-      <Bn className="mk-card-bn">{n.nameBn}</Bn>
-      <p className="mk-rl-hook">{n.hook}</p>
+      <p className="mk-rl-hook">
+        <T en={n.hook} bn={n.hookBn} />
+      </p>
       <Count list={list} yours={yours} />
       <Names list={list} />
       <SeeAll list={list} href={n.href} />
@@ -168,45 +208,65 @@ function ListCard({ list, yours }: { list: MarketResearchList; yours: number }) 
 }
 
 const FEATURES: { en: string; bn: string }[] = [
-  { en: "Which companies pass each list today, with the number that put them there", bn: "আজ প্রতিটি তালিকায় কোন কোম্পানি আছে, আর কোন সংখ্যার জন্য" },
-  { en: "Each company's own figure on every check, and the main risk we can see", bn: "প্রতিটি যাচাইয়ে কোম্পানির নিজের সংখ্যা, আর প্রধান ঝুঁকি" },
-  { en: "Who joined and who left each list this month", bn: "এই মাসে কে তালিকায় এলো, কে বাদ পড়ল" },
-  { en: "Your own lists, built from the same checks", bn: "একই যাচাই দিয়ে নিজের তালিকা বানান" },
+  { en: "Which companies pass each list today, and the number that put them there", bn: "আজ প্রতিটি তালিকায় কোন কোম্পানি আছে, আর কোন সংখ্যার জন্য" },
+  { en: "Each company's own figure on every check, and the main risk we can see", bn: "প্রতিটি যাচাইয়ে কোম্পানির নিজের সংখ্যা, আর আমাদের চোখে পড়া প্রধান ঝুঁকি" },
+  { en: "Which companies joined and which left each list this month", bn: "এ মাসে কোন কোম্পানি তালিকায় এসেছে, কোনটি বাদ পড়েছে" },
+  { en: "Your own screens, built from the same checks", bn: "একই যাচাই দিয়ে নিজের স্ক্রিন তৈরি করুন" },
 ];
 
 /** The page's one Premium section — every locked list points here. Gone for
  *  Premium readers once the plan is known (server render shows it, like every lock). */
 function ResearchPromo({ lists, yours }: { lists: MarketResearchList[]; yours: number }) {
   const { isPremium, state } = usePremium();
+  const { lang } = useLang();
+  const bn = lang === "bn";
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   if (mounted && isPremium) return null;
 
   const lead = lists[0];
-  const leadName = lead ? getResearchListDef(lead.slug)?.shortName ?? lead.title_en : null;
+  const def = lead ? getResearchListDef(lead.slug) : null;
+  const leadName = lead ? (bn ? def?.shortNameBn ?? lead.title_bn : def?.shortName ?? lead.title_en) : null;
+  // Stakes travel to /premium in the reader's language (sessionStorage), so
+  // they are built from the language, like every lock card's.
   const stakes = [
-    lead && lead.passed > 0 ? `${lead.passed} companies pass “${leadName}” today` : null,
-    yours > 0 ? `${yours} of your stocks ${yours === 1 ? "is" : "are"} on these lists` : null,
+    lead && lead.passed > 0
+      ? bn
+        ? `আজ “${leadName}” তালিকায় ${lead.passed}টি কোম্পানি আছে`
+        : `${lead.passed} companies pass “${leadName}” today`
+      : null,
+    yours > 0
+      ? bn
+        ? `আপনার ${yours}টি শেয়ার এই তালিকাগুলোতে আছে`
+        : `${yours} of your shares ${yours === 1 ? "is" : "are"} on these lists`
+      : null,
   ].filter((s): s is string => !!s);
-  const cta = state === "guest" ? "Sign up free, then try Premium" : "See Premium plans";
+  const cta =
+    state === "guest" ? (
+      <T en="Sign up free, then try Premium" bn="ফ্রি অ্যাকাউন্ট খুলুন, তারপর প্রিমিয়াম দেখুন" />
+    ) : (
+      <T en="See Premium plans" bn="প্রিমিয়াম প্ল্যান দেখুন" />
+    );
 
   const onCta = () => {
     trackEvent("premium_lock_tap", { area: "market-analysis", lock: "Research lists", state, stakes: stakes.length });
-    savePremiumContext({ from: "market-analysis", label: "The research lists", stakes });
+    savePremiumContext({ from: "market-analysis", label: bn ? "রিসার্চ তালিকা" : "The research lists", stakes });
   };
 
   return (
     <section id={ANCHOR} className="soft-card rl-promo mt-6 scroll-mt-24" aria-labelledby="ma-premium-title">
       <span className="rl-promo-tag">
-        <IconLock size={12} /> Premium
+        <IconLock size={12} /> <T en="Premium" bn="প্রিমিয়াম" />
       </span>
       <h3 className="rl-promo-head" id="ma-premium-title">
-        See the companies on every list
+        <T en="See the companies on every list" bn="প্রতিটি তালিকার কোম্পানিগুলো দেখুন" />
       </h3>
       <p className="rl-promo-sub">
-        The checks and the counts are free. Premium shows which companies pass, why, and what could go wrong with each.
+        <T
+          en="The checks and the counts are free. Premium shows which companies pass, why, and what could go wrong with each."
+          bn="যাচাই আর সংখ্যা ফ্রি। কোন কোম্পানি পেরিয়েছে, কেন, আর প্রতিটির কী ঝুঁকি আছে, তা প্রিমিয়ামে দেখা যায়।"
+        />
       </p>
-      <Bn className="rl-promo-sub">যাচাই আর সংখ্যা ফ্রি। কোন কোম্পানি পেরিয়েছে, কেন, আর কী ঝুঁকি — প্রিমিয়ামে।</Bn>
 
       {stakes.length > 0 && (
         <ul className="mt-1 flex flex-col gap-1">
@@ -226,8 +286,7 @@ function ResearchPromo({ lists, yours }: { lists: MarketResearchList[]; yours: n
               <IconCheck size={16} />
             </span>
             <span>
-              {f.en}
-              <Bn as="span" className="block text-text-muted">{f.bn}</Bn>
+              <T en={f.en} bn={f.bn} />
             </span>
           </li>
         ))}

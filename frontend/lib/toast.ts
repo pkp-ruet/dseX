@@ -6,12 +6,17 @@
  * Use it for the feedback that used to be silent (added to watchlist, holding
  * saved, alert set, link copied) and for short undo windows. One toast at a
  * time; a new one replaces the current.
+ *
+ * Pass `<T en bn />` for `message` and `action.label` so the toast reads in the
+ * page language (docs/voice.md).
  */
 
+import type { ReactNode } from "react";
+
 export interface ToastOptions {
-  message: string;
+  message: ReactNode;
   /** Optional one-word action, e.g. "Undo" / "View". */
-  action?: { label: string; onClick: () => void };
+  action?: { label: ReactNode; onClick: () => void };
   /** Visual tone. `success` gets a check, `error` a warning, default is neutral. */
   tone?: "neutral" | "success" | "error";
   /** Auto-dismiss delay in ms. Undo toasts use a longer one. */

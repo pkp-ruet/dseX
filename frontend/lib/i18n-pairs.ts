@@ -41,3 +41,28 @@ export function blogLanguages(blogSlug: string): Record<string, string> | undefi
   if (!learn) return undefined;
   return { en: `/learn/${learn}`, bn: `/blog/${blogSlug}`, "x-default": `/learn/${learn}` };
 }
+
+/**
+ * Where the navbar language switch should take a reader who is on an article
+ * that exists in only one language: the guide's Bengali post (or back), the
+ * guides hub ↔ the blog hub, and the Bengali daily market article → the market
+ * analysis page. `null` = stay on this page (it switches in place, or it is an
+ * unpaired article that shows a "only in …" note).
+ */
+export function pairedPath(pathname: string, to: "en" | "bn"): string | null {
+  const m = /^\/(learn|blog)(?:\/([^/?#]+))?\/?$/.exec(pathname);
+  if (m) {
+    const [, section, slug] = m;
+    if (to === "bn" && section === "learn") {
+      if (!slug) return "/blog";
+      return LEARN_TO_BLOG[slug] ? `/blog/${LEARN_TO_BLOG[slug]}` : null;
+    }
+    if (to === "en" && section === "blog") {
+      if (!slug) return "/learn";
+      return BLOG_TO_LEARN[slug] ? `/learn/${BLOG_TO_LEARN[slug]}` : null;
+    }
+    return null;
+  }
+  if (to === "en" && pathname === "/share-bazar") return "/market-analysis";
+  return null;
+}

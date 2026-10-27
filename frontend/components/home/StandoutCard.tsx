@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
 import SignalChip from "@/components/ui/SignalChip";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import TierPill from "@/components/ui/TierPill";
@@ -8,6 +8,7 @@ import { getTier, TIER_VAR, TIER_MEANINGS, TIER_MEANINGS_BN } from "@/lib/consta
 import { PILLARS } from "@/lib/landing";
 import { pillarColor } from "@/lib/insight-utils";
 import { bdGroup } from "@/lib/formatters";
+import { sectorBn } from "@/lib/bn";
 import type { StoryStock, StoryKey } from "@/lib/home-stories";
 import type { ScoreItem } from "@/lib/api";
 
@@ -35,25 +36,31 @@ import type { ScoreItem } from "@/lib/api";
  */
 const SLOT: Record<
   StoryKey,
-  { label: string; unit: string; accent: string; ink: string; glyph: "star" | "taka" | "up" }
+  { label: string; labelBn: string; unit: string; unitBn: string; accent: string; ink: string; glyph: "star" | "taka" | "up" }
 > = {
   strongest: {
     label: "Strongest overall",
+    labelBn: "সামগ্রিকভাবে সবচেয়ে শক্ত",
     unit: "out of 100",
+    unitBn: "100-এর মধ্যে",
     accent: "var(--tier-excellent)",
     ink: "var(--tier-excellent)",
     glyph: "star",
   },
   dividend: {
-    label: "Biggest cash dividend",
+    label: "Highest cash dividend",
+    labelBn: "সবচেয়ে বেশি নগদ ডিভিডেন্ড",
     unit: "a year",
+    unitBn: "বছরে",
     accent: "var(--warm)",
     ink: "var(--warm-ink)",
     glyph: "taka",
   },
   growth: {
-    label: "Fastest growing profit",
+    label: "Fastest-growing profit",
+    labelBn: "সবচেয়ে দ্রুত বাড়ছে মুনাফা",
     unit: "in one year",
+    unitBn: "এক বছরে",
     accent: "var(--primary)",
     ink: "var(--primary-ink)",
     glyph: "up",
@@ -104,12 +111,16 @@ function figure(card: StoryStock): string {
  * already on the card, never a projection. Returns null when the inputs aren't
  * there, so nothing is ever invented to fill the line.
  */
-function subLine(card: StoryStock): string | null {
+function subLine(card: StoryStock): { en: string; bn: string } | null {
   const it = card.item;
 
   if (card.key === "dividend") {
     if (it.div_yield_pct == null || it.div_yield_pct <= 0) return null;
-    return `About ৳${bdGroup(it.div_yield_pct * 100)} a year for every ৳10,000 at today's price.`;
+    const amt = bdGroup(it.div_yield_pct * 100);
+    return {
+      en: `About ৳${amt} a year for every ৳10,000 invested at today's price.`,
+      bn: `আজকের দামে প্রতি ৳10,000 বিনিয়োগে বছরে প্রায় ৳${amt}।`,
+    };
   }
 
   if (card.key === "growth") {
@@ -117,15 +128,18 @@ function subLine(card: StoryStock): string | null {
     if (eps == null || eps <= 0 || yoy == null || yoy <= -99) return null;
     const before = eps / (1 + yoy / 100);
     if (!Number.isFinite(before) || before <= 0) return null;
-    return `Profit per share went from ৳${before.toFixed(2)} to ৳${eps.toFixed(2)}.`;
+    return {
+      en: `Profit per share went from ৳${before.toFixed(2)} to ৳${eps.toFixed(2)}.`,
+      bn: `শেয়ারপ্রতি মুনাফা ৳${before.toFixed(2)} থেকে বেড়ে ৳${eps.toFixed(2)} হয়েছে।`,
+    };
   }
 
   const known = pillarValues(it).filter((v): v is number => v != null);
   const strong = known.filter((v) => v >= 7).length;
   if (known.length === 0 || strong === 0) return null;
   return strong === 5
-    ? "Strong on all five checks below."
-    : `Strong on ${strong} of the five checks below.`;
+    ? { en: "Strong on all five checks below.", bn: "নিচের পাঁচটি যাচাইয়েই শক্ত।" }
+    : { en: `Strong on ${strong} of the five checks below.`, bn: `নিচের পাঁচটি যাচাইয়ের ${strong}টিতে শক্ত।` };
 }
 
 /** The five pillars in P1..P5 order, matching `PILLARS`. */
@@ -141,6 +155,7 @@ function pillarValues(it: ScoreItem): (number | null)[] {
 
 interface Stat {
   label: string;
+  labelBn: string;
   value: string;
   color: string;
   /** Present → rendered as a ScoreBadge instead of text. */
@@ -157,17 +172,20 @@ function stats(card: StoryStock): Stat[] {
 
   const score: Stat = {
     label: "Score",
+    labelBn: "স্কোর",
     value: it.score == null ? "—" : String(Math.round(it.score)),
     color: TIER_VAR[getTier(it.score)],
     score: it.score ?? null,
   };
   const dividend: Stat = {
     label: "Dividend",
+    labelBn: "ডিভিডেন্ড",
     value: it.div_yield_pct == null ? "—" : `${fmt1(it.div_yield_pct)}%`,
     color: "var(--text)",
   };
   const growth: Stat = {
     label: "Profit growth",
+    labelBn: "মুনাফা বৃদ্ধি",
     value: fmtSigned(it.eps_yoy_pct),
     color: moveColor(it.eps_yoy_pct),
   };
@@ -182,16 +200,17 @@ function stats(card: StoryStock): Stat[] {
   return [
     {
       label: "Price",
+      labelBn: "দাম",
       value: it.ltp == null ? "—" : `৳${it.ltp.toFixed(2)}`,
       color: "var(--text)",
     },
-    { label: "Today", value: fmtSigned(it.change_pct), color: moveColor(it.change_pct) },
+    { label: "Today", labelBn: "আজ", value: fmtSigned(it.change_pct), color: moveColor(it.change_pct) },
     ...rest,
   ];
 }
 
 /** One pillar as a small vertical bar — the hero's report card, shrunk. */
-function PillarBar({ label, value }: { label: string; value: number | null }) {
+function PillarBar({ label, labelBn, value }: { label: string; labelBn: string; value: number | null }) {
   const color = pillarColor(value);
   const pct = value == null ? 0 : Math.max(6, Math.min(100, value * 10));
 
@@ -209,7 +228,7 @@ function PillarBar({ label, value }: { label: string; value: number | null }) {
         )}
       </span>
       <span className="w-full truncate text-center text-xs font-bold leading-none text-text-muted">
-        {label}
+        <T en={label} bn={labelBn} />
       </span>
     </div>
   );
@@ -246,7 +265,7 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
           className="min-w-0 flex-1 text-xs font-bold leading-tight "
           style={{ color: meta.ink }}
         >
-          {meta.label}
+          <T en={meta.label} bn={meta.labelBn} />
         </span>
         <SignalChip signal={it.signal?.signal} strength={it.signal?.strength} />
       </div>
@@ -272,7 +291,7 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
           </p>
           {it.sector && (
             <p className="mt-0.5 truncate text-xs font-semibold text-text-muted">
-              {it.sector}
+              <T en={it.sector} bn={sectorBn(it.sector)} />
             </p>
           )}
         </div>
@@ -291,7 +310,7 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
                 {value}
               </span>
               <span className="mt-1 block text-xs font-semibold text-text-muted">
-                {meta.unit}
+                <T en={meta.unit} bn={meta.unitBn} />
               </span>
             </>
           )}
@@ -306,10 +325,12 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
           background: `color-mix(in srgb, ${meta.accent} 7%, transparent)`,
         }}
       >
-        <p className="text-xs font-bold leading-snug text-text-main">{card.shortLine}</p>
+        <p className="text-xs font-bold leading-snug text-text-main">
+          <T en={card.shortLine} bn={card.shortLineBn} />
+        </p>
         {sub && (
           <p className="mt-0.5 text-xs font-semibold leading-snug text-text-muted">
-            {sub}
+            <T en={sub.en} bn={sub.bn} />
           </p>
         )}
       </div>
@@ -329,7 +350,7 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
               </span>
             )}
             <span className="mt-1 block truncate text-xs font-semibold text-text-muted">
-              {s.label}
+              <T en={s.label} bn={s.labelBn} />
             </span>
           </div>
         ))}
@@ -338,39 +359,41 @@ export default function StandoutCard({ card }: { card: StoryStock }) {
       {/* The five checks behind the score — the same method the hero card shows */}
       <div className="mt-3.5 px-3.5 sm:px-4">
         <p className="text-xs font-semibold text-text-muted">
-          The five checks behind the score
+          <T en="The five checks behind the score" bn="স্কোরের পেছনের পাঁচটি যাচাই" />
         </p>
         <div className="mt-1.5 grid grid-cols-5 gap-1.5">
           {PILLARS.map((p, i) => (
-            <PillarBar key={p.key} label={p.short} value={pillars[i]} />
+            <PillarBar key={p.key} label={p.short} labelBn={p.shortBn} value={pillars[i]} />
           ))}
         </div>
       </div>
 
-      {/* The verdict in one line, English then Bengali */}
+      {/* The verdict in one line */}
       <div className="mt-3 px-3.5 sm:px-4">
         <p className="line-clamp-2 text-xs font-semibold leading-snug text-text-main">
-          {card.reasonEn ?? TIER_MEANINGS[tier]}
+          <T en={card.reasonEn ?? TIER_MEANINGS[tier]} bn={card.reasonBn ?? TIER_MEANINGS_BN[tier]} />
         </p>
-        <Bn className="mt-0.5 line-clamp-2 text-xs leading-snug text-text-muted">
-          {card.reasonBn ?? TIER_MEANINGS_BN[tier]}
-        </Bn>
       </div>
 
       {/* The card is one big link, so this is a styled affordance rather than a
           nested control — hidden from screen readers to avoid a double read. */}
       <div className="mt-auto flex items-center justify-between gap-2 border-t border-border bg-surface-2 px-3.5 py-2.5 sm:px-4">
         <span className="truncate text-xs font-semibold text-text-muted">
-          {it.last_reported_year
-            ? `From the FY${it.last_reported_year} report`
-            : "No annual report on file"}
+          {it.last_reported_year ? (
+            <T
+              en={`From the FY${it.last_reported_year} accounts`}
+              bn={`${it.last_reported_year} অর্থবছরের হিসাব থেকে`}
+            />
+          ) : (
+            <T en="No yearly accounts on file" bn="কোনো বার্ষিক হিসাব নেই" />
+          )}
         </span>
         <span
           aria-hidden
           className="shrink-0 text-xs font-extrabold"
           style={{ color: meta.ink }}
         >
-          Full report{" "}
+          <T en="Full report" bn="পূর্ণ রিপোর্ট" />{" "}
           <span className="inline-block transition-transform group-hover:translate-x-0.5">→</span>
         </span>
       </div>

@@ -53,6 +53,22 @@ const SECTOR_BN: Record<string, string> = {
   "Mutual Funds": "মিউচুয়াল ফান্ড",
   "Corporate Bond": "কর্পোরেট বন্ড",
   "Debenture": "ডিবেঞ্চার",
+  // The plain group names `/api/market/state` uses (market_state_service).
+  Banks: "ব্যাংক",
+  "Finance companies": "আর্থিক প্রতিষ্ঠান",
+  Funds: "ফান্ড",
+  Medicine: "ওষুধ",
+  "Power & gas": "বিদ্যুৎ ও গ্যাস",
+  Food: "খাদ্য",
+  Clothing: "পোশাক",
+  Tech: "তথ্যপ্রযুক্তি",
+  "Phone & internet": "টেলিযোগাযোগ",
+  Leather: "চামড়া",
+  Paper: "কাগজ",
+  "Services & property": "সেবা ও আবাসন",
+  Travel: "ভ্রমণ",
+  Bonds: "বন্ড",
+  Other: "বিবিধ",
 };
 
 export function sectorBn(name: string | null | undefined): string {
@@ -79,4 +95,15 @@ export function bnCroreTaka(valueMn: number | null | undefined): string {
   const cr = valueMn / 10;
   const txt = cr >= 100 ? Math.round(cr).toLocaleString("en-US") : cr.toFixed(1);
   return `${txt} কোটি টাকা`;
+}
+
+/** `crore()` in Bengali: 12,345 mn → "৳1,235 কোটি" (compact figures in tiles). */
+export function croreBn(valueMn: number | null | undefined): string {
+  if (valueMn == null || Number.isNaN(valueMn)) return "--";
+  const cr = valueMn / 10;
+  const abs = Math.abs(cr);
+  const sign = cr < 0 ? "-" : "";
+  if (abs >= 100) return `${sign}৳${Math.round(abs).toLocaleString("en-US")} কোটি`;
+  if (abs >= 1) return `${sign}৳${abs.toFixed(1)} কোটি`;
+  return `${sign}৳${abs.toFixed(2)} কোটি`;
 }

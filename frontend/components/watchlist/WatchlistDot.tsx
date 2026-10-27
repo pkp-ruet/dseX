@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { useLang } from "@/context/LangContext";
 import { isLoggedIn, getToken } from "@/lib/auth";
 import { getCachedWatchlist, loadWatchlist, subscribeWatchlist } from "@/lib/watchlist";
 import { getWatchlistNews, getApiUrl } from "@/lib/api";
@@ -27,6 +28,7 @@ async function fetchLastVisit(): Promise<string | null> {
 export default function WatchlistDot() {
   const pathname = usePathname();
   const [show, setShow] = useState(false);
+  const { lang } = useLang();
 
   useEffect(() => {
     if (pathname === "/watchlist") {
@@ -86,10 +88,11 @@ export default function WatchlistDot() {
   }, [pathname]);
 
   if (!show) return null;
+  const label = lang === "bn" ? "আপনার ওয়াচলিস্টে নতুন খবর আছে" : "There is new activity in your watchlist";
   return (
     <span
-      aria-label="New activity in your watchlist"
-      title="New activity in your watchlist"
+      aria-label={label}
+      title={label}
       className="absolute -top-0.5 -right-0.5 inline-block h-2 w-2 rounded-full bg-negative ring-2 ring-bg"
     />
   );

@@ -6,6 +6,10 @@ import SectionTitle from "@/components/stock/SectionTitle";
 import DaysLeft from "@/components/stock/DaysLeft";
 import DividendLedger, { type LedgerRow } from "@/components/stock/DividendLedger";
 import { IconCalendar } from "@/components/stock/StockIcons";
+import { bnDate } from "@/lib/bn";
+import { T } from "@/components/i18n/T";
+
+const d2 = (iso: string) => <T en={formatDate(iso)} bn={bnDate(iso) || formatDate(iso)} />;
 
 interface Props {
   code: string;
@@ -23,6 +27,13 @@ function pctOf(r: DividendDeclarationRecord): { cash: number; stock: number } {
 function periodLabel(r: DividendDeclarationRecord): string {
   const pe = toDate(r.period_end);
   if (pe) return `FY ${pe.getFullYear()}`;
+  const d = toDate(r.declaration_date);
+  return d ? String(d.getFullYear()) : "—";
+}
+
+function periodLabelBn(r: DividendDeclarationRecord): string {
+  const pe = toDate(r.period_end);
+  if (pe) return `${pe.getFullYear()} অর্থবছর`;
   const d = toDate(r.declaration_date);
   return d ? String(d.getFullYear()) : "—";
 }
@@ -63,19 +74,28 @@ export default function DividendTimeline({ rows, faceValue, ltp }: Props) {
     if (row.cash > 0) cashYears.add(row.period);
   }
   const streakLine =
-    years.size >= 2
-      ? `Paid cash in ${cashYears.size} of the last ${years.size} years we have on record.`
-      : null;
+    years.size >= 2 ? (
+      <T
+        en={`It paid a cash dividend in ${cashYears.size} of the ${years.size} years we have records for.`}
+        bn={`আমাদের কাছে থাকা ${years.size} বছরের মধ্যে ${cashYears.size} বছর নগদ ডিভিডেন্ড দিয়েছে।`}
+      />
+    ) : null;
 
   return (
     <section id="dividends" className="mb-8 stock-anchor">
       <SectionTitle
-        title="Dividend Timeline"
-        sub={<>{streakLine ?? "Every dividend the company has declared, and the dates that matter if you want the next one."}</>}
-        bn="কোম্পানি কবে কত লভ্যাংশ দিয়েছে, আর পরের লভ্যাংশ পেতে কোন তারিখ মনে রাখতে হবে।"
+        title={<T en="Dividend history" bn="ডিভিডেন্ডের ইতিহাস" />}
+        sub={
+          streakLine ?? (
+            <T
+              en="Every dividend the company has declared, and the dates to remember if you want the next one."
+              bn="কোম্পানির ঘোষিত সব ডিভিডেন্ড, আর পরেরটি পেতে কোন তারিখগুলো মনে রাখতে হবে।"
+            />
+          )
+        }
         right={
           <Link href="/dividend-calendar" className="text-xs font-semibold hover:underline whitespace-nowrap text-primary">
-            All record dates →
+            <T en="All record dates →" bn="সব রেকর্ড ডেট →" />
           </Link>
         }
       />
@@ -89,9 +109,16 @@ export default function DividendTimeline({ rows, faceValue, ltp }: Props) {
         const recordIso = isoLocal(info.recordDate);
         const spotNow = info.buyDaysLeft < 0;
         const declared =
-          cash === 0 && stock === 0
-            ? "No dividend"
-            : [cash > 0 ? `${cash}% cash` : null, stock > 0 ? `${stock}% bonus` : null].filter(Boolean).join(" + ");
+          cash === 0 && stock === 0 ? (
+            <T en="No dividend" bn="কোনো ডিভিডেন্ড নেই" />
+          ) : (
+            <T
+              en={[cash > 0 ? `${cash}% cash` : null, stock > 0 ? `${stock}% bonus` : null].filter(Boolean).join(" + ")}
+              bn={[cash > 0 ? `${cash}% নগদ` : null, stock > 0 ? `${stock}% বোনাস` : null].filter(Boolean).join(" + ")}
+            />
+          );
+        const type = r.dividend_type || "Final";
+        const typeBn = /interim/i.test(type) ? "অন্তর্বর্তী" : "চূড়ান্ত";
         return (
           <div
             className="rounded-2xl p-4 sm:p-5 mb-4 min-w-0"
@@ -108,7 +135,8 @@ export default function DividendTimeline({ rows, faceValue, ltp }: Props) {
                 <IconCalendar size={15} />
               </span>
               <p className="text-sm font-bold leading-snug min-w-0 text-text-main">
-                Next dividend — record date {formatDate(recordIso)}
+                <T en="Next dividend. Record date: " bn="পরের ডিভিডেন্ড। রেকর্ড ডেট: " />
+                {d2(recordIso)}
               </p>
               <DaysLeft
                 date={recordIso}
@@ -118,41 +146,68 @@ export default function DividendTimeline({ rows, faceValue, ltp }: Props) {
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-text-muted">Declared</p>
+                <p className="text-xs font-semibold text-text-muted">
+                  <T en="Declared" bn="ঘোষিত" />
+                </p>
                 <p className="text-base sm:text-lg font-bold tabular-nums nums leading-tight break-words text-text-main">
                   {declared}
                 </p>
-                <p className="text-xs text-text-muted">{r.dividend_type || "Final"} · {periodLabel(r)}</p>
+                <p className="text-xs text-text-muted">
+                  <T en={`${type} · ${periodLabel(r)}`} bn={`${typeBn} · ${periodLabelBn(r)}`} />
+                </p>
               </div>
               {cashPerShare != null && (
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold text-text-muted">Cash per share</p>
+                  <p className="text-xs font-semibold text-text-muted">
+                    <T en="Cash per share" bn="শেয়ারপ্রতি নগদ" />
+                  </p>
                   <p className="text-base sm:text-lg font-bold tabular-nums nums leading-tight text-positive">{money(cashPerShare)}</p>
                   {yieldPct != null && (
-                    <p className="text-xs leading-snug text-text-muted">{yieldPct.toFixed(2)}% of today&apos;s price, before tax</p>
+                    <p className="text-xs leading-snug text-text-muted">
+                      <T
+                        en={`${yieldPct.toFixed(2)}% of today's price, before tax`}
+                        bn={`আজকের দামের ${yieldPct.toFixed(2)}%, কর বাদের আগে`}
+                      />
+                    </p>
                   )}
                 </div>
               )}
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-text-muted">Buy by</p>
+                <p className="text-xs font-semibold text-text-muted">
+                  <T en="Last day to buy" bn="শেষ কেনার দিন" />
+                </p>
                 <p className="text-base sm:text-lg font-bold tabular-nums nums leading-tight" style={{ color: spotNow ? "var(--watch)" : "var(--text)" }}>
-                  {formatDate(buyByIso)}
+                  {d2(buyByIso)}
                 </p>
                 <p className="text-xs leading-snug text-text-muted">
-                  {spotNow ? "Spot market now — normal buys no longer qualify" : <DaysLeft date={buyByIso} suffix="left to buy" past="passed" />}
+                  {spotNow ? (
+                    <T
+                      en="Only the spot market is open now. A normal buy will no longer get this dividend."
+                      bn="এখন শুধু স্পট মার্কেট খোলা। সাধারণভাবে কিনলে এই ডিভিডেন্ড আর পাবেন না।"
+                    />
+                  ) : (
+                    <DaysLeft date={buyByIso} kind="buy" />
+                  )}
                 </p>
               </div>
               {r.agm_date && (
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold text-text-muted">AGM</p>
-                  <p className="text-base sm:text-lg font-bold tabular-nums nums leading-tight text-text-main">{formatDate(r.agm_date)}</p>
-                  <p className="text-xs text-text-muted">Shareholders approve it here</p>
+                  <p className="text-xs font-semibold text-text-muted">
+                    <T en="AGM" bn="এজিএম" />
+                  </p>
+                  <p className="text-base sm:text-lg font-bold tabular-nums nums leading-tight text-text-main">{d2(r.agm_date)}</p>
+                  <p className="text-xs text-text-muted">
+                    <T en="Shareholders approve the dividend here" bn="এখানে শেয়ারহোল্ডাররা ডিভিডেন্ড অনুমোদন করেন" />
+                  </p>
                 </div>
               )}
             </div>
 
             <p className="text-xs mt-3 leading-snug text-text-muted">
-              Shares must be in your BO account on the record date. Normal-market trades settle on T+2 and DSE opens a spot window just before, so buying about 3 trading days early is the safe side. Confirm the cut-off with your broker.
+              <T
+                en="The shares must be in your BO account on the record date. Normal trades take two working days to settle, and DSE opens a spot market just before the record date, so buying about 3 trading days early is the safe choice. Please confirm the last day with your broker."
+                bn="রেকর্ড ডেটে শেয়ার আপনার বিও অ্যাকাউন্টে থাকতে হবে। সাধারণ লেনদেন নিষ্পত্তি হতে দুই কার্যদিবস লাগে, আর রেকর্ড ডেটের ঠিক আগে DSE স্পট মার্কেট খোলে। তাই অন্তত 3 কার্যদিবস আগে কেনা নিরাপদ। শেষ দিনটি আপনার ব্রোকারের কাছ থেকে নিশ্চিত হয়ে নিন।"
+              />
             </p>
           </div>
         );

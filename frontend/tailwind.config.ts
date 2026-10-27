@@ -55,10 +55,11 @@ const config: Config = {
         "tier-weak": "var(--tier-weak)",
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
+        // Inter first; Bengali characters fall through to Hind Siliguri.
+        sans: ["var(--font-inter)", "var(--font-bengali)", "Inter", "system-ui", "sans-serif"],
         // One Latin family (2026-10 redesign, decision 3): `font-display` is Inter too,
         // kept as an alias so existing headings don't need touching.
-        display: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
+        display: ["var(--font-inter)", "var(--font-bengali)", "Inter", "system-ui", "sans-serif"],
       },
       // Type scale mirrors the `--fs-*` tokens. 12px is the floor app-wide —
       // the audience reads on budget Android phones. Nothing smaller than `text-xs`.

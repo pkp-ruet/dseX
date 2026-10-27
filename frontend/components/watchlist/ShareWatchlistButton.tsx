@@ -2,12 +2,15 @@
 
 import { toast } from "@/lib/toast";
 import Button from "@/components/ui/Button";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
 
 interface Props {
   codes: string[];
 }
 
 export default function ShareWatchlistButton({ codes }: Props) {
+  const { lang } = useLang();
   async function handleShare() {
     if (codes.length === 0) return;
     const origin =
@@ -16,7 +19,7 @@ export default function ShareWatchlistButton({ codes }: Props) {
     try {
       if (navigator.clipboard) {
         await navigator.clipboard.writeText(url);
-        toast({ message: "Link copied — share it with anyone", tone: "success" });
+        toast({ message: <T en="Link copied. You can share it with anyone." bn="লিংক কপি হয়েছে। যে কারও সঙ্গে শেয়ার করতে পারেন।" />, tone: "success" });
       } else {
         // fallback for old browsers
         const ta = document.createElement("textarea");
@@ -25,10 +28,10 @@ export default function ShareWatchlistButton({ codes }: Props) {
         ta.select();
         document.execCommand("copy");
         document.body.removeChild(ta);
-        toast({ message: "Link copied", tone: "success" });
+        toast({ message: <T en="Link copied" bn="লিংক কপি হয়েছে" />, tone: "success" });
       }
     } catch {
-      toast({ message: "Couldn't copy the link", tone: "error" });
+      toast({ message: <T en="We couldn't copy the link" bn="লিংক কপি করা যায়নি" />, tone: "error" });
     }
   }
 
@@ -40,7 +43,7 @@ export default function ShareWatchlistButton({ codes }: Props) {
       variant="quiet"
       size="sm"
       onClick={handleShare}
-      title="Copy a shareable link to this watchlist"
+      title={lang === "bn" ? "এই ওয়াচলিস্টের একটি লিংক কপি করুন" : "Copy a link to this watchlist"}
       className="shrink-0"
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -50,7 +53,7 @@ export default function ShareWatchlistButton({ codes }: Props) {
         <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
         <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
       </svg>
-      Share
+      <T en="Share" bn="শেয়ার করুন" />
     </Button>
   );
 }

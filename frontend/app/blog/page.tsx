@@ -3,6 +3,7 @@ import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import { BLOG_CATEGORIES, BLOG_POSTS } from "@/lib/blog-bn";
 import CategoryNav from "@/components/learn/CategoryNav";
+import ArticleLangNote from "@/components/i18n/ArticleLangNote";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
@@ -84,16 +85,21 @@ export default function BlogPage() {
         <PageHeader
           eyebrow={<>বাংলা ব্লগ · {totalPosts}টি লেখা</>}
           title="সহজ ভাষায় শেয়ার বাজার"
-          bn="The stock market in everyday Bangla — beginner guides, no jargon."
-          subLang="en"
           lead={
             <>
-              বাংলাদেশে বিনিয়োগে একদম নতুন? কঠিন কোনো শব্দ ছাড়া, গল্পের মতো করে — এখান থেকেই শুরু করুন।{" "}
+              বাংলাদেশে বিনিয়োগে একদম নতুন? কঠিন শব্দ ছাড়া, গল্পের মতো করে লেখা। এখান থেকেই শুরু করুন।{" "}
               <Link href="/share-bazar" className="font-semibold text-primary underline">
-                আজকের শেয়ার বাজার কেমন গেল — সহজ বাংলায় দেখুন
+                আজকের শেয়ার বাজার কেমন গেল, সহজ বাংলায় দেখুন
               </Link>
             </>
           }
+        />
+
+        <ArticleLangNote
+          articleLang="bn"
+          pairHref="/learn"
+          lead="These beginner guides are written in Bengali. Our English guides are on their own page."
+          pairLabel="Read the English guides"
         />
 
         {/* Category index — tap to jump to a section */}
@@ -195,7 +201,7 @@ export default function BlogPage() {
               সেরা স্কোরের শেয়ার দেখুন
             </Link>
             <Link href="/learn" className="btn-quiet">
-              English Guides
+              ইংরেজি গাইড
             </Link>
           </div>
         </section>

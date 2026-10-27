@@ -1,5 +1,6 @@
 import { getDividendsUpcoming } from "@/lib/api";
 import { formatDate, pct } from "@/lib/formatters";
+import { bnDate } from "@/lib/bn";
 import { COPY } from "../copy";
 import type { Chip, MessageBlock } from "../types";
 
@@ -16,18 +17,17 @@ export async function dividendsResponder(): Promise<MessageBlock[]> {
     picked.push(it);
     if (picked.length >= 6) break;
   }
-  if (!picked.length) return [{ type: "text", text: COPY.dividends.none }];
+  if (!picked.length) return [{ type: "text", text: COPY.dividends.none, bn: COPY.dividends.noneBn }];
 
-  const blocks: MessageBlock[] = [{ type: "text", text: COPY.dividends.intro }];
+  const blocks: MessageBlock[] = [{ type: "text", text: COPY.dividends.intro, bn: COPY.dividends.introBn }];
   for (const d of picked) {
     const date = d.record_date ?? d.projected_date;
-    const parts: string[] = [];
-    if (d.dividend_pct != null) parts.push(`${pct(d.dividend_pct)} cash`);
-    if (date) parts.push(`by ${formatDate(date)}`);
-    const detail = parts.length ? ` — ${parts.join(", ")}` : "";
+    const cash = d.dividend_pct != null ? pct(d.dividend_pct) : null;
+    const name = d.company_name ?? d.trading_code;
     blocks.push({
       type: "text",
-      text: `• ${d.company_name ?? d.trading_code} (${d.trading_code})${detail}`,
+      text: `• ${COPY.dividends.line(name, d.trading_code, cash, date ? formatDate(date) : null)}`,
+      bn: `• ${COPY.dividends.lineBn(name, d.trading_code, cash, date ? bnDate(date) : null)}`,
     });
   }
 

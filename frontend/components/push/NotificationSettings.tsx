@@ -9,6 +9,7 @@ import {
   unsubscribeFromPush,
 } from "@/lib/push";
 import { apiGetNotificationState, apiSendTestPush } from "@/lib/api";
+import { T } from "@/components/i18n/T";
 
 /**
  * Profile → Notifications control. Self-service recovery for web push.
@@ -21,7 +22,7 @@ import { apiGetNotificationState, apiSendTestPush } from "@/lib/api";
  * whole pipeline on-device.
  */
 type Phase = "loading" | "unsupported" | "ready";
-type Msg = { kind: "ok" | "err"; text: string } | null;
+type Msg = { kind: "ok" | "err"; en: string; bn: string } | null;
 
 export default function NotificationSettings() {
   const [phase, setPhase] = useState<Phase>("loading");
@@ -65,15 +66,21 @@ export default function NotificationSettings() {
     setBusy(false);
     if (state) {
       setRegistered(true);
-      setMsg({ kind: "ok", text: "Alerts are on for this device." });
+      setMsg({ kind: "ok", en: "Notifications are on for this device.", bn: "এই ডিভাইসে নোটিফিকেশন চালু হয়েছে।" });
     } else {
-      setMsg({
-        kind: "err",
-        text:
-          getPermission() === "denied"
-            ? "Your browser is blocking notifications. Allow them for this site in your browser settings, then reload."
-            : "Couldn't turn on alerts. Please try again.",
-      });
+      setMsg(
+        getPermission() === "denied"
+          ? {
+              kind: "err",
+              en: "Your browser is blocking notifications. Please allow them for this site in your browser settings, then reload the page.",
+              bn: "আপনার ব্রাউজার নোটিফিকেশন বন্ধ রেখেছে। ব্রাউজারের সেটিংসে এই সাইটের জন্য নোটিফিকেশন চালু করে পেজটি আবার লোড করুন।",
+            }
+          : {
+              kind: "err",
+              en: "We couldn't turn on notifications. Please try again.",
+              bn: "নোটিফিকেশন চালু করা যায়নি। আবার চেষ্টা করুন।",
+            },
+      );
     }
   }
 
@@ -83,7 +90,7 @@ export default function NotificationSettings() {
     await unsubscribeFromPush();
     setBusy(false);
     setRegistered(false);
-    setMsg({ kind: "ok", text: "Alerts are off for this device." });
+    setMsg({ kind: "ok", en: "Notifications are off for this device.", bn: "এই ডিভাইসে নোটিফিকেশন বন্ধ হয়েছে।" });
   }
 
   async function handleTest() {
@@ -93,11 +100,15 @@ export default function NotificationSettings() {
       const r = await apiSendTestPush();
       setMsg(
         r.sent > 0
-          ? { kind: "ok", text: "Test sent — check your notifications." }
-          : { kind: "err", text: "No device received it. Turn alerts on for this device first." },
+          ? { kind: "ok", en: "A test was sent. Please check your notifications.", bn: "একটি পরীক্ষামূলক নোটিফিকেশন পাঠানো হয়েছে। নোটিফিকেশন দেখে নিন।" }
+          : {
+              kind: "err",
+              en: "No device received it. Please turn on notifications for this device first.",
+              bn: "কোনো ডিভাইসে পৌঁছায়নি। আগে এই ডিভাইসে নোটিফিকেশন চালু করুন।",
+            },
       );
     } catch {
-      setMsg({ kind: "err", text: "Couldn't send a test right now." });
+      setMsg({ kind: "err", en: "We couldn't send a test right now.", bn: "এই মুহূর্তে পরীক্ষামূলক নোটিফিকেশন পাঠানো যাচ্ছে না।" });
     } finally {
       setBusy(false);
     }
@@ -109,8 +120,12 @@ export default function NotificationSettings() {
   if (phase === "loading") {
     return (
       <div className={card}>
-        <span className={label}>Notifications</span>
-        <p className="text-text-muted text-sm mt-2">Checking…</p>
+        <span className={label}>
+          <T en="Notifications" bn="নোটিফিকেশন" />
+        </span>
+        <p className="text-text-muted text-sm mt-2">
+          <T en="Checking…" bn="দেখা হচ্ছে…" />
+        </p>
       </div>
     );
   }
@@ -118,9 +133,11 @@ export default function NotificationSettings() {
   if (phase === "unsupported") {
     return (
       <div className={card}>
-        <span className={label}>Notifications</span>
+        <span className={label}>
+          <T en="Notifications" bn="নোটিফিকেশন" />
+        </span>
         <p className="text-text-muted text-sm mt-2">
-          This browser doesn&apos;t support web notifications.
+          <T en="This browser does not support web notifications." bn="এই ব্রাউজারে ওয়েব নোটিফিকেশন চলে না।" />
         </p>
       </div>
     );
@@ -128,7 +145,9 @@ export default function NotificationSettings() {
 
   return (
     <div className={card}>
-      <span className={label}>Notifications</span>
+      <span className={label}>
+        <T en="Notifications" bn="নোটিফিকেশন" />
+      </span>
 
       <div className="mt-2 flex items-center gap-2">
         <span
@@ -137,20 +156,32 @@ export default function NotificationSettings() {
           aria-hidden
         />
         <p className="text-text-main font-medium">
-          {registered ? "On for this device" : "Off for this device"}
+          {registered ? (
+            <T en="On for this device" bn="এই ডিভাইসে চালু" />
+          ) : (
+            <T en="Off for this device" bn="এই ডিভাইসে বন্ধ" />
+          )}
         </p>
       </div>
 
       {!configured ? (
         <p className="mt-2 text-xs text-text-muted">
-          Notifications aren&apos;t available right now.
+          <T en="Notifications are not available right now." bn="এই মুহূর্তে নোটিফিকেশন চালু করা যাচ্ছে না।" />
         </p>
       ) : (
         <>
           <p className="mt-1 text-xs leading-snug text-text-muted">
-            {registered
-              ? "You'll get your daily stock update and alerts on this device."
-              : "Turn on to get your daily stock update and alerts on this device."}
+            {registered ? (
+              <T
+                en="You will get your daily update and price alerts on this device."
+                bn="এই ডিভাইসে আপনি প্রতিদিনের আপডেট আর প্রাইস অ্যালার্ট পাবেন।"
+              />
+            ) : (
+              <T
+                en="Turn them on to get your daily update and price alerts on this device."
+                bn="চালু করলে এই ডিভাইসে প্রতিদিনের আপডেট আর প্রাইস অ্যালার্ট পাবেন।"
+              />
+            )}
           </p>
 
           {msg && (
@@ -158,7 +189,7 @@ export default function NotificationSettings() {
               className="mt-2 text-xs leading-snug"
               style={{ color: msg.kind === "ok" ? "var(--positive)" : "var(--negative)" }}
             >
-              {msg.text}
+              <T en={msg.en} bn={msg.bn} />
             </p>
           )}
 
@@ -171,7 +202,7 @@ export default function NotificationSettings() {
                   disabled={busy}
                   className="btn-primary btn-sm"
                 >
-                  {busy ? "Working…" : "Send me a test"}
+                  {busy ? <T en="Working…" bn="কাজ চলছে…" /> : <T en="Send me a test" bn="পরীক্ষামূলক পাঠান" />}
                 </button>
                 <button
                   type="button"
@@ -179,7 +210,7 @@ export default function NotificationSettings() {
                   disabled={busy}
                   className="btn-quiet btn-sm"
                 >
-                  Turn off
+                  <T en="Turn off" bn="বন্ধ করুন" />
                 </button>
               </>
             ) : (
@@ -189,7 +220,11 @@ export default function NotificationSettings() {
                 disabled={busy}
                 className="btn-primary btn-sm"
               >
-                {busy ? "Turning on…" : "Turn on for this device"}
+                {busy ? (
+                  <T en="Turning on…" bn="চালু হচ্ছে…" />
+                ) : (
+                  <T en="Turn on for this device" bn="এই ডিভাইসে চালু করুন" />
+                )}
               </button>
             )}
           </div>

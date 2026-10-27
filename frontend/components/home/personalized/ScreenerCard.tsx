@@ -11,6 +11,8 @@ import OwnerMark from "@/components/home/personalized/OwnerMark";
 import Chip from "@/components/ui/Chip";
 import StockRow from "@/components/ui/StockRow";
 import SignalChip from "@/components/ui/SignalChip";
+import { tt } from "@/components/home/tt";
+import { T } from "@/components/i18n/T";
 
 const DEFAULT_GOAL = "good_cheap";
 
@@ -44,7 +46,7 @@ export default function ScreenerCard({
   lang?: Lang;
 }) {
   const bn = lang === "bn";
-  const tx = (en: string, b: string) => (bn ? b : en);
+  const tx = (en: string, b: string) => <T en={en} bn={b} />;
   const { isPremium } = usePremium();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -61,24 +63,31 @@ export default function ScreenerCard({
   const mine = (goal.hidden_codes ?? []).filter((c) => held.has(c) || watched.has(c)).length;
   const hiddenBits = hidden && hidden.count > 0
     ? [
-        hidden.buys ? t(lang, "screenerBuys", { n: hidden.buys }) : null,
-        hidden.strength ? t(lang, "screenerMarked", { n: hidden.strength.n, tag: tx(hidden.strength.en, hidden.strength.bn) }) : null,
-        mine ? t(lang, "screenerFollow", { n: mine }) : null,
-      ].filter((x): x is string => !!x)
+        hidden.buys ? tt("screenerBuys", { n: hidden.buys }) : null,
+        hidden.strength
+          ? (
+              <T
+                en={t("en", "screenerMarked", { n: hidden.strength.n, tag: hidden.strength.en })}
+                bn={t("bn", "screenerMarked", { n: hidden.strength.n, tag: hidden.strength.bn })}
+              />
+            )
+          : null,
+        mine ? tt("screenerFollow", { n: mine }) : null,
+      ].filter((x): x is React.JSX.Element => !!x)
     : [];
 
   return (
-    <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
+    <section className="soft-card overflow-hidden">
       <DashHeader
-        title={t(lang, "screenerTitle")}
-        sub={t(lang, "screenerSub")}
+        title={tt("screenerTitle")}
+        sub={tt("screenerSub")}
         href="/screener"
-        linkLabel={t(lang, "screenerOpen")}
+        linkLabel={tt("screenerOpen")}
       />
 
       {screens.length > 0 && (
         <div className="border-b border-border px-4 py-3 sm:px-5">
-          <p className="mb-1 text-xs font-semibold text-text-muted">{t(lang, "screenerYours")}</p>
+          <p className="mb-1 text-xs font-semibold text-text-muted">{tt("screenerYours")}</p>
           <ul className="divide-y divide-cell-rule">
             {screens.map((s) => (
               <li key={s.id}>
@@ -97,8 +106,8 @@ export default function ScreenerCard({
                   </span>
                   <span className={`shrink-0 text-sm tabular-nums ${s.new_today.length ? "font-semibold text-primary-ink" : "text-text-muted"}`}>
                     {s.new_today.length
-                      ? t(lang, "screenerNew", { n: s.new_today.length })
-                      : s.passed != null ? t(lang, "screenerPass", { n: s.passed }) : ""}
+                      ? tt("screenerNew", { n: s.new_today.length })
+                      : s.passed != null ? tt("screenerPass", { n: s.passed }) : ""}
                   </span>
                 </Link>
               </li>
@@ -119,7 +128,7 @@ export default function ScreenerCard({
       {/* What the pick asks, as the screener's questions and answers. */}
       {goal.wants && goal.wants.length > 0 ? (
         <div className="px-4 pt-3 sm:px-5">
-          <p className="mb-1.5 text-xs font-semibold text-text-muted">{t(lang, "screenerAsks")}</p>
+          <p className="mb-1.5 text-xs font-semibold text-text-muted">{tt("screenerAsks")}</p>
           <ul className="overflow-hidden rounded-lg border border-border">
             {goal.wants.map((w) => (
               <li key={w.key} className="flex items-center justify-between gap-3 border-b border-border px-3 py-2 last:border-b-0">
@@ -136,7 +145,7 @@ export default function ScreenerCard({
       )}
 
       <p className="px-4 pt-4 text-base font-semibold text-text-main sm:px-5">
-        {t(lang, "screenerPassToday", { n: goal.passed })}
+        {tt("screenerPassToday", { n: goal.passed })}
       </p>
 
       {goal.top.length > 0 ? (
@@ -152,7 +161,7 @@ export default function ScreenerCard({
               mark={<OwnerMark code={s.code} held={held} watched={watched} lang={lang} />}
               sub={s.strengths?.length
                 ? s.strengths.map((x) => tx(x.en, x.bn)).join(" · ")
-                : s.checks.map((c) => tx(c.value_en, c.value_bn)).join(" · ")}
+                : <T en={s.checks.map((c) => c.value_en).join(" · ")} bn={s.checks.map((c) => c.value_bn).join(" · ")} />}
               subClamp
               // On a phone the name, its figures and the price need the whole
               // row; the Buy chip joins beside the name from 640px (a hidden
@@ -163,14 +172,18 @@ export default function ScreenerCard({
           ))}
         </ul>
       ) : (
-        <p className="px-4 py-3 text-sm text-text-muted sm:px-5">{t(lang, "screenerNone")}</p>
+        <p className="px-4 py-3 text-sm text-text-muted sm:px-5">{tt("screenerNone")}</p>
       )}
 
       {hidden && hidden.count > 0 && hiddenBits.length > 0 && (
         <p className="border-t border-border px-4 py-3 text-sm text-text-muted sm:px-5">
-          <span className="font-semibold text-text-main">{t(lang, "screenerHidden", { n: hidden.count })}</span>
-          {" · "}
-          {hiddenBits.join(" · ")}
+          <span className="font-semibold text-text-main">{tt("screenerHidden", { n: hidden.count })}</span>
+          {hiddenBits.map((bit, i) => (
+            <span key={i}>
+              {" · "}
+              {bit}
+            </span>
+          ))}
         </p>
       )}
 
@@ -179,7 +192,7 @@ export default function ScreenerCard({
         href={href}
         className="flex min-h-12 items-center justify-center border-t border-border px-4 text-sm font-semibold text-primary-ink hover:bg-surface-2 active:bg-surface-2 sm:justify-start sm:px-5"
       >
-        {goal.passed > goal.top.length ? t(lang, "screenerSeeAll", { n: goal.passed }) : t(lang, "screenerChange")} →
+        {goal.passed > goal.top.length ? tt("screenerSeeAll", { n: goal.passed }) : tt("screenerChange")} →
       </Link>
     </section>
   );

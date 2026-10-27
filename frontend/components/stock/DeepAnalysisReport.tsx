@@ -1,20 +1,17 @@
 "use client";
 import type { DeepAnalysisReport as Report, DeepAnalysisSection, FairValue } from "@/lib/api";
 import Markdown from "@/lib/markdown";
-import LangToggle from "@/components/stock/LangToggle";
 import ValueTodayBox from "@/components/stock/ValueTodayBox";
-import { useStockLang } from "@/context/StockLangContext";
 import PremiumGate from "@/components/premium/PremiumGate";
+import { T, TBlock } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
+import { formatDate } from "@/lib/formatters";
+import { bnDate } from "@/lib/bn";
 
 interface Props {
   report: Report;
   fairValue: FairValue | null;
 }
-
-const T = {
-  eyebrow: { en: "In-depth analysis", bn: "গভীর বিশ্লেষণ" },
-  asOf: { en: "Data as of", bn: "তথ্য যতদিনের" },
-} as const;
 
 // Bull case reads positive, bear case negative; everything else uses the brand accent.
 function accentFor(key: string): string {
@@ -23,22 +20,23 @@ function accentFor(key: string): string {
   return "border-primary";
 }
 
+/** Both halves of a report field; the Bengali falls back to the English. */
+const pair = (en: string | null | undefined, bn: string | null | undefined) => {
+  const e = en ?? bn ?? "";
+  return <T en={e} bn={bn ?? e} />;
+};
+
 export default function DeepAnalysisReport({ report, fairValue }: Props) {
-  // The app-wide EN / বাংলা choice (same saved key the stock page and dashboard use).
-  const { lang, setLang } = useStockLang();
+  // The page language comes from the navbar switch; every text below carries
+  // both languages (`<T>`), so only labels in attributes read `bn` here.
+  const { bn } = useLang();
 
-  const isBn = lang === "bn";
-  const pick = (en: string | null | undefined, bn: string | null | undefined) =>
-    (isBn ? bn : en) ?? en ?? "";
-
-  const headline = pick(report.headline_en, report.headline_bn);
-  const bottomLine = pick(report.bottom_line_en, report.bottom_line_bn);
-  const dataNote = pick(report.data_note_en, report.data_note_bn);
-  const disclaimer = pick(report.disclaimer_en, report.disclaimer_bn);
-
-  const sectionTitle = (s: DeepAnalysisSection) => pick(s.title_en, s.title_bn);
-  const sectionTakeaway = (s: DeepAnalysisSection) => pick(s.takeaway_en, s.takeaway_bn);
-  const sectionBody = (s: DeepAnalysisSection) => pick(s.body_en, s.body_bn);
+  const sectionBody = (s: DeepAnalysisSection) => (
+    <TBlock
+      en={<Markdown text={s.body_en ?? s.body_bn ?? ""} className="text-base" />}
+      bn={<Markdown text={s.body_bn ?? s.body_en ?? ""} className="text-base" />}
+    />
+  );
 
   const renderSection = (s: (typeof report.sections)[number], i: number) => {
     const accent = accentFor(s.key);
@@ -49,79 +47,80 @@ export default function DeepAnalysisReport({ report, fairValue }: Props) {
           <span className="text-xs font-bold tabular-nums shrink-0 text-text-muted">
             {String(i + 1).padStart(2, "0")}
           </span>
-          <h2 className="text-lg sm:text-xl font-bold leading-snug text-text-main">
-            {sectionTitle(s)}
-          </h2>
+          <h2 className="text-lg sm:text-xl font-bold leading-snug text-text-main">{pair(s.title_en, s.title_bn)}</h2>
         </div>
 
         {/* Takeaway — the one line a skimmer should remember */}
         <p className={`text-base font-semibold leading-snug mb-3 pl-3 border-l-[3px] text-text-main ${accent}`}>
-          {sectionTakeaway(s)}
+          {pair(s.takeaway_en, s.takeaway_bn)}
         </p>
 
         {isValuation ? (
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
-            <Markdown text={sectionBody(s)} className="text-base" />
+            <div>{sectionBody(s)}</div>
             {fairValue && (
               <div className="hidden lg:block lg:sticky lg:top-28">
-                <ValueTodayBox fairValue={fairValue} lang={lang} />
+                <ValueTodayBox fairValue={fairValue} />
               </div>
             )}
           </div>
         ) : (
-          <Markdown text={sectionBody(s)} className="text-base" />
+          sectionBody(s)
         )}
       </section>
     );
   };
 
   return (
-    <article className={isBn ? "font-bn" : ""} lang={isBn ? "bn" : undefined}>
-      {/* Header: eyebrow + language switch */}
+    <article>
       <div className="flex items-center justify-between gap-3 mb-4">
         <span className="text-xs font-semibold text-primary-ink">
-          {T.eyebrow[lang]}
+          <T en="In-depth analysis" bn="বিস্তারিত বিশ্লেষণ" />
         </span>
-        <LangToggle value={lang} onChange={setLang} size="sm" />
       </div>
 
       {/* Thesis in ~20 seconds: headline + bottom line */}
       <h1 className="text-2xl sm:text-3xl font-bold leading-snug mb-4 text-text-main">
-        {headline}
+        {pair(report.headline_en, report.headline_bn)}
       </h1>
       <p className="text-base sm:text-lg leading-relaxed mb-6 text-text-muted">
-        {bottomLine}
+        {pair(report.bottom_line_en, report.bottom_line_bn)}
       </p>
 
       {/* Live value box up top on mobile so the price read is never buried;
           it also appears beside the valuation section on wider screens. */}
       {fairValue && (
         <div className="lg:hidden mb-6">
-          <ValueTodayBox fairValue={fairValue} lang={lang} />
+          <ValueTodayBox fairValue={fairValue} />
         </div>
       )}
 
       {report.as_of_date && (
         <p className="text-xs mb-6 text-text-muted">
-          {T.asOf[lang]} {report.as_of_date}
+          <T
+            en={`Figures as of ${formatDate(report.as_of_date)}`}
+            bn={`তথ্য ${bnDate(report.as_of_date) || report.as_of_date} পর্যন্ত`}
+          />
         </p>
       )}
 
-      {dataNote && (
+      {(report.data_note_en || report.data_note_bn) && (
         <div className="rounded-xl p-4 mb-6 text-sm leading-snug bg-surface-2 border border-border text-text-muted">
-          {dataNote}
+          {pair(report.data_note_en, report.data_note_bn)}
         </div>
       )}
 
       {/* Contents — the sections are a real sequence, so they're numbered */}
       {report.sections.length > 2 && (
-        <nav aria-label={isBn ? "সূচিপত্র" : "Contents"} className={`mb-8 border-y border-border py-4 ${isBn ? "font-bn" : ""}`}>
-          <p className="mb-1 text-xs font-semibold text-text-muted">{isBn ? "এই রিপোর্টে" : "In this report"}</p>
+        <nav aria-label={bn ? "সূচিপত্র" : "Contents"} className="mb-8 border-y border-border py-4">
+          <p className="mb-1 text-xs font-semibold text-text-muted">
+            <T en="In this report" bn="এই রিপোর্টে" />
+          </p>
           <ol className="grid grid-cols-1 list-decimal gap-x-6 pl-5 text-sm sm:grid-cols-2">
             {report.sections.map((s) => (
               <li key={s.key} className="marker:text-text-muted">
                 <a href={`#sec-${s.key}`} className="inline-flex min-h-10 items-center text-text-main hover:text-primary-ink">
-                  {sectionTitle(s)}
+                  {pair(s.title_en, s.title_bn)}
                 </a>
               </li>
             ))}
@@ -135,11 +134,7 @@ export default function DeepAnalysisReport({ report, fairValue }: Props) {
         {report.sections.slice(0, 1).map((s, i) => renderSection(s, i))}
       </div>
       {report.sections.length > 1 && (
-        <PremiumGate
-          label={lang === "bn" ? "বাকি বিশ্লেষণ" : "The rest of this report"}
-          peek={220}
-          className="mt-8"
-        >
+        <PremiumGate label={{ en: "The rest of this report", bn: "বাকি বিশ্লেষণ" }} peek={220} className="mt-8">
           <div className="space-y-8">
             {report.sections.slice(1).map((s, i) => renderSection(s, i + 1))}
           </div>
@@ -147,9 +142,9 @@ export default function DeepAnalysisReport({ report, fairValue }: Props) {
       )}
 
       {/* Fine print */}
-      {disclaimer && (
+      {(report.disclaimer_en || report.disclaimer_bn) && (
         <p className="text-xs leading-snug mt-10 pt-6 text-text-muted border-t border-border">
-          {disclaimer}
+          {pair(report.disclaimer_en, report.disclaimer_bn)}
         </p>
       )}
     </article>

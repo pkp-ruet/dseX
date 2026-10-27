@@ -51,20 +51,20 @@ _ELIGIBLE_FINANCIAL = {"own_history_pe", "peer_pe", "book_own", "book_peer", "di
 # Plain-English label per method — carried through so the value box can explain
 # the "why" without inventing it.
 _LABELS = {
-    "own_history_pe": "Its own usual price vs profit",
-    "peer_pe": "Priced like similar companies (profit)",
-    "book_own": "Its own usual price vs asset value",
-    "book_peer": "Priced like similar companies (assets)",
-    "dividend_yield": "Based on the dividend it pays",
+    "own_history_pe": "Its usual price compared with profit",
+    "peer_pe": "Similar companies, compared with profit",
+    "book_own": "Its usual price compared with assets",
+    "book_peer": "Similar companies, compared with assets",
+    "dividend_yield": "The dividend it pays",
 }
 
-# Everyday-Bengali mirror of each label (Western digits, no jargon).
+# Everyday-Bengali mirror of each label (Western digits, plain words).
 _LABELS_BN = {
-    "own_history_pe": "মুনাফার তুলনায় এর নিজের চিরাচরিত দাম",
-    "peer_pe": "একই ধরনের কোম্পানির মতো দাম (মুনাফা)",
-    "book_own": "সম্পদমূল্যের তুলনায় এর নিজের চিরাচরিত দাম",
-    "book_peer": "একই ধরনের কোম্পানির মতো দাম (সম্পদ)",
-    "dividend_yield": "এর দেওয়া ডিভিডেন্ডের ভিত্তিতে",
+    "own_history_pe": "মুনাফার তুলনায় এর স্বাভাবিক দাম",
+    "peer_pe": "মুনাফার তুলনায় একই ধরনের কোম্পানির দাম",
+    "book_own": "সম্পদের তুলনায় এর স্বাভাবিক দাম",
+    "book_peer": "সম্পদের তুলনায় একই ধরনের কোম্পানির দাম",
+    "dividend_yield": "এর দেওয়া ডিভিডেন্ড",
 }
 
 
@@ -264,8 +264,8 @@ def estimate_fair_value(
     uses_en: list[str] = []
     uses_bn: list[str] = []
     if "own_history_pe" in methods:
-        uses_en.append("its own past price levels")
-        uses_bn.append("অতীতে এর নিজের দামের ধরন")
+        uses_en.append("its own past prices")
+        uses_bn.append("এর নিজের আগের দাম")
     if "peer_pe" in methods:
         uses_en.append("what similar companies trade at")
         uses_bn.append("একই ধরনের কোম্পানির দাম")
@@ -275,8 +275,8 @@ def estimate_fair_value(
     if "dividend_yield" in methods:
         uses_en.append("the dividend it pays")
         uses_bn.append("এর দেওয়া ডিভিডেন্ড")
-    basis_en = "Based on " + _join_en(uses_en) + "."
-    basis_bn = _join_bn(uses_bn) + " বিবেচনা করে।"
+    basis_en = "Worked out from " + _join_en(uses_en) + "."
+    basis_bn = _join_bn(uses_bn) + " থেকে হিসাব করা।"
 
     return {
         "low": _round_price(low),

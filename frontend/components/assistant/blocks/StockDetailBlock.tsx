@@ -1,9 +1,13 @@
 import Link from "next/link";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import TierPill from "@/components/ui/TierPill";
+import { T } from "@/components/i18n/T";
 import { taka, signed } from "@/lib/formatters";
 import { COPY } from "@/lib/assistant/copy";
 import type { MessageBlock } from "@/lib/assistant/types";
+
+/** Flags in transcripts saved before 2026-10-28 were plain English strings. */
+const pair = (f: { en: string; bn: string } | string) => (typeof f === "string" ? { en: f, bn: f } : f);
 
 export default function StockDetailBlock({
   block,
@@ -12,7 +16,9 @@ export default function StockDetailBlock({
 }) {
   const v = block.view;
   const chgPos = (v.changePct ?? 0) >= 0;
-  const hasFlags = v.green.length > 0 || v.red.length > 0;
+  const green = (v.green ?? []).map(pair);
+  const red = (v.red ?? []).map(pair);
+  const hasFlags = green.length > 0 || red.length > 0;
 
   return (
     <div className="soft-card p-3.5 mt-1">
@@ -38,13 +44,19 @@ export default function StockDetailBlock({
         </div>
       </div>
 
-      {v.tagline && <p className="text-sm text-text-main mt-2.5">{v.tagline}</p>}
+      {v.tagline && (
+        <p className="text-sm text-text-main mt-2.5">
+          <T en={v.tagline} bn={v.taglineBn || v.tagline} />
+        </p>
+      )}
 
       {v.facts.length > 0 && (
         <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mt-2.5">
           {v.facts.map((f, i) => (
             <div key={i} className="flex justify-between gap-2 text-xs">
-              <span className="text-text-muted">{f.label}</span>
+              <span className="text-text-muted">
+                <T en={f.label} bn={f.labelBn ?? f.label} />
+              </span>
               <span className="font-semibold nums text-text-main">{f.value}</span>
             </div>
           ))}
@@ -53,31 +65,33 @@ export default function StockDetailBlock({
 
       {hasFlags && (
         <ul className="mt-2.5 space-y-1">
-          {v.green.map((g, i) => (
+          {green.map((g, i) => (
             <li key={`g${i}`} className="flex gap-1.5 text-xs text-text-main">
-              <span className="text-positive">✓</span>
-              <span>{g}</span>
+              <span className="text-positive" aria-hidden>✓</span>
+              <span>
+                <T en={g.en} bn={g.bn} />
+              </span>
             </li>
           ))}
-          {v.red.map((r, i) => (
+          {red.map((r, i) => (
             <li key={`r${i}`} className="flex gap-1.5 text-xs text-text-main">
-              <span className="text-negative">!</span>
-              <span>{r}</span>
+              <span className="text-negative" aria-hidden>!</span>
+              <span>
+                <T en={r.en} bn={r.bn} />
+              </span>
             </li>
           ))}
         </ul>
       )}
 
       {v.stale && (
-        <p className="mt-2 text-xs text-warm-ink">Note: based on slightly older data.</p>
+        <p className="mt-2 text-xs text-warm-ink">
+          <T en={COPY.stock.stale} bn={COPY.stock.staleBn} />
+        </p>
       )}
 
-      <Link
-        prefetch={false}
-        href={`/stock/${v.code}`}
-        className="btn-primary btn-sm mt-3"
-      >
-        {COPY.stock.fullAnalysis}
+      <Link prefetch={false} href={`/stock/${v.code}`} className="btn-primary btn-sm mt-3">
+        <T en={COPY.stock.fullAnalysis} bn={COPY.stock.fullAnalysisBn} />
       </Link>
     </div>
   );

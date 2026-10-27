@@ -107,14 +107,14 @@ def renewal_payload(days_left: int, lang: str = "bn", caught: Optional[list[dict
     from backend.services.portfolio_watch import kinds_phrase
 
     bn = lang != "en"
-    title = (f"আপনার প্রিমিয়াম শেষ হতে আর {days_left} দিন" if bn
+    title = (f"আপনার প্রিমিয়াম শেষ হতে আর {days_left} দিন বাকি" if bn
              else f"Your Premium ends in {days_left} day{'' if days_left == 1 else 's'}")
-    again = ("চালু রাখতে bKash বা Nagad দিয়ে আবার প্ল্যান নিন।" if bn
-             else "Pick a plan again by bKash or Nagad to keep it on.")
+    again = ("চালু রাখতে চাইলে বিকাশ বা নগদে আবার একটি প্ল্যান নিন।" if bn
+             else "To keep it on, choose a plan again and pay by bKash or Nagad.")
     phrase = kinds_phrase(caught or [], "bn" if bn else "en")
     if phrase:
-        did = (f"এই মাসে আপনার শেয়ারে ধরেছে {phrase}। " if bn
-               else f"This month it flagged {phrase} on your stocks. ")
+        did = (f"এই মাসে প্রিমিয়াম আপনার শেয়ারে পেয়েছে {phrase}। " if bn
+               else f"This month it found {phrase} on your shares. ")
         body = did + again
     else:
         body = again
@@ -134,17 +134,17 @@ def _caught_this_period(user_id: str, now: datetime) -> list[dict]:
 
 def revoked_payload(lang: str = "bn") -> dict:
     bn = lang != "en"
-    title = "আপনার পেমেন্ট আমরা খুঁজে পাইনি" if bn else "We couldn't find your payment"
-    body = ("তাই প্রিমিয়াম বন্ধ করা হয়েছে। ভুল হলে আমাদের সাথে যোগাযোগ করুন।" if bn
-            else "So Premium has been switched off. If this is a mistake, contact us.")
+    title = "আপনার পেমেন্ট আমরা খুঁজে পাইনি" if bn else "We could not find your payment"
+    body = ("তাই প্রিমিয়াম বন্ধ করা হয়েছে। এটি ভুল মনে হলে আমাদের সঙ্গে যোগাযোগ করুন।" if bn
+            else "So Premium has been switched off. If you think this is a mistake, please contact us.")
     return {"title": title, "body": body, "url": "/premium?src=revoked#pay", "tag": "premium-payment"}
 
 
 def accepted_payload(lang: str = "bn") -> dict:
     bn = lang != "en"
     title = "আপনার প্রিমিয়াম চালু হয়েছে" if bn else "Your Premium is on"
-    body = ("পেমেন্ট পেয়েছি, ধন্যবাদ। সব প্রিমিয়াম সুবিধা এখন খোলা।" if bn
-            else "We found your payment — thank you. Everything in Premium is open now.")
+    body = ("আপনার পেমেন্ট পেয়েছি, ধন্যবাদ। প্রিমিয়ামের সব সুবিধা এখন খোলা।" if bn
+            else "We found your payment. Thank you. Everything in Premium is open now.")
     return {"title": title, "body": body, "url": "/premium?src=accepted", "tag": "premium-payment"}
 
 

@@ -42,50 +42,60 @@ _FINANCIAL_CLASSES = {"BANK", "NBFI", "INSURANCE"}
 CLASS_NOTES: dict[str, dict[str, str]] = {
     "BANK": {
         "label": "Bank",
+        "label_bn": "ব্যাংক",
         "en": (
-            "Banks are scored on a financial-sector template: the debt and interest-cover "
-            "tests are replaced by a capital cushion (equity as a share of total assets), net "
-            "interest margin stands in for gross margin, and the cash-to-assets test is skipped "
-            "because a bank's balance sheet is deposits, not spare cash."
+            "Banks are scored with rules made for lenders. Instead of loans and interest cover, "
+            "we look at how much of the bank's own capital stands behind its total assets. "
+            "The interest margin takes the place of gross margin, and the cash-to-assets check "
+            "is skipped, because a bank's balance sheet is mostly deposits, not spare cash."
         ),
         "bn": (
-            "ব্যাংকের স্কোর আলাদা নিয়মে হয় — ঋণের বদলে দেখা হয় মোট সম্পদের তুলনায় নিজের মূলধন কতটা, "
-            "আর গ্রস মার্জিনের বদলে সুদের মার্জিন ধরা হয়।"
+            "ব্যাংকের স্কোর ঋণদাতাদের জন্য তৈরি নিয়মে হয়। ঋণ আর সুদ পরিশোধের সক্ষমতার বদলে আমরা দেখি, "
+            "মোট সম্পদের পেছনে ব্যাংকের নিজের মূলধন কতটা আছে। গ্রস মার্জিনের জায়গায় সুদের মার্জিন ধরা হয়, "
+            "আর নগদ ও সম্পদের অনুপাত বাদ দেওয়া হয়, কারণ ব্যাংকের হিসাবের বেশির ভাগই আমানত, বাড়তি নগদ নয়।"
         ),
     },
     "NBFI": {
-        "label": "Non-bank financial institution",
+        "label": "Finance company",
+        "label_bn": "আর্থিক প্রতিষ্ঠান",
         "en": (
-            "DSE lists these under Financial Institutions. They use the same financial-sector "
-            "template as banks — a capital cushion in place of debt and interest-cover tests, "
-            "interest margin in place of gross margin, and operating cash flow as a fallback "
-            "when the usual lines are missing."
+            "DSE lists these under Financial Institutions. They are scored with the same rules "
+            "as banks: the company's own capital against its assets instead of loans and interest "
+            "cover, and the interest margin instead of gross margin. When the usual lines are "
+            "missing, cash from the business is used instead."
         ),
         "bn": (
-            "আর্থিক প্রতিষ্ঠানগুলো ব্যাংকের মতো একই আর্থিক টেমপ্লেটে স্কোর পায়।"
+            "ডিএসই এদের আর্থিক প্রতিষ্ঠান হিসেবে তালিকাভুক্ত করে। এদের স্কোরও ব্যাংকের মতো একই নিয়মে হয়: "
+            "ঋণ আর সুদ পরিশোধের সক্ষমতার বদলে সম্পদের তুলনায় নিজের মূলধন, আর গ্রস মার্জিনের বদলে সুদের মার্জিন। "
+            "স্বাভাবিক হিসাবগুলো না থাকলে ব্যবসা থেকে আসা নগদ দেখা হয়।"
         ),
     },
     "INSURANCE": {
         "label": "Insurance",
+        "label_bn": "বিমা",
         "en": (
-            "Insurers run investment-float balance sheets with no gross-profit line, so net "
-            "margin is used instead, and the cash-to-assets test is skipped. This is the "
-            "largest group of listings on DSE, and the one where missing disclosure is most "
-            "common — the score renormalises around what was actually reported."
+            "Insurers have no gross-profit line, so the net margin is used instead, and the "
+            "cash-to-assets check is skipped. This is the largest group of companies on DSE, "
+            "and the one where figures are most often missing. When a figure is missing, the "
+            "score is worked out from what the company did report."
         ),
         "bn": (
-            "বীমা কোম্পানির হিসাব আলাদা ধরনের — গ্রস মার্জিন থাকে না, তাই নেট মার্জিন ব্যবহার করা হয়।"
+            "বিমা কোম্পানির হিসাবে গ্রস মুনাফা থাকে না, তাই নেট মার্জিন ব্যবহার করা হয়, আর নগদ ও সম্পদের "
+            "অনুপাত বাদ দেওয়া হয়। ডিএসইতে এটিই সবচেয়ে বড় কোম্পানির দল, আর এখানেই তথ্য সবচেয়ে বেশি অনুপস্থিত থাকে। "
+            "কোনো তথ্য না থাকলে কোম্পানি যা প্রকাশ করেছে, তা দিয়েই স্কোর হিসাব করা হয়।"
         ),
     },
     "GENERAL": {
         "label": "General industry",
+        "label_bn": "সাধারণ শিল্প",
         "en": (
-            "Scored on the full industrial template: earnings growth and stability, debt and "
-            "interest cover, gross margin and capex discipline, valuation against sector peers, "
-            "and dividend consistency."
+            "Scored on all five checks: how profit has grown and how steady it is, loans and "
+            "interest cover, margins and spending on new assets, price against similar companies, "
+            "and how regularly it pays dividends."
         ),
         "bn": (
-            "সাধারণ কোম্পানিগুলো পুরো শিল্প-টেমপ্লেটে স্কোর পায় — মুনাফা, ঋণ, মার্জিন, দাম ও লভ্যাংশ।"
+            "পাঁচটি যাচাইয়েই স্কোর হয়: মুনাফা কতটা বেড়েছে ও কতটা স্থির, ঋণ ও সুদ পরিশোধের সক্ষমতা, "
+            "মার্জিন ও নতুন সম্পদে খরচ, একই ধরনের কোম্পানির তুলনায় দাম, আর কত নিয়মিত ডিভিডেন্ড দেয়।"
         ),
     },
 }
@@ -301,7 +311,7 @@ def get_sector(slug: str) -> Optional[dict]:
             "higher_is_better": higher,
         }
         for key, label, higher in (
-            ("median_score", "DSEF score", True),
+            ("median_score", "Score out of 100", True),
             ("median_pe", "P/E", False),
             ("median_pb", "P/B", False),
             ("median_yield_pct", "Dividend yield", True),

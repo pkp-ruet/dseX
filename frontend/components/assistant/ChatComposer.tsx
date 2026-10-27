@@ -2,6 +2,7 @@
 import { forwardRef, useState, type FormEvent } from "react";
 import { COPY } from "@/lib/assistant/copy";
 import { PERSONA } from "@/lib/assistant/persona";
+import { useLang } from "@/context/LangContext";
 
 interface Props {
   onSend: (text: string) => void;
@@ -13,6 +14,8 @@ const ChatComposer = forwardRef<HTMLInputElement, Props>(function ChatComposer(
   ref,
 ) {
   const [value, setValue] = useState("");
+  const { lang } = useLang();
+  const bn = lang === "bn";
 
   function submit(e: FormEvent) {
     e.preventDefault();
@@ -31,15 +34,15 @@ const ChatComposer = forwardRef<HTMLInputElement, Props>(function ChatComposer(
         ref={ref}
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder={COPY.composerPlaceholder}
-        aria-label={`Message ${PERSONA.name}`}
+        placeholder={bn ? COPY.composerPlaceholderBn : COPY.composerPlaceholder}
+        aria-label={bn ? `${PERSONA.name}-কে লিখুন` : `Message ${PERSONA.name}`}
         enterKeyHint="send"
         className="min-w-0 flex-1 rounded-full border border-border bg-surface-2 px-3.5 py-2 text-sm text-text-main outline-none focus:border-primary"
       />
       <button
         type="submit"
         disabled={disabled || !value.trim()}
-        aria-label="Send"
+        aria-label={bn ? "পাঠান" : "Send"}
         className="btn-primary btn-icon shrink-0"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>

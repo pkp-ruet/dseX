@@ -25,8 +25,6 @@ interface Row {
   /** [English, Bengali] */
   label: [string, string];
   sub: [string, string];
-  /** Always Bengali (the destination is Bengali). */
-  bnOnly?: boolean;
   /** Decorative tile colour — ten identical clay squares read as a grey list. */
   acc: string;
 }
@@ -37,73 +35,72 @@ const ROWS: Row[] = [
   {
     href: "/dsestockranking",
     icon: <IconTrophy size={18} />,
-    label: ["Stock Rankings", "সেরা শেয়ারের তালিকা"],
-    sub: ["Every company scored, best first", "সব কোম্পানির নম্বর, সেরাটা আগে"],
+    label: ["Stock rankings", "শেয়ার র‍্যাঙ্কিং"],
+    sub: ["Every company scored, the strongest first", "প্রতিটি কোম্পানির স্কোর, সবচেয়ে শক্তটি আগে"],
     acc: ACC.gold,
   },
   {
     href: "/share-bazar",
     icon: <IconNews size={18} />,
-    label: ["Today's market, in Bengali", "আজকের শেয়ার বাজার"],
-    sub: ["The whole day as a short Bengali read", "আজকের বাজার সহজ বাংলায়"],
+    label: ["Today's market in Bangla", "আজকের শেয়ার বাজার"],
+    sub: ["The whole day as a short report in Bengali", "পুরো দিনের বাজার, ছোট একটি প্রতিবেদনে"],
     acc: ACC.navy,
   },
   {
     href: "/dividend-calendar",
     icon: <IconCoin size={18} />,
-    label: ["Who pays cash soon", "কে কবে ডিভিডেন্ড দিচ্ছে"],
-    sub: ["Record dates and cash per share", "রেকর্ড ডেট আর শেয়ারপ্রতি টাকা"],
+    label: ["Who pays a dividend soon", "কে শিগগির ডিভিডেন্ড দিচ্ছে"],
+    sub: ["Record dates and cash per share", "রেকর্ড ডেট আর শেয়ারপ্রতি নগদ"],
     acc: ACC.gold,
   },
   {
     href: "/assistant",
     icon: <IconSparkle size={18} />,
     label: ["Ask TopStock AI", "TopStock AI-কে প্রশ্ন করুন"],
-    sub: ["Any question about any stock", "যে কোনো শেয়ার নিয়ে যে কোনো প্রশ্ন"],
+    sub: ["Ask any question about any share", "যেকোনো শেয়ার নিয়ে যেকোনো প্রশ্ন করুন"],
     acc: ACC.clay,
   },
   {
     href: "/dse-popular-stocks",
     icon: <IconHeart size={18} />,
-    label: ["What others are looking at", "অন্যরা কী দেখছে"],
-    sub: ["Most viewed stocks this week", "এই সপ্তাহে সবচেয়ে বেশি দেখা শেয়ার"],
+    label: ["What other readers are looking at", "অন্য পাঠকেরা যা দেখছেন"],
+    sub: ["The most viewed shares this week", "এ সপ্তাহে সবচেয়ে বেশি দেখা শেয়ার"],
     acc: ACC.steel,
   },
   {
     href: "/market-analysis",
     icon: <IconTrendUp size={18} />,
-    label: ["Market Analysis", "বাজার বিশ্লেষণ"],
-    sub: ["Up or down, cheap or pricey — in plain words", "উপরে না নিচে, সস্তা না দামি — সহজ কথায়"],
+    label: ["Market analysis", "বাজার বিশ্লেষণ"],
+    sub: ["Is the market up or down, cheap or expensive?", "বাজার বাড়ছে না কমছে, দাম কম না বেশি"],
     acc: ACC.steel,
   },
   {
     href: "/dse-trending-stocks",
     icon: <IconRocket size={18} />,
     label: ["Trending stocks", "আলোচিত শেয়ার"],
-    sub: ["Biggest 7-day gainers", "গত 7 দিনে সবচেয়ে বেড়েছে"],
+    sub: ["The biggest rises over 7 days", "গত 7 দিনে সবচেয়ে বেশি বেড়েছে"],
     acc: ACC.clay,
   },
   {
     href: "/stock-insights",
     icon: <IconList size={18} />,
-    label: ["Ready-made lists", "তৈরি তালিকা"],
-    sub: ["Dividends, growth, big companies and more", "ডিভিডেন্ড, বৃদ্ধি, বড় কোম্পানি আর অন্যান্য"],
+    label: ["Stock lists", "শেয়ারের তালিকা"],
+    sub: ["Dividends, big companies and more", "ডিভিডেন্ড, বড় কোম্পানি আর আরও তালিকা"],
     acc: ACC.navy,
   },
   {
     href: "/stocks",
     icon: <IconGrid size={18} />,
-    label: ["Browse Stocks", "সব শেয়ার"],
-    sub: ["Every DSE stock, A–Z", "ডিএসই-র সব শেয়ার, A–Z"],
+    label: ["All stocks", "সব শেয়ার"],
+    sub: ["Every DSE share, A to Z", "DSE-এর সব শেয়ার, A থেকে Z"],
     acc: ACC.steel,
   },
   {
     href: "/blog",
     icon: <IconBook size={18} />,
-    label: ["বাংলা ব্লগ", "বাংলা ব্লগ"],
-    sub: ["সহজ ভাষায় শেয়ার বাজার", "সহজ ভাষায় শেয়ার বাজার"],
+    label: ["Bangla blog", "বাংলা ব্লগ"],
+    sub: ["Beginner guides in Bengali", "সহজ ভাষায় শেয়ার বাজারের গাইড"],
     acc: ACC.clay,
-    bnOnly: true,
   },
 ];
 
@@ -119,7 +116,7 @@ export default function ExploreLinks({ lang = "en" }: { lang?: Lang }) {
   return (
     <nav aria-label={t(lang, "exploreMarket")} className="flex flex-col gap-2">
       {shown.map((r) => {
-        const isBn = bn || r.bnOnly;
+        const isBn = bn;
         return (
           <Link
             key={r.href}

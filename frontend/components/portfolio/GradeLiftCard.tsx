@@ -17,7 +17,7 @@ export default function GradeLiftCard({ lifts, lang }: { lifts: GradeLift[]; lan
   return (
     <PfCard
       title={L("What would raise your grade", "কী করলে গ্রেড বাড়বে")}
-      bn="কী করলে গ্রেড বাড়বে"
+
       note={L(
         "Each line is one change, checked with the same grade as above, at today's prices.",
         "প্রতিটি লাইন একটি পরিবর্তন, আজকের দামে ওপরের একই গ্রেড দিয়ে যাচাই করা।",

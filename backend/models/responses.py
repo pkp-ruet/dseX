@@ -154,9 +154,9 @@ class ValuationContext(BaseModel):
     sector_median_pb: Optional[float] = None
     eps: Optional[float] = None
     sector_implied_price: Optional[float] = None
-    # Which EPS the P/E is on: {"basis": "ttm"|"fy", "en", "bn", "short_en"}
+    # Which EPS the P/E is on: {"basis": "ttm"|"fy", "en", "bn", "short_en", "short_bn"}
     eps_basis: Optional[dict[str, Any]] = None
-    # "5-year average" / "average since listing (2022)" — {"en", "bn", "short_en"}
+    # "5-year average" / "average since listing (2022)" — {"en", "bn", "short_en", "short_bn"}
     own_avg_pe_label: Optional[dict[str, Any]] = None
     # The ONE valuation verdict for the page: cheap | fair | expensive (P4 bands)
     verdict: Optional[str] = None
@@ -189,6 +189,9 @@ class StockVerdict(BaseModel):
     headline: str
     tagline: str
     sentences: list[str]
+    headline_bn: Optional[str] = None
+    tagline_bn: Optional[str] = None
+    sentences_bn: Optional[list[str]] = None
 
 
 class FairValueMethod(BaseModel):

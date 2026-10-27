@@ -158,5 +158,5 @@ def test_push_payload_leads_with_the_worst_news():
         "prices": {"GP": {"ltp": 250, "change": -15, "change_pct": -6}},
     }, "2026-10-25")
     p = W.push_payload(ev, "en")
-    assert p["title"] == "2 things on your stocks today"
+    assert p["title"] == "2 updates on your shares today"
     assert p["body"].startswith("GP fell")

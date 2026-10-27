@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { taka, pct, formatDate, crore } from "@/lib/formatters";
 import SectionHeader from "@/components/ui/SectionHeader";
+import { T } from "@/components/i18n/T";
+import { bnDate, croreBn } from "@/lib/bn";
 
 export interface MarketMoverItem {
   trading_code: string;
@@ -42,7 +44,7 @@ function MoverRow({
             ? `${changePct >= 0 ? "+" : ""}${pct(changePct)}`
             : "—"
           : item.value_mn != null
-            ? crore(item.value_mn)
+            ? <T en={crore(item.value_mn)} bn={croreBn(item.value_mn)} />
             : "—"}
       </span>
     </Link>
@@ -57,27 +59,37 @@ export default function MarketMovers({ data, compact }: { data: MarketMoversData
 
   if (!hasData) return null;
 
-  const dateLabel = data.date ? formatDate(data.date) : "Latest";
+  const dateEn = data.date ? formatDate(data.date) : "latest";
+  const dateBn = data.date ? bnDate(data.date) : "সর্বশেষ";
 
   return (
     <>
-      <SectionHeader title={<>Market movers — {dateLabel}</>} className="mt-8" />
+      <SectionHeader
+        title={<T en={`Biggest moves · ${dateEn}`} bn={`সবচেয়ে বড় ওঠানামা · ${dateBn}`} />}
+        className="mt-8"
+      />
 
       <div className={compact ? "movers-strip movers-strip--compact" : "movers-strip"}>
         <div className="info-col info-col--gainers">
-          <h2 className="info-col-header">Top Gainers Today</h2>
+          <h2 className="info-col-header">
+            <T en="Rose most today" bn="আজ সবচেয়ে বেশি বেড়েছে" />
+          </h2>
           {data.gainers.map((item) => (
             <MoverRow key={item.trading_code} item={item} metric="change" />
           ))}
         </div>
         <div className="info-col info-col--losers">
-          <h2 className="info-col-header">Top Losers Today</h2>
+          <h2 className="info-col-header">
+            <T en="Fell most today" bn="আজ সবচেয়ে বেশি কমেছে" />
+          </h2>
           {data.losers.map((item) => (
             <MoverRow key={item.trading_code} item={item} metric="change" />
           ))}
         </div>
         <div className="info-col info-col--traded">
-          <h2 className="info-col-header">Most Traded Today</h2>
+          <h2 className="info-col-header">
+            <T en="Most traded today" bn="আজ সবচেয়ে বেশি লেনদেন" />
+          </h2>
           {data.most_traded.map((item) => (
             <MoverRow key={item.trading_code} item={item} metric="value" />
           ))}

@@ -9,6 +9,8 @@ import { addToWatchlist, loadWatchlist } from "@/lib/watchlist";
 import { markJustSignedUp, looksNewlyCreated } from "@/lib/welcome";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import PageHeader from "@/components/ui/PageHeader";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
 
 type Mode = "email" | "phone";
 
@@ -22,6 +24,8 @@ export default function RegisterForm() {
   const searchParams = useSearchParams();
   const saveCode = (searchParams.get("save") || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
   const { login } = useAuth();
+  const { lang } = useLang();
+  const L = (en: string, bn: string) => (lang === "bn" ? bn : en);
 
   const [mode, setMode] = useState<Mode>("email");
   const [identifier, setIdentifier] = useState("");
@@ -37,15 +41,20 @@ export default function RegisterForm() {
     setError("");
 
     if (mode === "phone" && !validatePhone(identifier)) {
-      setError("Enter a valid BD phone number (e.g. 01XXXXXXXXX or +880XXXXXXXXX).");
+      setError(
+        L(
+          "Please enter a valid Bangladeshi phone number, such as 01XXXXXXXXX or +880XXXXXXXXX.",
+          "সঠিক বাংলাদেশি ফোন নম্বর লিখুন, যেমন 01XXXXXXXXX বা +880XXXXXXXXX।",
+        ),
+      );
       return;
     }
     if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
+      setError(L("Your password needs at least 8 characters.", "পাসওয়ার্ডে অন্তত 8টি অক্ষর থাকতে হবে।"));
       return;
     }
     if (password !== confirmPw) {
-      setError("Passwords do not match.");
+      setError(L("The two passwords do not match.", "দুটি পাসওয়ার্ড মিলছে না।"));
       return;
     }
 
@@ -65,7 +74,7 @@ export default function RegisterForm() {
       const next = searchParams.get("next");
       router.push(next && next.startsWith("/") ? next : "/");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Registration failed.";
+      const msg = err instanceof Error ? err.message : L("We couldn't create your account.", "অ্যাকাউন্ট খোলা যায়নি।");
       setError(msg);
     } finally {
       setLoading(false);
@@ -89,24 +98,41 @@ export default function RegisterForm() {
     <div className="page-form pb-8">
       <PageHeader
         size="article"
-        title="Create your account"
-        bn="একদম ফ্রি — অ্যাকাউন্ট খুললে আপনার ওয়াচলিস্ট সব ডিভাইসে একসাথে থাকবে।"
-        lead="Free forever. Sync your watchlist across devices."
+        title={<T en="Create your account" bn="আপনার অ্যাকাউন্ট খুলুন" />}
+        lead={
+          <T
+            en="An account is free. Your watchlist and portfolio stay with you on every device."
+            bn="অ্যাকাউন্ট খোলা ফ্রি। আপনার ওয়াচলিস্ট আর পোর্টফোলিও সব ডিভাইসে একসঙ্গে থাকবে।"
+          />
+        }
       />
       {/* One centred form card (2026-10 redesign, step 9) */}
       <div className="soft-card p-5 sm:p-6">
 
         {saveCode && (
           <div className="mb-5 rounded-lg border border-primary/40 bg-primary/10 px-3 py-2.5 text-sm text-text-main">
-            We&apos;ll save <span className="font-bold">{saveCode}</span> to your list right after sign-up.
+            <T
+              en={
+                <>
+                  We will add <span className="font-bold">{saveCode}</span> to your watchlist as soon as your account is open.
+                </>
+              }
+              bn={
+                <>
+                  অ্যাকাউন্ট খোলার সঙ্গে সঙ্গে <span className="font-bold">{saveCode}</span> আপনার ওয়াচলিস্টে যোগ হবে।
+                </>
+              }
+            />
           </div>
         )}
 
         <GoogleSignInButton onSuccess={handleGoogleSuccess} onError={setError} />
-        <div className="auth-divider my-5">or</div>
+        <div className="auth-divider my-5">
+          <T en="or" bn="অথবা" />
+        </div>
 
         {/* Mode toggle — segmented control, each member a 40px .btn-tab */}
-        <div className="flex gap-1 mb-5 p-1 rounded-lg bg-surface border border-border" role="tablist" aria-label="Sign-in method">
+        <div className="flex gap-1 mb-5 p-1 rounded-lg bg-surface border border-border" role="tablist" aria-label={L("Sign-up method", "অ্যাকাউন্ট খোলার পদ্ধতি")}>
           {(["email", "phone"] as Mode[]).map((m) => (
             <button
               key={m}
@@ -116,7 +142,7 @@ export default function RegisterForm() {
               onClick={() => { setMode(m); setIdentifier(""); setError(""); }}
               className={`btn-tab flex-1 ${mode === m ? "is-active" : ""}`}
             >
-              {m === "email" ? "Email" : "Phone"}
+              {m === "email" ? <T en="Email" bn="ইমেইল" /> : <T en="Phone" bn="ফোন" />}
             </button>
           ))}
         </div>
@@ -124,7 +150,11 @@ export default function RegisterForm() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
             <label htmlFor="login-1" className="text-sm font-medium text-text-main">
-              {mode === "email" ? "Email address" : "Phone number"}
+              {mode === "email" ? (
+                <T en="Email address" bn="ইমেইল ঠিকানা" />
+              ) : (
+                <T en="Phone number" bn="ফোন নম্বর" />
+              )}
             </label>
             <input id="login-1"
               type={mode === "email" ? "email" : "tel"}
@@ -139,26 +169,31 @@ export default function RegisterForm() {
 
           <div className="flex flex-col gap-1">
             <label htmlFor="login-2" className="text-sm font-medium text-text-main">
-              Name <span className="text-text-muted font-normal">(optional)</span>
+              <T en="Name" bn="নাম" />{" "}
+              <span className="text-text-muted font-normal">
+                <T en="(optional)" bn="(না দিলেও চলবে)" />
+              </span>
             </label>
             <input id="login-2"
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Your name"
+              placeholder={L("Your name", "আপনার নাম")}
               className="input-field"
               autoComplete="name"
             />
           </div>
 
           <div className="flex flex-col gap-1">
-            <label htmlFor="login-3" className="text-sm font-medium text-text-main">Password</label>
+            <label htmlFor="login-3" className="text-sm font-medium text-text-main">
+              <T en="Password" bn="পাসওয়ার্ড" />
+            </label>
             <div className="relative">
               <input id="login-3"
                 type={showPw ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Min 8 characters"
+                placeholder={L("At least 8 characters", "অন্তত 8টি অক্ষর")}
                 required
                 className="input-field pr-10"
                 autoComplete="new-password"
@@ -167,7 +202,7 @@ export default function RegisterForm() {
                 type="button"
                 onClick={() => setShowPw(!showPw)}
                 className="absolute right-1 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md text-text-muted hover:text-text-main active:bg-surface-2"
-                aria-label={showPw ? "Hide password" : "Show password"}
+                aria-label={showPw ? L("Hide password", "পাসওয়ার্ড লুকান") : L("Show password", "পাসওয়ার্ড দেখুন")}
               >
                 {showPw ? (
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -183,12 +218,14 @@ export default function RegisterForm() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label htmlFor="login-4" className="text-sm font-medium text-text-main">Confirm password</label>
+            <label htmlFor="login-4" className="text-sm font-medium text-text-main">
+              <T en="Confirm password" bn="পাসওয়ার্ড আবার লিখুন" />
+            </label>
             <input id="login-4"
               type={showPw ? "text" : "password"}
               value={confirmPw}
               onChange={(e) => setConfirmPw(e.target.value)}
-              placeholder="Repeat password"
+              placeholder={L("Type the password again", "পাসওয়ার্ডটি আবার লিখুন")}
               required
               className="input-field"
               autoComplete="new-password"
@@ -206,14 +243,18 @@ export default function RegisterForm() {
             disabled={loading}
             className="btn-primary btn-block"
           >
-            {loading ? "Creating account…" : "Create Account"}
+            {loading ? (
+              <T en="Creating your account…" bn="অ্যাকাউন্ট খোলা হচ্ছে…" />
+            ) : (
+              <T en="Create an account" bn="অ্যাকাউন্ট খুলুন" />
+            )}
           </button>
         </form>
 
         <p className="mt-5 text-sm text-center text-text-muted">
-          Already have an account?{" "}
+          <T en="Already have an account?" bn="অ্যাকাউন্ট আছে?" />{" "}
           <Link href="/login" className="text-primary hover:underline font-medium">
-            Sign in
+            <T en="Sign in" bn="সাইন ইন" />
           </Link>
         </p>
       </div>

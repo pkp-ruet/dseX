@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { getInsightScores } from "@/lib/api";
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
 
 interface Company {
   trading_code: string;
@@ -19,77 +20,101 @@ interface Company {
 interface PageShortcut {
   href: string;
   label: string;
+  labelBn: string;
   sub: string;
+  subBn: string;
   keys: string[];
 }
 
 const PAGES: PageShortcut[] = [
   {
     href: "/market-analysis",
-    label: "Market Analysis",
-    sub: "Is the market up or down, cheap or pricey?",
-    keys: ["market", "analysis", "mood", "up or down", "cheap", "expensive", "bazar", "বাজার"],
+    label: "Market analysis",
+    labelBn: "বাজার বিশ্লেষণ",
+    sub: "Is the market up or down, cheap or expensive?",
+    subBn: "বাজার উঠছে না নামছে, দাম কম না বেশি",
+    keys: ["market", "analysis", "mood", "up or down", "cheap", "expensive", "bazar", "বাজার", "বিশ্লেষণ"],
   },
   {
     href: "/dse-today",
-    label: "DSE Today",
-    sub: "Today's prices, movers and news",
-    keys: ["today", "dsex", "index", "movers", "gainers", "losers", "আজ"],
+    label: "DSE today",
+    labelBn: "আজকের DSE",
+    sub: "Today's prices, biggest moves and news",
+    subBn: "আজকের দাম, বড় ওঠানামা আর খবর",
+    keys: ["today", "dsex", "index", "movers", "gainers", "losers", "আজ", "আজকের"],
   },
   {
     href: "/share-bazar",
-    label: "আজকের শেয়ার বাজার",
-    sub: "Today's market in Bengali",
+    label: "Today's market in Bangla",
+    labelBn: "আজকের শেয়ার বাজার",
+    sub: "A short daily report in Bengali",
+    subBn: "প্রতিদিনের সংক্ষিপ্ত বাজার প্রতিবেদন",
     keys: ["bangla", "bengali", "share bazar", "bazar", "শেয়ার বাজার", "আজকের", "বাংলা"],
   },
   {
     href: "/dividend-calendar",
-    label: "Dividend Calendar",
-    sub: "Record dates, AGMs and cash payouts",
-    keys: ["dividend", "record date", "agm", "cash", "calendar", "ডিভিডেন্ড"],
+    label: "Dividend calendar",
+    labelBn: "ডিভিডেন্ড ক্যালেন্ডার",
+    sub: "Record dates, AGMs and cash dividends",
+    subBn: "রেকর্ড ডেট, এজিএম আর নগদ ডিভিডেন্ড",
+    keys: ["dividend", "record date", "agm", "cash", "calendar", "ডিভিডেন্ড", "রেকর্ড ডেট"],
   },
   {
     href: "/dsestockranking",
-    label: "Stock Rankings",
+    label: "Stock rankings",
+    labelBn: "শেয়ার র‍্যাঙ্কিং",
     sub: "Every company scored, best first",
-    keys: ["ranking", "rank", "best stocks", "top stocks", "score"],
+    subBn: "প্রতিটি কোম্পানির স্কোর, সবচেয়ে ভালোটি আগে",
+    keys: ["ranking", "rank", "best stocks", "top stocks", "score", "র‍্যাঙ্কিং", "স্কোর"],
   },
   {
     href: "/screener",
-    label: "Stock Screener",
-    sub: "Find stocks by dividend, price, profit, sector",
+    label: "Stock screener",
+    labelBn: "স্টক স্ক্রিনার",
+    sub: "Find stocks by dividend, price, profit or sector",
+    subBn: "ডিভিডেন্ড, দাম, মুনাফা বা সেক্টর দিয়ে শেয়ার খুঁজুন",
     keys: ["screener", "screen", "filter", "find", "cheap", "low pe", "dividend", "high dividend", "safe",
       "beginner", "growing", "বাছাই", "স্ক্রিনার", "খুঁজুন", "সস্তা", "লভ্যাংশ"],
   },
   {
     href: "/sectors",
     label: "Sectors",
+    labelBn: "সেক্টর",
     sub: "Compare whole industries",
-    keys: ["sector", "industry", "industries"],
+    subBn: "পুরো সেক্টর মিলিয়ে দেখুন",
+    keys: ["sector", "industry", "industries", "সেক্টর"],
   },
   {
     href: "/dse-trending-stocks",
-    label: "Trending Stocks",
-    sub: "This week's top movers",
-    keys: ["trending", "hot", "momentum"],
+    label: "Trending stocks",
+    labelBn: "আলোচিত শেয়ার",
+    sub: "This week's biggest movers",
+    subBn: "এ সপ্তাহে যেগুলোর দাম সবচেয়ে বেশি নড়েছে",
+    keys: ["trending", "hot", "momentum", "আলোচিত"],
   },
   {
     href: "/stock-insights",
-    label: "Ready-made lists",
-    sub: "Dividends, growth, big companies and more",
-    keys: ["list", "lists", "insights"],
+    label: "Stock lists",
+    labelBn: "শেয়ারের তালিকা",
+    sub: "Dividends, big companies and more",
+    subBn: "ডিভিডেন্ড, বড় কোম্পানি আর আরও তালিকা",
+    keys: ["list", "lists", "insights", "তালিকা"],
   },
   {
     href: "/watchlist",
     label: "Watchlist",
+    labelBn: "ওয়াচলিস্ট",
     sub: "Stocks you follow",
-    keys: ["watchlist", "watch", "follow"],
+    subBn: "আপনি যেগুলো নজরে রাখছেন",
+    keys: ["watchlist", "watch", "follow", "ওয়াচলিস্ট"],
   },
   {
     href: "/portfolio",
     label: "Portfolio",
-    sub: "Your holdings",
-    keys: ["portfolio", "holdings", "my stocks"],
+    labelBn: "পোর্টফোলিও",
+    sub: "The shares you own",
+    subBn: "আপনার কেনা শেয়ার",
+    keys: ["portfolio", "holdings", "my stocks", "পোর্টফোলিও"],
   },
 ];
 
@@ -101,12 +126,13 @@ function pageMatches(q: string): PageShortcut[] {
   return PAGES.filter(
     (p) =>
       p.label.toLowerCase().includes(lower) ||
+      p.labelBn.includes(lower) ||
       p.keys.some((k) => k.includes(lower) || (k.length >= 3 && lower.includes(k))),
   ).slice(0, MAX_PAGES);
 }
 
 type Item =
-  | { kind: "page"; href: string; label: string; sub: string }
+  | { kind: "page"; href: string; label: string; labelBn: string; sub: string; subBn: string }
   | { kind: "stock"; code: string; name: string | null };
 
 const OPEN_EVENT = "dsex:open-search";
@@ -124,6 +150,7 @@ export default function GlobalSearch() {
   const [loading, setLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [navLabel, setNavLabel] = useState<string | null>(null);
+  const { bn } = useLang();
   const [pending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -218,7 +245,14 @@ export default function GlobalSearch() {
 
   // Pages first, then stocks — one flat list so arrow keys walk both.
   const items = useMemo<Item[]>(() => {
-    const pages = pageMatches(query).map<Item>((p) => ({ kind: "page", href: p.href, label: p.label, sub: p.sub }));
+    const pages = pageMatches(query).map<Item>((p) => ({
+      kind: "page",
+      href: p.href,
+      label: p.label,
+      labelBn: p.labelBn,
+      sub: p.sub,
+      subBn: p.subBn,
+    }));
     const stocks = getSuggestions(query).map<Item>((c) => ({ kind: "stock", code: c.trading_code, name: c.company_name }));
     return [...pages, ...stocks];
   }, [query, getSuggestions]);
@@ -226,7 +260,7 @@ export default function GlobalSearch() {
   const go = useCallback(
     (item: Item) => {
       const href = item.kind === "page" ? item.href : `/stock/${item.code.toUpperCase()}`;
-      setNavLabel(item.kind === "page" ? item.label : item.code.toUpperCase());
+      setNavLabel(item.kind === "page" ? (bn ? item.labelBn : item.label) : item.code.toUpperCase());
       // Keep the overlay up and show a loading state instead of freezing on
       // the current view; isPending stays true until the destination is ready.
       startTransition(() => {
@@ -277,9 +311,19 @@ export default function GlobalSearch() {
           <div className="nav-loading-card nav-loading-card--panel">
             <div className="nav-loading-spinner" aria-hidden="true" />
             <div className="nav-loading-label">
-              Opening <span className="nav-loading-code">{navLabel}</span>…
+              {bn ? (
+                <>
+                  <span className="nav-loading-code">{navLabel}</span> খোলা হচ্ছে…
+                </>
+              ) : (
+                <>
+                  Opening <span className="nav-loading-code">{navLabel}</span>…
+                </>
+              )}
             </div>
-            <div className="nav-loading-sub">Loading the latest data</div>
+            <div className="nav-loading-sub">
+              <T en="Loading the latest data" bn="সর্বশেষ তথ্য আনা হচ্ছে" />
+            </div>
           </div>
         </div>
       </div>
@@ -294,7 +338,7 @@ export default function GlobalSearch() {
       }}
       role="dialog"
       aria-modal="true"
-      aria-label="Search stocks and pages"
+      aria-label={bn ? "শেয়ার আর পেজ খুঁজুন" : "Search stocks and pages"}
     >
       <div className="global-search-panel">
         <div className="search-bar-box search-bar-open">
@@ -306,7 +350,7 @@ export default function GlobalSearch() {
             ref={inputRef}
             className="search-bar-input"
             type="text"
-            placeholder="Search a stock… · শেয়ার খুঁজুন"
+            placeholder={bn ? "শেয়ার বা কোম্পানি খুঁজুন…" : "Search a stock or company…"}
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -316,7 +360,7 @@ export default function GlobalSearch() {
             autoComplete="off"
             spellCheck={false}
             role="combobox"
-            aria-label="Search companies and pages"
+            aria-label={bn ? "কোম্পানি আর পেজ খুঁজুন" : "Search companies and pages"}
             aria-autocomplete="list"
             aria-expanded={items.length > 0}
             aria-controls="global-search-listbox"
@@ -327,7 +371,7 @@ export default function GlobalSearch() {
           <button
             className="global-search-close"
             onClick={close}
-            aria-label="Close search"
+            aria-label={bn ? "খোঁজা বন্ধ করুন" : "Close search"}
             type="button"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -359,9 +403,15 @@ export default function GlobalSearch() {
               >
                 {it.kind === "page" ? (
                   <>
-                    <span className="search-suggestion-code">{it.label}</span>
-                    <span className="search-suggestion-name">{it.sub}</span>
-                    <span className="search-suggestion-tag">Page</span>
+                    <span className="search-suggestion-code">
+                      <T en={it.label} bn={it.labelBn} />
+                    </span>
+                    <span className="search-suggestion-name">
+                      <T en={it.sub} bn={it.subBn} />
+                    </span>
+                    <span className="search-suggestion-tag">
+                      <T en="Page" bn="পেজ" />
+                    </span>
                   </>
                 ) : (
                   <>
@@ -374,13 +424,31 @@ export default function GlobalSearch() {
           </ul>
         ) : query.length > 0 ? (
           <div className="global-search-empty">
-            {loading ? "Loading companies…" : "No matches. Press Enter to open this code."}
+            {loading ? (
+              <T en="Loading companies…" bn="কোম্পানির তালিকা আনা হচ্ছে…" />
+            ) : (
+              <T
+                en="Nothing matches yet. Press Enter to open this code."
+                bn="কিছু মেলেনি। এই কোডটি খুলতে Enter চাপুন।"
+              />
+            )}
           </div>
         ) : (
           <div className="global-search-hint">
-            Type a code (e.g. <strong>GP</strong>, <strong>BATBC</strong>), a company name, or a page
-            like <strong>market</strong> or <strong>dividend</strong>.
-            <Bn className="global-search-hint-bn">কোড, কোম্পানির নাম বা পেজের নাম লিখুন</Bn>
+            <T
+              en={
+                <>
+                  Type a code (for example <strong>GP</strong> or <strong>BATBC</strong>), a company name, or a
+                  page such as <strong>market</strong> or <strong>dividend</strong>.
+                </>
+              }
+              bn={
+                <>
+                  কোড (যেমন <strong>GP</strong> বা <strong>BATBC</strong>), কোম্পানির নাম, অথবা{" "}
+                  <strong>বাজার</strong> বা <strong>ডিভিডেন্ড</strong>-এর মতো পেজের নাম লিখুন।
+                </>
+              }
+            />
           </div>
         )}
       </div>

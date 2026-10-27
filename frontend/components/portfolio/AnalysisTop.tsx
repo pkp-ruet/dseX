@@ -1,15 +1,6 @@
-import Bn from "@/components/i18n/Bn";
 import { takaGroup } from "@/lib/formatters";
 import type { NextMove } from "@/lib/portfolio-next";
-import type { AnalysisLang, Grade, GradeLabel, PortfolioAnalysis } from "@/lib/portfolio-analysis";
-
-const GRADE_LABEL_BN: Record<GradeLabel, string> = {
-  Excellent: "চমৎকার",
-  Good: "ভালো",
-  Okay: "মোটামুটি",
-  Risky: "ঝুঁকিপূর্ণ",
-  "Very Risky": "খুব ঝুঁকিপূর্ণ",
-};
+import { GRADE_WORDS, type AnalysisLang, type Grade, type PortfolioAnalysis } from "@/lib/portfolio-analysis";
 
 /** A sub-score out of 10 wears the colour of the grade it would earn. */
 function scoreClass(v: number): string {
@@ -62,7 +53,7 @@ export default function AnalysisTop({
   const bn = lang === "bn";
   const L = (en: string, b: string) => (bn ? b : en);
   const { spread, quality, entry, overall } = analysis.subScores;
-  const label = bn ? GRADE_LABEL_BN[analysis.gradeLabel] : analysis.gradeLabel;
+  const label = GRADE_WORDS[analysis.gradeLabel][bn ? "bn" : "en"];
   const first = next.first;
   const dot = (k: NextMove["kind"]) =>
     k === "sell" || k === "weak" ? "pf-dot--bad" : k === "none" ? "pf-dot--good" : "pf-dot--watch";
@@ -114,7 +105,6 @@ export default function AnalysisTop({
             <span className={`pf-dot ${dot(first.kind)}`} aria-hidden />
             {L("Your next move", "আপনার পরের পদক্ষেপ")}
           </p>
-          {!bn && <Bn className="pf-card-bn">আপনার পরের পদক্ষেপ</Bn>}
           <h4 id="pf-next-h" className="pf-an-move">{first.title}</h4>
           <p className="pf-an-line">{first.line}</p>
           <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1">

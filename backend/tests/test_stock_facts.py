@@ -33,7 +33,7 @@ def assert_no_contradiction(items):
 @pytest.mark.parametrize("code", ["JAMUNAOIL", "GP", "BSC", "WALTONHIL", "EBL"])
 def test_profit_years_says_every_year_not_4_of_5(code):
     it = profit_years_item(fin_rows(code))
-    assert it["en"] == "Made a profit every year for 5 years"
+    assert it["en"] == "It made a profit in each of the last 5 years."
     assert "4 out of" not in it["en"]
     assert "5" in it["bn"]
 
@@ -41,7 +41,7 @@ def test_profit_years_says_every_year_not_4_of_5(code):
 def test_profit_years_with_a_loss_year():
     rows = fin_rows("BSC")
     rows[1]["eps"] = -1.0
-    assert profit_years_item(rows)["en"] == "Made a profit in 4 of the last 5 years"
+    assert profit_years_item(rows)["en"] == "It made a profit in 4 of the last 5 years."
 
 
 # --- #2 government ownership ---------------------------------------------------------
@@ -63,17 +63,17 @@ def test_acmelab_sponsors_down_is_not_insider_buying():
     cur, prev = SHARES["ACMELAB"]
     chg = ownership_change(cur, prev, "Jun 2025", "জুন 2025")
     assert chg["tone"] == "watch"
-    assert "close to the company are buying" not in chg["en"]
+    assert "who run the company are buying" not in chg["en"]
     assert "42.4% to 40.4%" in chg["en"]
     assert "institutions raised theirs to 32.4%" in chg["en"]
-    assert "উদ্যোক্তারা" in chg["bn"]
+    assert "উদ্যোক্তা-পরিচালকরা" in chg["bn"]
 
 
 def test_navanaphar_big_jump_is_flagged_for_verification():
     cur, prev = SHARES["NAVANAPHAR"]
     chg = ownership_change(cur, prev, "Jun 2025", "জুন 2025")
     assert chg["key"] == "sponsor_jump" and chg["tone"] == "watch"
-    assert "buying" in chg["en"] and "not buying" in chg["en"]   # says it is not (necessarily) buying
+    assert "not real buying" in chg["en"]   # says it is not (necessarily) buying
     items = build_items({}, [cur, prev], fin_rows("NAVANAPHAR"), {"market_category": "A"}, now=NOW)
     assert "sponsor_jump" in keys(items, "watch")
 
@@ -82,7 +82,7 @@ def test_sponsor_rise_is_insider_buying():
     cur = {"sponsor_director_pct": 45.0, "institute_pct": 10.0}
     prev = {"sponsor_director_pct": 43.0, "institute_pct": 10.0}
     chg = ownership_change(cur, prev)
-    assert chg["tone"] == "positive" and "close to the company are buying" in chg["en"]
+    assert chg["tone"] == "positive" and "who run the company are buying" in chg["en"]
 
 
 def test_institutions_rise_alone_is_not_called_insiders():
@@ -164,7 +164,7 @@ def test_bank_has_no_loan_flags_and_capital_wording():
     items = build_items(sr, [], fin_rows("EBL"), p, sector_class="BANK", now=NOW)
     assert not {k for k in keys(items) if "loan" in k or "debt" in k}
     over = health_overrides(sr, fin_rows("EBL"), "BANK")["p2_health"]
-    assert over["headline"] == "Strong Capital Cushion"
+    assert over["headline"] == "Strong capital"
     assert "loan" not in over["oneLine"].lower() or "lending" in over["oneLine"].lower()
 
 
@@ -255,4 +255,4 @@ def test_dividend_year_ahead_of_eps_is_flagged():
     items = build_items({"newer_dividend_fy": 2026.0, "fy_eps_year": 2025.0}, [], fin_rows("WALTONHIL"),
                         {"market_category": "A"}, now=NOW)
     d = next(i for i in items if i["key"] == "data_behind")
-    assert "FY2026" in d["en"] and "FY2025 " in d["en"] and "2025.0" not in d["en"]
+    assert "FY2026" in d["en"] and "FY2025." in d["en"] and "2025.0" not in d["en"]

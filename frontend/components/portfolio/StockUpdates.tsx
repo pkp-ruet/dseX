@@ -102,7 +102,7 @@ export default function StockUpdates({
           : L(`${e.trading_code} changed to Buy more`, `${e.trading_code} এখন আরও কেনার সংকেতে`),
         body: sell
           ? L("Its numbers or its price no longer support holding it. Open the stock to see why.",
-              "এর হিসাব বা দাম আর ধরে রাখার পক্ষে নেই। কেন, তা শেয়ারের পাতায় দেখুন।")
+              "এর হিসাব বা দাম আর ধরে রাখার পক্ষে নেই। কেন, তা শেয়ারের পেজে দেখুন।")
           : L("The company is strong and the price looks good to add more.",
               "কোম্পানিটি শক্তিশালী, আর দাম আরও কেনার মতো।"),
         day: e.changed_at,
@@ -153,7 +153,7 @@ export default function StockUpdates({
   return (
     <PfCard
       title={L("What happened on your stocks", "আপনার শেয়ারে যা ঘটেছে")}
-      bn="আপনার শেয়ারে যা ঘটেছে"
+
       note={L(
         "The last 30 days, most urgent first. We check every trading day after the close.",
         "গত 30 দিন, সবচেয়ে জরুরিটা আগে। প্রতিদিন বাজার বন্ধের পর আমরা দেখি।",

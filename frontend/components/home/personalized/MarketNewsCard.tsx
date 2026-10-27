@@ -3,7 +3,8 @@ import type { DseTodayNewsItem } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
 import { formatDate } from "@/lib/formatters";
 import { bnDate } from "@/lib/bn";
-import { t } from "@/lib/home-copy";
+import { tt } from "@/components/home/tt";
+import { T } from "@/components/i18n/T";
 import { ACC } from "@/components/home/personalized/accents";
 import { IconNews } from "@/components/home/personalized/DashIcons";
 import DashHeader from "@/components/home/personalized/DashHeader";
@@ -11,8 +12,9 @@ import OwnerMark from "@/components/home/personalized/OwnerMark";
 
 const ROWS_DEFAULT = 5;
 
-/** Market-wide headlines of the day (DSE notices are English). Five rows, each
- *  tapping to the company; "All news" opens the full day. */
+/** Market-wide headlines of the day. DSE publishes its notices in English
+ *  only, so the headlines stay English in both modes; the card around them
+ *  follows the page language. Five rows, each tapping to the company. */
 export default function MarketNewsCard({
   news,
   held,
@@ -28,16 +30,15 @@ export default function MarketNewsCard({
   rows?: number;
 }) {
   const maxRows = limit ?? ROWS_DEFAULT;
-  const bn = lang === "bn";
   const rows = news.slice(0, maxRows);
   if (rows.length === 0) return null;
   return (
-    <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
-      <DashHeader title={t(lang, "marketNewsTitle")} href="/todays-news" linkLabel={t(lang, "allNews")} accent={ACC.navy} icon={<IconNews size={15} />} />
+    <section className="soft-card overflow-hidden">
+      <DashHeader title={tt("marketNewsTitle")} href="/todays-news" linkLabel={tt("allNews")} accent={ACC.navy} icon={<IconNews size={15} />} />
       <ul className="divide-y divide-cell-rule">
         {rows.map((n, i) => {
           const code = n.trading_code && n.trading_code !== "—" ? n.trading_code : null;
-          const date = n.post_date ? (bn ? bnDate(n.post_date) : formatDate(n.post_date)) : "";
+          const date = n.post_date ? <T en={formatDate(n.post_date)} bn={bnDate(n.post_date) || formatDate(n.post_date)} /> : null;
           const inner = (
             <>
               <span className="min-w-0 flex-1">
@@ -46,7 +47,7 @@ export default function MarketNewsCard({
                   {code && <OwnerMark code={code} held={held} watched={watched} lang={lang} />}
                   {date && <span className="text-xs font-medium text-text-muted">{date}</span>}
                 </span>
-                <span className="mt-1 block text-sm font-semibold leading-snug text-text-main line-clamp-2">
+                <span lang="en" className="mt-1 block text-sm font-semibold leading-snug text-text-main line-clamp-2">
                   {n.title}
                 </span>
               </span>

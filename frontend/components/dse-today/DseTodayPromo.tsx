@@ -1,8 +1,9 @@
 import Link from "next/link";
+import { T } from "@/components/i18n/T";
 
 /**
  * Promo banner at the top of /dse-today that points readers to the fuller,
- * plain-English /market-analysis page. The whole banner is one clickable link.
+ * plain-words /market-analysis page. The whole banner is one clickable link.
  */
 export default function DseTodayPromo() {
   return (
@@ -42,13 +43,16 @@ export default function DseTodayPromo() {
           <span
             className="text-xs font-semibold text-primary-ink"
           >
-            The bigger picture
+            <T en="The bigger picture" bn="পুরো চিত্র" />
           </span>
           <p className="mt-0.5 text-sm font-bold leading-snug text-text-main sm:text-base">
-            Is the market up or down, cheap or expensive?
+            <T en="Is the market up or down, cheap or expensive?" bn="বাজার বাড়ছে না কমছে, দাম কম না বেশি?" />
           </p>
           <p className="mt-0.5 hidden text-sm leading-snug text-text-muted sm:block">
-            See where to look for good shares today — all in plain, simple words.
+            <T
+              en="See where to look for good shares today, explained in plain words."
+              bn="আজ ভালো শেয়ার কোথায় খুঁজবেন, সহজ ভাষায় দেখুন।"
+            />
           </p>
         </div>
 
@@ -57,8 +61,12 @@ export default function DseTodayPromo() {
           className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-extrabold text-white transition-all group-hover:gap-2.5 sm:px-4 sm:text-sm"
           style={{ background: "var(--primary)" }}
         >
-          <span className="hidden sm:inline">Market Analysis</span>
-          <span className="sm:hidden">Open</span>
+          <span className="hidden sm:inline">
+            <T en="Market analysis" bn="বাজার বিশ্লেষণ" />
+          </span>
+          <span className="sm:hidden">
+            <T en="Open" bn="খুলুন" />
+          </span>
           <span aria-hidden="true">→</span>
         </span>
       </div>

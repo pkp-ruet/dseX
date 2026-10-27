@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { formatDate } from "@/lib/formatters";
 import { classifyNews } from "@/lib/news-kind";
+import { bnDate } from "@/lib/bn";
+import { T } from "@/components/i18n/T";
 
 interface Props {
   title: string;
@@ -36,7 +38,7 @@ export default function NewsCard({ title, body, postDate }: Props) {
               border: `1px solid color-mix(in srgb, ${kind.color} 25%, transparent)`,
             }}
           >
-            {kind.label}
+            <T en={kind.label} bn={kind.labelBn} />
           </span>
           <span className="block text-sm font-semibold leading-snug text-text-main">
             {title}
@@ -46,7 +48,7 @@ export default function NewsCard({ title, body, postDate }: Props) {
           className="text-xs font-bold shrink-0 mt-0.5 px-2.5 py-1 rounded-full whitespace-nowrap"
           style={{ background: "color-mix(in srgb, var(--primary) 10%, transparent)", color: "var(--primary)", border: "1px solid color-mix(in srgb, var(--primary) 25%, transparent)" }}
         >
-          {formatDate(postDate)}
+          <T en={formatDate(postDate)} bn={bnDate(postDate) || formatDate(postDate)} />
         </span>
       </button>
       {body && (
@@ -61,7 +63,7 @@ export default function NewsCard({ title, body, postDate }: Props) {
           onClick={() => setExpanded(true)}
           className="w-full text-xs font-semibold px-4 pb-3 text-left transition-colors text-primary"
         >
-          Read more →
+          <T en="Read more →" bn="আরও পড়ুন →" />
         </button>
       )}
     </div>

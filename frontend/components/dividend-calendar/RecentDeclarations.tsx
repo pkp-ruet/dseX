@@ -1,6 +1,6 @@
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
 import EventCard from "@/components/dividend-calendar/EventCard";
-import PremiumGate from "@/components/premium/PremiumGate";
+import CalendarLock from "@/components/dividend-calendar/CalendarLock";
 import { FREE_CALENDAR_ROWS, splitFree } from "@/lib/free-share";
 import type { CorporateActionEvent } from "@/lib/api";
 import SectionHeader from "@/components/ui/SectionHeader";
@@ -21,21 +21,26 @@ export default function RecentDeclarations({
 
   return (
     <section className="mb-8" id="recent">
-      <SectionHeader title={<>Just declared</>} className="mt-8" />
+      <SectionHeader title={<T en="Just declared" bn="সদ্য ঘোষিত" />} className="mt-8" />
 
-      <p className="mb-1 text-sm font-semibold text-text-main">
-        The newest dividend announcements, with the record date each one carries.
+      <p className="mb-4 text-sm font-semibold text-text-main">
+        <T
+          en="The newest dividend announcements, with the record date of each one."
+          bn="সবচেয়ে নতুন ডিভিডেন্ড ঘোষণা, প্রতিটির রেকর্ড ডেটসহ।"
+        />
       </p>
-      <Bn className="mb-4 text-sm font-medium leading-[1.85] text-text-muted">
-        সদ্য ঘোষিত লভ্যাংশ এবং তার রেকর্ড ডেট।
-      </Bn>
 
       {/* Free readers see the newest one; the rest is Premium (screen-only lock). */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{free.map(card)}</div>
       {locked.length > 0 && (
-        <PremiumGate label={`${locked.length} more announcements`} preview="blur" peek={140} compact className="mt-3">
+        <CalendarLock
+          label={{ en: `${locked.length} more announcements`, bn: `আরও ${locked.length}টি ঘোষণা` }}
+          peek={140}
+          compact
+          className="mt-3"
+        >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{locked.map(card)}</div>
-        </PremiumGate>
+        </CalendarLock>
       )}
     </section>
   );

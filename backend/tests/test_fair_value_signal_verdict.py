@@ -102,7 +102,7 @@ def test_bracbank_rising_near_yearly_low():
     v = build_verdict({"score": 76.5}, {"momentum_grade": "warm", "pct_in_52w_range": 11.9, "return_7d_pct": 2.7},
                       None, {"change_pct": 0.5}, fin_rows("BRACBANK"))
     assert "slowly rising" not in v["tagline"]
-    assert "1-year low" in v["tagline"]
+    assert "this year's low" in v["tagline"]
 
 
 def test_lhb_rising_week_but_falling_day():

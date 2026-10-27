@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useUrlParams, useUrlSync } from "@/lib/use-url-state";
-import { TIER_LABELS, TIER_VAR, type TierKey } from "@/lib/constants";
+import { TIER_LABELS, TIER_LABELS_BN, TIER_VAR, type TierKey } from "@/lib/constants";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
+import { sectorBn } from "@/lib/bn";
 import Chip from "@/components/ui/Chip";
 import PremiumGate from "@/components/premium/PremiumGate";
 import { FREE_RANKING_ROWS, splitFree } from "@/lib/free-share";
@@ -19,14 +22,15 @@ const TIERS_ORDER: TierKey[] = ["excellent", "good", "average", "weak"];
 const SORT_COLS: RankSortCol[] = ["rank", "name", "value", "growth", "dividend"];
 const DEFAULT_SORT: RankSort = { col: "rank", dir: "asc" };
 
-/** Phone sort menu — the column headers are hidden below 640px. */
-const SORT_OPTIONS: { value: string; label: string }[] = [
-  { value: "rank-asc", label: "Score: strongest first" },
-  { value: "rank-desc", label: "Score: weakest first" },
-  { value: "value-desc", label: "Price today: best value first" },
-  { value: "growth-desc", label: "Profit growth: highest first" },
-  { value: "dividend-desc", label: "Dividend: highest first" },
-  { value: "name-asc", label: "Name: A to Z" },
+/** Phone sort menu — the column headers are hidden below 640px. `<option>`
+ *  holds plain text only, so the menu reads the language through `useLang()`. */
+const SORT_OPTIONS: { value: string; label: string; labelBn: string }[] = [
+  { value: "rank-asc", label: "Score: strongest first", labelBn: "স্কোর: সবচেয়ে শক্ত আগে" },
+  { value: "rank-desc", label: "Score: weakest first", labelBn: "স্কোর: সবচেয়ে দুর্বল আগে" },
+  { value: "value-desc", label: "Price today: best value first", labelBn: "আজকের দাম: সবচেয়ে ভালো দাম আগে" },
+  { value: "growth-desc", label: "Profit growth: highest first", labelBn: "মুনাফা বৃদ্ধি: বেশি আগে" },
+  { value: "dividend-desc", label: "Dividend: highest first", labelBn: "ডিভিডেন্ড: বেশি আগে" },
+  { value: "name-asc", label: "Name: A to Z", labelBn: "নাম: A থেকে Z" },
 ];
 
 interface Props {
@@ -60,6 +64,9 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
   const [picked, setPicked] = useState<Set<TierKey>>(() => new Set());
   const [sort, setSort] = useState<RankSort>(DEFAULT_SORT);
   const { isPremium } = usePremium();
+  const { lang } = useLang();
+  const bn = lang === "bn";
+  const L = (en: string, b: string) => (bn ? b : en);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   // Server render + first paint are locked, like PremiumGate.
@@ -180,16 +187,19 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
     <div className="rk-explorer">
       <div className="rk-filters">
         <div className="rk-filter-row">
-          <div className="rk-chips" role="group" aria-label="Filter by grade">
+          <div className="rk-chips" role="group" aria-label={L("Filter by grade", "গ্রেড অনুযায়ী বাছুন")}>
             {TIERS_ORDER.map((tier) => (
               <Chip
                 key={tier}
                 active={picked.has(tier)}
                 onClick={() => toggleTier(tier)}
                 icon={<span className="rk-dot" style={{ background: TIER_VAR[tier] }} />}
-                aria-label={`${TIER_LABELS[tier]}: ${counts[tier] ?? 0} companies`}
+                aria-label={L(
+                  `${TIER_LABELS[tier]}: ${counts[tier] ?? 0} companies`,
+                  `${TIER_LABELS_BN[tier]}: ${counts[tier] ?? 0}টি কোম্পানি`,
+                )}
               >
-                {TIER_LABELS[tier]}
+                <T en={TIER_LABELS[tier]} bn={TIER_LABELS_BN[tier]} />
                 <span className="nums font-normal opacity-80">{counts[tier] ?? 0}</span>
               </Chip>
             ))}
@@ -204,10 +214,10 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
               id="rank-search"
               type="search"
               className="rk-search-input"
-              placeholder="Search company or code"
+              placeholder={L("Search company or code", "কোম্পানি বা কোড খুঁজুন")}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              aria-label="Search companies"
+              aria-label={L("Search companies", "কোম্পানি খুঁজুন")}
             />
           </div>
 
@@ -215,12 +225,12 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
             className="rk-select"
             value={sector}
             onChange={(e) => setSector(e.target.value)}
-            aria-label="Filter by sector"
+            aria-label={L("Filter by sector", "সেক্টর অনুযায়ী বাছুন")}
           >
-            <option value="all">All sectors</option>
+            <option value="all">{L("All sectors", "সব সেক্টর")}</option>
             {sectors.map((s) => (
               <option key={s} value={s}>
-                {s}
+                {bn ? sectorBn(s) : s}
               </option>
             ))}
           </select>
@@ -232,11 +242,11 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
               const [col, dir] = e.target.value.split("-");
               setSort({ col: col as RankSortCol, dir: dir === "asc" ? "asc" : "desc" });
             }}
-            aria-label="Sort by"
+            aria-label={L("Sort by", "সাজানোর ক্রম")}
           >
             {SORT_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
-                {o.label}
+                {bn ? o.labelBn : o.label}
               </option>
             ))}
           </select>
@@ -254,11 +264,22 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
             ))}
           </div>
           <span className="rk-showing nums">
-            Showing <strong>{filtered.length}</strong> of {total}
+            <T
+              en={
+                <>
+                  Showing <strong>{filtered.length}</strong> of {total}
+                </>
+              }
+              bn={
+                <>
+                  {total}টির মধ্যে <strong>{filtered.length}</strong>টি দেখানো হচ্ছে
+                </>
+              }
+            />
           </span>
           {isFiltered && (
             <button type="button" className="rk-reset" onClick={reset}>
-              Reset
+              <T en="Reset" bn="আগের মতো করুন" />
             </button>
           )}
         </div>
@@ -267,13 +288,17 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
       <FullRankTable rows={free} grouped={isDefaultSort} sort={sort} onSort={onSort} groupCounts={viewCounts} />
       {locked.length > 0 && (
         <PremiumGate
-          label="The full ranking"
+          label={{ en: "The full ranking", bn: "পুরো র‍্যাঙ্কিং" }}
           preview="blur"
           peek={220}
           stakes={[
-            `${locked.length} more ${locked.length === 1 ? "company" : "companies"} ranked, with all five checks`,
-            lockedStrong > 0 ? `${lockedStrong} of them graded Good or Excellent` : "",
-            lockedCheap > 0 ? `${lockedCheap} of them at a good price today` : "",
+            { en: `${locked.length} more ${locked.length === 1 ? "company" : "companies"} ranked, with all five checks`, bn: `আরও ${locked.length}টি কোম্পানির র‍্যাঙ্ক, পাঁচটি যাচাইসহ` },
+            lockedStrong > 0
+              ? { en: `${lockedStrong} of them graded Good or Excellent`, bn: `এদের ${lockedStrong}টির গ্রেড ভালো বা চমৎকার` }
+              : "",
+            lockedCheap > 0
+              ? { en: `${lockedCheap} of them at a good price today`, bn: `এদের ${lockedCheap}টি আজ ভালো দামে আছে` }
+              : "",
           ]}
           className="mt-4"
         >

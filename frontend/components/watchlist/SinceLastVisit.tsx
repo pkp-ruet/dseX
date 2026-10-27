@@ -4,7 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { apiVisitWatchlist, type ScoreItem, type WatchlistNewsItem } from "@/lib/api";
 import { changePct, changeTone } from "@/lib/formatters";
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
+import { bnDate } from "@/lib/bn";
 
 interface Props {
   codes: string[];
@@ -25,15 +26,18 @@ function joinEn(parts: string[]): string {
   return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
 }
 
-function sinceLabel(prevMs: number): string {
+const BN_WEEKDAYS = ["রবিবার", "সোমবার", "মঙ্গলবার", "বুধবার", "বৃহস্পতিবার", "শুক্রবার", "শনিবার"];
+
+function sinceLabel(prevMs: number): { en: string; bn: string } {
   const d = new Date(prevMs);
   const today = new Date();
   const dayMs = 24 * 3600 * 1000;
   const diffDays = Math.floor((today.setHours(0, 0, 0, 0) - new Date(d).setHours(0, 0, 0, 0)) / dayMs);
-  if (diffDays <= 0) return "earlier today";
-  if (diffDays === 1) return "yesterday";
-  if (diffDays < 7) return d.toLocaleDateString("en-GB", { weekday: "long" });
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  if (diffDays <= 0) return { en: "earlier today", bn: "আজই" };
+  if (diffDays === 1) return { en: "yesterday", bn: "গতকাল" };
+  if (diffDays < 7) return { en: d.toLocaleDateString("en-GB", { weekday: "long" }), bn: BN_WEEKDAYS[d.getDay()] };
+  const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return { en: d.toLocaleDateString("en-GB", { day: "numeric", month: "short" }), bn: bnDate(iso) };
 }
 
 /**
@@ -86,16 +90,29 @@ export default function SinceLastVisit({ codes, rows, news, dividendSoon }: Prop
   }
   if (movers.length > 0) {
     const n = movers.length;
-    en.push(`${n} ${n === 1 ? "stock" : "stocks"} moved more than ${BIG_MOVE_PCT}% today`);
-    bn.push(`${n}টি স্টক আজ ${BIG_MOVE_PCT}%-এর বেশি নড়েছে`);
+    en.push(`${n} ${n === 1 ? "share" : "shares"} moved more than ${BIG_MOVE_PCT}% today`);
+    bn.push(`${n}টি শেয়ারের দাম আজ ${BIG_MOVE_PCT}%-এর বেশি ওঠানামা করেছে`);
   }
   if (divs.length > 0) {
     const n = divs.length;
     en.push(`${n} dividend ${n === 1 ? "date" : "dates"} coming up`);
-    bn.push(`${n}টি ডিভিডেন্ডের তারিখ সামনে`);
+    bn.push(`সামনে ${n}টি ডিভিডেন্ডের তারিখ`);
   }
 
   const lead = movers[0];
+  const since = sinceLabel(prevMs);
+  const leadLink = lead && (
+    <>
+      <Link
+        prefetch={false}
+        href={`/stock/${lead.trading_code}`}
+        className="font-semibold text-primary-ink hover:underline"
+      >
+        {lead.trading_code}
+      </Link>{" "}
+      <span className={`font-semibold nums ${changeTone(lead.change_pct)}`}>{changePct(lead.change_pct, 1)}</span>
+    </>
+  );
 
   return (
     <div className="soft-card wl-note" role="status">
@@ -105,26 +122,21 @@ export default function SinceLastVisit({ codes, rows, news, dividendSoon }: Prop
       </svg>
       <div className="wl-note-body">
         <p className="wl-note-text">
-          <span className="font-semibold">Since {sinceLabel(prevMs)}:</span> {joinEn(en)}.
-          {lead && (
-            <>
-              {" "}
-              Biggest move{" "}
-              <Link
-                prefetch={false}
-                href={`/stock/${lead.trading_code}`}
-                className="font-semibold text-primary-ink hover:underline"
-              >
-                {lead.trading_code}
-              </Link>{" "}
-              <span className={`font-semibold nums ${changeTone(lead.change_pct)}`}>
-                {changePct(lead.change_pct, 1)}
-              </span>
-              .
-            </>
-          )}
+          <T
+            en={
+              <>
+                <span className="font-semibold">Since {since.en}:</span> {joinEn(en)}.
+                {leadLink && <> The biggest move was {leadLink}.</>}
+              </>
+            }
+            bn={
+              <>
+                <span className="font-semibold">শেষবার {since.bn} দেখার পর:</span> {bn.join(", ")}।
+                {leadLink && <> সবচেয়ে বেশি ওঠানামা {leadLink}।</>}
+              </>
+            }
+          />
         </p>
-        <Bn className="wl-note-bn">শেষবার দেখার পর: {bn.join(", ")}।</Bn>
       </div>
     </div>
   );

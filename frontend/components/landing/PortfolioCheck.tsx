@@ -2,7 +2,8 @@
 
 import { useState, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
+import { sectorBn } from "@/lib/bn";
 import SectionHead from "@/components/i18n/SectionHead";
 import Button from "@/components/ui/Button";
 import type { Grade } from "@/lib/portfolio-analysis";
@@ -41,6 +42,7 @@ function scoreTone(v: number): string {
 
 interface Step {
   title: string;
+  titleBn: string;
   line: string;
   bn: string;
   icon: ReactNode;
@@ -49,31 +51,35 @@ interface Step {
 const STEPS: Step[] = [
   {
     title: "Add what you own",
-    line: "Company, how many shares, the price you paid. That is all.",
-    bn: "কোন কোম্পানির কতটা শেয়ার, কত দামে কিনেছেন — শুধু এটুকু লিখুন।",
+    titleBn: "আপনার শেয়ার যোগ করুন",
+    line: "The company, how many shares and the price you paid. That is all.",
+    bn: "কোম্পানি, কতগুলো শেয়ার আর কত দামে কিনেছেন। শুধু এটুকুই।",
     icon: <><path d="M12 5v14M5 12h14" /></>,
   },
   {
-    title: "Get one grade, A to F",
-    line: "Three checks: is it spread out, are the companies strong, did you pay a fair price.",
-    bn: "তিনটা যাচাই: টাকা ছড়ানো কি না, কোম্পানিগুলো মজবুত কি না, দাম ন্যায্য দিয়েছেন কি না।",
+    title: "Get one grade, from A to F",
+    titleBn: "A থেকে F একটি গ্রেড পান",
+    line: "Three checks: is your money spread out, are the companies strong, and did you pay a fair price?",
+    bn: "তিনটি যাচাই: টাকা কয়েক জায়গায় ছড়ানো কি না, কোম্পানিগুলো শক্ত কি না, আর দাম ন্যায্য দিয়েছেন কি না।",
     icon: <><path d="M9 12l2 2 4-4" /><circle cx="12" cy="12" r="9" /></>,
   },
   {
-    title: "See what is good and what to watch",
-    line: "Plain sentences, not charts — a weak company or too much in one sector is named.",
-    bn: "সহজ ভাষায় লেখা — কোন কোম্পানি দুর্বল, কোথায় বেশি টাকা আটকে আছে, সরাসরি বলে দেয়।",
+    title: "See what is going well and what to watch",
+    titleBn: "কোনটি ভালো আর কোনটিতে নজর দরকার, দেখুন",
+    line: "In plain sentences, not charts. A weak company, or too much money in one sector, is named.",
+    bn: "চার্ট নয়, সহজ বাক্যে। কোন কোম্পানি দুর্বল বা কোন সেক্টরে বেশি টাকা আছে, তা সরাসরি বলা হয়।",
     icon: <><path d="M12 9v4M12 17h.01" /><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" /></>,
   },
   {
     title: "Know what to do next",
-    line: "Buy more or sell, with the reason, for each holding — and which sectors you are missing.",
-    bn: "প্রতিটা শেয়ারে আরও কিনবেন না বিক্রি করবেন, কারণসহ — আর কোন খাত আপনার নেই।",
+    titleBn: "এরপর কী করবেন, জানুন",
+    line: "For each share, whether to buy more or sell, with the reason, and which sectors you are missing.",
+    bn: "প্রতিটি শেয়ারে আরও কিনবেন না বিক্রি করবেন, কারণসহ, আর কোন সেক্টর আপনার নেই।",
     icon: <><path d="M5 12h14M13 6l6 6-6 6" /></>,
   },
 ];
 
-function SubBar({ label, value }: { label: string; value: number }) {
+function SubBar({ label, value }: { label: ReactNode; value: number }) {
   const tone = scoreTone(value);
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
@@ -92,7 +98,12 @@ function SubBar({ label, value }: { label: string; value: number }) {
 
 function Bullet({ kind, text }: { kind: "good" | "watch" | "next"; text: Line }) {
   const tone = kind === "good" ? "var(--positive)" : kind === "watch" ? "var(--watch)" : "var(--info)";
-  const label = kind === "good" ? "Good" : kind === "watch" ? "Watch out" : "Consider";
+  const label =
+    kind === "good"
+      ? { en: "Going well", bn: "ভালো দিক" }
+      : kind === "watch"
+        ? { en: "Needs attention", bn: "মনোযোগ দরকার" }
+        : { en: "Worth considering", bn: "ভেবে দেখার মতো" };
   return (
     <li className="flex items-start gap-2.5">
       <span
@@ -106,10 +117,11 @@ function Bullet({ kind, text }: { kind: "good" | "watch" | "next"; text: Line })
       </span>
       <div className="min-w-0">
         <p className="text-sm leading-snug text-text-main">
-          <span className="font-bold" style={{ color: tone }}>{label}: </span>
-          {text.en}
+          <span className="font-bold" style={{ color: tone }}>
+            <T en={`${label.en}: `} bn={`${label.bn}: `} />
+          </span>
+          <T en={text.en} bn={text.bn} />
         </p>
-        <Bn className="mt-0.5 text-sm leading-relaxed text-text-muted">{text.bn}</Bn>
       </div>
     </li>
   );
@@ -129,30 +141,36 @@ function SampleCard({ view }: { view: SampleView }) {
           style={{ color: acc, borderColor: `color-mix(in srgb, ${acc} 45%, transparent)`, background: `color-mix(in srgb, ${acc} 10%, transparent)` }}
         >
           <span className="font-display text-3xl font-extrabold leading-none">{view.grade}</span>
-          <span className="mt-0.5 text-xs font-bold">{view.gradeLabel}</span>
+          <span className="mt-0.5 text-xs font-bold">
+            <T en={view.gradeLabel} bn={view.gradeLabelBn} />
+          </span>
         </div>
         <div className="min-w-0">
           <p className="text-xs font-semibold text-text-muted">
-            Portfolio grade · {view.companies} {view.companies === 1 ? "company" : "companies"}
+            <T
+              en={`Portfolio grade · ${view.companies} ${view.companies === 1 ? "company" : "companies"}`}
+              bn={`পোর্টফোলিওর গ্রেড · ${view.companies}টি কোম্পানি`}
+            />
           </p>
-          <p className="mt-1 text-sm font-semibold leading-snug text-text-main">{view.headline.en}</p>
-          <Bn className="mt-1 text-sm leading-relaxed text-text-muted">
-            {view.gradeLabelBn} — {view.headline.bn}
-          </Bn>
+          <p className="mt-1 text-sm font-semibold leading-snug text-text-main">
+            <T en={view.headline.en} bn={view.headline.bn} />
+          </p>
         </div>
       </div>
 
       {/* The three checks */}
       <div className="grid grid-cols-3 gap-3 border-y border-border px-4 py-3.5 sm:px-5">
-        <SubBar label="Spread" value={view.sub.spread} />
-        <SubBar label="Quality" value={view.sub.quality} />
-        <SubBar label="Price paid" value={view.sub.entry} />
+        <SubBar label={<T en="Spread" bn="ছড়ানো" />} value={view.sub.spread} />
+        <SubBar label={<T en="Quality" bn="মান" />} value={view.sub.quality} />
+        <SubBar label={<T en="Price paid" bn="কেনার দাম" />} value={view.sub.entry} />
       </div>
 
       {/* Where the money sits */}
       {view.sectors.length > 0 && (
         <div className="px-4 py-3.5 sm:px-5">
-          <p className="text-xs font-semibold text-text-muted">Where the money sits</p>
+          <p className="text-xs font-semibold text-text-muted">
+            <T en="Where the money sits" bn="টাকা কোথায় আছে" />
+          </p>
           <div className="mt-2 flex h-3 gap-0.5 overflow-hidden rounded-full">
             {view.sectors.map((s, i) => (
               <span
@@ -166,11 +184,13 @@ function SampleCard({ view }: { view: SampleView }) {
             {view.sectors.slice(0, 4).map((s, i) => (
               <span key={s.name} className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-muted">
                 <span className="h-2.5 w-2.5 rounded-sm" style={{ background: SECTOR_TONES[Math.min(i, SECTOR_TONES.length - 1)] }} aria-hidden />
-                {s.name} {s.weightPct.toFixed(0)}%
+                <T en={s.name} bn={sectorBn(s.name)} /> {s.weightPct.toFixed(0)}%
               </span>
             ))}
             {view.sectors.length > 4 && (
-              <span className="text-xs font-semibold text-text-muted">+{view.sectors.length - 4} more</span>
+              <span className="text-xs font-semibold text-text-muted">
+                <T en={`+${view.sectors.length - 4} more`} bn={`আরও ${view.sectors.length - 4}টি`} />
+              </span>
             )}
           </div>
         </div>
@@ -186,9 +206,11 @@ function SampleCard({ view }: { view: SampleView }) {
       )}
 
       <div className="flex items-center justify-between gap-3 border-t border-border bg-surface-2 px-4 py-2.5 sm:px-5">
-        <span className="text-xs font-semibold text-text-muted">Sample portfolio · today&apos;s scores</span>
+        <span className="text-xs font-semibold text-text-muted">
+          <T en="Sample portfolio · today's scores" bn="নমুনা পোর্টফোলিও · আজকের স্কোর" />
+        </span>
         <Link href={`/sample-portfolio/${view.slug}`} prefetch={false} className="shrink-0 text-xs font-bold text-primary-ink hover:underline">
-          Full check →
+          <T en="Full check →" bn="পূর্ণ যাচাই →" />
         </Link>
       </div>
     </article>
@@ -202,13 +224,20 @@ export default function PortfolioCheck({ samples }: { samples: SampleView[] }) {
   return (
     <section aria-labelledby="portfolio-check-title">
       <SectionHead
-        eyebrow="Portfolio check"
+        eyebrow={<T en="Portfolio check" bn="পোর্টফোলিও যাচাই" />}
         id="portfolio-check-title"
-        title="Already own shares? We check"
-        highlight="all of them at once."
-        accent="var(--positive)"
-        icon={<><path d="M3 17l5-5 4 3 5-7 4 4" /><path d="M3 21h18" /></>}
-        bn="যে শেয়ারগুলো কিনেছেন লিখে দিন — পুরো পোর্টফোলিও কতটা ভালো, কোথায় ঝুঁকি আর এরপর কী করবেন, এক পাতায় বলে দেব।"
+        title={
+          <T
+            en="Already own shares? We check all of them at once."
+            bn="শেয়ার কিনেছেন? সবগুলো একসঙ্গে যাচাই করে দেখাই।"
+          />
+        }
+        sub={
+          <T
+            en="Add the shares you bought and see, on one page, how sound your portfolio is, where the risks are and what to do next."
+            bn="কেনা শেয়ারগুলো যোগ করুন। পুরো পোর্টফোলিও কতটা ভালো, কোথায় ঝুঁকি আর এরপর কী করবেন, এক পেজেই দেখবেন।"
+          />
+        }
       />
 
       <div className="mt-6 grid grid-cols-1 items-start gap-6 md:grid-cols-[1fr_minmax(0,27rem)] md:gap-10">
@@ -229,10 +258,11 @@ export default function PortfolioCheck({ samples }: { samples: SampleView[] }) {
                 <div className="min-w-0">
                   <h3 className="text-base font-bold leading-snug text-text-main">
                     <span className="mr-1.5 tabular-nums nums text-text-muted">{i + 1}.</span>
-                    {s.title}
+                    <T en={s.title} bn={s.titleBn} />
                   </h3>
-                  <p className="mt-1 text-sm leading-relaxed text-text-muted">{s.line}</p>
-                  <Bn className="mt-1 text-sm leading-relaxed text-text-main">{s.bn}</Bn>
+                  <p className="mt-1 text-sm leading-relaxed text-text-muted">
+                    <T en={s.line} bn={s.bn} />
+                  </p>
                 </div>
               </li>
             ))}
@@ -240,21 +270,23 @@ export default function PortfolioCheck({ samples }: { samples: SampleView[] }) {
 
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <Button href="/portfolio" variant="primary">
-              Check my portfolio
+              <T en="Check my portfolio" bn="আমার পোর্টফোলিও যাচাই করুন" />
             </Button>
             {view && (
               <Link
                 href={`/sample-portfolio/${view.slug}`}
                 className="text-sm font-bold text-primary-ink underline-offset-4 hover:underline"
               >
-                See a full sample check →
+                <T en="See a full sample check →" bn="একটি পূর্ণ নমুনা যাচাই দেখুন →" />
               </Link>
             )}
           </div>
           <p className="mt-2 text-xs font-semibold text-text-muted">
-            Free. Your holdings are private — only you can see them.
+            <T
+              en="It is free, and your shares stay private. Only you can see them."
+              bn="এটি ফ্রি, আর আপনার শেয়ারের তথ্য গোপন থাকে। শুধু আপনিই দেখতে পাবেন।"
+            />
           </p>
-          <Bn className="mt-0.5 text-sm text-text-muted">ফ্রি। আপনার শেয়ারের তালিকা শুধু আপনিই দেখতে পাবেন।</Bn>
         </div>
 
         {/* The real check, on two sample portfolios */}
@@ -272,10 +304,7 @@ export default function PortfolioCheck({ samples }: { samples: SampleView[] }) {
                     role="tab"
                     aria-selected={s.slug === view.slug}
                   >
-                    {s.tab.en}
-                    <Bn as="span" className="ml-1.5 text-xs font-medium">
-                      {s.tab.bn}
-                    </Bn>
+                    <T en={s.tab.en} bn={s.tab.bn} />
                   </Button>
                 ))}
               </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getMarketState } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
+import { bnDate } from "@/lib/bn";
 
 import BigPicture from "@/components/market-analysis/BigPicture";
 import SinceYesterday from "@/components/market-analysis/SinceYesterday";
@@ -13,9 +14,9 @@ import MarketResearchLists from "@/components/market-analysis/MarketResearchList
 import MarketDividends from "@/components/market-analysis/MarketDividends";
 import { PersonalCodesProvider } from "@/components/market-analysis/PersonalCodes";
 import ErrorState from "@/components/ui/ErrorState";
+import { T } from "@/components/i18n/T";
 import PageHeader from "@/components/ui/PageHeader";
 import SectionHeader from "@/components/ui/SectionHeader";
-import Bn from "@/components/i18n/Bn";
 import HubLinks from "@/components/layout/HubLinks";
 
 export const revalidate = 900;
@@ -71,7 +72,7 @@ const EMPTY_HISTORY = { index: [], daily: [] };
 
 export default async function MarketAnalysisPage() {
   const data = await getMarketState().catch(() => null);
-  const dateLabel = data?.date ? formatDate(data.date) : null;
+  const dateLabel = data?.date ? <T en={formatDate(data.date)} bn={bnDate(data.date)} /> : null;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -117,19 +118,23 @@ export default async function MarketAnalysisPage() {
       />
 
       <PageHeader
-        eyebrow="Dhaka Stock Exchange"
-        title="Market Analysis"
-        bn="বাজার এখন উপরে না নিচে, সস্তা না দামি — সহজ ভাষায়।"
+        eyebrow={<T en="Dhaka Stock Exchange" bn="ঢাকা স্টক এক্সচেঞ্জ" />}
+        title={<T en="Market analysis" bn="বাজার বিশ্লেষণ" />}
+        lead={
+          <T
+            en="Whether the market is rising or falling, and whether shares are cheap or expensive, in plain words."
+            bn="বাজার বাড়ছে না কমছে, আর শেয়ারের দাম কম না বেশি, সহজ ভাষায়।"
+          />
+        }
         actions={dateLabel ? <span className="ms-page-date">{dateLabel}</span> : undefined}
       />
 
       {!data ? (
         <ErrorState
           size="inline"
-          title="Couldn't load the market right now"
-          bn="বাজারের তথ্য এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+          title={<T en="We couldn't load the market right now" bn="বাজারের তথ্য এখন লোড করা যাচ্ছে না" />}
           reload
-          links={[{ href: "/dse-today", label: "See today's market" }]}
+          links={[{ href: "/dse-today", label: <T en="See today's market" bn="আজকের বাজার দেখুন" /> }]}
         />
       ) : (
         <>
@@ -146,14 +151,19 @@ export default async function MarketAnalysisPage() {
               dividends: (next?.dividends ?? []).map((d) => ({ code: d.trading_code, date: d.date, kind: d.kind })),
             }}
           />
-          {data.summary_bn && <BanglaSnapshot text={data.summary_bn} />}
+          {data.summary_bn && <BanglaSnapshot text={data.summary_bn} textEn={data.summary_en} />}
 
           <section className="mk-section" aria-labelledby="mk-now">
             <SectionHeader
               id="mk-now"
               size="lg"
-              title="The market right now"
-              bn="কোন ব্যবসা ভালো করছে, কতটি কোম্পানি ভালো অবস্থায়, আর বাজার কীভাবে এখানে এলো।"
+              title={<T en="The market right now" bn="বাজার এখন কেমন" />}
+              lead={
+                <T
+                  en="Which sectors are doing well, how many companies are in good shape, and how the market got here."
+                  bn="কোন সেক্টর ভালো করছে, কতটি কোম্পানি ভালো অবস্থায় আছে, আর বাজার কীভাবে এখানে এসেছে।"
+                />
+              }
             />
             <div className="mk-stack">
               <WhatsHappeningNow
@@ -169,10 +179,14 @@ export default async function MarketAnalysisPage() {
               <SectionHeader
                 id="mk-invest"
                 size="lg"
-                title="Where to invest today"
-                bn="ছয়টি ধারণা, প্রতিটি কয়েকটি সহজ যাচাই। আজকের বাজারে যেটি মানায়, সেটি আগে।"
-                lead="Six ideas, each a set of plain checks. The one that fits today's market comes first."
-                action={{ href: "/stock-insights#research", label: "All lists" }}
+                title={<T en="Where to invest today" bn="আজ কোথায় বিনিয়োগ করবেন" />}
+                lead={
+                  <T
+                    en="Six ideas, each a set of plain checks. The one that fits today's market comes first."
+                    bn="ছয়টি ধারণা, প্রতিটিতে কয়েকটি সহজ যাচাই। আজকের বাজারে যেটি মানায়, সেটি আগে।"
+                  />
+                }
+                action={{ href: "/stock-insights#research", label: <T en="All lists" bn="সব তালিকা" /> }}
               />
               <MarketResearchLists research={data.research} />
             </section>
@@ -182,9 +196,13 @@ export default async function MarketAnalysisPage() {
             <SectionHeader
               id="mk-next"
               size="lg"
-              title="Stocks to watch next"
-              bn="কোন শেয়ারে সামনে কিছু হতে পারে।"
-              lead="Big moves building up, fast risers, and shares at a one-year edge."
+              title={<T en="Shares to watch next" bn="সামনে যেসব শেয়ারে নজর রাখবেন" />}
+              lead={
+                <T
+                  en="Unusual buying, shares rising fast, and shares near their highest or lowest price of the year."
+                  bn="অস্বাভাবিক কেনাকাটা, দ্রুত বাড়তে থাকা শেয়ার, আর বছরের সর্বোচ্চ বা সর্বনিম্ন দামের কাছের শেয়ার।"
+                />
+              }
             />
             <WhatCouldHappenNext
               unusual={next?.unusual ?? []}
@@ -198,16 +216,23 @@ export default async function MarketAnalysisPage() {
             <SectionHeader
               id="mk-money"
               size="lg"
-              title="Money coming"
-              bn="সামনে যেসব কোম্পানি লভ্যাংশ দেবে।"
-              action={{ href: "/dividend-calendar", label: "Dividend calendar" }}
+              title={<T en="Dividends coming" bn="সামনের ডিভিডেন্ড" />}
+              lead={
+                <T
+                  en="Companies that will pay a dividend soon."
+                  bn="যেসব কোম্পানি শিগগির ডিভিডেন্ড দেবে।"
+                />
+              }
+              action={{ href: "/dividend-calendar", label: <T en="Dividend calendar" bn="ডিভিডেন্ড ক্যালেন্ডার" /> }}
             />
             <MarketDividends items={next?.dividends ?? []} />
           </section>
 
           <p className="mk-disclaimer">
-            Educational information, not investment advice. Read the full stock page before you decide.
-            <Bn as="span" className="block">এগুলো শিক্ষামূলক তথ্য, বিনিয়োগ পরামর্শ নয়।</Bn>
+            <T
+              en="This is educational information, not investment advice. Please read a share's full page before you decide."
+              bn="এগুলো শিক্ষামূলক তথ্য, বিনিয়োগ পরামর্শ নয়। সিদ্ধান্তের আগে শেয়ারের পুরো পেজটি পড়ে নিন।"
+            />
           </p>
         </>
       )}

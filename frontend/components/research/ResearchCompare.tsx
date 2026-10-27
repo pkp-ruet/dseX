@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { ResearchColumn, ResearchStock } from "@/lib/api";
 import { useLang } from "@/context/LangContext";
+import { T } from "@/components/i18n/T";
 import { formatResearchMetric as fmt } from "@/lib/research-lists";
 import { DataTable, SortTh, StockIdent, Th, type SortDir } from "@/components/ui/Table";
 import ScoreBadge from "@/components/ui/ScoreBadge";
@@ -32,6 +33,7 @@ export default function ResearchCompare({ columns, stocks }: { columns: Research
       setDir(col === "rank" ? "asc" : "desc");
     }
   };
+  // `data-label` is an attribute, so it follows useLang(); visible headers are <T>.
   const label = (c: ResearchColumn) => (bn ? c.label_bn : c.label_en);
 
   return (
@@ -39,10 +41,10 @@ export default function ResearchCompare({ columns, stocks }: { columns: Research
       <thead>
         <tr>
           <SortTh col="rank" label="#" active={sort} dir={dir} onSort={onSort} />
-          <Th>{bn ? "কোম্পানি" : "Company"}</Th>
-          <SortTh col="score" label={bn ? "স্কোর" : "Score"} active={sort} dir={dir} onSort={onSort} align="right" />
+          <Th><T en="Company" bn="কোম্পানি" /></Th>
+          <SortTh col="score" label={<T en="Score" bn="স্কোর" />} active={sort} dir={dir} onSort={onSort} align="right" />
           {metricCols.map((c) => (
-            <SortTh key={c.key} col={c.key} label={label(c)} active={sort} dir={dir} onSort={onSort} align="right" />
+            <SortTh key={c.key} col={c.key} label={<T en={c.label_en} bn={c.label_bn} />} active={sort} dir={dir} onSort={onSort} align="right" />
           ))}
         </tr>
       </thead>
@@ -60,7 +62,7 @@ export default function ResearchCompare({ columns, stocks }: { columns: Research
               const f = fmt(c, s.metrics[c.key]);
               return (
                 <td key={c.key} data-cell="meta" data-label={label(c)} className={`dt-num nums ${f.cls}`.trim()}>
-                  {f.text}
+                  <T en={f.text} bn={f.textBn} />
                 </td>
               );
             })}

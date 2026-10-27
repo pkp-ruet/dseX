@@ -21,7 +21,7 @@ One cached bundle that answers, in plain words:
 
 All wording lives on the frontend; this service returns plain numbers + short
 status strings. No finance terms leak into the values we expose. The one
-exception is `summary_bn`, a template-rendered everyday-Bangla paragraph.
+exception is `summary_bn` / `summary_en`, a template-rendered paragraph in each language.
 """
 import logging
 import math
@@ -359,17 +359,20 @@ def _sector_rows(companies: dict, ret_1w: dict, ret_1m: dict) -> list[dict]:
         avg_1w = round(sum(vals) / len(vals), 1)
         m_vals = sec_1m.get(sec, [])
         avg_1m = round(sum(m_vals) / len(m_vals), 1) if m_vals else None
+        # `status` is also the stored snapshot value the sector-flip check
+        # compares, so "Doing well" / "Struggling" keep their spelling.
         if avg_1w > 0.5:
-            status, tone = "Doing well", "pos"
+            status, status_bn, tone = "Doing well", "ভালো করছে", "pos"
         elif avg_1w < -0.5:
-            status, tone = "Struggling", "neg"
+            status, status_bn, tone = "Struggling", "চাপে আছে", "neg"
         else:
-            status, tone = "So-so", "neutral"
+            status, status_bn, tone = "Steady", "স্থির", "neutral"
         slug = sector_slug(sec)
         sectors.append({
             "name": _plain_sector(sec),
             "slug": slug if slug in pages else None,
             "status": status,
+            "status_bn": status_bn,
             "tone": tone,
             "ret_1w": avg_1w,
             "ret_1m": avg_1m,
@@ -483,7 +486,7 @@ _SECTOR_BN = {
     "Tech": "তথ্যপ্রযুক্তি",
     "Phone & internet": "টেলিযোগাযোগ",
     "Cement": "সিমেন্ট",
-    "Insurance": "বীমা",
+    "Insurance": "বিমা",
     "Leather": "চামড়া",
     "Ceramics": "সিরামিক",
     "Jute": "পাট",
@@ -504,20 +507,20 @@ def _build_summary_bn(up, down, advancing_pct, price_pos_pct, cheap_pct,
     # 1) Today's breadth (same 45/55 bands as the Q&A rows)
     if (up or down) and advancing_pct is not None:
         if advancing_pct > 55:
-            parts.append(f"আজ বাজার বেশ চাঙা ছিল — {up}টি শেয়ারের দাম বেড়েছে, আর কমেছে {down}টির।")
+            parts.append(f"আজ বাজার বেশ চাঙা ছিল: {up}টি শেয়ারের দাম বেড়েছে, আর কমেছে {down}টির।")
         elif advancing_pct < 45:
-            parts.append(f"আজ বাজার কিছুটা পড়তির দিকে ছিল — {down}টি শেয়ারের দাম কমেছে, আর বেড়েছে {up}টির।")
+            parts.append(f"আজ বাজার কিছুটা নিচের দিকে ছিল: {down}টি শেয়ারের দাম কমেছে, আর বেড়েছে {up}টির।")
         else:
-            parts.append(f"আজ বাজার মিশ্র ছিল — {up}টি শেয়ারের দাম বেড়েছে, আর {down}টির কমেছে।")
+            parts.append(f"আজ বাজার মিশ্র ছিল: {up}টি শেয়ারের দাম বেড়েছে, আর {down}টির কমেছে।")
 
     # 2) Where prices sit in this year's range
     if price_pos_pct is not None:
         if price_pos_pct < 25:
-            parts.append("দাম এখন এই বছরের প্রায় সবচেয়ে নিচের দিকে।")
+            parts.append("দাম এখন এ বছরের প্রায় সর্বনিম্ন পর্যায়ে।")
         elif price_pos_pct > 75:
-            parts.append("দাম এখন এই বছরের প্রায় সবচেয়ে উপরের দিকে।")
+            parts.append("দাম এখন এ বছরের প্রায় সর্বোচ্চ পর্যায়ে।")
         else:
-            parts.append("দাম এখন এই বছরের মাঝামাঝি পর্যায়ে আছে।")
+            parts.append("দাম এখন এ বছরের মাঝামাঝি পর্যায়ে আছে।")
 
     # 3) Cheap or expensive (same 35/55 bands as the mood)
     if cheap_pct is not None:
@@ -525,7 +528,7 @@ def _build_summary_bn(up, down, advancing_pct, price_pos_pct, cheap_pct,
         if cheap_pct >= 55:
             parts.append(f"ভালো খবর হলো, প্রতি 10টি শেয়ারের মধ্যে প্রায় {tenths}টির দাম এখন স্বাভাবিকের চেয়ে কম।")
         elif cheap_pct <= 35:
-            parts.append("তবে বেশিরভাগ শেয়ারের দাম এখন স্বাভাবিকের চেয়ে বেশি, তাই একটু দেখেশুনে এগোনো ভালো।")
+            parts.append("তবে বেশির ভাগ শেয়ারের দাম এখন স্বাভাবিকের চেয়ে বেশি, তাই সাবধানে এগোনোই ভালো।")
         else:
             parts.append("শেয়ারের দাম মোটামুটি স্বাভাবিক পর্যায়ে আছে।")
 
@@ -535,14 +538,60 @@ def _build_summary_bn(up, down, advancing_pct, price_pos_pct, cheap_pct,
         if top.get("ret_1w") is not None:
             if top["ret_1w"] > 0.5:
                 name_bn = _SECTOR_BN.get(top["name"], top["name"])
-                parts.append(f"এই সপ্তাহে সবচেয়ে ভালো করছে {name_bn} খাত।")
+                parts.append(f"এ সপ্তাহে সবচেয়ে ভালো করছে {name_bn} সেক্টর।")
             elif top["ret_1w"] < -0.5:
-                parts.append("এই সপ্তাহে প্রায় সব খাতই চাপে আছে।")
+                parts.append("এ সপ্তাহে প্রায় সব সেক্টরই চাপে আছে।")
 
     # 5) How many companies look healthy
     if quality.get("total"):
         healthy = (quality.get("strong") or 0) + (quality.get("good") or 0)
-        parts.append(f"আমাদের বিশ্লেষণে {quality['total']}টি কোম্পানির মধ্যে {healthy}টিকে এখন ভালো অবস্থায় দেখা যাচ্ছে।")
+        parts.append(f"আমরা যে {quality['total']}টি কোম্পানি যাচাই করি, তার মধ্যে {healthy}টি এখন ভালো অবস্থায় আছে।")
+
+    return " ".join(parts[:5]) if parts else None
+
+
+def _build_summary_en(up, down, advancing_pct, price_pos_pct, cheap_pct,
+                      sectors, quality) -> Optional[str]:
+    """The English twin of `_build_summary_bn` — same inputs, same bands, same
+    order, so the two paragraphs always say the same thing."""
+    parts: list[str] = []
+
+    if (up or down) and advancing_pct is not None:
+        if advancing_pct > 55:
+            parts.append(f"The market was lively today: {up} shares rose and {down} fell.")
+        elif advancing_pct < 45:
+            parts.append(f"The market leaned down today: {down} shares fell and {up} rose.")
+        else:
+            parts.append(f"The market was mixed today: {up} shares rose and {down} fell.")
+
+    if price_pos_pct is not None:
+        if price_pos_pct < 25:
+            parts.append("Prices are near the lowest point of the year.")
+        elif price_pos_pct > 75:
+            parts.append("Prices are near the highest point of the year.")
+        else:
+            parts.append("Prices are around the middle of this year's range.")
+
+    if cheap_pct is not None:
+        tenths = round(cheap_pct / 10)
+        if cheap_pct >= 55:
+            parts.append(f"The good news is that about {tenths} in every 10 shares cost less than usual right now.")
+        elif cheap_pct <= 35:
+            parts.append("Most shares cost more than usual right now, so it is wise to go carefully.")
+        else:
+            parts.append("Share prices are at about their usual level.")
+
+    if sectors:
+        top = sectors[0]
+        if top.get("ret_1w") is not None:
+            if top["ret_1w"] > 0.5:
+                parts.append(f"The {top['name']} sector is doing best this week.")
+            elif top["ret_1w"] < -0.5:
+                parts.append("Almost every sector is under pressure this week.")
+
+    if quality.get("total"):
+        healthy = (quality.get("strong") or 0) + (quality.get("good") or 0)
+        parts.append(f"Of the {quality['total']} companies we check, {healthy} look healthy right now.")
 
     return " ".join(parts[:5]) if parts else None
 
@@ -591,38 +640,44 @@ def _build_mood(advancing_pct, price_pos_pct, cheap_pct, week_change_pct, feelin
 
     # Mood label + colour tone
     if breadth_band == "up" and trend_band != "down":
-        label, tone = "Going up", "up"
+        label, label_bn, tone = "Going up", "বাড়ছে", "up"
     elif breadth_band == "down" and trend_band == "down":
-        label, tone = "Going down", "down"
+        label, label_bn, tone = "Going down", "কমছে", "down"
     elif breadth_band in ("down", "mixed") and price_band == "low":
-        label, tone = "Quiet and weak", "weak"
+        label, label_bn, tone = "Quiet and weak", "শান্ত ও দুর্বল", "weak"
     else:
-        label, tone = "Steady", "steady"
+        label, label_bn, tone = "Steady", "স্থির", "steady"
 
-    # Sentence 1 — what's happening
+    # Sentence 1 — what's happening (English and Bengali)
     breadth_phrase = {
-        "down": "More shares fell than rose today",
-        "up": "More shares rose than fell today",
-        "mixed": "Shares were mixed today",
+        "down": ("More shares fell than rose today", "আজ যত শেয়ারের দাম বেড়েছে, কমেছে তার চেয়ে বেশি"),
+        "up": ("More shares rose than fell today", "আজ যত শেয়ারের দাম কমেছে, বেড়েছে তার চেয়ে বেশি"),
+        "mixed": ("Shares were mixed today", "আজ বাজার মিশ্র ছিল"),
     }[breadth_band]
     price_phrase = {
-        "low": "and prices are near their lowest for the year",
-        "high": "and prices are near their highest for the year",
-        "middle": "and prices are around the middle of this year's range",
+        "low": ("and prices are near their lowest for the year", "আর দাম এ বছরের প্রায় সর্বনিম্ন পর্যায়ে"),
+        "high": ("and prices are near their highest for the year", "আর দাম এ বছরের প্রায় সর্বোচ্চ পর্যায়ে"),
+        "middle": ("and prices are around the middle of this year's range", "আর দাম এ বছরের মাঝামাঝি পর্যায়ে"),
     }[price_band]
-    sentence = f"{breadth_phrase}, {price_phrase}."
+    sentence = f"{breadth_phrase[0]}, {price_phrase[0]}."
+    sentence_bn = f"{breadth_phrase[1]}, {price_phrase[1]}।"
 
     # Sentence 2 — the takeaway in plain words
     if value_band == "cheap":
-        sentence2 = ("But here's the good part: most shares are cheaper than usual. "
-                     "This can be a time to slowly pick strong companies — not to chase "
-                     "shares that are jumping fast.")
+        sentence2 = ("Most shares cost less than usual right now. That can be a good time to build "
+                     "up strong companies slowly, rather than chase shares that are jumping fast.")
+        sentence2_bn = ("এখন বেশির ভাগ শেয়ারের দাম স্বাভাবিকের চেয়ে কম। দ্রুত লাফানো শেয়ারের পেছনে না "
+                        "ছুটে ধীরে ধীরে শক্তিশালী কোম্পানি বেছে নেওয়ার এটি ভালো সময় হতে পারে।")
     elif value_band == "expensive":
-        sentence2 = ("Many shares look expensive right now, so it pays to be careful and "
-                     "stick to strong companies at fair prices.")
+        sentence2 = ("Many shares look expensive right now, so it is wise to be careful and stay "
+                     "with strong companies at fair prices.")
+        sentence2_bn = ("এখন অনেক শেয়ারের দাম বেশি মনে হচ্ছে, তাই সাবধানে ন্যায্য দামে শক্তিশালী "
+                        "কোম্পানিতে থাকাই ভালো।")
     else:
-        sentence2 = ("Prices look about normal. Focus on strong companies and avoid "
-                     "chasing quick jumps.")
+        sentence2 = ("Prices look about normal. It is sensible to focus on strong companies and "
+                     "not chase sudden jumps.")
+        sentence2_bn = ("দাম মোটামুটি স্বাভাবিক। শক্তিশালী কোম্পানিতে মন দেওয়া আর হঠাৎ লাফানো "
+                        "শেয়ারের পেছনে না ছোটাই ভালো।")
 
     # Which opportunity list to highlight
     if tone == "up":
@@ -634,9 +689,12 @@ def _build_mood(advancing_pct, price_pos_pct, cheap_pct, week_change_pct, feelin
 
     return {
         "label": label,
+        "label_bn": label_bn,
         "tone": tone,
         "sentence": sentence,
+        "sentence_bn": sentence_bn,
         "sentence2": sentence2,
+        "sentence2_bn": sentence2_bn,
         "best_lens": best_lens,
         "bands": {
             "breadth": breadth_band,
@@ -903,36 +961,47 @@ def _compute(df=None) -> tuple[dict, dict]:
     # --- Plain Q&A rows (the hero's four answer tiles) ---
     def _price_answer():
         if price_pos_pct is None:
-            return "—", "neutral"
+            return "—", "—", "neutral"
         if price_pos_pct < 25:
-            return "Low — near the bottom", "neg"
+            return "Low, near the bottom of the year", "কম, বছরের সর্বনিম্নের কাছে", "neg"
         if price_pos_pct > 75:
-            return "High — near the top", "pos"
-        return "Around the middle", "neutral"
+            return "High, near the top of the year", "বেশি, বছরের সর্বোচ্চের কাছে", "pos"
+        return "Around the middle", "মাঝামাঝি", "neutral"
 
     def _cheap_answer():
         if cheap_pct is None:
-            return "—", "neutral", None
+            return "—", "—", "neutral", None, None
         tenths = round(cheap_pct / 10)
         extra = f"{tenths} in 10 cost less than usual" if tenths else None
+        extra_bn = f"প্রতি 10টির {tenths}টির দাম স্বাভাবিকের চেয়ে কম" if tenths else None
         if cheap_pct >= 55:
-            return "Cheap", "pos", extra
+            return "Cheap", "কম দাম", "pos", extra, extra_bn
         if cheap_pct <= 35:
-            return "Expensive", "neg", extra
-        return "About normal", "neutral", extra
+            return "Expensive", "বেশি দাম", "neg", extra, extra_bn
+        return "About normal", "স্বাভাবিক", "neutral", extra, extra_bn
 
-    price_a, price_tone = _price_answer()
-    cheap_a, cheap_tone, cheap_extra = _cheap_answer()
-    busy_a = {"busy": "Busy — more than usual", "quiet": "Quiet — less than usual",
-              "normal": "About normal"}.get(turnover_band, "—")
+    price_a, price_a_bn, price_tone = _price_answer()
+    cheap_a, cheap_a_bn, cheap_tone, cheap_extra, cheap_extra_bn = _cheap_answer()
+    busy_a, busy_a_bn = {
+        "busy": ("Busy, more than usual", "ব্যস্ত, স্বাভাবিকের চেয়ে বেশি"),
+        "quiet": ("Quiet, less than usual", "শান্ত, স্বাভাবিকের চেয়ে কম"),
+        "normal": ("About normal", "স্বাভাবিক"),
+    }.get(turnover_band, ("—", "—"))
+    breadth_word = "down" if (advancing_pct or 0) < 45 else ("up" if (advancing_pct or 0) > 55 else "mixed")
 
+    # Every tile carries its Bengali twin (`q_bn`, `a_bn`, `extra_bn`).
     questions = [
-        {"key": "price", "q": "Are prices high or low this year?", "a": price_a, "tone": price_tone},
-        {"key": "breadth", "q": "Did more stocks go up or down today?",
-         "a": ("Down" if (advancing_pct or 0) < 45 else ("Up" if (advancing_pct or 0) > 55 else "Mixed")),
-         "extra": f"{up} up / {down} down", "tone": ("neg" if (advancing_pct or 0) < 45 else ("pos" if (advancing_pct or 0) > 55 else "neutral"))},
-        {"key": "value", "q": "Are shares cheap or expensive?", "a": cheap_a, "extra": cheap_extra, "tone": cheap_tone},
-        {"key": "activity", "q": "Is buying and selling busy or quiet?", "a": busy_a,
+        {"key": "price", "q": "Are prices high or low this year?", "q_bn": "এ বছর দাম বেশি না কম?",
+         "a": price_a, "a_bn": price_a_bn, "tone": price_tone},
+        {"key": "breadth", "q": "Did more shares rise or fall today?", "q_bn": "আজ বেশি শেয়ারের দাম বেড়েছে না কমেছে?",
+         "a": {"down": "More fell", "up": "More rose", "mixed": "Mixed"}[breadth_word],
+         "a_bn": {"down": "বেশি কমেছে", "up": "বেশি বেড়েছে", "mixed": "মিশ্র"}[breadth_word],
+         "extra": f"{up} up, {down} down", "extra_bn": f"{up}টি বেড়েছে, {down}টি কমেছে",
+         "tone": {"down": "neg", "up": "pos", "mixed": "neutral"}[breadth_word]},
+        {"key": "value", "q": "Are shares cheap or expensive?", "q_bn": "শেয়ারের দাম কম না বেশি?",
+         "a": cheap_a, "a_bn": cheap_a_bn, "extra": cheap_extra, "extra_bn": cheap_extra_bn, "tone": cheap_tone},
+        {"key": "activity", "q": "Is buying and selling busy or quiet?", "q_bn": "কেনাবেচা ব্যস্ত না শান্ত?",
+         "a": busy_a, "a_bn": busy_a_bn,
          "tone": ("pos" if turnover_band == "busy" else ("neg" if turnover_band == "quiet" else "neutral"))},
     ]
 
@@ -1041,10 +1110,14 @@ def _compute(df=None) -> tuple[dict, dict]:
     summary_bn = _build_summary_bn(
         up, down, advancing_pct, price_pos_pct, cheap_pct, sectors, quality
     )
+    summary_en = _build_summary_en(
+        up, down, advancing_pct, price_pos_pct, cheap_pct, sectors, quality
+    )
 
     bundle = {
         "date": idx.get("date"),
         "summary_bn": summary_bn,
+        "summary_en": summary_en,
         "mood": mood,
         "now": {
             "questions": questions,

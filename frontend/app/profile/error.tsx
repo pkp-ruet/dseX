@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import ErrorState from "@/components/ui/ErrorState";
+import { T } from "@/components/i18n/T";
 
 /** Route error boundary — same surface as app/error.tsx, route-specific copy. */
 export default function ProfileError({
@@ -17,10 +18,9 @@ export default function ProfileError({
 
   return (
     <ErrorState
-      title="Couldn't load your profile"
-      bn="আপনার প্রোফাইল এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+      title={<T en="We couldn't load your profile" bn="আপনার প্রোফাইল এখন লোড করা যাচ্ছে না" />}
       onRetry={reset}
-      links={[{ href: "/portfolio", label: "Your portfolio" }]}
+      links={[{ href: "/portfolio", label: <T en="Your portfolio" bn="আপনার পোর্টফোলিও" /> }]}
     />
   );
 }

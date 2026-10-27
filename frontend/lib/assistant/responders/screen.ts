@@ -1,12 +1,31 @@
 import { getTop20, getNearExtremes, type ScoreItem } from "@/lib/api";
 import { getTier } from "@/lib/constants";
 import { pct } from "@/lib/formatters";
+import { sectorBn } from "@/lib/bn";
 import { loadScoreUniverse, indexByCode } from "../company-index";
 import { STARTER_CHIPS } from "../chips";
 import { COPY } from "../copy";
 import type { Entities, IntentId, MessageBlock, StockRow } from "../types";
 
 const LIMIT = 5;
+
+/** Bengali for the sector labels the parser hands back (`synonyms.ts` SECTORS). */
+const SECTOR_LABEL_BN: Record<string, string> = {
+  Bank: "ব্যাংক",
+  Pharma: "ওষুধ",
+  Insurance: "বিমা",
+  Telecom: "টেলিযোগাযোগ",
+  "Fuel & Power": "জ্বালানি ও বিদ্যুৎ",
+  "Food & Allied": "খাদ্য",
+  Textile: "বস্ত্র",
+  Cement: "সিমেন্ট",
+  Engineering: "প্রকৌশল",
+  Ceramics: "সিরামিক",
+  Tannery: "চামড়া",
+  "Financial Institutions": "আর্থিক প্রতিষ্ঠান",
+  IT: "আইটি",
+};
+const sectorLabelBn = (s: string) => SECTOR_LABEL_BN[s] ?? sectorBn(s);
 
 const notAvoid = (s: ScoreItem) => getTier(s.score ?? null) !== "weak";
 const bySector = (match?: string) => (s: { sector: string | null }) =>
@@ -29,22 +48,27 @@ const scoreRow = (s: ScoreItem): StockRow => ({
 
 function leadText(intent: IntentId, ent: Entities): { text: string; bn?: string } {
   if (intent === "screen_sector") {
-    const s = ent.sector ?? "this sector";
-    return { text: COPY.sectorLead(s), bn: COPY.sectorLeadBn(ent.sector ?? "এই") };
+    const s = ent.sector ?? "this";
+    return { text: COPY.sectorLead(s), bn: COPY.sectorLeadBn(ent.sector ? sectorLabelBn(ent.sector) : "এই") };
   }
   if (intent === "screen_price_cap") {
     const cap = ent.priceCap ?? 0;
     return { text: COPY.priceCapLead(cap), bn: COPY.priceCapLeadBn(cap) };
   }
-  return { text: COPY.screenLead[intent] ?? "Here's what I found:", bn: COPY.screenLeadBn[intent] };
+  return {
+    text: COPY.screenLead[intent] ?? COPY.screenFound.text,
+    bn: COPY.screenLeadBn[intent] ?? COPY.screenFound.bn,
+  };
 }
+
+/** A list title + metric label in both languages. */
+type Labels = { title: string; titleBn: string; metric: string; metricBn: string };
 
 function result(
   intent: IntentId,
   ent: Entities,
   items: StockRow[],
-  title: string,
-  metricLabel: string,
+  labels: Labels,
   seeAllHref: string,
 ): MessageBlock[] {
   if (!items.length) {
@@ -58,14 +82,19 @@ function result(
     { type: "text", text: lead.text, bn: lead.bn },
     {
       type: "stock-list",
-      title,
-      metricLabel,
+      title: labels.title,
+      titleBn: labels.titleBn,
+      metricLabel: labels.metric,
+      metricLabelBn: labels.metricBn,
       items,
       seeAllHref,
       seeAllLabel: COPY.seeAll.rankings,
+      seeAllLabelBn: COPY.seeAll.rankingsBn,
     },
   ];
 }
+
+const SCORE = { metric: "Score", metricBn: "স্কোর" };
 
 export async function screenResponder(intent: IntentId, ent: Entities): Promise<MessageBlock[]> {
   const match = ent.sectorMatch;
@@ -80,7 +109,9 @@ export async function screenResponder(intent: IntentId, ent: Entities): Promise<
         .sort((a, b) => (b.div_yield_pct ?? 0) - (a.div_yield_pct ?? 0))
         .slice(0, LIMIT)
         .map((s) => ({ ...rowBase(s), metricValue: pct(s.div_yield_pct), metricTone: "pos" as const }));
-      return result(intent, ent, items, "Best dividends", "Yield", "/stock-insights");
+      return result(intent, ent, items,
+        { title: "Highest dividends", titleBn: "সবচেয়ে বেশি ডিভিডেন্ড", metric: "Yield", metricBn: "ইল্ড" },
+        "/stock-insights");
     }
 
     case "screen_growth": {
@@ -92,7 +123,9 @@ export async function screenResponder(intent: IntentId, ent: Entities): Promise<
         .sort((a, b) => (b.eps_yoy_pct ?? 0) - (a.eps_yoy_pct ?? 0))
         .slice(0, LIMIT)
         .map((s) => ({ ...rowBase(s), metricValue: pct(s.eps_yoy_pct), metricTone: "pos" as const }));
-      return result(intent, ent, items, "Fastest growing", "Growth", "/stock-insights");
+      return result(intent, ent, items,
+        { title: "Fastest profit growth", titleBn: "মুনাফা সবচেয়ে দ্রুত বাড়ছে", metric: "Growth", metricBn: "বৃদ্ধি" },
+        "/stock-insights");
     }
 
     case "screen_cheap": {
@@ -104,7 +137,9 @@ export async function screenResponder(intent: IntentId, ent: Entities): Promise<
         .sort((a, b) => (b.p4_val ?? 0) - (a.p4_val ?? 0))
         .slice(0, LIMIT)
         .map((s) => ({ ...rowBase(s), metricValue: `${(s.p4_val ?? 0).toFixed(1)}/10`, metricTone: "neutral" as const }));
-      return result(intent, ent, items, "Good value", "Value", "/dsestockranking");
+      return result(intent, ent, items,
+        { title: "Good value", titleBn: "ভালো মূল্য", metric: "Value", metricBn: "মূল্য" },
+        "/dsestockranking");
     }
 
     case "screen_safe": {
@@ -115,7 +150,9 @@ export async function screenResponder(intent: IntentId, ent: Entities): Promise<
         .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
         .slice(0, LIMIT)
         .map(scoreRow);
-      return result(intent, ent, items, "Steadier picks", "Score", "/dsestockranking");
+      return result(intent, ent, items,
+        { title: "Steadier shares", titleBn: "বেশি স্থির শেয়ার", ...SCORE },
+        "/dsestockranking");
     }
 
     case "screen_price_cap": {
@@ -128,7 +165,9 @@ export async function screenResponder(intent: IntentId, ent: Entities): Promise<
         .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
         .slice(0, LIMIT)
         .map(scoreRow);
-      return result(intent, ent, items, `Under ৳${cap}`, "Score", "/dsestockranking");
+      return result(intent, ent, items,
+        { title: `Under ৳${cap}`, titleBn: `৳${cap}-এর কম`, ...SCORE },
+        "/dsestockranking");
     }
 
     case "screen_momentum": {
@@ -145,7 +184,9 @@ export async function screenResponder(intent: IntentId, ent: Entities): Promise<
           metricValue: pct(t.return_7d_pct),
           metricTone: (t.return_7d_pct ?? 0) >= 0 ? "pos" : "neg",
         }));
-      return result(intent, ent, items, "Moving the most", "7-day", "/dse-trending-stocks");
+      return result(intent, ent, items,
+        { title: "Moving the most", titleBn: "সবচেয়ে বেশি নড়ছে", metric: "7 days", metricBn: "7 দিন" },
+        "/dse-trending-stocks");
     }
 
     case "screen_near_low": {
@@ -161,7 +202,9 @@ export async function screenResponder(intent: IntentId, ent: Entities): Promise<
           metricValue: x.gap_pct != null ? `+${pct(x.gap_pct)}` : "—",
           metricTone: "neutral",
         }));
-      return result(intent, ent, items, "Near 1-year low", "Above low", "/market-analysis");
+      return result(intent, ent, items,
+        { title: "Near the year's low", titleBn: "বছরের সর্বনিম্নের কাছে", metric: "Above low", metricBn: "সর্বনিম্নের ওপরে" },
+        "/market-analysis");
     }
 
     case "screen_sector": {
@@ -172,7 +215,14 @@ export async function screenResponder(intent: IntentId, ent: Entities): Promise<
         .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
         .slice(0, LIMIT)
         .map(scoreRow);
-      return result(intent, ent, items, `Top ${ent.sector ?? "sector"}`, "Score", "/dsestockranking");
+      const label = ent.sector ?? "sector";
+      return result(intent, ent, items,
+        {
+          title: `Strongest ${label} shares`,
+          titleBn: ent.sector ? `${sectorLabelBn(ent.sector)} সেক্টরের সেরা শেয়ার` : "সেক্টরের সেরা শেয়ার",
+          ...SCORE,
+        },
+        "/dsestockranking");
     }
 
     case "screen_top": {
@@ -183,7 +233,9 @@ export async function screenResponder(intent: IntentId, ent: Entities): Promise<
         .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
         .slice(0, LIMIT)
         .map(scoreRow);
-      return result(intent, ent, items, "Top quality", "Score", "/dsestockranking");
+      return result(intent, ent, items,
+        { title: "Highest rated", titleBn: "সেরা রেটিং", ...SCORE },
+        "/dsestockranking");
     }
 
     default:

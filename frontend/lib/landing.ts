@@ -126,16 +126,18 @@ export function shortName(s: LandingStock): string {
 export interface PillarMeta {
   key: string;
   en: string;
+  bn: string;
   /** One word, for the narrow five-bar strip on the standout cards. */
   short: string;
+  shortBn: string;
 }
 
 export const PILLARS: PillarMeta[] = [
-  { key: "p1_biz", en: "Profit quality", short: "Profit" },
-  { key: "p2_health", en: "Financial health", short: "Health" },
-  { key: "p3_moat", en: "Business strength", short: "Strength" },
-  { key: "p4_val", en: "Is the price fair", short: "Price" },
-  { key: "p5_div", en: "Dividend reliability", short: "Dividend" },
+  { key: "p1_biz", en: "Profit", bn: "মুনাফা", short: "Profit", shortBn: "মুনাফা" },
+  { key: "p2_health", en: "Finances", bn: "আর্থিক অবস্থা", short: "Finances", shortBn: "আর্থিক" },
+  { key: "p3_moat", en: "Business", bn: "ব্যবসার শক্তি", short: "Business", shortBn: "ব্যবসা" },
+  { key: "p4_val", en: "Price", bn: "দাম", short: "Price", shortBn: "দাম" },
+  { key: "p5_div", en: "Dividend", bn: "ডিভিডেন্ড", short: "Dividend", shortBn: "ডিভিডেন্ড" },
 ];
 
 // Pillar bar colour lives in ONE place: `pillarColor()` in lib/insight-utils.ts

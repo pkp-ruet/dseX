@@ -3,6 +3,7 @@
 import { createContext, useContext, type ReactNode } from "react";
 import { usePersonalCodes, type PersonalCodes } from "@/lib/use-personal-codes";
 import { IconStar } from "@/components/home/personalized/DashIcons";
+import { useLang } from "@/context/LangContext";
 
 /**
  * One fetch of the signed-in reader's portfolio + watchlist codes for the whole
@@ -32,15 +33,24 @@ export function usePersonalCodesCtx(): PersonalCodes {
  */
 export function PersonalMark({ code }: { code: string }) {
   const { portfolio, watchlist } = usePersonalCodesCtx();
+  const { lang } = useLang();
   const c = code.toUpperCase();
   const held = portfolio.has(c);
   const watched = watchlist.has(c);
   if (!held && !watched) return null;
+  const tip =
+    lang === "bn"
+      ? held
+        ? "আপনার পোর্টফোলিওতে আছে"
+        : "আপনার ওয়াচলিস্টে আছে"
+      : held
+        ? "In your portfolio"
+        : "On your watchlist";
   return (
     <span
       className={`ms-own ${held ? "ms-own--held" : "ms-own--watch"}`}
-      title={held ? "In your portfolio" : "On your watchlist"}
-      aria-label={held ? "In your portfolio" : "On your watchlist"}
+      title={tip}
+      aria-label={tip}
     >
       {held ? "H" : <IconStar size={10} />}
     </span>

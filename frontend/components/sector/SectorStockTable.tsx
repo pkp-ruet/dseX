@@ -9,6 +9,9 @@ import { DataTable, SortTh, Th, StockIdent, Price, Change } from "@/components/u
 import { pct } from "@/lib/formatters";
 import type { SectorStockRow } from "@/lib/api";
 import SectionHeader from "@/components/ui/SectionHeader";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
+import { sectorBn } from "@/lib/bn";
 
 type SortCol = "score" | "trading_code" | "ltp" | "change_pct" | "return_7d_pct" | "pe" | "div_yield_pct";
 
@@ -26,6 +29,8 @@ export default function SectorStockTable({
   stocks: SectorStockRow[];
   sectorName: string;
 }) {
+  const { lang } = useLang();
+  const L = (en: string, bn: string) => (lang === "bn" ? bn : en);
   const [sort, setSort] = useState<SortCol>("score");
   const [dir, setDir] = useState<"asc" | "desc">("desc");
 
@@ -59,19 +64,27 @@ export default function SectorStockTable({
 
   return (
     <section className="mb-8" id="companies">
-      <SectionHeader title={<>All {stocks.length} {sectorName} companies</>} className="mt-8" />
+      <SectionHeader
+        title={
+          <T
+            en={`All ${stocks.length} ${sectorName} companies`}
+            bn={`${sectorBn(sectorName)} সেক্টরের সব ${stocks.length}টি কোম্পানি`}
+          />
+        }
+        className="mt-8"
+      />
 
       <DataTable>
         <thead>
           <tr>
-            <Th srLabel="Watchlist" />
-            <SortTh col="trading_code"  label="Stock"  {...th} />
-            <SortTh col="score"         label="Score"  {...th} align="right" />
-            <SortTh col="ltp"           label="Price"  {...th} align="right" />
-            <SortTh col="change_pct"    label="Today"  {...th} align="right" />
-            <SortTh col="return_7d_pct" label="7 days" {...th} align="right" />
-            <SortTh col="pe"            label="P/E"    {...th} align="right" />
-            <SortTh col="div_yield_pct" label="Yield"  {...th} align="right" />
+            <Th srLabel={L("Watchlist", "ওয়াচলিস্ট")} />
+            <SortTh col="trading_code"  label={<T en="Share" bn="শেয়ার" />}  {...th} />
+            <SortTh col="score"         label={<T en="Score" bn="স্কোর" />}  {...th} align="right" />
+            <SortTh col="ltp"           label={<T en="Price" bn="দাম" />}  {...th} align="right" />
+            <SortTh col="change_pct"    label={<T en="Today" bn="আজ" />}  {...th} align="right" />
+            <SortTh col="return_7d_pct" label={<T en="7 days" bn="7 দিন" />} {...th} align="right" />
+            <SortTh col="pe"            label={<T en="P/E" bn="পিই" />}    {...th} align="right" />
+            <SortTh col="div_yield_pct" label={<T en="Yield" bn="ইল্ড" />}  {...th} align="right" />
           </tr>
         </thead>
         <tbody>
@@ -90,14 +103,17 @@ export default function SectorStockTable({
                       <SignalChip
                         signal={s.signal?.signal}
                         strength={s.signal?.strength}
-                        reason={s.signal?.reason_en}
+                        reason={lang === "bn" ? s.signal?.reason_bn || s.signal?.reason_en : s.signal?.reason_en}
                       />
                       {s.stale_data && (
                         <span
-                          title="Latest financials are more than two years old"
+                          title={L(
+                            "Its latest accounts are more than two years old",
+                            "সর্বশেষ আর্থিক হিসাব দুই বছরের বেশি পুরোনো",
+                          )}
                           className="text-xs font-semibold text-text-muted"
                         >
-                          stale
+                          <T en="old accounts" bn="পুরোনো হিসাব" />
                         </span>
                       )}
                     </>
@@ -122,15 +138,15 @@ export default function SectorStockTable({
                 <Change value={s.change_pct} />
               </td>
 
-              <td data-cell="meta" data-label="7 days" className="dt-num">
+              <td data-cell="meta" data-label={L("7 days", "7 দিন")} className="dt-num">
                 <Change value={s.return_7d_pct} decimals={1} />
               </td>
 
-              <td data-cell="meta" data-label="P/E" className="dt-num nums dt-muted">
+              <td data-cell="meta" data-label={L("P/E", "পিই")} className="dt-num nums dt-muted">
                 {s.pe != null ? s.pe.toFixed(1) : "—"}
               </td>
 
-              <td data-cell="meta" data-label="Yield" className="dt-num nums">
+              <td data-cell="meta" data-label={L("Yield", "ইল্ড")} className="dt-num nums">
                 {s.div_yield_pct ? pct(s.div_yield_pct, 1) : "—"}
               </td>
             </tr>
@@ -139,8 +155,10 @@ export default function SectorStockTable({
       </DataTable>
 
       <p className="mt-2.5 text-xs font-semibold text-text-muted">
-        Score is the DSEF fundamental rating out of 100 — it measures company strength, not
-        whether the price is about to move. Tap any column heading to re-sort.
+        <T
+          en="The score is our rating out of 100. It measures how strong the company is, not whether the price is about to move. Tap any column heading to sort again."
+          bn="স্কোর হলো 100-এর মধ্যে আমাদের রেটিং। এটি কোম্পানি কতটা শক্তিশালী তা মাপে, দাম শিগগির বাড়বে কি না তা নয়। আবার সাজাতে যেকোনো কলামের শিরোনামে চাপ দিন।"
+        />
       </p>
     </section>
   );

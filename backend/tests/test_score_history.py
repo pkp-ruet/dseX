@@ -16,7 +16,7 @@ def test_drivers_turn_pillar_moves_into_score_points():
     cur = _row("d2", 57, **{**P, "p1_biz": 4.0, "p4_val": 6.5})
     d = sh.drivers(prev, cur)
     assert d[0]["pillar"] == "p1_biz" and d[0]["points"] == -6.0
-    assert d[0]["en"] == "Profit got weaker"
+    assert d[0]["en"] == "Profit became weaker"
     # 0.5 × 0.15 × 10 = 0.75 points — under the 1-point floor, not a reason.
     assert all(x["pillar"] != "p4_val" for x in d)
 
@@ -71,7 +71,7 @@ def test_daily_state_diff_pushes_only_real_changes():
     ev = sh.grade_event("GP", out["GP"], "2026-10-26")
     assert ev["id"] == "grade-GP-2026-10-26" and ev["level"] == "watch"
     assert ev["title_en"] == "GP: grade fell from Good to Average (62 → 57)"
-    assert "money health" in ev["body_en"]
+    assert "finances became weaker" in ev["body_en"]
     assert cur["GP"]["anchor"]["score"] == 57
 
 

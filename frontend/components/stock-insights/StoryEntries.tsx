@@ -1,7 +1,24 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
-import type { StoryEntry } from "@/lib/insight-utils";
+import { T } from "@/components/i18n/T";
+import { sectorBn } from "@/lib/bn";
 
-function VerdictPill({ verdict }: { verdict: StoryEntry["verdict"] }) {
+/** One row of a free stock list. Text fields take nodes, so a page can pass
+ * `<T en bn />` pairs (one language per page). */
+export interface StoryEntryView {
+  rank: number;
+  /** Company name (stays as written in both languages). */
+  title: string;
+  code?: string;
+  href?: string;
+  sector?: string | null;
+  verdict?: { label: ReactNode; colorVar: string };
+  body: ReactNode;
+  stat?: { label: ReactNode; value: ReactNode };
+  changePct?: number | null;
+}
+
+function VerdictPill({ verdict }: { verdict: StoryEntryView["verdict"] }) {
   if (!verdict) return null;
   return (
     <span
@@ -28,7 +45,7 @@ function ChangeBit({ pct }: { pct?: number | null }) {
 }
 
 /** Top picks — each a flowing editorial mini-feature. */
-export function StorySpotlight({ entries }: { entries: StoryEntry[] }) {
+export function StorySpotlight({ entries }: { entries: StoryEntryView[] }) {
   return (
     <div>
       {entries.map((e) => (
@@ -45,7 +62,11 @@ export function StorySpotlight({ entries }: { entries: StoryEntry[] }) {
 
           <div className="ed-meta-row">
             <VerdictPill verdict={e.verdict} />
-            {e.sector && <span className="ed-sector">{e.sector}</span>}
+            {e.sector && (
+              <span className="ed-sector">
+                <T en={e.sector} bn={sectorBn(e.sector)} />
+              </span>
+            )}
             {e.stat && (
               <span className="ed-stat">
                 {e.stat.label}: <b>{e.stat.value}</b>
@@ -58,7 +79,7 @@ export function StorySpotlight({ entries }: { entries: StoryEntry[] }) {
 
           {e.href && (
             <Link href={e.href} className="ed-readmore">
-              Read the full breakdown →
+              <T en="See the share's full page →" bn="শেয়ারের পুরো পেজ দেখুন →" />
             </Link>
           )}
         </article>
@@ -68,7 +89,7 @@ export function StorySpotlight({ entries }: { entries: StoryEntry[] }) {
 }
 
 /** The rest of the field — leaner editorial rows. */
-export function StoryRundown({ entries }: { entries: StoryEntry[] }) {
+export function StoryRundown({ entries }: { entries: StoryEntryView[] }) {
   if (entries.length === 0) return null;
   return (
     <div className="ed-rundown">

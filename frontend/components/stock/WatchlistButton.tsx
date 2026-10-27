@@ -10,6 +10,8 @@ import {
 } from "@/lib/watchlist";
 import { isLoggedIn } from "@/lib/auth";
 import { toast } from "@/lib/toast";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
 import Button from "@/components/ui/Button";
 
 interface Props {
@@ -22,6 +24,7 @@ export default function WatchlistButton({ code, className = "" }: Props) {
   const pathname = usePathname();
   const [watched, setWatched] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const { bn } = useLang();
 
   useEffect(() => {
     setMounted(true);
@@ -42,10 +45,17 @@ export default function WatchlistButton({ code, className = "" }: Props) {
     toggleWatchlist(code).then((nowWatched) => {
       if (nowWatched === "limit") return; // free cap — the limit notice is already up
       setWatched(nowWatched);
+      const c = code.toUpperCase();
       toast({
-        message: nowWatched ? `${code.toUpperCase()} added to your watchlist` : `${code.toUpperCase()} removed from watchlist`,
+        message: nowWatched ? (
+          <T en={`${c} is now on your watchlist`} bn={`${c} আপনার ওয়াচলিস্টে যোগ হয়েছে`} />
+        ) : (
+          <T en={`${c} is off your watchlist`} bn={`${c} ওয়াচলিস্ট থেকে সরানো হয়েছে`} />
+        ),
         tone: nowWatched ? "success" : "neutral",
-        action: nowWatched ? { label: "View", onClick: () => router.push("/watchlist") } : undefined,
+        action: nowWatched
+          ? { label: <T en="View" bn="দেখুন" />, onClick: () => router.push("/watchlist") }
+          : undefined,
       });
     });
   };
@@ -57,14 +67,28 @@ export default function WatchlistButton({ code, className = "" }: Props) {
       size="sm"
       active={watched}
       onClick={handleClick}
-      aria-label={watched ? `Remove ${code} from watchlist` : `Add ${code} to watchlist`}
+      aria-label={
+        bn
+          ? watched
+            ? `${code} ওয়াচলিস্ট থেকে সরান`
+            : `${code} ওয়াচলিস্টে যোগ করুন`
+          : watched
+            ? `Remove ${code} from your watchlist`
+            : `Add ${code} to your watchlist`
+      }
       title={
         mounted
           ? watched
-            ? "Remove from watchlist"
+            ? bn
+              ? "ওয়াচলিস্ট থেকে সরান"
+              : "Remove from your watchlist"
             : isLoggedIn()
-              ? "Add to watchlist"
-              : "Sign in to save"
+              ? bn
+                ? "ওয়াচলিস্টে যোগ করুন"
+                : "Add to your watchlist"
+              : bn
+                ? "সেভ করতে সাইন ইন করুন"
+                : "Sign in to save"
           : undefined
       }
       className={`${mounted ? "" : "invisible"} ${className}`.trim()}
@@ -82,7 +106,7 @@ export default function WatchlistButton({ code, className = "" }: Props) {
       >
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
       </svg>
-      <span>{watched ? "Saved" : "Watchlist"}</span>
+      <span>{watched ? <T en="On watchlist" bn="ওয়াচলিস্টে আছে" /> : <T en="Watchlist" bn="ওয়াচলিস্ট" />}</span>
     </Button>
   );
 }

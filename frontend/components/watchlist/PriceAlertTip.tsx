@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { loadAlerts, getCachedAlerts } from "@/lib/price-alerts";
 import Button from "@/components/ui/Button";
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
 
 const FLAG = "dsex.alerts.tip";
 
@@ -42,15 +42,28 @@ export default function PriceAlertTip() {
         <path d="M13.73 21a2 2 0 0 1-3.46 0" />
       </svg>
       <div className="wl-note-body">
-        <p className="wl-note-title">Get told when a price is hit</p>
-        <p className="wl-note-text text-text-muted">
-          Tap <b className="text-text-main">Alert</b> on any stock to set a target price. We&apos;ll
-          watch it and tell you the day it&apos;s reached.
+        <p className="wl-note-title">
+          <T en="Know when a price is reached" bn="দাম পৌঁছালেই জেনে নিন" />
         </p>
-        <Bn className="wl-note-bn">যেকোনো শেয়ারে Alert চেপে দাম ঠিক করুন — সেই দামে পৌঁছালে আমরা জানাব।</Bn>
+        <p className="wl-note-text text-text-muted">
+          <T
+            en={
+              <>
+                Tap <b className="text-text-main">Alert</b> on any share to set a target price. We will watch it and
+                tell you on the day it is reached.
+              </>
+            }
+            bn={
+              <>
+                যেকোনো শেয়ারে <b className="text-text-main">অ্যালার্ট</b> চেপে একটি দাম ঠিক করুন। শেয়ারটি সেই দামে
+                পৌঁছালে আমরা আপনাকে জানাব।
+              </>
+            }
+          />
+        </p>
       </div>
       <Button type="button" variant="link" size="sm" onClick={dismiss} className="shrink-0">
-        Got it
+        <T en="Got it" bn="বুঝেছি" />
       </Button>
     </div>
   );

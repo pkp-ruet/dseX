@@ -1,4 +1,5 @@
 import { getTier, TIER_LABELS, TIER_LABELS_BN, TIER_VAR, type TierKey } from "@/lib/constants";
+import { T } from "@/components/i18n/T";
 
 interface Props {
   /** Pass tier directly, or a score to derive it. */
@@ -7,6 +8,7 @@ interface Props {
   /** sm = 12px (table rows, list chips) · md = 13px (card heads, the verdict). */
   size?: "sm" | "md";
   variant?: "soft" | "solid";
+  /** Ignored — the label follows the page language (`<T>`). Kept so old callers compile. */
   lang?: "en" | "bn";
   className?: string;
 }
@@ -22,7 +24,6 @@ export default function TierPill({
   score,
   size = "sm",
   variant = "soft",
-  lang = "en",
   className = "",
 }: Props) {
   const t = tier ?? getTier(score ?? null);
@@ -43,13 +44,10 @@ export default function TierPill({
 
   return (
     <span
-      className={`inline-flex items-center rounded-full font-semibold whitespace-nowrap leading-tight ${
-        lang === "bn" ? "font-bn" : ""
-      } ${className}`}
-      lang={lang === "bn" ? "bn" : undefined}
+      className={`inline-flex items-center rounded-full font-semibold whitespace-nowrap leading-tight ${className}`}
       style={style}
     >
-      {lang === "bn" ? TIER_LABELS_BN[t] : TIER_LABELS[t]}
+      <T en={TIER_LABELS[t]} bn={TIER_LABELS_BN[t]} />
     </span>
   );
 }

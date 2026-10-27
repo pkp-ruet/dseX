@@ -86,7 +86,7 @@ export default function PortfolioSwitcher({
       setSheet(null);
       toast({ message: L(`${item.name} deleted`, `${item.name} মুছে ফেলা হয়েছে`) });
     } catch {
-      setError("Couldn't delete — try again.");
+      setError(L("We couldn't delete it. Please try again.", "মুছে ফেলা যায়নি। আবার চেষ্টা করুন।"));
     } finally {
       setSaving(false);
     }
@@ -122,7 +122,7 @@ export default function PortfolioSwitcher({
         onClose={() => setSheet(null)}
         dismissible={!saving}
         title={sheet?.mode === "edit" ? L("Edit portfolio", "পোর্টফোলিও এডিট") : L("New portfolio", "নতুন পোর্টফোলিও")}
-        bn={sheet?.mode === "new" && !bn ? "যেমন: মায়ের BO অ্যাকাউন্ট" : undefined}
+
         footer={
           <div className="flex flex-col gap-2">
             <Button type="button" variant="primary" block disabled={saving || !name.trim()} onClick={save}>
@@ -150,8 +150,8 @@ export default function PortfolioSwitcher({
           />
           <p className="text-sm text-text-muted">
             {sheet?.mode === "edit"
-              ? L("Deleting removes its stocks and history for good.", "মুছলে এর শেয়ার ও ইতিহাস চিরতরে চলে যাবে।")
-              : L("Kept apart from your own stocks — your daily alerts stay about your own portfolio.", "আপনার নিজের শেয়ার থেকে আলাদা থাকবে।")}
+              ? L("Deleting it removes its shares and history for good.", "মুছলে এর শেয়ার ও ইতিহাস চিরতরে চলে যাবে।")
+              : L("It is kept apart from your own shares, and your daily alerts stay about your main portfolio.", "এটি আপনার নিজের শেয়ার থেকে আলাদা থাকবে, আর প্রতিদিনের অ্যালার্ট আপনার মূল পোর্টফোলিও নিয়েই আসবে।")}
           </p>
           {error && <p className="form-error">{error}</p>}
         </div>

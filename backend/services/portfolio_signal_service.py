@@ -202,12 +202,17 @@ def check_and_notify(not_before_dhaka_hour: Optional[int] = None) -> dict:
         campaign_id = f"psig-{uid}-{day}"
         if sends.find_one({"campaign_id": campaign_id, "user_id": uid}, {"_id": 1}):
             continue
-        if len(sell_flips) == 1:
-            body = f"{sell_flips[0]} changed to Sell — time to review this holding"
+        names = ", ".join(sell_flips[:3])
+        if prefs.get("language", "bn") == "en":
+            title = "A signal on your portfolio has changed"
+            body = (f"{names} is now marked Sell. Please read the reason on its page before you decide."
+                    if len(sell_flips) == 1 else
+                    f"{names} are now marked Sell. Please read the reasons on their pages before you decide.")
         else:
-            body = f"{', '.join(sell_flips[:3])} changed to Sell — time to review these holdings"
+            title = "আপনার পোর্টফোলিওর একটি সংকেত বদলেছে"
+            body = f"{names}-এ এখন বিক্রির সংকেত আছে। সিদ্ধান্তের আগে শেয়ারের পেজে কারণটি পড়ে নিন।"
         payload = {
-            "title": "Portfolio signal changed ⚠️",
+            "title": title,
             "body": body,
             "url": "/portfolio",
             "tag": "psig",

@@ -2,21 +2,19 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
 
 interface Props {
-  /** English headline, plain words. Default covers the usual cold-start case. */
-  title?: string;
-  /** One more English sentence. */
-  message?: string;
-  /** One simple Bengali line under the English. */
-  bn?: string;
+  /** Headline, usually `<T en="We couldn't load …" bn="… এখন লোড করা যাচ্ছে না" />`. */
+  title?: ReactNode;
+  /** One more sentence. The default says it is a short delay and to try again. */
+  message?: ReactNode;
   /** Wire to Next's `reset()` or a refetch; renders the "Try again" button when present. */
   onRetry?: () => void;
   /** Server pages can't pass a callback — set this and "Try again" reloads the page. */
   reload?: boolean;
   /** Extra links (e.g. "Browse all stocks"). Home is always offered. */
-  links?: { href: string; label: string }[];
+  links?: { href: string; label: ReactNode }[];
   /** `page` = full-height centred block; `inline` = compact card inside a page. */
   size?: "page" | "inline";
   className?: string;
@@ -26,13 +24,17 @@ interface Props {
 /**
  * The one error surface for the app. Every fetch failure — route-level
  * `error.tsx`, a page's `.catch(() => null)` fallback, a client fetch — renders
- * this, so the copy, the retry affordance and the Bengali line are the same
- * wherever the backend hiccups. Never prints a raw error string to the user.
+ * this, so the copy and the retry button are the same wherever the backend
+ * hiccups. Never prints a raw error string to the user.
  */
 export default function ErrorState({
-  title = "Couldn't load this right now",
-  message = "The data service didn't answer in time. This is usually a short wake-up delay — try again in a moment.",
-  bn = "ডেটা লোড হতে একটু সময় লাগছে। কিছুক্ষণ পর আবার চেষ্টা করুন।",
+  title = <T en="We couldn't load this right now" bn="এই অংশটি এখন লোড করা যাচ্ছে না" />,
+  message = (
+    <T
+      en="Our data service took too long to answer. This usually clears up in a moment, so please try again."
+      bn="আমাদের ডেটা সার্ভিস সময়মতো সাড়া দেয়নি। সাধারণত কিছুক্ষণের মধ্যেই ঠিক হয়ে যায়, একটু পরে আবার চেষ্টা করুন।"
+    />
+  ),
   onRetry,
   reload = false,
   links = [],
@@ -54,7 +56,6 @@ export default function ErrorState({
       </span>
       <h2 className="error-state-title">{title}</h2>
       <p className="error-state-msg">{message}</p>
-      <Bn className="error-state-bn">{bn}</Bn>
       {children}
       <div className="error-state-actions">
         {(onRetry || reload) && (
@@ -63,7 +64,7 @@ export default function ErrorState({
             onClick={onRetry ?? (() => window.location.reload())}
             className="btn-primary"
           >
-            Try again
+            <T en="Try again" bn="আবার চেষ্টা করুন" />
           </button>
         )}
         {links.map((l) => (
@@ -72,7 +73,7 @@ export default function ErrorState({
           </Link>
         ))}
         <Link href="/" className="btn-link">
-          Home
+          <T en="Home" bn="হোম" />
         </Link>
       </div>
     </div>

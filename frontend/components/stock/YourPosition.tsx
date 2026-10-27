@@ -9,7 +9,8 @@ import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
 import { loadWatchlist, getCachedWatchlist, getCachedWatchlistMeta, subscribeWatchlist } from "@/lib/watchlist";
 import { money, formatDate } from "@/lib/formatters";
 import { SIGNAL_LABELS, SIGNAL_LABELS_BN, SIGNAL_VAR } from "@/lib/constants";
-import { useStockLang } from "@/context/StockLangContext";
+import { bnDate } from "@/lib/bn";
+import { T } from "@/components/i18n/T";
 import { IconWallet, IconStar } from "@/components/stock/StockIcons";
 
 interface Props {
@@ -17,18 +18,19 @@ interface Props {
   ltp: number | null;
 }
 
-const T = {
-  position: { en: "Your position", bn: "আপনার অবস্থান" },
+const L = {
+  position: { en: "You own this share", bn: "এই শেয়ারটি আপনার আছে" },
   shares: { en: "Shares", bn: "শেয়ার" },
-  avgCost: { en: "Avg. cost", bn: "গড় দাম" },
+  avgCost: { en: "Average price paid", bn: "গড় কেনার দাম" },
   value: { en: "Value now", bn: "এখনকার মূল্য" },
-  pl: { en: "Profit / loss", bn: "লাভ / ক্ষতি" },
+  pl: { en: "Profit or loss", bn: "মুনাফা বা লোকসান" },
   portfolio: { en: "Open portfolio", bn: "পোর্টফোলিও দেখুন" },
-  watching: { en: "On your watchlist", bn: "আপনার ওয়াচলিস্টে" },
-  since: { en: "since", bn: "থেকে" },
+  watching: { en: "On your watchlist", bn: "আপনার ওয়াচলিস্টে আছে" },
   sinceAdded: { en: "since you added it", bn: "যোগ করার পর থেকে" },
   watchlist: { en: "Open watchlist", bn: "ওয়াচলিস্ট দেখুন" },
 } as const;
+
+const t = (k: keyof typeof L) => <T en={L[k].en} bn={L[k].bn} />;
 
 /**
  * The reader's own stake in this stock, folded into the hero: shares held,
@@ -39,8 +41,6 @@ const T = {
  */
 export default function YourPosition({ code, ltp }: Props) {
   const { isLoggedIn } = useAuth();
-  const { lang } = useStockLang();
-  const isBn = lang === "bn";
   const CODE = code.toUpperCase();
 
   const [holdings, setHoldings] = useState<PortfolioHolding[] | null>(null);
@@ -105,35 +105,34 @@ export default function YourPosition({ code, ltp }: Props) {
 
     return (
       <div
-        className={`rounded-xl p-4 bg-primary/5 border border-primary/25 ${isBn ? "font-bn" : ""}`}
-        lang={isBn ? "bn" : undefined}
+        className="rounded-xl p-4 bg-primary/5 border border-primary/25"
       >
         <div className="flex items-center justify-between gap-3 mb-3">
           <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary-ink">
             <IconWallet size={14} />
-            {T.position[lang]}
+            {t("position")}
           </span>
           <Link href="/portfolio" className="inline-flex items-center min-h-10 text-xs font-semibold text-primary-ink hover:underline">
-            {T.portfolio[lang]} →
+            {t("portfolio")} →
           </Link>
         </div>
         <dl className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div>
-            <dt className="text-xs text-text-muted">{T.shares[lang]}</dt>
+            <dt className="text-xs text-text-muted">{t("shares")}</dt>
             <dd className="text-base font-bold tabular-nums nums text-text-main">
               {qty.toLocaleString("en-US")}
             </dd>
           </div>
           <div>
-            <dt className="text-xs text-text-muted">{T.avgCost[lang]}</dt>
+            <dt className="text-xs text-text-muted">{t("avgCost")}</dt>
             <dd className="text-base font-bold tabular-nums nums text-text-main">{money(avg)}</dd>
           </div>
           <div>
-            <dt className="text-xs text-text-muted">{T.value[lang]}</dt>
+            <dt className="text-xs text-text-muted">{t("value")}</dt>
             <dd className="text-base font-bold tabular-nums nums text-text-main">{money(valueNow)}</dd>
           </div>
           <div>
-            <dt className="text-xs text-text-muted">{T.pl[lang]}</dt>
+            <dt className="text-xs text-text-muted">{t("pl")}</dt>
             {/* flex-wrap gives "+৳1,234,567" and "(+12.3%)" a break between them —
                 as one unbreakable run they overflowed the 2-col grid cell */}
             <dd className={`flex min-w-0 flex-wrap items-baseline gap-x-1 text-base font-bold tabular-nums nums ${plCls}`}>
@@ -149,16 +148,21 @@ export default function YourPosition({ code, ltp }: Props) {
         {sig && sigKind && (
           <p className="mt-3 flex flex-wrap items-center gap-2 text-sm leading-snug text-text-main">
             <span
-              className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold ${isBn ? "" : "uppercase tracking-wide"}`}
+              className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold"
               style={{
                 color: SIGNAL_VAR[sigKind],
                 background: `color-mix(in srgb, ${SIGNAL_VAR[sigKind]} 12%, transparent)`,
                 border: `1px solid color-mix(in srgb, ${SIGNAL_VAR[sigKind]} 28%, transparent)`,
               }}
             >
-              {isBn ? SIGNAL_LABELS_BN[sigKind] : SIGNAL_LABELS[sigKind]}
+              <T
+                en={<span className="uppercase tracking-wide">{SIGNAL_LABELS[sigKind]}</span>}
+                bn={SIGNAL_LABELS_BN[sigKind]}
+              />
             </span>
-            <span>{isBn ? sig.reason_bn : sig.reason_en}</span>
+            <span>
+              <T en={sig.reason_en} bn={sig.reason_bn} />
+            </span>
           </p>
         )}
       </div>
@@ -168,33 +172,32 @@ export default function YourPosition({ code, ltp }: Props) {
   // --- Watcher view ----------------------------------------------------------
   if (watched) {
     const m = meta[CODE];
-    const addedAt = m?.added_at ? formatDate(m.added_at) : null;
+    const addedAt = m?.added_at ? { en: formatDate(m.added_at), bn: bnDate(m.added_at) || formatDate(m.added_at) } : null;
     const base = m?.price_at_add ?? null;
     const movePct = base != null && base > 0 && ltp != null ? ((ltp - base) / base) * 100 : null;
     const moveCls = movePct == null ? "text-text-muted" : movePct >= 0 ? "text-positive" : "text-negative";
 
     return (
       <div
-        className={`flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl px-4 py-3 text-sm bg-surface-2 border border-border text-text-main ${isBn ? "font-bn" : ""}`}
-        lang={isBn ? "bn" : undefined}
+        className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl px-4 py-3 text-sm bg-surface-2 border border-border text-text-main"
       >
         <span className="inline-flex items-center gap-1.5 font-semibold text-primary-ink">
           <IconStar size={14} />
-          {T.watching[lang]}
+          {t("watching")}
         </span>
         {addedAt && (
           <span className="text-text-muted">
-            {T.since[lang]} {addedAt}
+            <T en={`since ${addedAt.en}`} bn={`${addedAt.bn} থেকে`} />
           </span>
         )}
         {movePct != null && (
           <span className={`font-bold tabular-nums nums ${moveCls}`}>
             {movePct >= 0 ? "+" : ""}{movePct.toFixed(1)}%{" "}
-            <span className="font-medium text-text-muted">{T.sinceAdded[lang]}</span>
+            <span className="font-medium text-text-muted">{t("sinceAdded")}</span>
           </span>
         )}
         <Link href="/watchlist" className="ml-auto inline-flex items-center min-h-10 text-xs font-semibold text-primary-ink hover:underline">
-          {T.watchlist[lang]} →
+          {t("watchlist")} →
         </Link>
       </div>
     );

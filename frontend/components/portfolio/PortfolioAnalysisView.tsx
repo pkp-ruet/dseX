@@ -1,9 +1,9 @@
-import type {
-  AnalysisLang,
-  Grade,
-  GradeLabel,
-  PortfolioAnalysis,
-  RebalancePlan,
+import {
+  GRADE_WORDS,
+  type AnalysisLang,
+  type Grade,
+  type PortfolioAnalysis,
+  type RebalancePlan,
 } from "@/lib/portfolio-analysis";
 import AllocationChart from "./AllocationChart";
 import SectorBreakdownChart from "./SectorBreakdownChart";
@@ -25,14 +25,6 @@ const GRADE_CLASS: Record<Grade, string> = {
 function scoreClass(value: number): string {
   return value >= 7 ? "pf-g-B" : value >= 5 ? "pf-g-C" : value >= 3.5 ? "pf-g-D" : "pf-g-F";
 }
-
-const GRADE_LABEL_BN: Record<GradeLabel, string> = {
-  Excellent: "চমৎকার",
-  Good: "ভালো",
-  Okay: "মোটামুটি",
-  Risky: "ঝুঁকিপূর্ণ",
-  "Very Risky": "খুব ঝুঁকিপূর্ণ",
-};
 
 const STR = {
   en: {
@@ -129,7 +121,7 @@ export default function PortfolioAnalysisView({
       {/* The grade: letter in its colour, label word, headline, then the three
           sub-scores in a hairline grid (the BigPicture "answers" pattern). */}
       {showGrade && (
-      <PfCard title={t.verdict} bn={STR.bn.verdict} lang={lang} flush dataCard="portfolio-grade">
+      <PfCard title={t.verdict} lang={lang} flush dataCard="portfolio-grade">
         <div className="px-4 pb-5 sm:px-6 sm:pb-6">
           <div className="flex items-start gap-4 sm:gap-5">
             <span
@@ -144,7 +136,7 @@ export default function PortfolioAnalysisView({
                   {bnMode ? "গ্রেড " : "Grade "}
                   {analysis.grade}:{" "}
                 </span>
-                {bnMode ? GRADE_LABEL_BN[analysis.gradeLabel] : analysis.gradeLabel}
+                {GRADE_WORDS[analysis.gradeLabel][bnMode ? "bn" : "en"]}
               </p>
               <p className="mt-1 text-lg font-bold leading-snug text-text-main sm:text-xl">{analysis.headline}</p>
             </div>
@@ -162,7 +154,7 @@ export default function PortfolioAnalysisView({
 
       {/* Good / Bad / Consider — one card, three hairline-separated lists
           (stacked on phones, three columns from md). */}
-      <PfCard title={t.listsTitle} bn={STR.bn.listsTitle} note={t.howToRead} lang={lang} flush dataCard="portfolio-lists">
+      <PfCard title={t.listsTitle} note={t.howToRead} lang={lang} flush dataCard="portfolio-lists">
         <div className="grid grid-cols-1 divide-y divide-border border-t border-border md:grid-cols-3 md:divide-x md:divide-y-0">
           <Section
             title={t.goodTitle}

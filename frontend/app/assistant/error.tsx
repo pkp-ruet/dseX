@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import ErrorState from "@/components/ui/ErrorState";
+import { T } from "@/components/i18n/T";
 
 /** Route error boundary — same surface as app/error.tsx, route-specific copy. */
 export default function AssistantError({
@@ -17,10 +18,9 @@ export default function AssistantError({
 
   return (
     <ErrorState
-      title="Couldn't open the assistant"
-      bn="সহকারী এখন খুলছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+      title={<T en="We couldn't open the assistant" bn="সহকারী এখন খোলা যাচ্ছে না" />}
       onRetry={reset}
-      links={[{ href: "/dsestockranking", label: "Stock rankings" }]}
+      links={[{ href: "/dsestockranking", label: <T en="Stock rankings" bn="শেয়ার র‍্যাঙ্কিং" /> }]}
     />
   );
 }

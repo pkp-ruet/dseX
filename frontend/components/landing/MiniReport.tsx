@@ -2,7 +2,7 @@ import Link from "next/link";
 import {
   getTier,
   TIER_VAR,
-  TIER_MEANINGS,
+  TIER_MEANINGS, TIER_MEANINGS_BN,
   TIER_LABELS,
   TIER_LABELS_BN,
   TIER_THRESHOLDS,
@@ -10,7 +10,8 @@ import {
 } from "@/lib/constants";
 import { PILLARS, type LandingStock } from "@/lib/landing";
 import { pillarColor } from "@/lib/insight-utils";
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
+import { sectorBn } from "@/lib/bn";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import TierPill from "@/components/ui/TierPill";
 import SignalChip from "@/components/ui/SignalChip";
@@ -43,14 +44,14 @@ function moveColor(n: number | null | undefined): string {
 }
 
 /** One pillar row: name, a 0–10 bar, and the number itself. */
-function PillarRow({ label, value }: { label: string; value: number | null }) {
+function PillarRow({ label, labelBn, value }: { label: string; labelBn: string; value: number | null }) {
   const color = pillarColor(value);
   const pct = value == null ? 0 : Math.max(0, Math.min(100, value * 10));
 
   return (
     <div className="flex items-center gap-2.5">
       <span className="w-[7.5rem] shrink-0 text-xs font-semibold leading-tight text-text-muted">
-        {label}
+        <T en={label} bn={labelBn} />
       </span>
       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-2">
         {value != null && (
@@ -112,15 +113,15 @@ function GradeScale({ score }: { score: number }) {
       </div>
       <p className="mt-2 text-xs font-semibold text-text-muted">
         <span className="font-extrabold" style={{ color: TIER_VAR[tier] }}>
-          {TIER_LABELS[tier]}
+          <T en={TIER_LABELS[tier]} bn={TIER_LABELS_BN[tier]} />
         </span>
         {next && gap > 0 ? (
-          <> · {gap} point{gap === 1 ? "" : "s"} from {TIER_LABELS[next.tier]}</>
+          <T
+            en={` · ${gap} point${gap === 1 ? "" : "s"} from ${TIER_LABELS[next.tier]}`}
+            bn={` · ${TIER_LABELS_BN[next.tier]} থেকে ${gap} পয়েন্ট দূরে`}
+          />
         ) : null}
-        {!next && <> · the top grade</>}
-        <Bn as="span" className="ml-1.5">
-          ({TIER_LABELS_BN[tier]})
-        </Bn>
+        {!next && <T en=" · the top grade" bn=" · সর্বোচ্চ গ্রেড" />}
       </p>
     </div>
   );
@@ -162,7 +163,7 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
             </span>
             {stock.category && (
               <span className="text-xs font-semibold text-text-muted">
-                Cat {stock.category}
+                <T en={`Category ${stock.category}`} bn={`${stock.category} ক্যাটাগরি`} />
               </span>
             )}
           </div>
@@ -171,7 +172,7 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
           </h3>
           {stock.sector && (
             <p className="mt-0.5 truncate text-xs font-medium text-text-muted">
-              {stock.sector}
+              <T en={stock.sector} bn={sectorBn(stock.sector)} />
             </p>
           )}
         </div>
@@ -205,23 +206,18 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
             />
           )}
           <p className="text-xs font-semibold leading-relaxed text-text-main">
-            {stock.reasonEn ?? TIER_MEANINGS[tier]}
+            <T en={stock.reasonEn ?? TIER_MEANINGS[tier]} bn={stock.reasonBn ?? TIER_MEANINGS_BN[tier]} />
           </p>
         </div>
-        {stock.reasonBn && (
-          <Bn className="mt-1.5 text-xs leading-relaxed text-text-muted">
-            {stock.reasonBn}
-          </Bn>
-        )}
       </div>
 
       {/* The five pillars — this is the part that says "there is a method here" */}
       <div className="flex flex-col gap-2 px-4 py-3.5 sm:px-5">
         <p className="mb-0.5 text-xs font-semibold text-text-muted">
-          The five checks behind the score
+          <T en="The five checks behind the score" bn="স্কোরের পেছনের পাঁচটি যাচাই" />
         </p>
         {PILLARS.map((p, i) => (
-          <PillarRow key={p.key} label={p.en} value={stock.pillars[i]} />
+          <PillarRow key={p.key} label={p.en} labelBn={p.bn} value={stock.pillars[i]} />
         ))}
       </div>
 
@@ -232,7 +228,7 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
             ৳{fmt(stock.ltp)}
           </div>
           <span className="mt-0.5 block truncate text-xs font-semibold text-text-muted">
-            Price
+            <T en="Price" bn="দাম" />
           </span>
         </div>
         <div className="min-w-0">
@@ -243,7 +239,7 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
             {fmtSigned(stock.chg)}
           </div>
           <span className="mt-0.5 block truncate text-xs font-semibold text-text-muted">
-            Today
+            <T en="Today" bn="আজ" />
           </span>
         </div>
         <div className="min-w-0">
@@ -251,7 +247,7 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
             {stock.divY == null ? "—" : `${stock.divY.toFixed(1)}%`}
           </div>
           <span className="mt-0.5 block truncate text-xs font-semibold text-text-muted">
-            Dividend
+            <T en="Dividend" bn="ডিভিডেন্ড" />
           </span>
         </div>
         <div className="min-w-0">
@@ -262,7 +258,7 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
             {fmtSigned(stock.epsG)}
           </div>
           <span className="mt-0.5 block truncate text-xs font-semibold text-text-muted">
-            Profit growth
+            <T en="Profit growth" bn="মুনাফা বৃদ্ধি" />
           </span>
         </div>
       </div>
@@ -270,15 +266,23 @@ export default function MiniReport({ stock }: { stock: LandingStock }) {
       {/* Provenance — the reader can see how old the underlying report is. */}
       <div className="flex items-center justify-between gap-3 border-t border-border bg-surface-2 px-4 py-2.5 sm:px-5">
         <span className="text-xs font-semibold text-text-muted">
-          {stock.year ? `Based on the FY${stock.year} report` : "No annual report on file"}
-          {stock.stale && <span className="text-watch"> · report is old</span>}
+          {stock.year ? (
+            <T en={`Based on the FY${stock.year} accounts`} bn={`${stock.year} অর্থবছরের হিসাব থেকে`} />
+          ) : (
+            <T en="No yearly accounts on file" bn="কোনো বার্ষিক হিসাব নেই" />
+          )}
+          {stock.stale && (
+            <span className="text-watch">
+              <T en=" · these accounts are old" bn=" · হিসাবটি পুরোনো" />
+            </span>
+          )}
         </span>
         <Link
           href={`/stock/${stock.code}`}
           prefetch={false}
           className="shrink-0 text-xs font-bold text-primary-ink hover:underline"
         >
-          Full report →
+          <T en="Full report →" bn="পূর্ণ রিপোর্ট →" />
         </Link>
       </div>
     </article>

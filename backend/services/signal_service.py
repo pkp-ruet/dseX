@@ -42,12 +42,12 @@ from backend.services.tiers import tier_key
 
 BUY, SELL, NONE = "buy", "sell", "none"
 
-SIGNAL_WORDS = {"buy": "Buy", "sell": "Sell", "none": "Not Rated"}
+SIGNAL_WORDS = {"buy": "Buy", "sell": "Sell", "none": "Not rated"}
 SIGNAL_WORDS_BN = {"buy": "কেনা যায়", "sell": "বিক্রি করুন", "none": "রেটিং নেই"}
 
 # Per-holding overlay states — Buy More / Sell, or none (never Hold).
 HOLDING_BUY_MORE, HOLDING_SELL = "buy_more", "sell"
-HOLDING_SIGNAL_WORDS = {"buy_more": "Buy More", "sell": "Sell"}
+HOLDING_SIGNAL_WORDS = {"buy_more": "Buy more", "sell": "Sell"}
 
 CHEAP_P4 = 7.0        # p4_val >= 7 -> cheap vs own history + sector
 EXPENSIVE_P4 = 4.0    # p4_val < 4  -> expensive
@@ -63,73 +63,73 @@ STRONG_CHEAP_P4 = 8.0
 STRONG_RANGE_PCT = 50.0
 STRENGTH_STRONG, STRENGTH_NORMAL = "strong", "normal"
 
-# reason_key -> (reason_en, reason_bn) — one short everyday-language sentence each.
+# reason_key -> (reason_en, reason_bn) — calm, plain full sentences (docs/voice.md).
 REASONS: dict[str, tuple[str, str]] = {
     # --- stock-level ---
     "not_rated": (
-        "We don't have enough information to rate this stock yet.",
-        "এই শেয়ারটি যাচাই করার মতো যথেষ্ট তথ্য এখনো নেই।",
+        "We do not yet have enough information to rate this share.",
+        "এই শেয়ারটি মূল্যায়ন করার মতো যথেষ্ট তথ্য এখনো আমাদের কাছে নেই।",
     ),
     "weak_fundamentals": (
-        "The company's business is weak — better to stay away.",
-        "কোম্পানির ব্যবসার অবস্থা দুর্বল — দূরে থাকাই ভালো।",
+        "The company's business is weak. It is safer to stay out for now.",
+        "কোম্পানির ব্যবসা দুর্বল। আপাতত দূরে থাকাই নিরাপদ।",
     ),
     "average_fundamentals": (
-        "An average company — no strong reason to buy or sell.",
-        "মাঝারি মানের কোম্পানি — কেনা বা বেচার জোরালো কারণ নেই।",
+        "This is an average company. There is no strong reason to buy or sell it now.",
+        "এটি মাঝারি মানের কোম্পানি। এখন কেনা বা বিক্রির জোরালো কোনো কারণ নেই।",
     ),
     "z_category": (
-        "Good numbers, but it's a Z-category share — too risky to buy.",
-        "হিসাব ভালো, কিন্তু এটি Z ক্যাটাগরির শেয়ার — কেনা ঝুঁকিপূর্ণ।",
+        "The figures are good, but it is a Z-category share. That carries too much risk to buy.",
+        "হিসাব ভালো, তবে এটি Z ক্যাটাগরির শেয়ার। কেনার জন্য ঝুঁকি অনেক বেশি।",
     ),
     "stale_financials": (
-        "The company hasn't published fresh accounts in years — be careful.",
-        "কোম্পানিটি কয়েক বছর ধরে নতুন হিসাব প্রকাশ করেনি — সাবধান থাকুন।",
+        "The company has not published new yearly accounts for several years. Please be careful.",
+        "কোম্পানিটি কয়েক বছর ধরে নতুন বার্ষিক হিসাব প্রকাশ করেনি। সাবধান থাকুন।",
     ),
     "thin_trading": (
-        "Good company, but very few shares trade daily — selling later may be hard.",
-        "কোম্পানি ভালো, কিন্তু শেয়ার খুব কম কেনাবেচা হয় — পরে বেচা কঠিন হতে পারে।",
+        "A good company, but very few of its shares are traded each day. Selling later may be difficult.",
+        "কোম্পানিটি ভালো, তবে প্রতিদিন এর শেয়ার খুব কম লেনদেন হয়। পরে বিক্রি করা কঠিন হতে পারে।",
     ),
     "earnings_dropped": (
-        "The price looks cheap, but the company's latest profit fell sharply — safer to wait until it recovers.",
-        "দাম সস্তা মনে হলেও কোম্পানির সর্বশেষ মুনাফা অনেকটাই কমে গেছে — পরিস্থিতি ভালো না হওয়া পর্যন্ত অপেক্ষা করা নিরাপদ।",
+        "The price is low, but profit fell sharply in the latest results. Waiting until profit starts to recover is the safer choice.",
+        "দাম কম, তবে সর্বশেষ হিসাবে মুনাফা অনেক কমেছে। মুনাফা আবার বাড়তে শুরু না করা পর্যন্ত অপেক্ষা করাই নিরাপদ।",
     ),
     "heavy_debt": (
-        "Good numbers, but its loans are bigger than the whole company's market value — too risky to buy.",
-        "হিসাব ভালো, কিন্তু কোম্পানির ঋণ এর পুরো বাজারমূল্যের চেয়েও বেশি — কেনা ঝুঁকিপূর্ণ।",
+        "The figures are good, but its loans are larger than the value of the whole company. That carries too much risk to buy.",
+        "হিসাব ভালো, তবে এর ঋণ পুরো কোম্পানির বাজারমূল্যের চেয়েও বেশি। কেনার জন্য ঝুঁকি অনেক বেশি।",
     ),
     "quality_cheap": (
-        "Strong company and the price looks cheap right now.",
-        "শক্তিশালী কোম্পানি, দামও এখন তুলনামূলক সস্তা।",
+        "A strong company, and its price is low right now.",
+        "কোম্পানিটি শক্তিশালী, আর এখন এর দামও কম।",
     ),
     "near_52w_high": (
-        "Strong company, but the price is near its one-year high — wait for a better entry.",
-        "কোম্পানি ভালো, কিন্তু দাম এখন বছরের সর্বোচ্চের কাছাকাছি — একটু অপেক্ষা করুন।",
+        "A strong company, but the price is close to its highest level this year. A lower price would be a better time to buy.",
+        "কোম্পানিটি ভালো, তবে দাম এখন এ বছরের সর্বোচ্চের কাছাকাছি। দাম কিছুটা কমলে কেনা ভালো হবে।",
     ),
     "quality_expensive": (
-        "Strong company, but the price is expensive right now.",
-        "কোম্পানি শক্তিশালী, কিন্তু দাম এখন বেশ চড়া।",
+        "A strong company, but its price is high right now.",
+        "কোম্পানিটি শক্তিশালী, তবে এখন এর দাম বেশি।",
     ),
     "excellent_fair_price": (
-        "Excellent company at a reasonable price.",
-        "চমৎকার কোম্পানি, দামও যুক্তিসঙ্গত।",
+        "An excellent company at a fair price.",
+        "চমৎকার কোম্পানি, দামও ন্যায্য।",
     ),
     "good_wait_price": (
-        "Good company — fine to hold, but wait for a cheaper price to buy.",
-        "ভালো কোম্পানি — ধরে রাখা যায়, তবে কেনার জন্য আরেকটু কম দামের অপেক্ষা করুন।",
+        "A good company. It is fine to keep, but a lower price would be a better time to buy more.",
+        "ভালো কোম্পানি। ধরে রাখা যায়, তবে আরও কিনতে চাইলে দাম কমার অপেক্ষা করা ভালো।",
     ),
     # --- holding-level (personalized overlay) ---
     "bought_high_still_expensive": (
-        "You bought high and the price is still expensive — cutting the loss is sensible.",
-        "বেশি দামে কেনা হয়েছিল, দাম এখনো চড়া — লোকসান সীমিত করাই বুদ্ধিমানের কাজ।",
+        "You bought at a high price and the price is still high. Limiting the loss is the sensible choice.",
+        "আপনি বেশি দামে কিনেছিলেন, আর দাম এখনো বেশি। লোকসান সীমিত রাখাই বুদ্ধিমানের কাজ।",
     ),
     "still_attractive_add": (
-        "The company still looks attractive at today's price — adding a little is reasonable.",
-        "আজকের দামেও কোম্পানিটি আকর্ষণীয় — অল্প করে আরও কেনা যেতে পারে।",
+        "The company still looks good value at today's price. Adding a few more shares is reasonable.",
+        "আজকের দামেও কোম্পানিটি ভালো মূল্যে পাওয়া যাচ্ছে। অল্প কিছু শেয়ার আরও কেনা যুক্তিসঙ্গত।",
     ),
     "hold_steady": (
-        "No action needed — holding is fine for now.",
-        "এখন কিছু করার দরকার নেই — ধরে রাখুন।",
+        "Nothing needs doing right now. Keeping the shares is fine.",
+        "এখন কিছু করার দরকার নেই। শেয়ারগুলো ধরে রাখা ঠিক আছে।",
     ),
 }
 

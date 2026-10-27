@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import ErrorState from "@/components/ui/ErrorState";
+import { T } from "@/components/i18n/T";
 
 /** Route error boundary — same surface as app/error.tsx, route-specific copy. */
 export default function DseTodayError({
@@ -17,10 +18,9 @@ export default function DseTodayError({
 
   return (
     <ErrorState
-      title="Couldn't load today's market"
-      bn="আজকের বাজারের তথ্য এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+      title={<T en="We couldn't load today's market" bn="আজকের বাজারের তথ্য এখন লোড করা যাচ্ছে না" />}
       onRetry={reset}
-      links={[{ href: "/market-analysis", label: "Market analysis" }]}
+      links={[{ href: "/market-analysis", label: <T en="Market analysis" bn="বাজার বিশ্লেষণ" /> }]}
     />
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { T } from "@/components/i18n/T";
 
 /**
  * Shows the first `initial` rows of a list with a "See all N" button for the
@@ -14,12 +15,14 @@ import { useState, type ReactNode } from "react";
 export default function ShowMore({
   rows,
   initial = 3,
-  noun = "stocks",
+  noun = "shares",
+  nounBn = "শেয়ার",
   className = "ms-srow-list",
 }: {
   rows: ReactNode[];
   initial?: number;
   noun?: string;
+  nounBn?: string;
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -35,7 +38,11 @@ export default function ShowMore({
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
         >
-          {open ? "Show fewer" : `See all ${rows.length} ${noun}`}
+          {open ? (
+            <T en="Show fewer" bn="কম দেখান" />
+          ) : (
+            <T en={`See all ${rows.length} ${noun}`} bn={`সব ${rows.length}টি ${nounBn} দেখুন`} />
+          )}
         </button>
       )}
     </>

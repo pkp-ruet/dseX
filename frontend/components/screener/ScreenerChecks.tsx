@@ -5,15 +5,21 @@ import Chip from "@/components/ui/Chip";
 import Button from "@/components/ui/Button";
 import Sheet from "@/components/ui/Sheet";
 import { IconChevronRight, IconCrown, IconLock, IconPlus } from "@/components/ui/icons";
+import { T } from "@/components/i18n/T";
+import { sectorBn } from "@/lib/bn";
 import type {
   CustomCheckDef, CustomCheckValue, CustomListCatalog, CustomListSpec, ResearchFunnelStep,
 } from "@/lib/api";
+
+type Pick = (en: string, bn: string) => string;
+const EN: Pick = (en) => en;
+const BN: Pick = (_en, bn) => bn;
 
 const Crown = () => <span className="inline-flex align-middle text-gold-ink"><IconCrown size={14} /></span>;
 
 /**
  * Fine-tune: the exact rules behind the screen, one check per row — the whole
- * check as a sentence ("Price ÷ profit is 10 or less"), one line on what it
+ * check as a sentence ("Price is 10 times yearly profit or less"), one line on what it
  * means, and how many companies are still in after it. Everyone can read
  * them; changing them is Premium (`readOnly` for everyone else). A row opens
  * a sheet with that check's settings and Remove; "Add a check" opens the menu
@@ -62,21 +68,26 @@ export default function ScreenerChecks({
   const countsFit = !!funnel && !!funnelKeys && funnelKeys.length === spec.checks.length
     && funnelKeys.every((k, i) => spec.checks[i]?.key === k);
 
-  /** The whole check at its current setting, as one sentence. */
-  const sentence = (key: string, value: CustomCheckValue | undefined) => {
+  /** The whole check at its current setting, as one sentence in the language `p` picks. */
+  const sentence = (key: string, value: CustomCheckValue | undefined, p: Pick = t) => {
     const def = byKey.get(key);
     if (!def) return key;
     if (Array.isArray(value)) {
+      const bnNames = value.map((v) => sectorBn(v));
       return value.length > 3
-        ? t(`In one of ${value.length} sectors: ${value.join(", ")}`, `${value.length}টি খাতের একটিতে: ${value.join(", ")}`)
-        : t(`In the ${value.join(" or ")} sectors`, `${value.join(" বা ")} খাতে`);
+        ? p(`In one of ${value.length} sectors: ${value.join(", ")}`, `${value.length}টি সেক্টরের একটিতে: ${bnNames.join(", ")}`)
+        : p(`In the ${value.join(" or ")} sectors`, `${bnNames.join(" বা ")} সেক্টরে`);
     }
     const opt = def.options.find((o) => o.value === value);
-    if (opt?.sentence_en) return t(opt.sentence_en, opt.sentence_bn ?? opt.sentence_en);
-    if (def.label_en) return t(def.label_en, def.label_bn ?? def.label_en);
-    return opt ? `${t(def.name_en, def.name_bn)}: ${t(opt.label_en, opt.label_bn)}` : t(def.name_en, def.name_bn);
+    if (opt?.sentence_en) return p(opt.sentence_en, opt.sentence_bn ?? opt.sentence_en);
+    if (def.label_en) return p(def.label_en, def.label_bn ?? def.label_en);
+    return opt ? `${p(def.name_en, def.name_bn)}: ${p(opt.label_en, opt.label_bn)}` : p(def.name_en, def.name_bn);
   };
-  const help = (def: CustomCheckDef | undefined) => (def?.help_en ? t(def.help_en, def.help_bn ?? def.help_en) : null);
+  const Sentence = ({ k, v }: { k: string; v: CustomCheckValue | undefined }) => (
+    <T en={sentence(k, v, EN)} bn={sentence(k, v, BN)} />
+  );
+  const help = (def: CustomCheckDef | undefined) =>
+    def?.help_en ? <T en={def.help_en} bn={def.help_bn ?? def.help_en} /> : null;
 
   const openDef = open && !readOnly ? byKey.get(open) : undefined;
   const openValue = spec.checks.find((c) => c.key === open)?.value;
@@ -86,7 +97,9 @@ export default function ScreenerChecks({
       <div className="soft-card overflow-hidden">
         {universe != null && (
           <div className="flex items-center justify-between gap-3 border-b border-border bg-surface-2 px-4 py-2.5">
-            <p className="text-sm text-text-muted">{t("All rated companies", "রেটিং পাওয়া সব কোম্পানি")}</p>
+            <p className="text-sm text-text-muted">
+              <T en="All rated companies" bn="রেটিং পাওয়া সব কোম্পানি" />
+            </p>
             <p className="text-sm font-semibold tabular-nums text-text-main">{universe}</p>
           </div>
         )}
@@ -102,7 +115,7 @@ export default function ScreenerChecks({
                     <>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold text-text-main">
-                          {sentence(c.key, c.value)}
+                          <Sentence k={c.key} v={c.value} />
                           {def?.premium && <> <Crown /></>}
                         </p>
                         {line && <p className="mt-0.5 text-sm text-text-muted">{line}</p>}
@@ -110,7 +123,9 @@ export default function ScreenerChecks({
                       {left != null && (
                         <div className={`shrink-0 text-right ${running ? "opacity-60" : ""}`}>
                           <p className={`text-sm font-semibold tabular-nums ${left === 0 ? "text-negative" : "text-text-main"}`}>{left}</p>
-                          <p className="text-xs text-text-muted">{t("left", "বাকি")}</p>
+                          <p className="text-xs text-text-muted">
+                            <T en="left" bn="বাকি" />
+                          </p>
                         </div>
                       )}
                     </>
@@ -139,7 +154,7 @@ export default function ScreenerChecks({
             className="flex min-h-12 w-full items-center gap-2 border-t border-border px-4 text-sm font-semibold text-primary hover:bg-surface-2 active:bg-surface-2"
           >
             <IconLock size={16} />
-            {t("Change the exact rules with Premium", "প্রিমিয়ামে নিয়মগুলো বদলান")}
+            <T en="Change the exact rules with Premium" bn="প্রিমিয়ামে নিয়মগুলো বদলান" />
           </a>
         ) : !atMax && (
           <button
@@ -148,7 +163,7 @@ export default function ScreenerChecks({
             className="flex min-h-12 w-full items-center gap-2 border-t border-border px-4 text-sm font-semibold text-primary hover:bg-surface-2 active:bg-surface-2"
           >
             <IconPlus size={16} />
-            {t("Add a check", "শর্ত যোগ করুন")}
+            <T en="Add a check" bn="যাচাই যোগ করুন" />
           </button>
         )}
       </div>
@@ -157,7 +172,7 @@ export default function ScreenerChecks({
       <Sheet
         open={!!openDef}
         onClose={() => setOpen(null)}
-        title={openDef ? t(openDef.name_en, openDef.name_bn) : ""}
+        title={openDef ? <T en={openDef.name_en} bn={openDef.name_bn} /> : ""}
         footer={
           <div className="flex w-full gap-2">
             <Button
@@ -169,10 +184,10 @@ export default function ScreenerChecks({
                 setOpen(null);
               }}
             >
-              {t("Remove", "বাদ দিন")}
+              <T en="Remove" bn="বাদ দিন" />
             </Button>
             <Button variant="primary" className="flex-1" onClick={() => setOpen(null)}>
-              {t("Done", "ঠিক আছে")}
+              <T en="Done" bn="ঠিক আছে" />
             </Button>
           </div>
         }
@@ -183,7 +198,10 @@ export default function ScreenerChecks({
             {openDef.premium && (
               <p className="flex items-center gap-1.5 text-sm text-text-main">
                 <Crown />
-                {t("Power check: the count is free, the stocks are Premium.", "পাওয়ার শর্ত: সংখ্যা ফ্রি, শেয়ারগুলো প্রিমিয়ামে।")}
+                <T
+                  en="A special check: the count is free, and the shares are part of Premium."
+                  bn="বিশেষ যাচাই: সংখ্যাটি ফ্রি, আর শেয়ারগুলো প্রিমিয়ামে দেখা যায়।"
+                />
               </p>
             )}
             {openDef.key === "sector" ? (
@@ -200,7 +218,7 @@ export default function ScreenerChecks({
                       active={on}
                       onClick={() => open && next.length && onSet(open, next.length === 1 ? next[0] : next)}
                     >
-                      {t(o.label_en, o.label_bn)}
+                      <T en={o.label_en} bn={o.label_bn} />
                     </Chip>
                   );
                 })}
@@ -225,28 +243,36 @@ export default function ScreenerChecks({
                         {on && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
                       </span>
                       <span className="text-sm text-text-main">
-                        {o.sentence_en ? t(o.sentence_en, o.sentence_bn ?? o.sentence_en) : t(o.label_en, o.label_bn)}
+                        {o.sentence_en ? (
+                          <T en={o.sentence_en} bn={o.sentence_bn ?? o.sentence_en} />
+                        ) : (
+                          <T en={o.label_en} bn={o.label_bn} />
+                        )}
                       </span>
                     </button>
                   );
                 })}
               </div>
             ) : (
-              <p className="text-sm font-semibold text-text-main">{sentence(openDef.key, true)}</p>
+              <p className="text-sm font-semibold text-text-main">
+                <Sentence k={openDef.key} v={true} />
+              </p>
             )}
           </div>
         )}
       </Sheet>
 
       {/* The menu */}
-      <Sheet open={adding} onClose={() => setAdding(false)} title={t("Add a check", "শর্ত যোগ করুন")} size="lg">
+      <Sheet open={adding} onClose={() => setAdding(false)} title={<T en="Add a check" bn="যাচাই যোগ করুন" />} size="lg">
         <div className="space-y-5">
           {catalog.groups.map((g) => {
             const items = catalog.checks.filter((c) => c.group === g.key && !chosen.has(c.key));
             if (!items.length) return null;
             return (
               <div key={g.key}>
-                <p className="mb-2 text-sm font-semibold text-text-muted">{t(g.en, g.bn)}</p>
+                <p className="mb-2 text-sm font-semibold text-text-muted">
+                  <T en={g.en} bn={g.bn} />
+                </p>
                 <ul className="soft-card overflow-hidden">
                   {items.map((c) => (
                     <li key={c.key} className="border-b border-border last:border-b-0">
@@ -262,7 +288,7 @@ export default function ScreenerChecks({
                       >
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold text-text-main">
-                            {t(c.name_en, c.name_bn)}
+                            <T en={c.name_en} bn={c.name_bn} />
                             {c.premium && <> <Crown /></>}
                           </p>
                           {help(c) && <p className="mt-0.5 text-sm text-text-muted">{help(c)}</p>}
@@ -277,7 +303,10 @@ export default function ScreenerChecks({
           })}
           <p className="flex items-center gap-1.5 border-t border-border pt-4 text-sm text-text-muted">
             <Crown />
-            {t("Power check: see the count free, the stocks with Premium.", "পাওয়ার শর্ত: সংখ্যা ফ্রি, শেয়ারগুলো প্রিমিয়ামে।")}
+            <T
+              en="A special check: you see the count free, and the shares with Premium."
+              bn="বিশেষ যাচাই: সংখ্যাটি ফ্রি, আর শেয়ারগুলো প্রিমিয়ামে দেখা যায়।"
+            />
           </p>
         </div>
       </Sheet>

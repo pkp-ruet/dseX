@@ -152,7 +152,7 @@ export default function WhatIfCard({
   return (
     <PfCard
       title={L("What if I…", "যদি আমি…")}
-      bn="কিছু বেচা বা কেনার আগে দেখে নিন গ্রেড কেমন হবে।"
+
       note={L(
         "Try a sale or a buy and see your grade before you act.",
         "একটি বিক্রি বা কেনা চেষ্টা করে দেখুন, কিছু করার আগেই গ্রেড জানুন।",
@@ -301,8 +301,8 @@ export default function WhatIfCard({
 
         <p className="text-xs leading-relaxed text-text-muted">
           {L(
-            "Priced at today's close, before fees. Nothing is saved — this is only a check, not advice.",
-            "আজকের ক্লোজ দামে, খরচ বাদের আগে। কিছুই সেভ হয় না — এটি শুধু যাচাই, পরামর্শ নয়।",
+            "Priced at today's close, before fees. Nothing is saved; this is only a check, not advice.",
+            "আজকের সমাপনী দামে, খরচ বাদের আগে। কিছুই সেভ হয় না; এটি শুধু যাচাই, পরামর্শ নয়।",
           )}
         </p>
       </div>

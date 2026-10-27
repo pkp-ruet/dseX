@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { IconChevronDown } from "@/components/ui/icons";
-import { useLang } from "@/context/LangContext";
+import { T } from "@/components/i18n/T";
 
 /** Fired by the chapter chips (StockSectionNav) so a folded chapter opens
  *  before the page scrolls to it. `detail.id` = the chapter id. */
@@ -24,15 +24,14 @@ export const OPEN_CHAPTER_EVENT = "dsex:chapter-open";
 export default function StockChapter({
   id,
   title,
-  bn,
   lead,
   fold = true,
   action,
   children,
 }: {
   id: string;
-  title: string;
-  bn: string;
+  /** `<T en bn />` — the chapter title in both languages. */
+  title: ReactNode;
   /** One sentence of plain facts about this stock for the chapter. */
   lead?: ReactNode;
   /** false = never folds on phones (the full verdict), and `action` takes the toggle's place. */
@@ -42,7 +41,6 @@ export default function StockChapter({
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLElement>(null);
-  const { bn: isBn } = useLang();
 
   useEffect(() => {
     const openFor = (target: Element | null, scroll: boolean) => {
@@ -76,9 +74,7 @@ export default function StockChapter({
       aria-controls={`${id}-body`}
       onClick={() => setOpen((v) => !v)}
     >
-      <span className={isBn ? "font-bn" : undefined} lang={isBn ? "bn" : undefined}>
-        {open ? (isBn ? "বন্ধ করুন" : "Close") : isBn ? "খুলুন" : "Open"}
-      </span>
+      <span>{open ? <T en="Close" bn="বন্ধ করুন" /> : <T en="Open" bn="খুলুন" />}</span>
       <IconChevronDown size={16} />
     </button>
   );
@@ -91,7 +87,7 @@ export default function StockChapter({
       className="stock-anchor stock-chapter"
       data-folded={open || !fold ? "false" : "true"}
     >
-      <SectionHeader id={`${id}-h`} title={title} bn={bn} lead={lead} size="lg" action={fold ? toggle : action} className="mb-5" />
+      <SectionHeader id={`${id}-h`} title={title} lead={lead} size="lg" action={fold ? toggle : action} className="mb-5" />
       <div id={`${id}-body`} className="stock-chapter-body">{children}</div>
     </section>
   );

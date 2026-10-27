@@ -128,7 +128,7 @@ export default function BuySellModal({ mode, holding, ltp, companyName, onClose,
     : L(`You sold ${holding.trading_code}`, `${holding.trading_code} বিক্রি করেছেন`);
 
   return (
-    <Sheet open onClose={onClose} dismissible={!saving} title={title} bn={!bn ? (companyName ?? undefined) : undefined}>
+    <Sheet open onClose={onClose} dismissible={!saving} title={title}>
       <form onSubmit={handleSubmit} className={`flex flex-col gap-4 ${bnCls}`} lang={bn ? "bn" : undefined}>
         {/* What they hold now */}
         <div className="flex items-baseline justify-between gap-3 border-b border-cell-rule pb-3 text-sm">

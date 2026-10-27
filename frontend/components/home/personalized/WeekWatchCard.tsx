@@ -121,17 +121,17 @@ export default function WeekWatchCard({
             {lockedTotal > 0 && locked.length > 0 && (
               <div className="px-4 sm:px-5">
                 <PremiumGate
-                  label={L("What happened, stock by stock", "কোন শেয়ারে কী হয়েছে")}
+                  label={{ en: "What happened, stock by stock", bn: "কোন শেয়ারে কী হয়েছে" }}
                   preview="blur"
                   peek={120}
                   stakes={[
                     free.length > 0
-                      ? L(`${lockedTotal} more ${lockedTotal === 1 ? "thing" : "things"} on your stocks this week`, `এই সপ্তাহে আপনার শেয়ারে আরও ${lockedTotal}টি জিনিস`)
-                      : L(`${week.total} things on ${stocks} of your stocks this week`, `এই সপ্তাহে আপনার ${stocks}টি শেয়ারে ${week.total}টি জিনিস`),
+                      ? { en: `${lockedTotal} more ${lockedTotal === 1 ? "thing" : "things"} on your stocks this week`, bn: `এই সপ্তাহে আপনার শেয়ারে আরও ${lockedTotal}টি জিনিস` }
+                      : { en: `${week.total} things on ${stocks} of your stocks this week`, bn: `এই সপ্তাহে আপনার ${stocks}টি শেয়ারে ${week.total}টি জিনিস` },
                     ...(lockedBad > 0
-                      ? [L(`${lockedBad} of them may need you to act`, `এর মধ্যে ${lockedBad}টিতে আপনার নজর দরকার`)]
+                      ? [{ en: `${lockedBad} of them may need you to act`, bn: `এর মধ্যে ${lockedBad}টিতে আপনার নজর দরকার` }]
                       : []),
-                    L("Premium also sends them to your phone the same day", "প্রিমিয়ামে একই দিনে ফোনে নোটিফিকেশন যায়"),
+                    { en: "Premium also sends them to your phone the same day", bn: "প্রিমিয়ামে একই দিনে ফোনে নোটিফিকেশন যায়" },
                   ]}
                 >
                   {list(locked)}

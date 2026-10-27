@@ -245,7 +245,7 @@ def interim_facts(interim: Optional[dict], fin_rows: list[dict]) -> Optional[dic
         "nav": interim.get("nav"),
         "nav_date": interim["nav_date"].isoformat() if interim.get("nav_date") else None,
         "label_en": f"{months} months to {_MONTH_ABBR[end.month]} {end.year}",
-        "label_bn": f"{_MONTH_BN[end.month]} {end.year} পর্যন্ত {months} মাস",
+        "label_bn": f"{_MONTH_BN[end.month]} {end.year} পর্যন্ত {months} মাসে",
     }
 
 

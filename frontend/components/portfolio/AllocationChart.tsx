@@ -18,16 +18,16 @@ const STR = {
     market: "Worth today",
     basisLabel: "Count by",
     desc: (basis: "invested" | "market") =>
-      `How much of your ${basis === "invested" ? "money paid" : "money today"} is in each stock, biggest first.`,
+      `How much of your ${basis === "invested" ? "money paid" : "money today"} is in each share, biggest first.`,
     totalInvested: "You paid in total",
     totalValue: "Worth in total today",
-    more: (n: number) => `${n} more ${n === 1 ? "stock" : "stocks"}`,
+    more: (n: number) => `${n} more ${n === 1 ? "share" : "shares"}`,
     noteBig: (code: string, pct: string) =>
-      `${code} is ${pct}% of your money — one big bet. If it falls, your whole portfolio feels it. Spreading across more stocks softens that.`,
+      `${code} is ${pct}% of your money, which is a lot in one place. If it falls, your whole portfolio feels it. Spreading across more shares softens that.`,
     noteOk: (code: string, pct: string) =>
-      `Your biggest stock is ${code} at ${pct}% — a good balance, no single stock takes over.`,
+      `Your biggest share is ${code}, at ${pct}%. That is a good balance: no single share takes over.`,
     effective: (eff: string, n: number) =>
-      `You hold ${n} stocks, but the split is uneven: your money really sits in about ${eff} of them. The rest are small and barely move your total.`,
+      `You hold ${n} shares, but the split is uneven: your money really sits in about ${eff} of them. The rest are small and barely move your total.`,
   },
   bn: {
     title: "আপনার টাকা কোথায় আছে",
@@ -40,11 +40,11 @@ const STR = {
     totalValue: "আজ মোট মূল্য",
     more: (n: number) => `আরও ${n}টি শেয়ার`,
     noteBig: (code: string, pct: string) =>
-      `${code} একাই আপনার টাকার ${pct}% — একটাই বড় বাজি। এটি পড়লে পুরো পোর্টফোলিও টের পায়। আরও কয়েকটি শেয়ারে ছড়িয়ে দিলে ধাক্কাটা নরম হয়।`,
+      `${code} একাই আপনার টাকার ${pct}%, যা এক জায়গায় অনেক বেশি। এর দাম কমলে পুরো পোর্টফোলিওতে প্রভাব পড়ে। আরও কয়েকটি শেয়ারে ছড়িয়ে দিলে ধাক্কা কম লাগে।`,
     noteOk: (code: string, pct: string) =>
-      `আপনার সবচেয়ে বড় শেয়ার ${code}, মোট ${pct}% — ভারসাম্য ভালো, কোনো একটি শেয়ার একাই সব নয়।`,
+      `আপনার সবচেয়ে বড় শেয়ার ${code}, মোট ${pct}%। ভারসাম্য ভালো, কোনো একটি শেয়ার একাই বেশি প্রভাব ফেলে না।`,
     effective: (eff: string, n: number) =>
-      `আপনি ${n}টি শেয়ার রাখলেও ভাগটা অসম — আপনার টাকা আসলে ${eff}টির মতো শেয়ারে জমে আছে। বাকিগুলো ছোট, মোট মূল্যে তেমন প্রভাব ফেলে না।`,
+      `আপনি ${n}টি শেয়ার রাখলেও ভাগটি অসম। আপনার টাকা আসলে প্রায় ${eff}টি শেয়ারে জমে আছে। বাকিগুলো ছোট, মোট মূল্যে তেমন প্রভাব ফেলে না।`,
   },
 } as const;
 
@@ -105,7 +105,7 @@ export default function AllocationChart({ analysis, lang = "en" }: Props) {
   const pct = (v: number) => (v / total) * 100;
 
   return (
-    <PfCard title={t.title} bn="আপনার টাকা কোথায় আছে" note={t.desc(basis)} lang={lang} dataCard="allocation">
+    <PfCard title={t.title} note={t.desc(basis)} lang={lang} dataCard="allocation">
       <div
         className={`flex flex-wrap items-end justify-between gap-3 ${bnText}`}
         lang={bn ? "bn" : undefined}

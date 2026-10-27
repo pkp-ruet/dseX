@@ -12,6 +12,8 @@ import { formatDate } from "@/lib/formatters";
 import { FREE_RESULTS_ROWS, splitFree } from "@/lib/free-share";
 import { RESULT_LEVEL, RESULT_LEVEL_ORDER } from "@/lib/results";
 import { useLang } from "@/context/LangContext";
+import { T } from "@/components/i18n/T";
+import { bnDate } from "@/lib/bn";
 import { useUrlParams, useUrlSync } from "@/lib/use-url-state";
 
 const PAGE = 50;
@@ -70,7 +72,7 @@ export default function ResultsFeed({
       {byDay(items).map((g) => (
         <section key={g.day} aria-label={formatDate(g.day)}>
           <h2 className="mb-2 text-sm font-bold text-text-muted">
-            {t(`Posted ${formatDate(g.day)}`, `প্রকাশ ${formatDate(g.day)}`)}
+            <T en={`Posted ${formatDate(g.day)}`} bn={`প্রকাশ: ${bnDate(g.day)}`} />
           </h2>
           <Card padding="none">
             <ul>
@@ -82,13 +84,12 @@ export default function ResultsFeed({
                   code={r.code}
                   name={r.name}
                   href={`/stock/${encodeURIComponent(r.code)}#results`}
-                  sub={t(r.headline_en, r.headline_bn)}
+                  sub={<T en={r.headline_en} bn={r.headline_bn} />}
                   subTone={RESULT_LEVEL[r.level].tone}
                   subClamp
-                  detail={t(r.profit_en ?? "", r.profit_bn ?? "")}
+                  detail={r.profit_en || r.profit_bn ? <T en={r.profit_en ?? ""} bn={r.profit_bn ?? ""} /> : undefined}
                   price={r.price}
                   change={r.change_pct}
-                  lang={bn ? "bn" : "en"}
                 />
               ))}
             </ul>
@@ -99,37 +100,41 @@ export default function ResultsFeed({
   );
 
   return (
-    <div className={bn ? "font-bn" : ""} lang={bn ? "bn" : undefined}>
+    <div>
       <div className="mb-5 flex flex-wrap gap-2" role="group" aria-label={t("Filter results", "ফল বাছাই")}>
         <Chip active={filter === "all"} onClick={() => pick("all")}>
-          {t("All", "সব")} <span className="tabular-nums">{rows.length}</span>
+          <T en="All" bn="সব" /> <span className="tabular-nums">{rows.length}</span>
         </Chip>
         {RESULT_LEVEL_ORDER.map((lv) => (
           <Chip key={lv} active={filter === lv} onClick={() => pick(lv)}>
-            {t(RESULT_LEVEL[lv].short, RESULT_LEVEL[lv].shortBn)} <span className="tabular-nums">{counts[lv] ?? 0}</span>
+            <T en={RESULT_LEVEL[lv].short} bn={RESULT_LEVEL[lv].shortBn} />{" "}
+            <span className="tabular-nums">{counts[lv] ?? 0}</span>
           </Chip>
         ))}
       </div>
 
       {filtered.length === 0 ? (
         <EmptyState
-          title="No reports here"
-          message="No company's latest report falls in this group right now."
-          bn="এই ভাগে এখন কোনো কোম্পানির ফল নেই।"
+          title={<T en="No reports here" bn="এখানে কোনো প্রতিবেদন নেই" />}
+          message={
+            <T
+              en="No company's latest report falls in this group right now."
+              bn="এই ভাগে এখন কোনো কোম্পানির সর্বশেষ প্রতিবেদন নেই।"
+            />
+          }
         />
       ) : (
         <>
           {list(free)}
           {locked.length > 0 && (
             <PremiumGate
-              label={t("Every company's results", "সব কোম্পানির ফল")}
+              label={{ en: "Every company's results", bn: "সব কোম্পানির ফল" }}
               preview="blur"
               peek={220}
               stakes={[
-                t(`${lockedTotal} more companies' latest results`, `আরও ${lockedTotal}টি কোম্পানির সর্বশেষ ফল`),
+                { en: `${lockedTotal} more companies' latest results`, bn: `আরও ${lockedTotal}টি কোম্পানির সর্বশেষ ফল` },
                 lockedBetter > 0
-                  ? t(`${lockedBetter} of them earned clearly more than a year ago`,
-                      `এর মধ্যে ${lockedBetter}টির লাভ গত বছরের চেয়ে স্পষ্টভাবে বেশি`)
+                  ? { en: `${lockedBetter} of them earned clearly more than a year ago`, bn: `এর মধ্যে ${lockedBetter}টির মুনাফা গত বছরের চেয়ে স্পষ্টভাবে বেশি` }
                   : "",
               ]}
               className="mt-6"
@@ -138,7 +143,10 @@ export default function ResultsFeed({
               {filtered.length > shown && (
                 <div className="mt-6 flex justify-center">
                   <Button variant="quiet" onClick={() => setShown((n) => n + PAGE)}>
-                    {t(`Show more (${filtered.length - shown} left)`, `আরও দেখুন (${filtered.length - shown}টি বাকি)`)}
+                    <T
+                      en={`Show more (${filtered.length - shown} left)`}
+                      bn={`আরও দেখুন (${filtered.length - shown}টি বাকি)`}
+                    />
                   </Button>
                 </div>
               )}

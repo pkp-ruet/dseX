@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
 import Button from "@/components/ui/Button";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import type { AuthApiResponse, Testimonial } from "@/lib/api";
@@ -22,7 +22,7 @@ import { loadWatchlist } from "@/lib/watchlist";
 
 function Stars({ n }: { n: number }) {
   return (
-    <span className="inline-flex gap-0.5" aria-label={`${n} out of 5`}>
+    <span className="inline-flex gap-0.5" aria-label={`${n} / 5`}>
       {[1, 2, 3, 4, 5].map((i) => (
         <svg
           key={i}
@@ -60,7 +60,9 @@ export default function LandingClose({ testimonials }: { testimonials: Testimoni
     <section aria-labelledby="close-title">
       {quotes.length > 0 && (
         <div className="mb-12">
-          <p className="text-sm font-semibold text-text-muted">What users say</p>
+          <p className="text-sm font-semibold text-text-muted">
+            <T en="What our readers say" bn="পাঠকেরা যা বলছেন" />
+          </p>
           <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
             {quotes.map((q, i) => (
               <li
@@ -72,7 +74,7 @@ export default function LandingClose({ testimonials }: { testimonials: Testimoni
                   {q.comment}
                 </p>
                 <p className="mt-3 text-xs font-semibold text-text-muted">
-                  {q.name ?? "A user"}
+                  {q.name ?? <T en="A reader" bn="একজন পাঠক" />}
                 </p>
               </li>
             ))}
@@ -85,33 +87,29 @@ export default function LandingClose({ testimonials }: { testimonials: Testimoni
           id="close-title"
           className="font-display text-[clamp(1.6rem,5.2vw,2.5rem)] font-bold leading-[1.1] tracking-tight text-text-main"
         >
-          Check before your next buy.
+          <T en="Check before your next buy." bn="পরের শেয়ার কেনার আগে একবার দেখে নিন।" />
         </h2>
-        <Bn className="font-bn mx-auto mt-3 max-w-xl text-base font-semibold leading-relaxed text-text-main">
-          পরের শেয়ারটা কেনার আগে একবার দেখে নিন।
-        </Bn>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-text-muted">
-          No payment and no card. You can read every score and ranking without an account
-          at all.
+          <T
+            en="No payment and no card are needed. You can read every score and ranking without an account."
+            bn="কোনো টাকা বা কার্ড লাগে না। অ্যাকাউন্ট না খুলেও সব স্কোর আর র‍্যাঙ্কিং দেখতে পারবেন।"
+          />
         </p>
-        <Bn className="mx-auto mt-1 max-w-xl text-sm leading-relaxed text-text-muted">
-          কোনো টাকা লাগে না, কার্ড লাগে না। অ্যাকাউন্ট না খুলেও সব স্কোর আর র‍্যাঙ্কিং দেখতে পারবেন।
-        </Bn>
 
         <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
           {isLoggedIn ? (
             <>
               <Button href="/portfolio" variant="primary">
-                My portfolio
+                <T en="My portfolio" bn="আমার পোর্টফোলিও" />
               </Button>
               <Button href="/dsestockranking" variant="quiet">
-                See the rankings
+                <T en="See the rankings" bn="র‍্যাঙ্কিং দেখুন" />
               </Button>
             </>
           ) : (
             <>
               <Button href="/register" variant="primary">
-                Open a free account
+                <T en="Open a free account" bn="ফ্রি অ্যাকাউন্ট খুলুন" />
               </Button>
               <div className="[color-scheme:light]">
                 <GoogleSignInButton onSuccess={handleGoogleSuccess} onError={setGoogleError} />
@@ -120,7 +118,7 @@ export default function LandingClose({ testimonials }: { testimonials: Testimoni
                 href="/dsestockranking"
                 className="w-full text-sm font-bold text-primary-ink underline-offset-4 hover:underline sm:w-auto"
               >
-                Just look around first
+                <T en="Just look around first" bn="আগে একটু ঘুরে দেখুন" />
               </Link>
             </>
           )}

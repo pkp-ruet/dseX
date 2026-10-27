@@ -8,7 +8,9 @@ import { priceTrendCaption } from "@/lib/plain-language";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
+import { bnDate } from "@/lib/bn";
 import { CHART } from "@/lib/chart-theme";
 
 interface Props {
@@ -18,16 +20,24 @@ interface Props {
 type Range = "1M" | "6M" | "1Y" | "5Y";
 const RANGES: Range[] = ["1M", "6M", "1Y", "5Y"];
 const RANGE_DAYS: Record<Range, number | null> = { "1M": 31, "6M": 183, "1Y": 366, "5Y": null };
+const RANGE_LABEL: Record<Range, { en: string; bn: string }> = {
+  "1M": { en: "1M", bn: "1 মাস" },
+  "6M": { en: "6M", bn: "6 মাস" },
+  "1Y": { en: "1Y", bn: "1 বছর" },
+  "5Y": { en: "5Y", bn: "5 বছর" },
+};
+const MONTHS_BN = ["জানু", "ফেব্রু", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টে", "অক্টো", "নভে", "ডিসে"];
 
 interface DataPoint { date: string; ltp: number; volume: number; }
 
-function formatDateTick(dateStr: string): string {
+function formatDateTick(dateStr: string, bn: boolean): string {
   const d = new Date(dateStr);
-  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const months = bn ? MONTHS_BN : ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   return `${months[d.getMonth()]} '${String(d.getFullYear()).slice(2)}`;
 }
 
-function formatTooltipDate(dateStr: string): string {
+function formatTooltipDate(dateStr: string, bn: boolean): string {
+  if (bn) return bnDate(dateStr) || dateStr;
   const d = new Date(dateStr);
   return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
@@ -44,6 +54,7 @@ export default function PriceChart({ code }: Props) {
   const [rawData, setRawData] = useState<DataPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { bn } = useLang();
 
   useEffect(() => {
     if (!code) return;
@@ -96,16 +107,13 @@ export default function PriceChart({ code }: Props) {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-text-main">
-            The Price Story
+            <T en="How the price has moved" bn="দাম কীভাবে বদলেছে" />
           </h2>
           {caption && (
             <p className="text-sm mt-1" style={{ color: lineColor }}>
-              {caption}
+              <T en={caption.en} bn={caption.bn} />
             </p>
           )}
-          <Bn className="text-sm font-medium mt-1" >
-            <span className="text-text-muted">শেয়ারের দাম সময়ের সাথে কীভাবে বদলেছে, এক নজরে।</span>
-          </Bn>
         </div>
         <div
           className="inline-flex rounded-full p-1 self-start"
@@ -120,7 +128,7 @@ export default function PriceChart({ code }: Props) {
               onClick={() => setRange(r)}
               className="tabular-nums nums"
             >
-              {r}
+              <T en={RANGE_LABEL[r].en} bn={RANGE_LABEL[r].bn} />
             </Button>
           ))}
         </div>
@@ -133,15 +141,16 @@ export default function PriceChart({ code }: Props) {
           </div>
         ) : error ? (
           <div className="h-[320px] flex flex-col items-center justify-center gap-2 text-sm px-6 text-center">
-            <span className="text-negative">Couldn't load price chart.</span>
-            <span className="text-xs text-text-muted">{error}</span>
+            <span className="text-negative">
+              <T en="We couldn't load the price chart." bn="দামের চার্ট লোড করা যায়নি।" />
+            </span>
             <span className="text-xs mt-1 text-text-muted">
-              Check the browser console for details.
+              <T en="Please try again in a moment." bn="একটু পরে আবার চেষ্টা করুন।" />
             </span>
           </div>
         ) : data.length === 0 ? (
           <div className="h-[320px] flex items-center justify-center text-sm text-text-muted">
-            No price data available for this stock.
+            <T en="We have no price history for this share yet." bn="এই শেয়ারের দামের ইতিহাস এখনো আমাদের কাছে নেই।" />
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={320}>
@@ -157,7 +166,7 @@ export default function PriceChart({ code }: Props) {
               <XAxis
                 dataKey="date"
                 tick={CHART.xAxis.tick}
-                tickFormatter={formatDateTick}
+                tickFormatter={(v: string) => formatDateTick(v, bn)}
                 interval="preserveStartEnd"
                 axisLine={false}
                 tickLine={false}
@@ -180,10 +189,10 @@ export default function PriceChart({ code }: Props) {
               <Tooltip
                 formatter={(val: number, name: string) =>
                   name === "volume"
-                    ? [formatVolume(val), "Shares traded"]
-                    : [`৳${val.toFixed(2)}`, "Price"]
+                    ? [formatVolume(val), bn ? "লেনদেন হওয়া শেয়ার" : "Shares traded"]
+                    : [`৳${val.toFixed(2)}`, bn ? "দাম" : "Price"]
                 }
-                labelFormatter={(label: string) => formatTooltipDate(label)}
+                labelFormatter={(label: string) => formatTooltipDate(label, bn)}
                 contentStyle={CHART.tooltip.contentStyle}
               />
               {hasVolume && (
@@ -211,7 +220,10 @@ export default function PriceChart({ code }: Props) {
       </div>
       {hasVolume && (
         <p className="text-xs mt-2 px-1 text-text-muted">
-          Gray bars along the bottom show how many shares changed hands each day.
+          <T
+            en="The grey bars along the bottom show how many shares were traded each day."
+            bn="নিচের ধূসর দাগগুলো দেখায় প্রতিদিন কতগুলো শেয়ার লেনদেন হয়েছে।"
+          />
         </p>
       )}
     </Card>

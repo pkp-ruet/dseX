@@ -56,7 +56,7 @@ def test_running_a_list_funnels_and_sorts():
     assert [f["left"] for f in res["funnel"]] == [4, 3, 2]
     assert [f["code"] for f in res["passed"]] == ["B", "A"]
     vals = rl.check_values(cl.build_list(spec), facts[0], rl.Ctx())
-    assert vals[1]["value_en"] == "Price is 9× its profit"
+    assert vals[1]["value_en"] == "Price is 9 times its yearly profit"
 
 
 def test_catalog_lists_sectors_as_options():
@@ -82,7 +82,7 @@ def test_push_names_the_newcomers():
     from backend.services.custom_lists_service import push_payload
 
     p = push_payload([({"id": "x1", "name": "Cheap banks"}, ["CITYBANK", "EBL"])], "en")
-    assert p["title"] == "2 new on your list 'Cheap banks'"
+    assert p["title"] == "2 new shares on your list 'Cheap banks'"
     assert p["body"] == "Passed every check today: CITYBANK, EBL"
     assert p["url"] == "/screener?tab=saved&list=x1&src=alert"
     assert push_payload([({"id": "x1", "name": "a"}, [])], "en") is None
@@ -144,7 +144,7 @@ def test_near_misses_fail_exactly_one_check():
     lst = cl.build_list(spec)
     misses = rl.near_misses(lst, facts, rl.Ctx(), skip=frozenset({2}))
     assert [(f["code"], i) for f, i, _en, _bn in misses] == [("DEAR", 1), ("THIN", 0)]  # ranked by yield
-    assert misses[0][2] == "Price is 12× its profit"
+    assert misses[0][2] == "Price is 12 times its yearly profit"
     # Without the skip, another sector's company counts as one miss.
     assert "BANK" in [f["code"] for f, *_ in rl.near_misses(lst, facts, rl.Ctx())]
 
@@ -174,8 +174,9 @@ def test_run_reports_near_misses_by_check(monkeypatch):
     assert [(b["key"], b["count"]) for b in near["by_check"]] == [("pe_max", 2), ("yield_min", 1)]
     assert [s["code"] for s in near["stocks"]] == ["DEAR2", "DEAR", "THIN"]
     assert near["stocks"][0]["miss"] == {
-        "key": "pe_max", "label_en": "Price ÷ profit is 10 or less", "label_bn": "দাম ÷ লাভ 10 বা তার কম",
-        "value_en": "Price is 14× its profit", "value_bn": "দাম লাভের 14 গুণ"}
+        "key": "pe_max", "label_en": "Price is 10 times yearly profit or less",
+        "label_bn": "দাম বার্ষিক মুনাফার 10 গুণ বা তার কম",
+        "value_en": "Price is 14 times its yearly profit", "value_bn": "দাম বার্ষিক মুনাফার 14 গুণ"}
     assert svc.run({"checks": [{"key": "fresh"}, {"key": "pe_max"}]}, near=False)["near"] is None
 
 
@@ -186,7 +187,7 @@ def test_every_check_explains_itself_and_each_setting_reads_as_a_sentence():
         for o in c["options"]:
             assert o["sentence_en"] and o["sentence_bn"], (c["key"], o["value"])
     pe = next(c for c in cat["checks"] if c["key"] == "pe_max")
-    assert pe["options"][1]["sentence_en"] == "Price ÷ profit is 10 or less"
+    assert pe["options"][1]["sentence_en"] == "Price is 10 times yearly profit or less"
 
 
 

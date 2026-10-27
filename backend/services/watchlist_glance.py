@@ -100,23 +100,23 @@ def risk_flags(f: dict, governance: list[dict]) -> list[dict]:
 
     level = f.get("debt_level")
     if level == "over_mcap":
-        add("loans_over_mcap", "Loans are bigger than the whole company's market value",
-            "ঋণ কোম্পানির পুরো বাজারমূল্যের চেয়েও বেশি")
+        add("loans_over_mcap", "Its loans are larger than the whole company's market value",
+            "এর ঋণ কোম্পানির পুরো বাজার মূলধনের চেয়েও বেশি")
     elif level == "over_reserve":
-        add("loans_over_reserve", "Loans are bigger than its saved-up profits (reserves)",
-            "ঋণ কোম্পানির জমানো মুনাফার (রিজার্ভ) চেয়ে বেশি")
+        add("loans_over_reserve", "Its loans are larger than the profit it has kept over the years",
+            "এর ঋণ বছরের পর বছর জমানো মুনাফার চেয়ে বেশি")
     if str(f.get("cat") or f.get("market_cat") or "").strip().upper() == "Z":
-        add("z_category", "Z-category share — the company missed its duties to shareholders",
-            "Z ক্যাটাগরির শেয়ার — কোম্পানি শেয়ারহোল্ডারদের প্রতি দায়িত্ব পালন করেনি")
+        add("z_category", "It is in Z category, because it skipped a dividend or an AGM",
+            "এটি Z ক্যাটাগরিতে, কারণ কোম্পানি ডিভিডেন্ড দেয়নি বা এজিএম করেনি")
     if f.get("stale") or f.get("stale_data"):
-        add("stale", "No fresh accounts published for years", "কয়েক বছর ধরে নতুন হিসাব প্রকাশ হয়নি")
+        add("stale", "It has not published new accounts for years", "কয়েক বছর ধরে নতুন আর্থিক হিসাব প্রকাশ করেনি")
     eps = _n(f.get("eps"))
     if eps is not None and eps <= 0:
-        add("loss", "Made a loss on its latest figures", "সর্বশেষ হিসাবে লোকসান")
+        add("loss", "It made a loss in its latest results", "সর্বশেষ হিসাবে লোকসান করেছে")
     nocf = _n(f.get("interim_nocfps"))
     if nocf is not None and nocf < 0 and f.get("sector_class") not in _LENDER_OR_INSURER:
-        add("cash_out", "The business used more cash than it brought in this year",
-            "এ বছর ব্যবসায় যত নগদ এসেছে তার চেয়ে খরচ বেশি")
+        add("cash_out", "The business spent more cash than it brought in this year",
+            "এ বছর ব্যবসায় যত নগদ এসেছে, খরচ হয়েছে তার চেয়ে বেশি")
     for g in governance or []:
         add(g.get("key") or "governance", g.get("en") or "", g.get("bn") or "")
     return out

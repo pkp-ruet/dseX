@@ -7,14 +7,17 @@ import StarButton from "@/components/ui/StarButton";
 import { DataTable, Th, StockIdent, Price, Change } from "@/components/ui/Table";
 import type { DseTodayTableItem } from "@/lib/api";
 import SectionHeader from "@/components/ui/SectionHeader";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
+import { croreBn, sectorBn } from "@/lib/bn";
 
 type Axis = "volume" | "value" | "price" | "change";
 
-const AXES: { key: Axis; label: string }[] = [
-  { key: "volume", label: "Volume" },
-  { key: "value",  label: "Value" },
-  { key: "price",  label: "Price" },
-  { key: "change", label: "Change %" },
+const AXES: { key: Axis; label: string; labelBn: string }[] = [
+  { key: "volume", label: "Shares traded", labelBn: "শেয়ার হাতবদল" },
+  { key: "value",  label: "Value traded",  labelBn: "লেনদেনের পরিমাণ" },
+  { key: "price",  label: "Price",         labelBn: "দাম" },
+  { key: "change", label: "Change %",      labelBn: "পরিবর্তন %" },
 ];
 
 const TOP_N = 30;
@@ -38,6 +41,8 @@ function sortBy(rows: DseTodayTableItem[], axis: Axis): DseTodayTableItem[] {
  */
 export default function DseTodayTable({ rows }: { rows: DseTodayTableItem[] }) {
   const [axis, setAxis] = useState<Axis>("volume");
+  const { lang } = useLang();
+  const bn = lang === "bn";
 
   const sorted = useMemo(
     () => sortBy(rows, axis).slice(0, TOP_N),
@@ -50,10 +55,18 @@ export default function DseTodayTable({ rows }: { rows: DseTodayTableItem[] }) {
 
   return (
     <section className="mb-6">
-      <SectionHeader title={<>Top 30 by {AXES.find((a) => a.key === axis)?.label}</>} className="mt-8" />
+      <SectionHeader
+        title={
+          <T
+            en={`Top 30 by ${AXES.find((a) => a.key === axis)?.label.toLowerCase()}`}
+            bn={`${AXES.find((a) => a.key === axis)?.labelBn} অনুযায়ী শীর্ষ 30`}
+          />
+        }
+        className="mt-8"
+      />
 
       {/* Sort tabs */}
-      <div className="mb-3 flex flex-wrap gap-1.5" role="group" aria-label="Rank by">
+      <div className="mb-3 flex flex-wrap gap-1.5" role="group" aria-label={bn ? "যা দিয়ে সাজাবেন" : "Rank by"}>
         {AXES.map((a) => (
           <Button
             key={a.key}
@@ -62,7 +75,7 @@ export default function DseTodayTable({ rows }: { rows: DseTodayTableItem[] }) {
             aria-pressed={a.key === axis}
             onClick={() => setAxis(a.key)}
           >
-            {a.label}
+            <T en={a.label} bn={a.labelBn} />
           </Button>
         ))}
       </div>
@@ -71,13 +84,13 @@ export default function DseTodayTable({ rows }: { rows: DseTodayTableItem[] }) {
         <thead>
           <tr>
             <Th align="right">#</Th>
-            <Th srLabel="Watchlist" />
-            <Th>Stock</Th>
-            <Th secondary>Sector</Th>
-            <th scope="col" className="dt-num" aria-sort={sortedBy("price")}>Price</th>
-            <th scope="col" className="dt-num" aria-sort={sortedBy("change")}>Today</th>
-            <th scope="col" className="dt-num" aria-sort={sortedBy("volume")}>Volume</th>
-            <th scope="col" className="dt-num" aria-sort={sortedBy("value")}>Value</th>
+            <Th srLabel={bn ? "ওয়াচলিস্ট" : "Watchlist"} />
+            <Th><T en="Share" bn="শেয়ার" /></Th>
+            <Th secondary><T en="Sector" bn="সেক্টর" /></Th>
+            <th scope="col" className="dt-num" aria-sort={sortedBy("price")}><T en="Price" bn="দাম" /></th>
+            <th scope="col" className="dt-num" aria-sort={sortedBy("change")}><T en="Today" bn="আজ" /></th>
+            <th scope="col" className="dt-num" aria-sort={sortedBy("volume")}><T en="Shares" bn="শেয়ার" /></th>
+            <th scope="col" className="dt-num" aria-sort={sortedBy("value")}><T en="Value" bn="মূল্য" /></th>
           </tr>
         </thead>
         <tbody>
@@ -94,7 +107,7 @@ export default function DseTodayTable({ rows }: { rows: DseTodayTableItem[] }) {
               </td>
 
               <td data-secondary className="dt-muted">
-                {r.sector ?? "—"}
+                {r.sector ? <T en={r.sector} bn={sectorBn(r.sector)} /> : "—"}
               </td>
 
               <td data-cell="price" className="dt-num">
@@ -105,12 +118,16 @@ export default function DseTodayTable({ rows }: { rows: DseTodayTableItem[] }) {
                 <Change value={r.change_pct} />
               </td>
 
-              <td data-cell="meta" data-label="Volume" className="dt-num nums">
-                {r.volume != null ? croreShares(r.volume) : "—"}
+              <td data-cell="meta" data-label={bn ? "শেয়ার" : "Shares"} className="dt-num nums">
+                {r.volume != null ? (
+                  <T en={croreShares(r.volume)} bn={croreShares(r.volume).replace(" Cr", " কোটি")} />
+                ) : (
+                  "—"
+                )}
               </td>
 
-              <td data-cell="meta" data-label="Value" className="dt-num nums">
-                {r.value_mn != null ? crore(r.value_mn) : "—"}
+              <td data-cell="meta" data-label={bn ? "মূল্য" : "Value"} className="dt-num nums">
+                {r.value_mn != null ? <T en={crore(r.value_mn)} bn={croreBn(r.value_mn)} /> : "—"}
               </td>
             </tr>
           ))}
@@ -118,7 +135,10 @@ export default function DseTodayTable({ rows }: { rows: DseTodayTableItem[] }) {
       </DataTable>
 
       <p className="mt-2 text-xs text-text-muted">
-        Showing top {Math.min(TOP_N, sorted.length)} of {rows.length} traded stocks · tap a code to open the stock page.
+        <T
+          en={`Showing the top ${Math.min(TOP_N, sorted.length)} of ${rows.length} traded shares. Tap a code to open its page.`}
+          bn={`লেনদেন হওয়া ${rows.length}টি শেয়ারের মধ্যে শীর্ষ ${Math.min(TOP_N, sorted.length)}টি দেখানো হচ্ছে। কোডে চাপ দিলে শেয়ারের পেজ খুলবে।`}
+        />
       </p>
     </section>
   );

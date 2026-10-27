@@ -3,6 +3,9 @@ import { useRouter } from "next/navigation";
 import { Treemap, ResponsiveContainer, Tooltip } from "recharts";
 import { sectorSlug } from "@/lib/sector";
 import SectionHeader from "@/components/ui/SectionHeader";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
+import { sectorBn } from "@/lib/bn";
 
 export interface SectorHeatmapItem {
   sector: string;
@@ -46,7 +49,8 @@ function tileInk(pct: number | null): string {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function CustomContent(props: any) {
-  const { x, y, width, height, name, avg_change_pct } = props;
+  // `display` is the reader's-language name; `name` stays English for the link.
+  const { x, y, width, height, display: name, avg_change_pct } = props;
   if (width < 30 || height < 20) return null;
   const color = sectorColor(avg_change_pct);
   const ink = tileInk(avg_change_pct);
@@ -104,6 +108,10 @@ export default function SectorHeatmap({
   pageSlugs,
 }: Props) {
   const router = useRouter();
+  // The treemap draws only in the browser (ResponsiveContainer has no size on
+  // the server), so its tile names and tooltip can follow the reader's language.
+  const { lang } = useLang();
+  const bn = lang === "bn";
   if (!sectors || sectors.length === 0) return null;
 
   const linkable = new Set(pageSlugs ?? []);
@@ -122,6 +130,7 @@ export default function SectorHeatmap({
     .filter((s) => s.sector && s.sector !== "nan")
     .map((s) => ({
       name: s.sector,
+      display: bn ? sectorBn(s.sector) : s.sector,
       size: Math.max(s.count ?? 1, 1),
       avg_change_pct: s.avg_change_pct,
     }));
@@ -139,7 +148,7 @@ export default function SectorHeatmap({
   return (
     <section className="mb-6">
       {withHeader && (
-        <SectionHeader title={<>Sector heatmap</>} className="mt-8" />
+        <SectionHeader title={<T en="Sectors today" bn="আজ সেক্টরগুলো" />} className="mt-8" />
       )}
 
       <div className="soft-card p-4">
@@ -159,13 +168,15 @@ export default function SectorHeatmap({
                   const sign = (d.avg_change_pct ?? 0) >= 0 ? "+" : "";
                   return (
                     <div className="rounded-lg border border-border bg-surface px-3 py-2 text-xs shadow-soft">
-                      <div className="font-bold text-text-main">{d.name}</div>
+                      <div className="font-bold text-text-main">{d.display}</div>
                       {d.avg_change_pct != null && (
                         <div className={`font-semibold tabular-nums ${d.avg_change_pct >= 0 ? "text-positive" : "text-negative"}`}>
-                          {sign}{d.avg_change_pct.toFixed(2)}% avg
+                          {bn
+                            ? `গড়ে ${sign}${d.avg_change_pct.toFixed(2)}%`
+                            : `${sign}${d.avg_change_pct.toFixed(2)}% on average`}
                         </div>
                       )}
-                      <div className="text-text-muted">{d.size} companies</div>
+                      <div className="text-text-muted">{bn ? `${d.size}টি কোম্পানি` : `${d.size} companies`}</div>
                     </div>
                   );
                 }}

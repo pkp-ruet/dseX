@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
 import SectionHead from "@/components/i18n/SectionHead";
 import StandoutCard from "@/components/home/StandoutCard";
 import type { StoryStock } from "@/lib/home-stories";
@@ -15,12 +15,18 @@ const MOOD_ACC: Record<MarketMood["tone"], string> = {
   steady: "var(--info)",
 };
 
-// Same Bengali line per tone as the market-analysis hero, so the two agree.
+// Bengali fallback per tone, for a backend that does not send `sentence_bn` yet.
 const MOOD_BN: Record<MarketMood["tone"], string> = {
-  up: "বাজার আজ চাঙা — বেশিরভাগ শেয়ারের দাম বাড়ছে।",
-  down: "বাজার আজ পড়তির দিকে — তাড়াহুড়ো করবেন না।",
-  weak: "বাজার কিছুটা দুর্বল — ভালো কোম্পানি বেছে নেওয়ার সময়।",
-  steady: "বাজার আজ শান্ত — ধীরে-সুস্থে দেখে নিন।",
+  up: "আজ বাজার চাঙা, বেশির ভাগ শেয়ারের দাম বাড়ছে।",
+  down: "আজ বাজার নিচের দিকে। তাড়াহুড়া না করাই ভালো।",
+  weak: "বাজার কিছুটা দুর্বল। ভালো কোম্পানি বেছে নেওয়ার সময়।",
+  steady: "আজ বাজার শান্ত। ধীরে-সুস্থে দেখে নিন।",
+};
+const MOOD_WORD_BN: Record<MarketMood["tone"], string> = {
+  up: "বাড়ছে",
+  down: "কমছে",
+  weak: "দুর্বল",
+  steady: "স্থির",
 };
 
 /**
@@ -84,19 +90,21 @@ function MarketMoodLine({ mood }: { mood: MarketMood }) {
           style={{ color: acc }}
         >
           <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: acc }} aria-hidden />
-          Right now: {mood.label.toLowerCase()}
+          <T
+            en={`Right now: ${mood.label.toLowerCase()}`}
+            bn={`এই মুহূর্তে: ${mood.label_bn ?? MOOD_WORD_BN[mood.tone]}`}
+          />
         </span>
         <p className="mt-1.5 text-base font-bold leading-snug text-text-main sm:text-lg">
-          {mood.sentence}
+          <T en={mood.sentence} bn={mood.sentence_bn ?? MOOD_BN[mood.tone]} />
         </p>
-        <Bn className="mt-1 text-sm leading-relaxed text-text-muted">{MOOD_BN[mood.tone]}</Bn>
       </div>
       </div>
       <span
         className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-full px-3.5 py-2 text-sm font-extrabold text-white transition-all group-hover:gap-2.5 sm:self-center"
         style={{ background: "var(--primary)" }}
       >
-        Is the market up or down?
+        <T en="Is the market up or down?" bn="বাজার বাড়ছে না কমছে?" />
         <span aria-hidden>→</span>
       </span>
     </Link>
@@ -131,19 +139,24 @@ export default function LiveToday({
   return (
     <section aria-labelledby="today-title">
       <SectionHead
-        eyebrow="Latest from the market"
+        eyebrow={<T en="Latest from the market" bn="বাজারের সর্বশেষ" />}
         id="today-title"
-        title="Three companies stand out"
-        highlight="today."
-        accent="var(--info)"
-        icon={<><path d="M3 17l6-6 4 3 8-8" /><path d="M15 6h6v6" /></>}
-        bn={`${totalCount}টি কোম্পানির আজকের দাম দেখে এই তিনটা আলাদা করে চোখে পড়ছে — প্রতিদিন নতুন তিনটা।`}
+        title={<T en="Three companies stand out today." bn="আজ তিনটি কোম্পানি আলাদা করে নজরে পড়ছে।" />}
+        sub={
+          <T
+            en={`From today's figures for all ${totalCount} companies, these three stand out. A new three appear each day.`}
+            bn={`${totalCount}টি কোম্পানির আজকের হিসাব থেকে এই তিনটি আলাদা করে নজরে পড়ছে। প্রতিদিন নতুন তিনটি আসে।`}
+          />
+        }
       />
 
       {mood && <MarketMoodLine mood={mood} />}
 
       <p className="mt-6 text-xs font-semibold text-text-muted">
-        Picked from all {totalCount} companies · new three every day
+        <T
+          en={`Chosen from all ${totalCount} companies, with a new three each day`}
+          bn={`${totalCount}টি কোম্পানি থেকে বাছাই, প্রতিদিন নতুন তিনটি`}
+        />
       </p>
       {/* Dense cards, so they hold one column until the row is wide enough
           for the four-number strip not to truncate. */}
@@ -158,7 +171,7 @@ export default function LiveToday({
           href="/dse-today"
           className="text-sm font-bold text-primary-ink underline-offset-4 hover:underline"
         >
-          See every price today →
+          <T en="See every price today →" bn="আজকের সব দাম দেখুন →" />
         </Link>
         {/* Fallback door when the mood line couldn't render — phrased as the
             question, never as the category label. */}
@@ -167,7 +180,7 @@ export default function LiveToday({
             href="/market-analysis"
             className="text-sm font-bold text-primary-ink underline-offset-4 hover:underline"
           >
-            Is the market up or down today? →
+            <T en="Is the market up or down today? →" bn="আজ বাজার বাড়ছে না কমছে? →" />
           </Link>
         )}
       </div>

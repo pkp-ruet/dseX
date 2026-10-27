@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
-import Bn from "@/components/i18n/Bn";
+import { T } from "@/components/i18n/T";
+import { sectorBn } from "@/lib/bn";
 import type { MarketSectorRow, MarketQuality } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 import MkCard from "./MkCard";
@@ -17,12 +18,17 @@ function Sectors({ sectors }: { sectors: MarketSectorRow[] }) {
   return (
     <MkCard
       id="mk-sectors-title"
-      title="Which businesses are doing well?"
-      bn="কোন ব্যবসা ভালো করছে"
-      right={<Link href="/sectors" className="mk-link">All sectors →</Link>}
+      title={<T en="Which sectors are doing well?" bn="কোন সেক্টর ভালো করছে?" />}
+      right={
+        <Link href="/sectors" className="mk-link">
+          <T en="All sectors →" bn="সব সেক্টর →" />
+        </Link>
+      }
     >
       {top.length === 0 ? (
-        <p className="mk-empty">Not enough trading to tell yet.</p>
+        <p className="mk-empty">
+          <T en="There is not enough trading to tell yet." bn="বলার মতো যথেষ্ট লেনদেন এখনো হয়নি।" />
+        </p>
       ) : (
         <>
           <div>
@@ -38,10 +44,14 @@ function Sectors({ sectors }: { sectors: MarketSectorRow[] }) {
               const body = (
                 <>
                   <span className="min-w-0">
-                    <span className="mk-sector-name">{s.name}</span>
+                    <span className="mk-sector-name">
+                      <T en={s.name} bn={sectorBn(s.name)} />
+                    </span>
                     <span className="mk-sector-sub">
-                      {s.count} companies
-                      {s.ret_1m != null ? ` · month ${s.ret_1m >= 0 ? "+" : ""}${s.ret_1m.toFixed(1)}%` : ""}
+                      <T
+                        en={`${s.count} companies${s.ret_1m != null ? ` · month ${s.ret_1m >= 0 ? "+" : ""}${s.ret_1m.toFixed(1)}%` : ""}`}
+                        bn={`${s.count}টি কোম্পানি${s.ret_1m != null ? ` · মাসে ${s.ret_1m >= 0 ? "+" : ""}${s.ret_1m.toFixed(1)}%` : ""}`}
+                      />
                     </span>
                   </span>
                   <span className="mk-track" aria-hidden="true">
@@ -68,14 +78,19 @@ function Sectors({ sectors }: { sectors: MarketSectorRow[] }) {
           <p className="mk-legend">
             <span>
               <i className="k-bar" />
-              this week
+              <T en="this week" bn="এ সপ্তাহ" />
             </span>
             <span>
               <i className="k-mark" />
-              this month
+              <T en="this month" bn="এ মাস" />
             </span>
           </p>
-          <Bn className="mk-card-bn">বার = এই সপ্তাহ, দাগ = এই মাস। কোনো খাতে চাপ দিলে তার সব কোম্পানি দেখবেন।</Bn>
+          <p className="mk-card-note">
+            <T
+              en="Tap a sector to see all its companies."
+              bn="কোনো সেক্টরে চাপ দিলে তার সব কোম্পানি দেখতে পাবেন।"
+            />
+          </p>
         </>
       )}
     </MkCard>
@@ -84,10 +99,10 @@ function Sectors({ sectors }: { sectors: MarketSectorRow[] }) {
 
 function Quality({ quality }: { quality: MarketQuality }) {
   const segs = [
-    { label: "Strong", n: quality.strong, bg: "bg-tier-excellent" },
-    { label: "Good", n: quality.good, bg: "bg-tier-good" },
-    { label: "So-so", n: quality.soso, bg: "bg-tier-average" },
-    { label: "Weak", n: quality.risky, bg: "bg-tier-weak" },
+    { label: "Excellent", labelBn: "চমৎকার", n: quality.strong, bg: "bg-tier-excellent" },
+    { label: "Good", labelBn: "ভালো", n: quality.good, bg: "bg-tier-good" },
+    { label: "Average", labelBn: "মাঝারি", n: quality.soso, bg: "bg-tier-average" },
+    { label: "Weak", labelBn: "দুর্বল", n: quality.risky, bg: "bg-tier-weak" },
   ];
   const healthy = quality.strong + quality.good;
   const healthyPct = quality.total ? (healthy / quality.total) * 100 : 0;
@@ -97,14 +112,14 @@ function Quality({ quality }: { quality: MarketQuality }) {
   let takeaway: string;
   let takeawayBn: string;
   if (healthyPct >= 50) {
-    takeaway = "Good news — more than half the companies here look healthy.";
-    takeawayBn = "ভালো খবর — অর্ধেকের বেশি কোম্পানি এখন ভালো অবস্থায় আছে।";
+    takeaway = "More than half the companies look healthy right now.";
+    takeawayBn = "অর্ধেকের বেশি কোম্পানি এখন ভালো অবস্থায় আছে।";
   } else if (healthyPct >= 30) {
-    takeaway = "Only some companies look healthy, so it's worth choosing carefully.";
-    takeawayBn = "অল্প কিছু কোম্পানিই ভালো অবস্থায় আছে — বেছে নেওয়ার সময় একটু সাবধান।";
+    takeaway = "Only some companies look healthy, so it is worth choosing carefully.";
+    takeawayBn = "কিছু কোম্পানিই ভালো অবস্থায় আছে, তাই বেছে নেওয়ার সময় সাবধান থাকা ভালো।";
   } else {
-    takeaway = "Most companies look weak right now, so be extra careful which one you pick.";
-    takeawayBn = "বেশিরভাগ কোম্পানিই এখন দুর্বল — কোনটা কিনবেন, খুব ভেবে ঠিক করুন।";
+    takeaway = "Most companies look weak right now, so it is wise to be extra careful about which one you pick.";
+    takeawayBn = "বেশির ভাগ কোম্পানি এখন দুর্বল, তাই কোনটি কিনবেন তা খুব ভেবে ঠিক করুন।";
   }
   // The trend clause is what keeps this card from saying the same sentence
   // every day while the median score sits in the 30s.
@@ -117,29 +132,33 @@ function Quality({ quality }: { quality: MarketQuality }) {
       ? ` এক সপ্তাহ আগের চেয়ে ${n}টি বেড়েছে।`
       : ` এক সপ্তাহ আগের চেয়ে ${n}টি কমেছে।`;
   } else if (delta === 0) {
-    takeaway += " The number hasn't changed in a week.";
-    takeawayBn += " এক সপ্তাহে সংখ্যাটা বদলায়নি।";
+    takeaway += " The number has not changed in a week.";
+    takeawayBn += " এক সপ্তাহে সংখ্যাটি বদলায়নি।";
   }
 
   return (
     <MkCard
       id="mk-quality-title"
-      title="How many companies are healthy?"
-      bn="কতটি কোম্পানি ভালো অবস্থায় আছে"
-      right={<Link href="/dsestockranking" className="mk-link">Ranking →</Link>}
+      title={<T en="How many companies are healthy?" bn="কতটি কোম্পানি ভালো অবস্থায় আছে?" />}
+      right={
+        <Link href="/dsestockranking" className="mk-link">
+          <T en="Rankings →" bn="র‍্যাঙ্কিং →" />
+        </Link>
+      }
     >
       {quality.total > 0 ? (
         <>
           <div className="mk-bignum">
             <span className="mk-bignum-n">{healthy}</span>
-            <span className="mk-bignum-of">of {quality.total} companies look healthy</span>
+            <span className="mk-bignum-of">
+              <T en={`of ${quality.total} companies look healthy`} bn={`টি কোম্পানি ভালো অবস্থায়, মোট ${quality.total}টির মধ্যে`} />
+            </span>
             {delta != null && (
               <span
                 className={`mk-delta ${delta > 0 ? "mk-delta--up" : delta < 0 ? "mk-delta--down" : ""}`}
                 title={since ? `Compared with ${formatDate(since)}` : undefined}
               >
-                {delta > 0 ? "+" : ""}
-                {delta} in a week
+                <T en={`${delta > 0 ? "+" : ""}${delta} in a week`} bn={`এক সপ্তাহে ${delta > 0 ? "+" : ""}${delta}`} />
               </span>
             )}
           </div>
@@ -156,18 +175,21 @@ function Quality({ quality }: { quality: MarketQuality }) {
                 <b>{s.n}</b>
                 <span>
                   <i className={s.bg} />
-                  {s.label}
+                  <T en={s.label} bn={s.labelBn} />
                 </span>
               </li>
             ))}
           </ul>
           <div className="mk-card-foot">
-            <p className="m-0 text-sm text-text-main">{takeaway}</p>
-            <Bn className="mk-card-bn">{takeawayBn}</Bn>
+            <p className="m-0 text-sm text-text-main">
+              <T en={takeaway} bn={takeawayBn} />
+            </p>
           </div>
         </>
       ) : (
-        <p className="mk-empty">Company scores are being prepared.</p>
+        <p className="mk-empty">
+          <T en="Company scores are being prepared." bn="কোম্পানির স্কোর তৈরি হচ্ছে।" />
+        </p>
       )}
     </MkCard>
   );

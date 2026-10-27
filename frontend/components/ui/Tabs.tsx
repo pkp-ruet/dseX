@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, type KeyboardEvent } from "react";
+import { useRef, type KeyboardEvent, type ReactNode } from "react";
 import Button from "@/components/ui/Button";
 
 /**
@@ -18,7 +18,7 @@ export default function Tabs<K extends string>({
   idBase = "tab",
   className = "",
 }: {
-  tabs: { key: K; label: string }[];
+  tabs: { key: K; label: ReactNode }[];
   value: K;
   onChange: (key: K) => void;
   ariaLabel: string;

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import ErrorState from "@/components/ui/ErrorState";
+import { T } from "@/components/i18n/T";
 
 /**
  * Root error boundary — catches any server-component throw under `app/` that a
@@ -22,7 +23,7 @@ export default function RootError({
   return (
     <ErrorState
       onRetry={reset}
-      links={[{ href: "/dsestockranking", label: "Stock rankings" }]}
+      links={[{ href: "/dsestockranking", label: <T en="Stock rankings" bn="শেয়ার র‍্যাঙ্কিং" /> }]}
     />
   );
 }

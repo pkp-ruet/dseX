@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import ErrorState from "@/components/ui/ErrorState";
+import { T } from "@/components/i18n/T";
 
 export default function StockError({
   error,
@@ -16,10 +17,9 @@ export default function StockError({
 
   return (
     <ErrorState
-      title="Couldn't load this stock"
-      bn="এই শেয়ারের তথ্য এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+      title={<T en="We couldn't load this stock" bn="এই শেয়ারের তথ্য এখন লোড করা যাচ্ছে না" />}
       onRetry={reset}
-      links={[{ href: "/stocks", label: "Browse all stocks" }]}
+      links={[{ href: "/stocks", label: <T en="Browse all stocks" bn="সব শেয়ার দেখুন" /> }]}
     />
   );
 }

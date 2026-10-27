@@ -33,7 +33,7 @@ def test_kinds_phrase():
     k = [{"kind": "grade", "count": 1}, {"kind": "results", "count": 2}, {"kind": "record", "count": 1}]
     assert kinds_phrase(k, "en") == "2 quarterly results, 1 grade change and 1 record date"
     assert kinds_phrase(k[:1], "en") == "1 grade change"
-    assert kinds_phrase(k, "bn").startswith("2টি ত্রৈমাসিক ফল")
+    assert kinds_phrase(k, "bn").startswith("2টি প্রান্তিকের ফল")
     assert kinds_phrase([], "en") == ""
 
 
@@ -65,7 +65,7 @@ def test_teaser_tells_the_free_event_and_counts_the_rest():
     free = _ev("a", "results", "GP", "bad")
     p = teaser_payload([free, _ev("b", "record", "ACI", "good")], free, "en", "/portfolio#pf-premium")
     assert p["title"] == "GP results"
-    assert p["body"].startswith("GP body.") and "1 more thing" in p["body"] and "Premium" in p["body"]
+    assert p["body"].startswith("GP body.") and "1 more update" in p["body"] and "Premium" in p["body"]
     assert p["url"] == "/portfolio#pf-premium"
 
 
@@ -79,9 +79,9 @@ def test_teaser_lone_free_result_opens_its_card():
 def test_teaser_without_free_names_count_kinds_and_codes_only():
     evs = [_ev("a", "results", "GP", "bad"), _ev("b", "record", "ACI", "good")]
     p = teaser_payload(evs, None, "en", "/x")
-    assert p["title"] == "2 things on your stocks today"
+    assert p["title"] == "2 updates on your shares today"
     assert p["body"].startswith("1 quarterly result and 1 record date on ACI, GP.")
     assert "GP body." not in p["body"]
     one = teaser_payload(evs[:1], None, "bn", "/x")
-    assert one["title"] == "আজ GP-এ একটি খবর" and "প্রিমিয়াম" in one["body"]
+    assert one["title"] == "আজ GP-এ একটি আপডেট" and "প্রিমিয়াম" in one["body"]
     assert teaser_payload([], None) is None

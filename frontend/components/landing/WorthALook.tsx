@@ -1,5 +1,6 @@
 import Link from "next/link";
 import SectionHead from "@/components/i18n/SectionHead";
+import { T } from "@/components/i18n/T";
 import ResearchRail from "@/components/home/personalized/ResearchRail";
 import DiscoverRail from "@/components/home/personalized/DiscoverRail";
 import ScreenerCard from "@/components/home/personalized/ScreenerCard";
@@ -52,13 +53,20 @@ export default function WorthALook({
     >
       <SectionHead
         className="px-1.5 sm:px-0"
-        eyebrow="Find stocks"
+        eyebrow={<T en="Find stocks" bn="শেয়ার খুঁজুন" />}
         id="worth-title"
-        title="Where to start when you have"
-        highlight="no company in mind."
-        accent="var(--warm)"
-        icon={<><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" /></>}
-        bn="কোন শেয়ার কিনবেন বুঝতে পারছেন না? আজকের সিগন্যাল, র‍্যাঙ্কিং আর তৈরি করা তালিকা দেখে শুরু করুন।"
+        title={
+          <T
+            en="Where to start when you have no company in mind."
+            bn="কোনো কোম্পানি মাথায় না থাকলে কোথা থেকে শুরু করবেন।"
+          />
+        }
+        sub={
+          <T
+            en="Not sure which share to look at? Start with today's signals, the ranking and the ready-made lists."
+            bn="কোন শেয়ার দেখবেন বুঝতে পারছেন না? আজকের সংকেত, র‍্যাঙ্কিং আর তৈরি করা তালিকা দিয়ে শুরু করুন।"
+          />
+        }
       />
 
       <div className="mt-6 space-y-6">
@@ -83,13 +91,13 @@ export default function WorthALook({
           href="/dsestockranking"
           className="text-sm font-bold text-primary-ink underline-offset-4 hover:underline"
         >
-          See the full ranking &rarr;
+          <T en="See the full ranking →" bn="পুরো র‍্যাঙ্কিং দেখুন →" />
         </Link>
         <Link
           href="/stocks"
           className="text-sm font-bold text-primary-ink underline-offset-4 hover:underline"
         >
-          Browse every company A&ndash;Z &rarr;
+          <T en="Browse every company A–Z →" bn="A থেকে Z সব কোম্পানি দেখুন →" />
         </Link>
       </div>
     </section>

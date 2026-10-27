@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import Button from "@/components/ui/Button";
-import Bn from "@/components/i18n/Bn";
+import { useLang } from "@/context/LangContext";
 
 /**
  * THE overlay (2026-10 redesign, step 0): a bottom sheet on phones, a centred
@@ -18,7 +18,6 @@ export default function Sheet({
   open,
   onClose,
   title,
-  bn,
   children,
   footer,
   size = "md",
@@ -27,7 +26,6 @@ export default function Sheet({
   open: boolean;
   onClose: () => void;
   title: ReactNode;
-  bn?: ReactNode;
   children: ReactNode;
   /** Actions row, pinned to the bottom of the sheet. */
   footer?: ReactNode;
@@ -39,6 +37,7 @@ export default function Sheet({
   const [mounted, setMounted] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
+  const { bn: inBn } = useLang();
 
   useEffect(() => setMounted(true), []);
 
@@ -86,9 +85,8 @@ export default function Sheet({
             <h2 id={titleId} className="text-lg font-bold leading-tight text-text-main">
               {title}
             </h2>
-            {bn && <Bn className="mt-0.5 text-sm text-text-muted">{bn}</Bn>}
           </div>
-          <Button variant="quiet" size="sm" iconOnly aria-label="Close" onClick={onClose} disabled={!dismissible}>
+          <Button variant="quiet" size="sm" iconOnly aria-label={inBn ? "বন্ধ করুন" : "Close"} onClick={onClose} disabled={!dismissible}>
             <span aria-hidden="true">✕</span>
           </Button>
         </div>

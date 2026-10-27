@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import type { DseTodayNewsItem } from "@/lib/api";
 import { usePersonalCodes } from "@/lib/use-personal-codes";
 import DseTodayNewsCard, { type NewsSource } from "@/components/dse-today/DseTodayNewsCard";
+import { T } from "@/components/i18n/T";
 
 /**
  * Wraps a market-wide news list and, for signed-in users, pulls stories on the
@@ -51,13 +52,13 @@ export default function PersonalNewsFeed({ items }: { items: DseTodayNewsItem[] 
   return (
     <div className="space-y-6">
       <div>
-        <GroupHeader label="News on your stocks" count={personal.length} tone="var(--primary)" />
+        <GroupHeader label={<T en="News on your shares" bn="আপনার শেয়ারের খবর" />} count={personal.length} tone="var(--primary)" />
         <NewsGrid items={personal} />
       </div>
 
       {others.length > 0 && (
         <div>
-          <GroupHeader label="Rest of the market" count={others.length} tone="var(--text-muted)" />
+          <GroupHeader label={<T en="Rest of the market" bn="বাজারের বাকি খবর" />} count={others.length} tone="var(--text-muted)" />
           <NewsGrid items={others.map((item) => ({ item, source: "other" as NewsSource }))} />
         </div>
       )}
@@ -79,7 +80,7 @@ function NewsGrid({ items }: { items: { item: DseTodayNewsItem; source: NewsSour
   );
 }
 
-function GroupHeader({ label, count, tone }: { label: string; count: number; tone: string }) {
+function GroupHeader({ label, count, tone }: { label: ReactNode; count: number; tone: string }) {
   return (
     <div className="mb-3 flex items-center gap-2.5">
       <span

@@ -57,20 +57,20 @@ export const TIER_SCORE_LABELS: Record<TierKey, string> = {
   weak:      "Score < 45",
 };
 
-/** One-line plain-English meaning of each tier — no finance jargon. */
+/** One-line plain-English meaning of each tier, in plain words. */
 export const TIER_MEANINGS: Record<TierKey, string> = {
-  excellent: "Financially strongest",
-  good:      "Solid and healthy",
-  average:   "Mixed — look closer",
-  weak:      "High risk",
+  excellent: "Among the strongest companies",
+  good:      "A sound, healthy company",
+  average:   "Mixed results, worth a closer look",
+  weak:      "Higher risk than most",
 };
 
 /** Bengali meaning line — mirrors TIER_MEANINGS. */
 export const TIER_MEANINGS_BN: Record<TierKey, string> = {
-  excellent: "সবচেয়ে মজবুত ব্যবসা",
-  good:      "ভালো ও সুস্থ",
-  average:   "মিশ্র — দেখে নিন",
-  weak:      "ঝুঁকি বেশি",
+  excellent: "সবচেয়ে শক্ত কোম্পানিগুলোর একটি",
+  good:      "ভালো ও সুস্থ কোম্পানি",
+  average:   "ফল মিশ্র, ভালো করে দেখে নেওয়া দরকার",
+  weak:      "অন্যদের চেয়ে ঝুঁকি বেশি",
 };
 
 export function getTier(score: number | null | undefined): TierKey {
@@ -96,14 +96,14 @@ export type AnySignalKind     = StockSignalKind | HoldingSignalKind;
 
 export const SIGNAL_LABELS: Record<AnySignalKind, string> = {
   buy:      "Buy",
-  buy_more: "Buy More",
+  buy_more: "Buy more",
   sell:     "Sell",
 };
 
 /** Bengali signal words — mirrors backend SIGNAL_WORDS_BN. */
 export const SIGNAL_LABELS_BN: Record<AnySignalKind, string> = {
   buy:      "কেনা যায়",
-  buy_more: "আরও কিনুন",
+  buy_more: "আরও কেনা যায়",
   sell:     "বিক্রি করুন",
 };
 
@@ -117,5 +117,5 @@ export const SIGNAL_VAR: Record<AnySignalKind, string> = {
 // deeply cheap AND still low in its 52-week range. The chip grammar is fixed in
 // components/ui/SignalChip.tsx: Strong Buy = filled, Buy = tinted positive,
 // Sell = tinted negative, `none` = nothing.
-export const STRONG_BUY_LABEL = "Strong Buy";
-export const STRONG_BUY_LABEL_BN = "জোরালো কেনা যায়";
+export const STRONG_BUY_LABEL = "Strong buy";
+export const STRONG_BUY_LABEL_BN = "কেনার ভালো সুযোগ";

@@ -10,10 +10,10 @@ export function RailHeader({
   href,
   linkLabel,
 }: {
-  title: string;
-  sub?: string;
+  title: ReactNode;
+  sub?: ReactNode;
   href?: string;
-  linkLabel?: string;
+  linkLabel?: ReactNode;
 }) {
   return (
     <div className="mb-3 flex items-center justify-between gap-2 px-0.5">
@@ -60,15 +60,15 @@ export default function RailCard({
   valueLabel,
   children,
 }: {
-  title: string;
+  title: ReactNode;
   tag?: ReactNode;
-  sub?: string;
+  sub?: ReactNode;
   href: string;
-  linkLabel: string;
+  linkLabel: ReactNode;
   /** Small label over the rows, left ("Top 3"). */
-  listLabel?: string;
+  listLabel?: ReactNode;
   /** Small label over the value column, right ("Cash yield"). */
-  valueLabel?: string;
+  valueLabel?: ReactNode;
   /** StockRow size="sm" rows. */
   children: ReactNode;
 }) {

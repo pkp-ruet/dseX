@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import AlertsClient from "@/components/alerts/AlertsClient";
 import PageHeader from "@/components/ui/PageHeader";
+import { T } from "@/components/i18n/T";
 
 export const metadata: Metadata = {
   title: "My Price Alerts",
@@ -13,9 +14,13 @@ export default function AlertsPage() {
   return (
     <div className="page-narrow">
       <PageHeader
-        title="Price Alerts"
-        bn="শেয়ারের দাম আপনার ঠিক করা দামে পৌঁছালেই জানিয়ে দেব।"
-        lead="Get pinged the day a stock reaches your target — by web push and in your alerts bell."
+        title={<T en="Price alerts" bn="প্রাইস অ্যালার্ট" />}
+        lead={
+          <T
+            en="We tell you on the day a share reaches your target price, by phone notification and in your alerts bell."
+            bn="শেয়ারের দাম আপনার ঠিক করা দামে পৌঁছালে সেদিনই আমরা জানাই, ফোনের নোটিফিকেশন আর অ্যালার্টের ঘণ্টায়।"
+          />
+        }
       />
       <AlertsClient />
     </div>

@@ -6,6 +6,7 @@ import { getWatchlistGlance, type GlanceRow } from "@/lib/api";
 import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
 import { changePct, changeTone, money } from "@/lib/formatters";
 import { useLang } from "@/context/LangContext";
+import { bnDate } from "@/lib/bn";
 import Card from "@/components/ui/Card";
 import Chip from "@/components/ui/Chip";
 import SectionHeader from "@/components/ui/SectionHeader";
@@ -33,9 +34,9 @@ const SOON_DAYS = 30;
 const BLOCKER: Record<string, [string, string]> = {
   not_rated: ["Not rated yet", "এখনো রেটিং নেই"],
   average_fundamentals: ["Average company", "মাঝারি মানের কোম্পানি"],
-  z_category: ["Z-category share", "Z ক্যাটাগরির শেয়ার"],
+  z_category: ["Z category share", "Z ক্যাটাগরির শেয়ার"],
   stale_financials: ["Old accounts", "পুরোনো হিসাব"],
-  thin_trading: ["Trades too thin", "লেনদেন খুব কম"],
+  thin_trading: ["Too little trading", "লেনদেন খুব কম"],
   earnings_dropped: ["Profit fell sharply", "মুনাফা অনেক কমেছে"],
   heavy_debt: ["Loans too big", "ঋণ অনেক বেশি"],
   near_52w_high: ["Near its yearly high", "বছরের সর্বোচ্চ দামের কাছে"],
@@ -43,8 +44,10 @@ const BLOCKER: Record<string, [string, string]> = {
   good_wait_price: ["Waiting for a lower price", "আরও কম দামের অপেক্ষা"],
 };
 
-function shortDate(iso: string | null | undefined): string {
+function shortDate(iso: string | null | undefined, bn = false): string {
   if (!iso) return "";
+  // "6 সেপ্টেম্বর" in Bengali (Western digits), "6 Sep" in English.
+  if (bn) return bnDate(iso).replace(/\s\d{4}$/, "") || iso;
   const d = new Date(iso);
   return Number.isNaN(d.getTime())
     ? iso
@@ -90,15 +93,15 @@ function FairCell({ row, bn }: { row: GlanceRow; bn: boolean }) {
   if (f.gap_pct == null) {
     value =
       f.stance === "cheap" ? (bn ? "দাম সস্তা" : "Cheap")
-      : f.stance === "expensive" ? (bn ? "দাম চড়া" : "Expensive")
+      : f.stance === "expensive" ? (bn ? "দাম বেশি" : "Expensive")
       : (bn ? "ন্যায্য দাম" : "Fair price");
   } else if (Math.abs(f.gap_pct) < 1) {
     value = bn ? "অনুমানের সমান" : "At the estimate";
   } else {
     const n = Math.abs(f.gap_pct).toFixed(0);
     value = f.gap_pct < 0
-      ? (bn ? `অনুমানের চেয়ে ${n}% কম` : `${n}% under estimate`)
-      : (bn ? `অনুমানের চেয়ে ${n}% বেশি` : `${n}% over estimate`);
+      ? (bn ? `অনুমানের চেয়ে ${n}% কম` : `${n}% under the estimate`)
+      : (bn ? `অনুমানের চেয়ে ${n}% বেশি` : `${n}% over the estimate`);
   }
   const sub = f.estimates_disagree
     ? `${range} · ${bn ? "হিসাবগুলো একমত নয়" : "estimates differ"}`
@@ -128,7 +131,7 @@ function BuyCell({ row, bn }: { row: GlanceRow; bn: boolean }) {
     <Cell
       label={label}
       sub={s.buy_below != null && (
-        <span className="nums">{bn ? `${money(s.buy_below)}-এর নিচে নামলে` : `Buy zone under ${money(s.buy_below)}`}</span>
+        <span className="nums">{bn ? `${money(s.buy_below)}-এর নিচে নামলে কেনা যায়` : `A Buy below ${money(s.buy_below)}`}</span>
       )}
     >
       <span className="text-text-main">{bn ? bnWord : en}</span>
@@ -150,7 +153,7 @@ function EventCell({ row, bn }: { row: GlanceRow; bn: boolean }) {
   const more = e.more > 0 ? (bn ? ` · আরও ${e.more}টি` : ` · +${e.more} more`) : "";
   if (e.kind === "agm") {
     return (
-      <Cell label={label} sub={<span className="nums">{shortDate(e.date)}{more}</span>}>
+      <Cell label={label} sub={<span className="nums">{shortDate(e.date, bn)}{more}</span>}>
         <span className={soon ? "text-watch" : "text-text-main"}>
           {bn ? `এজিএম ${inDays(e.days_left, bn)}` : `AGM ${inDays(e.days_left, bn)}`}
         </span>
@@ -163,7 +166,7 @@ function EventCell({ row, bn }: { row: GlanceRow; bn: boolean }) {
   ].filter(Boolean).join(" + ");
   const buy = e.buy_days_left != null && e.buy_days_left < 0
     ? (bn ? "এবার কেনার সময় শেষ" : "Too late to buy for this one")
-    : e.buy_by ? (bn ? `কিনতে হবে ${shortDate(e.buy_by)}-এর মধ্যে` : `Buy by ${shortDate(e.buy_by)}`) : "";
+    : e.buy_by ? (bn ? `কিনতে হবে ${shortDate(e.buy_by, bn)}-এর মধ্যে` : `Buy by ${shortDate(e.buy_by)}`) : "";
   return (
     <Cell label={label} sub={<span className="nums">{[buy, what].filter(Boolean).join(" · ")}{more}</span>}>
       <span className={soon ? "text-watch" : "text-text-main"}>
@@ -295,36 +298,29 @@ export default function GlanceBoard({ codes }: { codes: string[] }) {
 
   const total = rows?.length ?? codes.length;
   const stakes = [
-    bn ? `${counts.under}টি শেয়ার ন্যায্য দামের চেয়ে কমে` : `${counts.under} of your stocks trade under fair value`,
+    { en: `${counts.under} of your shares trade under fair value`, bn: `${counts.under}টি শেয়ারের দাম ন্যায্য দামের নিচে` },
     counts.events > 0
-      ? (bn ? `${counts.events}টির রেকর্ড ডেট বা এজিএম ${SOON_DAYS} দিনের মধ্যে` : `${counts.events} have a record date or AGM within ${SOON_DAYS} days`)
-      : "",
-    counts.risky > 0
-      ? (bn ? `${counts.risky}টিতে ঝুঁকির সতর্কতা` : `${counts.risky} carry a risk flag`)
-      : "",
-  ].filter(Boolean);
+      ? { en: `${counts.events} have a record date or AGM within ${SOON_DAYS} days`, bn: `${counts.events}টির রেকর্ড ডেট বা এজিএম ${SOON_DAYS} দিনের মধ্যে` }
+      : null,
+    counts.risky > 0 ? { en: `${counts.risky} carry a risk flag`, bn: `${counts.risky}টিতে ঝুঁকির সতর্কতা` } : null,
+  ].filter((s): s is { en: string; bn: string } => s != null);
 
   const SORTS: { key: Sort; en: string; bn: string }[] = [
     { key: "list", en: "Your order", bn: "আপনার সাজানো" },
-    { key: "gap", en: "Most under value", bn: "সবচেয়ে কম দামে" },
+    { key: "gap", en: "Most under value", bn: "ন্যায্য দামের সবচেয়ে নিচে" },
     { key: "event", en: "Next event", bn: "পরের ঘটনা" },
     { key: "risk", en: "Most risk flags", bn: "বেশি ঝুঁকি" },
   ];
 
   return (
-    <section
-      aria-labelledby="wl-glance"
-      className={bn ? "font-bn" : undefined}
-      lang={bn ? "bn" : undefined}
-    >
+    <section aria-labelledby="wl-glance">
       <SectionHeader
         id="wl-glance"
-        title={bn ? "প্রতিটি শেয়ার এক নজরে" : "Every stock at a glance"}
-        bn={bn ? undefined : "প্রতিটি শেয়ার এক নজরে — ন্যায্য দাম, কেনায় বাধা, পরের ঘটনা আর ঝুঁকি।"}
+        title={bn ? "প্রতিটি শেয়ার এক নজরে" : "Every share at a glance"}
         lead={
           bn
-            ? "ন্যায্য দামের তুলনায় আজকের দাম, কেনা যায় কি না, পরের রেকর্ড ডেট বা এজিএম, আর যা খারাপ হতে পারে।"
-            : "Price against fair value, what stops a Buy, the next record date or AGM, and what could go wrong."
+            ? "ন্যায্য দামের তুলনায় আজকের দাম, কেনা যায় কি না, পরের রেকর্ড ডেট বা এজিএম, আর কী ঝুঁকি আছে।"
+            : "The price against fair value, what stops a Buy, the next record date or AGM, and what could go wrong."
         }
       />
 
@@ -337,7 +333,7 @@ export default function GlanceBoard({ codes }: { codes: string[] }) {
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <Stat value={counts.under} label={bn ? "ন্যায্য দামের চেয়ে কমে" : "Under fair value"} sub={`${bn ? "মোট" : "of"} ${total}`} />
+            <Stat value={counts.under} label={bn ? "ন্যায্য দামের নিচে" : "Under fair value"} sub={`${bn ? "মোট" : "of"} ${total}`} />
             <Stat value={counts.buys} label={bn ? "আজ কেনার সংকেত" : "A Buy today"} tone={counts.buys ? "positive" : "default"} />
             <Stat value={counts.events} label={bn ? `${SOON_DAYS} দিনে রেকর্ড ডেট বা এজিএম` : `Record date or AGM in ${SOON_DAYS} days`} />
             <Stat value={counts.risky} label={bn ? "ঝুঁকির সতর্কতা আছে" : "Carry a risk flag"} tone={counts.risky ? "negative" : "default"} />
@@ -347,7 +343,7 @@ export default function GlanceBoard({ codes }: { codes: string[] }) {
 
       {rows !== null && (
         <PremiumGate
-          label={bn ? "ওয়াচলিস্টের পুরো বোর্ড" : "The watchlist glance board"}
+          label={{ en: "The watchlist glance board", bn: "ওয়াচলিস্টের পুরো বোর্ড" }}
           preview="blur"
           peek={220}
           stakes={stakes}
@@ -368,8 +364,8 @@ export default function GlanceBoard({ codes }: { codes: string[] }) {
           </Card>
           <p className="mt-2 text-xs text-text-muted">
             {bn
-              ? "ন্যায্য দাম একটি আনুমানিক হিসাব, নিশ্চিত দাম নয়। এটি পরামর্শ নয় — নিজে যাচাই করে সিদ্ধান্ত নিন।"
-              : "Fair value is a rough estimate, not a promise. This is not advice — check for yourself before you decide."}
+              ? "ন্যায্য দাম একটি আনুমানিক হিসাব, নিশ্চিত দাম নয়। এটি পরামর্শ নয়, তাই নিজে যাচাই করে সিদ্ধান্ত নিন।"
+              : "Fair value is a rough estimate, not a promise. This is not advice, so please check for yourself before you decide."}
           </p>
         </PremiumGate>
       )}

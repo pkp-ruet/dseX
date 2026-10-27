@@ -8,12 +8,16 @@ import { apiLogin, type AuthApiResponse } from "@/lib/api";
 import { loadWatchlist } from "@/lib/watchlist";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import PageHeader from "@/components/ui/PageHeader";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
 
 type Mode = "email" | "phone";
 
 export default function LoginForm() {
   const router = useRouter();
   const { login } = useAuth();
+  const { lang } = useLang();
+  const L = (en: string, bn: string) => (lang === "bn" ? bn : en);
 
   const [mode, setMode] = useState<Mode>("email");
   const [identifier, setIdentifier] = useState("");
@@ -36,8 +40,12 @@ export default function LoginForm() {
       await loadWatchlist();
       router.push("/");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Login failed.";
-      setError(msg === "AUTH_EXPIRED" ? "Session expired. Please log in again." : msg);
+      const msg = err instanceof Error ? err.message : L("We couldn't sign you in.", "সাইন ইন করা যায়নি।");
+      setError(
+        msg === "AUTH_EXPIRED"
+          ? L("Your session has ended. Please sign in again.", "আপনার সেশন শেষ হয়েছে। আবার সাইন ইন করুন।")
+          : msg,
+      );
     } finally {
       setLoading(false);
     }
@@ -53,18 +61,24 @@ export default function LoginForm() {
     <div className="page-form pb-8">
       <PageHeader
         size="article"
-        title="Sign in"
-        bn="আবার স্বাগতম — লগইন করলে আপনার ওয়াচলিস্ট আর পোর্টফোলিও সব ডিভাইসে পাবেন।"
-        lead="Welcome back to TopStockBD"
+        title={<T en="Sign in" bn="সাইন ইন" />}
+        lead={
+          <T
+            en="Welcome back. Sign in to see your watchlist and portfolio on every device."
+            bn="আবার স্বাগতম। সাইন ইন করলে আপনার ওয়াচলিস্ট আর পোর্টফোলিও সব ডিভাইসে পাবেন।"
+          />
+        }
       />
       {/* One centred form card (2026-10 redesign, step 9) */}
       <div className="soft-card p-5 sm:p-6">
 
         <GoogleSignInButton onSuccess={handleGoogleSuccess} onError={setError} />
-        <div className="auth-divider my-5">or</div>
+        <div className="auth-divider my-5">
+          <T en="or" bn="অথবা" />
+        </div>
 
         {/* Mode toggle — segmented control, each member a 40px .btn-tab */}
-        <div className="flex gap-1 mb-5 p-1 rounded-lg bg-surface border border-border" role="tablist" aria-label="Sign-in method">
+        <div className="flex gap-1 mb-5 p-1 rounded-lg bg-surface border border-border" role="tablist" aria-label={L("Sign-in method", "সাইন ইনের পদ্ধতি")}>
           {(["email", "phone"] as Mode[]).map((m) => (
             <button
               key={m}
@@ -74,7 +88,7 @@ export default function LoginForm() {
               onClick={() => { setMode(m); setIdentifier(""); setError(""); }}
               className={`btn-tab flex-1 ${mode === m ? "is-active" : ""}`}
             >
-              {m === "email" ? "Email" : "Phone"}
+              {m === "email" ? <T en="Email" bn="ইমেইল" /> : <T en="Phone" bn="ফোন" />}
             </button>
           ))}
         </div>
@@ -82,7 +96,11 @@ export default function LoginForm() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
             <label htmlFor="login-1" className="text-sm font-medium text-text-main">
-              {mode === "email" ? "Email address" : "Phone number"}
+              {mode === "email" ? (
+                <T en="Email address" bn="ইমেইল ঠিকানা" />
+              ) : (
+                <T en="Phone number" bn="ফোন নম্বর" />
+              )}
             </label>
             <input id="login-1"
               type={mode === "email" ? "email" : "tel"}
@@ -96,13 +114,15 @@ export default function LoginForm() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label htmlFor="login-2" className="text-sm font-medium text-text-main">Password</label>
+            <label htmlFor="login-2" className="text-sm font-medium text-text-main">
+              <T en="Password" bn="পাসওয়ার্ড" />
+            </label>
             <div className="relative">
               <input id="login-2"
                 type={showPw ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
+                placeholder={L("Enter your password", "পাসওয়ার্ড লিখুন")}
                 required
                 className="input-field pr-10"
                 autoComplete="current-password"
@@ -111,7 +131,7 @@ export default function LoginForm() {
                 type="button"
                 onClick={() => setShowPw(!showPw)}
                 className="absolute right-1 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md text-text-muted hover:text-text-main active:bg-surface-2"
-                aria-label={showPw ? "Hide password" : "Show password"}
+                aria-label={showPw ? L("Hide password", "পাসওয়ার্ড লুকান") : L("Show password", "পাসওয়ার্ড দেখুন")}
               >
                 {showPw ? (
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -137,14 +157,14 @@ export default function LoginForm() {
             disabled={loading}
             className="btn-primary btn-block"
           >
-            {loading ? "Signing in…" : "Sign In"}
+            {loading ? <T en="Signing in…" bn="সাইন ইন হচ্ছে…" /> : <T en="Sign in" bn="সাইন ইন" />}
           </button>
         </form>
 
         <p className="mt-5 text-sm text-center text-text-muted">
-          No account?{" "}
+          <T en="No account yet?" bn="এখনো অ্যাকাউন্ট নেই?" />{" "}
           <Link href="/register" className="text-primary hover:underline font-medium">
-            Create one
+            <T en="Create one" bn="অ্যাকাউন্ট খুলুন" />
           </Link>
         </p>
       </div>

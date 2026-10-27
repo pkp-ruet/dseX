@@ -1,18 +1,18 @@
 import Link from "next/link";
 import Button from "@/components/ui/Button";
-import Bn from "@/components/i18n/Bn";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import TierPill from "@/components/ui/TierPill";
 import SignalChip from "@/components/ui/SignalChip";
 import { IconCheck, IconCrown } from "@/components/ui/icons";
+import { T } from "@/components/i18n/T";
 import { changePct, changeTone, money } from "@/lib/formatters";
 import type { ScoreItem } from "@/lib/api";
 
 const OPEN = [
-  { en: "Why it is a Buy, a Sell or neither — the full reason", bn: "কেন কেনা, বেচা বা কোনোটাই নয় — পুরো কারণ" },
-  { en: "Fair value: what the price should be", bn: "ন্যায্য দাম: দাম কত হওয়া উচিত" },
-  { en: "All five health checks, explained", bn: "পাঁচটি স্বাস্থ্য পরীক্ষার পুরো ব্যাখ্যা" },
-  { en: "Every good sign and watch-out", bn: "সব ভালো লক্ষণ আর সতর্কতা" },
+  { en: "Why it is a Buy, a Sell or neither, with the full reason", bn: "কেন কেনা, বিক্রি বা কোনোটিই নয়, পুরো কারণসহ" },
+  { en: "Its fair price, and how we worked it out", bn: "এর ন্যায্য দাম, আর কীভাবে হিসাব করেছি" },
+  { en: "All five checks, explained", bn: "পাঁচটি যাচাইয়ের পুরো ব্যাখ্যা" },
+  { en: "Every good sign and thing to watch", bn: "সব ভালো দিক আর সতর্কতার দিক" },
 ];
 
 /**
@@ -20,28 +20,24 @@ const OPEN = [
  * stock page is fully open for everyone today — a free reader sees exactly
  * what Premium is before paying. Used on the landing page (server) and in the
  * dashboard (client, free readers only — Premium has every report open); no
- * hooks, so it renders in both.
+ * hooks, so it renders in both. Every line carries both languages (`<T>`).
  * `#free-report` is what the stock page's Premium section links to.
  */
 export default function FreeReportCard({
   item,
-  lang = "en",
 }: {
   item: ScoreItem;
+  /** Ignored — the card follows the page language. Kept so old callers compile. */
   lang?: "en" | "bn";
 }) {
-  const bn = lang === "bn";
   const code = item.trading_code;
   const name = item.company_name || code;
-  const t = (en: string, b: string) => (bn ? b : en);
-  const textCls = bn ? "font-bn" : "";
-  const langAttr = bn ? "bn" : undefined;
 
   return (
     <section id="free-report" aria-labelledby="free-report-h" className="soft-card dash-box p-5 sm:p-6">
-      <p className={`flex items-center gap-2 text-sm font-semibold text-primary-ink ${textCls}`} lang={langAttr}>
+      <p className="flex items-center gap-2 text-sm font-semibold text-primary-ink">
         <IconCrown size={16} />
-        {t("Today's free full report", "আজকের ফ্রি পূর্ণ রিপোর্ট")}
+        <T en="Today's free full report" bn="আজকের ফ্রি পূর্ণ রিপোর্ট" />
       </p>
 
       <div className="mt-3 flex items-center gap-4">
@@ -58,31 +54,38 @@ export default function FreeReportCard({
             )}
           </p>
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
-            <TierPill score={item.score} lang={lang} />
-            {item.signal && <SignalChip signal={item.signal.signal} strength={item.signal.strength} lang={lang} />}
+            <TierPill score={item.score} />
+            {item.signal && <SignalChip signal={item.signal.signal} strength={item.signal.strength} />}
           </div>
         </div>
       </div>
 
-      <p className={`mt-4 text-sm text-text-muted ${textCls}`} lang={langAttr}>
-        {t(
-          "Every part of this stock's page is open for everyone today — the parts Premium opens on every stock:",
-          "আজ এই শেয়ারের পুরো পাতা সবার জন্য খোলা — প্রিমিয়ামে যা প্রতিটি শেয়ারে খোলা থাকে:",
-        )}
+      <p className="mt-4 text-sm text-text-muted">
+        <T
+          en="Today this whole page is open to everyone. These are the parts Premium opens on every share:"
+          bn="আজ এই শেয়ারের পুরো পেজ সবার জন্য খোলা। প্রিমিয়ামে প্রতিটি শেয়ারে যা খোলা থাকে:"
+        />
       </p>
-      <ul className={`mt-2 grid grid-cols-1 gap-1.5 sm:grid-cols-2 ${textCls}`} lang={langAttr}>
+      <ul className="mt-2 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
         {OPEN.map((o) => (
           <li key={o.en} className="flex items-start gap-2 text-sm text-text-main">
             <span className="mt-0.5 shrink-0 text-positive"><IconCheck size={14} /></span>
-            <span>{bn ? o.bn : o.en}</span>
+            <span>
+              <T en={o.en} bn={o.bn} />
+            </span>
           </li>
         ))}
       </ul>
-      {!bn && <Bn className="mt-2 text-sm text-text-muted">প্রতিদিন একটি পরিচিত কোম্পানির পুরো রিপোর্ট সবার জন্য ফ্রি।</Bn>}
+      <p className="mt-2 text-sm text-text-muted">
+        <T
+          en="Each day, the full report on one well-known company is free for everyone."
+          bn="প্রতিদিন একটি পরিচিত কোম্পানির পূর্ণ রিপোর্ট সবার জন্য ফ্রি।"
+        />
+      </p>
 
       <div className="mt-4">
         <Button href={`/stock/${code}?src=free`} block>
-          {t(`Read the full ${code} report`, `${code}-এর পুরো রিপোর্ট পড়ুন`)}
+          <T en={`Read the full ${code} report`} bn={`${code}-এর পূর্ণ রিপোর্ট পড়ুন`} />
         </Button>
       </div>
     </section>

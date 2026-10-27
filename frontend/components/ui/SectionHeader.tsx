@@ -1,10 +1,9 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import Bn from "@/components/i18n/Bn";
 
 /**
- * THE section header (2026-10 redesign, step 0): title, the Bengali line under
- * it, an optional one-sentence lead, and an optional "See all" link on the
+ * THE section header (2026-10 redesign, step 0): title (a `<T en bn />` pair),
+ * an optional one-sentence lead, and an optional "See all" link on the
  * right. Replaces the four older styles (`section-rule-modern`, landing
  * `SectionHead`, stock `SectionTitle`, dashboard `DashHeader`) as each page is
  * redone — new code uses this one.
@@ -14,7 +13,6 @@ import Bn from "@/components/i18n/Bn";
  */
 export default function SectionHeader({
   title,
-  bn,
   lead,
   action,
   id,
@@ -23,12 +21,10 @@ export default function SectionHeader({
   className = "",
 }: {
   title: ReactNode;
-  /** The Bengali line under the title (rendered with lang="bn" + .font-bn). */
-  bn?: ReactNode;
   /** One short sentence under the title. */
   lead?: ReactNode;
   /** "See all" link, or any small control, on the right. */
-  action?: { href: string; label: string } | ReactNode;
+  action?: { href: string; label: ReactNode } | ReactNode;
   /** Put on the heading, for aria-labelledby and jump links. */
   id?: string;
   as?: "h2" | "h3";
@@ -60,7 +56,6 @@ export default function SectionHeader({
         <Tag id={id} className={`${titleCls} text-balance text-text-main`}>
           {title}
         </Tag>
-        {bn && <Bn className="mt-0.5 text-sm text-text-muted">{bn}</Bn>}
         {lead && <p className="mt-1 max-w-prose text-sm text-text-muted">{lead}</p>}
       </div>
       {actionNode && <div className="shrink-0">{actionNode}</div>}

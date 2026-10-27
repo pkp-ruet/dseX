@@ -94,7 +94,7 @@ export default function ProInsights({ insights, lang = "en" }: { insights: Insig
   return (
     <PfCard
       title={t.title}
-      bn={STR.bn.title}
+
       note={t.sub}
       lang={lang}
       dataCard="pro-insights"

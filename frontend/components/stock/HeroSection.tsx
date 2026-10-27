@@ -5,12 +5,13 @@ import PriceAlertButton from "@/components/stock/PriceAlertButton";
 import ShareButton from "@/components/stock/ShareButton";
 import CategoryChip from "@/components/stock/CategoryChip";
 import YourPosition from "@/components/stock/YourPosition";
-import { StockLangToggle } from "@/components/stock/LangToggle";
 import { IconAlert, IconFlame } from "@/components/stock/StockIcons";
 import Chip from "@/components/ui/Chip";
+import { T } from "@/components/i18n/T";
 import { taka, signed } from "@/lib/formatters";
-import { range52wInfo } from "@/lib/plain-language";
+import { range52wInfo, type Bi } from "@/lib/plain-language";
 import { sectorSlug } from "@/lib/sector";
+import { sectorBn } from "@/lib/bn";
 import type { CompanyDetail } from "@/lib/api";
 
 interface Props {
@@ -20,22 +21,34 @@ interface Props {
 /** Token-tinted chip colours (CategoryChip takes raw CSS colour strings). */
 const tint = (token: string, pct: number) => `color-mix(in srgb, var(--${token}) ${pct}%, transparent)`;
 
-// DSE market category, in plain English. Tone mirrors how the score treats it.
-const CATEGORY_INFO: Record<string, { note: string; color: string; bg: string; border: string }> = {
+// DSE market category, in plain words. Tone mirrors how the score treats it.
+const CATEGORY_INFO: Record<string, { note: Bi; color: string; bg: string; border: string }> = {
   A: {
-    note: "Category A — pays regular dividends and holds its yearly meetings on time. The top tier.",
+    note: {
+      en: "Category A companies pay regular dividends and hold their annual meeting on time. It is the top category.",
+      bn: "A ক্যাটাগরির কোম্পানি নিয়মিত ডিভিডেন্ড দেয় আর সময়মতো এজিএম করে। এটি সবচেয়ে ভালো ক্যাটাগরি।",
+    },
     color: "var(--positive)", bg: tint("positive", 8), border: tint("positive", 30),
   },
   B: {
-    note: "Category B — pays small or irregular dividends. Not the top tier.",
+    note: {
+      en: "Category B companies pay small or irregular dividends. It is below the top category.",
+      bn: "B ক্যাটাগরির কোম্পানি কম বা অনিয়মিত ডিভিডেন্ড দেয়। এটি সবচেয়ে ভালো ক্যাটাগরির নিচে।",
+    },
     color: "var(--watch)", bg: tint("watch", 8), border: tint("watch", 30),
   },
   N: {
-    note: "Category N — newly listed company. No dividend track record yet.",
+    note: {
+      en: "Category N means the company is newly listed, so it has no dividend record yet.",
+      bn: "N ক্যাটাগরি মানে কোম্পানিটি নতুন তালিকাভুক্ত, তাই ডিভিডেন্ডের কোনো রেকর্ড এখনো নেই।",
+    },
     color: "var(--primary-ink)", bg: tint("primary", 8), border: tint("primary", 30),
   },
   Z: {
-    note: "Category Z — hasn't paid dividends or held yearly meetings. Extra risky — be careful.",
+    note: {
+      en: "Category Z companies have not paid dividends or held their annual meeting. These carry extra risk, so take care.",
+      bn: "Z ক্যাটাগরির কোম্পানি ডিভিডেন্ড দেয়নি বা এজিএম করেনি। এগুলোতে ঝুঁকি বেশি, তাই সাবধান থাকুন।",
+    },
     color: "var(--negative)", bg: tint("negative", 8), border: tint("negative", 35),
   },
 };
@@ -66,18 +79,23 @@ export default function HeroSection({ detail }: Props) {
   const vol = latest_price.volume;
   const avgVol = latest_price.avg_volume_7d;
   const volRatio = vol != null && avgVol != null && avgVol > 0 && vol > 0 ? vol / avgVol : null;
-  const busyLabel =
-    volRatio != null && volRatio >= 2
-      ? `Traded ${volRatio >= 10 ? Math.round(volRatio) : volRatio.toFixed(1)}× its usual volume today`
-      : null;
+  const busyX = volRatio != null && volRatio >= 2 ? (volRatio >= 10 ? Math.round(volRatio).toString() : volRatio.toFixed(1)) : null;
 
   return (
     <>
       <nav aria-label="Breadcrumb" className="mb-4">
         <ol className="flex items-center gap-1 text-xs text-text-muted">
-          <li><Link href="/" className="inline-flex items-center min-h-10 hover:text-primary transition-colors">Home</Link></li>
+          <li>
+            <Link href="/" className="inline-flex items-center min-h-10 hover:text-primary transition-colors">
+              <T en="Home" bn="হোম" />
+            </Link>
+          </li>
           <li aria-hidden="true" className="opacity-40">/</li>
-          <li><Link href="/dsestockranking" className="inline-flex items-center min-h-10 hover:text-primary transition-colors">Rankings</Link></li>
+          <li>
+            <Link href="/dsestockranking" className="inline-flex items-center min-h-10 hover:text-primary transition-colors">
+              <T en="Rankings" bn="র‍্যাঙ্কিং" />
+            </Link>
+          </li>
           <li aria-hidden="true" className="opacity-40">/</li>
           <li aria-current="page" className="font-semibold text-text-main">{code}</li>
         </ol>
@@ -86,15 +104,11 @@ export default function HeroSection({ detail }: Props) {
       {/* Hero — open on the canvas, no box (2026-10 redesign: space before boxes).
           The price is the biggest thing on the page. */}
       <header id="ch-overview" className="stock-anchor mb-6 flex flex-col gap-5">
-        {/* Identity: name + the page-wide EN / বাংলা switch, then quiet chips */}
-        <div className="flex items-start justify-between gap-3">
-          {profile.company_name && (
-            <h1 className="min-w-0 break-words text-2xl font-bold leading-tight tracking-tight text-text-main text-balance sm:text-4xl">
-              {profile.company_name}
-            </h1>
-          )}
-          <StockLangToggle size="sm" className="shrink-0" />
-        </div>
+        {profile.company_name && (
+          <h1 className="min-w-0 break-words text-2xl font-bold leading-tight tracking-tight text-text-main text-balance sm:text-4xl">
+            {profile.company_name}
+          </h1>
+        )}
 
         <div className="-mt-2 flex flex-wrap items-center gap-2">
           <Chip>{code}</Chip>
@@ -102,16 +116,15 @@ export default function HeroSection({ detail }: Props) {
             <Link
               href={`/sector/${sectorSlug(profile.sector)}`}
               prefetch={false}
-              title={`See every ${profile.sector} company`}
               className="inline-flex min-h-6 items-center gap-1 rounded-full border border-border bg-surface px-2.5 text-xs font-semibold text-text-main hover:border-text-muted"
             >
-              {profile.sector} <span aria-hidden="true">→</span>
+              <T en={profile.sector} bn={sectorBn(profile.sector)} /> <span aria-hidden="true">→</span>
             </Link>
           )}
           {categoryInfo && (
             <CategoryChip
               category={category}
-              note={categoryInfo.note}
+              note={<T en={categoryInfo.note.en} bn={categoryInfo.note.bn} />}
               color={categoryInfo.color}
               bg={categoryInfo.bg}
               border={categoryInfo.border}
@@ -119,8 +132,10 @@ export default function HeroSection({ detail }: Props) {
           )}
           {staleData && lastReportedYear != null && (
             <Chip tone="watch" icon={<IconAlert size={12} />}>
-              Last reported {lastReportedYear}
-              {dataAgeYears != null && dataAgeYears >= 2 ? ` · ${dataAgeYears} years old` : ""}
+              <T
+                en={`Last accounts: ${lastReportedYear}${dataAgeYears != null && dataAgeYears >= 2 ? `, ${dataAgeYears} years old` : ""}`}
+                bn={`সর্বশেষ হিসাব: ${lastReportedYear}${dataAgeYears != null && dataAgeYears >= 2 ? `, ${dataAgeYears} বছর পুরোনো` : ""}`}
+              />
             </Chip>
           )}
         </div>
@@ -134,15 +149,20 @@ export default function HeroSection({ detail }: Props) {
             {chg != null && (
               <span className={`nums text-base font-bold ${isPositive ? "text-positive" : isNegative ? "text-negative" : "text-text-muted"}`}>
                 <span aria-hidden="true">{isPositive ? "▲ " : isNegative ? "▼ " : ""}</span>
-                {signed(chg)}% today
+                {signed(chg)}% <T en="today" bn="আজ" />
               </span>
             )}
-            <span className="text-xs font-semibold text-text-muted">Official closing price</span>
+            <span className="text-xs font-semibold text-text-muted">
+              <T en="Official closing price" bn="দিনশেষের অফিশিয়াল দাম" />
+            </span>
           </div>
-          {busyLabel && (
+          {busyX && (
             <div className="mt-1">
               <Chip tone="watch" icon={<IconFlame size={12} />}>
-                <span title="Compared with its average over the previous 7 trading days">{busyLabel}</span>
+                <T
+                  en={`Traded ${busyX} times its usual amount today`}
+                  bn={`আজ স্বাভাবিকের ${busyX} গুণ লেনদেন হয়েছে`}
+                />
               </Chip>
             </div>
           )}
@@ -166,9 +186,15 @@ export default function HeroSection({ detail }: Props) {
             {/* Grid, not justify-between: at 360px the caption wraps in the middle
                 cell while Low / High stay pinned to the bar's two ends. */}
             <div className="mb-2 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 text-xs font-semibold text-text-muted">
-              <span className="nums whitespace-nowrap">Low {taka(latest_price.w52_low, 1)}</span>
-              <span className={`text-center font-bold leading-tight ${rangeTextCls}`}>{range.caption}</span>
-              <span className="nums whitespace-nowrap">High {taka(latest_price.w52_high, 1)}</span>
+              <span className="nums whitespace-nowrap">
+                <T en="Low" bn="সর্বনিম্ন" /> {taka(latest_price.w52_low, 1)}
+              </span>
+              <span className={`text-center font-bold leading-tight ${rangeTextCls}`}>
+                <T en={range.caption.en} bn={range.caption.bn} />
+              </span>
+              <span className="nums whitespace-nowrap">
+                <T en="High" bn="সর্বোচ্চ" /> {taka(latest_price.w52_high, 1)}
+              </span>
             </div>
             <div className="relative h-1.5 rounded-full bg-surface-2">
               <div
@@ -176,7 +202,12 @@ export default function HeroSection({ detail }: Props) {
                 style={{ left: `${range.position * 100}%` }}
               />
             </div>
-            <p className="mt-2 text-xs text-text-muted">Where today&apos;s price sits in its 52-week range</p>
+            <p className="mt-2 text-xs text-text-muted">
+              <T
+                en="Where today's price sits between this year's lowest and highest"
+                bn="এ বছরের সর্বনিম্ন আর সর্বোচ্চ দামের মধ্যে আজকের দাম কোথায়"
+              />
+            </p>
           </div>
         )}
 

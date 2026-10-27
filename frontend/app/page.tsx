@@ -37,6 +37,7 @@ import LandingClose from "@/components/landing/LandingClose";
 import FeedbackSection from "@/components/feedback/FeedbackSection";
 import FreeReportCard from "@/components/home/FreeReportCard";
 import SectionHead from "@/components/i18n/SectionHead";
+import { T } from "@/components/i18n/T";
 import { freeReportCode } from "@/lib/free-report";
 
 // Hourly, not daily: the page now renders today's movers, buy signals,
@@ -167,6 +168,7 @@ async function MarketTodaySection({
       sectors={market?.now?.sectors ?? []}
       news={(news ?? []).slice(0, 12)}
       summaryBn={market?.summary_bn}
+      summaryEn={market?.summary_en}
       next={market?.next ?? null}
     />
   );
@@ -233,9 +235,14 @@ async function FreeReportSection({ promise }: { promise: Promise<ScoresResponse 
     <section aria-labelledby="free-report-head">
       <SectionHead
         id="free-report-head"
-        eyebrow="Free today"
-        title="Read one full report, free"
-        bn="প্রতিদিন একটি পরিচিত কোম্পানির পুরো বিশ্লেষণ সবার জন্য খোলা — কোনো অ্যাকাউন্ট লাগবে না।"
+        eyebrow={<T en="Free today" bn="আজ ফ্রি" />}
+        title={<T en="Read one full report, free" bn="একটি পূর্ণ রিপোর্ট ফ্রি পড়ুন" />}
+        sub={
+          <T
+            en="Each day, the full analysis of one well-known company is open to everyone. No account is needed."
+            bn="প্রতিদিন একটি পরিচিত কোম্পানির পূর্ণ বিশ্লেষণ সবার জন্য খোলা। কোনো অ্যাকাউন্ট লাগবে না।"
+          />
+        }
       />
       <div className="mt-6 max-w-2xl">
         <FreeReportCard item={item} />
@@ -288,10 +295,9 @@ function HeroFallback() {
  * and there is no performance claim anywhere on the page because the product
  * doesn't make one.
  *
- * Language: there is no toggle. Every headline is English in easy words with one
- * simple Bengali line under it (components/i18n/SectionHead.tsx for section
- * heads, components/i18n/Bn.tsx for a Bengali line anywhere else). Small UI text
- * — chips, buttons, table headers, metric labels — stays English only.
+ * Language (2026-10-27): one language per page, chosen by the navbar switch
+ * (Bengali for a first visit). Every line carries both languages through
+ * `<T>` (components/i18n/T.tsx) and CSS shows one; voice per docs/voice.md.
  *
  * Order was corrected three times. The first cut buried the product under two
  * sections of trust-and-method prose; both were deleted. The second cut put the

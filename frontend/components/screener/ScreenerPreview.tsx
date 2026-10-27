@@ -30,7 +30,6 @@ export default function ScreenerPreview({
   cta,
   ctaHref,
   onCta,
-  bn,
   t,
 }: {
   open: boolean;
@@ -48,7 +47,6 @@ export default function ScreenerPreview({
   cta: string;
   ctaHref: string;
   onCta: () => void;
-  bn: boolean;
   t: (en: string, bn: string) => string;
 }) {
   const rows = (stocks ?? []).slice(0, PREVIEW_ROWS);
@@ -73,7 +71,7 @@ export default function ScreenerPreview({
 
         {error ? (
           <p className="text-sm text-text-muted">
-            {t("Couldn't load the preview. Try again in a moment.", "প্রিভিউ আনা যায়নি। একটু পরে আবার চেষ্টা করুন।")}
+            {t("We couldn't load the preview. Please try again in a moment.", "প্রিভিউ আনা যায়নি। একটু পরে আবার চেষ্টা করুন।")}
           </p>
         ) : loading || count == null ? (
           <div className="space-y-2"><Skeleton height={48} /><Skeleton height={140} /></div>
@@ -82,7 +80,7 @@ export default function ScreenerPreview({
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-bold tabular-nums text-text-main">{count}</span>
               <span className="text-sm text-text-muted">
-                {t(count === 1 ? "stock" : "stocks", "টি শেয়ার")}
+                {t(count === 1 ? "share" : "shares", "টি শেয়ার")}
                 {current != null && current !== count && t(` · you have ${current} now`, ` · এখন আছে ${current}টি`)}
               </span>
             </div>
@@ -99,7 +97,6 @@ export default function ScreenerPreview({
                       name={s.name}
                       price={s.price}
                       change={s.change_pct}
-                      lang={bn ? "bn" : "en"}
                     />
                   ))}
                 </ul>
@@ -112,7 +109,7 @@ export default function ScreenerPreview({
               </div>
             ) : (
               <p className="text-sm text-text-muted">
-                {t("No stock passes with this change today.", "এই বদলে আজ কোনো শেয়ার পাস করছে না।")}
+                {t("No share passes with this change today.", "এই বদলে আজ কোনো শেয়ার পাস করছে না।")}
               </p>
             )}
           </>

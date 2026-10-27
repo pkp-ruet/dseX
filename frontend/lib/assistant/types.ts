@@ -78,6 +78,8 @@ export interface StockRow {
   change_pct: number | null;
   /** Pre-formatted metric string shown in the right column. */
   metricValue: string;
+  /** The same figure written for Bengali mode (e.g. "৳12 কোটি"); falls back to `metricValue`. */
+  metricValueBn?: string;
   metricTone?: MetricTone;
 }
 
@@ -91,21 +93,27 @@ export interface MarketSummaryView {
   neutral: number | null;
   marketOpen: boolean;
   closedNote?: string;
-  /** One plain-English sentence summing up the day. */
+  closedNoteBn?: string;
+  /** One plain sentence summing up the day, in both languages. */
   line: string;
+  lineBn?: string;
 }
 
 export interface StockFact {
   label: string;
+  labelBn?: string;
   value: string;
   tone?: MetricTone;
 }
 
 /** One tappable line in the daily-brief block (mirrors the home "what's new" bell). */
 export interface BriefRow {
-  emoji: string;
+  /** Legacy glyph from transcripts saved before 2026-10-28; no longer rendered. */
+  emoji?: string;
   title: string;
+  titleBn?: string;
   detail?: string;
+  detailBn?: string;
   href?: string;
   tone?: MetricTone;
 }
@@ -117,10 +125,12 @@ export interface StockDetailView {
   ltp: number | null;
   changePct: number | null;
   score: number | null;
-  /** verdict.tagline — already plain English. */
+  /** verdict.tagline and its Bengali twin. */
   tagline: string | null;
-  green: string[];
-  red: string[];
+  taglineBn?: string | null;
+  /** Good signs / watch-outs as {en, bn} pairs. */
+  green: { en: string; bn: string }[];
+  red: { en: string; bn: string }[];
   facts: StockFact[];
   stale?: boolean;
 }
@@ -128,8 +138,9 @@ export interface StockDetailView {
 /** A tappable suggestion. Exactly one of send/slot/action/client drives behavior. */
 export interface Chip {
   label: string;
-  /** Optional Bengali label shown beneath the English one (audience is bilingual). */
+  /** The label in Bengali; the chip shows one language, following the navbar switch. */
   labelBn?: string;
+  /** Legacy glyph from transcripts saved before 2026-10-28; no longer rendered. */
   emoji?: string;
   /** Re-enter the parser as if the user typed this. */
   send?: string;
@@ -145,16 +156,20 @@ export interface Chip {
 export type SlotKey = "strategy" | "dividend" | "risk" | "sectors";
 
 export type MessageBlock =
-  | { type: "text"; text: string; bn?: string; link?: { href: string; label: string } }
+  | { type: "text"; text: string; bn?: string; link?: { href: string; label: string; labelBn?: string } }
   | { type: "chips"; chips: Chip[]; layout?: "wrap" | "scroll" }
   | {
       type: "stock-list";
       title: string;
+      titleBn?: string;
       subtitle?: string;
+      subtitleBn?: string;
       metricLabel: string;
+      metricLabelBn?: string;
       items: StockRow[];
       seeAllHref?: string;
       seeAllLabel?: string;
+      seeAllLabelBn?: string;
     }
   | { type: "recommended-list"; picks: RecommendedStock[]; relaxations: string[] }
   | { type: "market-summary"; view: MarketSummaryView }

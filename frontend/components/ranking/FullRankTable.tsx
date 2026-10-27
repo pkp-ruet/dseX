@@ -2,7 +2,7 @@
 
 import { Fragment, useMemo, useState, type MouseEvent, type ReactNode } from "react";
 import Link from "next/link";
-import { TIER_LABELS, TIER_MEANINGS, TIER_VAR, type TierKey } from "@/lib/constants";
+import { TIER_LABELS, TIER_LABELS_BN, TIER_MEANINGS, TIER_MEANINGS_BN, TIER_VAR, type TierKey } from "@/lib/constants";
 import StarButton from "@/components/ui/StarButton";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import { SortIcon, type SortDir } from "@/components/ui/Table";
@@ -12,6 +12,9 @@ import { pillarColor } from "@/lib/insight-utils";
 import { PILLARS } from "@/lib/landing";
 import type { ScoreItem } from "@/lib/api";
 import EmptyState from "@/components/ui/EmptyState";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
+import { sectorBn } from "@/lib/bn";
 
 export interface RankedItem extends ScoreItem {
   tier: TierKey;
@@ -51,11 +54,11 @@ const COL_COUNT = 10;
  * signal's valuation fork (p4_val ≥7 cheap, <4 expensive), so the word never
  * disagrees with a signal elsewhere on the site.
  */
-export function priceWord(p4: number | null | undefined): { label: string; tone: string } | null {
+export function priceWord(p4: number | null | undefined): { label: string; labelBn: string; tone: string } | null {
   if (p4 == null) return null;
-  if (p4 >= 7) return { label: "Good price", tone: "text-positive" };
-  if (p4 >= 4) return { label: "Fair price", tone: "text-tier-average" };
-  return { label: "Expensive", tone: "text-watch" };
+  if (p4 >= 7) return { label: "Good price", labelBn: "ভালো দাম", tone: "text-positive" };
+  if (p4 >= 4) return { label: "Fair price", labelBn: "ন্যায্য দাম", tone: "text-tier-average" };
+  return { label: "Expensive", labelBn: "দাম বেশি", tone: "text-watch" };
 }
 
 /** Five tiny bars — what the score is made of, readable at a glance. */
@@ -80,8 +83,14 @@ function CheckBars({ item }: { item: RankedItem }) {
 }
 
 const FLAG_NOTES = {
-  Z: "Z category — the company has paid irregular dividends or none, and its shares carry extra trading limits. Its score is pulled down for this.",
-  B: "B category — the dividend record is below par.",
+  Z: {
+    en: "Z category: the company has paid irregular dividends or none, and its shares carry extra trading limits. Its score is lowered for this.",
+    bn: "Z ক্যাটাগরি: কোম্পানি অনিয়মিত ডিভিডেন্ড দিয়েছে বা দেয়নি, আর এর শেয়ারের লেনদেনে বাড়তি সীমা আছে। এ কারণে স্কোর কমানো হয়েছে।",
+  },
+  B: {
+    en: "B category: the company's recent dividends were low.",
+    bn: "B ক্যাটাগরি: কোম্পানির সাম্প্রতিক ডিভিডেন্ড কম ছিল।",
+  },
 };
 
 /**
@@ -89,7 +98,7 @@ const FLAG_NOTES = {
  * tooltip, which never appears on a phone — so the tag is a button that opens
  * one plain line under the name.
  */
-function FlagTag({ label, note }: { label: string; note: string }) {
+function FlagTag({ label, note }: { label: ReactNode; note: ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -114,7 +123,7 @@ function HeadCell({
   className = "",
 }: {
   col: RankSortCol;
-  label: string;
+  label: ReactNode;
   sort: RankSort;
   onSort: (col: RankSortCol) => void;
   className?: string;
@@ -157,9 +166,13 @@ export default function FullRankTable({ rows, grouped, sort, onSort, groupCounts
   if (rows.length === 0) {
     return (
       <EmptyState
-        title="No companies match your filters"
-        message="Try clearing the search or choosing a different sector."
-        bn="এই ফিল্টারে কোনো কোম্পানি মিলছে না। সার্চ মুছে বা অন্য সেক্টর বেছে দেখুন।"
+        title={<T en="No companies match your filters" bn="এই ফিল্টারে কোনো কোম্পানি মেলেনি" />}
+        message={
+          <T
+            en="Try clearing the search or choosing a different sector."
+            bn="সার্চ মুছে দেখুন, বা অন্য একটি সেক্টর বেছে নিন।"
+          />
+        }
       />
     );
   }
@@ -170,15 +183,39 @@ export default function FullRankTable({ rows, grouped, sort, onSort, groupCounts
         <thead className="rk-thead">
           <tr>
             <th scope="col" className="rk-th rk-num">#</th>
-            <HeadCell col="name" label="Company" sort={sort} onSort={onSort} />
-            <th scope="col" className="rk-th">Five checks</th>
-            <HeadCell col="rank" label="Score" sort={sort} onSort={onSort} />
-            <HeadCell col="value" label="Price today" sort={sort} onSort={onSort} />
-            <HeadCell col="growth" label="Profit growth" sort={sort} onSort={onSort} className="rk-num rk-hide-lg" />
-            <HeadCell col="dividend" label="Dividend" sort={sort} onSort={onSort} className="rk-num rk-hide-lg" />
-            <th scope="col" className="rk-th rk-num">Price</th>
-            <th scope="col" className="rk-th"><span className="sr-only">Watchlist</span></th>
-            <th scope="col" className="rk-th"><span className="sr-only">Quick view</span></th>
+            <HeadCell col="name" label={<T en="Company" bn="কোম্পানি" />} sort={sort} onSort={onSort} />
+            <th scope="col" className="rk-th">
+              <T en="Five checks" bn="পাঁচ যাচাই" />
+            </th>
+            <HeadCell col="rank" label={<T en="Score" bn="স্কোর" />} sort={sort} onSort={onSort} />
+            <HeadCell col="value" label={<T en="Price today" bn="আজকের দাম" />} sort={sort} onSort={onSort} />
+            <HeadCell
+              col="growth"
+              label={<T en="Profit growth" bn="মুনাফা বৃদ্ধি" />}
+              sort={sort}
+              onSort={onSort}
+              className="rk-num rk-hide-lg"
+            />
+            <HeadCell
+              col="dividend"
+              label={<T en="Dividend" bn="ডিভিডেন্ড" />}
+              sort={sort}
+              onSort={onSort}
+              className="rk-num rk-hide-lg"
+            />
+            <th scope="col" className="rk-th rk-num">
+              <T en="Price" bn="দাম" />
+            </th>
+            <th scope="col" className="rk-th">
+              <span className="sr-only">
+                <T en="Watchlist" bn="ওয়াচলিস্ট" />
+              </span>
+            </th>
+            <th scope="col" className="rk-th">
+              <span className="sr-only">
+                <T en="Quick view" bn="সংক্ষেপে" />
+              </span>
+            </th>
           </tr>
         </thead>
         {groups.map((group) => (
@@ -188,11 +225,18 @@ export default function FullRankTable({ rows, grouped, sort, onSort, groupCounts
                 <td colSpan={COL_COUNT}>
                   <div className="rk-group-head-inner">
                     <span className="rk-dot" style={{ background: TIER_VAR[group.tier] }} aria-hidden />
-                    <h2 className="rk-group-title">{TIER_LABELS[group.tier]}</h2>
-                    <span className="rk-group-meaning">{TIER_MEANINGS[group.tier]}</span>
+                    <h2 className="rk-group-title">
+                      <T en={TIER_LABELS[group.tier]} bn={TIER_LABELS_BN[group.tier]} />
+                    </h2>
+                    <span className="rk-group-meaning">
+                      <T en={TIER_MEANINGS[group.tier]} bn={TIER_MEANINGS_BN[group.tier]} />
+                    </span>
                     <span className="rk-group-count nums">
-                      <strong>{groupCounts?.[group.tier] ?? group.rows.length}</strong>{" "}
-                      {(groupCounts?.[group.tier] ?? group.rows.length) === 1 ? "company" : "companies"}
+                      <strong>{groupCounts?.[group.tier] ?? group.rows.length}</strong>
+                      <T
+                        en={(groupCounts?.[group.tier] ?? group.rows.length) === 1 ? " company" : " companies"}
+                        bn="টি কোম্পানি"
+                      />
                     </span>
                   </div>
                 </td>
@@ -233,22 +277,33 @@ function RankRow({
   const word = priceWord(item.p4_val);
   const growth = item.eps_yoy_pct;
   const dy = item.div_yield_pct;
+  const { lang } = useLang();
 
   // Narrower screens drop the growth / dividend columns (and phones the
   // price-today one too); one muted line under the name brings them back.
   const subParts: ReactNode[] = [];
   if (growth != null) {
     subParts.push(
-      <span key="g" className={`font-semibold ${changeTone(growth)}`}>Profit {changePct(growth, 0)}</span>
+      <span key="g" className={`font-semibold ${changeTone(growth)}`}>
+        <T en={`Profit ${changePct(growth, 0)}`} bn={`মুনাফা ${changePct(growth, 0)}`} />
+      </span>
     );
   }
-  if (dy != null && dy > 0) subParts.push(<span key="d">Pays {dy.toFixed(1)}%</span>);
+  if (dy != null && dy > 0) {
+    subParts.push(
+      <span key="d">
+        <T en={`Pays ${dy.toFixed(1)}%`} bn={`ডিভিডেন্ড ${dy.toFixed(1)}%`} />
+      </span>
+    );
+  }
   const subWord = word && (
     // Its own span (separator included) so CSS can show it only on phones,
     // where the Price today column is gone.
     <span className="rk-sub-word">
       {subParts.length > 0 && " · "}
-      <span className={`font-semibold ${word.tone}`}>{word.label}</span>
+      <span className={`font-semibold ${word.tone}`}>
+        <T en={word.label} bn={word.labelBn} />
+      </span>
     </span>
   );
 
@@ -265,20 +320,35 @@ function RankRow({
               {item.company_name ?? code}
             </Link>
             {(category === "Z" || category === "B") && (
-              <FlagTag label={`${category} category`} note={FLAG_NOTES[category]} />
+              <FlagTag
+                label={<T en={`${category} category`} bn={`${category} ক্যাটাগরি`} />}
+                note={<T en={FLAG_NOTES[category].en} bn={FLAG_NOTES[category].bn} />}
+              />
             )}
             {item.stale_data && (
               <FlagTag
-                label="Old report"
-                note={`The latest annual report on file is from ${item.last_reported_year ?? "an earlier year"}${
-                  item.data_age_years != null ? ` (${item.data_age_years} years old)` : ""
-                }. The score is pulled down until a new one is published.`}
+                label={<T en="Old report" bn="পুরোনো রিপোর্ট" />}
+                note={
+                  <T
+                    en={`The latest annual report on file is from ${item.last_reported_year ?? "an earlier year"}${
+                      item.data_age_years != null ? `, ${item.data_age_years} years ago` : ""
+                    }. The score stays lower until a new one is published.`}
+                    bn={`সর্বশেষ বার্ষিক রিপোর্ট ${
+                      item.last_reported_year != null ? `${item.last_reported_year} সালের` : "আগের এক বছরের"
+                    }${item.data_age_years != null ? `, ${item.data_age_years} বছর আগের` : ""}। নতুন রিপোর্ট না আসা পর্যন্ত স্কোর কম থাকবে।`}
+                  />
+                }
               />
             )}
           </span>
           <span className="rk-meta">
             <b>{code}</b>
-            {item.sector && <> · {item.sector}</>}
+            {item.sector && (
+              <>
+                {" · "}
+                <T en={item.sector} bn={sectorBn(item.sector)} />
+              </>
+            )}
           </span>
           {(subParts.length > 0 || subWord) && (
             <span className="rk-mobile-sub nums">
@@ -305,7 +375,7 @@ function RankRow({
           {word ? (
             <span className={`rk-word ${word.tone}`}>
               <span className="rk-word-dot" aria-hidden />
-              {word.label}
+              <T en={word.label} bn={word.labelBn} />
             </span>
           ) : (
             <span className="text-text-muted">—</span>
@@ -336,7 +406,11 @@ function RankRow({
             type="button"
             className={`rk-toggle${open ? " is-open" : ""}`}
             aria-expanded={open}
-            aria-label={`${open ? "Hide" : "Show"} quick view for ${item.company_name ?? code}`}
+            aria-label={
+              lang === "bn"
+                ? `${item.company_name ?? code}: সংক্ষেপে ${open ? "লুকান" : "দেখুন"}`
+                : `${open ? "Hide" : "Show"} quick view for ${item.company_name ?? code}`
+            }
             onClick={onToggle}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>

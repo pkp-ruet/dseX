@@ -64,12 +64,21 @@ class CheckDef:
 GROUPS = [
     ("quality", "Quality", "মান"),
     ("price", "Price", "দাম"),
-    ("dividends", "Dividends", "লভ্যাংশ"),
-    ("growth", "Profit", "লাভ"),
+    ("dividends", "Dividends", "ডিভিডেন্ড"),
+    ("growth", "Profit", "মুনাফা"),
     ("safety", "Safety", "নিরাপত্তা"),
     ("market", "Trading and size", "লেনদেন ও আকার"),
-    ("sector", "Sector", "খাত"),
+    ("sector", "Sector", "সেক্টর"),
 ]
+
+
+def _sector_bn(name: str) -> str:
+    """A DSE sector name in Bengali, else the DSE name."""
+    try:
+        from backend.services.summaries_service import _sector_bn as word
+        return word(name) or name
+    except Exception:  # noqa: BLE001 — a label helper must never break a run
+        return name
 
 
 def _ok_fn(fn) -> Callable[[Any], Check]:
@@ -84,24 +93,26 @@ def _ok_fn(fn) -> Callable[[Any], Check]:
 def _grade(v) -> Check:
     words = {45: ("Average or better", "মাঝারি বা তার ওপরে"), 60: ("Good or better", "ভালো বা তার ওপরে"),
              75: ("Excellent", "চমৎকার")}[v]
-    return rl.grade_at_least(v, f"Graded {words[0]} ({v}+)", f"গ্রেড {words[1]} ({v}+)")
+    return rl.grade_at_least(v, f"Graded {words[0]}: a score of {v} or more",
+                             f"গ্রেড {words[1]}: স্কোর {v} বা তার বেশি")
 
 
 def _pe_max(v) -> Check:
     def fn(f, ctx):
         pe = _n(f.get("current_pe"))
         if pe is None or pe <= 0:
-            return False, "No price ÷ profit (loss or no figures)", "দাম ÷ লাভ নেই (লোকসান বা হিসাব নেই)"
-        return pe <= v, f"Price is {_r(pe)}× its profit", f"দাম লাভের {_r(pe)} গুণ"
-    return Check(f"pe_max_{v}", f"Price ÷ profit is {v} or less", f"দাম ÷ লাভ {v} বা তার কম", fn)
+            return False, "No P/E: a loss, or no figures", "পিই নেই: লোকসান, বা হিসাব নেই"
+        return pe <= v, f"Price is {_r(pe)} times its yearly profit", f"দাম বার্ষিক মুনাফার {_r(pe)} গুণ"
+    return Check(f"pe_max_{v}", f"Price is {v} times yearly profit or less",
+                 f"দাম বার্ষিক মুনাফার {v} গুণ বা তার কম", fn)
 
 
 def _yield_min(v) -> Check:
     def fn(f, ctx):
         y = _n(f.get("div_yield_pct")) or 0.0
-        return y >= v, f"Cash dividend worth {_r(y)}% of the price", f"দামের {_r(y)}% নগদ লভ্যাংশ"
+        return y >= v, f"Cash dividend of {_r(y)}% of the price a year", f"বছরে দামের {_r(y)}% নগদ ডিভিডেন্ড"
     return Check(f"yield_min_{v}", f"Pays at least {v}% of the price a year in cash",
-                 f"বছরে দামের অন্তত {v}% নগদ লভ্যাংশ", fn)
+                 f"বছরে দামের অন্তত {v}% নগদ ডিভিডেন্ড দেয়", fn)
 
 
 def _paid_years(v) -> Check:
@@ -109,21 +120,21 @@ def _paid_years(v) -> Check:
         n = f.get("paid_years")
         if n is None:
             return False, "Paid in 2 or fewer of the last 5 years", "গত 5 বছরে 2 বা তার কম বছর দিয়েছে"
-        return n >= v, f"Paid in {n} of the last 5 years", f"গত 5 বছরে {n} বছর দিয়েছে"
-    return Check(f"paid_years_{v}", f"Paid cash in at least {v} of the last 5 years",
-                 f"গত 5 বছরে অন্তত {v} বছর নগদ দিয়েছে", fn)
+        return n >= v, f"Paid in {n} of the last 5 years", f"গত 5 বছরের {n} বছর দিয়েছে"
+    return Check(f"paid_years_{v}", f"Paid a cash dividend in at least {v} of the last 5 years",
+                 f"গত 5 বছরের অন্তত {v} বছর নগদ ডিভিডেন্ড দিয়েছে", fn)
 
 
 def _profit_min(v) -> Check:
     def fn(f, ctx):
         val, en, bn = rl.profit_trend(f)
         if val is None:
-            return False, "No profit change to compare", "লাভের তুলনা নেই"
+            return False, "No profit figure to compare", "তুলনার মতো মুনাফার হিসাব নেই"
         word = "up" if val >= 0 else "down"
         word_bn = "বেশি" if val >= 0 else "কম"
-        return val >= v, f"Profit {word} {_r(abs(val), 0)}% ({en})", f"লাভ {_r(abs(val), 0)}% {word_bn} ({bn})"
+        return val >= v, f"Profit {word} {_r(abs(val), 0)}% ({en})", f"মুনাফা {_r(abs(val), 0)}% {word_bn} ({bn})"
     label_en = "Profit has not fallen" if v == 0 else f"Profit up at least {v}% on last year"
-    label_bn = "লাভ কমেনি" if v == 0 else f"গত বছরের চেয়ে লাভ অন্তত {v}% বেশি"
+    label_bn = "মুনাফা কমেনি" if v == 0 else f"গত বছরের চেয়ে মুনাফা অন্তত {v}% বেশি"
     return Check(f"profit_min_{v}", label_en, label_bn, fn)
 
 
@@ -131,17 +142,17 @@ def _roe_min(v) -> Check:
     def fn(f, ctx):
         roe = _n(f.get("roe_pct"))
         if roe is None:
-            return False, "No return figure", "আয়ের হার নেই"
-        return roe >= v, f"Earns {_r(roe)}% a year on shareholders' money", f"শেয়ারহোল্ডারদের টাকায় বছরে {_r(roe)}% আয়"
+            return False, "No figure to check", "যাচাইয়ের মতো হিসাব নেই"
+        return roe >= v, f"Earns {_r(roe)}% a year on shareholders' money", f"শেয়ারহোল্ডারদের টাকায় বছরে {_r(roe)}% মুনাফা"
     return Check(f"roe_min_{v}", f"Earns at least {v}% a year on shareholders' money",
-                 f"শেয়ারহোল্ডারদের টাকায় বছরে অন্তত {v}% আয়", fn)
+                 f"শেয়ারহোল্ডারদের টাকায় বছরে অন্তত {v}% মুনাফা", fn)
 
 
 def _below_high(v) -> Check:
     def fn(f, ctx):
         d = _n(f.get("pct_below_high"))
         if d is None:
-            return False, "No 1-year high to compare", "এক বছরের সর্বোচ্চ দাম নেই"
+            return False, "No 1-year high to compare", "তুলনার মতো এক বছরের সর্বোচ্চ দাম নেই"
         return d >= v, f"{_r(d, 0)}% below its 1-year high", f"এক বছরের সর্বোচ্চের চেয়ে {_r(d, 0)}% কম"
     return Check(f"below_high_{v}", f"Price at least {v}% below its 1-year high",
                  f"দাম এক বছরের সর্বোচ্চের চেয়ে অন্তত {v}% কম", fn)
@@ -169,18 +180,18 @@ def _mcap(v) -> Check:
     def fn(f, ctx):
         m = _n(f.get("mcap_mn"))
         if m is None:
-            return False, "Market value not known", "বাজারমূল্য জানা নেই"
+            return False, "Market value not known", "বাজার মূলধন জানা নেই"
         crore = m / 10
         txt = f"{crore:,.0f}"
-        return m >= v, f"Worth ৳{txt} crore on the market", f"বাজারমূল্য ৳{txt} কোটি"
+        return m >= v, f"Worth ৳{txt} crore on the market", f"বাজার মূলধন ৳{txt} কোটি"
     w_en, w_bn = _MCAP_WORDS[v]
-    return Check(f"mcap_{v}", f"Worth at least {w_en} on the market", f"বাজারমূল্য অন্তত {w_bn}", fn)
+    return Check(f"mcap_{v}", f"Worth at least {w_en} on the market", f"বাজার মূলধন অন্তত {w_bn}", fn)
 
 
 def _debt(v) -> Check:
     if v == "none":
-        return Check("debt_none", "Almost no loans (under 5% of its market value — regular businesses only)",
-                     "প্রায় কোনো ঋণ নেই (বাজারমূল্যের 5%-এর কম — শুধু সাধারণ ব্যবসা)", rl._no_loans)
+        return Check("debt_none", "Almost no loans: under 5% of its market value, for regular businesses only",
+                     "প্রায় কোনো ঋণ নেই: বাজার মূলধনের 5%-এর কম, শুধু সাধারণ ব্যবসার ক্ষেত্রে", rl._no_loans)
     return rl.DEBT_OK
 
 
@@ -189,8 +200,8 @@ def _category(v) -> Check:
         def fn(f, ctx):
             cat = (f.get("cat") or "").strip().upper()
             return cat == "A", f"Category {cat or 'not shown'}", f"{cat or 'অজানা'} ক্যাটাগরি"
-        return Check("cat_a", "In category A (pays dividends and holds AGMs on time)",
-                     "A ক্যাটাগরিতে (নিয়মিত লভ্যাংশ দেয় ও সময়মতো এজিএম করে)", fn)
+        return Check("cat_a", "In category A: pays dividends and holds its AGM on time",
+                     "A ক্যাটাগরিতে: নিয়মিত ডিভিডেন্ড দেয় ও সময়মতো এজিএম করে", fn)
     return rl.NOT_Z
 
 
@@ -210,15 +221,16 @@ def _sector(v) -> Check:
 
     def fn(f, ctx):
         s = f.get("sector") or ""
-        return s in allowed, s or "Sector not known", s or "খাত জানা নেই"
+        return s in allowed, s or "Sector not known", (_sector_bn(s) if s else "সেক্টর জানা নেই")
+    names_bn = [_sector_bn(n) for n in names]
     if len(names) == 1:
-        return Check("sector", f"In the {names[0]} sector", f"{names[0]} খাতে", fn)
+        return Check("sector", f"In the {names[0]} sector", f"{names_bn[0]} সেক্টরে", fn)
     if len(names) <= 3:
         joined = " or ".join([", ".join(names[:-1]), names[-1]]) if len(names) > 1 else ""
-        joined_bn = " বা ".join([", ".join(names[:-1]), names[-1]]) if len(names) > 1 else ""
-        return Check("sector", f"In the {joined} sectors", f"{joined_bn} খাতে", fn)
+        joined_bn = " বা ".join([", ".join(names_bn[:-1]), names_bn[-1]]) if len(names) > 1 else ""
+        return Check("sector", f"In the {joined} sectors", f"{joined_bn} সেক্টরে", fn)
     return Check("sector", f"In one of {len(names)} sectors: {', '.join(names)}",
-                 f"{len(names)}টি খাতের একটিতে: {', '.join(names)}", fn)
+                 f"{len(names)}টি সেক্টরের একটিতে: {', '.join(names_bn)}", fn)
 
 
 # ---------------------------------------------------------------------------
@@ -228,10 +240,10 @@ def _sector(v) -> Check:
 def _buy_today(f, ctx):
     sig = f.get("signal")
     if sig == "buy":
-        return True, "A Buy signal today", "আজ 'কিনুন' সংকেত"
+        return True, "A Buy signal today", "আজ কেনার সংকেত আছে"
     if sig == "sell":
-        return False, "A Sell signal today", "আজ 'বিক্রি' সংকেত"
-    return False, "No Buy signal today", "আজ 'কিনুন' সংকেত নেই"
+        return False, "A Sell signal today", "আজ বিক্রির সংকেত আছে"
+    return False, "No Buy signal today", "আজ কেনার সংকেত নেই"
 
 
 def _owners_buying(f, ctx):
@@ -254,139 +266,142 @@ def _quarter_better(f, ctx):
         return ok, en, bn
     v = _n(f.get("interim_eps_yoy_pct")) or 0.0
     word, word_bn = ("up", "বেশি") if v >= 0 else ("down", "কম")
-    return v >= 0, f"Profit so far this year {word} {_r(abs(v), 0)}% on last year ({en})",         f"এ বছর এ পর্যন্ত লাভ গত বছরের চেয়ে {_r(abs(v), 0)}% {word_bn} ({bn})"
+    return (v >= 0, f"Profit so far this year {word} {_r(abs(v), 0)}% on last year ({en})",
+            f"এ বছর এ পর্যন্ত মুনাফা গত বছরের চেয়ে {_r(abs(v), 0)}% {word_bn} ({bn})")
 
 
 CATALOG: list[CheckDef] = [
     # Quality
     CheckDef("grade", "quality", "Our grade", "আমাদের গ্রেড", _grade,
              [Option(45, "Average+", "মাঝারি+"), Option(60, "Good+", "ভালো+"), Option(75, "Excellent", "চমৎকার")], 60),
-    CheckDef("buy_today", "quality", "A Buy signal today", "আজ 'কিনুন' সংকেত",
-             _ok_fn(Check("buy_today", "Has a Buy signal today", "আজ 'কিনুন' সংকেত আছে", _buy_today)), premium=True),
-    CheckDef("roe_min", "quality", "Return on shareholders' money", "শেয়ারহোল্ডারদের টাকায় আয়", _roe_min,
+    CheckDef("buy_today", "quality", "A Buy signal today", "আজ কেনার সংকেত",
+             _ok_fn(Check("buy_today", "Has a Buy signal today", "আজ কেনার সংকেত আছে", _buy_today)), premium=True),
+    CheckDef("roe_min", "quality", "Return on shareholders' money", "শেয়ারহোল্ডারদের টাকায় মুনাফার হার", _roe_min,
              [Option(10, "10%+", "10%+"), Option(15, "15%+", "15%+"), Option(20, "20%+", "20%+")], 15),
-    CheckDef("no_governance", "quality", "No auditor or regulator warnings", "নিরীক্ষক বা নিয়ন্ত্রকের সতর্কতা নেই",
+    CheckDef("no_governance", "quality", "No auditor or regulator warnings", "নিরীক্ষক বা নিয়ন্ত্রকের কোনো সতর্কতা নেই",
              _ok_fn(rl.NO_GOVERNANCE), premium=True),
     # Price
-    CheckDef("not_expensive", "price", "Price not expensive", "দাম বেশি নয়", _ok_fn(rl.NOT_EXPENSIVE)),
-    CheckDef("pe_max", "price", "Price ÷ profit (P/E)", "দাম ÷ লাভ (P/E)", _pe_max,
+    CheckDef("not_expensive", "price", "Price is not high", "দাম বেশি নয়", _ok_fn(rl.NOT_EXPENSIVE)),
+    CheckDef("pe_max", "price", "P/E: price against profit", "পিই: মুনাফার তুলনায় দাম", _pe_max,
              [Option(8, "8 or less", "8 বা কম"), Option(10, "10 or less", "10 বা কম"), Option(15, "15 or less", "15 বা কম"),
               Option(20, "20 or less", "20 বা কম")], 10),
-    CheckDef("cheaper_than_own", "price", "Cheaper than its usual", "নিজের স্বাভাবিকের চেয়ে কম দামে",
-             _ok_fn(Check("cheaper_than_own", "Priced below its own usual level", "নিজের স্বাভাবিক দামের চেয়ে কম",
+    CheckDef("cheaper_than_own", "price", "Cheaper than usual for it", "নিজের স্বাভাবিকের চেয়ে কম দাম",
+             _ok_fn(Check("cheaper_than_own", "Priced below its own usual level", "দাম নিজের স্বাভাবিক মাত্রার চেয়ে কম",
                           rl._cheaper_than_own)), premium=True),
-    CheckDef("cheaper_than_sector", "price", "Cheaper than its sector", "খাতের চেয়ে কম দামে",
-             _ok_fn(Check("cheaper_than_sector", "Priced below its sector", "খাতের চেয়ে কম দামে",
+    CheckDef("cheaper_than_sector", "price", "Cheaper than its sector", "সেক্টরের চেয়ে কম দাম",
+             _ok_fn(Check("cheaper_than_sector", "Priced below its sector", "দাম নিজের সেক্টরের চেয়ে কম",
                           rl._cheaper_than_sector)), premium=True),
-    CheckDef("below_high", "price", "Fallen from its 1-year high", "এক বছরের সর্বোচ্চ থেকে নেমেছে", _below_high,
+    CheckDef("below_high", "price", "Fallen from its 1-year high", "এক বছরের সর্বোচ্চ থেকে কমেছে", _below_high,
              [Option(10, "10%+", "10%+"), Option(20, "20%+", "20%+"), Option(30, "30%+", "30%+")], 20),
     CheckDef("lower_half", "price", "Price in the lower half of its year", "দাম বছরের নিচের অর্ধেকে",
              _ok_fn(Check("lower_half", "Price in the lower half of its 1-year range",
-                          "দাম এক বছরের সীমার নিচের অর্ধেকে", _lower_half))),
+                          "দাম এক বছরের ওঠানামার নিচের অর্ধেকে", _lower_half))),
     # Dividends
-    CheckDef("yield_min", "dividends", "Cash dividend a year", "বছরে নগদ লভ্যাংশ", _yield_min,
+    CheckDef("yield_min", "dividends", "Cash dividend a year", "বছরে নগদ ডিভিডেন্ড", _yield_min,
              [Option(2, "2%+", "2%+"), Option(4, "4%+", "4%+"), Option(6, "6%+", "6%+"), Option(8, "8%+", "8%+")], 4),
-    CheckDef("paid_years", "dividends", "Years it paid a dividend", "কত বছর লভ্যাংশ দিয়েছে", _paid_years,
-             [Option(3, "3 of 5 years", "5-এর 3 বছর"), Option(4, "4 of 5 years", "5-এর 4 বছর"), Option(5, "All 5 years", "5 বছরই")], 5),
-    CheckDef("affordable", "dividends", "Dividend is affordable", "লভ্যাংশ সামর্থ্যের মধ্যে",
-             _ok_fn(Check("affordable", "Pays out no more than 70% of its profit", "লাভের 70%-এর বেশি লভ্যাংশ দেয় না",
+    CheckDef("paid_years", "dividends", "Years it paid a dividend", "কত বছর ডিভিডেন্ড দিয়েছে", _paid_years,
+             [Option(3, "3 of 5 years", "5-এর মধ্যে 3 বছর"), Option(4, "4 of 5 years", "5-এর মধ্যে 4 বছর"),
+              Option(5, "All 5 years", "5 বছরই")], 5),
+    CheckDef("affordable", "dividends", "Dividend is affordable", "ডিভিডেন্ড সামর্থ্যের মধ্যে",
+             _ok_fn(Check("affordable", "Pays out no more than 70% of its profit", "মুনাফার 70%-এর বেশি ডিভিডেন্ড দেয় না",
                           rl._affordable))),
-    CheckDef("cash_backed", "dividends", "Dividend backed by real cash", "লভ্যাংশের পেছনে সত্যিকারের নগদ",
-             _ok_fn(Check("cash_backed", "The dividend is backed by real cash", "লভ্যাংশের পেছনে সত্যিকারের নগদ আছে",
+    CheckDef("cash_backed", "dividends", "Dividend backed by real cash", "ডিভিডেন্ডের পেছনে আসল নগদ",
+             _ok_fn(Check("cash_backed", "The dividend is backed by real cash", "ডিভিডেন্ডের পেছনে আসল নগদ আয় আছে",
                           rl._cash_backed)), premium=True),
     # Profit
-    CheckDef("profitable", "growth", "Makes a profit", "লাভে আছে", _ok_fn(rl.PROFITABLE)),
-    CheckDef("profit_min", "growth", "Profit vs last year", "গত বছরের তুলনায় লাভ", _profit_min,
+    CheckDef("profitable", "growth", "Makes a profit", "মুনাফায় আছে", _ok_fn(rl.PROFITABLE)),
+    CheckDef("profit_min", "growth", "Profit against last year", "গত বছরের তুলনায় মুনাফা", _profit_min,
              [Option(0, "Not down", "কমেনি"), Option(10, "Up 10%+", "10%+ বেশি"), Option(25, "Up 25%+", "25%+ বেশি")], 10),
-    CheckDef("growing", "growth", "Profit grew over 5 years", "5 বছরে লাভ বেড়েছে",
-             _ok_fn(Check("growing", "Profit has grown over the last 5 years", "গত 5 বছরে লাভ বেড়েছে", rl._growing))),
-    CheckDef("steady", "growth", "No big fall in profit", "লাভ বড় করে কমেনি",
-             _ok_fn(Check("steady", "No big fall in profit along the way", "পথে লাভ বড় করে কমেনি", rl._steady)),
+    CheckDef("growing", "growth", "Profit grew over 5 years", "5 বছরে মুনাফা বেড়েছে",
+             _ok_fn(Check("growing", "Profit has grown over the last 5 years", "গত 5 বছরে মুনাফা বেড়েছে", rl._growing))),
+    CheckDef("steady", "growth", "No big fall in profit", "মুনাফা বড় করে কমেনি",
+             _ok_fn(Check("steady", "No big fall in profit along the way", "এই সময়ে মুনাফা কখনো বড় করে কমেনি", rl._steady)),
              premium=True),
-    CheckDef("quarter_better", "growth", "Latest quarterly report better", "সর্বশেষ ত্রৈমাসিক প্রতিবেদন ভালো",
+    CheckDef("quarter_better", "growth", "Latest quarter is better", "সর্বশেষ প্রান্তিক ভালো",
              _ok_fn(Check("quarter_better", "Profit so far this year is above the same months last year",
-                          "এ বছর এ পর্যন্ত লাভ গত বছরের একই সময়ের চেয়ে বেশি", _quarter_better)), premium=True),
-    CheckDef("owners_buying", "growth", "Owners are buying", "উদ্যোক্তারা কিনছেন",
-             _ok_fn(Check("owners_buying", "Owners raised their stake in the latest report",
-                          "সর্বশেষ প্রতিবেদনে উদ্যোক্তারা শেয়ার বাড়িয়েছেন", _owners_buying)), premium=True),
+                          "এ বছর এ পর্যন্ত মুনাফা গত বছরের একই সময়ের চেয়ে বেশি", _quarter_better)), premium=True),
+    CheckDef("owners_buying", "growth", "Owners are buying", "উদ্যোক্তা-পরিচালকরা কিনছেন",
+             _ok_fn(Check("owners_buying", "Sponsors and directors raised their stake in the latest report",
+                          "সর্বশেষ প্রতিবেদনে উদ্যোক্তা-পরিচালকরা শেয়ার বাড়িয়েছেন", _owners_buying)), premium=True),
     # Safety
     CheckDef("debt", "safety", "Loans", "ঋণ", _debt,
-             [Option("ok", "Less than its savings", "সঞ্চয়ের চেয়ে কম"), Option("none", "Almost none", "প্রায় নেই")], "ok"),
-    CheckDef("category", "safety", "DSE category", "DSE ক্যাটাগরি", _category,
-             [Option("not_z", "Anything but Z", "Z ছাড়া সব"), Option("a_only", "A only", "শুধু A")], "not_z"),
+             [Option("ok", "Less than its kept profit", "জমানো মুনাফার চেয়ে কম"), Option("none", "Almost none", "প্রায় নেই")],
+             "ok"),
+    CheckDef("category", "safety", "DSE category", "ডিএসই ক্যাটাগরি", _category,
+             [Option("not_z", "Anything but Z", "Z ছাড়া যেকোনো"), Option("a_only", "A only", "শুধু A")], "not_z"),
     CheckDef("fresh", "safety", "Accounts up to date", "হিসাব হালনাগাদ", _ok_fn(rl.FRESH)),
     # Trading and size
     CheckDef("turnover", "market", "Daily trading", "দৈনিক লেনদেন", _turnover,
              [Option(1, "৳10 lakh+", "৳10 লাখ+"), Option(5, "৳50 lakh+", "৳50 লাখ+"), Option(10, "৳1 crore+", "৳1 কোটি+")], 1),
-    CheckDef("mcap", "market", "Market value", "বাজারমূল্য", _mcap,
+    CheckDef("mcap", "market", "Market value", "বাজার মূলধন", _mcap,
              [Option(1000, "৳100 crore+", "৳100 কোটি+"), Option(5000, "৳500 crore+", "৳500 কোটি+"),
               Option(20000, "৳2,000 crore+", "৳2,000 কোটি+")], 5000),
     # Sector — its options are the DSE sectors present today (see catalog()).
-    CheckDef("sector", "sector", "Sector", "খাত", _sector, [], None),
+    CheckDef("sector", "sector", "Sector", "সেক্টর", _sector, [], None),
 ]
 BY_KEY = {c.key: c for c in CATALOG}
 
 # One plain sentence per check — what it means, and why it is there. Shown
 # under each check in the screener and in the "Add a check" menu.
 HELP: dict[str, tuple[str, str]] = {
-    "grade": ("Our 0–100 score from five checks on the company's accounts. 60 or more is Good.",
-              "কোম্পানির হিসাবের পাঁচটি দিক দেখে আমাদের 0–100 স্কোর। 60 বা বেশি মানে ভালো।"),
-    "buy_today": ("Our daily call: a good company at a fair price, traded enough, not near its yearly top.",
-                  "আমাদের দৈনিক সংকেত: ভালো কোম্পানি, ঠিকঠাক দাম, যথেষ্ট লেনদেন, বছরের সর্বোচ্চের কাছে নয়।"),
-    "roe_min": ("Profit a year for every ৳100 the owners have in the company. Higher means it uses money well.",
-                "কোম্পানিতে মালিকদের প্রতি ৳100-তে বছরে কত লাভ। বেশি মানে টাকা ভালোভাবে খাটায়।"),
+    "grade": ("Our score from 0 to 100, from five checks on the company's accounts. A score of 60 or more is Good.",
+              "কোম্পানির হিসাবের পাঁচটি দিক দেখে 0 থেকে 100-এর মধ্যে আমাদের স্কোর। 60 বা তার বেশি মানে ভালো।"),
+    "buy_today": ("Our daily signal: a good company at a fair price, traded enough, and not near its yearly high.",
+                  "আমাদের দৈনিক সংকেত: ভালো কোম্পানি, ন্যায্য দাম, যথেষ্ট লেনদেন, আর বছরের সর্বোচ্চ দামের কাছে নয়।"),
+    "roe_min": ("The profit a year for every ৳100 the owners have in the company. Higher means it uses money well.",
+                "কোম্পানিতে মালিকদের প্রতি ৳100-এ বছরে কত মুনাফা হয়। বেশি মানে টাকা ভালোভাবে কাজে লাগায়।"),
     "no_governance": ("No auditor objection, BSEC action or postponed AGM in the last year.",
-                      "গত এক বছরে নিরীক্ষকের আপত্তি, BSEC-এর ব্যবস্থা বা এজিএম স্থগিত হয়নি।"),
-    "not_expensive": ("Our price check doesn't call it expensive for what it earns and owns.",
-                      "যা আয় করে আর যা সম্পদ আছে, সে তুলনায় আমাদের হিসাবে দাম বেশি নয়।"),
+                      "গত এক বছরে নিরীক্ষকের আপত্তি, বিএসইসির ব্যবস্থা বা এজিএম স্থগিতের ঘটনা নেই।"),
+    "not_expensive": ("Our price check does not call it expensive for what it earns and owns.",
+                      "যা আয় করে আর যে সম্পদ আছে, তার তুলনায় আমাদের হিসাবে দাম বেশি নয়।"),
     "pe_max": ("How many years of today's profit the price pays for. Lower is cheaper.",
-               "আজকের দামে কত বছরের লাভ কিনছেন। কম মানে সস্তা।"),
-    "cheaper_than_own": ("Price ÷ profit is below where this company usually trades.",
-                         "দাম ÷ লাভ এই কোম্পানির স্বাভাবিক মাত্রার চেয়ে কম।"),
-    "cheaper_than_sector": ("Price ÷ profit is below the middle company in its sector.",
-                            "দাম ÷ লাভ নিজের খাতের মাঝামাঝি কোম্পানির চেয়ে কম।"),
+               "আজকের দামে কত বছরের মুনাফা কিনছেন। কম মানে সস্তা।"),
+    "cheaper_than_own": ("Its P/E is below the level this company usually trades at.",
+                         "এর পিই কোম্পানিটির স্বাভাবিক মাত্রার চেয়ে কম।"),
+    "cheaper_than_sector": ("Its P/E is below the middle company in its sector.",
+                            "এর পিই নিজের সেক্টরের মাঝামাঝি কোম্পানির চেয়ে কম।"),
     "below_high": ("How far the price has fallen from its highest point in the last 12 months.",
-                   "গত 12 মাসের সবচেয়ে বেশি দাম থেকে কতটা নেমেছে।"),
-    "lower_half": ("Nearer its 12-month low than its high — the price hasn't run up yet.",
-                   "গত 12 মাসের সর্বোচ্চের চেয়ে সর্বনিম্নের কাছাকাছি — দাম এখনো চড়েনি।"),
-    "yield_min": ("Cash dividend a year against today's price. 5% means ৳500 on ৳10,000.",
-                  "আজকের দামের তুলনায় বছরে কত নগদ লভ্যাংশ। 5% মানে ৳10,000-এ ৳500।"),
+                   "গত 12 মাসের সর্বোচ্চ দাম থেকে কতটা কমেছে।"),
+    "lower_half": ("Nearer its 12-month low than its high, so the price has not run up yet.",
+                   "গত 12 মাসের সর্বোচ্চের চেয়ে সর্বনিম্নের কাছাকাছি, তাই দাম এখনো বেশি বাড়েনি।"),
+    "yield_min": ("Cash dividend a year against today's price. 5% means ৳500 a year on ৳10,000.",
+                  "আজকের দামের তুলনায় বছরে কত নগদ ডিভিডেন্ড। 5% মানে ৳10,000-এ বছরে ৳500।"),
     "paid_years": ("How many of the last 5 years it paid a cash dividend.",
-                   "গত 5 বছরের কত বছর নগদ লভ্যাংশ দিয়েছে।"),
+                   "গত 5 বছরের কত বছর নগদ ডিভিডেন্ড দিয়েছে।"),
     "affordable": ("It keeps some profit back, so the dividend can last.",
-                   "লাভের কিছু রেখে দেয়, তাই লভ্যাংশ টিকে থাকতে পারে।"),
-    "cash_backed": ("Cash from the business keeps up with its profit — the dividend isn't paper money.",
-                    "ব্যবসার নগদ আয় লাভের সঙ্গে মেলে — লভ্যাংশ শুধু কাগজের হিসাব নয়।"),
-    "profitable": ("Made a profit in its latest results.", "সর্বশেষ হিসাবে লাভ করেছে।"),
-    "profit_min": ("Latest year's profit against the year before.", "সর্বশেষ বছরের লাভ, আগের বছরের তুলনায়।"),
-    "growing": ("Profit has climbed about 5% a year or more over five years.",
-                "পাঁচ বছরে লাভ বছরে প্রায় 5% বা তার বেশি হারে বেড়েছে।"),
-    "steady": ("Profit never fell hard in any year along the way.", "এই সময়ে কোনো বছর লাভ খুব বেশি কমেনি।"),
+                   "মুনাফার কিছু অংশ রেখে দেয়, তাই ডিভিডেন্ড টিকে থাকতে পারে।"),
+    "cash_backed": ("Cash from the business keeps up with its profit, so the dividend is not just a figure on paper.",
+                    "ব্যবসার নগদ আয় মুনাফার সঙ্গে মেলে, তাই ডিভিডেন্ড শুধু কাগজের হিসাব নয়।"),
+    "profitable": ("Made a profit in its latest results.", "সর্বশেষ হিসাবে মুনাফা করেছে।"),
+    "profit_min": ("The latest year's profit against the year before.", "সর্বশেষ বছরের মুনাফা, আগের বছরের তুলনায়।"),
+    "growing": ("Profit has risen by about 5% a year or more over five years.",
+                "পাঁচ বছরে মুনাফা বছরে প্রায় 5% বা তার বেশি হারে বেড়েছে।"),
+    "steady": ("Profit never fell sharply in any year along the way.", "এই সময়ে কোনো বছর মুনাফা খুব বেশি কমেনি।"),
     "quarter_better": ("The latest quarterly report shows more profit than the same months last year.",
-                       "সর্বশেষ ত্রৈমাসিক প্রতিবেদনে লাভ গত বছরের একই সময়ের চেয়ে বেশি।"),
+                       "সর্বশেষ প্রান্তিকের প্রতিবেদনে মুনাফা গত বছরের একই সময়ের চেয়ে বেশি।"),
     "owners_buying": ("Sponsors and directors hold more shares than in the earlier report.",
                       "আগের প্রতিবেদনের চেয়ে উদ্যোক্তা-পরিচালকদের হাতে শেয়ার বেড়েছে।"),
-    "debt": ("What the company owes. Banks, finance and insurance companies are not tested.",
-             "কোম্পানির ঋণ। ব্যাংক, আর্থিক ও বিমা কোম্পানির ক্ষেত্রে দেখা হয় না।"),
-    "category": ("DSE's own class: A holds AGMs and pays on time, Z has stopped doing so.",
-                 "DSE-র নিজস্ব শ্রেণি: A সময়মতো এজিএম করে ও লভ্যাংশ দেয়, Z তা বন্ধ করেছে।"),
+    "debt": ("What the company owes. Banks, finance companies and insurers are not checked.",
+             "কোম্পানির ঋণ। ব্যাংক, আর্থিক প্রতিষ্ঠান ও বিমা কোম্পানির ক্ষেত্রে এটি দেখা হয় না।"),
+    "category": ("DSE's own grouping. A holds its AGM and pays on time; Z has stopped doing so.",
+                 "ডিএসইর নিজের শ্রেণি। A সময়মতো এজিএম করে ও ডিভিডেন্ড দেয়; Z তা বন্ধ করেছে।"),
     "fresh": ("Its yearly accounts are recent, so the figures are current.",
               "বার্ষিক হিসাব সাম্প্রতিক, তাই সংখ্যাগুলো হালনাগাদ।"),
-    "turnover": ("Money that changes hands in the share each day. More means easier to buy and sell.",
+    "turnover": ("The money that changes hands in the share each day. More means it is easier to buy and sell.",
                  "প্রতিদিন কত টাকার শেয়ার কেনাবেচা হয়। বেশি মানে সহজে কেনা-বেচা যায়।"),
     "mcap": ("What all its shares are worth together. Bigger companies tend to be steadier.",
              "সব শেয়ারের মোট দাম। বড় কোম্পানি সাধারণত বেশি স্থির।"),
-    "sector": ("Only companies from the DSE sectors you pick — one or several.",
-               "শুধু আপনার বাছাই করা খাতের কোম্পানি — এক বা একাধিক।"),
+    "sector": ("Only companies from the DSE sectors you pick, one or several.",
+               "শুধু আপনার বাছাই করা ডিএসই সেক্টরের কোম্পানি, এক বা একাধিক।"),
 }
 
 SORTS = {
-    "score": ("Best score first", "সবচেয়ে বেশি স্কোর আগে", lambda f: _n(f.get("score")) or 0.0),
-    "yield": ("Highest dividend first", "সবচেয়ে বেশি লভ্যাংশ আগে", lambda f: _n(f.get("div_yield_pct")) or 0.0),
-    "cheap": ("Lowest price ÷ profit first", "সবচেয়ে কম দাম ÷ লাভ আগে",
+    "score": ("Best score first", "বেশি স্কোর আগে", lambda f: _n(f.get("score")) or 0.0),
+    "yield": ("Highest dividend first", "বেশি ডিভিডেন্ড আগে", lambda f: _n(f.get("div_yield_pct")) or 0.0),
+    "cheap": ("Cheapest for its profit first", "মুনাফার তুলনায় কম দাম আগে",
               lambda f: -(_n(f.get("current_pe")) or 1e9) if (_n(f.get("current_pe")) or 0) > 0 else -1e9),
     "size": ("Largest first", "সবচেয়ে বড় আগে", lambda f: _n(f.get("mcap_mn")) or 0.0),
-    "growth": ("Fastest profit growth first", "সবচেয়ে দ্রুত লাভ বৃদ্ধি আগে",
+    "growth": ("Fastest profit growth first", "মুনাফা দ্রুত বাড়ছে, এমন আগে",
                lambda f: rl.profit_trend(f)[0] if rl.profit_trend(f)[0] is not None else -1e9),
 }
 DEFAULT_SORT = "score"
@@ -426,57 +441,60 @@ def _q(key, value=True):
 # Plain words on purpose (2026-10-27, user: "options are hard to understand"):
 # each question is one a beginner would ask, every first choice is "Doesn't
 # matter", and the other two answer the question in two or three words.
-DONT_MIND = ("Doesn't matter", "যাই হোক")
+DONT_MIND = ("Doesn't matter", "যেকোনো")
 
 QUESTIONS: list[Question] = [
     Question("quality", "How good is the company?", "কোম্পানি কতটা ভালো?",
              "Our grade, from its yearly accounts", "বার্ষিক হিসাব দেখে আমাদের গ্রেড", *DONT_MIND, (
                  Level("Good", "ভালো", "Good company", "ভালো কোম্পানি",
-                       "Our grade says Good or better (60+ out of 100)", "আমাদের গ্রেডে ভালো বা তার বেশি (100-এ 60+)",
+                       "Our grade is Good or better: 60 or more out of 100",
+                       "আমাদের গ্রেড ভালো বা তার বেশি: 100-এ 60 বা তার বেশি",
                        (_q("grade", 60),)),
                  Level("Very good", "খুব ভালো", "Very good company", "খুব ভালো কোম্পানি",
-                       "Our grade says Excellent (75+ out of 100)", "আমাদের গ্রেডে চমৎকার (100-এ 75+)",
+                       "Our grade is Excellent: 75 or more out of 100",
+                       "আমাদের গ্রেড চমৎকার: 100-এ 75 বা তার বেশি",
                        (_q("grade", 75),)),
              )),
     Question("price", "Is the price low?", "দাম কি কম?",
-             "The price compared with the profit it makes", "লাভের তুলনায় দাম", *DONT_MIND, (
-                 Level("Not too high", "বেশি নয়", "Fair price", "ঠিকঠাক দাম",
-                       "The price is fair for the profit it makes", "লাভের তুলনায় দাম ঠিকঠাক",
+             "The price compared with the profit it makes", "মুনাফার তুলনায় দাম", *DONT_MIND, (
+                 Level("Not too high", "বেশি নয়", "Fair price", "ন্যায্য দাম",
+                       "The price is fair for the profit it makes", "মুনাফার তুলনায় দাম ন্যায্য",
                        (_q("not_expensive"),)),
                  Level("Low", "কম", "Low price", "কম দাম",
-                       "The price is low: about 10 years of profit or less", "দাম কম: মোটামুটি 10 বছরের লাভ বা তার কম",
+                       "The price is low: about 10 years of profit or less",
+                       "দাম কম: মোটামুটি 10 বছরের মুনাফা বা তার কম",
                        (_q("not_expensive"), _q("pe_max", 10))),
              )),
     Question("dividends", "Does it pay cash every year?", "প্রতি বছর নগদ টাকা দেয়?",
-             "The cash dividend it pays to shareholders", "শেয়ারহোল্ডারদের দেওয়া নগদ লভ্যাংশ", *DONT_MIND, (
+             "The cash dividend it pays to shareholders", "শেয়ারহোল্ডারদের দেওয়া নগদ ডিভিডেন্ড", *DONT_MIND, (
                  Level("Yes", "হ্যাঁ", "Pays every year", "প্রতি বছর দেয়",
                        "Paid cash in each of the last 5 years, and can afford it",
-                       "গত 5 বছরের প্রতি বছর নগদ দিয়েছে, সামর্থ্যের মধ্যে",
+                       "গত 5 বছরের প্রতি বছর নগদ দিয়েছে, আর তা সামর্থ্যের মধ্যে",
                        (_q("paid_years", 5), _q("affordable"))),
-                 Level("Yes, 4% or more", "হ্যাঁ, 4%+", "Pays 4%+ a year", "বছরে 4%+ দেয়",
+                 Level("Yes, 4% or more", "হ্যাঁ, 4% বা বেশি", "Pays 4%+ a year", "বছরে 4%+ দেয়",
                        "Pays every year: at least ৳400 a year on ৳10,000",
                        "প্রতি বছর দেয়: ৳10,000-এ বছরে অন্তত ৳400",
                        (_q("paid_years", 5), _q("affordable"), _q("yield_min", 4))),
              )),
-    Question("growth", "Is profit going up?", "লাভ কি বাড়ছে?",
-             "Profit this year, and over the last 5 years", "এ বছরের আর গত 5 বছরের লাভ", *DONT_MIND, (
-                 Level("Not going down", "কমছে না", "Profit steady", "লাভ স্থির",
-                       "Makes a profit, and not less than last year", "লাভে আছে, গত বছরের চেয়ে কম নয়",
+    Question("growth", "Is profit going up?", "মুনাফা কি বাড়ছে?",
+             "Profit this year, and over the last 5 years", "এ বছরের আর গত 5 বছরের মুনাফা", *DONT_MIND, (
+                 Level("Not going down", "কমছে না", "Profit steady", "মুনাফা স্থির",
+                       "Makes a profit, and no less than last year", "মুনাফায় আছে, গত বছরের চেয়ে কম নয়",
                        (_q("profitable"), _q("profit_min", 0))),
-                 Level("Going up", "বাড়ছে", "Profit rising", "লাভ বাড়ছে",
-                       "More profit than 5 years ago, and not less than last year",
-                       "5 বছর আগের চেয়ে বেশি লাভ, গত বছরের চেয়েও কম নয়",
+                 Level("Going up", "বাড়ছে", "Profit rising", "মুনাফা বাড়ছে",
+                       "More profit than 5 years ago, and no less than last year",
+                       "5 বছর আগের চেয়ে বেশি মুনাফা, আর গত বছরের চেয়েও কম নয়",
                        (_q("profitable"), _q("profit_min", 0), _q("growing"))),
              )),
     Question("safety", "How safe is it?", "কতটা নিরাপদ?",
-             "Its loans, its DSE category and its accounts", "ঋণ, DSE ক্যাটাগরি আর হিসাব", *DONT_MIND, (
+             "Its loans, its DSE category and its accounts", "ঋণ, ডিএসই ক্যাটাগরি আর হিসাব", *DONT_MIND, (
                  Level("Safe", "নিরাপদ", "Safe", "নিরাপদ",
-                       "Not a risky Z company, loans under control, accounts up to date",
-                       "ঝুঁকির Z কোম্পানি নয়, ঋণ নিয়ন্ত্রণে, হিসাব হালনাগাদ",
+                       "Not in the risky Z category, loans under control, accounts up to date",
+                       "ঝুঁকির Z ক্যাটাগরিতে নয়, ঋণ নিয়ন্ত্রণে, হিসাব হালনাগাদ",
                        (_q("category", "not_z"), _q("debt", "ok"), _q("fresh"))),
                  Level("Very safe", "খুব নিরাপদ", "Very safe", "খুব নিরাপদ",
-                       "Category A, almost no loans, accounts up to date (no banks or insurers)",
-                       "A ক্যাটাগরি, প্রায় কোনো ঋণ নেই, হিসাব হালনাগাদ (ব্যাংক ও বিমা বাদ)",
+                       "Category A, almost no loans and accounts up to date. Banks and insurers are left out.",
+                       "A ক্যাটাগরি, প্রায় কোনো ঋণ নেই, হিসাব হালনাগাদ। ব্যাংক ও বিমা কোম্পানি বাদ।",
                        (_q("category", "a_only"), _q("debt", "none"), _q("fresh"))),
              )),
     Question("trading", "Can you buy and sell it easily?", "সহজে কেনা-বেচা যায়?",
@@ -485,8 +503,8 @@ QUESTIONS: list[Question] = [
                        "At least ৳50 lakh bought and sold every day", "প্রতিদিন অন্তত ৳50 লাখের কেনাবেচা",
                        (_q("turnover", 5),)),
                  Level("Yes, big company", "হ্যাঁ, বড় কোম্পানি", "Big company", "বড় কোম্পানি",
-                       "A big company (৳500 crore+), ৳1 crore+ bought and sold every day",
-                       "বড় কোম্পানি (৳500 কোটি+), প্রতিদিন ৳1 কোটি+ কেনাবেচা",
+                       "A company worth ৳500 crore or more, with ৳1 crore or more traded every day",
+                       "৳500 কোটি বা তার বেশি মূলধনের কোম্পানি, প্রতিদিন ৳1 কোটি বা তার বেশি কেনাবেচা",
                        (_q("mcap", 5000), _q("turnover", 10))),
              )),
 ]
@@ -611,8 +629,8 @@ def want_lines(answers: dict[str, int], sectors: list[str]) -> list[dict]:
             l = q.levels[lvl - 1]
             out.append({"key": q.key, "q_en": q.title_en, "q_bn": q.title_bn, "a_en": l.label_en, "a_bn": l.label_bn})
     if sectors:
-        out.append({"key": "sector", "q_en": "Which business sectors?", "q_bn": "কোন খাতের ব্যবসা?",
-                    "a_en": ", ".join(sectors), "a_bn": ", ".join(sectors)})
+        out.append({"key": "sector", "q_en": "Which business sectors?", "q_bn": "কোন সেক্টরের ব্যবসা?",
+                    "a_en": ", ".join(sectors), "a_bn": ", ".join(_sector_bn(s) for s in sectors)})
     return out
 
 
@@ -670,7 +688,7 @@ def _from_list(id_, lst: ResearchList, checks, sort):
     blurb says so, and links the list itself."""
     return {"id": id_, "kind": "research", "title_en": lst.title_en, "title_bn": lst.title_bn,
             "blurb_en": "Our research list, rebuilt from the checks here so you can change it",
-            "blurb_bn": "আমাদের গবেষণা তালিকা, এখানের শর্ত দিয়ে বানানো — যাতে আপনি বদলাতে পারেন",
+            "blurb_bn": "আমাদের গবেষণা তালিকা, এখানের যাচাইগুলো দিয়ে বানানো, যাতে আপনি বদলাতে পারেন",
             "research_slug": lst.slug, "spec": {"checks": checks, "sort": sort}}
 
 
@@ -678,22 +696,22 @@ def _from_list(id_, lst: ResearchList, checks, sort):
 # beginner — they replaced the three-question quiz), then the research lists.
 TEMPLATES = [
     _goal("good_cheap", "Good and cheap", "ভালো আর সস্তা",
-          "A good company at a low price, and safe", "ভালো কোম্পানি, কম দাম, নিরাপদ",
+          "A good company at a low price, and safe", "ভালো কোম্পানি, কম দাম, আর নিরাপদ",
           {"quality": 1, "price": 2, "safety": 1}, "cheap"),
     _goal("steady_payers", "Cash every year", "প্রতি বছর নগদ",
-          "Pays 4% or more in cash every year, and safe", "প্রতি বছর 4% বা বেশি নগদ দেয়, নিরাপদ",
+          "Pays 4% or more in cash every year, and safe", "প্রতি বছর 4% বা তার বেশি নগদ দেয়, আর নিরাপদ",
           {"dividends": 2, "safety": 1}, "yield"),
     _goal("beginner", "Safe for a beginner", "নতুনদের জন্য নিরাপদ",
-          "Good, safe, big companies that are easy to sell", "ভালো, নিরাপদ, বড় কোম্পানি — সহজে বেচা যায়",
+          "Good, safe, big companies that are easy to sell", "ভালো, নিরাপদ ও বড় কোম্পানি, যা সহজে বিক্রি করা যায়",
           {"quality": 1, "safety": 1, "trading": 2}, "score"),
-    _goal("big_growing", "Profit going up", "লাভ বাড়ছে",
-          "Profit going up, price not too high, and safe", "লাভ বাড়ছে, দাম বেশি নয়, নিরাপদ",
+    _goal("big_growing", "Profit going up", "মুনাফা বাড়ছে",
+          "Profit going up, price not too high, and safe", "মুনাফা বাড়ছে, দাম বেশি নয়, আর নিরাপদ",
           {"price": 1, "growth": 2, "safety": 1}, "growth"),
     _goal("best_companies", "Best companies", "সেরা কোম্পানি",
-          "Our top grade, and safe", "আমাদের সেরা গ্রেড, নিরাপদ",
+          "Our top grade, and safe", "আমাদের সেরা গ্রেড, আর নিরাপদ",
           {"quality": 2, "safety": 1}, "score"),
     _goal("strong_banks", "Strong banks", "শক্তিশালী ব্যাংক",
-          "Good banks at a price that's not too high", "ভালো ব্যাংক, দাম বেশি নয়",
+          "Good banks at a price that is not too high", "ভালো ব্যাংক, দাম বেশি নয়",
           {"quality": 1, "price": 1}, "score", sectors=["Bank"]),
     _from_list("rl_cash_machines", rl.CASH_MACHINES,
                [_c("paid_years", 5), _c("affordable"), _c("cash_backed"), _c("yield_min", 4), _c("not_expensive")],
@@ -726,7 +744,7 @@ def catalog(sectors: list[str]) -> dict:
     for c in CATALOG:
         opts = c.options
         if c.key == "sector":
-            opts = [Option(s, s, s) for s in sorted(sectors)]
+            opts = [Option(s, s, _sector_bn(s)) for s in sorted(sectors)]
         help_en, help_bn = HELP.get(c.key, ("", ""))
         options = []
         for o in opts:

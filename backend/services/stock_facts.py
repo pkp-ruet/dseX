@@ -75,6 +75,10 @@ def _year(v) -> Optional[int]:
     return int(x) if x is not None else None
 
 
+_MONTH_BN_FULL = ["", "জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন",
+                  "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"]
+
+
 def item(key: str, tone: str, en: str, bn: str) -> dict:
     return {"key": key, "tone": tone, "en": en, "bn": bn}
 
@@ -97,12 +101,12 @@ def profit_years_item(financials: list[dict]) -> Optional[dict]:
         return None
     if pos == total:
         return item("profit_every_year", "good",
-                    f"Made a profit every year for {total} years",
-                    f"টানা {total} বছর প্রতি বছরই লাভ করেছে")
+                    f"It made a profit in each of the last {total} years.",
+                    f"গত {total} বছরের প্রতিটিতে মুনাফা করেছে।")
     if pos >= total - 1:
         return item("profit_most_years", "good",
-                    f"Made a profit in {pos} of the last {total} years",
-                    f"গত {total} বছরের মধ্যে {pos} বছর লাভ করেছে")
+                    f"It made a profit in {pos} of the last {total} years.",
+                    f"গত {total} বছরের মধ্যে {pos} বছর মুনাফা করেছে।")
     return None
 
 
@@ -146,23 +150,23 @@ def ownership_caption(sh: Optional[dict]) -> Optional[dict]:
     if govt >= GOVT_CONTROL_PCT:
         g = round(govt)
         return {"tone": "neutral",
-                "en": f"The government owns {g}% — it is the controlling owner, so there is no separate sponsor group.",
-                "bn": f"সরকার {g}% শেয়ারের মালিক — নিয়ন্ত্রণ সরকারের হাতে, তাই আলাদা উদ্যোক্তা গোষ্ঠী নেই।"}
+                "en": f"The government owns {g}% of the shares and controls the company, so there is no separate sponsor group.",
+                "bn": f"সরকার {g}% শেয়ারের মালিক এবং কোম্পানিটি সরকারের নিয়ন্ত্রণে, তাই আলাদা উদ্যোক্তা গোষ্ঠী নেই।"}
     r = round(spon)
     gov_en = f" The government also holds {round(govt)}%." if govt >= 5 else ""
     gov_bn = f" সরকারেরও {round(govt)}% শেয়ার আছে।" if govt >= 5 else ""
     if spon >= 50:
-        en, bn = (f"Owners (sponsors) hold {r}% — heavily invested in the company's success.",
-                  f"উদ্যোক্তাদের হাতে {r}% শেয়ার — কোম্পানির সাফল্যে তাদের বড় স্বার্থ আছে।")
+        en, bn = (f"Sponsors and directors own {r}% of the shares. Much of their own money depends on the company doing well.",
+                  f"উদ্যোক্তা-পরিচালকদের হাতে {r}% শেয়ার। কোম্পানির সাফল্যের ওপর তাঁদের নিজের অনেক টাকা নির্ভর করছে।")
     elif spon >= 30:
-        en, bn = (f"Owners (sponsors) hold {r}% — a strong sign of commitment.",
-                  f"উদ্যোক্তাদের হাতে {r}% শেয়ার — দায়বদ্ধতার ভালো লক্ষণ।")
+        en, bn = (f"Sponsors and directors own {r}% of the shares, a healthy stake in their own company.",
+                  f"উদ্যোক্তা-পরিচালকদের হাতে {r}% শেয়ার, নিজেদের কোম্পানিতে এটি ভালো অংশ।")
     elif spon >= 20 or govt + spon >= 30:
-        en, bn = (f"Owners (sponsors) hold {r}% — modest skin in the game.",
-                  f"উদ্যোক্তাদের হাতে {r}% শেয়ার — স্বার্থ আছে, তবে খুব বেশি নয়।")
+        en, bn = (f"Sponsors and directors own {r}% of the shares. This is on the low side.",
+                  f"উদ্যোক্তা-পরিচালকদের হাতে {r}% শেয়ার। এটি তুলনামূলক কম।")
     else:
-        en, bn = (f"Owners (sponsors) hold only {r}% — limited alignment with shareholders.",
-                  f"উদ্যোক্তাদের হাতে মাত্র {r}% শেয়ার — সাধারণ শেয়ারহোল্ডারদের সঙ্গে স্বার্থের মিল কম।")
+        en, bn = (f"Sponsors and directors own only {r}% of the shares, so little of their own money is at stake.",
+                  f"উদ্যোক্তা-পরিচালকদের হাতে মাত্র {r}% শেয়ার, অর্থাৎ কোম্পানিতে তাঁদের নিজের টাকা কম খাটছে।")
     return {"tone": "neutral", "en": en + gov_en, "bn": bn + gov_bn}
 
 
@@ -177,7 +181,7 @@ def ownership_change(sh: Optional[dict], prev: Optional[dict],
     if not sh or not prev:
         return None
     since_en = f" since {since_en}" if since_en else " since the last report"
-    since_bn = f"{since_bn} থেকে " if since_bn else "আগের প্রতিবেদনের পর থেকে "
+    since_bn = f"{since_bn}-এর পর থেকে " if since_bn else "আগের প্রতিবেদনের পর থেকে "
 
     def move(key):
         a, b = _pct(prev, key), _pct(sh, key)
@@ -187,7 +191,7 @@ def ownership_change(sh: Optional[dict], prev: Optional[dict],
 
     spon = move("sponsor_director_pct")
     others = [(k, w_en, w_bn, move(k)) for k, w_en, w_bn in (
-        ("institute_pct", "big institutions", "বড় প্রতিষ্ঠানগুলো"),
+        ("institute_pct", "institutions", "প্রতিষ্ঠানগুলো"),
         ("foreign_pct", "foreign investors", "বিদেশি বিনিয়োগকারীরা"),
     )]
     others = [(k, e, b, m) for k, e, b, m in others if m and abs(m[2]) >= OWNERSHIP_MOVE_PP]
@@ -197,27 +201,27 @@ def ownership_change(sh: Optional[dict], prev: Optional[dict],
         A, B, D = _r(a), _r(b), _r(abs(d))
         if abs(d) > OWNERSHIP_JUMP_PP:
             return {"tone": "watch", "key": "sponsor_jump",
-                    "en": f"Check this — owners' (sponsors') stake moved from {A}% to {B}%{since_en}, "
-                          f"a {D}-point jump. A move this big is often a reclassification of holders, "
-                          f"not buying; read the company's disclosure before counting it as a good sign.",
-                    "bn": f"যাচাই করুন — {since_bn}উদ্যোক্তাদের শেয়ার {A}% থেকে {B}% হয়েছে, {D} পয়েন্টের বড় পরিবর্তন। "
-                          f"এত বড় পরিবর্তন অনেক সময় কেনা নয়, শেয়ারধারীর শ্রেণি বদল; ভালো লক্ষণ ধরার আগে কোম্পানির ঘোষণা দেখে নিন।"}
+                    "en": f"Please check this. The sponsors' and directors' holding moved from {A}% to {B}%{since_en}, "
+                          f"a change of {D} points. A move this large is often a change in how holders are grouped, "
+                          f"not real buying, so read the company's notice before treating it as a good sign.",
+                    "bn": f"এটি যাচাই করে নিন। {since_bn}উদ্যোক্তা-পরিচালকদের শেয়ার {A}% থেকে {B}% হয়েছে, {D} পয়েন্টের পরিবর্তন। "
+                          f"এত বড় পরিবর্তন অনেক সময় আসল কেনাবেচা নয়, শেয়ারধারীদের শ্রেণি বদল। ভালো লক্ষণ ধরার আগে কোম্পানির ঘোষণাটি পড়ে নিন।"}
         if d > 0:
             return {"tone": "positive", "key": "sponsor_up",
-                    "en": f"Good sign — owners (sponsors) raised their stake from {A}% to {B}%{since_en}. "
-                          f"People close to the company are buying.",
-                    "bn": f"ভালো লক্ষণ — {since_bn}উদ্যোক্তারা তাদের শেয়ার {A}% থেকে বাড়িয়ে {B}% করেছেন। "
-                          f"কোম্পানির ভেতরের মানুষেরা কিনছেন।"}
+                    "en": f"Sponsors and directors raised their holding from {A}% to {B}%{since_en}. "
+                          f"The people who run the company are buying more of it, which is a good sign.",
+                    "bn": f"{since_bn}উদ্যোক্তা-পরিচালকরা তাঁদের অংশ {A}% থেকে বাড়িয়ে {B}% করেছেন। "
+                          f"কোম্পানি যাঁরা চালান তাঁরাই আরও কিনছেন, যা ভালো লক্ষণ।"}
         tail_en = tail_bn = ""
         up = next(((e, bn, m) for _, e, bn, m in others if m[2] > 0), None)
         if up:
-            tail_en = f" Meanwhile {up[0]} raised theirs to {_r(up[2][1])}%."
-            tail_bn = f" একই সময়ে {up[1]} তাদের শেয়ার বাড়িয়ে {_r(up[2][1])}% করেছে।"
+            tail_en = f" Over the same time, {up[0]} raised theirs to {_r(up[2][1])}%."
+            tail_bn = f" একই সময়ে {up[1]} তাঁদের অংশ বাড়িয়ে {_r(up[2][1])}% করেছে।"
         return {"tone": "watch", "key": "sponsor_down",
-                "en": f"Worth watching — owners (sponsors) cut their stake from {A}% to {B}%{since_en}. "
-                      f"Keep an eye on why.{tail_en}",
-                "bn": f"নজর রাখুন — {since_bn}উদ্যোক্তারা তাদের শেয়ার {A}% থেকে কমিয়ে {B}% করেছেন। "
-                      f"কেন কমালেন, খেয়াল রাখুন।{tail_bn}"}
+                "en": f"Sponsors and directors lowered their holding from {A}% to {B}%{since_en}. "
+                      f"It is worth finding out why.{tail_en}",
+                "bn": f"{since_bn}উদ্যোক্তা-পরিচালকরা তাঁদের অংশ {A}% থেকে কমিয়ে {B}% করেছেন। "
+                      f"কেন কমালেন, তা জেনে নেওয়া ভালো।{tail_bn}"}
 
     if not others:
         return None
@@ -225,11 +229,11 @@ def ownership_change(sh: Optional[dict], prev: Optional[dict],
     A, B = _r(a), _r(b)
     if d > 0:
         return {"tone": "positive", "key": f"{k}_up",
-                "en": f"Good sign — {w_en} raised their stake from {A}% to {B}%{since_en}.",
-                "bn": f"ভালো লক্ষণ — {since_bn}{w_bn} তাদের শেয়ার {A}% থেকে বাড়িয়ে {B}% করেছে।"}
+                "en": f"{w_en[0].upper() + w_en[1:]} raised their holding from {A}% to {B}%{since_en}, which is a good sign.",
+                "bn": f"{since_bn}{w_bn} তাঁদের অংশ {A}% থেকে বাড়িয়ে {B}% করেছে, যা ভালো লক্ষণ।"}
     return {"tone": "watch", "key": f"{k}_down",
-            "en": f"Worth watching — {w_en} cut their stake from {A}% to {B}%{since_en}. Keep an eye on why.",
-            "bn": f"নজর রাখুন — {since_bn}{w_bn} তাদের শেয়ার {A}% থেকে কমিয়ে {B}% করেছে। কেন, খেয়াল রাখুন।"}
+            "en": f"{w_en[0].upper() + w_en[1:]} lowered their holding from {A}% to {B}%{since_en}. It is worth finding out why.",
+            "bn": f"{since_bn}{w_bn} তাঁদের অংশ {A}% থেকে কমিয়ে {B}% করেছে। কেন কমাল, তা জেনে নেওয়া ভালো।"}
 
 
 # ---------------------------------------------------------------------------
@@ -240,12 +244,12 @@ def ownership_change(sh: Optional[dict], prev: Optional[dict],
 _GOVERNANCE_RULES = [
     ("qualified_opinion",
      re.compile(r"(?<!un)qualified\s+(?:audit\s+)?opinion", re.IGNORECASE),
-     "The auditor gave a qualified opinion on the latest accounts — some figures could not be fully confirmed",
-     "নিরীক্ষক সর্বশেষ হিসাবে 'শর্তসাপেক্ষ মতামত' দিয়েছেন — কিছু হিসাব পুরোপুরি নিশ্চিত করা যায়নি"),
+     "The auditor gave a qualified opinion on the latest accounts, meaning some figures could not be fully confirmed.",
+     "নিরীক্ষক সর্বশেষ হিসাবে শর্তসাপেক্ষ মতামত দিয়েছেন, অর্থাৎ কিছু হিসাব পুরোপুরি নিশ্চিত করা যায়নি।"),
     ("going_concern",
      re.compile(r"going\s+concern", re.IGNORECASE),
-     "The auditor raised doubts about whether the business can keep running (going concern)",
-     "ব্যবসা চালিয়ে যেতে পারবে কিনা, তা নিয়ে নিরীক্ষক সন্দেহ প্রকাশ করেছেন"),
+     "The auditor raised doubts about whether the business can keep running.",
+     "ব্যবসা চালিয়ে যেতে পারবে কি না, তা নিয়ে নিরীক্ষক সন্দেহ প্রকাশ করেছেন।"),
     # A company-specific step by the regulator — "pursuant to the direction of the
     # BSEC ... postponed" (NAVANAPHAR), "BSEC ... decided to reject" (AL-HAJTEX),
     # an enquiry committee (MITHUNKNIT). Routine consents and citations of a
@@ -257,22 +261,22 @@ _GOVERNANCE_RULES = [
          r"\b(?:directed|instructed|ordered|rejected|decided\s+to\s+reject|declined|not\s+in\s+a\s+position|"
          r"froze|frozen|penali[sz]ed|fined|show[- ]cause|enquiry\s+committee|inquiry\s+committee|investigat\w+)"
      ), re.IGNORECASE),
-     "The securities regulator (BSEC) gave the company a directive or turned down its request",
-     "নিয়ন্ত্রক সংস্থা বিএসইসি কোম্পানিটিকে নির্দেশনা দিয়েছে বা এর আবেদন নাকচ করেছে"),
+     "The market regulator, BSEC, gave the company an instruction or turned down one of its requests.",
+     "নিয়ন্ত্রক সংস্থা বিএসইসি কোম্পানিটিকে নির্দেশনা দিয়েছে বা এর কোনো আবেদন নাকচ করেছে।"),
     ("board_postponed",
      re.compile(r"(?:board\s+meetings?|meetings?\s+of\s+the\s+board)[^.]{0,160}?postpone\w*"
                 r"|postpone\w*\s+of\s+board\s+meeting", re.IGNORECASE),
-     "A board meeting was postponed",
-     "পরিচালনা পর্ষদের সভা স্থগিত হয়েছে"),
+     "A board meeting was postponed.",
+     "পরিচালনা পর্ষদের একটি সভা স্থগিত হয়েছে।"),
     ("agm_postponed",
      re.compile(r"(?:annual\s+general\s+meeting|\bAGM\b)[^.]{0,160}?postpone\w*"
                 r"|postpone\w*\s+of\s+(?:the\s+)?(?:\d+\w*\s+)?AGM", re.IGNORECASE),
-     "The annual shareholders' meeting (AGM) was postponed",
-     "বার্ষিক সাধারণ সভা (এজিএম) স্থগিত হয়েছে"),
+     "The annual general meeting (AGM) was postponed.",
+     "এজিএম স্থগিত হয়েছে।"),
     ("penalty",
      re.compile(r"\b(?:penalised|penalized|penalty|fined)\b", re.IGNORECASE),
-     "The company was fined or penalised",
-     "কোম্পানিকে জরিমানা করা হয়েছে"),
+     "The company was fined or penalised.",
+     "কোম্পানিকে জরিমানা করা হয়েছে।"),
 ]
 
 
@@ -304,7 +308,8 @@ def governance_items(news: list[dict], now: Optional[datetime] = None, days: int
             if key in found and when is not None and found[key][0] >= when:
                 continue
             date_en = f" ({when.strftime('%d %b %Y').lstrip('0')})" if when else ""
-            found[key] = (when or now, item(key, "watch", en + date_en, bn + date_en))
+            date_bn = f" ({when.day} {_MONTH_BN_FULL[when.month]} {when.year})" if when else ""
+            found[key] = (when or now, item(key, "watch", en[:-1] + date_en + ".", bn[:-1] + date_bn + "।"))
     order = [k for k, *_ in _GOVERNANCE_RULES]
     # A BSEC action that postponed a board meeting is one event — keep the regulator line.
     if "bsec_action" in found and "board_postponed" in found:
@@ -340,8 +345,9 @@ def own_pe_label(years: Optional[int], listing_year: Optional[int],
     # many of those years carried a P/E (NAVANAPHAR: listed 2022, 3 P/E years).
     if ly is not None and last_year is not None and last_year - ly + 1 <= 5:
         return {"en": f"average since listing ({ly})", "bn": f"তালিকাভুক্তির ({ly}) পর থেকে গড়",
-                "short_en": "since-listing avg"}
-    return {"en": f"{n}-year average", "bn": f"{n} বছরের গড়", "short_en": f"{n}y avg"}
+                "short_en": "average since listing", "short_bn": "তালিকাভুক্তির পর থেকে গড়"}
+    return {"en": f"{n}-year average", "bn": f"{n} বছরের গড়",
+            "short_en": f"{n}-year average", "short_bn": f"{n} বছরের গড়"}
 
 
 def eps_basis_label(score_row: dict) -> Optional[dict]:
@@ -357,10 +363,11 @@ def eps_basis_label(score_row: dict) -> Optional[dict]:
             return {"basis": "ttm",
                     "en": f"last 12 months to {_MONTH_ABBR[end.month]} {end.year}",
                     "bn": f"{_MONTH_BN[end.month]} {end.year} পর্যন্ত শেষ 12 মাস",
-                    "short_en": "TTM"}
+                    "short_en": "last 12 months", "short_bn": "শেষ 12 মাস"}
     fy = _year(sr.get("fy_eps_year"))
     if fy:
-        return {"basis": "fy", "en": f"FY{fy}", "bn": f"{fy} অর্থবছর", "short_en": f"FY{fy}"}
+        return {"basis": "fy", "en": f"FY{fy}", "bn": f"{fy} অর্থবছর",
+                "short_en": f"FY{fy}", "short_bn": f"{fy} অর্থবছর"}
     return None
 
 
@@ -386,69 +393,69 @@ def health_overrides(score_row: dict, financials: list[dict], sector_class: str)
         eps = [e for e in (_f(r.get("eps")) for r in financials or []) if e is not None][-total:]
         if eps and eps[-1] < eps[0] * 0.8:
             out["p1_biz"] = _row(
-                "fair", "Profit Is Shrinking", "Profitable every year, but profit has been falling.",
-                "The company has not lost money, but it earns less per share than it used to. Watch whether profit recovers.",
-                "লাভ কমছে", "প্রতি বছর লাভ করে, তবে লাভ কমে আসছে।",
-                "কোম্পানিটি লোকসান করেনি, কিন্তু আগের চেয়ে শেয়ারপ্রতি আয় কম। লাভ আবার বাড়ে কিনা দেখুন।")
+                "fair", "Profit is shrinking", "It makes a profit every year, but the profit is getting smaller.",
+                "The company has not made a loss, but it now earns less for each share than it used to. It is worth watching whether profit recovers.",
+                "মুনাফা কমছে", "প্রতি বছর মুনাফা করে, তবে মুনাফা কমে আসছে।",
+                "কোম্পানিটি লোকসান করেনি, তবে আগের চেয়ে শেয়ারপ্রতি আয় কম। মুনাফা আবার বাড়ে কি না, তা দেখার বিষয়।")
         else:
             out["p1_biz"] = _row(
-                "fair", "Profit Goes Up and Down", "Profitable every year, but the amount changes a lot.",
-                "The company has made money every year, but the amount swings from year to year. Watch how it does over the next year or two before making a big bet.",
-                "লাভ ওঠানামা করে", "প্রতি বছর লাভ করে, তবে লাভের অঙ্ক অনেক ওঠানামা করে।",
-                "কোম্পানিটি প্রতি বছর লাভ করেছে, কিন্তু অঙ্কটা বছর বছর অনেক বদলায়। বড় বিনিয়োগের আগে আগামী এক-দুই বছর কেমন করে দেখে নিন।")
+                "fair", "Uneven profit", "It makes a profit every year, but the amount changes a lot.",
+                "The company has made a profit every year, but the amount changes a lot from year to year. It is worth watching the next year or two before investing a large amount.",
+                "অসমান মুনাফা", "প্রতি বছর মুনাফা করে, তবে অঙ্কটা অনেক ওঠানামা করে।",
+                "কোম্পানিটি প্রতি বছর মুনাফা করেছে, তবে অঙ্কটা বছর বছর অনেক বদলায়। বড় অঙ্কে বিনিয়োগের আগে আগামী এক-দুই বছর দেখে নেওয়া ভালো।")
 
     # p2 — lenders are judged on their capital cushion, not loans.
     p2 = _f(sr.get("p2_health"))
     if p2 is not None and sector_class in _LENDER_CLASSES:
         if p2 >= 7:
             out["p2_health"] = _row(
-                "strong", "Strong Capital Cushion", "Plenty of its own money behind its lending.",
-                "For a bank or finance company, borrowing is the business. What matters is how much of its own money stands behind the loans it gives — and here that cushion is healthy.",
-                "মজবুত মূলধন", "ঋণ দেওয়ার পেছনে নিজের যথেষ্ট টাকা আছে।",
-                "ব্যাংক বা আর্থিক প্রতিষ্ঠানের জন্য ধার করাই ব্যবসা। আসল কথা হলো দেওয়া ঋণের পেছনে নিজের কতটা টাকা আছে — এখানে সেই ভিত ভালো।")
+                "strong", "Strong capital", "It lends with plenty of its own money behind it.",
+                "For a bank or finance company, borrowing is part of the business. What matters is how much of its own money stands behind the loans it gives, and here that amount is healthy.",
+                "মূলধন শক্ত", "ঋণের পেছনে যথেষ্ট নিজস্ব টাকা আছে।",
+                "ব্যাংক বা আর্থিক প্রতিষ্ঠানের জন্য ধার নেওয়া ব্যবসারই অংশ। আসল বিষয় হলো দেওয়া ঋণের পেছনে নিজের কতটা টাকা আছে, আর এখানে তা যথেষ্ট।")
         elif p2 >= 4:
             out["p2_health"] = _row(
-                "fair", "Okay Capital Cushion", "Its own money behind the lending is adequate, not large.",
-                "The bank has enough of its own money behind its loans, but not a big extra cushion if many loans go bad.",
-                "মোটামুটি মূলধন", "ঋণের পেছনে নিজের টাকা চলনসই, বেশি নয়।",
-                "ঋণের পেছনে ব্যাংকের নিজের টাকা চলনসই, কিন্তু অনেক ঋণ খারাপ হলে বাড়তি ভিত তেমন নেই।")
+                "fair", "Adequate capital", "Its own money behind its loans is enough, but not large.",
+                "The bank has enough of its own money behind its loans, but not much extra room if many loans go bad.",
+                "মূলধন চলনসই", "ঋণের পেছনে নিজস্ব টাকা যথেষ্ট, তবে বেশি নয়।",
+                "ঋণের পেছনে ব্যাংকের নিজস্ব টাকা যথেষ্ট, তবে অনেক ঋণ খেলাপি হলে বাড়তি জায়গা কম।")
         else:
             out["p2_health"] = _row(
-                "weak", "Thin Capital Cushion", "Little of its own money behind the lending.",
-                "Only a thin layer of the bank's own money stands behind its loans, so bad loans can hurt shareholders quickly.",
-                "দুর্বল মূলধন", "ঋণের পেছনে নিজের টাকা কম।",
-                "ঋণের পেছনে ব্যাংকের নিজের টাকা সামান্য, তাই খারাপ ঋণ দ্রুত শেয়ারহোল্ডারদের ক্ষতি করতে পারে।")
+                "weak", "Thin capital", "Little of its own money stands behind its loans.",
+                "Only a small amount of the bank's own money stands behind its loans, so bad loans can quickly hurt shareholders.",
+                "মূলধন দুর্বল", "ঋণের পেছনে নিজস্ব টাকা কম।",
+                "ঋণের পেছনে ব্যাংকের নিজস্ব টাকা সামান্য, তাই খেলাপি ঋণ দ্রুত শেয়ারহোল্ডারদের ক্ষতি করতে পারে।")
     elif p2 is not None:
         level = sr.get("debt_level")
         neg_cash = (_f(sr.get("interim_nocfps")) or 0) < 0
         if level == "over_mcap":
             out["p2_health"] = _row(
-                "weak", "Too Much Loan", "Loans are bigger than the whole company's market value.",
-                "The company owes lenders more than the stock market values the entire company at. Heavy loans make it shaky when business slows or rates rise.",
+                "weak", "Too much debt", "Its loans are larger than the value of the whole company.",
+                "The company owes more than the stock market says the whole company is worth. Heavy loans make a company fragile when business slows or interest rates rise.",
                 "ঋণ অনেক বেশি", "ঋণ পুরো কোম্পানির বাজারমূল্যের চেয়েও বেশি।",
-                "শেয়ারবাজারে পুরো কোম্পানির যে দাম, তার চেয়েও বেশি টাকা কোম্পানিটি ঋণদাতাদের কাছে ধারে। ব্যবসা মন্দা গেলে বা সুদ বাড়লে ভারী ঋণ কোম্পানিকে নড়বড়ে করে।")
+                "শেয়ারবাজারে পুরো কোম্পানির যে মূল্য, কোম্পানির দেনা তার চেয়েও বেশি। ব্যবসা কমলে বা সুদের হার বাড়লে বেশি ঋণ কোম্পানিকে নাজুক করে তোলে।")
         elif level == "over_reserve":
             out["p2_health"] = _row(
-                "fair", "Loans Are Heavy", "Loans are bigger than the profit it has saved up.",
-                "The company can pay its bills, but its loans are larger than the savings (reserves) it has built from past profit. That leaves less cushion if business slows.",
-                "ঋণ বেশ ভারী", "জমানো মুনাফার চেয়ে ঋণ বেশি।",
-                "বিল মেটাতে পারে, কিন্তু অতীতের মুনাফা থেকে জমানো সঞ্চয়ের চেয়ে ঋণ বেশি। ব্যবসা মন্দা গেলে ভিত কম।")
+                "fair", "High debt", "Its loans are larger than the profit it has saved over the years.",
+                "The company can pay its bills, but its loans are larger than the profit it has kept from past years. That leaves less room if business slows.",
+                "ঋণ বেশি", "বছরের পর বছর জমানো মুনাফার চেয়ে ঋণ বেশি।",
+                "কোম্পানি তার খরচ মেটাতে পারে, তবে আগের বছরগুলোর জমানো মুনাফার চেয়ে ঋণ বেশি। ব্যবসা কমলে হাতে জায়গা কম থাকবে।")
         elif p2 >= 7 and neg_cash:
             out["p2_health"] = _row(
-                "fair", "Low Loans, Cash Slipping", "Loans are low, but the business used more cash than it made this year.",
-                "The company does not owe much, but so far this year its day-to-day business has taken in less cash than it spent. Watch whether that turns around.",
-                "ঋণ কম, নগদ কমছে", "ঋণ কম, কিন্তু এ বছর ব্যবসায় যা নগদ এসেছে তার চেয়ে খরচ বেশি।",
-                "কোম্পানির ঋণ বেশি নয়, কিন্তু এ বছর এ পর্যন্ত দৈনন্দিন ব্যবসায় আয়ের চেয়ে নগদ খরচ বেশি হয়েছে। এটা ঠিক হয় কিনা দেখুন।")
+                "fair", "Low debt, less cash", "Debt is low, but the business spent more cash than it brought in this year.",
+                "The company owes little, but so far this year its day-to-day business has spent more cash than it brought in. It is worth watching whether that changes.",
+                "ঋণ কম, নগদ কমছে", "ঋণ কম, তবে এ বছর ব্যবসায় যত নগদ এসেছে তার চেয়ে বেশি খরচ হয়েছে।",
+                "কোম্পানির ঋণ কম, তবে এ বছর এ পর্যন্ত দৈনন্দিন ব্যবসায় যত নগদ এসেছে তার চেয়ে বেশি খরচ হয়েছে। পরিস্থিতি বদলায় কি না, তা দেখার বিষয়।")
 
     # p5 — "Strong Dividend" must mean a real amount, not just reliability.
     p5 = _f(sr.get("p5_div"))
     dy = _f(sr.get("div_yield_pct"))
     if p5 is not None and p5 >= 7 and dy is not None and dy < SMALL_YIELD_PCT:
         out["p5_div"] = _row(
-            "fair", "Steady but Small Dividend", f"Pays every year, but only about {_r(dy)}% of the price.",
-            "The company pays a dividend reliably, but at today's price the yearly cash is small. Good for steadiness, not for income.",
-            "নিয়মিত, তবে অল্প লভ্যাংশ", f"প্রতি বছর দেয়, তবে দামের তুলনায় মাত্র {_r(dy)}%।",
-            "কোম্পানিটি নিয়মিত লভ্যাংশ দেয়, কিন্তু আজকের দামে বছরের নগদ অঙ্ক কম। স্থিরতার জন্য ভালো, আয়ের জন্য নয়।")
+            "fair", "Steady but small dividend", f"It pays every year, but only about {_r(dy)}% of the price.",
+            "The company pays a dividend reliably, but at today's price the yearly cash is small. It suits investors who value steadiness more than income.",
+            "নিয়মিত, তবে কম ডিভিডেন্ড", f"প্রতি বছর দেয়, তবে দামের তুলনায় মাত্র {_r(dy)}%।",
+            "কোম্পানিটি নিয়মিত ডিভিডেন্ড দেয়, তবে আজকের দামে বছরের নগদ অঙ্ক কম। আয়ের চেয়ে স্থিরতাকে যাঁরা বেশি গুরুত্ব দেন, তাঁদের জন্য উপযোগী।")
     return out
 
 
@@ -486,8 +493,8 @@ def build_items(score_row: Optional[dict], holdings: list[dict], financials: lis
         out.append(py)
     latest_eps = next((e for e in (_f(r.get("eps")) for r in reversed(financials or [])) if e is not None), None)
     if latest_eps is not None and latest_eps < 0:
-        out.append(item("loss_latest", "watch", "Lost money in the most recent year",
-                        "সর্বশেষ বছরে লোকসান করেছে"))
+        out.append(item("loss_latest", "watch", "It made a loss in the most recent year.",
+                        "সর্বশেষ বছরে লোকসান করেছে।"))
 
     iy = _f(sr.get("interim_eps_yoy_pct"))
     fy_yoy = _f(sr.get("eps_yoy_pct"))
@@ -495,62 +502,62 @@ def build_items(score_row: Optional[dict], holdings: list[dict], financials: lis
     if iy is not None and lab_en:
         if iy <= -INTERIM_MOVE_PCT and fy_yoy is not None and fy_yoy > 0:
             out.append(item("slowing_this_year", "watch",
-                            f"Last year profit rose, but this year it is slowing — down {_r(abs(iy))}% ({lab_en}, vs the same months last year)",
-                            f"গত বছর লাভ বেড়েছিল, কিন্তু এ বছর কমছে — {lab_bn}-এ আগের বছরের একই সময়ের চেয়ে {_r(abs(iy))}% কম"))
+                            f"Profit rose last year, but this year it is down {_r(abs(iy))}% compared with the same months last year ({lab_en}).",
+                            f"গত বছর মুনাফা বেড়েছিল, তবে এ বছর আগের বছরের একই সময়ের চেয়ে {_r(abs(iy))}% কম ({lab_bn})।"))
         elif iy <= -INTERIM_MOVE_PCT:
             out.append(item("profit_down_this_year", "watch",
-                            f"Profit is down {_r(abs(iy))}% so far this year ({lab_en}, vs the same months last year)",
-                            f"এ বছর এ পর্যন্ত লাভ {_r(abs(iy))}% কম ({lab_bn}, আগের বছরের একই সময়ের তুলনায়)"))
+                            f"Profit so far this year is down {_r(abs(iy))}% compared with the same months last year ({lab_en}).",
+                            f"এ বছর এ পর্যন্ত মুনাফা আগের বছরের একই সময়ের চেয়ে {_r(abs(iy))}% কম ({lab_bn})।"))
         elif iy >= INTERIM_MOVE_PCT:
             out.append(item("profit_up_this_year", "good",
-                            f"Profit is up {_r(iy)}% so far this year ({lab_en}, vs the same months last year)",
-                            f"এ বছর এ পর্যন্ত লাভ {_r(iy)}% বেশি ({lab_bn}, আগের বছরের একই সময়ের তুলনায়)"))
+                            f"Profit so far this year is up {_r(iy)}% compared with the same months last year ({lab_en}).",
+                            f"এ বছর এ পর্যন্ত মুনাফা আগের বছরের একই সময়ের চেয়ে {_r(iy)}% বেশি ({lab_bn})।"))
         q = _f(sr.get("interim_q_yoy_pct"))
         if q is not None and q <= -25 and iy > -INTERIM_MOVE_PCT:
             out.append(item("latest_quarter_down", "watch",
-                            f"The latest quarter's profit fell {_r(abs(q))}% from a year earlier",
-                            f"সর্বশেষ প্রান্তিকে লাভ আগের বছরের চেয়ে {_r(abs(q))}% কম"))
+                            f"Profit in the latest quarter fell {_r(abs(q))}% from a year earlier.",
+                            f"সর্বশেষ প্রান্তিকে মুনাফা আগের বছরের একই প্রান্তিকের চেয়ে {_r(abs(q))}% কম।"))
 
     # ---- Cash ------------------------------------------------------------
     nocf = _f(sr.get("interim_nocfps"))
     if nocf is not None and nocf < 0 and not is_lender:
         prev = _f(sr.get("interim_nocfps_prev"))
-        prev_en = f", against {_taka(prev)} a year earlier" if prev is not None else ""
+        prev_en = f", compared with {_taka(prev)} a year earlier" if prev is not None else ""
         prev_bn = f"; আগের বছর একই সময়ে ছিল {_taka(prev)}" if prev is not None else ""
         out.append(item("negative_cash_this_year", "watch",
-                        f"The business used more cash than it brought in this year ({_taka(nocf)} per share, {lab_en or 'latest report'}{prev_en})",
-                        f"এ বছর ব্যবসায় যত নগদ এসেছে তার চেয়ে খরচ বেশি (শেয়ারপ্রতি {_taka(nocf)}, {lab_bn or 'সর্বশেষ প্রতিবেদন'}{prev_bn})"))
+                        f"This year the business spent more cash than it brought in ({_taka(nocf)} a share, {lab_en or 'latest report'}{prev_en}).",
+                        f"এ বছর ব্যবসায় যত নগদ এসেছে তার চেয়ে বেশি খরচ হয়েছে (শেয়ারপ্রতি {_taka(nocf)}, {lab_bn or 'সর্বশেষ প্রতিবেদন'}{prev_bn})।"))
     elif (_f(sr.get("p2_cfo")) or 0) >= 4 and not is_lender:
-        out.append(item("cash_from_business", "good", "Generates real cash from its day-to-day business",
-                        "দৈনন্দিন ব্যবসা থেকে সত্যিকারের নগদ আয় করে"))
+        out.append(item("cash_from_business", "good", "Its day-to-day business brings in real cash.",
+                        "দৈনন্দিন ব্যবসা থেকে সত্যিকারের নগদ টাকা আসে।"))
 
     # ---- Dividend --------------------------------------------------------
     if (_f(sr.get("p5_consist")) or 0) >= 7:
-        out.append(item("dividend_every_year", "good", "Pays a dividend every year, like clockwork",
-                        "প্রতি বছর নিয়ম করে লভ্যাংশ দেয়"))
+        out.append(item("dividend_every_year", "good", "It pays a dividend every year.",
+                        "প্রতি বছর নিয়মিত ডিভিডেন্ড দেয়।"))
     payout = _f(sr.get("payout_latest_pct"))
     if payout is not None and payout > 100:
         out.append(item("paid_more_than_earned", "watch",
-                        f"Paid more in dividends than it earned last year ({_r(payout, 0)}% of profit) — that comes out of savings",
-                        f"গত বছর আয়ের চেয়ে বেশি লভ্যাংশ দিয়েছে (লাভের {_r(payout, 0)}%) — বাড়তিটা সঞ্চয় থেকে"))
+                        f"Last year it paid more in dividends than it earned ({_r(payout, 0)}% of profit). The extra came from savings.",
+                        f"গত বছর আয়ের চেয়ে বেশি ডিভিডেন্ড দিয়েছে (মুনাফার {_r(payout, 0)}%)। বাড়তি অংশ এসেছে জমানো টাকা থেকে।"))
     elif payout is not None and payout > 90:
         out.append(item("high_payout", "watch",
-                        f"Pays out {_r(payout, 0)}% of profits as dividends — may be hard to keep up",
-                        f"লাভের {_r(payout, 0)}% লভ্যাংশ হিসেবে দেয় — ধরে রাখা কঠিন হতে পারে"))
+                        f"It pays out {_r(payout, 0)}% of its profit as dividends. That may be hard to keep up.",
+                        f"মুনাফার {_r(payout, 0)}% ডিভিডেন্ড হিসেবে দেয়। এই হার ধরে রাখা কঠিন হতে পারে।"))
 
     # ---- Valuation (own history) -----------------------------------------
     lbl = own_pe_label(sr.get("own_avg_pe_years"), sr.get("listing_year"), _year(sr.get("fy_eps_year")))
     hist_en = lbl["en"] if lbl else "its usual level"
-    hist_bn = lbl["bn"] if lbl else "স্বাভাবিক"
+    hist_bn = lbl["bn"] if lbl else "স্বাভাবিক মাত্রা"
     p4_pe = _f(sr.get("p4_pe"))
     if p4_pe is not None and p4_pe >= 8:
         out.append(item("cheap_vs_history", "good",
-                        f"Priced cheaper than its own history (P/E below its {hist_en})",
-                        f"নিজের অতীতের চেয়ে সস্তায় মিলছে (দাম-আয় অনুপাত {hist_bn}-এর নিচে)"))
+                        f"Its price is low compared with its own past. The P/E is below its {hist_en}.",
+                        f"নিজের অতীতের তুলনায় দাম কম। পিই এর {hist_bn}-এর নিচে।"))
     elif p4_pe is not None and p4_pe <= 1.0 and score_row:
         out.append(item("pricey_vs_history", "watch",
-                        f"Priced richer than its own history (P/E well above its {hist_en})",
-                        f"নিজের অতীতের চেয়ে দামি (দাম-আয় অনুপাত {hist_bn}-এর অনেক ওপরে)"))
+                        f"Its price is high compared with its own past. The P/E is well above its {hist_en}.",
+                        f"নিজের অতীতের তুলনায় দাম বেশি। পিই এর {hist_bn}-এর অনেক ওপরে।"))
 
     # ---- Ownership -------------------------------------------------------
     sh = holdings[0] if holdings else None
@@ -559,12 +566,12 @@ def build_items(score_row: Optional[dict], holdings: list[dict], financials: lis
         govt = _pct(sh, "govt_pct") or 0.0
         if govt >= GOVT_CONTROL_PCT:
             out.append(item("govt_controlled", "good",
-                            f"Controlled by the government ({round(govt)}%) — a stable main owner",
-                            f"সরকারের নিয়ন্ত্রণে ({round(govt)}%) — স্থির প্রধান মালিক"))
+                            f"The government controls it with {round(govt)}% of the shares, a stable main owner.",
+                            f"সরকারের হাতে {round(govt)}% শেয়ার, অর্থাৎ প্রধান মালিক স্থির।"))
         elif spon > 30:
             out.append(item("sponsor_alignment", "good",
-                            f"Owners (sponsors) hold {round(spon)}% — they have skin in the game",
-                            f"উদ্যোক্তাদের হাতে {round(spon)}% শেয়ার — কোম্পানিতে তাদের নিজের স্বার্থ আছে"))
+                            f"Sponsors and directors own {round(spon)}% of the shares, so much of their own money is at stake.",
+                            f"উদ্যোক্তা-পরিচালকদের হাতে {round(spon)}% শেয়ার, অর্থাৎ কোম্পানিতে তাঁদের নিজের অনেক টাকা খাটছে।"))
         base = ownership_baseline(holdings)
         chg = ownership_change(sh, base)
         if chg and chg.get("key") == "sponsor_jump":
@@ -573,8 +580,8 @@ def build_items(score_row: Optional[dict], holdings: list[dict], financials: lis
             # (a 42% -> 32% fall used to read "jumped").
             up = a is not None and b is not None and b > a
             out.append(item("sponsor_jump", "watch",
-                            f"Owners' stake {'jumped' if up else 'dropped'} from {_r(a)}% to {_r(b)}% — unusually large, check whether holders were reclassified",
-                            f"উদ্যোক্তাদের শেয়ার {_r(a)}% থেকে {'বেড়ে' if up else 'কমে'} {_r(b)}% — অস্বাভাবিক বড় পরিবর্তন, শেয়ারধারীর শ্রেণি বদল কিনা যাচাই করুন"))
+                            f"The sponsors' and directors' holding {'rose' if up else 'fell'} from {_r(a)}% to {_r(b)}%. This is unusually large, so check whether the holders were simply regrouped.",
+                            f"উদ্যোক্তা-পরিচালকদের শেয়ার {_r(a)}% থেকে {'বেড়ে' if up else 'কমে'} {_r(b)}% হয়েছে। এটি অস্বাভাবিক বড় পরিবর্তন, তাই শেয়ারধারীদের শ্রেণি বদল হয়েছে কি না যাচাই করুন।"))
 
     # ---- Debt (not for lenders / insurers) -------------------------------
     if sector_class not in _NO_DEBT_FLAG_CLASSES:
@@ -584,27 +591,27 @@ def build_items(score_row: Optional[dict], holdings: list[dict], financials: lis
         res = _f(company.get("reserve_surplus_mn"))
         if level == "over_mcap" and loan is not None and mcap:
             out.append(item("loan_over_mcap", "watch",
-                            f"Loans (৳{_crore(loan)} Cr) are bigger than the company's whole market value (৳{_crore(mcap)} Cr)",
-                            f"ঋণ (৳{_crore(loan)} কোটি) কোম্পানির পুরো বাজারমূল্যের (৳{_crore(mcap)} কোটি) চেয়েও বেশি"))
+                            f"Its loans (৳{_crore(loan)} crore) are larger than the value of the whole company (৳{_crore(mcap)} crore).",
+                            f"এর ঋণ (৳{_crore(loan)} কোটি) পুরো কোম্পানির বাজারমূল্যের (৳{_crore(mcap)} কোটি) চেয়েও বেশি।"))
         elif level == "over_reserve" and loan is not None and res:
             out.append(item("loan_over_reserve", "watch",
-                            f"Loans (৳{_crore(loan)} Cr) are bigger than its retained savings (৳{_crore(res)} Cr)",
-                            f"ঋণ (৳{_crore(loan)} কোটি) জমানো সঞ্চয়ের (৳{_crore(res)} কোটি) চেয়ে বেশি"))
+                            f"Its loans (৳{_crore(loan)} crore) are larger than the profit it has kept over the years (৳{_crore(res)} crore).",
+                            f"এর ঋণ (৳{_crore(loan)} কোটি) বছরের পর বছর জমানো মুনাফার (৳{_crore(res)} কোটি) চেয়ে বেশি।"))
 
     # ---- Category, governance, data freshness ----------------------------
     cat = (company.get("market_category") or "").strip()
     # "-" is DSE's blank (no category shown), not a tier below A.
     if cat and cat != "-" and cat.upper() != "A":
         out.append(item("category_not_a", "watch",
-                        f"Listed in category {cat} — not the top tier (A)",
-                        f"{cat} ক্যাটাগরিতে তালিকাভুক্ত — সেরা স্তর (A) নয়"))
+                        f"It is in category {cat}, not the top category (A).",
+                        f"এটি {cat} ক্যাটাগরিতে আছে, সবচেয়ে ভালো A ক্যাটাগরিতে নয়।"))
     out.extend(governance_items(news or [], now=now))
     nfy = _year(sr.get("newer_dividend_fy"))
     have = _year(sr.get("fy_eps_year"))
     if nfy and have:
         out.append(item("data_behind", "watch",
-                        f"A dividend for FY{nfy} is declared, but our yearly profit figures stop at FY{have} — some numbers here are a year old",
-                        f"{nfy} অর্থবছরের লভ্যাংশ ঘোষণা হয়েছে, কিন্তু আমাদের বার্ষিক হিসাব {have} পর্যন্ত — এখানের কিছু সংখ্যা এক বছর পুরোনো"))
+                        f"A dividend for FY{nfy} has been declared, but our yearly figures stop at FY{have}. Some numbers here are a year old.",
+                        f"{nfy} অর্থবছরের ডিভিডেন্ড ঘোষণা হয়েছে, তবে আমাদের বার্ষিক হিসাব {have} অর্থবছর পর্যন্ত। এখানকার কিছু সংখ্যা এক বছর পুরোনো।"))
 
     return resolve_contradictions(out)
 

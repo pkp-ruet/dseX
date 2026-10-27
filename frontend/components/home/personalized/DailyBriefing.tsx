@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Card from "@/components/ui/Card";
+import { T } from "@/components/i18n/T";
 
 const SETUP_SKIP_KEY = "dsex.setup.skip"; // sessionStorage — hide for this session only
 const SETUP_HIDE_KEY = "dsex.setup.hidden"; // localStorage — hide permanently
@@ -75,12 +76,16 @@ export default function DailyBriefing({ hasWatchlist }: Props) {
         key: "watchlist",
         done: hasWatchlist,
         icon: ICON_WATCHLIST,
-        title: "Build your watchlist",
-        desc: "Follow any stock's price, score & news — every day.",
-        descBn: "পছন্দের শেয়ার যোগ করুন — দাম, স্কোর ও খবর প্রতিদিন এক জায়গায়।",
+        title: <T en="Build your watchlist" bn="আপনার ওয়াচলিস্ট তৈরি করুন" />,
+        desc: (
+          <T
+            en="Follow the price, score and news of any share, all in one place each day."
+            bn="যেকোনো শেয়ারের দাম, স্কোর আর খবর প্রতিদিন এক জায়গায় দেখুন।"
+          />
+        ),
         href: "/watchlist" as string | undefined,
         onClick: undefined as (() => void) | undefined,
-        cta: "Add stocks",
+        cta: <T en="Add shares" bn="শেয়ার যোগ করুন" />,
       },
     ].sort((a, b) => Number(a.done) - Number(b.done)); // incomplete steps first
     const doneCount = steps.filter((s) => s.done).length;
@@ -104,14 +109,16 @@ export default function DailyBriefing({ hasWatchlist }: Props) {
           </span>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold text-primary">
-              Finish setting up
+              <T en="Finish setting up" bn="সেটআপ শেষ করুন" />
             </p>
             <p className="text-sm font-bold leading-tight text-text-main">
-              {doneCount === 0
-                ? "One quick step to your daily check-in"
-                : remaining === 1
-                  ? "Almost there — one step to go"
-                  : `${remaining} steps left to set up`}
+              {doneCount === 0 ? (
+                <T en="One quick step to your daily update" bn="প্রতিদিনের আপডেট পেতে একটি ছোট ধাপ" />
+              ) : remaining === 1 ? (
+                <T en="Almost done. One step to go." bn="প্রায় শেষ। আর একটি ধাপ বাকি।" />
+              ) : (
+                <T en={`${remaining} steps left to set up`} bn={`সেটআপের আর ${remaining}টি ধাপ বাকি`} />
+              )}
             </p>
           </div>
           <div className="relative flex shrink-0 items-center gap-1">
@@ -121,7 +128,7 @@ export default function DailyBriefing({ hasWatchlist }: Props) {
             <button
               type="button"
               onClick={() => setMenuOpen((v) => !v)}
-              aria-label="Dismiss setup"
+              aria-label="Close setup / সেটআপ বন্ধ করুন"
               aria-expanded={menuOpen}
               className="grid h-7 w-7 place-items-center rounded-lg text-text-muted transition-colors hover:bg-surface-2 hover:text-text-main"
             >
@@ -138,14 +145,14 @@ export default function DailyBriefing({ hasWatchlist }: Props) {
                     onClick={skipForNow}
                     className="block w-full px-3 py-2 text-left text-xs font-semibold text-text-main transition-colors hover:bg-surface-2"
                   >
-                    Skip for now
+                    <T en="Skip for now" bn="এখনকার মতো বাদ দিন" />
                   </button>
                   <button
                     type="button"
                     onClick={dontShowAgain}
                     className="block w-full px-3 py-2 text-left text-xs font-semibold text-text-muted transition-colors hover:bg-surface-2"
                   >
-                    Don&apos;t show again
+                    <T en="Don't show this again" bn="আর দেখাবেন না" />
                   </button>
                 </div>
               </>
@@ -165,12 +172,11 @@ export default function DailyBriefing({ hasWatchlist }: Props) {
           />
         </div>
 
-        {/* Bengali guidance for a newly joined user — same steps, everyday Bangla. */}
-        <p
-          lang="bn"
-          className="font-bn mt-3 text-xs font-semibold leading-relaxed text-text-muted"
-        >
-          নতুন এসেছেন? নিচের ধাপটি শেষ করুন — তাহলে প্রতিদিন আপনার জন্য সাজানো শেয়ারের তথ্য, খবর ও পরামর্শ এক জায়গায় পাবেন।
+        <p className="mt-3 text-xs font-semibold leading-relaxed text-text-muted">
+          <T
+            en="New here? Finish the step below and you will see the shares you care about, with their news, in one place every day."
+            bn="নতুন এসেছেন? নিচের ধাপটি শেষ করলে প্রতিদিন আপনার পছন্দের শেয়ার আর তাদের খবর এক জায়গায় দেখতে পাবেন।"
+          />
         </p>
 
         {/* Steps */}
@@ -197,7 +203,9 @@ export default function DailyBriefing({ hasWatchlist }: Props) {
                     <span className="block text-sm font-semibold text-text-muted line-through">
                       {s.title}
                     </span>
-                    <span className="block text-xs font-bold text-positive">Done ✓</span>
+                    <span className="block text-xs font-bold text-positive">
+                      <T en="Done ✓" bn="সম্পন্ন ✓" />
+                    </span>
                   </span>
                 </li>
               );
@@ -220,12 +228,6 @@ export default function DailyBriefing({ hasWatchlist }: Props) {
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-bold text-text-main">{s.title}</span>
                   <span className="block text-xs leading-snug text-text-muted">{s.desc}</span>
-                  <span
-                    lang="bn"
-                    className="font-bn mt-0.5 block text-xs font-semibold leading-snug text-text-muted"
-                  >
-                    {s.descBn}
-                  </span>
                 </span>
                 <span
                   className="shrink-0 inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold text-white transition-transform group-hover:translate-x-0.5"

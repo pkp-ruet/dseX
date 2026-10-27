@@ -31,14 +31,14 @@ export default function RebalanceHelper({ plan, lang = "en" }: Props) {
       : p.kind === "dividend"
         ? L("Steady dividend", "নিয়মিত ডিভিডেন্ড")
         : p.kind === "new_sector"
-          ? L("New sector for you", "আপনার নতুন খাত")
+          ? L("New sector for you", "আপনার নতুন সেক্টর")
           : L("Spreads your money", "টাকা ছড়ায়");
 
   return (
     <div id="pf-buynext" className="dash-section">
       <PfCard
         title={L("What to buy next", "এরপর কী কিনবেন")}
-        bn="এরপর কী কিনবেন"
+
         note={L(
           "Only stocks with a Buy signal today: a good company, a good price, enough trading, fresh accounts.",
           "শুধু আজ কেনার সংকেত আছে এমন শেয়ার: ভালো কোম্পানি, ভালো দাম, যথেষ্ট লেনদেন, নতুন হিসাব।",
@@ -129,8 +129,8 @@ export default function RebalanceHelper({ plan, lang = "en" }: Props) {
                       <span className="pv pf-num">
                         {p.kind === "swap"
                           ? L(
-                              `about ${p.suggest.shares} shares (${takaGroup(p.suggest.amount)}) — roughly the money now in ${p.replaces}.`,
-                              `প্রায় ${p.suggest.shares}টি শেয়ার (${takaGroup(p.suggest.amount)}) — এখন ${p.replaces}-এ যত টাকা আছে, প্রায় ততটা।`,
+                              `about ${p.suggest.shares} shares (${takaGroup(p.suggest.amount)}), roughly the money now in ${p.replaces}.`,
+                              `প্রায় ${p.suggest.shares}টি শেয়ার (${takaGroup(p.suggest.amount)}), এখন ${p.replaces}-এ যত টাকা আছে প্রায় ততটা।`,
                             )
                           : L(
                               `about ${p.suggest.shares} shares (${takaGroup(p.suggest.amount)}) would make it about ${Math.round(p.suggest.targetPct)}% of your money.`,
@@ -142,7 +142,7 @@ export default function RebalanceHelper({ plan, lang = "en" }: Props) {
 
                   <div className="mt-2 flex flex-wrap gap-x-4">
                     <Link prefetch={false} href={`/stock/${p.code}`} className="pf-link">
-                      {L(`Read ${p.code}'s full page`, `${p.code}-এর পুরো পাতা দেখুন`)}
+                      {L(`Read ${p.code}'s full page`, `${p.code}-এর পুরো পেজ দেখুন`)}
                     </Link>
                     <a href="#pf-whatif" className="pf-link">
                       {L("Try it in the what-if check", "যদি-এমন-করি যাচাইয়ে দেখুন")}
@@ -156,8 +156,8 @@ export default function RebalanceHelper({ plan, lang = "en" }: Props) {
 
           <p className="border-t border-cell-rule px-4 py-3 text-xs leading-relaxed text-text-muted sm:px-6">
             {L(
-              `Ideas come from today's ${plan.buyPool} Buy signals and change as prices move. They are not financial advice — check a stock yourself before buying.`,
-              `আইডিয়াগুলো আজকের ${plan.buyPool}টি কেনার সংকেত থেকে, দাম বদলালে বদলায়। এগুলো বিনিয়োগ পরামর্শ নয় — কেনার আগে নিজে যাচাই করুন।`,
+              `Ideas come from today's ${plan.buyPool} Buy signals and change as prices move. They are not financial advice, so please check a share yourself before buying.`,
+              `প্রস্তাবগুলো আজকের ${plan.buyPool}টি কেনার সংকেত থেকে নেওয়া, আর দাম বদলালে বদলায়। এগুলো বিনিয়োগ পরামর্শ নয়, তাই কেনার আগে নিজে যাচাই করুন।`,
             )}
           </p>
         </div>

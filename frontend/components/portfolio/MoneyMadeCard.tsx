@@ -73,8 +73,8 @@ export default function MoneyMadeCard({
   return (
     <PfCard
       title={L("Money you've made so far", "এ পর্যন্ত আপনার আয়")}
-      bn="এ পর্যন্ত আপনার আয়"
-      note={L("On paper, from sales and from dividends, added up.", "কাগজে, বিক্রিতে আর ডিভিডেন্ডে — সব মিলিয়ে।")}
+
+      note={L("On paper, from sales and from dividends, added up.", "কাগজে-কলমে, বিক্রি থেকে আর ডিভিডেন্ড থেকে, সব মিলিয়ে।")}
       lang={lang}
       dataCard="money-made"
     >

@@ -3,6 +3,15 @@ import type { FeaturedListEntry } from "@/lib/featured-lists";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { IconStar } from "@/components/stock/StockIcons";
+import { T } from "@/components/i18n/T";
+
+/** Bengali names of the four free rankings (lib/stock-lists.ts). */
+const NAME_BN: Record<string, string> = {
+  top_dividend: "বেশি ডিভিডেন্ড দেওয়া শেয়ার",
+  top_market_cap: "সবচেয়ে বড় কোম্পানি",
+  top_volume: "সবচেয়ে বেশি লেনদেন",
+  top_52w_return: "এক বছরে সবচেয়ে বেশি বেড়েছে",
+};
 
 interface Props {
   entries: FeaturedListEntry[];
@@ -21,7 +30,7 @@ export default function FeaturedInStrip({ entries, max = 5 }: Props) {
         <div className="flex items-center gap-2 mb-3">
           <span className="inline-flex" style={{ color: "var(--warm)" }}><IconStar size={14} /></span>
           <h2 className="text-sm font-bold text-text-muted">
-            Featured in our stock lists
+            <T en="Featured in our stock lists" bn="আমাদের যেসব তালিকায় আছে" />
           </h2>
         </div>
 
@@ -38,8 +47,9 @@ export default function FeaturedInStrip({ entries, max = 5 }: Props) {
                 border: "1px solid color-mix(in srgb, var(--primary) 25%, transparent)",
               }}
             >
-              <span aria-hidden="true">{def.icon}</span>
-              <span className="text-text-main">{def.shortName}</span>
+              <span className="text-text-main">
+                <T en={def.shortName} bn={NAME_BN[def.apiKey] ?? def.shortName} />
+              </span>
               <span
                 className="tabular-nums nums text-xs font-bold px-1.5 py-0.5 rounded-full"
                 style={{ color: "var(--primary)", background: "color-mix(in srgb, var(--primary) 12%, transparent)" }}
@@ -51,7 +61,7 @@ export default function FeaturedInStrip({ entries, max = 5 }: Props) {
 
           {extra > 0 && (
             <Button variant="quiet" size="sm" href="/stock-insights" className="rounded-full">
-              +{extra} more
+              <T en={`+${extra} more`} bn={`আরও ${extra}টি`} />
             </Button>
           )}
         </div>

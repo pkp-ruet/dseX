@@ -4,8 +4,10 @@ import { flattenTiers, getMarketIndex, getScores } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 import StocksTable from "@/components/stocks/StocksTable";
 import ErrorState from "@/components/ui/ErrorState";
+import { T } from "@/components/i18n/T";
 import PageGuide from "@/components/seo/PageGuide";
 import PageHeader from "@/components/ui/PageHeader";
+import { bnDate } from "@/lib/bn";
 
 export const revalidate = 86400;
 
@@ -45,10 +47,9 @@ export default async function StocksPage() {
   if (!scores) {
     return (
       <ErrorState
-        title="Couldn't load the share price list"
-        bn="শেয়ারের তালিকা এখন লোড হচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+        title={<T en="We couldn't load the share price list" bn="শেয়ারের তালিকা এখন লোড করা যাচ্ছে না" />}
         reload
-        links={[{ href: "/dsestockranking", label: "Stock rankings" }]}
+        links={[{ href: "/dsestockranking", label: <T en="Stock rankings" bn="শেয়ার র‍্যাঙ্কিং" /> }]}
       />
     );
   }
@@ -57,6 +58,7 @@ export default async function StocksPage() {
   // every row is serialized into the page HTML.
   const items = flattenTiers(scores).map(({ signal: _signal, ...i }) => i);
   const dateLabel = marketIndex?.date ? formatDate(marketIndex.date) : null;
+  const dateLabelBn = marketIndex?.date ? bnDate(marketIndex.date) : null;
   const sectorCount = new Set(items.map((i) => i.sector).filter(Boolean)).size;
 
   const jsonLd = {
@@ -89,15 +91,20 @@ export default async function StocksPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <PageHeader
-        eyebrow="Dhaka Stock Exchange"
-        title="DSE Latest Share Price — All Stocks"
-        bn="ঢাকা স্টক এক্সচেঞ্জের সব শেয়ারের আজকের দাম এক টেবিলে — দাম, আয়, ডিভিডেন্ড আর স্কোর।"
-        lead={<>{items.length} companies{dateLabel ? ` · official close of ${dateLabel}` : ""} · tap any column header to sort</>}
+        eyebrow={<T en="Dhaka Stock Exchange" bn="ঢাকা স্টক এক্সচেঞ্জ" />}
+        title={<T en="DSE latest share prices: all shares" bn="ডিএসইর সব শেয়ারের সর্বশেষ দাম" />}
+        lead={
+          <T
+            en={`${items.length} companies${dateLabel ? ` · official close of ${dateLabel}` : ""} · tap any column heading to sort`}
+            bn={`${items.length}টি কোম্পানি${dateLabelBn ? ` · ${dateLabelBn}-এর অফিশিয়াল সমাপনী দাম` : ""} · সাজাতে যেকোনো কলামের শিরোনামে চাপ দিন`}
+          />
+        }
       />
       <StocksTable items={items} />
 
       <PageGuide
         title="About this share price list"
+        titleBn="এই শেয়ারদরের তালিকা সম্পর্কে"
         intro={[
           <>
             This table carries the <b>latest share price of every company listed on the Dhaka Stock
@@ -121,23 +128,50 @@ export default async function StocksPage() {
             <Link href="/market-analysis">market analysis</Link> in plain words.
           </>,
         ]}
-        bn="এই দামই ডিএসই-র অফিসিয়াল ক্লোজিং প্রাইস — প্রতিদিন বাজার বন্ধের পর আপডেট হয়।"
+        introBn={[
+          <>
+            এই টেবিলে আছে <b>ঢাকা স্টক এক্সচেঞ্জে তালিকাভুক্ত প্রতিটি কোম্পানির সর্বশেষ শেয়ারদর</b>
+            {sectorCount ? <>, {sectorCount}টি সেক্টর মিলিয়ে</> : null}। দেখানো দামটি শেষ লেনদেনের দিনের
+            {dateLabelBn ? <> ({dateLabelBn})</> : null} ডিএসইর অফিশিয়াল সমাপনী দাম। পরের দিনের শুরুর ভিত্তি আর ±10%
+            সার্কিট সীমাও ডিএসই এই দাম থেকেই ধরে। ঢাকা সময় দুপুর 2:30-এ লেনদেন শেষ হলে এটি হালনাগাদ হয়, তাই এখানে যা
+            দেখছেন তা চূড়ান্ত দাম, লেনদেনের মাঝের কোনো দাম নয়।
+          </>,
+          <>
+            দামের পাশে আছে সেই সংখ্যাগুলো, যা সাধারণত একটি একটি করে খুঁজতে হয়: দিনের ওঠানামা, সর্বশেষ বার্ষিক
+            প্রতিবেদনের ইপিএস, আজকের দামে ডিভিডেন্ড ইল্ড, ডিএসইর সেক্টর, আর 100-এর মধ্যে কোম্পানির স্কোর। যেকোনো
+            কলামের শিরোনামে চাপ দিয়ে সাজালে একই টেবিল উত্তর দেয় &ldquo;আজ কোন শেয়ারের দাম সবচেয়ে কমেছে&rdquo;,
+            &ldquo;কোনটি সবচেয়ে বেশি ডিভিডেন্ড দেয়&rdquo; বা &ldquo;মুনাফার তুলনায় কোন ব্যাংকের দাম সবচেয়ে কম&rdquo;।
+          </>,
+          <>
+            প্রতিটি কোম্পানির কোডে চাপ দিলে খুলবে তার নিজের পেজ, সেখানে দামের চার্ট, পাঁচটি যাচাই, ডিভিডেন্ডের ইতিহাস
+            আর খবর। পুরো বাজারের জন্য দেখুন <Link href="/dse-today">আজকের ডিএসই</Link> (সূচক, সবচেয়ে বেড়েছে আর
+            কমেছে যেগুলো) অথবা সহজ ভাষায় <Link href="/market-analysis">বাজার বিশ্লেষণ</Link>।
+          </>,
+        ]}
         faq={[
           {
             q: "When is the DSE share price on this page updated?",
             a: "Once a day, after the Dhaka Stock Exchange closes at 2:30 PM Bangladesh time. The price shown is the official closing price (CLOSEP), not the last trade, so it matches the next day's opening reference and the circuit-breaker base.",
+            qBn: "এই পেজে ডিএসইর শেয়ারদর কখন হালনাগাদ হয়?",
+            aBn: "দিনে একবার, বাংলাদেশ সময় দুপুর 2:30-এ ঢাকা স্টক এক্সচেঞ্জ বন্ধ হওয়ার পর। দেখানো দামটি শেষ লেনদেনের দাম নয়, অফিশিয়াল সমাপনী দাম। তাই এটি পরের দিনের শুরুর ভিত্তি আর সার্কিট সীমার ভিত্তির সঙ্গে মেলে।",
           },
           {
             q: "Why does the price here differ from my broker app?",
             a: "Broker apps show the last traded price (LTP) during the session. DSE's official close is the weighted average of the final 30 minutes of trading, which is what this page shows. The two differ for roughly one share in seven on a normal day, usually by about 1%.",
+            qBn: "এখানকার দাম আমার ব্রোকার অ্যাপের দাম থেকে আলাদা কেন?",
+            aBn: "ব্রোকার অ্যাপ লেনদেন চলার সময় শেষ লেনদেনের দাম দেখায়। ডিএসইর অফিশিয়াল সমাপনী দাম হলো লেনদেনের শেষ 30 মিনিটের ভারিত গড়, আর এই পেজে সেটিই দেখানো হয়। সাধারণ দিনে প্রতি সাতটি শেয়ারের প্রায় একটিতে দুটি দাম আলাদা হয়, সাধারণত প্রায় 1%।",
           },
           {
             q: "What does the score column mean?",
             a: "It is TopStockBD's fundamental score out of 100, built from five checks on the company's published accounts: earnings quality, financial health, competitive strength, valuation and dividend sustainability. It describes business strength, not whether to buy today.",
+            qBn: "স্কোরের কলাম কী বোঝায়?",
+            aBn: "এটি 100-এর মধ্যে TopStockBD-এর স্কোর, কোম্পানির প্রকাশিত হিসাবের পাঁচটি যাচাই থেকে তৈরি: মুনাফার মান, আর্থিক অবস্থা, প্রতিযোগিতায় শক্তি, দাম আর ডিভিডেন্ড কতটা টেকসই। এটি ব্যবসা কতটা শক্তিশালী তা বলে, আজ কেনা উচিত কি না তা নয়।",
           },
           {
             q: "Why are some listed names missing from the list?",
             a: "Mutual funds, bonds, debentures and ETFs are not companies and cannot be scored on earnings, so they are left out. A newly listed company appears once its first annual report is available.",
+            qBn: "তালিকাভুক্ত কিছু নাম এই তালিকায় নেই কেন?",
+            aBn: "মিউচুয়াল ফান্ড, বন্ড, ডিবেঞ্চার আর ইটিএফ কোম্পানি নয়, তাই মুনাফা দিয়ে এদের স্কোর করা যায় না। এ কারণে এগুলো বাদ রাখা হয়েছে। নতুন তালিকাভুক্ত কোম্পানি তার প্রথম বার্ষিক প্রতিবেদন পাওয়ার পর এখানে আসে।",
           },
         ]}
       />

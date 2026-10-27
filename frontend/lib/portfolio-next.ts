@@ -71,11 +71,11 @@ export function buildNextMove(
       kind: "sell",
       title:
         sells.length === 1
-          ? L(`Decide on ${codes[0]} — it is marked Sell`, `${codes[0]} নিয়ে সিদ্ধান্ত নিন — এটি বিক্রির সংকেতে`)
+          ? L(`Decide on ${codes[0]}, which is marked Sell`, `${codes[0]}-এ বিক্রির সংকেত আছে, এটি নিয়ে সিদ্ধান্ত নিন`)
           : L(`Decide on your ${sells.length} stocks marked Sell`, `বিক্রির সংকেতে থাকা আপনার ${sells.length}টি শেয়ার নিয়ে সিদ্ধান্ত নিন`),
       line: L(
         `${takaGroup(amt)} sits in ${names(codes, false)}. ${sells.length === 1 ? "Its page says" : "Their pages say"} why; selling is your call.`,
-        `${names(codes, true)}-এ আছে ${takaGroup(amt)}। কেন, তা শেয়ারের পাতায় লেখা আছে; বিক্রি করবেন কি না, সিদ্ধান্ত আপনার।`,
+        `${names(codes, true)}-এ আছে ${takaGroup(amt)}। কেন, তা শেয়ারের পেজে লেখা আছে; বিক্রি করবেন কি না, সিদ্ধান্ত আপনার।`,
       ),
       amount: amt,
       href: sells.length === 1 ? `/stock/${codes[0]}` : "#pf-holds",
@@ -108,8 +108,8 @@ export function buildNextMove(
       kind: "stock",
       title: L(`${biggest.code} carries too much of your money`, `${biggest.code}-এ আপনার টাকা বেশি জমেছে`),
       line: L(
-        `It is ${biggest.weightPct.toFixed(0)}% of your money. About ${takaGroup(excess)} elsewhere would bring it to ${MAX_STOCK_PCT}% — by selling some, or by putting your next buys into other stocks.`,
-        `এটি আপনার টাকার ${biggest.weightPct.toFixed(0)}%। প্রায় ${takaGroup(excess)} অন্য জায়গায় গেলে এটি ${MAX_STOCK_PCT}%-এ নামবে — কিছু বিক্রি করে, বা পরের কেনাগুলো অন্য শেয়ারে করে।`,
+        `It is ${biggest.weightPct.toFixed(0)}% of your money. About ${takaGroup(excess)} elsewhere would bring it to ${MAX_STOCK_PCT}%. You can sell some, or put your next buys into other shares.`,
+        `এটি আপনার টাকার ${biggest.weightPct.toFixed(0)}%। প্রায় ${takaGroup(excess)} অন্য জায়গায় গেলে এটি ${MAX_STOCK_PCT}%-এ নামবে। কিছু বিক্রি করতে পারেন, বা পরের কেনাগুলো অন্য শেয়ারে করতে পারেন।`,
       ),
       amount: excess,
       href: "#pf-whatif",
@@ -123,10 +123,10 @@ export function buildNextMove(
     const excess = (total * (top.weightPct - SECTOR_TARGET_PCT)) / 100;
     moves.push({
       kind: "sector",
-      title: L(`Too much is in ${top.name}`, `${top.name} খাতে বেশি টাকা`),
+      title: L(`Too much is in ${top.name}`, `${top.name} সেক্টরে বেশি টাকা`),
       line: L(
-        `${top.weightPct.toFixed(0)}% of your money is in one sector — about ${takaGroup(excess)} more than ${SECTOR_TARGET_PCT}%. Put your next buys into other sectors.`,
-        `আপনার টাকার ${top.weightPct.toFixed(0)}% একটি খাতে — ${SECTOR_TARGET_PCT}%-এর চেয়ে প্রায় ${takaGroup(excess)} বেশি। পরের কেনাগুলো অন্য খাতে করুন।`,
+        `${top.weightPct.toFixed(0)}% of your money is in one sector, about ${takaGroup(excess)} more than ${SECTOR_TARGET_PCT}%. Your next buys are best made in other sectors.`,
+        `আপনার টাকার ${top.weightPct.toFixed(0)}% একটি সেক্টরে, যা ${SECTOR_TARGET_PCT}%-এর চেয়ে প্রায় ${takaGroup(excess)} বেশি। পরের কেনাগুলো অন্য সেক্টরে করাই ভালো।`,
       ),
       amount: excess,
       href: "#pf-buynext",
@@ -140,7 +140,7 @@ export function buildNextMove(
     const amt = firstPick?.suggest?.amount ?? total / hs.length;
     moves.push({
       kind: "few",
-      title: L("Add a stock from a sector you don't own", "যে খাত নেই সেখান থেকে একটি শেয়ার যোগ করুন"),
+      title: L("Add a stock from a sector you don't own", "যে সেক্টর নেই সেখান থেকে একটি শেয়ার যোগ করুন"),
       line: L(
         `With ${hs.length} stock${hs.length === 1 ? "" : "s"}, one bad company moves everything. About ${takaGroup(amt)} in one more spreads the risk.`,
         `${hs.length}টি শেয়ারে একটি খারাপ কোম্পানিই সব নাড়িয়ে দেয়। আরেকটিতে প্রায় ${takaGroup(amt)} রাখলে ঝুঁকি ছড়ায়।`,
@@ -176,8 +176,8 @@ export function buildNextMove(
         kind: "none",
         title: L("Nothing urgent to do", "এখন জরুরি কিছু নেই"),
         line: L(
-          "Your portfolio has no open warnings. Look again when the next quarterly results come out — that is the natural time to review.",
-          "আপনার পোর্টফোলিওতে এখন কোনো সতর্কতা নেই। পরের কোয়ার্টারের ফলাফল বের হলে আবার দেখুন — পর্যালোচনার সেটাই স্বাভাবিক সময়।",
+          "Your portfolio has no open warnings. Look again when the next quarterly results come out. That is the natural time to review.",
+          "আপনার পোর্টফোলিওতে এখন কোনো সতর্কতা নেই। পরের প্রান্তিকের ফলাফল বের হলে আবার দেখুন। যাচাই করার সেটিই স্বাভাবিক সময়।",
         ),
         amount: null,
         href: null,

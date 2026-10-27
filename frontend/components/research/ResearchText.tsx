@@ -1,13 +1,10 @@
-"use client";
-
 import type { ElementType } from "react";
-import { useLang } from "@/context/LangContext";
 
 /**
- * One piece of research-list copy in the reader's language (the app-wide
- * English / বাংলা switch). The server renders English; a Bengali reader gets
- * the Bengali line right after mount, with `lang="bn"` + `.font-bn` so the
- * glyphs don't render as boxes.
+ * One piece of research-list copy in both languages, inside the element of
+ * your choice (`as`). Like `<T>`: both halves are in the HTML and CSS shows
+ * the one that matches `<html data-lang>`, so it renders the same on the
+ * server and needs no hook.
  */
 export function Txt({ en, bn, as: Tag = "span", className = "" }: {
   en: string;
@@ -15,10 +12,16 @@ export function Txt({ en, bn, as: Tag = "span", className = "" }: {
   as?: ElementType;
   className?: string;
 }) {
-  const { bn: isBn } = useLang();
-  return isBn ? (
-    <Tag lang="bn" className={`font-bn ${className}`.trim()}>{bn}</Tag>
-  ) : (
-    <Tag className={className || undefined}>{en}</Tag>
+  const cls = className || undefined;
+  if (en === bn) return <Tag className={cls}>{en}</Tag>;
+  return (
+    <>
+      <Tag data-l="en" lang="en" className={cls}>
+        {en}
+      </Tag>
+      <Tag data-l="bn" lang="bn" className={cls}>
+        {bn}
+      </Tag>
+    </>
   );
 }

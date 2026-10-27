@@ -3,6 +3,7 @@ import { useState } from "react";
 import NewsCard from "./NewsCard";
 import Button from "@/components/ui/Button";
 import SectionTitle from "@/components/stock/SectionTitle";
+import { T } from "@/components/i18n/T";
 
 interface Props {
   news: { title: string; post_date: string; body: string }[];
@@ -21,11 +22,13 @@ export default function NewsSection({ news }: Props) {
   return (
     <section className="mb-8">
       <SectionTitle
-        title="What's New"
-        sub={<>
-            Recent news and announcements about this company.
-        </>}
-        bn="এই কোম্পানির সাম্প্রতিক খবর ও ঘোষণা।"
+        title={<T en="Latest news" bn="সর্বশেষ খবর" />}
+        sub={
+          <T
+            en="Recent news and announcements from the company, as published on DSE."
+            bn="কোম্পানির সাম্প্রতিক খবর ও ঘোষণা, DSE-তে যেভাবে প্রকাশিত হয়েছে। মূল খবর ইংরেজিতে।"
+          />
+        }
       />
 
       <div className="space-y-2">
@@ -45,7 +48,7 @@ export default function NewsSection({ news }: Props) {
           onClick={() => setShowAll(true)}
           className="mt-4 rounded-full"
         >
-          Show all {news.length} news items →
+          <T en={`Show all ${news.length} news items →`} bn={`সব ${news.length}টি খবর দেখুন →`} />
         </Button>
       )}
     </section>

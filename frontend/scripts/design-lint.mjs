@@ -36,6 +36,10 @@ const TSX_RULES = [
   { name: "arbitrary font size", re: /\btext-\[\d*\.?\d+(?:px|rem|em)\]/g },
   { name: "arbitrary shadow", re: /\bshadow-\[[^\]]+\]/g },
   { name: "arbitrary radius", re: /\brounded(?:-[tblrse]{1,2})?-\[[^\]]+\]/g },
+  // One language per page (2026-10-28): both languages go through `<T en bn />`.
+  { name: "legacy Bengali sub-line (use <T en bn />)", re: /components\/i18n\/Bn["']/g },
+  { name: "subLang prop (one language per page)", re: /\bsubLang=/g },
+  { name: "Bengali numeral (write Western digits)", re: /[০-৯]/g },
 ];
 
 // `(?=\S)` pins the lookahead to the first non-space character so `\s*` cannot

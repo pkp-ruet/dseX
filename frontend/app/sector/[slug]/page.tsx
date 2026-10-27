@@ -12,6 +12,8 @@ import SectorCard from "@/components/sector/SectorCard";
 import PageGuide from "@/components/seo/PageGuide";
 import PageHeader from "@/components/ui/PageHeader";
 import SectionHeader from "@/components/ui/SectionHeader";
+import { T } from "@/components/i18n/T";
+import { croreBn, sectorBn } from "@/lib/bn";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
@@ -82,13 +84,15 @@ export default async function SectorPage({ params }: Props) {
     return (
       <>
         <PageHeader
-          eyebrow="DSE Sector"
-          title="Sector"
-          bn="এই সেক্টরের সব কোম্পানি এক পাতায় — দাম, স্কোর আর তুলনা।"
+          eyebrow={<T en="DSE sector" bn="ডিএসই সেক্টর" />}
+          title={<T en="Sector" bn="সেক্টর" />}
         />
         <div className="ms-card">
           <p className="ms-empty">
-            We couldn&apos;t reach the sector data right now. Please refresh in a moment.
+            <T
+              en="We couldn't load the sector data right now. Please refresh in a moment."
+              bn="এই মুহূর্তে সেক্টরের তথ্য লোড করা যাচ্ছে না। একটু পরে পেজটি আবার লোড করুন।"
+            />
           </p>
         </div>
       </>
@@ -96,6 +100,15 @@ export default async function SectorPage({ params }: Props) {
   }
 
   const s = data.summary;
+  const nameBn = sectorBn(s.sector);
+  const peWord =
+    s.median_pe != null && data.market.median_pe != null
+      ? s.median_pe < data.market.median_pe * 0.85
+        ? "below"
+        : s.median_pe > data.market.median_pe * 1.15
+          ? "above"
+          : "close"
+      : null;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -148,15 +161,22 @@ export default async function SectorPage({ params }: Props) {
       <PageHeader
         eyebrow={
           <Link href="/sectors" className="hover:underline">
-            DSE Sectors
+            <T en="DSE sectors" bn="ডিএসই সেক্টর" />
           </Link>
         }
-        title={s.sector}
-        bn="এই সেক্টরের সব কোম্পানি এক পাতায় — দাম, স্কোর আর বাজারের সঙ্গে তুলনা।"
+        title={<T en={s.sector} bn={nameBn} />}
+        lead={
+          <T
+            en="Every company in this sector on one page, with prices, scores and a comparison with the whole market."
+            bn="এই সেক্টরের সব কোম্পানি এক পেজে: দাম, স্কোর আর পুরো বাজারের সঙ্গে তুলনা।"
+          />
+        }
         actions={
           <span className="ms-page-date">
-            {s.company_count} companies · {crore(s.total_mcap_mn)} · median score{" "}
-            {s.median_score != null ? s.median_score.toFixed(1) : "—"}
+            <T
+              en={`${s.company_count} companies · ${crore(s.total_mcap_mn)} · middle score ${s.median_score != null ? s.median_score.toFixed(1) : "—"}`}
+              bn={`${s.company_count}টি কোম্পানি · ${croreBn(s.total_mcap_mn)} · মধ্যম স্কোর ${s.median_score != null ? s.median_score.toFixed(1) : "—"}`}
+            />
           </span>
         }
       />
@@ -182,6 +202,7 @@ export default async function SectorPage({ params }: Props) {
 
       <PageGuide
         title={`About the ${s.sector} sector on DSE`}
+        titleBn={`ডিএসইর ${nameBn} সেক্টর সম্পর্কে`}
         intro={[
           <>
             The <b>{s.sector.toLowerCase()} sector of the Dhaka Stock Exchange</b> has {s.company_count} scored
@@ -189,8 +210,8 @@ export default async function SectorPage({ params }: Props) {
             {s.total_mcap_mn != null ? <> worth {crore(s.total_mcap_mn)} together</> : null}
             {data.market.company_count ? <>, out of {data.market.company_count} scored companies on the exchange</> : null}.
             The table above lists every one with its official closing share price, the day&apos;s change, EPS,
-            dividend yield, P/E and fundamental score, sortable by any column. Companies that have not filed a
-            recent annual report are marked and scored down.
+            dividend yield, P/E and fundamental score, and you can sort it by any column. Companies that have not
+            filed a recent annual report are marked, and their scores are lowered.
           </>,
           <>
             {s.median_pe != null && data.market.median_pe != null ? (
@@ -225,35 +246,84 @@ export default async function SectorPage({ params }: Props) {
             the market, and read the &ldquo;how this sector is scored&rdquo; note above for the rules that applied.
           </>,
         ]}
-        bn={`ডিএসই-র ${s.sector} খাতের সব কোম্পানির দাম, আয় আর স্কোর এক টেবিলে — সেক্টরের মধ্যম মানের সাথে তুলনা করে দেখুন।`}
+        introBn={[
+          <>
+            ঢাকা স্টক এক্সচেঞ্জের <b>{nameBn} সেক্টরে</b> স্কোর পাওয়া কোম্পানি {s.company_count}টি
+            {s.total_mcap_mn != null ? <>, যাদের মোট বাজার মূলধন {croreBn(s.total_mcap_mn)}</> : null}
+            {data.market.company_count ? <>। পুরো এক্সচেঞ্জে স্কোর পাওয়া কোম্পানি {data.market.company_count}টি</> : null}।
+            ওপরের টেবিলে প্রতিটির অফিশিয়াল সমাপনী দাম, দিনের ওঠানামা, ইপিএস, ডিভিডেন্ড ইল্ড, পিই আর স্কোর আছে,
+            আর যেকোনো কলাম দিয়ে সাজানো যায়। যেসব কোম্পানি সম্প্রতি বার্ষিক হিসাব জমা দেয়নি, সেগুলো চিহ্নিত করা আছে
+            এবং তাদের স্কোর কমানো হয়েছে।
+          </>,
+          <>
+            {s.median_pe != null && data.market.median_pe != null ? (
+              <>
+                এই সেক্টরের মধ্যম পিই <b>{s.median_pe.toFixed(1)}</b>, আর পুরো বাজারের {data.market.median_pe.toFixed(1)}।
+                তাই প্রতি টাকা মুনাফার হিসাবে এই সেক্টরের সাধারণ শেয়ারের দাম বাজারের{" "}
+                {peWord === "below" ? "চেয়ে বেশ কম" : peWord === "above" ? "চেয়ে বেশ বেশি" : "কাছাকাছি"}।{" "}
+              </>
+            ) : null}
+            {s.median_yield_pct != null ? (
+              <>
+                মধ্যম ডিভিডেন্ড ইল্ড <b>{pct(s.median_yield_pct, 1)}</b>
+                {data.market.median_yield_pct != null ? <> (বাজারে {pct(data.market.median_yield_pct, 1)})</> : null}।{" "}
+              </>
+            ) : null}
+            {s.median_roe_pct != null ? <>মূলধনে মুনাফার সাধারণ হার {pct(s.median_roe_pct, 1)}। </> : null}
+            {s.top_ranked ? (
+              <>
+                এখন এই সেক্টরে সবচেয়ে বেশি স্কোর{" "}
+                <b>{s.top_ranked.company_name ?? s.top_ranked.trading_code}</b> ({s.top_ranked.trading_code})-এর।
+              </>
+            ) : null}
+          </>,
+          <>
+            সেক্টরের মধ্যম মান একটি মানদণ্ড ঠিক করে দেয়। সব ব্যাংকের পিই 6 হলে কোনো ব্যাংকের পিই 6 হওয়া স্বাভাবিক;
+            অন্যদের পিই 9 হলে তবেই সেটি সস্তা। তাই আগে কোম্পানিকে তার সেক্টরের সঙ্গে, তারপর পুরো বাজারের সঙ্গে
+            তুলনা করুন। কোন নিয়মে স্কোর হয়েছে, তা ওপরের &ldquo;স্কোর যেভাবে হয়&rdquo; অংশে পাবেন।
+          </>,
+        ]}
         faq={[
           {
             q: `How many ${s.sector.toLowerCase()} companies are listed on the Dhaka Stock Exchange?`,
-            a: `TopStockBD scores ${s.company_count} ${s.sector.toLowerCase()} ${s.company_count === 1 ? "company" : "companies"} on DSE — every one that publishes annual accounts. Mutual funds and bonds are excluded from every sector.`,
+            a: `TopStockBD scores ${s.company_count} ${s.sector.toLowerCase()} ${s.company_count === 1 ? "company" : "companies"} on DSE: every one that publishes annual accounts. Mutual funds and bonds are left out of every sector.`,
+            qBn: `ঢাকা স্টক এক্সচেঞ্জে ${nameBn} সেক্টরের কয়টি কোম্পানি তালিকাভুক্ত?`,
+            aBn: `ডিএসইতে ${nameBn} সেক্টরের ${s.company_count}টি কোম্পানির স্কোর দেয় TopStockBD, অর্থাৎ যারা বার্ষিক হিসাব প্রকাশ করে তাদের সবার। মিউচুয়াল ফান্ড আর বন্ড কোনো সেক্টরেই ধরা হয় না।`,
           },
           {
             q: `Which ${s.sector.toLowerCase()} stock has the highest fundamental score?`,
             a: s.top_ranked
               ? `${s.top_ranked.company_name ?? s.top_ranked.trading_code} (${s.top_ranked.trading_code}) leads the sector on TopStockBD's five-pillar score right now. Scores are recomputed after every trading day, so check the table for the current order.`
               : "The table above is sorted by score by default; the top row is the current leader. Scores are recomputed after every trading day.",
+            qBn: `${nameBn} সেক্টরের কোন শেয়ারের স্কোর সবচেয়ে বেশি?`,
+            aBn: s.top_ranked
+              ? `এখন TopStockBD-এর পাঁচ অংশের স্কোরে সেক্টরে এগিয়ে আছে ${s.top_ranked.company_name ?? s.top_ranked.trading_code} (${s.top_ranked.trading_code})। প্রতিটি লেনদেনের দিনের পর স্কোর আবার হিসাব হয়, তাই এখনকার ক্রম টেবিলে দেখুন।`
+              : "ওপরের টেবিল শুরুতে স্কোর অনুযায়ী সাজানো থাকে; প্রথম সারিতেই এখনকার শীর্ষ কোম্পানি। প্রতিটি লেনদেনের দিনের পর স্কোর আবার হিসাব হয়।",
           },
           {
             q: `Is the ${s.sector.toLowerCase()} sector cheap or expensive right now?`,
             a:
               s.median_pe != null && data.market.median_pe != null
-                ? `Its median P/E is ${s.median_pe.toFixed(1)} versus ${data.market.median_pe.toFixed(1)} for the market — ${s.median_pe < data.market.median_pe * 0.85 ? "cheaper than the typical DSE share" : s.median_pe > data.market.median_pe * 1.15 ? "more expensive than the typical DSE share" : "about in line with the market"}. A low P/E can mean value or trouble, so read it with the score.`
+                ? `Its median P/E is ${s.median_pe.toFixed(1)} against ${data.market.median_pe.toFixed(1)} for the market, so it is ${peWord === "below" ? "cheaper than the typical DSE share" : peWord === "above" ? "more expensive than the typical DSE share" : "about in line with the market"}. A low P/E can mean good value or trouble, so read it with the score.`
                 : "Compare the sector's median P/E and dividend yield with the market figures shown above: below-market P/E with an above-market yield usually reads as cheap, the reverse as expensive.",
+            qBn: `${nameBn} সেক্টরের দাম এখন কম না বেশি?`,
+            aBn:
+              s.median_pe != null && data.market.median_pe != null
+                ? `এর মধ্যম পিই ${s.median_pe.toFixed(1)}, আর বাজারের ${data.market.median_pe.toFixed(1)}। তাই এটি ${peWord === "below" ? "ডিএসইর সাধারণ শেয়ারের চেয়ে সস্তা" : peWord === "above" ? "ডিএসইর সাধারণ শেয়ারের চেয়ে দামি" : "মোটামুটি বাজারের সমান"}। কম পিই মানে ভালো দাম হতে পারে, আবার সমস্যাও হতে পারে, তাই এটি স্কোরের সঙ্গে মিলিয়ে পড়ুন।`
+                : "সেক্টরের মধ্যম পিই আর ডিভিডেন্ড ইল্ড ওপরের বাজারের সংখ্যার সঙ্গে মিলিয়ে দেখুন। বাজারের চেয়ে কম পিই আর বেশি ইল্ড সাধারণত সস্তার লক্ষণ, উল্টোটা দামির।",
           },
           {
             q: `How are ${s.sector.toLowerCase()} companies scored?`,
             a: data.scoring_note.en,
+            qBn: `${nameBn} সেক্টরের কোম্পানির স্কোর কীভাবে হয়?`,
+            aBn: data.scoring_note.bn,
           },
         ]}
       />
 
       {data.related_sectors.length > 0 && (
         <section className="mb-8">
-          <SectionHeader title={<>Other sectors</>} className="mt-8" />
+          <SectionHeader title={<T en="Other sectors" bn="অন্য সেক্টর" />} className="mt-8" />
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {data.related_sectors.map((o) => (
               <SectorCard key={o.slug} sector={o} />
@@ -261,10 +331,13 @@ export default async function SectorPage({ params }: Props) {
           </div>
           <p className="mt-3 text-xs font-semibold text-text-muted">
             <Link href="/sectors" className="text-primary underline">
-              See all {data.market.sector_count} sectors
+              <T en={`See all ${data.market.sector_count} sectors`} bn={`সব ${data.market.sector_count}টি সেক্টর দেখুন`} />
             </Link>{" "}
-            · market median P/E {data.market.median_pe != null ? data.market.median_pe.toFixed(1) : "—"},
-            yield {data.market.median_yield_pct != null ? pct(data.market.median_yield_pct, 1) : "—"}
+            ·{" "}
+            <T
+              en={`market middle P/E ${data.market.median_pe != null ? data.market.median_pe.toFixed(1) : "—"}, yield ${data.market.median_yield_pct != null ? pct(data.market.median_yield_pct, 1) : "—"}`}
+              bn={`বাজারের মধ্যম পিই ${data.market.median_pe != null ? data.market.median_pe.toFixed(1) : "—"}, ইল্ড ${data.market.median_yield_pct != null ? pct(data.market.median_yield_pct, 1) : "—"}`}
+            />
           </p>
         </section>
       )}

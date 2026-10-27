@@ -9,6 +9,9 @@ import TierPill from "@/components/ui/TierPill";
 import EmptyState from "@/components/ui/EmptyState";
 import { DataTable, SortTh, Th, StockIdent, Price, Change } from "@/components/ui/Table";
 import type { ScoreItem } from "@/lib/api";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
+import { sectorBn } from "@/lib/bn";
 
 type SortCol =
   | "trading_code"
@@ -33,6 +36,8 @@ const TEXT_COLS: SortCol[] = ["trading_code", "company_name", "sector"];
 const COL_COUNT = 10;
 
 export default function StocksTable({ items }: Props) {
+  const { lang } = useLang();
+  const L = (en: string, bn: string) => (lang === "bn" ? bn : en);
   const [search, setSearch] = useState("");
   const [activeSector, setActiveSector] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -120,42 +125,44 @@ export default function StocksTable({ items }: Props) {
         <input
           className="dt-search"
           type="search"
-          placeholder="Search code or company…"
+          placeholder={L("Search code or company…", "কোড বা কোম্পানির নাম লিখুন…")}
           value={search}
           onChange={e => setSearch(e.target.value)}
-          aria-label="Search stocks"
+          aria-label={L("Search shares", "শেয়ার খুঁজুন")}
         />
 
         <select
           className="dt-select"
           value={activeSector ?? ""}
           onChange={e => setActiveSector(e.target.value || null)}
-          aria-label="Filter by sector"
+          aria-label={L("Filter by sector", "সেক্টর বাছুন")}
         >
-          <option value="">All Sectors</option>
-          {sectors.map(s => <option key={s} value={s}>{s}</option>)}
+          <option value="">{L("All sectors", "সব সেক্টর")}</option>
+          {sectors.map(s => <option key={s} value={s}>{lang === "bn" ? sectorBn(s) : s}</option>)}
         </select>
 
-        <div className="dt-pills" role="group" aria-label="Market category">
+        <div className="dt-pills" role="group" aria-label={L("Market category", "ক্যাটাগরি")}>
           <button
             type="button"
             className={`dt-pill${activeCategory === null ? " is-active" : ""}`}
             aria-pressed={activeCategory === null}
             onClick={() => setActiveCategory(null)}
-          >All</button>
+          ><T en="All" bn="সব" /></button>
           {CATEGORIES.map(cat => (
             <button
               key={cat}
               type="button"
               className={`dt-pill${activeCategory === cat ? " is-active" : ""}`}
               aria-pressed={activeCategory === cat}
-              aria-label={`Category ${cat}`}
+              aria-label={L(`Category ${cat}`, `${cat} ক্যাটাগরি`)}
               onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
             >{cat}</button>
           ))}
         </div>
 
-        <span className="dt-count" aria-live="polite">{filtered.length} stocks</span>
+        <span className="dt-count" aria-live="polite">
+          <T en={`${filtered.length} shares`} bn={`${filtered.length}টি শেয়ার`} />
+        </span>
       </div>
 
       {/* Table */}
@@ -163,15 +170,15 @@ export default function StocksTable({ items }: Props) {
         <thead>
           <tr>
             <Th align="right">#</Th>
-            <Th srLabel="Watchlist" />
-            <SortTh col="trading_code"    label="Stock"  {...th} />
-            <SortTh col="sector"          label="Sector" {...th} secondary />
-            <SortTh col="market_category" label="Cat"    {...th} />
-            <SortTh col="score"           label="Score"  {...th} align="right" />
-            <SortTh col="ltp"             label="Price"  {...th} align="right" />
-            <SortTh col="change_pct"      label="Today"  {...th} align="right" />
-            <SortTh col="eps"             label="EPS"    {...th} align="right" />
-            <SortTh col="div_yield_pct"   label="Yield"  {...th} align="right" />
+            <Th srLabel={L("Watchlist", "ওয়াচলিস্ট")} />
+            <SortTh col="trading_code"    label={<T en="Share" bn="শেয়ার" />}  {...th} />
+            <SortTh col="sector"          label={<T en="Sector" bn="সেক্টর" />} {...th} secondary />
+            <SortTh col="market_category" label={<T en="Cat" bn="ক্যাটাগরি" />}    {...th} />
+            <SortTh col="score"           label={<T en="Score" bn="স্কোর" />}  {...th} align="right" />
+            <SortTh col="ltp"             label={<T en="Price" bn="দাম" />}  {...th} align="right" />
+            <SortTh col="change_pct"      label={<T en="Today" bn="আজ" />}  {...th} align="right" />
+            <SortTh col="eps"             label={<T en="EPS" bn="ইপিএস" />}    {...th} align="right" />
+            <SortTh col="div_yield_pct"   label={<T en="Yield" bn="ইল্ড" />}  {...th} align="right" />
           </tr>
         </thead>
         <tbody>
@@ -188,10 +195,10 @@ export default function StocksTable({ items }: Props) {
               </td>
 
               <td data-secondary className="dt-muted">
-                {item.sector ?? "—"}
+                {item.sector ? <T en={item.sector} bn={sectorBn(item.sector)} /> : "—"}
               </td>
 
-              <td data-cell="meta" data-label="Cat" className="dt-muted">
+              <td data-cell="meta" data-label={L("Cat", "ক্যাটাগরি")} className="dt-muted">
                 {item.market_category ?? "—"}
               </td>
 
@@ -212,11 +219,11 @@ export default function StocksTable({ items }: Props) {
                 <Change value={item.change_pct} />
               </td>
 
-              <td data-cell="meta" data-label="EPS" className="dt-num nums">
+              <td data-cell="meta" data-label={L("EPS", "ইপিএস")} className="dt-num nums">
                 {item.eps != null ? item.eps.toFixed(2) : "—"}
               </td>
 
-              <td data-cell="meta" data-label="Yield" className="dt-num nums">
+              <td data-cell="meta" data-label={L("Yield", "ইল্ড")} className="dt-num nums">
                 {item.div_yield_pct != null ? pct(item.div_yield_pct, 1) : "—"}
               </td>
             </tr>
@@ -226,9 +233,13 @@ export default function StocksTable({ items }: Props) {
               <td colSpan={COL_COUNT} className="dt-empty">
                 <EmptyState
                   variant="bare"
-                  title="No stocks match your filters"
-                  message="Try a shorter search, or clear the sector and category."
-                  bn="এই ফিল্টারে কোনো শেয়ার মিলছে না। সার্চ ছোট করুন বা ফিল্টার মুছে দেখুন।"
+                  title={<T en="No shares match your filters" bn="এই ফিল্টারে কোনো শেয়ার মিলছে না" />}
+                  message={
+                    <T
+                      en="Try a shorter search, or clear the sector and category."
+                      bn="আরও ছোট করে খুঁজুন, অথবা সেক্টর আর ক্যাটাগরি মুছে দেখুন।"
+                    />
+                  }
                 />
               </td>
             </tr>

@@ -15,12 +15,12 @@ const STR = {
     desc: "Why it matters: if you own only bank stocks and banks have a bad year, everything falls together. A mix (say bank, medicine and telecom) means one weak sector can't drag it all down. A simple rule: keep any one sector under about 40%.",
   },
   bn: {
-    title: "খাতভিত্তিক ভাগ",
-    counts: (sectors: number, stocks: number) => `${sectors}টি খাতে ${stocks}টি শেয়ার, বড়টা আগে।`,
+    title: "সেক্টরভিত্তিক ভাগ",
+    counts: (sectors: number, stocks: number) => `${sectors}টি সেক্টরে ${stocks}টি শেয়ার, বড়টা আগে।`,
     heavy: "40%-এর বেশি",
     stockCount: (n: number) => `${n}টি শেয়ার`,
     line: "প্রতিটি বারের ছোট খাড়া দাগটি 40%-এর সীমা।",
-    desc: "কেন জরুরি: শুধু ব্যাংকের শেয়ার থাকলে ব্যাংকের বছর খারাপ গেলে সব একসাথে পড়ে। ব্যাংক, ওষুধ, টেলিকম মিলিয়ে রাখলে একটি দুর্বল খাত সব টেনে নামাতে পারে না। সহজ নিয়ম: কোনো একটি খাতে 40%-এর বেশি না রাখা ভালো।",
+    desc: "কেন জরুরি: শুধু ব্যাংকের শেয়ার থাকলে ব্যাংকের বছর খারাপ গেলে সব একসাথে পড়ে। ব্যাংক, ওষুধ, টেলিকম মিলিয়ে রাখলে একটি দুর্বল সেক্টর সব টেনে নামাতে পারে না। সহজ নিয়ম: কোনো একটি সেক্টরে 40%-এর বেশি না রাখা ভালো।",
   },
 } as const;
 
@@ -49,7 +49,7 @@ export default function SectorBreakdownChart({ analysis, lang = "en" }: Props) {
   return (
     <PfCard
       title={t.title}
-      bn="খাতভিত্তিক ভাগ"
+
       note={t.counts(analysis.sectorSpread.length, totalStocks)}
       lang={lang}
       dataCard="sectors"

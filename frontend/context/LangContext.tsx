@@ -2,10 +2,9 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 
-export type Lang = "en" | "bn";
+import { DEFAULT_LANG, LANG_KEY, type Lang } from "@/lib/lang";
 
-/** Same key the stock page has always used — one saved choice for the whole app. */
-const LANG_KEY = "dsex.analysis.lang";
+export type { Lang };
 
 interface LangValue {
   lang: Lang;
@@ -14,35 +13,28 @@ interface LangValue {
   bn: boolean;
 }
 
-const LangContext = createContext<LangValue>({ lang: "en", setLang: () => {}, bn: false });
+const LangContext = createContext<LangValue>({ lang: DEFAULT_LANG, setLang: () => {}, bn: true });
 
 /**
- * One English / বাংলা switch for the whole app (dashboard, stock page, portfolio
- * copy). Mounted once in the root layout.
- *
- * The server always renders English (SEO + a stable first paint). After mount
- * the saved choice wins; with no saved choice a Bengali-language browser gets
- * Bengali by default — the audience is Bengali and an English-only default
- * meant most readers never found the toggle.
+ * The one English / বাংলা switch for the whole app; the control is
+ * `components/layout/LangSwitch.tsx` in the navbar. Visible text switches
+ * through CSS (`<T>`), so `lang` here is only for what CSS can't reach:
+ * placeholders, toasts, aria-labels and logic. It starts at the server's
+ * default and picks up the boot script's value on mount.
  */
 export function LangProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("en");
+  const [lang, setLangState] = useState<Lang>(DEFAULT_LANG);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(LANG_KEY);
-      if (saved === "bn" || saved === "en") {
-        setLangState(saved);
-        return;
-      }
-      const nav = (navigator.language || "").toLowerCase();
-      const all = (navigator.languages || []).map((l) => l.toLowerCase());
-      if (nav.startsWith("bn") || all.some((l) => l.startsWith("bn"))) setLangState("bn");
-    } catch {}
+    const now = document.documentElement.getAttribute("data-lang");
+    if (now === "en" || now === "bn") setLangState(now);
   }, []);
 
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
+    const root = document.documentElement;
+    root.setAttribute("data-lang", l);
+    root.lang = l;
     try {
       localStorage.setItem(LANG_KEY, l);
     } catch {}

@@ -4,8 +4,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import SectionHeader from "@/components/ui/SectionHeader";
-import Bn from "@/components/i18n/Bn";
-import LangToggle from "@/components/stock/LangToggle";
+import { T } from "@/components/i18n/T";
 import {
   IconBulb, IconCheck, IconChevronDown, IconCrown, IconList, IconSparkle, IconWallet,
 } from "@/components/ui/icons";
@@ -27,24 +26,26 @@ const ICON: Record<(typeof BENEFITS)[number]["key"], ReactNode> = {
   limits: <IconSparkle size={20} />,
 };
 
+/** One copy pair on screen — the reader sees only their language. */
+function Tx({ b }: { b: Bi }) {
+  return <T en={b.en} bn={b.bn} />;
+}
+
 /**
- * The /premium page body (2026-10-25: follows the app-wide language switch;
- * 2026-10-27: redesigned clean — hero open on the canvas, the four benefits in
- * ONE card, the three pay steps inside the plan section, a Free | Premium
- * grid (always open — user decision), ONE FAQ card, payment help folded, a closing call to action).
- * English mode keeps the Bengali line under each heading, as everywhere else;
- * Bengali mode is Bengali only. The server renders English (the saved choice
- * applies after mount) — the page's metadata and FAQ JSON-LD stay in
- * app/premium/page.tsx, built from the same copy (lib/premium-copy.ts).
+ * The /premium page body (2026-10-27: redesigned clean — hero open on the
+ * canvas, the four benefits in ONE card, the three pay steps inside the plan
+ * section, a Free | Premium grid (always open — user decision), ONE FAQ card,
+ * payment help folded, a closing call to action).
+ *
+ * One language per page (2026-10-28): every pair renders through `<T>`, so
+ * the server HTML carries both and CSS shows the reader's language — no
+ * Bengali line under English headings, no in-page switch. The page's
+ * metadata and FAQ JSON-LD stay in app/premium/page.tsx, built from the same
+ * copy (lib/premium-copy.ts).
  */
 export default function PremiumBody() {
-  const { lang, setLang, bn } = useLang();
+  const { bn } = useLang();
   const { state } = usePremium();
-  const t = (b: Bi) => (bn ? b.bn : b.en);
-  // A heading's Bengali line — only in English mode (Bengali mode IS Bengali).
-  const sub = (b: Bi) => (bn ? undefined : b.bn);
-  const bnCls = bn ? "font-bn" : "";
-  const langAttr = bn ? "bn" : undefined;
 
   // Payment help is folded; a link to #payment-help opens it.
   const helpRef = useRef<HTMLDetailsElement>(null);
@@ -58,39 +59,35 @@ export default function PremiumBody() {
   }, []);
 
   return (
-    <div className={`page-narrow pm-page ${bnCls}`} lang={langAttr}>
+    <div className="page-narrow pm-page">
       {/* 1 · The promise, the price, the next step — open on the canvas */}
       <section className="pm-hero">
-        <div className="pm-hero-lang">
-          <LangToggle value={lang} onChange={setLang} size="sm" />
-        </div>
         <PageHeader
           eyebrow={
             <span className="pm-eyebrow">
-              <IconCrown size={14} /> {t(HERO.eyebrow)}
+              <IconCrown size={14} /> <Tx b={HERO.eyebrow} />
             </span>
           }
-          title={t(HERO.title)}
-          bn={sub(HERO.title)}
-          lead={t(HERO.lead)}
+          title={<Tx b={HERO.title} />}
+          lead={<Tx b={HERO.lead} />}
         />
         <div className="pm-price">
-          <p className="pm-offer">{t(OFFER.label)}</p>
+          <p className="pm-offer"><Tx b={OFFER.label} /></p>
           <p>
-            <span className="pm-price-from">{t(HERO.from)}</span>{" "}
+            <span className="pm-price-from"><Tx b={HERO.from} /></span>{" "}
             <span className="pm-price-num">৳{PER_MONTH}</span>{" "}
-            <span className="pm-price-per">{t(HERO.perMonth)}</span>
+            <span className="pm-price-per"><Tx b={HERO.perMonth} /></span>
           </p>
-          <p className="pm-price-alt">{t(HERO.orMonthly)}</p>
+          <p className="pm-price-alt"><Tx b={HERO.orMonthly} /></p>
         </div>
         <div className="mt-6">
           <PremiumPlanCta />
         </div>
-        <ul className="pm-promises" aria-label={bn ? "আমাদের প্রতিশ্রুতি" : "Our promises"}>
+        <ul className="pm-promises" aria-label={bn ? SECTIONS.promises.bn : SECTIONS.promises.en}>
           {PROMISES.map((p) => (
             <li key={p.en}>
               <span className="pm-tick" aria-hidden><IconCheck size={14} /></span>
-              <span>{t(p)}</span>
+              <span><Tx b={p} /></span>
             </li>
           ))}
         </ul>
@@ -100,25 +97,24 @@ export default function PremiumBody() {
 
       {/* 2 · What you get, in four plain ideas — one card, hairline grid */}
       <section aria-labelledby="get-h" id="what" className="pm-section scroll-mt-24">
-        <SectionHeader id="get-h" size="lg" title={t(SECTIONS.what)} bn={sub(SECTIONS.what)} />
+        <SectionHeader id="get-h" size="lg" title={<Tx b={SECTIONS.what} />} />
         <div className="pm-benefits">
           {BENEFITS.map((b) => (
             <article key={b.key} className="pm-benefit">
               <span className="pm-benefit-icon" aria-hidden>{ICON[b.key]}</span>
-              <h3 className="mt-4 text-base font-bold text-text-main">{t(b.title)}</h3>
-              {!bn && <Bn className="text-sm text-text-muted">{b.title.bn}</Bn>}
+              <h3 className="mt-4 text-base font-bold text-text-main"><Tx b={b.title} /></h3>
               <ul className="pm-points">
                 {b.points.map((pt) => (
                   <li key={pt.en}>
                     <span className="pm-points-tick" aria-hidden><IconCheck size={14} /></span>
-                    <span>{t(pt)}</span>
+                    <span><Tx b={pt} /></span>
                   </li>
                 ))}
               </ul>
             </article>
           ))}
         </div>
-        <p className="pm-note">{t(SECTIONS.stayFree)}</p>
+        <p className="pm-note"><Tx b={SECTIONS.stayFree} /></p>
       </section>
 
       {/* 3 · Plans + pay, with the three steps as the section's guide */}
@@ -126,25 +122,24 @@ export default function PremiumBody() {
         <SectionHeader
           id="price-h"
           size="lg"
-          title={t(SECTIONS.plan)}
-          bn={sub(SECTIONS.plan)}
+          title={<Tx b={SECTIONS.plan} />}
           lead={
             <>
-              <span className="block font-semibold text-text-main">{t(OFFER.line)}</span>
-              {t(SECTIONS.planLead)}{" "}
+              <span className="block font-semibold text-text-main"><Tx b={OFFER.line} /></span>
+              <Tx b={SECTIONS.planLead} />{" "}
               <Link href="/refund-policy" className="font-semibold text-primary-ink hover:underline">
-                {t(SECTIONS.refund)}
+                <Tx b={SECTIONS.refund} />
               </Link>
             </>
           }
         />
-        <ol className="pm-steps" aria-label={t(SECTIONS.how)}>
+        <ol className="pm-steps" aria-label={bn ? SECTIONS.how.bn : SECTIONS.how.en}>
           {STEPS.map((st, i) => (
             <li key={st.title.en}>
               <span className="pm-step-n" aria-hidden>{i + 1}</span>
               <span className="min-w-0">
-                <span className="block text-sm font-semibold text-text-main">{t(st.title)}</span>
-                <span className="block text-xs text-text-muted">{t(st.sub)}</span>
+                <span className="block text-sm font-semibold text-text-main"><Tx b={st.title} /></span>
+                <span className="block text-xs text-text-muted"><Tx b={st.sub} /></span>
               </span>
             </li>
           ))}
@@ -154,27 +149,26 @@ export default function PremiumBody() {
 
       {/* 4 · Every difference, for readers who want the detail */}
       <section aria-labelledby="compare-h" className="pm-section">
-        <SectionHeader id="compare-h" size="lg" title={t(SECTIONS.compare)} bn={sub(SECTIONS.compare)} />
+        <SectionHeader id="compare-h" size="lg" title={<Tx b={SECTIONS.compare} />} />
         <div className="pm-compare">
           <div className="pm-compare-head" aria-hidden>
-            <span>{t(SECTIONS.feature)}</span>
-            <span>{t(SECTIONS.free)}</span>
-            <span className="pm-compare-head-pm"><IconCrown size={12} /> {t(SECTIONS.premium)}</span>
+            <span><Tx b={SECTIONS.feature} /></span>
+            <span><Tx b={SECTIONS.free} /></span>
+            <span className="pm-compare-head-pm"><IconCrown size={12} /> <Tx b={SECTIONS.premium} /></span>
           </div>
           <ul>
             {ROWS.map((r) => (
               <li key={r.what.en} className="pm-compare-row">
                 <div>
-                  <p className="font-semibold text-text-main">{t(r.what)}</p>
-                  {!bn && <Bn className="text-sm text-text-muted">{r.what.bn}</Bn>}
+                  <p className="font-semibold text-text-main"><Tx b={r.what} /></p>
                 </div>
                 <div>
-                  <p className="pm-compare-label">{t(SECTIONS.free)}</p>
-                  <p className="text-sm leading-relaxed text-text-muted">{t(r.free)}</p>
+                  <p className="pm-compare-label"><Tx b={SECTIONS.free} /></p>
+                  <p className="text-sm leading-relaxed text-text-muted"><Tx b={r.free} /></p>
                 </div>
                 <div className="pm-compare-pm">
-                  <p className="pm-compare-label pm-compare-label-pm">{t(SECTIONS.premium)}</p>
-                  <p className="text-sm leading-relaxed text-text-main">{t(r.premium)}</p>
+                  <p className="pm-compare-label pm-compare-label-pm"><Tx b={SECTIONS.premium} /></p>
+                  <p className="text-sm leading-relaxed text-text-main"><Tx b={r.premium} /></p>
                 </div>
               </li>
             ))}
@@ -184,17 +178,16 @@ export default function PremiumBody() {
 
       {/* 5 · Questions — one card */}
       <section aria-labelledby="faq-h" className="pm-section">
-        <SectionHeader id="faq-h" size="lg" title={t(SECTIONS.faq)} bn={sub(SECTIONS.faq)} />
+        <SectionHeader id="faq-h" size="lg" title={<Tx b={SECTIONS.faq} />} />
         <div className="pm-faq">
           {FAQS.map((f) => (
             <details key={f.q.en} className="pm-faq-item">
               <summary className="pm-fold-summary">
-                <span className="min-w-0 font-semibold text-text-main">{t(f.q)}</span>
+                <span className="min-w-0 font-semibold text-text-main"><Tx b={f.q} /></span>
                 <span className="pm-fold-chev" aria-hidden><IconChevronDown size={18} /></span>
               </summary>
               <div className="pm-faq-body">
-                <p className="text-sm leading-relaxed text-text-main">{t(f.a)}</p>
-                {!bn && <Bn className="mt-1 text-sm leading-relaxed text-text-muted">{f.a.bn}</Bn>}
+                <p className="text-sm leading-relaxed text-text-main"><Tx b={f.a} /></p>
               </div>
             </details>
           ))}
@@ -206,9 +199,8 @@ export default function PremiumBody() {
         <details ref={helpRef} id="payment-help" className="pm-help scroll-mt-24">
           <summary className="pm-fold-summary">
             <span className="min-w-0">
-              <span id="help-h" className="block font-semibold text-text-main">{t(SECTIONS.help)}</span>
-              {!bn && <Bn as="span" className="block text-sm text-text-muted">{SECTIONS.help.bn}</Bn>}
-              <span className="mt-1 block text-sm text-text-muted">{t(SECTIONS.helpLead)}</span>
+              <span id="help-h" className="block font-semibold text-text-main"><Tx b={SECTIONS.help} /></span>
+              <span className="mt-1 block text-sm text-text-muted"><Tx b={SECTIONS.helpLead} /></span>
             </span>
             <span className="pm-fold-chev" aria-hidden><IconChevronDown size={18} /></span>
           </summary>
@@ -222,9 +214,8 @@ export default function PremiumBody() {
       {state !== "premium" && (
         <section className="pm-close" aria-labelledby="close-h">
           <span className="pm-close-crown" aria-hidden><IconCrown size={22} /></span>
-          <h2 id="close-h" className="mt-3 text-xl font-bold text-text-main sm:text-2xl">{t(SECTIONS.closing)}</h2>
-          {!bn && <Bn className="text-sm text-text-muted">{SECTIONS.closing.bn}</Bn>}
-          <p className="mt-2 text-sm text-text-muted">{t(SECTIONS.closingLead)}</p>
+          <h2 id="close-h" className="mt-3 text-xl font-bold text-text-main sm:text-2xl"><Tx b={SECTIONS.closing} /></h2>
+          <p className="mt-2 text-sm text-text-muted"><Tx b={SECTIONS.closingLead} /></p>
           <div className="mt-5 flex justify-center">
             <PremiumPlanCta align="center" />
           </div>
@@ -232,11 +223,11 @@ export default function PremiumBody() {
       )}
 
       <p className="pm-foot">
-        {(bn ? SECTIONS.howWeScore.bn : SECTIONS.howWeScore.en)[0]}
+        <T en={SECTIONS.howWeScore.en[0]} bn={SECTIONS.howWeScore.bn[0]} />
         <Link href="/about" className="font-semibold text-primary-ink hover:underline">
-          {(bn ? SECTIONS.howWeScore.bn : SECTIONS.howWeScore.en)[1]}
+          <T en={SECTIONS.howWeScore.en[1]} bn={SECTIONS.howWeScore.bn[1]} />
         </Link>
-        {(bn ? SECTIONS.howWeScore.bn : SECTIONS.howWeScore.en)[2]}
+        <T en={SECTIONS.howWeScore.en[2]} bn={SECTIONS.howWeScore.bn[2]} />
       </p>
     </div>
   );

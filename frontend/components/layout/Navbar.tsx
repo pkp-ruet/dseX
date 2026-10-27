@@ -9,6 +9,9 @@ import WatchlistDot from "@/components/watchlist/WatchlistDot";
 import InstallAppButton from "@/components/pwa/InstallAppButton";
 import { IconCrown } from "@/components/ui/icons";
 import { userIsPremium } from "@/lib/premium";
+import { T } from "@/components/i18n/T";
+import { useLang } from "@/context/LangContext";
+import LangSwitch from "@/components/layout/LangSwitch";
 
 const OPEN_DRAWER_EVENT = "dsex:open-drawer";
 
@@ -18,51 +21,61 @@ export function openMobileDrawer() {
   window.dispatchEvent(new CustomEvent(OPEN_DRAWER_EVENT));
 }
 
-export type NavItem = { href: string; label: string; sub?: string; icon?: string; /** Bengali label → needs the Bengali webfont */ bn?: boolean };
-export type NavGroup = { id: string; label: string; accent?: string; items: NavItem[] };
+export type NavItem = {
+  href: string;
+  label: string;
+  labelBn: string;
+  sub?: string;
+  subBn?: string;
+  icon?: string;
+};
+export type NavGroup = { id: string; label: string; labelBn: string; accent?: string; items: NavItem[] };
 
 /**
- * The ONE menu (mobile drawer = desktop panel = footer columns, same labels).
- * Three groups + quick access; nothing else is in the global navigation.
- * Secondary discovery pages (Today's News, Trending, Popular, Daily Tips, Find
- * My Stocks, Top Picks, Market Intelligence) are reached through
- * `components/layout/HubLinks.tsx` on the hub pages instead (2026-09-22).
+ * The ONE menu (mobile drawer = desktop panel; the footer mirrors it). Three
+ * groups + quick access; nothing else is in the global navigation. Secondary
+ * discovery pages are reached through `components/layout/HubLinks.tsx` on the
+ * hub pages instead (2026-09-22). Every label is a pair: the menu follows the
+ * navbar language switch like everything else.
  */
 export const NAV_GROUPS: NavGroup[] = [
   {
     id: "markets",
     label: "Markets",
+    labelBn: "বাজার",
     accent: "info",
     items: [
-      { href: "/dse-today", label: "DSE Today", sub: "Today's prices & movers", icon: "today" },
-      { href: "/market-analysis", label: "Market Analysis", sub: "Up or down, cheap or pricey", icon: "analysis" },
-      { href: "/dividend-calendar", label: "Dividend Calendar", sub: "Record dates & AGMs", icon: "dividend" },
-      { href: "/results", label: "Quarterly Results", sub: "Every company's latest profit", icon: "results" },
-      { href: "/sectors", label: "Sectors", sub: "Compare whole industries", icon: "sectors" },
-      { href: "/share-bazar", label: "আজকের শেয়ার বাজার", sub: "Today's market in Bangla", icon: "bangla", bn: true },
+      { href: "/dse-today", label: "DSE today", labelBn: "আজকের DSE", sub: "Today's prices and biggest moves", subBn: "আজকের দাম আর বড় ওঠানামা", icon: "today" },
+      { href: "/market-analysis", label: "Market analysis", labelBn: "বাজার বিশ্লেষণ", sub: "Is the market up or down, cheap or expensive?", subBn: "বাজার উঠছে না নামছে, দাম কম না বেশি", icon: "analysis" },
+      { href: "/dividend-calendar", label: "Dividend calendar", labelBn: "ডিভিডেন্ড ক্যালেন্ডার", sub: "Record dates and AGMs", subBn: "রেকর্ড ডেট আর এজিএম", icon: "dividend" },
+      { href: "/results", label: "Quarterly results", labelBn: "প্রান্তিকের ফল", sub: "Each company's latest profit", subBn: "প্রতিটি কোম্পানির সর্বশেষ মুনাফা", icon: "results" },
+      { href: "/sectors", label: "Sectors", labelBn: "সেক্টর", sub: "Compare whole industries", subBn: "পুরো সেক্টর মিলিয়ে দেখুন", icon: "sectors" },
+      { href: "/share-bazar", label: "Today's market in Bangla", labelBn: "আজকের শেয়ার বাজার", sub: "A short daily report in Bengali", subBn: "প্রতিদিনের সংক্ষিপ্ত বাজার প্রতিবেদন", icon: "bangla" },
     ],
   },
   {
     id: "find",
     label: "Find stocks",
+    labelBn: "শেয়ার খুঁজুন",
     accent: "clay",
     items: [
-      { href: "/dsestockranking", label: "Rankings", sub: "Every company scored", icon: "rankings" },
-      { href: "/stocks", label: "Browse All Stocks", sub: "Full A–Z table", icon: "browse" },
-      { href: "/buy-sell-signals", label: "Buy/Sell Signals", sub: "What to buy & sell now", icon: "signals" },
-      { href: "/screener", label: "Stock Screener", sub: "Find stocks your way", icon: "find" },
-      { href: "/stock-insights", label: "Stock Lists", sub: "Ready-made lists", icon: "lists" },
-      { href: "/assistant", label: "TopStock AI", sub: "Ask in plain words", icon: "ai" },
+      { href: "/dsestockranking", label: "Rankings", labelBn: "র‍্যাঙ্কিং", sub: "Every company, scored", subBn: "প্রতিটি কোম্পানির স্কোর", icon: "rankings" },
+      { href: "/stocks", label: "All stocks", labelBn: "সব শেয়ার", sub: "The full A–Z list", subBn: "A থেকে Z পুরো তালিকা", icon: "browse" },
+      { href: "/buy-sell-signals", label: "Buy and sell signals", labelBn: "কেনা-বেচার সংকেত", sub: "What looks worth buying or selling now", subBn: "এখন কোনটি কেনা বা বিক্রির মতো", icon: "signals" },
+      { href: "/screener", label: "Stock screener", labelBn: "স্টক স্ক্রিনার", sub: "Find stocks that fit what you want", subBn: "আপনার চাওয়া অনুযায়ী শেয়ার খুঁজুন", icon: "find" },
+      { href: "/stock-insights", label: "Stock lists", labelBn: "শেয়ারের তালিকা", sub: "Ready-made lists", subBn: "তৈরি করা তালিকা", icon: "lists" },
+      { href: "/assistant", label: "TopStock AI", labelBn: "TopStock AI", sub: "Ask in plain words", subBn: "সহজ ভাষায় প্রশ্ন করুন", icon: "ai" },
     ],
   },
   {
     id: "learn",
     label: "Learn",
+    labelBn: "শিখুন",
     accent: "gold",
     items: [
-      { href: "/learn", label: "Guides", sub: "English guides", icon: "blog" },
-      { href: "/blog", label: "বাংলা ব্লগ", sub: "Bangla guides", icon: "bangla", bn: true },
-      { href: "/about", label: "How we score", sub: "The five checks, explained", icon: "about" },
+      { href: "/learn", label: "Guides", labelBn: "ইংরেজি গাইড", sub: "Step-by-step guides in English", subBn: "ইংরেজিতে ধাপে ধাপে গাইড", icon: "blog" },
+      { href: "/blog", label: "Bangla blog", labelBn: "বাংলা ব্লগ", sub: "Beginner guides in Bengali", subBn: "নতুনদের জন্য সহজ গাইড", icon: "bangla" },
+      { href: "/about", label: "How we score", labelBn: "আমরা কীভাবে স্কোর করি", sub: "The five checks, explained", subBn: "পাঁচটি যাচাই, সহজ করে বলা", icon: "about" },
     ],
   },
 ];
@@ -138,6 +151,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const { user, isLoggedIn } = useAuth();
   const premium = isLoggedIn && userIsPremium(user);
+  const { bn } = useLang();
 
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -184,8 +198,8 @@ export default function Navbar() {
             href="/"
             className="navbar-brand"
             onClick={() => setMenuOpen(false)}
-            aria-label="TopStockBD — Home"
-            title="Home"
+            aria-label={bn ? "TopStockBD — হোম" : "TopStockBD — Home"}
+            title={bn ? "হোম" : "Home"}
           >
             <span className="navbar-brand-dse">TopStock</span>
             <span className="navbar-brand-score">BD</span>
@@ -208,7 +222,7 @@ export default function Navbar() {
                 <rect x="3" y="14" width="7" height="7" rx="1.5" />
                 <rect x="14" y="14" width="7" height="7" rx="1.5" />
               </svg>
-              Explore
+              <T en="Explore" bn="মেনু" />
             </button>
 
             <span className="navbar-nav-divider" aria-hidden="true" />
@@ -218,32 +232,36 @@ export default function Navbar() {
               type="button"
               onClick={openGlobalSearch}
               className="navbar-search-btn"
-              aria-label="Search stocks"
-              title="Search (any code or company name)"
+              aria-label={bn ? "শেয়ার খুঁজুন" : "Search stocks"}
+              title={bn ? "কোড বা কোম্পানির নাম দিয়ে খুঁজুন" : "Search by code or company name"}
             >
               <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.7" />
                 <path d="M13.5 13.5L17 17" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
               </svg>
-              <span className="navbar-search-label">Search</span>
+              <span className="navbar-search-label">
+                <T en="Search" bn="খুঁজুন" />
+              </span>
               <kbd className="kbd-hint" aria-hidden="true">/</kbd>
             </button>
             <Link
               href="/watchlist"
               className={`navbar-watch-btn${isWatchlist ? " navbar-watch-btn-active" : ""} relative`}
-              aria-label="My Watchlist"
+              aria-label={bn ? "আমার ওয়াচলিস্ট" : "My watchlist"}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
               </svg>
-              <span className="navbar-watch-label">Watchlist</span>
+              <span className="navbar-watch-label">
+                <T en="Watchlist" bn="ওয়াচলিস্ট" />
+              </span>
               <WatchlistDot />
             </Link>
             <Link
               href="/portfolio"
               className={`navbar-intel-btn${isPortfolio ? " navbar-intel-btn-active" : ""}`}
             >
-              Portfolio
+              <T en="Portfolio" bn="পোর্টফোলিও" />
             </Link>
             {/* Price Alerts + Install app moved into the Explore drawer's "Quick access"
                 row (2026-09-22) — the bar carries five items, not eight. */}
@@ -251,7 +269,15 @@ export default function Navbar() {
               <Link
                 href="/profile"
                 className={`navbar-profile-btn${pathname === "/profile" ? " navbar-profile-btn-active" : ""}`}
-                aria-label={premium ? "My Profile (Premium)" : "My Profile"}
+                aria-label={
+                  bn
+                    ? premium
+                      ? "আমার প্রোফাইল (প্রিমিয়াম)"
+                      : "আমার প্রোফাইল"
+                    : premium
+                      ? "My profile (Premium)"
+                      : "My profile"
+                }
               >
                 <span className="navbar-profile-avatar">
                   {(user?.display_name ?? "U")[0].toUpperCase()}
@@ -262,27 +288,31 @@ export default function Navbar() {
                     </span>
                   )}
                 </span>
-                <span className="navbar-profile-name">{user?.display_name ?? "Profile"}</span>
+                <span className="navbar-profile-name">
+                  {user?.display_name ?? <T en="Profile" bn="প্রোফাইল" />}
+                </span>
               </Link>
             ) : (
               <>
                 <Link href="/login" className="navbar-intel-btn">
-                  Sign In
+                  <T en="Sign in" bn="সাইন ইন" />
                 </Link>
                 <Link href="/register" className="navbar-rank-btn">
-                  Sign Up
+                  <T en="Sign up" bn="অ্যাকাউন্ট খুলুন" />
                 </Link>
               </>
             )}
+            <LangSwitch className="ml-2" />
           </nav>
 
           {/* Mobile right controls — hidden on desktop via CSS */}
           <div className="navbar-mobile-controls">
+            <LangSwitch />
             <button
               type="button"
               onClick={openGlobalSearch}
               className="navbar-search-mobile-btn"
-              aria-label="Search stocks"
+              aria-label={bn ? "শেয়ার খুঁজুন" : "Search stocks"}
             >
               <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.8" />
@@ -291,7 +321,7 @@ export default function Navbar() {
             </button>
             <button
               className="navbar-hamburger"
-              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              aria-label={bn ? (menuOpen ? "মেনু বন্ধ করুন" : "মেনু খুলুন") : menuOpen ? "Close menu" : "Open menu"}
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen(!menuOpen)}
             >
@@ -313,7 +343,7 @@ export default function Navbar() {
         inert={!menuOpen}
         role="dialog"
         aria-modal="true"
-        aria-label="Menu"
+        aria-label={bn ? "মেনু" : "Menu"}
         onClick={(e) => {
           // Backdrop click (desktop mega-panel) closes; panel clicks don't.
           if (e.target === e.currentTarget) setMenuOpen(false);
@@ -325,7 +355,7 @@ export default function Navbar() {
             href="/"
             className="mobile-menu-brand"
             onClick={() => setMenuOpen(false)}
-            aria-label="TopStockBD — Home"
+            aria-label={bn ? "TopStockBD — হোম" : "TopStockBD — Home"}
           >
             <span>TopStock<b>BD</b></span>
           </Link>
@@ -334,12 +364,12 @@ export default function Navbar() {
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-            Menu
+            <T en="Menu" bn="মেনু" />
           </span>
           <button
             className="mobile-menu-close"
             onClick={() => setMenuOpen(false)}
-            aria-label="Close menu"
+            aria-label={bn ? "মেনু বন্ধ করুন" : "Close menu"}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
@@ -358,7 +388,9 @@ export default function Navbar() {
             }}
           >
             <MenuIcon name="search" />
-            <span>Search any stock or company…</span>
+            <span>
+              <T en="Search any stock or company…" bn="যেকোনো শেয়ার বা কোম্পানি খুঁজুন…" />
+            </span>
           </button>
 
           {/* Account */}
@@ -372,9 +404,15 @@ export default function Navbar() {
                 {(user?.display_name ?? "U")[0].toUpperCase()}
               </span>
               <span className="mobile-menu-account-text">
-                <span className="mobile-menu-account-name">{user?.display_name ?? "My Profile"}</span>
+                <span className="mobile-menu-account-name">
+                  {user?.display_name ?? <T en="My profile" bn="আমার প্রোফাইল" />}
+                </span>
                 <span className="mobile-menu-account-sub">
-                  {premium ? "Premium · profile & settings" : "View profile & settings"}
+                  {premium ? (
+                    <T en="Premium · profile and settings" bn="প্রিমিয়াম · প্রোফাইল ও সেটিংস" />
+                  ) : (
+                    <T en="Your profile and settings" bn="আপনার প্রোফাইল ও সেটিংস" />
+                  )}
                 </span>
               </span>
               <MenuIcon name="chevron" />
@@ -386,21 +424,23 @@ export default function Navbar() {
                 className="mobile-menu-auth-btn ghost"
                 onClick={() => setMenuOpen(false)}
               >
-                Sign In
+                <T en="Sign in" bn="সাইন ইন" />
               </Link>
               <Link
                 href="/register"
                 className="mobile-menu-auth-btn solid"
                 onClick={() => setMenuOpen(false)}
               >
-                Sign Up
+                <T en="Sign up" bn="অ্যাকাউন্ট খুলুন" />
               </Link>
             </div>
           )}
 
           {/* Quick access — the personal, frequently-used shortcuts */}
           <section className="mobile-menu-section">
-            <span className="mobile-menu-section-label">Quick access</span>
+            <span className="mobile-menu-section-label">
+              <T en="Quick access" bn="দ্রুত যান" />
+            </span>
             <div className="mobile-menu-quick">
               <Link
                 href="/watchlist"
@@ -411,7 +451,7 @@ export default function Navbar() {
                   <MenuIcon name="star" />
                   <WatchlistDot />
                 </span>
-                Watchlist
+                <T en="Watchlist" bn="ওয়াচলিস্ট" />
               </Link>
               <Link
                 href="/portfolio"
@@ -421,7 +461,7 @@ export default function Navbar() {
                 <span className="mobile-menu-quick-icon">
                   <MenuIcon name="portfolio" />
                 </span>
-                Portfolio
+                <T en="Portfolio" bn="পোর্টফোলিও" />
               </Link>
               <Link
                 href="/alerts"
@@ -431,7 +471,7 @@ export default function Navbar() {
                 <span className="mobile-menu-quick-icon">
                   <MenuIcon name="bell" />
                 </span>
-                Price Alerts
+                <T en="Price alerts" bn="প্রাইস অ্যালার্ট" />
               </Link>
               <Link
                 href="/premium"
@@ -441,11 +481,11 @@ export default function Navbar() {
                 <span className="mobile-menu-quick-icon">
                   <MenuIcon name="premium" />
                 </span>
-                Premium
+                <T en="Premium" bn="প্রিমিয়াম" />
               </Link>
               <InstallAppButton
                 className="mobile-menu-quick-item"
-                label="Install app"
+                label={bn ? "অ্যাপ ইনস্টল করুন" : "Install app"}
                 onClick={() => setMenuOpen(false)}
               />
             </div>
@@ -455,7 +495,9 @@ export default function Navbar() {
           <div className="mobile-menu-groups">
             {NAV_GROUPS.map((g) => (
               <section className="mobile-menu-section" data-accent={g.accent} key={g.id}>
-                <span className="mobile-menu-section-label">{g.label}</span>
+                <span className="mobile-menu-section-label">
+                  <T en={g.label} bn={g.labelBn} />
+                </span>
                 <div className="mobile-menu-grid">
                   {g.items.map((it) => (
                     <Link
@@ -468,8 +510,14 @@ export default function Navbar() {
                         <MenuIcon name={it.icon} />
                       </span>
                       <span className="mobile-menu-tile-text">
-                        <span className={`mobile-menu-tile-label${it.bn ? " font-bn" : ""}`} lang={it.bn ? "bn" : undefined}>{it.label}</span>
-                        {it.sub && <span className="mobile-menu-tile-sub">{it.sub}</span>}
+                        <span className="mobile-menu-tile-label">
+                          <T en={it.label} bn={it.labelBn} />
+                        </span>
+                        {it.sub && (
+                          <span className="mobile-menu-tile-sub">
+                            <T en={it.sub} bn={it.subBn ?? it.sub} />
+                          </span>
+                        )}
                       </span>
                     </Link>
                   ))}

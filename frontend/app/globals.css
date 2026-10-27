@@ -104,12 +104,29 @@
   --negative-rgb: 185 28 28;
   --watch-rgb: 180 83 9;
 }
+:root {
+  /* Inter (latin subset) carries no Bengali glyphs, so every Bengali character
+     falls through to Hind Siliguri while digits and codes stay in Inter. */
+  --font-ui: var(--font-inter), var(--font-bengali), "Noto Sans Bengali", system-ui, sans-serif;
+}
 body {
   /* Flat canvas on purpose: the old fixed-attachment gradient was ignored by iOS
      Safari and forced full repaints on Android Chrome while scrolling. */
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
+}
+/* ---- One language per page (docs/voice.md) ----
+   `<T>` renders both halves; `<html data-lang>` (boot script in app/layout.tsx,
+   navbar switch) decides which one shows. `!important` so no utility on the
+   same element can bring the other language back. */
+html[data-lang="en"] [data-l="bn"],
+html[data-lang="bn"] [data-l="en"] {
+  display: none !important;
+}
+/* Bengali sets taller than Latin; give running text a little more room. */
+html[data-lang="bn"] body {
+  line-height: 1.6;
 }
 /* The page must never scroll sideways: anything poking past the viewport lets
    mobile browsers pan horizontally, and the fixed navbar / bottom bar visibly
@@ -130,11 +147,12 @@ html {
    2026-10 redesign: colour is for meaning, and the white navbar has its own edge.) */
 /* ---- Homepage refresh helpers (soft dusty-blue + slate) ---- */
 .font-display {
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   letter-spacing: -0.02em;
 }
-/* Bengali (বাংলা) — opt-in font + comfortable line-height for the /blog section.
-   Cascades to all descendants, so wrap a Bengali page/region in `.font-bn`. */
+/* Bengali (বাংলা) article bodies (/blog, /share-bazar): Bengali-first font so
+   Latin inside the prose matches. UI copy needs no class — `--font-ui` falls
+   back to Hind Siliguri for Bengali glyphs. */
 .font-bn,
 .font-bn h1,
 .font-bn h2,
@@ -541,7 +559,7 @@ a:hover .ticker-tag,
 }
 .navbar-brand-dse,
 .navbar-brand-score {
-  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: var(--fs-title);
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -654,7 +672,7 @@ a:hover .ticker-tag,
   padding-right: 2px;
 }
 .info-col-header {
-  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: var(--fs-2xs);
   font-weight: 700;
   color: var(--text);
@@ -762,7 +780,7 @@ a:hover .ticker-tag,
   color: rgba(255, 255, 255, 0.72);
 }
 .np-footer-brand {
-  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: var(--fs-base);
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -1350,7 +1368,7 @@ a:hover .ticker-tag,
   align-items: center;
   gap: 9px;
   color: var(--text);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-weight: 700;
   font-size: var(--fs-title);
   letter-spacing: -0.01em;
@@ -1363,7 +1381,7 @@ a:hover .ticker-tag,
   align-items: center;
   gap: 8px;
   color: var(--text);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-weight: 700;
   font-size: var(--fs-title);
   letter-spacing: -0.01em;
@@ -2096,7 +2114,7 @@ a:hover .ticker-tag,
 }
 /* Section heading inside the story */
 .ed-section-label {
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: var(--fs-2xs);
   font-weight: 700;
   color: var(--primary-ink);
@@ -2133,7 +2151,7 @@ a:hover .ticker-tag,
 .ms-hero > * { position: relative; z-index: 1; }
 .ms-hero-eyebrow {
   display: inline-block;
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: var(--fs-sm); font-weight: 600;
   color: var(--text-muted);
 }
@@ -2148,7 +2166,7 @@ a:hover .ticker-tag,
 }
 
 .ms-hero-headline {
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 700; line-height: 1.2;
   letter-spacing: -0.015em; color: var(--text); margin: 14px 0 8px; max-width: 30ch; text-wrap: balance;
 }
@@ -2165,7 +2183,7 @@ a:hover .ticker-tag,
 /* ---- Section header (catchy, numbered) ---- */
 
 .ms-section-title {
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: clamp(1.3rem, 3.2vw, 1.6rem); font-weight: 700; letter-spacing: -0.015em;
   color: var(--text); margin: 0; line-height: 1.15;
 }
@@ -2228,7 +2246,7 @@ a:hover .ticker-tag,
   margin-bottom: 4px;
 }
 .ed-rank {
-  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: var(--fs-display);
   font-weight: 700;
   line-height: 1;
@@ -2237,7 +2255,7 @@ a:hover .ticker-tag,
   min-width: 1.4em;
 }
 .ed-spot-title {
-  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: clamp(1.4rem, 4vw, 1.85rem);
   font-weight: 700;
   line-height: 1.15;
@@ -2330,7 +2348,7 @@ a:hover .ticker-tag,
   border-top: 1px solid var(--border);
 }
 .ed-run-rank {
-  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: var(--fs-lg);
   font-weight: 700;
   color: var(--text-muted);
@@ -2402,7 +2420,7 @@ a:hover .ticker-tag,
 }
 .ed-closer h2,
 .ed-faq h2 {
-  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: var(--fs-xl);
   font-weight: 700;
   color: var(--text);
@@ -2417,7 +2435,7 @@ a:hover .ticker-tag,
   color: var(--text);
 }
 .ed-closer p.first::first-letter {
-  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: var(--fs-display);
   font-weight: 700;
   float: left;
@@ -2612,7 +2630,6 @@ a:hover .ticker-tag,
 .empty-state-icon { display: flex; justify-content: center; margin-bottom: 12px; color: var(--text-muted); }
 .empty-state-title { font-size: var(--fs-md); font-weight: 800; color: var(--text); margin: 0; }
 .empty-state-msg { font-size: var(--fs-sm); color: var(--text-muted); margin: 6px auto 0; max-width: 34rem; line-height: 1.55; }
-.empty-state-bn { font-size: var(--fs-base); font-weight: 500; color: var(--text-muted); margin: 6px auto 0; max-width: 34rem; }
 .empty-state-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 16px; }
 /* ---- Error state (components/ui/ErrorState.tsx) ---- */
 .error-state { text-align: center; }
@@ -2632,7 +2649,6 @@ a:hover .ticker-tag,
 .error-state-title { font-size: var(--fs-lg); font-weight: 800; color: var(--text); margin: 0; letter-spacing: -0.01em; }
 .error-state--inline .error-state-title { font-size: var(--fs-md); }
 .error-state-msg { font-size: var(--fs-sm); color: var(--text-muted); margin: 8px 0 0; line-height: 1.55; }
-.error-state-bn { font-size: var(--fs-base); font-weight: 500; color: var(--text-muted); margin: 6px 0 0; }
 .error-state-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 18px; }
 /* ---- Skip to content (first tab stop on every page) ---- */
 .skip-link {
@@ -2654,7 +2670,7 @@ a:hover .ticker-tag,
 /* ---- Keyboard hint inside the navbar search pill ---- */
 .kbd-hint {
   display: none;
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: var(--fs-2xs);
   font-weight: 700;
   line-height: 1;
@@ -2668,14 +2684,6 @@ a:hover .ticker-tag,
 .kbd-hint { display: inline-block; }
 }
 .navbar-search-btn:hover .kbd-hint { border-color: color-mix(in srgb, var(--primary) 35%, var(--border)); }
-/* ---- Bengali sub-line under a page <h1> ---- */
-.page-h1-bn {
-  margin: 8px 0 0;
-  font-size: var(--fs-base);
-  font-weight: 500;
-  color: var(--text-muted);
-  max-width: 40rem;
-}
 /* ---- Stock detail section head (components/stock/SectionTitle.tsx) ---- */
 #main:focus { outline: none; }
 /* bare EmptyState inside a table cell: the cell already pads */
@@ -2772,13 +2780,6 @@ a:hover .ticker-tag,
 }
 .page-guide-p b { font-weight: 800; }
 .page-guide-p a { color: var(--primary); text-decoration: underline; }
-.page-guide-bn {
-  margin: 4px 0 0;
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  color: var(--text-muted);
-  max-width: 72ch;
-}
 .page-faq { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--cell-rule); }
 .page-faq-title {
   margin: 0 0 8px;
