@@ -91,9 +91,11 @@ def sanitize_user(doc: dict) -> dict:
 
 
 # `get_user_by_id` backs `get_current_user`, so it runs on every signed-in
-# request (incl. the per-navigation /api/auth/ping). Leave out the big cached
-# blobs — they have their own readers (`get_daily_picks`, `get_pick_feedback`,
-# `get_last_recommendation`); callers only read `last_recommendation.answers`.
+# request (incl. the per-navigation /api/auth/ping). Leave out the big blobs:
+# `daily_picks` / `pick_feedback` are left on old docs by the retired picks
+# engine (2026-10-28), and callers only read `last_recommendation.answers`
+# (the recommendation engine's stated tastes). `for_you_seen` stays in — it is
+# two short code lists and the engine reads it from the session doc.
 _SESSION_PROJECTION = {
     "_id": 0,
     "password_hash": 0,
@@ -469,79 +471,6 @@ def clear_last_recommendation(user_id: str) -> bool:
         {"$unset": {"last_recommendation": ""}, "$set": {"updated_at": datetime.now(timezone.utc)}},
     )
     return True
-
-
-# ---------------------------------------------------------------------------
-# Daily personalized picks (per-day cache on the user doc)
-# ---------------------------------------------------------------------------
-
-def save_daily_picks(user_id: str, doc: dict) -> bool:
-    """Cache today's personalized picks on the user doc. `doc` is JSON-safe and
-    carries a `date` key (Dhaka day) used to decide staleness on read."""
-    _users().update_one(
-        {"user_id": user_id},
-        {"$set": {"daily_picks": doc, "updated_at": datetime.now(timezone.utc)}},
-    )
-    return True
-
-
-def get_daily_picks(user_id: str) -> Optional[dict]:
-    d = _users().find_one({"user_id": user_id}, {"daily_picks": 1, "_id": 0})
-    return (d or {}).get("daily_picks")
-
-
-def clear_daily_picks(user_id: str) -> bool:
-    """Drop today's cached picks so the next read recomputes. Called when the
-    user's taste inputs change (quiz retune, like/skip feedback)."""
-    _users().update_one(
-        {"user_id": user_id},
-        {"$unset": {"daily_picks": ""}, "$set": {"updated_at": datetime.now(timezone.utc)}},
-    )
-    return True
-
-
-# ---------------------------------------------------------------------------
-# Pick feedback (like / skip on daily picks) — tunes the taste profile
-# ---------------------------------------------------------------------------
-
-def get_pick_feedback(user_id: str) -> dict:
-    """Return {"liked": [...], "disliked": [...]} (always both keys)."""
-    d = _users().find_one({"user_id": user_id}, {"pick_feedback": 1, "_id": 0})
-    fb = (d or {}).get("pick_feedback") or {}
-    return {
-        "liked": [c for c in (fb.get("liked") or []) if c],
-        "disliked": [c for c in (fb.get("disliked") or []) if c],
-    }
-
-
-def set_pick_feedback(user_id: str, code: str, vote: str) -> dict:
-    """Record a like / skip / clear for one stock. `vote` is up|down|clear.
-    Liked and disliked are mutually exclusive per code. Returns the updated
-    feedback dict."""
-    code = (code or "").upper().strip()
-    if not code:
-        return get_pick_feedback(user_id)
-
-    fb = get_pick_feedback(user_id)
-    liked = [c for c in fb["liked"] if c != code]
-    disliked = [c for c in fb["disliked"] if c != code]
-    if vote == "up":
-        liked.append(code)
-    elif vote == "down":
-        disliked.append(code)
-    # "clear" leaves the code in neither list.
-
-    # Bound the lists so the doc can't grow unbounded.
-    liked = liked[-100:]
-    disliked = disliked[-200:]
-    _users().update_one(
-        {"user_id": user_id},
-        {"$set": {
-            "pick_feedback": {"liked": liked, "disliked": disliked},
-            "updated_at": datetime.now(timezone.utc),
-        }},
-    )
-    return {"liked": liked, "disliked": disliked}
 
 
 # ---------------------------------------------------------------------------

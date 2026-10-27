@@ -1,7 +1,8 @@
 /**
  * "Your next move" and "What would raise your grade" (2026-10-26) — two reads
- * on top of `analyzePortfolio` + `buildRebalancePlan`, so they can never
- * disagree with the grade, the lists or the buy ideas on the same page.
+ * on top of `analyzePortfolio` + the engine's buy ideas (`planFromEngine`), so
+ * they can never disagree with the grade, the lists or the buy ideas on the
+ * same page.
  *
  * - `buildNextMove` ranks every open issue by the taka at stake and returns
  *   the one to act on first (plus up to two more). It names only what is
@@ -234,8 +235,9 @@ export function gradeLifts(
     return [...rs, rowFor(code, shares, item.ltp, item.ltp, item.company_name ?? null)];
   };
 
-  // 1. Buy the first idea at its example size.
-  const pick = plan?.picks.find((p) => p.kind !== "swap" && p.suggest);
+  // 1. Buy the first idea at its example size. Not an "add more" idea: that
+  //    stock is already a row, and adding a second row would skew the re-run.
+  const pick = plan?.picks.find((p) => p.kind !== "swap" && p.kind !== "add_more" && p.suggest);
   if (pick?.suggest) {
     scenarios.push({
       label: L(

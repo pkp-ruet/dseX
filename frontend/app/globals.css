@@ -2041,31 +2041,6 @@ a:hover .ticker-tag,
   text-align: center;
 }
 .pa-sentence b { font-weight: 800; }
-/* ===========================================================================
-   Stock Recommendation — result reveal animations
-   ========================================================================= */
-@keyframes rec-rise {
-  0%   { opacity: 0; transform: translateY(22px) scale(0.97); }
-  60%  { opacity: 1; }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-.rec-rise {
-  opacity: 0;
-  animation: rec-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-@keyframes rec-pop {
-  0%   { opacity: 0; transform: scale(0.8); }
-  70%  { transform: scale(1.06); }
-  100% { opacity: 1; transform: scale(1); }
-}
-.rec-pop { animation: rec-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
-@media (prefers-reduced-motion: reduce) {
-  .rec-rise,
-  .rec-pop {
-    animation: none;
-    opacity: 1;
-  }
-}
 /* ════════════════════════════════════════════════════════════════════════
    Editorial Stock Insights — premium, light, plain-language story layout
    Prefix: .ed-  (used by /stock-insights + /stock-insights/[slug])

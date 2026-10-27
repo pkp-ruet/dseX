@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { flattenTiers, getScores, type ScoresResponse, type ScoreItem } from "@/lib/api";
+import { apiGetForYou, type ForYouItem } from "@/lib/api";
 import { addToWatchlist, getCachedWatchlist, subscribeWatchlist } from "@/lib/watchlist";
 import { taka } from "@/lib/formatters";
 import Button from "@/components/ui/Button";
@@ -32,24 +32,26 @@ const ICON_CHECK = (
 
 /**
  * Empty-watchlist on-ramp. Instead of a "blind" bulk add (one tap dumping five
- * unseen tickers into the list), we surface the top-rated companies by name with
- * a quality-score badge, each added one at a time — so the user knows exactly what
- * they're following. The page/card above this always has a search box for adding
- * any other stock.
+ * unseen tickers into the list), we surface the recommendation engine's picks
+ * (2026-10-28: the same list as the dashboard's "Picked for you" — Buy signals
+ * that pass every safety check, built from the reader's portfolio when they
+ * have one) by name with the engine's one-line reason, each added one at a
+ * time — so the user knows exactly what they're following and why. The
+ * page/card above this always has a search box for adding any other stock.
  */
 export default function EmptyStateActions({ compact = false, onAdded }: Props = {}) {
-  const [scores, setScores] = useState<ScoresResponse | null>(null);
+  const [picks, setPicks] = useState<ForYouItem[] | null>(null);
   const [watched, setWatched] = useState<string[]>([]);
   const { lang } = useLang();
   const L = (en: string, bn: string) => (lang === "bn" ? bn : en);
 
   useEffect(() => {
     let cancelled = false;
-    getScores()
-      .then((s) => {
-        if (!cancelled) setScores(s);
+    apiGetForYou()
+      .then((r) => {
+        if (!cancelled) setPicks(r.items);
       })
-      .catch(() => {});
+      .catch(() => !cancelled && setPicks([]));
     setWatched(getCachedWatchlist());
     const off = subscribeWatchlist(() => setWatched(getCachedWatchlist()));
     return () => {
@@ -58,13 +60,7 @@ export default function EmptyStateActions({ compact = false, onAdded }: Props = 
     };
   }, []);
 
-  // Highest-rated companies first (flatten + score sort ≡ strongest tiers first).
-  const suggestions: ScoreItem[] = (() => {
-    if (!scores) return [];
-    return flattenTiers(scores)
-      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
-      .slice(0, SUGGEST_COUNT);
-  })();
+  const suggestions = (picks ?? []).slice(0, SUGGEST_COUNT);
 
   function handleAdd(code: string) {
     addToWatchlist(code);
@@ -79,7 +75,7 @@ export default function EmptyStateActions({ compact = false, onAdded }: Props = 
         </p>
       )}
 
-      {scores === null ? (
+      {picks === null ? (
         <ul className="flex flex-col gap-2" aria-busy="true" aria-label={L("Loading suggestions", "প্রস্তাব লোড হচ্ছে")}>
           {[...Array(4)].map((_, i) => (
             <li key={i} className="flex items-center gap-3 rounded-xl border border-border bg-surface p-2.5 pl-3.5">
@@ -98,7 +94,7 @@ export default function EmptyStateActions({ compact = false, onAdded }: Props = 
       ) : (
         <ul className="flex flex-col gap-2">
           {suggestions.map((it) => {
-            const code = it.trading_code.toUpperCase();
+            const code = it.code.toUpperCase();
             const isWatched = watched.includes(code);
             const chg = it.change_pct;
             const chgClass =
@@ -121,14 +117,17 @@ export default function EmptyStateActions({ compact = false, onAdded }: Props = 
                     {code}
                   </span>
                   <span className="truncate text-xs text-text-muted">
-                    {it.company_name ?? ""}
+                    {it.name ?? ""}
+                  </span>
+                  <span className="line-clamp-2 text-xs text-text-main">
+                    {lang === "bn" ? it.why_bn : it.why_en}
                   </span>
                 </Link>
 
                 {/* Latest price + today's move */}
                 <span className="flex shrink-0 flex-col items-end leading-tight">
                   <span className="text-sm font-bold tabular-nums text-text-main">
-                    {taka(it.ltp, 1)}
+                    {taka(it.price, 1)}
                   </span>
                   <span className={`text-xs font-semibold tabular-nums ${chgClass}`}>
                     {chg == null ? "—" : `${chg > 0 ? "+" : ""}${chg.toFixed(1)}%`}

@@ -1703,6 +1703,12 @@ export interface RecommendationAnswers {
   size: "large" | "any" | "small";
 }
 
+/** A plain {en, bn} pair — every sentence the engine writes comes in both. */
+export interface BiText {
+  en: string;
+  bn: string;
+}
+
 export interface RecommendedStock {
   trading_code: string;
   company_name: string | null;
@@ -1717,10 +1723,19 @@ export interface RecommendedStock {
   p3_moat?: number | null;
   p4_val?: number | null;
   p5_div?: number | null;
-  match_score: number;
+  /** The reason + up to two number lines. */
   reasons: string[];
-  /** The same sentences in everyday Bengali (absent on picks cached before 2026-09-16). */
   reasons_bn?: string[];
+  /** The recommendation engine's words (same as a `ForYouItem`). */
+  kind?: ForYouKind | null;
+  tag_en?: string | null;
+  tag_bn?: string | null;
+  why_en?: string | null;
+  why_bn?: string | null;
+  points?: BiText[];
+  watch?: BiText | null;
+  strong?: boolean;
+  anchor?: string | null;
 }
 
 export interface RecommendationResponse {
@@ -1731,8 +1746,9 @@ export interface RecommendationResponse {
   picks: RecommendedStock[];
 }
 
-/** Public POST — works logged-out or logged-in. When a token is present the
- *  backend also saves the result to the user. */
+/** Public POST (TopStock AI's "suggest stocks") — the recommendation engine
+ *  with the answers as stated tastes. A signed-in reader's own stocks shape it
+ *  too, and the answers are saved so the dashboard's picks lean the same way. */
 export async function getStockRecommendations(
   answers: RecommendationAnswers,
 ): Promise<RecommendationResponse> {
@@ -1742,56 +1758,102 @@ export async function getStockRecommendations(
   });
 }
 
-export async function apiGetLastRecommendation(): Promise<{
-  recommendation:
-    | (Omit<RecommendationResponse, "answers_echo" | "saved"> & {
-        answers: RecommendationAnswers;
-        saved_at?: string;
-      })
-    | null;
-}> {
-  return apiAuthFetch("/api/user/last-recommendation");
-}
-
-export async function apiDeleteLastRecommendation(): Promise<{ ok: boolean }> {
-  return apiAuthFetch("/api/user/last-recommendation", { method: "DELETE" });
-}
-
 // ---------------------------------------------------------------------------
-// Daily personalized picks ("Picked for you today")
+// Recommendation engine — "Picked for you" + "What to buy next"
+// (backend services/recommend.py; one engine for every personal suggestion)
 // ---------------------------------------------------------------------------
 
-export interface DailyPicksResponse {
-  date: string;
-  generated_at: string;
-  personalized: boolean;
-  /** True only when the user actually took the quiz (vs watchlist-inferred). */
-  tuned?: boolean;
-  picks: RecommendedStock[];
-  /** Codes new since the user's previous feed (absent on the first-ever feed). */
-  new_codes?: string[];
+/** What ties a pick to the reader: one they own and could add to, one they
+ *  follow, a stronger company than a weak one of theirs, the same business as
+ *  a good one, a sector they asked for, a strength their stocks share, a
+ *  sector they don't have, or simply one of today's strongest. */
+export type ForYouKind =
+  | "add_more" | "watched" | "upgrade" | "similar" | "asked" | "style" | "new_area" | "top";
+
+export interface ForYouItem {
+  code: string;
+  name: string | null;
+  sector: string | null;
+  price: number | null;
+  change_pct: number | null;
+  score: number | null;
+  tier: string;
+  /** The Buy signal's "strong" conviction. */
+  strong: boolean;
+  kind: ForYouKind;
+  /** The reader's own stock this pick is tied to ("Like GP", "Stronger than X"). */
+  anchor: string | null;
+  tag_en: string;
+  tag_bn: string;
+  why_en: string;
+  why_bn: string;
+  /** 2–3 number lines. */
+  points: BiText[];
+  /** One honest thing to watch. */
+  watch: BiText | null;
+  signal_reason_en: string | null;
+  signal_reason_bn: string | null;
+  /** Its strengths on the screener's six questions ("Very good company", …). */
+  strengths: BiText[];
+  div_yield_pct: number | null;
+  conviction: number | null;
+  rank_score: number;
+  /** Not in the reader's list on the previous day. */
+  new: boolean;
 }
 
-/** Auth-only. Returns 5 daily-rotating picks tuned to the user's taste. */
-export async function getDailyPicks(): Promise<DailyPicksResponse> {
-  return apiAuthFetch<DailyPicksResponse>("/api/user/daily-picks");
+export interface ForYouFunnel {
+  rated: number;
+  /** Stocks with a Buy signal today. */
+  buys: number;
+  /** …that pass every safety check. */
+  passed: number;
+  checks: { key: string; en: string; bn: string; left: number }[];
 }
 
-export interface PickFeedbackResponse {
-  feedback: { liked: string[]; disliked: string[] };
-  /** Present on a "down" (skip) vote: the next-best pick to backfill the slot. */
-  replacement: RecommendedStock | null;
+export interface ForYou {
+  as_of: string | null;
+  mode: "personal" | "generic";
+  based_on: { held: number; watched: number };
+  /** What the reader's stocks have in common (or what they asked for). */
+  traits: (BiText & { key: string; n: number | null; of: number | null; asked: boolean })[];
+  funnel: ForYouFunnel;
+  items: ForYouItem[];
+  /** How many picks are new since the previous day. */
+  new: number;
+  /** Set when few (or no) stocks pass every check — the bar is never lowered. */
+  note: BiText | null;
 }
 
-/** Like (up = boost only) / skip (down = drop + backfill) / clear a daily pick. */
-export async function apiPickFeedback(
-  code: string,
-  vote: "up" | "down" | "clear",
-): Promise<PickFeedbackResponse> {
-  return apiAuthFetch<PickFeedbackResponse>("/api/user/picks/feedback", {
-    method: "POST",
-    body: JSON.stringify({ code, vote }),
-  });
+export async function apiGetForYou(): Promise<ForYou> {
+  return apiAuthFetch<ForYou>("/api/user/for-you");
+}
+
+export type BuyNextKind = "swap" | "dividend" | "new_sector" | "spread" | "fit" | "add_more";
+
+export interface BuyNextPick extends Omit<ForYouItem, "kind"> {
+  kind: BuyNextKind;
+  /** The holding this one could replace (swap ideas only). */
+  replaces: string | null;
+  /** Example size: whole shares at today's price. */
+  suggest: { shares: number; amount: number; target_pct: number } | null;
+}
+
+export interface BuyNext {
+  as_of: string | null;
+  funnel: ForYouFunnel;
+  gaps: (BiText & { key: string })[];
+  picks: BuyNextPick[];
+  /** Buy signals today, and how many of them pass every check. */
+  buys: number;
+  passed: number;
+  /** Set when there are gaps but nothing fills them — never a lower bar. */
+  none_reason: BiText | null;
+}
+
+/** The portfolio's "What to buy next" for one portfolio (main when no pid). */
+export async function apiGetBuyNext(pid?: string | null): Promise<BuyNext> {
+  return apiAuthFetch<BuyNext>(`/api/user/portfolio/buy-next${pidQuery(pid)}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -2002,7 +2064,6 @@ export interface HomeBundle {
   watchlist: WatchlistResponse;
   alerts: PriceAlert[];
   signal_events: PortfolioSignalEvent[];
-  daily_picks: DailyPicksResponse | null;
   tips: DailyTipsResponse;
   /** Latest news on holdings ∪ watchlist (newest first, capped server-side). */
   news: WatchlistNewsItem[];
@@ -2012,7 +2073,7 @@ export interface HomeBundle {
   near_extremes: NearExtremesData | null;
   /** Calendar record-date rows (cash per share worked out) for the user's codes. */
   dividend_cash: CorporateActionEvent[];
-  /** User's codes (+ today's pick codes) that have a deep-analysis report. */
+  /** User's codes (+ the for-you pick codes) that have a deep-analysis report. */
   report_codes: string[];
   /** Cached Bengali "এক নজরে" one-liners, keyed by trading code. */
   summaries_bn: Record<string, string>;
@@ -2045,6 +2106,8 @@ export interface HomeBundle {
   /** The screener card (2026-10-26): goal starts with counts + top three, and
    *  the reader's saved screens as of the last daily check. */
   screener?: { goals: ScreenerGoal[]; saved: ScreenerSaved[] } | null;
+  /** "Picked for you" (2026-10-28) — the recommendation engine's list. */
+  for_you?: ForYou | null;
 }
 
 export interface WeekWatch {

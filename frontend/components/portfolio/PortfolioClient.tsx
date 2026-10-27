@@ -24,6 +24,7 @@ import {
   apiDeleteHolding,
   apiGetSignalEvents,
   apiGetPortfolioHistory,
+  apiGetBuyNext,
   apiGetWatchEvents,
   apiPortfolioAction,
   apiDeleteLogEntry,
@@ -36,13 +37,14 @@ import {
   type PortfolioListItem,
   type PortfolioHistory,
   type PortfolioWatchEvent,
+  type BuyNext,
 } from "@/lib/api";
 import { taka, takaCompact, takaGroup } from "@/lib/formatters";
 import {
   signalInfoFromApi,
   portfolioTodayMove,
   analyzePortfolio,
-  buildRebalancePlan,
+  planFromEngine,
   type SignalInfo,
   type AnalysisLang,
   type Grade,
@@ -318,6 +320,8 @@ export default function PortfolioClient() {
   const [settings, setSettings] = useState<PortfolioSettings>(DEFAULT_PORTFOLIO_SETTINGS);
   const [portfolios, setPortfolios] = useState<PortfolioListItem[]>([]);
   const [history, setHistory] = useState<PortfolioHistory | null>(null);
+  // "What to buy next" from the recommendation engine (null → no card).
+  const [buyNext, setBuyNext] = useState<BuyNext | null>(null);
   const [watchEvents, setWatchEvents] = useState<PortfolioWatchEvent[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const isMain = pid === MAIN_PORTFOLIO_ID;
@@ -501,6 +505,21 @@ export default function PortfolioClient() {
     };
   }, [isLoggedIn, pid, historyKey]);
 
+  // Buy ideas — the engine re-reads the holdings, so refetch on the same key.
+  useEffect(() => {
+    if (!isLoggedIn || !historyKey) {
+      setBuyNext(null);
+      return;
+    }
+    let cancelled = false;
+    apiGetBuyNext(pid)
+      .then((b) => !cancelled && setBuyNext(b))
+      .catch(() => !cancelled && setBuyNext(null));
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoggedIn, pid, historyKey]);
+
   // 52-week ranges + news for the held codes — refetch when the set changes.
   const holdingCodesKey = useMemo(
     () => holdings.map((h) => h.trading_code).sort().join(","),
@@ -573,7 +592,7 @@ export default function PortfolioClient() {
   }, [rows]);
 
   const analysis = useMemo(() => analyzePortfolio(rows, priceMap, lang), [rows, priceMap, lang]);
-  const rebalance = useMemo(() => buildRebalancePlan(analysis, priceMap), [analysis, priceMap]);
+  const rebalance = useMemo(() => planFromEngine(buyNext, lang), [buyNext, lang]);
   const nextMove = useMemo(() => buildNextMove(analysis, rebalance, lang), [analysis, rebalance, lang]);
   const lifts = useMemo(
     () => gradeLifts(rows, priceMap, analysis, rebalance, lang),
@@ -1222,7 +1241,7 @@ export default function PortfolioClient() {
             {/* What to do next — every card shows for everyone; for free readers
                 only the data inside blurs, with one "Unlock with Premium" button */}
             {lifts.length > 0 && <GradeLiftCard lifts={lifts} lang={lang} />}
-            {rebalance.gaps.length > 0 && <RebalanceHelper plan={rebalance} lang={lang} />}
+            {(rebalance.gaps.length > 0 || rebalance.picks.length > 0) && <RebalanceHelper plan={rebalance} lang={lang} />}
             <ProInsights insights={proInsights} lang={lang} />
             <div id="pf-whatif" className="dash-section">
               <WhatIfCard rows={rows} priceMap={priceMap} allCodes={allCodes} lang={lang} />

@@ -1,4 +1,4 @@
-import type { ScoreItem, PortfolioHolding, HoldingSignalInfo } from "@/lib/api";
+import type { ScoreItem, PortfolioHolding, HoldingSignalInfo, BuyNext, BuyNextKind } from "@/lib/api";
 import { getTier, SIGNAL_LABELS, SIGNAL_LABELS_BN, type TierKey } from "@/lib/constants";
 
 export interface ComputedRow {
@@ -1277,23 +1277,25 @@ export function analyzePortfolio(
 
 // ── Rebalance helper ("what to buy next") ──────────────────────────────────
 //
-// Rebuilt 2026-10-26 so a buy idea can never contradict a stock page:
-// - only stocks the canonical signal (backend signal_service) marks **Buy**
-//   today are ever named — that gate already covers price (valuation pillar),
-//   the near-yearly-high dampener, thin trading, Z category, stale accounts
-//   and a 25%+ profit drop;
-// - each gap gets its own kind of idea: a better company in the same sector
-//   for a weak holding (swap), a steady payer when nothing pays a dividend,
-//   a sector the reader doesn't own when the portfolio is thin or lopsided;
-// - banks + NBFIs + insurers count as one group (they move together);
-// - ideas rank on price first, then quality, so readers with the same gaps
-//   don't all get the same three names off the top of the rankings;
-// - every idea carries its numbers, the signal's own reason, one watch-out
-//   and an example amount (about 10% of the reader's money, whole shares).
-// When gaps exist but nothing passes, the plan says so instead of lowering
-// the bar.
+// Since 2026-10-28 the ideas come from the backend recommendation engine
+// (`GET /api/user/portfolio/buy-next`, services/recommend.py) — the same
+// gated, ranked pool as the dashboard's "Picked for you", so the two never
+// name different stocks for the same reader. What it guarantees:
+// - every idea has today's Buy signal AND passes the engine's safety checks
+//   (profit, no auditor / regulator warnings, loans under savings, enough data);
+// - each gap gets its own kind of idea: a stronger company in the same sector
+//   for a weak / Z holding (swap), a steady payer when nothing pays (dividend),
+//   a sector the reader doesn't own (new_sector), or anything outside the
+//   heavy sector and outside banks + finance + insurers when those hold over
+//   half the money (spread); with no gaps, the reader's best-fitting picks
+//   (fit, or add_more on a Buy More holding under a fifth of the money);
+// - every idea carries its number lines, the signal's own reason, one
+//   watch-out and an example amount (about 10% of the money, whole shares).
+// When gaps exist but nothing passes, it says so instead of lowering the bar.
+// This adapter keeps the plan's old shape so `RebalanceHelper`,
+// `buildNextMove` and `gradeLifts` read it unchanged.
 
-export type RebalanceKind = "swap" | "dividend" | "new_sector" | "spread";
+export type RebalanceKind = BuyNextKind;
 
 export interface RebalancePick {
   code: string;
@@ -1303,11 +1305,13 @@ export interface RebalancePick {
   ltp: number | null;
   divYieldPct: number | null;
   kind: RebalanceKind;
+  /** The kind word the engine gave it ("Instead of X", "New sector", "Like GP"). */
+  tag: string;
   /** The holding this one could replace (swap ideas only). */
   replaces: string | null;
   /** The headline reason — what gap it fills. */
   why: string;
-  /** Plain number lines: score, P/E vs similar companies, dividend, profit trend. */
+  /** Plain number lines: grade, price vs its usual or its sector, dividend, profit. */
   evidence: string[];
   /** The Buy signal's own reason, in the reader's language. */
   signalReason: string | null;
@@ -1323,260 +1327,42 @@ export interface RebalancePlan {
   /** Plain-English gaps this plan addresses; empty = portfolio looks balanced. */
   gaps: string[];
   picks: RebalancePick[];
-  /** How many stocks carry a Buy signal today (the pool the ideas come from). */
+  /** How many stocks carry a Buy signal today. */
   buyPool: number;
+  /** …and how many of those pass every safety check (the pool the ideas come from). */
+  passed: number;
   /** Set when there are gaps but no stock passed every check today. */
   noneReason: string | null;
 }
 
-/** A holding's value today (cost when there is no price yet). */
-function holdingValue(h: HoldingInsight): number {
-  return h.qty * (h.ltp ?? h.buyPrice);
-}
+export const EMPTY_PLAN: RebalancePlan = { gaps: [], picks: [], buyPool: 0, passed: 0, noneReason: null };
 
-export function buildRebalancePlan(
-  analysis: PortfolioAnalysis,
-  priceMap: Map<string, ScoreItem>,
-  maxPicks = 3,
-): RebalancePlan {
-  const lang = analysis.lang ?? "en";
-  const bnMode = lang === "bn";
-  const L = (en: string, bn: string) => (bnMode ? bn : en);
-
-  const holdings = analysis.holdings;
-  const held = new Set(holdings.map((h) => h.code.toUpperCase()));
-  const heldSectors = new Set(holdings.map((h) => h.sector).filter((s): s is string => !!s));
-  const holdingCount = holdings.length;
-  const totalValue = holdings.reduce((acc, h) => acc + holdingValue(h), 0);
-
-  const maxSector = analysis.sectorSpread[0];
-  const overweightSector =
-    maxSector && maxSector.weightPct > 40 && holdingCount > 1 ? maxSector.name : null;
-  const financialsPct = holdings
-    .filter((h) => isFinancialSector(h.sector))
-    .reduce((acc, h) => acc + h.weightPct, 0);
-  const financialsHeavy = financialsPct > 50 && holdingCount > 1;
-  // Weak-rated or Z-category holdings, largest first — each could be swapped.
-  const swapTargets = holdings
-    .filter((h) => h.tierKey === "weak" || h.flags.zCategory)
-    .sort((a, b) => b.weightPct - a.weightPct);
-  const noDividendPayer =
-    holdingCount >= 3 && !holdings.some((h) => (h.pillars.p5_div ?? 0) >= 7);
-
-  // ── Gaps ───────────────────────────────────────────────────────────────
-  const gaps: string[] = [];
-  if (holdingCount > 0 && holdingCount < 5) {
-    gaps.push(
-      L(
-        `You own ${holdingCount} share${holdingCount === 1 ? "" : "s"}. Aim for 5–8, so one bad company cannot drag your whole portfolio down.`,
-        `আপনার কাছে ${holdingCount}টি শেয়ার আছে। 5–8টি রাখার চেষ্টা করুন, যাতে একটি খারাপ কোম্পানি পুরো পোর্টফোলিওকে নিচে টেনে নামাতে না পারে।`,
-      ),
-    );
-  }
-  if (overweightSector) {
-    gaps.push(
-      L(
-        `${maxSector!.weightPct.toFixed(0)}% of your money is in ${overweightSector}, so your next buy is best made in a different sector.`,
-        `আপনার টাকার ${maxSector!.weightPct.toFixed(0)}% আছে ${overweightSector} সেক্টরে, তাই পরের কেনাটি অন্য কোনো সেক্টরে হলে ভালো।`,
-      ),
-    );
-  }
-  if (financialsHeavy && financialsPct - (overweightSector && isFinancialSector(overweightSector) ? maxSector!.weightPct : 0) > 5) {
-    gaps.push(
-      L(
-        `${financialsPct.toFixed(0)}% of your money is in banks, finance companies and insurers. They move together, so these ideas leave them out.`,
-        `আপনার টাকার ${financialsPct.toFixed(0)}% আছে ব্যাংক, আর্থিক প্রতিষ্ঠান আর বিমায়। এরা একসঙ্গে ওঠানামা করে, তাই এই প্রস্তাবগুলোতে এদের রাখা হয়নি।`,
-      ),
-    );
-  }
-  const swapGapAt = swapTargets.length > 0 ? gaps.length : -1;
-  if (swapTargets.length > 0) {
-    gaps.push(
-      L(
-        `${nameList(swapTargets.map((h) => h.code))} ${swapTargets.length === 1 ? "is" : "are"} rated weak or in DSE's Z category. A stronger company in the same line of business could put that money to better use.`,
-        `${nameList(swapTargets.map((h) => h.code), 2, "bn")} দুর্বল রেটিং বা ডিএসই-র Z ক্যাটাগরিতে আছে। একই ধরনের ব্যবসার কোনো শক্তিশালী কোম্পানিতে সেই টাকা বেশি কাজে লাগতে পারে।`,
-      ),
-    );
-  }
-  if (noDividendPayer) {
-    gaps.push(
-      L(
-        "None of your shares pays a steady dividend. One steady payer would bring in cash every year.",
-        "আপনার কোনো শেয়ার নিয়মিত ডিভিডেন্ড দেয় না। নিয়মিত ডিভিডেন্ড দেয় এমন একটি শেয়ার প্রতি বছর নগদ টাকা আনবে।",
-      ),
-    );
-  }
-
-  // ── The pool: today's Buy signals only ─────────────────────────────────
-  const buys = Array.from(priceMap.values()).filter(
-    (s) => s.signal?.signal === "buy" && s.ltp != null && s.ltp > 0 && s.sector != null,
-  );
-  const buyPool = buys.length;
-  if (gaps.length === 0) return { gaps, picks: [], buyPool, noneReason: null };
-
-  const allowed = buys.filter(
-    (s) =>
-      !held.has(s.trading_code.toUpperCase()) &&
-      (overweightSector == null || s.sector !== overweightSector) &&
-      !(financialsHeavy && isFinancialSector(s.sector)),
-  );
-  // Price first, then quality: p4 (0–10) plus score / 10 (0–10).
-  const rank = (s: ScoreItem) => (s.p4_val ?? 5) + (s.score ?? 0) / 10;
-  allowed.sort((a, b) => rank(b) - rank(a));
-
-  const peMap = sectorMedianPeMap(priceMap);
-  // About 10% of the money in the new name — more when the portfolio is thin
-  // (an equal share of n + 1 stocks, at most 20%).
-  const targetPct =
-    holdingCount > 0 && holdingCount < 5 ? Math.min(20, 100 / (holdingCount + 1)) : 10;
-
-  const picks: RebalancePick[] = [];
-  const usedSectors = new Set<string>();
-  const usedCodes = new Set<string>();
-
-  const make = (s: ScoreItem, kind: RebalanceKind, why: string, replaces: string | null, amountHint?: number): RebalancePick => {
-    const sectorPe = (s.sector ? peMap.bySector.get(s.sector) : undefined) ?? peMap.market;
-    const evidence: string[] = [];
-    if (s.score != null) {
-      evidence.push(L(`Score ${Math.round(s.score)} out of 100`, `স্কোর 100-এর মধ্যে ${Math.round(s.score)}`));
-    }
-    if (s.eps != null && s.eps > 0 && s.ltp) {
-      const pe = s.ltp / s.eps;
-      evidence.push(
-        sectorPe
-          ? L(
-              `Costs ${fmtPe(pe)} times its yearly profit; similar companies cost ${fmtPe(sectorPe)}`,
-              `দাম বার্ষিক মুনাফার ${fmtPe(pe)} গুণ; একই ধরনের কোম্পানির ${fmtPe(sectorPe)} গুণ`,
-            )
-          : L(`Costs ${fmtPe(pe)} times its yearly profit`, `দাম তার বার্ষিক লাভের ${fmtPe(pe)} গুণ`),
-      );
-    }
-    if (s.div_yield_pct != null && s.div_yield_pct >= 1) {
-      evidence.push(
-        L(`Pays about ${s.div_yield_pct.toFixed(1)}% a year in cash at today's price`, `আজকের দামে বছরে প্রায় ${s.div_yield_pct.toFixed(1)}% নগদ ডিভিডেন্ড`),
-      );
-    }
-    if (s.eps_yoy_pct != null && s.eps_yoy_pct >= 10) {
-      evidence.push(L(`Profit up ${s.eps_yoy_pct.toFixed(0)}% last year`, `গত বছর লাভ ${s.eps_yoy_pct.toFixed(0)}% বেড়েছে`));
-    }
-
-    // One honest watch-out, most serious first.
-    let watch: string | null = null;
-    if ((s.p2_health ?? 10) < 5) watch = L("Its finances are only average. Check its loans on the share's page.", "আর্থিক অবস্থা মাঝারি। শেয়ারের পেজে ঋণের তথ্য দেখে নিন।");
-    else if (s.eps_yoy_pct != null && s.eps_yoy_pct <= -10) watch = L(`Profit fell ${Math.abs(s.eps_yoy_pct).toFixed(0)}% last year.`, `গত বছর লাভ ${Math.abs(s.eps_yoy_pct).toFixed(0)}% কমেছে।`);
-    else if ((s.market_category ?? "").toUpperCase() === "B") watch = L("It is in B category, which means it paid under a 10% dividend last year.", "এটি B ক্যাটাগরিতে, অর্থাৎ গত বছর 10%-এর কম ডিভিডেন্ড দিয়েছে।");
-    else if ((s.p5_div ?? 10) < 3) watch = L("It pays little or no dividend.", "ডিভিডেন্ড কম দেয় বা দেয় না।");
-    else if ((s.p3_moat ?? 10) < 4) watch = L("A small player in its sector.", "নিজের সেক্টরে ছোট কোম্পানি।");
-    else if (s.last_reported_year != null && (s.data_age_years ?? 0) >= 1) watch = L(`Its latest yearly accounts are for ${s.last_reported_year}.`, `সর্বশেষ বার্ষিক হিসাব ${s.last_reported_year} সালের।`);
-
-    let suggest: RebalancePick["suggest"] = null;
-    if (s.ltp && totalValue > 0) {
-      const amount = amountHint ?? (totalValue * targetPct) / (100 - targetPct);
-      const shares = Math.max(1, Math.floor(amount / s.ltp));
-      suggest = { shares, amount: shares * s.ltp, targetPct: amountHint != null ? 0 : targetPct };
-    }
-
-    return {
-      code: s.trading_code,
-      companyName: s.company_name,
-      sector: s.sector,
-      score: s.score,
-      ltp: s.ltp,
-      divYieldPct: s.div_yield_pct,
-      kind,
-      replaces,
-      why,
-      evidence,
-      signalReason: s.signal ? (bnMode ? s.signal.reason_bn : s.signal.reason_en) || s.signal.reason_en : null,
-      strong: s.signal?.strength === "strong",
-      watch,
-      suggest,
-    };
+/** The engine's answer in the reader's language (null → no card). */
+export function planFromEngine(res: BuyNext | null, lang: AnalysisLang = "en"): RebalancePlan {
+  if (!res) return EMPTY_PLAN;
+  const bn = lang === "bn";
+  const L = (t: { en: string; bn: string }) => (bn ? t.bn : t.en);
+  return {
+    gaps: res.gaps.map(L),
+    picks: res.picks.map((p) => ({
+      code: p.code,
+      companyName: p.name,
+      sector: p.sector,
+      score: p.score,
+      ltp: p.price,
+      divYieldPct: p.div_yield_pct,
+      kind: p.kind,
+      tag: bn ? p.tag_bn : p.tag_en,
+      replaces: p.replaces,
+      why: bn ? p.why_bn : p.why_en,
+      evidence: p.points.map(L),
+      signalReason: (bn ? p.signal_reason_bn : p.signal_reason_en) || p.signal_reason_en,
+      strong: p.strong,
+      watch: p.watch ? L(p.watch) : null,
+      suggest: p.suggest ? { shares: p.suggest.shares, amount: p.suggest.amount, targetPct: p.suggest.target_pct } : null,
+    })),
+    buyPool: res.buys,
+    passed: res.passed,
+    noneReason: res.none_reason ? L(res.none_reason) : null,
   };
-  const take = (p: RebalancePick) => {
-    picks.push(p);
-    usedCodes.add(p.code);
-    if (p.sector) usedSectors.add(p.sector);
-  };
-  const free = (s: ScoreItem) => !usedCodes.has(s.trading_code) && !usedSectors.has(s.sector!);
-
-  // 1. Swaps — a clearly stronger company in the same sector as a weak holding.
-  for (const h of swapTargets) {
-    if (picks.length >= maxPicks) break;
-    const c = allowed.find(
-      (s) => free(s) && s.sector === h.sector && (s.score ?? 0) >= (h.score ?? 0) + 10,
-    );
-    if (!c) continue;
-    take(
-      make(
-        c,
-        "swap",
-        L(
-          `A stronger company in the same business as ${h.code}, where that money could work harder.`,
-          `${h.code}-এর মতো একই ব্যবসার একটি শক্তিশালী কোম্পানি, যেখানে সেই টাকা বেশি কাজে লাগতে পারে।`,
-        ),
-        h.code,
-        holdingValue(h),
-      ),
-    );
-  }
-
-  // 2. A steady dividend payer.
-  if (noDividendPayer && picks.length < maxPicks) {
-    const c = allowed.find((s) => free(s) && (s.p5_div ?? 0) >= 7 && (s.div_yield_pct ?? 0) >= 4);
-    if (c) {
-      take(
-        make(c, "dividend", L("Pays a steady dividend it can afford, so cash comes in every year.", "সামর্থ্যের মধ্যে নিয়মিত ডিভিডেন্ড দেয়, তাই প্রতি বছর নগদ টাকা আসে।"), null),
-      );
-    }
-  }
-
-  // 3. Sectors the reader doesn't own (thin or lopsided portfolios).
-  const wantsSpread = holdingCount < 5 || overweightSector != null || financialsHeavy;
-  if (wantsSpread) {
-    for (const c of allowed) {
-      if (picks.length >= maxPicks) break;
-      if (!free(c) || heldSectors.has(c.sector!)) continue;
-      take(make(c, "new_sector", L(`Adds a sector you don't own yet: ${c.sector}.`, `এমন একটি সেক্টর যোগ করে যা আপনার এখনো নেই: ${c.sector}।`), null));
-    }
-    // 4. Still short: the best-priced strong names outside the heavy sector.
-    for (const c of allowed) {
-      if (picks.length >= maxPicks) break;
-      if (!free(c)) continue;
-      take(
-        make(
-          c,
-          "spread",
-          overweightSector
-            ? L(`Outside ${overweightSector}, where most of your money is.`, `${overweightSector}-এর বাইরে, যেখানে আপনার বেশিরভাগ টাকা।`)
-            : L("A good company at a good price, outside what you already own.", "ভালো দামে ভালো কোম্পানি, আপনার যা আছে তার বাইরে।"),
-          null,
-        ),
-      );
-    }
-  }
-
-  // No same-sector swap passed (often because that sector is the heavy one):
-  // don't promise one — point at the ideas instead.
-  if (swapGapAt >= 0 && !picks.some((p) => p.kind === "swap")) {
-    gaps[swapGapAt] = L(
-      `${nameList(swapTargets.map((h) => h.code))} ${swapTargets.length === 1 ? "is" : "are"} rated weak or in DSE's Z category. The money in ${swapTargets.length === 1 ? "it" : "them"} could work harder in a stronger company.`,
-      `${nameList(swapTargets.map((h) => h.code), 2, "bn")} দুর্বল রেটিং বা ডিএসই-র Z ক্যাটাগরিতে আছে। এই টাকা কোনো শক্তিশালী কোম্পানিতে বেশি কাজে লাগতে পারে।`,
-    );
-  }
-
-  const noneReason =
-    picks.length === 0
-      ? buyPool === 0
-        ? L(
-            "No stock carries a Buy signal today, so there is nothing to suggest. When good companies get cheaper, ideas appear here.",
-            "আজ কোনো শেয়ারে কেনার সংকেত নেই, তাই কিছু বলার নেই। ভালো কোম্পানির দাম কমলে এখানে আইডিয়া আসবে।",
-          )
-        : L(
-            `${buyPool} stocks carry a Buy signal today, but none of them fills these gaps without adding to what you already have too much of. Waiting is fine.`,
-            `আজ ${buyPool}টি শেয়ারে কেনার সংকেত আছে, কিন্তু আপনার যা বেশি আছে তা না বাড়িয়ে এই ফাঁক ভরে এমন কোনোটি নেই। অপেক্ষা করাও ঠিক আছে।`,
-          )
-      : null;
-
-  return { gaps, picks, buyPool, noneReason };
 }

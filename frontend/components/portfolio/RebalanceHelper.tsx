@@ -5,7 +5,7 @@ import Chip from "@/components/ui/Chip";
 import PfCard from "./PfCard";
 import PremiumBlur from "@/components/premium/PremiumBlur";
 import { money, takaGroup } from "@/lib/formatters";
-import type { AnalysisLang, RebalancePick, RebalancePlan } from "@/lib/portfolio-analysis";
+import type { AnalysisLang, RebalancePlan } from "@/lib/portfolio-analysis";
 
 interface Props {
   plan: RebalancePlan;
@@ -13,26 +13,18 @@ interface Props {
 }
 
 /**
- * "What to buy next" (rebuilt 2026-10-26, `buildRebalancePlan`): the gaps in
- * the portfolio, then up to three ideas — every one carries a Buy signal
- * today, so this card never contradicts a stock page. Each idea shows what
- * gap it fills, its numbers, the signal's own reason, one watch-out and an
- * example amount. With gaps but no idea passing, it says so plainly.
- * Renders nothing when there is no gap.
+ * "What to buy next" (2026-10-28 on the recommendation engine, `planFromEngine`):
+ * the gaps in the portfolio, then up to three ideas — every one carries a Buy
+ * signal today and passes the engine's safety checks, so this card never
+ * contradicts a stock page or the dashboard's "Picked for you". Each idea shows
+ * what gap it fills, its numbers, the signal's own reason, one watch-out and
+ * an example amount. With gaps but no idea passing, it says so plainly; with
+ * no gaps, it shows the reader's best-fitting picks instead of hiding.
  */
 export default function RebalanceHelper({ plan, lang = "en" }: Props) {
-  if (plan.gaps.length === 0) return null;
+  if (plan.gaps.length === 0 && plan.picks.length === 0) return null;
   const bn = lang === "bn";
   const L = (en: string, b: string) => (bn ? b : en);
-
-  const kindTag = (p: RebalancePick) =>
-    p.kind === "swap"
-      ? L(`Instead of ${p.replaces}`, `${p.replaces}-এর বদলে`)
-      : p.kind === "dividend"
-        ? L("Steady dividend", "নিয়মিত ডিভিডেন্ড")
-        : p.kind === "new_sector"
-          ? L("New sector for you", "আপনার নতুন সেক্টর")
-          : L("Spreads your money", "টাকা ছড়ায়");
 
   return (
     <div id="pf-buynext" className="dash-section">
@@ -40,28 +32,37 @@ export default function RebalanceHelper({ plan, lang = "en" }: Props) {
         title={L("What to buy next", "এরপর কী কিনবেন")}
 
         note={L(
-          "Only stocks with a Buy signal today: a good company, a good price, enough trading, fresh accounts.",
-          "শুধু আজ কেনার সংকেত আছে এমন শেয়ার: ভালো কোম্পানি, ভালো দাম, যথেষ্ট লেনদেন, নতুন হিসাব।",
+          "Only stocks with a Buy signal today that also pass our safety checks: a profit, no auditor or regulator warnings, loans under control.",
+          "শুধু আজ কেনার সংকেত আছে এবং আমাদের নিরাপত্তা যাচাই পার হয়েছে এমন শেয়ার: মুনাফা আছে, নিরীক্ষক বা নিয়ন্ত্রকের সতর্কতা নেই, ঋণ নিয়ন্ত্রণে।",
         )}
         lang={lang}
         flush
         dataCard="rebalance"
       >
         <div className={bn ? "font-bn" : ""} lang={bn ? "bn" : undefined}>
-          {/* The gaps */}
-          <div className="px-4 pb-4 sm:px-6">
-            <h4 className="text-sm font-bold text-text-main">{L("What your portfolio is missing", "আপনার পোর্টফোলিওতে যা কম")}</h4>
-            <PremiumBlur lang={lang} cta={false}>
-            <ul className="mt-2 flex flex-col gap-2">
-              {plan.gaps.map((g, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <span className="pf-dot pf-dot--watch mt-2" aria-hidden />
-                  <span className="min-w-0 text-sm leading-relaxed text-text-main">{g}</span>
-                </li>
-              ))}
-            </ul>
-            </PremiumBlur>
-          </div>
+          {/* The gaps — or, with none, why these ideas */}
+          {plan.gaps.length > 0 ? (
+            <div className="px-4 pb-4 sm:px-6">
+              <h4 className="text-sm font-bold text-text-main">{L("What your portfolio is missing", "আপনার পোর্টফোলিওতে যা কম")}</h4>
+              <PremiumBlur lang={lang} cta={false}>
+              <ul className="mt-2 flex flex-col gap-2">
+                {plan.gaps.map((g, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <span className="pf-dot pf-dot--watch mt-2" aria-hidden />
+                    <span className="min-w-0 text-sm leading-relaxed text-text-main">{g}</span>
+                  </li>
+                ))}
+              </ul>
+              </PremiumBlur>
+            </div>
+          ) : (
+            <p className="px-4 pb-4 text-sm leading-relaxed text-text-main sm:px-6">
+              {L(
+                "Your portfolio has no big gaps. If you want to add, these fit it best.",
+                "আপনার পোর্টফোলিওতে বড় কোনো ফাঁক নেই। আরও কিনতে চাইলে এগুলো সবচেয়ে মানানসই।",
+              )}
+            </p>
+          )}
 
           <PremiumBlur lang={lang}>
           {plan.picks.length === 0 ? (
@@ -75,7 +76,7 @@ export default function RebalanceHelper({ plan, lang = "en" }: Props) {
                   <div className="flex items-start gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <Chip>{kindTag(p)}</Chip>
+                        <Chip>{p.tag}</Chip>
                         <SignalChip signal="buy" strength={p.strong ? "strong" : "normal"} lang={bn ? "bn" : "en"} />
                       </div>
                       <Link
@@ -132,6 +133,11 @@ export default function RebalanceHelper({ plan, lang = "en" }: Props) {
                               `about ${p.suggest.shares} shares (${takaGroup(p.suggest.amount)}), roughly the money now in ${p.replaces}.`,
                               `প্রায় ${p.suggest.shares}টি শেয়ার (${takaGroup(p.suggest.amount)}), এখন ${p.replaces}-এ যত টাকা আছে প্রায় ততটা।`,
                             )
+                          : p.kind === "add_more"
+                          ? L(
+                              `about ${p.suggest.shares} more shares (${takaGroup(p.suggest.amount)}) on top of what you own.`,
+                              `আপনার যা আছে তার ওপর প্রায় ${p.suggest.shares}টি শেয়ার (${takaGroup(p.suggest.amount)}) আরও।`,
+                            )
                           : L(
                               `about ${p.suggest.shares} shares (${takaGroup(p.suggest.amount)}) would make it about ${Math.round(p.suggest.targetPct)}% of your money.`,
                               `প্রায় ${p.suggest.shares}টি শেয়ার (${takaGroup(p.suggest.amount)}) কিনলে এটি আপনার টাকার প্রায় ${Math.round(p.suggest.targetPct)}% হবে।`,
@@ -156,8 +162,8 @@ export default function RebalanceHelper({ plan, lang = "en" }: Props) {
 
           <p className="border-t border-cell-rule px-4 py-3 text-xs leading-relaxed text-text-muted sm:px-6">
             {L(
-              `Ideas come from today's ${plan.buyPool} Buy signals and change as prices move. They are not financial advice, so please check a share yourself before buying.`,
-              `প্রস্তাবগুলো আজকের ${plan.buyPool}টি কেনার সংকেত থেকে নেওয়া, আর দাম বদলালে বদলায়। এগুলো বিনিয়োগ পরামর্শ নয়, তাই কেনার আগে নিজে যাচাই করুন।`,
+              `Ideas come from the ${plan.passed} of today's ${plan.buyPool} Buy signals that pass every safety check, the same pool as your dashboard's picks, and change as prices move. They are not financial advice, so please check a share yourself before buying.`,
+              `প্রস্তাবগুলো আজকের ${plan.buyPool}টি কেনার সংকেতের মধ্যে সব নিরাপত্তা যাচাই পার হওয়া ${plan.passed}টি থেকে নেওয়া (ড্যাশবোর্ডের বাছাইয়ের মতোই), আর দাম বদলালে বদলায়। এগুলো বিনিয়োগ পরামর্শ নয়, তাই কেনার আগে নিজে যাচাই করুন।`,
             )}
           </p>
         </div>

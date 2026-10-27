@@ -2,7 +2,7 @@
 GET /api/user/home — the logged-in homepage in ONE request.
 
 The dashboard used to fire eleven requests on mount (portfolio, watchlist,
-alerts, signal events, daily picks, tips, news, near-extremes, dividends, index,
+alerts, signal events, picks, tips, news, near-extremes, dividends, index,
 market state) and every card popped in on its own. On a budget Android phone
 talking to a cold Render instance that was the page's biggest problem. This
 bundle returns everything personal plus the *personal slices* of the public
@@ -31,7 +31,6 @@ from backend.services.corporate_actions_service import build_dividend_calendar
 from backend.services import custom_lists_service
 from backend.services.research_lists_service import list_index
 from backend.services.results_explainer import results_for, results_summary
-from backend.services.daily_picks_service import get_or_compute_daily_picks
 from backend.services.daily_tips_service import get_daily_tips
 from backend.services.db_service import (
     load_market_index,
@@ -45,6 +44,7 @@ from backend.services.deep_analysis_service import list_report_codes
 from backend.services.portfolio_daily import recent_events
 from backend.services.portfolio_signal_service import list_recent_events
 from backend.services.portfolio_watch import digest
+from backend.services.recommend_service import for_user
 from backend.services.summaries_service import load_stock_summaries
 
 logger = logging.getLogger(__name__)
@@ -90,8 +90,10 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
     watched = {c.upper() for c in codes}
     mine = {c for c in (held | watched) if c}
 
-    picks = _safe("daily_picks", lambda: get_or_compute_daily_picks(current_user), None)
-    pick_codes = {(p.get("trading_code") or "").upper() for p in ((picks or {}).get("picks") or [])}
+    # "Picked for you" — the recommendation engine, ranked against the
+    # holdings + watchlist already loaded above (no second read).
+    for_you = _safe("for_you", lambda: for_user(current_user, holdings=holdings, watchlist=codes), None)
+    pick_codes = {i["code"] for i in ((for_you or {}).get("items") or [])}
 
     mine_t = tuple(sorted(mine))
     all_codes_t = tuple(sorted(mine | pick_codes))
@@ -179,7 +181,7 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
         "watchlist": {"codes": codes, "meta": meta},
         "alerts": alerts,
         "signal_events": signal_events,
-        "daily_picks": picks,
+        "for_you": for_you,
         "tips": tips,
         "news": news,
         "market_index": market_index,

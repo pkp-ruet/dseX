@@ -12,7 +12,7 @@ import {
   apiGetWatchlist,
   apiGetAlerts,
   apiGetSignalEvents,
-  getDailyPicks,
+  apiGetForYou,
   getDailyTips,
   getWatchlistNews,
   getMarketIndex,
@@ -37,12 +37,12 @@ async function settle<T>(p: Promise<T>, fallback: T): Promise<T> {
 }
 
 async function legacyBundle(): Promise<HomeBundle> {
-  const [portfolio, watchlist, alerts, events, picks, tips, index, dividends, extremes] = await Promise.all([
+  const [portfolio, watchlist, alerts, events, forYou, tips, index, dividends, extremes] = await Promise.all([
     settle(apiGetPortfolio(), { holdings: [] }),
     settle(apiGetWatchlist(), { codes: [] }),
     settle(apiGetAlerts(), { alerts: [] }),
     settle(apiGetSignalEvents(), { events: [] }),
-    settle(getDailyPicks(), null),
+    settle(apiGetForYou(), null),
     settle(getDailyTips(), { date: null, tips: [] }),
     settle(getMarketIndex(), null),
     settle(getDividendsUpcoming(), { upcoming_declarations: [], upcoming_record_dates: [] }),
@@ -70,7 +70,6 @@ async function legacyBundle(): Promise<HomeBundle> {
     watchlist,
     alerts: alerts.alerts ?? [],
     signal_events: events.events ?? [],
-    daily_picks: picks,
     tips,
     news,
     market_index: index,
@@ -94,6 +93,7 @@ async function legacyBundle(): Promise<HomeBundle> {
     results_week: null,
     week_watch: null,
     screener: { goals: goals.goals, saved: [] },
+    for_you: forYou,
   };
 }
 

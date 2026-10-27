@@ -37,6 +37,7 @@ import MarketLinks from "@/components/home/personalized/MarketLinks";
 import ResearchRail from "@/components/home/personalized/ResearchRail";
 import DiscoverRail from "@/components/home/personalized/DiscoverRail";
 import ScreenerCard from "@/components/home/personalized/ScreenerCard";
+import ForYouCard from "@/components/home/personalized/ForYouCard";
 import DividendBoardCard from "@/components/home/personalized/DividendBoardCard";
 import LearnCard from "@/components/home/personalized/LearnCard";
 import ExploreLinks from "@/components/home/personalized/ExploreLinks";
@@ -348,17 +349,27 @@ export default function PersonalizedHome() {
     </section>
   );
 
-  // ── Chapter 3: Find stocks — the screener card (goal chips + top three),
-  //    then ONE swipe rail for buy signals / top ranked / trending, then the
-  //    research lists. The "3 stocks worth a look / picked for you" opener
-  //    (TodaysIdeas) was removed 2026-10-26, and the rail's "Today's tips" +
-  //    "What others are looking at" cards 2026-10-27 (user decisions).
-  //    Three different kinds of block, so they get more air between them than
-  //    the other chapters' card pairs, and each says in one line what it is. ──
+  // ── Chapter 3: Find stocks — "Picked for you" first (the recommendation
+  //    engine: up to 15 picks built from the reader's own stocks, 3 free;
+  //    user decision 2026-10-27, replacing the old random "picked for you"
+  //    opener removed 2026-10-26), then the screener card (goal chips + top
+  //    three), ONE swipe rail for buy signals / top ranked / trending, and
+  //    the research lists. Different kinds of block, so they get more air
+  //    between them than the other chapters' card pairs. ──
   const ideasChapter = (
     <section id="ideas" className="dash-section space-y-5">
       {head("chIdeas", <IconSparkle size={16} />, t(lang, "chIdeasSub"))}
       <div className="space-y-10">
+        <div data-card="for-you">
+          <ForYouCard
+            data={bundle?.for_you}
+            loading={!bundleSettled}
+            name={user?.display_name}
+            held={heldSet}
+            watched={watchedSet}
+            lang={lang}
+          />
+        </div>
         {freeReportCard}
         {(bundle?.screener?.goals?.length ?? 0) > 0 && (
           <div data-card="screener">

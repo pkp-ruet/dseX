@@ -38,6 +38,10 @@ export const FREE_RANKING_ROWS = 5;
  *  2026-10-26). */
 export const FREE_SCREENER_ROWS = 3;
 
+/** The dashboard's "Picked for you": the picks a free reader sees in full;
+ *  the rest of the 15 sits blurred behind one lock (user decision 2026-10-27). */
+export const FREE_FORYOU_ROWS = 3;
+
 /** Split a list into the free head (`n` rows) and the locked rest. */
 export function splitFree<T>(items: T[], n: number): [T[], T[]] {
   const k = Math.max(0, Math.min(items.length, n));

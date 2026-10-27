@@ -65,10 +65,10 @@ export default function HowWeDecide({
     },
     {
       k: L("Buy ideas", "কেনার আইডিয়া"),
-      v: L("Buy signal only", "শুধু কেনার সংকেত"),
+      v: L("Buy signal + safety checks", "কেনার সংকেত + নিরাপত্তা যাচাই"),
       rule: L(
-        "A stock must carry a Buy today: rated good or excellent, a good price, at least ৳10 lakh traded a day, accounts under 2 years old, not Z, profit not down 25%+, not near its yearly high. Then: not in your heaviest sector, ranked on price first and quality second; the example size is about 10% of your money.",
-        "আজ কেনার সংকেত থাকতে হবে: ভালো বা চমৎকার রেটিং, ভালো দাম, দিনে অন্তত ৳10 লাখ লেনদেন, 2 বছরের কম পুরোনো হিসাব, Z নয়, লাভ 25%+ কমেনি, বছরের সর্বোচ্চ দামের কাছে নয়। তারপর: আপনার সবচেয়ে ভারী সেক্টরের বাইরে, আগে দাম তারপর মান ধরে সাজানো; উদাহরণের পরিমাণ আপনার টাকার প্রায় 10%।",
+        "A stock must carry a Buy today (rated good or excellent, a good price, at least ৳10 lakh traded a day, accounts under 2 years old, not Z, profit not down 25%+, not near its yearly high) and pass four more checks: a profit in its latest results, no auditor or regulator warnings in a year, loans under the profit it has saved, enough figures to trust the grade. Then: never in a sector holding over 40% of your money (or banks, finance and insurers when they hold over half), ranked on company quality first, then price, profit direction, room under its yearly high and safety, plus how well it fits your own stocks. The same engine picks your dashboard's \"Picked for you\". The example size is about 10% of your money.",
+        "আজ কেনার সংকেত থাকতে হবে (ভালো বা চমৎকার রেটিং, ভালো দাম, দিনে অন্তত ৳10 লাখ লেনদেন, 2 বছরের কম পুরোনো হিসাব, Z নয়, লাভ 25%+ কমেনি, বছরের সর্বোচ্চ দামের কাছে নয়), আর আরও চারটি যাচাই পার হতে হবে: সর্বশেষ হিসাবে মুনাফা, এক বছরে নিরীক্ষক বা নিয়ন্ত্রকের সতর্কতা নেই, ঋণ জমানো মুনাফার চেয়ে কম, গ্রেডে ভরসা করার মতো যথেষ্ট তথ্য। তারপর: যে খাতে আপনার টাকার 40%-এর বেশি সেখানে কখনো নয় (ব্যাংক, আর্থিক প্রতিষ্ঠান আর বিমায় অর্ধেকের বেশি থাকলে এগুলোতেও নয়); আগে কোম্পানির মান, তারপর দাম, মুনাফার দিক, বছরের সর্বোচ্চ থেকে দূরত্ব আর নিরাপত্তা, সাথে আপনার নিজের শেয়ারের সাথে কতটা মেলে, তা ধরে সাজানো। ড্যাশবোর্ডের \"আপনার জন্য বাছাই\"-ও এই একই ব্যবস্থা বেছে দেয়। উদাহরণের পরিমাণ আপনার টাকার প্রায় 10%।",
       ),
     },
   ];

@@ -17,17 +17,11 @@ from backend.services.auth_service import (
     touch_watchlist_visit,
     get_last_recommendation,
     clear_last_recommendation,
-    set_pick_feedback,
-    clear_daily_picks,
 )
 from backend.services.entitlements import (
     LIMIT_WATCHLIST,
     limits_for,
     watchlist_add_blocked,
-)
-from backend.services.daily_picks_service import (
-    get_or_compute_daily_picks,
-    apply_pick_feedback,
 )
 
 router = APIRouter(prefix="/api/user", tags=["user"])
@@ -43,11 +37,6 @@ class WatchlistBody(BaseModel):
 
 class ProfileUpdateBody(BaseModel):
     display_name: Optional[str] = None
-
-
-class PickFeedbackBody(BaseModel):
-    code: str
-    vote: str  # "up" | "down" | "clear"
 
 
 # ---------------------------------------------------------------------------
@@ -108,27 +97,6 @@ def last_recommendation(current_user: dict = Depends(get_current_user)):
 def delete_last_recommendation(current_user: dict = Depends(get_current_user)):
     clear_last_recommendation(current_user["user_id"])
     return {"ok": True}
-
-
-# ---------------------------------------------------------------------------
-# Daily personalized picks ("Picked for you today")
-# ---------------------------------------------------------------------------
-
-@router.get("/daily-picks")
-def daily_picks(current_user: dict = Depends(get_current_user)):
-    return get_or_compute_daily_picks(current_user)
-
-
-@router.post("/picks/feedback")
-def pick_feedback(body: PickFeedbackBody, current_user: dict = Depends(get_current_user)):
-    """Like (up) / skip (down) / clear feedback on a daily pick.
-
-    - up    → records a taste signal (boost only); applies on next recompute.
-    - down  → drops the stock from today's feed and backfills the next best one.
-    - clear → removes any prior vote for that stock.
-    Returns {"feedback": {...}, "replacement": <pick|null>}."""
-    vote = body.vote if body.vote in ("up", "down", "clear") else "clear"
-    return apply_pick_feedback(current_user, body.code, vote)
 
 
 # ---------------------------------------------------------------------------
