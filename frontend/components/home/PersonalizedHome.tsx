@@ -19,7 +19,8 @@ import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
 import { getStoredUser } from "@/lib/auth";
 import { consumeJustSignedUp } from "@/lib/welcome";
 import { portfolioTodayMove } from "@/lib/portfolio-analysis";
-import { buildHomeAlerts } from "@/lib/home-alerts";
+import { buildStories, buildStarterStories, capStories } from "@/lib/dash-stories";
+import { FREE_STORIES } from "@/lib/free-share";
 import { marketSession, isTradingDay, bstDateStr } from "@/lib/market-hours";
 import { bnDate } from "@/lib/bn";
 import { t } from "@/lib/home-copy";
@@ -30,7 +31,7 @@ import HeroGreeting from "@/components/home/personalized/HeroGreeting";
 import MoneyHero, { MoneyHeroSkeleton } from "@/components/home/personalized/MoneyHero";
 import MoneyHeroGhost from "@/components/home/personalized/MoneyHeroGhost";
 import PullToRefresh from "@/components/home/personalized/PullToRefresh";
-import MyStocksToday, { buildStocksToday } from "@/components/home/personalized/MyStocksToday";
+import StoriesRow from "@/components/home/personalized/StoriesRow";
 import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
 import MoversCard from "@/components/home/personalized/MoversCard";
 import MarketLinks from "@/components/home/personalized/MarketLinks";
@@ -42,7 +43,6 @@ import DividendBoardCard from "@/components/home/personalized/DividendBoardCard"
 import LearnCard from "@/components/home/personalized/LearnCard";
 import ExploreLinks from "@/components/home/personalized/ExploreLinks";
 import ResultsPromoCard from "@/components/home/personalized/ResultsPromoCard";
-import WeekWatchCard from "@/components/home/personalized/WeekWatchCard";
 import FreeReportCard from "@/components/home/FreeReportCard";
 import { freeReportCode } from "@/lib/free-report";
 import ChapterHead from "@/components/home/personalized/ChapterHead";
@@ -190,43 +190,55 @@ export default function PersonalizedHome() {
 
 
 
-  // Portfolio move today (the money card shows it; keyPoints drops the row).
+  // Portfolio move today (the money card shows it, and the Today story's first frame).
   const todayMove = hasPortfolio ? portfolioTodayMove(holdings!, priceMap) : null;
 
   // Before the open (or on a non-trading day) the prices are the previous
   // close — the glance strip must not say "today" at 9 AM.
   const when = marketSession() === "pre" || !isTradingDay() ? "last" : "today";
 
-  // "Your stocks today" — portfolio and watchlist each get their day, where
-  // they stand now and their key points (alerts + new results + unusual
-  // trading + news), all built from data already loaded.
-  const alerts = buildHomeAlerts({
-    codes,
-    holdings: holdings ?? [],
-    priceMap,
-    todayMove,
-    extremes,
-    dividends,
-    dividendCash,
-    triggeredAlerts: priceAlerts,
-    signalEvents,
-    // Saved screens are re-checked only while Premium — a lapsed plan's news is stale.
-    savedScreens: planState === "premium" ? bundle?.screener?.saved ?? [] : [],
-    dateKey: new Date().toDateString(),
-    includeNews: false,
+  // Stories (2026-10-28, replaced "Your stocks today" + "This week on your
+  // stocks"): a Today ring, then one ring per stock with something to say,
+  // all built from data already loaded. A free reader opens the first
+  // FREE_STORIES; the rest sit behind one Premium ring. A reader with no
+  // stocks gets market stories ending in "add your stocks".
+  const premium = planState === "premium";
+  const ownStories = buildStories({
     lang,
-  });
-  const stockSections = buildStocksToday({
+    premium,
+    when,
+    todayIso: isoToday,
     holdings: holdings ?? [],
     watchlist: codes,
     priceMap,
-    alerts,
+    todayMove,
+    marketIndex,
+    alerts: priceAlerts,
+    signalEvents,
     results: newResults,
     unusual: marketState?.next?.unusual ?? [],
+    extremes,
+    dividends,
+    dividendCash,
     news,
-    lang,
+    week: bundle?.week_watch ?? null,
+    // Saved screens are re-checked only while Premium — a lapsed plan's news is stale.
+    savedScreens: premium ? bundle?.screener?.saved ?? [] : [],
   });
-  const updatesCount = stockSections.reduce((n, sec) => n + sec.points.length, 0);
+  const stories = isBrandNew
+    ? buildStarterStories({
+        lang,
+        when,
+        todayIso: isoToday,
+        mood: marketState?.mood ?? null,
+        marketIndex,
+        movers,
+        recordDates: calendarRows,
+      })
+    : premium
+      ? ownStories
+      : capStories(ownStories, FREE_STORIES, lang, isoToday);
+  const quietStories = !isBrandNew && (hasPortfolio || hasWatchlist) && ownStories.every((st) => st.kind === "today");
 
 
   const hasMovers = !!movers && ((movers.gainers?.length ?? 0) + (movers.losers?.length ?? 0) + (movers.most_traded?.length ?? 0) > 0);
@@ -258,26 +270,6 @@ export default function PersonalizedHome() {
     <ChapterHead label={t(lang, key)} sub={sub} icon={icon} />
   );
 
-  // ── The reader's own blocks. ──
-  const stocksCard =
-    hasPortfolio || hasWatchlist ? (
-      <div id="your-stocks" className="dash-section" data-card="stocks">
-        <MyStocksToday
-          sections={stockSections}
-          when={when}
-          lang={lang}
-        />
-      </div>
-    ) : null;
-  // What the watcher caught on the reader's stocks this week — counts free,
-  // the list Premium.
-  const weekWatch = bundle?.week_watch ?? null;
-  const weekCard =
-    weekWatch && weekWatch.total > 0 ? (
-      <div data-card="week-watch">
-        <WeekWatchCard week={weekWatch} premium={planState === "premium"} lang={lang} />
-      </div>
-    ) : null;
   // Today's free full report (lib/free-report.ts) — the whole Premium stock
   // page, open for everyone, one familiar company a day. Free readers only —
   // Premium readers have every report open already.
@@ -428,17 +420,21 @@ export default function PersonalizedHome() {
   return (
     <PullToRefresh onRefresh={() => runFetches()}>
     <div className="pb-4" onClickCapture={onTap}>
-      {/* ── Chapter 1: the greeting open on the canvas, then the
-          money card. The four-number glance strip (GlanceStrip) was removed
-          2026-10-27 (user decision). ── */}
+      {/* ── Chapter 1: the greeting open on the canvas, the story rings
+          (2026-10-28 — they replaced "Your stocks today" and "This week on
+          your stocks"), then the money card. The four-number glance strip
+          (GlanceStrip) was removed 2026-10-27 (user decision). ── */}
       <section id="money" className="dash-section mt-5 space-y-4" data-card="money">
-        <HeroGreeting
-          name={user?.display_name}
-          dateStr={dateStr}
-          isNew={isNewUser}
-          updates={bundleSettled && (hasPortfolio || hasWatchlist) ? updatesCount : null}
-          lang={lang}
-        />
+        <HeroGreeting name={user?.display_name} dateStr={dateStr} isNew={isNewUser} lang={lang} />
+        <div data-card="stories">
+          <StoriesRow
+            stories={stories}
+            loading={holdings === null || ((hasPortfolio || hasWatchlist) && priceMap.size === 0)}
+            quiet={quietStories}
+            userId={userId}
+            lang={lang}
+          />
+        </div>
         {holdings === null ? (
           // Portfolio not known yet → hold the card's space so nothing below
           // jumps when it resolves (kills the ghost↔MoneyHero shift).
@@ -454,14 +450,6 @@ export default function PersonalizedHome() {
       <DashSectionNav items={navItems} lang={lang} />
 
       <div className="mt-4 space-y-12 sm:space-y-10">
-        {/* The rest of "your money" — what happened on your stocks (news and
-            new results included), then the watcher's week. */}
-        {stocksCard && (
-          <section className="space-y-6 sm:space-y-3">
-            {stocksCard}
-            {weekCard}
-          </section>
-        )}
         {marketChapter}
         {ideasChapter}
         {dividendsChapter}

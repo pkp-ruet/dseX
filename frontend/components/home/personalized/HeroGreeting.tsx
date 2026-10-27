@@ -4,7 +4,6 @@ import { bstHour } from "@/lib/market-hours";
 import type { Lang } from "@/context/LangContext";
 import { t } from "@/lib/home-copy";
 import MarketStatusPill from "@/components/home/personalized/MarketStatusPill";
-import { IconChevron } from "@/components/home/personalized/DashIcons";
 
 /** Time-of-day greeting on the BST wall clock (client-rendered subtree). */
 function greetingForHour(h: number, lang: Lang): string {
@@ -15,23 +14,19 @@ function greetingForHour(h: number, lang: Lang): string {
 
 /**
  * The top of the money hero: a quiet eyebrow (date and the live market
- * pill), the greeting as the page's headline,
- * then one quiet line — how many key points "Your stocks today" lists on the
- * reader's stocks (a jump to that card), or "All quiet".
+ * pill), then the greeting as the page's headline. The story rings sit right
+ * under it (2026-10-28); they replaced the "N updates on your stocks" line.
  */
 export default function HeroGreeting({
   name,
   dateStr,
   isNew = false,
-  updates = null,
   lang,
 }: {
   name?: string | null;
   dateStr: string;
   /** First render right after signup — greet as new instead of time-of-day. */
   isNew?: boolean;
-  /** Key points in "Your stocks today". null → no line (still loading, or no stocks yet). */
-  updates?: number | null;
   lang: Lang;
 }) {
   const bn = lang === "bn";
@@ -58,25 +53,6 @@ export default function HeroGreeting({
         {greeting}
         {who}
       </h1>
-
-      {updates != null &&
-        (updates > 0 ? (
-          <a
-            href="#your-stocks"
-            className="mt-1 inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-text-main hover:text-primary active:opacity-70"
-          >
-            <span className="h-2 w-2 rounded-full bg-watch" aria-hidden />
-            {updates === 1 ? t(lang, "updatesOne") : t(lang, "updatesMany", { n: updates })}
-            <span className="text-text-muted" aria-hidden>
-              <IconChevron size={16} />
-            </span>
-          </a>
-        ) : (
-          <p className="mt-1 flex min-h-10 items-center gap-2 text-sm text-text-muted">
-            <span className="h-2 w-2 rounded-full bg-positive" aria-hidden />
-            {t(lang, "allQuiet")}
-          </p>
-        ))}
     </div>
   );
 }

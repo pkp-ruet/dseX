@@ -59,44 +59,10 @@ const COPY = {
   chDividends: ["Dividends coming", "আসন্ন ডিভিডেন্ড"],
   chLearn: ["Learn", "শিখুন"],
 
-  // Your stocks
-  yourStocksToday: ["Your stocks today", "আজ আপনার শেয়ার"],
+  // Your stocks (the story viewer reads upFlatDown; the row reads allQuiet)
   showAll: ["Show all {n}", "সব {n}টি দেখুন"],
   showFewer: ["Show fewer", "কম দেখুন"],
-  stocksDay: [
-    "{up} of these {n} shares rose today and {down} fell.",
-    "আজ এই {n}টি শেয়ারের {up}টির দাম বেড়েছে, {down}টির কমেছে।",
-  ],
-  stocksDayLast: [
-    "On the last trading day, {up} of these {n} shares rose and {down} fell.",
-    "শেষ লেনদেনের দিনে এই {n}টি শেয়ারের {up}টির দাম বেড়েছে, {down}টির কমেছে।",
-  ],
-  secPortfolio: ["Your portfolio", "আপনার পোর্টফোলিও"],
-  secWatchlist: ["Your watchlist", "আপনার ওয়াচলিস্ট"],
-  nStocks: ["{n} stocks", "{n}টি শেয়ার"],
-  oneStock: ["1 stock", "1টি শেয়ার"],
-  alsoOwned: [
-    "{n} that you also own are listed under Your portfolio",
-    "আপনার কেনা {n}টি শেয়ার পোর্টফোলিও অংশে দেখানো হয়েছে",
-  ],
-  alsoOwnedOne: [
-    "1 that you also own is listed under Your portfolio",
-    "আপনার কেনা 1টি শেয়ার পোর্টফোলিও অংশে দেখানো হয়েছে",
-  ],
-  nothingHere: ["Nothing stands out here right now.", "এখানে এখন উল্লেখ করার মতো কিছু নেই।"],
-  otherPoints: ["Other updates", "অন্যান্য আপডেট"],
-  bestToday: ["Rose the most", "সবচেয়ে বেশি বেড়েছে"],
-  worstToday: ["Fell the most", "সবচেয়ে বেশি কমেছে"],
-  whatHappened: ["What happened", "যা ঘটেছে"],
-  rightNow: ["Right now", "এই মুহূর্তে"],
-  nowBuy: ["Buy signal", "কেনার সংকেত"],
-  nowSell: ["Marked Sell", "বিক্রির সংকেত"],
-  nowGood: ["Grade Good or better", "গ্রেড ভালো বা তার বেশি"],
-  nowNone: ["None today", "আজ নেই"],
-  nowWeak: ["{n} weak", "{n}টি দুর্বল"],
-  nowOf: ["{a} of {b}", "{b}টির মধ্যে {a}টি"],
   upFlatDown: ["{up} up, {flat} unchanged, {down} down", "{up}টি বেড়েছে, {flat}টি অপরিবর্তিত, {down}টি কমেছে"],
-  showMorePoints: ["Show {n} more", "আরও {n}টি দেখুন"],
   inPortfolio: ["In your portfolio", "আপনার পোর্টফোলিওতে"],
   onWatchlist: ["On your watchlist", "আপনার ওয়াচলিস্টে"],
 
@@ -113,9 +79,7 @@ const COPY = {
   fullAnalysis: ["Full analysis", "পূর্ণ বিশ্লেষণ"],
   others: ["Others", "অন্যান্য"],
 
-  // The updates line under the greeting (= the key points in "Your stocks today")
-  updatesOne: ["1 update on your stocks", "আপনার শেয়ারে 1টি আপডেট"],
-  updatesMany: ["{n} updates on your stocks", "আপনার শেয়ারে {n}টি আপডেট"],
+  // The stories row on a day with nothing new on the reader's stocks
   allQuiet: ["Nothing new on your stocks", "আপনার শেয়ারে নতুন কিছু নেই"],
 
   // News

@@ -29,7 +29,7 @@ export function usePersonalCodesCtx(): PersonalCodes {
 /**
  * Tiny owner tag beside a trading code: "H" when the reader holds it, a star
  * when they follow it (held wins when both). Same H / ★ language as the
- * dashboard's MyStocksToday. Renders nothing for everyone else.
+ * dashboard's market lists and story rings. Renders nothing for everyone else.
  */
 export function PersonalMark({ code }: { code: string }) {
   const { portfolio, watchlist } = usePersonalCodesCtx();

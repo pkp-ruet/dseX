@@ -42,6 +42,13 @@ export const FREE_SCREENER_ROWS = 3;
  *  the rest of the 15 sits blurred behind one lock (user decision 2026-10-27). */
 export const FREE_FORYOU_ROWS = 3;
 
+/** The dashboard's stories: a free reader opens the first three (the "Today"
+ *  story counts as one), in importance order; the rest sit behind one
+ *  Premium ring with their count and kinds (user decision 2026-10-28, first
+ *  five, then three the same day). Seen stories stay in the row and replay
+ *  any number of times. */
+export const FREE_STORIES = 3;
+
 /** Split a list into the free head (`n` rows) and the locked rest. */
 export function splitFree<T>(items: T[], n: number): [T[], T[]] {
   const k = Math.max(0, Math.min(items.length, n));

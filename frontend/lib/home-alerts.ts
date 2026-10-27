@@ -26,7 +26,7 @@ export type HomeAlertKind =
   | "dividend"
   | "news"
   | "screen"
-  /** Built by the dashboard's MyStocksToday, not here: */
+  /** Never built here (the retired MyStocksToday card made them): */
   | "results"
   | "volume";
 
@@ -73,9 +73,9 @@ function rangeDetail(ltp: number | null, mark: number | null, side: "high" | "lo
  * watchlist only, so a portfolio-only user never saw a mover, a 52-week low or
  * a record date on the stocks they actually own.
  *
- * `includeNews` is opt-out (default true): the home dashboard sets it false so
- * its own `keyPoints()` adds news with dedupe against results / dividends,
- * while the assistant's single "what's new" brief keeps news inline.
+ * `includeNews` is opt-out (default true). Its one caller now is TopStock
+ * AI's "what's new" brief; the dashboard builds its stories from the same
+ * data in `lib/dash-stories.ts` (2026-10-28).
  *
  * `lang` writes every sentence in English or everyday Bengali (Western digits).
  */
@@ -377,8 +377,7 @@ export function buildHomeAlerts(opts: {
     });
   }
 
-  // 5 — Latest news (opt-out; the home dashboard shows these in the dedicated
-  // "Your stocks today" card builds its own news rows, so it passes includeNews: false).
+  // 5 — Latest news (opt-out with includeNews: false).
   if (includeNews) {
     const wlNews = news
       .filter((n) => universe.has(n.trading_code.toUpperCase()))

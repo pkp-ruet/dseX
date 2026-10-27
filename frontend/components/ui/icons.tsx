@@ -242,3 +242,20 @@ export const IconCrown = (p: { size?: number }) => (
     <path d="M5.5 21h13" />
   </I>
 );
+export const IconSun = (p: { size?: number }) => (
+  <I {...p}>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" />
+  </I>
+);
+export const IconPause = (p: { size?: number }) => (
+  <I {...p}>
+    <line x1="9" y1="5" x2="9" y2="19" />
+    <line x1="15" y1="5" x2="15" y2="19" />
+  </I>
+);
+export const IconPlay = (p: { size?: number }) => (
+  <I {...p}>
+    <path d="M7 4.5v15l12-7.5z" />
+  </I>
+);
