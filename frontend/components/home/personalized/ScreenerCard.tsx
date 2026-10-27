@@ -21,7 +21,7 @@ const DEFAULT_GOAL = "good_cheap";
  * card is fully open — the lock only appears on the screener, past row three.
  *
  * Premium readers with saved screens get them on top: each screen's count at
- * the last daily check and who joined then (also an AttentionStrip row).
+ * the last daily check and who joined then (also a key point in "Your stocks today").
  *
  * Server render = the default goal, so the landing page's HTML has real rows.
  */

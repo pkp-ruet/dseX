@@ -17,8 +17,8 @@ function greetingForHour(h: number, lang: Lang): string {
 /**
  * The top of the money hero: a quiet eyebrow (date) with the language switch
  * and the live market pill on the right, the greeting as the page's headline,
- * then one quiet line — how many things need attention on the reader's
- * stocks (a jump to the "Needs your attention" card), or "All quiet".
+ * then one quiet line — how many key points "Your stocks today" lists on the
+ * reader's stocks (a jump to that card), or "All quiet".
  */
 export default function HeroGreeting({
   name,
@@ -32,7 +32,7 @@ export default function HeroGreeting({
   dateStr: string;
   /** First render right after signup — greet as new instead of time-of-day. */
   isNew?: boolean;
-  /** Rows in "Needs your attention". null → no line (still loading, or no stocks yet). */
+  /** Key points in "Your stocks today". null → no line (still loading, or no stocks yet). */
   updates?: number | null;
   lang: Lang;
   onLang: (l: Lang) => void;
@@ -65,7 +65,7 @@ export default function HeroGreeting({
       {updates != null &&
         (updates > 0 ? (
           <a
-            href="#attention"
+            href="#your-stocks"
             className="mt-1 inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-text-main hover:text-primary active:opacity-70"
           >
             <span className="h-2 w-2 rounded-full bg-watch" aria-hidden />

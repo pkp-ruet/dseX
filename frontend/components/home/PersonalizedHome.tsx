@@ -19,7 +19,7 @@ import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
 import { getStoredUser } from "@/lib/auth";
 import { consumeJustSignedUp } from "@/lib/welcome";
 import { portfolioTodayMove } from "@/lib/portfolio-analysis";
-import { buildHomeAlerts, type HomeAlertKind } from "@/lib/home-alerts";
+import { buildHomeAlerts } from "@/lib/home-alerts";
 import { marketSession, isTradingDay, bstDateStr } from "@/lib/market-hours";
 import { bnDate } from "@/lib/bn";
 import { t } from "@/lib/home-copy";
@@ -29,9 +29,8 @@ import DailyBriefing from "@/components/home/personalized/DailyBriefing";
 import HeroGreeting from "@/components/home/personalized/HeroGreeting";
 import MoneyHero, { MoneyHeroSkeleton } from "@/components/home/personalized/MoneyHero";
 import MoneyHeroGhost from "@/components/home/personalized/MoneyHeroGhost";
-import AttentionStrip from "@/components/home/personalized/AttentionStrip";
 import PullToRefresh from "@/components/home/personalized/PullToRefresh";
-import MyStocksToday from "@/components/home/personalized/MyStocksToday";
+import MyStocksToday, { buildStocksToday } from "@/components/home/personalized/MyStocksToday";
 import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
 import MoversCard from "@/components/home/personalized/MoversCard";
 import SectorsWeekCard from "@/components/home/personalized/SectorsWeekCard";
@@ -45,8 +44,6 @@ import GlanceStrip from "@/components/home/personalized/GlanceStrip";
 import DividendBoardCard from "@/components/home/personalized/DividendBoardCard";
 import LearnCard from "@/components/home/personalized/LearnCard";
 import ExploreLinks from "@/components/home/personalized/ExploreLinks";
-import NewsPeek from "@/components/home/personalized/NewsPeek";
-import NewResultsCard from "@/components/home/personalized/NewResultsCard";
 import ResultsPromoCard from "@/components/home/personalized/ResultsPromoCard";
 import WeekWatchCard from "@/components/home/personalized/WeekWatchCard";
 import FreeReportCard from "@/components/home/FreeReportCard";
@@ -71,10 +68,6 @@ function flatten(scores: ScoresResponse | null): Map<string, ScoreItem> {
 const PAIR = "dash-pair grid grid-cols-1 gap-6 sm:gap-3 md:grid-cols-2 [&>*:only-child]:md:col-span-2";
 /** Space between the blocks inside one chapter. */
 const CHAPTER = "dash-section space-y-6 sm:space-y-3";
-
-/** Alerts that are NOT a price row — price moves and 52-week extremes live as
- *  chips on the "Your stocks today" rows, so they are not listed twice. */
-const ATTENTION_KINDS = new Set<HomeAlertKind>(["target", "signal", "screen", "dividend"]);
 
 const EMPTY_DIVIDENDS = { upcoming_declarations: [], upcoming_record_dates: [] };
 const EMPTY_SET = new Set<string>();
@@ -174,7 +167,6 @@ export default function PersonalizedHome() {
   const dividends = bundle?.dividends ?? EMPTY_DIVIDENDS;
   const marketIndex = bundle?.market_index ?? null;
   const dividendCash = bundle?.dividend_cash ?? [];
-  const reportCodes = bundle?.report_codes ?? [];
   const signalEvents = bundle?.signal_events ?? [];
   const movers = bundle?.movers ?? null;
   const marketNews = bundle?.market_news ?? [];
@@ -205,17 +197,17 @@ export default function PersonalizedHome() {
   const followedCodes = Array.from(new Set([...watchedSet, ...heldSet])).sort();
 
 
-  // Portfolio move today — feeds the attention strip.
+  // Portfolio move today (the money card shows it; keyPoints drops the row).
   const todayMove = hasPortfolio ? portfolioTodayMove(holdings!, priceMap) : null;
 
   // Before the open (or on a non-trading day) the prices are the previous
   // close — the glance strip must not say "today" at 9 AM.
   const when = marketSession() === "pre" || !isTradingDay() ? "last" : "today";
 
-  // "What needs attention" — built from data already loaded. News is excluded
-  // (headlines live in NewsPeek); price rows are excluded (they are chips on
-  // the "Your stocks today" rows).
-  const attention = buildHomeAlerts({
+  // "Your stocks today" — portfolio and watchlist each get their day, where
+  // they stand now and their key points (alerts + new results + unusual
+  // trading + news), all built from data already loaded.
+  const alerts = buildHomeAlerts({
     codes,
     holdings: holdings ?? [],
     priceMap,
@@ -230,7 +222,18 @@ export default function PersonalizedHome() {
     dateKey: new Date().toDateString(),
     includeNews: false,
     lang,
-  }).filter((a) => ATTENTION_KINDS.has(a.kind));
+  });
+  const stockSections = buildStocksToday({
+    holdings: holdings ?? [],
+    watchlist: codes,
+    priceMap,
+    alerts,
+    results: newResults,
+    unusual: marketState?.next?.unusual ?? [],
+    news,
+    lang,
+  });
+  const updatesCount = stockSections.reduce((n, sec) => n + sec.points.length, 0);
 
 
   const hasMovers = !!movers && ((movers.gainers?.length ?? 0) + (movers.losers?.length ?? 0) + (movers.most_traded?.length ?? 0) > 0);
@@ -273,34 +276,11 @@ export default function PersonalizedHome() {
   // ── The reader's own blocks. ──
   const stocksCard =
     hasPortfolio || hasWatchlist ? (
-      <div data-card="stocks">
+      <div id="your-stocks" className="dash-section" data-card="stocks">
         <MyStocksToday
-          holdings={holdings ?? []}
-          codes={codes}
-          priceMap={priceMap}
-          extremes={extremes}
-          dividends={dividends}
-          alerts={priceAlerts}
-          reportCodes={reportCodes}
+          sections={stockSections}
+          when={when}
           lang={lang}
-        />
-      </div>
-    ) : null;
-  const attentionCard =
-    attention.length > 0 ? (
-      <div id="attention" className="dash-section" data-card="attention">
-        <AttentionStrip alerts={attention} lang={lang} />
-      </div>
-    ) : null;
-  const newsCard =
-    news.length > 0 ? (
-      <div data-card="news">
-        <NewsPeek
-          news={news}
-          loading={false}
-          title={t(lang, "newsOnYourStocks")}
-          moreHref={hasWatchlist ? "/watchlist" : "/todays-news"}
-          moreLabel={t(lang, "seeAll")}
         />
       </div>
     ) : null;
@@ -321,12 +301,6 @@ export default function PersonalizedHome() {
     planState !== "premium" && freeItem && freeItem.score != null ? (
       <div data-card="free-report">
         <FreeReportCard item={freeItem} lang={lang} />
-      </div>
-    ) : null;
-  const resultsCard =
-    newResults.length > 0 ? (
-      <div data-card="results">
-        <NewResultsCard rows={newResults} held={heldSet} watched={watchedSet} lang={lang} />
       </div>
     ) : null;
   // ── Chapter 4: Money coming — every record date in the next two weeks,
@@ -498,7 +472,7 @@ export default function PersonalizedHome() {
           name={user?.display_name}
           dateStr={dateStr}
           isNew={isNewUser}
-          updates={bundleSettled && (hasPortfolio || hasWatchlist) ? attention.length : null}
+          updates={bundleSettled && (hasPortfolio || hasWatchlist) ? updatesCount : null}
           lang={lang}
           onLang={onLang}
         />
@@ -526,19 +500,12 @@ export default function PersonalizedHome() {
       <DashSectionNav items={navItems} lang={lang} />
 
       <div className="mt-4 space-y-12 sm:space-y-10">
-        {/* The rest of "your money" — your stocks, then what needs
-            attention + your news. */}
+        {/* The rest of "your money" — what happened on your stocks (news and
+            new results included), then the watcher's week. */}
         {stocksCard && (
           <section className="space-y-6 sm:space-y-3">
             {stocksCard}
-            {(attentionCard || newsCard) && (
-              <div className={PAIR}>
-                {attentionCard}
-                {newsCard}
-              </div>
-            )}
             {weekCard}
-            {resultsCard}
           </section>
         )}
         {marketChapter}

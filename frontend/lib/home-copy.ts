@@ -50,14 +50,33 @@ const COPY = {
 
   // Your stocks
   yourStocksToday: ["Your stocks today", "আজ আপনার শেয়ারগুলো"],
-  viewAll: ["View all {n}", "সব {n}টি দেখুন"],
   showAll: ["Show all {n}", "সব {n}টি দেখান"],
   showFewer: ["Show fewer", "কম দেখান"],
-  near52wHigh: ["Near 52W high", "বছরের সর্বোচ্চের কাছে"],
-  near52wLow: ["Near 52W low", "বছরের সর্বনিম্নের কাছে"],
-  dividendSoon: ["Dividend soon", "ডিভিডেন্ড আসছে"],
-  alertAt: ["Alert at ৳{n}", "৳{n}-এ অ্যালার্ট"],
-  fullReport: ["Full report", "পুরো রিপোর্ট"],
+  stocksDay: ["{up} of these {n} stocks rose today, {down} fell.", "আজ এই {n}টি শেয়ারের {up}টি বেড়েছে, {down}টি কমেছে।"],
+  stocksDayLast: [
+    "On the last trading day {up} of these {n} stocks rose, {down} fell.",
+    "শেষ লেনদেনের দিনে এই {n}টি শেয়ারের {up}টি বেড়েছে, {down}টি কমেছে।",
+  ],
+  secPortfolio: ["Your portfolio", "আপনার পোর্টফোলিও"],
+  secWatchlist: ["Your watchlist", "আপনার ওয়াচলিস্ট"],
+  nStocks: ["{n} stocks", "{n}টি শেয়ার"],
+  oneStock: ["1 stock", "1টি শেয়ার"],
+  alsoOwned: ["{n} you also own are under Your portfolio", "আপনার কেনা {n}টি পোর্টফোলিও অংশে আছে"],
+  alsoOwnedOne: ["1 you also own is under Your portfolio", "আপনার কেনা 1টি পোর্টফোলিও অংশে আছে"],
+  nothingHere: ["Nothing stands out here right now.", "এখানে এখন বিশেষ কিছু নেই।"],
+  otherPoints: ["Other updates", "অন্যান্য আপডেট"],
+  bestToday: ["Rose most", "সবচেয়ে বেড়েছে"],
+  worstToday: ["Fell most", "সবচেয়ে কমেছে"],
+  whatHappened: ["What happened", "যা ঘটেছে"],
+  rightNow: ["Right now", "এই মুহূর্তে"],
+  nowBuy: ["Buy signal", "কেনার সংকেত"],
+  nowSell: ["Marked Sell", "বিক্রির সংকেত"],
+  nowGood: ["Good grade or better", "ভালো বা তার বেশি গ্রেড"],
+  nowNone: ["None today", "আজ নেই"],
+  nowWeak: ["{n} weak", "{n}টি দুর্বল"],
+  nowOf: ["{a} of {b}", "{b}টির {a}টি"],
+  upFlatDown: ["{up} up · {flat} same · {down} down", "{up}টি বেড়েছে · {flat}টি একই · {down}টি কমেছে"],
+  showMorePoints: ["Show {n} more", "আরও {n}টি দেখুন"],
   inPortfolio: ["In your portfolio", "আপনার পোর্টফোলিওতে"],
   onWatchlist: ["On your watchlist", "আপনার ওয়াচলিস্টে"],
 
@@ -74,18 +93,13 @@ const COPY = {
   fullAnalysis: ["Full analysis", "পুরো বিশ্লেষণ"],
   others: ["Others", "অন্যান্য"],
 
-  // Attention
-  needsAttention: ["Needs your attention", "আজ খেয়াল করুন"],
+  // The updates line under the greeting (= the key points in "Your stocks today")
   updatesOne: ["1 update on your stocks", "আপনার শেয়ারে 1টি আপডেট"],
   updatesMany: ["{n} updates on your stocks", "আপনার শেয়ারে {n}টি আপডেট"],
   allQuiet: ["All quiet on your stocks", "আপনার শেয়ারে নতুন কিছু নেই"],
-  moreOnYourStocks: ["+{n} more on your stocks today", "আপনার শেয়ারে আরও {n}টি"],
 
   // News
-  newsOnYourStocks: ["News on your stocks", "আপনার শেয়ারের খবর"],
-  newResults: ["New results on your stocks", "আপনার শেয়ারের নতুন ফল"],
   resultsPromoTitle: ["Quarterly results, in plain words", "ত্রৈমাসিক ফল, সহজ ভাষায়"],
-  allNewsYourStocks: ["All news on your stocks", "আপনার শেয়ারের সব খবর"],
   allMarketNews: ["All market news", "বাজারের সব খবর"],
   marketNewsTitle: ["Today's market news", "আজকের বাজারের খবর"],
   allNews: ["All news", "সব খবর"],
@@ -271,7 +285,7 @@ const COPY = {
 
 export type CopyKey = keyof typeof COPY;
 
-/** `t("bn", "viewAll", { n: 12 })` → "সব 12টি দেখুন". Missing vars are left as-is. */
+/** `t("bn", "showAll", { n: 12 })` → "সব 12টি দেখান". Missing vars are left as-is. */
 export function t(lang: Lang, key: CopyKey, vars?: Record<string, string | number>): string {
   const pair = COPY[key];
   let s: string = lang === "bn" ? pair[1] : pair[0];

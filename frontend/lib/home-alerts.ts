@@ -25,7 +25,10 @@ export type HomeAlertKind =
   | "low"
   | "dividend"
   | "news"
-  | "screen";
+  | "screen"
+  /** Built by the dashboard's MyStocksToday, not here: */
+  | "results"
+  | "volume";
 
 export interface HomeAlert {
   /** Stable per-day id — also the key for read/seen state. */
@@ -34,6 +37,8 @@ export interface HomeAlert {
   kind: HomeAlertKind;
   /** Legacy glyph (assistant brief + retired AlertsBell still read it). */
   emoji: string;
+  /** The stock it is about (absent for portfolio-wide / screen rows). */
+  code?: string;
   title: string;
   detail?: string;
   href?: string;
@@ -41,6 +46,7 @@ export interface HomeAlert {
 }
 
 const MOVER_THRESHOLD = 3; // only surface moves of at least ±3%
+const NEAR_TARGET_PCT = 3; // an armed price alert within 3% of the price
 const MAX_MOVERS = 3;
 const MAX_NEWS = 3;
 const TRIGGER_RECENCY_MS = 2 * 24 * 60 * 60 * 1000; // surface a hit target for ~2 days
@@ -50,9 +56,16 @@ function fmtPrice(n: number): string {
   return Number(n.toFixed(2)).toString();
 }
 
+/** "Now ৳412 · yearly high ৳420" — the 52-week rows' detail line. */
+function rangeDetail(ltp: number | null, mark: number | null, side: "high" | "low", bn: boolean): string | undefined {
+  if (ltp == null || mark == null) return undefined;
+  if (bn) return `এখন ৳${fmtPrice(ltp)} · বছরের ${side === "high" ? "সর্বোচ্চ" : "সর্বনিম্ন"} ৳${fmtPrice(mark)}`;
+  return `Now ৳${fmtPrice(ltp)} · yearly ${side} ৳${fmtPrice(mark)}`;
+}
+
 /**
  * Builds the personalized "what's new" list from data already loaded on the
- * home page — targets hit, Buy More / Sell flips on holdings, portfolio move,
+ * home page — targets hit or close, Buy More / Sell flips on holdings, portfolio move,
  * big movers, 52-week extremes, upcoming dividends, and (optionally) latest
  * news. Ordered by importance.
  *
@@ -61,7 +74,7 @@ function fmtPrice(n: number): string {
  * a record date on the stocks they actually own.
  *
  * `includeNews` is opt-out (default true): the home dashboard sets it false so
- * headlines live only in the dedicated NewsPeek section (no double-listing),
+ * its own `keyPoints()` adds news with dedupe against results / dividends,
  * while the assistant's single "what's new" brief keeps news inline.
  *
  * `lang` writes every sentence in English or everyday Bengali (Western digits).
@@ -123,11 +136,36 @@ export function buildHomeAlerts(opts: {
     alerts.push({
       id: `pa:${a.id}`,
       kind: "target",
+      code: a.trading_code,
       emoji: "🎯",
       title: bn ? `${a.trading_code} আপনার ৳${target} লক্ষ্যে পৌঁছেছে` : `${a.trading_code} hit your ৳${target} target`,
       detail: reached ? (bn ? `৳${reached}-এ পৌঁছেছে` : `Reached ৳${reached}`) : undefined,
       href: `/stock/${a.trading_code}`,
       tone: a.direction === "above" ? "positive" : "negative",
+    });
+  }
+
+  // 0.1 — Armed price alerts the price has come close to (not hit yet).
+  for (const a of triggeredAlerts ?? []) {
+    if (!a.is_active || a.triggered_at || !(a.target_price > 0)) continue;
+    const code = a.trading_code.toUpperCase();
+    const ltp = priceMap.get(code)?.ltp;
+    if (ltp == null || ltp <= 0) continue;
+    const gap = a.direction === "above" ? (a.target_price - ltp) / a.target_price : (ltp - a.target_price) / a.target_price;
+    if (gap <= 0 || gap * 100 > NEAR_TARGET_PCT) continue;
+    const target = fmtPrice(a.target_price);
+    const gapStr = (gap * 100).toFixed(1);
+    alerts.push({
+      id: `pn:${a.id}:${dateKey}`,
+      kind: "target",
+      code: a.trading_code,
+      emoji: "🎯",
+      title: bn
+        ? `${a.trading_code} আপনার ৳${target} অ্যালার্ট থেকে ${gapStr}% দূরে`
+        : `${a.trading_code} is ${gapStr}% from your ৳${target} alert`,
+      detail: bn ? `এখন ৳${fmtPrice(ltp)}` : `Now ৳${fmtPrice(ltp)}`,
+      href: `/stock/${a.trading_code}`,
+      tone: "neutral",
     });
   }
 
@@ -161,6 +199,7 @@ export function buildHomeAlerts(opts: {
     alerts.push({
       id: `sg:${ev.trading_code}:${ev.changed_at}`,
       kind: "signal",
+      code: ev.trading_code,
       emoji: sell ? "🔴" : "🟢",
       title: sell
         ? bn
@@ -213,6 +252,7 @@ export function buildHomeAlerts(opts: {
     alerts.push({
       id: `mv:${m.trading_code}:${dateKey}`,
       kind: "mover",
+      code: m.trading_code,
       emoji: up ? "🟢" : "🔴",
       title: bn ? `${m.trading_code} আজ ${pctStr}` : `${m.trading_code} ${pctStr} today`,
       detail: m.company_name ?? undefined,
@@ -230,8 +270,10 @@ export function buildHomeAlerts(opts: {
     alerts.push({
       id: `hi:${code}:${dateKey}`,
       kind: "high",
+      code: e.trading_code,
       emoji: "🔼",
       title: bn ? `${e.trading_code} বছরের সর্বোচ্চ দামের কাছে` : `${e.trading_code} near its 52-week high`,
+      detail: rangeDetail(e.ltp, e.w52_high, "high", bn),
       href: `/stock/${e.trading_code}`,
       tone: "positive",
     });
@@ -243,8 +285,10 @@ export function buildHomeAlerts(opts: {
     alerts.push({
       id: `lo:${code}:${dateKey}`,
       kind: "low",
+      code: e.trading_code,
       emoji: "🔽",
       title: bn ? `${e.trading_code} বছরের সর্বনিম্ন দামের কাছে` : `${e.trading_code} near its 52-week low`,
+      detail: rangeDetail(e.ltp, e.w52_low, "low", bn),
       href: `/stock/${e.trading_code}`,
       tone: "negative",
     });
@@ -274,6 +318,7 @@ export function buildHomeAlerts(opts: {
       alerts.push({
         id: `dv:${code}`,
         kind: "dividend",
+        code: e.trading_code,
         emoji: "💰",
         title: bn ? `${e.trading_code} আপনাকে ৳${bdGroup(payout)} দেবে` : `${e.trading_code} pays you ৳${bdGroup(payout)}`,
         detail: bn ? `রেকর্ড ডেট ${when}${daysStr}` : `Record date ${when}${daysStr}`,
@@ -285,6 +330,7 @@ export function buildHomeAlerts(opts: {
       alerts.push({
         id: `dv:${code}`,
         kind: "dividend",
+        code: e.trading_code,
         emoji: "💰",
         title: bn ? `${e.trading_code} ${e.stock_pct}% বোনাস শেয়ার দিচ্ছে` : `${e.trading_code} gives ${e.stock_pct}% bonus shares`,
         detail: bn ? `রেকর্ড ডেট ${when}${daysStr}` : `Record date ${when}${daysStr}`,
@@ -301,6 +347,7 @@ export function buildHomeAlerts(opts: {
     alerts.push({
       id: `dv:${code}`,
       kind: "dividend",
+      code: d.trading_code,
       emoji: "💰",
       title: bn ? `${d.trading_code} — ${pct}ডিভিডেন্ড ঘোষণা` : `${d.trading_code} — ${pct}dividend declared`,
       href: `/stock/${d.trading_code}`,
@@ -321,6 +368,7 @@ export function buildHomeAlerts(opts: {
     alerts.push({
       id: `dv:${code}`,
       kind: "dividend",
+      code: d.trading_code,
       emoji: "💰",
       title: bn ? `${d.trading_code} — ডিভিডেন্ডের রেকর্ড ডেট আসছে` : `${d.trading_code} — dividend record date soon`,
       detail,
@@ -330,7 +378,7 @@ export function buildHomeAlerts(opts: {
   }
 
   // 5 — Latest news (opt-out; the home dashboard shows these in the dedicated
-  // NewsPeek section instead, so it passes includeNews: false).
+  // "Your stocks today" card builds its own news rows, so it passes includeNews: false).
   if (includeNews) {
     const wlNews = news
       .filter((n) => universe.has(n.trading_code.toUpperCase()))
@@ -339,6 +387,7 @@ export function buildHomeAlerts(opts: {
       alerts.push({
         id: `nw:${n.trading_code}:${n.post_date}:${n.title.slice(0, 48)}`,
         kind: "news",
+        code: n.trading_code,
         emoji: "📰",
         title: n.title,
         detail: n.trading_code,
