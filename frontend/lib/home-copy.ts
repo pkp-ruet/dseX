@@ -40,6 +40,10 @@ const COPY = {
   // Chapters
   chMoney: ["Your money", "আপনার টাকা"],
   chMarket: ["Market today", "আজকের বাজার"],
+  dseTodayLink: ["DSE Today", "আজকের DSE"],
+  dseTodayLinkSub: ["Every stock's price and today's news", "সব শেয়ারের দাম আর আজকের খবর"],
+  marketAnalysisLink: ["Market Analysis", "বাজার বিশ্লেষণ"],
+  marketAnalysisLinkSub: ["The whole market in plain words", "পুরো বাজার সহজ কথায়"],
   chIdeas: ["Find stocks", "শেয়ার খুঁজুন"],
   chIdeasSub: [
     "Ready-made ways to find stocks today. Pick one, see the names, tap for the full list.",

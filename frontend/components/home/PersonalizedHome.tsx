@@ -33,7 +33,7 @@ import PullToRefresh from "@/components/home/personalized/PullToRefresh";
 import MyStocksToday, { buildStocksToday } from "@/components/home/personalized/MyStocksToday";
 import MarketTodayCard from "@/components/home/personalized/MarketTodayCard";
 import MoversCard from "@/components/home/personalized/MoversCard";
-import TurningPointsCard from "@/components/home/personalized/TurningPointsCard";
+import MarketLinks from "@/components/home/personalized/MarketLinks";
 import ResearchRail from "@/components/home/personalized/ResearchRail";
 import DiscoverRail from "@/components/home/personalized/DiscoverRail";
 import ScreenerCard from "@/components/home/personalized/ScreenerCard";
@@ -233,8 +233,6 @@ export default function PersonalizedHome() {
 
 
   const hasMovers = !!movers && ((movers.gainers?.length ?? 0) + (movers.losers?.length ?? 0) + (movers.most_traded?.length ?? 0) > 0);
-  const hasTurning =
-    (marketState?.next?.near_high?.length ?? 0) + (marketState?.next?.near_low?.length ?? 0) + (marketState?.next?.unusual?.length ?? 0) > 0;
   const hasDividends = calendarRows.length > 0 || declared.length > 0;
 
   const navItems = useMemo<DashNavItem[]>(() => {
@@ -310,8 +308,8 @@ export default function PersonalizedHome() {
   ) : null;
 
   // ── Chapter 2: Market today — mood + index + sparkline, movers, the
-  //    week's quarterly results, and what is near a turning point. Sectors
-  //    this week, today's market news and the Bengali snapshot were removed
+  //    week's quarterly results. Sectors this week, today's market news, the
+  //    Bengali snapshot and "Worth watching" (TurningPointsCard) were removed
   //    2026-10-27 (user decision). ──
   const marketChapter = (
     <section id="market" className={CHAPTER}>
@@ -353,18 +351,9 @@ export default function PersonalizedHome() {
           />
         </div>
       )}
-      {hasTurning && (
-        <div data-card="turning">
-          <TurningPointsCard
-            nearHigh={marketState?.next?.near_high ?? []}
-            nearLow={marketState?.next?.near_low ?? []}
-            unusual={marketState?.next?.unusual ?? []}
-            held={heldSet}
-            watched={watchedSet}
-            lang={lang}
-          />
-        </div>
-      )}
+      <div data-card="market-links">
+        <MarketLinks lang={lang} />
+      </div>
     </section>
   );
 
