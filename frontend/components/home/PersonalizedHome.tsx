@@ -158,7 +158,6 @@ export default function PersonalizedHome() {
   const holdings = bundle ? bundle.holdings : bundleSettled ? [] : null;
   const news = bundle?.news ?? [];
   const newResults = bundle?.new_results ?? [];
-  const tips = bundle?.tips?.tips ?? [];
   const extremes = bundle?.near_extremes ?? null;
   const dividends = bundle?.dividends ?? EMPTY_DIVIDENDS;
   const marketIndex = bundle?.market_index ?? null;
@@ -166,7 +165,6 @@ export default function PersonalizedHome() {
   const signalEvents = bundle?.signal_events ?? [];
   const movers = bundle?.movers ?? null;
   const top20 = bundle?.top20 ?? [];
-  const popular = bundle?.popular ?? [];
   const calendarRows = bundle?.calendar?.record_dates ?? [];
   const declared = bundle?.calendar?.recent_declarations ?? [];
 
@@ -356,9 +354,10 @@ export default function PersonalizedHome() {
   );
 
   // ── Chapter 3: Find stocks — the screener card (goal chips + top three),
-  //    then ONE swipe rail for buy signals / top ranked / trending / tips /
-  //    popular, then the research lists. The "3 stocks worth a look / picked
-  //    for you" opener (TodaysIdeas) was removed 2026-10-26 (user decision).
+  //    then ONE swipe rail for buy signals / top ranked / trending, then the
+  //    research lists. The "3 stocks worth a look / picked for you" opener
+  //    (TodaysIdeas) was removed 2026-10-26, and the rail's "Today's tips" +
+  //    "What others are looking at" cards 2026-10-27 (user decisions).
   //    Three different kinds of block, so they get more air between them than
   //    the other chapters' card pairs, and each says in one line what it is. ──
   const ideasChapter = (
@@ -382,8 +381,6 @@ export default function PersonalizedHome() {
             buys={buys}
             stocks={allStocks}
             trending={top20}
-            popular={popular}
-            tips={tips}
             held={heldSet}
             watched={watchedSet}
             lang={lang}

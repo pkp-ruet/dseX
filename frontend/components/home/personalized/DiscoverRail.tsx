@@ -29,19 +29,19 @@ function orderBuys(list: ScoreItem[], followed: Set<string>): ScoreItem[] {
 }
 
 /**
- * "More ways to find stocks" — five lists that used to be five full cards
- * (buy signals, top ranked, trending, popular, tips: ~40 rows down the page)
- * as ONE swipe rail of same-shape cards, three names each with the one number
- * that put them there, and a "See all" into each full page. Same data, half
- * the scroll. Used by the dashboard's "Find stocks" chapter and the landing
- * page's "Find stocks" block (WorthALook).
+ * "More ways to find stocks" — lists that used to be full cards (buy signals,
+ * top ranked, trending, popular, tips: ~40 rows down the page) as ONE swipe
+ * rail of same-shape cards, three names each with the one number that put
+ * them there, and a "See all" into each full page. Used by the dashboard's
+ * "Find stocks" chapter (buys · ranked · trending — tips and popular dropped
+ * 2026-10-27) and the landing page's "Find stocks" block (WorthALook, + tips).
  */
 export default function DiscoverRail({
   buys,
   stocks,
   trending,
-  popular,
-  tips,
+  popular = [],
+  tips = [],
   held,
   watched,
   lang = "en",
@@ -51,8 +51,10 @@ export default function DiscoverRail({
   /** Every scored company (for the top of the ranking). */
   stocks: ScoreItem[];
   trending: Top20Item[];
-  popular: PopularStockItem[];
-  tips: DailyTip[];
+  /** Omitted on the dashboard since 2026-10-27 (user decision); no card when empty. */
+  popular?: PopularStockItem[];
+  /** Landing only — the dashboard dropped "Today's tips" 2026-10-27 (user decision). */
+  tips?: DailyTip[];
   held: Set<string>;
   watched: Set<string>;
   lang?: Lang;
