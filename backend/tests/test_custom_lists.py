@@ -312,3 +312,19 @@ def test_several_sectors_in_one_screen():
     res = rl.run_list(cl.build_list(two), [_f("A", sector="Bank"), _f("B"), _f("C", sector="Jute")], rl.Ctx())
     assert sorted(f["code"] for f in res["passed"]) == ["A", "B"]
     assert cl.summary(two)[0]["en"] == "In the Bank or Cement sectors"
+
+
+
+def test_home_card_words_for_a_pick_and_its_stocks():
+    wants = cl.want_lines({**cl.NO_ANSWERS, "quality": 1, "price": 2}, ["Bank"])
+    assert [(w["q_en"], w["a_en"]) for w in wants] == [
+        ("How good is the company?", "Good"), ("Is the price low?", "Low"), ("Which business sectors?", "Bank")]
+    tags = cl.strength_tags({"quality": 2, "price": 0, "dividends": 1})
+    assert [x["en"] for x in tags] == ["Very good company", "Pays every year"]
+    hidden = cl.hidden_summary(
+        [{"signal": "buy", "levels": {"dividends": 2, "quality": 2}},
+         {"signal": "none", "levels": {"dividends": 2}},
+         {"signal": "buy", "levels": {"quality": 1}}],
+        {"quality": 2})
+    # quality is already required at 2, so the shared strength is the dividend one.
+    assert hidden == {"count": 3, "buys": 2, "strength": {"n": 2, "en": "Pays 4%+ a year", "bn": "বছরে 4%+ দেয়"}}

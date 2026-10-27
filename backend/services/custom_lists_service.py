@@ -181,9 +181,12 @@ def run(spec_in: dict, near: bool = True) -> dict:
 @_ttl_cache(900)
 def goals_summary() -> list[dict]:
     """The goal starts, run — the homepage "Find stocks your way" card: each
-    goal's pass count and its top ``GOAL_TOP`` stocks. Goals use no power
-    checks and the top three are the screener's free rows, so nothing here is
-    locked. A goal that no longer runs (its sector left the DSE) is skipped."""
+    goal's pass count, what it asks in words (``wants``), its top ``GOAL_TOP``
+    stocks with their strengths, and what sits past them as counts
+    (``hidden`` + ``hidden_codes``, so the card can count the reader's own).
+    Goals use no power checks and the top three are the screener's free rows,
+    so nothing here is locked. A goal that no longer runs (its sector left
+    the DSE) is skipped."""
     out = []
     for tp in cl.TEMPLATES:
         if tp["kind"] != "goal":
@@ -192,11 +195,16 @@ def goals_summary() -> list[dict]:
             res = run(tp["spec"], near=False)
         except ValueError:
             continue
+        rest = res["stocks"][GOAL_TOP:]
         out.append({
             "id": tp["id"], "title_en": tp["title_en"], "title_bn": tp["title_bn"],
             "blurb_en": tp["blurb_en"], "blurb_bn": tp["blurb_bn"],
             "passed": res["passed"], "universe": res["universe"],
-            "top": [s | {"checks": s["checks"][:2]} for s in res["stocks"][:GOAL_TOP]],
+            "wants": cl.want_lines(tp.get("answers") or {}, tp.get("sectors") or []),
+            "top": [s | {"checks": s["checks"][:2], "strengths": cl.strength_tags(s.get("levels"))}
+                    for s in res["stocks"][:GOAL_TOP]],
+            "hidden": cl.hidden_summary(rest, res.get("answers")),
+            "hidden_codes": [s["code"] for s in rest],
         })
     return out
 

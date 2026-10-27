@@ -600,6 +600,50 @@ def question_misses(rows: list[tuple[dict, bool, dict[str, list[bool]]]],
     return out
 
 
+def want_lines(answers: dict[str, int], sectors: list[str]) -> list[dict]:
+    """A screen's answers in words, for a card that shows what a pick asks:
+    [{q_en, q_bn, a_en, a_bn}] — only the questions not left at "doesn't
+    matter", then the sectors when there are any."""
+    out = []
+    for q in QUESTIONS:
+        lvl = answers.get(q.key, 0)
+        if lvl:
+            l = q.levels[lvl - 1]
+            out.append({"key": q.key, "q_en": q.title_en, "q_bn": q.title_bn, "a_en": l.label_en, "a_bn": l.label_bn})
+    if sectors:
+        out.append({"key": "sector", "q_en": "Which business sectors?", "q_bn": "কোন খাতের ব্যবসা?",
+                    "a_en": ", ".join(sectors), "a_bn": ", ".join(sectors)})
+    return out
+
+
+def strength_tags(levels: Optional[dict[str, int]]) -> list[dict]:
+    """A stock's strengths in words ("Very good company", "Low price" …), in
+    question order — the same words the screener's rows use."""
+    out = []
+    for q in QUESTIONS:
+        lvl = (levels or {}).get(q.key, 0)
+        if lvl:
+            l = q.levels[lvl - 1]
+            out.append({"en": l.tag_en, "bn": l.tag_bn})
+    return out
+
+
+def hidden_summary(stocks: list[dict], answers: Optional[dict[str, int]]) -> dict:
+    """What sits past the free rows, as counts: how many have a Buy signal,
+    and the top-level strength most of them share (skipping one the answers
+    already require, which every stock has). Names stay out."""
+    buys = sum(1 for x in stocks if x.get("signal") == "buy")
+    best = None
+    for q in QUESTIONS:
+        if (answers or {}).get(q.key, 0) >= 2:
+            continue
+        n = sum(1 for x in stocks if ((x.get("levels") or {}).get(q.key, 0)) >= 2)
+        if n and (best is None or n > best["n"]):
+            l = q.levels[1]
+            best = {"n": n, "en": l.tag_en, "bn": l.tag_bn}
+    return {"count": len(stocks), "buys": buys, "strength": best}
+
+
 def miss_value(f: dict, qkey: str, lvl: int, ctx: rl.Ctx) -> tuple[str, str]:
     """The company's own figure on the first check of that choice it fails."""
     for c in _level_checks(qkey)[lvl]:

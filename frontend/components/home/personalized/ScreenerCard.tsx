@@ -8,22 +8,27 @@ import { t } from "@/lib/home-copy";
 import { usePremium } from "@/lib/premium";
 import DashHeader from "@/components/home/personalized/DashHeader";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
+import Chip from "@/components/ui/Chip";
 import StockRow from "@/components/ui/StockRow";
 import SignalChip from "@/components/ui/SignalChip";
 
 const DEFAULT_GOAL = "good_cheap";
 
 /**
- * "Find stocks your way" — the screener on both homepages (2026-10-26): a
- * grid of goal tiles (two across on a phone), each with today's pass count; the chosen goal's top
- * three below; one link into `/screener` with that goal started. The goals
- * use no power checks and three rows are the screener's free share, so the
- * card is fully open — the lock only appears on the screener, past row three.
+ * "Find stocks your way" — the screener on both homepages, in the screener's
+ * own look (2026-10-27): the quick picks as one chip row; under it what the
+ * chosen pick asks, as the screener's questions and answers ("Is the price
+ * low? · Low"); the pass count; the top three with their strength line
+ * ("Very good company · Low price · Pays every year"); then what sits past
+ * them as counts ("Among the other 22 · 16 have a Buy signal · 14 marked
+ * 'Pays 4%+ a year' · 2 you follow") and one link into `/screener` with that
+ * pick started. Picks use no power checks and three rows are the screener's
+ * free share, so the card is fully open — the lock lives on the screener.
  *
  * Premium readers with saved screens get them on top: each screen's count at
  * the last daily check and who joined then (also a key point in "Your stocks today").
  *
- * Server render = the default goal, so the landing page's HTML has real rows.
+ * Server render = the default pick, so the landing page's HTML has real rows.
  */
 export default function ScreenerCard({
   goals,
@@ -50,6 +55,17 @@ export default function ScreenerCard({
   const goal = list.find((g) => g.id === picked) ?? list.find((g) => g.id === DEFAULT_GOAL) ?? list[0];
   const screens = mounted && isPremium ? saved.slice(0, 3) : [];
   const href = `/screener?start=${encodeURIComponent(goal.id)}`;
+
+  // What's past the top three, as counts.
+  const hidden = goal.hidden;
+  const mine = (goal.hidden_codes ?? []).filter((c) => held.has(c) || watched.has(c)).length;
+  const hiddenBits = hidden && hidden.count > 0
+    ? [
+        hidden.buys ? t(lang, "screenerBuys", { n: hidden.buys }) : null,
+        hidden.strength ? t(lang, "screenerMarked", { n: hidden.strength.n, tag: tx(hidden.strength.en, hidden.strength.bn) }) : null,
+        mine ? t(lang, "screenerFollow", { n: mine }) : null,
+      ].filter((x): x is string => !!x)
+    : [];
 
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
@@ -91,32 +107,37 @@ export default function ScreenerCard({
         </div>
       )}
 
-      {/* Goals: a plain grid of tiles — two across on a phone, three from
-          640px — so every goal and its count is in view, nothing to swipe.
-          (It was the dashboard's swipe rail, which clipped chips at a phone's
-          edge and turns into 15rem grid columns on a mouse screen.) */}
-      <ul className="grid grid-cols-2 gap-2 px-4 pt-3 sm:grid-cols-3 sm:px-5" aria-label={t(lang, "screenerTitle")}>
-        {list.map((g) => {
-          const on = g.id === goal.id;
-          return (
-            <li key={g.id} className="min-w-0">
-              <button
-                type="button"
-                onClick={() => setPicked(g.id)}
-                aria-pressed={on}
-                className={`flex h-full min-h-14 w-full flex-col items-start justify-center rounded-lg border px-3 py-2 text-left transition-colors active:bg-surface-2 ${
-                  on ? "border-text-main bg-surface-2" : "border-border bg-surface hover:border-text-muted"
-                }`}
-              >
-                <span className="text-sm font-semibold leading-snug text-text-main">{tx(g.title_en, g.title_bn)}</span>
-                <span className="text-xs tabular-nums text-text-muted">{t(lang, "screenerPass", { n: g.passed })}</span>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+      {/* Quick picks — the same chip row the screener opens with. */}
+      <div className="flex flex-wrap gap-2 px-4 pt-3 sm:px-5" role="group" aria-label={t(lang, "screenerTitle")}>
+        {list.map((g) => (
+          <Chip key={g.id} active={g.id === goal.id} onClick={() => setPicked(g.id)}>
+            {tx(g.title_en, g.title_bn)}
+          </Chip>
+        ))}
+      </div>
 
-      <p className="px-4 pt-3 text-sm text-text-muted sm:px-5">{tx(goal.blurb_en, goal.blurb_bn)}</p>
+      {/* What the pick asks, as the screener's questions and answers. */}
+      {goal.wants && goal.wants.length > 0 ? (
+        <div className="px-4 pt-3 sm:px-5">
+          <p className="mb-1.5 text-xs font-semibold text-text-muted">{t(lang, "screenerAsks")}</p>
+          <ul className="overflow-hidden rounded-lg border border-border">
+            {goal.wants.map((w) => (
+              <li key={w.key} className="flex items-center justify-between gap-3 border-b border-border px-3 py-2 last:border-b-0">
+                <span className="min-w-0 text-sm text-text-muted">{tx(w.q_en, w.q_bn)}</span>
+                <span className="shrink-0 rounded-md bg-primary-soft px-2 py-0.5 text-sm font-semibold text-primary">
+                  {tx(w.a_en, w.a_bn)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <p className="px-4 pt-3 text-sm text-text-muted sm:px-5">{tx(goal.blurb_en, goal.blurb_bn)}</p>
+      )}
+
+      <p className="px-4 pt-4 text-base font-semibold text-text-main sm:px-5">
+        {t(lang, "screenerPassToday", { n: goal.passed })}
+      </p>
 
       {goal.top.length > 0 ? (
         <ul className="mt-1 divide-y divide-cell-rule">
@@ -129,7 +150,9 @@ export default function ScreenerCard({
               price={s.price}
               change={s.change_pct}
               mark={<OwnerMark code={s.code} held={held} watched={watched} lang={lang} />}
-              sub={s.checks.map((c) => tx(c.value_en, c.value_bn)).join(" · ")}
+              sub={s.strengths?.length
+                ? s.strengths.map((x) => tx(x.en, x.bn)).join(" · ")
+                : s.checks.map((c) => tx(c.value_en, c.value_bn)).join(" · ")}
               subClamp
               // On a phone the name, its figures and the price need the whole
               // row; the Buy chip joins beside the name from 640px (a hidden
@@ -141,6 +164,14 @@ export default function ScreenerCard({
         </ul>
       ) : (
         <p className="px-4 py-3 text-sm text-text-muted sm:px-5">{t(lang, "screenerNone")}</p>
+      )}
+
+      {hidden && hidden.count > 0 && hiddenBits.length > 0 && (
+        <p className="border-t border-border px-4 py-3 text-sm text-text-muted sm:px-5">
+          <span className="font-semibold text-text-main">{t(lang, "screenerHidden", { n: hidden.count })}</span>
+          {" · "}
+          {hiddenBits.join(" · ")}
+        </p>
       )}
 
       <Link

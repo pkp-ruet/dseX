@@ -2999,7 +2999,13 @@ export interface ScreenerGoal {
   blurb_bn: string;
   passed: number;
   universe: number;
-  top: CustomListStock[];
+  /** What the pick asks, in words: the answered questions (+ sectors). Absent from an older backend. */
+  wants?: { key: string; q_en: string; q_bn: string; a_en: string; a_bn: string }[];
+  top: (CustomListStock & { strengths?: { en: string; bn: string }[] })[];
+  /** What sits past the top three, as counts (names stay out). */
+  hidden?: { count: number; buys: number; strength: { n: number; en: string; bn: string } | null };
+  /** Codes past the top three — only to count the reader's own stocks among them. */
+  hidden_codes?: string[];
 }
 
 /** A saved screen as of its last daily check (no live run). */
