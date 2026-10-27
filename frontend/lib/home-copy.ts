@@ -37,6 +37,12 @@ const COPY = {
   gradeRisky: ["Risky", "ঝুঁকিপূর্ণ"],
   gradeVeryRisky: ["Very Risky", "খুব ঝুঁকিপূর্ণ"],
 
+  marketLive: ["Live", "চালু"],
+  marketPre: ["Pre-market", "শিগগির খুলবে"],
+  marketClosed: ["Closed", "বন্ধ"],
+  marketClosesIn: ["closes in {t}", "{t} পরে বন্ধ"],
+  marketOpensIn: ["opens in {t}", "{t} পরে খুলবে"],
+
   // Chapters
   chMoney: ["Your money", "আপনার টাকা"],
   chMarket: ["Market today", "আজকের বাজার"],

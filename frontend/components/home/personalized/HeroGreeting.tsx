@@ -47,17 +47,18 @@ export default function HeroGreeting({
 
   return (
     <div lang={bn ? "bn" : undefined} className={bn ? "font-bn" : undefined}>
-      <div className="flex items-start justify-between gap-2">
-        <p className="min-w-0 flex-1 truncate pt-1 text-xs font-semibold text-text-muted">
-          {dateStr}
+      {/* One centred row: the date and the market state as a single quiet
+          line on the left, the language switch on the right. */}
+      <div className="flex items-center justify-between gap-3">
+        <p className="flex min-w-0 flex-1 items-center gap-2 text-xs font-semibold text-text-muted">
+          <span className="truncate">{dateStr}</span>
+          <span className="h-3 w-px shrink-0 bg-border" aria-hidden />
+          <MarketStatusPill compact lang={lang} className="shrink-0" />
         </p>
-        <div className="flex shrink-0 items-center gap-1.5">
-          <LangToggle value={lang} onChange={onLang} size="sm" />
-          <MarketStatusPill compact />
-        </div>
+        <LangToggle value={lang} onChange={onLang} size="sm" tone="quiet" className="shrink-0" />
       </div>
 
-      <h1 className="mt-1 text-2xl font-bold leading-tight tracking-tight text-text-main sm:text-3xl">
+      <h1 className="mt-2 text-2xl font-bold leading-tight tracking-tight text-text-main sm:text-3xl">
         {greeting}
         {who}
       </h1>
