@@ -37,7 +37,6 @@ import MarketLinks from "@/components/home/personalized/MarketLinks";
 import ResearchRail from "@/components/home/personalized/ResearchRail";
 import DiscoverRail from "@/components/home/personalized/DiscoverRail";
 import ScreenerCard from "@/components/home/personalized/ScreenerCard";
-import GlanceStrip from "@/components/home/personalized/GlanceStrip";
 import DividendBoardCard from "@/components/home/personalized/DividendBoardCard";
 import LearnCard from "@/components/home/personalized/LearnCard";
 import ExploreLinks from "@/components/home/personalized/ExploreLinks";
@@ -190,7 +189,6 @@ export default function PersonalizedHome() {
   // Buy signals ride along on the scores already in priceMap — no extra fetch.
   const buys = useMemo(() => allStocks.filter((s) => s.signal?.signal === "buy"), [allStocks]);
 
-  const followedCodes = Array.from(new Set([...watchedSet, ...heldSet])).sort();
 
 
   // Portfolio move today (the money card shows it; keyPoints drops the row).
@@ -428,7 +426,8 @@ export default function PersonalizedHome() {
     <PullToRefresh onRefresh={() => runFetches()}>
     <div className="pb-4" onClickCapture={onTap}>
       {/* ── Chapter 1: the greeting open on the canvas, then the
-          money card, then the four-number glance strip. ── */}
+          money card. The four-number glance strip (GlanceStrip) was removed
+          2026-10-27 (user decision). ── */}
       <section id="money" className="dash-section mt-5 space-y-4" data-card="money">
         <HeroGreeting
           name={user?.display_name}
@@ -447,15 +446,6 @@ export default function PersonalizedHome() {
         ) : (
           <MoneyHeroGhost lang={lang} />
         )}
-        <GlanceStrip
-          index={marketIndex}
-          followedCodes={followedCodes}
-          priceMap={priceMap}
-          dividends={dividends}
-          calendarRows={calendarRows}
-          when={when}
-          lang={lang}
-        />
       </section>
 
       {/* Sticky chapter chips — the page is a long daily read. */}
