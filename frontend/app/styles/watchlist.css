@@ -1,5 +1,5 @@
 /* ===================================================================
-   /watchlist — the clean redesign (2026-10-25), same language as
+   /watchlist — the clean redesign (2026-10-25; one table 2026-10-28), same language as
    /market-analysis: one card style (.soft-card), hairlines instead of
    tinted boxes, numbers lead, company name first, colour only where it
    means something (up / down, grade, Buy). Every class here is `wl-*`
@@ -111,102 +111,224 @@
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
 }
 
-/* ---- Sort chips: wrap onto a second line on phones, never scroll sideways ---- */
-.wl-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: var(--space-3); }
+/* ---- Tools: one hint line + the sort menu ---- */
+.wl-tools {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 8px 12px; margin-top: var(--space-3);
+}
+.wl-hint { margin: 0; font-size: var(--fs-sm); color: var(--text-muted); }
+.wl-sort {
+  max-width: 100%; height: 40px; padding: 0 32px 0 12px;
+  border: 1px solid var(--border); border-radius: 999px;
+  background-color: var(--surface); color: var(--text);
+  font: inherit; font-size: var(--fs-sm); font-weight: 600; cursor: pointer;
+}
+.wl-sort:hover { border-color: var(--text-muted); }
+.wl-sort:focus-visible { outline: none; border-color: var(--primary); box-shadow: var(--ring); }
+@media (max-width: 639.98px) {
+  .wl-hint { flex: 1 1 100%; }
+  .wl-sort { flex: 1 1 100%; width: 100%; }
+}
 
-/* ---- The list ---- */
+/* ===================================================================
+   The table (components/watchlist/WatchTable.tsx, reworked clean
+   2026-10-28). Five columns: company · price · since you followed · our
+   read (ONE summary, Premium) · a labelled Details button. Each stock is a
+   <tbody>: the head row, then the drawer row it opens. Colour only on the
+   numbers that move and the signal dot; gold only for Premium.
+   =================================================================== */
 .wl-list { margin-top: var(--space-3); padding: 0; overflow: hidden; }
-.wl-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); color: var(--text); }
+.wl-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: var(--fs-sm); color: var(--text); }
+.wl-col-who { width: 30%; }
+.wl-col-price { width: 12%; }
+.wl-col-since { width: 14%; }
+.wl-col-read { width: 31%; }
+.wl-col-more { width: 13%; }
+
 .wl-table thead th {
   height: 44px; padding: 0 12px; text-align: left; vertical-align: middle; white-space: nowrap;
   font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted);
   border-bottom: 1px solid var(--border);
 }
-.wl-table thead th:first-child { padding-left: 20px; }
-.wl-table thead th:last-child { padding-right: 16px; }
-.wl-table th.wl-num, .wl-table td.wl-num { text-align: right; font-variant-numeric: tabular-nums; }
-.wl-table tbody td { padding: 14px 12px; vertical-align: middle; white-space: nowrap; }
-.wl-table tbody td:first-child { padding-left: 20px; }
-.wl-table tbody td:last-child { padding-right: 16px; }
-.wl-table tbody tr + tr td { border-top: 1px solid var(--cell-rule); }
-.wl-table tbody tr { transition: background 0.1s; }
-.wl-table tbody tr:hover { background: var(--surface-2); }
+.wl-table thead th:first-child { padding-left: 24px; }
+.wl-table th.wl-num, .wl-table td.wl-num { text-align: right; }
 
-.wl-who { display: block; min-width: 0; text-decoration: none; }
-.wl-name {
-  display: block; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  font-size: var(--fs-sm); font-weight: 700; color: var(--text);
+.wl-read-tag { display: inline-flex; align-items: center; gap: 6px; }
+.wl-read-tag svg { color: var(--gold-ink); }
+.wl-prem-tag {
+  display: inline-flex; align-items: center; margin-left: 8px; padding: 1px 8px; border-radius: 999px;
+  font-size: var(--fs-2xs); font-weight: 700; line-height: 1.5; color: var(--gold-ink);
+  background: rgb(var(--gold-rgb) / 0.16);
 }
-.wl-who:hover .wl-name { color: var(--primary-ink); text-decoration: underline; }
-.wl-who:active { opacity: 0.7; }
-.wl-meta { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
-.wl-code { font-size: var(--fs-2xs); font-weight: 600; letter-spacing: 0.02em; color: var(--text-muted); }
-.wl-price { font-weight: 700; font-size: var(--fs-sm); }
-.wl-chg { font-weight: 600; }
-.wl-sub { display: block; margin-top: 2px; font-size: var(--fs-2xs); font-weight: 500; color: var(--text-muted); }
+
+/* One stock */
+/* Between two stocks: a 2px line a step darker than --border, so each stock
+   reads as its own block; the lines inside a row (the dashed split on
+   phones, the drawer's grids) stay hairlines. */
+.wl-row + .wl-row { border-top: 2px solid color-mix(in srgb, var(--text-muted) 30%, var(--border)); }
+.wl-row[data-open] { background: color-mix(in srgb, var(--surface-2) 55%, var(--surface)); }
+.wl-head { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+@media (hover: hover) {
+  .wl-row:not([data-open]) > .wl-head:hover { background: color-mix(in srgb, var(--surface-2) 40%, var(--surface)); }
+}
+.wl-head > td { padding: 18px 12px; vertical-align: middle; min-width: 0; }
+.wl-head > td:first-child { padding-left: 24px; }
+.wl-head > td:last-child { padding-right: 20px; text-align: right; }
+
+.wl-who {
+  display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: var(--fs-base); font-weight: 700; line-height: 1.3; color: var(--text); text-decoration: none;
+}
+.wl-who:hover { color: var(--primary-ink); }
+.wl-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 6px; }
+.wl-code { font-size: var(--fs-2xs); font-weight: 700; letter-spacing: 0.02em; color: var(--text-muted); }
+
+.wl-price, .wl-since {
+  display: block; font-size: var(--fs-base); font-weight: 700; line-height: 1.3; font-variant-numeric: tabular-nums;
+}
+.wl-chg { display: block; margin-top: 4px; font-size: var(--fs-xs); font-weight: 600; font-variant-numeric: tabular-nums; }
+.wl-chg-l { font-weight: 500; color: var(--text-muted); }
+.wl-since-l { display: block; margin-top: 4px; font-size: var(--fs-2xs); color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .wl-dash { color: var(--text-muted); }
 
-.wl-range { display: flex; flex-direction: column; gap: 6px; min-width: 104px; }
-.wl-range-track { position: relative; height: 4px; border-radius: 999px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--cell-rule); }
-.wl-range-dot {
-  position: absolute; top: 50%; width: 10px; height: 10px; margin-left: -5px; transform: translateY(-50%);
-  border-radius: 999px; background: var(--text); box-shadow: 0 0 0 2px var(--surface);
+/* Our read, as one summary: a dot + the answer, then one muted line. */
+.wl-sum { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.wl-sum-head { display: flex; align-items: flex-start; gap: 8px; font-size: var(--fs-sm); font-weight: 600; line-height: 1.4; color: var(--text); }
+.wl-sum-dot {
+  flex: 0 0 auto; width: 8px; height: 8px; margin-top: 6px; border-radius: 999px;
+  background: color-mix(in srgb, var(--text-muted) 45%, transparent);
 }
-.wl-range-ends { display: flex; justify-content: space-between; font-size: var(--fs-2xs); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.wl-sum-dot--buy { background: var(--positive); }
+.wl-sum-dot--sell { background: var(--negative); }
+.wl-sum-facts { padding-left: 16px; font-size: var(--fs-2xs); line-height: 1.45; color: var(--text-muted); }
 
-.wl-notes { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; white-space: normal; }
-.wl-actions { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+/* A free reader's summary: a lock and calm bars (the heading says what it is). */
+.wl-sum-locked { display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--gold-ink); }
+.wl-sum-locked > svg { flex: 0 0 auto; }
+.wl-sum-locked-l { font-size: var(--fs-sm); font-weight: 600; color: var(--text-muted); }
+.wl-sum-locked .wl-prem-tag { margin-left: 0; }
+.wl-bars { display: flex; flex-direction: column; gap: 7px; flex: 1 1 auto; max-width: 200px; padding: 2px 0; }
+.wl-bars > i { display: block; height: 9px; border-radius: 999px; background: var(--surface-2); }
+.wl-bars > i:first-child { width: 85%; }
+.wl-bars > i + i { width: 55%; height: 7px; }
 
-.wl-missing { margin: 0; padding: 12px 20px; font-size: var(--fs-2xs); color: var(--text-muted); border-top: 1px solid var(--cell-rule); }
+/* The Details button — a labelled pill, so every reader sees the row opens. */
+.wl-more-btn {
+  display: inline-flex; align-items: center; gap: 4px; height: 40px; padding: 0 12px 0 14px;
+  border: 1px solid var(--border); border-radius: 999px; background: var(--surface);
+  font: inherit; font-size: var(--fs-xs); font-weight: 600; color: var(--text); white-space: nowrap; cursor: pointer;
+  transition: background 0.1s, border-color 0.1s, color 0.1s;
+}
+.wl-more-btn:hover { background: var(--surface-2); }
+.wl-more-btn:active { transform: scale(0.98); }
+.wl-more-btn:focus-visible { outline: none; border-color: var(--primary); box-shadow: var(--ring); }
+.wl-more-btn svg { color: var(--text-muted); transition: transform 0.15s ease; }
+.wl-row[data-open] .wl-more-btn { background: var(--text); border-color: var(--text); color: var(--surface); }
+.wl-row[data-open] .wl-more-btn svg { color: currentColor; transform: rotate(180deg); }
 
-/* Below 1024px (phones + tablets): each stock is a block inside the one card,
-   split by hairlines — the eight-column table needs the full 976px page.
-     name                                  price
-     code · grade                          today
-     tags (Buy, near high, dividend)
-     since added  ·  profit growth  ·  yield     (small caption above each)
-     52-week range ───●─────          alert ☆                           */
-@media (max-width: 1023.98px) {
-  .wl-table, .wl-table tbody { display: block; }
-  .wl-table thead { display: none; }
-  .wl-table tbody tr {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-areas:
-      "who   who   price"
-      "who   who   chg"
-      "since eps   yld"
-      "range range act";
-    column-gap: 12px;
-    padding: 16px;
+/* The drawer: two white boxes on the open row's tint, then the actions. */
+.wl-row:not([data-open]) > .wl-more { display: none; }
+.wl-more > td { padding: 0; }
+.wl-drawer { display: flex; flex-direction: column; gap: 12px; padding: 0 24px 22px; }
+.wl-box { background: var(--surface); border: 1px solid var(--cell-rule); border-radius: var(--radius-md); overflow: hidden; }
+
+.wl-facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--cell-rule); }
+.wl-fact { min-width: 0; padding: 14px 16px; background: var(--surface); }
+.wl-fact-k { display: block; margin: 0; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); }
+.wl-fact-v { display: block; margin-top: 4px; font-size: var(--fs-md); font-weight: 700; line-height: 1.2; color: var(--text); font-variant-numeric: tabular-nums; }
+.wl-fact-x { display: block; margin-top: 4px; font-size: var(--fs-2xs); line-height: 1.4; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.wl-range-row { padding: 14px 16px 16px; border-top: 1px solid var(--cell-rule); }
+.wl-range-where { font-weight: 500; }
+.wl-range { position: relative; display: block; height: 4px; margin-top: 14px; border-radius: 999px; background: var(--surface-2); }
+.wl-range > i {
+  position: absolute; top: 50%; width: 12px; height: 12px; margin-left: -6px; transform: translateY(-50%);
+  border-radius: 999px; background: var(--text); border: 2px solid var(--surface);
+}
+.wl-range-ends { display: flex; justify-content: space-between; margin-top: 8px; font-size: var(--fs-2xs); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+.wl-read { padding: 0 16px; }
+.wl-read-top { display: flex; align-items: center; margin: 0; padding: 12px 0; font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.wl-read-list { margin: 0; }
+.wl-read-item {
+  display: grid; grid-template-columns: 128px minmax(0, 1fr); gap: 4px 16px;
+  padding: 14px 0; border-top: 1px solid var(--cell-rule);
+}
+.wl-read-item dt { padding-top: 1px; font-size: var(--fs-xs); font-weight: 600; color: var(--text-muted); }
+.wl-read-item dd { margin: 0; min-width: 0; }
+.wl-read-lead { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sm); font-weight: 700; line-height: 1.4; color: var(--text); }
+.wl-read-lead .wl-sum-dot { margin-top: 0; }
+.wl-read-text { display: block; margin-top: 2px; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
+.wl-read-lead + .wl-read-text { margin-top: 4px; }
+.wl-risks { margin: 0; padding-left: 18px; list-style: disc; font-size: var(--fs-sm); line-height: 1.55; }
+.wl-risks li + li { margin-top: 4px; }
+.wl-read-none { margin: 0; padding: 0 0 14px; font-size: var(--fs-sm); color: var(--text-muted); }
+.wl-read-foot {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px;
+  margin: 0 -16px; padding: 14px 16px; border-top: 1px solid var(--cell-rule);
+  background: rgb(var(--gold-rgb) / 0.08);
+}
+.wl-read-foot p { flex: 1 1 220px; margin: 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+
+.wl-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.wl-spacer { flex: 1 1 auto; }
+.wl-page-link {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 40px;
+  font-size: var(--fs-sm); font-weight: 700; color: var(--primary-ink); text-decoration: none;
+}
+.wl-page-link:hover { text-decoration: underline; }
+.wl-page-link:active { opacity: 0.7; }
+
+.wl-missing { margin: 0; padding: 12px 24px; font-size: var(--fs-2xs); color: var(--text-muted); border-top: 1px solid var(--cell-rule); }
+
+/* From 900px the table has its five columns; the summary cell shows bars
+   (the heading already says "Our read · Premium"). */
+@media (min-width: 900px) {
+  .wl-sum-locked-l, .wl-sum-locked .wl-prem-tag { display: none; }
+}
+
+/* Below 900px each stock is a block in two lines, split by a dashed hairline:
+     Square Pharmaceuticals                          ৳212
+     SQURPHARMA · Good · Buy                 +1.2% today
+     - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     ● Not yet · a Buy under ৳240          [ Details  v ]
+       12% under fair value · 1 watch-out
+   A free reader's second line: lock · Our read · Premium, then Details. */
+@media (max-width: 899.98px) {
+  .wl-table, .wl-table tbody, .wl-more, .wl-more > td { display: block; }
+  .wl-table thead, .wl-table colgroup { display: none; }
+  .wl-head {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "who price" "read more";
+    row-gap: 12px; padding: 16px;
   }
-  .wl-table tbody tr:hover { background: transparent; }
-  .wl-table tbody tr:active { background: var(--surface-2); }
-  .wl-table tbody td,
-  .wl-table tbody td:first-child,
-  .wl-table tbody td:last-child { padding: 0; border: 0; white-space: normal; }
-  .wl-table tbody tr + tr td { border-top: 0; }
-  .wl-table tbody tr + tr { border-top: 1px solid var(--cell-rule); }
-  .wl-table td[data-cell="who"] { grid-area: who; min-width: 0; align-self: start; }
-  .wl-table td[data-cell="price"] { grid-area: price; text-align: right; align-self: end; }
-  .wl-table td[data-cell="price"] .wl-price { font-size: var(--fs-md); }
-  .wl-table td[data-cell="chg"] { grid-area: chg; text-align: right; align-self: start; margin-top: 2px; }
-  .wl-table td[data-cell="since"] { grid-area: since; }
-  .wl-table td[data-cell="eps"] { grid-area: eps; }
-  .wl-table td[data-cell="yld"] { grid-area: yld; }
-  .wl-table td[data-cell="since"],
-  .wl-table td[data-cell="eps"],
-  .wl-table td[data-cell="yld"] { margin-top: 14px; text-align: left; min-width: 0; }
-  .wl-table td[data-label]::before {
-    content: attr(data-label); display: block; margin-bottom: 2px;
-    font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted);
-  }
-  .wl-table td[data-cell="range"] { grid-area: range; margin-top: 14px; align-self: center; min-width: 0; }
-  .wl-table td[data-cell="act"] { grid-area: act; margin-top: 14px; align-self: center; }
-  .wl-table td.wl-empty { display: none; }
-  .wl-name { max-width: 100%; white-space: normal; }
-  .wl-range { min-width: 0; }
-  .wl-table td[data-cell="since"] .wl-sub { display: none; }
+  .wl-head > td,
+  .wl-head > td:first-child,
+  .wl-head > td:last-child { padding: 0; }
+  .wl-head > td[data-cell="who"] { grid-area: who; padding-right: 12px; }
+  .wl-head > td[data-cell="price"] { grid-area: price; align-self: start; }
+  .wl-head > td[data-cell="since"] { display: none; }
+  .wl-head > td[data-cell="read"],
+  .wl-head > td[data-cell="more"] { padding-top: 12px; border-top: 1px dashed var(--cell-rule); align-self: stretch; }
+  .wl-head > td[data-cell="read"] { grid-area: read; display: flex; align-items: center; padding-right: 12px; }
+  .wl-head > td[data-cell="read"] > * { flex: 1 1 auto; min-width: 0; }
+  .wl-head > td[data-cell="more"] { grid-area: more; display: flex; align-items: center; justify-content: flex-end; }
+  .wl-sum-locked .wl-bars { display: none; }
+  /* The whole row opens it on a phone; the page link is in the drawer. */
+  .wl-who { pointer-events: none; white-space: normal; }
+  .wl-drawer { padding: 0 12px 14px; }
+  .wl-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wl-fact { padding: 12px 14px; }
+  .wl-range-row { padding: 12px 14px 14px; }
+  .wl-read { padding: 0 14px; }
+  .wl-read-item { grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 12px 0; }
+  .wl-read-foot { margin: 0 -14px; padding: 14px; }
+  .wl-missing { padding: 12px 16px; }
+}
+@media (min-width: 640px) and (max-width: 899.98px) {
+  .wl-head { padding: 18px 24px; }
+  .wl-drawer { padding: 0 24px 20px; }
+  .wl-facts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .wl-read-item { grid-template-columns: 128px minmax(0, 1fr); gap: 4px 16px; }
 }
 
 /* ---- What stands out: folds inside one card ---- */

@@ -8,18 +8,17 @@ import {
   getNearExtremes,
   getDividendsUpcoming,
   getWatchlistNews,
+  getWatchlistGlance,
+  type GlanceRow,
   type ScoreItem,
   type ScoresResponse,
   type NearExtremeItem,
   type DividendsUpcoming,
   type NearExtremesData,
   type WatchlistNewsItem,
-  type StockSignalInfo,
   type WatchlistMeta,
-  type WatchlistMetaEntry,
 } from "@/lib/api";
 import { cacheKeys, readCache, writeCache } from "@/lib/swr-cache";
-import { changePct, changeTone, money, taka } from "@/lib/formatters";
 import {
   getCachedWatchlist,
   getCachedWatchlistMeta,
@@ -30,37 +29,32 @@ import {
   setWatchlist,
 } from "@/lib/watchlist";
 import { useAuth } from "@/context/AuthContext";
-import { getTier } from "@/lib/constants";
-import TierPill from "@/components/ui/TierPill";
-import SignalChip from "@/components/ui/SignalChip";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
-import Chip from "@/components/ui/Chip";
 import SectionHeader from "@/components/ui/SectionHeader";
 import Skeleton from "@/components/ui/Skeleton";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
-import { bnDate } from "@/lib/bn";
 import WatchlistNews from "./WatchlistNews";
 import WatchlistAnalysis from "./WatchlistAnalysis";
-import WatchlistAlertCell from "./WatchlistAlertCell";
 import PriceAlertTip from "./PriceAlertTip";
 import EmptyStateActions from "./EmptyStateActions";
 import ShareWatchlistButton from "./ShareWatchlistButton";
 import SinceLastVisit from "./SinceLastVisit";
-import GlanceBoard from "./GlanceBoard";
+import WatchTable, { sinceFollowed, type WatchRow } from "./WatchTable";
 import { toast } from "@/lib/toast";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
+import { usePremiumOpen } from "@/components/premium/PremiumMask";
 
 /*
- * /watchlist, redesigned clean 2026-10-25 (styles: app/styles/watchlist.css,
- * `wl-*`). Order: count + share → hero (mood, one sentence, four answers) →
- * since-last-visit note → "Your stocks" (search, sort chips, the list) →
- * glance board → "What stands out" folds → news. Company name leads every
- * row (its Buy / near-high / dividend tags sit under it), numbers are plain (no tinted pills), colour only for up / down,
- * grade and Buy.
+ * /watchlist (styles: app/styles/watchlist.css, `wl-*`). Order: count + share
+ * → hero (mood, one sentence, four answers) → since-last-visit note → "Your
+ * shares" (add search, one sort menu, THE table — free basics + Premium "our
+ * read" in one row per stock, see WatchTable.tsx) → "What stands out" folds →
+ * news. The separate Premium glance board was folded into the table
+ * 2026-10-28 (user decision: one table, not two).
  */
 
 function flatten(scores: ScoresResponse | null): ScoreItem[] {
@@ -86,43 +80,21 @@ interface ExtremeInfo {
   side: "high" | "low";
 }
 
-type SortKey = "az" | "recent" | "move" | "score" | "yield" | "since";
+type SortKey = "az" | "recent" | "move" | "since" | "score" | "yield" | "value" | "event" | "risk";
 
-const SORT_OPTIONS: { key: SortKey; en: string; bn: string }[] = [
+/** One sort menu. The last three order by our read, so they are Premium —
+ *  a free reader sees them, locked (the order alone would give it away). */
+const SORT_OPTIONS: { key: SortKey; en: string; bn: string; premium?: boolean }[] = [
   { key: "az", en: "A–Z", bn: "A–Z" },
   { key: "recent", en: "Recently added", bn: "সম্প্রতি যোগ করা" },
   { key: "move", en: "Biggest move today", bn: "আজ সবচেয়ে বেশি ওঠানামা" },
-  { key: "since", en: "Since added", bn: "যোগ করার পর থেকে" },
+  { key: "since", en: "Best since you followed", bn: "অনুসরণের পর সবচেয়ে ভালো" },
   { key: "score", en: "Best score", bn: "সেরা স্কোর" },
-  { key: "yield", en: "Dividend yield", bn: "ডিভিডেন্ড ইল্ড" },
+  { key: "yield", en: "Highest dividend yield", bn: "সবচেয়ে বেশি ডিভিডেন্ড ইল্ড" },
+  { key: "value", en: "Most under fair value", bn: "ন্যায্য দামের সবচেয়ে নিচে", premium: true },
+  { key: "event", en: "Next record date or AGM", bn: "আগে রেকর্ড ডেট বা এজিএম", premium: true },
+  { key: "risk", en: "Most watch-outs", bn: "সবচেয়ে বেশি সতর্কতা", premium: true },
 ];
-
-/** A Bengali date from a timestamp, Western digits ("6 সেপ্টেম্বর 2026"). */
-function bnDateOf(iso: string, withYear = true): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  const s = bnDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
-  return withYear ? s : s.replace(/\s\d{4}$/, "");
-}
-
-/** % move from the close on the day the stock was followed to today. */
-function sinceAddedPct(item: ScoreItem, m: WatchlistMetaEntry | null | undefined): number | null {
-  if (!m || m.price_at_add == null || m.price_at_add <= 0 || item.ltp == null) return null;
-  return ((item.ltp - m.price_at_add) / m.price_at_add) * 100;
-}
-
-function shortDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  const sameYear = d.getFullYear() === new Date().getFullYear();
-  return d.toLocaleDateString("en-GB", sameYear ? { day: "numeric", month: "short" } : { month: "short", year: "2-digit" });
-}
-
-function formatDateLong(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-}
 
 // ---------------------------------------------------------------------------
 // Loading — the ONE placeholder for this page (auth check, Suspense, data)
@@ -298,183 +270,6 @@ function AddBar({ scores }: { scores: ScoresResponse | null }) {
 }
 
 // ---------------------------------------------------------------------------
-// One row of the list (a table row on desktop, a block in the card on phones)
-// ---------------------------------------------------------------------------
-
-interface RowProps {
-  item: ScoreItem;
-  extreme: ExtremeInfo | null;
-  hasDividendSoon: boolean;
-  meta: WatchlistMetaEntry | null;
-  onRemove: (code: string) => void;
-}
-
-function RangeBar({ ltp, high, low }: { ltp: number | null; high: number | null; low: number | null }) {
-  const { lang } = useLang();
-  if (ltp == null || high == null || low == null || high <= low) {
-    return <span className="wl-dash">—</span>;
-  }
-  const pos = Math.max(0, Math.min(1, (ltp - low) / (high - low)));
-  return (
-    <div
-      className="wl-range"
-      title={
-        lang === "bn"
-          ? `গত এক বছরের দামের সীমা: ${money(low)} থেকে ${money(high)}`
-          : `Price range over the past year: ${money(low)} to ${money(high)}`
-      }
-    >
-      <div className="wl-range-track">
-        <span className="wl-range-dot" style={{ left: `${pos * 100}%` }} />
-      </div>
-      <div className="wl-range-ends">
-        <span>{money(low)}</span>
-        <span>{money(high)}</span>
-      </div>
-    </div>
-  );
-}
-
-function Notes({
-  signal,
-  extreme,
-  hasDividendSoon,
-}: {
-  signal: StockSignalInfo | null | undefined;
-  extreme: ExtremeInfo | null;
-  hasDividendSoon: boolean;
-}) {
-  const { lang } = useLang();
-  // Only Buy is shown on the watchlist; Sell lives on the stock page.
-  const buy = signal != null && signal.signal === "buy";
-  if (!buy && !extreme && !hasDividendSoon) return null;
-  return (
-    <div className="wl-notes">
-      {buy && <SignalChip
-          signal={signal.signal}
-          strength={signal.strength}
-          reason={(lang === "bn" ? signal.reason_bn : signal.reason_en) || signal.reason_en}
-        />}
-      {extreme && (
-        <Chip tone={extreme.side === "high" ? "positive" : "negative"}>
-          {extreme.side === "high" ? (
-            <T en="Near its yearly high" bn="বছরের সর্বোচ্চের কাছে" />
-          ) : (
-            <T en="Near its yearly low" bn="বছরের সর্বনিম্নের কাছে" />
-          )}
-        </Chip>
-      )}
-      {hasDividendSoon && (
-        <Chip tone="info">
-          <T en="Dividend soon" bn="শিগগির ডিভিডেন্ড" />
-        </Chip>
-      )}
-    </div>
-  );
-}
-
-function EnrichedRow({ item, extreme, hasDividendSoon, meta, onRemove }: RowProps) {
-  const { lang } = useLang();
-  const L = (en: string, bn: string) => (lang === "bn" ? bn : en);
-  const chg = item.change_pct;
-  const ex = extreme?.item ?? null;
-  // wl-empty cells collapse on the phone layout instead of showing "—"
-  const hasRange = ex?.w52_high != null && ex?.w52_low != null;
-  const hasNotes =
-    extreme != null || hasDividendSoon || (item.signal != null && item.signal.signal === "buy");
-  const since = sinceAddedPct(item, meta);
-  const eps = item.eps_yoy_pct;
-  const yld = item.div_yield_pct;
-  return (
-    <tr>
-      <td data-cell="who">
-        <Link prefetch={false} href={`/stock/${item.trading_code}`} className="wl-who">
-          <span className="wl-name" title={item.company_name ?? undefined}>
-            {item.company_name ?? item.trading_code}
-          </span>
-        </Link>
-        <span className="wl-meta">
-          <span className="wl-code">{item.trading_code}</span>
-          <TierPill tier={getTier(item.score)} />
-        </span>
-        {hasNotes && <Notes signal={item.signal} extreme={extreme} hasDividendSoon={hasDividendSoon} />}
-      </td>
-      <td data-cell="price" className="wl-num">
-        <span className="wl-price nums">{item.ltp != null ? money(item.ltp) : "—"}</span>
-      </td>
-      <td data-cell="chg" className="wl-num">
-        <span className={`wl-chg nums ${changeTone(chg)}`}>{chg != null ? changePct(chg) : "—"}</span>
-      </td>
-      <td data-cell="since" data-label={L("Since added", "যোগ করার পর")} className="wl-num">
-        {since != null && meta ? (
-          <span
-            title={L(
-              `Added on ${formatDateLong(meta.added_at)} at ${taka(meta.price_at_add, 1)}`,
-              `${bnDateOf(meta.added_at)} তারিখে ${taka(meta.price_at_add, 1)} দামে যোগ করা`,
-            )}
-          >
-            <span className={`font-semibold nums ${changeTone(since)}`}>{changePct(since, 1)}</span>
-            <span className="wl-sub">
-              <T en={`since ${shortDate(meta.added_at)}`} bn={`${bnDateOf(meta.added_at, false)} থেকে`} />
-            </span>
-          </span>
-        ) : (
-          <span className="wl-dash">—</span>
-        )}
-      </td>
-      <td data-cell="eps" data-label={L("Profit growth", "মুনাফা বৃদ্ধি")} className="wl-num">
-        {eps != null && !Number.isNaN(eps) ? (
-          <span
-            className={`font-semibold nums ${changeTone(eps)}`}
-            title={L(
-              `Earnings per share against last year: ${changePct(eps, 1)}`,
-              `গত বছরের তুলনায় ইপিএস: ${changePct(eps, 1)}`,
-            )}
-          >
-            {changePct(eps, 0)}
-          </span>
-        ) : (
-          <span className="wl-dash">—</span>
-        )}
-      </td>
-      <td data-cell="yld" data-label={L("Yield", "ইল্ড")} className="wl-num">
-        {yld != null && !Number.isNaN(yld) ? (
-          <span className="font-semibold nums" title={L(`Dividend yield: ${yld.toFixed(2)}%`, `ডিভিডেন্ড ইল্ড: ${yld.toFixed(2)}%`)}>
-            {yld.toFixed(1)}%
-          </span>
-        ) : (
-          <span className="wl-dash">—</span>
-        )}
-      </td>
-      <td data-cell="range" className={hasRange ? undefined : "wl-empty"}>
-        <RangeBar ltp={ex?.ltp ?? item.ltp} high={ex?.w52_high ?? null} low={ex?.w52_low ?? null} />
-      </td>
-      <td data-cell="act">
-        <div className="wl-actions">
-          <WatchlistAlertCell
-            code={item.trading_code}
-            ltp={ex?.ltp ?? item.ltp}
-            w52High={ex?.w52_high ?? null}
-            w52Low={ex?.w52_low ?? null}
-          />
-          <button
-            type="button"
-            onClick={() => onRemove(item.trading_code)}
-            aria-label={L(`Stop following ${item.trading_code}`, `${item.trading_code} অনুসরণ বন্ধ করুন`)}
-            title={L("Stop following", "অনুসরণ বন্ধ করুন")}
-            className="star-btn star-btn--on"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden>
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-            </svg>
-          </button>
-        </div>
-      </td>
-    </tr>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Main client component
 // ---------------------------------------------------------------------------
 
@@ -506,7 +301,8 @@ function dividendsToSet(data: DividendsUpcoming): Set<string> {
 
 function WatchlistTableInner() {
   const { isLoggedIn, isLoading } = useAuth();
-  const { limits, isPremium } = usePremium();
+  const { limits } = usePremium();
+  const premiumOpen = usePremiumOpen();
   const { lang } = useLang();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -543,6 +339,11 @@ function WatchlistTableInner() {
   // News fetched in parallel with public data — keyed on the sorted code list.
   const [news, setNews] = useState<WatchlistNewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(false);
+
+  // Our read on each stock (fair value, signal, next event, watch-outs) — the
+  // table's Premium half. Public payload; the lock is screen-only.
+  const [glance, setGlance] = useState<GlanceRow[] | null>(null);
+  const [glanceLoading, setGlanceLoading] = useState(false);
 
   // Load watchlist when logged in.
   // loadWatchlist synchronously hydrates its module-level cache from
@@ -628,6 +429,33 @@ function WatchlistTableInner() {
     };
   }, [codes.join(",")]);
 
+  // Our read — same pattern: cached copy first, then the fresh one.
+  useEffect(() => {
+    if (!codes.length) {
+      setGlance([]);
+      setGlanceLoading(false);
+      return;
+    }
+    const key = cacheKeys.watchlistGlance(codes);
+    const cached = readCache<GlanceRow[]>(key);
+    setGlance(cached);
+    setGlanceLoading(!cached);
+    let cancelled = false;
+    getWatchlistGlance(codes)
+      .then((fresh) => {
+        if (cancelled) return;
+        setGlance(fresh);
+        writeCache(key, fresh);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setGlanceLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [codes.join(",")]);
+
   // Shared-link import prompt
   useEffect(() => {
     if (isLoggedIn && sharedCodes.length > 0) {
@@ -635,12 +463,31 @@ function WatchlistTableInner() {
     }
   }, [isLoggedIn, sharedCodes]);
 
-  const rows = useMemo(() => {
-    const all = flatten(scores);
-    const map = new Map(all.map((it) => [it.trading_code.toUpperCase(), it]));
-    const resolved = codes
+  // A Premium order picked before a membership ended falls back to A–Z.
+  const sortKey: SortKey = SORT_OPTIONS.find((o) => o.key === sort)?.premium && !premiumOpen ? "az" : sort;
+
+  // Score rows for the table, in the chosen order.
+  const scoreRows = useMemo(() => {
+    const map = new Map(flatten(scores).map((it) => [it.trading_code.toUpperCase(), it]));
+    return codes
       .map((c) => map.get(c.toUpperCase()))
       .filter((it): it is ScoreItem => Boolean(it));
+  }, [scores, codes]);
+
+  const rows = useMemo<WatchRow[]>(() => {
+    const byCode = new Map((glance ?? []).map((g) => [g.code.toUpperCase(), g]));
+    const built = scoreRows.map((item): WatchRow => {
+      const code = item.trading_code.toUpperCase();
+      const g = byCode.get(code) ?? null;
+      const ex = extremes.get(code)?.item;
+      return {
+        item,
+        glance: g,
+        meta: meta[code] ?? null,
+        hi: g?.hi52 ?? ex?.w52_high ?? null,
+        lo: g?.lo52 ?? ex?.w52_low ?? null,
+      };
+    });
     // Nulls sort last; ties fall back to A–Z so order is stable.
     const desc = (a: number | null | undefined, b: number | null | undefined) => {
       if (a == null && b == null) return 0;
@@ -648,33 +495,28 @@ function WatchlistTableInner() {
       if (b == null) return -1;
       return b - a;
     };
-    const addedMs = (it: ScoreItem) => {
-      const m = meta[it.trading_code.toUpperCase()];
-      const t = m ? Date.parse(m.added_at) : NaN;
+    const asc = (a: number | null | undefined, b: number | null | undefined) =>
+      desc(a == null ? null : -a, b == null ? null : -b);
+    const addedMs = (r: WatchRow) => {
+      const t = r.meta ? Date.parse(r.meta.added_at) : NaN;
       return Number.isFinite(t) ? t : null;
     };
-    return resolved.sort((a, b) => {
+    const abs = (v: number | null | undefined) => (v == null ? null : Math.abs(v));
+    return built.sort((a, b) => {
+      const x = a.item;
+      const y = b.item;
       let d = 0;
-      if (sort === "recent") {
-        d = desc(addedMs(a), addedMs(b));
-      } else if (sort === "since") {
-        d = desc(
-          sinceAddedPct(a, meta[a.trading_code.toUpperCase()]),
-          sinceAddedPct(b, meta[b.trading_code.toUpperCase()]),
-        );
-      } else if (sort === "move") {
-        d = desc(
-          a.change_pct == null ? null : Math.abs(a.change_pct),
-          b.change_pct == null ? null : Math.abs(b.change_pct),
-        );
-      } else if (sort === "score") {
-        d = desc(a.score, b.score);
-      } else if (sort === "yield") {
-        d = desc(a.div_yield_pct, b.div_yield_pct);
-      }
-      return d !== 0 ? d : a.trading_code.localeCompare(b.trading_code);
+      if (sortKey === "recent") d = desc(addedMs(a), addedMs(b));
+      else if (sortKey === "since") d = desc(sinceFollowed(x, a.meta), sinceFollowed(y, b.meta));
+      else if (sortKey === "move") d = desc(abs(x.change_pct), abs(y.change_pct));
+      else if (sortKey === "score") d = desc(x.score, y.score);
+      else if (sortKey === "yield") d = desc(x.div_yield_pct, y.div_yield_pct);
+      else if (sortKey === "value") d = asc(a.glance?.fair?.gap_pct, b.glance?.fair?.gap_pct);
+      else if (sortKey === "event") d = asc(a.glance?.event?.days_left, b.glance?.event?.days_left);
+      else if (sortKey === "risk") d = desc(a.glance?.risks.length, b.glance?.risks.length);
+      return d !== 0 ? d : x.trading_code.localeCompare(y.trading_code);
     });
-  }, [scores, codes, sort, meta]);
+  }, [scoreRows, glance, extremes, meta, sortKey]);
 
   // Remove with a short undo window (shared toast) instead of an instant, silent
   // delete. The undo restores the original added-on date + price meta instead
@@ -712,7 +554,7 @@ function WatchlistTableInner() {
   }
 
   const ready = codes.length > 0 && !loading && !error;
-  const missing = codes.length - rows.length;
+  const missing = codes.length - scoreRows.length;
 
   return (
     <>
@@ -783,16 +625,8 @@ function WatchlistTableInner() {
 
       {ready && (
         <div className="wl-stack mt-6 empty:hidden">
-          <SinceLastVisit codes={codes} rows={rows} news={news} dividendSoon={dividends} />
+          <SinceLastVisit codes={codes} rows={scoreRows} news={news} dividendSoon={dividends} />
           <PriceAlertTip />
-        </div>
-      )}
-
-      {/* Premium readers get the board as their main view; free readers see
-          its counts + the lock under the list, so the list stays on top. */}
-      {ready && isPremium && (
-        <div className="wl-section">
-          <GlanceBoard codes={codes} />
         </div>
       )}
 
@@ -808,8 +642,8 @@ function WatchlistTableInner() {
           }
           lead={
             <T
-              en="Search any DSE company to follow it. Tap a name to see its full report."
-              bn="ডিএসইর যেকোনো কোম্পানি খুঁজে অনুসরণ করুন। পুরো রিপোর্ট দেখতে নামে চাপুন।"
+              en="Search any DSE company to follow it. Tap a share to see everything we know about it."
+              bn="ডিএসইর যেকোনো কোম্পানি খুঁজে অনুসরণ করুন। কোনো শেয়ারের সব তথ্য দেখতে তাতে চাপুন।"
             />
           }
         />
@@ -844,65 +678,52 @@ function WatchlistTableInner() {
           </div>
         ) : (
           <>
-            <div className="wl-chips" role="group" aria-label={lang === "bn" ? "শেয়ারগুলো সাজান" : "Sort your shares"}>
-              {SORT_OPTIONS.map((opt) => (
-                <Chip key={opt.key} active={sort === opt.key} onClick={() => setSort(opt.key)}>
-                  <T en={opt.en} bn={opt.bn} />
-                </Chip>
-              ))}
+            <div className="wl-tools">
+              <p className="wl-hint">
+                <T
+                  en="Tap Details on any share to see more about it."
+                  bn="কোনো শেয়ারের আরও তথ্য দেখতে তার বিস্তারিত বোতামে চাপুন।"
+                />
+              </p>
+              <label htmlFor="wl-sort" className="sr-only">
+                <T en="Sort your shares" bn="শেয়ারগুলো সাজান" />
+              </label>
+              <select
+                id="wl-sort"
+                className="wl-sort"
+                value={sortKey}
+                onChange={(e) => setSort(e.target.value as SortKey)}
+              >
+                {SORT_OPTIONS.map((o) => {
+                  const locked = o.premium && !premiumOpen;
+                  const label = lang === "bn" ? `সাজানো: ${o.bn}` : `Sort: ${o.en}`;
+                  const tag = locked ? (lang === "bn" ? " · প্রিমিয়াম" : " · Premium") : "";
+                  return (
+                    <option key={o.key} value={o.key} disabled={locked}>
+                      {`${label}${tag}`}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
-            <Card padding="none" className="wl-list">
-              <table className="wl-table">
-                <thead>
-                  <tr>
-                    <th scope="col"><T en="Company" bn="কোম্পানি" /></th>
-                    <th scope="col" className="wl-num"><T en="Price" bn="দাম" /></th>
-                    <th scope="col" className="wl-num"><T en="Today" bn="আজ" /></th>
-                    <th scope="col" className="wl-num"><T en="Since added" bn="যোগ করার পর" /></th>
-                    <th scope="col" className="wl-num"><T en="Profit growth" bn="মুনাফা বৃদ্ধি" /></th>
-                    <th scope="col" className="wl-num"><T en="Yield" bn="ইল্ড" /></th>
-                    <th scope="col"><T en="Yearly range" bn="বছরের সীমা" /></th>
-                    <th scope="col">
-                      <span className="sr-only">
-                        <T en="Alert and remove" bn="অ্যালার্ট ও সরানো" />
-                      </span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((it) => {
-                    const code = it.trading_code.toUpperCase();
-                    return (
-                      <EnrichedRow
-                        key={code}
-                        item={it}
-                        extreme={extremes.get(code) ?? null}
-                        hasDividendSoon={dividends.has(code)}
-                        meta={meta[code] ?? null}
-                        onRemove={handleRemove}
-                      />
-                    );
-                  })}
-                </tbody>
-              </table>
-              {missing > 0 && (
-                <p className="wl-missing">
-                  <T
-                    en={`${missing} ${missing === 1 ? "code is" : "codes are"} not in today's scores. ${missing === 1 ? "It may have been" : "They may have been"} delisted, or not rated yet.`}
-                    bn={`${missing}টি কোড আজকের স্কোরে নেই। হয়তো তালিকা থেকে বাদ পড়েছে, বা এখনো রেটিং হয়নি।`}
-                  />
-                </p>
-              )}
-            </Card>
+            <WatchTable
+              rows={rows}
+              glanceLoading={glanceLoading}
+              onRemove={handleRemove}
+              footer={
+                missing > 0 && (
+                  <p className="wl-missing">
+                    <T
+                      en={`${missing} ${missing === 1 ? "code is" : "codes are"} not in today's scores. ${missing === 1 ? "It may have been" : "They may have been"} delisted, or not rated yet.`}
+                      bn={`${missing}টি কোড আজকের স্কোরে নেই। হয়তো তালিকা থেকে বাদ পড়েছে, বা এখনো রেটিং হয়নি।`}
+                    />
+                  </p>
+                )
+              }
+            />
           </>
         )}
       </section>
-
-      {ready && !isPremium && (
-        <div className="wl-section">
-          <GlanceBoard codes={codes} />
-        </div>
-      )}
 
       {ready && (
         <WatchlistAnalysis

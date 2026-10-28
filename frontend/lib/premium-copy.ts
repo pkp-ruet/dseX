@@ -231,12 +231,12 @@ export const ROWS: { what: Bi; free: Bi; premium: Bi }[] = [
   {
     what: { en: "Watchlist", bn: "ওয়াচলিস্ট" },
     free: {
-      en: "10 shares, and how many of them trade under fair value, have a record date soon, or carry a risk flag.",
-      bn: "10টি শেয়ার, আর এর কতগুলো ন্যায্য দামের নিচে, কতগুলোর রেকর্ড ডেট কাছে, বা কতগুলোতে ঝুঁকির সতর্কতা আছে।",
+      en: "10 shares with their price, grade and move since you followed, and how many trade under fair value, have a record date soon, or carry a watch-out.",
+      bn: "10টি শেয়ার, তাদের দাম, গ্রেড আর অনুসরণের পর কতটা বদলেছে, আর এর কতগুলো ন্যায্য দামের নিচে, কতগুলোর রেকর্ড ডেট কাছে, বা কতগুলোতে সতর্কতা আছে।",
     },
     premium: {
-      en: "No limit, and one board with each share's price against its fair value, what stops a Buy, its next record date or AGM, and its risk flags.",
-      bn: "কোনো সীমা নেই, আর এক বোর্ডে প্রতিটি শেয়ারের দাম বনাম ন্যায্য দাম, কেনার পথে কী বাধা, পরের রেকর্ড ডেট বা এজিএম, আর ঝুঁকির সতর্কতা।",
+      en: "No limit, and our read in every row: the price against fair value, whether it is a Buy today and at what price, the next record date or AGM, and every watch-out.",
+      bn: "কোনো সীমা নেই, আর প্রতিটি সারিতে আমাদের বিশ্লেষণ: দাম বনাম ন্যায্য দাম, আজ কেনা যায় কি না ও কোন দামে, পরের রেকর্ড ডেট বা এজিএম, আর সব সতর্কতা।",
     },
   },
   {

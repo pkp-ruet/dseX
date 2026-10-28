@@ -49,14 +49,14 @@ export default function PriceAlertTip() {
           <T
             en={
               <>
-                Tap <b className="text-text-main">Alert</b> on any share to set a target price. We will watch it and
-                tell you on the day it is reached.
+                Open any share in your list and tap <b className="text-text-main">Alert</b> to set a target price. We
+                will watch it and tell you on the day it is reached.
               </>
             }
             bn={
               <>
-                যেকোনো শেয়ারে <b className="text-text-main">অ্যালার্ট</b> চেপে একটি দাম ঠিক করুন। শেয়ারটি সেই দামে
-                পৌঁছালে আমরা আপনাকে জানাব।
+                তালিকার যেকোনো শেয়ার খুলে <b className="text-text-main">অ্যালার্ট</b> চেপে একটি দাম ঠিক করুন। শেয়ারটি
+                সেই দামে পৌঁছালে আমরা আপনাকে জানাব।
               </>
             }
           />

@@ -2951,6 +2951,9 @@ export interface GlanceRow {
   price: number | null;
   change_pct: number | null;
   score: number | null;
+  /** The yearly high / low (optional: older backends don't send them). */
+  hi52?: number | null;
+  lo52?: number | null;
   fair: {
     low: number | null;
     high: number | null;

@@ -49,3 +49,4 @@ def test_unscored_row_has_no_risks_and_keeps_the_signal_reason():
                      sig, None, [], [], [])
     assert row["name"] == "New Co" and row["price"] == 12.0 and row["risks"] == []
     assert row["fair"] is None and row["signal"]["reason_key"] == "not_rated"
+    assert row["hi52"] is None and row["lo52"] is None

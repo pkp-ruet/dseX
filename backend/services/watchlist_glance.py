@@ -158,6 +158,9 @@ def glance_row(code: str, f: Optional[dict], comp: dict, price: dict, sig: dict,
         "price": ltp,
         "change_pct": _n(price.get("change_pct")),
         "score": _n(f.get("score")),
+        # The yearly range (free on the watchlist): where today's price sits.
+        "hi52": _n(f.get("hi52")),
+        "lo52": _n(f.get("lo52")),
         "fair": fair_block(fv, ltp),
         "signal": {
             "signal": sig.get("signal") or "none",
