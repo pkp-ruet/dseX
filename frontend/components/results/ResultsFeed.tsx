@@ -160,8 +160,8 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
           title={<T en="None of your stocks has a report here" bn="আপনার কোনো শেয়ারের প্রতিবেদন এখানে নেই" />}
           message={
             <T
-              en="When a company you own or follow posts its quarterly results, it shows here."
-              bn="আপনার কেনা বা অনুসরণ করা কোনো কোম্পানি প্রান্তিকের ফল প্রকাশ করলে তা এখানে দেখাবে।"
+              en="When a company you own or follow posts its results, it shows here."
+              bn="আপনার কেনা বা অনুসরণ করা কোনো কোম্পানি আর্থিক ফল প্রকাশ করলে তা এখানে দেখাবে।"
             />
           }
           actions={[
@@ -223,8 +223,8 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
                   bn: `আরও ${lockedAll.length}টি ফলের কোম্পানিগুলো দেখুন`,
                 }}
                 sub={{
-                  en: "Premium shows every company's latest quarterly results, newest first, with the Better, Mixed, Weaker and My stocks filters.",
-                  bn: "প্রিমিয়ামে প্রতিটি কোম্পানির সর্বশেষ প্রান্তিকের ফল, নতুনটি আগে, সঙ্গে ভালো, মিশ্র, দুর্বল আর আমার শেয়ার বাছাই।",
+                  en: "Premium shows every company's latest results, newest first, with the Better, Mixed, Weaker and My stocks filters.",
+                  bn: "প্রিমিয়ামে প্রতিটি কোম্পানির সর্বশেষ আর্থিক ফল, নতুনটি আগে, সঙ্গে ভালো, মিশ্র, দুর্বল আর আমার শেয়ার বাছাই।",
                 }}
                 tiles={lockTiles}
                 codes={lockedAll.map((r) => r.code)}
@@ -298,8 +298,8 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
 
       <p className="rs-key">
         <T
-          en="EPS is profit per share for the months the report covers (3, 6 or 9), next to the same months a year ago. The big figure is how much it changed. Tap a company for the full read."
-          bn="ইপিএস মানে প্রতিবেদনের সময়ের (3, 6 বা 9 মাস) শেয়ারপ্রতি মুনাফা, পাশে এক বছর আগের একই সময়ের হিসাব। বড় সংখ্যাটি দেখায় কতটা বদলেছে। পুরো ব্যাখ্যা দেখতে কোম্পানিতে চাপ দিন।"
+          en="EPS is profit per share for the months the report covers (3, 6 or 9, or the full year), next to the same months a year ago. The big figure is how much it changed. Tap a company for the full read."
+          bn="ইপিএস মানে প্রতিবেদনের সময়ের (3, 6 বা 9 মাস, অথবা পুরো বছর) শেয়ারপ্রতি মুনাফা, পাশে এক বছর আগের একই সময়ের হিসাব। বড় সংখ্যাটি দেখায় কতটা বদলেছে। পুরো ব্যাখ্যা দেখতে কোম্পানিতে চাপ দিন।"
         />
       </p>
 

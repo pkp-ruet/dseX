@@ -162,6 +162,25 @@ def cmd_compute_scores(_args):
         print(f"Warning: market snapshot store failed: {e}")
 
     _snapshot_research_lists()
+    _snapshot_stock_reports()
+
+
+def _snapshot_stock_reports():
+    """Store today's stock-report snapshot per scored company (scorecard words,
+    red / amber counts, fair middle) — the watcher's red-flag push reads the
+    newest two. Best-effort — a failure here never fails the score job."""
+    try:
+        from backend.services.stock_report_service import store_snapshots
+        res = store_snapshots()
+        print(f"  Stored stock-report snapshots for {res['date']} "
+              f"({res['stored']} companies, {res['failed']} failed, {res['seconds']}s).")
+    except Exception as e:
+        print(f"  Warning: stock-report snapshot failed: {e}")
+
+
+def cmd_snapshot_stock_reports(_args):
+    """Store today's stock-report snapshots (also run by compute-scores and scrape-all)."""
+    _snapshot_stock_reports()
 
 
 def _snapshot_research_lists():
@@ -493,6 +512,9 @@ def cmd_scrape_all(args):
     print("=== Post-scrape: Snapshotting research lists ===")
     _snapshot_research_lists()
 
+    print("=== Post-scrape: Snapshotting stock reports ===")
+    _snapshot_stock_reports()
+
     # Persist today's Buy/Sell signals (one row per company per day) so the
     # signal backtest gets a growing, exact history. Best-effort.
     print("=== Post-scrape: Snapshotting Buy/Sell signals ===")
@@ -624,6 +646,11 @@ def main():
     )
 
     sub.add_parser(
+        "snapshot-stock-reports",
+        help="Store today's stock-report snapshot per company (scorecard words, red flags)",
+    )
+
+    sub.add_parser(
         "snapshot-signals",
         help="Persist today's Buy/Sell signal per company to signal_snapshots (backtest history)",
     )
@@ -714,6 +741,7 @@ def main():
         "compute-scores":        cmd_compute_scores,
         "snapshot-signals":      cmd_snapshot_signals,
         "snapshot-research-lists": cmd_snapshot_research_lists,
+        "snapshot-stock-reports": cmd_snapshot_stock_reports,
         "notify-digest":         cmd_notify_digest,
         "notify-events":         cmd_notify_events,
         "notify-price-alerts":   cmd_notify_price_alerts,

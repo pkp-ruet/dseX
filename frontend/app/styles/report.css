@@ -1,0 +1,372 @@
+/* ===================================================================
+   The stock report (components/stock/report/*, 2026-10-28). The stock page
+   reads as a dated research report: a cover + an eight-check scorecard,
+   then one card per section in the same anatomy (question · verdict chip ·
+   free facts · the answer · what it means · what to watch · source), one
+   offer, and the data room. Tokens only; colour only for meaning, gold only
+   on Premium marks.
+   =================================================================== */
+
+/* ---- Cover ---------------------------------------------------------- */
+.rp-dateline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.rp-dateline::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--positive);
+  flex: none;
+}
+
+/* ---- Rumour-rally banner (free) ------------------------------------- */
+.rp-rally {
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  border: 1px solid rgb(var(--watch-rgb) / 0.4);
+  background: rgb(var(--watch-rgb) / 0.07);
+}
+.rp-rally[data-level="red"] {
+  border-color: rgb(var(--negative-rgb) / 0.4);
+  background: rgb(var(--negative-rgb) / 0.06);
+}
+
+/* ---- Scorecard ------------------------------------------------------ */
+.rp-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+@media (min-width: 640px) {
+  .rp-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.rp-tile {
+  display: block;
+  min-height: 68px;
+  padding: var(--space-3) var(--space-3);
+  background: var(--surface);
+  color: inherit;
+  text-decoration: none;
+}
+.rp-tile:hover { background: rgb(var(--bg-rgb)); }
+.rp-tile:active { background: var(--surface-2); }
+.rp-word {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  font-weight: 700;
+}
+.rp-word::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+/* Tone colours — one meaning each. */
+.rp-tone-good { color: var(--positive); }
+.rp-tone-fair { color: var(--watch); }
+.rp-tone-bad { color: var(--negative); }
+.rp-tone-neutral { color: var(--text-muted); }
+
+.rp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  padding: 3px 10px 3px 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.rp-chip::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ---- One line in gold: what Premium holds ---------------------------- */
+.rp-inside {
+  margin-top: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  border: 1px solid rgb(var(--gold-rgb) / 0.5);
+  background: rgb(var(--gold-rgb) / 0.1);
+}
+.rp-inside ul { list-style: none; margin: var(--space-2) 0 0; padding: 0; display: grid; gap: var(--space-2); }
+.rp-inside li { display: flex; gap: var(--space-2); }
+.rp-inside li > svg { flex: none; margin-top: 3px; color: var(--gold-ink); }
+
+/* ---- Report ---------------------------------------------------------- */
+.rp-report { display: grid; gap: var(--space-4); }
+@media (min-width: 640px) {
+  .rp-report { gap: var(--space-6); }
+}
+.rp-sec { padding: var(--space-4); }
+@media (min-width: 640px) {
+  .rp-sec { padding: var(--space-6); }
+}
+.rp-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.rp-n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--surface-2);
+}
+.rp-note {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.rp-source {
+  margin-top: var(--space-4);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border);
+}
+
+/* Hairline grid of facts */
+.rp-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: var(--space-3);
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+@media (min-width: 640px) {
+  .rp-facts[data-cols="4"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .rp-facts[data-cols="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.rp-facts > div { background: var(--surface); padding: var(--space-3); min-width: 0; }
+
+/* Plain list rows split by dashed hairlines */
+.rp-rows { list-style: none; margin: var(--space-3) 0 0; padding: 0; }
+.rp-rows > li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px dashed var(--border);
+}
+.rp-rows > li:last-child { border-bottom: 0; }
+
+/* ---- Bars (cash per ৳100, dividend history, ten-year story) ---------- */
+.rp-bars {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 132px;
+  margin-top: var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+.rp-bars > .rp-col {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+}
+.rp-bar { width: 100%; max-width: 44px; border-radius: 4px 4px 0 0; background: var(--text); }
+.rp-bar[data-tone="good"] { background: var(--positive); }
+.rp-bar[data-tone="fair"] { background: var(--watch); }
+.rp-bar[data-tone="bad"] { background: var(--negative); }
+.rp-bar[data-tone="last"] { background: rgb(var(--text-muted-rgb) / 0.35); }
+.rp-ref {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1.5px dashed var(--info);
+  pointer-events: none;
+}
+.rp-ref > span {
+  position: absolute;
+  left: 0;
+  top: -20px;
+  padding-right: 4px;
+  background: var(--surface);
+  color: var(--info);
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+}
+.rp-xl { display: flex; gap: 6px; margin-top: 4px; }
+.rp-xl > span { flex: 1; min-width: 0; text-align: center; }
+
+/* Grouped quarter bars */
+.rp-qbars {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-4);
+  height: 140px;
+  margin-top: var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+.rp-qbars > .rp-grp { flex: 1; min-width: 0; height: 100%; display: flex; align-items: flex-end; gap: 4px; }
+.rp-qbars .rp-col { flex: 1; min-width: 0; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
+
+/* ---- Fair value strip ----------------------------------------------- */
+.rp-strip { position: relative; height: 64px; margin-top: var(--space-6); }
+.rp-strip-axis { position: absolute; left: 0; right: 0; top: 24px; height: 8px; border-radius: 999px; background: var(--surface-2); }
+.rp-strip-range { position: absolute; top: 24px; height: 8px; border-radius: 999px; background: rgb(var(--positive-rgb) / 0.3); }
+.rp-strip-dot {
+  position: absolute;
+  top: 22px;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--info);
+}
+.rp-strip-today { position: absolute; top: 14px; width: 2px; height: 26px; margin-left: -1px; background: var(--text); }
+.rp-strip-tl { position: absolute; top: -6px; white-space: nowrap; }
+.rp-strip-rl { position: absolute; top: 44px; white-space: nowrap; transform: translateX(-50%); }
+
+/* ---- Red-flag checks ------------------------------------------------- */
+.rp-checks { list-style: none; margin: var(--space-3) 0 0; padding: 0; display: grid; gap: var(--space-2); }
+.rp-check { display: flex; gap: var(--space-2); }
+.rp-check-dot { flex: none; width: 8px; height: 8px; margin-top: 7px; border-radius: 50%; }
+.rp-check[data-level="red"] .rp-check-dot { background: var(--negative); }
+.rp-check[data-level="amber"] .rp-check-dot { background: var(--watch); }
+.rp-passed { list-style: none; margin: var(--space-2) 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px var(--space-3); }
+.rp-passed > li { display: flex; gap: 6px; min-width: 0; }
+.rp-passed > li > svg { flex: none; margin-top: 3px; color: var(--positive); }
+
+/* ---- Owners ---------------------------------------------------------- */
+.rp-own { display: flex; height: 12px; margin-top: var(--space-3); border-radius: 999px; overflow: hidden; background: var(--surface-2); }
+.rp-own > span { display: block; height: 100%; }
+.rp-own-sponsor { background: var(--navy); }
+.rp-own-institute { background: var(--info); }
+.rp-own-foreign { background: var(--primary); }
+.rp-own-govt { background: var(--gold); }
+.rp-own-public { background: rgb(var(--text-muted-rgb) / 0.3); }
+.rp-own-key { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px var(--space-3); margin-top: var(--space-2); }
+.rp-own-key i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+.rp-timeline { list-style: none; margin: var(--space-3) 0 0; padding: 0 0 0 var(--space-4); border-left: 2px solid var(--border); display: grid; gap: var(--space-3); }
+.rp-timeline > li { position: relative; }
+.rp-timeline > li::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--space-4) - 6px);
+  top: 5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+  background: var(--positive);
+}
+.rp-timeline > li[data-side="sell"]::before { background: var(--negative); }
+
+/* ---- The offer ------------------------------------------------------- */
+.rp-offer {
+  padding: var(--space-6);
+  border: 1px solid rgb(var(--gold-rgb) / 0.55);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+@media (max-width: 479px) {
+  .rp-offer { padding: var(--space-6) var(--space-4); }
+}
+
+/* ---- Data room tabs -------------------------------------------------- */
+.rp-room-panel[data-active="false"] { display: none; }
+
+/* ---- Free sample of a locked section (2026-10-28/29) ------------------
+   The sample sits in the section like any content (no box); every hidden
+   figure is a gold pill that keeps its unit, like a hidden bKash balance. */
+.rp-preview { margin-top: var(--space-4); }
+.rp-preview-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: var(--space-2);
+  color: var(--gold-ink);
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+}
+.rp-hidden {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgb(var(--gold-rgb) / 0.16);
+  color: var(--gold-ink);
+  font-weight: 700;
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  vertical-align: baseline;
+}
+.rp-hidden > svg { flex: none; }
+.rp-hidden[data-size="xs"] { padding: 0 6px; font-size: var(--fs-2xs); }
+.rp-hidden[data-size="lg"] { padding: 2px 10px; font-size: var(--fs-base); }
+.rp-more {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--space-2);
+  color: var(--gold-ink);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+.rp-tags { display: inline-flex; gap: 3px; vertical-align: middle; margin-left: 6px; }
+.rp-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--surface);
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  line-height: 1;
+}
+.rp-inside li > .rp-tag { flex: none; margin-top: 1px; }
+.rp-ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}

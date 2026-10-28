@@ -313,6 +313,20 @@ def get_company_detail(code: str):
     except Exception:
         results_explained = None
 
+    # The stock report (services/stock_report.py) — best-effort like the rest:
+    # it reuses everything loaded above and never breaks the response.
+    report = None
+    try:
+        from backend.services.stock_report_service import build_report
+        report = build_report(
+            trading_code, company=company, score_row=score_row, financials=financials,
+            extended_financials=ext_financials, holdings=holdings, prices=price_history,
+            news=load_company_news(trading_code, limit=200), flags=flags, momentum=momentum_dict,
+            score_history=score_history, latest=latest,
+        )
+    except Exception:
+        report = None
+
     return CompanyDetailResponse(
         profile=CompanyProfile(
             trading_code=trading_code,
@@ -364,6 +378,7 @@ def get_company_detail(code: str):
         peer_note=peer_note_model,
         score_history=score_history,
         results_explained=results_explained,
+        report=report,
     )
 
 

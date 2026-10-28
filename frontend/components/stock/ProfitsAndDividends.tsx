@@ -112,6 +112,13 @@ export default function ProfitsAndDividends({ financials, extFinancials, declara
 
   if (!hasProfit && !hasEps && !hasDividend) return null;
 
+  // A year newer than DSE's audited table, read from the company's own results
+  // notice (backend notices.provisional_fin_row, 2026-10-28).
+  const provisional = financials
+    .map((r) => r as Record<string, unknown>)
+    .filter((r) => r.provisional === true)
+    .map((r) => String(r.year));
+
   return (
     <section className="mb-8">
       <SectionTitle
@@ -123,6 +130,15 @@ export default function ProfitsAndDividends({ financials, extFinancials, declara
           />
         }
       />
+
+      {provisional.length > 0 && (
+        <p className="mb-3 text-xs text-text-muted">
+          <T
+            en={`${provisional.join(", ")} figures come from the company's results notice. DSE's audited table hasn't added that year yet.`}
+            bn={`${provisional.join(", ")} সালের সংখ্যা কোম্পানির ফল প্রকাশের নোটিশ থেকে নেওয়া। ডিএসই-র নিরীক্ষিত টেবিলে সেই বছর এখনো যোগ হয়নি।`}
+          />
+        </p>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {hasProfit && (

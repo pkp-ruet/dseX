@@ -235,7 +235,7 @@ export default function FullVerdict({ detail }: { detail: CompanyDetail }) {
       locked: false,
       body: (
         <Link
-          href={`/stock/${code}/analysis`}
+          href={`/stock/${code}#note`}
           className="flex items-start gap-3 rounded-lg bg-surface-2 p-4 hover:opacity-90 active:opacity-70"
         >
           <span className="mt-0.5 inline-flex shrink-0 text-primary-ink" aria-hidden="true"><IconChartBars size={18} /></span>

@@ -42,7 +42,7 @@ function StatusGlyph({ kind }: { kind: "check" | "dash" | "bang" }) {
 }
 
 /** Short pillar names for the at-a-glance bars. */
-const PILLAR_NAMES: Record<string, { en: string; bn: string }> = {
+export const PILLAR_NAMES: Record<string, { en: string; bn: string }> = {
   p1_biz:    { en: "Profit",           bn: "মুনাফা" },
   p2_health: { en: "Finances",         bn: "আর্থিক অবস্থা" },
   p3_moat:   { en: "Business",         bn: "ব্যবসার শক্তি" },

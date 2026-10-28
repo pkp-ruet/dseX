@@ -2,7 +2,6 @@ import type { MetadataRoute } from "next";
 import {
   flattenTiers,
   getAllCodes,
-  getDeepAnalysisCodes,
   getMarketIndex,
   getScores,
   getSectorSlugs,
@@ -32,10 +31,9 @@ type Freq = NonNullable<Entry["changeFrequency"]>;
  * pages without a DSEF score (mutual funds, bonds) are `noindex` too.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [scores, allCodes, analysisCodes, sectorSlugs, marketIndex] = await Promise.all([
+  const [scores, allCodes, sectorSlugs, marketIndex] = await Promise.all([
     getScores().catch(() => null),
     getAllCodes().catch(() => [] as string[]),
-    getDeepAnalysisCodes().catch(() => [] as string[]),
     getSectorSlugs().catch(() => [] as string[]),
     getMarketIndex().catch(() => null),
   ]);
@@ -69,8 +67,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const sectorPages = sectorSlugs.map((slug) => data(`/sector/${slug}`, "daily", 0.8));
   const stockPages = stockCodes.map((code) => data(`/stock/${code}`, "daily", 0.8));
-  // In-depth analysis sub-pages — only codes that actually have a report.
-  const analysisPages = analysisCodes.map((code) => content(`/stock/${code}/analysis`, "weekly", 0.75));
+  // The in-depth analysis sub-pages folded into the stock page (2026-10-28,
+  // the report's analyst note); their URLs 301 there (next.config.ts).
   const guidePages = GUIDES.map((g) => content(`/learn/${g.slug}`, "monthly", 0.7));
   const blogPages = BLOG_POSTS.map((p) => content(`/blog/${p.slug}`, "monthly", 0.7));
   const stockListPages = STOCK_LISTS.map((l) => data(`/stock-insights/${l.slug}`, "daily", 0.8));
@@ -109,6 +107,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...guidePages,
     ...blogPages,
     ...stockPages,
-    ...analysisPages,
   ];
 }

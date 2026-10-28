@@ -15,15 +15,17 @@ export const revalidate = 900;
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 const PATH = "/results";
 const YEAR = new Date().getFullYear();
-const TITLE = "DSE Quarterly Results — Latest EPS of Every Company";
+const TITLE = "DSE Quarterly and Yearly Results — Latest EPS of Every Company";
 const DESCRIPTION =
-  "Every Dhaka Stock Exchange company's latest quarterly results (Q1, Q2, Q3), newest first: earnings per share against the same months last year, in plain words.";
+  "Every Dhaka Stock Exchange company's latest results, a quarter (Q1, Q2, Q3) or the full year, newest first: earnings per share against the same months last year, in plain words.";
 
 export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
   keywords: [
     "DSE quarterly results",
+    "DSE yearly results",
+    `DSE annual results ${YEAR}`,
     `DSE Q3 results ${YEAR}`,
     `DSE Q1 results ${YEAR}`,
     "DSE EPS",
@@ -99,11 +101,11 @@ export default async function ResultsPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <PageHeader
         eyebrow={<T en="Dhaka Stock Exchange" bn="ঢাকা স্টক এক্সচেঞ্জ" />}
-        title={<T en="Latest quarterly results" bn="সর্বশেষ প্রান্তিকের ফল" />}
+        title={<T en="Latest results" bn="সর্বশেষ আর্থিক ফল" />}
         lead={
           <T
-            en={`Each company's latest quarterly report, newest first, with profit per share against the same months last year. ${rows.length} companies have reported${data.as_of ? `, and the latest came out on ${formatDate(data.as_of)}` : ""}.`}
-            bn={`প্রতিটি কোম্পানির সর্বশেষ প্রান্তিকের প্রতিবেদন, নতুনগুলো আগে, গত বছরের একই সময়ের শেয়ারপ্রতি মুনাফার পাশে। ${rows.length}টি কোম্পানি প্রতিবেদন দিয়েছে${data.as_of ? `, সর্বশেষটি এসেছে ${bnDate(data.as_of)}` : ""}।`}
+            en={`Each company's latest report, a quarter or the full year, newest first, with profit per share against the same months last year. ${rows.length} companies have reported${data.as_of ? `, and the latest came out on ${formatDate(data.as_of)}` : ""}.`}
+            bn={`প্রতিটি কোম্পানির সর্বশেষ প্রতিবেদন, একটি প্রান্তিক বা পুরো বছর, নতুনগুলো আগে, গত বছরের একই সময়ের শেয়ারপ্রতি মুনাফার পাশে। ${rows.length}টি কোম্পানি প্রতিবেদন দিয়েছে${data.as_of ? `, সর্বশেষটি এসেছে ${bnDate(data.as_of)}` : ""}।`}
           />
         }
       />
@@ -123,10 +125,11 @@ export default async function ResultsPage() {
           <>
             &ldquo;Better&rdquo; means profit per share is up 10% or more on the same months last year (or the company is
             back to a profit); &ldquo;weaker&rdquo; means a loss, or profit down by a quarter or more; &ldquo;mixed&rdquo;
-            means profit is down 10% to 25%, or up but the cash didn&apos;t come in, or the latest quarter slowed down. A report stays here until the
-            company&apos;s audited yearly accounts for that year come out. Tap a company for the full read: the latest
-            quarter on its own, cash from the business, what the price costs on the last 12 months&apos; profit, and
-            how our score moved.
+            means profit is down 10% to 25%, or up but the cash didn&apos;t come in, or the latest quarter slowed down. When a
+            company posts its full year (the figures come with its dividend notice), the year takes the place of its
+            nine-month report, with the fourth quarter worked out on its own; each report stays until a newer one
+            comes. Tap a company for the full read: the latest quarter on its own, cash from the business, what the
+            price costs on the last 12 months&apos; profit, and how our score moved.
           </>,
           <>
             One quarter is not a verdict. Quarterly figures are not audited, and a one-off gain or loss can swing
@@ -145,8 +148,9 @@ export default async function ResultsPage() {
             &ldquo;ভালো&rdquo; মানে গত বছরের একই সময়ের চেয়ে শেয়ারপ্রতি মুনাফা 10% বা তার বেশি বেড়েছে, অথবা কোম্পানি
             আবার মুনাফায় ফিরেছে। &ldquo;দুর্বল&rdquo; মানে লোকসান হয়েছে, অথবা মুনাফা এক-চতুর্থাংশ বা তার বেশি কমেছে।
             &ldquo;মিশ্র&rdquo; মানে মুনাফা 10% থেকে 25% কমেছে, অথবা বেড়েছে কিন্তু নগদ টাকা আসেনি, অথবা সর্বশেষ প্রান্তিকে
-            গতি কমেছে। কোম্পানির সেই বছরের নিরীক্ষিত
-            বার্ষিক হিসাব প্রকাশ না হওয়া পর্যন্ত প্রতিবেদনটি এখানে থাকে। পুরো ব্যাখ্যা দেখতে কোম্পানিতে চাপ দিন:
+            গতি কমেছে। কোম্পানি পুরো বছরের ফল দিলে (ডিভিডেন্ডের নোটিশের সঙ্গে আসে) নয় মাসের প্রতিবেদনের জায়গায়
+            বছরটি দেখানো হয়, আর চতুর্থ প্রান্তিক আলাদা করে হিসাব করা হয়; নতুন প্রতিবেদন না আসা পর্যন্ত প্রতিটি
+            এখানে থাকে। পুরো ব্যাখ্যা দেখতে কোম্পানিতে চাপ দিন:
             শুধু সর্বশেষ প্রান্তিক, ব্যবসা থেকে আসা নগদ টাকা, গত 12 মাসের মুনাফায় দাম কত, আর আমাদের স্কোর কীভাবে
             বদলেছে।
           </>,
@@ -159,9 +163,9 @@ export default async function ResultsPage() {
         faq={[
           {
             q: "When do DSE companies post quarterly results?",
-            a: "Usually within one to two months of each quarter's end: Q1 (the first three months), Q2 (the half year) and Q3 (nine months). There is no Q4 post, because the fourth quarter is part of the audited yearly accounts.",
+            a: "Usually within one to two months of each quarter's end: Q1 (the first three months), Q2 (the half year) and Q3 (nine months). There is no Q4 post: the full year comes with the dividend notice and the audited yearly accounts. We show that full year here too, with the fourth quarter worked out on its own.",
             qBn: "ডিএসইর কোম্পানিগুলো কখন প্রান্তিকের ফল প্রকাশ করে?",
-            aBn: "সাধারণত প্রতিটি প্রান্তিক শেষ হওয়ার এক থেকে দুই মাসের মধ্যে: প্রথম প্রান্তিক (প্রথম তিন মাস), দ্বিতীয় প্রান্তিক (অর্ধবছর) আর তৃতীয় প্রান্তিক (নয় মাস)। চতুর্থ প্রান্তিকের আলাদা প্রতিবেদন নেই, কারণ সেটি নিরীক্ষিত বার্ষিক হিসাবের অংশ।",
+            aBn: "সাধারণত প্রতিটি প্রান্তিক শেষ হওয়ার এক থেকে দুই মাসের মধ্যে: প্রথম প্রান্তিক (প্রথম তিন মাস), দ্বিতীয় প্রান্তিক (অর্ধবছর) আর তৃতীয় প্রান্তিক (নয় মাস)। চতুর্থ প্রান্তিকের আলাদা প্রতিবেদন নেই: পুরো বছরের ফল আসে ডিভিডেন্ডের নোটিশ আর নিরীক্ষিত বার্ষিক হিসাবের সঙ্গে। সেই বছরটিও আমরা এখানে দেখাই, চতুর্থ প্রান্তিক আলাদা করে হিসাব করে।",
           },
           {
             q: "What does EPS mean?",

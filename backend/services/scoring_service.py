@@ -1188,6 +1188,27 @@ def _compute_scores_df(
     if not fin_docs:
         return pd.DataFrame()
 
+    # A full year the company has reported in its dividend notice but DSE's
+    # audited table doesn't carry yet becomes a provisional row (notices.py), so
+    # the score moves on results day rather than weeks later. Skipped in
+    # backtests: news posts carry no fiscal-year filter.
+    if fin_max_year is None:
+        try:
+            from backend.services.notices import load_annual_results, load_ledger_cash, provisional_fin_row
+            audited_by_code: dict[str, list[dict]] = {}
+            for d in fin_docs:
+                audited_by_code.setdefault(d["trading_code"], []).append(d)
+            ledger_cash = load_ledger_cash()
+            for code, annual in load_annual_results().items():
+                if code in excluded_codes or code not in companies:
+                    continue
+                prow = provisional_fin_row(annual, audited_by_code.get(code, []),
+                                           (ledger_cash.get(code) or {}).get(annual["fy"]))
+                if prow:
+                    fin_docs.append({"trading_code": code, **prow})
+        except Exception as e:  # noqa: BLE001 — the notice refines, never blocks
+            logger.warning("provisional yearly figures unavailable for scoring: %s", e)
+
     fin_df = pd.DataFrame(fin_docs).sort_values(["trading_code", "year"])
     if fin_max_year is not None and "year" in fin_df.columns:
         fin_df = fin_df[fin_df["year"] <= fin_max_year]
@@ -1395,8 +1416,14 @@ def _compute_scores_df(
         eff_eps, eff_nav, eps_basis = _effective_eps_nav(code)
 
         p1, sub1 = _a2_pillar1(fin_rows, ext_last5, is_financial)
-        p2, sub2 = _a2_pillar2(ext_last5, is_financial, is_insurance,
-                               interim_nocfps=(ifacts or {}).get("nocfps_cum"))
+        # This year's operating cash per share: the latest quarter's, else the
+        # full year in a notice newer than the audited table (FEKDIL FY2026
+        # NOCFPS -3.40) — the same "burning cash now" cap either way.
+        latest_fin = fin_rows[-1] if fin_rows else {}
+        now_nocfps = (ifacts or {}).get("nocfps_cum")
+        if ifacts is None and latest_fin.get("provisional") is True and not _is_nanish(latest_fin.get("nocfps")):
+            now_nocfps = float(latest_fin["nocfps"])
+        p2, sub2 = _a2_pillar2(ext_last5, is_financial, is_insurance, interim_nocfps=now_nocfps)
         # Loan load from DSE's company page caps Financial Health for industrials
         # (see DEBT_OVER_* above) so "Strong money health" can't sit beside loans
         # bigger than the company's savings or its market value.

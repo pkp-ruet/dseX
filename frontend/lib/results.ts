@@ -34,8 +34,16 @@ export function epsTk(v: number): string {
   return `${v < 0 ? "−" : ""}৳${Math.abs(v).toFixed(2)}`;
 }
 
-/** "Q3 · 9 months" — which report this is. */
-export function quarterLabel(r: Pick<LatestResultRow, "quarter" | "months">): { en: string; bn: string } {
+/** "Q3 · 9 months", or "Full year · FY2026" — which report this is. */
+export function quarterLabel(
+  r: Pick<LatestResultRow, "quarter" | "months" | "period_end"> & { full_year?: boolean },
+): { en: string; bn: string } {
+  if (r.full_year || r.months === 12) {
+    const y = r.period_end ? r.period_end.slice(0, 4) : "";
+    return y
+      ? { en: `Full year · FY${y}`, bn: `পূর্ণ বছর · ${y} অর্থবছর` }
+      : { en: "Full year", bn: "পূর্ণ বছর" };
+  }
   const q = r.quarter ? `Q${r.quarter} · ` : "";
   return { en: `${q}${r.months} months`, bn: `${q}${r.months} মাস` };
 }

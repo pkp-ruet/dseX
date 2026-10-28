@@ -438,6 +438,16 @@ def load_financials(trading_code: str) -> list[dict]:
             d["eps"] = d["eps_basic"]
         else:
             d["eps"] = None
+    # A year the company has reported in its dividend notice but DSE's audited
+    # table doesn't carry yet: one provisional row (`provisional: True`,
+    # `source: "notice"`), so the page shows the new year on results day.
+    try:
+        from backend.services.notices import provisional_row_for
+        extra = provisional_row_for(trading_code, docs)
+    except Exception:  # noqa: BLE001 — the audited table stands on its own
+        extra = None
+    if extra:
+        docs.append({"trading_code": trading_code, **extra})
     return docs
 
 

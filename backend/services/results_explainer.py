@@ -1,8 +1,11 @@
 """
-Results day, explained — a company's latest quarterly report in plain words.
+Results day, explained — a company's latest report in plain words.
 
 DSE posts every Q1/Q2/Q3 result in one fixed template (parsed by
-``interim_service``). The bare post says "EPS was Tk. 2.10 … as against Tk.
+``interim_service``), and the full year in the dividend notice (parsed by
+``notices``, 2026-10-28). Whichever covers the later period is the company's
+latest result: a full year is read like a 12-month report, with the fourth
+quarter on its own worked out from the 9-month figure. The bare post says "EPS was Tk. 2.10 … as against Tk.
 1.80"; this module says what that means for someone holding the share:
 
     headline   "Q2 results: profit up 17% on last year"
@@ -69,8 +72,108 @@ def _period(interim: dict) -> tuple[str, str]:
     months = int(interim.get("months") or 3)
     if not isinstance(end, date):
         return f"{months} months", f"{months} মাস"
+    if months == 12:
+        return (f"the year to {_MONTH_ABBR[end.month]} {end.year}",
+                f"{_MONTH_BN[end.month]} {end.year}-এ শেষ হওয়া বছরে")
     return (f"the {months} months to {_MONTH_ABBR[end.month]} {end.year}",
             f"{_MONTH_BN[end.month]} {end.year} পর্যন্ত {months} মাসে")
+
+
+def _as_date(v) -> Optional[date]:
+    if isinstance(v, datetime):
+        return v.date()
+    if isinstance(v, date):
+        return v
+    if isinstance(v, str) and v:
+        try:
+            return date.fromisoformat(v[:10])
+        except ValueError:
+            return None
+    return None
+
+
+def full_year_result(annual: Optional[dict], interim: Optional[dict] = None) -> Optional[dict]:
+    """A yearly notice (``notices.parse_annual_results`` shape) as an
+    interim-shaped record (months 12, no quarter), so ``explain`` and the feed
+    read it like any report. When ``interim`` is the same year's 9-month report,
+    the fourth quarter on its own is the year minus those 9 months. None when
+    the notice lacks this year's or last year's EPS."""
+    if not annual:
+        return None
+    end = _as_date(annual.get("fy_end"))
+    cur, prev = _n(annual.get("eps")), _n(annual.get("eps_prev"))
+    if end is None or cur is None or prev is None:
+        return None
+    start = date(end.year if end.month == 12 else end.year - 1, end.month % 12 + 1, 1)
+    q = qp = None
+    if interim and int(interim.get("months") or 0) == 9:
+        i_start = _as_date(interim.get("period_start"))
+        i_end = _as_date(interim.get("period_end"))
+        same_year = i_start == start if i_start else (
+            i_end is not None and (end.year * 12 + end.month) - (i_end.year * 12 + i_end.month) == 3)
+        c9, p9 = _n(interim.get("eps_cum")), _n(interim.get("eps_cum_prev"))
+        if same_year and c9 is not None and p9 is not None:
+            q, qp = round(cur - c9, 2), round(prev - p9, 2)
+    return {
+        "quarter": None,
+        "months": 12,
+        "full_year": True,
+        "period_start": start,
+        "period_end": end,
+        "eps_cum": cur,
+        "eps_cum_prev": prev,
+        "eps_q": q,
+        "eps_q_prev": qp,
+        "nocfps_cum": _n(annual.get("nocfps")),
+        "nocfps_cum_prev": _n(annual.get("nocfps_prev")),
+        "nav": _n(annual.get("nav")),
+        "post_date": _as_date(annual.get("post_date")),
+    }
+
+
+def newest_result(interim: Optional[dict], annual: Optional[dict]) -> Optional[dict]:
+    """The company's latest result: the report covering the later period (a
+    full year beats the 9 months that end before it)."""
+    year = full_year_result(annual, interim)
+    if interim is None:
+        return year
+    if year is None:
+        return interim
+    key = lambda r: (_as_date(r.get("period_end")) or date.min, int(r.get("months") or 0))  # noqa: E731
+    return year if key(year) > key(interim) else interim
+
+
+def load_latest_results(codes=None) -> dict[str, dict]:
+    """{code: newest result} — the latest quarterly post or the yearly notice,
+    whichever is newer. Two cached reads."""
+    from backend.services.interim_service import load_interims
+    try:
+        from backend.services.notices import load_annual_results
+        annual = load_annual_results(list(codes) if codes is not None else None)
+    except Exception:  # noqa: BLE001 — quarters alone still make a feed
+        annual = {}
+    interims = load_interims(sorted(codes) if codes is not None else None)
+    out = {}
+    for code in set(interims) | set(annual):
+        rec = newest_result(interims.get(code), annual.get(code))
+        if rec:
+            out[code] = rec
+    return out
+
+
+def is_newest_word(rec: dict, row: Optional[dict]) -> bool:
+    """Is this result still the latest thing the company has reported? A
+    quarter counts while the score row carries it (no newer audited year); a
+    full year while DSE's audited table has no later year."""
+    row = row or {}
+    if rec.get("full_year"):
+        end = _as_date(rec.get("period_end"))
+        last = row.get("last_reported_year")
+        try:
+            return end is not None and (last is None or int(last) <= end.year)
+        except (TypeError, ValueError):
+            return end is not None
+    return bool(row.get("interim_label_en"))
 
 
 def _move_words(pct: Optional[float], cur: float, prev: float) -> tuple[str, str]:
@@ -90,7 +193,8 @@ def _move_words(pct: Optional[float], cur: float, prev: float) -> tuple[str, str
 
 def explain(interim: dict, row: Optional[dict] = None, score_before: Optional[float] = None,
             sector_class: str = "GENERAL") -> Optional[dict]:
-    """The explainer for one company's latest quarterly report.
+    """The explainer for one company's latest report (a quarter, or a full
+    year from ``full_year_result``).
 
     ``interim`` = an ``interim_service`` record (raw or ``interim_facts``
     shape — both carry eps_cum / eps_cum_prev / eps_q / eps_q_prev /
@@ -103,6 +207,7 @@ def explain(interim: dict, row: Optional[dict] = None, score_before: Optional[fl
         return None
     months = int(interim.get("months") or 3)
     quarter = interim.get("quarter")
+    full_year = months == 12
     per_en, per_bn = _period(interim)
     pct = pct_change(cur, prev)
     move_en, move_bn = _move_words(pct, cur, prev)
@@ -144,13 +249,31 @@ def explain(interim: dict, row: Optional[dict] = None, score_before: Optional[fl
         else:
             lines.append({
                 "key": "cash", "tone": "good" if cur > 0 and nocf >= cur * 0.8 else "neutral",
-                "en": f"Cash from the business so far: {_tk(nocf)} a share{prev_en}.",
-                "bn": f"এ পর্যন্ত ব্যবসা থেকে নগদ এসেছে শেয়ারপ্রতি {_tk(nocf)}{prev_bn}।",
+                "en": (f"Cash from the business over the year: {_tk(nocf)} a share{prev_en}." if full_year
+                       else f"Cash from the business so far: {_tk(nocf)} a share{prev_en}."),
+                "bn": (f"বছরজুড়ে ব্যবসা থেকে নগদ এসেছে শেয়ারপ্রতি {_tk(nocf)}{prev_bn}।" if full_year
+                       else f"এ পর্যন্ত ব্যবসা থেকে নগদ এসেছে শেয়ারপ্রতি {_tk(nocf)}{prev_bn}।"),
             })
 
     # What the price costs now, on the last 12 months' profit.
     ltp, eps, fy_eps = _n(row.get("ltp")), _n(row.get("eps")), _n(row.get("fy_eps"))
-    if ltp and eps is not None and row.get("eps_basis") == "ttm":
+    if full_year and ltp:
+        # A full year is its own last 12 months: the price against the year's profit.
+        if cur > 0:
+            lines.append({
+                "key": "price", "tone": "neutral",
+                "en": f"At today's price of ৳{ltp:,.1f}, the share costs {_x(ltp / cur)}× the year's profit"
+                      + (f" ({_x(ltp / prev)}× on the year before)." if prev > 0 else "."),
+                "bn": f"আজকের ৳{ltp:,.1f} দামে শেয়ারটির দাম বছরের মুনাফার {_x(ltp / cur)} গুণ"
+                      + (f" (আগের বছরের মুনাফায় {_x(ltp / prev)} গুণ)।" if prev > 0 else "।"),
+            })
+        else:
+            lines.append({
+                "key": "price", "tone": "bad",
+                "en": "It made a loss for the year, so the price cannot be compared with profit.",
+                "bn": "বছরে লোকসান হয়েছে, তাই মুনাফার সঙ্গে দাম তুলনা করা যায় না।",
+            })
+    elif ltp and eps is not None and row.get("eps_basis") == "ttm":
         if eps > 0:
             pe = ltp / eps
             fy_bit_en = fy_bit_bn = ""
@@ -190,8 +313,12 @@ def explain(interim: dict, row: Optional[dict] = None, score_before: Optional[fl
     # One sentence on what it means.
     if cur < 0:
         level = "bad"
-        m_en = "The company is making a loss this year. It is wise to be careful until profit returns."
-        m_bn = "এ বছর কোম্পানিটি লোকসানে আছে। মুনাফায় না ফেরা পর্যন্ত সাবধান থাকাই ভালো।"
+        if full_year:
+            m_en = "The company made a loss for the year. It is wise to be careful until profit returns."
+            m_bn = "বছরটিতে কোম্পানিটি লোকসান করেছে। মুনাফায় না ফেরা পর্যন্ত সাবধান থাকাই ভালো।"
+        else:
+            m_en = "The company is making a loss this year. It is wise to be careful until profit returns."
+            m_bn = "এ বছর কোম্পানিটি লোকসানে আছে। মুনাফায় না ফেরা পর্যন্ত সাবধান থাকাই ভালো।"
     elif pct is not None and pct <= BIG_DROP_PCT:
         level = "bad"
         m_en = "Profit fell by a quarter or more. Our Buy rules hold off on a share like this until profit recovers."
@@ -221,8 +348,12 @@ def explain(interim: dict, row: Optional[dict] = None, score_before: Optional[fl
             m_en += " The cash going out is the thing to watch."
             m_bn += " নগদ বেরিয়ে যাওয়ার দিকটি নজরে রাখার মতো।"
 
-    q_label = f"Q{quarter}" if quarter else f"{months}-month"
-    q_label_bn = f"Q{quarter}" if quarter else f"{months} মাসের"
+    end_d = _as_date(interim.get("period_end"))
+    if full_year and end_d:
+        q_label, q_label_bn = f"FY{end_d.year}", f"{end_d.year} অর্থবছরের"
+    else:
+        q_label = f"Q{quarter}" if quarter else f"{months}-month"
+        q_label_bn = f"Q{quarter}" if quarter else f"{months} মাসের"
     if move_en.startswith(("up", "down")):
         head_en, head_bn = f"profit {move_en} on last year", f"মুনাফা আগের বছরের চেয়ে {move_bn}"
     elif move_en == "about the same":
@@ -232,7 +363,7 @@ def explain(interim: dict, row: Optional[dict] = None, score_before: Optional[fl
     else:
         head_en, head_bn = move_en, move_bn
     return {
-        "quarter": quarter, "months": months,
+        "quarter": quarter, "months": months, "full_year": full_year,
         "period_end": _iso(interim.get("period_end")),
         "post_date": _iso(interim.get("post_date")),
         "period_en": per_en, "period_bn": per_bn,
@@ -247,14 +378,13 @@ def explain(interim: dict, row: Optional[dict] = None, score_before: Optional[fl
 
 def company_results(code: str, score_row: Optional[dict], sector_class: str = "GENERAL") -> Optional[dict]:
     """The stock page's explainer — only while the report is the newest word
-    on the company (the score row carries ``interim_*`` only then)."""
-    if not score_row or not score_row.get("interim_label_en"):
+    on the company (``is_newest_word``)."""
+    if not score_row:
         return None
-    from backend.services.interim_service import load_interims
     from backend.services.score_history_service import score_before
 
-    rec = load_interims([code]).get(code)
-    if not rec:
+    rec = load_latest_results([code]).get(code)
+    if not rec or not is_newest_word(rec, score_row):
         return None
     post = _iso(rec.get("post_date"))
     before = score_before(code, post) if post else None
@@ -280,6 +410,7 @@ def feed_row(code: str, ex: dict, comp: dict, price: dict, score: Optional[float
         "post_date": ex["post_date"],
         "quarter": ex["quarter"],
         "months": ex["months"],
+        "full_year": bool(ex.get("full_year")),
         "period_end": ex["period_end"],
         "level": ex["level"],
         "eps_yoy_pct": ex["eps_yoy_pct"],
@@ -318,19 +449,21 @@ def _scores_before(posts: dict[str, str]) -> dict[str, Optional[float]]:
 
 @_ttl_cache(900)
 def all_results() -> list[dict]:
-    """Every company's latest quarterly report (while it is the newest word on
-    the company), newest first. Cached 900s."""
+    """Every company's latest report — a quarter or a full year, while it is
+    the newest word on the company — newest first. Cached 900s. Before
+    2026-10-28 a company left this feed on its results day: the yearly notice
+    superseded its 9-month report but wasn't read as a result itself."""
     from backend.services.db_service import load_companies, load_latest_prices
-    from backend.services.interim_service import load_interims
     from backend.services.scoring_service import build_scores_df
     from utils.sector import normalize_sector
 
     df = build_scores_df()
-    if df is None or df.empty or "interim_label_en" not in df.columns:
+    if df is None or df.empty:
         return []
     rows = {r["trading_code"]: {k: (None if isinstance(v, float) and v != v else v) for k, v in r.items()}
-            for r in df[df["interim_label_en"].notna()].to_dict("records")}
-    interims = {c: rec for c, rec in load_interims(sorted(rows)).items() if c in rows}
+            for r in df[df["score"].notna()].to_dict("records")} if "score" in df.columns else {}
+    interims = {c: rec for c, rec in load_latest_results(sorted(rows)).items()
+                if c in rows and is_newest_word(rec, rows[c])}
     posts = {c: _iso(rec.get("post_date")) for c, rec in interims.items() if rec.get("post_date")}
     try:
         before = _scores_before(posts)

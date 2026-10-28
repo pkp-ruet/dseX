@@ -3,16 +3,19 @@
 Six things, each an *event* with English + Bengali copy:
 
     record    a record date 1–3 days away (with the cash it pays on their shares)
-    results   a quarterly result posted in the last 3 days, explained
+    results   a quarterly or yearly result posted in the last 3 days, explained
               (``results_explainer``: profit, cash, price, what it means)
     grade     our grade for the stock changed (``score_history``: the pillar
               that moved it)
     category  the stock moved to a different DSE category (to Z is the alarm)
     drop      the price fell 5% or more today
     low52     the price closed at its lowest in a year
+    red_flag  a serious red flag appeared in the stock report (DSE found the
+              factory closed, a qualified audit opinion, Z, the 30% rule …),
+              from ``stock_report_service.red_flag_changes``
 
-``results`` and ``grade`` also cover the stocks a reader only follows
-(watchlist); the other four are about shares they hold.
+``results``, ``grade`` and ``red_flag`` also cover the stocks a reader only
+follows (watchlist); the other four are about shares they hold.
 
 Events are built for every reader who holds the stock and stored in
 ``portfolio_watch_events`` (so a free reader's portfolio can say how many
@@ -146,6 +149,24 @@ def _low_event(code: str, ltp: float, day: str) -> dict:
     }
 
 
+def _red_flag_event(code: str, change: dict) -> Optional[dict]:
+    items = [i for i in change.get("items") or [] if i.get("key")]
+    if not items:
+        return None
+    first = items[0]
+    more_en = f" {len(items) - 1} more on its report." if len(items) > 1 else ""
+    more_bn = f" রিপোর্টে আরও {len(items) - 1}টি।" if len(items) > 1 else ""
+    keys = "-".join(sorted(i["key"] for i in items))
+    return {
+        "id": f"redflag-{code}-{keys}-{change.get('day') or ''}", "kind": "red_flag", "code": code,
+        "level": "bad",
+        "title_en": f"A new red flag on {code}",
+        "title_bn": f"{code}-এ নতুন বড় সতর্কতা",
+        "body_en": (first.get("en") or "Our checks found a serious problem.") + more_en,
+        "body_bn": (first.get("bn") or "আমাদের যাচাইয়ে একটি গুরুতর সমস্যা পাওয়া গেছে।") + more_bn,
+    }
+
+
 def build_events(held: dict[str, int], facts: dict, day: str,
                  watched: Optional[set[str]] = None) -> list[dict]:
     """Events for one reader. `held` = {code: qty} across all their portfolios;
@@ -153,7 +174,8 @@ def build_events(held: dict[str, int], facts: dict, day: str,
     `facts` = {record: {code: calendar row}, results: {code: interim},
     rows: {code: score row}, score_before: {code: score}, sector_class: {code: …},
     grades: {code: score_history.explain()}, category: {code: (old, new)},
-    prices: {code: price row}, lows: {code: 52w low}}."""
+    prices: {code: price row}, lows: {code: 52w low},
+    red_flags: {code: stock_report_service.red_flag_changes() entry}}."""
     from backend.services.score_history import grade_event
 
     out: list[dict] = []
@@ -175,6 +197,11 @@ def build_events(held: dict[str, int], facts: dict, day: str,
         ch = (facts.get("grades") or {}).get(code)
         if ch:
             out.append(grade_event(code, ch, day))
+        rf = (facts.get("red_flags") or {}).get(code)
+        if rf:
+            e = _red_flag_event(code, rf)
+            if e:
+                out.append(e)
         if not qty:
             continue
         cat = (facts.get("category") or {}).get(code)
@@ -202,7 +229,7 @@ _LEVEL_ORDER = {"bad": 0, "watch": 1, "good": 2}
 
 
 # Where a single event of each kind opens on the stock page.
-_STOCK_ANCHOR = {"results": "results", "grade": "score-history"}
+_STOCK_ANCHOR = {"results": "results", "grade": "score-history", "red_flag": "red-flags"}
 
 
 def push_payload(events: list[dict], lang: str = "bn", url: str = "/portfolio?src=watch") -> Optional[dict]:
@@ -313,7 +340,9 @@ def trial_recap_payload(caught: int, days_left: int, lang: str = "bn") -> dict:
 
 # Plain words per kind: (English one, English many, Bengali).
 KIND_WORDS = {
-    "results": ("quarterly result", "quarterly results", "প্রান্তিকের ফল"),
+    "red_flag": ("red flag", "red flags", "বড় সতর্কতা"),
+    # A quarter or a full year (results_explainer.load_latest_results).
+    "results": ("results report", "results reports", "আর্থিক ফল"),
     "grade": ("grade change", "grade changes", "গ্রেড বদল"),
     "record": ("record date", "record dates", "রেকর্ড ডেট"),
     "category": ("category change", "category changes", "ক্যাটাগরি বদল"),
@@ -356,7 +385,7 @@ def _join(parts: list[str], last: str) -> str:
 
 
 def kinds_phrase(kinds: list[dict], lang: str = "bn", limit: int = 3) -> str:
-    """"2 quarterly results, 1 grade change and 1 record date" — the biggest
+    """"2 results reports, 1 grade change and 1 record date" — the biggest
     counts first, at most `limit` kinds."""
     top = sorted(kinds, key=lambda k: -k["count"])[:limit]
     if lang != "en":

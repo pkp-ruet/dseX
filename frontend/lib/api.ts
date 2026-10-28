@@ -1,4 +1,5 @@
 import type { TierKey } from "@/lib/constants";
+import type { StockReport } from "@/lib/stock-report";
 
 /**
  * Backend base URL (no trailing slash).
@@ -348,6 +349,9 @@ export interface CompanyDetail {
   score_history?: ScoreHistory | null;
   /** The latest quarterly report in plain words (backend services/results_explainer.py). */
   results_explained?: ResultsExplained | null;
+  /** The stock report: cover, scorecard, sections, offer (backend services/stock_report.py;
+   *  shape in lib/stock-report.ts). Absent on an older backend — the page falls back. */
+  report?: StockReport | null;
 }
 
 export type ScoreTierKey = "excellent" | "good" | "average" | "weak" | "unknown";
@@ -811,7 +815,10 @@ export interface LatestResultRow {
   score: number | null;
   post_date: string;
   quarter: number | null;
+  /** 3, 6, 9 — or 12 for a full year read from the yearly notice. */
   months: number;
+  /** True for a full year (2026-10-28; absent from an older backend). */
+  full_year?: boolean;
   period_end: string | null;
   level: "good" | "watch" | "bad" | "neutral";
   eps_yoy_pct: number | null;

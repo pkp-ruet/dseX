@@ -90,3 +90,79 @@ def test_feed_is_newest_first_then_biggest_move(monkeypatch):
     assert [r["code"] for r in got] == ["B"]
     got = RE.results_for(["A", "C"], days=21, today=date(2026, 10, 25))
     assert [r["code"] for r in got] == ["C", "A"]
+
+
+# --- Full years from the yearly notice (2026-10-28) ---------------------------
+# SQURPHARMA: the 27 Oct 2026 dividend notice (FY to 30 Jun 2026) and its
+# 9-month report posted 30 Apr 2026.
+
+def _sq_annual(**kw):
+    base = {"fy_end": date(2026, 6, 30), "fy": 2026, "eps": 31.24, "eps_prev": 27.04,
+            "nav": 178.99, "nav_prev": 157.88, "nocfps": 18.65, "nocfps_prev": 19.52,
+            "consolidated": True, "post_date": date(2026, 10, 27)}
+    base.update(kw)
+    return base
+
+
+def _sq_q3(**kw):
+    return _interim(quarter=3, months=9, period_start=date(2025, 7, 1), period_end=date(2026, 3, 31),
+                    post_date=date(2026, 4, 30), eps_cum=23.29, eps_cum_prev=21.15,
+                    eps_q=6.73, eps_q_prev=6.83, nocfps_cum=17.54, nocfps_cum_prev=11.90, **kw)
+
+
+def test_full_year_reads_like_a_report_with_the_fourth_quarter_alone():
+    from backend.services.results_explainer import full_year_result
+
+    rec = full_year_result(_sq_annual(), _sq_q3())
+    assert rec["months"] == 12 and rec["quarter"] is None and rec["full_year"] is True
+    assert rec["period_start"] == date(2025, 7, 1)
+    assert (rec["eps_q"], rec["eps_q_prev"]) == (7.95, 5.89)       # 31.24 − 23.29, 27.04 − 21.15
+
+    ex = explain(rec, {"ltp": 218.8, "score": 89.2}, None, "GENERAL")
+    assert ex["headline_en"] == "FY2026 results: profit up 16% on last year"
+    assert ex["headline_bn"].startswith("2026 অর্থবছরের ফল")
+    assert ex["full_year"] is True
+    by_key = {l["key"]: l for l in ex["lines"]}
+    assert "in the year to Jun 2026 was ৳31.24 a share" in by_key["profit"]["en"]
+    assert "latest 3 months alone, it was ৳7.95" in by_key["quarter"]["en"]
+    assert by_key["cash"]["en"].startswith("Cash from the business over the year: ৳18.65")
+    assert "7× the year's profit (8.1× on the year before)" in by_key["price"]["en"]
+
+
+def test_a_quarter_from_another_year_gives_no_fourth_quarter():
+    from backend.services.results_explainer import full_year_result
+
+    old_q3 = {**_sq_q3(), "period_start": date(2024, 7, 1)}
+    assert full_year_result(_sq_annual(), old_q3)["eps_q"] is None
+    assert full_year_result(_sq_annual(eps_prev=None)) is None
+
+
+def test_the_newest_result_wins():
+    from backend.services.results_explainer import newest_result
+
+    assert newest_result(_sq_q3(), _sq_annual())["months"] == 12
+    # The next year's first quarter beats last year's full year.
+    q1 = _interim(quarter=1, months=3, period_end=date(2026, 9, 30), post_date=date(2026, 11, 12))
+    assert newest_result(q1, _sq_annual())["quarter"] == 1
+    assert newest_result(None, _sq_annual())["full_year"] is True
+    assert newest_result(_sq_q3(), None)["quarter"] == 3
+
+
+def test_newest_word_rules():
+    from backend.services.results_explainer import full_year_result, is_newest_word
+
+    year = full_year_result(_sq_annual())
+    assert is_newest_word(year, {"last_reported_year": 2025})
+    assert is_newest_word(year, {"last_reported_year": 2026})     # the provisional row itself
+    assert not is_newest_word(year, {"last_reported_year": 2027})
+    assert is_newest_word(_sq_q3(), {"interim_label_en": "9 months to Mar 2026"})
+    assert not is_newest_word(_sq_q3(), {})
+
+
+def test_a_loss_year_reads_as_a_year():
+    from backend.services.results_explainer import full_year_result
+
+    ex = explain(full_year_result(_sq_annual(eps=-1.2, eps_prev=0.8)), {"ltp": 20.0}, None, "GENERAL")
+    assert ex["level"] == "bad"
+    assert ex["meaning_en"].startswith("The company made a loss for the year.")
+    assert next(l for l in ex["lines"] if l["key"] == "price")["en"].startswith("It made a loss for the year")

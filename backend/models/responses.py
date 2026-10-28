@@ -301,6 +301,9 @@ class CompanyDetailResponse(BaseModel):
     score_history: Optional[dict[str, Any]] = None
     # Latest quarterly report in plain words (services/results_explainer.py)
     results_explained: Optional[dict[str, Any]] = None
+    # The stock report: cover, scorecard, sections, offer (services/stock_report.py;
+    # shape = frontend/lib/stock-report.ts)
+    report: Optional[dict[str, Any]] = None
 
 
 class DeepAnalysisResponse(BaseModel):

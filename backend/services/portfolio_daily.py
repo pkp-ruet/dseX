@@ -187,7 +187,6 @@ def _facts(held_codes: set[str], today, followed_codes: Optional[set[str]] = Non
     `followed_codes` = held ∪ watched (results + grade changes cover both)."""
     from backend.services.corporate_actions_service import build_dividend_calendar
     from backend.services.db_service import load_52w_ranges, load_companies, load_latest_prices
-    from backend.services.interim_service import load_interims
     from utils.sector import normalize_sector
 
     followed_codes = set(followed_codes or ()) | set(held_codes)
@@ -204,7 +203,10 @@ def _facts(held_codes: set[str], today, followed_codes: Optional[set[str]] = Non
     results, rows, before, sector_class = {}, {}, {}, {}
     try:
         fresh_after = today - timedelta(days=watch.RESULTS_FRESH_DAYS)
-        for code, rec in load_interims(sorted(followed_codes)).items():
+        # The newest result: a quarter, or the full year from the yearly notice
+        # (results_explainer.load_latest_results, 2026-10-28).
+        from backend.services.results_explainer import load_latest_results
+        for code, rec in load_latest_results(sorted(followed_codes)).items():
             pd = rec.get("post_date")
             pd = pd.date() if isinstance(pd, datetime) else pd
             if pd and pd >= fresh_after:
@@ -240,9 +242,15 @@ def _facts(held_codes: set[str], today, followed_codes: Optional[set[str]] = Non
         lows = {c: r.get("lo") for c, r in load_52w_ranges().items() if c in held_codes}
     except Exception:  # noqa: BLE001
         lows = {}
+    try:
+        from backend.services.stock_report_service import red_flag_changes
+        red_flags = red_flag_changes(followed_codes)
+    except Exception:  # noqa: BLE001
+        log.warning("red flag read failed", exc_info=True)
+        red_flags = {}
     return {"prices": prices, "record": record, "results": results, "rows": rows,
             "score_before": before, "sector_class": sector_class, "grades": grades,
-            "category": category, "lows": lows}
+            "category": category, "lows": lows, "red_flags": red_flags}
 
 
 def _trade_day(prices: dict) -> Optional[str]:

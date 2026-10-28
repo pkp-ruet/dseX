@@ -39,7 +39,9 @@ const t = (k: keyof typeof L) => <T en={L[k].en} bn={L[k].bn} />;
  * comes from endpoints that already compute it (portfolio GET, watchlist meta);
  * the frontend derives no advice of its own.
  */
-export default function YourPosition({ code, ltp }: Props) {
+/** The signed-in reader's holdings of this stock + whether they follow it.
+ *  Shared by the hero card and the report's "You and this stock" section. */
+export function useMyStake(code: string) {
   const { isLoggedIn } = useAuth();
   const CODE = code.toUpperCase();
 
@@ -87,6 +89,11 @@ export default function YourPosition({ code, ltp }: Props) {
     () => (holdings ?? []).filter((h) => h.trading_code.toUpperCase() === CODE),
     [holdings, CODE],
   );
+  return { isLoggedIn, mine, watched, meta: meta[CODE] ?? null };
+}
+
+export default function YourPosition({ code, ltp }: Props) {
+  const { isLoggedIn, mine, watched, meta: m } = useMyStake(code);
 
   if (!isLoggedIn) return null;
 
@@ -171,7 +178,6 @@ export default function YourPosition({ code, ltp }: Props) {
 
   // --- Watcher view ----------------------------------------------------------
   if (watched) {
-    const m = meta[CODE];
     const addedAt = m?.added_at ? { en: formatDate(m.added_at), bn: bnDate(m.added_at) || formatDate(m.added_at) } : null;
     const base = m?.price_at_add ?? null;
     const movePct = base != null && base > 0 && ltp != null ? ((ltp - base) / base) * 100 : null;

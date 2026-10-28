@@ -52,6 +52,11 @@ def refresh_scores(
             raise HTTPException(status_code=403, detail="Recompute is admin-only")
         invalidate_scores_cache()
     reload_after_scrape()
+    try:  # the stock report keeps its own 300s cache (services/stock_report_service.py)
+        from backend.services.stock_report_service import clear_cache as clear_report_cache
+        clear_report_cache()
+    except Exception:
+        pass
     return {"status": "recomputed" if recompute else "caches cleared"}
 
 

@@ -5,6 +5,8 @@ import PriceAlertButton from "@/components/stock/PriceAlertButton";
 import ShareButton from "@/components/stock/ShareButton";
 import CategoryChip from "@/components/stock/CategoryChip";
 import YourPosition from "@/components/stock/YourPosition";
+import RallyBanner from "@/components/stock/report/RallyBanner";
+import { DateT, tx } from "@/components/stock/report/fmt";
 import { IconAlert, IconFlame } from "@/components/stock/StockIcons";
 import Chip from "@/components/ui/Chip";
 import { T } from "@/components/i18n/T";
@@ -104,6 +106,17 @@ export default function HeroSection({ detail }: Props) {
       {/* Hero — open on the canvas, no box (2026-10 redesign: space before boxes).
           The price is the biggest thing on the page. */}
       <header id="ch-overview" className="stock-anchor mb-6 flex flex-col gap-5">
+        {/* The report's dateline: when it last changed and why. */}
+        {detail.report?.updated && (
+          <p className="rp-dateline -mb-2">
+            <span>
+              <T en="Report updated " bn="রিপোর্ট হালনাগাদ " />
+              <DateT iso={detail.report.updated.date} />
+              {", "}
+              {tx(detail.report.updated.reason)}
+            </span>
+          </p>
+        )}
         {profile.company_name && (
           <h1 className="min-w-0 break-words text-2xl font-bold leading-tight tracking-tight text-text-main text-balance sm:text-4xl">
             {profile.company_name}
@@ -139,6 +152,8 @@ export default function HeroSection({ detail }: Props) {
             </Chip>
           )}
         </div>
+
+        {detail.report?.warning && <RallyBanner w={detail.report.warning} />}
 
         {/* Price — number first, change under it, coloured text only */}
         <div className="flex flex-col gap-1.5">

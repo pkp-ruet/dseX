@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
-  ApiNotFoundError, getCompanyDetail, getInsightScores, getStockLists, getDividendHistory,
-  type DividendDeclarationRecord,
+  ApiNotFoundError, getCompanyDetail, getInsightScores, getStockLists, getDividendHistory, getDeepAnalysis,
+  type DividendDeclarationRecord, type DeepAnalysisReport as DeepReport,
 } from "@/lib/api";
 import { getTier, TIER_LABELS } from "@/lib/constants";
 import { computeFeaturedIn } from "@/lib/featured-lists";
@@ -24,7 +24,11 @@ import { type NavSection } from "@/components/stock/StockSectionNav";
 import StockVisitTracker from "@/components/analytics/StockVisitTracker";
 import StockChapter from "@/components/stock/StockChapter";
 import FullVerdict from "@/components/stock/FullVerdict";
+import DeepAnalysisReport from "@/components/stock/DeepAnalysisReport";
 import StockLockScope from "@/components/premium/LockScope";
+import Scorecard from "@/components/stock/report/Scorecard";
+import StockReportBody from "@/components/stock/report/StockReportBody";
+import DataRoom, { type RoomPanel } from "@/components/stock/report/DataRoom";
 import { formatDate, money } from "@/lib/formatters";
 import { T } from "@/components/i18n/T";
 
@@ -122,6 +126,9 @@ export default async function StockDetailPage({ params }: PageProps) {
   const sideFetches = Promise.all([
     getStockLists().catch(() => null),
     getDividendHistory(code.toUpperCase()).catch(() => [] as DividendDeclarationRecord[]),
+    // The written analyst note folds into the report (2026-10-28); most codes
+    // have none, and the 404 just means "no note".
+    getDeepAnalysis(code.toUpperCase()).then((r) => r.report).catch(() => null as DeepReport | null),
   ]);
   let detail: Awaited<ReturnType<typeof getCompanyDetail>>;
   try {
@@ -143,14 +150,17 @@ export default async function StockDetailPage({ params }: PageProps) {
   // ledger. Both sources are cached and each is best-effort.
   let featuredIn: ReturnType<typeof computeFeaturedIn> = [];
   let dividendRows: DividendDeclarationRecord[] = [];
+  let deepReport: DeepReport | null = null;
   try {
-    const [stockLists, ledger] = await sideFetches;
+    const [stockLists, ledger, deep] = await sideFetches;
     featuredIn = computeFeaturedIn(profile.trading_code, stockLists);
     dividendRows = Array.isArray(ledger) ? ledger : [];
+    deepReport = deep;
   } catch {
     featuredIn = [];
     dividendRows = [];
   }
+  const report = detail.report ?? null;
 
   const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
   const name = profile.company_name ?? code;
@@ -271,7 +281,19 @@ export default async function StockDetailPage({ params }: PageProps) {
   const hasPeers = (related_stocks?.length ?? 0) > 0;
 
   const hasCompany = true; // ownership + news always render (with their own empty states)
-  const sections: NavSection[] = [
+  // Report mode (2026-10-28): the chips jump to the cover, the first report
+  // sections and the data room.
+  const reportSections: NavSection[] = report
+    ? [
+        { id: "ch-overview", label: "Overview", labelBn: "এক নজরে" },
+        ...report.scorecard
+          .filter((c) => report.sections[c.key] != null)
+          .slice(0, 6)
+          .map((c) => ({ id: `rp-${c.key}`, label: c.label.en, labelBn: c.label.bn || c.label.en })),
+        { id: "ch-data", label: "Data", labelBn: "তথ্য" },
+      ]
+    : [];
+  const sections: NavSection[] = report ? reportSections : [
     { id: "ch-overview", label: "Overview", labelBn: "এক নজরে" },
     ...(hasVerdict ? [{ id: "ch-verdict", label: "Full verdict", labelBn: "পূর্ণ মূল্যায়ন" }] : []),
     ...(hasValuation || hasMomentum || hasPeers
@@ -353,6 +375,94 @@ export default async function StockDetailPage({ params }: PageProps) {
     isCurrent: true,
   };
 
+  // The data room's tabs (report mode): every raw number, free.
+  const roomPanels: RoomPanel[] = [
+    ...(hasFinancials
+      ? [{
+          key: "profit",
+          label: { en: "Profit", bn: "মুনাফা" },
+          anchors: ["financials"],
+          body: (
+            <div id="financials" className="stock-anchor">
+              <ProfitsAndDividends financials={financials} extFinancials={extended_financials} declaration={dividend_declaration} />
+              <FinancialTrends extFinancials={extended_financials} />
+            </div>
+          ),
+        }]
+      : []),
+    ...(hasDividends
+      ? [{
+          key: "dividends",
+          label: { en: "Dividends", bn: "ডিভিডেন্ড" },
+          anchors: ["dividends"],
+          body: (
+            <DividendTimeline
+              code={profile.trading_code}
+              rows={dividendRows}
+              faceValue={num(profile.face_value)}
+              ltp={num(detail.latest_price.ltp)}
+            />
+          ),
+        }]
+      : []),
+    ...(hasValuation || hasMomentum || hasPeers
+      ? [{
+          key: "price",
+          label: { en: "Price and peers", bn: "দাম ও তুলনা" },
+          anchors: ["valuation", "momentum", "peers"],
+          body: (
+            <>
+              {hasValuation && (
+                <ValuationPanel
+                  financials={financials}
+                  latestPrice={detail.latest_price}
+                  scoreRow={score_row}
+                  valuation={valuation}
+                  verdictHref={report?.sections.price ? "#rp-price" : undefined}
+                />
+              )}
+              {hasMomentum && <MomentumStrip momentum={momentum} />}
+              {hasPeers && (
+                <PeerComparison current={currentPeerRow} peers={related_stocks} sector={profile.sector} note={detail.peer_note ?? null} />
+              )}
+            </>
+          ),
+        }]
+      : []),
+    {
+      key: "ownership",
+      label: { en: "Ownership", bn: "মালিকানা" },
+      anchors: ["ownership"],
+      body: (
+        <div id="ownership" className="stock-anchor">
+          <ShareholdingPie shareholding={shareholding} previous={detail.shareholding_prev ?? null} ownership={detail.ownership ?? null} />
+        </div>
+      ),
+    },
+    ...(hasFacts
+      ? [{
+          key: "company",
+          label: { en: "Company", bn: "কোম্পানি" },
+          anchors: ["numbers"],
+          body: (
+            <div id="numbers" className="stock-anchor">
+              <CompanyFacts detail={detail} />
+            </div>
+          ),
+        }]
+      : []),
+    {
+      key: "news",
+      label: { en: "News", bn: "খবর" },
+      anchors: ["news"],
+      body: (
+        <div id="news" className="stock-anchor">
+          <NewsSection news={news} />
+        </div>
+      ),
+    },
+  ];
+
   return (
     <>
       <script
@@ -376,8 +486,39 @@ export default async function StockDetailPage({ params }: PageProps) {
 
       <StockVisitTracker code={profile.trading_code} />
 
-      {/* The free report of the day opens every lock for everyone. */}
-      <StockLockScope code={profile.trading_code}>
+      {/* The free report of the day opens every lock for everyone. In report
+          mode every other lock on the page points at the one offer. */}
+      <StockLockScope code={profile.trading_code} anchor={report ? "ch-premium" : undefined}>
+      {report ? (
+        <>
+          {/* Cover: dateline, hero, the chart with every event pinned, the
+              scorecard (eight checks, words free) and the lists it is in. */}
+          <HeroSection detail={detail} />
+          <PriceChart code={profile.trading_code} events={report.events} />
+          <Scorecard detail={detail} report={report} />
+          <FeaturedInStrip entries={featuredIn} />
+
+          <StickySummaryBar
+            code={profile.trading_code}
+            score={score}
+            rank={num(score_row?.overall_rank)}
+            total={num(score_row?.total_scored)}
+            signal={detail.signal ?? null}
+            ltp={num(detail.latest_price.ltp)}
+            changePct={num(detail.latest_price.change_pct)}
+            sections={sections}
+          />
+
+          {/* The report: one section per check, free face + Premium body,
+              then the analyst note and the one offer (#ch-premium). */}
+          <StockReportBody detail={detail} report={report} deep={deepReport} />
+
+          {/* The data room: every raw number, in tabs, all free. */}
+          <DataRoom panels={roomPanels} />
+        </>
+      ) : (
+        <>
+      {/* Older backend (no report): the five-chapter page. */}
 
       {/* Chapter 1 · Overview — hero (id ch-overview), the price story, the
           "At a glance" card (score, grade, signal, take, five bars) and the
@@ -405,6 +546,11 @@ export default async function StockDetailPage({ params }: PageProps) {
 
       {/* Chapter 2 · The full verdict — the page's one Premium chapter. */}
       {hasVerdict && <FullVerdict detail={detail} />}
+      {deepReport && (
+        <section id="note" className="stock-anchor mb-8">
+          <DeepAnalysisReport report={deepReport} fairValue={detail.fair_value ?? null} />
+        </section>
+      )}
 
       {/* Chapter 3 · Price and value */}
       {(hasValuation || hasMomentum || hasPeers) && (
@@ -474,6 +620,8 @@ export default async function StockDetailPage({ params }: PageProps) {
           <NewsSection news={news} />
         </div>
       </StockChapter>
+        </>
+      )}
       </StockLockScope>
     </>
   );

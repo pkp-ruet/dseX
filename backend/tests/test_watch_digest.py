@@ -31,9 +31,9 @@ def test_digest_keeps_free_items_past_the_cut():
 
 def test_kinds_phrase():
     k = [{"kind": "grade", "count": 1}, {"kind": "results", "count": 2}, {"kind": "record", "count": 1}]
-    assert kinds_phrase(k, "en") == "2 quarterly results, 1 grade change and 1 record date"
+    assert kinds_phrase(k, "en") == "2 results reports, 1 grade change and 1 record date"
     assert kinds_phrase(k[:1], "en") == "1 grade change"
-    assert kinds_phrase(k, "bn").startswith("2টি প্রান্তিকের ফল")
+    assert kinds_phrase(k, "bn").startswith("2টি আর্থিক ফল")
     assert kinds_phrase([], "en") == ""
 
 
@@ -80,7 +80,7 @@ def test_teaser_without_free_names_count_kinds_and_codes_only():
     evs = [_ev("a", "results", "GP", "bad"), _ev("b", "record", "ACI", "good")]
     p = teaser_payload(evs, None, "en", "/x")
     assert p["title"] == "2 updates on your shares today"
-    assert p["body"].startswith("1 quarterly result and 1 record date on ACI, GP.")
+    assert p["body"].startswith("1 results report and 1 record date on ACI, GP.")
     assert "GP body." not in p["body"]
     one = teaser_payload(evs[:1], None, "bn", "/x")
     assert one["title"] == "আজ GP-এ একটি আপডেট" and "প্রিমিয়াম" in one["body"]

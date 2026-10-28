@@ -8,6 +8,7 @@ import "./styles/page-shell.css";
 import "./styles/tables.css";
 import "./styles/lists.css";
 import "./styles/stock.css";
+import "./styles/report.css";
 import "./styles/nav.css";
 import "./styles/states.css";
 import "./styles/misc.css";

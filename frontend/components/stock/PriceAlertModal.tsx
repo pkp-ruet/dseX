@@ -16,6 +16,8 @@ interface Props {
   w52Low?: number | null;
   /** The currently-armed alert for this code, if editing one. */
   existing?: PriceAlert | null;
+  /** A target to start from (the report's buy-below price). Wins over `existing`. */
+  preset?: number | null;
   onClose: () => void;
 }
 
@@ -29,10 +31,12 @@ function fmt(n: number): string {
  * from the current price so the user never picks it. Shared by the stock-hero
  * button and the watchlist row action.
  */
-export default function PriceAlertModal({ code, ltp, w52High, w52Low, existing, onClose }: Props) {
+export default function PriceAlertModal({ code, ltp, w52High, w52Low, existing, preset, onClose }: Props) {
   const { bn } = useLang();
   const [price, setPrice] = useState(
-    existing ? fmt(existing.target_price) : ltp != null ? ltp.toFixed(1) : "",
+    preset != null && preset > 0
+      ? fmt(preset)
+      : existing ? fmt(existing.target_price) : ltp != null ? ltp.toFixed(1) : "",
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");

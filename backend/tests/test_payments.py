@@ -88,7 +88,7 @@ def test_payloads_are_bilingual_and_link_to_premium():
 def test_renewal_reminder_says_what_premium_caught():
     caught = [{"kind": "results", "count": 2}, {"kind": "record", "count": 1}]
     body = renewal_payload(3, "en", caught)["body"]
-    assert body.startswith("This month it found 2 quarterly results and 1 record date on your shares.")
+    assert body.startswith("This month it found 2 results reports and 1 record date on your shares.")
     assert "bKash" in body and "bank transfer" in body
     assert "২" not in renewal_payload(3, "bn", caught)["body"]  # Western digits in Bengali copy
     # Nothing caught → the plain reminder.

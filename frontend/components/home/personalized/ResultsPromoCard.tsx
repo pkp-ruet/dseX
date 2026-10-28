@@ -33,11 +33,11 @@ export default function ResultsPromoCard({
   const bn = lang === "bn";
   const lead = week.recent
     ? bn
-      ? `এই সপ্তাহে ${week.recent}টি কোম্পানি প্রান্তিকের ফল দিয়েছে।`
-      : `${week.recent} ${week.recent === 1 ? "company" : "companies"} posted quarterly results this week.`
+      ? `এই সপ্তাহে ${week.recent}টি কোম্পানি আর্থিক ফল দিয়েছে।`
+      : `${week.recent} ${week.recent === 1 ? "company" : "companies"} posted results this week.`
     : bn
-      ? `${week.total}টি কোম্পানির সর্বশেষ প্রান্তিকের ফল, এক জায়গায়। নতুনগুলো নিচে।`
-      : `The latest quarterly results of ${week.total} companies, in one place. The newest are below.`;
+      ? `${week.total}টি কোম্পানির সর্বশেষ আর্থিক ফল, এক জায়গায়। নতুনগুলো নিচে।`
+      : `The latest results of ${week.total} companies, in one place. The newest are below.`;
   const split = RESULT_LEVEL_ORDER.filter((lv) => (week.counts[lv] ?? 0) > 0);
 
   return (
