@@ -14,7 +14,6 @@ import { bnCroreTaka, bnDate, bnInt, bnSignedPct, sectorBn } from "@/lib/bn";
 import ArticleLangNote from "@/components/i18n/ArticleLangNote";
 import { T } from "@/components/i18n/T";
 import MarketRow from "@/components/market-analysis/MarketRow";
-import ErrorState from "@/components/ui/ErrorState";
 import PageHeader from "@/components/ui/PageHeader";
 
 export const revalidate = 900;
@@ -173,28 +172,12 @@ function MoverList({ title, items, metric }: { title: string; items: MarketMover
 }
 
 export default async function ShareBazarPage() {
+  // No catch on the main fetch: a throw lets ISR keep serving the last good
+  // page; a rendered error state was cached as the page until the next purge.
   const [state, today] = await Promise.all([
-    getMarketState().catch(() => null),
+    getMarketState(),
     getDseToday().catch(() => null),
   ]);
-
-  if (!state) {
-    return (
-      <div lang="bn" className="font-bn">
-        <PageHeader
-          eyebrow="ঢাকা স্টক এক্সচেঞ্জ"
-          title="আজকের শেয়ার বাজার"
-          lead="ঢাকা স্টক এক্সচেঞ্জের আজকের বাজার, সহজ বাংলায়।"
-        />
-        <ErrorState
-          size="inline"
-          title={<T en="We couldn't load today's market" bn="আজকের বাজারের তথ্য এখন লোড করা যাচ্ছে না" />}
-          reload
-          links={[{ href: "/market-analysis", label: <T en="Market analysis" bn="বাজার বিশ্লেষণ" /> }]}
-        />
-      </div>
-    );
-  }
 
   const s = state.stats;
   const tone = state.mood.tone;

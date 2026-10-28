@@ -13,7 +13,6 @@ import WhatCouldHappenNext from "@/components/market-analysis/WhatCouldHappenNex
 import MarketResearchLists from "@/components/market-analysis/MarketResearchLists";
 import MarketDividends from "@/components/market-analysis/MarketDividends";
 import { PersonalCodesProvider } from "@/components/market-analysis/PersonalCodes";
-import ErrorState from "@/components/ui/ErrorState";
 import { T } from "@/components/i18n/T";
 import PageHeader from "@/components/ui/PageHeader";
 import SectionHeader from "@/components/ui/SectionHeader";
@@ -71,7 +70,9 @@ const EMPTY_CHANCES = { best: "", on_sale: [], income: [], rising: [], fallen: [
 const EMPTY_HISTORY = { index: [], daily: [] };
 
 export default async function MarketAnalysisPage() {
-  const data = await getMarketState().catch(() => null);
+  // No catch: a throw lets ISR keep serving the last good page; a rendered
+  // error state was cached as the page until the next purge.
+  const data = await getMarketState();
   const dateLabel = data?.date ? <T en={formatDate(data.date)} bn={bnDate(data.date)} /> : null;
 
   const jsonLd = {
@@ -129,113 +130,104 @@ export default async function MarketAnalysisPage() {
         actions={dateLabel ? <span className="ms-page-date">{dateLabel}</span> : undefined}
       />
 
-      {!data ? (
-        <ErrorState
-          size="inline"
-          title={<T en="We couldn't load the market right now" bn="বাজারের তথ্য এখন লোড করা যাচ্ছে না" />}
-          reload
-          links={[{ href: "/dse-today", label: <T en="See today's market" bn="আজকের বাজার দেখুন" /> }]}
+      <>
+        {data.mood && (
+          <BigPicture mood={data.mood} questions={data.now?.questions ?? []} stats={data.stats} />
+        )}
+        {data.since_yesterday && <SinceYesterday since={data.since_yesterday} stats={data.stats} />}
+        <YourStocksHere
+          lists={{
+            rising: codes(chances.rising),
+            nearHigh: codes(next?.near_high),
+            nearLow: codes(next?.near_low),
+            unusual: codes(next?.unusual),
+            dividends: (next?.dividends ?? []).map((d) => ({ code: d.trading_code, date: d.date, kind: d.kind })),
+          }}
         />
-      ) : (
-        <>
-          {data.mood && (
-            <BigPicture mood={data.mood} questions={data.now?.questions ?? []} stats={data.stats} />
-          )}
-          {data.since_yesterday && <SinceYesterday since={data.since_yesterday} stats={data.stats} />}
-          <YourStocksHere
-            lists={{
-              rising: codes(chances.rising),
-              nearHigh: codes(next?.near_high),
-              nearLow: codes(next?.near_low),
-              unusual: codes(next?.unusual),
-              dividends: (next?.dividends ?? []).map((d) => ({ code: d.trading_code, date: d.date, kind: d.kind })),
-            }}
+        {data.summary_bn && <BanglaSnapshot text={data.summary_bn} textEn={data.summary_en} />}
+
+        <section className="mk-section" aria-labelledby="mk-now">
+          <SectionHeader
+            id="mk-now"
+            size="lg"
+            title={<T en="The market right now" bn="বাজার এখন কেমন" />}
+            lead={
+              <T
+                en="Which sectors are doing well, how many companies are in good shape, and how the market got here."
+                bn="কোন সেক্টর ভালো করছে, কতটি কোম্পানি ভালো অবস্থায় আছে, আর বাজার কীভাবে এখানে এসেছে।"
+              />
+            }
           />
-          {data.summary_bn && <BanglaSnapshot text={data.summary_bn} textEn={data.summary_en} />}
+          <div className="mk-stack">
+            <WhatsHappeningNow
+              sectors={data.now?.sectors ?? []}
+              quality={data.now?.quality ?? EMPTY_QUALITY}
+            />
+            <MarketHistory history={data.history ?? EMPTY_HISTORY} />
+          </div>
+        </section>
 
-          <section className="mk-section" aria-labelledby="mk-now">
+        {data.research && data.research.lists.length > 0 && (
+          <section className="mk-section" aria-labelledby="mk-invest">
             <SectionHeader
-              id="mk-now"
+              id="mk-invest"
               size="lg"
-              title={<T en="The market right now" bn="বাজার এখন কেমন" />}
+              title={<T en="Where to invest today" bn="আজ কোথায় বিনিয়োগ করবেন" />}
               lead={
                 <T
-                  en="Which sectors are doing well, how many companies are in good shape, and how the market got here."
-                  bn="কোন সেক্টর ভালো করছে, কতটি কোম্পানি ভালো অবস্থায় আছে, আর বাজার কীভাবে এখানে এসেছে।"
+                  en="Six ideas, each a set of plain checks. The one that fits today's market comes first."
+                  bn="ছয়টি ধারণা, প্রতিটিতে কয়েকটি সহজ যাচাই। আজকের বাজারে যেটি মানায়, সেটি আগে।"
                 />
               }
+              action={{ href: "/stock-insights#research", label: <T en="All lists" bn="সব তালিকা" /> }}
             />
-            <div className="mk-stack">
-              <WhatsHappeningNow
-                sectors={data.now?.sectors ?? []}
-                quality={data.now?.quality ?? EMPTY_QUALITY}
+            <MarketResearchLists research={data.research} />
+          </section>
+        )}
+
+        <section className="mk-section" aria-labelledby="mk-next">
+          <SectionHeader
+            id="mk-next"
+            size="lg"
+            title={<T en="Shares to watch next" bn="সামনে যেসব শেয়ারে নজর রাখবেন" />}
+            lead={
+              <T
+                en="Unusual buying, shares rising fast, and shares near their highest or lowest price of the year."
+                bn="অস্বাভাবিক কেনাকাটা, দ্রুত বাড়তে থাকা শেয়ার, আর বছরের সর্বোচ্চ বা সর্বনিম্ন দামের কাছের শেয়ার।"
               />
-              <MarketHistory history={data.history ?? EMPTY_HISTORY} />
-            </div>
-          </section>
+            }
+          />
+          <WhatCouldHappenNext
+            unusual={next?.unusual ?? []}
+            rising={chances.rising}
+            nearHigh={next?.near_high ?? []}
+            nearLow={next?.near_low ?? []}
+          />
+        </section>
 
-          {data.research && data.research.lists.length > 0 && (
-            <section className="mk-section" aria-labelledby="mk-invest">
-              <SectionHeader
-                id="mk-invest"
-                size="lg"
-                title={<T en="Where to invest today" bn="আজ কোথায় বিনিয়োগ করবেন" />}
-                lead={
-                  <T
-                    en="Six ideas, each a set of plain checks. The one that fits today's market comes first."
-                    bn="ছয়টি ধারণা, প্রতিটিতে কয়েকটি সহজ যাচাই। আজকের বাজারে যেটি মানায়, সেটি আগে।"
-                  />
-                }
-                action={{ href: "/stock-insights#research", label: <T en="All lists" bn="সব তালিকা" /> }}
+        <section className="mk-section" aria-labelledby="mk-money">
+          <SectionHeader
+            id="mk-money"
+            size="lg"
+            title={<T en="Dividends coming" bn="সামনের ডিভিডেন্ড" />}
+            lead={
+              <T
+                en="Companies that will pay a dividend soon."
+                bn="যেসব কোম্পানি শিগগির ডিভিডেন্ড দেবে।"
               />
-              <MarketResearchLists research={data.research} />
-            </section>
-          )}
+            }
+            action={{ href: "/dividend-calendar", label: <T en="Dividend calendar" bn="ডিভিডেন্ড ক্যালেন্ডার" /> }}
+          />
+          <MarketDividends items={next?.dividends ?? []} />
+        </section>
 
-          <section className="mk-section" aria-labelledby="mk-next">
-            <SectionHeader
-              id="mk-next"
-              size="lg"
-              title={<T en="Shares to watch next" bn="সামনে যেসব শেয়ারে নজর রাখবেন" />}
-              lead={
-                <T
-                  en="Unusual buying, shares rising fast, and shares near their highest or lowest price of the year."
-                  bn="অস্বাভাবিক কেনাকাটা, দ্রুত বাড়তে থাকা শেয়ার, আর বছরের সর্বোচ্চ বা সর্বনিম্ন দামের কাছের শেয়ার।"
-                />
-              }
-            />
-            <WhatCouldHappenNext
-              unusual={next?.unusual ?? []}
-              rising={chances.rising}
-              nearHigh={next?.near_high ?? []}
-              nearLow={next?.near_low ?? []}
-            />
-          </section>
-
-          <section className="mk-section" aria-labelledby="mk-money">
-            <SectionHeader
-              id="mk-money"
-              size="lg"
-              title={<T en="Dividends coming" bn="সামনের ডিভিডেন্ড" />}
-              lead={
-                <T
-                  en="Companies that will pay a dividend soon."
-                  bn="যেসব কোম্পানি শিগগির ডিভিডেন্ড দেবে।"
-                />
-              }
-              action={{ href: "/dividend-calendar", label: <T en="Dividend calendar" bn="ডিভিডেন্ড ক্যালেন্ডার" /> }}
-            />
-            <MarketDividends items={next?.dividends ?? []} />
-          </section>
-
-          <p className="mk-disclaimer">
-            <T
-              en="This is educational information, not investment advice. Please read a share's full page before you decide."
-              bn="এগুলো শিক্ষামূলক তথ্য, বিনিয়োগ পরামর্শ নয়। সিদ্ধান্তের আগে শেয়ারের পুরো পেজটি পড়ে নিন।"
-            />
-          </p>
-        </>
-      )}
+        <p className="mk-disclaimer">
+          <T
+            en="This is educational information, not investment advice. Please read a share's full page before you decide."
+            bn="এগুলো শিক্ষামূলক তথ্য, বিনিয়োগ পরামর্শ নয়। সিদ্ধান্তের আগে শেয়ারের পুরো পেজটি পড়ে নিন।"
+          />
+        </p>
+      </>
 
       <HubLinks group="today" exclude={["/market-analysis"]} />
     </PersonalCodesProvider>

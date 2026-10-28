@@ -55,3 +55,29 @@ jobs:
         if: ${{ success() }}
         continue-on-error: true
         run: python main.py notify-events
+
+      # The after-close jobs, again. quick-scrape runs them first, but each waits
+      # for DSE's official close (`_close_is_final` in main.py) — a 2 PM run sees
+      # last-trade prices and skips. scrape-all has re-scraped prices after the
+      # close by now, so whichever run first sees final closes sends; all four are
+      # idempotent per Dhaka day, so the second run is a no-op. `!cancelled()`:
+      # they must run even when a later scrape step failed after prices landed.
+      - name: Fire price-target alerts (after close)
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        run: python main.py notify-price-alerts
+
+      - name: Track portfolio signal flips (after close)
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        run: python main.py notify-portfolio-signals
+
+      - name: Send daily push digest (after close)
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        run: python main.py notify-digest
+
+      - name: Portfolio daily (after close)
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        run: python main.py portfolio-daily

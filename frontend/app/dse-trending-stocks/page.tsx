@@ -225,21 +225,9 @@ const HEADER_LEAD = (
 );
 
 export default async function DseTrendingStocksPage() {
-  const data = await getTop20().catch(() => null);
-
-  if (!data) {
-    return (
-      <>
-        <PageHeader eyebrow={HEADER_EYEBROW} title={HEADER_TITLE} lead={HEADER_LEAD} />
-        <p className="py-16 text-center text-text-muted">
-          <T
-            en="We couldn't load the trending list right now. Please try again shortly."
-            bn="এই মুহূর্তে ট্রেন্ডিং তালিকা লোড করা যাচ্ছে না। একটু পরে আবার চেষ্টা করুন।"
-          />
-        </p>
-      </>
-    );
-  }
+  // No catch on the main fetch: a throw lets ISR keep serving the last good
+  // page; a rendered error state was cached as the page until the next purge.
+  const data = await getTop20();
 
   const isoDate = data.as_of_date ? data.as_of_date.slice(0, 10) : null;
   const condition = data.market_condition || "unknown";

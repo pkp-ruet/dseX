@@ -67,10 +67,14 @@ class CompanyDetailsScraper(BaseScraper):
                                 info[key] = clean_numeric(value)
                             break
 
-        # Computed: total loan = short-term + long-term
-        st = info.get("short_term_loan_mn") or 0
-        lt = info.get("long_term_loan_mn") or 0
-        info["total_loan_mn"] = st + lt
+        # Computed: total loan = short-term + long-term. A row shown as "-" is
+        # zero; no loan row on the page at all is unknown (None), not "no debt":
+        # stored as 0 it read as debt-free (`scoring_service.debt_load` "ok"),
+        # which skipped the P2 cap and the heavy-debt Buy block.
+        if "short_term_loan_mn" in info or "long_term_loan_mn" in info:
+            info["total_loan_mn"] = (info.get("short_term_loan_mn") or 0) + (info.get("long_term_loan_mn") or 0)
+        else:
+            info["total_loan_mn"] = None
 
         # Normalized sector classification
         info["sector_class"] = normalize_sector(info.get("sector") or "")
@@ -361,6 +365,11 @@ class CompanyDetailsScraper(BaseScraper):
         basic["is_mutual_fund"] = bool(existing.get("is_mutual_fund")) or self._is_mutual_fund(
             instrument_type, basic.get("company_name", "")
         )
+
+        # No loan rows parsed this time: keep the last figure we had rather than
+        # blanking it (a fresh company simply has no field = unknown).
+        if basic.get("total_loan_mn") is None:
+            basic.pop("total_loan_mn", None)
 
         db.companies.update_one(
             {"trading_code": trading_code},

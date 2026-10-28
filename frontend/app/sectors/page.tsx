@@ -6,7 +6,6 @@ import { getSectors } from "@/lib/api";
 import { crore, pct } from "@/lib/formatters";
 import { croreBn, sectorBn } from "@/lib/bn";
 import type { ReactNode } from "react";
-import ErrorState from "@/components/ui/ErrorState";
 import { T } from "@/components/i18n/T";
 import PageGuide from "@/components/seo/PageGuide";
 import SectionHeader from "@/components/ui/SectionHeader";
@@ -58,25 +57,10 @@ function MarketStat({ label, value }: { label: ReactNode; value: string }) {
 }
 
 export default async function SectorsPage() {
-  const data = await getSectors().catch(() => null);
-
-  if (!data || data.sectors.length === 0) {
-    return (
-      <>
-        <PageHeader
-          eyebrow={<T en="Dhaka Stock Exchange" bn="ঢাকা স্টক এক্সচেঞ্জ" />}
-          title={<T en="Sectors" bn="সেক্টর" />}
-          lead={<T en="Look at the whole sector before you pick a company." bn="কোম্পানি বাছার আগে পুরো সেক্টর দেখে নিন।" />}
-        />
-        <ErrorState
-          size="inline"
-          title={<T en="We couldn't load the sectors" bn="সেক্টরের তথ্য এখন লোড করা যাচ্ছে না" />}
-          reload
-          links={[{ href: "/dsestockranking", label: <T en="Stock rankings" bn="শেয়ার র‍্যাঙ্কিং" /> }]}
-        />
-      </>
-    );
-  }
+  // No catch on the main fetch: a throw lets ISR keep serving the last good
+  // page; a rendered error state was cached as the page until the next purge.
+  const data = await getSectors();
+  if (data.sectors.length === 0) throw new Error("No sectors in /api/sectors");
 
   const { market, sectors } = data;
   const largest = sectors[0] ?? null;

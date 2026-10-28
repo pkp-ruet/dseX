@@ -761,14 +761,17 @@ def load_market_index() -> dict:
     dses_change = index_change(doc.get("dses"), doc.get("dses_change"), "dses")
     ds30_change = index_change(doc.get("ds30"), doc.get("ds30_change"), "ds30")
 
-    # Up / down / neutral company counts for the latest date
+    # Up / down / unchanged counts for the latest date, over the shares that
+    # traded. A suspended or untraded row (no price) used to count as
+    # "unchanged", which pulled the rise share down on quiet days.
     price_changes = [
         use_official_close(p)
         for p in db.stock_prices.find(
             {"date": doc["date"]},
-            {"_id": 0, "change_pct": 1, "close_price": 1, "ycp": 1},
+            {"_id": 0, "change_pct": 1, "ltp": 1, "close_price": 1, "ycp": 1},
         )
     ]
+    price_changes = [p for p in price_changes if (p.get("ltp") or 0) > 0]
     up_count = sum(1 for p in price_changes if (p.get("change_pct") or 0) > 0)
     down_count = sum(1 for p in price_changes if (p.get("change_pct") or 0) < 0)
     neutral_count = len(price_changes) - up_count - down_count

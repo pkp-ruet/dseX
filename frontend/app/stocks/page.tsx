@@ -3,7 +3,6 @@ import Link from "next/link";
 import { flattenTiers, getMarketIndex, getScores } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 import StocksTable from "@/components/stocks/StocksTable";
-import ErrorState from "@/components/ui/ErrorState";
 import { T } from "@/components/i18n/T";
 import PageGuide from "@/components/seo/PageGuide";
 import PageHeader from "@/components/ui/PageHeader";
@@ -39,20 +38,12 @@ export const metadata: Metadata = {
 };
 
 export default async function StocksPage() {
+  // No catch on the main fetch: a throw lets ISR keep serving the last good
+  // page; a rendered error state was cached as the page until the next purge.
   const [scores, marketIndex] = await Promise.all([
-    getScores().catch(() => null),
+    getScores(),
     getMarketIndex().catch(() => null),
   ]);
-
-  if (!scores) {
-    return (
-      <ErrorState
-        title={<T en="We couldn't load the share price list" bn="শেয়ারের তালিকা এখন লোড করা যাচ্ছে না" />}
-        reload
-        links={[{ href: "/dsestockranking", label: <T en="Stock rankings" bn="শেয়ার র‍্যাঙ্কিং" /> }]}
-      />
-    );
-  }
 
   // Drop `signal` (reason text in two languages): StocksTable never reads it and
   // every row is serialized into the page HTML.

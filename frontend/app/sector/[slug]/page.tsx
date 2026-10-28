@@ -28,7 +28,12 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const data = await getSectorDetail(slug).catch(() => null);
+  // Only a real 404 falls back; any other failure throws so a transient
+  // backend error can't be cached as a page with no title or description.
+  const data = await getSectorDetail(slug).catch((err) => {
+    if (err instanceof ApiNotFoundError) return null;
+    throw err;
+  });
   if (!data) return {};
 
   const s = data.summary;
@@ -72,32 +77,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function SectorPage({ params }: Props) {
   const { slug } = await params;
 
-  let data;
-  try {
-    data = await getSectorDetail(slug);
-  } catch (err) {
+  // Any failure but a 404 throws: ISR then keeps serving the last good page.
+  const data = await getSectorDetail(slug).catch((err) => {
     if (err instanceof ApiNotFoundError) notFound();
-    data = null;
-  }
-
-  if (!data) {
-    return (
-      <>
-        <PageHeader
-          eyebrow={<T en="DSE sector" bn="ডিএসই সেক্টর" />}
-          title={<T en="Sector" bn="সেক্টর" />}
-        />
-        <div className="ms-card">
-          <p className="ms-empty">
-            <T
-              en="We couldn't load the sector data right now. Please refresh in a moment."
-              bn="এই মুহূর্তে সেক্টরের তথ্য লোড করা যাচ্ছে না। একটু পরে পেজটি আবার লোড করুন।"
-            />
-          </p>
-        </div>
-      </>
-    );
-  }
+    throw err;
+  });
 
   const s = data.summary;
   const nameBn = sectorBn(s.sector);

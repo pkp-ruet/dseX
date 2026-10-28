@@ -75,3 +75,14 @@ def test_summary_valuation_follows_p4():
 def test_bank_summary_has_no_loan_pressure_line():
     text = _render_bengali(facts(sector="Bank", is_lender=True, area_health=9.3))
     assert "ঋণের চাপ" not in text
+
+
+def test_bracketed_code_declaration_is_not_a_follow_up():
+    # "AMCL(PRAN): …" — the "(" in the code read as "(Additional Information)".
+    item = {**news("AMCL(PRAN): Dividend Declaration",
+                   "The Board of Directors has recommended 30% Cash Dividend for the year ended June 30, 2026."),
+            "trading_code": "AMCL(PRAN)"}
+    assert is_declaration_news(item)
+    follow_up = {**news("AMCL(PRAN): Dividend Declaration (Additional Information)", "Disclosure ..."),
+                 "trading_code": "AMCL(PRAN)"}
+    assert not is_declaration_news(follow_up)

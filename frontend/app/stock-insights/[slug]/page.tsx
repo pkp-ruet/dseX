@@ -14,7 +14,6 @@ import {
 import { getStockLists, getResearchList, type ResearchListDetail } from "@/lib/api";
 import { RESEARCH_LISTS, getResearchListDef, DEEPER, type ResearchListDef } from "@/lib/research-lists";
 import ResearchListView from "@/components/research/ResearchListView";
-import ErrorState from "@/components/ui/ErrorState";
 import { StorySpotlight, StoryRundown, type StoryEntryView } from "@/components/stock-insights/StoryEntries";
 import { T } from "@/components/i18n/T";
 import { formatDate } from "@/lib/formatters";
@@ -146,10 +145,8 @@ function buildResearchJsonLd(def: ResearchListDef, data: ResearchListDetail) {
 }
 
 async function ResearchPage({ def }: { def: ResearchListDef }) {
-  const data = await getResearchList(def.slug).catch(() => null);
-  if (!data) {
-    return <ErrorState reload />;
-  }
+  // No catch: a throw lets ISR keep serving the last good page.
+  const data = await getResearchList(def.slug);
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildResearchJsonLd(def, data)) }} />
@@ -167,8 +164,10 @@ export default async function StockInsightPage({ params }: Props) {
   const def = getStockList(slug);
   if (!def) notFound();
 
-  const lists = await getStockLists().catch(() => null);
-  const items: StockListItem[] = lists?.[def.apiKey] ?? [];
+  // No catch: a failed fetch rendered "the latest figures are not in yet" and
+  // ISR cached it as the page; a throw keeps the last good page instead.
+  const lists = await getStockLists();
+  const items: StockListItem[] = lists[def.apiKey] ?? [];
   const entries: StoryEntryView[] = items.map((item, i) => {
     const line = classicLine(item, def);
     return {

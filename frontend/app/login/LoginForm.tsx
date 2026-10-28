@@ -40,11 +40,20 @@ export default function LoginForm() {
       await loadWatchlist();
       router.push("/");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : L("We couldn't sign you in.", "সাইন ইন করা যায়নি।");
+      const msg = err instanceof Error ? err.message : "";
+      const status = (err as { status?: number } | null)?.status;
       setError(
-        msg === "AUTH_EXPIRED"
-          ? L("Your session has ended. Please sign in again.", "আপনার সেশন শেষ হয়েছে। আবার সাইন ইন করুন।")
-          : msg,
+        status === 401 && msg.includes("Google")
+          ? L(
+              "This account signs in with Google. Use \"Continue with Google\" above.",
+              "এই অ্যাকাউন্টে Google দিয়ে সাইন ইন করতে হয়। ওপরের \"Continue with Google\" ব্যবহার করুন।",
+            )
+          : status === 401
+            ? L(
+                "Those details don't match an account. Check them and try again.",
+                "এই তথ্যের সাথে কোনো অ্যাকাউন্ট মেলেনি। তথ্যগুলো দেখে আবার চেষ্টা করুন।",
+              )
+            : msg || L("We couldn't sign you in.", "সাইন ইন করা যায়নি।"),
       );
     } finally {
       setLoading(false);

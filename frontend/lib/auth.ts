@@ -1,5 +1,9 @@
-const TOKEN_KEY = "dsex.auth.token";
+export const TOKEN_KEY = "dsex.auth.token";
 const USER_KEY = "dsex.auth.user";
+
+/** Fired by `logout()` — on sign-out, and when any call comes back 401.
+ *  AuthContext, the watchlist and the alert store listen. */
+export const AUTH_LOGOUT_EVENT = "dsex:auth-logout";
 
 export interface AuthUser {
   user_id: string;
@@ -34,19 +38,29 @@ export const AUTH_USER_UPDATED_EVENT = "dsex:auth-user-updated";
 // Token
 // ---------------------------------------------------------------------------
 
+// Storage can throw (blocked site data, a full quota); a throw here ran inside
+// AuthProvider's effect and took the whole app down with it.
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(TOKEN_KEY);
+  try {
+    return window.localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
 }
 
 export function setToken(token: string): void {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(TOKEN_KEY, token);
+  try {
+    window.localStorage.setItem(TOKEN_KEY, token);
+  } catch {}
 }
 
 export function clearToken(): void {
   if (typeof window === "undefined") return;
-  window.localStorage.removeItem(TOKEN_KEY);
+  try {
+    window.localStorage.removeItem(TOKEN_KEY);
+  } catch {}
 }
 
 // ---------------------------------------------------------------------------
@@ -65,12 +79,16 @@ export function getStoredUser(): AuthUser | null {
 
 export function setStoredUser(user: AuthUser): void {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(USER_KEY, JSON.stringify(user));
+  try {
+    window.localStorage.setItem(USER_KEY, JSON.stringify(user));
+  } catch {}
 }
 
 export function clearStoredUser(): void {
   if (typeof window === "undefined") return;
-  window.localStorage.removeItem(USER_KEY);
+  try {
+    window.localStorage.removeItem(USER_KEY);
+  } catch {}
 }
 
 // ---------------------------------------------------------------------------
@@ -85,7 +103,7 @@ export function logout(): void {
   clearToken();
   clearStoredUser();
   if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent("dsex:auth-logout"));
+    window.dispatchEvent(new CustomEvent(AUTH_LOGOUT_EVENT));
   }
 }
 

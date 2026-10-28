@@ -21,8 +21,15 @@ def hash_password(plain: str) -> str:
     return _bcrypt.hashpw(plain.encode(), _bcrypt.gensalt()).decode()
 
 
-def verify_password(plain: str, hashed: str) -> bool:
-    return _bcrypt.checkpw(plain.encode(), hashed.encode())
+def verify_password(plain: str, hashed: Optional[str]) -> bool:
+    # A Google-only account has no hash; bcrypt raises "Invalid salt" on an
+    # empty or malformed one, which used to surface as a 500 on /login.
+    if not hashed:
+        return False
+    try:
+        return _bcrypt.checkpw(plain.encode(), hashed.encode())
+    except ValueError:
+        return False
 
 
 # ---------------------------------------------------------------------------
@@ -33,18 +40,54 @@ def create_access_token(user_id: str) -> str:
     now = datetime.now(timezone.utc)
     payload = {
         "sub": user_id,
+        "typ": "access",
         "iat": now,
         "exp": now + timedelta(minutes=JWT_EXPIRE_MINUTES),
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 
-def decode_access_token(token: str) -> Optional[str]:
+def decode_access_claims(token: str) -> Optional[dict]:
+    """The claims of a valid login token, else None.
+
+    Email-link tokens (unsubscribe, open pixel — `email_service.sign_email_token`)
+    are signed with the same key but carry a `purpose` and no expiry; until
+    2026-10-28 they were accepted here, so any email link was a login that
+    never expired. Login tokens always have `exp`; tokens minted from that day
+    also carry `typ: "access"` (older ones have no `typ` and stay valid until
+    they expire)."""
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-        return payload.get("sub")
     except JWTError:
         return None
+    if payload.get("purpose") or "exp" not in payload or not payload.get("sub"):
+        return None
+    if payload.get("typ", "access") != "access":
+        return None
+    return payload
+
+
+def decode_access_token(token: str) -> Optional[str]:
+    claims = decode_access_claims(token)
+    return claims.get("sub") if claims else None
+
+
+def token_revoked(claims: dict, user: dict) -> bool:
+    """True when the token was issued before the account's `tokens_valid_after`
+    (set when a Google sign-in takes over an account whose password was never
+    verified — see `link_google_to_user`)."""
+    cutoff = user.get("tokens_valid_after")
+    iat = claims.get("iat")
+    if not isinstance(cutoff, datetime) or iat is None:
+        return False
+    if cutoff.tzinfo is None:
+        cutoff = cutoff.replace(tzinfo=timezone.utc)
+    try:
+        issued = datetime.fromtimestamp(float(iat), tz=timezone.utc)
+    except (TypeError, ValueError, OverflowError):
+        return True
+    # iat is whole seconds; the cutoff has microseconds.
+    return issued < cutoff.replace(microsecond=0)
 
 
 # ---------------------------------------------------------------------------
@@ -117,14 +160,13 @@ _PUBLIC_FIELDS = (
 
 def public_user(user: dict) -> dict:
     """The browser-facing slice of a sanitized user, plus `is_admin`."""
-    from backend.config import ADMIN_EMAILS
+    from backend.services.entitlements import is_admin, plan_fields
 
     out = {k: user.get(k) for k in _PUBLIC_FIELDS}
     out["watchlist"] = out["watchlist"] or []
     out["total_visits"] = out["total_visits"] or 0
-    out["is_admin"] = (user.get("email") or "").lower() in ADMIN_EMAILS
+    out["is_admin"] = is_admin(user)
     # Plan: is_premium, premium_until, limits (entitlements.py).
-    from backend.services.entitlements import plan_fields
 
     out.update(plan_fields(user))
     return out
@@ -222,7 +264,15 @@ def link_google_to_user(
     user_id: str,
     google_sub: str,
     picture: Optional[str] = None,
+    drop_password: bool = False,
 ) -> dict:
+    """Link a Google account to an existing account with the same email.
+
+    `drop_password`: the account's email was never verified, so whoever set its
+    password may not own the address (someone can register a stranger's email
+    and wait). Google has now proved the owner, so that password is removed and
+    every token issued before now stops working; the owner signs in with Google
+    from here on."""
     now = datetime.now(timezone.utc)
     update = {
         "google_id": google_sub,
@@ -233,7 +283,12 @@ def link_google_to_user(
     }
     if picture:
         update["picture_url"] = picture
-    _users().update_one({"user_id": user_id}, {"$set": update})
+    op: dict = {"$set": update}
+    if drop_password:
+        update["tokens_valid_after"] = now
+        op["$unset"] = {"password_hash": ""}
+    _users().update_one({"user_id": user_id}, op)
+    user_cache.invalidate_user(user_id)
     return _users().find_one({"user_id": user_id})
 
 
@@ -261,7 +316,12 @@ def create_or_link_google_user(
         current_gid = by_email.get("google_id")
         if current_gid and current_gid != google_sub:
             raise ValueError("google_conflict")
-        return link_google_to_user(by_email["user_id"], google_sub, picture)
+        unverified_password = (
+            bool(by_email.get("password_hash")) and by_email.get("email_verified") is not True
+        )
+        return link_google_to_user(
+            by_email["user_id"], google_sub, picture, drop_password=unverified_password
+        )
 
     return create_oauth_user(google_sub, email, display_name, picture)
 
@@ -279,7 +339,11 @@ def authenticate_user(
         return None
     if not raw.get("is_active"):
         return None
-    if not verify_password(password_plain, raw.get("password_hash", "")):
+    if not raw.get("password_hash") and raw.get("google_id"):
+        # Created with Google, or its unverified password was dropped when
+        # Google took it over — say so instead of "incorrect credentials".
+        raise ValueError("use_google")
+    if not verify_password(password_plain, raw.get("password_hash")):
         return None
 
     _users().update_one(

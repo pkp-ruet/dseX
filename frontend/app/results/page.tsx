@@ -3,7 +3,6 @@ import Link from "next/link";
 import { getLatestResults } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 import PageHeader from "@/components/ui/PageHeader";
-import ErrorState from "@/components/ui/ErrorState";
 import { T } from "@/components/i18n/T";
 import ResultsFeed from "@/components/results/ResultsFeed";
 import PageGuide from "@/components/seo/PageGuide";
@@ -56,19 +55,9 @@ export const metadata: Metadata = {
  * Fetched and awaited in the page: no streaming on an indexable route.
  */
 export default async function ResultsPage() {
-  const data = await getLatestResults().catch(() => null);
-
-  if (!data) {
-    return (
-      <>
-        <PageHeader title={<T en="Latest quarterly results" bn="সর্বশেষ প্রান্তিকের ফল" />} />
-        <ErrorState
-          title={<T en="We couldn't load the latest results" bn="সর্বশেষ ফল এখন লোড করা যাচ্ছে না" />}
-          links={[{ href: "/dse-today", label: <T en="DSE today" bn="আজকের ডিএসই" /> }]}
-        />
-      </>
-    );
-  }
+  // No catch on the main fetch: a throw lets ISR keep serving the last good
+  // page; a rendered error state was cached as the page until the next purge.
+  const data = await getLatestResults();
 
   const rows = data.results;
 

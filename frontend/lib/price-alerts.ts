@@ -10,7 +10,7 @@
  * mutation so subscribers (the stock button, /alerts page, home bell) re-render.
  */
 
-import { getStoredUser, isLoggedIn } from "@/lib/auth";
+import { AUTH_LOGOUT_EVENT, getStoredUser, isLoggedIn } from "@/lib/auth";
 import {
   apiGetAlerts,
   apiCreateAlert,
@@ -190,7 +190,7 @@ export function subscribeAlerts(cb: () => void): () => void {
 // ---------------------------------------------------------------------------
 
 if (typeof window !== "undefined") {
-  window.addEventListener("dsex:auth-logout", () => {
+  window.addEventListener(AUTH_LOGOUT_EVENT, () => {
     _cache = [];
     clearCachePrefix(`${cacheKeys.alerts("")}`.slice(0, -1));
     emit();

@@ -35,7 +35,9 @@ export const metadata: Metadata = {
 };
 
 export default async function TodaysNewsPage() {
-  const news = await getTodaysNews().catch(() => null);
+  // No catch on the main fetch: a throw lets ISR keep serving the last good
+  // page; a rendered error state was cached as the page until the next purge.
+  const news = await getTodaysNews();
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -60,7 +62,7 @@ export default async function TodaysNewsPage() {
     ],
   };
 
-  const items = news ?? [];
+  const items = news;
   const dateLabel = items[0]?.post_date ? formatDate(items[0].post_date) : null;
   const dateLabelBn = items[0]?.post_date ? bnDate(items[0].post_date) : null;
 
@@ -92,18 +94,7 @@ export default async function TodaysNewsPage() {
         }
       />
 
-      {news === null && (
-        <div className="ms-card">
-          <p className="ms-empty">
-            <T
-              en="We couldn't load the news right now. Please refresh in a moment."
-              bn="এই মুহূর্তে খবর লোড করা যাচ্ছে না। একটু পরে আবার রিফ্রেশ করুন।"
-            />
-          </p>
-        </div>
-      )}
-
-      {news !== null && items.length === 0 && (
+      {items.length === 0 && (
         <div className="ms-card">
           <p className="ms-empty">
             <T en="No news was published on the last trading day." bn="শেষ লেনদেনের দিনে কোনো খবর প্রকাশিত হয়নি।" />

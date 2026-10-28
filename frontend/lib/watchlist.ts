@@ -14,7 +14,7 @@
  * cached here too and exposed via `getCachedWatchlistMeta()`.
  */
 
-import { getStoredUser, isLoggedIn } from "@/lib/auth";
+import { AUTH_LOGOUT_EVENT, getStoredUser, isLoggedIn } from "@/lib/auth";
 import {
   apiGetWatchlist,
   apiAddToWatchlist,
@@ -235,7 +235,7 @@ export function subscribeWatchlist(cb: () => void): () => void {
 // ---------------------------------------------------------------------------
 
 if (typeof window !== "undefined") {
-  window.addEventListener("dsex:auth-logout", () => {
+  window.addEventListener(AUTH_LOGOUT_EVENT, () => {
     _cache = [];
     _meta = {};
     // Drop every user-scoped cache so the next signed-in user starts clean.

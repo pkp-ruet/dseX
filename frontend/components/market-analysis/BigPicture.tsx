@@ -63,15 +63,19 @@ interface WhyRow {
  *  word. The site's pitch is showing the working — this is where the page does. */
 function whyRows(s: MarketStats): WhyRow[] {
   const rows: WhyRow[] = [];
-  const traded = s.up + s.down + s.neutral;
-  if (s.advancing_pct != null && traded > 0) {
-    const v = `${s.up} of ${traded} · ${Math.round(s.advancing_pct)}%`;
+  // advancing_pct = rose / (rose + fell): unchanged and untraded shares are left out.
+  const moved = s.up + s.down;
+  if (s.advancing_pct != null && moved > 0) {
+    const pct = Math.round(s.advancing_pct);
     rows.push({
       k: { en: "Shares that rose today", bn: "আজ যত শেয়ারের দাম বেড়েছে" },
-      v: { en: v, bn: `${traded}টির মধ্যে ${s.up}টি · ${Math.round(s.advancing_pct)}%` },
+      v: {
+        en: `${s.up} rose, ${s.down} fell · ${pct}% rose`,
+        bn: `${s.up}টি বেড়েছে, ${s.down}টি কমেছে · ${pct}% বেড়েছে`,
+      },
       rule: {
-        en: "Over 60% reads as rising and under 40% as falling. Anything in between is mixed.",
-        bn: "60%-এর বেশি হলে বাজার বাড়ছে, 40%-এর কম হলে কমছে। মাঝামাঝি হলে মিশ্র।",
+        en: "Counted over the shares whose price moved. Over 60% reads as rising and under 40% as falling. Anything in between is mixed.",
+        bn: "যেসব শেয়ারের দাম বদলেছে শুধু সেগুলো ধরে হিসাব। 60%-এর বেশি হলে বাজার বাড়ছে, 40%-এর কম হলে কমছে। মাঝামাঝি হলে মিশ্র।",
       },
     });
   }

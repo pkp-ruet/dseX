@@ -6,7 +6,6 @@ import { getTier } from "@/lib/constants";
 import { PILLARS } from "@/lib/landing";
 import RankingExplorer from "@/components/ranking/RankingExplorer";
 import type { RankedItem } from "@/components/ranking/FullRankTable";
-import ErrorState from "@/components/ui/ErrorState";
 import { T } from "@/components/i18n/T";
 import PageHeader from "@/components/ui/PageHeader";
 import Stat from "@/components/ui/Stat";
@@ -45,20 +44,12 @@ function fmtDate(value: string | null | undefined): string | null {
 export default async function DseStockRankingPage() {
   // The market index is only here for the price as-of date on the vintage rail —
   // it must never be able to take the leaderboard down.
+  // No catch on the main fetch: a throw lets ISR keep serving the last good
+  // page; a rendered error state was cached as the page until the next purge.
   const [scores, marketIndex] = await Promise.all([
-    getScores().catch(() => null),
+    getScores(),
     getMarketIndex().catch(() => null),
   ]);
-
-  if (!scores) {
-    return (
-      <ErrorState
-        title={<T en="We couldn't load the rankings" bn="র‍্যাঙ্কিং এখন লোড করা যাচ্ছে না" />}
-        reload
-        links={[{ href: "/stocks", label: <T en="Browse all stocks" bn="সব শেয়ার দেখুন" /> }]}
-      />
-    );
-  }
 
   const { tiers } = scores;
 

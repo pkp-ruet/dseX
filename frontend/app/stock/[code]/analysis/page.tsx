@@ -38,8 +38,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   let data: Awaited<ReturnType<typeof getDeepAnalysis>> | null = null;
   try {
     data = await getDeepAnalysis(code);
-  } catch {
-    // 404 / transient → minimal title, never block the page
+  } catch (err) {
+    // 404 → minimal noindex title (the page 404s too). A transient error
+    // throws, so it can't be cached as a noindex page.
+    if (!(err instanceof ApiNotFoundError)) throw err;
   }
   if (!data) return { title: `${code} In-Depth Analysis`, robots: { index: false, follow: true } };
 

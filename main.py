@@ -285,14 +285,45 @@ def cmd_scrape_quick(_args):
         print(f"Skipping revalidate — only {len(prices)} prices scraped (expected >=200).")
 
 
+def _close_is_final(min_traded: int = 200, min_share: float = 0.9) -> bool:
+    """True once today's stored prices carry DSE's official close (CLOSEP).
+
+    DSE closes at 2:30 PM and shows CLOSEP as 0 until then (stored as None), so
+    a run at 2 PM read last-trade prices: one-shot price alerts, Sell flips, the
+    digest and the portfolio snapshot (which can't be redone) all went out on
+    intraday numbers. The after-close jobs wait for this instead; on a DSE
+    holiday there are no rows for today, so they skip too."""
+    from db.connection import get_db
+    from utils.market_hours import bst_today_iso
+
+    db = get_db()
+    today = bst_today_iso()
+    traded = db.stock_prices.count_documents({"date": today, "ltp": {"$gt": 0}})
+    closed = db.stock_prices.count_documents(
+        {"date": today, "ltp": {"$gt": 0}, "close_price": {"$gt": 0}}
+    )
+    final = traded >= min_traded and closed >= min_share * traded
+    if not final:
+        print(f"Close not final yet for {today}: {closed} of {traded} traded stocks "
+              f"have DSE's official close. Skipping (scrape-all runs this again later).")
+    return final
+
+
+def _after_close(args) -> bool:
+    """Gate for the after-close jobs: `--force` skips the check."""
+    return bool(getattr(args, "force", False)) or _close_is_final()
+
+
 def cmd_notify_digest(args):
     """Send the daily "your stocks today" web-push digest to opted-in users.
 
-    Gated to 2 PM Dhaka (market close): when quick-scrape runs several times during
-    the session, the first run at/after 2 PM sends and earlier intraday runs skip,
-    so the digest reflects closing prices. Idempotent per Dhaka day, so later
+    Waits for DSE's official close (`_close_is_final`) — quick-scrape runs it, and
+    scrape-all runs it again after its post-close price scrape, so the first run
+    with final closes sends. Idempotent per Dhaka day, so later
     same-day runs are no-ops. `--force` bypasses the time gate (manual testing).
     Silently does nothing if the VAPID keys aren't configured."""
+    if not _after_close(args):
+        return
     from backend.services.push_campaign_service import run_digest
 
     not_before = None if getattr(args, "force", False) else 14  # 2 PM Dhaka
@@ -321,6 +352,8 @@ def cmd_notify_price_alerts(args):
     per alert and idempotent per Dhaka day. No-op if VAPID keys aren't configured.
     Note: alerts are marked triggered (for the in-app bell) even when push is
     unavailable."""
+    if not _after_close(args):
+        return
     from backend.services.price_alert_service import check_and_notify
 
     not_before = None if getattr(args, "force", False) else 14  # 2 PM Dhaka
@@ -336,6 +369,8 @@ def cmd_notify_portfolio_signals(args):
     the price alerts; `--force` bypasses (manual testing). Signal changes are
     always persisted (the in-app bell reads them) even when VAPID keys aren't
     configured; push is best-effort and deduped per user per Dhaka day."""
+    if not _after_close(args):
+        return
     from backend.services.portfolio_signal_service import check_and_notify
 
     not_before = None if getattr(args, "force", False) else 14  # 2 PM Dhaka
@@ -351,6 +386,8 @@ def cmd_portfolio_daily(args):
     and push them to premium readers, plus the trial-ending recap.
 
     Run after `scrape-quick`. Gated to 2 PM Dhaka; idempotent per trading day."""
+    if not _after_close(args):
+        return
     from backend.services.portfolio_daily import run_portfolio_daily
 
     not_before = None if getattr(args, "force", False) else 14  # 2 PM Dhaka

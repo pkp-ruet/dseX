@@ -7,7 +7,6 @@ import { formatDate } from "@/lib/formatters";
 import { bnDate } from "@/lib/bn";
 import type { ReactNode } from "react";
 import { T } from "@/components/i18n/T";
-import ErrorState from "@/components/ui/ErrorState";
 import SignalChip from "@/components/ui/SignalChip";
 import PageHeader from "@/components/ui/PageHeader";
 import HubLinks from "@/components/layout/HubLinks";
@@ -54,16 +53,13 @@ export const metadata: Metadata = {
 export default async function BuySellSignalsPage() {
   // The daily tips live here since 2026-10-25 (/daily-tips and /top-picks
   // 301 to this page) — fetched beside the scores, not after them.
+  // No catch on the main fetch: a throw lets ISR keep serving the last good
+  // page; a rendered error state was cached as the page until the next purge.
   const [scores, tipsData] = await Promise.all([
-    getScores().catch(() => null),
+    getScores(),
     getDailyTips().catch(() => null),
   ]);
   const tips = tipsData?.tips ?? [];
-
-  if (!scores)
-    return (
-      <ErrorState title={<T en="We couldn't load the buy signals" bn="কেনার সংকেত এখন লোড করা যাচ্ছে না" />} reload />
-    );
 
   const all = flattenTiers(scores);
   // Buys only — Strong Buys first, then by fundamental score. The explorer

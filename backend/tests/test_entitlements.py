@@ -41,7 +41,20 @@ def test_naive_mongo_datetime_and_iso_string():
 
 
 def test_admin_is_always_premium():
-    assert is_premium({"email": "Boss@Example.com"}, NOW)
+    assert is_premium({"email": "Boss@Example.com", "email_verified": True}, NOW)
+
+
+def test_admin_needs_a_verified_email_on_new_accounts():
+    # Register never verifies an email: a new account on an admin address
+    # (nobody proved they own it) is not admin until Google verifies it.
+    new = {"email": "boss@example.com", "created_at": "2026-11-02T10:00:00+00:00"}
+    assert not ent.is_admin(new)
+    assert not is_premium(new, NOW)
+    assert ent.is_admin({**new, "email_verified": True})
+    # Accounts that already existed keep admin on their email.
+    assert ent.is_admin({"email": "boss@example.com", "created_at": datetime(2025, 1, 5)})
+    assert not ent.is_admin({"email": "someone@example.com", "email_verified": True})
+    assert not ent.is_admin(None)
 
 
 def test_limits():

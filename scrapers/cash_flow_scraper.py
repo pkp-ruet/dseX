@@ -39,44 +39,88 @@ def _find(items, report_type, *substrings):
     return None
 
 
+def _debt_lines(items, report_type, groups, used):
+    """Sum one line per group, never the same line twice. Within a group the
+    labels are tried in the order given (most specific first), so "term loan"
+    can't take the "Short term loan" line before "long term loan" is tried."""
+    total = None
+    for labels in groups:
+        hit = None
+        for label in labels:
+            label = label.lower()
+            for i, item in enumerate(items):
+                if i in used or item.get("r") != report_type or item.get("l") is None:
+                    continue
+                if label in (item.get("k") or "").lower():
+                    hit = i
+                    break
+            if hit is not None:
+                break
+        if hit is not None:
+            used.add(hit)
+            total = (total or 0.0) + float(items[hit]["l"])
+    return total
+
+
 def _find_total_debt(yr, report_type="balance-sheet"):
     """
-    Interest-bearing debt for D/E: prefer one aggregate line; otherwise sum
-    typical split lines (long/short term, lease, bonds). Omits trade payables.
-    """
-    agg = _find(yr, report_type,
-                "total borrowings",
-                "loans and borrowings",
-                "loans & borrowings",
-                "total debt",
-                "total interest-bearing",
-                "interest bearing borrowings",
-                "interest-bearing borrowings",
-                "borrowings (net)",
-                "net borrowings",
-                "total loans",
-                # DSE issuers often label ST borrowings / overdraft lines this way
-                # (e.g. JAMUNAOIL: "Other Financial Facility")
-                "financial facility",
-                "credit facility",
-                "borrowings")
-    if agg is not None:
-        return agg
+    Interest-bearing debt for D/E: an explicit total line if there is one,
+    else the long + short (+ current portion, leases, bonds) lines summed,
+    else every remaining generic borrowings line summed. Omits trade payables.
 
-    return _find_sum(yr, report_type,
-                     ("long term borrowings", "long-term borrowings",
-                      "long term loan", "long-term loan",
-                      "non-current borrowings", "non current borrowings",
-                      "term loan", "term loans"),
-                     ("short term borrowings", "short-term borrowings",
-                      "short term loan", "short-term loan",
-                      "current borrowings", "current portion of borrowings",
-                      "financial facility", "credit facility",
-                      "bank overdraft", "overdraft"),
-                     ("current portion of long", "current maturity of long",
-                      "maturity of long-term", "portion of long-term debt"),
-                     ("lease liabilit", "lease liability", "right-of-use lease"),
-                     ("sukuk", "bonds payable", "debenture", "medium term note"))
+    Until 2026-10-28 one list held both totals and generic labels ("borrowings",
+    "financial facility") and `_find` took the first statement line matching
+    any of them — "Long term borrowings" usually comes first, so total debt was
+    often one leg only and the split sum below never ran.
+    """
+    total = _find_by_priority(yr, report_type,
+                              "total borrowings",
+                              "total debt",
+                              "total interest-bearing",
+                              "total interest bearing",
+                              "total loans")
+    if total is not None:
+        return total
+
+    used: set[int] = set()
+    split = _debt_lines(yr, report_type, (
+        ("long term borrowings", "long-term borrowings",
+         "non-current borrowings", "non current borrowings",
+         "long term loan", "long-term loan", "term loans", "term loan"),
+        ("short term borrowings", "short-term borrowings",
+         "short term loan", "short-term loan",
+         "current borrowings", "current portion of borrowings",
+         "bank overdraft", "overdraft",
+         # DSE issuers often label ST borrowings / overdraft lines this way
+         # (e.g. JAMUNAOIL: "Other Financial Facility")
+         "financial facility", "credit facility"),
+        ("current portion of long", "current maturity of long",
+         "maturity of long-term", "portion of long-term debt"),
+        ("lease liabilit", "lease liability", "right-of-use lease"),
+        ("sukuk", "bonds payable", "debenture", "medium term note"),
+    ), used)
+    if split is not None:
+        return split
+
+    # Only generic lines: "Loans and borrowings" under both non-current and
+    # current liabilities, or a single "Borrowings" line — add them all up.
+    generic = ("loans and borrowings", "loans & borrowings",
+               "interest bearing borrowings", "interest-bearing borrowings",
+               "borrowings (net)", "net borrowings", "borrowings")
+    total = None
+    while (leg := _debt_lines(yr, report_type, [generic], used)) is not None:
+        total = (total or 0.0) + leg
+    return total
+
+
+def _find_by_priority(items, report_type, *labels):
+    """`_find`, but the order of `labels` is the preference: the first label
+    that any line contains wins (`_find` returns the first line matching any)."""
+    for label in labels:
+        val = _find(items, report_type, label)
+        if val is not None:
+            return val
+    return None
 
 
 class CashFlowScraper(BaseScraper):

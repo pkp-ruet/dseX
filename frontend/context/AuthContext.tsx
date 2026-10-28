@@ -16,7 +16,9 @@ import {
   setStoredUser,
   logout as authLogout,
   isTokenExpired,
+  AUTH_LOGOUT_EVENT,
   AUTH_USER_UPDATED_EVENT,
+  TOKEN_KEY,
 } from "@/lib/auth";
 
 interface AuthContextValue {
@@ -71,6 +73,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     window.addEventListener(AUTH_USER_UPDATED_EVENT, onUpdated);
     return () => window.removeEventListener(AUTH_USER_UPDATED_EVENT, onUpdated);
+  }, []);
+
+  // Signed out from anywhere: a 401 on any call (`lib/auth.logout`), another
+  // tab signing out or in, or a token that expired while the tab sat open.
+  // Without this the page kept showing the account after the token was gone.
+  useEffect(() => {
+    const onLogout = () => setUser(null);
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== null && e.key !== TOKEN_KEY) return;
+      if (!getToken()) setUser(null);
+      else {
+        const fresh = getStoredUser();
+        if (fresh) setUser(fresh);
+      }
+    };
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      const token = getToken();
+      if (token && isTokenExpired(token)) authLogout();
+    };
+    window.addEventListener(AUTH_LOGOUT_EVENT, onLogout);
+    window.addEventListener("storage", onStorage);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener(AUTH_LOGOUT_EVENT, onLogout);
+      window.removeEventListener("storage", onStorage);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, []);
 
   const login = useCallback((token: string, u: AuthUser) => {

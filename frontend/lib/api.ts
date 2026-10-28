@@ -1396,6 +1396,8 @@ export interface AuthApiResponse {
   user: AuthUser;
 }
 
+const CREDENTIAL_PATH = /^\/api\/auth\/(login|register|google)\b/;
+
 async function apiAuthFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
   const res = await fetch(`${getApiUrl()}${path}`, {
@@ -1406,7 +1408,9 @@ async function apiAuthFetch<T>(path: string, options: RequestInit = {}): Promise
       ...(options.headers ?? {}),
     },
   });
-  if (res.status === 401) {
+  // A 401 from sign in / sign up / Google means "wrong details", not "your
+  // session ended" — those go through to the error below with the server's words.
+  if (res.status === 401 && !CREDENTIAL_PATH.test(path)) {
     logout();
     throw new Error("AUTH_EXPIRED");
   }

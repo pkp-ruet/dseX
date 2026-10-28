@@ -7,7 +7,6 @@ import DseTodayTable from "@/components/dse-today/DseTodayTable";
 import DseTodayNews from "@/components/dse-today/DseTodayNews";
 import MarketMovers from "@/components/home/MarketMovers";
 import SectorHeatmap from "@/components/market/SectorHeatmap";
-import ErrorState from "@/components/ui/ErrorState";
 import { T } from "@/components/i18n/T";
 import PageHeader from "@/components/ui/PageHeader";
 import HubLinks from "@/components/layout/HubLinks";
@@ -52,28 +51,12 @@ export const metadata: Metadata = {
 };
 
 export default async function DseTodayPage() {
+  // No catch on the main fetch: a throw lets ISR keep serving the last good
+  // page; a rendered error state was cached as the page until the next purge.
   const [data, sectorSlugs] = await Promise.all([
-    getDseToday().catch(() => null),
+    getDseToday(),
     getSectorSlugs().catch(() => [] as string[]),
   ]);
-
-  if (!data) {
-    return (
-      <>
-        <PageHeader
-          eyebrow={<T en="Dhaka Stock Exchange" bn="ঢাকা স্টক এক্সচেঞ্জ" />}
-          title={<T en="DSE today" bn="আজকের ডিএসই" />}
-          lead={LEAD}
-        />
-        <ErrorState
-          size="inline"
-          title={<T en="We couldn't load today's market" bn="আজকের বাজারের তথ্য এখন লোড করা যাচ্ছে না" />}
-          reload
-          links={[{ href: "/market-analysis", label: <T en="Market analysis" bn="বাজার বিশ্লেষণ" /> }]}
-        />
-      </>
-    );
-  }
 
   const dateLabel = data.header.date ? formatDate(data.header.date) : null;
   const dateLabelBn = data.header.date ? bnDate(data.header.date) : null;

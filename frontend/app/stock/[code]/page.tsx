@@ -59,8 +59,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   let detail: Awaited<ReturnType<typeof getCompanyDetail>> | null = null;
   try {
     detail = await getCompanyDetail(code);
-  } catch {
-    // 404 or transient — fall through to a minimal title so metadata never blocks the page
+  } catch (err) {
+    // Only a real 404 gets the minimal noindex title (the page 404s anyway).
+    // A transient error throws: returning noindex for it cached a live stock
+    // page as noindex until the next rebuild.
+    if (!(err instanceof ApiNotFoundError)) throw err;
   }
   if (!detail) return { title: code, robots: { index: false, follow: true } };
 

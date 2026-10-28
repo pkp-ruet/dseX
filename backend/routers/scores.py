@@ -6,8 +6,8 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Response
-from backend.config import ADMIN_EMAILS
 from backend.routers.auth import get_current_user_optional
+from backend.services.entitlements import is_admin as _is_admin
 from backend.services.scoring_service import (
     build_scores_df, invalidate_scores_cache, reload_after_scrape,
 )
@@ -41,7 +41,7 @@ def refresh_scores(
     `recompute=true` (admin only) also reruns the full scoring pipeline — use it
     after deploying a scoring change. This used to be public and always
     recomputed, so anyone could pin the web process's CPU and memory with it."""
-    is_admin = bool(user) and (user.get("email") or "").lower() in ADMIN_EMAILS
+    is_admin = _is_admin(user)
     secret = os.getenv("REVALIDATE_SECRET")
     by_secret = bool(secret and x_revalidate_secret
                      and hmac.compare_digest(x_revalidate_secret, secret))

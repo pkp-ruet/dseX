@@ -204,14 +204,28 @@ def _market_window_raw(as_of: Optional[str] = None) -> dict:
     # --- 5. Per-code raw factors ---------------------------------------------
     rows: dict[str, dict] = {}
     for code, day_map in by_code.items():
-        today_row = day_map.get(latest_date_str)
-        if not today_row:
-            continue
         # Official close first, same as the reference close below — mixing the
         # two put a last-trade price over a close-based reference.
-        today_ltp = today_row.get("close_price") or today_row.get("ltp")
-        if not today_ltp or today_ltp <= 0:
-            continue
+        today_row = day_map.get(latest_date_str)
+        today_ltp = (today_row.get("close_price") or today_row.get("ltp")) if today_row else None
+        traded_today = bool(today_ltp and today_ltp > 0)
+        price_date_str = latest_date_str
+        if not traded_today:
+            # No trade on the latest day (suspended on a record date, or nobody
+            # traded it). It still gets a row, priced at its last close in the
+            # window: without one the signal read the momentum as "unknown" and
+            # skipped the thin-trading and near-52w-high checks, so a quiet Good
+            # company turned Buy on every day it didn't trade (2026-10-28).
+            today_ltp = None
+            for ds in window30_dates[1:]:
+                r = day_map.get(_date_str(ds))
+                px = (r.get("close_price") or r.get("ltp")) if r else None
+                if px and px > 0:
+                    today_ltp = px
+                    price_date_str = _date_str(ds)
+                    break
+            if not today_ltp:
+                continue
 
         window_rows = [day_map[_date_str(ds)] for ds in window7_dates if _date_str(ds) in day_map]
         if len(window_rows) < MIN_DAYS_IN_WINDOW:
@@ -241,7 +255,7 @@ def _market_window_raw(as_of: Optional[str] = None) -> dict:
         # drops the price by design — compare like with like.
         corporate_action = None
         acts = [a for a in actions_by_code.get(code, [])
-                if ref_date_str <= a["record_date"] < latest_date_str]
+                if ref_date_str <= a["record_date"] < price_date_str]
         if acts:
             ref_close = adjustment_factor_fn(acts)(ref_date_str, ref_close)
             last = max(acts, key=lambda a: a["record_date"])
@@ -305,6 +319,7 @@ def _market_window_raw(as_of: Optional[str] = None) -> dict:
 
         rows[code] = {
             "ltp": float(today_ltp),
+            "traded_today": traded_today,
             "return_7d": return_7d,
             "return_7d_capped": max(-RETURN_CAP, min(RETURN_CAP, return_7d)),
             "rs": rs,
@@ -353,6 +368,8 @@ def compute_top20() -> dict:
             continue  # excluded (bond/ETF/MF) or unknown — skip
         if r["avg_turnover_7d"] < MIN_AVG_TURNOVER_MN:
             continue  # liquidity floor (also drops rows with no turnover data)
+        if not r.get("traded_today", True):
+            continue  # trending lists only stocks that traded today
 
         raw.append({
             "trading_code": code,

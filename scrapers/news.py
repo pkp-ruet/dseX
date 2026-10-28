@@ -1,6 +1,7 @@
 import re
 import logging
 from datetime import datetime, timedelta, timezone
+from typing import Optional
 
 from scrapers.base_scraper import BaseScraper
 from db.connection import get_db
@@ -148,12 +149,22 @@ def is_declaration_title(title: str) -> bool:
     return bool(_DECLARATION_TITLE_RE.search(title or ""))
 
 
+def _without_code_prefix(title: str, code: Optional[str]) -> str:
+    """DSE titles start with the trading code ("LHB: Dividend Declaration").
+    Some codes carry a bracket — "AMCL(PRAN): …" — which the follow-up test's
+    "(" read as a "(Additional Information)" notice, so AMCL(PRAN)'s declarations
+    were never stored. Drop the code before testing."""
+    if code and title.upper().startswith(f"{code.upper()}:"):
+        return title[len(code) + 1:].lstrip()
+    return title
+
+
 def is_declaration_news(item: dict) -> bool:
     """True for news that *is* a dividend declaration (not a follow-up notice)."""
     title = item.get("title") or ""
     if not is_declaration_title(title):
         return False
-    if _SUPPLEMENTARY_TITLE_RE.search(title):
+    if _SUPPLEMENTARY_TITLE_RE.search(_without_code_prefix(title, item.get("trading_code"))):
         return False
     return not _AMENDMENT_BODY_RE.match(item.get("body") or "")
 
@@ -210,6 +221,13 @@ def save_declaration(db, doc: dict) -> bool:
         for pct_field in ("dividend_pct", "cash_pct", "stock_pct"):
             if not payload.get(pct_field) and existing.get(pct_field):
                 payload.pop(pct_field, None)
+        # A later DSE notice corrected the dates (`apply_declaration_amendment`).
+        # The original post is re-scraped every day and must not put the old
+        # record / AGM date back.
+        if existing.get("amended_at"):
+            for date_field in ("record_date", "agm_date"):
+                if existing.get(date_field):
+                    payload.pop(date_field, None)
 
     db.dividend_declarations.update_one(key, {"$set": payload}, upsert=True)
     logger.info(
@@ -402,11 +420,17 @@ class NewsScraper(BaseScraper):
         if not candidates:
             return
 
-        for item in candidates:
-            if is_declaration_news(item):
-                save_declaration(db, build_declaration_doc(item))
-            else:
-                apply_declaration_amendment(db, item)
+        # Declarations first, then follow-ups oldest first — the same order as
+        # scripts/backfill_dividend_declarations.py. DSE lists news newest first,
+        # so in page order a "Correction of Record Date" was applied before the
+        # original was re-saved (which put the old date back), and on the day
+        # both were new the correction landed on the previous declaration.
+        declarations = [item for item in candidates if is_declaration_news(item)]
+        follow_ups = [item for item in candidates if not is_declaration_news(item)]
+        for item in declarations:
+            save_declaration(db, build_declaration_doc(item))
+        for item in sorted(follow_ups, key=lambda i: i["post_date"]):
+            apply_declaration_amendment(db, item)
 
     def run(self, trading_codes: list[str]) -> int:
         """Scrape and save news for all given trading codes."""

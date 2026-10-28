@@ -6,12 +6,13 @@ from fastapi import APIRouter, HTTPException, Depends, Body
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, field_validator
 
-from backend.config import ADMIN_EMAILS, GOOGLE_CLIENT_ID
+from backend.config import GOOGLE_CLIENT_ID
 from backend.services.auth_service import (
     create_user,
     authenticate_user,
     create_access_token,
-    decode_access_token,
+    decode_access_claims,
+    token_revoked,
     get_user_by_id,
     normalize_email,
     normalize_phone,
@@ -20,6 +21,7 @@ from backend.services.auth_service import (
     public_user,
 )
 from backend.services.db_service import get_db
+from backend.services.entitlements import is_admin
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 _bearer = HTTPBearer(auto_error=False)
@@ -34,12 +36,14 @@ def get_current_user(
 ) -> dict:
     if not creds:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    user_id = decode_access_token(creds.credentials)
-    if not user_id:
+    claims = decode_access_claims(creds.credentials)
+    if not claims:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
-    user = get_user_by_id(user_id)
+    user = get_user_by_id(claims["sub"])
     if not user or not user.get("is_active"):
         raise HTTPException(status_code=401, detail="User not found")
+    if token_revoked(claims, user):
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
     return user
 
 
@@ -50,18 +54,17 @@ def get_current_user_optional(
     is no/invalid token — lets an endpoint work both logged-in and logged-out."""
     if not creds:
         return None
-    user_id = decode_access_token(creds.credentials)
-    if not user_id:
+    claims = decode_access_claims(creds.credentials)
+    if not claims:
         return None
-    user = get_user_by_id(user_id)
-    if not user or not user.get("is_active"):
+    user = get_user_by_id(claims["sub"])
+    if not user or not user.get("is_active") or token_revoked(claims, user):
         return None
     return user
 
 
 def get_current_admin_user(current_user: dict = Depends(get_current_user)) -> dict:
-    email = (current_user.get("email") or "").lower()
-    if email not in ADMIN_EMAILS:
+    if not is_admin(current_user):
         raise HTTPException(status_code=403, detail="Forbidden")
     return current_user
 
@@ -132,11 +135,19 @@ def login(body: LoginRequest):
     if not body.email and not body.phone:
         raise HTTPException(status_code=400, detail="Email or phone number is required.")
 
-    user = authenticate_user(
-        password_plain=body.password,
-        email=body.email,
-        phone=body.phone,
-    )
+    try:
+        user = authenticate_user(
+            password_plain=body.password,
+            email=body.email,
+            phone=body.phone,
+        )
+    except ValueError as exc:
+        if str(exc) == "use_google":
+            raise HTTPException(
+                status_code=401,
+                detail="This account signs in with Google. Use \"Continue with Google\".",
+            )
+        raise
     if not user:
         raise HTTPException(status_code=401, detail="Incorrect credentials.")
 

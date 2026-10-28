@@ -12,7 +12,7 @@ normal-market buy day). Tax is deliberately out of scope — see the cost/tax wo
 from __future__ import annotations
 
 import math
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Any, Optional
 
 from backend.services.db_service import (
@@ -182,10 +182,23 @@ def _score_index() -> dict:
         return {}
 
 
+# Bangladesh is UTC+6 with no DST. `date.today()` on the UTC host was a day
+# behind from midnight to 6 AM Dhaka, so a record date that passed yesterday
+# still listed as upcoming and every "days left" was one too many.
+_DHAKA = timezone(timedelta(hours=6))
+
+
+def _today_dhaka() -> date:
+    return datetime.now(_DHAKA).date()
+
+
 @_ttl_cache(900, max_entries=2)
 def build_dividend_calendar() -> dict:
-    """Forward calendar of record dates + AGMs, plus recent declarations."""
-    today = date.today()
+    """Forward calendar of record dates + AGMs, plus recent declarations.
+
+    Day counts are as of the Dhaka date when this was built; the calendar page
+    recounts them from the dates at render time (`lib/dividend-dates.ts`)."""
+    today = _today_dhaka()
     horizon = today + timedelta(days=UPCOMING_WINDOW_DAYS)
 
     companies = {c["trading_code"]: c for c in load_companies()}

@@ -112,19 +112,9 @@ export default async function SamplePortfolioPage({ params }: Props) {
   const portfolio = getSamplePortfolio(slug);
   if (!portfolio) notFound();
 
-  const scores = await getScores().catch(() => null);
-  if (!scores) {
-    return (
-      <div className="page-narrow py-12">
-        <p className="text-text-muted text-center">
-          <T
-            en="Live data is not available right now. Please try again shortly."
-            bn="এই মুহূর্তে লাইভ তথ্য পাওয়া যাচ্ছে না। একটু পরে আবার চেষ্টা করুন।"
-          />
-        </p>
-      </div>
-    );
-  }
+  // No catch on the main fetch: a throw lets ISR keep serving the last good
+  // page; a rendered error state was cached as the page until the next purge.
+  const scores = await getScores();
 
   const { rows, analysis } = buildSampleAnalysis(portfolio, scores);
   const { analysis: analysisBn } = buildSampleAnalysis(portfolio, scores, "bn");

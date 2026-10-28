@@ -53,6 +53,10 @@ _HISTORY_DAYS = 380
 _SNAPSHOT_ROWS = 180
 # "Today's breadth beats N of the last M days" window.
 _BREADTH_LOOKBACK = 10
+# What `advancing_pct` measures: rose / (rose + fell). Snapshots from before
+# 2026-10-28 have no marker (they divided by every row) and are left out of
+# the breadth rank.
+BREADTH_BASIS = "movers"
 # Names listed in a "new since yesterday" chip row.
 _NEW_NAMES_CAP = 5
 
@@ -812,7 +816,8 @@ def _since_yesterday(
         out["cheap_delta"] = round(cheap_now - prev_cheap, 1)
 
     if advancing_now is not None:
-        window = [_num(s.get("advancing_pct")) for s in prior[:_BREADTH_LOOKBACK]]
+        window = [_num(s.get("advancing_pct")) for s in prior[:_BREADTH_LOOKBACK]
+                  if s.get("breadth_basis") == BREADTH_BASIS]
         window = [w for w in window if w is not None]
         if len(window) >= 3:
             out["breadth_rank"] = {
@@ -897,8 +902,12 @@ def _compute(df=None) -> tuple[dict, dict]:
     up = idx.get("up_count") or 0
     down = idx.get("down_count") or 0
     neutral = idx.get("neutral_count") or 0
-    traded = up + down + neutral
-    advancing_pct = round(up / traded * 100, 1) if traded else None
+    # Share of the stocks that MOVED that rose. Over all rows (unchanged and
+    # untraded included) 170 up / 150 down read 43.6% and the page answered
+    # "More fell" (fixed 2026-10-28); snapshots carry `breadth_basis` so the
+    # "beats N of the last days" rank never mixes the two measures.
+    moved = up + down
+    advancing_pct = round(up / moved * 100, 1) if moved else None
 
     # --- Prices high or low this year? (DSEX position in its 1-year range) ---
     hist = _guard("index_history", lambda: _index_history(db), [])
@@ -1245,6 +1254,7 @@ def compute_and_store_market_snapshot(df=None) -> Optional[dict]:
         "median_div_yield": extras.get("median_div_yield"),
         "cheap_pct": st.get("cheap_pct"),
         "advancing_pct": st.get("advancing_pct"),
+        "breadth_basis": BREADTH_BASIS,
         "median_score": extras.get("median_score"),
         "dsex": st.get("dsex"),
         "strong": q["strong"], "good": q["good"],

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import PageHeader from "@/components/ui/PageHeader";
-import ErrorState from "@/components/ui/ErrorState";
 import { T } from "@/components/i18n/T";
 import ScreenerClient from "@/components/screener/ScreenerClient";
 import { getScreenerCatalog, getScreenerStart } from "@/lib/api";
@@ -32,8 +31,10 @@ export const metadata: Metadata = {
 export const revalidate = 900;
 
 export default async function ScreenerPage() {
+  // No catch on the main fetch: a throw lets ISR keep serving the last good
+  // page; a rendered error state was cached as the page until the next purge.
   const [catalog, start] = await Promise.all([
-    getScreenerCatalog().catch(() => null),
+    getScreenerCatalog(),
     getScreenerStart(START).catch(() => null),
   ]);
   const free = (start?.stocks ?? []).slice(0, FREE_SCREENER_ROWS);
@@ -90,15 +91,7 @@ export default async function ScreenerPage() {
             />
           }
         />
-        {catalog ? (
-          <ScreenerClient catalog={catalog} initial={start} initialTemplate={START} />
-        ) : (
-          <ErrorState
-            title={<T en="We couldn't load the screener" bn="স্ক্রিনার এখন লোড করা যাচ্ছে না" />}
-            reload
-            links={[{ href: "/dsestockranking", label: <T en="Stock rankings" bn="শেয়ার র‍্যাঙ্কিং" /> }]}
-          />
-        )}
+        <ScreenerClient catalog={catalog} initial={start} initialTemplate={START} />
       </div>
     </>
   );

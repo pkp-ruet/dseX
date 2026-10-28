@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getDividendCalendar } from "@/lib/api";
+import { recountCalendar } from "@/lib/dividend-dates";
 import { formatDate } from "@/lib/formatters";
 import CalendarSummary from "@/components/dividend-calendar/CalendarSummary";
 import RecordDateBoard from "@/components/dividend-calendar/RecordDateBoard";
@@ -9,7 +10,6 @@ import RecentDeclarations from "@/components/dividend-calendar/RecentDeclaration
 import HowDividendsWork, { buyTodayAnswer } from "@/components/dividend-calendar/HowDividendsWork";
 import { bnDate } from "@/lib/bn";
 import { PersonalCodesProvider } from "@/components/market-analysis/PersonalCodes";
-import ErrorState from "@/components/ui/ErrorState";
 import { T } from "@/components/i18n/T";
 import PageHeader from "@/components/ui/PageHeader";
 import PageGuide from "@/components/seo/PageGuide";
@@ -17,7 +17,10 @@ import Link from "next/link";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://www.topstockbd.com";
 
-export const revalidate = 86400;
+// Hourly, though the data changes once a day: the render recounts every
+// "days left" from the dates (`recountCalendar`), so it has to happen soon after
+// Dhaka midnight. The fetch keeps its daily cache, so this costs no backend call.
+export const revalidate = 3600;
 
 // The year is in the title because that is how the query is typed ("dse record date 2026").
 const YEAR = new Date().getFullYear();
@@ -60,24 +63,9 @@ export const metadata: Metadata = {
 };
 
 export default async function DividendCalendarPage() {
-  const data = await getDividendCalendar().catch(() => null);
-
-  if (!data) {
-    return (
-      <>
-        <PageHeader
-          eyebrow={<T en="Dhaka Stock Exchange" bn="ঢাকা স্টক এক্সচেঞ্জ" />}
-          title={<T en="Dividend calendar" bn="ডিভিডেন্ড ক্যালেন্ডার" />}
-        />
-        <ErrorState
-          size="inline"
-          title={<T en="We couldn't load the dividend calendar" bn="ডিভিডেন্ড ক্যালেন্ডার এখন লোড করা যাচ্ছে না" />}
-          reload
-          links={[{ href: "/dsestockranking", label: <T en="Stock rankings" bn="শেয়ার র‍্যাঙ্কিং" /> }]}
-        />
-      </>
-    );
-  }
+  // A failed fetch throws (no catch): ISR then keeps serving the last good
+  // page, where a rendered error state was cached as the page for a day.
+  const data = recountCalendar(await getDividendCalendar());
 
   const lead = data.settlement.normal_buy_lead_trading_days;
 

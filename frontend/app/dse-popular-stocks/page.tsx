@@ -40,7 +40,9 @@ export const metadata: Metadata = {
 };
 
 export default async function PopularStocksPage() {
-  const data = await getPopularStocks().catch(() => null);
+  // No catch on the main fetch: a throw lets ISR keep serving the last good
+  // page; a rendered error state was cached as the page until the next purge.
+  const data = await getPopularStocks();
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -83,16 +85,7 @@ export default async function PopularStocksPage() {
         }
       />
 
-      {data ? (
-        <PopularStocksDeck items={data.items} />
-      ) : (
-        <div className="text-center py-20 text-text-muted">
-          <T
-            en="We couldn't load the popular list right now. Please try again shortly."
-            bn="এই মুহূর্তে জনপ্রিয় তালিকা লোড করা যাচ্ছে না। একটু পরে আবার চেষ্টা করুন।"
-          />
-        </div>
-      )}
+      <PopularStocksDeck items={data.items} />
     </>
   );
 }

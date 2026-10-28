@@ -39,16 +39,29 @@ def _as_utc(value) -> Optional[datetime]:
     return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
 
 
-def _is_admin(user: dict) -> bool:
+# Accounts created before this moment keep admin on their email alone; any later
+# one needs a verified email (Google sign-in). Register never verifies an email,
+# so before 2026-10-28 anyone could register an ADMIN_EMAILS address that had no
+# account yet and become admin.
+ADMIN_UNVERIFIED_BEFORE = datetime(2026, 10, 28, 18, 0, tzinfo=timezone.utc)
+
+
+def is_admin(user: Optional[dict]) -> bool:
+    """THE admin rule (admin routes, scores refresh, /me `is_admin`, premium)."""
     from backend.config import ADMIN_EMAILS
 
-    return (user.get("email") or "").lower() in ADMIN_EMAILS
+    if not user or (user.get("email") or "").lower() not in ADMIN_EMAILS:
+        return False
+    if user.get("email_verified") is True:
+        return True
+    created = _as_utc(user.get("created_at"))
+    return bool(created and created < ADMIN_UNVERIFIED_BEFORE)
 
 
 def is_premium(user: Optional[dict], now: Optional[datetime] = None) -> bool:
     if not user:
         return False
-    if _is_admin(user):
+    if is_admin(user):
         return True
     until = _as_utc(user.get("premium_until"))
     return bool(until and until > (now or datetime.now(timezone.utc)))
