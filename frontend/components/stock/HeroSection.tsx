@@ -217,12 +217,6 @@ export default function HeroSection({ detail }: Props) {
                 style={{ left: `${range.position * 100}%` }}
               />
             </div>
-            <p className="mt-2 text-xs text-text-muted">
-              <T
-                en="Where today's price sits between this year's lowest and highest"
-                bn="এ বছরের সর্বনিম্ন আর সর্বোচ্চ দামের মধ্যে আজকের দাম কোথায়"
-              />
-            </p>
           </div>
         )}
 

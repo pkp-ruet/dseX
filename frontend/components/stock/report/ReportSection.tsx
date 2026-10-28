@@ -40,8 +40,10 @@ const FALLBACK_LINE: Bi = {
  * understand). A section's Premium answer always sits in this one gold
  * panel, never mixed into its free facts, so the reader learns the pattern
  * once:
- *  - open (Premium, today's free report, or a `sample` section that is open
- *    for everyone): a gold rule, "Premium analysis", then the answer whole;
+ *  - open for a Premium reader: the answer as plain report text, no label;
+ *  - open for a free reader (today's free report, or a `sample` section that
+ *    is open for everyone): a gold rule, "Premium analysis" + "Free sample" /
+ *    "Free today", then the answer whole;
  *  - closed (everyone else): a gold-tinted box naming what it holds (the
  *    backend's `inside` lines) and one link to the page's offer. The answer
  *    stays in the HTML under `.premium-locked`, hidden — no grey bars, no
@@ -87,18 +89,18 @@ export function PremiumPanel({
   }, [open, lock, state]);
 
   if (open) {
+    // A Premium reader gets the answer as plain report text: no label on
+    // every section saying what they already pay for.
+    if (isPremium) return <div className="rp-body">{children}</div>;
     // A free reader is told why this one is open: a sample, or today's free report.
-    const tag = isPremium ? null : sample ? (
-      <T en="Free sample" bn="ফ্রি নমুনা" />
-    ) : (
-      <T en="Free today" bn="আজ ফ্রি" />
-    );
     return (
       <div className="rp-pp" data-open="true">
         <p className="rp-pp-label">
           <IconCrown size={14} />
           <T en="Premium analysis" bn="প্রিমিয়াম বিশ্লেষণ" />
-          {tag && <span className="rp-pp-tag">{tag}</span>}
+          <span className="rp-pp-tag">
+            {sample ? <T en="Free sample" bn="ফ্রি নমুনা" /> : <T en="Free today" bn="আজ ফ্রি" />}
+          </span>
         </p>
         {children}
       </div>
@@ -142,73 +144,94 @@ export function PremiumPanel({
 }
 
 /**
- * THE section anatomy of the stock report: the question, the verdict chip,
- * the free facts (`free`, complete on their own), then the one Premium panel
- * holding the answer (`headline` + `children` + what it means + what to
- * watch), then the source line.
+ * The head every report section shares: the question (h3) and its verdict
+ * chip. Sections sit on their part's sheet, split by hairlines, so the head
+ * carries no number, icon or box.
+ */
+export function SectionHead({ id, title, chip }: { id: string; title: ReactNode; chip?: ReactNode }) {
+  return (
+    <div className="rp-head">
+      <h3 id={id} className="min-w-0 text-lg font-bold leading-snug text-text-main sm:text-xl">{title}</h3>
+      {chip}
+    </div>
+  );
+}
+
+/** The quiet last line of a section: where the figures come from, and an
+ *  optional control (the share button) at its end. */
+export function SectionFoot({ source, action }: { source?: ReactNode; action?: ReactNode }) {
+  if (!source && !action) return null;
+  return (
+    <div className="rp-foot">
+      <p className="min-w-0 text-xs leading-snug text-text-muted">{source}</p>
+      {action}
+    </div>
+  );
+}
+
+/**
+ * THE section anatomy of the stock report (2026-10-29 calm pass): the
+ * question and its verdict chip, the answer in one sentence right under it
+ * (a free reader gets the free line instead), the free facts, then the rest
+ * of the answer — the figures, what it means, what to watch — in the one
+ * Premium panel, and the source line. Every section reads the same way:
+ * question, answer, evidence.
  */
 export default function ReportSection({
   s,
   code,
-  n,
   free,
   children,
   action,
+  aliases = [],
   sample = false,
 }: {
   s: SectionBase;
   code: string;
-  /** Position in the report (the report is an ordered read). */
-  n: number;
-  /** Free facts under the title (public numbers, dates, red flags). */
+  /** Free facts under the answer (public numbers, dates, red flags). */
   free?: ReactNode;
-  /** The Premium body (charts, lists) — shown under the headline. */
+  /** The Premium body (charts, lists). */
   children?: ReactNode;
-  /** A control on the title row (e.g. share). */
+  /** A control for the foot line (the share button). */
   action?: ReactNode;
+  /** Older anchors that should land on this section (`#results` …). */
+  aliases?: string[];
   /** Open in full for everyone (`freeReportSections`). */
   sample?: boolean;
 }) {
   const premiumOpen = usePremiumOpen();
   const open = sample || premiumOpen;
+  const answer = <p className="rp-answer">{tx(s.headline)}</p>;
   return (
-    <section id={`rp-${s.key}`} className="soft-card rp-sec stock-anchor" aria-labelledby={`rp-${s.key}-t`}>
-      <div className="rp-head">
-        <div className="flex min-w-0 items-start gap-3">
-          <span className="rp-n" aria-hidden="true">{n}</span>
-          <h3 id={`rp-${s.key}-t`} className="min-w-0 pt-0.5 text-lg font-bold leading-snug text-text-main sm:text-xl">
-            {tx(s.title)}
-          </h3>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          {action}
-          <ToneChip word={s.word} tone={s.tone} />
-        </div>
-      </div>
+    <section id={`rp-${s.key}`} className="rp-sec stock-anchor" aria-labelledby={`rp-${s.key}-t`}>
+      {aliases.map((id) => <span key={id} id={id} className="stock-anchor block" aria-hidden="true" />)}
+      <SectionHead id={`rp-${s.key}-t`} title={tx(s.title)} chip={<ToneChip word={s.word} tone={s.tone} />} />
 
-      {!open && s.free_line && (
-        <p className="mt-3 text-base font-semibold leading-snug text-text-main">{tx(s.free_line)}</p>
-      )}
+      {open ? answer : s.free_line && <p className="rp-answer">{tx(s.free_line)}</p>}
 
-      {free && <div className="mt-1">{free}</div>}
+      {free && <div className="rp-free">{free}</div>}
 
       <PremiumPanel lines={s.inside} code={code} lock={s.key} sample={sample}>
-        <p className="text-base font-bold leading-snug text-text-main sm:text-lg">{tx(s.headline)}</p>
+        {!open && answer}
         {children}
-        {s.meaning.map((m, i) => (
-          <p key={i} className="mt-3 text-sm leading-relaxed text-text-main sm:text-base">{tx(m)}</p>
-        ))}
+        {s.meaning.length > 0 && (
+          <div className="rp-meaning">
+            {s.meaning.map((m, i) => (
+              <p key={i} className="text-sm leading-relaxed text-text-main sm:text-base">{tx(m)}</p>
+            ))}
+          </div>
+        )}
         {s.watch && (
-          <div className="rp-note text-sm leading-snug text-text-main">
+          <div className="rp-watch">
             <p className="text-xs font-bold text-text-muted">
               <T en="What to watch" bn="যা খেয়াল রাখবেন" />
             </p>
-            <p className="mt-0.5">{tx(s.watch)}</p>
+            <p className="mt-0.5 text-sm leading-snug text-text-main">{tx(s.watch)}</p>
           </div>
         )}
       </PremiumPanel>
 
-      <p className="rp-source text-xs text-text-muted">{tx(s.source)}</p>
+      <SectionFoot source={tx(s.source)} action={action} />
     </section>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMyStake } from "@/components/stock/YourPosition";
-import { PremiumPanel } from "@/components/stock/report/ReportSection";
+import { PremiumPanel, SectionFoot, SectionHead } from "@/components/stock/report/ReportSection";
 import { DateT, money, perShare } from "@/components/stock/report/fmt";
 import { T } from "@/components/i18n/T";
 import type { Bi, StockReport } from "@/lib/stock-report";
@@ -17,12 +17,11 @@ const FEE = 0.004;
  * portfolio the hero already loads; the backend adds nothing here.
  */
 export default function YouAndThisStock({
-  code, ltp, report, n,
+  code, ltp, report,
 }: {
   code: string;
   ltp: number | null;
   report: StockReport;
-  n: number;
 }) {
   const { isLoggedIn, mine, watched, meta } = useMyStake(code);
   if (!isLoggedIn || (!mine.length && !watched)) return null;
@@ -97,16 +96,9 @@ export default function YouAndThisStock({
   }
 
   return (
-    <section id="rp-you" className="soft-card rp-sec stock-anchor" aria-labelledby="rp-you-t">
-      <div className="rp-head">
-        <div className="flex min-w-0 items-start gap-3">
-          <span className="rp-n" aria-hidden="true">{n}</span>
-          <h3 id="rp-you-t" className="min-w-0 pt-0.5 text-lg font-bold leading-snug text-text-main sm:text-xl">
-            <T en="You and this stock" bn="আপনি ও এই শেয়ার" />
-          </h3>
-        </div>
-      </div>
-      <p className="mt-3 text-base font-semibold leading-snug text-text-main">
+    <section id="rp-you" className="rp-sec stock-anchor" aria-labelledby="rp-you-t">
+      <SectionHead id="rp-you-t" title={<T en="You and this stock" bn="আপনি ও এই শেয়ার" />} />
+      <p className="rp-answer">
         <T en={freeLine.en} bn={freeLine.bn} />
       </p>
       {sig && (
@@ -116,9 +108,9 @@ export default function YouAndThisStock({
       )}
       {lines.length > 0 && (
         <PremiumPanel lines={inside} code={code} lock="you">
-          <ul className="grid gap-2">
+          <ul className="rp-lines">
             {lines.map((l, i) => (
-              <li key={i} className="rp-note mt-0 text-sm leading-snug text-text-main">
+              <li key={i} className="text-sm leading-snug text-text-main sm:text-base">
                 <T en={l.en} bn={l.bn} />
               </li>
             ))}
@@ -140,12 +132,14 @@ export default function YouAndThisStock({
           )}
         </PremiumPanel>
       )}
-      <p className="rp-source text-xs text-text-muted">
-        <T
-          en="From your portfolio and watchlist. Fees are our 0.4% a side estimate; dividend tax 10%."
-          bn="আপনার পোর্টফোলিও আর ওয়াচলিস্ট থেকে। ফি প্রতি দিকে 0.4% ধরে হিসাব; ডিভিডেন্ডে কর 10%।"
-        />
-      </p>
+      <SectionFoot
+        source={
+          <T
+            en="From your portfolio and watchlist. Fees are our 0.4% a side estimate; dividend tax 10%."
+            bn="আপনার পোর্টফোলিও আর ওয়াচলিস্ট থেকে। ফি প্রতি দিকে 0.4% ধরে হিসাব; ডিভিডেন্ডে কর 10%।"
+          />
+        }
+      />
     </section>
   );
 }

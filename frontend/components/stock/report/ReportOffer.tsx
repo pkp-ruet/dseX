@@ -52,22 +52,15 @@ export default function ReportOffer({ code, name, lines }: { code: string; name:
   }, [isPremium, freeToday, state, lines.length]);
 
   if (isPremium && open) {
+    // A paying reader needs no offer: one quiet line on report alerts.
     return (
-      <div id="ch-premium" className="rp-offer stock-anchor my-8">
-        <p className="flex items-center gap-2 text-sm font-semibold text-gold-ink">
-          <IconCrown size={16} /> <T en="You're on Premium" bn="আপনি প্রিমিয়ামে আছেন" />
-        </p>
-        <p className="mt-1 text-lg font-bold text-text-main">
-          <T en={`The full report on ${code} is open to you`} bn={`${code}-এর পূর্ণ রিপোর্ট আপনার জন্য খোলা`} />
-        </p>
-        <p className="mt-2 flex items-start gap-2 text-sm text-text-main">
-          <span className="mt-0.5 shrink-0 text-primary-ink"><IconBell size={14} /></span>
-          <T
-            en="Follow this share to get one push when its results land, a red flag appears or its grade changes."
-            bn="এই শেয়ারটি ফলো করুন: ফল প্রকাশ হলে, নতুন রেড ফ্ল্যাগ এলে বা গ্রেড বদলালে একটি নোটিফিকেশন পাবেন।"
-          />
-        </p>
-      </div>
+      <p id="ch-premium" className="stock-anchor my-8 flex items-start gap-2 text-sm leading-snug text-text-muted">
+        <span className="mt-0.5 shrink-0 text-gold-ink"><IconBell size={14} /></span>
+        <T
+          en="Follow this share to get one push when its results land, a red flag appears or its grade changes."
+          bn="এই শেয়ারটি ফলো করুন: ফল প্রকাশ হলে, নতুন রেড ফ্ল্যাগ এলে বা গ্রেড বদলালে একটি নোটিফিকেশন পাবেন।"
+        />
+      </p>
     );
   }
 

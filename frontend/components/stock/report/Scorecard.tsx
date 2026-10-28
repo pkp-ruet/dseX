@@ -22,13 +22,19 @@ import { SECTION_ORDER, type StockReport } from "@/lib/stock-report";
  * or one of the free sample sections) and is simply left out elsewhere. The
  * grid doubles as the report's contents.
  */
+/** What each summary line is about (the backend writes them in this order). */
+const SUMMARY_KINDS = [
+  { en: "A strength", bn: "একটি শক্তি" },
+  { en: "The price", bn: "দাম" },
+  { en: "A watch-out", bn: "একটি সতর্কতা" },
+];
+
 export default function Scorecard({ detail, report }: { detail: CompanyDetail; report: StockReport }) {
   const open = usePremiumOpen();
   const samples = freeReportSections(SECTION_ORDER.filter((k) => report.sections[k] != null));
   const { score_row, profile, verdict, signal, bengali_summary } = detail;
   const score = (score_row?.score as number | null) ?? null;
   const tier = getTier(score);
-  const code = profile.trading_code;
 
   const sentences = (verdict?.sentences ?? []).filter(Boolean);
   const takeEn = verdict?.tagline ?? sentences[0] ?? null;
@@ -66,38 +72,37 @@ export default function Scorecard({ detail, report }: { detail: CompanyDetail; r
             )}
 
             {report.summary.length > 0 && (
-              // Our summary: the first line (a strength) is free; the price
-              // read and the watch-out are Premium, named in one quiet line.
-              <div className="mt-4 grid gap-2 border-t border-border pt-3">
-                <p className="flex gap-2.5 text-sm leading-snug text-text-main sm:text-base">
-                  <span className="rp-n" aria-hidden="true">1</span>
-                  <span className="min-w-0 pt-0.5">{tx(report.summary[0])}</span>
-                </p>
+              // Our summary, each line under what it is about: the strength
+              // is free; the price read and the watch-out are Premium, named
+              // in one quiet line.
+              <div className="rp-summary">
+                <div className="rp-summary-row">
+                  <span className="rp-summary-k">{tx(SUMMARY_KINDS[0])}</span>
+                  <p>{tx(report.summary[0])}</p>
+                </div>
                 {report.summary.length > 1 && (
                   <Locked>
-                    <div className="grid gap-2">
-                      {report.summary.slice(1).map((line, i) => (
-                        <p key={i} className="flex gap-2.5 text-sm leading-snug text-text-main sm:text-base">
-                          <span className="rp-n" aria-hidden="true">{i + 2}</span>
-                          <span className="min-w-0 pt-0.5">{tx(line)}</span>
-                        </p>
-                      ))}
-                    </div>
+                    {report.summary.slice(1).map((line, i) => (
+                      <div key={i} className="rp-summary-row">
+                        <span className="rp-summary-k">{tx(SUMMARY_KINDS[i + 1] ?? SUMMARY_KINDS[2])}</span>
+                        <p>{tx(line)}</p>
+                      </div>
+                    ))}
                   </Locked>
                 )}
-                {report.summary.length > 1 && !open && (
-                  <a
-                    href="#ch-premium"
-                    className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-gold-ink hover:underline active:opacity-70"
-                  >
-                    <IconLock size={14} />
-                    <T
-                      en={report.summary.length > 2 ? "Our read on the price and the main watch-out, in Premium" : "The rest of our summary, in Premium"}
-                      bn={report.summary.length > 2 ? "দাম নিয়ে আমাদের মত আর প্রধান সতর্কতা, প্রিমিয়ামে" : "সারাংশের বাকিটা, প্রিমিয়ামে"}
-                    />
-                  </a>
-                )}
               </div>
+            )}
+            {report.summary.length > 1 && !open && (
+              <a
+                href="#ch-premium"
+                className="mt-1 inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-gold-ink hover:underline active:opacity-70"
+              >
+                <IconLock size={14} />
+                <T
+                  en={report.summary.length > 2 ? "Our read on the price and the main watch-out, in Premium" : "The rest of our summary, in Premium"}
+                  bn={report.summary.length > 2 ? "দাম নিয়ে আমাদের মত আর প্রধান সতর্কতা, প্রিমিয়ামে" : "সারাংশের বাকিটা, প্রিমিয়ামে"}
+                />
+              </a>
             )}
           </div>
         </div>
@@ -136,13 +141,6 @@ export default function Scorecard({ detail, report }: { detail: CompanyDetail; r
             />
           </p>
         )}
-
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-border pt-3 text-xs font-semibold text-text-muted">
-          <span>topstockbd.com</span>
-          <span>
-            {code} · <T en="DSE stock report" bn="ডিএসই শেয়ার রিপোর্ট" />
-          </span>
-        </div>
       </div>
     </section>
   );

@@ -187,7 +187,7 @@ export default function PriceChart({ code, events = [] }: Props) {
     }
     return [...seen.values()];
   }, [pins]);
-  const recent = useMemo(() => [...pins].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 5), [pins]);
+  const recent = useMemo(() => [...pins].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 3), [pins]);
   const hasVolume = useMemo(() => data.some((d) => d.volume > 0), [data]);
 
   const trend = data.length >= 2 ? data[data.length - 1].ltp - data[0].ltp : 0;
@@ -196,10 +196,10 @@ export default function PriceChart({ code, events = [] }: Props) {
   const fillBottom= trend >= 0 ? "rgba(21,128,61,0.0)"  : "rgba(220,38,38,0.0)";
 
   return (
-    <Card as="section" padding="none" className="rounded-3xl mb-8 p-5 sm:p-7">
+    <Card as="section" padding="none" className="mb-6 p-4 sm:p-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-text-main">
+          <h2 className="text-lg sm:text-xl font-bold text-text-main">
             <T en="How the price has moved" bn="দাম কীভাবে বদলেছে" />
           </h2>
           {caption && (
@@ -208,10 +208,7 @@ export default function PriceChart({ code, events = [] }: Props) {
             </p>
           )}
         </div>
-        <div
-          className="inline-flex rounded-full p-1 self-start"
-          style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
-        >
+        <div className="inline-flex self-start rounded-full bg-surface-2 p-1">
           {RANGES.map((r) => (
             <Button
               key={r}
@@ -227,7 +224,7 @@ export default function PriceChart({ code, events = [] }: Props) {
         </div>
       </div>
 
-      <div className="rounded-2xl bg-surface-2">
+      <div>
         {loading ? (
           <div className="p-4">
             <Skeleton height={288} rounded="12px" />
@@ -341,46 +338,44 @@ export default function PriceChart({ code, events = [] }: Props) {
           </ResponsiveContainer>
         )}
       </div>
-      {recent.length > 0 && (
-        <div className="mt-3 px-1">
-          <p className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-muted">
-            {kinds.map((k) => (
-              <span key={k.en} className="inline-flex items-center gap-1.5">
-                <i className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: k.color }} aria-hidden="true" />
-                <T en={k.en} bn={k.bn} />
-              </span>
-            ))}
-            {dots.some((d) => d.n > 1) && (
-              <span className="inline-flex items-center gap-1.5">
-                <i className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-text-main text-xs font-bold text-surface" aria-hidden="true">2</i>
-                <T en="Events a few days apart" bn="কয়েক দিনের মধ্যে একাধিক ঘটনা" />
-              </span>
-            )}
-          </p>
-          <ul className="mt-2 grid gap-1">
-            {recent.map((p, i) => (
-              <li key={i} className="flex gap-2 text-sm leading-snug text-text-main">
-                <i
-                  className="mt-1.5 inline-block h-2.5 w-2.5 shrink-0 rounded-full"
-                  style={{ background: EVENT_STYLE[p.kind]?.color }}
-                  aria-hidden="true"
-                />
-                <span className="w-24 shrink-0 text-xs leading-5 text-text-muted tabular-nums">
-                  <T en={formatDate(p.date)} bn={bnDate(p.date) || formatDate(p.date)} />
-                </span>
-                <span className="min-w-0"><T en={p.label.en} bn={p.label.bn || p.label.en} /></span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {hasVolume && (
-        <p className="text-xs mt-2 px-1 text-text-muted">
-          <T
-            en="The grey bars along the bottom show how many shares were traded each day."
-            bn="নিচের ধূসর দাগগুলো দেখায় প্রতিদিন কতগুলো শেয়ার লেনদেন হয়েছে।"
-          />
+      {(kinds.length > 0 || hasVolume) && (
+        <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 px-1 text-xs text-text-muted">
+          {kinds.map((k) => (
+            <span key={k.en} className="inline-flex items-center gap-1.5">
+              <i className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: k.color }} aria-hidden="true" />
+              <T en={k.en} bn={k.bn} />
+            </span>
+          ))}
+          {dots.some((d) => d.n > 1) && (
+            <span className="inline-flex items-center gap-1.5">
+              <i className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-text-main text-xs font-bold text-surface" aria-hidden="true">2</i>
+              <T en="Events a few days apart" bn="কয়েক দিনের মধ্যে একাধিক ঘটনা" />
+            </span>
+          )}
+          {hasVolume && (
+            <span className="inline-flex items-center gap-1.5">
+              <i className="inline-block h-2.5 w-1.5 rounded-sm bg-text-muted/45" aria-hidden="true" />
+              <T en="Shares traded each day" bn="প্রতিদিন লেনদেন হওয়া শেয়ার" />
+            </span>
+          )}
         </p>
+      )}
+      {recent.length > 0 && (
+        <ul className="mt-4 grid gap-1.5 border-t border-border px-1 pt-3">
+          {recent.map((p, i) => (
+            <li key={i} className="flex gap-2 text-sm leading-snug text-text-main">
+              <i
+                className="mt-1.5 inline-block h-2.5 w-2.5 shrink-0 rounded-full"
+                style={{ background: EVENT_STYLE[p.kind]?.color }}
+                aria-hidden="true"
+              />
+              <span className="w-24 shrink-0 text-xs leading-5 text-text-muted tabular-nums">
+                <T en={formatDate(p.date)} bn={bnDate(p.date) || formatDate(p.date)} />
+              </span>
+              <span className="min-w-0"><T en={p.label.en} bn={p.label.bn || p.label.en} /></span>
+            </li>
+          ))}
+        </ul>
       )}
     </Card>
   );

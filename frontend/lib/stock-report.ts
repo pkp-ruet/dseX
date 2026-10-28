@@ -360,3 +360,49 @@ export const SECTION_ORDER: SectionKey[] = [
   "red_flags", "price", "dividend", "this_year", "next",
   "owners", "cash", "safety", "quality", "story", "sector", "risks", "alternatives",
 ];
+
+/**
+ * The report's three parts (2026-10-29, user: the page felt noisy — thirteen
+ * cards in a row with nothing to say how they fit). Each part is one chapter
+ * (h2) holding its sections on one sheet, in `SECTION_ORDER`; the sticky
+ * chips jump between parts instead of between single checks.
+ */
+export const REPORT_PARTS: {
+  id: string;
+  title: Bi;
+  /** The sticky chip's label. */
+  chip: Bi;
+  lead: Bi;
+  sections: SectionKey[];
+}[] = [
+  {
+    id: "ch-essentials",
+    title: { en: "The essentials", bn: "মূল কথা" },
+    chip: { en: "Essentials", bn: "মূল কথা" },
+    lead: {
+      en: "Anything seriously wrong, whether the price is right, and what it pays.",
+      bn: "বড় কোনো সমস্যা আছে কি, দাম ঠিক আছে কি, আর কত ডিভিডেন্ড দেয়।",
+    },
+    sections: ["red_flags", "price", "dividend"],
+  },
+  {
+    id: "ch-now",
+    title: { en: "How the company is doing", bn: "কোম্পানি এখন কেমন চলছে" },
+    chip: { en: "Company now", bn: "এখনকার অবস্থা" },
+    lead: {
+      en: "This year's results, what comes next, who owns it, and how safe the money is.",
+      bn: "এ বছরের ফল, এরপর কী আছে, মালিক কারা, আর টাকা কতটা নিরাপদ।",
+    },
+    sections: ["this_year", "next", "owners", "cash", "safety"],
+  },
+  {
+    id: "ch-long",
+    title: { en: "The long view", bn: "দীর্ঘ মেয়াদে" },
+    chip: { en: "Long view", bn: "দীর্ঘ মেয়াদে" },
+    lead: {
+      en: "How strong the company is, how it has changed, where it stands, and what could go wrong.",
+      bn: "কোম্পানি কতটা শক্তিশালী, কীভাবে বদলেছে, সেক্টরে কোথায় আছে, আর কী ভুল হতে পারে।",
+    },
+    sections: ["quality", "story", "sector", "risks", "alternatives"],
+  },
+];

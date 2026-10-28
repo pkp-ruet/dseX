@@ -45,6 +45,10 @@ export default function DeepAnalysisReport({ report, fairValue, code }: Props) {
   // The page language comes from the navbar switch; every text below carries
   // both languages (`<T>`), so only labels in attributes read `bn` here.
   const { bn } = useLang();
+  // Inside the stock report the note is one chapter of the page (its h2 is
+  // the chapter title): no label, no second h1, no contents list.
+  const embedded = !!code;
+  const H = embedded ? "h3" : "h2";
 
   const sectionBody = (s: DeepAnalysisSection) => (
     <TBlock
@@ -62,7 +66,7 @@ export default function DeepAnalysisReport({ report, fairValue, code }: Props) {
           <span className="text-xs font-bold tabular-nums shrink-0 text-text-muted">
             {String(i + 1).padStart(2, "0")}
           </span>
-          <h2 className="text-lg sm:text-xl font-bold leading-snug text-text-main">{pair(s.title_en, s.title_bn)}</h2>
+          <H className="text-lg sm:text-xl font-bold leading-snug text-text-main">{pair(s.title_en, s.title_bn)}</H>
         </div>
 
         {/* Takeaway — the one line a skimmer should remember */}
@@ -88,16 +92,24 @@ export default function DeepAnalysisReport({ report, fairValue, code }: Props) {
 
   return (
     <article>
-      <div className="flex items-center justify-between gap-3 mb-4">
-        <span className="text-xs font-semibold text-primary-ink">
-          <T en="In-depth analysis" bn="বিস্তারিত বিশ্লেষণ" />
-        </span>
-      </div>
+      {!embedded && (
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <span className="text-xs font-semibold text-primary-ink">
+            <T en="In-depth analysis" bn="বিস্তারিত বিশ্লেষণ" />
+          </span>
+        </div>
+      )}
 
       {/* Thesis in ~20 seconds: headline + bottom line */}
-      <h1 className="text-2xl sm:text-3xl font-bold leading-snug mb-4 text-text-main">
-        {pair(report.headline_en, report.headline_bn)}
-      </h1>
+      {embedded ? (
+        <p className="text-xl sm:text-2xl font-bold leading-snug mb-3 text-text-main">
+          {pair(report.headline_en, report.headline_bn)}
+        </p>
+      ) : (
+        <h1 className="text-2xl sm:text-3xl font-bold leading-snug mb-4 text-text-main">
+          {pair(report.headline_en, report.headline_bn)}
+        </h1>
+      )}
       <p className="text-base sm:text-lg leading-relaxed mb-6 text-text-muted">
         {pair(report.bottom_line_en, report.bottom_line_bn)}
       </p>
@@ -126,7 +138,7 @@ export default function DeepAnalysisReport({ report, fairValue, code }: Props) {
       )}
 
       {/* Contents — the sections are a real sequence, so they're numbered */}
-      {report.sections.length > 2 && (
+      {!embedded && report.sections.length > 2 && (
         <nav aria-label={bn ? "সূচিপত্র" : "Contents"} className="mb-8 border-y border-border py-4">
           <p className="mb-1 text-xs font-semibold text-text-muted">
             <T en="In this report" bn="এই রিপোর্টে" />

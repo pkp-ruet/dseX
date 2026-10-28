@@ -76,6 +76,17 @@
   flex: none;
 }
 
+/* The three-line summary: each line under what it is about. */
+.rp-summary { margin-top: var(--space-4); }
+.rp-summary-row { padding: var(--space-3) 0; border-top: 1px dashed var(--border); }
+.rp-summary > .rp-summary-row:first-child { border-top-style: solid; }
+.rp-summary-k { display: block; font-size: var(--fs-xs); font-weight: 600; color: var(--text-muted); }
+.rp-summary-row p { margin-top: 2px; font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
+@media (min-width: 640px) {
+  .rp-summary-row { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: var(--space-3); }
+  .rp-summary-row p { margin-top: 0; font-size: var(--fs-base); }
+}
+
 /* Tone colours — one meaning each. */
 .rp-tone-good { color: var(--positive); }
 .rp-tone-fair { color: var(--watch); }
@@ -178,16 +189,60 @@
   color: var(--gold-ink);
 }
 
-/* ---- Report ---------------------------------------------------------- */
-.rp-report { display: grid; gap: var(--space-4); }
-@media (min-width: 640px) {
-  .rp-report { gap: var(--space-6); }
+/* ---- Report (2026-10-29 calm pass) ------------------------------------
+   Three parts, each ONE sheet; the sections on it are split by hairlines,
+   not boxed. Every section reads the same way: question + verdict chip, the
+   answer in one sentence, the evidence, what it means, what to watch, then
+   a quiet source line. */
+.rp-guide { margin-top: var(--space-6); }
+.rp-sheet {
+  padding: 0 var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
 }
-.rp-sec { padding: var(--space-4); }
 @media (min-width: 640px) {
-  .rp-sec { padding: var(--space-6); }
+  .rp-sheet { padding: 0 var(--space-8); }
 }
+.rp-sheet-pad { padding-top: var(--space-6); padding-bottom: var(--space-6); }
+@media (min-width: 640px) {
+  .rp-sheet-pad { padding-top: var(--space-8); padding-bottom: var(--space-8); }
+}
+.rp-sec { padding: var(--space-6) 0; }
+@media (min-width: 640px) {
+  .rp-sec { padding: var(--space-8) 0; }
+}
+.rp-sheet > .rp-sec + .rp-sec { border-top: 1px solid var(--border); }
 .rp-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.rp-head > .rp-chip { margin-top: 3px; }
+.rp-answer {
+  margin-top: var(--space-2);
+  font-size: var(--fs-base);
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--text);
+}
+.rp-free { margin-top: var(--space-1); }
+.rp-body { margin-top: var(--space-1); }
+.rp-meaning { display: grid; gap: var(--space-3); margin-top: var(--space-4); }
+.rp-watch {
+  margin-top: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-left: 3px solid var(--border);
+  background: rgb(var(--bg-rgb));
+}
+.rp-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+.rp-foot > button { flex: none; margin: -8px -8px -8px 0; }
+.rp-lines { list-style: none; margin: var(--space-2) 0 0; padding: 0; }
+.rp-lines > li { padding: var(--space-2) 0; }
+.rp-lines > li + li { border-top: 1px dashed var(--border); }
 .rp-n {
   display: inline-flex;
   align-items: center;
@@ -206,11 +261,6 @@
   padding: var(--space-3);
   border-radius: var(--radius);
   background: var(--surface-2);
-}
-.rp-source {
-  margin-top: var(--space-4);
-  padding-top: var(--space-2);
-  border-top: 1px solid var(--border);
 }
 
 /* Hairline grid of facts */

@@ -15,7 +15,8 @@ import {
 } from "@/components/stock/report/sections";
 import { freeReportSections } from "@/lib/free-share";
 import type { CompanyDetail, DeepAnalysisReport as DeepReport } from "@/lib/api";
-import { SECTION_ORDER, type CheckKey, type SectionBase, type SectionKey, type StockReport } from "@/lib/stock-report";
+import { REPORT_PARTS, SECTION_ORDER, type CheckKey, type SectionBase, type SectionKey, type StockReport } from "@/lib/stock-report";
+import { tx } from "@/components/stock/report/fmt";
 
 const CHECKS: CheckKey[] = ["red_flags", "price", "dividend", "this_year", "owners", "cash", "safety", "quality"];
 
@@ -29,11 +30,13 @@ const ALIASES: Partial<Record<SectionKey, string[]>> = {
 };
 
 /**
- * The report chapter of the stock page (2026-10-28): every section in report
- * order, each in the `ReportSection` anatomy, then "You and this stock", the
- * analyst note (where a written report exists) and the one offer. A free
- * reader gets the map first (`ReportGuide`) and a few sections open in full
- * (`freeReportSections`); every other Premium panel is closed whole.
+ * The stock report (2026-10-28): every section in report order, in three
+ * parts (`REPORT_PARTS`, 2026-10-29) — each part a chapter (h2) with its
+ * sections on one sheet split by hairlines — then "You and this stock" (inside
+ * the second part), the analyst note (where a written report exists) and the
+ * one offer. A free reader gets the map first (`ReportGuide`) and a few
+ * sections open in full (`freeReportSections`); every other Premium panel is
+ * closed whole.
  */
 export default function StockReportBody({
   detail,
@@ -113,76 +116,68 @@ export default function StockReportBody({
     key: k,
     label: report.scorecard.find((c) => c.key === k)?.label ?? (sec[k as SectionKey] as SectionBase).title,
   }));
-  const youAt = present.indexOf("next") >= 0 ? present.indexOf("next") + 1 : Math.min(4, present.length);
-  let n = 0;
-  const items: ReactNode[] = [];
-  present.forEach((k, i) => {
-    if (i === youAt) {
-      items.push(<YouAndThisStock key="you" code={code} ltp={ltp} report={report} n={++n} />);
-    }
-    const s = sec[k] as SectionBase;
+  const section = (k: SectionKey) => {
     const b = bodies[k] ?? {};
-    items.push(
-      <div key={k}>
-        {(ALIASES[k] ?? []).map((id) => <span key={id} id={id} className="stock-anchor block" aria-hidden="true" />)}
-        <ReportSection
-          s={s}
-          code={code}
-          n={++n}
-          free={b.free}
-          sample={samples.includes(k)}
-          action={(CHECKS as string[]).includes(k) ? <ShareCheck code={code} k={k as CheckKey} name={name} /> : undefined}
-        >
-          {b.body}
-        </ReportSection>
-      </div>,
+    return (
+      <ReportSection
+        key={k}
+        s={sec[k] as SectionBase}
+        code={code}
+        free={b.free}
+        aliases={ALIASES[k]}
+        sample={samples.includes(k)}
+        action={(CHECKS as string[]).includes(k) ? <ShareCheck code={code} k={k as CheckKey} name={name} /> : undefined}
+      >
+        {b.body}
+      </ReportSection>
     );
-  });
-  if (youAt >= present.length) {
-    items.push(<YouAndThisStock key="you" code={code} ltp={ltp} report={report} n={++n} />);
-  }
+  };
+  const you = <YouAndThisStock key="you" code={code} ltp={ltp} report={report} />;
+
+  // Three parts, each one sheet. "You and this stock" sits after "What
+  // happens next" (or opens the second part), else closes the first.
+  const parts = REPORT_PARTS.map((p) => ({ ...p, keys: p.sections.filter((k) => sec[k] != null) }));
+  const nowHas = parts.some((p) => p.id === "ch-now" && p.keys.length > 0);
+  const shown = parts.filter((p) => p.keys.length > 0 || (p.id === "ch-essentials" && !nowHas));
 
   return (
     <>
+      {/* Older links to the report land on its first part. */}
       <span id="ch-verdict" className="stock-anchor block" aria-hidden="true" />
-      <StockChapter
-        id="ch-report"
-        fold={false}
-        title={<T en="The report" bn="রিপোর্ট" />}
-        lead={
-          <T
-            en={`${present.length} sections on ${code}, in the order a careful buyer asks.`}
-            bn={`${code} নিয়ে ${present.length}টি অংশ, একজন সতর্ক ক্রেতা যে ক্রমে প্রশ্ন করেন।`}
-          />
+      <span id="ch-report" className="stock-anchor block" aria-hidden="true" />
+      <ReportGuide samples={sampleLinks} />
+      {shown.map((p) => {
+        const items: ReactNode[] = p.keys.map(section);
+        if (p.id === "ch-now") {
+          const at = p.keys.indexOf("next");
+          items.splice(at >= 0 ? at + 1 : 0, 0, you);
+        } else if (p.id === "ch-essentials" && !nowHas) {
+          items.push(you);
         }
-      >
-        <div className="rp-report">
-          <ReportGuide samples={sampleLinks} />
-          {items}
-          {deep && (
-            <section id="note" className="soft-card rp-sec stock-anchor" aria-labelledby="rp-note-t">
-              <div className="rp-head">
-                <div className="flex min-w-0 items-start gap-3">
-                  <span className="rp-n" aria-hidden="true">{++n}</span>
-                  <h3 id="rp-note-t" className="min-w-0 pt-0.5 text-lg font-bold leading-snug text-text-main sm:text-xl">
-                    <T en="The analyst note" bn="বিশ্লেষকের নোট" />
-                  </h3>
-                </div>
-              </div>
-              <p className="mt-2 text-sm text-text-muted">
-                <T
-                  en="Our written report on the company: what it does, how it makes money, and the case for and against. The first part is free."
-                  bn="কোম্পানি নিয়ে আমাদের লেখা রিপোর্ট: কী করে, কীভাবে আয় করে, আর পক্ষে-বিপক্ষের যুক্তি। প্রথম অংশ ফ্রি।"
-                />
-              </p>
-              <div className="mt-4">
-                <DeepAnalysisReport report={deep} fairValue={null} code={code} />
-              </div>
-            </section>
-          )}
-        </div>
-        <ReportOffer code={code} name={name} lines={report.offer} />
-      </StockChapter>
+        return (
+          <StockChapter key={p.id} id={p.id} fold={false} title={tx(p.title)} lead={tx(p.lead)}>
+            <div className="rp-sheet">{items}</div>
+          </StockChapter>
+        );
+      })}
+      {deep && (
+        <StockChapter
+          id="note"
+          fold={false}
+          title={<T en="The analyst note" bn="বিশ্লেষকের নোট" />}
+          lead={
+            <T
+              en="Our written report on the company: what it does, how it makes money, and the case for and against."
+              bn="কোম্পানি নিয়ে আমাদের লেখা রিপোর্ট: কী করে, কীভাবে আয় করে, আর পক্ষে-বিপক্ষের যুক্তি।"
+            />
+          }
+        >
+          <div className="rp-sheet rp-sheet-pad">
+            <DeepAnalysisReport report={deep} fairValue={null} code={code} />
+          </div>
+        </StockChapter>
+      )}
+      <ReportOffer code={code} name={name} lines={report.offer} />
     </>
   );
 }

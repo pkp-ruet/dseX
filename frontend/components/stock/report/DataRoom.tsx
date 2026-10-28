@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import Tabs from "@/components/ui/Tabs";
+import SectionHeader from "@/components/ui/SectionHeader";
 import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
 
@@ -42,18 +43,21 @@ export default function DataRoom({ panels }: { panels: RoomPanel[] }) {
 
   if (!panels.length) return null;
   return (
-    <section id="ch-data" className="stock-anchor mb-10" aria-labelledby="ch-data-t">
-      <h2 id="ch-data-t" className="text-xl font-bold text-text-main sm:text-2xl">
-        <T en="The data room" bn="তথ্যের ঘর" />
-      </h2>
-      <p className="mt-1 text-sm text-text-muted">
-        <T
-          en="Every number behind the report, straight from DSE and the company's accounts. All free."
-          bn="রিপোর্টের পেছনের সব সংখ্যা, সরাসরি ডিএসই আর কোম্পানির হিসাব থেকে। সবই ফ্রি।"
-        />
-      </p>
+    <section id="ch-data" className="stock-anchor stock-chapter mb-10" aria-labelledby="ch-data-t">
+      {/* Same header as the report's parts (StockChapter): one look for every chapter. */}
+      <SectionHeader
+        id="ch-data-t"
+        size="lg"
+        className="mb-5"
+        title={<T en="The data room" bn="তথ্যের ঘর" />}
+        lead={
+          <T
+            en="Every number behind the report, straight from DSE and the company's accounts. All free."
+            bn="রিপোর্টের পেছনের সব সংখ্যা, সরাসরি ডিএসই আর কোম্পানির হিসাব থেকে। সবই ফ্রি।"
+          />
+        }
+      />
       <Tabs
-        className="mt-4"
         idBase="room"
         ariaLabel={bn ? "তথ্যের ঘর" : "The data room"}
         value={active}

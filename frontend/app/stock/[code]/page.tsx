@@ -29,6 +29,7 @@ import StockLockScope from "@/components/premium/LockScope";
 import Scorecard from "@/components/stock/report/Scorecard";
 import StockReportBody from "@/components/stock/report/StockReportBody";
 import DataRoom, { type RoomPanel } from "@/components/stock/report/DataRoom";
+import { REPORT_PARTS } from "@/lib/stock-report";
 import { formatDate, money } from "@/lib/formatters";
 import { T } from "@/components/i18n/T";
 
@@ -281,15 +282,16 @@ export default async function StockDetailPage({ params }: PageProps) {
   const hasPeers = (related_stocks?.length ?? 0) > 0;
 
   const hasCompany = true; // ownership + news always render (with their own empty states)
-  // Report mode (2026-10-28): the chips jump to the cover, the first report
-  // sections and the data room.
+  // Report mode (2026-10-28): the chips jump to the cover, the report's three
+  // parts (2026-10-29 — one chip per part, not per check), the analyst note
+  // and the data room.
   const reportSections: NavSection[] = report
     ? [
         { id: "ch-overview", label: "Overview", labelBn: "এক নজরে" },
-        ...report.scorecard
-          .filter((c) => report.sections[c.key] != null)
-          .slice(0, 6)
-          .map((c) => ({ id: `rp-${c.key}`, label: c.label.en, labelBn: c.label.bn || c.label.en })),
+        ...REPORT_PARTS
+          .filter((p) => p.sections.some((k) => report.sections[k] != null))
+          .map((p) => ({ id: p.id, label: p.chip.en, labelBn: p.chip.bn })),
+        ...(deepReport ? [{ id: "note", label: "Analyst note", labelBn: "বিশ্লেষকের নোট" }] : []),
         { id: "ch-data", label: "Data", labelBn: "তথ্য" },
       ]
     : [];

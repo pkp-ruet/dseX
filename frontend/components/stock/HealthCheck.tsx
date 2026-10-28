@@ -211,10 +211,12 @@ export default function HealthCheck({ scoreRow, detail, lockAfterFirst = true }:
   if (rows.length === 0) return null;
 
   if (!lockAfterFirst) {
+    // Inside the stock report: plain rows split by hairlines, no tinted
+    // boxes — the status ring alone carries the colour.
     return (
-      <div className="space-y-2.5">
+      <div className="divide-y divide-border border-y border-border">
         {rows.map((row) => (
-          <HealthRow key={row.pillarKey} row={row} scoreRow={scoreRow} detail={detail} />
+          <HealthRow key={row.pillarKey} row={row} scoreRow={scoreRow} detail={detail} plain />
         ))}
       </div>
     );
@@ -236,7 +238,9 @@ export default function HealthCheck({ scoreRow, detail, lockAfterFirst = true }:
   );
 }
 
-function HealthRow({ row, scoreRow, detail }: { row: HealthCheckRow; scoreRow: ScoreRow; detail: CompanyDetail }) {
+function HealthRow({ row, scoreRow, detail, plain = false }: {
+  row: HealthCheckRow; scoreRow: ScoreRow; detail: CompanyDetail; plain?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const tone = statusTone(row.status);
 
@@ -247,13 +251,13 @@ function HealthRow({ row, scoreRow, detail }: { row: HealthCheckRow; scoreRow: S
 
   return (
     <div
-      className="rounded-xl transition-colors"
-      style={{ background: tone.bg, border: `1px solid ${tone.border}` }}
+      className={plain ? "" : "rounded-xl transition-colors"}
+      style={plain ? undefined : { background: tone.bg, border: `1px solid ${tone.border}` }}
     >
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full text-left flex items-center gap-4 p-4 sm:p-5"
+        className={`w-full text-left flex items-center gap-4 ${plain ? "py-4" : "p-4 sm:p-5"}`}
         aria-expanded={open}
       >
         <div
@@ -284,7 +288,7 @@ function HealthRow({ row, scoreRow, detail }: { row: HealthCheckRow; scoreRow: S
         </svg>
       </button>
       {open && (
-        <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-4">
+        <div className={`space-y-4 ${plain ? "pb-4" : "px-4 sm:px-5 pb-4 sm:pb-5"}`}>
           <div
             className="rounded-xl p-4 text-sm leading-relaxed"
             style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
