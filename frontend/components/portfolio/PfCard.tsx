@@ -1,5 +1,49 @@
 import type { ReactNode } from "react";
 import type { AnalysisLang } from "@/lib/portfolio-analysis";
+import Button from "@/components/ui/Button";
+import { IconChevronDown } from "@/components/ui/icons";
+
+/** Rows a long list on this page shows before "Show all" (allocation, sectors, what's moving, history). */
+export const SHORT_LIST = 5;
+
+/** Whether a list of `n` rows folds — one hidden row isn't worth a tap, so 6 rows stay open. */
+export function folds(n: number): boolean {
+  return n > SHORT_LIST + 1;
+}
+
+/** THE "Show all N …" / "Show fewer" button under a folded list on this page. */
+export function PfShowMore({
+  open,
+  total,
+  noun,
+  lang = "en",
+  onToggle,
+}: {
+  open: boolean;
+  total: number;
+  noun: { en: string; bn: string };
+  lang?: AnalysisLang;
+  onToggle: () => void;
+}) {
+  const bn = lang === "bn";
+  return (
+    <Button
+      type="button"
+      variant="quiet"
+      size="sm"
+      block
+      onClick={onToggle}
+      aria-expanded={open}
+      className={`pf-more ${bn ? "font-bn" : ""}`}
+      lang={bn ? "bn" : undefined}
+    >
+      {open ? (bn ? "কম দেখান" : "Show fewer") : bn ? `সব ${total}টি ${noun.bn} দেখুন` : `Show all ${total} ${noun.en}`}
+      <span className="pf-more-chev" data-open={open ? "" : undefined}>
+        <IconChevronDown size={16} />
+      </span>
+    </Button>
+  );
+}
 
 /**
  * THE card on /portfolio (2026-10-26 redesign, same shape as the

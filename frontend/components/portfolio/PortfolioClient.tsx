@@ -65,7 +65,14 @@ import { PageLockScope } from "@/components/premium/LockScope";
 import Chip from "@/components/ui/Chip";
 import DashSectionNav from "@/components/home/personalized/DashSectionNav";
 import PfCard, { PfChapterHead } from "./PfCard";
-import { IconLock, IconPlus } from "@/components/ui/icons";
+import {
+  IconChevronDown,
+  IconChevronRight,
+  IconClose,
+  IconLock,
+  IconPlus,
+  IconSearch,
+} from "@/components/ui/icons";
 import { buildProInsights, buildPremiumStakes } from "@/lib/portfolio-pro";
 import { usePremium, isLimitError, PREMIUM_PATH } from "@/lib/premium";
 import { moneyMade, DEFAULT_PORTFOLIO_SETTINGS } from "@/lib/portfolio-ledger";
@@ -205,6 +212,34 @@ const SORT_OPTIONS: { key: SortKey; dir: "asc" | "desc" }[] = [
 
 const SIGNAL_RANK: Record<SignalInfo["signal"], number> = { sell: 0, none: 1, buy_more: 2 };
 
+/** From this many stocks the list gets a search field and filter chips. */
+const FILTER_FROM = 8;
+
+type HoldFilter = "all" | "buy_more" | "sell" | "loss" | "updates";
+
+const FILTERS: { key: HoldFilter; en: string; bn: string }[] = [
+  { key: "all", en: "All", bn: "সব" },
+  { key: "buy_more", en: "Buy more", bn: "আরও কেনা যায়" },
+  { key: "sell", en: "Sell", bn: "বিক্রি করুন" },
+  { key: "loss", en: "In loss", bn: "লোকসানে" },
+  { key: "updates", en: "Has updates", bn: "আপডেট আছে" },
+];
+
+function matchesFilter(row: ComputedRow, f: HoldFilter, hasUpdates: boolean): boolean {
+  switch (f) {
+    case "buy_more":
+      return row.signal.signal === "buy_more";
+    case "sell":
+      return row.signal.signal === "sell";
+    case "loss":
+      return row.pnl != null && row.pnl < 0;
+    case "updates":
+      return hasUpdates;
+    default:
+      return true;
+  }
+}
+
 function sortValue(row: ComputedRow, key: SortKey): string | number | null {
   switch (key) {
     case "code":
@@ -252,14 +287,16 @@ function PortfolioSkeleton() {
       <div className="soft-card pf-holds">
         {[0, 1, 2].map((i) => (
           <div key={i} className="pf-hold">
-            <div className="pf-hold-top">
-              <div className="flex flex-col gap-2">
-                <Skeleton width={i % 2 ? "45%" : "60%"} height={16} />
-                <Skeleton width="35%" height={12} />
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <Skeleton width={90} height={16} />
-                <Skeleton width={70} height={12} />
+            <div className="pf-hold-main">
+              <div className="pf-hold-top">
+                <div className="flex flex-col gap-2">
+                  <Skeleton width={i % 2 ? "45%" : "60%"} height={16} />
+                  <Skeleton width="35%" height={12} />
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <Skeleton width={90} height={16} />
+                  <Skeleton width={70} height={12} />
+                </div>
               </div>
             </div>
           </div>
@@ -635,6 +672,43 @@ export default function PortfolioClient() {
     return by;
   }, [myWatch]);
 
+  // Search + filter chips, shown from FILTER_FROM stocks. A filter whose chip
+  // has gone (its count fell to 0) falls back to "All".
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<HoldFilter>("all");
+  const showFilters = holdings.length >= FILTER_FROM;
+  const filterCounts = useMemo(() => {
+    const counts: Record<HoldFilter, number> = { all: rows.length, buy_more: 0, sell: 0, loss: 0, updates: 0 };
+    for (const r of rows) {
+      const hasUpdates = updateTags.has(r.holding.trading_code.toUpperCase());
+      for (const f of FILTERS) if (f.key !== "all" && matchesFilter(r, f.key, hasUpdates)) counts[f.key]++;
+    }
+    return counts;
+  }, [rows, updateTags]);
+  const activeFilter: HoldFilter = showFilters && filterCounts[filter] > 0 ? filter : "all";
+  const q = showFilters ? query.trim().toLowerCase() : "";
+  const visibleRows = useMemo(() => {
+    if (activeFilter === "all" && !q) return sortedRows;
+    return sortedRows.filter((r) => {
+      const code = r.holding.trading_code.toUpperCase();
+      if (!matchesFilter(r, activeFilter, updateTags.has(code))) return false;
+      return !q || code.toLowerCase().includes(q) || (r.company_name ?? "").toLowerCase().includes(q);
+    });
+  }, [sortedRows, activeFilter, q, updateTags]);
+
+  // A holding is one short line that opens in place, one at a time. When a
+  // row above closes, the tapped row is held where it was on screen.
+  const [openId, setOpenId] = useState<string | null>(null);
+  function toggleRow(id: string, el: HTMLElement | null) {
+    const before = el?.getBoundingClientRect().top ?? 0;
+    setOpenId((cur) => (cur === id ? null : id));
+    requestAnimationFrame(() => {
+      if (!el) return;
+      const shift = el.getBoundingClientRect().top - before;
+      if (Math.abs(shift) > 1) window.scrollBy({ top: shift, behavior: "instant" });
+    });
+  }
+
   const lockedWatchCount = useMemo(() => myWatch.filter((e) => !e.free).length, [myWatch]);
 
   // The reader's own stakes for the page's one Premium lock, in taka.
@@ -734,8 +808,10 @@ export default function PortfolioClient() {
   const navItems = useMemo(
     () => [
       { id: "pf-money", label: lang === "bn" ? "টাকা" : "Money" },
+      // The shares list sits inside chapter 1; the chip brings a reader back to it
+      { id: "pf-shares", label: lang === "bn" ? "আপনার শেয়ার" : "Shares" },
       { id: "pf-analysis", label: lang === "bn" ? "বিশ্লেষণ" : "Analysis" },
-      { id: "pf-stocks", label: lang === "bn" ? "শেয়ার" : "Stocks" },
+      { id: "pf-stocks", label: lang === "bn" ? "আপডেট" : "Updates" },
     ],
     [lang],
   );
@@ -1016,7 +1092,7 @@ export default function PortfolioClient() {
             <h2 id="pf-money-h" className="sr-only">{L("Your money", "আপনার টাকা")}</h2>
 
             {/* The stocks you own — one card, one row per stock */}
-            <div className="mt-4 flex flex-col gap-3">
+            <div id="pf-shares" className="dash-section mt-4 flex flex-col gap-3">
               <div className="pf-hold-bar">
                 <h3 className={`text-lg font-bold text-text-main ${bnCls}`} lang={bn ? "bn" : undefined}>
                   {L("Your shares", "আপনার শেয়ারগুলো")}{" "}
@@ -1071,122 +1147,197 @@ export default function PortfolioClient() {
                 </div>
               </div>
 
+              {/* Search + filter chips once the list is long (FILTER_FROM stocks) */}
+              {showFilters && (
+                <div className="pf-find">
+                  <div className="pf-search">
+                    <label htmlFor="pf-search" className="sr-only">{L("Find a share", "শেয়ার খুঁজুন")}</label>
+                    <span className="pf-search-icon"><IconSearch size={16} /></span>
+                    <input
+                      id="pf-search"
+                      type="search"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      placeholder={L("Find by name or code", "নাম বা কোড দিয়ে খুঁজুন")}
+                      autoComplete="off"
+                      enterKeyHint="search"
+                      className={`input-field ${bnCls}`}
+                    />
+                    {query && (
+                      <button type="button" className="pf-search-clear" onClick={() => setQuery("")} aria-label={L("Clear search", "খোঁজা মুছুন")}>
+                        <IconClose size={16} />
+                      </button>
+                    )}
+                  </div>
+                  <div className="pf-filters" role="group" aria-label={L("Show", "দেখান")}>
+                    {FILTERS.filter((f) => f.key === "all" || filterCounts[f.key] > 0).map((f) => (
+                      <Chip key={f.key} active={activeFilter === f.key} onClick={() => setFilter(f.key)}>
+                        <span className={bnCls}>{bn ? f.bn : f.en}</span>
+                        <span className="pf-num">{filterCounts[f.key]}</span>
+                      </Chip>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div id="pf-holds" className="dash-section soft-card pf-holds pf-rise">
-                {sortedRows.map((row) => {
+                {visibleRows.length === 0 && (
+                  <div className={`pf-holds-none ${bnCls}`}>
+                    <p>{L("No shares match.", "কোনো শেয়ার মেলেনি।")}</p>
+                    <Button
+                      type="button"
+                      variant="link"
+                      size="sm"
+                      onClick={() => {
+                        setQuery("");
+                        setFilter("all");
+                      }}
+                    >
+                      {L("Show all", "সব দেখুন")}
+                    </Button>
+                  </div>
+                )}
+                {visibleRows.map((row) => {
                   const code = row.holding.trading_code;
+                  const name = row.company_name ?? code;
                   const tags = updateTags.get(code.toUpperCase()) ?? [];
+                  const open = openId === row.holding.id;
+                  const moreId = `pf-more-${row.holding.id}`;
                   const pos =
                     row.ltp != null && row.w52_high != null && row.w52_low != null && row.w52_high > row.w52_low
                       ? Math.max(0, Math.min(1, (row.ltp - row.w52_low) / (row.w52_high - row.w52_low)))
                       : null;
                   return (
-                    <article key={row.holding.id} className="pf-hold">
-                      <div className="pf-hold-top">
-                        <div className="min-w-0">
-                          <Link prefetch={false} href={`/stock/${code}`} className="pf-hold-name">
-                            {row.company_name ?? code}
-                          </Link>
-                          <p className={`pf-hold-sub ${bnCls}`}>
-                            <span className="pf-hold-code">{code}</span>
-                            {" · "}
-                            <span className="pv">
-                              {bn
-                                ? `${row.holding.qty.toLocaleString("en-IN")}টি শেয়ার`
-                                : `${row.holding.qty.toLocaleString("en-IN")} share${row.holding.qty === 1 ? "" : "s"}`}
-                            </span>
-                          </p>
+                    <article key={row.holding.id} className="pf-hold" data-open={open ? "" : undefined}>
+                      <div className="pf-hold-main">
+                        <div className="pf-hold-top">
+                          <div className="min-w-0">
+                            <Link prefetch={false} href={`/stock/${code}`} className="pf-hold-name">
+                              {name}
+                            </Link>
+                            <p className={`pf-hold-sub ${bnCls}`}>
+                              <span className="pf-hold-code">{code}</span>
+                              {" · "}
+                              <span className="pv">
+                                {bn
+                                  ? `${row.holding.qty.toLocaleString("en-IN")}টি শেয়ার`
+                                  : `${row.holding.qty.toLocaleString("en-IN")} share${row.holding.qty === 1 ? "" : "s"}`}
+                              </span>
+                            </p>
+                          </div>
+                          <div className="pf-hold-val">
+                            <b className="pv">{row.current_value != null ? takaGroup(row.current_value) : "—"}</b>
+                            {row.pnl != null && (
+                              <span className={`pv ${row.pnl > 0 ? "pf-up" : row.pnl < 0 ? "pf-down" : "pf-flat"}`}>
+                                {row.pnl > 0 ? "+" : row.pnl < 0 ? "−" : ""}
+                                {takaGroup(Math.abs(row.pnl))}
+                                {row.pnl_pct != null ? ` · ${row.pnl_pct > 0 ? "+" : row.pnl_pct < 0 ? "−" : ""}${Math.abs(row.pnl_pct).toFixed(1)}%` : ""}
+                              </span>
+                            )}
+                          </div>
+                          <span className="pf-hold-chev"><IconChevronDown size={18} /></span>
                         </div>
-                        <div className="pf-hold-val">
-                          <b className="pv">{row.current_value != null ? takaGroup(row.current_value) : "—"}</b>
-                          {row.pnl != null && (
-                            <span className={`pv ${row.pnl > 0 ? "pf-up" : row.pnl < 0 ? "pf-down" : "pf-flat"}`}>
-                              {row.pnl > 0 ? "+" : row.pnl < 0 ? "−" : ""}
-                              {takaGroup(Math.abs(row.pnl))}
-                              {row.pnl_pct != null ? ` · ${row.pnl_pct > 0 ? "+" : row.pnl_pct < 0 ? "−" : ""}${Math.abs(row.pnl_pct).toFixed(1)}%` : ""}
-                            </span>
-                          )}
-                        </div>
-                      </div>
 
-                      {(row.signal.signal !== "none" || tags.length > 0) && (
-                        <div className="pf-hold-mid">
-                          <SignalChip
-                            signal={row.signal.signal}
-                            reason={row.signal.reason}
-                            muted={row.signal.muted}
-                            lang={bn ? "bn" : "en"}
-                          />
-                          {/* This stock's own updates, from chapter 2's list */}
-                          {tags.map((e) => (
-                            <Chip key={e.kind} tone={LEVEL_TONE[e.level]}>
-                              <span className={bnCls}>{bn ? KIND_TAG[e.kind].bn : KIND_TAG[e.kind].en}</span>
-                            </Chip>
-                          ))}
-                        </div>
-                      )}
-
-                      <div className={`pf-hold-facts ${bnCls}`}>
-                        <div className="pf-fact">
-                          <span className="pf-fact-k">{L("You paid", "কেনার দাম")}</span>
-                          <span className="pf-fact-v pv">{taka(row.holding.buy_price, 2)}</span>
-                        </div>
-                        <div className="pf-fact">
-                          <span className="pf-fact-k">{L("Price now", "এখনকার দাম")}</span>
-                          <span className="pf-fact-v">{row.ltp != null ? taka(row.ltp, 2) : "—"}</span>
-                        </div>
-                        <div className="pf-fact">
-                          <span className="pf-fact-k">{L("You put in", "বিনিয়োগ")}</span>
-                          <span className="pf-fact-v pv">{takaCompact(row.cost_basis)}</span>
-                        </div>
-                        {pos != null && (
-                          <div
-                            className="pf-fact pf-fact--range"
-                            title={`${L("Yearly range", "বছরের সীমা")}: ৳${row.w52_low!.toFixed(1)} – ৳${row.w52_high!.toFixed(1)}`}
-                          >
-                            <span className="pf-fact-k">{L("Where the price sits this year", "এ বছরে দাম কোথায়")}</span>
-                            <div className="pf-range" aria-hidden>
-                              <i style={{ left: `${(pos * 100).toFixed(1)}%` }} />
-                            </div>
-                            <div className="pf-range-ends">
-                              <span>{L("Low", "সর্বনিম্ন")} {row.w52_low!.toFixed(1)}</span>
-                              <span>{L("High", "সর্বোচ্চ")} {row.w52_high!.toFixed(1)}</span>
-                            </div>
+                        {(row.signal.signal !== "none" || tags.length > 0) && (
+                          <div className="pf-hold-mid">
+                            <SignalChip
+                              signal={row.signal.signal}
+                              reason={row.signal.reason}
+                              muted={row.signal.muted}
+                              lang={bn ? "bn" : "en"}
+                            />
+                            {/* This stock's own updates, from chapter 2's list */}
+                            {tags.map((e) => (
+                              <Chip key={e.kind} tone={LEVEL_TONE[e.level]}>
+                                <span className={bnCls}>{bn ? KIND_TAG[e.kind].bn : KIND_TAG[e.kind].en}</span>
+                              </Chip>
+                            ))}
                           </div>
                         )}
+
+                        {/* The whole head opens the row; the name link sits under it,
+                            so the page link moves into the details. */}
+                        <button
+                          type="button"
+                          className="pf-hold-tap"
+                          aria-expanded={open}
+                          aria-controls={moreId}
+                          aria-label={L(`${name}: details`, `${name}: বিস্তারিত`)}
+                          onClick={(e) => toggleRow(row.holding.id, e.currentTarget.closest("article"))}
+                        />
                       </div>
 
-                      {!readOnly && (
-                        <div className="pf-hold-actions">
-                          <Button type="button" variant="quiet" size="sm" onClick={() => openTx("buy", row)} aria-label={`${L("Bought more", "আরও কিনেছি")} ${code}`}>
-                            {L("Bought more", "আরও কিনেছি")}
-                          </Button>
-                          <Button type="button" variant="quiet" size="sm" onClick={() => openTx("sell", row)} aria-label={`${L("Sold", "বিক্রি করেছি")} ${code}`}>
-                            {L("Sold", "বিক্রি করেছি")}
-                          </Button>
-                          <span className="pf-spacer" />
-                          <WatchlistAlertCell code={code} ltp={row.ltp} w52High={row.w52_high} w52Low={row.w52_low} />
-                          <Button type="button" variant="link" size="sm" iconOnly onClick={() => startEdit(row.holding)} aria-label={`${L("Edit", "বদলান")} ${code}`}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                              <path d="M12 20h9" />
-                              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-                            </svg>
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="link"
-                            size="sm"
-                            iconOnly
-                            onClick={() => handleDelete(row.holding.id)}
-                            disabled={busyId === row.holding.id}
-                            className="hover:text-negative"
-                            aria-label={`${L("Remove", "সরান")} ${code}`}
-                          >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                              <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
-                            </svg>
+                      <div id={moreId} className="pf-hold-more">
+                        <div className={`pf-hold-facts ${bnCls}`}>
+                          <div className="pf-fact">
+                            <span className="pf-fact-k">{L("You paid", "কেনার দাম")}</span>
+                            <span className="pf-fact-v pv">{taka(row.holding.buy_price, 2)}</span>
+                          </div>
+                          <div className="pf-fact">
+                            <span className="pf-fact-k">{L("Price now", "এখনকার দাম")}</span>
+                            <span className="pf-fact-v">{row.ltp != null ? taka(row.ltp, 2) : "—"}</span>
+                          </div>
+                          <div className="pf-fact">
+                            <span className="pf-fact-k">{L("You put in", "বিনিয়োগ")}</span>
+                            <span className="pf-fact-v pv">{takaCompact(row.cost_basis)}</span>
+                          </div>
+                          {pos != null && (
+                            <div
+                              className="pf-fact pf-fact--range"
+                              title={`${L("Yearly range", "বছরের সীমা")}: ৳${row.w52_low!.toFixed(1)} – ৳${row.w52_high!.toFixed(1)}`}
+                            >
+                              <span className="pf-fact-k">{L("Where the price sits this year", "এ বছরে দাম কোথায়")}</span>
+                              <div className="pf-range" aria-hidden>
+                                <i style={{ left: `${(pos * 100).toFixed(1)}%` }} />
+                              </div>
+                              <div className="pf-range-ends">
+                                <span>{L("Low", "সর্বনিম্ন")} {row.w52_low!.toFixed(1)}</span>
+                                <span>{L("High", "সর্বোচ্চ")} {row.w52_high!.toFixed(1)}</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {!readOnly && (
+                          <div className="pf-hold-actions">
+                            <Button type="button" variant="quiet" size="sm" onClick={() => openTx("buy", row)} aria-label={`${L("Bought more", "আরও কিনেছি")} ${code}`}>
+                              {L("Bought more", "আরও কিনেছি")}
+                            </Button>
+                            <Button type="button" variant="quiet" size="sm" onClick={() => openTx("sell", row)} aria-label={`${L("Sold", "বিক্রি করেছি")} ${code}`}>
+                              {L("Sold", "বিক্রি করেছি")}
+                            </Button>
+                            <span className="pf-spacer" />
+                            <WatchlistAlertCell code={code} ltp={row.ltp} w52High={row.w52_high} w52Low={row.w52_low} />
+                            <Button type="button" variant="link" size="sm" iconOnly onClick={() => startEdit(row.holding)} aria-label={`${L("Edit", "বদলান")} ${code}`}>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                                <path d="M12 20h9" />
+                                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+                              </svg>
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="link"
+                              size="sm"
+                              iconOnly
+                              onClick={() => handleDelete(row.holding.id)}
+                              disabled={busyId === row.holding.id}
+                              className="hover:text-negative"
+                              aria-label={`${L("Remove", "সরান")} ${code}`}
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                                <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+                              </svg>
+                            </Button>
+                          </div>
+                        )}
+                        {/* The name no longer links (the head opens the row), so the page link lives here */}
+                        <div className="pf-hold-open">
+                          <Button href={`/stock/${code}`} variant="link" size="sm">
+                            {L(`Open the ${code} page`, `${code}-এর পেজ খুলুন`)}
+                            <IconChevronRight size={14} />
                           </Button>
                         </div>
-                      )}
+                      </div>
                     </article>
                   );
                 })}

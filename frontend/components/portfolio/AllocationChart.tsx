@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import type { AnalysisLang, PortfolioAnalysis } from "@/lib/portfolio-analysis";
 import { takaGroup } from "@/lib/formatters";
-import PfCard from "./PfCard";
+import PfCard, { PfShowMore, SHORT_LIST, folds } from "./PfCard";
 import Stat from "@/components/ui/Stat";
 import Button from "@/components/ui/Button";
 
@@ -55,18 +55,18 @@ interface Props {
 
 type Basis = "invested" | "market";
 
-/** Show this many stocks as rows; the rest fold into one "N more" row. */
-const TOP = 8;
-
 /**
  * "Where your money sits" — money per company as a ranked list (biggest
  * first) with thin ink bars, not a donut: a list reads better on a phone and
  * needs no colour key. The total leads as one big number; a toggle switches
  * between what was paid and what it is worth today. The one warning colour is
- * the dot on the note when one stock holds over 25%.
+ * the dot on the note when one stock holds over 25%. A long list shows the
+ * top SHORT_LIST with the rest as one "N more" row (so the bars still add up
+ * to 100%) and a "Show all" button.
  */
 export default function AllocationChart({ analysis, lang = "en" }: Props) {
   const [basis, setBasis] = useState<Basis>("invested");
+  const [all, setAll] = useState(false);
   const t = STR[lang];
   const bn = lang === "bn";
   const bnText = bn ? "font-bn" : "";
@@ -85,10 +85,11 @@ export default function AllocationChart({ analysis, lang = "en" }: Props) {
   const sum = sorted.reduce((s, r) => s + valueOf(r), 0);
   const total = sum || 1;
 
-  // Keep the list short: top 8, the rest folded into one row.
-  const fold = sorted.length > TOP + 1;
-  const shown = fold ? sorted.slice(0, TOP) : sorted;
-  const rest = fold ? sorted.slice(TOP) : [];
+  // Keep the list short: the top few, the rest folded into one row until "Show all".
+  const canFold = folds(sorted.length);
+  const fold = canFold && !all;
+  const shown = fold ? sorted.slice(0, SHORT_LIST) : sorted;
+  const rest = fold ? sorted.slice(SHORT_LIST) : [];
   const restVal = rest.reduce((s, r) => s + valueOf(r), 0);
 
   const top = sorted[0];
@@ -176,6 +177,15 @@ export default function AllocationChart({ analysis, lang = "en" }: Props) {
           </li>
         )}
       </ul>
+      {canFold && (
+        <PfShowMore
+          open={all}
+          total={sorted.length}
+          noun={{ en: "shares", bn: "শেয়ার" }}
+          lang={lang}
+          onToggle={() => setAll((v) => !v)}
+        />
+      )}
 
       <div className={`pf-card-foot ${bnText}`} lang={bn ? "bn" : undefined}>
         <p className="flex items-start gap-2.5 text-sm leading-relaxed text-text-main">

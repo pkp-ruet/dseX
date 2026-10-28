@@ -1,5 +1,8 @@
+"use client";
+
+import { useState } from "react";
 import type { AnalysisLang, PortfolioAnalysis } from "@/lib/portfolio-analysis";
-import PfCard from "./PfCard";
+import PfCard, { PfShowMore, SHORT_LIST, folds } from "./PfCard";
 
 // Numbers inside Bengali prose stay Western (9, 6.1%) — matches the rest of the
 // site and avoids webfont glyph issues with Bengali numerals on some devices.
@@ -36,15 +39,19 @@ const HEAVY_PCT = 40;
  * Money per sector as a ranked list with thin ink bars — each bar is the
  * sector's share of the whole, with a faint tick at 40%. A sector over that
  * line is the one coloured thing on the card: a warning dot, a "Over 40%"
- * word and a warning-coloured bar.
+ * word and a warning-coloured bar. A long list shows the biggest SHORT_LIST
+ * sectors and a "Show all" button.
  */
 export default function SectorBreakdownChart({ analysis, lang = "en" }: Props) {
+  const [all, setAll] = useState(false);
   if (analysis.sectorSpread.length === 0) return null;
 
   const t = STR[lang];
   const bn = lang === "bn";
   const bnText = bn ? "font-bn" : "";
   const totalStocks = analysis.sectorSpread.reduce((acc, s) => acc + s.count, 0);
+  const canFold = folds(analysis.sectorSpread.length);
+  const shown = canFold && !all ? analysis.sectorSpread.slice(0, SHORT_LIST) : analysis.sectorSpread;
 
   return (
     <PfCard
@@ -55,7 +62,7 @@ export default function SectorBreakdownChart({ analysis, lang = "en" }: Props) {
       dataCard="sectors"
     >
       <ul className="pf-rows border-t border-cell-rule">
-        {analysis.sectorSpread.map((s) => {
+        {shown.map((s) => {
           const heavy = s.weightPct > HEAVY_PCT;
           return (
             <li key={s.name} className="py-3">
@@ -85,6 +92,15 @@ export default function SectorBreakdownChart({ analysis, lang = "en" }: Props) {
           );
         })}
       </ul>
+      {canFold && (
+        <PfShowMore
+          open={all}
+          total={analysis.sectorSpread.length}
+          noun={{ en: "sectors", bn: "সেক্টর" }}
+          lang={lang}
+          onToggle={() => setAll((v) => !v)}
+        />
+      )}
 
       <div className={`pf-card-foot ${bnText}`} lang={bn ? "bn" : undefined}>
         <p className="m-0 text-sm leading-relaxed text-text-muted">{t.desc}</p>

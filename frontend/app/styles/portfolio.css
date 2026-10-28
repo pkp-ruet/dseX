@@ -42,6 +42,7 @@
 .pf-card-note { margin: 4px 0 0; max-width: 62ch; font-size: var(--fs-sm); line-height: 1.55; color: var(--text-muted); }
 .pf-card-foot { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--cell-rule); }
 .pf-fine { margin: 10px 0 0; font-size: var(--fs-2xs); line-height: 1.6; color: var(--text-muted); }
+.pf-card-foot > .pf-fine:first-child { margin-top: 0; }
 
 .pf-link {
   display: inline-flex; align-items: center; gap: 4px; min-height: 40px;
@@ -54,6 +55,11 @@
 /* Hairline-separated rows inside a card */
 .pf-rows { display: flex; flex-direction: column; }
 .pf-rows > * + * { border-top: 1px solid var(--cell-rule); }
+
+/* "Show all N" under a folded list (PfShowMore) */
+.pf-more { margin-top: 8px; gap: 6px; }
+.pf-more-chev { display: inline-flex; transition: transform 0.15s ease; }
+.pf-more-chev[data-open] { transform: rotate(180deg); }
 
 /* A meaning dot (good / watch / bad) */
 .pf-dot { flex-shrink: 0; width: 8px; height: 8px; border-radius: 999px; background: var(--text-muted); }
@@ -156,11 +162,64 @@
 .pf-sort:hover { border-color: var(--text-muted); }
 .pf-sort:focus-visible { outline: none; border-color: var(--primary); box-shadow: var(--ring); }
 
+/* Search + filter chips (from 8 stocks). Phones: the chips scroll sideways in
+   one row out to the page gutter; from 640px they wrap. */
+.pf-find { display: flex; flex-direction: column; gap: 8px; }
+.pf-search { position: relative; }
+.pf-search .input-field { height: 40px; padding: 0 40px 0 36px; border-radius: 999px; font-size: var(--fs-md); }
+.pf-search input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+.pf-search-icon {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  display: inline-flex; color: var(--text-muted); pointer-events: none;
+}
+.pf-search-clear {
+  position: absolute; right: 0; top: 0; display: grid; place-items: center; width: 40px; height: 40px;
+  border: 0; border-radius: 999px; background: transparent; color: var(--text-muted); cursor: pointer;
+}
+.pf-search-clear:hover { color: var(--text); }
+.pf-search-clear:active { background: var(--surface-2); }
+.pf-filters {
+  display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+  margin-inline: -16px; padding-inline: 16px;
+}
+.pf-filters::-webkit-scrollbar { display: none; }
+.pf-filters > * { flex: 0 0 auto; white-space: nowrap; }
+.pf-filters .pf-num { opacity: 0.7; }
+@media (min-width: 640px) { .pf-filters { flex-wrap: wrap; overflow: visible; margin-inline: 0; padding-inline: 0; } }
+.pf-holds-none {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 16px; font-size: var(--fs-sm); color: var(--text-muted);
+}
+.pf-holds-none p { margin: 0; }
+@media (min-width: 640px) { .pf-holds-none { padding: 18px 24px; } }
+
+/* Every width: each stock is one short line (name, code · shares, value,
+   profit, the signal and update tags). The whole head is a button
+   (.pf-hold-tap, laid over it) that opens the facts and actions under it, one
+   row at a time. The head and the details carry the padding so the tap area
+   reaches the row's edges. */
 .pf-holds { padding: 0; overflow: hidden; }
-.pf-hold { padding: 16px; }
-@media (min-width: 640px) { .pf-hold { padding: 18px 24px; } }
 .pf-holds > .pf-hold + .pf-hold { border-top: 1px solid var(--cell-rule); }
-.pf-hold-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; align-items: start; }
+.pf-hold-main { position: relative; padding: 12px 16px; }
+.pf-hold-more { padding: 0 16px 16px; }
+@media (min-width: 640px) {
+  .pf-hold-main { padding: 14px 24px; }
+  .pf-hold-more { padding: 0 24px 18px; }
+}
+.pf-hold-top { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 4px 12px; align-items: start; }
+@media (min-width: 640px) { .pf-hold-top { gap: 4px 16px; } }
+.pf-hold-chev { display: inline-flex; align-self: center; color: var(--text-muted); transition: transform 0.15s ease; }
+.pf-hold[data-open] .pf-hold-chev { transform: rotate(180deg); }
+.pf-hold-tap {
+  position: absolute; inset: 0; z-index: 1; width: 100%; padding: 0;
+  border: 0; background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.pf-hold-tap:hover { background: color-mix(in srgb, var(--text) 3%, transparent); }
+.pf-hold-tap:active { background: color-mix(in srgb, var(--text) 6%, transparent); }
+.pf-hold-tap:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--primary); }
+.pf-hold-open { display: flex; justify-content: flex-end; margin-top: 8px; }
+.pf-hold:not([data-open]) .pf-hold-more { display: none; }
+.pf-hold-more .pf-hold-facts { margin-top: 0; }
 .pf-hold-name {
   display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   font-size: var(--fs-md); font-weight: 700; line-height: 1.3; color: var(--text); text-decoration: none;

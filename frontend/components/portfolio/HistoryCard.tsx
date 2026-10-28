@@ -2,14 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import PfCard from "./PfCard";
+import PfCard, { PfShowMore, SHORT_LIST, folds } from "./PfCard";
 import Button from "@/components/ui/Button";
 import { formatDate, takaGroup } from "@/lib/formatters";
 import { sellProfit, visibleLog } from "@/lib/portfolio-ledger";
 import type { PortfolioLogEntry } from "@/lib/api";
 import type { AnalysisLang } from "@/lib/portfolio-analysis";
-
-const SHOWN = 6;
 
 /**
  * Everything that happened in this portfolio, newest first: buys, sales (with
@@ -42,7 +40,8 @@ export default function HistoryCard({
   const bnText = bn ? "font-bn" : "";
   const rows = visibleLog(log);
   if (!rows.length) return null;
-  const shown = all ? rows : rows.slice(0, SHOWN);
+  const canFold = folds(rows.length);
+  const shown = canFold && !all ? rows.slice(0, SHORT_LIST) : rows;
 
   const describe = (e: PortfolioLogEntry): { title: string; amount: string | null; tone: string } => {
     switch (e.kind) {
@@ -135,13 +134,17 @@ export default function HistoryCard({
           );
         })}
       </ul>
+      {canFold && (
+        <PfShowMore
+          open={all}
+          total={rows.length}
+          noun={{ en: "records", bn: "লেনদেন" }}
+          lang={lang}
+          onToggle={() => setAll((v) => !v)}
+        />
+      )}
 
       <div className={`pf-card-foot ${bnText}`} lang={bn ? "bn" : undefined}>
-        {rows.length > SHOWN && (
-          <button type="button" className="pf-link" onClick={() => setAll((v) => !v)} aria-expanded={all}>
-            {all ? L("Show less", "কম দেখান") : L(`Show all ${rows.length}`, `সব ${rows.length}টি দেখান`)}
-          </button>
-        )}
         <p className="pf-fine">
           {L(
             "Removing a row only changes this list. To change your shares, edit the holding itself.",

@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import PfCard from "./PfCard";
+import PfCard, { PfShowMore, SHORT_LIST, folds } from "./PfCard";
 import Stat from "@/components/ui/Stat";
 import { takaGroup } from "@/lib/formatters";
 import type { AnalysisLang, ComputedRow } from "@/lib/portfolio-analysis";
@@ -13,13 +14,11 @@ const STR = {
     title: "What's moving your money",
     subtitle: "How much each stock adds to, or takes from, your total profit.",
     total: "Your total profit or loss",
-    more: (n: number) => `${n} smaller ${n === 1 ? "stock" : "stocks"} not shown`,
   },
   bn: {
     title: "কোন শেয়ার টাকা বাড়াচ্ছে-কমাচ্ছে",
     subtitle: "আপনার মোট লাভ-লোকসানে প্রতিটি শেয়ার কতটা যোগ বা বিয়োগ করছে।",
     total: "আপনার মোট লাভ / লোকসান",
-    more: (n: number) => `আরও ${n}টি ছোট শেয়ার দেখানো হয়নি`,
   },
 } as const;
 
@@ -41,10 +40,12 @@ function toneCls(v: number): string {
  * the "what's actually driving my number" answer. The total leads as one big
  * number; under it, winners and drags share one ranked list (biggest gain at
  * the top), company name first, each with a thin bar sized by |P&L| and
- * coloured by sign — the only colour on the card. Renders nothing until at
- * least one holding has a live price.
+ * coloured by sign — the only colour on the card. A long list shows the
+ * SHORT_LIST biggest movers (both directions) and a "Show all" button.
+ * Renders nothing until at least one holding has a live price.
  */
 export default function ContributionStrip({ rows, lang = "en" }: Props) {
+  const [all, setAll] = useState(false);
   const t = STR[lang];
   const bn = lang === "bn";
   const bnText = bn ? "font-bn" : "";
@@ -56,12 +57,11 @@ export default function ContributionStrip({ rows, lang = "en" }: Props) {
   const maxAbs = Math.max(...priced.map((r) => Math.abs(r.pnl)), 1);
 
   // Surface the biggest movers (both directions), then order gainers → drags.
-  const CAP = 8;
+  const canFold = folds(priced.length);
   const shown = [...priced]
     .sort((a, b) => Math.abs(b.pnl) - Math.abs(a.pnl))
-    .slice(0, CAP)
+    .slice(0, canFold && !all ? SHORT_LIST : priced.length)
     .sort((a, b) => b.pnl - a.pnl);
-  const hidden = priced.length - shown.length;
 
   return (
     <PfCard title={t.title} note={t.subtitle} lang={lang} dataCard="contribution">
@@ -102,11 +102,14 @@ export default function ContributionStrip({ rows, lang = "en" }: Props) {
           );
         })}
       </ul>
-
-      {hidden > 0 && (
-        <p className={`pf-fine ${bnText}`} lang={bn ? "bn" : undefined}>
-          {t.more(hidden)}
-        </p>
+      {canFold && (
+        <PfShowMore
+          open={all}
+          total={priced.length}
+          noun={{ en: "shares", bn: "শেয়ার" }}
+          lang={lang}
+          onToggle={() => setAll((v) => !v)}
+        />
       )}
     </PfCard>
   );
