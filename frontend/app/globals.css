@@ -373,85 +373,8 @@ a:hover .ticker-tag,
     box-shadow: var(--ring);
   }
 }
-/* ---- Navbar profile button ---- */
-.navbar-profile-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--fs-2xs);
-  font-weight: 600;
-  padding: 4px 10px 4px 4px;
-  border-radius: 999px;
-  border: 1.5px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  text-decoration: none;
-  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
-  white-space: nowrap;
-}
-.navbar-profile-btn:hover {
-  border-color: var(--primary);
-  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 12%, transparent);
-}
-.navbar-profile-btn-active {
-  border-color: var(--primary);
-  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
-  color: var(--primary);
-}
-.navbar-profile-avatar {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--primary);
-  color: #fff;
-  font-size: var(--fs-2xs);
-  font-weight: 700;
-  letter-spacing: 0;
-  flex-shrink: 0;
-}
-/* Premium members: a small gold crown on the avatar corner. */
-.navbar-premium-badge {
-  position: absolute;
-  right: -5px;
-  bottom: -4px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--gold);
-  color: var(--gold-ink);
-  box-shadow: 0 0 0 1.5px var(--surface);
-}
-.navbar-profile-name {
-  max-width: 80px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-/* ---- Navbar rank button ---- */
-.navbar-rank-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: var(--fs-2xs);
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: var(--primary);
-  color: #fff;
-  text-decoration: none;
-  transition: background 0.15s;
-  white-space: nowrap;
-}
-.navbar-rank-btn:hover { background: var(--primary-ink); }
+/* The desktop navbar row (.navbar-link, profile, Sign up, kbd hint, language
+   switch) lives in app/styles/nav.css → "Navbar row". */
 /* ---- Ranking page header ---- */
 .rank-page-header {
   margin-bottom: 28px;
@@ -832,87 +755,15 @@ a:hover .ticker-tag,
     display: none;
   }
 }
-/* ---- Navbar Market Intelligence button ---- */
-.navbar-intel-btn {
-  display: inline-flex;
-  align-items: center;
-  font-size: var(--fs-2xs);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  padding: 6px 10px;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text-muted);
-  border: 1px solid transparent;
-  text-decoration: none;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-  white-space: nowrap;
-}
-.navbar-intel-btn:hover {
-  background: var(--surface);
-  border-color: var(--border);
-  color: var(--text);
-}
-.navbar-intel-btn-active {
-  background: var(--surface);
-  border-color: var(--border);
-  color: var(--text);
-}
-/* ---- Navbar Explore launcher (opens the full tile menu) ---- */
-.navbar-explore-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: inherit;
-  font-size: var(--fs-2xs);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  padding: 6px 12px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  color: var(--primary-ink);
-  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
-  border: 1px solid color-mix(in srgb, var(--primary) 26%, transparent);
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-  white-space: nowrap;
-}
-.navbar-explore-btn svg { color: var(--primary); }
-.navbar-explore-btn:hover,
-.navbar-explore-btn-active {
-  background: color-mix(in srgb, var(--primary) 20%, var(--surface));
-  border-color: color-mix(in srgb, var(--primary) 40%, transparent);
-  color: var(--primary-ink);
-}
-/* Divider between the launcher and the utility/personal cluster */
-.navbar-nav-divider {
-  width: 1px;
-  height: 18px;
-  background: var(--border);
-  margin: 0 6px;
-}
 /* ======================================
    NAVBAR BAR — white with a hairline (2026-10 redesign, decision 2; it was a
-   navy bar). The base .navbar-* styles above are already the light versions;
-   only the bar itself and the Explore launcher are set here. Sign Up stays
-   the one clay button.
+   navy bar). The controls in it are styled in app/styles/nav.css.
    ====================================== */
 .navbar-header {
   background: rgb(var(--surface-rgb) / 0.94);
   border-bottom: 1px solid var(--border);
   -webkit-backdrop-filter: saturate(1.4) blur(10px);
   backdrop-filter: saturate(1.4) blur(10px);
-}
-.navbar-header .navbar-explore-btn {
-  color: var(--text);
-  background: var(--surface);
-  border-color: var(--border);
-}
-.navbar-header .navbar-explore-btn svg { color: var(--text-muted); }
-.navbar-header .navbar-explore-btn:hover,
-.navbar-header .navbar-explore-btn-active {
-  background: var(--surface-2);
-  border-color: color-mix(in srgb, var(--text-muted) 40%, var(--border));
-  color: var(--text);
 }
 /* ======================================
    MARKET INTELLIGENCE PAGE
@@ -1040,70 +891,6 @@ a:hover .ticker-tag,
   transform: scale(0.92);
 }
 
-/* Navbar watchlist button */
-.navbar-watch-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: var(--fs-2xs);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  padding: 6px 10px;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text-muted);
-  text-decoration: none;
-  border: 1px solid transparent;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-  white-space: nowrap;
-  position: relative;
-}
-.navbar-watch-btn:hover {
-  background: var(--surface);
-  border-color: var(--border);
-  color: var(--text);
-}
-.navbar-watch-btn-active {
-  background: var(--surface);
-  border-color: var(--border);
-  color: var(--text);
-}
-@media (max-width: 540px) {
-.navbar-watch-label {
-    display: none;
-  }
-.navbar-watch-btn {
-    padding: 5px 8px;
-  }
-}
-/* Navbar search button (desktop) — matches watchlist button styling */
-.navbar-search-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: var(--fs-2xs);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  padding: 6px 10px;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text-muted);
-  border: 1px solid transparent;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-  white-space: nowrap;
-}
-.navbar-search-btn:hover {
-  background: var(--surface);
-  border-color: var(--border);
-  color: var(--primary);
-}
-@media (max-width: 540px) {
-.navbar-search-label {
-    display: none;
-  }
-}
 /* Navbar search button (mobile controls) — icon only */
 .navbar-search-mobile-btn {
   display: inline-flex;
@@ -2642,23 +2429,6 @@ a:hover .ticker-tag,
   transition: transform 0.15s;
 }
 .skip-link:focus-visible { transform: translateY(0); outline: 2px solid var(--gold-soft); outline-offset: 2px; }
-/* ---- Keyboard hint inside the navbar search pill ---- */
-.kbd-hint {
-  display: none;
-  font-family: var(--font-ui);
-  font-size: var(--fs-2xs);
-  font-weight: 700;
-  line-height: 1;
-  padding: 3px 6px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  color: var(--text-muted);
-}
-@media (min-width: 900px) {
-.kbd-hint { display: inline-block; }
-}
-.navbar-search-btn:hover .kbd-hint { border-color: color-mix(in srgb, var(--primary) 35%, var(--border)); }
 /* ---- Stock detail section head (components/stock/SectionTitle.tsx) ---- */
 #main:focus { outline: none; }
 /* bare EmptyState inside a table cell: the cell already pads */

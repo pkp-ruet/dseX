@@ -431,6 +431,7 @@ export default function PersonalizedHome() {
             stories={stories}
             loading={holdings === null || ((hasPortfolio || hasWatchlist) && priceMap.size === 0)}
             quiet={quietStories}
+            starter={isBrandNew}
             userId={userId}
             lang={lang}
           />

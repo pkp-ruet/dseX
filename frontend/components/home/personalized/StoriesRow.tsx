@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { OwnerTag } from "@/components/home/personalized/OwnerMark";
 import StoryViewer, { StoryFace } from "@/components/home/personalized/StoryViewer";
 import type { Lang } from "@/context/LangContext";
@@ -39,12 +39,15 @@ const SKELETON = [0, 1, 2, 3, 4];
  * reader hasn't watched, then the ones they have (grey ring — still there, and
  * they replay as often as the reader likes), then a free reader's Premium
  * ring. The order is frozen while the viewer is open so watching doesn't
- * shuffle the run.
+ * shuffle the run. A one-line label sits above the rings ("Your stories
+ * today", or "Today's market stories" for a reader with no stocks) so the
+ * row says what it is.
  */
 export default function StoriesRow({
   stories,
   loading,
   quiet,
+  starter = false,
   userId,
   lang,
 }: {
@@ -53,6 +56,8 @@ export default function StoriesRow({
   loading: boolean;
   /** The reader has stocks but nothing happened on them: one quiet line. */
   quiet: boolean;
+  /** A reader with no stocks yet: the rings are market stories. */
+  starter?: boolean;
   userId: string | null;
   lang: Lang;
 }) {
@@ -60,6 +65,7 @@ export default function StoriesRow({
   const day = bstDateStr();
   const [seen, setSeen] = useState<Set<string>>(() => new Set());
   const [open, setOpen] = useState<{ list: Story[]; index: number } | null>(null);
+  const headId = useId();
 
   useEffect(() => setSeen(readSeen(userId, day)), [userId, day]);
 
@@ -84,16 +90,29 @@ export default function StoriesRow({
     return [...today, ...rest.filter((s) => !isSeen(s)), ...rest.filter((s) => isSeen(s)), ...more];
   }, [stories, isSeen]);
 
+  // The label holds its place while the rings load, so nothing jumps.
+  const head = (
+    <div className="flex items-baseline justify-between gap-3">
+      <p id={headId} className="text-sm font-semibold text-text-main">
+        {t(lang, starter ? "storiesMarket" : "storiesTitle")}
+      </p>
+      <p className="shrink-0 text-xs text-text-muted">{t(lang, "storiesHint")}</p>
+    </div>
+  );
+
   if (loading) {
     return (
-      <ul className="story-rail" aria-hidden>
-        {SKELETON.map((k) => (
-          <li key={k} className="story-bubble">
-            <span className="story-ring story-ring--skeleton" />
-            <span className="mt-0.5 block h-3 w-10 rounded-sm bg-surface-2" />
-          </li>
-        ))}
-      </ul>
+      <div lang={bn ? "bn" : undefined} className={bn ? "font-bn" : undefined}>
+        {head}
+        <ul className="story-rail" aria-hidden>
+          {SKELETON.map((k) => (
+            <li key={k} className="story-bubble">
+              <span className="story-ring story-ring--skeleton" />
+              <span className="mt-0.5 block h-3 w-10 rounded-sm bg-surface-2" />
+            </li>
+          ))}
+        </ul>
+      </div>
     );
   }
   if (!ordered.length) return null;
@@ -106,7 +125,8 @@ export default function StoriesRow({
 
   return (
     <div lang={bn ? "bn" : undefined} className={bn ? "font-bn" : undefined}>
-      <ul className="story-rail" aria-label={bn ? "স্টোরি" : "Stories"}>
+      {head}
+      <ul className="story-rail" aria-labelledby={headId}>
         {ordered.map((s, i) => {
           const done = isSeen(s);
           const n = s.frames.length;

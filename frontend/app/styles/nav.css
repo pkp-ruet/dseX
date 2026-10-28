@@ -4,18 +4,19 @@
 /* =====================================================================
    Control sizes — every nav control is at least 40px tall (2026-09-22).
    ===================================================================== */
+/* Phone row: the two icon buttons share the language switch's 12px radius and
+   the desktop row's quiet hover. */
 .navbar-hamburger,
 .navbar-search-mobile-btn {
   width: 40px;
   height: 40px;
+  border-radius: var(--radius-md);
 }
-.navbar-explore-btn,
-.navbar-search-btn,
-.navbar-watch-btn,
-.navbar-intel-btn,
-.navbar-rank-btn,
-.navbar-profile-btn {
-  min-height: 40px;
+.navbar-hamburger:hover,
+.navbar-search-mobile-btn:hover {
+  background: rgb(var(--surface-2-rgb) / 0.7);
+  border-color: var(--border);
+  color: var(--text);
 }
 .mobile-menu-close {
   width: 40px;
@@ -34,6 +35,152 @@
 .mobile-menu-title svg { opacity: 0.9; }
 /* Find-stocks group uses the clay (primary) accent — the default tile tint. */
 .mobile-menu-section[data-accent="clay"] .mobile-menu-section-label { color: var(--primary-ink); }
+
+/* =====================================================================
+   Navbar row (desktop, ≥900px — components/layout/Navbar.tsx), 2026-10-28:
+   ONE control language. Every item is a quiet 40px ghost button — no
+   border, the same 12px radius, a 16px icon from ui/icons (2px stroke),
+   14px semibold text. A light fill on hover; the full --surface-2 fill and a
+   clay icon on the page you are on (aria-current) or while the menu is open
+   (data-current) — the same fill the language switch gives the chosen
+   language. Sign up is the one filled clay button.
+   ===================================================================== */
+.navbar-nav { gap: var(--space-1); }
+.navbar-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 40px;
+  min-width: 40px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.navbar-link svg { flex-shrink: 0; }
+.navbar-link:hover {
+  background: rgb(var(--surface-2-rgb) / 0.7);
+  color: var(--text);
+}
+.navbar-link:active { background: var(--surface-2); }
+.navbar-link[aria-current="page"],
+.navbar-link[data-current] {
+  background: var(--surface-2);
+  color: var(--text);
+}
+/* Direct icons only — the Premium crown on the avatar keeps its gold. */
+.navbar-link:is([aria-current="page"], [data-current]) > svg,
+.navbar-link:is([aria-current="page"], [data-current]) > .navbar-link-icon > svg {
+  color: var(--primary);
+}
+.navbar-link:focus-visible,
+.navbar-signup-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+/* Icon wrapper that carries a status dot (the watchlist's new-news dot). */
+.navbar-link-icon {
+  position: relative;
+  display: inline-flex;
+}
+/* Hairline between the Explore launcher and the rest of the row. */
+.navbar-nav-divider {
+  width: 1px;
+  height: 20px;
+  margin: 0 var(--space-1);
+  background: var(--border);
+}
+/* "/" hint inside Search — a small key cap, not a second button. */
+.kbd-hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  line-height: 1;
+}
+/* Profile: avatar + name inside the same ghost button. */
+.navbar-profile-btn { padding-left: 6px; }
+.navbar-profile-avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--surface);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+/* Premium members: a small gold crown on the avatar corner. */
+.navbar-premium-badge {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--gold-ink);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+.navbar-profile-name {
+  max-width: 96px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Signed out: the one filled button. */
+.navbar-signup-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  color: var(--surface);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+.navbar-signup-btn:hover,
+.navbar-signup-btn:active { background: var(--primary-ink); }
+/* 900–1099px: the row is tight (Bengali labels, signed out), so Search
+   becomes its icon alone (it keeps its aria-label and tooltip) and the
+   buttons give up a little padding. */
+@media (min-width: 900px) and (max-width: 1099px) {
+  .navbar-link { padding: 0 10px; }
+  .navbar-profile-btn { padding-left: 6px; }
+  .navbar-signup-btn { padding: 0 var(--space-3); }
+  .navbar-search-label,
+  .navbar-nav .kbd-hint { display: none; }
+}
 
 /* =====================================================================
    Market data strip — one 28px line under the navbar during market hours.
@@ -155,37 +302,57 @@
    Language switch (components/layout/LangSwitch.tsx) — EN | বাংলা in the
    navbar on phones and desktop. The lit half follows `<html data-lang>`, so
    it is right before React hydrates.
+   Calm since 2026-10-28: a white 40px frame drawn with an inset hairline (so
+   it takes no layout space), the same 12px radius as the navbar buttons.
+   Each button is the full 40px tap target; the 32px pill inside is what you
+   see, and the chosen one wears the navbar's "current page" fill.
    ===================================================================== */
 .lang-switch {
   display: inline-flex;
   align-items: center;
-  padding: 2px;
-  border-radius: 999px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
+  height: 40px;
+  padding: 0 2px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--border);
   flex-shrink: 0;
 }
 .lang-switch button {
-  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
   min-width: 40px;
+  padding: 4px 2px;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+}
+.lang-switch-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  min-width: 36px;
   padding: 0 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   font-size: var(--fs-xs);
   font-weight: 600;
-  color: var(--text-muted);
-  background: transparent;
   line-height: 1;
+  color: var(--text-muted);
   transition: color 0.15s ease, background 0.15s ease;
 }
-.lang-switch button:hover {
+.lang-switch button:hover .lang-switch-pill {
+  color: var(--text);
+  background: rgb(var(--surface-2-rgb) / 0.5);
+}
+.lang-switch button:active .lang-switch-pill {
+  background: rgb(var(--surface-2-rgb) / 0.8);
+}
+html[data-lang="en"] .lang-switch [data-opt="en"] .lang-switch-pill,
+html[data-lang="bn"] .lang-switch [data-opt="bn"] .lang-switch-pill {
+  background: var(--surface-2);
   color: var(--text);
 }
-.lang-switch button:active {
-  opacity: 0.8;
-}
-html[data-lang="en"] .lang-switch [data-opt="en"],
-html[data-lang="bn"] .lang-switch [data-opt="bn"] {
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: var(--shadow-soft);
-}
+.lang-switch button:focus-visible { outline: none; }
+.lang-switch button:focus-visible .lang-switch-pill { box-shadow: var(--ring); }

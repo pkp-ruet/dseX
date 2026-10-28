@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { openGlobalSearch } from "@/components/layout/GlobalSearch";
 import WatchlistDot from "@/components/watchlist/WatchlistDot";
 import InstallAppButton from "@/components/pwa/InstallAppButton";
-import { IconCrown } from "@/components/ui/icons";
+import { IconBriefcase, IconCrown, IconGrid, IconSearch, IconStar } from "@/components/ui/icons";
 import { userIsPremium } from "@/lib/premium";
 import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
@@ -205,23 +205,22 @@ export default function Navbar() {
             <span className="navbar-brand-score">BD</span>
           </Link>
 
-          {/* Desktop nav — hidden on mobile via CSS */}
+          {/* Desktop nav — hidden on mobile via CSS. Every control is one quiet
+              40px ghost button (`.navbar-link`, app/styles/nav.css): same
+              radius, 16px icons from ui/icons, a fill only on hover / the page
+              you are on. Sign up is the one clay button. */}
           <nav className="navbar-nav">
             {/* Explore launcher — opens the full tile menu (desktop mega-panel) */}
             <button
               type="button"
-              className={`navbar-explore-btn${menuOpen ? " navbar-explore-btn-active" : ""}`}
+              className="navbar-link"
+              data-current={menuOpen || undefined}
               aria-haspopup="dialog"
               aria-expanded={menuOpen}
               aria-controls="mobile-menu"
               onClick={() => setMenuOpen(true)}
             >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <rect x="3" y="3" width="7" height="7" rx="1.5" />
-                <rect x="14" y="3" width="7" height="7" rx="1.5" />
-                <rect x="3" y="14" width="7" height="7" rx="1.5" />
-                <rect x="14" y="14" width="7" height="7" rx="1.5" />
-              </svg>
+              <IconGrid size={16} />
               <T en="Explore" bn="মেনু" />
             </button>
 
@@ -231,14 +230,11 @@ export default function Navbar() {
             <button
               type="button"
               onClick={openGlobalSearch}
-              className="navbar-search-btn"
+              className="navbar-link"
               aria-label={bn ? "শেয়ার খুঁজুন" : "Search stocks"}
               title={bn ? "কোড বা কোম্পানির নাম দিয়ে খুঁজুন" : "Search by code or company name"}
             >
-              <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.7" />
-                <path d="M13.5 13.5L17 17" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-              </svg>
+              <IconSearch size={16} />
               <span className="navbar-search-label">
                 <T en="Search" bn="খুঁজুন" />
               </span>
@@ -246,21 +242,23 @@ export default function Navbar() {
             </button>
             <Link
               href="/watchlist"
-              className={`navbar-watch-btn${isWatchlist ? " navbar-watch-btn-active" : ""} relative`}
+              className="navbar-link"
+              aria-current={isWatchlist ? "page" : undefined}
               aria-label={bn ? "আমার ওয়াচলিস্ট" : "My watchlist"}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-              </svg>
-              <span className="navbar-watch-label">
-                <T en="Watchlist" bn="ওয়াচলিস্ট" />
+              {/* The new-news dot sits on the star, not the button's corner. */}
+              <span className="navbar-link-icon">
+                <IconStar size={16} />
+                <WatchlistDot />
               </span>
-              <WatchlistDot />
+              <T en="Watchlist" bn="ওয়াচলিস্ট" />
             </Link>
             <Link
               href="/portfolio"
-              className={`navbar-intel-btn${isPortfolio ? " navbar-intel-btn-active" : ""}`}
+              className="navbar-link"
+              aria-current={isPortfolio ? "page" : undefined}
             >
+              <IconBriefcase size={16} />
               <T en="Portfolio" bn="পোর্টফোলিও" />
             </Link>
             {/* Price Alerts + Install app moved into the Explore drawer's "Quick access"
@@ -268,7 +266,8 @@ export default function Navbar() {
             {isLoggedIn ? (
               <Link
                 href="/profile"
-                className={`navbar-profile-btn${pathname === "/profile" ? " navbar-profile-btn-active" : ""}`}
+                className="navbar-link navbar-profile-btn"
+                aria-current={pathname === "/profile" ? "page" : undefined}
                 aria-label={
                   bn
                     ? premium
@@ -294,10 +293,14 @@ export default function Navbar() {
               </Link>
             ) : (
               <>
-                <Link href="/login" className="navbar-intel-btn">
+                <Link
+                  href="/login"
+                  className="navbar-link"
+                  aria-current={pathname === "/login" ? "page" : undefined}
+                >
                   <T en="Sign in" bn="সাইন ইন" />
                 </Link>
-                <Link href="/register" className="navbar-rank-btn">
+                <Link href="/register" className="navbar-signup-btn">
                   <T en="Sign up" bn="অ্যাকাউন্ট খুলুন" />
                 </Link>
               </>
