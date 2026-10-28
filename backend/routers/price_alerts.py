@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from backend.routers.auth import get_current_user
 from backend.services import price_alert_service
-from backend.services.entitlements import LIMIT_ALERTS, limits_for
+from backend.services.entitlements import HARD_LIMITS, LIMIT_ALERTS, limits_for
 
 router = APIRouter(prefix="/api/user/alerts", tags=["price-alerts"])
 
@@ -14,8 +14,8 @@ router = APIRouter(prefix="/api/user/alerts", tags=["price-alerts"])
 
 
 class CreateAlertBody(BaseModel):
-    trading_code: str
-    target_price: float
+    trading_code: str = Field(..., max_length=20)
+    target_price: float = Field(..., allow_inf_nan=False, le=10_000_000)
 
     @field_validator("trading_code")
     @classmethod
@@ -31,7 +31,7 @@ class CreateAlertBody(BaseModel):
 
 
 class UpdateAlertBody(BaseModel):
-    target_price: float
+    target_price: float = Field(..., allow_inf_nan=False, le=10_000_000)
 
     @field_validator("target_price")
     @classmethod
@@ -51,13 +51,20 @@ def get_alerts(current_user: dict = Depends(get_current_user)):
     return {"alerts": price_alert_service.list_alerts(current_user["user_id"])}
 
 
+def _alert_limit(user: dict) -> int:
+    """The plan's armed-alert cap; Premium (no plan cap) still stops at the
+    hard ceiling every account has."""
+    limit = limits_for(user)["alerts"]
+    return HARD_LIMITS["alerts"] if limit is None else limit
+
+
 @router.post("", status_code=201)
 def create_alert(body: CreateAlertBody, current_user: dict = Depends(get_current_user)):
     user_id = current_user["user_id"]
     try:
         alert = price_alert_service.create_alert(
             user_id, body.trading_code, body.target_price,
-            limit=limits_for(current_user)["alerts"],
+            limit=_alert_limit(current_user),
         )
     except price_alert_service.AlertLimitReached:
         raise HTTPException(status_code=403, detail=LIMIT_ALERTS)
@@ -82,7 +89,7 @@ def rearm_alert(alert_id: str, current_user: dict = Depends(get_current_user)):
     user_id = current_user["user_id"]
     try:
         alert = price_alert_service.rearm_alert(
-            user_id, alert_id, limit=limits_for(current_user)["alerts"],
+            user_id, alert_id, limit=_alert_limit(current_user),
         )
     except price_alert_service.AlertLimitReached:
         raise HTTPException(status_code=403, detail=LIMIT_ALERTS)

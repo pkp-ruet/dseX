@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -8,8 +9,9 @@ export const dynamic = "force-dynamic";
  * On-demand cache purge for ISR fetches tagged via `lib/api.ts`.
  * Called by `main.py` scrape-all after a successful scrape.
  *
- * Auth: shared secret in either `?secret=` or the `x-revalidate-secret` header,
- * compared against `REVALIDATE_SECRET` (server-only env var).
+ * Auth: the `x-revalidate-secret` header, compared in constant time against
+ * `REVALIDATE_SECRET` (server-only env var). Not a `?secret=` query param: a
+ * URL ends up in access and proxy logs.
  */
 export async function POST(req: NextRequest) {
   const expected = process.env.REVALIDATE_SECRET;
@@ -17,10 +19,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "revalidate disabled" }, { status: 503 });
   }
 
-  const provided =
-    req.nextUrl.searchParams.get("secret") ??
-    req.headers.get("x-revalidate-secret");
-  if (provided !== expected) {
+  const provided = Buffer.from(req.headers.get("x-revalidate-secret") ?? "");
+  const wanted = Buffer.from(expected);
+  if (provided.length !== wanted.length || !timingSafeEqual(provided, wanted)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

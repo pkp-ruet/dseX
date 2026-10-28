@@ -4,7 +4,7 @@ from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Depends, Body
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from backend.config import GOOGLE_CLIENT_ID
 from backend.services.auth_service import (
@@ -22,6 +22,7 @@ from backend.services.auth_service import (
 )
 from backend.services.db_service import get_db
 from backend.services.entitlements import is_admin
+from backend.services.rate_limit import LOGIN_FAILURES, retry_after
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 _bearer = HTTPBearer(auto_error=False)
@@ -74,10 +75,10 @@ def get_current_admin_user(current_user: dict = Depends(get_current_user)) -> di
 # ---------------------------------------------------------------------------
 
 class RegisterRequest(BaseModel):
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    password: str
-    display_name: Optional[str] = None
+    email: Optional[str] = Field(None, max_length=254)
+    phone: Optional[str] = Field(None, max_length=20)
+    password: str = Field(..., max_length=128)
+    display_name: Optional[str] = Field(None, max_length=60)
 
     @field_validator("password")
     @classmethod
@@ -88,19 +89,19 @@ class RegisterRequest(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    password: str
+    email: Optional[str] = Field(None, max_length=254)
+    phone: Optional[str] = Field(None, max_length=20)
+    password: str = Field(..., max_length=128)
 
 
 class GoogleAuthRequest(BaseModel):
-    id_token: str
+    id_token: str = Field(..., max_length=4096)
 
 
 class PingBody(BaseModel):
-    path: Optional[str] = None
+    path: Optional[str] = Field(None, max_length=300)
     standalone: Optional[bool] = None
-    platform: Optional[str] = None
+    platform: Optional[str] = Field(None, max_length=40)
 
 
 # ---------------------------------------------------------------------------
@@ -135,6 +136,18 @@ def login(body: LoginRequest):
     if not body.email and not body.phone:
         raise HTTPException(status_code=400, detail="Email or phone number is required.")
 
+    # Wrong passwords per account (10 in 15 minutes), on top of the per-address
+    # limit in the middleware: guessing one account's password from many
+    # addresses still stops here.
+    account = f"acct:{normalize_email(body.email) if body.email else normalize_phone(body.phone)}"
+    wait = LOGIN_FAILURES.blocked(account)
+    if wait:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many wrong passwords for this account. Please wait a few minutes and try again.",
+            headers={"Retry-After": retry_after(wait)},
+        )
+
     try:
         user = authenticate_user(
             password_plain=body.password,
@@ -149,6 +162,7 @@ def login(body: LoginRequest):
             )
         raise
     if not user:
+        LOGIN_FAILURES.hit(account)
         raise HTTPException(status_code=401, detail="Incorrect credentials.")
 
     token = create_access_token(user["user_id"])

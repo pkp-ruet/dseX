@@ -5,10 +5,10 @@ The menu and the live result are public — the builder shows a free reader how
 many companies pass and screen-locks which ones, like every other lock. Saving
 a list (and its daily alert) is Premium, enforced here.
 """
-from typing import Any, Optional
+from typing import Annotated, Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from backend.routers.auth import get_current_user
 from backend.services import custom_lists_service as svc
@@ -20,21 +20,21 @@ router = APIRouter(tags=["custom-lists"])
 class SpecBody(BaseModel):
     """Either exact ``checks`` (a fine-tune screen) or the six ``answers``
     ({question: 0|1|2}) + optional ``sectors`` (``sector`` = one, older clients)."""
-    checks: list[dict[str, Any]] = []
-    answers: Optional[dict[str, Any]] = None
-    sectors: Optional[list[str]] = None
-    sector: Optional[str] = None
-    sort: Optional[str] = None
+    checks: list[dict[str, Any]] = Field([], max_length=32)
+    answers: Optional[dict[str, Any]] = Field(None, max_length=12)
+    sectors: Optional[list[Annotated[str, Field(max_length=80)]]] = Field(None, max_length=40)
+    sector: Optional[str] = Field(None, max_length=80)
+    sort: Optional[str] = Field(None, max_length=40)
 
 
 class CreateBody(BaseModel):
-    name: str
+    name: str = Field(..., max_length=80)
     spec: SpecBody
     alerts: bool = True
 
 
 class UpdateBody(BaseModel):
-    name: Optional[str] = None
+    name: Optional[str] = Field(None, max_length=80)
     spec: Optional[SpecBody] = None
     alerts: Optional[bool] = None
 

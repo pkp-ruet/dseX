@@ -17,6 +17,11 @@ from typing import Optional
 
 FREE_LIMITS = {"watchlist": 10, "alerts": 3, "ai_daily": 10, "portfolios": 1, "custom_lists": 0}
 
+# Ceilings for every account, Premium included. Not a plan feature — a size cap
+# on what one account can store (the watchlist and holdings live on the user
+# document, which every signed-in request reads).
+HARD_LIMITS = {"watchlist": 200, "alerts": 50, "holdings": 300}
+
 # HTTPException detail strings the frontend matches (`lib/premium.ts:isLimitError`).
 LIMIT_WATCHLIST = "limit_reached:watchlist"
 LIMIT_ALERTS = "limit_reached:alerts"

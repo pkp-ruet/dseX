@@ -80,6 +80,31 @@ def ensure_push_indexes() -> None:
 # Subscription management
 # ---------------------------------------------------------------------------
 
+# Hosts of the browsers' push services (Chrome/Edge via FCM, Firefox, Windows,
+# Safari). A subscription to anywhere else is refused.
+PUSH_HOSTS = (
+    "fcm.googleapis.com",
+    "updates.push.services.mozilla.com",
+    ".notify.windows.com",
+    "web.push.apple.com",
+    ".push.apple.com",
+)
+MAX_SUBSCRIPTIONS_PER_USER = 10
+
+
+def is_push_service(endpoint: str) -> bool:
+    from urllib.parse import urlparse
+
+    try:
+        u = urlparse(endpoint)
+    except ValueError:
+        return False
+    host = (u.hostname or "").lower()
+    if u.scheme != "https" or not host:
+        return False
+    return any(host == h.lstrip(".") or (h.startswith(".") and host.endswith(h)) for h in PUSH_HOSTS)
+
+
 def subscribe(
     user_id: str,
     subscription: dict,
@@ -95,6 +120,26 @@ def subscribe(
     auth = keys.get("auth")
     if not endpoint or not p256dh or not auth:
         raise ValueError("invalid_subscription")
+    # Only real browser push services. Any URL used to be accepted, and the
+    # sender POSTs to every stored endpoint (10s timeout each) — a script could
+    # store hundreds of slow or internal URLs and tie up the API's threads.
+    if not is_push_service(endpoint):
+        raise ValueError("invalid_subscription")
+
+    existing = _subs().find_one({"endpoint": endpoint}, {"_id": 0, "user_id": 1})
+    if existing and existing.get("user_id") not in (None, user_id):
+        # A browser's endpoint belongs to whoever signed in on it last — but
+        # only that browser knows the endpoint and its keys, so a different
+        # account claiming it must also present the same keys.
+        same_keys = _subs().count_documents({"endpoint": endpoint, "p256dh": p256dh, "auth": auth})
+        if not same_keys:
+            raise ValueError("invalid_subscription")
+    elif not existing and _subs().count_documents({"user_id": user_id}) >= MAX_SUBSCRIPTIONS_PER_USER:
+        # Drop the oldest device rather than refuse: a reader who reinstalls
+        # the app keeps getting pushes on the new one.
+        oldest = _subs().find_one({"user_id": user_id}, {"_id": 1}, sort=[("last_seen_at", 1)])
+        if oldest:
+            _subs().delete_one({"_id": oldest["_id"]})
 
     now = datetime.now(timezone.utc)
     _subs().update_one(
@@ -190,6 +235,11 @@ def send_to_subscription(sub_doc: dict, payload: dict) -> str:
     except ImportError:
         log.error("pywebpush not installed — cannot send push")
         return "failed"
+
+    if not is_push_service(sub_doc.get("endpoint") or ""):
+        # Stored before endpoints were checked (2026-10-28): drop it.
+        _subs().delete_one({"endpoint": sub_doc.get("endpoint")})
+        return "expired"
 
     info = {
         "endpoint": sub_doc["endpoint"],

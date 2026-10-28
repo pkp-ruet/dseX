@@ -705,8 +705,8 @@ async function apiFetch<T>(
       const res = await fetch(
         url,
         process.env.NODE_ENV === "development"
-          ? { signal: apiFetchSignal(), cache: "no-store" }
-          : { signal: apiFetchSignal(), next: nextOpts },
+          ? { signal: apiFetchSignal(), cache: "no-store", headers: internalHeaders() }
+          : { signal: apiFetchSignal(), next: nextOpts, headers: internalHeaders() },
       );
       if (res.status === 404) throw new ApiNotFoundError(path);
       if (!res.ok) {
@@ -1394,6 +1394,16 @@ export interface AuthApiResponse {
   access_token: string;
   token_type: string;
   user: AuthUser;
+}
+
+/** Server-side fetches carry the shared secret so the backend's request limits
+ *  (backend/services/rate_limit.py) skip them: an ISR rebuild after a purge
+ *  comes from a few Vercel addresses and would trip the per-address limits.
+ *  `REVALIDATE_SECRET` is server-only — never sent from the browser. */
+function internalHeaders(): Record<string, string> | undefined {
+  if (typeof window !== "undefined") return undefined;
+  const key = process.env.REVALIDATE_SECRET;
+  return key ? { "x-internal-key": key } : undefined;
 }
 
 const CREDENTIAL_PATH = /^\/api\/auth\/(login|register|google)\b/;

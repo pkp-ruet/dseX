@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from backend.routers.auth import get_current_user
 from utils.market_hours import bst_today_iso
@@ -19,6 +19,7 @@ from backend.services.auth_service import (
     clear_last_recommendation,
 )
 from backend.services.entitlements import (
+    HARD_LIMITS,
     LIMIT_WATCHLIST,
     limits_for,
     watchlist_add_blocked,
@@ -28,15 +29,16 @@ router = APIRouter(prefix="/api/user", tags=["user"])
 
 
 class WatchlistBody(BaseModel):
-    codes: list[str]
+    codes: list[Annotated[str, Field(max_length=20)]] = Field(
+        ..., max_length=HARD_LIMITS["watchlist"])
     # Optional per-code meta to restore (undo after a remove keeps the original
     # "added on" date + price instead of re-stamping today). Only honoured for
     # codes that have no server-side meta yet.
-    meta: Optional[dict[str, dict]] = None
+    meta: Optional[dict[str, dict]] = Field(None, max_length=HARD_LIMITS["watchlist"])
 
 
 class ProfileUpdateBody(BaseModel):
-    display_name: Optional[str] = None
+    display_name: Optional[str] = Field(None, max_length=60)
 
 
 # ---------------------------------------------------------------------------
@@ -55,6 +57,11 @@ def _check_watchlist_limit(user: dict, new_codes: list[str]) -> None:
     current = get_user_watchlist(user["user_id"])
     if watchlist_add_blocked(current, new_codes, limits_for(user)["watchlist"]):
         raise HTTPException(status_code=403, detail=LIMIT_WATCHLIST)
+    if watchlist_add_blocked(current, new_codes, HARD_LIMITS["watchlist"]):
+        raise HTTPException(
+            status_code=400,
+            detail=f"A watchlist can hold up to {HARD_LIMITS['watchlist']} stocks.",
+        )
 
 
 @router.put("/watchlist")

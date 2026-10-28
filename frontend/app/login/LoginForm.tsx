@@ -48,6 +48,11 @@ export default function LoginForm() {
               "This account signs in with Google. Use \"Continue with Google\" above.",
               "এই অ্যাকাউন্টে Google দিয়ে সাইন ইন করতে হয়। ওপরের \"Continue with Google\" ব্যবহার করুন।",
             )
+          : status === 429
+            ? L(
+                "Too many tries. Please wait a few minutes and try again.",
+                "অনেকবার চেষ্টা হয়েছে। কয়েক মিনিট পর আবার চেষ্টা করুন।",
+              )
           : status === 401
             ? L(
                 "Those details don't match an account. Check them and try again.",

@@ -20,7 +20,7 @@ router = APIRouter(prefix="/api", tags=["feedback"])
 class FeedbackRequest(BaseModel):
     rating: Optional[int] = Field(None, ge=1, le=5)
     comment: Optional[str] = Field(None, max_length=MAX_COMMENT_LEN)
-    source: str = "homepage"
+    source: str = Field("homepage", max_length=40)
     page: Optional[str] = Field(None, max_length=200)
 
 

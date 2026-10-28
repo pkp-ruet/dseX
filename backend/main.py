@@ -2,9 +2,18 @@ import os
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.services.rate_limit import RateLimitMiddleware
+
 from backend.routers import scores, companies, dividends, audit, prices, market_movers, market_intelligence, market_index, stock_lists, auth, user, portfolio, dse_today, admin, market_analysis, market_state, stock_visits, top20, daily_pick, daily_tips, recommendations, feedback, campaigns, email, notifications, price_alerts, trust, corporate_actions, sectors, home, premium, research_lists, watchlist_glance, custom_lists, results
 
 app = FastAPI(title="dseX API", version="1.0.0")
+
+# ---------------------------------------------------------------------------
+# Request limits + body-size cap (backend/services/rate_limit.py). Added BEFORE
+# CORS on purpose: Starlette wraps the last-added middleware outermost, so CORS
+# stays outside and a 429 / 413 still carries the CORS headers.
+# ---------------------------------------------------------------------------
+app.add_middleware(RateLimitMiddleware)
 
 # ---------------------------------------------------------------------------
 # CORS — allow Next.js frontend origins

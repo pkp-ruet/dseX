@@ -1,7 +1,7 @@
-from typing import Optional
+from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from backend.routers.auth import get_current_user
 from backend.services import entitlements
@@ -26,10 +26,16 @@ def _positive(v, name):
     return v
 
 
+# Finite, bounded numbers: JSON accepts NaN / Infinity, and one stored NaN made
+# that reader's portfolio and home bundle 500 (JSON can't encode it).
+Price = Annotated[float, Field(allow_inf_nan=False, le=10_000_000)]
+Qty = Annotated[int, Field(le=1_000_000_000)]
+
+
 class AddHoldingBody(BaseModel):
-    trading_code: str
-    buy_price: float
-    qty: int
+    trading_code: str = Field(..., max_length=20)
+    buy_price: Price
+    qty: Qty
 
     @field_validator("trading_code")
     @classmethod
@@ -48,8 +54,8 @@ class AddHoldingBody(BaseModel):
 
 
 class UpdateHoldingBody(BaseModel):
-    buy_price: Optional[float] = None
-    qty: Optional[int] = None
+    buy_price: Optional[Price] = None
+    qty: Optional[Qty] = None
 
     @field_validator("buy_price")
     @classmethod
@@ -63,8 +69,8 @@ class UpdateHoldingBody(BaseModel):
 
 
 class SellBody(BaseModel):
-    qty: int
-    price: float
+    qty: Qty
+    price: Price
 
     @field_validator("qty")
     @classmethod
@@ -248,6 +254,11 @@ def add_holding(body: AddHoldingBody, current_user: dict = Depends(get_current_u
     holdings = [dict(h) for h in state["holdings"]]
     code = body.trading_code
     existing = next((h for h in holdings if h["trading_code"] == code), None)
+    if not existing and len(holdings) >= entitlements.HARD_LIMITS["holdings"]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"A portfolio can hold up to {entitlements.HARD_LIMITS['holdings']} stocks.",
+        )
     if existing:
         # Merge: weighted-average cost across the combined quantity.
         new_qty = existing["qty"] + body.qty

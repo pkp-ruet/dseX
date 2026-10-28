@@ -62,7 +62,7 @@ class RecommendationRequest(BaseModel):
     @field_validator("sectors")
     @classmethod
     def _v_sectors(cls, v: list[str]) -> list[str]:
-        return [s for s in (v or []) if isinstance(s, str) and s.strip()][:20]
+        return [s[:60] for s in (v or []) if isinstance(s, str) and s.strip()][:20]
 
 
 @router.post("/recommendations", response_model=RecommendationResponse)

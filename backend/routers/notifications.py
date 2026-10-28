@@ -7,7 +7,7 @@ are stored per device; prefs + the master on/off live on the user doc.
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from backend.routers.auth import get_current_user
 from backend.services import push_service
@@ -16,21 +16,21 @@ router = APIRouter(prefix="/api/notifications", tags=["notifications"])
 
 
 class PushKeys(BaseModel):
-    p256dh: str
-    auth: str
+    p256dh: str = Field(..., max_length=200)
+    auth: str = Field(..., max_length=100)
 
 
 class SubscribeBody(BaseModel):
-    endpoint: str
+    endpoint: str = Field(..., max_length=1000)
     keys: PushKeys
 
 
 class UnsubscribeBody(BaseModel):
-    endpoint: str
+    endpoint: str = Field(..., max_length=1000)
 
 
 class PrefsBody(BaseModel):
-    prefs: Optional[dict] = None
+    prefs: Optional[dict] = Field(None, max_length=30)
     push_enabled: Optional[bool] = None
 
 
