@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { changePct, changeTone, money } from "@/lib/formatters";
+import MaskedName from "@/components/premium/MaskedName";
 
 /**
  * THE stock row — the one grammar every list and card in the app uses to show
@@ -20,6 +21,10 @@ import { changePct, changeTone, money } from "@/lib/formatters";
  *   SignalChip, a meta pill); `action` sits OUTSIDE it (interactive: StarButton)
  *   so a button never nests inside an anchor.
  * - Min height 56px (48px for `size="sm"`), hover + active states, tokens only.
+ * - `masked` = a free reader's preview of a locked row (`premium/RowLock`):
+ *   the name becomes a grey bar + lock, the ticker, owner mark, price and
+ *   action go, the row is not a link; the sub / detail lines and `right` /
+ *   `trailing` stay — they are what tells the reader what Premium holds.
  */
 
 export type StockRowTone = "positive" | "negative" | "watch" | "info" | "primary" | "muted";
@@ -73,6 +78,8 @@ export interface StockRowProps {
   className?: string;
   style?: CSSProperties;
   title?: string;
+  /** Preview of a locked row: company hidden, figures kept. */
+  masked?: boolean;
 }
 
 const INSET: Record<NonNullable<StockRowProps["inset"]>, string> = {
@@ -105,10 +112,11 @@ export default function StockRow({
   className = "",
   style,
   title,
+  masked = false,
 }: StockRowProps) {
   const bn = lang === "bn";
-  const to = href === undefined ? `/stock/${code}` : href;
-  const hasRight = right !== undefined || price !== undefined;
+  const to = masked ? null : href === undefined ? `/stock/${code}` : href;
+  const hasRight = right !== undefined || (price !== undefined && !masked);
   const minH = size === "sm" ? "min-h-12 py-1.5" : "min-h-14 py-2";
   const innerClass = `flex min-w-0 flex-1 items-center gap-3 ${minH} ${INSET[inset]}`;
 
@@ -119,10 +127,14 @@ export default function StockRow({
         {stack ? (
           <>
             <span className="flex items-center gap-1.5">
-              <span className="min-w-0 truncate text-sm font-semibold leading-tight text-text-main">{name || code}</span>
+              {masked ? (
+                <MaskedName name={name} />
+              ) : (
+                <span className="min-w-0 truncate text-sm font-semibold leading-tight text-text-main">{name || code}</span>
+              )}
               {tags}
             </span>
-            {(name || mark) && (
+            {!masked && (name || mark) && (
               <span className="mt-0.5 flex items-center gap-1.5">
                 {name && <span className="text-xs font-medium uppercase tracking-wide text-text-muted">{code}</span>}
                 {mark}
@@ -131,13 +143,19 @@ export default function StockRow({
           </>
         ) : (
           <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-            <span className="min-w-0 max-w-full truncate text-sm font-semibold leading-tight text-text-main">
-              {name || code}
-            </span>
-            {name && (
-              <span className="shrink-0 text-xs font-medium uppercase tracking-wide text-text-muted">{code}</span>
+            {masked ? (
+              <MaskedName name={name} />
+            ) : (
+              <>
+                <span className="min-w-0 max-w-full truncate text-sm font-semibold leading-tight text-text-main">
+                  {name || code}
+                </span>
+                {name && (
+                  <span className="shrink-0 text-xs font-medium uppercase tracking-wide text-text-muted">{code}</span>
+                )}
+                {mark}
+              </>
             )}
-            {mark}
             {tags}
           </span>
         )}
@@ -174,7 +192,7 @@ export default function StockRow({
 
   return (
     <Tag
-      className={`flex items-stretch transition-colors hover:bg-surface-2 active:bg-surface-2 ${
+      className={`flex items-stretch transition-colors ${masked ? "" : "hover:bg-surface-2 active:bg-surface-2"} ${
         bn ? "font-bn" : ""
       } ${className}`}
       lang={bn ? "bn" : undefined}
@@ -188,7 +206,7 @@ export default function StockRow({
       ) : (
         <span className={innerClass}>{body}</span>
       )}
-      {action && (
+      {action && !masked && (
         <span className={`flex min-h-10 min-w-10 shrink-0 items-center justify-center ${inset === "card" ? "pr-3 sm:pr-4" : ""}`}>
           {action}
         </span>

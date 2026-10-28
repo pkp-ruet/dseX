@@ -7,14 +7,17 @@ import type { Lang } from "@/context/LangContext";
 import { t } from "@/lib/home-copy";
 import { FREE_FORYOU_ROWS, splitFree } from "@/lib/free-share";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
-import PremiumGate from "@/components/premium/PremiumGate";
+import RowLock from "@/components/premium/RowLock";
+import LockPanel from "@/components/premium/LockPanel";
 import RecoRow from "@/components/reco/RecoRow";
 import Stat from "@/components/ui/Stat";
 import { StockPill, StockRowSkeleton } from "@/components/ui/StockRow";
 import { IconCheck, IconChevronDown, IconSparkle } from "@/components/ui/icons";
 
-/** Kinds that name one of the reader's own stocks (the lock's stakes count them). */
-const TIED = new Set(["add_more", "watched", "upgrade", "similar"]);
+/** Kinds whose pick is one of the reader's own stocks (the lock's "N are your stocks"). */
+const OWN = new Set(["add_more", "watched"]);
+/** Locked picks a free reader sees with the company hidden (premium/RowLock). */
+const FOR_YOU_PREVIEW_ROWS = 2;
 
 /**
  * "Picked for you" (2026-10-28) — the recommendation engine's list, the first
@@ -26,7 +29,9 @@ const TIED = new Set(["add_more", "watched", "upgrade", "similar"]);
  * — companies checked, how many passed every check, how many were picked. The
  * first `FREE_FORYOU_ROWS` picks are open with their reason, number lines and
  * one watch-out; the rest wait behind "See N more picks" (for a free reader
- * that opens them blurred behind one lock with their own stakes —
+ * that opens the next two with the company hidden — kind word and reason
+ * shown — and one line saying how many more, how many Strong buys and how
+ * many are their own stocks (premium/RowLock) —
  * screen-only, like every lock). "How we pick" closes the card.
  *
  * No link out to the Buy-signals page (user decision 2026-10-28): the card is
@@ -90,13 +95,10 @@ export default function ForYouCard({
   const [open, rest] = splitFree(data.items, FREE_FORYOU_ROWS);
   const mark = (it: ForYouItem) => <OwnerMark code={it.code} held={held} watched={watched} lang={lang} />;
 
-  const tied = rest.filter((it) => TIED.has(it.kind)).length;
+  // The lock's line: how many more, how many Strong buys, how many are the reader's own.
   const strong = rest.filter((it) => it.strong).length;
-  const stakes = [
-    { en: t("en", "forYouStakesMore", { n: rest.length }), bn: t("bn", "forYouStakesMore", { n: rest.length }) },
-    ...(tied ? [{ en: t("en", "forYouStakesMine", { n: tied }), bn: t("bn", "forYouStakesMine", { n: tied }) }] : []),
-    ...(strong ? [{ en: t("en", "forYouStakesStrong", { n: strong }), bn: t("bn", "forYouStakesStrong", { n: strong }) }] : []),
-  ];
+  const ownRest = rest.filter((it) => OWN.has(it.kind)).length;
+  const lockKey = strong ? "forYouLockLineStrong" : "forYouLockLine";
 
   return (
     <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
@@ -160,18 +162,33 @@ export default function ForYouCard({
 
       {rest.length > 0 && more && (
         <div className="border-t border-cell-rule">
-          <PremiumGate
-            label={{ en: t("en", "forYouLockLabel"), bn: t("bn", "forYouLockLabel") }}
-            preview="blur"
-            peek={170}
-            stakes={stakes}
+          <RowLock
+            preview={
+              <ol className="divide-y divide-cell-rule">
+                {rest.slice(0, FOR_YOU_PREVIEW_ROWS).map((it, i) => (
+                  <RecoRow key={it.code} item={it} rank={open.length + i + 1} lang={lang} masked />
+                ))}
+              </ol>
+            }
+            panel={
+              <LockPanel
+                title={{
+                  en: t("en", lockKey, { n: rest.length, s: strong }),
+                  bn: t("bn", lockKey, { n: rest.length, s: strong }),
+                }}
+                mine={ownRest}
+                count={rest.length}
+                lock="Picked for you"
+                what={{ en: t("en", "forYouLockLabel"), bn: t("bn", "forYouLockLabel") }}
+              />
+            }
           >
             <ol className="divide-y divide-cell-rule">
               {rest.map((it, i) => (
                 <RecoRow key={it.code} item={it} rank={open.length + i + 1} mark={mark(it)} lang={lang} />
               ))}
             </ol>
-          </PremiumGate>
+          </RowLock>
         </div>
       )}
 

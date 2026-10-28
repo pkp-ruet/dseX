@@ -1,7 +1,7 @@
 import { T } from "@/components/i18n/T";
 import DividendRow from "@/components/dividend-calendar/DividendRow";
-import CalendarLock from "@/components/dividend-calendar/CalendarLock";
-import LockPanel from "@/components/dividend-calendar/LockPanel";
+import RowLock from "@/components/premium/RowLock";
+import LockPanel from "@/components/premium/LockPanel";
 import { CALENDAR_PREVIEW_ROWS, FREE_CALENDAR_ROWS, splitFree } from "@/lib/free-share";
 import type { CorporateActionEvent } from "@/lib/api";
 import SectionHeader from "@/components/ui/SectionHeader";
@@ -43,7 +43,7 @@ export default function RecentDeclarations({
         {free.map((e) => row(e))}
         {locked.length > 0 && (
           <li className="dc-gate-li">
-            <CalendarLock
+            <RowLock
               preview={<ul className="dc-list">{locked.slice(0, CALENDAR_PREVIEW_ROWS.declared).map((e) => row(e, true))}</ul>}
               panel={
                 <LockPanel
@@ -58,11 +58,12 @@ export default function RecentDeclarations({
                   codes={locked.map((e) => e.trading_code)}
                   count={locked.length}
                   lock="Dividend calendar: just declared"
+                  what={{ en: "The full dividend calendar", bn: "পুরো ডিভিডেন্ড ক্যালেন্ডার" }}
                 />
               }
             >
               <ul className="dc-list">{locked.map((e) => row(e))}</ul>
-            </CalendarLock>
+            </RowLock>
           </li>
         )}
       </ul>

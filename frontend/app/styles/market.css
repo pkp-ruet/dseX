@@ -193,6 +193,9 @@ a.mk-sector:hover .mk-sector-name, a.mk-sector:active .mk-sector-name { color: v
 .mk-meta--neutral { color: var(--text-muted); }
 .mk-rows { display: flex; flex-direction: column; }
 .mk-rows > * + * { border-top: 1px solid var(--cell-rule); }
+/* A row lock's one-line panel closes the card as a band, edge to edge. */
+.mk-card .lk-line { margin: 12px -16px -18px; }
+@media (min-width: 640px) { .mk-card .lk-line { margin: 14px -24px -22px; } }
 .mk-more { margin-top: 8px; }
 
 /* ---- Disclaimer ---- */

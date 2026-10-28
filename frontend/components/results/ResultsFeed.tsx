@@ -5,7 +5,8 @@ import Chip from "@/components/ui/Chip";
 import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import { IconLock } from "@/components/ui/icons";
-import PremiumGate from "@/components/premium/PremiumGate";
+import RowLock from "@/components/premium/RowLock";
+import LockPanel, { type LockTile } from "@/components/premium/LockPanel";
 import { PersonalCodesProvider, usePersonalCodesCtx } from "@/components/market-analysis/PersonalCodes";
 import type { LatestResultRow } from "@/lib/api";
 import { FREE_RESULTS_ROWS } from "@/lib/free-share";
@@ -19,6 +20,9 @@ import { bnDate } from "@/lib/bn";
 import { useUrlParams, useUrlSync } from "@/lib/use-url-state";
 import ResultRow from "./ResultRow";
 import ResultsFilterPreview from "./ResultsFilterPreview";
+
+/** Locked rows a free reader sees with the company hidden (premium/RowLock). */
+const RESULTS_PREVIEW_ROWS = 2;
 
 const PAGE = 50;
 type Level = LatestResultRow["level"];
@@ -120,7 +124,7 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
   };
 
   // ---- the list ----
-  const list = (items: LatestResultRow[], continuesDay?: string) => (
+  const list = (items: LatestResultRow[], continuesDay?: string, masked = false) => (
     <div>
       {byDay(items).map((g, i) => (
         <section key={g.day} className="rs-day" aria-label={enDay(g.day)}>
@@ -138,7 +142,7 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
           <ul className="soft-card rs-list">
             {g.items.map((r) => (
               <li key={r.code}>
-                <ResultRow r={r} />
+                <ResultRow r={r} masked={masked} />
               </li>
             ))}
           </ul>
@@ -199,29 +203,40 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
     const locked = filtered.slice(FREE_RESULTS_ROWS, PAGE);
     const lockedAll = filtered.slice(FREE_RESULTS_ROWS);
     const lockedBetter = lockedAll.filter((r) => r.level === "good").length;
-    const mineCodes = new Set(mine.map((r) => r.code));
-    const lockedMine = lockedAll.filter((r) => mineCodes.has(r.code)).length;
+    const lockedWeaker = lockedAll.filter((r) => r.level === "bad").length;
+    const lockTiles: LockTile[] = [
+      lockedBetter > 0 ? { value: String(lockedBetter), label: { en: "earned clearly more", bn: "মুনাফা স্পষ্টভাবে বেশি" } } : null,
+      lockedWeaker > 0 ? { value: String(lockedWeaker), label: { en: "weaker than a year ago", bn: "গত বছরের চেয়ে দুর্বল" } } : null,
+    ].filter((x): x is LockTile => x != null);
+    const continues = free[free.length - 1]?.post_date;
     body = (
       <>
         {list(free)}
         {locked.length > 0 && (
-          <PremiumGate
-            label={{ en: "Every company's results", bn: "সব কোম্পানির ফল" }}
-            preview="blur"
-            peek={220}
-            stakes={[
-              { en: `${lockedAll.length} more companies' latest results`, bn: `আরও ${lockedAll.length}টি কোম্পানির সর্বশেষ ফল` },
-              lockedMine > 0
-                ? { en: `${lockedMine} of them on your stocks`, bn: `এর মধ্যে ${lockedMine}টি আপনার শেয়ার` }
-                : "",
-              lockedBetter > 0
-                ? { en: `${lockedBetter} of them earned clearly more than a year ago`, bn: `এর মধ্যে ${lockedBetter}টির মুনাফা গত বছরের চেয়ে স্পষ্টভাবে বেশি` }
-                : "",
-            ]}
+          <RowLock
+            preview={list(locked.slice(0, RESULTS_PREVIEW_ROWS), continues, true)}
+            panel={
+              <LockPanel
+                variant="full"
+                title={{
+                  en: `See the companies behind ${lockedAll.length} more ${lockedAll.length === 1 ? "result" : "results"}`,
+                  bn: `আরও ${lockedAll.length}টি ফলের কোম্পানিগুলো দেখুন`,
+                }}
+                sub={{
+                  en: "Premium shows every company's latest quarterly results, newest first, with the Better, Mixed, Weaker and My stocks filters.",
+                  bn: "প্রিমিয়ামে প্রতিটি কোম্পানির সর্বশেষ প্রান্তিকের ফল, নতুনটি আগে, সঙ্গে ভালো, মিশ্র, দুর্বল আর আমার শেয়ার বাছাই।",
+                }}
+                tiles={lockTiles}
+                codes={lockedAll.map((r) => r.code)}
+                count={lockedAll.length}
+                lock="Quarterly results"
+                what={{ en: "Every company's results", bn: "সব কোম্পানির ফল" }}
+              />
+            }
             className="mt-2"
           >
-            {list(locked, free[free.length - 1]?.post_date)}
-          </PremiumGate>
+            {list(locked, continues)}
+          </RowLock>
         )}
       </>
     );

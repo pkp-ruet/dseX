@@ -7,7 +7,8 @@ import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
 import { sectorBn } from "@/lib/bn";
 import Chip from "@/components/ui/Chip";
-import PremiumGate from "@/components/premium/PremiumGate";
+import RowLock from "@/components/premium/RowLock";
+import LockPanel, { type LockTile } from "@/components/premium/LockPanel";
 import { FREE_RANKING_ROWS, splitFree } from "@/lib/free-share";
 import { usePremium } from "@/lib/premium";
 import FullRankTable, {
@@ -16,6 +17,9 @@ import FullRankTable, {
   type RankedItem,
   type RankedRow,
 } from "@/components/ranking/FullRankTable";
+
+/** Locked rows a free reader sees with the company hidden (premium/RowLock). */
+const RANKING_PREVIEW_ROWS = 3;
 
 const TIERS_ORDER: TierKey[] = ["excellent", "good", "average", "weak"];
 
@@ -172,6 +176,10 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
   for (const { item } of filtered) viewCounts[item.tier] = (viewCounts[item.tier] ?? 0) + 1;
   const lockedStrong = locked.filter(({ item }) => item.tier === "excellent" || item.tier === "good").length;
   const lockedCheap = locked.filter(({ item }) => (item.p4_val ?? 0) >= 7).length;
+  const lockTiles: LockTile[] = [
+    lockedStrong > 0 ? { value: String(lockedStrong), label: { en: "graded Good or better", bn: "গ্রেড ভালো বা তার বেশি" } } : null,
+    lockedCheap > 0 ? { value: String(lockedCheap), label: { en: "at a good price today", bn: "আজ ভালো দামে" } } : null,
+  ].filter((t): t is LockTile => t != null);
 
   const isFiltered =
     query.trim() !== "" || sector !== "all" || picked.size > 0 || !isDefaultSort;
@@ -287,19 +295,36 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
 
       <FullRankTable rows={free} grouped={isDefaultSort} sort={sort} onSort={onSort} groupCounts={viewCounts} />
       {locked.length > 0 && (
-        <PremiumGate
-          label={{ en: "The full ranking", bn: "পুরো র‍্যাঙ্কিং" }}
-          preview="blur"
-          peek={220}
-          stakes={[
-            { en: `${locked.length} more ${locked.length === 1 ? "company" : "companies"} ranked, with all five checks`, bn: `আরও ${locked.length}টি কোম্পানির র‍্যাঙ্ক, পাঁচটি যাচাইসহ` },
-            lockedStrong > 0
-              ? { en: `${lockedStrong} of them graded Good or Excellent`, bn: `এদের ${lockedStrong}টির গ্রেড ভালো বা চমৎকার` }
-              : "",
-            lockedCheap > 0
-              ? { en: `${lockedCheap} of them at a good price today`, bn: `এদের ${lockedCheap}টি আজ ভালো দামে আছে` }
-              : "",
-          ]}
+        <RowLock
+          preview={
+            <FullRankTable
+              rows={locked.slice(0, RANKING_PREVIEW_ROWS)}
+              grouped={isDefaultSort}
+              sort={sort}
+              onSort={onSort}
+              groupCounts={viewCounts}
+              continues={free[free.length - 1]?.item.tier ?? null}
+              masked
+            />
+          }
+          panel={
+            <LockPanel
+              variant="full"
+              title={{
+                en: `See the companies behind ${locked.length} more ${locked.length === 1 ? "rank" : "ranks"}`,
+                bn: `আরও ${locked.length}টি র‍্যাঙ্কের কোম্পানিগুলো দেখুন`,
+              }}
+              sub={{
+                en: "Premium opens the whole ranking: every company's grade, its five checks, the price word and today's price, with search, sector and sort.",
+                bn: "প্রিমিয়ামে পুরো র‍্যাঙ্কিং খোলা: প্রতিটি কোম্পানির গ্রেড, পাঁচটি যাচাই, দামের কথা আর আজকের দাম, সঙ্গে সার্চ, সেক্টর আর সাজানো।",
+              }}
+              tiles={lockTiles}
+              codes={locked.map(({ item }) => item.trading_code)}
+              count={locked.length}
+              lock="Rankings"
+              what={{ en: "The full ranking", bn: "পুরো র‍্যাঙ্কিং" }}
+            />
+          }
           className="mt-4"
         >
           <FullRankTable
@@ -310,7 +335,7 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
             groupCounts={viewCounts}
             continues={free[free.length - 1]?.item.tier ?? null}
           />
-        </PremiumGate>
+        </RowLock>
       )}
     </div>
   );

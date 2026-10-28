@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { T } from "@/components/i18n/T";
 import TierPill from "@/components/ui/TierPill";
-import { IconLock } from "@/components/ui/icons";
+import MaskedName from "@/components/premium/MaskedName";
 import { pct } from "@/lib/formatters";
 import { sectorBn } from "@/lib/bn";
 import type { CorporateActionEvent } from "@/lib/api";
@@ -17,12 +17,6 @@ const TYPE_BN: Record<string, string> = { Final: "চূড়ান্ত", Int
  *  `money()` would round to ৳0.3. */
 export function perShareTk(v: number): string {
   return v >= 100 ? `৳${Math.round(v).toLocaleString("en-US")}` : `৳${v.toFixed(2)}`;
-}
-
-/** The grey bar's width follows the hidden name's length, so a list of
- *  masked rows doesn't read as one repeated shape. */
-function maskWidth(name: string): number {
-  return Math.max(96, Math.min(190, name.length * 6));
 }
 
 function pctWord(v: number): string {
@@ -113,7 +107,7 @@ function extras(e: CorporateActionEvent, mode: Mode): ReactNode[] {
  * leads there; `dated` shows a date instead). Taps through to the stock
  * page's dividend history. Yields are gross; no advice is drawn here.
  * `mark` = the H / ★ owner tag on the dashboard. `masked` = the locked
- * preview (see CalendarLock): same row, company hidden.
+ * preview (see premium/RowLock): same row, company hidden.
  */
 export default function DividendRow({
   e,
@@ -186,13 +180,7 @@ export default function DividendRow({
       <div className={`dc-row dc-row--masked ${rank != null ? "dc-row--rank" : ""}`.trim()}>
         {rank != null && <span className="dc-rank">{rank}</span>}
         <span className="min-w-0">
-          <span className="dc-name dc-name--masked">
-            <span className="dc-mask" style={{ width: `${maskWidth(name)}px` }} aria-hidden="true" />
-            <IconLock size={14} />
-            <span className="sr-only">
-              <T en="Company shown in Premium" bn="কোম্পানির নাম প্রিমিয়ামে" />
-            </span>
-          </span>
+          <MaskedName name={name} />
           <span className="dc-meta">
             {e.tier && <TierPill tier={e.tier} />}
             {e.dividend_type && mode !== "dated" && <T en={e.dividend_type} bn={TYPE_BN[e.dividend_type] ?? e.dividend_type} />}

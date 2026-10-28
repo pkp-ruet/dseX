@@ -36,6 +36,8 @@ export interface RecoRowItem {
  *
  * Follows the dashboard rule for ideas: a name, a reason, a kind word. No
  * "% match", no tier pill, no signal chip — every pick is a Buy already.
+ * `masked` = a free reader's preview of a locked pick (premium/RowLock): the
+ * kind word and the reason shown, the company and its price hidden.
  */
 export default function RecoRow({
   item,
@@ -45,6 +47,7 @@ export default function RecoRow({
   mark,
   action,
   as = "li",
+  masked = false,
 }: {
   item: RecoRowItem;
   lang?: Lang;
@@ -56,10 +59,14 @@ export default function RecoRow({
   /** Outside the row's link (a StarButton). */
   action?: ReactNode;
   as?: "li" | "div";
+  masked?: boolean;
 }) {
   const bn = lang === "bn";
   const L = (p: BiText) => (bn ? p.bn : p.en);
-  const why = bn ? item.why_bn : item.why_en;
+  // A masked pick that is the reader's own stock would name itself in its
+  // reason ("You own X …"): keep only the kind word there.
+  const ownPick = item.kind === "add_more" || item.kind === "watched";
+  const why = masked && ownPick ? "" : bn ? item.why_bn : item.why_en;
   // Colour means something: clay = tied to the reader's own stocks, green = a
   // strong Buy, grey for the rest.
   const tone = item.kind && item.kind !== "top" ? "primary" : item.strong ? "positive" : "muted";
@@ -75,6 +82,7 @@ export default function RecoRow({
       change={item.change_pct}
       leading={rank != null ? <StockRank n={rank} solid={rank <= 3} /> : undefined}
       mark={mark}
+      masked={masked}
       tags={item.new ? <StockPill tone="positive">{t(lang, "forYouNew")}</StockPill> : undefined}
       sub={
         rich ? (

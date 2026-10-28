@@ -685,6 +685,7 @@ export default function ScreenerClient({
                 ? t("Change the order with Premium", "প্রিমিয়ামে ক্রম বদলান")
                 : t("See them with Premium", "প্রিমিয়ামে দেখুন")}
               ctaHref={`#${SCREENER_ANCHOR}`}
+              questions={questions}
               onCta={() => {
                 trackEvent("premium_lock_tap", { area: "screener", lock: preview?.kind === "order" ? "Screener order" : "Screener answer", state });
                 setPreview(null);

@@ -8,12 +8,15 @@ import StarButton from "@/components/ui/StarButton";
 import StockRow from "@/components/ui/StockRow";
 import Tabs from "@/components/ui/Tabs";
 import Button from "@/components/ui/Button";
-import PremiumGate from "@/components/premium/PremiumGate";
+import RowLock from "@/components/premium/RowLock";
+import LockPanel, { type LockTile } from "@/components/premium/LockPanel";
 import { FREE_SIGNAL_ROWS, splitFree } from "@/lib/free-share";
-import { getCachedWatchlist, subscribeWatchlist } from "@/lib/watchlist";
 import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
 import { sectorBn } from "@/lib/bn";
+
+/** Locked rows a free reader sees with the company hidden (premium/RowLock). */
+const SIGNAL_PREVIEW_ROWS = 2;
 
 type Tab = "all" | "strong";
 type SortKey = "match" | "gainers" | "losers" | "dividend";
@@ -63,16 +66,9 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
   const [sector, setSector] = useState("all");
   const [sort, setSort] = useState<SortKey>("match");
   const [limit, setLimit] = useState(PAGE);
-  const [followed, setFollowed] = useState<string[]>([]);
   const { lang } = useLang();
   const bn = lang === "bn";
   const L = (en: string, b: string) => (bn ? b : en);
-
-  // The reader's followed codes, for the lock card's stakes only.
-  useEffect(() => {
-    setFollowed(getCachedWatchlist());
-    return subscribeWatchlist(() => setFollowed(getCachedWatchlist()));
-  }, []);
 
   // Any change to the view resets pagination to the top.
   useEffect(() => {
@@ -102,8 +98,13 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
   const [free, locked] = splitFree(shown, FREE_SIGNAL_ROWS);
   const rest = filtered.slice(FREE_SIGNAL_ROWS);
   const restStrong = rest.filter(isStrong).length;
-  const followedSet = new Set(followed);
-  const restMine = rest.filter((i) => followedSet.has(i.trading_code)).length;
+  const restExcellent = rest.filter((i) => (i.score ?? 0) >= 75).length;
+  const lockTiles: LockTile[] = [
+    restStrong > 0
+      ? { value: String(restStrong), label: restStrong === 1 ? { en: "is a Strong buy", bn: "কেনার ভালো সুযোগ" } : { en: "are Strong buys", bn: "কেনার ভালো সুযোগ" } }
+      : null,
+    restExcellent > 0 ? { value: String(restExcellent), label: { en: "graded Excellent", bn: "গ্রেড চমৎকার" } } : null,
+  ].filter((t): t is LockTile => t != null);
   const isFiltered = query.trim() !== "" || sector !== "all";
 
   const reset = () => {
@@ -208,8 +209,9 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
           </div>
         ) : (
           // ONE list card: the free rows, then the rest of the same list
-          // behind the lock (blurred in place for free readers, plain rows
-          // for Premium — the seam disappears once it unlocks).
+          // behind the lock — for free readers the next rows with the company
+          // hidden and what Premium shows (premium/RowLock); plain rows for
+          // Premium, the seam disappears once it unlocks.
           <div className="soft-card sg-card">
             <ul className="sg-rows">
               {free.map((item) => (
@@ -217,20 +219,34 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
               ))}
             </ul>
             {locked.length > 0 && (
-              <PremiumGate
-                label={{ en: "Every buy signal", bn: "সব কেনার সংকেত" }}
-                preview="blur"
-                peek={220}
-                stakes={[
-                  { en: `${rest.length} more buy ${rest.length === 1 ? "signal" : "signals"} today, each with its reason`, bn: `আজ আরও ${rest.length}টি কেনার সংকেত, প্রতিটির কারণসহ` },
-                  restStrong > 0
-                    ? { en: `${restStrong} of them ${restStrong === 1 ? "is a Strong buy" : "are Strong buys"}`, bn: `এদের ${restStrong}টি কেনার ভালো সুযোগ` }
-                    : "",
-                  restMine > 0
-                    ? { en: `${restMine} of them ${restMine === 1 ? "is a share" : "are shares"} you follow`, bn: `এদের ${restMine}টি আপনার অনুসরণ করা শেয়ার` }
-                    : "",
-                ]}
+              <RowLock
                 className="sg-locked"
+                preview={
+                  <ul className="sg-rows">
+                    {locked.slice(0, SIGNAL_PREVIEW_ROWS).map((item) => (
+                      <SignalRow key={item.trading_code} item={item} masked />
+                    ))}
+                  </ul>
+                }
+                panel={
+                  <LockPanel
+                    variant="full"
+                    inset
+                    title={{
+                      en: `See the companies behind ${rest.length} more buy ${rest.length === 1 ? "signal" : "signals"}`,
+                      bn: `আরও ${rest.length}টি কেনার সংকেতের কোম্পানিগুলো দেখুন`,
+                    }}
+                    sub={{
+                      en: "Premium shows every buy signal today: the company, the reason for the signal, its score and its price, with Strong buys and sectors to filter.",
+                      bn: "প্রিমিয়ামে আজকের প্রতিটি কেনার সংকেত: কোম্পানি, সংকেতের কারণ, স্কোর আর দাম, সঙ্গে কেনার ভালো সুযোগ আর সেক্টর বাছাই।",
+                    }}
+                    tiles={lockTiles}
+                    codes={rest.map((i) => i.trading_code)}
+                    count={rest.length}
+                    lock="Buy signals"
+                    what={{ en: "Every buy signal", bn: "সব কেনার সংকেত" }}
+                  />
+                }
               >
                 <ul className="sg-rows">
                   {locked.map((item) => (
@@ -247,7 +263,7 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
                     </Button>
                   </div>
                 )}
-              </PremiumGate>
+              </RowLock>
             )}
           </div>
         )}
@@ -261,16 +277,26 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
  * name · chip · reason · price · score ring — the grade pill repeated the
  * ring and the sector line repeated the filter, and both crowded the row.
  */
-function SignalRow({ item }: { item: ScoreItem }) {
+function SignalRow({ item, masked = false }: { item: ScoreItem; masked?: boolean }) {
   const sig = item.signal;
+  // Masked (a free reader's preview of a locked row): the chip, sector and
+  // score show; the company and the reason (Premium on the stock page too) don't.
+  const sub = masked
+    ? item.sector
+      ? <T en={item.sector} bn={sectorBn(item.sector)} />
+      : undefined
+    : sig
+      ? <T en={sig.reason_en} bn={sig.reason_bn || sig.reason_en} />
+      : undefined;
   return (
     <StockRow
       code={item.trading_code}
       name={item.company_name}
       inset="bleed"
       className="sg-row"
+      masked={masked}
       tags={sig ? <SignalChip signal={sig.signal} strength={sig.strength} /> : undefined}
-      sub={sig ? <T en={sig.reason_en} bn={sig.reason_bn || sig.reason_en} /> : undefined}
+      sub={sub}
       subClamp
       price={item.ltp}
       change={item.change_pct}

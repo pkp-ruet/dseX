@@ -5,23 +5,29 @@ import Card from "@/components/ui/Card";
 import StockRow from "@/components/ui/StockRow";
 import SignalChip from "@/components/ui/SignalChip";
 import Skeleton from "@/components/ui/Skeleton";
-import PremiumGate from "@/components/premium/PremiumGate";
+import RowLock from "@/components/premium/RowLock";
+import LockPanel, { type LockTile } from "@/components/premium/LockPanel";
 import ScreenerStep from "./ScreenerStep";
 import ScreenerNearMisses from "./ScreenerNearMisses";
 import { T } from "@/components/i18n/T";
 import { strengthPair } from "@/lib/screener";
 import type { CustomListResult, CustomListStock, ScreenerQuestion } from "@/lib/api";
 
+/** Locked rows a free reader sees with the company hidden (premium/RowLock). */
+const PREVIEW_ROWS = 2;
+/** The page's one Premium section (ScreenerPremium). */
+const PREMIUM_ANCHOR = "sc-premium";
+
 /**
  * The stocks that pass. Each row says what the stock is strong on
  * across the six questions — not only what you asked for. The count leads;
  * the order and Save sit on one line under it; then the list. A free reader sees the first `freeRows`
- * (none with a power check on); the rest blurs in place and points at the
- * page's one Premium section (`PageLockScope`). Then the stocks that miss by
- * one check (`ScreenerNearMisses`). Under the blurred rows a free reader
- * gets a short "what's hidden" summary — how many of them have a Buy signal,
- * the strength most of them share, how many they follow — counts only, the
- * names stay locked. How many each check leaves is shown on
+ * (none with a power check on); the rest sits behind the shared row lock
+ * (2026-10-28): the next rows with the company hidden — strength line and
+ * Buy chip shown — then a panel saying what Premium shows, with what's hidden
+ * as counts (how many have a Buy signal, the strength most of them share,
+ * how many they follow; never names) and a button to the page's one Premium
+ * section. Then the stocks that miss by one check (`ScreenerNearMisses`). How many each check leaves is shown on
  * the checks themselves (step 2), so there is no separate funnel here.
  */
 export default function ScreenerResults({
@@ -80,11 +86,12 @@ export default function ScreenerResults({
   const locked = result.stocks.slice(freeRows);
   const more = result.passed - open.length;
 
-  // What's hidden, in up to three lines (free readers only — for Premium freeRows is Infinity).
-  const hiddenLines: { en: string; bn: string }[] = [];
+  // What's hidden, as counts (free readers only — for Premium freeRows is Infinity).
+  const hiddenTiles: LockTile[] = [];
+  let mine = 0;
   if (locked.length && Number.isFinite(freeRows)) {
     const buys = locked.filter((x) => x.signal === "buy").length;
-    if (buys) hiddenLines.push({ en: `${buys} ${buys === 1 ? "has" : "have"} a Buy signal today`, bn: `${buys}টিতে আজ কেনার সংকেত আছে` });
+    if (buys) hiddenTiles.push({ value: String(buys), label: { en: buys === 1 ? "has a Buy signal today" : "have a Buy signal today", bn: "আজ কেনার সংকেত" } });
     // The top-level strength most hidden stocks share, skipping one the answers already require.
     let best: { n: number; en: string; bn: string } | null = null;
     for (const q of questions) {
@@ -94,11 +101,10 @@ export default function ScreenerResults({
       const n = locked.filter((x) => (x.levels?.[q.key] ?? 0) >= 2).length;
       if (n && (!best || n > best.n)) best = { n, en: lvl.tag_en, bn: lvl.tag_bn ?? lvl.tag_en };
     }
-    if (best) hiddenLines.push({ en: `${best.n} marked "${best.en}"`, bn: `${best.n}টি "${best.bn}"` });
-    const mine = locked.filter((x) => followed.includes(x.code)).length;
-    if (mine) hiddenLines.push({ en: `${mine} ${mine === 1 ? "is a share" : "are shares"} you follow`, bn: `${mine}টি আপনার অনুসরণ করা শেয়ার` });
+    if (best) hiddenTiles.push({ value: String(best.n), label: { en: `marked "${best.en}"`, bn: `"${best.bn}"` } });
+    mine = locked.filter((x) => followed.includes(x.code)).length;
   }
-  const row = (s: CustomListStock) => {
+  const row = (s: CustomListStock, masked = false) => {
     const strong = strengthPair(s.levels, questions);
     const figures = s.checks.slice(0, 2);
     return (
@@ -110,6 +116,7 @@ export default function ScreenerResults({
       name={s.name}
       price={s.price}
       change={s.change_pct}
+      masked={masked}
       sub={
         strong.en ? (
           <T en={strong.en} bn={strong.bn} />
@@ -152,45 +159,41 @@ export default function ScreenerResults({
           </Card>
         ) : (
           <Card padding="none" className="overflow-hidden">
-            {open.length > 0 && <ul>{open.map(row)}</ul>}
+            {open.length > 0 && <ul>{open.map((x) => row(x))}</ul>}
             {locked.length > 0 && (
-              <PremiumGate
-                label={
-                  open.length
-                    ? { en: `${more} more that pass`, bn: `আরও ${more}টি পাস করেছে` }
-                    : powerOn
-                      ? { en: "Shares that pass a special check", bn: "বিশেষ যাচাইয়ে পাস করা শেয়ার" }
-                      : { en: "The shares that pass", bn: "যে শেয়ারগুলো পাস করেছে" }
+              <RowLock
+                preview={
+                  <ul className={open.length ? "border-t border-border" : undefined}>
+                    {locked.slice(0, PREVIEW_ROWS).map((x) => row(x, true))}
+                  </ul>
                 }
-                preview="blur"
-                peek={open.length ? 140 : 200}
+                panel={
+                  <LockPanel
+                    variant="full"
+                    inset
+                    gutter
+                    title={
+                      open.length
+                        ? { en: `See the companies behind ${more} more that pass`, bn: `পাস করা আরও ${more}টি শেয়ারের কোম্পানি দেখুন` }
+                        : powerOn
+                          ? { en: `See the ${more} ${more === 1 ? "share" : "shares"} that pass this special check`, bn: `বিশেষ যাচাইয়ে পাস করা ${more}টি শেয়ার দেখুন` }
+                          : { en: `See the ${more} ${more === 1 ? "share" : "shares"} that pass`, bn: `পাস করা ${more}টি শেয়ার দেখুন` }
+                    }
+                    sub={{
+                      en: "Premium shows every share that passes your screen, lets you set your own answers and order, and keeps up to five screens that tell you when a new share joins.",
+                      bn: "প্রিমিয়ামে আপনার স্ক্রিনে পাস করা প্রতিটি শেয়ার, নিজের উত্তর আর ক্রম বাছাই, আর পাঁচটি পর্যন্ত স্ক্রিন রাখা যায় — নতুন শেয়ার যোগ হলে জানিয়ে দেয়।",
+                    }}
+                    tiles={hiddenTiles}
+                    mine={mine}
+                    count={more}
+                    lock="Screener: results"
+                    what={{ en: "Every share that passes", bn: "পাস করা সব শেয়ার" }}
+                    href={`#${PREMIUM_ANCHOR}`}
+                  />
+                }
               >
-                <ul className={open.length ? "border-t border-border" : undefined}>{locked.map(row)}</ul>
-              </PremiumGate>
-            )}
-            {locked.length > 0 && hiddenLines.length > 0 && (
-              <a
-                href="#sc-premium"
-                className="block border-t border-border px-4 py-3 hover:bg-surface-2 active:bg-surface-2"
-                aria-label={t(
-                  `What is hidden: ${hiddenLines.map((l) => l.en).join(", ")}. See Premium.`,
-                  `যা লুকানো: ${hiddenLines.map((l) => l.bn).join(", ")}। প্রিমিয়াম দেখুন।`,
-                )}
-              >
-                <p className="text-sm text-text-muted">
-                  <T en="Among the hidden ones:" bn="লুকানোগুলোর মধ্যে:" />
-                </p>
-                <ul className="mt-1 flex flex-col gap-1">
-                  {hiddenLines.map((line) => (
-                    <li key={line.en} className="flex items-start gap-2 text-sm font-semibold text-text-main">
-                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
-                      <span>
-                        <T en={line.en} bn={line.bn} />
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </a>
+                <ul className={open.length ? "border-t border-border" : undefined}>{locked.map((x) => row(x))}</ul>
+              </RowLock>
             )}
             {result.passed > result.stocks.length && (
               <p className="border-t border-border p-4 text-sm text-text-muted">

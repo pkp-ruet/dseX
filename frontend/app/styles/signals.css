@@ -101,8 +101,8 @@
 }
 .sg-rows > .sg-row { border-top: 1px solid var(--cell-rule); }
 .sg-rows > .sg-row:first-child { border-top: 0; }
-.sg-rows > .sg-row > a { padding-block: 18px; gap: 16px; }
-@media (min-width: 640px) { .sg-rows > .sg-row > a { padding-block: 22px; } }
+.sg-rows > .sg-row > a, .sg-rows > .sg-row > span { padding-block: 18px; gap: 16px; }
+@media (min-width: 640px) { .sg-rows > .sg-row > a, .sg-rows > .sg-row > span { padding-block: 22px; } }
 /* Inside a signal row (StockRow): air between the name line and the reason,
    and the reason at reading size — it is the point of the row. */
 .sg-rows > .sg-row > a > .min-w-0 > span + span {
@@ -112,6 +112,10 @@
    lock card sits inside the list card as its last row. */
 .sg-locked .sg-rows > .sg-row:first-child { border-top: 1px solid var(--cell-rule); }
 .sg-locked > .premium-card { margin: 8px 0 18px; }
+/* A masked preview row's sector line reads like the reason line it stands in for. */
+.sg-rows > .sg-row > span > .min-w-0 > span + span {
+  margin-top: 6px; font-size: var(--fs-sm); line-height: 1.55; color: var(--text-muted);
+}
 
 /* Today's tips are one open list (no lock), so they can pair up on a wide
    screen without leaving a hole. */

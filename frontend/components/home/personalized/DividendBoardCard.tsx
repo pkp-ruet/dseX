@@ -8,7 +8,7 @@ import DashHeader from "@/components/home/personalized/DashHeader";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
 import DividendRow from "@/components/dividend-calendar/DividendRow";
 import { DateHead, countByDate, groupByDate } from "@/components/dividend-calendar/DateGroup";
-import LockPanel from "@/components/dividend-calendar/LockPanel";
+import LockPanel from "@/components/premium/LockPanel";
 import { CALENDAR_PREVIEW_ROWS, FREE_CALENDAR_ROWS } from "@/lib/free-share";
 import { usePremium } from "@/lib/premium";
 
@@ -128,6 +128,7 @@ export default function DividendBoardCard({
           mine={hiddenMine}
           count={hidden.length}
           lock="Dividend calendar: home card"
+          what={{ en: "The full dividend calendar", bn: "পুরো ডিভিডেন্ড ক্যালেন্ডার" }}
         />
       )}
     </section>

@@ -30,6 +30,8 @@ export const CALENDAR_PREVIEW_ROWS = {
   topCash: 2,
   declared: 1,
   dashboard: 1,
+  /** /market-analysis "Money coming" — no open rows there, the preview only. */
+  market: 2,
 } as const;
 
 /** `/results`: the newest reports a free reader sees (of whichever filter is

@@ -4,7 +4,8 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import StockRow from "@/components/ui/StockRow";
 import SignalChip from "@/components/ui/SignalChip";
-import PremiumGate from "@/components/premium/PremiumGate";
+import RowLock from "@/components/premium/RowLock";
+import LockPanel from "@/components/premium/LockPanel";
 import { T } from "@/components/i18n/T";
 import { strengthPair } from "@/lib/screener";
 import type { CustomListNear, CustomListNearStock, ScreenerQuestion } from "@/lib/api";
@@ -13,8 +14,9 @@ import type { CustomListNear, CustomListNearStock, ScreenerQuestion } from "@/li
  * "Almost passed": the stocks that miss exactly one of the six answers (or,
  * on a fine-tune screen, one exact check — never the sector). Free: how many, and how many each check holds back, with
  * a button that opens that check's settings — loosening the right check is
- * the useful move. Premium: which stocks, and the figure that missed. The
- * names blur in place and point at the page's one Premium section.
+ * the useful move. Premium: which stocks, and the figure that missed. A free
+ * reader sees the first two with the company hidden (the miss and the
+ * strengths shown) and one line pointing at the page's Premium section.
  */
 export default function ScreenerNearMisses({
   near,
@@ -31,7 +33,7 @@ export default function ScreenerNearMisses({
   if (!near.total) return null;
   const n = near.total;
   const by = near.by ?? "check";
-  const row = (s: CustomListNearStock) => {
+  const row = (s: CustomListNearStock, masked = false) => {
     const strong = strengthPair(s.levels, questions);
     const miss = {
       en: `Misses ${s.miss.label_en}: ${s.miss.value_en}`,
@@ -46,6 +48,7 @@ export default function ScreenerNearMisses({
       name={s.name}
       price={s.price}
       change={s.change_pct}
+      masked={masked}
       sub={
         <T
           en={[miss.en, strong.en].filter(Boolean).join(" · ")}
@@ -102,13 +105,24 @@ export default function ScreenerNearMisses({
       </Card>
 
       <Card padding="none" className="mt-3 overflow-hidden">
-        <PremiumGate
-          label={{ en: `The ${n} ${n === 1 ? "share" : "shares"} that almost passed`, bn: `প্রায় পাস করা ${n}টি শেয়ার` }}
-          preview="blur"
-          peek={160}
+        <RowLock
+          preview={<ul>{near.stocks.slice(0, 2).map((x) => row(x, true))}</ul>}
+          panel={
+            <LockPanel
+              title={{
+                en: `See the companies behind the ${n} ${n === 1 ? "share" : "shares"} that almost passed`,
+                bn: `প্রায় পাস করা ${n}টি শেয়ারের কোম্পানি দেখুন`,
+              }}
+              codes={near.stocks.map((x) => x.code)}
+              count={n}
+              lock="Screener: almost passed"
+              what={{ en: "The shares that almost passed", bn: "প্রায় পাস করা শেয়ার" }}
+              href="#sc-premium"
+            />
+          }
         >
-          <ul>{near.stocks.map(row)}</ul>
-        </PremiumGate>
+          <ul>{near.stocks.map((x) => row(x))}</ul>
+        </RowLock>
         {n > near.stocks.length && (
           <p className="border-t border-border p-4 text-sm text-text-muted">
             <T

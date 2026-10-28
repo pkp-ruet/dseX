@@ -20,6 +20,7 @@ export default function MarketRow({
   meta,
   sub,
   tone = "neutral",
+  masked = false,
 }: {
   code: string;
   name?: string | null;
@@ -29,6 +30,8 @@ export default function MarketRow({
   /** Optional detail line under the name (e.g. "record 20 Sep · buy by 15 Sep"). */
   sub?: ReactNode;
   tone?: RowTone;
+  /** A free reader's preview of a locked row: company hidden (StockRow `masked`). */
+  masked?: boolean;
 }) {
   const hasIcon = sectorIconKey(sector) != null;
   return (
@@ -39,10 +42,11 @@ export default function MarketRow({
       name={name}
       leading={
         <span className="mk-tile" aria-hidden="true">
-          {hasIcon ? <SectorIcon sector={sector} size={18} /> : code.charAt(0)}
+          {hasIcon ? <SectorIcon sector={sector} size={18} /> : masked ? null : code.charAt(0)}
         </span>
       }
-      mark={<PersonalMark code={code} />}
+      mark={masked ? undefined : <PersonalMark code={code} />}
+      masked={masked}
       detail={sub}
       price={price ?? undefined}
       trailing={<span className={`mk-meta mk-meta--${tone}`}>{meta}</span>}

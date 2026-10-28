@@ -15,7 +15,7 @@ import { useLang } from "@/context/LangContext";
  * and the server-rendered markup is unchanged (no hydration mismatch).
  */
 const EMPTY: PersonalCodes = { portfolio: new Set(), watchlist: new Set() };
-const Ctx = createContext<PersonalCodes>(EMPTY);
+const Ctx = createContext<PersonalCodes | null>(null);
 
 export function PersonalCodesProvider({ children }: { children: ReactNode }) {
   const codes = usePersonalCodes();
@@ -23,7 +23,13 @@ export function PersonalCodesProvider({ children }: { children: ReactNode }) {
 }
 
 export function usePersonalCodesCtx(): PersonalCodes {
-  return useContext(Ctx);
+  return useContext(Ctx) ?? EMPTY;
+}
+
+/** True inside a `PersonalCodesProvider` — a part that needs the codes can
+ *  bring its own provider when the page has none (see `premium/LockPanel`). */
+export function useHasPersonalCodes(): boolean {
+  return useContext(Ctx) != null;
 }
 
 /**

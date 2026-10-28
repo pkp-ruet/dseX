@@ -1,7 +1,7 @@
 import { T } from "@/components/i18n/T";
 import DateGroup, { countByDate, groupByDate, splitGroups } from "@/components/dividend-calendar/DateGroup";
-import CalendarLock from "@/components/dividend-calendar/CalendarLock";
-import LockPanel from "@/components/dividend-calendar/LockPanel";
+import RowLock from "@/components/premium/RowLock";
+import LockPanel from "@/components/premium/LockPanel";
 import { CALENDAR_PREVIEW_ROWS, FREE_CALENDAR_ROWS, splitFree } from "@/lib/free-share";
 import type { CorporateActionEvent } from "@/lib/api";
 import SectionHeader from "@/components/ui/SectionHeader";
@@ -45,7 +45,7 @@ export default function AgmBoard({ events }: { events: CorporateActionEvent[] })
 
       <div className="dc-stack">{groups(freeGroups, "free")}</div>
       {locked.length > 0 && (
-        <CalendarLock
+        <RowLock
           className={`dc-gate ${cont ? "dc-gate--cont" : ""}`}
           preview={
             <div className="dc-stack">
@@ -66,11 +66,12 @@ export default function AgmBoard({ events }: { events: CorporateActionEvent[] })
               codes={locked.map((e) => e.trading_code)}
               count={locked.length}
               lock="Dividend calendar: AGMs"
+              what={{ en: "The full dividend calendar", bn: "পুরো ডিভিডেন্ড ক্যালেন্ডার" }}
             />
           }
         >
           <div className="dc-stack">{groups(lockedGroups, "locked")}</div>
-        </CalendarLock>
+        </RowLock>
       )}
     </section>
   );

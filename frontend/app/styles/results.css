@@ -91,12 +91,3 @@ a.rs-row:active { background: var(--surface-2); opacity: 0.85; }
 .rs-preview-count { display: flex; align-items: baseline; gap: 8px; }
 .rs-preview-n { font-size: var(--fs-2xl); font-weight: 700; line-height: 1; color: var(--text); font-variant-numeric: tabular-nums; }
 .rs-preview-rows { position: relative; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-lg); }
-.rs-preview-rows > ul { filter: blur(4px); pointer-events: none; user-select: none; }
-.rs-preview-badge {
-  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-}
-.rs-preview-badge > span {
-  display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
-  border: 1px solid var(--border); border-radius: 999px; background: var(--surface);
-  font-size: var(--fs-sm); font-weight: 600; color: var(--text);
-}

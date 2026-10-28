@@ -4,8 +4,10 @@ import Button from "@/components/ui/Button";
 import Sheet from "@/components/ui/Sheet";
 import Skeleton from "@/components/ui/Skeleton";
 import StockRow from "@/components/ui/StockRow";
-import { IconLock } from "@/components/ui/icons";
-import type { CustomListStock } from "@/lib/api";
+import SignalChip from "@/components/ui/SignalChip";
+import { T } from "@/components/i18n/T";
+import { strengthPair } from "@/lib/screener";
+import type { CustomListStock, ScreenerQuestion } from "@/lib/api";
 
 const PREVIEW_ROWS = 3;
 
@@ -13,7 +15,9 @@ const PREVIEW_ROWS = 3;
  * What a locked change would give a free reader (2026-10-27): tapping another
  * answer or another order runs that exact screen and shows the result here —
  * the count against today's, one plain line on what changed, and the first
- * three stocks blurred — with one button to the page's Premium section. A
+ * three stocks with the company hidden (the shared row-lock preview: their
+ * strengths and Buy chip shown) — with one button to the page's Premium
+ * section. A
  * sales sheet that shows the reader their own question answered, not a list
  * of features. Screen-only like every lock: the names are in the HTML.
  */
@@ -30,6 +34,7 @@ export default function ScreenerPreview({
   cta,
   ctaHref,
   onCta,
+  questions,
   t,
 }: {
   open: boolean;
@@ -47,6 +52,8 @@ export default function ScreenerPreview({
   cta: string;
   ctaHref: string;
   onCta: () => void;
+  /** For each stock's strength line. */
+  questions: ScreenerQuestion[];
   t: (en: string, bn: string) => string;
 }) {
   const rows = (stocks ?? []).slice(0, PREVIEW_ROWS);
@@ -86,26 +93,25 @@ export default function ScreenerPreview({
             </div>
 
             {rows.length > 0 ? (
-              <div className="relative overflow-hidden rounded-lg border border-border">
-                <ul aria-hidden className="pointer-events-none select-none blur-sm">
-                  {rows.map((s) => (
-                    <StockRow
-                      key={s.code}
-                      as="li"
-                      inset="card"
-                      code={s.code}
-                      name={s.name}
-                      price={s.price}
-                      change={s.change_pct}
-                    />
-                  ))}
+              <div className="overflow-hidden rounded-lg border border-border">
+                <ul className="divide-y divide-cell-rule">
+                  {rows.map((s) => {
+                    const strong = strengthPair(s.levels, questions);
+                    return (
+                      <StockRow
+                        key={s.code}
+                        as="li"
+                        inset="card"
+                        code={s.code}
+                        name={s.name}
+                        masked
+                        sub={strong.en ? <T en={strong.en} bn={strong.bn} /> : undefined}
+                        subClamp
+                        trailing={s.signal !== "none" ? <SignalChip signal={s.signal} size="sm" /> : undefined}
+                      />
+                    );
+                  })}
                 </ul>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-semibold text-text-main">
-                    <IconLock size={14} />
-                    {t("Premium", "প্রিমিয়াম")}
-                  </span>
-                </div>
               </div>
             ) : (
               <p className="text-sm text-text-muted">

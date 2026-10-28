@@ -118,7 +118,16 @@ export default function ResearchListView({ data, def }: { data: ResearchListDeta
             actions={[{ href: "/stock-insights", label: <T en="Other lists" bn="অন্য তালিকা" /> }]}
           />
         ) : (
-          <ResearchLock passed={data.passed} codes={data.stocks.map((s) => s.code)} checks={checks}>
+          <ResearchLock
+            passed={data.passed}
+            stocks={data.stocks}
+            checks={checks}
+            preview={
+              <div className="rl-cards">
+                <ResearchCard s={data.stocks[0]} masked />
+              </div>
+            }
+          >
             <div className="rl-cards">
               {data.stocks.map((s) => (
                 <ResearchCard key={s.code} s={s} />

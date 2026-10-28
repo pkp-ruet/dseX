@@ -1,8 +1,8 @@
 import { T } from "@/components/i18n/T";
 import DateGroup, { countByDate, groupByDate, splitGroups } from "@/components/dividend-calendar/DateGroup";
 import DividendRow from "@/components/dividend-calendar/DividendRow";
-import CalendarLock from "@/components/dividend-calendar/CalendarLock";
-import LockPanel, { type LockTile } from "@/components/dividend-calendar/LockPanel";
+import RowLock from "@/components/premium/RowLock";
+import LockPanel, { type LockTile } from "@/components/premium/LockPanel";
 import { perShareTk } from "@/components/dividend-calendar/DividendRow";
 import { CALENDAR_PREVIEW_ROWS, FREE_CALENDAR_ROWS, splitFree } from "@/lib/free-share";
 import { pct } from "@/lib/formatters";
@@ -113,7 +113,7 @@ export default function RecordDateBoard({ events }: { events: CorporateActionEve
           )}
 
           {locked > 0 && (
-            <CalendarLock
+            <RowLock
               className={`dc-gate ${cont ? "dc-gate--cont" : ""}`}
               preview={previewGroups.length > 0 ? <div className="dc-stack">{groups(previewGroups, "locked", true)}</div> : null}
               panel={
@@ -131,6 +131,7 @@ export default function RecordDateBoard({ events }: { events: CorporateActionEve
                   codes={lockedRows.map((e) => e.trading_code)}
                   count={locked}
                   lock="Dividend calendar: record dates"
+                  what={{ en: "The full dividend calendar", bn: "পুরো ডিভিডেন্ড ক্যালেন্ডার" }}
                 />
               }
             >
@@ -141,7 +142,7 @@ export default function RecordDateBoard({ events }: { events: CorporateActionEve
                   {plainList(lockedNonPaying)}
                 </>
               )}
-            </CalendarLock>
+            </RowLock>
           )}
         </>
       )}

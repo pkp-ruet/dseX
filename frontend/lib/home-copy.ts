@@ -298,9 +298,8 @@ const COPY = {
   forYouAddWatchlist: ["Build a watchlist", "ওয়াচলিস্ট বানান"],
   forYouAddPortfolio: ["Add your portfolio", "পোর্টফোলিও যোগ করুন"],
   forYouLockLabel: ["The rest of your picks", "আপনার বাকি বাছাই"],
-  forYouStakesMore: ["{n} more picks for you today", "আজ আপনার জন্য আরও {n}টি বাছাই"],
-  forYouStakesMine: ["{n} of them tied to stocks you own or follow", "এর মধ্যে {n}টি আপনার কেনা বা ফলো করা শেয়ারের সাথে যুক্ত"],
-  forYouStakesStrong: ["{n} of them Strong picks", "এর মধ্যে {n}টি জোরালো বাছাই"],
+  forYouLockLine: ["See the companies behind {n} more picks for you", "আপনার জন্য বাছাই করা আরও {n}টি শেয়ারের কোম্পানি দেখুন"],
+  forYouLockLineStrong: ["See the companies behind {n} more picks for you, {s} of them Strong picks", "আপনার জন্য বাছাই করা আরও {n}টি শেয়ারের কোম্পানি দেখুন, এর {s}টি জোরালো বাছাই"],
 
   // Explore / learn
   exploreMarket: ["Explore the market", "বাজার ঘুরে দেখুন"],

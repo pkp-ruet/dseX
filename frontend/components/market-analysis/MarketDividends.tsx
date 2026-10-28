@@ -1,124 +1,63 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import DividendPromo from "@/components/premium/DividendPromo";
-import { useLang } from "@/context/LangContext";
 import type { MarketDividendEvent } from "@/lib/api";
 import { isoLocal, recordDateInfo, todayDhaka } from "@/lib/dividend-dates";
 import { formatDate } from "@/lib/formatters";
 import { bnDate } from "@/lib/bn";
 import { T } from "@/components/i18n/T";
-import { usePremium } from "@/lib/premium";
+import RowLock from "@/components/premium/RowLock";
+import LockPanel, { type Pair } from "@/components/premium/LockPanel";
+import { CALENDAR_PREVIEW_ROWS } from "@/lib/free-share";
 import MarketRow, { type RowTone } from "./MarketRow";
 import MkCard from "./MkCard";
-import { usePersonalCodesCtx } from "./PersonalCodes";
 import ShowMore from "./ShowMore";
 
 /**
- * "Money coming" (2026-10-25: replaced the free "Cash coming your way soon"
- * list). Everyone who isn't Premium gets the dividend-calendar promotion with
- * their own stakes — how many record dates are coming and how many are on
- * their own stocks; Premium readers get the rows, the calendar they paid for.
- * Server render + first paint are the promotion (the server knows no user).
+ * "Money coming": dividends coming up, market-wide. The rows are Premium
+ * (2026-10-25: replaced the free "Cash coming your way soon" list). Since
+ * 2026-10-28 a free reader sees the shared row lock instead of a promotion
+ * card: the first rows with the company hidden — the cash a share, the yield,
+ * the record date and the last day to buy all shown — then one line saying
+ * how many dividends are behind it and how many are their own stocks. The
+ * real rows stay in the HTML (screen-only); a Premium reader gets them all.
  */
 export default function MarketDividends({ items }: { items: MarketDividendEvent[] }) {
-  const { isPremium } = usePremium();
-  const { bn } = useLang();
-  const { portfolio, watchlist } = usePersonalCodesCtx();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
-  if (mounted && isPremium) return <DividendRows items={items} />;
-
   const today = todayDhaka();
+  const row = (d: MarketDividendEvent, masked = false) => {
+    const r = dividendRow(d, today);
+    return (
+      <MarketRow
+        key={`${d.trading_code}-${d.date}`}
+        code={d.trading_code}
+        name={d.company_name}
+        sector={d.sector}
+        price={d.last_price}
+        masked={masked}
+        meta={<T en={r.meta.en} bn={r.meta.bn} />}
+        tone={r.tone}
+        sub={
+          <>
+            {r.cash && (
+              <span className="block font-semibold text-text-main">
+                <T en={r.cash.en} bn={r.cash.bn} />
+              </span>
+            )}
+            <span className="block">
+              <T en={r.dates.en} bn={r.dates.bn} />
+            </span>
+          </>
+        }
+      />
+    );
+  };
   const open = items.filter((d) => {
     if (d.kind !== "record") return false;
     const info = recordDateInfo(d.date, today);
     return !info || info.buyDaysLeft >= 0;
-  });
-  const declared = items.filter((d) => d.kind === "declared").length;
-  const mine = new Set<string>([...portfolio, ...watchlist]);
-  const yours = new Set(items.map((d) => d.trading_code.toUpperCase()).filter((c) => mine.has(c))).size;
+  }).length;
+  const n = items.length;
 
-  const stakes = [
-    open.length > 0
-      ? bn
-        ? `সামনে ${open.length}টি কোম্পানির রেকর্ড ডেট, যার জন্য এখনো কেনা যায়`
-        : `${open.length} record ${open.length === 1 ? "date is" : "dates are"} coming that you can still buy for`
-      : null,
-    yours > 0
-      ? bn
-        ? `এর মধ্যে ${yours}টি আপনার শেয়ার`
-        : `${yours} of them ${yours === 1 ? "is" : "are"} on your own shares`
-      : null,
-    declared > 0
-      ? bn
-        ? `${declared}টি নতুন ঘোষণা`
-        : `${declared} new ${declared === 1 ? "declaration" : "declarations"}`
-      : null,
-  ].filter((s): s is string => !!s);
-
-  return <DividendPromo stakes={stakes} />;
-}
-
-/** One dividend event → the row's figure, tone and detail lines, in the
- *  reader's language (these rows show only after mount, for Premium readers).
- *  Days are counted from the Dhaka calendar date, with the same buy-by
- *  arithmetic as the stock page and /dividend-calendar. */
-function dividendRow(d: MarketDividendEvent, today: Date, bn: boolean) {
-  const day = (iso: string) => (bn ? bnDate(iso) : formatDate(iso));
-  let meta: string;
-  let tone: RowTone;
-  let dates: string;
-  if (d.kind === "record") {
-    const info = recordDateInfo(d.date, today);
-    if (info) {
-      if (info.buyDaysLeft > 0) {
-        meta = bn
-          ? `কেনার আর ${info.buyDaysLeft} দিন বাকি`
-          : `${info.buyDaysLeft} day${info.buyDaysLeft === 1 ? "" : "s"} left to buy`;
-        tone = info.buyDaysLeft <= 3 ? "neg" : "pos";
-      } else if (info.buyDaysLeft === 0) {
-        meta = bn ? "আজ কেনার শেষ দিন" : "Last day to buy";
-        tone = "neg";
-      } else {
-        meta = bn ? "কেনার সময় শেষ" : "Too late to buy";
-        tone = "neutral";
-      }
-      dates = bn
-        ? `রেকর্ড ডেট ${day(d.date)} · কিনতে হবে ${day(isoLocal(info.buyBy))}-এর মধ্যে`
-        : `Record date ${day(d.date)} · buy by ${day(isoLocal(info.buyBy))}`;
-    } else {
-      meta = bn ? "রেকর্ড ডেট ঠিক হয়েছে" : "Record date set";
-      tone = "pos";
-      dates = bn ? `রেকর্ড ডেট ${day(d.date)}` : `Record date ${day(d.date)}`;
-    }
-  } else {
-    meta = bn ? "সবে ঘোষণা" : "Just announced";
-    tone = "accent";
-    dates = bn
-      ? `ঘোষণা ${day(d.date)} · রেকর্ড ডেট এখনো ঠিক হয়নি`
-      : `Announced ${day(d.date)} · record date not set yet`;
-  }
-
-  let cash: string | null = null;
-  if (d.cash_per_share != null && d.cash_per_share >= 0.05) {
-    const ps = d.cash_per_share % 1 === 0 ? d.cash_per_share : d.cash_per_share.toFixed(2);
-    cash = bn ? `শেয়ারপ্রতি ৳${ps}` : `৳${ps} per share`;
-    if (d.yield_pct != null && d.yield_pct > 0)
-      cash += bn ? ` · আজকের দামে ${d.yield_pct.toFixed(1)}%` : ` · ${d.yield_pct.toFixed(1)}% at today's price`;
-  } else if (d.stock_pct != null && d.stock_pct > 0) {
-    const pct = d.stock_pct % 1 === 0 ? d.stock_pct : d.stock_pct.toFixed(1);
-    cash = bn ? `${pct}% বোনাস শেয়ার` : `${pct}% bonus shares`;
-  }
-
-  return { meta, tone, cash, dates };
-}
-
-function DividendRows({ items }: { items: MarketDividendEvent[] }) {
-  const today = todayDhaka();
-  const { bn } = useLang();
   return (
     <MkCard
       title={<T en="Dividends coming soon" bn="সামনের ডিভিডেন্ড" />}
@@ -134,38 +73,100 @@ function DividendRows({ items }: { items: MarketDividendEvent[] }) {
         </Link>
       }
     >
-      {items.length === 0 ? (
+      {n === 0 ? (
         <p className="mk-empty">
           <T en="No dividend dates are coming up right now." bn="এই মুহূর্তে সামনে কোনো ডিভিডেন্ডের তারিখ নেই।" />
         </p>
       ) : (
-        <ShowMore
-          initial={4}
-          noun="dividends"
-          nounBn="ডিভিডেন্ড"
-          className="mk-rows"
-          rows={items.map((d) => {
-            const r = dividendRow(d, today, bn);
-            return (
-              <MarketRow
-                key={`${d.trading_code}-${d.date}`}
-                code={d.trading_code}
-                name={d.company_name}
-                sector={d.sector}
-                price={d.last_price}
-                meta={r.meta}
-                tone={r.tone}
-                sub={
-                  <>
-                    {r.cash && <span className="block font-semibold text-text-main">{r.cash}</span>}
-                    <span className="block">{r.dates}</span>
-                  </>
-                }
-              />
-            );
-          })}
-        />
+        <RowLock
+          preview={<div className="mk-rows">{items.slice(0, CALENDAR_PREVIEW_ROWS.market).map((d) => row(d, true))}</div>}
+          panel={
+            <LockPanel
+              title={
+                open > 0
+                  ? {
+                      en: `See the companies behind ${n} coming ${n === 1 ? "dividend" : "dividends"}, ${open} you can still buy for`,
+                      bn: `সামনের ${n}টি ডিভিডেন্ডের কোম্পানি দেখুন, এর ${open}টির জন্য এখনো কেনা যায়`,
+                    }
+                  : {
+                      en: `See the companies behind ${n} coming ${n === 1 ? "dividend" : "dividends"}`,
+                      bn: `সামনের ${n}টি ডিভিডেন্ডের কোম্পানি দেখুন`,
+                    }
+              }
+              codes={items.map((d) => d.trading_code)}
+              count={n}
+              lock="Market analysis: money coming"
+              what={{ en: "The full dividend calendar", bn: "পুরো ডিভিডেন্ড ক্যালেন্ডার" }}
+            />
+          }
+        >
+          <ShowMore initial={4} noun="dividends" nounBn="ডিভিডেন্ড" className="mk-rows" rows={items.map((d) => row(d))} />
+        </RowLock>
       )}
     </MkCard>
   );
+}
+
+/** One dividend event → the row's figure, tone and detail lines, in both
+ *  languages (the rows are server-rendered now, so no language ternaries).
+ *  Days are counted from the Dhaka calendar date, with the same buy-by
+ *  arithmetic as the stock page and /dividend-calendar. */
+function dividendRow(d: MarketDividendEvent, today: Date) {
+  const day = (iso: string): Pair => ({ en: formatDate(iso), bn: bnDate(iso) || formatDate(iso) });
+  let meta: Pair;
+  let tone: RowTone;
+  let dates: Pair;
+  if (d.kind === "record") {
+    const info = recordDateInfo(d.date, today);
+    const rec = day(d.date);
+    if (info) {
+      const by = day(isoLocal(info.buyBy));
+      if (info.buyDaysLeft > 0) {
+        meta = {
+          en: `${info.buyDaysLeft} day${info.buyDaysLeft === 1 ? "" : "s"} left to buy`,
+          bn: `কেনার আর ${info.buyDaysLeft} দিন বাকি`,
+        };
+        tone = info.buyDaysLeft <= 3 ? "neg" : "pos";
+      } else if (info.buyDaysLeft === 0) {
+        meta = { en: "Last day to buy", bn: "আজ কেনার শেষ দিন" };
+        tone = "neg";
+      } else {
+        meta = { en: "Too late to buy", bn: "কেনার সময় শেষ" };
+        tone = "neutral";
+      }
+      dates = {
+        en: `Record date ${rec.en} · buy by ${by.en}`,
+        bn: `রেকর্ড ডেট ${rec.bn} · কিনতে হবে ${by.bn}-এর মধ্যে`,
+      };
+    } else {
+      meta = { en: "Record date set", bn: "রেকর্ড ডেট ঠিক হয়েছে" };
+      tone = "pos";
+      dates = { en: `Record date ${rec.en}`, bn: `রেকর্ড ডেট ${rec.bn}` };
+    }
+  } else {
+    const ann = day(d.date);
+    meta = { en: "Just announced", bn: "সবে ঘোষণা" };
+    tone = "accent";
+    dates = {
+      en: `Announced ${ann.en} · record date not set yet`,
+      bn: `ঘোষণা ${ann.bn} · রেকর্ড ডেট এখনো ঠিক হয়নি`,
+    };
+  }
+
+  let cash: Pair | null = null;
+  if (d.cash_per_share != null && d.cash_per_share >= 0.05) {
+    const ps = d.cash_per_share % 1 === 0 ? d.cash_per_share : d.cash_per_share.toFixed(2);
+    cash = { en: `৳${ps} per share`, bn: `শেয়ারপ্রতি ৳${ps}` };
+    if (d.yield_pct != null && d.yield_pct > 0) {
+      cash = {
+        en: `${cash.en} · ${d.yield_pct.toFixed(1)}% at today's price`,
+        bn: `${cash.bn} · আজকের দামে ${d.yield_pct.toFixed(1)}%`,
+      };
+    }
+  } else if (d.stock_pct != null && d.stock_pct > 0) {
+    const pct = d.stock_pct % 1 === 0 ? d.stock_pct : d.stock_pct.toFixed(1);
+    cash = { en: `${pct}% bonus shares`, bn: `${pct}% বোনাস শেয়ার` };
+  }
+
+  return { meta, tone, cash, dates };
 }

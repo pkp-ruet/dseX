@@ -1,7 +1,7 @@
 import { T } from "@/components/i18n/T";
 import DividendRow from "@/components/dividend-calendar/DividendRow";
-import CalendarLock from "@/components/dividend-calendar/CalendarLock";
-import LockPanel from "@/components/dividend-calendar/LockPanel";
+import RowLock from "@/components/premium/RowLock";
+import LockPanel from "@/components/premium/LockPanel";
 import { CALENDAR_PREVIEW_ROWS, FREE_CALENDAR_ROWS, splitFree } from "@/lib/free-share";
 import { pct } from "@/lib/formatters";
 import type { CorporateActionEvent } from "@/lib/api";
@@ -44,7 +44,7 @@ export default function TopCashDividends({ events }: { events: CorporateActionEv
         {free.map((e, i) => row(e, i + 1))}
         {locked.length > 0 && (
           <li className="dc-gate-li">
-            <CalendarLock
+            <RowLock
               preview={
                 <ul className="dc-list">
                   {locked.slice(0, CALENDAR_PREVIEW_ROWS.topCash).map((e, i) => row(e, free.length + i + 1, true))}
@@ -66,11 +66,12 @@ export default function TopCashDividends({ events }: { events: CorporateActionEv
                   codes={locked.map((e) => e.trading_code)}
                   count={locked.length}
                   lock="Dividend calendar: biggest cash"
+                  what={{ en: "The full dividend calendar", bn: "পুরো ডিভিডেন্ড ক্যালেন্ডার" }}
                 />
               }
             >
               <ol className="dc-list">{locked.map((e, i) => row(e, free.length + i + 1))}</ol>
-            </CalendarLock>
+            </RowLock>
           </li>
         )}
       </ol>

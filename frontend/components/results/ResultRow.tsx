@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { LatestResultRow } from "@/lib/api";
 import { T } from "@/components/i18n/T";
+import MaskedName from "@/components/premium/MaskedName";
 import { PersonalMark } from "@/components/market-analysis/PersonalCodes";
 import { RESULT_LEVEL, epsTk, quarterLabel, resultMove } from "@/lib/results";
 
@@ -12,14 +13,16 @@ import { RESULT_LEVEL, epsTk, quarterLabel, resultMove } from "@/lib/results";
  * the level (dot + word), ticker and which report, then "EPS ৳2.10 · a year
  * ago ৳1.80" (labelled — a bare "৳2.10 · was ৳1.80" didn't say what it was);
  * on the right the profit move leads ("+17%", or words for a loss). Taps through to the stock page's results card.
- * `still` renders a plain block (the blurred rows in the locked-filter preview).
+ * `masked` = a free reader's preview of a locked row (premium/RowLock, the
+ * locked-filter preview): level, quarter, EPS and the move shown, the company
+ * hidden; a plain block, not a link.
  * `mark` replaces the page's H / ★ tag (the dashboard passes its `OwnerMark`,
  * which reads the bundle's sets instead of `PersonalCodesProvider`).
  * Also the rows of the dashboard's results card (`ResultsPromoCard`).
  */
 export default function ResultRow({
-  r, still = false, mark,
-}: { r: LatestResultRow; still?: boolean; mark?: ReactNode }) {
+  r, masked = false, mark,
+}: { r: LatestResultRow; masked?: boolean; mark?: ReactNode }) {
   const lv = RESULT_LEVEL[r.level];
   const move = resultMove(r);
   const q = quarterLabel(r);
@@ -28,15 +31,19 @@ export default function ResultRow({
   const body = (
     <>
       <span className="min-w-0">
-        <span className="rs-name">{r.name}</span>
+        {masked ? <MaskedName name={r.name} /> : <span className="rs-name">{r.name}</span>}
         <span className="rs-meta">
           <span className={`rs-level rs-lv--${r.level}`}>
             <span className="rs-dot" aria-hidden="true" />
             <T en={lv.short} bn={lv.shortBn} />
           </span>
-          <span className="rs-sep" aria-hidden="true">·</span>
-          <span className="rs-code">{r.code}</span>
-          {mark !== undefined ? mark : <PersonalMark code={r.code} />}
+          {!masked && (
+            <>
+              <span className="rs-sep" aria-hidden="true">·</span>
+              <span className="rs-code">{r.code}</span>
+              {mark !== undefined ? mark : <PersonalMark code={r.code} />}
+            </>
+          )}
           <span className="rs-sep" aria-hidden="true">·</span>
           <T en={q.en} bn={q.bn} />
         </span>
@@ -66,7 +73,7 @@ export default function ResultRow({
     </>
   );
 
-  if (still) return <div className="rs-row">{body}</div>;
+  if (masked) return <div className="rs-row">{body}</div>;
   return (
     <Link href={`/stock/${encodeURIComponent(r.code)}#results`} className="rs-row">
       {body}

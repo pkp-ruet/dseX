@@ -4,11 +4,13 @@ import type { ResearchStock } from "@/lib/api";
 import { changePct, changeTone, money, takaGroup } from "@/lib/formatters";
 import { getTier, TIER_LABELS, TIER_LABELS_BN } from "@/lib/constants";
 import { T } from "@/components/i18n/T";
+import { sectorBn } from "@/lib/bn";
 import ScoreBadge from "@/components/ui/ScoreBadge";
 import SignalChip from "@/components/ui/SignalChip";
 import Stat from "@/components/ui/Stat";
 import { StockRank } from "@/components/ui/StockRow";
 import { PersonalMark } from "@/components/market-analysis/PersonalCodes";
+import MaskedName from "@/components/premium/MaskedName";
 import { IconAlert, IconArrowRight, IconCheck } from "@/components/ui/icons";
 
 const STANCE: Record<string, { en: string; bn: string; tone: string }> = {
@@ -36,9 +38,10 @@ function FairValueBar({ low, high, price }: { low: number; high: number; price: 
  * could go wrong, then its own number on every check (folded). Every card is
  * Premium — the page puts them all behind one lock (ResearchLock). Every line
  * is a `<T>` pair, so the card renders in the reader's language from the
- * first paint.
+ * first paint. `masked` = the lock's preview: the same card with the company,
+ * its ticker, price and fair-value bar (they would name it) hidden.
  */
-export default function ResearchCard({ s }: { s: ResearchStock }) {
+export default function ResearchCard({ s, masked = false }: { s: ResearchStock; masked?: boolean }) {
   const tier = getTier(s.score);
   const fv = s.fair_value;
   const stance = fv?.stance ? STANCE[fv.stance] : null;
@@ -102,22 +105,35 @@ export default function ResearchCard({ s }: { s: ResearchStock }) {
     ) : null;
 
   return (
-    <article className="soft-card rl-card" id={`stock-${s.code}`}>
+    <article className="soft-card rl-card" id={masked ? undefined : `stock-${s.code}`}>
       <header className="rl-card-head">
         <StockRank n={s.rank} solid={s.rank <= 3} />
-        <div className="rl-card-ident">
-          <Link prefetch={false} href={`/stock/${s.code}`} className="rl-card-name">
-            {s.name || s.code}
-          </Link>
-          <span className="rl-card-code">
-            {s.code}
-            <PersonalMark code={s.code} />
-          </span>
-        </div>
-        <div className="rl-card-price">
-          <span className="nums text-base font-bold text-text-main">{money(s.price)}</span>
-          {s.change_pct != null && <span className={`nums text-xs font-semibold ${changeTone(s.change_pct)}`}>{changePct(s.change_pct)}</span>}
-        </div>
+        {masked ? (
+          <div className="rl-card-ident">
+            <MaskedName name={s.name} />
+            {s.sector && (
+              <span className="rl-card-code">
+                <T en={s.sector} bn={sectorBn(s.sector)} />
+              </span>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="rl-card-ident">
+              <Link prefetch={false} href={`/stock/${s.code}`} className="rl-card-name">
+                {s.name || s.code}
+              </Link>
+              <span className="rl-card-code">
+                {s.code}
+                <PersonalMark code={s.code} />
+              </span>
+            </div>
+            <div className="rl-card-price">
+              <span className="nums text-base font-bold text-text-main">{money(s.price)}</span>
+              {s.change_pct != null && <span className={`nums text-xs font-semibold ${changeTone(s.change_pct)}`}>{changePct(s.change_pct)}</span>}
+            </div>
+          </>
+        )}
       </header>
 
       <p className="rl-why">
@@ -132,7 +148,7 @@ export default function ResearchCard({ s }: { s: ResearchStock }) {
         <SignalChip signal={s.signal} strength={s.strength} />
       </div>
 
-      {fairValue}
+      {!masked && fairValue}
 
       {stats.length > 0 && (
         <div className={`rl-stats rl-stats--${stats.length}`}>
@@ -186,6 +202,7 @@ export default function ResearchCard({ s }: { s: ResearchStock }) {
         </ul>
       </details>
 
+      {!masked && (
       <footer className="rl-card-foot">
         <Link prefetch={false} href={`/stock/${s.code}`} className="btn-link">
           <T en="Share page" bn="শেয়ারের পেজ" /> <IconArrowRight size={14} />
@@ -196,6 +213,7 @@ export default function ResearchCard({ s }: { s: ResearchStock }) {
           </Link>
         )}
       </footer>
+      )}
     </article>
   );
 }

@@ -5,8 +5,7 @@ import { useEffect, useState } from "react";
 import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
 import { bnDate } from "@/lib/bn";
-import PremiumGate from "@/components/premium/PremiumGate";
-import { PageLockScope } from "@/components/premium/LockScope";
+import RowLock from "@/components/premium/RowLock";
 import { IconArrowRight, IconCheck, IconLock, IconStar } from "@/components/ui/icons";
 import type { MarketResearch, MarketResearchList } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
@@ -25,8 +24,9 @@ const ANCHOR = "ma-premium";
  * market first (replaced the four free lenses 2026-10-25: three of them were
  * rougher, free copies of these lists). Free: the idea, how many companies
  * pass today and how many did a month ago. Premium: which companies — each
- * card's names blur in place and point at the one promotion card below
- * (`#ma-premium`), the stock page's pattern.
+ * card shows its top three with the company hidden (the shared row-lock
+ * preview: the list's own number shown) and one quiet line pointing at the
+ * page's one promotion card below (`#ma-premium`).
  */
 export default function MarketResearchLists({ research }: { research: MarketResearch }) {
   const { portfolio, watchlist } = usePersonalCodesCtx();
@@ -37,7 +37,7 @@ export default function MarketResearchLists({ research }: { research: MarketRese
   if (!lead) return null;
 
   return (
-    <PageLockScope anchor={ANCHOR}>
+    <>
       <LeadCard list={lead} yours={yours(lead)} reason={[research.reason_en, research.reason_bn]} />
       {rest.length > 0 && (
         <div className="mk-rl-grid">
@@ -50,7 +50,7 @@ export default function MarketResearchLists({ research }: { research: MarketRese
         lists={research.lists}
         yours={new Set(research.lists.flatMap((l) => l.codes.filter((c) => mine.has(c.toUpperCase())))).size}
       />
-    </PageLockScope>
+    </>
   );
 }
 
@@ -99,7 +99,7 @@ function Count({ list, yours }: { list: MarketResearchList; yours: number }) {
   );
 }
 
-/** The list's top three — blurred for anyone not Premium (one line points at `#ma-premium`). */
+/** The list's top three — for anyone not Premium, with the company hidden (one line points at `#ma-premium`). */
 function Names({ list }: { list: MarketResearchList }) {
   const { lang } = useLang();
   if (list.top.length === 0)
@@ -108,6 +108,20 @@ function Names({ list }: { list: MarketResearchList }) {
         <T en="No company passes every check today." bn="আজ কোনো কোম্পানি সব যাচাই পেরোয়নি।" />
       </p>
     );
+  const row = (s: MarketResearchList["top"][number], masked = false) => {
+    const m = list.metric ? formatResearchMetric(list.metric, s.metric) : null;
+    return (
+      <MarketRow
+        key={s.code}
+        code={s.code}
+        name={s.name}
+        price={s.price}
+        masked={masked}
+        meta={m?.text ?? <T en="passes" bn="পেরিয়েছে" />}
+        tone="accent"
+      />
+    );
+  };
   return (
     <div className="mk-rl-names">
       {list.metric && (
@@ -118,27 +132,22 @@ function Names({ list }: { list: MarketResearchList }) {
           />
         </p>
       )}
-      <PremiumGate
-        label={{ en: "Which companies pass", bn: "কোন কোম্পানি পেরিয়েছে" }}
-        preview="blur"
-        peek={120}
+      <RowLock
+        preview={<div className="mk-rows">{list.top.map((s) => row(s, true))}</div>}
+        panel={
+          <a href={`#${ANCHOR}`} className="premium-inline-link">
+            <IconLock size={14} />
+            <span className="min-w-0 truncate">
+              <T en="Which companies these are" bn="এগুলো কোন কোম্পানি" />
+            </span>
+            <span className="shrink-0 font-semibold text-primary-ink">
+              <T en="In Premium" bn="প্রিমিয়ামে" />
+            </span>
+          </a>
+        }
       >
-        <div className="mk-rows">
-          {list.top.map((s) => {
-            const m = list.metric ? formatResearchMetric(list.metric, s.metric) : null;
-            return (
-              <MarketRow
-                key={s.code}
-                code={s.code}
-                name={s.name}
-                price={s.price}
-                meta={m?.text ?? <T en="passes" bn="পেরিয়েছে" />}
-                tone="accent"
-              />
-            );
-          })}
-        </div>
-      </PremiumGate>
+        <div className="mk-rows">{list.top.map((s) => row(s))}</div>
+      </RowLock>
     </div>
   );
 }
