@@ -265,6 +265,16 @@ export const IconSearch = (p: { size?: number }) => (
     <path d="m20 20-3.5-3.5" />
   </I>
 );
+export const IconClose = (p: { size?: number }) => (
+  <I {...p}>
+    <path d="M18 6 6 18M6 6l12 12" />
+  </I>
+);
+export const IconDownload = (p: { size?: number }) => (
+  <I {...p}>
+    <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+  </I>
+);
 export const IconBriefcase = (p: { size?: number }) => (
   <I {...p}>
     <rect x="3" y="7" width="18" height="13" rx="2" />

@@ -2,12 +2,23 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { openGlobalSearch } from "@/components/layout/GlobalSearch";
 import WatchlistDot from "@/components/watchlist/WatchlistDot";
 import InstallAppButton from "@/components/pwa/InstallAppButton";
-import { IconBriefcase, IconCrown, IconGrid, IconSearch, IconStar } from "@/components/ui/icons";
+import {
+  IconBell,
+  IconBriefcase,
+  IconChevron,
+  IconClose,
+  IconCrown,
+  IconDownload,
+  IconGrid,
+  IconSearch,
+  IconStar,
+} from "@/components/ui/icons";
+import Button from "@/components/ui/Button";
 import { userIsPremium } from "@/lib/premium";
 import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
@@ -29,7 +40,7 @@ export type NavItem = {
   subBn?: string;
   icon?: string;
 };
-export type NavGroup = { id: string; label: string; labelBn: string; accent?: string; items: NavItem[] };
+export type NavGroup = { id: string; label: string; labelBn: string; items: NavItem[] };
 
 /**
  * The ONE menu (mobile drawer = desktop panel; the footer mirrors it). Three
@@ -43,7 +54,6 @@ export const NAV_GROUPS: NavGroup[] = [
     id: "markets",
     label: "Markets",
     labelBn: "বাজার",
-    accent: "info",
     items: [
       { href: "/dse-today", label: "DSE today", labelBn: "আজকের DSE", sub: "Today's prices and biggest moves", subBn: "আজকের দাম আর বড় ওঠানামা", icon: "today" },
       { href: "/market-analysis", label: "Market analysis", labelBn: "বাজার বিশ্লেষণ", sub: "Is the market up or down, cheap or expensive?", subBn: "বাজার উঠছে না নামছে, দাম কম না বেশি", icon: "analysis" },
@@ -57,7 +67,6 @@ export const NAV_GROUPS: NavGroup[] = [
     id: "find",
     label: "Find stocks",
     labelBn: "শেয়ার খুঁজুন",
-    accent: "clay",
     items: [
       { href: "/dsestockranking", label: "Rankings", labelBn: "র‍্যাঙ্কিং", sub: "Every company, scored", subBn: "প্রতিটি কোম্পানির স্কোর", icon: "rankings" },
       { href: "/stocks", label: "All stocks", labelBn: "সব শেয়ার", sub: "The full A–Z list", subBn: "A থেকে Z পুরো তালিকা", icon: "browse" },
@@ -71,7 +80,6 @@ export const NAV_GROUPS: NavGroup[] = [
     id: "learn",
     label: "Learn",
     labelBn: "শিখুন",
-    accent: "gold",
     items: [
       { href: "/learn", label: "Guides", labelBn: "ইংরেজি গাইড", sub: "Step-by-step guides in English", subBn: "ইংরেজিতে ধাপে ধাপে গাইড", icon: "blog" },
       { href: "/blog", label: "Bangla blog", labelBn: "বাংলা ব্লগ", sub: "Beginner guides in Bengali", subBn: "নতুনদের জন্য সহজ গাইড", icon: "bangla" },
@@ -80,7 +88,25 @@ export const NAV_GROUPS: NavGroup[] = [
   },
 ];
 
-/** Compact stroke icons for the full-page mobile menu tiles. */
+/** The menu's quick-access shortcuts (the personal pages). */
+const QUICK: {
+  href: string;
+  en: string;
+  bn: string;
+  subEn: string;
+  subBn: string;
+  Icon: (p: { size?: number }) => ReactNode;
+}[] = [
+  { href: "/watchlist", en: "Watchlist", bn: "ওয়াচলিস্ট", subEn: "Stocks you follow", subBn: "যে শেয়ারগুলো আপনি দেখছেন", Icon: IconStar },
+  { href: "/portfolio", en: "Portfolio", bn: "পোর্টফোলিও", subEn: "Your shares and profit", subBn: "আপনার শেয়ার আর মুনাফা", Icon: IconBriefcase },
+  { href: "/alerts", en: "Price alerts", bn: "প্রাইস অ্যালার্ট", subEn: "A message when a price is hit", subBn: "দাম ছুঁলেই বার্তা পাবেন", Icon: IconBell },
+  { href: "/premium", en: "Premium", bn: "প্রিমিয়াম", subEn: "The reasons behind every number", subBn: "প্রতিটি সংখ্যার পেছনের কারণ", Icon: IconCrown },
+];
+
+/**
+ * Page icons for the menu rows — drawn on the ui/icons grid (24 units,
+ * `currentColor`, 2px stroke); kept here because only the menu uses them.
+ */
 function MenuIcon({ name }: { name?: string }) {
   const p = {
     width: 20,
@@ -88,7 +114,7 @@ function MenuIcon({ name }: { name?: string }) {
     viewBox: "0 0 24 24",
     fill: "none",
     stroke: "currentColor",
-    strokeWidth: 1.7,
+    strokeWidth: 2,
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
     "aria-hidden": true,
@@ -96,22 +122,14 @@ function MenuIcon({ name }: { name?: string }) {
   switch (name) {
     case "today":
       return <svg {...p}><path d="M6 20v-5M12 20V8M18 20v-9" /><path d="M4 20h16" /></svg>;
-    case "news":
-      return <svg {...p}><path d="M4 5h13v14H6a2 2 0 0 1-2-2V5Z" /><path d="M17 8h3v9a2 2 0 0 1-2 2" /><path d="M7 9h7M7 13h7M7 16h4" /></svg>;
     case "analysis":
       return <svg {...p}><path d="M3 12h4l2 6 4-14 2 8h6" /></svg>;
-    case "top20":
-      return <svg {...p}><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z" /><path d="M17 5h2.5a1.5 1.5 0 0 1 0 5H17M7 5H4.5a1.5 1.5 0 0 0 0 5H7" /></svg>;
-    case "popular":
-      return <svg {...p}><path d="M12 3c1.5 3 4 4 4 7a4 4 0 0 1-8 0c0-1 .4-2 1-2.5C9 9 12 6 12 3Z" /><path d="M12 21a6 6 0 0 0 6-6c0-3-2-5-3.5-7 .3 1.5-.5 3-2.5 4-1.5.8-2 2-2 3a2.5 2.5 0 0 0 2 2.5" /></svg>;
     case "ai":
       return <svg {...p}><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3Z" /><path d="M18.5 15l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z" /></svg>;
     case "signals":
       return <svg {...p}><path d="M7 3v18M7 3l-3 4M7 3l3 4" /><path d="M17 21V3M17 21l-3-4M17 21l3-4" /></svg>;
     case "rankings":
       return <svg {...p}><path d="M9 6h11M9 12h11M9 18h11" /><circle cx="4.5" cy="6" r="1.1" /><circle cx="4.5" cy="12" r="1.1" /><circle cx="4.5" cy="18" r="1.1" /></svg>;
-    case "tips":
-      return <svg {...p}><path d="M9 18h6M10 21h4" /><path d="M15 14c.2-1 .8-1.7 1.5-2.4A5 5 0 1 0 7.5 11.6c.7.7 1.3 1.4 1.5 2.4" /></svg>;
     case "sectors":
       return <svg {...p}><rect x="3" y="3" width="8" height="8" rx="1.5" /><rect x="13" y="3" width="8" height="5" rx="1.5" /><rect x="3" y="13" width="8" height="8" rx="1.5" /><rect x="13" y="10" width="8" height="11" rx="1.5" /></svg>;
     case "results":
@@ -130,18 +148,6 @@ function MenuIcon({ name }: { name?: string }) {
       return <svg {...p}><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z" /></svg>;
     case "about":
       return <svg {...p}><circle cx="12" cy="12" r="9" /><path d="M12 16v-4M12 8h.01" /></svg>;
-    case "star":
-      return <svg {...p}><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 17l-5.2 2.6 1-5.8-4.3-4.1 5.9-.9L12 3.5Z" /></svg>;
-    case "portfolio":
-      return <svg {...p}><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18" /></svg>;
-    case "bell":
-      return <svg {...p}><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7 2.5 7h-17S6 15 6 9Z" /><path d="M10.5 20a1.8 1.8 0 0 0 3 0" /></svg>;
-    case "premium":
-      return <svg {...p}><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5L3 8Z" /></svg>;
-    case "search":
-      return <svg {...p}><circle cx="11" cy="11" r="7" /><path d="m20 20-3-3" /></svg>;
-    case "chevron":
-      return <svg {...p}><path d="m9 6 6 6-6 6" /></svg>;
     default:
       return <svg {...p}><circle cx="12" cy="12" r="9" /></svg>;
   }
@@ -157,15 +163,21 @@ export default function Navbar() {
 
   const isWatchlist = pathname === "/watchlist";
   const isPortfolio = pathname === "/portfolio";
-  const isAlerts = pathname === "/alerts";
+  const searchRef = useRef<HTMLButtonElement>(null);
 
   const isItemActive = (href: string) =>
     pathname === href || (href !== "/" && pathname.startsWith(href + "/"));
+  const closeMenu = () => setMenuOpen(false);
 
   // Close the menu on route change
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
+
+  // Keyboard users land inside the menu, on its first control (search).
+  useEffect(() => {
+    if (menuOpen) searchRef.current?.focus({ preventScroll: true });
+  }, [menuOpen]);
 
   // Close the menu on Escape
   useEffect(() => {
@@ -338,7 +350,12 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* Full menu — mobile: full-screen sheet · desktop: centered mega-panel */}
+      {/* The menu (2026-10-28) — phones: a full-screen white sheet · desktop: a
+          panel that drops under the navbar. No tiles in boxes: search first,
+          then your account, four shortcuts, then the three groups as plain
+          rows (icon · name · one line on what it is). The page you are on
+          wears the navbar's current-page fill. On desktop the groups sit in
+          three columns. Styles: app/styles/nav.css → "Menu". */}
       <div
         id="mobile-menu"
         className={`mobile-menu${menuOpen ? " open" : ""}`}
@@ -348,187 +365,183 @@ export default function Navbar() {
         aria-modal="true"
         aria-label={bn ? "মেনু" : "Menu"}
         onClick={(e) => {
-          // Backdrop click (desktop mega-panel) closes; panel clicks don't.
-          if (e.target === e.currentTarget) setMenuOpen(false);
+          // Backdrop click (desktop panel) closes; panel clicks don't.
+          if (e.target === e.currentTarget) closeMenu();
         }}
       >
         <div className="mobile-menu-panel">
-        <div className="mobile-menu-header">
-          <Link
-            href="/"
-            className="mobile-menu-brand"
-            onClick={() => setMenuOpen(false)}
-            aria-label={bn ? "TopStockBD — হোম" : "TopStockBD — Home"}
-          >
-            <span>TopStock<b>BD</b></span>
-          </Link>
-          {/* Desktop panel shows "Menu" instead of the brand (the launcher button already says Explore) */}
-          <span className="mobile-menu-title" aria-hidden="true">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            <T en="Menu" bn="মেনু" />
-          </span>
-          <button
-            className="mobile-menu-close"
-            onClick={() => setMenuOpen(false)}
-            aria-label={bn ? "মেনু বন্ধ করুন" : "Close menu"}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-            </svg>
-          </button>
-        </div>
-
-        <div className="mobile-menu-body">
-          {/* Search — top priority, opens global search */}
-          <button
-            type="button"
-            className="mobile-menu-search"
-            onClick={() => {
-              setMenuOpen(false);
-              openGlobalSearch();
-            }}
-          >
-            <MenuIcon name="search" />
-            <span>
-              <T en="Search any stock or company…" bn="যেকোনো শেয়ার বা কোম্পানি খুঁজুন…" />
-            </span>
-          </button>
-
-          {/* Account */}
-          {isLoggedIn ? (
+          <div className="mobile-menu-header">
             <Link
-              href="/profile"
-              className="mobile-menu-account"
-              onClick={() => setMenuOpen(false)}
+              href="/"
+              className="mobile-menu-brand"
+              onClick={closeMenu}
+              aria-label={bn ? "TopStockBD — হোম" : "TopStockBD — Home"}
             >
-              <span className="mobile-menu-account-avatar" aria-hidden="true">
-                {(user?.display_name ?? "U")[0].toUpperCase()}
+              TopStock<span>BD</span>
+            </Link>
+            {/* Desktop shows "Menu" instead of the brand (the navbar's brand is right above it). */}
+            <span className="mobile-menu-title" aria-hidden="true">
+              <T en="Menu" bn="মেনু" />
+            </span>
+            <button
+              type="button"
+              className="mobile-menu-close"
+              onClick={closeMenu}
+              aria-label={bn ? "মেনু বন্ধ করুন" : "Close menu"}
+            >
+              <IconClose size={20} />
+            </button>
+          </div>
+
+          <div className="mobile-menu-body">
+            {/* Search first — it finds stocks, companies and pages. */}
+            <button
+              ref={searchRef}
+              type="button"
+              className="mobile-menu-search"
+              onClick={() => {
+                closeMenu();
+                openGlobalSearch();
+              }}
+            >
+              <IconSearch size={20} />
+              <span className="mobile-menu-search-text">
+                <T en="Search a stock, company or page" bn="শেয়ার, কোম্পানি বা পেজ খুঁজুন" />
               </span>
-              <span className="mobile-menu-account-text">
-                <span className="mobile-menu-account-name">
-                  {user?.display_name ?? <T en="My profile" bn="আমার প্রোফাইল" />}
-                </span>
-                <span className="mobile-menu-account-sub">
-                  {premium ? (
-                    <T en="Premium · profile and settings" bn="প্রিমিয়াম · প্রোফাইল ও সেটিংস" />
-                  ) : (
-                    <T en="Your profile and settings" bn="আপনার প্রোফাইল ও সেটিংস" />
+              <kbd className="kbd-hint" aria-hidden="true">/</kbd>
+            </button>
+
+            {/* Account */}
+            {isLoggedIn ? (
+              <Link
+                href="/profile"
+                className="mobile-menu-account"
+                aria-current={pathname === "/profile" ? "page" : undefined}
+                onClick={closeMenu}
+              >
+                <span className="mobile-menu-account-avatar" aria-hidden="true">
+                  {(user?.display_name ?? "U")[0].toUpperCase()}
+                  {premium && (
+                    <span className="navbar-premium-badge">
+                      <IconCrown size={10} />
+                    </span>
                   )}
                 </span>
-              </span>
-              <MenuIcon name="chevron" />
-            </Link>
-          ) : (
-            <div className="mobile-menu-auth">
-              <Link
-                href="/login"
-                className="mobile-menu-auth-btn ghost"
-                onClick={() => setMenuOpen(false)}
-              >
-                <T en="Sign in" bn="সাইন ইন" />
+                <span className="mobile-menu-account-text">
+                  <span className="mobile-menu-account-name">
+                    {user?.display_name ?? <T en="My profile" bn="আমার প্রোফাইল" />}
+                  </span>
+                  <span className="mobile-menu-account-sub">
+                    {premium ? (
+                      <T en="Premium · profile and settings" bn="প্রিমিয়াম · প্রোফাইল ও সেটিংস" />
+                    ) : (
+                      <T en="Your profile and settings" bn="আপনার প্রোফাইল ও সেটিংস" />
+                    )}
+                  </span>
+                </span>
+                <IconChevron size={16} />
               </Link>
-              <Link
-                href="/register"
-                className="mobile-menu-auth-btn solid"
-                onClick={() => setMenuOpen(false)}
-              >
-                <T en="Sign up" bn="অ্যাকাউন্ট খুলুন" />
-              </Link>
-            </div>
-          )}
+            ) : (
+              <div className="mobile-menu-auth">
+                <Button href="/login" variant="quiet" size="lg" block onClick={closeMenu}>
+                  <T en="Sign in" bn="সাইন ইন" />
+                </Button>
+                <Button href="/register" variant="primary" size="lg" block onClick={closeMenu}>
+                  <T en="Sign up" bn="অ্যাকাউন্ট খুলুন" />
+                </Button>
+              </div>
+            )}
 
-          {/* Quick access — the personal, frequently-used shortcuts */}
-          <section className="mobile-menu-section">
-            <span className="mobile-menu-section-label">
-              <T en="Quick access" bn="দ্রুত যান" />
-            </span>
-            <div className="mobile-menu-quick">
-              <Link
-                href="/watchlist"
-                className={`mobile-menu-quick-item${isWatchlist ? " active" : ""}`}
-                onClick={() => setMenuOpen(false)}
-              >
-                <span className="mobile-menu-quick-icon relative">
-                  <MenuIcon name="star" />
-                  <WatchlistDot />
-                </span>
-                <T en="Watchlist" bn="ওয়াচলিস্ট" />
-              </Link>
-              <Link
-                href="/portfolio"
-                className={`mobile-menu-quick-item${isPortfolio ? " active" : ""}`}
-                onClick={() => setMenuOpen(false)}
-              >
-                <span className="mobile-menu-quick-icon">
-                  <MenuIcon name="portfolio" />
-                </span>
-                <T en="Portfolio" bn="পোর্টফোলিও" />
-              </Link>
-              <Link
-                href="/alerts"
-                className={`mobile-menu-quick-item${isAlerts ? " active" : ""}`}
-                onClick={() => setMenuOpen(false)}
-              >
-                <span className="mobile-menu-quick-icon">
-                  <MenuIcon name="bell" />
-                </span>
-                <T en="Price alerts" bn="প্রাইস অ্যালার্ট" />
-              </Link>
-              <Link
-                href="/premium"
-                className={`mobile-menu-quick-item${pathname === "/premium" ? " active" : ""}`}
-                onClick={() => setMenuOpen(false)}
-              >
-                <span className="mobile-menu-quick-icon">
-                  <MenuIcon name="premium" />
-                </span>
-                <T en="Premium" bn="প্রিমিয়াম" />
-              </Link>
-              <InstallAppButton
-                className="mobile-menu-quick-item"
-                label={bn ? "অ্যাপ ইনস্টল করুন" : "Install app"}
-                onClick={() => setMenuOpen(false)}
-              />
-            </div>
-          </section>
+            {/* Quick access — the personal pages. Phones: four app-style
+                shortcuts; desktop: one row of chips. */}
+            <section className="mobile-menu-section" data-group="quick" aria-labelledby="mm-quick">
+              <h2 id="mm-quick" className="mobile-menu-section-label">
+                <T en="Quick access" bn="দ্রুত যান" />
+              </h2>
+              <div className="mobile-menu-quick">
+                {QUICK.map(({ href, en, bn: labelBn, subEn, subBn, Icon }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className="mobile-menu-shortcut"
+                    data-premium={href === "/premium" || undefined}
+                    aria-current={isItemActive(href) ? "page" : undefined}
+                    onClick={closeMenu}
+                  >
+                    <span className="mobile-menu-shortcut-icon">
+                      <Icon size={20} />
+                      {href === "/watchlist" && <WatchlistDot />}
+                    </span>
+                    <span className="mobile-menu-shortcut-text">
+                      <span className="mobile-menu-shortcut-label">
+                        <T en={en} bn={labelBn} />
+                      </span>
+                      <span className="mobile-menu-shortcut-sub">
+                        <T en={subEn} bn={subBn} />
+                      </span>
+                    </span>
+                  </Link>
+                ))}
+                <InstallAppButton
+                  className="mobile-menu-shortcut mobile-menu-install"
+                  label={bn ? "অ্যাপ ইনস্টল করুন" : "Install app"}
+                  onClick={closeMenu}
+                >
+                  <span className="mobile-menu-shortcut-icon">
+                    <IconDownload size={20} />
+                  </span>
+                  <span className="mobile-menu-shortcut-text">
+                    <span className="mobile-menu-shortcut-label">
+                      <T en="Install app" bn="অ্যাপ ইনস্টল করুন" />
+                    </span>
+                    <span className="mobile-menu-shortcut-sub">
+                      <T en="Open TopStockBD from your home screen" bn="হোম স্ক্রিন থেকেই TopStockBD খুলুন" />
+                    </span>
+                  </span>
+                </InstallAppButton>
+              </div>
+            </section>
 
-          {/* Markets · Find stocks · Learn — the whole global IA */}
-          <div className="mobile-menu-groups">
+            {/* Markets · Find stocks · Learn — the whole global IA */}
             {NAV_GROUPS.map((g) => (
-              <section className="mobile-menu-section" data-accent={g.accent} key={g.id}>
-                <span className="mobile-menu-section-label">
+              <section
+                className="mobile-menu-section"
+                data-group={g.id}
+                key={g.id}
+                aria-labelledby={`mm-${g.id}`}
+              >
+                <h2 id={`mm-${g.id}`} className="mobile-menu-section-label">
                   <T en={g.label} bn={g.labelBn} />
-                </span>
-                <div className="mobile-menu-grid">
+                </h2>
+                <ul className="mobile-menu-list">
                   {g.items.map((it) => (
-                    <Link
-                      key={it.href}
-                      href={it.href}
-                      className={`mobile-menu-tile${isItemActive(it.href) ? " active" : ""}`}
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      <span className="mobile-menu-tile-icon">
-                        <MenuIcon name={it.icon} />
-                      </span>
-                      <span className="mobile-menu-tile-text">
-                        <span className="mobile-menu-tile-label">
-                          <T en={it.label} bn={it.labelBn} />
+                    <li key={it.href}>
+                      <Link
+                        href={it.href}
+                        className="mobile-menu-item"
+                        aria-current={isItemActive(it.href) ? "page" : undefined}
+                        onClick={closeMenu}
+                      >
+                        <span className="mobile-menu-item-icon">
+                          <MenuIcon name={it.icon} />
                         </span>
-                        {it.sub && (
-                          <span className="mobile-menu-tile-sub">
-                            <T en={it.sub} bn={it.subBn ?? it.sub} />
+                        <span className="mobile-menu-item-text">
+                          <span className="mobile-menu-item-label">
+                            <T en={it.label} bn={it.labelBn} />
                           </span>
-                        )}
-                      </span>
-                    </Link>
+                          {it.sub && (
+                            <span className="mobile-menu-item-sub">
+                              <T en={it.sub} bn={it.subBn ?? it.sub} />
+                            </span>
+                          )}
+                        </span>
+                      </Link>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </section>
             ))}
           </div>
-        </div>
         </div>
       </div>
     </>

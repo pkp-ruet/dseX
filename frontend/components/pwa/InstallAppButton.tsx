@@ -1,6 +1,8 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useInstallPrompt, showInstallBanner } from "@/lib/install";
+import { IconDownload } from "@/components/ui/icons";
 
 /**
  * Persistent "Install app" button for the navbar / drawer. Renders nothing when
@@ -10,16 +12,19 @@ import { useInstallPrompt, showInstallBanner } from "@/lib/install";
  * Share → Add to Home Screen instructions (iOS has no programmatic install).
  *
  * Style is delegated via `className` so it can blend into either the desktop nav
- * cluster or the mobile drawer list.
+ * cluster or the mobile drawer list; `children` replaces the default icon +
+ * label when the caller needs its own layout (the menu's shortcut row).
  */
 export default function InstallAppButton({
   className,
   label = "Install app",
   onClick: onExtraClick,
+  children,
 }: {
   className?: string;
   label?: string;
   onClick?: () => void;
+  children?: ReactNode;
 }) {
   const { canInstall, installed, ios, promptInstall } = useInstallPrompt();
 
@@ -38,22 +43,12 @@ export default function InstallAppButton({
 
   return (
     <button type="button" onClick={handle} className={className} aria-label={label}>
-      <svg
-        width="14"
-        height="14"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M12 3v12" />
-        <path d="m7 10 5 5 5-5" />
-        <path d="M5 21h14" />
-      </svg>
-      <span>{label}</span>
+      {children ?? (
+        <>
+          <IconDownload size={14} />
+          <span>{label}</span>
+        </>
+      )}
     </button>
   );
 }
