@@ -160,8 +160,8 @@ export default function ScreenerCard({
               change={s.change_pct}
               mark={<OwnerMark code={s.code} held={held} watched={watched} lang={lang} />}
               sub={s.strengths?.length
-                ? s.strengths.map((x) => tx(x.en, x.bn)).join(" · ")
-                : <T en={s.checks.map((c) => c.value_en).join(" · ")} bn={s.checks.map((c) => c.value_bn).join(" · ")} />}
+                ? <T en={s.strengths.map((x) => x.en).join(" · ")} bn={s.strengths.map((x) => x.bn).join(" · ")} />
+                :<T en={s.checks.map((c) => c.value_en).join(" · ")} bn={s.checks.map((c) => c.value_bn).join(" · ")} />}
               subClamp
               // On a phone the name, its figures and the price need the whole
               // row; the Buy chip joins beside the name from 640px (a hidden
