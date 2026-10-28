@@ -14,8 +14,8 @@ import type {
 /**
  * The bodies of the stock report's sections (2026-10-28). Each section has a
  * free face (`…Free`: public facts, dates, every serious red flag) and a
- * Premium body (`…Body`) that `ReportSection` puts behind its lock. Server
- * components; the data comes ready-worded from the backend
+ * Premium body (`…Body`) that `ReportSection` puts in its one Premium panel.
+ * Server components; the data comes ready-worded from the backend
  * (`backend/services/stock_report.py`).
  */
 
@@ -74,18 +74,21 @@ function Bars({
 
 // ------------------------------------------------------------------ red flags
 
-export function RedFlagsFree({ s }: { s: RedFlagsSection }) {
-  const reds = s.checks.filter((c) => c.level === "red");
-  if (!reds.length) return null;
-  // Serious red flags are always named for free (a user decision, 2026-10-28).
+function FlagList({ checks }: { checks: RedFlagsSection["checks"] }) {
   return (
-    <ul className="rp-checks">
-      {reds.map((c) => (
-        <li key={c.key} className="rp-check" data-level="red">
+    <ul className="rp-checks mt-3">
+      {checks.map((c) => (
+        <li key={c.key} className="rp-check" data-level={c.level}>
           <span className="rp-check-dot" aria-hidden="true" />
           <span className="min-w-0 text-sm leading-snug">
             <b className="block text-text-main">{tx(c.label)}</b>
             <span className="text-text-muted">{tx(c.detail)}</span>
+            {c.evidence && (
+              <span className="mt-0.5 block text-xs text-text-muted">
+                <T en="Notice: " bn="নোটিশ: " />
+                {c.evidence.title} · <DateT iso={c.evidence.date} />
+              </span>
+            )}
           </span>
         </li>
       ))}
@@ -93,31 +96,21 @@ export function RedFlagsFree({ s }: { s: RedFlagsSection }) {
   );
 }
 
-export function RedFlagsBody({ s }: { s: RedFlagsSection }) {
+export function RedFlagsFree({ s }: { s: RedFlagsSection }) {
   const reds = s.checks.filter((c) => c.level === "red");
+  if (!reds.length) return null;
+  // Serious red flags are always named for free (a user decision, 2026-10-28),
+  // with the notice behind each.
+  return <FlagList checks={reds} />;
+}
+
+/** The things to watch and the checks it passed — the reds are in the free face. */
+export function RedFlagsBody({ s }: { s: RedFlagsSection }) {
   const ambers = s.checks.filter((c) => c.level === "amber");
   const passed = s.checks.filter((c) => c.level === "pass");
   return (
     <>
-      {[...reds, ...ambers].length > 0 && (
-        <ul className="rp-checks mt-3">
-          {[...reds, ...ambers].map((c) => (
-            <li key={c.key} className="rp-check" data-level={c.level}>
-              <span className="rp-check-dot" aria-hidden="true" />
-              <span className="min-w-0 text-sm leading-snug">
-                <b className="block text-text-main">{tx(c.label)}</b>
-                <span className="text-text-muted">{tx(c.detail)}</span>
-                {c.evidence && (
-                  <span className="mt-0.5 block text-xs text-text-muted">
-                    <T en="Notice: " bn="নোটিশ: " />
-                    {c.evidence.title} · <DateT iso={c.evidence.date} />
-                  </span>
-                )}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
+      {ambers.length > 0 && <FlagList checks={ambers} />}
       {passed.length > 0 && (
         <div className="mt-4 border-t border-border pt-3">
           <p className="text-xs font-bold text-text-muted">
@@ -599,11 +592,13 @@ export function QualityFree({ s, scoreRow }: { s: QualitySection; scoreRow: Comp
   );
 }
 
+/** The five checks, explained — the quality section's Premium panel (the free
+ *  face keeps the score and the five bars). */
 export function QualityBody({ detail }: { detail: CompanyDetail }) {
   if (!detail.score_row) return null;
   return (
     <div className="mt-4">
-      <HealthCheck scoreRow={detail.score_row} detail={detail} />
+      <HealthCheck scoreRow={detail.score_row} detail={detail} lockAfterFirst={false} />
     </div>
   );
 }

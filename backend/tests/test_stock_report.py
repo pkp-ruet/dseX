@@ -357,27 +357,13 @@ def test_watcher_red_flag_event():
     assert push_payload(events, "en")["url"] == "/stock/GP?src=watch#red-flags"
 
 
-# The page numbers each part of a locked section's masked preview to match
-# its "Premium shows you" lines (frontend components/stock/report/preview.tsx
-# PREVIEW_PARTS). A line's part must be one the preview draws, or "meaning" /
-# "watch".
-_PREVIEW_PARTS = {
-    "red_flags": {"amber", "passed"}, "price": {"fair", "buy_below", "scenarios"},
-    "dividend": {"safety", "history", "record"}, "this_year": {"quarters", "cash", "next"},
-    "next": {"expect"}, "owners": {"trades", "trend"}, "cash": {"bars"}, "safety": {"facts"},
-    "quality": {"checks"}, "risks": {"items"}, "alternatives": {"names"},
-}
-
-
-def test_inside_lines_name_a_preview_part():
+# A free reader sees each closed Premium panel as its "Premium shows you"
+# lines (ReportSection's PremiumPanel), so every section carries one to three,
+# each a plain sentence pair.
+def test_every_section_says_what_premium_shows():
     for inp in (square(), red_flag_company()):
         rep = sr.build_report(inp)
         for key, sec in rep["sections"].items():
+            assert 1 <= len(sec["inside"]) <= 3, key
             for line in sec["inside"]:
-                part = line.get("part")
-                if part is None:
-                    continue
-                assert part in _PREVIEW_PARTS.get(key, set()) | {"meaning", "watch"}, (key, part)
-        price = rep["sections"].get("price")
-        if price and price.get("fair"):
-            assert [l.get("part") for l in price["inside"]][:2] == ["fair", "buy_below"]
+                assert set(line) == {"en", "bn"} and line["en"] and line["bn"], (key, line)

@@ -3,6 +3,8 @@ import type { DeepAnalysisReport as Report, DeepAnalysisSection, FairValue } fro
 import Markdown from "@/lib/markdown";
 import ValueTodayBox from "@/components/stock/ValueTodayBox";
 import PremiumGate from "@/components/premium/PremiumGate";
+import { PremiumPanel } from "@/components/stock/report/ReportSection";
+import type { Bi } from "@/lib/stock-report";
 import { T, TBlock } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
 import { formatDate } from "@/lib/formatters";
@@ -11,6 +13,19 @@ import { bnDate } from "@/lib/bn";
 interface Props {
   report: Report;
   fairValue: FairValue | null;
+  /** Set inside the stock report: the locked parts use its Premium panel. */
+  code?: string;
+}
+
+/** The locked parts, named for the closed Premium panel (three lines at most). */
+function restLines(rest: DeepAnalysisSection[]): Bi[] {
+  const titles = rest.map((s) => {
+    const en = s.title_en ?? s.title_bn ?? "";
+    return { en, bn: s.title_bn ?? en };
+  }).filter((t) => t.en);
+  if (titles.length <= 3) return titles;
+  const more = titles.length - 2;
+  return [...titles.slice(0, 2), { en: `And ${more} more parts`, bn: `আরও ${more}টি অংশ` }];
 }
 
 // Bull case reads positive, bear case negative; everything else uses the brand accent.
@@ -26,7 +41,7 @@ const pair = (en: string | null | undefined, bn: string | null | undefined) => {
   return <T en={e} bn={bn ?? e} />;
 };
 
-export default function DeepAnalysisReport({ report, fairValue }: Props) {
+export default function DeepAnalysisReport({ report, fairValue, code }: Props) {
   // The page language comes from the navbar switch; every text below carries
   // both languages (`<T>`), so only labels in attributes read `bn` here.
   const { bn } = useLang();
@@ -133,13 +148,23 @@ export default function DeepAnalysisReport({ report, fairValue }: Props) {
       <div className="space-y-8">
         {report.sections.slice(0, 1).map((s, i) => renderSection(s, i))}
       </div>
-      {report.sections.length > 1 && (
+      {report.sections.length > 1 && (code ? (
+        // Inside the stock report: the rest sits in the report's one Premium
+        // panel, named by its part titles.
+        <div className="mt-8">
+          <PremiumPanel lines={restLines(report.sections.slice(1))} code={code} lock="note">
+            <div className="space-y-8">
+              {report.sections.slice(1).map((s, i) => renderSection(s, i + 1))}
+            </div>
+          </PremiumPanel>
+        </div>
+      ) : (
         <PremiumGate label={{ en: "The rest of this report", bn: "বাকি বিশ্লেষণ" }} peek={220} className="mt-8">
           <div className="space-y-8">
             {report.sections.slice(1).map((s, i) => renderSection(s, i + 1))}
           </div>
         </PremiumGate>
-      )}
+      ))}
 
       {/* Fine print */}
       {(report.disclaimer_en || report.disclaimer_bn) && (

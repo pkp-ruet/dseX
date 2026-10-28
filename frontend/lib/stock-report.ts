@@ -43,11 +43,6 @@ export interface ScoreCheck {
   detail: Bi | null;
 }
 
-/** A "Premium shows you" line. `part` names the part of the section's masked
- *  preview it describes (see PREVIEW_PARTS in components/stock/report/preview.tsx),
- *  so the page can number that part to match the line. */
-export type InsideLine = Bi & { part?: string };
-
 /** Shared anatomy of every section. */
 export interface SectionBase {
   key: SectionKey;
@@ -59,9 +54,9 @@ export interface SectionBase {
   /** A free sentence for the free face — never the Premium answer.
    *  e.g. "We ran 16 checks. No red flags, and 2 things to watch." */
   free_line: Bi | null;
-  /** 2–3 "Premium shows you" lines built from counts and kinds, written for
-   *  this stock — never the answer itself (free). */
-  inside: InsideLine[];
+  /** 1–3 "Premium shows you" lines built from counts and kinds, written for
+   *  this stock — never the answer itself (free: the closed Premium panel). */
+  inside: Bi[];
   /** The answer as one sentence with its number (Premium). */
   headline: Bi;
   /** What it means, 1–3 short paragraphs (Premium). */

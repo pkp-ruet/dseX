@@ -16,6 +16,9 @@ type ScoreRow = Record<string, number | string | boolean | null>;
 interface Props {
   scoreRow: ScoreRow;
   detail: CompanyDetail;
+  /** Lock the other four checks behind `PremiumMask` (default). The stock
+   *  report passes false: there the whole list sits in one Premium panel. */
+  lockAfterFirst?: boolean;
 }
 
 // Status tones ride on the tier tokens — the same three bands `pillarColor`
@@ -192,7 +195,7 @@ export function PillarBars({ scoreRow }: { scoreRow: ScoreRow }) {
  * full verdict (2026-10-27): the first check is free, the other four sit
  * behind `PremiumMask`.
  */
-export default function HealthCheck({ scoreRow, detail }: Props) {
+export default function HealthCheck({ scoreRow, detail, lockAfterFirst = true }: Props) {
   // The backend replaces a band's generic wording when it would contradict the
   // numbers (profitable every year but "loses money", "low loans" beside loans
   // bigger than the reserve, "strong dividend" at a 2% yield, banks and "loans").
@@ -206,6 +209,16 @@ export default function HealthCheck({ scoreRow, detail }: Props) {
     .filter((r): r is HealthCheckRow => r != null);
 
   if (rows.length === 0) return null;
+
+  if (!lockAfterFirst) {
+    return (
+      <div className="space-y-2.5">
+        {rows.map((row) => (
+          <HealthRow key={row.pillarKey} row={row} scoreRow={scoreRow} detail={detail} />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2.5">

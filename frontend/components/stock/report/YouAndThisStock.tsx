@@ -1,12 +1,10 @@
 "use client";
 
 import { useMyStake } from "@/components/stock/YourPosition";
-import { Locked, LockedPreview } from "@/components/stock/report/ReportSection";
-import { Hidden, PartTag, numberLines } from "@/components/stock/report/preview";
-import { usePremiumOpen } from "@/components/premium/PremiumMask";
+import { PremiumPanel } from "@/components/stock/report/ReportSection";
 import { DateT, money, perShare } from "@/components/stock/report/fmt";
 import { T } from "@/components/i18n/T";
-import type { InsideLine, StockReport } from "@/lib/stock-report";
+import type { Bi, StockReport } from "@/lib/stock-report";
 
 /** Fees on a DSE trade, each side (the portfolio's default estimate). */
 const FEE = 0.004;
@@ -26,7 +24,6 @@ export default function YouAndThisStock({
   report: StockReport;
   n: number;
 }) {
-  const open = usePremiumOpen();
   const { isLoggedIn, mine, watched, meta } = useMyStake(code);
   if (!isLoggedIn || (!mine.length && !watched)) return null;
 
@@ -41,7 +38,7 @@ export default function YouAndThisStock({
   const sig = mine.find((h) => h.signal && h.signal.signal !== "none")?.signal ?? null;
 
   const lines: { en: string; bn: string }[] = [];
-  const inside: InsideLine[] = [];
+  const inside: Bi[] = [];
   let freeLine: { en: string; bn: string };
 
   if (qty > 0 && avg != null) {
@@ -118,8 +115,8 @@ export default function YouAndThisStock({
         </p>
       )}
       {lines.length > 0 && (
-        <Locked>
-          <ul className="mt-3 grid gap-2">
+        <PremiumPanel lines={inside} code={code} lock="you">
+          <ul className="grid gap-2">
             {lines.map((l, i) => (
               <li key={i} className="rp-note mt-0 text-sm leading-snug text-text-main">
                 <T en={l.en} bn={l.bn} />
@@ -141,44 +138,8 @@ export default function YouAndThisStock({
               <T en={`${perShare(upcomingCash)} a share`} bn={`শেয়ারপ্রতি ${perShare(upcomingCash)}`} />
             </p>
           )}
-        </Locked>
+        </PremiumPanel>
       )}
-      {!open && inside.length > 0 && (() => {
-        // One numbered row per Premium line: the line's own words, its figure grey.
-        const numbered = numberLines("you", inside.map((l, i) => ({ ...l, part: `you${i + 1}` })), false);
-        return (
-          <LockedPreview
-            lines={numbered}
-            hasWatch={false}
-            bare
-            code={code}
-            lock="you"
-            preview={
-              <ul className="rp-rows">
-                {numbered.map((l, i) =>
-                  // Free sample: the first line in full when there are two or more.
-                  i === 0 && lines.length >= 2 ? (
-                    <li key={l.n} className="text-sm">
-                      <span className="min-w-0 text-text-main">
-                        <T en={lines[0].en} bn={lines[0].bn} />
-                        <PartTag part={l.at} />
-                      </span>
-                    </li>
-                  ) : (
-                    <li key={l.n} className="text-sm">
-                      <span className="min-w-0 text-text-muted">
-                        <T en={l.en} bn={l.bn} />
-                        <PartTag part={l.at} />
-                      </span>
-                      <Hidden kind="tk" />
-                    </li>
-                  ),
-                )}
-              </ul>
-            }
-          />
-        );
-      })()}
       <p className="rp-source text-xs text-text-muted">
         <T
           en="From your portfolio and watchlist. Fees are our 0.4% a side estimate; dividend tax 10%."

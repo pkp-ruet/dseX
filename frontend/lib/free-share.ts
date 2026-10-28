@@ -64,6 +64,19 @@ export const FREE_FORYOU_ROWS = 3;
  *  any number of times. */
 export const FREE_STORIES = 3;
 
+/** The stock report: the sections whose Premium panel is open to everyone on
+ *  every share, so a free reader sees one whole Premium answer instead of a
+ *  share of every answer (user decision 2026-10-29, "whole or nothing").
+ *  The first `FREE_REPORT_SECTION_COUNT` this stock has, in this order. */
+export const FREE_REPORT_SECTIONS = ["red_flags", "this_year", "cash", "safety"] as const;
+export const FREE_REPORT_SECTION_COUNT = 3;
+
+/** Which of a report's sections are open in full for everyone. */
+export function freeReportSections(present: Iterable<string>): string[] {
+  const have = new Set(present);
+  return FREE_REPORT_SECTIONS.filter((k) => have.has(k)).slice(0, FREE_REPORT_SECTION_COUNT);
+}
+
 /** Split a list into the free head (`n` rows) and the locked rest. */
 export function splitFree<T>(items: T[], n: number): [T[], T[]] {
   const k = Math.max(0, Math.min(items.length, n));
