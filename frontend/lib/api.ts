@@ -815,6 +815,10 @@ export interface LatestResultRow {
   period_end: string | null;
   level: "good" | "watch" | "bad" | "neutral";
   eps_yoy_pct: number | null;
+  /** Profit per share so far this year, and the same months last year
+   *  (absent from a backend older than 2026-10-28). */
+  eps_cum?: number | null;
+  eps_cum_prev?: number | null;
   headline_en: string;
   headline_bn: string;
   profit_en: string | null;

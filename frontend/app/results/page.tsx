@@ -51,7 +51,8 @@ export const metadata: Metadata = {
  * profit figure against a year earlier. The full read (cash, price, score,
  * what it means) is on each stock page, behind its Premium lock.
  * Free readers see the counts and the newest FREE_RESULTS_ROWS reports; the
- * rest of the list is Premium (screen-only lock, paywall JSON-LD below).
+ * rest of the list and every filter (My stocks, Better, Mixed, Weaker, About
+ * the same) are Premium (screen-only lock, paywall JSON-LD below).
  * Fetched and awaited in the page: no streaming on an indexable route.
  */
 export default async function ResultsPage() {
@@ -70,7 +71,6 @@ export default async function ResultsPage() {
   }
 
   const rows = data.results;
-  const { good = 0, bad = 0 } = data.counts;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -113,16 +113,9 @@ export default async function ResultsPage() {
         title={<T en="Latest quarterly results" bn="সর্বশেষ প্রান্তিকের ফল" />}
         lead={
           <T
-            en={`The latest reports of ${rows.length} companies, newest first. ${good} earned clearly more than a year earlier, and ${bad} clearly less. The newest ${FREE_RESULTS_ROWS} are free; every company's report is in Premium.`}
-            bn={`${rows.length}টি কোম্পানির সর্বশেষ প্রতিবেদন, নতুনগুলো আগে। ${good}টি গত বছরের একই সময়ের চেয়ে স্পষ্টভাবে বেশি মুনাফা করেছে, আর ${bad}টি স্পষ্টভাবে কম। নতুন ${FREE_RESULTS_ROWS}টি ফ্রি; সব কোম্পানির প্রতিবেদন প্রিমিয়ামে।`}
+            en={`Each company's latest quarterly report, newest first, with profit per share against the same months last year. ${rows.length} companies have reported${data.as_of ? `, and the latest came out on ${formatDate(data.as_of)}` : ""}.`}
+            bn={`প্রতিটি কোম্পানির সর্বশেষ প্রান্তিকের প্রতিবেদন, নতুনগুলো আগে, গত বছরের একই সময়ের শেয়ারপ্রতি মুনাফার পাশে। ${rows.length}টি কোম্পানি প্রতিবেদন দিয়েছে${data.as_of ? `, সর্বশেষটি এসেছে ${bnDate(data.as_of)}` : ""}।`}
           />
-        }
-        actions={
-          data.as_of ? (
-            <span className="ms-page-date">
-              <T en={`Latest report ${formatDate(data.as_of)}`} bn={`সর্বশেষ প্রতিবেদন ${bnDate(data.as_of)}`} />
-            </span>
-          ) : undefined
         }
       />
 
@@ -140,8 +133,8 @@ export default async function ResultsPage() {
           </>,
           <>
             &ldquo;Better&rdquo; means profit per share is up 10% or more on the same months last year (or the company is
-            back to a profit); &ldquo;weaker&rdquo; means down 10% or more, or a loss; &ldquo;mixed&rdquo; means profit is
-            up but the cash didn&apos;t come in, or the latest quarter slowed down. A report stays here until the
+            back to a profit); &ldquo;weaker&rdquo; means a loss, or profit down by a quarter or more; &ldquo;mixed&rdquo;
+            means profit is down 10% to 25%, or up but the cash didn&apos;t come in, or the latest quarter slowed down. A report stays here until the
             company&apos;s audited yearly accounts for that year come out. Tap a company for the full read: the latest
             quarter on its own, cash from the business, what the price costs on the last 12 months&apos; profit, and
             how our score moved.
@@ -161,8 +154,9 @@ export default async function ResultsPage() {
           </>,
           <>
             &ldquo;ভালো&rdquo; মানে গত বছরের একই সময়ের চেয়ে শেয়ারপ্রতি মুনাফা 10% বা তার বেশি বেড়েছে, অথবা কোম্পানি
-            আবার মুনাফায় ফিরেছে। &ldquo;দুর্বল&rdquo; মানে 10% বা তার বেশি কমেছে, অথবা লোকসান হয়েছে। &ldquo;মিশ্র&rdquo; মানে
-            মুনাফা বেড়েছে কিন্তু নগদ টাকা আসেনি, অথবা সর্বশেষ প্রান্তিকে গতি কমেছে। কোম্পানির সেই বছরের নিরীক্ষিত
+            আবার মুনাফায় ফিরেছে। &ldquo;দুর্বল&rdquo; মানে লোকসান হয়েছে, অথবা মুনাফা এক-চতুর্থাংশ বা তার বেশি কমেছে।
+            &ldquo;মিশ্র&rdquo; মানে মুনাফা 10% থেকে 25% কমেছে, অথবা বেড়েছে কিন্তু নগদ টাকা আসেনি, অথবা সর্বশেষ প্রান্তিকে
+            গতি কমেছে। কোম্পানির সেই বছরের নিরীক্ষিত
             বার্ষিক হিসাব প্রকাশ না হওয়া পর্যন্ত প্রতিবেদনটি এখানে থাকে। পুরো ব্যাখ্যা দেখতে কোম্পানিতে চাপ দিন:
             শুধু সর্বশেষ প্রান্তিক, ব্যবসা থেকে আসা নগদ টাকা, গত 12 মাসের মুনাফায় দাম কত, আর আমাদের স্কোর কীভাবে
             বদলেছে।

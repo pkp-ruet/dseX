@@ -72,6 +72,7 @@ def test_feed_row_carries_only_the_free_part():
     assert row["headline_en"] == "Q2 results: profit up 64% on last year"
     assert row["profit_en"].startswith("Profit in the 6 months to Jun 2026")
     assert row["post_date"] == "2026-07-29" and row["name"] == "BRAC Bank PLC."
+    assert row["eps_cum"] == ex["eps_cum"] and row["eps_cum_prev"] == ex["eps_cum_prev"]
     # What it means, the cash and price lines stay on the (locked) stock page.
     assert not any(k.startswith("meaning") or k == "lines" for k in row)
 

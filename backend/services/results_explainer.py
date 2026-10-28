@@ -283,6 +283,10 @@ def feed_row(code: str, ex: dict, comp: dict, price: dict, score: Optional[float
         "period_end": ex["period_end"],
         "level": ex["level"],
         "eps_yoy_pct": ex["eps_yoy_pct"],
+        # The two figures the profit line already prints (this year so far vs
+        # the same months last year), so the /results row can lead with them.
+        "eps_cum": ex["eps_cum"],
+        "eps_cum_prev": ex["eps_cum_prev"],
         "headline_en": ex["headline_en"],
         "headline_bn": ex["headline_bn"],
         "profit_en": profit.get("en"),
