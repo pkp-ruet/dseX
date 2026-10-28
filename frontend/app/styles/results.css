@@ -76,6 +76,17 @@ a.rs-row:active { background: var(--surface-2); opacity: 0.85; }
 
 .rs-more { display: flex; justify-content: center; margin-top: var(--space-6); }
 
+/* ---- The dashboard card (ResultsPromoCard): key under the bar, rows inside the card ---- */
+.rs-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 10px 0 0; padding: 0; list-style: none; }
+.rs-legend li { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); }
+.rs-legend b { color: var(--text); font-variant-numeric: tabular-nums; }
+.rs-card-label {
+  margin: 0; padding: 10px 16px 6px; border-top: 1px solid var(--cell-rule);
+  font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted);
+}
+@media (min-width: 640px) { .rs-card-label { padding: 10px 20px 6px; } }
+.rs-card-label + .rs-list > li:first-child .rs-row { padding-top: 6px; }
+
 /* ---- Locked-filter preview (free readers) ---- */
 .rs-preview-count { display: flex; align-items: baseline; gap: 8px; }
 .rs-preview-n { font-size: var(--fs-2xl); font-weight: 700; line-height: 1; color: var(--text); font-variant-numeric: tabular-nums; }

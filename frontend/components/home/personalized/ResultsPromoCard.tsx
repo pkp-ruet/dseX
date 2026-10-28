@@ -1,21 +1,23 @@
 import Link from "next/link";
 import DashHeader from "@/components/home/personalized/DashHeader";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
-import StockRow from "@/components/ui/StockRow";
 import Button from "@/components/ui/Button";
+import ResultRow from "@/components/results/ResultRow";
 import type { HomeBundle } from "@/lib/api";
-import { formatDate } from "@/lib/formatters";
 import { t } from "@/lib/home-copy";
-import { RESULT_LEVEL } from "@/lib/results";
+import { RESULT_LEVEL, RESULT_LEVEL_ORDER } from "@/lib/results";
 
 type Week = NonNullable<HomeBundle["results_week"]>;
 
 /**
  * The market's quarterly results on the dashboard, for every signed-in
- * reader: how many companies posted results this week and how they read, the
- * three newest reports, and a button to `/results`. Free readers also get one
- * line on what Premium adds (every company's results, what each report means,
- * an alert on results day); Premium readers get no pitch.
+ * reader, in the /results page's look (2026-10-28, `rs-*` in
+ * app/styles/results.css): how many companies posted results this week, the
+ * week's split as one bar with a key (Better · Mixed · Weaker · About the
+ * same), the three newest reports as the page's own `ResultRow`s (company
+ * name, level, "EPS ৳2.10 · a year ago ৳1.80", the profit move leading), and a
+ * button to `/results`. Free readers also get one line on what Premium adds;
+ * Premium readers get no pitch.
  */
 export default function ResultsPromoCard({
   week, held, watched, lang, premium = false,
@@ -29,40 +31,53 @@ export default function ResultsPromoCard({
 }) {
   if (!week.total) return null;
   const bn = lang === "bn";
-  const { good = 0, bad = 0 } = week.counts;
   const lead = week.recent
     ? bn
-      ? `এই সপ্তাহে ${week.recent}টি কোম্পানি ত্রৈমাসিক ফল দিয়েছে — ${good}টির লাভ বেড়েছে, ${bad}টির কমেছে।`
-      : `${week.recent} ${week.recent === 1 ? "company" : "companies"} posted quarterly results this week — ${good} earned more than a year ago, ${bad} less.`
+      ? `এই সপ্তাহে ${week.recent}টি কোম্পানি প্রান্তিকের ফল দিয়েছে।`
+      : `${week.recent} ${week.recent === 1 ? "company" : "companies"} posted quarterly results this week.`
     : bn
-      ? `${week.total}টি কোম্পানির সর্বশেষ ত্রৈমাসিক ফল, এক জায়গায়।`
-      : `The latest quarterly results of ${week.total} companies, in one place.`;
+      ? `${week.total}টি কোম্পানির সর্বশেষ প্রান্তিকের ফল, এক জায়গায়। নতুনগুলো নিচে।`
+      : `The latest quarterly results of ${week.total} companies, in one place. The newest are below.`;
+  const split = RESULT_LEVEL_ORDER.filter((lv) => (week.counts[lv] ?? 0) > 0);
 
   return (
     <section className="soft-card dash-box overflow-hidden" lang={bn ? "bn" : undefined}>
       <DashHeader title={t(lang, "resultsPromoTitle")} href="/results" linkLabel={t(lang, "seeAll")} />
-      <p className={`px-4 pb-2 text-sm text-text-main sm:px-5 ${bn ? "font-bn" : ""}`}>{lead}</p>
-      <ul className={`divide-y divide-cell-rule ${bn ? "font-bn" : ""}`}>
-        {week.latest.map((r) => (
-          <StockRow
-            key={r.code}
-            as="li"
-            inset="card"
-            code={r.code}
-            name={r.name}
-            href={`/stock/${encodeURIComponent(r.code)}#results`}
-            mark={<OwnerMark code={r.code} held={held} watched={watched} lang={lang} />}
-            sub={bn ? r.headline_bn : r.headline_en}
-            subTone={RESULT_LEVEL[r.level].tone}
-            subClamp
-            detail={bn ? `প্রকাশ ${formatDate(r.post_date)}` : `Posted ${formatDate(r.post_date)}`}
-            price={r.price}
-            change={r.change_pct}
-            lang={lang}
-          />
-        ))}
-      </ul>
-      <div className={`border-t border-border p-4 sm:px-5 ${bn ? "font-bn" : ""}`}>
+      <div className={`px-4 pb-4 sm:px-5 ${bn ? "font-bn" : ""}`}>
+        <p className="text-sm text-text-main">{lead}</p>
+        {week.recent > 0 && split.length > 0 && (
+          <>
+            <div className="rs-split mt-3" aria-hidden="true">
+              {split.map((lv) => (
+                <span key={lv} className={`rs-lv--${lv}`} style={{ width: `${(week.counts[lv] / week.recent) * 100}%` }} />
+              ))}
+            </div>
+            <ul className="rs-legend">
+              {split.map((lv) => (
+                <li key={lv}>
+                  <span className={`rs-dot rs-lv--${lv}`} aria-hidden="true" />
+                  <b>{week.counts[lv]}</b> {bn ? RESULT_LEVEL[lv].shortBn : RESULT_LEVEL[lv].short}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
+
+      {week.latest.length > 0 && (
+        <>
+          <p className={`rs-card-label ${bn ? "font-bn" : ""}`}>{bn ? "সর্বশেষ প্রতিবেদন" : "Newest reports"}</p>
+          <ul className={`rs-list ${bn ? "font-bn" : ""}`}>
+            {week.latest.map((r) => (
+              <li key={r.code}>
+                <ResultRow r={r} mark={<OwnerMark code={r.code} held={held} watched={watched} lang={lang} />} />
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      <div className={`border-t border-cell-rule p-4 sm:px-5 ${bn ? "font-bn" : ""}`}>
         <Button href="/results" variant="primary" block>
           {premium
             ? bn ? "সব কোম্পানির ফল দেখুন" : "See every company's results"
@@ -71,8 +86,8 @@ export default function ResultsPromoCard({
         {!premium && (
           <p className="mt-3 text-xs text-text-muted">
             {bn
-              ? "প্রিমিয়ামে সব কোম্পানির ফল এক তালিকায়, প্রতিটি ফলের মানে — আর আপনার শেয়ারের ফল এলেই সেদিনই অ্যালার্ট। "
-              : "Premium opens every company's results, says what each report means, and alerts you the day results come out for your stocks. "}
+              ? "প্রিমিয়ামে সব কোম্পানির ফল খোলা, শুধু আপনার শেয়ারের ফল আলাদা করে দেখা যায়, আর আপনার শেয়ারের ফল এলে সেদিনই অ্যালার্ট আসে। "
+              : "Premium opens every company's results, shows just your own stocks' results, and alerts you the day your stocks report. "}
             <Link href="/premium" className="font-semibold text-primary">
               {bn ? "প্রিমিয়াম দেখুন" : "See Premium"}
             </Link>
