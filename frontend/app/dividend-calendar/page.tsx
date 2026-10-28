@@ -8,9 +8,7 @@ import TopCashDividends from "@/components/dividend-calendar/TopCashDividends";
 import RecentDeclarations from "@/components/dividend-calendar/RecentDeclarations";
 import HowDividendsWork, { buyTodayAnswer } from "@/components/dividend-calendar/HowDividendsWork";
 import { bnDate } from "@/lib/bn";
-import DividendPromo from "@/components/premium/DividendPromo";
-import { PageLockScope } from "@/components/premium/LockScope";
-import { FREE_CALENDAR_ROWS } from "@/lib/free-share";
+import { PersonalCodesProvider } from "@/components/market-analysis/PersonalCodes";
 import ErrorState from "@/components/ui/ErrorState";
 import { T } from "@/components/i18n/T";
 import PageHeader from "@/components/ui/PageHeader";
@@ -83,27 +81,6 @@ export default async function DividendCalendarPage() {
 
   const lead = data.settlement.normal_buy_lead_trading_days;
 
-  // The counts behind the locks, for the one Premium card (free numbers — the
-  // rows are what's locked). Same split as the boards use.
-  const payingAhead = data.record_dates.filter((e) => !e.is_no_dividend);
-  const recordLocked = Math.max(0, data.record_dates.length - FREE_CALENDAR_ROWS.recordDates);
-  const weekPaying = payingAhead.filter((e) => e.record_days_left != null && e.record_days_left <= 7).length;
-  const declaredLocked = Math.max(0, Math.min(12, data.recent_declarations.length) - FREE_CALENDAR_ROWS.declared);
-  const promoStakes = [
-    recordLocked > 0
-      ? { en: `${recordLocked} more record dates in the next 120 days`, bn: `আগামী 120 দিনে আরও ${recordLocked}টি রেকর্ড ডেট` }
-      : null,
-    weekPaying > 0
-      ? {
-          en: `${weekPaying} ${weekPaying === 1 ? "company pays" : "companies pay"} a dividend with a record date this week`,
-          bn: `এই সপ্তাহে রেকর্ড ডেট, ডিভিডেন্ড দিচ্ছে ${weekPaying}টি কোম্পানি`,
-        }
-      : null,
-    declaredLocked > 0
-      ? { en: `${declaredLocked} more new declarations`, bn: `আরও ${declaredLocked}টি নতুন ঘোষণা` }
-      : null,
-  ];
-
   // FAQ copy mirrors components/dividend-calendar/HowDividendsWork.tsx.
   const jsonLd = {
     "@context": "https://schema.org",
@@ -117,8 +94,8 @@ export default async function DividendCalendarPage() {
         inLanguage: "en",
         isPartOf: { "@id": BASE_URL },
         dateModified: data.today,
-        // Paywall markup: each list past its first row or two is Premium (PremiumGate,
-        // pointing at the one Premium card #dc-premium).
+        // Paywall markup: each list past its first row or two is Premium
+        // (CalendarLock: the real rows stay in the HTML under .premium-locked).
         isAccessibleForFree: false,
         hasPart: {
           "@type": "WebPageElement",
@@ -218,12 +195,10 @@ export default async function DividendCalendarPage() {
 
       <CalendarSummary data={data} />
 
-      {/* Free readers: the page's ONE Premium card (what the full calendar does,
-          with the counts behind the locks). Every list below shows a glimpse and
-          blurs the rest with one quiet line pointing back here. */}
-      <DividendPromo id="dc-premium" stakes={promoStakes} className="mt-4" />
-
-      <PageLockScope anchor="dc-premium">
+      {/* Data first: every list opens with its free rows, then its lock — the
+          next rows with the company hidden and what Premium shows (CalendarLock).
+          One fetch of the reader's own codes for the locks' "your stocks" count. */}
+      <PersonalCodesProvider>
         <RecordDateBoard events={data.record_dates} />
 
         <AgmBoard events={data.agms} />
@@ -231,7 +206,7 @@ export default async function DividendCalendarPage() {
         <TopCashDividends events={data.top_cash_dividends} />
 
         <RecentDeclarations events={data.recent_declarations} />
-      </PageLockScope>
+      </PersonalCodesProvider>
 
       <HowDividendsWork data={data} />
 

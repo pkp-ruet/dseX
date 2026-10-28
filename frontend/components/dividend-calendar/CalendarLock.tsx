@@ -1,40 +1,42 @@
 "use client";
 
 import type { ReactNode } from "react";
-import PremiumGate from "@/components/premium/PremiumGate";
-
-type Pair = { en: string; bn: string };
+import { usePremiumOpen } from "@/components/premium/PremiumMask";
 
 /**
- * `PremiumGate` for the calendar boards, which are server components: label
- * and stakes go in as `{en, bn}` pairs, which the gate renders without a
- * language flash. The locked rows themselves arrive as `children`.
+ * The dividend calendar's lock (2026-10-28 — replaced the blurred rows and the
+ * one grey "In Premium" line, which didn't say what Premium shows).
+ *
+ * A free reader sees `preview` — the next locked rows with every figure but
+ * the company hidden (`DividendRow masked`) — and `panel` (`LockPanel`):
+ * what's behind it in words and counts, one button. The real rows are
+ * `children`: always in the HTML under `.premium-locked` (screen-only, the
+ * selector the page's paywall JSON-LD names), hidden while locked, shown in
+ * place for a Premium reader — the preview and the panel go.
+ *
+ * Server render and first paint are locked (the server knows no user).
  */
 export default function CalendarLock({
-  label,
-  stakes = [],
-  className,
-  peek,
-  compact,
+  preview,
+  panel,
+  className = "",
   children,
 }: {
-  label: Pair;
-  stakes?: (Pair | null)[];
+  preview?: ReactNode;
+  panel: ReactNode;
   className?: string;
-  peek?: number;
-  compact?: boolean;
   children: ReactNode;
 }) {
+  const locked = !usePremiumOpen();
   return (
-    <PremiumGate
-      label={label}
-      preview="blur"
-      peek={peek}
-      compact={compact}
-      stakes={stakes.filter((s): s is Pair => s != null)}
-      className={className}
-    >
-      {children}
-    </PremiumGate>
+    <div className={`dc-lock ${className}`.trim()}>
+      <div className="premium-locked" data-locked={locked ? "true" : "false"} data-preview="mask">
+        <div className="premium-locked-body" aria-hidden={locked ? true : undefined} {...(locked ? { inert: true } : {})}>
+          {children}
+        </div>
+      </div>
+      {locked && preview}
+      {locked && panel}
+    </div>
   );
 }

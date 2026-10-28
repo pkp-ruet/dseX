@@ -19,6 +19,19 @@ export const FREE_CALENDAR_ROWS = {
   dashboard: 2,
 } as const;
 
+/**
+ * The locked rows a free reader still sees as a preview, with every figure
+ * but the company hidden (`DividendRow masked`, 2026-10-28) — so the lock
+ * shows what Premium holds instead of a blur.
+ */
+export const CALENDAR_PREVIEW_ROWS = {
+  recordDates: 2,
+  agms: 1,
+  topCash: 2,
+  declared: 1,
+  dashboard: 1,
+} as const;
+
 /** `/results`: the newest reports a free reader sees (of whichever filter is
  *  on); the rest of every company's results is Premium (user decision
  *  2026-10-25 — "free user can also see the full page"). */

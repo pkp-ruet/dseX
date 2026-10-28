@@ -1,7 +1,8 @@
 import { T } from "@/components/i18n/T";
-import DateGroup, { splitGroups } from "@/components/dividend-calendar/DateGroup";
+import DateGroup, { countByDate, groupByDate, splitGroups } from "@/components/dividend-calendar/DateGroup";
 import CalendarLock from "@/components/dividend-calendar/CalendarLock";
-import { FREE_CALENDAR_ROWS, splitFree } from "@/lib/free-share";
+import LockPanel from "@/components/dividend-calendar/LockPanel";
+import { CALENDAR_PREVIEW_ROWS, FREE_CALENDAR_ROWS, splitFree } from "@/lib/free-share";
 import type { CorporateActionEvent } from "@/lib/api";
 import SectionHeader from "@/components/ui/SectionHeader";
 
@@ -15,13 +16,17 @@ export default function AgmBoard({ events }: { events: CorporateActionEvent[] })
   // Free readers see the next AGM; the rest is Premium (screen-only lock).
   const [free, locked] = splitFree(events, FREE_CALENDAR_ROWS.agms);
   const { freeGroups, lockedGroups, cont } = splitGroups(free, locked, "agm_date");
-  const groups = (list: typeof freeGroups, half: "free" | "locked") =>
+  const perDate = countByDate(events, "agm_date");
+  const withCash = locked.filter((e) => (e.cash_per_share ?? 0) > 0 || (e.cash_pct ?? 0) > 0).length;
+  const groups = (list: typeof freeGroups, half: "free" | "locked", masked = false) =>
     list.map((g, i) => (
       <DateGroup
         key={g.date}
         date={g.date}
         items={g.items}
         kind="agm"
+        masked={masked}
+        total={perDate.get(g.date)}
         part={cont ? (half === "free" && i === list.length - 1 ? "split" : half === "locked" && i === 0 ? "cont" : undefined) : undefined}
       />
     ));
@@ -41,10 +46,28 @@ export default function AgmBoard({ events }: { events: CorporateActionEvent[] })
       <div className="dc-stack">{groups(freeGroups, "free")}</div>
       {locked.length > 0 && (
         <CalendarLock
-          label={{ en: `${locked.length} more AGMs`, bn: `আরও ${locked.length}টি এজিএম` }}
-          peek={140}
-          compact
           className={`dc-gate ${cont ? "dc-gate--cont" : ""}`}
+          preview={
+            <div className="dc-stack">
+              {groups(groupByDate(locked.slice(0, CALENDAR_PREVIEW_ROWS.agms), "agm_date"), "locked", true)}
+            </div>
+          }
+          panel={
+            <LockPanel
+              card
+              title={
+                withCash > 0
+                  ? {
+                      en: `${locked.length} more ${locked.length === 1 ? "AGM" : "AGMs"}, ${withCash} with cash up for approval`,
+                      bn: `আরও ${locked.length}টি এজিএম, এর ${withCash}টিতে নগদ ডিভিডেন্ড অনুমোদনের অপেক্ষায়`,
+                    }
+                  : { en: `${locked.length} more ${locked.length === 1 ? "AGM" : "AGMs"}`, bn: `আরও ${locked.length}টি এজিএম` }
+              }
+              codes={locked.map((e) => e.trading_code)}
+              count={locked.length}
+              lock="Dividend calendar: AGMs"
+            />
+          }
         >
           <div className="dc-stack">{groups(lockedGroups, "locked")}</div>
         </CalendarLock>

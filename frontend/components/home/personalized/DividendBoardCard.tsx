@@ -7,9 +7,9 @@ import { t } from "@/lib/home-copy";
 import DashHeader from "@/components/home/personalized/DashHeader";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
 import DividendRow from "@/components/dividend-calendar/DividendRow";
-import { DateHead, groupByDate } from "@/components/dividend-calendar/DateGroup";
-import DividendPromo from "@/components/premium/DividendPromo";
-import { FREE_CALENDAR_ROWS } from "@/lib/free-share";
+import { DateHead, countByDate, groupByDate } from "@/components/dividend-calendar/DateGroup";
+import LockPanel from "@/components/dividend-calendar/LockPanel";
+import { CALENDAR_PREVIEW_ROWS, FREE_CALENDAR_ROWS } from "@/lib/free-share";
 import { usePremium } from "@/lib/premium";
 
 const INITIAL = 6;
@@ -24,9 +24,10 @@ const DECLARED_ROWS = 3;
  * date its companies with the cash a share leading. Then the latest
  * declarations. The reader's own stocks wear the H / ★ marks.
  *
- * Free readers get a glimpse (the nearest two companies) and a slim
- * `DividendPromo`: how many more dates, and how many of their own stocks,
- * sit behind it. The declarations list is Premium-only here.
+ * Free readers get a glimpse (the nearest two companies), the next one with
+ * the company hidden (every figure shown), and one line saying what Premium
+ * shows: which companies pay on the rest, and how many are their own stocks
+ * (`LockPanel`). The declarations list is Premium-only here.
  */
 export default function DividendBoardCard({
   recordDates,
@@ -51,17 +52,17 @@ export default function DividendBoardCard({
   const free = !isPremium;
   const shown = free ? rows.slice(0, FREE_CALENDAR_ROWS.dashboard) : open ? rows : rows.slice(0, INITIAL);
   const decl = free ? [] : declAll.slice(0, DECLARED_ROWS);
-  const more = rows.length - shown.length;
   const isMine = (c: string) => held.has(c) || watched.has(c);
   const mine = new Set(rows.map((e) => e.trading_code).filter(isMine)).size;
-  const stakes = free
-    ? [
-        more > 0 ? t(lang, "divPromoMore", { n: more }) : "",
-        mine > 0 ? t(lang, "divPromoMine", { n: mine }) : "",
-        declAll.length > 0 ? t(lang, "divPromoDeclared", { n: declAll.length }) : "",
-      ]
-    : [];
+  // Free readers: the rows past the glimpse are locked; the next one shows with
+  // the company hidden, the lock line counts the rest and the reader's own.
+  const hidden = free ? rows.slice(shown.length) : [];
+  const masked = hidden.slice(0, CALENDAR_PREVIEW_ROWS.dashboard);
+  const maskedSet = new Set(masked);
+  const hiddenMine = new Set(hidden.map((e) => e.trading_code).filter(isMine)).size;
+  const lockKey = hidden.length === 1 ? "divLockLineOne" : "divLockLine";
   const companies = new Set(rows.map((e) => e.trading_code)).size;
+  const perDate = countByDate(rows, "record_date");
   const mark = (code: string) => <OwnerMark code={code} held={held} watched={watched} lang={lang} />;
 
   return (
@@ -76,20 +77,24 @@ export default function DividendBoardCard({
             {companies === 1 ? t(lang, "divLeadOne") : t(lang, "divLead", { n: companies })}
             {mine > 0 && <> {mine === 1 ? t(lang, "divLeadMineOne") : t(lang, "divLeadMine", { n: mine })}</>}
           </p>
-          {groupByDate(shown, "record_date").map((g) => (
+          {groupByDate([...shown, ...masked], "record_date").map((g) => (
             <div key={g.date} className="dc-group">
               <DateHead
                 iso={g.date}
                 days={g.items[0].record_days_left}
                 kind="record"
                 first={g.items[0]}
-                count={g.items.length}
+                count={perDate.get(g.date) ?? g.items.length}
                 flush
               />
               <ul className="dc-list">
                 {g.items.map((e) => (
                   <li key={`${e.trading_code}-${e.record_date}`}>
-                    <DividendRow e={e} mode="record" mark={mark(e.trading_code)} />
+                    {maskedSet.has(e) ? (
+                      <DividendRow e={e} mode="record" masked />
+                    ) : (
+                      <DividendRow e={e} mode="record" mark={mark(e.trading_code)} />
+                    )}
                   </li>
                 ))}
               </ul>
@@ -117,7 +122,14 @@ export default function DividendBoardCard({
         </>
       )}
 
-      {free && <DividendPromo variant="card" stakes={stakes} />}
+      {hidden.length > 0 && (
+        <LockPanel
+          title={{ en: t("en", lockKey, { n: hidden.length }), bn: t("bn", lockKey, { n: hidden.length }) }}
+          mine={hiddenMine}
+          count={hidden.length}
+          lock="Dividend calendar: home card"
+        />
+      )}
     </section>
   );
 }

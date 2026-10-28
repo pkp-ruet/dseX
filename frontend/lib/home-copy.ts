@@ -230,9 +230,8 @@ const COPY = {
   divLeadMineOne: ["1 of them is your stock.", "এর 1টি আপনার শেয়ার।"],
   fullCalendar: ["Full calendar", "পুরো ক্যালেন্ডার"],
   justDeclared: ["Just declared", "সদ্য ঘোষিত"],
-  divPromoMore: ["{n} more record dates in the next 2 weeks", "আগামী 2 সপ্তাহে আরও {n}টি রেকর্ড ডেট"],
-  divPromoMine: ["{n} of your stocks are on the list", "এর মধ্যে আপনার {n}টি শেয়ার আছে"],
-  divPromoDeclared: ["{n} new dividend declarations", "{n}টি নতুন ডিভিডেন্ড ঘোষণা"],
+  divLockLine: ["See which companies pay on {n} more record dates", "আরও {n}টি রেকর্ড ডেটে কোন কোম্পানি ডিভিডেন্ড দিচ্ছে, দেখুন"],
+  divLockLineOne: ["See which company pays on 1 more record date", "আরও 1টি রেকর্ড ডেটে কোন কোম্পানি ডিভিডেন্ড দিচ্ছে, দেখুন"],
   noDividendSoon: ["No record dates in the next two weeks.", "আগামী দুই সপ্তাহে কোনো রেকর্ড ডেট নেই।"],
 
   // Market today

@@ -23,6 +23,17 @@ export function groupByDate(
   return out;
 }
 
+/** How many events fall on each date — a date card says how many companies
+ *  are on it in all, even when the lock splits them. */
+export function countByDate(events: CorporateActionEvent[], key: "record_date" | "agm_date"): Map<string, number> {
+  const out = new Map<string, number>();
+  for (const e of events) {
+    const d = e[key];
+    if (d) out.set(d, (out.get(d) ?? 0) + 1);
+  }
+  return out;
+}
+
 /** The eligibility answer for a record date, from the last normal-market buy
  *  day (the same for every company on that date). */
 export function buyByLine(e: CorporateActionEvent): { tone: Tone; text: Pair } | null {
@@ -149,22 +160,28 @@ export default function DateGroup({
   kind,
   mark,
   part,
+  masked = false,
+  total,
 }: {
   date: string;
   items: CorporateActionEvent[];
   kind: Kind;
+  /** Companies on this date in all (free + locked); defaults to `items`. */
+  total?: number;
   mark?: (code: string) => ReactNode;
   /** split = a date whose rest is behind the lock · cont = that rest. */
   part?: "split" | "cont";
+  /** The locked preview: the date and figures shown, each company hidden. */
+  masked?: boolean;
 }) {
   const days = kind === "agm" ? items[0].agm_days_left : items[0].record_days_left;
   return (
     <article className={`soft-card dc-day ${part ? `dc-day--${part}` : ""}`.trim()}>
-      <DateHead iso={date} days={days} kind={kind} first={items[0]} count={items.length} />
+      <DateHead iso={date} days={days} kind={kind} first={items[0]} count={total ?? items.length} />
       <ul className="dc-list">
         {items.map((e) => (
           <li key={`${e.trading_code}-${date}`}>
-            <DividendRow e={e} mode={kind} mark={mark?.(e.trading_code)} />
+            <DividendRow e={e} mode={kind} mark={masked ? undefined : mark?.(e.trading_code)} masked={masked} />
           </li>
         ))}
       </ul>
