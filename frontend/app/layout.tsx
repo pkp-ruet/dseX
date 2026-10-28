@@ -20,6 +20,7 @@ import "./styles/portfolio.css";
 import "./styles/signals.css";
 import "./styles/stories.css";
 import "./styles/results.css";
+import "./styles/dividends.css";
 
 // One Latin family, three weights (2026-10 redesign): regular, semibold, bold.
 // font-medium renders as regular and font-extrabold/black as bold — fewer font

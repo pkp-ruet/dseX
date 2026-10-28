@@ -3,14 +3,11 @@
 import { useState } from "react";
 import type { CorporateActionEvent } from "@/lib/api";
 import type { Lang } from "@/context/LangContext";
-import { formatDate, money } from "@/lib/formatters";
-import { bnDate } from "@/lib/bn";
 import { t } from "@/lib/home-copy";
-import { ACC } from "@/components/home/personalized/accents";
-import DashHeader, { HeaderChip } from "@/components/home/personalized/DashHeader";
+import DashHeader from "@/components/home/personalized/DashHeader";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
-import { IconCoin } from "@/components/home/personalized/DashIcons";
-import StockRow, { StockRowValue, StockTile } from "@/components/ui/StockRow";
+import DividendRow from "@/components/dividend-calendar/DividendRow";
+import { DateHead, groupByDate } from "@/components/dividend-calendar/DateGroup";
 import DividendPromo from "@/components/premium/DividendPromo";
 import { FREE_CALENDAR_ROWS } from "@/lib/free-share";
 import { usePremium } from "@/lib/premium";
@@ -18,20 +15,18 @@ import { usePremium } from "@/lib/premium";
 const INITIAL = 6;
 const DECLARED_ROWS = 3;
 
-function fmtDate(iso: string | null | undefined, bn: boolean): string {
-  if (!iso) return "";
-  return bn ? bnDate(iso) : formatDate(iso);
-}
-
 /**
- * "Money coming": every record date inside the next two weeks, market-wide,
- * with the cash per share, the yield on today's price, the record date with
- * days left, and the last day to buy so the dividend lands on you. Then the
- * latest declarations. The reader's own stocks wear the H / ★ marks.
+ * "Dividends coming": every record date inside the next two weeks,
+ * market-wide, in the dividend calendar's look (2026-10-28 clean redesign,
+ * `dc-*` in app/styles/dividends.css). One lead line (how many companies,
+ * how many are the reader's), then the dates in order — a small date tile,
+ * the weekday and how far away it is, the last day to buy — and under each
+ * date its companies with the cash a share leading. Then the latest
+ * declarations. The reader's own stocks wear the H / ★ marks.
  *
- * Free readers get a glimpse (the nearest two dates) and `DividendPromo`:
- * what the full calendar does + how many more dates, and how many of their
- * own stocks, sit behind it. The declarations list is Premium-only here.
+ * Free readers get a glimpse (the nearest two companies) and a slim
+ * `DividendPromo`: how many more dates, and how many of their own stocks,
+ * sit behind it. The declarations list is Premium-only here.
  */
 export default function DividendBoardCard({
   recordDates,
@@ -57,7 +52,8 @@ export default function DividendBoardCard({
   const shown = free ? rows.slice(0, FREE_CALENDAR_ROWS.dashboard) : open ? rows : rows.slice(0, INITIAL);
   const decl = free ? [] : declAll.slice(0, DECLARED_ROWS);
   const more = rows.length - shown.length;
-  const mine = rows.filter((e) => held.has(e.trading_code) || watched.has(e.trading_code)).length;
+  const isMine = (c: string) => held.has(c) || watched.has(c);
+  const mine = new Set(rows.map((e) => e.trading_code).filter(isMine)).size;
   const stakes = free
     ? [
         more > 0 ? t(lang, "divPromoMore", { n: more }) : "",
@@ -65,95 +61,60 @@ export default function DividendBoardCard({
         declAll.length > 0 ? t(lang, "divPromoDeclared", { n: declAll.length }) : "",
       ]
     : [];
+  const companies = new Set(rows.map((e) => e.trading_code)).size;
+  const mark = (code: string) => <OwnerMark code={code} held={held} watched={watched} lang={lang} />;
 
   return (
-    <section className={`soft-card overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
-      <DashHeader
-        accent={ACC.gold} icon={<IconCoin size={15} />}
-        title={t(lang, "divBoardTitle")}
-        chips={rows.length > 0 ? <HeaderChip tone="accent">{rows.length}</HeaderChip> : undefined}
-        href="/dividend-calendar"
-        linkLabel={t(lang, "fullCalendar")}
-      />
+    <section className={`soft-card dash-box overflow-hidden ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
+      <DashHeader title={t(lang, "divBoardTitle")} href="/dividend-calendar" linkLabel={t(lang, "fullCalendar")} />
 
       {rows.length === 0 ? (
-        <p className="px-4 py-3 text-sm text-text-muted sm:px-5">{t(lang, "noDividendSoon")}</p>
+        <p className="dc-empty">{t(lang, "noDividendSoon")}</p>
       ) : (
-        <ul className="divide-y divide-cell-rule">
-          {shown.map((e) => {
-            const days = e.record_days_left;
-            const daysStr = days == null ? "" : days <= 0 ? t(lang, "todayLast") : days === 1 ? t(lang, "oneDayLeft") : t(lang, "daysLeft", { n: days });
-            const urgent = days != null && days <= 3;
-            const cash = e.cash_per_share;
-            const line2 =
-              cash != null && cash > 0
-                ? `${money(cash)} ${t(lang, "perShare")}${e.yield_pct != null ? ` · ${e.yield_pct.toFixed(1)}% ${t(lang, "yieldWord")}` : ""}`
-                : e.stock_pct != null && e.stock_pct > 0
-                  ? t(lang, "bonus", { n: e.stock_pct })
-                  : e.cash_pct != null
-                    ? t(lang, "cashPct", { n: e.cash_pct })
-                    : "";
-            return (
-              <StockRow
-                key={`${e.trading_code}-${e.record_date}`}
-                code={e.trading_code}
-                name={e.company_name}
-                lang={lang}
-                leading={
-                  <StockTile accent={ACC.amber}>
-                    <IconCoin size={16} />
-                  </StockTile>
-                }
-                mark={<OwnerMark code={e.trading_code} held={held} watched={watched} lang={lang} />}
-                sub={line2 ? <span className="font-semibold tabular-nums nums">{line2}</span> : undefined}
-                subTone="watch"
-                detail={e.buy_by ? t(lang, "buyBy", { date: fmtDate(e.buy_by, bn) }) : undefined}
-                right={
-                  <StockRowValue
-                    value={<span className="text-xs">{fmtDate(e.record_date, bn)}</span>}
-                    sub={daysStr || undefined}
-                    subTone={urgent ? "negative" : "muted"}
-                  />
-                }
+        <>
+          <p className="dc-card-lead">
+            {companies === 1 ? t(lang, "divLeadOne") : t(lang, "divLead", { n: companies })}
+            {mine > 0 && <> {mine === 1 ? t(lang, "divLeadMineOne") : t(lang, "divLeadMine", { n: mine })}</>}
+          </p>
+          {groupByDate(shown, "record_date").map((g) => (
+            <div key={g.date} className="dc-group">
+              <DateHead
+                iso={g.date}
+                days={g.items[0].record_days_left}
+                kind="record"
+                first={g.items[0]}
+                count={g.items.length}
+                flush
               />
-            );
-          })}
-        </ul>
+              <ul className="dc-list">
+                {g.items.map((e) => (
+                  <li key={`${e.trading_code}-${e.record_date}`}>
+                    <DividendRow e={e} mode="record" mark={mark(e.trading_code)} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </>
       )}
 
       {!free && rows.length > INITIAL && (
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          className="block w-full border-t border-border px-4 py-2.5 text-center text-xs font-semibold text-primary transition-colors hover:bg-surface-2 active:bg-surface-2"
-        >
+        <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="dc-more">
           {open ? t(lang, "showFewer") : t(lang, "showAll", { n: rows.length })}
         </button>
       )}
 
       {decl.length > 0 && (
-        <div className="border-t border-border">
-          <h3 className="px-4 pt-3 text-xs font-semibold text-text-muted sm:px-5">{t(lang, "justDeclared")}</h3>
-          <ul className="mt-1 divide-y divide-cell-rule">
-            {decl.map((e) => {
-              const parts: string[] = [];
-              if (e.cash_pct != null && e.cash_pct > 0) parts.push(t(lang, "cashPct", { n: e.cash_pct }));
-              if (e.stock_pct != null && e.stock_pct > 0) parts.push(t(lang, "bonus", { n: e.stock_pct }));
-              return (
-                <StockRow
-                  key={`${e.trading_code}-${e.declaration_date}`}
-                  code={e.trading_code}
-                  name={e.company_name}
-                  lang={lang}
-                  mark={<OwnerMark code={e.trading_code} held={held} watched={watched} lang={lang} />}
-                  sub={e.declaration_date ? t(lang, "declaredOn", { date: fmtDate(e.declaration_date, bn) }) : undefined}
-                  right={<StockRowValue value={parts.join(" + ")} tone="watch" />}
-                />
-              );
-            })}
+        <>
+          <h4 className="dc-card-label">{t(lang, "justDeclared")}</h4>
+          <ul className="dc-list">
+            {decl.map((e) => (
+              <li key={`${e.trading_code}-${e.declaration_date}`}>
+                <DividendRow e={e} mode="declared" mark={mark(e.trading_code)} />
+              </li>
+            ))}
           </ul>
-        </div>
+        </>
       )}
 
       {free && <DividendPromo variant="card" stakes={stakes} />}

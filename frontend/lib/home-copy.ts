@@ -223,23 +223,17 @@ const COPY = {
   newTag: ["New", "নতুন"],
 
   // Dividend board
-  divBoardTitle: ["Next 2 weeks", "আগামী 2 সপ্তাহ"],
-  perShare: ["a share", "শেয়ারপ্রতি"],
-  yieldWord: ["yield", "ইল্ড"],
-  buyBy: ["Buy by {date}", "{date}-এর মধ্যে কিনতে হবে"],
-  recordOn: ["Record date: {date}", "রেকর্ড ডেট: {date}"],
-  daysLeft: ["{n} days left", "{n} দিন বাকি"],
-  oneDayLeft: ["1 day left", "1 দিন বাকি"],
-  todayLast: ["Today", "আজ"],
+  divBoardTitle: ["Record dates, next 2 weeks", "আগামী 2 সপ্তাহের রেকর্ড ডেট"],
+  divLead: ["{n} companies pay a dividend with a record date in the next 2 weeks.", "আগামী 2 সপ্তাহে রেকর্ড ডেট, ডিভিডেন্ড দিচ্ছে {n}টি কোম্পানি।"],
+  divLeadOne: ["1 company pays a dividend with a record date in the next 2 weeks.", "আগামী 2 সপ্তাহে রেকর্ড ডেট, ডিভিডেন্ড দিচ্ছে 1টি কোম্পানি।"],
+  divLeadMine: ["{n} of them are your stocks.", "এর {n}টি আপনার শেয়ার।"],
+  divLeadMineOne: ["1 of them is your stock.", "এর 1টি আপনার শেয়ার।"],
   fullCalendar: ["Full calendar", "পুরো ক্যালেন্ডার"],
   justDeclared: ["Just declared", "সদ্য ঘোষিত"],
   divPromoMore: ["{n} more record dates in the next 2 weeks", "আগামী 2 সপ্তাহে আরও {n}টি রেকর্ড ডেট"],
   divPromoMine: ["{n} of your stocks are on the list", "এর মধ্যে আপনার {n}টি শেয়ার আছে"],
   divPromoDeclared: ["{n} new dividend declarations", "{n}টি নতুন ডিভিডেন্ড ঘোষণা"],
-  bonus: ["{n}% bonus shares", "{n}% বোনাস শেয়ার"],
-  cashPct: ["{n}% cash", "{n}% নগদ"],
   noDividendSoon: ["No record dates in the next two weeks.", "আগামী দুই সপ্তাহে কোনো রেকর্ড ডেট নেই।"],
-  declaredOn: ["Declared {date}", "ঘোষণা: {date}"],
 
   // Market today
   marketToday: ["Market today", "আজকের বাজার"],

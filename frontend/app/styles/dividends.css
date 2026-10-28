@@ -1,0 +1,205 @@
+/* ===================================================================
+   /dividend-calendar + the dashboard's "Dividends coming" card — the clean
+   redesign (2026-10-28), same language as /results and /market-analysis:
+   one card style (.soft-card), hairlines instead of boxes in boxes, the
+   taka figure leads, company name first, colour only where it means
+   something (the buy-by deadline, grades). A calendar reads by date, so the
+   record dates and AGMs are grouped under a date tile.
+   Every class here is `dc-*` and belongs to components/dividend-calendar/*.
+   =================================================================== */
+
+.dc-section { margin-top: 40px; }
+/* Jump targets (#record-dates, the locks' "In Premium" → #dc-premium) clear the fixed navbar. */
+.dc-section, #dc-premium { scroll-margin-top: 80px; }
+@media (min-width: 768px) { .dc-section { margin-top: var(--space-12); } }
+.dc-stack > * + * { margin-top: var(--space-3); }
+.dc-sub-head { margin: var(--space-6) 0 var(--space-2); font-size: var(--fs-sm); font-weight: 700; color: var(--text); }
+.dc-sub-note { margin: -4px 0 var(--space-3); max-width: 62ch; font-size: var(--fs-2xs); line-height: 1.55; color: var(--text-muted); }
+.dc-fine { margin: var(--space-3) 0 0; max-width: 66ch; font-size: var(--fs-2xs); line-height: 1.6; color: var(--text-muted); }
+.dc-fine a { font-weight: 600; color: var(--primary-ink); }
+.dc-empty { margin: 0; padding: 16px; font-size: var(--fs-sm); line-height: 1.55; color: var(--text-muted); }
+@media (min-width: 640px) { .dc-empty { padding: 18px 20px; } }
+
+/* ---- Summary: four answers in one card, the one rule as its footer ---- */
+.dc-summary { padding: 0; overflow: hidden; }
+.dc-answers {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px; background: var(--cell-rule);
+}
+@media (min-width: 768px) { .dc-answers { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.dc-answer { display: flex; flex-direction: column; gap: 4px; padding: 16px; background: var(--surface); }
+@media (min-width: 640px) { .dc-answer { padding: 20px 22px; } }
+.dc-answer-n {
+  font-size: var(--fs-xl); font-weight: 700; line-height: 1.15; letter-spacing: -0.01em;
+  color: var(--text); font-variant-numeric: tabular-nums;
+}
+.dc-answer-q { font-size: var(--fs-sm); font-weight: 600; line-height: 1.35; color: var(--text); }
+.dc-answer-x { font-size: var(--fs-2xs); font-weight: 600; line-height: 1.45; color: var(--text-muted); }
+.dc-rule {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 14px 16px; border-top: 1px solid var(--cell-rule);
+  font-size: var(--fs-sm); line-height: 1.6; color: var(--text);
+}
+@media (min-width: 640px) { .dc-rule { padding: 16px 22px; } }
+.dc-rule-icon { flex: 0 0 auto; margin-top: 2px; color: var(--text-muted); }
+
+/* ---- One date: a calendar tile, the date in words, the buy-by line ---- */
+.dc-day { padding: 0; overflow: hidden; }
+.dc-day-head { display: flex; align-items: center; gap: 14px; padding: 14px 16px; }
+@media (min-width: 640px) { .dc-day-head { padding: 16px 20px; } }
+.dc-day-head + .dc-list { border-top: 1px solid var(--cell-rule); }
+/* Inside a card that holds several dates (the dashboard): a hairline between dates. */
+.dc-day-head--flush { padding-top: 12px; padding-bottom: 8px; }
+.dc-group + .dc-group { border-top: 1px solid var(--cell-rule); }
+.dc-day-head--flush + .dc-list { border-top: 0; }
+.dc-day-head--flush + .dc-list > li:first-child .dc-row { padding-top: 4px; }
+
+.dc-tile {
+  flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 52px; height: 56px; border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface); line-height: 1;
+}
+.dc-tile-m { font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); }
+.dc-tile-d { margin-top: 5px; font-size: var(--fs-xl); font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+.dc-tile--sm { width: 44px; height: 46px; }
+.dc-tile--sm .dc-tile-d { margin-top: 3px; font-size: var(--fs-title); }
+/* Today / tomorrow: the tile is ink, the one place a date shouts. */
+.dc-tile--soon { border-color: var(--text); background: var(--text); }
+.dc-tile--soon .dc-tile-m, .dc-tile--soon .dc-tile-d { color: var(--surface); }
+
+.dc-day-text { min-width: 0; flex: 1 1 auto; }
+.dc-day-title { margin: 0; font-size: var(--fs-base); font-weight: 700; line-height: 1.35; color: var(--text); }
+.dc-day-when { font-weight: 600; color: var(--text-muted); }
+.dc-day-sub {
+  display: flex; align-items: center; gap: 6px; margin: 4px 0 0;
+  font-size: var(--fs-sm); font-weight: 600; line-height: 1.4; color: var(--text-muted);
+}
+.dc-day-n { flex: 0 0 auto; align-self: flex-start; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.dc-tone--positive { color: var(--positive); }
+.dc-tone--watch { color: var(--watch); }
+.dc-tone--negative { color: var(--negative); }
+
+/* ---- One company ---- */
+.dc-list { list-style: none; margin: 0; padding: 0; }
+.dc-list > li + li { border-top: 1px solid var(--cell-rule); }
+.dc-row {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 16px;
+  min-height: 64px; padding: 12px 16px; color: inherit; text-decoration: none;
+}
+@media (min-width: 640px) { .dc-row { padding: 14px 20px; } }
+.dc-row--rank { grid-template-columns: 24px minmax(0, 1fr) auto; gap: 4px 12px; }
+a.dc-row:hover { background: var(--surface-2); }
+a.dc-row:active { background: var(--surface-2); opacity: 0.85; }
+.dc-rank { align-self: start; padding-top: 2px; font-size: var(--fs-sm); font-weight: 700; color: var(--text-muted); text-align: center; font-variant-numeric: tabular-nums; }
+.dc-name {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  margin: 0; font-size: var(--fs-base); font-weight: 600; line-height: 1.35; color: var(--text);
+}
+.dc-meta {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 4px;
+  font-size: var(--fs-2xs); font-weight: 600; line-height: 1.5; color: var(--text-muted);
+}
+.dc-meta .ms-own { margin-left: 0; vertical-align: 0; }
+.dc-code { letter-spacing: 0.02em; }
+.dc-sep { color: var(--border); }
+.dc-extra { display: block; margin-top: 2px; font-size: var(--fs-2xs); font-weight: 600; line-height: 1.5; color: var(--text-muted); }
+.dc-extra b { font-weight: 700; color: var(--text); }
+
+.dc-fig { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; text-align: right; }
+.dc-amt { font-size: var(--fs-title); font-weight: 700; line-height: 1.2; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dc-amt--words { font-size: var(--fs-sm); }
+.dc-amt--muted { font-size: var(--fs-sm); color: var(--text-muted); }
+.dc-amt-x { font-size: var(--fs-2xs); font-weight: 600; line-height: 1.4; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ---- Locks (screen-only, see PremiumGate) ----
+   One-card lists (biggest payers, just declared): the blurred rows continue
+   inside the card and the one quiet line sits in it too; a Premium reader
+   sees one unbroken list. */
+.dc-gate-li > .premium-locked .premium-inline-link { margin: 0; padding: 0 16px 6px; }
+@media (min-width: 640px) { .dc-gate-li > .premium-locked .premium-inline-link { padding: 0 20px 8px; } }
+/* Date cards: the locked dates follow as more cards. */
+.dc-gate { margin-top: var(--space-3); }
+/* A date that runs past the free rows: once the reader can see it all, its two
+   halves read as one card (the repeated head goes, the seam is a hairline). */
+.dc-gate.dc-gate--cont[data-locked="false"] { margin-top: 0; }
+.dc-gate[data-locked="false"] .dc-day--cont > .dc-day-head { display: none; }
+.dc-gate[data-locked="false"] .dc-stack > .dc-day--cont:first-child {
+  border-top-color: var(--cell-rule); border-top-left-radius: 0; border-top-right-radius: 0;
+}
+.dc-stack:has(+ .dc-gate--cont[data-locked="false"]) > .dc-day--split:last-child {
+  border-bottom-width: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; box-shadow: none;
+}
+
+/* ---- How a dividend reaches you: four steps on one line ---- */
+.dc-steps {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 1px; background: var(--cell-rule);
+}
+@media (min-width: 640px) { .dc-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .dc-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.dc-step { display: flex; flex-direction: column; gap: 6px; padding: 16px; background: var(--surface); }
+@media (min-width: 640px) { .dc-step { padding: 20px 22px; } }
+.dc-step-n {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border: 1.5px solid var(--text); border-radius: 999px;
+  font-size: var(--fs-sm); font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums;
+}
+.dc-step-t { margin: 4px 0 0; font-size: var(--fs-base); font-weight: 700; color: var(--text); }
+.dc-step-b { margin: 0; font-size: var(--fs-sm); line-height: 1.6; color: var(--text-muted); }
+
+.dc-qa {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 1px;
+  border-top: 1px solid var(--cell-rule); background: var(--cell-rule);
+}
+@media (min-width: 768px) { .dc-qa { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.dc-qa > div { padding: 16px; background: var(--surface); }
+@media (min-width: 640px) { .dc-qa > div { padding: 20px 22px; } }
+.dc-qa h3 { margin: 0; font-size: var(--fs-base); font-weight: 700; line-height: 1.4; color: var(--text); }
+.dc-qa p { margin: 8px 0 0; font-size: var(--fs-sm); line-height: 1.65; color: var(--text); }
+
+/* ---- Dashboard card: the lead line under the header ---- */
+.dc-card-lead { margin: 0; padding: 12px 16px 4px; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
+@media (min-width: 640px) { .dc-card-lead { padding: 14px 20px 4px; } }
+.dc-card-lead b { font-variant-numeric: tabular-nums; }
+.dc-card-label {
+  margin: 0; padding: 12px 16px 4px; border-top: 1px solid var(--cell-rule);
+  font-size: var(--fs-2xs); font-weight: 600; color: var(--text-muted);
+}
+@media (min-width: 640px) { .dc-card-label { padding: 12px 20px 4px; } }
+.dc-more {
+  display: block; width: 100%; min-height: 44px; border-top: 1px solid var(--cell-rule);
+  font-size: var(--fs-sm); font-weight: 600; color: var(--primary-ink); text-align: center;
+}
+.dc-more:hover { background: var(--surface-2); }
+.dc-more:active { background: var(--surface-2); opacity: 0.85; }
+
+/* ---- The Premium promo (DividendPromo): plain card, one button ---- */
+.dc-promo { display: flex; flex-direction: column; gap: var(--space-2); padding: 18px 16px; }
+@media (min-width: 640px) { .dc-promo { padding: 22px 24px; } }
+.dc-promo--inset { padding: 16px; border-top: 1px solid var(--cell-rule); }
+@media (min-width: 640px) { .dc-promo--inset { padding: 16px 20px 18px; } }
+.dc-promo-tag {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 5px;
+  font-size: var(--fs-2xs); font-weight: 700; color: var(--gold-ink);
+}
+.dc-promo-head { margin: 0; font-size: var(--fs-title); font-weight: 700; line-height: 1.3; color: var(--text); }
+.dc-promo--inset .dc-promo-head { font-size: var(--fs-base); }
+.dc-promo-sub { margin: 0; max-width: 62ch; font-size: var(--fs-sm); line-height: 1.55; color: var(--text-muted); }
+.dc-promo-stakes {
+  list-style: none; margin: 4px 0 0; padding: 0;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.dc-promo-stakes li { display: flex; align-items: baseline; gap: 8px; font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
+.dc-promo-stakes li::before {
+  content: ""; flex: 0 0 auto; width: 6px; height: 6px; border-radius: 999px;
+  background: var(--primary); transform: translateY(-2px);
+}
+.dc-promo-checks {
+  list-style: none; margin: 6px 0 0; padding: 0;
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px 20px;
+}
+@media (min-width: 640px) { .dc-promo-checks { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.dc-promo-checks li { display: flex; align-items: flex-start; gap: 8px; font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+.dc-promo-checks svg { flex: 0 0 auto; margin-top: 2px; color: var(--positive); }
+.dc-promo-cta { align-self: flex-start; margin-top: var(--space-2); }
+@media (max-width: 639.98px) { .dc-promo-cta { align-self: stretch; justify-content: center; } }
