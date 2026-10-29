@@ -24,7 +24,7 @@ export function groupByDate(
 }
 
 /** How many events fall on each date — a date card says how many companies
- *  are on it in all, even when the lock splits them. */
+ *  are on it in all. */
 export function countByDate(events: CorporateActionEvent[], key: "record_date" | "agm_date"): Map<string, number> {
   const out = new Map<string, number>();
   for (const e of events) {
@@ -135,53 +135,29 @@ export function DateHead({
   );
 }
 
-/**
- * The free rows and the locked rows as date groups. When one date runs past
- * the free rows, its free half is marked `split` and its locked half `cont`:
- * for a Premium reader the CSS joins the two into one card and hides the
- * repeated head (`.dc-gate` in app/styles/dividends.css).
- */
-export function splitGroups(
-  free: CorporateActionEvent[],
-  locked: CorporateActionEvent[],
-  key: "record_date" | "agm_date",
-) {
-  const freeGroups = groupByDate(free, key);
-  const lockedGroups = groupByDate(locked, key);
-  const cont =
-    freeGroups.length > 0 && lockedGroups.length > 0 && freeGroups[freeGroups.length - 1].date === lockedGroups[0].date;
-  return { freeGroups, lockedGroups, cont };
-}
-
 /** One date as one card: its head, then every company on it. */
 export default function DateGroup({
   date,
   items,
   kind,
   mark,
-  part,
-  masked = false,
   total,
 }: {
   date: string;
   items: CorporateActionEvent[];
   kind: Kind;
-  /** Companies on this date in all (free + locked); defaults to `items`. */
+  /** Companies on this date in all; defaults to `items`. */
   total?: number;
   mark?: (code: string) => ReactNode;
-  /** split = a date whose rest is behind the lock · cont = that rest. */
-  part?: "split" | "cont";
-  /** The locked preview: the date and figures shown, each company hidden. */
-  masked?: boolean;
 }) {
   const days = kind === "agm" ? items[0].agm_days_left : items[0].record_days_left;
   return (
-    <article className={`soft-card dc-day ${part ? `dc-day--${part}` : ""}`.trim()}>
+    <article className="soft-card dc-day">
       <DateHead iso={date} days={days} kind={kind} first={items[0]} count={total ?? items.length} />
       <ul className="dc-list">
         {items.map((e) => (
           <li key={`${e.trading_code}-${date}`}>
-            <DividendRow e={e} mode={kind} mark={masked ? undefined : mark?.(e.trading_code)} masked={masked} />
+            <DividendRow e={e} mode={kind} mark={mark?.(e.trading_code)} />
           </li>
         ))}
       </ul>

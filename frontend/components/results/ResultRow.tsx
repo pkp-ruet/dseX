@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import type { LatestResultRow } from "@/lib/api";
 import { T } from "@/components/i18n/T";
 import MaskedName from "@/components/premium/MaskedName";
+import { Locked } from "@/components/premium/AnswerLock";
 import { PersonalMark } from "@/components/market-analysis/PersonalCodes";
 import { RESULT_LEVEL, epsTk, quarterLabel, resultMove } from "@/lib/results";
 
@@ -16,6 +17,8 @@ import { RESULT_LEVEL, epsTk, quarterLabel, resultMove } from "@/lib/results";
  * `masked` = a free reader's preview of a locked row (premium/RowLock, the
  * locked-filter preview): level, quarter, EPS and the move shown, the company
  * hidden; a plain block, not a link.
+ * What the report means (`meaning_en`) is the Premium line under it since
+ * 2026-10-29 — always in the HTML, shown to Premium readers only (`Locked`).
  * `mark` replaces the page's H / ★ tag (the dashboard passes its `OwnerMark`,
  * which reads the bundle's sets instead of `PersonalCodesProvider`).
  * Also the rows of the dashboard's results card (`ResultsPromoCard`).
@@ -63,6 +66,11 @@ export default function ResultRow({
           <span className="rs-fallback block">
             <T en={r.profit_en ?? ""} bn={r.profit_bn ?? ""} />
           </span>
+        )}
+        {!masked && r.meaning_en && (
+          <Locked as="span" className="rs-meaning">
+            <T en={r.meaning_en} bn={r.meaning_bn || r.meaning_en} />
+          </Locked>
         )}
       </span>
       <span className="rs-fig">

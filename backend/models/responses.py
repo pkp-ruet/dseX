@@ -430,6 +430,15 @@ class SectorDetailResponse(BaseModel):
     related_sectors: list[SectorSummary]
 
 
+class DividendSafety(BaseModel):
+    """"Is this dividend safe?" (services/dividend_safety.py) — Premium on the page."""
+    level: str
+    word_en: str
+    word_bn: str
+    line_en: str
+    line_bn: str
+
+
 class CorporateActionEvent(BaseModel):
     """One declared dividend, priced off the latest close.
 
@@ -456,6 +465,7 @@ class CorporateActionEvent(BaseModel):
     period_end: Optional[str] = None
     amended: bool = False
     is_no_dividend: bool = False
+    safety: Optional[DividendSafety] = None
     record_days_left: Optional[int] = None
     agm_days_left: Optional[int] = None
     buy_by: Optional[str] = None

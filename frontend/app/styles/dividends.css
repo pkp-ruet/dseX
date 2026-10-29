@@ -111,20 +111,16 @@ a.dc-row:active { background: var(--surface-2); opacity: 0.85; }
 .dc-amt--muted { font-size: var(--fs-sm); color: var(--text-muted); }
 .dc-amt-x { font-size: var(--fs-2xs); font-weight: 600; line-height: 1.4; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-/* ---- Locks: the shared RowLock + LockPanel (app/styles/premium.css → "Row
-   locks"). Calendar-only rules below. ---- */
-/* Date cards: the locked dates (or their preview) follow as more cards. */
-.dc-gate { margin-top: var(--space-3); }
-.dc-gate > .lk-panel, .dc-gate > .lk-line--card { margin-top: var(--space-3); }
-/* A date that runs past the free rows: its locked half (the masked preview,
-   or the real rows once unlocked) reads as the rest of the same card — the
-   repeated head goes, the seam is a hairline. */
-.dc-gate--cont { margin-top: 0; }
-.dc-gate--cont .dc-day--cont > .dc-day-head { display: none; }
-.dc-gate--cont .dc-day--cont { border-top-color: var(--cell-rule); border-top-left-radius: 0; border-top-right-radius: 0; }
-.dc-stack:has(+ .dc-gate--cont) > .dc-day--split:last-child {
-  border-bottom-width: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; box-shadow: none;
-}
+/* ---- "Is it safe?" under a cash dividend — Premium (DividendRow → Locked,
+   shown once unlocked). The word carries the tone, the sentence stays ink. ---- */
+.dc-safety { display: block; margin-top: 4px; font-size: var(--fs-xs); line-height: 1.5; color: var(--text); }
+.dc-safety-w { font-weight: 700; }
+.dc-safety--safe { color: var(--positive); }
+.dc-safety--watch { color: var(--watch); }
+.dc-safety--risk { color: var(--negative); }
+/* The page's one lock line, between the summary and the lists (empty for Premium). */
+.dc-lock-line { margin-top: var(--space-4); }
+.dc-lock-line:empty { display: none; }
 
 /* ---- How a dividend reaches you: four steps on one line ---- */
 .dc-steps {

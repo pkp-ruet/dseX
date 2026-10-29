@@ -55,7 +55,7 @@ export const BENEFITS: { key: "why" | "portfolio" | "research" | "limits"; title
     points: [
       { en: "All six research lists in full", bn: "ছয়টি গবেষণা তালিকা পুরোটা" },
       { en: "The full stock screener, with your screens checked every day", bn: "পুরো স্টক স্ক্রিনার, আর আপনার স্ক্রিন প্রতিদিন যাচাই" },
-      { en: "The complete dividend calendar", bn: "পুরো ডিভিডেন্ড ক্যালেন্ডার" },
+      { en: "Is each dividend safe? On every row of the dividend calendar", bn: "ডিভিডেন্ড কতটা নিরাপদ, ক্যালেন্ডারের প্রতিটি সারিতে" },
     ],
   },
   {
@@ -128,12 +128,12 @@ export const ROWS: { what: Bi; free: Bi; premium: Bi }[] = [
   {
     what: { en: "Quarterly results, explained", bn: "প্রান্তিকের ফল, সহজ ব্যাখ্যায়" },
     free: {
-      en: "The headline and profit figures of each share's latest quarterly report, and the newest 5 reports on the results page.",
-      bn: "প্রতিটি শেয়ারের সর্বশেষ প্রান্তিকের ফলের শিরোনাম ও মুনাফার হিসাব, আর ফলের পেজে নতুন 5টি রিপোর্ট।",
+      en: "Every company's latest results in one list, with the headline and profit figures of each, and the Better, Mixed, Weaker filters.",
+      bn: "সব কোম্পানির সর্বশেষ ফল এক তালিকায়, প্রতিটির শিরোনাম ও মুনাফার হিসাবসহ, আর ভালো, মিশ্র, দুর্বল বাছাই।",
     },
     premium: {
-      en: "Every company's latest results in one list. On each share: the latest quarter on its own, cash from the business, the price against the last 12 months' profit, how our score moved, and what it means. You also get a phone alert on the day results come out for a share you own or follow.",
-      bn: "সব কোম্পানির সর্বশেষ ফল এক তালিকায়। প্রতিটি শেয়ারে: শুধু শেষ প্রান্তিক, ব্যবসা থেকে আসা নগদ, গত 12 মাসের মুনাফার তুলনায় দাম, আমাদের স্কোর কতটা বদলেছে, আর এর মানে কী। আপনার কেনা বা অনুসরণ করা শেয়ারের ফল বের হলে সেদিনই ফোনে নোটিফিকেশনও পাবেন।",
+      en: "What each report means, in one sentence under every company, and a filter for your own stocks. On each share: the latest quarter on its own, cash from the business, the price against the last 12 months' profit and how our score moved. You also get a phone alert on the day results come out for a share you own or follow.",
+      bn: "প্রতিটি কোম্পানির নিচে এক লাইনে প্রতিবেদনের মানে, আর শুধু আপনার শেয়ারের বাছাই। প্রতিটি শেয়ারে: শুধু শেষ প্রান্তিক, ব্যবসা থেকে আসা নগদ, গত 12 মাসের মুনাফার তুলনায় দাম, আর আমাদের স্কোর কতটা বদলেছে। আপনার কেনা বা অনুসরণ করা শেয়ারের ফল বের হলে সেদিনই ফোনে নোটিফিকেশনও পাবেন।",
     },
   },
   {
@@ -201,12 +201,12 @@ export const ROWS: { what: Bi; free: Bi; premium: Bi }[] = [
   {
     what: { en: "Research lists", bn: "গবেষণা তালিকা" },
     free: {
-      en: "What each of the six lists looks for, and how many companies pass its checks.",
-      bn: "ছয়টি তালিকার প্রতিটি কী খোঁজে, আর কতগুলো কোম্পানি তার যাচাইয়ে পাস করে।",
+      en: "What each of the six lists looks for, how many companies pass its checks, and the top 3 on each.",
+      bn: "ছয়টি তালিকার প্রতিটি কী খোঁজে, কতগুলো কোম্পানি তার যাচাইয়ে পাস করে, আর প্রতিটির শীর্ষ 3টি।",
     },
     premium: {
-      en: "Every share on all six lists: a research card with its fair price range and main risk, all of them side by side, and who joined or left this month.",
-      bn: "ছয়টি তালিকার প্রতিটি শেয়ার: ন্যায্য দামের সীমা আর মূল ঝুঁকিসহ গবেষণা কার্ড, সবগুলো পাশাপাশি, আর এই মাসে কে যোগ হলো বা বাদ পড়ল।",
+      en: "Every other share on all six lists: a research card with its fair price range and main risk, all of them side by side, and who joined or left this month.",
+      bn: "ছয়টি তালিকার বাকি প্রতিটি শেয়ার: ন্যায্য দামের সীমা আর মূল ঝুঁকিসহ গবেষণা কার্ড, সবগুলো পাশাপাশি, আর এই মাসে কে যোগ হলো বা বাদ পড়ল।",
     },
   },
   {
@@ -223,10 +223,13 @@ export const ROWS: { what: Bi; free: Bi; premium: Bi }[] = [
   {
     what: { en: "Dividend calendar", bn: "ডিভিডেন্ড ক্যালেন্ডার" },
     free: {
-      en: "A few rows of each list: record dates, AGMs, the biggest cash dividends and the newest announcements.",
-      bn: "প্রতিটি তালিকার কয়েকটি সারি: রেকর্ড ডেট, এজিএম, সবচেয়ে বড় নগদ ডিভিডেন্ড আর নতুন ঘোষণা।",
+      en: "Every list in full: record dates, AGMs, the biggest cash dividends and the newest announcements.",
+      bn: "সব তালিকা পুরোটা: রেকর্ড ডেট, এজিএম, সবচেয়ে বড় নগদ ডিভিডেন্ড আর নতুন ঘোষণা।",
     },
-    premium: { en: "Every list in full.", bn: "সব তালিকা পুরোটা।" },
+    premium: {
+      en: "“Is it safe?” under every cash dividend: how much of its profit the company pays out, and whether it can keep paying.",
+      bn: "প্রতিটি নগদ ডিভিডেন্ডের নিচে “কতটা নিরাপদ?”: কোম্পানি মুনাফার কত অংশ দেয়, আর দিয়ে যেতে পারবে কিনা।",
+    },
   },
   {
     what: { en: "Watchlist", bn: "ওয়াচলিস্ট" },

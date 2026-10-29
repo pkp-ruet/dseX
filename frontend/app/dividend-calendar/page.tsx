@@ -3,6 +3,7 @@ import { getDividendCalendar } from "@/lib/api";
 import { recountCalendar } from "@/lib/dividend-dates";
 import { formatDate } from "@/lib/formatters";
 import CalendarSummary from "@/components/dividend-calendar/CalendarSummary";
+import CalendarSafetyLock from "@/components/dividend-calendar/CalendarSafetyLock";
 import RecordDateBoard from "@/components/dividend-calendar/RecordDateBoard";
 import AgmBoard from "@/components/dividend-calendar/AgmBoard";
 import TopCashDividends from "@/components/dividend-calendar/TopCashDividends";
@@ -82,8 +83,8 @@ export default async function DividendCalendarPage() {
         inLanguage: "en",
         isPartOf: { "@id": BASE_URL },
         dateModified: data.today,
-        // Paywall markup: each list past its first row or two is Premium
-        // (CalendarLock: the real rows stay in the HTML under .premium-locked).
+        // Paywall markup: every row is free since 2026-10-29; "Is it safe?"
+        // under each cash dividend is Premium (DividendRow, under .premium-locked).
         isAccessibleForFree: false,
         hasPart: {
           "@type": "WebPageElement",
@@ -183,9 +184,9 @@ export default async function DividendCalendarPage() {
 
       <CalendarSummary data={data} />
 
-      {/* Data first: every list opens with its free rows, then its lock — the
-          next rows with the company hidden and what Premium shows (CalendarLock).
-          One fetch of the reader's own codes for the locks' "your stocks" count. */}
+      {/* Every list in full, for every reader. What Premium adds is one line:
+          "Is it safe?" under each cash dividend (DividendRow). */}
+      <CalendarSafetyLock />
       <PersonalCodesProvider>
         <RecordDateBoard events={data.record_dates} />
 

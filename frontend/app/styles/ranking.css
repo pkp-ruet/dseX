@@ -223,8 +223,6 @@
 .rk-row:hover,
 .rk-row.is-open { background: color-mix(in srgb, var(--surface-2) 40%, var(--surface)); }
 .rk-row:active { background: color-mix(in srgb, var(--surface-2) 70%, var(--surface)); }
-/* A free reader's preview of locked rows (premium/RowLock): not tappable. */
-.rk-row--masked, .rk-row--masked:hover, .rk-row--masked:active { cursor: default; background: transparent; }
 .rk-td {
   padding: 12px 8px;
   border-top: 1px solid var(--cell-rule);
@@ -418,6 +416,8 @@
   line-height: 1.4;
   color: var(--text);
 }
+/* The signal's reason (Premium, an AnswerLock in the drawer). */
+.rk-detail-reason { margin: 0; font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
 .rk-points {
   display: flex;
   flex-direction: column;

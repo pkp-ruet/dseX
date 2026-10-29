@@ -1,7 +1,6 @@
 "use client";
 
 import { Fragment, useMemo, useState, type MouseEvent, type ReactNode } from "react";
-import MaskedName from "@/components/premium/MaskedName";
 import Link from "next/link";
 import { TIER_LABELS, TIER_LABELS_BN, TIER_MEANINGS, TIER_MEANINGS_BN, TIER_VAR, type TierKey } from "@/lib/constants";
 import StarButton from "@/components/ui/StarButton";
@@ -42,11 +41,6 @@ interface Props {
   /** Companies per grade in the whole view — when the table holds only part
    *  of it (the free head), so a grade header doesn't count just its rows. */
   groupCounts?: Partial<Record<TierKey, number>>;
-  /** The grade carried over from the table above: no second header for it. */
-  continues?: TierKey | null;
-  /** A free reader's preview of locked rows (premium/RowLock): every figure
-   *  shown, the company hidden; no column header, no links, no quick view. */
-  masked?: boolean;
 }
 
 const TIERS_ORDER: TierKey[] = ["excellent", "good", "average", "weak"];
@@ -147,7 +141,7 @@ function HeadCell({
   );
 }
 
-export default function FullRankTable({ rows, grouped, sort, onSort, groupCounts, continues, masked = false }: Props) {
+export default function FullRankTable({ rows, grouped, sort, onSort, groupCounts }: Props) {
   const [expanded, setExpanded] = useState<string | null>(null);
 
   // One <tbody> per grade (or one for a flat sort) — on phones each tbody
@@ -184,7 +178,6 @@ export default function FullRankTable({ rows, grouped, sort, onSort, groupCounts
   return (
     <div className="rk-table-wrap">
       <table className="rk-table">
-        {!masked && (
         <thead className="rk-thead">
           <tr>
             <th scope="col" className="rk-th rk-num">#</th>
@@ -223,10 +216,9 @@ export default function FullRankTable({ rows, grouped, sort, onSort, groupCounts
             </th>
           </tr>
         </thead>
-        )}
         {groups.map((group) => (
           <tbody key={group.tier ?? "all"} className="rk-group">
-            {group.tier && group.tier !== continues && (
+            {group.tier && (
               <tr className="rk-group-head">
                 <td colSpan={COL_COUNT}>
                   <div className="rk-group-head-inner">
@@ -248,94 +240,20 @@ export default function FullRankTable({ rows, grouped, sort, onSort, groupCounts
                 </td>
               </tr>
             )}
-            {group.rows.map(({ item, rank }) =>
-              masked ? (
-                <MaskedRankRow key={item.trading_code} item={item} rank={rank} />
-              ) : (
-                <RankRow
-                  key={item.trading_code}
-                  item={item}
-                  rank={rank}
-                  open={expanded === item.trading_code}
-                  onToggle={() => toggle(item.trading_code)}
-                  onRowClick={onRowClick}
-                />
-              ),
-            )}
+            {group.rows.map(({ item, rank }) => (
+              <RankRow
+                key={item.trading_code}
+                item={item}
+                rank={rank}
+                open={expanded === item.trading_code}
+                onToggle={() => toggle(item.trading_code)}
+                onRowClick={onRowClick}
+              />
+            ))}
           </tbody>
         ))}
       </table>
     </div>
-  );
-}
-
-/** One locked row as a free reader's preview: rank, sector, the five check
- *  bars, score, price word, growth and dividend — the company, its ticker and
- *  price hidden (a price would name it). Not a link, no quick view. */
-function MaskedRankRow({ item, rank }: { item: RankedItem; rank: number }) {
-  const word = priceWord(item.p4_val);
-  const growth = item.eps_yoy_pct;
-  const dy = item.div_yield_pct;
-  return (
-    <tr className="rk-row rk-row--masked">
-      <td className="rk-td rk-td-rank nums">
-        <span className={rank <= 3 ? "rk-rank is-top" : "rk-rank"}>{rank}</span>
-      </td>
-      <td className="rk-td rk-td-company">
-        <MaskedName name={item.company_name} />
-        {item.sector && (
-          <span className="rk-meta">
-            <T en={item.sector} bn={sectorBn(item.sector)} />
-          </span>
-        )}
-        <span className="rk-mobile-sub nums">
-          {growth != null && (
-            <span className={`font-semibold ${changeTone(growth)}`}>
-              <T en={`Profit ${changePct(growth, 0)}`} bn={`মুনাফা ${changePct(growth, 0)}`} />
-            </span>
-          )}
-          {dy != null && dy > 0 && (
-            <>
-              {growth != null && " · "}
-              <T en={`Pays ${dy.toFixed(1)}%`} bn={`ডিভিডেন্ড ${dy.toFixed(1)}%`} />
-            </>
-          )}
-          {word && (
-            <span className="rk-sub-word">
-              {(growth != null || (dy != null && dy > 0)) && " · "}
-              <span className={`font-semibold ${word.tone}`}>
-                <T en={word.label} bn={word.labelBn} />
-              </span>
-            </span>
-          )}
-        </span>
-      </td>
-      <td className="rk-td rk-td-checks">
-        <CheckBars item={item} />
-      </td>
-      <td className="rk-td rk-td-score">
-        <ScoreBadge score={item.score} tier={item.tier} size="sm" />
-      </td>
-      <td className="rk-td rk-td-value">
-        {word ? (
-          <span className={`rk-word ${word.tone}`}>
-            <span className="rk-word-dot" aria-hidden />
-            <T en={word.label} bn={word.labelBn} />
-          </span>
-        ) : (
-          <span className="text-text-muted">—</span>
-        )}
-      </td>
-      <td className={`rk-td rk-num rk-hide-lg nums font-semibold ${changeTone(growth)}`}>
-        {growth != null ? changePct(growth, 1) : <span className="text-text-muted">—</span>}
-      </td>
-      <td className="rk-td rk-num rk-hide-lg nums">
-        {dy != null && dy > 0 ? `${dy.toFixed(1)}%` : <span className="text-text-muted">—</span>}
-      </td>
-      <td className="rk-td rk-num rk-td-price" />
-      <td className="rk-td rk-td-star" />
-      <td className="rk-td rk-td-toggle" />
-    </tr>
   );
 }
 

@@ -2,9 +2,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { T } from "@/components/i18n/T";
 import TierPill from "@/components/ui/TierPill";
-import MaskedName from "@/components/premium/MaskedName";
+import { Locked } from "@/components/premium/AnswerLock";
 import { pct } from "@/lib/formatters";
-import { sectorBn } from "@/lib/bn";
 import type { CorporateActionEvent } from "@/lib/api";
 import { dayShort, daysWords } from "@/components/dividend-calendar/dates";
 
@@ -106,22 +105,21 @@ function extras(e: CorporateActionEvent, mode: Mode): ReactNode[] {
  * with the yield at today's price under it (`top` ranks by the yield, so it
  * leads there; `dated` shows a date instead). Taps through to the stock
  * page's dividend history. Yields are gross; no advice is drawn here.
- * `mark` = the H / ★ owner tag on the dashboard. `masked` = the locked
- * preview (see premium/RowLock): same row, company hidden.
+ * `mark` = the H / ★ owner tag on the dashboard.
+ * Under a cash dividend, "Is it safe?" (`e.safety`, one word and one plain
+ * sentence) — Premium since 2026-10-29, always in the HTML, shown to Premium
+ * readers only (`Locked`). The rows themselves are free.
  */
 export default function DividendRow({
   e,
   mode = "record",
   rank,
   mark,
-  masked = false,
 }: {
   e: CorporateActionEvent;
   mode?: Mode;
   rank?: number;
   mark?: ReactNode;
-  /** A free reader's preview of a locked row: the company hidden, the figures shown. */
-  masked?: boolean;
 }) {
   const more = extras(e, mode);
   const name = e.company_name || e.trading_code;
@@ -171,33 +169,6 @@ export default function DividendRow({
       </span>
     ) : null;
 
-  // Masked (a free reader's preview of a locked row): every figure stays, the
-  // company does not — a grey bar and a lock stand in for the name and ticker,
-  // and the sector says what kind of business it is. Not a link.
-  if (masked) {
-    const sector = e.sector ? { en: e.sector, bn: sectorBn(e.sector) || e.sector } : null;
-    return (
-      <div className={`dc-row dc-row--masked ${rank != null ? "dc-row--rank" : ""}`.trim()}>
-        {rank != null && <span className="dc-rank">{rank}</span>}
-        <span className="min-w-0">
-          <MaskedName name={name} />
-          <span className="dc-meta">
-            {e.tier && <TierPill tier={e.tier} />}
-            {e.dividend_type && mode !== "dated" && <T en={e.dividend_type} bn={TYPE_BN[e.dividend_type] ?? e.dividend_type} />}
-            {sector && (
-              <>
-                <span className="dc-sep" aria-hidden="true">·</span>
-                <T en={sector.en} bn={sector.bn} />
-              </>
-            )}
-          </span>
-          {extraLine}
-        </span>
-        <span className="dc-fig">{fig}</span>
-      </div>
-    );
-  }
-
   return (
     <Link
       href={`/stock/${encodeURIComponent(e.trading_code)}#dividends`}
@@ -219,6 +190,15 @@ export default function DividendRow({
           )}
         </span>
         {extraLine}
+        {e.safety && mode !== "dated" && (
+          <Locked as="span" className="dc-safety">
+            <b className={`dc-safety-w dc-safety--${e.safety.level}`}>
+              <T en={e.safety.word_en} bn={e.safety.word_bn} />
+            </b>
+            <span className="dc-sep" aria-hidden="true"> · </span>
+            <T en={e.safety.line_en} bn={e.safety.line_bn} />
+          </Locked>
+        )}
       </span>
       <span className="dc-fig">{fig}</span>
     </Link>

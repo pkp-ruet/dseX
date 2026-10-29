@@ -7,10 +7,6 @@ import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
 import { sectorBn } from "@/lib/bn";
 import Chip from "@/components/ui/Chip";
-import RowLock from "@/components/premium/RowLock";
-import LockPanel, { type LockTile } from "@/components/premium/LockPanel";
-import { FREE_RANKING_ROWS, splitFree } from "@/lib/free-share";
-import { usePremium } from "@/lib/premium";
 import FullRankTable, {
   type RankSort,
   type RankSortCol,
@@ -18,8 +14,6 @@ import FullRankTable, {
   type RankedRow,
 } from "@/components/ranking/FullRankTable";
 
-/** Locked rows a free reader sees with the company hidden (premium/RowLock). */
-const RANKING_PREVIEW_ROWS = 3;
 
 const TIERS_ORDER: TierKey[] = ["excellent", "good", "average", "weak"];
 
@@ -67,14 +61,9 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
   // Empty = every grade shown. Picking chips narrows to just those grades.
   const [picked, setPicked] = useState<Set<TierKey>>(() => new Set());
   const [sort, setSort] = useState<RankSort>(DEFAULT_SORT);
-  const { isPremium } = usePremium();
   const { lang } = useLang();
   const bn = lang === "bn";
   const L = (en: string, b: string) => (bn ? b : en);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  // Server render + first paint are locked, like every lock.
-  const unlocked = mounted && isPremium;
 
   // ---- URL ⇄ state: ?q=…&sector=…&tiers=excellent,good&sort=growth&dir=desc ----
   // Defaults render on the server; the query string is applied once after
@@ -169,17 +158,8 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
     );
   };
 
-  // Free readers see the first FREE_RANKING_ROWS of the view; the rest of the
-  // leaderboard sits behind the Premium lock (screen-only — rows stay in the HTML).
-  const [free, locked] = unlocked ? [filtered, []] : splitFree(filtered, FREE_RANKING_ROWS);
   const viewCounts: Partial<Record<TierKey, number>> = {};
   for (const { item } of filtered) viewCounts[item.tier] = (viewCounts[item.tier] ?? 0) + 1;
-  const lockedStrong = locked.filter(({ item }) => item.tier === "excellent" || item.tier === "good").length;
-  const lockedCheap = locked.filter(({ item }) => (item.p4_val ?? 0) >= 7).length;
-  const lockTiles: LockTile[] = [
-    lockedStrong > 0 ? { value: String(lockedStrong), label: { en: "graded Good or better", bn: "গ্রেড ভালো বা তার বেশি" } } : null,
-    lockedCheap > 0 ? { value: String(lockedCheap), label: { en: "at a good price today", bn: "আজ ভালো দামে" } } : null,
-  ].filter((t): t is LockTile => t != null);
 
   const isFiltered =
     query.trim() !== "" || sector !== "all" || picked.size > 0 || !isDefaultSort;
@@ -293,50 +273,10 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
         </div>
       </div>
 
-      <FullRankTable rows={free} grouped={isDefaultSort} sort={sort} onSort={onSort} groupCounts={viewCounts} />
-      {locked.length > 0 && (
-        <RowLock
-          preview={
-            <FullRankTable
-              rows={locked.slice(0, RANKING_PREVIEW_ROWS)}
-              grouped={isDefaultSort}
-              sort={sort}
-              onSort={onSort}
-              groupCounts={viewCounts}
-              continues={free[free.length - 1]?.item.tier ?? null}
-              masked
-            />
-          }
-          panel={
-            <LockPanel job="find"
-              variant="full"
-              title={{
-                en: `See the companies behind ${locked.length} more ${locked.length === 1 ? "rank" : "ranks"}`,
-                bn: `আরও ${locked.length}টি র‍্যাঙ্কের কোম্পানিগুলো দেখুন`,
-              }}
-              sub={{
-                en: "Premium opens the whole ranking: every company's grade, its five checks, the price word and today's price, with search, sector and sort.",
-                bn: "প্রিমিয়ামে পুরো র‍্যাঙ্কিং খোলা: প্রতিটি কোম্পানির গ্রেড, পাঁচটি যাচাই, দামের কথা আর আজকের দাম, সঙ্গে সার্চ, সেক্টর আর সাজানো।",
-              }}
-              tiles={lockTiles}
-              codes={locked.map(({ item }) => item.trading_code)}
-              count={locked.length}
-              lock="Rankings"
-              what={{ en: "The full ranking", bn: "পুরো র‍্যাঙ্কিং" }}
-            />
-          }
-          className="mt-4"
-        >
-          <FullRankTable
-            rows={locked}
-            grouped={isDefaultSort}
-            sort={sort}
-            onSort={onSort}
-            groupCounts={viewCounts}
-            continues={free[free.length - 1]?.item.tier ?? null}
-          />
-        </RowLock>
-      )}
+      {/* The whole ranking is free since 2026-10-29 (the Free vs Premium plan:
+          facts are free). What Premium adds sits in each row's drawer: why
+          the signal says what it says (RankRowDetails → AnswerLock). */}
+      <FullRankTable rows={filtered} grouped={isDefaultSort} sort={sort} onSort={onSort} groupCounts={viewCounts} />
     </div>
   );
 }

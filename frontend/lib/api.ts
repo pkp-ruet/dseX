@@ -451,6 +451,15 @@ export interface CorporateActionEvent {
   /** True when a later DSE notice corrected this declaration's dates. */
   amended: boolean;
   is_no_dividend: boolean;
+  /** "Is this dividend safe?" (backend/services/dividend_safety.py) — Premium
+   *  on the page (screen-only), only for a cash dividend. */
+  safety?: {
+    level: "safe" | "watch" | "risk";
+    word_en: string;
+    word_bn: string;
+    line_en: string;
+    line_bn: string;
+  } | null;
   record_days_left: number | null;
   agm_days_left: number | null;
   /** Last normal-market buy day that still settles before the record date. */
@@ -830,6 +839,9 @@ export interface LatestResultRow {
   headline_bn: string;
   profit_en: string | null;
   profit_bn: string | null;
+  /** What the report means, one sentence (Premium on /results since 2026-10-29 — screen-only). */
+  meaning_en?: string | null;
+  meaning_bn?: string | null;
 }
 
 export interface LatestResults {

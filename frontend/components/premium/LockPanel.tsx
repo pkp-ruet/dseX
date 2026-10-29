@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 import { T } from "@/components/i18n/T";
 import { IconLock } from "@/components/ui/icons";
 import { JobTag } from "@/components/premium/AnswerLock";
+import { usePremiumOpen } from "@/components/premium/PremiumMask";
 import type { Job } from "@/lib/premium-jobs";
 import {
   PersonalCodesProvider,
@@ -109,6 +110,8 @@ function Panel({
   const area = areaOf(usePathname() || "/");
   const ref = useRef<HTMLDivElement>(null);
   const seen = useRef(false);
+  // A lock never shows to a Premium reader, wherever it sits (2026-10-29).
+  const premiumOpen = usePremiumOpen();
 
   const mine =
     mineIn ?? new Set(codes.map((c) => c.toUpperCase()).filter((c) => portfolio.has(c) || watchlist.has(c))).size;
@@ -146,6 +149,8 @@ function Panel({
     ].slice(0, 3);
     savePremiumContext({ from: area, label: (what ?? title)[lang], stakes });
   };
+
+  if (premiumOpen) return null;
 
   if (variant === "line") {
     return (

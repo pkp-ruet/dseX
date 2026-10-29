@@ -9,53 +9,14 @@
  * list of other companies is free — signals, the screener, Picked for you,
  * the research lists, stories, the report's sample sections. One number a
  * reader learns after one page. Rankings, results and the dividend calendar
- * keep their own numbers until they open in full (plan step 4).
+ * are open in full since 2026-10-29 (plan step 4).
  */
 export const FREE_LIST_ROWS = 3;
-
-/**
- * Dividend calendar: free readers get a glimpse, not a share — the first rows
- * of each list, next to `DividendPromo` saying what the full calendar does.
- * (Was the first 25% of every list until 2026-10-24, which left most of the
- * calendar open.)
- */
-export const FREE_CALENDAR_ROWS = {
-  recordDates: 2,
-  agms: 1,
-  topCash: 1,
-  declared: 1,
-  /** The dashboard's "Money coming" card. */
-  dashboard: 2,
-} as const;
-
-/**
- * The locked rows a free reader still sees as a preview, with every figure
- * but the company hidden (`DividendRow masked`, 2026-10-28) — so the lock
- * shows what Premium holds instead of a blur.
- */
-export const CALENDAR_PREVIEW_ROWS = {
-  recordDates: 2,
-  agms: 1,
-  topCash: 2,
-  declared: 1,
-  dashboard: 1,
-  /** /market-analysis "Money coming" — no open rows there, the preview only. */
-  market: 2,
-} as const;
-
-/** `/results`: the newest reports a free reader sees (of whichever filter is
- *  on); the rest of every company's results is Premium (user decision
- *  2026-10-25 — "free user can also see the full page"). */
-export const FREE_RESULTS_ROWS = 5;
 
 /** `/buy-sell-signals`: the first buy signals of the current view a free
  *  reader sees (Strong buys lead the default order); the rest is Premium
  *  (user decision 2026-10-25). */
 export const FREE_SIGNAL_ROWS = FREE_LIST_ROWS;
-
-/** `/dsestockranking`: the first rows of the current view a free reader
- *  sees; the rest of the leaderboard is Premium (user decision 2026-10-25). */
-export const FREE_RANKING_ROWS = 5;
 
 /** `/screener`: the first stocks that pass a screen a free reader sees; none
  *  when the screen uses a power check. The rest is Premium (user decision

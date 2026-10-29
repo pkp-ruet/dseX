@@ -1,11 +1,6 @@
 import { T } from "@/components/i18n/T";
-import DateGroup, { countByDate, groupByDate, splitGroups } from "@/components/dividend-calendar/DateGroup";
+import DateGroup, { countByDate, groupByDate } from "@/components/dividend-calendar/DateGroup";
 import DividendRow from "@/components/dividend-calendar/DividendRow";
-import RowLock from "@/components/premium/RowLock";
-import LockPanel, { type LockTile } from "@/components/premium/LockPanel";
-import { perShareTk } from "@/components/dividend-calendar/DividendRow";
-import { CALENDAR_PREVIEW_ROWS, FREE_CALENDAR_ROWS, splitFree } from "@/lib/free-share";
-import { pct } from "@/lib/formatters";
 import type { CorporateActionEvent } from "@/lib/api";
 import SectionHeader from "@/components/ui/SectionHeader";
 
@@ -22,39 +17,8 @@ import SectionHeader from "@/components/ui/SectionHeader";
 export default function RecordDateBoard({ events }: { events: CorporateActionEvent[] }) {
   const paying = events.filter((e) => !e.is_no_dividend);
   const nonPaying = events.filter((e) => e.is_no_dividend);
-  // The free glimpse is taken from the whole list, paying dates first.
-  const [freeRows, lockedRows] = splitFree([...paying, ...nonPaying], FREE_CALENDAR_ROWS.recordDates);
-  const lockedPaying = lockedRows.filter((e) => !e.is_no_dividend);
-  const lockedNonPaying = lockedRows.filter((e) => e.is_no_dividend);
-  const freePaying = freeRows.filter((e) => !e.is_no_dividend);
-  const freeNonPaying = freeRows.filter((e) => e.is_no_dividend);
-  const locked = lockedPaying.length + lockedNonPaying.length;
-
-  const { freeGroups, lockedGroups, cont } = splitGroups(freePaying, lockedPaying, "record_date");
   const perDate = countByDate(paying, "record_date");
-  const groups = (list: typeof freeGroups, half: "free" | "locked", masked = false) =>
-    list.map((g, i) => (
-      <DateGroup
-        key={g.date}
-        date={g.date}
-        items={g.items}
-        kind="record"
-        masked={masked}
-        total={perDate.get(g.date)}
-        part={cont ? (half === "free" && i === list.length - 1 ? "split" : half === "locked" && i === 0 ? "cont" : undefined) : undefined}
-      />
-    ));
-  // The lock: the next paying rows with the company hidden, then what's behind
-  // it — the counts come from the hidden rows (free numbers; the names are what's locked).
-  const previewGroups = groupByDate(lockedPaying.slice(0, CALENDAR_PREVIEW_ROWS.recordDates), "record_date");
-  const week = lockedPaying.filter((e) => e.record_days_left != null && e.record_days_left <= 7).length;
-  const maxCash = Math.max(0, ...lockedPaying.map((e) => e.cash_per_share ?? 0));
-  const bestYield = Math.max(0, ...lockedPaying.map((e) => e.yield_pct ?? 0));
-  const tiles: LockTile[] = [
-    week > 0 ? { value: String(week), label: { en: "in the next 7 days", bn: "আগামী 7 দিনে" } } : null,
-    maxCash > 0 ? { value: perShareTk(maxCash), label: { en: "biggest cash a share", bn: "সবচেয়ে বেশি শেয়ারপ্রতি নগদ" } } : null,
-    bestYield > 0 ? { value: pct(bestYield, 1), label: { en: "best yield", bn: "সর্বোচ্চ ইল্ড" } } : null,
-  ].filter((t): t is LockTile => t != null);
+  const groups = groupByDate(paying, "record_date");
   const plainList = (rows: CorporateActionEvent[]) => (
     <ul className="soft-card dc-list overflow-hidden">
       {rows.map((e) => (
@@ -101,48 +65,20 @@ export default function RecordDateBoard({ events }: { events: CorporateActionEve
         </div>
       ) : (
         <>
-          {/* Free readers get a glimpse — the nearest dates, paying first; the
-              rest sits behind the lock (screen-only): a preview with the
-              company hidden, then what Premium shows. */}
-          {freeGroups.length > 0 && <div className="dc-stack">{groups(freeGroups, "free")}</div>}
-          {freeNonPaying.length > 0 && (
+          {/* Every date, for every reader (2026-10-29: the calendar's facts are
+              free). Premium adds "Is it safe?" under each cash dividend. */}
+          {groups.length > 0 && (
+            <div className="dc-stack">
+              {groups.map((g) => (
+                <DateGroup key={g.date} date={g.date} items={g.items} kind="record" total={perDate.get(g.date)} />
+              ))}
+            </div>
+          )}
+          {nonPaying.length > 0 && (
             <>
               {noDividendHead}
-              {plainList(freeNonPaying)}
+              {plainList(nonPaying)}
             </>
-          )}
-
-          {locked > 0 && (
-            <RowLock
-              className={`dc-gate ${cont ? "dc-gate--cont" : ""}`}
-              preview={previewGroups.length > 0 ? <div className="dc-stack">{groups(previewGroups, "locked", true)}</div> : null}
-              panel={
-                <LockPanel job="find"
-                  variant="full"
-                  title={{
-                    en: `See the companies behind ${locked} more record ${locked === 1 ? "date" : "dates"}`,
-                    bn: `আরও ${locked}টি রেকর্ড ডেটের কোম্পানিগুলো দেখুন`,
-                  }}
-                  sub={{
-                    en: "Premium shows every record date in the next 120 days: the company, the cash a share, the yield and the last day to buy.",
-                    bn: "প্রিমিয়ামে আগামী 120 দিনের প্রতিটি রেকর্ড ডেট: কোম্পানি, শেয়ারপ্রতি নগদ, ইল্ড আর কেনার শেষ দিন।",
-                  }}
-                  tiles={tiles}
-                  codes={lockedRows.map((e) => e.trading_code)}
-                  count={locked}
-                  lock="Dividend calendar: record dates"
-                  what={{ en: "The full dividend calendar", bn: "পুরো ডিভিডেন্ড ক্যালেন্ডার" }}
-                />
-              }
-            >
-              {lockedGroups.length > 0 && <div className="dc-stack">{groups(lockedGroups, "locked")}</div>}
-              {lockedNonPaying.length > 0 && (
-                <>
-                  {freeNonPaying.length === 0 && noDividendHead}
-                  {plainList(lockedNonPaying)}
-                </>
-              )}
-            </RowLock>
           )}
         </>
       )}

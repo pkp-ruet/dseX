@@ -6,25 +6,20 @@ import { isoLocal, recordDateInfo, todayDhaka } from "@/lib/dividend-dates";
 import { formatDate } from "@/lib/formatters";
 import { bnDate } from "@/lib/bn";
 import { T } from "@/components/i18n/T";
-import RowLock from "@/components/premium/RowLock";
-import LockPanel, { type Pair } from "@/components/premium/LockPanel";
-import { CALENDAR_PREVIEW_ROWS } from "@/lib/free-share";
+import type { Pair } from "@/components/premium/LockPanel";
 import MarketRow, { type RowTone } from "./MarketRow";
 import MkCard from "./MkCard";
 import ShowMore from "./ShowMore";
 
 /**
- * "Money coming": dividends coming up, market-wide. The rows are Premium
- * (2026-10-25: replaced the free "Cash coming your way soon" list). Since
- * 2026-10-28 a free reader sees the shared row lock instead of a promotion
- * card: the first rows with the company hidden — the cash a share, the yield,
- * the record date and the last day to buy all shown — then one line saying
- * how many dividends are behind it and how many are their own stocks. The
- * real rows stay in the HTML (screen-only); a Premium reader gets them all.
+ * "Money coming": dividends coming up, market-wide — the cash a share, the
+ * yield, the record date and the last day to buy. Free for every reader
+ * since 2026-10-29 (the Free vs Premium plan: dates and amounts are DSE's
+ * facts); it was behind the row lock 2026-10-25 → 10-29.
  */
 export default function MarketDividends({ items }: { items: MarketDividendEvent[] }) {
   const today = todayDhaka();
-  const row = (d: MarketDividendEvent, masked = false) => {
+  const row = (d: MarketDividendEvent) => {
     const r = dividendRow(d, today);
     return (
       <MarketRow
@@ -33,7 +28,6 @@ export default function MarketDividends({ items }: { items: MarketDividendEvent[
         name={d.company_name}
         sector={d.sector}
         price={d.last_price}
-        masked={masked}
         meta={<T en={r.meta.en} bn={r.meta.bn} />}
         tone={r.tone}
         sub={
@@ -51,11 +45,6 @@ export default function MarketDividends({ items }: { items: MarketDividendEvent[
       />
     );
   };
-  const open = items.filter((d) => {
-    if (d.kind !== "record") return false;
-    const info = recordDateInfo(d.date, today);
-    return !info || info.buyDaysLeft >= 0;
-  }).length;
   const n = items.length;
 
   return (
@@ -78,30 +67,7 @@ export default function MarketDividends({ items }: { items: MarketDividendEvent[
           <T en="No dividend dates are coming up right now." bn="এই মুহূর্তে সামনে কোনো ডিভিডেন্ডের তারিখ নেই।" />
         </p>
       ) : (
-        <RowLock
-          preview={<div className="mk-rows">{items.slice(0, CALENDAR_PREVIEW_ROWS.market).map((d) => row(d, true))}</div>}
-          panel={
-            <LockPanel job="find"
-              title={
-                open > 0
-                  ? {
-                      en: `See the companies behind ${n} coming ${n === 1 ? "dividend" : "dividends"}, ${open} you can still buy for`,
-                      bn: `সামনের ${n}টি ডিভিডেন্ডের কোম্পানি দেখুন, এর ${open}টির জন্য এখনো কেনা যায়`,
-                    }
-                  : {
-                      en: `See the companies behind ${n} coming ${n === 1 ? "dividend" : "dividends"}`,
-                      bn: `সামনের ${n}টি ডিভিডেন্ডের কোম্পানি দেখুন`,
-                    }
-              }
-              codes={items.map((d) => d.trading_code)}
-              count={n}
-              lock="Market analysis: money coming"
-              what={{ en: "The full dividend calendar", bn: "পুরো ডিভিডেন্ড ক্যালেন্ডার" }}
-            />
-          }
-        >
-          <ShowMore initial={4} noun="dividends" nounBn="ডিভিডেন্ড" className="mk-rows" rows={items.map((d) => row(d))} />
-        </RowLock>
+        <ShowMore initial={4} noun="dividends" nounBn="ডিভিডেন্ড" className="mk-rows" rows={items.map((d) => row(d))} />
       )}
     </MkCard>
   );

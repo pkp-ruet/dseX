@@ -396,9 +396,10 @@ def company_results(code: str, score_row: Optional[dict], sector_class: str = "G
 # ---------------------------------------------------------------------------
 
 def feed_row(code: str, ex: dict, comp: dict, price: dict, score: Optional[float]) -> dict:
-    """One row of the market-wide feed. Carries the free part of the explainer
-    only (headline + the profit line); the rest stays on the stock page,
-    behind its lock."""
+    """One row of the market-wide feed: the headline and the profit line (free),
+    plus the one "what it means" sentence (Premium on /results since
+    2026-10-29, a screen-only lock). The cash, price and score lines stay on
+    the stock page."""
     profit = next((l for l in ex["lines"] if l["key"] == "profit"), None) or {}
     return {
         "code": code,
@@ -422,6 +423,8 @@ def feed_row(code: str, ex: dict, comp: dict, price: dict, score: Optional[float
         "headline_bn": ex["headline_bn"],
         "profit_en": profit.get("en"),
         "profit_bn": profit.get("bn"),
+        "meaning_en": ex.get("meaning_en"),
+        "meaning_bn": ex.get("meaning_bn"),
     }
 
 

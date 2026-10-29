@@ -5,11 +5,9 @@ import Chip from "@/components/ui/Chip";
 import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import { IconLock } from "@/components/ui/icons";
-import RowLock from "@/components/premium/RowLock";
-import LockPanel, { type LockTile } from "@/components/premium/LockPanel";
+import LockPanel from "@/components/premium/LockPanel";
 import { PersonalCodesProvider, usePersonalCodesCtx } from "@/components/market-analysis/PersonalCodes";
 import type { LatestResultRow } from "@/lib/api";
-import { FREE_RESULTS_ROWS } from "@/lib/free-share";
 import { RESULT_LEVEL, RESULT_LEVEL_ORDER } from "@/lib/results";
 import { usePremium } from "@/lib/premium";
 import { savePremiumContext } from "@/lib/premium-context";
@@ -20,9 +18,6 @@ import { bnDate } from "@/lib/bn";
 import { useUrlParams, useUrlSync } from "@/lib/use-url-state";
 import ResultRow from "./ResultRow";
 import ResultsFilterPreview from "./ResultsFilterPreview";
-
-/** Locked rows a free reader sees with the company hidden (premium/RowLock). */
-const RESULTS_PREVIEW_ROWS = 2;
 
 const PAGE = 50;
 type Level = LatestResultRow["level"];
@@ -58,13 +53,12 @@ function byDay(rows: LatestResultRow[]): { day: string; items: LatestResultRow[]
  * filter: All · My stocks (holdings ∪ watchlist) · Better · Mixed · Weaker ·
  * About the same. Each row taps through to the stock page's results card.
  *
- * Free readers (user decision 2026-10-28): the newest FREE_RESULTS_ROWS of
- * All, the rest blurred behind one lock, and **every filter locked** — the
- * counts stay free, and tapping a locked chip opens a preview (what it
- * means, how many, three rows blurred) with one button to /premium. Screen-
- * only like every lock: the rows stay in the HTML, marked `.premium-locked`.
- * Premium readers get every filter (in the URL, `?level=good|watch|bad|
- * neutral|mine`) and one unbroken list.
+ * Free since 2026-10-29 (the Free vs Premium plan — facts are free): every
+ * report and the level filters (in the URL, `?level=good|watch|bad|neutral`).
+ * Premium adds what each report means (one sentence under every row, a
+ * screen-only `Locked` in `ResultRow`, named by one lock line under the key)
+ * and the My stocks filter (`?level=mine`, Watch) — a free reader's tap on
+ * it opens a preview (how many, three rows with the company hidden).
  */
 export default function ResultsFeed(props: { rows: LatestResultRow[]; counts: Record<Level, number> }) {
   return (
@@ -87,11 +81,11 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
   useEffect(() => setMounted(true), []);
   const unlocked = mounted && isPremium;
 
-  // A shared `?level=` opens that filter — for Premium readers only.
+  // A shared `?level=` opens that filter — "mine" for Premium readers only.
   useEffect(() => {
-    if (!urlParams || isLoading || !isPremium) return;
+    if (!urlParams || isLoading) return;
     const lv = urlParams.get("level");
-    if (lv && (FILTERS as string[]).includes(lv)) setFilter(lv as Filter);
+    if (lv && (FILTERS as string[]).includes(lv) && (lv !== "mine" || isPremium)) setFilter(lv as Filter);
   }, [urlParams, isLoading, isPremium]);
   useUrlSync({ level: filter === "all" ? null : filter }, urlParams !== null && !isLoading);
 
@@ -114,7 +108,7 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
 
   const choose = (f: Filter) => {
     if (f === filter) return;
-    if (f !== "all" && !unlocked) {
+    if (f === "mine" && !unlocked) {
       setPreview(f);
       trackEvent("premium_lock_view", { area: "results", lock: "Results filter", filter: f, state });
       return;
@@ -124,12 +118,11 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
   };
 
   // ---- the list ----
-  const list = (items: LatestResultRow[], continuesDay?: string, masked = false) => (
+  const list = (items: LatestResultRow[]) => (
     <div>
-      {byDay(items).map((g, i) => (
+      {byDay(items).map((g) => (
         <section key={g.day} className="rs-day" aria-label={enDay(g.day)}>
-          {!(i === 0 && g.day === continuesDay) && (
-            <h2 className="rs-day-head">
+          <h2 className="rs-day-head">
               <T en={enDay(g.day)} bn={bnDate(g.day, true)} />
               <span className="rs-day-n">
                 <T
@@ -138,11 +131,10 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
                 />
               </span>
             </h2>
-          )}
           <ul className="soft-card rs-list">
             {g.items.map((r) => (
               <li key={r.code}>
-                <ResultRow r={r} masked={masked} />
+                <ResultRow r={r} />
               </li>
             ))}
           </ul>
@@ -181,7 +173,8 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
           }
         />
       );
-  } else if (unlocked) {
+  } else {
+    // Every report, for every reader (2026-10-29: facts are free), 50 at a time.
     body = (
       <>
         {list(filtered.slice(0, shown))}
@@ -194,49 +187,6 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
               />
             </Button>
           </div>
-        )}
-      </>
-    );
-  } else {
-    // Free readers and the server render: the newest few open, the rest locked.
-    const free = filtered.slice(0, FREE_RESULTS_ROWS);
-    const locked = filtered.slice(FREE_RESULTS_ROWS, PAGE);
-    const lockedAll = filtered.slice(FREE_RESULTS_ROWS);
-    const lockedBetter = lockedAll.filter((r) => r.level === "good").length;
-    const lockedWeaker = lockedAll.filter((r) => r.level === "bad").length;
-    const lockTiles: LockTile[] = [
-      lockedBetter > 0 ? { value: String(lockedBetter), label: { en: "earned clearly more", bn: "মুনাফা স্পষ্টভাবে বেশি" } } : null,
-      lockedWeaker > 0 ? { value: String(lockedWeaker), label: { en: "weaker than a year ago", bn: "গত বছরের চেয়ে দুর্বল" } } : null,
-    ].filter((x): x is LockTile => x != null);
-    const continues = free[free.length - 1]?.post_date;
-    body = (
-      <>
-        {list(free)}
-        {locked.length > 0 && (
-          <RowLock
-            preview={list(locked.slice(0, RESULTS_PREVIEW_ROWS), continues, true)}
-            panel={
-              <LockPanel job="find"
-                variant="full"
-                title={{
-                  en: `See the companies behind ${lockedAll.length} more ${lockedAll.length === 1 ? "result" : "results"}`,
-                  bn: `আরও ${lockedAll.length}টি ফলের কোম্পানিগুলো দেখুন`,
-                }}
-                sub={{
-                  en: "Premium shows every company's latest results, newest first, with the Better, Mixed, Weaker and My stocks filters.",
-                  bn: "প্রিমিয়ামে প্রতিটি কোম্পানির সর্বশেষ আর্থিক ফল, নতুনটি আগে, সঙ্গে ভালো, মিশ্র, দুর্বল আর আমার শেয়ার বাছাই।",
-                }}
-                tiles={lockTiles}
-                codes={lockedAll.map((r) => r.code)}
-                count={lockedAll.length}
-                lock="Quarterly results"
-                what={{ en: "Every company's results", bn: "সব কোম্পানির ফল" }}
-              />
-            }
-            className="mt-2"
-          >
-            {list(locked, continues)}
-          </RowLock>
         )}
       </>
     );
@@ -285,7 +235,7 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
             >
               <T en={l.en} bn={l.bn} />
               {showCount && <span className="rs-chip-n">{countFor(f)}</span>}
-              {f !== "all" && !unlocked && (
+              {f === "mine" && !unlocked && (
                 <span className="rs-chip-lock">
                   <IconLock size={14} />
                   <span className="sr-only">{t("Premium", "প্রিমিয়াম")}</span>
@@ -302,6 +252,22 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
           bn="ইপিএস মানে প্রতিবেদনের সময়ের (3, 6 বা 9 মাস, অথবা পুরো বছর) শেয়ারপ্রতি মুনাফা, পাশে এক বছর আগের একই সময়ের হিসাব। বড় সংখ্যাটি দেখায় কতটা বদলেছে। পুরো ব্যাখ্যা দেখতে কোম্পানিতে চাপ দিন।"
         />
       </p>
+
+      {/* What Premium adds here: the meaning under every row (hidden in each
+          ResultRow) and the My stocks filter. One line, not a lock per row. */}
+      {!unlocked && rows.some((r) => r.meaning_en) && (
+        <LockPanel
+          job="understand"
+          card
+          count={rows.length}
+          lock="Results: what it means"
+          what={{ en: "What each report means", bn: "প্রতিটি প্রতিবেদনের মানে" }}
+          title={{
+            en: "Premium adds what each report means, in one plain sentence under every company",
+            bn: "প্রিমিয়ামে প্রতিটি কোম্পানির নিচে এক লাইনে প্রতিবেদনটির মানে",
+          }}
+        />
+      )}
 
       {body}
 
@@ -325,7 +291,7 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
               pv === "mine" && pvRows.length > 0
                 ? t(`${pvRows.length} of your stocks have new results`, `আপনার ${pvRows.length}টি শেয়ারের নতুন ফল আছে`)
                 : t(`${pvRows.length} companies in "${pvTitle}"`, `"${pvTitle}" ভাগে ${pvRows.length}টি কোম্পানি`),
-              t(`${Math.max(0, rows.length - FREE_RESULTS_ROWS)} more companies' latest results`, `আরও ${Math.max(0, rows.length - FREE_RESULTS_ROWS)}টি কোম্পানির সর্বশেষ ফল`),
+              t(`What each of the ${rows.length} reports means`, `${rows.length}টি প্রতিবেদনের প্রতিটির মানে`),
             ],
           });
           setPreview(null);

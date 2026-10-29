@@ -146,6 +146,8 @@ def _build_event(
         "period_end": period_end.isoformat() if period_end else None,
         "amended": bool(decl.get("amended_at")),
         "is_no_dividend": not cash_pct and not stock_pct,
+        # Only a cash dividend has something to be safe about.
+        "safety": score_row.get("safety") if cash_per_share else None,
     }
 
     if record_date:
@@ -162,10 +164,13 @@ def _build_event(
 
 
 def _score_index() -> dict:
-    """code → {score, tier}. Never fatal: the calendar works without scores."""
+    """code → {score, tier, safety}. Never fatal: the calendar works without scores."""
     try:
         from backend.services.scoring_service import build_scores_df
         from backend.services.tiers import tier_key
+
+        from backend.services.dividend_safety import dividend_safety
+        from utils.sector import normalize_sector
 
         df = build_scores_df()
         if df.empty:
@@ -173,9 +178,12 @@ def _score_index() -> dict:
         out = {}
         for _, row in df.iterrows():
             score = _num(row.get("score"))
+            r = row.to_dict()
             out[row["trading_code"]] = {
                 "score": score,
                 "tier": tier_key(score) if score is not None else None,
+                # "Is this dividend safe?" — Premium on the page (screen-only lock).
+                "safety": dividend_safety(r, normalize_sector(r.get("sector") or "")),
             }
         return out
     except Exception:

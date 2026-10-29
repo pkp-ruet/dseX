@@ -100,9 +100,8 @@ export default async function DseStockRankingPage() {
           "All Dhaka Stock Exchange (DSE) listed companies ranked by fundamental score with price, profit growth, and dividend yield.",
         inLanguage: "en",
         isPartOf: { "@id": BASE_URL },
-        // Past the free head the list is Premium (screen-only lock).
-        isAccessibleForFree: false,
-        hasPart: { "@type": "WebPageElement", isAccessibleForFree: false, cssSelector: ".premium-locked" },
+        // The whole ranking is free since 2026-10-29 (the Free vs Premium plan):
+        // no paywall markup. Only a row's signal reason, opened on a tap, is Premium.
       },
       {
         "@type": "BreadcrumbList",

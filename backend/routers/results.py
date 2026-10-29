@@ -1,8 +1,9 @@
 """
 Every company's latest quarterly results, explained (services/results_explainer.py).
 
-Public: the headline and the profit line of each report. What the report
-means, the cash and price lines stay on the stock page behind its lock.
+Public: the headline, the profit line and the "what it means" sentence of each
+report (the page hides the meaning from free readers — a screen-only lock).
+The cash and price lines stay on the stock page.
 """
 from fastapi import APIRouter
 

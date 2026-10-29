@@ -63,7 +63,7 @@ def test_watched_only_stocks_get_no_price_events():
     assert W.build_events({}, facts, "2026-10-25", watched={"GP"}) == []
 
 
-def test_feed_row_carries_only_the_free_part():
+def test_feed_row_carries_the_headline_profit_and_meaning():
     from backend.services.results_explainer import feed_row
 
     ex = explain(_interim(nocfps_cum=-1.2, nocfps_cum_prev=0.8), {"ltp": 67.8, "eps": 11.1, "eps_basis": "ttm", "score": 80})
@@ -73,8 +73,10 @@ def test_feed_row_carries_only_the_free_part():
     assert row["profit_en"].startswith("Profit in the 6 months to Jun 2026")
     assert row["post_date"] == "2026-07-29" and row["name"] == "BRAC Bank PLC."
     assert row["eps_cum"] == ex["eps_cum"] and row["eps_cum_prev"] == ex["eps_cum_prev"]
-    # What it means, the cash and price lines stay on the (locked) stock page.
-    assert not any(k.startswith("meaning") or k == "lines" for k in row)
+    # The meaning rides along (Premium on /results, screen-only); the cash,
+    # price and score lines stay on the stock page.
+    assert row["meaning_en"] == ex["meaning_en"] and row["meaning_bn"] == ex["meaning_bn"]
+    assert "lines" not in row
 
 
 def test_feed_is_newest_first_then_biggest_move(monkeypatch):

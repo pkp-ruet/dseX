@@ -1,8 +1,5 @@
 import { T } from "@/components/i18n/T";
 import DividendRow from "@/components/dividend-calendar/DividendRow";
-import RowLock from "@/components/premium/RowLock";
-import LockPanel from "@/components/premium/LockPanel";
-import { CALENDAR_PREVIEW_ROWS, FREE_CALENDAR_ROWS, splitFree } from "@/lib/free-share";
 import type { CorporateActionEvent } from "@/lib/api";
 import SectionHeader from "@/components/ui/SectionHeader";
 
@@ -17,13 +14,11 @@ export default function RecentDeclarations({
   limit?: number;
 }) {
   if (events.length === 0) return null;
-  const [free, locked] = splitFree(events.slice(0, limit), FREE_CALENDAR_ROWS.declared);
-  const row = (e: CorporateActionEvent, masked = false) => (
+  const row = (e: CorporateActionEvent) => (
     <li key={`${e.trading_code}-${e.declaration_date}`}>
-      <DividendRow e={e} mode="declared" masked={masked} />
+      <DividendRow e={e} mode="declared" />
     </li>
   );
-  const cashHidden = locked.filter((e) => (e.cash_per_share ?? 0) > 0 || (e.cash_pct ?? 0) > 0).length;
 
   return (
     <section className="dc-section" id="recent">
@@ -37,36 +32,7 @@ export default function RecentDeclarations({
         }
       />
 
-      {/* Free readers see the newest one; the rest is Premium (screen-only lock)
-          and continues inside the same card, so Premium reads one list. */}
-      <ul className="soft-card dc-list overflow-hidden">
-        {free.map((e) => row(e))}
-        {locked.length > 0 && (
-          <li className="dc-gate-li">
-            <RowLock
-              preview={<ul className="dc-list">{locked.slice(0, CALENDAR_PREVIEW_ROWS.declared).map((e) => row(e, true))}</ul>}
-              panel={
-                <LockPanel job="find"
-                  title={
-                    cashHidden > 0
-                      ? {
-                          en: `${locked.length} more new ${locked.length === 1 ? "declaration" : "declarations"}, ${cashHidden} paying cash`,
-                          bn: `আরও ${locked.length}টি নতুন ঘোষণা, এর ${cashHidden}টিতে নগদ ডিভিডেন্ড`,
-                        }
-                      : { en: `${locked.length} more new declarations`, bn: `আরও ${locked.length}টি নতুন ঘোষণা` }
-                  }
-                  codes={locked.map((e) => e.trading_code)}
-                  count={locked.length}
-                  lock="Dividend calendar: just declared"
-                  what={{ en: "The full dividend calendar", bn: "পুরো ডিভিডেন্ড ক্যালেন্ডার" }}
-                />
-              }
-            >
-              <ul className="dc-list">{locked.map((e) => row(e))}</ul>
-            </RowLock>
-          </li>
-        )}
-      </ul>
+      <ul className="soft-card dc-list overflow-hidden">{events.slice(0, limit).map((e) => row(e))}</ul>
     </section>
   );
 }

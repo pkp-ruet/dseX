@@ -7,7 +7,6 @@ import { T } from "@/components/i18n/T";
 import ResultsFeed from "@/components/results/ResultsFeed";
 import PageGuide from "@/components/seo/PageGuide";
 import HubLinks from "@/components/layout/HubLinks";
-import { FREE_RESULTS_ROWS } from "@/lib/free-share";
 import { bnDate } from "@/lib/bn";
 
 export const revalidate = 900;
@@ -48,12 +47,11 @@ export const metadata: Metadata = {
 
 /**
  * Every company's latest quarterly report (DSE's Q1/Q2/Q3 posts), newest
- * first — the free part of the results explainer: a plain headline and the
- * profit figure against a year earlier. The full read (cash, price, score,
- * what it means) is on each stock page, behind its Premium lock.
- * Free readers see the counts and the newest FREE_RESULTS_ROWS reports; the
- * rest of the list and every filter (My stocks, Better, Mixed, Weaker, About
- * the same) are Premium (screen-only lock, paywall JSON-LD below).
+ * first: a plain headline and the profit figure against a year earlier.
+ * Every row and the level filters are free (2026-10-29, the Free vs Premium
+ * plan); what each report means and the My stocks filter are Premium
+ * (screen-only lock, paywall JSON-LD below). The full read (cash, price,
+ * score) is on each stock page.
  * Fetched and awaited in the page: no streaming on an indexable route.
  */
 export default async function ResultsPage() {
@@ -72,7 +70,7 @@ export default async function ResultsPage() {
         description: DESCRIPTION,
         url: `${BASE_URL}${PATH}`,
         ...(data.as_of ? { dateModified: data.as_of } : {}),
-        // Most of the list is shown in full only to Premium readers.
+        // What each report means is shown only to Premium readers.
         isAccessibleForFree: false,
         hasPart: { "@type": "WebPageElement", isAccessibleForFree: false, cssSelector: ".premium-locked" },
       },
@@ -86,7 +84,7 @@ export default async function ResultsPage() {
       {
         "@type": "ItemList",
         name: "Latest DSE quarterly results",
-        itemListElement: rows.slice(0, FREE_RESULTS_ROWS).map((r, i) => ({
+        itemListElement: rows.slice(0, 20).map((r, i) => ({
           "@type": "ListItem",
           position: i + 1,
           name: `${r.name} (${r.code}): ${r.headline_en}`,
