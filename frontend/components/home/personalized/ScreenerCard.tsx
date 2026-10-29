@@ -21,11 +21,12 @@ const DEFAULT_GOAL = "good_cheap";
  * own look (2026-10-27): the quick picks as one chip row; under it what the
  * chosen pick asks, as the screener's questions and answers ("Is the price
  * low? · Low"); the pass count; the top three with their strength line
- * ("Very good company · Low price · Pays every year"); then what sits past
- * them as counts ("Among the other 22 · 16 have a Buy signal · 14 marked
- * 'Pays 4%+ a year' · 2 you follow") and one link into `/screener` with that
- * pick started. Picks use no power checks and three rows are the screener's
- * free share, so the card is fully open — the lock lives on the screener.
+ * ("Very good company · Low price · Pays every year"); then one link into
+ * `/screener` with that pick started. Picks use no power checks and three
+ * rows are the screener's free share, so the card is fully open — the lock
+ * lives on the screener. (The "Among the other 22 · 16 have a Buy signal…"
+ * line was dropped 2026-10-29: the dashboard asks for Premium once, in
+ * `PremiumWeekCard`.)
  *
  * Premium readers with saved screens get them on top: each screen's count at
  * the last daily check and who joined then (also a key point in "Your stocks today").
@@ -58,23 +59,6 @@ export default function ScreenerCard({
   const screens = mounted && isPremium ? saved.slice(0, 3) : [];
   const href = `/screener?start=${encodeURIComponent(goal.id)}`;
 
-  // What's past the top three, as counts.
-  const hidden = goal.hidden;
-  const mine = (goal.hidden_codes ?? []).filter((c) => held.has(c) || watched.has(c)).length;
-  const hiddenBits = hidden && hidden.count > 0
-    ? [
-        hidden.buys ? tt("screenerBuys", { n: hidden.buys }) : null,
-        hidden.strength
-          ? (
-              <T
-                en={t("en", "screenerMarked", { n: hidden.strength.n, tag: hidden.strength.en })}
-                bn={t("bn", "screenerMarked", { n: hidden.strength.n, tag: hidden.strength.bn })}
-              />
-            )
-          : null,
-        mine ? tt("screenerFollow", { n: mine }) : null,
-      ].filter((x): x is React.JSX.Element => !!x)
-    : [];
 
   return (
     <section className="soft-card overflow-hidden">
@@ -175,17 +159,6 @@ export default function ScreenerCard({
         <p className="px-4 py-3 text-sm text-text-muted sm:px-5">{tt("screenerNone")}</p>
       )}
 
-      {hidden && hidden.count > 0 && hiddenBits.length > 0 && (
-        <p className="border-t border-border px-4 py-3 text-sm text-text-muted sm:px-5">
-          <span className="font-semibold text-text-main">{tt("screenerHidden", { n: hidden.count })}</span>
-          {hiddenBits.map((bit, i) => (
-            <span key={i}>
-              {" · "}
-              {bit}
-            </span>
-          ))}
-        </p>
-      )}
 
       <Link
         prefetch={false}

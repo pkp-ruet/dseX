@@ -1,4 +1,3 @@
-import Link from "next/link";
 import DashHeader from "@/components/home/personalized/DashHeader";
 import OwnerMark from "@/components/home/personalized/OwnerMark";
 import Button from "@/components/ui/Button";
@@ -16,8 +15,8 @@ type Week = NonNullable<HomeBundle["results_week"]>;
  * week's split as one bar with a key (Better · Mixed · Weaker · About the
  * same), the three newest reports as the page's own `ResultRow`s (company
  * name, level, "EPS ৳2.10 · a year ago ৳1.80", the profit move leading), and a
- * button to `/results`. Free readers also get one line on what Premium adds;
- * Premium readers get no pitch.
+ * button to `/results`. No Premium pitch since 2026-10-29: every row on
+ * /results is free, and the dashboard asks once (`PremiumWeekCard`).
  */
 export default function ResultsPromoCard({
   week, held, watched, lang, premium = false,
@@ -79,20 +78,8 @@ export default function ResultsPromoCard({
 
       <div className={`border-t border-cell-rule p-4 sm:px-5 ${bn ? "font-bn" : ""}`}>
         <Button href="/results" variant="primary" block>
-          {premium
-            ? bn ? "সব কোম্পানির ফল দেখুন" : "See every company's results"
-            : bn ? "সর্বশেষ ফল দেখুন" : "See the latest results"}
+          {bn ? "সব কোম্পানির ফল দেখুন" : "See every company's results"}
         </Button>
-        {!premium && (
-          <p className="mt-3 text-xs text-text-muted">
-            {bn
-              ? "প্রিমিয়ামে সব কোম্পানির ফল খোলা, শুধু আপনার শেয়ারের ফল আলাদা করে দেখা যায়, আর আপনার শেয়ারের ফল এলে সেদিনই অ্যালার্ট আসে। "
-              : "Premium opens every company's results, shows just your own stocks' results, and alerts you the day your stocks report. "}
-            <Link href="/premium" className="font-semibold text-primary">
-              {bn ? "প্রিমিয়াম দেখুন" : "See Premium"}
-            </Link>
-          </p>
-        )}
       </div>
     </section>
   );
