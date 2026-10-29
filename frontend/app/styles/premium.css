@@ -563,3 +563,20 @@ details[open] > .pm-fold-summary .pm-fold-chev { transform: rotate(180deg); }
 }
 .ans-job--inline { margin-right: 8px; vertical-align: 1px; }
 .lk-line--answer { margin-top: var(--space-3); border-radius: var(--radius); border-top: 0; }
+
+/* /premium "The same question, free and Premium" (2026-10-29): two columns
+   from 640px, the Premium one with a gold rule. */
+.pm-diff { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); margin-top: var(--space-4); }
+@media (min-width: 640px) { .pm-diff { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.pm-diff-col { padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); }
+.pm-diff-col--pm { border-color: rgb(var(--gold-rgb) / 0.55); }
+.pm-diff-head { display: flex; align-items: center; gap: 6px; margin: 0 0 var(--space-2); font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted); }
+.pm-diff-head--pm { color: var(--gold-ink); }
+/* Comparison rows grouped by Premium's three jobs. */
+.pm-compare-group { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0; padding: 14px 16px 6px; font-size: var(--fs-xs); border-top: 1px solid var(--border); }
+
+/* The profile's plan card: what the plan allows and what you use. */
+.plan-usage { list-style: none; margin: var(--space-4) 0 0; padding: var(--space-3) 0 0; display: grid; gap: var(--space-3); border-top: 1px solid var(--border); }
+.plan-usage-track { display: block; height: 6px; margin-top: 6px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.plan-usage-fill { display: block; height: 100%; border-radius: 999px; background: var(--primary); }
+.plan-usage-fill.is-full { background: var(--watch); }

@@ -5,6 +5,7 @@
  * `<T>`, so the reader sees only their language. Western digits in Bengali.
  */
 import { LOWEST_PRICE, PAID_PLANS } from "@/lib/premium-plans";
+import type { Job } from "@/lib/premium-jobs";
 
 export type Bi = { en: string; bn: string };
 
@@ -13,10 +14,11 @@ export const PER_MONTH = YEARLY ? Math.round(YEARLY.amount / 12) : LOWEST_PRICE;
 
 export const HERO = {
   eyebrow: { en: "Premium", bn: "প্রিমিয়াম" },
-  title: { en: "See the reasons behind every number", bn: "প্রতিটি সংখ্যার পেছনের কারণ দেখুন" },
+  // The rule (lib/premium-jobs.ts PREMIUM_RULE) as the headline, 2026-10-29.
+  title: { en: "Facts are free. Our judgement is Premium.", bn: "সব তথ্য ফ্রি। আমাদের মতামত ও বিশ্লেষণ প্রিমিয়ামে।" },
   lead: {
-    en: "Prices and scores stay free for everyone. Premium explains the reasons behind them, on every share and on your own portfolio.",
-    bn: "দাম আর স্কোর সবার জন্য ফ্রি থাকবে। প্রিমিয়াম এর পেছনের কারণ বুঝিয়ে বলে, প্রতিটি শেয়ারে আর আপনার নিজের পোর্টফোলিওতে।",
+    en: "Every price, grade, Buy or Sell signal and DSE fact stays free for everyone. Premium does three jobs on top: it explains why, finds the shares worth a look, and watches your own shares every day.",
+    bn: "প্রতিটি দাম, গ্রেড, কেনা বা বিক্রির সংকেত আর ডিএসইর সব তথ্য সবার জন্য ফ্রি থাকবে। প্রিমিয়াম এর ওপর তিনটি কাজ করে: কারণ বুঝিয়ে বলে, দেখার মতো শেয়ার খুঁজে দেয়, আর প্রতিদিন আপনার নিজের শেয়ারে নজর রাখে।",
   },
   from: { en: "From", bn: "মাত্র" },
   perMonth: { en: "a month on the yearly plan", bn: "মাসে, বছরের প্ল্যানে" },
@@ -30,9 +32,11 @@ export const PROMISES: Bi[] = [
 ];
 
 // The four things Premium does, in plain words. Every point is a live feature.
-export const BENEFITS: { key: "why" | "portfolio" | "research" | "limits"; title: Bi; points: Bi[] }[] = [
+// Each of the first three is one of Premium's jobs (lib/premium-jobs.ts), in that order.
+export const BENEFITS: { key: "why" | "portfolio" | "research" | "limits"; job?: Job; title: Bi; points: Bi[] }[] = [
   {
     key: "why",
+    job: "understand",
     title: { en: "Know why, not just what", bn: "শুধু স্কোর নয়, তার কারণও জানুন" },
     points: [
       { en: "A fair price for every share", bn: "প্রতিটি শেয়ারের ন্যায্য দাম" },
@@ -41,21 +45,23 @@ export const BENEFITS: { key: "why" | "portfolio" | "research" | "limits"; title
     ],
   },
   {
-    key: "portfolio",
-    title: { en: "Your portfolio, checked every day", bn: "আপনার পোর্টফোলিও, প্রতিদিন যাচাই করা" },
-    points: [
-      { en: "An alert when one of your shares needs attention", bn: "কোনো শেয়ারে নজর দেওয়া দরকার হলে অ্যালার্ট" },
-      { en: "New results and grade changes, explained", bn: "নতুন ফল আর গ্রেড বদলের সহজ ব্যাখ্যা" },
-      { en: "Your full history and a yearly statement", bn: "পুরো ইতিহাস আর বার্ষিক হিসাব" },
-    ],
-  },
-  {
     key: "research",
+    job: "find",
     title: { en: "Research, done for you", bn: "গবেষণা আমরা করে দিই" },
     points: [
       { en: "All six research lists in full", bn: "ছয়টি গবেষণা তালিকা পুরোটা" },
       { en: "The full stock screener, with your screens checked every day", bn: "পুরো স্টক স্ক্রিনার, আর আপনার স্ক্রিন প্রতিদিন যাচাই" },
       { en: "Is each dividend safe? On every row of the dividend calendar", bn: "ডিভিডেন্ড কতটা নিরাপদ, ক্যালেন্ডারের প্রতিটি সারিতে" },
+    ],
+  },
+  {
+    key: "portfolio",
+    job: "watch",
+    title: { en: "Your portfolio, checked every day", bn: "আপনার পোর্টফোলিও, প্রতিদিন যাচাই করা" },
+    points: [
+      { en: "An alert when one of your shares needs attention", bn: "কোনো শেয়ারে নজর দেওয়া দরকার হলে অ্যালার্ট" },
+      { en: "New results and grade changes, explained", bn: "নতুন ফল আর গ্রেড বদলের সহজ ব্যাখ্যা" },
+      { en: "Your full history and a yearly statement", bn: "পুরো ইতিহাস আর বার্ষিক হিসাব" },
     ],
   },
   {
@@ -68,6 +74,30 @@ export const BENEFITS: { key: "why" | "portfolio" | "research" | "limits"; title
     ],
   },
 ];
+
+// "See the difference" (2026-10-29): one question as a free reader and a
+// Premium reader see it. An illustration with made-up round figures, labelled
+// as an example on the page — never presented as a real share.
+export const DIFF = {
+  title: { en: "The same question, free and Premium", bn: "একই প্রশ্ন, ফ্রি আর প্রিমিয়ামে" },
+  note: { en: "An example to show the difference, not a real share.", bn: "পার্থক্য বোঝানোর উদাহরণ, কোনো আসল শেয়ার নয়।" },
+  question: { en: "Is the price low?", bn: "দাম কি কম?" },
+  freeHead: { en: "Free: what we found", bn: "ফ্রি: আমরা যা পেয়েছি" },
+  freeLine: { en: "Price word: Good price. P/E 9, against 14 for the sector.", bn: "দামের কথা: ভালো দাম। পি/ই 9, সেক্টরে 14।" },
+  lockLines: [
+    { en: "What the share should be worth, as a low–high range", bn: "শেয়ারটির ন্যায্য দাম কত, কম–বেশি সীমায়" },
+    { en: "The price to buy below, and how sure we are", bn: "কোন দামের নিচে কেনা ভালো, আর আমরা কতটা নিশ্চিত" },
+  ] as Bi[],
+  premiumHead: { en: "Premium: why, and what to do", bn: "প্রিমিয়াম: কেন, আর কী করবেন" },
+  premiumLine: {
+    en: "Fair value ৳210 to ৳250. Today's ৳198 is under the range, so the price looks low. A Buy below ৳225, with medium confidence.",
+    bn: "ন্যায্য দাম ৳210 থেকে ৳250। আজকের ৳198 এই সীমার নিচে, তাই দাম কম মনে হচ্ছে। ৳225-এর নিচে কেনা যায়, আস্থা মাঝারি।",
+  },
+  keys: {
+    en: "Not sure yet? A free account opens 3 full reports a month, on any shares you choose.",
+    bn: "এখনো ঠিক করেননি? ফ্রি অ্যাকাউন্টে মাসে 3টি পূর্ণ রিপোর্ট খোলা যায়, আপনার পছন্দের যেকোনো শেয়ারে।",
+  },
+} as const;
 
 export const STEPS: { title: Bi; sub: Bi }[] = [
   { title: { en: "Choose a plan", bn: "প্ল্যান বেছে নিন" }, sub: { en: "1 month, 6 months or 1 year", bn: "1 মাস, 6 মাস বা 1 বছর" } },
@@ -108,12 +138,14 @@ export const SECTIONS = {
 } as const;
 
 // Line by line, for readers who want every detail. Only features that are live.
-export const ROWS: { what: Bi; free: Bi; premium: Bi }[] = [
+// Grouped on the page by `job` (Understand · Find · Watch), in this order within each.
+export const ROWS: { what: Bi; job: Job; free: Bi; premium: Bi }[] = [
   {
+    job: "understand",
     what: { en: "Share page analysis", bn: "শেয়ারের পেজের বিশ্লেষণ" },
     free: {
-      en: "Prices, charts, financials, dividends, owners and news, plus the score, the grade and the Buy or Sell signal.",
-      bn: "দাম, চার্ট, আর্থিক হিসাব, ডিভিডেন্ড, মালিকানা আর খবর, সঙ্গে স্কোর, গ্রেড আর কেনা বা বিক্রির সংকেত।",
+      en: "Prices, charts, financials, dividends, owners and news, the score, the grade, the Buy or Sell signal, 3 sample sections of every report, and 3 full reports a month on shares you choose.",
+      bn: "দাম, চার্ট, আর্থিক হিসাব, ডিভিডেন্ড, মালিকানা আর খবর, স্কোর, গ্রেড, কেনা বা বিক্রির সংকেত, প্রতিটি রিপোর্টের 3টি নমুনা অংশ, আর আপনার বাছাই করা শেয়ারে মাসে 3টি পূর্ণ রিপোর্ট।",
     },
     premium: {
       en: "The reasons as well: the fair price, all five checks, every good sign and warning, whether the price is high or low, and where the company stands in its sector.",
@@ -121,11 +153,13 @@ export const ROWS: { what: Bi; free: Bi; premium: Bi }[] = [
     },
   },
   {
+    job: "understand",
     what: { en: "In-depth reports", bn: "বিস্তারিত রিপোর্ট" },
     free: { en: "The headline, the main point and the first section.", bn: "শিরোনাম, মূল কথা আর প্রথম অংশ।" },
     premium: { en: "The whole report.", bn: "পুরো রিপোর্ট।" },
   },
   {
+    job: "understand",
     what: { en: "Quarterly results, explained", bn: "প্রান্তিকের ফল, সহজ ব্যাখ্যায়" },
     free: {
       en: "Every company's latest results in one list, with the headline and profit figures of each, and the Better, Mixed, Weaker filters.",
@@ -137,6 +171,7 @@ export const ROWS: { what: Bi; free: Bi; premium: Bi }[] = [
     },
   },
   {
+    job: "understand",
     what: { en: "Score history", bn: "স্কোরের ইতিহাস" },
     free: { en: "Today's score, and how many times the grade has changed.", bn: "আজকের স্কোর, আর গ্রেড কতবার বদলেছে।" },
     premium: {
@@ -145,6 +180,7 @@ export const ROWS: { what: Bi; free: Bi; premium: Bi }[] = [
     },
   },
   {
+    job: "watch",
     what: { en: "Portfolio check", bn: "পোর্টফোলিও যাচাই" },
     free: {
       en: "Your grade and its three scores, the first point on what is going well, and how your money is split by company and sector.",
@@ -156,6 +192,7 @@ export const ROWS: { what: Bi; free: Bi; premium: Bi }[] = [
     },
   },
   {
+    job: "watch",
     what: { en: "Daily check on your shares", bn: "আপনার শেয়ারের প্রতিদিনের যাচাই" },
     free: {
       en: "How many things we found on your shares and what kind they are, plus the first one each week in full, with a phone notification.",
@@ -167,6 +204,7 @@ export const ROWS: { what: Bi; free: Bi; premium: Bi }[] = [
     },
   },
   {
+    job: "watch",
     what: { en: "Portfolio history", bn: "পোর্টফোলিওর ইতিহাস" },
     free: {
       en: "Your portfolio's value over time beside DSEX, and the money made from sales and dividends, before and after fees and tax.",
@@ -175,6 +213,7 @@ export const ROWS: { what: Bi; free: Bi; premium: Bi }[] = [
     premium: { en: "The same, plus a yearly statement (see below).", bn: "একই, সঙ্গে বার্ষিক হিসাব (নিচে দেখুন)।" },
   },
   {
+    job: "watch",
     what: { en: "What-if check", bn: "\"যদি এমন করি\" যাচাই" },
     free: { en: "—", bn: "—" },
     premium: {
@@ -183,6 +222,7 @@ export const ROWS: { what: Bi; free: Bi; premium: Bi }[] = [
     },
   },
   {
+    job: "watch",
     what: { en: "Yearly statement", bn: "বার্ষিক হিসাব" },
     free: { en: "—", bn: "—" },
     premium: {
@@ -191,6 +231,7 @@ export const ROWS: { what: Bi; free: Bi; premium: Bi }[] = [
     },
   },
   {
+    job: "watch",
     what: { en: "Portfolios", bn: "পোর্টফোলিও" },
     free: { en: "One.", bn: "একটি।" },
     premium: {
@@ -199,6 +240,7 @@ export const ROWS: { what: Bi; free: Bi; premium: Bi }[] = [
     },
   },
   {
+    job: "find",
     what: { en: "Research lists", bn: "গবেষণা তালিকা" },
     free: {
       en: "What each of the six lists looks for, how many companies pass its checks, and the top 3 on each.",
@@ -210,6 +252,7 @@ export const ROWS: { what: Bi; free: Bi; premium: Bi }[] = [
     },
   },
   {
+    job: "find",
     what: { en: "Stock screener", bn: "স্টক স্ক্রিনার" },
     free: {
       en: "The six quick picks, the count under every answer, the first 3 shares, and which answer holds back the most.",
@@ -221,6 +264,7 @@ export const ROWS: { what: Bi; free: Bi; premium: Bi }[] = [
     },
   },
   {
+    job: "understand",
     what: { en: "Dividend calendar", bn: "ডিভিডেন্ড ক্যালেন্ডার" },
     free: {
       en: "Every list in full: record dates, AGMs, the biggest cash dividends and the newest announcements.",
@@ -232,6 +276,7 @@ export const ROWS: { what: Bi; free: Bi; premium: Bi }[] = [
     },
   },
   {
+    job: "watch",
     what: { en: "Watchlist", bn: "ওয়াচলিস্ট" },
     free: {
       en: "10 shares with their price, grade and move since you followed, and how many trade under fair value, have a record date soon, or carry a watch-out.",
@@ -243,11 +288,13 @@ export const ROWS: { what: Bi; free: Bi; premium: Bi }[] = [
     },
   },
   {
+    job: "watch",
     what: { en: "Price alerts", bn: "প্রাইস অ্যালার্ট" },
     free: { en: "3 at a time.", bn: "একসঙ্গে 3টি।" },
     premium: { en: "No limit.", bn: "কোনো সীমা নেই।" },
   },
   {
+    job: "understand",
     what: { en: "TopStock AI", bn: "TopStock AI" },
     free: { en: "10 questions a day.", bn: "দিনে 10টি প্রশ্ন।" },
     premium: { en: "No limit.", bn: "কোনো সীমা নেই।" },

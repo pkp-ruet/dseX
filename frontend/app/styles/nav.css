@@ -815,3 +815,6 @@ html[data-lang="bn"] .lang-switch [data-opt="bn"] .lang-switch-pill {
 }
 .lang-switch button:focus-visible { outline: none; }
 .lang-switch button:focus-visible .lang-switch-pill { box-shadow: var(--ring); }
+
+/* A menu item whose main value is Premium (2026-10-29): one small gold crown. */
+.menu-premium { display: inline-flex; margin-left: 6px; vertical-align: 1px; color: var(--gold-ink); }

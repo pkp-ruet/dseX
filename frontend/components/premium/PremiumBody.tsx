@@ -6,7 +6,7 @@ import PageHeader from "@/components/ui/PageHeader";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { T } from "@/components/i18n/T";
 import {
-  IconBulb, IconCheck, IconChevronDown, IconCrown, IconList, IconSparkle, IconWallet,
+  IconBulb, IconCheck, IconChevronDown, IconCrown, IconList, IconLock, IconSparkle, IconWallet,
 } from "@/components/ui/icons";
 import PremiumPlanCta from "@/components/premium/PremiumPlanCta";
 import PremiumContextCard from "@/components/premium/PremiumContextCard";
@@ -16,8 +16,10 @@ import { useLang } from "@/context/LangContext";
 import { usePremium } from "@/lib/premium";
 import { OFFER } from "@/lib/premium-plans";
 import {
-  BENEFITS, FAQS, HERO, PER_MONTH, PROMISES, ROWS, SECTIONS, STEPS, type Bi,
+  BENEFITS, DIFF, FAQS, HERO, PER_MONTH, PROMISES, ROWS, SECTIONS, STEPS, type Bi,
 } from "@/lib/premium-copy";
+import { JobTag } from "@/components/premium/AnswerLock";
+import { JOBS, JOB_ORDER } from "@/lib/premium-jobs";
 
 const ICON: Record<(typeof BENEFITS)[number]["key"], ReactNode> = {
   why: <IconBulb size={20} />,
@@ -102,7 +104,8 @@ export default function PremiumBody() {
           {BENEFITS.map((b) => (
             <article key={b.key} className="pm-benefit">
               <span className="pm-benefit-icon" aria-hidden>{ICON[b.key]}</span>
-              <h3 className="mt-4 text-base font-bold text-text-main"><Tx b={b.title} /></h3>
+              {b.job && <JobTag job={b.job} className="mt-4" />}
+              <h3 className={`${b.job ? "mt-1" : "mt-4"} text-base font-bold text-text-main`}><Tx b={b.title} /></h3>
               <ul className="pm-points">
                 {b.points.map((pt) => (
                   <li key={pt.en}>
@@ -115,6 +118,36 @@ export default function PremiumBody() {
           ))}
         </div>
         <p className="pm-note"><Tx b={SECTIONS.stayFree} /></p>
+      </section>
+
+      {/* 2b · The difference, shown: one question as each reader sees it (an example) */}
+      <section aria-labelledby="diff-h" className="pm-section">
+        <SectionHeader id="diff-h" size="lg" title={<Tx b={DIFF.title} />} lead={<Tx b={DIFF.note} />} />
+        <div className="pm-diff">
+          <div className="pm-diff-col">
+            <p className="pm-diff-head"><Tx b={DIFF.freeHead} /></p>
+            <p className="font-semibold text-text-main"><Tx b={DIFF.question} /></p>
+            <p className="mt-1 text-sm text-text-main"><Tx b={DIFF.freeLine} /></p>
+            <div className="ans" data-open="false">
+              <p className="ans-label">
+                <IconLock size={14} /> <T en="Premium answers" bn="প্রিমিয়ামে যা জানবেন" />
+                <span className="ans-tag"><Tx b={JOBS.understand.name} /></span>
+              </p>
+              <ul className="ans-list">
+                {DIFF.lockLines.map((l) => (
+                  <li key={l.en} className="text-sm leading-snug text-text-main"><Tx b={l} /></li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div className="pm-diff-col pm-diff-col--pm">
+            <p className="pm-diff-head pm-diff-head--pm"><IconCrown size={12} /> <Tx b={DIFF.premiumHead} /></p>
+            <p className="font-semibold text-text-main"><Tx b={DIFF.question} /></p>
+            <p className="mt-1 text-sm text-text-main"><Tx b={DIFF.freeLine} /></p>
+            <p className="mt-3 border-t border-cell-rule pt-3 text-sm leading-relaxed text-text-main"><Tx b={DIFF.premiumLine} /></p>
+          </div>
+        </div>
+        {state !== "premium" && <p className="pm-note"><Tx b={DIFF.keys} /></p>}
       </section>
 
       {/* 3 · Plans + pay, with the three steps as the section's guide */}
@@ -156,8 +189,11 @@ export default function PremiumBody() {
             <span><Tx b={SECTIONS.free} /></span>
             <span className="pm-compare-head-pm"><IconCrown size={12} /> <Tx b={SECTIONS.premium} /></span>
           </div>
+          {JOB_ORDER.map((job) => (
+          <div key={job}>
+          <p className="pm-compare-group"><JobTag job={job} /> <span className="text-text-muted">· <Tx b={JOBS[job].line} /></span></p>
           <ul>
-            {ROWS.map((r) => (
+            {ROWS.filter((r) => r.job === job).map((r) => (
               <li key={r.what.en} className="pm-compare-row">
                 <div>
                   <p className="font-semibold text-text-main"><Tx b={r.what} /></p>
@@ -173,6 +209,8 @@ export default function PremiumBody() {
               </li>
             ))}
           </ul>
+          </div>
+          ))}
         </div>
       </section>
 

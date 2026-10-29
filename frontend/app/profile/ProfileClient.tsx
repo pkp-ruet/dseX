@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import PlanUsage from "@/components/premium/PlanUsage";
 import { getCachedWatchlist, loadWatchlist, subscribeWatchlist } from "@/lib/watchlist";
 import { getToken } from "@/lib/auth";
 import NotificationSettings from "@/components/push/NotificationSettings";
@@ -110,8 +111,8 @@ export default function ProfileClient() {
       />
 
       <div className="flex flex-col gap-4">
-        {/* Your plan */}
-        <div className="soft-card p-4">
+        {/* Your plan — with what it allows and what you use (#plan: the limit toasts open it) */}
+        <div id="plan" className="soft-card p-4 scroll-mt-24">
           <div className="flex items-center justify-between gap-3 mb-2">
             <span className="text-xs font-semibold text-text-muted">
               <T en="Your plan" bn="আপনার প্ল্যান" />
@@ -121,6 +122,7 @@ export default function ProfileClient() {
             </Link>
           </div>
           <PremiumPlanCta linkOnly />
+          <PlanUsage />
         </div>
 
         {/* Account — one grouped list (settings-app style), rows split by hairlines */}

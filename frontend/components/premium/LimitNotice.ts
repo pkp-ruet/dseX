@@ -4,6 +4,7 @@ import { createElement } from "react";
 import { T } from "@/components/i18n/T";
 import { FREE_LIMITS, PREMIUM_PATH, storedLimit, type LimitKind } from "@/lib/premium";
 import { toast } from "@/lib/toast";
+import { getStoredUser } from "@/lib/auth";
 
 const MESSAGES: Record<LimitKind, (n: number) => { en: string; bn: string }> = {
   watchlist: (n) => ({
@@ -29,8 +30,9 @@ const MESSAGES: Record<LimitKind, (n: number) => { en: string; bn: string }> = {
 };
 
 /**
- * "You've reached the free limit" — one toast whose action opens the Premium
- * page (what's included + the prices). Both languages ride in the toast; the
+ * "You've reached the free limit" — one toast whose action opens the reader's
+ * plan card (`/profile#plan`: what the plan allows, what they use, the way to
+ * Premium; 2026-10-29), or /premium for a guest. Both languages ride in the toast; the
  * reader sees theirs. Callable from anywhere (StarButton, the alert modal,
  * lib code).
  */
@@ -41,11 +43,18 @@ export function showLimitNotice(kind: LimitKind): void {
     message: createElement(T, { en: m.en, bn: m.bn }),
     tone: "neutral",
     duration: 7000,
-    action: {
-      label: createElement(T, { en: "See Premium", bn: "প্রিমিয়াম দেখুন" }),
-      onClick: () => {
-        window.location.href = PREMIUM_PATH;
-      },
-    },
+    action: getStoredUser()
+      ? {
+          label: createElement(T, { en: "See your plan", bn: "আপনার প্ল্যান দেখুন" }),
+          onClick: () => {
+            window.location.href = "/profile#plan";
+          },
+        }
+      : {
+          label: createElement(T, { en: "See Premium", bn: "প্রিমিয়াম দেখুন" }),
+          onClick: () => {
+            window.location.href = PREMIUM_PATH;
+          },
+        },
   });
 }
