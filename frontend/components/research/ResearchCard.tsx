@@ -35,8 +35,8 @@ function FairValueBar({ low, high, price }: { low: number; high: number; price: 
 /**
  * One stock's research card, numbers first: why it is on the list, the price
  * against our fair-value range, three figures that matter, the one thing that
- * could go wrong, then its own number on every check (folded). Every card is
- * Premium — the page puts them all behind one lock (ResearchLock). Every line
+ * could go wrong, then its own number on every check (folded). The top three
+ * are free; the page puts the rest behind one lock (ResearchLock). Every line
  * is a `<T>` pair, so the card renders in the reader's language from the
  * first paint. `masked` = the lock's preview: the same card with the company,
  * its ticker, price and fair-value bar (they would name it) hidden.

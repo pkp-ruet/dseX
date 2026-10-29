@@ -16,8 +16,7 @@ const NONE: Set<string> = new Set();
  * The swipe rail of buy signals · top ranked · trending · tips (`DiscoverRail`,
  * the same rail the dashboard uses), then the screener's goal card
  * (`ScreenerCard`, the dashboard's — counts + top three, fully open), then
- * `ResearchRail`: on this page always
- * the promotion card (visitors aren't Premium), counts only, no names. It
+ * `ResearchRail`: each list's free top three (2026-10-29). It
  * replaced the four "Ready-made lists" lenses (2026-10-24). Popular was dropped here (2026-09-30) —
  * for a first visit it mostly repeated Trending; it stays on the dashboard.
  *

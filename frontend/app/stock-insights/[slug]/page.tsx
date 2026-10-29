@@ -18,6 +18,7 @@ import { StorySpotlight, StoryRundown, type StoryEntryView } from "@/components/
 import { T } from "@/components/i18n/T";
 import { formatDate } from "@/lib/formatters";
 import { bnDate } from "@/lib/bn";
+import { FREE_RESEARCH_ROWS } from "@/lib/free-share";
 
 export const revalidate = 86400;
 export const dynamicParams = false;
@@ -106,7 +107,7 @@ function buildResearchJsonLd(def: ResearchListDef, data: ResearchListDetail) {
       name: def.seoTitle,
       description: def.description,
       url,
-      // Paywall markup: every stock on a research list is Premium (RowLock).
+      // Paywall markup: past the free top three, a research list is Premium (RowLock).
       isAccessibleForFree: false,
       hasPart: { "@type": "WebPageElement", isAccessibleForFree: false, cssSelector: ".premium-locked" },
     },
@@ -115,8 +116,9 @@ function buildResearchJsonLd(def: ResearchListDef, data: ResearchListDetail) {
       "@type": "ItemList",
       name: def.seoTitle,
       url,
-      numberOfItems: data.stocks.length,
-      itemListElement: data.stocks.map((s, i) => ({
+      // Only the free top three: the rest is Premium.
+      numberOfItems: Math.min(data.stocks.length, FREE_RESEARCH_ROWS),
+      itemListElement: data.stocks.slice(0, FREE_RESEARCH_ROWS).map((s, i) => ({
         "@type": "ListItem",
         position: i + 1,
         name: `${s.code}${s.name ? ` — ${s.name}` : ""}`,

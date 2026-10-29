@@ -89,8 +89,9 @@ export default async function MarketAnalysisPage() {
         isPartOf: { "@id": BASE_URL },
         primaryImageOfPage: OG_IMAGE,
         ...(data?.date ? { dateModified: data.date } : {}),
-        // Paywall markup: which companies pass each research list is Premium (RowLock).
-        ...(data?.research
+        // Paywall markup: the "Money coming" rows are Premium (RowLock). The
+        // research lists' top three are free since 2026-10-29.
+        ...((data?.next?.dividends?.length ?? 0) > 0
           ? {
               isAccessibleForFree: false,
               hasPart: { "@type": "WebPageElement", isAccessibleForFree: false, cssSelector: ".premium-locked" },

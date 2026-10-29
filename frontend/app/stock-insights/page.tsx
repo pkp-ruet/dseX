@@ -78,8 +78,9 @@ const FREE_COPY: Record<keyof StockListsResponse, { en: string; bn: string }> = 
 };
 
 /**
- * The stock-lists hub: ten lists, two kinds. Six Premium research lists
- * (fully locked — no stock names on this page either) and four free rankings.
+ * The stock-lists hub: ten lists, two kinds. Six research lists (the top
+ * three of each free since 2026-10-29, named on each card; the rest Premium)
+ * and four free rankings.
  */
 export default async function StockInsightsPage() {
   const research = await getResearchLists().catch(() => null);
@@ -100,14 +101,14 @@ export default async function StockInsightsPage() {
         }
       />
 
-      {/* Premium research lists */}
+      {/* Research lists: top three free, the rest Premium */}
       <section id="research" className="rl-hub-section" aria-labelledby="rl-hub-research">
         <div className="rl-hub-head">
           <h2 id="rl-hub-research" className="rl-hub-h2">
             <T en="Research lists" bn="গবেষণা তালিকা" />
           </h2>
           <Chip tone="info" icon={<IconLock size={12} />}>
-            <T en="Premium" bn="প্রিমিয়াম" />
+            <T en="Top 3 free · the rest in Premium" bn="শীর্ষ 3টি ফ্রি · বাকিটা প্রিমিয়ামে" />
           </Chip>
         </div>
         <p className="rl-hub-lead">
@@ -134,6 +135,12 @@ export default async function StockInsightsPage() {
                       bn={`কোম্পানি ${l.checks}টি যাচাইয়েই পাস করেছে, মোট ${l.universe}টির মধ্যে`}
                     />
                   </div>
+                )}
+                {l && l.top.length > 0 && (
+                  <p className="m-0 mt-2 text-sm text-text-muted">
+                    <T en="Top today: " bn="আজ শীর্ষে: " />
+                    <span className="font-semibold text-text-main">{l.top.map((s) => s.code).join(" · ")}</span>
+                  </p>
                 )}
               </Link>
             );

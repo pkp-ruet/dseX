@@ -5,9 +5,8 @@ import { useEffect, useState } from "react";
 import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
 import { bnDate } from "@/lib/bn";
-import RowLock from "@/components/premium/RowLock";
-import LockPanel from "@/components/premium/LockPanel";
-import { IconArrowRight, IconCheck, IconLock, IconStar } from "@/components/ui/icons";
+import { JobTag } from "@/components/premium/AnswerLock";
+import { IconArrowRight, IconCheck, IconStar } from "@/components/ui/icons";
 import type { MarketResearch, MarketResearchList } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
@@ -24,10 +23,9 @@ const ANCHOR = "ma-premium";
  * "Where to Invest Today" — the six research lists, the one that fits today's
  * market first (replaced the four free lenses 2026-10-25: three of them were
  * rougher, free copies of these lists). Free: the idea, how many companies
- * pass today and how many did a month ago. Premium: which companies — each
- * card shows its top three with the company hidden (the shared row-lock
- * preview: the list's own number shown) and one quiet line pointing at the
- * page's one promotion card below (`#ma-premium`).
+ * pass today, how many did a month ago, and the top three (2026-10-29, the
+ * Free vs Premium plan — top 3 of every list is free). Premium: every other
+ * company on each list — the page's one promotion card below (`#ma-premium`).
  */
 export default function MarketResearchLists({ research }: { research: MarketResearch }) {
   const { portfolio, watchlist } = usePersonalCodesCtx();
@@ -100,16 +98,15 @@ function Count({ list, yours }: { list: MarketResearchList; yours: number }) {
   );
 }
 
-/** The list's top three — for anyone not Premium, with the company hidden (one line points at `#ma-premium`). */
+/** The list's top three: free for everyone since 2026-10-29 (the Free vs Premium plan). */
 function Names({ list }: { list: MarketResearchList }) {
-  const { lang } = useLang();
   if (list.top.length === 0)
     return (
       <p className="mk-empty">
         <T en="No company passes every check today." bn="আজ কোনো কোম্পানি সব যাচাই পেরোয়নি।" />
       </p>
     );
-  const row = (s: MarketResearchList["top"][number], masked = false) => {
+  const row = (s: MarketResearchList["top"][number]) => {
     const m = list.metric ? formatResearchMetric(list.metric, s.metric) : null;
     return (
       <MarketRow
@@ -117,7 +114,6 @@ function Names({ list }: { list: MarketResearchList }) {
         code={s.code}
         name={s.name}
         price={s.price}
-        masked={masked}
         meta={m?.text ?? <T en="passes" bn="পেরিয়েছে" />}
         tone="accent"
       />
@@ -133,21 +129,7 @@ function Names({ list }: { list: MarketResearchList }) {
           />
         </p>
       )}
-      <RowLock
-        preview={<div className="mk-rows">{list.top.map((s) => row(s, true))}</div>}
-        panel={
-          <LockPanel
-            job="find"
-            count={list.top.length}
-            lock={`Market analysis: ${list.slug ?? "research list"}`}
-            href={`#${ANCHOR}`}
-            codes={list.top.map((s) => s.code)}
-            title={{ en: "See which companies these are", bn: "এগুলো কোন কোম্পানি, দেখুন" }}
-          />
-        }
-      >
-        <div className="mk-rows">{list.top.map((s) => row(s))}</div>
-      </RowLock>
+      <div className="mk-rows">{list.top.map((s) => row(s))}</div>
     </div>
   );
 }
@@ -217,7 +199,7 @@ function ListCard({ list, yours }: { list: MarketResearchList; yours: number }) 
 }
 
 const FEATURES: { en: string; bn: string }[] = [
-  { en: "Which companies pass each list today, and the number that put them there", bn: "আজ প্রতিটি তালিকায় কোন কোম্পানি আছে, আর কোন সংখ্যার জন্য" },
+  { en: "Every company that passes each list today, not just the top three", bn: "আজ প্রতিটি তালিকায় থাকা সব কোম্পানি, শুধু শীর্ষ তিনটি নয়" },
   { en: "Each company's own figure on every check, and the main risk we can see", bn: "প্রতিটি যাচাইয়ে কোম্পানির নিজের সংখ্যা, আর আমাদের চোখে পড়া প্রধান ঝুঁকি" },
   { en: "Which companies joined and which left each list this month", bn: "এ মাসে কোন কোম্পানি তালিকায় এসেছে, কোনটি বাদ পড়েছে" },
   { en: "Your own screens, built from the same checks", bn: "একই যাচাই দিয়ে নিজের স্ক্রিন তৈরি করুন" },
@@ -258,22 +240,22 @@ function ResearchPromo({ lists, yours }: { lists: MarketResearchList[]; yours: n
     );
 
   const onCta = () => {
-    trackEvent("premium_lock_tap", { area: "market-analysis", lock: "Research lists", state, stakes: stakes.length });
+    trackEvent("premium_lock_tap", { area: "market-analysis", lock: "Research lists", state, stakes: stakes.length, job: "find" });
     savePremiumContext({ from: "market-analysis", label: bn ? "রিসার্চ তালিকা" : "The research lists", stakes });
   };
 
   return (
     <section id={ANCHOR} className="soft-card rl-promo mt-6 scroll-mt-24" aria-labelledby="ma-premium-title">
       <span className="rl-promo-tag">
-        <IconLock size={12} /> <T en="Premium" bn="প্রিমিয়াম" />
+        <JobTag job="find" />
       </span>
       <h3 className="rl-promo-head" id="ma-premium-title">
-        <T en="See the companies on every list" bn="প্রতিটি তালিকার কোম্পানিগুলো দেখুন" />
+        <T en="See every company on every list" bn="প্রতিটি তালিকার সব কোম্পানি দেখুন" />
       </h3>
       <p className="rl-promo-sub">
         <T
-          en="The checks and the counts are free. Premium shows which companies pass, why, and what could go wrong with each."
-          bn="যাচাই আর সংখ্যা ফ্রি। কোন কোম্পানি পেরিয়েছে, কেন, আর প্রতিটির কী ঝুঁকি আছে, তা প্রিমিয়ামে দেখা যায়।"
+          en="The checks, the counts and the top three are free. Premium shows every company that passes, why, and what could go wrong with each."
+          bn="যাচাই, সংখ্যা আর শীর্ষ তিনটি ফ্রি। কোন কোম্পানি পেরিয়েছে, কেন, আর প্রতিটির কী ঝুঁকি আছে, তা প্রিমিয়ামে দেখা যায়।"
         />
       </p>
 

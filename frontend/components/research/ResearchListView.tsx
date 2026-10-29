@@ -15,17 +15,21 @@ import ResearchCard from "./ResearchCard";
 import ResearchCompare from "./ResearchCompare";
 import ResearchChanges from "./ResearchChanges";
 import ResearchLock from "./ResearchLock";
+import { FREE_RESEARCH_ROWS } from "@/lib/free-share";
 
 /**
  * One research list (`/stock-insights/[slug]` for the six research slugs).
- * Free: the idea and the tests as a funnel — what the list is and how it is
- * built. Premium, all of it (screen-only lock — the HTML keeps everything):
- * every stock's research card, the side-by-side table and who joined / left.
+ * Free: the idea, the tests as a funnel and the top three research cards
+ * (2026-10-29, the Free vs Premium plan — the list was fully locked before).
+ * Premium (screen-only lock — the HTML keeps everything): the rest of the
+ * cards, the side-by-side table and who joined / left.
  * One language per page: every line is a `<T>` pair.
  */
 export default function ResearchListView({ data, def }: { data: ResearchListDetail; def: ResearchListDef }) {
   const checks = data.funnel.length;
   const shown = data.stocks.length;
+  const open = data.stocks.slice(0, FREE_RESEARCH_ROWS);
+  const rest = data.stocks.slice(FREE_RESEARCH_ROWS);
   const passedTitle =
     data.passed === 1
       ? { en: "The one that passed", bn: "যে একটি পাস করেছে" }
@@ -74,7 +78,7 @@ export default function ResearchListView({ data, def }: { data: ResearchListDeta
         </span>
         <span className="b-dot" aria-hidden="true" />
         <Chip tone="info" icon={<IconLock size={12} />}>
-          <T en="Premium" bn="প্রিমিয়াম" />
+          <T en={`Top ${FREE_RESEARCH_ROWS} free · the rest in Premium`} bn={`শীর্ষ ${FREE_RESEARCH_ROWS}টি ফ্রি · বাকিটা প্রিমিয়ামে`} />
         </Chip>
       </div>
 
@@ -118,21 +122,32 @@ export default function ResearchListView({ data, def }: { data: ResearchListDeta
             actions={[{ href: "/stock-insights", label: <T en="Other lists" bn="অন্য তালিকা" /> }]}
           />
         ) : (
+          <>
+          <div className="rl-cards">
+            {open.map((s) => (
+              <ResearchCard key={s.code} s={s} />
+            ))}
+          </div>
           <ResearchLock
             passed={data.passed}
-            stocks={data.stocks}
+            hidden={data.passed - open.length}
+            stocks={rest}
             checks={checks}
             preview={
-              <div className="rl-cards">
-                <ResearchCard s={data.stocks[0]} masked />
-              </div>
+              rest[0] && (
+                <div className="rl-cards rl-cards--after">
+                  <ResearchCard s={rest[0]} masked />
+                </div>
+              )
             }
           >
-            <div className="rl-cards">
-              {data.stocks.map((s) => (
-                <ResearchCard key={s.code} s={s} />
-              ))}
-            </div>
+            {rest.length > 0 && (
+              <div className="rl-cards rl-cards--after">
+                {rest.map((s) => (
+                  <ResearchCard key={s.code} s={s} />
+                ))}
+              </div>
+            )}
 
             <div className="rl-subsection">
               <SectionHeader
@@ -148,6 +163,7 @@ export default function ResearchListView({ data, def }: { data: ResearchListDeta
               <ResearchChanges changes={data.changes} />
             </div>
           </ResearchLock>
+          </>
         )}
       </section>
 

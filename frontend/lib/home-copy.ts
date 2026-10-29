@@ -135,7 +135,7 @@ const COPY = {
   outOf100: ["/100", "/100"],
 
   // Lists rail
-  // Research lists (homepage rail — full for Premium, a promotion card for everyone else)
+  // Research lists (homepage rail — the top three of each list, for every reader)
   researchTitle: ["Research lists", "গবেষণা তালিকা"],
   researchSub: [
     "Six ideas, each tested on every company with the same plain checks.",
@@ -163,14 +163,6 @@ const COPY = {
   allLists: ["All lists", "সব তালিকা"],
   researchSeeAll: ["See all {n}", "সব {n}টি দেখুন"],
   topN: ["Top {n}", "সেরা {n}টি"],
-  researchPromoHead: ["Six lists that do the research for you", "আপনার হয়ে গবেষণা করা ছয়টি তালিকা"],
-  researchPromoSub: [
-    "Every company goes through the same plain checks. Premium shows each share that passes, with its figures and its main risk.",
-    "প্রতিটি কোম্পানি একই সহজ যাচাইয়ের মধ্য দিয়ে যায়। প্রিমিয়ামে দেখবেন কোন শেয়ার পাস করেছে, তার হিসাব আর প্রধান ঝুঁকিসহ।",
-  ],
-  researchPass: ["{n} shares pass today", "আজ {n}টি শেয়ার পাস করেছে"],
-  researchCtaFree: ["See Premium plans", "প্রিমিয়াম প্ল্যান দেখুন"],
-  researchCtaGuest: ["Create a free account, then see Premium", "ফ্রি অ্যাকাউন্ট খুলে প্রিমিয়াম দেখুন"],
 
   // Trending / popular / tips
   trendingTitle: ["Trending this week", "এ সপ্তাহের আলোচিত শেয়ার"],
