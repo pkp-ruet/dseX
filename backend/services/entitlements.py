@@ -97,8 +97,10 @@ def alerts_blocked(active_count: int, limit: Optional[int]) -> bool:
 
 def plan_fields(user: dict) -> dict:
     """What `public_user` adds for the browser."""
+    from backend.services.payments import offer_open, offer_state
     from backend.services.report_keys import keys_state
 
+    now = datetime.now(timezone.utc)
     until = _as_utc(user.get("premium_until"))
     started = _as_utc(user.get("trial_started_at"))
     return {
@@ -109,7 +111,9 @@ def plan_fields(user: dict) -> dict:
         "paid_plan": user.get("paid_plan"),
         "limits": limits_for(user),
         # Three full stock reports a month for a free reader (report_keys.py).
-        "report_keys": keys_state(user.get("report_keys"), datetime.now(timezone.utc)),
+        "report_keys": keys_state(user.get("report_keys"), now),
+        # The reader's own ৳99 month (payments.offer_state), or None.
+        "offer": offer_state(user, now, is_premium(user), offer_open()),
     }
 
 

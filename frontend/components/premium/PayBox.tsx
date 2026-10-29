@@ -22,6 +22,7 @@ import {
   METHOD_BN,
   METHOD_LABEL,
   OFFER,
+  OWN_OFFER_PLAN,
   PAID_PLANS,
   TRANSFER_LABEL,
   planByKey,
@@ -73,6 +74,7 @@ const ERRORS: Record<string, { en: string; bn: string }> = {
   payment_pending: { en: "We are still checking your last payment. You can buy again once that is done.", bn: "আপনার আগের পেমেন্ট এখনো যাচাই হচ্ছে। তা শেষ হলে আবার কিনতে পারবেন।" },
   bad_method: { en: "That payment method is not open right now. Please choose another one.", bn: "এই মাধ্যমটি এখন বন্ধ। অন্য একটি বেছে নিন।" },
   bad_transfer: { en: "Please choose how you sent the money: NPSB or BEFTN.", bn: "কীভাবে টাকা পাঠিয়েছেন বেছে নিন: NPSB না BEFTN।" },
+  offer_closed: { en: "Your ৳99 offer is no longer open. Please choose another plan.", bn: "আপনার ৳99 অফারটি আর খোলা নেই। অন্য একটি প্ল্যান বেছে নিন।" },
   bad_account_last4: { en: "Please type the last 4 digits of the account you sent it from.", bn: "যে অ্যাকাউন্ট থেকে পাঠিয়েছেন, তার শেষ 4টি সংখ্যা লিখুন।" },
 };
 
@@ -86,7 +88,7 @@ const ERRORS: Record<string, { en: string; bn: string }> = {
  * payment waits for the check before its days start.
  */
 export default function PayBox() {
-  const { isLoggedIn, isLoading } = useAuth();
+  const { isLoggedIn, isLoading, user } = useAuth();
   const { premiumUntil, isPremium } = usePremium();
   const { bn } = useLang();
   // For attributes only; visible text uses <T>.
@@ -101,6 +103,13 @@ export default function PayBox() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<{ en: string; bn: string } | null>(null);
   const [mine, setMine] = useState<{ items: PremiumPayment[] } | null>(null);
+  // The reader's own ৳99 month, while it is theirs (backend decides).
+  const offer = isLoggedIn && !isPremium ? user?.offer ?? null : null;
+
+  // The homepage banner links here with ?plan=offer.
+  useEffect(() => {
+    if (offer && new URLSearchParams(window.location.search).get("plan") === "offer") setPlan("offer");
+  }, [offer]);
 
   useEffect(() => {
     getPremiumPlans()
@@ -120,7 +129,9 @@ export default function PayBox() {
     else setMine(null);
   }, [isLoggedIn, loadMine]);
 
-  const chosen = planByKey(plan) ?? PAID_PLANS[PAID_PLANS.length - 1];
+  // Once the offer is used (or an admin ends it) its card goes, so fall back to the yearly plan.
+  const planKey: PlanKey = plan === "offer" && !offer ? "yearly" : plan;
+  const chosen = planByKey(planKey) ?? PAID_PLANS[PAID_PLANS.length - 1];
   const methodInfo = info?.methods.find((m) => m.key === method) ?? null;
   const number = methodInfo?.number ?? null;
   const isBank = method === "bank";
@@ -142,13 +153,13 @@ export default function PayBox() {
     try {
       const { payment, user } = await apiSubmitPayment(
         isBank && transfer
-          ? { plan, method, transfer, account_last4: last4, reference: reference.trim() }
-          : { plan, method, sender },
+          ? { plan: planKey, method, transfer, account_last4: last4, reference: reference.trim() }
+          : { plan: planKey, method, sender },
       );
       setStoredUser(user);
       window.dispatchEvent(new CustomEvent(AUTH_USER_UPDATED_EVENT));
       trackEvent("premium_payment_submit", {
-        plan,
+        plan: planKey,
         method,
         ...(isBank && transfer ? { transfer } : {}),
         granted: payment.granted ? 1 : 0,
@@ -176,10 +187,19 @@ export default function PayBox() {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Plans */}
-      <div role="radiogroup" aria-label={L("Choose a plan", "প্ল্যান বেছে নিন")} className="pay-plans">
+      {/* Plans; the reader's own offer, while it is theirs, is a card of its own on top */}
+      <div role="radiogroup" aria-label={L("Choose a plan", "প্ল্যান বেছে নিন")} className="flex flex-col gap-3 sm:gap-4">
+      {offer && (
+        <OwnOfferCard
+          on={planKey === "offer"}
+          amount={offer.amount}
+          listAmount={offer.list_amount}
+          onPick={() => setPlan("offer")}
+        />
+      )}
+      <div className="pay-plans">
         {PAID_PLANS.map((p) => {
-          const on = p.key === plan;
+          const on = p.key === planKey;
           // 30 / 180 / 365 days → 1 / 6 / 12 months. On an offer plan the
           // saving is the discount off its regular price; otherwise it is
           // against paying the one-month price that many times.
@@ -246,6 +266,7 @@ export default function PayBox() {
             </button>
           );
         })}
+      </div>
       </div>
 
       {isLoading ? null : !isLoggedIn ? (
@@ -581,5 +602,64 @@ export default function PayBox() {
         </div>
       )}
     </div>
+  );
+}
+
+/** The reader's own ৳99 month as a plan card: wide, gold-flagged, its own
+ *  words ("It's your own offer, for a very limited time"). No end date. */
+function OwnOfferCard({
+  on,
+  amount,
+  listAmount,
+  onPick,
+}: {
+  on: boolean;
+  amount: number;
+  listAmount: number;
+  onPick: () => void;
+}) {
+  const p = OWN_OFFER_PLAN;
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={on}
+      onClick={onPick}
+      className={`pay-plan pay-plan-best pay-plan-own ${on ? "pay-plan-on" : ""}`}
+    >
+      <span className="pay-plan-flag">
+        <T en="Your own offer" bn="শুধু আপনার অফার" />
+      </span>
+      <span className="pay-own-row">
+        <span className="min-w-0">
+          <span className="flex items-center gap-2">
+            <span className="pay-radio" aria-hidden />
+            <span className="font-semibold text-text-main">
+              <T en={p.name} bn={p.bn} />
+            </span>
+          </span>
+          <span className="mt-2 block text-sm text-text-main">
+            <T en={p.note} bn={p.noteBn} />
+          </span>
+        </span>
+        <span className="pay-plan-price pay-own-price tabular-nums">
+          ৳{amount}
+          <s className="pay-plan-was">
+            <span className="sr-only">
+              <T en="Regular price " bn="আগের দাম " />
+            </span>
+            ৳{listAmount}
+          </s>
+        </span>
+      </span>
+      <span className="pay-plan-foot">
+        <span className="text-sm text-text-muted">
+          <T en={p.per} bn={p.perBn} />
+        </span>
+        <span className="pay-own-ends tabular-nums">
+          <T en="Limited time" bn="সীমিত সময়" />
+        </span>
+      </span>
+    </button>
   );
 }

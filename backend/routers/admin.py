@@ -538,6 +538,26 @@ class RevokePaymentBody(BaseModel):
     reason: str = Field("", max_length=200)
 
 
+class OfferSwitchBody(BaseModel):
+    open: bool
+
+
+@router.get("/offer")
+def admin_offer(_: dict = Depends(get_current_admin_user)):
+    """The ৳99 offer: on / off, last change, payments taken on it."""
+    from backend.services import payments
+
+    return payments.offer_admin_state()
+
+
+@router.post("/offer")
+def admin_set_offer(body: OfferSwitchBody, admin: dict = Depends(get_current_admin_user)):
+    """Start or end the ৳99 offer for everyone."""
+    from backend.services import payments
+
+    return payments.set_offer_open(body.open, admin.get("email") or "")
+
+
 @router.get("/payments")
 def admin_payments(status: str = "pending", _: dict = Depends(get_current_admin_user)):
     from backend.services import payments

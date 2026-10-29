@@ -1546,6 +1546,8 @@ export interface PremiumPlansResponse {
   plans: { key: string; amount: number; days: number }[];
   /** Only methods that are set up on the backend. */
   methods: PayMethodInfo[];
+  /** The reader's own ৳99 month while an admin keeps it open, else null. */
+  own_offer?: { key: "offer"; amount: number; days: number; list_amount: number } | null;
 }
 export interface PremiumPayment {
   id: string;
@@ -1583,6 +1585,11 @@ export async function apiSubmitPayment(body: {
   return apiAuthFetch("/api/user/premium/payments", { method: "POST", body: JSON.stringify(body) });
 }
 
+/** The offer banner's "Not interested" (`never`) or "Remind me later" (`later`). */
+export async function apiDismissOffer(action: "never" | "later"): Promise<{ user: AuthUser }> {
+  return apiAuthFetch("/api/user/premium/offer", { method: "POST", body: JSON.stringify({ action }) });
+}
+
 export async function apiGetMyPayments(): Promise<{ ref_code: string; items: PremiumPayment[] }> {
   return apiAuthFetch("/api/user/premium/payments");
 }
@@ -1611,6 +1618,26 @@ export interface AdminPaymentsResponse {
   counts: { pending: number; accepted: number; revoked: number };
   /** Taka this Dhaka calendar month, by status. */
   month: { pending: number; accepted: number };
+}
+
+export interface AdminOfferState {
+  open: boolean;
+  changed_at: string | null;
+  changed_by: string | null;
+  amount: number;
+  days: number;
+  list_amount: number;
+  payments: { pending: number; accepted: number; revoked: number };
+  not_interested: number;
+}
+
+export async function apiGetAdminOffer(): Promise<AdminOfferState> {
+  return apiAuthFetch("/api/admin/offer");
+}
+
+/** Start (`true`) or end (`false`) the ৳99 offer for everyone. */
+export async function apiSetAdminOffer(open: boolean): Promise<AdminOfferState> {
+  return apiAuthFetch("/api/admin/offer", { method: "POST", body: JSON.stringify({ open }) });
 }
 
 export async function apiGetAdminPayments(status: string): Promise<AdminPaymentsResponse> {

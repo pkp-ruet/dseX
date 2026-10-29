@@ -17,6 +17,7 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Tabs from "@/components/ui/Tabs";
 import AdminGrantPremium from "@/components/admin/AdminGrantPremium";
+import AdminOfferSwitch from "@/components/admin/AdminOfferSwitch";
 import { toast } from "@/lib/toast";
 
 type StatusTab = "pending" | "accepted" | "revoked" | "all";
@@ -194,6 +195,8 @@ ${effect}`,
           </div>
         </Card>
       )}
+
+      <AdminOfferSwitch />
 
       <AdminGrantPremium onDone={refetch} />
 

@@ -38,6 +38,19 @@ PAID_PLANS: dict[str, dict] = {
     "halfyearly": {"amount": 999, "days": 180, "list_amount": 1149},
     "yearly": {"amount": 1899, "days": 365, "list_amount": 2199},
 }
+# The reader's own offer (2026-10-29): one month for ৳99 instead of ৳199, once
+# per account, for a reader who isn't Premium, while an admin keeps it open
+# (`/admin/payments`, `set_offer_open`; no end date is ever shown). Shown as a
+# banner on top of the homepage and as its own card in the pay box; kept out
+# of `PAID_PLANS`, so the public plan list and the admin plan pickers stay as
+# they were. `offer_state()` decides who sees it. Mirrored by frontend
+# `lib/premium-plans.ts` `OWN_OFFER_PLAN`.
+OWN_OFFER_KEY = "offer"
+OWN_OFFER = {"amount": 99, "days": 30, "list_amount": 199}
+OFFER_SETTING_ID = "own_offer"  # its row in `app_settings`
+OFFER_CACHE_SECONDS = 30  # other workers see an admin's switch within this
+OFFER_REMIND_DAYS = 3  # "Remind me later" hides the banner this long
+ALL_PLANS: dict[str, dict] = {**PAID_PLANS, OWN_OFFER_KEY: OWN_OFFER}
 MOBILE_METHODS = ("bkash", "nagad")
 METHODS = (*MOBILE_METHODS, "bank")
 # How a bank transfer was sent: NPSB lands in seconds, BEFTN by the next
@@ -62,6 +75,7 @@ ERR_SAME_PLAN = "same_plan"
 ERR_DAYS = "bad_days"
 ERR_AMOUNT = "bad_amount"
 ERR_USER = "user_not_found"
+ERR_OFFER = "offer_closed"
 
 RENEW_WINDOW_DAYS = (2, 5)  # remind once, 2–5 days before a paid plan ends
 
@@ -136,6 +150,28 @@ def shift_until(current, delta_days: int, now: datetime) -> datetime:
     return revoke_until(current, -delta_days, now)
 
 
+def offer_state(user: dict, now: datetime, premium: bool, is_open: bool) -> Optional[dict]:
+    """The reader's own offer as the browser sees it, or None when it isn't
+    theirs: an admin ended it (`is_open` False), they are Premium (`premium`),
+    or they already used it. `banner` is False after "Not interested", and
+    until the reminder day after "Remind me later"; the pay box still shows
+    the offer then."""
+    if not is_open or premium or user.get("offer_used_at"):
+        return None
+    remind = _as_utc(user.get("offer_remind_after"))
+    banner = not user.get("offer_dismissed_at") and not (remind and remind > now)
+    return {"key": OWN_OFFER_KEY, **OWN_OFFER, "banner": banner}
+
+
+def offer_dismiss_update(action: str, now: datetime) -> dict:
+    """The `$set` for the banner's two quiet buttons. Raises ValueError."""
+    if action == "never":
+        return {"offer_dismissed_at": now}
+    if action == "later":
+        return {"offer_remind_after": now + timedelta(days=OFFER_REMIND_DAYS)}
+    raise ValueError("bad_action")
+
+
 def user_search_query(q: str) -> Optional[dict]:
     """The Mongo filter for the admin's account search: a phone number (any
     form, or 4+ of its digits), else part of the email or name, or an exact
@@ -160,9 +196,9 @@ def manual_spec(plan: str, days: Optional[int], amount: Optional[int]) -> dict:
     """Plan, days and taka of an admin-recorded payment. A known plan fills in
     its own days and price; either can be overridden (a discount, extra days).
     `custom` needs days. Raises ValueError(ERR_PLAN / ERR_DAYS / ERR_AMOUNT)."""
-    if plan != "custom" and plan not in PAID_PLANS:
+    if plan != "custom" and plan not in ALL_PLANS:
         raise ValueError(ERR_PLAN)
-    base = PAID_PLANS.get(plan, {})
+    base = ALL_PLANS.get(plan, {})
     d = days if days is not None else base.get("days")
     a = amount if amount is not None else base.get("amount", 0)
     if not isinstance(d, int) or not 1 <= d <= MANUAL_MAX_DAYS:
@@ -309,7 +345,7 @@ def submit_payment(user: dict, plan: str, method: str, sender_raw: str = "",
     Raises ValueError(<ERR_*>) on bad input or a payment already waiting."""
     from pymongo.errors import DuplicateKeyError
 
-    if plan not in PAID_PLANS:
+    if plan not in ALL_PLANS:
         raise ValueError(ERR_PLAN)
     if method not in METHODS or method not in {m["key"] for m in receiving_methods()}:
         raise ValueError(ERR_METHOD)
@@ -324,7 +360,20 @@ def submit_payment(user: dict, plan: str, method: str, sender_raw: str = "",
 
     uid = user["user_id"]
     now = datetime.now(timezone.utc)
-    spec = PAID_PLANS[plan]
+    spec = ALL_PLANS[plan]
+    offer = plan == OWN_OFFER_KEY
+    if offer:
+        from backend.services.entitlements import is_premium
+
+        if offer_state(user, now, is_premium(user), offer_open(fresh=True)) is None:
+            raise ValueError(ERR_OFFER)
+        # Claim it atomically, so two tabs can't both take it.
+        claimed = _db()["users"].update_one(
+            {"user_id": uid, "offer_used_at": {"$exists": False}},
+            {"$set": {"offer_used_at": now}},
+        )
+        if not claimed.modified_count:
+            raise ValueError(ERR_OFFER)
     held = _payments().count_documents({"user_id": uid, "status": "revoked"}, limit=1) > 0
     doc = {
         "payment_id": uuid.uuid4().hex,
@@ -346,11 +395,75 @@ def submit_payment(user: dict, plan: str, method: str, sender_raw: str = "",
     try:
         _payments().insert_one(doc)
     except DuplicateKeyError:
+        if offer:  # nothing was bought, so the offer stays theirs
+            _db()["users"].update_one({"user_id": uid}, {"$unset": {"offer_used_at": ""}})
         raise ValueError(ERR_PENDING)
     doc.pop("_id", None)
     if not held:
         _grant(doc, now)
     return doc
+
+
+_offer_cache: dict = {"at": 0.0, "open": True}
+
+
+def offer_open(fresh: bool = False) -> bool:
+    """Whether the offer is running. No row yet = open (it launched open).
+    Cached a few seconds per worker; `fresh` reads the database (a payment)."""
+    import time
+
+    now = time.monotonic()
+    if fresh or now - _offer_cache["at"] > OFFER_CACHE_SECONDS:
+        try:
+            row = _db()["app_settings"].find_one({"_id": OFFER_SETTING_ID}, {"open": 1})
+            _offer_cache["open"] = bool(row.get("open", True)) if row else True
+            _offer_cache["at"] = now
+        except Exception:  # noqa: BLE001 — keep the last known answer
+            pass
+    return _offer_cache["open"]
+
+
+def offer_admin_state() -> dict:
+    """The admin section: on/off, who changed it last, and how far it went."""
+    row = _db()["app_settings"].find_one({"_id": OFFER_SETTING_ID}) or {}
+    changed = _as_utc(row.get("changed_at"))
+    pays = list(_payments().aggregate([
+        {"$match": {"plan": OWN_OFFER_KEY}},
+        {"$group": {"_id": "$status", "n": {"$sum": 1}}},
+    ]))
+    by = {r["_id"]: r["n"] for r in pays}
+    return {
+        "open": bool(row.get("open", True)),
+        "changed_at": changed.isoformat() if changed else None,
+        "changed_by": row.get("changed_by"),
+        **OWN_OFFER,
+        "payments": {s: by.get(s, 0) for s in STATUSES},
+        "not_interested": _db()["users"].count_documents({"offer_dismissed_at": {"$exists": True}}),
+    }
+
+
+def set_offer_open(is_open: bool, admin_email: str) -> dict:
+    """Start or end the offer for everyone, at once on this worker (others
+    within OFFER_CACHE_SECONDS). Readers who already paid keep their days."""
+    now = datetime.now(timezone.utc)
+    _db()["app_settings"].update_one(
+        {"_id": OFFER_SETTING_ID},
+        {"$set": {"open": bool(is_open), "changed_at": now, "changed_by": admin_email}},
+        upsert=True,
+    )
+    _offer_cache["open"] = bool(is_open)
+    _offer_cache["at"] = 0.0
+    return offer_admin_state()
+
+
+def dismiss_offer(user_id: str, action: str) -> None:
+    """The banner's "Not interested" (`never`) or "Remind me later" (`later`).
+    Raises ValueError on another action."""
+    now = datetime.now(timezone.utc)
+    _db()["users"].update_one(
+        {"user_id": user_id},
+        {"$set": {**offer_dismiss_update(action, now), "updated_at": now}},
+    )
 
 
 def _grant(doc: dict, now: datetime) -> None:
@@ -513,10 +626,10 @@ def change_plan(payment_id: str, plan: str, admin_email: str) -> Optional[dict]:
     the days were already granted, the reader's end date moves by the
     difference. Status is unchanged. Returns the payment, or None when it is
     revoked or doesn't exist. Raises ValueError(ERR_PLAN / ERR_SAME_PLAN)."""
-    if plan not in PAID_PLANS:
+    if plan not in ALL_PLANS:
         raise ValueError(ERR_PLAN)
     now = datetime.now(timezone.utc)
-    spec = PAID_PLANS[plan]
+    spec = ALL_PLANS[plan]
     old = _payments().find_one(
         {"payment_id": payment_id, "status": {"$in": ["pending", "accepted"]}}, {"_id": 0})
     if not old:

@@ -30,6 +30,18 @@ export interface AuthUser {
   limits?: { watchlist: number | null; alerts: number | null; ai_daily: number | null; portfolios?: number | null; custom_lists?: number | null };
   /** Three full stock reports a month for a free reader (backend/services/report_keys.py). */
   report_keys?: ReportKeys;
+  /** The reader's own ৳99 month (backend `payments.offer_state`), or null
+   *  when it isn't theirs (ended, Premium, already used). */
+  offer?: OwnOfferState | null;
+}
+
+export interface OwnOfferState {
+  key: "offer";
+  amount: number;
+  days: number;
+  list_amount: number;
+  /** False after "Not interested", and for a few days after "Remind me later". */
+  banner: boolean;
 }
 
 export interface ReportKeys {

@@ -8,7 +8,7 @@
  * `listAmount` is the regular price, shown struck through with the offer label
  * (`OFFER`). The reader always pays `amount`.
  */
-export type PlanKey = "monthly" | "halfyearly" | "yearly";
+export type PlanKey = "monthly" | "halfyearly" | "yearly" | "offer";
 
 export interface PaidPlan {
   key: PlanKey;
@@ -78,6 +78,27 @@ export const OFFER = {
   },
 } as const;
 
+/**
+ * The reader's own offer (2026-10-29): one month for ৳99 instead of ৳199,
+ * once per account, for a reader who isn't Premium, while an admin keeps it
+ * open (`/admin/payments`). No end date is shown. Mirrors backend
+ * `payments.OWN_OFFER`; the backend's `user.offer` (signed in) or the plans
+ * endpoint's `own_offer` (guests) decides whether it shows. Not in `PAID_PLANS`: it is
+ * its own card in the pay box and the banner on top of the homepage.
+ */
+export const OWN_OFFER_PLAN: PaidPlan = {
+  key: "offer",
+  name: "1 month, your offer",
+  bn: "1 মাস, আপনার অফার",
+  amount: 99,
+  listAmount: 199,
+  days: 30,
+  per: "for 30 days",
+  perBn: "30 দিনের জন্য",
+  note: "It's your own offer, for a very limited time.",
+  noteBn: "এটি শুধু আপনার জন্য অফার, খুব অল্প সময়ের জন্য।",
+};
+
 // Plans no longer sold, kept so old payments and `users.paid_plan` still read
 // as a name (the payment row stores its own amount + days).
 const RETIRED_PLANS: PaidPlan[] = [
@@ -97,7 +118,11 @@ const RETIRED_PLANS: PaidPlan[] = [
 export const LOWEST_PRICE = Math.min(...PAID_PLANS.map((p) => p.amount));
 
 export function planByKey(key: string | null | undefined): PaidPlan | undefined {
-  return PAID_PLANS.find((p) => p.key === key) ?? RETIRED_PLANS.find((p) => p.key === key);
+  return (
+    PAID_PLANS.find((p) => p.key === key) ??
+    (key === OWN_OFFER_PLAN.key ? OWN_OFFER_PLAN : undefined) ??
+    RETIRED_PLANS.find((p) => p.key === key)
+  );
 }
 
 export const METHOD_LABEL: Record<string, string> = {

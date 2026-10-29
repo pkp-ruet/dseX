@@ -663,3 +663,59 @@ details[open] > .pm-fold-summary .pm-fold-chev { transform: rotate(180deg); }
 .plan-usage-track { display: block; height: 6px; margin-top: 6px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
 .plan-usage-fill { display: block; height: 100%; border-radius: 999px; background: var(--primary); }
 .plan-usage-fill.is-full { background: var(--watch); }
+
+/* The reader's own ৳99 month (2026-10-29): its card on top of the plans
+   (PayBox `OwnOfferCard`) and the banner on top of the homepage (OfferBanner). */
+.pay-plan-own { background: var(--gold-light); border-color: rgb(var(--gold-rgb) / 0.6); }
+.pay-plan-own.pay-plan-on { border-color: var(--primary); }
+.pay-own-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-6);
+  padding-bottom: var(--space-3);
+}
+.pay-own-price { margin-top: 0; }
+.pay-plan-own .pay-plan-foot { border-top-color: rgb(var(--gold-rgb) / 0.45); }
+.pay-own-ends {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  color: var(--gold-ink);
+  background: var(--surface);
+  border: 1px solid rgb(var(--gold-rgb) / 0.45);
+}
+
+.offer-banner {
+  margin-top: var(--space-4);
+  padding: var(--space-6) var(--space-4);
+  border: 1px solid rgb(var(--gold-rgb) / 0.55);
+  border-radius: var(--radius-lg);
+  background: var(--gold-light);
+  box-shadow: var(--shadow-soft);
+}
+@media (min-width: 640px) { .offer-banner { padding: var(--space-6); } }
+.offer-banner-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--gold-ink);
+}
+.offer-banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+/* The regular price, crossed out beside the offer price in the banner title. */
+.offer-banner-was {
+  margin-left: var(--space-2);
+  font-size: 0.8em;
+  font-weight: 600;
+  color: var(--negative);
+}

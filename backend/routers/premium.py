@@ -1,4 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from backend.routers.auth import get_current_user
@@ -16,6 +18,10 @@ def plans():
     return {
         "plans": [{"key": k, **v} for k, v in payments.PAID_PLANS.items()],
         "methods": payments.receiving_methods(),
+        # The reader's own ৳99 month while an admin keeps it open (the
+        # homepage banner reads this for guests), else null.
+        "own_offer": {"key": payments.OWN_OFFER_KEY, **payments.OWN_OFFER}
+        if payments.offer_open() else None,
     }
 
 
@@ -41,7 +47,8 @@ def submit_payment(body: PaymentBody, current_user: dict = Depends(get_current_u
                                       body.transfer, body.account_last4, body.reference)
     except ValueError as e:
         code = str(e)
-        raise HTTPException(status_code=409 if code == payments.ERR_PENDING else 422, detail=code)
+        status = 409 if code in (payments.ERR_PENDING, payments.ERR_OFFER) else 422
+        raise HTTPException(status_code=status, detail=code)
     return {
         "payment": payments.public_payment(doc),
         "user": public_user(get_user_by_id(current_user["user_id"])),
@@ -52,3 +59,16 @@ def submit_payment(body: PaymentBody, current_user: dict = Depends(get_current_u
 def my_payments(current_user: dict = Depends(get_current_user)):
     uid = current_user["user_id"]
     return {"ref_code": payments.ref_code(uid), "items": payments.user_payments(uid)}
+
+
+class OfferDismissBody(BaseModel):
+    action: Literal["never", "later"]
+
+
+@router.post("/offer")
+def dismiss_offer(body: OfferDismissBody, current_user: dict = Depends(get_current_user)):
+    """The offer banner's "Not interested" (`never`) or "Remind me later"
+    (`later`, hidden for a few days). The offer itself stays in the pay box
+    until it ends."""
+    payments.dismiss_offer(current_user["user_id"], body.action)
+    return {"user": public_user(get_user_by_id(current_user["user_id"]))}

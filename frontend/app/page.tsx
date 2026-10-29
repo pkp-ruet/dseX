@@ -36,6 +36,7 @@ import StartFromZero from "@/components/landing/StartFromZero";
 import LandingClose from "@/components/landing/LandingClose";
 import FeedbackSection from "@/components/feedback/FeedbackSection";
 import FreeReportCard from "@/components/home/FreeReportCard";
+import OfferBanner from "@/components/premium/OfferBanner";
 import SectionHead from "@/components/i18n/SectionHead";
 import { T } from "@/components/i18n/T";
 import { freeReportCode } from "@/lib/free-report";
@@ -352,6 +353,10 @@ export default function HomePage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
+
+      {/* The reader's own ৳99 month — client-only, above both the landing and
+          the dashboard; nothing in the server HTML. */}
+      <OfferBanner />
 
       <HomePersonalizationGate>
         {/* 1 — the claim and its proof, side by side */}

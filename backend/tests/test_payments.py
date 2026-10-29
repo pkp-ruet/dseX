@@ -135,3 +135,39 @@ def test_manual_payment_spec():
 def test_gift_push_does_not_mention_a_payment():
     assert "payment" not in gift_payload("en")["body"].lower()
     assert gift_payload("bn")["url"].startswith("/premium")
+
+
+# --- the reader's own offer ---------------------------------------------------
+
+from backend.services.payments import (  # noqa: E402
+    ALL_PLANS,
+    offer_dismiss_update,
+    offer_state,
+)
+
+
+def test_own_offer_is_99_for_a_month_and_not_a_public_plan():
+    assert (ALL_PLANS["offer"]["amount"], ALL_PLANS["offer"]["days"]) == (99, 30)
+    assert "offer" not in PAID_PLANS
+
+
+def test_offer_shows_for_a_free_reader_until_an_admin_ends_it():
+    st = offer_state({}, NOW, premium=False, is_open=True)
+    assert st["amount"] == 99 and st["list_amount"] == 199 and st["banner"] is True
+    assert "ends" not in st  # no end date is ever shown
+    assert offer_state({}, NOW, premium=False, is_open=False) is None
+
+
+def test_offer_is_not_for_premium_readers_or_twice():
+    assert offer_state({}, NOW, premium=True, is_open=True) is None
+    assert offer_state({"offer_used_at": NOW}, NOW, premium=False, is_open=True) is None
+
+
+def test_offer_banner_buttons():
+    never = offer_dismiss_update("never", NOW)
+    st = offer_state(never, NOW, premium=False, is_open=True)
+    assert st is not None and st["banner"] is False  # still in the pay box
+
+    later = offer_dismiss_update("later", NOW)
+    assert offer_state(later, NOW + timedelta(days=1), premium=False, is_open=True)["banner"] is False
+    assert offer_state(later, NOW + timedelta(days=4), premium=False, is_open=True)["banner"] is True
