@@ -7,7 +7,8 @@ import EmptyState from "@/components/ui/EmptyState";
 import { IconLock } from "@/components/ui/icons";
 import LockPanel from "@/components/premium/LockPanel";
 import { PersonalCodesProvider, usePersonalCodesCtx } from "@/components/market-analysis/PersonalCodes";
-import type { LatestResultRow } from "@/lib/api";
+import type { LatestResultRow, UpcomingResult } from "@/lib/api";
+import SectionHeader from "@/components/ui/SectionHeader";
 import { RESULT_LEVEL, RESULT_LEVEL_ORDER } from "@/lib/results";
 import { usePremium } from "@/lib/premium";
 import { savePremiumContext } from "@/lib/premium-context";
@@ -18,6 +19,7 @@ import { bnDate } from "@/lib/bn";
 import { useUrlParams, useUrlSync } from "@/lib/use-url-state";
 import ResultRow from "./ResultRow";
 import ResultsFilterPreview from "./ResultsFilterPreview";
+import ResultsComing from "./ResultsComing";
 
 const PAGE = 50;
 type Level = LatestResultRow["level"];
@@ -60,9 +62,19 @@ function byDay(rows: LatestResultRow[]): { day: string; items: LatestResultRow[]
  * and the My stocks filter (`?level=mine`, Watch) — a free reader's tap on
  * it opens a preview (how many, three rows with the company hidden).
  */
-export default function ResultsFeed(props: { rows: LatestResultRow[]; counts: Record<Level, number> }) {
+export default function ResultsFeed({
+  coming = [],
+  ...props
+}: { rows: LatestResultRow[]; counts: Record<Level, number>; coming?: UpcomingResult[] }) {
   return (
     <PersonalCodesProvider>
+      {coming.length > 0 && <ResultsComing rows={coming} />}
+      {coming.length > 0 && (
+        <SectionHeader
+          title={<T en="Latest reports" bn="সর্বশেষ প্রতিবেদন" />}
+          lead={<T en="What came out, newest first." bn="যা প্রকাশ হয়েছে, নতুনগুলো আগে।" />}
+        />
+      )}
       <Feed {...props} />
     </PersonalCodesProvider>
   );

@@ -21,3 +21,14 @@ def latest_results():
     for r in rows:
         counts[r["level"]] = counts.get(r["level"], 0) + 1
     return {"as_of": rows[0]["post_date"] if rows else None, "counts": counts, "results": rows}
+
+
+@router.get("/api/results/upcoming")
+def upcoming_results():
+    """Results meetings in the next two weeks (DSE board-meeting notices),
+    soonest first, each with what to expect — the year-ago figure, how the
+    year has gone so far and where the Better / Weaker lines sit. The dates are
+    free; the page hides what to expect from free readers (screen-only)."""
+    from backend.services.morning_brief_service import results_calendar
+
+    return results_calendar()

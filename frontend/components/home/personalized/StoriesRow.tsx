@@ -90,6 +90,18 @@ export default function StoriesRow({
     return [...today, ...rest.filter((s) => !isSeen(s)), ...rest.filter((s) => isSeen(s)), ...more];
   }, [stories, isSeen]);
 
+  // A tap on the before-the-bell push lands on `/?src=brief`: open the Today
+  // story (where the brief is) once the rings are ready, once per visit.
+  const [autoOpened, setAutoOpened] = useState(false);
+  useEffect(() => {
+    if (autoOpened || loading || !ordered.length || ordered[0].kind !== "today") return;
+    if (typeof window === "undefined" || new URLSearchParams(window.location.search).get("src") !== "brief") return;
+    if (!ordered[0].frames.some((f) => f.kind === "brief")) return;
+    setAutoOpened(true);
+    trackEvent("story_open", { story: "today", code: "", seen: 0, from: "brief" });
+    setOpen({ list: ordered, index: 0 });
+  }, [autoOpened, loading, ordered]);
+
   // The label holds its place while the rings load, so nothing jumps.
   const head = (
     <div className="flex items-baseline justify-between gap-3">

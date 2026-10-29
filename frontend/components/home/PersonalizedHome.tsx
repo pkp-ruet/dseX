@@ -225,6 +225,8 @@ export default function PersonalizedHome() {
     week: bundle?.week_watch ?? null,
     // Saved screens are re-checked only while Premium — a lapsed plan's news is stale.
     savedScreens: premium ? bundle?.screener?.saved ?? [] : [],
+    resultsSoon: bundle?.results_soon ?? [],
+    brief: premium ? bundle?.brief ?? null : null,
   });
   const stories = isBrandNew
     ? buildStarterStories({

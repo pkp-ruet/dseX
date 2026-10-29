@@ -414,6 +414,24 @@ def cmd_portfolio_daily(args):
     print(f"Portfolio daily done: {counts}")
 
 
+def cmd_morning_brief(args):
+    """Before the bell (~9 AM Dhaka, Sun-Thu): re-scrape the news of every
+    stock a Premium reader holds or follows (results and board-meeting notices
+    posted overnight), then build, store and send each reader's brief — push,
+    or email without a push device. Idempotent per Dhaka day. `--no-scrape`
+    skips the news step; `--force` runs on a Friday / Saturday too."""
+    from backend.services.morning_brief_service import brief_codes, run_brief
+
+    if not getattr(args, "no_scrape", False):
+        codes = brief_codes()
+        print(f"Refreshing news for {len(codes)} followed stocks...")
+        if codes:
+            saved = NewsScraper().run(codes)
+            print(f"  {saved} new news items.")
+    counts = run_brief(force=bool(getattr(args, "force", False)))
+    print(f"Morning brief done: {counts}")
+
+
 def cmd_generate_summaries(args):
     """Generate plain-Bangla 'এক নজরে' stock summaries into `stock_summaries`.
 
@@ -700,6 +718,13 @@ def main():
         help="Bypass the 2 PM Dhaka market-close gate (manual testing)",
     )
 
+    brief_parser = sub.add_parser(
+        "morning-brief",
+        help="Before the bell: refresh followed stocks' news, then send Premium readers their brief",
+    )
+    brief_parser.add_argument("--no-scrape", action="store_true", help="Skip the news refresh")
+    brief_parser.add_argument("--force", action="store_true", help="Run on a Friday / Saturday too")
+
     summaries_parser = sub.add_parser(
         "generate-summaries",
         help="Generate plain-Bangla 'এক নজরে' stock summaries (cached; regenerates only changed stocks)",
@@ -747,6 +772,7 @@ def main():
         "notify-price-alerts":   cmd_notify_price_alerts,
         "notify-portfolio-signals": cmd_notify_portfolio_signals,
         "portfolio-daily":       cmd_portfolio_daily,
+        "morning-brief":         cmd_morning_brief,
         "generate-summaries":    cmd_generate_summaries,
         "scrape-all":            cmd_scrape_all,
     }

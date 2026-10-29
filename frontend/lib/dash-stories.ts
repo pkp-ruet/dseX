@@ -6,6 +6,7 @@ import type {
   MarketMood,
   MarketMoversData,
   MarketUnusualStock,
+  MorningBrief,
   NearExtremesData,
   PortfolioHolding,
   PortfolioSignalEvent,
@@ -13,6 +14,7 @@ import type {
   PriceAlert,
   ScoreItem,
   ScreenerSaved,
+  UpcomingResult,
   WatchlistNewsItem,
   WeekWatch,
 } from "@/lib/api";
@@ -49,6 +51,8 @@ export type FrameKind =
   | "signal"
   | "screen"
   | "results"
+  | "board"
+  | "brief"
   | "grade"
   | "category"
   | "move"
@@ -135,6 +139,7 @@ const RANK: Partial<Record<FrameKind, number>> = {
   volume: 5,
   high: 6,
   low: 6,
+  board: 5,
   dividend: 7,
   news: 8,
   locked: 9,
@@ -150,6 +155,10 @@ const MAX_NEWS = 5;
 /** Open frames per stock (a free reader's locked frame comes on top). */
 const MAX_FRAMES = 4;
 const MAX_STOCK_STORIES = 12;
+/** A results meeting gets a frame this many days ahead. */
+const BOARD_SOON_DAYS = 3;
+/** Before-the-bell frames at the start of the Today story. */
+const MAX_BRIEF_FRAMES = 4;
 
 /** What the weekly watcher calls an event, as the frame kind it overlaps. */
 const WATCH_KIND: Record<PortfolioWatchEvent["kind"], FrameKind> = {
@@ -189,6 +198,7 @@ const KIND_WORDS: Partial<Record<FrameKind, { en: [string, string]; bn: string }
   high: { en: ["yearly high", "yearly highs"], bn: "বছরের সর্বোচ্চ দাম" },
   low: { en: ["yearly low", "yearly lows"], bn: "বছরের সর্বনিম্ন দাম" },
   dividend: { en: ["dividend", "dividends"], bn: "ডিভিডেন্ড" },
+  board: { en: ["results meeting", "results meetings"], bn: "ফলের সভা" },
   news: { en: ["news item", "news items"], bn: "খবর" },
 };
 
@@ -278,6 +288,10 @@ export interface StoryInput {
   week: WeekWatch | null;
   /** Premium readers' saved screens as of the last daily check. */
   savedScreens: ScreenerSaved[];
+  /** Results meetings on the reader's stocks, next two weeks (bundle `results_soon`). */
+  resultsSoon?: UpcomingResult[];
+  /** Today's before-the-bell brief (Premium; bundle `brief`). */
+  brief?: MorningBrief | null;
 }
 
 /**
@@ -444,6 +458,40 @@ export function buildStories(i: StoryInput): Story[] {
       cta: { label: L("Open the results", "ফলটি দেখুন"), href: `/stock/${encodeURIComponent(code)}#results` },
       when: day(r.post_date),
       tone,
+    });
+  }
+
+  // ── Results meetings in the next three days (DSE board-meeting notices).
+  // The date is free; Premium adds what the report is measured against.
+  for (const m of i.resultsSoon ?? []) {
+    const code = m.code.toUpperCase();
+    if (m.days > BOARD_SOON_DAYS || has(code, "board")) continue;
+    // Already out: a report posted on or after the meeting day is its own frame.
+    if (i.results.some((r) => r.code.toUpperCase() === code && r.post_date >= m.date)) continue;
+    const whenEn = m.days === 0 ? "today" : m.days === 1 ? "tomorrow" : `on ${day(m.date)}`;
+    const whenBn = m.days === 0 ? "আজ" : m.days === 1 ? "আগামীকাল" : `${day(m.date)}`;
+    const rows: NonNullable<StoryFrame["rows"]> = [];
+    if (i.premium && m.better_above != null && m.weaker_below != null) {
+      rows.push({ label: L("Better from", "ভালো যদি"), value: L(`EPS ৳${m.better_above.toFixed(2)}`, `ইপিএস ৳${m.better_above.toFixed(2)} বা বেশি`), tone: "positive" });
+      rows.push({ label: L("Weaker under", "দুর্বল যদি"), value: L(`EPS ৳${m.weaker_below.toFixed(2)}`, `ইপিএস ৳${m.weaker_below.toFixed(2)}-এর কম`), tone: "negative" });
+    }
+    const expect = lang === "bn" && m.expect_bn.length ? m.expect_bn : m.expect_en;
+    add(code, {
+      id: `bm:${code}:${m.date}`,
+      kind: "board",
+      label: L("Results coming", "ফল আসছে"),
+      headline: L(`Board meets ${whenEn} on its ${m.label_en.startsWith("Q") ? m.label_en : m.label_en.toLowerCase()}`, `${whenBn} ${m.label_bn} নিয়ে পর্ষদ সভা`),
+      sentence:
+        i.premium && expect.length
+          ? expect.slice(0, 2).join(" ")
+          : L(
+              "Results usually come out the same evening, and we explain them here when they do.",
+              "ফল সাধারণত সেদিন সন্ধ্যায় আসে, এলে আমরা এখানে ব্যাখ্যা করি।",
+            ),
+      rows: rows.length ? rows : undefined,
+      cta: { label: L("All results coming up", "যেসব ফল আসছে"), href: "/results#coming" },
+      when: day(m.date),
+      tone: "neutral",
     });
   }
 
@@ -822,7 +870,7 @@ export function buildStories(i: StoryInput): Story[] {
     return cb - ca;
   });
 
-  const todayStory = buildTodayStory(i, { held, watchOnly, universe, sigOf, L, dayWord });
+  const todayStory = buildTodayStory(i, { held, watchOnly, universe, sigOf, L, dayWord, has });
   const out = stories.slice(0, MAX_STOCK_STORIES);
   return todayStory ? [todayStory, ...out] : out;
 }
@@ -864,12 +912,33 @@ function buildTodayStory(
     sigOf: (code: string) => "buy" | "buy_more" | "sell" | "none";
     L: L;
     dayWord: string;
+    /** A stock story already has a frame of this kind. */
+    has: (code: string, kind: FrameKind) => boolean;
   },
 ): Story | null {
   const { lang, priceMap, todayIso } = i;
   const { L, dayWord } = ctx;
   const today = i.when === "today";
   const frames: StoryFrame[] = [];
+
+  // Before the bell (Premium, the morning job): one frame per item, first —
+  // skipping what a stock's own story already says (its results, its meeting).
+  const briefItems = (i.brief?.day === todayIso ? i.brief.items : []).filter(
+    (b) =>
+      !(b.code && b.kind === "results" && ctx.has(b.code, "results")) &&
+      !(b.code && b.kind === "board_today" && ctx.has(b.code, "board")),
+  );
+  briefItems.slice(0, MAX_BRIEF_FRAMES).forEach((b, k) => {
+    frames.push({
+      id: `br:${todayIso}:${k}:${b.kind}:${b.code ?? ""}`,
+      kind: "brief",
+      label: L("Before the bell", "বাজার খোলার আগে"),
+      headline: lang === "bn" ? b.title_bn : b.title_en,
+      cta: { label: L("Open", "খুলুন"), href: b.url },
+      when: L("this morning", "আজ সকালে"),
+      tone: b.level === "good" ? "positive" : b.level === "bad" ? "negative" : "neutral",
+    });
+  });
 
   const extremesRows = (d: DayStats): StoryFrame["rows"] => {
     const rows: NonNullable<StoryFrame["rows"]> = [];

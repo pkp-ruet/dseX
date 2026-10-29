@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getLatestResults } from "@/lib/api";
+import { getLatestResults, getUpcomingResults } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
 import PageHeader from "@/components/ui/PageHeader";
 import { T } from "@/components/i18n/T";
@@ -57,7 +57,11 @@ export const metadata: Metadata = {
 export default async function ResultsPage() {
   // No catch on the main fetch: a throw lets ISR keep serving the last good
   // page; a rendered error state was cached as the page until the next purge.
-  const data = await getLatestResults();
+  const [data, coming] = await Promise.all([
+    getLatestResults(),
+    // Secondary: the results calendar. A failure drops the section, not the page.
+    getUpcomingResults().catch(() => null),
+  ]);
 
   const rows = data.results;
 
@@ -108,7 +112,7 @@ export default async function ResultsPage() {
         }
       />
 
-      <ResultsFeed rows={rows} counts={data.counts} />
+      <ResultsFeed rows={rows} counts={data.counts} coming={coming?.meetings ?? []} />
 
       <PageGuide
         title="About these results"

@@ -45,6 +45,7 @@ from backend.services.portfolio_daily import recent_events
 from backend.services.portfolio_signal_service import list_recent_events
 from backend.services.portfolio_watch import digest
 from backend.services.recommend_service import for_user
+from backend.services.morning_brief_service import results_calendar, today_brief
 from backend.services.summaries_service import load_stock_summaries
 
 logger = logging.getLogger(__name__)
@@ -154,6 +155,11 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
     new_results = _safe("new_results", lambda: results_for(mine), [])
     # The market's week of results — the dashboard promotes /results with it.
     results_week = _safe("results_week", results_summary, None)
+    # Results meetings on the reader's stocks in the next two weeks (dates +
+    # what to expect — the expectation is Premium, a screen-only lock) and
+    # today's before-the-bell brief (Premium readers; the morning job).
+    results_soon = _safe("results_soon", lambda: results_calendar(mine)["meetings"] if mine else [], [])
+    brief = _safe("brief", lambda: today_brief(user_id), None)
 
     near = _safe("near_extremes", lambda: _dump(get_near_extremes()), None)
     market_index = _safe("market_index", load_market_index, None)
@@ -198,6 +204,8 @@ def home_bundle(current_user: dict = Depends(get_current_user)):
         "research_lists": research_lists,
         "new_results": new_results,
         "results_week": results_week,
+        "results_soon": results_soon,
+        "brief": brief,
         "week_watch": week_watch,
         "screener": screener,
     }

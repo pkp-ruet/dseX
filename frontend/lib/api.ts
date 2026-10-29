@@ -850,6 +850,52 @@ export interface LatestResults {
   results: LatestResultRow[];
 }
 
+/** One results meeting from a DSE board-meeting notice (2026-10-29,
+ *  `morning_brief.calendar_row`). The date is free; `expect_*` (what the
+ *  report is measured against) is Premium — a screen-only lock. */
+export interface UpcomingResult {
+  code: string;
+  name: string;
+  /** Meeting day, YYYY-MM-DD (Dhaka). */
+  date: string;
+  /** Days from today: 0 = today. */
+  days: number;
+  purpose: "q1" | "q2" | "q3" | "annual";
+  period_end: string | null;
+  label_en: string;
+  label_bn: string;
+  expect_en: string[];
+  expect_bn: string[];
+  better_above: number | null;
+  weaker_below: number | null;
+}
+
+export interface UpcomingResults {
+  as_of: string;
+  meetings: UpcomingResult[];
+}
+
+/** Results meetings in the next two weeks, soonest first. */
+export async function getUpcomingResults(): Promise<UpcomingResults> {
+  return apiFetch<UpcomingResults>("/api/results/upcoming", 900);
+}
+
+/** The reader's before-the-bell brief for today (Premium; the morning job). */
+export interface MorningBriefItem {
+  kind: "results" | "board_today" | "buy_by" | "record" | "board_week";
+  code: string | null;
+  level: string;
+  title_en: string;
+  title_bn: string;
+  url: string;
+}
+
+export interface MorningBrief {
+  day: string;
+  items: MorningBriefItem[];
+  made_at: string | null;
+}
+
 /** Every company's latest quarterly results, newest first (`/results`). */
 export async function getLatestResults(): Promise<LatestResults> {
   return apiFetch<LatestResults>("/api/results", 900);
@@ -1688,6 +1734,8 @@ export interface NotificationPrefs {
   portfolio_signals?: boolean;
   /** Premium watcher on held stocks (record dates, results, category, big drops, yearly lows). */
   portfolio_watch?: boolean;
+  /** Premium: the before-the-bell brief on held + followed stocks (2026-10-29). */
+  morning_brief?: boolean;
   /** Digest copy language — Bengali by default. */
   language?: "bn" | "en";
 }
@@ -2157,6 +2205,10 @@ export interface HomeBundle {
     total: number;
     latest: LatestResultRow[];
   } | null;
+  /** Results meetings on the reader's stocks in the next two weeks (2026-10-29). */
+  results_soon?: UpcomingResult[];
+  /** Today's before-the-bell brief — Premium readers, once the morning job has run. */
+  brief?: MorningBrief | null;
   /** What the watcher spotted on the reader's stocks in the last 7 days
    *  (`portfolio_watch.digest`). Free readers see the counts, Premium the list. */
   week_watch?: WeekWatch | null;
