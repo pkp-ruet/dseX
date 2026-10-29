@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
 import { T } from "@/components/i18n/T";
 import { IconLock } from "@/components/ui/icons";
 import { JobTag } from "@/components/premium/AnswerLock";
-import { usePremiumOpen } from "@/components/premium/PremiumMask";
+import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 import type { Job } from "@/lib/premium-jobs";
 import {
   PersonalCodesProvider,

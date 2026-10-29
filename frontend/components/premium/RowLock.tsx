@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { usePremiumOpen } from "@/components/premium/PremiumMask";
+import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 
 /**
  * THE lock for a list of other companies (2026-10-28, first on the dividend

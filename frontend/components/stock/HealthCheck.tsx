@@ -8,7 +8,6 @@ import {
 } from "@/lib/stock-metrics";
 import type { CompanyDetail } from "@/lib/api";
 import Card from "@/components/ui/Card";
-import PremiumMask from "@/components/premium/PremiumMask";
 import { T } from "@/components/i18n/T";
 
 type ScoreRow = Record<string, number | string | boolean | null>;
@@ -16,9 +15,6 @@ type ScoreRow = Record<string, number | string | boolean | null>;
 interface Props {
   scoreRow: ScoreRow;
   detail: CompanyDetail;
-  /** Lock the other four checks behind `PremiumMask` (default). The stock
-   *  report passes false: there the whole list sits in one Premium panel. */
-  lockAfterFirst?: boolean;
 }
 
 // Status tones ride on the tier tokens — the same three bands `pillarColor`
@@ -191,11 +187,11 @@ export function PillarBars({ scoreRow }: { scoreRow: ScoreRow }) {
 
 /**
  * The five checks, explained — one row per pillar that opens to the plain
- * explanation, the real figures and the sub-scores. Lives in the stock page's
- * full verdict (2026-10-27): the first check is free, the other four sit
- * behind `PremiumMask`.
+ * explanation, the real figures and the sub-scores. Lives in the stock
+ * report's quality section, inside its one Premium panel (the old full
+ * verdict's first-free / PremiumMask split went with that page, 2026-10-29).
  */
-export default function HealthCheck({ scoreRow, detail, lockAfterFirst = true }: Props) {
+export default function HealthCheck({ scoreRow, detail }: Props) {
   // The backend replaces a band's generic wording when it would contradict the
   // numbers (profitable every year but "loses money", "low loans" beside loans
   // bigger than the reserve, "strong dividend" at a 2% yield, banks and "loans").
@@ -210,30 +206,13 @@ export default function HealthCheck({ scoreRow, detail, lockAfterFirst = true }:
 
   if (rows.length === 0) return null;
 
-  if (!lockAfterFirst) {
-    // Inside the stock report: plain rows split by hairlines, no tinted
-    // boxes — the status ring alone carries the colour.
-    return (
-      <div className="divide-y divide-border border-y border-border">
-        {rows.map((row) => (
-          <HealthRow key={row.pillarKey} row={row} scoreRow={scoreRow} detail={detail} plain />
-        ))}
-      </div>
-    );
-  }
-
+  // Plain rows split by hairlines, no tinted boxes — the status ring alone
+  // carries the colour.
   return (
-    <div className="space-y-2.5">
-      <HealthRow row={rows[0]} scoreRow={scoreRow} detail={detail} />
-      {rows.length > 1 && (
-        <PremiumMask lines={3}>
-          <div className="space-y-2.5">
-            {rows.slice(1).map((row) => (
-              <HealthRow key={row.pillarKey} row={row} scoreRow={scoreRow} detail={detail} />
-            ))}
-          </div>
-        </PremiumMask>
-      )}
+    <div className="divide-y divide-border border-y border-border">
+      {rows.map((row) => (
+        <HealthRow key={row.pillarKey} row={row} scoreRow={scoreRow} detail={detail} plain />
+      ))}
     </div>
   );
 }

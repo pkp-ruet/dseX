@@ -15,7 +15,7 @@ import TierPill from "@/components/ui/TierPill";
 import SignalChip from "@/components/ui/SignalChip";
 import Skeleton from "@/components/ui/Skeleton";
 import { IconArrowRight, IconChevronDown, IconCrown, IconLock } from "@/components/ui/icons";
-import { usePremiumOpen } from "@/components/premium/PremiumMask";
+import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 import LockPanel, { type LockTile } from "@/components/premium/LockPanel";
 import WatchlistAlertCell from "./WatchlistAlertCell";
 

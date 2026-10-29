@@ -2000,7 +2000,9 @@ def build_story(inp: dict) -> Optional[dict]:
     if len([r for r in rows if r["revenue_cr"]]) < 3:
         return None
     first = next(r for r in rows if r["revenue_cr"])
-    last = rows[-1]
+    # The newest year WITH sales: a year that has only a profit line (METROSPIN,
+    # 2026-10-29) crashed the whole report on `None * 10`.
+    last = next(r for r in reversed(rows) if r["revenue_cr"])
     span = last["year"] - first["year"]
     s_c = _cagr(first["revenue_cr"], last["revenue_cr"], span)
     p_c = _cagr(first["profit_cr"], last["profit_cr"], span) if first.get("profit_cr") and last.get("profit_cr") else None

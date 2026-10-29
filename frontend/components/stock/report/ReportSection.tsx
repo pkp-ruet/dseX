@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import AnswerLock, { Locked } from "@/components/premium/AnswerLock";
-import { usePremiumOpen } from "@/components/premium/PremiumMask";
+import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 import { T } from "@/components/i18n/T";
 import type { Bi, SectionBase } from "@/lib/stock-report";
 import { ToneChip, tx } from "@/components/stock/report/fmt";

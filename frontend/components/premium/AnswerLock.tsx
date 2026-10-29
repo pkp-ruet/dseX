@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
 import { T } from "@/components/i18n/T";
 import { useLockScope } from "@/components/premium/LockScope";
-import { usePremiumOpen } from "@/components/premium/PremiumMask";
+import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 import { IconCrown, IconLock } from "@/components/ui/icons";
 import { useLang } from "@/context/LangContext";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";

@@ -122,7 +122,7 @@ export default function ValuationPanel({ financials, latestPrice, scoreRow, valu
       </div>
 
       {/* The ratios are free facts; our verdict on the price lives in the
-          full verdict (FullVerdict → PriceVerdict), one link away. */}
+          report's price section, one link away. */}
       {verdictHref && (
         <p className="mb-4 text-sm text-text-muted">
           <T en="Is this price low or high? " bn="এই দাম কম না বেশি? " />

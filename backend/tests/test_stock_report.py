@@ -367,3 +367,17 @@ def test_every_section_says_what_premium_shows():
             assert 1 <= len(sec["inside"]) <= 3, key
             for line in sec["inside"]:
                 assert set(line) == {"en", "bn"} and line["en"] and line["bn"], (key, line)
+
+
+def test_story_skips_a_last_year_without_sales():
+    # METROSPIN, 2026-10-29: the newest year had a profit line but no revenue,
+    # and `None * 10` took the whole report down.
+    from backend.services.stock_report import build_story
+
+    ext = [{"year": y, "revenue": 1.0e9 * (1 + i / 10), "net_profit": 5.0e7, "total_equity": 8.0e8}
+           for i, y in enumerate(range(2020, 2025))]
+    ext.append({"year": 2025, "revenue": None, "net_profit": 4.0e7, "total_equity": 8.0e8})
+    story = build_story({"sector_class": "GENERAL", "extended_financials": ext})
+    assert story is not None
+    # Measured from 2020 to 2024, the newest year with sales.
+    assert story["growth"]["years"] == 4

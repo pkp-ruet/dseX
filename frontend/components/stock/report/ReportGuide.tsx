@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment } from "react";
-import { usePremiumOpen } from "@/components/premium/PremiumMask";
+import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 import { IconCrown } from "@/components/ui/icons";
 import { T } from "@/components/i18n/T";
 import { tx } from "@/components/stock/report/fmt";

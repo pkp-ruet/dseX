@@ -118,8 +118,8 @@ export function scoreHistorySummary(history: ScoreHistoryData): Bi | null {
  * "How the score has moved" — our score for this company on every trading
  * day since we started keeping it (9 Jul 2026), and each grade change with
  * the pillar that caused it (backend services/score_history.py). Rendered in
- * the stock page's full verdict, whose question row carries the free summary
- * line (`scoreHistorySummary`) and wraps this in `PremiumMask`.
+ * the stock report's quality section, inside its Premium panel; the free
+ * summary line is `scoreHistorySummary`.
  */
 export default function ScoreHistory({ history }: { history: ScoreHistoryData }) {
   const { bn } = useLang();

@@ -3,7 +3,7 @@
 import { IconAlert } from "@/components/ui/icons";
 import { T } from "@/components/i18n/T";
 import { Locked } from "@/components/stock/report/ReportSection";
-import { usePremiumOpen } from "@/components/premium/PremiumMask";
+import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 import { tx } from "@/components/stock/report/fmt";
 import type { RallyWarning } from "@/lib/stock-report";
 

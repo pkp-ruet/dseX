@@ -9,7 +9,6 @@ import { computeFeaturedIn } from "@/lib/featured-lists";
 import FeaturedInStrip from "@/components/stock/FeaturedInStrip";
 import HeroSection from "@/components/stock/HeroSection";
 import PriceChart from "@/components/stock/PriceChart";
-import VerdictBlock from "@/components/stock/VerdictBlock";
 import ValuationPanel from "@/components/stock/ValuationPanel";
 import CompanyFacts from "@/components/stock/CompanyFacts";
 import FinancialTrends from "@/components/stock/FinancialTrends";
@@ -22,8 +21,6 @@ import NewsSection from "@/components/stock/NewsSection";
 import StickySummaryBar from "@/components/stock/StickySummaryBar";
 import { type NavSection } from "@/components/stock/StockSectionNav";
 import StockVisitTracker from "@/components/analytics/StockVisitTracker";
-import StockChapter from "@/components/stock/StockChapter";
-import FullVerdict from "@/components/stock/FullVerdict";
 import DeepAnalysisReport from "@/components/stock/DeepAnalysisReport";
 import StockLockScope from "@/components/premium/LockScope";
 import Scorecard from "@/components/stock/report/Scorecard";
@@ -31,7 +28,6 @@ import StockReportBody from "@/components/stock/report/StockReportBody";
 import DataRoom, { type RoomPanel } from "@/components/stock/report/DataRoom";
 import { REPORT_PARTS } from "@/lib/stock-report";
 import { formatDate, money } from "@/lib/formatters";
-import { T } from "@/components/i18n/T";
 
 export const revalidate = 86400;
 export const dynamicParams = true;
@@ -268,10 +264,9 @@ export default async function StockDetailPage({ params }: PageProps) {
     : null;
 
   // --- Decide which sections render, then build the jump-nav from that ---------
-  // "Facts are free, our verdict is Premium" (2026-10-27): every judgement on
-  // the stock lives in ONE chapter (FullVerdict); the other chapters carry
-  // only public numbers and have no locks.
-  const hasVerdict = !!score_row;
+  // "Facts are free, our judgement is Premium": every judgement on the stock
+  // lives in the report's Premium panels; the data room carries only public
+  // numbers and has no locks.
   const hasValuation = financials.length > 0;
   const hasFinancials = financials.length > 0;
   const hasFacts =
@@ -281,7 +276,6 @@ export default async function StockDetailPage({ params }: PageProps) {
   const hasMomentum = !!momentum && momentum.momentum_grade !== "unknown";
   const hasPeers = (related_stocks?.length ?? 0) > 0;
 
-  const hasCompany = true; // ownership + news always render (with their own empty states)
   // Report mode (2026-10-28): the chips jump to the cover, the report's three
   // parts (2026-10-29 — one chip per part, not per check), the analyst note
   // and the data room.
@@ -295,74 +289,15 @@ export default async function StockDetailPage({ params }: PageProps) {
         { id: "ch-data", label: "Data", labelBn: "তথ্য" },
       ]
     : [];
-  const sections: NavSection[] = report ? reportSections : [
-    { id: "ch-overview", label: "Overview", labelBn: "এক নজরে" },
-    ...(hasVerdict ? [{ id: "ch-verdict", label: "Full verdict", labelBn: "পূর্ণ মূল্যায়ন" }] : []),
-    ...(hasValuation || hasMomentum || hasPeers
-      ? [{ id: "ch-value", label: "Price and value", labelBn: "দাম ও মূল্যায়ন" }]
-      : []),
-    ...(hasFinancials || hasDividends
-      ? [{ id: "ch-money", label: "Profit and dividends", labelBn: "মুনাফা ও ডিভিডেন্ড" }]
-      : []),
-    ...(hasCompany ? [{ id: "ch-company", label: "Company and news", labelBn: "কোম্পানি ও খবর" }] : []),
-  ];
-
-  // One plain line of facts under each chapter title — numbers that are free
-  // everywhere, never the locked analysis.
-  const joinBits = (bits: (string | null)[], sep: string) => bits.filter(Boolean).join(sep);
-  const peNow = valuation?.current_pe ?? num(score_row?.current_pe);
-  const hasPe = peNow != null && peNow > 0;
-  const hasYield = divYield != null && divYield > 0;
-  const valueLead =
-    hasPe || hasYield ? (
-      <T
-        en={`At today's price: ${joinBits(
-          [hasPe ? `P/E ${peNow!.toFixed(1)}` : null, hasYield ? `dividend yield ${divYield!.toFixed(1)}%` : null],
-          ", ",
-        )}.`}
-        bn={`আজকের দামে: ${joinBits(
-          [hasPe ? `পিই ${peNow!.toFixed(1)}` : null, hasYield ? `ডিভিডেন্ড ইল্ড ${divYield!.toFixed(1)}%` : null],
-          ", ",
-        )}।`}
-      />
-    ) : undefined;
-  const epsLatest = num(latestFin?.eps);
-  const hasCash = lastCashPct != null && lastCashPct > 0;
-  const moneyLead =
-    (epsLatest != null || hasCash) && latestFin?.year ? (
-      <T
-        en={`In ${latestFin.year}: ${joinBits(
-          [epsLatest != null ? `EPS ${money(epsLatest)}` : null, hasCash ? `cash dividend ${lastCashPct}%` : null],
-          ", ",
-        )}.`}
-        bn={`${latestFin.year} সালে: ${joinBits(
-          [epsLatest != null ? `ইপিএস ${money(epsLatest)}` : null, hasCash ? `নগদ ডিভিডেন্ড ${lastCashPct}%` : null],
-          ", ",
-        )}।`}
-      />
-    ) : undefined;
-  const cat = profile.market_category ? String(profile.market_category).toUpperCase() : null;
-  const companyLead =
-    cat || profile.listing_year || news.length ? (
-      <T
-        en={`${joinBits(
-          [
-            cat ? `Category ${cat}` : null,
-            profile.listing_year ? `listed since ${profile.listing_year}` : null,
-            news.length ? `${news.length} news ${news.length === 1 ? "item" : "items"}` : null,
-          ],
-          ", ",
-        )}.`}
-        bn={`${joinBits(
-          [
-            cat ? `${cat} ক্যাটাগরি` : null,
-            profile.listing_year ? `${profile.listing_year} সাল থেকে তালিকাভুক্ত` : null,
-            news.length ? `${news.length}টি খবর` : null,
-          ],
-          ", ",
-        )}।`}
-      />
-    ) : undefined;
+  // Without a report (it failed to build — every company had one on
+  // 2026-10-29) the page is the cover and the data room.
+  const sections: NavSection[] = report
+    ? reportSections
+    : [
+        { id: "ch-overview", label: "Overview", labelBn: "এক নজরে" },
+        ...(deepReport ? [{ id: "note", label: "Analyst note", labelBn: "বিশ্লেষকের নোট" }] : []),
+        { id: "ch-data", label: "Data", labelBn: "তথ্য" },
+      ];
 
   // Current stock as the highlighted first row of the peer comparison.
   const currentPeerRow = {
@@ -490,51 +425,14 @@ export default async function StockDetailPage({ params }: PageProps) {
 
       {/* The free report of the day opens every lock for everyone. In report
           mode every other lock on the page points at the one offer. */}
-      <StockLockScope code={profile.trading_code} anchor={report ? "ch-premium" : undefined}>
-      {report ? (
-        <>
-          {/* Cover: dateline, hero, the chart with every event pinned, the
-              scorecard (eight checks, words free) and the lists it is in. */}
-          <HeroSection detail={detail} />
-          <PriceChart code={profile.trading_code} events={report.events} />
-          <Scorecard detail={detail} report={report} />
-          <FeaturedInStrip entries={featuredIn} />
-
-          <StickySummaryBar
-            code={profile.trading_code}
-            score={score}
-            rank={num(score_row?.overall_rank)}
-            total={num(score_row?.total_scored)}
-            signal={detail.signal ?? null}
-            ltp={num(detail.latest_price.ltp)}
-            changePct={num(detail.latest_price.change_pct)}
-            sections={sections}
-          />
-
-          {/* The report: one section per check, free face + Premium body,
-              then the analyst note and the one offer (#ch-premium). */}
-          <StockReportBody detail={detail} report={report} deep={deepReport} />
-
-          {/* The data room: every raw number, in tabs, all free. */}
-          <DataRoom panels={roomPanels} />
-        </>
-      ) : (
-        <>
-      {/* Older backend (no report): the five-chapter page. */}
-
-      {/* Chapter 1 · Overview — hero (id ch-overview), the price story, the
-          "At a glance" card (score, grade, signal, take, five bars) and the
-          lists it appears in. Above the sticky chip row. */}
+      <StockLockScope code={profile.trading_code} anchor="ch-premium">
+      {/* Cover: dateline, hero, the chart with every event pinned, the
+          scorecard (eight checks, words free) and the lists it is in. */}
       <HeroSection detail={detail} />
-      <PriceChart code={profile.trading_code} />
-      <VerdictBlock detail={detail} />
+      <PriceChart code={profile.trading_code} events={report?.events} />
+      {report && <Scorecard detail={detail} report={report} />}
       <FeaturedInStrip entries={featuredIn} />
 
-      {/* The ONE sticky element: summary line (code · signal · price) above the
-          chapter chips. `.stock-sticky-stack` (globals.css) pins it under navbar +
-          the summary line's live height (--stock-bar-h), so the line's open/close
-          never changes the page's layout; the chip row's height is measured into
-          --stock-sticky-h for .stock-anchor. */}
       <StickySummaryBar
         code={profile.trading_code}
         score={score}
@@ -546,84 +444,22 @@ export default async function StockDetailPage({ params }: PageProps) {
         sections={sections}
       />
 
-      {/* Chapter 2 · The full verdict — the page's one Premium chapter. */}
-      {hasVerdict && <FullVerdict detail={detail} />}
-      {deepReport && (
-        <section id="note" className="stock-anchor mb-8">
-          <DeepAnalysisReport report={deepReport} fairValue={detail.fair_value ?? null} />
-        </section>
+      {/* The report: one section per check, free face + Premium body, then
+          the analyst note and the one offer (#ch-premium). The old five-chapter
+          page that stood in when there was no report was removed 2026-10-29
+          (the Free vs Premium plan, step 8). */}
+      {report ? (
+        <StockReportBody detail={detail} report={report} deep={deepReport} />
+      ) : (
+        deepReport && (
+          <section id="note" className="stock-anchor mb-8">
+            <DeepAnalysisReport report={deepReport} fairValue={detail.fair_value ?? null} code={profile.trading_code} />
+          </section>
+        )
       )}
 
-      {/* Chapter 3 · Price and value */}
-      {(hasValuation || hasMomentum || hasPeers) && (
-        <StockChapter id="ch-value" title={<T en="Price and value" bn="দাম ও মূল্যায়ন" />} lead={valueLead}>
-          {hasValuation && (
-            <>
-              <ValuationPanel
-                financials={financials}
-                latestPrice={detail.latest_price}
-                scoreRow={score_row}
-                valuation={valuation}
-                verdictHref={hasVerdict ? "#v-price" : undefined}
-              />
-            </>
-          )}
-          {hasMomentum && <MomentumStrip momentum={momentum} />}
-          {hasPeers && (
-            <PeerComparison
-              current={currentPeerRow}
-              peers={related_stocks}
-              sector={profile.sector}
-              note={detail.peer_note ?? null}
-            />
-          )}
-        </StockChapter>
-      )}
-
-      {/* Chapter 4 · Profits and dividends */}
-      {(hasFinancials || hasDividends) && (
-        <StockChapter id="ch-money" title={<T en="Profit and dividends" bn="মুনাফা ও ডিভিডেন্ড" />} lead={moneyLead}>
-          {hasFinancials && (
-            <div id="financials" className="stock-anchor">
-              <ProfitsAndDividends
-                financials={financials}
-                extFinancials={extended_financials}
-                declaration={dividend_declaration}
-              />
-              <FinancialTrends extFinancials={extended_financials} />
-            </div>
-          )}
-          {hasDividends && (
-            <DividendTimeline
-              code={profile.trading_code}
-              rows={dividendRows}
-              faceValue={num(profile.face_value)}
-              ltp={num(detail.latest_price.ltp)}
-            />
-          )}
-        </StockChapter>
-      )}
-
-      {/* Chapter 5 · Company and news */}
-      <StockChapter id="ch-company" title={<T en="Company and news" bn="কোম্পানি ও খবর" />} lead={companyLead}>
-        {hasFacts && (
-          <div id="numbers" className="stock-anchor">
-            <CompanyFacts detail={detail} />
-          </div>
-        )}
-        <div id="ownership" className="stock-anchor">
-          <ShareholdingPie
-            shareholding={shareholding}
-            previous={detail.shareholding_prev ?? null}
-            ownership={detail.ownership ?? null}
-          />
-        </div>
-        <div id="news" className="stock-anchor">
-          <NewsSection news={news} />
-        </div>
-      </StockChapter>
-        </>
-      )}
+      {/* The data room: every raw number, in tabs, all free. */}
+      <DataRoom panels={roomPanels} />
       </StockLockScope>
     </>
   );

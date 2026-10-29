@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import { IconBell, IconCheck, IconCrown } from "@/components/ui/icons";
-import { usePremiumOpen } from "@/components/premium/PremiumMask";
+import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 import { useLockScope } from "@/components/premium/LockScope";
 import ReportKeyButton from "@/components/premium/ReportKeyButton";
 import { T } from "@/components/i18n/T";

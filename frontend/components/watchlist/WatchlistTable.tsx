@@ -46,7 +46,7 @@ import SinceLastVisit from "./SinceLastVisit";
 import WatchTable, { sinceFollowed, type WatchRow } from "./WatchTable";
 import { toast } from "@/lib/toast";
 import { PREMIUM_PATH, usePremium } from "@/lib/premium";
-import { usePremiumOpen } from "@/components/premium/PremiumMask";
+import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 
 /*
  * /watchlist (styles: app/styles/watchlist.css, `wl-*`). Order: count + share

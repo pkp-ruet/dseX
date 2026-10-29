@@ -458,7 +458,8 @@ details[open] > .pm-fold-summary .pm-fold-chev { transform: rotate(180deg); }
 }
 .pm-foot { margin-top: var(--space-6); font-size: var(--fs-sm); color: var(--text-muted); }
 
-/* PremiumMask (the stock page's full verdict, 2026-10-27): the answer is
+/* Placeholder bars (the locked story frames in StoryViewer; PremiumMask was
+   deleted 2026-10-29). Originally the stock page's full verdict: the answer is
    hidden for free readers and a few placeholder bars stand in for it. */
 .premium-mask {
   display: flex;

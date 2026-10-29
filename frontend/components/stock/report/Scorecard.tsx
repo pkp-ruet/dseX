@@ -7,7 +7,7 @@ import SignalChip from "@/components/ui/SignalChip";
 import { IconLock } from "@/components/ui/icons";
 import { T } from "@/components/i18n/T";
 import { Locked } from "@/components/stock/report/ReportSection";
-import { usePremiumOpen } from "@/components/premium/PremiumMask";
+import { usePremiumOpen } from "@/components/premium/usePremiumOpen";
 import { TONE_CLASS, tx } from "@/components/stock/report/fmt";
 import { freeReportSections } from "@/lib/free-share";
 import type { CompanyDetail } from "@/lib/api";

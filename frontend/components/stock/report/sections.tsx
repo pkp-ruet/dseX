@@ -598,7 +598,7 @@ export function QualityBody({ detail }: { detail: CompanyDetail }) {
   if (!detail.score_row) return null;
   return (
     <div className="mt-4">
-      <HealthCheck scoreRow={detail.score_row} detail={detail} lockAfterFirst={false} />
+      <HealthCheck scoreRow={detail.score_row} detail={detail} />
     </div>
   );
 }
