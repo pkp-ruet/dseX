@@ -221,16 +221,29 @@ def build_dividend_calendar() -> dict:
         if e is not None
     ]
 
-    record_upcoming = [
+    # One row per company per date: a follow-up notice once folded this year's
+    # dates into last year's declaration (AMCL(PRAN), 2026-10), and the two rows
+    # then shared a React key. The ledger is newest first, so the latest wins.
+    def _once(rows: list[dict], field: str) -> list[dict]:
+        seen: set[tuple] = set()
+        out = []
+        for e in rows:
+            k = (e["trading_code"], str(e[field])[:10])
+            if k not in seen:
+                seen.add(k)
+                out.append(e)
+        return out
+
+    record_upcoming = _once([
         e for e in events
         if e.get("record_date") and today <= _to_date(e["record_date"]) <= horizon
-    ]
+    ], "record_date")
     record_upcoming.sort(key=lambda e: (e["record_date"], -(e.get("yield_pct") or 0)))
 
-    agm_upcoming = [
+    agm_upcoming = _once([
         e for e in events
         if e.get("agm_date") and today <= _to_date(e["agm_date"]) <= horizon
-    ]
+    ], "agm_date")
     agm_upcoming.sort(key=lambda e: e["agm_date"])
 
     decl_cutoff = today - timedelta(days=RECENT_DECLARATION_DAYS)

@@ -192,10 +192,14 @@ def pending_actions(holdings: list[dict], log: list[dict],
             auto = rd >= AUTO_SINCE
             cash_ps = float(a.get("cash_ps") or 0)
             stock = float(a.get("stock_pct") or 0)
+            # `seen` grows as we go: two ledger rows on one record date must
+            # never pay the dividend twice.
             if cash_ps > 0 and action_id("dividend", code, rd) not in seen:
+                seen.add(action_id("dividend", code, rd))
                 out.append({"id": action_id("dividend", code, rd), "kind": "dividend", "code": code,
                             "record_date": rd, "cash_ps": round(cash_ps, 4), "auto": auto})
             if stock > 0 and action_id("bonus", code, rd) not in seen:
+                seen.add(action_id("bonus", code, rd))
                 out.append({"id": action_id("bonus", code, rd), "kind": "bonus", "code": code,
                             "record_date": rd, "pct": round(stock, 4), "auto": auto})
     out.sort(key=lambda x: (x["record_date"], x["code"], 0 if x["kind"] == "dividend" else 1))

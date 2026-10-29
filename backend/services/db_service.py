@@ -350,6 +350,10 @@ def load_corporate_actions(days: int = 400) -> dict[str, list[dict]]:
             continue
         face = faces.get(d["trading_code"])
         face = float(face) if isinstance(face, (int, float)) and face > 0 else 10.0
+        # One action per record date — a duplicated ledger row would take the
+        # cash off the old prices twice.
+        if any(a["record_date"] == rd for a in out.get(d["trading_code"], [])):
+            continue
         out.setdefault(d["trading_code"], []).append({
             "record_date": rd, "cash_pct": cash, "stock_pct": stock,
             "cash_ps": round(cash * face / 100.0, 4),
