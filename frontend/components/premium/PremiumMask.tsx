@@ -21,7 +21,7 @@ const WIDTHS = ["92%", "78%", "86%", "64%", "72%"];
 /**
  * The stock page's lock (2026-10-27): a free reader sees a few calm
  * placeholder bars — never the real text blurred — and the answer itself is
- * hidden. Still screen-only like `PremiumGate`: the children stay in the HTML
+ * hidden. Still screen-only like `AnswerLock`: the children stay in the HTML
  * under `.premium-locked`, the selector the paywall JSON-LD names.
  */
 export default function PremiumMask({

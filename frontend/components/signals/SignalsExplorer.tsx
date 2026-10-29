@@ -229,7 +229,7 @@ export default function SignalsExplorer({ buy, sectors }: Props) {
                   </ul>
                 }
                 panel={
-                  <LockPanel
+                  <LockPanel job="find"
                     variant="full"
                     inset
                     title={{

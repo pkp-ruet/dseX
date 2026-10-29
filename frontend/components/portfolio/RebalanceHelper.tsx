@@ -3,7 +3,7 @@ import ScoreBadge from "@/components/ui/ScoreBadge";
 import SignalChip from "@/components/ui/SignalChip";
 import Chip from "@/components/ui/Chip";
 import PfCard from "./PfCard";
-import PremiumBlur from "@/components/premium/PremiumBlur";
+import AnswerLock from "@/components/premium/AnswerLock";
 import { money, takaGroup } from "@/lib/formatters";
 import type { AnalysisLang, RebalancePlan } from "@/lib/portfolio-analysis";
 
@@ -40,11 +40,29 @@ export default function RebalanceHelper({ plan, lang = "en" }: Props) {
         dataCard="rebalance"
       >
         <div className={bn ? "font-bn" : ""} lang={bn ? "bn" : undefined}>
+          {/* Whole or nothing: the gaps and the ideas sit behind one lock. */}
+          <AnswerLock
+            job="watch"
+            lock="Portfolio: what to buy next"
+            boxClassName="mx-4 mb-4 sm:mx-6"
+            lines={[
+              ...(plan.gaps.length > 0
+                ? [{
+                    en: `What your portfolio is missing: ${plan.gaps.length} gap${plan.gaps.length === 1 ? "" : "s"}`,
+                    bn: `আপনার পোর্টফোলিওতে যা কম: ${plan.gaps.length}টি`,
+                  }]
+                : []),
+              {
+                en: `${plan.picks.length || "The"} share${plan.picks.length === 1 ? "" : "s"} that pass every safety check and fit what you own`,
+                bn: `${plan.picks.length ? `${plan.picks.length}টি ` : ""}শেয়ার যা সব নিরাপত্তা যাচাই পার হয়েছে আর আপনার শেয়ারের সাথে মানায়`,
+              },
+              { en: "An example amount for each, with its one watch-out", bn: "প্রতিটির জন্য উদাহরণ পরিমাণ, আর একটি সতর্কতা" },
+            ]}
+          >
           {/* The gaps — or, with none, why these ideas */}
           {plan.gaps.length > 0 ? (
             <div className="px-4 pb-4 sm:px-6">
               <h4 className="text-sm font-bold text-text-main">{L("What your portfolio is missing", "আপনার পোর্টফোলিওতে যা কম")}</h4>
-              <PremiumBlur lang={lang} cta={false}>
               <ul className="mt-2 flex flex-col gap-2">
                 {plan.gaps.map((g, i) => (
                   <li key={i} className="flex items-start gap-3">
@@ -53,7 +71,6 @@ export default function RebalanceHelper({ plan, lang = "en" }: Props) {
                   </li>
                 ))}
               </ul>
-              </PremiumBlur>
             </div>
           ) : (
             <p className="px-4 pb-4 text-sm leading-relaxed text-text-main sm:px-6">
@@ -64,7 +81,6 @@ export default function RebalanceHelper({ plan, lang = "en" }: Props) {
             </p>
           )}
 
-          <PremiumBlur lang={lang}>
           {plan.picks.length === 0 ? (
             <p className="border-t border-cell-rule px-4 py-4 text-sm leading-relaxed text-text-main sm:px-6">
               {plan.noneReason}
@@ -158,7 +174,7 @@ export default function RebalanceHelper({ plan, lang = "en" }: Props) {
               ))}
             </ul>
           )}
-          </PremiumBlur>
+          </AnswerLock>
 
           <p className="border-t border-cell-rule px-4 py-3 text-xs leading-relaxed text-text-muted sm:px-6">
             {L(

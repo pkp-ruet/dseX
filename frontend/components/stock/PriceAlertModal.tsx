@@ -5,7 +5,7 @@ import { createAlert, updateAlert, deleteAlert, type PriceAlert } from "@/lib/pr
 import { toast } from "@/lib/toast";
 import Button from "@/components/ui/Button";
 import Sheet from "@/components/ui/Sheet";
-import PremiumLockCard from "@/components/premium/PremiumLockCard";
+import LockPanel from "@/components/premium/LockPanel";
 import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
 
@@ -184,7 +184,15 @@ export default function PriceAlertModal({ code, ltp, w52High, w52Low, existing, 
         )}
 
         {error && <p className="form-error">{error}</p>}
-        {atLimit && <PremiumLockCard label={{ en: "More than 3 price alerts", bn: "3টির বেশি প্রাইস অ্যালার্ট" }} compact />}
+        {atLimit && (
+          <LockPanel
+            job="watch"
+            card
+            count={0}
+            lock="Price alerts: limit"
+            title={{ en: "You have 3 price alerts, the free limit. Premium sets up to 50.", bn: "আপনার 3টি প্রাইস অ্যালার্ট আছে, যা ফ্রি সীমা। প্রিমিয়ামে 50টি পর্যন্ত।" }}
+          />
+        )}
 
         <div className="grid grid-cols-2 gap-2 mt-4">
           {existing ? (

@@ -679,7 +679,7 @@ export default function WatchTable({
       </table>
 
       {!open && read.length > 0 && (
-        <LockPanel
+        <LockPanel job="understand"
           variant="full"
           inset
           gutter

@@ -171,7 +171,7 @@ export default function ForYouCard({
               </ol>
             }
             panel={
-              <LockPanel
+              <LockPanel job="find"
                 title={{
                   en: t("en", lockKey, { n: rest.length, s: strong }),
                   bn: t("bn", lockKey, { n: rest.length, s: strong }),

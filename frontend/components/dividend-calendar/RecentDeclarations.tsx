@@ -46,7 +46,7 @@ export default function RecentDeclarations({
             <RowLock
               preview={<ul className="dc-list">{locked.slice(0, CALENDAR_PREVIEW_ROWS.declared).map((e) => row(e, true))}</ul>}
               panel={
-                <LockPanel
+                <LockPanel job="find"
                   title={
                     cashHidden > 0
                       ? {

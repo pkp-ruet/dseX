@@ -18,8 +18,7 @@ import { usePremiumOpen } from "@/components/premium/PremiumMask";
  * the panel go.
  *
  * Not for the reader's own stocks (portfolio, watchlist: hiding the name says
- * nothing there — `PremiumBlur`) or prose (the stock page's verdict —
- * `PremiumMask`). Server render and first paint are locked.
+ * nothing there) or prose: those use `AnswerLock`. Server render and first paint are locked.
  */
 export default function RowLock({
   preview,

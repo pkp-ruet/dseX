@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import type { FairValue } from "@/lib/api";
 import type { Lang } from "@/lib/lang";
 import { useLang } from "@/context/LangContext";
-import PremiumGate from "@/components/premium/PremiumGate";
+import AnswerLock from "@/components/premium/AnswerLock";
 import { T } from "@/components/i18n/T";
 
 interface Props {
@@ -29,7 +29,21 @@ const CONF: Record<"low" | "medium" | "high", { en: string; bn: string }> = {
 };
 
 function Gate({ on, label, children }: { on: boolean; label: { en: string; bn: string }; children: ReactNode }) {
-  return on ? <PremiumGate label={label} preview="blur">{children}</PremiumGate> : <>{children}</>;
+  return on ? (
+    <AnswerLock
+      job="understand"
+      lock="Fair value"
+      what={label}
+      lines={[
+        { en: "What the share should be worth, as a low–high range", bn: "শেয়ারটির ন্যায্য দাম কত হওয়া উচিত, কম–বেশি সীমায়" },
+        { en: "Whether today's price is below, near or above it, and how sure we are", bn: "আজকের দাম তার নিচে, কাছাকাছি না ওপরে, আর আমরা কতটা নিশ্চিত" },
+      ]}
+    >
+      {children}
+    </AnswerLock>
+  ) : (
+    <>{children}</>
+  );
 }
 
 function stanceColor(stance: string | null | undefined): string {

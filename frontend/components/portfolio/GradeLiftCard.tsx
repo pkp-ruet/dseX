@@ -1,5 +1,5 @@
 import PfCard from "./PfCard";
-import PremiumBlur from "@/components/premium/PremiumBlur";
+import AnswerLock from "@/components/premium/AnswerLock";
 import type { GradeLift } from "@/lib/portfolio-next";
 import type { AnalysisLang } from "@/lib/portfolio-analysis";
 
@@ -13,6 +13,8 @@ export default function GradeLiftCard({ lifts, lang }: { lifts: GradeLift[]; lan
   if (lifts.length === 0) return null;
   const bn = lang === "bn";
   const L = (en: string, b: string) => (bn ? b : en);
+  const n = lifts.length;
+  const from = lifts[0].fromGrade;
 
   return (
     <PfCard
@@ -25,7 +27,17 @@ export default function GradeLiftCard({ lifts, lang }: { lifts: GradeLift[]; lan
       lang={lang}
       dataCard="grade-lift"
     >
-      <PremiumBlur lang={lang}>
+      <AnswerLock
+        job="watch"
+        lock="Portfolio: grade lifts"
+        lines={[
+          {
+            en: `${n} change${n === 1 ? "" : "s"} that would lift your grade from ${from}, and to what`,
+            bn: `${n}টি পরিবর্তন যা আপনার গ্রেড ${from} থেকে বাড়াবে, আর কতটা`,
+          },
+          { en: "Which of your three scores each change moves", bn: "প্রতিটি পরিবর্তনে আপনার তিনটি স্কোরের কোনটি বদলায়" },
+        ]}
+      >
       <ul className={`pf-rows ${bn ? "font-bn" : ""}`} lang={bn ? "bn" : undefined}>
         {lifts.map((l) => (
           <li key={l.label} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:gap-4">
@@ -47,7 +59,7 @@ export default function GradeLiftCard({ lifts, lang }: { lifts: GradeLift[]; lan
           </li>
         ))}
       </ul>
-      </PremiumBlur>
+      </AnswerLock>
       <p className="pf-fine">
         {L(
           "An example to show what moves the grade, not a recommendation to trade. Fees and tax are not included.",

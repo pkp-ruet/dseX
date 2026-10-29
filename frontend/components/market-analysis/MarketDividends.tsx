@@ -81,7 +81,7 @@ export default function MarketDividends({ items }: { items: MarketDividendEvent[
         <RowLock
           preview={<div className="mk-rows">{items.slice(0, CALENDAR_PREVIEW_ROWS.market).map((d) => row(d, true))}</div>}
           panel={
-            <LockPanel
+            <LockPanel job="find"
               title={
                 open > 0
                   ? {

@@ -6,6 +6,7 @@ import { T } from "@/components/i18n/T";
 import { useLang } from "@/context/LangContext";
 import { bnDate } from "@/lib/bn";
 import RowLock from "@/components/premium/RowLock";
+import LockPanel from "@/components/premium/LockPanel";
 import { IconArrowRight, IconCheck, IconLock, IconStar } from "@/components/ui/icons";
 import type { MarketResearch, MarketResearchList } from "@/lib/api";
 import { formatDate } from "@/lib/formatters";
@@ -135,15 +136,14 @@ function Names({ list }: { list: MarketResearchList }) {
       <RowLock
         preview={<div className="mk-rows">{list.top.map((s) => row(s, true))}</div>}
         panel={
-          <a href={`#${ANCHOR}`} className="premium-inline-link">
-            <IconLock size={14} />
-            <span className="min-w-0 truncate">
-              <T en="Which companies these are" bn="এগুলো কোন কোম্পানি" />
-            </span>
-            <span className="shrink-0 font-semibold text-primary-ink">
-              <T en="In Premium" bn="প্রিমিয়ামে" />
-            </span>
-          </a>
+          <LockPanel
+            job="find"
+            count={list.top.length}
+            lock={`Market analysis: ${list.slug ?? "research list"}`}
+            href={`#${ANCHOR}`}
+            codes={list.top.map((s) => s.code)}
+            title={{ en: "See which companies these are", bn: "এগুলো কোন কোম্পানি, দেখুন" }}
+          />
         }
       >
         <div className="mk-rows">{list.top.map((s) => row(s))}</div>

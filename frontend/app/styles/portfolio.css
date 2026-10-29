@@ -289,31 +289,6 @@ a.pf-hold-name:hover { color: var(--primary-ink); }
 /* ---- Disclaimer ---- */
 .pf-disclaimer { margin: var(--space-6) 0 0; font-size: var(--fs-2xs); line-height: 1.6; color: var(--text-muted); text-align: center; }
 
-/* ---- Premium data blurred in place (PremiumBlur) ----
-   The card around it stays readable; only the data region blurs, at its full
-   height, with one "Unlock with Premium" button over it. */
-.pf-blur { position: relative; }
-.pf-blur[data-locked="true"] > .pf-blur-body {
-  filter: blur(5px);
-  user-select: none;
-  pointer-events: none;
-}
-.pf-blur-cta {
-  position: absolute; inset: 0; z-index: 1;
-  display: flex; align-items: flex-start; justify-content: center;
-  padding-top: clamp(12px, 18%, 64px);
-  pointer-events: none;
-}
-.pf-blur-btn {
-  pointer-events: auto;
-  display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px;
-  border: 1px solid var(--border); border-radius: 999px; background: var(--surface);
-  box-shadow: var(--shadow-lift);
-  font-size: var(--fs-sm); font-weight: 700; color: var(--primary-ink); text-decoration: none;
-}
-.pf-blur-btn:hover { border-color: var(--primary); }
-.pf-blur-btn:active { opacity: 0.8; }
-
 /* ---- Top of the analysis chapter (AnalysisTop) ----
    Open on the canvas like the money hero: the grade ring + its word + the
    headline, then ONE card with the three scores and the next move. */

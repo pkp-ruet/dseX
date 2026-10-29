@@ -108,7 +108,7 @@ export default function ScreenerNearMisses({
         <RowLock
           preview={<ul>{near.stocks.slice(0, 2).map((x) => row(x, true))}</ul>}
           panel={
-            <LockPanel
+            <LockPanel job="find"
               title={{
                 en: `See the companies behind the ${n} ${n === 1 ? "share" : "shares"} that almost passed`,
                 bn: `প্রায় পাস করা ${n}টি শেয়ারের কোম্পানি দেখুন`,

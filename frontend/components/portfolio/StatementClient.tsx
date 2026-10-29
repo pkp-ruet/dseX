@@ -8,7 +8,7 @@ import Chip from "@/components/ui/Chip";
 import Skeleton from "@/components/ui/Skeleton";
 import ErrorState from "@/components/ui/ErrorState";
 import { T } from "@/components/i18n/T";
-import PremiumGate from "@/components/premium/PremiumGate";
+import AnswerLock from "@/components/premium/AnswerLock";
 import { useAuth } from "@/context/AuthContext";
 import { useLang } from "@/context/LangContext";
 import { apiGetPortfolio, MAIN_PORTFOLIO_ID, type PortfolioResponse } from "@/lib/api";
@@ -129,14 +129,15 @@ export default function StatementClient() {
         ))}
       </div>
 
-      <PremiumGate
-        preview="blur"
-        peek={220}
-        label={{ en: "Your yearly statement", bn: "আপনার বার্ষিক হিসাব" }}
-        stakes={[
+      <AnswerLock
+        job="watch"
+        lock="Yearly statement"
+        what={{ en: "Your yearly statement", bn: "আপনার বার্ষিক হিসাব" }}
+        lines={[
           entries.length
-            ? { en: `${entries.length} entries for ${year}, with totals, fees and dividend tax`, bn: `${year} সালের ${entries.length}টি লেনদেন, মোট হিসাব, খরচ আর ডিভিডেন্ডের করসহ` }
-            : { en: `Every buy, sale and dividend for ${year}, ready to print`, bn: `${year} সালের প্রতিটি কেনা, বেচা আর ডিভিডেন্ড, প্রিন্টের জন্য তৈরি` },
+            ? { en: `${entries.length} entries for ${year}: every buy, sale, dividend and bonus`, bn: `${year} সালের ${entries.length}টি লেনদেন: প্রতিটি কেনা, বেচা, ডিভিডেন্ড আর বোনাস` }
+            : { en: `Every buy, sale and dividend for ${year}`, bn: `${year} সালের প্রতিটি কেনা, বেচা আর ডিভিডেন্ড` },
+          { en: "Totals with estimated fees and dividend tax, ready to print or download", bn: "আনুমানিক খরচ আর ডিভিডেন্ডের করসহ মোট হিসাব, প্রিন্ট বা ডাউনলোডের জন্য তৈরি" },
         ]}
       >
         <Card padding="none" className="statement-sheet p-5 sm:p-6">
@@ -251,7 +252,7 @@ export default function StatementClient() {
             <T en="Download CSV" bn="CSV ডাউনলোড করুন" />
           </Button>
         </div>
-      </PremiumGate>
+      </AnswerLock>
 
       <Link href="/portfolio" className="print-hide text-sm font-semibold text-primary-ink hover:underline">
         <T en="← Back to your portfolio" bn="← আপনার পোর্টফোলিওতে ফিরুন" />

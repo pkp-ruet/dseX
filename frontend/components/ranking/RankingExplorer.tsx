@@ -73,7 +73,7 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
   const L = (en: string, b: string) => (bn ? b : en);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  // Server render + first paint are locked, like PremiumGate.
+  // Server render + first paint are locked, like every lock.
   const unlocked = mounted && isPremium;
 
   // ---- URL ⇄ state: ?q=…&sector=…&tiers=excellent,good&sort=growth&dir=desc ----
@@ -308,7 +308,7 @@ export default function RankingExplorer({ items, counts, total, sectors }: Props
             />
           }
           panel={
-            <LockPanel
+            <LockPanel job="find"
               variant="full"
               title={{
                 en: `See the companies behind ${locked.length} more ${locked.length === 1 ? "rank" : "ranks"}`,

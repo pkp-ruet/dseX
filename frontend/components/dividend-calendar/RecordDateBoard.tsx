@@ -117,7 +117,7 @@ export default function RecordDateBoard({ events }: { events: CorporateActionEve
               className={`dc-gate ${cont ? "dc-gate--cont" : ""}`}
               preview={previewGroups.length > 0 ? <div className="dc-stack">{groups(previewGroups, "locked", true)}</div> : null}
               panel={
-                <LockPanel
+                <LockPanel job="find"
                   variant="full"
                   title={{
                     en: `See the companies behind ${locked} more record ${locked === 1 ? "date" : "dates"}`,

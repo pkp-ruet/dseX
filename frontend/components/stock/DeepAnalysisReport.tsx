@@ -2,7 +2,7 @@
 import type { DeepAnalysisReport as Report, DeepAnalysisSection, FairValue } from "@/lib/api";
 import Markdown from "@/lib/markdown";
 import ValueTodayBox from "@/components/stock/ValueTodayBox";
-import PremiumGate from "@/components/premium/PremiumGate";
+import AnswerLock from "@/components/premium/AnswerLock";
 import { PremiumPanel } from "@/components/stock/report/ReportSection";
 import type { Bi } from "@/lib/stock-report";
 import { T, TBlock } from "@/components/i18n/T";
@@ -156,7 +156,7 @@ export default function DeepAnalysisReport({ report, fairValue, code }: Props) {
       )}
 
       {/* The 10 durable sections, all expanded, takeaway as the lead line.
-          The first is free; the rest are Premium (screen-only PremiumGate). */}
+          The first is free; the rest are Premium (screen-only AnswerLock). */}
       <div className="space-y-8">
         {report.sections.slice(0, 1).map((s, i) => renderSection(s, i))}
       </div>
@@ -171,11 +171,17 @@ export default function DeepAnalysisReport({ report, fairValue, code }: Props) {
           </PremiumPanel>
         </div>
       ) : (
-        <PremiumGate label={{ en: "The rest of this report", bn: "বাকি বিশ্লেষণ" }} peek={220} className="mt-8">
+        <AnswerLock
+          job="understand"
+          lock="Analyst note"
+          what={{ en: "The rest of this report", bn: "বাকি বিশ্লেষণ" }}
+          lines={restLines(report.sections.slice(1))}
+          className="mt-8"
+        >
           <div className="space-y-8">
             {report.sections.slice(1).map((s, i) => renderSection(s, i + 1))}
           </div>
-        </PremiumGate>
+        </AnswerLock>
       ))}
 
       {/* Fine print */}

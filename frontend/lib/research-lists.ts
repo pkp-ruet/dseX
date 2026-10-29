@@ -9,7 +9,7 @@ import { changePct, changeTone, takaGroup } from "@/lib/formatters";
  *
  * Premium, fully: a free reader sees the idea and the checks (the funnel);
  * every stock, the side-by-side table and "what changed" sit behind
- * PremiumGate.
+ * `RowLock` (`components/research/ResearchLock.tsx`).
  */
 
 export interface ResearchListDef {

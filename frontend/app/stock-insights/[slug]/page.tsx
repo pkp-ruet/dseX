@@ -106,7 +106,7 @@ function buildResearchJsonLd(def: ResearchListDef, data: ResearchListDetail) {
       name: def.seoTitle,
       description: def.description,
       url,
-      // Paywall markup: every stock on a research list is Premium (PremiumGate).
+      // Paywall markup: every stock on a research list is Premium (RowLock).
       isAccessibleForFree: false,
       hasPart: { "@type": "WebPageElement", isAccessibleForFree: false, cssSelector: ".premium-locked" },
     },

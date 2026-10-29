@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Chip from "@/components/ui/Chip";
 import Stat from "@/components/ui/Stat";
-import PremiumBlur from "@/components/premium/PremiumBlur";
+import AnswerLock from "@/components/premium/AnswerLock";
 import PfCard from "./PfCard";
 import { taka, formatDate } from "@/lib/formatters";
 import type { PortfolioSignalEvent, PortfolioWatchEvent } from "@/lib/api";
@@ -216,9 +216,18 @@ export default function StockUpdates({
               </button>
             )}
             {locked.length > 0 && (
-              <PremiumBlur lang={lang} className={shown.length ? "mt-1" : ""}>
+              <AnswerLock
+                variant="line"
+                job="watch"
+                lock="Portfolio: stock updates"
+                className={shown.length ? "mt-1" : ""}
+                lines={[{
+                  en: `What happened in ${locked.length} more update${locked.length === 1 ? "" : "s"} on your shares, and what each means`,
+                  bn: `আপনার শেয়ারে আরও ${locked.length}টি খবরে কী ঘটেছে, আর প্রতিটির মানে`,
+                }]}
+              >
                 {list(locked)}
-              </PremiumBlur>
+              </AnswerLock>
             )}
             {isPremium && (
               <p className="pf-fine">

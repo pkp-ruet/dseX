@@ -168,7 +168,7 @@ export default function ScreenerResults({
                   </ul>
                 }
                 panel={
-                  <LockPanel
+                  <LockPanel job="find"
                     variant="full"
                     inset
                     gutter

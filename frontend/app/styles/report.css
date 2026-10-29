@@ -113,53 +113,7 @@
   background: currentColor;
 }
 
-/* ---- The Premium panel (2026-10-29, "whole or nothing") ---------------
-   Every section's Premium answer lives in this one gold panel, never mixed
-   into its free facts. Open: a gold rule + "Premium analysis", the answer
-   on the card like any content. Closed: a gold-tinted box naming what it
-   holds, one link to the offer. */
-.rp-pp { margin-top: var(--space-4); }
-.rp-pp[data-open="true"] {
-  padding-top: var(--space-4);
-  border-top: 1px solid rgb(var(--gold-rgb) / 0.55);
-}
-.rp-pp[data-open="false"] {
-  padding: var(--space-3) var(--space-4) var(--space-1);
-  border: 1px solid rgb(var(--gold-rgb) / 0.45);
-  border-radius: var(--radius-md);
-  background: rgb(var(--gold-rgb) / 0.07);
-}
-.rp-pp-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: var(--space-2);
-  color: var(--gold-ink);
-  font-size: var(--fs-xs);
-  font-weight: 700;
-}
-.rp-pp-tag {
-  margin-left: auto;
-  padding: 1px 10px;
-  border-radius: 999px;
-  background: rgb(var(--gold-rgb) / 0.16);
-  color: var(--gold-ink);
-  font-size: var(--fs-2xs);
-  font-weight: 700;
-  white-space: nowrap;
-}
-.rp-pp-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.rp-pp-list > li { position: relative; padding-left: 16px; }
-.rp-pp-list > li::before {
-  content: "";
-  position: absolute;
-  left: 2px;
-  top: 0.55em;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--gold);
-}
+/* The Premium panel moved to premium.css as `.ans` (AnswerLock, 2026-10-29). */
 
 /* ---- The map at the top of the report (free readers) ---------------- */
 .rp-guide {

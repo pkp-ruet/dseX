@@ -4,7 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { T } from "@/components/i18n/T";
-import { IconCrown, IconLock } from "@/components/ui/icons";
+import { IconLock } from "@/components/ui/icons";
+import { JobTag } from "@/components/premium/AnswerLock";
+import type { Job } from "@/lib/premium-jobs";
 import {
   PersonalCodesProvider,
   useHasPersonalCodes,
@@ -26,6 +28,8 @@ export const FROM_MONTH = Math.min(
 
 type Props = {
   variant?: "full" | "line";
+  /** Which of Premium's three jobs this lock belongs to (lib/premium-jobs.ts). */
+  job: Job;
   /** full: the headline · line: the whole sentence. */
   title: Pair;
   /** full only: what the whole list holds. */
@@ -84,6 +88,7 @@ export default function LockPanel(props: Props) {
 
 function Panel({
   variant = "line",
+  job,
   title,
   sub,
   tiles = [],
@@ -123,17 +128,17 @@ function Panel({
       (entries) => {
         if (seen.current || !entries.some((e) => e.isIntersecting)) return;
         seen.current = true;
-        trackEvent("premium_lock_view", { area, lock, state, stakes: count });
+        trackEvent("premium_lock_view", { area, lock, state, stakes: count, job });
         io.disconnect();
       },
       { threshold: 0.5 },
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [state, area, lock, count]);
+  }, [state, area, lock, count, job]);
 
   const onTap = () => {
-    trackEvent("premium_lock_tap", { area, lock, state, stakes: count });
+    trackEvent("premium_lock_tap", { area, lock, state, stakes: count, job });
     const stakes = [
       ...(what ? [title[lang]] : []),
       ...shown.map((t) => `${t.value} ${t.label[lang]}`),
@@ -149,6 +154,7 @@ function Panel({
           <IconLock size={16} />
         </span>
         <p className="lk-line-text">
+          <JobTag job={job} className="ans-job--inline" />
           <T en={title.en} bn={title.bn} />
           {mineLine && (
             <>
@@ -169,9 +175,7 @@ function Panel({
   const button = cta ?? { en: `See all ${count} with Premium`, bn: `প্রিমিয়ামে সব ${count}টি দেখুন` };
   return (
     <div ref={ref} className={inset ? `lk-panel lk-panel--inset ${gutter ? "lk-panel--gutter" : ""}`.trim() : "soft-card lk-panel"}>
-      <span className="lk-tag">
-        <IconCrown size={14} /> Premium
-      </span>
+      <JobTag job={job} className="lk-tag" />
       <p className="lk-head">
         <T en={title.en} bn={title.bn} />
       </p>

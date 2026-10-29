@@ -123,7 +123,7 @@ export default function DividendBoardCard({
       )}
 
       {hidden.length > 0 && (
-        <LockPanel
+        <LockPanel job="find"
           title={{ en: t("en", lockKey, { n: hidden.length }), bn: t("bn", lockKey, { n: hidden.length }) }}
           mine={hiddenMine}
           count={hidden.length}

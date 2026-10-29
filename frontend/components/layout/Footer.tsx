@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { T } from "@/components/i18n/T";
+import { PREMIUM_RULE } from "@/lib/premium-jobs";
 
 /**
  * Footer columns mirror the drawer (components/layout/Navbar.tsx NAV_GROUPS)
@@ -91,6 +92,14 @@ export default function Footer() {
                   bn="ঢাকা স্টক এক্সচেঞ্জের প্রতিটি কোম্পানির সহজ ও যত্নশীল বিশ্লেষণ।"
                 />
               </p>
+              {/* The free / Premium rule, said the same way on every page (lib/premium-jobs.ts). */}
+              <Link
+                href="/premium"
+                prefetch={false}
+                className="mt-2 inline-flex min-h-10 items-center text-sm font-semibold text-text-main hover:text-primary-ink hover:underline"
+              >
+                <T en={PREMIUM_RULE.en} bn={PREMIUM_RULE.bn} />
+              </Link>
               <a
                 href="mailto:topstockbd@gmail.com"
                 className="inline-flex items-center gap-2 mt-3 min-h-10 text-sm font-medium text-primary-ink hover:underline"

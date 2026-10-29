@@ -9,7 +9,7 @@ import AllocationChart from "./AllocationChart";
 import SectorBreakdownChart from "./SectorBreakdownChart";
 import HoldingsDetailed from "./HoldingsDetailed";
 import RebalanceHelper from "./RebalanceHelper";
-import PremiumBlur from "@/components/premium/PremiumBlur";
+import AnswerLock from "@/components/premium/AnswerLock";
 import PfCard from "./PfCard";
 
 /** Grade colour classes (app/styles/portfolio.css) — the one place a grade is coloured. */
@@ -228,9 +228,9 @@ interface SectionProps {
   items: string[];
   emptyText: string;
   bnMode: boolean;
-  /** Show only this many points; the rest stay in place, blurred, with a
-   *  with one "Unlock with Premium" button (`PremiumBlur`). `moreHref` is kept
-   *  for callers; the button follows the page's PageLockScope anchor. */
+  /** Show only this many points; the rest sit behind one `AnswerLock` line.
+   *  `moreHref` is kept for callers; the button follows the page's
+   *  PageLockScope anchor. */
   limit?: number;
   moreHref?: string;
 }
@@ -246,6 +246,10 @@ function Section({ title, tone, items, emptyText, bnMode, limit, moreHref }: Sec
   const shown = limit != null ? items.slice(0, limit) : items;
   const more = items.length - shown.length;
   const dot = TONE_DOT[tone];
+  // The reader's language is already picked here (`bnMode`), so one string serves both halves.
+  const moreLine = bnMode
+    ? `${shown.length ? "আরও " : ""}${more}টি কথা, "${title}" অংশে`
+    : `${more} ${shown.length ? "more " : ""}point${more === 1 ? "" : "s"} under "${title}"`;
   const list = (rows: string[]) => (
     <ul className="flex flex-col gap-3">
       {rows.map((item, i) => (
@@ -271,12 +275,17 @@ function Section({ title, tone, items, emptyText, bnMode, limit, moreHref }: Sec
           {shown.length > 0 && list(shown)}
           {more > 0 && (
             <>
-              {/* The rest of the points, blurred in place at full height with
-                  one "Unlock with Premium" button (the page's PageLockScope
-                  points it at #pf-premium). */}
-              <PremiumBlur lang={bnMode ? "bn" : "en"} className={shown.length ? "mt-3" : ""}>
+              {/* The rest of the points: one lock line (the page's
+                  PageLockScope points it at #pf-premium). */}
+              <AnswerLock
+                variant="line"
+                job="watch"
+                lock={`Portfolio: ${tone}`}
+                className={shown.length ? "mt-3" : ""}
+                lines={[{ en: moreLine, bn: moreLine }]}
+              >
                 {list(items.slice(shown.length))}
-              </PremiumBlur>
+              </AnswerLock>
             </>
           )}
         </>

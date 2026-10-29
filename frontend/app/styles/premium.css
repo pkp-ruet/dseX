@@ -1,21 +1,11 @@
-/* premium — the screen-only lock (components/premium/PremiumGate.tsx) and the
-   lock card. Tokens only. `.premium-locked` is also the cssSelector the paywall
-   JSON-LD names (stock page + deep-analysis page) — keep the class name. */
+/* premium — the screen-only locks (components/premium/AnswerLock.tsx,
+   RowLock.tsx) and the /premium page. Tokens only. `.premium-locked` is also
+   the cssSelector the paywall JSON-LD names — keep the class name.
+   Whole or nothing (2026-10-29): a locked body is hidden, never blurred or
+   faded; the lock beside it says what it holds. */
 
 .premium-locked { position: relative; }
-
-.premium-locked[data-locked="true"] > .premium-locked-body {
-  overflow: hidden;
-  pointer-events: none;
-  user-select: none;
-  -webkit-mask-image: linear-gradient(to bottom, #000 35%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 35%, transparent 100%);
-}
-.premium-locked[data-locked="true"][data-preview="blur"] > .premium-locked-body {
-  filter: blur(6px);
-  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
-}
+.premium-locked[data-locked="true"] > .premium-locked-body { display: none; }
 
 .premium-card {
   display: flex;
@@ -468,25 +458,8 @@ details[open] > .pm-fold-summary .pm-fold-chev { transform: rotate(180deg); }
 }
 .pm-foot { margin-top: var(--space-6); font-size: var(--fs-sm); color: var(--text-muted); }
 
-/* Inside a lock scope with an anchor (/market-analysis → #ma-premium): one
-   quiet line under the blurred preview, pointing at the page's single
-   Premium section. */
-.premium-inline-link {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 40px;
-  margin-top: 4px;
-  padding: 0 4px;
-  font-size: var(--fs-sm);
-  color: var(--text-muted);
-}
-.premium-inline-link:hover span:last-child { text-decoration: underline; }
-.premium-inline-link:active { opacity: 0.7; }
-
 /* PremiumMask (the stock page's full verdict, 2026-10-27): the answer is
    hidden for free readers and a few placeholder bars stand in for it. */
-.premium-locked[data-locked="true"][data-preview="mask"] > .premium-locked-body { display: none; }
 .premium-mask {
   display: flex;
   flex-direction: column;
@@ -548,3 +521,45 @@ details[open] > .pm-fold-summary .pm-fold-chev { transform: rotate(180deg); }
 @media (min-width: 640px) { .lk-panel--inset.lk-panel--gutter { padding: 20px 20px; } }
 /* A panel right under a list of cards or a table. */
 .lk-lock > .lk-panel, .lk-lock > .lk-line--card { margin-top: var(--space-3); }
+
+/* ===================================================================
+   AnswerLock (2026-10-29, the Free vs Premium plan): THE lock for an
+   explanation, a verdict or an analysis — grew out of the stock report's
+   Premium panel. Open: a gold rule + "Premium analysis", the answer on the
+   card like any content. Closed: a gold-tinted box naming the questions it
+   answers, its job tag, one link. Lists of other companies use RowLock.
+   =================================================================== */
+.ans { margin-top: var(--space-4); }
+.ans[data-open="true"] {
+  padding-top: var(--space-4);
+  border-top: 1px solid rgb(var(--gold-rgb) / 0.55);
+}
+.ans[data-open="false"] {
+  padding: var(--space-3) var(--space-4) var(--space-1);
+  border: 1px solid rgb(var(--gold-rgb) / 0.45);
+  border-radius: var(--radius-md);
+  background: rgb(var(--gold-rgb) / 0.07);
+}
+.ans-label {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: var(--space-2);
+  color: var(--gold-ink); font-size: var(--fs-xs); font-weight: 700;
+}
+.ans-tag {
+  margin-left: auto; padding: 1px 10px; border-radius: 999px;
+  background: rgb(var(--gold-rgb) / 0.16); color: var(--gold-ink);
+  font-size: var(--fs-2xs); font-weight: 700; white-space: nowrap;
+}
+.ans-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.ans-list > li { position: relative; padding-left: 16px; }
+.ans-list > li::before {
+  content: ""; position: absolute; left: 2px; top: 0.55em;
+  width: 6px; height: 6px; border-radius: 50%; background: var(--gold);
+}
+/* "Premium · Find": the crown and the job, on every lock. */
+.ans-job {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: var(--fs-2xs); font-weight: 700; color: var(--gold-ink); white-space: nowrap;
+}
+.ans-job--inline { margin-right: 8px; vertical-align: 1px; }
+.lk-line--answer { margin-top: var(--space-3); border-radius: var(--radius); border-top: 0; }

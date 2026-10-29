@@ -216,7 +216,7 @@ function Feed({ rows, counts }: { rows: LatestResultRow[]; counts: Record<Level,
           <RowLock
             preview={list(locked.slice(0, RESULTS_PREVIEW_ROWS), continues, true)}
             panel={
-              <LockPanel
+              <LockPanel job="find"
                 variant="full"
                 title={{
                   en: `See the companies behind ${lockedAll.length} more ${lockedAll.length === 1 ? "result" : "results"}`,

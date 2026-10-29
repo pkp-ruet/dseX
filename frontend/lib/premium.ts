@@ -7,7 +7,7 @@
  * ships the plan on the user from /me; this file only reads it.
  *
  * The stock-page and portfolio locks are screen-only by design (see CLAUDE.md
- * "Premium"): the data ships, `PremiumGate` hides it.
+ * "Premium"): the data ships, `AnswerLock` / `RowLock` hide it.
  */
 
 import { useMemo } from "react";

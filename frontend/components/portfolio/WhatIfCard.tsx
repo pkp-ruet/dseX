@@ -2,7 +2,7 @@
 
 import { useId, useMemo, useState } from "react";
 import PfCard from "./PfCard";
-import PremiumBlur from "@/components/premium/PremiumBlur";
+import AnswerLock from "@/components/premium/AnswerLock";
 import { takaGroup } from "@/lib/formatters";
 import { analyzePortfolio, type AnalysisLang, type ComputedRow, type PortfolioAnalysis } from "@/lib/portfolio-analysis";
 import type { ScoreItem } from "@/lib/api";
@@ -99,7 +99,7 @@ function GradeBox({ grade, muted = false }: { grade: PortfolioAnalysis["grade"];
  * three sub-scores, the spread and the biggest position before acting. Runs
  * the same `analyzePortfolio` engine as the grade above, on a copy of the
  * holdings priced at today's close. Nothing is saved. Premium: free readers can fill
- * the form; the result blurs in place (`PremiumBlur`).
+ * the form; the result sits behind an `AnswerLock`.
  */
 export default function WhatIfCard({
   rows,
@@ -249,7 +249,14 @@ export default function WhatIfCard({
         </div>
 
         {after ? (
-          <PremiumBlur lang={lang}>
+          <AnswerLock
+            job="watch"
+            lock="Portfolio: what-if"
+            lines={[
+              { en: "Your grade after this change, and whether it goes up or down", bn: "এই পরিবর্তনের পর আপনার গ্রেড, আর তা বাড়ে না কমে" },
+              { en: "How your spread, company quality and price paid move", bn: "আপনার বণ্টন, কোম্পানির মান আর কেনার দাম কীভাবে বদলায়" },
+            ]}
+          >
           <div className="rounded-lg bg-surface-2 p-4" aria-live="polite">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
@@ -292,7 +299,7 @@ export default function WhatIfCard({
               </p>
             )}
           </div>
-          </PremiumBlur>
+          </AnswerLock>
         ) : (
           <p className="text-sm text-text-muted">
             {L("Pick a stock to sell, a stock to buy, or both.", "বিক্রি বা কেনার জন্য একটি শেয়ার বাছুন, বা দুটোই।")}

@@ -5,9 +5,8 @@
  * already hold; no request of its own. Bilingual like the analysis (Western
  * digits inside Bengali prose).
  *
- * Rendered by `components/portfolio/ProInsights.tsx`, inside the portfolio
- * page's one PremiumGate for free accounts (`buildPremiumStakes` writes its
- * stakes).
+ * Rendered by `components/portfolio/ProInsights.tsx`, behind one `AnswerLock`
+ * for free accounts (`buildPremiumStakes` writes the page's stakes).
  */
 
 import type { AnalysisLang, HoldingInsight, PortfolioAnalysis } from "@/lib/portfolio-analysis";

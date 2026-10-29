@@ -89,7 +89,7 @@ export default async function MarketAnalysisPage() {
         isPartOf: { "@id": BASE_URL },
         primaryImageOfPage: OG_IMAGE,
         ...(data?.date ? { dateModified: data.date } : {}),
-        // Paywall markup: which companies pass each research list is Premium (PremiumGate).
+        // Paywall markup: which companies pass each research list is Premium (RowLock).
         ...(data?.research
           ? {
               isAccessibleForFree: false,

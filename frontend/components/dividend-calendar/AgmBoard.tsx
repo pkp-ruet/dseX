@@ -53,7 +53,7 @@ export default function AgmBoard({ events }: { events: CorporateActionEvent[] })
             </div>
           }
           panel={
-            <LockPanel
+            <LockPanel job="find"
               card
               title={
                 withCash > 0

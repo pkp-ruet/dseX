@@ -2,7 +2,7 @@ import Link from "next/link";
 import Chip from "@/components/ui/Chip";
 import { IconCrown } from "@/components/ui/icons";
 import PfCard from "./PfCard";
-import PremiumBlur from "@/components/premium/PremiumBlur";
+import AnswerLock from "@/components/premium/AnswerLock";
 import type { AnalysisLang } from "@/lib/portfolio-analysis";
 import type { ProActionKind, ProInsights as Insights, ProLine } from "@/lib/portfolio-pro";
 
@@ -59,15 +59,10 @@ function Block({
   title,
   sub,
   children,
-  lang,
-  cta = false,
 }: {
   title: string;
   sub?: string;
   children: React.ReactNode;
-  lang: AnalysisLang;
-  /** The one "Unlock with Premium" button of the card goes on the first block. */
-  cta?: boolean;
 }) {
   return (
     <div className="grid grid-cols-1 gap-3 py-5 first:pt-0 last:pb-0 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-6">
@@ -76,20 +71,32 @@ function Block({
         {sub && <p className="mt-1 text-sm leading-relaxed text-text-muted">{sub}</p>}
       </div>
       <div className="min-w-0">
-        {/* The title stays readable; only the findings blur for free readers. */}
-        <PremiumBlur lang={lang} cta={cta}>{children}</PremiumBlur>
+        {children}
       </div>
     </div>
   );
 }
 
-/** The premium portfolio read (lib/portfolio-pro.ts). Free readers see every
- *  check's title with its findings blurred in place (`PremiumBlur`). */
+/** The premium portfolio read (lib/portfolio-pro.ts). Free readers see the
+ *  card's title and one `AnswerLock` naming the checks it holds. */
 export default function ProInsights({ insights, lang = "en" }: { insights: Insights; lang?: AnalysisLang }) {
   const t = STR[lang];
   const bn = lang === "bn";
   const { risk, paid, income, vsMarket, actions } = insights;
-  const first = risk.length ? "risk" : paid.length ? "paid" : income.lines.length ? "income" : vsMarket.length ? "vs" : "actions";
+  const checks = [
+    risk.length > 0 && t.risk,
+    paid.length > 0 && t.paid,
+    income.lines.length > 0 && t.income,
+    vsMarket.length > 0 && t.vs,
+  ].filter(Boolean) as string[];
+  // The reader's language is already picked (`t`), so one string serves both halves.
+  const one = (x: string) => ({ en: x, bn: x });
+  const lockLines = [
+    ...(checks.length ? [one(bn ? `${checks.join(", ")}: আপনার পোর্টফোলিওতে কী পাওয়া গেল` : `${checks.join(", ")}: what we found on your portfolio`)] : []),
+    ...(actions.length
+      ? [one(bn ? `${t.actions}: আপনার ${actions.length}টি শেয়ারের প্রতিটিতে কী করবেন` : `${t.actions}: what to do with each of your ${actions.length} stocks`)]
+      : []),
+  ];
 
   return (
     <PfCard
@@ -105,21 +112,22 @@ export default function ProInsights({ insights, lang = "en" }: { insights: Insig
       }
     >
       <div className={bn ? "font-bn" : ""} lang={bn ? "bn" : undefined}>
+        <AnswerLock job="watch" lock="Portfolio: five deeper checks" lines={lockLines}>
         <div className="pf-rows border-t border-border pt-5">
           {risk.length > 0 && (
-            <Block title={t.risk} lang={lang} cta={first === "risk"}><Lines lines={risk} /></Block>
+            <Block title={t.risk}><Lines lines={risk} /></Block>
           )}
           {paid.length > 0 && (
-            <Block title={t.paid} lang={lang} cta={first === "paid"}><Lines lines={paid} /></Block>
+            <Block title={t.paid}><Lines lines={paid} /></Block>
           )}
           {income.lines.length > 0 && (
-            <Block title={t.income} lang={lang} cta={first === "income"}><Lines lines={income.lines} /></Block>
+            <Block title={t.income}><Lines lines={income.lines} /></Block>
           )}
           {vsMarket.length > 0 && (
-            <Block title={t.vs} lang={lang} cta={first === "vs"}><Lines lines={vsMarket} /></Block>
+            <Block title={t.vs}><Lines lines={vsMarket} /></Block>
           )}
           {actions.length > 0 && (
-            <Block title={t.actions} sub={t.actionsSub} lang={lang} cta={first === "actions"}>
+            <Block title={t.actions} sub={t.actionsSub}>
               <ul className="pf-rows">
                 {actions.map((a) => (
                   <li key={a.code} className="py-3 first:pt-0">
@@ -141,6 +149,7 @@ export default function ProInsights({ insights, lang = "en" }: { insights: Insig
             </Block>
           )}
         </div>
+        </AnswerLock>
         <p className="pf-fine pf-card-foot">{t.footer}</p>
       </div>
     </PfCard>

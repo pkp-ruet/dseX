@@ -4,11 +4,10 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { isFreeReport } from "@/lib/free-report";
 
 /**
- * A page-wide setting for every `PremiumGate` inside it.
+ * A page-wide setting for every `AnswerLock` inside it.
  *
- * `anchor` — the page has ONE Premium section (its id): each lock blurs in
- * place and shows a one-line link to that section instead of its own lock
- * card. The stock page had nine cards saying "This is part of Premium"; the
+ * `anchor` — the page has ONE Premium section (its id): each lock's button
+ * goes to that section instead of /premium. The stock page had nine cards saying "This is part of Premium"; the
  * portfolio page made the same move earlier (`#pf-premium`).
  *
  * `unlocked` — everything opens for everyone (the free report of the day).

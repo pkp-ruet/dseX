@@ -51,7 +51,7 @@ export default function TopCashDividends({ events }: { events: CorporateActionEv
                 </ul>
               }
               panel={
-                <LockPanel
+                <LockPanel job="find"
                   title={
                     bestHidden > 0
                       ? {

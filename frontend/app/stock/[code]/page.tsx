@@ -179,7 +179,7 @@ export default async function StockDetailPage({ params }: PageProps) {
   };
 
   // Paywall markup: part of the page (every `.premium-locked` block —
-  // components/premium/PremiumGate.tsx) is in the HTML but shown in full only
+  // components/premium/AnswerLock.tsx) is in the HTML but shown in full only
   // to Premium readers. Google's structured-data way of saying so.
   const webPageLd = {
     "@context": "https://schema.org",

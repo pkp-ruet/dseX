@@ -33,7 +33,7 @@ export default function ResearchLock({ children, preview, stocks, passed, checks
     <RowLock
       preview={preview}
       panel={
-        <LockPanel
+        <LockPanel job="find"
           variant="full"
           title={{
             en: `See the ${passed} ${passed === 1 ? "company" : "companies"} that pass all ${checks} checks`,
