@@ -5,6 +5,8 @@ import Link from "next/link";
 import Button from "@/components/ui/Button";
 import { IconBell, IconCheck, IconCrown } from "@/components/ui/icons";
 import { usePremiumOpen } from "@/components/premium/PremiumMask";
+import { useLockScope } from "@/components/premium/LockScope";
+import ReportKeyButton from "@/components/premium/ReportKeyButton";
 import { T } from "@/components/i18n/T";
 import { tx } from "@/components/stock/report/fmt";
 import { useLang } from "@/context/LangContext";
@@ -30,6 +32,8 @@ export default function ReportOffer({ code, name, lines }: { code: string; name:
   const { state, isPremium } = usePremium();
   const open = usePremiumOpen();
   const freeToday = open && !isPremium;
+  // Opened with one of the reader's report keys rather than today's free report.
+  const keyed = useLockScope()?.reason === "key";
   const ref = useRef<HTMLDivElement>(null);
   const seen = useRef(false);
   const [sample, setSample] = useState<string | null>(null);
@@ -77,11 +81,19 @@ export default function ReportOffer({ code, name, lines }: { code: string; name:
     <div ref={ref} id="ch-premium" className="rp-offer stock-anchor my-8">
       <p className="flex items-center gap-2 text-sm font-semibold text-gold-ink">
         <IconCrown size={16} />
-        {freeToday ? <T en="Today's free full report" bn="আজকের ফ্রি পূর্ণ রিপোর্ট" /> : <T en="Premium" bn="প্রিমিয়াম" />}
+        {freeToday ? (
+          keyed ? <T en="Your free full report" bn="আপনার ফ্রি পূর্ণ রিপোর্ট" /> : <T en="Today's free full report" bn="আজকের ফ্রি পূর্ণ রিপোর্ট" />
+        ) : (
+          <T en="Premium" bn="প্রিমিয়াম" />
+        )}
       </p>
       <h3 className="mt-1 text-xl font-bold leading-tight text-text-main sm:text-2xl">
         {freeToday ? (
-          <T en={`Every part of the report on ${name} is open today`} bn={`আজ ${name}-এর রিপোর্টের সব অংশ সবার জন্য খোলা`} />
+          keyed ? (
+            <T en={`Every part of the report on ${name} is open for you this week`} bn={`এ সপ্তাহে ${name}-এর রিপোর্টের সব অংশ আপনার জন্য খোলা`} />
+          ) : (
+            <T en={`Every part of the report on ${name} is open today`} bn={`আজ ${name}-এর রিপোর্টের সব অংশ সবার জন্য খোলা`} />
+          )
         ) : (
           <T en={`The full report on ${name}, and on every other DSE share`} bn={`${name}-এর পূর্ণ রিপোর্ট, আর ডিএসই-র প্রতিটি শেয়ারের`} />
         )}
@@ -126,6 +138,7 @@ export default function ReportOffer({ code, name, lines }: { code: string; name:
           {freeToday ? <T en="Get this on every share" bn="সব শেয়ারে এটি পান" /> : <T en="See Premium plans" bn="প্রিমিয়াম প্ল্যান দেখুন" />}
         </Button>
       </div>
+      {!freeToday && <ReportKeyButton code={code} className="mt-2" />}
       <p className="mt-3 text-sm text-text-muted">
         {state === "guest" ? (
           <T

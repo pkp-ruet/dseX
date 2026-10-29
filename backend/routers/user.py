@@ -134,6 +134,38 @@ def mark_ai_used(current_user: dict = Depends(get_current_user)):
 
 
 # ---------------------------------------------------------------------------
+# Report keys (2026-10-29): three full stock reports a month for free readers
+# ---------------------------------------------------------------------------
+
+@router.post("/report-keys/{code}")
+def open_report_key(code: str, current_user: dict = Depends(get_current_user)):
+    """Use one of the month's keys on a share's full report (7 days). Opening
+    a share that is already open costs nothing; a Premium reader needs none.
+    403 `limit_reached:report_keys` when the month's keys are spent."""
+    from backend.services.db_service import load_all_company_codes
+    from backend.services.entitlements import is_premium
+    from backend.services.report_keys import KEEP, LIMIT_REPORT_KEYS, keys_state, use_key
+
+    code = (code or "").strip().upper()
+    if not code or len(code) > 20 or code not in {c.upper() for c in load_all_company_codes()}:
+        raise HTTPException(status_code=404, detail="Unknown company")
+    now = datetime.now(timezone.utc)
+    keys = current_user.get("report_keys") or []
+    if is_premium(current_user):
+        return {"status": "premium", "report_keys": keys_state(keys, now)}
+    status, key = use_key(keys, code, now)
+    if status == "none_left":
+        raise HTTPException(status_code=403, detail=LIMIT_REPORT_KEYS)
+    if key:
+        get_db()["users"].update_one(
+            {"user_id": current_user["user_id"]},
+            {"$push": {"report_keys": {"$each": [key], "$slice": -KEEP}}},
+        )
+        keys = [*keys, key][-KEEP:]
+    return {"status": status, "report_keys": keys_state(keys, now)}
+
+
+# ---------------------------------------------------------------------------
 # Profile
 # ---------------------------------------------------------------------------
 

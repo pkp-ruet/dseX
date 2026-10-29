@@ -6,13 +6,14 @@ import { IconCrown } from "@/components/ui/icons";
 import { T } from "@/components/i18n/T";
 import { tx } from "@/components/stock/report/fmt";
 import type { Bi } from "@/lib/stock-report";
+import ReportKeyButton from "@/components/premium/ReportKeyButton";
 
 /**
  * The map at the top of the report for a free reader (2026-10-29): what is
  * free, what Premium adds, and which sections are open in full so they can
  * see a whole Premium answer. Nothing for a reader who sees everything.
  */
-export default function ReportGuide({ samples }: { samples: { key: string; label: Bi }[] }) {
+export default function ReportGuide({ samples, code }: { samples: { key: string; label: Bi }[]; code: string }) {
   const open = usePremiumOpen();
   if (open) return null;
   return (
@@ -61,6 +62,7 @@ export default function ReportGuide({ samples }: { samples: { key: string; label
           </>
         )}
       </p>
+      <ReportKeyButton code={code} className="mt-3" />
     </div>
   );
 }

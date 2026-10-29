@@ -2179,6 +2179,11 @@ export interface WeekWatch {
   free_items?: PortfolioWatchEvent[];
 }
 
+/** Use one of the month's report keys on a share (403 `limit_reached:report_keys` when spent). */
+export async function apiOpenReportKey(code: string): Promise<{ status: "ok" | "open" | "premium"; report_keys: import("@/lib/auth").ReportKeys }> {
+  return apiAuthFetch(`/api/user/report-keys/${encodeURIComponent(code)}`, { method: "POST" });
+}
+
 /** Auth-only. The dashboard paints from this + `/api/scores` + `/api/market/state`. */
 export async function apiGetHomeBundle(): Promise<HomeBundle> {
   return apiAuthFetch<HomeBundle>("/api/user/home");

@@ -139,7 +139,13 @@ export default function AnswerLock({
           <IconCrown size={14} />
           <T en="Premium analysis" bn="প্রিমিয়াম বিশ্লেষণ" />
           <span className="ans-tag">
-            {sample ? <T en="Free sample" bn="ফ্রি নমুনা" /> : <T en="Free today" bn="আজ ফ্রি" />}
+            {sample ? (
+              <T en="Free sample" bn="ফ্রি নমুনা" />
+            ) : scope?.reason === "key" ? (
+              <T en="Your free report" bn="আপনার ফ্রি রিপোর্ট" />
+            ) : (
+              <T en="Free today" bn="আজ ফ্রি" />
+            )}
           </span>
         </p>
         {children}

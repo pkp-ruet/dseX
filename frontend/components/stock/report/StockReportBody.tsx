@@ -145,7 +145,7 @@ export default function StockReportBody({
       {/* Older links to the report land on its first part. */}
       <span id="ch-verdict" className="stock-anchor block" aria-hidden="true" />
       <span id="ch-report" className="stock-anchor block" aria-hidden="true" />
-      <ReportGuide samples={sampleLinks} />
+      <ReportGuide samples={sampleLinks} code={code} />
       {shown.map((p) => {
         const items: ReactNode[] = p.keys.map(section);
         if (p.id === "ch-now") {

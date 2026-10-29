@@ -28,6 +28,24 @@ export interface AuthUser {
   paid_plan?: string | null;
   /** null = unlimited. */
   limits?: { watchlist: number | null; alerts: number | null; ai_daily: number | null; portfolios?: number | null; custom_lists?: number | null };
+  /** Three full stock reports a month for a free reader (backend/services/report_keys.py). */
+  report_keys?: ReportKeys;
+}
+
+export interface ReportKeys {
+  /** Dhaka month, "2026-10". */
+  month: string;
+  per_month: number;
+  used: number;
+  left: number;
+  /** Shares open now, each until its 7 days end. */
+  open: { code: string; until: string }[];
+}
+
+/** True when this reader opened `code` with a report key and its days aren't over. */
+export function hasReportKey(keys: ReportKeys | undefined, code: string): boolean {
+  const c = code.toUpperCase();
+  return !!keys?.open.some((o) => o.code === c && Date.parse(o.until) > Date.now());
 }
 
 /** Fired after something outside AuthContext stored a fresh user (e.g. a

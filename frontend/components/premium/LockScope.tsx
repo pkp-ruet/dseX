@@ -1,6 +1,8 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { hasReportKey } from "@/lib/auth";
 import { isFreeReport } from "@/lib/free-report";
 
 /**
@@ -10,9 +12,10 @@ import { isFreeReport } from "@/lib/free-report";
  * goes to that section instead of /premium. The stock page had nine cards saying "This is part of Premium"; the
  * portfolio page made the same move earlier (`#pf-premium`).
  *
- * `unlocked` — everything opens for everyone (the free report of the day).
+ * `unlocked` — everything opens (the free report of the day, or a report key
+ * the reader used on this share — `reason` says which).
  */
-type Scope = { anchor?: string; unlocked?: boolean };
+type Scope = { anchor?: string; unlocked?: boolean; reason?: "today" | "key" };
 
 const Ctx = createContext<Scope | null>(null);
 
@@ -26,10 +29,13 @@ export function PageLockScope({ anchor, children }: { anchor: string; children: 
 }
 
 /** The stock page's scope: the whole page opens when this is today's free
- *  report (decided after mount — the page is ISR). The stock page's locks are
- *  `PremiumMask`s inside its full verdict, so it passes no anchor. */
+ *  report, or when the reader opened it with one of the month's report keys
+ *  (2026-10-29). Decided after mount — the page is ISR. */
 export default function StockLockScope({ code, anchor, children }: { code: string; anchor?: string; children: ReactNode }) {
-  const [unlocked, setUnlocked] = useState(false);
-  useEffect(() => setUnlocked(isFreeReport(code)), [code]);
-  return <Ctx.Provider value={{ anchor, unlocked }}>{children}</Ctx.Provider>;
+  const { user } = useAuth();
+  const [today, setToday] = useState(false);
+  useEffect(() => setToday(isFreeReport(code)), [code]);
+  const keyed = hasReportKey(user?.report_keys, code);
+  const reason = keyed ? "key" : today ? "today" : undefined;
+  return <Ctx.Provider value={{ anchor, unlocked: !!reason, reason }}>{children}</Ctx.Provider>;
 }
